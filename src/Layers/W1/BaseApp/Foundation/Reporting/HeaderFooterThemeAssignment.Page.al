@@ -86,19 +86,21 @@ page 9667 "Header/Footer Theme Assignment"
         if not FeatureKeyManagement.IsDocumentReportExperienceEnabled() then
             Error(FeatureNotEnabledErr);
 
-        BodyLayoutReference := CopyStr(LayoutName, 1, MaxStrLen(TenantReportLayoutCfg."Layout Name"));
-
+        // Stage the current report-level configuration (empty Layout Name and Company Name) in a temporary record.
+        // Nothing is written to the persisted Tenant Report Layout Cfg table until the dialog is closed with OK
+        // (see OnQueryClosePage), so cancelling never changes the effective theme/header-footer.
         Rec.Reset();
         Rec.DeleteAll();
         Rec.Init();
         Rec."Report ID" := ReportID;
-        Rec."Layout Name" := BodyLayoutReference;
-        if TenantReportLayoutCfg.Get(ReportID, BodyLayoutReference, '') then begin
+        Rec."Layout Name" := CopyStr(LayoutName, 1, MaxStrLen(Rec."Layout Name"));
+        if TenantReportLayoutCfg.Get(ReportID, Rec."Layout Name", '') then begin
             Rec."Header Part Name" := TenantReportLayoutCfg."Header Part Name";
             Rec."Theme Part Name" := TenantReportLayoutCfg."Theme Part Name";
         end;
         Rec.Insert();
 
+        // Pin the card to exactly this report/layout configuration row so it opens on it and shows no prev/next navigation.
         Rec.SetRecFilter();
     end;
 
@@ -113,11 +115,14 @@ page 9667 "Header/Footer Theme Assignment"
         TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
         BothPartsEmpty: Boolean;
     begin
+        // Persist the staged selection only when the dialog is confirmed. On Cancel the temporary record is
+        // discarded and the effective configuration is left unchanged.
         if CloseAction <> Action::OK then
             exit(true);
 
         BothPartsEmpty := (Rec."Header Part Name" = '') and (Rec."Theme Part Name" = '');
-        if TenantReportLayoutCfg.Get(ReportID, BodyLayoutReference, '') then begin
+        if TenantReportLayoutCfg.Get(ReportID, CopyStr(LayoutName, 1, MaxStrLen(TenantReportLayoutCfg."Layout Name")), '') then begin
+            // Do not leave an empty per-report configuration row behind if the user cleared both parts.
             if BothPartsEmpty then
                 TenantReportLayoutCfg.Delete(true)
             else begin
@@ -129,7 +134,7 @@ page 9667 "Header/Footer Theme Assignment"
             if not BothPartsEmpty then begin
                 TenantReportLayoutCfg.Init();
                 TenantReportLayoutCfg."Report ID" := ReportID;
-                TenantReportLayoutCfg."Layout Name" := BodyLayoutReference;
+                TenantReportLayoutCfg."Layout Name" := CopyStr(LayoutName, 1, MaxStrLen(TenantReportLayoutCfg."Layout Name"));
                 TenantReportLayoutCfg."Header Part Name" := Rec."Header Part Name";
                 TenantReportLayoutCfg."Theme Part Name" := Rec."Theme Part Name";
                 TenantReportLayoutCfg.Insert(true);
@@ -171,7 +176,6 @@ page 9667 "Header/Footer Theme Assignment"
         LookupHelper: Codeunit "Composite Layout Lookup Helper";
         ReportID: Integer;
         LayoutName: Text;
-        BodyLayoutReference: Text[250];
         HeaderPartDisplay: Text;
         ThemePartDisplay: Text;
         FeatureNotEnabledErr: Label 'The Composite Layout feature is gated by the Document Report Experience preview. Enable it in Feature Management before opening this page.';
