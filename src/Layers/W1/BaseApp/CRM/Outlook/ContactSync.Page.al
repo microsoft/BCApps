@@ -401,21 +401,6 @@ page 7100 "Contact Sync"
                 end;
             }
 
-            action(ActionClearLastSync)
-            {
-                ApplicationArea = All;
-                Caption = 'Clear Last Sync';
-                Image = Delete;
-                InFooterBar = true;
-                Visible = Step = Step::Welcome;
-
-                trigger OnAction()
-                begin
-                    if Confirm(ClearLastSyncConfirmMsg) then
-                        ClearLastSyncForCurrentUser();
-                end;
-            }
-
             action(ActionFetch)
             {
                 ApplicationArea = All;
@@ -542,18 +527,6 @@ page 7100 "Contact Sync"
             end;
     end;
 
-    local procedure ClearLastSyncForCurrentUser()
-    var
-        ContactSyncUserRec: Record "Contact Sync User";
-    begin
-        ContactSyncUserRec.Reset();
-        ContactSyncUserRec.SetRange("User ID", CopyStr(UserId(), 1, 50));
-        if ContactSyncUserRec.FindSet() then
-            repeat
-                ContactSyncUserRec.Delete();
-            until ContactSyncUserRec.Next() = 0;
-    end;
-
     local procedure GoToStep(NewStep: Option)
     begin
         Step := NewStep;
@@ -678,7 +651,6 @@ page 7100 "Contact Sync"
         NewLineChar: Char;
         Deltalink: Text;
         SyncDirection: Enum "ContactSyncDirection";
-        ClearLastSyncConfirmMsg: Label 'This action will delete your last sync details. Click Yes to proceed.';
         ContactsSentToM365Count: Integer;
         ContactsSentToBCCount: Integer;
         ContactsFailedCount: Integer;
