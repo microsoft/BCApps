@@ -38,7 +38,7 @@ page 6993 "Posted Expense Report SubP."
                     Caption = 'Policy Status';
                     Editable = false;
                     Visible = PolicyEvaluationEnabled;
-                    ToolTip = 'Specifies the policy evaluation status captured when the expense was posted: Not Evaluated when the agent had not assessed it, Flagged when one or more policy flags were raised, or Cleared when it was evaluated and no flags were raised. Choose the value to see the policies that were evaluated for this expense.';
+                    ToolTip = 'Specifies the policy evaluation status captured when the expense was posted: Not Evaluated when the agent had not assessed it, Flagged when one or more policies were not met, or Cleared when all evaluated policies were met. Choose the value to see the policies that were evaluated for this expense.';
 
                     trigger OnDrillDown()
                     var

@@ -58,7 +58,7 @@ table 7105 "Posted Exp. Policy Flag"
         }
         field(9; "Flagged At"; DateTime)
         {
-            Caption = 'Flagged At';
+            Caption = 'Evaluated At';
             DataClassification = CustomerContent;
         }
         field(10; "Compliant"; Boolean)

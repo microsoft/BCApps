@@ -9,10 +9,10 @@ page 7105 "Posted Exp. Policy Flags API"
     APIGroup = 'expense';
     APIPublisher = 'microsoft';
     APIVersion = 'beta';
-    EntityCaption = 'Posted Expense Policy Flag';
-    EntitySetCaption = 'Posted Expense Policy Flags';
-    EntityName = 'postedExpensePolicyFlag';
-    EntitySetName = 'postedExpensePolicyFlags';
+    EntityCaption = 'Posted Expense Policy Evaluation';
+    EntitySetCaption = 'Posted Expense Policy Evaluations';
+    EntityName = 'postedExpensePolicyEvaluation';
+    EntitySetName = 'postedExpensePolicyEvaluations';
     PageType = API;
     ODataKeyFields = SystemId;
     Editable = false;
@@ -21,7 +21,7 @@ page 7105 "Posted Exp. Policy Flags API"
     ModifyAllowed = false;
     DataAccessIntent = ReadOnly;
     SourceTable = "Posted Exp. Policy Flag";
-    AboutText = 'Provides access to data from the Posted Expense Policy Flag table';
+    AboutText = 'Provides access to posted expense policy evaluation results';
 
     layout
     {
@@ -66,9 +66,9 @@ page 7105 "Posted Exp. Policy Flags API"
                 {
                     Caption = 'Reason';
                 }
-                field(flaggedAt; Rec."Flagged At")
+                field(evaluatedAt; Rec."Flagged At")
                 {
-                    Caption = 'Flagged At';
+                    Caption = 'Evaluated At';
                 }
                 field(compliant; Rec."Compliant")
                 {

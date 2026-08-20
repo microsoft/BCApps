@@ -52,7 +52,7 @@ page 6999 "Expense Report SubPage"
                     Editable = false;
                     StyleExpr = PolicyStatusStyleExpr;
                     Visible = PolicyEvaluationEnabled;
-                    ToolTip = 'Specifies the policy evaluation status for the expense: Not Evaluated when the agent has not assessed it yet, Flagged when one or more policy flags exist, or Cleared when it was evaluated and no flags were raised. Choose the value to see the policies that were evaluated for this expense.';
+                    ToolTip = 'Specifies the policy evaluation status for the expense: Not Evaluated when the agent has not assessed it yet, Flagged when one or more policies were not met, or Cleared when all evaluated policies were met. Choose the value to see the policies that were evaluated for this expense.';
 
                     trigger OnDrillDown()
                     var

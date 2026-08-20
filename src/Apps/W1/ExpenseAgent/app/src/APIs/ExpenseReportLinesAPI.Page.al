@@ -396,11 +396,11 @@ page 6929 "Expense Report Lines API"
                     SubPageLink = "Expense Report No." = field("Document No."),
                                   "Report Line No." = field("Line No.");
                 }
-                part(expensePolicyFlags; "Expense Policy Flags API")
+                part(expensePolicyEvaluations; "Expense Policy Flags API")
                 {
-                    Caption = 'Expense Policy Flags';
-                    EntityName = 'expensePolicyFlag';
-                    EntitySetName = 'expensePolicyFlags';
+                    Caption = 'Expense Policy Evaluations';
+                    EntityName = 'expensePolicyEvaluation';
+                    EntitySetName = 'expensePolicyEvaluations';
                     SubPageLink = "Subject System Id" = field(SystemId), "Subject Type" = const("Expense Report Line"), "Subject Version" = field("Policy Eval Version");
                 }
                 part(policiesToEvaluate; "Exp. Policies To Eval API")

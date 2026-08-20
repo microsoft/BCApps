@@ -8,7 +8,7 @@ page 7106 "Posted Exp. Policy Flag Card"
 {
     PageType = Card;
     SourceTable = "Posted Exp. Policy Flag";
-    Caption = 'Policy Flag Details';
+    Caption = 'Policy Evaluation Details';
     Editable = false;
     InsertAllowed = false;
     ModifyAllowed = false;
@@ -26,22 +26,23 @@ page 7106 "Posted Exp. Policy Flag Card"
                 field("Subject Type"; Rec."Subject Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the type of record this policy flag belongs to.';
+                    ToolTip = 'Specifies the type of record this policy evaluation belongs to.';
                 }
                 field(Compliant; Rec.Compliant)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether the expense complied with this policy when it was evaluated. When cleared, the policy was flagged.';
+                    ToolTip = 'Specifies whether the expense complied with this policy when it was evaluated.';
                 }
                 field("Expense Category Code"; Rec."Expense Category Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the expense category the flagged policy applies to.';
+                    ToolTip = 'Specifies the expense category the evaluated policy applies to.';
                 }
                 field("Flagged At"; Rec."Flagged At")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies when this policy flag was created.';
+                    Caption = 'Evaluated At';
+                    ToolTip = 'Specifies when the policy was evaluated.';
                 }
             }
             group(Policy)
@@ -51,13 +52,13 @@ page 7106 "Posted Exp. Policy Flag Card"
                 field("Policy Text"; Rec."Policy Text")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the policy text that the AI evaluated, captured when the flag was created. It is preserved even if the policy changes later.';
+                    ToolTip = 'Specifies the policy text that the AI evaluated. It is preserved even if the policy changes later.';
                     MultiLine = true;
                 }
                 field(Reason; Rec.Reason)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the reason this policy was flagged for the expense.';
+                    ToolTip = 'Specifies the reason for the policy evaluation result.';
                     MultiLine = true;
                 }
             }

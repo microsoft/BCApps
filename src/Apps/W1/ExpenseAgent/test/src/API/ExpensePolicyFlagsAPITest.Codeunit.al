@@ -20,7 +20,7 @@ codeunit 148344 "Expense Policy Flags API Test"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
         IsInitialized: Boolean;
-        ServiceNameTok: Label 'expensePolicyFlags', Locked = true;
+        ServiceNameTok: Label 'expensePolicyEvaluations', Locked = true;
         BadRequestResponseErr: Label 'Response code is 400', Locked = true;
 
     [Test]

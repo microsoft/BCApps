@@ -58,7 +58,7 @@ table 7096 "Expense Policy Flag"
         }
         field(9; "Flagged At"; DateTime)
         {
-            Caption = 'Flagged At';
+            Caption = 'Evaluated At';
             DataClassification = CustomerContent;
             Editable = false;
         }

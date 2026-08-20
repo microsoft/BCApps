@@ -25,7 +25,7 @@ page 7124 "Expense Policy Flags"
                 field(Compliant; Rec.Compliant)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies whether the expense complied with this policy when it was evaluated. When cleared, the policy was flagged.';
+                    ToolTip = 'Specifies whether the expense complied with this policy when it was evaluated.';
                 }
                 field("Expense Category Code"; Rec."Expense Category Code")
                 {
@@ -35,8 +35,8 @@ page 7124 "Expense Policy Flags"
                 field(Reason; Rec.Reason)
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Reason Flagged';
-                    ToolTip = 'Specifies the reason this policy was flagged for the expense. Choose the value to see the full flag details.';
+                    Caption = 'Reason';
+                    ToolTip = 'Specifies the reason for the policy evaluation result. Choose the value to see the full details.';
                     StyleExpr = ReasonStyleExpr;
 
                     trigger OnDrillDown()
@@ -55,7 +55,8 @@ page 7124 "Expense Policy Flags"
                 field("Flagged At"; Rec."Flagged At")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies when this policy flag was created.';
+                    Caption = 'Evaluated At';
+                    ToolTip = 'Specifies when the policy was evaluated.';
                 }
             }
         }
@@ -63,7 +64,7 @@ page 7124 "Expense Policy Flags"
 
     trigger OnAfterGetRecord()
     begin
-        // Only a flagged (non-compliant) result carries an unfavorable meaning; compliant rows keep
+        // Only a non-compliant result carries an unfavorable meaning; compliant rows keep
         // the default style so the colour is not mismatched to the reason text.
         if Rec.Compliant then
             ReasonStyleExpr := ''

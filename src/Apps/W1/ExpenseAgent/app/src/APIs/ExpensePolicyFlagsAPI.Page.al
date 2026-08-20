@@ -9,15 +9,15 @@ page 7126 "Expense Policy Flags API"
     APIGroup = 'expense';
     APIPublisher = 'microsoft';
     APIVersion = 'beta';
-    EntityCaption = 'Expense Policy Flag';
-    EntitySetCaption = 'Expense Policy Flags';
+    EntityCaption = 'Expense Policy Evaluation';
+    EntitySetCaption = 'Expense Policy Evaluations';
     DelayedInsert = true;
-    EntityName = 'expensePolicyFlag';
-    EntitySetName = 'expensePolicyFlags';
+    EntityName = 'expensePolicyEvaluation';
+    EntitySetName = 'expensePolicyEvaluations';
     PageType = API;
     ODataKeyFields = SystemId;
     SourceTable = "Expense Policy Flag";
-    AboutText = 'Provides access to data from the Expense Policy Flag table';
+    AboutText = 'Provides access to expense policy evaluation results';
     InsertAllowed = true;
     ModifyAllowed = false;
     DeleteAllowed = false;
@@ -67,9 +67,9 @@ page 7126 "Expense Policy Flags API"
                 {
                     Caption = 'Reason';
                 }
-                field(flaggedAt; Rec."Flagged At")
+                field(evaluatedAt; Rec."Flagged At")
                 {
-                    Caption = 'Flagged At';
+                    Caption = 'Evaluated At';
                     Editable = false;
                 }
                 field(compliant; Rec."Compliant")
