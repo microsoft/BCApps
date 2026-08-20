@@ -86,7 +86,7 @@ codeunit 9667 "Composite Report Parts Mgt."
         TelemetryDimensions.Add('Error', ErrorText);
         Session.LogMessage(
             '0000V42', PartNotSeededTxt, Verbosity::Error, DataClassification::SystemMetadata,
-            TelemetryScope::ExtensionPublisher, TelemetryDimensions);
+            TelemetryScope::All, TelemetryDimensions);
     end;
 
     /// <summary>

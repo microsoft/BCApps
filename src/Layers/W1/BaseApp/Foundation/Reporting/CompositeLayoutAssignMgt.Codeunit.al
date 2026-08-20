@@ -245,7 +245,7 @@ codeunit 9668 "Composite Layout Assign. Mgt."
         TelemetryDimensions.Add('LayoutName', LayoutName);
         Session.LogMessage(
             '0000V40', this.UnresolvedLayoutTxt, Verbosity::Warning, DataClassification::SystemMetadata,
-            TelemetryScope::ExtensionPublisher, TelemetryDimensions);
+            TelemetryScope::All, TelemetryDimensions);
     end;
 
     local procedure LogUnresolvedPart(PartName: Text; Subtype: Enum "Report Layout Subtype")
@@ -256,7 +256,7 @@ codeunit 9668 "Composite Layout Assign. Mgt."
         TelemetryDimensions.Add('LayoutSubtype', Format(Subtype, 0, 9));
         Session.LogMessage(
             '0000V41', this.UnresolvedPartTxt, Verbosity::Error, DataClassification::SystemMetadata,
-            TelemetryScope::ExtensionPublisher, TelemetryDimensions);
+            TelemetryScope::All, TelemetryDimensions);
     end;
 
     var
