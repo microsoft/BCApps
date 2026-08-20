@@ -750,6 +750,7 @@ codeunit 137310 "SCM Manufacturing Reports -II"
         ProdOrderStatusMgt: Codeunit "Prod. Order Status Management";
         ExpectedExpensedWIP: Decimal;
     begin
+        // [AI] 0.2
         // [SCENARIO 604329] When a production order is finished with no output, the "Inventory Valuation - WIP" report must
         // present the written-off WIP in the "Expensed WIP" column, show a zero ending WIP ("As of End Date") and must not
         // repeat that amount in the Consumption column.
@@ -796,6 +797,123 @@ codeunit 137310 "SCM Manufacturing Reports -II"
         LibraryReportDataset.AssertCurrentRowValueEquals('ExpensedWIP', ExpectedExpensedWIP);
         LibraryReportDataset.AssertCurrentRowValueEquals('AtLastDate', 0);
         LibraryReportDataset.AssertCurrentRowValueEquals('ValueOfMatConsump', 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpCostPostingConfirmHandler,ExpCostPostingMsgHandler,InventoryValuationWIPRequestPageHandler')]
+    procedure InventoryValuationWIPReportForMixedOutputAndNoOutputLines()
+    var
+        InventorySetup: Record "Inventory Setup";
+        OutputItem: Record Item;
+        NoOutputItem: Record Item;
+        ProductionOrder: Record "Production Order";
+        OutputProdOrderLine: Record "Prod. Order Line";
+        NoOutputProdOrderLine: Record "Prod. Order Line";
+        ProdOrderStatusMgt: Codeunit "Prod. Order Status Management";
+        ExpectedExpensedWIP: Decimal;
+        ExpectedMatConsumption: Decimal;
+    begin
+        // [AI] 0.2
+        // [SCENARIO 604329] When a production order is finished with mixed lines (one line produced output, one line produced
+        // none), the "Inventory Valuation - WIP" report must expense only the no-output line's WIP and still report the output
+        // line's material consumption, instead of treating the whole order as finished with or without output.
+        Initialize();
+
+        // [GIVEN] "Allow Finish Prod. Order with no Output" is enabled and expected/automatic cost posting is on.
+        ExecuteUIHandlers();
+        LibraryManufacturing.UpdateFinishOrderWithoutOutputInManufacturingSetup(true);
+        UpdateInventorySetup(true, true, InventorySetup."Automatic Cost Adjustment"::Never);
+
+        // [GIVEN] Two manufacturing Items, each with a component, Routing and Production BOM.
+        CreateProdOrderItemsSetup(OutputItem);
+        CreateProdOrderItemsSetup(NoOutputItem);
+
+        // [GIVEN] One released Production Order with two lines - one line per item.
+        CreateReleasedProductionOrderWithTwoLines(
+          ProductionOrder, OutputProdOrderLine, NoOutputProdOrderLine, OutputItem."No.", NoOutputItem."No.");
+
+        // [GIVEN] Consumption is posted for both lines.
+        CreateAndPostConsumptionJournal(ProductionOrder."No.");
+
+        // [GIVEN] Output is posted for the first line only; the second line stays without output.
+        PostOutputForProdOrderLine(OutputProdOrderLine);
+
+        // [GIVEN] The order is finished without output, so only the no-output line's WIP is written off.
+        ProdOrderStatusMgt.SetFinishOrderWithoutOutput(true);
+        ProdOrderStatusMgt.ChangeProdOrderStatus(ProductionOrder, ProductionOrder.Status::Finished, WorkDate(), true);
+
+        // [GIVEN] The expensed WIP equals the no-output line's consumption; the reported consumption equals the output line's.
+        ExpectedExpensedWIP := -ConsumptionCostForProdOrderLine(ProductionOrder."No.", NoOutputProdOrderLine."Line No.");
+        ExpectedMatConsumption := -ConsumptionCostForProdOrderLine(ProductionOrder."No.", OutputProdOrderLine."Line No.");
+
+        // [WHEN] Running the "Inventory Valuation - WIP" report for the finished order.
+        RunAndSaveInventoryValuationWIPReport(ProductionOrder);
+
+        // [THEN] Only the no-output line's WIP is shown in "Expensed WIP", and the output line's consumption is still reported.
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.SetRange('No_ProductionOrder', ProductionOrder."No.");
+        Assert.IsTrue(LibraryReportDataset.GetNextRow(), 'Report produced no row for the finished production order.');
+        LibraryReportDataset.AssertCurrentRowValueEquals('ExpensedWIP', ExpectedExpensedWIP);
+        LibraryReportDataset.AssertCurrentRowValueEquals('ValueOfMatConsump', ExpectedMatConsumption);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpCostPostingConfirmHandler,ExpCostPostingMsgHandler,InventoryValuationWIPRequestPageHandler')]
+    procedure InventoryValuationWIPReportForNoOutputOrderFinishedBeforePeriod()
+    var
+        InventorySetup: Record "Inventory Setup";
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ConsumptionValueEntry: Record "Value Entry";
+        ProdOrderStatusMgt: Codeunit "Prod. Order Status Management";
+        WrittenOffWIP: Decimal;
+    begin
+        // [AI] 0.2
+        // [SCENARIO 604329] When a no-output production order was finished BEFORE the report's Start Date, its written-off WIP
+        // must be removed from the opening ("LastWIP") and ending ("As of End Date") WIP sums and must NOT be reported again in
+        // the "Expensed WIP" column (the write-off belongs to an earlier period).
+        Initialize();
+
+        // [GIVEN] "Allow Finish Prod. Order with no Output" is enabled and expected/automatic cost posting is on.
+        ExecuteUIHandlers();
+        LibraryManufacturing.UpdateFinishOrderWithoutOutputInManufacturingSetup(true);
+        UpdateInventorySetup(true, true, InventorySetup."Automatic Cost Adjustment"::Never);
+
+        // [GIVEN] A manufacturing Item with a component, Routing and Production BOM, and a released Production Order.
+        CreateProdOrderItemsSetup(Item);
+        CreateAndRefreshProductionOrder(ProductionOrder, ProductionOrder.Status::Released, Item."No.", LibraryRandom.RandIntInRange(2, 5));
+
+        // [GIVEN] Only consumption is posted (this becomes the written-off WIP) with a non-zero cost.
+        CreateAndPostConsumptionJournal(ProductionOrder."No.");
+        ConsumptionValueEntry.SetRange("Order Type", ConsumptionValueEntry."Order Type"::Production);
+        ConsumptionValueEntry.SetRange("Order No.", ProductionOrder."No.");
+        ConsumptionValueEntry.SetRange("Item Ledger Entry Type", ConsumptionValueEntry."Item Ledger Entry Type"::Consumption);
+        ConsumptionValueEntry.CalcSums("Cost Amount (Actual)");
+        WrittenOffWIP := -ConsumptionValueEntry."Cost Amount (Actual)";
+        Assert.IsTrue(WrittenOffWIP > 0, 'Consumption WIP should be positive.');
+
+        // [GIVEN] The order is finished without output on WORKDATE (its WIP is written off). Cost is left unadjusted so the
+        // finished order still carries a pending inventory adjustment entry and stays in the report in a later period.
+        ProdOrderStatusMgt.SetFinishOrderWithoutOutput(true);
+        ProdOrderStatusMgt.ChangeProdOrderStatus(ProductionOrder, ProductionOrder.Status::Finished, WorkDate(), true);
+
+        // [WHEN] Running the report for a period that starts AFTER the finish date (Finished Date < Start Date).
+        Commit();
+        RunAndSaveInventoryValuationWIPReportWithPeriod(ProductionOrder, WorkDate() + 1, WorkDate() + 1);
+
+        // [THEN] The finished order is still listed (kept by its pending inventory adjustment entry) but shows no WIP: the
+        // write-off is removed from the opening ("LastWIP") and ending ("As of End Date") sums and is not reported as expensed.
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.SetRange('No_ProductionOrder', ProductionOrder."No.");
+        Assert.IsTrue(LibraryReportDataset.GetNextRow(), 'Report produced no row for the finished production order.');
+        LibraryReportDataset.AssertCurrentRowValueEquals('LastWIP', 0);
+        LibraryReportDataset.AssertCurrentRowValueEquals('AtLastDate', 0);
+        LibraryReportDataset.AssertCurrentRowValueEquals('ExpensedWIP', 0);
+
+        LibraryReportDataset.Reset();
+        LibraryReportDataset.AssertElementWithValueExists('LatWipSum', 0);
+        LibraryReportDataset.AssertElementWithValueExists('AtLastDateSum', 0);
+        LibraryReportDataset.AssertElementWithValueExists('ExpensedWIPSum', 0);
     end;
 
     local procedure Initialize()
@@ -975,6 +1093,53 @@ codeunit 137310 "SCM Manufacturing Reports -II"
         LibraryInventory.PostItemJournalLine(OutputItemJournalBatch."Journal Template Name", OutputItemJournalBatch.Name);
     end;
 
+    local procedure CreateReleasedProductionOrderWithTwoLines(var ProductionOrder: Record "Production Order"; var FirstProdOrderLine: Record "Prod. Order Line"; var SecondProdOrderLine: Record "Prod. Order Line"; FirstItemNo: Code[20]; SecondItemNo: Code[20])
+    begin
+        LibraryManufacturing.CreateProductionOrder(
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, '', 0);
+        LibraryManufacturing.CreateProdOrderLine(
+          FirstProdOrderLine, ProductionOrder.Status, ProductionOrder."No.", FirstItemNo, '', '', LibraryRandom.RandIntInRange(2, 5));
+        LibraryManufacturing.CreateProdOrderLine(
+          SecondProdOrderLine, ProductionOrder.Status, ProductionOrder."No.", SecondItemNo, '', '', LibraryRandom.RandIntInRange(2, 5));
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, false, true, true, false);
+
+        FindProdOrderLineByItem(FirstProdOrderLine, ProductionOrder, FirstItemNo);
+        FindProdOrderLineByItem(SecondProdOrderLine, ProductionOrder, SecondItemNo);
+    end;
+
+    local procedure FindProdOrderLineByItem(var ProdOrderLine: Record "Prod. Order Line"; ProductionOrder: Record "Production Order"; ItemNo: Code[20])
+    begin
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.SetRange("Item No.", ItemNo);
+        ProdOrderLine.FindFirst();
+    end;
+
+    local procedure PostOutputForProdOrderLine(ProdOrderLine: Record "Prod. Order Line")
+    var
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        LibraryInventory.ClearItemJournal(OutputItemJournalTemplate, OutputItemJournalBatch);
+        LibraryManufacturing.CreateOutputJournal(
+          ItemJournalLine, OutputItemJournalTemplate, OutputItemJournalBatch, ProdOrderLine."Item No.", ProdOrderLine."Prod. Order No.");
+        ItemJournalLine.Validate("Order Line No.", ProdOrderLine."Line No.");
+        ItemJournalLine.Modify(true);
+        LibraryManufacturing.OutputJnlExplodeRoute(ItemJournalLine);
+        LibraryInventory.PostItemJournalLine(OutputItemJournalBatch."Journal Template Name", OutputItemJournalBatch.Name);
+    end;
+
+    local procedure ConsumptionCostForProdOrderLine(ProdOrderNo: Code[20]; ProdOrderLineNo: Integer): Decimal
+    var
+        ValueEntry: Record "Value Entry";
+    begin
+        ValueEntry.SetRange("Order Type", ValueEntry."Order Type"::Production);
+        ValueEntry.SetRange("Order No.", ProdOrderNo);
+        ValueEntry.SetRange("Order Line No.", ProdOrderLineNo);
+        ValueEntry.SetRange("Item Ledger Entry Type", ValueEntry."Item Ledger Entry Type"::Consumption);
+        ValueEntry.CalcSums("Cost Amount (Actual)");
+        exit(ValueEntry."Cost Amount (Actual)");
+    end;
+
     local procedure FilterOnProductionOrder(var ProductionOrder: Record "Production Order")
     begin
         ProductionOrder.SetRange("No.", ProductionOrder."No.");
@@ -1098,6 +1263,14 @@ codeunit 137310 "SCM Manufacturing Reports -II"
         ProductionOrder.SetRange("No.", ProductionOrder."No.");
         LibraryVariableStorage.Enqueue(WorkDate());
         LibraryVariableStorage.Enqueue(WorkDate());
+        REPORT.Run(REPORT::"Inventory Valuation - WIP", true, false, ProductionOrder);
+    end;
+
+    local procedure RunAndSaveInventoryValuationWIPReportWithPeriod(ProductionOrder: Record "Production Order"; StartingDate: Date; EndingDate: Date)
+    begin
+        ProductionOrder.SetRange("No.", ProductionOrder."No.");
+        LibraryVariableStorage.Enqueue(StartingDate);
+        LibraryVariableStorage.Enqueue(EndingDate);
         REPORT.Run(REPORT::"Inventory Valuation - WIP", true, false, ProductionOrder);
     end;
 

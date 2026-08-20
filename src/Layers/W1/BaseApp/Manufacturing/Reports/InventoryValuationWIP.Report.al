@@ -282,6 +282,13 @@ report 5802 "Inventory Valuation - WIP"
                         NcValueOfCostPstdToGL := NcValueOfCostPstdToGL + ValueOfCostPstdToGL;
                         ValueOfCostPstdToGL := 0;
 
+                        if ValueEntryIsForNoOutputFinishedLine("Value Entry") then begin
+                            OrderExpensedEndingWIP := OrderExpensedEndingWIP + ValueOfWIP + ValueOfMatConsump + ValueOfCap + ValueOfOutput;
+                            OrderExpensedOpeningWIP := OrderExpensedOpeningWIP + ValueOfWIP;
+                            OrderExpensedConsump := OrderExpensedConsump + ValueOfMatConsump;
+                            OrderExpensedCap := OrderExpensedCap + ValueOfCap;
+                        end;
+
                         if CountRecord = LengthRecord then begin
                             ValueEntryOnPostDataItem();
                             ValueOfCostPstdToGL := NcValueOfCostPstdToGL;
@@ -327,22 +334,25 @@ report 5802 "Inventory Valuation - WIP"
                     AtLastDateSum += AtLastDate;
                     ValueEntryCostPostedToGLSum += ValueOfCostPstdToGL;
 
-                    if (CountRecord = LengthRecord) and IsFinishedWithoutOutput("Production Order") then begin
+                    if (CountRecord = LengthRecord) and OrderHasNoOutputFinishedLine("Production Order") then begin
                         FinishedDate := "Production Order"."Finished Date";
                         if (EndDate = 0D) or (FinishedDate <= EndDate) then begin
                             if FinishedDate >= StartDate then begin
-                                TotalExpensedWIP := TotalExpensedWIP + TotalAtLastDate;
-                                ExpensedWIPSum := ExpensedWIPSum + TotalAtLastDate;
+                                TotalExpensedWIP := TotalExpensedWIP + OrderExpensedEndingWIP;
+                                ExpensedWIPSum := ExpensedWIPSum + OrderExpensedEndingWIP;
 
-                                ValueOfMatConsumptionSum := ValueOfMatConsumptionSum - TotalValueOfMatConsump;
-                                TotalValueOfMatConsump := 0;
+                                ValueOfMatConsumptionSum := ValueOfMatConsumptionSum - OrderExpensedConsump;
+                                TotalValueOfMatConsump := TotalValueOfMatConsump - OrderExpensedConsump;
+
+                                ValueOfCapSum := ValueOfCapSum - OrderExpensedCap;
+                                TotalValueOfCap := TotalValueOfCap - OrderExpensedCap;
                             end else begin
-                                LastWipSum := LastWipSum - TotalLastWIP;
-                                TotalLastWIP := 0;
+                                LastWipSum := LastWipSum - OrderExpensedOpeningWIP;
+                                TotalLastWIP := TotalLastWIP - OrderExpensedOpeningWIP;
                             end;
 
-                            AtLastDateSum := AtLastDateSum - TotalAtLastDate;
-                            TotalAtLastDate := 0;
+                            AtLastDateSum := AtLastDateSum - OrderExpensedEndingWIP;
+                            TotalAtLastDate := TotalAtLastDate - OrderExpensedEndingWIP;
                         end;
                     end;
 
@@ -366,6 +376,10 @@ report 5802 "Inventory Valuation - WIP"
                     TotalAtLastDate := 0;
                     TotalLastWIP := 0;
                     TotalExpensedWIP := 0;
+                    OrderExpensedEndingWIP := 0;
+                    OrderExpensedOpeningWIP := 0;
+                    OrderExpensedConsump := 0;
+                    OrderExpensedCap := 0;
 
                     SetRange("Order Type", "Order Type"::Production);
                     SetRange("Order No.", "Production Order"."No.");
@@ -603,6 +617,10 @@ report 5802 "Inventory Valuation - WIP"
         TotalAtLastDate: Decimal;
         TotalLastWIP: Decimal;
         TotalExpensedWIP: Decimal;
+        OrderExpensedEndingWIP: Decimal;
+        OrderExpensedOpeningWIP: Decimal;
+        OrderExpensedConsump: Decimal;
+        OrderExpensedCap: Decimal;
         SkipZeroLines: Boolean;
         ReportHasData: Boolean;
         StartDateHeading: Text;
@@ -671,17 +689,29 @@ report 5802 "Inventory Valuation - WIP"
         exit(not ValueEntryExist("Production Order", StartDate, 99991231D));
     end;
 
-    local procedure IsFinishedWithoutOutput(var ProductionOrder: Record "Production Order"): Boolean
+    local procedure OrderHasNoOutputFinishedLine(var ProductionOrder: Record "Production Order"): Boolean
     var
-        ItemLedgerEntry: Record "Item Ledger Entry";
+        ProdOrderLine: Record "Prod. Order Line";
     begin
         if ProductionOrder.Status <> ProductionOrder.Status::Finished then
             exit(false);
 
-        ItemLedgerEntry.SetRange("Order Type", ItemLedgerEntry."Order Type"::Production);
-        ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
-        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
-        exit(ItemLedgerEntry.IsEmpty());
+        ProdOrderLine.SetLoadFields("Finished Qty. (Base)");
+        ProdOrderLine.SetRange(Status, ProdOrderLine.Status::Finished);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.SetRange("Finished Qty. (Base)", 0);
+        exit(not ProdOrderLine.IsEmpty());
+    end;
+
+    local procedure ValueEntryIsForNoOutputFinishedLine(ValueEntry: Record "Value Entry"): Boolean
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+    begin
+        ProdOrderLine.SetLoadFields("Finished Qty. (Base)");
+        if not ProdOrderLine.Get(ProdOrderLine.Status::Finished, ValueEntry."Order No.", ValueEntry."Order Line No.") then
+            exit(false);
+
+        exit(ProdOrderLine."Finished Qty. (Base)" = 0);
     end;
 
     procedure InitializeRequest(NewStartDate: Date; NewEndDate: Date)
