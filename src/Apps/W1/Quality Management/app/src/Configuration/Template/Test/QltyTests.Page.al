@@ -295,6 +295,9 @@ page 20401 "Qlty. Tests"
         UpdateRowData();
     end;
 
+    /// <summary>
+    /// Loads promoted result conditions for the current test row.
+    /// </summary>
     local procedure UpdateRowData()
     var
         DummyMatrixArrayCaptionSet: array[10] of Text;
@@ -303,6 +306,10 @@ page 20401 "Qlty. Tests"
         QltyResultConditionMgmt.GetPromotedResultsForTest(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, DummyMatrixArrayCaptionSet, DummyMatrixVisibleState);
     end;
 
+    /// <summary>
+    /// Persists a promoted result condition from the list matrix.
+    /// </summary>
+    /// <param name="Matrix">The one-based promoted result matrix index to update.</param>
     local procedure UpdateMatrixDataCondition(Matrix: Integer)
     var
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
@@ -313,6 +320,10 @@ page 20401 "Qlty. Tests"
         CurrPage.Update(false);
     end;
 
+    /// <summary>
+    /// Persists a promoted result condition description from the list matrix.
+    /// </summary>
+    /// <param name="Matrix">The one-based promoted result matrix index to update.</param>
     local procedure UpdateMatrixDataConditionDescription(Matrix: Integer)
     var
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
@@ -323,6 +334,10 @@ page 20401 "Qlty. Tests"
         CurrPage.Update(false);
     end;
 
+    /// <summary>
+    /// Opens the expression editor for a promoted result condition.
+    /// </summary>
+    /// <param name="Matrix">The one-based promoted result matrix index to edit.</param>
     procedure AssistEditCondition(Matrix: Integer)
     var
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
@@ -336,6 +351,10 @@ page 20401 "Qlty. Tests"
         end;
     end;
 
+    /// <summary>
+    /// Opens the expression editor for a promoted result condition description.
+    /// </summary>
+    /// <param name="Matrix">The one-based promoted result matrix index to edit.</param>
     procedure AssistEditConditionDescription(Matrix: Integer)
     var
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
@@ -350,6 +369,10 @@ page 20401 "Qlty. Tests"
     end;
 
     #region Add multiple tests to template
+    /// <summary>
+    /// Gets a code filter for the currently selected tests.
+    /// </summary>
+    /// <returns>The selected test code filter.</returns>
     internal procedure GetSelectionFilter(): Text
     var
         QltyTest: Record "Qlty. Test";
@@ -358,6 +381,11 @@ page 20401 "Qlty. Tests"
         exit(GetSelectionFilterForTest(QltyTest));
     end;
 
+    /// <summary>
+    /// Converts a filtered test record into a selection filter on its code field.
+    /// </summary>
+    /// <param name="QltyTest">The filtered test record representing the selection.</param>
+    /// <returns>The selected test code filter.</returns>
     local procedure GetSelectionFilterForTest(var QltyTest: Record "Qlty. Test"): Text
     var
         SelectionFilterManagement: Codeunit SelectionFilterManagement;
