@@ -18,6 +18,7 @@ codeunit 137002 "SCM WIP Costing Addnl Currency"
         LibraryERM: Codeunit "Library - ERM";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        Assert: Codeunit Assert;
         isInitialized: Boolean;
 
     [Test]
@@ -66,6 +67,176 @@ codeunit 137002 "SCM WIP Costing Addnl Currency"
         VerifyInvtWIPAmntGLEntry(CurrencyExchangeRate, Currency."Amount Rounding Precision", PurchaseLine."No.");
     end;
 
+    [Test]
+    procedure PurchaseInACYUsesDocumentAmountForValueEntryACY()
+    var
+        Item: Record Item;
+        Vendor: Record Vendor;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        InventoryPostingSetup: Record "Inventory Posting Setup";
+        AddReportingCurrencyCode: Code[10];
+        DocumentNo: Code[20];
+        ExpectedCostAmountACY: Decimal;
+        Quantity: Decimal;
+        DirectUnitCost: Decimal;
+        ExchangeRate: Decimal;
+    begin
+        // [FEATURE] [ACY] [Purchase] [AI test 0.4]
+        // [SCENARIO] Value Entry ACY cost uses the document Additional Reporting Currency amount directly instead of reconverting it from LCY when the purchase currency equals the Additional Reporting Currency, so it reconciles with the G/L Entry Additional-Currency Amount.
+        Initialize();
+
+        // [GIVEN] Automatic cost posting to the inventory account is enabled and expected cost posting is disabled.
+        LibraryInventory.SetAutomaticCostPosting(true);
+        LibraryInventory.SetExpectedCostPosting(false);
+
+        // [GIVEN] Currency "C" is the Additional Reporting Currency. Exchange rate 3 is used because 1/3 is non-terminating, so a naive ACY -> LCY -> ACY round-trip drops a cent.
+        ExchangeRate := LibraryRandom.RandIntInRange(3, 3);
+        AddReportingCurrencyCode := CreateAddReportingCurrency(ExchangeRate);
+
+        // [GIVEN] An Average costing Item and a Vendor invoicing in the Additional Reporting Currency "C".
+        CreateAverageCostItem(Item);
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Validate("Currency Code", AddReportingCurrencyCode);
+        Vendor.Modify(true);
+
+        // [GIVEN] A purchase invoice whose Quantity and Direct Unit Cost are each one above a multiple of the exchange rate, so the ACY line amount is never divisible by it and ACY -> LCY rounding always leaves a remainder.
+        Quantity := LibraryRandom.RandInt(5) * ExchangeRate + 1;
+        DirectUnitCost := LibraryRandom.RandInt(20) * ExchangeRate + 1;
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", Quantity);
+        PurchaseLine.Validate("Direct Unit Cost", DirectUnitCost);
+        PurchaseLine.Modify(true);
+
+        // [WHEN] The purchase invoice is posted.
+        DocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] The Value Entry "Cost Amount (Actual) (ACY)" equals the exact document ACY amount, not the value obtained by reconverting the rounded LCY amount back to "C".
+        ExpectedCostAmountACY := DirectUnitCost * Quantity;
+        VerifyValueEntryCostAmountACY(Item."No.", DocumentNo, ExpectedCostAmountACY);
+
+        // [THEN] The Inventory Account G/L Entry "Additional-Currency Amount" matches the Value Entry ACY amount, so Value Entries and G/L Entries reconcile.
+        FindInventoryAccount(InventoryPostingSetup, Item);
+        VerifyGLEntryAddnlCurrencyAmount(InventoryPostingSetup."Inventory Account", DocumentNo, ExpectedCostAmountACY);
+    end;
+
+    [Test]
+    procedure PurchaseReceiptInACYUsesDocumentAmountForExpectedValueEntryACY()
+    var
+        Item: Record Item;
+        Vendor: Record Vendor;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        InventoryPostingSetup: Record "Inventory Posting Setup";
+        AddReportingCurrencyCode: Code[10];
+        DocumentNo: Code[20];
+        ExpectedCostAmountACY: Decimal;
+        Quantity: Decimal;
+        DirectUnitCost: Decimal;
+        ExchangeRate: Decimal;
+    begin
+        // [FEATURE] [ACY] [Purchase] [Expected Cost] [AI test 0.4]
+        // [SCENARIO] Value Entry expected ACY cost uses the document Additional Reporting Currency amount directly instead of reconverting it from LCY when a purchase receipt is posted with expected cost posting enabled and the purchase currency equals the Additional Reporting Currency, so it reconciles with the interim G/L Entry Additional-Currency Amount before invoicing.
+        Initialize();
+
+        // [GIVEN] Automatic cost posting and expected cost posting to the interim inventory account are both enabled.
+        LibraryInventory.SetAutomaticCostPosting(true);
+        LibraryInventory.SetExpectedCostPosting(true);
+
+        // [GIVEN] Currency "C" is the Additional Reporting Currency. Exchange rate 3 is used because 1/3 is non-terminating, so a naive ACY -> LCY -> ACY round-trip drops a cent.
+        ExchangeRate := LibraryRandom.RandIntInRange(3, 3);
+        AddReportingCurrencyCode := CreateAddReportingCurrency(ExchangeRate);
+
+        // [GIVEN] An Average costing Item and a Vendor invoicing in the Additional Reporting Currency "C".
+        CreateAverageCostItem(Item);
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Validate("Currency Code", AddReportingCurrencyCode);
+        Vendor.Modify(true);
+
+        // [GIVEN] A purchase order whose Quantity and Direct Unit Cost are each one above a multiple of the exchange rate, so the ACY line amount is never divisible by it and ACY -> LCY rounding always leaves a remainder.
+        Quantity := LibraryRandom.RandInt(5) * ExchangeRate + 1;
+        DirectUnitCost := LibraryRandom.RandInt(20) * ExchangeRate + 1;
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", Quantity);
+        PurchaseLine.Validate("Direct Unit Cost", DirectUnitCost);
+        PurchaseLine.Modify(true);
+
+        // [WHEN] The purchase order is received but not invoiced, so only the expected cost is posted.
+        DocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [THEN] The Value Entry "Cost Amount (Expected) (ACY)" equals the exact document ACY amount, not the value obtained by reconverting the rounded LCY amount back to "C".
+        ExpectedCostAmountACY := DirectUnitCost * Quantity;
+        VerifyValueEntryExpectedCostAmountACY(Item."No.", DocumentNo, ExpectedCostAmountACY);
+
+        // [THEN] The interim Inventory Account G/L Entry "Additional-Currency Amount" matches the Value Entry expected ACY amount, so Value Entries and G/L Entries reconcile before invoicing.
+        FindInventoryAccount(InventoryPostingSetup, Item);
+        VerifyGLEntryAddnlCurrencyAmount(InventoryPostingSetup."Inventory Account (Interim)", DocumentNo, ExpectedCostAmountACY);
+    end;
+
+    [Test]
+    procedure ItemChargeInACYReconcilesValueEntryAndGLEntryACY()
+    var
+        Item: Record Item;
+        Vendor: Record Vendor;
+        PurchaseHeader: Record "Purchase Header";
+        ItemPurchaseLine: Record "Purchase Line";
+        ChargePurchaseLine: Record "Purchase Line";
+        ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)";
+        InventoryPostingSetup: Record "Inventory Posting Setup";
+        ValueEntry: Record "Value Entry";
+        AddReportingCurrencyCode: Code[10];
+        DocumentNo: Code[20];
+        Quantity: Decimal;
+        DirectUnitCost: Decimal;
+        ChargeUnitCost: Decimal;
+        ExchangeRate: Decimal;
+    begin
+        // [FEATURE] [ACY] [Purchase] [Item Charge]
+        // [SCENARIO] An item charge is excluded from the document-amount ACY shortcut (guard requires an empty Item Charge No.), so its Value Entry ACY is still derived from LCY. This verifies that item charges purchased in the Additional Reporting Currency continue to reconcile: the summed Value Entry "Cost Amount (Actual) (ACY)" equals the summed Inventory Account G/L Entry "Additional-Currency Amount".
+        Initialize();
+
+        // [GIVEN] Automatic cost posting to the inventory account is enabled and expected cost posting is disabled.
+        LibraryInventory.SetAutomaticCostPosting(true);
+        LibraryInventory.SetExpectedCostPosting(false);
+
+        // [GIVEN] Currency "C" is the Additional Reporting Currency. Exchange rate 3 is used because 1/3 is non-terminating, so a naive ACY -> LCY -> ACY round-trip drops a cent.
+        ExchangeRate := LibraryRandom.RandIntInRange(3, 3);
+        AddReportingCurrencyCode := CreateAddReportingCurrency(ExchangeRate);
+
+        // [GIVEN] An Average costing Item and a Vendor invoicing in the Additional Reporting Currency "C".
+        CreateAverageCostItem(Item);
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Validate("Currency Code", AddReportingCurrencyCode);
+        Vendor.Modify(true);
+
+        // [GIVEN] A purchase order in "C" with an item line and an item charge line assigned to that item line, each amount one above a multiple of the exchange rate so ACY -> LCY rounding always leaves a remainder.
+        Quantity := LibraryRandom.RandInt(5) * ExchangeRate + 1;
+        DirectUnitCost := LibraryRandom.RandInt(20) * ExchangeRate + 1;
+        ChargeUnitCost := LibraryRandom.RandInt(20) * ExchangeRate + 1;
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(ItemPurchaseLine, PurchaseHeader, ItemPurchaseLine.Type::Item, Item."No.", Quantity);
+        ItemPurchaseLine.Validate("Direct Unit Cost", DirectUnitCost);
+        ItemPurchaseLine.Modify(true);
+        LibraryPurchase.CreatePurchaseLine(
+          ChargePurchaseLine, PurchaseHeader, ChargePurchaseLine.Type::"Charge (Item)", LibraryInventory.CreateItemChargeNo(), 1);
+        ChargePurchaseLine.Validate("Direct Unit Cost", ChargeUnitCost);
+        ChargePurchaseLine.Modify(true);
+        LibraryInventory.CreateItemChargeAssignPurchase(
+          ItemChargeAssignmentPurch, ChargePurchaseLine, PurchaseHeader."Document Type", PurchaseHeader."No.",
+          ItemPurchaseLine."Line No.", Item."No.");
+
+        // [WHEN] The purchase order is received and invoiced.
+        DocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] The summed Value Entry "Cost Amount (Actual) (ACY)" (item plus charge) reconciles with the summed Inventory Account G/L Entry "Additional-Currency Amount", so excluding item charges from the shortcut does not break reconciliation.
+        FindInventoryAccount(InventoryPostingSetup, Item);
+        ValueEntry.SetRange("Item No.", Item."No.");
+        ValueEntry.SetRange("Document No.", DocumentNo);
+        ValueEntry.CalcSums("Cost Amount (Actual) (ACY)");
+        VerifyGLEntryAddnlCurrencyAmount(
+          InventoryPostingSetup."Inventory Account", DocumentNo, ValueEntry."Cost Amount (Actual) (ACY)");
+    end;
+
     [Normal]
     local procedure Initialize()
     var
@@ -82,6 +253,7 @@ codeunit 137002 "SCM WIP Costing Addnl Currency"
         // Setup Demonstration data.
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
+        LibraryERMCountryData.UpdateGeneralLedgerSetup();
         LibrarySetupStorage.Save(DATABASE::"Inventory Setup");
         isInitialized := true;
         Commit();
@@ -269,6 +441,72 @@ codeunit 137002 "SCM WIP Costing Addnl Currency"
           Round(CurrencyExchangeRate."Exchange Rate Amount" / CurrencyExchangeRate."Relational Exch. Rate Amount" *
             GLEntry.Amount,
             CurrencyAmntRoundingPrecision));
+    end;
+
+    local procedure CreateAddReportingCurrency(ExchangeRate: Decimal): Code[10]
+    var
+        Currency: Record Currency;
+    begin
+        Currency.Get(LibraryERM.CreateCurrencyWithGLAccountSetup());
+        LibraryERM.CreateExchangeRate(Currency.Code, WorkDate(), ExchangeRate, ExchangeRate);
+        Currency.Validate("Amount Rounding Precision", 0.01);
+        Currency.Validate("Unit-Amount Rounding Precision", 0.00001);
+        Currency.Modify(true);
+        LibraryERM.SetAddReportingCurrency(Currency.Code);
+        exit(Currency.Code);
+    end;
+
+    local procedure CreateAverageCostItem(var Item: Record Item)
+    begin
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Costing Method", Item."Costing Method"::Average);
+        Item.Modify(true);
+    end;
+
+    local procedure FindInventoryAccount(var InventoryPostingSetup: Record "Inventory Posting Setup"; Item: Record Item)
+    begin
+        InventoryPostingSetup.SetRange("Invt. Posting Group Code", Item."Inventory Posting Group");
+        InventoryPostingSetup.FindFirst();
+    end;
+
+    local procedure VerifyValueEntryCostAmountACY(ItemNo: Code[20]; DocumentNo: Code[20]; ExpectedCostAmountACY: Decimal)
+    var
+        ValueEntry: Record "Value Entry";
+    begin
+        ValueEntry.SetRange("Item No.", ItemNo);
+        ValueEntry.SetRange("Document No.", DocumentNo);
+        ValueEntry.CalcSums("Cost Amount (Actual) (ACY)");
+        Assert.AreEqual(
+          ExpectedCostAmountACY, ValueEntry."Cost Amount (Actual) (ACY)",
+          ValueEntry.FieldCaption("Cost Amount (Actual) (ACY)"));
+    end;
+
+    local procedure VerifyValueEntryExpectedCostAmountACY(ItemNo: Code[20]; DocumentNo: Code[20]; ExpectedCostAmountACY: Decimal)
+    var
+        ValueEntry: Record "Value Entry";
+    begin
+        ValueEntry.SetRange("Item No.", ItemNo);
+        ValueEntry.SetRange("Document No.", DocumentNo);
+        ValueEntry.CalcSums("Cost Amount (Expected) (ACY)");
+        Assert.AreEqual(
+          ExpectedCostAmountACY, ValueEntry."Cost Amount (Expected) (ACY)",
+          ValueEntry.FieldCaption("Cost Amount (Expected) (ACY)"));
+    end;
+
+    local procedure VerifyGLEntryAddnlCurrencyAmount(GLAccountNo: Code[20]; DocumentNo: Code[20]; ExpectedAddnlCurrencyAmount: Decimal)
+    var
+        GLEntry: Record "G/L Entry";
+        ActualAddnlCurrencyAmount: Decimal;
+    begin
+        GLEntry.SetRange("G/L Account No.", GLAccountNo);
+        GLEntry.SetRange("Document No.", DocumentNo);
+        GLEntry.FindSet();
+        repeat
+            ActualAddnlCurrencyAmount += GLEntry."Additional-Currency Amount";
+        until GLEntry.Next() = 0;
+        Assert.AreEqual(
+          ExpectedAddnlCurrencyAmount, ActualAddnlCurrencyAmount,
+          GLEntry.FieldCaption("Additional-Currency Amount"));
     end;
 
     [ConfirmHandler]

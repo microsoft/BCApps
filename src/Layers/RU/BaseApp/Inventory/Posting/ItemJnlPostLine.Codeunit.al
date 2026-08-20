@@ -3712,21 +3712,40 @@ codeunit 22 "Item Jnl.-Post Line"
             end;
         end;
 
-        if GLSetup."Additional Reporting Currency" <> '' then begin
-            DirCostACY := ACYMgt.CalcACYAmt(DirCost, ItemJnlLine."Posting Date", false);
-            OvhdCostACY := ACYMgt.CalcACYAmt(OvhdCost, ItemJnlLine."Posting Date", false);
-            ItemJnlLine."Unit Cost (ACY)" :=
-              Round(
-                CurrExchRate.ExchangeAmtLCYToFCY(
-                  ItemJnlLine."Posting Date", GLSetup."Additional Reporting Currency", ItemJnlLine."Unit Cost",
-                  CurrExchRate.ExchangeRate(
-                    ItemJnlLine."Posting Date", GLSetup."Additional Reporting Currency")),
-                Currency."Unit-Amount Rounding Precision");
-            PurchVarACY := ItemJnlLine."Unit Cost (ACY)" * ItemJnlLine."Invoiced Quantity" - DirCostACY - OvhdCostACY;
-        end;
+        if GLSetup."Additional Reporting Currency" <> '' then
+            if ShouldUseDocumentAmountForACY() then begin
+                if Expected then
+                    DirCostACY := ItemJnlLine."Unit Cost (ACY)" * ItemJnlLine.Quantity + RoundingResidualAmountACY
+                else
+                    DirCostACY := ItemJnlLine."Unit Cost (ACY)" * ItemJnlLine."Invoiced Quantity";
+                OvhdCostACY := 0;
+                PurchVarACY := 0;
+            end else begin
+                DirCostACY := ACYMgt.CalcACYAmt(DirCost, ItemJnlLine."Posting Date", false);
+                OvhdCostACY := ACYMgt.CalcACYAmt(OvhdCost, ItemJnlLine."Posting Date", false);
+                ItemJnlLine."Unit Cost (ACY)" :=
+                  Round(
+                    CurrExchRate.ExchangeAmtLCYToFCY(
+                      ItemJnlLine."Posting Date", GLSetup."Additional Reporting Currency", ItemJnlLine."Unit Cost",
+                      CurrExchRate.ExchangeRate(
+                        ItemJnlLine."Posting Date", GLSetup."Additional Reporting Currency")),
+                    Currency."Unit-Amount Rounding Precision");
+                PurchVarACY := ItemJnlLine."Unit Cost (ACY)" * ItemJnlLine."Invoiced Quantity" - DirCostACY - OvhdCostACY;
+            end;
         CalcUnitCost := (DirCost <> 0) and (ItemJnlLine."Unit Cost" = 0);
 
         OnAfterCalcPosShares(ItemJnlLine, DirCost, OvhdCost, PurchVar, DirCostACY, OvhdCostACY, PurchVarACY, CalcUnitCost, CalcPurchVar, Expected, GlobalItemLedgEntry);
+    end;
+
+    local procedure ShouldUseDocumentAmountForACY(): Boolean
+    begin
+        exit(
+          (ItemJnlLine."Source Currency Code" = GLSetup."Additional Reporting Currency") and
+          (Item."Costing Method" <> Item."Costing Method"::Standard) and
+          (ItemJnlLine."Item Charge No." = '') and
+          (ItemJnlLine."Discount Amount" = 0) and
+          (ItemJnlLine."Indirect Cost %" = 0) and
+          (ItemJnlLine."Overhead Rate" = 0));
     end;
 
     local procedure CalcPurchCorrShares(var OverheadAmount: Decimal; var OverheadAmountACY: Decimal; var VarianceAmount: Decimal; var VarianceAmountACY: Decimal)
