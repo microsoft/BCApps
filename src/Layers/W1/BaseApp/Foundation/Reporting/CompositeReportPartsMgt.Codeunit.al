@@ -149,6 +149,14 @@ codeunit 9667 "Composite Report Parts Mgt."
     end;
 
     var
+        // The part names below are Locked because they are identity, not display text. Tenant Report Layout is keyed by
+        // Report ID + Name + App ID, the name is matched by name when a part is resolved, and it is embedded in the
+        // <AppId>::<LayoutName> reference stored in the Tenant Report Layout Cfg part columns. Translating them would
+        // make a part resolvable only in the language it was seeded in and orphan every assignment already stored under
+        // the English name. They are shown in the setup UI, so they do stay English for every locale - the platform's
+        // Caption and CaptionML fields, which would carry a localized display name, are obsolete-pending with the
+        // reason "use the Name field instead", so there is no localization channel for these today. Localizing them
+        // needs a platform display field first.
         ExternalDefaultTxt: Label 'External Default', Locked = true;
         ExternalDefaultDetailedTxt: Label 'External Default Detailed', Locked = true;
         ExternalMinimalisticTxt: Label 'External Minimalistic', Locked = true;
