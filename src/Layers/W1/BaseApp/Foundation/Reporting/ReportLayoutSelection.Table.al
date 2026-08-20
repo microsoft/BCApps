@@ -92,9 +92,7 @@ table 9651 "Report Layout Selection"
 #if not CLEAN29
         field(7; "Report Layout Description"; Text[250])
         {
-#pragma warning disable AL0432, AS0105
             CalcFormula = lookup("Custom Report Layout".Description where(Code = field("Custom Report Layout Code")));
-#pragma warning restore AL0432, AS0105
             Caption = 'Report Layout Description';
             FieldClass = FlowField;
             ObsoleteState = Pending;

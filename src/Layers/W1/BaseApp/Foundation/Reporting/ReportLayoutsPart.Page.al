@@ -13,9 +13,7 @@ page 9653 "Report Layouts Part"
     ObsoleteState = Pending;
     ObsoleteReason = 'Replaced by the system "Report Layouts" page. This page will be removed in a future version.';
     ObsoleteTag = '29.0';
-#pragma warning disable AL0432
     SourceTable = "Custom Report Layout";
-#pragma warning restore AL0432
     SourceTableView = sorting("Report ID", "Company Name", Type);
 
     layout

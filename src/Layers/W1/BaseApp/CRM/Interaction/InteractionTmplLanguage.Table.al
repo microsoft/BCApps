@@ -67,9 +67,7 @@ table 5103 "Interaction Tmpl. Language"
 #if not CLEAN29
         field(6; "Custom Layout Description"; Text[250])
         {
-#pragma warning disable AL0432
             CalcFormula = lookup("Custom Report Layout".Description where(Code = field("Custom Layout Code")));
-#pragma warning restore AL0432
             Caption = 'Custom Layout Description';
             Editable = false;
             FieldClass = FlowField;

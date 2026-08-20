@@ -130,9 +130,7 @@ table 77 "Report Selections"
 #if not CLEAN29
         field(22; "Email Body Layout Description"; Text[250])
         {
-#pragma warning disable AL0432
             CalcFormula = lookup("Custom Report Layout".Description where(Code = field("Email Body Layout Code")));
-#pragma warning restore AL0432
             Caption = 'Email Body Custom Layout Description';
             Editable = false;
             FieldClass = Flowfield;
@@ -144,9 +142,7 @@ table 77 "Report Selections"
 #if not CLEAN28
             trigger OnLookup()
             var
-#pragma warning disable AL0432
                 CustomReportLayout: Record "Custom Report Layout";
-#pragma warning restore AL0432
             begin
                 if "Email Body Layout Type" = "Email Body Layout Type"::"Custom Report Layout" then
 #pragma warning disable AL0432

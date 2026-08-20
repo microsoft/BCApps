@@ -19,9 +19,7 @@ page 9650 "Custom Report Layouts"
     Caption = 'Custom Report Layouts';
     InsertAllowed = false;
     PageType = List;
-#pragma warning disable AL0432
     SourceTable = "Custom Report Layout";
-#pragma warning restore AL0432
     SourceTableView = sorting("Report ID", "Company Name", Type);
     UsageCategory = Administration;
     AboutTitle = 'About Custom Report Layouts';
@@ -272,10 +270,8 @@ page 9650 "Custom Report Layouts"
 
                 trigger OnAction()
                 var
-#pragma warning disable AL0432
                     CustomReportLayout: Record "Custom Report Layout";
                     FeatureReportSelection: Codeunit "Feature - Report Selection";
-#pragma warning restore AL0432
                 begin
                     CustomReportLayout.Copy(Rec);
                     CurrPage.SetSelectionFilter(CustomReportLayout);
@@ -361,9 +357,7 @@ page 9650 "Custom Report Layouts"
 
     trigger OnAfterGetCurrRecord()
     var
-#pragma warning disable AL0432
         CustomReportLayout: Record "Custom Report Layout";
-#pragma warning restore AL0432
         ReportLayoutSelection: Record "Report Layout Selection";
         DocumentSharing: Codeunit "Document Sharing";
     begin

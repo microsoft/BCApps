@@ -86,9 +86,7 @@ table 9657 "Custom Report Selection"
 #if not CLEAN29
         field(8; "Custom Report Description"; Text[250])
         {
-#pragma warning disable AL0432
             CalcFormula = lookup("Custom Report Layout".Description where(Code = field("Custom Report Layout Code")));
-#pragma warning restore AL0432
             Caption = 'Custom Report Description';
             FieldClass = FlowField;
             ObsoleteState = Pending;
@@ -168,9 +166,7 @@ table 9657 "Custom Report Selection"
 #if not CLEAN29
         field(22; "Email Body Layout Description"; Text[250])
         {
-#pragma warning disable AL0432
             CalcFormula = lookup("Custom Report Layout".Description where(Code = field("Email Body Layout Code")));
-#pragma warning restore AL0432
             Caption = 'Email Body Layout Description';
             Editable = false;
             FieldClass = FlowField;
