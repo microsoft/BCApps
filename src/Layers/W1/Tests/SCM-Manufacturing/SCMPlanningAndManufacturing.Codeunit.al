@@ -2578,11 +2578,37 @@ codeunit 137080 "SCM Planning And Manufacturing"
     end;
 
     [Test]
+    procedure CarryOutActionMessageCreateReleasedProdOrdersRequiresNoSeries()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        Item: Record Item;
+        RequisitionLine: Record "Requisition Line";
+    begin
+        // [SCENARIO] A released production order requires the released order number series
+        Initialize();
+
+        // [GIVEN] The released production order number series is blank
+        ManufacturingSetup.Get();
+        ManufacturingSetup.Validate("Released Order Nos.", '');
+        ManufacturingSetup.Modify(true);
+
+        // [GIVEN] A planning worksheet line exists for an item set up for production order replenishment
+        CreateItemWithReplenishmentSystem(Item, Enum::"Replenishment System"::"Prod. Order");
+        CreateRequisitionLine(RequisitionLine, Item."No.", 1);
+
+        // [WHEN] Run "Carry Out Action Message" action in the planning worksheet and choose "Released"
+        asserterror CreateProdOrdersFromPlanWorksheet(RequisitionLine, Enum::"Planning Create Prod. Order"::Released);
+
+        // [THEN] The missing released production order number series error is raised
+        Assert.ExpectedTestFieldError(ManufacturingSetup.FieldCaption("Released Order Nos."), '');
+    end;
+
+    [Test]
     [HandlerFunctions('ProdOrderJobCardReportHandler')]
     procedure CarryOutActionMessageCreateReleasedProdOrdersAndPrint()
     var
         Item: Record Item;
-        RountingLines: array[2] of Record "Routing Line";
+        RoutingLines: array[2] of Record "Routing Line";
         SalesLine: Record "Sales Line";
         RequisitionLine: Record "Requisition Line";
     begin
@@ -2590,7 +2616,7 @@ codeunit 137080 "SCM Planning And Manufacturing"
         Initialize();
 
         // [GIVEN] Item "I" set up for production order replenishment
-        CreateItemWithRouting(Item, RountingLines[1], RountingLines[2], '', false);
+        CreateItemWithRouting(Item, RoutingLines[1], RoutingLines[2], '', false);
         Item.Validate("Replenishment System", Enum::"Replenishment System"::"Prod. Order");
         Item.Validate("Reordering Policy", Enum::"Reordering Policy"::Order);
         Item.Modify();
@@ -2611,7 +2637,7 @@ codeunit 137080 "SCM Planning And Manufacturing"
     end;
 
     [Test]
-    procedure CarryOutActionMessageCreateReleasedProdOrdersWithForwardFlashing()
+    procedure CarryOutActionMessageCreateReleasedProdOrdersWithForwardFlushing()
     var
         MfgItem: Record Item;
         ComponentItem: Record Item;
@@ -2674,14 +2700,14 @@ codeunit 137080 "SCM Planning And Manufacturing"
 
         ComponentItemQty := LibraryRandom.RandInt(10);
 
-        // [GIVEN] Manugacturing item "I1" with an item "C1" as a component
+        // [GIVEN] Manufacturing item "I1" with an item "C1" as a component
         CreateProdItemWithForwardFlushingComponent(MfgItems[1], ComponentItems[1], ComponentItemQty);
 
         // [GIVEN] Create a planning worksheet line for item "I1" and refresh
         CreateRequisitionLine(RequisitionLine, MfgItems[1]."No.", 1);
         LibraryPlanning.RefreshPlanningLine(RequisitionLine, ScheduleDirection::Forward, false, true);
 
-        // [GIVEN] Manugacturing item "I2" with an item "C2" as a component
+        // [GIVEN] Manufacturing item "I2" with an item "C2" as a component
         CreateProdItemWithForwardFlushingComponent(MfgItems[2], ComponentItems[2], ComponentItemQty);
 
         // [GIVEN] Post sufficient stock of the component "C2" to satisfy the planned demand. Component "C1" is not on stock.
@@ -2708,6 +2734,7 @@ codeunit 137080 "SCM Planning And Manufacturing"
 
         // [THEN] Component "I2" has been consumed
         VerifyConsumptionItemLedgerEntry(ComponentItems[2]."No.", -ComponentItemQty);
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     local procedure Initialize()
