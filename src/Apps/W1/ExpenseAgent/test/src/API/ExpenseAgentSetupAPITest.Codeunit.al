@@ -87,6 +87,24 @@ codeunit 148333 "Expense Agent Setup API Test"
         Assert.IsTrue(ExpenseAgentSetup."Enable Agent", 'Expense Agent Setup must be enabled.');
     end;
 
+    [Test]
+    procedure TestHandlerInitializeCreatesDefaultMasterData()
+    var
+        ExpenseCategory: Record "Expense Category";
+        ExpensePaymentMethod: Record "Expense Payment Method";
+        ExpenseTestHandlerAPI: Codeunit "Expense Test Handler API";
+    begin
+        Initialize();
+
+        ExpenseTestHandlerAPI.Initialize();
+
+        Assert.IsTrue(ExpensePaymentMethod.Get('CARD'), 'The credit-card payment method must exist.');
+        Assert.IsTrue(ExpenseCategory.Get('MEALS'), 'The meals category must exist.');
+        Assert.IsTrue(ExpenseCategory.Get('HOTELS'), 'The hotels category must exist.');
+        Assert.IsTrue(ExpenseCategory.Get('ENTERTAIN'), 'The entertainment category must exist.');
+        Assert.IsTrue(ExpenseCategory.Get('PER-DIEM'), 'The per-diem category must exist.');
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Agent Setup API Test");

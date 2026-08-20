@@ -80,9 +80,14 @@ codeunit 148307 "Expense Test Handler API"
     [ServiceEnabled]
     procedure Initialize(): Text[30]
     var
+        CreateExpenseAgentSetup: Codeunit "Create Expense Agent Setup";
+        CreateExpenseCategories: Codeunit "Create Expense Categories";
         LibraryExpense: Codeunit "Library - Expense";
     begin
         LibraryExpense.CleanTransactionalData();
+        CreateExpenseAgentSetup.Run();
+        CreateExpenseCategories.InsertAccountingDefaults();
+        CreateExpenseCategories.InsertManagementDefaults();
         exit('Initialize completed');
     end;
 
