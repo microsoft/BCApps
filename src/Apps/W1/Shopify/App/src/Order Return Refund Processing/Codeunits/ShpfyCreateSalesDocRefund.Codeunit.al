@@ -437,6 +437,14 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
         if SkipBalancing then
             exit;
 
+        // When the return includes an exchange item, the credit memo already carries the returned item (+qty) and the
+        // exchange item (-qty). Their net is the true customer impact and can differ from Shopify's Total Refunded Amount,
+        // which is floored at 0 when the kept exchange item is more expensive than the returned item (the customer pays the
+        // difference instead of receiving a refund). Reconciling to Total Refunded Amount here would add a spurious balancing
+        // Refund Account line, so the exchange item lines are left to stand on their own.
+        if RefundHasExchangeItemLines(RefundHeader."Refund Id") then
+            exit;
+
         case OrderHeader."Processed Currency Handling" of
             "Shpfy Currency Handling"::"Shop Currency":
                 if SalesHeader."Amount Including VAT" <> RefundHeader."Total Refunded Amount" + RoundingAmount then begin
@@ -469,6 +477,15 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
                     SalesLine.Modify(false);
                 end;
         end;
+    end;
+
+    local procedure RefundHasExchangeItemLines(ShopifyRefundId: BigInteger): Boolean
+    var
+        RefundLine: Record "Shpfy Refund Line";
+    begin
+        RefundLine.SetRange("Refund Id", ShopifyRefundId);
+        RefundLine.SetRange("Is Exchange Item", true);
+        exit(not RefundLine.IsEmpty());
     end;
 
     local procedure CreateRoundingLine(RefundHeader: Record "Shpfy Refund Header"; SalesHeader: Record "Sales Header"; var LineNo: Integer): Decimal
