@@ -378,25 +378,48 @@ codeunit 134619 "Composite Layout Tests"
 
     [Test]
     [Scope('OnPrem')]
-    procedure AssignDefaultPartsIsIdempotentOnRerun()
+    procedure AssignDefaultPartsAssignsThenIsIdempotentOnRerun()
     var
+        BodyLayout: Record "Report Layout List";
+        TempCfgBefore: Record "Tenant Report Layout Cfg" temporary;
         CompositeLayoutAssignMgt: Codeunit "Composite Layout Assign. Mgt.";
         CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
+        FirstPassCount: Integer;
         SecondPassCount: Integer;
     begin
-        // [SCENARIO] Assigning the shipped designs a second time writes nothing: a layout that already has a part keeps
-        // it, which is what makes the install/upgrade pass safe to repeat.
+        // [SCENARIO] The first pass assigns the shipped designs; a second writes nothing, because a layout that already
+        // has a part keeps it. That is what makes the install/upgrade pass safe to repeat.
         Initialize();
 
-        // [GIVEN] The parts are in the pool and the shipped designs have been assigned once.
+        // [GIVEN] The parts are in the pool, and one body layout has no configuration row. The suite shares a company
+        // and is not rolled back, so without clearing a row an earlier run would leave everything already assigned and
+        // the first pass would legitimately write nothing - making the assertions below vacuous.
+        // AssignDefaultParts configures every shipped report and every body layout on the tenant, so record the
+        // all-companies configuration first and put it back at the end - this suite shares a company and is not rolled
+        // back between methods, and leaving those rows behind would make later tests depend on execution order.
+        SnapshotLayoutCfg(TempCfgBefore);
+
         CompositeReportPartsMgt.SeedDefaultParts();
-        CompositeLayoutAssignMgt.AssignDefaultParts();
+        Assert.IsTrue(FindAnyBodyLayout(BodyLayout), 'The tenant should have at least one Word body layout to assign to.');
+        RemoveLayoutCfg(BodyLayout."Report ID", BodyLayout.Name);
+
+        // [WHEN] Assigning the shipped designs.
+        FirstPassCount := CompositeLayoutAssignMgt.AssignDefaultParts();
+
+        // [THEN] The pass wrote something, and specifically that layout got the theme. Every body layout gets the theme,
+        // so this holds whichever layout was picked above.
+        Assert.IsTrue(FirstPassCount > 0, 'The first assignment pass should write at least the row that was cleared.');
+        Assert.IsTrue(
+            LayoutCfgHasThemePart(BodyLayout."Report ID", BodyLayout.Name),
+            'The cleared body layout should have been given the default theme.');
 
         // [WHEN] Assigning again.
         SecondPassCount := CompositeLayoutAssignMgt.AssignDefaultParts();
 
         // [THEN] Nothing was written the second time.
         Assert.AreEqual(0, SecondPassCount, 'A repeated assignment pass should leave every existing assignment alone.');
+
+        RestoreLayoutCfg(TempCfgBefore);
     end;
 
     [Test]
@@ -472,6 +495,96 @@ codeunit 134619 "Composite Layout Tests"
     begin
         if TenantReportLayout.Get(LookupHelper.GetTenantReportDefaultsReportID(), CopyStr(PartName, 1, MaxStrLen(TenantReportLayout.Name)), EmptyGuidValue()) then
             TenantReportLayout.Delete(true);
+    end;
+
+    /// <summary>
+    /// Finds any Word body layout installed on the tenant. Used instead of a hard-coded report and layout name so the
+    /// test does not depend on which apps the test tenant happens to have.
+    /// </summary>
+    local procedure FindAnyBodyLayout(var BodyLayout: Record "Report Layout List"): Boolean
+    begin
+        BodyLayout.Reset();
+        BodyLayout.SetRange("Layout Format", BodyLayout."Layout Format"::Word);
+        BodyLayout.SetRange("Layout Subtype", BodyLayout."Layout Subtype"::Body);
+        exit(BodyLayout.FindFirst());
+    end;
+
+    /// <summary>
+    /// Copies every all-companies Tenant Report Layout Cfg row into a temporary record, so RestoreLayoutCfg can put the
+    /// table back exactly as it was.
+    /// </summary>
+    local procedure SnapshotLayoutCfg(var TempCfgBefore: Record "Tenant Report Layout Cfg" temporary)
+    var
+        TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
+    begin
+        TempCfgBefore.Reset();
+        TempCfgBefore.DeleteAll();
+
+        TenantReportLayoutCfg.SetRange("Company Name", '');
+        if not TenantReportLayoutCfg.FindSet() then
+            exit;
+        repeat
+            TempCfgBefore := TenantReportLayoutCfg;
+            TempCfgBefore.Insert();
+        until TenantReportLayoutCfg.Next() = 0;
+    end;
+
+    /// <summary>
+    /// Undoes what an assignment pass wrote: deletes the all-companies rows that were not in the snapshot, and puts the
+    /// part columns of the rows that were back to their recorded values. The assignment pass only fills empty columns,
+    /// so a row that already existed can still have gained a part.
+    /// </summary>
+    local procedure RestoreLayoutCfg(var TempCfgBefore: Record "Tenant Report Layout Cfg" temporary)
+    var
+        TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
+        TempAddedRows: Record "Tenant Report Layout Cfg" temporary;
+    begin
+        // Stage the rows to remove first: deleting while iterating the live set invalidates the cursor.
+        TenantReportLayoutCfg.SetRange("Company Name", '');
+        if TenantReportLayoutCfg.FindSet() then
+            repeat
+                if not TempCfgBefore.Get(TenantReportLayoutCfg."Report ID", TenantReportLayoutCfg."Layout Name", TenantReportLayoutCfg."Company Name") then begin
+                    TempAddedRows := TenantReportLayoutCfg;
+                    TempAddedRows.Insert();
+                end;
+            until TenantReportLayoutCfg.Next() = 0;
+
+        if TempAddedRows.FindSet() then
+            repeat
+                if TenantReportLayoutCfg.Get(TempAddedRows."Report ID", TempAddedRows."Layout Name", TempAddedRows."Company Name") then
+                    TenantReportLayoutCfg.Delete(true);
+            until TempAddedRows.Next() = 0;
+
+        TempCfgBefore.Reset();
+        if not TempCfgBefore.FindSet() then
+            exit;
+        repeat
+            if TenantReportLayoutCfg.Get(TempCfgBefore."Report ID", TempCfgBefore."Layout Name", TempCfgBefore."Company Name") then
+                if (TenantReportLayoutCfg."Header Part Name" <> TempCfgBefore."Header Part Name") or
+                   (TenantReportLayoutCfg."Theme Part Name" <> TempCfgBefore."Theme Part Name")
+                then begin
+                    TenantReportLayoutCfg."Header Part Name" := TempCfgBefore."Header Part Name";
+                    TenantReportLayoutCfg."Theme Part Name" := TempCfgBefore."Theme Part Name";
+                    TenantReportLayoutCfg.Modify(true);
+                end;
+        until TempCfgBefore.Next() = 0;
+    end;
+
+    local procedure RemoveLayoutCfg(ReportID: Integer; LayoutName: Text)
+    var
+        TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
+    begin
+        if TenantReportLayoutCfg.Get(ReportID, CopyStr(LayoutName, 1, MaxStrLen(TenantReportLayoutCfg."Layout Name")), '') then
+            TenantReportLayoutCfg.Delete(true);
+    end;
+
+    local procedure LayoutCfgHasThemePart(ReportID: Integer; LayoutName: Text): Boolean
+    var
+        TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
+    begin
+        if not TenantReportLayoutCfg.Get(ReportID, CopyStr(LayoutName, 1, MaxStrLen(TenantReportLayoutCfg."Layout Name")), '') then
+            exit(false);
+        exit(TenantReportLayoutCfg."Theme Part Name" <> '');
     end;
 
     local procedure EmptyGuidValue(): Guid
