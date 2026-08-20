@@ -51,8 +51,9 @@ codeunit 135549 "Report Inbox API E2E"
         // [WHEN] User sends a GET request
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
 
-        // [THEN] Response contains the entry
+        // [THEN] Response contains the seeded entry, not just the shape
         Assert.IsTrue(StrPos(ResponseText, '"entryNo"') > 0, 'Response does not contain entries');
+        Assert.IsTrue(StrPos(ResponseText, SeededEntryTxt) > 0, 'Response does not contain the seeded entry description');
     end;
 
     [Test]
@@ -152,8 +153,8 @@ codeunit 135549 "Report Inbox API E2E"
         // [WHEN] User sends a GET request without a key
         asserterror LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 400);
 
-        // [THEN] An error is raised because a key is required
-        Assert.ExpectedError('Specify a single report inbox entry');
+        // [THEN] An error is raised because a key is required, naming this endpoint
+        Assert.ExpectedError('for example reportInboxContents');
     end;
 
     [Test]
@@ -217,8 +218,8 @@ codeunit 135549 "Report Inbox API E2E"
         // [WHEN] User sends a GET request without a key
         asserterror LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 400);
 
-        // [THEN] An error is raised because a key is required
-        Assert.ExpectedError('Specify a single report inbox entry');
+        // [THEN] An error is raised because a key is required, naming this endpoint
+        Assert.ExpectedError('for example reportInboxFiles');
     end;
 
     [Test]
@@ -470,10 +471,8 @@ codeunit 135549 "Report Inbox API E2E"
     end;
 
     local procedure SeedEntryForApiCaller(NewDescription: Text)
-    var
-        DiscardedId: Text;
     begin
-        DiscardedId := SeedEntryForApiCallerAndGetId(NewDescription);
+        SeedEntryForApiCallerAndGetId(NewDescription);
     end;
 
     local procedure SeedEntryForApiCallerAndGetId(NewDescription: Text): Text
