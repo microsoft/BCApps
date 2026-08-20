@@ -190,7 +190,7 @@ page 9660 "Report Layouts"
                 SubPageLink = "Report ID" = field("Report ID"),
                               Name = field(Name),
                               "Application ID" = field("Application ID");
-                Visible = DocumentReportExperienceEnabled and WordLayoutSelected;
+                Visible = DocumentReportExperienceEnabled and BodyLayoutSelected;
             }
             systempart(Control11; Notes)
             {
@@ -428,9 +428,9 @@ page 9660 "Report Layouts"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Set report theme and header-footer';
                     Image = Setup;
-                    Enabled = WordLayoutSelected;
+                    Enabled = BodyLayoutSelected;
                     AccessByPermission = tabledata "Tenant Report Layout Cfg" = M;
-                    ToolTip = 'Set the theme and header/footer applied to the selected Word layout. Themes and header/footer parts apply to Word documents only. The setting is stored per company/tenant for this layout, not per user.';
+                    ToolTip = 'Set the theme and header/footer applied to the selected layout. Available for body layouts only: a theme and header/footer are merged onto a body layout when the report renders. The setting is stored per company/tenant for this layout, not per user.';
 
                     trigger OnAction()
                     var
@@ -447,16 +447,21 @@ page 9660 "Report Layouts"
                     Image = ViewDetails;
                     Enabled = WordLayoutSelected;
                     AccessByPermission = tabledata "Tenant Report Layout Cfg" = M;
-                    ToolTip = 'Show every layout of this report with the theme and header/footer that apply to each, and change them per layout. Inherited company and global defaults are shown with their source.';
+                    ToolTip = 'Show every body layout of this report with the theme and header/footer that apply to each, and change them per layout. Inherited company and global defaults are shown with their source.';
 
                     trigger OnAction()
                     var
                         ReportLayoutList: Record "Report Layout List";
                         LayoutThemeHeaderFooter: Page "Layout Theme and Header/Footer";
                     begin
-                        // Themes and header/footer parts apply to Word layouts only.
                         ReportLayoutList.SetRange("Report ID", Rec."Report ID");
                         ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::Word);
+                        ReportLayoutList.SetRange("Layout Subtype", ReportLayoutList."Layout Subtype"::Body);
+                        if ReportLayoutList.IsEmpty() then begin
+                            Message(NoBodyLayoutsForReportMsg, Rec."Report ID");
+                            exit;
+                        end;
+
                         LayoutThemeHeaderFooter.SetTableView(ReportLayoutList);
                         LayoutThemeHeaderFooter.Run();
                     end;
@@ -481,7 +486,7 @@ page 9660 "Report Layouts"
                 action(ManageThemesAndHeaderFooterLayouts)
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Manage themes and header-footer layout';
+                    Caption = 'Manage themes and header-footer layouts';
                     Image = List;
                     ToolTip = 'Open the list of themes and header/footer layouts to add, export, or delete them. The list is shared by every report, so it does not depend on the layout selected here.';
 
@@ -695,7 +700,7 @@ page 9660 "Report Layouts"
         FeatureKeyManagement: Codeunit "Feature Key Management";
     begin
         ReportLayoutsImpl.SetSelectedCompany(CompanyName());
-        if CurrPage.LookupMode then
+        if CurrPage.LookupMode and (not IncludeUnapproved) then
             Rec.SetRange("Layout Status", Enum::"Report Layout Status"::Approved);
         DocumentReportExperienceEnabled := FeatureKeyManagement.IsDocumentReportExperienceEnabled();
         if DocumentReportExperienceEnabled and (not CurrPage.LookupMode) and (ImpliedSubtype = Enum::"Report Layout Subtype"::Default) then begin
@@ -741,6 +746,7 @@ page 9660 "Report Layouts"
     begin
         LayoutIsSelected := not ((Rec."Report ID" = 0) and (Rec.Name = ''));
         WordLayoutSelected := LayoutIsSelected and (Rec."Layout Format" = Rec."Layout Format"::Word);
+        BodyLayoutSelected := WordLayoutSelected and (Rec."Layout Subtype" = Rec."Layout Subtype"::Body);
 
         CurrPage.SetSelectionFilter(SelectedReportLayoutList);
         IsMultiSelect := SelectedReportLayoutList.Count() > 1;
@@ -793,10 +799,13 @@ page 9660 "Report Layouts"
         CanModifyStatus: Boolean;
         DocumentReportExperienceEnabled: Boolean;
         WordLayoutSelected: Boolean;
+        BodyLayoutSelected: Boolean;
+        IncludeUnapproved: Boolean;
         ModifyNonUserLayoutErr: Label 'Only user-defined layouts can be modified or removed.';
         EditInfoExtensionLayoutTxt: Label 'It is not possible to modify the layout info for this layout because it is provided by an extension. Do you want to edit a copy of the layout instead ?';
         ReplaceConfirmationTxt: Label 'This action will replace the layout file of the currently selected layout "%1". Do you want to continue ?', Comment = '%1 = LayoutName';
         LayoutStatusChangedMsg: Label '%1 layout(s) set to %2.', Comment = '%1 = Number of layouts updated, %2 = Status name';
+        NoBodyLayoutsForReportMsg: Label 'Report %1 has no body layouts, so there is nothing to set a theme or header/footer on. Only a body layout carries them: a theme and header/footer are merged onto it when the report renders.', Comment = '%1 = report ID';
         DeletePartWithReferencesQst: Label 'Layout part "%1" is referenced in the Tenant Report Layout Configuration. Deleting it will clear those references and may result in reports rendering without the expected header/footer or theme. Do you want to continue?', Comment = '%1 = Layout Name';
         SystemModifiedByDisplayName: Text;
         SystemCreatedByDisplayName: Text;
@@ -816,6 +825,11 @@ page 9660 "Report Layouts"
         TenantReportLayoutCfg.SetRange("Header Part Name");
         TenantReportLayoutCfg.SetRange("Theme Part Name", CopyStr(CompositeName, 1, MaxStrLen(TenantReportLayoutCfg."Theme Part Name")));
         exit(not TenantReportLayoutCfg.IsEmpty());
+    end;
+
+    internal procedure SetIncludeUnapproved()
+    begin
+        IncludeUnapproved := true;
     end;
 
     local procedure SetLayoutStatusAction(NewStatus: Enum "Report Layout Status")

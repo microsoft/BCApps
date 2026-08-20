@@ -167,6 +167,33 @@ codeunit 9665 "Composite Layout Lookup Helper"
         exit(this.EncodeCompositeName(LayoutRec."Application ID", this.DecodeLayoutName(LayoutRec.Name)));
     end;
 
+    procedure IsBodyLayout(ReportID: Integer; LayoutName: Text): Boolean
+    var
+        ReportLayoutList: Record "Report Layout List";
+        WantedAppId: Guid;
+        PlainWanted: Text;
+        AppIdGiven: Boolean;
+    begin
+        PlainWanted := this.DecodeLayoutName(LayoutName);
+        AppIdGiven := StrPos(LayoutName, '::') > 1;
+        if AppIdGiven then
+            WantedAppId := this.DecodeAppId(LayoutName);
+
+        ReportLayoutList.SetRange("Report ID", ReportID);
+        ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::Word);
+        ReportLayoutList.SetRange("Layout Subtype", ReportLayoutList."Layout Subtype"::Body);
+        if not ReportLayoutList.FindSet() then
+            exit(false);
+
+        repeat
+            if this.DecodeLayoutName(ReportLayoutList.Name) = PlainWanted then
+                if (not AppIdGiven) or (ReportLayoutList."Application ID" = WantedAppId) then
+                    exit(true);
+        until ReportLayoutList.Next() = 0;
+
+        exit(false);
+    end;
+
     internal procedure GetTenantReportDefaultsReportID(): Integer
     begin
         exit(2000000001); // The platform's virtual "Tenant Report Defaults" report.

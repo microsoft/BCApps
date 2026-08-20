@@ -16,7 +16,7 @@ using System.Reflection;
 page 9666 "Report Theme and Header/Footer"
 {
     ApplicationArea = Basic, Suite;
-    Caption = 'Manage themes and header-footer layout';
+    Caption = 'Manage themes and header-footer layouts';
     // The former caption stays searchable so anyone who knows the page by its old name still finds it.
     AdditionalSearchTerms = 'Composite Layout, Document Theme, Header Footer Part, Report Themes and Header/Footers, Report themes and header-footer setup';
     PageType = List;
@@ -26,8 +26,8 @@ page 9666 "Report Theme and Header/Footer"
     InsertAllowed = false;
     ModifyAllowed = false;
     Extensible = true;
-    AboutTitle = 'Manage themes and header-footer layout';
-    AboutText = 'Add, export, and delete the themes and header/footer layouts that you can set as defaults on your Word report layouts. Set a layout to **Approved** to make it available to choose.';
+    AboutTitle = 'Manage themes and header-footer layouts';
+    AboutText = 'Add, export, and delete the themes and header/footer layouts that you can set on your body layouts. Only a body layout carries them: they are merged onto it when the report renders. Set a layout to **Approved** to make it available to choose.';
 
     layout
     {

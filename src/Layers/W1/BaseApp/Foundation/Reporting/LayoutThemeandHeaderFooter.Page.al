@@ -15,7 +15,7 @@ using System.Reflection;
 page 9670 "Layout Theme and Header/Footer"
 {
     ApplicationArea = Basic, Suite;
-    Caption = 'Report Layout Themes and Header/Footers';
+    Caption = 'Theme and header-footer per layout';
     PageType = List;
     SourceTable = "Report Layout List";
     SourceTableView = sorting("Report ID", "Layout Format");
@@ -25,8 +25,8 @@ page 9670 "Layout Theme and Header/Footer"
     DeleteAllowed = false;
     ModifyAllowed = false;
     Extensible = true;
-    AboutTitle = 'See the theme and header/footer each layout uses';
-    AboutText = 'Compare every layout of this report side by side, with the theme and header/footer that apply to each one. The **source** columns tell you where each comes from: the layout itself, the report, your company, or the global default. Select a layout and choose **Set theme and header-footer** to change it without affecting the others.';
+    AboutTitle = 'Theme and header-footer per layout';
+    AboutText = 'Compare the body layouts of this report side by side, with the theme and header/footer that apply to each one. Only a body layout is listed, because only a body layout carries them. The **source** columns tell you where each comes from: the layout itself, the report, your company, or the global default. Select a layout and choose **Set theme and header-footer** to change it without affecting the others.';
 
     layout
     {
@@ -83,7 +83,8 @@ page 9670 "Layout Theme and Header/Footer"
                 ApplicationArea = Basic, Suite;
                 Caption = 'Set theme and header-footer';
                 Image = Setup;
-                ToolTip = 'Set the theme and header/footer applied to the selected layout. The setting is stored for this layout (per company/tenant), overriding any company or global default.';
+                Enabled = BodyLayoutSelected;
+                ToolTip = 'Set the theme and header/footer applied to the selected layout. Available for body layouts only. The setting is stored for this layout (per company/tenant), overriding any company or global default.';
 
                 trigger OnAction()
                 begin
@@ -122,6 +123,11 @@ page 9670 "Layout Theme and Header/Footer"
         end;
     end;
 
+    trigger OnAfterGetCurrRecord()
+    begin
+        BodyLayoutSelected := Rec."Layout Subtype" = Rec."Layout Subtype"::Body;
+    end;
+
     local procedure ManageRow()
     var
         HeaderFooterThemeAssignment: Page "Header/Footer Theme Assignment";
@@ -133,6 +139,7 @@ page 9670 "Layout Theme and Header/Footer"
 
     var
         LookupHelper: Codeunit "Composite Layout Lookup Helper";
+        BodyLayoutSelected: Boolean;
         ReportLevelResolved: Boolean;
         ThemeDisplay: Text;
         ThemeSource: Text;
