@@ -1618,7 +1618,7 @@ codeunit 133961 "Agent Test"
     end;
 
     [Test]
-    [HandlerFunctions('AgentCardPageHandler')]
+    [HandlerFunctions('SendArchivedAgentNotificationHandler,AgentCardPageHandler')]
     procedure ArchivedAgentLinkOpensAgentCard()
     var
         AgentRecord: Record Agent;
@@ -1642,6 +1642,7 @@ codeunit 133961 "Agent Test"
 
         // [THEN] The agent card is opened for that agent
         Assert.AreEqual(DisplayName, LibraryVariableStorage.DequeueText(), 'The agent card should be opened for the archived agent.');
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -1673,6 +1674,7 @@ codeunit 133961 "Agent Test"
 
         // [THEN] The log entries of that task are opened
         Assert.AreEqual(Format(AgentTaskRecord.ID), LibraryVariableStorage.DequeueText(), 'The log entries should be opened for the task of the archived agent.');
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [ModalPageHandler]
