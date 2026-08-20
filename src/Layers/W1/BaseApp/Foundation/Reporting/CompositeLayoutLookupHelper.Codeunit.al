@@ -178,16 +178,11 @@ codeunit 9665 "Composite Layout Lookup Helper"
         ReportLayoutList.SetRange("Report ID", ReportID);
         ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::Word);
         ReportLayoutList.SetRange("Layout Subtype", ReportLayoutList."Layout Subtype"::Body);
-        if not ReportLayoutList.FindSet() then
-            exit(false);
+        ReportLayoutList.SetRange(Name, CopyStr(PlainWanted, 1, MaxStrLen(ReportLayoutList.Name)));
+        if AppIdGiven then
+            ReportLayoutList.SetRange("Application ID", WantedAppId);
 
-        repeat
-            if this.DecodeLayoutName(ReportLayoutList.Name) = PlainWanted then
-                if (not AppIdGiven) or (ReportLayoutList."Application ID" = WantedAppId) then
-                    exit(true);
-        until ReportLayoutList.Next() = 0;
-
-        exit(false);
+        exit(not ReportLayoutList.IsEmpty());
     end;
 
     internal procedure GetTenantReportDefaultsReportID(): Integer
