@@ -1117,7 +1117,6 @@ report 1307 "Standard Sales - Credit Memo"
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
-        }
         layout("StandardSalesCreditMemoBody.docx")
         {
             Type = Word;
