@@ -88,12 +88,13 @@ codeunit 30476 "Shpfy TMA Notify"
             exit;
 
         // Prefer the Tax Match Review page; fall back to the raw Shopify order.
-        if not RunReviewForSalesHeader(SalesHeader) then begin
+        if RunReviewForSalesHeader(SalesHeader) then
+            FeatureTelemetry.LogUsage('0000UMU', TMARegister.FeatureName(), 'tax review opened')
+        else begin
             VariantRec := SalesHeader;
             OrderMgt.ShowShopifyOrder(VariantRec);
+            FeatureTelemetry.LogUsage('0000UN9', TMARegister.FeatureName(), 'tax review fell back to the Shopify order (review page could not be resolved)');
         end;
-
-        FeatureTelemetry.LogUsage('0000UMU', TMARegister.FeatureName(), 'tax review opened');
     end;
 
     /// <summary>
