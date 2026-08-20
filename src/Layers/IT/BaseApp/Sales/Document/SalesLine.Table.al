@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -4384,8 +4384,7 @@ table 37 "Sales Line"
     trigger OnInsert()
     begin
         TestStatusOpen();
-        if not HasSalesHeader then
-            Error(CannotInsertSalesLineWithoutHeaderErr);
+        VerifySalesHeaderExists();
 
         if Quantity <> 0 then begin
             OnBeforeVerifyReservedQty(Rec, xRec, 0);
@@ -4480,7 +4479,7 @@ table 37 "Sales Line"
         HasBeenShown: Boolean;
         PlannedShipmentDateCalculated: Boolean;
         PlannedDeliveryDateCalculated: Boolean;
-        HasSalesHeader: Boolean;
+        SuppressSalesHeaderExistsVerification: Boolean;
         SkipDefaultItemQuantity: Boolean;
 #pragma warning disable AA0074
 #pragma warning disable AA0470
@@ -4562,7 +4561,7 @@ table 37 "Sales Line"
         PriceDescriptionTxt: Label 'x%1 (%2%3/%4)', Locked = true;
         PriceDescriptionWithLineDiscountTxt: Label 'x%1 (%2%3/%4) - %5%', Locked = true;
         SelectNonstockItemErr: Label 'You can only select a catalog item for an empty line.';
-        CommentLbl: Label 'Comment';
+        CommentLbl: Label 'Comment', MaxLength = 30;
         LineDiscountPctErr: Label 'The value in the Line Discount % field must be between 0 and 100.';
         SalesBlockedErr: Label 'You cannot sell %1 %2 because the %3 check box is selected on the %1 card.', Comment = '%1 - Table Caption (Item), %2 - Item No., %3 - Field Caption';
         CannotChangePrepaidServiceChargeErr: Label 'You cannot change the line because it will affect service charges that are already invoiced as part of a prepayment.';
@@ -5168,12 +5167,13 @@ table 37 "Sales Line"
     /// </summary>
     /// <remarks>
     /// The global SalesHeader is used whenever data from the sales header is used in other procedures on the object.
+    /// SuppressSalesHeaderExistsVerification is implicitly set to true; call SetSuppressSalesHeaderExistsVerification afterwards to override this behavior.
     /// </remarks>
     /// <param name="NewSalesHeader">The sales header to set.</param>
     procedure SetSalesHeader(NewSalesHeader: Record "Sales Header")
     begin
         SalesHeader := NewSalesHeader;
-        HasSalesHeader := true;
+        SetSuppressSalesHeaderExistsVerification(true);
         OnBeforeSetSalesHeader(SalesHeader);
 
         if SalesHeader."Currency Code" = '' then
@@ -5185,6 +5185,15 @@ table 37 "Sales Line"
         end;
 
         OnAfterSetSalesHeader(Rec, SalesHeader, Currency);
+    end;
+
+    /// <summary>
+    /// Sets the value of the SuppressSalesHeaderExistsVerification variable.
+    /// </summary>
+    /// <param name="NewSuppressSalesHeaderExistsVerification">Set to true to suppress the sales header existence verification on insert.</param>
+    procedure SetSuppressSalesHeaderExistsVerification(NewSuppressSalesHeaderExistsVerification: Boolean)
+    begin
+        SuppressSalesHeaderExistsVerification := NewSuppressSalesHeaderExistsVerification;
     end;
 
     /// <summary>
@@ -5208,14 +5217,13 @@ table 37 "Sales Line"
     var
         IsHandled: Boolean;
     begin
-        OnBeforeGetSalesHeader(Rec, SalesHeader, IsHandled, Currency, HasSalesHeader);
+        OnBeforeGetSalesHeader(Rec, SalesHeader, IsHandled, Currency, SuppressSalesHeaderExistsVerification);
         if IsHandled then
             exit;
 
         TestField("Document No.");
         if ("Document Type" <> SalesHeader."Document Type") or ("Document No." <> SalesHeader."No.") then
             if SalesHeader.Get("Document Type", "Document No.") then begin
-                HasSalesHeader := true;
                 if SalesHeader."Currency Code" = '' then
                     Currency.InitRoundingPrecision()
                 else begin
@@ -5223,10 +5231,8 @@ table 37 "Sales Line"
                     Currency.Get(SalesHeader."Currency Code");
                     Currency.TestField("Amount Rounding Precision");
                 end
-            end else begin
+            end else
                 Clear(SalesHeader);
-                HasSalesHeader := false;
-            end;
 
         OnAfterGetSalesHeader(Rec, SalesHeader, Currency);
         OutSalesHeader := SalesHeader;
@@ -8507,9 +8513,11 @@ table 37 "Sales Line"
 
         if ("Qty. to Invoice" <> 0) and ("Prepmt. Amt. Inv." <> 0) then begin
             GetSalesHeader();
-            if ("Prepayment %" = 100) and not IsFinalInvoice() then
+            if ("Prepayment %" = 100) and not IsFinalInvoice() then begin
+                // Reset to non-zero so GetLineAmountToHandle uses the proration branch, matching the already-posted amount
+                "Prepmt Amt to Deduct" := "Prepmt. Amt. Inv.";
                 "Prepmt Amt to Deduct" := GetLineAmountToHandle("Qty. to Invoice") - "Inv. Disc. Amount to Invoice"
-            else
+            end else
                 "Prepmt Amt to Deduct" :=
                   Round(
                     ("Prepmt. Amt. Inv." - "Prepmt Amt Deducted") *
@@ -10250,6 +10258,7 @@ table 37 "Sales Line"
     procedure ClearSalesHeader()
     begin
         Clear(SalesHeader);
+        SetSuppressSalesHeaderExistsVerification(false);
     end;
 
     local procedure GetBlockedItemNotificationID(): Guid
@@ -10319,12 +10328,36 @@ table 37 "Sales Line"
     /// Blank line type is represented by the comment label.
     /// </remarks>
     /// <returns>The text representation of the line type.</returns>
-    procedure FormatType() FormattedType: Text[20]
+#if not CLEAN29
+    [Obsolete('Use FormatTypeAsText() instead.', '29.0')]
+    procedure FormatType(): Text[20]
+    begin
+        exit(CopyStr(FormatTypeAsText(), 1, 20));
+    end;
+#endif
+
+    /// <summary>
+    /// Gets the text representation of the line type for the sales line.
+    /// </summary>
+    /// <remarks>
+    /// Blank line type is represented by the comment label.
+    /// </remarks>
+    /// <returns>The text representation of the line type.</returns>
+    procedure FormatTypeAsText() FormattedType: Text[30]
     var
+#if not CLEAN29
+        LegacyFormattedType: Text[20];
+#endif
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeFormatType(Rec, FormattedType, IsHandled);
+#if not CLEAN29
+        OnBeforeFormatType(Rec, LegacyFormattedType, IsHandled);
+        FormattedType := LegacyFormattedType;
+        if IsHandled then
+            exit(FormattedType);
+#endif
+        OnBeforeFormatTypeAsText(Rec, FormattedType, IsHandled);
         if IsHandled then
             exit(FormattedType);
 
@@ -10535,6 +10568,22 @@ table 37 "Sales Line"
             TestField("Return Qty. Rcd. Not Invd.", 0);
     end;
 
+    local procedure VerifySalesHeaderExists()
+    var
+        SalesHeaderToVerify: Record "Sales Header";
+    begin
+        if Rec.IsTemporary() then
+            exit;
+
+        if SuppressSalesHeaderExistsVerification then
+            exit;
+
+        SalesHeaderToVerify.SetRange("Document Type", "Document Type");
+        SalesHeaderToVerify.SetRange("No.", "Document No.");
+        if SalesHeaderToVerify.IsEmpty() then
+            Error(CannotInsertSalesLineWithoutHeaderErr);
+    end;
+
     local procedure CheckInventoryPickConflict()
     var
         IsHandled: Boolean;
@@ -10700,7 +10749,7 @@ table 37 "Sales Line"
     /// <returns>The quantity in the base unit of measure.</returns>
     procedure CalcBaseQty(Qty: Decimal; FromFieldName: Text; ToFieldName: Text) Result: Decimal
     var
-        IsHandled: Boolean;        
+        IsHandled: Boolean;
     begin
         OnBeforeCalcBaseQty(Rec, Qty, FromFieldName, ToFieldName);
 
@@ -10903,10 +10952,15 @@ table 37 "Sales Line"
                 until SelectedSalesLine.Next() = 0;
     end;
 
+    procedure RestoreLookupSelection()
+    begin
+        RestoreLookupSelectionWithResult();
+    end;
+
     /// <summary>
     /// Restores the selected record from the lookup state manager to the sales line.
     /// </summary>
-    procedure RestoreLookupSelection()
+    procedure RestoreLookupSelectionWithResult() SelectionRestored: Boolean
     var
         GLAccount: Record "G/L Account";
         Item: Record Item;
@@ -10917,6 +10971,8 @@ table 37 "Sales Line"
         RecVariant: Variant;
     begin
         if LookupStateManager.IsRecordSaved() then begin
+            SelectionRestored := true;
+            CurrFieldNo := FieldNo("No.");
             case Rec.Type of
                 Rec.Type::Item:
                     begin
@@ -12075,8 +12131,22 @@ table 37 "Sales Line"
     /// <param name="SalesLine">The sales line being processed.</param>
     /// <param name="FormattedType">The formatted type text.</param>
     /// <param name="IsHandled">Set to true to skip the default processing.</param>
+#if not CLEAN29
+    [Obsolete('Use OnBeforeFormatTypeAsText instead.', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFormatType(SalesLine: Record "Sales Line"; var FormattedType: Text[20]; var IsHandled: Boolean)
+    begin
+    end;
+#endif
+
+    /// <summary>
+    /// Raised before the sales line type is formatted as text.
+    /// </summary>
+    /// <param name="SalesLine">The sales line for which the type is being formatted.</param>
+    /// <param name="FormattedType">The formatted line type.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeFormatTypeAsText(SalesLine: Record "Sales Line"; var FormattedType: Text[30]; var IsHandled: Boolean)
     begin
     end;
 
@@ -12143,7 +12213,7 @@ table 37 "Sales Line"
     /// <param name="SalesHeader">The sales header to get.</param>
     /// <param name="IsHanded">Set to true to skip the default processing.</param>
     /// <param name="Currency">The currency record.</param>
-    /// <param name="HasSalesHeader">Set to true to indicate whether the sales header has been retrieved.</param>
+    /// <param name="HasSalesHeader">Set to true to indicate whether the sales header has been retrieved, which sets global variable SuppressSalesHeaderExistsVerification to skip the verification.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetSalesHeader(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; var IsHanded: Boolean; var Currency: Record Currency; var HasSalesHeader: Boolean)
     begin

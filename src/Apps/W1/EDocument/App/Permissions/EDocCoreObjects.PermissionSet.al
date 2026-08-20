@@ -19,6 +19,7 @@ using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.EServices.EDocument.Processing.Import.Sales;
 using Microsoft.eServices.EDocument.Processing.Message;
+using Microsoft.eServices.EDocument.RemittanceAdvice;
 using Microsoft.eServices.EDocument.Service;
 using Microsoft.eServices.EDocument.Service.Participant;
 
@@ -102,6 +103,7 @@ permissionset 6100 "E-Doc. Core - Objects"
         codeunit "E-Doc. PO Copilot Matching" = X,
 #endif
         codeunit "E-Doc. Attachment Processor" = X,
+        codeunit "E-Doc. Hist. Line Data Loader" = X,
         codeunit "E-Doc. Message Mgt." = X,
         codeunit "Service Participant" = X,
         page "E-Doc. Changes Part" = X,
@@ -133,6 +135,7 @@ permissionset 6100 "E-Doc. Core - Objects"
         page "Service Participants" = X,
         page "E-Doc. Create Purch Order Line" = X,
         page "E-Doc. Purchase Draft Subform" = X,
+        page "E-Doc. Historical Lines List" = X,
         page "E-Doc. Read. Purch. Lines" = X,
         page "E-Doc. Readable Purchase Doc." = X,
         page "E-Document Purchase Draft" = X,
@@ -173,5 +176,7 @@ permissionset 6100 "E-Doc. Core - Objects"
         codeunit "Send Runner" = X,
         codeunit SendContext = X,
         codeunit "Sent Document Approval" = X,
-        codeunit "Sent Document Cancellation" = X;
+        codeunit "Sent Document Cancellation" = X,
+        codeunit "E-Doc. Remittance Advice Mgt." = X,
+        codeunit "E-Doc. Remit. Advice Export" = X;
 }

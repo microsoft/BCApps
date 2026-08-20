@@ -412,19 +412,14 @@ page 4404 "SOA Email Message"
         else
             TaskMessageID := Rec.ID;
 
-        if SOATaskContactOverride.Get(Rec."Task ID", TaskMessageID) then
+        if SOATaskContactOverride.Get(Rec."Task ID", TaskMessageID) and SOAFiltersImpl.IsContactOverrideTrusted(SOATaskContactOverride) then
             if SOATaskContactOverride."Contact No." <> '' then
                 if Contact.Get(SOATaskContactOverride."Contact No.") then begin
                     ContactCount := 1;
                     exit(true);
                 end;
 
-        Contact.SetFilter("E-Mail", SOAFiltersImpl.GetSafeFromEmailFilter(EmailAddress));
-        ContactCount := Contact.Count();
-        if not Contact.FindFirst() then
-            exit(false);
-
-        exit(true);
+        exit(SOAFiltersImpl.FindContactByEmail(Contact, EmailAddress, ContactCount));
     end;
 
     local procedure GetSOAEmail(var AgentTaskMessage: Record "Agent Task Message"): Boolean
