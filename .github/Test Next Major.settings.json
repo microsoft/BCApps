@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/b97c03d40c6f3d32a1e12a54a316c9a0d68c6261/Actions/.Modules/settings.schema.json",
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/992ee305e2c6d86d85d53e18c4fc88a5171a8cd4/Actions/.Modules/settings.schema.json",
   "artifact": "////nextmajor",
   "cacheImageName": "",
   "versioningStrategy": 15
