@@ -317,6 +317,18 @@ codeunit 134619 "Composite Layout Tests"
         // [SCENARIO] Seeding writes the shipped theme and header/footer parts into the shared pool.
         Initialize();
 
+        // [GIVEN] Neither part is in the pool. The suite shares a company and is not rolled back between methods, so an
+        // earlier run leaves the shipped parts behind - without removing them first these assertions would pass on rows
+        // this call never wrote.
+        RemoveShippedPart('Internal Default');
+        RemoveShippedPart('Default');
+        Assert.IsFalse(
+            ShippedPartExists('Internal Default', Enum::"Report Layout Subtype"::HeaderFooter),
+            'The header/footer part should be gone before seeding, or the test proves nothing.');
+        Assert.IsFalse(
+            ShippedPartExists('Default', Enum::"Report Layout Subtype"::Theme),
+            'The theme part should be gone before seeding, or the test proves nothing.');
+
         // [WHEN] Seeding the shipped parts, as install and upgrade do.
         CompositeReportPartsMgt.SeedDefaultParts();
 
@@ -346,8 +358,14 @@ codeunit 134619 "Composite Layout Tests"
         // [SCENARIO] Re-seeding replaces a part rather than adding a second copy, so repeated upgrades do not duplicate.
         Initialize();
 
-        // [GIVEN] The shipped parts have already been seeded once.
+        // [GIVEN] The part is not in the pool, so the first pass below is the one that creates it. The suite shares a
+        // company and is not rolled back between methods, so an earlier run would otherwise have seeded it already.
+        RemoveShippedPart('Internal Default');
+        Assert.AreEqual(0, ShippedPartCount('Internal Default'), 'The part should be gone before the first pass.');
+
+        // [GIVEN] A first pass creates it.
         CompositeReportPartsMgt.SeedDefaultParts();
+        Assert.AreEqual(1, ShippedPartCount('Internal Default'), 'The first pass should create the shipped part.');
 
         // [WHEN] Seeding again, as a later upgrade would.
         CompositeReportPartsMgt.SeedDefaultParts();
@@ -406,7 +424,6 @@ codeunit 134619 "Composite Layout Tests"
     [Scope('OnPrem')]
     procedure CompositeReportPartsUpgradeTagGatesRerun()
     var
-        TenantReportLayout: Record "Tenant Report Layout";
         UpgradeCompositeReportParts: Codeunit "Upgrade Composite Report Parts";
         CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
         UpgradeTag: Codeunit "Upgrade Tag";
@@ -425,8 +442,7 @@ codeunit 134619 "Composite Layout Tests"
             'A completed seeding pass should record its database upgrade tag.');
 
         // [GIVEN] One seeded part is removed behind the pass's back.
-        TenantReportLayout.Get(LookupHelper.GetTenantReportDefaultsReportID(), 'Internal Default', EmptyGuidValue());
-        TenantReportLayout.Delete(true);
+        RemoveShippedPart('Internal Default');
 
         // [WHEN] The upgrade runs a second time.
         UpgradeCompositeReportParts.RunUpgrade();
@@ -444,6 +460,18 @@ codeunit 134619 "Composite Layout Tests"
     procedure PartInfoMessageHandler(Message: Text[1024])
     begin
         LibraryVariableStorage.Enqueue(Message);
+    end;
+
+    /// <summary>
+    /// Removes one shipped part from the shared pool so a seeding assertion proves the call under test wrote it. The
+    /// suite runs in a non-isolated bucket against a shared company, so rows an earlier run seeded are still there.
+    /// </summary>
+    local procedure RemoveShippedPart(PartName: Text)
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+    begin
+        if TenantReportLayout.Get(LookupHelper.GetTenantReportDefaultsReportID(), CopyStr(PartName, 1, MaxStrLen(TenantReportLayout.Name)), EmptyGuidValue()) then
+            TenantReportLayout.Delete(true);
     end;
 
     local procedure EmptyGuidValue(): Guid
