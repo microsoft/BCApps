@@ -1138,19 +1138,7 @@ report 1305 "Standard Sales - Order Conf."
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
-        layout("StandardSalesOrderConfBody.docx")
-        {
-            Type = Word;
-            Subtype = Body;
-            LayoutFile = './Sales/Document/StandardSalesOrderConfBody.docx';
-            Caption = 'Body-only: Standard Sales Order Confirmation (Word)';
-            Summary = 'Portrait orientated. Shows the customer and company address and a header with document number, external document number, salesperson, quote number, and shipment method. Item lines list price, discount %, VAT %, and amount, with VAT-inclusive totals.';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '30.0';
-        }
-
-
+     
         layout("StandardSalesOrderConfBody.docx")
         {
             Type = Word;

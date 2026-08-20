@@ -1207,17 +1207,6 @@ report 1322 "Standard Purchase - Order"
             LayoutFile = './Purchases/Document/StandardPurchaseOrderBody.docx';
             Caption = 'Body-only: Standard Purchase Order (Word)';
             Summary = 'Portrait orientated. Shows the buy-from, ship-to, and company address and a header with order number, date, payment terms, buyer, shipment method, and vendor invoice number. Item lines list cost, VAT %, and amount, with VAT totals.';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '30.0';
-        }
-        layout("StandardPurchaseOrderBody.docx")
-        {
-            Type = Word;
-            Subtype = Body;
-            LayoutFile = './Purchases/Document/StandardPurchaseOrderBody.docx';
-            Caption = 'Body-only: Standard Purchase Order (Word)';
-            Summary = 'Portrait orientated. Shows the buy-from, ship-to, and company address and a header with order number, date, payment terms, buyer, shipment method, and vendor invoice number. Item lines list cost, VAT %, and amount, with VAT totals.';
         }
         layout("StandardPurchaseOrderEmailBody.docx")
         {

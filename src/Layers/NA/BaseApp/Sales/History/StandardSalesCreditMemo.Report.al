@@ -1117,16 +1117,6 @@ report 1307 "Standard Sales - Credit Memo"
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
-        layout("StandardSalesCreditMemoBody.docx")
-        {
-            Type = Word;
-            Subtype = Body;
-            LayoutFile = './Sales/History/StandardSalesCreditMemoBody.docx';
-            Caption = 'Body-only: Standard Sales Credit Memo NA (Word)';
-            Summary = 'Portrait orientated. Shows the customer, ship-to, and company address, a header with date, salesperson, applies-to document, and due date, and item lines with quantity, price, and amount. Adds total including VAT and a taxable and exempt tax split.';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '30.0';
         }
         layout("StandardSalesCreditMemoBody.docx")
         {
