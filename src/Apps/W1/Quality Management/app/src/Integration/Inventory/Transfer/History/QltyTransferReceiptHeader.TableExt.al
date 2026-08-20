@@ -36,7 +36,7 @@ tableextension 20412 "Qlty. Transfer Receipt Header" extends "Transfer Receipt H
     }
 
     /// <summary>
-    /// Runs associated Quality Inspection page
+    /// Opens the quality inspection associated with the posted transfer receipt when it exists.
     /// </summary>
     procedure QltyShowRelatedInspection()
     var
