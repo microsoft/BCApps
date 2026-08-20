@@ -2578,6 +2578,7 @@ codeunit 137080 "SCM Planning And Manufacturing"
     end;
 
     [Test]
+    [HandlerFunctions('CarryOutActionMsgPlanWithStopAndShowFirstErrorRequestPageHandler')]
     procedure CarryOutActionMessageCreateReleasedProdOrdersRequiresNoSeries()
     var
         ManufacturingSetup: Record "Manufacturing Setup";
@@ -2597,7 +2598,7 @@ codeunit 137080 "SCM Planning And Manufacturing"
         CreateRequisitionLine(RequisitionLine, Item."No.", 1);
 
         // [WHEN] Run "Carry Out Action Message" action in the planning worksheet and choose "Released"
-        asserterror CreateProdOrdersFromPlanWorksheet(RequisitionLine, Enum::"Planning Create Prod. Order"::Released);
+        asserterror CreateProdOrdersFromPlanWorksheetWithStopAndShowFirstError(RequisitionLine, Enum::"Planning Create Prod. Order"::Released);
 
         // [THEN] The missing released production order number series error is raised
         Assert.ExpectedTestFieldError(ManufacturingSetup.FieldCaption("Released Order Nos."), '');
@@ -2779,6 +2780,24 @@ codeunit 137080 "SCM Planning And Manufacturing"
             Enum::"Planning Create Transfer Order"::" ".AsInteger(),
             Enum::"Planning Create Assembly Order"::" ".AsInteger(),
             '', '', '', '');
+    end;
+
+    local procedure CreateProdOrdersFromPlanWorksheetWithStopAndShowFirstError(RequisitionLine: Record "Requisition Line"; ProdOrderChoice: Enum "Planning Create Prod. Order")
+    var
+        CarryOutActionMsgPlan: Report "Carry Out Action Msg. - Plan.";
+    begin
+        RequisitionLine.Validate("Accept Action Message", true);
+        RequisitionLine.Modify();
+
+        CarryOutActionMsgPlan.SetReqWkshLine(RequisitionLine);
+        CarryOutActionMsgPlan.InitializeRequest2(
+            ProdOrderChoice.AsInteger(),
+            Enum::"Planning Create Purchase Order"::" ".AsInteger(),
+            Enum::"Planning Create Transfer Order"::" ".AsInteger(),
+            Enum::"Planning Create Assembly Order"::" ".AsInteger(),
+            '', '', '', '');
+        CarryOutActionMsgPlan.SetTableView(RequisitionLine);
+        CarryOutActionMsgPlan.Run();
     end;
 
     local procedure CreateRequisitionLine(var RequisitionLine: Record "Requisition Line"; ItemNo: Code[20]; Quantity: Decimal)
@@ -4257,6 +4276,13 @@ codeunit 137080 "SCM Planning And Manufacturing"
     procedure CheckProdOrderStatusModalPageHandler(var CheckProdOrderStatus: TestPage "Check Prod. Order Status")
     begin
         CheckProdOrderStatus.Yes().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure CarryOutActionMsgPlanWithStopAndShowFirstErrorRequestPageHandler(var CarryOutActionMsgPlan: TestRequestPage "Carry Out Action Msg. - Plan.")
+    begin
+        CarryOutActionMsgPlan.NoPlanningResiliency.SetValue(true);
+        CarryOutActionMsgPlan.OK().Invoke();
     end;
 
     [ReportHandler]
