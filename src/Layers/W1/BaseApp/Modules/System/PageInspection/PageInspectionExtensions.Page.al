@@ -98,13 +98,13 @@ page 9633 "Page Inspection Extensions"
             // page added by extension
             AllObjWithCaption.SetRange("Object ID", CurrentPageId);
             AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Page);
-            if AllObjWithCaption.FindFirst() then
+            if not AllObjWithCaption.IsEmpty() then
                 TypeOfExtension := TypeOfExtension + ', ' + NewPageLbl;
 
             // table added by extension
             AllObjWithCaption.SetRange("Object ID", CurrentTableId);
             AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
-            if AllObjWithCaption.FindFirst() then
+            if not AllObjWithCaption.IsEmpty() then
                 TypeOfExtension := TypeOfExtension + ', ' + NewTableLbl;
 
             AllObjWithCaption.Reset();
@@ -113,13 +113,13 @@ page 9633 "Page Inspection Extensions"
             // page extended by extension
             AllObjWithCaption.SetRange("Object Subtype", StrSubstNo('%1', CurrentPageId));
             AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::PageExtension);
-            if AllObjWithCaption.FindFirst() then
+            if not AllObjWithCaption.IsEmpty() then
                 TypeOfExtension := TypeOfExtension + ', ' + ExtPageLbl;
 
             // table extended by extension
             AllObjWithCaption.SetRange("Object Subtype", StrSubstNo('%1', CurrentTableId));
             AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::TableExtension);
-            if AllObjWithCaption.FindFirst() then
+            if not AllObjWithCaption.IsEmpty() then
                 TypeOfExtension := TypeOfExtension + ', ' + ExtTableLbl;
 
             TypeOfExtension := DelChr(TypeOfExtension, '<', ',');
