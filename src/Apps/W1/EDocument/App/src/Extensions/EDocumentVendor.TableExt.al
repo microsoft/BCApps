@@ -17,7 +17,7 @@ tableextension 6165 "E-Document Vendor" extends Vendor
     }
     keys
     {
-        key(RegistrationNumber; "Registration Number")
+        key(EDocRegistrationNumber; "Registration Number")
         {
         }
     }

@@ -132,6 +132,7 @@ codeunit 148500 "XRechnung Structured Tests"
 
         // [GIVEN] Vendor and company are configured for Registration No. matching
         VendorRegistrationNo := 'SUPPLIER-FC';
+        Vendor.GLN := '';
         Vendor."VAT Registration No." := '';
         Vendor."Registration Number" := VendorRegistrationNo;
         Vendor."Use Reg. No. in E-Document" := true;

@@ -137,11 +137,15 @@ codeunit 13919 "Import ZUGFeRD Document"
 
     local procedure EvaluateDate(DateText: Text): Date
     var
-        DMY: Date;
+        Day: Integer;
+        Month: Integer;
+        Year: Integer;
     begin
         // Format 20241115 (yyyymmdd)
-        Evaluate(DMY, CopyStr(DateText, 7, 2) + '.' + CopyStr(DateText, 5, 2) + '.' + CopyStr(DateText, 1, 4));
-        exit(DMY);
+        Evaluate(Year, CopyStr(DateText, 1, 4));
+        Evaluate(Month, CopyStr(DateText, 5, 2));
+        Evaluate(Day, CopyStr(DateText, 7, 2));
+        exit(DMY2Date(Day, Month, Year));
     end;
 
     local procedure GetNodeByPath(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text): Text
