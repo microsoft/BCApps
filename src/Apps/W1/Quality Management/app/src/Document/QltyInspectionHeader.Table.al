@@ -679,6 +679,9 @@ table 20405 "Qlty. Inspection Header"
         ImageTok: Label 'Image', Locked = true;
         PassFailQuantityInvalidErr: Label 'The %1 and %2 cannot exceed the %3. The %3 is currently exceeded by %4.', Comment = '%1=the passed quantity caption, %2=the failed quantity caption, %3=the source quantity caption, %4=the quantity exceeded';
 
+    /// <summary>
+    /// Marks the current inspection as the most recent reinspection and clears that flag on earlier reinspections.
+    /// </summary>
     local procedure UpdateMostRecentReinspection()
     begin
         Rec."Most Recent Re-inspection" := true;
@@ -686,6 +689,9 @@ table 20405 "Qlty. Inspection Header"
         ClearMostRecentReinspectionForPrecedingInspections();
     end;
 
+    /// <summary>
+    /// Clears the most-recent flag on earlier reinspections with the same inspection number.
+    /// </summary>
     local procedure ClearMostRecentReinspectionForPrecedingInspections()
     var
         PrecedingQltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -700,10 +706,10 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Helper function to set an inspection line value.
+    /// Sets the test value on the uniquely matching line of the current inspection.
     /// </summary>
-    /// <param name="NumberOrNameOfTestCode"></param>
-    /// <param name="NumberOrNameOfTestValue"></param>
+    /// <param name="NumberOrNameOfTestCode">The test code used to identify the inspection line.</param>
+    /// <param name="NumberOrNameOfTestValue">The test value to validate on the line.</param>
     procedure SetTestValue(NumberOrNameOfTestCode: Text; NumberOrNameOfTestValue: Text)
     var
         QltyInspectionLine: Record "Qlty. Inspection Line";
@@ -719,10 +725,9 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Use this to invoke the assist-edit for the given measurement test on the inspection.
-    /// This presumes that the given measurement test is only used once on the inspection.
+    /// Opens assist edit for the uniquely matching test line of the current inspection.
     /// </summary>
-    /// <param name="NumberOrNameOfTestCode"></param>
+    /// <param name="NumberOrNameOfTestCode">The test code used to identify the inspection line.</param>
     procedure AssistEditTest(NumberOrNameOfTestCode: Text)
     var
         QltyInspectionLine: Record "Qlty. Inspection Line";
@@ -742,7 +747,7 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// This will update the result on the inspection based on the results from the line.
+    /// Updates the inspection result from the first applicable line result, prioritizing acceptable-quality-level failures.
     /// </summary>
     procedure UpdateResultFromLines()
     var
@@ -770,7 +775,7 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// InitInspectionNumber will initialize the document no. on the Quality Inspection if it's needed. If it's already set then this will not be altered.
+    /// Assigns the next inspection number when the current inspection has no number.
     /// </summary>
     internal procedure InitInspectionNumber()
     var
@@ -785,31 +790,34 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Simple flag to let us know whether we are in-progress of creating this inspection.
-    /// Decision decision: because we're passing this around as a recordref everywhere and we need that flag, we're storing in the session state instead.
+    /// Stores whether the current inspection is being created in session state.
     /// </summary>
-    /// <param name="IsCreating"></param>
+    /// <param name="IsCreating">The creation state to store.</param>
     internal procedure SetIsCreating(IsCreating: Boolean)
     begin
         QltySessionHelper.SetSessionValue(GetIsCreatingKey(), Format(IsCreating));
     end;
 
     /// <summary>
-    /// Returns true if this record is in the middle of being created.
+    /// Gets whether the current inspection is being created from session state.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>True if the inspection is being created; otherwise, false.</returns>
     internal procedure GetIsCreating(): Boolean
     begin
         exit(QltySessionHelper.GetSessionValue(GetIsCreatingKey()) = Format(true));
     end;
 
+    /// <summary>
+    /// Builds the session-state key for the current inspection's creation state.
+    /// </summary>
+    /// <returns>The creation-state session key.</returns>
     local procedure GetIsCreatingKey(): Text
     begin
         exit(StrSubstNo(KeyIsCreatingTok, Rec.RecordId()));
     end;
 
     /// <summary>
-    /// Assigns the inspection to the current user.
+    /// Assigns the inspection to the current user after verifying permission when replacing another assignee.
     /// </summary>
     procedure AssignToSelf()
     begin
@@ -823,7 +831,7 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Reopens an inspection
+    /// Reopens a finished inspection after permission, reinspection, and confirmation checks.
     /// </summary>
     procedure ReopenInspection()
     var
@@ -857,7 +865,7 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Finishes the inspection.
+    /// Logs feature usage and finishes the inspection with interactive confirmation.
     /// </summary>
     procedure FinishInspection()
     var
@@ -869,8 +877,9 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Finishes the inspection.
+    /// Finishes an open inspection after permission, tracking, and optional confirmation checks.
     /// </summary>
+    /// <param name="ShowConfirmationIfInteractive">Specifies whether to ask for confirmation when a user interface is available.</param>
     local procedure FinishInspectionAndPrompt(ShowConfirmationIfInteractive: Boolean)
     var
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
@@ -906,6 +915,9 @@ table 20405 "Qlty. Inspection Header"
         IsChangingStatus := false;
     end;
 
+    /// <summary>
+    /// Verifies that required item tracking exists and satisfies the configured posted or reserved inventory policy.
+    /// </summary>
     internal procedure VerifyTrackingBeforeFinish()
     var
         TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
@@ -963,9 +975,9 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Returns the posted inventory for the item/variant
+    /// Calculates posted inventory for the inspection's source item, variant, and required tracking values.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The matching item ledger entry quantity.</returns>
     internal procedure GetPostedInventory() PostedInventory: Decimal
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
@@ -989,6 +1001,10 @@ table 20405 "Qlty. Inspection Header"
         PostedInventory := ItemLedgerEntry.Quantity;
     end;
 
+    /// <summary>
+    /// Calculates reserved inventory for the inspection's source item, variant, and required tracking values.
+    /// </summary>
+    /// <returns>The matching reserved base quantity.</returns>
     internal procedure GetReservedInventory() ReservedInventory: Decimal
     var
         ReservationEntry: Record "Reservation Entry";
@@ -1013,7 +1029,7 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Creates a Re-inspection
+    /// Creates a reinspection for the current inspection.
     /// </summary>
     procedure CreateReinspection()
     var
@@ -1023,9 +1039,9 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Creates a Re-inspection and returns the created record.
+    /// Finishes the current inspection when required and creates a confirmed reinspection.
     /// </summary>
-    /// <param name="ReinspectionQltyInspectionHeader">The newly created re-inspection header.</param>
+    /// <param name="ReinspectionQltyInspectionHeader">The created reinspection header.</param>
     procedure CreateReinspection(var ReinspectionQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
@@ -1048,9 +1064,9 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Returns true if there is a more recent re-inspection than the current inspection.
+    /// Determines whether a later reinspection exists for the current inspection number.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>True if a later reinspection exists; otherwise, false.</returns>
     internal procedure HasMoreRecentReinspection(): Boolean
     var
         SucceedingQltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -1060,6 +1076,10 @@ table 20405 "Qlty. Inspection Header"
         exit(not SucceedingQltyInspectionHeader.IsEmpty());
     end;
 
+    /// <summary>
+    /// Determines whether the source item uses any item tracking.
+    /// </summary>
+    /// <returns>True if the source item uses item tracking; otherwise, false.</returns>
     internal procedure IsItemTrackingUsed(): Boolean
     var
         QltyItemTracking: Codeunit "Qlty. Item Tracking";
@@ -1068,9 +1088,10 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// If this inspection is associated with an item that requires item tracking of any type.
+    /// Determines the item-tracking requirements of the source item.
     /// </summary>
-    /// <returns></returns>
+    /// <param name="TempItemTrackingSetup">The temporary setup populated with required tracking types.</param>
+    /// <returns>True if the source item uses item tracking; otherwise, false.</returns>
     internal procedure IsItemTrackingUsed(var TempItemTrackingSetup: Record "Item Tracking Setup" temporary): Boolean
     var
         QltyItemTracking: Codeunit "Qlty. Item Tracking";
@@ -1078,21 +1099,38 @@ table 20405 "Qlty. Inspection Header"
         exit(QltyItemTracking.IsItemTrackingUsed(Rec."Source Item No.", TempItemTrackingSetup));
     end;
 
+    /// <summary>
+    /// Gets the caption class for a source-information control.
+    /// </summary>
+    /// <param name="Input">The source field name.</param>
+    /// <returns>The control caption class.</returns>
     internal procedure GetControlCaptionClass(Input: Text): Text
     begin
         exit(QltyTraversal.GetControlCaptionClass(Rec, Input));
     end;
 
+    /// <summary>
+    /// Gets whether a source-information control should be visible.
+    /// </summary>
+    /// <param name="Input">The source field name.</param>
+    /// <returns>True if the control should be visible; otherwise, false.</returns>
     internal procedure GetControlVisibleState(Input: Text) Visible: Boolean;
     begin
         Visible := QltyTraversal.GetControlVisibleState(Rec, Input);
     end;
 
+    /// <summary>
+    /// Determines and caches caption and visibility information for a source field.
+    /// </summary>
+    /// <param name="Input">The source field name.</param>
     internal procedure DetermineControlInformation(Input: Text)
     begin
         QltyTraversal.DetermineControlInformation(Rec, Input);
     end;
 
+    /// <summary>
+    /// Opens item tracking selection for the source lot number and stores the selected value.
+    /// </summary>
     procedure AssistEditLotNo();
     var
         TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
@@ -1163,6 +1201,9 @@ table 20405 "Qlty. Inspection Header"
         end;
     end;
 
+    /// <summary>
+    /// Opens item tracking selection for the source package number and stores the selected value.
+    /// </summary>
     procedure AssistEditPackageNo()
     var
         TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
@@ -1231,6 +1272,9 @@ table 20405 "Qlty. Inspection Header"
         end;
     end;
 
+    /// <summary>
+    /// Opens item tracking selection for the source serial number and stores the selected value.
+    /// </summary>
     procedure AssistEditSerialNo();
     var
         TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
@@ -1295,11 +1339,17 @@ table 20405 "Qlty. Inspection Header"
         end;
     end;
 
+    /// <summary>
+    /// Verifies that the inspection is open.
+    /// </summary>
     local procedure TestStatusOpen()
     begin
         Rec.TestField(Status, Rec.Status::Open);
     end;
 
+    /// <summary>
+    /// Applies finishing quantities and audit values, raises the finished event, and starts the finished workflow.
+    /// </summary>
     local procedure ProcessFinishInspection()
     var
         QltyInspectionResult: Record "Qlty. Inspection Result";
@@ -1323,6 +1373,9 @@ table 20405 "Qlty. Inspection Header"
         QltyStartWorkflow.StartWorkflowInspectionFinished(Rec);
     end;
 
+    /// <summary>
+    /// Clears finishing quantities, raises the reopen event, and starts the reopen workflow after a finished inspection is reopened.
+    /// </summary>
     local procedure ProcessReopenInspection()
     var
         QltyStartWorkflow: Codeunit "Qlty. Start Workflow";
@@ -1343,13 +1396,13 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Sets record filters based on the supplied variant and flags on whether it should be finding related inspections for the item, document, or something else.
+    /// Derives source values from a record and applies the requested item, tracking, and document filters.
     /// </summary>
-    /// <param name="ErrorIfMissingFilter"></param>
-    /// <param name="RecordVariant"></param>
-    /// <param name="UseItem"></param>
-    /// <param name="UseTracking"></param>
-    /// <param name="UseDocument"></param>
+    /// <param name="ErrorIfMissingFilter">Specifies whether to error when a requested source value cannot be derived.</param>
+    /// <param name="RecordVariant">The record from which to derive source values.</param>
+    /// <param name="UseItem">Specifies whether to filter by source item and variant.</param>
+    /// <param name="UseTracking">Specifies whether to filter by source tracking values.</param>
+    /// <param name="UseDocument">Specifies whether to filter by source document number.</param>
     procedure SetRecordFiltersToFindInspectionFor(ErrorIfMissingFilter: Boolean; RecordVariant: Variant; UseItem: Boolean; UseTracking: Boolean; UseDocument: Boolean)
     var
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
@@ -1398,6 +1451,11 @@ table 20405 "Qlty. Inspection Header"
         OnAfterSetRecordFiltersToFindInspectionFor(Rec, ErrorIfMissingFilter, RecordVariant, UseItem, UseTracking, UseDocument);
     end;
 
+    /// <summary>
+    /// Finds the most recent inspection matching the supplied record's item, tracking, and document values.
+    /// </summary>
+    /// <param name="RecordVariant">The record from which to derive source filters.</param>
+    /// <returns>True if a matching inspection was found; otherwise, false.</returns>
     internal procedure GetMostRecentInspectionFor(RecordVariant: Variant) Success: Boolean
     begin
         Rec.SetRecordFiltersToFindInspectionFor(false, RecordVariant, true, true, true);
@@ -1406,6 +1464,9 @@ table 20405 "Qlty. Inspection Header"
         Success := Rec.FindFirst();
     end;
 
+    /// <summary>
+    /// Prints the certificate of analysis for the current inspection.
+    /// </summary>
     internal procedure PrintCertificateOfAnalysis()
     var
         QltyReportMgmt: Codeunit "Qlty. Report Mgmt.";
@@ -1413,6 +1474,9 @@ table 20405 "Qlty. Inspection Header"
         QltyReportMgmt.PrintCertificateOfAnalysis(Rec);
     end;
 
+    /// <summary>
+    /// Prints the nonconformance report for the current inspection.
+    /// </summary>
     internal procedure PrintNonConformance()
     var
         QltyReportMgmt: Codeunit "Qlty. Report Mgmt.";
@@ -1420,6 +1484,9 @@ table 20405 "Qlty. Inspection Header"
         QltyReportMgmt.PrintNonConformance(Rec);
     end;
 
+    /// <summary>
+    /// Prints the general-purpose inspection report for the current inspection.
+    /// </summary>
     internal procedure PrintGeneralPurposeInspection()
     var
         QltyReportMgmt: Codeunit "Qlty. Report Mgmt.";
@@ -1428,6 +1495,7 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
+    /// Gets the system identifier of the first available trigger or source record in priority order.
     /// Intended for use with PowerAutomate and Dataverse.
     /// It will return the 'best' reference in the order of preference of:
     ///  -- triggering record
@@ -1437,7 +1505,7 @@ table 20405 "Qlty. Inspection Header"
     ///  -- otherwise fourth source record.
     ///  -- otherwise a null guid.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The related record system identifier, or an empty GUID when no related record is available.</returns>
     internal procedure GetReferenceRecordId(): Guid
     var
         RelatedSourceRecordRef: RecordRef;
@@ -1490,18 +1558,18 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Use SetPreventAutoAssignment to set whether or not we should prevent auto-assignment for this inspection
+    /// Stores whether automatic assignment should be prevented for the current inspection.
     /// </summary>
-    /// <param name="ShouldPrevent"></param>
+    /// <param name="ShouldPrevent">The auto-assignment prevention state to store.</param>
     internal procedure SetPreventAutoAssignment(ShouldPrevent: Boolean)
     begin
         QltySessionHelper.SetSessionValue(GetPreventAutoAssignmentKey(), Format(ShouldPrevent));
     end;
 
     /// <summary>
-    /// Use GetPreventAutoAssignment to determine if you should prevent automatically assigning.
+    /// Gets whether automatic assignment should be prevented for the current inspection.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>True if automatic assignment should be prevented; otherwise, false.</returns>
     procedure GetPreventAutoAssignment() Result: Boolean
     var
         TempValue: Text;
@@ -1511,11 +1579,18 @@ table 20405 "Qlty. Inspection Header"
             if Evaluate(Result, TempValue) then;
     end;
 
+    /// <summary>
+    /// Builds the session-state key for the current inspection's auto-assignment setting.
+    /// </summary>
+    /// <returns>The auto-assignment session key.</returns>
     local procedure GetPreventAutoAssignmentKey(): Text
     begin
         exit(StrSubstNo(AutoAssignmentDecisionTok, Rec.RecordId()));
     end;
 
+    /// <summary>
+    /// Recalculates sample size from the inspection template and caps it to supported or available quantities.
+    /// </summary>
     local procedure UpdateSampleSize()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -1553,10 +1628,10 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Gets the related item
+    /// Gets the inspection's source item or an item related to its trigger and source records.
     /// </summary>
-    /// <param name="Item"></param>
-    /// <returns></returns>
+    /// <param name="Item">The related item when one is found.</param>
+    /// <returns>True if a related item was found; otherwise, false.</returns>
     procedure GetRelatedItem(var Item: Record Item): Boolean
     var
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
@@ -1576,10 +1651,10 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Gets an item attribute value by the specified item attribute name.
+    /// Gets an attribute value for the inspection's source item by attribute name.
     /// </summary>
-    /// <param name="ItemAttributeName"></param>
-    /// <returns></returns>
+    /// <param name="ItemAttributeName">The item attribute name to find.</param>
+    /// <returns>The mapped attribute value, or an empty value when the source item has no mapping.</returns>
     procedure GetItemAttributeValue(ItemAttributeName: Text) FoundItemAttributeValue: Text
     var
         ItemAttribute: Record "Item Attribute";
@@ -1601,7 +1676,7 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Initializes the Qlty. Related Transfers page with the Quality Inspection record and runs it
+    /// Opens the related transfer orders page for the current inspection.
     /// </summary>
     internal procedure RunModalRelatedTransfers()
     var
@@ -1612,14 +1687,18 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Returns the Inspection No. and Re-inspection No. (if not 0) in the format No.,Re-inspection No.
+    /// Formats the inspection number with its nonzero reinspection number.
     /// </summary>
-    /// <returns>Text of No.,Re-inspection No.</returns>
+    /// <returns>The inspection's friendly identifier.</returns>
     procedure GetFriendlyIdentifier(): Text
     begin
         exit((Rec."Re-inspection No." = 0) ? Rec."No." : StrSubstNo(InspectionLbl, Rec."No.", Rec."Re-inspection No."));
     end;
 
+    /// <summary>
+    /// Gets the display style for the current inspection status.
+    /// </summary>
+    /// <returns>The status display style.</returns>
     procedure GetStatusStyleExpression(): Text
     begin
         case Rec.Status of
@@ -1632,6 +1711,9 @@ table 20405 "Qlty. Inspection Header"
         end;
     end;
 
+    /// <summary>
+    /// Verifies that passed and failed quantities do not exceed the source quantity.
+    /// </summary>
     local procedure VerifyPassAndFailQuantities()
     var
         DifferenceInPassFailQuantity: Decimal;
@@ -1643,6 +1725,7 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
+    /// Sets passed or failed quantity from sample or source quantity according to the result category.
     /// Calculates and assigns the Pass Quantity or Fail Quantity based on the inspection's Result Category.
     /// Uses Sample Size when greater than zero; otherwise falls back to Source Quantity (Base).
     /// Acceptable results populate Pass Quantity; any other category populates Fail Quantity.
@@ -1682,8 +1765,8 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Resets the Pass Quantity and Fail Quantity to zero. Used when an inspection is reopened
-    /// so the values calculated at finish do not linger on the open inspection.
+    /// Clears the passed and failed quantities.
+    /// Used when an inspection is reopened so the values calculated at finish do not linger on the open inspection.
     /// </summary>
     local procedure ClearPassFailQuantities()
     begin
@@ -1692,8 +1775,9 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Gets the preferred result style to use.
+    /// Gets the display style configured for the current result.
     /// </summary>
+    /// <returns>The configured result style, or an empty value when no result style is available.</returns>
     internal procedure GetResultStyle(): Text
     var
         QltyInspectionResult: Record "Qlty. Inspection Result";
@@ -1708,9 +1792,8 @@ table 20405 "Qlty. Inspection Header"
 
     #region Most Recent Picture Management
     /// <summary>
-    /// This will use the camera to take a picture and add it to the Inspection document.
+    /// Captures a picture, stores it as the inspection's most recent picture, and applies configured additional handling.
     /// </summary>
-    /// <returns></returns>
     internal procedure TakeNewMostRecentPicture()
     var
         Camera: Codeunit Camera;
@@ -1739,6 +1822,9 @@ table 20405 "Qlty. Inspection Header"
         ProcessAdditionalPictureHandling(PictureInStream, PictureName, FileExtensionTok, FullFileNameWithExtension);
     end;
 
+    /// <summary>
+    /// Imports a picture, stores it as the inspection's most recent picture, and applies configured additional handling.
+    /// </summary>
     internal procedure ImportMostRecentPicture()
     var
         FileManagement: Codeunit "File Management";
@@ -1764,6 +1850,9 @@ table 20405 "Qlty. Inspection Header"
         ProcessAdditionalPictureHandling(PictureInStream, PictureName, FileExtension, FullFileNameWithExtension);
     end;
 
+    /// <summary>
+    /// Deletes the inspection's most recent picture.
+    /// </summary>
     internal procedure DeleteMostRecentPicture()
     begin
         Clear(Rec."Most Recent Picture");
@@ -1771,12 +1860,11 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    /// Adds the supplied InStream to the Inspection document as "Most Recent Picture".
+    /// Replaces the inspection's most recent picture with the supplied stream.
     /// </summary>
-    /// <param name="PictureInStream"></param>
-    /// <param name="PictureName"></param>
-    /// <param name="MimeType"></param>
-    /// <returns></returns>
+    /// <param name="PictureInStream">The picture stream to import.</param>
+    /// <param name="PictureName">The name assigned to the picture.</param>
+    /// <param name="MimeType">The picture MIME type, or an empty value to let the platform infer it.</param>
     local procedure AddMostRecentPicture(var PictureInStream: InStream; PictureName: Text; MimeType: Text)
     begin
         Clear(Rec."Most Recent Picture");
@@ -1787,6 +1875,13 @@ table 20405 "Qlty. Inspection Header"
         Rec.Modify();
     end;
 
+    /// <summary>
+    /// Saves the picture as an attachment and optionally uploads it to OneDrive according to setup.
+    /// </summary>
+    /// <param name="PictureInStream">The picture stream to process.</param>
+    /// <param name="PictureName">The picture name used for OneDrive sharing.</param>
+    /// <param name="FileExtension">The picture file extension.</param>
+    /// <param name="FullFileNameWithExtension">The full file name used for the document attachment.</param>
     local procedure ProcessAdditionalPictureHandling(var PictureInStream: InStream; PictureName: Text; FileExtension: Text; FullFileNameWithExtension: Text)
     var
         DocumentAttachment: Record "Document Attachment";
@@ -1806,94 +1901,88 @@ table 20405 "Qlty. Inspection Header"
     #endregion Most Recent Picture Management
 
     /// <summary>
-    /// Use to supplement or replace default system behavior of finding related inspections.
+    /// Allows subscribers to change or replace source-derived inspection filtering.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="ErrorIfMissingFilter"></param>
-    /// <param name="RecordVariant"></param>
-    /// <param name="UseItem"></param>
-    /// <param name="UseTracking"></param>
-    /// <param name="UseDocument"></param>
-    /// <param name="IsHandled"></param>
+    /// <param name="QltyInspectionHeader">The inspection header on which filters are being set.</param>
+    /// <param name="ErrorIfMissingFilter">Specifies whether missing requested source values should cause an error.</param>
+    /// <param name="RecordVariant">The record from which source values are derived.</param>
+    /// <param name="UseItem">Specifies whether item filters are requested.</param>
+    /// <param name="UseTracking">Specifies whether tracking filters are requested.</param>
+    /// <param name="UseDocument">Specifies whether document filters are requested.</param>
+    /// <param name="IsHandled">Set to true to replace the default filtering.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetRecordFiltersToFindInspectionFor(var QltyInspectionHeader: Record "Qlty. Inspection Header"; ErrorIfMissingFilter: Boolean; RecordVariant: Variant; UseItem: Boolean; UseTracking: Boolean; var UseDocument: Boolean; var IsHandled: Boolean)
     begin
     end;
 
     /// <summary>
-    /// Use to supplement existing behavior of finding related inspections.
+    /// Notifies subscribers after source-derived inspection filters are applied.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="ErrorIfMissingFilter"></param>
-    /// <param name="RecordVariant"></param>
-    /// <param name="UseItem"></param>
-    /// <param name="UseTracking"></param>
-    /// <param name="UseDocument"></param>
+    /// <param name="QltyInspectionHeader">The inspection header with the applied filters.</param>
+    /// <param name="ErrorIfMissingFilter">Specifies whether missing requested source values cause an error.</param>
+    /// <param name="RecordVariant">The record from which source values were derived.</param>
+    /// <param name="UseItem">Specifies whether item filters were requested.</param>
+    /// <param name="UseTracking">Specifies whether tracking filters were requested.</param>
+    /// <param name="UseDocument">Specifies whether document filters were requested.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetRecordFiltersToFindInspectionFor(var QltyInspectionHeader: Record "Qlty. Inspection Header"; ErrorIfMissingFilter: Boolean; RecordVariant: Variant; UseItem: Boolean; UseTracking: Boolean; var UseDocument: Boolean)
     begin
     end;
 
     /// <summary>
-    /// Triggers when the inspection has finished.
+    /// Notifies subscribers after an inspection is finished.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
+    /// <param name="QltyInspectionHeader">The finished inspection.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInspectionFinished(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     begin
     end;
 
     /// <summary>
-    /// Triggers when an inspection re-opens.
+    /// Notifies subscribers after an inspection is reopened.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
+    /// <param name="QltyInspectionHeader">The reopened inspection.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInspectionReopen(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     begin
     end;
 
     /// <summary>
-    /// OnBeforeReopenInspection is called before an inspection is Reopened.
+    /// Allows subscribers to replace reopening an inspection.
     /// </summary>
-    /// <param name="QltyInspectionHeader">The quality Inspection involved</param>
-    /// <param name="IsHandled">Set to true to replace the default behavior</param>
+    /// <param name="QltyInspectionHeader">The inspection being reopened.</param>
+    /// <param name="IsHandled">Set to true to replace the default reopening behavior.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeReopenInspection(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var IsHandled: Boolean)
     begin
     end;
 
     /// <summary>
-    /// OnBeforeFinishInspection is called before an inspection is finished.
+    /// Allows subscribers to replace finishing an inspection.
     /// </summary>
-    /// <param name="QltyInspectionHeader">The quality Inspection involved</param>
-    /// <param name="IsHandled">Set to true to replace the default behavior</param>
+    /// <param name="QltyInspectionHeader">The inspection being finished.</param>
+    /// <param name="IsHandled">Set to true to replace the default finishing behavior.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFinishInspection(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var IsHandled: Boolean)
     begin
     end;
 
     /// <summary>
-    /// This is called when the Quality Inspection header is being updated automatically based on the inspection lines.
-    /// Use this to inspect or adjust the result that the system automatically chose.
+    /// Notifies subscribers after the inspection result is selected from its lines.
     /// </summary>
-    /// <param name="QltyInspectionHeader">The quality Inspection involved</param>
-    /// <param name="QltyInspectionLine"></param>
-
+    /// <param name="QltyInspectionHeader">The inspection header whose result was updated.</param>
+    /// <param name="QltyInspectionLine">The line used to determine the result.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterFindLineUpdateResultFromLines(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var QltyInspectionLine: Record "Qlty. Inspection Line")
     begin
     end;
 
     /// <summary>
-    /// This is called when the Quality Inspection header is being updated automatically based on the inspection lines.
-    /// Use this to optionally alter the filters on the inspection line before the inspection has been found.
-    /// This can be used to influence how the inspection header automatically changes.
-    /// You can also avoid the inspection header changing by implementing this and just setting Handled to 'true'
-    /// causing it to exit immediately.
+    /// Allows subscribers to change line filters or replace inspection result selection from lines.
     /// </summary>
-    /// <param name="QltyInspectionHeader">The quality Inspection involved</param>
-    /// <param name="QltyInspectionLine"></param>
-    /// <param name="IsHandled">Set to true to replace the default behavior</param>
+    /// <param name="QltyInspectionHeader">The inspection header whose result is being updated.</param>
+    /// <param name="QltyInspectionLine">The inspection line record on which result-selection filters are set.</param>
+    /// <param name="IsHandled">Set to true to replace the default result selection.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFindLineUpdateResultFromLines(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var QltyInspectionLine: Record "Qlty. Inspection Line"; var IsHandled: Boolean)
     begin
