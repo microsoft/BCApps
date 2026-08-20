@@ -6,8 +6,6 @@ namespace Microsoft.Foundation.Reporting;
 
 using System.Environment.Configuration;
 using System.Reflection;
-
-
 /// <summary>
 /// Seeds the reusable Composite Layout header/footer and theme parts that ship with the Base Application into
 /// the shared pool, so they can be assigned as defaults on any report from the Report themes and header-footer
