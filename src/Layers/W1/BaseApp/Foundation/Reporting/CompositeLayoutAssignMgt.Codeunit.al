@@ -6,6 +6,7 @@ namespace Microsoft.Foundation.Reporting;
 
 using System.Environment.Configuration;
 using System.Reflection;
+
 /// <summary>
 /// Assigns the header/footer and theme parts that ship with the Base Application to the body layouts of the standard
 /// reports, so a fresh installation renders those reports with a header/footer and a theme instead of bare.
