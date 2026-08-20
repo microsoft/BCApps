@@ -62,8 +62,8 @@ codeunit 9668 "Composite Layout Assign. Mgt."
         AssignedCount += this.CountIf(this.AssignHeaderFooter(1306, 'StandardSalesInvoiceVatSpecBody.docx', this.ExternalDefaultTxt));
         AssignedCount += this.CountIf(this.AssignHeaderFooter(1306, 'StandardESGSalesInvoiceBody.docx', this.ExternalDefaultDetailedTxt));
         AssignedCount += this.CountIf(this.AssignHeaderFooter(1306, 'SalesInvoiceForSubscriptionBillingBody.docx', this.ExternalDefaultTxt));
+        // The NA layer replaces report 1307 and names its body layout the same as W1, so one call covers both.
         AssignedCount += this.CountIf(this.AssignHeaderFooter(1307, 'StandardSalesCreditMemoBody.docx', this.ExternalDefaultDetailedTxt));
-        AssignedCount += this.CountIf(this.AssignHeaderFooter(1307, 'StandardSalesCreditMemoNABody.docx', this.ExternalDefaultDetailedTxt));
         AssignedCount += this.CountIf(this.AssignHeaderFooter(1308, 'StandardSalesShipmentBody.docx', this.ExternalDefaultDetailedTxt));
         AssignedCount += this.CountIf(this.AssignHeaderFooter(1309, 'StandardSalesReturnRcptBody.docx', this.ExternalDefaultDetailedTxt));
         AssignedCount += this.CountIf(this.AssignHeaderFooter(1316, 'StandardStatementBody.docx', this.ExternalModernTxt));
