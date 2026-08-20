@@ -70,7 +70,7 @@ codeunit 30473 "Shpfy TMA Events"
 
         if not TMAMatcher.TryGetGuardrailPrompt(SecurityPrompt) then begin
             Session.LogMessage('0000UNV', SecurityPromptUnavailableMsg,
-                Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName());
+                Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName());
             exit;
         end;
 

@@ -7,7 +7,6 @@ namespace Microsoft.Integration.Shopify;
 
 using Microsoft.Finance.SalesTax;
 using System.Log;
-using System.Telemetry;
 
 /// <summary>
 /// Codeunit Shpfy TMA Activity Log (ID 30477).
@@ -30,6 +29,10 @@ codeunit 30477 "Shpfy TMA Activity Log"
         TaxAreaReusedLbl: Label 'Reused existing Tax Area %1 covering agent-matched jurisdictions: %2.', Comment = '%1 = tax area code, %2 = comma-separated jurisdictions';
         TaxJurisdictionTitleLbl: Label 'Tax Jurisdiction %1', Comment = '%1 = jurisdiction code';
         TaxAreaTitleLbl: Label 'Tax Area %1', Comment = '%1 = tax area code';
+        PerLineMatchedMsg: Label 'Tax Matching Agent matched a Shopify tax line to a Tax Jurisdiction.', Locked = true;
+        TaxAreaResolvedMsg: Label 'Tax Matching Agent resolved a Tax Area for a Shopify order.', Locked = true;
+        JurisdictionCodeDimTok: Label 'JurisdictionCode', Locked = true;
+        TaxAreaCodeDimTok: Label 'TaxAreaCode', Locked = true;
 
     procedure LogPerLineEntries(var OrderHeader: Record "Shpfy Order Header"; MatchLog: JsonArray)
     var
@@ -37,7 +40,6 @@ codeunit 30477 "Shpfy TMA Activity Log"
         TaxJurisdiction: Record "Tax Jurisdiction";
         ActivityLogBuilder: Codeunit "Activity Log Builder";
         TMARegister: Codeunit "Shpfy TMA Register";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
         JurisdictionRef: RecordRef;
         MatchToken: JsonToken;
         MatchObj: JsonObject;
@@ -81,7 +83,7 @@ codeunit 30477 "Shpfy TMA Activity Log"
                 .SetReferenceTitle(StrSubstNo(TaxJurisdictionTitleLbl, JurisdictionCode))
                 .Log();
 
-            FeatureTelemetry.LogUptake('0000UN0', TMARegister.FeatureName(), Enum::"Feature Uptake Status"::Used);
+            Session.LogMessage('0000UN0', PerLineMatchedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName(), JurisdictionCodeDimTok, JurisdictionCode);
         end;
     end;
 
@@ -90,7 +92,6 @@ codeunit 30477 "Shpfy TMA Activity Log"
         TaxArea: Record "Tax Area";
         ActivityLogBuilder: Codeunit "Activity Log Builder";
         TMARegister: Codeunit "Shpfy TMA Register";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
         TaxAreaRef: RecordRef;
         Confidence: Text;
         Explanation: Text;
@@ -121,7 +122,7 @@ codeunit 30477 "Shpfy TMA Activity Log"
             .SetReferenceTitle(StrSubstNo(TaxAreaTitleLbl, TaxAreaCode))
             .Log();
 
-        FeatureTelemetry.LogUptake('0000UN1', TMARegister.FeatureName(), Enum::"Feature Uptake Status"::Used);
+        Session.LogMessage('0000UN1', TaxAreaResolvedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TMARegister.FeatureName(), TaxAreaCodeDimTok, TaxAreaCode);
     end;
 
     local procedure BuildPerLineExplanation(OrderTaxLine: Record "Shpfy Order Tax Line"; JurisdictionCode: Code[10]; Reason: Text): Text
