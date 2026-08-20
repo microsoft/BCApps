@@ -161,9 +161,9 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         ManufacturingSetup: Record "Manufacturing Setup";
         AssistedSetupTestLibrary: Codeunit "Assisted Setup Test Library";
         GuidedExperience: Codeunit "Guided Experience";
-        SubcontractingSetupWizard: TestPage "Subcontracting Setup Wizard";
         CreateProdOrderInfoLine: Boolean;
         OriginalCreateProdOrderInfoLine: Boolean;
+        SubcontractingSetupWizard: TestPage "Subcontracting Setup Wizard";
     begin
         // [SCENARIO 642233] Finishing the setup guide saves changes and marks the assisted setup as completed.
         Initialize();

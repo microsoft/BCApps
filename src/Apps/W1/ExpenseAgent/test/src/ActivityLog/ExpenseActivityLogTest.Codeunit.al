@@ -481,4 +481,5 @@ codeunit 148342 "Expense Activity Log Test"
         IsInitialized := true;
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Activity Log Test");
     end;
+
 }
