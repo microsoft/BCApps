@@ -346,7 +346,9 @@ codeunit 134619 "Composite Layout Tests"
         ReportLayoutList.SetRange("Report ID", LookupHelper.GetTenantReportDefaultsReportID());
         ReportLayoutList.SetRange(Name, 'Default');
         ReportLayoutList.FindFirst();
-        Assert.ExpectedMessage('wordprocessingml.template', ReportLayoutList."MIME Type");
+        Assert.AreEqual(
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.template', ReportLayoutList."MIME Type",
+            'Themes ship as .dotx templates, so the stored MIME type should be the template one, not the document one.');
     end;
 
     [Test]
