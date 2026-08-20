@@ -399,13 +399,13 @@ The tax config fields carry their defaults as field `InitValue`s (`Auto Create T
 | 0000UMX | Usage | Notify | User marked notification reviewed |
 | 0000UMY | Usage | Notify | User chose "Don't show again" |
 | 0000UMZ | Uptake: Set up | Register | App installed |
-| 0000UN0 | Uptake: Used | Activity Log | Per-tax-line entry written |
-| 0000UN1 | Uptake: Used | Activity Log | Per-tax-area entry written |
+| 0000UN0 | Normal | Activity Log | Per-tax-line entry written (jurisdiction match) |
+| 0000UN1 | Normal | Activity Log | Per-tax-area entry written (Tax Area resolved) |
 | 0000UN7 | Usage | Notify | User undid an approval (order held for review again) |
 | 0000UNP | Usage | Order Tax Lines Part | Reviewer clicked **Use Shopify Rate** — adopted Shopify's rate into a Tax Detail |
 | 0000UNR | Warning | Matcher | Tax line unresolved (model returned `UNKNOWN`) — left unmatched for review |
 | 0000UNT | Warning | Events | Order held for review due to an unresolved (`UNKNOWN`) tax line |
-| 0000UNV | Warning | Events | Guardrail/security prompt unavailable from Key Vault — matching skipped, order proceeds via the normal tax path |
+| 0000UNV | Error | Events | Guardrail/security prompt unavailable from Key Vault — matching skipped, order proceeds via the normal tax path |
 | 0000UN8 | Uptake: Discovered | Shop Card | User opened the shop configuration surface where the Tax Matching Agent settings live |
 
 ## Test App
