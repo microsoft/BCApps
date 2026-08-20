@@ -30,6 +30,7 @@ codeunit 135549 "Report Inbox API E2E"
         ProbePrefixTxt: Label 'RIPROBE', Locked = true;
         AllCompaniesFilterTxt: Label '?$filter=includeAllCompanies eq true', Locked = true;
         MarkReadBodyTxt: Label '{"read": true}', Locked = true;
+        CannotAddressCompanyErr: Label 'Cannot address company %1', Comment = '%1 = company name';
         ApiCallerValue: Text;
         ApiCallerResolved: Boolean;
 
@@ -496,6 +497,7 @@ codeunit 135549 "Report Inbox API E2E"
         ProbeTag: Text;
         Marker: Text;
         i: Integer;
+        MatchCount: Integer;
     begin
         if ApiCallerResolved then
             exit(ApiCallerValue);
@@ -518,6 +520,7 @@ codeunit 135549 "Report Inbox API E2E"
             if StrPos(ResponseText, Marker) > 0 then begin
                 ApiCallerValue := Candidates.Get(i);
                 ApiCallerResolved := true;
+                MatchCount += 1;
             end;
         end;
 
@@ -525,9 +528,9 @@ codeunit 135549 "Report Inbox API E2E"
             DeleteProbeEntries(Candidates.Get(i));
         Commit();
 
-        Assert.IsTrue(
-            ApiCallerResolved,
-            'Could not determine which identity the API session authenticates as.');
+        Assert.AreEqual(
+            1, MatchCount,
+            'Expected exactly one candidate identity to resolve; a different count means user filtering is off.');
         exit(ApiCallerValue);
     end;
 
@@ -586,7 +589,7 @@ codeunit 135549 "Report Inbox API E2E"
     begin
         Clear(ReportInbox);
         if not ReportInbox.ChangeCompany(CopyStr(CompanyToSeed, 1, 30)) then
-            Error('Cannot address company %1', CompanyToSeed);
+            Error(CannotAddressCompanyErr, CompanyToSeed);
         ReportInbox."User ID" := CopyStr(ApiCallerUserId(), 1, MaxStrLen(ReportInbox."User ID"));
         ReportInbox."Output Type" := ReportInbox."Output Type"::PDF;
         ReportInbox."Report ID" := Report::"Test Report - Default=Word";

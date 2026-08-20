@@ -61,6 +61,8 @@ page 691 "Report Inbox Content API"
     begin
         if Rec.GetFilter(SystemId) = '' then
             Error(KeyRequiredErr);
+        if Rec.Count() > 1 then
+            Error(KeyRequiredErr);
         exit(Rec.Find(Which));
     end;
 

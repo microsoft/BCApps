@@ -85,6 +85,8 @@ page 692 "Report Inbox File API"
         ReportInbox.ReadIsolation := IsolationLevel::ReadCommitted;
         ReportInbox.SetRange("User ID", CopyStr(UserId(), 1, MaxStrLen(ReportInbox."User ID")));
         ReportInbox.SetFilter(SystemId, IdFilter);
+        if ReportInbox.Count() > 1 then
+            exit(false);
         if not ReportInbox.FindFirst() then
             exit(false);
 
