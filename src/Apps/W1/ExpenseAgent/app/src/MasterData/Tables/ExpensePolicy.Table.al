@@ -71,63 +71,13 @@ table 7092 "Expense Policy"
     begin
         if "Line No." = 0 then
             "Line No." := GetNextLineNo();
-        InvalidateAffectedReportLines("Subject Type", "Expense Category Code");
     end;
 
     trigger OnModify()
-    var
-        StoredExpensePolicy: Record "Expense Policy";
     begin
         // Bump the policy version on every change so flags evaluated against an earlier
         // version can be detected as no longer current (see the flag's Is Current FlowField).
         "Version" += 1;
-
-        // Invalidate the previous scope as well as the new one. Moving a policy to a different
-        // category - or disabling it - changes which lines it affects, so lines in the old scope
-        // must be re-checked too; otherwise they keep a verdict from a policy that no longer
-        // applies to them and stay incorrectly Current.
-        // xRec is unreliable here (it has been observed to compare equal to Rec at runtime, see
-        // Expense Report Line.PolicyRelevantFieldChanged), so read the committed pre-modify image
-        // by primary key to get the old category. Subject Type is part of the primary key and
-        // cannot change on modify, so only the category can move.
-        if StoredExpensePolicy.Get("Subject Type", "Line No.") then begin
-            InvalidateAffectedReportLines("Subject Type", StoredExpensePolicy."Expense Category Code");
-            if StoredExpensePolicy."Expense Category Code" <> "Expense Category Code" then
-                InvalidateAffectedReportLines("Subject Type", "Expense Category Code");
-        end else
-            InvalidateAffectedReportLines("Subject Type", "Expense Category Code");
-    end;
-
-    trigger OnDelete()
-    begin
-        // Removing a policy also alters the effective policy set for its category, so evaluated
-        // lines must be re-checked. Existing flags for the deleted policy are intentionally kept
-        // as history; the flag's Is Current FlowField already reports false once the policy is
-        // gone, and re-staling the lines lets the frontend re-evaluate and drop the stale verdict.
-        InvalidateAffectedReportLines("Subject Type", "Expense Category Code");
-    end;
-
-    local procedure InvalidateAffectedReportLines(SubjectType: Enum "Expense Policy Subject"; CategoryCode: Code[20])
-    var
-        ExpenseReportLine: Record "Expense Report Line";
-    begin
-        // Adding, changing, or removing a policy alters the effective policy set for its category,
-        // so any report line already evaluated against the old set must be re-checked. Bumping each
-        // evaluated line's Policy Eval Version flips its status to Stale (Needs Recheck).
-        // A blank category means the policy applies to every category, so invalidate all lines.
-        // The scan is served by the report line's PolicyInvalidation key (Expense Category,
-        // Policies Evaluated At). Policies change rarely, so the per-line write cost is acceptable.
-        if SubjectType <> SubjectType::"Expense Report Line" then
-            exit;
-
-        ExpenseReportLine.SetCurrentKey("Expense Category", "Policies Evaluated At");
-        if CategoryCode <> '' then
-            ExpenseReportLine.SetRange("Expense Category", CategoryCode);
-        ExpenseReportLine.SetFilter("Policies Evaluated At", '<>%1', 0DT);
-        if ExpenseReportLine.FindSet(true) then
-            repeat
-                ExpenseReportLine.InvalidatePolicyEvaluation();
-            until ExpenseReportLine.Next() = 0;
     end;
 
     local procedure GetNextLineNo(): Integer

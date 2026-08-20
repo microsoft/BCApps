@@ -1102,9 +1102,6 @@ table 6907 "Expense Report Line"
         {
             Clustered = true;
         }
-        key(PolicyInvalidation; "Expense Category", "Policies Evaluated At")
-        {
-        }
     }
 
     trigger OnInsert()
@@ -1226,24 +1223,30 @@ table 6907 "Expense Report Line"
     end;
 
     internal procedure GetPolicyStatus(): Enum "Expense Policy Status"
+    var
+        PoliciesToEvalBuilder: Codeunit "Exp. Policies To Eval Builder";
+        HasApplicablePoliciesResult: Boolean;
+        HasOutstandingPolicies: Boolean;
+        HasPoliciesChangedSinceEvaluation: Boolean;
     begin
         // A change made after the line was evaluated always needs a recheck - even a change that
-        // removed the last applicable policy (deleting a policy must surface as Needs Recheck, not
-        // silently drop to No Policies). Evaluate staleness before applicability so that signal wins.
+        // removed the last applicable policy. Evaluate subject staleness before policy-set currency
+        // so that a changed line still requires evaluation against whatever policies apply now.
         if (Rec."Policies Evaluated At" <> 0DT) and (Rec."Evaluated Policy Version" < Rec."Policy Eval Version") then
             exit("Expense Policy Status"::Stale);
 
-        // No enabled policy targets this line's category, so there is nothing to run against it. This
-        // is a distinct, stable signal from an evaluated-and-passed line (Cleared): it holds whether
-        // or not a policy check has run, so the frontend can render "no policy" immediately instead
-        // of waiting for an evaluation pass that only marks the empty line evaluated and would then
-        // make it indistinguishable from a line that was checked against real policies and passed.
-        if not HasApplicablePolicies() then
+        // Policy changes do not rewrite every affected line. Currency is derived lazily by comparing
+        // the currently applicable policy versions with the flags recorded for this subject version.
+        PoliciesToEvalBuilder.GetEvaluationState(Rec, HasApplicablePoliciesResult, HasOutstandingPolicies, HasPoliciesChangedSinceEvaluation);
+
+        if not HasApplicablePoliciesResult then
             exit("Expense Policy Status"::"No Policies");
 
-        // A policy applies but no evaluation has been recorded yet.
         if Rec."Policies Evaluated At" = 0DT then
             exit("Expense Policy Status"::"Not Evaluated");
+
+        if HasOutstandingPolicies or HasPoliciesChangedSinceEvaluation then
+            exit("Expense Policy Status"::Stale);
 
         if Rec.HasCurrentPolicyViolation() then
             exit("Expense Policy Status"::Flagged);
@@ -1275,20 +1278,6 @@ table 6907 "Expense Report Line"
                     exit(true);
             until ExpensePolicyFlag.Next() = 0;
         exit(false);
-    end;
-
-    local procedure HasApplicablePolicies(): Boolean
-    var
-        ExpensePolicy: Record "Expense Policy";
-    begin
-        // Mirrors the applicability rule used by the policies-to-evaluate endpoint: an enabled
-        // report-line policy whose category matches the line or is blank (blank applies to every
-        // category).
-        ExpensePolicy.SetCurrentKey("Subject Type", Enabled, "Expense Category Code");
-        ExpensePolicy.SetRange("Subject Type", ExpensePolicy."Subject Type"::"Expense Report Line");
-        ExpensePolicy.SetRange(Enabled, true);
-        ExpensePolicy.SetFilter("Expense Category Code", '%1|%2', Rec."Expense Category", '');
-        exit(not ExpensePolicy.IsEmpty());
     end;
 
     internal procedure MarkPoliciesEvaluated(EvaluatedSubjectVersion: Integer)

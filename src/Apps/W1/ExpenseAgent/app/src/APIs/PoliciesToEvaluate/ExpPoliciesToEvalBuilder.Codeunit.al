@@ -47,26 +47,42 @@ codeunit 7107 "Exp. Policies To Eval Builder"
 
     procedure HasOutstandingPolicies(ExpenseReportLine: Record "Expense Report Line"): Boolean
     var
+        HasApplicablePolicies: Boolean;
+        HasOutstandingPoliciesResult: Boolean;
+        HasPoliciesChangedSinceEvaluation: Boolean;
+    begin
+        GetEvaluationState(ExpenseReportLine, HasApplicablePolicies, HasOutstandingPoliciesResult, HasPoliciesChangedSinceEvaluation);
+        exit(HasOutstandingPoliciesResult);
+    end;
+
+    procedure GetEvaluationState(ExpenseReportLine: Record "Expense Report Line"; var HasApplicablePolicies: Boolean; var HasOutstandingPoliciesResult: Boolean; var HasPoliciesChangedSinceEvaluation: Boolean)
+    var
         ExpensePolicy: Record "Expense Policy";
         ExistingFlagKeys: Dictionary of [Text, Boolean];
         SubjectSystemId: Guid;
         SubjectVersion: Integer;
     begin
-        // An applicable policy is outstanding when no flag exists for the line's current subject
-        // version and the policy's current version - i.e. it has not been evaluated yet. Marking a
-        // line evaluated while a policy is still outstanding would expose a status that ignores it.
+        HasApplicablePolicies := false;
+        HasOutstandingPoliciesResult := false;
+        HasPoliciesChangedSinceEvaluation := false;
+
         SubjectSystemId := ExpenseReportLine.SystemId;
         SubjectVersion := ExpenseReportLine."Policy Eval Version";
 
-        LoadExistingFlagKeys(SubjectSystemId, SubjectVersion, ExistingFlagKeys);
-
         SetApplicablePolicyFilter(ExpensePolicy, ExpenseReportLine);
-        if ExpensePolicy.FindSet() then
-            repeat
-                if not FlagExists(ExistingFlagKeys, ExpensePolicy.SystemId, ExpensePolicy."Version") then
-                    exit(true);
-            until ExpensePolicy.Next() = 0;
-        exit(false);
+        if not ExpensePolicy.FindSet() then
+            exit;
+
+        HasApplicablePolicies := true;
+        LoadExistingFlagKeys(SubjectSystemId, SubjectVersion, ExistingFlagKeys);
+        repeat
+            if (ExpenseReportLine."Policies Evaluated At" <> 0DT) and (ExpensePolicy.SystemModifiedAt > ExpenseReportLine."Policies Evaluated At") then
+                HasPoliciesChangedSinceEvaluation := true;
+            if not FlagExists(ExistingFlagKeys, ExpensePolicy.SystemId, ExpensePolicy."Version") then begin
+                HasOutstandingPoliciesResult := true;
+                exit;
+            end;
+        until ExpensePolicy.Next() = 0;
     end;
 
     local procedure SetApplicablePolicyFilter(var ExpensePolicy: Record "Expense Policy"; ExpenseReportLine: Record "Expense Report Line")
