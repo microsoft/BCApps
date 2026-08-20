@@ -1,6 +1,6 @@
 namespace Microsoft.API;
 
-using System.Reflection;
+using System.Integration;
 
 page 812 "API Overview"
 {
@@ -33,7 +33,7 @@ page 812 "API Overview"
                 field("Object Type"; Rec."Object Type")
                 {
                     Caption = 'Type';
-                    ToolTip = 'Specifies whether the API is implemented as an API page (supports read and write operations) or as an API query (read-only set of data).';
+                    ToolTip = 'Specifies whether the API is implemented as an API page (read and write operations), an API query (read-only set of data), or an API codeunit (operations exposed as unbound actions).';
                 }
                 field("Object ID"; Rec."Object ID")
                 {
@@ -83,6 +83,11 @@ page 812 "API Overview"
             Caption = 'API Queries';
             Filters = where("Object Type" = const(Query));
         }
+        view("API Codeunits")
+        {
+            Caption = 'API Codeunits';
+            Filters = where("Object Type" = const(Codeunit));
+        }
         view(APIv2)
         {
             Caption = 'API v2.0';
@@ -108,46 +113,25 @@ page 812 "API Overview"
     local procedure LoadAPIs()
     var
         TempAPILine: Record "API Overview Buffer" temporary;
-        PageMetadata: Record "Page Metadata";
-        QueryMetadata: Record "Query Metadata";
+        ApiWebService: Record "Api Web Service";
         LineNo: Integer;
         EntryNo: Integer;
     begin
         Rec.Reset();
         Rec.DeleteAll();
 
-        PageMetadata.SetRange(PageType, PageMetadata.PageType::API);
-        if PageMetadata.FindSet() then
-            repeat
-                LineNo += 1;
-                TempAPILine.Init();
-                TempAPILine."Entry No." := LineNo;
-                TempAPILine."Object Type" := TempAPILine."Object Type"::Page;
-                TempAPILine."Object ID" := PageMetadata.ID;
-                TempAPILine.Description := PageMetadata.Name;
-                TempAPILine."Entity Name" := PageMetadata.EntityName;
-                TempAPILine."API Publisher" := PageMetadata.APIPublisher;
-                TempAPILine."API Group" := PageMetadata.APIGroup;
-                TempAPILine."API Version" := PageMetadata.APIVersion;
-                TempAPILine.Insert();
-            until PageMetadata.Next() = 0;
+        ApiWebService.SetRange(Published, true);
 
-        QueryMetadata.SetFilter(EntityName, '<>%1', '');
-        if QueryMetadata.FindSet() then
-            repeat
-                LineNo += 1;
-                TempAPILine.Init();
-                TempAPILine."Entry No." := LineNo;
-                TempAPILine."Object Type" := TempAPILine."Object Type"::Query;
-                TempAPILine."Object ID" := QueryMetadata.ID;
-                TempAPILine.Description := QueryMetadata.Name;
-                TempAPILine."Entity Name" := QueryMetadata.EntityName;
-                TempAPILine."API Publisher" := QueryMetadata.APIPublisher;
-                TempAPILine."API Group" := QueryMetadata.APIGroup;
-                TempAPILine."API Version" := QueryMetadata.APIVersion;
-                TempAPILine.Insert();
-            until QueryMetadata.Next() = 0;
+        ApiWebService.SetRange("Object Type", ApiWebService."Object Type"::Page);
+        AddAPIObjects(ApiWebService, TempAPILine, TempAPILine."Object Type"::Page, LineNo);
 
+        ApiWebService.SetRange("Object Type", ApiWebService."Object Type"::Query);
+        AddAPIObjects(ApiWebService, TempAPILine, TempAPILine."Object Type"::Query, LineNo);
+
+        ApiWebService.SetRange("Object Type", ApiWebService."Object Type"::Codeunit);
+        AddAPIObjects(ApiWebService, TempAPILine, TempAPILine."Object Type"::Codeunit, LineNo);
+
+        TempAPILine.Reset();
         TempAPILine.SetCurrentKey("API Publisher", "API Group", Description);
         if TempAPILine.FindSet() then
             repeat
@@ -160,6 +144,34 @@ page 812 "API Overview"
         if Rec.FindFirst() then;
     end;
 
+    local procedure AddAPIObjects(var ApiWebService: Record "Api Web Service"; var TempAPILine: Record "API Overview Buffer" temporary; BufferObjectType: Option; var LineNo: Integer)
+    begin
+        if not ApiWebService.FindSet() then
+            exit;
+
+        repeat
+            TempAPILine.Reset();
+            TempAPILine.SetRange("Object Type", BufferObjectType);
+            TempAPILine.SetRange("Object ID", ApiWebService."Object ID");
+            if TempAPILine.FindFirst() then begin
+                TempAPILine."API Version" := CopyStr(TempAPILine."API Version" + ',' + ApiWebService.Version, 1, MaxStrLen(TempAPILine."API Version"));
+                TempAPILine.Modify();
+            end else begin
+                LineNo += 1;
+                TempAPILine.Init();
+                TempAPILine."Entry No." := LineNo;
+                TempAPILine."Object Type" := BufferObjectType;
+                TempAPILine."Object ID" := ApiWebService."Object ID";
+                TempAPILine.Description := CopyStr(ApiWebService."Object Name", 1, MaxStrLen(TempAPILine.Description));
+                TempAPILine."Entity Name" := CopyStr(ApiWebService."Service Name", 1, MaxStrLen(TempAPILine."Entity Name"));
+                TempAPILine."API Publisher" := CopyStr(ApiWebService.Publisher, 1, MaxStrLen(TempAPILine."API Publisher"));
+                TempAPILine."API Group" := CopyStr(ApiWebService.Group, 1, MaxStrLen(TempAPILine."API Group"));
+                TempAPILine."API Version" := CopyStr(ApiWebService.Version, 1, MaxStrLen(TempAPILine."API Version"));
+                TempAPILine.Insert();
+            end;
+        until ApiWebService.Next() = 0;
+    end;
+
     local procedure GetApiUrl(APIBuffer: Record "API Overview Buffer"): Text
     begin
         case APIBuffer."Object Type" of
@@ -167,6 +179,10 @@ page 812 "API Overview"
                 exit(GetUrl(ClientType::Api, CompanyName(), ObjectType::Page, APIBuffer."Object ID"));
             APIBuffer."Object Type"::Query:
                 exit(GetUrl(ClientType::Api, CompanyName(), ObjectType::Query, APIBuffer."Object ID"));
+            APIBuffer."Object Type"::Codeunit:
+                // API codeunits expose one endpoint per procedure (unbound action), so there is no single
+                // URL at the codeunit level; the URL column is left blank for codeunit rows.
+                exit('');
         end;
     end;
 }
