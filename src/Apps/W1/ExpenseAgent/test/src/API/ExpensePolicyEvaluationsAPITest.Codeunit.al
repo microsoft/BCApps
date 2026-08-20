@@ -22,6 +22,8 @@ codeunit 148344 "Expense Policy Evaluations API Test"
         IsInitialized: Boolean;
         ServiceNameTok: Label 'expensePolicyEvaluations', Locked = true;
         BadRequestResponseErr: Label 'Response code is 400', Locked = true;
+        SubjectVersionRequiredErr: Label 'Subject Version is required.';
+        PolicyVersionRequiredErr: Label 'Policy Version is required.';
 
     [Test]
     procedure PolicyEvaluationAPIInsertsFlagWithRequiredVersions()
@@ -78,6 +80,7 @@ codeunit 148344 "Expense Policy Evaluations API Test"
         TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Policy Evaluations API", ServiceNameTok);
         asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBodyText, ResponseText, 400);
         Assert.ExpectedError(BadRequestResponseErr);
+        Assert.AreNotEqual(0, StrPos(ResponseText, SubjectVersionRequiredErr), 'The response must identify the missing subject version.');
         CompleteTest();
     end;
 
@@ -103,6 +106,7 @@ codeunit 148344 "Expense Policy Evaluations API Test"
         TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Policy Evaluations API", ServiceNameTok);
         asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBodyText, ResponseText, 400);
         Assert.ExpectedError(BadRequestResponseErr);
+        Assert.AreNotEqual(0, StrPos(ResponseText, PolicyVersionRequiredErr), 'The response must identify the missing policy version.');
         CompleteTest();
     end;
 

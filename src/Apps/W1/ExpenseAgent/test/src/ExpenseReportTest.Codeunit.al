@@ -832,21 +832,9 @@ codeunit 148306 "Expense Report Test"
         CreateExpReport.AddSingleExpenseToExpenseReport(Expense, SourceExpenseReportHeader);
         FindExpenseReportLine(ExpenseReportLine, SourceExpenseReportHeader."No.");
 
-        ExpensePolicy.Init();
-        ExpensePolicy."Expense Category Code" := ExpenseCategory.Code;
-        ExpensePolicy."Policy Text" := 'Policy text.';
-        ExpensePolicy.Enabled := true;
-        ExpensePolicy."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
-        ExpensePolicy.Insert(true);
-
-        ExpensePolicyEvaluation.Init();
-        ExpensePolicyEvaluation."Subject System Id" := ExpenseReportLine.SystemId;
-        ExpensePolicyEvaluation."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
-        ExpensePolicyEvaluation."Subject Version" := ExpenseReportLine."Policy Eval Version";
-        ExpensePolicyEvaluation."Policy System Id" := ExpensePolicy.SystemId;
-        ExpensePolicyEvaluation."Policy Version" := ExpensePolicy."Version";
-        ExpensePolicyEvaluation.Reason := 'Policy violation.';
-        ExpensePolicyEvaluation.Insert(true);
+        LibraryExpense.CreateExpensePolicy(ExpensePolicy, ExpenseCategory.Code, 'Policy text.');
+        LibraryExpense.CreateExpensePolicyEvaluation(
+            ExpensePolicyEvaluation, ExpenseReportLine, ExpensePolicy, 'Policy violation.', false);
         ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
         Assert.AreEqual("Expense Policy Status"::Flagged, ExpenseReportLine.GetPolicyStatus(), 'Precondition: the source line must be flagged.');
         SourceSystemId := ExpenseReportLine.SystemId;

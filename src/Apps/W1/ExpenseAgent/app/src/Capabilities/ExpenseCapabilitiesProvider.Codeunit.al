@@ -72,8 +72,7 @@ codeunit 6906 "Expense Capabilities Provider"
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
     begin
-        if not ExpenseAgentSetup.Get() then
-            exit(false);
+        ExpenseAgentSetup.GetRecordOnce();
         exit(ExpenseAgentSetup."Evaluate Policies");
     end;
 

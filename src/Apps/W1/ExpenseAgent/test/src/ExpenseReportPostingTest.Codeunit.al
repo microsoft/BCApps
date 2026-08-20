@@ -3558,21 +3558,9 @@ codeunit 148302 "Expense Report Posting Test"
             ExpenseReportLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo());
 
         // [GIVEN] A policy for the category and a non-compliant evaluation captured on the line, then the line is marked evaluated.
-        ExpensePolicy.Init();
-        ExpensePolicy."Expense Category Code" := ExpenseCategory.Code;
-        ExpensePolicy."Policy Text" := 'No alcohol on company expenses.';
-        ExpensePolicy.Enabled := true;
-        ExpensePolicy."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
-        ExpensePolicy.Insert(true);
-
-        ExpensePolicyEvaluation.Init();
-        ExpensePolicyEvaluation."Subject System Id" := ExpenseReportLine.SystemId;
-        ExpensePolicyEvaluation."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
-        ExpensePolicyEvaluation."Subject Version" := ExpenseReportLine."Policy Eval Version";
-        ExpensePolicyEvaluation."Policy System Id" := ExpensePolicy.SystemId;
-        ExpensePolicyEvaluation."Policy Version" := ExpensePolicy."Version";
-        ExpensePolicyEvaluation.Reason := 'Receipt includes alcohol.';
-        ExpensePolicyEvaluation.Insert(true);
+        LibraryExpense.CreateExpensePolicy(ExpensePolicy, ExpenseCategory.Code, 'No alcohol on company expenses.');
+        LibraryExpense.CreateExpensePolicyEvaluation(
+            ExpensePolicyEvaluation, ExpenseReportLine, ExpensePolicy, 'Receipt includes alcohol.', false);
 
         ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
