@@ -55,9 +55,9 @@ codeunit 148151 "FR E-Invoice Message Tests"
         FREInvoiceMessage.FindFirst();
         SendMessage(FREInvoiceMessage);
         Assert.AreEqual(1, MessageSenderMock.GetSendCount(), 'One Collected message must be sent.');
-        Assert.IsTrue(MessageSenderMock.GetLastPayload().Contains('<ram:ProcessConditionCode>212</ram:ProcessConditionCode>'), 'The payload must contain status 212.');
-        Assert.IsTrue(MessageSenderMock.GetLastPayload().Contains('<ram:ValueAmount currencyID="EUR">100'), 'The payload must contain the collected amount.');
-        Assert.IsTrue(MessageSenderMock.GetLastPayload().Contains('<udt:DateTimeString format="204">'), 'The payload must contain the AFNOR lifecycle event date.');
+        AssertPayloadStatus(MessageSenderMock.GetLastPayload(), '212');
+        AssertPayloadAmount(MessageSenderMock.GetLastPayload(), 100, 'EUR');
+        AssertPayloadDateFormat(MessageSenderMock.GetLastPayload(), '204');
     end;
 
     [Test]
@@ -99,7 +99,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
         Assert.AreEqual(1, MessageSenderMock.GetSendCount(), 'Unapplication must queue the reversal without invoking the connector.');
         SendMessage(NegativeMessage);
         Assert.AreEqual(2, MessageSenderMock.GetSendCount(), 'Collected and Negative Collected messages must be sent.');
-        Assert.IsTrue(MessageSenderMock.GetLastPayload().Contains('<ram:ValueAmount currencyID="EUR">-100'), 'The reversal payload must contain a negative amount.');
+        AssertPayloadAmount(MessageSenderMock.GetLastPayload(), -100, 'EUR');
     end;
 
     [Test]
@@ -117,8 +117,8 @@ codeunit 148151 "FR E-Invoice Message Tests"
         SendFirstMessage(EDocument, "FR E-Invoice Message Type"::Refused);
         Assert.AreEqual(1, MessageSenderMock.GetSendCount(), 'One refusal message must be sent.');
         Assert.AreEqual("E-Doc. Response Type"::Refused, MessageSenderMock.GetLastResponseType(), 'The child message must be Refused.');
-        Assert.IsTrue(MessageSenderMock.GetLastPayload().Contains('<ram:ProcessConditionCode>210</ram:ProcessConditionCode>'), 'The payload must contain status 210.');
-        Assert.IsTrue(MessageSenderMock.GetLastPayload().Contains('<ram:ReasonCode>PRICE</ram:ReasonCode>'), 'The payload must contain the reason code.');
+        AssertPayloadStatus(MessageSenderMock.GetLastPayload(), '210');
+        AssertPayloadReasonCode(MessageSenderMock.GetLastPayload(), 'PRICE');
     end;
 
     [Test]
@@ -132,10 +132,13 @@ codeunit 148151 "FR E-Invoice Message Tests"
 
         asserterror FREInvoiceMessageMgt.RefuseInvoice(EDocument, '', 'Not accepted.');
         Assert.ExpectedError('A refusal reason code is required.');
+        Clear(EDocument);
+        CreateIncomingEDocument(EDocument);
         FREInvoiceMessageMgt.RefuseInvoice(EDocument, 'OTHER', 'Not accepted.');
         SendFirstMessage(EDocument, "FR E-Invoice Message Type"::Refused);
         asserterror FREInvoiceMessageMgt.RefuseInvoice(EDocument, 'OTHER', 'Again.');
-        Assert.ExpectedError('has already been refused');
+        Assert.ExpectedError('already has a buyer response');
+        Assert.ExpectedErrorCode('Dialog');
         Assert.AreEqual(1, MessageSenderMock.GetSendCount(), 'A duplicate refusal must not be sent.');
     end;
 
@@ -251,7 +254,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
         SendFirstMessage(EDocument, "FR E-Invoice Message Type"::Accepted);
         Assert.AreEqual(1, MessageSenderMock.GetSendCount(), 'One Accepted message must be sent.');
         Assert.AreEqual("E-Doc. Response Type"::Accepted, MessageSenderMock.GetLastResponseType(), 'The child message must be Accepted.');
-        Assert.IsTrue(MessageSenderMock.GetLastPayload().Contains('<ram:ProcessConditionCode>205</ram:ProcessConditionCode>'), 'The payload must contain status 205.');
+        AssertPayloadStatus(MessageSenderMock.GetLastPayload(), '205');
     end;
 
     [Test]
@@ -593,6 +596,51 @@ codeunit 148151 "FR E-Invoice Message Tests"
         EDocumentMessageAPI: Codeunit "E-Document Message API";
     begin
         EDocumentMessageAPI.SendMessage(FREInvoiceMessage."E-Document Message Entry No.");
+    end;
+
+    local procedure AssertPayloadAmount(Payload: Text; ExpectedAmount: Decimal; ExpectedCurrencyCode: Code[10])
+    var
+        XmlDoc: XmlDocument;
+        AmountNode: XmlNode;
+        CurrencyCodeNode: XmlNode;
+        ActualAmount: Decimal;
+    begin
+        Assert.IsTrue(XmlDocument.ReadFrom(Payload, XmlDoc), 'The payload must be valid XML.');
+        Assert.IsTrue(XmlDoc.SelectSingleNode('//*[local-name()="ValueAmount"]', AmountNode), 'The payload must contain a value amount.');
+        Assert.IsTrue(Evaluate(ActualAmount, AmountNode.AsXmlElement().InnerText(), 9), 'The payload value amount must be a valid XML decimal.');
+        Assert.AreEqual(ExpectedAmount, ActualAmount, 'The payload value amount is incorrect.');
+        Assert.IsTrue(XmlDoc.SelectSingleNode('//*[local-name()="ValueAmount"]/@currencyID', CurrencyCodeNode), 'The payload value amount must contain a currency.');
+        Assert.AreEqual(ExpectedCurrencyCode, CurrencyCodeNode.AsXmlAttribute().Value(), 'The payload currency is incorrect.');
+    end;
+
+    local procedure AssertPayloadStatus(Payload: Text; ExpectedStatus: Text)
+    var
+        XmlDoc: XmlDocument;
+        StatusNode: XmlNode;
+    begin
+        Assert.IsTrue(XmlDocument.ReadFrom(Payload, XmlDoc), 'The payload must be valid XML.');
+        Assert.IsTrue(XmlDoc.SelectSingleNode('//*[local-name()="ProcessConditionCode"]', StatusNode), 'The payload must contain a status.');
+        Assert.AreEqual(ExpectedStatus, StatusNode.AsXmlElement().InnerText(), 'The payload status is incorrect.');
+    end;
+
+    local procedure AssertPayloadDateFormat(Payload: Text; ExpectedFormat: Text)
+    var
+        XmlDoc: XmlDocument;
+        DateFormatNode: XmlNode;
+    begin
+        Assert.IsTrue(XmlDocument.ReadFrom(Payload, XmlDoc), 'The payload must be valid XML.');
+        Assert.IsTrue(XmlDoc.SelectSingleNode('//*[local-name()="DateTimeString"]/@format', DateFormatNode), 'The payload must contain an event date format.');
+        Assert.AreEqual(ExpectedFormat, DateFormatNode.AsXmlAttribute().Value(), 'The payload event date format is incorrect.');
+    end;
+
+    local procedure AssertPayloadReasonCode(Payload: Text; ExpectedReasonCode: Text)
+    var
+        XmlDoc: XmlDocument;
+        ReasonCodeNode: XmlNode;
+    begin
+        Assert.IsTrue(XmlDocument.ReadFrom(Payload, XmlDoc), 'The payload must be valid XML.');
+        Assert.IsTrue(XmlDoc.SelectSingleNode('//*[local-name()="ReasonCode"]', ReasonCodeNode), 'The payload must contain a reason code.');
+        Assert.AreEqual(ExpectedReasonCode, ReasonCodeNode.AsXmlElement().InnerText(), 'The payload reason code is incorrect.');
     end;
 
     local procedure Initialize()
