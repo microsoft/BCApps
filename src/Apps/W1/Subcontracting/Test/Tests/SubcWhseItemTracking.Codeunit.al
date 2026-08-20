@@ -10,10 +10,12 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Tracking;
+using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Document;
@@ -36,6 +38,7 @@ codeunit 149905 "Subc. Whse Item Tracking"
         Assert: Codeunit Assert;
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
+        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
@@ -556,6 +559,197 @@ codeunit 149905 "Subc. Whse Item Tracking"
         ItemLedgerEntry.FindFirst();
         Assert.AreEqual(Quantity, ItemLedgerEntry.Quantity, 'Item Ledger Entry Quantity should match for non-last operation');
         Assert.AreEqual(LotNo, ItemLedgerEntry."Lot No.", 'Item Ledger Entry Lot No. should match for non-last operation');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure UndoTrackedSubcontractingReceiptCreatesValidItemEntryRelation()
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+        Item: Record Item;
+        ItemEntryRelation: Record "Item Entry Relation";
+        ReversingItemLedgerEntry: Record "Item Ledger Entry";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ProdOrderNo: Code[20];
+    begin
+        // [SCENARIO] Undo of a tracked subcontracting receipt must NOT key an Item Entry Relation with a
+        // Capacity Ledger Entry No.
+        // [FEATURE] Repro for bug 644744.
+        // A single serial-tracked output forces the applied-entry-list path in
+        // UndoPostingManagement.PostItemJnlLineAppliedToList, which copies "Item Shpt. Entry No."
+        // (a Capacity Ledger Entry No. for subcontracting, set in Item Jnl.-Post Line) into
+        // Item Entry Relation."Item Entry No.". The untracked single-output case (see
+        // Subc. Whse Receipt Last Op.'s UndoPurchaseReceiptForLastOperation) instead takes the
+        // single-entry shortcut and never exercises this path, which is why it does not repro.
+
+        // [GIVEN] A posted serial-tracked subcontracting receipt
+        Initialize();
+        PostTrackedSubcontractingReceipt(Item, PurchaseHeader, PurchaseLine, ProdOrderNo);
+
+        // [WHEN] Undo the posted subcontracting purchase receipt line
+        PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
+        PurchRcptLine.SetRange("Order Line No.", PurchaseLine."Line No.");
+        PurchRcptLine.FindFirst();
+        Codeunit.Run(Codeunit::"Undo Purchase Receipt Line", PurchRcptLine);
+
+        // [THEN] The undo created a reversing Capacity Ledger Entry (net output quantity is zero)
+        CapacityLedgerEntry.SetRange("Order Type", CapacityLedgerEntry."Order Type"::Production);
+        CapacityLedgerEntry.SetRange("Order No.", ProdOrderNo);
+        Assert.RecordIsNotEmpty(CapacityLedgerEntry);
+
+        // [THEN] ... and a reversing (negative) Output Item Ledger Entry
+        ReversingItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ReversingItemLedgerEntry.SetRange("Entry Type", ReversingItemLedgerEntry."Entry Type"::Output);
+        ReversingItemLedgerEntry.SetRange(Positive, false);
+        Assert.RecordIsNotEmpty(ReversingItemLedgerEntry);
+        ReversingItemLedgerEntry.FindFirst();
+
+        // [THEN] The Item Entry Relation created by the undo references the reversing Output Item Ledger
+        // Entry. With bug 644744 it is instead keyed by the reversing Capacity Ledger Entry No., so no
+        // relation references the reversing Output Item Ledger Entry and this assertion fails.
+        ItemEntryRelation.SetRange("Item Entry No.", ReversingItemLedgerEntry."Entry No.");
+        Assert.RecordIsNotEmpty(ItemEntryRelation);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure UndoNonLastOperationSubcontractingReceiptCreatesNoCapacityKeyedRelation()
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ProdOrderNo: Code[20];
+    begin
+        // [SCENARIO] Undo of a NON-last-operation subcontracting receipt (only a Capacity Ledger Entry is
+        // created, no Output Item Ledger Entry) takes the single-line undo path and must not create any
+        // Item Entry Relation keyed by a Capacity Ledger Entry.
+        // [FEATURE] Guard for bug 644744 - confirms the capacity-only undo path is unaffected.
+        // Because there is no output entry, MfgUndoPurchRcptLine leaves the applied-entry list empty, so
+        // UndoPurchaseReceiptLine takes the "if no output posted" single-line branch (PostItemJnlLine) and
+        // never runs PostItemJnlLineAppliedToList - the code that mis-keys the relation.
+
+        // [GIVEN] A posted non-last-operation subcontracting receipt (capacity only)
+        Initialize();
+        PostNonLastOperationSubcontractingReceipt(Item, PurchaseHeader, PurchaseLine, ProdOrderNo);
+
+        // [WHEN] Undo the posted subcontracting purchase receipt line
+        PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
+        PurchRcptLine.SetRange("Order Line No.", PurchaseLine."Line No.");
+        PurchRcptLine.FindFirst();
+        Codeunit.Run(Codeunit::"Undo Purchase Receipt Line", PurchRcptLine);
+
+        // [THEN] The undo posted a reversing Capacity Ledger Entry (net output quantity is zero)
+        CapacityLedgerEntry.SetRange("Order Type", CapacityLedgerEntry."Order Type"::Production);
+        CapacityLedgerEntry.SetRange("Order No.", ProdOrderNo);
+        Assert.RecordIsNotEmpty(CapacityLedgerEntry);
+        CapacityLedgerEntry.CalcSums("Output Quantity");
+        Assert.AreEqual(0, CapacityLedgerEntry."Output Quantity", 'Net capacity output quantity should be zero after undo');
+
+        // [THEN] No Output Item Ledger Entry exists for the item - the capacity-only receipt has no output
+        // entry, so the undo takes the single-line path and never builds an Item Entry Relation.
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        Assert.RecordIsEmpty(ItemLedgerEntry);
+    end;
+
+    local procedure PostTrackedSubcontractingReceipt(var Item: Record Item; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var ProdOrderNo: Code[20])
+    var
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProductionOrder: Record "Production Order";
+        ReservationEntry: Record "Reservation Entry";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        NoSeriesCodeunit: Codeunit "No. Series";
+        SerialNo: Code[50];
+    begin
+        // [GIVEN] A serial-tracked subcontracting item. A single tracked output forces the applied-entry-list
+        // undo path (Serial No. <> '' keeps "Applies-to Entry" = 0), which is where the defect lives.
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateSerialTrackedItemForProductionWithSetup(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+
+        // [GIVEN] A plain location - no warehouse receipt/put-away is needed to reproduce the defect
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+
+        // [GIVEN] Vendor configured with the subcontracting location
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        Vendor."Subc. Location Code" := Location.Code;
+        Vendor."Location Code" := Location.Code;
+        Vendor.Modify();
+
+        // [GIVEN] Released production order (qty 1 for serial). The serial number is assigned on the prod.
+        // order line; the subcontracting receipt inherits this tracking automatically.
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", 1, Location.Code);
+        ProdOrderNo := ProductionOrder."No.";
+
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+        SerialNo := NoSeriesCodeunit.GetNextNo(Item."Serial Nos.");
+        LibraryManufacturing.CreateProdOrderItemTracking(ReservationEntry, ProdOrderLine, SerialNo, '', 1);
+
+        // [GIVEN] Subcontracting purchase order created from the routing
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+
+        // [GIVEN] Post the subcontracting receipt directly (Receive); tracking flows from the prod. order reservation
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+    end;
+
+    local procedure PostNonLastOperationSubcontractingReceipt(var Item: Record Item; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var ProdOrderNo: Code[20])
+    var
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        Quantity: Decimal;
+    begin
+        Quantity := LibraryRandom.RandIntInRange(5, 10);
+
+        // [GIVEN] A subcontracting item whose subcontracting operation is Work Center 1 (NOT the last
+        // operation). Posting the receipt for a non-last operation creates only a Capacity Ledger Entry.
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[1]."No.");
+
+        // [GIVEN] A plain location
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+
+        // [GIVEN] Vendor of the non-last operation configured with the subcontracting location
+        Vendor.Get(WorkCenter[1]."Subcontractor No.");
+        Vendor."Subc. Location Code" := Location.Code;
+        Vendor."Location Code" := Location.Code;
+        Vendor.Modify();
+
+        // [GIVEN] Released production order and a subcontracting purchase order for the non-last operation
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", Quantity, Location.Code);
+        ProdOrderNo := ProductionOrder."No.";
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+
+        SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[1]."No.", PurchaseLine);
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+
+        // [GIVEN] Post the subcontracting receipt directly (Receive)
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := true;
     end;
 
     [ModalPageHandler]
