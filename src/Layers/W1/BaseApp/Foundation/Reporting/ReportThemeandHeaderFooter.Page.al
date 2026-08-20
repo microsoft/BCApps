@@ -17,7 +17,6 @@ page 9666 "Report Theme and Header/Footer"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Manage themes and header-footer layouts';
-    // The former caption stays searchable so anyone who knows the page by its old name still finds it.
     AdditionalSearchTerms = 'Composite Layout, Document Theme, Header Footer Part, Report Themes and Header/Footers, Report themes and header-footer setup';
     PageType = List;
     SourceTable = "Report Layout List";
@@ -255,30 +254,18 @@ page 9666 "Report Theme and Header/Footer"
         if not FeatureKeyManagement.IsDocumentReportExperienceEnabled() then
             Error(FeatureNotEnabledErr);
 
-        // When the page is opened as a lookup for one subtype, only offer the New action for that subtype: a part of
-        // the other subtype would be created and then immediately hidden by the lookup filter.
         NewThemeVisible := (not LookupSubtypeSet) or (LookupSubtype = LookupSubtype::Theme);
         NewHeaderFooterVisible := (not LookupSubtypeSet) or (LookupSubtype = LookupSubtype::HeaderFooter);
 
-        // Show only the Composite Layout artifacts (themes and header/footer parts), not body layouts. Filter group 2
-        // cannot be cleared from the filter pane, so the restriction here cannot be widened by the user.
         Rec.FilterGroup(2);
         if LookupSubtypeSet then begin
-            // Picking a part to assign: restrict to exactly what the platform will accept, so the pick cannot fail on
-            // save. Mirrors the filter in LookupCompositePart; drop the report filter if the platform ever accepts
-            // parts owned by an extension.
             Rec.SetRange("Report ID", LookupHelper.GetTenantReportDefaultsReportID());
             Rec.SetRange("Layout Subtype", LookupSubtype);
         end else
-            // Browsing the registry: list every theme and header/footer part, whichever report or app owns it.
             Rec.SetFilter("Layout Subtype", '%1|%2', Rec."Layout Subtype"::HeaderFooter, Rec."Layout Subtype"::Theme);
         Rec.FilterGroup(0);
     end;
 
-    /// <summary>
-    /// Tells the page it is being opened as a lookup restricted to one subtype, so that only the New action for that
-    /// subtype is offered. Call before running the page; without it both New actions are available.
-    /// </summary>
     internal procedure SetLookupSubtype(Subtype: Enum "Report Layout Subtype")
     begin
         LookupSubtype := Subtype;
@@ -342,7 +329,6 @@ page 9666 "Report Theme and Header/Footer"
 
         UpdateCount := ReportLayoutsImpl.SetLayoutStatusBatch(SelectedLayouts, NewStatus);
         if UpdateCount > 0 then begin
-            // Name the part when a single one changed; fall back to the count for a multi-select.
             UpdatedName := GetSingleUserDefinedName(SelectedLayouts);
             if (UpdateCount = 1) and (UpdatedName <> '') then
                 Message(StatusChangedSingleMsg, UpdatedName, NewStatus)
@@ -352,10 +338,6 @@ page 9666 "Report Theme and Header/Footer"
         CurrPage.Update(false);
     end;
 
-    /// <summary>
-    /// Returns the name of the only user-defined part in the selection, or an empty string when the selection holds
-    /// none or several. Out-of-box parts are excluded because their status cannot change.
-    /// </summary>
     local procedure GetSingleUserDefinedName(var SelectedLayouts: Record "Report Layout List"): Text
     var
         FoundName: Text;
@@ -459,8 +441,6 @@ page 9666 "Report Theme and Header/Footer"
     begin
         CurrPage.SetSelectionFilter(SelectedLayouts);
 
-        // Out-of-box parts are skipped rather than blocking the whole selection, the same way a status change only
-        // acts on the parts whose status can change.
         if SelectedLayouts.FindSet() then
             repeat
                 if SelectedLayouts."User Defined" then begin
@@ -472,7 +452,6 @@ page 9666 "Report Theme and Header/Footer"
         if DeletableCount = 0 then
             Error(CannotDeleteOobErr);
 
-        // Name the part when a single one is being deleted; fall back to the count for a multi-select.
         if DeletableCount = 1 then begin
             SingleName := GetSingleUserDefinedName(SelectedLayouts);
             if AssignedCount > 0 then begin
@@ -489,9 +468,6 @@ page 9666 "Report Theme and Header/Footer"
                 if not Confirm(DeleteArtifactsQst, false, DeletableCount) then
                     exit;
 
-        // Clear the assignments and stage the rows first: deleting the underlying Tenant Report Layout records while
-        // iterating the virtual Report Layout List would invalidate the cursor part-way through the selection, which
-        // is what left everything after the first part undeleted.
         SelectedLayouts.FindSet();
         repeat
             if SelectedLayouts."User Defined" then begin
@@ -505,7 +481,6 @@ page 9666 "Report Theme and Header/Footer"
 
         if PartsToDelete.FindSet() then
             repeat
-                // EmptyGuid is the App ID key part - empty for tenant-defined layouts.
                 if TenantReportLayout.Get(PartsToDelete."Report ID", PartsToDelete.Name, EmptyGuid) then
                     ReportLayoutsImpl.DeleteReportLayout(TenantReportLayout);
             until PartsToDelete.Next() = 0;

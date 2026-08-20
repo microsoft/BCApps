@@ -490,8 +490,6 @@ page 9660 "Report Layouts"
                     Image = List;
                     ToolTip = 'Open the list of themes and header/footer layouts to add, export, or delete them. The list is shared by every report, so it does not depend on the layout selected here.';
 
-                    // No AccessByPermission and no Enabled gate, unlike the actions above: this one opens the shared
-                    // registry rather than writing a report configuration, and the page gates its own write actions.
                     trigger OnAction()
                     begin
                         Page.Run(Page::"Report Theme and Header/Footer");
