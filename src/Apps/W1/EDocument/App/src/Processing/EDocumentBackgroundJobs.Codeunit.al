@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
+using Microsoft.eServices.EDocument.Processing.Message;
 using System.Telemetry;
 using System.Threading;
 
@@ -19,6 +20,11 @@ codeunit 6133 "E-Document Background Jobs"
     begin
         EDocument."Job Queue Entry ID" := ScheduleEDocumentJob(Codeunit::"E-Document Created Flow", EDocument.RecordId(), 0);
         EDocument.Modify();
+    end;
+
+    procedure ScheduleMessageSend(EDocumentMessage: Record "E-Document Message")
+    begin
+        ScheduleEDocumentJob(Codeunit::"E-Doc. Message Send Job", EDocumentMessage.RecordId(), 0);
     end;
 
     procedure ScheduleGetResponseJob()

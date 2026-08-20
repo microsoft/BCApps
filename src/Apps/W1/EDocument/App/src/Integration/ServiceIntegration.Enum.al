@@ -14,6 +14,7 @@ enum 6151 "Service Integration" implements IDocumentSender, IDocumentReceiver, I
     Access = Public;
     DefaultImplementation = IConsentManager = "Consent Manager Default Impl.",
                             IMessageSender = "E-Doc. Msg. Transport Default";
+    UnknownValueImplementation = IMessageSender = "E-Doc. Msg. Transport Default";
 
     value(0; "No Integration")
     {

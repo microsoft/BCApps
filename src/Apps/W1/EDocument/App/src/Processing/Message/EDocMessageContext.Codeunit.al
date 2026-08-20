@@ -22,31 +22,55 @@ codeunit 6533 "E-Doc. Message Context"
         Payload := TempBlob;
     end;
 
+    /// <summary>
+    /// Gets the entry number of the child E-Document message being sent.
+    /// </summary>
+    /// <returns>The E-Document message entry number.</returns>
     procedure GetMessageEntryNo(): Integer
     begin
         exit(MessageEntryNo);
     end;
 
+    /// <summary>
+    /// Gets the semantic type of the child E-Document message.
+    /// </summary>
+    /// <returns>The E-Document message type.</returns>
     procedure GetMessageType(): Enum "E-Document Message Type"
     begin
         exit(MessageType);
     end;
 
+    /// <summary>
+    /// Gets the response type represented by the child message.
+    /// </summary>
+    /// <returns>The E-Document response type.</returns>
     procedure GetResponseType(): Enum "E-Doc. Response Type"
     begin
         exit(ResponseType);
     end;
 
+    /// <summary>
+    /// Gets the message payload.
+    /// </summary>
+    /// <returns>A temporary blob containing the message payload.</returns>
     procedure GetTempBlob(): Codeunit "Temp Blob"
     begin
         exit(Payload);
     end;
 
+    /// <summary>
+    /// Gets the HTTP state used to record the connector request and response.
+    /// </summary>
+    /// <returns>The HTTP message state.</returns>
     procedure Http(): Codeunit "Http Message State"
     begin
         exit(HttpMessageState);
     end;
 
+    /// <summary>
+    /// Gets the transport result. A connector must set the status to Sent after successful transmission.
+    /// </summary>
+    /// <returns>The integration action status.</returns>
     procedure Status(): Codeunit "Integration Action Status"
     begin
         exit(IntegrationActionStatus);

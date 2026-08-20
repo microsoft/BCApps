@@ -24,6 +24,15 @@ pageextension 10974 "E-Reporting E-Documents" extends "E-Documents"
     {
         addlast(Processing)
         {
+            action(ViewFREInvoiceLifecycle)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'French E-Invoice Lifecycle';
+                Image = History;
+                ToolTip = 'View the French lifecycle statuses and payment occurrences associated with this E-Document.';
+                RunObject = page "FR E-Invoice Messages";
+                RunPageLink = "E-Document Entry No." = field("Entry No");
+            }
             action(RefuseFREInvoice)
             {
                 ApplicationArea = Basic, Suite;
