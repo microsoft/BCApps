@@ -276,16 +276,21 @@ codeunit 4305 "SOA Filters Impl."
     var
         SOATaskContactOverride: Record "SOA Task Contact Override";
     begin
-        if not SOATaskContactOverride.Get(TaskID, TaskMessageID) then begin
-            SOATaskContactOverride.Init();
-            SOATaskContactOverride."Task ID" := TaskID;
-            SOATaskContactOverride."Task Message ID" := TaskMessageID;
-            SOATaskContactOverride."Contact No." := ContactNo;
-            SOATaskContactOverride.Insert();
-        end else begin
-            SOATaskContactOverride."Contact No." := ContactNo;
-            SOATaskContactOverride.Modify();
-        end;
+        if SOATaskContactOverride.Get(TaskID, TaskMessageID) then
+            if not IsContactOverrideTrusted(SOATaskContactOverride) then
+                SOATaskContactOverride.Delete()
+            else begin
+                SOATaskContactOverride."Contact No." := ContactNo;
+                SOATaskContactOverride.Modify();
+                Commit();
+                exit;
+            end;
+
+        SOATaskContactOverride.Init();
+        SOATaskContactOverride."Task ID" := TaskID;
+        SOATaskContactOverride."Task Message ID" := TaskMessageID;
+        SOATaskContactOverride."Contact No." := ContactNo;
+        SOATaskContactOverride.Insert();
         Commit();
     end;
 
