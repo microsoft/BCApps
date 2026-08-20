@@ -10124,8 +10124,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         CustLedgEntry.Get(DtldCustLedgEntry."Cust. Ledger Entry No.");
         IsRejected := CheckCarteraDocStatus(CustLedgEntry."Document No.", CustLedgEntry."Bill No.");
 
-        // A rejected bill is already reclassified to "Rejected Bills Acc." by PostReceivableDocs;
-        // skip the application posting here so the account is not credited twice.
         if IsRejected and (RejDocAmountLCY <> 0) then
             exit;
 

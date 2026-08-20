@@ -33,7 +33,7 @@ codeunit 147541 "Cartera Recv. Redraw Tests"
         BankBillSuccessfullyPostedMsg: Label 'Bank Bill Group %1 was successfully posted for discount.';
         CannotBeReversedErr: Label 'The entry cannot be reversed';
         BillShouldBeMarkedAsRedrawnErr: Label 'Bill is not marked as redrawn';
-        RejectedBillsAccNotClearedErr: Label 'Rejected Bills Acc. should be cleared exactly once by the corrective credit memo posting (WI 643368).';
+        RejectedBillsAccNotClearedErr: Label 'Rejected Bills Acc. should be cleared exactly once by the corrective credit memo posting (WI 647259).';
         RedrawReqPageOption: Option update,verify;
 
     [Test]
@@ -403,7 +403,7 @@ codeunit 147541 "Cartera Recv. Redraw Tests"
         ClearedAmount: Decimal;
     begin
         // [FEATURE] [AI test 4.8]
-        // [SCENARIO 643368] Posting a Credit Memo applied (via Applies-to ID) to a redrawn/rejected bill must clear the "Rejected Bills Acc." exactly once
+        // [SCENARIO 647259] Posting a Credit Memo applied (via Applies-to ID) to a redrawn/rejected bill must clear the "Rejected Bills Acc." exactly once
         Initialize();
 
         // [GIVEN] Cartera customer with a single 30-day installment and a posted sales invoice
