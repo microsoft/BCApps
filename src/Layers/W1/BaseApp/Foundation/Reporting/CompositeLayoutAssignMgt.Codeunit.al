@@ -14,7 +14,7 @@ using System.Reflection;
 codeunit 9668 "Composite Layout Assign. Mgt."
 {
     Access = Internal;
-    Permissions = tabledata "Tenant Report Layout Cfg" = RIMD;
+    Permissions = tabledata "Tenant Report Layout Cfg" = RIM;
 
     /// <summary>
     /// Applies every assignment that ships with the Base Application: the header/footer design listed for each body
