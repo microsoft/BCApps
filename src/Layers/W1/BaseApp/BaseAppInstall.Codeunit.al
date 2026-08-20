@@ -33,8 +33,8 @@ codeunit 5000 "BaseApp Install"
         if not CompositeReportPartsMgt.SeedDefaultParts() then
             exit;
 
-        if not UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()) then
-            UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag());
+        if not UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()) then
+            UpgradeTag.SetDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag());
     end;
 
     local procedure AddWordTemplateTables()
