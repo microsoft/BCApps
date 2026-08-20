@@ -455,21 +455,32 @@ codeunit 134619 "Composite Layout Tests"
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
         UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
     begin
-        // [SCENARIO] The upgrade tag makes the seeding pass run once per database: a second upgrade exits on the guard
-        // instead of re-seeding, which is what stops it re-writing parts over anything the tenant changed.
+        // [SCENARIO] The upgrade seeds on its first run and records its tag; a second run exits on the guard instead of
+        // re-seeding, which is what stops it re-writing parts over anything the tenant changed.
         Initialize();
-        UpgradeTagLibrary.DeleteUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag(), '');
 
-        // [GIVEN] The upgrade has run once, so the parts are seeded and the database tag is recorded.
+        // [GIVEN] No tag, and one shipped part missing, so the first run has work to do and is not gated.
+        UpgradeTagLibrary.DeleteUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag(), '');
+        RemoveShippedPart('Internal Default');
+        Assert.IsFalse(
+            ShippedPartExists('Internal Default', Enum::"Report Layout Subtype"::HeaderFooter),
+            'The part should be missing before the first upgrade, or the seeding assertion below proves nothing.');
+
+        // [WHEN] The upgrade runs with the tag absent.
         UpgradeCompositeReportParts.RunUpgrade();
+
+        // [THEN] It seeded the missing part, and recorded its database tag.
+        Assert.IsTrue(
+            ShippedPartExists('Internal Default', Enum::"Report Layout Subtype"::HeaderFooter),
+            'The first upgrade should seed the shipped parts.');
         Assert.IsTrue(
             UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()),
             'A completed seeding pass should record its database upgrade tag.');
 
-        // [GIVEN] One seeded part is removed behind the pass's back.
+        // [GIVEN] That part is removed again, behind the pass's back.
         RemoveShippedPart('Internal Default');
 
-        // [WHEN] The upgrade runs a second time.
+        // [WHEN] The upgrade runs a second time, now with the tag present.
         UpgradeCompositeReportParts.RunUpgrade();
 
         // [THEN] It exited on the guard, so the removed part was not written again.
