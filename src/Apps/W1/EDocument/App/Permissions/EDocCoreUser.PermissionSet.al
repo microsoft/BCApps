@@ -40,6 +40,8 @@ permissionset 6105 "E-Doc. Core - User"
         tabledata "E-Doc. Data Storage" = imd,
         tabledata "E-Document Integration Log" = imd,
         tabledata "E-Document Message" = imd,
+        tabledata "E-Doc. Payment Occurrence" = imd,
+        tabledata "E-Doc. External Reference" = imd,
     #endregion Logging
         tabledata "E-Doc. Imported Line" = IMD,
         tabledata "E-Doc. Order Match" = IMD,

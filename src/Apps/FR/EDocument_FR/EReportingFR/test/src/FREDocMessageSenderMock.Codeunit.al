@@ -30,7 +30,8 @@ codeunit 148150 "FR E-Doc. Msg. Sender Mock" implements IDocumentSender, IDocume
         TempBlob := MessageContext.GetTempBlob();
         TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
         InStream.ReadText(LastPayload);
-        MessageContext.Status().SetStatus("E-Document Service Status"::Sent);
+        if ReportSuccess then
+            MessageContext.Status().SetStatus("E-Document Service Status"::Sent);
     end;
 
     procedure ReceiveDocuments(var EDocumentService: Record "E-Document Service"; DocumentsMetadata: Codeunit "Temp Blob List"; ReceiveContext: Codeunit ReceiveContext)
@@ -50,7 +51,13 @@ codeunit 148150 "FR E-Doc. Msg. Sender Mock" implements IDocumentSender, IDocume
     begin
         Clear(LastPayload);
         Clear(LastResponseType);
+        ReportSuccess := true;
         SendCount := 0;
+    end;
+
+    procedure SetReportSuccess(NewReportSuccess: Boolean)
+    begin
+        ReportSuccess := NewReportSuccess;
     end;
 
     procedure GetSendCount(): Integer
@@ -71,5 +78,6 @@ codeunit 148150 "FR E-Doc. Msg. Sender Mock" implements IDocumentSender, IDocume
     var
         LastResponseType: Enum "E-Doc. Response Type";
         LastPayload: Text;
+        ReportSuccess: Boolean;
         SendCount: Integer;
 }
