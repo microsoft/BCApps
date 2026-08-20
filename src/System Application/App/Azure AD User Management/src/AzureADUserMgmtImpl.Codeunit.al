@@ -272,7 +272,7 @@ codeunit 9017 "Azure AD User Mgmt. Impl."
     var
         AccessControl: Record "Access Control";
         TempAccessControlWithDefaultPermissions: Record "Access Control" temporary;
-        TempPermissionSetInPlanBuffer: Record "Permission Set In Plan Buffer";
+        TempPermissionSetInPlanBuffer: Record "Permission Set In Plan Buffer" temporary;
         PlanConfiguration: Codeunit "Plan Configuration";
         UsersInPlans: Query "Users in Plans";
     begin

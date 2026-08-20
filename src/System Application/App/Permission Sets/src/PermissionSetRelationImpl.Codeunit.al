@@ -67,7 +67,7 @@ codeunit 9856 "Permission Set Relation Impl."
 
     procedure SelectPermissionSets(CurrAppId: Guid; CurrRoleID: Code[30]; CurrScope: Option System,Tenant): Boolean
     var
-        TempPermissionSetBuffer: Record "PermissionSet Buffer";
+        TempPermissionSetBuffer: Record "PermissionSet Buffer" temporary;
         PermissionType: Option Include,Exclude;
     begin
         VerifyUserCanEditPermissionSet(CurrAppId);
@@ -92,7 +92,7 @@ codeunit 9856 "Permission Set Relation Impl."
 
     procedure ModifyPermissionSet(CurrAppId: Guid; CurrRoleID: Code[30]; CurrScope: Option System,Tenant; RelatedAppId: Guid; RelatedRoleId: Code[30]; PermissionType: Option Include,Exclude): Boolean
     var
-        TempPermissionSetBuffer: Record "PermissionSet Buffer";
+        TempPermissionSetBuffer: Record "PermissionSet Buffer" temporary;
         TenantPermissionSetRel: Record "Tenant Permission Set Rel.";
     begin
         VerifyUserCanEditPermissionSet(CurrAppId);

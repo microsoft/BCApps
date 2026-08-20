@@ -401,7 +401,7 @@ codeunit 8351 "MCP Config Implementation"
 
     internal procedure ValidateConfiguration(var MCPConfiguration: Record "MCP Configuration"; OnActivate: Boolean)
     var
-        TempMCPConfigurationWarning: Record "MCP Config Warning";
+        TempMCPConfigurationWarning: Record "MCP Config Warning" temporary;
     begin
         // Raise warning if any issues found
         if not FindWarningsForConfiguration(MCPConfiguration.SystemId, TempMCPConfigurationWarning) then begin
@@ -960,7 +960,7 @@ codeunit 8351 "MCP Config Implementation"
     internal procedure LookupAPIPageVersions(PageId: Integer; var APIVersion: Text[30])
     var
         PageMetadata: Record "Page Metadata";
-        TempMCPAPIVersion: Record "MCP API Version";
+        TempMCPAPIVersion: Record "MCP API Version" temporary;
         Versions: List of [Text];
         Version: Text[30];
     begin

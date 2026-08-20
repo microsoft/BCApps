@@ -301,7 +301,7 @@ page 9871 "Security Groups"
 
     local procedure GetSelectedGroupCodes(): List of [Code[20]];
     var
-        TempSecurityGroupBuffer: Record "Security Group Buffer";
+        TempSecurityGroupBuffer: Record "Security Group Buffer" temporary;
         GroupCodes: List of [Code[20]];
     begin
         TempSecurityGroupBuffer.Copy(Rec, true);

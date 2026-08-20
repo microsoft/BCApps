@@ -219,7 +219,7 @@ codeunit 2501 "Extension Marketplace"
     [TryFunction]
     procedure InstallAppsourceExtension(MarketplaceApplicationId: Text; TelemetryURL: Text);
     var
-        TempExtensionInstallationRecord: Record "Extension Installation";
+        TempExtensionInstallationRecord: Record "Extension Installation" temporary;
         ExtensionInstallationPage: Page "Extension Installation";
         AppId: Guid;
     begin
@@ -239,7 +239,7 @@ codeunit 2501 "Extension Marketplace"
     [TryFunction]
     procedure InstallAppsourceExtension(AppId: Guid; TelemetryURL: Text)
     var
-        TempExtensionInstallationRecord: Record "Extension Installation";
+        TempExtensionInstallationRecord: Record "Extension Installation" temporary;
         ExtensionInstallationPage: Page "Extension Installation";
     begin
         if IsNullGuid(AppId) then begin

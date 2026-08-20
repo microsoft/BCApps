@@ -19,8 +19,8 @@ codeunit 1923 "Profiling Data Processor"
     InherentPermissions = X;
 
     var
-        TempRawProfilingNodes: Record "Profiling Node";
-        TempCallTreeProfilingNodes: Record "Profiling Node";
+        TempRawProfilingNodes: Record "Profiling Node" temporary;
+        TempCallTreeProfilingNodes: Record "Profiling Node" temporary;
 
     /// <summary>
     /// Initializes the profiling data processor with the profiling data.
@@ -147,8 +147,8 @@ codeunit 1923 "Profiling Data Processor"
 
     local procedure GetChildrenFilterView(var RootProfilingNode: Record "Profiling Node"): Text
     var
-        TempNextNonChildProfilingNode: Record "Profiling Node";
-        TempChildrenProfilingNodes: Record "Profiling Node";
+        TempNextNonChildProfilingNode: Record "Profiling Node" temporary;
+        TempChildrenProfilingNodes: Record "Profiling Node" temporary;
     begin
         TempChildrenProfilingNodes.SetRange(Indentation, RootProfilingNode.Indentation + 1);
 
@@ -165,8 +165,8 @@ codeunit 1923 "Profiling Data Processor"
 
     local procedure ComputeFullTimeAggregate(var RootProfilingNode: Record "Profiling Node"; ProfilingAggregationType: Enum "Profiling Aggregation Type"; var AggregatedProfilingNode: Record "Profiling Node")
     var
-        TempChildProfilingNodes: Record "Profiling Node";
-        TempCurrProfilingNode: Record "Profiling Node";
+        TempChildProfilingNodes: Record "Profiling Node" temporary;
+        TempCurrProfilingNode: Record "Profiling Node" temporary;
         ExclusionSet: DotNet GenericHashSet1;
         ChildExclusionSet: DotNet GenericHashSet1;
         NodeStack: DotNet Stack;

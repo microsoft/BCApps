@@ -314,7 +314,7 @@ page 4315 "Agent Card"
     end;
 
     var
-        TempUserSettingsRecord: Record "User Settings";
+        TempUserSettingsRecord: Record "User Settings" temporary;
         Language: Codeunit Language;
         ProfileDisplayName, CopilotAvailabilityTxt : Text;
         ArchiveActionEnabled, AgentIsArchived, StateEditable : Boolean;

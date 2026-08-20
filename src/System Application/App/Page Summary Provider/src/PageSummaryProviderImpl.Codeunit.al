@@ -24,7 +24,7 @@ codeunit 2717 "Page Summary Provider Impl."
 
     procedure GetPageSummary(Parameters: Text): Text
     var
-        TempPageSummaryParameters: Record "Page Summary Parameters";
+        TempPageSummaryParameters: Record "Page Summary Parameters" temporary;
     begin
         TempPageSummaryParameters.FromJson(Parameters);
         exit(GetPageSummary(TempPageSummaryParameters));

@@ -1502,7 +1502,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// <returns>An operation response object containing the result of the operation.</returns>
     procedure DownloadLargeFile(ItemId: Text; var TempBlob: Codeunit "Temp Blob"): Codeunit "SharePoint Graph Response"
     var
-        TempGraphDriveItem: Record "SharePoint Graph Drive Item";
+        TempGraphDriveItem: Record "SharePoint Graph Drive Item" temporary;
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
         ChunkTempBlob: Codeunit "Temp Blob";
         ChunkInStream: InStream;
@@ -1585,7 +1585,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// <returns>An operation response object containing the result of the operation.</returns>
     procedure DownloadLargeFileByPath(FilePath: Text; var TempBlob: Codeunit "Temp Blob"): Codeunit "SharePoint Graph Response"
     var
-        TempGraphDriveItem: Record "SharePoint Graph Drive Item";
+        TempGraphDriveItem: Record "SharePoint Graph Drive Item" temporary;
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
         ChunkTempBlob: Codeunit "Temp Blob";
         ChunkInStream: InStream;
@@ -2055,8 +2055,8 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// <returns>An operation response object containing the result of the operation.</returns>
     procedure CopyItemByPath(ItemPath: Text; TargetFolderPath: Text; NewName: Text): Codeunit "SharePoint Graph Response"
     var
-        TempGraphDriveItem: Record "SharePoint Graph Drive Item";
-        TempTargetFolderItem: Record "SharePoint Graph Drive Item";
+        TempGraphDriveItem: Record "SharePoint Graph Drive Item" temporary;
+        TempTargetFolderItem: Record "SharePoint Graph Drive Item" temporary;
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
     begin
         EnsureInitialized();
@@ -2159,8 +2159,8 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// <returns>An operation response object containing the result of the operation.</returns>
     procedure MoveItemByPath(ItemPath: Text; TargetFolderPath: Text; NewName: Text): Codeunit "SharePoint Graph Response"
     var
-        TempGraphDriveItem: Record "SharePoint Graph Drive Item";
-        TempTargetFolderItem: Record "SharePoint Graph Drive Item";
+        TempGraphDriveItem: Record "SharePoint Graph Drive Item" temporary;
+        TempTargetFolderItem: Record "SharePoint Graph Drive Item" temporary;
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
         TargetFolderId: Text;
     begin
