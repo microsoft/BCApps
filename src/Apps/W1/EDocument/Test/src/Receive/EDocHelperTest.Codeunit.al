@@ -9,6 +9,7 @@ using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
 
 codeunit 139799 "E-Doc. Helper Test"
 {
@@ -20,6 +21,8 @@ codeunit 139799 "E-Doc. Helper Test"
         Assert: Codeunit "Assert";
         LibraryEDoc: Codeunit "Library - E-Document";
         LibraryLowerPermission: Codeunit "Library - Lower Permissions";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        MultipleVendorsWithRegistrationNoErr: Label 'Multiple vendors match the registration number on the electronic document.';
 
     trigger OnRun()
     begin
@@ -53,6 +56,69 @@ codeunit 139799 "E-Doc. Helper Test"
     begin
         VendorNo := EDocumentImportHelper.FindVendor('', '', '');
         Assert.IsTrue(VendorNo = '', 'Vendor No. should be empty');
+    end;
+
+    [Test]
+    procedure FindVendorByRegistrationNo()
+    var
+        Vendor: Record Vendor;
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        LibraryUtility: Codeunit "Library - Utility";
+        RegistrationNo: Text[20];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 646793] A vendor can be resolved by Registration No. when other identifiers are unavailable.
+        RegistrationNo := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(RegistrationNo));
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor."Use Reg. No. in E-Document" := true;
+        Vendor."Registration Number" := RegistrationNo;
+        Vendor.Modify();
+
+        Assert.AreEqual(Vendor."No.", EDocumentImportHelper.FindVendor('', '', '', RegistrationNo), 'Vendor should be matched by Registration No.');
+    end;
+
+    [Test]
+    procedure DoesNotFindVendorByRegistrationNoWithoutSetup()
+    var
+        Vendor: Record Vendor;
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        LibraryUtility: Codeunit "Library - Utility";
+        RegistrationNo: Text[20];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 646793] Registration No. matching requires explicit vendor setup.
+        RegistrationNo := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(RegistrationNo));
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor."Registration Number" := RegistrationNo;
+        Vendor.Modify();
+
+        Assert.AreEqual('', EDocumentImportHelper.FindVendor('', '', '', RegistrationNo), 'Vendor should not be matched by Registration No. without setup.');
+    end;
+
+    [Test]
+    procedure ErrorsWhenMultipleVendorsMatchByRegistrationNo()
+    var
+        Vendor: array[2] of Record Vendor;
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        LibraryUtility: Codeunit "Library - Utility";
+        RegistrationNo: Text[20];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 646793] Vendor matching fails when a registration number identifies multiple vendors.
+        RegistrationNo := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(RegistrationNo));
+        LibraryPurchase.CreateVendor(Vendor[1]);
+        Vendor[1]."Use Reg. No. in E-Document" := true;
+        Vendor[1]."Registration Number" := RegistrationNo;
+        Vendor[1].Modify();
+        LibraryPurchase.CreateVendor(Vendor[2]);
+        Vendor[2]."Use Reg. No. in E-Document" := true;
+        Vendor[2]."Registration Number" := RegistrationNo;
+        Vendor[2].Modify();
+
+        asserterror EDocumentImportHelper.FindVendor('', '', '', RegistrationNo);
+
+        Assert.ExpectedError(MultipleVendorsWithRegistrationNoErr);
+        Assert.ExpectedErrorCode('Dialog');
     end;
 
     [Test]
@@ -132,4 +198,5 @@ codeunit 139799 "E-Doc. Helper Test"
         // Cleanup
         EDocument.Delete();
     end;
+
 }
