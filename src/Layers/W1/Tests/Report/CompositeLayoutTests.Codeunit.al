@@ -307,10 +307,124 @@ codeunit 134619 "Composite Layout Tests"
         RestoreDocumentReportExperience();
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure SeedDefaultPartsCreatesShippedParts()
+    var
+        ReportLayoutList: Record "Report Layout List";
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
+    begin
+        // [SCENARIO] Seeding writes the shipped theme and header/footer parts into the shared pool.
+        Initialize();
+
+        // [WHEN] Seeding the shipped parts, as install and upgrade do.
+        CompositeReportPartsMgt.SeedDefaultParts();
+
+        // [THEN] A shipped header/footer part is in the pool under Tenant Report Defaults, with the header/footer subtype.
+        Assert.IsTrue(
+            ShippedPartExists('Internal Default', Enum::"Report Layout Subtype"::HeaderFooter),
+            'The shipped header/footer part should be in the shared pool after seeding.');
+
+        // [THEN] So is a shipped theme part, with the theme subtype.
+        Assert.IsTrue(
+            ShippedPartExists('Default', Enum::"Report Layout Subtype"::Theme),
+            'The shipped theme part should be in the shared pool after seeding.');
+
+        // [THEN] Themes ship as .dotx templates, so the stored MIME type is the template one, not the document one.
+        ReportLayoutList.SetRange("Report ID", LookupHelper.GetTenantReportDefaultsReportID());
+        ReportLayoutList.SetRange(Name, 'Default');
+        ReportLayoutList.FindFirst();
+        Assert.ExpectedMessage('wordprocessingml.template', ReportLayoutList."MIME Type");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SeedDefaultPartsIsIdempotentOnRerun()
+    var
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
+    begin
+        // [SCENARIO] Re-seeding replaces a part rather than adding a second copy, so repeated upgrades do not duplicate.
+        Initialize();
+
+        // [GIVEN] The shipped parts have already been seeded once.
+        CompositeReportPartsMgt.SeedDefaultParts();
+
+        // [WHEN] Seeding again, as a later upgrade would.
+        CompositeReportPartsMgt.SeedDefaultParts();
+
+        // [THEN] The part is still there exactly once.
+        Assert.AreEqual(
+            1, ShippedPartCount('Internal Default'),
+            'Re-seeding should replace the shipped part, not add another copy of it.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure AssignDefaultPartsIsIdempotentOnRerun()
+    var
+        CompositeLayoutAssignMgt: Codeunit "Composite Layout Assign. Mgt.";
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
+        SecondPassCount: Integer;
+    begin
+        // [SCENARIO] Assigning the shipped designs a second time writes nothing: a layout that already has a part keeps
+        // it, which is what makes the install/upgrade pass safe to repeat.
+        Initialize();
+
+        // [GIVEN] The parts are in the pool and the shipped designs have been assigned once.
+        CompositeReportPartsMgt.SeedDefaultParts();
+        CompositeLayoutAssignMgt.AssignDefaultParts();
+
+        // [WHEN] Assigning again.
+        SecondPassCount := CompositeLayoutAssignMgt.AssignDefaultParts();
+
+        // [THEN] Nothing was written the second time.
+        Assert.AreEqual(0, SecondPassCount, 'A repeated assignment pass should leave every existing assignment alone.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CompositeReportPartsUpgradeTagIsRegisteredPerDatabase()
+    var
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        PerDatabaseTags: List of [Code[250]];
+    begin
+        // [SCENARIO] The tag that guards the seeding upgrade is registered per database. Without registration the guard
+        // never records as complete and the pass replays on every later upgrade.
+        Initialize();
+
+        // [WHEN] Collecting the registered per-database upgrade tags.
+        UpgradeTag.GetPerDatabaseUpgradeTags(PerDatabaseTags);
+
+        // [THEN] The composite report parts tag is among them.
+        Assert.IsTrue(
+            PerDatabaseTags.Contains(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()),
+            'The composite report parts upgrade tag should be registered as a per-database tag.');
+    end;
+
     [MessageHandler]
     procedure PartInfoMessageHandler(Message: Text[1024])
     begin
         LibraryVariableStorage.Enqueue(Message);
+    end;
+
+    local procedure ShippedPartExists(PartName: Text; Subtype: Enum "Report Layout Subtype"): Boolean
+    var
+        ReportLayoutList: Record "Report Layout List";
+    begin
+        ReportLayoutList.SetRange("Report ID", LookupHelper.GetTenantReportDefaultsReportID());
+        ReportLayoutList.SetRange(Name, CopyStr(PartName, 1, MaxStrLen(ReportLayoutList.Name)));
+        ReportLayoutList.SetRange("Layout Subtype", Subtype);
+        exit(not ReportLayoutList.IsEmpty());
+    end;
+
+    local procedure ShippedPartCount(PartName: Text): Integer
+    var
+        ReportLayoutList: Record "Report Layout List";
+    begin
+        ReportLayoutList.SetRange("Report ID", LookupHelper.GetTenantReportDefaultsReportID());
+        ReportLayoutList.SetRange(Name, CopyStr(PartName, 1, MaxStrLen(ReportLayoutList.Name)));
+        exit(ReportLayoutList.Count());
     end;
 
     local procedure Initialize()
