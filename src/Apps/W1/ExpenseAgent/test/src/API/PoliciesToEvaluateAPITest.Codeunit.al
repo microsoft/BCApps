@@ -21,7 +21,6 @@ codeunit 148345 "Policies To Evaluate API Test"
         APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
         IsInitialized: Boolean;
         ExpenseReportLinesServiceNameTok: Label 'expenseReportLines', Locked = true;
-        PoliciesToEvaluateServiceNameTok: Label 'policiesToEvaluate', Locked = true;
 
     [Test]
     procedure PoliciesToEvaluateAPIRebuildsForChangedSubject()
@@ -30,6 +29,10 @@ codeunit 148345 "Policies To Evaluate API Test"
         ExpensePolicyB: Record "Expense Policy";
         ExpenseReportLineA: Record "Expense Report Line";
         ExpenseReportLineB: Record "Expense Report Line";
+        PoliciesForLineA: JsonArray;
+        PoliciesForLineB: JsonArray;
+        LineAIdText: Text;
+        LineBIdText: Text;
         PolicyAIdText: Text;
         PolicyBIdText: Text;
         ResponseText: Text;
@@ -38,36 +41,70 @@ codeunit 148345 "Policies To Evaluate API Test"
         // [SCENARIO] The policies-to-evaluate API rebuilds its temporary rows when the parent line changes.
         Initialize();
         CreateReportLinesAndPolicies(ExpenseReportLineA, ExpensePolicyA, ExpenseReportLineB, ExpensePolicyB);
+        LineAIdText := LowerCase(LibraryGraphMgt.StripBrackets(Format(ExpenseReportLineA.SystemId)));
+        LineBIdText := LowerCase(LibraryGraphMgt.StripBrackets(Format(ExpenseReportLineB.SystemId)));
         PolicyAIdText := LowerCase(LibraryGraphMgt.StripBrackets(Format(ExpensePolicyA.SystemId)));
         PolicyBIdText := LowerCase(LibraryGraphMgt.StripBrackets(Format(ExpensePolicyB.SystemId)));
         Commit();
 
-        // [WHEN] Policies are requested for the first expense report line.
-        TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
-            Format(ExpenseReportLineA.SystemId),
-            Page::"Expense Report Lines API",
-            ExpenseReportLinesServiceNameTok,
-            PoliciesToEvaluateServiceNameTok);
+        // [WHEN] Both lines and their policies to evaluate are requested in one expanded response.
+        TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Report Lines API", ExpenseReportLinesServiceNameTok);
+        if StrPos(TargetURL, '?') <> 0 then
+            TargetURL += '&$expand=policiesToEvaluate'
+        else
+            TargetURL += '?$expand=policiesToEvaluate';
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
-        ResponseText := LowerCase(ResponseText);
 
-        // [THEN] Only the first line's applicable policy is returned.
-        Assert.AreNotEqual(0, StrPos(ResponseText, PolicyAIdText), 'The first line''s policy must be returned.');
-        Assert.AreEqual(0, StrPos(ResponseText, PolicyBIdText), 'The second line''s policy must not be returned for the first line.');
-
-        // [WHEN] Policies are requested for the second expense report line.
-        TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
-            Format(ExpenseReportLineB.SystemId),
-            Page::"Expense Report Lines API",
-            ExpenseReportLinesServiceNameTok,
-            PoliciesToEvaluateServiceNameTok);
-        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
-        ResponseText := LowerCase(ResponseText);
-
-        // [THEN] The temporary result is rebuilt for the changed subject.
-        Assert.AreNotEqual(0, StrPos(ResponseText, PolicyBIdText), 'The second line''s policy must be returned.');
-        Assert.AreEqual(0, StrPos(ResponseText, PolicyAIdText), 'The first line''s policy must not remain after the subject changes.');
+        // [THEN] Each line's nested collection contains only its applicable policy.
+        Assert.IsTrue(TryGetPoliciesForLine(ResponseText, LineAIdText, PoliciesForLineA), 'The first expense report line must be returned.');
+        Assert.IsTrue(TryGetPoliciesForLine(ResponseText, LineBIdText, PoliciesForLineB), 'The second expense report line must be returned.');
+        Assert.IsTrue(PolicyCollectionContains(PoliciesForLineA, PolicyAIdText), 'The first line''s policy must be returned for the first line.');
+        Assert.IsFalse(PolicyCollectionContains(PoliciesForLineA, PolicyBIdText), 'The second line''s policy must not be returned for the first line.');
+        Assert.IsTrue(PolicyCollectionContains(PoliciesForLineB, PolicyBIdText), 'The second line''s policy must be returned for the second line.');
+        Assert.IsFalse(PolicyCollectionContains(PoliciesForLineB, PolicyAIdText), 'The first line''s policy must not be returned for the second line.');
         CompleteTest();
+    end;
+
+    local procedure TryGetPoliciesForLine(ResponseText: Text; LineIdText: Text; var PoliciesToEvaluate: JsonArray): Boolean
+    var
+        RootObject: JsonObject;
+        LineObject: JsonObject;
+        LinesArray: JsonArray;
+        LineToken: JsonToken;
+        PropertyToken: JsonToken;
+    begin
+        Clear(PoliciesToEvaluate);
+        RootObject.ReadFrom(ResponseText);
+        if not RootObject.Get('value', PropertyToken) then
+            exit(false);
+
+        LinesArray := PropertyToken.AsArray();
+        foreach LineToken in LinesArray do begin
+            LineObject := LineToken.AsObject();
+            if LineObject.Get('id', PropertyToken) then
+                if LowerCase(PropertyToken.AsValue().AsText()) = LineIdText then begin
+                    if not LineObject.Get('policiesToEvaluate', PropertyToken) then
+                        exit(false);
+                    PoliciesToEvaluate := PropertyToken.AsArray();
+                    exit(true);
+                end;
+        end;
+        exit(false);
+    end;
+
+    local procedure PolicyCollectionContains(PoliciesToEvaluate: JsonArray; PolicyIdText: Text): Boolean
+    var
+        PolicyObject: JsonObject;
+        PolicyToken: JsonToken;
+        PropertyToken: JsonToken;
+    begin
+        foreach PolicyToken in PoliciesToEvaluate do begin
+            PolicyObject := PolicyToken.AsObject();
+            if PolicyObject.Get('policySystemId', PropertyToken) then
+                if LowerCase(PropertyToken.AsValue().AsText()) = PolicyIdText then
+                    exit(true);
+        end;
+        exit(false);
     end;
 
     local procedure Initialize()
