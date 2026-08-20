@@ -17,7 +17,7 @@ codeunit 5378 "Page Inspection VS Code Helper"
     begin
         // There's a performance overhead when computing dependencies, only do when necessary, 
         if UpdateDependencies then
-            FilterForExtAffectingPage(PageInfoAndFields."Page ID", PageInfoAndFields."Source Table No.", PageInfoAndFields."Current Form ID", NavAppInstalledApp);
+            FilterForExtAffectingPage(PageInfoAndFields."Page ID", PageInfoAndFields."Source Table No.", NavAppInstalledApp);
         VSCodeIntegration.NavigateToPageDefinitionInVSCode(PageInfoAndFields, NavAppInstalledApp);
     end;
 
@@ -25,7 +25,7 @@ codeunit 5378 "Page Inspection VS Code Helper"
     procedure NavigateFieldDefinitionInVSCode(var PageInfoAndFields: Record "Page Info And Fields"; UpdateDependencies: Boolean): Text
     begin
         if UpdateDependencies then
-            FilterForExtAffectingPage(PageInfoAndFields."Page ID", PageInfoAndFields."Source Table No.", PageInfoAndFields."Current Form ID", NavAppInstalledApp);
+            FilterForExtAffectingPage(PageInfoAndFields."Page ID", PageInfoAndFields."Source Table No.", NavAppInstalledApp);
         VSCodeIntegration.NavigateFieldDefinitionInVSCode(PageInfoAndFields, NavAppInstalledApp);
     end;
 
@@ -48,9 +48,8 @@ codeunit 5378 "Page Inspection VS Code Helper"
     end;
 
     [Scope('OnPrem')]
-    procedure FilterForExtAffectingPage(PageId: Integer; TableId: Integer; FormId: Guid; var NAVAppInstalledApp: Record "NAV App Installed App")
+    procedure FilterForExtAffectingPage(PageId: Integer; TableId: Integer; var NAVAppInstalledApp: Record "NAV App Installed App")
     var
-        ExtensionExecutionInfo: Record "Extension Execution Info";
         AllObjWithCaption: Record AllObjWithCaption;
         TempGuid: Guid;
         OrFilterFmtLbl: Label '%1|', Locked = true;
@@ -93,17 +92,6 @@ codeunit 5378 "Page Inspection VS Code Helper"
                     FilterConditions := FilterConditions + StrSubstNo(OrFilterFmtLbl, AllObjWithCaption."App Package ID");
                 until AllObjWithCaption.Next() = 0;
 
-            // Add filters for arbitrary code which has executed on the form
-            if ExtensionExecutionInfo.ReadPermission() then begin
-                ExtensionExecutionInfo.SetRange("Form ID", FormId);
-                if ExtensionExecutionInfo.Find('-') then
-                    repeat
-                        AllObjWithCaption.Reset();
-                        AllObjWithCaption.SetRange("App Runtime Package ID", ExtensionExecutionInfo."Runtime Package ID");
-                        if AllObjWithCaption.FindFirst() then
-                            FilterConditions := FilterConditions + StrSubstNo(OrFilterFmtLbl, AllObjWithCaption."App Package ID");
-                    until ExtensionExecutionInfo.Next() = 0;
-            end;
         end;
 
         NAVAppInstalledApp.Reset();
