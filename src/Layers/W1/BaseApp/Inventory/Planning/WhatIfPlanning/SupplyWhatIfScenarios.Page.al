@@ -103,7 +103,6 @@ page 5440 "Supply What-If Scenarios"
                     SupplyWhatIfPlanningEngine.RunWhatIfAnalysis(Rec, TempWhatIfImpact);
                     CurrPage.WhatIfImpacts.Page.UpdateWhatIfImpacts(TempWhatIfImpact);
                     CurrPage.Update();
-                    Error('');
                 end;
             }
         }

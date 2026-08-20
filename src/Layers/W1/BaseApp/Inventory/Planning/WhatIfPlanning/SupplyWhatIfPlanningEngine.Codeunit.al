@@ -13,10 +13,19 @@ using Microsoft.Purchases.Document;
 codeunit 5455 "Supply What-If Planning Engine"
 {
     var
+        TempScenarioToSimulate: Record "Supply What-If Scenario" temporary;
+        TempSimulatedImpact: Record "What-If Impact" temporary;
+        SimulationCompleted: Boolean;
         CannotFindImpactedDocumentsErr: Label 'Cannot find impacted documents. Please make sure the document line you are simulating on has reservations and try again.';
         NoChangesToSimulateErr: Label 'Change the What-If Quantity or the What-If Date before running the analysis.';
         WhatIfQuantityTooLargeErr: Label 'The What-If Quantity cannot be greater than the Original Quantity.';
         WhatIfDateTooEarlyErr: Label 'The What-If Date cannot be earlier than the Original Date.';
+        SimulationRolledBackErr: Label 'The what-if simulation finished and its temporary changes were rolled back.', Locked = true;
+
+    trigger OnRun()
+    begin
+        RunSimulationWithinRollbackBoundary();
+    end;
 
     internal procedure OpenWhatIfPlanning(Record: Variant)
     var
@@ -28,12 +37,54 @@ codeunit 5455 "Supply What-If Planning Engine"
         WhatIfScenariosPage.RunModal();
     end;
 
-    [CommitBehavior(CommitBehavior::Ignore)]
     internal procedure RunWhatIfAnalysis(var TempWhatIfScenario: Record "Supply What-If Scenario" temporary; var TempWhatIfImpact: Record "What-If Impact" temporary)
     var
-        RequisitionLine: Record "Requisition Line";
-        FindReservationEntry: Record "Reservation Entry";
-        ItemsToAnalyze: List of [Code[20]];
+        WhatIfSimulationRunner: Codeunit "Supply What-If Planning Engine";
+    begin
+        ValidateScenario(TempWhatIfScenario);
+
+        Commit();
+
+        WhatIfSimulationRunner.SetScenarioToSimulate(TempWhatIfScenario);
+        if WhatIfSimulationRunner.Run() then;
+        if not WhatIfSimulationRunner.GetSimulationCompleted() then
+            Error(GetLastErrorText());
+
+        WhatIfSimulationRunner.GetSimulatedImpact(TempWhatIfImpact);
+    end;
+
+    internal procedure SetScenarioToSimulate(var TempWhatIfScenario: Record "Supply What-If Scenario" temporary)
+    begin
+        TempScenarioToSimulate := TempWhatIfScenario;
+    end;
+
+    internal procedure GetSimulationCompleted(): Boolean
+    begin
+        exit(SimulationCompleted);
+    end;
+
+    internal procedure GetSimulatedImpact(var TempWhatIfImpact: Record "What-If Impact" temporary)
+    begin
+        TempWhatIfImpact.Reset();
+        TempWhatIfImpact.DeleteAll();
+
+        if TempSimulatedImpact.FindSet() then
+            repeat
+                TempWhatIfImpact := TempSimulatedImpact;
+                TempWhatIfImpact.Insert();
+            until TempSimulatedImpact.Next() = 0;
+    end;
+
+    [CommitBehavior(CommitBehavior::Ignore)]
+    local procedure RunSimulationWithinRollbackBoundary()
+    begin
+        ExecuteSimulation(TempScenarioToSimulate, TempSimulatedImpact);
+
+        SimulationCompleted := true;
+        Error(SimulationRolledBackErr);
+    end;
+
+    local procedure ValidateScenario(var TempWhatIfScenario: Record "Supply What-If Scenario" temporary)
     begin
         if (TempWhatIfScenario."What-If Quantity" = TempWhatIfScenario."Original Quantity") and
            (TempWhatIfScenario."What-If Date" = TempWhatIfScenario."Original Date")
@@ -45,7 +96,14 @@ codeunit 5455 "Supply What-If Planning Engine"
 
         if TempWhatIfScenario."What-If Date" < TempWhatIfScenario."Original Date" then
             Error(WhatIfDateTooEarlyErr);
+    end;
 
+    local procedure ExecuteSimulation(var TempWhatIfScenario: Record "Supply What-If Scenario" temporary; var TempWhatIfImpact: Record "What-If Impact" temporary)
+    var
+        RequisitionLine: Record "Requisition Line";
+        FindReservationEntry: Record "Reservation Entry";
+        ItemsToAnalyze: List of [Code[20]];
+    begin
         RequisitionLine.SetRange("Worksheet Template Name", CopyStr(UserId(), 1, 10));
         RequisitionLine.SetFilter("Journal Batch Name", '%1', '');
         RequisitionLine.SetRange("No.", TempWhatIfScenario."Item No.");
