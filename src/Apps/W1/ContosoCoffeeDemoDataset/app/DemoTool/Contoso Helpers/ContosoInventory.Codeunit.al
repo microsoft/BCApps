@@ -250,7 +250,7 @@ codeunit 5699 "Contoso Inventory"
             ItemUnitOfMeasure.Insert(true);
     end;
 
-    procedure InsertItemTemplateData(TemplateCode: Code[20]; Description: Text[100]; BaseUnitofMeasure: Code[10]; ItemType: Enum "Item Type"; InventoryPostingGroup: Code[20]; GenProdPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; Reserve: Enum "Reserve Method")
+    procedure InsertItemTemplateData(TemplateCode: Code[20]; Description: Text[100]; BaseUnitofMeasure: Code[20]; ItemType: Enum "Item Type"; InventoryPostingGroup: Code[20]; GenProdPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; Reserve: Enum "Reserve Method")
     var
         ContosoCoffeeDemoDataSetup: Record "Contoso Coffee Demo Data Setup";
         ItemTempl: Record "Item Templ.";
@@ -263,7 +263,7 @@ codeunit 5699 "Contoso Inventory"
             ItemTempl.Insert(true);
         end;
 
-        ItemTempl.Validate("Base Unit of Measure", BaseUnitofMeasure);
+        ItemTempl.Validate("Base Unit of Measure", CopyStr(BaseUnitofMeasure, 1, MaxStrLen(ItemTempl."Base Unit of Measure")));
         ItemTempl.Validate(Type, ItemType);
         ItemTempl.Validate("Inventory Posting Group", InventoryPostingGroup);
         ItemTempl.Validate("Gen. Prod. Posting Group", GenProdPostingGroup);
