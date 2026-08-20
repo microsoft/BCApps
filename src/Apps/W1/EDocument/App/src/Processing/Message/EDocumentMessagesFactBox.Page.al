@@ -53,6 +53,31 @@ page 6434 "E-Document Messages FactBox"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies when the message was created.';
                 }
+                field("Last Attempt At"; Rec."Last Attempt At")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies when the service last attempted to send the message.';
+                }
+                field("Retry Count"; Rec."Retry Count")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies how many background send attempts have failed.';
+                }
+                field("Last Error"; Rec."Last Error")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the error returned by the most recent failed send attempt.';
+                }
+                field("External Message ID"; Rec."External Message ID")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the identifier assigned to the message by the external service.';
+                }
+                field("Received At"; Rec."Received At")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies when the external service created or delivered the incoming message.';
+                }
             }
         }
     }
