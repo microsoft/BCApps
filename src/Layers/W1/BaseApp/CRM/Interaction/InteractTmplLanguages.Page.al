@@ -8,7 +8,6 @@ namespace Microsoft.CRM.Interaction;
 using Microsoft.Foundation.Reporting;
 #endif
 
-#pragma warning disable AS0032
 page 5154 "Interact. Tmpl. Languages"
 {
     Caption = 'Interact. Tmpl. Languages';
@@ -70,6 +69,9 @@ page 5154 "Interact. Tmpl. Languages"
                 {
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Custom Layout';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the system report layout system ("Tenant Report Layout"). This field will be removed in a future version.';
+                    ObsoleteTag = '29.0';
                     ToolTip = 'Specifies the report layout that will be used.';
                     Visible = CustLayoutVisible;
 
@@ -309,5 +311,4 @@ page 5154 "Interact. Tmpl. Languages"
         CurrPage.Update();
     end;
 }
-#pragma warning restore AS0032
 

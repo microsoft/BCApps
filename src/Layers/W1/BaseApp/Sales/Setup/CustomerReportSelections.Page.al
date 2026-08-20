@@ -12,7 +12,6 @@ using System.Reflection;
 /// <summary>
 /// Displays and manages customer-specific document layouts for sales reports. Allows configuration of report selections, email settings, and custom layouts per customer.
 /// </summary>
-#pragma warning disable AS0032
 page 9657 "Customer Report Selections"
 {
     Caption = 'Document Layouts';
@@ -85,6 +84,9 @@ page 9657 "Customer Report Selections"
                     Caption = 'Custom Layout Description';
                     DrillDown = true;
                     Lookup = true;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the system report layout system ("Tenant Report Layout"). This field will be removed in a future version.';
+                    ObsoleteTag = '29.0';
                     Visible = false;
                     trigger OnDrillDown()
                     begin
@@ -148,6 +150,9 @@ page 9657 "Customer Report Selections"
                     ApplicationArea = Basic, Suite;
                     DrillDown = true;
                     Lookup = true;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the system report layout system ("Tenant Report Layout"). This field will be removed in a future version.';
+                    ObsoleteTag = '29.0';
                     Visible = false;
 
                     trigger OnDrillDown()
@@ -349,4 +354,3 @@ page 9657 "Customer Report Selections"
     begin
     end;
 }
-#pragma warning restore AS0032
