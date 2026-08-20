@@ -701,6 +701,7 @@ codeunit 18466 "Subcontracting Post"
                                             ItemJnlLine.Validate(Quantity, Abs(OldReservEntry."Qty. to Invoice (Base)"));
                                         end else begin
                                             ItemJnlLine.Validate(Quantity, RemQtytoPost);
+                                            RemQtytoPost := 0;
                                             Completed := true;
                                         end
                                     else
@@ -709,6 +710,7 @@ codeunit 18466 "Subcontracting Post"
                                             ItemJnlLine.Validate(Quantity, ItemLedgerEntry."Remaining Quantity");
                                         end else begin
                                             ItemJnlLine.Validate(Quantity, RemQtytoPost);
+                                            RemQtytoPost := 0;
                                             Completed := true;
                                         end;
 
@@ -791,6 +793,9 @@ codeunit 18466 "Subcontracting Post"
                                     ItemLedgerEntry);
                             end;
                     until (ItemLedgerEntry.Next() = 0) or Completed;
+
+                if RemQtytoPost <> 0 then
+                    Error(NotEnoughInvtoryErr);
 
                 AppliedDeliveryChallan."Qty. to Consume" := 0;
                 AppliedDeliveryChallan.Modify();
@@ -1558,13 +1563,20 @@ codeunit 18466 "Subcontracting Post"
         AppDelChallan: Record "Applied Delivery Challan")
     var
         CopyItemLedgerEntry: Record "Item Ledger Entry";
+        DeliveryChallanLine: Record "Delivery Challan Line";
         IsHandled: Boolean;
         AvailableQty: Decimal;
+        VariantCode: Code[10];
     begin
         IsHandled := false;
         OnBeforeGetApplicationLines(ProdOrderComp, SubOrderCompVend, ItemLedgerEntry, TotalQtyToPost, AppDelChallan, IsHandled);
         if IsHandled then
             exit;
+
+        if DeliveryChallanLine.Get(AppDelChallan."Applied Delivery Challan No.", AppDelChallan."App. Delivery Challan Line No.") then
+            VariantCode := DeliveryChallanLine."Variant Code"
+        else
+            VariantCode := SubOrderCompVend."Variant Code";
 
         ItemLedgerEntry.Reset();
         if AppDelChallan."Applies-to Entry" = 0 then begin
@@ -1575,6 +1587,9 @@ codeunit 18466 "Subcontracting Post"
             ItemLedgerEntry.SetRange("Prod. Order Comp. Line No.", ProdOrderComp."Line No.");
             ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Transfer);
             ItemLedgerEntry.SetRange("Location Code", SubOrderCompVend."Vendor Location");
+            ItemLedgerEntry.SetRange(Open, true);
+            ItemLedgerEntry.SetRange(Positive, true);
+            ItemLedgerEntry.SetFilter("Remaining Quantity", '>0');
 
             CopyItemLedgerEntry.Copy(ItemLedgerEntry);
             if CopyItemLedgerEntry.FindSet() then begin
@@ -1590,6 +1605,9 @@ codeunit 18466 "Subcontracting Post"
                 ItemLedgerEntry.SetRange("Item No.", ProdOrderComp."Item No.");
                 ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Transfer);
                 ItemLedgerEntry.SetRange("Location Code", SubOrderCompVend."Vendor Location");
+                ItemLedgerEntry.SetRange(Open, true);
+                ItemLedgerEntry.SetRange(Positive, true);
+                ItemLedgerEntry.SetFilter("Remaining Quantity", '>0');
 
                 CopyItemLedgerEntry.Reset();
                 CopyItemLedgerEntry.Copy(ItemLedgerEntry);
@@ -1605,14 +1623,29 @@ codeunit 18466 "Subcontracting Post"
         end else begin
             ItemLedgerEntry.Reset();
             ItemLedgerEntry.SetCurrentKey("Entry Type", "Location Code", "External Document No.", "Item No.");
+            ItemLedgerEntry.SetRange("Entry No.", AppDelChallan."Applies-to Entry");
             ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Transfer);
             ItemLedgerEntry.SetRange("Location Code", SubOrderCompVend."Vendor Location");
-            ItemLedgerEntry.SetRange("Order Type", ItemLedgerEntry."Order Type"::Production);
-            ItemLedgerEntry.SetRange("Order No.", AppDelChallan."Production Order No.");
-            ItemLedgerEntry.SetRange("Order Line No.", AppDelChallan."Production Order Line No.");
             ItemLedgerEntry.SetRange("External Document No.", AppDelChallan."Applied Delivery Challan No.");
             ItemLedgerEntry.SetRange("Item No.", AppDelChallan."Item No.");
+            ItemLedgerEntry.SetRange("Variant Code", VariantCode);
             ItemLedgerEntry.SetRange(Open, true);
+            ItemLedgerEntry.SetRange(Positive, true);
+            ItemLedgerEntry.SetFilter("Remaining Quantity", '>0');
+
+            // Fallback to re-resolve from the selected challan line when stored entry becomes stale.
+            if not ItemLedgerEntry.FindFirst() then begin
+                ItemLedgerEntry.Reset();
+                ItemLedgerEntry.SetCurrentKey("Entry Type", "Location Code", "External Document No.", "Item No.");
+                ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Transfer);
+                ItemLedgerEntry.SetRange("Location Code", SubOrderCompVend."Vendor Location");
+                ItemLedgerEntry.SetRange("External Document No.", AppDelChallan."Applied Delivery Challan No.");
+                ItemLedgerEntry.SetRange("Item No.", AppDelChallan."Item No.");
+                ItemLedgerEntry.SetRange("Variant Code", VariantCode);
+                ItemLedgerEntry.SetRange(Open, true);
+                ItemLedgerEntry.SetRange(Positive, true);
+                ItemLedgerEntry.SetFilter("Remaining Quantity", '>0');
+            end;
         end;
     end;
 

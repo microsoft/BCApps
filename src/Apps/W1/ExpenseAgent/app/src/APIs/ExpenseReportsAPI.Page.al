@@ -206,12 +206,28 @@ page 6928 "Expense Reports API"
                     Caption = 'Modified By Expense User Id';
                     Editable = false;
                 }
+                field(spendRequestNo; Rec."Spend Request No.")
+                {
+                    Caption = 'Spend Request No.';
+                }
+                field(spendRequestClose; Rec."Spend Request Close")
+                {
+                    Caption = 'Spend Request Close';
+                }
                 part(expenseReportLines; "Expense Report Lines API")
                 {
                     Caption = 'Expense Report Lines';
                     EntityName = 'expenseReportLine';
                     EntitySetName = 'expenseReportLines';
                     SubPageLink = "Document No." = field("No.");
+                }
+                part(activityLogEntries; "Expense Activity Log API")
+                {
+                    Caption = 'Activity Log Entries';
+                    EntityName = 'expenseActivityLogEntry';
+                    EntitySetName = 'expenseActivityLogEntries';
+                    SubPageLink = "Source Table ID" = const(Database::"Expense Report Header"),
+                                  "Source Record System ID" = field(SystemId);
                 }
             }
         }
@@ -451,4 +467,5 @@ page 6928 "Expense Reports API"
         ActionContext.AddEntityKey(Rec.FieldNo(SystemId), Rec.SystemId);
         ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
     end;
+
 }

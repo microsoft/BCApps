@@ -65,9 +65,13 @@ codeunit 131011 "Library - Post. Prev. Handler"
         InsertRecord(RecVar);
         Assert.IsTrue(GenJnlPostPreview.IsActive(), 'GenJnlPostPreview.IsActive');
         if InvokeCommit then
+            #pragma warning disable AS0058, PTE0007 // Accepted violation: this is a test library helper that intentionally wraps asserterror for use by test codeunits.
             asserterror Commit()
+            #pragma warning restore AS0058, PTE0007
         else
+            #pragma warning disable AS0058, PTE0007 // Accepted violation: this is a test library helper that intentionally wraps asserterror for use by test codeunits.
             asserterror GenJnlPostPreview.ThrowError();
+            #pragma warning restore AS0058, PTE0007
         Result := false;
     end;
 }

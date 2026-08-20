@@ -6,6 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Enums;
 using Microsoft.Utilities;
@@ -114,6 +115,11 @@ page 6910 "Expense Report"
                     ToolTip = 'Specifies the VAT business posting group used when posting VAT for this expense report.';
                     Importance = Additional;
                     Visible = false;
+                }
+                field("Spend Request No."; Rec."Spend Request No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Importance = Additional;
                 }
                 group("Approver Comment")
                 {
@@ -232,6 +238,14 @@ page 6910 "Expense Report"
                 Provider = "Expense Report Subform";
                 UpdatePropagation = Both;
                 SubPageLink = "Expense Report No." = field("Document No."), "Report Line No." = field("Line No.");
+                Visible = Rec."No." <> '';
+            }
+            part(Activity; "Expense Activity Log FactBox")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Activity Log';
+                SubPageLink = "Source Table ID" = const(Database::"Expense Report Header"),
+                              "Source Record System ID" = field(SystemId);
                 Visible = Rec."No." <> '';
             }
             part("Expense Picture"; "Expense Picture")
@@ -464,6 +478,16 @@ page 6910 "Expense Report"
                     ToolTip = 'View the VAT details for the record.';
                     Visible = (Rec."No." <> '') and AllowVATReclaim;
                 }
+                action("Spend Request")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Image = ProjectExpense;
+                    Caption = 'Spend Request';
+                    ToolTip = 'View the details of the spend request associated with this expense report.';
+                    RunObject = Page "Spend Request Card";
+                    RunPageLink = "No." = field("Spend Request No.");
+                    Visible = Rec."Spend Request No." <> '';
+                }
                 action(Statistics)
                 {
                     ApplicationArea = Basic, Suite;
@@ -604,6 +628,9 @@ page 6910 "Expense Report"
                 {
                 }
                 actionref(VATSpecification_Promoted; VATSpecification)
+                {
+                }
+                actionref("Spend Request_Promoted"; "Spend Request")
                 {
                 }
                 actionref(Statistics_Promoted; Statistics)
