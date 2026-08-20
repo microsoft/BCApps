@@ -37,6 +37,8 @@ codeunit 9665 "Composite Layout Lookup Helper"
 
         ReportThemeHeaderFooter.GetRecord(ReportLayoutList);
 
+        // Draft and other non-approved parts are visible in the lookup so they can be reviewed, but only approved
+        // parts may actually be assigned.
         if ReportLayoutList."Layout Status" <> ReportLayoutList."Layout Status"::Approved then
             Error(PartNotApprovedErr, ReportLayoutList.Name);
 
@@ -71,6 +73,8 @@ codeunit 9665 "Composite Layout Lookup Helper"
         if SeparatorPos <= 1 then
             exit;
         GuidPart := CopyStr(CompositeName, 1, SeparatorPos - 1);
+        // EncodeCompositeName writes the GUID in the dashed, braceless form; accept the braced form too in case a
+        // value was hand-edited. On failure AppId stays the empty GUID.
         if Evaluate(AppId, GuidPart) then
             exit;
         if Evaluate(AppId, '{' + GuidPart + '}') then
@@ -87,20 +91,6 @@ codeunit 9665 "Composite Layout Lookup Helper"
     procedure CountPartAssignments(PartLayout: Record "Report Layout List"): Integer
     var
         Cfg: Record "Tenant Report Layout Cfg";
-    begin
-        if not this.SetPartAssignmentFilter(Cfg, PartLayout) then
-            exit(0);
-        exit(Cfg.Count());
-    end;
-
-    /// <summary>
-    /// Filters Tenant Report Layout Cfg to the rows that assign the given part, matching its composite reference in the
-    /// column that carries parts of that subtype - Header Part Name for a header/footer, Theme Part Name for a theme.
-    /// Returns false for a layout that is neither, in which case no filter is applied and the caller must not read the
-    /// record. Use it to list where a part is used: the filter is on the column that holds the part.
-    /// </summary>
-    internal procedure SetPartAssignmentFilter(var Cfg: Record "Tenant Report Layout Cfg"; PartLayout: Record "Report Layout List"): Boolean
-    var
         Composite: Text;
     begin
         Composite := this.EncodeCompositeName(PartLayout."Application ID", PartLayout.Name);
@@ -110,9 +100,9 @@ codeunit 9665 "Composite Layout Lookup Helper"
             PartLayout."Layout Subtype"::Theme:
                 Cfg.SetRange("Theme Part Name", CopyStr(Composite, 1, MaxStrLen(Cfg."Theme Part Name")));
             else
-                exit(false);
+                exit(0);
         end;
-        exit(true);
+        exit(Cfg.Count());
     end;
 
     /// <summary>
@@ -155,6 +145,9 @@ codeunit 9665 "Composite Layout Lookup Helper"
     /// <returns>The encoded composite reference.</returns>
     internal procedure EncodeCompositeName(AppId: Guid; LayoutName: Text): Text
     begin
+        // Mirrors CompositeLayoutPartName.Encode on the platform side: <guid>::<layoutname>, where the guid is the
+        // canonical dashed form lowercased (the platform writes it lowercase via Guid.ToString("D")). Format(_, 0, 4)
+        // on a Guid produces the dashed form in AL but uppercase, so lowercase it to match exactly.
         exit(LowerCase(Format(AppId, 0, 4)) + '::' + LayoutName);
     end;
 
@@ -165,7 +158,7 @@ codeunit 9665 "Composite Layout Lookup Helper"
     /// <returns>The Tenant Report Defaults report ID.</returns>
     internal procedure GetTenantReportDefaultsReportID(): Integer
     begin
-        exit(2000000001);
+        exit(2000000001); // The platform's virtual "Tenant Report Defaults" report.
     end;
 
     /// <summary>
@@ -193,6 +186,7 @@ codeunit 9665 "Composite Layout Lookup Helper"
         if HeaderResolved and ThemeResolved then
             exit;
 
+        // Whatever the layout level did not resolve falls back to the layout-independent report/global defaults.
         this.GetReportLevelPartDisplays(ReportID, ReportHeaderDisplay, ReportHeaderSource, ReportThemeDisplay, ReportThemeSource);
         if not HeaderResolved then begin
             HeaderDisplay := ReportHeaderDisplay;
@@ -229,7 +223,10 @@ codeunit 9665 "Composite Layout Lookup Helper"
         ThemeResolved := false;
         CompanyFilter := CompanyName();
 
+        // Precedence mirrors ReportLayoutSelection.FillEmptyPartsFromCfg on the platform, most specific first.
+        // Level 1: this report + this layout + this company.
         this.TryApplyCfgLevel(ReportID, LayoutName, CompanyFilter, ThisLayoutTxt, HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource, HeaderResolved, ThemeResolved);
+        // Level 2: this report + this layout, all companies.
         this.TryApplyCfgLevel(ReportID, LayoutName, '', ThisLayoutTxt, HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource, HeaderResolved, ThemeResolved);
     end;
 
@@ -255,9 +252,13 @@ codeunit 9665 "Composite Layout Lookup Helper"
         ThemeSource := '';
         CompanyFilter := CompanyName();
 
+        // Level 3: this report (all layouts) + this company.
         this.TryApplyCfgLevel(ReportID, '', CompanyFilter, ReportDefaultTxt, HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource, HeaderResolved, ThemeResolved);
+        // Level 4: this report (all layouts), all companies.
         this.TryApplyCfgLevel(ReportID, '', '', ReportDefaultTxt, HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource, HeaderResolved, ThemeResolved);
+        // Level 5: global wildcard report + this company.
         this.TryApplyCfgLevel(0, '', CompanyFilter, CompanyTxt, HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource, HeaderResolved, ThemeResolved);
+        // Level 6: global wildcard report, all companies.
         this.TryApplyCfgLevel(0, '', '', GlobalTxt, HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource, HeaderResolved, ThemeResolved);
     end;
 
