@@ -362,18 +362,22 @@ Describe "ParallelTestExecution rerun budget is limited to pull request builds" 
 
     BeforeEach {
         $script:savedEvent = $env:GITHUB_EVENT_NAME
+        $script:savedSettings = $env:settings
+        # Get-ALGoSetting reads the merged AL-Go settings out of $env:settings.
+        $env:settings = '{ "maxTestAppReruns": 2 }'
     }
 
     AfterEach {
         $env:GITHUB_EVENT_NAME = $script:savedEvent
+        $env:settings = $script:savedSettings
     }
 
-    It "grants a rerun budget on pull request builds" {
+    It "grants the configured budget on pull request builds" {
         $env:GITHUB_EVENT_NAME = 'pull_request'
-        Get-AppRerunBudget | Should -BeGreaterThan 0
+        Get-AppRerunBudget | Should -Be 2
     }
 
-    It "grants no rerun budget on push (CI/CD) builds" {
+    It "grants no rerun budget on push (CI/CD) builds even when the setting is present" {
         # CI/CD runs are the signal for the real state of the branch and feed the unstable-tests
         # data, so a failure there must stay a failure.
         $env:GITHUB_EVENT_NAME = 'push'
@@ -390,6 +394,54 @@ Describe "ParallelTestExecution rerun budget is limited to pull request builds" 
     It "grants no rerun budget outside of GitHub Actions" {
         $env:GITHUB_EVENT_NAME = $null
         Get-AppRerunBudget | Should -Be 0
+    }
+
+    It "grants no rerun budget when the setting is missing" {
+        $env:GITHUB_EVENT_NAME = 'pull_request'
+        $env:settings = '{ }'
+        Get-AppRerunBudget | Should -Be 0
+    }
+
+    It "grants no rerun budget when the setting is not a non-negative integer" {
+        # Settings are free-form JSON, so a typo must disable reruns rather than corrupt the budget.
+        $env:GITHUB_EVENT_NAME = 'pull_request'
+        foreach ($bad in @('"lots"', '-1', '"2.5"')) {
+            $env:settings = "{ ""maxTestAppReruns"": $bad }"
+            Get-AppRerunBudget | Should -Be 0
+        }
+    }
+
+    It "honours a budget of 0 as a way to switch reruns off" {
+        $env:GITHUB_EVENT_NAME = 'pull_request'
+        $env:settings = '{ "maxTestAppReruns": 0 }'
+        Get-AppRerunBudget | Should -Be 0
+    }
+
+    It "re-runs several different apps up to the configured budget" {
+        # The budget caps how many DIFFERENT apps may be re-run; an individual app is still only
+        # ever re-run once.
+        $env:GITHUB_EVENT_NAME = 'pull_request'
+        InModuleScope ParallelTestExecution {
+            $state = [PSCustomObject]@{
+                hasFailures = $false; transient = @(); rerun = @(); rerunDone = @{}
+                rerunBudget = 2; tenantCount = 4
+            }
+            foreach ($app in @('A', 'B')) {
+                Register-TestJobOutcome -State $state -Result ([PSCustomObject]@{
+                    Outcome = 'Failed'; AppName = $app; Tenant = 'tenant2'; JobState = 'Failed'
+                })
+            }
+            $state.rerun.Count | Should -Be 2
+            $state.rerun.suffix | Should -Be @('rerun1', 'rerun2')
+            $state.hasFailures | Should -BeFalse
+
+            # Budget spent: a third app is a final failure.
+            Register-TestJobOutcome -State $state -Result ([PSCustomObject]@{
+                Outcome = 'Failed'; AppName = 'C'; Tenant = 'tenant3'; JobState = 'Failed'
+            })
+            $state.rerun.Count | Should -Be 2
+            $state.hasFailures | Should -BeTrue
+        }
     }
 
     It "does not re-dispatch a failed app on a CI/CD build" {

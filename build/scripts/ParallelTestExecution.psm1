@@ -23,26 +23,43 @@ Import-Module (Join-Path $PSScriptRoot "ALAppBuild.psm1" -Resolve)
     real state of the branch and they feed the unstable-tests data, so masking instability there
     would hide exactly what we want to measure. This mirrors the test tolerance check in
     RunTestsInBcContainer.ps1, which is also limited to pull request builds.
-.PARAMETER MaxAppReruns
-    Rerun budget granted to a pull request build. A failed app is re-run once on a DIFFERENT tenant
-    than the one it failed on: tests are not guaranteed to clean up after themselves, so a
-    same-tenant retry can re-fail on the residue the failed run just left behind. Deliberately
-    small - it exists to absorb instability, and more failures than this means something is
-    genuinely broken rather than flaky.
+
+    On a pull request the budget comes from the "maxTestAppReruns" AL-Go setting. Because AL-Go
+    merges repo, project and conditional settings before exposing them, the budget can be tuned per
+    project or per build mode (for example a higher budget for the long legacy buckets) without any
+    code change.
+
+    The budget is the number of DIFFERENT apps that may be re-run in one job; an individual app is
+    never re-run more than once (enforced separately via the rerun bookkeeping). A failed app is
+    re-run on a DIFFERENT tenant than the one it failed on: tests are not guaranteed to clean up
+    after themselves, so a same-tenant retry can re-fail on the residue the failed run just left
+    behind. Keep it small - it exists to absorb instability, and more failures than this means
+    something is genuinely broken rather than flaky.
 .OUTPUTS
-    [int] MaxAppReruns on pull request builds, otherwise 0.
+    [int] The configured budget on pull request builds, otherwise 0.
 #>
 function Get-AppRerunBudget {
-    param(
-        [int]$MaxAppReruns = 1
-    )
-
-    if ($env:GITHUB_EVENT_NAME -eq 'pull_request') {
-        return $MaxAppReruns
+    if ($env:GITHUB_EVENT_NAME -ne 'pull_request') {
+        Write-Host "Build event is '$($env:GITHUB_EVENT_NAME)', not 'pull_request'. Failed test apps will NOT be re-run."
+        return 0
     }
 
-    Write-Host "Build event is '$($env:GITHUB_EVENT_NAME)', not 'pull_request'. Failed test apps will NOT be re-run."
-    return 0
+    $configured = Get-ALGoSetting -Key "maxTestAppReruns"
+    if ($null -eq $configured) {
+        Write-Host "AL-Go setting 'maxTestAppReruns' is not set. Failed test apps will NOT be re-run."
+        return 0
+    }
+
+    # Settings are free-form JSON, so guard against a non-numeric or negative value rather than
+    # letting it silently disable (or worse, corrupt) the budget comparison.
+    $budget = 0
+    if (-not [int]::TryParse("$configured", [ref]$budget) -or $budget -lt 0) {
+        Write-Host "::warning::AL-Go setting 'maxTestAppReruns' is '$configured', which is not a non-negative integer. Failed test apps will NOT be re-run."
+        return 0
+    }
+
+    Write-Host "Rerun budget for this job: $budget test app(s) may be re-run on a different tenant."
+    return $budget
 }
 
 <#
