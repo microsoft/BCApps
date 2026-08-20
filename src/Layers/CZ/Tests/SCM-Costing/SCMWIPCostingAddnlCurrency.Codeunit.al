@@ -189,6 +189,7 @@ codeunit 137002 "SCM WIP Costing Addnl Currency"
         // Setup Demonstration data.
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
+        LibraryERMCountryData.UpdateGeneralLedgerSetup();
         LibraryERMCountryData.UpdateInventoryPostingSetup(); // NAVCZ
         LibrarySetupStorage.Save(DATABASE::"Inventory Setup");
         isInitialized := true;
