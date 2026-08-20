@@ -538,7 +538,7 @@ codeunit 5980 "Service-Post"
 
         if (ServiceHeader."Shipping No. Series" <> '') and (ServiceHeader."Shipping No." <> '') then begin
             ServiceHeader.CalcFields("Work Description");
-            ServiceShptHeader.TransferFields(ServiceHeader, true, true);
+            ServiceShptHeader.TransferFields(ServiceHeader);
             OnTestDeleteHeaderOnAfterServiceShptHeaderTransferFields(ServiceShptHeader, ServiceHeader);
             ServiceShptHeader."No." := ServiceHeader."Shipping No.";
             ServiceShptHeader."Posting Date" := Today;
@@ -553,7 +553,7 @@ codeunit 5980 "Service-Post"
             (ServiceHeader."No. Series" = ServiceHeader."Posting No. Series"))
         then begin
             ServiceHeader.CalcFields("Work Description");
-            ServiceInvHeader.TransferFields(ServiceHeader, true, true);
+            ServiceInvHeader.TransferFields(ServiceHeader);
             OnTestDeleteHeaderOnAfterServiceInvHeaderTransferFields(ServiceInvHeader, ServiceHeader);
             if ServiceHeader."Posting No." <> '' then
                 ServiceInvHeader."No." := ServiceHeader."Posting No.";
@@ -578,7 +578,7 @@ codeunit 5980 "Service-Post"
             (ServiceHeader."No. Series" = ServiceHeader."Posting No. Series"))
         then begin
             ServiceHeader.CalcFields("Work Description");
-            ServiceCrMemoHeader.TransferFields(ServiceHeader, true, true);
+            ServiceCrMemoHeader.TransferFields(ServiceHeader);
             OnTestDeleteHeaderOnAfterServiceCrMemoHeaderTransferFields(ServiceCrMemoHeader, ServiceHeader);
             if ServiceHeader."Posting No." <> '' then
                 ServiceCrMemoHeader."No." := ServiceHeader."Posting No.";

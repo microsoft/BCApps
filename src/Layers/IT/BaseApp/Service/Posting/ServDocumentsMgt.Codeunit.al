@@ -791,7 +791,7 @@ codeunit 5988 "Serv-Documents Mgt."
 
             ServShptHeader.Init();
             ServHeader.CalcFields("Work Description");
-            ServShptHeader.TransferFields(ServHeader, true, true);
+            ServShptHeader.TransferFields(ServHeader);
             ServShptHeader."No." := ServHeader."Shipping No.";
             if ServHeader."Document Type" = ServHeader."Document Type"::Order then begin
                 ServShptHeader."Order No. Series" := ServHeader."No. Series";
@@ -827,7 +827,7 @@ codeunit 5988 "Serv-Documents Mgt."
                     OnPrepareShipmentHeaderOnBeforeCreateServiceShipmentItemLine(ServHeader, ServItemLine, IsHandled);
                     if not IsHandled then begin
                         // create SSIL
-                        ServShptItemLine.TransferFields(ServItemLine, true, true);
+                        ServShptItemLine.TransferFields(ServItemLine);
                         ServShptItemLine."No." := ServShptHeader."No.";
                         OnBeforeServShptItemLineInsert(ServShptItemLine, ServItemLine);
                         ServShptItemLine.Insert();
@@ -884,7 +884,7 @@ codeunit 5988 "Serv-Documents Mgt."
         if (ServShptHeader."No." <> '') and (PassedServLine."Shipment No." = '') and not ServAmountsMgt.RoundingLineInserted() then begin
             // Insert shipment line
             ServShptLine.Init();
-            ServShptLine.TransferFields(PassedServLine, true, true);
+            ServShptLine.TransferFields(PassedServLine);
             ServShptLine."Document No." := ServShptHeader."No.";
             ServShptLine.Quantity := PassedServLine."Qty. to Ship";
             ServShptLine."Quantity (Base)" := PassedServLine."Qty. to Ship (Base)";
@@ -947,7 +947,7 @@ codeunit 5988 "Serv-Documents Mgt."
     begin
         ServInvHeader.Init();
         ServHeader.CalcFields("Work Description");
-        ServInvHeader.TransferFields(ServHeader, true, true);
+        ServInvHeader.TransferFields(ServHeader);
         OnPrepareInvoiceHeaderOnAfterServInvHeaderTransferFields(ServHeader, ServInvHeader);
         if ServHeader."Document Type" = ServHeader."Document Type"::Order then begin
             ServInvHeader."No." := ServHeader."Posting No.";
@@ -1008,7 +1008,7 @@ codeunit 5988 "Serv-Documents Mgt."
     local procedure PrepareInvoiceLine(var PassedServLine: Record "Service Line")
     begin
         ServInvLine.Init();
-        ServInvLine.TransferFields(PassedServLine, true, true);
+        ServInvLine.TransferFields(PassedServLine);
         ServInvLine."Document No." := ServInvHeader."No.";
         ServInvLine.Quantity := PassedServLine."Qty. to Invoice";
         ServInvLine."Quantity (Base)" := PassedServLine."Qty. to Invoice (Base)";
@@ -1030,7 +1030,7 @@ codeunit 5988 "Serv-Documents Mgt."
     begin
         ServCrMemoHeader.Init();
         ServHeader.CalcFields("Work Description");
-        ServCrMemoHeader.TransferFields(ServHeader, true, true);
+        ServCrMemoHeader.TransferFields(ServHeader);
         ServCrMemoHeader."Pre-Assigned No. Series" := ServHeader."No. Series";
         ServCrMemoHeader."Pre-Assigned No." := ServHeader."No.";
         if ServHeader."Posting No." <> '' then begin
@@ -1072,7 +1072,7 @@ codeunit 5988 "Serv-Documents Mgt."
         // TempSrvLine is initialized (in Sales module) in RoundAmount
         // procedure, and likely does not differ from initial ServLine.
         ServCrMemoLine.Init();
-        ServCrMemoLine.TransferFields(PassedServLine, true, true);
+        ServCrMemoLine.TransferFields(PassedServLine);
         ServCrMemoLine."Document No." := ServCrMemoHeader."No.";
         ServCrMemoLine.Quantity := PassedServLine."Qty. to Invoice";
         ServCrMemoLine."Quantity (Base)" := PassedServLine."Qty. to Invoice (Base)";
