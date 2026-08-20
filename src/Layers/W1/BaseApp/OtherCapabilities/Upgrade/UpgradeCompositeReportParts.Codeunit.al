@@ -14,6 +14,11 @@ codeunit 104064 "Upgrade Composite Report Parts"
     InherentPermissions = X;
 
     trigger OnUpgradePerDatabase()
+    begin
+        RunUpgrade();
+    end;
+
+    internal procedure RunUpgrade()
     var
         CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
         UpgradeTag: Codeunit "Upgrade Tag";

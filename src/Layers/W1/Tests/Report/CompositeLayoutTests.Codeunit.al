@@ -402,10 +402,55 @@ codeunit 134619 "Composite Layout Tests"
             'The composite report parts upgrade tag should be registered as a per-database tag.');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure CompositeReportPartsUpgradeTagGatesRerun()
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        UpgradeCompositeReportParts: Codeunit "Upgrade Composite Report Parts";
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+        UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
+    begin
+        // [SCENARIO] The upgrade tag makes the seeding pass run once per database: a second upgrade exits on the guard
+        // instead of re-seeding, which is what stops it re-writing parts over anything the tenant changed.
+        Initialize();
+        UpgradeTagLibrary.DeleteUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag(), '');
+
+        // [GIVEN] The upgrade has run once, so the parts are seeded and the database tag is recorded.
+        UpgradeCompositeReportParts.RunUpgrade();
+        Assert.IsTrue(
+            UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()),
+            'A completed seeding pass should record its database upgrade tag.');
+
+        // [GIVEN] One seeded part is removed behind the pass's back.
+        TenantReportLayout.Get(LookupHelper.GetTenantReportDefaultsReportID(), 'Internal Default', EmptyGuidValue());
+        TenantReportLayout.Delete(true);
+
+        // [WHEN] The upgrade runs a second time.
+        UpgradeCompositeReportParts.RunUpgrade();
+
+        // [THEN] It exited on the guard, so the removed part was not written again.
+        Assert.IsFalse(
+            ShippedPartExists('Internal Default', Enum::"Report Layout Subtype"::HeaderFooter),
+            'The second upgrade should exit on the tag instead of re-seeding the parts.');
+
+        // Put the part back so the rest of the suite sees a complete pool.
+        CompositeReportPartsMgt.SeedDefaultParts();
+    end;
+
     [MessageHandler]
     procedure PartInfoMessageHandler(Message: Text[1024])
     begin
         LibraryVariableStorage.Enqueue(Message);
+    end;
+
+    local procedure EmptyGuidValue(): Guid
+    var
+        EmptyGuid: Guid;
+    begin
+        exit(EmptyGuid);
     end;
 
     local procedure ShippedPartExists(PartName: Text; Subtype: Enum "Report Layout Subtype"): Boolean
