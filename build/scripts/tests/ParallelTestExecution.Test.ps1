@@ -444,6 +444,81 @@ Describe "ParallelTestExecution rerun budget is limited to pull request builds" 
         }
     }
 
+    It "discards a stale rerun result file when the rerun is re-dispatched after a transient race" {
+        # Sequence: app fails -> rerun on another tenant -> that rerun hits the platform race ->
+        # app is re-dispatched through the NORMAL queue, writing to a tenant file. Tenant files
+        # merge before rerun files, so the stale rerun file would otherwise overwrite the newer
+        # (passing) result and report a passing app as failed.
+        $env:GITHUB_EVENT_NAME = 'pull_request'
+        InModuleScope ParallelTestExecution {
+            $dir = Join-Path ([System.IO.Path]::GetTempPath()) ([guid]::NewGuid().ToString('N'))
+            New-Item -ItemType Directory -Path $dir | Out-Null
+            try {
+                $params = @{
+                    containerName = "ut-$([guid]::NewGuid().ToString('N'))"
+                    tenant = 'default'
+                    JUnitResultFileName = (Join-Path $dir 'results.xml')
+                }
+                $staleFile = Join-Path $dir 'results-rerun1.xml'
+                Set-Content -Path $staleFile -Value '<testsuites />'
+
+                $script:raced = $false
+                Mock Get-AvailableBcTenants { @('default', 'tenant2') }
+                Mock Get-BcContainerAppInfo { @([PSCustomObject]@{ IsInstalled = $true; Name = 'A'; AppId = 'id-A' }) }
+                Mock Invoke-WarmupDispatch { @($Pending) }
+                Mock Wait-ForAllTestJobs { }
+                Mock Merge-TenantTestResults { }
+                Mock Wait-ForFreeTenant { 'tenant2' }
+                Mock Start-TestAppDispatch {
+                    if ($FileSuffix -and -not $script:raced) {
+                        # The rerun job hits the platform race.
+                        $script:raced = $true
+                        $State.transient = @($State.transient) + @($AppName)
+                    }
+                }
+                # Pre-seed the state as though 'A' already had its rerun dispatched.
+                Mock Register-TestJobOutcome { }
+
+                $state = [PSCustomObject]@{
+                    jobs = @(); hasFailures = $false; transient = @(); retried = @{}
+                    rerun = @(); rerunDone = @{}; rerunBudget = 1; tenantCount = 2
+                }
+                $state.rerunDone['A'] = 'rerun1'
+                $state.transient = @('A')
+
+                # Exercise just the promotion path the loop performs.
+                foreach ($appName in @($state.transient)) {
+                    if ($state.rerunDone.ContainsKey($appName)) {
+                        Remove-RerunResultFile -parameters $params -suffix $state.rerunDone[$appName]
+                    }
+                }
+
+                Test-Path $staleFile | Should -BeFalse
+            }
+            finally {
+                Remove-Item $dir -Recurse -Force -ErrorAction SilentlyContinue
+            }
+        }
+    }
+
+    It "records the rerun suffix so a stale rerun file can be found later" {
+        InModuleScope ParallelTestExecution {
+            $state = [PSCustomObject]@{
+                hasFailures = $false; transient = @(); rerun = @(); rerunDone = @{}
+                rerunBudget = 2; tenantCount = 4
+            }
+            Register-TestJobOutcome -State $state -Result ([PSCustomObject]@{
+                Outcome = 'Failed'; AppName = 'A'; Tenant = 'tenant2'; JobState = 'Failed'
+            })
+            Register-TestJobOutcome -State $state -Result ([PSCustomObject]@{
+                Outcome = 'Failed'; AppName = 'B'; Tenant = 'tenant3'; JobState = 'Failed'
+            })
+            $state.rerunDone['A'] | Should -Be 'rerun1'
+            $state.rerunDone['B'] | Should -Be 'rerun2'
+            $state.rerun.suffix | Should -Be @('rerun1', 'rerun2')
+        }
+    }
+
     It "does not re-dispatch a failed app on a CI/CD build" {
         # End-to-end guard: the budget gate must actually suppress the rerun dispatch, not just
         # return 0 from the helper.

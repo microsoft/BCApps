@@ -458,10 +458,12 @@ function Register-TestJobOutcome {
 
             if ($canRerun) {
                 $State.rerunBudget = $State.rerunBudget - 1
-                $State.rerunDone[$Result.AppName] = $true
                 # Suffix is derived from the number of reruns so far, so it stays unique and
-                # correct regardless of what the starting budget was.
-                $suffix = "rerun$($State.rerunDone.Count)"
+                # correct regardless of what the starting budget was. Keep it in rerunDone: if the
+                # rerun itself later hits a transient platform race, the loop needs the suffix to
+                # discard the stale rerun result file before re-dispatching.
+                $suffix = "rerun$($State.rerunDone.Count + 1)"
+                $State.rerunDone[$Result.AppName] = $suffix
                 Write-Host "::warning::Tests FAILED for '$($Result.AppName)' on tenant '$($Result.Tenant)'. Re-running the app once on a different tenant. A rerun that passes still means this app is unstable - please investigate it."
                 $State.rerun = @($State.rerun) + @([PSCustomObject]@{
                     appName       = $Result.AppName
@@ -605,16 +607,18 @@ function Start-TestJob {
 
 <#
 .SYNOPSIS
-    Waits for all tracked test jobs to complete and returns whether all passed.
+    Waits for all tracked test jobs to complete, recording each outcome on the state object.
+.DESCRIPTION
+    Outcomes are recorded on $state by Register-TestJobOutcome (hasFailures / transient / rerun),
+    which is the single source of truth for the run result. Deliberately returns nothing: a
+    "did everything pass" boolean cannot be derived here, because $state.hasFailures may already
+    be true from an earlier batch and would mask a new failure in this one.
 .PARAMETER state
     The parallel execution state object containing the jobs array.
-.OUTPUTS
-    [bool] True if all jobs passed, false if any failed.
 #>
 function Wait-ForAllTestJobs {
     param($state)
 
-    $failuresBefore = $state.hasFailures
     foreach ($entry in @($state.jobs)) {
         $pendingJob = Get-Job -Id $entry.jobId -ErrorAction SilentlyContinue
         if ($pendingJob) {
@@ -628,7 +632,6 @@ function Wait-ForAllTestJobs {
     # All jobs in $state.jobs have been received and removed; clear the list so any later
     # dispatch starts from a clean slate (otherwise stale descriptors confuse Get-FreeTenants).
     $state.jobs = @()
-    return ($state.hasFailures -eq $failuresBefore)
 }
 
 <#
@@ -720,6 +723,44 @@ function Invoke-WarmupDispatch {
     $null = Wait-ForAllTestJobs -state $State
 
     return @($Pending | Select-Object -Skip 1)
+}
+
+<#
+.SYNOPSIS
+    Deletes the result file written by a rerun, so it cannot take part in the merge.
+.DESCRIPTION
+    Merge-TenantTestResults merges tenant files first and rerun files last, so a rerun result
+    always wins for the app it re-ran. That is correct while the rerun is the app's final attempt.
+    If the rerun instead hits a transient platform race, the app is re-dispatched through the
+    normal queue and writes to a TENANT file - and the stale rerun file would then overwrite the
+    newer result, reporting a passing app as failed. Removing the stale file keeps the merge honest.
+.PARAMETER parameters
+    The original test parameters hashtable (contains the expected result file paths).
+.PARAMETER suffix
+    The rerun suffix whose files should be removed (for example 'rerun1').
+#>
+function Remove-RerunResultFile {
+    param(
+        [Hashtable]$parameters,
+        [string]$suffix
+    )
+
+    if ([string]::IsNullOrWhiteSpace($suffix)) { return }
+
+    foreach ($resultKey in @("XUnitResultFileName", "JUnitResultFileName")) {
+        if ($parameters.ContainsKey($resultKey) -and $parameters[$resultKey]) {
+            $origFile = $parameters[$resultKey]
+            $dir = [System.IO.Path]::GetDirectoryName($origFile)
+            $name = [System.IO.Path]::GetFileNameWithoutExtension($origFile)
+            $ext = [System.IO.Path]::GetExtension($origFile)
+            $staleFile = Join-Path $dir "$name-$suffix$ext"
+
+            if (Test-Path $staleFile) {
+                Write-Host "Discarding stale rerun result file '$staleFile'; the app is being re-dispatched after a transient failure."
+                Remove-Item $staleFile -Force -ErrorAction SilentlyContinue
+            }
+        }
+    }
 }
 
 <#
@@ -819,6 +860,12 @@ function Invoke-ParallelTestExecution {
             Write-Host "Re-queueing $($toRetry.Count) app(s) after transient platform race: $($toRetry -join ', ')"
             foreach ($appName in $toRetry) {
                 $state.retried[$appName] = $true
+                # A transient retry goes out through the normal queue and so writes to a TENANT
+                # result file. Tenant files are merged before rerun files, so any rerun file this
+                # app already produced would overwrite the newer result - drop it.
+                if ($state.rerunDone.ContainsKey($appName)) {
+                    Remove-RerunResultFile -parameters $parameters -suffix $state.rerunDone[$appName]
+                }
             }
             $pending = @($toRetry) + @($pending)
         }
