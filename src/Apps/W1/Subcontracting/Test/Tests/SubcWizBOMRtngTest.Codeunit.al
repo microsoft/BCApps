@@ -10,7 +10,7 @@ using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Wizard;
 using Microsoft.Purchases.Document;
 
-codeunit 139995 "Subc. Wiz. BOM/Rtng Test"
+codeunit 139999 "Subc. Wiz. BOM/Rtng Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
