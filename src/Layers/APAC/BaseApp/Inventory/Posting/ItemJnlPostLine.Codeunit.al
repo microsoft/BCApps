@@ -1736,6 +1736,11 @@ codeunit 22 "Item Jnl.-Post Line"
         ItemTrackingSetup2.CopyTrackingFromItemTrackingCodeSpecificTracking(ItemTrackingCode);
         ItemTrackingSetup2.CopyTrackingFromItemLedgerEntry(FromItemLedgEntry);
 
+        if FromItemLedgEntry."Entry Type" = FromItemLedgEntry."Entry Type"::Transfer then begin
+            ItemTrackingSetup2."Serial No. Required" := GlobalItemTrackingSetup."Serial No. Required";
+            ItemTrackingSetup2."Lot No. Required" := GlobalItemTrackingSetup."Lot No. Required";
+        end;
+
         if (FromItemLedgEntry."Serial No." <> '') and (ItemTrackingSetup2."Serial No. Required") then
             ToItemLedgEntry.SetCurrentKey("Serial No.", "Item No.", Open, "Variant Code", Positive, "Location Code", "Posting Date", "Entry No.")
         else
