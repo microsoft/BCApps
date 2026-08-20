@@ -77,23 +77,39 @@ codeunit 9667 "Composite Report Parts Mgt."
         if TryUpsertPart(PartName, ResourceFile, Subtype, Description) then
             exit(true);
 
-        LogPartNotSeeded(PartName, ResourceFile, Subtype, GetLastErrorText());
+        LogPartNotSeeded(PartName, ResourceFile, Subtype, GetLastErrorCode(), GetLastErrorText());
         exit(false);
     end;
 
-    local procedure LogPartNotSeeded(PartName: Text; ResourceFile: Text; Subtype: Enum "Report Layout Subtype"; ErrorText: Text)
+    /// <summary>
+    /// Reports a part that could not be written, in two signals. The tenant-visible one carries only shipped constants
+    /// and the platform's error code; the verbatim error text goes to the publisher alone, because a platform or
+    /// resource-loader message can echo a path or record data and must not be sent tenant-wide.
+    /// </summary>
+    local procedure LogPartNotSeeded(PartName: Text; ResourceFile: Text; Subtype: Enum "Report Layout Subtype"; ErrorCode: Text; ErrorText: Text)
     var
         TelemetryDimensions: Dictionary of [Text, Text];
     begin
+        // PartName, ResourceFile and LayoutSubtype are all shipped constants, and the error code is a platform token, so
+        // nothing here can carry customer content. Warning, not Error: the pass carries on and the other parts are still
+        // seeded, so this is one part degraded rather than an operation that ended.
         TelemetryDimensions.Add('PartName', PartName);
         TelemetryDimensions.Add('ResourceFile', ResourceFile);
         TelemetryDimensions.Add('LayoutSubtype', Format(Subtype, 0, 9));
-        TelemetryDimensions.Add('Error', ErrorText);
-        // Warning, not Error: the pass carries on and the other parts are still seeded, so this is one part degraded
-        // rather than an operation that ended. The error text below says why it was refused.
+        TelemetryDimensions.Add('ErrorCode', ErrorCode);
         Session.LogMessage(
             '0000V42', PartNotSeededTxt, Verbosity::Warning, DataClassification::SystemMetadata,
             TelemetryScope::All, TelemetryDimensions);
+
+        // Publisher only: the free-text reason, which is what actually diagnoses the failure.
+        Clear(TelemetryDimensions);
+        TelemetryDimensions.Add('PartName', PartName);
+        TelemetryDimensions.Add('ResourceFile', ResourceFile);
+        TelemetryDimensions.Add('ErrorCode', ErrorCode);
+        TelemetryDimensions.Add('Error', ErrorText);
+        Session.LogMessage(
+            '0000V43', PartNotSeededDetailTxt, Verbosity::Warning, DataClassification::CustomerContent,
+            TelemetryScope::ExtensionPublisher, TelemetryDimensions);
     end;
 
     [TryFunction]
@@ -179,6 +195,7 @@ codeunit 9667 "Composite Report Parts Mgt."
         PlayfulThemeDescTxt: Label 'Dynamic and lively, a fresh take on a professional report. Styling-only theme: geometric Bahnschrift in semibold and regular for hierarchy, with backgrounds alternating between green and pink for an energetic, modern feel.';
 
         PartNotSeededTxt: Label 'Composite layout parts: a shipped theme or header/footer part could not be written to the shared pool and was skipped. The remaining parts were seeded.', Locked = true;
+        PartNotSeededDetailTxt: Label 'Composite layout parts: the reason a shipped theme or header/footer part could not be written. Publisher-scoped because the platform error text can echo customer content.', Locked = true;
 
         ThemeMimeTypeTxt: Label 'application/vnd.openxmlformats-officedocument.wordprocessingml.template', Locked = true;
         HeaderFooterMimeTypeTxt: Label 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', Locked = true;
