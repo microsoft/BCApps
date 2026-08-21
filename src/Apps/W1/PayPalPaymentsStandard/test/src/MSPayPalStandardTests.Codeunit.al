@@ -57,6 +57,7 @@ codeunit 139500 "MS - PayPal Standard Tests"
         WebhookNotification: Record "Webhook Notification";
     begin
         BindActiveDirectoryMockEvents();
+        BindPayPalStdMockEvents();
 
         CompanyInformation.GET();
         CompanyInformation."Allow Blank Payment Info." := TRUE;
@@ -990,9 +991,6 @@ codeunit 139500 "MS - PayPal Standard Tests"
         SalesHeader: Record "Sales Header";
         DummyPaymentMethod: Record "Payment Method";
     begin
-        // Bind per test so webhook processing stays in the current session (background disabled) and payment events are captured.
-        UnbindSubscription(MSPayPalStdMockEvents);
-        BindSubscription(MSPayPalStdMockEvents);
         CreateDefaultPayPalStandardAccount(MSPayPalStandardAccount);
         SetupWebhookSubscription(MSPayPalStandardAccount."Account ID");
         CreatePaymentMethod(DummyPaymentMethod, FALSE);
@@ -1518,6 +1516,13 @@ codeunit 139500 "MS - PayPal Standard Tests"
             EXIT;
         BINDSUBSCRIPTION(ActiveDirectoryMockEvents);
         ActiveDirectoryMockEvents.Enable();
+    end;
+
+    local procedure BindPayPalStdMockEvents();
+    begin
+        // Rebind every test so the mock (disables background processing, captures payment events) stays active after per-test unbinding.
+        UnbindSubscription(MSPayPalStdMockEvents);
+        BindSubscription(MSPayPalStdMockEvents);
     end;
 
     LOCAL PROCEDURE SetPaymentRegistrationSetup();
