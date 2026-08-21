@@ -19,15 +19,18 @@ codeunit 148070 "Cash Desk Documents CZP"
         LibraryRandom: Codeunit "Library - Random";
         LibraryCashDeskCZP: Codeunit "Library - Cash Desk CZP";
         LibraryCashDocumentCZP: Codeunit "Library - Cash Document CZP";
+        LibraryUtility: Codeunit "Library - Utility";
         AmountLimitErr: Label 'Cash Document Amount exceeded maximal limit (%1).', Comment = '%1 = Cash Desk Maximal Limit';
         PostCashDocNotExistErr: Label 'Posted Cash Document does not exist.';
         CashDocStatusErr: Label 'Status in Cash Document must be Released.';
         NoOfEntriesMustBeEqualErr: Label 'Number of entries must be equal.';
         AmountMustBePositiveErr: Label 'Amount Including VAT must be positive in Cash Document Header Cash Desk No.=''%1'',No.=''%2''.', Comment = '%1 = Cash Desk No., %2 = Cash Document No.';
+        LinesNotExistsErr: Label 'There are no Cash Document Lines to release.';
         isInitialized: Boolean;
 
     local procedure Initialize()
     var
+        GeneralLedgerSetup: Record "General Ledger Setup";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Cash Desk Documents CZP");
@@ -35,6 +38,11 @@ codeunit 148070 "Cash Desk Documents CZP"
         if isInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Cash Desk Documents CZP");
+        GeneralLedgerSetup.Get();
+        if GeneralLedgerSetup."Cash Desk Nos. CZP" = '' then begin
+            GeneralLedgerSetup.Validate("Cash Desk Nos. CZP", LibraryUtility.GetGlobalNoSeriesCode());
+            GeneralLedgerSetup.Modify(true);
+        end;
 
         LibraryCashDeskCZP.CreateCashDeskCZP(CashDeskCZP);
         LibraryCashDeskCZP.SetupCashDeskCZP(CashDeskCZP, true);
@@ -388,6 +396,55 @@ codeunit 148070 "Cash Desk Documents CZP"
 
         // [THEN] Error Occurs
         Assert.ExpectedError(StrSubstNo(AmountMustBePositiveErr, CashDeskCZP."No.", CashDocumentHeaderCZP."No."));
+    end;
+
+    [Test]
+    [HandlerFunctions('YesConfirmHandler')]
+    procedure ReleaseCashDocumentChecksAmountsByDefault()
+    var
+        CashDocumentHeaderCZP: Record "Cash Document Header CZP";
+        CashDocumentLineCZP: Record "Cash Document Line CZP";
+    begin
+        // [SCENARIO] Amount mandatory fields are checked on release when no subscriber skips them
+        Initialize();
+
+        // [GIVEN] Create Receipt Cash Document with zero amount
+        CreateCashDocument(CashDocumentHeaderCZP, CashDocumentLineCZP, CashDocumentHeaderCZP."Document Type"::Receipt, CashDeskCZP."No.");
+        CashDocumentLineCZP.Validate(Amount, 0);
+        CashDocumentLineCZP.Modify();
+
+        // [WHEN] Release Cash Document
+        asserterror ReleaseCashDocumentCZP(CashDocumentHeaderCZP);
+
+        // [THEN] Error on empty Amount Including VAT occurs
+        Assert.ExpectedTestFieldError(CashDocumentHeaderCZP.FieldCaption("Amount Including VAT"), '');
+    end;
+
+    [Test]
+    [HandlerFunctions('YesConfirmHandler')]
+    procedure ReleaseCashDocumentSkipsAmountsWithSubscriber()
+    var
+        CashDocumentHeaderCZP: Record "Cash Document Header CZP";
+        CashDocumentLineCZP: Record "Cash Document Line CZP";
+        CashDocReleaseHandlerCZP: Codeunit "Cash Doc. Release Handler CZP";
+    begin
+        // [SCENARIO] Amount mandatory fields are skipped on release when a subscriber sets SkipAmountsTestFields
+        Initialize();
+
+        // [GIVEN] Create Receipt Cash Document with zero amount
+        CreateCashDocument(CashDocumentHeaderCZP, CashDocumentLineCZP, CashDocumentHeaderCZP."Document Type"::Receipt, CashDeskCZP."No.");
+        CashDocumentLineCZP.Validate(Amount, 0);
+        CashDocumentLineCZP.Modify();
+
+        // [GIVEN] Subscriber that skips the amount mandatory fields is bound
+        BindSubscription(CashDocReleaseHandlerCZP);
+
+        // [WHEN] Release Cash Document
+        asserterror ReleaseCashDocumentCZP(CashDocumentHeaderCZP);
+        UnbindSubscription(CashDocReleaseHandlerCZP);
+
+        // [THEN] Amount check is skipped and release fails later on the missing lines instead
+        Assert.ExpectedError(LinesNotExistsErr);
     end;
 
     [Test]
