@@ -7,7 +7,7 @@ namespace Microsoft.ExpenseAgent;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.SpendRequest;
 
-page 7104 "Travel Request Card"
+page 7129 "Travel Request Card"
 {
     Caption = 'Travel Request';
     PageType = Document;
