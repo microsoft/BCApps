@@ -509,14 +509,15 @@ page 4363 "Agent Instruction Editor"
         Agent: Record Agent;
         AgentArchivedErrorInfo: ErrorInfo;
     begin
-        Agent.Get(AgentSecurityId);
-
         AgentArchivedErrorInfo.DataClassification := DataClassification::SystemMetadata;
         AgentArchivedErrorInfo.Title := ArchivedAgentCannotBeTestedTitleErr;
         AgentArchivedErrorInfo.Message := ArchivedAgentCannotBeTestedErr;
-        AgentArchivedErrorInfo.PageNo := Page::"Agent Card";
-        AgentArchivedErrorInfo.RecordId := Agent.RecordId();
-        AgentArchivedErrorInfo.AddNavigationAction(ShowAgentCardLbl);
+
+        if Agent.Get(AgentSecurityId) then begin
+            AgentArchivedErrorInfo.PageNo := Page::"Agent Card";
+            AgentArchivedErrorInfo.RecordId := Agent.RecordId();
+            AgentArchivedErrorInfo.AddNavigationAction(ShowAgentCardLbl);
+        end;
 
         Error(AgentArchivedErrorInfo);
     end;

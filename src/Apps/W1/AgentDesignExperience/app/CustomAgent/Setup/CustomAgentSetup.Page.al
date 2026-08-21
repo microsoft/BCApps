@@ -35,6 +35,7 @@ page 4350 "Custom Agent Setup"
             {
                 ApplicationArea = All;
                 UpdatePropagation = Both;
+                Editable = not AgentIsArchived;
             }
             group(AgentDetails)
             {
