@@ -8,6 +8,14 @@
     ]
   },
   {
+    "codeunitId": 148318,
+    "codeunitName": "Expense Capabilities API Test",
+    "method": "ActivityLogCapabilityEnabledViaAPI",
+    "countries": [
+      "IN"
+    ]
+  },
+  {
     "codeunitId": 148305,
     "codeunitName": "Expense Test",
     "method": "DescriptionMustBeFlowFromExpenseToExpenseItemization"
