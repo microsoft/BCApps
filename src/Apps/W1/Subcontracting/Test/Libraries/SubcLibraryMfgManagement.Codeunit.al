@@ -287,6 +287,67 @@ codeunit 139984 "Subc. Library Mfg. Management"
         LibraryManufacturing.PostOutput(ProdOrderLine, Qty, WorkDate(), 0);
     end;
 
+    /// <summary>
+    /// Creates a subcontracting routing comment line for the specified routing operation.
+    /// </summary>
+    /// <param name="RoutingLine">The routing line whose routing and operation information is copied to the comment.</param>
+    /// <param name="LineNo">The line number of the comment.</param>
+    /// <param name="CommentDescription">The main description of the comment.</param>
+    /// <param name="CommentDescription2">The additional description of the comment.</param>
+    procedure CreateRoutingSubcComment(RoutingLine: Record "Routing Line"; LineNo: Integer; CommentDescription: Text[100]; CommentDescription2: Text[50])
+    var
+        SubcRoutingCommentLine: Record "Subc. Routing Comment Line";
+    begin
+        SubcRoutingCommentLine.Init();
+        SubcRoutingCommentLine."Routing No." := RoutingLine."Routing No.";
+        SubcRoutingCommentLine."Version Code" := RoutingLine."Version Code";
+        SubcRoutingCommentLine."Operation No." := RoutingLine."Operation No.";
+        SubcRoutingCommentLine."Line No." := LineNo;
+        SubcRoutingCommentLine.Validate(Description, CommentDescription);
+        SubcRoutingCommentLine.Validate("Description 2", CommentDescription2);
+        SubcRoutingCommentLine.Insert();
+    end;
+
+    /// <summary>
+    /// Creates a subcontracting standard task comment line.
+    /// </summary>
+    /// <param name="StandardTaskCode">The standard task code for the comment.</param>
+    /// <param name="LineNo">The line number of the comment.</param>
+    /// <param name="CommentDescription">The main description of the comment.</param>
+    /// <param name="CommentDescription2">The additional description of the comment.</param>
+    procedure CreateStandardTaskComment(StandardTaskCode: Code[10]; LineNo: Integer; CommentDescription: Text[100]; CommentDescription2: Text[50])
+    var
+        SubcStandardTaskComment: Record "Subc. Standard Task Comment";
+    begin
+        SubcStandardTaskComment.Validate("Standard Task Code", StandardTaskCode);
+        SubcStandardTaskComment."Line No." := LineNo;
+        SubcStandardTaskComment.Validate(Description, CommentDescription);
+        SubcStandardTaskComment.Validate("Description 2", CommentDescription2);
+        SubcStandardTaskComment.Insert();
+    end;
+
+    /// <summary>
+    /// Creates a subcontracting production-order routing comment.
+    /// </summary>
+    /// <param name="ProdOrderRoutingLine">The production-order routing line for the comment.</param>
+    /// <param name="LineNo">The line number of the comment.</param>
+    /// <param name="CommentDescription">The main description of the comment.</param>
+    /// <param name="CommentDescription2">The additional description of the comment.</param>
+    procedure CreateProdOrderSubcComment(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; LineNo: Integer; CommentDescription: Text[100]; CommentDescription2: Text[50])
+    var
+        SubcProdRtngComment: Record "Subc. Prod. Rtng. Comment";
+    begin
+        SubcProdRtngComment.Status := ProdOrderRoutingLine.Status;
+        SubcProdRtngComment."Prod. Order No." := ProdOrderRoutingLine."Prod. Order No.";
+        SubcProdRtngComment."Routing Reference No." := ProdOrderRoutingLine."Routing Reference No.";
+        SubcProdRtngComment."Routing No." := ProdOrderRoutingLine."Routing No.";
+        SubcProdRtngComment."Operation No." := ProdOrderRoutingLine."Operation No.";
+        SubcProdRtngComment."Line No." := LineNo;
+        SubcProdRtngComment.Validate(Description, CommentDescription);
+        SubcProdRtngComment.Validate("Description 2", CommentDescription2);
+        SubcProdRtngComment.Insert();
+    end;
+
     procedure CreateProdOrderRtngCommentLine(Stat: Enum "Production Order Status"; ProdOrderNo: Code[20]; RoutingRefNo: Integer; RoutingNo: Code[20]; OperationNo: Code[10])
     var
         ProdOrderRtngCommentLine: Record "Prod. Order Rtng Comment Line";
