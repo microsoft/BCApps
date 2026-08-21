@@ -101,7 +101,7 @@ codeunit 10987 "FR E-Invoice Message API"
                 exit(MessageType::Submitted);
             '205', 'ACCEPTED', 'ACCEPTÉE', 'ACCEPTEE', 'APPROUVÉE', 'APPROUVEE':
                 exit(MessageType::Accepted);
-            'REJECTED', 'TECHNICAL REJECTED', 'REJETÉE', 'REJETEE':
+            '213', 'REJECTED', 'TECHNICAL REJECTED', 'REJETÉE', 'REJETEE':
                 exit(MessageType::"Technical Rejected");
             '210', 'REFUSED', 'REFUSÉE', 'REFUSEE':
                 exit(MessageType::Refused);

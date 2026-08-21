@@ -6,7 +6,7 @@ namespace Microsoft.eServices.EDocument.Formats;
 
 using Microsoft.eServices.EDocument;
 
-permissionset 10988 "E-Reporting FR - User"
+permissionset 10988 "E-Reporting FR User"
 {
     Assignable = true;
     Caption = 'E-Reporting FR - User';
