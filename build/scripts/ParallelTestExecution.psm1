@@ -14,6 +14,10 @@ if (-not (Get-Command Write-Log -ErrorAction SilentlyContinue)) {
 }
 Import-Module (Join-Path $PSScriptRoot "ALAppBuild.psm1" -Resolve)
 
+<#
+.SYNOPSIS
+    Determines whether a disabled-test entry applies to the current country.
+#>
 function Test-DisabledTestAppliesToCountry {
     param(
         $DisabledTest,
@@ -27,6 +31,12 @@ function Test-DisabledTestAppliesToCountry {
     return $Country -in @($DisabledTest.countries)
 }
 
+<#
+.SYNOPSIS
+    Gets disabled test entries for an app and filters country-scoped entries.
+.PARAMETER AppName
+    Application name used to locate its DisabledTests folder.
+#>
 function Get-DisabledTestsForApp {
     param(
         [Parameter(Mandatory=$true)]
@@ -324,6 +334,12 @@ function Get-AvailableBcTenantInfo {
     return @($tenants)
 }
 
+<#
+.SYNOPSIS
+    Gets the IDs of operational tenants in a BC container.
+.PARAMETER containerName
+    Name of the BC container.
+#>
 function Get-AvailableBcTenants {
     param(
         [Parameter(Mandatory=$true)]
@@ -363,6 +379,18 @@ function New-BcTestTenantTemplate {
     return [string]$result[-1]
 }
 
+<#
+.SYNOPSIS
+    Replaces a tenant database with a copy of the immutable test template.
+.PARAMETER ContainerName
+    Name of the BC container.
+.PARAMETER Tenant
+    Tenant ID to refresh.
+.PARAMETER TenantDatabaseName
+    Database currently mounted for the tenant.
+.PARAMETER TemplateDatabaseName
+    Immutable source database copied before the next test codeunit.
+#>
 function Reset-BcTestTenant {
     param(
         [Parameter(Mandatory=$true)]
