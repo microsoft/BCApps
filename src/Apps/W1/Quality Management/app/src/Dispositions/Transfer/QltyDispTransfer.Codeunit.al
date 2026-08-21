@@ -126,6 +126,8 @@ codeunit 20444 "Qlty. Disp. Transfer" implements "Qlty. Disposition"
             if Location.Get(TempQuantityToActQltyDispositionBuffer.GetFromLocationCode()) then
                 if Location."Bin Mandatory" and not Location."Directed Put-away and Pick" then
                     TransferLine.Validate("Transfer-from Bin Code", TempQuantityToActQltyDispositionBuffer.GetFromBinCode());
+        if TempQuantityToActQltyDispositionBuffer."New Bin Code" <> '' then
+            TransferLine.Validate("Transfer-To Bin Code", TempQuantityToActQltyDispositionBuffer."New Bin Code");
 
         TransferLine.Validate(Quantity, TempQuantityToActQltyDispositionBuffer."Qty. To Handle (Base)");
         TransferLine.Validate("Qty. to Ship", TempQuantityToActQltyDispositionBuffer."Qty. To Handle (Base)");
