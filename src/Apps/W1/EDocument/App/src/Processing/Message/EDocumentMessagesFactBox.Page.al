@@ -86,6 +86,23 @@ page 6434 "E-Document Messages FactBox"
     {
         area(processing)
         {
+            action(Retry)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Retry';
+                ToolTip = 'Requeue the failed message for background transmission using its existing payload.';
+                Image = Refresh;
+                Scope = Repeater;
+                Enabled = RetryEnabled;
+
+                trigger OnAction()
+                var
+                    EDocumentMessageAPI: Codeunit "E-Document Message API";
+                begin
+                    EDocumentMessageAPI.RetryMessage(Rec."Entry No.");
+                    CurrPage.Update(false);
+                end;
+            }
             action(ViewXML)
             {
                 ApplicationArea = Basic, Suite;
@@ -112,7 +129,13 @@ page 6434 "E-Document Messages FactBox"
         }
     }
 
+    trigger OnAfterGetCurrRecord()
+    begin
+        RetryEnabled := (Rec.Direction = Rec.Direction::Outgoing) and (Rec.Status = Rec.Status::Error);
+    end;
+
     var
+        RetryEnabled: Boolean;
         FileNameTok: Label 'E-Document_%1_Response_%2.xml', Comment = '%1 = E-Document number, %2 = human-readable response type', Locked = true;
 
     local procedure BuildFileName(): Text

@@ -169,6 +169,22 @@ codeunit 6433 "E-Doc. Message Mgt."
         EDocumentBackgroundJobs.ScheduleMessageSend(EDocMessage);
     end;
 
+    procedure RetryMessage(MessageEntryNo: Integer)
+    var
+        EDocMessage: Record "E-Document Message";
+        EDocumentBackgroundJobs: Codeunit "E-Document Background Jobs";
+    begin
+        EDocMessage.Get(MessageEntryNo);
+        EDocMessage.TestField(Direction, EDocMessage.Direction::Outgoing);
+        EDocMessage.TestField(Status, EDocMessage.Status::Error);
+        EDocMessage.TestField(Service);
+
+        EDocMessage.Status := EDocMessage.Status::Queued;
+        EDocMessage.Modify();
+        Commit();
+        EDocumentBackgroundJobs.ScheduleMessageSend(EDocMessage);
+    end;
+
     procedure RegisterExternalDocumentReference(EDocument: Record "E-Document"; ServiceCode: Code[20]; ExternalDocumentID: Text[250])
     var
         EDocExternalReference: Record "E-Doc. External Reference";
