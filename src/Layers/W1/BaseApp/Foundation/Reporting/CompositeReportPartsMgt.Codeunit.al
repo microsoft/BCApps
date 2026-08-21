@@ -9,22 +9,13 @@ using System.Reflection;
 using System.Utilities;
 
 /// <summary>
-/// Seeds the reusable Composite Layout header/footer and theme parts that ship with the Base Application into the
-/// shared pool under Tenant Report Defaults, so they can be assigned as defaults on any report from the Report themes
-/// and header-footer setup page. Runs on install and upgrade, and is safe to call repeatedly.
-///
-/// A part is written by removing whatever is stored under its name and inserting it again, because the platform does not
-/// allow the type and content of an existing report layout to be modified. That removal also takes out the copy of a
-/// part that an earlier version seeded with no App ID, which the key would otherwise leave in the pool beside the new
-/// one under the same name.
-///
-/// The parts are stored under the platform System application's App ID. It is part of the Tenant Report Layout key and
-/// of the composite reference an assignment stores, so an assignment survives the part being rewritten.
-///
-/// The layout file is read in a try function and written outside it, because the platform rejects a database write made
-/// inside a try function while the caller holds an open write transaction, as install and upgrade do. A part whose file
-/// cannot be read is reported to telemetry and skipped, and makes the pass report itself incomplete, which is what
-/// leaves the upgrade tag unset for a later retry.
+/// Seeds the shipped Composite Layout theme and header/footer parts into the shared pool under Tenant Report Defaults,
+/// on install and upgrade, and is safe to call repeatedly. A part is removed and inserted again rather than modified,
+/// because the platform does not allow the type and content of an existing report layout to be modified; the same
+/// removal takes out the copy an earlier version seeded with no App ID. Parts are stored under the platform System
+/// application's App ID, which an assignment encodes into its reference. The layout file is read in a try function and
+/// written outside it, because the platform rejects a database write inside a try function while install or upgrade
+/// holds a write transaction open.
 /// </summary>
 codeunit 9667 "Composite Report Parts Mgt."
 {
