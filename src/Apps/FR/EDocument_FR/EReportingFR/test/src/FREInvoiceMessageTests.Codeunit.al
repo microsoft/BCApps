@@ -10,6 +10,7 @@ using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Enums;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
@@ -31,6 +32,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
                   tabledata "FR E-Invoice Message" = rimd,
                   tabledata "FR E-Invoice Message VAT" = r,
                   tabledata "General Ledger Setup" = rm,
+                  tabledata "Company Information" = rm,
                   tabledata "Sales Invoice Header" = rimd;
 
     var
@@ -288,6 +290,37 @@ codeunit 148151 "FR E-Invoice Message Tests"
         Assert.AreEqual('TEST-PLATFORM', FREInvoiceMessage."Sender Platform ID", 'The sender-platform ID must be frozen at capture.');
         Assert.AreEqual('0238', FREInvoiceMessage."Sender Platform Scheme", 'The sender-platform scheme must be frozen at capture.');
         Assert.AreEqual('Test Platform', FREInvoiceMessage."Sender Platform Name", 'The sender-platform name must be frozen at capture.');
+        Assert.AreEqual(EDocument."Document Date", FREInvoiceMessage."Invoice Issue Date", 'The invoice issue date must be frozen at capture.');
+        Assert.AreEqual(EDocument."Clearance Date", FREInvoiceMessage."Invoice Receipt At", 'The platform receipt time must be frozen at capture.');
+        Assert.AreEqual('123456789', FREInvoiceMessage."Invoice Issuer ID", 'The invoice issuer ID must be frozen at capture.');
+        Assert.AreEqual('0002', FREInvoiceMessage."Invoice Issuer Scheme", 'The invoice issuer scheme must identify SIREN.');
+        Assert.AreEqual('FR Test Issuer', FREInvoiceMessage."Invoice Issuer Name", 'The invoice issuer name must be frozen at capture.');
+    end;
+
+    [Test]
+    procedure CollectedMessageEmitsCompletePPFContext()
+    var
+        EDocument: Record "E-Document";
+        FREInvoiceMessage: Record "FR E-Invoice Message";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 647421] A Collected message emits the complete PPF platform context
+        Initialize();
+
+        // [GIVEN] An eligible payment and a French service with sender-platform identity
+        CreatePaymentScenario(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Approved);
+
+        // [WHEN] The payment is processed and its lifecycle message is sent
+        FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
+        FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
+        FREInvoiceMessage.SetRange(Type, FREInvoiceMessage.Type::Collected);
+        FREInvoiceMessage.FindFirst();
+        SendMessage(FREInvoiceMessage);
+
+        // [THEN] The payload contains the PPF profile, sender, issuer, recipient, and invoice dates
+        AssertPayloadPPFContext(MessageSenderMock.GetLastPayload(), EDocument);
     end;
 
     [Test]
@@ -317,6 +350,36 @@ codeunit 148151 "FR E-Invoice Message Tests"
         FREInvoiceMessage.SetRange(Type, FREInvoiceMessage.Type::Collected);
         FREInvoiceMessage.FindFirst();
         Assert.AreEqual('', FREInvoiceMessage."Sender Platform ID", 'The optional sender-platform ID must remain blank.');
+    end;
+
+    [Test]
+    procedure CollectedMessageWithoutPlatformUsesCDVProfile()
+    var
+        EDocument: Record "E-Document";
+        EDocumentService: Record "E-Document Service";
+        FREInvoiceMessage: Record "FR E-Invoice Message";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 647421] A Collected message without platform identity retains the CDV profile
+        Initialize();
+
+        // [GIVEN] An eligible payment whose service has no sender-platform identity
+        CreatePaymentScenario(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Approved);
+        EDocumentService.Get(EDocument.Service);
+        Clear(EDocumentService."FR Sender Platform ID");
+        EDocumentService.Modify();
+
+        // [WHEN] The payment is processed and its lifecycle message is sent
+        FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
+        FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
+        FREInvoiceMessage.SetRange(Type, FREInvoiceMessage.Type::Collected);
+        FREInvoiceMessage.FindFirst();
+        SendMessage(FREInvoiceMessage);
+
+        // [THEN] The payload uses the CDV profile and does not contain PPF trade parties
+        AssertPayloadCDVContext(MessageSenderMock.GetLastPayload());
     end;
 
     [Test]
@@ -476,6 +539,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
     [Test]
     procedure ReversalCopiesFrozenRowsWithNegatedValues()
     var
+        CompanyInformation: Record "Company Information";
         EDocument: Record "E-Document";
         EDocumentService: Record "E-Document Service";
         CollectedMessage: Record "FR E-Invoice Message";
@@ -512,6 +576,10 @@ codeunit 148151 "FR E-Invoice Message Tests"
         EDocumentService."FR Sender Platform Scheme" := '9999';
         EDocumentService."FR Sender Platform Name" := 'Changed Platform';
         EDocumentService.Modify();
+        CompanyInformation.Get();
+        CompanyInformation."Registration No." := '987654321';
+        CompanyInformation.Name := 'Changed Issuer';
+        CompanyInformation.Modify();
 
         // [WHEN] The payment is unapplied
         CreateDetailedLedgerEntry(NewDetailedCustLedgEntry, DetailedCustLedgEntry."Cust. Ledger Entry No.", DetailedCustLedgEntry."Applied Cust. Ledger Entry No.", -120);
@@ -532,6 +600,11 @@ codeunit 148151 "FR E-Invoice Message Tests"
         Assert.AreEqual(CollectedMessage."Sender Platform ID", NegativeMessage."Sender Platform ID", 'Reversal must preserve the original sender-platform ID.');
         Assert.AreEqual(CollectedMessage."Sender Platform Scheme", NegativeMessage."Sender Platform Scheme", 'Reversal must preserve the original sender-platform scheme.');
         Assert.AreEqual(CollectedMessage."Sender Platform Name", NegativeMessage."Sender Platform Name", 'Reversal must preserve the original sender-platform name.');
+        Assert.AreEqual(CollectedMessage."Invoice Issue Date", NegativeMessage."Invoice Issue Date", 'Reversal must preserve the original invoice issue date.');
+        Assert.AreEqual(CollectedMessage."Invoice Receipt At", NegativeMessage."Invoice Receipt At", 'Reversal must preserve the original platform receipt time.');
+        Assert.AreEqual(CollectedMessage."Invoice Issuer ID", NegativeMessage."Invoice Issuer ID", 'Reversal must preserve the original invoice issuer ID.');
+        Assert.AreEqual(CollectedMessage."Invoice Issuer Scheme", NegativeMessage."Invoice Issuer Scheme", 'Reversal must preserve the original invoice issuer scheme.');
+        Assert.AreEqual(CollectedMessage."Invoice Issuer Name", NegativeMessage."Invoice Issuer Name", 'Reversal must preserve the original invoice issuer name.');
     end;
 
     [Test]
@@ -1050,6 +1123,51 @@ codeunit 148151 "FR E-Invoice Message Tests"
         Assert.AreEqual(ExpectedVATRate, ActualRate, 'The characteristic VAT rate is incorrect.');
     end;
 
+    local procedure AssertPayloadPPFContext(Payload: Text; EDocument: Record "E-Document")
+    var
+        XmlDoc: XmlDocument;
+        XmlNode: XmlNode;
+    begin
+        Assert.IsTrue(XmlDocument.ReadFrom(Payload, XmlDoc), 'The payload must be valid XML.');
+        Assert.IsTrue(XmlDoc.SelectSingleNode('//*[local-name()="GuidelineSpecifiedDocumentContextParameter"]/*[local-name()="ID"]', XmlNode), 'The payload must contain a guideline profile.');
+        Assert.AreEqual('urn.cpro.gouv.fr:1p0:CDV:einvoicingF2', XmlNode.AsXmlElement().InnerText(), 'The payload must use the PPF invoice profile.');
+        AssertTradeParty(XmlDoc, 'SenderTradeParty', 'TEST-PLATFORM', '0238', 'Test Platform', 'WK');
+        AssertTradeParty(XmlDoc, 'IssuerTradeParty', '123456789', '0002', 'FR Test Issuer', 'SE');
+        AssertTradeParty(XmlDoc, 'RecipientTradeParty', '9998', '0238', 'PPF', 'DFH');
+        Assert.IsTrue(XmlDoc.SelectSingleNode('//*[local-name()="ReferenceReferencedDocument"]/*[local-name()="ReceiptDateTime"]', XmlNode), 'The payload must contain the platform receipt time.');
+        Assert.IsTrue(XmlDoc.SelectSingleNode('//*[local-name()="ReferenceReferencedDocument"]/*[local-name()="FormattedIssueDateTime"]/*[local-name()="DateTimeString"]', XmlNode), 'The payload must contain the invoice issue date.');
+        Assert.AreEqual(Format(EDocument."Document Date", 0, '<Year4><Month,2><Day,2>'), XmlNode.AsXmlElement().InnerText(), 'The invoice issue date is incorrect.');
+    end;
+
+    local procedure AssertPayloadCDVContext(Payload: Text)
+    var
+        XmlDoc: XmlDocument;
+        XmlNode: XmlNode;
+    begin
+        Assert.IsTrue(XmlDocument.ReadFrom(Payload, XmlDoc), 'The payload must be valid XML.');
+        Assert.IsTrue(XmlDoc.SelectSingleNode('//*[local-name()="GuidelineSpecifiedDocumentContextParameter"]/*[local-name()="ID"]', XmlNode), 'The payload must contain a guideline profile.');
+        Assert.AreEqual('urn.cpro.gouv.fr:1p0:CDV:invoice', XmlNode.AsXmlElement().InnerText(), 'The payload must use the CDV invoice profile.');
+        Assert.IsFalse(XmlDoc.SelectSingleNode('//*[local-name()="SenderTradeParty"]', XmlNode), 'The CDV payload must not contain a sender platform party.');
+        Assert.IsFalse(XmlDoc.SelectSingleNode('//*[local-name()="RecipientTradeParty"]', XmlNode), 'The CDV payload must not contain a PPF recipient party.');
+    end;
+
+    local procedure AssertTradeParty(XmlDoc: XmlDocument; ElementName: Text; ExpectedID: Text; ExpectedScheme: Text; ExpectedName: Text; ExpectedRole: Text)
+    var
+        SchemeNode: XmlNode;
+        XmlNode: XmlNode;
+        PartyPath: Text;
+    begin
+        PartyPath := StrSubstNo('//*[local-name()="ExchangedDocument"]/*[local-name()="%1"]', ElementName);
+        Assert.IsTrue(XmlDoc.SelectSingleNode(PartyPath + '/*[local-name()="GlobalID"]', XmlNode), 'The payload must contain the expected trade-party ID.');
+        Assert.AreEqual(ExpectedID, XmlNode.AsXmlElement().InnerText(), 'The trade-party ID is incorrect.');
+        Assert.IsTrue(XmlDoc.SelectSingleNode(PartyPath + '/*[local-name()="GlobalID"]/@schemeID', SchemeNode), 'The trade-party ID must contain a scheme.');
+        Assert.AreEqual(ExpectedScheme, SchemeNode.AsXmlAttribute().Value(), 'The trade-party scheme is incorrect.');
+        Assert.IsTrue(XmlDoc.SelectSingleNode(PartyPath + '/*[local-name()="Name"]', XmlNode), 'The payload must contain the expected trade-party name.');
+        Assert.AreEqual(ExpectedName, XmlNode.AsXmlElement().InnerText(), 'The trade-party name is incorrect.');
+        Assert.IsTrue(XmlDoc.SelectSingleNode(PartyPath + '/*[local-name()="RoleCode"]', XmlNode), 'The payload must contain the expected trade-party role.');
+        Assert.AreEqual(ExpectedRole, XmlNode.AsXmlElement().InnerText(), 'The trade-party role is incorrect.');
+    end;
+
     local procedure Initialize()
     var
         EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
@@ -1060,11 +1178,22 @@ codeunit 148151 "FR E-Invoice Message Tests"
         FREInvoiceMessage.DeleteAll();
         MessageSenderMock.Reset();
         EnsureService();
+        EnsureCompanyInformation();
         GeneralLedgerSetup.Get();
         if not GeneralLedgerSetup."Unrealized VAT" then begin
             GeneralLedgerSetup."Unrealized VAT" := true;
             GeneralLedgerSetup.Modify();
         end;
+    end;
+
+    local procedure EnsureCompanyInformation()
+    var
+        CompanyInformation: Record "Company Information";
+    begin
+        CompanyInformation.Get();
+        CompanyInformation."Registration No." := '123456789';
+        CompanyInformation.Name := 'FR Test Issuer';
+        CompanyInformation.Modify();
     end;
 
     local procedure EnsureService()
@@ -1148,6 +1277,8 @@ codeunit 148151 "FR E-Invoice Message Tests"
         EDocument."Document No." := PostedInvoiceNo;
         EDocument."Document Record ID" := SalesInvoiceHeader.RecordId;
         EDocument."Posting Date" := SalesInvoiceHeader."Posting Date";
+        EDocument."Document Date" := SalesInvoiceHeader."Document Date";
+        EDocument."Clearance Date" := CurrentDateTime();
         EDocument.Direction := EDocument.Direction::Outgoing;
         EDocument."Document Type" := EDocument."Document Type"::"Sales Invoice";
         EDocument.Service := 'FR-MESSAGE-MOCK';
@@ -1213,6 +1344,8 @@ codeunit 148151 "FR E-Invoice Message Tests"
         EDocument."Document No." := PostedInvoiceNo;
         EDocument."Document Record ID" := SalesInvoiceHeader.RecordId;
         EDocument."Posting Date" := SalesInvoiceHeader."Posting Date";
+        EDocument."Document Date" := SalesInvoiceHeader."Document Date";
+        EDocument."Clearance Date" := CurrentDateTime();
         EDocument.Direction := EDocument.Direction::Outgoing;
         EDocument."Document Type" := EDocument."Document Type"::"Sales Invoice";
         EDocument.Service := 'FR-MESSAGE-MOCK';
@@ -1292,6 +1425,8 @@ codeunit 148151 "FR E-Invoice Message Tests"
         EDocument."Document No." := PostedInvoiceNo;
         EDocument."Document Record ID" := SalesInvoiceHeader.RecordId;
         EDocument."Posting Date" := SalesInvoiceHeader."Posting Date";
+        EDocument."Document Date" := SalesInvoiceHeader."Document Date";
+        EDocument."Clearance Date" := CurrentDateTime();
         EDocument.Direction := EDocument.Direction::Outgoing;
         EDocument."Document Type" := EDocument."Document Type"::"Sales Invoice";
         EDocument.Service := 'FR-MESSAGE-MOCK';
@@ -1345,6 +1480,8 @@ codeunit 148151 "FR E-Invoice Message Tests"
         EDocument."Document No." := PostedInvoiceNo;
         EDocument."Document Record ID" := SalesInvoiceHeader.RecordId;
         EDocument."Posting Date" := SalesInvoiceHeader."Posting Date";
+        EDocument."Document Date" := SalesInvoiceHeader."Document Date";
+        EDocument."Clearance Date" := CurrentDateTime();
         EDocument.Direction := EDocument.Direction::Outgoing;
         EDocument."Document Type" := EDocument."Document Type"::"Sales Invoice";
         EDocument.Service := 'FR-MESSAGE-MOCK';
