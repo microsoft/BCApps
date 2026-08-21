@@ -81,7 +81,7 @@ page 4309 "Agent Task Message Attachments"
     begin
         Rec.Reset();
         Rec.DeleteAll();
-        CurrentMessageID := AgentTaskMessage.ID;
+        Clear(IgnoredReasons);
 
         AgentTaskMessageAttachment.SetRange("Task ID", AgentTaskMessage."Task ID");
         AgentTaskMessageAttachment.SetRange("Message ID", AgentTaskMessage.ID);
@@ -91,6 +91,10 @@ page 4309 "Agent Task Message Attachments"
         AgentTaskFile.SetAutoCalcFields(Content);
 
         repeat
+            // The ignored reason is read here so the page does not look it up again for every rendered row.
+            if not IgnoredReasons.ContainsKey(AgentTaskMessageAttachment."File ID") then
+                IgnoredReasons.Add(AgentTaskMessageAttachment."File ID", AgentTaskMessageAttachment."Ignored Reason");
+
             if not Rec.Get(AgentTaskMessageAttachment."Task ID", AgentTaskMessageAttachment."File ID") then
                 if AgentTaskFile.Get(AgentTaskMessageAttachment."Task ID", AgentTaskMessageAttachment."File ID") then begin
                     Rec.TransferFields(AgentTaskFile, true);
@@ -126,13 +130,13 @@ page 4309 "Agent Task Message Attachments"
 
     local procedure SetAttachmentIgnoredReason()
     var
-        AgentTaskMessageAttachment: Record "Agent Task Message Attachment";
+        IgnoredReason: Text;
     begin
         Clear(AttachmentIgnoredReason);
-        if not AgentTaskMessageAttachment.Get(Rec."Task ID", CurrentMessageID, Rec.ID) then
+        if not IgnoredReasons.Get(Rec.ID, IgnoredReason) then
             exit;
 
-        AttachmentIgnoredReason := AgentTaskMessageAttachment."Ignored Reason";
+        AttachmentIgnoredReason := CopyStr(IgnoredReason, 1, MaxStrLen(AttachmentIgnoredReason));
     end;
 
     local procedure SupportedByFileViewer(FileMIMEType: Text): Boolean
@@ -150,6 +154,6 @@ page 4309 "Agent Task Message Attachments"
     var
         AttachmentFileSize: Text;
         AttachmentIgnoredReason: Text[250];
-        CurrentMessageID: Guid;
+        IgnoredReasons: Dictionary of [BigInteger, Text];
         FileSizeTxt: Label '%1 %2', Comment = '%1 = File Size, %2 = Unit of measurement', Locked = true;
 }
