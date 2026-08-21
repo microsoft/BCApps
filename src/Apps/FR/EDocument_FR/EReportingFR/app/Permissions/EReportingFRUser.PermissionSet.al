@@ -20,6 +20,7 @@ permissionset 10988 "E-Reporting FR User"
         tabledata "FR E-Invoice Message VAT" = R,
         codeunit "FR E-Invoice Message Mgt." = X,
         codeunit "FR E-Invoice Message Builder" = X,
+        codeunit "FR E-Invoice Profile Validator" = X,
         codeunit "FR E-Invoice Message API" = X,
         page "FR E-Invoice Refusal Dialog" = X,
         page "FR E-Invoice Messages" = X;
