@@ -6410,17 +6410,23 @@
 
     local procedure PostCustomerInvoiceWithPostingDate(CustomerNo: Code[20]; Amount: Decimal; PostingDate: Date): Integer
     var
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         DocumentNo: Code[20];
     begin
-        DocumentNo := CreateAndPostSalesInvoiceWithOneLine(CustomerNo, GenerateExtDocNo(), Amount);
+        CreateItem(Item, Amount);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerNo);
+        SalesHeader.Validate("Posting Date", PostingDate);
+        SalesHeader.Validate("External Document No.", GenerateExtDocNo());
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+        DocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
         CustLedgerEntry.SetRange("Customer No.", CustomerNo);
         CustLedgerEntry.SetRange("Document No.", DocumentNo);
         CustLedgerEntry.FindFirst();
-        if CustLedgerEntry."Posting Date" <> PostingDate then begin
-            CustLedgerEntry."Posting Date" := PostingDate;
-            CustLedgerEntry.Modify();
-        end;
         exit(CustLedgerEntry."Entry No.");
     end;
 
