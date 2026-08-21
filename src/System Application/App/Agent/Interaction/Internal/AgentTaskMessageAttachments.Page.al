@@ -43,6 +43,12 @@ page 4309 "Agent Task Message Attachments"
                     Caption = 'File Size';
                     ToolTip = 'Specifies the size of the attachment';
                 }
+                field(IgnoredReason; AttachmentIgnoredReason)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Ignored Reason';
+                    ToolTip = 'Specifies why the attachment was ignored.';
+                }
             }
         }
     }
@@ -50,6 +56,7 @@ page 4309 "Agent Task Message Attachments"
     trigger OnAfterGetRecord()
     begin
         AttachmentFileSize := FormatFileSize(Rec.Content.Length());
+        SetAttachmentIgnoredReason();
     end;
 
     internal procedure FormatFileSize(SizeInBytes: Integer): Text
@@ -74,6 +81,7 @@ page 4309 "Agent Task Message Attachments"
     begin
         Rec.Reset();
         Rec.DeleteAll();
+        Clear(IgnoredReasons);
 
         AgentTaskMessageAttachment.SetRange("Task ID", AgentTaskMessage."Task ID");
         AgentTaskMessageAttachment.SetRange("Message ID", AgentTaskMessage.ID);
@@ -83,6 +91,10 @@ page 4309 "Agent Task Message Attachments"
         AgentTaskFile.SetAutoCalcFields(Content);
 
         repeat
+            // The ignored reason is read here so the page does not look it up again for every rendered row.
+            if not IgnoredReasons.ContainsKey(AgentTaskMessageAttachment."File ID") then
+                IgnoredReasons.Add(AgentTaskMessageAttachment."File ID", AgentTaskMessageAttachment."Ignored Reason");
+
             if not Rec.Get(AgentTaskMessageAttachment."Task ID", AgentTaskMessageAttachment."File ID") then
                 if AgentTaskFile.Get(AgentTaskMessageAttachment."Task ID", AgentTaskMessageAttachment."File ID") then begin
                     Rec.TransferFields(AgentTaskFile, true);
@@ -95,12 +107,15 @@ page 4309 "Agent Task Message Attachments"
     local procedure DownloadAttachment()
     var
         AgentTaskFile: Record "Agent Task File";
+        AgentMessageImpl: Codeunit "Agent Message Impl.";
         InStream: InStream;
         AttachmentFileName: Text;
         DownloadDialogTitleLbl: Label 'Download Email Attachment';
     begin
         AgentTaskFile.SetAutoCalcFields(Content);
         if not AgentTaskFile.Get(Rec."Task ID", Rec.ID) then
+            exit;
+        if not AgentMessageImpl.IsAttachmentDownloadable(AgentTaskFile) then
             exit;
 
         AttachmentFileName := AgentTaskFile."File Name";
@@ -111,6 +126,17 @@ page 4309 "Agent Task Message Attachments"
         end
         else
             File.DownloadFromStream(InStream, DownloadDialogTitleLbl, '', '', AttachmentFileName);
+    end;
+
+    local procedure SetAttachmentIgnoredReason()
+    var
+        IgnoredReason: Text;
+    begin
+        Clear(AttachmentIgnoredReason);
+        if not IgnoredReasons.Get(Rec.ID, IgnoredReason) then
+            exit;
+
+        AttachmentIgnoredReason := CopyStr(IgnoredReason, 1, MaxStrLen(AttachmentIgnoredReason));
     end;
 
     local procedure SupportedByFileViewer(FileMIMEType: Text): Boolean
@@ -127,5 +153,7 @@ page 4309 "Agent Task Message Attachments"
 
     var
         AttachmentFileSize: Text;
+        AttachmentIgnoredReason: Text[250];
+        IgnoredReasons: Dictionary of [BigInteger, Text];
         FileSizeTxt: Label '%1 %2', Comment = '%1 = File Size, %2 = Unit of measurement', Locked = true;
 }

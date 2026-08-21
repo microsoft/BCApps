@@ -18,6 +18,8 @@ codeunit 133963 "Agent Message Test"
         AgentTask: Codeunit "Agent Task";
         AgentMessage: Codeunit "Agent Message";
         LibraryTestAgent: Codeunit "Library Mock Agent";
+        EmptyIgnoredAttachmentExternalIdTok: Label 'MSGBLD-TEST-019', Locked = true;
+        ExceedsFileSizeReasonTok: Label 'Exceeds file size limit', Locked = true;
 
     local procedure Initialize()
     begin
@@ -1223,6 +1225,7 @@ codeunit 133963 "Agent Message Test"
         AgentTaskRecord: Record "Agent Task";
         AgentTaskMessageRecord: Record "Agent Task Message";
         TempAgentTaskFile: Record "Agent Task File" temporary;
+        AgentMessageImpl: Codeunit "Agent Message Impl.";
         AgentTaskBuilder: Codeunit "Agent Task Builder";
         AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder";
         TempBlob: Codeunit "Temp Blob";
@@ -1270,6 +1273,66 @@ codeunit 133963 "Agent Message Test"
         // [THEN] The attachment file name should match
         TempAgentTaskFile.FindFirst();
         Assert.AreEqual('ignored-file.txt', TempAgentTaskFile."File Name", 'Attachment file name should match');
+        Assert.IsTrue(AgentMessageImpl.IsAttachmentDownloadable(TempAgentTaskFile), 'Ignored attachments with content should remain downloadable');
+    end;
+
+    [Test]
+    procedure AddIgnoredEmptyAttachment()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskMessageRecord: Record "Agent Task Message";
+        AgentTaskMessageAttachment: Record "Agent Task Message Attachment";
+        TempAgentTaskFile: Record "Agent Task File" temporary;
+        AgentMessageImpl: Codeunit "Agent Message Impl.";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder";
+        TempBlob: Codeunit "Temp Blob";
+        AgentUserId: Guid;
+        EmptyInStream: InStream;
+    begin
+        Initialize();
+
+        // [SCENARIO] Add an ignored attachment with an empty stream
+
+        // [GIVEN] A test agent with a task
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            'MSGBLDAGENT19',
+            'Message Builder Test Agent 19',
+            'You are a test agent for ignored attachment metadata testing.');
+
+        AgentTaskBuilder
+            .Initialize(AgentUserId, 'Ignored Empty Attachment Test Task')
+            .SetExternalId(EmptyIgnoredAttachmentExternalIdTok);
+        AgentTaskRecord := AgentTaskBuilder.Create(false, false);
+        TempBlob.CreateInStream(EmptyInStream);
+
+        // [WHEN] A message is created with an ignored empty attachment
+        AgentTaskMessageBuilder
+            .Initialize('Sender', 'Message with ignored empty attachment')
+            .SetAgentTask(AgentTaskRecord)
+            .AddAttachment('oversized.pdf', 'application/pdf', EmptyInStream, true, ExceedsFileSizeReasonTok);
+        AgentTaskMessageRecord := AgentTaskMessageBuilder.Create(false);
+
+        AgentMessage.GetAttachments(AgentTaskRecord.Id, AgentTaskMessageRecord.Id, TempAgentTaskFile);
+
+        // [THEN] The attachment metadata exists with zero-byte content
+        Assert.AreEqual(1, TempAgentTaskFile.Count(), 'One attachment should exist');
+        TempAgentTaskFile.FindFirst();
+        TempAgentTaskFile.CalcFields(Content);
+        Assert.AreEqual('oversized.pdf', TempAgentTaskFile."File Name", 'Attachment file name should match');
+        Assert.AreEqual('application/pdf', TempAgentTaskFile."File MIME Type", 'Attachment MIME type should match');
+        Assert.AreEqual(0, TempAgentTaskFile.Content.Length(), 'Ignored attachment should have zero-byte content');
+        Assert.IsFalse(AgentMessageImpl.IsAttachmentDownloadable(TempAgentTaskFile), 'Contentless attachment metadata should not be downloadable');
+
+        // [THEN] The attachment is ignored with the supplied reason
+        AgentTaskMessageAttachment.SetRange("Task ID", AgentTaskRecord.Id);
+        AgentTaskMessageAttachment.SetRange("Message ID", AgentTaskMessageRecord.Id);
+        AgentTaskMessageAttachment.SetRange("File ID", TempAgentTaskFile.ID);
+        Assert.IsTrue(AgentTaskMessageAttachment.FindFirst(), 'Attachment link should exist');
+        Assert.IsTrue(AgentTaskMessageAttachment.Ignored, 'Attachment should be ignored');
+        Assert.AreEqual(ExceedsFileSizeReasonTok, AgentTaskMessageAttachment."Ignored Reason", 'Ignored reason should match');
     end;
 
     [Test]
