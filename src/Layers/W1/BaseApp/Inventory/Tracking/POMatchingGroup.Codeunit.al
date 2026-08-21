@@ -14,6 +14,7 @@ codeunit 5829 "PO Matching Group"
 
     var
         TempCurrentPOMatchingGroup: Record "Matched Order Line" temporary;
+        TempInvoiceOrderEdgeCursor: Record "Matched Order Line" temporary;
         EmptyGuid: Guid;
         IsLoading: Boolean;
         AtLeastTwoDocumentsErr: Label 'A match must specify at least two of: invoice line, order line and receipt/shipment line.';
@@ -363,6 +364,77 @@ codeunit 5829 "PO Matching Group"
         OrderLine.GetBySystemId(OrderLineSystemId);
         OrderHeader.Get(OrderLine."Document Type", OrderLine."Document No.");
         exit(OrderHeader."Receipt on Invoice");
+    end;
+    #endregion
+
+    #region Traversal 
+    // The iterator walks a snapshot of the current matches to allow consumers to mutate the group without disturbing the iterator.
+
+    /// <summary>Snapshots the invoice-order (blank-receipt) edges and positions at the first one.</summary>
+    internal procedure GetInvoiceOrderEdges(): Boolean
+    begin
+        TempInvoiceOrderEdgeCursor.Reset();
+        TempInvoiceOrderEdgeCursor.DeleteAll();
+        TempCurrentPOMatchingGroup.Reset();
+        TempCurrentPOMatchingGroup.SetRange("Matched Rcpt./Shpt. Line SysId", EmptyGuid);
+        if TempCurrentPOMatchingGroup.FindSet() then
+            repeat
+                TempInvoiceOrderEdgeCursor := TempCurrentPOMatchingGroup;
+                TempInvoiceOrderEdgeCursor.Insert();
+            until TempCurrentPOMatchingGroup.Next() = 0;
+        exit(TempInvoiceOrderEdgeCursor.FindSet());
+    end;
+
+    /// <summary>Advances to the next invoice-order edge in the snapshot.</summary>
+    internal procedure NextInvoiceOrderEdge(): Boolean
+    begin
+        exit(TempInvoiceOrderEdgeCursor.Next() <> 0);
+    end;
+
+    /// <summary>The invoice line SystemId of the current invoice-order edge.</summary>
+    internal procedure GetInvoiceLine(): Guid
+    begin
+        exit(TempInvoiceOrderEdgeCursor."Document Line SystemId");
+    end;
+
+    /// <summary>The order line SystemId of the current invoice-order edge.</summary>
+    internal procedure GetOrderLine(): Guid
+    begin
+        exit(TempInvoiceOrderEdgeCursor."Matched Order Line SystemId");
+    end;
+
+    /// <summary>The quantity budgeted by the current invoice-order edge.</summary>
+    internal procedure AllocatedInInvoiceOrderEdge(): Decimal
+    begin
+        exit(TempInvoiceOrderEdgeCursor."Qty. to Invoice");
+    end;
+
+    /// <summary>The live sum of receipt edges already pinned to the current invoice-order pair.</summary>
+    internal procedure SumAllocatedInOrderReceiptEdges(): Decimal
+    var
+        PinnedQty, PinnedBase : Decimal;
+    begin
+        SumReceiptsForPair(TempInvoiceOrderEdgeCursor."Document Line SystemId", TempInvoiceOrderEdgeCursor."Matched Order Line SystemId", PinnedQty, PinnedBase);
+        exit(PinnedQty);
+    end;
+
+    /// <summary>The live quantity of the receipt edge for the given (invoice, order, receipt), 0 if none.</summary>
+    internal procedure GetReceiptEdgeQuantity(InvoiceLineSystemId: Guid; OrderLineSystemId: Guid; ReceiptLineSystemId: Guid): Decimal
+    begin
+        if TempCurrentPOMatchingGroup.Get(InvoiceLineSystemId, OrderLineSystemId, ReceiptLineSystemId) then
+            exit(TempCurrentPOMatchingGroup."Qty. to Invoice");
+        exit(0);
+    end;
+
+    /// <summary>The live total quantity pinned to a receipt line across all invoices in the group.</summary>
+    internal procedure GetReceiptConsumedQuantity(ReceiptLineSystemId: Guid) Total: Decimal
+    begin
+        TempCurrentPOMatchingGroup.Reset();
+        TempCurrentPOMatchingGroup.SetRange("Matched Rcpt./Shpt. Line SysId", ReceiptLineSystemId);
+        if TempCurrentPOMatchingGroup.FindSet() then
+            repeat
+                Total += TempCurrentPOMatchingGroup."Qty. to Invoice";
+            until TempCurrentPOMatchingGroup.Next() = 0;
     end;
     #endregion
 
