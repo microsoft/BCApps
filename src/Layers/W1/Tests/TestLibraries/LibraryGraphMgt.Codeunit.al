@@ -8,7 +8,6 @@ codeunit 130618 "Library - Graph Mgt"
     var
         Assert: Codeunit Assert;
         LibraryGraphAuthMgt: Codeunit Microsoft.TestLibraries.ERP."Library - Graph Auth Mgt.";
-        IsApiTestInitialized: Boolean;
         IncorrectValueErr: Label 'Incorrect value found in JSON for %1 property.', Comment = '%1 - Name of property';
         GraphCollectionMgtItem: Codeunit "Graph Collection Mgt - Item";
         UnexpectedResponseCodeErr: Label 'Response code %1 (%2) differs from the expected %3.', Comment = '%1 - Actual response code number, %2 - Actual response code, %3 - Expected response code number';
@@ -22,7 +21,6 @@ codeunit 130618 "Library - Graph Mgt"
 
     procedure InitializeApiTest()
     begin
-        IsApiTestInitialized := true;
         BindAuthentication();
         SetApiTestWorkDate();
         EnsureApiTestReasonCode();
