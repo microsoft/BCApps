@@ -8708,9 +8708,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if GenJnlLine."System-Created Entry" then
             exit(GenJnlLine."Source Currency Amount");
 
-        if GenJnlLine."Source Curr. VAT Base Amount" <> 0 then
-            exit(GenJnlLine."Source Curr. VAT Base Amount")
-        else
+        if GenJnlLine."Source Currency Code" <> '' then begin
+            if GenJnlLine."Source Curr. VAT Base Amount" <> 0 then
+                exit(GenJnlLine."Source Curr. VAT Base Amount")
+            else
+                exit(GenJnlLine."Source Currency Amount");
+        end else
             exit(GenJnlLine.Amount - GenJnlLine."VAT Amount");
     end;
 
