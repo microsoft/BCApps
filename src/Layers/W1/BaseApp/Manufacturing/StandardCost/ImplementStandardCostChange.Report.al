@@ -343,7 +343,7 @@ report 5855 "Implement Standard Cost Change"
         StdCostWkshName := NewStdCostWkshName;
     end;
 
-    local procedure GetMessage() TheMsg: Text[250]
+    local procedure GetMessage() TheMsg: Text
     var
         Item: Record Item;
         MachCtr: Record "Machine Center";
