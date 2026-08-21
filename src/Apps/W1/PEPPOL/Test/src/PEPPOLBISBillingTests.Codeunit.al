@@ -1345,6 +1345,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         Customer.Get(CreateCustomerWithAddressAndGLN());
         LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Invoice, Customer."No.");
         ServiceHeader.Validate("Due Date", LibraryRandom.RandDate(10));
+        ServiceHeader.Validate("E-Mail", 'sellto@example.com');
         ServiceHeader.Modify(true);
         CreateVATPostingSetupWithTATCalcType(
           VATPostingSetup, ServiceHeader."VAT Bus. Posting Group", GetTaxCategoryS(),
@@ -1563,9 +1564,9 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         // [GIVEN] Company has "VAT Registration No." = 'NO1234567890'
         UpdateCompanyVATRegNo();
 
-        // [GIVEN] Posted Sales Invoice with Tax Category 'E' and a fully discounted (zero-value) line
+        // [GIVEN] Posted Sales Invoice with Tax Category 'E' and a zero-value line
         SalesInvoiceHeader.Get(
-          CreatePostSalesDocWithTaxCategoryAndFullLineDiscount(
+          CreatePostSalesDocWithTaxCategoryAndZeroUnitPrice(
             CreateCustomerWithAddressAndVATRegNo(), SalesHeader."Document Type"::Invoice, GetTaxCategoryE(), 0));
 
         // [WHEN] Export Sales Invoice with PEPPOL BIS3
@@ -1752,6 +1753,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
           LibraryUtility.GenerateRandomCode(SalesHeader.FieldNo("Your Reference"), DATABASE::"Sales Header"));
         SalesHeader.Validate("Shipment Date", LibraryRandom.RandDate(10));
         SalesHeader.Validate("Currency Code", CurrencyCode);
+        SalesHeader.Validate("Sell-to E-Mail", 'sellto@example.com');
         SalesHeader.Modify(true);
     end;
 
@@ -1785,7 +1787,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
-    local procedure CreatePostSalesDocWithTaxCategoryAndFullLineDiscount(CustomerNo: Code[20]; DocumentType: Enum "Sales Document Type"; TaxCategory: Code[10]; VATPct: Decimal): Code[20]
+    local procedure CreatePostSalesDocWithTaxCategoryAndZeroUnitPrice(CustomerNo: Code[20]; DocumentType: Enum "Sales Document Type"; TaxCategory: Code[10]; VATPct: Decimal): Code[20]
     var
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
@@ -1793,7 +1795,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         CreateSalesDoc(SalesHeader, SalesLine, CustomerNo, DocumentType, '');
         SalesLine.Validate(
           "VAT Prod. Posting Group", CreateVATPostingSetupWithTaxCategory(SalesHeader."VAT Bus. Posting Group", TaxCategory, VATPct));
-        SalesLine.Validate("Line Discount %", 100);
+        SalesLine.Validate("Unit Price", 0);
         SalesLine.Modify(true);
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
@@ -1840,6 +1842,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         Customer.Get(CreateCustomerWithAddressAndGLN());
         LibraryService.CreateServiceHeader(ServiceHeader, DocumentType, Customer."No.");
         ServiceHeader.Validate("Due Date", LibraryRandom.RandDate(10));
+        ServiceHeader.Validate("E-Mail", 'sellto@example.com');
         ServiceHeader.Validate("Currency Code", CurrencyCode);
         ServiceHeader.Modify(true);
         LibraryService.CreateServiceLineWithQuantity(
