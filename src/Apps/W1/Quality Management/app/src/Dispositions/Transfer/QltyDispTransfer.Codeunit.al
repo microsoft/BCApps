@@ -108,7 +108,8 @@ codeunit 20444 "Qlty. Disp. Transfer" implements "Qlty. Disposition"
         TransferHeader."Qlty. Inspection No." := QltyInspectionHeader."No.";
         TransferHeader."Qlty. Re-inspection No." := QltyInspectionHeader."Re-inspection No.";
         TransferHeader.Insert(true);
-        TransferHeader.Validate("Direct Transfer", DirectTransfer);
+        if DirectTransfer then
+            TransferHeader.Validate("Direct Transfer", true);
     end;
 
     local procedure CreateTransferLineWithOutboundTracking(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TransferHeader: Record "Transfer Header") Created: Boolean
@@ -122,12 +123,16 @@ codeunit 20444 "Qlty. Disp. Transfer" implements "Qlty. Disposition"
         TransferLine.Validate("Item No.", QltyInspectionHeader."Source Item No.");
         if QltyInspectionHeader."Source Variant Code" <> '' then
             TransferLine.Validate("Variant Code", QltyInspectionHeader."Source Variant Code");
+
+        Location.SetLoadFields("Bin Mandatory", "Directed Put-away and Pick");
         if TempQuantityToActQltyDispositionBuffer."Bin Filter" <> '' then
             if Location.Get(TempQuantityToActQltyDispositionBuffer.GetFromLocationCode()) then
                 if Location."Bin Mandatory" and not Location."Directed Put-away and Pick" then
                     TransferLine.Validate("Transfer-from Bin Code", TempQuantityToActQltyDispositionBuffer.GetFromBinCode());
         if TempQuantityToActQltyDispositionBuffer."New Bin Code" <> '' then
-            TransferLine.Validate("Transfer-To Bin Code", TempQuantityToActQltyDispositionBuffer."New Bin Code");
+            if Location.Get(TempQuantityToActQltyDispositionBuffer."New Location Code") then
+                if Location."Bin Mandatory" and not Location."Directed Put-away and Pick" then
+                    TransferLine.Validate("Transfer-To Bin Code", TempQuantityToActQltyDispositionBuffer."New Bin Code");
 
         TransferLine.Validate(Quantity, TempQuantityToActQltyDispositionBuffer."Qty. To Handle (Base)");
         TransferLine.Validate("Qty. to Ship", TempQuantityToActQltyDispositionBuffer."Qty. To Handle (Base)");
