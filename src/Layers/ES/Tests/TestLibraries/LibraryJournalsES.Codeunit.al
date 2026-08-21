@@ -9,7 +9,9 @@ codeunit 143007 "Library - Journals ES"
     local procedure SetBillToPayToNo(var GenJournalLine: Record "Gen. Journal Line")
     var
         Customer: Record Customer;
+#pragma warning disable AA0087 // Accepted: this helper is invoked from an event subscriber, not directly from a test procedure.
         LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
+#pragma warning restore
         LibrarySales: Codeunit "Library - Sales";
         LibraryPurchase: Codeunit "Library - Purchase";
     begin
