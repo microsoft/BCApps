@@ -426,6 +426,17 @@ page 6928 "Expense Reports API"
     end;
 
     [ServiceEnabled]
+    procedure ApprovedExpenseReportWithPolicyOverride(var ActionContext: WebServiceActionContext; ApproverExpenseUserNo: Code[20]; SkipPolicyValidation: Boolean)
+    begin
+        Rec.PerformManualApproved(ApproverExpenseUserNo, SkipPolicyValidation);
+
+        ActionContext.SetObjectType(ObjectType::Page);
+        ActionContext.SetObjectId(Page::"Expense Reports API");
+        ActionContext.AddEntityKey(Rec.FieldNo(SystemId), Rec.SystemId);
+        ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
+    end;
+
+    [ServiceEnabled]
     procedure RejectedExpenseReport(var ActionContext: WebServiceActionContext; ApproverExpenseUserNo: Code[20]; RejectReason: Text)
     begin
         Rec.PerformManualRejected(ApproverExpenseUserNo, RejectReason);

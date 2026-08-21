@@ -57,11 +57,11 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
     local procedure DoCreateSalesHeader(var RefundHeader: Record "Shpfy Refund Header"; SalesDocType: Enum "Sales Document Type"; var SalesHeader: Record "Sales Header"): Boolean
     var
         OrderHeader: Record "Shpfy Order Header";
-        ShopifyTaxArea: Record "Shpfy Tax Area";
         DocLinkToBCDoc: Record "Shpfy Doc. Link To Doc.";
+        ShopifyTaxArea: Record "Shpfy Tax Area";
         BCDocumentTypeConvert: Codeunit "Shpfy BC Document Type Convert";
-        OrderMgt: Codeunit "Shpfy Order Mgt.";
         ProcessOrder: Codeunit "Shpfy Process Order";
+        OrderMgt: Codeunit "Shpfy Order Mgt.";
         IsHandled: Boolean;
     begin
         Clear(SalesHeader);
@@ -120,8 +120,15 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
                         SalesHeader.Validate("Currency Code", RefundHeader."Presentment Currency Code");
                 end;
                 SalesHeader.Validate("Document Date", DT2Date(RefundHeader."Created At"));
-                if OrderMgt.FindTaxArea(OrderHeader, ShopifyTaxArea) and (ShopifyTaxArea."Tax Area Code" <> '') then
-                    SalesHeader.Validate("Tax Area Code", ShopifyTaxArea."Tax Area Code");
+                if OrderHeader."Tax Area Code" <> '' then begin
+                    SalesHeader.Validate("Tax Area Code", OrderHeader."Tax Area Code");
+                    SalesHeader.Validate("Tax Liable", OrderHeader."Tax Liable");
+                end else
+                    if OrderMgt.FindTaxArea(OrderHeader, ShopifyTaxArea) and (ShopifyTaxArea."Tax Area Code" <> '') then begin
+                        SalesHeader.Validate("Tax Area Code", ShopifyTaxArea."Tax Area Code");
+                        if not OrderHeader."Tax Exempt" then
+                            SalesHeader.Validate("Tax Liable", ShopifyTaxArea."Tax Liable");
+                    end;
                 MapPaymentMethodCode(SalesHeader);
             end;
             SalesHeader."Shpfy Refund Id" := RefundHeader."Refund Id";

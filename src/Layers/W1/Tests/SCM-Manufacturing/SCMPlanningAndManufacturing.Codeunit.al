@@ -2555,6 +2555,188 @@ codeunit 137080 "SCM Planning And Manufacturing"
         VerifyOrderTracking(PurchaseLine, Quantity[1] + Quantity[2], Quantity, Item."No.")
     end;
 
+    [Test]
+    procedure CarryOutActionMessageCreateReleasedProdOrders()
+    var
+        Item: Record Item;
+        RequisitionLine: Record "Requisition Line";
+    begin
+        // [SCENARIO] Released production order can be created from a planning worksheet
+        Initialize();
+
+        // [GIVEN] Item "I" set up for production order replenishment
+        CreateItemWithReplenishmentSystem(Item, Enum::"Replenishment System"::"Prod. Order");
+
+        // [GIVEN] A planning worksheet line is created for the item "I"
+        CreateRequisitionLine(RequisitionLine, Item."No.", 1);
+
+        // [WHEN] Run "Carry Out Action Message" action in the planning worksheet and choose "Released" option for the production order
+        CreateProdOrdersFromPlanWorksheet(RequisitionLine, Enum::"Planning Create Prod. Order"::Released);
+
+        // [THEN] A released production order for item "I" is created
+        VerifyProdOrderLineStatus(Item."No.", Enum::"Production Order Status"::Released);
+    end;
+
+    [Test]
+    procedure CarryOutActionMessageCreateReleasedProdOrdersRequiresNoSeries()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        Item: Record Item;
+        RequisitionLine: Record "Requisition Line";
+    begin
+        // [SCENARIO] A released production order requires the released order number series
+        Initialize();
+
+        // [GIVEN] The released production order number series is blank
+        ManufacturingSetup.Get();
+        ManufacturingSetup.Validate("Released Order Nos.", '');
+        ManufacturingSetup.Modify(true);
+
+        // [GIVEN] A planning worksheet line exists for an item set up for production order replenishment
+        CreateItemWithReplenishmentSystem(Item, Enum::"Replenishment System"::"Prod. Order");
+        CreateRequisitionLine(RequisitionLine, Item."No.", 1);
+
+        // [WHEN] Run "Carry Out Action Message" action in the planning worksheet and choose "Released"
+        asserterror CreateProdOrdersFromPlanWorksheet(RequisitionLine, Enum::"Planning Create Prod. Order"::Released);
+
+        // [THEN] The missing released production order number series error is raised
+        Assert.ExpectedTestFieldError(ManufacturingSetup.FieldCaption("Released Order Nos."), '');
+    end;
+
+    [Test]
+    [HandlerFunctions('ProdOrderJobCardReportHandler')]
+    procedure CarryOutActionMessageCreateReleasedProdOrdersAndPrint()
+    var
+        Item: Record Item;
+        RoutingLines: array[2] of Record "Routing Line";
+        SalesLine: Record "Sales Line";
+        RequisitionLine: Record "Requisition Line";
+    begin
+        // [SCENARIO] Released production order can be created and printed from a planning worksheet
+        Initialize();
+
+        // [GIVEN] Item "I" set up for production order replenishment
+        CreateItemWithRouting(Item, RoutingLines[1], RoutingLines[2], '', false);
+        Item.Validate("Replenishment System", Enum::"Replenishment System"::"Prod. Order");
+        Item.Validate("Reordering Policy", Enum::"Reordering Policy"::Order);
+        Item.Modify();
+
+        // [GIVEN] Demand for item "I" exists
+        CreateSalesOrder(SalesLine, Item."No.", '');
+
+        // [GIVEN] Run regenerative planning for the item
+        LibraryPlanning.CalcRegenPlanForPlanWkshPlanningParams(Item, WorkDate(), WorkDate(), false);
+
+        // [WHEN] Run "Carry Out Action Message" action in the planning worksheet and choose "Released & Print" option for the production order
+        FindRequisitionLine(RequisitionLine, Item."No.");
+        CreateProdOrdersFromPlanWorksheet(RequisitionLine, Enum::"Planning Create Prod. Order"::"Released & Print");
+
+        // [THEN] A released production order for item "I" is created
+        // [THEN] The default report for the production order is printed (ProdOrderJobCardReportHandler is invoked)
+        VerifyProdOrderLineStatus(Item."No.", Enum::"Production Order Status"::Released);
+    end;
+
+    [Test]
+    procedure CarryOutActionMessageCreateReleasedProdOrdersWithForwardFlushing()
+    var
+        MfgItem: Record Item;
+        ComponentItem: Record Item;
+        RequisitionLine: Record "Requisition Line";
+        ProdBomHeader: Record "Production BOM Header";
+        ItemJournalLine: Record "Item Journal Line";
+        ComponentItemQty: Decimal;
+        ScheduleDirection: Option Forward,Backward;
+    begin
+        // [SCENARIO] Released production order created from a planning worksheet, component with forward flushing method is automatically consumed
+        Initialize();
+
+        // [GIVEN] Item "I" set up for production order replenishment
+        CreateItemWithReplenishmentSystem(MfgItem, Enum::"Replenishment System"::"Prod. Order");
+
+        // [GIVEN] Component item "C" with "Forward" flushing method
+        LibraryInventory.CreateItem(ComponentItem);
+        ComponentItem.Validate("Flushing Method", Enum::"Flushing Method"::Forward);
+        ComponentItem.Modify(true);
+
+        // [GIVEN] Production BOM for item "I" includes the component item "C"
+        ComponentItemQty := 1;
+        CreateCertifiedProductionBOM(ProdBomHeader, ComponentItem."No.", MfgItem."Base Unit of Measure", ComponentItemQty);
+
+        // [GIVEN] There is sufficient stock of the component item to produce one item "I"
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, ComponentItem."No.", '', '', ComponentItemQty);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        MfgItem.Validate("Production BOM No.", ProdBomHeader."No.");
+        MfgItem.Modify(true);
+
+        // [GIVEN] A planning worksheet line is created for the item "I" and refreshed
+        CreateRequisitionLine(RequisitionLine, MfgItem."No.", 1);
+        LibraryPlanning.RefreshPlanningLine(RequisitionLine, ScheduleDirection::Forward, false, true);
+
+        // [WHEN] Run "Carry Out Action Message" action in the planning worksheet and choose "Released" option for the production order
+        CreateProdOrdersFromPlanWorksheet(RequisitionLine, Enum::"Planning Create Prod. Order"::Released);
+
+        // [THEN] A released production order for item "I" is created
+        VerifyProdOrderLineStatus(MfgItem."No.", Enum::"Production Order Status"::Released);
+
+        // [THEN] One component has been consumed
+        VerifyConsumptionItemLedgerEntry(ComponentItem."No.", -ComponentItemQty);
+    end;
+
+    [Test]
+    [HandlerFunctions('ProdOrderJobCardReportHandler,MessageHandler')]
+    procedure CarryOutTwoActionMessagesFirstFails()
+    var
+        MfgItems: array[2] of Record Item;
+        ComponentItems: array[2] of Record Item;
+        RequisitionLine: Record "Requisition Line";
+        ItemJournalLine: Record "Item Journal Line";
+        ComponentItemQty: Decimal;
+        ScheduleDirection: Option Forward,Backward;
+        ExpectedErrorTxt: Label 'You have insufficient quantity of Item %1 on inventory', Comment = '%1: Item No.';
+    begin
+        // [SCENARIO] Create multiple production orders from planning worksheet with "Release and Print" option, the first of the orders fails
+        Initialize();
+
+        ComponentItemQty := LibraryRandom.RandInt(10);
+
+        // [GIVEN] Manufacturing item "I1" with an item "C1" as a component
+        CreateProdItemWithForwardFlushingComponent(MfgItems[1], ComponentItems[1], ComponentItemQty);
+
+        // [GIVEN] Create a planning worksheet line for item "I1" and refresh
+        CreateRequisitionLine(RequisitionLine, MfgItems[1]."No.", 1);
+        LibraryPlanning.RefreshPlanningLine(RequisitionLine, ScheduleDirection::Forward, false, true);
+
+        // [GIVEN] Manufacturing item "I2" with an item "C2" as a component
+        CreateProdItemWithForwardFlushingComponent(MfgItems[2], ComponentItems[2], ComponentItemQty);
+
+        // [GIVEN] Post sufficient stock of the component "C2" to satisfy the planned demand. Component "C1" is not on stock.
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, ComponentItems[2]."No.", '', '', ComponentItemQty);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        // [GIVEN] Create a planning worksheet line for the item "I2"
+        CreateRequisitionLine(RequisitionLine, MfgItems[2]."No.", 1);
+        LibraryPlanning.RefreshPlanningLine(RequisitionLine, ScheduleDirection::Forward, false, true);
+
+        // [WHEN] Run "Carry Out Action Message" action in the planning worksheet and choose "Released & Print" option for the production order
+        // [THEN] Information message is displayed notifying that the quantity of the component "C1" is not sufficient for the production order
+        // [THEN] Created production order is printed (ProdOrderJobCardReportHandler handler is invoked)
+        LibraryVariableStorage.Enqueue(StrSubstNo(ExpectedErrorTxt, ComponentItems[1]."No."));
+        CreateProdOrdersFromPlanWorksheet(RequisitionLine, Enum::"Planning Create Prod. Order"::"Released & Print");
+
+        // [THEN] Requisition line for the item "I1" remains in the planning worksheet
+        RequisitionLine.SetRange(Type, Enum::"Requisition Line Type"::Item);
+        RequisitionLine.SetRange("No.", MfgItems[1]."No.");
+        Assert.RecordIsNotEmpty(RequisitionLine);
+
+        // [THEN] A released production order for item "I2" is created
+        VerifyProdOrderLineStatus(MfgItems[2]."No.", Enum::"Production Order Status"::Released);
+
+        // [THEN] Component "I2" has been consumed
+        VerifyConsumptionItemLedgerEntry(ComponentItems[2]."No.", -ComponentItemQty);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         PlanningErrorLog: Record "Planning Error Log";
@@ -2583,6 +2765,34 @@ codeunit 137080 "SCM Planning And Manufacturing"
         LibrarySetupStorage.SaveManufacturingSetup();
         LibrarySetupStorage.Save(DATABASE::"Inventory Setup");
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"SCM Planning And Manufacturing");
+    end;
+
+    local procedure CreateProdOrdersFromPlanWorksheet(RequisitionLine: Record "Requisition Line"; ProdOrderChoice: Enum "Planning Create Prod. Order")
+    begin
+        RequisitionLine.Validate("Accept Action Message", true);
+        RequisitionLine.Modify();
+
+        LibraryPlanning.CarryOutPlanWksh(
+            RequisitionLine,
+            ProdOrderChoice.AsInteger(),
+            Enum::"Planning Create Purchase Order"::" ".AsInteger(),
+            Enum::"Planning Create Transfer Order"::" ".AsInteger(),
+            Enum::"Planning Create Assembly Order"::" ".AsInteger(),
+            '', '', '', '');
+    end;
+
+    local procedure CreateRequisitionLine(var RequisitionLine: Record "Requisition Line"; ItemNo: Code[20]; Quantity: Decimal)
+    var
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+    begin
+        LibraryPlanning.SelectRequisitionWkshName(RequisitionWkshName, RequisitionWkshName."Template Type"::Planning);
+        LibraryPlanning.CreateRequisitionLine(RequisitionLine, RequisitionWkshName."Worksheet Template Name", RequisitionWkshName.Name);
+
+        RequisitionLine.Validate(Type, Enum::"Requisition Line Type"::Item);
+        RequisitionLine.Validate("No.", ItemNo);
+        RequisitionLine.Validate(Quantity, Quantity);
+        RequisitionLine.Validate("Starting Date", WorkDate());
+        RequisitionLine.Modify(true);
     end;
 
     local procedure SalesForecastWithBlankLocationCodeForAssemblyProdOrderItemWhenComponentsAtLocation(ReplenishmentSystem: Enum "Replenishment System")
@@ -2638,6 +2848,22 @@ codeunit 137080 "SCM Planning And Manufacturing"
         Assert.RecordCount(RequisitionLine, 1);
         RequisitionLine.TestField(Quantity, ProductionForecastEntry."Forecast Quantity" - ItemInventory);
         RequisitionLine.TestField("Location Code", Location.Code);
+    end;
+
+    local procedure CreateProdItemWithForwardFlushingComponent(var MfgItem: Record Item; var ComponentItem: Record Item; ComponentItemQty: Integer)
+    var
+        ProdBomHeader: Record "Production BOM Header";
+    begin
+        CreateItemWithReplenishmentSystem(MfgItem, Enum::"Replenishment System"::"Prod. Order");
+
+        LibraryInventory.CreateItem(ComponentItem);
+        ComponentItem.Validate("Flushing Method", Enum::"Flushing Method"::Forward);
+        ComponentItem.Modify(true);
+
+        CreateCertifiedProductionBOM(ProdBomHeader, ComponentItem."No.", MfgItem."Base Unit of Measure", ComponentItemQty);
+
+        MfgItem.Validate("Production BOM No.", ProdBomHeader."No.");
+        MfgItem.Modify(true);
     end;
 
     local procedure NoSeriesSetup()
@@ -3519,7 +3745,7 @@ codeunit 137080 "SCM Planning And Manufacturing"
         SalesLine.Modify(true);
     end;
 
-    local procedure UpdateRoutingNoAndItemTrackingCodeOnItem(Item: Record Item; RoutingNo: Code[20]; ItemTrackingCode: Code[10])
+    local procedure UpdateRoutingNoAndItemTrackingCodeOnItem(var Item: Record Item; RoutingNo: Code[20]; ItemTrackingCode: Code[10])
     begin
         Item.Validate("Routing No.", RoutingNo);
         Item.Validate("Item Tracking Code", ItemTrackingCode);
@@ -3917,6 +4143,16 @@ codeunit 137080 "SCM Planning And Manufacturing"
         SalesLine.Modify(true);
     end;
 
+    local procedure VerifyConsumptionItemLedgerEntry(ItemNo: Code[20]; ExpectedQty: Decimal)
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        ItemLedgerEntry.SetRange("Item No.", ItemNo);
+        ItemLedgerEntry.SetRange("Entry Type", Enum::"Item Ledger Entry Type"::Consumption);
+        ItemLedgerEntry.FindFirst();
+        Assert.AreEqual(ExpectedQty, ItemLedgerEntry.Quantity, 'Production order component must be consumed.');
+    end;
+
     local procedure VerifyOrderTracking(
         PurchaseLine: Record "Purchase Line"; TotalQuantity: Decimal;
         Quantity: array[2] of Decimal; ItemNo: Code[20])
@@ -3933,6 +4169,15 @@ codeunit 137080 "SCM Planning And Manufacturing"
         OrderTracking.Quantity.AssertEquals(Quantity[1]);
         OrderTracking.Next();
         OrderTracking.Quantity.AssertEquals(Quantity[2]);
+    end;
+
+    local procedure VerifyProdOrderLineStatus(ItemNo: Code[20]; ExpectedStatus: Enum "Production Order Status")
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+    begin
+        ProdOrderLine.SetRange("Item No.", ItemNo);
+        ProdOrderLine.FindFirst();
+        Assert.AreEqual(ExpectedStatus, ProdOrderLine.Status, 'Wrong status is set on production order.');
     end;
 
     [ConfirmHandler]
@@ -4013,5 +4258,9 @@ codeunit 137080 "SCM Planning And Manufacturing"
     begin
         CheckProdOrderStatus.Yes().Invoke();
     end;
-}
 
+    [ReportHandler]
+    procedure ProdOrderJobCardReportHandler(var ProdOrderJobCard: Report "Prod. Order - Job Card")
+    begin
+    end;
+}
