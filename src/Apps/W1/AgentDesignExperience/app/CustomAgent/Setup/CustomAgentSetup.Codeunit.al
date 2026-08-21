@@ -154,11 +154,6 @@ codeunit 4350 "Custom Agent Setup"
         if not GuiAllowed() then
             exit(false);
 
-        // Archived agents can never be activated again, so the inactive prompt would be misleading.
-        // The instruction editor opens read-only and states that the agent is archived.
-        if IsAgentArchived(AgentSecurityId) then
-            exit(true);
-
         if not IsAgentInactive(AgentSecurityId) then
             exit(true);
 
@@ -168,6 +163,7 @@ codeunit 4350 "Custom Agent Setup"
     local procedure IsAgentArchived(AgentSecurityId: Guid): Boolean
     var
         Agent: Record Agent;
+        AgentCodeunit: Codeunit Agent;
     begin
         if IsNullGuid(AgentSecurityId) then
             exit(false);
@@ -175,7 +171,7 @@ codeunit 4350 "Custom Agent Setup"
         if not Agent.Get(AgentSecurityId) then
             exit(false);
 
-        exit(Agent.Substate = Agent.Substate::Archived);
+        exit(AgentCodeunit.IsArchived(AgentSecurityId));
     end;
 
     local procedure IsAgentInactive(AgentSecurityId: Guid): Boolean

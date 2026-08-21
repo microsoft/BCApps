@@ -476,29 +476,19 @@ page 4350 "Custom Agent Setup"
         exit(CopyStr(AutoLookupModelIdTok, 1, 30));
     end;
 
-    local procedure UpdateAgentIsArchived()
-    var
-        Agent: Record Agent;
-    begin
-        AgentIsArchived := false;
-
-        if IsNullGuid(Rec."User Security ID") then
-            exit;
-
-        if not Agent.Get(Rec."User Security ID") then
-            exit;
-
-        AgentIsArchived := Agent.Substate = Agent.Substate::Archived;
-    end;
-
     local procedure UpdateControls()
     var
+        Agent: Codeunit Agent;
         CustomAgentSetup: Codeunit "Custom Agent Setup";
         AgentSetup: Codeunit "Agent Setup";
         UserSettings: Codeunit "User Settings";
     begin
         IsFirstTimeSetup := IsNullGuid(Rec."User Security ID");
-        UpdateAgentIsArchived();
+
+        if not IsFirstTimeSetup then
+            AgentIsArchived := Agent.IsArchived(Rec."User Security ID")
+        else
+            AgentIsArchived := false;
 
         if Rec.IsEmpty() then begin
             if not IsFirstTimeSetup then begin
