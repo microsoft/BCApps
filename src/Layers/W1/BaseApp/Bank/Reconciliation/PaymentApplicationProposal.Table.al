@@ -514,8 +514,7 @@ table 1293 "Payment Application Proposal"
                         CustLedgEntry.SetAutoCalcFields("Remaining Amt. (LCY)")
                     else
                         CustLedgEntry.SetAutoCalcFields("Remaining Amount");
-                    if not CustLedgEntry.Get("Applies-to Entry No.") then
-                        exit;
+                    CustLedgEntry.Get("Applies-to Entry No.");
                     Description := CustLedgEntry.Description;
                     "Posting Date" := CustLedgEntry."Posting Date";
                     "Due Date" := CustLedgEntry."Due Date";
@@ -536,8 +535,7 @@ table 1293 "Payment Application Proposal"
                         VendLedgEntry.SetAutoCalcFields("Remaining Amt. (LCY)")
                     else
                         VendLedgEntry.SetAutoCalcFields("Remaining Amount");
-                    if not VendLedgEntry.Get("Applies-to Entry No.") then
-                        exit;
+                    VendLedgEntry.Get("Applies-to Entry No.");
                     Description := VendLedgEntry.Description;
                     "Posting Date" := VendLedgEntry."Posting Date";
                     "Due Date" := VendLedgEntry."Due Date";
@@ -558,8 +556,7 @@ table 1293 "Payment Application Proposal"
                         EmployeeLedgEntry.SetAutoCalcFields("Remaining Amt. (LCY)")
                     else
                         EmployeeLedgEntry.SetAutoCalcFields("Remaining Amount");
-                    if not EmployeeLedgEntry.Get("Applies-to Entry No.") then
-                        exit;
+                    EmployeeLedgEntry.Get("Applies-to Entry No.");
                     Description := EmployeeLedgEntry.Description;
                     "Posting Date" := EmployeeLedgEntry."Posting Date";
                     "Document Type" := EmployeeLedgEntry."Document Type";
@@ -574,8 +571,7 @@ table 1293 "Payment Application Proposal"
                 begin
                     BankAccLedgEntry.SetLoadFields(
                       Description, "Posting Date", "Document Type", "Document No.", "External Document No.", "Currency Code", "Remaining Amount");
-                    if not BankAccLedgEntry.Get("Applies-to Entry No.") then
-                        exit;
+                    BankAccLedgEntry.Get("Applies-to Entry No.");
                     Description := BankAccLedgEntry.Description;
                     "Posting Date" := BankAccLedgEntry."Posting Date";
                     "Due Date" := 0D;

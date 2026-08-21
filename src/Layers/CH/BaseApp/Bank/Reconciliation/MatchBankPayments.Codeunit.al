@@ -688,6 +688,7 @@ codeunit 1255 "Match Bank Payments"
 
             Window.Close();
         end;
+        CandidateFilterReferenceDate := 0D;
     end;
 
     local procedure RemoveAppliedEntriesFromBufferTables()

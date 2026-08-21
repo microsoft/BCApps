@@ -138,7 +138,7 @@ table 1253 "Bank Pmt. Appl. Settings"
         field(15; "Candidate Lookback (Days)"; Integer)
         {
             Caption = 'Candidate Lookback (Days)';
-            DataClassification = SystemMetadata;
+            DataClassification = CustomerContent;
             MinValue = 0;
             ToolTip = 'Specifies how many days back from the bank statement transaction date the automatic matching searches for candidate ledger entries. Limiting the range improves performance when there are many open entries. Set to 0 to search all open entries.';
         }
@@ -156,6 +156,9 @@ table 1253 "Bank Pmt. Appl. Settings"
     fieldgroups
     {
     }
+
+    var
+        LookbackFormulaLbl: Label '<-%1D>', Locked = true, Comment = '%1 = number of days to look back';
 
     /// <summary>
     /// Retrieves existing settings record or creates a new one with default values.
@@ -184,7 +187,6 @@ table 1253 "Bank Pmt. Appl. Settings"
     procedure GetCandidateLookbackStartDate(ReferenceDate: Date): Date
     var
         LookbackFormula: DateFormula;
-        LookbackFormulaLbl: Label '<-%1D>', Locked = true, Comment = '%1 = number of days to look back';
     begin
         if "Candidate Lookback (Days)" <= 0 then
             exit(0D);
