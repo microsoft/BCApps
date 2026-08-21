@@ -126,7 +126,7 @@ codeunit 148500 "XRechnung Structured Tests"
         XmlContent: Text;
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO 646793] XRechnung VAT and FC identifiers are imported from repeated tax schemes
+        // [SCENARIO 646793] XRechnung tax and legal identifiers are imported from their EN 16931 elements
         Initialize(Enum::"Service Integration"::"No Integration");
         SetupXRechnungEDocumentService();
 
@@ -137,7 +137,7 @@ codeunit 148500 "XRechnung Structured Tests"
         Vendor."Registration Number" := VendorRegistrationNo;
         Vendor."Use Reg. No. in E-Document" := true;
         Vendor.Modify(true);
-        CompanyRegistrationNo := 'BUYER-FC';
+        CompanyRegistrationNo := 'BUYER-LEGAL';
         CompanyInformation.Get();
         CompanyInformation.GLN := '';
         CompanyInformation."VAT Registration No." := 'GB789456278';
@@ -146,10 +146,10 @@ codeunit 148500 "XRechnung Structured Tests"
         CompanyInformation."Use Reg. No. in E-Document" := true;
         CompanyInformation.Modify(true);
 
-        // [GIVEN] An XRechnung whose supplier and buyer each have VAT followed by FC tax schemes
+        // [GIVEN] An XRechnung with supplier VAT and FC tax schemes and a buyer legal registration
         XmlContent := NavApp.GetResourceAsText(TestFileTok);
         AddPartyTaxSchemeWithFiscalCode(XmlContent, 'GB123456789', VendorRegistrationNo);
-        AddPartyTaxSchemeWithFiscalCode(XmlContent, 'GB789456278', CompanyRegistrationNo);
+        XmlContent := XmlContent.Replace('<cbc:CompanyID>789456278</cbc:CompanyID>', StrSubstNo(CompanyIDFormatTok, CompanyRegistrationNo));
         XmlContent := XmlContent.Replace('<cbc:ID>8712345000004</cbc:ID>', '<cbc:ID></cbc:ID>');
         CreateInboundEDocumentFromXMLText(EDocument, XmlContent);
 
@@ -160,7 +160,7 @@ codeunit 148500 "XRechnung Structured Tests"
         DataTypeManagement.GetRecordRef(VariantRecord, RecRef);
         RecRef.SetTable(PurchaseHeader);
 
-        // [THEN] The second supplier scheme selected the vendor and both buyer schemes were retained
+        // [THEN] The supplier FC scheme selected the vendor and the buyer identifiers were retained
         Assert.AreEqual(Vendor."No.", PurchaseHeader."Buy-from Vendor No.", 'The vendor was not selected by Registration No.');
         Assert.AreEqual(CompanyInformation."VAT Registration No.", EDocument."Receiving Company VAT Reg. No.", 'The receiving company VAT Registration No. was not imported.');
         Assert.AreEqual(CompanyRegistrationNo, EDocument."Receiving Company Reg. No.", 'The receiving company Registration No. was not imported.');

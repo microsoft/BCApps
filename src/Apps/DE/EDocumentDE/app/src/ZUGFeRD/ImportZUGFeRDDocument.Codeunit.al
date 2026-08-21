@@ -321,7 +321,7 @@ codeunit 13919 "Import ZUGFeRD Document"
         EDocument."Receiving Company Address" := CopyStr(GetNodeByPath(TempXMLBuffer, '/' + DocumentType + 'rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:PostalTradeAddress/ram:LineOne'), 1, MaxStrLen(EDocument."Receiving Company Address"));
         TaxRegistrationPath := '/' + DocumentType + '/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:SpecifiedTaxRegistration/ram:ID';
         EDocument."Receiving Company VAT Reg. No." := CopyStr(GetNodeByPathAndScheme(TempXMLBuffer, TaxRegistrationPath, 'VA'), 1, MaxStrLen(EDocument."Receiving Company VAT Reg. No."));
-        EDocument."Receiving Company Reg. No." := CopyStr(GetNodeByPathAndScheme(TempXMLBuffer, TaxRegistrationPath, 'FC'), 1, MaxStrLen(EDocument."Receiving Company Reg. No."));
+        EDocument."Receiving Company Reg. No." := CopyStr(GetNodeByPath(TempXMLBuffer, '/' + DocumentType + '/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:SpecifiedLegalOrganization/ram:ID'), 1, MaxStrLen(EDocument."Receiving Company Reg. No."));
     end;
 
     #region Invoice

@@ -90,7 +90,7 @@ codeunit 148501 "E-Doc. DE Struct. Import Tests"
         XmlContent: Text;
         BuyerRegistrationNo: Text[20];
         BuyerTradePartyEndTok: Label '</ram:BuyerTradeParty>', Locked = true;
-        BuyerFiscalCodeTok: Label '<ram:SpecifiedTaxRegistration><ram:ID schemeID="FC">%1</ram:ID></ram:SpecifiedTaxRegistration></ram:BuyerTradeParty>', Locked = true;
+        BuyerLegalOrganizationTok: Label '<ram:SpecifiedLegalOrganization><ram:ID>%1</ram:ID></ram:SpecifiedLegalOrganization></ram:BuyerTradeParty>', Locked = true;
     begin
         // [FEATURE] [E-Document] [ZUGFeRD] [Import]
         // [SCENARIO 646793] Repeated ZUGFeRD tax registrations are selected by their scheme
@@ -101,10 +101,10 @@ codeunit 148501 "E-Doc. DE Struct. Import Tests"
         Vendor."Registration Number" := '';
         Vendor.Modify(true);
 
-        // [GIVEN] The buyer has a VA registration followed by an FC registration
-        BuyerRegistrationNo := 'BUYER-FC';
+        // [GIVEN] The buyer has a VA registration and a legal registration
+        BuyerRegistrationNo := 'BUYER-LEGAL';
         XmlContent := NavApp.GetResourceAsText(ZUGFeRDInvoiceTok);
-        XmlContent := XmlContent.Replace(BuyerTradePartyEndTok, StrSubstNo(BuyerFiscalCodeTok, BuyerRegistrationNo));
+        XmlContent := XmlContent.Replace(BuyerTradePartyEndTok, StrSubstNo(BuyerLegalOrganizationTok, BuyerRegistrationNo));
         XMLTempBlob.CreateOutStream(XMLOutStream, TextEncoding::UTF8);
         XMLOutStream.WriteText(XmlContent);
         XMLTempBlob.CreateInStream(XMLInStream, TextEncoding::UTF8);
@@ -115,7 +115,7 @@ codeunit 148501 "E-Doc. DE Struct. Import Tests"
         // [WHEN] The ZUGFeRD basic information is parsed
         ImportZUGFeRDDocument.ParseInvoiceBasicInfo(EDocument, TempXMLBuffer, 'rsm:CrossIndustryInvoice', PdfInStream);
 
-        // [THEN] The seller VA and both buyer registrations are imported independently
+        // [THEN] The seller VA and the buyer VAT and legal registrations are imported independently
         Assert.AreEqual(Vendor."No.", EDocument."Bill-to/Pay-to No.", 'The vendor was not selected by the second VA tax registration.');
         Assert.AreEqual('DE987654321', EDocument."Receiving Company VAT Reg. No.", 'The buyer VAT Registration No. was not imported.');
         Assert.AreEqual(BuyerRegistrationNo, EDocument."Receiving Company Reg. No.", 'The buyer Registration No. was not imported.');
