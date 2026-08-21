@@ -365,6 +365,74 @@ codeunit 135300 "O365 Purch Item Charge Tests"
         VerifyItemChargeAssignmentLines(PurchHeaderInvoice, ItemCharge."No.", 5, 6);
     end;
 
+    [Test]
+    procedure ItemChargeValueEntryCreatedWhenChargeInvoicedSeparately()
+    var
+        Vendor: Record Vendor;
+        Item: Record Item;
+        ItemCharge: Record "Item Charge";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLineItem: Record "Purchase Line";
+        PurchaseLineCharge: Record "Purchase Line";
+        ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)";
+        ItemChargeAssgntPurch: Codeunit "Item Charge Assgnt. (Purch.)";
+        ValueEntry: Record "Value Entry";
+        NextLineNo: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 613348] Value Entry is created for item charge when receipt and charge invoice are posted separately on same purchase order
+        Initialize();
+
+        // [GIVEN] Vendor "V", Item "I", Item Charge "C" and a purchase order "PO"
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateItemCharge(ItemCharge);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+
+        // [GIVEN] Purchase order "PO" has item line "L1" (Qty = 1) and item charge line "L2" (Qty = 1)
+        LibraryPurchase.CreatePurchaseLine(PurchaseLineItem, PurchaseHeader, PurchaseLineItem.Type::Item, Item."No.", 1);
+        PurchaseLineItem.Validate("Direct Unit Cost", 100);
+        PurchaseLineItem.Modify(true);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLineCharge, PurchaseHeader, PurchaseLineCharge.Type::"Charge (Item)", ItemCharge."No.", 1);
+        PurchaseLineCharge.Validate("Direct Unit Cost", 50);
+        PurchaseLineCharge.Modify(true);
+
+        // [GIVEN] Item charge "L2" assigned (Qty. to Assign = 1) to item line "L1" on the same order
+        NextLineNo := 0;
+        ItemChargeAssignmentPurch."Document Type" := PurchaseLineCharge."Document Type";
+        ItemChargeAssignmentPurch."Document No." := PurchaseLineCharge."Document No.";
+        ItemChargeAssignmentPurch."Document Line No." := PurchaseLineCharge."Line No.";
+        ItemChargeAssignmentPurch."Item Charge No." := PurchaseLineCharge."No.";
+        ItemChargeAssgntPurch.InsertItemChargeAssignmentWithValues(
+            ItemChargeAssignmentPurch,
+            "Purchase Applies-to Document Type"::Order,
+            PurchaseLineItem."Document No.",
+            PurchaseLineItem."Line No.",
+            PurchaseLineItem."No.",
+            PurchaseLineItem.Description,
+            1,
+            PurchaseLineCharge."Direct Unit Cost",
+            NextLineNo);
+
+        // [WHEN] Post receipt only for purchase order "PO" (Receive = true, Invoice = false)
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [WHEN] Set item line "L1" Qty. to Invoice = 0 so only charge line "L2" is invoiced
+        PurchaseLineItem.Find();
+        PurchaseLineItem.Validate("Qty. to Invoice", 0);
+        PurchaseLineItem.Modify(true);
+
+        // [WHEN] Post the invoice for purchase order "PO" (charge line "L2" invoiced, item line "L1" skipped)
+        PurchaseHeader.Get(PurchaseHeader."Document Type"::Order, PurchaseHeader."No.");
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true);
+
+        // [THEN] Value Entry "VE" exists for item charge "C" applied to item "I"
+        ValueEntry.SetRange("Entry Type", ValueEntry."Entry Type"::"Direct Cost");
+        ValueEntry.SetRange("Item No.", Item."No.");
+        ValueEntry.SetRange("Item Charge No.", ItemCharge."No.");
+        Assert.RecordIsNotEmpty(ValueEntry);
+    end;
+
     local procedure Initialize()
     var
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
