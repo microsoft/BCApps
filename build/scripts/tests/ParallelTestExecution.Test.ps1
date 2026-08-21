@@ -351,19 +351,12 @@ Describe "ParallelTestExecution clean tenant scheduling" {
         }
     }
 
-    It "excludes Disabled-isolation codeunits from the normal pass for clean-tenant apps" {
+    It "defers the automatic Unit disabled pass only for clean-tenant apps" {
         InModuleScope ParallelTestExecution {
             $script:skipValues = [System.Collections.Generic.List[bool]]::new()
-            $script:requiredIsolationValues = [System.Collections.Generic.List[string]]::new()
             Mock Start-Sleep { }
             Mock Start-TestJob {
                 $script:skipValues.Add($skipAutomaticDisabledPass.IsPresent)
-                $requiredIsolation = if ($parameters.ContainsKey('requiredTestIsolation')) {
-                    $parameters.requiredTestIsolation
-                } else {
-                    ''
-                }
-                $script:requiredIsolationValues.Add($requiredIsolation)
                 [PSCustomObject]@{ Id = $script:skipValues.Count }
             }
 
@@ -375,7 +368,21 @@ Describe "ParallelTestExecution clean tenant scheduling" {
                 -SkipAutomaticDisabledPass
 
             $script:skipValues | Should -Be @($false, $true)
-            $script:requiredIsolationValues | Should -Be @('', 'Codeunit')
+        }
+    }
+
+    It "applies country-scoped disabled tests only in matching countries" {
+        InModuleScope ParallelTestExecution {
+            Test-DisabledTestAppliesToCountry -DisabledTest ([PSCustomObject]@{ method = 'Global' }) -Country 'W1' |
+                Should -BeTrue
+            Test-DisabledTestAppliesToCountry -DisabledTest ([PSCustomObject]@{
+                method = 'IndiaOnly'
+                countries = @('IN')
+            }) -Country 'IN' | Should -BeTrue
+            Test-DisabledTestAppliesToCountry -DisabledTest ([PSCustomObject]@{
+                method = 'IndiaOnly'
+                countries = @('IN')
+            }) -Country 'W1' | Should -BeFalse
         }
     }
 

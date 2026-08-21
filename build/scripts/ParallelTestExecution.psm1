@@ -14,6 +14,19 @@ if (-not (Get-Command Write-Log -ErrorAction SilentlyContinue)) {
 }
 Import-Module (Join-Path $PSScriptRoot "ALAppBuild.psm1" -Resolve)
 
+function Test-DisabledTestAppliesToCountry {
+    param(
+        $DisabledTest,
+        [string]$Country
+    )
+
+    if (-not $DisabledTest.PSObject.Properties['countries']) {
+        return $true
+    }
+
+    return $Country -in @($DisabledTest.countries)
+}
+
 function Get-DisabledTestsForApp {
     param(
         [Parameter(Mandatory=$true)]
@@ -22,6 +35,7 @@ function Get-DisabledTestsForApp {
 
     $appFolderName = $AppName -replace ' ', '_'
     $disabledTests = @()
+    $country = Get-ALGoSetting -Key "country"
 
     $disabledTestsFolders = Get-ChildItem -Path (Get-BaseFolder) -Filter "DisabledTests" -Recurse -Directory
     foreach ($disabledTestsFolder in $disabledTestsFolders) {
@@ -31,7 +45,11 @@ function Get-DisabledTestsForApp {
         }
 
         foreach ($jsonFile in (Get-ChildItem -Path $appFolder -Filter "*.json")) {
-            $disabledTests += (Get-Content -Raw -Path $jsonFile.FullName | ConvertFrom-Json)
+            $disabledTests += @(
+                Get-Content -Raw -Path $jsonFile.FullName |
+                    ConvertFrom-Json |
+                    Where-Object { Test-DisabledTestAppliesToCountry -DisabledTest $_ -Country $country }
+            )
         }
     }
 
@@ -617,9 +635,6 @@ function Start-TestAppDispatch {
     $appParams['appName'] = $AppName
     $appParams['extensionId'] = $AppId
     $appParams.Remove('ReRun') | Out-Null
-    if ($SkipAutomaticDisabledPass) {
-        $appParams['requiredTestIsolation'] = 'Codeunit'
-    }
 
     $job = Start-TestJob -parameters $appParams -tenant $Tenant -scriptPath $ScriptPath -testType $TestType `
         -skipAutomaticDisabledPass:$SkipAutomaticDisabledPass
