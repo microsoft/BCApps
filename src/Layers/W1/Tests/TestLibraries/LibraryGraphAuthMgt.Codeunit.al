@@ -24,10 +24,28 @@ codeunit 131022 "Library - Graph Auth Mgt."
         PasswordRetrievalFailedErr: Label 'The API test password could not be retrieved.', Locked = true;
 
     [NonDebuggable]
-    procedure AddAuthentication(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt.")
+    internal procedure AddAuthentication(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt.")
+    var
+        Password: SecretText;
+    begin
+        if not GetAuthenticationPassword(Password) then
+            exit;
+
+        AddUserPasswordAuthentication(HttpWebRequestMgt, Password);
+    end;
+
+    [NonDebuggable]
+    internal procedure EnsureAuthenticationAvailable()
+    var
+        Password: SecretText;
+    begin
+        GetAuthenticationPassword(Password);
+    end;
+
+    [NonDebuggable]
+    local procedure GetAuthenticationPassword(var Password: SecretText): Boolean
     var
         User: Record User;
-        Password: SecretText;
     begin
         if not User.Get(UserSecurityId()) then
             Error(CurrentUserNotFoundErr);
@@ -35,17 +53,16 @@ codeunit 131022 "Library - Graph Auth Mgt."
         if ContainerPasswordFileExists() then begin
             if not TryGetContainerPassword(Password) then
                 Error(ContainerPasswordReadErr, ApiTestPasswordFileTok);
-            AddUserPasswordAuthentication(HttpWebRequestMgt, Password);
-            exit;
+            exit(true);
         end;
 
         if User."Windows Security ID" <> '' then
-            exit;
+            exit(false);
 
         if not TryGetNavEnlistmentPassword(Password) then
             Error(KeyVaultPasswordReadErr, NavServerUserPasswordKeyTok);
 
-        AddUserPasswordAuthentication(HttpWebRequestMgt, Password);
+        exit(true);
     end;
 
     [NonDebuggable]

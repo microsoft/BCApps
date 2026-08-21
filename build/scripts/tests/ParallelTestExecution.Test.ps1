@@ -311,12 +311,16 @@ Describe "ParallelTestExecution clean tenant scheduling" {
             foreach ($apiVersion in @('APIV1', 'APIV2')) {
                 $testSource = Join-Path $repoRoot "src\Apps\W1\$apiVersion\test\src"
                 $disabledManifest = Join-Path $repoRoot "src\DisabledTests\_Exclude_${apiVersion}__Tests\_Exclude_${apiVersion}__Tests.DisabledTest.json"
-                $disabledCodeunitIds = @(
-                    Get-Content $disabledManifest -Raw |
-                        ConvertFrom-Json |
-                        Where-Object method -eq '*' |
-                        ForEach-Object { [int]$_.codeunitId }
-                )
+                $disabledCodeunitIds = if (Test-Path $disabledManifest) {
+                    @(
+                        Get-Content $disabledManifest -Raw |
+                            ConvertFrom-Json |
+                            Where-Object method -eq '*' |
+                            ForEach-Object { [int]$_.codeunitId }
+                    )
+                } else {
+                    @()
+                }
                 $enabledCodeunitCount = 0
                 foreach ($file in (Get-ChildItem $testSource -Filter '*.al' -File)) {
                     $content = Get-Content $file.FullName -Raw

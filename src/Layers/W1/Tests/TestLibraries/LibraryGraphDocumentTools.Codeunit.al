@@ -584,13 +584,13 @@ codeunit 130619 "Library - Graph Document Tools"
         GLAccount: Record "G/L Account";
     begin
         LibraryInventory.CreateItemCharge(ItemCharge);
-        LibraryGraphMgt.EnsureApiTestVATPostingSetupExists(
+        EnsureVATPostingSetupExists(
             SalesHeader."VAT Bus. Posting Group", ItemCharge."VAT Prod. Posting Group");
         LibrarySales.CreateSalesLine(SalesLineCharge, SalesHeader, SalesLineCharge.Type::"Charge (Item)", ItemCharge."No.", 1);
 
         LibraryERM.FindVATBusinessPostingGroup(VATBusinessPostingGroup);
         LibraryResource.CreateResource(Resource, VATBusinessPostingGroup.Code);
-        LibraryGraphMgt.EnsureApiTestVATPostingSetupExists(
+        EnsureVATPostingSetupExists(
             SalesHeader."VAT Bus. Posting Group", Resource."VAT Prod. Posting Group");
         LibrarySales.CreateSalesLine(SalesLineResource, SalesHeader, SalesLineResource.Type::Resource, Resource."No.", 1);
 
@@ -618,7 +618,7 @@ codeunit 130619 "Library - Graph Document Tools"
         GLAccount: Record "G/L Account";
     begin
         LibraryInventory.CreateItemCharge(ItemCharge);
-        LibraryGraphMgt.EnsureApiTestVATPostingSetupExists(
+        EnsureVATPostingSetupExists(
             PurchaseHeader."VAT Bus. Posting Group", ItemCharge."VAT Prod. Posting Group");
         LibraryPurchase.CreatePurchaseLine(
           PurchaseLineCharge, PurchaseHeader, PurchaseLineCharge.Type::"Charge (Item)", ItemCharge."No.", 1);
@@ -637,10 +637,25 @@ codeunit 130619 "Library - Graph Document Tools"
         GLAccount.SetRange("Direct Posting", true);
 #pragma warning restore AA0210
         GLAccount.FindFirst();
-        LibraryGraphMgt.EnsureApiTestVATPostingSetupExists(
+        EnsureVATPostingSetupExists(
             PurchaseHeader."VAT Bus. Posting Group", GLAccount."VAT Prod. Posting Group");
         LibraryPurchase.CreatePurchaseLine(
           PurchaseLineGLAccount, PurchaseHeader, PurchaseLineGLAccount.Type::"G/L Account", GLAccount."No.", 1);
+    end;
+
+    procedure EnsureVATPostingSetupExists(VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20])
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        if (VATBusPostingGroup = '') and (VATProdPostingGroup = '') then
+            exit;
+        if VATPostingSetup.Get(VATBusPostingGroup, VATProdPostingGroup) then
+            exit;
+
+        VATPostingSetup.Init();
+        VATPostingSetup."VAT Bus. Posting Group" := VATBusPostingGroup;
+        VATPostingSetup."VAT Prod. Posting Group" := VATProdPostingGroup;
+        VATPostingSetup.Insert();
     end;
 
     [Scope('OnPrem')]

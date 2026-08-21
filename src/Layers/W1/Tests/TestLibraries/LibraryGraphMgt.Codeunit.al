@@ -17,6 +17,7 @@ codeunit 130618 "Library - Graph Mgt"
 
     procedure BindAuthentication()
     begin
+        LibraryGraphAuthMgt.EnsureAuthenticationAvailable();
     end;
 
     procedure InitializeApiTest()
@@ -177,58 +178,9 @@ codeunit 130618 "Library - Graph Mgt"
 
     procedure InitializeWebRequestWithURL(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt."; TargetURL: Text)
     begin
-        if IsApiTestInitialized then
-            EnsureApiTestVATPostingSetups();
         HttpWebRequestMgt.Initialize(TargetURL);
         LibraryGraphAuthMgt.AddAuthentication(HttpWebRequestMgt);
         OnAfterInitializeWebRequestWithURL(HttpWebRequestMgt);
-    end;
-
-    procedure EnsureApiTestVATPostingSetupExists(VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20])
-    var
-        Created: Boolean;
-    begin
-        EnsureApiTestVATPostingSetup(VATBusPostingGroup, VATProdPostingGroup, Created);
-        if Created then
-            Commit();
-    end;
-
-    local procedure EnsureApiTestVATPostingSetups()
-    var
-        SalesLine: Record "Sales Line";
-        PurchaseLine: Record "Purchase Line";
-        Created: Boolean;
-    begin
-        if SalesLine.FindSet() then
-            repeat
-                EnsureApiTestVATPostingSetup(
-                    SalesLine."VAT Bus. Posting Group", SalesLine."VAT Prod. Posting Group", Created);
-            until SalesLine.Next() = 0;
-
-        if PurchaseLine.FindSet() then
-            repeat
-                EnsureApiTestVATPostingSetup(
-                    PurchaseLine."VAT Bus. Posting Group", PurchaseLine."VAT Prod. Posting Group", Created);
-            until PurchaseLine.Next() = 0;
-
-        if Created then
-            Commit();
-    end;
-
-    local procedure EnsureApiTestVATPostingSetup(VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; var Created: Boolean)
-    var
-        VATPostingSetup: Record "VAT Posting Setup";
-    begin
-        if (VATBusPostingGroup = '') and (VATProdPostingGroup = '') then
-            exit;
-        if VATPostingSetup.Get(VATBusPostingGroup, VATProdPostingGroup) then
-            exit;
-
-        VATPostingSetup.Init();
-        VATPostingSetup."VAT Bus. Posting Group" := VATBusPostingGroup;
-        VATPostingSetup."VAT Prod. Posting Group" := VATProdPostingGroup;
-        VATPostingSetup.Insert();
-        Created := true;
     end;
 
     procedure PatchToWebServiceAndCheckResponseCode(TargetURL: Text; JSONBody: Text; var ResponseText: Text; ExpectedResponseCode: Integer)
