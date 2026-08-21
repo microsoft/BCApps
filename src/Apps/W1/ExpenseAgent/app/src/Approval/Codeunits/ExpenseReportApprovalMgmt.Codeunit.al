@@ -3,6 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
+using System.Security.User;
 
 codeunit 6901 "Expense Report Approval Mgmt"
 {
@@ -18,6 +19,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
         ReopenApprovedConfirmQst: Label 'Do you want to reopen approved Expense Report?';
         NoExpenseReportLinesToProcessErr: Label 'There are no Expense Report Lines to process in %1 action.', Comment = '%1 = Action';
         NotAuthorizedToOpenExpReportErr: Label 'You are not authorized to open expense reports. Please configure your %1 in the %2.', Comment = '%1 = Field Caption,%2 = Table Caption';
+        NotAuthorizedToRecallExpReportErr: Label 'Only the original submitter or a user with %1 can recall a submitted expense report.', Comment = '%1 = User Setup field caption';
         ApproverMustBeEnabledInExpenseUserErr: Label '%1 must be enabled to approve or reject expense reports in %2.', Comment = '%1 = Field Caption, %2 = Table Caption';
         UserIdForApprovalMustNotBeBlankInExpenseUserErr: Label '%1 must not be blank in %2.', Comment = '%1 = Field Caption, %2 = Table Caption';
 
@@ -105,19 +107,25 @@ codeunit 6901 "Expense Report Approval Mgmt"
     procedure ReopenSubmitted(var ExpenseReportHeader: Record "Expense Report Header")
     var
         SubmitterExpenseUserNo: Code[20];
+        RecallActorRole: Enum "Expense Activity Actor Role";
         IsRecall: Boolean;
     begin
         if ExpenseReportHeader.Status = ExpenseReportHeader.Status::Open then
             exit;
 
         IsRecall := ExpenseReportHeader.Status = ExpenseReportHeader.Status::"Pending Approval";
-        if IsRecall then
-            SubmitterExpenseUserNo := GetExpenseUserNo();
+        if IsRecall then begin
+            RecallActorRole := GetRecallActorRole(ExpenseReportHeader);
+            SubmitterExpenseUserNo := ExpenseReportHeader."Submitter Expense User No.";
+        end;
 
         ExpenseReportHeader.Status := ExpenseReportHeader.Status::Open;
         ExpenseReportHeader.Modify(true);
         if IsRecall then
-            LogExpenseReportRecalled(ExpenseReportHeader, SubmitterExpenseUserNo);
+            if RecallActorRole = RecallActorRole::Administrator then
+                LogExpenseReportRecalledByAdministrator(ExpenseReportHeader)
+            else
+                LogExpenseReportRecalled(ExpenseReportHeader, SubmitterExpenseUserNo);
     end;
 
     procedure ReopenApproved(var ExpenseReportHeader: Record "Expense Report Header")
@@ -304,6 +312,31 @@ codeunit 6901 "Expense Report Approval Mgmt"
             Enum::"Expense Activity Actor Role"::Submitter,
             SubmitterExpenseUserNo,
             '');
+    end;
+
+    local procedure LogExpenseReportRecalledByAdministrator(ExpenseReportHeader: Record "Expense Report Header")
+    var
+        ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
+    begin
+        ExpenseActivityLogMgt.LogExpenseReportEventByBCUser(
+            ExpenseReportHeader,
+            Enum::"Expense Activity Event Type"::Recalled,
+            Enum::"Expense Activity Actor Role"::Administrator,
+            '');
+    end;
+
+    local procedure GetRecallActorRole(ExpenseReportHeader: Record "Expense Report Header"): Enum "Expense Activity Actor Role"
+    var
+        UserSetup: Record "User Setup";
+    begin
+        if ExpenseReportHeader."Submitter Expense User Id" = UserId() then
+            exit(Enum::"Expense Activity Actor Role"::Submitter);
+
+        UserSetup.SetLoadFields("Unlimited Expense Approval");
+        if UserSetup.Get(UserId()) and UserSetup."Unlimited Expense Approval" then
+            exit(Enum::"Expense Activity Actor Role"::Administrator);
+
+        Error(NotAuthorizedToRecallExpReportErr, UserSetup.FieldCaption("Unlimited Expense Approval"));
     end;
 
     internal procedure NoExpenseLinesToProcess(ExpenseApprovalAction: Enum "Expense Approval Action")

@@ -158,9 +158,9 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         ManufacturingSetup: Record "Manufacturing Setup";
         AssistedSetupTestLibrary: Codeunit "Assisted Setup Test Library";
         GuidedExperience: Codeunit "Guided Experience";
-        SubcontractingSetupWizard: TestPage "Subcontracting Setup Wizard";
         CreateProdOrderInfoLine: Boolean;
         OriginalCreateProdOrderInfoLine: Boolean;
+        SubcontractingSetupWizard: TestPage "Subcontracting Setup Wizard";
     begin
         // [SCENARIO 642233] Finishing the setup guide saves changes and marks the assisted setup as completed.
         Initialize();
@@ -1255,20 +1255,16 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     var
         Assert: Codeunit Assert;
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+        LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
-        LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         IsInitialized: Boolean;
         ControlNotExistMsg: Label 'Control %1 does not exist.', Comment = '%1 = field caption';
-        SubcontractingActionsVisibleErr: Label 'Subcontractor Prices action should not be visible for a non-subcontracting Work Center.';
-        SubcontractingActionsEnabledErr: Label 'Subcontractor Prices action should not be enabled for a non-subcontracting Work Center.';
-        SubcontractingActionsNotVisibleErr: Label 'Subcontractor Prices action should be visible for a subcontracting Work Center.';
-        SubcontractingActionsNotEnabledErr: Label 'Subcontractor Prices action should be enabled for a subcontracting Work Center.';
         ILEProdActionsEnabledErr: Label 'Production actions should not be enabled for a non-subcontracting Item Ledger Entry.';
         ILEProdActionsNotEnabledErr: Label 'Production actions should be enabled for a subcontracting Item Ledger Entry.';
         ILEPurchActionsEnabledErr: Label 'Purchase Order action should not be enabled for a non-subcontracting Item Ledger Entry.';
@@ -1285,4 +1281,8 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         SendNotificationTok: Label 'Send', Locked = true;
         VendorCardNoErr: Label 'The Vendor Card opened for an unexpected vendor.';
         VendorNoTok: Label 'VendorNo', Locked = true;
+        SubcontractingActionsEnabledErr: Label 'Subcontractor Prices action should not be enabled for a non-subcontracting Work Center.';
+        SubcontractingActionsNotEnabledErr: Label 'Subcontractor Prices action should be enabled for a subcontracting Work Center.';
+        SubcontractingActionsNotVisibleErr: Label 'Subcontractor Prices action should be visible for a subcontracting Work Center.';
+        SubcontractingActionsVisibleErr: Label 'Subcontractor Prices action should not be visible for a non-subcontracting Work Center.';
 }
