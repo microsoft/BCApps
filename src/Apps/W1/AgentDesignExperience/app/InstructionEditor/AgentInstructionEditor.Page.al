@@ -469,7 +469,6 @@ page 4363 "Agent Instruction Editor"
     begin
         SetupFiltering();
 
-        GetAgentSafe();
         if GlobalAgent.Substate = GlobalAgent.Substate::Archived then
             ThrowArchivedAgentCannotBeTestedError(GlobalAgentUserSecurityId);
 
@@ -505,13 +504,14 @@ page 4363 "Agent Instruction Editor"
         GlobalAgentUserSecurityId := NewUserSecId;
     end;
 
-    procedure ThrowArchivedAgentCannotBeTestedError(AgentSecurityId: Guid)
+    internal procedure ThrowArchivedAgentCannotBeTestedError(AgentSecurityId: Guid)
     var
         Agent: Record Agent;
         AgentArchivedErrorInfo: ErrorInfo;
     begin
         Agent.Get(AgentSecurityId);
 
+        AgentArchivedErrorInfo.DataClassification := DataClassification::SystemMetadata;
         AgentArchivedErrorInfo.Title := ArchivedAgentCannotBeTestedErr;
         AgentArchivedErrorInfo.Message := ArchivedAgentDataAvailableErr;
         AgentArchivedErrorInfo.PageNo := Page::"Agent Card";
