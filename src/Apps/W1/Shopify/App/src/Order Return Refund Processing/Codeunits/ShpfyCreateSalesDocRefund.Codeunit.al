@@ -431,7 +431,6 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
         SalesHeader.CalcFields(Amount, "Amount Including VAT");
         Currency.Initialize(SalesHeader."Currency Code");
         RoundingAmount := CreateRoundingLine(RefundHeader, SalesHeader, LineNo);
-        OrderHeader.Get(RefundHeader."Order Id");
 
         RefundProcessEvents.OnBeforeCreateSalesLinesFromRemainingAmount(RefundHeader, SalesHeader, SkipBalancing);
         if SkipBalancing then
@@ -444,6 +443,8 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
         // Refund Account line, so the exchange item lines are left to stand on their own.
         if RefundHasExchangeItemLines(RefundHeader."Refund Id") then
             exit;
+
+        OrderHeader.Get(RefundHeader."Order Id");
 
         case OrderHeader."Processed Currency Handling" of
             "Shpfy Currency Handling"::"Shop Currency":
