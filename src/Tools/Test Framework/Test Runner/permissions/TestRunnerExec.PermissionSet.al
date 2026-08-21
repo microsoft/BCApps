@@ -19,5 +19,8 @@ permissionset 130450 "Test Runner - Exec"
         tabledata "AL Code Coverage Map" = rmid,
         tabledata "Test Input" = rimd,
         tabledata "Test Input Group" = rimd,
-        tabledata "Test Output" = rmid;
+        tabledata "Test Output" = rmid,
+        tabledata "Test Configuration" = rimd,
+        tabledata "Test Configuration Line" = rimd,
+        tabledata "Test Configuration Run Result" = rimd;
 }
