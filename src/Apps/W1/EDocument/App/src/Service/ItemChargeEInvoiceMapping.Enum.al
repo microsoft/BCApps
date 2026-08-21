@@ -7,6 +7,14 @@ namespace Microsoft.eServices.EDocument;
 /// <summary>
 /// Determines how item charge lines are represented in an exported e-document.
 /// </summary>
+/// <remarks>
+/// The enum is extensible, but the built-in classification only resolves the members declared here.
+/// An extension that adds a member is responsible for turning it into a structure: subscribe to
+/// "E-Doc. Item Charge Mapping".OnAfterGetItemChargeStructure and OnAfterGetSalesCrMemoItemChargeStructure,
+/// read the value from the "E-Document Service" record the event passes, and set the Structure parameter
+/// accordingly. Both events are raised last, so the structure a subscriber sets wins over the built-in
+/// classification.
+/// </remarks>
 enum 6430 "Item Charge E-Invoice Mapping"
 {
     Extensible = true;

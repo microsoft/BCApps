@@ -2045,6 +2045,68 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     end;
 
     [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyDocumentLevelItemChargeReasonFallsBackToItemChargeNo()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ChargeSalesInvoiceLine: Record "Sales Invoice Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+        Path: Text;
+    begin
+        // [SCENARIO] Without a reason text, a reason code and a line description the item charge code is exported as the reason, so that the allowance/charge always carries one of the two reason elements EN 16931 requires
+        Initialize();
+
+        // [GIVEN] A service that maps item charges automatically
+        SetServiceItemChargeMapping(EDocumentService."Item Charge E-Invoice Mapping"::Automatic);
+
+        // [GIVEN] A posted sales invoice with a document level item charge that has neither a reason text, nor a reason code, nor a line description
+        SalesInvoiceHeader.Get(
+            CreateAndPostSalesDocumentWithItemCharge("Sales Document Type"::Invoice, 2, 2, 2, LibraryRandom.RandDecInRange(10, 50, 2), true, ItemChargeNo));
+        GetChargeInvoiceLine(SalesInvoiceHeader, ChargeSalesInvoiceLine);
+        Assert.AreEqual('', ChargeSalesInvoiceLine.Description, 'The scenario requires an item charge line without a description.');
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] The code of the item charge is exported as the reason
+        Path := DocumentAllowanceChargeTok + '/ram:Reason';
+        Assert.AreEqual(ItemChargeNo, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyDocumentLevelItemChargeWithReasonCodeOnlyKeepsTheReasonCode()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+        Path: Text;
+    begin
+        // [SCENARIO] A reason code alone already satisfies the reason requirement of EN 16931, so the item charge code is not substituted as the reason text
+        Initialize();
+
+        // [GIVEN] A service that maps item charges automatically
+        SetServiceItemChargeMapping(EDocumentService."Item Charge E-Invoice Mapping"::Automatic);
+
+        // [GIVEN] A posted sales invoice with a document level item charge without a line description
+        SalesInvoiceHeader.Get(
+            CreateAndPostSalesDocumentWithItemCharge("Sales Document Type"::Invoice, 2, 2, 2, LibraryRandom.RandDecInRange(10, 50, 2), true, ItemChargeNo));
+
+        // [GIVEN] The item charge carries a reason code but no reason text
+        SetItemChargeReason(ItemChargeNo, '', ItemChargeReasonCodeTok);
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] The reason code of the item charge is exported
+        Path := DocumentAllowanceChargeTok + '/ram:ReasonCode';
+        Assert.AreEqual(ItemChargeReasonCodeTok, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] The code of the item charge is not exported as the reason
+        Path := DocumentAllowanceChargeTok + '/ram:Reason';
+        Assert.AreEqual('', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
     procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyLineLevelItemChargeAllowanceCharge()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -2466,6 +2528,68 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
 
         // [THEN] The charge is not repeated as a line level allowance/charge
         Assert.AreEqual(0, GetNodeCountByPath(TempXMLBuffer, InvoiceLineAllowanceChargeTok), 'A document level charge must not be exported inside a credit memo line.');
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDFormatVerifyDocumentLevelItemChargeReasonFallsBackToItemChargeNo()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        ChargeSalesCrMemoLine: Record "Sales Cr.Memo Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+        Path: Text;
+    begin
+        // [SCENARIO] Without a reason text, a reason code and a line description the item charge code is exported as the reason, so that the allowance/charge always carries one of the two reason elements EN 16931 requires
+        Initialize();
+
+        // [GIVEN] A service that maps item charges automatically
+        SetServiceItemChargeMapping(EDocumentService."Item Charge E-Invoice Mapping"::Automatic);
+
+        // [GIVEN] A posted sales credit memo with a document level item charge that has neither a reason text, nor a reason code, nor a line description
+        SalesCrMemoHeader.Get(
+            CreateAndPostSalesDocumentWithItemCharge("Sales Document Type"::"Credit Memo", 2, 2, 2, LibraryRandom.RandDecInRange(10, 50, 2), true, ItemChargeNo));
+        GetChargeCrMemoLine(SalesCrMemoHeader, ChargeSalesCrMemoLine);
+        Assert.AreEqual('', ChargeSalesCrMemoLine.Description, 'The scenario requires an item charge line without a description.');
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] The code of the item charge is exported as the reason
+        Path := DocumentAllowanceChargeTok + '/ram:Reason';
+        Assert.AreEqual(ItemChargeNo, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDFormatVerifyDocumentLevelItemChargeWithReasonCodeOnlyKeepsTheReasonCode()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+        Path: Text;
+    begin
+        // [SCENARIO] A reason code alone already satisfies the reason requirement of EN 16931, so the item charge code is not substituted as the reason text
+        Initialize();
+
+        // [GIVEN] A service that maps item charges automatically
+        SetServiceItemChargeMapping(EDocumentService."Item Charge E-Invoice Mapping"::Automatic);
+
+        // [GIVEN] A posted sales credit memo with a document level item charge without a line description
+        SalesCrMemoHeader.Get(
+            CreateAndPostSalesDocumentWithItemCharge("Sales Document Type"::"Credit Memo", 2, 2, 2, LibraryRandom.RandDecInRange(10, 50, 2), true, ItemChargeNo));
+
+        // [GIVEN] The item charge carries a reason code but no reason text
+        SetItemChargeReason(ItemChargeNo, '', ItemChargeReasonCodeTok);
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] The reason code of the item charge is exported
+        Path := DocumentAllowanceChargeTok + '/ram:ReasonCode';
+        Assert.AreEqual(ItemChargeReasonCodeTok, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] The code of the item charge is not exported as the reason
+        Path := DocumentAllowanceChargeTok + '/ram:Reason';
+        Assert.AreEqual('', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
     [Test]
@@ -2958,6 +3082,11 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     end;
 
     local procedure CreateAndPostSalesDocumentWithItemCharge(DocumentType: Enum "Sales Document Type"; NoOfItemLines: Integer; NoOfAssignedLines: Integer; ChargeQuantity: Decimal; ChargeUnitPrice: Decimal; var ItemChargeNo: Code[20]): Code[20]
+    begin
+        exit(CreateAndPostSalesDocumentWithItemCharge(DocumentType, NoOfItemLines, NoOfAssignedLines, ChargeQuantity, ChargeUnitPrice, false, ItemChargeNo));
+    end;
+
+    local procedure CreateAndPostSalesDocumentWithItemCharge(DocumentType: Enum "Sales Document Type"; NoOfItemLines: Integer; NoOfAssignedLines: Integer; ChargeQuantity: Decimal; ChargeUnitPrice: Decimal; BlankChargeDescription: Boolean; var ItemChargeNo: Code[20]): Code[20]
     var
         ItemChargeAssignmentSales: Record "Item Charge Assignment (Sales)";
         Item: Record Item;
@@ -2979,6 +3108,8 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         LibrarySales.CreateSalesLine(ChargeSalesLine, SalesHeader, ChargeSalesLine.Type::"Charge (Item)", ItemChargeNo, ChargeQuantity);
         ChargeSalesLine.Validate("Unit Price", ChargeUnitPrice);
         ChargeSalesLine.Validate("Tax Category", TaxCategoryStandardTok);
+        if BlankChargeDescription then
+            ChargeSalesLine.Description := '';
         ChargeSalesLine.Modify(true);
 
         for Index := 1 to NoOfAssignedLines do begin

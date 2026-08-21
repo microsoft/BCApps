@@ -1690,6 +1690,8 @@ codeunit 13917 "Export ZUGFeRD Document"
         EDocItemChargeMapping.GetItemChargeReason(ChargeSalesInvLine."No.", ReasonCode, ReasonText);
         if ReasonText = '' then
             ReasonText := ChargeSalesInvLine.Description;
+        if (ReasonText = '') and (ReasonCode = '') then
+            ReasonText := ChargeSalesInvLine."No.";
     end;
 
     local procedure GetItemChargeReason(ChargeSalesCrMemoLine: Record "Sales Cr.Memo Line"; var ReasonCode: Code[10]; var ReasonText: Text[100])
@@ -1697,6 +1699,8 @@ codeunit 13917 "Export ZUGFeRD Document"
         EDocItemChargeMapping.GetItemChargeReason(ChargeSalesCrMemoLine."No.", ReasonCode, ReasonText);
         if ReasonText = '' then
             ReasonText := ChargeSalesCrMemoLine.Description;
+        if (ReasonText = '') and (ReasonCode = '') then
+            ReasonText := ChargeSalesCrMemoLine."No.";
     end;
 
     local procedure GetDocumentLevelItemChargeTotals(var SalesInvLine: Record "Sales Invoice Line"; var TotalChargeAmount: Decimal; var TotalAllowanceAmount: Decimal)
