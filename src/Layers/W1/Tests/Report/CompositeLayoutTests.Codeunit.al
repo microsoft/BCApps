@@ -27,6 +27,9 @@ codeunit 134619 "Composite Layout Tests"
         InternalDefaultTok: Label 'Internal Default', Locked = true;
         SalesInvoiceBodyLayoutTok: Label 'StandardSalesInvoiceBody.docx', Locked = true;
         MissingBodyLayoutTok: Label 'ThisBodyLayoutIsNotInstalled.docx', Locked = true;
+        UnseedablePartTok: Label 'Test Unseedable Part', Locked = true;
+        UnseedablePartDescTok: Label 'A part a test seeds from a layout file that is not in the app.', Locked = true;
+        MissingResourceTok: Label 'ReportParts/HeaderFooterDesign/ThisResourceIsNotInTheApp.docx', Locked = true;
         TestReportID: Integer;
         DocReportExpWasEnabled: Boolean;
 
@@ -628,6 +631,85 @@ codeunit 134619 "Composite Layout Tests"
 
         // Put the part back so the rest of the suite sees a complete pool.
         CompositeReportPartsMgt.SeedDefaultParts();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SeedPartReportsFailureWhenTheResourceIsMissing()
+    var
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
+        PartName: Text[250];
+        PartSeeded: Boolean;
+    begin
+        // [SCENARIO] A part whose layout file cannot be read is reported as not seeded instead of throwing: the seeding
+        // pass runs during install and upgrade, where an uncaught error would abort the whole operation. This false is
+        // also the only thing that makes the pass report itself incomplete - SeedDefaultParts counts these results - and
+        // an incomplete pass is what leaves the upgrade tag unset.
+        Initialize();
+
+        // [GIVEN] The part is not in the pool, so the count below cannot pass on a row from an earlier run.
+        PartName := CopyStr(UnseedablePartTok, 1, MaxStrLen(PartName));
+        RemoveShippedPart(PartName);
+        Assert.AreEqual(0, ShippedPartCount(PartName), 'The part should not be in the pool before the call.');
+
+        // [WHEN] Seeding a part whose layout file is not a resource of the app.
+        PartSeeded := CompositeReportPartsMgt.SeedPart(PartName, MissingResourceTok, Enum::"Report Layout Subtype"::HeaderFooter, UnseedablePartDescTok);
+
+        // [THEN] It reported the failure rather than raising it.
+        Assert.IsFalse(PartSeeded, 'A part whose layout file cannot be read should be reported as not seeded.');
+
+        // [THEN] Nothing was written for it, so a failure leaves no half-seeded part behind.
+        Assert.AreEqual(0, ShippedPartCount(PartName), 'A part that could not be written should leave no row in the pool.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure UpgradeLeavesTagUnsetAfterFailedSeedSoNextRunRetries()
+    var
+        UpgradeCompositeReportParts: Codeunit "Upgrade Composite Report Parts";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+        UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
+    begin
+        // [SCENARIO] A seeding pass that could not write every part must not record the upgrade tag. The tag is what stops
+        // the pass from running again, so stamping it after a partial seed would leave the skipped parts missing for good.
+        // Left unset, the next upgrade runs the pass again and seeds them.
+        Initialize();
+
+        // [GIVEN] No tag, and one shipped part missing, so a retry has visible work to do. The delete is guarded because
+        // the library helper does a bare Get and throws when the tag is not there.
+        if UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()) then
+            UpgradeTagLibrary.DeleteUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag(), '');
+        RemoveShippedPart(InternalDefaultTok);
+        Assert.IsFalse(
+            ShippedPartExists(InternalDefaultTok, Enum::"Report Layout Subtype"::HeaderFooter),
+            'The part should be missing before the failed pass, or the retry assertion below proves nothing.');
+
+        // [WHEN] A seeding pass reports that it could not write every part.
+        UpgradeCompositeReportParts.RecordSeedOutcome(false);
+
+        // [THEN] The tag was not recorded, so nothing gates a later attempt.
+        Assert.IsFalse(
+            UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()),
+            'A pass that did not seed every part must not record its upgrade tag.');
+
+        // [THEN] The failed pass wrote nothing on its own behalf either - the part is still missing.
+        Assert.IsFalse(
+            ShippedPartExists(InternalDefaultTok, Enum::"Report Layout Subtype"::HeaderFooter),
+            'Recording the outcome of a failed pass should not seed anything.');
+
+        // [WHEN] The next upgrade runs.
+        UpgradeCompositeReportParts.RunUpgrade();
+
+        // [THEN] It was not gated: it retried the pass and seeded the part that was missing.
+        Assert.IsTrue(
+            ShippedPartExists(InternalDefaultTok, Enum::"Report Layout Subtype"::HeaderFooter),
+            'With the tag unset, the next upgrade should retry the seeding and write the missing part.');
+
+        // [THEN] That pass wrote every part, so this time it recorded the tag.
+        Assert.IsTrue(
+            UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()),
+            'A retry that seeded every part should record the upgrade tag.');
     end;
 
     [MessageHandler]

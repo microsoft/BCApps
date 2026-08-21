@@ -70,11 +70,20 @@ codeunit 9667 "Composite Report Parts Mgt."
              DefaultThemeTxt, CalmThemeTxt, PlayfulThemeTxt]);
     end;
 
+    /// <summary>
+    /// Writes one part into the shared pool. A part that cannot be written is reported to telemetry and returns false
+    /// instead of failing the pass; that false is what makes SeedDefaultParts report the pass as incomplete.
+    /// </summary>
     /// <param name="PartName">The name the part is stored and assigned under.</param>
     /// <param name="ResourceFile">Path of the layout file inside the resource folder declared in app.json.</param>
     /// <param name="Subtype">HeaderFooter or Theme. Also decides the MIME type.</param>
     /// <param name="Description">The description shown next to the part in the UI.</param>
-    local procedure SeedPart(PartName: Text[250]; ResourceFile: Text; Subtype: Enum "Report Layout Subtype"; Description: Text): Boolean
+    /// <returns>True when the part was written.</returns>
+    /// <remarks>
+    /// Internal rather than local so a test can drive the failure branch. Every part the pass above seeds is a resource
+    /// of this app, so none of them can be made to fail from the outside.
+    /// </remarks>
+    internal procedure SeedPart(PartName: Text[250]; ResourceFile: Text; Subtype: Enum "Report Layout Subtype"; Description: Text): Boolean
     begin
         ClearLastError();
         if TryUpsertPart(PartName, ResourceFile, Subtype, Description) then
