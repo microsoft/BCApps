@@ -10,6 +10,7 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Company;
 using Microsoft.Sales.Receivables;
 using System.Utilities;
 
@@ -132,14 +133,28 @@ codeunit 10975 "FR E-Invoice Message Mgt."
 
     local procedure FreezeSenderPlatform(EDocument: Record "E-Document"; var FREInvoiceMessage: Record "FR E-Invoice Message")
     var
+        CompanyInformation: Record "Company Information";
         EDocumentService: Record "E-Document Service";
     begin
         EDocumentService.Get(EDocument.Service);
-        if EDocumentService."FR Sender Platform ID" <> '' then
-            EDocumentService.TestField("FR Sender Platform Scheme");
         FREInvoiceMessage."Sender Platform ID" := EDocumentService."FR Sender Platform ID";
         FREInvoiceMessage."Sender Platform Scheme" := EDocumentService."FR Sender Platform Scheme";
         FREInvoiceMessage."Sender Platform Name" := EDocumentService."FR Sender Platform Name";
+        if FREInvoiceMessage."Sender Platform ID" = '' then
+            exit;
+
+        EDocument.TestField("Document Date");
+        EDocument.TestField("Clearance Date");
+        EDocumentService.TestField("FR Sender Platform Scheme");
+        EDocumentService.TestField("FR Sender Platform Name");
+        CompanyInformation.Get();
+        CompanyInformation.TestField("Registration No.");
+        CompanyInformation.TestField(Name);
+        FREInvoiceMessage."Invoice Issue Date" := EDocument."Document Date";
+        FREInvoiceMessage."Invoice Receipt At" := EDocument."Clearance Date";
+        FREInvoiceMessage."Invoice Issuer ID" := CopyStr(CompanyInformation."Registration No.", 1, 9);
+        FREInvoiceMessage."Invoice Issuer Scheme" := SIRENSchemeTok;
+        FREInvoiceMessage."Invoice Issuer Name" := CompanyInformation.Name;
     end;
 
     local procedure CopySenderPlatform(var FREInvoiceMessage: Record "FR E-Invoice Message"; OriginalEntryNo: Integer)
@@ -150,6 +165,11 @@ codeunit 10975 "FR E-Invoice Message Mgt."
         FREInvoiceMessage."Sender Platform ID" := OriginalFREInvoiceMessage."Sender Platform ID";
         FREInvoiceMessage."Sender Platform Scheme" := OriginalFREInvoiceMessage."Sender Platform Scheme";
         FREInvoiceMessage."Sender Platform Name" := OriginalFREInvoiceMessage."Sender Platform Name";
+        FREInvoiceMessage."Invoice Issue Date" := OriginalFREInvoiceMessage."Invoice Issue Date";
+        FREInvoiceMessage."Invoice Receipt At" := OriginalFREInvoiceMessage."Invoice Receipt At";
+        FREInvoiceMessage."Invoice Issuer ID" := OriginalFREInvoiceMessage."Invoice Issuer ID";
+        FREInvoiceMessage."Invoice Issuer Scheme" := OriginalFREInvoiceMessage."Invoice Issuer Scheme";
+        FREInvoiceMessage."Invoice Issuer Name" := OriginalFREInvoiceMessage."Invoice Issuer Name";
     end;
 
     local procedure CreateCollectedVATBreakdown(EDocument: Record "E-Document"; var FREInvoiceMessage: Record "FR E-Invoice Message")
@@ -408,6 +428,7 @@ codeunit 10975 "FR E-Invoice Message Mgt."
     end;
 
     var
+        SIRENSchemeTok: Label '0002', Locked = true;
         AlreadyRespondedErr: Label 'Invoice %1 already has a buyer response.', Comment = '%1 = invoice number';
         VATBreakdownErr: Label 'A reportable VAT breakdown could not be determined for posted sales invoice %1.', Comment = '%1 = posted sales invoice number';
         VATEntryCurrencyErr: Label 'VAT entry %1 does not contain amounts in lifecycle currency %2.', Comment = '%1 = VAT entry number, %2 = currency code';

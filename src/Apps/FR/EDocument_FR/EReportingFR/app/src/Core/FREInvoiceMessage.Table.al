@@ -111,6 +111,31 @@ table 10970 "FR E-Invoice Message"
             Caption = 'Sender Platform Name';
             DataClassification = OrganizationIdentifiableInformation;
         }
+        field(19; "Invoice Issue Date"; Date)
+        {
+            Caption = 'Invoice Issue Date';
+            DataClassification = CustomerContent;
+        }
+        field(20; "Invoice Receipt At"; DateTime)
+        {
+            Caption = 'Invoice Receipt At';
+            DataClassification = CustomerContent;
+        }
+        field(21; "Invoice Issuer ID"; Text[50])
+        {
+            Caption = 'Invoice Issuer ID';
+            DataClassification = OrganizationIdentifiableInformation;
+        }
+        field(22; "Invoice Issuer Scheme"; Code[4])
+        {
+            Caption = 'Invoice Issuer Scheme';
+            DataClassification = SystemMetadata;
+        }
+        field(23; "Invoice Issuer Name"; Text[100])
+        {
+            Caption = 'Invoice Issuer Name';
+            DataClassification = OrganizationIdentifiableInformation;
+        }
     }
 
     keys
