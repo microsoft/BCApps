@@ -1014,9 +1014,6 @@ codeunit 137015 "SCM Pick Worksheet"
         ExcludedQty: Decimal;
         AvailableQty: Decimal;
     begin
-        // [FEATURE] [Available Qty. to Pick]
-        // [SCENARIO] [BUG] [647203] In a basic (non-directed) warehouse the configured receipt bin is not
-        // available to pick, so its stock must be excluded from "Available Qty. to Pick" on the pick worksheet.
         Initialize();
 
         CreateBasicWarehouseLocationWithSpecialBins(Location, Bin, true, false);
