@@ -18,7 +18,6 @@ codeunit 148344 "Policy Evaluations API Test"
         LibraryExpense: Codeunit "Library - Expense";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
         IsInitialized: Boolean;
         ServiceNameTok: Label 'expensePolicyEvaluations', Locked = true;
         BadRequestResponseErr: Label 'Response code is 400', Locked = true;
@@ -120,7 +119,6 @@ codeunit 148344 "Policy Evaluations API Test"
         if IsInitialized then
             exit;
 
-        BindSubscription(APITestAuthHelper);
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Policy Evaluations API Test");
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
