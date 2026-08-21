@@ -448,10 +448,10 @@ codeunit 6912 "Expense Auto Population"
 
     procedure GetStandardRateOfMileage(ExpenseDate: Date; CurrencyCode: Code[10]; CurrencyFactor: Decimal; StandardRateOfMileage: Decimal): Decimal
     begin
-        exit(GetStandardRateOfMileage(ExpenseDate, CurrencyCode, CurrencyFactor, StandardRateOfMileage, "Expense Vehicle Type"::" "));
+        exit(GetStandardRateOfMileage(ExpenseDate, CurrencyCode, CurrencyFactor, StandardRateOfMileage, ''));
     end;
 
-    procedure GetStandardRateOfMileage(ExpenseDate: Date; CurrencyCode: Code[10]; CurrencyFactor: Decimal; StandardRateOfMileage: Decimal; VehicleType: Enum "Expense Vehicle Type"): Decimal
+    procedure GetStandardRateOfMileage(ExpenseDate: Date; CurrencyCode: Code[10]; CurrencyFactor: Decimal; StandardRateOfMileage: Decimal; VehicleType: Code[20]): Decimal
     var
         CurrencyExchangeRate: Record "Currency Exchange Rate";
         ExpenseCurrency: Record Currency;

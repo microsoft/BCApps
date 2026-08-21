@@ -70,11 +70,12 @@ table 6939 "Mileage Rate Setup"
                 CheckOverlappingRate();
             end;
         }
-        field(6; "Vehicle Type"; Enum "Expense Vehicle Type")
+        field(6; "Vehicle Type"; Code[20])
         {
             Caption = 'Vehicle Type';
             DataClassification = CustomerContent;
-            ToolTip = 'Specifies the vehicle type this mileage rate applies to. Leave blank (All) to define a generic rate that is used when no rate matches the vehicle type on the expense.';
+            TableRelation = "Expense Vehicle Type";
+            ToolTip = 'Specifies the vehicle type this mileage rate applies to. Leave blank to define a generic rate that is used when no rate matches the vehicle type on the expense.';
 
             trigger OnValidate()
             begin
@@ -153,7 +154,7 @@ table 6939 "Mileage Rate Setup"
         exit(Format(EndingDate));
     end;
 
-    procedure FindEffectiveRate(TransactionDate: Date; CurrencyCode: Code[10]; VehicleType: Enum "Expense Vehicle Type"): Boolean
+    procedure FindEffectiveRate(TransactionDate: Date; CurrencyCode: Code[10]; VehicleType: Code[20]): Boolean
     begin
         Rec.Reset();
         Rec.SetCurrentKey("Vehicle Type", "Currency Code", "Starting Date");

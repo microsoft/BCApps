@@ -4,16 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7104 "Mileage Rate Setup"
+page 7105 "Expense Vehicle Types"
 {
     PageType = List;
     ApplicationArea = Basic, Suite;
     UsageCategory = Lists;
-    SourceTable = "Mileage Rate Setup";
-    Caption = 'Mileage Rate Setup';
-    RefreshOnActivate = true;
+    SourceTable = "Expense Vehicle Type";
+    Caption = 'Vehicle Types';
     DelayedInsert = true;
-    AdditionalSearchTerms = 'Mileage Rate, Mileage Reimbursement, Distance Rate, Kilometer Rate, Mile Rate, Effective Rate';
+    AdditionalSearchTerms = 'Vehicle Type, Car, Motorcycle, Van, Truck';
 
     layout
     {
@@ -24,19 +23,7 @@ page 7104 "Mileage Rate Setup"
                 field("Code"; Rec."Code")
                 {
                 }
-                field("Vehicle Type"; Rec."Vehicle Type")
-                {
-                }
-                field("Starting Date"; Rec."Starting Date")
-                {
-                }
-                field("Ending Date"; Rec."Ending Date")
-                {
-                }
-                field("Rate"; Rec."Rate")
-                {
-                }
-                field("Currency Code"; Rec."Currency Code")
+                field("Description"; Rec."Description")
                 {
                 }
             }

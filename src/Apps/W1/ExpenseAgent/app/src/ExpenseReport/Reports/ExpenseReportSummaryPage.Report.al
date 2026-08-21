@@ -442,7 +442,7 @@ report 6952 "Expense Report Summary Page"
             exit(ExpenseReportLinePerDiem."Original Per Diem Amount");
     end;
 
-    local procedure GetMileageRate(ExpenseDate: Date; CurrencyCode: Code[10]; CurrencyFactor: Decimal; VehicleType: Enum "Expense Vehicle Type"): Decimal
+    local procedure GetMileageRate(ExpenseDate: Date; CurrencyCode: Code[10]; CurrencyFactor: Decimal; VehicleType: Code[20]): Decimal
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
     begin

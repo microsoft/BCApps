@@ -22,6 +22,7 @@ permissionset 6905 "Expense Mgmt. Admin"
         tabledata "Expense Category" = IMD,
         tabledata "Expense Group" = IMD,
         tabledata "Expense Location" = IMD,
+        tabledata "Expense Vehicle Type" = IMD,
         tabledata "Mileage Rate Setup" = IMD,
         tabledata "Expense Agent Setup" = IMD,
         tabledata "Expense Agent Status" = IMD,

@@ -454,9 +454,10 @@ table 6900 Expense
                 ApplyRule();
             end;
         }
-        field(63; "Vehicle Type"; Enum "Expense Vehicle Type")
+        field(63; "Vehicle Type"; Code[20])
         {
             Caption = 'Vehicle Type';
+            TableRelation = "Expense Vehicle Type";
             ToolTip = 'Specifies the vehicle type used for this mileage expense. The mileage rate matching this vehicle type is applied, or the generic rate when no vehicle-specific rate exists.';
 
             trigger OnValidate()

@@ -29,7 +29,7 @@ codeunit 148313 "Expense Mileage Test"
         MileageRateEffectiveOnEndingDateLbl: Label 'Mileage rate should be effective on its ending date';
         UnexpectedMileageRateOnEndingDateLbl: Label 'Unexpected mileage rate on the ending date';
         VehicleSpecificMileageRateNotUsedLbl: Label 'The vehicle-specific mileage rate should be used';
-        GenericMileageRateUsedLbl: Label 'The generic mileage rate should be used';
+        GenericMileageRateUsedLbl: Label 'The standard mileage rate should be used when no rate matches the vehicle type';
         ChangingVehicleTypeShouldRecalculateAmountLbl: Label 'Changing vehicle type should recalculate the mileage amount';
         ReportLineVehicleSpecificMileageRateLbl: Label 'The report line should use the vehicle-specific mileage rate';
 
@@ -374,17 +374,19 @@ codeunit 148313 "Expense Mileage Test"
     procedure MileageRateDateRangesCannotOverlap()
     var
         MileageRateSetup: Record "Mileage Rate Setup";
+        VehicleTypeCode: Code[20];
     begin
         // [SCENARIO 638122] Mileage rates for the same currency and vehicle type cannot have overlapping date ranges.
         Initialize();
+        VehicleTypeCode := CreateVehicleType();
 
         // [GIVEN] A mileage rate effective for a closed date range.
-        CreateMileageRate(MileageRateSetup, WorkDate(), WorkDate() + 10, '', MileageRateSetup."Vehicle Type"::Car, LibraryRandom.RandDec(10, 2));
+        CreateMileageRate(MileageRateSetup, WorkDate(), WorkDate() + 10, '', VehicleTypeCode, LibraryRandom.RandDec(10, 2));
 
         // [WHEN] Another rate starts on the first rate's ending date.
         MileageRateSetup.Init();
         MileageRateSetup.Code := CopyStr(LibraryRandom.RandText(20), 1, MaxStrLen(MileageRateSetup.Code));
-        MileageRateSetup."Vehicle Type" := MileageRateSetup."Vehicle Type"::Car;
+        MileageRateSetup."Vehicle Type" := VehicleTypeCode;
         MileageRateSetup."Starting Date" := WorkDate() + 10;
         MileageRateSetup."Ending Date" := WorkDate() + 20;
         MileageRateSetup.Rate := LibraryRandom.RandDec(10, 2);
@@ -399,16 +401,18 @@ codeunit 148313 "Expense Mileage Test"
     var
         MileageRateSetup: Record "Mileage Rate Setup";
         HistoricalRateCode: Code[20];
+        VehicleTypeCode: Code[20];
     begin
         // [SCENARIO] Multiple non-overlapping historical mileage rates can be maintained.
         Initialize();
+        VehicleTypeCode := CreateVehicleType();
 
         // [GIVEN] A historical mileage rate.
-        CreateMileageRate(MileageRateSetup, WorkDate() - 20, WorkDate() - 10, '', MileageRateSetup."Vehicle Type"::Car, LibraryRandom.RandDec(10, 2));
+        CreateMileageRate(MileageRateSetup, WorkDate() - 20, WorkDate() - 10, '', VehicleTypeCode, LibraryRandom.RandDec(10, 2));
         HistoricalRateCode := MileageRateSetup.Code;
 
         // [WHEN] A new rate starts the day after the historical rate ends.
-        CreateMileageRate(MileageRateSetup, WorkDate() - 9, 0D, '', MileageRateSetup."Vehicle Type"::Car, LibraryRandom.RandDec(10, 2));
+        CreateMileageRate(MileageRateSetup, WorkDate() - 9, 0D, '', VehicleTypeCode, LibraryRandom.RandDec(10, 2));
 
         // [THEN] Both mileage rates exist.
         MileageRateSetup.SetFilter(Code, '%1|%2', HistoricalRateCode, MileageRateSetup.Code);
@@ -422,21 +426,23 @@ codeunit 148313 "Expense Mileage Test"
         StartingDate: Date;
         EndingDate: Date;
         Rate: Decimal;
+        VehicleTypeCode: Code[20];
     begin
         // [SCENARIO] A mileage rate is effective on both its starting and ending dates.
         Initialize();
+        VehicleTypeCode := CreateVehicleType();
 
         // [GIVEN] A vehicle-specific mileage rate with a closed date range.
         StartingDate := WorkDate() - 5;
         EndingDate := WorkDate() + 5;
         Rate := LibraryRandom.RandDec(10, 2);
-        CreateMileageRate(MileageRateSetup, StartingDate, EndingDate, '', MileageRateSetup."Vehicle Type"::Car, Rate);
+        CreateMileageRate(MileageRateSetup, StartingDate, EndingDate, '', VehicleTypeCode, Rate);
 
         // [WHEN] The effective rate is found on each date range boundary.
         // [THEN] The configured rate is returned on both dates.
-        Assert.IsTrue(MileageRateSetup.FindEffectiveRate(StartingDate, '', MileageRateSetup."Vehicle Type"::Car), MileageRateEffectiveOnStartingDateLbl);
+        Assert.IsTrue(MileageRateSetup.FindEffectiveRate(StartingDate, '', VehicleTypeCode), MileageRateEffectiveOnStartingDateLbl);
         Assert.AreEqual(Rate, MileageRateSetup.Rate, UnexpectedMileageRateOnStartingDateLbl);
-        Assert.IsTrue(MileageRateSetup.FindEffectiveRate(EndingDate, '', MileageRateSetup."Vehicle Type"::Car), MileageRateEffectiveOnEndingDateLbl);
+        Assert.IsTrue(MileageRateSetup.FindEffectiveRate(EndingDate, '', VehicleTypeCode), MileageRateEffectiveOnEndingDateLbl);
         Assert.AreEqual(Rate, MileageRateSetup.Rate, UnexpectedMileageRateOnEndingDateLbl);
     end;
 
@@ -448,23 +454,25 @@ codeunit 148313 "Expense Mileage Test"
         MileageRateSetup: Record "Mileage Rate Setup";
         Mileage: Decimal;
         Rate: Decimal;
+        VehicleTypeCode: Code[20];
     begin
         // [SCENARIO 638122] A mileage expense uses the effective rate for its vehicle type.
         Initialize();
+        VehicleTypeCode := CreateVehicleType();
 
-        // [GIVEN] An effective car mileage rate and a different standard rate.
+        // [GIVEN] An effective vehicle-specific mileage rate and a different standard rate.
         Rate := LibraryRandom.RandIntInRange(2, 5);
-        CreateMileageRate(MileageRateSetup, WorkDate(), 0D, '', MileageRateSetup."Vehicle Type"::Car, Rate);
+        CreateMileageRate(MileageRateSetup, WorkDate(), 0D, '', VehicleTypeCode, Rate);
         ExpenseAgentSetup.Get();
         ExpenseAgentSetup.Validate("Standard Rate of Mileage", Rate + 1);
         ExpenseAgentSetup.Modify();
 
-        // [GIVEN] A mileage expense for a car.
+        // [GIVEN] A mileage expense.
         Mileage := LibraryRandom.RandDec(50, 2);
         CreateMileageExpense(Expense, Mileage);
 
-        // [WHEN] The vehicle type is set to Car.
-        Expense.Validate("Vehicle Type", Expense."Vehicle Type"::Car);
+        // [WHEN] The vehicle type is set to the vehicle-specific type.
+        Expense.Validate("Vehicle Type", VehicleTypeCode);
         Expense.Modify();
 
         // [THEN] The expense amount uses the car rate.
@@ -480,12 +488,12 @@ codeunit 148313 "Expense Mileage Test"
         Mileage: Decimal;
         GenericRate: Decimal;
     begin
-        // [SCENARIO 638122] A mileage expense uses the generic rate when no rate exists for its vehicle type.
+        // [SCENARIO 638122] A mileage expense uses the standard rate when no rate exists for its vehicle type.
         Initialize();
 
-        // [GIVEN] An effective generic mileage rate and no motorcycle-specific rate.
+        // [GIVEN] An effective generic mileage rate and no rate for the expense's vehicle type.
         GenericRate := LibraryRandom.RandIntInRange(2, 5);
-        CreateMileageRate(MileageRateSetup, WorkDate(), 0D, '', MileageRateSetup."Vehicle Type"::" ", GenericRate);
+        CreateMileageRate(MileageRateSetup, WorkDate(), 0D, '', '', GenericRate);
         ExpenseAgentSetup.Get();
         ExpenseAgentSetup.Validate("Standard Rate of Mileage", GenericRate + 1);
         ExpenseAgentSetup.Modify();
@@ -494,8 +502,8 @@ codeunit 148313 "Expense Mileage Test"
         Mileage := LibraryRandom.RandDec(50, 2);
         CreateMileageExpense(Expense, Mileage);
 
-        // [WHEN] The vehicle type is set to Motorcycle.
-        Expense.Validate("Vehicle Type", Expense."Vehicle Type"::Motorcycle);
+        // [WHEN] The vehicle type is set to a type without a specific rate.
+        Expense.Validate("Vehicle Type", CreateVehicleType());
         Expense.Modify();
 
         // [THEN] The expense amount uses the generic mileage rate.
@@ -510,24 +518,28 @@ codeunit 148313 "Expense Mileage Test"
         Mileage: Decimal;
         CarRate: Decimal;
         VanRate: Decimal;
+        CarVehicleTypeCode: Code[20];
+        VanVehicleTypeCode: Code[20];
     begin
         // [SCENARIO 638122] Changing the vehicle type recalculates the mileage expense amount.
         Initialize();
+        CarVehicleTypeCode := CreateVehicleType();
+        VanVehicleTypeCode := CreateVehicleType();
 
-        // [GIVEN] Different effective mileage rates for cars and vans.
+        // [GIVEN] Different effective mileage rates for two vehicle types.
         CarRate := LibraryRandom.RandIntInRange(1, 4);
         VanRate := CarRate + 1;
-        CreateMileageRate(MileageRateSetup, WorkDate(), 0D, '', MileageRateSetup."Vehicle Type"::Car, CarRate);
-        CreateMileageRate(MileageRateSetup, WorkDate(), 0D, '', MileageRateSetup."Vehicle Type"::Van, VanRate);
+        CreateMileageRate(MileageRateSetup, WorkDate(), 0D, '', CarVehicleTypeCode, CarRate);
+        CreateMileageRate(MileageRateSetup, WorkDate(), 0D, '', VanVehicleTypeCode, VanRate);
 
-        // [GIVEN] A car mileage expense.
+        // [GIVEN] A mileage expense for the first vehicle type.
         Mileage := LibraryRandom.RandDec(50, 2);
         CreateMileageExpense(Expense, Mileage);
-        Expense.Validate("Vehicle Type", Expense."Vehicle Type"::Car);
+        Expense.Validate("Vehicle Type", CarVehicleTypeCode);
         Expense.Modify();
 
-        // [WHEN] The vehicle type is changed to Van.
-        Expense.Validate("Vehicle Type", Expense."Vehicle Type"::Van);
+        // [WHEN] The vehicle type is changed to the second vehicle type.
+        Expense.Validate("Vehicle Type", VanVehicleTypeCode);
         Expense.Modify();
 
         // [THEN] The expense amount uses the van rate.
@@ -538,17 +550,19 @@ codeunit 148313 "Expense Mileage Test"
     procedure OpenEndedMileageRateOverlapsLaterRate()
     var
         MileageRateSetup: Record "Mileage Rate Setup";
+        VehicleTypeCode: Code[20];
     begin
         // [SCENARIO 638122] An open-ended mileage rate overlaps any later rate for the same currency and vehicle type.
         Initialize();
+        VehicleTypeCode := CreateVehicleType();
 
-        // [GIVEN] An open-ended car mileage rate.
-        CreateMileageRate(MileageRateSetup, WorkDate(), 0D, '', MileageRateSetup."Vehicle Type"::Car, LibraryRandom.RandDec(10, 2));
+        // [GIVEN] An open-ended mileage rate.
+        CreateMileageRate(MileageRateSetup, WorkDate(), 0D, '', VehicleTypeCode, LibraryRandom.RandDec(10, 2));
 
-        // [WHEN] A later car mileage rate is inserted.
+        // [WHEN] A later mileage rate for the same vehicle type is inserted.
         MileageRateSetup.Init();
         MileageRateSetup.Code := CopyStr(LibraryRandom.RandText(20), 1, MaxStrLen(MileageRateSetup.Code));
-        MileageRateSetup."Vehicle Type" := MileageRateSetup."Vehicle Type"::Car;
+        MileageRateSetup."Vehicle Type" := VehicleTypeCode;
         MileageRateSetup."Starting Date" := WorkDate() + 1;
         MileageRateSetup.Rate := LibraryRandom.RandDec(10, 2);
         asserterror MileageRateSetup.Insert(true);
@@ -561,16 +575,20 @@ codeunit 148313 "Expense Mileage Test"
     procedure MileageRatesWithDifferentCurrencyOrVehicleTypeCanShareDates()
     var
         MileageRateSetup: Record "Mileage Rate Setup";
+        CarVehicleTypeCode: Code[20];
+        VanVehicleTypeCode: Code[20];
     begin
         // [SCENARIO 638122] Date ranges are scoped by currency and vehicle type.
         Initialize();
+        CarVehicleTypeCode := CreateVehicleType();
+        VanVehicleTypeCode := CreateVehicleType();
 
-        // [GIVEN] A local-currency car mileage rate.
-        CreateMileageRate(MileageRateSetup, WorkDate(), 0D, '', MileageRateSetup."Vehicle Type"::Car, LibraryRandom.RandDec(10, 2));
+        // [GIVEN] A local-currency mileage rate for the first vehicle type.
+        CreateMileageRate(MileageRateSetup, WorkDate(), 0D, '', CarVehicleTypeCode, LibraryRandom.RandDec(10, 2));
 
         // [WHEN] Rates with the same dates but another currency or vehicle type are inserted.
-        CreateMileageRate(MileageRateSetup, WorkDate(), 0D, 'EUR', MileageRateSetup."Vehicle Type"::Car, LibraryRandom.RandDec(10, 2));
-        CreateMileageRate(MileageRateSetup, WorkDate(), 0D, '', MileageRateSetup."Vehicle Type"::Van, LibraryRandom.RandDec(10, 2));
+        CreateMileageRate(MileageRateSetup, WorkDate(), 0D, 'EUR', CarVehicleTypeCode, LibraryRandom.RandDec(10, 2));
+        CreateMileageRate(MileageRateSetup, WorkDate(), 0D, '', VanVehicleTypeCode, LibraryRandom.RandDec(10, 2));
 
         // [THEN] All three mileage rates exist.
         MileageRateSetup.Reset();
@@ -588,13 +606,15 @@ codeunit 148313 "Expense Mileage Test"
         MileageRateSetup: Record "Mileage Rate Setup";
         Mileage: Decimal;
         Rate: Decimal;
+        VehicleTypeCode: Code[20];
     begin
         // [SCENARIO 638122] A mileage expense report line uses the effective rate for its vehicle type.
         Initialize();
+        VehicleTypeCode := CreateVehicleType();
 
-        // [GIVEN] An effective truck mileage rate.
+        // [GIVEN] An effective vehicle-specific mileage rate.
         Rate := LibraryRandom.RandIntInRange(2, 5);
-        CreateMileageRate(MileageRateSetup, WorkDate(), 0D, '', MileageRateSetup."Vehicle Type"::Truck, Rate);
+        CreateMileageRate(MileageRateSetup, WorkDate(), 0D, '', VehicleTypeCode, Rate);
 
         // [GIVEN] An expense report with a mileage line.
         LibraryExpense.CreateExpenseUser(ExpenseUser);
@@ -603,10 +623,10 @@ codeunit 148313 "Expense Mileage Test"
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
         LibraryExpense.CreateExpenseReportLine(ExpenseReportLine, ExpenseReportHeader, ExpenseUser."No.", ExpenseCategory.Code, ExpensePaymentMethod.Code, true, '', 0);
 
-        // [WHEN] Mileage and the truck vehicle type are entered.
+        // [WHEN] Mileage and the vehicle type are entered.
         Mileage := LibraryRandom.RandDec(50, 2);
         ExpenseReportLine.Validate(Mileage, Mileage);
-        ExpenseReportLine.Validate("Vehicle Type", ExpenseReportLine."Vehicle Type"::Truck);
+        ExpenseReportLine.Validate("Vehicle Type", VehicleTypeCode);
         ExpenseReportLine.Modify();
 
         // [THEN] The report line amount uses the truck rate.
@@ -616,12 +636,14 @@ codeunit 148313 "Expense Mileage Test"
     local procedure Initialize()
     var
         MileageRateSetup: Record "Mileage Rate Setup";
+        ExpenseVehicleType: Record "Expense Vehicle Type";
         Workflow: Record Workflow;
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Mileage Test");
         LibraryExpense.CleanUpBeforeTesting();
         MileageRateSetup.DeleteAll();
+        ExpenseVehicleType.DeleteAll();
         LibraryVariableStorage.Clear();
         LibraryExpense.UpdateUseRulesInAgentSetup(true);
         if IsInitialized then
@@ -659,7 +681,7 @@ codeunit 148313 "Expense Mileage Test"
         Expense.Modify();
     end;
 
-    local procedure CreateMileageRate(var MileageRateSetup: Record "Mileage Rate Setup"; StartingDate: Date; EndingDate: Date; CurrencyCode: Code[10]; VehicleType: Enum "Expense Vehicle Type"; Rate: Decimal)
+    local procedure CreateMileageRate(var MileageRateSetup: Record "Mileage Rate Setup"; StartingDate: Date; EndingDate: Date; CurrencyCode: Code[10]; VehicleType: Code[20]; Rate: Decimal)
     begin
         MileageRateSetup.Init();
         MileageRateSetup.Code := CopyStr(LibraryRandom.RandText(20), 1, MaxStrLen(MileageRateSetup.Code));
@@ -669,5 +691,15 @@ codeunit 148313 "Expense Mileage Test"
         MileageRateSetup."Ending Date" := EndingDate;
         MileageRateSetup."Vehicle Type" := VehicleType;
         MileageRateSetup.Insert(true);
+    end;
+
+    local procedure CreateVehicleType(): Code[20]
+    var
+        ExpenseVehicleType: Record "Expense Vehicle Type";
+    begin
+        ExpenseVehicleType.Init();
+        ExpenseVehicleType.Code := CopyStr(LibraryRandom.RandText(20), 1, MaxStrLen(ExpenseVehicleType.Code));
+        ExpenseVehicleType.Insert(true);
+        exit(ExpenseVehicleType.Code);
     end;
 }
