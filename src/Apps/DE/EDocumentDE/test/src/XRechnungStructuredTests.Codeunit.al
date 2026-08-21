@@ -126,7 +126,7 @@ codeunit 148500 "XRechnung Structured Tests"
         XmlContent: Text;
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO 646793] XRechnung VA and FC identifiers are imported from repeated tax schemes
+        // [SCENARIO 646793] XRechnung VAT and FC identifiers are imported from repeated tax schemes
         Initialize(Enum::"Service Integration"::"No Integration");
         SetupXRechnungEDocumentService();
 
@@ -146,7 +146,7 @@ codeunit 148500 "XRechnung Structured Tests"
         CompanyInformation."Use Reg. No. in E-Document" := true;
         CompanyInformation.Modify(true);
 
-        // [GIVEN] An XRechnung whose supplier and buyer each have VA followed by FC tax schemes
+        // [GIVEN] An XRechnung whose supplier and buyer each have VAT followed by FC tax schemes
         XmlContent := NavApp.GetResourceAsText(TestFileTok);
         AddPartyTaxSchemeWithFiscalCode(XmlContent, 'GB123456789', VendorRegistrationNo);
         AddPartyTaxSchemeWithFiscalCode(XmlContent, 'GB789456278', CompanyRegistrationNo);
