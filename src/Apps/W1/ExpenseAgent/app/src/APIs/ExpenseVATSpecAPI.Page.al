@@ -125,15 +125,11 @@ page 7085 "Expense VAT Spec. API"
     internal procedure InsertVATSpecification(var ExpenseVATSpecification: Record "Expense VAT Specification")
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
-        ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         TelemetryDimensions: Dictionary of [Text, Text];
     begin
-        VerifyExpenseAgentCaller();
         ExpenseVATSpecification.Source := ExpenseVATSpecification.Source::Agent;
-        BindSubscription(ExpenseAgentAPIValidation);
         ExpenseVATSpecification.Insert(true);
-        UnbindSubscription(ExpenseAgentAPIValidation);
 
         TelemetryDimensions.Add('HasExpenseCategory', Format(ExpenseVATSpecification."Expense Category" <> ''));
         TelemetryDimensions.Add('HasExpenseSubcategory', Format(ExpenseVATSpecification."Expense Subcategory" <> ''));
@@ -141,14 +137,10 @@ page 7085 "Expense VAT Spec. API"
         FeatureTelemetry.LogUptake('0000UZ7', ExpenseAgentSetup.GetFeatureName(), Enum::"Feature Uptake Status"::Used, TelemetryDimensions);
     end;
 
-    var
-        ExpenseAgentCallerRequiredErr: Label 'Only the Expense Agent application can create agent-authored VAT specifications.';
-
     local procedure VerifyExpenseAgentCaller()
     var
         ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
     begin
-        if not ExpenseAgentAPIValidation.IsCurrentUserExpenseAgent() then
-            Error(ExpenseAgentCallerRequiredErr);
+        ExpenseAgentAPIValidation.VerifyAgentVATSpecificationAccess();
     end;
 }

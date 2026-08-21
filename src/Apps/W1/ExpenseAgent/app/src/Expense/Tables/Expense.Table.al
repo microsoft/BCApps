@@ -1368,6 +1368,8 @@ table 6900 Expense
                     LineNo += 1;
                     TempExpenseVATSpec."Line No." := LineNo;
                     TempExpenseVATSpec.Validate("Expense Category", "Expense Category");
+                    if "Expense Subcategory" <> '' then
+                        TempExpenseVATSpec.Validate("Expense Subcategory", "Expense Subcategory");
                     TempExpenseVATSpec.Validate("VAT Bus. Posting Group", ExpenseAgentSetup."Default VAT Bus. Posting Group");
                     TempExpenseVATSpec.Validate("Amount", Amount);
                     TempExpenseVATSpec.Insert();

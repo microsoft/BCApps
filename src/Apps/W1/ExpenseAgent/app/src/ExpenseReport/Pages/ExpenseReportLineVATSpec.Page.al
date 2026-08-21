@@ -53,10 +53,12 @@ page 7081 "Expense Report Line VAT Spec."
                 field("VAT Base Amount"; Rec."VAT Base Amount")
                 {
                     Caption = 'VAT Base Amount';
+                    Editable = false;
                 }
                 field("VAT Amount"; Rec."VAT Amount")
                 {
                     Caption = 'VAT Amount';
+                    Editable = false;
                 }
                 field("Amount (LCY)"; Rec."Amount (LCY)")
                 {

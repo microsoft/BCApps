@@ -11,7 +11,7 @@ using System.Environment.Configuration;
 codeunit 6993 "Expense Agent API Validation"
 {
     Access = Internal;
-    EventSubscriberInstance = Manual;
+    EventSubscriberInstance = StaticAutomatic;
     InherentEntitlements = X;
     InherentPermissions = X;
 
@@ -26,6 +26,16 @@ codeunit 6993 "Expense Agent API Validation"
     begin
         if Rec.IsTemporary() or (Rec.Source <> Rec.Source::Agent) then
             exit;
+
+        VerifyAgentVATSpecificationAccess();
+    end;
+
+    internal procedure VerifyAgentVATSpecificationAccess()
+    var
+        EnvironmentInfo: Codeunit "Environment Information";
+    begin
+        if not EnvironmentInfo.IsSaaSInfrastructure() then
+            Error(AgentVATSpecInsertNotAuthorizedErr);
 
         if not IsCurrentUserExpenseAgent() then
             Error(AgentVATSpecInsertNotAuthorizedErr);

@@ -11,6 +11,7 @@ using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.HumanResources.Employee;
 using Microsoft.Purchases.Vendor;
+using System.Environment;
 using System.TestLibraries.Utilities;
 
 codeunit 148330 "Expense Posting VAT Test"
@@ -30,10 +31,10 @@ codeunit 148330 "Expense Posting VAT Test"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         IsInitialized: Boolean;
         CanModifyLinesQst: Label 'You have modified %1 which will also update the lines.\\Do you want to continue?', Comment = '%1 = Field Caption';
-        PostExpenseReportQst: Label 'Do you want to post Expense Report %1?', Comment = '%1 = Expense Report No.';
         NotApprovedForVATReclaimCategoryErr: Label 'VAT Reclaim Status is not set for Line with Expense Category %1.', Comment = '%1 = Expense Category';
         NotApprovedForVATReclaimErr: Label 'VAT Reclaim Status is not set for Line with Expense Category %1 and Expense Subcategory %2.', Comment = '%1 = Expense Category, %2 = Expense Subcategory';
         ModifyOrDeleteAgentVATSpecErr: Label 'Modifications and delete are not allowed for records created by the Expense Agent API.';
+        AgentVATSpecInsertNotAuthorizedErr: Label 'Agent-authored VAT specifications must be created through an authorized Expense Agent request.';
 
     [Test]
     [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
@@ -548,6 +549,51 @@ codeunit 148330 "Expense Posting VAT Test"
     end;
 
     [Test]
+    procedure InactiveExpenseCategoryCannotBeValidatedOnVATSpec()
+    var
+        ExpenseCategory: Record "Expense Category";
+        ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.";
+    begin
+        // [SCENARIO] An inactive expense category cannot be selected on a VAT specification.
+        Initialize();
+
+        // [GIVEN] An inactive expense category.
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        ExpenseCategory.Validate(Inactive, true);
+        ExpenseCategory.Modify(true);
+
+        // [WHEN] The category is validated on a VAT specification.
+        asserterror ExpenseReportLineVATSpec.Validate("Expense Category", ExpenseCategory.Code);
+
+        // [THEN] The inactive category is rejected immediately.
+        Assert.ExpectedTestFieldError(ExpenseCategory.FieldCaption(Inactive), Format(false));
+    end;
+
+    [Test]
+    procedure InactiveExpenseSubcategoryCannotBeValidatedOnVATSpec()
+    var
+        ExpenseCategory: Record "Expense Category";
+        ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.";
+        ExpenseSubcategory: Record "Expense Subcategory";
+    begin
+        // [SCENARIO] An inactive expense subcategory cannot be selected on a VAT specification.
+        Initialize();
+
+        // [GIVEN] An active category with an inactive subcategory.
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubcategory, ExpenseCategory.Code, true);
+        ExpenseSubcategory.Validate(Inactive, true);
+        ExpenseSubcategory.Modify(true);
+        ExpenseReportLineVATSpec."Expense Category" := ExpenseCategory.Code;
+
+        // [WHEN] The subcategory is validated on a VAT specification.
+        asserterror ExpenseReportLineVATSpec.Validate("Expense Subcategory", ExpenseSubcategory.Code);
+
+        // [THEN] The inactive subcategory is rejected immediately.
+        Assert.ExpectedTestFieldError(ExpenseSubcategory.FieldCaption(Inactive), Format(false));
+    end;
+
+    [Test]
     [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
     procedure ModifiedVATSpecIsRecalculatedAndPostedInReimbursementCurrency()
     var
@@ -789,6 +835,44 @@ codeunit 148330 "Expense Posting VAT Test"
     end;
 
     [Test]
+    procedure UpdateVATSpecificationPreservesSubcategoryForNonItemizedExpense()
+    var
+        Expense: Record Expense;
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubCategory: array[2] of Record "Expense Subcategory";
+        ExpenseUser: Record "Expense User";
+        ExpenseVATSpecification: Record "Expense VAT Specification";
+        VATPostingSetup: array[2] of Record "VAT Posting Setup";
+    begin
+        // [SCENARIO] Updating the VAT specification for a non-itemized expense preserves its subcategory VAT defaults.
+        Initialize();
+
+        // [GIVEN] A non-itemized category with 10% VAT and a selected subcategory with 20% VAT.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        CreateSubcategoryWithVATRate(ExpenseSubCategory[1], ExpenseCategory.Code, 10, VATPostingSetup[1]);
+        CreateSubcategoryWithVATRate(ExpenseSubCategory[2], ExpenseCategory.Code, 20, VATPostingSetup[2]);
+        ExpenseCategory.Validate("VAT Prod. Posting Group", VATPostingSetup[1]."VAT Prod. Posting Group");
+        ExpenseCategory.Validate("Default VAT %", VATPostingSetup[1]."VAT %");
+        ExpenseCategory.Modify(true);
+        LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, ExpenseSubCategory[2].Code, '', true, '', 120);
+
+        // [WHEN] The VAT specification is updated.
+        Expense.UpdateVATSpecification(Expense."No.");
+
+        // [THEN] The generated row retains the selected subcategory and uses its VAT defaults for the amounts.
+        ExpenseVATSpecification.SetRange("Expense No.", Expense."No.");
+        Assert.RecordCount(ExpenseVATSpecification, 1);
+        ExpenseVATSpecification.FindFirst();
+        Assert.AreEqual(ExpenseCategory.Code, ExpenseVATSpecification."Expense Category", 'The expense category must be copied.');
+        Assert.AreEqual(ExpenseSubCategory[2].Code, ExpenseVATSpecification."Expense Subcategory", 'The expense subcategory must be copied.');
+        Assert.AreEqual(VATPostingSetup[2]."VAT Prod. Posting Group", ExpenseVATSpecification."VAT Prod. Posting Group", 'The subcategory VAT product posting group must be used.');
+        Assert.AreNearlyEqual(20, ExpenseVATSpecification."VAT %", 0.01, 'The subcategory VAT percentage must be used.');
+        Assert.AreNearlyEqual(100, ExpenseVATSpecification."VAT Base Amount", 0.01, 'The VAT base amount must use the subcategory VAT percentage.');
+        Assert.AreNearlyEqual(20, ExpenseVATSpecification."VAT Amount", 0.01, 'The VAT amount must use the subcategory VAT percentage.');
+    end;
+
+    [Test]
     procedure UpdateVATSpecificationCreatesSpecForZeroRatedNonItemizedExpense()
     var
         Expense: Record Expense;
@@ -825,6 +909,44 @@ codeunit 148330 "Expense Posting VAT Test"
     end;
 
     [Test]
+    procedure AgentVATSpecificationAPIRejectsNonSaaSCaller()
+    var
+        ExpenseVATSpecification: Record "Expense VAT Specification";
+        EnvironmentInfo: Codeunit "Environment Information";
+        ExpenseVATSpecAPI: Page "Expense VAT Spec. API";
+    begin
+        // [SCENARIO] The Expense VAT Specification API rejects callers outside SaaS.
+        if EnvironmentInfo.IsSaaSInfrastructure() then
+            exit;
+
+        // [WHEN] A caller attempts to insert an agent-authored VAT specification through the API.
+        asserterror ExpenseVATSpecAPI.InsertVATSpecification(ExpenseVATSpecification);
+
+        // [THEN] The caller is rejected before the row is inserted.
+        Assert.ExpectedError(AgentVATSpecInsertNotAuthorizedErr);
+    end;
+
+    [Test]
+    procedure AgentVATSpecificationInsertRejectsNonSaaSCaller()
+    var
+        ExpenseVATSpecification: Record "Expense VAT Specification";
+        EnvironmentInfo: Codeunit "Environment Information";
+    begin
+        // [SCENARIO] The table authorization subscriber rejects agent-authored VAT specifications outside SaaS.
+        if EnvironmentInfo.IsSaaSInfrastructure() then
+            exit;
+
+        // [GIVEN] An agent-authored VAT specification.
+        ExpenseVATSpecification.Source := ExpenseVATSpecification.Source::Agent;
+
+        // [WHEN] A caller attempts to insert an agent-authored VAT specification without running table triggers.
+        asserterror ExpenseVATSpecification.Insert(false);
+
+        // [THEN] The caller is rejected before the row is inserted.
+        Assert.ExpectedError(AgentVATSpecInsertNotAuthorizedErr);
+    end;
+
+    [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
     procedure AgentVATSpecificationCannotBeUpdatedModifiedOrDeleted()
     var
@@ -849,11 +971,13 @@ codeunit 148330 "Expense Posting VAT Test"
         ExpenseVATSpecification.Init();
         ExpenseVATSpecification."Expense No." := Expense."No.";
         ExpenseVATSpecification."Line No." := 1;
-        ExpenseVATSpecification.Source := ExpenseVATSpecification.Source::Agent;
+        ExpenseVATSpecification.Source := ExpenseVATSpecification.Source::Manual;
         ExpenseVATSpecification."VAT Bus. Posting Group" := VATPostingSetup."VAT Bus. Posting Group";
         ExpenseVATSpecification."VAT Prod. Posting Group" := VATPostingSetup."VAT Prod. Posting Group";
         ExpenseVATSpecification.Amount := 120;
         ExpenseVATSpecification.Insert(true);
+        ExpenseVATSpecification.Source := ExpenseVATSpecification.Source::Agent;
+        ExpenseVATSpecification.Modify(false);
         Commit();
 
         // [WHEN] The VAT specification is regenerated, modified, or deleted.
@@ -1150,7 +1274,7 @@ codeunit 148330 "Expense Posting VAT Test"
 
     local procedure PostExpenseReportWithConfirmation(var ExpenseReportPost: Codeunit "Expense Report-Post"; var ExpenseReportHeader: Record "Expense Report Header")
     begin
-        LibraryVariableStorage.Enqueue(StrSubstNo(PostExpenseReportQst, ExpenseReportHeader."No."));
+        LibraryVariableStorage.Enqueue(ExpenseReportHeader."No.");
         LibraryVariableStorage.Enqueue(true);
         ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
         LibraryVariableStorage.AssertEmpty();
@@ -1443,7 +1567,7 @@ codeunit 148330 "Expense Posting VAT Test"
     [ConfirmHandler]
     procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
     begin
-        Assert.AreEqual(LibraryVariableStorage.DequeueText(), Question, 'The expense report posting confirmation is incorrect.');
+        Assert.ExpectedConfirm(LibraryVariableStorage.DequeueText(), Question);
         Reply := LibraryVariableStorage.DequeueBoolean();
     end;
 }

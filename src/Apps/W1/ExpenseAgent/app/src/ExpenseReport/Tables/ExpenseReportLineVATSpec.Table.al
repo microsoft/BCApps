@@ -185,9 +185,10 @@ table 6922 "Expense Report Line VAT Spec."
             begin
                 if "Expense Category" = '' then
                     exit;
-                if "Expense Subcategory" <> '' then
-                    exit;
                 if ExpenseCategory.Get("Expense Category") then begin
+                    ExpenseCategory.TestField(Inactive, false);
+                    if "Expense Subcategory" <> '' then
+                        exit;
                     "VAT Prod. Posting Group" := ExpenseCategory."VAT Prod. Posting Group";
                     "VAT %" := ExpenseCategory."Default VAT %";
                     Validate("VAT %");
@@ -207,6 +208,7 @@ table 6922 "Expense Report Line VAT Spec."
             begin
                 if "Expense Subcategory" <> '' then begin
                     if ExpenseSubcategory.Get("Expense Category", "Expense Subcategory") then begin
+                        ExpenseSubcategory.TestField(Inactive, false);
                         "VAT Prod. Posting Group" := ExpenseSubcategory."VAT Prod. Posting Group";
                         "VAT %" := ExpenseSubcategory."Default VAT %";
                         Validate("VAT %");
@@ -214,6 +216,7 @@ table 6922 "Expense Report Line VAT Spec."
                 end else
                     if "Expense Category" <> '' then
                         if ExpenseCategory.Get("Expense Category") then begin
+                            ExpenseCategory.TestField(Inactive, false);
                             "VAT Prod. Posting Group" := ExpenseCategory."VAT Prod. Posting Group";
                             "VAT %" := ExpenseCategory."Default VAT %";
                             Validate("VAT %");

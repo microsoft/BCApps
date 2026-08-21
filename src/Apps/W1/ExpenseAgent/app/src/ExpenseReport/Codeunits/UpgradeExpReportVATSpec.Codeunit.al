@@ -82,7 +82,7 @@ codeunit 7105 "Upgrade Exp. Report VAT Spec"
             "Document No.", "Currency Code", "VAT Base Amount (LCY)", "VAT Amount", "VAT Amount (LCY)", "Reclaim %",
             "VAT Base Amount (RCY)", "VAT Amount (RCY)", "Amount (RCY)", "Reclaim VAT Amount",
             "Reclaim VAT Amount (LCY)", "Reclaim VAT Amount (RCY)");
-        if not ExpenseReportLineVATSpec.FindSet() then
+        if not ExpenseReportLineVATSpec.FindSet(true) then
             exit;
 
         CachedDocumentNo := '';
@@ -128,7 +128,7 @@ codeunit 7105 "Upgrade Exp. Report VAT Spec"
         PostedExpenseReportLineVATSpec.SetLoadFields(
             "Expense Report No.", "VAT Base Amount (LCY)", "VAT Amount (LCY)", "Reclaim %",
             "VAT Base Amount (RCY)", "VAT Amount (RCY)", "Amount (RCY)", "Reclaim VAT Amount (RCY)");
-        if not PostedExpenseReportLineVATSpec.FindSet() then
+        if not PostedExpenseReportLineVATSpec.FindSet(true) then
             exit;
 
         CachedExpenseReportNo := '';
