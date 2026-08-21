@@ -103,6 +103,7 @@ codeunit 22 "Item Jnl.-Post Line"
         QtyPerUnitOfMeasure: Decimal;
         RoundingResidualAmount: Decimal;
         RoundingResidualAmountACY: Decimal;
+        RoundingResidualAmountInvdACY: Decimal;
         InvtSetupRead: Boolean;
         GLSetupRead: Boolean;
         SKUExists: Boolean;
@@ -306,9 +307,12 @@ codeunit 22 "Item Jnl.-Post Line"
 
         RoundingResidualAmount := 0;
         RoundingResidualAmountACY := 0;
+        RoundingResidualAmountInvdACY := 0;
         RoundingResidualAmount := ItemJnlLine.Quantity *
           (ItemJnlLine."Unit Cost" / QtyPerUnitOfMeasure - Round(ItemJnlLine."Unit Cost" / QtyPerUnitOfMeasure, GLSetup."Unit-Amount Rounding Precision"));
         RoundingResidualAmountACY := ItemJnlLine.Quantity *
+          (ItemJnlLine."Unit Cost (ACY)" / QtyPerUnitOfMeasure - Round(ItemJnlLine."Unit Cost (ACY)" / QtyPerUnitOfMeasure, Currency."Unit-Amount Rounding Precision"));
+        RoundingResidualAmountInvdACY := ItemJnlLine."Invoiced Quantity" *
           (ItemJnlLine."Unit Cost (ACY)" / QtyPerUnitOfMeasure - Round(ItemJnlLine."Unit Cost (ACY)" / QtyPerUnitOfMeasure, Currency."Unit-Amount Rounding Precision"));
 
         ItemJnlLine."Unit Amount" := Round(
@@ -3678,7 +3682,7 @@ codeunit 22 "Item Jnl.-Post Line"
                 if Expected then
                     DirCostACY := ItemJnlLine."Unit Cost (ACY)" * ItemJnlLine.Quantity + RoundingResidualAmountACY
                 else
-                    DirCostACY := ItemJnlLine."Unit Cost (ACY)" * ItemJnlLine."Invoiced Quantity";
+                    DirCostACY := ItemJnlLine."Unit Cost (ACY)" * ItemJnlLine."Invoiced Quantity" + RoundingResidualAmountInvdACY;
                 OvhdCostACY := 0;
                 PurchVarACY := 0;
             end else begin

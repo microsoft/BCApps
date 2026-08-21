@@ -237,6 +237,69 @@ codeunit 137002 "SCM WIP Costing Addnl Currency"
           InventoryPostingSetup."Inventory Account", DocumentNo, ValueEntry."Cost Amount (Actual) (ACY)");
     end;
 
+    [Test]
+    procedure PurchaseInACYWithNonBaseUoMKeepsUnitCostRoundingResidualOnBothLegs()
+    var
+        Item: Record Item;
+        Vendor: Record Vendor;
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        AddReportingCurrencyCode: Code[10];
+        ReceiptDocumentNo: Code[20];
+        InvoiceDocumentNo: Code[20];
+        ExpectedCostAmountACY: Decimal;
+        Quantity: Decimal;
+        DirectUnitCost: Decimal;
+        QtyPerUnitOfMeasure: Decimal;
+        ExchangeRate: Decimal;
+    begin
+        // [FEATURE] [ACY] [Purchase] [Expected Cost] [Unit of Measure] [AI test 0.4]
+        // [SCENARIO] When the purchase currency equals the Additional Reporting Currency and the purchase unit of measure holds more than one base unit, the per-base-unit ACY unit cost must be rounded, which drops a residual. Both the expected (receipt) and the actual (invoice) Value Entry ACY amounts must still equal the exact document ACY amount, so neither leg drifts by the dropped residual.
+        Initialize();
+
+        // [GIVEN] Automatic cost posting and expected cost posting are both enabled, so the receipt posts an expected ACY cost that is later reversed and replaced by the actual ACY cost on invoicing.
+        LibraryInventory.SetAutomaticCostPosting(true);
+        LibraryInventory.SetExpectedCostPosting(true);
+
+        // [GIVEN] Currency "C" is the Additional Reporting Currency with a coarse 0.01 Unit-Amount Rounding Precision, so rounding the per-base-unit ACY cost drops a residual larger than the 0.01 Amount Rounding Precision and a dropped residual is visible on the Value Entry. The exchange rate only affects LCY conversion, not the ACY amount, so it can be random.
+        ExchangeRate := LibraryRandom.RandIntInRange(2, 10);
+        AddReportingCurrencyCode := CreateAddReportingCurrencyWithUnitAmountPrecision(ExchangeRate, 0.01);
+
+        // [GIVEN] An Average costing Item and a Vendor invoicing in the Additional Reporting Currency "C".
+        CreateAverageCostItem(Item);
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Validate("Currency Code", AddReportingCurrencyCode);
+        Vendor.Modify(true);
+
+        // [GIVEN] A purchase unit of measure holding a random multiple of 3 base units, so 1/(base-unit count) stays a non-terminating decimal (a factor of 3 never clears against the 2s and 5s of the rounding precision).
+        QtyPerUnitOfMeasure := 3 * LibraryRandom.RandIntInRange(1, 5);
+        LibraryInventory.CreateItemUnitOfMeasureCode(ItemUnitOfMeasure, Item."No.", QtyPerUnitOfMeasure);
+
+        // [GIVEN] A purchase order for a random number of that unit of measure at a random unit cost that is never divisible by the base-unit count, so the per-base-unit ACY cost is a repeating decimal that rounds and drops a residual on each base unit.
+        Quantity := LibraryRandom.RandIntInRange(2, 10);
+        DirectUnitCost := QtyPerUnitOfMeasure * LibraryRandom.RandIntInRange(2, 10) + 1;
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", Quantity);
+        PurchaseLine.Validate("Unit of Measure Code", ItemUnitOfMeasure.Code);
+        PurchaseLine.Validate("Direct Unit Cost", DirectUnitCost);
+        PurchaseLine.Modify(true);
+
+        // [WHEN] The purchase order is received but not invoiced, so only the expected cost is posted.
+        ReceiptDocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [THEN] The Value Entry "Cost Amount (Expected) (ACY)" equals the exact document ACY amount, with the residual folded back in.
+        ExpectedCostAmountACY := DirectUnitCost * Quantity;
+        VerifyValueEntryExpectedCostAmountACY(Item."No.", ReceiptDocumentNo, ExpectedCostAmountACY);
+
+        // [WHEN] The same purchase order is invoiced separately.
+        PurchaseHeader.Find();
+        InvoiceDocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true);
+
+        // [THEN] The Value Entry "Cost Amount (Actual) (ACY)" also equals the exact document ACY amount, so the actual leg reconstructs the residual exactly as the expected leg does instead of dropping it.
+        VerifyValueEntryCostAmountACY(Item."No.", InvoiceDocumentNo, ExpectedCostAmountACY);
+    end;
+
     [Normal]
     local procedure Initialize()
     var
@@ -452,6 +515,19 @@ codeunit 137002 "SCM WIP Costing Addnl Currency"
         LibraryERM.CreateExchangeRate(Currency.Code, WorkDate(), ExchangeRate, ExchangeRate);
         Currency.Validate("Amount Rounding Precision", 0.01);
         Currency.Validate("Unit-Amount Rounding Precision", 0.00001);
+        Currency.Modify(true);
+        LibraryERM.SetAddReportingCurrency(Currency.Code);
+        exit(Currency.Code);
+    end;
+
+    local procedure CreateAddReportingCurrencyWithUnitAmountPrecision(ExchangeRate: Decimal; UnitAmountRoundingPrecision: Decimal): Code[10]
+    var
+        Currency: Record Currency;
+    begin
+        Currency.Get(LibraryERM.CreateCurrencyWithGLAccountSetup());
+        LibraryERM.CreateExchangeRate(Currency.Code, WorkDate(), ExchangeRate, ExchangeRate);
+        Currency.Validate("Amount Rounding Precision", 0.01);
+        Currency.Validate("Unit-Amount Rounding Precision", UnitAmountRoundingPrecision);
         Currency.Modify(true);
         LibraryERM.SetAddReportingCurrency(Currency.Code);
         exit(Currency.Code);
