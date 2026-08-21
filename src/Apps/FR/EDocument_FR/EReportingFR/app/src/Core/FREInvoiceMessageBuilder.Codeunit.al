@@ -35,7 +35,7 @@ codeunit 10976 "FR E-Invoice Message Builder"
             XmlElement.Create('ID', RamNamespaceTok, Format(FREInvoiceMessage."Source Occurrence ID"))));
 
         AcknowledgementElement := XmlElement.Create('AcknowledgementDocument', RsmNamespaceTok);
-    AddIssueDateTime(AcknowledgementElement, FREInvoiceMessage."Event Date");
+        AddIssueDateTime(AcknowledgementElement, FREInvoiceMessage."Event Date");
         ReferenceElement := XmlElement.Create('ReferenceReferencedDocument', RamNamespaceTok);
         ReferenceElement.Add(XmlElement.Create('IssuerAssignedID', RamNamespaceTok, EDocument."Document No."));
         ReferenceElement.Add(XmlElement.Create('StatusCode', RamNamespaceTok, InvoiceReferenceStatusCodeTok));
@@ -112,6 +112,6 @@ codeunit 10976 "FR E-Invoice Message Builder"
         RefusedStatusCodeTok: Label '210', Locked = true;
         RefusedStatusNameTok: Label 'Refusée', Locked = true;
         AcceptedStatusCodeTok: Label '205', Locked = true;
-        AcceptedStatusNameTok: Label 'Acceptée', Locked = true;
+        AcceptedStatusNameTok: Label 'Approuvée', Locked = true;
         UnsupportedMessageTypeErr: Label 'French invoice lifecycle message type %1 cannot be sent.', Comment = '%1 = French invoice lifecycle message type';
 }
