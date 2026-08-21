@@ -507,6 +507,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         QltyManagementSetup: Record "Qlty. Management Setup";
         Location: Record Location;
         DestinationLocation: Record Location;
+        InTransitLocation: Record Location;
         ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         Bin: Record Bin;
         DestinationBin: Record Bin;
@@ -543,6 +544,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
 
         if DirectedPutAwayAndPick then begin
             LibraryWarehouse.CreateFullWMSLocation(DestinationLocation, 1);
+            LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
             DestinationBin.SetRange("Location Code", DestinationLocation.Code);
             DestinationBin.FindFirst();
         end else begin
@@ -570,7 +572,9 @@ codeunit 139969 "Qlty. Tests - Workflows"
         QltyInspectionUtility.SetStepConfigurationValueAsQuantityBehaviorEnum(WorkflowStepArgument, QltyInspectionUtility.GetWellKnownMoveAll(), MoveBehavior::"Failed Quantity");
         QltyInspectionUtility.SetStepConfigurationValue(WorkflowStepArgument, QltyInspectionUtility.GetWellKnownKeyLocation(), DestinationLocation.Code);
         QltyInspectionUtility.SetStepConfigurationValue(WorkflowStepArgument, QltyInspectionUtility.GetWellKnownKeyBin(), DestinationBin.Code);
-        QltyInspectionUtility.SetStepConfigurationValueAsBoolean(WorkflowStepArgument, QltyInspectionUtility.GetWellKnownDirectTransfer(), true);
+        QltyInspectionUtility.SetStepConfigurationValueAsBoolean(WorkflowStepArgument, QltyInspectionUtility.GetWellKnownDirectTransfer(), not DirectedPutAwayAndPick);
+        if DirectedPutAwayAndPick then
+            QltyInspectionUtility.SetStepConfigurationValue(WorkflowStepArgument, QltyInspectionUtility.GetWellKnownInTransit(), InTransitLocation.Code);
         Workflow.Enabled := true;
         Workflow.Modify();
 
@@ -582,10 +586,12 @@ codeunit 139969 "Qlty. Tests - Workflows"
         QltyInspectionHeader.Validate("Result Code", ToLoadQltyInspectionResult.Code);
         QltyInspectionHeader.Modify(true);
 
-        // [THEN] A direct transfer order is created with the failed quantity
+        // [THEN] A transfer order is created with the failed quantity
         TransferHeader.SetRange("Transfer-from Code", Location.Code);
         TransferHeader.SetRange("Transfer-to Code", DestinationLocation.Code);
-        TransferHeader.SetRange("Direct Transfer", true);
+        TransferHeader.SetRange("Direct Transfer", not DirectedPutAwayAndPick);
+        if DirectedPutAwayAndPick then
+            TransferHeader.SetRange("In-Transit Code", InTransitLocation.Code);
 
         LibraryAssert.AreEqual(1, TransferHeader.Count(), 'Should be one transfer header created.');
 
