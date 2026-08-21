@@ -566,6 +566,60 @@ function Merge-TenantTestResults {
 
 <#
 .SYNOPSIS
+    Runs the first test app alone and awaits it before the parallel fan-out. Returns the remaining
+    apps still to dispatch.
+.DESCRIPTION
+    Concurrent per-tenant company-opens can race on the first use of the container's process-wide
+    GDI+ state, so the first open is serialized: one app runs alone and is awaited to completion,
+    then the caller fans out the rest. Warms once per container - no-op for a single app or tenant.
+    A transient failure on the warmed-up app flows into $State.transient and is re-queued normally.
+.PARAMETER Pending
+    The ordered list of app names still to dispatch. The first app is consumed for the warmup.
+.PARAMETER AppIdByName
+    Map of app name -> extensionId. If the first app's id cannot be resolved, warmup is skipped.
+.PARAMETER Tenants
+    All available tenant ids. Warmup dispatches onto the first one.
+.PARAMETER State
+    The parallel execution state object; mutated (jobs/hasFailures/transient) as the warmup runs.
+.OUTPUTS
+    [string[]] The remaining app names to dispatch (first app removed if it was warmed up).
+#>
+function Invoke-WarmupDispatch {
+    param(
+        [Parameter(Mandatory=$true)][Hashtable]$Parameters,
+        [Parameter(Mandatory=$true)][AllowEmptyCollection()][string[]]$Pending,
+        [Parameter(Mandatory=$true)][Hashtable]$AppIdByName,
+        [Parameter(Mandatory=$true)][AllowEmptyCollection()][string[]]$Tenants,
+        [Parameter(Mandatory=$true)][string]$ScriptPath,
+        [string]$TestType,
+        [Parameter(Mandatory=$true)]$State
+    )
+
+    # Only serialize when there is a fan-out to protect: >1 app AND >1 tenant.
+    if ($Pending.Count -le 1 -or $Tenants.Count -le 1) {
+        return @($Pending)
+    }
+
+    $warmupApp = $Pending[0]
+    $warmupAppId = $AppIdByName[$warmupApp]
+    if (-not $warmupAppId) {
+        # Leave the app in the queue so the main loop emits its usual appId warning.
+        return @($Pending)
+    }
+
+    Write-Host "Warming up: dispatching first app '$warmupApp' on '$($Tenants[0])' alone and awaiting completion before parallel fan-out."
+    Start-TestAppDispatch -Parameters $Parameters -AppName $warmupApp -AppId $warmupAppId -Tenant $Tenants[0] `
+        -ScriptPath $ScriptPath -TestType $TestType -State $State -Verb 'Dispatching'
+
+    # Await the single job so the process is warm before anything runs in parallel. A transient
+    # failure here lands in $State.transient and the caller's loop re-queues it.
+    if (-not (Wait-ForAllTestJobs -state $State)) { $State.hasFailures = $true }
+
+    return @($Pending | Select-Object -Skip 1)
+}
+
+<#
+.SYNOPSIS
     Dispatches test apps in parallel across all available tenants in a BC container.
 .DESCRIPTION
     Walks $appNamesToTest in order, dispatching each app onto a free tenant via background jobs.
@@ -633,11 +687,15 @@ function Invoke-ParallelTestExecution {
     $state = [PSCustomObject]@{ jobs = @(); dispatched = $true; completed = $false; finalResult = $false; hasFailures = $false; transient = @(); retried = @{} }
     $state | ConvertTo-Json -Depth 5 | Set-Content $stateFile -Force
 
-    # Single dispatch loop. $pending is processed FIFO and $appNamesToTest arrives ordered
-    # longest-first (see TestConfiguration.json), which is the LPT schedule that keeps the
-    # tail short. The retry cap lives in Receive-TestJobResult: an app already in
-    # $state.retried gets classified as Failed (not Transient) on a second failure.
+    # Single dispatch loop, FIFO. TestConfiguration.json lists the smallest app first (a cheap
+    # serial warmup) and the rest longest-first (LPT, keeps the tail short). The retry cap lives in
+    # Receive-TestJobResult: an app already in $state.retried is classified as Failed on a re-fail.
     $pending = @($appNamesToTest)
+
+    # Run the first app alone and await it to warm the container before parallelizing the rest.
+    # No-op for single-app/single-tenant.
+    $pending = @(Invoke-WarmupDispatch -Parameters $parameters -Pending $pending -AppIdByName $appIdByName `
+        -Tenants $tenants -ScriptPath $scriptPath -TestType $testType -State $state)
 
     while ($pending.Count -gt 0 -or $state.jobs.Count -gt 0 -or $state.transient.Count -gt 0) {
         # Promote any transient failures back into the dispatch queue. They go to the FRONT:
@@ -732,4 +790,4 @@ function Invoke-PerProjectTestRun {
     return (. $script -parameters $parameters -TestType $testType -AppNamesToTest $appNamesToTest)
 }
 
-Export-ModuleMember -Function Invoke-ParallelTestExecution, Get-AvailableBcTenants, Get-CachedTestRunResult, Get-InstalledTestAppNames, Get-AppNamesForBucket, Invoke-PerProjectTestRun, Get-AppNameFromMetadata
+Export-ModuleMember -Function Invoke-ParallelTestExecution, Get-AvailableBcTenants, Get-CachedTestRunResult, Get-InstalledTestAppNames, Get-AppNamesForBucket, Invoke-PerProjectTestRun, Get-AppNameFromMetadata, Invoke-WarmupDispatch

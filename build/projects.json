@@ -1731,29 +1731,6 @@
       "ruleSetPath": "$ENV:INETROOT\\App\\Rulesets\\basetest.ruleset.json",
       "isInternal": true
     },
-    "Tests-Performance-Internal": {
-      "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\Tests\\Performance-Internal",
-      "appJsonPath": "$env:INETROOT\\App\\Layers\\W1\\Tests\\Performance-Internal\\app.json",
-      "assemblyProbingFolders": [
-        "$env:ProgramFiles\\dotnet\\shared\\Microsoft.AspNetCore.App\\$env:dotNetVersion",
-        "$env:ProgramFiles\\dotnet\\shared\\Microsoft.NetCore.App\\$env:dotNetVersion",
-        "$env:ProgramFiles\\dotnet\\shared\\Microsoft.WindowsDesktop.App\\$env:dotNetVersion",
-        "$Env:PkgSystem_Management\\lib\\netstandard2.0",
-        "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
-        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
-        "$env:INETROOT\\test\\App\\MockService\\MockService",
-        "$env:INETROOT\\test\\App\\MockTest"
-      ],
-      "isGDLProject": true,
-      "unsupportedCountries": [
-        "NA"
-      ],
-      "isTest": true,
-      "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$ENV:INETROOT\\App\\Rulesets\\basetest.ruleset.json",
-      "isInternal": true,
-      "owningteam": "\\AI Business Solutions\\Integrations"
-    },
     "TestRunner-Internal": {
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\Tests\\TestRunner-Internal",
       "appJsonPath": "$env:INETROOT\\App\\Layers\\W1\\Tests\\TestRunner-Internal\\app.json",
@@ -7175,6 +7152,36 @@
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
       "ruleSetPath": "$ENV:INETROOT\\App\\Rulesets\\app.ruleset.json",
+      "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\Rulesets\\MinorRelease\\app.ruleset.json"
+    },
+    "Expense Withholding Tax": {
+      "projectPath": "$env:INETROOT\\App\\Apps\\W1\\ExpenseWithholdingTax\\app",
+      "hasTranslations": true,
+      "supportedCountries": [
+        "AT",
+        "BE",
+        "CA",
+        "CH",
+        "CZ",
+        "DE",
+        "DK",
+        "ES",
+        "FI",
+        "FR",
+        "GB",
+        "IS",
+        "MX",
+        "NL",
+        "NO",
+        "RU",
+        "SE",
+        "US",
+        "W1"
+      ],
+      "installOnEnvironmentUpdate": true,
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\Rulesets\\MinorRelease\\app.ruleset.json"
     },
     "Payment Management FR": {

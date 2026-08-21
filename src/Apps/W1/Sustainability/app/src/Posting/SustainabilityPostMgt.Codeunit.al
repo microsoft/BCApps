@@ -22,6 +22,7 @@ codeunit 6212 "Sustainability Post Mgt"
     var
         SustainabilityLedgerEntry: Record "Sustainability Ledger Entry";
         FeatureTelemetry: Codeunit "Feature Telemetry";
+        IsHandled: Boolean;
         SustainabilityLedgerEntryAddedLbl: Label 'Sustainability Ledger Entry Added', Locked = true;
     begin
         SustainabilityLedgerEntry.Init();
@@ -42,7 +43,11 @@ codeunit 6212 "Sustainability Post Mgt"
         UpdateCarbonFeeEmission(SustainabilityLedgerEntry);
 
         OnBeforeInsertSustainabilityLedgerEntry(SustainabilityLedgerEntry, SustainabilityJnlLine);
-        SustainabilityLedgerEntry.Insert(true);
+
+        IsHandled := false;
+        OnInsertLedgerEntryOnBeforeInsert(SustainabilityLedgerEntry, IsHandled);
+        if not IsHandled then
+            SustainabilityLedgerEntry.Insert(true);
     end;
 
     procedure InsertValueEntry(SustainabilityJnlLine: Record "Sustainability Jnl. Line"; ValueEntry: Record "Value Entry"; ItemLedgerEntry: Record "Item Ledger Entry")
@@ -518,6 +523,11 @@ codeunit 6212 "Sustainability Post Mgt"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertSustainabilityLedgerEntry(var SustainabilityLedgerEntry: Record "Sustainability Ledger Entry"; SustainabilityJnlLine: Record "Sustainability Jnl. Line")
+    begin
+    end;
+
+    [InternalEvent(false, false)]
+    local procedure OnInsertLedgerEntryOnBeforeInsert(var SustainabilityLedgerEntry: Record "Sustainability Ledger Entry"; var IsHandled: Boolean)
     begin
     end;
 }

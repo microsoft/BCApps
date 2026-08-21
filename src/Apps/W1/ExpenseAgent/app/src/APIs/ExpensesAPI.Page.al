@@ -311,6 +311,13 @@ page 6927 "Expenses API"
                     EntitySetName = 'expenseperdiems';
                     SubPageLink = "Expense No." = field("No.");
                 }
+                part(expenseVATSpecifications; "Expense VAT Spec. API")
+                {
+                    Caption = 'Expense VAT Specifications';
+                    EntityName = 'expenseVATSpecification';
+                    EntitySetName = 'expenseVATSpecifications';
+                    SubPageLink = "Expense No." = field("No.");
+                }
                 part(expenseRuleViolations; "Expense Rule Violations API")
                 {
                     Caption = 'Expense Rule Violations';

@@ -11,7 +11,7 @@ using Microsoft.Purchases.Vendor;
 using System.Globalization;
 using System.Text;
 
-page 99001500 "Subcontractor Prices"
+page 20500 "Subcontractor Prices"
 {
     ApplicationArea = Subcontracting;
     Caption = 'Subcontractor Prices';
