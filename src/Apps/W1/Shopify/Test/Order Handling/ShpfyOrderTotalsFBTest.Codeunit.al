@@ -21,11 +21,16 @@ codeunit 139587 "Shpfy Order Totals FB Test"
         LibrarySales: Codeunit "Library - Sales";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryAssert: Codeunit "Library Assert";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         Any: Codeunit Any;
 
     local procedure Initialize()
     begin
         LibraryVariableStorage.Clear();
+
+        // Ensure country-specific posting prerequisites exist (e.g. the CZ VAT period the posting tests need).
+        LibraryERMCountryData.CreateVATData();
+        LibraryERMCountryData.UpdateGeneralPostingSetup();
     end;
 
     [Test]
