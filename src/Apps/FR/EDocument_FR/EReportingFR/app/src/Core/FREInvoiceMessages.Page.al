@@ -101,4 +101,5 @@ page 10973 "FR E-Invoice Messages"
             }
         }
     }
+
 }
