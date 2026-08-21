@@ -46,7 +46,7 @@ codeunit 139899 "E-Doc. Message Mgt. Tests"
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText('<Message />');
         MessageEntryNo := EDocMessageMgt.CreateMessage(
-            EDocument, "E-Document Message Type"::"Unspecified", "E-Document Direction"::Outgoing,
+            EDocument, "E-Document Message Type"::Unknown, "E-Document Direction"::Outgoing,
             "E-Doc. Response Type"::None, TempBlob);
 
         // [WHEN] The message is queued
@@ -84,7 +84,7 @@ codeunit 139899 "E-Doc. Message Mgt. Tests"
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText('<Message />');
         MessageEntryNo := EDocMessageMgt.CreateMessage(
-            EDocument, "E-Document Message Type"::Unspecified, "E-Document Direction"::Outgoing,
+            EDocument, "E-Document Message Type"::Unknown, "E-Document Direction"::Outgoing,
             "E-Doc. Response Type"::None, TempBlob);
         EDocMessage.Get(MessageEntryNo);
         EDocMessage.Status := EDocMessage.Status::Error;
@@ -126,7 +126,7 @@ codeunit 139899 "E-Doc. Message Mgt. Tests"
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText('<Message />');
         MessageEntryNo := EDocMessageMgt.CreateMessage(
-            EDocument, "E-Document Message Type"::Unspecified, "E-Document Direction"::Outgoing,
+            EDocument, "E-Document Message Type"::Unknown, "E-Document Direction"::Outgoing,
             "E-Doc. Response Type"::None, TempBlob);
 
         // [WHEN] The message is retried
@@ -157,7 +157,7 @@ codeunit 139899 "E-Doc. Message Mgt. Tests"
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText('<Message />');
         MessageEntryNo := EDocMessageMgt.CreateMessage(
-            EDocument, "E-Document Message Type"::Unspecified, "E-Document Direction"::Incoming,
+            EDocument, "E-Document Message Type"::Unknown, "E-Document Direction"::Incoming,
             "E-Doc. Response Type"::None, TempBlob);
         EDocMessage.Get(MessageEntryNo);
         EDocMessage.Status := EDocMessage.Status::Error;
@@ -368,7 +368,7 @@ codeunit 139899 "E-Doc. Message Mgt. Tests"
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText('<Message />');
         MessageEntryNo := EDocMessageMgt.CreateMessage(
-            EDocument, "E-Document Message Type"::Unspecified, "E-Document Direction"::Outgoing,
+            EDocument, "E-Document Message Type"::Unknown, "E-Document Direction"::Outgoing,
             "E-Doc. Response Type"::None, TempBlob);
         EDocMessage.Get(MessageEntryNo);
         EDocMessage.Status := EDocMessage.Status::"Pending Response";
