@@ -140,7 +140,7 @@ codeunit 4350 "Custom Agent Setup"
         // available read-only on the agent card and the agent task pages, so archived
         // agents are blocked here rather than opening a page that can do nothing.
         if IsAgentArchived(AgentSecurityId) then
-            Error(AgentArchivedCannotBeTestedErr);
+            AgentEditInstructionsPage.ThrowArchivedAgentCannotBeTestedError(AgentSecurityId);
 
         if not ConfirmOpenEditInstructionsPageForInactiveAgent(AgentSecurityId) then
             exit;
@@ -271,5 +271,4 @@ codeunit 4350 "Custom Agent Setup"
         DefaultAgentInstructionsLbl: Label '', Locked = true;
         DefaultAgentDescriptionLbl: Label '', Locked = true;
         OpenEditInstructionsPageForInactiveAgentQst: Label 'This agent is inactive. Changes will not take effect until the agent is activated.\\Do you want to continue?';
-        AgentArchivedCannotBeTestedErr: Label 'This agent is archived and can no longer be tested. Its instructions, tasks and logs remain available on the agent card and the agent task pages.';
 }

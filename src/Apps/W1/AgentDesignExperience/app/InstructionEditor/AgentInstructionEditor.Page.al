@@ -471,7 +471,7 @@ page 4363 "Agent Instruction Editor"
 
         GetAgentSafe();
         if GlobalAgent.Substate = GlobalAgent.Substate::Archived then
-            Error(AgentArchivedCannotBeTestedErr);
+            ThrowArchivedAgentCannotBeTestedError(GlobalAgentUserSecurityId);
 
         InitializeControls();
     end;
@@ -503,6 +503,23 @@ page 4363 "Agent Instruction Editor"
     procedure SetUserSecurityId(NewUserSecId: Guid)
     begin
         GlobalAgentUserSecurityId := NewUserSecId;
+    end;
+
+    procedure ThrowArchivedAgentCannotBeTestedError(AgentSecurityId: Guid)
+    var
+        Agent: Record Agent;
+        AgentArchivedErrorInfo: ErrorInfo;
+    begin
+        AgentArchivedErrorInfo.Title := AgentArchivedTitleErr;
+        AgentArchivedErrorInfo.Message := ArchivedAgentCannotBeTestedErr;
+
+        if Agent.Get(AgentSecurityId) then begin
+            AgentArchivedErrorInfo.PageNo := Page::"Agent Card";
+            AgentArchivedErrorInfo.RecordId := Agent.RecordId();
+            AgentArchivedErrorInfo.AddNavigationAction(ShowAgentCardLbl);
+        end;
+
+        Error(AgentArchivedErrorInfo);
     end;
 
     local procedure ValidateUserSecurityId()
@@ -549,6 +566,8 @@ page 4363 "Agent Instruction Editor"
         AgentInstructionsTxt: Label 'Agent - %1', Comment = '%1 is the agent display name.';
         EditTemplateQst: Label 'Template was created. Do you want to edit the template now?';
         AgentNotFoundErr: Label 'The agent with ID ''%1'' was not found.', Comment = '%1 is the agent user security ID.';
-        AgentArchivedCannotBeTestedErr: Label 'This agent is archived and can no longer be tested. Its instructions, tasks and logs remain available on the agent card and the agent task pages.';
         AgentTaskNotFoundErr: Label 'The agent task with ID ''%1'' was not found.', Comment = '%1 is the agent task ID.';
+        ArchivedAgentCannotBeTestedErr: Label 'This agent is archived and can no longer be tested. Its instructions, tasks and logs remain available on the agent card and the agent task pages.';
+        AgentArchivedTitleErr: Label 'This agent is archived';
+        ShowAgentCardLbl: Label 'Show agent card';
 }
