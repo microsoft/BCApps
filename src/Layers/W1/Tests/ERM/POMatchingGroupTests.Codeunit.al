@@ -844,7 +844,7 @@ codeunit 134469 "PO Matching Group Tests"
     end;
     #endregion
 
-    #region Covering receipts 
+    #region Covering receipts
     [Test]
     procedure SuggestCoveringReceiptsFullyCoversBudget()
     var
