@@ -1,13 +1,5 @@
 [
   {
-    "codeunitId": 148318,
-    "codeunitName": "Expense Capabilities API Test",
-    "method": "*",
-    "countries": [
-      "IN"
-    ]
-  },
-  {
     "codeunitId": 148305,
     "codeunitName": "Expense Test",
     "method": "DescriptionMustBeFlowFromExpenseToExpenseItemization"
