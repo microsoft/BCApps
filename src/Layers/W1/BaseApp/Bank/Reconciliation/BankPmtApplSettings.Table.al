@@ -131,6 +131,16 @@ table 1253 "Bank Pmt. Appl. Settings"
         field(14; "Empl Ledg Hidden In Apply Man"; Boolean)
         {
         }
+        /// <summary>
+        /// Number of days back from the bank statement transaction date to search for candidate ledger entries.
+        /// A value of 0 searches all open entries; a positive value limits candidates to improve performance.
+        /// </summary>
+        field(15; "Candidate Lookback (Days)"; Integer)
+        {
+            Caption = 'Candidate Lookback (Days)';
+            MinValue = 0;
+            ToolTip = 'Specifies how many days back from the bank statement transaction date the automatic matching searches for candidate ledger entries. Limiting the range improves performance when there are many open entries. Set to 0 to search all open entries.';
+        }
 
     }
 
@@ -162,6 +172,24 @@ table 1253 "Bank Pmt. Appl. Settings"
         "Empl. Ledger Entries Matching" := true;
         "Bank Ledg Closing Doc No Match" := false;
         Insert(true);
+    end;
+
+    /// <summary>
+    /// Calculates the earliest posting date to include when searching for candidate ledger entries.
+    /// Returns 0D (no lower bound) when the lookback is not configured or no reference date is available.
+    /// </summary>
+    /// <param name="ReferenceDate">The bank statement transaction date to count the lookback back from.</param>
+    /// <returns>The earliest posting date to include, or 0D when candidates should not be date-limited.</returns>
+    procedure GetCandidateLookbackStartDate(ReferenceDate: Date): Date
+    var
+        LookbackFormula: DateFormula;
+    begin
+        if "Candidate Lookback (Days)" <= 0 then
+            exit(0D);
+        if ReferenceDate = 0D then
+            exit(0D);
+        Evaluate(LookbackFormula, StrSubstNo('<-%1D>', "Candidate Lookback (Days)"));
+        exit(CalcDate(LookbackFormula, ReferenceDate));
     end;
 }
 
