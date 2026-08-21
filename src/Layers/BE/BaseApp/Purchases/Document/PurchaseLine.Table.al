@@ -10419,7 +10419,7 @@ table 39 "Purchase Line"
     begin
         if "Non-Deductible VAT %" <> 0 then
             exit;
-        if "VAT Identifier" = '' then
+        if "VAT Identifier".IsEmpty() then
             exit;
         if not NonDeductibleVAT.IsNonDeductibleVATEnabled() then
             exit;
