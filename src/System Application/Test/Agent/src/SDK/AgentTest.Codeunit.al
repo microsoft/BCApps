@@ -1670,7 +1670,8 @@ codeunit 133961 "Agent Test"
         Agent.Archive(AgentId);
 
         // [WHEN] The task reference link is followed
-        AgentTaskImpl.ShowTask(AgentTaskRecord.ID);
+        AgentTaskRecord.Get(AgentTaskRecord.ID);
+        AgentTaskImpl.ShowTask(AgentTaskRecord);
 
         // [THEN] The log entries of that task are opened
         Assert.AreEqual(Format(AgentTaskRecord.ID), LibraryVariableStorage.DequeueText(), 'The log entries should be opened for the task of the archived agent.');

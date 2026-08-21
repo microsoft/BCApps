@@ -60,14 +60,6 @@ codeunit 4300 "Agent Task Impl."
         Page.Run(Page::"Agent Task Log Entry List", AgentTaskLogEntry);
     end;
 
-    procedure ShowTask(AgentTaskID: BigInteger)
-    var
-        AgentTask: Record "Agent Task";
-    begin
-        AgentTask.Get(AgentTaskID);
-        ShowTask(AgentTask);
-    end;
-
     procedure ShowTask(var AgentTask: Record "Agent Task")
     var
         TaskPane: Codeunit "Task Pane";
