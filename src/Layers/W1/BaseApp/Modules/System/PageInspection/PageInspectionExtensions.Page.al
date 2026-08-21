@@ -144,7 +144,7 @@ page 9633 "Page Inspection Extensions"
 
     procedure FilterForExtAffectingPage(PageId: Integer; TableId: Integer; FormId: Guid)
     begin
-        if FormId <> Guid.Empty then; // Kept to not break existing code that calls this method with 3 parameters. The FormId parameter is not used in the current implementation.
+        if IsNullGuid(FormId) then; // Kept to not break existing code that calls this method with 3 parameters. The FormId parameter is not used in the current implementation.
         FilterForExtAffectingPage(PageId, TableId);
     end;
 
