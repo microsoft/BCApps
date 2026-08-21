@@ -18,6 +18,10 @@ Set-StrictMode -Version 3.0
 
 $runId = "$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT"
 $branch = "bc-extrequest-implement/ext_issue-$IssueNumber"
+$telemetryContext = @{
+    Enabled = $TelemetryEnabled
+    IssueUrl = $IssueUrl
+}
 
 function Send-ImplementationTelemetry {
     param(
@@ -32,7 +36,7 @@ function Send-ImplementationTelemetry {
         [string] $FailureMessage = ''
     )
 
-    if (-not $TelemetryEnabled) {
+    if (-not $telemetryContext.Enabled) {
         return
     }
 
@@ -44,7 +48,7 @@ function Send-ImplementationTelemetry {
         -RunId $runId `
         -Repository $Repository `
         -IssueNumber $IssueNumber `
-        -IssueUrl $IssueUrl `
+        -IssueUrl $telemetryContext.IssueUrl `
         -Model $Model `
         -PullRequestNumber $PullRequestNumber `
         -PullRequestUrl $PullRequestUrl `
