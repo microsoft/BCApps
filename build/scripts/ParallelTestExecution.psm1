@@ -778,6 +778,16 @@ function Invoke-PerProjectTestRun {
     $installed = Get-InstalledTestAppNames -ContainerName $parameters.containerName -Tenant $parameters.tenant -Country $country
     $appNamesToTest = Get-AppNamesForBucket -InstalledTestAppNames $installed -TestType $testType -BucketNumber $bucketNumber
 
+    # Build optimization (PR builds only): drop test apps not affected by the changed files.
+    # Test-ShouldSkipTestApp returns $false (run) for every app when a full run is required
+    # (fullBuildPatterns match, unmapped src file, non-CI, or workflow_dispatch), so this is
+    # correctness-preserving and simply a no-op outside PRs.
+    Import-Module (Join-Path $PSScriptRoot "BuildOptimization.psm1" -Resolve)
+    $baseFolder = Get-BaseFolder
+    $appNamesToTest = @($appNamesToTest | Where-Object {
+        -not (Test-ShouldSkipTestApp -AppName $_ -BaseFolder $baseFolder)
+    })
+
     if ($appNamesToTest.Count -eq 0) {
         Write-Host "No test apps to run for testType '$testType' in this project."
         return $true

@@ -231,11 +231,14 @@ function Get-ChangedFilesForCI {
     $ErrorActionPreference = 'Continue'
     try {
         # Best-effort fetch of base commit (may not be in shallow clone)
-        git fetch origin $baseSha --depth=1 2>$null
-
-        $files = @(git diff --name-only $baseSha $headSha 2>$null)
+        $fetchOutput = git fetch origin $baseSha --depth=1 2>&1
         if ($LASTEXITCODE -ne 0) {
-            Write-Host "BUILD OPTIMIZATION: git diff failed (exitCode=$LASTEXITCODE)"
+            Write-Host "BUILD OPTIMIZATION: base fetch failed (exit=$LASTEXITCODE): $fetchOutput"
+        }
+
+        $files = @(git diff --name-only $baseSha $headSha 2>&1)
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "BUILD OPTIMIZATION: git diff failed (exitCode=$LASTEXITCODE): $files"
             return $null
         }
 
