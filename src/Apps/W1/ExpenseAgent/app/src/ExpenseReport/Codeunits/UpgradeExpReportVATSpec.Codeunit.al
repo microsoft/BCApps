@@ -17,6 +17,7 @@ codeunit 7105 "Upgrade Exp. Report VAT Spec"
     Permissions = tabledata Currency = r,
                   tabledata "Currency Exchange Rate" = r,
                   tabledata "Expense Report Header" = r,
+                  tabledata "Expense Report Line" = r,
                   tabledata "Expense Report Line VAT Spec." = rm,
                   tabledata "General Ledger Setup" = r,
                   tabledata "Posted Expense Report Header" = r,
@@ -27,6 +28,43 @@ codeunit 7105 "Upgrade Exp. Report VAT Spec"
         BackfillReimbursementAmounts();
     end;
 
+    local procedure BackfillExpenseReportLineVATSpecCurrencyMetadata()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.";
+        CachedDocumentNo: Code[20];
+        CachedDocumentLineNo: Integer;
+        HasCachedDocumentLine: Boolean;
+        ParentLineFound: Boolean;
+    begin
+        ExpenseReportLine.SetLoadFields("Expense Currency Code", "Expense Currency Factor");
+        ExpenseReportLineVATSpec.SetCurrentKey("Document No.", "Document Line No.", "Line No.");
+        ExpenseReportLineVATSpec.SetLoadFields("Document No.", "Document Line No.", "Currency Code", "Currency Factor");
+        CachedDocumentNo := '';
+        CachedDocumentLineNo := 0;
+        if ExpenseReportLineVATSpec.FindSet(true) then
+            repeat
+                if (not HasCachedDocumentLine) or
+                   (CachedDocumentNo <> ExpenseReportLineVATSpec."Document No.") or
+                   (CachedDocumentLineNo <> ExpenseReportLineVATSpec."Document Line No.")
+                then begin
+                    CachedDocumentNo := ExpenseReportLineVATSpec."Document No.";
+                    CachedDocumentLineNo := ExpenseReportLineVATSpec."Document Line No.";
+                    HasCachedDocumentLine := true;
+                    ParentLineFound := ExpenseReportLine.Get(CachedDocumentNo, CachedDocumentLineNo);
+                end;
+
+                if ParentLineFound then
+                    if (ExpenseReportLineVATSpec."Currency Code" <> ExpenseReportLine."Expense Currency Code") or
+                       (ExpenseReportLineVATSpec."Currency Factor" <> ExpenseReportLine."Expense Currency Factor")
+                    then begin
+                        ExpenseReportLineVATSpec."Currency Code" := ExpenseReportLine."Expense Currency Code";
+                        ExpenseReportLineVATSpec."Currency Factor" := ExpenseReportLine."Expense Currency Factor";
+                        ExpenseReportLineVATSpec.Modify(false);
+                    end;
+            until ExpenseReportLineVATSpec.Next() = 0;
+    end;
+
     local procedure BackfillReimbursementAmounts()
     var
         UpgradeTag: Codeunit "Upgrade Tag";
@@ -34,6 +72,7 @@ codeunit 7105 "Upgrade Exp. Report VAT Spec"
         if UpgradeTag.HasUpgradeTag(GetBackfillReimbursementAmountsUpgradeTag()) then
             exit;
 
+        BackfillExpenseReportLineVATSpecCurrencyMetadata();
         CopyReimbursementAmountsFromLCY();
         BackfillExpenseReportLineVATSpecs();
         BackfillPostedExpenseReportLineVATSpecs();
