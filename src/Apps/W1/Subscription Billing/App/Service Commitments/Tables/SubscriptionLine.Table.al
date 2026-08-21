@@ -1835,10 +1835,11 @@ table 8059 "Subscription Line"
     internal procedure SetUsageDataBillingFilters(var UsageDataBilling: Record "Usage Data Billing"; BillingFromDate: Date; BillingToDate: Date)
     begin
         UsageDataBilling.SetRange("Subscription Line Entry No.", Rec."Entry No.");
-        UsageDataBilling.SetRange("Usage Base Pricing", Enum::"Usage Based Pricing"::"Usage Quantity", Enum::"Usage Based Pricing"::"Unit Cost Surcharge");
+        UsageDataBilling.SetFilter("Usage Base Pricing", '>=%1', Enum::"Usage Based Pricing"::"Usage Quantity");
         UsageDataBilling.SetRange("Document Type", "Usage Based Billing Doc. Type"::None);
         UsageDataBilling.SetFilter("Charge Start Date", '>=%1', BillingFromDate);
         UsageDataBilling.SetFilter("Charge End Date", '<=%1', CalcDate('<1D>', BillingToDate));
+        OnAfterSetUsageDataBillingFilters(UsageDataBilling, Rec, BillingFromDate, BillingToDate);
     end;
 
     internal procedure IsUsageBasedBillingValid(): Boolean
@@ -2108,6 +2109,11 @@ table 8059 "Subscription Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateNextBillingDate(var SubscriptionLine: Record "Subscription Line"; LastBillingToDate: Date)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterSetUsageDataBillingFilters(var UsageDataBilling: Record "Usage Data Billing"; SubscriptionLine: Record "Subscription Line"; BillingFromDate: Date; BillingToDate: Date)
     begin
     end;
 
