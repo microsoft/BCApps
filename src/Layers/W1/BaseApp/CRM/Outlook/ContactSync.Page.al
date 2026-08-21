@@ -126,41 +126,6 @@ page 7100 "Contact Sync"
                             end;
                         end;
                     }
-                    field(fullSyncField; FullSyncOption)
-                    {
-                        ApplicationArea = All;
-                        Caption = 'Force full sync';
-                        ToolTip = 'When this is enabled, Business Central will synchronize contacts no matter when they were last modified. This may take longer, but can overcome some synchronization issues.';
-                    }
-                    group(AdvancedGroup)
-                    {
-                        Caption = 'Advanced';
-
-                        group(ClearSyncDetailsGroup)
-                        {
-                            Caption = '';
-
-                            field(ClearSyncDetailsField; ClearSyncDetailsLbl)
-                            {
-                                ApplicationArea = All;
-                                Caption = '';
-                                Editable = false;
-                                ShowCaption = false;
-                                Style = StandardAccent;
-                                StyleExpr = true;
-                                ToolTip = 'Deletes the internal log of your last synchronization that affects what gets synchronized next. You should use this only if synchronization fails.';
-
-                                trigger OnDrillDown()
-                                begin
-                                    if Confirm(ClearLastSyncConfirmMsg) then begin
-                                        ClearSyncRecordsForCurrentUser();
-                                        Message(LastSyncClearedMsg);
-                                        GoToStep(Step::Welcome);
-                                    end;
-                                end;
-                            }
-                        }
-                    }
                     field(PreviewText; PreviewTextLbl)
                     {
                         ApplicationArea = All;
@@ -178,6 +143,39 @@ page 7100 "Contact Sync"
                         MultiLine = false;
                         ShowCaption = false;
                         Style = Subordinate;
+                    }
+                    group(AdvancedGroup)
+                    {
+                        Caption = 'Advanced';
+
+                        group(ClearSyncDetailsGroup)
+                        {
+                            Caption = '';
+                            field(fullSyncField; FullSyncOption)
+                            {
+                                ApplicationArea = All;
+                                Caption = 'Force full sync';
+                                ToolTip = 'When this is enabled, Business Central will synchronize contacts no matter when they were last modified. This may take longer, but can overcome some synchronization issues.';
+                            }
+                            field(ClearSyncDetailsField; ClearSyncDetailsLbl)
+                            {
+                                ApplicationArea = All;
+                                Caption = '';
+                                Editable = false;
+                                ShowCaption = false;
+                                Style = StandardAccent;
+                                StyleExpr = true;
+
+                                trigger OnDrillDown()
+                                begin
+                                    if Confirm(ClearLastSyncConfirmMsg) then begin
+                                        ClearSyncRecordsForCurrentUser();
+                                        Message(LastSyncClearedMsg);
+                                        GoToStep(Step::Welcome);
+                                    end;
+                                end;
+                            }
+                        }
                     }
                 }
             }
@@ -691,7 +689,7 @@ page 7100 "Contact Sync"
         SyncDirection: Enum "ContactSyncDirection";
         ClearLastSyncConfirmMsg: Label 'This will delete the internal log of your last synchronization, but will not modify any contacts you have synchronized to date. Do you want to proceed?';
         ClearSyncDetailsLbl: Label 'Clear last sync details';
-        LastSyncClearedMsg: Label 'Last sync details cleared navigating to step1';
+        LastSyncClearedMsg: Label 'Last sync details cleared, Navigated to Start Over';
         ContactsSentToM365Count: Integer;
         ContactsSentToBCCount: Integer;
         ContactsFailedCount: Integer;
