@@ -7,13 +7,13 @@
     },
     {
         "bug": "615586",
-        "codeunitId": 149920,
+        "codeunitId": 139997,
         "codeunitName": "Subc SCM Prod. Order",
         "method": "UndoSecondReceiptInSubcontractingPurchaseOrder_WithTracking"
     },
     {
         "bug": "615586",
-        "codeunitId": 149920,
+        "codeunitId": 139997,
         "codeunitName": "Subc SCM Prod. Order",
         "method": "UndoFirstReceiptInSubcontractingPurchaseOrder_WithTracking"
     }
