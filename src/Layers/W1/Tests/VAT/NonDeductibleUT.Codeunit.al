@@ -19,7 +19,7 @@ codeunit 134282 "Non-Deductible UT"
         LibraryUtility: Codeunit "Library - Utility";
         Assert: Codeunit Assert;
         isInitialized: Boolean;
-        DifferentNonDedVATRatesSameVATIdentifierErr: Label 'You cannot set different Non-Deductible VAT % for the combinations of business and product groups with the same VAT identifier.\The following combination with the same VAT identifier has different Non-Deductible VAT %: business group %1, product group %2', Comment = '%1 = VAT business posting group code, %2 = VAT product posting group code';
+        DifferentNonDedVATRatesSameVATIdentifierErr: Label 'You cannot set different Non-Deductible VAT % for the combinations of business and product groups with the same VAT identifier.\The following combination with the same VAT identifier has different Non-Deductible VAT %: business group %1, product group %2', Comment = '%1, %2 - codes';
         GLEntryAmountErrLbl: Label '%1 must be %2 in %3.', Comment = '%1 = Amount Field Caption, %2 = Amount Value, %3 = G/L Account No.', Locked = true;
         AmountErrorLbl: Label '%1 must be %2.', Comment = '%1 = Amount Field Caption, %2 = Expected Amount';
 
