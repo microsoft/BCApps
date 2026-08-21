@@ -511,7 +511,7 @@ codeunit 134619 "Composite Layout Tests"
         TempCfgBefore: Record "Tenant Report Layout Cfg" temporary;
         CompositeLayoutAssignMgt: Codeunit "Composite Layout Assign. Mgt.";
         CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
-        Assigned: Boolean;
+        AssignmentWritten: Boolean;
         AssignedCount: Integer;
     begin
         // [SCENARIO] When a curated mapping names a body layout that is not installed on the tenant - the report does not
@@ -534,10 +534,10 @@ codeunit 134619 "Composite Layout Tests"
             'The layout should not be installed, or this test proves nothing.');
 
         // [WHEN] Assigning the header/footer for that report and layout.
-        Assigned := CompositeLayoutAssignMgt.AssignHeaderFooter(TestReportID, MissingBodyLayoutTok, InternalDefaultTok);
+        AssignmentWritten := CompositeLayoutAssignMgt.AssignHeaderFooter(TestReportID, MissingBodyLayoutTok, InternalDefaultTok);
 
         // [THEN] The assignment reports that it wrote nothing.
-        Assert.IsFalse(Assigned, 'An assignment to a layout that is not installed should report that it wrote nothing.');
+        Assert.IsFalse(AssignmentWritten, 'An assignment to a layout that is not installed should report that it wrote nothing.');
 
         // [THEN] No configuration row was written for it at all - not a row carrying a blank or a dangling part name.
         Assert.IsFalse(
