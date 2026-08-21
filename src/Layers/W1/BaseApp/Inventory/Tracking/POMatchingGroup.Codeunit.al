@@ -386,12 +386,10 @@ codeunit 5829 "PO Matching Group"
 
     local procedure ReceiptOnInvoiceForMatch(OrderLineSystemId: Guid): Boolean
     var
-        OrderHeader: Record "Purchase Header";
         OrderLine: Record "Purchase Line";
     begin
         OrderLine.GetBySystemId(OrderLineSystemId);
-        OrderHeader.Get(OrderLine."Document Type", OrderLine."Document No.");
-        exit(OrderHeader."Receipt on Invoice");
+        exit(OrderLine."Receipt on Invoice");
     end;
     #endregion
 
