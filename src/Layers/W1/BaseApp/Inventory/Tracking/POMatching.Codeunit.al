@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Tracking;
 
+using Microsoft.Inventory.Ledger;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
+
 codeunit 5831 "PO Matching"
 {
     Access = Public;
@@ -46,6 +50,86 @@ codeunit 5831 "PO Matching"
         Edge."Matched Rcpt./Shpt. Line SysId" := ReceiptLineSystemId;
         Edge."Qty. to Invoice" := QtyToAllocate;
         Edge."Qty. to Invoice (Base)" := QtyToAllocateBase;
+    end;
+    #endregion
+
+    #region Covering receipts
+    /// <summary>
+    /// Enriches the group by covering each invoice-order allocation with the order line's posted receipts that still have quantity received not invoiced, by adding or growing receipt edges.
+    /// </summary>
+    internal procedure SuggestCoveringReceipts(var POMatchingGroup: Codeunit "PO Matching Group")
+    var
+        TempIntendedEdge: Record "Matched Order Line" temporary;
+        InvoiceableReceipts: Codeunit "Invoiceable Receipts";
+        OrderLine: Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        InvoiceLineSystemId, OrderLineSystemId : Guid;
+        Missing, Available, Take, NewQty : Decimal;
+    begin
+        if not POMatchingGroup.GetInvoiceOrderEdges() then
+            exit;
+
+        repeat
+            InvoiceLineSystemId := POMatchingGroup.GetInvoiceLine();
+            OrderLineSystemId := POMatchingGroup.GetOrderLine();
+            OrderLine.GetBySystemId(OrderLineSystemId);
+            Missing := POMatchingGroup.AllocatedInInvoiceOrderEdge() - POMatchingGroup.SumAllocatedInOrderReceiptEdges();
+
+            if (Missing > 0) and InvoiceableReceipts.Load(OrderLine) then begin
+                TempIntendedEdge.Reset();
+                TempIntendedEdge.DeleteAll();
+                repeat
+                    PurchRcptLine := InvoiceableReceipts.GetReceiptLine();
+                    Available := InvoiceableReceipts.ReceiptNotInvoiced(POMatchingGroup);
+                    if ReceiptHasItemTracking(PurchRcptLine) then begin
+                        // An item-tracked receipt can only be taken whole; skip it if it doesn't fit.
+                        if (Available > 0) and (Available <= Missing) then
+                            Take := Available
+                        else
+                            Take := 0;
+                    end else
+                        Take := MinDecimal(Missing, Available);
+
+                    if Take > 0 then begin
+                        NewQty := POMatchingGroup.GetReceiptEdgeQuantity(InvoiceLineSystemId, OrderLineSystemId, PurchRcptLine.SystemId) + Take;
+                        TempIntendedEdge."Document Line SystemId" := InvoiceLineSystemId;
+                        TempIntendedEdge."Matched Order Line SystemId" := OrderLineSystemId;
+                        TempIntendedEdge."Matched Rcpt./Shpt. Line SysId" := PurchRcptLine.SystemId;
+                        TempIntendedEdge."Qty. to Invoice" := NewQty;
+                        TempIntendedEdge.Insert();
+                        Missing -= Take;
+                    end;
+                until (Missing <= 0) or (not InvoiceableReceipts.NextReceipt());
+
+                if TempIntendedEdge.FindSet() then
+                    repeat
+                        POMatchingGroup.AddMatch(
+                            InvoiceOrderReceiptEdge(
+                                TempIntendedEdge."Document Line SystemId",
+                                TempIntendedEdge."Matched Order Line SystemId",
+                                TempIntendedEdge."Matched Rcpt./Shpt. Line SysId",
+                                TempIntendedEdge."Qty. to Invoice",
+                                TempIntendedEdge."Qty. to Invoice"));
+                    until TempIntendedEdge.Next() = 0;
+            end;
+        until not POMatchingGroup.NextInvoiceOrderEdge();
+    end;
+
+    local procedure MinDecimal(A: Decimal; B: Decimal): Decimal
+    begin
+        if A < B then
+            exit(A);
+        exit(B);
+    end;
+
+    local procedure ReceiptHasItemTracking(PurchRcptLine: Record "Purch. Rcpt. Line"): Boolean
+    var
+        TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
+        ItemTrackingDocMgmt: Codeunit "Item Tracking Doc. Management";
+    begin
+        ItemTrackingDocMgmt.RetrieveEntriesFromShptRcpt(TempItemLedgerEntry, Database::"Purch. Rcpt. Line", 0, PurchRcptLine."Document No.", '', 0, PurchRcptLine."Line No.");
+        TempItemLedgerEntry.SetFilter("Item Tracking", '<>%1', TempItemLedgerEntry."Item Tracking"::None);
+        exit(not TempItemLedgerEntry.IsEmpty());
     end;
     #endregion
 }
