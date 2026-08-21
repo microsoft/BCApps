@@ -41,6 +41,8 @@ codeunit 148318 "Expense Capabilities API Test"
             ExpenseAgentSetup.Insert();
         end;
         ExpenseAgentSetup."Enable Project Fields" := true;
+        ExpenseAgentSetup."Allow VAT Reclaim" := true;
+        ExpenseAgentSetup."Evaluate Policies" := true;
         ExpenseAgentSetup.Modify();
         Commit();
 
@@ -125,6 +127,10 @@ codeunit 148318 "Expense Capabilities API Test"
             ExpenseAgentSetup.Insert();
         end;
         ExpenseAgentSetup."Enable Project Fields" := true;
+        ExpenseAgentSetup."Allow VAT Reclaim" := true;
+        // Enable Evaluate Policies too so the aiAssistedPolicyEvaluation capability is not reported
+        // disabled, keeping the "no capability disabled" assertion below valid.
+        ExpenseAgentSetup."Evaluate Policies" := true;
         ExpenseAgentSetup.Modify();
         Commit();
 
@@ -135,8 +141,61 @@ codeunit 148318 "Expense Capabilities API Test"
         Assert.IsTrue(
             ResponseContainsCapabilityState(ResponseText, 'consolidatedProjects', true),
             'Response must contain an enabled consolidatedProjects capability row.');
+        Assert.IsTrue(
+            ResponseContainsCapabilityState(ResponseText, 'aiAssistedPolicyEvaluation', true),
+            'Response must contain an enabled aiAssistedPolicyEvaluation capability row.');
         LibraryExpenseAgent.RestoreExpenseAgentSetup();
         Commit();
+    end;
+
+    [Test]
+    procedure CapabilitiesPolicyEvaluationEnabled()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseCapabilitiesProvider: Codeunit "Expense Capabilities Provider";
+    begin
+        // [SCENARIO] When Expense Agent Setup has "Evaluate Policies" = true,
+        //            the aiAssistedPolicyEvaluation capability is reported enabled.
+        // The web-service serialization of this row is covered by
+        // CapabilitiesConsolidatedProjectsFollowsProjectFieldsViaAPI; this test targets the
+        // derivation directly to keep the codeunit's web-service round-trips within the
+        // container auth limit (see ExpenseProjectsAPITest for the same provider-level pattern).
+        Initialize();
+
+        // [GIVEN] Expense Agent Setup exists with Evaluate Policies = true.
+        if not ExpenseAgentSetup.Get() then begin
+            ExpenseAgentSetup.Init();
+            ExpenseAgentSetup.Insert();
+        end;
+        ExpenseAgentSetup."Evaluate Policies" := true;
+        ExpenseAgentSetup.Modify();
+
+        // [THEN] The provider reports aiAssistedPolicyEvaluation as enabled.
+        Assert.IsTrue(ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::AiAssistedPolicyEvaluation),
+            'aiAssistedPolicyEvaluation must be enabled when Evaluate Policies is true.');
+    end;
+
+    [Test]
+    procedure CapabilitiesPolicyEvaluationDisabled()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseCapabilitiesProvider: Codeunit "Expense Capabilities Provider";
+    begin
+        // [SCENARIO] When Expense Agent Setup has "Evaluate Policies" = false,
+        //            the aiAssistedPolicyEvaluation capability is reported disabled.
+        Initialize();
+
+        // [GIVEN] Expense Agent Setup exists with Evaluate Policies = false.
+        if not ExpenseAgentSetup.Get() then begin
+            ExpenseAgentSetup.Init();
+            ExpenseAgentSetup.Insert();
+        end;
+        ExpenseAgentSetup."Evaluate Policies" := false;
+        ExpenseAgentSetup.Modify();
+
+        // [THEN] The provider reports aiAssistedPolicyEvaluation as disabled.
+        Assert.IsFalse(ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::AiAssistedPolicyEvaluation),
+            'aiAssistedPolicyEvaluation must be disabled when Evaluate Policies is false.');
     end;
 
     local procedure Initialize()
