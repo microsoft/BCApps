@@ -277,7 +277,7 @@ page 4400 "SOA Setup"
                     field(SendSalesQuote; Rec."Send Sales Quote")
                     {
                         Caption = 'Send quotes for confirmation';
-                        ToolTip = 'Specifies if the agent sends sales quotes for confirmation.';
+                        ToolTip = 'Specifies whether the agent sends the sales quote to the customer as a PDF attachment before proceeding. When this is off and Make orders from quotes is on, the agent skips the quote stage and sends only the sales order to the customer.';
 
                         trigger OnValidate()
                         begin
@@ -296,7 +296,7 @@ page 4400 "SOA Setup"
                         field(CreateOrderFromQuote; Rec."Create Order from Quote")
                         {
                             Caption = 'Make orders from quotes';
-                            ToolTip = 'Specifies if the agent makes orders from quotes.';
+                            ToolTip = 'Specifies whether the agent automatically converts sales quotes into sales orders. When Send quotes for confirmation is on, conversion happens after the customer confirms the quote by email. When Send quotes for confirmation is off, the agent converts the quote immediately without sending it to the customer.';
                             ShowCaption = false;
 
                             trigger OnValidate()
