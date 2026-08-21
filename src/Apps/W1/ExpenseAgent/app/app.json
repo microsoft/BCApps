@@ -140,6 +140,10 @@
     {
       "from": 7073,
       "to": 7123
+    },
+    {
+      "from": 7210,
+      "to": 7299
     }
   ],
   "features": [
@@ -150,5 +154,8 @@
     "allowDownloadingSource": true,
     "includeSourceInSymbolFile": true
   },
+  "resourceFolders": [
+    "samples"
+  ],
   "target": "OnPrem"
 }

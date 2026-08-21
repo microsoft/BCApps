@@ -698,4 +698,15 @@ codeunit 148300 "Library - Expense"
         ExpenseAgentSetup."Enable Agent" := EnableAgent;
         ExpenseAgentSetup.Modify(true);
     end;
+
+    internal procedure UpdateVATBusinessPostingGroupInAgentSetup()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+    begin
+        ExpenseAgentSetup.Get();
+        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
+        ExpenseAgentSetup.Validate("Default VAT Bus. Posting Group", VATBusinessPostingGroup.Code);
+        ExpenseAgentSetup.Modify(true);
+    end;
 }
