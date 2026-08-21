@@ -82,3 +82,34 @@ Test-ApplicationManifests -Path $allPaths -ExpectedAppVersion "$($currentMajorMi
 
 # Test that we are not adding new uncategorized tests (W1 only) - Disabled for now
 # Test-ApplicationTestTypes -SourceCodePaths $w1OnlyPaths -Exceptions $allowedUncategorizedTests
+
+# Test that newly introduced object IDs are within the allowed ranges.
+$AllowedObjectIdRanges = @(
+    [PSCustomObject]@{ From = 1;        To = 49999 },
+    [PSCustomObject]@{ From = 99000750; To = 99001048 }
+)
+
+# Object signatures ("<object type> <object id>") explicitly allowed to be outside the ranges above.
+$AllowedOutOfRangeObjects = @()
+
+# All AL object types that carry a numeric object ID. Extension objects, enums and permission sets also
+# consume IDs from the app's assigned ranges, so they must be validated too (the default parser used by
+# the duplicate/test checks above only covers the primary six types and is intentionally left unchanged).
+$ObjectTypePattern = 'tableextension|pageextension|reportextension|enumextension|permissionsetextension|permissionset|codeunit|page|table|report|xmlport|query|enum'
+
+$baseCommitSha = Get-PullRequestBaseSha
+if ($null -eq $baseCommitSha) {
+    Write-Host "No base commit could be resolved from the workflow context; skipping the introduced object ID range validation."
+}
+else {
+    $allowedRangesText = ($AllowedObjectIdRanges | ForEach-Object { "$($_.From)..$($_.To)" }) -join ', '
+    Write-Host "Validating introduced object IDs against base commit '$baseCommitSha' (allowed ranges: $allowedRangesText)."
+
+    $repositoryRoot = (Resolve-Path -Path (Get-BaseFolder)).Path
+    $relativeRangeCheckPaths = @($w1OnlyPaths | ForEach-Object { (Resolve-Path -Path $_).Path.Substring($repositoryRoot.Length).TrimStart('\', '/') })
+
+    $currentObjects = Get-FilesCollection -SourceCodePaths $w1OnlyPaths -ObjectTypePattern $ObjectTypePattern
+    $baseObjects = Get-ObjectCollectionAtCommit -Commitish $baseCommitSha -RepositoryRoot $repositoryRoot -RelativeSourcePaths $relativeRangeCheckPaths -ObjectTypePattern $ObjectTypePattern
+
+    Test-IntroducedObjectIDsAreInAllowedRange -CurrentObjects $currentObjects -BaseObjects $baseObjects -AllowedRanges $AllowedObjectIdRanges -AllowedOutOfRangeObjects $AllowedOutOfRangeObjects
+}
