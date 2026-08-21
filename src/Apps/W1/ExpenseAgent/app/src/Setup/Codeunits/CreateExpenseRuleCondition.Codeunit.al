@@ -41,7 +41,6 @@ codeunit 7105 "Create Expense Rule Condition"
         InsertExpenseRuleCondition(ExpenseRuleCondition, CreateExpenseCategories.GetPERDIEMTxt(), CreateExpenseLocation.SpainAll(), 0D, 10000, Enum::"Expense Rule Condition Type"::"Daily Rate", 100);
         InsertExpenseRuleCondition(ExpenseRuleCondition, CreateExpenseCategories.GetPERDIEMTxt(), CreateExpenseLocation.FinlandAll(), 0D, 10000, Enum::"Expense Rule Condition Type"::"Daily Rate", 100);
         InsertExpenseRuleCondition(ExpenseRuleCondition, CreateExpenseCategories.GetPERDIEMTxt(), CreateExpenseLocation.FijiIslandsAll(), 0D, 10000, Enum::"Expense Rule Condition Type"::"Daily Rate", 100);
-        InsertExpenseRuleCondition(ExpenseRuleCondition, CreateExpenseCategories.GetPERDIEMTxt(), CreateExpenseLocation.GreatBritainAll(), 0D, 10000, Enum::"Expense Rule Condition Type"::"Daily Rate", 100);
         InsertExpenseRuleCondition(ExpenseRuleCondition, CreateExpenseCategories.GetPERDIEMTxt(), CreateExpenseLocation.CroatiaAll(), 0D, 10000, Enum::"Expense Rule Condition Type"::"Daily Rate", 100);
         InsertExpenseRuleCondition(ExpenseRuleCondition, CreateExpenseCategories.GetPERDIEMTxt(), CreateExpenseLocation.HungaryAll(), 0D, 10000, Enum::"Expense Rule Condition Type"::"Daily Rate", 100);
         InsertExpenseRuleCondition(ExpenseRuleCondition, CreateExpenseCategories.GetPERDIEMTxt(), CreateExpenseLocation.IndonesiaAll(), 0D, 10000, Enum::"Expense Rule Condition Type"::"Daily Rate", 100);

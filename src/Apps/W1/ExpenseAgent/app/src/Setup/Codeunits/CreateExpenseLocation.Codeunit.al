@@ -26,6 +26,7 @@ codeunit 7104 "Create Expense Location"
         InsertExpenseLocation(ExpenseLocation, FranceParis(), FranceParisLbl, 'FR', ParisLbl, '');
         InsertExpenseLocation(ExpenseLocation, GermanyAll(), GermanyLbl, 'DE', '', '');
         InsertExpenseLocation(ExpenseLocation, UKLondon(), UKLondonAreaLbl, 'GB', LondonLbl, '');
+        InsertExpenseLocation(ExpenseLocation, UKOther(), UKOtherLbl, 'GB', '', '');
         InsertExpenseLocation(ExpenseLocation, USAFlorida(), USAFloridaLbl, 'US', '', FLLbl);
         InsertExpenseLocation(ExpenseLocation, USANY(), USANYLbl, 'US', NewYorkLbl, '');
         InsertExpenseLocation(ExpenseLocation, USAOther(), USAOtherLbl, 'US', '', '');
@@ -49,7 +50,6 @@ codeunit 7104 "Create Expense Location"
         InsertExpenseLocation(ExpenseLocation, SpainAll(), SpainAllLocationLbl, 'ES', '', '');
         InsertExpenseLocation(ExpenseLocation, FinlandAll(), FinlandAllLocationLbl, 'FI', '', '');
         InsertExpenseLocation(ExpenseLocation, FijiIslandsAll(), FijiIslandsAllLocationLbl, 'FJ', '', '');
-        InsertExpenseLocation(ExpenseLocation, GreatBritainAll(), GreatBritainAllLocationLbl, 'GB', '', '');
         InsertExpenseLocation(ExpenseLocation, CroatiaAll(), CroatiaAllLocationLbl, 'HR', '', '');
         InsertExpenseLocation(ExpenseLocation, HungaryAll(), HungaryAllLocationLbl, 'HU', '', '');
         InsertExpenseLocation(ExpenseLocation, IndonesiaAll(), IndonesiaAllLocationLbl, 'ID', '', '');
@@ -290,6 +290,8 @@ codeunit 7104 "Create Expense Location"
         FranceParisTok: Label 'FRANCE-PARIS', MaxLength = 20, Locked = true;
         GermanyAllTok: Label 'GERMANY-ALL', MaxLength = 20, Locked = true;
         UKLondonTok: Label 'UK-LONDON', MaxLength = 20, Locked = true;
+        UKOtherTok: Label 'UK-OTHER', MaxLength = 20, Locked = true;
+        UKOtherLbl: Label 'United Kingdom - other', MaxLength = 100;
         USAFloridaTok: Label 'USA-FLORIDA', MaxLength = 20, Locked = true;
         USANYTok: Label 'USA-NY', MaxLength = 20, Locked = true;
         USAOtherTok: Label 'USA-OTHER', MaxLength = 20, Locked = true;
@@ -346,8 +348,6 @@ codeunit 7104 "Create Expense Location"
         FinlandAllLocationLbl: Label 'Finland - all location', MaxLength = 100;
         FijiIslandsAllTok: Label 'FIJIISLANDS-ALL', MaxLength = 20, Locked = true;
         FijiIslandsAllLocationLbl: Label 'Fiji Islands - all location', MaxLength = 100;
-        GreatBritainAllTok: Label 'GREATBRITAIN-ALL', MaxLength = 20, Locked = true;
-        GreatBritainAllLocationLbl: Label 'Great Britain - all location', MaxLength = 100;
         CroatiaAllTok: Label 'CROATIA-ALL', MaxLength = 20, Locked = true;
         CroatiaAllLocationLbl: Label 'Croatia - all location', MaxLength = 100;
         HungaryAllTok: Label 'HUNGARY-ALL', MaxLength = 20, Locked = true;
@@ -910,11 +910,6 @@ codeunit 7104 "Create Expense Location"
     procedure FijiIslandsAll(): Code[20]
     begin
         exit(FijiIslandsAllTok);
-    end;
-
-    procedure GreatBritainAll(): Code[20]
-    begin
-        exit(GreatBritainAllTok);
     end;
 
     procedure CroatiaAll(): Code[20]
@@ -2075,6 +2070,11 @@ codeunit 7104 "Create Expense Location"
     procedure UKLondon(): Code[20]
     begin
         exit(UKLondonTok);
+    end;
+
+    procedure UKOther(): Code[20]
+    begin
+        exit(UKOtherTok);
     end;
 
     procedure USAFlorida(): Code[20]

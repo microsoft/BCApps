@@ -42,7 +42,6 @@ codeunit 7107 "Create Expense Rule Header"
         InsertExpenseRuleHeader(ExpenseRuleHeader, CreateExpenseCategories.GetPERDIEMTxt(), CreateExpenseLocation.SpainAll(), 0D, Enum::"Expense Justification"::" ", false, '', '', '');
         InsertExpenseRuleHeader(ExpenseRuleHeader, CreateExpenseCategories.GetPERDIEMTxt(), CreateExpenseLocation.FinlandAll(), 0D, Enum::"Expense Justification"::" ", false, '', '', '');
         InsertExpenseRuleHeader(ExpenseRuleHeader, CreateExpenseCategories.GetPERDIEMTxt(), CreateExpenseLocation.FijiIslandsAll(), 0D, Enum::"Expense Justification"::" ", false, '', '', '');
-        InsertExpenseRuleHeader(ExpenseRuleHeader, CreateExpenseCategories.GetPERDIEMTxt(), CreateExpenseLocation.GreatBritainAll(), 0D, Enum::"Expense Justification"::" ", false, '', '', '');
         InsertExpenseRuleHeader(ExpenseRuleHeader, CreateExpenseCategories.GetPERDIEMTxt(), CreateExpenseLocation.CroatiaAll(), 0D, Enum::"Expense Justification"::" ", false, '', '', '');
         InsertExpenseRuleHeader(ExpenseRuleHeader, CreateExpenseCategories.GetPERDIEMTxt(), CreateExpenseLocation.HungaryAll(), 0D, Enum::"Expense Justification"::" ", false, '', '', '');
         InsertExpenseRuleHeader(ExpenseRuleHeader, CreateExpenseCategories.GetPERDIEMTxt(), CreateExpenseLocation.IndonesiaAll(), 0D, Enum::"Expense Justification"::" ", false, '', '', '');
