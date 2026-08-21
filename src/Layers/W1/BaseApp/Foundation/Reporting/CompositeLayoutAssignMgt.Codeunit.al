@@ -110,7 +110,12 @@ codeunit 9668 "Composite Layout Assign. Mgt."
     /// the part is not in the shared pool, or when the layout already has a header/footer.
     /// </summary>
     /// <returns>True when a row was written.</returns>
-    local procedure AssignHeaderFooter(ReportID: Integer; LayoutName: Text; PartName: Text): Boolean
+    /// <remarks>
+    /// Internal rather than local so the tests can drive one assignment on their own. The curated list above names only
+    /// layouts that ship with an app, so on a tenant that has those apps installed the skip branches here are not
+    /// reachable through AssignDefaultParts.
+    /// </remarks>
+    internal procedure AssignHeaderFooter(ReportID: Integer; LayoutName: Text; PartName: Text): Boolean
     var
         Composite: Text;
     begin

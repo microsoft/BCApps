@@ -24,7 +24,9 @@ codeunit 134619 "Composite Layout Tests"
         GlobalDefaultSourceTok: Label 'Global default', Locked = true;
         DocumentReportExperienceTok: Label 'DocumentReportExperience', Locked = true;
         ExternalDefaultDetailedTok: Label 'External Default Detailed', Locked = true;
+        InternalDefaultTok: Label 'Internal Default', Locked = true;
         SalesInvoiceBodyLayoutTok: Label 'StandardSalesInvoiceBody.docx', Locked = true;
+        MissingBodyLayoutTok: Label 'ThisBodyLayoutIsNotInstalled.docx', Locked = true;
         TestReportID: Integer;
         DocReportExpWasEnabled: Boolean;
 
@@ -504,6 +506,61 @@ codeunit 134619 "Composite Layout Tests"
 
     [Test]
     [Scope('OnPrem')]
+    procedure AssignHeaderFooterSkipsLayoutThatIsNotInstalled()
+    var
+        TempCfgBefore: Record "Tenant Report Layout Cfg" temporary;
+        CompositeLayoutAssignMgt: Codeunit "Composite Layout Assign. Mgt.";
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
+        Assigned: Boolean;
+        AssignedCount: Integer;
+    begin
+        // [SCENARIO] When a curated mapping names a body layout that is not installed on the tenant - the report does not
+        // ship it, or the app that does is not installed - that one assignment is skipped: it writes no configuration row
+        // and reports the layout through telemetry instead of failing. The curated list only names layouts that ship with
+        // an app, so this branch is driven through the single assignment step rather than the whole pass.
+        Initialize();
+        SnapshotLayoutCfg(TempCfgBefore);
+
+        // [GIVEN] The part the mapping names is in the shared pool, so a skip can only be down to the missing layout and
+        // not to an unresolved part - those are separate branches with separate telemetry.
+        CompositeReportPartsMgt.SeedDefaultParts();
+        Assert.IsTrue(
+            ShippedPartExists(InternalDefaultTok, Enum::"Report Layout Subtype"::HeaderFooter),
+            'The part the mapping names should be in the pool, or this test would prove the wrong skip.');
+
+        // [GIVEN] No Word body layout of that name is installed on the report.
+        Assert.IsFalse(
+            BodyLayoutInstalled(TestReportID, MissingBodyLayoutTok),
+            'The layout should not be installed, or this test proves nothing.');
+
+        // [WHEN] Assigning the header/footer for that report and layout.
+        Assigned := CompositeLayoutAssignMgt.AssignHeaderFooter(TestReportID, MissingBodyLayoutTok, InternalDefaultTok);
+
+        // [THEN] The assignment reports that it wrote nothing.
+        Assert.IsFalse(Assigned, 'An assignment to a layout that is not installed should report that it wrote nothing.');
+
+        // [THEN] No configuration row was written for it at all - not a row carrying a blank or a dangling part name.
+        Assert.IsFalse(
+            LayoutCfgExists(TestReportID, MissingBodyLayoutTok),
+            'The skipped assignment should leave no configuration row behind for the layout.');
+
+        // [WHEN] The full pass runs afterwards, with one curated layout cleared.
+        RemoveLayoutCfg(SalesInvoiceReportID(), SalesInvoiceBodyLayoutTok);
+        AssignedCount := CompositeLayoutAssignMgt.AssignDefaultParts();
+
+        // [THEN] It still assigns, so an unresolved layout is skipped per entry and does not stop the assignments that
+        // can be resolved.
+        Assert.IsTrue(AssignedCount > 0, 'The pass should still write the assignments whose layouts are installed.');
+        Assert.AreEqual(
+            ExternalDefaultDetailedTok,
+            LayoutCfgHeaderPartName(SalesInvoiceReportID(), SalesInvoiceBodyLayoutTok),
+            'The curated mapping for an installed layout should still have been applied.');
+
+        RestoreLayoutCfg(TempCfgBefore);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure CompositeReportPartsUpgradeTagIsRegisteredPerDatabase()
     var
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
@@ -692,6 +749,32 @@ codeunit 134619 "Composite Layout Tests"
     local procedure SalesInvoiceReportID(): Integer
     begin
         exit(1306);
+    end;
+
+    /// <summary>
+    /// Whether a Word body layout of that name is installed on the report. Mirrors the predicate the assignment pass
+    /// uses to decide whether a curated mapping can be applied, so a test can assert the precondition for the skip.
+    /// </summary>
+    local procedure BodyLayoutInstalled(ReportID: Integer; LayoutName: Text): Boolean
+    var
+        ReportLayoutList: Record "Report Layout List";
+    begin
+        ReportLayoutList.SetRange("Report ID", ReportID);
+        ReportLayoutList.SetRange(Name, CopyStr(LayoutName, 1, MaxStrLen(ReportLayoutList.Name)));
+        ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::Word);
+        ReportLayoutList.SetRange("Layout Subtype", ReportLayoutList."Layout Subtype"::Body);
+        exit(not ReportLayoutList.IsEmpty());
+    end;
+
+    /// <summary>
+    /// Whether an all-companies configuration row exists for a layout at all, regardless of which parts it carries.
+    /// A blank header part cannot tell a skipped assignment from one that wrote an empty row.
+    /// </summary>
+    local procedure LayoutCfgExists(ReportID: Integer; LayoutName: Text): Boolean
+    var
+        TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
+    begin
+        exit(TenantReportLayoutCfg.Get(ReportID, CopyStr(LayoutName, 1, MaxStrLen(TenantReportLayoutCfg."Layout Name")), ''));
     end;
 
     local procedure LayoutCfgHasThemePart(ReportID: Integer; LayoutName: Text): Boolean
