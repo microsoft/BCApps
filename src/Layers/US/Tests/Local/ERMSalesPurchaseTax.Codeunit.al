@@ -1174,64 +1174,6 @@ codeunit 142050 "ERM Sales/Purchase Tax"
         NotificationLifecycleMgt.RecallAllNotifications();
     end;
 
-#if not CLEAN27
-    [Test]
-    [HandlerFunctions('ServiceOrderStatsPageHandler,SalesTaxLinesSubformDynPageHandler')]
-    [Scope('OnPrem')]
-    procedure VATLinesUsingStatisticsOnServiceOrderTaxLiable()
-    var
-        ServiceHeader: Record "Service Header";
-        ServiceLine: Record "Service Line";
-        ServiceOrder: TestPage "Service Order";
-        Tax: Decimal;
-        TaxAmount: Decimal;
-    begin
-        // Verify values on Sales Tax Lines page using Service Order Statistics page.
-
-        // Setup: Create Service Order and find Service Line.
-        Initialize();
-        Tax := CreateAndModifyServiceLine(ServiceHeader, ServiceHeader."Document Type"::Order);
-        FindServiceLine(ServiceLine, ServiceHeader."Customer No.");
-        TaxAmount := ServiceLine."Line Amount" * Tax / 100;
-        LibraryVariableStorage.Enqueue(TaxAmount);  // Enqueue value for SalesTaxLinesSubformDynPageHandler.
-        LibraryVariableStorage.Enqueue(ServiceLine."Tax Group Code");  // Enqueue value for SalesTaxLinesSubformDynPageHandler.
-        LibraryVariableStorage.Enqueue(ServiceLine."Line Amount");  // Enqueue value for SalesTaxLinesSubformDynPageHandler.
-        LibraryVariableStorage.Enqueue(ServiceLine."Line Amount" + TaxAmount);  // Enqueue value for SalesTaxLinesSubformDynPageHandler.
-        OpenServiceOrderPage(ServiceHeader, ServiceOrder);
-
-        // Exercise.
-        ServiceOrder.Statistics.Invoke();  // Invoke to open Service Order Statistics page.
-
-        // Verify: Verify values on Sales Tax Lines Subform Dyn page. Verification done in SalesTaxLinesSubformDynPageHandler.
-    end;
-
-    [Test]
-    [HandlerFunctions('ServiceCrMemoStatisticsPageHandler')]
-    [Scope('OnPrem')]
-    procedure StatisticsOnServiceCrMemoUsingTaxLiable()
-    var
-        ServiceHeader: Record "Service Header";
-        ServiceLine: Record "Service Line";
-        ServiceCreditMemo: TestPage "Service Credit Memo";
-        Tax: Decimal;
-        TaxAmount: Decimal;
-    begin
-        // Verify Tax Amount on Sales Credit Memo Statistics page.
-
-        // Setup: Create Service Credit Memo and open Service Credit Memo page.
-        Initialize();
-        Tax := CreateServiceDocument(ServiceLine, ServiceHeader."Document Type"::"Credit Memo");
-        ServiceHeader.Get(ServiceLine."Document Type", ServiceLine."Document No.");
-        TaxAmount := ServiceLine."Line Amount" * Tax / 100;
-        LibraryVariableStorage.Enqueue(TaxAmount);  // Enqueue value for ServiceCrMemoStatisticsPageHandler.
-        OpenServiceCrMemoPage(ServiceHeader, ServiceCreditMemo);
-
-        // Exercise.
-        ServiceCreditMemo.Statistics.Invoke();  // Invoke to open Service Order Statistics page.
-
-        // Verify: Verify Tax Amount on Service Credit Memo Statistics page. Verification done in ServiceCrMemoStatisticsPageHandler.
-    end;
-#endif
     [Test]
     [HandlerFunctions('ServiceOrderStatsPageHandlerNM,SalesTaxLinesSubformDynPageHandler')]
     [Scope('OnPrem')]
@@ -4053,24 +3995,6 @@ codeunit 142050 "ERM Sales/Purchase Tax"
         SalesTaxLinesSubformDyn."Amount Including Tax".AssertEquals(AmountIncludingTax);
     end;
 
-#if not CLEAN27
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure ServiceOrderStatsPageHandler(var ServiceOrderStats: TestPage "Service Order Stats.")
-    begin
-        ServiceOrderStats."TempSalesTaxLine1.COUNT".DrillDown();  // Drilldown to open Service Tax Lines Subform Dyn page.
-    end;
-
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure ServiceCrMemoStatisticsPageHandler(var ServiceStats: TestPage "Service Stats.")
-    var
-        VATAmount: Variant;
-    begin
-        LibraryVariableStorage.Dequeue(VATAmount);
-        ServiceStats.VATAmount.AssertEquals(VATAmount);
-    end;
-#endif
     [PageHandler]
     [Scope('OnPrem')]
     procedure ServiceOrderStatsPageHandlerNM(var ServiceOrderStats: TestPage "Service Order Stats.")

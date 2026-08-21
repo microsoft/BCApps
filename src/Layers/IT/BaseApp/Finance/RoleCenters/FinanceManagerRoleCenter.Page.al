@@ -153,24 +153,12 @@ page 8901 "Finance Manager Role Center"
                         RunObject = page "VAT Statement";
                         Tooltip = 'Open the VAT Statements page.';
                     }
-#if not CLEAN27
-                    action("Periodic VAT Settlement List")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Periodic VAT Settlement List';
-                        RunObject = page "Periodic VAT Settlement List";
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'Replaced by VAT settlement per activity code.';
-                        ObsoleteTag = '27.0';
-                    }
-#else
                     action("Periodic VAT Settlement List")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Periodic VAT Settlement List';
                         RunObject = page "Periodic VAT Settl. List";
                     }
-#endif
                     action("Annual VAT Communication")
                     {
                         ApplicationArea = Basic, Suite;
