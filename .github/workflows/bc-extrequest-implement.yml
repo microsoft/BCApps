@@ -115,7 +115,7 @@ jobs:
           ISSUE_URL: ${{ github.event.issue.html_url }}
           TELEMETRY_ENABLED: ${{ steps.telemetry-config.outputs.enabled == 'true' && steps.azure-login.outcome == 'success' }}
         run: |
-          ./scripts/ExtRequestImplement/Invoke-ExtRequestImplementation.ps1 `
+          ./.github/scripts/bc-extrequest-implement/invoke-implementation.ps1 `
             -IssueNumber ([long]$env:ISSUE_NUMBER) `
             -IssueUrl $env:ISSUE_URL `
             -Repository $env:GITHUB_REPOSITORY `
@@ -173,7 +173,7 @@ jobs:
           PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
           HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
         run: |
-          ./scripts/ExtRequestImplement/Send-ExtRequestPrOutcomeTelemetry.ps1 `
+          ./.github/scripts/bc-extrequest-implement/send-pr-outcome-telemetry.ps1 `
             -PullRequestNumber ([long]$env:PULL_REQUEST_NUMBER) `
             -HeadBranch $env:HEAD_BRANCH `
             -Repository $env:GITHUB_REPOSITORY

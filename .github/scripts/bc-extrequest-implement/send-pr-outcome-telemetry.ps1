@@ -31,7 +31,7 @@ $isMerged = [bool]$pr.merged
 $tag = if ($isMerged) { 'PR_MERGED' } else { 'PR_CLOSED_UNMERGED' }
 $mergeCommitSha = if ($isMerged) { $pr.merge_commit_sha } else { '' }
 
-& "$PSScriptRoot/Send-ExtRequestTelemetry.ps1" `
+& "$PSScriptRoot/send-telemetry.ps1" `
     -ClusterUri $env:EXT_REQ_KUSTO_CLUSTER_URI `
     -Database $env:EXT_REQ_KUSTO_DATABASE `
     -Table $env:EXT_REQ_KUSTO_IMPLEMENT_TABLE `

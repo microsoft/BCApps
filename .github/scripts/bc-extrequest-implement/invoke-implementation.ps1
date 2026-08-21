@@ -40,7 +40,7 @@ function Send-ImplementationTelemetry {
         return
     }
 
-    & "$PSScriptRoot/Send-ExtRequestTelemetry.ps1" `
+    & "$PSScriptRoot/send-telemetry.ps1" `
         -ClusterUri $env:EXT_REQ_KUSTO_CLUSTER_URI `
         -Database $env:EXT_REQ_KUSTO_DATABASE `
         -Table $env:EXT_REQ_KUSTO_IMPLEMENT_TABLE `
