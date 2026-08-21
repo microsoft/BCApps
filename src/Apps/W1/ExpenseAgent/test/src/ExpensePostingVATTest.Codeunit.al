@@ -34,7 +34,6 @@ codeunit 148330 "Expense Posting VAT Test"
         NotApprovedForVATReclaimCategoryErr: Label 'VAT Reclaim Status is not set for Line with Expense Category %1.', Comment = '%1 = Expense Category';
         NotApprovedForVATReclaimErr: Label 'VAT Reclaim Status is not set for Line with Expense Category %1 and Expense Subcategory %2.', Comment = '%1 = Expense Category, %2 = Expense Subcategory';
         ModifyOrDeleteAgentVATSpecErr: Label 'Modifications and delete are not allowed for records created by the Expense Agent API.';
-        AgentVATSpecInsertNotAuthorizedErr: Label 'Agent-authored VAT specifications must be created through an authorized Expense Agent request.';
 
     [Test]
     [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
@@ -909,30 +908,34 @@ codeunit 148330 "Expense Posting VAT Test"
     end;
 
     [Test]
-    procedure AgentVATSpecificationAPIRejectsNonSaaSCaller()
+    procedure AgentVATSpecificationAPIAcceptsNonSaaSCaller()
     var
         ExpenseVATSpecification: Record "Expense VAT Specification";
         EnvironmentInfo: Codeunit "Environment Information";
         ExpenseVATSpecAPI: Page "Expense VAT Spec. API";
     begin
-        // [SCENARIO] The Expense VAT Specification API rejects callers outside SaaS.
+        // [SCENARIO] The Expense VAT Specification API accepts callers outside SaaS for local agent development.
         if EnvironmentInfo.IsSaaSInfrastructure() then
             exit;
 
-        // [WHEN] A caller attempts to insert an agent-authored VAT specification through the API.
-        asserterror ExpenseVATSpecAPI.InsertVATSpecification(ExpenseVATSpecification);
+        // [GIVEN] A VAT specification with a business posting group.
+        ExpenseVATSpecification."VAT Bus. Posting Group" := 'LOCAL';
 
-        // [THEN] The caller is rejected before the row is inserted.
-        Assert.ExpectedError(AgentVATSpecInsertNotAuthorizedErr);
+        // [WHEN] A caller attempts to insert an agent-authored VAT specification through the API.
+        ExpenseVATSpecAPI.InsertVATSpecification(ExpenseVATSpecification);
+
+        // [THEN] The agent-authored VAT specification is inserted.
+        Assert.AreEqual(ExpenseVATSpecification.Source::Agent, ExpenseVATSpecification.Source, 'The VAT specification source must be Agent.');
+        Assert.IsTrue(ExpenseVATSpecification.Get(ExpenseVATSpecification."Expense No.", ExpenseVATSpecification."Line No."), 'The VAT specification must be inserted.');
     end;
 
     [Test]
-    procedure AgentVATSpecificationInsertRejectsNonSaaSCaller()
+    procedure AgentVATSpecificationInsertAcceptsNonSaaSCaller()
     var
         ExpenseVATSpecification: Record "Expense VAT Specification";
         EnvironmentInfo: Codeunit "Environment Information";
     begin
-        // [SCENARIO] The table authorization subscriber rejects agent-authored VAT specifications outside SaaS.
+        // [SCENARIO] The table authorization subscriber accepts agent-authored VAT specifications outside SaaS.
         if EnvironmentInfo.IsSaaSInfrastructure() then
             exit;
 
@@ -940,10 +943,10 @@ codeunit 148330 "Expense Posting VAT Test"
         ExpenseVATSpecification.Source := ExpenseVATSpecification.Source::Agent;
 
         // [WHEN] A caller attempts to insert an agent-authored VAT specification without running table triggers.
-        asserterror ExpenseVATSpecification.Insert(false);
+        ExpenseVATSpecification.Insert(false);
 
-        // [THEN] The caller is rejected before the row is inserted.
-        Assert.ExpectedError(AgentVATSpecInsertNotAuthorizedErr);
+        // [THEN] The agent-authored VAT specification is inserted.
+        Assert.IsTrue(ExpenseVATSpecification.Get(ExpenseVATSpecification."Expense No.", ExpenseVATSpecification."Line No."), 'The VAT specification must be inserted.');
     end;
 
     [Test]

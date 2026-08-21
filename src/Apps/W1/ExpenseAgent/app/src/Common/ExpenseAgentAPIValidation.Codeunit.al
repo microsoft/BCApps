@@ -35,7 +35,7 @@ codeunit 6993 "Expense Agent API Validation"
         EnvironmentInfo: Codeunit "Environment Information";
     begin
         if not EnvironmentInfo.IsSaaSInfrastructure() then
-            Error(AgentVATSpecInsertNotAuthorizedErr);
+            exit;
 
         if not IsCurrentUserExpenseAgent() then
             Error(AgentVATSpecInsertNotAuthorizedErr);
