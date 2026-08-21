@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Manufacturing.Wizard;
 
-pageextension 139981 "Subc. TST WizComp" extends "Temp Prod. Order Comp. List"
+pageextension 139985 "Subc. TST WizComp" extends "Temp Prod. Order Comp. List"
 {
     actions
     {
