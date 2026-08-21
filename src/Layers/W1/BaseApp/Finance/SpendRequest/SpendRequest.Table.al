@@ -417,6 +417,7 @@ table 6840 "Spend Request"
     begin
         if Rec.Status = Rec.Status::Approved then
             exit;
+        Rec.TestField(Status, Rec.Status::Submitted);
         Rec.Status := Rec.Status::Approved;
         Rec."Approved/Rejected At" := CurrentDateTime();
         Rec."Approved/Rejected by User ID" := UserSecurityId();
@@ -430,6 +431,7 @@ table 6840 "Spend Request"
     begin
         if Rec.Status in [Rec.Status::Rejected, Rec.Status::Closed] then
             exit;
+        Rec.TestField(Status, Rec.Status::Submitted);
         Rec.Status := Rec.Status::Rejected;
         Rec."Approved/Rejected At" := CurrentDateTime();
         Rec."Approved/Rejected by User ID" := UserSecurityId();

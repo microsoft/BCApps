@@ -74,18 +74,6 @@ report 6850 "Spend Request Document"
             {
                 IncludeCaption = true;
             }
-            column(ReportLbl; ReportLbl)
-            {
-            }
-            column(EmployeeFullNameLbl; EmployeeFullNameLbl)
-            {
-            }
-            column(DetailsHeaderLbl; DetailsHeaderLbl)
-            {
-            }
-            column(PostedEntriesHeaderLbl; PostedEntriesHeaderLbl)
-            {
-            }
             dataitem(SpendRequestDetail; "Spend Request Detail")
             {
                 DataItemLink = "Spend Request No." = field("No.");
@@ -164,7 +152,6 @@ report 6850 "Spend Request Document"
             Caption = 'Spend Request Document';
         }
     }
-    /*
     labels
     {
         ReportLbl = 'Spend Request';
@@ -172,12 +159,7 @@ report 6850 "Spend Request Document"
         DetailsHeaderLbl = 'Details';
         PostedEntriesHeaderLbl = 'Posted Entries';
     }
-    */
 
     var
         EmployeeFullName: Text;
-        ReportLbl: Label 'Spend Request';
-        EmployeeFullNameLbl: Label 'Employee Name';
-        DetailsHeaderLbl: Label 'Details';
-        PostedEntriesHeaderLbl: Label 'Posted Entries';
 }

@@ -185,14 +185,14 @@ codeunit 6908 "Expense Event Subscriber"
             IsHandled := true;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Spend Request", OnBeforeRelease, '', false, false)]
-    local procedure OnBeforeReleaseSpendRequest(var SpendRequest: Record "Spend Request")
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Submit Spend Request", OnBeforeSubmit, '', false, false)]
+    local procedure OnBeforeSubmitSpendRequest(var SpendRequest: Record "Spend Request")
     begin
-        CheckSpendRequestBeforeRelease(SpendRequest);
+        CheckSpendRequestBeforeSubmit(SpendRequest);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Spend Request", OnAfterRelease, '', false, false)]
-    local procedure OnAfterReleaseSpendRequest(var SpendRequest: Record "Spend Request")
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Submit Spend Request", OnAfterSubmit, '', false, false)]
+    local procedure OnAfterSubmitSpendRequest(var SpendRequest: Record "Spend Request")
     begin
         AutoApproveSpendRequestWhenAgentDisabled(SpendRequest);
     end;
@@ -284,11 +284,11 @@ codeunit 6908 "Expense Event Subscriber"
             Error(CannotDeleteEmployeeWithExpenseErr, EmployeeNo);
     end;
 
-    local procedure CheckSpendRequestBeforeRelease(SpendRequest: Record "Spend Request")
+    local procedure CheckSpendRequestBeforeSubmit(SpendRequest: Record "Spend Request")
     var
         Traveler: Record Traveler;
     begin
-        if SpendRequest.Status = SpendRequest.Status::Released then
+        if SpendRequest.Status = SpendRequest.Status::Submitted then
             exit;
 
         SpendRequest.TestField("Requested For");
@@ -310,10 +310,10 @@ codeunit 6908 "Expense Event Subscriber"
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
     begin
-        if SpendRequest.Status <> SpendRequest.Status::Released then
+        if SpendRequest.Status <> SpendRequest.Status::Submitted then
             exit;
 
-        // Without the agent there is no approver, so a released request is approved right away.
+        // Without the agent there is no approver, so a Submitted request is approved right away.
         ExpenseAgentSetup.GetRecordOnce();
         if ExpenseAgentSetup."Enable Agent" then
             exit;

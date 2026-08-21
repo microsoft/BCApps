@@ -36,7 +36,7 @@ codeunit 6840 "Submit Spend Request"
 
         if SpendRequest.Status = SpendRequest.Status::Submitted then
             exit;
-
+        SpendRequest.TestField(Status, SpendRequest.Status::Open);
         SpendRequest.Status := SpendRequest.Status::Submitted;
         SpendRequest.Modify();
 
