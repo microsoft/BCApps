@@ -1005,6 +1005,244 @@ codeunit 137015 "SCM Pick Worksheet"
     end;
 
     [Test]
+    [HandlerFunctions('PickSelectionPageHandler')]
+    procedure AvailableToPickExcludesConfiguredReceiptBinInBasicWarehouse()
+    var
+        Location: Record Location;
+        Item: Record Item;
+        Bin: array[3] of Record Bin;
+        ExcludedQty: Decimal;
+        AvailableQty: Decimal;
+    begin
+        // [FEATURE] [Available Qty. to Pick]
+        // [SCENARIO] [BUG] [647203] In a basic (non-directed) warehouse the configured receipt bin is not
+        // available to pick, so its stock must be excluded from "Available Qty. to Pick" on the pick worksheet.
+        Initialize();
+
+        CreateBasicWarehouseLocationWithSpecialBins(Location, Bin, true, false);
+        LibraryInventory.CreateItem(Item);
+
+        ExcludedQty := LibraryRandom.RandIntInRange(2, 10);
+        AvailableQty := LibraryRandom.RandIntInRange(2, 10);
+        CreateAndPostItemJournalLine(Item."No.", ExcludedQty, Location.Code, Bin[1].Code);
+        CreateAndPostItemJournalLine(Item."No.", AvailableQty, Location.Code, Bin[2].Code);
+
+        CreateSales(Item."No.", Location.Code, ExcludedQty + AvailableQty, false, true, false, 0);
+
+        Assert.AreEqual(AvailableQty, ReadAvailableQtyToPick(Location.Code), ErrorDifferentAvailQty);
+    end;
+
+    [Test]
+    [HandlerFunctions('PickSelectionPageHandler')]
+    procedure AvailableToPickExcludesConfiguredShipmentBinInBasicWarehouse()
+    var
+        Location: Record Location;
+        Item: Record Item;
+        Bin: array[3] of Record Bin;
+        ExcludedQty: Decimal;
+        AvailableQty: Decimal;
+    begin
+        // [FEATURE] [Available Qty. to Pick]
+        // [SCENARIO] [BUG] [647203] Stock already parked in the configured shipment bin (pick required) has
+        // effectively been picked and must be excluded from "Available Qty. to Pick" on the pick worksheet.
+        Initialize();
+
+        // [GIVEN] Basic warehouse location with a configured shipment bin (pick required), no receipt bin.
+        CreateBasicWarehouseLocationWithSpecialBins(Location, Bin, false, true);
+        LibraryInventory.CreateItem(Item);
+
+        // [GIVEN] Some stock sits in the shipment bin and the rest sits in an ordinary bin.
+        ExcludedQty := LibraryRandom.RandIntInRange(2, 10);
+        AvailableQty := LibraryRandom.RandIntInRange(2, 10);
+        CreateAndPostItemJournalLine(Item."No.", ExcludedQty, Location.Code, Bin[2].Code);
+        CreateAndPostItemJournalLine(Item."No.", AvailableQty, Location.Code, Bin[1].Code);
+
+        // [GIVEN] A sales order for the full inventory with a released warehouse shipment.
+        CreateSales(Item."No.", Location.Code, ExcludedQty + AvailableQty, false, true, false, 0);
+
+        // [WHEN] The shipment is pulled into the pick worksheet.
+        // [THEN] Only the stock outside the shipment bin is reported as available to pick.
+        Assert.AreEqual(AvailableQty, ReadAvailableQtyToPick(Location.Code), ErrorDifferentAvailQty);
+    end;
+
+    [Test]
+    [HandlerFunctions('PickSelectionPageHandler')]
+    procedure AvailableToPickIncludesReceiptBinWhenNotConfigured()
+    var
+        Location: Record Location;
+        Item: Record Item;
+        Bin: array[3] of Record Bin;
+        FirstBinQty: Decimal;
+        PickBinQty: Decimal;
+    begin
+        // [FEATURE] [Available Qty. to Pick]
+        // [SCENARIO] [BUG] [647203] When no receipt bin is configured on the location there is nothing to
+        // exclude, so all stock stays available to pick (guards against over-eager exclusion).
+        Initialize();
+
+        // [GIVEN] Basic warehouse location with a shipment bin but no receipt bin configured.
+        CreateBasicWarehouseLocationWithSpecialBins(Location, Bin, false, true);
+        LibraryInventory.CreateItem(Item);
+
+        // [GIVEN] Stock in the (unconfigured, ordinary) first bin and in a pick bin; shipment bin empty.
+        FirstBinQty := LibraryRandom.RandIntInRange(2, 10);
+        PickBinQty := LibraryRandom.RandIntInRange(2, 10);
+        CreateAndPostItemJournalLine(Item."No.", FirstBinQty, Location.Code, Bin[1].Code);
+        CreateAndPostItemJournalLine(Item."No.", PickBinQty, Location.Code, Bin[3].Code);
+
+        // [GIVEN] A sales order for the full inventory with a released warehouse shipment.
+        CreateSales(Item."No.", Location.Code, FirstBinQty + PickBinQty, false, true, false, 0);
+
+        // [WHEN] The shipment is pulled into the pick worksheet.
+        // [THEN] All stock remains available to pick.
+        Assert.AreEqual(FirstBinQty + PickBinQty, ReadAvailableQtyToPick(Location.Code), ErrorDifferentAvailQty);
+    end;
+
+    [Test]
+    [HandlerFunctions('PickSelectionPageHandler')]
+    procedure AvailableToPickIncludesShipmentBinWhenNotConfigured()
+    var
+        Location: Record Location;
+        Item: Record Item;
+        Bin: array[3] of Record Bin;
+        SecondBinQty: Decimal;
+        PickBinQty: Decimal;
+    begin
+        // [FEATURE] [Available Qty. to Pick]
+        // [SCENARIO] [BUG] [647203] When no shipment bin is configured on the location there is nothing to
+        // exclude, so all stock stays available to pick.
+        Initialize();
+
+        // [GIVEN] Basic warehouse location with a receipt bin but no shipment bin configured.
+        CreateBasicWarehouseLocationWithSpecialBins(Location, Bin, true, false);
+        LibraryInventory.CreateItem(Item);
+
+        // [GIVEN] Stock in the (unconfigured, ordinary) second bin and in a pick bin; receipt bin empty.
+        SecondBinQty := LibraryRandom.RandIntInRange(2, 10);
+        PickBinQty := LibraryRandom.RandIntInRange(2, 10);
+        CreateAndPostItemJournalLine(Item."No.", SecondBinQty, Location.Code, Bin[2].Code);
+        CreateAndPostItemJournalLine(Item."No.", PickBinQty, Location.Code, Bin[3].Code);
+
+        // [GIVEN] A sales order for the full inventory with a released warehouse shipment.
+        CreateSales(Item."No.", Location.Code, SecondBinQty + PickBinQty, false, true, false, 0);
+
+        // [WHEN] The shipment is pulled into the pick worksheet.
+        // [THEN] All stock remains available to pick.
+        Assert.AreEqual(SecondBinQty + PickBinQty, ReadAvailableQtyToPick(Location.Code), ErrorDifferentAvailQty);
+    end;
+
+    [Test]
+    [HandlerFunctions('PickSelectionPageHandler')]
+    procedure AvailableToPickIsZeroWhenAllStockReceivedButNotPutAway()
+    var
+        Location: Record Location;
+        Item: Record Item;
+        Bin: array[3] of Record Bin;
+        ReceivedQty: Decimal;
+    begin
+        // [FEATURE] [Available Qty. to Pick]
+        // [SCENARIO] [BUG] [647203] Stock received into the receipt bin but not yet put away is not available
+        // to pick. The receipt-bin exclusion and the received-not-put-away cap target the same units and must
+        // never be subtracted twice - availability is 0, not negative.
+        Initialize();
+
+        // [GIVEN] Basic warehouse location with configured receipt and shipment bins.
+        CreateBasicWarehouseLocationWithSpecialBins(Location, Bin, true, true);
+        LibraryInventory.CreateItem(Item);
+
+        // [GIVEN] Stock received into the receipt bin via a posted warehouse receipt, none put away.
+        ReceivedQty := LibraryRandom.RandIntInRange(2, 10);
+        PostWhseReceiptWithPartialPutAway(Item."No.", Location.Code, ReceivedQty, 0, '');
+
+        // [GIVEN] A sales order for the full inventory with a released warehouse shipment.
+        CreateSales(Item."No.", Location.Code, ReceivedQty, false, true, false, 0);
+
+        // [WHEN] The shipment is pulled into the pick worksheet.
+        // [THEN] Nothing is available to pick and the value is not driven negative by double removal.
+        Assert.AreEqual(0, ReadAvailableQtyToPick(Location.Code), ErrorDifferentAvailQty);
+    end;
+
+    [Test]
+    [HandlerFunctions('PickSelectionPageHandler')]
+    procedure AvailableToPickReflectsPartiallyPutAwayReceipt()
+    var
+        Location: Record Location;
+        Item: Record Item;
+        Bin: array[3] of Record Bin;
+        PutAwayQty: Decimal;
+        RemainingQty: Decimal;
+    begin
+        // [FEATURE] [Available Qty. to Pick]
+        // [SCENARIO] [BUG] [647203] Only the put-away portion of a posted receipt is available to pick; the
+        // portion still sitting in the receipt bin is excluded exactly once.
+        Initialize();
+
+        // [GIVEN] Basic warehouse location with configured receipt and shipment bins.
+        CreateBasicWarehouseLocationWithSpecialBins(Location, Bin, true, true);
+        LibraryInventory.CreateItem(Item);
+
+        // [GIVEN] Stock received, part put away to an ordinary pick bin, the rest left in the receipt bin.
+        PutAwayQty := LibraryRandom.RandIntInRange(2, 10);
+        RemainingQty := LibraryRandom.RandIntInRange(2, 10);
+        PostWhseReceiptWithPartialPutAway(Item."No.", Location.Code, PutAwayQty + RemainingQty, PutAwayQty, Bin[3].Code);
+
+        // [GIVEN] A sales order for the full inventory with a released warehouse shipment.
+        CreateSales(Item."No.", Location.Code, PutAwayQty + RemainingQty, false, true, false, 0);
+
+        // [WHEN] The shipment is pulled into the pick worksheet.
+        // [THEN] Only the put-away pcs are available to pick.
+        Assert.AreEqual(PutAwayQty, ReadAvailableQtyToPick(Location.Code), ErrorDifferentAvailQty);
+    end;
+
+    local procedure ReadAvailableQtyToPick(LocationCode: Code[10]): Decimal
+    var
+        WhseWorksheetLine: Record "Whse. Worksheet Line";
+    begin
+        // GetSingleWhsePickDoc opens the "Pick Selection" modal, handled by PickSelectionPageHandler,
+        // which selects the pick request for the enqueued location.
+        LibraryVariableStorage.Enqueue(LocationCode);
+        GetSingleWhsePickDoc(WhseWorksheetLine, LocationCode);
+        exit(WhseWorksheetLine.AvailableQtyToPick());
+    end;
+
+    local procedure CreateBasicWarehouseLocationWithSpecialBins(var Location: Record Location; var Bin: array[3] of Record Bin; SetReceiptBin: Boolean; SetShipmentBin: Boolean)
+    begin
+        // Basic (non-directed) warehouse location, bin mandatory, requiring receive/ship/put-away/pick.
+        LibraryWarehouse.CreateLocationWMS(Location, true, true, true, true, true);
+        LibraryWarehouse.CreateNumberOfBins(Location.Code, '', '', 3, false);
+        LibraryWarehouse.FindBin(Bin[1], Location.Code, '', 1);
+        LibraryWarehouse.FindBin(Bin[2], Location.Code, '', 2);
+        LibraryWarehouse.FindBin(Bin[3], Location.Code, '', 3);
+        if SetReceiptBin then
+            Location.Validate("Receipt Bin Code", Bin[1].Code)
+        else
+            Location.Validate("Receipt Bin Code", '');
+        if SetShipmentBin then
+            Location.Validate("Shipment Bin Code", Bin[2].Code)
+        else
+            Location.Validate("Shipment Bin Code", '');
+        Location.Validate("Always Create Pick Line", false);
+        Location.Modify(true);
+    end;
+
+    local procedure PostWhseReceiptWithPartialPutAway(ItemNo: Code[20]; LocationCode: Code[10]; Qty: Decimal; QtyToPutAway: Decimal; PutAwayBinCode: Code[20])
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        WhseReceiptHeader: Record "Warehouse Receipt Header";
+        WhseActivityLine: Record "Warehouse Activity Line";
+    begin
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, '');
+        CreatePurchaseLineWithLocation(PurchaseLine, PurchaseHeader, ItemNo, Qty, LocationCode);
+        CreateWarehouseReceiptFromPurchOrder(WhseReceiptHeader, PurchaseHeader);
+        LibraryWarehouse.PostWhseReceipt(WhseReceiptHeader);
+        if QtyToPutAway > 0 then
+            RegisterWhseActivity(
+              WhseActivityLine."Activity Type"::"Put-away", 39, WhseActivityLine."Source Document"::"Purchase Order",
+              PurchaseHeader."No.", QtyToPutAway, '', PutAwayBinCode);
+    end;
+
+    [Test]
     procedure QtyToHandleIsSetToMaximumAvailableQtyOnGetSrcDoc()
     var
         Location: Record Location;
