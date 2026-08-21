@@ -113,7 +113,6 @@ codeunit 4581 "SOA Send Replies"
         InputAgentTaskMessage: Record "Agent Task Message";
         SOASendReply: Codeunit "SOA Send Reply";
         ErrorCallStack: Text;
-        ErrorText: Text;
     begin
         if not InputAgentTaskMessage.Get(OutputAgentTaskMessage."Task ID", OutputAgentTaskMessage."Input Message ID") then begin
             AllSentSuccessfully := false;
@@ -135,11 +134,11 @@ codeunit 4581 "SOA Send Replies"
             exit;
         end;
 
-        ErrorText := GetLastErrorText(true);
+        // The error text is deliberately not put into a custom dimension. It comes from the mail stack and can
+        // incidentally carry contact or mailbox data, so only the call stack is recorded here.
         ErrorCallStack := GetLastErrorCallStack();
         AllSentSuccessfully := false;
         AddReplyResult(TempReplyResult, OutputAgentTaskMessage, TempReplyResult.Status::Failed);
-        TelemetryDimensions.Set('Error', ErrorText);
         FeatureTelemetry.LogError('0000OAB', SOASetupCU.GetFeatureName(), 'Send Email Reply', TelemetryEmailReplyFailedToSendLbl, ErrorCallStack, TelemetryDimensions);
     end;
 
