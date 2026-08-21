@@ -78,7 +78,7 @@ codeunit 10978 "CII XML Builder"
         ContextElement := XmlElement.Create('ExchangedDocumentContext', RsmNamespaceTok);
 
         BusinessProcessElement := XmlElement.Create('BusinessProcessSpecifiedDocumentContextParameter', RamNamespaceTok);
-        IdElement := XmlElement.Create('ID', RamNamespaceTok, PeppolBIS30FRFormat.GetFrenchBillingMode(SourceDocumentLines));
+        IdElement := XmlElement.Create('ID', RamNamespaceTok, GetBillingMode(SourceDocumentLines));
         BusinessProcessElement.Add(IdElement);
         ContextElement.Add(BusinessProcessElement);
 
@@ -89,6 +89,34 @@ codeunit 10978 "CII XML Builder"
 
         RootElement.Add(ContextElement);
         OnAfterAddExchangedDocumentContext(RootElement, SourceDocumentLines);
+    end;
+
+    local procedure GetBillingMode(var SourceDocumentLines: RecordRef): Text
+    var
+        FREDocHelpers: Codeunit "EDoc. Helpers";
+        TypeFieldRef: FieldRef;
+        HasItemLine: Boolean;
+        HasServiceLine: Boolean;
+        LineType: Text;
+    begin
+        if not FREDocHelpers.FindFieldByName(SourceDocumentLines, 'Type', TypeFieldRef) then
+            exit(ServiceBillingModeTok);
+
+        if SourceDocumentLines.FindSet() then
+            repeat
+                LineType := DelChr(Format(TypeFieldRef.Value()), '=', ' ');
+                if LineType = ItemLineTypeTok then
+                    HasItemLine := true
+                else
+                    if LineType <> '' then
+                        HasServiceLine := true;
+            until SourceDocumentLines.Next() = 0;
+
+        if HasItemLine and HasServiceLine then
+            exit(MixedBillingModeTok);
+        if HasItemLine then
+            exit(GoodsBillingModeTok);
+        exit(ServiceBillingModeTok);
     end;
 
     local procedure AddExchangedDocument(var RootElement: XmlElement; var EDocument: Record "E-Document"; TypeCode: Text)
@@ -158,6 +186,7 @@ codeunit 10978 "CII XML Builder"
 
         AddSellerTradeParty(AgreementElement, CompanyInformation);
         AddBuyerTradeParty(AgreementElement, SourceDocumentHeader);
+        AddInvoiceReferencedDocument(AgreementElement, SourceDocumentHeader);
 
         // BT-13 Purchase order reference
         if FREDocHelpers.FindFieldByName(SourceDocumentHeader, 'Order No.', FieldRefVar) then
@@ -173,6 +202,35 @@ codeunit 10978 "CII XML Builder"
         end;
 
         TransactionElement.Add(AgreementElement);
+    end;
+
+    local procedure AddInvoiceReferencedDocument(var AgreementElement: XmlElement; var SourceDocumentHeader: RecordRef)
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        FREDocHelpers: Codeunit "EDoc. Helpers";
+        AppliesToDocumentNoFieldRef: FieldRef;
+        DateStringElement: XmlElement;
+        FormattedIssueDateElement: XmlElement;
+        InvoiceReferenceElement: XmlElement;
+        AppliesToDocumentNo: Code[20];
+    begin
+        if SourceDocumentHeader.Number() <> Database::"Sales Cr.Memo Header" then
+            exit;
+        if not FREDocHelpers.FindFieldByName(SourceDocumentHeader, 'Applies-to Doc. No.', AppliesToDocumentNoFieldRef) then
+            exit;
+
+        AppliesToDocumentNo := AppliesToDocumentNoFieldRef.Value();
+        if (AppliesToDocumentNo = '') or not SalesInvoiceHeader.Get(AppliesToDocumentNo) then
+            exit;
+
+        InvoiceReferenceElement := XmlElement.Create('InvoiceReferencedDocument', RamNamespaceTok);
+        InvoiceReferenceElement.Add(XmlElement.Create('IssuerAssignedID', RamNamespaceTok, AppliesToDocumentNo));
+        FormattedIssueDateElement := XmlElement.Create('FormattedIssueDateTime', RamNamespaceTok);
+        DateStringElement := XmlElement.Create('DateTimeString', QdtNamespaceTok, FormatDate(SalesInvoiceHeader."Document Date"));
+        DateStringElement.SetAttribute('format', '102');
+        FormattedIssueDateElement.Add(DateStringElement);
+        InvoiceReferenceElement.Add(FormattedIssueDateElement);
+        AgreementElement.Add(InvoiceReferenceElement);
     end;
 
     local procedure AddSellerTradeParty(var AgreementElement: XmlElement; CompanyInformation: Record "Company Information")
@@ -263,9 +321,48 @@ codeunit 10978 "CII XML Builder"
         VATRegistrationNo := GetHeaderFieldText(SourceDocumentHeader, 'VAT Registration No.', '');
 
         if VATRegistrationNo <> '' then
-            AddVATRegistration(BuyerElement, GetVATRegistrationNoWithCountryPrefix(VATRegistrationNo, BuyerCountryCode));
+            AddVATRegistration(
+                BuyerElement,
+                NormalizeBuyerVATRegistrationNo(
+                    VATRegistrationNo, GetHeaderFieldText(SourceDocumentHeader, 'Sell-to Country/Region Code', 'Country/Region Code')));
 
         AgreementElement.Add(BuyerElement);
+    end;
+
+    local procedure NormalizeBuyerVATRegistrationNo(VATRegistrationNo: Text; CountryCode: Text): Text
+    begin
+        if (StrLen(VATRegistrationNo) >= 2) and
+           (StrPos(AlphabetTok, CopyStr(VATRegistrationNo, 1, 1)) > 0) and
+           (StrPos(AlphabetTok, CopyStr(VATRegistrationNo, 2, 1)) > 0)
+        then
+            exit(VATRegistrationNo);
+
+        exit(CountryCode + VATRegistrationNo);
+    end;
+
+    procedure TryGetBuyerElectronicAddress(Customer: Record Customer; var BuyerElectronicAddress: Text): Boolean
+    var
+        VATRegistrationNo: Text;
+    begin
+        if Customer."FR Electronic Address" <> '' then begin
+            BuyerElectronicAddress := Customer."FR Electronic Address";
+            exit(true);
+        end;
+
+        if Customer."Registration Number" <> '' then begin
+            BuyerElectronicAddress := CopyStr(Customer."Registration Number", 1, 14);
+            exit(true);
+        end;
+
+        VATRegistrationNo := UpperCase(DelChr(Customer."VAT Registration No.", '=', ' '));
+        if (StrLen(VATRegistrationNo) = 13) and (CopyStr(VATRegistrationNo, 1, 2) = 'FR') and
+           (DelChr(CopyStr(VATRegistrationNo, 3), '=', '0123456789') = '')
+        then begin
+            BuyerElectronicAddress := CopyStr(VATRegistrationNo, 5, 9);
+            exit(true);
+        end;
+
+        exit(false);
     end;
 
     local procedure GetHeaderFieldText(var SourceDocumentHeader: RecordRef; PrimaryFieldName: Text; FallbackFieldName: Text): Text
@@ -748,6 +845,7 @@ codeunit 10978 "CII XML Builder"
     local procedure InsertTaxElement(var SettlementElement: XmlElement; CalculatedAmount: Text; BasisAmount: Text; CategoryCode: Text; RateApplicablePercent: Text; VATEXCode: Text)
     var
         TradeTaxElement: XmlElement;
+        ExemptionReasonLbl: Label 'Exempt from VAT', Locked = true;
     begin
         TradeTaxElement := XmlElement.Create('ApplicableTradeTax', RamNamespaceTok);
         TradeTaxElement.Add(XmlElement.Create('CalculatedAmount', RamNamespaceTok, CalculatedAmount));
@@ -1168,7 +1266,12 @@ codeunit 10978 "CII XML Builder"
         RamNamespaceTok: Label 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100', Locked = true;
         QdtNamespaceTok: Label 'urn:un:unece:uncefact:data:standard:QualifiedDataType:100', Locked = true;
         UdtNamespaceTok: Label 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100', Locked = true;
+        AlphabetTok: Label 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', Locked = true;
         FacturXProfileIdTok: Label 'urn:cen.eu:en16931:2017', Locked = true;
+        GoodsBillingModeTok: Label 'B1', Locked = true;
+        ItemLineTypeTok: Label 'Item', Locked = true;
+        MixedBillingModeTok: Label 'M1', Locked = true;
+        ServiceBillingModeTok: Label 'S1', Locked = true;
         RecoveryCostNoteTok: Label 'Indemnité forfaitaire pour frais de recouvrement en cas de retard de paiement : 40 €', Locked = true;
         LatePaymentPenaltyNoteTok: Label 'Taux des pénalités de retard : taux directeur (BCE) majoré de 10 points', Locked = true;
         EarlyPaymentDiscountNoteTok: Label 'Pas d''escompte pour paiement anticipé', Locked = true;
