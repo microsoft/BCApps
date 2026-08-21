@@ -134,7 +134,7 @@
 /src/Apps/W1/EssentialBusinessHeadlines/ @microsoft/d365-bc-integrations
 /src/Apps/W1/ExcelReports/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/ExciseTaxes/ @microsoft/d365-bc-finance-1
-/src/Apps/W1/ExpenseAgent/ @microsoft/d365-bc-integrations
+/src/Apps/W1/ExpenseAgent/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/ExpenseWithholdingTax/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/External\ File\ Storage\ -\ Azure\ Blob\ Service\ Connector/ @microsoft/d365-bc-integrations
 /src/Apps/W1/External\ File\ Storage\ -\ Azure\ File\ Service\ Connector/ @microsoft/d365-bc-integrations
