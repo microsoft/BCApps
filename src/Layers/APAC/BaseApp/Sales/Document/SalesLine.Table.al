@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -5793,8 +5793,10 @@ table 37 "Sales Line"
             exit;
 
         if (Rec.Quantity <> 0) and (Rec."Outstanding Quantity" = 0) and (Rec."Qty. Shipped Not Invoiced" = 0) then
-            if SalesHeader."Document Type" <> SalesHeader."Document Type"::Invoice then
+            if SalesHeader."Document Type" <> SalesHeader."Document Type"::Invoice then begin
+                CapPrepmtAmountsToLineAmountForFullGST();
                 exit;
+            end;
 
         if SalesHeader."Document Type" <> SalesHeader."Document Type"::Invoice then begin
             OutstandingAmountExclTax := CalculateOutstandingAmountExclTax();
@@ -5829,6 +5831,30 @@ table 37 "Sales Line"
         QuantityNotInvoiced := (Rec.Quantity - Rec."Quantity Invoiced");
         OutstandingAmount := (Rec."Line Amount" - Rec."Inv. Discount Amount") * QuantityNotInvoiced / Rec.Quantity;
         exit(OutstandingAmount);
+    end;
+
+    local procedure CapPrepmtAmountsToLineAmountForFullGST()
+    var
+        LineAmountAfterInvDisc: Decimal;
+        VATExclCeiling: Decimal;
+    begin
+        if not (GetFullGST() and (not PrePaymentLineAmountEntered)) then
+            exit;
+
+        LineAmountAfterInvDisc := "Line Amount" - "Inv. Discount Amount";
+        if "Prepmt. Line Amount" <= LineAmountAfterInvDisc then
+            exit;
+
+        "Prepmt. Line Amount" := LineAmountAfterInvDisc;
+        if "Prepmt. Line Amount" < "Prepmt. Amt. Inv." then
+            "Prepmt. Line Amount" := "Prepmt. Amt. Inv.";
+
+        if SalesHeader."Prices Including VAT" then
+            VATExclCeiling := Round(LineAmountAfterInvDisc / (1 + GetVATPct() / 100), Currency."Amount Rounding Precision")
+        else
+            VATExclCeiling := LineAmountAfterInvDisc;
+        if "Prepmt. VAT Base Amt." > VATExclCeiling then
+            "Prepmt. VAT Base Amt." := VATExclCeiling;
     end;
 
     local procedure CheckLineAmount(MaxLineAmount: Decimal)

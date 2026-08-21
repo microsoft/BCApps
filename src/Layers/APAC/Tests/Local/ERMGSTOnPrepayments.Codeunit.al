@@ -26,6 +26,7 @@ codeunit 141026 "ERM GST On Prepayments"
         TotalAUDIncVATCap: Label 'Prepayment_Inv__Line_Buffer__Amount___VATAmount';
         VATIdentifierCap: Label 'VATAmountLine__VAT_Identifier_';
         VATPctCap: Label 'VATAmountLine__VAT___';
+        PrepmtVATBaseOverstatedErr: Label 'Prepmt. VAT Base Amt. must not exceed the VAT-exclusive Amount.', Locked = true;
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         IsInitialized: Boolean;
 
@@ -965,6 +966,220 @@ codeunit 141026 "ERM GST On Prepayments"
         // Tear Down.
         UpdateLocalFunctionalitiesOnGeneralLedgerSetup(
           GeneralLedgerSetup."Enable GST (Australia)", GeneralLedgerSetup."GST Report", GeneralLedgerSetup."Full GST on Prepayment");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure NoSecondPrepmtInvoiceAfterQtyReducedToInvoicedQtyWithFullGST()
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        // [FEATURE] [GST] [Prepayment]
+        // [SCENARIO 643225] No second Prepayment Invoice is generated when a Full GST on Prepayment order line is reduced to the already shipped and invoiced quantity after a Prepayment Credit Memo.
+
+        // [GIVEN] Full GST on Prepayment enabled and a Sales Order with 100% Prepayment, Quantity 10.
+        Initialize();
+        CreateGeneralPostingSetup(GeneralPostingSetup);
+        LibrarySales.CreateSalesHeader(
+          SalesHeader, SalesHeader."Document Type"::Order, CreateCustomer('', GeneralPostingSetup."Gen. Bus. Posting Group", 0));
+        LibrarySales.CreateSalesLine(
+          SalesLine, SalesHeader, SalesLine.Type::Item, CreateItem(GeneralPostingSetup."Gen. Prod. Posting Group"), 10);
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 2));
+        SalesLine.Validate("Prepayment %", 100);
+        SalesLine.Modify(true);
+
+        // [GIVEN] Prepayment Invoice is posted for the full quantity.
+        LibrarySales.PostSalesPrepaymentInvoice(SalesHeader);
+
+        // [GIVEN] Only part of the order (6 out of 10) is shipped and invoiced.
+        SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
+        SalesLine.Validate("Qty. to Ship", 6);
+        SalesLine.Validate("Qty. to Invoice", 6);
+        SalesLine.Modify(true);
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [GIVEN] Prepayment Credit Memo is posted, reversing the un-deducted prepayment.
+        LibrarySales.PostSalesPrepaymentCreditMemo(SalesHeader);
+
+        // [WHEN] The order is reopened and the quantity is reduced to the shipped and invoiced quantity (6).
+        LibrarySales.ReopenSalesDocument(SalesHeader);
+        SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
+        SalesLine.Validate(Quantity, 6);
+        SalesLine.Modify(true);
+
+        // [THEN] The stored prepayment amount is reduced to the current line amount (after invoice discount), so no phantom prepayment remains.
+        SalesLine.TestField("Prepmt. Line Amount", SalesLine."Line Amount" - SalesLine."Inv. Discount Amount");
+        // [THEN] The VAT base stays VAT-exclusive (never above the current VAT-exclusive Amount), so Full GST is not overstated.
+        Assert.IsTrue(SalesLine."Prepmt. VAT Base Amt." <= SalesLine.Amount, PrepmtVATBaseOverstatedErr);
+
+        // [THEN] Posting another Prepayment Invoice reports there is nothing to post.
+        asserterror LibrarySales.PostSalesPrepaymentInvoice(SalesHeader);
+        Assert.ExpectedError(DocumentErrorsMgt.GetNothingToPostErrorMsg());
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure NoSecondPrepmtInvoiceAfterQtyReducedToInvoicedQtyWithFullGSTPricesInclVAT()
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        // [FEATURE] [GST] [Prepayment] [Prices Including VAT]
+        // [SCENARIO 643225] With Prices Including VAT, no second Prepayment Invoice is generated when a Full GST on Prepayment order line is reduced to the already shipped and invoiced quantity, and the VAT base is not overstated.
+
+        // [GIVEN] Full GST on Prepayment enabled and a Sales Order with Prices Including VAT, 100% Prepayment, Quantity 10.
+        Initialize();
+        CreateGeneralPostingSetup(GeneralPostingSetup);
+        LibrarySales.CreateSalesHeader(
+          SalesHeader, SalesHeader."Document Type"::Order, CreateCustomer('', GeneralPostingSetup."Gen. Bus. Posting Group", 0));
+        SalesHeader.Validate("Prices Including VAT", true);
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(
+          SalesLine, SalesHeader, SalesLine.Type::Item, CreateItem(GeneralPostingSetup."Gen. Prod. Posting Group"), 10);
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 2));
+        SalesLine.Validate("Prepayment %", 100);
+        SalesLine.Modify(true);
+
+        // [GIVEN] Prepayment Invoice is posted for the full quantity.
+        LibrarySales.PostSalesPrepaymentInvoice(SalesHeader);
+
+        // [GIVEN] Only part of the order (6 out of 10) is shipped and invoiced.
+        SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
+        SalesLine.Validate("Qty. to Ship", 6);
+        SalesLine.Validate("Qty. to Invoice", 6);
+        SalesLine.Modify(true);
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [GIVEN] Prepayment Credit Memo is posted, reversing the un-deducted prepayment.
+        LibrarySales.PostSalesPrepaymentCreditMemo(SalesHeader);
+
+        // [WHEN] The order is reopened and the quantity is reduced to the shipped and invoiced quantity (6).
+        LibrarySales.ReopenSalesDocument(SalesHeader);
+        SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
+        SalesLine.Validate(Quantity, 6);
+        SalesLine.Modify(true);
+
+        // [THEN] Prepmt. Line Amount is capped to the VAT-inclusive line amount, but the VAT base stays VAT-exclusive (<= Amount), so GST is not overstated.
+        SalesLine.TestField("Prepmt. Line Amount", SalesLine."Line Amount" - SalesLine."Inv. Discount Amount");
+        Assert.IsTrue(SalesLine."Prepmt. VAT Base Amt." <= SalesLine.Amount, PrepmtVATBaseOverstatedErr);
+
+        // [THEN] Posting another Prepayment Invoice reports there is nothing to post.
+        asserterror LibrarySales.PostSalesPrepaymentInvoice(SalesHeader);
+        Assert.ExpectedError(DocumentErrorsMgt.GetNothingToPostErrorMsg());
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure NoSecondPurchPrepmtInvoiceAfterQtyReducedToInvoicedQtyWithFullGST()
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+    begin
+        // [FEATURE] [GST] [Prepayment] [Purchase]
+        // [SCENARIO 643225] No second Prepayment Invoice is generated when a Full GST on Prepayment purchase order line is reduced to the already received and invoiced quantity after a Prepayment Credit Memo.
+
+        // [GIVEN] Full GST on Prepayment enabled and a Purchase Order with 100% Prepayment, Quantity 10.
+        Initialize();
+        CreateGeneralPostingSetup(GeneralPostingSetup);
+        LibraryPurchase.CreatePurchHeader(
+          PurchaseHeader, PurchaseHeader."Document Type"::Order, CreateVendor(GeneralPostingSetup."Gen. Bus. Posting Group", 0));
+        LibraryPurchase.CreatePurchaseLine(
+          PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, CreateItem(GeneralPostingSetup."Gen. Prod. Posting Group"), 10);
+        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(100, 200, 2));
+        PurchaseLine.Validate("Prepayment %", 100);
+        PurchaseLine.Modify(true);
+
+        // [GIVEN] Prepayment Invoice is posted for the full quantity.
+        LibraryPurchase.PostPurchasePrepaymentInvoice(PurchaseHeader);
+
+        // [GIVEN] Only part of the order (6 out of 10) is received and invoiced.
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        PurchaseLine.Validate("Qty. to Receive", 6);
+        PurchaseLine.Validate("Qty. to Invoice", 6);
+        PurchaseLine.Modify(true);
+        PurchaseHeader.Validate("Vendor Invoice No.", PurchaseHeader."No.");  // Unique Vendor Invoice No. required for the final invoice.
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [GIVEN] Prepayment Credit Memo is posted, reversing the un-deducted prepayment.
+        PurchaseHeader.Validate("Vendor Cr. Memo No.", PurchaseHeader."No.");  // Unique Vendor Cr. Memo No. required for the credit memo.
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.PostPurchasePrepaymentCreditMemo(PurchaseHeader);
+
+        // [WHEN] The order is reopened and the quantity is reduced to the received and invoiced quantity (6).
+        LibraryPurchase.ReopenPurchaseDocument(PurchaseHeader);
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        PurchaseLine.Validate(Quantity, 6);
+        PurchaseLine.Modify(true);
+
+        // [THEN] The stored prepayment amount is reduced to the current line amount (after invoice discount), so no phantom prepayment remains.
+        PurchaseLine.TestField("Prepmt. Line Amount", PurchaseLine."Line Amount" - PurchaseLine."Inv. Discount Amount");
+        // [THEN] The VAT base stays VAT-exclusive (never above the current VAT-exclusive Amount), so Full GST is not overstated.
+        Assert.IsTrue(PurchaseLine."Prepmt. VAT Base Amt." <= PurchaseLine.Amount, PrepmtVATBaseOverstatedErr);
+
+        // [THEN] Posting another Prepayment Invoice reports there is nothing to post.
+        asserterror LibraryPurchase.PostPurchasePrepaymentInvoice(PurchaseHeader);
+        Assert.ExpectedError(DocumentErrorsMgt.GetNothingToPostErrorMsg());
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure NoSecondPurchPrepmtInvoiceAfterQtyReducedToInvoicedQtyWithFullGSTPricesInclVAT()
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+    begin
+        // [FEATURE] [GST] [Prepayment] [Purchase] [Prices Including VAT]
+        // [SCENARIO 643225] With Prices Including VAT, no second Prepayment Invoice is generated when a Full GST on Prepayment purchase order line is reduced to the already received and invoiced quantity, and the VAT base is not overstated.
+
+        // [GIVEN] Full GST on Prepayment enabled and a Purchase Order with Prices Including VAT, 100% Prepayment, Quantity 10.
+        Initialize();
+        CreateGeneralPostingSetup(GeneralPostingSetup);
+        LibraryPurchase.CreatePurchHeader(
+          PurchaseHeader, PurchaseHeader."Document Type"::Order, CreateVendor(GeneralPostingSetup."Gen. Bus. Posting Group", 0));
+        PurchaseHeader.Validate("Prices Including VAT", true);
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.CreatePurchaseLine(
+          PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, CreateItem(GeneralPostingSetup."Gen. Prod. Posting Group"), 10);
+        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(100, 200, 2));
+        PurchaseLine.Validate("Prepayment %", 100);
+        PurchaseLine.Modify(true);
+
+        // [GIVEN] Prepayment Invoice is posted for the full quantity.
+        LibraryPurchase.PostPurchasePrepaymentInvoice(PurchaseHeader);
+
+        // [GIVEN] Only part of the order (6 out of 10) is received and invoiced.
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        PurchaseLine.Validate("Qty. to Receive", 6);
+        PurchaseLine.Validate("Qty. to Invoice", 6);
+        PurchaseLine.Modify(true);
+        PurchaseHeader.Validate("Vendor Invoice No.", PurchaseHeader."No.");  // Unique Vendor Invoice No. required for the final invoice.
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [GIVEN] Prepayment Credit Memo is posted, reversing the un-deducted prepayment.
+        PurchaseHeader.Validate("Vendor Cr. Memo No.", PurchaseHeader."No.");  // Unique Vendor Cr. Memo No. required for the credit memo.
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.PostPurchasePrepaymentCreditMemo(PurchaseHeader);
+
+        // [WHEN] The order is reopened and the quantity is reduced to the received and invoiced quantity (6).
+        LibraryPurchase.ReopenPurchaseDocument(PurchaseHeader);
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        PurchaseLine.Validate(Quantity, 6);
+        PurchaseLine.Modify(true);
+
+        // [THEN] Prepmt. Line Amount is capped to the VAT-inclusive line amount, but the VAT base stays VAT-exclusive (<= Amount), so GST is not overstated.
+        PurchaseLine.TestField("Prepmt. Line Amount", PurchaseLine."Line Amount" - PurchaseLine."Inv. Discount Amount");
+        Assert.IsTrue(PurchaseLine."Prepmt. VAT Base Amt." <= PurchaseLine.Amount, PrepmtVATBaseOverstatedErr);
+
+        // [THEN] Posting another Prepayment Invoice reports there is nothing to post.
+        asserterror LibraryPurchase.PostPurchasePrepaymentInvoice(PurchaseHeader);
+        Assert.ExpectedError(DocumentErrorsMgt.GetNothingToPostErrorMsg());
     end;
 
     local procedure Initialize()
