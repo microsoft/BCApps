@@ -24,6 +24,7 @@ codeunit 134619 "Composite Layout Tests"
         GlobalDefaultSourceTok: Label 'Global default', Locked = true;
         DocumentReportExperienceTok: Label 'DocumentReportExperience', Locked = true;
         InternalDefaultTok: Label 'Internal Default', Locked = true;
+        SystemAppIdTok: Label '8874ed3a-0643-4247-9ced-7a7002f7135d', Locked = true;
         UnseedablePartTok: Label 'Test Unseedable Part', Locked = true;
         UnseedablePartDescTok: Label 'A part a test seeds from a layout file that is not in the app.', Locked = true;
         MissingResourceTok: Label 'ReportParts/HeaderFooterDesign/ThisResourceIsNotInTheApp.docx', Locked = true;
@@ -343,6 +344,87 @@ codeunit 134619 "Composite Layout Tests"
         Assert.ExpectedMessage('Theme', ActualMessage);
         Assert.ExpectedMessage('Used in 1 report configuration', ActualMessage);
         LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SeededPartsAreStoredUnderTheSystemAppId()
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
+    begin
+        // [SCENARIO] The shipped parts are stored under the platform's System application rather than under no app at
+        // all. That App ID is part of the Tenant Report Layout key and of the composite reference an assignment stores,
+        // and it is what attributes the parts to Microsoft instead of showing them as parts added on this tenant.
+        Initialize();
+
+        // [GIVEN] The shipped parts are seeded. No cleanup follows: this scenario only adds to the pool.
+        CompositeReportPartsMgt.SeedDefaultParts();
+
+        // [THEN] A shipped part is stored under the App ID the seeding names, and so can be fetched on that key.
+        Assert.IsTrue(
+            TenantReportLayout.Get(
+                LookupHelper.GetTenantReportDefaultsReportID(),
+                CopyStr(InternalDefaultTok, 1, MaxStrLen(TenantReportLayout.Name)),
+                CompositeReportPartsMgt.GetShippedPartAppId()),
+            'A shipped part should be stored under the App ID the seeding pass writes.');
+
+        // [THEN] That App ID is the platform System application's, spelled out here so changing the constant is a
+        // deliberate act - every assignment of a shipped part encodes it into its composite reference.
+        Assert.AreEqual(
+            SystemAppIdTok, LowerCase(Format(CompositeReportPartsMgt.GetShippedPartAppId(), 0, 4)),
+            'The shipped parts should be stored under the platform System application App ID.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SeedingRemovesThePartCopySeededWithNoAppId()
+    var
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
+        ScenarioError: Text;
+    begin
+        // [SCENARIO] An earlier version seeded the shipped parts with no App ID. The App ID is part of the key, so the
+        // part written now does not replace that copy - the pass has to take it out, or the pool shows the part twice.
+        Initialize();
+
+        // In a try function so the pool is put back even when an assertion fails - see SeedDefaultPartsCreatesShippedParts.
+        if not LegacyPartRemovalScenario() then
+            ScenarioError := GetLastErrorText();
+        CompositeReportPartsMgt.SeedDefaultParts();
+
+        FailOnScenarioError(ScenarioError);
+    end;
+
+    [TryFunction]
+    local procedure LegacyPartRemovalScenario()
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
+        EmptyAppId: Guid;
+        PartName: Text[250];
+    begin
+        // [GIVEN] One copy of a shipped part in the pool, moved onto the key the earlier seeding wrote: no App ID. Moved
+        // rather than built, so the row carries the real layout file - the platform validates a layout's type and content.
+        PartName := CopyStr(InternalDefaultTok, 1, MaxStrLen(TenantReportLayout.Name));
+        RemoveShippedPart(PartName);
+        CompositeReportPartsMgt.SeedDefaultParts();
+        TenantReportLayout.Get(LookupHelper.GetTenantReportDefaultsReportID(), PartName, CompositeReportPartsMgt.GetShippedPartAppId());
+        TenantReportLayout.Rename(LookupHelper.GetTenantReportDefaultsReportID(), PartName, EmptyAppId);
+        Assert.AreEqual(1, ShippedPartCount(PartName), 'The old copy should be the only one before the pass.');
+
+        // [WHEN] Seeding runs again.
+        CompositeReportPartsMgt.SeedDefaultParts();
+
+        // [THEN] The part is in the pool exactly once, under the App ID the pass writes.
+        Assert.AreEqual(1, ShippedPartCount(PartName), 'The pass should leave the part in the pool exactly once.');
+        Assert.IsTrue(
+            TenantReportLayout.Get(LookupHelper.GetTenantReportDefaultsReportID(), PartName, CompositeReportPartsMgt.GetShippedPartAppId()),
+            'The remaining part should be the one stored under the App ID the pass writes.');
+
+        // [THEN] The copy that carried no App ID is gone.
+        Assert.IsFalse(
+            TenantReportLayout.Get(LookupHelper.GetTenantReportDefaultsReportID(), PartName, EmptyAppId),
+            'The copy seeded with no App ID should have been removed.');
     end;
 
     [Test]
@@ -672,15 +754,11 @@ codeunit 134619 "Composite Layout Tests"
     var
         TenantReportLayout: Record "Tenant Report Layout";
     begin
-        if TenantReportLayout.Get(LookupHelper.GetTenantReportDefaultsReportID(), CopyStr(PartName, 1, MaxStrLen(TenantReportLayout.Name)), EmptyGuidValue()) then
-            TenantReportLayout.Delete(true);
-    end;
-
-    local procedure EmptyGuidValue(): Guid
-    var
-        EmptyGuid: Guid;
-    begin
-        exit(EmptyGuid);
+        // Filtered on Report ID + Name rather than fetched on the full key: the seeded parts are stored under the
+        // platform System app's App ID and a part a test creates under none, and this has to take out whichever is there.
+        TenantReportLayout.SetRange("Report ID", LookupHelper.GetTenantReportDefaultsReportID());
+        TenantReportLayout.SetRange(Name, CopyStr(PartName, 1, MaxStrLen(TenantReportLayout.Name)));
+        TenantReportLayout.DeleteAll(true);
     end;
 
     local procedure ShippedPartExists(PartName: Text; Subtype: Enum "Report Layout Subtype"): Boolean

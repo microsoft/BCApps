@@ -6,26 +6,30 @@ namespace Microsoft.Foundation.Reporting;
 
 using System.Environment.Configuration;
 using System.Reflection;
+using System.Utilities;
 
 /// <summary>
-/// Seeds the reusable Composite Layout header/footer and theme parts that ship with the Base Application into
-/// the shared pool, so they can be assigned as defaults on any report from the Report themes and header-footer
-/// setup page.
+/// Seeds the reusable Composite Layout header/footer and theme parts that ship with the Base Application into the
+/// shared pool under Tenant Report Defaults, so they can be assigned as defaults on any report from the Report themes
+/// and header-footer setup page. Runs on install and upgrade, and is safe to call repeatedly.
+///
+/// A part is written by removing whatever is stored under its name and inserting it again, because the platform does not
+/// allow the type and content of an existing report layout to be modified. That removal also takes out the copy of a
+/// part that an earlier version seeded with no App ID, which the key would otherwise leave in the pool beside the new
+/// one under the same name.
+///
+/// The parts are stored under the platform System application's App ID. It is part of the Tenant Report Layout key and
+/// of the composite reference an assignment stores, so an assignment survives the part being rewritten.
+///
+/// The layout file is read in a try function and written outside it, because the platform rejects a database write made
+/// inside a try function while the caller holds an open write transaction, as install and upgrade do. A part whose file
+/// cannot be read is reported to telemetry and skipped, and makes the pass report itself incomplete, which is what
+/// leaves the upgrade tag unset for a later retry.
 /// </summary>
 codeunit 9667 "Composite Report Parts Mgt."
 {
     Access = Internal;
-    // No Permissions elevation on purpose. Access = Internal is a compile-time boundary, not an authorization one - the
-    // apps listed in the Base Application's internalsVisibleTo can call in here - so elevating would let a caller write
-    // the shared part pool without holding rights to it. The callers that need to seed (install and upgrade) already run
-    // with the rights, and a caller that does not hold them should fail.
 
-    /// <summary>
-    /// Writes every part that ships with the Base Application into the shared pool. Safe to call repeatedly:
-    /// a missing part is inserted and an existing one is refreshed from the shipped file. Each part is written in
-    /// isolation, so one that cannot be written is reported and skipped rather than failing the whole pass - this runs
-    /// during install and upgrade of the Base Application, where an uncaught error would abort the entire operation.
-    /// </summary>
     procedure SeedDefaultParts() AllPartsSeeded: Boolean
     var
         FailedCount: Integer;
@@ -57,9 +61,11 @@ codeunit 9667 "Composite Report Parts Mgt."
         exit(1);
     end;
 
-    /// <summary>
-    /// Whether the given part name is one of the themes or header/footer designs that ship with the Base Application.
-    /// </summary>
+    internal procedure GetShippedPartAppId() AppId: Guid
+    begin
+        Evaluate(AppId, SystemAppIdTxt);
+    end;
+
     internal procedure IsShippedPart(PartName: Text): Boolean
     begin
         exit(
@@ -70,43 +76,24 @@ codeunit 9667 "Composite Report Parts Mgt."
              DefaultThemeTxt, CalmThemeTxt, PlayfulThemeTxt]);
     end;
 
-    /// <summary>
-    /// Writes one part into the shared pool. A part that cannot be written is reported to telemetry and returns false
-    /// instead of failing the pass; that false is what makes SeedDefaultParts report the pass as incomplete.
-    /// </summary>
-    /// <param name="PartName">The name the part is stored and assigned under.</param>
-    /// <param name="ResourceFile">Path of the layout file inside the resource folder declared in app.json.</param>
-    /// <param name="Subtype">HeaderFooter or Theme. Also decides the MIME type.</param>
-    /// <param name="Description">The description shown next to the part in the UI.</param>
-    /// <returns>True when the part was written.</returns>
-    /// <remarks>
-    /// Internal rather than local so a test can drive the failure branch. Every part the pass above seeds is a resource
-    /// of this app, so none of them can be made to fail from the outside.
-    /// </remarks>
     internal procedure SeedPart(PartName: Text[250]; ResourceFile: Text; Subtype: Enum "Report Layout Subtype"; Description: Text): Boolean
+    var
+        PartLayout: Codeunit "Temp Blob";
     begin
         ClearLastError();
-        if TryUpsertPart(PartName, ResourceFile, Subtype, Description) then
-            exit(true);
+        if not TryGetPartLayout(ResourceFile, PartLayout) then begin
+            LogPartNotSeeded(PartName, ResourceFile, Subtype, GetLastErrorCode(), GetLastErrorText(true));
+            exit(false);
+        end;
 
-        // Redacted error text only: the unredacted form can echo field values, record keys or paths.
-        LogPartNotSeeded(PartName, ResourceFile, Subtype, GetLastErrorCode(), GetLastErrorText(true));
-        exit(false);
+        UpsertPart(PartName, PartLayout, Subtype, Description);
+        exit(true);
     end;
 
-    /// <summary>
-    /// Reports a part that could not be written, in two signals. The tenant-visible one carries only shipped constants
-    /// and the platform's error code; the reason text goes to the publisher alone, and only in its redacted form, since
-    /// a platform or resource-loader message can otherwise echo a path or record data.
-    /// </summary>
-    /// <param name="ErrorText">The redacted error text, from GetLastErrorText(true).</param>
     local procedure LogPartNotSeeded(PartName: Text; ResourceFile: Text; Subtype: Enum "Report Layout Subtype"; ErrorCode: Text; ErrorText: Text)
     var
         TelemetryDimensions: Dictionary of [Text, Text];
     begin
-        // PartName, ResourceFile and LayoutSubtype are all shipped constants, and the error code is a platform token, so
-        // nothing here can carry customer content. Warning, not Error: the pass carries on and the other parts are still
-        // seeded, so this is one part degraded rather than an operation that ended.
         TelemetryDimensions.Add('PartName', PartName);
         TelemetryDimensions.Add('ResourceFile', ResourceFile);
         TelemetryDimensions.Add('LayoutSubtype', Format(Subtype, 0, 9));
@@ -115,8 +102,6 @@ codeunit 9667 "Composite Report Parts Mgt."
             '0000V42', PartNotSeededTxt, Verbosity::Warning, DataClassification::SystemMetadata,
             TelemetryScope::All, TelemetryDimensions);
 
-        // Publisher only, redacted: the reason is what diagnoses the failure, but it is the one value here that does not
-        // come from a shipped constant, so it stays off tenant-wide telemetry even in its redacted form.
         Clear(TelemetryDimensions);
         TelemetryDimensions.Add('PartName', PartName);
         TelemetryDimensions.Add('ResourceFile', ResourceFile);
@@ -128,35 +113,49 @@ codeunit 9667 "Composite Report Parts Mgt."
     end;
 
     [TryFunction]
-    local procedure TryUpsertPart(PartName: Text[250]; ResourceFile: Text; Subtype: Enum "Report Layout Subtype"; Description: Text)
+    local procedure TryGetPartLayout(ResourceFile: Text; var PartLayout: Codeunit "Temp Blob")
+    var
+        ResourceInStream: InStream;
+        PartLayoutOutStream: OutStream;
+    begin
+        NavApp.GetResource(ResourceFile, ResourceInStream);
+
+        PartLayout.CreateOutStream(PartLayoutOutStream);
+        CopyStream(PartLayoutOutStream, ResourceInStream);
+    end;
+
+    local procedure UpsertPart(PartName: Text[250]; var PartLayout: Codeunit "Temp Blob"; Subtype: Enum "Report Layout Subtype"; Description: Text)
     var
         TenantReportLayout: Record "Tenant Report Layout";
         CompositeLayoutLookupHelper: Codeunit "Composite Layout Lookup Helper";
         LayoutInStream: InStream;
         EmptyAppId: Guid;
-        PartExists: Boolean;
     begin
-        NavApp.GetResource(ResourceFile, LayoutInStream);
+        RemovePart(PartName, GetShippedPartAppId());
+        RemovePart(PartName, EmptyAppId);
 
-        PartExists := TenantReportLayout.Get(CompositeLayoutLookupHelper.GetTenantReportDefaultsReportID(), PartName, EmptyAppId);
-        if not PartExists then begin
-            TenantReportLayout.Init();
-            TenantReportLayout."Report ID" := CompositeLayoutLookupHelper.GetTenantReportDefaultsReportID();
-            TenantReportLayout.Name := PartName;
-            TenantReportLayout."Company Name" := '';
-        end;
-
+        TenantReportLayout.Init();
+        TenantReportLayout."Report ID" := CompositeLayoutLookupHelper.GetTenantReportDefaultsReportID();
+        TenantReportLayout.Name := PartName;
+        TenantReportLayout."App ID" := GetShippedPartAppId();
+        TenantReportLayout."Company Name" := '';
         TenantReportLayout."Layout Format" := TenantReportLayout."Layout Format"::Word;
         TenantReportLayout."Layout Subtype" := Subtype;
         TenantReportLayout.Description := CopyStr(Description, 1, MaxStrLen(TenantReportLayout.Description));
         TenantReportLayout."Layout Status" := TenantReportLayout."Layout Status"::Approved;
         TenantReportLayout."MIME Type" := PartMimeType(Subtype);
+        PartLayout.CreateInStream(LayoutInStream);
         TenantReportLayout.Layout.ImportStream(LayoutInStream, PartName);
+        TenantReportLayout.Insert(true);
+    end;
 
-        if PartExists then
-            TenantReportLayout.Modify(true)
-        else
-            TenantReportLayout.Insert(true);
+    local procedure RemovePart(PartName: Text[250]; AppId: Guid)
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        CompositeLayoutLookupHelper: Codeunit "Composite Layout Lookup Helper";
+    begin
+        if TenantReportLayout.Get(CompositeLayoutLookupHelper.GetTenantReportDefaultsReportID(), PartName, AppId) then
+            TenantReportLayout.Delete(true);
     end;
 
     local procedure PartMimeType(Subtype: Enum "Report Layout Subtype"): Text[255]
@@ -168,16 +167,6 @@ codeunit 9667 "Composite Report Parts Mgt."
     end;
 
     var
-        // These part names are Locked because they are contract tokens, not display text, even though the setup page
-        // shows them. Tenant Report Layout is keyed by Report ID + Name + App ID, a part is looked up by name when it is
-        // resolved, and the name is embedded in the <AppId>::<LayoutName> reference stored in the Tenant Report Layout
-        // Cfg part columns. Translating them would make a part resolvable only in the language it was seeded in and
-        // orphan every assignment already stored under the English name.
-        //
-        // The consequence is real - the names stay English in every locale - but there is nowhere to put a translation:
-        // the platform's Caption and CaptionML fields, which would carry a localized display name, are obsolete-pending
-        // with the reason "use the Name field instead". Localizing them needs a platform display field first. The
-        // descriptions below are not locked, so the text a user reads next to each part does localize.
         ExternalDefaultTxt: Label 'External Default', Locked = true;
         ExternalDefaultDetailedTxt: Label 'External Default Detailed', Locked = true;
         ExternalMinimalisticTxt: Label 'External Minimalistic', Locked = true;
@@ -211,6 +200,8 @@ codeunit 9667 "Composite Report Parts Mgt."
 
         PartNotSeededTxt: Label 'Composite layout parts: a shipped theme or header/footer part could not be written to the shared pool and was skipped. The remaining parts were seeded.', Locked = true;
         PartNotSeededDetailTxt: Label 'Composite layout parts: the reason a shipped theme or header/footer part could not be written. Publisher-scoped because the platform error text can echo customer content.', Locked = true;
+
+        SystemAppIdTxt: Label '8874ed3a-0643-4247-9ced-7a7002f7135d', Locked = true;
 
         ThemeMimeTypeTxt: Label 'application/vnd.openxmlformats-officedocument.wordprocessingml.template', Locked = true;
         HeaderFooterMimeTypeTxt: Label 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', Locked = true;
