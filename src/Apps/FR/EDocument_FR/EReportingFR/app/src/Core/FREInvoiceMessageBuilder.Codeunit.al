@@ -21,7 +21,6 @@ codeunit 10976 "FR E-Invoice Message Builder"
         AcknowledgementElement: XmlElement;
         ReferenceElement: XmlElement;
         StatusElement: XmlElement;
-        AmountElement: XmlElement;
         OutStream: OutStream;
     begin
         FREInvoiceMessage.TestField("Event Date");
@@ -59,12 +58,7 @@ codeunit 10976 "FR E-Invoice Message Builder"
                 begin
                     ReferenceElement.Add(XmlElement.Create('ProcessConditionCode', RamNamespaceTok, CollectedStatusCodeTok));
                     ReferenceElement.Add(XmlElement.Create('ProcessCondition', RamNamespaceTok, CollectedStatusNameTok));
-                    StatusElement := XmlElement.Create('SpecifiedDocumentStatus', RamNamespaceTok);
-                    StatusElement.Add(XmlElement.Create('TypeCode', RamNamespaceTok, CollectedAmountTypeCodeTok));
-                    AmountElement := XmlElement.Create('ValueAmount', RamNamespaceTok, Format(FREInvoiceMessage.Amount, 0, 9));
-                    AmountElement.Add(XmlAttribute.Create('currencyID', ResolveCurrencyCode(FREInvoiceMessage."Currency Code")));
-                    StatusElement.Add(AmountElement);
-                    ReferenceElement.Add(StatusElement);
+                    AddVATBreakdown(ReferenceElement, FREInvoiceMessage);
                 end;
             else
                 Error(UnsupportedMessageTypeErr, FREInvoiceMessage.Type);
@@ -75,6 +69,40 @@ codeunit 10976 "FR E-Invoice Message Builder"
 
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         XmlDoc.WriteTo(OutStream);
+    end;
+
+    local procedure AddVATBreakdown(var ReferenceElement: XmlElement; FREInvoiceMessage: Record "FR E-Invoice Message")
+    var
+        FREInvoiceMessageVAT: Record "FR E-Invoice Message VAT";
+        StatusElement: XmlElement;
+        CurrencyCode: Code[10];
+    begin
+        FREInvoiceMessageVAT.SetRange("Message Entry No.", FREInvoiceMessage."Entry No.");
+        if not FREInvoiceMessageVAT.FindSet() then
+            Error(VATBreakdownErr, FREInvoiceMessage."Entry No.");
+
+        CurrencyCode := ResolveCurrencyCode(FREInvoiceMessage."Currency Code");
+        StatusElement := XmlElement.Create('SpecifiedDocumentStatus', RamNamespaceTok);
+        repeat
+            StatusElement.Add(CreateVATCharacteristic(FREInvoiceMessageVAT, CurrencyCode));
+        until FREInvoiceMessageVAT.Next() = 0;
+        ReferenceElement.Add(StatusElement);
+    end;
+
+    local procedure CreateVATCharacteristic(FREInvoiceMessageVAT: Record "FR E-Invoice Message VAT"; CurrencyCode: Code[10]) CharacteristicElement: XmlElement
+    var
+        AmountElement: XmlElement;
+        ValueChangedElement: XmlElement;
+    begin
+        CharacteristicElement := XmlElement.Create('SpecifiedDocumentCharacteristic', RamNamespaceTok);
+        CharacteristicElement.Add(XmlElement.Create('TypeCode', RamNamespaceTok, CollectedAmountTypeCodeTok));
+        ValueChangedElement := XmlElement.Create('ValueChangedIndicator', RamNamespaceTok);
+        ValueChangedElement.Add(XmlElement.Create('IndicatorString', UdtNamespaceTok, 'false'));
+        CharacteristicElement.Add(ValueChangedElement);
+        AmountElement := XmlElement.Create('ValueAmount', RamNamespaceTok, Format(FREInvoiceMessageVAT.Amount, 0, 9));
+        AmountElement.Add(XmlAttribute.Create('currencyID', CurrencyCode));
+        CharacteristicElement.Add(AmountElement);
+        CharacteristicElement.Add(XmlElement.Create('ValuePercent', RamNamespaceTok, Format(FREInvoiceMessageVAT."VAT %", 0, 9)));
     end;
 
     local procedure AddIssueDateTime(var AcknowledgementElement: XmlElement; EventDate: Date)
@@ -113,5 +141,6 @@ codeunit 10976 "FR E-Invoice Message Builder"
         RefusedStatusNameTok: Label 'Refusée', Locked = true;
         AcceptedStatusCodeTok: Label '205', Locked = true;
         AcceptedStatusNameTok: Label 'Approuvée', Locked = true;
+        VATBreakdownErr: Label 'French invoice message %1 does not have the VAT breakdown required for a collected status message.', Comment = '%1 = French invoice message entry number';
         UnsupportedMessageTypeErr: Label 'French invoice lifecycle message type %1 cannot be sent.', Comment = '%1 = French invoice lifecycle message type';
 }
