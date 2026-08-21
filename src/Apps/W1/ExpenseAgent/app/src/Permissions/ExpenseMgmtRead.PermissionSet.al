@@ -58,5 +58,6 @@ permissionset 6907 "Expense Mgmt. Read"
         tabledata Traveler = R,
         tabledata "Expense VAT Specification" = R,
         tabledata "Expense Report Line VAT Spec." = R,
+        tabledata "Expense Activity Log Entry" = R,
         tabledata "Posted Exp. Rep. Line VAT Spec" = R;
 }
