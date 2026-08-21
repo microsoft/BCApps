@@ -113,8 +113,10 @@ if ($AppNamesToTest.Count -gt 0) {
 }
 
 $isRequiredDisabledRun = $parameters.ContainsKey("requiredTestIsolation") -and $parameters["requiredTestIsolation"] -eq "Disabled"
-$maxAttempts = if ($TestType -eq "Legacy" -or $isRequiredDisabledRun) { 1 } else { 2 }
-$result = Invoke-TestsWithReruns -parameters $parameters -maxAttempts $maxAttempts
+# A failing app is retried once by the parallel dispatcher, on a different tenant (see
+# ParallelTestExecution.psm1). Retrying in place here would reuse the tenant the app just dirtied,
+# so the same residue could re-trigger the failure - hence a single attempt per dispatch.
+$result = Invoke-TestsWithReruns -parameters $parameters -maxAttempts 1
 
 # Preserve the old sequential fallback. Parallel project execution defers this pass to the
 # clean-tenant codeunit scheduler in ParallelTestExecution.psm1.
