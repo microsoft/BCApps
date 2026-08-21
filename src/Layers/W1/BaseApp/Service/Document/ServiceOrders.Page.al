@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -308,24 +308,6 @@ page 9318 "Service Orders"
             {
                 Caption = 'Statistics';
                 Image = Statistics;
-#if not CLEAN27
-                action(Statistics)
-                {
-                    ApplicationArea = Service;
-                    Caption = 'Statistics';
-                    Image = Statistics;
-                    ShortCutKey = 'F7';
-                    ToolTip = 'View statistical information, such as the value of posted entries, for the record.';
-                    ObsoleteReason = 'The statistics action will be replaced with the ServiceOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-
-                    trigger OnAction()
-                    begin
-                        Rec.OpenOrderStatistics();
-                    end;
-                }
-#endif
                 action(ServiceOrderStatistics)
                 {
                     ApplicationArea = Service;
@@ -333,11 +315,7 @@ page 9318 "Service Orders"
                     Image = Statistics;
                     ShortCutKey = 'F7';
                     ToolTip = 'View statistical information, such as the value of posted entries, for the record.';
-#if CLEAN27
                     Visible = true;
-#else
-                    Visible = false;
-#endif
                     RunObject = Page "Service Order Statistics";
                     RunPageOnRec = true;
                 }
@@ -683,18 +661,9 @@ page 9318 "Service Orders"
                 actionref("&Dimensions_Promoted"; "&Dimensions")
                 {
                 }
-#if not CLEAN27
-                actionref(Statistics_Promoted; Statistics)
-                {
-                    ObsoleteReason = 'The statistics action will be replaced with the ServiceOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
-#else
                 actionref(ServiceOrderStatistics_Promoted; ServiceOrderStatistics)
                 {
                 }
-#endif
                 actionref("Co&mments_Promoted"; "Co&mments")
                 {
                 }

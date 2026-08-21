@@ -13,9 +13,6 @@ codeunit 144035 "UT REP Purchase Sales GovTalk"
     Subtype = Test;
     TestPermissions = Disabled;
     TestType = IntegrationTest;
-#if not CLEAN27
-    EventSubscriberInstance = Manual;
-#endif
 
     var
         Assert: Codeunit Assert;
@@ -31,9 +28,6 @@ codeunit 144035 "UT REP Purchase Sales GovTalk"
         // [FEATURE] [ECSL] [Application Area] [UI] [UT]
         // [SCENARIO 331168] ReportLayout and "Create XML File" fields are enabled on EC Sales List Request page when Application Area = #basic
         Initialize();
-#if not CLEAN27
-        BindSubscription(this);
-#endif
 
         // [GIVEN] Enabled Application Area = #basic setup
         LibraryApplicationArea.EnableBasicSetup();
@@ -43,9 +37,6 @@ codeunit 144035 "UT REP Purchase Sales GovTalk"
         // [THEN] ReportLayout and "Create XML File" fields are enabled (check in RPH)
         REPORT.Run(REPORT::"EC Sales List");
         LibraryApplicationArea.DisableApplicationAreaSetup();
-#if not CLEAN27
-        UnbindSubscription(this);
-#endif
     end;
 
     [Test]
@@ -56,9 +47,6 @@ codeunit 144035 "UT REP Purchase Sales GovTalk"
         // [FEATURE] [ECSL] [Application Area] [UI] [UT]
         // [SCENARIO 331168] ReportLayout and "Create XML File" fields are enabled on EC Sales List Request page when Application Area = #suite
         Initialize();
-#if not CLEAN27
-        BindSubscription(this);
-#endif
         // [GIVEN] Enabled Application Area = #suite setup
         LibraryApplicationArea.EnableFoundationSetup();
         Commit();
@@ -67,9 +55,6 @@ codeunit 144035 "UT REP Purchase Sales GovTalk"
         // [THEN] ReportLayout and "Create XML File" fields are enabled (check in RPH)
         REPORT.Run(REPORT::"EC Sales List");
         LibraryApplicationArea.DisableApplicationAreaSetup();
-#if not CLEAN27
-        UnbindSubscription(this);
-#endif
     end;
 
     [RequestPageHandler]
@@ -105,12 +90,5 @@ codeunit 144035 "UT REP Purchase Sales GovTalk"
         LibraryReportValidation.DeleteObjectOptions(CurrentSaveValuesId);
     end;
 
-#if not CLEAN27
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::GovTalk, OnAfterCheckFeatureEnabled, '', false, false)]
-    local procedure OnAfterCheckFeatureEnabled(var IsEnabled: Boolean)
-    begin
-        IsEnabled := true;
-    end;
-#endif
 }
 

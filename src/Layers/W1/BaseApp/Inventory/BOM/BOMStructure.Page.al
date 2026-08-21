@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -324,30 +324,10 @@ page 5870 "BOM Structure"
         ShowBy := NewShowBy;
     end;
 
-#if not CLEAN27
-    [Obsolete('Replaced by procedure InitSource()', '27.0')]
-    procedure InitAsmOrder(NewAsmHeader: Record Microsoft.Assembly.Document."Assembly Header")
-    begin
-        SourceRecordVar := NewAsmHeader;
-        ShowBy := ShowBy::Assembly;
-    end;
-#endif
 
-#if not CLEAN27
-    [Obsolete('Replaced by procedure InitSource()', '27.0')]
-    procedure InitProdOrder(NewProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line")
-    begin
-        SourceRecordVar := NewProdOrderLine;
-        ShowBy := ShowBy::Production;
-    end;
-#endif
 
     procedure RefreshPage()
     var
-#if not CLEAN27
-        AssemblyHeader: Record Microsoft.Assembly.Document."Assembly Header";
-        ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line";
-#endif
         CalculateBOMTree: Codeunit "Calculate BOM Tree";
         RaiseError: Boolean;
         ErrorText: Text;
@@ -355,15 +335,6 @@ page 5870 "BOM Structure"
         IsUpdatePageNeeded: Boolean;
     begin
         IsHandled := false;
-#if not CLEAN27
-        case ShowBy of
-            ShowBy::Assembly:
-                AssemblyHeader := SourceRecordVar;
-            ShowBy::Production:
-                ProdOrderLine := SourceRecordVar;
-        end;
-        OnBeforeGenerateBOMTree(Rec, Item, AssemblyHeader, ProdOrderLine, ShowBy.AsInteger(), ItemFilter, IsHandled);
-#endif
         OnBeforeRefreshPage(Rec, Item, SourceRecordVar, ShowBy, ItemFilter, IsHandled);
         if IsHandled then
             exit;
@@ -429,13 +400,6 @@ page 5870 "BOM Structure"
         ItemAvailabilityFormsMgt.ShowItemAvailabilityFromItem(ItemForShowAvailability, AvailType);
     end;
 
-#if not CLEAN27
-    [Obsolete('Replaced by event OnBeforeRefreshPage', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeGenerateBOMTree(var BOMBuffer: Record "BOM Buffer"; var Item: Record Item; var AsmHeader: Record Microsoft.Assembly.Document."Assembly Header"; var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; ShowBy: Integer; ItemFilter: Code[250]; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRefreshPage(var BOMBuffer: Record "BOM Buffer"; var Item: Record Item; var SourceRecordVar: Variant; ShowBy: Enum "BOM Structure Show By"; ItemFilter: Code[250]; var IsHandled: Boolean)

@@ -13,9 +13,6 @@ using Microsoft.Inventory.Reports;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Family;
-#if not CLEAN27
-using Microsoft.Manufacturing.Forecast;
-#endif
 using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Reports;
@@ -625,36 +622,6 @@ codeunit 137304 "SCM Manufacturing Reports"
         LibraryReportDataset.AssertCurrentRowValueEquals('ExpCost6', ExpMatCost + ExpCapDirCost + ExpSubDirCost +
           ExpCapOvhdCost + ExpMfgOvhdCost);
     end;
-#if not CLEAN27
-    [Test]
-    [HandlerFunctions('ProductionForecastRequestPageHandler')]
-    [Scope('OnPrem')]
-    procedure ProdOrderForecastReport()
-    var
-        Item: Record Item;
-        ProductionForecastName: Record "Production Forecast Name";
-        ProductionForecastEntry: Record "Production Forecast Entry";
-    begin
-        // Setup: Create Production Forecast Setup.
-        Initialize();
-        LibraryInventory.CreateItem(Item);
-        LibraryManufacturing.CreateProductionForecastName(ProductionForecastName);
-        LibraryManufacturing.CreateProductionForecastEntry(
-          ProductionForecastEntry, ProductionForecastName.Name, Item."No.", '', WorkDate(), false);
-        UpdateProductionForecastQty(ProductionForecastEntry);
-
-        // Exercise: Generate the Production Forecast report.
-        Commit();
-        ProductionForecastEntry.SetRange("Item No.", Item."No.");
-        REPORT.Run(REPORT::"Demand Forecast", true, false, ProductionForecastEntry);
-
-        // Verify: Check that Item No exists in the Production Forecast report and verify Forecast Quantity.
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.SetRange('ItemNo_ForecastEntry', ProductionForecastEntry."Item No.");
-        LibraryReportDataset.GetNextRow();
-        LibraryReportDataset.AssertCurrentRowValueEquals('ForecastQty_ForecastEntry', ProductionForecastEntry."Forecast Quantity");
-    end;
-#endif
 
     [Test]
     [Scope('OnPrem')]
@@ -1395,13 +1362,6 @@ codeunit 137304 "SCM Manufacturing Reports"
         ProdOrderLine.FindSet();
     end;
 
-#if not CLEAN27
-    local procedure UpdateProductionForecastQty(var ProductionForecastEntry: Record "Production Forecast Entry")
-    begin
-        ProductionForecastEntry.Validate("Forecast Quantity", LibraryRandom.RandDec(10, 2));
-        ProductionForecastEntry.Modify(true);
-    end;
-#endif
 
     local procedure SelectConsumptionLines(var ItemJournalLine: Record "Item Journal Line"; ItemJournalBatch2: Record "Item Journal Batch")
     begin
@@ -1681,14 +1641,6 @@ codeunit 137304 "SCM Manufacturing Reports"
     begin
         ProdOrderStatistics.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
-#if not CLEAN27
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure ProductionForecastRequestPageHandler(var ProductionForecast: TestRequestPage "Demand Forecast")
-    begin
-        ProductionForecast.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-#endif
 
     [RequestPageHandler]
     [Scope('OnPrem')]

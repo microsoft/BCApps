@@ -10,12 +10,6 @@ pageextension 10525 "VAT Reports Configuration" extends "VAT Reports Configurati
 {
     layout
     {
-#if not CLEAN27
-        modify("Validate Codeunit Caption")
-        {
-            Visible = false;
-        }
-#endif
         addafter("Validate Codeunit Caption")
         {
             field("Content Max Lines GB"; Rec."Content Max Lines GB")
@@ -23,9 +17,6 @@ pageextension 10525 "VAT Reports Configuration" extends "VAT Reports Configurati
                 ApplicationArea = Basic, Suite;
                 Caption = 'Max. No. of Lines';
                 ToolTip = 'Specifies the maximum number of lines in each message.';
-#if not CLEAN27
-                Visible = FeatureEnabled;
-#endif
 
                 trigger OnValidate()
                 begin
@@ -42,19 +33,8 @@ pageextension 10525 "VAT Reports Configuration" extends "VAT Reports Configurati
         }
     }
 
-#if not CLEAN27
-    trigger OnOpenPage()
-    var
-        GovTalk: Codeunit GovTalk;
-    begin
-        FeatureEnabled := GovTalk.IsEnabled();
-    end;
-#endif
 
     var
-#if not CLEAN27
-        FeatureEnabled: Boolean;
-#endif
         NotApplicableErr: Label 'This value is only applicable for EC Sales list report.';
         MinValueErr: Label 'The value of Max. No. of Lines must be bigger than zero.';
 }

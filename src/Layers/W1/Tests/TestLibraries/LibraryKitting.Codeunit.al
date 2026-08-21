@@ -364,17 +364,6 @@ codeunit 132205 "Library - Kitting"
             CompanyInfo.Modify();
     end;
 
-#if not CLEAN27
-#pragma warning disable AL0801
-    [Obsolete('Moved to codeunit LibraryManufacturing', '27.0')]
-    procedure AddProdBOMItem(var MfgItem: Record Item; SubItemNo: Code[20]; Qty: Decimal)
-    var
-        LibraryManufacturing: Codeunit "Library - Manufacturing";
-    begin
-        LibraryManufacturing.AddProdBOMItem(MfgItem, SubItemNo, Qty);
-    end;
-#pragma warning restore AL0801
-#endif
 
     procedure SetCopyFrom(CopyFrom: Option "Order Header","Item/Resource Card")
     var

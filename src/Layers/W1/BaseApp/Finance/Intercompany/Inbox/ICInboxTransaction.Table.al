@@ -48,13 +48,8 @@ table 418 "IC Inbox Transaction"
             Caption = 'Source Type';
             Editable = false;
             ObsoleteReason = 'Replaced by IC Source Type for Enum typing';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '29.0';
-#endif
         }
 #endif
         /// <summary>

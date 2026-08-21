@@ -12,10 +12,6 @@ using Microsoft.Purchases.History;
 
 codeunit 99000890 "Mfg. Purch.-Post"
 {
-#if not CLEAN27
-    var
-        PurchPost: Codeunit "Purch.-Post";
-#endif
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnAfterCheckPurchRcptLine', '', true, false)]
     local procedure OnAfterCheckPurchRcptLine(PurchRcptLine: Record "Purch. Rcpt. Line"; PurchaseLine: Record "Purchase Line")
@@ -36,9 +32,6 @@ codeunit 99000890 "Mfg. Purch.-Post"
     begin
         IsHandled := false;
         OnBeforePostItemJnlLineCopyProdOrder(PurchLine, ItemJnlLine, QtyToBeReceived, QtyToBeInvoiced, SuppressCommit, IsHandled);
-#if not CLEAN27
-        PurchPost.RunOnBeforePostItemJnlLineCopyProdOrder(PurchLine, ItemJnlLine, QtyToBeReceived, QtyToBeInvoiced, SuppressCommit, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -61,9 +54,6 @@ codeunit 99000890 "Mfg. Purch.-Post"
             ItemJnlLine.Finished := PurchLine.Finished;
 
         OnAfterPostItemJnlLineCopyProdOrder(ItemJnlLine, PurchLine, PurchRcptHeader, QtyToBeReceived, SuppressCommit, QtyToBeInvoiced);
-#if not CLEAN27        
-        PurchPost.RunOnAfterPostItemJnlLineCopyProdOrder(ItemJnlLine, PurchLine, PurchRcptHeader, QtyToBeReceived, SuppressCommit, QtyToBeInvoiced);
-#endif
     end;
 
     local procedure CalcBaseQty(ItemNo: Code[20]; UOMCode: Code[10]; Qty: Decimal; QtyRoundingPrecision: Decimal): Decimal

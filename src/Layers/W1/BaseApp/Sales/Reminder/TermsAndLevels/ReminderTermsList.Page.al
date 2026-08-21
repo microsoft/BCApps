@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -13,11 +13,7 @@ page 837 "Reminder Terms List"
     Caption = 'Reminder Terms';
     PageType = List;
     SourceTable = "Reminder Terms";
-#if not CLEAN27
-    UsageCategory = None;
-#else
     UsageCategory = Lists;
-#endif
     CardPageID = "Reminder Terms Setup";
     DataCaptionFields = Code;
     Editable = false;

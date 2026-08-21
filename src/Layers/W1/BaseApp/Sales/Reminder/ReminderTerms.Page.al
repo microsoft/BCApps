@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -15,11 +15,7 @@ page 431 "Reminder Terms"
     Caption = 'Reminder Terms';
     PageType = List;
     SourceTable = "Reminder Terms";
-#if not CLEAN27
-    UsageCategory = Administration;
-#else
     UsageCategory = None;
-#endif
 
     layout
     {

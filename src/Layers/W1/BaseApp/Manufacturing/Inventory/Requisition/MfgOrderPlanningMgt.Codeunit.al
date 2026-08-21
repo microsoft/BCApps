@@ -54,9 +54,6 @@ codeunit 99000867 "Mfg. Order Planning Mgt."
         RequisitionLine."Original Item No." := TempReqLine2."No.";
         RequisitionLine."Original Variant Code" := TempReqLine2."Variant Code";
         OnBeforeReqLineModify(RequisitionLine, TempReqLine2, ProdOrderComp);
-#if not CLEAN27
-        OrderPlanningMgt.RunOnBeforeReqLineModify(RequisitionLine, TempReqLine2, ProdOrderComp);
-#endif
         RequisitionLine.Modify();
         PlanningLineMgt.Calculate(RequisitionLine, 1, true, true, 0);
     end;
