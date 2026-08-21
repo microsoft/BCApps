@@ -36,11 +36,11 @@ codeunit 5378 "Page Inspection VS Code Helper"
     end;
 
     [Scope('OnPrem')]
-    procedure FindPublishedApplication(var NAVAppInstalledApp: Record "NAV App Installed App"; var PublishedApplication: Record "Published Application"): Boolean
+    procedure FindPublishedApplication(var InstalledApp: Record "NAV App Installed App"; var PublishedApplication: Record "Published Application"): Boolean
     begin
         if PublishedApplication.ReadPermission() then begin
             PublishedApplication.Reset();
-            PublishedApplication.SetRange("Package ID", NAVAppInstalledApp."Package ID");
+            PublishedApplication.SetRange("Package ID", InstalledApp."Package ID");
             exit(PublishedApplication.FindFirst());
         end;
 
@@ -48,7 +48,7 @@ codeunit 5378 "Page Inspection VS Code Helper"
     end;
 
     [Scope('OnPrem')]
-    procedure FilterForExtAffectingPage(PageId: Integer; TableId: Integer; var NAVAppInstalledApp: Record "NAV App Installed App")
+    procedure FilterForExtAffectingPage(PageId: Integer; TableId: Integer; var InstalledApp: Record "NAV App Installed App")
     var
         AllObjWithCaption: Record AllObjWithCaption;
         TempGuid: Guid;
@@ -94,14 +94,14 @@ codeunit 5378 "Page Inspection VS Code Helper"
 
         end;
 
-        NAVAppInstalledApp.Reset();
+        InstalledApp.Reset();
         if FilterConditions <> '' then begin
             FilterConditions := DelChr(FilterConditions, '>', '|');
-            NAVAppInstalledApp.SetFilter(NAVAppInstalledApp."Package ID", FilterConditions);
+            InstalledApp.SetFilter(InstalledApp."Package ID", FilterConditions);
         end else begin
             TempGuid := CreateGuid();
             Clear(TempGuid);
-            NAVAppInstalledApp.SetFilter(NAVAppInstalledApp."Package ID", '%1', TempGuid);
+            InstalledApp.SetFilter(InstalledApp."Package ID", '%1', TempGuid);
         end;
     end;
 }
