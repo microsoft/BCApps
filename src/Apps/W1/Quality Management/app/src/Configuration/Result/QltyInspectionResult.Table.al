@@ -242,6 +242,9 @@ table 20411 "Qlty. Inspection Result"
         UpdateExistingConditions();
     end;
 
+    /// <summary>
+    /// Infers an uncategorized result category from recognized result codes.
+    /// </summary>
     internal procedure AutoSetResultCategoryFromName()
     begin
         if Rec."Result Category" <> Rec."Result Category"::Uncategorized then
@@ -297,6 +300,9 @@ table 20411 "Qlty. Inspection Result"
         QltyIResultConditConf.DeleteAll();
     end;
 
+    /// <summary>
+    /// Propagates the result evaluation sequence and visibility to existing condition configurations.
+    /// </summary>
     local procedure UpdateExistingConditions()
     var
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
@@ -324,7 +330,7 @@ table 20411 "Qlty. Inspection Result"
     /// If there is an override style then it will be used.
     /// If there is no override style then it will make an assumption based on the category.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The override style, inferred category style, or the default no-style value.</returns>
     procedure GetResultStyle(): Text
     begin
         if Rec."Override Style" <> '' then

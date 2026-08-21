@@ -24,6 +24,12 @@ codeunit 20450 "Qlty. Disp. Internal Move" implements "Qlty. Disposition"
         DocumentTypeInternalMovementLbl: Label 'Internal Movement';
         DocumentTypeWarehouseInventoryMovementLbl: Label 'Inventory Movement';
 
+    /// <summary>
+    /// Creates internal movement lines and optionally converts them to an inventory movement.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the inventory to move.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The disposition instructions containing source bins, destination bin, quantities, and posting behavior.</param>
+    /// <returns>True if at least one internal movement line was created; otherwise, false.</returns>
     internal procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
@@ -71,6 +77,11 @@ codeunit 20450 "Qlty. Disp. Internal Move" implements "Qlty. Disposition"
             QltyNotificationMgmt.NotifyDocumentCreationFailed(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, DocumentTypeInternalMovementLbl);
     end;
 
+    /// <summary>
+    /// Converts an internal movement into an inventory movement.
+    /// </summary>
+    /// <param name="InternalMovementHeader">The internal movement to convert.</param>
+    /// <param name="CreatedWarehouseActivityHeader">The created inventory movement header.</param>
     local procedure CreateInventoryMovementFromInternalMovement(InternalMovementHeader: Record "Internal Movement Header"; var CreatedWarehouseActivityHeader: Record "Warehouse Activity Header")
     var
         TempDummyWhseWarehouseRequest: Record "Warehouse Request" temporary;
@@ -82,6 +93,12 @@ codeunit 20450 "Qlty. Disp. Internal Move" implements "Qlty. Disposition"
         InvtCreateInventoryPickMovement.GetWhseActivHeader(CreatedWarehouseActivityHeader);
     end;
 
+    /// <summary>
+    /// Creates an internal movement header for a location and destination bin.
+    /// </summary>
+    /// <param name="InternalMovementHeader">The created internal movement header.</param>
+    /// <param name="FromLocationCode">The source location code.</param>
+    /// <param name="ToBinCode">The destination bin code.</param>
     local procedure CreateInternalMovementHeader(var InternalMovementHeader: Record "Internal Movement Header"; FromLocationCode: Code[10]; ToBinCode: Code[20])
     begin
         Clear(InternalMovementHeader);
@@ -91,6 +108,15 @@ codeunit 20450 "Qlty. Disp. Internal Move" implements "Qlty. Disposition"
         InternalMovementHeader.Insert(true)
     end;
 
+    /// <summary>
+    /// Creates an internal movement line and applies inspection item tracking.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the item and tracking values.</param>
+    /// <param name="InternalMovementHeader">The internal movement header for the new line.</param>
+    /// <param name="PrevInternalMovementLine">The previous line used to assign the next line number; updated to the created line.</param>
+    /// <param name="FromBinCode">The source bin code.</param>
+    /// <param name="Quantity">The base quantity to move.</param>
+    /// <param name="MovementLineCreated">Set to true after the movement line is created.</param>
     local procedure CreateInternalMovementLine(QltyInspectionHeader: Record "Qlty. Inspection Header"; InternalMovementHeader: Record "Internal Movement Header"; var PrevInternalMovementLine: Record "Internal Movement Line"; FromBinCode: Code[20]; Quantity: Decimal; var MovementLineCreated: Boolean)
     var
         InternalMovementLine: Record "Internal Movement Line";
@@ -130,29 +156,29 @@ codeunit 20450 "Qlty. Disp. Internal Move" implements "Qlty. Disposition"
     end;
 
     /// <summary>
-    /// Provides an opportunity to alter the internal movement tracking lines that were made with MoveInventory
+    /// Occurs before item tracking lines are assigned to an internal movement line.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="InternalMovementHeader"></param>
-    /// <param name="PrevInternalMovementLine"></param>
-    /// <param name="InternalMovementLine"></param>
-    /// <param name="FromBinCode"></param>
-    /// <param name="Quantity"></param>
-    /// <param name="TempWarehouseEntry"></param>
-    /// <param name="IsHandled"></param>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the item and tracking values.</param>
+    /// <param name="InternalMovementHeader">The internal movement header.</param>
+    /// <param name="PrevInternalMovementLine">The previous internal movement line.</param>
+    /// <param name="InternalMovementLine">The new internal movement line.</param>
+    /// <param name="FromBinCode">The source bin code.</param>
+    /// <param name="Quantity">The quantity used for the tracking lines.</param>
+    /// <param name="TempWarehouseEntry">The temporary warehouse entry containing tracking values.</param>
+    /// <param name="IsHandled">Set to true to skip the default tracking-line assignment.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetInternalMovementTrackingLines(QltyInspectionHeader: Record "Qlty. Inspection Header"; InternalMovementHeader: Record "Internal Movement Header"; var PrevInternalMovementLine: Record "Internal Movement Line"; var InternalMovementLine: Record "Internal Movement Line"; FromBinCode: Code[20]; var Quantity: Decimal; var TempWarehouseEntry: Record "Warehouse Entry" temporary; var IsHandled: Boolean)
     begin
     end;
 
     /// <summary>
-    /// Provides an opportunity to alter the internal movement line that was made with MoveInventory
+    /// Occurs after an internal movement line and any tracking lines are created.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="InternalMovementHeader"></param>
-    /// <param name="InternalMovementLine"></param>
-    /// <param name="FromBinCode"></param>
-    /// <param name="Quantity"></param>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the moved inventory.</param>
+    /// <param name="InternalMovementHeader">The internal movement header.</param>
+    /// <param name="InternalMovementLine">The created internal movement line.</param>
+    /// <param name="FromBinCode">The source bin code.</param>
+    /// <param name="Quantity">The moved quantity.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateInternalMovementLine(QltyInspectionHeader: Record "Qlty. Inspection Header"; InternalMovementHeader: Record "Internal Movement Header"; var InternalMovementLine: Record "Internal Movement Line"; FromBinCode: Code[20]; var Quantity: Decimal)
     begin
