@@ -135,7 +135,7 @@ codeunit 10991 "EDoc. Helpers"
         FRCIIXMLBuilder: Codeunit "CII XML Builder";
         CustomerNoFieldRef: FieldRef;
         CustomerNo: Code[20];
-        BuyerElectronicAddress: Text[250];
+        BuyerElectronicAddress: Text;
     begin
         if not FRCIIXMLBuilder.TryGetCustomerNoFieldRef(SourceDocumentHeader, CustomerNoFieldRef) then
             exit;
