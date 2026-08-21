@@ -102,7 +102,11 @@ codeunit 139988 "Subc. Setup Library"
                 GenProdPostingGroup1.Modify(true);
             until GenProdPostingGroup1.Next() = 0;
     end;
-
+    /// <summary>
+    /// Configures Manufacturing Setup for the scenario where no routing, BOM, or production components are present.
+    /// </summary>
+    /// <param name="ShowRtngBOMSelect">The display setting for routing and BOM selection.</param>
+    /// <param name="ShowProdRtngCompSelect">The display setting for production component selection.</param>
     procedure ConfigureSubManagementForNothingPresentScenario(ShowRtngBOMSelect: Enum "Prod. Definition Display"; ShowProdRtngCompSelect: Enum "Prod. Definition Display")
     var
         ManufacturingSetup: Record "Manufacturing Setup";
@@ -115,7 +119,11 @@ codeunit 139988 "Subc. Setup Library"
 
         ManufacturingSetup.Modify();
     end;
-
+    /// <summary>
+    /// Configures Manufacturing Setup for the scenario where routing, BOM, or production components are partially present.
+    /// </summary>
+    /// <param name="ShowRtngBOMSelect">The display setting for routing and BOM selection.</param>
+    /// <param name="ShowProdRtngCompSelect">The display setting for production component selection.</param>
     procedure ConfigureSubManagementForPartiallyPresentScenario(ShowRtngBOMSelect: Enum "Prod. Definition Display"; ShowProdRtngCompSelect: Enum "Prod. Definition Display")
     var
         ManufacturingSetup: Record "Manufacturing Setup";
@@ -128,7 +136,11 @@ codeunit 139988 "Subc. Setup Library"
 
         ManufacturingSetup.Modify();
     end;
-
+    /// <summary>
+    /// Configures Manufacturing Setup for the scenario where both routing, BOM, and production components are present.
+    /// </summary>
+    /// <param name="ShowRtngBOMSelect">The display setting for routing and BOM selection.</param>
+    /// <param name="ShowProdRtngCompSelect">The display setting for production component selection.</param>
     procedure ConfigureSubManagementForBothPresentScenario(ShowRtngBOMSelect: Enum "Prod. Definition Display"; ShowProdRtngCompSelect: Enum "Prod. Definition Display")
     var
         ManufacturingSetup: Record "Manufacturing Setup";

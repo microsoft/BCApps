@@ -8,6 +8,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Setup;
+using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.Wizard;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
@@ -203,6 +204,42 @@ codeunit 139980 "Subc. Wiz. Change Test"
         // Verify production order and components
         ProdOrderCheckLib.VerifyProdOrder(PurchLine, ProdOrder);
         ProdOrderCheckLib.VerifyProdOrderComponentsMatchTempRecords(ProdOrder, TempProdOrderComponent);
+    end;
+
+    [Test]
+    [HandlerFunctions('HandleProductionDefinitionWizardChangeComponentSupplyMethod')]
+    procedure TestN4_ComponentSupplyMethodChangedToEmpty_RestoresOriginalLocation()
+    var
+        ProdOrder: Record "Production Order";
+        ProdOrderComponent: Record "Prod. Order Component";
+        PurchLine: Record "Purchase Line";
+        ItemNo: Code[20];
+        RoutingNo: Code[20];
+    begin
+        Initialize();
+
+        RoutingNo := SubCreateProdOrdWizLibrary.CreateRoutingWithTwoLines();
+        ItemNo := SubCreateProdOrdWizLibrary.CreateItemWithoutBOMAndRouting('', RoutingNo);
+        SubSetupLibrary.ConfigureSubManagementForPartiallyPresentScenario("Prod. Definition Display"::Show, "Prod. Definition Display"::Edit);
+        SubCreateProdOrdWizLibrary.CreatePurchaseLineWithSubcontractingVendor(PurchLine, ItemNo);
+
+        WizardWasOpened := false;
+        WizardFinishedSuccessfully := false;
+        EnqueueComponentSupplyMethodChange();
+        Commit();
+        PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
+
+        Assert.IsTrue(WizardWasOpened, 'Wizard should have opened');
+        Assert.IsTrue(WizardFinishedSuccessfully, 'Wizard should have finished successfully');
+
+        ProdOrderCheckLib.VerifyProdOrder(PurchLine, ProdOrder);
+        ProdOrderComponent.SetRange(Status, ProdOrder.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProdOrder."No.");
+        Assert.IsTrue(ProdOrderComponent.FindFirst(), 'Production order component should exist');
+        Assert.AreEqual("Component Supply Method"::Empty, ProdOrderComponent."Component Supply Method", 'Component supply method should be Empty');
+        Assert.AreEqual(PurchLine."Location Code", ProdOrderComponent."Location Code", 'Component should be restored to the original location');
+        Assert.AreEqual(PurchLine."Location Code", ProdOrderComponent."Subc. Original Location Code", 'Original component location should be retained');
     end;
 
     [Test]
@@ -512,6 +549,31 @@ codeunit 139980 "Subc. Wiz. Change Test"
     end;
 
     [ModalPageHandler]
+    procedure HandleProductionDefinitionWizardChangeComponentSupplyMethod(var ProductionDefinitionWizard: TestPage "Production Definition Wizard")
+    var
+        Step: Option Intro,BOM,Routing,Components,ProdRouting;
+    begin
+        WizardWasOpened := true;
+
+        Step := Step::Intro;
+        while ProductionDefinitionWizard.ActionNext.Enabled() do begin
+            VerifyExpectedInteraction('Next');
+            ProductionDefinitionWizard.ActionNext.Invoke();
+            Step := Step + 1;
+            if Step = Step::Components then begin
+                Assert.IsTrue(ProductionDefinitionWizard.ComponentsPart.Editable(), 'Components part should be editable');
+                VerifyExpectedInteraction('First');
+                ProductionDefinitionWizard.ComponentsPart.First();
+                ProductionDefinitionWizard.ComponentsPart.SubcComponentSupplyMethod.SetValue("Component Supply Method"::Empty);
+            end;
+        end;
+
+        VerifyExpectedInteraction('Finish');
+        ProductionDefinitionWizard.ActionFinish.Invoke();
+        WizardFinishedSuccessfully := true;
+    end;
+
+    [ModalPageHandler]
     procedure HandleProductionDefinitionWizardAddComponent(var ProductionDefinitionWizard: TestPage "Production Definition Wizard")
     var
         Step: Option Intro,BOM,Routing,Components,ProdRouting;
@@ -795,6 +857,14 @@ codeunit 139980 "Subc. Wiz. Change Test"
         EnqueueNextActions(3);
         LibraryVariableStorage.Enqueue('First');
         LibraryVariableStorage.Enqueue(Quantity);
+        LibraryVariableStorage.Enqueue('Next');
+        LibraryVariableStorage.Enqueue('Finish');
+    end;
+
+    local procedure EnqueueComponentSupplyMethodChange()
+    begin
+        EnqueueNextActions(3);
+        LibraryVariableStorage.Enqueue('First');
         LibraryVariableStorage.Enqueue('Next');
         LibraryVariableStorage.Enqueue('Finish');
     end;

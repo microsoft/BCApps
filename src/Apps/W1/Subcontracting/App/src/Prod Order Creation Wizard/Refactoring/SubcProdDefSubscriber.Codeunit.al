@@ -329,7 +329,7 @@ codeunit 20580 "Subc. Prod. Def. Subscriber"
 
     local procedure FindRoutingLinesForProdOrderLine(var ProdOrderRtngLine: Record "Prod. Order Routing Line"; var ProdOrderLine: Record "Prod. Order Line"): Boolean
     begin
-        ProdOrderRtngLine.SetLoadFields("Work Center No.", "Operation No.", Description, "Routing No.", "Routing Reference No.");
+        ProdOrderRtngLine.SetLoadFields("Work Center No.", "Operation No.", Description, "Routing No.", "Routing Reference No.", "Ending Date");
         ProdOrderRtngLine.SetRange(Status, ProdOrderLine.Status);
         ProdOrderRtngLine.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
         ProdOrderRtngLine.SetRange("Routing No.", ProdOrderLine."Routing No.");

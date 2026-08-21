@@ -30,7 +30,7 @@ pageextension 20564 SubcTempProdOrderCompExt extends "Temp Prod. Order Comp. Lis
                         Rec."Routing Link Code" := ManufacturingSetup."Subc. Rtng. Link Purch Prov";
                     end;
 
-                    if Rec."Component Supply Method" = Rec."Component Supply Method"::"Transfer to Vendor" then
+                    if Rec."Component Supply Method" in [Rec."Component Supply Method"::"Transfer to Vendor", Rec."Component Supply Method"::Empty] then
                         Rec.Validate("Location Code", Rec."Subc. Original Location Code")
                     else
                         OnValidateOnAfterSubcontractingTypeChangedToNonTransfer(Rec);

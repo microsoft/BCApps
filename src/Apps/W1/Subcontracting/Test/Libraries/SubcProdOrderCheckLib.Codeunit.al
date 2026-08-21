@@ -45,6 +45,11 @@ codeunit 139987 "Subc. ProdOrderCheckLib"
         WorkCenterGroupCodeMismatchOnOperationLbl: Label 'Work Center Group Code mismatch on Operation %1. Expected: %2, Actual: %3', Locked = true;
         WorkCenterNoMismatchOnOperationLbl: Label 'Work Center No. mismatch on Operation %1. Expected: %2, Actual: %3', Locked = true;
 
+    /// <summary>
+    /// Adds a temporary production order component using the default component settings from Manufacturing Setup.
+    /// </summary>
+    /// <param name="TempProdOrderComponent">The temporary production order component record to populate.</param>
+    /// <param name="PurchLine">The purchase line used to determine the subcontracting vendor location.</param>
     procedure CreateTempProdOrderComponentFromSetup(var TempProdOrderComponent: Record "Prod. Order Component" temporary; PurchLine: Record "Purchase Line")
     var
         TempProdOrderComponent2: Record "Prod. Order Component" temporary;
