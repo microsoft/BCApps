@@ -20,4 +20,58 @@ pageextension 10974 "E-Reporting E-Documents" extends "E-Documents"
             }
         }
     }
+
+    actions
+    {
+        addlast(Processing)
+        {
+            action(ViewFREInvoiceLifecycle)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'French E-Invoice Lifecycle';
+                Image = History;
+                ToolTip = 'View the French lifecycle statuses and payment occurrences associated with this E-Document.';
+                RunObject = page "FR E-Invoice Messages";
+                RunPageLink = "E-Document Entry No." = field("Entry No");
+            }
+            action(RefuseFREInvoice)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Refuse E-Invoice';
+                Image = Reject;
+                ToolTip = 'Refuse the incoming French electronic purchase invoice and send the response to the supplier.';
+                Visible = (Rec.Direction = Rec.Direction::Incoming) and (Rec."Document Type" = Rec."Document Type"::"Purchase Invoice");
+
+                trigger OnAction()
+                var
+                    FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
+                    FREInvoiceRefusalDialog: Page "FR E-Invoice Refusal Dialog";
+                    ReasonCode: Code[20];
+                    ReasonDescription: Text[500];
+                begin
+                    if FREInvoiceRefusalDialog.RunModal() <> Action::OK then
+                        exit;
+                    FREInvoiceRefusalDialog.GetReason(ReasonCode, ReasonDescription);
+                    FREInvoiceMessageMgt.RefuseInvoice(Rec, ReasonCode, ReasonDescription);
+                    CurrPage.Update(false);
+                end;
+            }
+            action(AcceptFREInvoice)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Accept E-Invoice';
+                Image = Approve;
+                ToolTip = 'Accept the incoming French electronic purchase invoice and send the response to the supplier.';
+                Visible = (Rec.Direction = Rec.Direction::Incoming) and (Rec."Document Type" = Rec."Document Type"::"Purchase Invoice");
+
+                trigger OnAction()
+                var
+                    FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
+                begin
+                    FREInvoiceMessageMgt.AcceptInvoice(Rec);
+                    CurrPage.Update(false);
+                end;
+            }
+        }
+    }
 }

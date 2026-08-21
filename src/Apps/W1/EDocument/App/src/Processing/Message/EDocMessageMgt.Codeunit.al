@@ -5,6 +5,7 @@
 namespace Microsoft.eServices.EDocument.Processing.Message;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Integration.Interfaces;
 using System.Utilities;
 
 /// <summary>
@@ -79,6 +80,232 @@ codeunit 6433 "E-Doc. Message Mgt."
         TempBlob := EDocDataStorage.GetTempBlob();
     end;
 
+    procedure GetMessageEDocument(MessageEntryNo: Integer; var EDocument: Record "E-Document")
+    var
+        EDocMessage: Record "E-Document Message";
+    begin
+        EDocMessage.Get(MessageEntryNo);
+        EDocument.Get(EDocMessage."E-Document Entry No.");
+    end;
+
+    procedure GetMessageDirection(MessageEntryNo: Integer): Enum "E-Document Direction"
+    var
+        EDocMessage: Record "E-Document Message";
+    begin
+        EDocMessage.Get(MessageEntryNo);
+        exit(EDocMessage.Direction);
+    end;
+
+    procedure GetMessageStatus(MessageEntryNo: Integer): Enum "E-Doc. Message Status"
+    var
+        EDocMessage: Record "E-Document Message";
+    begin
+        EDocMessage.Get(MessageEntryNo);
+        exit(EDocMessage.Status);
+    end;
+
+    procedure GetMessageResponseType(MessageEntryNo: Integer): Enum "E-Doc. Response Type"
+    var
+        EDocMessage: Record "E-Document Message";
+    begin
+        EDocMessage.Get(MessageEntryNo);
+        exit(EDocMessage."Response Type");
+    end;
+
+    procedure SendMessage(MessageEntryNo: Integer)
+    var
+        EDocument: Record "E-Document";
+        EDocumentService: Record "E-Document Service";
+        EDocMessage: Record "E-Document Message";
+        EDocMessageContext: Codeunit "E-Doc. Message Context";
+        EDocumentBackgroundJobs: Codeunit "E-Document Background Jobs";
+        EDocumentLog: Codeunit "E-Document Log";
+        TempBlob: Codeunit "Temp Blob";
+        MessageSender: Interface IMessageSender;
+        MessageSendingErrorInfo: ErrorInfo;
+    begin
+        EDocMessage.Get(MessageEntryNo);
+        EDocMessage.TestField(Direction, EDocMessage.Direction::Outgoing);
+        if not (EDocMessage.Status in [EDocMessage.Status::Created, EDocMessage.Status::Queued, EDocMessage.Status::Error]) then
+            EDocMessage.FieldError(Status);
+        EDocMessage.TestField(Service);
+
+        EDocument.Get(EDocMessage."E-Document Entry No.");
+        EDocumentService.Get(EDocMessage.Service);
+        GetMessageBlob(MessageEntryNo, TempBlob);
+        if not TempBlob.HasValue() then
+            Error(MessagePayloadErr, MessageEntryNo);
+
+        EDocMessageContext.Initialize(EDocMessage, TempBlob);
+        MessageSender := EDocumentService."Service Integration V2";
+        MessageSender.SendMessage(EDocument, EDocumentService, EDocMessageContext);
+        if not (EDocMessageContext.Status().GetStatus() in ["E-Document Service Status"::Sent, "E-Document Service Status"::"Pending Response"]) then begin
+            MessageSendingErrorInfo.ErrorType := ErrorType::Internal;
+            MessageSendingErrorInfo.Message := StrSubstNo(MessageSendingErr, MessageEntryNo);
+            MessageSendingErrorInfo.DetailedMessage := StrSubstNo(MessageSendingDetailedErr, EDocMessageContext.Status().GetStatus());
+            Error(MessageSendingErrorInfo);
+        end;
+
+        EDocumentLog.InsertIntegrationLog(
+            EDocument, EDocumentService, EDocMessageContext.Http().GetHttpRequestMessage(), EDocMessageContext.Http().GetHttpResponseMessage());
+        if EDocMessageContext.Status().GetStatus() = "E-Document Service Status"::"Pending Response" then
+            EDocMessage.Status := EDocMessage.Status::"Pending Response"
+        else
+            EDocMessage.Status := EDocMessage.Status::Sent;
+        EDocMessage."Last Attempt At" := CurrentDateTime();
+        Clear(EDocMessage."Last Error");
+        EDocMessage.Modify();
+        if EDocMessage.Status = EDocMessage.Status::"Pending Response" then
+            EDocumentBackgroundJobs.ScheduleMessageResponse(EDocMessage);
+    end;
+
+    procedure PollMessageResponse(MessageEntryNo: Integer)
+    var
+        EDocument: Record "E-Document";
+        EDocumentService: Record "E-Document Service";
+        EDocMessage: Record "E-Document Message";
+        EDocMessageContext: Codeunit "E-Doc. Message Context";
+        EDocumentBackgroundJobs: Codeunit "E-Document Background Jobs";
+        EDocumentLog: Codeunit "E-Document Log";
+        TempBlob: Codeunit "Temp Blob";
+        MessageResponseHandler: Interface IMessageResponseHandler;
+        ResponseReceived: Boolean;
+    begin
+        EDocMessage.Get(MessageEntryNo);
+        EDocMessage.TestField(Direction, EDocMessage.Direction::Outgoing);
+        EDocMessage.TestField(Status, EDocMessage.Status::"Pending Response");
+        EDocMessage.TestField(Service);
+        EDocument.Get(EDocMessage."E-Document Entry No.");
+        EDocumentService.Get(EDocMessage.Service);
+        GetMessageBlob(MessageEntryNo, TempBlob);
+        EDocMessageContext.Initialize(EDocMessage, TempBlob);
+        MessageResponseHandler := EDocumentService."Service Integration V2";
+        ResponseReceived := MessageResponseHandler.GetResponse(EDocument, EDocumentService, EDocMessageContext);
+
+        if ResponseReceived then begin
+            if EDocMessageContext.Status().GetStatus() <> "E-Document Service Status"::Sent then
+                Error(MessageResponseStatusErr, MessageEntryNo, EDocMessageContext.Status().GetStatus());
+            EDocMessage.Status := EDocMessage.Status::Sent;
+        end else begin
+            if EDocMessageContext.Status().GetStatus() <> "E-Document Service Status"::"Pending Response" then
+                Error(MessageResponseStatusErr, MessageEntryNo, EDocMessageContext.Status().GetStatus());
+            EDocMessage.Status := EDocMessage.Status::"Pending Response";
+        end;
+
+        EDocumentLog.InsertIntegrationLog(
+            EDocument, EDocumentService, EDocMessageContext.Http().GetHttpRequestMessage(), EDocMessageContext.Http().GetHttpResponseMessage());
+        EDocMessage."Last Attempt At" := CurrentDateTime();
+        Clear(EDocMessage."Last Error");
+        EDocMessage.Modify();
+        if not ResponseReceived then
+            EDocumentBackgroundJobs.ScheduleMessageResponse(EDocMessage);
+    end;
+
+    procedure QueueMessage(MessageEntryNo: Integer)
+    var
+        EDocMessage: Record "E-Document Message";
+        EDocumentBackgroundJobs: Codeunit "E-Document Background Jobs";
+    begin
+        EDocMessage.Get(MessageEntryNo);
+        EDocMessage.TestField(Direction, EDocMessage.Direction::Outgoing);
+        EDocMessage.TestField(Status, EDocMessage.Status::Created);
+        EDocMessage.TestField(Service);
+
+        EDocMessage.Status := EDocMessage.Status::Queued;
+        EDocMessage.Modify();
+        Commit();
+        EDocumentBackgroundJobs.ScheduleMessageSend(EDocMessage);
+    end;
+
+    procedure RetryMessage(MessageEntryNo: Integer)
+    var
+        EDocMessage: Record "E-Document Message";
+        EDocumentBackgroundJobs: Codeunit "E-Document Background Jobs";
+    begin
+        EDocMessage.Get(MessageEntryNo);
+        EDocMessage.TestField(Direction, EDocMessage.Direction::Outgoing);
+        if EDocMessage.Status <> EDocMessage.Status::"Response Error" then
+            EDocMessage.TestField(Status, EDocMessage.Status::Error);
+        EDocMessage.TestField(Service);
+
+        if EDocMessage.Status = EDocMessage.Status::"Response Error" then
+            EDocMessage.Status := EDocMessage.Status::"Pending Response"
+        else
+            EDocMessage.Status := EDocMessage.Status::Queued;
+        EDocMessage.Modify();
+        Commit();
+        if EDocMessage.Status = EDocMessage.Status::"Pending Response" then
+            EDocumentBackgroundJobs.ScheduleMessageResponse(EDocMessage)
+        else
+            EDocumentBackgroundJobs.ScheduleMessageSend(EDocMessage);
+    end;
+
+    procedure RegisterExternalDocumentReference(EDocument: Record "E-Document"; ServiceCode: Code[20]; ExternalDocumentID: Text[250])
+    var
+        EDocExternalReference: Record "E-Doc. External Reference";
+        EDocumentService: Record "E-Document Service";
+    begin
+        EDocument.Get(EDocument."Entry No");
+        EDocument.TestField(Service, ServiceCode);
+        EDocumentService.Get(ServiceCode);
+        if ExternalDocumentID = '' then
+            Error(ExternalDocumentIDRequiredErr);
+
+        EDocExternalReference.SetRange(Service, ServiceCode);
+        EDocExternalReference.SetRange("External Document ID", ExternalDocumentID);
+        if EDocExternalReference.FindFirst() then begin
+            if EDocExternalReference."E-Document Entry No." = EDocument."Entry No" then
+                exit;
+            Error(ExternalDocumentIDConflictErr, ExternalDocumentID, ServiceCode);
+        end;
+
+        EDocExternalReference.Init();
+        EDocExternalReference.Service := ServiceCode;
+        EDocExternalReference."External Document ID" := ExternalDocumentID;
+        EDocExternalReference."E-Document Entry No." := EDocument."Entry No";
+        EDocExternalReference."Created At" := CurrentDateTime();
+        EDocExternalReference.Insert();
+    end;
+
+    procedure CreateIncomingMessage(ServiceCode: Code[20]; ExternalDocumentID: Text[250]; ExternalMessageID: Text[250]; MessageType: Enum "E-Document Message Type"; ResponseType: Enum "E-Doc. Response Type"; ReceivedAt: DateTime; var TempBlob: Codeunit "Temp Blob"): Integer
+    var
+        EDocument: Record "E-Document";
+        EDocExternalReference: Record "E-Doc. External Reference";
+        EDocMessage: Record "E-Document Message";
+        MessageEntryNo: Integer;
+    begin
+        if ExternalDocumentID = '' then
+            Error(ExternalDocumentIDRequiredErr);
+        if ExternalMessageID = '' then
+            Error(ExternalMessageIDRequiredErr);
+        if not TempBlob.HasValue() then
+            Error(IncomingMessagePayloadRequiredErr);
+
+        EDocMessage.LockTable();
+        EDocMessage.SetRange(Service, ServiceCode);
+        EDocMessage.SetRange("External Message ID", ExternalMessageID);
+        if EDocMessage.FindFirst() then
+            exit(EDocMessage."Entry No.");
+
+        EDocExternalReference.SetRange(Service, ServiceCode);
+        EDocExternalReference.SetRange("External Document ID", ExternalDocumentID);
+        if not EDocExternalReference.FindFirst() then
+            Error(ExternalDocumentNotFoundErr, ExternalDocumentID, ServiceCode);
+
+        EDocument.Get(EDocExternalReference."E-Document Entry No.");
+        MessageEntryNo := CreateMessage(EDocument, MessageType, "E-Document Direction"::Incoming, ResponseType, TempBlob);
+        EDocMessage.Get(MessageEntryNo);
+        EDocMessage.Status := EDocMessage.Status::Received;
+        EDocMessage."External Message ID" := ExternalMessageID;
+        EDocMessage."External Document ID" := ExternalDocumentID;
+        if ReceivedAt = 0DT then
+            EDocMessage."Received At" := CurrentDateTime()
+        else
+            EDocMessage."Received At" := ReceivedAt;
+        EDocMessage.Modify();
+        exit(MessageEntryNo);
+    end;
+
     local procedure InsertDataStorage(TempBlob: Codeunit "Temp Blob"): Integer
     var
         EDocDataStorage: Record "E-Doc. Data Storage";
@@ -96,4 +323,15 @@ codeunit 6433 "E-Doc. Message Mgt."
         EDocRecRef.Modify();
         exit(EDocDataStorage."Entry No.");
     end;
+
+    var
+        MessagePayloadErr: Label 'E-Document message %1 does not contain a payload.', Comment = '%1 = E-Document message entry number';
+        MessageSendingErr: Label 'E-Document message %1 could not be sent.', Comment = '%1 = E-Document message entry number';
+        MessageSendingDetailedErr: Label 'The E-Document message integration returned status %1.', Comment = '%1 = integration status';
+        MessageResponseStatusErr: Label 'The connector returned invalid response status %2 for E-Document message %1.', Comment = '%1 = message entry number, %2 = connector status';
+        ExternalDocumentIDRequiredErr: Label 'An external document ID is required.';
+        ExternalMessageIDRequiredErr: Label 'An external message ID is required.';
+        IncomingMessagePayloadRequiredErr: Label 'An incoming E-Document message payload is required.';
+        ExternalDocumentIDConflictErr: Label 'External document ID %1 is already associated with another E-Document for service %2.', Comment = '%1 = external document ID, %2 = service code';
+        ExternalDocumentNotFoundErr: Label 'External document ID %1 is not registered for E-Document service %2.', Comment = '%1 = external document ID, %2 = service code';
 }
