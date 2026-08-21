@@ -182,5 +182,6 @@ permissionset 6100 "E-Doc. Core - Objects"
         codeunit "Sent Document Approval" = X,
         codeunit "Sent Document Cancellation" = X,
         codeunit "E-Doc. Remittance Advice Mgt." = X,
-        codeunit "E-Doc. Remit. Advice Export" = X;
+        codeunit "E-Doc. Remit. Advice Export" = X,
+        codeunit "E-Doc. Message Response Job" = X;
 }
