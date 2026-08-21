@@ -142,6 +142,12 @@ page 9633 "Page Inspection Extensions"
         ExtPageLbl: Label 'Extends page';
         ExtTableLbl: Label 'Extends table';
 
+    procedure FilterForExtAffectingPage(PageId: Integer; TableId: Integer; FormId: Guid)
+    begin
+        if FormId <> Guid.Empty then; // Kept to not break existing code that calls this method with 3 parameters. The FormId parameter is not used in the current implementation.
+        FilterForExtAffectingPage(PageId, TableId);
+    end;
+
     procedure FilterForExtAffectingPage(PageId: Integer; TableId: Integer)
     var
         VSCodeRequestHelper: Codeunit "Page Inspection VS Code Helper";
