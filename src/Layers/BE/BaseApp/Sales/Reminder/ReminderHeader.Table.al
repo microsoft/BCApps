@@ -1722,6 +1722,7 @@ table 295 "Reminder Header"
     /// </summary>
     /// <param name="ReminderLine">The reminder line record with filters.</param>
     /// <param name="ReminderHeader">The reminder header record.</param>
+    [Obsolete('The legacy Reminder Text flow is no longer used. Use OnBeforeInsertEndTexts instead.', '29.0')]
     [IntegrationEvent(false, false)]
     internal procedure OnInsertEndTextsOnAfterReminderLineSetFilters(var ReminderLine: Record "Reminder Line"; ReminderHeader: Record "Reminder Header")
     begin
@@ -1870,6 +1871,7 @@ table 295 "Reminder Header"
     /// </summary>
     /// <param name="ReminderText">The reminder text record with filters.</param>
     /// <param name="ReminderHeader">The reminder header record.</param>
+    [Obsolete('The legacy Reminder Text flow is no longer used. Use OnBeforeInsertBeginTexts instead.', '29.0')]
     [IntegrationEvent(false, false)]
     internal procedure OnInsertBeginTextsOnAfterReminderTextSetFilters(var ReminderText: Record "Reminder Text"; ReminderHeader: Record "Reminder Header")
     begin
@@ -1880,6 +1882,7 @@ table 295 "Reminder Header"
     /// </summary>
     /// <param name="ReminderText">The reminder text record with filters.</param>
     /// <param name="ReminderHeader">The reminder header record.</param>
+    [Obsolete('The legacy Reminder Text flow is no longer used. Use OnBeforeInsertEndTexts instead.', '29.0')]
     [IntegrationEvent(false, false)]
     internal procedure OnInsertEndTextsOnAfterReminderTextSetFilters(var ReminderText: Record "Reminder Text"; ReminderHeader: Record "Reminder Header")
     begin

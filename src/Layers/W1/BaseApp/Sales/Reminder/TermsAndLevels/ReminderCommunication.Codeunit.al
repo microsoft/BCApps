@@ -393,7 +393,7 @@ codeunit 1890 "Reminder Communication"
                 if not MailManagement.IsHandlingGetEmailBody() then begin
                     SelectEmailBodyText(ReminderEmailText, IssuedReminderHeader, AmtDueTxt);
                     AmtDueTxt := StripHtmlTags(AmtDueTxt);
-                    SubstituteRelatedValues(AmtDueTxt, IssuedReminderHeader, IssuedReminderHeader.CalculateTotalIncludingVAT(), CopyStr(CompanyName, 1, 100));
+                    SubstituteRelatedValues(AmtDueTxt, IssuedReminderHeader, NNC_TotalInclVAT, CopyStr(CompanyName, 1, 100));
                 end;
         end else begin
             GreetingTxt := ReminderEmailText.GetDefaultGreetingLbl();
@@ -401,8 +401,8 @@ codeunit 1890 "Reminder Communication"
                 AmtDueTxt := StrSubstNo(ReminderEmailText.GetAmtDueLbl(), IssuedReminderHeader."Due Date");
             ClosingTxt := ReminderEmailText.GetDefaultClosingLbl();
         end;
-        SubstituteRelatedValues(GreetingTxt, IssuedReminderHeader, IssuedReminderHeader.CalculateTotalIncludingVAT(), CopyStr(CompanyName, 1, 100));
-        SubstituteRelatedValues(ClosingTxt, IssuedReminderHeader, IssuedReminderHeader.CalculateTotalIncludingVAT(), CopyStr(CompanyName, 1, 100));
+        SubstituteRelatedValues(GreetingTxt, IssuedReminderHeader, NNC_TotalInclVAT, CopyStr(CompanyName, 1, 100));
+        SubstituteRelatedValues(ClosingTxt, IssuedReminderHeader, NNC_TotalInclVAT, CopyStr(CompanyName, 1, 100));
     end;
 
     local procedure SelectEmailBodyText(var ReminderEmailText: Record "Reminder Email Text"; var IssuedReminderHeader: Record "Issued Reminder Header"; var BodyTxt: Text)
