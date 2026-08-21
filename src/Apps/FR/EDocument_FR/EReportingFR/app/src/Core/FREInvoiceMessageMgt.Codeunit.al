@@ -239,15 +239,23 @@ codeunit 10975 "FR E-Invoice Message Mgt."
     local procedure GetVATEntryGrossAmount(VATEntry: Record "VAT Entry"; CurrencyCode: Code[10]): Decimal
     var
         VATEntryCurrencyErrorInfo: ErrorInfo;
+        GrossAmount: Decimal;
     begin
         if VATEntry."Source Currency Code" = CurrencyCode then
-            exit(-(VATEntry."Source Currency VAT Base" + VATEntry."Source Currency VAT Amount"));
-        if VATEntry."Source Currency Code" = '' then
-            exit(-(VATEntry.Base + VATEntry.Amount));
+            GrossAmount := -(VATEntry."Source Currency VAT Base" + VATEntry."Source Currency VAT Amount")
+        else
+            if VATEntry."Source Currency Code" = '' then
+                GrossAmount := -(VATEntry.Base + VATEntry.Amount)
+            else begin
+                VATEntryCurrencyErrorInfo.ErrorType(ErrorType::Internal);
+                VATEntryCurrencyErrorInfo.Message(StrSubstNo(VATEntryCurrencyErr, VATEntry."Entry No.", CurrencyCode));
+                Error(VATEntryCurrencyErrorInfo);
+            end;
 
-        VATEntryCurrencyErrorInfo.ErrorType(ErrorType::Internal);
-        VATEntryCurrencyErrorInfo.Message(StrSubstNo(VATEntryCurrencyErr, VATEntry."Entry No.", CurrencyCode));
-        Error(VATEntryCurrencyErrorInfo);
+        if (GrossAmount = 0) and IsVATEntryReportable(VATEntry) then
+            GrossAmount := -(VATEntry."Unrealized Base" + VATEntry."Unrealized Amount");
+
+        exit(GrossAmount);
     end;
 
     local procedure IsVATEntryReportable(VATEntry: Record "VAT Entry"): Boolean
