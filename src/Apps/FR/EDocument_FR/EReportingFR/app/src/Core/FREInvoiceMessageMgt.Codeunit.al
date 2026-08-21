@@ -30,11 +30,6 @@ codeunit 10975 "FR E-Invoice Message Mgt."
     internal procedure RefuseInvoice(EDocument: Record "E-Document"; ReasonCode: Code[20]; ReasonDescription: Text[500])
     begin
         CheckBuyerResponseAllowed(EDocument);
-        if ReasonCode = '' then
-            Error(ReasonCodeRequiredErr);
-        if ReasonDescription = '' then
-            Error(ReasonDescriptionRequiredErr);
-
         CreateAndSendMessage(EDocument, "FR E-Invoice Message Type"::Refused, CreateGuid(), 0, '', Today(), 0, 0, ReasonCode, ReasonDescription);
     end;
 
@@ -385,8 +380,6 @@ codeunit 10975 "FR E-Invoice Message Mgt."
     end;
 
     var
-        ReasonCodeRequiredErr: Label 'A refusal reason code is required.';
-        ReasonDescriptionRequiredErr: Label 'A refusal reason description is required.';
         AlreadyRespondedErr: Label 'Invoice %1 already has a buyer response.', Comment = '%1 = invoice number';
         VATBreakdownErr: Label 'A reportable VAT breakdown could not be determined for posted sales invoice %1.', Comment = '%1 = posted sales invoice number';
         VATEntryCurrencyErr: Label 'VAT entry %1 does not contain amounts in lifecycle currency %2.', Comment = '%1 = VAT entry number, %2 = currency code';

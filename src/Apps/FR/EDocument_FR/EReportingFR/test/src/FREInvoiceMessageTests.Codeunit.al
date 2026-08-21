@@ -190,46 +190,25 @@ codeunit 148151 "FR E-Invoice Message Tests"
     end;
 
     [Test]
-    procedure RefusalRequiresReasonAndCannotBeRepeated()
-    var
-        EDocument: Record "E-Document";
-        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
-    begin
-        Initialize();
-        CreateIncomingEDocument(EDocument);
-
-        asserterror FREInvoiceMessageMgt.RefuseInvoice(EDocument, '', 'Not accepted.');
-        Assert.ExpectedError('A refusal reason code is required.');
-        Assert.ExpectedErrorCode('Dialog');
-        Clear(EDocument);
-        CreateIncomingEDocument(EDocument);
-        FREInvoiceMessageMgt.RefuseInvoice(EDocument, 'OTHER', 'Not accepted.');
-        SendFirstMessage(EDocument, "FR E-Invoice Message Type"::Refused);
-        asserterror FREInvoiceMessageMgt.RefuseInvoice(EDocument, 'OTHER', 'Again.');
-        Assert.ExpectedError('already has a buyer response');
-        Assert.ExpectedErrorCode('Dialog');
-        Assert.AreEqual(1, MessageSenderMock.GetSendCount(), 'A duplicate refusal must not be sent.');
-    end;
-
-    [Test]
-    procedure RefusalRequiresReasonDescription()
+    procedure RefusalWithoutReasonSendsStatusWithoutReasonElements()
     var
         EDocument: Record "E-Document";
         FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO] A buyer refusal requires a reason description
+        // [SCENARIO] A buyer can refuse an invoice without providing a reason
         Initialize();
 
         // [GIVEN] An incoming French purchase invoice
         CreateIncomingEDocument(EDocument);
 
-        // [WHEN] The invoice is refused without a reason description
-        asserterror FREInvoiceMessageMgt.RefuseInvoice(EDocument, 'OTHER', '');
+        // [WHEN] The invoice is refused without a reason code or description
+        FREInvoiceMessageMgt.RefuseInvoice(EDocument, '', '');
+        SendFirstMessage(EDocument, "FR E-Invoice Message Type"::Refused);
 
-        // [THEN] The refusal is rejected
-        Assert.ExpectedError('A refusal reason description is required.');
-        Assert.ExpectedErrorCode('Dialog');
+        // [THEN] The refusal status is sent without empty reason elements
+        AssertPayloadStatus(MessageSenderMock.GetLastPayload(), '210');
+        AssertPayloadHasNoReason(MessageSenderMock.GetLastPayload());
     end;
 
     [Test]
@@ -970,6 +949,17 @@ codeunit 148151 "FR E-Invoice Message Tests"
         Assert.IsTrue(XmlDocument.ReadFrom(Payload, XmlDoc), 'The payload must be valid XML.');
         Assert.IsTrue(XmlDoc.SelectSingleNode('//*[local-name()="ReasonCode"]', ReasonCodeNode), 'The payload must contain a reason code.');
         Assert.AreEqual(ExpectedReasonCode, ReasonCodeNode.AsXmlElement().InnerText(), 'The payload reason code is incorrect.');
+    end;
+
+    local procedure AssertPayloadHasNoReason(Payload: Text)
+    var
+        XmlDoc: XmlDocument;
+        ReasonNode: XmlNode;
+    begin
+        Assert.IsTrue(XmlDocument.ReadFrom(Payload, XmlDoc), 'The payload must be valid XML.');
+        Assert.IsFalse(XmlDoc.SelectSingleNode('//*[local-name()="SpecifiedDocumentStatus"]', ReasonNode), 'The payload must not contain a document status when no refusal reason is provided.');
+        Assert.IsFalse(XmlDoc.SelectSingleNode('//*[local-name()="ReasonCode"]', ReasonNode), 'The payload must not contain an empty reason code.');
+        Assert.IsFalse(XmlDoc.SelectSingleNode('//*[local-name()="Reason"]', ReasonNode), 'The payload must not contain an empty reason description.');
     end;
 
     local procedure AssertPayloadVATCharacteristic(Payload: Text; ExpectedAmount: Decimal; ExpectedVATRate: Decimal)
