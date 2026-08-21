@@ -6399,6 +6399,42 @@
           'Entries posted before the earliest line''s lookback window should be excluded.');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure CandidateLookbackExcludesVendorEntriesPostedBeforeWindow()
+    var
+        BankAccReconciliation: Record "Bank Acc. Reconciliation";
+        BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line";
+        Vendor: Record Vendor;
+        TempLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary;
+        MatchBankPayments: Codeunit "Match Bank Payments";
+        Amount: Decimal;
+        RecentEntryNo: Integer;
+        OldEntryNo: Integer;
+    begin
+        // [FEATURE] [Candidate Lookback]
+        // [SCENARIO] The lookback also limits vendor candidates: entries posted before the window are not loaded.
+        Initialize();
+
+        // [GIVEN] A vendor with one recent and one old open invoice
+        CreateVendor(Vendor);
+        Amount := LibraryRandom.RandDecInRange(1, 1000, 2);
+        RecentEntryNo := PostVendorInvoiceWithPostingDate(Vendor."No.", Amount, WorkDate());
+        OldEntryNo := PostVendorInvoiceWithPostingDate(Vendor."No.", Amount, CalcDate('<-400D>', WorkDate()));
+
+        // [GIVEN] A payment reconciliation line dated today and a 30 day lookback
+        CreateBankReconciliationAmountTolerance(BankAccReconciliation, 0);
+        CreateBankReconciliationLine(BankAccReconciliation, BankAccReconciliationLine, -Amount, '', '');
+        SetCandidateLookbackDays(30);
+
+        // [WHEN] The vendor candidate buffer is initialized
+        MatchBankPayments.InitializeVendorLedgerEntriesMatchingBuffer(BankAccReconciliationLine, TempLedgerEntryMatchingBuffer);
+
+        // [THEN] Only the entry posted within the lookback window is loaded
+        Assert.IsTrue(BufferHasEntry(TempLedgerEntryMatchingBuffer, RecentEntryNo), 'Vendor entry posted within the lookback window should be a candidate.');
+        Assert.IsFalse(BufferHasEntry(TempLedgerEntryMatchingBuffer, OldEntryNo), 'Vendor entry posted before the lookback window should be excluded.');
+    end;
+
     local procedure SetCandidateLookbackDays(Days: Integer)
     var
         BankPmtApplSettings: Record "Bank Pmt. Appl. Settings";
@@ -6428,6 +6464,28 @@
         CustLedgerEntry.SetRange("Document No.", DocumentNo);
         CustLedgerEntry.FindFirst();
         exit(CustLedgerEntry."Entry No.");
+    end;
+
+    local procedure PostVendorInvoiceWithPostingDate(VendorNo: Code[20]; Amount: Decimal; PostingDate: Date): Integer
+    var
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        DocumentNo: Code[20];
+    begin
+        CreateItem(Item, Amount);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VendorNo);
+        PurchaseHeader.Validate("Posting Date", PostingDate);
+        PurchaseHeader.Validate("Vendor Invoice No.", GenerateExtDocNo());
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
+        DocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        VendorLedgerEntry.SetRange("Vendor No.", VendorNo);
+        VendorLedgerEntry.SetRange("Document No.", DocumentNo);
+        VendorLedgerEntry.FindFirst();
+        exit(VendorLedgerEntry."Entry No.");
     end;
 
     local procedure BufferHasEntry(var TempLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary; EntryNo: Integer): Boolean
