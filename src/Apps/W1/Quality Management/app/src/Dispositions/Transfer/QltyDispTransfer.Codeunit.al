@@ -115,7 +115,8 @@ codeunit 20444 "Qlty. Disp. Transfer" implements "Qlty. Disposition"
         TransferHeader."Qlty. Inspection No." := QltyInspectionHeader."No.";
         TransferHeader."Qlty. Re-inspection No." := QltyInspectionHeader."Re-inspection No.";
         TransferHeader.Insert(true);
-        TransferHeader.Validate("Direct Transfer", DirectTransfer);
+        if DirectTransfer then
+            TransferHeader.Validate("Direct Transfer", true);
     end;
 
     /// <summary>
