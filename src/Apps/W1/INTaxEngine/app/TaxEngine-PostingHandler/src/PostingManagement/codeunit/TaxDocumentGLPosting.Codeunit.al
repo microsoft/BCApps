@@ -70,7 +70,8 @@ codeunit 20341 "Tax Document GL Posting"
                 ToTaxTransactionValue.Init();
                 ToTaxTransactionValue := FromTaxTransactionValue;
                 ToTaxTransactionValue."Tax Record ID" := ToRecID;
-                ToTaxTransactionValue.Insert(true);
+                ToTaxTransactionValue.ID := 0;
+                ToTaxTransactionValue.Insert();
             until FromTaxTransactionValue.Next() = 0;
     end;
 

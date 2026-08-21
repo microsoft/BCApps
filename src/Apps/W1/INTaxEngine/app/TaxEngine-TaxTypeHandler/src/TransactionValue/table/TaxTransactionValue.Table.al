@@ -7,7 +7,6 @@ namespace Microsoft.Finance.TaxEngine.TaxTypeHandler;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.TaxEngine.Core;
-using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Purchases.Archive;
 using Microsoft.Purchases.Document;
@@ -158,16 +157,6 @@ table 20261 "Tax Transaction Value"
         {
         }
     }
-
-    trigger OnInsert()
-    var
-        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
-    begin
-        if Rec.IsTemporary() then
-            exit;
-
-        Rec.ID := SequenceNoMgt.GetNextSeqNoBigInt(Database::"Tax Transaction Value");
-    end;
 
     procedure GetAttributeColumName(): Text
     var
