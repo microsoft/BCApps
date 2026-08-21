@@ -552,8 +552,8 @@ codeunit 1255 "Match Bank Payments"
 
     local procedure MapLedgerEntriesToStatementLines(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; Overwrite: Boolean; ApplyEntries: Boolean)
     var
-        Window: Dialog;
         BankAccReconciliationLine2: Record "Bank Acc. Reconciliation Line";
+        Window: Dialog;
         TotalNoOfLines: Integer;
         ProcessedLines: Integer;
         LineStartTime: DateTime;

@@ -495,7 +495,7 @@ table 1293 "Payment Application Proposal"
     begin
         // Reads the applied ledger entry only once to populate both the informational fields and the remaining amount.
         IsHandled := false;
-        OnBeforeUpdateRemainingAmount(Rec, BankAccount, IsHandled);
+        OnBeforeLoadLedgEntryInfoAndRemainingAmount(Rec, BankAccount, IsHandled);
         if IsHandled then begin
             GetLedgEntryInfo();
             exit;
@@ -1102,6 +1102,11 @@ table 1293 "Payment Application Proposal"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateRemainingAmount(var PaymentApplicationProposal: Record "Payment Application Proposal"; BankAccount: Record "Bank Account"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeLoadLedgEntryInfoAndRemainingAmount(var PaymentApplicationProposal: Record "Payment Application Proposal"; BankAccount: Record "Bank Account"; var IsHandled: Boolean)
     begin
     end;
 
