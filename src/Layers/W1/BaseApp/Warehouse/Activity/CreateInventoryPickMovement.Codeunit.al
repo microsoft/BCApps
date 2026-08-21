@@ -745,9 +745,19 @@ codeunit 7322 "Create Inventory Pick/Movement"
         QtyToTrackBase: Decimal;
         EntriesExist: Boolean;
         ShouldInsertPickOrMoveDefaultBin: Boolean;
+        CreateLineWithZeroBaseQty: Boolean;
         IsHandled: Boolean;
     begin
         GetLocation(NewWarehouseActivityLine."Location Code");
+
+        CreateLineWithZeroBaseQty := false;
+        OnBeforeCreatePickOrMoveLineWithZeroBaseQty(NewWarehouseActivityLine, CreateLineWithZeroBaseQty);
+        if CreateLineWithZeroBaseQty then begin
+            MakeWarehouseActivityHeader();
+            MakeWarehouseActivityLine(NewWarehouseActivityLine, '', 0, RemQtyToPickBase);
+            RemQtyToPickBase := 0;
+            exit;
+        end;
 
         if ReservationExists then
             CalcRemQtyToPickOrMoveBase(NewWarehouseActivityLine, OutstandingQtyBase, RemQtyToPickBase);
@@ -1953,6 +1963,7 @@ codeunit 7322 "Create Inventory Pick/Movement"
             exit;
 
         NewWarehouseActivityLine.Quantity := NewWarehouseActivityLine.CalcQty(QtyToPickBase);
+        OnAfterCalcPickOrMoveLineQuantity(NewWarehouseActivityLine, QtyToPickBase, NewWarehouseActivityLine.Quantity);
         NewWarehouseActivityLine."Qty. (Base)" := QtyToPickBase;
         NewWarehouseActivityLine."Qty. Outstanding" := NewWarehouseActivityLine.Quantity;
         NewWarehouseActivityLine."Qty. Outstanding (Base)" := NewWarehouseActivityLine."Qty. (Base)";
@@ -1991,6 +2002,7 @@ codeunit 7322 "Create Inventory Pick/Movement"
     var
         RelatedBin: Record Bin;
         PlaceBinCode: Code[20];
+        AllowBlankBin: Boolean;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -2009,7 +2021,11 @@ codeunit 7322 "Create Inventory Pick/Movement"
                 RelatedBin.Get(NewWarehouseActivityLine."Location Code", NewWarehouseActivityLine."Bin Code");
                 NewWarehouseActivityLine."Zone Code" := RelatedBin."Zone Code";
             end;
-            NewWarehouseActivityLine."Special Equipment Code" := GetSpecEquipmentCode(NewWarehouseActivityLine."Item No.", NewWarehouseActivityLine."Variant Code", NewWarehouseActivityLine."Location Code", TakeBinCode);
+            OnBeforeGetSpecEquipmentCode(NewWarehouseActivityLine, TakeBinCode, AllowBlankBin);
+            if AllowBlankBin and (TakeBinCode = '') then
+                NewWarehouseActivityLine."Special Equipment Code" := ''
+            else
+                NewWarehouseActivityLine."Special Equipment Code" := GetSpecEquipmentCode(NewWarehouseActivityLine."Item No.", NewWarehouseActivityLine."Variant Code", NewWarehouseActivityLine."Location Code", TakeBinCode);
         end else
             NewWarehouseActivityLine."Shelf No." := GetShelfNo(NewWarehouseActivityLine."Item No.", NewWarehouseActivityLine."Variant Code", NewWarehouseActivityLine."Location Code");
         NewWarehouseActivityLine."Qty. to Handle" := 0;
@@ -2436,6 +2452,11 @@ codeunit 7322 "Create Inventory Pick/Movement"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetLineData(WarehouseActivityHeader: Record "Warehouse Activity Header"; Location: Record Location; var WarehouseActivityLine: Record "Warehouse Activity Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeGetSpecEquipmentCode(WarehouseActivityLine: Record "Warehouse Activity Line"; TakeBinCode: Code[20]; var AllowBlankBin: Boolean)
     begin
     end;
 
@@ -2899,6 +2920,16 @@ codeunit 7322 "Create Inventory Pick/Movement"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnAfterCalcPickOrMoveLineQuantity(WarehouseActivityLine: Record "Warehouse Activity Line"; QtyToPickBase: Decimal; var QtyToPick: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCreatePickOrMoveLineWithZeroBaseQty(WarehouseActivityLine: Record "Warehouse Activity Line"; var CreateLineWithZeroBaseQty: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnInsertShelfWhseActivLineOnAfterMakeWarehouseActivityLine(var NewWhseActivLine: Record "Warehouse Activity Line")
     begin
     end;
@@ -2923,4 +2954,3 @@ codeunit 7322 "Create Inventory Pick/Movement"
     begin
     end;
 }
-

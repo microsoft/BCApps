@@ -120,12 +120,13 @@ codeunit 139204 "FS Integration Test"
     procedure JournalTemplateNameRequiredToEnable()
     var
         FSConnectionSetup: Record "FS Connection Setup";
+        Any: Codeunit Any;
         DummyPassword: Text;
     begin
         // [FEATURE] [UT]
         Initialize();
 
-        DummyPassword := 'T3sting!';
+        DummyPassword := Any.AlphanumericText(20);
         FSConnectionSetup.Init();
         FSConnectionSetup."User Name" := 'tester@domain.net';
         FSIntegrationTestLibrary.SetPassword(FSConnectionSetup, DummyPassword);
@@ -162,13 +163,14 @@ codeunit 139204 "FS Integration Test"
     var
         FSConnectionSetup: Record "FS Connection Setup";
         JobJournalTemplate: Record "Job Journal Template";
+        Any: Codeunit Any;
         DummyPassword: Text;
     begin
         // [FEATURE] [UT]
         Initialize();
         LibraryJob.CreateJobJournalTemplate(JobJournalTemplate);
         JobJournalTemplate.Insert();
-        DummyPassword := 'T3sting!';
+        DummyPassword := Any.AlphanumericText(20);
         FSConnectionSetup.Init();
         FSConnectionSetup."Server Address" := '@@test@@';
         FSIntegrationTestLibrary.SetPassword(FSConnectionSetup, DummyPassword);
@@ -215,6 +217,7 @@ codeunit 139204 "FS Integration Test"
         FSConnectionSetup: Record "FS Connection Setup";
         JobJournalTemplate: Record "Job Journal Template";
         JobJournalBatch: Record "Job Journal Batch";
+        Any: Codeunit Any;
         DummyPassword: Text;
     begin
         // [FEATURE] [UT]
@@ -222,7 +225,7 @@ codeunit 139204 "FS Integration Test"
         LibraryCRMIntegration.RegisterTestTableConnection();
         LibraryJob.CreateJobJournalTemplate(JobJournalTemplate);
         LibraryJob.CreateJobJournalBatch(JobJournalTemplate.Name, JobJournalBatch);
-        DummyPassword := 'T3sting!';
+        DummyPassword := Any.AlphanumericText(20);
 
         FSConnectionSetup.Init();
         FSConnectionSetup."Server Address" := '@@test@@';
@@ -371,6 +374,7 @@ codeunit 139204 "FS Integration Test"
         JobJournalTemplate: Record "Job Journal Template";
         JobJournalBatch: Record "Job Journal Batch";
         UnitOfMeasure: Record "Unit of Measure";
+        Any: Codeunit Any;
         DummyPassword: Text;
     begin
         // [FEATURE] [UT]
@@ -380,7 +384,7 @@ codeunit 139204 "FS Integration Test"
         LibraryJob.CreateJobJournalBatch(JobJournalTemplate.Name, JobJournalBatch);
         LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
         LibraryCRMIntegration.UnbindMockConnection();
-        DummyPassword := 'T3sting!';
+        DummyPassword := Any.AlphanumericText(20);
 
         // Enter details in the page and enable the connection
         FSConnectionSetup.Init();
