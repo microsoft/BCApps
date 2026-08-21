@@ -38,7 +38,7 @@ codeunit 6201 "Non-Ded. VAT Impl."
         CannotBeNegativeErr: Label 'cannot be negative';
         PrepaymentsWithNDVATErr: Label 'You cannot post prepayment that contains Non-Deductible VAT.';
         UnrealizedVATWithNDVATErr: Label 'You cannot post unrealized VAT that contains Non-Deductible VAT.';
-        DifferentNonDedVATRatesSameVATIdentifierErr: Label 'You cannot set different Non-Deductible VAT % for the combinations of business and product groups with the same VAT identifier.\The following combination with the same VAT identifier has different Non-Deductible VAT %: business group %1, product group %2', Comment = '%1 = VAT business posting group code, %2 = VAT product posting group code';
+        DifferentNonDedVATRatesSameVATIdentifierErr: Label 'You cannot set different Non-Deductible VAT % for the combinations of business and product groups with the same VAT identifier.\The following combination with the same VAT identifier has different Non-Deductible VAT %: business group %1, product group %2', Comment = '%1, %2 - codes';
 
     procedure IsNonDeductibleVATEnabled(): Boolean
     var
