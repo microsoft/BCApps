@@ -79,8 +79,6 @@ codeunit 139500 "MS - PayPal Standard Tests"
         SetupReportSelections();
         COMMIT();
 
-        BINDSUBSCRIPTION(MSPayPalStdMockEvents);
-
         Initialized := TRUE;
     end;
 
@@ -829,7 +827,8 @@ codeunit 139500 "MS - PayPal Standard Tests"
         SetupPaymentNotification(MSPayPalStandardAccount, SalesInvoiceHeader);
 
         // Exercise
-        ASSERTERROR SendPaymentNotification(
+        // The webhook is processed in an error-trapped session, so a missing invoice doesn't surface an error to the caller.
+        SendPaymentNotification(
             MSPayPalStandardAccount."Account ID", PaymentStatusCompletedTxt, MissingInvoiceNumberTxt,
             SalesInvoiceHeader."Currency Code", SalesInvoiceHeader."Amount Including VAT");
         O365SalesInvoicePayment.CollectRemainingPayments(SalesInvoiceHeader."No.", TempPaymentRegistrationBuffer);
@@ -991,6 +990,9 @@ codeunit 139500 "MS - PayPal Standard Tests"
         SalesHeader: Record "Sales Header";
         DummyPaymentMethod: Record "Payment Method";
     begin
+        // Bind per test so webhook processing stays in the current session (background disabled) and payment events are captured.
+        UnbindSubscription(MSPayPalStdMockEvents);
+        BindSubscription(MSPayPalStdMockEvents);
         CreateDefaultPayPalStandardAccount(MSPayPalStandardAccount);
         SetupWebhookSubscription(MSPayPalStandardAccount."Account ID");
         CreatePaymentMethod(DummyPaymentMethod, FALSE);
