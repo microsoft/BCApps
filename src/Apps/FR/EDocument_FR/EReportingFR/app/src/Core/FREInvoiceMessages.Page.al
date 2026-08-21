@@ -93,6 +93,31 @@ page 10973 "FR E-Invoice Messages"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the frozen name of the sender platform.';
                 }
+                field("Invoice Issue Date"; Rec."Invoice Issue Date")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the frozen issue date of the invoice.';
+                }
+                field("Invoice Receipt At"; Rec."Invoice Receipt At")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the frozen date and time when the sender platform received the invoice.';
+                }
+                field("Invoice Issuer ID"; Rec."Invoice Issuer ID")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the frozen SIREN identifier of the invoice issuer.';
+                }
+                field("Invoice Issuer Scheme"; Rec."Invoice Issuer Scheme")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the frozen identifier scheme of the invoice issuer.';
+                }
+                field("Invoice Issuer Name"; Rec."Invoice Issuer Name")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the frozen name of the invoice issuer.';
+                }
                 field("Created At"; Rec."Created At")
                 {
                     ApplicationArea = Basic, Suite;
