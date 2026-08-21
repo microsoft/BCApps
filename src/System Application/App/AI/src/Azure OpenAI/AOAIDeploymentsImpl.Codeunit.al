@@ -26,6 +26,8 @@ codeunit 7769 "AOAI Deployments Impl"
         GPT41MiniPreviewLbl: Label 'gpt-41-mini-preview', Locked = true;
         GPT53ChatLatestLbl: Label 'gpt-53-chat-latest', Locked = true;
         GPT53ChatPreviewLbl: Label 'gpt-53-chat-preview', Locked = true;
+        GPT55ChatLatestLbl: Label 'gpt-55-chat-latest', Locked = true;
+        GPT55ChatPreviewLbl: Label 'gpt-55-chat-preview', Locked = true;
         DeprecatedDeployments: Dictionary of [Text, Date];
         DeprecationDatesInitialized: Boolean;
         DeprecationMessageLbl: Label 'We detected usage of the Azure OpenAI deployment "%1". This model is obsoleted starting %2 and the quality of your results might vary after that date. Check out codeunit 7768 AOAI Deployments to find the supported deployments.', Comment = 'Telemetry message where %1 is the name of the deployment and %2 is the date of deprecation';
@@ -79,6 +81,16 @@ codeunit 7769 "AOAI Deployments Impl"
     procedure GetGPT53ChatPreview(CallerModuleInfo: ModuleInfo): Text
     begin
         exit(GetDeploymentName(GPT53ChatPreviewLbl));
+    end;
+
+    procedure GetGPT55ChatLatest(CallerModuleInfo: ModuleInfo): Text
+    begin
+        exit(GetDeploymentName(GPT55ChatLatestLbl));
+    end;
+
+    procedure GetGPT55ChatPreview(CallerModuleInfo: ModuleInfo): Text
+    begin
+        exit(GetDeploymentName(GPT55ChatPreviewLbl));
     end;
 
     // Initializes dictionary of deprecated models

@@ -101,6 +101,7 @@ codeunit 130200 "Snap Test Runner"
 
         // File operations are not atomic, so this may still go wrong.
         Commit();
+#pragma warning disable AS0058, PTE0007 // Accepted violation: this test runner intentionally uses asserterror to detect whether the lock was acquired.
         asserterror
         begin
             LockFile.Create(LockFileName);
@@ -113,6 +114,7 @@ codeunit 130200 "Snap Test Runner"
             LockFile.Close();
             Error('Acquired')
         end;
+#pragma warning restore AS0058, PTE0007
 
         // If we did not acquire the lock, we assume somebody else did and return false.
         Acquired := GetLastErrorText = 'Acquired';
@@ -287,7 +289,9 @@ codeunit 130200 "Snap Test Runner"
         if (FName <> '') and (FName <> 'OnRun') then begin
             PermissionErrors := PermissionTestCatalog.GetPermissionErrors(FTestPermissions);
             if Success and (PermissionErrors <> '') then begin
+#pragma warning disable AS0058, PTE0007 // Accepted violation: this test runner intentionally uses asserterror to surface permission errors as a test failure.
                 asserterror Error(PermissionErrors);
+#pragma warning restore AS0058, PTE0007
                 Success := false;
             end;
         end;

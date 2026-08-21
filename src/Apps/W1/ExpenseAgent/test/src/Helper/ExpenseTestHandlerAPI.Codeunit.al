@@ -70,6 +70,57 @@ codeunit 148307 "Expense Test Handler API"
         exit(ExpenseUser.SystemId);
     end;
 
+    /// <summary>
+    /// Configures two existing Expense Users as a submitter and approver for integration tests.
+    /// The approver uses the current BC service user's ID without exercising the email-based
+    /// Expense User onboarding validation, which is outside the lifecycle test's scope.
+    /// </summary>
+    /// <remarks>
+    /// This endpoint intentionally mutates approval master data in the dedicated integration-test company.
+    /// The configured approver identity and disabled standard approval workflow remain until a later fixture run changes them.
+    /// </remarks>
+    /// <param name="submitterExpenseUserId">The SystemId of the Expense User that submits the expenses.</param>
+    /// <param name="approverExpenseUserId">The SystemId of the Expense User that approves the expenses.</param>
+    /// <returns>A completion message after the approval scenario is configured.</returns>
+    [ServiceEnabled]
+    procedure ConfigureApprovalScenario(submitterExpenseUserId: Guid; approverExpenseUserId: Guid): Text[50]
+    var
+        SubmitterExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
+        ExistingApprovalExpenseUser: Record "Expense User";
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+        LibraryExpense: Codeunit "Library - Expense";
+        CurrentApprovalUserId: Code[50];
+    begin
+        if submitterExpenseUserId = approverExpenseUserId then
+            Error(SameExpenseUserErr);
+
+        if not SubmitterExpenseUser.GetBySystemId(submitterExpenseUserId) then
+            Error(SubmitterExpenseUserNotFoundErr, submitterExpenseUserId);
+        if not ApproverExpenseUser.GetBySystemId(approverExpenseUserId) then
+            Error(ApproverExpenseUserNotFoundErr, approverExpenseUserId);
+
+        CurrentApprovalUserId := CopyStr(UserId(), 1, MaxStrLen(ApproverExpenseUser."User Id For Approvals"));
+        ExistingApprovalExpenseUser.SetRange("User Id For Approvals", CurrentApprovalUserId);
+        ExistingApprovalExpenseUser.ModifyAll("User Id For Approvals", '');
+
+        ApproverExpenseUser.GetBySystemId(approverExpenseUserId);
+        ApproverExpenseUser."User Id For Approvals" := CurrentApprovalUserId;
+        ApproverExpenseUser.Validate("Can Approve", true);
+        ApproverExpenseUser.Modify(true);
+
+        if ExpenseApprovalSetup.Get(SubmitterExpenseUser."No.") then begin
+            ExpenseApprovalSetup.Validate("Approver No.", ApproverExpenseUser."No.");
+            ExpenseApprovalSetup.Modify(true);
+        end else
+            LibraryExpense.CreateExpenseApprovalSetup(
+                ExpenseApprovalSetup, SubmitterExpenseUser."No.", ApproverExpenseUser."No.");
+
+        LibraryExpense.UpdateEnableApprovalWorkflowInAgentSetup(false);
+
+        exit('ConfigureApprovalScenario completed');
+    end;
+
     local procedure CreateExpenseUser(var ExpenseUser: Record "Expense User"; No: Code[20])
     begin
         ExpenseUser.Init();
@@ -326,4 +377,9 @@ codeunit 148307 "Expense Test Handler API"
             exit(Customer."No.");
         exit('');
     end;
+
+    var
+        ApproverExpenseUserNotFoundErr: Label 'The approver Expense User with SystemId %1 does not exist.', Comment = '%1 = Expense User SystemId';
+        SameExpenseUserErr: Label 'The submitter and approver must be different Expense Users.';
+        SubmitterExpenseUserNotFoundErr: Label 'The submitter Expense User with SystemId %1 does not exist.', Comment = '%1 = Expense User SystemId';
 }
