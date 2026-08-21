@@ -30,7 +30,7 @@ using Microsoft.Purchases.History;
 using Microsoft.Warehouse.Setup;
 using System.TestLibraries.Utilities;
 
-codeunit 149920 "Subc SCM Prod. Order"
+codeunit 139997 "Subc SCM Prod. Order"
 {
     Subtype = Test;
     TestPermissions = Disabled;
