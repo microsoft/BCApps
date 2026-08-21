@@ -253,6 +253,9 @@ report 718 "Inventory - Sales Back Orders"
             LayoutFile = '.\Inventory\Reports\InventorySalesBackOrders.docx';
             Type = Word;
             Summary = 'Built in layout for the Inventory - Sales Back Orders word report.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
         }
 #if not CLEAN27
         layout(RDLC)
@@ -266,6 +269,14 @@ report 718 "Inventory - Sales Back Orders"
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
+        layout(WordBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = '.\Inventory\Reports\InventorySalesBackOrdersBody.docx';
+            Caption = 'Body-only: Inventory - Sales Back Orders Word';
+            Summary = 'Portrait orientated. Lists the back orders for each item with sales order number, customer name and phone number, shipment date, quantity, outstanding quantity, and other back orders. Includes outstanding subtotals.';
+        }
     }
 
     labels

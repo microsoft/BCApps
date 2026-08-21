@@ -220,6 +220,9 @@ report 714 "Inventory - Vendor Purchases"
             Type = Word;
             LayoutFile = './Inventory/Reports/InventoryVendorPurchases.docx';
             Summary = 'Built in layout for the Inventory - Vendor Purchases Word report.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
         }
 #if not CLEAN28
         layout(RDLC)
@@ -233,6 +236,14 @@ report 714 "Inventory - Vendor Purchases"
             Summary = 'Built in layout for the Inventory - Vendor Purchases RDLC (Obsolete) report.';
         }
 #endif
+        layout(WordBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './Inventory/Reports/InventoryVendorPurchasesBody.docx';
+            Caption = 'Body-only: Inventory - Vendor Purchases Word';
+            Summary = 'Portrait orientated. Shows invoiced quantity, cost amount, and discount amount for each item and vendor, with subtotals for each item and overall totals.';
+        }
     }
 
     labels

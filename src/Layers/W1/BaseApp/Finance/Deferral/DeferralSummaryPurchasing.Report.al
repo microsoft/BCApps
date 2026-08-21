@@ -350,6 +350,9 @@ report 1702 "Deferral Summary - Purchasing"
             Type = Word;
             LayoutFile = './Finance/Deferral/DeferralSummaryPurchasing.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
         }
 #if not CLEAN27
         layout(RDLC)
@@ -363,6 +366,14 @@ report 1702 "Deferral Summary - Purchasing"
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
+        layout(WordBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './Finance/Deferral/DeferralSummaryPurchasingBody.docx';
+            Caption = 'Deferral Summary Purchasing Word';
+            Summary = 'Landscape orientated. Shows posting date, document, line type, description, deferral account, start date, and number of periods for each vendor, with the amount recognized, the remaining amount, and the total deferred. Includes totals.';
+        }
     }
 
     labels

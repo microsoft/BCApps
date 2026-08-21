@@ -268,6 +268,9 @@ report 99000753 "Quantity Explosion of BOM"
             Type = Word;
             LayoutFile = './Manufacturing/Reports/QuantityExplosionofBOM.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
         }
         layout(ExcelLayout)
         {
@@ -288,6 +291,14 @@ report 99000753 "Quantity Explosion of BOM"
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
+        layout(WordLayoutBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './Manufacturing/Reports/QuantityExplosionofBOMBody.docx';
+            Caption = 'Body-only: Quantity Explosion of BOM Word';
+            Summary = 'Portrait orientated. For a chosen calculation date, shows the indented component levels of the BOM for an item with number, description, quantity, unit of measure, and the total BOM quantity.';
+        }
     }
 
     labels

@@ -190,6 +190,17 @@ reportextension 8008 "Contract Standard Sales Inv." extends "Standard Sales - In
             LayoutFile = './Billing/Report Extensions/Layouts/SalesInvoiceForSubscriptionBilling.docx';
             Caption = 'Sales Invoice for Subscription Billing (Word)';
             Summary = 'The Sales Invoice for Subscription Billing (Word) provides a simple layout that is also relatively easy for an end-user to modify.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
+        }
+        layout("SalesInvoiceForSubscriptionBillingBody.docx")
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './Billing/Report Extensions/Layouts/SalesInvoiceForSubscriptionBillingBody.docx';
+            Caption = 'Body-only: Sales Invoice for Subscription Billing (Word)';
+            Summary = 'Portrait orientated. Shows the customer and company address and a header with references, due date, payment and shipping details, and tracking. Item lines list price, discount %, VAT %, and amount, with VAT-inclusive totals.';
         }
     }
 
@@ -197,7 +208,7 @@ reportextension 8008 "Contract Standard Sales Inv." extends "Standard Sales - In
         TempContractBillingDetailsBuffer: Record "Job Ledger Entry" temporary;
         TempContractBillingDetailsGroupingBuffer: Record "Job Ledger Entry" temporary;
 
-    var        
+    var
         SalesInvoiceLine: Record "Sales Invoice Line";
         Customer2: Record Customer;
         ContractBillingPrintout: Codeunit "Sub. Contract Billing Printout";

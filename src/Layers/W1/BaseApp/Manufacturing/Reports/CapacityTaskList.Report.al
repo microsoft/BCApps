@@ -236,6 +236,9 @@ report 99000780 "Capacity Task List"
             Type = Word;
             LayoutFile = './Manufacturing/Reports/CapacityTaskList.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
         }
         layout(ExcelLayout)
         {
@@ -254,6 +257,14 @@ report 99000780 "Capacity Task List"
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
+        layout(WordLayoutBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './Manufacturing/Reports/CapacityTaskListBody.docx';
+            Caption = 'Body-only: Capacity Task List (Word)';
+            Summary = 'Landscape orientated. Shows order and operation number, item, work or machine center, input quantity, start and end date and time, expected capacity need, and unit of measure for each production order routing line.';
+        }
     }
 
     labels

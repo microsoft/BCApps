@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -362,6 +362,9 @@ report 99000788 "Prod. Order - Shortage List"
             Type = Word;
             LayoutFile = './Manufacturing/Reports/ProdOrderShortageList.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
         }
         layout(Excel)
         {
@@ -382,6 +385,14 @@ report 99000788 "Prod. Order - Shortage List"
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
+        layout(WordBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './Manufacturing/Reports/ProdOrderShortageListBody.docx';
+            Caption = 'Body-only: Prod. Order - Shortage List Word';
+            Summary = 'Landscape orientated. Shows description, remaining quantity, inventory, scheduled receipt, and need for each production order component, together with the quantities on purchase and sales orders and the needed quantity.';
+        }
     }
 
     labels

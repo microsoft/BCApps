@@ -235,6 +235,17 @@ report 5085 "Contact Cover Sheet"
             Type = Word;
             LayoutFile = './CRM/Reports/ContactCoverSheet.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
+        }
+        layout(WordLayoutBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './CRM/Reports/ContactCoverSheetBody.docx';
+            Caption = 'Body-only: Contact Cover Sheet (Word)';
+            Summary = 'Portrait orientated. Shows the contact and company address blocks, followed by the company VAT registration number, giro number, and bank details, and closes with a regards line.';
         }
     }
 

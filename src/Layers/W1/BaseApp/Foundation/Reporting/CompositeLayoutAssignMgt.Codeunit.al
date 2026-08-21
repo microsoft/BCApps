@@ -1,0 +1,285 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Foundation.Reporting;
+
+using System.Environment.Configuration;
+using System.Reflection;
+
+/// <summary>
+/// Assigns the header/footer and theme parts that ship with the Base Application to the body layouts of the standard
+/// reports, so that a report renders with a header/footer and a theme instead of bare.
+/// </summary>
+/// <remarks>
+/// Nothing calls this on install or upgrade yet, so it does not run on its own: it waits on the platform change that
+/// resolves a body layout from a plain layout name. Install and upgrade seed the shared pool of parts (see Composite
+/// Report Parts Mgt.) but assign none of them, so a shipped report renders bare until a part is assigned - by an
+/// administrator on the report defaults page, or by this codeunit once it is wired in. When wiring it into the upgrade
+/// codeunit, add a new dated tag in Upgrade Tag Definitions: databases upgraded meanwhile already carry the current one,
+/// so the existing guard would skip them and the assignment would never run there.
+/// </remarks>
+codeunit 9668 "Composite Layout Assign. Mgt."
+{
+    Access = Internal;
+    // No Permissions elevation on purpose - see the note in Composite Report Parts Mgt. Internal visibility is not an
+    // authorization boundary, so the caller has to hold the rights to write the configuration table itself.
+
+    /// <summary>
+    /// Applies every assignment that ships with the Base Application: the header/footer design listed for each body
+    /// layout, and the theme on every body layout. Safe to call repeatedly - a layout that already has a part keeps it.
+    /// </summary>
+    /// <returns>The number of assignments written. Rows for layouts or parts that are not installed are skipped.</returns>
+    procedure AssignDefaultParts() AssignedCount: Integer
+    begin
+        AssignedCount := this.AssignShippedHeaderFooters();
+        AssignedCount += this.AssignThemeToBodyLayouts(this.DefaultThemeTxt);
+    end;
+
+    /// <summary>
+    /// The layouts this codeunit configures and the header/footer design each one gets. Only body-only layouts are
+    /// listed: those are authored without a header/footer of their own, so a header/footer part has to be merged onto
+    /// them at render time.
+    /// </summary>
+    local procedure AssignShippedHeaderFooters() AssignedCount: Integer
+    begin
+        // --- Sales reports ---------------------------------------------------------------------------
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(107, 'WordBody', this.InternalDefaultTxt));
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(114, 'WordBody', this.InternalDefaultTxt));
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(115, 'WordBody', this.InternalDefaultTxt));
+
+        // --- Inventory -------------------------------------------------------------------------------
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(708, 'WordBody', this.InternalDefaultTxt));
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(713, 'WordBody', this.InternalDefaultTxt));
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(714, 'WordBody', this.InternalDefaultTxt));
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(718, 'WordBody', this.InternalDefaultTxt));
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(5802, 'WordBody', this.InternalDefaultTxt));
+
+        // --- Projects --------------------------------------------------------------------------------
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(1016, 'JobQuoteBody.docx', this.ExternalModernLogoTxt));
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(1017, 'JobTaskQuoteBody.docx', this.ExternalModernLogoTxt));
+
+        // --- Sales documents -------------------------------------------------------------------------
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(1302, 'StandardSalesProFormaInvBody.docx', this.ExternalDefaultDetailedTxt));
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(1303, 'StandardSalesDraftInvoiceBody.docx', this.ExternalDefaultTxt));
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(1304, 'StandardSalesQuoteBody.docx', this.ExternalDefaultTxt));
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(1304, 'StandardESGSalesQuoteBody.docx', this.ExternalDefaultTxt));
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(1304, 'SalesQuoteForSubscriptionBillingBody.docx', this.ExternalDefaultTxt));
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(1305, 'StandardSalesOrderConfBody.docx', this.ExternalDefaultDetailedTxt));
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(1305, 'SalesOrderConfForSubscriptionBillingBody.docx', this.ExternalDefaultTxt));
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(1306, 'StandardSalesInvoiceQRBody.docx', this.ExternalDefaultDetailedTxt));
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(1306, 'StandardSalesInvoiceBody.docx', this.ExternalDefaultDetailedTxt));
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(1306, 'StandardSalesInvoiceVatSpecBody.docx', this.ExternalDefaultTxt));
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(1306, 'StandardESGSalesInvoiceBody.docx', this.ExternalDefaultDetailedTxt));
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(1306, 'SalesInvoiceForSubscriptionBillingBody.docx', this.ExternalDefaultTxt));
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(1307, 'StandardSalesCreditMemoBody.docx', this.ExternalDefaultDetailedTxt));
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(1307, 'StandardSalesCrMemoQRBody.docx', this.ExternalDefaultDetailedTxt));
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(1308, 'StandardSalesShipmentBody.docx', this.ExternalDefaultDetailedTxt));
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(1309, 'StandardSalesReturnRcptBody.docx', this.ExternalDefaultDetailedTxt));
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(1316, 'StandardStatementBody.docx', this.ExternalModernTxt));
+
+        // --- Purchase documents ----------------------------------------------------------------------
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(1322, 'StandardPurchaseOrderBody.docx', this.ExternalModernLogoTxt));
+
+        // --- E-Document ------------------------------------------------------------------------------
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(6102, 'SampleInvoiceLayoutBody', this.ExternalDefaultDetailedTxt));
+
+        // --- Relationship management -----------------------------------------------------------------
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(5085, 'WordLayoutBody', this.InternalMinimalisticCenteredTxt));
+
+        // --- Deferrals -------------------------------------------------------------------------------
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(1700, 'WordBody', this.InternalDefaultTxt));
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(1701, 'WordBody', this.InternalDefaultTxt));
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(1702, 'WordBody', this.InternalDefaultTxt));
+
+        // --- Manufacturing ---------------------------------------------------------------------------
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(99000753, 'WordLayoutBody', this.InternalDefaultTxt));
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(99000780, 'WordLayoutBody', this.InternalDefaultTxt));
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(99000788, 'WordBody', this.InternalDefaultTxt));
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(99000789, 'WordLayoutBody', this.InternalDefaultTxt));
+
+        // --- Payment Practices -----------------------------------------------------------------------
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(685, 'PaymentPractice_SmallBusinessLayoutBody', this.InternalDefaultTxt));
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(685, 'PaymentPractice_PeriodLayoutBody', this.InternalDefaultTxt));
+        AssignedCount += this.CountIf(this.AssignHeaderFooter(685, 'PaymentPractice_VendorSizeLayoutBody', this.InternalDefaultTxt));
+    end;
+
+    /// <summary>
+    /// Assigns a header/footer part to one body layout, writing the layout-level Tenant Report Layout Cfg row for all
+    /// companies. Does nothing when the layout is not installed on the tenant, when it is not a Word body layout, when
+    /// the part is not in the shared pool, or when the layout already has a header/footer.
+    /// </summary>
+    /// <returns>True when a row was written.</returns>
+    /// <remarks>
+    /// Internal rather than local so the tests can drive one assignment on their own. The curated list above names only
+    /// layouts that ship with an app, so on a tenant that has those apps installed the skip branches here are not
+    /// reachable through AssignDefaultParts.
+    /// </remarks>
+    internal procedure AssignHeaderFooter(ReportID: Integer; LayoutName: Text; PartName: Text): Boolean
+    var
+        Composite: Text;
+    begin
+        if not this.BodyLayoutExists(ReportID, LayoutName) then begin
+            this.LogUnresolvedLayout(ReportID, LayoutName);
+            exit(false);
+        end;
+        if not this.ResolvePart(PartName, Enum::"Report Layout Subtype"::HeaderFooter, Composite) then begin
+            // Only this one layout goes without a header/footer; the rest of the pass still runs.
+            this.LogUnresolvedPart(PartName, Enum::"Report Layout Subtype"::HeaderFooter, Verbosity::Warning);
+            exit(false);
+        end;
+
+        exit(this.WriteLayoutPart(ReportID, LayoutName, Composite, Enum::"Report Layout Subtype"::HeaderFooter));
+    end;
+
+    /// <summary>
+    /// Assigns the theme to every body layout installed on the tenant - every Word layout whose name contains "body" -
+    /// as one Tenant Report Layout Cfg row per layout.
+    /// </summary>
+    /// <returns>The number of layouts the theme was written for.</returns>
+    local procedure AssignThemeToBodyLayouts(PartName: Text) AssignedCount: Integer
+    var
+        ReportLayoutList: Record "Report Layout List";
+        Composite: Text;
+    begin
+        if not this.ResolvePart(PartName, Enum::"Report Layout Subtype"::Theme, Composite) then begin
+            this.LogUnresolvedPart(PartName, Enum::"Report Layout Subtype"::Theme, Verbosity::Error);
+            exit(0);
+        end;
+
+        ReportLayoutList.SetLoadFields("Report ID", Name);
+        ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::Word);
+        ReportLayoutList.SetRange("Layout Subtype", ReportLayoutList."Layout Subtype"::Body);
+        if not ReportLayoutList.FindSet() then
+            exit(0);
+
+        repeat
+            if this.WriteLayoutPart(
+                ReportLayoutList."Report ID",
+                ReportLayoutList.Name,
+                Composite,
+                Enum::"Report Layout Subtype"::Theme)
+            then
+                AssignedCount += 1;
+        until ReportLayoutList.Next() = 0;
+    end;
+
+    local procedure WriteLayoutPart(ReportID: Integer; LayoutName: Text; Composite: Text; Subtype: Enum "Report Layout Subtype"): Boolean
+    var
+        TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
+        LayoutNameKey: Text[250];
+        RowExists: Boolean;
+    begin
+        // Both the key field and Report Layout List.Name are Text[250], so a layout name always fits the key as-is.
+        LayoutNameKey := CopyStr(LayoutName, 1, MaxStrLen(TenantReportLayoutCfg."Layout Name"));
+        RowExists := TenantReportLayoutCfg.Get(ReportID, LayoutNameKey, '');
+
+        if RowExists then
+            case Subtype of
+                Subtype::HeaderFooter:
+                    if TenantReportLayoutCfg."Header Part Name" <> '' then
+                        exit(false);
+                Subtype::Theme:
+                    if TenantReportLayoutCfg."Theme Part Name" <> '' then
+                        exit(false);
+            end
+        else begin
+            TenantReportLayoutCfg.Init();
+            TenantReportLayoutCfg."Report ID" := ReportID;
+            TenantReportLayoutCfg."Layout Name" := LayoutNameKey;
+            TenantReportLayoutCfg."Company Name" := '';
+        end;
+
+        case Subtype of
+            Subtype::HeaderFooter:
+                TenantReportLayoutCfg."Header Part Name" := CopyStr(Composite, 1, MaxStrLen(TenantReportLayoutCfg."Header Part Name"));
+            Subtype::Theme:
+                TenantReportLayoutCfg."Theme Part Name" := CopyStr(Composite, 1, MaxStrLen(TenantReportLayoutCfg."Theme Part Name"));
+        end;
+
+        if RowExists then
+            TenantReportLayoutCfg.Modify(true)
+        else
+            TenantReportLayoutCfg.Insert(true);
+        exit(true);
+    end;
+
+    /// <summary>
+    /// Whether the report has a Word body layout of that name installed on the tenant. Only a body layout can carry a
+    /// header/footer or a theme: the parts are merged onto it at render time.
+    /// </summary>
+    local procedure BodyLayoutExists(ReportID: Integer; LayoutName: Text): Boolean
+    var
+        ReportLayoutList: Record "Report Layout List";
+    begin
+        ReportLayoutList.SetRange("Report ID", ReportID);
+        ReportLayoutList.SetRange(Name, CopyStr(LayoutName, 1, MaxStrLen(ReportLayoutList.Name)));
+        ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::Word);
+        ReportLayoutList.SetRange("Layout Subtype", ReportLayoutList."Layout Subtype"::Body);
+        exit(not ReportLayoutList.IsEmpty());
+    end;
+
+    /// <summary>
+    /// Looks up a header/footer or theme part in the shared pool by name and returns the composite reference to store.
+    /// </summary>
+    local procedure ResolvePart(PartName: Text; Subtype: Enum "Report Layout Subtype"; var Composite: Text): Boolean
+    var
+        ReportLayoutList: Record "Report Layout List";
+        CompositeLayoutLookupHelper: Codeunit "Composite Layout Lookup Helper";
+        EmptyAppId: Guid;
+    begin
+        Composite := '';
+        if PartName = '' then
+            exit(false);
+
+        ReportLayoutList.SetRange("Report ID", CompositeLayoutLookupHelper.GetTenantReportDefaultsReportID());
+        ReportLayoutList.SetRange(Name, CopyStr(PartName, 1, MaxStrLen(ReportLayoutList.Name)));
+        ReportLayoutList.SetRange("Application ID", EmptyAppId);
+        ReportLayoutList.SetRange("Layout Subtype", Subtype);
+        if not ReportLayoutList.FindFirst() then
+            exit(false);
+
+        Composite := CompositeLayoutLookupHelper.EncodeCompositeName(ReportLayoutList."Application ID", ReportLayoutList.Name);
+        exit(true);
+    end;
+
+    local procedure CountIf(Assigned: Boolean): Integer
+    begin
+        if Assigned then
+            exit(1);
+        exit(0);
+    end;
+
+    local procedure LogUnresolvedLayout(ReportID: Integer; LayoutName: Text)
+    var
+        TelemetryDimensions: Dictionary of [Text, Text];
+    begin
+        TelemetryDimensions.Add('ReportId', Format(ReportID, 0, 9));
+        TelemetryDimensions.Add('LayoutName', LayoutName);
+        Session.LogMessage(
+            '0000V40', this.UnresolvedLayoutTxt, Verbosity::Warning, DataClassification::SystemMetadata,
+            TelemetryScope::ExtensionPublisher, TelemetryDimensions);
+    end;
+
+    local procedure LogUnresolvedPart(PartName: Text; Subtype: Enum "Report Layout Subtype"; PartVerbosity: Verbosity)
+    var
+        TelemetryDimensions: Dictionary of [Text, Text];
+    begin
+        TelemetryDimensions.Add('PartName', PartName);
+        TelemetryDimensions.Add('LayoutSubtype', Format(Subtype, 0, 9));
+        Session.LogMessage(
+            '0000V41', this.UnresolvedPartTxt, PartVerbosity, DataClassification::SystemMetadata,
+            TelemetryScope::All, TelemetryDimensions);
+    end;
+
+    var
+        InternalDefaultTxt: Label 'Internal Default', Locked = true;
+        InternalMinimalisticCenteredTxt: Label 'Internal Minimalistic Centered', Locked = true;
+        ExternalDefaultTxt: Label 'External Default', Locked = true;
+        ExternalDefaultDetailedTxt: Label 'External Default Detailed', Locked = true;
+        ExternalModernTxt: Label 'External Modern', Locked = true;
+        ExternalModernLogoTxt: Label 'External Modern Logo', Locked = true;
+        DefaultThemeTxt: Label 'Default', Locked = true;
+        UnresolvedLayoutTxt: Label 'Composite layout defaults: no body layout of the shipped name is installed on the report, so the header/footer assignment was skipped.', Locked = true;
+        UnresolvedPartTxt: Label 'Composite layout defaults: the shipped header/footer or theme part is not in the shared pool, so every assignment that uses it was skipped.', Locked = true;
+}

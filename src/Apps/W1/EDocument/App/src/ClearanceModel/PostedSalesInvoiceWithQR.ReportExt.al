@@ -30,6 +30,17 @@ reportextension 6166 "PostedSalesInvoiceWithQR" extends "Standard Sales - Invoic
             LayoutFile = './.resources/Template/StandardSalesInvoicewithQR.docx';
             Caption = 'Standard Sales Invoice - E-Document (Word)';
             Summary = 'The "Standard Sales Invoice - E-Document (Word)" provides the layout including E-Document QR code support.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
+        }
+        layout("StandardSalesInvoiceQRBody.docx")
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './.resources/Template/StandardSalesInvoicewithQRBody.docx';
+            Caption = 'Body-only: Standard Sales Invoice - E-Document (Word)';
+            Summary = 'Portrait orientated. Shows the customer and company address and a header with references, due date, payment and shipping details, and tracking. Item lines list price, discount %, VAT %, and amount, with VAT-inclusive totals and a payment QR code.';
         }
     }
 }
