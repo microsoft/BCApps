@@ -132,7 +132,8 @@ table 1253 "Bank Pmt. Appl. Settings"
         {
         }
         /// <summary>
-        /// Number of days back from the bank statement transaction date to search for candidate ledger entries.
+        /// Number of days back from the earliest bank statement transaction date in the journal to search for candidate ledger entries.
+        /// A single window is applied to the whole journal so that the earliest line keeps all its candidates.
         /// A value of 0 searches all open entries; a positive value limits candidates to improve performance.
         /// </summary>
         field(15; "Candidate Lookback (Days)"; Integer)
@@ -140,7 +141,7 @@ table 1253 "Bank Pmt. Appl. Settings"
             Caption = 'Candidate Lookback (Days)';
             DataClassification = CustomerContent;
             MinValue = 0;
-            ToolTip = 'Specifies how many days back from the bank statement transaction date the automatic matching searches for candidate ledger entries. Limiting the range improves performance when there are many open entries. Set to 0 to search all open entries.';
+            ToolTip = 'Specifies how many days back from the earliest bank statement transaction date in the journal the automatic matching searches for candidate ledger entries. A single window is applied to the whole journal. Limiting the range improves performance when there are many open entries. Set to 0 to search all open entries.';
         }
 
     }
@@ -182,7 +183,7 @@ table 1253 "Bank Pmt. Appl. Settings"
     /// Calculates the earliest posting date to include when searching for candidate ledger entries.
     /// Returns 0D (no lower bound) when the lookback is not configured or no reference date is available.
     /// </summary>
-    /// <param name="ReferenceDate">The bank statement transaction date to count the lookback back from.</param>
+    /// <param name="ReferenceDate">The earliest bank statement transaction date in the journal to count the lookback from.</param>
     /// <returns>The earliest posting date to include, or 0D when candidates should not be date-limited.</returns>
     procedure GetCandidateLookbackStartDate(ReferenceDate: Date): Date
     var

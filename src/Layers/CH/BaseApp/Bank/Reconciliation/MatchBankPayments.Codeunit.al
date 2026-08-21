@@ -2735,6 +2735,7 @@ codeunit 1255 "Match Bank Payments"
         ReferenceDate: Date;
     begin
         InitializeBankPmtApplSettings();
+        // Buffers are built once per journal, so the batch's earliest transaction date is used to keep every line's candidates.
         if CandidateFilterReferenceDate <> 0D then
             ReferenceDate := CandidateFilterReferenceDate
         else
