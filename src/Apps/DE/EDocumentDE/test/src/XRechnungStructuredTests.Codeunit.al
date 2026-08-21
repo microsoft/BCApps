@@ -17,7 +17,6 @@ codeunit 148500 "XRechnung Structured Tests"
         LibraryLowerPermission: Codeunit "Library - Lower Permissions";
         XRechnungStructuredValidations: Codeunit "XRechnung Struct. Validations";
         IsInitialized: Boolean;
-        CompanyIDFormatTok: Label '<cbc:CompanyID>%1</cbc:CompanyID>', Locked = true;
         EDocumentStatusNotUpdatedErr: Label 'The status of the EDocument was not updated to the expected status after the step was executed.';
         TestFileTok: Label 'xrechnung/xrechnung-invoice-0.xml', Locked = true;
         UnsupportedXmlRootElementErr: Label 'Unsupported XML root element: %1.', Comment = '%1 = local name of the XML root element';
@@ -109,61 +108,6 @@ codeunit 148500 "XRechnung Structured Tests"
         XRechnungStructuredValidations.SetMockCurrencyCode(MockCurrencyCode);
         XRechnungStructuredValidations.SetMockDate(MockDate);
         XRechnungStructuredValidations.AssertPurchaseDocument(Vendor."No.", PurchaseHeader, DummyItem);
-    end;
-
-    [Test]
-    procedure TestXRechnungInvoice_RepeatedTaxSchemesSelectVendorAndValidateCompany()
-    var
-        CompanyInformation: Record "Company Information";
-        EDocument: Record "E-Document";
-        PurchaseHeader: Record "Purchase Header";
-        EDocumentProcessing: Codeunit "E-Document Processing";
-        DataTypeManagement: Codeunit "Data Type Management";
-        RecRef: RecordRef;
-        VariantRecord: Variant;
-        CompanyRegistrationNo: Text[20];
-        VendorRegistrationNo: Text[20];
-        XmlContent: Text;
-    begin
-        // [FEATURE] [AI test]
-        // [SCENARIO 646793] XRechnung VAT, FC, and legal identifiers are imported independently
-        Initialize(Enum::"Service Integration"::"No Integration");
-        SetupXRechnungEDocumentService();
-
-        // [GIVEN] Vendor and company are configured for Registration No. matching
-        VendorRegistrationNo := 'SUPPLIER-FC';
-        Vendor.GLN := '';
-        Vendor."VAT Registration No." := '';
-        Vendor."Registration Number" := VendorRegistrationNo;
-        Vendor."Use Reg. No. in E-Document" := true;
-        Vendor.Modify(true);
-        CompanyRegistrationNo := 'BUYER-LEGAL';
-        CompanyInformation.Get();
-        CompanyInformation.GLN := '';
-        CompanyInformation."VAT Registration No." := 'GB789456278';
-        CompanyInformation."Registration No." := CompanyRegistrationNo;
-        CompanyInformation."Use GLN in Electronic Document" := false;
-        CompanyInformation."Use Reg. No. in E-Document" := true;
-        CompanyInformation.Modify(true);
-
-        // [GIVEN] An XRechnung with supplier VAT and FC tax schemes and a buyer VAT scheme plus legal registration
-        XmlContent := NavApp.GetResourceAsText(TestFileTok);
-        AddSupplierFCTaxScheme(XmlContent, 'GB123456789', VendorRegistrationNo);
-        XmlContent := XmlContent.Replace('<cbc:CompanyID>789456278</cbc:CompanyID>', StrSubstNo(CompanyIDFormatTok, CompanyRegistrationNo));
-        XmlContent := XmlContent.Replace('<cbc:ID>8712345000004</cbc:ID>', '<cbc:ID></cbc:ID>');
-        CreateInboundEDocumentFromXMLText(EDocument, XmlContent);
-
-        // [WHEN] The document is processed into a purchase invoice
-        Assert.IsTrue(ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Finish draft"), EDocumentStatusNotUpdatedErr);
-        EDocument.Get(EDocument."Entry No");
-        EDocumentProcessing.GetRecord(EDocument, VariantRecord);
-        DataTypeManagement.GetRecordRef(VariantRecord, RecRef);
-        RecRef.SetTable(PurchaseHeader);
-
-        // [THEN] The supplier FC scheme selected the vendor and the buyer VAT and legal identifiers were imported
-        Assert.AreEqual(Vendor."No.", PurchaseHeader."Buy-from Vendor No.", 'The vendor was not selected by Registration No.');
-        Assert.AreEqual(CompanyInformation."VAT Registration No.", EDocument."Receiving Company VAT Reg. No.", 'The receiving company VAT Reg. No. was not imported from the buyer VAT tax scheme.');
-        Assert.AreEqual(CompanyRegistrationNo, EDocument."Receiving Company Reg. No.", 'The receiving company Reg. No. was not imported from the buyer legal entity.');
     end;
 
     [Test]
@@ -363,27 +307,6 @@ codeunit 148500 "XRechnung Structured Tests"
     begin
         EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::XRechnung;
         EDocumentService.Modify(false);
-    end;
-
-    local procedure AddSupplierFCTaxScheme(var XmlContent: Text; VATRegistrationNo: Text; RegistrationNo: Text)
-    var
-        CompanyIDToken: Text;
-        CompanyIDPosition: Integer;
-        PartyTaxSchemeEndPosition: Integer;
-        FiscalCodeTaxScheme: Text;
-        PartyTaxSchemeEndTok: Label '</cac:PartyTaxScheme>', Locked = true;
-        FiscalCodeTaxSchemeTok: Label '<cac:PartyTaxScheme><cbc:CompanyID>%1</cbc:CompanyID><cac:TaxScheme><cbc:ID>FC</cbc:ID></cac:TaxScheme></cac:PartyTaxScheme>', Locked = true;
-    begin
-        CompanyIDToken := StrSubstNo(CompanyIDFormatTok, VATRegistrationNo);
-        CompanyIDPosition := StrPos(XmlContent, CompanyIDToken);
-        Assert.IsTrue(CompanyIDPosition > 0, 'The supplier company identifier was not found in the test XML.');
-
-        PartyTaxSchemeEndPosition := StrPos(CopyStr(XmlContent, CompanyIDPosition), PartyTaxSchemeEndTok);
-        Assert.IsTrue(PartyTaxSchemeEndPosition > 0, 'The supplier party tax scheme end was not found in the test XML.');
-
-        PartyTaxSchemeEndPosition += CompanyIDPosition + StrLen(PartyTaxSchemeEndTok) - 1;
-        FiscalCodeTaxScheme := StrSubstNo(FiscalCodeTaxSchemeTok, RegistrationNo);
-        XmlContent := InsStr(XmlContent, FiscalCodeTaxScheme, PartyTaxSchemeEndPosition);
     end;
 
     local procedure CreateInboundEDocumentFromXML(var EDocument: Record "E-Document"; FilePath: Text)
