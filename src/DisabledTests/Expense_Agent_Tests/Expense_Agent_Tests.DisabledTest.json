@@ -2,15 +2,7 @@
   {
     "codeunitId": 148318,
     "codeunitName": "Expense Capabilities API Test",
-    "method": "CapabilitiesProjectsEnabledViaAPI",
-    "countries": [
-      "IN"
-    ]
-  },
-  {
-    "codeunitId": 148318,
-    "codeunitName": "Expense Capabilities API Test",
-    "method": "ActivityLogCapabilityEnabledViaAPI",
+    "method": "*",
     "countries": [
       "IN"
     ]
