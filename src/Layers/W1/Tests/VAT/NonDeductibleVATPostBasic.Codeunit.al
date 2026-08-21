@@ -16,6 +16,7 @@ codeunit 134285 "Non-Deductible VAT Post. Basic"
         LibraryERM: Codeunit "Library - ERM";
         LibraryNonDeductibleVAT: Codeunit "Library - NonDeductible VAT";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        LibraryUtility: Codeunit "Library - Utility";
         Assert: Codeunit Assert;
         isInitialized: Boolean;
         AmountErr: Label '%1 must be %2 in %3.';
@@ -536,9 +537,9 @@ codeunit 134285 "Non-Deductible VAT Post. Basic"
     begin
         LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
         LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATBusPostingGroupCode, VATProductPostingGroup.Code);
-        VATPostingSetup.Validate("VAT Identifier", VATProductPostingGroup.Code);
         VATPostingSetup.Validate("VAT Calculation Type", VATPostingSetup."VAT Calculation Type"::"Full VAT");
         VATPostingSetup.Validate("VAT %", 100);
+        VATPostingSetup.Validate("VAT Identifier", LibraryUtility.GenerateRandomCode(VATPostingSetup.FieldNo("VAT Identifier"), Database::"VAT Posting Setup"));
         LibraryNonDeductibleVAT.SetAllowNonDeductibleVATForVATPostingSetup(VATPostingSetup);
         VATPostingSetup.Validate("Non-Deductible VAT %", NonDeductibleVATPct);
         VATPostingSetup.Modify(true);
@@ -550,20 +551,12 @@ codeunit 134285 "Non-Deductible VAT Post. Basic"
     local procedure CreateNDFullVATSalesPostingSetup(var VATPostingSetup: Record "VAT Posting Setup"; NonDeductibleVATPct: Decimal) SalesVATAccountNo: Code[20]
     var
         GLAccount: Record "G/L Account";
-        VATBusinessPostingGroup: Record "VAT Business Posting Group";
-        VATProductPostingGroup: Record "VAT Product Posting Group";
     begin
-        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
-        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
-        LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATBusinessPostingGroup.Code, VATProductPostingGroup.Code);
-        VATPostingSetup.Validate("VAT Identifier", VATProductPostingGroup.Code);
-        VATPostingSetup.Validate("VAT Calculation Type", VATPostingSetup."VAT Calculation Type"::"Full VAT");
-        VATPostingSetup.Validate("VAT %", 100);
-        LibraryNonDeductibleVAT.SetAllowNonDeductibleVATForVATPostingSetup(VATPostingSetup);
-        VATPostingSetup.Validate("Non-Deductible VAT %", NonDeductibleVATPct);
-        VATPostingSetup.Modify(true);
-        SalesVATAccountNo := CreateGLAccount(VATPostingSetup, GLAccount."Gen. Posting Type"::Sale);
+        LibraryNonDeductibleVAT.CreatVATPostingSetupAllowedForNonDeductibleVAT(
+            VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Full VAT", 100);
+        SalesVATAccountNo := LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, GLAccount."Gen. Posting Type"::Sale);
         VATPostingSetup.Validate("Sales VAT Account", SalesVATAccountNo);
+        VATPostingSetup.Validate("Non-Deductible VAT %", NonDeductibleVATPct);
         VATPostingSetup.Modify(true);
     end;
 
