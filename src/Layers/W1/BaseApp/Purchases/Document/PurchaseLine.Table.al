@@ -3906,7 +3906,7 @@ table 39 "Purchase Line"
         field(99000757; "Planning Flexibility"; Enum "Reservation Planning Flexibility")
         {
             Caption = 'Planning Flexibility';
-            ToolTip = 'Specifies whether the supply represented by this line is considered by the planning system when calculating action messages.';
+            ToolTip = 'Specifiesx whether the supply represented by this line is considered by the planning system when calculating action messages.';
 
             trigger OnValidate()
             begin
