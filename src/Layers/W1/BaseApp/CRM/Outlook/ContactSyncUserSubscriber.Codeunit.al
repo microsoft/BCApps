@@ -12,7 +12,8 @@ codeunit 7100 "Contact Sync User Subscriber"
     local procedure OnBeforeInsertContactSyncUser(var Rec: Record "Contact Sync User"; RunTrigger: Boolean)
     begin
         Rec.EnforceRecordOwnership();
-        Rec.ValidateApprovedGraphDeltaUrl(Rec."Delta Url");
+        if not Rec.ValidateApprovedGraphDeltaUrl(Rec."Delta Url") then
+            Error(InvalidDeltaUrlErr);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Contact Sync User", 'OnBeforeModifyEvent', '', false, false)]
@@ -22,6 +23,10 @@ codeunit 7100 "Contact Sync User Subscriber"
         if Session.GetExecutionContext() in [ExecutionContext::Install, ExecutionContext::Upgrade] then
             exit;
         Rec.EnforceRecordOwnershipOnModify(xRec."User ID");
-        Rec.ValidateApprovedGraphDeltaUrl(Rec."Delta Url");
+        if not Rec.ValidateApprovedGraphDeltaUrl(Rec."Delta Url") then
+            Error(InvalidDeltaUrlErr);
     end;
+
+    var
+        InvalidDeltaUrlErr: Label 'The Delta URL must be an HTTPS Microsoft Graph URL.';
 }
