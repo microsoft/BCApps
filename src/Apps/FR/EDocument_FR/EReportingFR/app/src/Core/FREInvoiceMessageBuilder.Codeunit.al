@@ -48,10 +48,14 @@ codeunit 10976 "FR E-Invoice Message Builder"
                 begin
                     ReferenceElement.Add(XmlElement.Create('ProcessConditionCode', RamNamespaceTok, RefusedStatusCodeTok));
                     ReferenceElement.Add(XmlElement.Create('ProcessCondition', RamNamespaceTok, RefusedStatusNameTok));
-                    StatusElement := XmlElement.Create('SpecifiedDocumentStatus', RamNamespaceTok);
-                    StatusElement.Add(XmlElement.Create('ReasonCode', RamNamespaceTok, FREInvoiceMessage."Reason Code"));
-                    StatusElement.Add(XmlElement.Create('Reason', RamNamespaceTok, FREInvoiceMessage."Reason Description"));
-                    ReferenceElement.Add(StatusElement);
+                    if (FREInvoiceMessage."Reason Code" <> '') or (FREInvoiceMessage."Reason Description" <> '') then begin
+                        StatusElement := XmlElement.Create('SpecifiedDocumentStatus', RamNamespaceTok);
+                        if FREInvoiceMessage."Reason Code" <> '' then
+                            StatusElement.Add(XmlElement.Create('ReasonCode', RamNamespaceTok, FREInvoiceMessage."Reason Code"));
+                        if FREInvoiceMessage."Reason Description" <> '' then
+                            StatusElement.Add(XmlElement.Create('Reason', RamNamespaceTok, FREInvoiceMessage."Reason Description"));
+                        ReferenceElement.Add(StatusElement);
+                    end;
                 end;
             FREInvoiceMessage.Type::Collected,
             FREInvoiceMessage.Type::"Negative Collected":
