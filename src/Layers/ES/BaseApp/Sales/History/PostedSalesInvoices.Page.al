@@ -147,7 +147,15 @@ page 143 "Posted Sales Invoices"
                 field("<Ship-to Code>"; Rec."Ship-to Name")
                 {
                     ApplicationArea = Basic, Suite;
+                    ObsoleteReason = 'Use Ship-to Name instead.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '28.0';
                     ToolTip = 'Specifies the name of the customer that the items were shipped to.';
+                    Visible = false;
+                }
+                field("Ship-to Name"; Rec."Ship-to Name")
+                {
+                    ApplicationArea = Basic, Suite;
                     Visible = false;
                 }
                 field("Ship-to Post Code"; Rec."Ship-to Post Code")
