@@ -5,6 +5,7 @@
 namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
+using Microsoft.HumanResources.Employee;
 
 codeunit 148315 "Expense Users API Test"
 {
@@ -77,6 +78,61 @@ codeunit 148315 "Expense Users API Test"
         // [THEN] the unlinked user is absent from the list
         Assert.AreEqual(0, StrPos(ResponseText, UnlinkedUserIdTxt),
             'Unlinked Expense User should not appear in the list response');
+    end;
+
+    [Test]
+    procedure ExpenseUserWithoutEmployeePostingGroupIsHiddenFromAPI()
+    var
+        ValidExpenseUser: Record "Expense User";
+        NoPostingGroupExpenseUser: Record "Expense User";
+        Employee: Record Employee;
+        TargetURL: Text;
+        ResponseText: Text;
+        ValidUserIdTxt: Text;
+        NoPostingGroupUserIdTxt: Text;
+    begin
+        // [SCENARIO 645043] An Expense User whose linked Employee has no Employee
+        // Posting Group cannot post expenses, so it must not surface through the
+        // agent-facing Expense Users API - same treatment as an unlinked user.
+        Initialize();
+
+        // [GIVEN] an Expense User whose Employee has an Employee Posting Group
+        LibraryExpense.CreateExpenseUser(ValidExpenseUser);
+
+        // [GIVEN] an Expense User whose Employee has a blank Employee Posting Group
+        LibraryExpense.CreateExpenseUser(NoPostingGroupExpenseUser);
+        Employee.Get(NoPostingGroupExpenseUser."Employee No.");
+        Employee."Employee Posting Group" := '';
+        Employee.Modify();
+        Commit();
+
+        ValidUserIdTxt := LowerCase(LibraryGraphMgt.StripBrackets(Format(ValidExpenseUser.SystemId)));
+        NoPostingGroupUserIdTxt := LowerCase(LibraryGraphMgt.StripBrackets(Format(NoPostingGroupExpenseUser.SystemId)));
+
+        // [WHEN] the valid user is fetched by id
+        // [THEN] the request succeeds (200)
+        TargetURL := LibraryGraphMgt.CreateTargetURL(
+            Format(ValidExpenseUser.SystemId), Page::"Expense Users API", ServiceNameTok);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+
+        // [WHEN] the user without a posting group is fetched by id
+        // [THEN] the API responds 404 because the visibility filter hides it
+        TargetURL := LibraryGraphMgt.CreateTargetURL(
+            Format(NoPostingGroupExpenseUser.SystemId), Page::"Expense Users API", ServiceNameTok);
+        asserterror LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 404);
+
+        // [WHEN] the full collection is fetched through the API
+        TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Users API", ServiceNameTok);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+        ResponseText := LowerCase(ResponseText);
+
+        // [THEN] the user with a posting group appears in the list
+        Assert.AreNotEqual(0, StrPos(ResponseText, ValidUserIdTxt),
+            'Expense User with an Employee Posting Group should appear in the list response');
+
+        // [THEN] the user without a posting group is absent from the list
+        Assert.AreEqual(0, StrPos(ResponseText, NoPostingGroupUserIdTxt),
+            'Expense User without an Employee Posting Group should not appear in the list response');
     end;
 
     local procedure Initialize()

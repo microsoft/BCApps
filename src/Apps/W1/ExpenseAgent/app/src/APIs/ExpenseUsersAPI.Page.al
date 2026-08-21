@@ -129,15 +129,16 @@ page 6918 "Expense Users API"
     var
         OriginalFilterGroup: Integer;
     begin
-        // Expense Users without a linked Employee No. cannot post expenses
-        // (validation fails at submission), so don't surface them to the agent
-        // gateway. The gateway treats an absent user as "not in this environment"
-        // and blocks sign-in there. Apply the constraint in FilterGroup 2 so it
-        // AND-combines with any caller-supplied $filter on Employee No., rather
-        // than replacing it in the default FilterGroup 0.
+        // Expense Users whose linked Employee is missing (blank Employee No.) or has
+        // no Employee Posting Group cannot post expenses (validation fails at
+        // submission), so don't surface them to the agent gateway. The gateway treats
+        // an absent user as "not in this environment" and blocks sign-in there. Apply
+        // the constraints in FilterGroup 2 so they AND-combine with any caller-supplied
+        // $filter, rather than replacing it in the default FilterGroup 0.
         OriginalFilterGroup := Rec.FilterGroup();
         Rec.FilterGroup(2);
         Rec.SetFilter("Employee No.", '<>%1', '');
+        Rec.SetFilter("Employee Posting Group", '<>%1', '');
         Rec.FilterGroup(OriginalFilterGroup);
     end;
 }
