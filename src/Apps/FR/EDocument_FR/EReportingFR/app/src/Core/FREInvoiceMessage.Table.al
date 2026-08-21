@@ -96,6 +96,21 @@ table 10970 "FR E-Invoice Message"
             Caption = 'Received At';
             DataClassification = SystemMetadata;
         }
+        field(16; "Sender Platform ID"; Text[50])
+        {
+            Caption = 'Sender Platform ID';
+            DataClassification = OrganizationIdentifiableInformation;
+        }
+        field(17; "Sender Platform Scheme"; Code[4])
+        {
+            Caption = 'Sender Platform Scheme';
+            DataClassification = SystemMetadata;
+        }
+        field(18; "Sender Platform Name"; Text[100])
+        {
+            Caption = 'Sender Platform Name';
+            DataClassification = OrganizationIdentifiableInformation;
+        }
     }
 
     keys

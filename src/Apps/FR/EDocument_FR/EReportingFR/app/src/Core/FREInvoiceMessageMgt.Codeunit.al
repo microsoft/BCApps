@@ -108,6 +108,12 @@ codeunit 10975 "FR E-Invoice Message Mgt."
         FREInvoiceMessage."Reason Code" := ReasonCode;
         FREInvoiceMessage."Reason Description" := ReasonDescription;
         FREInvoiceMessage."Created At" := CurrentDateTime();
+        case MessageType of
+            MessageType::Collected:
+                FreezeSenderPlatform(EDocument, FREInvoiceMessage);
+            MessageType::"Negative Collected":
+                CopySenderPlatform(FREInvoiceMessage, OriginalEntryNo);
+        end;
         FREInvoiceMessage.Insert();
 
         case MessageType of
@@ -122,6 +128,28 @@ codeunit 10975 "FR E-Invoice Message Mgt."
             EDocument, "E-Document Message Type"::"FR Invoice Lifecycle", GetResponseType(MessageType), TempBlob);
         FREInvoiceMessage.Modify();
         EDocumentMessageAPI.QueueMessage(FREInvoiceMessage."E-Document Message Entry No.");
+    end;
+
+    local procedure FreezeSenderPlatform(EDocument: Record "E-Document"; var FREInvoiceMessage: Record "FR E-Invoice Message")
+    var
+        EDocumentService: Record "E-Document Service";
+    begin
+        EDocumentService.Get(EDocument.Service);
+        if EDocumentService."FR Sender Platform ID" <> '' then
+            EDocumentService.TestField("FR Sender Platform Scheme");
+        FREInvoiceMessage."Sender Platform ID" := EDocumentService."FR Sender Platform ID";
+        FREInvoiceMessage."Sender Platform Scheme" := EDocumentService."FR Sender Platform Scheme";
+        FREInvoiceMessage."Sender Platform Name" := EDocumentService."FR Sender Platform Name";
+    end;
+
+    local procedure CopySenderPlatform(var FREInvoiceMessage: Record "FR E-Invoice Message"; OriginalEntryNo: Integer)
+    var
+        OriginalFREInvoiceMessage: Record "FR E-Invoice Message";
+    begin
+        OriginalFREInvoiceMessage.Get(OriginalEntryNo);
+        FREInvoiceMessage."Sender Platform ID" := OriginalFREInvoiceMessage."Sender Platform ID";
+        FREInvoiceMessage."Sender Platform Scheme" := OriginalFREInvoiceMessage."Sender Platform Scheme";
+        FREInvoiceMessage."Sender Platform Name" := OriginalFREInvoiceMessage."Sender Platform Name";
     end;
 
     local procedure CreateCollectedVATBreakdown(EDocument: Record "E-Document"; var FREInvoiceMessage: Record "FR E-Invoice Message")

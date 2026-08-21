@@ -258,6 +258,68 @@ codeunit 148151 "FR E-Invoice Message Tests"
     end;
 
     [Test]
+    procedure CollectedMessageFreezesSenderPlatform()
+    var
+        EDocument: Record "E-Document";
+        EDocumentService: Record "E-Document Service";
+        FREInvoiceMessage: Record "FR E-Invoice Message";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 647421] A Collected message retains the sender-platform identity captured from its service
+        Initialize();
+
+        // [GIVEN] An eligible payment and a French service with sender-platform identity
+        CreatePaymentScenario(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Approved);
+
+        // [WHEN] The payment is processed and the service identity is subsequently changed
+        FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
+        EDocumentService.Get(EDocument.Service);
+        EDocumentService."FR Sender Platform ID" := 'CHANGED-PLATFORM';
+        EDocumentService."FR Sender Platform Scheme" := '9999';
+        EDocumentService."FR Sender Platform Name" := 'Changed Platform';
+        EDocumentService.Modify();
+
+        // [THEN] The message retains the original platform values
+        FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
+        FREInvoiceMessage.SetRange(Type, FREInvoiceMessage.Type::Collected);
+        FREInvoiceMessage.FindFirst();
+        Assert.AreEqual('TEST-PLATFORM', FREInvoiceMessage."Sender Platform ID", 'The sender-platform ID must be frozen at capture.');
+        Assert.AreEqual('0238', FREInvoiceMessage."Sender Platform Scheme", 'The sender-platform scheme must be frozen at capture.');
+        Assert.AreEqual('Test Platform', FREInvoiceMessage."Sender Platform Name", 'The sender-platform name must be frozen at capture.');
+    end;
+
+    [Test]
+    procedure CollectedMessageAllowsMissingSenderPlatformIdentity()
+    var
+        EDocument: Record "E-Document";
+        EDocumentService: Record "E-Document Service";
+        FREInvoiceMessage: Record "FR E-Invoice Message";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 647421] A Collected message supports a service without optional sender-platform identity
+        Initialize();
+
+        // [GIVEN] An eligible payment whose service has no sender-platform ID
+        CreatePaymentScenario(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Approved);
+        EDocumentService.Get(EDocument.Service);
+        Clear(EDocumentService."FR Sender Platform ID");
+        EDocumentService.Modify();
+
+        // [WHEN] The payment is processed
+        FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
+
+        // [THEN] The message is created with no frozen platform identity
+        FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
+        FREInvoiceMessage.SetRange(Type, FREInvoiceMessage.Type::Collected);
+        FREInvoiceMessage.FindFirst();
+        Assert.AreEqual('', FREInvoiceMessage."Sender Platform ID", 'The optional sender-platform ID must remain blank.');
+    end;
+
+    [Test]
     procedure SingleRateFullPaymentCreatesOneVATRow()
     var
         EDocument: Record "E-Document";
@@ -415,6 +477,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
     procedure ReversalCopiesFrozenRowsWithNegatedValues()
     var
         EDocument: Record "E-Document";
+        EDocumentService: Record "E-Document Service";
         CollectedMessage: Record "FR E-Invoice Message";
         NegativeMessage: Record "FR E-Invoice Message";
         OriginalVAT: Record "FR E-Invoice Message VAT";
@@ -438,12 +501,17 @@ codeunit 148151 "FR E-Invoice Message Tests"
         OriginalVAT.SetRange("Message Entry No.", CollectedMessage."Entry No.");
         OriginalVAT.FindFirst();
 
-        // [GIVEN] The VAT posting setup category is changed after the original message
+        // [GIVEN] VAT and sender-platform setup are changed after the original message
         VATPostingSetup.SetRange("Tax Category", 'S');
         VATPostingSetup.SetRange("Unrealized VAT Type", VATPostingSetup."Unrealized VAT Type"::Percentage);
         VATPostingSetup.FindFirst();
         VATPostingSetup."Tax Category" := 'Z';
         VATPostingSetup.Modify();
+        EDocumentService.Get(EDocument.Service);
+        EDocumentService."FR Sender Platform ID" := 'CHANGED-PLATFORM';
+        EDocumentService."FR Sender Platform Scheme" := '9999';
+        EDocumentService."FR Sender Platform Name" := 'Changed Platform';
+        EDocumentService.Modify();
 
         // [WHEN] The payment is unapplied
         CreateDetailedLedgerEntry(NewDetailedCustLedgEntry, DetailedCustLedgEntry."Cust. Ledger Entry No.", DetailedCustLedgEntry."Applied Cust. Ledger Entry No.", -120);
@@ -461,6 +529,9 @@ codeunit 148151 "FR E-Invoice Message Tests"
         Assert.AreEqual(OriginalVAT."VAT %", ReversalVAT."VAT %", 'Reversal must use frozen original rate not current setup.');
         Assert.AreEqual('S', Format(OriginalVAT."VAT Category Code"), 'Original category must be the original value.');
         Assert.AreEqual(OriginalVAT."VAT Category Code", ReversalVAT."VAT Category Code", 'Reversal must preserve frozen original category.');
+        Assert.AreEqual(CollectedMessage."Sender Platform ID", NegativeMessage."Sender Platform ID", 'Reversal must preserve the original sender-platform ID.');
+        Assert.AreEqual(CollectedMessage."Sender Platform Scheme", NegativeMessage."Sender Platform Scheme", 'Reversal must preserve the original sender-platform scheme.');
+        Assert.AreEqual(CollectedMessage."Sender Platform Name", NegativeMessage."Sender Platform Name", 'Reversal must preserve the original sender-platform name.');
     end;
 
     [Test]
@@ -1000,13 +1071,17 @@ codeunit 148151 "FR E-Invoice Message Tests"
     var
         EDocumentService: Record "E-Document Service";
     begin
-        if EDocumentService.Get('FR-MESSAGE-MOCK') then
-            exit;
-        EDocumentService.Init();
-        EDocumentService.Code := 'FR-MESSAGE-MOCK';
-        EDocumentService."Document Format" := EDocumentService."Document Format"::"Peppol BIS 3.0 FR";
-        EDocumentService."Service Integration V2" := EDocumentService."Service Integration V2"::"FR Message Mock";
-        EDocumentService.Insert();
+        if not EDocumentService.Get('FR-MESSAGE-MOCK') then begin
+            EDocumentService.Init();
+            EDocumentService.Code := 'FR-MESSAGE-MOCK';
+            EDocumentService."Document Format" := EDocumentService."Document Format"::"Peppol BIS 3.0 FR";
+            EDocumentService."Service Integration V2" := EDocumentService."Service Integration V2"::"FR Message Mock";
+            EDocumentService.Insert();
+        end;
+        EDocumentService."FR Sender Platform ID" := 'TEST-PLATFORM';
+        EDocumentService."FR Sender Platform Scheme" := '0238';
+        EDocumentService."FR Sender Platform Name" := 'Test Platform';
+        EDocumentService.Modify();
     end;
 
     local procedure CreateIncomingEDocument(var EDocument: Record "E-Document")
