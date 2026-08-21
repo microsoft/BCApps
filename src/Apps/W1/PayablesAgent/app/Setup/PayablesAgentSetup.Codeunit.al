@@ -235,7 +235,7 @@ codeunit 3307 "Payables Agent Setup"
     internal procedure SetAgentInstructions(AgentUserSecurityId: Guid)
     var
         PayablesAgentSetup: Record "Payables Agent Setup";
-        NewConfigHash: Text;
+        NewConfigHash: Text[64];
     begin
         if IsNullGuid(AgentUserSecurityId) then
             exit;
@@ -244,7 +244,7 @@ codeunit 3307 "Payables Agent Setup"
 
         PayablesAgentSetup.GetSetup();
         if PayablesAgentSetup."Applied Instr. Config Hash" <> NewConfigHash then begin
-            PayablesAgentSetup."Applied Instr. Config Hash" := CopyStr(NewConfigHash, 1, MaxStrLen(PayablesAgentSetup."Applied Instr. Config Hash"));
+            PayablesAgentSetup."Applied Instr. Config Hash" := NewConfigHash;
             PayablesAgentSetup.Modify();
         end;
     end;
@@ -254,7 +254,7 @@ codeunit 3307 "Payables Agent Setup"
     /// This helper does NOT modify the Payables Agent Setup record, allowing callers that already hold
     /// a loaded record (such as ApplyPayablesAgentSetup) to persist the hash themselves in a single Modify().
     /// </summary>
-    local procedure ApplyAgentInstructions(AgentUserSecurityId: Guid): Text
+    local procedure ApplyAgentInstructions(AgentUserSecurityId: Guid): Text[64]
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
         Agent: Codeunit Agent;
@@ -323,7 +323,7 @@ codeunit 3307 "Payables Agent Setup"
     /// Generic on purpose: a future prompt-affecting experiment only needs its key added to
     /// GetInstructionsExperimentKeys (and its value consumed in prompt selection) — no new setup field required.
     /// </summary>
-    internal procedure GetInstructionsConfigHash(): Text
+    internal procedure GetInstructionsConfigHash() ConfigHash: Text[64]
     var
         FeatureConfiguration: Codeunit "Feature Configuration";
         CryptographyManagement: Codeunit "Cryptography Management";
@@ -337,7 +337,7 @@ codeunit 3307 "Payables Agent Setup"
             Signature.Append(FeatureConfiguration.GetConfiguration(ConfigKey));
             Signature.Append(';');
         end;
-        exit(CryptographyManagement.GenerateHash(Signature.ToText(), HashAlgorithmType::SHA256));
+        ConfigHash := CopyStr(CryptographyManagement.GenerateHash(Signature.ToText(), HashAlgorithmType::SHA256), 1, MaxStrLen(ConfigHash));
     end;
 
     local procedure GetInstructionsExperimentKeys() Keys: List of [Text]
@@ -441,7 +441,7 @@ codeunit 3307 "Payables Agent Setup"
         exit(AgentSummaryLbl);
     end;
 
-    local procedure ApplyAgentSetup(var PASetupConfiguration: Codeunit "PA Setup Configuration"; var AppliedInstrConfigHash: Text): Guid
+    local procedure ApplyAgentSetup(var PASetupConfiguration: Codeunit "PA Setup Configuration"; var AppliedInstrConfigHash: Text[64]): Guid
     var
         AgentAdminPS: Record "Aggregate Permission Set";
         AccessControl: Record "Access Control";
