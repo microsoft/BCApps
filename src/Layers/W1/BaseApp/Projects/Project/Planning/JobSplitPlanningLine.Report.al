@@ -12,6 +12,7 @@ report 1088 "Job Split Planning Line"
     AdditionalSearchTerms = 'Job Split Planning Line';
     ApplicationArea = Jobs;
     Caption = 'Project Split Planning Line';
+    ToolTip = 'Split planning lines of type Budget and Billable into two separate planning lines: Budget and Billable.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

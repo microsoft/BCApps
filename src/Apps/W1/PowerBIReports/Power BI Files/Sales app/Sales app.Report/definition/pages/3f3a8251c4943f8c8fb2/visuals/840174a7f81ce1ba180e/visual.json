@@ -36,6 +36,34 @@
           "projections": [
             {
               "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project"
+                    }
+                  },
+                  "Property": "Project Description"
+                }
+              },
+              "queryRef": "Project.Project Description",
+              "nativeQueryRef": "Project Description"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Project"
+                    }
+                  },
+                  "Property": "Sell-to Customer Name"
+                }
+              },
+              "queryRef": "Project.Sell-to Customer Name",
+              "nativeQueryRef": "Customer Name"
+            },
+            {
+              "field": {
                 "Measure": {
                   "Expression": {
                     "SourceRef": {

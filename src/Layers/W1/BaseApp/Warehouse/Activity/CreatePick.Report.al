@@ -298,15 +298,12 @@ report 5754 "Create Pick"
     local procedure CreateTempLine()
     var
         WarehouseShipmentLine: Record "Warehouse Shipment Line";
-        PickWhseActivHeader: Record "Warehouse Activity Header";
         TempWhseItemTrkgLine: Record "Whse. Item Tracking Line" temporary;
         ItemTrackingMgt: Codeunit "Item Tracking Management";
-        WarehouseDocumentPrint: Codeunit "Warehouse Document-Print";
         PickQty: Decimal;
         PickQtyBase: Decimal;
         OldFirstSetPickNo: Code[20];
         TotalQtyPickedBase: Decimal;
-        PickListReportID: Integer;
         IsHandled: Boolean;
     begin
         PickWhseWkshLine.LockTable();
@@ -436,8 +433,23 @@ report 5754 "Create Pick"
             Commit();
         end;
 
+        FindSortAndPrintPickHeaders();
+    end;
+
+    local procedure FindSortAndPrintPickHeaders()
+    var
+        PickWhseActivHeader: Record "Warehouse Activity Header";
+        WarehouseDocumentPrint: Codeunit "Warehouse Document-Print";
+        PickListReportID: Integer;
+        IsHandled: Boolean;
+    begin
         PickWhseActivHeader.SetRange(Type, PickWhseActivHeader.Type::Pick);
         PickWhseActivHeader.SetRange("No.", FirstSetPickNo, LastPickNo);
+        IsHandled := false;
+        OnBeforeFindSortAndPrintPickHeaders(PickWhseActivHeader, PrintPick, IsHandled);
+        if IsHandled then
+            exit;
+
         PickWhseActivHeader.Find('-');
         repeat
             if SortActivity <> SortActivity::None then
@@ -670,6 +682,11 @@ report 5754 "Create Pick"
     begin
     end;
 
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeFindSortAndPrintPickHeaders(var WarehouseActivityHeader: Record "Warehouse Activity Header"; PrintPick: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
     [IntegrationEvent(true, false)]
     local procedure OnCreateTempLineOnBeforeSetTempWhseItemTrackingLine(var PickWhseWorksheetLine: Record "Whse. Worksheet Line"; var PickQty: Decimal; var PickQtyBase: Decimal; var IsHandled: Boolean)
     begin
@@ -685,4 +702,3 @@ report 5754 "Create Pick"
     begin
     end;
 }
-

@@ -4,6 +4,7 @@
   "publisher": "Microsoft",
   "version": "29.0.0.0",
   "platform": "29.0.0.0",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
   "dependencies": [
     {
       "id": "5d86850b-0d76-4eca-bd7b-951ad998e997",
@@ -26,6 +27,12 @@
     {
       "id": "bee8cf2f-494a-42f4-aabd-650e87934d39",
       "name": "Business Foundation Test Libraries",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    },
+    {
+      "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
+      "name": "Library Assert",
       "publisher": "Microsoft",
       "version": "29.0.0.0"
     }

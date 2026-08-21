@@ -6,6 +6,7 @@ namespace Microsoft.Inventory.Requisition;
 
 using Microsoft.Foundation.Navigate;
 using Microsoft.Inventory.Planning;
+using Microsoft.Manufacturing.Setup;
 using Microsoft.Purchases.Document;
 
 report 99001020 "Carry Out Action Msg. - Plan."
@@ -92,6 +93,8 @@ report 99001020 "Carry Out Action Msg. - Plan."
                     CheckCopyToWksh(TransWkshTemp, TransWkshName);
                 if ProdOrderChoice = ProdOrderChoice::"Copy to Req. Wksh" then
                     CheckCopyToWksh(ProdWkshTempl, ProdWkshName);
+
+                CheckReleasedProductionOrderNoSeries();
 
                 if not HideDialog then
                     Window.Open(Text012);
@@ -510,6 +513,24 @@ report 99001020 "Carry Out Action Msg. - Plan."
         until "Requisition Line".Next() = 0;
     end;
 
+    local procedure CheckReleasedProductionOrderNoSeries()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        RequisitionLine2: Record "Requisition Line";
+    begin
+        if not (ProdOrderChoice in [ProdOrderChoice::Released, ProdOrderChoice::"Released & Print"]) then
+            exit;
+
+        RequisitionLine2.Copy("Requisition Line");
+        RequisitionLine2.SetRange("Accept Action Message", true);
+        RequisitionLine2.SetRange("Ref. Order Type", RequisitionLine2."Ref. Order Type"::"Prod. Order");
+        if RequisitionLine2.IsEmpty() then
+            exit;
+
+        ManufacturingSetup.Get();
+        ManufacturingSetup.TestField("Released Order Nos.");
+    end;
+
     local procedure CheckLine()
     var
         ReqLine2: Record "Requisition Line";
@@ -688,4 +709,3 @@ report 99001020 "Carry Out Action Msg. - Plan."
     begin
     end;
 }
-
