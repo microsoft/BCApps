@@ -15,6 +15,8 @@ page 36951 "PowerBI Reports Setup"
     SourceTable = "PowerBI Reports Setup";
     ApplicationArea = All;
     UsageCategory = Administration;
+    InsertAllowed = false;
+    DeleteAllowed = false;
 
     layout
     {
@@ -619,7 +621,8 @@ page 36951 "PowerBI Reports Setup"
         PowerBIInitialization: Codeunit Initialization;
         FinanceInstallationHandler: Codeunit "Finance Installation Handler";
     begin
-        if not Rec.FindFirst() then
+        Rec.Reset();
+        if not Rec.Get() then
             PowerBIInitialization.SetupDefaultsForPowerBIReportsIfNotInitialized();
 
         FinanceInstallationHandler.NotifyIfAccountCategoryMappingIncomplete();
