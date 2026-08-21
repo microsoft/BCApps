@@ -4,14 +4,14 @@ enum 136605 EnumRs
 
     value(8; Eight)
     {
-        CaptionML = ENU = 'Eight', DAN = 'Otte';
+        Caption = 'Eight';
     }
     value(9; Nine)
     {
-        CaptionML = ENU = 'Nine', DAN = 'Ni';
+        Caption = 'Nine';
     }
     value(10; Ten)
     {
-        CaptionML = ENU = 'Ten', DAN = 'Ti';
+        Caption = 'Ten';
     }
 }
