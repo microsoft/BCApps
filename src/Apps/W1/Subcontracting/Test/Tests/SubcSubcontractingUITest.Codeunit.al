@@ -5,6 +5,7 @@
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Capacity;
@@ -79,11 +80,11 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     procedure SubcontractingSetupWizardShowsCompanyDefaultsAndConfigurationLinks()
     var
         ManufacturingSetup: Record "Manufacturing Setup";
+        SubcCompTransferLeadTime: DateFormula;
         SubcontractingSetupWizard: TestPage "Subcontracting Setup Wizard";
         ComponentDirectUnitCost: Option Standard,"Prod. Order Component";
         CreateProdOrderInfoLine: Boolean;
         SubcDefaultCompLocation: Enum "Components at Location";
-        SubcCompTransferLeadTime: DateFormula;
         SubcontractingBatchName: Code[10];
         SubcontractingTemplateName: Code[10];
     begin
@@ -452,7 +453,7 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         WorkCenterCard.GotoRecord(WorkCenter);
 
         // [THEN] Subcontractor - Dispatch List action is not enabled
-        Assert.IsFalse(WorkCenterCard."Subcontractor - Dispatch List".Enabled(), SubcontractingActionsEnabledErr);
+        Assert.IsFalse(WorkCenterCard."Subcontractor Dispatch List".Enabled(), SubcontractingActionsEnabledErr);
         WorkCenterCard.Close();
     end;
 
@@ -475,8 +476,135 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         WorkCenterCard.GotoRecord(WorkCenter);
 
         // [THEN] Subcontractor - Dispatch List action is enabled
-        Assert.IsTrue(WorkCenterCard."Subcontractor - Dispatch List".Enabled(), SubcontractingActionsNotEnabledErr);
+        Assert.IsTrue(WorkCenterCard."Subcontractor Dispatch List".Enabled(), SubcontractingActionsNotEnabledErr);
         WorkCenterCard.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('SubcontractorLocationNotificationHandler,SubcontractorLocationRecallHandler')]
+    procedure WorkCenterCardNotifiesWhenSubcontractorHasNoLocation()
+    var
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        WorkCenterCard: TestPage "Work Center Card";
+    begin
+        // [SCENARIO 642229] A notification identifies a subcontractor vendor that has no subcontracting location.
+        Initialize();
+
+        // [GIVEN] A Work Center and a vendor without a Subcontracting Location Code
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        Vendor.Get(LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+
+        // [WHEN] The vendor is selected as the subcontractor on the Work Center Card
+        WorkCenterCard.OpenEdit();
+        WorkCenterCard.GoToRecord(WorkCenter);
+        WorkCenterCard."Subcontractor No.".SetValue(Vendor."No.");
+
+        // [THEN] Any previous notification is recalled before one notification is sent for that vendor
+        VerifySubcontractorLocationNotification(Vendor."No.");
+        WorkCenterCard.Close();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('SubcontractorLocationNotificationHandler,SubcontractorLocationRecallHandler')]
+    procedure WorkCenterCardDoesNotStackSubcontractorLocationNotifications()
+    var
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        WorkCenterCard: TestPage "Work Center Card";
+    begin
+        // [SCENARIO 642229] Revalidating an unconfigured subcontractor replaces the existing notification.
+        Initialize();
+
+        // [GIVEN] A Work Center Card showing a notification for a vendor without a subcontracting location
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        Vendor.Get(LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        WorkCenterCard.OpenEdit();
+        WorkCenterCard.GoToRecord(WorkCenter);
+        WorkCenterCard."Subcontractor No.".SetValue(Vendor."No.");
+        VerifySubcontractorLocationNotification(Vendor."No.");
+
+        // [WHEN] The same vendor is validated again
+        WorkCenterCard."Subcontractor No.".SetValue(Vendor."No.");
+
+        // [THEN] The previous notification is recalled before its replacement is sent with the same notification ID
+        VerifySubcontractorLocationNotification(Vendor."No.");
+        WorkCenterCard.Close();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('SubcontractorLocationNotificationHandler,SubcontractorLocationRecallHandler')]
+    procedure WorkCenterCardRecallsSubcontractorLocationNotificationWhenNoLongerNeeded()
+    var
+        Location: Record Location;
+        ConfiguredVendor: Record Vendor;
+        UnconfiguredVendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        WorkCenterCard: TestPage "Work Center Card";
+    begin
+        // [SCENARIO 642229] A previous notification is removed when the subcontractor is configured or cleared.
+        Initialize();
+
+        // [GIVEN] An unconfigured vendor, a configured vendor, and a Work Center Card showing the notification
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        UnconfiguredVendor.Get(LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        ConfiguredVendor.Get(LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        ConfiguredVendor.Validate("Subc. Location Code", Location.Code);
+        ConfiguredVendor.Modify(true);
+        WorkCenterCard.OpenEdit();
+        WorkCenterCard.GoToRecord(WorkCenter);
+        WorkCenterCard."Subcontractor No.".SetValue(UnconfiguredVendor."No.");
+        VerifySubcontractorLocationNotification(UnconfiguredVendor."No.");
+
+        // [WHEN] The configured vendor is selected
+        WorkCenterCard."Subcontractor No.".SetValue(ConfiguredVendor."No.");
+
+        // [THEN] The previous notification is recalled and no notification is sent for the configured vendor
+        VerifySubcontractorLocationNotification('');
+
+        // [WHEN] The unconfigured vendor is selected again
+        WorkCenterCard."Subcontractor No.".SetValue(UnconfiguredVendor."No.");
+
+        // [THEN] The previous notification is recalled before a new notification is sent
+        VerifySubcontractorLocationNotification(UnconfiguredVendor."No.");
+
+        // [WHEN] The subcontractor is cleared
+        WorkCenterCard."Subcontractor No.".SetValue('');
+
+        // [THEN] The notification is recalled without sending another one
+        VerifySubcontractorLocationNotification('');
+        WorkCenterCard.Close();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('SubcontractorLocationNotificationActionHandler,SubcontractorLocationRecallHandler,VendorCardHandler')]
+    procedure WorkCenterCardSubcontractorLocationNotificationActionOpensVendorCard()
+    var
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        WorkCenterCard: TestPage "Work Center Card";
+    begin
+        // [SCENARIO 642229] The notification action opens the selected subcontractor vendor.
+        Initialize();
+
+        // [GIVEN] A Work Center and a vendor without a Subcontracting Location Code
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        Vendor.Get(LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+
+        // [WHEN] The vendor is selected as the subcontractor and the notification action is invoked
+        WorkCenterCard.OpenEdit();
+        WorkCenterCard.GoToRecord(WorkCenter);
+        WorkCenterCard."Subcontractor No.".SetValue(Vendor."No.");
+
+        // [THEN] The notification is sent for the vendor and the Vendor Card opens for that vendor
+        VerifySubcontractorLocationNotification(Vendor."No.");
+        Assert.AreEqual(Vendor."No.", LibraryVariableStorage.DequeueText(), VendorCardNoErr);
+        WorkCenterCard.Close();
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -684,6 +812,73 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         exit(1);
     end;
 
+    local procedure VerifySubcontractorLocationNotification(VendorNo: Code[20])
+    begin
+        Assert.AreEqual(RecallNotificationTok, LibraryVariableStorage.DequeueText(), NotificationOrderErr);
+        Assert.AreEqual(Format(GetMissingSubcontractingLocationNotificationId()), LibraryVariableStorage.DequeueText(), NotificationIdErr);
+        if VendorNo <> '' then begin
+            Assert.AreEqual(SendNotificationTok, LibraryVariableStorage.DequeueText(), NotificationOrderErr);
+            Assert.AreEqual(Format(GetMissingSubcontractingLocationNotificationId()), LibraryVariableStorage.DequeueText(), NotificationIdErr);
+            Assert.AreEqual(StrSubstNo(MissingSubcontractingLocationMsg, VendorNo), LibraryVariableStorage.DequeueText(), NotificationMessageErr);
+            Assert.AreEqual(VendorNo, LibraryVariableStorage.DequeueText(), NotificationVendorErr);
+        end;
+    end;
+
+    local procedure GetMissingSubcontractingLocationNotificationId(): Guid
+    begin
+        exit('{8A4B9A58-21EC-49DD-A3A5-C7E81F745B6D}');
+    end;
+
+    [SendNotificationHandler]
+    procedure SubcontractorLocationNotificationHandler(var SubcontractorLocationNotification: Notification): Boolean
+    begin
+        if SubcontractorLocationNotification.Id <> GetMissingSubcontractingLocationNotificationId() then
+            exit(false);
+
+        CaptureSubcontractorLocationNotification(SubcontractorLocationNotification);
+        exit(true);
+    end;
+
+    [SendNotificationHandler]
+    procedure SubcontractorLocationNotificationActionHandler(var SubcontractorLocationNotification: Notification): Boolean
+    var
+        SubcNotificationMgmt: Codeunit "Subc. Notification Mgmt.";
+    begin
+        if SubcontractorLocationNotification.Id <> GetMissingSubcontractingLocationNotificationId() then
+            exit(false);
+
+        CaptureSubcontractorLocationNotification(SubcontractorLocationNotification);
+        // Simulate choosing the Open Vendor Card notification action.
+        SubcNotificationMgmt.OpenVendorCard(SubcontractorLocationNotification);
+        exit(true);
+    end;
+
+    local procedure CaptureSubcontractorLocationNotification(SubcontractorLocationNotification: Notification)
+    begin
+        LibraryVariableStorage.Enqueue(SendNotificationTok);
+        LibraryVariableStorage.Enqueue(Format(SubcontractorLocationNotification.Id));
+        LibraryVariableStorage.Enqueue(SubcontractorLocationNotification.Message);
+        LibraryVariableStorage.Enqueue(SubcontractorLocationNotification.GetData(VendorNoTok));
+    end;
+
+    [RecallNotificationHandler]
+    procedure SubcontractorLocationRecallHandler(var SubcontractorLocationNotification: Notification): Boolean
+    begin
+        if SubcontractorLocationNotification.Id <> GetMissingSubcontractingLocationNotificationId() then
+            exit(false);
+
+        LibraryVariableStorage.Enqueue(RecallNotificationTok);
+        LibraryVariableStorage.Enqueue(Format(SubcontractorLocationNotification.Id));
+        exit(true);
+    end;
+
+    [PageHandler]
+    procedure VendorCardHandler(var VendorCard: TestPage "Vendor Card")
+    begin
+        LibraryVariableStorage.Enqueue(VendorCard."No.".Value());
+        VendorCard.Close();
+    end;
+
     [PageHandler]
     procedure HandlePostedPurchaseReceiptPage(var PostedPurchaseReceipt: TestPage "Posted Purchase Receipt")
     begin
@@ -819,6 +1014,228 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         ItemLedgerEntry.Delete();
     end;
 
+    [Test]
+    procedure RoutingLinesTransferWIPItemDisabledForMachineCenterLine()
+    var
+        WorkCenter: Record "Work Center";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        RoutingLines: TestPage "Routing Lines";
+        MachineCenterNo: Code[20];
+    begin
+        // [SCENARIO] Transfer WIP Item field is disabled on Routing Lines page for a Machine Center routing line,
+        // even when the parent Work Center has a Subcontractor No.
+        Initialize();
+
+        // [GIVEN] A Work Center with a Subcontractor No.
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        WorkCenter.Validate("Subcontractor No.", LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        WorkCenter.Modify(true);
+
+        // [GIVEN] A Machine Center belonging to that Work Center
+        LibraryMfgManagement.CreateMachineCenter(MachineCenterNo, WorkCenter."No.", 0);
+
+        // [GIVEN] A Routing with a Machine Center routing line
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryMfgManagement.CreateRoutingLineForMachineCenter(RoutingLine, RoutingHeader, MachineCenterNo);
+
+        // [WHEN] The Routing Lines page is opened for that line
+        RoutingLines.OpenEdit();
+        RoutingLines.GoToRecord(RoutingLine);
+
+        // [THEN] Transfer WIP Item is not enabled (Machine Center type is not eligible for Transfer WIP Item)
+        Assert.IsFalse(RoutingLines."Transfer WIP Item".Enabled(), RoutingLineTransferWIPEnabledErr);
+        RoutingLines.Close();
+    end;
+
+    [Test]
+    procedure RoutingLinesTransferWIPItemEnabledForSubcontractingWorkCenterLine()
+    var
+        WorkCenter: Record "Work Center";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        RoutingLines: TestPage "Routing Lines";
+    begin
+        // [SCENARIO] Transfer WIP Item field is enabled on Routing Lines page for a Work Center routing line
+        // when the Work Center has a Subcontractor No.
+        Initialize();
+
+        // [GIVEN] A Work Center with a Subcontractor No.
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        WorkCenter.Validate("Subcontractor No.", LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        WorkCenter.Modify(true);
+
+        // [GIVEN] A Routing with a Work Center routing line
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryMfgManagement.CreateRoutingLine(RoutingLine, RoutingHeader, WorkCenter."No.");
+
+        // [WHEN] The Routing Lines page is opened for that line
+        RoutingLines.OpenEdit();
+        RoutingLines.GoToRecord(RoutingLine);
+
+        // [THEN] Transfer WIP Item is enabled (subcontracting Work Center type)
+        Assert.IsTrue(RoutingLines."Transfer WIP Item".Enabled(), RoutingLineTransferWIPNotEnabledErr);
+        RoutingLines.Close();
+    end;
+
+    [Test]
+    procedure RoutingVersionLinesTransferWIPItemDisabledForMachineCenterLine()
+    var
+        WorkCenter: Record "Work Center";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        RoutingVersionLines: TestPage "Routing Version Lines";
+        MachineCenterNo: Code[20];
+        VersionCode: Code[20];
+    begin
+        // [SCENARIO] Transfer WIP Item field is disabled on Routing Version Lines page for a Machine Center
+        // routing line, even when the parent Work Center has a Subcontractor No.
+        Initialize();
+
+        // [GIVEN] A Work Center with a Subcontractor No.
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        WorkCenter.Validate("Subcontractor No.", LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        WorkCenter.Modify(true);
+
+        // [GIVEN] A Machine Center belonging to that Work Center
+        LibraryMfgManagement.CreateMachineCenter(MachineCenterNo, WorkCenter."No.", 0);
+
+        // [GIVEN] A Routing Version with a Machine Center routing line
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        VersionCode := '1';
+        CreateRoutingVersionAndMachineCenterLine(RoutingHeader."No.", VersionCode, MachineCenterNo, RoutingLine);
+
+        // [WHEN] The Routing Version Lines page is opened for that line
+        RoutingVersionLines.OpenEdit();
+        RoutingVersionLines.Filter.SetFilter("Routing No.", RoutingHeader."No.");
+        RoutingVersionLines.Filter.SetFilter("Version Code", VersionCode);
+        RoutingVersionLines.GoToRecord(RoutingLine);
+
+        // [THEN] Transfer WIP Item is not enabled (Machine Center type is not eligible for Transfer WIP Item)
+        Assert.IsFalse(RoutingVersionLines."Transfer WIP Item".Enabled(), RoutingLineTransferWIPEnabledErr);
+        RoutingVersionLines.Close();
+    end;
+
+    [Test]
+    procedure RoutingVersionLinesTransferWIPItemEnabledForSubcontractingWorkCenterLine()
+    var
+        WorkCenter: Record "Work Center";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        RoutingVersionLines: TestPage "Routing Version Lines";
+        VersionCode: Code[20];
+    begin
+        // [SCENARIO] Transfer WIP Item field is enabled on Routing Version Lines page for a Work Center routing line
+        // when the Work Center has a Subcontractor No.
+        Initialize();
+
+        // [GIVEN] A Work Center with a Subcontractor No.
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        WorkCenter.Validate("Subcontractor No.", LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        WorkCenter.Modify(true);
+
+        // [GIVEN] A Routing Version with a Work Center routing line
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        VersionCode := '1';
+        CreateRoutingVersionAndWorkCenterLine(RoutingHeader."No.", VersionCode, WorkCenter."No.", RoutingLine);
+
+        // [WHEN] The Routing Version Lines page is opened for that line
+        RoutingVersionLines.OpenEdit();
+        RoutingVersionLines.Filter.SetFilter("Routing No.", RoutingHeader."No.");
+        RoutingVersionLines.Filter.SetFilter("Version Code", VersionCode);
+        RoutingVersionLines.GoToRecord(RoutingLine);
+
+        // [THEN] Transfer WIP Item is enabled (subcontracting Work Center type)
+        Assert.IsTrue(RoutingVersionLines."Transfer WIP Item".Enabled(), RoutingLineTransferWIPNotEnabledErr);
+        RoutingVersionLines.Close();
+    end;
+
+    [Test]
+    procedure RoutingLineTransferWIPItemValidationFailsForMachineCenterType()
+    var
+        WorkCenter: Record "Work Center";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        MachineCenterNo: Code[20];
+    begin
+        // [SCENARIO] Validating Transfer WIP Item = true on a Machine Center routing line fails
+        // with an error because the Type must be Work Center.
+        Initialize();
+
+        // [GIVEN] A Work Center with a Subcontractor No.
+        LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
+        WorkCenter.Validate("Subcontractor No.", LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        WorkCenter.Modify(true);
+
+        // [GIVEN] A Machine Center belonging to that Work Center
+        LibraryMfgManagement.CreateMachineCenter(MachineCenterNo, WorkCenter."No.", 0);
+
+        // [GIVEN] A Routing with a Machine Center routing line
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryMfgManagement.CreateRoutingLineForMachineCenter(RoutingLine, RoutingHeader, MachineCenterNo);
+
+        // [WHEN] Transfer WIP Item is set to true on the Machine Center routing line
+        // [THEN] An error is raised because the line type must be Work Center
+        asserterror RoutingLine.Validate("Transfer WIP Item", true);
+        Assert.ExpectedTestFieldError(RoutingLine.FieldCaption(Type), Format(RoutingLine.Type::"Work Center"));
+    end;
+
+    local procedure CreateRoutingVersionAndWorkCenterLine(RoutingNo: Code[20]; VersionCode: Code[20]; WorkCenterNo: Code[20]; var RoutingLine: Record "Routing Line")
+    var
+        RoutingVersion: Record "Routing Version";
+        CapacityUoM: Record "Capacity Unit of Measure";
+    begin
+        RoutingVersion.Init();
+        RoutingVersion.Validate("Routing No.", RoutingNo);
+        RoutingVersion."Version Code" := VersionCode;
+        RoutingVersion.Insert(true);
+
+#pragma warning disable AA0210
+        CapacityUoM.SetRange(Type, CapacityUoM.Type::Minutes);
+#pragma warning restore AA0210
+        CapacityUoM.FindFirst();
+
+        RoutingLine.Init();
+        RoutingLine.Validate("Routing No.", RoutingNo);
+        RoutingLine.Validate("Version Code", VersionCode);
+        RoutingLine.Validate("Operation No.", '10');
+        RoutingLine.Validate(Type, RoutingLine.Type::"Work Center");
+        RoutingLine.Validate("No.", WorkCenterNo);
+        RoutingLine.Validate("Setup Time", 1);
+        RoutingLine.Validate("Run Time", 1);
+        RoutingLine.Validate("Run Time Unit of Meas. Code", CapacityUoM.Code);
+        RoutingLine.Validate("Setup Time Unit of Meas. Code", CapacityUoM.Code);
+        RoutingLine.Insert(true);
+    end;
+
+    local procedure CreateRoutingVersionAndMachineCenterLine(RoutingNo: Code[20]; VersionCode: Code[20]; MachineCenterNo: Code[20]; var RoutingLine: Record "Routing Line")
+    var
+        RoutingVersion: Record "Routing Version";
+        CapacityUoM: Record "Capacity Unit of Measure";
+    begin
+        RoutingVersion.Init();
+        RoutingVersion.Validate("Routing No.", RoutingNo);
+        RoutingVersion."Version Code" := VersionCode;
+        RoutingVersion.Insert(true);
+
+#pragma warning disable AA0210
+        CapacityUoM.SetRange(Type, CapacityUoM.Type::Minutes);
+#pragma warning restore AA0210
+        CapacityUoM.FindFirst();
+
+        RoutingLine.Init();
+        RoutingLine.Validate("Routing No.", RoutingNo);
+        RoutingLine.Validate("Version Code", VersionCode);
+        RoutingLine.Validate("Operation No.", '10');
+        RoutingLine.Validate(Type, RoutingLine.Type::"Machine Center");
+        RoutingLine.Validate("No.", MachineCenterNo);
+        RoutingLine.Validate("Setup Time", 1);
+        RoutingLine.Validate("Run Time", 1);
+        RoutingLine.Validate("Run Time Unit of Meas. Code", CapacityUoM.Code);
+        RoutingLine.Validate("Setup Time Unit of Meas. Code", CapacityUoM.Code);
+        RoutingLine.Insert(true);
+    end;
+
     local procedure GetNextItemLedgerEntryNo(): Integer
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
@@ -841,6 +1258,8 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
@@ -854,5 +1273,16 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         ILEProdActionsNotEnabledErr: Label 'Production actions should be enabled for a subcontracting Item Ledger Entry.';
         ILEPurchActionsEnabledErr: Label 'Purchase Order action should not be enabled for a non-subcontracting Item Ledger Entry.';
         ILEPurchActionsNotEnabledErr: Label 'Purchase Order action should be enabled for a subcontracting Item Ledger Entry.';
+        RoutingLineTransferWIPEnabledErr: Label 'Transfer WIP Item should not be enabled for a Machine Center routing line.';
+        RoutingLineTransferWIPNotEnabledErr: Label 'Transfer WIP Item should be enabled for a subcontracting Work Center routing line.';
         SetupNotCompletedQst: Label 'The Subcontracting setup is not complete. Are you sure you want to exit?';
+        MissingSubcontractingLocationMsg: Label 'Vendor %1 has no subcontracting location. This location is used to track components and work-in-process (WIP) items at the subcontractor. Choose a Subcontracting Location Code on the vendor before using this work center for subcontracting.', Comment = '%1 = Vendor No.';
+        NotificationIdErr: Label 'The subcontractor location notification ID is unexpected.';
+        NotificationMessageErr: Label 'The subcontractor location notification message is unexpected.';
+        NotificationOrderErr: Label 'The subcontractor location notification interactions occurred in an unexpected order.';
+        NotificationVendorErr: Label 'The vendor in the subcontractor location notification is unexpected.';
+        RecallNotificationTok: Label 'Recall', Locked = true;
+        SendNotificationTok: Label 'Send', Locked = true;
+        VendorCardNoErr: Label 'The Vendor Card opened for an unexpected vendor.';
+        VendorNoTok: Label 'VendorNo', Locked = true;
 }

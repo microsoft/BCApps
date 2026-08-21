@@ -816,6 +816,93 @@ codeunit 141008 "ERM - Miscellaneous APAC"
 
     [Test]
     [Scope('OnPrem')]
+    procedure PurchaseInvoiceWithVendorACYPostsACYOnPayablesEntry()
+    var
+        Currency: Record Currency;
+        GLEntry: Record "G/L Entry";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        CurrencyCode: Code[10];
+        PayablesAccountNo: Code[20];
+        PostedDocumentNo: Code[20];
+        ExpectedACYAmount: Decimal;
+        NonPayablesACY: Decimal;
+        OriginalVendorGSTAmountACY: Boolean;
+    begin
+        // [FEATURE] [Purchase] [ACY]
+        // [SCENARIO 641827] Vendor ACY is posted on the payables entry for a purchase invoice in LCY.
+        Initialize();
+        UpdateGeneralLedgerSetupGSTReport();
+
+        // [GIVEN] Vendor GST amounts in ACY are enabled and an Additional Reporting Currency is configured.
+        CurrencyCode := LibraryERM.CreateCurrencyWithRandomExchRates();
+        Currency.Get(CurrencyCode);
+        PurchasesPayablesSetup.Get();
+        OriginalVendorGSTAmountACY := PurchasesPayablesSetup."Enable Vendor GST Amount (ACY)";
+        PurchasesPayablesSetup."Enable Vendor GST Amount (ACY)" := true;
+        PurchasesPayablesSetup.Modify();
+        LibraryERM.SetAddReportingCurrency(CurrencyCode);
+
+        // [GIVEN] A purchase invoice in LCY with a vendor exchange rate for ACY.
+        CreatePurchDocWithLine(
+          PurchaseHeader, PurchaseLine, PurchaseHeader."Document Type"::Invoice,
+          PurchaseLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithPurchSetup(), WorkDate());
+        PurchaseHeader.TestField("Currency Code", '');
+        PurchaseHeader."Vendor Exchange Rate (ACY)" := LibraryRandom.RandInt(10);
+        PurchaseHeader.Modify();
+        ExpectedACYAmount :=
+          PurchaseLine.Quantity * PurchaseLine."Direct Unit Cost" * PurchaseHeader."Vendor Exchange Rate (ACY)";
+
+        // [WHEN] The purchase invoice is posted.
+        PostedDocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true);
+
+        // [THEN] The purchase (expense) G/L entry carries the vendor-rate ACY: Quantity * Direct Unit Cost * Vendor Exchange Rate (ACY).
+        GLEntry.SetRange("Document No.", PostedDocumentNo);
+        GLEntry.SetRange("G/L Account No.", PurchaseLine."No.");
+        Assert.RecordCount(GLEntry, 1);
+        GLEntry.FindFirst();
+        GLEntry.TestField("Additional-Currency Amount", ExpectedACYAmount);
+
+        // [THEN] The payables (balancing) entry carries the offsetting ACY of all non-residual entries, in blank source currency.
+        PayablesAccountNo := GetPayablesAccountFromVendorPostingGroup(PurchaseHeader."Pay-to Vendor No.");
+        GLEntry.Reset();
+        GLEntry.SetRange("Document No.", PostedDocumentNo);
+        GLEntry.SetFilter(
+          "G/L Account No.", '<>%1&<>%2&<>%3',
+          PayablesAccountNo, Currency."Residual Gains Account", Currency."Residual Losses Account");
+        GLEntry.CalcSums("Additional-Currency Amount");
+        NonPayablesACY := GLEntry."Additional-Currency Amount";
+        Assert.IsTrue(NonPayablesACY <> 0, AmountMustBeEqualMsg);
+
+        GLEntry.SetRange("G/L Account No.", PayablesAccountNo);
+        Assert.RecordCount(GLEntry, 1);
+        GLEntry.FindFirst();
+        GLEntry.TestField("Source Currency Code", '');
+        GLEntry.TestField("Source Currency Amount", GLEntry.Amount);
+        GLEntry.TestField("Additional-Currency Amount", -NonPayablesACY);
+
+        // [THEN] LCY, source currency, and ACY are balanced.
+        GLEntry.Reset();
+        GLEntry.SetRange("Document No.", PostedDocumentNo);
+        GLEntry.CalcSums(Amount, "Source Currency Amount", "Additional-Currency Amount");
+        Assert.AreEqual(0, GLEntry.Amount, AmountMustBeEqualMsg);
+        Assert.AreEqual(0, GLEntry."Source Currency Amount", AmountMustBeEqualMsg);
+        Assert.AreEqual(0, GLEntry."Additional-Currency Amount", AmountMustBeEqualMsg);
+
+        // [THEN] No residual gains or losses entry is created.
+        GLEntry.SetFilter(
+          "G/L Account No.", '%1|%2', Currency."Residual Gains Account", Currency."Residual Losses Account");
+        Assert.RecordCount(GLEntry, 0);
+
+        // The flag is not registered in setup storage, so restore its original value to avoid leaking into later tests.
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup."Enable Vendor GST Amount (ACY)" := OriginalVendorGSTAmountACY;
+        PurchasesPayablesSetup.Modify();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure SalesOrderWithTwoLinesAndDeferralCreatesSingleGSTSalesEntry()
     var
         Item: Record Item;
@@ -2944,4 +3031,3 @@ codeunit 141008 "ERM - Miscellaneous APAC"
         SalesStatistics.OK().Invoke();
     end;
 }
-
