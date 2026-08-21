@@ -844,6 +844,189 @@ codeunit 134469 "PO Matching Group Tests"
     end;
     #endregion
 
+    #region Covering receipts 
+    [Test]
+    procedure SuggestCoveringReceiptsFullyCoversBudget()
+    var
+        POMatchingGroup: Codeunit "PO Matching Group";
+        Vendor: Record Vendor;
+        Item: Record Item;
+        OrderLine, InvoiceLine : Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        MatchedOrderLine: Record "Matched Order Line";
+    begin
+        // [SCENARIO] A budget fully backed by a receipt is covered by a full receipt edge.
+        Initialize(Vendor, Item);
+        CreateReceivedOrder(Vendor, Item, 100, 100, OrderLine, PurchRcptLine);
+        CreateInvoiceLine(Vendor, Item, 100, InvoiceLine);
+
+        // [GIVEN] An invoice-order budget of 100 with no receipt edges
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 100, 100));
+
+        // [WHEN] Suggesting covering receipts and saving
+        POMatching.SuggestCoveringReceipts(POMatchingGroup);
+        POMatchingGroup.SaveMatchingGroups();
+
+        // [THEN] The receipt is fully covered
+        MatchedOrderLine.SetRange("Document Line SystemId", InvoiceLine.SystemId);
+        MatchedOrderLine.SetRange("Matched Rcpt./Shpt. Line SysId", PurchRcptLine.SystemId);
+        Assert.IsTrue(MatchedOrderLine.FindFirst(), 'Receipt edge should exist');
+        Assert.AreEqual(100, MatchedOrderLine."Qty. to Invoice", 'Receipt edge should cover the full budget');
+    end;
+
+    [Test]
+    procedure SuggestCoveringReceiptsPartialLeavesRemainder()
+    var
+        POMatchingGroup: Codeunit "PO Matching Group";
+        Vendor: Record Vendor;
+        Item: Record Item;
+        OrderLine, InvoiceLine : Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        MatchedOrderLine: Record "Matched Order Line";
+    begin
+        // [SCENARIO] When receipts cover only part of the budget, the rest stays uncovered (receive-on-invoice remainder).
+        Initialize(Vendor, Item);
+        CreateReceivedOrder(Vendor, Item, 100, 60, OrderLine, PurchRcptLine); // only 60 received
+        CreateInvoiceLine(Vendor, Item, 100, InvoiceLine);
+
+        // [GIVEN] A budget of 100 but only 60 received not invoiced
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 100, 100));
+
+        // [WHEN] Suggesting covering receipts and saving
+        POMatching.SuggestCoveringReceipts(POMatchingGroup);
+        POMatchingGroup.SaveMatchingGroups();
+
+        // [THEN] The receipt edge covers 60; the remaining 40 stays as budget only
+        MatchedOrderLine.SetRange("Document Line SystemId", InvoiceLine.SystemId);
+        MatchedOrderLine.SetRange("Matched Rcpt./Shpt. Line SysId", PurchRcptLine.SystemId);
+        Assert.IsTrue(MatchedOrderLine.FindFirst(), 'Receipt edge should exist');
+        Assert.AreEqual(60, MatchedOrderLine."Qty. to Invoice", 'Receipt edge should cover only the received quantity');
+        MatchedOrderLine.SetRange("Matched Rcpt./Shpt. Line SysId");
+        MatchedOrderLine.SetFilter("Matched Rcpt./Shpt. Line SysId", '<>%1', EmptyGuid);
+        Assert.AreEqual(1, MatchedOrderLine.Count(), 'Only one receipt edge should exist');
+    end;
+
+    [Test]
+    procedure SuggestCoveringReceiptsGrowsExistingEdge()
+    var
+        POMatchingGroup: Codeunit "PO Matching Group";
+        Vendor: Record Vendor;
+        Item: Record Item;
+        OrderLine, InvoiceLine : Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        MatchedOrderLine: Record "Matched Order Line";
+    begin
+        // [SCENARIO] An existing partial receipt edge is grown to cover the remaining budget.
+        Initialize(Vendor, Item);
+        CreateReceivedOrder(Vendor, Item, 100, 100, OrderLine, PurchRcptLine);
+        CreateInvoiceLine(Vendor, Item, 100, InvoiceLine);
+
+        // [GIVEN] A budget of 100 and a pre-existing receipt edge of 30
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 100, 100));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderReceiptEdge(InvoiceLine.SystemId, OrderLine.SystemId, PurchRcptLine.SystemId, 30, 30));
+
+        // [WHEN] Suggesting covering receipts and saving
+        POMatching.SuggestCoveringReceipts(POMatchingGroup);
+        POMatchingGroup.SaveMatchingGroups();
+
+        // [THEN] The existing edge is grown to the full 100 (30 + 70), not duplicated
+        MatchedOrderLine.SetRange("Document Line SystemId", InvoiceLine.SystemId);
+        MatchedOrderLine.SetRange("Matched Rcpt./Shpt. Line SysId", PurchRcptLine.SystemId);
+        Assert.AreEqual(1, MatchedOrderLine.Count(), 'Should still be a single receipt edge');
+        MatchedOrderLine.FindFirst();
+        Assert.AreEqual(100, MatchedOrderLine."Qty. to Invoice", 'Receipt edge should be grown to the full budget');
+    end;
+
+    [Test]
+    procedure SuggestCoveringReceiptsSplitsSharedReceiptAcrossInvoices()
+    var
+        POMatchingGroup: Codeunit "PO Matching Group";
+        Vendor: Record Vendor;
+        Item: Record Item;
+        OrderLine, InvoiceLine1, InvoiceLine2 : Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        MatchedOrderLine: Record "Matched Order Line";
+    begin
+        // [SCENARIO] Two invoices on the same order line share one receipt's capacity without double-booking.
+        Initialize(Vendor, Item);
+        CreateReceivedOrder(Vendor, Item, 100, 100, OrderLine, PurchRcptLine);
+        CreateInvoiceLine(Vendor, Item, 60, InvoiceLine1);
+        CreateInvoiceLine(Vendor, Item, 40, InvoiceLine2);
+
+        // [GIVEN] Two budgets on the same order line (60 + 40) sharing one receipt of 100
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine1.SystemId, OrderLine.SystemId, 60, 60));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine2.SystemId, OrderLine.SystemId, 40, 40));
+
+        // [WHEN] Suggesting covering receipts and saving
+        POMatching.SuggestCoveringReceipts(POMatchingGroup);
+        POMatchingGroup.SaveMatchingGroups();
+
+        // [THEN] The receipt is split 60/40 across the two invoices
+        MatchedOrderLine.SetRange("Matched Rcpt./Shpt. Line SysId", PurchRcptLine.SystemId);
+        MatchedOrderLine.SetRange("Document Line SystemId", InvoiceLine1.SystemId);
+        Assert.IsTrue(MatchedOrderLine.FindFirst(), 'Invoice 1 receipt edge should exist');
+        Assert.AreEqual(60, MatchedOrderLine."Qty. to Invoice", 'Invoice 1 receipt qty');
+        MatchedOrderLine.SetRange("Document Line SystemId", InvoiceLine2.SystemId);
+        Assert.IsTrue(MatchedOrderLine.FindFirst(), 'Invoice 2 receipt edge should exist');
+        Assert.AreEqual(40, MatchedOrderLine."Qty. to Invoice", 'Invoice 2 receipt qty');
+    end;
+
+    [Test]
+    procedure SuggestCoveringReceiptsTrackedReceiptTakenInFull()
+    var
+        POMatchingGroup: Codeunit "PO Matching Group";
+        Vendor: Record Vendor;
+        Item: Record Item;
+        OrderLine, InvoiceLine : Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        MatchedOrderLine: Record "Matched Order Line";
+    begin
+        // [SCENARIO] A tracked receipt whose full quantity fits the budget is covered in full.
+        CreateLotTrackedReceivedOrder(Vendor, Item, 100, OrderLine, PurchRcptLine);
+        CreateInvoiceLine(Vendor, Item, 100, InvoiceLine);
+
+        // [GIVEN] A budget of 100 on a lot-tracked receipt of 100
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 100, 100));
+
+        // [WHEN] Suggesting covering receipts and saving
+        POMatching.SuggestCoveringReceipts(POMatchingGroup);
+        POMatchingGroup.SaveMatchingGroups();
+
+        // [THEN] The tracked receipt is covered in full
+        MatchedOrderLine.SetRange("Document Line SystemId", InvoiceLine.SystemId);
+        MatchedOrderLine.SetRange("Matched Rcpt./Shpt. Line SysId", PurchRcptLine.SystemId);
+        Assert.IsTrue(MatchedOrderLine.FindFirst(), 'Tracked receipt edge should exist');
+        Assert.AreEqual(100, MatchedOrderLine."Qty. to Invoice", 'Tracked receipt covered in full');
+    end;
+
+    [Test]
+    procedure SuggestCoveringReceiptsTrackedReceiptSkippedWhenDoesntFit()
+    var
+        POMatchingGroup: Codeunit "PO Matching Group";
+        Vendor: Record Vendor;
+        Item: Record Item;
+        OrderLine, InvoiceLine : Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        MatchedOrderLine: Record "Matched Order Line";
+    begin
+        // [SCENARIO] A tracked receipt larger than the budget is skipped (all-or-nothing); nothing is covered.
+        CreateLotTrackedReceivedOrder(Vendor, Item, 100, OrderLine, PurchRcptLine);
+        CreateInvoiceLine(Vendor, Item, 60, InvoiceLine);
+
+        // [GIVEN] A budget of only 60 on a lot-tracked receipt of 100
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 60, 60));
+
+        // [WHEN] Suggesting covering receipts and saving
+        POMatching.SuggestCoveringReceipts(POMatchingGroup);
+        POMatchingGroup.SaveMatchingGroups();
+
+        // [THEN] No receipt edge is added (the tracked receipt could not be taken in full)
+        MatchedOrderLine.SetRange("Document Line SystemId", InvoiceLine.SystemId);
+        MatchedOrderLine.SetFilter("Matched Rcpt./Shpt. Line SysId", '<>%1', EmptyGuid);
+        Assert.AreEqual(0, MatchedOrderLine.Count(), 'No receipt edge should be added for a tracked receipt that does not fit');
+    end;
+    #endregion
+
     #region Test helpers
     local procedure Initialize(var Vendor: Record Vendor; var Item: Record Item)
     begin
@@ -939,8 +1122,16 @@ codeunit 134469 "PO Matching Group Tests"
         PurchRcptLine.FindFirst();
     end;
 
-    local procedure CreateLotTrackedReceivedOrder(var Vendor: Record Vendor; var Item: Record Item; Qty: Decimal; var OrderLine: Record "Purchase Line"; var PurchRcptLine: Record "Purch. Rcpt. Line")
+    local procedure CreateReceivedOrder(Vendor: Record Vendor; Item: Record Item; OrderQty: Decimal; ReceiveQty: Decimal; var OrderLine: Record "Purchase Line"; var PurchRcptLine: Record "Purch. Rcpt. Line")
     var
+        OrderHeader: Record "Purchase Header";
+    begin
+        CreateOrderLineWithHeader(Vendor, Item, OrderQty, OrderHeader, OrderLine);
+        ReceiveOrder(OrderHeader, OrderLine, ReceiveQty);
+        FindReceiptLine(OrderLine, '', PurchRcptLine);
+    end;
+
+    local procedure CreateLotTrackedReceivedOrder(var Vendor: Record Vendor; var Item: Record Item; Qty: Decimal; var OrderLine: Record "Purchase Line"; var PurchRcptLine: Record "Purch. Rcpt. Line")    var
         ItemTrackingCode: Record "Item Tracking Code";
         ReservationEntry: Record "Reservation Entry";
         OrderHeader: Record "Purchase Header";
