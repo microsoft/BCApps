@@ -169,5 +169,6 @@ permissionset 6100 "E-Doc. Core - Objects"
         codeunit "Send Runner" = X,
         codeunit SendContext = X,
         codeunit "Sent Document Approval" = X,
-        codeunit "Sent Document Cancellation" = X;
+        codeunit "Sent Document Cancellation" = X,
+        codeunit "E-Doc. Message Response Job" = X;
 }

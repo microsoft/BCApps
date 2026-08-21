@@ -791,6 +791,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
         ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
         ExternalMsgID := CopyStr(Format(CreateGuid()), 1, 250);
         EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
+        ReceiveLifecycleMessage(EDocument, ExternalDocID, 'Submitted', '', '');
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText(BuildLifecycleXml(EDocument."Document No.", '205', '', ''));
 
@@ -819,6 +820,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
         ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
         ExternalMsgID := CopyStr(Format(CreateGuid()), 1, 250);
         EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
+        ReceiveLifecycleMessage(EDocument, ExternalDocID, 'Submitted', '', '');
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText(BuildLifecycleXml(EDocument."Document No.", 'Rejetée', 'SCHEMA', 'Schema validation failed'));
 
@@ -985,6 +987,251 @@ codeunit 148151 "FR E-Invoice Message Tests"
     end;
 
     [Test]
+    procedure ReceiveSubmittedThenRefusedIsValid()
+    var
+        EDocument: Record "E-Document";
+        FREInvoiceMessage: Record "FR E-Invoice Message";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+        ExternalDocID: Text[250];
+        FREntryNo: Integer;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] A Refused status follows a Submitted status.
+        Initialize();
+
+        // [GIVEN] Outgoing E-Document "ED" with a received Submitted status
+        CreateOutgoingEDocument(EDocument);
+        ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
+        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
+        ReceiveLifecycleMessage(EDocument, ExternalDocID, 'Submitted', '', '');
+
+        // [WHEN] A Refused status is received
+        FREntryNo := ReceiveLifecycleMessage(EDocument, ExternalDocID, 'Refused', '', '');
+
+        // [THEN] The Refused status is persisted
+        FREInvoiceMessage.Get(FREntryNo);
+        Assert.AreEqual(FREInvoiceMessage.Type::Refused, FREInvoiceMessage.Type, 'FR type must be Refused.');
+    end;
+
+    [Test]
+    procedure ReceiveSubmittedThenTechnicalRejectedIsValid()
+    var
+        EDocument: Record "E-Document";
+        FREInvoiceMessage: Record "FR E-Invoice Message";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+        ExternalDocID: Text[250];
+        FREntryNo: Integer;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] A Technical Rejected status follows a Submitted status.
+        Initialize();
+
+        // [GIVEN] Outgoing E-Document "ED" with a received Submitted status
+        CreateOutgoingEDocument(EDocument);
+        ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
+        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
+        ReceiveLifecycleMessage(EDocument, ExternalDocID, 'Submitted', '', '');
+
+        // [WHEN] A Technical Rejected status is received
+        FREntryNo := ReceiveLifecycleMessage(EDocument, ExternalDocID, 'Rejected', 'SCHEMA', 'Schema validation failed');
+
+        // [THEN] The Technical Rejected status is persisted
+        FREInvoiceMessage.Get(FREntryNo);
+        Assert.AreEqual(FREInvoiceMessage.Type::"Technical Rejected", FREInvoiceMessage.Type, 'FR type must be Technical Rejected.');
+    end;
+
+    [Test]
+    procedure ReceiveResponseBeforeSubmittedIsRejected()
+    var
+        EDocument: Record "E-Document";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+        ExternalDocID: Text[250];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] A terminal response cannot be the first lifecycle status.
+        Initialize();
+
+        // [GIVEN] Outgoing E-Document "ED" without a lifecycle status
+        CreateOutgoingEDocument(EDocument);
+        ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
+        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
+
+        // [WHEN] An Accepted status is received
+        asserterror ReceiveLifecycleMessage(EDocument, ExternalDocID, 'Accepted', '', '');
+
+        // [THEN] The transition is rejected
+        Assert.ExpectedError('cannot change from no previous status to Accepted');
+    end;
+
+    [Test]
+    procedure ReceiveDuplicateSubmittedIsRejected()
+    var
+        EDocument: Record "E-Document";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+        ExternalDocID: Text[250];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Submitted cannot be received twice with different external message IDs.
+        Initialize();
+
+        // [GIVEN] Outgoing E-Document "ED" with a received Submitted status
+        CreateOutgoingEDocument(EDocument);
+        ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
+        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
+        ReceiveLifecycleMessage(EDocument, ExternalDocID, 'Submitted', '', '');
+
+        // [WHEN] Another Submitted status is received
+        asserterror ReceiveLifecycleMessage(EDocument, ExternalDocID, 'Submitted', '', '');
+
+        // [THEN] The duplicate status is rejected
+        Assert.ExpectedError('cannot change from Submitted to Submitted');
+    end;
+
+    [Test]
+    procedure ReceiveStatusAfterTerminalStatusIsRejected()
+    var
+        EDocument: Record "E-Document";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+        ExternalDocID: Text[250];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] No status can follow a terminal lifecycle response.
+        Initialize();
+
+        // [GIVEN] Outgoing E-Document "ED" with Submitted and Refused statuses
+        CreateOutgoingEDocument(EDocument);
+        ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
+        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
+        ReceiveLifecycleMessage(EDocument, ExternalDocID, 'Submitted', '', '');
+        ReceiveLifecycleMessage(EDocument, ExternalDocID, 'Refused', '', '');
+
+        // [WHEN] An Accepted status is received
+        asserterror ReceiveLifecycleMessage(EDocument, ExternalDocID, 'Accepted', '', '');
+
+        // [THEN] The transition from the terminal status is rejected
+        Assert.ExpectedError('cannot change from Refused to Accepted');
+    end;
+
+    [Test]
+    procedure CompletePPFProfileIsValid()
+    var
+        FREInvoiceProfileValidator: Codeunit "FR E-Invoice Profile Validator";
+        XmlDoc: XmlDocument;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] A complete PPF lifecycle payload satisfies profile validation.
+        Initialize();
+
+        // [GIVEN] A complete PPF lifecycle document
+        XmlDocument.ReadFrom(BuildPPFValidationXml(PPFProfileID(), true, 'WK', '0238', '102'), XmlDoc);
+
+        // [WHEN] The PPF profile is validated
+        FREInvoiceProfileValidator.Validate(XmlDoc, true);
+
+        // [THEN] No validation error occurs
+    end;
+
+    [Test]
+    procedure PPFProfileRejectsWrongProfileID()
+    var
+        FREInvoiceProfileValidator: Codeunit "FR E-Invoice Profile Validator";
+        XmlDoc: XmlDocument;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] A PPF lifecycle payload must declare the PPF profile.
+        Initialize();
+
+        // [GIVEN] A PPF lifecycle document with the CDV profile ID
+        XmlDocument.ReadFrom(BuildPPFValidationXml(CDVProfileID(), true, 'WK', '0238', '102'), XmlDoc);
+
+        // [WHEN] The PPF profile is validated
+        asserterror FREInvoiceProfileValidator.Validate(XmlDoc, true);
+
+        // [THEN] The incorrect profile ID is rejected
+        Assert.ExpectedError('must have value ' + PPFProfileID());
+    end;
+
+    [Test]
+    procedure PPFProfileRequiresSenderTradeParty()
+    var
+        FREInvoiceProfileValidator: Codeunit "FR E-Invoice Profile Validator";
+        XmlDoc: XmlDocument;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] A PPF lifecycle payload requires the sender platform party.
+        Initialize();
+
+        // [GIVEN] A PPF lifecycle document without a sender platform party
+        XmlDocument.ReadFrom(BuildPPFValidationXml(PPFProfileID(), false, 'WK', '0238', '102'), XmlDoc);
+
+        // [WHEN] The PPF profile is validated
+        asserterror FREInvoiceProfileValidator.Validate(XmlDoc, true);
+
+        // [THEN] The missing sender platform is rejected
+        Assert.ExpectedError('SenderTradeParty');
+    end;
+
+    [Test]
+    procedure PPFProfileRejectsWrongRecipientScheme()
+    var
+        FREInvoiceProfileValidator: Codeunit "FR E-Invoice Profile Validator";
+        XmlDoc: XmlDocument;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] The PPF recipient must use scheme 0238.
+        Initialize();
+
+        // [GIVEN] A PPF lifecycle document with the wrong recipient scheme
+        XmlDocument.ReadFrom(BuildPPFValidationXml(PPFProfileID(), true, 'WK', '9999', '102'), XmlDoc);
+
+        // [WHEN] The PPF profile is validated
+        asserterror FREInvoiceProfileValidator.Validate(XmlDoc, true);
+
+        // [THEN] The incorrect recipient scheme is rejected
+        Assert.ExpectedError('must have value 0238 instead of 9999');
+    end;
+
+    [Test]
+    procedure PPFProfileRejectsWrongSenderRole()
+    var
+        FREInvoiceProfileValidator: Codeunit "FR E-Invoice Profile Validator";
+        XmlDoc: XmlDocument;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] The sender platform must use role WK.
+        Initialize();
+
+        // [GIVEN] A PPF lifecycle document with the wrong sender role
+        XmlDocument.ReadFrom(BuildPPFValidationXml(PPFProfileID(), true, 'XX', '0238', '102'), XmlDoc);
+
+        // [WHEN] The PPF profile is validated
+        asserterror FREInvoiceProfileValidator.Validate(XmlDoc, true);
+
+        // [THEN] The incorrect sender role is rejected
+        Assert.ExpectedError('must have value WK instead of XX');
+    end;
+
+    [Test]
+    procedure PPFProfileRejectsWrongInvoiceDateFormat()
+    var
+        FREInvoiceProfileValidator: Codeunit "FR E-Invoice Profile Validator";
+        XmlDoc: XmlDocument;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] The PPF invoice issue date must use format 102.
+        Initialize();
+
+        // [GIVEN] A PPF lifecycle document with the wrong invoice date format
+        XmlDocument.ReadFrom(BuildPPFValidationXml(PPFProfileID(), true, 'WK', '0238', '204'), XmlDoc);
+
+        // [WHEN] The PPF profile is validated
+        asserterror FREInvoiceProfileValidator.Validate(XmlDoc, true);
+
+        // [THEN] The incorrect date format is rejected
+        Assert.ExpectedError('must have value 102 instead of 204');
+    end;
+
+    [Test]
     procedure BuilderRejectsIncomingOnlyStatus()
     var
         EDocument: Record "E-Document";
@@ -1031,6 +1278,57 @@ codeunit 148151 "FR E-Invoice Message Tests"
         end;
         XmlText.Append('</LifecycleMessage>');
         exit(XmlText.ToText());
+    end;
+
+    local procedure ReceiveLifecycleMessage(EDocument: Record "E-Document"; ExternalDocID: Text[250]; Status: Text; ReasonCode: Text; ReasonDescription: Text): Integer
+    var
+        FREInvoiceMessageAPI: Codeunit "FR E-Invoice Message API";
+        TempBlob: Codeunit "Temp Blob";
+        OutStream: OutStream;
+    begin
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(BuildLifecycleXml(EDocument."Document No.", Status, ReasonCode, ReasonDescription));
+        exit(FREInvoiceMessageAPI.ReceiveMessage(
+            EDocument.Service, ExternalDocID, CopyStr(Format(CreateGuid()), 1, 250), CurrentDateTime(), TempBlob));
+    end;
+
+    local procedure BuildPPFValidationXml(ProfileID: Text; IncludeSender: Boolean; SenderRole: Text; RecipientScheme: Text; InvoiceDateFormat: Text): Text
+    var
+        XmlText: TextBuilder;
+    begin
+        XmlText.Append('<rsm:CrossDomainAcknowledgementAndResponse xmlns:rsm="urn:un:unece:uncefact:data:standard:CrossDomainAcknowledgementAndResponse:100" xmlns:ram="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100" xmlns:qdt="urn:un:unece:uncefact:data:standard:QualifiedDataType:100" xmlns:udt="urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100">');
+        XmlText.Append('<rsm:ExchangedDocumentContext><ram:GuidelineSpecifiedDocumentContextParameter><ram:ID>');
+        XmlText.Append(ProfileID);
+        XmlText.Append('</ram:ID></ram:GuidelineSpecifiedDocumentContextParameter></rsm:ExchangedDocumentContext>');
+        XmlText.Append('<rsm:ExchangedDocument><ram:ID>MESSAGE-ID</ram:ID><ram:IssueDateTime><udt:DateTimeString format="204">20260821120000</udt:DateTimeString></ram:IssueDateTime>');
+        if IncludeSender then begin
+            XmlText.Append('<ram:SenderTradeParty><ram:GlobalID schemeID="0238">SENDER</ram:GlobalID><ram:RoleCode>');
+            XmlText.Append(SenderRole);
+            XmlText.Append('</ram:RoleCode></ram:SenderTradeParty>');
+        end;
+        XmlText.Append('<ram:IssuerTradeParty><ram:GlobalID schemeID="0002">123456789</ram:GlobalID><ram:RoleCode>SE</ram:RoleCode></ram:IssuerTradeParty>');
+        XmlText.Append('<ram:RecipientTradeParty><ram:GlobalID schemeID="');
+        XmlText.Append(RecipientScheme);
+        XmlText.Append('">9998</ram:GlobalID><ram:RoleCode>DFH</ram:RoleCode></ram:RecipientTradeParty></rsm:ExchangedDocument>');
+        XmlText.Append('<rsm:AcknowledgementDocument><ram:TypeCode>23</ram:TypeCode><ram:IssueDateTime><udt:DateTimeString format="204">20260821000000</udt:DateTimeString></ram:IssueDateTime>');
+        XmlText.Append('<ram:ReferenceReferencedDocument><ram:IssuerAssignedID>INVOICE</ram:IssuerAssignedID><ram:StatusCode>47</ram:StatusCode><ram:TypeCode>380</ram:TypeCode>');
+        XmlText.Append('<ram:ReceiptDateTime><udt:DateTimeString format="204">20260821120000</udt:DateTimeString></ram:ReceiptDateTime><ram:ReferenceTypeCode>');
+        XmlText.Append(PPFProfileID());
+        XmlText.Append('</ram:ReferenceTypeCode><ram:FormattedIssueDateTime><qdt:DateTimeString format="');
+        XmlText.Append(InvoiceDateFormat);
+        XmlText.Append('">20260821</qdt:DateTimeString></ram:FormattedIssueDateTime><ram:ProcessConditionCode>205</ram:ProcessConditionCode>');
+        XmlText.Append('</ram:ReferenceReferencedDocument></rsm:AcknowledgementDocument></rsm:CrossDomainAcknowledgementAndResponse>');
+        exit(XmlText.ToText());
+    end;
+
+    local procedure PPFProfileID(): Text
+    begin
+        exit('urn.cpro.gouv.fr:1p0:CDV:einvoicingF2');
+    end;
+
+    local procedure CDVProfileID(): Text
+    begin
+        exit('urn.cpro.gouv.fr:1p0:CDV:invoice');
     end;
 
     local procedure SendFirstMessage(EDocument: Record "E-Document"; MessageType: Enum "FR E-Invoice Message Type")

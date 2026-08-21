@@ -49,6 +49,7 @@ codeunit 10987 "FR E-Invoice Message API"
         EDocument.TestField(Direction, EDocument.Direction::Outgoing);
         if EDocument."Document No." <> InvoiceID then
             Error(InvoiceMismatchErr, InvoiceID, EDocument."Document No.");
+        ValidateLifecycleTransition(EDocument."Entry No", MessageType);
 
         FREInvoiceMessage.Init();
         FREInvoiceMessage."E-Document Entry No." := EDocument."Entry No";
@@ -66,6 +67,39 @@ codeunit 10987 "FR E-Invoice Message API"
         FREInvoiceMessage."Created At" := CurrentDateTime();
         FREInvoiceMessage.Insert();
         exit(FREInvoiceMessage."Entry No.");
+    end;
+
+    local procedure ValidateLifecycleTransition(EDocumentEntryNo: Integer; NewMessageType: Enum "FR E-Invoice Message Type")
+    var
+        FREInvoiceMessage: Record "FR E-Invoice Message";
+        PreviousMessageType: Enum "FR E-Invoice Message Type";
+        HasPreviousMessage: Boolean;
+    begin
+        FREInvoiceMessage.SetRange("E-Document Entry No.", EDocumentEntryNo);
+        FREInvoiceMessage.SetFilter(Type, '%1|%2|%3|%4', FREInvoiceMessage.Type::Submitted, FREInvoiceMessage.Type::Accepted,
+            FREInvoiceMessage.Type::Refused, FREInvoiceMessage.Type::"Technical Rejected");
+        if FREInvoiceMessage.FindLast() then begin
+            HasPreviousMessage := true;
+            PreviousMessageType := FREInvoiceMessage.Type;
+        end;
+
+        case NewMessageType of
+            NewMessageType::Submitted:
+                if HasPreviousMessage then
+                    Error(InvalidLifecycleTransitionErr, Format(PreviousMessageType), Format(NewMessageType));
+            NewMessageType::Accepted,
+            NewMessageType::Refused,
+            NewMessageType::"Technical Rejected":
+                if (not HasPreviousMessage) or (PreviousMessageType <> PreviousMessageType::Submitted) then
+                    Error(InvalidLifecycleTransitionErr, GetPreviousMessageTypeText(HasPreviousMessage, PreviousMessageType), Format(NewMessageType));
+        end;
+    end;
+
+    local procedure GetPreviousMessageTypeText(HasPreviousMessage: Boolean; PreviousMessageType: Enum "FR E-Invoice Message Type"): Text
+    begin
+        if HasPreviousMessage then
+            exit(Format(PreviousMessageType));
+        exit(NoPreviousStatusTok);
     end;
 
     local procedure ParseMessage(TempBlob: Codeunit "Temp Blob"; var InvoiceID: Text; var MessageType: Enum "FR E-Invoice Message Type"; var ReasonCode: Text; var ReasonDescription: Text)
@@ -149,6 +183,8 @@ codeunit 10987 "FR E-Invoice Message API"
         StatusErr: Label 'The French invoice lifecycle message does not contain a status.';
         UnsupportedStatusErr: Label 'French invoice lifecycle status %1 is not supported.', Comment = '%1 = lifecycle status';
         InvoiceMismatchErr: Label 'The lifecycle message invoice ID %1 does not match E-Document invoice %2.', Comment = '%1 = message invoice identifier, %2 = E-Document invoice identifier';
+        InvalidLifecycleTransitionErr: Label 'French invoice lifecycle status cannot change from %1 to %2.', Comment = '%1 = previous lifecycle status, %2 = new lifecycle status';
+        NoPreviousStatusTok: Label 'no previous status';
         RejectedReasonCodeErr: Label 'A technical rejection reason code is required.';
         RejectedReasonDescriptionErr: Label 'A technical rejection reason description is required.';
 }

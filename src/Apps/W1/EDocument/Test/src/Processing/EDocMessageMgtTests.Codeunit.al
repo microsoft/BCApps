@@ -20,6 +20,7 @@ codeunit 139899 "E-Doc. Message Mgt. Tests"
     var
         EDocumentService: Record "E-Document Service";
         Assert: Codeunit Assert;
+        EDocImplState: Codeunit "E-Doc. Impl. State";
         LibraryEDoc: Codeunit "Library - E-Document";
         LibraryLowerPermission: Codeunit "Library - Lower Permissions";
         IsInitialized: Boolean;
@@ -169,6 +170,162 @@ codeunit 139899 "E-Doc. Message Mgt. Tests"
         Assert.ExpectedError('Direction must have the value Outgoing');
     end;
 
+    [Test]
+    procedure PollMessageResponseCompletesPendingMessage()
+    var
+        Customer: Record Customer;
+        EDocument: Record "E-Document";
+        EDocMessage: Record "E-Document Message";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+        MessageEntryNo: Integer;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] A completed asynchronous response marks the existing child message as Sent.
+        Initialize(Customer);
+
+        // [GIVEN] An outgoing child message waiting for a connector response
+        CreateOutgoingEDocument(EDocument);
+        MessageEntryNo := CreatePendingMessage(EDocument);
+        BindSubscription(EDocImplState);
+        EDocImplState.SetOnGetResponseSuccess();
+
+        // [WHEN] The connector reports that the response is complete
+        EDocumentMessageAPI.PollMessageResponse(MessageEntryNo);
+        UnbindSubscription(EDocImplState);
+
+        // [THEN] The existing child message is marked Sent
+        EDocMessage.Get(MessageEntryNo);
+        Assert.AreEqual(EDocMessage.Status::Sent, EDocMessage.Status, 'The completed message must be Sent.');
+        Assert.AreNotEqual(0DT, EDocMessage."Last Attempt At", 'The polling attempt time must be stored.');
+    end;
+
+    [Test]
+    procedure PollMessageResponseReschedulesPendingMessage()
+    var
+        Customer: Record Customer;
+        EDocument: Record "E-Document";
+        EDocMessage: Record "E-Document Message";
+        JobQueueEntry: Record "Job Queue Entry";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+        MessageEntryNo: Integer;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] An incomplete asynchronous response remains pending and schedules another poll.
+        Initialize(Customer);
+
+        // [GIVEN] An outgoing child message waiting for a connector response
+        CreateOutgoingEDocument(EDocument);
+        MessageEntryNo := CreatePendingMessage(EDocument);
+        BindSubscription(EDocImplState);
+
+        // [WHEN] The connector reports that the response is still pending
+        EDocumentMessageAPI.PollMessageResponse(MessageEntryNo);
+        UnbindSubscription(EDocImplState);
+
+        // [THEN] The message remains pending and one response job is scheduled
+        EDocMessage.Get(MessageEntryNo);
+        Assert.AreEqual(EDocMessage.Status::"Pending Response", EDocMessage.Status, 'The message must remain pending.');
+        JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
+        JobQueueEntry.SetRange("Object ID to Run", Codeunit::"E-Doc. Message Response Job");
+        JobQueueEntry.SetRange("Record ID to Process", EDocMessage.RecordId());
+        Assert.RecordCount(JobQueueEntry, 1);
+    end;
+
+    [Test]
+    procedure PollMessageResponseJobStoresConnectorError()
+    var
+        Customer: Record Customer;
+        EDocument: Record "E-Document";
+        EDocMessage: Record "E-Document Message";
+        JobQueueEntry: Record "Job Queue Entry";
+        MessageEntryNo: Integer;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] A connector polling failure is persisted on the existing child message.
+        Initialize(Customer);
+
+        // [GIVEN] A pending child message and a connector that raises a runtime error
+        CreateOutgoingEDocument(EDocument);
+        MessageEntryNo := CreatePendingMessage(EDocument);
+        EDocMessage.Get(MessageEntryNo);
+        JobQueueEntry."Record ID to Process" := EDocMessage.RecordId();
+        BindSubscription(EDocImplState);
+        EDocImplState.SetThrowIntegrationRuntimeError();
+
+        // [WHEN] The response polling background job runs
+        Assert.IsFalse(Codeunit.Run(Codeunit::"E-Doc. Message Response Job", JobQueueEntry), 'The polling job must report the connector failure.');
+        UnbindSubscription(EDocImplState);
+
+        // [THEN] The existing message contains response-error diagnostics
+        EDocMessage.Get(MessageEntryNo);
+        Assert.AreEqual(EDocMessage.Status::"Response Error", EDocMessage.Status, 'The message must have a response error.');
+        Assert.AreEqual(1, EDocMessage."Retry Count", 'The failed polling attempt must increment the retry count.');
+        Assert.IsTrue(EDocMessage."Last Error".Contains('TEST'), 'The connector error must be stored.');
+    end;
+
+    [Test]
+    procedure RetryMessageReschedulesFailedResponsePoll()
+    var
+        Customer: Record Customer;
+        EDocument: Record "E-Document";
+        EDocMessage: Record "E-Document Message";
+        JobQueueEntry: Record "Job Queue Entry";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+        MessageEntryNo: Integer;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Retrying a response error schedules polling instead of resending the child message.
+        Initialize(Customer);
+
+        // [GIVEN] An outgoing child message whose response polling failed
+        CreateOutgoingEDocument(EDocument);
+        MessageEntryNo := CreatePendingMessage(EDocument);
+        EDocMessage.Get(MessageEntryNo);
+        EDocMessage.Status := EDocMessage.Status::"Response Error";
+        EDocMessage.Modify();
+
+        // [WHEN] The failed message is retried
+        EDocumentMessageAPI.RetryMessage(MessageEntryNo);
+
+        // [THEN] The message is pending and only a response polling job is scheduled
+        EDocMessage.Get(MessageEntryNo);
+        Assert.AreEqual(EDocMessage.Status::"Pending Response", EDocMessage.Status, 'Retry must restore Pending Response status.');
+        JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
+        JobQueueEntry.SetRange("Object ID to Run", Codeunit::"E-Doc. Message Response Job");
+        JobQueueEntry.SetRange("Record ID to Process", EDocMessage.RecordId());
+        Assert.RecordCount(JobQueueEntry, 1);
+        JobQueueEntry.SetRange("Object ID to Run", Codeunit::"E-Doc. Message Send Job");
+        Assert.RecordCount(JobQueueEntry, 0);
+    end;
+
+    [Test]
+    procedure PollMessageResponseRejectsUnsupportedConnector()
+    var
+        Customer: Record Customer;
+        EDocument: Record "E-Document";
+        EDocMessage: Record "E-Document Message";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+        MessageEntryNo: Integer;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] A service without child response support returns an actionable error.
+        Initialize(Customer);
+
+        // [GIVEN] A pending child message for a service without a response handler
+        EDocumentService."Service Integration V2" := EDocumentService."Service Integration V2"::"No Integration";
+        EDocumentService.Modify();
+        CreateOutgoingEDocument(EDocument);
+        MessageEntryNo := CreatePendingMessage(EDocument);
+
+        // [WHEN] The message response is polled
+        asserterror EDocumentMessageAPI.PollMessageResponse(MessageEntryNo);
+
+        // [THEN] The unsupported connector is reported
+        Assert.ExpectedError('does not support polling E-Document message responses');
+        EDocMessage.Get(MessageEntryNo);
+        Assert.AreEqual(EDocMessage.Status::"Pending Response", EDocMessage.Status, 'Direct polling failure must not discard the pending state.');
+    end;
+
     local procedure Initialize(var Customer: Record Customer)
     var
         EDocument: Record "E-Document";
@@ -177,7 +334,7 @@ codeunit 139899 "E-Doc. Message Mgt. Tests"
     begin
         LibraryLowerPermission.SetOutsideO365Scope();
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
-        JobQueueEntry.SetRange("Object ID to Run", Codeunit::"E-Doc. Message Send Job");
+        JobQueueEntry.SetFilter("Object ID to Run", '%1|%2', Codeunit::"E-Doc. Message Send Job", Codeunit::"E-Doc. Message Response Job");
         JobQueueEntry.DeleteAll();
         EDocMessage.DeleteAll();
         EDocument.DeleteAll();
@@ -198,5 +355,24 @@ codeunit 139899 "E-Doc. Message Mgt. Tests"
         EDocument.Direction := EDocument.Direction::Outgoing;
         EDocument.Service := EDocumentService.Code;
         EDocument.Insert();
+    end;
+
+    local procedure CreatePendingMessage(EDocument: Record "E-Document"): Integer
+    var
+        EDocMessage: Record "E-Document Message";
+        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
+        TempBlob: Codeunit "Temp Blob";
+        OutStream: OutStream;
+        MessageEntryNo: Integer;
+    begin
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText('<Message />');
+        MessageEntryNo := EDocMessageMgt.CreateMessage(
+            EDocument, "E-Document Message Type"::Unspecified, "E-Document Direction"::Outgoing,
+            "E-Doc. Response Type"::None, TempBlob);
+        EDocMessage.Get(MessageEntryNo);
+        EDocMessage.Status := EDocMessage.Status::"Pending Response";
+        EDocMessage.Modify();
+        exit(MessageEntryNo);
     end;
 }

@@ -109,6 +109,17 @@ codeunit 6532 "E-Document Message API"
     end;
 
     /// <summary>
+    /// Polls the service for the asynchronous response to an outgoing child message.
+    /// </summary>
+    /// <param name="MessageEntryNo">The entry number of a message in Pending Response status.</param>
+    procedure PollMessageResponse(MessageEntryNo: Integer)
+    var
+        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
+    begin
+        EDocMessageMgt.PollMessageResponse(MessageEntryNo);
+    end;
+
+    /// <summary>
     /// Associates an external service document identifier with an E-Document for later message correlation.
     /// </summary>
     /// <param name="EDocument">The E-Document known by the external service.</param>
