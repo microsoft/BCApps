@@ -78,6 +78,21 @@ page 10973 "FR E-Invoice Messages"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies when the incoming lifecycle message was received.';
                 }
+                field("Sender Platform ID"; Rec."Sender Platform ID")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the frozen identifier of the sender platform.';
+                }
+                field("Sender Platform Scheme"; Rec."Sender Platform Scheme")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the frozen identifier scheme of the sender platform.';
+                }
+                field("Sender Platform Name"; Rec."Sender Platform Name")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the frozen name of the sender platform.';
+                }
                 field("Created At"; Rec."Created At")
                 {
                     ApplicationArea = Basic, Suite;
