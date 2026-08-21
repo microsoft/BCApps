@@ -5,7 +5,6 @@
 namespace Microsoft.eServices.EDocument.Formats;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.eServices.EDocument.Processing.Message;
 
 table 10970 "FR E-Invoice Message"
 {
@@ -81,7 +80,6 @@ table 10970 "FR E-Invoice Message"
         {
             Caption = 'E-Document Message Entry No.';
             DataClassification = SystemMetadata;
-            TableRelation = "E-Document Message"."Entry No.";
         }
         field(13; "Created At"; DateTime)
         {
