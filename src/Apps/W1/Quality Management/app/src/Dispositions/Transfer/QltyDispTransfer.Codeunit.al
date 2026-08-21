@@ -108,7 +108,8 @@ codeunit 20444 "Qlty. Disp. Transfer" implements "Qlty. Disposition"
         TransferHeader."Qlty. Inspection No." := QltyInspectionHeader."No.";
         TransferHeader."Qlty. Re-inspection No." := QltyInspectionHeader."Re-inspection No.";
         TransferHeader.Insert(true);
-        TransferHeader.Validate("Direct Transfer", DirectTransfer);
+        if DirectTransfer then
+            TransferHeader.Validate("Direct Transfer", true);
     end;
 
     local procedure CreateTransferLineWithOutboundTracking(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TransferHeader: Record "Transfer Header") Created: Boolean
