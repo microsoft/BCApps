@@ -137,6 +137,24 @@ codeunit 8057 "Date Formula Management"
         end;
     end;
 
+    internal procedure IsMonthBasedDateFormula(InputDateFormula: DateFormula): Boolean
+    var
+        DateFormulaType: Enum "Date Formula Type";
+        PeriodCount: Integer;
+        DateFormulaText: Text;
+    begin
+        DateFormulaType := FindDateFormulaTypeForComparison(InputDateFormula, PeriodCount);
+        if DateFormulaType in [DateFormulaType::Month, DateFormulaType::Quarter, DateFormulaType::Year] then
+            exit(true);
+        if DateFormulaType <> DateFormulaType::ComplexFormula then
+            exit(false);
+
+        // A formula with more than one unit is reported as complex, but one built only from months, quarters and years
+        // (<1Y+6M>) still follows the month rhythm. Only a day or week component breaks it.
+        DateFormulaText := Format(InputDateFormula, 0, 2);
+        exit((StrPos(DateFormulaText, 'D') = 0) and (StrPos(DateFormulaText, 'W') = 0));
+    end;
+
     procedure CalculateRenewalTermRatioByBillingRhythm(StartDate: Date; RenewalTermDateFormula: DateFormula; BillingRhythmFormula: DateFormula) RenewalRatio: Decimal
     var
         RenewalTermEndDate: Date;
