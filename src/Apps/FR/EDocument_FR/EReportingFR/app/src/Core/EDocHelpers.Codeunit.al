@@ -73,6 +73,7 @@ codeunit 10991 "EDoc. Helpers"
         FRCIIXMLBuilder: Codeunit "CII XML Builder";
         CustomerNoFieldRef: FieldRef;
         CustomerNo: Code[20];
+        BuyerElectronicAddress: Text;
     begin
         if not FRCIIXMLBuilder.TryGetCustomerNoFieldRef(SourceDocumentHeader, CustomerNoFieldRef) then
             exit;
@@ -84,7 +85,8 @@ codeunit 10991 "EDoc. Helpers"
         if not Customer.Get(CustomerNo) then
             exit;
 
-        if Customer."FR Electronic Address" = '' then
+        Customer.SetLoadFields("FR Electronic Address", "Registration Number", "VAT Registration No.");
+        if not FRCIIXMLBuilder.TryGetBuyerElectronicAddress(Customer, BuyerElectronicAddress) then
             Error(BuyerElectronicAddressRequiredErr, Customer."No.");
     end;
 
