@@ -15,13 +15,14 @@ codeunit 6321 "Power BI Rest Service Provider" implements "Power BI Service Prov
         PowerBiRestServiceWrapper := PowerBiRestServiceWrapper.PowerBiRestServiceWrapper(AzureAccessToken, PowerBIUrl);
     end;
 
-    procedure StartImport(BlobStream: Instream; ReportName: Text; Overwrite: Boolean; var ImportId: Guid; var OperationResult: DotNet OperationResult)
+    procedure StartImport(BlobStream: Instream; ReportName: Text; Overwrite: Boolean; WorkspaceId: Guid; var ImportId: Guid; var OperationResult: DotNet OperationResult)
     begin
         EnsureServiceWrapper();
         OperationResult := PowerBiRestServiceWrapper.StartImport(
                 BlobStream,
                 ReportName,
                 Overwrite,
+                WorkspaceId,
                 ImportId);
     end;
 
@@ -31,13 +32,13 @@ codeunit 6321 "Power BI Rest Service Provider" implements "Power BI Service Prov
         OperationResult := PowerBiRestServiceWrapper.CheckUserLicense();
     end;
 
-    procedure GetImport(ImportID: Guid; var ImportState: Text; var ReturnedReport: DotNet ReturnedReport; var OperationResult: DotNet OperationResult)
+    procedure GetImport(ImportID: Guid; WorkspaceId: Guid; var ImportState: Text; var ReturnedReport: DotNet ReturnedReport; var OperationResult: DotNet OperationResult)
     begin
         EnsureServiceWrapper();
-        OperationResult := PowerBiRestServiceWrapper.GetImport(ImportID, ImportState, ReturnedReport);
+        OperationResult := PowerBiRestServiceWrapper.GetImport(ImportID, WorkspaceId, ImportState, ReturnedReport);
     end;
 
-    procedure UpdateDatasetParameters(DatasetId: Text; Parameters: Dictionary of [Text, Text]; var OperationResult: DotNet OperationResult)
+    procedure UpdateDatasetParameters(DatasetId: Text; Parameters: Dictionary of [Text, Text]; WorkspaceId: Guid; var OperationResult: DotNet OperationResult)
     var
         ParamsDictionary: Dotnet GenericDictionary2;
         ParamKey: Text;
@@ -47,13 +48,13 @@ codeunit 6321 "Power BI Rest Service Provider" implements "Power BI Service Prov
         foreach ParamKey in Parameters.Keys() do
             ParamsDictionary.Add(ParamKey, Parameters.Get(ParamKey));
 
-        OperationResult := PowerBiRestServiceWrapper.UpdateDatasetParameters(DatasetId, ParamsDictionary);
+        OperationResult := PowerBiRestServiceWrapper.UpdateDatasetParameters(DatasetId, ParamsDictionary, WorkspaceId);
     end;
 
-    procedure GetDatasource(DatasetId: Text; var DataSourceId: Guid; var GatewayId: Guid; var OperationResult: DotNet OperationResult)
+    procedure GetDatasource(DatasetId: Text; WorkspaceId: Guid; var DataSourceId: Guid; var GatewayId: Guid; var OperationResult: DotNet OperationResult)
     begin
         EnsureServiceWrapper();
-        OperationResult := PowerBiRestServiceWrapper.GetDatasource(DatasetId, DataSourceId, GatewayId);
+        OperationResult := PowerBiRestServiceWrapper.GetDatasource(DatasetId, WorkspaceId, DataSourceId, GatewayId);
     end;
 
     procedure UpdateDatasourceCredentials(DataSourceId: Guid; GatewayId: Guid; BusinessCentralAccessToken: SecretText; var OperationResult: DotNet OperationResult)
@@ -62,10 +63,10 @@ codeunit 6321 "Power BI Rest Service Provider" implements "Power BI Service Prov
         OperationResult := PowerBiRestServiceWrapper.UpdateDatasourceCredentials(DataSourceId, GatewayId, BusinessCentralAccessToken);
     end;
 
-    procedure RefreshDataset(DatasetId: Text; var OperationResult: DotNet OperationResult)
+    procedure RefreshDataset(DatasetId: Text; WorkspaceId: Guid; var OperationResult: DotNet OperationResult)
     begin
         EnsureServiceWrapper();
-        OperationResult := PowerBiRestServiceWrapper.RefreshDataset(DatasetId);
+        OperationResult := PowerBiRestServiceWrapper.RefreshDataset(DatasetId, WorkspaceId);
     end;
 
     procedure GetReportsInMyWorkspace(var ReturnedReportList: DotNet ReturnedReportList; var OperationResult: DotNet OperationResult)
