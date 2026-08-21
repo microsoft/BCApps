@@ -17,9 +17,8 @@ report 114 "Salesperson - Sales Statistics"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Salesperson - Sales Statistics';
+    ToolTip = 'View amounts for sales, profit, invoice discount, and payment discount, as well as profit percentage, for each salesperson for a selected period. The report also shows the adjusted profit and adjusted profit percentage, which reflect any changes to the original costs of the items in the sales.';
     DefaultRenderingLayout = Excel;
-    //DefaultHeaderFooterPart = Internal_Default;
-    //DefaultThemePart = "BC Default Theme";
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
 
@@ -254,7 +253,6 @@ report 114 "Salesperson - Sales Statistics"
             LayoutFile = './Sales/Reports/SalespersonSalesStatistics.xlsx';
             Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
-#if not CLEAN32
         layout(Word)
         {
             Caption = 'Salesperson Sales Statistics Word';
@@ -263,9 +261,8 @@ report 114 "Salesperson - Sales Statistics"
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '32.0';
+            ObsoleteTag = '30.0';
         }
-#endif
 #if not CLEAN27
         layout(RDLC)
         {
@@ -281,10 +278,10 @@ report 114 "Salesperson - Sales Statistics"
         layout(WordBody)
         {
             Type = Word;
-            //Subtype = Body;
+            Subtype = Body;
             LayoutFile = './Sales/Reports/SalespersonSalesStatisticsBody.docx';
             Caption = 'Body-only: Salesperson Sales Statistics Word';
-            Summary = 'Landscape salesperson sales statistics. Per salesperson: sales, profit and adjusted profit (LCY and %), invoice discount, payment discount given, and tolerance, with column totals.';
+            Summary = 'Landscape orientated. Shows sales, profit, and adjusted profit in LCY and as a percentage for each salesperson, together with invoice discount, payment discount given, and payment tolerance. Includes column totals.';
         }
     }
 
