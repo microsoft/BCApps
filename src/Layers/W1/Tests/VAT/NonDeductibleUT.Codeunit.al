@@ -19,7 +19,7 @@ codeunit 134282 "Non-Deductible UT"
         LibraryUtility: Codeunit "Library - Utility";
         Assert: Codeunit Assert;
         isInitialized: Boolean;
-        DifferentNonDedVATRatesSameVATIdentifierErr: Label 'You cannot set different Non-Deductible VAT % for the combinations of business and product groups with the same VAT identifier.\The following combination with the same VAT identifier has different Non-Deductible VAT %: business group %1, product group %2', Comment = '%1, %2 - codes';
+        DifferentNonDedVATRatesSameVATIdentifierErr: Label 'You cannot set different Non-Deductible VAT % for the combinations of business and product groups with the same VAT identifier.\The following combination with the same VAT identifier has different Non-Deductible VAT %: business group %1, product group %2', Comment = '%1 = VAT business posting group code, %2 = VAT product posting group code';
         GLEntryAmountErrLbl: Label '%1 must be %2 in %3.', Comment = '%1 = Amount Field Caption, %2 = Amount Value, %3 = G/L Account No.', Locked = true;
         AmountErrorLbl: Label '%1 must be %2.', Comment = '%1 = Amount Field Caption, %2 = Expected Amount';
 
@@ -432,6 +432,37 @@ codeunit 134282 "Non-Deductible UT"
 
         // [WHEN] Set "Non-Deductible VAT %" to 0 (deductible) in the second purchase line
         asserterror PurchaseLine.Validate("Non-Deductible VAT %", 0);
+        // [THEN] An error message thrown that it is not possible to set different Non-Deductible VAT percents for the same VAT identifiers
+        Assert.ExpectedError(StrSubstNo(DifferentNonDedVATRatesSameVATIdentifierErr, VATPostingSetup."VAT Bus. Posting Group", VATPostingSetup."VAT Prod. Posting Group"));
+    end;
+
+    [Test]
+    procedure CannotSetNonZeroNonDedVATPercentInPurchaseLineWhenOtherLineHasZeroWithSameVATIdentifier()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+    begin
+        // [SCENARIO 647053] Stan cannot set a non-zero Non-Deductible VAT % in a purchase line when another line with
+        // the same VAT Identifier already has Non-Deductible VAT % = 0 (reverse entry order of the previous scenario)
+        Initialize();
+        // [GIVEN] VAT Posting Setup with "VAT Identifier" = "X", "Allow Non-Deductible VAT" is enabled and "Non-Deductible VAT %" = 10
+        LibraryNonDeductibleVAT.CreateNonDeductibleNormalVATPostingSetup(VATPostingSetup);
+        // [GIVEN] Purchase invoice with a line where "Non-Deductible VAT %" is set to 0 (deductible)
+        LibraryPurchase.CreatePurchHeader(
+            PurchaseHeader, PurchaseHeader."Document Type"::Invoice,
+            LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
+        LibraryPurchase.CreatePurchaseLine(
+            PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item,
+            LibraryInventory.CreateItemWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"), LibraryRandom.RandInt(100));
+        PurchaseLine.Validate("Non-Deductible VAT %", 0);
+        PurchaseLine.Modify(true);
+
+        // [WHEN] Add a second purchase line with the same VAT Identifier, which defaults to a non-zero "Non-Deductible VAT %"
+        asserterror
+            LibraryPurchase.CreatePurchaseLine(
+                PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item,
+                LibraryInventory.CreateItemWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"), LibraryRandom.RandInt(100));
         // [THEN] An error message thrown that it is not possible to set different Non-Deductible VAT percents for the same VAT identifiers
         Assert.ExpectedError(StrSubstNo(DifferentNonDedVATRatesSameVATIdentifierErr, VATPostingSetup."VAT Bus. Posting Group", VATPostingSetup."VAT Prod. Posting Group"));
     end;
