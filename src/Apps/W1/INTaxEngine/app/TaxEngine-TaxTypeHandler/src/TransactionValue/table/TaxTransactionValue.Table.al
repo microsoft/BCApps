@@ -165,8 +165,7 @@ table 20261 "Tax Transaction Value"
         if Rec.IsTemporary() then
             exit;
 
-        if Rec.ID = 0 then
-            Rec.ID := SequenceNoMgt.GetNextSeqNoBigInt(Database::"Tax Transaction Value");
+        Rec.ID := SequenceNoMgt.GetNextSeqNoBigInt(Database::"Tax Transaction Value");
     end;
 
     procedure GetAttributeColumName(): Text
