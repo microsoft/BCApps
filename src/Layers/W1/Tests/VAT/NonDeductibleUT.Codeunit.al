@@ -407,6 +407,35 @@ codeunit 134282 "Non-Deductible UT"
             StrSubstNo(AmountErrorLbl, ValueEntry.FieldCaption("Cost Amount (Actual)"), -PurchaseCost));
     end;
 
+    [Test]
+    procedure CannotSetZeroNonDedVATPercentInPurchaseLineWhenOtherLineHasNonZeroWithSameVATIdentifier()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+    begin
+        // [SCENARIO 647053] [AI test 1.0] Stan cannot set Non-Deductible VAT % to 0 in a purchase line when another line with
+        // the same VAT Identifier has a non-zero Non-Deductible VAT %, regardless of the order the lines were entered
+        Initialize();
+        // [GIVEN] VAT Posting Setup with "VAT Identifier" = "X", "Allow Non-Deductible VAT" is enabled and "Non-Deductible VAT %" = 10
+        LibraryNonDeductibleVAT.CreateNonDeductibleNormalVATPostingSetup(VATPostingSetup);
+        // [GIVEN] Purchase invoice with two lines, each with the same VAT Posting Setup and "Non-Deductible VAT %" = 10
+        LibraryPurchase.CreatePurchHeader(
+            PurchaseHeader, PurchaseHeader."Document Type"::Invoice,
+            LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
+        LibraryPurchase.CreatePurchaseLine(
+            PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item,
+            LibraryInventory.CreateItemWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"), LibraryRandom.RandInt(100));
+        LibraryPurchase.CreatePurchaseLine(
+            PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item,
+            LibraryInventory.CreateItemWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"), LibraryRandom.RandInt(100));
+
+        // [WHEN] Set "Non-Deductible VAT %" to 0 (deductible) in the second purchase line
+        asserterror PurchaseLine.Validate("Non-Deductible VAT %", 0);
+        // [THEN] An error message thrown that it is not possible to set different Non-Deductible VAT percents for the same VAT identifiers
+        Assert.ExpectedError(StrSubstNo(DifferentNonDedVATRatesSameVATIdentifierErr, VATPostingSetup."VAT Bus. Posting Group", VATPostingSetup."VAT Prod. Posting Group"));
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Non-Deductible UT");
