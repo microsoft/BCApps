@@ -36,7 +36,7 @@ codeunit 5829 "PO Matching Group"
     /// Adds an edge to the group if it's valid in the current context, merging in any already-persisted
     /// allocations that share a line with the edge so validations account for them.
     /// </summary>
-    internal procedure AddMatch(NewMatch: Record "Matched Order Line")
+    procedure AddMatch(NewMatch: Record "Matched Order Line")
     begin
         AddMatch(NewMatch, true);
     end;
@@ -44,7 +44,7 @@ codeunit 5829 "PO Matching Group"
     /// <summary>
     /// Revalidates the fully merged group against the current documents and persists it.
     /// </summary>
-    internal procedure SaveMatchingGroups()
+    procedure SaveMatchingGroups()
     begin
         RevalidateGroup();
 
@@ -367,7 +367,7 @@ codeunit 5829 "PO Matching Group"
     end;
     #endregion
 
-    #region Traversal 
+    #region Traversal
     // The iterator walks a snapshot of the current matches to allow consumers to mutate the group without disturbing the iterator.
 
     /// <summary>Snapshots the invoice-order (blank-receipt) edges and positions at the first one.</summary>
@@ -438,7 +438,7 @@ codeunit 5829 "PO Matching Group"
     end;
     #endregion
 
-    #region Group reload 
+    #region Group reload
     local procedure EnsureGroupLoaded(InvoiceLineSystemId: Guid; OrderLineSystemId: Guid; ReceiptLineSystemId: Guid)
     var
         TempComponent: Record "Matched Order Line" temporary;
@@ -474,7 +474,7 @@ codeunit 5829 "PO Matching Group"
     end;
 
     /// <summary>
-    /// Given an edge, it loads it's persisted connected component (the persisted matches that involve such edge, and any connected edge 
+    /// Given an edge, it loads it's persisted connected component (the persisted matches that involve such edge, and any connected edge
     /// as consequence) that haven't been loaded into the current "PO Matching Group".
     /// </summary>
     local procedure LoadNewPersistedEdges(SeedInvoice: Guid; SeedOrder: Guid; SeedReceipt: Guid; var TempComponent: Record "Matched Order Line" temporary)
@@ -574,4 +574,3 @@ codeunit 5829 "PO Matching Group"
     end;
     #endregion
 }
-
