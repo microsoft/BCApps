@@ -140,6 +140,9 @@ table 6786 "Withholding Tax Posting Setup"
             begin
                 if "WHT Threshold Base" <> "WHT Threshold Base"::Record then
                     TestEmployeeParty(FieldCaption("WHT Threshold Base"));
+
+                if not ("WHT Threshold Base" in ["WHT Threshold Base"::"Category Period", "WHT Threshold Base"::"Total Period"]) then
+                    "WHT Threshold Period" := "WHT Threshold Period"::" ";
             end;
         }
         field(103; "WHT Threshold Period"; Enum "WHT Threshold Period Type")
