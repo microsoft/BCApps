@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Tracking;
 
+using Microsoft.Inventory.Ledger;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 
@@ -24,6 +25,11 @@ codeunit 5829 "PO Matching Group"
         ReceiptCapExceededErr: Label 'The quantity to allocate exceeds the quantity received not invoiced on the receipt/shipment line.';
         InvoiceNotInferrableErr: Label 'Could not determine a single invoice line for the receipt allocation. Specify the invoice line.';
         BudgetBelowPinnedErr: Label 'The invoice-order allocation cannot be lower than the receipt/shipment quantities already distributed for it.';
+        PrepaymentNotSupportedErr: Label 'Matched order lines are not supported for prepayment lines. Order No.: %1, Line No.: %2', Comment = '%1 = Order No., %2 = Line No.';
+        ItemChargeNotSupportedErr: Label 'Matched order lines are not supported for item charge lines. Order No.: %1, Line No.: %2', Comment = '%1 = Order No., %2 = Line No.';
+        LinesMustShareVendorCurrencyErr: Label 'The invoice line and order line must have the same buy-from vendor, pay-to vendor and currency.';
+        ReceiptNotForOrderLineErr: Label 'The receipt/shipment line does not belong to the matched order line.';
+        ItemTrackingPartialErr: Label 'A receipt/shipment line with item tracking must be invoiced in full. Receipt No.: %1, Line No.: %2', Comment = '%1 = Receipt No., %2 = Receipt Line No.';
 
     /// <summary>
     /// Adds an edge to the group if it's valid in the current context, merging in any already-persisted
@@ -32,6 +38,20 @@ codeunit 5829 "PO Matching Group"
     internal procedure AddMatch(NewMatch: Record "Matched Order Line")
     begin
         AddMatch(NewMatch, true);
+    end;
+
+    /// <summary>
+    /// Revalidates the fully merged group against the current documents and persists it.
+    /// </summary>
+    internal procedure SaveMatchingGroups()
+    begin
+        RevalidateGroup();
+
+        TempCurrentPOMatchingGroup.Reset();
+        if TempCurrentPOMatchingGroup.FindSet() then
+            repeat
+                PersistRow(TempCurrentPOMatchingGroup);
+            until TempCurrentPOMatchingGroup.Next() = 0;
     end;
 
     local procedure AddMatch(NewMatch: Record "Matched Order Line"; LoadRelatedPersistedMatches: Boolean)
@@ -58,22 +78,9 @@ codeunit 5829 "PO Matching Group"
             Error(AtLeastTwoDocumentsErr);
     end;
 
-    /// <summary>
-    /// Revalidates the fully merged group against the current documents and persists it.
-    /// </summary>
-    internal procedure SaveMatchingGroups()
-    begin
-        RevalidateGroup();
-
-        TempCurrentPOMatchingGroup.Reset();
-        if TempCurrentPOMatchingGroup.FindSet() then
-            repeat
-                PersistRow(TempCurrentPOMatchingGroup);
-            until TempCurrentPOMatchingGroup.Next() = 0;
-    end;
-
     local procedure AddInvoiceOrderMatch(NewMatch: Record "Matched Order Line")
     begin
+        OverrideBaseFromOrderLine(NewMatch);
         ValidateInvoiceOrder(NewMatch);
         InsertOrModify(NewMatch);
     end;
@@ -82,6 +89,7 @@ codeunit 5829 "PO Matching Group"
     begin
         if IsNullGuid(NewMatch."Document Line SystemId") then
             NewMatch."Document Line SystemId" := InferInvoiceForOrder(NewMatch."Matched Order Line SystemId");
+        OverrideBaseFromOrderLine(NewMatch);
         ValidateOrderReceipt(NewMatch);
         InsertOrModify(NewMatch);
     end;
@@ -123,8 +131,16 @@ codeunit 5829 "PO Matching Group"
         if not OrderLine.GetBySystemId(Match."Matched Order Line SystemId") then
             Error(InvoiceLineNotFoundErr);
 
+        CheckOrderLineMatchable(OrderLine);
+
         if (InvoiceLine.Type <> OrderLine.Type) or (InvoiceLine."No." <> OrderLine."No.") then
             Error(LinesMustAgreeErr);
+
+        // The invoice can only draw from an order of the same vendor and currency.
+        if (InvoiceLine."Buy-from Vendor No." <> OrderLine."Buy-from Vendor No.") or
+           (InvoiceLine."Pay-to Vendor No." <> OrderLine."Pay-to Vendor No.") or
+           (InvoiceLine."Currency Code" <> OrderLine."Currency Code") then
+            Error(LinesMustShareVendorCurrencyErr);
 
         // The budget must fit in what the invoice line still has to allocate (blank-receipt layer only).
         TempCurrentPOMatchingGroup.Reset();
@@ -163,8 +179,14 @@ codeunit 5829 "PO Matching Group"
         if not PurchRcptLine.GetBySystemId(Match."Matched Rcpt./Shpt. Line SysId") then
             Error(ReceiptLineNotFoundErr);
 
+        CheckOrderLineMatchable(OrderLine);
+
         if (OrderLine.Type <> PurchRcptLine.Type) or (OrderLine."No." <> PurchRcptLine."No.") then
             Error(LinesMustAgreeErr);
+
+        // The receipt must actually be a receipt of this order line, not just an agreeing line.
+        if (PurchRcptLine."Order No." <> OrderLine."Document No.") or (PurchRcptLine."Order Line No." <> OrderLine."Line No.") then
+            Error(ReceiptNotForOrderLineErr);
 
         // The amount must fit in the budget this invoice-order pair was given, net of what previous
         // receipt rows for the same pair already consumed (per-invoice, so a receipt can be split).
@@ -187,6 +209,12 @@ codeunit 5829 "PO Matching Group"
             Error(ReceiptCapExceededErr);
         if Match."Qty. to Invoice (Base)" > (PurchRcptLine."Quantity (Base)" - PurchRcptLine."Qty. Invoiced (Base)") - ReceiptBase then
             Error(ReceiptCapExceededErr);
+
+        // A receipt carrying item tracking must be invoiced in full: we can't re-specify which serials/lots go on a partial invoice.
+        if ReceiptHasItemTracking(PurchRcptLine) then
+            if (Match."Qty. to Invoice" <> PurchRcptLine."Qty. Rcd. Not Invoiced") or
+               (Match."Qty. to Invoice (Base)" <> PurchRcptLine."Quantity (Base)" - PurchRcptLine."Qty. Invoiced (Base)") then
+                Error(ItemTrackingPartialErr, PurchRcptLine."Document No.", PurchRcptLine."Line No.");
     end;
 
     local procedure RevalidateGroup()
@@ -219,6 +247,34 @@ codeunit 5829 "PO Matching Group"
             Error(InvoiceNotInferrableErr);
         TempCurrentPOMatchingGroup.FindFirst();
         exit(TempCurrentPOMatchingGroup."Document Line SystemId");
+    end;
+
+    local procedure CheckOrderLineMatchable(OrderLine: Record "Purchase Line")
+    begin
+        if OrderLine."Prepayment %" <> 0 then
+            Error(PrepaymentNotSupportedErr, OrderLine."Document No.", OrderLine."Line No.");
+        if OrderLine.Type = OrderLine.Type::"Charge (Item)" then
+            Error(ItemChargeNotSupportedErr, OrderLine."Document No.", OrderLine."Line No.");
+    end;
+
+    local procedure OverrideBaseFromOrderLine(var Match: Record "Matched Order Line")
+    var
+        OrderLine: Record "Purchase Line";
+    begin
+        if not OrderLine.GetBySystemId(Match."Matched Order Line SystemId") then
+            Error(InvoiceLineNotFoundErr);
+        Match."Qty. to Invoice (Base)" :=
+            OrderLine.CalcBaseQty(Match."Qty. to Invoice", Match.FieldCaption("Qty. to Invoice"), Match.FieldCaption("Qty. to Invoice (Base)"));
+    end;
+
+    local procedure ReceiptHasItemTracking(PurchRcptLine: Record "Purch. Rcpt. Line"): Boolean
+    var
+        TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
+        ItemTrackingDocMgmt: Codeunit "Item Tracking Doc. Management";
+    begin
+        ItemTrackingDocMgmt.RetrieveEntriesFromShptRcpt(TempItemLedgerEntry, Database::"Purch. Rcpt. Line", 0, PurchRcptLine."Document No.", '', 0, PurchRcptLine."Line No.");
+        TempItemLedgerEntry.SetFilter("Item Tracking", '<>%1', TempItemLedgerEntry."Item Tracking"::None);
+        exit(not TempItemLedgerEntry.IsEmpty());
     end;
     #endregion
 
@@ -258,16 +314,10 @@ codeunit 5829 "PO Matching Group"
     end;
 
     local procedure InsertOrModify(Match: Record "Matched Order Line")
-    var
-        ReceiptOnInvoice: Boolean;
     begin
-        if IsNullGuid(Match."Matched Rcpt./Shpt. Line SysId") then
-            ReceiptOnInvoice := OrderHeaderReceiptOnInvoice(Match."Matched Order Line SystemId");
-
         if TempCurrentPOMatchingGroup.Get(Match."Document Line SystemId", Match."Matched Order Line SystemId", Match."Matched Rcpt./Shpt. Line SysId") then begin
             TempCurrentPOMatchingGroup."Qty. to Invoice" := Match."Qty. to Invoice";
             TempCurrentPOMatchingGroup."Qty. to Invoice (Base)" := Match."Qty. to Invoice (Base)";
-            TempCurrentPOMatchingGroup."Receipt on Invoice" := ReceiptOnInvoice;
             TempCurrentPOMatchingGroup.Modify();
         end else begin
             TempCurrentPOMatchingGroup.Init();
@@ -276,29 +326,22 @@ codeunit 5829 "PO Matching Group"
             TempCurrentPOMatchingGroup."Matched Rcpt./Shpt. Line SysId" := Match."Matched Rcpt./Shpt. Line SysId";
             TempCurrentPOMatchingGroup."Qty. to Invoice" := Match."Qty. to Invoice";
             TempCurrentPOMatchingGroup."Qty. to Invoice (Base)" := Match."Qty. to Invoice (Base)";
-            TempCurrentPOMatchingGroup."Receipt on Invoice" := ReceiptOnInvoice;
             TempCurrentPOMatchingGroup.Insert();
         end;
-    end;
-
-    local procedure OrderHeaderReceiptOnInvoice(OrderLineSystemId: Guid): Boolean
-    var
-        OrderHeader: Record "Purchase Header";
-        OrderLine: Record "Purchase Line";
-    begin
-        OrderLine.GetBySystemId(OrderLineSystemId);
-        OrderHeader.Get(OrderLine."Document Type", OrderLine."Document No.");
-        exit(OrderHeader."Receipt on Invoice");
     end;
 
     local procedure PersistRow(Src: Record "Matched Order Line")
     var
         MatchedOrderLine: Record "Matched Order Line";
+        ReceiptOnInvoice: Boolean;
     begin
+        if IsNullGuid(Src."Matched Rcpt./Shpt. Line SysId") then
+            ReceiptOnInvoice := ReceiptOnInvoiceForMatch(Src."Matched Order Line SystemId");
+
         if MatchedOrderLine.Get(Src."Document Line SystemId", Src."Matched Order Line SystemId", Src."Matched Rcpt./Shpt. Line SysId") then begin
             MatchedOrderLine."Qty. to Invoice" := Src."Qty. to Invoice";
             MatchedOrderLine."Qty. to Invoice (Base)" := Src."Qty. to Invoice (Base)";
-            MatchedOrderLine."Receipt on Invoice" := Src."Receipt on Invoice";
+            MatchedOrderLine."Receipt on Invoice" := ReceiptOnInvoice;
             MatchedOrderLine.Modify();
         end else begin
             MatchedOrderLine.Init();
@@ -307,9 +350,19 @@ codeunit 5829 "PO Matching Group"
             MatchedOrderLine."Matched Rcpt./Shpt. Line SysId" := Src."Matched Rcpt./Shpt. Line SysId";
             MatchedOrderLine."Qty. to Invoice" := Src."Qty. to Invoice";
             MatchedOrderLine."Qty. to Invoice (Base)" := Src."Qty. to Invoice (Base)";
-            MatchedOrderLine."Receipt on Invoice" := Src."Receipt on Invoice";
+            MatchedOrderLine."Receipt on Invoice" := ReceiptOnInvoice;
             MatchedOrderLine.Insert();
         end;
+    end;
+
+    local procedure ReceiptOnInvoiceForMatch(OrderLineSystemId: Guid): Boolean
+    var
+        OrderHeader: Record "Purchase Header";
+        OrderLine: Record "Purchase Line";
+    begin
+        OrderLine.GetBySystemId(OrderLineSystemId);
+        OrderHeader.Get(OrderLine."Document Type", OrderLine."Document No.");
+        exit(OrderHeader."Receipt on Invoice");
     end;
     #endregion
 

@@ -14,8 +14,11 @@ codeunit 134469 "PO Matching Group Tests"
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryRandom: Codeunit "Library - Random";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
+        LibraryUtility: Codeunit "Library - Utility";
         EmptyGuid: Guid;
 
+    #region Invoice-order edges
     [Test]
     procedure AddInvoiceOrderMatchWithinCapsSucceedsAndPersists()
     var
@@ -110,6 +113,63 @@ codeunit 134469 "PO Matching Group Tests"
     end;
 
     [Test]
+    procedure AddMatchWithDifferentBaseUoMPersistsBase()
+    var
+        POMatchingGroup: Codeunit "PO Matching Group";
+        Vendor: Record Vendor;
+        Item: Record Item;
+        UnitOfMeasure: Record "Unit of Measure";
+        OrderLine, InvoiceLine : Record "Purchase Line";
+        MatchedOrderLine: Record "Matched Order Line";
+    begin
+        // [SCENARIO] When the purchase UoM differs from the base UoM, the derived base quantity is persisted.
+        Initialize(Vendor, Item);
+        CreatePurchaseUoM(Item, 12, UnitOfMeasure); // 1 purchase UoM = 12 base
+        CreateOrderLineWithUoM(Vendor, Item, UnitOfMeasure.Code, 10, OrderLine);       // 10 -> 120 base
+        CreateInvoiceLineWithUoM(Vendor, Item, UnitOfMeasure.Code, 10, InvoiceLine);   // 10 -> 120 base
+
+        // [WHEN] Adding an invoice-order edge for the line's quantity, then saving (base is derived from the order UoM)
+        POMatchingGroup.AddMatch(
+            POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, OrderLine.Quantity, OrderLine."Quantity (Base)"));
+        POMatchingGroup.SaveMatchingGroups();
+
+        // [THEN] The persisted row carries both quantity (10) and base (120)
+        MatchedOrderLine.SetRange("Document Line SystemId", InvoiceLine.SystemId);
+        Assert.IsTrue(MatchedOrderLine.FindFirst(), 'Invoice-order row should exist');
+        Assert.AreEqual(10, MatchedOrderLine."Qty. to Invoice", 'Qty. to Invoice');
+        Assert.AreEqual(120, MatchedOrderLine."Qty. to Invoice (Base)", 'Qty. to Invoice (Base)');
+    end;
+
+    [Test]
+    procedure AddMatchDerivesBaseFromOrderIgnoringSuppliedBase()
+    var
+        POMatchingGroup: Codeunit "PO Matching Group";
+        Vendor: Record Vendor;
+        Item: Record Item;
+        UnitOfMeasure: Record "Unit of Measure";
+        OrderLine, InvoiceLine : Record "Purchase Line";
+        MatchedOrderLine: Record "Matched Order Line";
+    begin
+        // [SCENARIO] The base is derived from the order line's UoM; a caller-supplied base is ignored, so qty and base can't disagree.
+        Initialize(Vendor, Item);
+        CreatePurchaseUoM(Item, 12, UnitOfMeasure);
+        CreateOrderLineWithUoM(Vendor, Item, UnitOfMeasure.Code, 10, OrderLine);      // 1 purchase UoM = 12 base
+        CreateInvoiceLineWithUoM(Vendor, Item, UnitOfMeasure.Code, 10, InvoiceLine);
+
+        // [WHEN] Adding an edge with a deliberately wrong base (999) for quantity 10, then saving
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 10, 999));
+        POMatchingGroup.SaveMatchingGroups();
+
+        // [THEN] The persisted base is derived from the order line (10 * 12 = 120), not the supplied 999
+        MatchedOrderLine.SetRange("Document Line SystemId", InvoiceLine.SystemId);
+        Assert.IsTrue(MatchedOrderLine.FindFirst(), 'Invoice-order row should exist');
+        Assert.AreEqual(10, MatchedOrderLine."Qty. to Invoice", 'Qty. to Invoice');
+        Assert.AreEqual(120, MatchedOrderLine."Qty. to Invoice (Base)", 'Base should be derived, not the supplied 999');
+    end;
+    #endregion
+
+    #region Order-receipt edges
+    [Test]
     procedure AddOrderReceiptMatchWithinBudgetSucceedsAndPersists()
     var
         POMatchingGroup: Codeunit "PO Matching Group";
@@ -202,7 +262,9 @@ codeunit 134469 "PO Matching Group Tests"
         // [THEN] Rejected: exceeds the receipt's received not invoiced
         Assert.ExpectedError('exceeds the quantity received not invoiced');
     end;
+    #endregion
 
+    #region Invoice-receipt edges
     [Test]
     procedure AddInvoiceReceiptMatchExpandsToBothEdgesAndPersists()
     var
@@ -233,7 +295,9 @@ codeunit 134469 "PO Matching Group Tests"
         MatchedOrderLine.SetRange("Matched Rcpt./Shpt. Line SysId", PurchRcptLine.SystemId);
         Assert.IsTrue(MatchedOrderLine.FindFirst(), 'Invoice-order-receipt row should exist');
     end;
+    #endregion
 
+    #region Edge dispatch and overwrite
     [Test]
     procedure AddMatchWithSingleDocumentErrors()
     var
@@ -313,79 +377,9 @@ codeunit 134469 "PO Matching Group Tests"
         MatchedOrderLine.FindFirst();
         Assert.AreEqual(70, MatchedOrderLine."Qty. to Invoice", 'Latest quantity should win');
     end;
+    #endregion
 
-    [Test]
-    procedure AddMatchMismatchedLinesErrors()
-    var
-        POMatchingGroup: Codeunit "PO Matching Group";
-        Vendor: Record Vendor;
-        Item1, Item2 : Record Item;
-        OrderLine, InvoiceLine : Record "Purchase Line";
-    begin
-        // [SCENARIO] Matching an invoice line and order line of different items is rejected.
-        Initialize(Vendor, Item1);
-        LibraryInventory.CreateItem(Item2);
-        CreateOrderLine(Vendor, Item1, 100, OrderLine);
-        CreateInvoiceLine(Vendor, Item2, 100, InvoiceLine);
-
-        // [WHEN] Matching lines that do not agree on item
-        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 40, 40));
-
-        // [THEN] Rejected: lines must have the same type and number
-        Assert.ExpectedError('same type and number');
-    end;
-
-    [Test]
-    procedure AddMatchWithDifferentBaseUoMPersistsBase()
-    var
-        POMatchingGroup: Codeunit "PO Matching Group";
-        Vendor: Record Vendor;
-        Item: Record Item;
-        UnitOfMeasure: Record "Unit of Measure";
-        OrderLine, InvoiceLine : Record "Purchase Line";
-        MatchedOrderLine: Record "Matched Order Line";
-    begin
-        // [SCENARIO] When the purchase UoM differs from the base UoM, the base quantity flows through and is persisted.
-        Initialize(Vendor, Item);
-        CreatePurchaseUoM(Item, 12, UnitOfMeasure); // 1 purchase UoM = 12 base
-        CreateOrderLineWithUoM(Vendor, Item, UnitOfMeasure.Code, 10, OrderLine);       // 10 -> 120 base
-        CreateInvoiceLineWithUoM(Vendor, Item, UnitOfMeasure.Code, 10, InvoiceLine);   // 10 -> 120 base
-
-        // [WHEN] Adding an invoice-order edge carrying the line's quantity and base, then saving
-        POMatchingGroup.AddMatch(
-            POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, OrderLine.Quantity, OrderLine."Quantity (Base)"));
-        POMatchingGroup.SaveMatchingGroups();
-
-        // [THEN] The persisted row carries both quantity (10) and base (120)
-        MatchedOrderLine.SetRange("Document Line SystemId", InvoiceLine.SystemId);
-        Assert.IsTrue(MatchedOrderLine.FindFirst(), 'Invoice-order row should exist');
-        Assert.AreEqual(10, MatchedOrderLine."Qty. to Invoice", 'Qty. to Invoice');
-        Assert.AreEqual(120, MatchedOrderLine."Qty. to Invoice (Base)", 'Qty. to Invoice (Base)');
-    end;
-
-    [Test]
-    procedure AddMatchExceedingOrderBaseQuantityErrors()
-    var
-        POMatchingGroup: Codeunit "PO Matching Group";
-        Vendor: Record Vendor;
-        Item: Record Item;
-        UnitOfMeasure: Record "Unit of Measure";
-        OrderLine, InvoiceLine : Record "Purchase Line";
-    begin
-        // [SCENARIO] The base quantity is validated independently: an edge that fits in quantity but not in base is rejected.
-        Initialize(Vendor, Item);
-        CreatePurchaseUoM(Item, 12, UnitOfMeasure);
-        CreateOrderLineWithUoM(Vendor, Item, UnitOfMeasure.Code, 10, OrderLine);      // order base = 120
-        CreateInvoiceLineWithUoM(Vendor, Item, UnitOfMeasure.Code, 20, InvoiceLine);  // invoice base = 240 (won't bind)
-
-        // [WHEN] Adding an edge whose quantity fits (10 <= 10) but whose base exceeds the order base (121 > 120)
-        asserterror POMatchingGroup.AddMatch(
-            POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 10, OrderLine."Quantity (Base)" + 1));
-
-        // [THEN] Rejected on the order base cap
-        Assert.ExpectedError('exceeds the quantity remaining to invoice on the purchase order line');
-    end;
-
+    #region Many-to-one: receipt split and invoice inference
     [Test]
     procedure ReceiptSplitAcrossTwoInvoicesPersistsPerInvoiceRows()
     var
@@ -537,7 +531,9 @@ codeunit 134469 "PO Matching Group Tests"
         MatchedOrderLine.SetRange("Matched Rcpt./Shpt. Line SysId", EmptyGuid);
         Assert.AreEqual(2, MatchedOrderLine.Count(), 'Both invoice-order budget rows should persist');
     end;
+    #endregion
 
+    #region Group reload and merge with persisted matches
     [Test]
     procedure PersistedAllocationsAreMergedAndEnforceCapsOnAdd()
     var
@@ -652,7 +648,203 @@ codeunit 134469 "PO Matching Group Tests"
         // [THEN] Rejected: the reloaded receipt row from invoice 1 leaves nothing not invoiced
         Assert.ExpectedError('exceeds the quantity received not invoiced');
     end;
+    #endregion
 
+    #region Non-quantity (parity) validations
+    [Test]
+    procedure AddMatchMismatchedLinesErrors()
+    var
+        POMatchingGroup: Codeunit "PO Matching Group";
+        Vendor: Record Vendor;
+        Item1, Item2 : Record Item;
+        OrderLine, InvoiceLine : Record "Purchase Line";
+    begin
+        // [SCENARIO] Matching an invoice line and order line of different items is rejected.
+        Initialize(Vendor, Item1);
+        LibraryInventory.CreateItem(Item2);
+        CreateOrderLine(Vendor, Item1, 100, OrderLine);
+        CreateInvoiceLine(Vendor, Item2, 100, InvoiceLine);
+
+        // [WHEN] Matching lines that do not agree on item
+        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 40, 40));
+
+        // [THEN] Rejected: lines must have the same type and number
+        Assert.ExpectedError('same type and number');
+    end;
+
+    [Test]
+    procedure AddInvoiceOrderMatchPrepaymentOrderErrors()
+    var
+        POMatchingGroup: Codeunit "PO Matching Group";
+        Vendor: Record Vendor;
+        Item: Record Item;
+        OrderLine, InvoiceLine : Record "Purchase Line";
+    begin
+        // [SCENARIO] Matching to an order line that carries a prepayment is rejected.
+        Initialize(Vendor, Item);
+        CreateOrderLine(Vendor, Item, 100, OrderLine);
+        CreateInvoiceLine(Vendor, Item, 40, InvoiceLine);
+
+        // [GIVEN] The order line has a non-zero prepayment %
+        OrderLine."Prepayment %" := 10;
+        OrderLine.Modify();
+
+        // [WHEN] Adding an invoice-order match
+        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 40, 40));
+
+        // [THEN] Rejected: prepayment not supported
+        Assert.ExpectedError('prepayment');
+    end;
+
+    [Test]
+    procedure AddInvoiceOrderMatchItemChargeOrderErrors()
+    var
+        POMatchingGroup: Codeunit "PO Matching Group";
+        Vendor: Record Vendor;
+        Item: Record Item;
+        OrderLine, InvoiceLine : Record "Purchase Line";
+    begin
+        // [SCENARIO] Matching to an item charge order line is rejected.
+        Initialize(Vendor, Item);
+        CreateOrderLine(Vendor, Item, 100, OrderLine);
+        CreateInvoiceLine(Vendor, Item, 40, InvoiceLine);
+
+        // [GIVEN] The order line is an item charge line
+        OrderLine.Type := OrderLine.Type::"Charge (Item)";
+        OrderLine.Modify();
+
+        // [WHEN] Adding an invoice-order match
+        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 40, 40));
+
+        // [THEN] Rejected: item charge not supported
+        Assert.ExpectedError('item charge');
+    end;
+
+    [Test]
+    procedure AddInvoiceOrderMatchDifferentVendorErrors()
+    var
+        POMatchingGroup: Codeunit "PO Matching Group";
+        Vendor1, Vendor2 : Record Vendor;
+        Item: Record Item;
+        OrderLine, InvoiceLine : Record "Purchase Line";
+    begin
+        // [SCENARIO] An invoice line can only match order lines of the same vendor and currency.
+        Initialize(Vendor1, Item);
+        LibraryPurchase.CreateVendor(Vendor2);
+        CreateOrderLine(Vendor1, Item, 100, OrderLine);
+        CreateInvoiceLine(Vendor2, Item, 40, InvoiceLine);
+
+        // [WHEN] Matching an invoice of one vendor to an order of another vendor
+        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 40, 40));
+
+        // [THEN] Rejected: vendor/currency must agree
+        Assert.ExpectedError('same buy-from vendor');
+    end;
+
+    [Test]
+    procedure AddOrderReceiptMatchReceiptOfOtherOrderErrors()
+    var
+        POMatchingGroup: Codeunit "PO Matching Group";
+        Vendor: Record Vendor;
+        Item: Record Item;
+        OrderHeader1, OrderHeader2 : Record "Purchase Header";
+        OrderLine1, OrderLine2, InvoiceLine : Record "Purchase Line";
+        PurchRcptLine2: Record "Purch. Rcpt. Line";
+    begin
+        // [SCENARIO] A receipt line that belongs to a different order line (same item) cannot be pinned to this order line.
+        Initialize(Vendor, Item);
+        CreateOrderLineWithHeader(Vendor, Item, 100, OrderHeader1, OrderLine1);
+        CreateOrderLineWithHeader(Vendor, Item, 100, OrderHeader2, OrderLine2);
+        ReceiveOrder(OrderHeader2, OrderLine2, 100);
+        FindReceiptLine(OrderLine2, '', PurchRcptLine2);
+        CreateInvoiceLine(Vendor, Item, 100, InvoiceLine);
+
+        // [WHEN] Pinning order 2's receipt onto order 1 via an explicit invoice-order-receipt edge
+        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderReceiptEdge(InvoiceLine.SystemId, OrderLine1.SystemId, PurchRcptLine2.SystemId, 100, 100));
+
+        // [THEN] Rejected: the receipt does not belong to the matched order line
+        Assert.ExpectedError('does not belong to the matched order line');
+    end;
+
+    [Test]
+    procedure AddOrderReceiptMatchTrackedReceiptPartialErrors()
+    var
+        POMatchingGroup: Codeunit "PO Matching Group";
+        Vendor: Record Vendor;
+        Item: Record Item;
+        OrderLine, InvoiceLine : Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+    begin
+        // [SCENARIO] A receipt carrying item tracking must be invoiced in full; a partial receipt edge is rejected.
+        CreateLotTrackedReceivedOrder(Vendor, Item, 100, OrderLine, PurchRcptLine);
+        CreateInvoiceLine(Vendor, Item, 100, InvoiceLine);
+
+        // [GIVEN] An invoice-order budget of 100
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 100, 100));
+
+        // [WHEN] Pinning only 40 of the tracked receipt
+        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderReceiptEdge(InvoiceLine.SystemId, OrderLine.SystemId, PurchRcptLine.SystemId, 40, 40));
+
+        // [THEN] Rejected: tracked receipts are all-or-nothing
+        Assert.ExpectedError('must be invoiced in full');
+    end;
+
+    [Test]
+    procedure AddOrderReceiptMatchTrackedReceiptInFullSucceeds()
+    var
+        POMatchingGroup: Codeunit "PO Matching Group";
+        Vendor: Record Vendor;
+        Item: Record Item;
+        OrderLine, InvoiceLine : Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        MatchedOrderLine: Record "Matched Order Line";
+    begin
+        // [SCENARIO] A tracked receipt pinned in full is accepted and persisted.
+        CreateLotTrackedReceivedOrder(Vendor, Item, 100, OrderLine, PurchRcptLine);
+        CreateInvoiceLine(Vendor, Item, 100, InvoiceLine);
+
+        // [WHEN] Budgeting the invoice and pinning the tracked receipt in full, then saving
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 100, 100));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderReceiptEdge(InvoiceLine.SystemId, OrderLine.SystemId, PurchRcptLine.SystemId, 100, 100));
+        POMatchingGroup.SaveMatchingGroups();
+
+        // [THEN] The full tracked receipt row is persisted
+        MatchedOrderLine.SetRange("Document Line SystemId", InvoiceLine.SystemId);
+        MatchedOrderLine.SetRange("Matched Rcpt./Shpt. Line SysId", PurchRcptLine.SystemId);
+        Assert.IsTrue(MatchedOrderLine.FindFirst(), 'Full tracked receipt row should persist');
+        Assert.AreEqual(100, MatchedOrderLine."Qty. to Invoice", 'Receipt row Qty. to Invoice');
+    end;
+
+    [Test]
+    procedure ReceiptOnInvoiceComputedFromHeaderAtPersist()
+    var
+        POMatchingGroup: Codeunit "PO Matching Group";
+        Vendor: Record Vendor;
+        Item: Record Item;
+        OrderHeader: Record "Purchase Header";
+        OrderLine, InvoiceLine : Record "Purchase Line";
+        MatchedOrderLine: Record "Matched Order Line";
+    begin
+        // [SCENARIO] Receipt on Invoice is computed at persist time from the order header, not while building the buffer.
+        Initialize(Vendor, Item);
+        CreateOrderLineWithHeader(Vendor, Item, 100, OrderHeader, OrderLine);
+        OrderHeader."Receipt on Invoice" := true; // enable directly, bypassing setup validations
+        OrderHeader.Modify();
+        CreateInvoiceLine(Vendor, Item, 40, InvoiceLine);
+
+        // [WHEN] Adding an invoice-order edge and saving
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 40, 40));
+        POMatchingGroup.SaveMatchingGroups();
+
+        // [THEN] The persisted budget row's Receipt on Invoice reflects the header
+        MatchedOrderLine.SetRange("Document Line SystemId", InvoiceLine.SystemId);
+        MatchedOrderLine.SetRange("Matched Rcpt./Shpt. Line SysId", EmptyGuid);
+        Assert.IsTrue(MatchedOrderLine.FindFirst(), 'Budget row should exist');
+        Assert.IsTrue(MatchedOrderLine."Receipt on Invoice", 'Receipt on Invoice should be computed from the header at persist');
+    end;
+    #endregion
+
+    #region Test helpers
     local procedure Initialize(var Vendor: Record Vendor; var Item: Record Item)
     begin
         LibraryPurchase.CreateVendor(Vendor);
@@ -746,4 +938,33 @@ codeunit 134469 "PO Matching Group Tests"
             PurchRcptLine.SetFilter("Document No.", '<>%1', ExcludeDocumentNo);
         PurchRcptLine.FindFirst();
     end;
+
+    local procedure CreateLotTrackedReceivedOrder(var Vendor: Record Vendor; var Item: Record Item; Qty: Decimal; var OrderLine: Record "Purchase Line"; var PurchRcptLine: Record "Purch. Rcpt. Line")
+    var
+        ItemTrackingCode: Record "Item Tracking Code";
+        ReservationEntry: Record "Reservation Entry";
+        OrderHeader: Record "Purchase Header";
+        LotNo: Code[50];
+    begin
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryInventory.CreateItem(Item);
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true); // lot-specific
+        Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
+        Item.Modify(true);
+
+        LibraryPurchase.CreatePurchHeader(OrderHeader, OrderHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(OrderLine, OrderHeader, OrderLine.Type::Item, Item."No.", Qty);
+        OrderLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 100, 2));
+        OrderLine.Modify(true);
+
+        LotNo := LibraryUtility.GenerateGUID();
+        LibraryItemTracking.CreatePurchOrderItemTracking(ReservationEntry, OrderLine, '', LotNo, Qty);
+        LibraryPurchase.PostPurchaseDocument(OrderHeader, true, false);
+        OrderLine.Get(OrderLine."Document Type", OrderLine."Document No.", OrderLine."Line No.");
+
+        PurchRcptLine.SetRange("Order No.", OrderLine."Document No.");
+        PurchRcptLine.SetRange("Order Line No.", OrderLine."Line No.");
+        PurchRcptLine.FindFirst();
+    end;
+    #endregion
 }
