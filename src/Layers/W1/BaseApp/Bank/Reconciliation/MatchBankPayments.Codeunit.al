@@ -1152,6 +1152,7 @@ codeunit 1255 "Match Bank Payments"
         CustLedgerEntry: Record "Cust. Ledger Entry";
         GeneralLedgerSetup: Record "General Ledger Setup";
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        CandidateFilterStartDate: Date;
     begin
         BankAccount.Get(BankAccReconciliationLine."Bank Account No.");
         SalesReceivablesSetup.Get();
@@ -1167,8 +1168,9 @@ codeunit 1255 "Match Bank Payments"
         if ApplyEntries then
             CustLedgerEntry.SetRange("Applies-to ID", '');
 
-        if GetCandidateFilterStartDate(BankAccReconciliationLine) <> 0D then
-            CustLedgerEntry.SetFilter("Posting Date", '>=%1', GetCandidateFilterStartDate(BankAccReconciliationLine));
+        CandidateFilterStartDate := GetCandidateFilterStartDate(BankAccReconciliationLine);
+        if CandidateFilterStartDate <> 0D then
+            CustLedgerEntry.SetFilter("Posting Date", '>=%1', CandidateFilterStartDate);
 
         OnInitCustomerLedgerEntriesMatchingBufferSetFilter(CustLedgerEntry, BankAccReconciliationLine);
 
@@ -1216,6 +1218,7 @@ codeunit 1255 "Match Bank Payments"
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         GeneralLedgerSetup: Record "General Ledger Setup";
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        CandidateFilterStartDate: Date;
     begin
         BankAccount.Get(BankAccReconciliationLine."Bank Account No.");
         PurchasesPayablesSetup.Get();
@@ -1231,8 +1234,9 @@ codeunit 1255 "Match Bank Payments"
         if ApplyEntries then
             VendorLedgerEntry.SetRange("Applies-to ID", '');
 
-        if GetCandidateFilterStartDate(BankAccReconciliationLine) <> 0D then
-            VendorLedgerEntry.SetFilter("Posting Date", '>=%1', GetCandidateFilterStartDate(BankAccReconciliationLine));
+        CandidateFilterStartDate := GetCandidateFilterStartDate(BankAccReconciliationLine);
+        if CandidateFilterStartDate <> 0D then
+            VendorLedgerEntry.SetFilter("Posting Date", '>=%1', CandidateFilterStartDate);
 
         OnInitVendorLedgerEntriesMatchingBufferSetFilter(VendorLedgerEntry, BankAccReconciliationLine);
 
@@ -1279,6 +1283,7 @@ codeunit 1255 "Match Bank Payments"
     procedure InitializeEmployeeLedgerEntriesMatchingBuffer(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; var TempLedgerEntryMatchingBuffer: Record "Ledger Entry Matching Buffer" temporary; ApplyEntries: Boolean)
     var
         EmployeeLedgerEntry: Record "Employee Ledger Entry";
+        CandidateFilterStartDate: Date;
     begin
         BankAccount.Get(BankAccReconciliationLine."Bank Account No.");
 
@@ -1288,8 +1293,9 @@ codeunit 1255 "Match Bank Payments"
         if ApplyEntries then
             EmployeeLedgerEntry.SetRange("Applies-to ID", '');
 
-        if GetCandidateFilterStartDate(BankAccReconciliationLine) <> 0D then
-            EmployeeLedgerEntry.SetFilter("Posting Date", '>=%1', GetCandidateFilterStartDate(BankAccReconciliationLine));
+        CandidateFilterStartDate := GetCandidateFilterStartDate(BankAccReconciliationLine);
+        if CandidateFilterStartDate <> 0D then
+            EmployeeLedgerEntry.SetFilter("Posting Date", '>=%1', CandidateFilterStartDate);
 
         OnInitEmployeeLedgerEntriesMatchingBufferSetFilter(EmployeeLedgerEntry, BankAccReconciliationLine);
 
@@ -1331,6 +1337,7 @@ codeunit 1255 "Match Bank Payments"
         BankAccLedgerEntry: Record "Bank Account Ledger Entry";
         GeneralLedgerSetup: Record "General Ledger Setup";
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        CandidateFilterStartDate: Date;
     begin
         BankAccount.Get(BankAccReconciliationLine."Bank Account No.");
         PurchasesPayablesSetup.Get();
@@ -1340,8 +1347,9 @@ codeunit 1255 "Match Bank Payments"
         if SkipReversed then
             BankAccLedgerEntry.SetRange(Reversed, false);
 
-        if GetCandidateFilterStartDate(BankAccReconciliationLine) <> 0D then
-            BankAccLedgerEntry.SetFilter("Posting Date", '>=%1', GetCandidateFilterStartDate(BankAccReconciliationLine));
+        CandidateFilterStartDate := GetCandidateFilterStartDate(BankAccReconciliationLine);
+        if CandidateFilterStartDate <> 0D then
+            BankAccLedgerEntry.SetFilter("Posting Date", '>=%1', CandidateFilterStartDate);
 
         OnInitBankAccLedgerEntriesMatchingBufferSetFilter(BankAccLedgerEntry, BankAccReconciliationLine);
 
