@@ -718,7 +718,7 @@ table 6906 "Expense Report Header"
             ExpenseReportLine.Validate("Travel Request No.", Rec."Travel Request No.");
             ExpenseReportLine."Travel Request Close" := Rec."Travel Request Close";
             ExpenseReportLine.SetSkipTravelRequestClose(false);
-            ExpenseReportLine.Modify();
+            ExpenseReportLine.Modify(true);
         end;
     end;
 
