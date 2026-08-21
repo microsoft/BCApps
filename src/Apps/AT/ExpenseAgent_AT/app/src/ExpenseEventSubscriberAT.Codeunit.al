@@ -82,14 +82,16 @@ codeunit 6914 "Expense Event Subscriber AT"
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Expense Categories", 'OnAfterBuildRuleConditionSeeds', '', false, false)]
     local procedure OnAfterBuildRuleConditionSeeds(var TempRuleCondition: Record "Expense Rule Condition" temporary)
+    var
+        CreateExpenseRuleCondition: codeunit "Create Expense Rule Condition";
     begin
-        CreateExpenseCategories.AddRuleConditionSeed(TempRuleCondition, PerDiemI(), CreateExpenseCategories.GetCANADAALLTxt(), "Expense Rule Condition Type"::"Daily Rate", 125);
-        CreateExpenseCategories.AddRuleConditionSeed(TempRuleCondition, PerDiemI(), CreateExpenseCategories.GetDENMARKALLTxt(), "Expense Rule Condition Type"::"Daily Rate", 450);
-        CreateExpenseCategories.AddRuleConditionSeed(TempRuleCondition, PerDiemA(), CreateExpenseCategories.GetDOMESTICTxt(), "Expense Rule Condition Type"::"Daily Rate", 50);
-        CreateExpenseCategories.AddRuleConditionSeed(TempRuleCondition, PerDiemI(), CreateExpenseCategories.GetFRANCEALLTxt(), "Expense Rule Condition Type"::"Daily Rate", 110);
-        CreateExpenseCategories.AddRuleConditionSeed(TempRuleCondition, PerDiemI(), CreateExpenseCategories.GetGERMANYALLTxt(), "Expense Rule Condition Type"::"Daily Rate", 105);
-        CreateExpenseCategories.AddRuleConditionSeed(TempRuleCondition, PerDiemI(), CreateExpenseCategories.GetUKOTHERTxt(), "Expense Rule Condition Type"::"Daily Rate", 115);
-        CreateExpenseCategories.AddRuleConditionSeed(TempRuleCondition, PerDiemI(), CreateExpenseCategories.GetUSAOTHERTxt(), "Expense Rule Condition Type"::"Daily Rate", 120);
+        CreateExpenseRuleCondition.InsertExpenseRuleCondition(TempRuleCondition, PerDiemI(), CreateExpenseCategories.GetCANADAALLTxt(), 0D, 10000, "Expense Rule Condition Type"::"Daily Rate", 125);
+        CreateExpenseRuleCondition.InsertExpenseRuleCondition(TempRuleCondition, PerDiemI(), CreateExpenseCategories.GetDENMARKALLTxt(), 0D, 10000, "Expense Rule Condition Type"::"Daily Rate", 450);
+        CreateExpenseRuleCondition.InsertExpenseRuleCondition(TempRuleCondition, PerDiemA(), CreateExpenseCategories.GetDOMESTICTxt(), 0D, 10000, "Expense Rule Condition Type"::"Daily Rate", 50);
+        CreateExpenseRuleCondition.InsertExpenseRuleCondition(TempRuleCondition, PerDiemI(), CreateExpenseCategories.GetFRANCEALLTxt(), 0D, 10000, "Expense Rule Condition Type"::"Daily Rate", 110);
+        CreateExpenseRuleCondition.InsertExpenseRuleCondition(TempRuleCondition, PerDiemI(), CreateExpenseCategories.GetGERMANYALLTxt(), 0D, 10000, "Expense Rule Condition Type"::"Daily Rate", 105);
+        CreateExpenseRuleCondition.InsertExpenseRuleCondition(TempRuleCondition, PerDiemI(), CreateExpenseCategories.GetUKOTHERTxt(), 0D, 10000, "Expense Rule Condition Type"::"Daily Rate", 115);
+        CreateExpenseRuleCondition.InsertExpenseRuleCondition(TempRuleCondition, PerDiemI(), CreateExpenseCategories.GetUSAOTHERTxt(), 0D, 10000, "Expense Rule Condition Type"::"Daily Rate", 120);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Expense Categories", 'OnBeforeAddCategorySeed', '', false, false)]
@@ -107,17 +109,25 @@ codeunit 6914 "Expense Event Subscriber AT"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Expense Categories", 'OnBeforeAddRuleSeed', '', false, false)]
-    local procedure OnBeforeAddRuleSeed(CategoryCode: Code[20]; var IsHandled: Boolean)
+    local procedure OnBeforeAddRuleSeed(var ExpenseRuleHeader: Record "Expense Rule Header"; var CategoryCode: Code[20]; var ExpenseLocationCode: Code[20]; var CurrencyCode: Code[10]; var JustificationRequired: Enum "Expense Justification"; var IsHandled: Boolean)
     begin
-        if CategoryCode = CreateExpenseCategories.GetPERDIEMTxt() then
-            IsHandled := true;
+        if CategoryCode <> CreateExpenseCategories.GetPERDIEMTxt() then
+            exit;
+        if ExpenseLocationCode = CreateExpenseCategories.GetDOMESTICTxt() then
+            CategoryCode := PerDiemA()
+        else
+            CategoryCode := PerDiemI();
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Expense Categories", 'OnBeforeAddRuleConditionSeed', '', false, false)]
-    local procedure OnBeforeAddRuleConditionSeed(CategoryCode: Code[20]; var IsHandled: Boolean)
+    local procedure OnBeforeAddRuleConditionSeed(var RuleCondition: Record "Expense Rule Condition"; var CategoryCode: Code[20]; var ExpenseLocationCode: Code[20]; var ConditionType: Enum "Expense Rule Condition Type"; var Value: Decimal; var IsHandled: Boolean)
     begin
-        if CategoryCode = CreateExpenseCategories.GetPERDIEMTxt() then
-            IsHandled := true;
+        if CategoryCode <> CreateExpenseCategories.GetPERDIEMTxt() then
+            exit;
+        if ExpenseLocationCode = CreateExpenseCategories.GetDOMESTICTxt() then
+            CategoryCode := PerDiemA()
+        else
+            CategoryCode := PerDiemI();
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Expense Categories", 'OnBeforeInsertPostingGroupSeed', '', false, false)]

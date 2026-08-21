@@ -449,6 +449,16 @@ codeunit 6973 "Create Expense Categories"
         exit(XMEALSTxt);
     end;
 
+    internal procedure GetMileageTxt(): Code[20]
+    begin
+        exit(XMILEAGETxt);
+    end;
+
+    internal procedure GetMoraleTxt(): Code[20]
+    begin
+        exit(XMORALETxt);
+    end;
+
     internal procedure GetAIRLINETxt(): Code[20]
     begin
         exit(XAIRLINETxt);
@@ -662,8 +672,10 @@ codeunit 6973 "Create Expense Categories"
         BuildLocationSeeds(TempLocationSeed);
         if TempLocationSeed.FindSet() then
             repeat
-                if not SeedLocationShouldBeSkipped(TempLocationSeed) then
-                    InsertExpenseLocation(TempLocationSeed."No.", TempLocationSeed."Country/Region Code", TempLocationSeed.Description);
+                if not SeedLocationShouldBeSkipped(TempLocationSeed) then begin
+                    ExpenseLocation := TempLocationSeed;
+                    ExpenseLocation.Insert();
+                end;
             until TempLocationSeed.Next() = 0;
     end;
 
@@ -672,7 +684,7 @@ codeunit 6973 "Create Expense Categories"
         ConflictingLocation: Record "Expense Location";
     begin
         if ConflictingLocation.Get(SeedLocation."No.") then
-            exit(false);
+            exit(true);
 
         ConflictingLocation.Reset();
         ConflictingLocation.SetFilter("No.", '<>%1', SeedLocation."No.");
@@ -706,14 +718,7 @@ codeunit 6973 "Create Expense Categories"
     begin
         TempExpenseLocation.Reset();
         TempExpenseLocation.DeleteAll();
-
-        AddLocationSeed(TempExpenseLocation, XCANADAALLTxt, 'CA', 'Canada - All');
-        AddLocationSeed(TempExpenseLocation, XDENMARKALLTxt, 'DK', 'Denmark - All');
-        AddLocationSeed(TempExpenseLocation, XDOMESTICTxt, '', 'Domestic');
-        AddLocationSeed(TempExpenseLocation, XFRANCEALLTxt, 'FR', 'France - All');
-        AddLocationSeed(TempExpenseLocation, XGERMANYALLTxt, 'DE', 'Germany - All');
-        AddLocationSeed(TempExpenseLocation, XUKOTHERTxt, 'GB', 'United Kingdom - Other');
-        AddLocationSeed(TempExpenseLocation, XUSAOTHERTxt, 'US', 'United States - Other');
+        Codeunit.Run(Codeunit::"Create Expense Location", TempExpenseLocation);
     end;
 
     /// <summary>
@@ -759,27 +764,15 @@ codeunit 6973 "Create Expense Categories"
         exit(not TempExpenseLocation.IsEmpty());
     end;
 
-    local procedure AddLocationSeed(var TempExpenseLocation: Record "Expense Location" temporary; LocationNo: Code[20]; CountryRegionCode: Code[10]; Description: Text[100])
-    begin
-        TempExpenseLocation.Init();
-        TempExpenseLocation."No." := LocationNo;
-        TempExpenseLocation."Country/Region Code" := CountryRegionCode;
-        TempExpenseLocation.Description := Description;
-        TempExpenseLocation.Insert();
-    end;
-
     internal procedure InsertDefaultManagementRules()
     var
         TempRuleHeaderSeed: Record "Expense Rule Header" temporary;
         TempRuleConditionSeed: Record "Expense Rule Condition" temporary;
         TempPreExistingRuleHeader: Record "Expense Rule Header" temporary;
-        TempSkippedSeedLocation: Record "Expense Location" temporary;
         ExistingRuleHeader: Record "Expense Rule Header";
     begin
         // Expense Locations are a prerequisite for rules that target a location.
         InsertDefaultExpenseLocations();
-
-        BuildSkippedSeedLocations(TempSkippedSeedLocation);
 
         BuildRuleSeeds(TempRuleHeaderSeed);
 
@@ -787,25 +780,22 @@ codeunit 6973 "Create Expense Categories"
         // are considered customer-owned and must not be touched by the defaults run.
         if TempRuleHeaderSeed.FindSet() then
             repeat
-                if not TempSkippedSeedLocation.Get(TempRuleHeaderSeed."Expense Location") then
-                    if ExistingRuleHeader.Get(TempRuleHeaderSeed."Expense Category Code", TempRuleHeaderSeed."Expense Location", TempRuleHeaderSeed."Effective Date") then begin
-                        TempPreExistingRuleHeader := ExistingRuleHeader;
-                        TempPreExistingRuleHeader.Insert();
-                    end;
+                if ExistingRuleHeader.Get(TempRuleHeaderSeed."Expense Category Code", TempRuleHeaderSeed."Expense Location", TempRuleHeaderSeed."Effective Date") then begin
+                    TempPreExistingRuleHeader := ExistingRuleHeader;
+                    TempPreExistingRuleHeader.Insert();
+                end;
             until TempRuleHeaderSeed.Next() = 0;
 
         if TempRuleHeaderSeed.FindSet() then
             repeat
-                if not TempSkippedSeedLocation.Get(TempRuleHeaderSeed."Expense Location") then
-                    InsertExpenseRule(TempRuleHeaderSeed."Expense Category Code", TempRuleHeaderSeed."Expense Location", TempRuleHeaderSeed."Currency Code", TempRuleHeaderSeed."Justification Required");
+                InsertExpenseRule(TempRuleHeaderSeed."Expense Category Code", TempRuleHeaderSeed."Expense Location", TempRuleHeaderSeed."Currency Code", TempRuleHeaderSeed."Justification Required");
             until TempRuleHeaderSeed.Next() = 0;
 
         BuildRuleConditionSeeds(TempRuleConditionSeed);
         if TempRuleConditionSeed.FindSet() then
             repeat
-                if not TempSkippedSeedLocation.Get(TempRuleConditionSeed."Expense Location") then
-                    if not TempPreExistingRuleHeader.Get(TempRuleConditionSeed."Expense Category Code", TempRuleConditionSeed."Expense Location", TempRuleConditionSeed."Effective Date") then
-                        InsertExpenseRuleCondition(TempRuleConditionSeed."Expense Category Code", TempRuleConditionSeed."Expense Location", TempRuleConditionSeed."Condition Type", TempRuleConditionSeed.Value);
+                if not TempPreExistingRuleHeader.Get(TempRuleConditionSeed."Expense Category Code", TempRuleConditionSeed."Expense Location", TempRuleConditionSeed."Effective Date") then
+                    InsertExpenseRuleCondition(TempRuleConditionSeed."Expense Category Code", TempRuleConditionSeed."Expense Location", TempRuleConditionSeed."Condition Type", TempRuleConditionSeed.Value);
             until TempRuleConditionSeed.Next() = 0;
     end;
 
@@ -817,17 +807,7 @@ codeunit 6973 "Create Expense Categories"
         TempRuleHeader.Reset();
         TempRuleHeader.DeleteAll();
 
-        AddRuleSeed(TempRuleHeader, XENTERTAINTxt, '', '', "Expense Justification"::"Against Conditions");
-        AddRuleSeed(TempRuleHeader, XHOTELSTxt, '', '', "Expense Justification"::" ");
-        AddRuleSeed(TempRuleHeader, XMILEAGETxt, '', '', "Expense Justification"::" ");
-        AddRuleSeed(TempRuleHeader, XMORALETxt, '', '', "Expense Justification"::" ");
-        AddRuleSeed(TempRuleHeader, XPERDIEMTxt, XCANADAALLTxt, 'CAD', "Expense Justification"::" ");
-        AddRuleSeed(TempRuleHeader, XPERDIEMTxt, XDENMARKALLTxt, 'EUR', "Expense Justification"::" ");
-        AddRuleSeed(TempRuleHeader, XPERDIEMTxt, XDOMESTICTxt, 'USD', "Expense Justification"::" ");
-        AddRuleSeed(TempRuleHeader, XPERDIEMTxt, XFRANCEALLTxt, 'EUR', "Expense Justification"::" ");
-        AddRuleSeed(TempRuleHeader, XPERDIEMTxt, XGERMANYALLTxt, 'EUR', "Expense Justification"::" ");
-        AddRuleSeed(TempRuleHeader, XPERDIEMTxt, XUKOTHERTxt, 'GBP', "Expense Justification"::" ");
-        AddRuleSeed(TempRuleHeader, XPERDIEMTxt, XUSAOTHERTxt, 'USD', "Expense Justification"::" ");
+        Codeunit.Run(Codeunit::"Create Expense Rule Header", TempRuleHeader);
 
         OnAfterBuildRuleSeeds(TempRuleHeader);
     end;
@@ -840,16 +820,7 @@ codeunit 6973 "Create Expense Categories"
         TempRuleCondition.Reset();
         TempRuleCondition.DeleteAll();
 
-        AddRuleConditionSeed(TempRuleCondition, XENTERTAINTxt, '', "Expense Rule Condition Type"::"At Least Justification Needed", 500);
-        AddRuleConditionSeed(TempRuleCondition, XENTERTAINTxt, '', "Expense Rule Condition Type"::"Max Amount", 1000);
-        AddRuleConditionSeed(TempRuleCondition, XMILEAGETxt, '', "Expense Rule Condition Type"::"Max Amount", 300);
-        AddRuleConditionSeed(TempRuleCondition, XPERDIEMTxt, XCANADAALLTxt, "Expense Rule Condition Type"::"Daily Rate", 125);
-        AddRuleConditionSeed(TempRuleCondition, XPERDIEMTxt, XDENMARKALLTxt, "Expense Rule Condition Type"::"Daily Rate", 450);
-        AddRuleConditionSeed(TempRuleCondition, XPERDIEMTxt, XDOMESTICTxt, "Expense Rule Condition Type"::"Daily Rate", 50);
-        AddRuleConditionSeed(TempRuleCondition, XPERDIEMTxt, XFRANCEALLTxt, "Expense Rule Condition Type"::"Daily Rate", 110);
-        AddRuleConditionSeed(TempRuleCondition, XPERDIEMTxt, XGERMANYALLTxt, "Expense Rule Condition Type"::"Daily Rate", 105);
-        AddRuleConditionSeed(TempRuleCondition, XPERDIEMTxt, XUKOTHERTxt, "Expense Rule Condition Type"::"Daily Rate", 115);
-        AddRuleConditionSeed(TempRuleCondition, XPERDIEMTxt, XUSAOTHERTxt, "Expense Rule Condition Type"::"Daily Rate", 120);
+        Codeunit.Run(Codeunit::"Create Expense Rule Condition", TempRuleCondition);
 
         OnAfterBuildRuleConditionSeeds(TempRuleCondition);
     end;
@@ -946,7 +917,7 @@ codeunit 6973 "Create Expense Categories"
         TempRuleHeader."Currency Code" := CurrencyCode;
         TempRuleHeader."Justification Required" := JustificationRequired;
         OnBeforeInsertRuleSeed(TempRuleHeader);
-        TempRuleHeader.Insert();
+        if TempRuleHeader.Insert() then; // may be called as duplicate from an extension
     end;
 
     internal procedure AddRuleConditionSeed(var TempRuleCondition: Record "Expense Rule Condition" temporary; CategoryCode: Code[20]; ExpenseLocationCode: Code[20]; ConditionType: Enum "Expense Rule Condition Type"; Value: Decimal)
@@ -973,16 +944,16 @@ codeunit 6973 "Create Expense Categories"
         TempRuleCondition."Line No." := NextLineNo;
         TempRuleCondition."Condition Type" := ConditionType;
         TempRuleCondition.Value := Value;
-        TempRuleCondition.Insert();
+        if TempRuleCondition.Insert() then; // may be called as duplicate from an extension
     end;
 
     local procedure InsertDefaultExpenseGroups()
     begin
-        InsertExpenseGroup(XTRAVELTxt, 'Travel Expenses');
-        InsertExpenseGroup(XDAYEXPENSETxt, 'Day-to-Day Expenses');
-        InsertExpenseGroup(XFOODBEVERAGETxt, 'Food & Beverage Expenses');
-        InsertExpenseGroup(XPERSONALTxt, 'Personal Expenses');
-        InsertExpenseGroup(XPREPAYMENTTxt, 'Prepayments - Cash Advance');
+        InsertExpenseGroup(XTRAVELTxt, XTravelExpensesDescTxt);
+        InsertExpenseGroup(XDAYEXPENSETxt, XDayToDayExpensesDescTxt);
+        InsertExpenseGroup(XFOODBEVERAGETxt, XFoodBeverageExpensesDescTxt);
+        InsertExpenseGroup(XPERSONALTxt, XPersonalExpensesGroupDescTxt);
+        InsertExpenseGroup(XPREPAYMENTTxt, XPrepaymentsCashAdvanceGroupDescTxt);
     end;
 
     var
@@ -1247,6 +1218,11 @@ codeunit 6973 "Create Expense Categories"
         XTRAVELTxt: Label 'TRAVEL', Locked = true;
         XDAYEXPENSETxt: Label 'DAY-EXPENSE', Locked = true;
         XFOODBEVERAGETxt: Label 'FOOD-BEVERAGE', Locked = true;
+        XTravelExpensesDescTxt: Label 'Travel Expenses', MaxLength = 50;
+        XDayToDayExpensesDescTxt: Label 'Day-to-Day Expenses', MaxLength = 50;
+        XFoodBeverageExpensesDescTxt: Label 'Food & Beverage Expenses', MaxLength = 50;
+        XPersonalExpensesGroupDescTxt: Label 'Personal Expenses', MaxLength = 50;
+        XPrepaymentsCashAdvanceGroupDescTxt: Label 'Prepayments - Cash Advance', MaxLength = 50;
         XCASHTxt: Label 'CASH', Locked = true;
         XCARDTxt: Label 'CARD', Locked = true;
         XCANADAALLTxt: Label 'CANADA-ALL', Locked = true;
@@ -1258,7 +1234,7 @@ codeunit 6973 "Create Expense Categories"
         XUSAOTHERTxt: Label 'USA-OTHER', Locked = true;
         XEMPLEXPTxt: Label 'EMPLEXP', MaxLength = 20;
 
-    internal procedure InsertExpenseCategory(Code: Code[20]; Description: Text[250]; PostingDescription: Text[100]; ExpenseGroupCode: Code[20]; PostingGroupCode: Code[20]; PaymentMethod: Code[20]; IsRefundable: Boolean; IsPrepayment: Boolean; AttachmentEnforcement: Enum "Expense Attachment Enforcement"; DetailRequired: Enum "Expense Detail Needed")
+    internal procedure InsertExpenseCategory(Code: Code[20]; Description: Text[250]; PostingDescription: Text[100]; ExpenseGroupCode: Code[20]; PostingGroupCode: Code[20]; PaymentMethod: Code[10]; IsRefundable: Boolean; IsPrepayment: Boolean; AttachmentEnforcement: Enum "Expense Attachment Enforcement"; DetailRequired: Enum "Expense Detail Needed")
     begin
         if ExpenseCategory.Get(Code) then
             exit;
@@ -1310,14 +1286,14 @@ codeunit 6973 "Create Expense Categories"
         EmployeePostingGroup.Modify(true);
     end;
 
-    local procedure InsertExpenseGroup(Code: Code[20]; Description: Text[100])
+    local procedure InsertExpenseGroup(Code: Code[20]; Description: Text)
     begin
         if ExpenseGroup.Get(Code) then
             exit;
 
         ExpenseGroup.Init();
         ExpenseGroup.Validate(Code, Code);
-        ExpenseGroup.Validate("Description", Description);
+        ExpenseGroup.Validate("Description", CopyStr(Description, 1, MaxStrLen(ExpenseGroup.Description)));
         ExpenseGroup.Insert(true);
     end;
 
@@ -1335,18 +1311,6 @@ codeunit 6973 "Create Expense Categories"
         ExpensePostingGroup.Validate("Debit Rounding Account", ExpenseDebitRoundingAccount);
         ExpensePostingGroup.Validate("Credit Rounding Account", ExpenseCreditRoundingAccount);
         ExpensePostingGroup.Insert(true);
-    end;
-
-    local procedure InsertExpenseLocation(Code: Code[20]; CountryRegionCode: Code[10]; Description: Text[100])
-    begin
-        if ExpenseLocation.Get(Code) then
-            exit;
-
-        ExpenseLocation.Init();
-        ExpenseLocation.Validate("No.", Code);
-        ExpenseLocation.Validate("Country/Region Code", CountryRegionCode);
-        ExpenseLocation.Validate("Description", Description);
-        ExpenseLocation.Insert(true);
     end;
 
     local procedure InsertExpenseRule(CategoryCode: Code[20]; ExpenseLocationCode: Code[20]; CurrencyCode: Code[10]; JustificationRequired: Enum "Expense Justification")
@@ -1444,12 +1408,12 @@ codeunit 6973 "Create Expense Categories"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeAddRuleSeed(var TempRuleHeader: Record "Expense Rule Header" temporary; CategoryCode: Code[20]; ExpenseLocationCode: Code[20]; CurrencyCode: Code[10]; JustificationRequired: Enum "Expense Justification"; var IsHandled: Boolean)
+    internal procedure OnBeforeAddRuleSeed(var ExpenseRuleHeader: Record "Expense Rule Header"; var CategoryCode: Code[20]; var ExpenseLocationCode: Code[20]; var CurrencyCode: Code[10]; var JustificationRequired: Enum "Expense Justification"; var IsHandled: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeAddRuleConditionSeed(var TempRuleCondition: Record "Expense Rule Condition" temporary; CategoryCode: Code[20]; ExpenseLocationCode: Code[20]; ConditionType: Enum "Expense Rule Condition Type"; Value: Decimal; var IsHandled: Boolean)
+    internal procedure OnBeforeAddRuleConditionSeed(var RuleCondition: Record "Expense Rule Condition"; var CategoryCode: Code[20]; var ExpenseLocationCode: Code[20]; var ConditionType: Enum "Expense Rule Condition Type"; var Value: Decimal; var IsHandled: Boolean)
     begin
     end;
 }
