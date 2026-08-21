@@ -701,7 +701,7 @@ page 30022 "APIV2 - Dimension Set Lines"
         ErrorMsg: Text;
     begin
         Rec.Reset();
-        if Rec.FindFirst() then
+        if Rec.FindSet() then
             repeat
                 TempDimensionSetEntry.TransferFields(Rec, true);
                 TempDimensionSetEntry."Dimension Set ID" := 0;
