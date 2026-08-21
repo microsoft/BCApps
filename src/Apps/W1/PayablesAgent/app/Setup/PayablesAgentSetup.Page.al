@@ -144,15 +144,23 @@ page 3304 "Payables Agent Setup"
                         }
                     }
                 }
+#if not CLEAN29
                 group(CostEstimateGroup)
                 {
                     Caption = 'Cost';
+                    Visible = false;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'The consumed credits information is no longer available.';
+                    ObsoleteTag = '29.0';
 
                     field(CostEstimateValue; CostEstimateText)
                     {
                         ShowCaption = false;
                         Editable = false;
                         ToolTip = 'Specifies the total number of Copilot credits consumed by the Payables Agent.', Comment = 'Payables Agent is a term, and should not be translated.';
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'The consumed credits information is no longer available.';
+                        ObsoleteTag = '29.0';
                     }
                     field(LearnMoreCost; LearnMoreCostLbl)
                     {
@@ -161,13 +169,12 @@ page 3304 "Payables Agent Setup"
                         Style = StandardAccent;
                         Editable = false;
                         ToolTip = 'Opens documentation about consumption-based billing for the Payables Agent.', Comment = 'Payables Agent is a term, and should not be translated.';
-
-                        trigger OnDrillDown()
-                        begin
-                            Hyperlink(PACostEstimate.GetLearnMoreUrl());
-                        end;
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'The consumed credits information is no longer available.';
+                        ObsoleteTag = '29.0';
                     }
                 }
+#endif
             }
             group(MonitorIncomingGroup)
             {
@@ -236,7 +243,7 @@ page 3304 "Payables Agent Setup"
                     field(MailboxFolder; TempOutlookSetup."Email Folder")
                     {
                         Caption = 'Folder';
-                        ToolTip = 'Specifies the email folder that the agent monitors. Leave blank to monitor the entire mailbox. When a folder is set and email review is ''Only if untrusted'', every email in it is treated as trusted and skips review, so the known-senders list is not consulted.';
+                        ToolTip = 'Specifies the email folder that the agent monitors. Leave blank to monitor the entire mailbox. When a folder is set and email review is ''Manage per sender'', every email in it is treated as trusted and skips review, so the known-senders list is not consulted.';
                         Editable = false;
 
                         trigger OnAssistEdit()
@@ -316,7 +323,7 @@ page 3304 "Payables Agent Setup"
                     {
                         Caption = 'Email review';
                         ShowMandatory = true;
-                        ToolTip = 'Specifies when the agent should request human review before processing an incoming email. ''Only if untrusted'' skips review for previously approved senders and any email that arrives in a configured subfolder.';
+                        ToolTip = 'Specifies when the agent should request human review before processing an incoming email. ''Manage per sender'' skips review for previously approved senders and any email that arrives in a configured subfolder.';
 
                         trigger OnValidate()
                         begin
@@ -408,7 +415,6 @@ page 3304 "Payables Agent Setup"
         MailboxAddress := PASetupConfiguration.GetEmailAccount()."Email Address";
         CalcOpenAgentDemoGuideVisible();
         CalcTrialExperienceVisible();
-        CalcCostEstimate();
         if TrialExperienceVisible then
             CurrPage.Caption(ExplorePayablesAgentCaptionLbl);
         if Rec.Insert() then;
@@ -444,7 +450,6 @@ page 3304 "Payables Agent Setup"
             OCVFeedbackAsked := true;
         end;
         CalcTrialExperienceVisible();
-        CalcCostEstimate();
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
@@ -517,14 +522,6 @@ page 3304 "Payables Agent Setup"
 
     end;
 
-    local procedure CalcCostEstimate()
-    var
-        CreditsConsumed: Decimal;
-    begin
-        CreditsConsumed := PACostEstimate.GetCreditsConsumed();
-        CostEstimateText := PACostEstimate.FormatCreditsConsumed(CreditsConsumed);
-    end;
-
     /// <summary>
     /// Process trial invoice
     /// </summary>
@@ -579,18 +576,21 @@ page 3304 "Payables Agent Setup"
         PADemoGuide: Codeunit "PA Demo Guide";
         PayablesAgentOCV: Codeunit "Payables Agent OCV";
         PATrial: Codeunit "PA Trial";
-        PACostEstimate: Codeunit "PA Cost Estimate";
         SelectedFileName: Text[250];
         MailboxAddress: Text;
         TrialProgressText: Text;
+#if not CLEAN29
         CostEstimateText: Text;
+#endif
         TrialExperienceVisible: Boolean;
         IsEligibleForTrialVisible: Boolean;
         IsInTrialModeVisible: Boolean;
         SetupChanged, OCVFeedbackAsked : Boolean;
         OpenAgentDemoGuideVisible, SkipAutosetOfMonitorOutlook : Boolean;
         LearnMoreTxt: Label 'Learn more';
+#if not CLEAN29
         LearnMoreCostLbl: Label 'Learn more about cost';
+#endif
         AddFieldsLbl: Label 'Add fields';
         LearnMoreBillingDocumentationLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2333517';
         EnableCapabilityFirstErr: Label 'The Payables Agent capability is not configured. Please activate the Copilot capability.', Comment = 'Payables Agent is a term, and should not be translated.';
@@ -610,6 +610,6 @@ page 3304 "Payables Agent Setup"
         ManageKnownSendersLbl: Label 'Manage known senders';
         KnownSendersHintLbl: Label 'Add your regular senders and set the review policy for each. Approve emails automatically for senders you trust.';
         FolderIgnoresListConfirmLbl: Label 'You have %1 known senders. With subfolder ''%2'' configured, the agent will process every email there without consulting the list. The list is kept and will be used again if you remove the subfolder. Continue?', Comment = '%1 = number of known senders, %2 = folder name';
-        PolicyIgnoresListConfirmLbl: Label 'You have %1 known senders. The list won''t affect processing while review is set to ''%2''. The list is kept and will be used again if you switch back to ''Only if untrusted''. Continue?', Comment = '%1 = number of known senders, %2 = review policy';
+        PolicyIgnoresListConfirmLbl: Label 'You have %1 known senders. The list won''t affect processing while review is set to ''%2''. The list is kept and will be used again if you switch back to ''Manage per sender''. Continue?', Comment = '%1 = number of known senders, %2 = review policy';
 
 }

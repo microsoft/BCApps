@@ -9,7 +9,7 @@ using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.RoleCenters;
 using Microsoft.Purchases.Document;
 
-pageextension 99001538 "Subc. Prod. Planner RoleCenter" extends "Production Planner Role Center"
+pageextension 20538 "Subc. Prod. Planner RoleCenter" extends "Production Planner Role Center"
 {
     actions
     {

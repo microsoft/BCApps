@@ -156,30 +156,6 @@ codeunit 457 "Environment Information"
     end;
 
     /// <summary>
-    /// Gets the physical location of the application service the environment is hosted on (for example, "Canada Central"). This is only callable from Microsoft published apps.
-    /// </summary>
-    /// <returns>The application service location when running on SaaS infrastructure and the information is available; otherwise, an empty string.</returns>
-    procedure GetApplicationServiceLocation(): Text
-    var
-        CallerModuleInfo: ModuleInfo;
-    begin
-        NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        exit(EnvironmentInformationImpl.GetApplicationServiceLocation(CallerModuleInfo));
-    end;
-
-    /// <summary>
-    /// Checks whether the Azure geography of the application service the environment is hosted on is within the Microsoft EU Data Boundary (EUDB). This is only callable from Microsoft published apps.
-    /// </summary>
-    /// <returns>True when the environment is hosted within the EU Data Boundary. False means either that the environment is outside the EU Data Boundary or that the information is unavailable, including when not running on SaaS infrastructure.</returns>
-    procedure IsApplicationServiceInEUDB(): Boolean
-    var
-        CallerModuleInfo: ModuleInfo;
-    begin
-        NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        exit(EnvironmentInformationImpl.IsApplicationServiceInEUDB(CallerModuleInfo));
-    end;
-
-    /// <summary>
     /// Gets the value of the specified environment setting. This is only callable from Microsoft published apps.
     /// </summary>
     /// <param name="SettingName">The name of the setting.</param>

@@ -289,6 +289,22 @@ table 55 "Invoice Posting Buffer"
             DataClassification = SystemMetadata;
         }
         /// <summary>
+        /// Associated spend request no.
+        /// </summary>
+        field(147; "Spend Request No."; Code[20])
+        {
+            Caption = 'Spend Request No.';
+            DataClassification = CustomerContent;
+        }
+        /// <summary>
+        /// Specifies if the spend request should be closed upon posting.
+        /// </summary>
+        field(148; "Spend Request Close"; Boolean)
+        {
+            Caption = 'Spend Request Close';
+            DataClassification = CustomerContent;
+        }
+        /// <summary>
         /// Description text for the posting entry.
         /// </summary>
         field(215; "Entry Description"; Text[100])
@@ -738,6 +754,7 @@ table 55 "Invoice Posting Buffer"
           PadField(Format("Dimension Set ID"), 20) +
           PadField("Job No.", MaxStrLen("Job No.")) +
           PadField(Format("Fixed Asset Line No."), 20) +
+          PadField("Spend Request No.", MaxStrLen("Spend Request No.")) +
           PadField("Deferral Code", MaxStrLen("Deferral Code"));
         OnBuildPrimaryKeyAfterDeferralCode(GroupID, Rec);
         GroupID := GroupID + PadField("Additional Grouping Identifier", MaxStrLen("Additional Grouping Identifier"));
@@ -864,6 +881,10 @@ table 55 "Invoice Posting Buffer"
         GenJnlLine."Source Curr. VAT Amount" := Rec."VAT Amount (ACY)";
         GenJnlLine."VAT Difference" := Rec."VAT Difference";
         GenJnlLine."VAT Base Before Pmt. Disc." := Rec."VAT Base Before Pmt. Disc.";
+        if Rec."Spend Request No." <> '' then begin  // line spend requests override header spend request
+            GenJnlLine."Spend Request No." := Rec."Spend Request No.";
+            GenJnlLine."Spend Request Close" := Rec."Spend Request Close";
+        end;
         NonDeductibleVAT.Copy(GenJnlLine, Rec);
 
         OnAfterCopyToGenJnlLine(GenJnlLine, Rec);

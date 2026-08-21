@@ -6,8 +6,10 @@ using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Ledger;
+using Microsoft.Inventory;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
@@ -126,6 +128,30 @@ codeunit 6253 "Sust. Sales Subscriber"
             UpdateSustainabilityItemJournalLine(ItemJournalLine, SalesHeader, SalesLine);
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Undo Sales Shipment Line", 'OnBeforeNewSalesShptLineInsert', '', false, false)]
+    local procedure OnBeforeNewSalesShptLineInsert(OldSalesShipmentLine: Record "Sales Shipment Line"; var NewSalesShipmentLine: Record "Sales Shipment Line")
+    begin
+        UpdatePostedSustainabilityEmission(OldSalesShipmentLine, OldSalesShipmentLine.Quantity, -1, NewSalesShipmentLine."Total CO2e");
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Undo Posting Management", 'OnPostItemJnlLineAppliedToListOnAfterSetInvoicedQty', '', false, false)]
+    local procedure OnPostItemJnlLineAppliedToListOnAfterSetInvoicedQty(var ItemJournalLine: Record "Item Journal Line"; TempApplyToItemLedgEntry: Record "Item Ledger Entry" temporary)
+    var
+        SalesShptLine: Record "Sales Shipment Line";
+    begin
+        if (ItemJournalLine."Quantity (Base)" <> 0) or (ItemJournalLine."Invoiced Qty. (Base)" <> 0) then
+            if ItemJournalLine."Document Type" = ItemJournalLine."Document Type"::"Sales Shipment" then
+                if SalesShptLine.Get(ItemJournalLine."Document No.", TempApplyToItemLedgEntry."Document Line No.") then
+                    UpdateSustainabilityItemJournalLine(ItemJournalLine, SalesShptLine);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Undo Sales Shipment Line", 'OnPostItemJnlLineOnBeforeRunItemJnlPostLine', '', false, false)]
+    local procedure OnPostItemJnlLineOnBeforeRunItemJnlPostLine(var ItemJnlLine: Record "Item Journal Line"; SalesShptLine: Record "Sales Shipment Line")
+    begin
+        if (ItemJnlLine."Quantity (Base)" <> 0) or (ItemJnlLine."Invoiced Qty. (Base)" <> 0) then
+            UpdateSustainabilityItemJournalLine(ItemJnlLine, SalesShptLine);
+    end;
+
     local procedure UpdateSustainabilityItemJournalLine(var ItemJournalLine: Record "Item Journal Line"; SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line")
     var
         GHGCredit: Boolean;
@@ -160,6 +186,35 @@ codeunit 6253 "Sust. Sales Subscriber"
         ItemJournalLine."Total CO2e" := CO2eToPost;
         ItemJournalLine."EPR Fee per Unit" := SalesLine."EPR Fee Per Unit";
         ItemJournalLine."Total EPR Fee" := EPRFeeToPost;
+    end;
+
+    local procedure UpdateSustainabilityItemJournalLine(var ItemJournalLine: Record "Item Journal Line"; SalesShipmentLine: Record "Sales Shipment Line")
+    var
+        GHGCredit: Boolean;
+        Sign: Integer;
+        CO2eToPost: Decimal;
+    begin
+        Sign := 1;
+        GHGCredit := IsGHGCreditLine(SalesShipmentLine);
+        if GHGCredit then
+            Sign := -1;
+
+        if ItemJournalLine."Invoiced Qty. (Base)" <> 0 then
+            CO2eToPost := SalesShipmentLine."CO2e per Unit" * Abs(ItemJournalLine."Invoiced Qty. (Base)") * SalesShipmentLine."Qty. per Unit of Measure"
+        else
+            CO2eToPost := SalesShipmentLine."CO2e per Unit" * Abs(ItemJournalLine."Quantity (Base)") * SalesShipmentLine."Qty. per Unit of Measure";
+
+        CO2eToPost := CO2eToPost * Sign;
+
+        if not CanPostSustainabilityJnlLine(SalesShipmentLine."Sust. Account No.", SalesShipmentLine."Sust. Account Category", SalesShipmentLine."Sust. Account Subcategory", CO2eToPost) then
+            exit;
+
+        ItemJournalLine."Sust. Account No." := SalesShipmentLine."Sust. Account No.";
+        ItemJournalLine."Sust. Account Name" := SalesShipmentLine."Sust. Account Name";
+        ItemJournalLine."Sust. Account Category" := SalesShipmentLine."Sust. Account Category";
+        ItemJournalLine."Sust. Account Subcategory" := SalesShipmentLine."Sust. Account Subcategory";
+        ItemJournalLine."CO2e per Unit" := SalesShipmentLine."CO2e per Unit";
+        ItemJournalLine."Total CO2e" := CO2eToPost;
     end;
 
     local procedure CheckAndUpdateSustainabilityInvoicePostingBuffer(var InvoicePostingBuffer: Record "Invoice Posting Buffer" temporary; var SalesLine: Record "Sales Line")
@@ -236,6 +291,11 @@ codeunit 6253 "Sust. Sales Subscriber"
         PostedEmissionEPRFee := (SalesLine."EPR Fee Per Unit" * Abs(Quantity) * SalesLine."Qty. per Unit of Measure") * Sign;
     end;
 
+    local procedure UpdatePostedSustainabilityEmission(SalesShipmentLine: Record "Sales Shipment Line"; Quantity: Decimal; Sign: Integer; var PostedEmissionCO2e: Decimal)
+    begin
+        PostedEmissionCO2e := (SalesShipmentLine."CO2e per Unit" * Abs(Quantity) * SalesShipmentLine."Qty. per Unit of Measure") * Sign;
+    end;
+
     local procedure GetPostingSign(SalesHeader: Record "Sales Header"; GHGCredit: Boolean): Integer
     var
         Sign: Integer;
@@ -265,6 +325,21 @@ codeunit 6253 "Sust. Sales Subscriber"
             exit(false);
 
         Item.Get(SalesLine."No.");
+
+        exit(Item."GHG Credit");
+    end;
+
+    local procedure IsGHGCreditLine(SalesShipmentLine: Record "Sales Shipment Line"): Boolean
+    var
+        Item: Record Item;
+    begin
+        if SalesShipmentLine.Type <> SalesShipmentLine.Type::Item then
+            exit(false);
+
+        if SalesShipmentLine."No." = '' then
+            exit(false);
+
+        Item.Get(SalesShipmentLine."No.");
 
         exit(Item."GHG Credit");
     end;

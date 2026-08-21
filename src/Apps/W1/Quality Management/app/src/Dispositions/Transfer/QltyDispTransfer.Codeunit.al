@@ -21,16 +21,16 @@ codeunit 20444 "Qlty. Disp. Transfer" implements "Qlty. Disposition"
         DocumentTypeLbl: Label 'Transfer Order';
 
     /// <summary>
-    /// Creates a Transfer Order from a Quality Inspection
+    /// Creates a transfer order from a quality inspection and explicit disposition options.
     /// </summary>
-    /// <param name="QltyInspectionHeader">Quality Inspection</param>
-    /// <param name="OptionalSpecificQuantity">Optional specified quantity, updated based on chosen Move Behavior</param>
-    /// <param name="QltyQuantityBehavior">Transfer a specific quantity, tracked quantity, sample size, or sample pass/fail quantity</param>
-    /// <param name="OptionalSourceLocationFilter">Optional additional location filter for item on inspection</param>
-    /// <param name="OptionalSourceBinFilter">Optional additional bin filter for item on inspection</param>   
-    /// <param name="DestinationLocationCode">Destination location for the transfer</param>
-    /// <param name="OptionalInTransitLocationCode">The in-transit location to use</param>    
-    /// <returns>Returns true if a transfer line was created</returns>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the inventory to transfer.</param>
+    /// <param name="OptionalSpecificQuantity">The specific base quantity to transfer when required by the quantity behavior.</param>
+    /// <param name="QltyQuantityBehavior">The rule used to determine the transfer quantity.</param>
+    /// <param name="OptionalSourceLocationFilter">An optional source location filter.</param>
+    /// <param name="OptionalSourceBinFilter">An optional source bin filter.</param>
+    /// <param name="DestinationLocationCode">The destination location code.</param>
+    /// <param name="OptionalInTransitLocationCode">The optional in-transit location code.</param>
+    /// <returns>True if a transfer line was created; otherwise, false.</returns>
     internal procedure PerformDisposition(QltyInspectionHeader: Record "Qlty. Inspection Header"; OptionalSpecificQuantity: Decimal; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"; OptionalSourceLocationFilter: Text; OptionalSourceBinFilter: Text; DestinationLocationCode: Code[10]; OptionalInTransitLocationCode: Code[10]) DidSomething: Boolean
     var
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
@@ -46,11 +46,11 @@ codeunit 20444 "Qlty. Disp. Transfer" implements "Qlty. Disposition"
     end;
 
     /// <summary>
-    /// Creates a Transfer Order from a Quality Inspection
+    /// Creates transfer orders and outbound tracking for inspection inventory.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="TempInstructionQltyDispositionBuffer"></param>
-    /// <returns></returns>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the inventory to transfer.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The disposition instructions containing source, destination, in-transit location, and quantity.</param>
+    /// <returns>True if at least one transfer line was created; otherwise, false.</returns>
     internal procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
     var
         Location: Record Location;
@@ -97,6 +97,13 @@ codeunit 20444 "Qlty. Disp. Transfer" implements "Qlty. Disposition"
             QltyNotificationMgmt.NotifyDocumentCreationFailed(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, DocumentTypeLbl);
     end;
 
+    /// <summary>
+    /// Creates a transfer header for the requested source and destination locations.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection linked to the transfer order.</param>
+    /// <param name="TempQuantityToActQltyDispositionBuffer">The source, destination, and in-transit location values.</param>
+    /// <param name="DirectTransfer">Specifies whether the transfer is direct.</param>
+    /// <param name="TransferHeader">The created transfer header.</param>
     local procedure CreateTransferHeader(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; DirectTransfer: Boolean; var TransferHeader: Record "Transfer Header")
     begin
         TransferHeader.SetHideValidationDialog(true);
@@ -111,6 +118,13 @@ codeunit 20444 "Qlty. Disp. Transfer" implements "Qlty. Disposition"
         TransferHeader.Validate("Direct Transfer", DirectTransfer);
     end;
 
+    /// <summary>
+    /// Creates a transfer line and outbound reservation entries for inspection item tracking.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the item, variant, and tracking values.</param>
+    /// <param name="TempQuantityToActQltyDispositionBuffer">The source bin and quantity to transfer.</param>
+    /// <param name="TransferHeader">The transfer header receiving the line.</param>
+    /// <returns>True after the transfer line is created unless changed by an event subscriber.</returns>
     local procedure CreateTransferLineWithOutboundTracking(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TransferHeader: Record "Transfer Header") Created: Boolean
     var
         TransferLine: Record "Transfer Line";
@@ -138,23 +152,23 @@ codeunit 20444 "Qlty. Disp. Transfer" implements "Qlty. Disposition"
     end;
 
     /// <summary>
-    /// Provides an opportunity to modify the create Purchase Return Order behavior or replace it completely.
+    /// Occurs before transfer order processing and can replace the default behavior.
     /// </summary>
-    /// <param name="QltyInspectionHeader">Quality Inspection</param>
-    /// <param name="TempInstructionQltyDispositionBuffer">The instruction</param>
-    /// <param name="DidSomething">Provides an opportunity to replace the default boolean success/fail of if it worked.</param>
-    /// <param name="IsHandled">Provides an opportunity to replace the default behavior</param>
+    /// <param name="QltyInspectionHeader">The inspection being processed.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The disposition instructions.</param>
+    /// <param name="DidSomething">Indicates whether a transfer line was created.</param>
+    /// <param name="IsHandled">Set to true to skip the default transfer processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var DidSomething: Boolean; var IsHandled: Boolean)
     begin
     end;
 
     /// <summary>
-    /// Provides an opportunity to modify the create Purchase Return Order behavior or replace it completely.
+    /// Occurs after transfer order processing.
     /// </summary>
-    /// <param name="QltyInspectionHeader">Quality Inspection</param>
-    /// <param name="TempInstructionQltyDispositionBuffer">The instruction</param>
-    /// <param name="DidSomething">Provides an opportunity to replace the default boolean success/fail of if it worked.</param>
+    /// <param name="QltyInspectionHeader">The inspection that was processed.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The disposition instructions.</param>
+    /// <param name="DidSomething">Indicates whether a transfer line was created.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var DidSomething: Boolean)
     begin
@@ -163,10 +177,11 @@ codeunit 20444 "Qlty. Disp. Transfer" implements "Qlty. Disposition"
     /// <summary>
     /// Provides an opportunity to modify the created transfer header and transfer line after the line and optional outbound shipment tracking has been inserted.
     /// </summary>
-    /// <param name="QltyInspectionHeader">Quality Inspection</param>
-    /// <param name="TransferHeader">Created Transfer Header</param>
-    /// <param name="TransferLine">Created Transfer Line</param>
-    /// <param name="Created">Indicator that a transfer was created</param>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the transferred inventory.</param>
+    /// <param name="TempQuantityToActQltyDispositionBuffer">The source, destination, and quantity used for the transfer line.</param>
+    /// <param name="TransferHeader">The created transfer header.</param>
+    /// <param name="TransferLine">The created transfer line.</param>
+    /// <param name="Created">Indicates whether the transfer line should be treated as created.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateTransferLineWithOutboundTracking(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var TransferHeader: Record "Transfer Header"; var TransferLine: Record "Transfer Line"; var Created: Boolean)
     begin

@@ -9,6 +9,7 @@ using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.Service;
 using Microsoft.EServices.EDocumentConnector;
 using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Document;
@@ -682,6 +683,7 @@ codeunit 148192 "Integration Tests"
     var
         ConnectionSetup: Record "E-Doc. Ext. Connection Setup";
         CompanyInformation: Record "Company Information";
+        GeneralLedgerSetup: Record "General Ledger Setup";
         OAuth2Setup: Record "OAuth 2.0 Setup";
         PageroAuth: Codeunit "Pagero Auth.";
         KeyGuid: Guid;
@@ -692,6 +694,12 @@ codeunit 148192 "Integration Tests"
             OriginalWorkDate := WorkDate()
         else
             WorkDate(OriginalWorkDate);
+
+        // Disable the VAT reporting date to avoid country specific VAT date checks during posting,
+        // such as the CZ 'VAT Period does not exist for date' error raised for the current work date.
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."VAT Reporting Date Usage" := GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled;
+        GeneralLedgerSetup.Modify();
 
         SetFilepartStatus(FilepartStatus::Processed);
         SetApplicationResponseSubType(RecipientAcceptTok);
