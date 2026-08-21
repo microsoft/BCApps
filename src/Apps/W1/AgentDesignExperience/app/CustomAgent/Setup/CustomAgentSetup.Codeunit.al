@@ -134,12 +134,13 @@ codeunit 4350 "Custom Agent Setup"
 
     procedure OpenEditInstructionsPage(AgentSecurityId: Guid)
     var
+        AgentCodeunit: Codeunit Agent;
         AgentEditInstructionsPage: Page "Agent Instruction Editor";
     begin
         // The test agent page is an authoring surface. Everything it displays is also
         // available read-only on the agent card and the agent task pages, so archived
         // agents are blocked here rather than opening a page that can do nothing.
-        if IsAgentArchived(AgentSecurityId) then
+        if AgentCodeunit.IsArchived(AgentSecurityId) then
             AgentEditInstructionsPage.ThrowArchivedAgentCannotBeTestedError(AgentSecurityId);
 
         if not ConfirmOpenEditInstructionsPageForInactiveAgent(AgentSecurityId) then
@@ -158,20 +159,6 @@ codeunit 4350 "Custom Agent Setup"
             exit(true);
 
         exit(Confirm(OpenEditInstructionsPageForInactiveAgentQst, false));
-    end;
-
-    local procedure IsAgentArchived(AgentSecurityId: Guid): Boolean
-    var
-        Agent: Record Agent;
-        AgentCodeunit: Codeunit Agent;
-    begin
-        if IsNullGuid(AgentSecurityId) then
-            exit(false);
-
-        if not Agent.Get(AgentSecurityId) then
-            exit(false);
-
-        exit(AgentCodeunit.IsArchived(AgentSecurityId));
     end;
 
     local procedure IsAgentInactive(AgentSecurityId: Guid): Boolean

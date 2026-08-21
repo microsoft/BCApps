@@ -512,8 +512,8 @@ page 4363 "Agent Instruction Editor"
         Agent.Get(AgentSecurityId);
 
         AgentArchivedErrorInfo.DataClassification := DataClassification::SystemMetadata;
-        AgentArchivedErrorInfo.Title := ArchivedAgentCannotBeTestedErr;
-        AgentArchivedErrorInfo.Message := ArchivedAgentDataAvailableErr;
+        AgentArchivedErrorInfo.Title := ArchivedAgentCannotBeTestedTitleErr;
+        AgentArchivedErrorInfo.Message := ArchivedAgentCannotBeTestedErr;
         AgentArchivedErrorInfo.PageNo := Page::"Agent Card";
         AgentArchivedErrorInfo.RecordId := Agent.RecordId();
         AgentArchivedErrorInfo.AddNavigationAction(ShowAgentCardLbl);
@@ -566,7 +566,7 @@ page 4363 "Agent Instruction Editor"
         EditTemplateQst: Label 'Template was created. Do you want to edit the template now?';
         AgentNotFoundErr: Label 'The agent with ID ''%1'' was not found.', Comment = '%1 is the agent user security ID.';
         AgentTaskNotFoundErr: Label 'The agent task with ID ''%1'' was not found.', Comment = '%1 is the agent task ID.';
-        ArchivedAgentCannotBeTestedErr: Label 'This agent is archived and can no longer be tested';
-        ArchivedAgentDataAvailableErr: Label 'Its instructions, tasks, and logs remain available for auditing from the agent card.';
+        ArchivedAgentCannotBeTestedTitleErr: Label 'This agent is archived';
+        ArchivedAgentCannotBeTestedErr: Label 'This agent is archived and can no longer be tested. Its instructions, tasks, and logs remain available for auditing from the agent card.';
         ShowAgentCardLbl: Label 'Show agent card';
 }
