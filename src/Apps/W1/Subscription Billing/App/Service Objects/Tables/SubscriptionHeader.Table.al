@@ -2247,14 +2247,14 @@ table 8057 "Subscription Header"
         OnAfterInsertFromItemNoAndCustomerContract(ServiceObject, CustomerContract);
     end;
 
-    internal procedure SetUnitPriceAndUnitCostFromExtendContract(NewUnitPrice: Decimal; NewUnitCost: Decimal)
+    procedure SetUnitPriceAndUnitCostFromExtendContract(NewUnitPrice: Decimal; NewUnitCost: Decimal)
     begin
         CalledFromExtendContract := true;
         UnitPrice := NewUnitPrice;
         UnitCost := NewUnitCost;
     end;
 
-    internal procedure ResetCalledFromExtendContract()
+    procedure ResetCalledFromExtendContract()
     begin
         CalledFromExtendContract := false;
         UnitPrice := 0;
