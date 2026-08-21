@@ -29,6 +29,8 @@ codeunit 4581 "SOA Send Replies"
         TelemetryEmailReplyFailedToSendLbl: Label 'Email reply failed to send.', Locked = true;
         TelemetryEmailReplyExternalIdEmptyLbl: Label 'Email reply failed to be sent due to input agent task message containing empty External Id.', Locked = true;
         TelemetryFailedToGetInputAgentTaskMessageLbl: Label 'Failed to get input agent task message.', Locked = true;
+        TelemetryEmailReplyDeliveryGivenUpLbl: Label 'Email reply delivery given up after the retry budget was used up. The message was set to Failed.', Locked = true;
+        TelemetryFailedToSetMessageToFailedLbl: Label 'Failed to set the agent task message status to Failed.', Locked = true;
         ReplyDeliveryFailedReasonLbl: Label 'The reply could not be sent after %1 attempts. Check your email connection and account permissions, then choose Retry sending.', Comment = '%1 = number of attempts';
 
     local procedure SendEmailReplies(SOASetup: Record "SOA Setup")
@@ -44,6 +46,7 @@ codeunit 4581 "SOA Send Replies"
         FailExhaustedReplies(SOASetup);
 
         OutputAgentTaskMessage.ReadIsolation(IsolationLevel::ReadCommitted);
+        OutputAgentTaskMessage.SetLoadFields("Task ID", ID, "Input Message ID");
         // Messages that gave up on delivery are in the Failed status, so this filter already excludes them.
         OutputAgentTaskMessage.SetRange(Status, OutputAgentTaskMessage.Status::Reviewed);
         OutputAgentTaskMessage.SetRange(Type, OutputAgentTaskMessage.Type::Output);
@@ -74,6 +77,7 @@ codeunit 4581 "SOA Send Replies"
         SOAReplyRetryMgt: Codeunit "SOA Reply Retry Mgt.";
     begin
         OutputAgentTaskMessage.ReadIsolation(IsolationLevel::ReadCommitted);
+        OutputAgentTaskMessage.SetLoadFields("Task ID", ID);
         OutputAgentTaskMessage.SetRange(Status, OutputAgentTaskMessage.Status::Reviewed);
         OutputAgentTaskMessage.SetRange(Type, OutputAgentTaskMessage.Type::Output);
         OutputAgentTaskMessage.SetRange("Agent User Security ID", SOASetup."User Security ID");
@@ -175,6 +179,7 @@ codeunit 4581 "SOA Send Replies"
     var
         AgentTaskMessageToFail: Record "Agent Task Message";
         SOASetReplyFailed: Codeunit "SOA Set Reply Failed";
+        TelemetryDimensions: Dictionary of [Text, Text];
     begin
         // Only carries the values into the isolated run; it is never inserted or modified here.
         AgentTaskMessageToFail."Task ID" := TempExhaustedReply."Task ID";
@@ -183,11 +188,18 @@ codeunit 4581 "SOA Send Replies"
         // technical message that only says the send failed.
         AgentTaskMessageToFail."Status Reason" := CopyStr(StrSubstNo(ReplyDeliveryFailedReasonLbl, SOAReplyRetryMgt.GetMaxAttempts()), 1, MaxStrLen(AgentTaskMessageToFail."Status Reason"));
 
-        // The message keeps its counter at the maximum, so the next run tries the transition again
-        // rather than restarting the retry budget or sending the reply once more.
-        if not SOASetReplyFailed.Run(AgentTaskMessageToFail) then
+        TelemetryDimensions.Add('AgentTaskID', Format(TempExhaustedReply."Task ID"));
+        TelemetryDimensions.Add('AgentTaskMessageID', TempExhaustedReply.ID);
+        TelemetryDimensions.Add('Attempts', Format(SOAReplyRetryMgt.GetMaxAttempts()));
+
+        if not SOASetReplyFailed.Run(AgentTaskMessageToFail) then begin
+            // The message keeps its counter at the maximum, so the next run tries the transition again
+            // rather than restarting the retry budget or sending the reply once more.
+            FeatureTelemetry.LogError('0000V6J', SOASetupCU.GetFeatureName(), 'Set Agent Task Message To Failed', TelemetryFailedToSetMessageToFailedLbl, GetLastErrorCallStack(), TelemetryDimensions);
             exit;
+        end;
 
         SOAReplyRetryMgt.ClearAttempts(TempExhaustedReply."Task ID", TempExhaustedReply.ID);
+        FeatureTelemetry.LogUsage('0000V6K', SOASetupCU.GetFeatureName(), TelemetryEmailReplyDeliveryGivenUpLbl, TelemetryDimensions);
     end;
 }

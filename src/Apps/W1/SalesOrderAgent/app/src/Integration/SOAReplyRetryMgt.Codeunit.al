@@ -7,6 +7,7 @@
 namespace Microsoft.Agent.SalesOrderAgent;
 
 using System.Agents;
+using System.Telemetry;
 
 codeunit 4418 "SOA Reply Retry Mgt."
 {
@@ -18,6 +19,7 @@ codeunit 4418 "SOA Reply Retry Mgt."
     var
         ReplyNotAuthorizedErr: Label 'You are not authorized to send this reply.';
         ReplyNotFailedErr: Label 'Only a reply that failed to be sent can be retried.';
+        TelemetryReplySendingRetriedLbl: Label 'Failed email reply was set back to Reviewed so that sending is retried.', Locked = true;
 
     /// <summary>
     /// Moves a failed output message back to Reviewed so that delivery is attempted again on the next agent run.
@@ -26,6 +28,9 @@ codeunit 4418 "SOA Reply Retry Mgt."
     var
         AgentTaskMessage: Record "Agent Task Message";
         AgentMessage: Codeunit "Agent Message";
+        SOASetupCU: Codeunit "SOA Setup";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+        TelemetryDimensions: Dictionary of [Text, Text];
     begin
         AgentTaskMessage.Get(TaskId, MessageId);
         ValidateMessageAccess(AgentTaskMessage);
@@ -35,6 +40,10 @@ codeunit 4418 "SOA Reply Retry Mgt."
 
         ClearAttempts(TaskId, MessageId);
         AgentMessage.SetStatusToReviewed(TaskId, MessageId);
+
+        TelemetryDimensions.Add('AgentTaskID', Format(TaskId));
+        TelemetryDimensions.Add('AgentTaskMessageID', MessageId);
+        FeatureTelemetry.LogUsage('0000V6L', SOASetupCU.GetFeatureName(), TelemetryReplySendingRetriedLbl, TelemetryDimensions);
     end;
 
     /// <summary>
