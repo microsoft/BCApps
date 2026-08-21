@@ -27,6 +27,11 @@ codeunit 6133 "E-Document Background Jobs"
         ScheduleEDocumentJob(Codeunit::"E-Doc. Message Send Job", EDocumentMessage.RecordId(), 0);
     end;
 
+    procedure ScheduleMessageResponse(EDocumentMessage: Record "E-Document Message")
+    begin
+        ScheduleEDocumentJob(Codeunit::"E-Doc. Message Response Job", EDocumentMessage.RecordId(), 300000);
+    end;
+
     procedure ScheduleGetResponseJob()
     begin
         ScheduleGetResponseJob(true);

@@ -68,7 +68,7 @@ codeunit 6533 "E-Doc. Message Context"
     end;
 
     /// <summary>
-    /// Gets the transport result. A connector must set the status to Sent after successful transmission.
+    /// Gets the transport result. A connector must set the status to Sent or Pending Response after successful transmission.
     /// </summary>
     /// <returns>The integration action status.</returns>
     procedure Status(): Codeunit "Integration Action Status"

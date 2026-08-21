@@ -90,7 +90,7 @@ page 6434 "E-Document Messages FactBox"
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Retry';
-                ToolTip = 'Requeue the failed message for background transmission using its existing payload.';
+                ToolTip = 'Retry the failed message transmission or response polling operation using its existing payload.';
                 Image = Refresh;
                 Scope = Repeater;
                 Enabled = RetryEnabled;
@@ -131,7 +131,7 @@ page 6434 "E-Document Messages FactBox"
 
     trigger OnAfterGetCurrRecord()
     begin
-        RetryEnabled := (Rec.Direction = Rec.Direction::Outgoing) and (Rec.Status = Rec.Status::Error);
+        RetryEnabled := (Rec.Direction = Rec.Direction::Outgoing) and (Rec.Status in [Rec.Status::Error, Rec.Status::"Response Error"]);
     end;
 
     var

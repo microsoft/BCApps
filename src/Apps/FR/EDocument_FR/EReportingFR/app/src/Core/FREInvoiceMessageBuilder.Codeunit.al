@@ -16,6 +16,7 @@ codeunit 10976 "FR E-Invoice Message Builder"
 
     procedure BuildMessage(EDocument: Record "E-Document"; FREInvoiceMessage: Record "FR E-Invoice Message"; var TempBlob: Codeunit "Temp Blob")
     var
+        FREInvoiceProfileValidator: Codeunit "FR E-Invoice Profile Validator";
         XmlDoc: XmlDocument;
         RootElement: XmlElement;
         AcknowledgementElement: XmlElement;
@@ -85,6 +86,7 @@ codeunit 10976 "FR E-Invoice Message Builder"
         AcknowledgementElement.Add(ReferenceElement);
         RootElement.Add(AcknowledgementElement);
         XmlDoc.Add(RootElement);
+        FREInvoiceProfileValidator.Validate(XmlDoc, IsPPFMessage(FREInvoiceMessage));
 
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         XmlDoc.WriteTo(OutStream);
