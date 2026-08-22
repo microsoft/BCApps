@@ -714,6 +714,160 @@ codeunit 139611 "Shpfy Order Refund Test"
     end;
 
     [Test]
+    procedure UnitTestCreateCrMemoFromRefundWithMoreExpensiveExchangeItem()
+    var
+        Shop: Record "Shpfy Shop";
+        OrderHeader: Record "Shpfy Order Header";
+        RefundHeader: Record "Shpfy Refund Header";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        OrderRefundsHelper: Codeunit "Shpfy Order Refunds Helper";
+        OrderId: BigInteger;
+        OriginalOrderLineId: BigInteger;
+        ExchangeOrderLineId: BigInteger;
+        ReturnId: BigInteger;
+        RefundId: BigInteger;
+        OriginalAmount: Decimal;
+        ExchangeAmount: Decimal;
+        RefundTotal: Decimal;
+        ItemSalesLineCount: Integer;
+        RefundAccountLineCount: Integer;
+        IReturnRefundProcess: Interface "Shpfy IReturnRefund Process";
+    begin
+        // [SCENARIO] Create a Credit Memo from a Shopify refund whose return exchanges the returned item for a MORE expensive one.
+        // [SCENARIO] Shopify floors Total Refunded Amount at 0 (the customer pays the difference), so the returned item (+qty) and
+        // [SCENARIO] the exchange item (-qty) net to a negative credit memo total. No balancing G/L Refund Account line must be
+        // [SCENARIO] added to force the total back up to the (zero) refund amount.
+        Initialize();
+        Shop := InitializeTest.CreateShop();
+        Shop."Process Returns As" := "Sales Document Type"::"Credit Memo";
+        Shop."Currency Handling" := "Shpfy Currency Handling"::"Shop Currency";
+        Shop.Modify(false);
+
+        OriginalAmount := 100; // returned item
+        ExchangeAmount := 250; // kept exchange item, more expensive
+        RefundTotal := 0; // Shopify refunds nothing; the customer pays the 150 difference
+
+        // [GIVEN] A processed Shopify order with the original item and an exchange item flagged Is Exchange Item.
+        OrderRefundsHelper.SetDefaultSeed();
+        OrderId := OrderRefundsHelper.CreateShopifyOrder();
+        OrderHeader.Get(OrderId);
+        OrderHeader."Shop Code" := Shop.Code;
+        OrderHeader."Total Amount" := OriginalAmount;
+        OrderHeader."Subtotal Amount" := OriginalAmount;
+        OrderHeader."VAT Amount" := 0;
+        OrderHeader."Presentment Total Amount" := OriginalAmount;
+        OrderHeader."Presentment Subtotal Amount" := OriginalAmount;
+        OrderHeader."Shipping Charges Amount" := 0;
+        OrderHeader.Processed := true;
+        OrderHeader."Processed Currency Handling" := "Shpfy Currency Handling"::"Shop Currency";
+        OrderHeader.Modify(false);
+        OriginalOrderLineId := OrderRefundsHelper.CreateOrderLineWithUnitPrice(OrderId, 10000, Any.IntegerInRange(100000, 999999), Any.IntegerInRange(100000, 999999), OriginalAmount);
+        ExchangeOrderLineId := OrderRefundsHelper.CreateOrderLineWithUnitPrice(OrderId, 20000, Any.IntegerInRange(100000, 999999), Any.IntegerInRange(100000, 999999), ExchangeAmount);
+        OrderRefundsHelper.MarkOrderLineAsExchangeItem(OrderId, ExchangeOrderLineId);
+        OrderRefundsHelper.ProcessShopifyOrder(OrderId);
+
+        // [GIVEN] A return for the original item and a refund whose total is 0 (kept item is more expensive).
+        ReturnId := OrderRefundsHelper.CreateReturn(OrderId);
+        OrderRefundsHelper.CreateReturnLine(ReturnId, OriginalOrderLineId, 'DEFECTIVE');
+        RefundId := OrderRefundsHelper.CreateRefundHeader(OrderId, ReturnId, RefundTotal, Shop.Code);
+        OrderRefundsHelper.CreateRefundLineForReturnedItem(RefundId, OriginalOrderLineId, 1, OriginalAmount);
+        OrderRefundsHelper.CreateExchangeRefundLine(RefundId, ExchangeOrderLineId, 1, ExchangeAmount);
+
+        // [WHEN] CreateSalesDocument is invoked through the Auto Create Credit Memo process.
+        IReturnRefundProcess := Enum::"Shpfy ReturnRefund ProcessType"::"Auto Create Credit Memo";
+        SalesHeader := IReturnRefundProcess.CreateSalesDocument(Enum::"Shpfy Source Document Type"::Refund, RefundId);
+
+        // [THEN] A Credit Memo was created.
+        LibraryAssert.AreEqual(Enum::"Sales Document Type"::"Credit Memo", SalesHeader."Document Type", 'Sales Header must be a Credit Memo.');
+
+        // [THEN] No Sales Line of Type::"G/L Account" pointing at the Refund Account was added.
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::"G/L Account");
+        SalesLine.SetRange("No.", Shop."Refund Account");
+        RefundAccountLineCount := SalesLine.Count();
+        LibraryAssert.AreEqual(0, RefundAccountLineCount, 'No balancing G/L Refund Account line must be created when the exchange item is more expensive.');
+
+        // [THEN] The credit memo contains exactly two Type::Item lines (returned +qty, exchange -qty).
+        SalesLine.Reset();
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::Item);
+        ItemSalesLineCount := SalesLine.Count();
+        LibraryAssert.AreEqual(2, ItemSalesLineCount, 'Credit memo must contain exactly two Type::Item lines (returned +qty, exchange -qty).');
+
+        // [THEN] The credit memo total equals the net of the item lines (returned - exchange), not the floored refund amount.
+        SalesHeader.CalcFields("Amount Including VAT");
+        LibraryAssert.AreNearlyEqual(OriginalAmount - ExchangeAmount, SalesHeader."Amount Including VAT", 0.5, 'Credit memo total must equal returned minus exchange amount (negative), with no balancing line.');
+
+        // [THEN] Precondition sanity: Shopify Total Refunded Amount is 0 for this scenario.
+        RefundHeader.Get(RefundId);
+        LibraryAssert.AreEqual(0, RefundHeader."Total Refunded Amount", 'Total Refunded Amount must be 0 for a more-expensive-exchange refund.');
+
+        // Tear down
+        ResetProcessOnRefund(RefundId);
+    end;
+
+    [Test]
+    procedure UnitTestExchangeLineDoesNotFlagProcessedOrderAsConflicting()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        TempOrderLine: Record "Shpfy Order Line" temporary;
+        Hash: Codeunit "Shpfy Hash";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        JOrder: JsonObject;
+        JShippingPrice: JsonObject;
+        JShopMoney: JsonObject;
+        ExchangeLineIds: List of [BigInteger];
+        NoExchangeLineIds: List of [BigInteger];
+        OriginalLineId: BigInteger;
+        ExchangeLineId: BigInteger;
+    begin
+        // [SCENARIO] A processed order re-imported after a return-with-exchange (which adds an exchange line item to the Shopify
+        // [SCENARIO] order) must not be flagged as conflicting, because the exchange line is handled through the refund flow.
+        Initialize();
+
+        OriginalLineId := 101;
+        ExchangeLineId := 202;
+
+        // [GIVEN] A processed order whose stored line-item redundancy and quantity reflect only the original (non-exchange) line.
+        OrderHeader."Current Total Items Quantity" := 1;
+        OrderHeader."Line Items Redundancy Code" := Hash.CalcHash('|' + Format(OriginalLineId));
+        OrderHeader."Shipping Charges Amount" := 0;
+
+        // [GIVEN] The re-imported order lines contain the original line plus a newly added exchange line.
+        TempOrderLine.Init();
+        TempOrderLine."Shopify Order Id" := 111111;
+        TempOrderLine."Line Id" := OriginalLineId;
+        TempOrderLine.Quantity := 1;
+        TempOrderLine.Insert();
+        TempOrderLine.Init();
+        TempOrderLine."Shopify Order Id" := 111111;
+        TempOrderLine."Line Id" := ExchangeLineId;
+        TempOrderLine.Quantity := 1;
+        TempOrderLine.Insert();
+
+        // [GIVEN] The imported order JSON reports the current (post-return) quantity and unchanged shipping.
+        JShopMoney.Add('amount', 0);
+        JShippingPrice.Add('shopMoney', JShopMoney);
+        JOrder.Add('totalShippingPriceSet', JShippingPrice);
+        JOrder.Add('currentSubtotalLineItemsQuantity', 1);
+
+        // [WHEN/THEN] With the exchange line recognized, the order is NOT flagged as conflicting.
+        ExchangeLineIds.Add(ExchangeLineId);
+        LibraryAssert.IsFalse(
+            ImportOrder.IsImportedOrderConflictingExistingOrder(JOrder, OrderHeader, TempOrderLine, ExchangeLineIds),
+            'A processed order re-imported with an added exchange line must not be treated as conflicting.');
+
+        // [THEN] Control: without excluding the exchange line, the added line changes the redundancy hash and the order is
+        // [THEN] (correctly) detected as changed - proving the exchange exclusion is what suppresses the false conflict.
+        LibraryAssert.IsTrue(
+            ImportOrder.IsImportedOrderConflictingExistingOrder(JOrder, OrderHeader, TempOrderLine, NoExchangeLineIds),
+            'Control: the added line changes the redundancy hash, so without exchange exclusion the order is detected as changed.');
+    end;
+
+    [Test]
     procedure UnitTestDoesNotCreateCrMemoFromRefundWithPendingTransaction()
     var
         SalesHeader: Record "Sales Header";
