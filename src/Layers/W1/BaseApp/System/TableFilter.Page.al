@@ -105,7 +105,7 @@ page 9805 "Table Filter"
         AllObj.SetRange("Object Type", AllObj."Object Type"::Table);
         AllObj.SetRange("Object ID", NewTableNumber);
         if AllObj.FindFirst() then
-            SourceTableName := AllObj."Object Name";
+            SourceTableName := AllObj.Name;
         SourceTableCaption := NewTableCaption;
         InitSourceTable();
         if StrLen(TableFilterText) > 0 then

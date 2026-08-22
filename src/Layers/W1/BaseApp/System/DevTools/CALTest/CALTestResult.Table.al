@@ -29,7 +29,7 @@ table 130405 "CAL Test Result"
                 SetCodeunitName();
             end;
         }
-        field(4; "Codeunit Name"; Text[30])
+        field(4; "Codeunit Name"; Text[100])
         {
             Caption = 'Codeunit Name';
         }
@@ -181,7 +181,7 @@ table 130405 "CAL Test Result"
         AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Codeunit);
         AllObjWithCaption.SetRange("Object ID", "Codeunit ID");
         if AllObjWithCaption.FindFirst() then
-            "Codeunit Name" := AllObjWithCaption."Object Name";
+            "Codeunit Name" := AllObjWithCaption.Name;
     end;
 }
 

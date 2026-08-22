@@ -114,7 +114,7 @@ page 1561 "Pick Report"
         AllObjWithCaption: Record AllObjWithCaption;
     begin
         if AllObjWithCaption.Get(ObjectOptions."Object Type"::Report, ObjectOptions."Object ID") then begin
-            ReportName := AllObjWithCaption."Object Name";
+            ReportName := AllObjWithCaption.Name;
             exit;
         end;
 

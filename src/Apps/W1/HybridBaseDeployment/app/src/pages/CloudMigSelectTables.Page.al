@@ -69,7 +69,7 @@ page 40041 "Cloud Mig - Select Tables"
                             exit;
                         end;
 
-                        AllObj.SetFilter("Object Name", '@*' + TableNameFilter + '*');
+                        AllObj.SetFilter(Name, '@*' + TableNameFilter + '*');
                         CloudMigReplicateDataMgt.LookupTableData(Rec, TableNameFilter, AllObj);
                         CurrPage.Update(false);
                     end;

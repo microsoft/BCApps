@@ -1184,7 +1184,7 @@ codeunit 134775 "Word & RDLC Report Selections"
         AllObj: Record AllObj;
     begin
         AllObj.Get(AllObj."Object Type"::Report, REPORT::Statement);
-        exit(AllObj."Object Name");
+        exit(AllObj.Name);
     end;
 
     local procedure RunStatementReport_OneCust_OneSelection(CustomerNo: Code[20]; StartingDate: Date; EndingDate: Date)

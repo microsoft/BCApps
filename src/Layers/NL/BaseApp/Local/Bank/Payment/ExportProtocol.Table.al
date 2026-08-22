@@ -53,7 +53,7 @@ table 11000005 "Export Protocol"
                 AllObjWithCaption.SetRange("Object Type", GetObjectType());
                 AllObjWithCaption.SetRange("Object ID", "Export ID");
                 AllObjWithCaption.FindFirst();
-                "Export Name" := AllObjWithCaption."Object Name";
+                "Export Name" := AllObjWithCaption.Name;
             end;
         }
         field(12; "Docket ID"; Integer)
@@ -86,7 +86,7 @@ table 11000005 "Export Protocol"
             Editable = false;
             FieldClass = FlowField;
         }
-        field(31; "Export Name"; Text[30])
+        field(31; "Export Name"; Text[100])
         {
             Caption = 'Export Name';
             Editable = false;

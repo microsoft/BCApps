@@ -761,7 +761,7 @@ table 270 "Bank Account"
         /// </summary>
         field(109; "Check Report Name"; Text[250])
         {
-            CalcFormula = lookup(AllObjWithCaption."Object Name" where("Object Type" = const(Report),
+            CalcFormula = lookup(AllObjWithCaption.Name where("Object Type" = const(Report),
                                                                         "Object ID" = field("Check Report ID")));
             Caption = 'Check Report Name';
             Editable = false;

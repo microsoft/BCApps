@@ -38,7 +38,7 @@ page 9880 "Database Access Intent List"
                     Tooltip = 'Specifies the object number.';
                     Editable = false;
                 }
-                field(ObjName; Rec."Object Name")
+                field(ObjName; Rec.Name)
                 {
                     ApplicationArea = All;
                     Caption = 'Object Name';

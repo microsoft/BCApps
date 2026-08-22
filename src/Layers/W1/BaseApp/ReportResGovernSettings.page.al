@@ -37,7 +37,7 @@ page 9882 "Report Res. Govern. Settings"
                     Tooltip = 'Specifies the Report number.';
                     Editable = false;
                 }
-                field(ObjName; Rec."Object Name")
+                field(ObjName; Rec.Name)
                 {
                     ApplicationArea = All;
                     Caption = 'Report Name';
