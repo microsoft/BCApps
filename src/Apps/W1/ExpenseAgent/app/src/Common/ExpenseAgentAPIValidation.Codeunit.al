@@ -11,13 +11,35 @@ using System.Environment.Configuration;
 codeunit 6993 "Expense Agent API Validation"
 {
     Access = Internal;
+    EventSubscriberInstance = StaticAutomatic;
     InherentEntitlements = X;
     InherentPermissions = X;
 
     var
         AgentNotEnabledErr: Label 'Expense Agent is not enabled. Please contact your administrator.';
         CapabilityNotEnabledErr: Label 'The "%1" capability is not enabled. Please contact your administrator to enable the capability.', Comment = '%1 = a capability name, such as Expense Agent';
+        AgentVATSpecInsertNotAuthorizedErr: Label 'Agent-authored VAT specifications must be created through an authorized Expense Agent request.';
         ExpenseAgentAadAppIdTxt: Label 'ee1eb5fd-719b-44f2-97d0-0efd34bc4148', Locked = true;
+
+    [EventSubscriber(ObjectType::Table, Database::"Expense VAT Specification", OnBeforeInsertEvent, '', false, false)]
+    local procedure CheckAgentVATSpecificationInsert(var Rec: Record "Expense VAT Specification"; RunTrigger: Boolean)
+    begin
+        if Rec.IsTemporary() or (Rec.Source <> Rec.Source::Agent) then
+            exit;
+
+        VerifyAgentVATSpecificationAccess();
+    end;
+
+    internal procedure VerifyAgentVATSpecificationAccess()
+    var
+        EnvironmentInfo: Codeunit "Environment Information";
+    begin
+        if not EnvironmentInfo.IsSaaSInfrastructure() then
+            exit;
+
+        if not IsCurrentUserExpenseAgent() then
+            Error(AgentVATSpecInsertNotAuthorizedErr);
+    end;
 
     procedure VerifyAgentAccess()
     begin

@@ -687,6 +687,23 @@ table 6906 "Expense Report Header"
                         UpdateSpendRequestOnReportLine(ExpenseReportLine);
                 end;
             until ExpenseReportLine.Next() = 0;
+
+        if CalledFromFieldName in [Rec.FieldName("Reimbursement Currency Code"), Rec.FieldName("Reimbursement Currency Factor"), Rec.FieldName("Posting Date")] then
+            UpdateVATSpecReimbursementAmounts();
+    end;
+
+    local procedure UpdateVATSpecReimbursementAmounts()
+    var
+        ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.";
+    begin
+        ExpenseReportLineVATSpec.SetRange("Document No.", "No.");
+        if ExpenseReportLineVATSpec.FindSet(true) then
+            repeat
+                ExpenseReportLineVATSpec.UpdateReimbursementAmounts(Rec);
+#pragma warning disable AA0214
+                ExpenseReportLineVATSpec.Modify();
+#pragma warning restore AA0214                
+            until ExpenseReportLineVATSpec.Next() = 0;
     end;
 
     local procedure UpdateCurrFactorOnReportLine(var ExpenseReportLine: Record "Expense Report Line")

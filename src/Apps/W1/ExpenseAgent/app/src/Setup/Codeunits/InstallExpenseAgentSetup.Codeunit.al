@@ -19,8 +19,10 @@ codeunit 6992 "Install Expense Agent Setup"
     trigger OnInstallAppPerCompany()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
+        UpgradeExpReportVATSpec: Codeunit "Upgrade Exp. Report VAT Spec";
     begin
         ExpenseAgentSetup.InitRecord();
+        UpgradeExpReportVATSpec.SetBackfillReimbursementAmountsUpgradeTag();
     end;
 
     trigger OnInstallAppPerDatabase()

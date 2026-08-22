@@ -235,6 +235,42 @@ table 6934 "Posted Exp. Rep. Line VAT Spec"
             Editable = false;
             ToolTip = 'Specifies whether the VAT reclaim for this row is pending, approved, or rejected.';
         }
+        field(50; "VAT Base Amount (RCY)"; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetReimbursementCurrencyCode();
+            Caption = 'VAT Base Amount (RCY)';
+            DataClassification = CustomerContent;
+            Editable = false;
+            ToolTip = 'Specifies the VAT base amount in reimbursement currency for this rate.';
+        }
+        field(51; "VAT Amount (RCY)"; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetReimbursementCurrencyCode();
+            Caption = 'VAT Amount (RCY)';
+            DataClassification = CustomerContent;
+            Editable = false;
+            ToolTip = 'Specifies the VAT amount in reimbursement currency for this rate.';
+        }
+        field(52; "Amount (RCY)"; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetReimbursementCurrencyCode();
+            Caption = 'Amount (RCY)';
+            DataClassification = CustomerContent;
+            Editable = false;
+            ToolTip = 'Specifies the total amount in reimbursement currency for this rate.';
+        }
+        field(53; "Reclaim VAT Amount (RCY)"; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetReimbursementCurrencyCode();
+            Caption = 'Reclaim VAT Amount (RCY)';
+            DataClassification = CustomerContent;
+            Editable = false;
+            ToolTip = 'Specifies the reclaim VAT amount in reimbursement currency for this rate.';
+        }
     }
 
     keys
@@ -247,6 +283,14 @@ table 6934 "Posted Exp. Rep. Line VAT Spec"
         {
         }
     }
+
+    local procedure GetReimbursementCurrencyCode(): Code[20]
+    var
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+    begin
+        if PostedExpenseReportHeader.Get("Expense Report No.") then
+            exit(PostedExpenseReportHeader."Reimbursement Currency Code");
+    end;
 
     /// <summary>Stores a UTF-8 reclaim justification text into the blob.</summary>
     procedure SetJustification(NewText: Text)

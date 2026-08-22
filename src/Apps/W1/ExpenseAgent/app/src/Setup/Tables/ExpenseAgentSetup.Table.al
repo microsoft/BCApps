@@ -670,7 +670,7 @@ table 6930 "Expense Agent Setup"
                 if "Allow VAT Reclaim" then begin
                     TestField("Default VAT Bus. Posting Group");
                     VATSetup.Get();
-                    VATSetup.TestField("Non-Deductible VAT Is Enabled");
+                    VATSetup.TestField("Enable Non-Deductible VAT");
                 end;
             end;
         }
