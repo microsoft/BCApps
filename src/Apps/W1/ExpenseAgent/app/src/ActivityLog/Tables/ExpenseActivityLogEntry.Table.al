@@ -223,6 +223,9 @@ table 7100 "Expense Activity Log Entry"
         key(Occurred; "Occurred At", "Entry No.")
         {
         }
+        key(Retention; "Source Table ID", "Occurred At", "Entry No.")
+        {
+        }
     }
 
     trigger OnModify()
