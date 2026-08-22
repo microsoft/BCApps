@@ -15,6 +15,7 @@ report 5690 "Index Fixed Assets"
 {
     ApplicationArea = FixedAssets;
     Caption = 'Index Fixed Assets';
+    ToolTip = 'Run the Index Fixed Assets report.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

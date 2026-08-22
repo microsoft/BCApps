@@ -15,6 +15,7 @@ using System.Utilities;
 report 5698 "Date Compress Maint. Ledger"
 {
     Caption = 'Date Compress Maint. Ledger';
+    ToolTip = 'Save database space by combining related entries in one new entry. You can compress entries from closed fiscal years only.';
     Permissions = TableData "Date Compr. Register" = rimd,
                   TableData "Dimension Set ID Filter Line" = rimd,
                   TableData "FA Register" = rimd,
