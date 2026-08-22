@@ -816,6 +816,48 @@ codeunit 136610 "ERM RS Package Base Operations"
         Assert.AreEqual(Format(TableTok), ConfigXMLExchange.GetTableElementName(TableTok), '');
     end;
 
+#if not CLEAN29
+    [Test]
+    [Scope('OnPrem')]
+    procedure ImportPackageWithBlankLineWithDotNet()
+    var
+        ConfigPackage: Record "Config. Package";
+        CustomerPriceGroup: Record "Customer Price Group";
+        ConfigXMLExchange: Codeunit "Config. XML Exchange";
+        XMLDocument: DotNet XmlDocument;
+        FilePath: Text;
+    begin
+        // [FEATURE] [XML]
+        // [SCENARIO 217909] "Config. XML Exchange".ImportPackageXMLDocument is preparing data for applying package when XML contains the first record with no data
+        Initialize();
+
+        // [GIVEN] Exported XML file with empty table "Customer Price Group"
+        CustomerPriceGroup.DeleteAll();
+        FilePath := CreateConfigPackageAndExportToXML(ConfigPackage);
+
+        // [GIVEN] Add new record to XML file "Customer Price Group".Code = "TEST"
+        // [GIVEN] "Customer Price Group"."Price Includes VAT" = FALSE
+        // [GIVEN] "Customer Price Group"."Allow Invoice Disc." = FALSE
+        // [GIVEN] "Customer Price Group"."VAT Bus. Posting Gr. (Price)" = "POSTGR01"
+        // [GIVEN] "Customer Price Group"."Description" = "Test Description"
+        // [GIVEN] "Customer Price Group"."Allow Line Disc." = FALSE
+        AddCustPriceGroupToXML(CustomerPriceGroup, XMLDocument, FilePath);
+
+        // [WHEN] Importing updated XML file
+        ConfigXMLExchange.ImportPackageXMLDocument(XMLDocument, '');
+
+        // [THEN] Table Config. Package Data contains 6 records with value = '' for the first record
+        // [THEN] Table Config. Package Data contains 6 records for the second record
+        // [THEN] Config. Package Data for field "Code" with "Value" = TEST
+        // [THEN] Config. Package Data for field "Price Includes VAT" with "Value" = FALSE
+        // [THEN] Config. Package Data for field "Allow Invoice Disc." with "Value" = FALSE
+        // [THEN] Config. Package Data for field "VAT Bus. Posting Gr. (Price)" with "Value" = "POSTGR01"
+        // [THEN] Config. Package Data for field "Description" with "Value" = "Test Description"
+        // [THEN] Config. Package Data for field "Allow Line Disc." with "Value" = FALSE
+        VerifyConfigPackageData(CustomerPriceGroup, ConfigPackage.Code, DATABASE::"Customer Price Group");
+    end;
+#endif
+
     [Test]
     [Scope('OnPrem')]
     procedure ImportPackageWithBlankLine()
@@ -823,7 +865,7 @@ codeunit 136610 "ERM RS Package Base Operations"
         ConfigPackage: Record "Config. Package";
         CustomerPriceGroup: Record "Customer Price Group";
         ConfigXMLExchange: Codeunit "Config. XML Exchange";
-        XMLDocument: DotNet XmlDocument;
+        XMLDocument: XmlDocument;
         FilePath: Text;
     begin
         // [FEATURE] [XML]
@@ -1210,6 +1252,7 @@ codeunit 136610 "ERM RS Package Base Operations"
         ExportToXML(ConfigPackage.Code, ConfigPackageTable, FilePath);
     end;
 
+#if not CLEAN29
     local procedure AddCustPriceGroupToXML(var CustomerPriceGroup: Record "Customer Price Group"; var XMLDocument: DotNet XmlDocument; FilePath: Text)
     var
         XMLDOMManagement: Codeunit "XML DOM Management";
@@ -1223,6 +1266,41 @@ codeunit 136610 "ERM RS Package Base Operations"
         CreateDummyCustPriceGroup(CustomerPriceGroup);
         XMLDOMManagement.AddElement(
           DocumentElement, ConfigXMLExchange.GetElementName(CustomerPriceGroup.TableName), '', '', XMLNode);
+        XMLDOMManagement.AddElement(
+          XMLNode, ConfigXMLExchange.GetElementName(CustomerPriceGroup.FieldName(Code)), CustomerPriceGroup.Code, '', DummyXMLNode);
+        XMLDOMManagement.AddElement(
+          XMLNode, ConfigXMLExchange.GetElementName(CustomerPriceGroup.FieldName("Price Includes VAT")),
+          Format(CustomerPriceGroup."Price Includes VAT"), '', DummyXMLNode);
+        XMLDOMManagement.AddElement(
+          XMLNode, ConfigXMLExchange.GetElementName(CustomerPriceGroup.FieldName("Allow Invoice Disc.")),
+          Format(CustomerPriceGroup."Allow Invoice Disc."), '', DummyXMLNode);
+        XMLDOMManagement.AddElement(
+          XMLNode, ConfigXMLExchange.GetElementName(CustomerPriceGroup.FieldName("VAT Bus. Posting Gr. (Price)")),
+          CustomerPriceGroup."VAT Bus. Posting Gr. (Price)", '', DummyXMLNode);
+        XMLDOMManagement.AddElement(
+          XMLNode, ConfigXMLExchange.GetElementName(CustomerPriceGroup.FieldName(Description)),
+          CustomerPriceGroup.Description, '', DummyXMLNode);
+        XMLDOMManagement.AddElement(
+          XMLNode, ConfigXMLExchange.GetElementName(CustomerPriceGroup.FieldName("Allow Line Disc.")),
+          Format(CustomerPriceGroup."Allow Line Disc."), '', DummyXMLNode);
+    end;
+#endif
+
+    local procedure AddCustPriceGroupToXML(var CustomerPriceGroup: Record "Customer Price Group"; var XMLDoc: XmlDocument; FilePath: Text)
+    var
+        XMLDOMManagement: Codeunit "XML DOM Management";
+        ConfigXMLExchange: Codeunit "Config. XML Exchange";
+        RootElement: XmlElement;
+        XMLNode: XmlNode;
+        DummyXMLNode: XmlNode;
+        TableNode: XmlNode;
+    begin
+        XMLDOMManagement.LoadXMLDocumentFromFile(FilePath, XMLDoc);
+        XMLDoc.GetRoot(RootElement);
+        RootElement.SelectSingleNode(ConfigXMLExchange.GetElementName(CustomerPriceGroup.TableName() + 'List'), TableNode);
+        CreateDummyCustPriceGroup(CustomerPriceGroup);
+        XMLDOMManagement.AddElement(
+          TableNode, ConfigXMLExchange.GetElementName(CustomerPriceGroup.TableName), '', '', XMLNode);
         XMLDOMManagement.AddElement(
           XMLNode, ConfigXMLExchange.GetElementName(CustomerPriceGroup.FieldName(Code)), CustomerPriceGroup.Code, '', DummyXMLNode);
         XMLDOMManagement.AddElement(
