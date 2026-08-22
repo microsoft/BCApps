@@ -14,4 +14,6 @@ enum 5526 "Planning Create Prod. Order"
     value(2; "Firm Planned") { Caption = 'Firm Planned'; }
     value(3; "Firm Planned & Print") { Caption = 'Firm Planned & Print'; }
     value(4; "Copy to Req. Wksh") { Caption = 'Copy to Req. Wksh'; }
+    value(5; "Released") { Caption = 'Released'; }
+    value(6; "Released & Print") { Caption = 'Released & Print'; }
 }
