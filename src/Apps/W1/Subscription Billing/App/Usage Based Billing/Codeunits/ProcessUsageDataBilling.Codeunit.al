@@ -39,10 +39,11 @@ codeunit 8026 "Process Usage Data Billing"
         OnBeforeProcessUsageDataBilling(UsageDataImport);
         if UsageDataImport."Processing Status" = Enum::"Processing Status"::Closed then
             exit;
-        UsageDataBilling.SetRange("Usage Data Import Entry No.", UsageDataImport."Entry No.");
-        UsageDataBilling.SetRange("Document No.", '');
-        UsageDataBilling.SetFilter("Subscription Contract No.", '<>%1', '');
+        UsageDataImport.SetStatus(Enum::"Processing Status"::None);
+
+        FilterUnprocessedUsageDataBilling(UsageDataBilling, UsageDataImport."Entry No.");
         if not UsageDataBilling.IsEmpty then begin
+            UsageDataBilling.ExcludeProcessingStatusError();
 
             UsageDataBilling.SetRange(Partner, "Service Partner"::Customer);
             if UsageDataBilling.FindSet(true) then
@@ -63,6 +64,9 @@ codeunit 8026 "Process Usage Data Billing"
                     end;
                 until UsageDataBilling.Next() = 0;
             this.ProgressTracker.Finish();
+
+            SetProcessedUsageDataBillingToOk(UsageDataImport."Entry No.");
+            UsageDataImport.UpdateProcessingStatus();
         end else begin
             UsageDataBilling.SetRange("Subscription Contract No.");
             if UsageDataBilling.FindFirst() then begin
@@ -76,6 +80,37 @@ codeunit 8026 "Process Usage Data Billing"
             UsageDataImport.Modify(false);
         end;
         OnAfterProcessUsageDataBilling(UsageDataImport);
+    end;
+
+    local procedure FilterUnprocessedUsageDataBilling(var UsageDataBilling: Record "Usage Data Billing"; UsageDataImportEntryNo: Integer)
+    begin
+        UsageDataBilling.SetRange("Usage Data Import Entry No.", UsageDataImportEntryNo);
+        UsageDataBilling.SetRange("Document No.", '');
+        UsageDataBilling.SetFilter("Subscription Contract No.", '<>%1', '');
+    end;
+
+    local procedure SetProcessedUsageDataBillingToOk(UsageDataImportEntryNo: Integer)
+    var
+        UsageDataBilling: Record "Usage Data Billing";
+    begin
+        // The filters are set here and not taken from the caller, because a record passed by value carries its field values but not its filters.
+        FilterUnprocessedUsageDataBilling(UsageDataBilling, UsageDataImportEntryNo);
+        UsageDataBilling.ExcludeProcessingStatusError();
+
+        // Lines carrying a reason have to be validated one by one, because the Reason blob is cleared in OnValidate.
+        UsageDataBilling.SetFilter("Reason (Preview)", '<>%1', '');
+        if UsageDataBilling.FindSet(true) then
+            repeat
+                UsageDataBilling.Validate("Processing Status", Enum::"Processing Status"::Ok);
+                UsageDataBilling.Modify(true);
+            until UsageDataBilling.Next() = 0;
+
+        // The remaining lines have no reason to clear. The processing status is set last, so that the filter still matches.
+        UsageDataBilling.SetRange("Reason (Preview)", '');
+        UsageDataBilling.SetFilter("Processing Status", '<>%1&<>%2', Enum::"Processing Status"::Error, Enum::"Processing Status"::Ok);
+        UsageDataBilling.ModifyAll("Processing Date", Today(), false);
+        UsageDataBilling.ModifyAll("Processing Time", Time(), false);
+        UsageDataBilling.ModifyAll("Processing Status", Enum::"Processing Status"::Ok, false);
     end;
 
     local procedure CalculateCustomerUsageDataBillingPrice(var UsageDataBilling: Record "Usage Data Billing")
@@ -150,6 +185,9 @@ codeunit 8026 "Process Usage Data Billing"
         CurrencyCode: Code[10];
         UnitPrice: Decimal;
         UnitCost: Decimal;
+        TotalQuantity: Decimal;
+        TotalAmount: Decimal;
+        TotalCostAmount: Decimal;
         IsHandled: Boolean;
     begin
         OnBeforeProcessSubscriptionLine(ServiceCommitment);
@@ -171,11 +209,12 @@ codeunit 8026 "Process Usage Data Billing"
         case ServiceCommitment."Usage Based Pricing" of
             "Usage Based Pricing"::"Usage Quantity":
                 begin
-                    NewServiceObjectQuantity := CalculateTotalUsageBillingQuantity(LastUsageDataBilling, UsageDataImport."Entry No.", ServiceCommitment);
+                    CalculateSumsFromUsageDataBilling(LastUsageDataBilling, UsageDataImport."Entry No.", ServiceCommitment, TotalQuantity, TotalAmount, TotalCostAmount);
+                    NewServiceObjectQuantity := TotalQuantity;
                     if NewServiceObjectQuantity <> 0 then begin
-                        UnitCost := CalculateSumCostAmountFromUsageDataBilling(LastUsageDataBilling, UsageDataImport."Entry No.", ServiceCommitment) / NewServiceObjectQuantity;
+                        UnitCost := TotalCostAmount / NewServiceObjectQuantity;
                         if ServiceCommitment.IsPartnerCustomer() then
-                            UnitPrice := CalculateSumAmountFromUsageDataBilling(LastUsageDataBilling, UsageDataImport."Entry No.", ServiceCommitment) / NewServiceObjectQuantity;
+                            UnitPrice := TotalAmount / NewServiceObjectQuantity;
                     end else begin
                         UnitCost := 0;
                         UnitPrice := 0;
@@ -187,9 +226,10 @@ codeunit 8026 "Process Usage Data Billing"
                 ;
             "Usage Based Pricing"::"Unit Cost Surcharge":
                 if NewServiceObjectQuantity <> 0 then begin
-                    UnitCost := CalculateSumCostAmountFromUsageDataBilling(LastUsageDataBilling, UsageDataImport."Entry No.", ServiceCommitment) / NewServiceObjectQuantity;
+                    CalculateSumsFromUsageDataBilling(LastUsageDataBilling, UsageDataImport."Entry No.", ServiceCommitment, TotalQuantity, TotalAmount, TotalCostAmount);
+                    UnitCost := TotalCostAmount / NewServiceObjectQuantity;
                     if ServiceCommitment.IsPartnerCustomer() then
-                        UnitPrice := CalculateSumAmountFromUsageDataBilling(LastUsageDataBilling, UsageDataImport."Entry No.", ServiceCommitment) / NewServiceObjectQuantity;
+                        UnitPrice := TotalAmount / NewServiceObjectQuantity;
                 end else begin
                     UnitCost := 0;
                     UnitPrice := 0;
@@ -219,15 +259,18 @@ codeunit 8026 "Process Usage Data Billing"
         OnAfterProcessSubscriptionLine(ServiceCommitment);
     end;
 
-    local procedure CalculateSumCostAmountFromUsageDataBilling(LastUsageDataBilling: Record "Usage Data Billing"; UsageDataImportEntryNo: Integer; ServiceCommitment: Record "Subscription Line"): Decimal
+    local procedure CalculateSumsFromUsageDataBilling(LastUsageDataBilling: Record "Usage Data Billing"; UsageDataImportEntryNo: Integer; ServiceCommitment: Record "Subscription Line"; var TotalQuantity: Decimal; var TotalAmount: Decimal; var TotalCostAmount: Decimal)
     var
         UsageDataBilling: Record "Usage Data Billing";
     begin
         UsageDataBilling.FilterOnUsageDataImportAndServiceCommitment(UsageDataImportEntryNo, ServiceCommitment);
         UsageDataBilling.SetRange("Document Type", UsageDataBilling."Document Type"::None);
         UsageDataBilling.SetRange("Charge End Date", LastUsageDataBilling."Charge End Date");
-        UsageDataBilling.CalcSums("Cost Amount");
-        exit(UsageDataBilling."Cost Amount");
+        UsageDataBilling.ExcludeProcessingStatusError();
+        UsageDataBilling.CalcSums(Quantity, Amount, "Cost Amount");
+        TotalQuantity := UsageDataBilling.Quantity;
+        TotalAmount := UsageDataBilling.Amount;
+        TotalCostAmount := UsageDataBilling."Cost Amount";
     end;
 
     local procedure UpdateServiceObjectQuantity(ServiceObjectNo: Code[20]; NewQuantity: Decimal)
@@ -312,6 +355,7 @@ codeunit 8026 "Process Usage Data Billing"
         UsageDataBilling.SetAscending("Charge End Date", SortAscending);
         UsageDataBilling.FilterOnUsageDataImportAndServiceCommitment(UsageDataImportEntryNo, ServiceCommitment);
         UsageDataBilling.SetRange("Document Type", UsageDataBilling."Document Type"::None);
+        UsageDataBilling.ExcludeProcessingStatusError();
         if UsageDataBilling.FindFirst() then
             FoundUsageDataBilling := UsageDataBilling;
     end;
@@ -327,28 +371,6 @@ codeunit 8026 "Process Usage Data Billing"
         UnitPrice := ServiceCommitment.UnitPriceForPeriod(UsageDataBilling."Charge Start Date", UsageDataBilling."Charge End Date");
         OnAfterCalculateUsageDataUnitPriceForPeriod(UnitPrice, ServiceCommitment, UsageDataBilling);
         Amount := UnitPrice * Quantity;
-    end;
-
-    local procedure CalculateTotalUsageBillingQuantity(LastUsageDataBilling: Record "Usage Data Billing"; UsageDataImportEntryNo: Integer; var ServiceCommitment: Record "Subscription Line"): Decimal
-    var
-        UsageDataBilling: Record "Usage Data Billing";
-    begin
-        UsageDataBilling.FilterOnUsageDataImportAndServiceCommitment(UsageDataImportEntryNo, ServiceCommitment);
-        UsageDataBilling.SetRange("Document Type", UsageDataBilling."Document Type"::None);
-        UsageDataBilling.SetRange("Charge End Date", LastUsageDataBilling."Charge End Date");
-        UsageDataBilling.CalcSums(Quantity);
-        exit(UsageDataBilling.Quantity);
-    end;
-
-    local procedure CalculateSumAmountFromUsageDataBilling(LastUsageDataBilling: Record "Usage Data Billing"; UsageDataImportEntryNo: Integer; ServiceCommitment: Record "Subscription Line"): Decimal
-    var
-        UsageDataBilling: Record "Usage Data Billing";
-    begin
-        UsageDataBilling.FilterOnUsageDataImportAndServiceCommitment(UsageDataImportEntryNo, ServiceCommitment);
-        UsageDataBilling.SetRange("Document Type", UsageDataBilling."Document Type"::None);
-        UsageDataBilling.SetRange("Charge End Date", LastUsageDataBilling."Charge End Date");
-        UsageDataBilling.CalcSums(Amount);
-        exit(UsageDataBilling.Amount);
     end;
 
     internal procedure SetRoundingPrecision(var RoundingPrecision: Decimal; UnitPrice: Decimal; Currency: Record Currency)

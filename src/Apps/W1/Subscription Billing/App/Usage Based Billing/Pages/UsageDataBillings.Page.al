@@ -57,6 +57,11 @@ page 8035 "Usage Data Billings"
                 }
                 field("Product ID"; Rec."Product ID") { }
                 field("Product Name"; Rec."Product Name") { }
+                field("Processing Status"; Rec."Processing Status")
+                {
+                    Style = Attention;
+                    StyleExpr = Rec."Processing Status" = Rec."Processing Status"::Error;
+                }
                 field("Processing Date"; Rec."Processing Date")
                 {
                     ToolTip = 'Specifies the date of processing.';
