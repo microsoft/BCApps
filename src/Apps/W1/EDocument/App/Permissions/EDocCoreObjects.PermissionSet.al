@@ -171,6 +171,7 @@ permissionset 6100 "E-Doc. Core - Objects"
         codeunit "E-Doc. Sales Providers" = X,
         codeunit "E-Doc. Create Sales Order" = X,
         codeunit "E-Doc. Sales Doc. Helper" = X,
+        codeunit "E-Doc. Item Charge Mapping" = X,
         codeunit "Receive Documents" = X,
         codeunit ReceiveContext = X,
         codeunit "Send Runner" = X,
