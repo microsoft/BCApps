@@ -286,7 +286,7 @@ codeunit 8205 "Contoso Expense Agent"
         Expense.Validate("Expense Category", ExpenseCategoryCode);
         Expense.Validate("Expense Location", ExpenseLocationCode);
         Expense.Validate("Description", Description);
-        Expense.Validate("Justification", Justification);
+        Expense.Validate("Justification", CopyStr(Justification, 1, MaxStrLen(Expense.Justification)));
         Expense.Validate("Expense Date", ExpenseDate);
 
         ValidateCurrencyCodeInExpense(Expense, CurrencyCode);
@@ -294,7 +294,7 @@ codeunit 8205 "Contoso Expense Agent"
         if Amount <> 0 then
             Expense.Validate("Amount", Amount);
         Expense.Validate("Merchant Name", MerchantName);
-        Expense.Validate("Payment Method Code", PaymentMethodCode);
+        Expense.Validate("Payment Method Code", CopyStr(PaymentMethodCode, 1, MaxStrLen(Expense."Payment Method Code")));
         Expense.Validate(Refundable, Refundable);
         Expense.Validate(Billable, Billable);
         Expense.Validate("Billable to Customer", BillableToCustomer);
@@ -303,8 +303,8 @@ codeunit 8205 "Contoso Expense Agent"
         Expense.Validate("Non-Refundable Amount", NonRefundableAmount);
         if Mileage <> 0 then
             Expense.Validate("Mileage", Mileage);
-        Expense.Validate("Starting Point", StartingPoint);
-        Expense.Validate("Ending Point", EndingPoint);
+        Expense.Validate("Starting Point", CopyStr(StartingPoint, 1, MaxStrLen(Expense."Starting Point")));
+        Expense.Validate("Ending Point", CopyStr(EndingPoint, 1, MaxStrLen(Expense."Ending Point")));
         Expense.Validate("Expense Ext. Doc. No.", ExpenseExtDocNo);
         Expense.Validate("Job No.", JobNo);
         Expense.Validate("Job Task No.", JobTaskNo);
