@@ -5608,14 +5608,22 @@ table 5900 "Service Header"
     local procedure CalcContractLineInvoicedToDate(var ServiceContractLine: Record "Service Contract Line"; ServiceContractHeader: Record "Service Contract Header"; ExcludeDocNo: Code[20])
     var
         ServiceLedgerEntry: Record "Service Ledger Entry";
+        ReversingServiceLedgerEntry: Record "Service Ledger Entry";
         ServContractMgt: Codeunit ServContractManagement;
+        InvoicedServiceLedgerEntryExists: Boolean;
     begin
         ServiceLedgerEntry.SetCurrentKey("Service Contract No.");
         ServiceLedgerEntry.SetRange("Service Contract No.", ServiceContractLine."Contract No.");
         ServiceLedgerEntry.SetRange("Service Item No. (Serviced)", ServiceContractLine."Service Item No.");
         ServiceLedgerEntry.SetRange("Entry Type", ServiceLedgerEntry."Entry Type"::Sale);
         ServiceLedgerEntry.SetFilter("Document No.", '<>%1', ExcludeDocNo);
-        if ServiceLedgerEntry.IsEmpty() then
+        ServiceLedgerEntry.SetRange("Applies-to Entry No.", 0);
+        if ServiceLedgerEntry.FindSet() then
+            repeat
+                ReversingServiceLedgerEntry.SetRange("Applies-to Entry No.", ServiceLedgerEntry."Entry No.");
+                InvoicedServiceLedgerEntryExists := ReversingServiceLedgerEntry.IsEmpty();
+            until (ServiceLedgerEntry.Next() = 0) or InvoicedServiceLedgerEntryExists;
+        if not InvoicedServiceLedgerEntryExists then
             ServiceContractLine."Invoiced to Date" := 0D
         else
             ServContractMgt.CalcInvoicedToDate(ServiceContractLine, ServiceContractLine."Starting Date", ServiceContractHeader."Next Invoice Period Start" - 1);
