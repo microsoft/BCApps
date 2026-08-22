@@ -77,6 +77,7 @@ codeunit 13914 "XRechnung Format" implements "E-Document"
         TempRecordExportBuffer."Electronic Document Format" := Format(EDocumentService."Document Format");
         TempRecordExportBuffer.Insert();
 
+        ExportXRechnungDocument.SetEDocumentService(EDocumentService);
         ExportXRechnungDocument.Run(TempRecordExportBuffer);
         if not TempRecordExportBuffer."File Content".HasValue() then
             exit;
