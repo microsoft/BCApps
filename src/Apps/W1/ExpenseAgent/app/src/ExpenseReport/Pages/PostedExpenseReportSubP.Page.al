@@ -5,7 +5,6 @@
 namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.Dimension;
-using Microsoft.Finance.SpendRequest;
 using Microsoft.Sales.Document;
 
 page 6993 "Posted Expense Report SubP."
@@ -123,7 +122,7 @@ page 6993 "Posted Expense Report SubP."
                     ToolTip = 'Specifies the value of the Reimbursement Type field.';
                     Visible = false;
                 }
-                field("Spend Request No."; Rec."Spend Request No.")
+                field("Travel Request No."; Rec."Travel Request No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Visible = false;
@@ -407,15 +406,15 @@ page 6993 "Posted Expense Report SubP."
                         Page.RunModal(Page::"Expense Rule Card", ExpenseRuleHeader);
                     end;
                 }
-                action("Spend Request")
+                action("Travel Request")
                 {
                     ApplicationArea = Basic, Suite;
                     Image = ProjectExpense;
-                    Caption = 'Spend Request';
-                    ToolTip = 'View the details of the spend request associated with this posted expense report line.';
-                    RunObject = Page "Spend Request Card";
-                    RunPageLink = "No." = field("Spend Request No.");
-                    Visible = Rec."Spend Request No." <> '';
+                    Caption = 'Travel Request';
+                    ToolTip = 'View the details of the travel request associated with this posted expense report line.';
+                    RunObject = Page "Travel Request Card";
+                    RunPageLink = "No." = field("Travel Request No.");
+                    Visible = Rec."Travel Request No." <> '';
                 }
             }
         }

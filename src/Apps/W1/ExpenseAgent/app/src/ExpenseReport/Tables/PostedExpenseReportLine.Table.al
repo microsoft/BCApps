@@ -429,16 +429,16 @@ table 6916 "Posted Expense Report Line"
             Caption = 'Canceled';
             Editable = false;
         }
-        field(100; "Spend Request No."; Code[20])
+        field(100; "Travel Request No."; Code[20])
         {
-            Caption = 'Spend Request No.';
-            ToolTip = 'Specifies the spend request to which the posted expense report line is linked.';
+            Caption = 'Travel Request No.';
+            ToolTip = 'Specifies the travel request to which the posted expense report line is linked.';
             TableRelation = "Spend Request";
         }
-        field(101; "Spend Request Close"; Boolean)
+        field(101; "Travel Request Close"; Boolean)
         {
-            Caption = 'Spend Request Close';
-            ToolTip = 'Specifies that the spend request will be closed when the expense report is posted.';
+            Caption = 'Travel Request Close';
+            ToolTip = 'Specifies that the travel request will be closed when the expense report is posted.';
             DataClassification = CustomerContent;
         }
         field(102; "Policies Evaluated At"; DateTime)

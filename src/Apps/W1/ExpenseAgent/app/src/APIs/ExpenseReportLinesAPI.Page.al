@@ -194,13 +194,13 @@ page 6929 "Expense Report Lines API"
                 {
                     Caption = 'Refundable';
                 }
-                field(spendRequestNo; Rec."Spend Request No.")
+                field(travelRequestNo; Rec."Travel Request No.")
                 {
-                    Caption = 'Spend Request No.';
+                    Caption = 'Travel Request No.';
                 }
-                field(spendRequestClose; Rec."Spend Request Close")
+                field(travelRequestClose; Rec."Travel Request Close")
                 {
-                    Caption = 'Spend Request Close';
+                    Caption = 'Travel Request Close';
                 }
                 field(purchaseInvoice; Rec."Purchase Invoice")
                 {
