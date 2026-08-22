@@ -9,9 +9,6 @@ codeunit 6411 "ForNAV Peppol Install"
     Access = Internal;
 
     trigger OnInstallAppPerCompany()
-    var
-        PeppolOauth: Codeunit "ForNAV Peppol Oauth";
     begin
-        PeppolOauth.ValidateEndpoint(PeppolOauth.GetDefaultEndpoint(), true);
     end;
 }
