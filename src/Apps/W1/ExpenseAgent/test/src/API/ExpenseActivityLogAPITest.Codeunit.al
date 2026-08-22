@@ -577,6 +577,7 @@ codeunit 148343 "Expense Activity Log API Test"
     local procedure Initialize()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Activity Log API Test");
         CleanupTestData();
@@ -585,6 +586,7 @@ codeunit 148343 "Expense Activity Log API Test"
             exit;
 
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense Activity Log API Test");
+        LibraryERMCountryData.UpdateGeneralLedgerSetup();
         if not ExpenseAgentSetup.Get() then begin
             ExpenseAgentSetup.Init();
             ExpenseAgentSetup.Insert();
