@@ -5440,7 +5440,14 @@
         "DK",
         "FR",
         "DE",
-        "AT"
+        "AT",
+        "NL",
+        "BE",
+        "IT",
+        "CH",
+        "NO",
+        "FI",
+        "CZ"
       ],
       "runStaticCodeAnalysis": true,
       "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",

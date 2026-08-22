@@ -63,4 +63,39 @@ enum 8221 "Expense Agent Country" implements "Expense Agent Country Data"
         Caption = 'AT';
         Implementation = "Expense Agent Country Data" = "Create Expense Country Data AT";
     }
+    value(11; NL)
+    {
+        Caption = 'NL';
+        Implementation = "Expense Agent Country Data" = "Create Expense Country Data NL";
+    }
+    value(12; BE)
+    {
+        Caption = 'BE';
+        Implementation = "Expense Agent Country Data" = "Create Expense Country Data BE";
+    }
+    value(13; IT)
+    {
+        Caption = 'IT';
+        Implementation = "Expense Agent Country Data" = "Create Expense Country Data IT";
+    }
+    value(14; CH)
+    {
+        Caption = 'CH';
+        Implementation = "Expense Agent Country Data" = "Create Expense Country Data CH";
+    }
+    value(15; NO)
+    {
+        Caption = 'NO';
+        Implementation = "Expense Agent Country Data" = "Create Expense Country Data NO";
+    }
+    value(16; FI)
+    {
+        Caption = 'FI';
+        Implementation = "Expense Agent Country Data" = "Create Expense Country Data FI";
+    }
+    value(17; CZ)
+    {
+        Caption = 'CZ';
+        Implementation = "Expense Agent Country Data" = "Create Expense Country Data CZ";
+    }
 }

@@ -43,6 +43,20 @@ codeunit 8221 "Exp. Agent Country Resolver"
                     exit(Country::DE);
                 'AT':
                     exit(Country::AT);
+                'NL':
+                    exit(Country::NL);
+                'BE':
+                    exit(Country::BE);
+                'IT':
+                    exit(Country::IT);
+                'CH':
+                    exit(Country::CH);
+                'NO':
+                    exit(Country::NO);
+                'FI':
+                    exit(Country::FI);
+                'CZ':
+                    exit(Country::CZ);
             end;
         exit(Country::Default);
     end;
