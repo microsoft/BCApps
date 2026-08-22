@@ -1223,6 +1223,7 @@ codeunit 144083 "EMail Custom Report Layout"
         exit(REPORT::"ExportElecPayments - Word");
     end;
 
+#if not CLEAN29
     local procedure GetBuiltInLayoutCode(ReportID: Integer): Code[20];
     var
         CustomReportLayout: Record "Custom Report Layout";
@@ -1243,6 +1244,7 @@ codeunit 144083 "EMail Custom Report Layout"
 
         exit(CustomReportLayout.Code);
     end;
+#endif
 
     local procedure InsertCustomReportSelectionVendor(var CustomReportSelection: Record "Custom Report Selection"; Vendor: Record "Vendor"; ReportID: Integer; UseForEmailAttachment: Boolean; UseForEmailBody: Boolean; SendToAddress: Text[200]; ReportUsage: Enum "Report Selection Usage");
     begin
@@ -1258,11 +1260,15 @@ codeunit 144083 "EMail Custom Report Layout"
         CustomReportSelection.Validate(Sequence, CustomReportSelection.COUNT + 1);
         CustomReportSelection.Validate("Report ID", ReportID);
         CustomReportSelection.Validate("Use For Email Attachment", UseForEmailAttachment);
+#if not CLEAN29
         if CustomReportSelection."Use For Email Attachment" then
             CustomReportSelection.Validate("Custom Report Layout Code", GetBuiltInLayoutCode(ReportID));
+#endif
         CustomReportSelection.Validate("Use For Email Body", UseForEmailBody);
+#if not CLEAN29
         if CustomReportSelection."Use For Email Body" then
             CustomReportSelection.Validate("Email Body Layout Code", GetBuiltInLayoutCode(ReportID));
+#endif
         CustomReportSelection.Validate("Send To Email", SendToAddress);
         CustomReportSelection.Insert(true);
     end;
@@ -1281,11 +1287,15 @@ codeunit 144083 "EMail Custom Report Layout"
         CustomReportSelection.Validate(Sequence, CustomReportSelection.COUNT + 1);
         CustomReportSelection.Validate("Report ID", ReportID);
         CustomReportSelection.Validate("Use For Email Attachment", UseForEmailAttachment);
+#if not CLEAN29
         if CustomReportSelection."Use For Email Attachment" then
             CustomReportSelection.Validate("Custom Report Layout Code", GetBuiltInLayoutCode(ReportID));
+#endif
         CustomReportSelection.Validate("Use For Email Body", UseForEmailBody);
+#if not CLEAN29
         if CustomReportSelection."Use For Email Body" then
             CustomReportSelection.Validate("Email Body Layout Code", GetBuiltInLayoutCode(ReportID));
+#endif
         CustomReportSelection.Validate("Send To Email", SendToAddress);
         CustomReportSelection.Insert(true);
     end;
@@ -1300,11 +1310,15 @@ codeunit 144083 "EMail Custom Report Layout"
         ReportSelections.Validate(Sequence, '1');
         ReportSelections.Validate("Report ID", ReportID);
         ReportSelections.Validate("Use For Email Attachment", UseForEmailAttachment);
+#if not CLEAN29
         if ReportSelections."Use For Email Attachment" then
             ReportSelections.Validate("Custom Report Layout Code", GetBuiltInLayoutCode(ReportID));
+#endif
         ReportSelections.Validate("Use For Email Body", UseForEmailBody);
+#if not CLEAN29
         if ReportSelections."Use For Email Body" then
             ReportSelections.Validate("Email Body Layout Code", GetBuiltInLayoutCode(ReportID));
+#endif
         ReportSelections.Insert(true);
     end;
 

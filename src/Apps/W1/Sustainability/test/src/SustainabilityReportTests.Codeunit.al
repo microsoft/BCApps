@@ -12,8 +12,10 @@ using Microsoft.Sales.History;
 using Microsoft.Sustainability.Account;
 using Microsoft.Sustainability.Setup;
 using Microsoft.Test.Sustainability;
+#if not CLEAN29
 using System.Reflection;
 using System.Utilities;
+#endif
 
 codeunit 148217 "Sustainability Report Tests"
 {
@@ -33,9 +35,11 @@ codeunit 148217 "Sustainability Report Tests"
         AccountCodeLbl: Label 'AccountCode%1', Comment = '%1 = Number';
         CategoryCodeLbl: Label 'CategoryCode%1', Comment = '%1 = Number';
         SubcategoryCodeLbl: Label 'SubcategoryCode%1', Comment = '%1 = Number';
+#if not CLEAN29
         MSXLbl: Label 'MSX%1', Comment = '%1 = random number for unique layout code';
         MSXILbl: Label 'MSXI%1', Comment = '%1 = random number for unique layout code';
         DocxLbl: Label 'docx';
+#endif
         TotalCO2eLbl: Label 'TotalCO2e';
         CO2ePerUnitLineLbl: Label 'CO2ePerUnit_Line';
         DisclaimerLbl: Label 'Disclaimer_Lbl';
@@ -53,7 +57,11 @@ codeunit 148217 "Sustainability Report Tests"
         UnitOfMeasure: Record "Unit of Measure";
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
+#if not CLEAN29
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
+#endif
         ExpectedCO2ePerUnit: Decimal;
         ExpectedTotalCO2e: Decimal;
         ExpectedFormatCO2ePerUnit: Text;
@@ -72,8 +80,10 @@ codeunit 148217 "Sustainability Report Tests"
         // [GIVEN] Update "Emission Unit of Measure Code" in Sustainability Setup.
         UpdateEmissionUnitOfMeasureInSustainabilitySetup(UnitOfMeasure.Code);
 
+#if not CLEAN29
         // [GIVEN] Select layout as Custom Body Layout in "Standard Sales-Quote" report.
         GetCustomBodyLayout(CustomReportLayout, GetStandardSalesQuoteReportID());
+#endif
 
         // [GIVEN] Generate Random CO2e per Unit.
         ExpectedCO2ePerUnit := LibraryRandom.RandDec(20, 2);
@@ -117,7 +127,11 @@ codeunit 148217 "Sustainability Report Tests"
         UnitOfMeasure: Record "Unit of Measure";
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
+#if not CLEAN29
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
+#endif
         ExpectedCO2ePerUnitCaption: Text;
         ExpectedTotalCO2eCaption: Text;
     begin
@@ -133,8 +147,10 @@ codeunit 148217 "Sustainability Report Tests"
         // [GIVEN] Update "Emission Unit of Measure Code" in Sustainability Setup.
         UpdateEmissionUnitOfMeasureInSustainabilitySetup(UnitOfMeasure.Code);
 
+#if not CLEAN29
         // [GIVEN] Select layout as Custom Body Layout in "Standard Sales-Quote" report.
         GetCustomBodyLayout(CustomReportLayout, GetStandardSalesQuoteReportID());
+#endif
 
         // [GIVEN] Create a Sales Quote.
         CreateSalesQuote(SalesHeader, SalesLine);
@@ -161,7 +177,11 @@ codeunit 148217 "Sustainability Report Tests"
     var
         SustainabilitySetup: Record "Sustainability Setup";
         UnitOfMeasure: Record "Unit of Measure";
+#if not CLEAN29
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
+#endif
         SalesInvoiceHeader: Record "Sales Invoice Header";
         Quantity: Decimal;
         ExpectedCO2ePerUnit: Decimal;
@@ -182,8 +202,10 @@ codeunit 148217 "Sustainability Report Tests"
         // [GIVEN] Update "Emission Unit of Measure Code" in Sustainability Setup.
         UpdateEmissionUnitOfMeasureInSustainabilitySetup(UnitOfMeasure.Code);
 
+#if not CLEAN29
         // [GIVEN] Select layout as Custom Body Layout in "Standard Sales-Invoice" report.
         GetCustomBodyLayout(CustomReportLayout, GetStandardSalesInvoiceReportID());
+#endif
 
         // [GIVEN] Generate Random CO2e per Unit and Quantity.
         ExpectedCO2ePerUnit := LibraryRandom.RandDec(20, 2);
@@ -224,7 +246,11 @@ codeunit 148217 "Sustainability Report Tests"
     procedure VerifyCO2ePerUnitAndTotalCO2eCaptionInStandardSalesInvoice()
     var
         UnitOfMeasure: Record "Unit of Measure";
+#if not CLEAN29
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
+#endif
         SalesInvoiceHeader: Record "Sales Invoice Header";
         Quantity: Decimal;
         ExpectedCO2ePerUnit: Decimal;
@@ -243,8 +269,10 @@ codeunit 148217 "Sustainability Report Tests"
         // [GIVEN] Update "Emission Unit of Measure Code" in Sustainability Setup.
         UpdateEmissionUnitOfMeasureInSustainabilitySetup(UnitOfMeasure.Code);
 
+#if not CLEAN29
         // [GIVEN] Select layout as Custom Body Layout in "Standard Sales-Invoice" report.
         GetCustomBodyLayout(CustomReportLayout, GetStandardSalesInvoiceReportID());
+#endif
 
         // [GIVEN] Generate Random CO2e per Unit and Quantity.
         ExpectedCO2ePerUnit := LibraryRandom.RandDec(20, 2);
@@ -301,7 +329,10 @@ codeunit 148217 "Sustainability Report Tests"
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Sustainability Report Tests");
     end;
 
+#if not CLEAN29
+#pragma warning disable AL0432, AS0105
     local procedure GetCustomBodyLayout(var CustomReportLayout: Record "Custom Report Layout"; ReportID: Integer)
+#pragma warning restore AL0432, AS0105
     var
         ReportLayoutList: Record "Report Layout List";
         TempBlob: Codeunit "Temp Blob";
@@ -333,6 +364,7 @@ codeunit 148217 "Sustainability Report Tests"
         CopyStream(OutStr, InStr);
         CustomReportLayout.Insert();
     end;
+#endif
 
     local procedure CreateSustainabilityCategory(var CategoryCode: Code[20]; i: Integer)
     begin
@@ -425,6 +457,7 @@ codeunit 148217 "Sustainability Report Tests"
         SustainabilityDisclaimer.Insert();
     end;
 
+#if not CLEAN29
     local procedure GetStandardSalesQuoteReportID(): Integer
     begin
         exit(Report::"Standard Sales - Quote");
@@ -434,6 +467,7 @@ codeunit 148217 "Sustainability Report Tests"
     begin
         exit(Report::"Standard Sales - Invoice");
     end;
+#endif
 
     local procedure RunStandardSalesQuoteReport(QuoteNo: Code[20])
     var

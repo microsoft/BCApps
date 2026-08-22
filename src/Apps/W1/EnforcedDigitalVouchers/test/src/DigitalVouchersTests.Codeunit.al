@@ -21,7 +21,9 @@ using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
+#if not CLEAN29
 using Microsoft.Sales.Customer;
+#endif
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Service.Document;
@@ -53,8 +55,12 @@ codeunit 139515 "Digital Vouchers Tests"
         LibraryRandom: Codeunit "Library - Random";
         LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
         Assert: Codeunit Assert;
+#if not CLEAN29
         LibraryEmail: Codeunit "Library - Email";
+#endif
+#if not CLEAN29
         ActiveDirectoryMockEvents: Codeunit "Active Directory Mock Events";
+#endif
         LibrarySmallBusiness: Codeunit "Library - Small Business";
         LibraryService: Codeunit "Library - Service";
         IsInitialized: Boolean;
@@ -494,6 +500,7 @@ codeunit 139515 "Digital Vouchers Tests"
         UnbindSubscription(DigVouchersDisableEnforce);
     end;
 
+#if not CLEAN29
     [Test]
     [HandlerFunctions('StrMenuHandler,VerifyNoAttachmentsInEmailEditorModalPageHandler')]
     procedure PostSalesDocAndSendEmailWithDigitalVoucherAutomaticallyGenerated()
@@ -534,6 +541,7 @@ codeunit 139515 "Digital Vouchers Tests"
 
         UnbindSubscription(DigVouchersDisableEnforce);
     end;
+#endif
 
     [Test]
     procedure PostMultipleGeneralJournalLinesWithGenerateAutomaticallyOption()
@@ -1949,6 +1957,7 @@ codeunit 139515 "Digital Vouchers Tests"
         LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry, VendorLedgerEntry."Document Type"::Invoice, DocNo);
     end;
 
+#if not CLEAN29
     local procedure PrepareSalesShipmentReportSelectionsForEmailBodyWithoutAttachment()
     var
         ReportSelections: Record "Report Selections";
@@ -1957,11 +1966,15 @@ codeunit 139515 "Digital Vouchers Tests"
         ReportSelections.ModifyAll("Use for Email Body", false);
         ReportSelections.ModifyAll("Use for Email Attachment", false);
     end;
+#endif
 
+#if not CLEAN29
     local procedure CreateCustomReportSelectionForCustomer(CustomerNo: Code[20]; ReportSelectionUsage: Enum "Report Selection Usage"; ReportID: Integer)
     var
         CustomReportSelection: Record "Custom Report Selection";
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
     begin
         CustomReportSelection.Init();
         CustomReportSelection.Validate("Source Type", Database::Customer);
@@ -1975,7 +1988,9 @@ codeunit 139515 "Digital Vouchers Tests"
             "Email Body Layout Code", CustomReportLayout.InitBuiltInLayout(CustomReportSelection."Report ID", CustomReportLayout.Type::Word.AsInteger()));
         CustomReportSelection.Insert(true);
     end;
+#endif
 
+#if not CLEAN29
     local procedure BindActiveDirectoryMockEvents()
     begin
         if ActiveDirectoryMockEvents.Enabled() then
@@ -1983,6 +1998,7 @@ codeunit 139515 "Digital Vouchers Tests"
         BindSubscription(ActiveDirectoryMockEvents);
         ActiveDirectoryMockEvents.Enable();
     end;
+#endif
 
     local procedure CreateBankAccReconciliationLine(BankAccReconciliation: Record "Bank Acc. Reconciliation"; var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; AccountType: Enum "Gen. Journal Account Type"; AccountNo: Code[20]; Amount: Decimal; Date: Date)
     begin

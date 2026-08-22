@@ -138,6 +138,7 @@ codeunit 136314 "Job Quote Report Tests"
         TearDown();
     end;
 
+#if not CLEAN29
     [Test]
     [HandlerFunctions('ConfirmHandlerTrue,MessageHandler,PostandSendPageHandlerNo')]
     [Scope('OnPrem')]
@@ -189,6 +190,7 @@ codeunit 136314 "Job Quote Report Tests"
         RemoveReportLayout();
         TearDown();
     end;
+#endif
 
     [Test]
     [HandlerFunctions('ConfirmHandlerTrue,MessageHandler,PostandSendPageHandlerYes,EmailEditorHandler,CloseEmailEditorHandler')]
@@ -327,6 +329,7 @@ codeunit 136314 "Job Quote Report Tests"
         LibraryReportValidation.DownloadFile();
     end;
 
+#if not CLEAN29
     local procedure CreateJobQueueReportSelection()
     var
         CustomReportSelection: Record "Custom Report Selection";
@@ -342,6 +345,7 @@ codeunit 136314 "Job Quote Report Tests"
 
         CustomReportSelection.Init();
     end;
+#endif
 
     local procedure VerifyJobQuoteReport(JobPlanningLine: Record "Job Planning Line"; Column: Text[250]; Column2: Text[250]; Column3: Text[250]; Column4: Text[250])
     begin
@@ -418,9 +422,12 @@ codeunit 136314 "Job Quote Report Tests"
         SetReportLayout(ReportLayoutSelection.Type::"RDLC (built-in)", '');
     end;
 
+#if not CLEAN29
     local procedure SetReportLayoutForCustomWord()
     var
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
         CustomReportLayoutCode: Code[20];
     begin
         Clear(CustomReportLayout);
@@ -432,6 +439,7 @@ codeunit 136314 "Job Quote Report Tests"
 
         SetReportLayout(ReportLayoutSelection.Type::"Custom Layout", CustomReportLayoutCode);
     end;
+#endif
 
     local procedure SetReportLayout(LayoutSelection: Integer; CustomReportLayoutCode: Code[20])
     begin

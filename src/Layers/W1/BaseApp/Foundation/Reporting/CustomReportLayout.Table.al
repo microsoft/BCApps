@@ -15,6 +15,14 @@ table 9650 "Custom Report Layout"
 {
     Caption = 'Custom Report Layout';
     DataPerCompany = false;
+    ObsoleteReason = 'Replaced by system tables "Tenant Report Layout" and "Report Layout Selection". This table will be removed in a future version.';
+#if not CLEAN29
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+#else
+    ObsoleteState = Removed;
+    ObsoleteTag = '32.0';
+#endif
 #if not CLEAN28
 #pragma warning disable AL0432
     DrillDownPageID = "Custom Report Layouts";
@@ -676,8 +684,8 @@ table 9650 "Custom Report Layout"
     procedure LookupLayoutOK(ReportID: Integer): Boolean
     begin
         FilterOnReport(ReportID);
-        OnLookupLayoutOKOnBeforePageRun(Rec);
 #pragma warning disable AL0432
+        OnLookupLayoutOKOnBeforePageRun(Rec);
         exit(PAGE.RunModal(PAGE::"Custom Report Layouts", Rec) = ACTION::LookupOK);
 #pragma warning restore AL0432
     end;

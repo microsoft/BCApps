@@ -22,11 +22,15 @@ codeunit 134600 "Report Layout Test"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
+#if not CLEAN29
         LibraryTablesUT: Codeunit "Library - Tables UT";
+#endif
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
+#if not CLEAN29
         Usage: Option "Order Confirmation","Work Order","Pick Instruction";
+#endif
         IsInitialized: Boolean;
 
     local procedure Initialize()
@@ -92,12 +96,15 @@ codeunit 134600 "Report Layout Test"
         asserterror ReportLayoutSelection.Validate(Type, ReportLayoutSelection.Type::"External Layout");
     end;
 
+#if not CLEAN29
     [Test]
     [Scope('OnPrem')]
     procedure TestReportLayoutSelectionReportLayoutID()
     var
         ReportLayoutSelection: Record "Report Layout Selection";
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
     begin
         // Init
         Initialize();
@@ -120,6 +127,7 @@ codeunit 134600 "Report Layout Test"
         // Verify
         Assert.IsTrue(ReportLayoutSelection.Type = ReportLayoutSelection.Type::"RDLC (built-in)", '');
     end;
+#endif
 
     [Test]
     [Scope('OnPrem')]
@@ -133,11 +141,14 @@ codeunit 134600 "Report Layout Test"
     end;
 
 
+#if not CLEAN29
     [Test]
     [Scope('OnPrem')]
     procedure TestTableCustomReportLayoutTriggers()
     var
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
     begin
         Initialize();
         CustomReportLayout.Init();
@@ -163,7 +174,9 @@ codeunit 134600 "Report Layout Test"
     [Scope('OnPrem')]
     procedure TestTableCustomReportLayoutValidateLayout()
     var
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
     begin
         Initialize();
         // RDLC
@@ -175,6 +188,7 @@ codeunit 134600 "Report Layout Test"
         CustomReportLayout.ClearLayout();
         Assert.IsFalse(CustomReportLayout.ValidateLayout(false, false), '');
     end;
+#endif
 
 #if not CLEAN28
     [Test]
@@ -182,8 +196,10 @@ codeunit 134600 "Report Layout Test"
     [Scope('OnPrem')]
     procedure TestCustomtLayoutRunReport()
     var
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
         CustomReportLayouts: TestPage "Custom Report Layouts";
+#pragma warning restore AL0432, AS0105
     begin
         // Init
         Initialize();
@@ -203,11 +219,14 @@ codeunit 134600 "Report Layout Test"
     end;
 #endif
 
+#if not CLEAN29
     [Test]
     [Scope('OnPrem')]
     procedure TestCopyRecord()
     var
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
         OldLayoutCode: Code[20];
         NewLayoutCode: Code[20];
     begin
@@ -231,7 +250,9 @@ codeunit 134600 "Report Layout Test"
     [Scope('OnPrem')]
     procedure TestValidateCustomRrdlcOk()
     var
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
         LayoutCode: Code[20];
     begin
         // init
@@ -248,7 +269,9 @@ codeunit 134600 "Report Layout Test"
     [Scope('OnPrem')]
     procedure TestValidateCustomRrdlcFailed()
     var
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
         LayoutCode: Code[20];
     begin
         // init
@@ -268,7 +291,9 @@ codeunit 134600 "Report Layout Test"
     [Scope('OnPrem')]
     procedure TestValidateCustomRrdlcFailed2()
     var
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
         LayoutCode: Code[20];
     begin
         // init
@@ -283,6 +308,7 @@ codeunit 134600 "Report Layout Test"
         // Validate
         Assert.IsTrue(StrPos(GetLastErrorText, 'The RDLC layout does not comply with the current report design (for example') = 1, '');
     end;
+#endif
 
     [Test]
     [Scope('OnPrem')]
@@ -379,8 +405,10 @@ codeunit 134600 "Report Layout Test"
     [Scope('OnPrem')]
     procedure TestReportLayoutsPageNew()
     var
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
         ReportLayouts: TestPage "Custom Report Layouts";
+#pragma warning restore AL0432, AS0105
     begin
         // Init
         Initialize();
@@ -555,6 +583,7 @@ codeunit 134600 "Report Layout Test"
         VerifyRun(REPORT::"Test Report - Processing Only");
     end;
 
+#if not CLEAN29
     [Test]
     [HandlerFunctions('ScheduleAReportHandlerCancel')]
     [Scope('OnPrem')]
@@ -648,6 +677,7 @@ codeunit 134600 "Report Layout Test"
         VerifySchedule(REPORT::"Test Report - Processing Only");
         VerifyRun(REPORT::"Test Report - Processing Only");
     end;
+#endif
 
     [Test]
     [Scope('OnPrem')]
@@ -667,6 +697,7 @@ codeunit 134600 "Report Layout Test"
           CompanyInformation.FieldCaption("Registration No."), CompanyInformation.GetRegistrationNumberLbl(), WrongRegNoLblErr);
     end;
 
+#if not CLEAN29
     [Test]
     [HandlerFunctions('WorkOrder_RPH')]
     [Scope('OnPrem')]
@@ -753,6 +784,7 @@ codeunit 134600 "Report Layout Test"
         // [THEN] REP 1305 "Order Confirmation" is shown
         // OrderConfirmation_RPH
     end;
+#endif
 
     [Test]
     [HandlerFunctions('StandardSalesInvoiceRequestPageHandler')]
@@ -795,21 +827,28 @@ codeunit 134600 "Report Layout Test"
         VerifyJobTaskNo(20000, SalesLine[2]."Job Task No.");
     end;
 
+#if not CLEAN29
     [Test]
     [Scope('OnPrem')]
     procedure TestLenghtOfDescriptionCustomReportLayout()
     var
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
         CustomReportSelection: Record "Custom Report Selection";
     begin
         // [FEATURE] [UT]
         // [SCENARIO 252058] Length of "Custom Report Layout"."Description" shoud be equal to length of "Custom Report Selection"."Custom Report Description"
 
+#pragma warning disable AL0432, AS0105
         LibraryTablesUT.CompareFieldTypeAndLength(
           CustomReportLayout, CustomReportLayout.FieldNo(Description),
           CustomReportSelection, CustomReportSelection.FieldNo("Custom Report Description"));
+#pragma warning restore AL0432, AS0105
     end;
+#endif
 
+#if not CLEAN29
     [Test]
     [HandlerFunctions('MessageHandler')]
     [Scope('OnPrem')]
@@ -855,8 +894,12 @@ codeunit 134600 "Report Layout Test"
         // and getting Sales Header RecordId to be sure it point to correct record "SO"
         Assert.ExpectedMessage(Format(SalesHeader.RecordId()), LibraryVariableStorage.DequeueText()); // message from MessageHandler
     end;
+#endif
 
+#if not CLEAN29
+#pragma warning disable AL0432, AS0105
     local procedure InitCustomReportLayout(var CustomReportLayout: Record "Custom Report Layout"; LayoutType: Enum "Custom Report Layout Type"; WithCompanyName: Boolean)
+#pragma warning restore AL0432, AS0105
     var
         LayoutCode: Code[20];
     begin
@@ -868,14 +911,19 @@ codeunit 134600 "Report Layout Test"
             CustomReportLayout.Modify(true);
         end;
     end;
+#endif
 
     local procedure InitReportSelection(ReportID: Integer; Selection: Option "None","RDLC (Built-in)","Word (Built-in)","Custom RDLC","Custom Word","Excel Layout","External Layout")
     var
         ReportLayoutSelection: Record "Report Layout Selection";
         TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
         ReportLayoutList: Record "Report Layout List";
+#if not CLEAN29
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
         LayoutCode: Code[20];
+#endif
     begin
         if ReportLayoutSelection.Get(ReportID, CompanyName) then
             ReportLayoutSelection.Delete();
@@ -895,6 +943,7 @@ codeunit 134600 "Report Layout Test"
                 ReportLayoutSelection.Type := ReportLayoutSelection.Type::"RDLC (built-in)";
             Selection::"Word (Built-in)":
                 ReportLayoutSelection.Type := ReportLayoutSelection.Type::"Word (built-in)";
+#if not CLEAN29
             Selection::"Custom RDLC":
                 begin
                     ReportLayoutSelection.Type := ReportLayoutSelection.Type::"Custom Layout";
@@ -909,6 +958,7 @@ codeunit 134600 "Report Layout Test"
                     CustomReportLayout.Get(LayoutCode);
                     ReportLayoutSelection."Custom Report Layout Code" := CustomReportLayout.Code;
                 end;
+#endif
             Selection::"Excel Layout":
                 begin
                     SetupSelection(ReportLayoutList, TenantReportLayoutSelection, ReportLayoutList."Layout Format"::Excel);
@@ -942,9 +992,12 @@ codeunit 134600 "Report Layout Test"
         TenantReportLayoutSelection.DeleteAll(true);
     end;
 
+#if not CLEAN29
     local procedure AddOrderConfirmationToCustomReportLayout(): Code[20]
     var
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
     begin
         CustomReportLayout.Init();
         CustomReportLayout."Report ID" := REPORT::"Standard Sales - Order Conf.";
@@ -960,7 +1013,9 @@ codeunit 134600 "Report Layout Test"
           CustomerNo, CustomReportSelection.Usage::"S.Order", REPORT::"Standard Sales - Order Conf.",
           AddOrderConfirmationToCustomReportLayout());
     end;
+#endif
 
+#if not CLEAN29
     local procedure AddCustomerDocumentLayoutReport(CustomerNo: Code[20]; NewUsage: Enum "Report Selection Usage"; ReportID: Integer; CustomReportLayoutCode: Code[20])
     var
         CustomReportSelection: Record "Custom Report Selection";
@@ -974,6 +1029,7 @@ codeunit 134600 "Report Layout Test"
         CustomReportSelection."Custom Report Layout Code" := CustomReportLayoutCode;
         CustomReportSelection.Insert(true);
     end;
+#endif
 
     local procedure CreateSalesLineWithJobTaskNo(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line")
     var

@@ -2573,6 +2573,7 @@ codeunit 139197 DocumentSendingPostTests
           "Document Exchange Status", ServiceCrMemoHeader."Document Exchange Status"::"Sent to Document Exchange Service");
     end;
 
+#if not CLEAN29
     [Test]
     [HandlerFunctions('EmailDialogHandlerNo,CloseEmailEditorHandler')]
     [Scope('OnPrem')]
@@ -2634,6 +2635,7 @@ codeunit 139197 DocumentSendingPostTests
         // Verify email address in EmailDialogHandlerNo
         LibraryVariableStorage.AssertEmpty();
     end;
+#endif
 
     [Test]
     [HandlerFunctions('VerifyAndCancelCustomerProfileSelectionMethodStrMenuHandler')]
@@ -3397,6 +3399,7 @@ codeunit 139197 DocumentSendingPostTests
         SalesInvoiceHeader.Get(InvoiceNo);
     end;
 
+#if not CLEAN29
     [Test]
     [HandlerFunctions('ConfirmHandler,VerifySelectSendingOptionHandler,EmailDialogHandlerNo,CloseEmailEditorHandler')]
     [Scope('OnPrem')]
@@ -3796,6 +3799,7 @@ codeunit 139197 DocumentSendingPostTests
 
         LibraryVariableStorage.AssertEmpty();
     end;
+#endif
 
     [Test]
     [HandlerFunctions('SelectSendingOptionHandler,EmailDialogHandlerNo,CloseEmailEditorHandler')]
@@ -4289,6 +4293,7 @@ codeunit 139197 DocumentSendingPostTests
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::DocumentSendingPostTests);
     end;
 
+#if not CLEAN29
     local procedure Scenario_423995(EmailAddressCustomer: array[2] of Text[80]; DocumentLayoutEmail: array[2] of Text[80]; SellToEmail: Text[80]; var PostedInvoiceNo: Code[20]; var DocumentSendingProfileEmail: Record "Document Sending Profile"; var AttachmentName: Text)
     var
         SalesHeader: Record "Sales Header";
@@ -4331,7 +4336,9 @@ codeunit 139197 DocumentSendingPostTests
 
         PostedInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
     end;
+#endif
 
+#if not CLEAN29
     local procedure Scenario_423995_Verify(PostedInvoiceNo: Code[20]; DocumentSendingProfileEmail: Record "Document Sending Profile"; ExpectedTargetEmail: Text[80]; ExpectedAttachmentName: Text)
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -4347,6 +4354,7 @@ codeunit 139197 DocumentSendingPostTests
 
         SalesInvoiceHeader.SendRecords();
     end;
+#endif
 
     local procedure SetupInvoiceReportLayoutSelection()
     var
@@ -4761,9 +4769,12 @@ codeunit 139197 DocumentSendingPostTests
         exit(LibraryUtility.GenerateGUID() + '@microsoft.com');
     end;
 
+#if not CLEAN29
     local procedure FindCustomReportLayout(ReportID: Integer): Code[20]
     var
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
         ReportLayoutList: Record "Report Layout List";
         TempBlob: Codeunit "Temp Blob";
         InStr: InStream;
@@ -4793,6 +4804,7 @@ codeunit 139197 DocumentSendingPostTests
         end;
         exit(CustomReportLayout.Code);
     end;
+#endif
 
     local procedure UnsupportedDocumentType(DocumentType: Enum "Sales Document Type")
     var
