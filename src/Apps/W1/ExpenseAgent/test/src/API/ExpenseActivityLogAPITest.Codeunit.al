@@ -51,6 +51,7 @@ codeunit 148343 "Expense Activity Log API Test"
         Initialize();
         CreateTestExpenseUser(ExpenseUser);
         CreateTestExpenseReport(ExpenseReportHeader, ExpenseUser."No.");
+        CreateTestExpenseReportLine(ExpenseReportHeader, ExpenseUser."No.");
         EntryNo := ExpenseActivityLogMgt.LogExpenseReportEvent(
             ExpenseReportHeader,
             Enum::"Expense Activity Event Type"::Submitted,
@@ -608,6 +609,32 @@ codeunit 148343 "Expense Activity Log API Test"
         ExpenseReportHeader.Description :=
             CopyStr(TestDescriptionPrefixLbl + Format(CreateGuid()), 1, MaxStrLen(ExpenseReportHeader.Description));
         ExpenseReportHeader.Modify();
+    end;
+
+    local procedure CreateTestExpenseReportLine(ExpenseReportHeader: Record "Expense Report Header"; ExpenseUserNo: Code[20])
+    var
+        ExpenseCategory: Record "Expense Category";
+        ExpensePaymentMethod: Record "Expense Payment Method";
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        LibraryExpense.CreateExpenseCategory(
+            ExpenseCategory,
+            ExpenseCategory."Reimbursement Type"::"Employee Paid",
+            ExpenseCategory."Expense Detail Required"::" ");
+        ExpenseCategory.Description :=
+            CopyStr(TestDescriptionPrefixLbl + Format(CreateGuid()), 1, MaxStrLen(ExpenseCategory.Description));
+        ExpenseCategory.Modify();
+        LibraryExpense.FindExpensePaymentMethod(
+            ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Employee Paid");
+        LibraryExpense.CreateExpenseReportLine(
+            ExpenseReportLine,
+            ExpenseReportHeader,
+            ExpenseUserNo,
+            ExpenseCategory.Code,
+            ExpensePaymentMethod.Code,
+            true,
+            '',
+            100);
     end;
 
     local procedure CreateTestExpenseUser(var ExpenseUser: Record "Expense User")

@@ -174,7 +174,6 @@ page 7122 "Expense Activity Log API"
 
     trigger OnAfterGetRecord()
     begin
-        Rec.LoadFields("Event Type", "Reimbursement Currency Code");
         Clear(CurrencyLCY);
         Clear(ReimbursementCurrencyCode);
         if Rec."Event Type" in [Rec."Event Type"::Submitted, Rec."Event Type"::Resubmitted, Rec."Event Type"::Posted] then begin
