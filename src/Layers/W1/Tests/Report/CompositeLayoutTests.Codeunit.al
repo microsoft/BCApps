@@ -28,7 +28,6 @@ codeunit 134619 "Composite Layout Tests"
         UnseedablePartTok: Label 'Test Unseedable Part', Locked = true;
         UnseedablePartDescTok: Label 'A part a test seeds from a layout file that is not in the app.', Locked = true;
         MissingResourceTok: Label 'ReportParts/HeaderFooterDesign/ThisResourceIsNotInTheApp.docx', Locked = true;
-        ScenarioErrorTok: Label '%1', Comment = '%1 = the error the scenario failed with', Locked = true;
         TestReportID: Integer;
         BodyReportID: Integer;
         PartsReportID: Integer;
@@ -226,26 +225,14 @@ codeunit 134619 "Composite Layout Tests"
     [Scope('OnPrem')]
     procedure PageShowsDecodedPartNamesNotComposite()
     var
-        ScenarioError: Text;
+        TenantReportLayoutCfgPage: TestPage "Tenant Report Layout Cfg";
+        HeaderComposite: Text;
     begin
         // [SCENARIO 645022] The Tenant Report Layout Configuration page displays the plain header/footer and theme part
         // names, not the raw <guid>::<name> composite reference stored in the Header/Theme Part Name columns.
         Initialize();
-
         EnableDocumentReportExperience();
-        if not DecodedPartNamesScenario() then
-            ScenarioError := GetLastErrorText();
-        RestoreDocumentReportExperience();
 
-        FailOnScenarioError(ScenarioError);
-    end;
-
-    [TryFunction]
-    local procedure DecodedPartNamesScenario()
-    var
-        TenantReportLayoutCfgPage: TestPage "Tenant Report Layout Cfg";
-        HeaderComposite: Text;
-    begin
         // [GIVEN] A configuration row whose parts are stored as composite references (<guid>::<name>).
         HeaderComposite := CreatePart('PageHF', Enum::"Report Layout Subtype"::HeaderFooter);
         InsertCfg(TestReportID, 'Body', '', HeaderComposite, CreatePart('PageTheme', Enum::"Report Layout Subtype"::Theme));
@@ -264,31 +251,20 @@ codeunit 134619 "Composite Layout Tests"
         Assert.AreEqual(0, StrPos(TenantReportLayoutCfgPage.HeaderPartDisplay.Value(), '::'), 'The displayed value should not contain the composite separator.');
 
         TenantReportLayoutCfgPage.Close();
+        RestoreDocumentReportExperience();
     end;
 
     [Test]
     [Scope('OnPrem')]
     procedure PartDescriptionShowsOnThemeHeaderFooterList()
     var
-        ScenarioError: Text;
-    begin
-        // [SCENARIO 645022] Report themes and header-footer setup shows the part's description in the list.
-        Initialize();
-
-        EnableDocumentReportExperience();
-        if not PartDescriptionScenario() then
-            ScenarioError := GetLastErrorText();
-        RestoreDocumentReportExperience();
-
-        FailOnScenarioError(ScenarioError);
-    end;
-
-    [TryFunction]
-    local procedure PartDescriptionScenario()
-    var
         ReportThemePage: TestPage "Report Theme and Header/Footer";
         PartName: Text;
     begin
+        // [SCENARIO 645022] Report themes and header-footer setup shows the part's description in the list.
+        Initialize();
+        EnableDocumentReportExperience();
+
         // [GIVEN] A tenant part created with a description (CreatePart stores Description = name).
         PartName := 'HFWithDesc';
         CreatePart(PartName, Enum::"Report Layout Subtype"::HeaderFooter);
@@ -302,6 +278,7 @@ codeunit 134619 "Composite Layout Tests"
         Assert.AreEqual(PartName, ReportThemePage.Description.Value(), 'The Description column should show the part description.');
 
         ReportThemePage.Close();
+        RestoreDocumentReportExperience();
     end;
 
     [Test]
@@ -309,26 +286,14 @@ codeunit 134619 "Composite Layout Tests"
     [Scope('OnPrem')]
     procedure ShowInfoReportsPartDetailsAndUsage()
     var
-        ScenarioError: Text;
-    begin
-        // [SCENARIO 645022] Show info reports the part details and how many report configurations use it.
-        Initialize();
-
-        EnableDocumentReportExperience();
-        if not ShowInfoScenario() then
-            ScenarioError := GetLastErrorText();
-        RestoreDocumentReportExperience();
-
-        FailOnScenarioError(ScenarioError);
-    end;
-
-    [TryFunction]
-    local procedure ShowInfoScenario()
-    var
         ReportThemePage: TestPage "Report Theme and Header/Footer";
         Composite: Text;
         ActualMessage: Text;
     begin
+        // [SCENARIO 645022] Show info reports the part details and how many report configurations use it.
+        Initialize();
+        EnableDocumentReportExperience();
+
         // [GIVEN] A tenant theme part assigned in exactly one report configuration.
         Composite := CreatePart('ThemeInfo', Enum::"Report Layout Subtype"::Theme);
         InsertCfg(TestReportID, 'Body', '', '', Composite);
@@ -346,6 +311,8 @@ codeunit 134619 "Composite Layout Tests"
         Assert.ExpectedMessage('Theme', ActualMessage);
         Assert.ExpectedMessage('Used in 1 report configuration', ActualMessage);
         LibraryVariableStorage.AssertEmpty();
+
+        RestoreDocumentReportExperience();
     end;
 
     [Test]
@@ -382,29 +349,15 @@ codeunit 134619 "Composite Layout Tests"
     [Scope('OnPrem')]
     procedure SeedingRemovesThePartCopySeededWithNoAppId()
     var
-        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
-        ScenarioError: Text;
-    begin
-        // [SCENARIO] An earlier version seeded the shipped parts with no App ID. The App ID is part of the key, so the
-        // part written now does not replace that copy - the pass has to take it out, or the pool shows the part twice.
-        Initialize();
-
-        // In a try function so the pool is put back even when an assertion fails - see SeedDefaultPartsCreatesShippedParts.
-        if not LegacyPartRemovalScenario() then
-            ScenarioError := GetLastErrorText();
-        CompositeReportPartsMgt.SeedDefaultParts();
-
-        FailOnScenarioError(ScenarioError);
-    end;
-
-    [TryFunction]
-    local procedure LegacyPartRemovalScenario()
-    var
         TenantReportLayout: Record "Tenant Report Layout";
         CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
         EmptyAppId: Guid;
         PartName: Text[250];
     begin
+        // [SCENARIO] An earlier version seeded the shipped parts with no App ID. The App ID is part of the key, so the
+        // part written now does not replace that copy - the pass has to take it out, or the pool shows the part twice.
+        Initialize();
+
         // [GIVEN] One copy of a shipped part in the pool, moved onto the key the earlier seeding wrote: no App ID. Moved
         // rather than built, so the row carries the real layout file - the platform validates a layout's type and content.
         PartName := CopyStr(InternalDefaultTok, 1, MaxStrLen(TenantReportLayout.Name));
@@ -433,27 +386,12 @@ codeunit 134619 "Composite Layout Tests"
     [Scope('OnPrem')]
     procedure SeedDefaultPartsCreatesShippedParts()
     var
+        ReportLayoutList: Record "Report Layout List";
         CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
-        ScenarioError: Text;
     begin
         // [SCENARIO] Seeding writes the shipped theme and header/footer parts into the shared pool.
         Initialize();
 
-        // The scenario removes parts from the shared pool, so it runs in a try function: the reseed below has to happen
-        // even when an assertion fails, or the pool stays incomplete for every test that runs afterwards.
-        if not SeedShippedPartsScenario() then
-            ScenarioError := GetLastErrorText();
-        CompositeReportPartsMgt.SeedDefaultParts();
-
-        FailOnScenarioError(ScenarioError);
-    end;
-
-    [TryFunction]
-    local procedure SeedShippedPartsScenario()
-    var
-        ReportLayoutList: Record "Report Layout List";
-        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
-    begin
         // [GIVEN] Neither part is in the pool. The suite shares a company and is not rolled back between methods, so an
         // earlier run leaves the shipped parts behind - without removing them first these assertions would pass on rows
         // this call never wrote.
@@ -493,24 +431,10 @@ codeunit 134619 "Composite Layout Tests"
     procedure SeedDefaultPartsIsIdempotentOnRerun()
     var
         CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
-        ScenarioError: Text;
     begin
         // [SCENARIO] Re-seeding replaces a part rather than adding a second copy, so repeated upgrades do not duplicate.
         Initialize();
 
-        // In a try function so the reseed below runs even when an assertion fails - see SeedDefaultPartsCreatesShippedParts.
-        if not SeedIdempotentScenario() then
-            ScenarioError := GetLastErrorText();
-        CompositeReportPartsMgt.SeedDefaultParts();
-
-        FailOnScenarioError(ScenarioError);
-    end;
-
-    [TryFunction]
-    local procedure SeedIdempotentScenario()
-    var
-        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
-    begin
         // [GIVEN] The part is not in the pool, so the first pass below is the one that creates it. The suite shares a
         // company and is not rolled back between methods, so an earlier run would otherwise have seeded it already.
         RemoveShippedPart('Internal Default');
@@ -554,30 +478,15 @@ codeunit 134619 "Composite Layout Tests"
     [Scope('OnPrem')]
     procedure CompositeReportPartsUpgradeTagGatesRerun()
     var
-        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
-        ScenarioError: Text;
-    begin
-        // [SCENARIO] The upgrade seeds on its first run and records its tag; a second run exits on the guard instead of
-        // re-seeding, which is what stops it re-writing parts over anything the tenant changed.
-        Initialize();
-
-        // In a try function so the part is put back even when an assertion fails: this scenario deliberately leaves the
-        // pool short of a part behind the pass's back, and the rest of the suite expects a complete pool.
-        if not TagGatesRerunScenario() then
-            ScenarioError := GetLastErrorText();
-        CompositeReportPartsMgt.SeedDefaultParts();
-
-        FailOnScenarioError(ScenarioError);
-    end;
-
-    [TryFunction]
-    local procedure TagGatesRerunScenario()
-    var
         UpgradeCompositeReportParts: Codeunit "Upgrade Composite Report Parts";
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
         UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
     begin
+        // [SCENARIO] The upgrade seeds on its first run and records its tag; a second run exits on the guard instead of
+        // re-seeding, which is what stops it re-writing parts over anything the tenant changed.
+        Initialize();
+
         // [GIVEN] No tag, and one shipped part missing, so the first run has work to do and is not gated. The delete is
         // guarded because the library helper does a bare Get and throws when the tag is not there - which is the state on
         // a fresh database, and after anything else has cleared it.
@@ -615,7 +524,9 @@ codeunit 134619 "Composite Layout Tests"
     [Scope('OnPrem')]
     procedure SeedPartReportsFailureWhenTheResourceIsMissing()
     var
-        ScenarioError: Text;
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
+        PartName: Text[250];
+        PartSeeded: Boolean;
     begin
         // [SCENARIO] A part whose layout file cannot be read is reported as not seeded instead of throwing: the seeding
         // pass runs during install and upgrade, where an uncaught error would abort the whole operation. This false is
@@ -623,22 +534,6 @@ codeunit 134619 "Composite Layout Tests"
         // an incomplete pass is what leaves the upgrade tag unset.
         Initialize();
 
-        // In a try function so the part name this test owns is taken back out of the pool even when an assertion fails:
-        // the assertions expect nothing to have been written, and if one of them is what fails, something was.
-        if not MissingResourceScenario() then
-            ScenarioError := GetLastErrorText();
-        RemoveShippedPart(UnseedablePartTok);
-
-        FailOnScenarioError(ScenarioError);
-    end;
-
-    [TryFunction]
-    local procedure MissingResourceScenario()
-    var
-        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
-        PartName: Text[250];
-        PartSeeded: Boolean;
-    begin
         // [GIVEN] The part is not in the pool, so the count below cannot pass on a row from an earlier run.
         PartName := CopyStr(UnseedablePartTok, 1, MaxStrLen(PartName));
         RemoveShippedPart(PartName);
@@ -658,31 +553,16 @@ codeunit 134619 "Composite Layout Tests"
     [Scope('OnPrem')]
     procedure UpgradeLeavesTagUnsetAfterFailedSeedSoNextRunRetries()
     var
-        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
-        ScenarioError: Text;
+        UpgradeCompositeReportParts: Codeunit "Upgrade Composite Report Parts";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+        UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
     begin
         // [SCENARIO] A seeding pass that could not write every part must not record the upgrade tag. The tag is what stops
         // the pass from running again, so stamping it after a partial seed would leave the skipped parts missing for good.
         // Left unset, the next upgrade runs the pass again and seeds them.
         Initialize();
 
-        // In a try function so the part is put back even when an assertion fails - the scenario deliberately leaves the
-        // pool short of one until the retry seeds it, and an assertion failing before that would leave it short.
-        if not FailedSeedRetryScenario() then
-            ScenarioError := GetLastErrorText();
-        CompositeReportPartsMgt.SeedDefaultParts();
-
-        FailOnScenarioError(ScenarioError);
-    end;
-
-    [TryFunction]
-    local procedure FailedSeedRetryScenario()
-    var
-        UpgradeCompositeReportParts: Codeunit "Upgrade Composite Report Parts";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
-        UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
-    begin
         // [GIVEN] No tag, and one shipped part missing, so a retry has visible work to do. The delete is guarded because
         // the library helper does a bare Get and throws when the tag is not there.
         if UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()) then
@@ -1434,29 +1314,6 @@ codeunit 134619 "Composite Layout Tests"
     end;
 
     /// <summary>
-    /// Re-raises the failure a scenario reported, after the cleanup that follows it has already run. Does nothing when
-    /// the scenario passed.
-    /// </summary>
-    /// <remarks>
-    /// This is the closing half of the pattern the mutating tests below use in place of a finally block, which AL does
-    /// not have: the scenario runs in a try function, the cleanup runs unconditionally after it, and the failure is
-    /// raised here. Every one of those tests writes state that is neither company-scoped nor rolled back between test
-    /// methods - the shared part pool, the preview feature key - so a failed assertion that skipped the cleanup would
-    /// leave that state contaminated for every test that runs after it, in the same session and in whatever order the
-    /// runner picked.
-    ///
-    /// The message is passed as a placeholder rather than as the format string, so a percent sign in an assertion
-    /// message is reported literally instead of being read as a placeholder of its own.
-    /// </remarks>
-    local procedure FailOnScenarioError(ScenarioError: Text)
-    begin
-        if ScenarioError = '' then
-            exit;
-
-        Error(ScenarioErrorTok, ScenarioError);
-    end;
-
-    /// <summary>
     /// Removes one shipped part from the shared pool so a seeding assertion proves the call under test wrote it. The
     /// suite runs in a non-isolated bucket against a shared company, so rows an earlier run seeded are still there.
     /// </summary>
@@ -1511,6 +1368,30 @@ codeunit 134619 "Composite Layout Tests"
         ClearTestReportLayouts();
         ClearWildcardCfg('');                                                                     // global default: report 0, all companies
         ClearWildcardCfg(CopyStr(CompanyName(), 1, MaxStrLen(TenantReportLayoutCfg."Company Name"))); // company default: report 0, this company
+
+        RestoreShippedPartPool();
+    end;
+
+    /// <summary>
+    /// Puts the shared part pool back into a known-complete state before each test.
+    /// </summary>
+    /// <remarks>
+    /// This is what makes the mutating tests in this suite failure-safe. AL has no finally block, and a try function
+    /// cannot contain database writes, so a test that fails part-way through cannot be relied on to put back what it
+    /// took out. Restoring at the start of the next test instead means a failure leaves nothing for anyone else to
+    /// trip over, in the same session and in whatever order the runner picked.
+    /// </remarks>
+    local procedure RestoreShippedPartPool()
+    var
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
+    begin
+        // Seeding replaces a part rather than adding a second copy, so this is safe to run before every test, and it
+        // re-creates whatever a mutating test removed from the pool.
+        CompositeReportPartsMgt.SeedDefaultParts();
+
+        // The part name the missing-resource test owns is deliberately not seedable, so seeding never puts it back.
+        // Take it out instead, in case that test failed after something had been written for it.
+        RemoveShippedPart(UnseedablePartTok);
     end;
 
     local procedure ClearTestReportLayouts()
