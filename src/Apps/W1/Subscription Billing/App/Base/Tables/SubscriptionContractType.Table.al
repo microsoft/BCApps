@@ -70,6 +70,18 @@ table 8053 "Subscription Contract Type"
             Caption = 'Allow Different Currency in Customer Usage Data';
             ToolTip = 'Specifies whether customer contracts of this type allow usage data with a currency different from the contract currency. If enabled, amounts will be automatically converted to the customer contract currency when creating usage data billing. If disabled, an error will be raised when the usage data currency differs from the customer contract currency.';
         }
+        field(8; "Billing Period Description"; Text[50])
+        {
+            Caption = 'Billing Period Description';
+
+            trigger OnValidate()
+            var
+                FieldTranslation: Record "Field Translation";
+            begin
+                if "Billing Period Description" = '' then
+                    FieldTranslation.DeleteRelatedTranslations(Rec, Rec.FieldNo("Billing Period Description"));
+            end;
+        }
     }
 
     keys
@@ -97,6 +109,7 @@ table 8053 "Subscription Contract Type"
         if not VendorContract.IsEmpty() then
             Error(CannotDeleteErr, TableCaption(), CustomerContract.TableCaption);
         FieldTranslation.DeleteRelatedTranslations(Rec, Rec.FieldNo(Description));
+        FieldTranslation.DeleteRelatedTranslations(Rec, Rec.FieldNo("Billing Period Description"));
     end;
 
     var
