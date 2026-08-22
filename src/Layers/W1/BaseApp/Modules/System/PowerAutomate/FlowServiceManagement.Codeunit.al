@@ -31,9 +31,11 @@ codeunit 6400 "Flow Service Management"
         NullGuidReceivedMsg: Label 'Encountered an null GUID value as Power Automate Environment ID.', Locked = true;
         EmptyAccessTokenTelemetryMsg: Label 'Encountered an empty access token for Power Automate services.', Locked = true;
         EmptyPowerPlatformTenantTelemetryMsg: Label 'Encountered an empty Power Platform Tenant URL for Power Automate services.', Locked = true;
+        LinkedEnvironmentLookupFailedMsg: Label 'Failed to retrieve the linked Power Platform environment ID. Scenario: %1. Error code: %2.', Locked = true, Comment = '%1: Power Platform scenario, %2: Error code';
         PowerAutomateURLTelemetryMsg: Label 'Power Automate Environment URL: %1', Locked = true, Comment = '%1: URL used to access Power Automate environments';
         PowerAutomatePickerTelemetryCategoryLbl: Label 'AL Power Automate Environment Picker', Locked = true;
         MicrosoftPowerAutomatePrivacyIdTxt: Label 'Power Automate', Locked = true;
+        PowerPlatformTenantNotConfiguredErr: Label 'Power Automate cannot connect because this Business Central environment is not linked to a Power Platform tenant. Contact your system administrator to configure the Power Platform environment link.';
 
 
     procedure GetFlowUrl(): Text
@@ -125,6 +127,7 @@ codeunit 6400 "Flow Service Management"
         ResponseText: Text;
         Handled: Boolean;
         AccessToken: SecretText;
+        FlowEnvironmentsUrl: Text;
     begin
         Handled := false;
         OnBeforeSendGetEnvironmentRequest(ResponseText, Handled);
@@ -135,12 +138,17 @@ codeunit 6400 "Flow Service Management"
                 Session.LogMessage('0000MJX', EmptyAccessTokenTelemetryMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PowerAutomatePickerTelemetryCategoryLbl);
 
             // Gets a list of Flow user environments from the Flow API.
-            if not WebRequestHelper.GetResponseTextUsingCharset('GET', GetFlowEnvironmentsApi(), AccessToken, ResponseText)
+            FlowEnvironmentsUrl := GetFlowEnvironmentsApi();
+            if FlowEnvironmentsUrl = '' then
+                Error(PowerPlatformTenantNotConfiguredErr);
+
+            if not WebRequestHelper.GetResponseTextUsingCharset('GET', FlowEnvironmentsUrl, AccessToken, ResponseText)
             then
                 Error(GenericErr);
         end;
 
-        ParseResponseTextForEnvironments(ResponseText, TempFlowUserEnvironmentBuffer);
+        if ResponseText <> '' then
+            ParseResponseTextForEnvironments(ResponseText, TempFlowUserEnvironmentBuffer);
     end;
 
     procedure ParseResponseTextForEnvironments(ResponseText: Text; var TempFlowUserEnvironmentBuffer: Record "Flow User Environment Buffer" temporary)
@@ -261,25 +269,43 @@ codeunit 6400 "Flow Service Management"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", 'GetPowerPlatformEnvironmentId', '', true, true)]
     local procedure GetEnvironmentId(Scenario: Text; var EnvironmentId: Text)
     var
+        LastErrorCode: Text;
+    begin
+        EnvironmentId := '';
+        if TryGetEnvironmentId(EnvironmentId) then
+            exit;
+
+        LastErrorCode := GetLastErrorCode();
+        EnvironmentId := '';
+        Session.LogMessage('0000Q7B', StrSubstNo(LinkedEnvironmentLookupFailedMsg, Scenario, LastErrorCode), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PowerAutomatePickerTelemetryCategoryLbl);
+        ClearLastError();
+    end;
+
+    [TryFunction]
+    local procedure TryGetEnvironmentId(var EnvironmentId: Text)
+    var
         EnvironmentInformation: Codeunit "Environment Information";
         GUIDValue: Guid;
         LinkedEnvironmentId: Text;
         EmptyGuidText: Text;
+        Handled: Boolean;
     begin
         EmptyGuidText := '00000000-0000-0000-0000-000000000000';
-        EnvironmentId := '';
         if HasUserSelectedFlowEnvironment() then
             // if a user has a specific environment configured, use it
             EnvironmentId := GetFlowEnvironmentID()
         else begin
             // if not, use the linked environment if exists
-            LinkedEnvironmentId := EnvironmentInformation.GetLinkedPowerPlatformEnvironmentId();
-            if (LinkedEnvironmentId <> '') and (Evaluate(GUIDValue, LinkedEnvironmentId)) then begin
-                EnvironmentId := LinkedEnvironmentId;
+            OnBeforeGetLinkedPowerPlatformEnvironmentId(LinkedEnvironmentId, Handled);
+            if not Handled then
+                LinkedEnvironmentId := EnvironmentInformation.GetLinkedPowerPlatformEnvironmentId();
 
-                if (LinkedEnvironmentId = EmptyGuidText) then
+            if (LinkedEnvironmentId <> '') and (Evaluate(GUIDValue, LinkedEnvironmentId)) then begin
+                if (LinkedEnvironmentId = EmptyGuidText) then begin
                     Session.LogMessage('0000NBM', NullGuidReceivedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PowerAutomatePickerTelemetryCategoryLbl);
-                ;
+                    exit;
+                end;
+                EnvironmentId := LinkedEnvironmentId;
             end;
         end;
     end;
@@ -309,6 +335,11 @@ codeunit 6400 "Flow Service Management"
 
     [InternalEvent(false)]
     internal procedure OnBeforeSendGetEnvironmentRequest(var ResponseText: Text; var Handled: Boolean)
+    begin
+    end;
+
+    [InternalEvent(false, true)]
+    internal procedure OnBeforeGetLinkedPowerPlatformEnvironmentId(var LinkedEnvironmentId: Text; var Handled: Boolean)
     begin
     end;
 
