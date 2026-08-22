@@ -1179,6 +1179,86 @@ codeunit 137046 "SCM Order Planning - I"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerPODateChange')]
+    procedure JobDemandNoSupplySuggestionAfterReceiptWhenPODateChangedPastDemandDate()
+    var
+        Item: Record Item;
+        Vendor: Record Vendor;
+        Job: Record Job;
+        JobTask: Record "Job Task";
+        JobPlanningLine: Record "Job Planning Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        RequisitionLine: Record "Requisition Line";
+        LibraryJob: Codeunit "Library - Job";
+        PlanningDate: Date;
+        LaterDate: Date;
+        Qty: Decimal;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 608151] Order Planning for Job demand does not create duplicate supply suggestion
+        // for items already received (but not invoiced) after PO Order/Posting Date is changed past demand date.
+        Initialize();
+
+        // [GIVEN] Item with Replenishment System = Purchase and a Vendor
+        LibraryPurchase.CreateVendor(Vendor);
+        CreateItem(Item, Item."Replenishment System"::Purchase, '', '', Vendor."No.");
+
+        // [GIVEN] Job with Apply Usage Link = TRUE
+        LibraryJob.CreateJob(Job);
+        Job.Validate("Apply Usage Link", true);
+        Job.Modify(true);
+
+        // [GIVEN] Job Task of type Posting
+        LibraryJob.CreateJobTask(Job, JobTask);
+
+        // [GIVEN] Budget Job Planning Line for item with Quantity = 2
+        Qty := 2;
+        PlanningDate := WorkDate();
+        LibraryJob.CreateJobPlanningLine(JobPlanningLine."Line Type"::Budget, JobPlanningLine.Type::Item, JobTask, JobPlanningLine);
+        JobPlanningLine.Validate("No.", Item."No.");
+        JobPlanningLine.Validate(Quantity, Qty);
+        JobPlanningLine.Modify(true);
+
+        // [GIVEN] Calculate Order Planning for Job Demand and carry out to make Purchase Order
+        LibraryPlanning.CalculateOrderPlanJob(RequisitionLine);
+        // Set Supply From explicitly on the supply line (planning engine doesn't auto-set it for job demand in isolation)
+        RequisitionLine.SetRange("Demand Order No.", Job."No.");
+        RequisitionLine.SetRange(Type, RequisitionLine.Type::Item);
+        RequisitionLine.SetRange("No.", Item."No.");
+        RequisitionLine.FindFirst();
+        RequisitionLine.Validate("Supply From", Vendor."No.");
+        RequisitionLine.Modify(true);
+        LibraryPlanning.CarryOutActionMsgPlanWksh(RequisitionLine);
+
+        // [GIVEN] Retrieve the created Purchase Order
+        PurchaseLine.SetRange("Job No.", Job."No.");
+        PurchaseLine.SetRange("No.", Item."No.");
+        PurchaseLine.FindFirst();
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+
+        // [GIVEN] Change Order Date and Posting Date on Purchase Order to a date AFTER the planning date
+        LaterDate := CalcDate('<+10D>', PlanningDate);
+        PurchaseHeader.Validate("Order Date", LaterDate);
+        PurchaseHeader.Validate("Posting Date", LaterDate);
+        PurchaseHeader.Modify(true);
+
+        // [GIVEN] Post Receipt only (not invoice) - the item is received but not invoiced
+        PurchaseHeader.Validate("Vendor Invoice No.", LibraryUtility.GenerateGUID());
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [WHEN] Delete existing requisition lines and re-run Order Planning for Job Demand
+        RequisitionLine.DeleteAll();
+        LibraryPlanning.CalculateOrderPlanJob(RequisitionLine);
+
+        // [THEN] No new Requisition Line is suggested for that item/job (receipt already fulfills demand)
+        RequisitionLine.SetRange("No.", Item."No.");
+        RequisitionLine.SetRange("Demand Order No.", Job."No.");
+        Assert.RecordIsEmpty(RequisitionLine);
+    end;
+
+    [Test]
     procedure SalesDemandFilterOnOrderPlanningShowsOnlySalesDemandRows()
     var
         TempSalesReceivablesSetup: Record "Sales & Receivables Setup" temporary;
@@ -2236,6 +2316,12 @@ codeunit 137046 "SCM Order Planning - I"
 
     [ConfirmHandler]
     procedure ConfirmHandlerYes(ConfirmMessage: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := true;
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmHandlerPODateChange(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := true;
     end;

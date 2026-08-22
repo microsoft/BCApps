@@ -361,7 +361,7 @@ codeunit 5520 "Get Unplanned Demand"
                 if UnplannedDemand."Demand Type" = UnplannedDemand."Demand Type"::Job then begin
                     GetJobTask(UnplannedDemand, JobPlanningLine);
                     NeededQtyBase := UnplannedDemand."Needed Qty. (Base)";
-                    ReducedJobQtyReceivedNotInvoiced := ReduceJobRealtedQtyReceivedNotInvoiced(UnplannedDemand."Demand Order No.", JobPlanningLine."Job Task No.", JobPlanningLine."Line No.", TempUnplannedDemand."Item No.", TempUnplannedDemand."Variant Code", TempUnplannedDemand."Location Code", TempUnplannedDemand."Demand Date");
+                    ReducedJobQtyReceivedNotInvoiced := ReduceJobRealtedQtyReceivedNotInvoiced(UnplannedDemand."Demand Order No.", JobPlanningLine."Job Task No.", JobPlanningLine."Line No.", TempUnplannedDemand."Item No.", TempUnplannedDemand."Variant Code", TempUnplannedDemand."Location Code");
                     UnplannedDemand."Needed Qty. (Base)" -= ReducedJobQtyReceivedNotInvoiced;
                     TotalNeedQuantityBase += NeededQtyBase;
 
@@ -428,7 +428,7 @@ codeunit 5520 "Get Unplanned Demand"
         JobPlanningLine.CalcFields("Reserved Qty. (Base)");
     end;
 
-    local procedure ReduceJobRealtedQtyReceivedNotInvoiced(JobNo: Code[20]; JobTaskNo: Code[20]; JobPlanningLineNo: Integer; ItemNo: Text[250]; VariantFilter: Text[250]; LocationFilter: Text[250]; DemandDate: Date): Decimal
+    local procedure ReduceJobRealtedQtyReceivedNotInvoiced(JobNo: Code[20]; JobTaskNo: Code[20]; JobPlanningLineNo: Integer; ItemNo: Text[250]; VariantFilter: Text[250]; LocationFilter: Text[250]): Decimal
     var
         Item: Record Item;
     begin
@@ -438,7 +438,6 @@ codeunit 5520 "Get Unplanned Demand"
         Item.Get(ItemNo);
         Item.SetRange("Variant Filter", VariantFilter);
         Item.SetRange("Location Filter", LocationFilter);
-        Item.SetRange("Date Filter", 0D, DemandDate);
         Item.SetRange("Drop Shipment Filter", false);
         exit(QtyOnPurchReceiptNotInvoiced(Item, JobNo, JobTaskNo, JobPlanningLineNo));
     end;
@@ -459,7 +458,6 @@ codeunit 5520 "Get Unplanned Demand"
         PurchaseLine.SetFilter("Variant Code", Item.GetFilter("Variant Filter"));
         PurchaseLine.SetFilter("Location Code", Item.GetFilter("Location Filter"));
         PurchaseLine.SetFilter("Drop Shipment", Item.GetFilter("Drop Shipment Filter"));
-        PurchaseLine.SetFilter("Expected Receipt Date", Item.GetFilter("Date Filter"));
         PurchaseLine.SetFilter("Shortcut Dimension 1 Code", Item.GetFilter("Global Dimension 1 Filter"));
         PurchaseLine.SetFilter("Shortcut Dimension 2 Code", Item.GetFilter("Global Dimension 2 Filter"));
         PurchaseLine.SetFilter("Unit of Measure Code", Item.GetFilter("Unit of Measure Filter"));
