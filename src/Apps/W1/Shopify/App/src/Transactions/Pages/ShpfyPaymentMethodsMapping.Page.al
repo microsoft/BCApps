@@ -37,6 +37,25 @@ page 30132 "Shpfy Payment Methods Mapping"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the corresponding payment method in D365BC.';
                 }
+                field(PostAutomatically; Rec."Post Automatically")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies whether payment transactions using this gateway should be automatically posted when the related invoice or credit memo is posted.';
+                }
+                field(AutoPostJnlTemplate; Rec."Auto-Post Jnl. Template")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the general journal template to use for automatically posting payment transactions.';
+                    Enabled = Rec."Post Automatically";
+                    ShowMandatory = Rec."Post Automatically";
+                }
+                field(AutoPostJnlBatch; Rec."Auto-Post Jnl. Batch")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the general journal batch to use for automatically posting payment transactions.';
+                    Enabled = Rec."Post Automatically";
+                    ShowMandatory = Rec."Post Automatically";
+                }
             }
         }
     }

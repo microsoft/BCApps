@@ -6,6 +6,7 @@
 namespace Microsoft.Integration.Shopify;
 
 using Microsoft.Bank.BankAccount;
+using Microsoft.Finance.GeneralLedger.Journal;
 
 /// <summary>
 /// Table Shpfy Payment Method Mapping (ID 30134).
@@ -15,6 +16,8 @@ table 30134 "Shpfy Payment Method Mapping"
     Access = Internal;
     Caption = 'Shopify Payment Method';
     DataClassification = CustomerContent;
+    DrillDownPageId = "Shpfy Payment Methods Mapping";
+    LookupPageId = "Shpfy Payment Methods Mapping";
 
     fields
     {
@@ -58,6 +61,40 @@ table 30134 "Shpfy Payment Method Mapping"
             Caption = 'Manual Payment Gateway';
             DataClassification = SystemMetadata;
             Editable = false;
+        }
+        field(7; "Post Automatically"; Boolean)
+        {
+            Caption = 'Post Automatically';
+            DataClassification = CustomerContent;
+        }
+        field(8; "Auto-Post Jnl. Template"; Code[10])
+        {
+            Caption = 'Auto-Post Journal Template';
+            DataClassification = CustomerContent;
+            TableRelation = "Gen. Journal Template" where(Type = const("Cash Receipts"));
+
+            trigger OnValidate()
+            begin
+                if "Auto-Post Jnl. Template" = '' then
+                    Clear("Auto-Post Jnl. Batch");
+            end;
+        }
+        field(9; "Auto-Post Jnl. Batch"; Code[10])
+        {
+            Caption = 'Auto-Post Journal Batch';
+            DataClassification = CustomerContent;
+            TableRelation = "Gen. Journal Batch".Name where("Journal Template Name" = field("Auto-Post Jnl. Template"));
+
+            trigger OnValidate()
+            var
+                GenJournalBatch: Record "Gen. Journal Batch";
+            begin
+                if "Auto-Post Jnl. Batch" = '' then
+                    exit;
+                TestField("Auto-Post Jnl. Template");
+                GenJournalBatch.Get("Auto-Post Jnl. Template", "Auto-Post Jnl. Batch");
+                GenJournalBatch.TestField("Bal. Account No.");
+            end;
         }
     }
     keys

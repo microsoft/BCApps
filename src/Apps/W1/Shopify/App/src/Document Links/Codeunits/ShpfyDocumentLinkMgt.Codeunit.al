@@ -63,11 +63,9 @@ codeunit 30262 "Shpfy Document Link Mgt."
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnAfterPostSalesDoc', '', true, false)]
-    local procedure OnAfterSalesPosting(var SalesHeader: Record "Sales Header"; PreviewMode: Boolean; SalesShptHdrNo: Code[20]; SalesInvHdrNo: Code[20]; RetRcpHdrNo: Code[20]; SalesCrMemoHdrNo: Code[20])
+    local procedure OnAfterSalesPosting(var SalesHeader: Record "Sales Header"; PreviewMode: Boolean; CommitIsSuppressed: Boolean; SalesShptHdrNo: Code[20]; SalesInvHdrNo: Code[20]; RetRcpHdrNo: Code[20]; SalesCrMemoHdrNo: Code[20])
     var
-        SalesShipmentHeader: Record "Sales Shipment Header";
-        SalesInvoiceLine: Record "Sales Invoice Line";
-        SalesShipments: List of [Code[20]];
+        ShpfyAutoPostTransactions: Codeunit "Shpfy Auto Post Transactions";
     begin
         if SalesHeader.IsTemporary() then
             exit;
@@ -75,6 +73,22 @@ codeunit 30262 "Shpfy Document Link Mgt."
         if PreviewMode then
             exit;
 
+        CreateDocLinksToBCDocs(SalesHeader, SalesShptHdrNo, SalesInvHdrNo, RetRcpHdrNo, SalesCrMemoHdrNo);
+
+        // When the caller suppresses commit it owns the transaction and expects atomicity, so skip the
+        // best-effort automatic payment posting (which would otherwise commit or risk the caller's work).
+        if CommitIsSuppressed then
+            exit;
+
+        ShpfyAutoPostTransactions.AutoPostTransactions(SalesInvHdrNo, SalesCrMemoHdrNo);
+    end;
+
+    local procedure CreateDocLinksToBCDocs(var SalesHeader: Record "Sales Header"; SalesShptHdrNo: Code[20]; SalesInvHdrNo: Code[20]; RetRcpHdrNo: Code[20]; SalesCrMemoHdrNo: Code[20])
+    var
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        SalesShipments: List of [Code[20]];
+    begin
         DocLinkToBCDoc.SetRange("Document Type", ShpfyBCDocumentTypeConvert.Convert(SalesHeader."Document Type"));
         DocLinkToBCDoc.SetRange("Document No.", SalesHeader."No.");
         DocLinkToBCDoc.SetCurrentKey("Document Type", "Document No.");
