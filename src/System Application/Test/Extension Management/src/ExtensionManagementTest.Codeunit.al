@@ -9,6 +9,7 @@ using System.Apps;
 using System.Environment.Configuration;
 using System.Media;
 using System.TestLibraries.Apps;
+using System.TestLibraries.Environment;
 using System.TestLibraries.Security.AccessControl;
 using System.TestLibraries.Utilities;
 
@@ -29,9 +30,11 @@ codeunit 133100 "Extension Management Test"
 
     var
         ExtensionManagement: Codeunit "Extension Management";
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         ExtensionMgtTestLibrary: Codeunit "Extension Mgt. Test Library";
         Assert: Codeunit "Library Assert";
         PermissionsMock: Codeunit "Permissions Mock";
+        DeprecationNotificationSent: Boolean;
         MainAppId: Guid;
         DependingAppId: Guid;
         NotInstalledSuccErr: Label 'Extension was not installed succesfully';
@@ -43,6 +46,42 @@ codeunit 133100 "Extension Management Test"
         PackageIdExistsErr: Label 'The returned extension pakage does not exist';
         NullPackageIdErr: Label 'There should not be an extension corresponding to the returned package ID';
         PackageIdExtensionVersionErr: Label 'The package Id does not poin to the correct extension version';
+        ExtensionManagementDeprecationMsg: Label 'Uploading and managing per-tenant extensions is moving to the Business Central admin center. This page will remain available for viewing installed extensions.';
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('ExtensionManagementNotificationHandler')]
+    procedure ExtensionManagementDeprecationNotificationShownInSaaS()
+    var
+        ExtensionManagementPage: TestPage "Extension Management";
+    begin
+        PermissionsMock.Set('Exten. Mgt. - Admin');
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
+        DeprecationNotificationSent := false;
+
+        ExtensionManagementPage.OpenView();
+        ExtensionManagementPage.Close();
+
+        Assert.IsTrue(DeprecationNotificationSent, 'The Extension Management deprecation notification was not shown.');
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('ExtensionManagementNotificationHandler')]
+    procedure ExtensionManagementDeprecationNotificationNotShownOnPrem()
+    var
+        ExtensionManagementPage: TestPage "Extension Management";
+    begin
+        PermissionsMock.Set('Exten. Mgt. - Admin');
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
+        DeprecationNotificationSent := false;
+
+        ExtensionManagementPage.OpenView();
+        ExtensionManagementPage.Close();
+
+        Assert.IsFalse(DeprecationNotificationSent, 'The Extension Management deprecation notification was shown on-premises.');
+    end;
 
     local procedure SetNavAppIds()
     begin
@@ -552,6 +591,15 @@ codeunit 133100 "Extension Management Test"
     begin
     end;
 
+    [SendNotificationHandler]
+    procedure ExtensionManagementNotificationHandler(var Notification: Notification): Boolean
+    begin
+        if Notification.Message = ExtensionManagementDeprecationMsg then
+            DeprecationNotificationSent := true;
+
+        exit(true);
+    end;
+
     [ModalPageHandler]
     procedure ExtensionSettingsModalHandler(var ExtensionSettings: TestPage "Extension Settings")
     begin
@@ -563,4 +611,3 @@ codeunit 133100 "Extension Management Test"
         Reply := true;
     end;
 }
-

@@ -79,5 +79,3 @@ page 2503 "Extension Installation"
             FieldRef.Value(Filter);
     end;
 }
-
-
