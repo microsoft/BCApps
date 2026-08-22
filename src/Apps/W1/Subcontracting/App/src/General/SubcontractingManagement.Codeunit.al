@@ -318,6 +318,9 @@ codeunit 20505 "Subcontracting Management"
 #pragma warning restore AL0432
             exit;
 #endif
+        if ProdOrderComponent.IsTemporary() then
+            exit;
+
         if ProdOrderComponent."Routing Link Code" = '' then
             exit;
 

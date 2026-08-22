@@ -16,9 +16,11 @@ using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Subcontracting;
+using Microsoft.Manufacturing.Wizard;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
+using System.TestLibraries.Utilities;
 
 codeunit 139981 "Subc. Location Handler Test"
 {
@@ -41,16 +43,20 @@ codeunit 139981 "Subc. Location Handler Test"
         LibraryRandom: Codeunit "Library - Random";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
+        SubCreateProdOrdWizLibrary: Codeunit "Subc. CreateProdOrdWizLibrary";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         SubcWarehouseLibrary: Codeunit "Subc. Warehouse Library";
         IsInitialized: Boolean;
+        WizardFinishedSuccessfully: Boolean;
         CreateSubcontractingOrderAnywayQst: Label 'Do you want to create the Subcontracting Order anyway?';
 
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Location Handler Test");
+        LibraryVariableStorage.Clear();
         LibrarySetupStorage.Restore();
 
         if IsInitialized then
@@ -580,6 +586,68 @@ codeunit 139981 "Subc. Location Handler Test"
     end;
 
     [Test]
+    [HandlerFunctions('HandlePurchProvisionWizard')]
+    procedure TestProdOrderLocationFromMfgSetup_PurchaseLocationMustBeDifferent()
+    var
+        LocationMfg: Record Location;
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ProdOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        PurchLine: Record "Purchase Line";
+        ItemNo: Code[20];
+    begin
+        // [SCENARIO] When location code from Manufacturing Setup is used in Production Order,
+        // the Purchase Location Code must be different
+        // [GIVEN] proper setup configuration with Manufacturing location
+        Initialize();
+
+        // [GIVEN] Sub Management Setup "Subc. Default Comp. Location" is Manufacturing
+        UpdateSubManagementSetup("Components at Location"::Manufacturing);
+
+        // [GIVEN] Manufacturing Setup with a specific Location Code
+        LibraryWarehouse.CreateLocation(LocationMfg);
+        UpdateManufacturingSetup(LocationMfg.Code);
+
+        // [GIVEN] Create item without BOM and Routing
+        ItemNo := SubCreateProdOrdWizLibrary.CreateItemWithoutBOMAndRouting('', '');
+
+        // [GIVEN] Create purchase line with subcontracting vendor
+        SubCreateProdOrdWizLibrary.CreatePurchaseLineWithSubcontractingVendor(PurchLine, ItemNo);
+
+        // [WHEN] Run the Production Order Creation Wizard
+        WizardFinishedSuccessfully := false;
+        LibraryVariableStorage.Enqueue('Next');
+        LibraryVariableStorage.Enqueue('Next');
+        LibraryVariableStorage.Enqueue('Next');
+        LibraryVariableStorage.Enqueue('Next');
+        LibraryVariableStorage.Enqueue('Finish');
+        Commit();
+        PurchLine.CreateSubcontractingProductionOrder();
+        LibraryVariableStorage.AssertEmpty();
+
+        // [THEN] Verify wizard completed successfully
+        Assert.IsTrue(WizardFinishedSuccessfully, 'Wizard should have finished successfully');
+
+        // [THEN] Find the created Production Order
+        ProdOrder.SetRange("Source No.", ItemNo);
+        Assert.IsTrue(ProdOrder.FindFirst(), 'Production Order should be created');
+
+        // [THEN] Find the Production Order Line
+        ProdOrderLine.SetRange(Status, ProdOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProdOrder."No.");
+        Assert.IsTrue(not ProdOrderLine.IsEmpty(), 'Production Order Line should exist');
+
+        // [THEN] Verify Manufacturing Setup has the configured Location Code
+        ManufacturingSetup.Get();
+        Assert.AreEqual(LocationMfg.Code, ManufacturingSetup."Components at Location",
+            'Manufacturing Setup should have the Manufacturing Location Code');
+
+        // [THEN] Verify Purchase Location is different from Manufacturing Setup Location
+        Assert.AreNotEqual(ManufacturingSetup."Components at Location", PurchLine."Location Code",
+            'Purchase Location Code must be different from Manufacturing Setup Location Code');
+    end;
+
+    [Test]
     procedure CreateSubcOrderFromRtngLineUsesProdOrderLineLocation()
     var
         Item: Record Item;
@@ -622,6 +690,7 @@ codeunit 139981 "Subc. Location Handler Test"
           WorkCenter[2]."Location Code", PurchaseLine."Location Code",
           'Subcontracting order must not use the Work Center location.');
     end;
+
 
     local procedure UpdateSubManagementSetup(ComponentAtLocation: Enum "Components at Location")
     var
@@ -778,6 +847,27 @@ codeunit 139981 "Subc. Location Handler Test"
     procedure HandleTransferOrder(var TransfOrderPage: TestPage "Transfer Order")
     begin
     end;
+
+    [ModalPageHandler]
+    procedure HandlePurchProvisionWizard(var PurchProvisionWizard: TestPage "Production Definition Wizard")
+    begin
+        // [SCENARIO] Handle the Purchase Provision Wizard
+        // The wizard should navigate through all steps and finish successfully
+
+        // Click Next to proceed through the wizard steps
+        while PurchProvisionWizard.ActionNext.Enabled() do begin
+            Assert.AreEqual('Next', LibraryVariableStorage.DequeueText(), 'Unexpected wizard navigation action');
+            PurchProvisionWizard.ActionNext.Invoke();
+        end;
+
+        // Click Finish to complete the wizard
+        if PurchProvisionWizard.ActionFinish.Enabled() then begin
+            Assert.AreEqual('Finish', LibraryVariableStorage.DequeueText(), 'Unexpected wizard finish action');
+            PurchProvisionWizard.ActionFinish.Invoke();
+            WizardFinishedSuccessfully := true;
+        end;
+    end;
+
 
     local procedure SetInventoryDirectTransferPostingType(PostingType: Enum "Direct Transfer Posting Type")
     var
