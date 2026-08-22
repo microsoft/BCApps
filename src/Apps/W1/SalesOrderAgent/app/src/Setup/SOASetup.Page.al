@@ -123,24 +123,31 @@ page 4400 "SOA Setup"
 
                         trigger OnDrillDown()
                         var
+                            TempAgentTaskFile: Record "Agent Task File" temporary;
                             SOACreateTaskImpl: Codeunit "SOA Create Task Impl";
+                            SenderEmail: Text[250];
+                            MessageText: Text;
                         begin
                             if AgentIsArchived then begin
                                 Message(AgentArchivedNotificationMsg);
                                 exit;
                             end;
 
+                            if not SOACreateTaskImpl.OpenCreateTaskPageForData(Rec."User Security ID", SenderEmail, MessageText, TempAgentTaskFile) then
+                                exit;
+
                             CurrPage.AgentSetupPart.Page.GetAgentSetupBuffer(TempAgentSetupBuffer);
-                            if (TempAgentSetupBuffer.State <> TempAgentSetupBuffer.State::Enabled) and (Rec."Email Monitoring" or (Rec."Email Address" <> '')) then begin
+                            if (TempAgentSetupBuffer.State <> TempAgentSetupBuffer.State::Enabled) then begin
                                 if not Confirm(EnableAgentForTaskQst) then
                                     exit;
                                 TempAgentSetupBuffer.Validate(State, TempAgentSetupBuffer.State::Enabled);
                                 TempAgentSetupBuffer.Modify();
                                 CurrPage.AgentSetupPart.Page.SetAgentSetupBuffer(TempAgentSetupBuffer);
                                 CurrPage.AgentSetupPart.Page.Update();
-                                Rec."Email Monitoring" := false;
-                                Rec."Incoming Monitoring" := false;
-                                Rec.Modify();
+                                if Rec."Email Monitoring" and (MailboxName = '') then begin
+                                    Rec."Email Monitoring" := false;
+                                    Rec.Modify();
+                                end
                             end;
 
                             if not ApplySetup(true) then
@@ -154,7 +161,8 @@ page 4400 "SOA Setup"
 
                             Commit();
 
-                            SOACreateTaskImpl.OpenCreateTaskPage(Rec."User Security ID");
+                            SOACreateTaskImpl.SetAgentUserSecurityID(Rec."User Security ID");
+                            SOACreateTaskImpl.CreateTask(SenderEmail, MessageText, TempAgentTaskFile);
                             CurrPage.Update(false);
                         end;
                     }
@@ -854,7 +862,7 @@ page 4400 "SOA Setup"
         NotAuthorizedToConfigureAgentErr: Label 'You do not have permission to configure the Sales Order Agent. Contact your system administrator to update your permissions or to mark you as one of the administrators for the agent.';
         ConfiguredBy: Text[80];
         SOACreateTaskLbl: Label 'Create task for the agent';
-        EnableAgentForTaskQst: Label 'Trying out the agent will activate it and turn off incoming email monitoring immediately.\\Do you want to continue?';
+        EnableAgentForTaskQst: Label 'Trying out the agent will activate it with the current settings.\\Do you want to continue?';
         IsConfigUpdated: Boolean;
         InboxFolderNameTok: Label 'Inbox', Locked = true;
         InboxFolderIdTok: Label 'inbox', Locked = true;
