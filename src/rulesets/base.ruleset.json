@@ -29,10 +29,6 @@
       "justification": "Use pragma to remove obsolete warning."
     },
     {
-      "id": "AL0589",
-      "action": "Warning"
-    },
-    {
       "id": "AA0247",
       "action": "Warning"
     },
@@ -76,10 +72,6 @@
       "id": "AL0729",
       "action": "Warning",
       "justification": "Bug 472138. The property 'Promoted' can only be set if the property 'PageType' is set with any of the values of: 'Card,Document,List,ListPlus,Worksheet' This warning will become an error in a future release."
-    },
-    {
-      "id": "AL0749",
-      "action": "Warning"
     },
     {
       "id": "AS0059",
@@ -345,11 +337,6 @@
       "justification": "The Web client does not support displaying Repeater controls containing Parts."
     },
     {
-      "id": "AW0004",
-      "action": "Warning",
-      "justification": "A Blob cannot be used as a source expression for a page field."
-    },
-    {
       "id": "AW0005",
       "action": "Warning",
       "justification": "Action should have a value for the Image property."
@@ -389,15 +376,7 @@
       "action": "Warning"
     },
     {
-      "id": "AL0468",
-      "action": "Warning"
-    },
-    {
       "id": "AL0603",
-      "action": "Warning"
-    },
-    {
-      "id": "AL0520",
       "action": "Warning"
     },
     {
@@ -410,10 +389,6 @@
     },
     {
       "id": "AL0607",
-      "action": "Warning"
-    },
-    {
-      "id": "AL0611",
       "action": "Warning"
     },
     {
