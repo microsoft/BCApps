@@ -134,7 +134,7 @@ report 12183 "Withholding Tax - Test"
                     if "Fiscal Code" = '' then
                         AddError(
                           StrSubstNo(
-                            Text001, FieldCaption("Fiscal Code")))
+                            CannotBeBlankErr, FieldCaption("Fiscal Code")))
                     else begin
                         LocalAppMgt.SkipErrorMsg(true);
                         LocalAppMgt.CheckDigit("Fiscal Code");
@@ -142,33 +142,33 @@ report 12183 "Withholding Tax - Test"
                         if DispError then
                             AddError(
                               StrSubstNo(
-                                Text002, FieldCaption("Fiscal Code")));
+                                InvalidValueFormatErr, FieldCaption("Fiscal Code")));
                     end;
                     if "Date of Birth" = 0D then
                         AddError(
                           StrSubstNo(
-                            Text001, FieldCaption("Date of Birth")));
+                            CannotBeBlankErr, FieldCaption("Date of Birth")));
                     if "Birth City" = '' then
                         AddError(
                           StrSubstNo(
-                            Text001, FieldCaption("Birth City")));
+                            CannotBeBlankErr, FieldCaption("Birth City")));
                     if "Birth County" = '' then
                         AddError(
                           StrSubstNo(
-                            Text001, FieldCaption("Birth County")));
+                            CannotBeBlankErr, FieldCaption("Birth County")));
                     if "First Name" = '' then
                         AddError(
                           StrSubstNo(
-                            Text001, FieldCaption("First Name")));
+                            CannotBeBlankErr, FieldCaption("First Name")));
                     if "Last Name" = '' then
                         AddError(
                           StrSubstNo(
-                            Text001, FieldCaption("Last Name")));
+                            CannotBeBlankErr, FieldCaption("Last Name")));
                 end else
                     if "VAT Registration No." = '' then
                         AddError(
                           StrSubstNo(
-                            Text001, FieldCaption("VAT Registration No.")))
+                            CannotBeBlankErr, FieldCaption("VAT Registration No.")))
                     else begin
                         GLSetup.Get();
                         CompanyInfo.Get();
@@ -178,7 +178,7 @@ report 12183 "Withholding Tax - Test"
                         if DispError then
                             AddError(
                               StrSubstNo(
-                                Text002, FieldCaption("VAT Registration No.")))
+                                InvalidValueFormatErr, FieldCaption("VAT Registration No.")))
                         else
                             if (("Country/Region Code" = CompanyInfo."Country/Region Code") or
                                 ("Country/Region Code" = '')) and
@@ -190,7 +190,7 @@ report 12183 "Withholding Tax - Test"
                                 if DispError then
                                     AddError(
                                       StrSubstNo(
-                                        Text003, FieldCaption("VAT Registration No.")));
+                                        ValueDoesNotComplyErr, FieldCaption("VAT Registration No.")));
                             end;
                     end;
                 CompressArray(ErrorText);
@@ -249,27 +249,28 @@ report 12183 "Withholding Tax - Test"
     trigger OnPreReport()
     begin
         if Vendor.GetFilter("No.") = '' then
-            Error(Text004, Vendor.FieldCaption("No."));
+            Error(VendorFilterErr, Vendor.FieldCaption("No."));
         if StartDate = 0D then
-            Error(Text005);
+            Error(StartingDateErr);
         if EndDate = 0D then
-            Error(Text007);
+            Error(EndingDateErr);
         if StartDate > EndDate then
-            Error(Text006);
+            Error(StartDateGreaterThanEndDateErr);
     end;
 
     var
         ErrorText: array[10] of Text[250];
         StartDate: Date;
         EndDate: Date;
-        Text001: Label '%1 cannot be left blank.';
-        Text002: Label '%1 value is not in valid format.';
-        Text003: Label '%1 value doesn''t comply to local VAT Rules.';
         ErrorCounter: Integer;
-        Text004: Label '%1 filter must be set before running the report.';
-        Text005: Label 'Starting Date must not be blank.';
-        Text006: Label 'Start Date cannot be greater than End Date.';
-        Text007: Label 'Ending Date must not be blank.';
+
+        CannotBeBlankErr: Label '%1 cannot be left blank.', Comment = '%1 - field caption';
+        InvalidValueFormatErr: Label '%1 value is not in valid format.', Comment = '%1 - field caption';
+        ValueDoesNotComplyErr: Label '%1 value doesn''t comply to local VAT Rules.', Comment = '%1 - field caption';
+        VendorFilterErr: Label '%1 filter must be set before running the report.', Comment = '%1 - field caption';
+        StartingDateErr: Label 'Starting Date must not be blank.';
+        StartDateGreaterThanEndDateErr: Label 'Start Date cannot be greater than End Date.';
+        EndingDateErr: Label 'Ending Date must not be blank.';
         CurrReport_PAGENOCaptionLbl: Label 'Page';
         Verify_Withholding_Tax_DataCaptionLbl: Label 'Verify Withholding Tax Data';
         Vendor__Birth_Date_CaptionLbl: Label 'Birth Date';

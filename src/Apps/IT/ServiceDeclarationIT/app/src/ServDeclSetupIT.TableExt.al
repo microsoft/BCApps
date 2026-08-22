@@ -13,6 +13,7 @@ tableextension 12214 "Serv. Decl. Setup IT" extends "Service Declaration Setup"
         field(12214; "Data Exch. Def. Purch. Code"; Code[20])
         {
             Caption = 'Data Exch. Def. Purchase Code';
+            DataClassification = CustomerContent;
             TableRelation = "Data Exch. Def";
         }
         field(12215; "Data Exch. Def. Purch. Name"; Text[100])
@@ -25,6 +26,7 @@ tableextension 12214 "Serv. Decl. Setup IT" extends "Service Declaration Setup"
         field(12216; "Data Exch. Def. Sale Code"; Code[20])
         {
             Caption = 'Data Exch. Def. Sale Code';
+            DataClassification = CustomerContent;
             TableRelation = "Data Exch. Def";
         }
         field(12217; "Data Exch. Def. Sale Name"; Text[100])
@@ -37,6 +39,7 @@ tableextension 12214 "Serv. Decl. Setup IT" extends "Service Declaration Setup"
         field(12218; "Data Exch. Def. P. Corr. Code"; Code[20])
         {
             Caption = 'Data Exch. Def. Purchase Correction Code';
+            DataClassification = CustomerContent;
             TableRelation = "Data Exch. Def";
         }
         field(12219; "Data Exch. Def. P. Corr. Name"; Text[100])
@@ -49,6 +52,7 @@ tableextension 12214 "Serv. Decl. Setup IT" extends "Service Declaration Setup"
         field(12220; "Data Exch. Def. S. Corr. Code"; Code[20])
         {
             Caption = 'Data Exch. Def. Sale Correction Code';
+            DataClassification = CustomerContent;
             TableRelation = "Data Exch. Def";
         }
         field(12221; "Data Exch. Def. S. Corr. Name"; Text[100])
