@@ -267,6 +267,29 @@ codeunit 135647 "EDoc MLLM Tests"
 #pragma warning restore AL0432
 #endif
 
+    [Test]
+    procedure MapHeader_TotalNotTaxRate()
+    var
+        TempHeader: Record "E-Document Purchase Header" temporary;
+        EDocMLLMSchemaHelper: Codeunit "E-Doc. MLLM Schema Helper";
+        HeaderObj: JsonObject;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] When payable_amount equals the tax rate (25), the corrected total should be 312.5
+        // This reproduces the bug where the model emits the tax rate into payable_amount
+        LibraryLowerPermission.SetOutsideO365Scope();
+        EnsureGLSetup();
+
+        HeaderObj.ReadFrom(NavApp.GetResourceAsText('mllm/mllm-header-tax-rate-as-total.json'));
+
+        EDocMLLMSchemaHelper.MapHeaderFromJson(HeaderObj, TempHeader);
+
+        // Before the fix: TempHeader.Total = 25 (the tax rate, not the true total)
+        // After the fix: TempHeader.Total = 312.5 (tax_inclusive_amount)
+        Assert.AreEqual(312.5, TempHeader.Total, 'Total must be the tax-inclusive amount (312.5), not the tax rate (25)');
+        Assert.AreEqual(312.5, TempHeader."Amount Due", 'Amount Due must match the corrected Total');
+    end;
+
     local procedure EnsureGLSetup()
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
