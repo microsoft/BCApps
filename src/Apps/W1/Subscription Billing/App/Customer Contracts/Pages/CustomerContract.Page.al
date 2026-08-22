@@ -161,6 +161,11 @@ page 8052 "Customer Contract"
                     Importance = Additional;
                     ToolTip = 'Specifies the customer''s reference. The content will be printed on contract invoice.';
                 }
+                field("External Document No."; Rec."External Document No.")
+                {
+                    Importance = Additional;
+                    ToolTip = 'Specifies the external document number to transfer to invoices created from this contract.';
+                }
                 field(Active; Rec.Active)
                 {
                     ToolTip = 'Specifies whether the contract is active.';
