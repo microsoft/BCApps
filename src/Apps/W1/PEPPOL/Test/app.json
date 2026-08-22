@@ -67,7 +67,8 @@
   "application": "29.0.0.0",
   "features": [
     "TranslationFile",
-    "NoImplicitWith"
+    "NoImplicitWith",
+    "TranslationsWithNamespaces"
   ],
   "resourceExposurePolicy": {
     "allowDebugging": true,

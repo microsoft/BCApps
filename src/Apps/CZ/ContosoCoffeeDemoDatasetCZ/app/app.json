@@ -35,5 +35,8 @@
   },
   "resourceFolders": [
     ".resources"
+  ],
+  "features": [
+    "TranslationsWithNamespaces"
   ]
 }

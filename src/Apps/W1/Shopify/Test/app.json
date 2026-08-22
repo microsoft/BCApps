@@ -100,6 +100,7 @@
     ".resources"
   ],
   "features": [
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ]
 }
