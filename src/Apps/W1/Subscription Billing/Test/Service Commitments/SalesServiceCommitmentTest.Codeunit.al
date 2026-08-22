@@ -67,6 +67,8 @@ codeunit 139915 "Sales Service Commitment Test"
         NotCreatedProperlyErr: Label 'Subscription Lines are not created properly.', Locked = true;
         SalesServiceCommitmentCannotBeDeletedErr: Label 'The Sales Subscription Line cannot be deleted, because it is the last line with Process Contract Renewal. Please delete the Sales line in order to delete the Sales Subscription Line.', Locked = true;
         NaturalNumberRatioErr: Label 'The ratio of ''%1'' and ''%2'' or vice versa must give a natural number.', Comment = '%1=Field Caption, %2=Field Caption', Locked = true;
+        SalesOrderNotDeletedErr: Label 'The Sales Order was not deleted by the Delete Invoiced Sales Orders batch job.', Locked = true;
+        BlanketSalesOrderNotDeletedErr: Label 'The Blanket Sales Order was not deleted by the Delete Invoiced Blanket Sales Orders batch job.', Locked = true;
 
     #region Tests
 
@@ -2109,9 +2111,179 @@ codeunit 139915 "Sales Service Commitment Test"
         ServiceCommitment.TestField("Subscription Line End Date", 0D);
     end;
 
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure CheckDeleteSalesServiceCommitmentOnDeleteInvoicedSalesOrders()
+    var
+        FetchSalesHeader: Record "Sales Header";
+        OtherSalesHeader: Record "Sales Header";
+        OtherSalesLine: Record "Sales Line";
+        SalesOrderNo: Code[20];
+    begin
+        // [SCENARIO] Report "Delete Invoiced Sales Orders" deletes the Sales Subscription Lines of the removed Sales Order
+        Initialize();
+
+        // [GIVEN] A Sales Order with a Subscription Item that has Sales Subscription Lines
+        ContractTestLibrary.SetupSalesServiceCommitmentItemAndAssignToServiceCommitmentPackage(Item, Enum::"Item Service Commitment Type"::"Service Commitment Item", ServiceCommitmentPackage.Code);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+        LibrarySales.CreateSalesLineWithShipmentDate(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", WorkDate(), LibraryRandom.RandIntInRange(2, 10));
+        SalesOrderNo := SalesHeader."No.";
+        SalesServiceCommitment.FilterOnSalesLine(SalesLine);
+        Assert.RecordIsNotEmpty(SalesServiceCommitment);
+
+        // [GIVEN] A second, untouched Sales Order with Sales Subscription Lines
+        LibrarySales.CreateSalesHeader(OtherSalesHeader, OtherSalesHeader."Document Type"::Order, '');
+        LibrarySales.CreateSalesLineWithShipmentDate(OtherSalesLine, OtherSalesHeader, Enum::"Sales Line Type"::Item, Item."No.", WorkDate(), LibraryRandom.RandIntInRange(2, 10));
+        SalesServiceCommitment.Reset();
+        SalesServiceCommitment.FilterOnSalesLine(OtherSalesLine);
+        Assert.RecordIsNotEmpty(SalesServiceCommitment);
+
+        // [GIVEN] The Sales Order is fully shipped and invoiced, but not removed by posting
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        FetchSalesHeader.Get(SalesHeader."Document Type"::Order, SalesOrderNo);
+        SalesServiceCommitment.Reset();
+        SalesServiceCommitment.FilterOnDocument(SalesHeader."Document Type"::Order, SalesOrderNo);
+        Assert.RecordIsNotEmpty(SalesServiceCommitment);
+
+        // [WHEN] Running report "Delete Invoiced Sales Orders" for the Sales Order
+        RunDeleteInvoicedSalesOrders(SalesOrderNo);
+
+        // [THEN] The Sales Order is deleted
+        Assert.IsFalse(FetchSalesHeader.Get(SalesHeader."Document Type"::Order, SalesOrderNo), SalesOrderNotDeletedErr);
+
+        // [THEN] No Sales Subscription Line of the deleted Sales Order is left behind
+        SalesServiceCommitment.Reset();
+        SalesServiceCommitment.FilterOnDocument(SalesHeader."Document Type"::Order, SalesOrderNo);
+        Assert.RecordIsEmpty(SalesServiceCommitment);
+
+        // [THEN] The Sales Subscription Lines of the second Sales Order are untouched
+        SalesServiceCommitment.Reset();
+        SalesServiceCommitment.FilterOnSalesLine(OtherSalesLine);
+        Assert.RecordIsNotEmpty(SalesServiceCommitment);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure CheckDeleteSalesServiceCommitmentOnDeleteInvdBlnktSalesOrders()
+    var
+        FetchSalesHeader: Record "Sales Header";
+        OtherSalesHeader: Record "Sales Header";
+        OtherSalesLine: Record "Sales Line";
+        SalesOrder: Record "Sales Header";
+        SecondSalesLine: Record "Sales Line";
+        BlanketSalesOrderToOrder: Codeunit "Blanket Sales Order to Order";
+        BlanketOrderNo: Code[20];
+    begin
+        // [SCENARIO] Report "Delete Invd Blnkt Sales Orders" deletes the Sales Subscription Lines of the removed Blanket Sales Order
+        Initialize();
+
+        // [GIVEN] A Blanket Sales Order with two lines that both have Sales Subscription Lines
+        ContractTestLibrary.SetupSalesServiceCommitmentItemAndAssignToServiceCommitmentPackage(Item, Enum::"Item Service Commitment Type"::"Sales with Service Commitment", ServiceCommitmentPackage.Code);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::"Blanket Order", '');
+        LibrarySales.CreateSalesLineWithShipmentDate(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", WorkDate(), LibraryRandom.RandIntInRange(2, 10));
+        LibrarySales.CreateSalesLineWithShipmentDate(SecondSalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", WorkDate(), LibraryRandom.RandIntInRange(2, 10));
+        BlanketOrderNo := SalesHeader."No.";
+        SalesServiceCommitment.FilterOnSalesLine(SalesLine);
+        Assert.RecordIsNotEmpty(SalesServiceCommitment);
+        SalesServiceCommitment.Reset();
+        SalesServiceCommitment.FilterOnSalesLine(SecondSalesLine);
+        Assert.RecordIsNotEmpty(SalesServiceCommitment);
+
+        // [GIVEN] A second, untouched Blanket Sales Order with Sales Subscription Lines
+        LibrarySales.CreateSalesHeader(OtherSalesHeader, OtherSalesHeader."Document Type"::"Blanket Order", '');
+        LibrarySales.CreateSalesLineWithShipmentDate(OtherSalesLine, OtherSalesHeader, Enum::"Sales Line Type"::Item, Item."No.", WorkDate(), LibraryRandom.RandIntInRange(2, 10));
+        SalesServiceCommitment.Reset();
+        SalesServiceCommitment.FilterOnSalesLine(OtherSalesLine);
+        Assert.RecordIsNotEmpty(SalesServiceCommitment);
+
+        // [GIVEN] The Blanket Sales Order is fully converted into a Sales Order, which is then fully shipped and invoiced
+        Clear(BlanketSalesOrderToOrder);
+        BlanketSalesOrderToOrder.SetHideValidationDialog(true);
+        BlanketSalesOrderToOrder.Run(SalesHeader);
+        BlanketSalesOrderToOrder.GetSalesOrderHeader(SalesOrder);
+        LibrarySales.PostSalesDocument(SalesOrder, true, true);
+
+        FetchSalesHeader.Get(SalesHeader."Document Type"::"Blanket Order", BlanketOrderNo);
+        SalesServiceCommitment.Reset();
+        SalesServiceCommitment.FilterOnDocument(SalesHeader."Document Type"::"Blanket Order", BlanketOrderNo);
+        Assert.RecordIsNotEmpty(SalesServiceCommitment);
+
+        // [WHEN] Running report "Delete Invd Blnkt Sales Orders" for the Blanket Sales Order
+        RunDeleteInvdBlnktSalesOrders(BlanketOrderNo);
+
+        // [THEN] The Blanket Sales Order is deleted
+        Assert.IsFalse(FetchSalesHeader.Get(SalesHeader."Document Type"::"Blanket Order", BlanketOrderNo), BlanketSalesOrderNotDeletedErr);
+
+        // [THEN] No Sales Subscription Line of the deleted Blanket Sales Order is left behind
+        SalesServiceCommitment.Reset();
+        SalesServiceCommitment.FilterOnDocument(SalesHeader."Document Type"::"Blanket Order", BlanketOrderNo);
+        Assert.RecordIsEmpty(SalesServiceCommitment);
+
+        // [THEN] The Sales Subscription Lines of the second Blanket Sales Order are untouched
+        SalesServiceCommitment.Reset();
+        SalesServiceCommitment.FilterOnSalesLine(OtherSalesLine);
+        Assert.RecordIsNotEmpty(SalesServiceCommitment);
+    end;
+
+    [Test]
+    procedure CheckDeleteSalesServiceCommitmentOnPostSalesInvoiceCopiedFromSalesOrder()
+    var
+        SalesInvoiceHeader2: Record "Sales Header";
+        CopyDocMgt: Codeunit "Copy Document Mgt.";
+        SalesInvoiceNo: Code[20];
+    begin
+        // [SCENARIO] Posting a Sales Invoice that carries Sales Subscription Lines copied from a Sales Order deletes them
+        Initialize();
+
+        // [GIVEN] A Sales Order with an Item with Subscription Lines
+        ContractTestLibrary.SetupSalesServiceCommitmentItemAndAssignToServiceCommitmentPackage(Item, Enum::"Item Service Commitment Type"::"Sales with Service Commitment", ServiceCommitmentPackage.Code);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+        LibrarySales.CreateSalesLineWithShipmentDate(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", WorkDate(), LibraryRandom.RandIntInRange(2, 10));
+
+        // [GIVEN] A Sales Invoice copied from that Sales Order, which carries over the Sales Subscription Lines
+        LibrarySales.CreateSalesHeader(SalesInvoiceHeader2, SalesInvoiceHeader2."Document Type"::Invoice, SalesHeader."Sell-to Customer No.");
+        SalesInvoiceNo := SalesInvoiceHeader2."No.";
+        CopyDocMgt.CopySalesDoc(Enum::"Sales Document Type From"::Order, SalesHeader."No.", SalesInvoiceHeader2);
+        SalesServiceCommitment.Reset();
+        SalesServiceCommitment.FilterOnDocument(SalesInvoiceHeader2."Document Type"::Invoice, SalesInvoiceNo);
+        Assert.RecordIsNotEmpty(SalesServiceCommitment);
+
+        // [WHEN] Posting the Sales Invoice
+        LibrarySales.PostSalesDocument(SalesInvoiceHeader2, true, true);
+
+        // [THEN] No Sales Subscription Line of the posted Sales Invoice is left behind
+        SalesServiceCommitment.Reset();
+        SalesServiceCommitment.FilterOnDocument(SalesInvoiceHeader2."Document Type"::Invoice, SalesInvoiceNo);
+        Assert.RecordIsEmpty(SalesServiceCommitment);
+    end;
+
     #endregion Tests
 
     #region Procedures
+
+    local procedure RunDeleteInvdBlnktSalesOrders(BlanketOrderNo: Code[20])
+    var
+        FilterSalesHeader: Record "Sales Header";
+        DeleteInvdBlnktSalesOrders: Report "Delete Invd Blnkt Sales Orders";
+    begin
+        FilterSalesHeader.SetRange("Document Type", FilterSalesHeader."Document Type"::"Blanket Order");
+        FilterSalesHeader.SetRange("No.", BlanketOrderNo);
+        DeleteInvdBlnktSalesOrders.SetTableView(FilterSalesHeader);
+        DeleteInvdBlnktSalesOrders.UseRequestPage(false);
+        DeleteInvdBlnktSalesOrders.Run();
+    end;
+
+    local procedure RunDeleteInvoicedSalesOrders(SalesOrderNo: Code[20])
+    var
+        FilterSalesHeader: Record "Sales Header";
+        DeleteInvoicedSalesOrders: Report "Delete Invoiced Sales Orders";
+    begin
+        FilterSalesHeader.SetRange("Document Type", FilterSalesHeader."Document Type"::Order);
+        FilterSalesHeader.SetRange("No.", SalesOrderNo);
+        DeleteInvoicedSalesOrders.SetTableView(FilterSalesHeader);
+        DeleteInvoicedSalesOrders.UseRequestPage(false);
+        DeleteInvoicedSalesOrders.Run();
+    end;
 
     local procedure Initialize()
     begin
