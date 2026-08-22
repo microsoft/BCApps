@@ -1475,7 +1475,11 @@ codeunit 90 "Purch.-Post"
                   TempItemChargeAssgntPurch."Applies-to Doc. Type"::Invoice,
                   TempItemChargeAssgntPurch."Applies-to Doc. Type"::"Return Order",
                   TempItemChargeAssgntPurch."Applies-to Doc. Type"::"Credit Memo":
-                        CheckItemCharge(TempItemChargeAssgntPurch);
+                        begin
+                            CheckItemCharge(TempItemChargeAssgntPurch);
+                            if PostItemChargeFromReceivedOrderLine(PurchHeader, PurchaseLineBackup) then
+                                TempItemChargeAssgntPurch.Mark(true);
+                        end;
                 end;
 
                 OnPostItemChargeLineOnAfterPostItemCharge(TempItemChargeAssgntPurch, PurchHeader, PurchaseLineBackup, PurchLine);
@@ -2138,6 +2142,63 @@ codeunit 90 "Purch.-Post"
               TempItemChargeAssgntPurch."Amount to Assign" * Sign,
               TempItemChargeAssgntPurch."Qty. to Assign",
               PurchRcptLine."Indirect Cost %");
+    end;
+
+    local procedure PostItemChargeFromReceivedOrderLine(PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"): Boolean
+    var
+        PurchLineForCharge: Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        TempItemLedgEntry: Record "Item Ledger Entry" temporary;
+        DistributeCharge: Boolean;
+    begin
+        if TempItemChargeAssgntPurch.Mark() then
+            exit(false);
+
+        if not (TempItemChargeAssgntPurch."Applies-to Doc. Type" in
+            [TempItemChargeAssgntPurch."Applies-to Doc. Type"::Order,
+             TempItemChargeAssgntPurch."Applies-to Doc. Type"::Invoice])
+        then
+            exit(false);
+
+        if not PurchLineForCharge.Get(
+            TempItemChargeAssgntPurch."Applies-to Doc. Type",
+            TempItemChargeAssgntPurch."Applies-to Doc. No.",
+            TempItemChargeAssgntPurch."Applies-to Doc. Line No.")
+        then
+            exit(false);
+
+        if PurchLineForCharge."Qty. Rcd. Not Invoiced (Base)" = 0 then
+            exit(false);
+
+        PurchRcptLine.SetRange("Order No.", TempItemChargeAssgntPurch."Applies-to Doc. No.");
+        PurchRcptLine.SetRange("Order Line No.", TempItemChargeAssgntPurch."Applies-to Doc. Line No.");
+        if not PurchRcptLine.FindFirst() then
+            exit(false);
+
+        if PurchRcptLine."Item Rcpt. Entry No." <> 0 then
+            DistributeCharge :=
+                CostCalcMgt.SplitItemLedgerEntriesExist(
+                    TempItemLedgEntry, PurchRcptLine."Quantity (Base)", PurchRcptLine."Item Rcpt. Entry No.")
+        else begin
+            DistributeCharge := true;
+            ItemTrackingMgt.CollectItemEntryRelation(TempItemLedgEntry,
+                DATABASE::"Purch. Rcpt. Line", 0, PurchRcptLine."Document No.",
+                '', 0, PurchRcptLine."Line No.", PurchRcptLine."Quantity (Base)");
+        end;
+
+        if DistributeCharge then
+            PostDistributeItemCharge(
+                PurchHeader, PurchLine, TempItemLedgEntry, PurchRcptLine."Quantity (Base)",
+                TempItemChargeAssgntPurch."Qty. to Assign", TempItemChargeAssgntPurch."Amount to Assign",
+                1, PurchRcptLine."Indirect Cost %")
+        else
+            PostItemCharge(PurchHeader, PurchLine,
+                PurchRcptLine."Item Rcpt. Entry No.", PurchRcptLine."Quantity (Base)",
+                TempItemChargeAssgntPurch."Amount to Assign",
+                TempItemChargeAssgntPurch."Qty. to Assign",
+                PurchRcptLine."Indirect Cost %");
+
+        exit(true);
     end;
 
     local procedure PostItemChargePerRetShpt(PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line")
