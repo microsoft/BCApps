@@ -11,6 +11,22 @@ namespace System.Reflection;
 codeunit 9557 "Table Key"
 {
     /// <summary>
+    /// Disables the provided key. Disabling keys before bulk table write operations can significantly improve performance.
+    /// </summary>
+    /// <param name="KeyToDisable">The key reference to disable.</param>
+    /// <remarks>
+    /// System tables and non-sql based tables are not supported for this operation.
+    /// Clustered keys, unique keys, SIFT keys, Nonclustered Columnstore Indexes are not supported for this operation.
+    /// The key is automatically re-enabled when a Commit() is called, or at the end of AL code execution.
+    /// </remarks>
+    procedure Disable(KeyToDisable: KeyRef)
+    var
+        TableKeyImpl: Codeunit "Table Key Impl.";
+    begin
+        TableKeyImpl.Disable(KeyToDisable);
+    end;
+
+    /// <summary>
     /// Disables all keys on the provided table. Disabling keys before bulk table write operations can significantly improve performance.
     /// </summary>
     /// <param name="TableNo">The table to disable all of the keys for.</param>
