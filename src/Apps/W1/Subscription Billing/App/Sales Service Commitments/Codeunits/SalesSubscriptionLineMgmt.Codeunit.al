@@ -106,6 +106,20 @@ codeunit 8069 "Sales Subscription Line Mgmt."
         end;
     end;
 
+    internal procedure GetAssignSubscriptionLinesCaption(SalesLine: Record "Sales Line"; SubscriptionHeader: Record "Subscription Header"; OpenedFromSalesLine: Boolean) Caption: Text
+    begin
+        if OpenedFromSalesLine then
+            case true of
+                SalesLine.Description = '':
+                    Caption := SalesLine."No.";
+                SalesLine."No." = '':
+                    Caption := SalesLine.Description;
+                else
+                    Caption := StrSubstNo(SalesLineCaptionLbl, SalesLine."No.", SalesLine.Description);
+            end;
+        OnAfterGetAssignSubscriptionLinesCaption(SalesLine, SubscriptionHeader, OpenedFromSalesLine, Caption);
+    end;
+
     procedure IsSalesLineWithSalesServiceCommitments(var SalesLine: Record "Sales Line"; SkipTemporaryCheck: Boolean; ServiceCommitmentItemOnly: Boolean): Boolean
     begin
         if not SkipTemporaryCheck then
@@ -381,11 +395,44 @@ codeunit 8069 "Sales Subscription Line Mgmt."
         AddSalesServiceCommitmentsForSalesLine(SalesLine, true);
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Explode BOM", OnBeforeOnRun, '', false, false)]
+    local procedure ClearExplodedSalesLineOnBeforeOnRun(var SalesLine: Record "Sales Line")
+    begin
+        ClearExplodedSalesLine();
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Explode BOM", OnExplodeBOMCompLinesOnAfterAssignType, '', false, false)]
+    local procedure SetExplodedSalesLineOnExplodeBOMCompLinesOnAfterAssignType(var ToSalesLine: Record "Sales Line")
+    begin
+        ExplodedDocumentType := ToSalesLine."Document Type";
+        ExplodedDocumentNo := ToSalesLine."Document No.";
+        ExplodedLineNo := ToSalesLine."Line No.";
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Explode BOM", OnExplodeBOMCompLinesOnAfterToSalesLineInsert, '', false, false)]
     local procedure AddSalesServiceCommitmentsForSalesLineOnAfterExplodeBOM(ToSalesLine: Record "Sales Line")
     begin
+        ClearExplodedSalesLine();
         ToSalesLine.Get(ToSalesLine."Document Type", ToSalesLine."Document No.", ToSalesLine."Line No.");
         AddSalesServiceCommitmentsForSalesLine(ToSalesLine, false);
+    end;
+
+    internal procedure IsSalesLineBeingExploded(SalesLine: Record "Sales Line"): Boolean
+    begin
+        // The exploded line is identified instead of a plain flag, so that an error between the two Sales-Explode BOM
+        // events cannot leave the state set for every other Sales Line of the session.
+        if ExplodedDocumentNo = '' then
+            exit(false);
+        exit((SalesLine."Document Type" = ExplodedDocumentType) and
+             (SalesLine."Document No." = ExplodedDocumentNo) and
+             (SalesLine."Line No." = ExplodedLineNo));
+    end;
+
+    local procedure ClearExplodedSalesLine()
+    begin
+        Clear(ExplodedDocumentType);
+        ExplodedDocumentNo := '';
+        ExplodedLineNo := 0;
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Sales Header", OnValidatePricesIncludingVATOnBeforeSalesLineModify, '', false, false)]
@@ -519,7 +566,16 @@ codeunit 8069 "Sales Subscription Line Mgmt."
     begin
     end;
 
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetAssignSubscriptionLinesCaption(SalesLine: Record "Sales Line"; SubscriptionHeader: Record "Subscription Header"; OpenedFromSalesLine: Boolean; var Caption: Text)
+    begin
+    end;
+
     var
         ItemManagement: Codeunit "Sub. Contracts Item Management";
+        ExplodedDocumentType: Enum "Sales Document Type";
+        SalesLineCaptionLbl: Label '%1 · %2', Comment = '%1 = Sales Line No., %2 = Sales Line Description';
+        ExplodedDocumentNo: Code[20];
+        ExplodedLineNo: Integer;
         SalesLineRestoreInProgress: Boolean;
 }
