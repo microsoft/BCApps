@@ -10,6 +10,7 @@ report 6850 "Spend Request Document"
 {
     Caption = 'Spend Request';
     DefaultRenderingLayout = WordLayout;
+    PreviewMode = PrintLayout;
     WordMergeDataItem = SpendRequest;
 
     dataset
@@ -20,47 +21,59 @@ report 6850 "Spend Request Document"
 
             column(No; "No.")
             {
+                IncludeCaption = true;
             }
             column(Purpose; Purpose)
             {
+                IncludeCaption = true;
             }
             column(RequestedBy; "Requested By")
             {
+                IncludeCaption = true;
             }
             column(EmployeeName; EmployeeFullName)
             {
             }
             column(Status; Status)
             {
+                IncludeCaption = true;
             }
             column(GLAccountNo; "G/L Account No.")
             {
+                IncludeCaption = true;
             }
             column(CurrencyCode; "Currency Code")
             {
+                IncludeCaption = true;
             }
             column(TotalExpectedAmount; "Total Expected Amount")
             {
+                IncludeCaption = true;
             }
             column(TotalExpectedAmountLCY; "Total Expected Amount (LCY)")
             {
+                IncludeCaption = true;
             }
             column(TotalSpentAmount; "Total Spent Amount (LCY)")
             {
+                IncludeCaption = true;
             }
             column(ExpectedStartDate; "Expected Start Date")
             {
+                IncludeCaption = true;
             }
             column(ExpectedEndDate; "Expected End Date")
             {
+                IncludeCaption = true;
             }
             column(ApprovedByUserName; "Approved/Rejected by User Name")
             {
+                IncludeCaption = true;
             }
             column(ApprovedAt; "Approved/Rejected At")
             {
+                IncludeCaption = true;
             }
-
             dataitem(SpendRequestDetail; "Spend Request Detail")
             {
                 DataItemLink = "Spend Request No." = field("No.");
@@ -68,21 +81,53 @@ report 6850 "Spend Request Document"
 
                 column(LineNo; "Line No.")
                 {
+                    IncludeCaption = true;
                 }
                 column(Description; Description)
                 {
+                    IncludeCaption = true;
                 }
                 column(LineCurrencyCode; "Currency Code")
                 {
+                    IncludeCaption = true;
                 }
                 column(ExpectedAmount; "Expected Amount")
                 {
+                    IncludeCaption = true;
                 }
                 column(ExpectedAmountLCY; "Expected Amount (LCY)")
                 {
+                    IncludeCaption = true;
                 }
                 column(DetailGLAccountNo; "G/L Account No.")
                 {
+                    IncludeCaption = true;
+                }
+            }
+            dataitem(SpendRequestGLEntries; "Spend Request to G/L Link")
+            {
+                DataItemLink = "Spend Request No." = field("No.");
+                DataItemLinkReference = SpendRequest;
+
+                column(GLAccount; "G/L Account No.")
+                {
+                    IncludeCaption = true;
+                }
+                column(PostingDescription; "Posting Description")
+                {
+                    IncludeCaption = true;
+                }
+                column(PostingDate; "Posting Date")
+                {
+                    IncludeCaption = true;
+                }
+                column(PostedDocumentNo; "Document No.")
+                {
+                    IncludeCaption = true;
+                }
+                column(PostedAmount; "Amount")
+                {
+                    IncludeCaption = true;
                 }
             }
 
@@ -98,7 +143,6 @@ report 6850 "Spend Request Document"
             end;
         }
     }
-
     rendering
     {
         layout(WordLayout)
@@ -108,7 +152,14 @@ report 6850 "Spend Request Document"
             Caption = 'Spend Request Document';
         }
     }
+    labels
+    {
+        ReportLbl = 'Spend Request';
+        EmployeeFullNameLbl = 'Employee Name';
+        DetailsHeaderLbl = 'Details';
+        PostedEntriesHeaderLbl = 'Posted Entries';
+    }
 
     var
-        EmployeeFullName: Text[200];
+        EmployeeFullName: Text;
 }
