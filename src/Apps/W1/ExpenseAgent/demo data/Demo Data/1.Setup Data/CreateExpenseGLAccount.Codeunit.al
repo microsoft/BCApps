@@ -47,6 +47,7 @@ codeunit 8207 "Create Expense G/L Account"
         GLAccount: Record "G/L Account";
     begin
         GLAccount.SetRange("Name", AccountName);
+        GLAccount.SetRange("Account Type", GLAccount."Account Type"::Posting);
         if GLAccount.FindFirst() then
             exit(GLAccount."No.")
         else
