@@ -853,6 +853,8 @@ codeunit 7314 "Warehouse Availability Mgt."
         TypeHelper: Codeunit "Type Helper";
         QtyReservedOnPickShip: Decimal;
         QtyReservedForCurrLine: Decimal;
+        ExcludeReceiptBin: Boolean;
+        ExcludeShipmentBin: Boolean;
     begin
         AvailQtyBase := 0;
 
@@ -863,18 +865,30 @@ codeunit 7314 "Warehouse Availability Mgt."
         if Item.Get(WhseWorksheetLine."Item No.") then;
 
         if Location."Bin Mandatory" then begin
+            ExcludeReceiptBin := Location."Require Put-away" and (Location."Receipt Bin Code" <> '');
+            ExcludeShipmentBin := Location."Require Pick" and (Location."Shipment Bin Code" <> '');
+
             BinContent.SetRange("Location Code", WhseWorksheetLine."Location Code");
             BinContent.SetRange("Item No.", WhseWorksheetLine."Item No.");
             BinContent.SetRange("Variant Code", WhseWorksheetLine."Variant Code");
             if BinContent.FindSet() then
                 repeat
-                    AvailQtyBase += TypeHelper.Maximum(0, BinContent.CalcQtyAvailToPick(0));
+                    if not (ExcludeReceiptBin and (BinContent."Bin Code" = Location."Receipt Bin Code")) and
+                       not (ExcludeShipmentBin and (BinContent."Bin Code" = Location."Shipment Bin Code"))
+                    then
+                        AvailQtyBase += TypeHelper.Maximum(0, BinContent.CalcQtyAvailToPick(0));
                 until BinContent.Next() = 0;
 
             Item.SetRange("Location Filter", WhseWorksheetLine."Location Code");
             Item.SetRange("Variant Filter", WhseWorksheetLine."Variant Code");
             Item.CalcFields("Reserved Qty. on Inventory");
-            AvailQtyBase := AvailQtyBase - Item."Reserved Qty. on Inventory" - CalcQtyBasePickedNotShippedOnWarehouseShipmentLine(WhseWorksheetLine, Item);
+            AvailQtyBase := AvailQtyBase - Item."Reserved Qty. on Inventory";
+            if not ExcludeShipmentBin then
+                AvailQtyBase := AvailQtyBase - CalcQtyBasePickedNotShippedOnWarehouseShipmentLine(WhseWorksheetLine, Item);
+
+            AvailQtyBase :=
+                TypeHelper.Minimum(
+                    AvailQtyBase, CalcInvtAvailQty(Item, Location, WhseWorksheetLine."Variant Code", TempWhseActivLine));
         end else
             AvailQtyBase := CalcInvtAvailQty(Item, Location, WhseWorksheetLine."Variant Code", TempWhseActivLine);
 
