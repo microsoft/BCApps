@@ -35,6 +35,7 @@ codeunit 11039 "E-Document XRechnung Handler" implements IStructuredFormatReader
     internal procedure ReadIntoDraft(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"): Enum "E-Doc. Process Draft"
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentDEInboundValidator: Codeunit "E-Doc. DE Inbound Validator";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         XRechnungXml: XmlDocument;
         XmlNamespaces: XmlNamespaceManager;
@@ -48,9 +49,6 @@ codeunit 11039 "E-Document XRechnung Handler" implements IStructuredFormatReader
         StartEventNameTok: Label 'E-document XRechnung import started. Parsing basic information.', Locked = true;
     begin
         FeatureTelemetry.LogUsage('0000EXH', FeatureNameTok, StartEventNameTok);
-        ResetDraft(EDocument);
-        EDocumentPurchaseHeader.InsertForEDocument(EDocument);
-
         XmlDocument.ReadFrom(TempBlob.CreateInStream(TextEncoding::UTF8), XRechnungXml);
         XmlNamespaces.AddNamespace('cac', CommonAggregateComponentsTok);
         XmlNamespaces.AddNamespace('cbc', CommonBasicComponentsTok);
@@ -63,6 +61,9 @@ codeunit 11039 "E-Document XRechnung Handler" implements IStructuredFormatReader
                 begin
                     if XmlElement.NamespaceUri() <> DefaultInvoiceTok then
                         Error(UnsupportedXmlRootElementErr, XmlElement.LocalName());
+                    EDocumentDEInboundValidator.ValidateUBL(EDocument, XRechnungXml, XmlNamespaces, 'inv:Invoice');
+                    ResetDraft(EDocument);
+                    EDocumentPurchaseHeader.InsertForEDocument(EDocument);
                     PopulateEDocumentForInvoice(XRechnungXml, XmlNamespaces, EDocumentPurchaseHeader, EDocument);
                     ProcessDraft := Enum::"E-Doc. Process Draft"::"Purchase Invoice";
                 end;
@@ -70,6 +71,9 @@ codeunit 11039 "E-Document XRechnung Handler" implements IStructuredFormatReader
                 begin
                     if XmlElement.NamespaceUri() <> DefaultCreditNoteTok then
                         Error(UnsupportedXmlRootElementErr, XmlElement.LocalName());
+                    EDocumentDEInboundValidator.ValidateUBL(EDocument, XRechnungXml, XmlNamespaces, 'cn:CreditNote');
+                    ResetDraft(EDocument);
+                    EDocumentPurchaseHeader.InsertForEDocument(EDocument);
                     PopulateEDocumentForCreditNote(XRechnungXml, XmlNamespaces, EDocumentPurchaseHeader, EDocument);
                     ProcessDraft := Enum::"E-Doc. Process Draft"::"Purchase Credit Memo";
                 end;
