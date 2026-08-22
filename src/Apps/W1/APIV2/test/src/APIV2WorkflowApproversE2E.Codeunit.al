@@ -1,9 +1,13 @@
 codeunit 139920 "APIV2 - Workflow Approvers E2E"
 {
-
     Subtype = Test;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
+
+    trigger OnRun()
+    begin
+        LibraryGraphMgt.BindAuthentication();
+    end;
 
     var
         Assert: Codeunit Assert;

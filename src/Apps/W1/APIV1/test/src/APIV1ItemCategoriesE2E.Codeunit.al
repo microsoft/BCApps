@@ -8,6 +8,7 @@ codeunit 139707 "APIV1 - Item Categories E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Item Category]
     end;
 

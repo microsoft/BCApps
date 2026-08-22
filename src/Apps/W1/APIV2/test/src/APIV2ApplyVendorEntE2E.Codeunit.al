@@ -1,11 +1,13 @@
 codeunit 139867 "APIV2 - Apply Vendor Ent. E2E"
 {
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Vendor Payments] [Apply Vendor Entries]
     end;
 
@@ -159,7 +161,8 @@ codeunit 139867 "APIV2 - Apply Vendor Ent. E2E"
         Assert.IsTrue(LibraryGraphMgt.GetObjectIDFromJSON(EntryJSON, 'id', EntryId), 'The apply vendor entry should have an id');
 
         // [WHEN] we PATCH the entry to apply it
-        TargetURL := TargetURL + '(' + LibraryGraphMgt.StripBrackets(EntryId) + ')';
+        TargetURL := LibraryGraphMgt.AppendPathToTargetURL(
+            TargetURL, '(' + LibraryGraphMgt.StripBrackets(EntryId) + ')');
         LibraryGraphMgt.PatchToWebService(TargetURL, '{"applied": true}', ResponseText);
 
         // [THEN] the vendor payment is now applied

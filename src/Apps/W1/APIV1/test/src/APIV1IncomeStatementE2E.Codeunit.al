@@ -8,6 +8,7 @@ codeunit 139716 "APIV1 - Income Statement E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Income Statement]
     end;
 

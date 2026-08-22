@@ -1,11 +1,13 @@
 codeunit 139843 "APIV2 - Vendor Payments E2E"
 {
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Vendor Payments]
     end;
 
@@ -16,6 +18,7 @@ codeunit 139843 "APIV2 - Vendor Payments E2E"
         Assert: Codeunit Assert;
         GraphMgtVendorPayments: Codeunit "Graph Mgt - Vendor Payments";
         LibraryGraphJournalLines: Codeunit "Library - Graph Journal Lines";
+        LibraryERM: Codeunit "Library - ERM";
         GraphMgtJournal: Codeunit "Graph Mgt - Journal";
         ServiceNameTxt: Label 'vendorPaymentJournals';
         ServiceSubpageNameTxt: Label 'vendorPayments';
@@ -34,7 +37,6 @@ codeunit 139843 "APIV2 - Vendor Payments E2E"
         PurchInvHeader: Record "Purch. Inv. Header";
         GenJournalLine: Record "Gen. Journal Line";
         GenJournalBatch: Record "Gen. Journal Batch";
-        LibraryERM: Codeunit "Library - ERM";
         PurchInvAggregator: Codeunit "Purch. Inv. Aggregator";
         JournalName: Code[10];
         Amount: Decimal;
@@ -884,6 +886,7 @@ codeunit 139843 "APIV2 - Vendor Payments E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetApiTestWorkDate();
         LibraryTestInitialize.OnTestInitialize(Codeunit::"APIV2 - Vendor Payments E2E");
 
         if not isInitialized then

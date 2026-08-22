@@ -8,6 +8,7 @@ codeunit 139710 "Countries/Regions E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Country/Region]
     end;
 

@@ -9,6 +9,7 @@ codeunit 139703 "APIV1 - Vendors E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Vendor]
     end;
 

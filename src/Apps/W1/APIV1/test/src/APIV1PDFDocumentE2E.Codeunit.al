@@ -1,11 +1,13 @@
 codeunit 139744 "APIV1 - PDF Document E2E"
 {
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [PDF]
     end;
 
@@ -24,7 +26,7 @@ codeunit 139744 "APIV1 - PDF Document E2E"
     var
         CompanyInformation: Record "Company Information";
     begin
-        WorkDate := Today;
+        LibraryGraphMgt.SetApiTestWorkDate();
 
         CompanyInformation.Get();
         if CompanyInformation."Giro No." = '' then
@@ -279,4 +281,3 @@ codeunit 139744 "APIV1 - PDF Document E2E"
         Commit();
     end;
 }
-

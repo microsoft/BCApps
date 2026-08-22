@@ -3,10 +3,12 @@ codeunit 139805 "APIV2 - Shipment Methods E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Shipment Method]
     end;
 

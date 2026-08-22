@@ -3,11 +3,13 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Sales] [Invoice]
     end;
 
@@ -148,6 +150,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         // [SCENARIO 184721] Create posted and unposted Sales invoices and use HTTP POST to delete them
         // [GIVEN] 2 invoices, one posted and one unposted
 
+        LibraryGraphMgt.SetApiTestWorkDate();
         LibrarySales.CreateCustomer(SellToCustomer);
         LibrarySales.CreateCustomer(BillToCustomer);
         LibrarySales.CreateCustomer(ShipToCustomer);
@@ -294,6 +297,8 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         InvoiceJSON: Text;
     begin
         // [SCENARIO 184721] Create unposted with specific document and due date set and use HTTP POST to create them
+
+        LibraryGraphMgt.SetApiTestWorkDate();
 
         // [GIVEN] an Invoice with a document and due date set
         LibrarySales.CreateCustomer(Customer);
@@ -562,6 +567,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         // [SCENARIO 184721] Create an invoice both through the client UI and through the API
         // [SCENARIO] and compare them. They should be the same and have the same fields autocompleted wherever needed.
         // [GIVEN] An unposted invoice
+        LibraryGraphMgt.SetApiTestWorkDate();
         LibraryGraphDocumentTools.InitializeUIPage();
         LibraryApplicationArea.DisableApplicationAreaSetup();
 
@@ -606,6 +612,9 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         PageSalesHeader.Get(PageSalesHeader."Document Type"::Invoice, SalesInvoice."No.".Value());
         ApiRecordRef.GetTable(ApiSalesHeader);
         PageRecordRef.GetTable(PageSalesHeader);
+        LibraryGraphMgt.AddFieldToIgnoreIfExists(
+            TempIgnoredFieldsForComparison, Database::"Sales Header", 'Operation Occurred Date');
+
         Assert.RecordsAreEqualExceptCertainFields(ApiRecordRef, PageRecordRef, TempIgnoredFieldsForComparison,
           'Page and API Invoice do not match');
 
@@ -623,6 +632,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
     begin
         // [SCENARIO 184721] When an invoice is created,the GET Method should update the invoice and assign a total
         // [GIVEN] 2 invoices, one posted and one unposted without totals assigned
+        LibraryApplicationArea.EnableFoundationSetup();
         LibraryGraphDocumentTools.CreateDocumentWithDiscountPctPending(
           SalesHeader, DiscountPct, SalesHeader."Document Type"::Invoice);
         SalesHeader.CALCFIELDS("Recalculate Invoice Disc.");

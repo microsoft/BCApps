@@ -12,13 +12,17 @@ codeunit 148315 "Expense Users API Test"
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 
+    trigger OnRun()
+    begin
+        LibraryGraphMgt.BindAuthentication();
+    end;
+
     var
         Assert: Codeunit Assert;
         LibraryExpense: Codeunit "Library - Expense";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
         IsInitialized: Boolean;
         ServiceNameTok: Label 'expenseUsers', Locked = true;
 
@@ -87,7 +91,6 @@ codeunit 148315 "Expense Users API Test"
         if IsInitialized then
             exit;
 
-        BindSubscription(APITestAuthHelper);
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense Users API Test");
         if not ExpenseAgentSetup.Get() then begin
             ExpenseAgentSetup.Init();

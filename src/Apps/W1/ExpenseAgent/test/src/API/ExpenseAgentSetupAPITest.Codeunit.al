@@ -12,6 +12,11 @@ codeunit 148333 "Expense Agent Setup API Test"
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 
+    trigger OnRun()
+    begin
+        LibraryGraphMgt.BindAuthentication();
+    end;
+
     var
         Assert: Codeunit Assert;
         LibraryExpense: Codeunit "Library - Expense";

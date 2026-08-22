@@ -3,10 +3,12 @@ codeunit 139820 "APIV2 - Aged AR E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Sales] [Aged Report]
     end;
 

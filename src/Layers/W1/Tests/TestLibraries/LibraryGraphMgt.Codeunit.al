@@ -7,11 +7,53 @@ codeunit 130618 "Library - Graph Mgt"
 
     var
         Assert: Codeunit Assert;
+        LibraryGraphAuthMgt: Codeunit Microsoft.TestLibraries.ERP."Library - Graph Auth Mgt.";
         IncorrectValueErr: Label 'Incorrect value found in JSON for %1 property.', Comment = '%1 - Name of property';
         GraphCollectionMgtItem: Codeunit "Graph Collection Mgt - Item";
         UnexpectedResponseCodeErr: Label 'Response code %1 (%2) differs from the expected %3.', Comment = '%1 - Actual response code number, %2 - Actual response code, %3 - Expected response code number';
         FailedRequestErr: Label '%1 request failed. Response code is %2 (%3). %4', Comment = '%1 - request method, %2 - response code number, %3 - response code, %4 - error message';
         FailedRequestWithUnexpectedResponseCodeErr: Label '%1 request failed. Response code is %2 (%3), expected code is %4. %5', Comment = '%1 - request method, %2 - response code number, %3 - response code, %4 - expected response code, %5 - error message';
+
+    procedure BindAuthentication()
+    begin
+        LibraryGraphAuthMgt.EnsureAuthenticationAvailable();
+    end;
+
+    procedure InitializeApiTest()
+    begin
+        BindAuthentication();
+        SetApiTestWorkDate();
+        EnsureApiTestReasonCode();
+    end;
+
+    procedure SetApiTestWorkDate()
+    begin
+        WorkDate := DMY2Date(15, 11, Date2DMY(Today, 3));
+    end;
+
+    procedure AddFieldToIgnoreIfExists(var TempIgnoredFields: Record 2000000041 temporary; SourceTableNo: Integer; SourceFieldName: Text)
+    var
+        RecordField: Record Field;
+        LibraryUtility: Codeunit "Library - Utility";
+    begin
+        RecordField.SetRange(TableNo, SourceTableNo);
+        RecordField.SetRange(FieldName, SourceFieldName);
+        if RecordField.FindFirst() then
+            LibraryUtility.AddTempField(TempIgnoredFields, RecordField."No.", SourceTableNo);
+    end;
+
+    local procedure EnsureApiTestReasonCode()
+    var
+        ReasonCode: Record "Reason Code";
+    begin
+        if not ReasonCode.IsEmpty() then
+            exit;
+
+        ReasonCode.Init();
+        ReasonCode.Code := 'API-TEST';
+        ReasonCode.Description := 'API test reason';
+        ReasonCode.Insert();
+    end;
 
     procedure EnsureWebServiceExist(ServiceNameTxt: Text[240]; PageNumber: Integer)
     var
@@ -135,6 +177,7 @@ codeunit 130618 "Library - Graph Mgt"
     procedure InitializeWebRequestWithURL(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt."; TargetURL: Text)
     begin
         HttpWebRequestMgt.Initialize(TargetURL);
+        LibraryGraphAuthMgt.AddAuthentication(HttpWebRequestMgt);
         OnAfterInitializeWebRequestWithURL(HttpWebRequestMgt);
     end;
 
@@ -283,6 +326,25 @@ codeunit 130618 "Library - Graph Mgt"
         end;
 
         exit(TargetURL);
+    end;
+
+    procedure AppendPathToTargetURL(TargetURL: Text; Path: Text): Text
+    var
+        QueryPosition: Integer;
+    begin
+        QueryPosition := StrPos(TargetURL, '?');
+        if QueryPosition = 0 then
+            exit(TargetURL + Path);
+
+        exit(CopyStr(TargetURL, 1, QueryPosition - 1) + Path + CopyStr(TargetURL, QueryPosition));
+    end;
+
+    procedure AppendQueryParameterToTargetURL(TargetURL: Text; QueryParameter: Text): Text
+    begin
+        if StrPos(TargetURL, '?') = 0 then
+            exit(TargetURL + '?' + QueryParameter);
+
+        exit(TargetURL + '&' + QueryParameter);
     end;
 
     [Normal]
@@ -818,9 +880,14 @@ codeunit 130618 "Library - Graph Mgt"
     var
         TargetURL: Text;
     begin
-        TargetURL := GetODataTargetURL(ObjectType::Page, PageNumber);
-        TargetURL := AppendSubpageToTargetURL(ID, TargetURL, ServiceNameTxt, ServiceSubPageTxt);
-        exit(AppendSubpageToTargetURL(SubPageID, TargetURL, ServiceSubPageTxt, ServiceSubSubPageTxt));
+        TargetURL := CreateTargetURL(ID, PageNumber, ServiceNameTxt);
+        TargetURL := AppendPathToTargetURL(TargetURL, '/' + ServiceSubPageTxt);
+        if SubPageID <> '' then
+            TargetURL := AppendPathToTargetURL(
+                TargetURL, '(' + StripBrackets(SubPageID) + ')');
+        if ServiceSubSubPageTxt <> '' then
+            TargetURL := AppendPathToTargetURL(TargetURL, '/' + ServiceSubSubPageTxt);
+        exit(TargetURL);
     end;
 
     [IntegrationEvent(false, false)]
@@ -833,4 +900,3 @@ codeunit 130618 "Library - Graph Mgt"
     begin
     end;
 }
-

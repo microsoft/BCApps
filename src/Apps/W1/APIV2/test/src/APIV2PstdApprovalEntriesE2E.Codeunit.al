@@ -4,6 +4,11 @@ codeunit 139919 "APIV2 PstdApprovalEntries E2E"
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 
+    trigger OnRun()
+    begin
+        LibraryGraphMgt.BindAuthentication();
+    end;
+
     var
         Assert: Codeunit Assert;
         LibrarySales: Codeunit "Library - Sales";

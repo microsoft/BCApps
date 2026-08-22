@@ -3,11 +3,13 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Sales] [Order]
     end;
 
@@ -77,6 +79,8 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
         OrderJSON: Text;
     begin
         // [SCENARIO 184721] Create sales orders JSON and use HTTP POST to create them
+
+        LibraryGraphMgt.SetApiTestWorkDate();
 
         // [GIVEN] a customer
         LibrarySales.CreateCustomerWithAddress(SellToCustomer);
@@ -330,6 +334,7 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
         OrderJSON: Text;
     begin
         // [SCENARIO 184721] Create an order both through the client UI and through the API and compare them. They should be the same and have the same fields autocompleted wherever needed.
+        LibraryGraphMgt.SetApiTestWorkDate();
         LibraryGraphDocumentTools.InitializeUIPage();
 
         // [GIVEN] a customer
@@ -375,6 +380,8 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
         PageSalesHeader.Get(PageSalesHeader."Document Type"::Order, SalesOrder."No.".Value());
         ApiRecordRef.GetTable(ApiSalesHeader);
         PageRecordRef.GetTable(PageSalesHeader);
+        LibraryGraphMgt.AddFieldToIgnoreIfExists(
+            TempIgnoredFieldsForComparison, Database::"Sales Header", 'Operation Occurred Date');
 
         Assert.RecordsAreEqualExceptCertainFields(ApiRecordRef, PageRecordRef, TempIgnoredFieldsForComparison,
           'Page and API order do not match');

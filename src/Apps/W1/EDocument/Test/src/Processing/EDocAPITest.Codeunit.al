@@ -16,12 +16,20 @@ codeunit 135575 "E-Doc. API Test"
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 
+    trigger OnRun()
+    begin
+        LibraryGraphMgtForAuthentication.BindAuthentication();
+    end;
+
+    var
+        LibraryGraphMgtForAuthentication: Codeunit "Library - Graph Mgt";
+
     [Test]
     procedure GetEDocument()
     var
         PurchaseHeader: Record "Purchase Header";
         EDocument: Record "E-Document";
-        LibrarygraphMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         TargetURL: Text;
         Response: Text;
         EDocsApiServiceNameTok: Label 'eDocuments', Locked = true;

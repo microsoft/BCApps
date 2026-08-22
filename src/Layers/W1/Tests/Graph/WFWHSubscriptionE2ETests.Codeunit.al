@@ -5,6 +5,7 @@ codeunit 135528 "WFWH Subscription E2E Tests"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Workflow] [Webhook] [Subscription]
     end;
 

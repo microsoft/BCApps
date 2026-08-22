@@ -1,10 +1,12 @@
 codeunit 139856 "APIV2 - GenProdPostGroup E2E"
 {
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.InitializeApiTest();
     end;
 
     var

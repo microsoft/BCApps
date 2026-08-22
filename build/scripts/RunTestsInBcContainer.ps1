@@ -5,39 +5,13 @@ Param(
     # Names of test apps to dispatch in parallel across tenants. Only set by the per-project
     # override on the parent invocation. Empty when called from inside a background job, which
     # forces the sequential single-app path further down.
-    [string[]] $AppNamesToTest = @()
+    [string[]] $AppNamesToTest = @(),
+    [switch] $SkipAutomaticDisabledPass
 )
 
 Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
+Import-Module $PSScriptRoot\ParallelTestExecution.psm1
 Import-Module $PSScriptRoot\TestTolerance\TestTolerance.psm1 -Force
-
-function Get-DisabledTests
-{
-    param(
-        [string] $AppName
-    )
-
-    $baseFolder = Get-BaseFolder
-
-    # Convert app name to folder name format (replace spaces with underscores)
-    $appFolderName = $AppName -replace ' ', '_'
-
-    $disabledTests = @()
-
-    # Look for DisabledTests folders and find the app-specific subfolder
-    $disabledTestsFolders = Get-ChildItem -Path $baseFolder -Filter "DisabledTests" -Recurse -Directory
-    foreach ($disabledTestsFolder in $disabledTestsFolders) {
-        $appFolder = Join-Path $disabledTestsFolder.FullName $appFolderName
-        if (Test-Path $appFolder) {
-            $jsonFiles = Get-ChildItem -Path $appFolder -Filter "*.json"
-            foreach ($jsonFile in $jsonFiles) {
-                $disabledTests += (Get-Content -Raw -Path $jsonFile.FullName | ConvertFrom-Json)
-            }
-        }
-    }
-
-    return @($disabledTests)
-}
 
 <#
 .SYNOPSIS
@@ -126,7 +100,7 @@ if (($null -ne $TestType) -and ($TestType -ne "Legacy")) {
     $parameters["testType"] = $TestType
 }
 
-$parameters["disabledTests"] = @(Get-DisabledTests -AppName $parameters["appName"]) # Add disabled tests to parameters
+$parameters["disabledTests"] = @(Get-DisabledTestsForApp -AppName $parameters["appName"])
 $parameters["renewClientContextBetweenTests"] = $true
 
 # When invoked from the per-project override on the parent process, $AppNamesToTest contains
@@ -135,17 +109,18 @@ $parameters["renewClientContextBetweenTests"] = $true
 # circuit. When invoked from inside a background job (Start-TestJob), $AppNamesToTest is empty
 # and we fall through to the sequential single-app path below.
 if ($AppNamesToTest.Count -gt 0) {
-    Import-Module $PSScriptRoot\ParallelTestExecution.psm1
     return Invoke-ParallelTestExecution -parameters $parameters -scriptPath $PSCommandPath -testType $TestType -appNamesToTest $AppNamesToTest
 }
 
+$isRequiredDisabledRun = $parameters.ContainsKey("requiredTestIsolation") -and $parameters["requiredTestIsolation"] -eq "Disabled"
 # A failing app is retried once by the parallel dispatcher, on a different tenant (see
 # ParallelTestExecution.psm1). Retrying in place here would reuse the tenant the app just dirtied,
 # so the same residue could re-trigger the failure - hence a single attempt per dispatch.
 $result = Invoke-TestsWithReruns -parameters $parameters -maxAttempts 1
 
-# For UnitTests, also run with DisableTestIsolation on the same tenant
-if ($TestType -eq "UnitTest") {
+# Preserve the old sequential fallback. Parallel project execution defers this pass to the
+# clean-tenant codeunit scheduler in ParallelTestExecution.psm1.
+if ($TestType -eq "UnitTest" -and -not $SkipAutomaticDisabledPass -and -not $isRequiredDisabledRun) {
     Write-Host "Running DisableTestIsolation pass for UnitTest"
     $parameters["requiredTestIsolation"] = "Disabled"
     $parameters["testRunnerCodeunitId"] = "130451"

@@ -8,6 +8,7 @@ codeunit 139713 "APIV1 - Currencies E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Currency]
     end;
 

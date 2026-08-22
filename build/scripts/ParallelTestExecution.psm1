@@ -16,6 +16,148 @@ Import-Module (Join-Path $PSScriptRoot "ALAppBuild.psm1" -Resolve)
 
 <#
 .SYNOPSIS
+    Determines whether a disabled-test entry applies to the current country.
+#>
+function Test-DisabledTestAppliesToCountry {
+    param(
+        $DisabledTest,
+        [string]$Country
+    )
+
+    if (-not $DisabledTest.PSObject.Properties['countries']) {
+        return $true
+    }
+
+    return $Country -in @($DisabledTest.countries)
+}
+
+<#
+.SYNOPSIS
+    Gets disabled test entries for an app and filters country-scoped entries.
+.PARAMETER AppName
+    Application name used to locate its DisabledTests folder.
+#>
+function Get-DisabledTestsForApp {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$AppName
+    )
+
+    $appFolderName = $AppName -replace ' ', '_'
+    $disabledTests = @()
+    $country = Get-ALGoSetting -Key "country"
+
+    $disabledTestsFolders = Get-ChildItem -Path (Get-BaseFolder) -Filter "DisabledTests" -Recurse -Directory
+    foreach ($disabledTestsFolder in $disabledTestsFolders) {
+        $appFolder = Join-Path $disabledTestsFolder.FullName $appFolderName
+        if (-not (Test-Path $appFolder)) {
+            continue
+        }
+
+        foreach ($jsonFile in (Get-ChildItem -Path $appFolder -Filter "*.json")) {
+            $disabledTests += @(
+                Get-Content -Raw -Path $jsonFile.FullName |
+                    ConvertFrom-Json |
+                    Where-Object { Test-DisabledTestAppliesToCountry -DisabledTest $_ -Country $country }
+            )
+        }
+    }
+
+    return @($disabledTests)
+}
+
+function Get-ParametersForCommand {
+    param(
+        [Parameter(Mandatory=$true)]
+        [Hashtable]$Parameters,
+        [Parameter(Mandatory=$true)]
+        [string]$CommandName
+    )
+
+    $command = Get-Command $CommandName -ErrorAction Stop
+    $filtered = @{}
+    foreach ($key in $Parameters.Keys) {
+        if ($command.Parameters.ContainsKey($key)) {
+            $filtered[$key] = $Parameters[$key]
+        }
+    }
+    return $filtered
+}
+
+function ConvertTo-RequiredDisabledWorkItems {
+    param(
+        [array]$DiscoveredTests,
+        [string]$AppName,
+        [string]$AppId
+    )
+
+    $codeunits = @()
+    foreach ($entry in @($DiscoveredTests)) {
+        if ($entry.PSObject.Properties.Name -contains "Codeunits") {
+            $codeunits += @($entry.Codeunits)
+        } else {
+            $codeunits += $entry
+        }
+    }
+
+    return @(
+        $codeunits |
+        Where-Object { $_ -and $_.Id -and @($_.Tests).Count -gt 0 } |
+        ForEach-Object {
+            [PSCustomObject]@{
+                Key          = "${AppName}::$($_.Id)"
+                AppName      = $AppName
+                AppId        = $AppId
+                CodeunitId   = [string]$_.Id
+                CodeunitName = [string]$_.Name
+                TestCount    = @($_.Tests).Count
+            }
+        }
+    )
+}
+
+function Get-RequiredDisabledWorkItems {
+    param(
+        [Parameter(Mandatory=$true)]
+        [Hashtable]$Parameters,
+        [Parameter(Mandatory=$true)]
+        [string]$TestType,
+        [string[]]$AppNamesToTest,
+        [Parameter(Mandatory=$true)]
+        [Hashtable]$AppIdByName
+    )
+
+    $workItems = @()
+    foreach ($appName in $AppNamesToTest) {
+        $appId = $AppIdByName[$appName]
+        if (-not $appId) {
+            continue
+        }
+
+        $discoveryParameters = Get-ParametersForCommand -Parameters $Parameters -CommandName "Get-TestsFromBcContainer"
+        $discoveryParameters["extensionId"] = $appId
+        $discoveryParameters["requiredTestIsolation"] = "Disabled"
+        $discoveryParameters["disabledTests"] = @(Get-DisabledTestsForApp -AppName $appName)
+        if ($TestType -eq "Legacy") {
+            $discoveryParameters.Remove("testType") | Out-Null
+        } else {
+            $discoveryParameters["testType"] = $TestType
+        }
+
+        Write-Host "Discovering RequiredTestIsolation=Disabled codeunits in '$appName'..."
+        $discoveredTests = @(Get-TestsFromBcContainer @discoveryParameters)
+        $appWorkItems = @(ConvertTo-RequiredDisabledWorkItems -DiscoveredTests $discoveredTests -AppName $appName -AppId $appId)
+        if ($appWorkItems.Count -gt 0) {
+            Write-Host "  Found $($appWorkItems.Count) codeunit(s), $((($appWorkItems | Measure-Object TestCount -Sum).Sum)) test method(s)."
+            $workItems += $appWorkItems
+        }
+    }
+
+    return @($workItems)
+}
+
+<#
+.SYNOPSIS
     Returns the rerun budget for the current build.
 .DESCRIPTION
     Reruns are a pull request convenience: they keep unrelated instability from blocking a review.
@@ -196,6 +338,16 @@ function Get-AppNamesForBucket {
     return @($InstalledTestAppNames | Where-Object { $_ -notin $allLegacyTestApps })
 }
 
+function Get-CleanTenantTestAppNames {
+    $testConfigPath = Join-Path (Get-BaseFolder) "build\scripts\TestConfiguration.json"
+    if (-not (Test-Path $testConfigPath)) {
+        return @()
+    }
+
+    $testConfig = Get-Content $testConfigPath -Raw | ConvertFrom-Json
+    return @($testConfig.CleanTenantRequiredDisabled)
+}
+
 <#
 .SYNOPSIS
     Gets the list of operational tenants in a BC container.
@@ -204,16 +356,163 @@ function Get-AppNamesForBucket {
 .OUTPUTS
     [string[]] Array of tenant IDs that are in Operational state.
 #>
-function Get-AvailableBcTenants {
+function Get-AvailableBcTenantInfo {
     param(
         [Parameter(Mandatory=$true)]
         [string]$containerName
     )
 
     $tenants = Invoke-ScriptInBcContainer -containerName $containerName -scriptblock {
-        Get-NavTenant $ServerInstance | Where-Object { $_.State -eq "Operational" } | ForEach-Object { $_.Id }
+        Get-NavTenant $ServerInstance |
+            Where-Object { $_.State -eq "Operational" } |
+            ForEach-Object {
+                [PSCustomObject]@{
+                    Id = $_.Id
+                    DatabaseName = $_.DatabaseName
+                }
+            }
     }
     return @($tenants)
+}
+
+<#
+.SYNOPSIS
+    Gets the IDs of operational tenants in a BC container.
+.PARAMETER containerName
+    Name of the BC container.
+#>
+function Get-AvailableBcTenants {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$containerName
+    )
+
+    return @(
+        Get-AvailableBcTenantInfo -containerName $containerName |
+            ForEach-Object { $_.Id }
+    )
+}
+
+function New-BcTestTenantTemplate {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ContainerName,
+        [Parameter(Mandatory=$true)]
+        [string]$SourceTenant
+    )
+
+    $result = @(Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock { Param($sourceTenant)
+        $source = Get-NAVTenant -ServerInstance $ServerInstance -Tenant $sourceTenant
+        $templateDatabaseName = "$($source.DatabaseName)-test-template"
+
+        if (Test-NAVDatabase -DatabaseName $templateDatabaseName) {
+            Remove-NAVDatabase -DatabaseName $templateDatabaseName | Out-Null
+        }
+
+        Write-Host "Creating immutable test tenant template '$templateDatabaseName' from '$($source.DatabaseName)'..."
+        Copy-NAVDatabase -SourceDatabaseName $source.DatabaseName -DestinationDatabaseName $templateDatabaseName -DatabaseServer "." | Out-Null
+        $templateDatabaseName
+    } -argumentList $SourceTenant)
+
+    if ($result.Count -eq 0) {
+        throw "Creating the clean test tenant template returned no database name."
+    }
+    return [string]$result[-1]
+}
+
+<#
+.SYNOPSIS
+    Replaces a tenant database with a copy of the immutable test template.
+.PARAMETER ContainerName
+    Name of the BC container.
+.PARAMETER Tenant
+    Tenant ID to refresh.
+.PARAMETER TenantDatabaseName
+    Database currently mounted for the tenant.
+.PARAMETER TemplateDatabaseName
+    Immutable source database copied before the next test codeunit.
+#>
+function Reset-BcTestTenant {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ContainerName,
+        [Parameter(Mandatory=$true)]
+        [string]$Tenant,
+        [Parameter(Mandatory=$true)]
+        [string]$TenantDatabaseName,
+        [Parameter(Mandatory=$true)]
+        [string]$TemplateDatabaseName
+    )
+
+    Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock {
+        Param($tenant, $tenantDatabaseName, $templateDatabaseName)
+
+        $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+        $mountedTenant = Get-NAVTenant -ServerInstance $ServerInstance -Tenant $tenant -ErrorAction SilentlyContinue
+        if ($mountedTenant) {
+            Dismount-NAVTenant -ServerInstance $ServerInstance -Tenant $tenant -Force | Out-Null
+        }
+
+        if (Test-NAVDatabase -DatabaseName $tenantDatabaseName) {
+            Remove-NAVDatabase -DatabaseName $tenantDatabaseName | Out-Null
+        }
+
+        Copy-NAVDatabase -SourceDatabaseName $templateDatabaseName -DestinationDatabaseName $tenantDatabaseName -DatabaseServer "." | Out-Null
+        Mount-NAVTenant -ServerInstance $ServerInstance -Id $tenant -DatabaseServer "." -DatabaseName $tenantDatabaseName -OverwriteTenantIdInDatabase -Force | Out-Null
+
+        $maxWaitSeconds = 300
+        while ((Get-NAVTenant -ServerInstance $ServerInstance -Tenant $tenant).State -eq "Mounting") {
+            if ($stopwatch.Elapsed.TotalSeconds -ge $maxWaitSeconds) {
+                throw "Tenant '$tenant' did not finish mounting within $maxWaitSeconds seconds."
+            }
+            Start-Sleep -Milliseconds 250
+        }
+
+        $state = (Get-NAVTenant -ServerInstance $ServerInstance -Tenant $tenant).State
+        if ($state -notin @("Operational", "OperationalWithWarnings")) {
+            throw "Tenant '$tenant' is '$state' after refresh; expected an operational state."
+        }
+
+        $stopwatch.Stop()
+        Write-Host "Refreshed tenant '$tenant' from '$templateDatabaseName' in $([math]::Round($stopwatch.Elapsed.TotalSeconds, 2)) seconds."
+    } -argumentList $Tenant, $TenantDatabaseName, $TemplateDatabaseName
+}
+
+function Remove-BcTestTenantTemplate {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ContainerName,
+        [Parameter(Mandatory=$true)]
+        [string]$TemplateDatabaseName
+    )
+
+    Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock { Param($templateDatabaseName)
+        if (Test-NAVDatabase -DatabaseName $templateDatabaseName) {
+            Remove-NAVDatabase -DatabaseName $templateDatabaseName | Out-Null
+        }
+    } -argumentList $TemplateDatabaseName
+}
+
+function Enable-BcTestTaskScheduler {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ContainerName
+    )
+
+    Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock {
+        Write-Host "Enabling Task Scheduler for clean RequiredTestIsolation=Disabled execution..."
+        Set-NAVServerConfiguration -ServerInstance $ServerInstance -KeyName "EnableTaskScheduler" -KeyValue "true" -WarningAction SilentlyContinue
+        Set-NAVServerInstance -ServerInstance $ServerInstance -Restart
+
+        $maxWaitSeconds = 300
+        $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+        while (Get-NAVTenant $ServerInstance | Where-Object { $_.State -eq "Mounting" }) {
+            if ($stopwatch.Elapsed.TotalSeconds -ge $maxWaitSeconds) {
+                throw "Tenants did not finish mounting within $maxWaitSeconds seconds after enabling Task Scheduler."
+            }
+            Start-Sleep -Milliseconds 250
+        }
+    }
 }
 
 <#
@@ -403,6 +702,7 @@ function Start-TestAppDispatch {
         [string]$ScriptPath,
         [string]$TestType,
         $State,
+        [switch]$SkipAutomaticDisabledPass,
         [string]$Verb = 'Dispatching',
         [string]$FileSuffix
     )
@@ -414,10 +714,132 @@ function Start-TestAppDispatch {
     $appParams['extensionId'] = $AppId
     $appParams.Remove('ReRun') | Out-Null
 
-    $job = Start-TestJob -parameters $appParams -tenant $Tenant -scriptPath $ScriptPath -testType $TestType -fileSuffix $FileSuffix
+    $job = Start-TestJob -parameters $appParams -tenant $Tenant -scriptPath $ScriptPath -testType $TestType `
+        -skipAutomaticDisabledPass:$SkipAutomaticDisabledPass -fileSuffix $FileSuffix
     $State.jobs = @($State.jobs) + @([PSCustomObject]@{ jobId = $job.Id; tenant = $Tenant; appName = $AppName })
 
     Start-Sleep -Seconds 5
+}
+
+function Start-RequiredDisabledDispatch {
+    param(
+        [Hashtable]$Parameters,
+        $WorkItem,
+        $TenantInfo,
+        [string]$TemplateDatabaseName,
+        [string]$ScriptPath,
+        [string]$TestType,
+        $State,
+        [string]$Verb = "Dispatching"
+    )
+
+    Write-Host "$Verb RequiredTestIsolation=Disabled codeunit $($WorkItem.CodeunitId) '$($WorkItem.CodeunitName)' from '$($WorkItem.AppName)' on tenant '$($TenantInfo.Id)'"
+
+    $codeunitParameters = $Parameters.Clone()
+    $codeunitParameters["appName"] = $WorkItem.AppName
+    $codeunitParameters["extensionId"] = $WorkItem.AppId
+    $codeunitParameters["testCodeunit"] = $WorkItem.CodeunitId
+    $codeunitParameters["requiredTestIsolation"] = "Disabled"
+    $codeunitParameters["testRunnerCodeunitId"] = "130451"
+    $codeunitParameters["disabledTests"] = @(Get-DisabledTestsForApp -AppName $WorkItem.AppName)
+    $codeunitParameters.Remove("ReRun") | Out-Null
+    if ($Verb -eq "Re-dispatching") {
+        $codeunitParameters["ReRun"] = $true
+    }
+
+    $appendKeys = @{
+        XUnitResultFileName = "AppendToXUnitResultFile"
+        JUnitResultFileName = "AppendToJUnitResultFile"
+    }
+    foreach ($resultKey in $appendKeys.Keys) {
+        if ($codeunitParameters.ContainsKey($resultKey) -and $codeunitParameters[$resultKey]) {
+            $codeunitParameters[$appendKeys[$resultKey]] = $true
+        }
+    }
+
+    $job = Start-TestJob -parameters $codeunitParameters -tenant $TenantInfo.Id -scriptPath $ScriptPath `
+        -testType $TestType -skipAutomaticDisabledPass -tenantDatabaseName $TenantInfo.DatabaseName `
+        -templateDatabaseName $TemplateDatabaseName
+    $State.jobs = @($State.jobs) + @(
+        [PSCustomObject]@{
+            jobId = $job.Id
+            tenant = $TenantInfo.Id
+            appName = $WorkItem.Key
+        }
+    )
+    Start-Sleep -Seconds 1
+}
+
+function Invoke-RequiredDisabledTestExecution {
+    param(
+        [Parameter(Mandatory=$true)]
+        [Hashtable]$Parameters,
+        [Parameter(Mandatory=$true)]
+        [array]$WorkItems,
+        [Parameter(Mandatory=$true)]
+        [array]$TenantInfo,
+        [Parameter(Mandatory=$true)]
+        [string]$TemplateDatabaseName,
+        [Parameter(Mandatory=$true)]
+        [string]$ScriptPath,
+        [Parameter(Mandatory=$true)]
+        [string]$TestType
+    )
+
+    if ($WorkItems.Count -eq 0) {
+        return $true
+    }
+
+    $workItemByKey = @{}
+    foreach ($workItem in $WorkItems) {
+        $workItemByKey[$workItem.Key] = $workItem
+    }
+
+    $state = [PSCustomObject]@{
+        jobs = @()
+        hasFailures = $false
+        transient = @()
+        retried = @{}
+        retryTenant = @{}
+    }
+    $pending = @($WorkItems)
+    $tenants = @($TenantInfo | ForEach-Object { $_.Id })
+
+    while ($pending.Count -gt 0 -or $state.jobs.Count -gt 0 -or $state.transient.Count -gt 0) {
+        if ($state.transient.Count -gt 0) {
+            $retryItems = @()
+            foreach ($transient in @($state.transient)) {
+                $key = $transient.Key
+                $state.retried[$key] = $true
+                $state.retryTenant[$key] = $transient.Tenant
+                $retryItems += $workItemByKey[$key]
+            }
+            $state.transient = @()
+            $pending = @($retryItems) + @($pending)
+        }
+
+        if ($pending.Count -gt 0) {
+            $workItem = $pending[0]
+            $pending = @($pending | Select-Object -Skip 1)
+            $tenant = if ($state.retryTenant.ContainsKey($workItem.Key)) {
+                Wait-ForSpecificTenant -state $state -tenants $tenants -tenant $state.retryTenant[$workItem.Key]
+            } else {
+                Wait-ForFreeTenant -state $state -tenants $tenants
+            }
+            $selectedTenantInfo = $TenantInfo | Where-Object { $_.Id -eq $tenant } | Select-Object -First 1
+            $verb = if ($state.retried.ContainsKey($workItem.Key)) { "Re-dispatching" } else { "Dispatching" }
+
+            Start-RequiredDisabledDispatch -Parameters $Parameters -WorkItem $workItem `
+                -TenantInfo $selectedTenantInfo -TemplateDatabaseName $TemplateDatabaseName `
+                -ScriptPath $ScriptPath -TestType $TestType -State $state -Verb $verb
+        } else {
+            if (-not (Wait-ForAllTestJobs -state $state)) {
+                $state.hasFailures = $true
+            }
+        }
+    }
+
+    return (-not $state.hasFailures)
 }
 
 <#
@@ -542,6 +964,28 @@ function Wait-ForFreeTenant {
     throw "Wait-ForFreeTenant: timed out after $timeoutSeconds seconds waiting for a free tenant. Running jobs: $($state.jobs | ForEach-Object { "$($_.appName) on $($_.tenant)" } | Out-String)"
 }
 
+function Wait-ForSpecificTenant {
+    param(
+        $state,
+        $tenants,
+        [string]$tenant,
+        [int]$timeoutSeconds = 7200,
+        [int]$pollIntervalSeconds = 10
+    )
+
+    $waited = 0
+    while ($waited -lt $timeoutSeconds) {
+        $available = @(Get-FreeTenants -state $state -tenants $tenants)
+        if ($tenant -in $available) {
+            return $tenant
+        }
+        Start-Sleep -Seconds $pollIntervalSeconds
+        $waited += $pollIntervalSeconds
+    }
+
+    throw "Wait-ForSpecificTenant: timed out after $timeoutSeconds seconds waiting for tenant '$tenant'."
+}
+
 <#
 .SYNOPSIS
     Starts a background job to run tests for a single app on a specific tenant.
@@ -564,6 +1008,9 @@ function Start-TestJob {
         [string]$tenant,
         [string]$scriptPath,
         [string]$testType,
+        [switch]$skipAutomaticDisabledPass,
+        [string]$tenantDatabaseName,
+        [string]$templateDatabaseName,
         [string]$fileSuffix
     )
 
@@ -586,16 +1033,24 @@ function Start-TestJob {
     # Resolve BCH module path from the currently loaded module
     $bchModule = Get-Module BcContainerHelper | Select-Object -First 1
     $bchModulePath = if ($bchModule) { $bchModule.Path } else { "BcContainerHelper" }
+    $parallelModulePath = (Get-Module ParallelTestExecution | Select-Object -First 1).Path
 
     return Start-Job -ScriptBlock {
-        param($params, $scriptPath, $testType, $bchPath)
+        param($params, $scriptPath, $testType, $bchPath, $parallelPath, $skipDisabledPass, $tenantDatabaseName, $templateDatabaseName)
         Import-Module $bchPath
+        if ($templateDatabaseName) {
+            Import-Module $parallelPath
+            Reset-BcTestTenant -ContainerName $params.containerName -Tenant $params.tenant `
+                -TenantDatabaseName $tenantDatabaseName -TemplateDatabaseName $templateDatabaseName
+        }
         # Background jobs run a single app sequentially. Pass an empty $AppNamesToTest so the
         # shared script skips the parallel dispatch branch and falls through to running this
         # one app's tests directly.
-        $passed = . $scriptPath -parameters $params -TestType $testType -AppNamesToTest @()
+        $passed = . $scriptPath -parameters $params -TestType $testType -AppNamesToTest @() `
+            -SkipAutomaticDisabledPass:$skipDisabledPass
         if (-not $passed) { throw "Test execution failed" }
-    } -ArgumentList $jobParams, $scriptPath, $testType, $bchModulePath
+    } -ArgumentList $jobParams, $scriptPath, $testType, $bchModulePath, $parallelModulePath, `
+        $skipAutomaticDisabledPass.IsPresent, $tenantDatabaseName, $templateDatabaseName
 }
 
 <#
@@ -627,6 +1082,59 @@ function Wait-ForAllTestJobs {
     $state.jobs = @()
 }
 
+function Add-MissingJUnitTestProperties {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ResultFile,
+        [array]$WorkItems = @()
+    )
+
+    if (-not (Test-Path $ResultFile) -or $WorkItems.Count -eq 0) {
+        return
+    }
+
+    $workItemByCodeunitId = @{}
+    foreach ($workItem in $WorkItems) {
+        $workItemByCodeunitId[[string]$workItem.CodeunitId] = $workItem
+    }
+
+    $xml = [xml](Get-Content $ResultFile -Raw)
+    $changed = $false
+    foreach ($suite in @($xml.testsuites.testsuite)) {
+        if ($suite.properties) {
+            continue
+        }
+
+        $codeunitId = ([string]$suite.name -split ' ', 2)[0]
+        $workItem = $workItemByCodeunitId[$codeunitId]
+        if (-not $workItem) {
+            continue
+        }
+
+        $properties = $xml.CreateElement("properties")
+        foreach ($propertyValue in @{
+            extensionid = $workItem.AppId
+            appName = $workItem.AppName
+        }.GetEnumerator()) {
+            $property = $xml.CreateElement("property")
+            $property.SetAttribute("name", $propertyValue.Key)
+            $property.SetAttribute("value", [string]$propertyValue.Value)
+            $properties.AppendChild($property) | Out-Null
+        }
+
+        if ($suite.FirstChild) {
+            $suite.InsertBefore($properties, $suite.FirstChild) | Out-Null
+        } else {
+            $suite.AppendChild($properties) | Out-Null
+        }
+        $changed = $true
+    }
+
+    if ($changed) {
+        $xml.Save($ResultFile)
+    }
+}
+
 <#
 .SYNOPSIS
     Merges per-job test result files into the single file expected by Run-AlPipeline.
@@ -642,6 +1150,7 @@ function Merge-TenantTestResults {
     param(
         [Hashtable]$parameters,
         [string[]]$tenants,
+        [array]$workItems = @(),
         [string[]]$rerunSuffixes = @()
     )
 
@@ -655,6 +1164,11 @@ function Merge-TenantTestResults {
             $ext = [System.IO.Path]::GetExtension($origFile)
 
             $tenantFiles = @($suffixes | ForEach-Object { Join-Path $dir "$name-$_$ext" })
+            if ($resultKey -eq "JUnitResultFileName") {
+                foreach ($tenantFile in $tenantFiles) {
+                    Add-MissingJUnitTestProperties -ResultFile $tenantFile -WorkItems $workItems
+                }
+            }
             Merge-TestResultFiles -targetFile $origFile -sourceFiles $tenantFiles
 
             # Clean up per-job files
@@ -808,7 +1322,8 @@ function Invoke-ParallelTestExecution {
         }
     }
 
-    $tenants = @(Get-AvailableBcTenants -containerName $parameters.containerName)
+    $tenantInfo = @(Get-AvailableBcTenantInfo -containerName $parameters.containerName)
+    $tenants = @($tenantInfo | ForEach-Object { $_.Id })
     Write-Host "Available tenants: $($tenants -join ', ')"
 
     # Build a name -> appId map so we can set extensionId per dispatch. Run-TestsInBcContainer
@@ -820,11 +1335,32 @@ function Invoke-ParallelTestExecution {
         Where-Object { $_.IsInstalled } |
         ForEach-Object { $appIdByName[$_.Name] = $_.AppId }
 
+    $cleanTenantAppNames = @(
+        Get-CleanTenantTestAppNames |
+            Where-Object { $_ -in $appNamesToTest }
+    )
+    $requiredDisabledWorkItems = @(
+        Get-RequiredDisabledWorkItems -Parameters $parameters -TestType $testType `
+            -AppNamesToTest $cleanTenantAppNames -AppIdByName $appIdByName
+    )
+    $cleanTenantInfo = @(
+        $tenantInfo |
+            Where-Object { $_.Id -ne $parameters.tenant }
+    )
+    $templateDatabaseName = ""
+    if ($requiredDisabledWorkItems.Count -gt 0) {
+        if ($cleanTenantInfo.Count -eq 0) {
+            throw "Clean RequiredTestIsolation=Disabled execution requires at least one secondary tenant."
+        }
+        Write-Host "Preparing clean-tenant execution for $($requiredDisabledWorkItems.Count) RequiredTestIsolation=Disabled codeunit(s)."
+        $templateDatabaseName = New-BcTestTenantTemplate -ContainerName $parameters.containerName -SourceTenant $parameters.tenant
+    }
+
     # dispatched=true marks "we started the foreach" - lets concurrent reads notice an in-flight
     # run. completed=false stays false until wait+merge finish; only then is finalResult valid.
     $state = [PSCustomObject]@{
         jobs = @(); dispatched = $true; completed = $false; finalResult = $false; hasFailures = $false
-        transient = @(); retried = @{}
+        transient = @(); retried = @{}; retryTenant = @{}
         rerun = @(); rerunDone = @{}; rerunBudget = (Get-AppRerunBudget); tenantCount = $tenants.Count
     }
     $state | ConvertTo-Json -Depth 5 | Set-Content $stateFile -Force
@@ -850,9 +1386,12 @@ function Invoke-ParallelTestExecution {
         if ($state.transient.Count -gt 0) {
             $toRetry = @($state.transient)
             $state.transient = @()
-            Write-Host "Re-queueing $($toRetry.Count) app(s) after transient platform race: $($toRetry -join ', ')"
-            foreach ($appName in $toRetry) {
+            $retryAppNames = @($toRetry | ForEach-Object { $_.Key })
+            Write-Host "Re-queueing $($toRetry.Count) app(s) after transient platform race: $($retryAppNames -join ', ')"
+            foreach ($transient in $toRetry) {
+                $appName = $transient.Key
                 $state.retried[$appName] = $true
+                $state.retryTenant[$appName] = $transient.Tenant
                 # A transient retry goes out through the normal queue and so writes to a TENANT
                 # result file. Tenant files are merged before rerun files, so any rerun file this
                 # app already produced would overwrite the newer result - drop it.
@@ -860,7 +1399,7 @@ function Invoke-ParallelTestExecution {
                     Remove-RerunResultFile -parameters $parameters -suffix $state.rerunDone[$appName]
                 }
             }
-            $pending = @($toRetry) + @($pending)
+            $pending = @($retryAppNames) + @($pending)
         }
 
         # Reruns take priority over the normal queue, for the same tail-latency reason as above:
@@ -890,9 +1429,14 @@ function Invoke-ParallelTestExecution {
             }
 
             $verb = if ($state.retried.ContainsKey($appName)) { 'Re-dispatching' } else { 'Dispatching' }
-            $tenant = Wait-ForFreeTenant -state $state -tenants $tenants
+            $tenant = if ($state.retryTenant.ContainsKey($appName)) {
+                Wait-ForSpecificTenant -state $state -tenants $tenants -tenant $state.retryTenant[$appName]
+            } else {
+                Wait-ForFreeTenant -state $state -tenants $tenants
+            }
             Start-TestAppDispatch -Parameters $parameters -AppName $appName -AppId $appId -Tenant $tenant `
-                -ScriptPath $scriptPath -TestType $testType -State $state -Verb $verb
+                -ScriptPath $scriptPath -TestType $testType -State $state `
+                -SkipAutomaticDisabledPass:($appName -in $cleanTenantAppNames) -Verb $verb
         } else {
             # Nothing left to dispatch; drain any still-running jobs. New transient failures and
             # reruns discovered here are picked up at the top of the next loop iteration.
@@ -902,9 +1446,25 @@ function Invoke-ParallelTestExecution {
         }
     }
 
+    if ($requiredDisabledWorkItems.Count -gt 0) {
+        try {
+            Enable-BcTestTaskScheduler -ContainerName $parameters.containerName
+            $requiredDisabledPassed = Invoke-RequiredDisabledTestExecution -Parameters $parameters `
+                -WorkItems $requiredDisabledWorkItems -TenantInfo $cleanTenantInfo `
+                -TemplateDatabaseName $templateDatabaseName -ScriptPath $scriptPath -TestType $testType
+            if (-not $requiredDisabledPassed) {
+                $state.hasFailures = $true
+            }
+        } finally {
+            Remove-BcTestTenantTemplate -ContainerName $parameters.containerName `
+                -TemplateDatabaseName $templateDatabaseName
+        }
+    }
+
     $allPassed = -not $state.hasFailures
 
-    Merge-TenantTestResults -parameters $parameters -tenants $tenants -rerunSuffixes $rerunSuffixes
+    Merge-TenantTestResults -parameters $parameters -tenants $tenants `
+        -workItems $requiredDisabledWorkItems -rerunSuffixes $rerunSuffixes
 
     # Persist final result and mark complete so subsequent override invocations short-circuit
     # to this value (and not the placeholder we wrote before dispatch).
@@ -957,4 +1517,4 @@ function Invoke-PerProjectTestRun {
     return (. $script -parameters $parameters -TestType $testType -AppNamesToTest $appNamesToTest)
 }
 
-Export-ModuleMember -Function Invoke-ParallelTestExecution, Get-AvailableBcTenants, Get-CachedTestRunResult, Get-InstalledTestAppNames, Get-AppNamesForBucket, Invoke-PerProjectTestRun, Get-AppNameFromMetadata, Invoke-WarmupDispatch, Merge-TestResultFiles, Get-AppRerunBudget
+Export-ModuleMember -Function Invoke-ParallelTestExecution, Get-AvailableBcTenants, Get-CachedTestRunResult, Get-InstalledTestAppNames, Get-AppNamesForBucket, Invoke-PerProjectTestRun, Get-AppNameFromMetadata, Get-DisabledTestsForApp, Reset-BcTestTenant, Invoke-WarmupDispatch, Merge-TestResultFiles, Get-AppRerunBudget

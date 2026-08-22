@@ -8,6 +8,7 @@ codeunit 139822 "APIV2 - Employees E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Employee]
     end;
 

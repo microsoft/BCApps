@@ -8,6 +8,7 @@ codeunit 139814 "APIV2 - Payment Methods E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Payment Method]
     end;
 

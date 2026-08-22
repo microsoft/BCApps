@@ -8,6 +8,7 @@ codeunit 139928 "APIV2 - Purch. Ret. Shpts. E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.BindAuthentication();
         // [FEATURE] [Graph] [Purchase] [Return Shipment]
     end;
 

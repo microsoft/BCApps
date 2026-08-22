@@ -8,6 +8,7 @@ codeunit 139812 "APIV2 - UofM E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Unit of Measure]
     end;
 

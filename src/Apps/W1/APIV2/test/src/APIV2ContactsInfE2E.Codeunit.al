@@ -3,11 +3,13 @@ codeunit 139853 "APIV2 - Contacts Inf. E2E"
     // version Test,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Contact]
     end;
 
@@ -73,7 +75,9 @@ codeunit 139853 "APIV2 - Contacts Inf. E2E"
             Customer.SystemId,
             Page::"APIV2 - Customers",
             CustomersServiceNameTxt,
-            ContactsInformationServiceNameTxt) + '(' + LibraryGraphMgt.StripBrackets(Format(Contact.SystemId)) + ')/' + ContactServiceNameTxt;
+            ContactsInformationServiceNameTxt);
+        TargetURL := LibraryGraphMgt.AppendPathToTargetURL(
+            TargetURL, '(' + LibraryGraphMgt.StripBrackets(Format(Contact.SystemId)) + ')/' + ContactServiceNameTxt);
         LibraryGraphMgt.GetFromWebService(ResponseText, TargetURL);
 
         // [THEN] Response contains two contacts
@@ -133,7 +137,9 @@ codeunit 139853 "APIV2 - Contacts Inf. E2E"
             Vendor.SystemId,
             Page::"APIV2 - Vendors",
             VendorsServiceNameTxt,
-            ContactsInformationServiceNameTxt) + '(' + LibraryGraphMgt.StripBrackets(Format(Contact.SystemId)) + ')/' + ContactServiceNameTxt;
+            ContactsInformationServiceNameTxt);
+        TargetURL := LibraryGraphMgt.AppendPathToTargetURL(
+            TargetURL, '(' + LibraryGraphMgt.StripBrackets(Format(Contact.SystemId)) + ')/' + ContactServiceNameTxt);
         LibraryGraphMgt.GetFromWebService(ResponseText, TargetURL);
 
         // [THEN] Response contains two contacts

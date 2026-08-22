@@ -1,5 +1,20 @@
 $errorActionPreference = "Stop"; $ProgressPreference = "SilentlyContinue"; Set-StrictMode -Version 2.0
 
+if (-not (Get-Command Get-TestsFromBcContainer -ErrorAction SilentlyContinue)) {
+    function global:Get-TestsFromBcContainer {
+        param(
+            [string]$containerName,
+            [string]$tenant,
+            [string]$extensionId,
+            [string]$requiredTestIsolation,
+            [string]$testType,
+            [array]$disabledTests
+        )
+        $null = $containerName, $tenant, $extensionId, $requiredTestIsolation, $testType, $disabledTests
+        throw "Get-TestsFromBcContainer stub should never be called; a Pester mock must intercept it."
+    }
+}
+
 Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
 
 Describe "ParallelTestExecution app-name resolution" {
@@ -113,13 +128,21 @@ Describe "ParallelTestExecution transient retry scheduling" {
             $script:dispatched = [System.Collections.Generic.List[string]]::new()
             $script:raced = $false
 
-            Mock Get-AvailableBcTenants { @('default') }
+            Mock Get-AvailableBcTenantInfo {
+                @(
+                    [PSCustomObject]@{ Id = 'default'; DatabaseName = 'default' }
+                    [PSCustomObject]@{ Id = 'tenant2'; DatabaseName = 'tenant2' }
+                )
+            }
             Mock Get-BcContainerAppInfo {
                 @('Big', 'Medium', 'Small') | ForEach-Object {
                     [PSCustomObject]@{ IsInstalled = $true; Name = $_; AppId = "id-$_" }
                 }
             }
+            Mock Get-CleanTenantTestAppNames { @() }
+            Mock Get-RequiredDisabledWorkItems { @() }
             Mock Wait-ForFreeTenant { 'default' }
+            Mock Wait-ForSpecificTenant { 'default' }
             Mock Wait-ForAllTestJobs { $true }
             Mock Merge-TenantTestResults { }
             Mock Start-TestAppDispatch {
@@ -127,7 +150,9 @@ Describe "ParallelTestExecution transient retry scheduling" {
                 # 'Big' loses the platform race on its very first dispatch, exactly once.
                 if ($AppName -eq 'Big' -and -not $script:raced) {
                     $script:raced = $true
-                    $State.transient = @($State.transient) + @($AppName)
+                    $State.transient = @($State.transient) + @(
+                        [PSCustomObject]@{ Key = $AppName; Tenant = $Tenant }
+                    )
                 }
             }
 
@@ -136,6 +161,393 @@ Describe "ParallelTestExecution transient retry scheduling" {
                 -testType 'Legacy' -appNamesToTest @('Big', 'Medium', 'Small')
 
             $script:dispatched | Should -Be @('Big', 'Big', 'Medium', 'Small')
+        }
+    }
+}
+
+Describe "ParallelTestExecution RequiredTestIsolation discovery" {
+    BeforeAll {
+        Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
+    }
+
+    It "flattens discovered codeunits and excludes codeunits without enabled methods" {
+        InModuleScope ParallelTestExecution {
+            $discovered = @(
+                [PSCustomObject]@{ Id = '100'; Name = 'Direct'; Tests = @('A', 'B') }
+                [PSCustomObject]@{
+                    Group = 'G'
+                    Codeunits = @(
+                        [PSCustomObject]@{ Id = '200'; Name = 'Grouped'; Tests = @('C') }
+                        [PSCustomObject]@{ Id = '300'; Name = 'Disabled'; Tests = @() }
+                    )
+                }
+            )
+
+            $result = @(ConvertTo-RequiredDisabledWorkItems -DiscoveredTests $discovered -AppName 'API Tests' -AppId 'app-id')
+
+            $result.Count | Should -Be 2
+            $result[0].Key | Should -Be 'API Tests::100'
+            $result[0].TestCount | Should -Be 2
+            $result[1].CodeunitId | Should -Be '200'
+        }
+    }
+
+    It "discovers enabled Disabled-isolation codeunits per app" {
+        InModuleScope ParallelTestExecution {
+            Mock Get-ParametersForCommand { @{ containerName = 'c'; tenant = 'default' } }
+            Mock Get-DisabledTestsForApp {
+                @([PSCustomObject]@{ codeunitId = 999; method = 'DisabledMethod' })
+            }
+            Mock Get-TestsFromBcContainer {
+                @([PSCustomObject]@{ Id = '500'; Name = 'API E2E'; Tests = @('Create', 'Modify') })
+            }
+
+            $result = @(
+                Get-RequiredDisabledWorkItems -Parameters @{ containerName = 'c'; tenant = 'default' } `
+                    -TestType 'IntegrationTest' -AppNamesToTest @('API Tests') `
+                    -AppIdByName @{ 'API Tests' = 'app-id' }
+            )
+
+            $result.Count | Should -Be 1
+            $result[0].CodeunitId | Should -Be '500'
+            Should -Invoke Get-TestsFromBcContainer -Times 1 -ParameterFilter {
+                $extensionId -eq 'app-id' -and
+                $requiredTestIsolation -eq 'Disabled' -and
+                $testType -eq 'IntegrationTest' -and
+                $disabledTests.Count -eq 1
+            }
+        }
+    }
+
+    It "does not apply a test type filter to Legacy buckets" {
+        InModuleScope ParallelTestExecution {
+            Mock Get-ParametersForCommand { @{ containerName = 'c'; tenant = 'default'; testType = 'stale' } }
+            Mock Get-DisabledTestsForApp { @() }
+            Mock Get-TestsFromBcContainer { @() }
+
+            $null = Get-RequiredDisabledWorkItems -Parameters @{ containerName = 'c' } `
+                -TestType 'Legacy' -AppNamesToTest @('Legacy Tests') `
+                -AppIdByName @{ 'Legacy Tests' = 'legacy-id' }
+
+            Should -Invoke Get-TestsFromBcContainer -Times 1 -ParameterFilter {
+                -not $PSBoundParameters.ContainsKey('testType')
+            }
+        }
+    }
+}
+
+Describe "ParallelTestExecution clean tenant scheduling" {
+    BeforeAll {
+        Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
+    }
+
+    It "does not create a database template when no Disabled-isolation codeunits are enabled" {
+        InModuleScope ParallelTestExecution {
+            Mock Get-AvailableBcTenantInfo {
+                @([PSCustomObject]@{ Id = 'default'; DatabaseName = 'default' })
+            }
+            Mock Get-BcContainerAppInfo {
+                @([PSCustomObject]@{ IsInstalled = $true; Name = 'Tests'; AppId = 'tests-id' })
+            }
+            Mock Get-CleanTenantTestAppNames { @() }
+            Mock Get-RequiredDisabledWorkItems { @() }
+            Mock New-BcTestTenantTemplate { throw 'Template must not be created' }
+            Mock Wait-ForFreeTenant { 'default' }
+            Mock Start-TestAppDispatch { }
+            Mock Wait-ForAllTestJobs { $true }
+            Mock Merge-TenantTestResults { }
+
+            $result = Invoke-ParallelTestExecution -parameters @{
+                containerName = "ut-$([guid]::NewGuid().ToString('N'))"
+                tenant = 'default'
+            } -scriptPath 'unused.ps1' -testType 'IntegrationTest' -appNamesToTest @('Tests')
+
+            $result | Should -BeTrue
+            Should -Invoke New-BcTestTenantTemplate -Times 0
+        }
+    }
+
+    Describe "ParallelTestExecution result metadata" {
+        BeforeAll {
+            Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
+        }
+
+        It "adds app properties to clean-codeunit JUnit suites" {
+            InModuleScope ParallelTestExecution {
+                $resultFile = Join-Path ([System.IO.Path]::GetTempPath()) "junit-$([guid]::NewGuid().ToString('N')).xml"
+                try {
+                    @(
+                        '<?xml version="1.0" encoding="UTF-8"?>'
+                        '<testsuites>'
+                        '  <testsuite name="139800 APIV2 - Items E2E" tests="1" failures="0">'
+                        '    <testcase name="TestGetItem" />'
+                        '  </testsuite>'
+                        '</testsuites>'
+                    ) | Set-Content -Path $resultFile -Encoding utf8
+
+                    Add-MissingJUnitTestProperties -ResultFile $resultFile -WorkItems @(
+                        [PSCustomObject]@{
+                            CodeunitId = '139800'
+                            AppId = 'app-id'
+                            AppName = '_Exclude_APIV2_ Tests'
+                        }
+                    )
+
+                    [xml]$xml = Get-Content $resultFile -Raw
+                    $properties = @($xml.testsuites.testsuite.properties.property)
+                    ($properties | Where-Object name -eq 'extensionid').value | Should -Be 'app-id'
+                    ($properties | Where-Object name -eq 'appName').value | Should -Be '_Exclude_APIV2_ Tests'
+                } finally {
+                    Remove-Item $resultFile -Force -ErrorAction SilentlyContinue
+                }
+            }
+        }
+    }
+
+    Describe "API test isolation metadata" {
+        It "matches every NAV API execution path and its isolation mode" {
+            $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
+            $typedIntegrationCodeunits = @(139917, 139918, 139919, 139920, 139921)
+            foreach ($apiVersion in @('APIV1', 'APIV2')) {
+                $testSource = Join-Path $repoRoot "src\Apps\W1\$apiVersion\test\src"
+                $disabledManifest = Join-Path $repoRoot "src\DisabledTests\_Exclude_${apiVersion}__Tests\_Exclude_${apiVersion}__Tests.DisabledTest.json"
+                $disabledCodeunitIds = if (Test-Path $disabledManifest) {
+                    @(
+                        Get-Content $disabledManifest -Raw |
+                            ConvertFrom-Json |
+                            Where-Object method -eq '*' |
+                            ForEach-Object { [int]$_.codeunitId }
+                    )
+                } else {
+                    @()
+                }
+                $enabledCodeunitCount = 0
+                foreach ($file in (Get-ChildItem $testSource -Filter '*.al' -File)) {
+                    $content = Get-Content $file.FullName -Raw
+                    if ($content -match 'Subtype\s*=\s*Test\s*;') {
+                        $codeunitId = [int]([regex]::Match($content, 'codeunit\s+(\d+)').Groups[1].Value)
+                        if ($codeunitId -in $disabledCodeunitIds) {
+                            continue
+                        }
+
+                        $enabledCodeunitCount++
+                        if ($codeunitId -in $typedIntegrationCodeunits) {
+                            $content | Should -Match 'TestType\s*=\s*IntegrationTest\s*;' `
+                                -Because "$($file.Name) runs through NAV's typed Integration task"
+                            $content | Should -Not -Match 'RequiredTestIsolation\s*=\s*Disabled\s*;' `
+                                -Because "$($file.Name) runs with normal Codeunit isolation in NAV"
+                            $content | Should -Match 'LibraryGraphMgt\.BindAuthentication\(\);'
+                        } else {
+                            $content | Should -Match 'RequiredTestIsolation\s*=\s*Disabled\s*;' `
+                                -Because "$($file.Name) runs in a NAV Disabled-isolation path"
+                            $content | Should -Match 'LibraryGraphMgt\.InitializeApiTest\(\);' `
+                                -Because "$($file.Name) must bind authentication and use a license-safe work date"
+                            $content | Should -Not -Match 'LibraryERM\.SetWorkDate\(\);' `
+                                -Because "$($file.Name) must not overwrite the API test license-safe work date"
+                        }
+                    }
+                }
+
+                $expectedEnabledCodeunits = if ($apiVersion -eq 'APIV1') { 44 } else { 75 }
+                $enabledCodeunitCount | Should -Be $expectedEnabledCodeunits `
+                    -Because "$apiVersion must match the union of NAV's web-service and typed test tasks"
+            }
+        }
+    }
+
+    It "defers the automatic Unit disabled pass only for clean-tenant apps" {
+        InModuleScope ParallelTestExecution {
+            $script:skipValues = [System.Collections.Generic.List[bool]]::new()
+            Mock Start-Sleep { }
+            Mock Start-TestJob {
+                $script:skipValues.Add($skipAutomaticDisabledPass.IsPresent)
+                [PSCustomObject]@{ Id = $script:skipValues.Count }
+            }
+
+            $state = [PSCustomObject]@{ jobs = @() }
+            Start-TestAppDispatch -Parameters @{} -AppName 'Normal Tests' -AppId 'normal-id' `
+                -Tenant 'default' -ScriptPath 'runner.ps1' -TestType 'UnitTest' -State $state
+            Start-TestAppDispatch -Parameters @{} -AppName 'API Tests' -AppId 'api-id' `
+                -Tenant 'tenant2' -ScriptPath 'runner.ps1' -TestType 'UnitTest' -State $state `
+                -SkipAutomaticDisabledPass
+
+            $script:skipValues | Should -Be @($false, $true)
+        }
+    }
+
+    It "applies country-scoped disabled tests only in matching countries" {
+        InModuleScope ParallelTestExecution {
+            Test-DisabledTestAppliesToCountry -DisabledTest ([PSCustomObject]@{ method = 'Global' }) -Country 'W1' |
+                Should -BeTrue
+            Test-DisabledTestAppliesToCountry -DisabledTest ([PSCustomObject]@{
+                method = 'IndiaOnly'
+                countries = @('IN')
+            }) -Country 'IN' | Should -BeTrue
+            Test-DisabledTestAppliesToCountry -DisabledTest ([PSCustomObject]@{
+                method = 'IndiaOnly'
+                countries = @('IN')
+            }) -Country 'W1' | Should -BeFalse
+        }
+    }
+
+    It "dispatches one codeunit with Disabled isolation after requesting a tenant refresh" {
+        InModuleScope ParallelTestExecution {
+            $script:capturedParameters = $null
+            $script:capturedDatabaseName = $null
+            $script:capturedTemplateName = $null
+
+            Mock Get-DisabledTestsForApp { @() }
+            Mock Start-Sleep { }
+            Mock Start-TestJob {
+                $script:capturedParameters = $parameters
+                $script:capturedDatabaseName = $tenantDatabaseName
+                $script:capturedTemplateName = $templateDatabaseName
+                [PSCustomObject]@{ Id = 42 }
+            }
+
+            $state = [PSCustomObject]@{ jobs = @() }
+            $workItem = [PSCustomObject]@{
+                Key = 'Tests::500'
+                AppName = 'Tests'
+                AppId = 'tests-id'
+                CodeunitId = '500'
+                CodeunitName = 'API E2E'
+            }
+
+            Start-RequiredDisabledDispatch -Parameters @{
+                containerName = 'c'
+                JUnitResultFileName = 'results.xml'
+            } -WorkItem $workItem -TenantInfo ([PSCustomObject]@{
+                Id = 'tenant2'
+                DatabaseName = 'tenant2'
+            }) -TemplateDatabaseName 'default-test-template' -ScriptPath 'runner.ps1' `
+                -TestType 'IntegrationTest' -State $state
+
+            $script:capturedParameters.testCodeunit | Should -Be '500'
+            $script:capturedParameters.requiredTestIsolation | Should -Be 'Disabled'
+            $script:capturedParameters.testRunnerCodeunitId | Should -Be '130451'
+            $script:capturedParameters.AppendToJUnitResultFile | Should -BeTrue
+            $script:capturedDatabaseName | Should -Be 'tenant2'
+            $script:capturedTemplateName | Should -Be 'default-test-template'
+            $state.jobs.Count | Should -Be 1
+        }
+    }
+
+    It "marks scheduler retries as reruns so existing XML entries are replaced" {
+        InModuleScope ParallelTestExecution {
+            $script:capturedParameters = $null
+
+            Mock Get-DisabledTestsForApp { @() }
+            Mock Start-Sleep { }
+            Mock Start-TestJob {
+                $script:capturedParameters = $parameters
+                [PSCustomObject]@{ Id = 42 }
+            }
+
+            Start-RequiredDisabledDispatch -Parameters @{ containerName = 'c' } -WorkItem ([PSCustomObject]@{
+                Key = 'Tests::500'
+                AppName = 'Tests'
+                AppId = 'tests-id'
+                CodeunitId = '500'
+                CodeunitName = 'API E2E'
+            }) -TenantInfo ([PSCustomObject]@{
+                Id = 'tenant2'
+                DatabaseName = 'tenant2'
+            }) -TemplateDatabaseName 'default-test-template' -ScriptPath 'runner.ps1' `
+                -TestType 'IntegrationTest' -State ([PSCustomObject]@{ jobs = @() }) `
+                -Verb 'Re-dispatching'
+
+            $script:capturedParameters.ReRun | Should -BeTrue
+        }
+    }
+
+    It "retries a clean codeunit on its original tenant" {
+        InModuleScope ParallelTestExecution {
+            $script:dispatchTenants = [System.Collections.Generic.List[string]]::new()
+            $script:firstDispatch = $true
+
+            Mock Wait-ForFreeTenant { 'tenant2' }
+            Mock Wait-ForSpecificTenant { $tenant }
+            Mock Wait-ForAllTestJobs { $true }
+            Mock Start-RequiredDisabledDispatch {
+                $script:dispatchTenants.Add($TenantInfo.Id)
+                if ($script:firstDispatch) {
+                    $script:firstDispatch = $false
+                    $State.transient = @(
+                        [PSCustomObject]@{ Key = $WorkItem.Key; Tenant = $TenantInfo.Id }
+                    )
+                }
+            }
+
+            $workItem = [PSCustomObject]@{
+                Key = 'Tests::500'
+                AppName = 'Tests'
+                AppId = 'tests-id'
+                CodeunitId = '500'
+                CodeunitName = 'API E2E'
+            }
+            $tenantInfo = @(
+                [PSCustomObject]@{ Id = 'tenant2'; DatabaseName = 'tenant2' }
+                [PSCustomObject]@{ Id = 'tenant3'; DatabaseName = 'tenant3' }
+            )
+
+            $result = Invoke-RequiredDisabledTestExecution -Parameters @{ containerName = 'c' } `
+                -WorkItems @($workItem) -TenantInfo $tenantInfo -TemplateDatabaseName 'template' `
+                -ScriptPath 'runner.ps1' -TestType 'UnitTest'
+
+            $result | Should -BeTrue
+            $script:dispatchTenants | Should -Be @('tenant2', 'tenant2')
+        }
+    }
+
+    It "creates one template and invokes clean-tenant execution when codeunits require Disabled isolation" {
+        InModuleScope ParallelTestExecution {
+            Mock Get-AvailableBcTenantInfo {
+                @(
+                    [PSCustomObject]@{ Id = 'default'; DatabaseName = 'default' }
+                    [PSCustomObject]@{ Id = 'tenant2'; DatabaseName = 'tenant2' }
+                )
+            }
+            Mock Get-BcContainerAppInfo {
+                @([PSCustomObject]@{ IsInstalled = $true; Name = 'Tests'; AppId = 'tests-id' })
+            }
+            Mock Get-CleanTenantTestAppNames { @('Tests') }
+            Mock Get-RequiredDisabledWorkItems {
+                @([PSCustomObject]@{
+                    Key = 'Tests::500'
+                    AppName = 'Tests'
+                    AppId = 'tests-id'
+                    CodeunitId = '500'
+                    CodeunitName = 'API E2E'
+                    TestCount = 2
+                })
+            }
+            Mock New-BcTestTenantTemplate { 'default-test-template' }
+            Mock Wait-ForFreeTenant { 'default' }
+            Mock Start-TestAppDispatch { }
+            Mock Wait-ForAllTestJobs { $true }
+            Mock Invoke-RequiredDisabledTestExecution { $true }
+            Mock Remove-BcTestTenantTemplate { }
+            Mock Enable-BcTestTaskScheduler { }
+            Mock Merge-TenantTestResults { }
+
+            $result = Invoke-ParallelTestExecution -parameters @{
+                containerName = "ut-$([guid]::NewGuid().ToString('N'))"
+                tenant = 'default'
+            } -scriptPath 'unused.ps1' -testType 'IntegrationTest' -appNamesToTest @('Tests')
+
+            $result | Should -BeTrue
+            Should -Invoke New-BcTestTenantTemplate -Times 1
+            Should -Invoke Enable-BcTestTaskScheduler -Times 1
+            Should -Invoke Invoke-RequiredDisabledTestExecution -Times 1 -ParameterFilter {
+                $TemplateDatabaseName -eq 'default-test-template' -and
+                $WorkItems.Count -eq 1 -and
+                $TenantInfo.Count -eq 1 -and
+                $TenantInfo[0].Id -eq 'tenant2'
+            }
+            Should -Invoke Remove-BcTestTenantTemplate -Times 1 -ParameterFilter {
+                $TemplateDatabaseName -eq 'default-test-template'
+            }
         }
     }
 }
@@ -151,7 +563,12 @@ Describe "ParallelTestExecution warmup dispatch" {
         InModuleScope ParallelTestExecution {
             $script:events = [System.Collections.Generic.List[string]]::new()
 
-            Mock Get-AvailableBcTenants { @('default', 'tenant2') }
+            Mock Get-AvailableBcTenantInfo {
+                @(
+                    [PSCustomObject]@{ Id = 'default'; DatabaseName = 'default' }
+                    [PSCustomObject]@{ Id = 'tenant2'; DatabaseName = 'tenant2' }
+                )
+            }
             Mock Get-BcContainerAppInfo {
                 @('Big', 'Medium', 'Small') | ForEach-Object {
                     [PSCustomObject]@{ IsInstalled = $true; Name = $_; AppId = "id-$_" }
@@ -179,7 +596,9 @@ Describe "ParallelTestExecution warmup dispatch" {
         InModuleScope ParallelTestExecution {
             $script:events = [System.Collections.Generic.List[string]]::new()
 
-            Mock Get-AvailableBcTenants { @('default') }
+            Mock Get-AvailableBcTenantInfo {
+                @([PSCustomObject]@{ Id = 'default'; DatabaseName = 'default' })
+            }
             Mock Get-BcContainerAppInfo {
                 @('Big', 'Medium') | ForEach-Object {
                     [PSCustomObject]@{ IsInstalled = $true; Name = $_; AppId = "id-$_" }
@@ -267,7 +686,12 @@ Describe "ParallelTestExecution failed-app rerun scheduling" {
             $script:dispatched = [System.Collections.Generic.List[object]]::new()
             $script:failed = $false
 
-            Mock Get-AvailableBcTenants { @('default', 'tenant2') }
+            Mock Get-AvailableBcTenantInfo {
+                @(
+                    [PSCustomObject]@{ Id = 'default'; DatabaseName = 'default' }
+                    [PSCustomObject]@{ Id = 'tenant2'; DatabaseName = 'tenant2' }
+                )
+            }
             Mock Get-BcContainerAppInfo {
                 @('Big', 'Small') | ForEach-Object {
                     [PSCustomObject]@{ IsInstalled = $true; Name = $_; AppId = "id-$_" }
@@ -454,7 +878,12 @@ Describe "ParallelTestExecution rerun budget is limited to pull request builds" 
                 Set-Content -Path $staleFile -Value '<testsuites />'
 
                 $script:raced = $false
-                Mock Get-AvailableBcTenants { @('default', 'tenant2') }
+                Mock Get-AvailableBcTenantInfo {
+                    @(
+                        [PSCustomObject]@{ Id = 'default'; DatabaseName = 'default' }
+                        [PSCustomObject]@{ Id = 'tenant2'; DatabaseName = 'tenant2' }
+                    )
+                }
                 Mock Get-BcContainerAppInfo { @([PSCustomObject]@{ IsInstalled = $true; Name = 'A'; AppId = 'id-A' }) }
                 Mock Invoke-WarmupDispatch { @($Pending) }
                 Mock Wait-ForAllTestJobs { }
@@ -518,7 +947,12 @@ Describe "ParallelTestExecution rerun budget is limited to pull request builds" 
             $script:dispatched = [System.Collections.Generic.List[object]]::new()
             $script:failed = $false
 
-            Mock Get-AvailableBcTenants { @('default', 'tenant2') }
+            Mock Get-AvailableBcTenantInfo {
+                @(
+                    [PSCustomObject]@{ Id = 'default'; DatabaseName = 'default' }
+                    [PSCustomObject]@{ Id = 'tenant2'; DatabaseName = 'tenant2' }
+                )
+            }
             Mock Get-BcContainerAppInfo {
                 @('Big', 'Small') | ForEach-Object {
                     [PSCustomObject]@{ IsInstalled = $true; Name = $_; AppId = "id-$_" }

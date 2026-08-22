@@ -9,6 +9,7 @@ codeunit 139725 "APIV1 - Dimension Lines E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Dimension Line]
     end;
 

@@ -8,6 +8,7 @@ codeunit 139721 "APIV1 - Ret. Earnings E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.InitializeApiTest();
         // [FEATURE] [Graph] [Retained Earnings]
     end;
 

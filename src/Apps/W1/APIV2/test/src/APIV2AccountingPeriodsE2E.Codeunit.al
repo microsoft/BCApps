@@ -3,6 +3,11 @@ codeunit 139859 "APIV2 - Accounting Periods E2E"
     Subtype = Test;
     RequiredTestIsolation = Disabled;
 
+    trigger OnRun()
+    begin
+        LibraryGraphMgt.InitializeApiTest();
+    end;
+
     var
         Assert: Codeunit Assert;
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
