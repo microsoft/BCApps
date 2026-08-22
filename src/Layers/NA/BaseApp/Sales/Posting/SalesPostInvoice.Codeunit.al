@@ -486,6 +486,8 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
                 end;
             until TempInvoicePostingBuffer.Next(-1) = 0;
 
+        SalesPostInvoiceEvents.RunOnPostLinesOnBeforeCalcSums(
+            SalesHeader, GenJnlPostLine, TotalSalesLine, TotalSalesLineLCY, InvoicePostingParameters, JobPostLine);
         TempInvoicePostingBuffer.CalcSums(Amount);
         TotalAmount := -TempInvoicePostingBuffer.Amount;
 
@@ -1026,4 +1028,3 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
                     GenPostingSetup.Get(SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group");
     end;
 }
-

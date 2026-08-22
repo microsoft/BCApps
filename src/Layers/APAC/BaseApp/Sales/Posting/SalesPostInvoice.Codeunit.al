@@ -508,6 +508,8 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
                 InsertGST(SalesHeader, TempInvoicePostingBuffer, GenJnlPostLine.GetVATEntryNo());
             until TempInvoicePostingBuffer.Next(-1) = 0;
 
+        SalesPostInvoiceEvents.RunOnPostLinesOnBeforeCalcSums(
+            SalesHeader, GenJnlPostLine, TotalSalesLine, TotalSalesLineLCY, InvoicePostingParameters, JobPostLine);
         TempInvoicePostingBuffer.CalcSums(Amount);
         TotalAmount := -TempInvoicePostingBuffer.Amount;
 
