@@ -39,6 +39,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         PeriodNoFieldVisibleErr: Label 'Field Period No. should be visible.';
         PeriodNoNotVisibleErr: Label 'Field Period No. should not be visible.';
         ChangingPostingDateInPurchHeaderWhileHavingLineMsg: Label 'You have changed the Posting Date on the purchase header, which might affect the prices and discounts on the purchase lines.\You should review the lines and manually update prices and discounts if needed';
+        VendorNotSetupForIRS1099Err: Label 'Vendor %1 is not set up for IRS 1099 reporting in the reporting period %2.', Comment = '%1 = Vendor No., %2 = Period No.';
 
 
     trigger OnRun()
@@ -1378,6 +1379,162 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [THEN] "IRS 1099 Form Box No." in the related Purch. Cr. Memo Hdr. is updated to "FB2"
         PurchCrMemoHdr.Get(CrMemoNo);
         Assert.AreEqual(FormBoxNo[2], PurchCrMemoHdr."IRS 1099 Form Box No.", 'IRS 1099 Form Box No. in Purch. Cr. Memo Hdr. should be updated');
+    end;
+
+    [Test]
+    procedure ValidateIRS1099PeriodOnVendLedgEntryForNon1099Vendor()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        VendorLedgEntry: Record "Vendor Ledger Entry";
+        VendNo: Code[20];
+        FormNo: Code[20];
+        PeriodNo: Code[20];
+        InvNo: Code[20];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 620132] Setting IRS 1099 Reporting Period on vendor ledger entry of a vendor with no 1099 setup raises an error
+
+        Initialize();
+        // [GIVEN] IRS Reporting Period "P" with form "F" and form box "FB"
+        PeriodNo := LibraryIRSReportingPeriod.CreateOneDayReportingPeriod(WorkDate());
+        FormNo := LibraryIRS1099FormBox.CreateSingleFormInReportingPeriod(WorkDate(), WorkDate());
+        LibraryIRS1099FormBox.CreateSingleFormBoxInReportingPeriod(WorkDate(), WorkDate(), FormNo);
+
+        // [GIVEN] Vendor "V" with NO IRS 1099 form box setup (plain vendor)
+        VendNo := LibraryPurchase.CreateVendorNo();
+
+        // [GIVEN] Posted purchase invoice for vendor "V"
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VendNo);
+        LibraryPurchase.CreatePurchaseLineWithUnitCost(PurchaseLine, PurchaseHeader, LibraryInventory.CreateItemNo(), 1, 100);
+        InvNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [WHEN] Validate "IRS 1099 Reporting Period" in the vendor ledger entry
+        LibraryERM.FindVendorLedgerEntry(VendorLedgEntry, VendorLedgEntry."Document Type"::Invoice, InvNo);
+        // [THEN] An error is raised because vendor "V" has no 1099 setup for the period
+        asserterror VendorLedgEntry.Validate("IRS 1099 Reporting Period", PeriodNo);
+        Assert.ExpectedError(StrSubstNo(VendorNotSetupForIRS1099Err, VendNo, PeriodNo));
+    end;
+
+    [Test]
+    procedure ValidateIRS1099FormBoxOnVendLedgEntryFor1099Vendor()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        VendorLedgEntry: Record "Vendor Ledger Entry";
+        VendNo: Code[20];
+        FormNo: Code[20];
+        FormBoxNo: Code[20];
+        PeriodNo: Code[20];
+        InvNo: Code[20];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 620132] Vendor WITH 1099 setup can still validate form box on its ledger entry without error
+
+        Initialize();
+        // [GIVEN] IRS Reporting Period with Form "F" and Form Box "FB"
+        PeriodNo := LibraryIRSReportingPeriod.CreateOneDayReportingPeriod(WorkDate());
+        FormNo := LibraryIRS1099FormBox.CreateSingleFormInReportingPeriod(WorkDate(), WorkDate());
+        FormBoxNo := LibraryIRS1099FormBox.CreateSingleFormBoxInReportingPeriod(WorkDate(), WorkDate(), FormNo);
+
+        // [GIVEN] Vendor "V" WITH IRS 1099 form box setup
+        VendNo := LibraryIRS1099FormBox.CreateVendorNoWithFormBox(WorkDate(), WorkDate(), FormNo, FormBoxNo);
+
+        // [GIVEN] Posted purchase invoice for vendor "V"
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VendNo);
+        LibraryPurchase.CreatePurchaseLineWithUnitCost(PurchaseLine, PurchaseHeader, LibraryInventory.CreateItemNo(), 1, 100);
+        InvNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [WHEN] Validate the IRS 1099 fields in the vendor ledger entry
+        LibraryERM.FindVendorLedgerEntry(VendorLedgEntry, VendorLedgEntry."Document Type"::Invoice, InvNo);
+        // [THEN] No error is raised for a vendor that has 1099 setup
+        VendorLedgEntry.Validate("IRS 1099 Reporting Period", PeriodNo);
+        VendorLedgEntry.Validate("IRS 1099 Form No.", FormNo);
+        VendorLedgEntry.Validate("IRS 1099 Form Box No.", FormBoxNo);
+        VendorLedgEntry.TestField("IRS 1099 Form Box No.", FormBoxNo);
+    end;
+
+    [Test]
+    procedure ValidateIRS1099FormAndFormBoxOnVendLedgEntryForNon1099Vendor()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        VendorLedgEntry: Record "Vendor Ledger Entry";
+        VendNo: Code[20];
+        FormNo: Code[20];
+        FormBoxNo: Code[20];
+        PeriodNo: Code[20];
+        InvNo: Code[20];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 620132] Setting IRS 1099 Form No. or Form Box No. on vendor ledger entry of a vendor with no 1099 setup raises an error
+
+        Initialize();
+        // [GIVEN] IRS Reporting Period "P" with form "F" and form box "FB"
+        PeriodNo := LibraryIRSReportingPeriod.CreateOneDayReportingPeriod(WorkDate());
+        FormNo := LibraryIRS1099FormBox.CreateSingleFormInReportingPeriod(WorkDate(), WorkDate());
+        FormBoxNo := LibraryIRS1099FormBox.CreateSingleFormBoxInReportingPeriod(WorkDate(), WorkDate(), FormNo);
+
+        // [GIVEN] Vendor "V" with NO IRS 1099 form box setup (plain vendor)
+        VendNo := LibraryPurchase.CreateVendorNo();
+
+        // [GIVEN] Posted purchase invoice for vendor "V", with IRS period set directly (bypassing validation)
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VendNo);
+        LibraryPurchase.CreatePurchaseLineWithUnitCost(PurchaseLine, PurchaseHeader, LibraryInventory.CreateItemNo(), 1, 100);
+        InvNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+        LibraryERM.FindVendorLedgerEntry(VendorLedgEntry, VendorLedgEntry."Document Type"::Invoice, InvNo);
+        VendorLedgEntry."IRS 1099 Reporting Period" := PeriodNo;
+        VendorLedgEntry.Modify();
+
+        // [WHEN] Validate "IRS 1099 Form No." in the vendor ledger entry
+        // [THEN] An error is raised because vendor "V" has no 1099 setup for the period
+        asserterror VendorLedgEntry.Validate("IRS 1099 Form No.", FormNo);
+        Assert.ExpectedError(StrSubstNo(VendorNotSetupForIRS1099Err, VendNo, PeriodNo));
+
+        // [WHEN] Validate "IRS 1099 Form Box No." in the vendor ledger entry
+        // [THEN] An error is raised because vendor "V" has no 1099 setup for the period
+        LibraryERM.FindVendorLedgerEntry(VendorLedgEntry, VendorLedgEntry."Document Type"::Invoice, InvNo);
+        VendorLedgEntry."IRS 1099 Reporting Period" := PeriodNo;
+        VendorLedgEntry."IRS 1099 Form No." := FormNo;
+        asserterror VendorLedgEntry.Validate("IRS 1099 Form Box No.", FormBoxNo);
+        Assert.ExpectedError(StrSubstNo(VendorNotSetupForIRS1099Err, VendNo, PeriodNo));
+    end;
+
+    [Test]
+    procedure ClearIRS1099PeriodOnVendLedgEntryForNon1099Vendor()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        VendorLedgEntry: Record "Vendor Ledger Entry";
+        VendNo: Code[20];
+        FormNo: Code[20];
+        PeriodNo: Code[20];
+        InvNo: Code[20];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 620132] Clearing IRS 1099 Reporting Period on a non-1099 vendor ledger entry does not raise an error
+
+        Initialize();
+        // [GIVEN] IRS Reporting Period "P" with form "F" and form box "FB"
+        PeriodNo := LibraryIRSReportingPeriod.CreateOneDayReportingPeriod(WorkDate());
+        FormNo := LibraryIRS1099FormBox.CreateSingleFormInReportingPeriod(WorkDate(), WorkDate());
+        LibraryIRS1099FormBox.CreateSingleFormBoxInReportingPeriod(WorkDate(), WorkDate(), FormNo);
+
+        // [GIVEN] Vendor "V" with NO IRS 1099 form box setup
+        VendNo := LibraryPurchase.CreateVendorNo();
+
+        // [GIVEN] Posted purchase invoice for vendor "V", with IRS period set directly (bypassing validation)
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VendNo);
+        LibraryPurchase.CreatePurchaseLineWithUnitCost(PurchaseLine, PurchaseHeader, LibraryInventory.CreateItemNo(), 1, 100);
+        InvNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+        LibraryERM.FindVendorLedgerEntry(VendorLedgEntry, VendorLedgEntry."Document Type"::Invoice, InvNo);
+        VendorLedgEntry."IRS 1099 Reporting Period" := PeriodNo;
+        VendorLedgEntry.Modify();
+
+        // [WHEN] Clear "IRS 1099 Reporting Period" by validating with ''
+        // [THEN] No error is raised (clearing must always be allowed)
+        VendorLedgEntry.Validate("IRS 1099 Reporting Period", '');
+        VendorLedgEntry.TestField("IRS 1099 Reporting Period", '');
     end;
 
     local procedure Initialize()
