@@ -456,6 +456,9 @@ report 115 "Salesperson - Commission"
             Type = Word;
             LayoutFile = './Sales/Reports/SalespersonCommission.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
         }
 #if not CLEAN27
         layout(RDLC)
@@ -469,6 +472,14 @@ report 115 "Salesperson - Commission"
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
+        layout(WordBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './Sales/Reports/SalespersonCommissionBody.docx';
+            Caption = 'Body-only: Salesperson Commission Word';
+            Summary = 'Landscape orientated. Lists each entry for a salesperson with posting date, document, and customer number, followed by sales, profit, and adjusted profit with the matching commission amounts. Includes subtotals and totals, in LCY.';
+        }
     }
 
     labels
