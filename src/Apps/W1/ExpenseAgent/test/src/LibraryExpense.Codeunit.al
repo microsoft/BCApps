@@ -284,7 +284,7 @@ codeunit 148300 "Library - Expense"
         RecordRef: RecordRef;
     begin
         Traveler.Init();
-        Traveler.Validate("Spend Request No.", SpendRequestNo);
+        Traveler.Validate("Travel Request No.", SpendRequestNo);
 
         RecordRef.GetTable(Traveler);
         Traveler.Validate("Line No.", LibraryUtility.GetNewLineNo(RecordRef, Traveler.FieldNo("Line No.")));

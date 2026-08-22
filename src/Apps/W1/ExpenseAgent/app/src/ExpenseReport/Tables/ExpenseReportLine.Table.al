@@ -440,15 +440,15 @@ table 6907 "Expense Report Line"
                 if not Rec.Refundable then begin
                     Rec.TestField("VAT Liable", false);
                     Rec.TestField("Non-Refundable Amount", 0);
-                    Rec.Validate("Spend Request No.", '');
-                    Rec."Spend Request Close" := false;
+                    Rec.Validate("Travel Request No.", '');
+                    Rec."Travel Request Close" := false;
                 end;
 
                 if Rec.Refundable and (Rec."Expense User No." <> '') then begin
-                    Rec.SetSkipSpendRequestClose(true);
-                    Rec.Validate("Spend Request No.", ExpenseReportHeader."Spend Request No.");
-                    Rec."Spend Request Close" := ExpenseReportHeader."Spend Request Close";
-                    Rec.SetSkipSpendRequestClose(false);
+                    Rec.SetSkipTravelRequestClose(true);
+                    Rec.Validate("Travel Request No.", ExpenseReportHeader."Travel Request No.");
+                    Rec."Travel Request Close" := ExpenseReportHeader."Travel Request Close";
+                    Rec.SetSkipTravelRequestClose(false);
                 end;
 
                 UpdateAmounts();
@@ -1038,10 +1038,10 @@ table 6907 "Expense Report Line"
                 TestStatusOpen();
             end;
         }
-        field(100; "Spend Request No."; Code[20])
+        field(100; "Travel Request No."; Code[20])
         {
-            Caption = 'Spend Request No.';
-            ToolTip = 'Specifies the spend request number that is associated with this expense report line.The spend request must be approved and released before it can be selected.';
+            Caption = 'Travel Request No.';
+            ToolTip = 'Specifies the travel request number that is associated with this expense report line. The travel request must be approved and released before it can be selected.';
             TableRelation = "Spend Request" where(Status = const(Approved));
 
             trigger OnValidate()
@@ -1049,11 +1049,11 @@ table 6907 "Expense Report Line"
                 SpendRequest: Record "Spend Request";
                 DimensionSetIDArr: array[10] of Integer;
             begin
-                if Rec."Spend Request No." <> '' then begin
+                if Rec."Travel Request No." <> '' then begin
                     Rec.TestField(Refundable, true);
                     CheckTraveler();
-                    SpendRequest.SetSkipSpendRequestClose(SkipSpendRequestClose);
-                    SpendRequest.ValidateSpendRequest(Rec."Spend Request No.", Rec."Spend Request Close", Rec."Refundable Amount (LCY)");
+                    SpendRequest.SetSkipSpendRequestClose(SkipTravelRequestClose);
+                    SpendRequest.ValidateSpendRequest(Rec."Travel Request No.", Rec."Travel Request Close", Rec."Refundable Amount (LCY)");
 
                     if SpendRequest."Dimension Set ID" <> 0 then begin
                         DimensionSetIDArr[1] := Rec."Dimension Set ID";
@@ -1061,13 +1061,13 @@ table 6907 "Expense Report Line"
                         Rec."Dimension Set ID" := DimMgt.GetCombinedDimensionSetID(DimensionSetIDArr, Rec."Shortcut Dimension 1 Code", Rec."Shortcut Dimension 2 Code");
                     end;
                 end else
-                    Rec."Spend Request Close" := false;
+                    Rec."Travel Request Close" := false;
             end;
         }
-        field(101; "Spend Request Close"; Boolean)
+        field(101; "Travel Request Close"; Boolean)
         {
-            Caption = 'Spend Request Close';
-            ToolTip = 'Specifies that the spend request will be closed when the expense report is posted.';
+            Caption = 'Travel Request Close';
+            ToolTip = 'Specifies that the travel request will be closed when the expense report is posted.';
             DataClassification = CustomerContent;
         }
         field(102; "Policies Evaluated At"; DateTime)
@@ -1165,7 +1165,7 @@ table 6907 "Expense Report Line"
         ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
         SkipRuleApplication: Boolean;
         HideValidationDialog: Boolean;
-        SkipSpendRequestClose: Boolean;
+        SkipTravelRequestClose: Boolean;
         EmptyGuid: Guid;
         InvalidEndingDateErr: Label 'Ending Date and Time cannot be earlier than Starting Date and Time.';
         CannotModifyWithParticipantsErr: Label 'You cannot modify %1 field of expense report %2, Line No. %3 because it has associated participants.', Comment = '%1 = Field Name, %2 = Expense No., %3 = Line No.';
@@ -1182,7 +1182,7 @@ table 6907 "Expense Report Line"
         CannotExceedErr: Label '%1 must not exceed %2 = %3.', Comment = '%1 = Field Name, %2 = Limit Field Name, %3 = Limit Value';
         ExpenseReportNotFoundErr: Label 'Expense Report %1 does not exist.', Comment = '%1 = Expense Report No.';
         OnlyRelinkToAnotherReportErr: Label 'You can only relink an expense report line to another expense report.';
-        ExpenseUserNotTravelerErr: Label 'Expense User %1 is not a traveler on Spend Request %2.', Comment = '%1 = Expense User No., %2 = Spend Request No.';
+        ExpenseUserNotTravelerErr: Label 'Expense User %1 is not a traveler on Travel Request %2.', Comment = '%1 = Expense User No., %2 = Travel Request No.';
         BillableCustomerAndProjectErr: Label 'You cannot use both %1 and %2 at the same time.', Comment = '%1 = Billable to Customer field caption, %2 = Project No. field caption';
 
     internal procedure CopyFromVATPostingSetup(var VATPostingSetupFrom: Record "VAT Posting Setup")
@@ -1684,8 +1684,8 @@ table 6907 "Expense Report Line"
             Rec."Expense Date" := ExpReportHeader."Expense Report Date";
 
         if Rec.Refundable then begin
-            "Spend Request No." := ExpReportHeader."Spend Request No.";
-            "Spend Request Close" := ExpReportHeader."Spend Request Close";
+            "Travel Request No." := ExpReportHeader."Travel Request No.";
+            "Travel Request Close" := ExpReportHeader."Travel Request Close";
         end;
 
         "Dimension Set ID" := ExpReportHeader."Dimension Set ID";
@@ -1707,15 +1707,15 @@ table 6907 "Expense Report Line"
         UpdateAmountLCY();
         UpdateAmountByReimbursementType();
 
-        if ("Spend Request No." <> '') and Rec.Refundable then
-            CheckSpendRequestAmount();
+        if ("Travel Request No." <> '') and Rec.Refundable then
+            CheckTravelRequestAmount();
     end;
 
-    local procedure CheckSpendRequestAmount()
+    local procedure CheckTravelRequestAmount()
     var
         SpendRequest: Record "Spend Request";
     begin
-        SpendRequest.CheckSpendRequestAmount(Rec."Spend Request No.", Rec."Refundable Amount (LCY)");
+        SpendRequest.CheckSpendRequestAmount(Rec."Travel Request No.", Rec."Refundable Amount (LCY)");
     end;
 
     local procedure UpdateVATAmount()
@@ -2081,8 +2081,8 @@ table 6907 "Expense Report Line"
     begin
         Rec.Description := '';
         Rec."Expense Detail Required" := Rec."Expense Detail Required"::" ";
-        Rec."Spend Request No." := '';
-        Rec."Spend Request Close" := false;
+        Rec."Travel Request No." := '';
+        Rec."Travel Request Close" := false;
 
         if Rec."Expense Category" = '' then begin
             Rec.Validate("Expense Location", '');
@@ -2284,18 +2284,18 @@ table 6907 "Expense Report Line"
     begin
         Rec.TestField("Expense User No.");
 
-        Traveler.SetRange("Spend Request No.", Rec."Spend Request No.");
+        Traveler.SetRange("Travel Request No.", Rec."Travel Request No.");
         Traveler.SetRange("Expense User No.", Rec."Expense User No.");
         if Traveler.IsEmpty() then
-            Error(ExpenseUserNotTravelerErr, Rec."Expense User No.", Rec."Spend Request No.");
+            Error(ExpenseUserNotTravelerErr, Rec."Expense User No.", Rec."Travel Request No.");
     end;
 
     /// <summary>
     /// Sets whether the confirmation to close the related spend request should be skipped during validation.
     /// </summary>
-    /// <param name="NewSkipSpendRequestClose">True to skip the close confirmation; otherwise false.</param>
-    internal procedure SetSkipSpendRequestClose(NewSkipSpendRequestClose: Boolean)
+    /// <param name="NewSkipTravelRequestClose">True to skip the close confirmation; otherwise false.</param>
+    internal procedure SetSkipTravelRequestClose(NewSkipTravelRequestClose: Boolean)
     begin
-        SkipSpendRequestClose := NewSkipSpendRequestClose;
+        SkipTravelRequestClose := NewSkipTravelRequestClose;
     end;
 }

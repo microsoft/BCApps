@@ -6,20 +6,20 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.SpendRequest;
 
-page 7102 "Spend Request Details API"
+page 7102 "Travel Request Details API"
 {
     APIGroup = 'expense';
     APIPublisher = 'microsoft';
     APIVersion = 'beta';
-    EntityCaption = 'Spend Request Detail';
-    EntitySetCaption = 'Spend Request Details';
+    EntityCaption = 'Travel Request Detail';
+    EntitySetCaption = 'Travel Request Details';
     DelayedInsert = true;
-    EntityName = 'spendRequestDetail';
-    EntitySetName = 'spendRequestDetails';
+    EntityName = 'travelRequestDetail';
+    EntitySetName = 'travelRequestDetails';
     PageType = API;
     ODataKeyFields = SystemId;
     SourceTable = "Spend Request Detail";
-    AboutText = 'Provides access to data from the Spend Request Detail table';
+    AboutText = 'Provides access to data from the Travel Request Detail table';
     AutoSplitKey = true;
 
     layout
@@ -33,9 +33,9 @@ page 7102 "Spend Request Details API"
                     Caption = 'Id';
                     Editable = false;
                 }
-                field(spendRequestNo; Rec."Spend Request No.")
+                field(travelRequestNo; Rec."Spend Request No.")
                 {
-                    Caption = 'Spend Request No.';
+                    Caption = 'Travel Request No.';
                 }
                 field(lineNo; Rec."Line No.")
                 {

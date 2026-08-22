@@ -6,20 +6,20 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.SpendRequest;
 
-page 7099 "Spend Requests API"
+page 7099 "Travel Requests API"
 {
     APIGroup = 'expense';
     APIPublisher = 'microsoft';
     APIVersion = 'beta';
-    EntityCaption = 'Spend Request';
-    EntitySetCaption = 'Spend Requests';
+    EntityCaption = 'Travel Request';
+    EntitySetCaption = 'Travel Requests';
     DelayedInsert = true;
-    EntityName = 'spendRequest';
-    EntitySetName = 'spendRequests';
+    EntityName = 'travelRequest';
+    EntitySetName = 'travelRequests';
     PageType = API;
     ODataKeyFields = SystemId;
     SourceTable = "Spend Request";
-    AboutText = 'Provides access to data from the Spend Request table';
+    AboutText = 'Provides access to data from the Travel Request table';
 
     layout
     {
@@ -142,11 +142,11 @@ page 7099 "Spend Requests API"
                 {
                     Caption = 'Actual End Date and Time';
                 }
-                part(spendRequestDetails; "Spend Request Details API")
+                part(travelRequestDetails; "Travel Request Details API")
                 {
-                    Caption = 'Spend Request Details';
-                    EntityName = 'spendRequestDetail';
-                    EntitySetName = 'spendRequestDetails';
+                    Caption = 'Travel Request Details';
+                    EntityName = 'travelRequestDetail';
+                    EntitySetName = 'travelRequestDetails';
                     SubPageLink = "Spend Request No." = field("No.");
                 }
                 part(travelers; "Travelers API")
@@ -154,7 +154,7 @@ page 7099 "Spend Requests API"
                     Caption = 'Travelers';
                     EntityName = 'traveler';
                     EntitySetName = 'travelers';
-                    SubPageLink = "Spend Request No." = field("No.");
+                    SubPageLink = "Travel Request No." = field("No.");
                 }
             }
         }

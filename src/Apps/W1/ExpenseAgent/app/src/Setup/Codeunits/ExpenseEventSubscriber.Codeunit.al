@@ -44,8 +44,8 @@ codeunit 6908 "Expense Event Subscriber"
         CannotDeleteEmployeeWithExpenseReportErr: Label 'You cannot delete Employee %1 because they have active expense report.', Comment = '%1 = Employee No.';
         CannotDeleteEmployeeWithExpenseErr: Label 'You cannot delete Employee %1 because they have active expense.', Comment = '%1 = Employee No.';
         EmailChangeWarningQst: Label 'Employee %1 has existing expenses. Changing the email address may make these expenses inaccessible to them in the expense app. Do you want to continue?', Comment = '%1 = Employee No.';
-        PolicyNotAcknowledgedErr: Label 'You must acknowledge the travel policy before releasing the spend request.';
-        NoTravelersErr: Label 'You must add at least one traveler before releasing the spend request.';
+        PolicyNotAcknowledgedErr: Label 'You must acknowledge the travel policy before releasing the travel request.';
+        NoTravelersErr: Label 'You must add at least one traveler before releasing the travel request.';
         DestinationRequiredErr: Label '%1 is required for international travel.', Comment = '%1 = Field Caption';
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Instruction Mgt.", OnShowPostedDocumentOnBeforePageRun, '', false, false)]
@@ -301,7 +301,7 @@ codeunit 6908 "Expense Event Subscriber"
         if SpendRequest."International Travel" and (SpendRequest."Dest. Country/Region Code" = '') then
             Error(DestinationRequiredErr, SpendRequest.FieldCaption("Dest. Country/Region Code"));
 
-        Traveler.SetRange("Spend Request No.", SpendRequest."No.");
+        Traveler.SetRange("Travel Request No.", SpendRequest."No.");
         if Traveler.IsEmpty() then
             Error(NoTravelersErr);
     end;

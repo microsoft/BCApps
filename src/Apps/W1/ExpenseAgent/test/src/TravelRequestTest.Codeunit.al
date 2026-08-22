@@ -10,7 +10,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SpendRequest;
 using Microsoft.HumanResources.Employee;
 
-codeunit 148339 "Spend Request Test"
+codeunit 148339 "Travel Request Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
@@ -24,7 +24,7 @@ codeunit 148339 "Spend Request Test"
         IsInitialized: Boolean;
         CloseConfirmReply: Boolean;
         CloseConfirmCount: Integer;
-        NotTravelerErr: Label 'is not a traveler on Spend Request', Locked = true;
+        NotTravelerErr: Label 'is not a traveler on Travel Request', Locked = true;
         PolicyErr: Label 'acknowledge the travel policy', Locked = true;
         NoTravelersErr: Label 'add at least one traveler', Locked = true;
         DestinationErr: Label 'is required for international travel', Locked = true;
@@ -63,11 +63,11 @@ codeunit 148339 "Spend Request Test"
         CreateSpendRequestWithTraveler(SpendRequest, ExpenseUser."No.", SpendRequest.Status::Approved);
 
         // [WHEN] The spend request is selected on the line.
-        ExpenseReportLine.Validate("Spend Request No.", SpendRequest."No.");
+        ExpenseReportLine.Validate("Travel Request No.", SpendRequest."No.");
         ExpenseReportLine.Modify(true);
 
         // [THEN] The spend request is assigned to the line.
-        Assert.AreEqual(SpendRequest."No.", ExpenseReportLine."Spend Request No.", SpendReqNoSetMsg);
+        Assert.AreEqual(SpendRequest."No.", ExpenseReportLine."Travel Request No.", SpendReqNoSetMsg);
     end;
 
     [Test]
@@ -87,7 +87,7 @@ codeunit 148339 "Spend Request Test"
         CreateSpendRequestWithTraveler(SpendRequest, ExpenseUser."No.", SpendRequest.Status::Approved);
 
         // [WHEN] The spend request is selected on the non-refundable line.
-        asserterror ExpenseReportLine.Validate("Spend Request No.", SpendRequest."No.");
+        asserterror ExpenseReportLine.Validate("Travel Request No.", SpendRequest."No.");
 
         // [THEN] Validation fails because the line must be refundable.
         Assert.ExpectedErrorCode('TestField');
@@ -112,7 +112,7 @@ codeunit 148339 "Spend Request Test"
         LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Approved);
 
         // [WHEN] The spend request is selected on the line.
-        asserterror ExpenseReportLine.Validate("Spend Request No.", SpendRequest."No.");
+        asserterror ExpenseReportLine.Validate("Travel Request No.", SpendRequest."No.");
 
         // [THEN] Validation fails because the user is not a traveler.
         Assert.ExpectedError(NotTravelerErr);
@@ -135,7 +135,7 @@ codeunit 148339 "Spend Request Test"
         CreateSpendRequestWithTraveler(SpendRequest, ExpenseUser."No.", SpendRequest.Status::Released);
 
         // [WHEN] The spend request is selected on the line.
-        asserterror ExpenseReportLine.Validate("Spend Request No.", SpendRequest."No.");
+        asserterror ExpenseReportLine.Validate("Travel Request No.", SpendRequest."No.");
 
         // [THEN] Validation fails because only approved spend requests are selectable.
         Assert.ExpectedErrorCode('DB:NothingInsideFilter');
@@ -159,15 +159,15 @@ codeunit 148339 "Spend Request Test"
         CreateSpendRequestWithTraveler(SpendRequest, ExpenseUser."No.", SpendRequest.Status::Approved);
 
         // [GIVEN] The spend request is linked to the line.
-        ExpenseReportLine.Validate("Spend Request No.", SpendRequest."No.");
+        ExpenseReportLine.Validate("Travel Request No.", SpendRequest."No.");
         ExpenseReportLine.Modify(true);
 
         // [WHEN] The line is set to non-refundable.
         ExpenseReportLine.Validate(Refundable, false);
 
         // [THEN] The spend request link is cleared from the line.
-        Assert.AreEqual('', ExpenseReportLine."Spend Request No.", SpendReqClearedMsg);
-        Assert.IsFalse(ExpenseReportLine."Spend Request Close", SpendReqCloseClearedMsg);
+        Assert.AreEqual('', ExpenseReportLine."Travel Request No.", SpendReqClearedMsg);
+        Assert.IsFalse(ExpenseReportLine."Travel Request Close", SpendReqCloseClearedMsg);
     end;
 
     [Test]
@@ -487,7 +487,7 @@ codeunit 148339 "Spend Request Test"
         SpendRequest.Modify(true);
 
         // [THEN] A traveler is created for that user.
-        Traveler.SetRange("Spend Request No.", SpendRequest."No.");
+        Traveler.SetRange("Travel Request No.", SpendRequest."No.");
         Traveler.SetRange("Expense User No.", ExpenseUser."No.");
         Assert.RecordCount(Traveler, 1);
     end;
@@ -518,7 +518,7 @@ codeunit 148339 "Spend Request Test"
         SpendRequest.Modify(true);
 
         // [THEN] The first user's traveler is removed and the second user's traveler is added.
-        Traveler.SetRange("Spend Request No.", SpendRequest."No.");
+        Traveler.SetRange("Travel Request No.", SpendRequest."No.");
         Traveler.SetRange("Expense User No.", FirstExpenseUser."No.");
         Assert.RecordCount(Traveler, 0);
         Traveler.SetRange("Expense User No.", SecondExpenseUser."No.");
@@ -587,7 +587,7 @@ codeunit 148339 "Spend Request Test"
 
         // [GIVEN] The user is added as a traveler.
         LibraryExpense.CreateTraveler(SpendRequest."No.", ExpenseUser."No.");
-        Traveler.SetRange("Spend Request No.", SpendRequest."No.");
+        Traveler.SetRange("Travel Request No.", SpendRequest."No.");
         Assert.RecordCount(Traveler, 1);
 
         // [WHEN] The spend request is deleted.
@@ -619,12 +619,12 @@ codeunit 148339 "Spend Request Test"
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
 
         // [WHEN] The spend request is set on the header and the close is confirmed.
-        ExpenseReportHeader.Validate("Spend Request No.", SpendRequest."No.");
+        ExpenseReportHeader.Validate("Travel Request No.", SpendRequest."No.");
         ExpenseReportHeader.Modify(true);
 
         // [THEN] The header stores the request and the confirmed close flag.
-        Assert.AreEqual(SpendRequest."No.", ExpenseReportHeader."Spend Request No.", HeaderSpendReqNoSetMsg);
-        Assert.IsTrue(ExpenseReportHeader."Spend Request Close", HeaderCloseFlagMsg);
+        Assert.AreEqual(SpendRequest."No.", ExpenseReportHeader."Travel Request No.", HeaderSpendReqNoSetMsg);
+        Assert.IsTrue(ExpenseReportHeader."Travel Request Close", HeaderCloseFlagMsg);
     end;
 
     [Test]
@@ -648,7 +648,7 @@ codeunit 148339 "Spend Request Test"
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
 
         // [WHEN] The spend request is set on the header.
-        asserterror ExpenseReportHeader.Validate("Spend Request No.", SpendRequest."No.");
+        asserterror ExpenseReportHeader.Validate("Travel Request No.", SpendRequest."No.");
 
         // [THEN] It fails because the expense user is not a traveler.
         Assert.ExpectedError(NotTravelerErr);
@@ -687,12 +687,12 @@ codeunit 148339 "Spend Request Test"
 
         // [GIVEN] An expense report whose header references the header spend request.
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
-        ExpenseReportHeader.Validate("Spend Request No.", HeaderSpendRequest."No.");
+        ExpenseReportHeader.Validate("Travel Request No.", HeaderSpendRequest."No.");
         ExpenseReportHeader.Modify(true);
 
         // [GIVEN] A refundable line that references the line spend request instead.
         LibraryExpense.CreateExpenseReportLine(ExpenseReportLine, ExpenseReportHeader, ExpenseUser."No.", ExpenseCategory.Code, ExpensePaymentMethod.Code, true, '', LibraryRandom.RandIntInRange(100, 1000));
-        ExpenseReportLine.Validate("Spend Request No.", LineSpendRequest."No.");
+        ExpenseReportLine.Validate("Travel Request No.", LineSpendRequest."No.");
         ExpenseReportLine.Modify(true);
 
         // [WHEN] The report is released and posted.
@@ -762,7 +762,7 @@ codeunit 148339 "Spend Request Test"
         GeneralLedgerSetup: Record "General Ledger Setup";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
-        LibraryTestInitialize.OnTestInitialize(Codeunit::"Spend Request Test");
+        LibraryTestInitialize.OnTestInitialize(Codeunit::"Travel Request Test");
         LibraryExpense.CleanUpBeforeTesting();
         LibraryExpense.CleanTransactionalData();
         CloseConfirmCount := 0;
@@ -777,7 +777,7 @@ codeunit 148339 "Spend Request Test"
         if IsInitialized then
             exit;
 
-        LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Spend Request Test");
+        LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Travel Request Test");
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
         LibraryERMCountryData.CreateGeneralPostingSetupData();
@@ -790,7 +790,7 @@ codeunit 148339 "Spend Request Test"
         LibraryExpense.UpdateUseRulesInAgentSetup(false);
         IsInitialized := true;
 
-        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Spend Request Test");
+        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Travel Request Test");
     end;
 
     local procedure CreateExpenseReportWithRefundableLine(var ExpenseReportLine: Record "Expense Report Line"; var ExpenseUser: Record "Expense User"; Refundable: Boolean)
@@ -850,7 +850,7 @@ codeunit 148339 "Spend Request Test"
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
         for Index := 1 to NumberOfLines do begin
             LibraryExpense.CreateExpenseReportLine(ExpenseReportLine, ExpenseReportHeader, ExpenseUser."No.", ExpenseCategory.Code, ExpensePaymentMethod.Code, true, '', LibraryRandom.RandIntInRange(100, 1000));
-            ExpenseReportLine.Validate("Spend Request No.", SpendRequest."No.");
+            ExpenseReportLine.Validate("Travel Request No.", SpendRequest."No.");
             ExpenseReportLine.Modify(true);
         end;
     end;
@@ -878,7 +878,7 @@ codeunit 148339 "Spend Request Test"
 
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
         // The spend request is set once on the header; every line inherits it during posting.
-        ExpenseReportHeader.Validate("Spend Request No.", SpendRequest."No.");
+        ExpenseReportHeader.Validate("Travel Request No.", SpendRequest."No.");
         ExpenseReportHeader.Modify(true);
 
         for Index := 1 to NumberOfLines do
@@ -908,7 +908,7 @@ codeunit 148339 "Spend Request Test"
         // A report with a refundable line linked to the spend request; capture its refundable amount.
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
         LibraryExpense.CreateExpenseReportLine(ExpenseReportLine, ExpenseReportHeader, ExpenseUser."No.", ExpenseCategory.Code, ExpensePaymentMethod.Code, true, '', LibraryRandom.RandIntInRange(100, 1000));
-        ExpenseReportLine.Validate("Spend Request No.", SpendRequest."No.");
+        ExpenseReportLine.Validate("Travel Request No.", SpendRequest."No.");
         ExpenseReportLine.Modify(true);
         RefundableAmountLCY := ExpenseReportLine."Refundable Amount (LCY)";
 
@@ -935,7 +935,7 @@ codeunit 148339 "Spend Request Test"
     var
         Traveler: Record Traveler;
     begin
-        Traveler.SetRange("Spend Request No.", SpendRequestNo);
+        Traveler.SetRange("Travel Request No.", SpendRequestNo);
         Traveler.DeleteAll();
     end;
 
