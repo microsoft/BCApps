@@ -3646,10 +3646,20 @@ table 36 "Sales Header"
                       RespCenter.TableCaption(), UserSetupMgt.GetSalesFilter("Assigned User ID"));
             end;
         }
+#if not CLEANSCHEMA29
         field(10801; "VAT Paid on Debits"; Boolean)
         {
             Caption = 'VAT Paid on Debits';
+            ObsoleteReason = 'Moved to Sales FR app.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
+#endif
     }
 
     keys
