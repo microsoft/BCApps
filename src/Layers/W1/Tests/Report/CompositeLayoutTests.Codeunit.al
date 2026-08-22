@@ -24,10 +24,13 @@ codeunit 134619 "Composite Layout Tests"
         GlobalDefaultSourceTok: Label 'Global default', Locked = true;
         DocumentReportExperienceTok: Label 'DocumentReportExperience', Locked = true;
         InternalDefaultTok: Label 'Internal Default', Locked = true;
-        SystemAppIdTok: Label '8874ed3a-0643-4247-9ced-7a7002f7135d', Locked = true;
+        BaseAppIdTok: Label '437dbf0e-84ff-417a-965d-ed2bb9650972', Locked = true;
         UnseedablePartTok: Label 'Test Unseedable Part', Locked = true;
         UnseedablePartDescTok: Label 'A part a test seeds from a layout file that is not in the app.', Locked = true;
         MissingResourceTok: Label 'ReportParts/HeaderFooterDesign/ThisResourceIsNotInTheApp.docx', Locked = true;
+        RetiredPartTok: Label 'Test Retired Part', Locked = true;
+        RetiredPartDescTok: Label 'A part a test seeds under a name this version of the app does not ship.', Locked = true;
+        ShippedThemeResourceTok: Label 'ReportParts/ReportTheme/Default.dotx', Locked = true;
         TestReportID: Integer;
         BodyReportID: Integer;
         PartsReportID: Integer;
@@ -317,14 +320,14 @@ codeunit 134619 "Composite Layout Tests"
 
     [Test]
     [Scope('OnPrem')]
-    procedure SeededPartsAreStoredUnderTheSystemAppId()
+    procedure SeededPartsAreStoredUnderThisAppId()
     var
         TenantReportLayout: Record "Tenant Report Layout";
         CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
     begin
-        // [SCENARIO] The shipped parts are stored under the platform's System application rather than under no app at
-        // all. That App ID is part of the Tenant Report Layout key and of the composite reference an assignment stores,
-        // and it is what attributes the parts to Microsoft instead of showing them as parts added on this tenant.
+        // [SCENARIO] The shipped parts are stored under the App ID of the app that ships them rather than under no app
+        // at all. That App ID is part of the Tenant Report Layout key and of the composite reference an assignment
+        // stores, and it is what attributes the parts to Microsoft instead of showing them as parts added on this tenant.
         Initialize();
 
         // [GIVEN] The shipped parts are seeded. No cleanup follows: this scenario only adds to the pool.
@@ -338,11 +341,11 @@ codeunit 134619 "Composite Layout Tests"
                 CompositeReportPartsMgt.GetShippedPartAppId()),
             'A shipped part should be stored under the App ID the seeding pass writes.');
 
-        // [THEN] That App ID is the platform System application's, spelled out here so changing the constant is a
-        // deliberate act - every assignment of a shipped part encodes it into its composite reference.
+        // [THEN] That App ID is this app's own, spelled out here so changing it is a deliberate act - every assignment
+        // of a shipped part encodes it into its composite reference.
         Assert.AreEqual(
-            SystemAppIdTok, LowerCase(Format(CompositeReportPartsMgt.GetShippedPartAppId(), 0, 4)),
-            'The shipped parts should be stored under the platform System application App ID.');
+            BaseAppIdTok, LowerCase(Format(CompositeReportPartsMgt.GetShippedPartAppId(), 0, 4)),
+            'The shipped parts should be stored under the App ID of the app that ships them.');
     end;
 
     [Test]
@@ -455,6 +458,64 @@ codeunit 134619 "Composite Layout Tests"
 
     [Test]
     [Scope('OnPrem')]
+    procedure SeedingRemovesAPartThisVersionNoLongerShips()
+    var
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
+        RetiredPartName: Text[250];
+    begin
+        // [SCENARIO] Dropping a part from the shipped list - by deleting its layout file or its SeedPart call - has to
+        // take the part out of the shared pool too. Seeding only writes the names it still ships, so without a pass that
+        // removes the rest a retired part would stay in the pool for good.
+        Initialize();
+
+        // [GIVEN] A part in the pool under the shipped App ID, carrying a name this version does not ship.
+        RetiredPartName := CopyStr(RetiredPartTok, 1, MaxStrLen(RetiredPartName));
+        Assert.IsTrue(
+            CompositeReportPartsMgt.SeedPart(RetiredPartName, ShippedThemeResourceTok, Enum::"Report Layout Subtype"::Theme, RetiredPartDescTok),
+            'The retired part should be written before the pass, or the test proves nothing.');
+        Assert.AreEqual(1, ShippedPartCount(RetiredPartName), 'The retired part should be in the pool before the pass.');
+
+        // [WHEN] Seeding runs, as install and upgrade do.
+        CompositeReportPartsMgt.SeedDefaultParts();
+
+        // [THEN] It is gone, because its name is not one this version ships.
+        Assert.AreEqual(
+            0, ShippedPartCount(RetiredPartName),
+            'A part this version no longer ships should be removed from the shared pool.');
+
+        // [THEN] A part the version does ship is untouched, so the pass removes the retired names and nothing more.
+        Assert.IsTrue(
+            ShippedPartExists('Internal Default', Enum::"Report Layout Subtype"::HeaderFooter),
+            'Pruning must not take out a part the version still ships.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PruningARetiredPartClearsItsAssignments()
+    var
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
+        TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
+        RetiredPartName: Text[250];
+    begin
+        // [SCENARIO] A configuration row that assigned a retired part must not be left pointing at it: the reference is
+        // cleared as the part goes, the same way deleting a part from the page clears its assignments.
+        Initialize();
+
+        // [GIVEN] A retired part assigned as the theme of a report configuration row.
+        RetiredPartName := CopyStr(RetiredPartTok, 1, MaxStrLen(RetiredPartName));
+        CompositeReportPartsMgt.SeedPart(RetiredPartName, ShippedThemeResourceTok, Enum::"Report Layout Subtype"::Theme, RetiredPartDescTok);
+        InsertCfg(TestReportID, 'Body', '', '', LookupHelper.EncodeCompositeName(CompositeReportPartsMgt.GetShippedPartAppId(), RetiredPartName));
+
+        // [WHEN] Seeding runs and prunes the retired part.
+        CompositeReportPartsMgt.SeedDefaultParts();
+
+        // [THEN] The configuration row survives with the reference cleared, rather than pointing at a part that is gone.
+        Assert.IsTrue(TenantReportLayoutCfg.Get(TestReportID, 'Body', ''), 'The configuration row should survive the pruning.');
+        Assert.AreEqual('', TenantReportLayoutCfg."Theme Part Name", 'Pruning the part should clear the assignment that referenced it.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure CompositeReportPartsUpgradeTagIsRegisteredPerDatabase()
     var
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
@@ -476,15 +537,15 @@ codeunit 134619 "Composite Layout Tests"
 
     [Test]
     [Scope('OnPrem')]
-    procedure CompositeReportPartsUpgradeTagGatesRerun()
+    procedure UpgradeReseedsShippedPartsOnEveryRun()
     var
         UpgradeCompositeReportParts: Codeunit "Upgrade Composite Report Parts";
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
         UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
     begin
-        // [SCENARIO] The upgrade seeds on its first run and records its tag; a second run exits on the guard instead of
-        // re-seeding, which is what stops it re-writing parts over anything the tenant changed.
+        // [SCENARIO] The upgrade is not gated by its tag: it seeds on every run, so a shipped part is always replaced by
+        // the version the app carries, even when the tag from an earlier pass is already recorded.
         Initialize();
 
         // [GIVEN] No tag, and one shipped part missing, so the first run has work to do and is not gated. The delete is
@@ -514,10 +575,10 @@ codeunit 134619 "Composite Layout Tests"
         // [WHEN] The upgrade runs a second time, now with the tag present.
         UpgradeCompositeReportParts.RunUpgrade();
 
-        // [THEN] It exited on the guard, so the removed part was not written again.
-        Assert.IsFalse(
+        // [THEN] The tag did not gate the pass: the removed part was written again.
+        Assert.IsTrue(
             ShippedPartExists('Internal Default', Enum::"Report Layout Subtype"::HeaderFooter),
-            'The second upgrade should exit on the tag instead of re-seeding the parts.');
+            'The second upgrade should re-seed the shipped parts instead of exiting on the tag.');
     end;
 
     [Test]
@@ -558,9 +619,9 @@ codeunit 134619 "Composite Layout Tests"
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
         UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
     begin
-        // [SCENARIO] A seeding pass that could not write every part must not record the upgrade tag. The tag is what stops
-        // the pass from running again, so stamping it after a partial seed would leave the skipped parts missing for good.
-        // Left unset, the next upgrade runs the pass again and seeds them.
+        // [SCENARIO] A seeding pass that could not write every part must not record the upgrade tag. The tag reports
+        // whether the last pass was complete, so stamping it after a partial seed would claim a completeness the pass
+        // never reached.
         Initialize();
 
         // [GIVEN] No tag, and one shipped part missing, so a retry has visible work to do. The delete is guarded because
@@ -575,7 +636,7 @@ codeunit 134619 "Composite Layout Tests"
         // [WHEN] A seeding pass reports that it could not write every part.
         UpgradeCompositeReportParts.RecordSeedOutcome(false);
 
-        // [THEN] The tag was not recorded, so nothing gates a later attempt.
+        // [THEN] The tag was not recorded, so it does not claim the pass was complete.
         Assert.IsFalse(
             UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()),
             'A pass that did not seed every part must not record its upgrade tag.');
@@ -588,10 +649,10 @@ codeunit 134619 "Composite Layout Tests"
         // [WHEN] The next upgrade runs.
         UpgradeCompositeReportParts.RunUpgrade();
 
-        // [THEN] It was not gated: it retried the pass and seeded the part that was missing.
+        // [THEN] The next run seeded the part that was missing.
         Assert.IsTrue(
             ShippedPartExists(InternalDefaultTok, Enum::"Report Layout Subtype"::HeaderFooter),
-            'With the tag unset, the next upgrade should retry the seeding and write the missing part.');
+            'The next upgrade should seed the missing part.');
 
         // [THEN] That pass wrote every part, so this time it recorded the tag.
         Assert.IsTrue(
@@ -1372,25 +1433,11 @@ codeunit 134619 "Composite Layout Tests"
         RestoreShippedPartPool();
     end;
 
-    /// <summary>
-    /// Puts the shared part pool back into a known-complete state before each test.
-    /// </summary>
-    /// <remarks>
-    /// This is what makes the mutating tests in this suite failure-safe. AL has no finally block, and a try function
-    /// cannot contain database writes, so a test that fails part-way through cannot be relied on to put back what it
-    /// took out. Restoring at the start of the next test instead means a failure leaves nothing for anyone else to
-    /// trip over, in the same session and in whatever order the runner picked.
-    /// </remarks>
     local procedure RestoreShippedPartPool()
     var
         CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
     begin
-        // Seeding replaces a part rather than adding a second copy, so this is safe to run before every test, and it
-        // re-creates whatever a mutating test removed from the pool.
         CompositeReportPartsMgt.SeedDefaultParts();
-
-        // The part name the missing-resource test owns is deliberately not seedable, so seeding never puts it back.
-        // Take it out instead, in case that test failed after something had been written for it.
         RemoveShippedPart(UnseedablePartTok);
     end;
 

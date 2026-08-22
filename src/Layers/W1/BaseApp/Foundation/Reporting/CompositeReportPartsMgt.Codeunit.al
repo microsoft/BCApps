@@ -9,13 +9,9 @@ using System.Reflection;
 using System.Utilities;
 
 /// <summary>
-/// Seeds the shipped Composite Layout theme and header/footer parts into the shared pool under Tenant Report Defaults,
-/// on install and upgrade, and is safe to call repeatedly. A part is removed and inserted again rather than modified,
-/// because the platform does not allow the type and content of an existing report layout to be modified; the same
-/// removal takes out the copy an earlier version seeded with no App ID. Parts are stored under the platform System
-/// application's App ID, which an assignment encodes into its reference. The layout file is read in a try function and
-/// written outside it, because the platform rejects a database write inside a try function while install or upgrade
-/// holds a write transaction open.
+/// Seeds the shipped Composite Layout theme and header/footer parts under Tenant Report Defaults on install and
+/// upgrade, stored under this app's own App ID. Removes the parts this version no longer ships, and the copies an
+/// earlier version seeded under the platform System App ID, moving their assignments onto the new reference.
 /// </summary>
 codeunit 9667 "Composite Report Parts Mgt."
 {
@@ -42,7 +38,55 @@ codeunit 9667 "Composite Report Parts Mgt."
         FailedCount += CountFailure(SeedPart(CalmThemeTxt, 'ReportParts/ReportTheme/Calm.dotx', Enum::"Report Layout Subtype"::Theme, CalmThemeDescTxt));
         FailedCount += CountFailure(SeedPart(PlayfulThemeTxt, 'ReportParts/ReportTheme/Playful.dotx', Enum::"Report Layout Subtype"::Theme, PlayfulThemeDescTxt));
 
+        PruneRetiredParts();
+
         exit(FailedCount = 0);
+    end;
+
+    local procedure PruneRetiredParts()
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        TempPartsToDelete: Record "Tenant Report Layout" temporary;
+        CompositeLayoutLookupHelper: Codeunit "Composite Layout Lookup Helper";
+    begin
+        TenantReportLayout.SetRange("Report ID", CompositeLayoutLookupHelper.GetTenantReportDefaultsReportID());
+        TenantReportLayout.SetRange("App ID", GetShippedPartAppId());
+        if TenantReportLayout.FindSet() then
+            repeat
+                if not IsShippedPart(TenantReportLayout.Name) then begin
+                    ClearAssignments(TenantReportLayout.Name, TenantReportLayout."Layout Subtype");
+                    TempPartsToDelete.Init();
+                    TempPartsToDelete."Report ID" := TenantReportLayout."Report ID";
+                    TempPartsToDelete.Name := TenantReportLayout.Name;
+                    TempPartsToDelete.Insert();
+                end;
+            until TenantReportLayout.Next() = 0;
+
+        if TempPartsToDelete.FindSet() then
+            repeat
+                RemovePart(TempPartsToDelete.Name, GetShippedPartAppId());
+            until TempPartsToDelete.Next() = 0;
+    end;
+
+    local procedure ClearAssignments(PartName: Text[250]; Subtype: Enum "Report Layout Subtype")
+    var
+        TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
+        CompositeLayoutLookupHelper: Codeunit "Composite Layout Lookup Helper";
+        Composite: Text;
+    begin
+        Composite := CompositeLayoutLookupHelper.EncodeCompositeName(GetShippedPartAppId(), PartName);
+        case Subtype of
+            Subtype::HeaderFooter:
+                begin
+                    TenantReportLayoutCfg.SetRange("Header Part Name", CopyStr(Composite, 1, MaxStrLen(TenantReportLayoutCfg."Header Part Name")));
+                    TenantReportLayoutCfg.ModifyAll("Header Part Name", '');
+                end;
+            Subtype::Theme:
+                begin
+                    TenantReportLayoutCfg.SetRange("Theme Part Name", CopyStr(Composite, 1, MaxStrLen(TenantReportLayoutCfg."Theme Part Name")));
+                    TenantReportLayoutCfg.ModifyAll("Theme Part Name", '');
+                end;
+        end;
     end;
 
     local procedure CountFailure(PartSeeded: Boolean): Integer
@@ -53,8 +97,11 @@ codeunit 9667 "Composite Report Parts Mgt."
     end;
 
     internal procedure GetShippedPartAppId() AppId: Guid
+    var
+        CurrentModuleInfo: ModuleInfo;
     begin
-        Evaluate(AppId, SystemAppIdTxt);
+        NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
+        AppId := CurrentModuleInfo.Id;
     end;
 
     internal procedure IsShippedPart(PartName: Text): Boolean
@@ -192,8 +239,7 @@ codeunit 9667 "Composite Report Parts Mgt."
         PartNotSeededTxt: Label 'Composite layout parts: a shipped theme or header/footer part could not be written to the shared pool and was skipped. The remaining parts were seeded.', Locked = true;
         PartNotSeededDetailTxt: Label 'Composite layout parts: the reason a shipped theme or header/footer part could not be written. Publisher-scoped because the platform error text can echo customer content.', Locked = true;
 
-        SystemAppIdTxt: Label '8874ed3a-0643-4247-9ced-7a7002f7135d', Locked = true;
 
-        ThemeMimeTypeTxt: Label 'application/vnd.openxmlformats-officedocument.wordprocessingml.template', Locked = true;
-        HeaderFooterMimeTypeTxt: Label 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', Locked = true;
+        ThemeMimeTypeTxt: Label 'reportlayout/dotx', Locked = true;
+        HeaderFooterMimeTypeTxt: Label 'reportlayout/docx', Locked = true;
 }

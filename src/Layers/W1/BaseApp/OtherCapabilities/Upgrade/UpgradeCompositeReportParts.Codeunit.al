@@ -8,8 +8,8 @@ using Microsoft.Foundation.Reporting;
 using System.Upgrade;
 
 /// <summary>
-/// Seeds the shipped Composite Layout theme and header/footer parts, once per database. The tag is recorded only when
-/// every part was seeded, so a pass that skipped one is retried by the next upgrade instead of being gated out.
+/// Seeds the shipped Composite Layout theme and header/footer parts on every upgrade, replacing whatever the shared
+/// pool holds under those names. The tag is recorded once and does not gate the pass.
 /// </summary>
 codeunit 104064 "Upgrade Composite Report Parts"
 {
@@ -25,12 +25,7 @@ codeunit 104064 "Upgrade Composite Report Parts"
     internal procedure RunUpgrade()
     var
         CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
     begin
-        if UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()) then
-            exit;
-
         RecordSeedOutcome(CompositeReportPartsMgt.SeedDefaultParts());
     end;
 
@@ -40,6 +35,9 @@ codeunit 104064 "Upgrade Composite Report Parts"
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
     begin
         if not AllPartsSeeded then
+            exit;
+
+        if UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()) then
             exit;
 
         UpgradeTag.SetDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag());
