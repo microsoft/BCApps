@@ -639,8 +639,8 @@ page 49 "Purchase Quote"
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Name 2';
-                            Editable = PayToOptions = PayToOptions::"Another Vendor";
-                            Enabled = PayToOptions = PayToOptions::"Another Vendor";
+                            Editable = (PayToOptions = PayToOptions::"Custom Address") or (Rec."Buy-from Vendor No." <> Rec."Pay-to Vendor No.");
+                            Enabled = (PayToOptions = PayToOptions::"Custom Address") or (Rec."Buy-from Vendor No." <> Rec."Pay-to Vendor No.");
                             Importance = Additional;
                             QuickEntry = false;
                             Visible = false;
