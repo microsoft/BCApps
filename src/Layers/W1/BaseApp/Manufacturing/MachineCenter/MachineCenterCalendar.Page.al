@@ -7,6 +7,8 @@ namespace Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Finance.Analysis;
 using Microsoft.Foundation.Enums;
 using System.Utilities;
+using Microsoft.Manufacturing.Capacity;
+using Microsoft.Manufacturing.Setup;
 
 page 99000770 "Machine Center Calendar"
 {
@@ -37,6 +39,13 @@ page 99000770 "Machine Center Calendar"
                         GenerateColumnCaptions(Enum::"Matrix Page Step Type"::Initial);
                     end;
                 }
+                field(CapacityUoM; CapacityUoM)
+                {
+                    ApplicationArea = Manufacturing;
+                    Caption = 'Capacity Shown In';
+                    TableRelation = "Capacity Unit of Measure".Code;
+                    ToolTip = 'Specifies how the capacity is shown (minutes, days, or hours).';
+                }
                 field(MATRIX_CaptionRange; MATRIX_CaptionRange)
                 {
                     ApplicationArea = Manufacturing;
@@ -64,7 +73,7 @@ page 99000770 "Machine Center Calendar"
                     MatrixForm: Page "Machine Center Calendar Matrix";
                 begin
                     Clear(MatrixForm);
-                    MatrixForm.Load(MATRIX_CaptionSet, MATRIX_MatrixRecords, MATRIX_CurrentNoOfColumns);
+                    MatrixForm.Load(MATRIX_CaptionSet, MATRIX_MatrixRecords, MATRIX_CurrentNoOfColumns, CapacityUoM);
                     MatrixForm.SetTableView(Rec);
                     MatrixForm.RunModal();
                 end;
@@ -114,7 +123,12 @@ page 99000770 "Machine Center Calendar"
     }
 
     trigger OnOpenPage()
+    var
+        MfgSetup: Record "Manufacturing Setup";
     begin
+        MfgSetup.Get();
+        MfgSetup.TestField("Show Capacity In");
+        CapacityUoM := MfgSetup."Show Capacity In";
         GenerateColumnCaptions(Enum::"Matrix Page Step Type"::Initial);
         MATRIX_UseNameForCaption := false;
         MATRIX_CurrentSetLenght := ArrayLen(MATRIX_CaptionSet);
@@ -131,6 +145,7 @@ page 99000770 "Machine Center Calendar"
         MATRIX_DateFilter: Text;
         MATRIX_CurrentSetLenght: Integer;
         PeriodType: Enum "Analysis Period Type";
+        CapacityUoM: Code[10];
 
     local procedure GenerateColumnCaptions(StepType: Enum "Matrix Page Step Type")
     begin
