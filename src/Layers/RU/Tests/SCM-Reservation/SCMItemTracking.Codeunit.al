@@ -5697,6 +5697,163 @@ codeunit 137405 "SCM Item Tracking"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [HandlerFunctions('ItemTrackingLinesLotSNQtyModalPageHandler')]
+    [Scope('OnPrem')]
+    procedure GetAvailableLotQtyExcludesUnregisteredWhsePickAllocation()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        TrackingSpecification: Record "Tracking Specification";
+        ItemTrackingDataCollection: Codeunit "Item Tracking Data Collection";
+        LotNo: Code[50];
+        Qty: Integer;
+    begin
+        // [Bug 638344] Available lot quantity must exclude quantities committed to an unregistered warehouse pick
+        // [SCENARIO] A lot fully allocated to an unregistered warehouse-pick Take line is not reported as available for a different demand source
+        Initialize();
+
+        // [GIVEN] Lot-tracked item with lot warehouse tracking, in stock at a location for lot "L" with qty "Q"
+        Qty := LibraryRandom.RandIntInRange(20, 50);
+        LotNo := LibraryUtility.GenerateGUID();
+        CreateLotTrackedItemAtLocation(Item, Location);
+        CreateAndPostLotStockForPick(Item."No.", Location.Code, LotNo, Qty);
+
+        // [GIVEN] An unregistered warehouse pick Take line reserves the full lot quantity for a different sales line
+        CreateUnregisteredWhsePickTakeLine(
+            WarehouseActivityHeader, WarehouseActivityLine, Item."No.", Location.Code, LotNo, Qty,
+            Database::"Sales Line", 1, LibraryUtility.GenerateGUID(), 10000);
+
+        // [WHEN] Available lot quantity is retrieved for a new demand on the same lot
+        SetTrackingSpecItemLotLocation(TrackingSpecification, Item."No.", Location.Code, LotNo);
+
+        // [THEN] Available quantity is zero because the on-hand lot is fully committed to the unregistered pick
+        Assert.AreEqual(
+            0, ItemTrackingDataCollection.GetAvailableLotQty(TrackingSpecification),
+            'Available lot quantity must exclude quantities allocated to unregistered warehouse picks.');
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ItemTrackingLinesLotSNQtyModalPageHandler')]
+    [Scope('OnPrem')]
+    procedure GetAvailableLotQtyExcludesUnregisteredInvtPickAllocation()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        TrackingSpecification: Record "Tracking Specification";
+        ItemTrackingDataCollection: Codeunit "Item Tracking Data Collection";
+        LotNo: Code[50];
+        Qty: Integer;
+    begin
+        // [Bug 638344] Available lot quantity must exclude quantities committed to an unregistered inventory pick
+        // [SCENARIO] A lot fully allocated to an unregistered Invt. Pick line (blank Action Type) is not reported as available for a different demand source
+        Initialize();
+
+        // [GIVEN] Lot-tracked item with lot warehouse tracking, in stock at a location for lot "L" with qty "Q"
+        Qty := LibraryRandom.RandIntInRange(20, 50);
+        LotNo := LibraryUtility.GenerateGUID();
+        CreateLotTrackedItemAtLocation(Item, Location);
+        CreateAndPostLotStockForPick(Item."No.", Location.Code, LotNo, Qty);
+
+        // [GIVEN] An unregistered inventory pick line reserves the full lot quantity for a different sales line
+        CreateUnregisteredInvtPickLine(
+            WarehouseActivityHeader, WarehouseActivityLine, Item."No.", Location.Code, LotNo, Qty,
+            Database::"Sales Line", 1, LibraryUtility.GenerateGUID(), 10000);
+
+        // [WHEN] Available lot quantity is retrieved for a new demand on the same lot
+        SetTrackingSpecItemLotLocation(TrackingSpecification, Item."No.", Location.Code, LotNo);
+
+        // [THEN] Available quantity is zero because the on-hand lot is fully committed to the unregistered inventory pick
+        Assert.AreEqual(
+            0, ItemTrackingDataCollection.GetAvailableLotQty(TrackingSpecification),
+            'Available lot quantity must exclude quantities allocated to unregistered inventory picks.');
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    local procedure CreateLotTrackedItemAtLocation(var Item: Record Item; var Location: Record Location)
+    var
+        InventoryPostingSetup: Record "Inventory Posting Setup";
+        ItemTrackingCodeCode: Code[10];
+    begin
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        Location.Validate("Require Pick", true);
+        Location.Validate("Require Shipment", true);
+        Location.Modify(true);
+
+        ItemTrackingCodeCode := CreateItemTrackingCodeLotSpecificWhseTracking(true);
+        CreateItem(Item, ItemTrackingCodeCode, '', LibraryUtility.GetGlobalNoSeriesCode());
+
+        if not InventoryPostingSetup.Get(Location.Code, Item."Inventory Posting Group") then
+            LibraryInventory.CreateInventoryPostingSetup(InventoryPostingSetup, Location.Code, Item."Inventory Posting Group");
+    end;
+
+    local procedure SetTrackingSpecItemLotLocation(var TrackingSpecification: Record "Tracking Specification"; ItemNo: Code[20]; LocationCode: Code[10]; LotNo: Code[50])
+    begin
+        Clear(TrackingSpecification);
+        TrackingSpecification."Item No." := ItemNo;
+        TrackingSpecification."Location Code" := LocationCode;
+        TrackingSpecification."Lot No." := LotNo;
+    end;
+
+    local procedure CreateUnregisteredWhsePickTakeLine(var WarehouseActivityHeader: Record "Warehouse Activity Header"; var WarehouseActivityLine: Record "Warehouse Activity Line"; ItemNo: Code[20]; LocationCode: Code[10]; LotNo: Code[50]; Qty: Decimal; SourceType: Integer; SourceSubtype: Integer; SourceNo: Code[20]; SourceLineNo: Integer)
+    begin
+        WarehouseActivityHeader.Init();
+        WarehouseActivityHeader.Type := WarehouseActivityHeader.Type::Pick;
+        WarehouseActivityHeader."No." := LibraryUtility.GenerateGUID();
+        WarehouseActivityHeader."Location Code" := LocationCode;
+        WarehouseActivityHeader.Insert(false);
+
+        WarehouseActivityLine.Init();
+        WarehouseActivityLine."Activity Type" := WarehouseActivityLine."Activity Type"::Pick;
+        WarehouseActivityLine."No." := WarehouseActivityHeader."No.";
+        WarehouseActivityLine."Line No." := 10000;
+        WarehouseActivityLine."Action Type" := WarehouseActivityLine."Action Type"::Take;
+        WarehouseActivityLine."Item No." := ItemNo;
+        WarehouseActivityLine."Location Code" := LocationCode;
+        WarehouseActivityLine."Lot No." := LotNo;
+        WarehouseActivityLine."Qty. Outstanding" := Qty;
+        WarehouseActivityLine."Qty. Outstanding (Base)" := Qty;
+        WarehouseActivityLine."Breakbulk No." := 0;
+        WarehouseActivityLine."Source Type" := SourceType;
+        WarehouseActivityLine."Source Subtype" := SourceSubtype;
+        WarehouseActivityLine."Source No." := SourceNo;
+        WarehouseActivityLine."Source Line No." := SourceLineNo;
+        WarehouseActivityLine.Insert(false);
+    end;
+
+    local procedure CreateUnregisteredInvtPickLine(var WarehouseActivityHeader: Record "Warehouse Activity Header"; var WarehouseActivityLine: Record "Warehouse Activity Line"; ItemNo: Code[20]; LocationCode: Code[10]; LotNo: Code[50]; Qty: Decimal; SourceType: Integer; SourceSubtype: Integer; SourceNo: Code[20]; SourceLineNo: Integer)
+    begin
+        WarehouseActivityHeader.Init();
+        WarehouseActivityHeader.Type := WarehouseActivityHeader.Type::"Invt. Pick";
+        WarehouseActivityHeader."No." := LibraryUtility.GenerateGUID();
+        WarehouseActivityHeader."Location Code" := LocationCode;
+        WarehouseActivityHeader.Insert(false);
+
+        WarehouseActivityLine.Init();
+        WarehouseActivityLine."Activity Type" := WarehouseActivityLine."Activity Type"::"Invt. Pick";
+        WarehouseActivityLine."No." := WarehouseActivityHeader."No.";
+        WarehouseActivityLine."Line No." := 10000;
+        WarehouseActivityLine."Action Type" := WarehouseActivityLine."Action Type"::" ";
+        WarehouseActivityLine."Item No." := ItemNo;
+        WarehouseActivityLine."Location Code" := LocationCode;
+        WarehouseActivityLine."Lot No." := LotNo;
+        WarehouseActivityLine."Qty. Outstanding" := Qty;
+        WarehouseActivityLine."Qty. Outstanding (Base)" := Qty;
+        WarehouseActivityLine."Breakbulk No." := 0;
+        WarehouseActivityLine."Source Type" := SourceType;
+        WarehouseActivityLine."Source Subtype" := SourceSubtype;
+        WarehouseActivityLine."Source No." := SourceNo;
+        WarehouseActivityLine."Source Line No." := SourceLineNo;
+        WarehouseActivityLine.Insert(false);
+    end;
+
     local procedure CreateAndPostLotStockForPick(ItemNo: Code[20]; LocationCode: Code[10]; LotNo: Code[50]; Qty: Integer)
     var
         ItemJournalLine: Record "Item Journal Line";
