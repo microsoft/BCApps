@@ -756,6 +756,7 @@ table 60 "Document Sending Profile"
             "E-Mail Attachment"::"Electronic Document":
                 begin
                     ReportSelections.GetEmailBodyForCust(EmailBodyTempBlob, ReportUsage, RecordVariant, ToCust, SendToEmailAddress);
+                    ReportDistributionManagement.InitializeFrom(not ShowDialog);
                     ReportDistributionManagement.SendXmlEmailAttachment(
                       RecordVariant, "E-Mail Format", EmailBodyTempBlob, SendToEmailAddress, ReportUsage);
                 end;
@@ -820,6 +821,7 @@ table 60 "Document Sending Profile"
             "E-Mail Attachment"::"Electronic Document":
                 begin
                     ReportSelections.GetEmailBodyForVend(EmailBodyTempBlob, ReportUsage, RecordVariant, ToVendor, SendToEmailAddress);
+                    ReportDistributionManagement.InitializeFrom(not ShowDialog);
                     ReportDistributionManagement.SendXmlEmailAttachmentVendor(
                       RecordVariant, "E-Mail Format", EmailBodyTempBlob, SendToEmailAddress);
                 end;
