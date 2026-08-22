@@ -106,7 +106,7 @@ codeunit 1222 "SEPA CT-Prepare Source"
                     TempGenJnlLine.Description := CopyStr(AppliedDocNoList, 1, DescriptionLen);
                     if StrLen(AppliedDocNoList) > DescriptionLen then
                         TempGenJnlLine."Message to Recipient" :=
-                          CopyStr(AppliedDocNoList, DescriptionLen + 1, DescriptionLen + MaxStrLen(TempGenJnlLine."Message to Recipient"));
+                          CopyStr(AppliedDocNoList, DescriptionLen + 1, MaxStrLen(TempGenJnlLine."Message to Recipient"));
                 end;
 
                 TempGenJnlLine.Insert();
