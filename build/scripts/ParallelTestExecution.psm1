@@ -833,9 +833,7 @@ function Invoke-RequiredDisabledTestExecution {
                 -TenantInfo $selectedTenantInfo -TemplateDatabaseName $TemplateDatabaseName `
                 -ScriptPath $ScriptPath -TestType $TestType -State $state -Verb $verb
         } else {
-            if (-not (Wait-ForAllTestJobs -state $state)) {
-                $state.hasFailures = $true
-            }
+            $null = Wait-ForAllTestJobs -state $state
         }
     }
 
@@ -864,10 +862,17 @@ function Register-TestJobOutcome {
     switch ($Result.Outcome) {
         'Transient' {
             Write-Host "Transient platform race for '$($Result.AppName)' on '$($Result.Tenant)'. Queued for one retry."
-            $State.transient = @($State.transient) + @($Result.AppName)
+            $State.transient = @($State.transient) + @(
+                [PSCustomObject]@{
+                    Key = $Result.AppName
+                    Tenant = $Result.Tenant
+                }
+            )
         }
         'Failed' {
-            $canRerun = ($State.rerunBudget -gt 0) -and
+            $supportsAppReruns = $null -ne $State.PSObject.Properties['rerunBudget']
+            $canRerun = $supportsAppReruns -and
+                        ($State.rerunBudget -gt 0) -and
                         ($State.tenantCount -gt 1) -and
                         (-not $State.rerunDone.ContainsKey($Result.AppName))
 

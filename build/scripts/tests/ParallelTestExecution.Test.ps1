@@ -661,13 +661,15 @@ Describe "ParallelTestExecution warmup dispatch" {
         InModuleScope ParallelTestExecution {
             Mock Start-TestAppDispatch { }
             # Simulate Wait-ForAllTestJobs classifying the warmup app as a transient race.
-            Mock Wait-ForAllTestJobs { $State.transient = @('A'); $true }
+            Mock Wait-ForAllTestJobs {
+                $State.transient = @([PSCustomObject]@{ Key = 'A'; Tenant = 'default' })
+            }
             $state = [PSCustomObject]@{ jobs = @(); hasFailures = $false; transient = @(); retried = @{} }
             $result = Invoke-WarmupDispatch -Parameters @{ containerName = 'c' } `
                 -Pending @('A', 'B', 'C') -AppIdByName @{ A = 'id-A'; B = 'id-B'; C = 'id-C' } `
                 -Tenants @('default', 'tenant2') -ScriptPath 'unused.ps1' -TestType 'Legacy' -State $state
             $result | Should -Be @('B', 'C')
-            $state.transient | Should -Contain 'A'
+            $state.transient.Key | Should -Contain 'A'
             $state.hasFailures | Should -BeFalse
         }
     }
@@ -893,7 +895,9 @@ Describe "ParallelTestExecution rerun budget is limited to pull request builds" 
                     if ($FileSuffix -and -not $script:raced) {
                         # The rerun job hits the platform race.
                         $script:raced = $true
-                        $State.transient = @($State.transient) + @($AppName)
+                        $State.transient = @($State.transient) + @(
+                            [PSCustomObject]@{ Key = $AppName; Tenant = $Tenant }
+                        )
                     }
                 }
                 # Pre-seed the state as though 'A' already had its rerun dispatched.
@@ -904,10 +908,11 @@ Describe "ParallelTestExecution rerun budget is limited to pull request builds" 
                     rerun = @(); rerunDone = @{}; rerunBudget = 1; tenantCount = 2
                 }
                 $state.rerunDone['A'] = 'rerun1'
-                $state.transient = @('A')
+                $state.transient = @([PSCustomObject]@{ Key = 'A'; Tenant = 'tenant2' })
 
                 # Exercise just the promotion path the loop performs.
-                foreach ($appName in @($state.transient)) {
+                foreach ($transient in @($state.transient)) {
+                    $appName = $transient.Key
                     if ($state.rerunDone.ContainsKey($appName)) {
                         Remove-RerunResultFile -parameters $params -suffix $state.rerunDone[$appName]
                     }
