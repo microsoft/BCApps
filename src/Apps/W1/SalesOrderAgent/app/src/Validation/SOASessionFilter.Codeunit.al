@@ -86,8 +86,7 @@ codeunit 4306 "SOA Session Filter"
         Customer.SetFilter("No.", CustomerFilter);
         if Customer.FindFirst() then begin
             CustomerNo := Customer."No.";
-            if SearchOnlyAvailableItems then
-                LocationFilter := Customer.GetDefaultLocation();
+            LocationFilter := Customer.GetDefaultLocation();
         end;
     end;
 

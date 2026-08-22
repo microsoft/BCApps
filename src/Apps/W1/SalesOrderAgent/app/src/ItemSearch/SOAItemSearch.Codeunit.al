@@ -316,8 +316,10 @@ codeunit 4591 "SOA Item Search"
             Item.CopyFilter("Date Filter", Rec."Date Filter");
             Item.CopyFilter("Location Filter", Rec."Location Filter");
             Item.CopyFilter("Variant Filter", Rec."Variant Filter");
+            Item.CopyFilter("Item Availability Filter", Rec."Item Availability Filter");
             Found := Rec.Find(Which);
-        end;
+        end else
+            Rec.SetRange(SystemId);
 
         // Prepare Custom Dimensions for Telemetry
         TelemetryCustomDimension.Add('SearchType', SearchType);
