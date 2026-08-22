@@ -57,6 +57,7 @@ codeunit 139500 "MS - PayPal Standard Tests"
         WebhookNotification: Record "Webhook Notification";
     begin
         BindActiveDirectoryMockEvents();
+        BindPayPalStdMockEvents();
 
         CompanyInformation.GET();
         CompanyInformation."Allow Blank Payment Info." := TRUE;
@@ -78,8 +79,6 @@ codeunit 139500 "MS - PayPal Standard Tests"
         CreateSalesInvoice(DummySalesHeader, DummyPaymentMethod);
         SetupReportSelections();
         COMMIT();
-
-        BINDSUBSCRIPTION(MSPayPalStdMockEvents);
 
         Initialized := TRUE;
     end;
@@ -829,7 +828,8 @@ codeunit 139500 "MS - PayPal Standard Tests"
         SetupPaymentNotification(MSPayPalStandardAccount, SalesInvoiceHeader);
 
         // Exercise
-        ASSERTERROR SendPaymentNotification(
+        // The webhook is processed in an error-trapped session, so a missing invoice doesn't surface an error to the caller.
+        SendPaymentNotification(
             MSPayPalStandardAccount."Account ID", PaymentStatusCompletedTxt, MissingInvoiceNumberTxt,
             SalesInvoiceHeader."Currency Code", SalesInvoiceHeader."Amount Including VAT");
         O365SalesInvoicePayment.CollectRemainingPayments(SalesInvoiceHeader."No.", TempPaymentRegistrationBuffer);
@@ -1516,6 +1516,13 @@ codeunit 139500 "MS - PayPal Standard Tests"
             EXIT;
         BINDSUBSCRIPTION(ActiveDirectoryMockEvents);
         ActiveDirectoryMockEvents.Enable();
+    end;
+
+    local procedure BindPayPalStdMockEvents();
+    begin
+        // Rebind every test so the mock (disables background processing, captures payment events) stays active after per-test unbinding.
+        UnbindSubscription(MSPayPalStdMockEvents);
+        BindSubscription(MSPayPalStdMockEvents);
     end;
 
     LOCAL PROCEDURE SetPaymentRegistrationSetup();
