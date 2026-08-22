@@ -4,13 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.AuditFileExport;
 
-enumextension 10826 "Audit File Export Format FEC" extends "Audit File Export Format"
+using System.Security.AccessControl;
+
+permissionsetextension 10805 "D365 READ - XML" extends "D365 READ"
 {
-    value(10826; FEC)
-    {
-        Caption = 'FEC';
-        Implementation = "Audit File Export Data Handling" = "Data Handling FEC",
-                         "Audit File Export Data Check" = "Data Check FEC",
-                         "Audit File Export Page Visibility" = "Page Visibility FEC";
-    }
+    IncludedPermissionSets = "XML - Objects";
 }

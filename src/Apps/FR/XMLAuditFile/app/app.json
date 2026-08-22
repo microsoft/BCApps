@@ -1,10 +1,10 @@
 {
-  "id": "e98078ff-1f85-442b-828f-9f73ce6c4e22",
-  "name": "FEC Audit File",
+  "id": "6086ffec-252c-43fd-b862-08c689e208c2",
+  "name": "XML Audit File FR",
   "publisher": "Microsoft",
   "version": "29.0.0.0",
-  "brief": "The FEC Audit File extension makes it easy to export general ledger data in the Fichier des Ã©critures comptables (FEC) format.",
-  "description": "As a part of the audit reporting in France, companies must be able to export general ledger data according to the Fichier des Ã©critures comptables (FEC) format. This extension enables using FEC format within Audit File Export app.",
+  "brief": "Export G/L entries to XML via Audit File Export framework.",
+  "description": "XML export for general ledger entries using the Audit File Export framework.",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "https://learn.microsoft.com/en-us/dynamics365/business-central/localfunctionality/france/how-to-export-general-ledger-entries-for-tax-audits",
@@ -19,23 +19,29 @@
       "version": "29.0.0.0"
     }
   ],
+  "internalsVisibleTo": [
+    {
+      "id": "86cb76b5-cdd3-4a37-809c-1c41b8bb7cab",
+      "name": "XML Audit File FR Tests",
+      "publisher": "Microsoft"
+    }
+  ],
   "screenshots": [],
   "platform": "29.0.0.0",
   "application": "29.0.0.0",
   "idRanges": [
     {
-      "from": 10826,
-      "to": 10832
-    },
-    {
-      "from": 10879,
-      "to": 10879
+      "from": 10803,
+      "to": 10813
     }
   ],
   "resourceExposurePolicy": {
-    "allowDebugging": true,
-    "allowDownloadingSource": true,
-    "includeSourceInSymbolFile": true
+    "allowDebugging": false,
+    "allowDownloadingSource": false,
+    "includeSourceInSymbolFile": false
   },
-  "target": "Cloud"
+  "target": "Cloud",
+  "features": [
+    "TranslationFile"
+  ]
 }

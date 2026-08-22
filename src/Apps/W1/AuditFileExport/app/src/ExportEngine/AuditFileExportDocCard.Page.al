@@ -30,6 +30,7 @@ page 5267 "Audit File Export Doc. Card"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the G/L account mapping code that represents the reporting period.';
+                    Visible = GLAccountMappingCodeVisible;
                 }
                 field(StartingDate; Rec."Starting Date")
                 {
@@ -45,32 +46,37 @@ page 5267 "Audit File Export Doc. Card"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies if multiple audit files will be generated per month.';
+                    Visible = SplitByMonthVisible;
                 }
                 field(SplitByDate; Rec."Split By Date")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies whether multiple audit files will be generated for each day.';
+                    Visible = SplitByDateVisible;
                 }
                 field("Header Comment"; Rec."Header Comment")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the comment that is exported to the header of the audit file';
+                    Visible = HeaderCommentVisible;
                 }
                 field(Contact; Rec.Contact)
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the contact that is exported to the header of the audit file';
+                    Visible = ContactVisible;
                 }
                 field(ZipFileGeneration; Rec."Archive to Zip")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies that all files will be packed into a Zip archive.';
-                    Visible = not IsSaaS;
+                    Visible = ZipFileGenerationVisible and not IsSaaS;
                 }
                 field(CreateMultipleZipFiles; Rec."Create Multiple Zip Files")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies that multiple Zip files will be generated.';
+                    Visible = CreateMultipleZipFilesVisible;
                 }
             }
             group(Processing)
@@ -120,11 +126,13 @@ page 5267 "Audit File Export Doc. Card"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies when the most recent data check was run.';
+                    Visible = LatestDataCheckDateTimeVisible;
                 }
                 field(DataCheckStatus; Rec."Data check status")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the status of the most recent data check.';
+                    Visible = DataCheckStatusVisible;
                 }
             }
             part(ExportLines; "Audit File Export Subpage")
@@ -149,6 +157,7 @@ page 5267 "Audit File Export Doc. Card"
                 Image = CheckRulesSyntax;
                 Caption = 'Data check';
                 ToolTip = 'Check that data is ready to be exported to the audit file.';
+                Visible = DataCheckActionVisible;
 
                 trigger OnAction()
                 var
@@ -212,6 +221,16 @@ page 5267 "Audit File Export Doc. Card"
         IsParallelProcessingAllowed: Boolean;
         IsParallelProcessingEnabled: Boolean;
         IsSaaS: Boolean;
+        GLAccountMappingCodeVisible: Boolean;
+        SplitByMonthVisible: Boolean;
+        SplitByDateVisible: Boolean;
+        HeaderCommentVisible: Boolean;
+        ContactVisible: Boolean;
+        ZipFileGenerationVisible: Boolean;
+        CreateMultipleZipFilesVisible: Boolean;
+        LatestDataCheckDateTimeVisible: Boolean;
+        DataCheckStatusVisible: Boolean;
+        DataCheckActionVisible: Boolean;
 
     trigger OnOpenPage()
     var
@@ -222,6 +241,7 @@ page 5267 "Audit File Export Doc. Card"
         if not IsParallelProcessingAllowed then
             AuditFileExportMgt.ThrowNoParallelExecutionNotification();
         IsSaaS := EnvironmentInformation.IsSaaS();
+        UpdateVisibility();
     end;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
@@ -232,10 +252,68 @@ page 5267 "Audit File Export Doc. Card"
     trigger OnAfterGetCurrRecord()
     begin
         CalcParallelProcessingEnabled();
+        UpdateVisibility();
     end;
 
     local procedure CalcParallelProcessingEnabled()
     begin
         IsParallelProcessingEnabled := Rec."Parallel Processing";
+    end;
+
+    local procedure UpdateVisibility()
+    var
+        IAuditFileExportPageVisibility: Interface "Audit File Export Page Visibility";
+        FieldVisibility: Dictionary of [Text, Boolean];
+        ActionVisibility: Dictionary of [Text, Boolean];
+    begin
+        InitializeVisibility(FieldVisibility, ActionVisibility);
+        IAuditFileExportPageVisibility := Rec."Audit File Export Format";
+        IAuditFileExportPageVisibility.GetUIVisibility(FieldVisibility, ActionVisibility);
+        ApplyVisibility(FieldVisibility, ActionVisibility);
+        CurrPage.Update();
+    end;
+
+    local procedure InitializeVisibility(var FieldVisibility: Dictionary of [Text, Boolean]; var ActionVisibility: Dictionary of [Text, Boolean])
+    begin
+        // Initialize all field visibility to true
+        FieldVisibility.Set('GLAccountMappingCode', true);
+        FieldVisibility.Set('SplitByMonth', true);
+        FieldVisibility.Set('SplitByDate', true);
+        FieldVisibility.Set('HeaderComment', true);
+        FieldVisibility.Set('Contact', true);
+        FieldVisibility.Set('ZipFileGeneration', true);
+        FieldVisibility.Set('CreateMultipleZipFiles', true);
+        FieldVisibility.Set('LatestDataCheckDateTime', true);
+        FieldVisibility.Set('DataCheckStatus', true);
+
+        // Initialize all action visibility to true
+        ActionVisibility.Set('DataCheck', true);
+    end;
+
+    local procedure ApplyVisibility(FieldVisibility: Dictionary of [Text, Boolean]; ActionVisibility: Dictionary of [Text, Boolean])
+    begin
+        // Apply field visibility
+        if FieldVisibility.ContainsKey('GLAccountMappingCode') then
+            GLAccountMappingCodeVisible := FieldVisibility.Get('GLAccountMappingCode');
+        if FieldVisibility.ContainsKey('SplitByMonth') then
+            SplitByMonthVisible := FieldVisibility.Get('SplitByMonth');
+        if FieldVisibility.ContainsKey('SplitByDate') then
+            SplitByDateVisible := FieldVisibility.Get('SplitByDate');
+        if FieldVisibility.ContainsKey('HeaderComment') then
+            HeaderCommentVisible := FieldVisibility.Get('HeaderComment');
+        if FieldVisibility.ContainsKey('Contact') then
+            ContactVisible := FieldVisibility.Get('Contact');
+        if FieldVisibility.ContainsKey('ZipFileGeneration') then
+            ZipFileGenerationVisible := FieldVisibility.Get('ZipFileGeneration');
+        if FieldVisibility.ContainsKey('CreateMultipleZipFiles') then
+            CreateMultipleZipFilesVisible := FieldVisibility.Get('CreateMultipleZipFiles');
+        if FieldVisibility.ContainsKey('LatestDataCheckDateTime') then
+            LatestDataCheckDateTimeVisible := FieldVisibility.Get('LatestDataCheckDateTime');
+        if FieldVisibility.ContainsKey('DataCheckStatus') then
+            DataCheckStatusVisible := FieldVisibility.Get('DataCheckStatus');
+
+        // Apply action visibility
+        if ActionVisibility.ContainsKey('DataCheck') then
+            DataCheckActionVisible := ActionVisibility.Get('DataCheck');
     end;
 }
