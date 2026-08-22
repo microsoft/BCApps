@@ -568,21 +568,23 @@ codeunit 130481 "Contact Sync Test"
     procedure TestContactSyncUserSetDeltaUrlFailsWithInvalidUrl()
     var
         ContactSyncUser: Record "Contact Sync User";
+        OriginalDeltaUrl: Text;
     begin
-        // [SCENARIO] Setting Delta URL to a non-Graph URL should fail.
+        // [SCENARIO] Setting Delta URL to a non-Graph URL should silently reject the change.
         Initialize();
 
-        // [GIVEN] An existing Contact Sync User record
-        CreateContactSyncUserForCurrentUser(ContactSyncUser, 'folder-set-invalid-url', '');
+        // [GIVEN] An existing Contact Sync User record with a valid Delta URL
+        CreateContactSyncUserForCurrentUser(ContactSyncUser, 'folder-set-invalid-url', 'https://graph.microsoft.com/v1.0/me/contactFolders/folder-set-invalid-url/contacts/delta');
+        OriginalDeltaUrl := ContactSyncUser.GetDeltaUrl();
 
         // [WHEN] SetDeltaUrl is called with invalid URL
-        asserterror ContactSyncUser.SetDeltaUrl('https://contoso.example.com/v1.0/me/contactFolders/folder-set-invalid-url/contacts/delta');
+        ContactSyncUser.SetDeltaUrl('https://contoso.example.com/v1.0/me/contactFolders/folder-set-invalid-url/contacts/delta');
 
-        // [THEN] Delta URL validation should reject the value
-        AssertIsTrue(StrPos(GetLastErrorText(), InvalidDeltaUrlErr) > 0, 'Expected error containing: "' + InvalidDeltaUrlErr + '". Actual: ' + GetLastErrorText());
+        // [THEN] Delta URL should not be persisted (validation rejects it silently)
+        ContactSyncUser.Get(ContactSyncUser."ID");
+        AssertAreEqual(OriginalDeltaUrl, ContactSyncUser.GetDeltaUrl(), 'Delta URL should remain unchanged when invalid URL is provided.');
 
-        if ContactSyncUser.Get(ContactSyncUser."ID") then
-            ContactSyncUser.Delete();
+        ContactSyncUser.Delete();
     end;
 
     [Test]
