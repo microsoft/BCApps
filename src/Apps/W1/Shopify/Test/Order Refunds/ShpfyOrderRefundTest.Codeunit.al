@@ -615,6 +615,121 @@ codeunit 139611 "Shpfy Order Refund Test"
     end;
 
     [Test]
+    procedure UnitTestConsiderRefundsReducesLineDiscountForRefundedQuantity()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrderLine: Record "Shpfy Order Line";
+        Shop: Record "Shpfy Shop";
+        OrderRefundsHelper: Codeunit "Shpfy Order Refunds Helper";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        OrderId: BigInteger;
+        OrderLineId: BigInteger;
+        RefundId: BigInteger;
+        UnitPrice: Decimal;
+        PresentmentUnitPrice: Decimal;
+        OriginalQuantity: Integer;
+        OriginalDiscount: Decimal;
+        PresentmentOriginalDiscount: Decimal;
+        RefundQuantity: Integer;
+        RefundSubtotal: Decimal;
+        PresentmentRefundSubtotal: Decimal;
+        ExpectedDiscount: Decimal;
+        ExpectedPresentmentDiscount: Decimal;
+    begin
+        // [SCENARIO] When a refund removes part of a line's quantity, the line's discount amount is reduced by
+        // the discount that was allocated to the removed quantity, so the remaining quantity is not over-discounted.
+        Initialize();
+
+        // [GIVEN] A line with shop unit price 48, quantity 2 and a 20% order-level discount of 19.20 (per unit 9.60)
+        UnitPrice := 48;
+        OriginalQuantity := 2;
+        OriginalDiscount := 19.2;
+        // [GIVEN] Distinct presentment values: unit price 60, discount 24.00 (20% of 120, per unit 12.00)
+        PresentmentUnitPrice := 60;
+        PresentmentOriginalDiscount := 24;
+        // [GIVEN] A refund that removes one unit; discounted subtotals are 38.40 shop / 48.00 presentment
+        RefundQuantity := 1;
+        RefundSubtotal := 38.4;
+        PresentmentRefundSubtotal := 48;
+        // [GIVEN] The remaining unit must keep only its share of the discount: 9.60 shop / 12.00 presentment
+        ExpectedDiscount := 9.6;
+        ExpectedPresentmentDiscount := 12;
+
+        // [GIVEN] A processed Shopify order with that discounted line
+        CreateProcessedShopifyOrderWithDiscountedLine(OrderId, OrderLineId, UnitPrice, PresentmentUnitPrice, OriginalQuantity, OriginalDiscount, PresentmentOriginalDiscount);
+
+        // [GIVEN] Shop with "Return and Refund Process" set to "Import Only"
+        Shop := InitializeTest.CreateShop();
+        Shop."Return and Refund Process" := "Shpfy ReturnRefund ProcessType"::"Import Only";
+        Shop.Modify(false);
+
+        // [GIVEN] A zero-amount (order edit) refund that removes one unit but keeps its discounted subtotal
+        OrderRefundsHelper.SetDefaultSeed();
+        RefundId := OrderRefundsHelper.CreateRefundHeader(OrderId, 0, 0, Shop.Code);
+        OrderRefundsHelper.CreateRefundLineWithoutCreditMemo(RefundId, OrderLineId, RefundQuantity, UnitPrice, PresentmentUnitPrice, RefundSubtotal, PresentmentRefundSubtotal);
+
+        // [WHEN] ConsiderRefundsInQuantityAndAmounts is executed
+        OrderHeader.Get(OrderId);
+        ImportOrder.SetShop(Shop.Code);
+        ImportOrder.ConsiderRefundsInQuantityAndAmounts(OrderHeader);
+
+        // [THEN] The line quantity is reduced by the refunded quantity
+        OrderLine.Get(OrderId, OrderLineId);
+        LibraryAssert.AreEqual(OriginalQuantity - RefundQuantity, OrderLine.Quantity, 'Quantity must be reduced by the refunded quantity.');
+        // [THEN] The shop and presentment discounts are each reduced to the remaining quantity's share
+        LibraryAssert.AreEqual(ExpectedDiscount, OrderLine."Discount Amount", 'Discount Amount must be reduced by the refunded quantity''s discount.');
+        LibraryAssert.AreEqual(ExpectedPresentmentDiscount, OrderLine."Presentment Discount Amount", 'Presentment Discount Amount must be reduced by the refunded quantity''s presentment discount.');
+    end;
+
+    [Test]
+    procedure UnitTestConsiderRefundsAggregatesMultipleRefundLinesForLineDiscount()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrderLine: Record "Shpfy Order Line";
+        Shop: Record "Shpfy Shop";
+        OrderRefundsHelper: Codeunit "Shpfy Order Refunds Helper";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        OrderId: BigInteger;
+        OrderLineId: BigInteger;
+        RefundId: BigInteger;
+        UnitPrice: Decimal;
+        PresentmentUnitPrice: Decimal;
+    begin
+        // [SCENARIO] Multiple refund lines against the same order line are aggregated (CalcSums) so the line discount
+        // is reduced by the combined discount of all refunded quantities, not just a single refund line.
+        Initialize();
+
+        // [GIVEN] A line with shop unit price 48, quantity 5 and a 20% discount of 48.00 (per unit 9.60)
+        // [GIVEN] Distinct presentment values: unit price 60, discount 60.00 (per unit 12.00)
+        UnitPrice := 48;
+        PresentmentUnitPrice := 60;
+        CreateProcessedShopifyOrderWithDiscountedLine(OrderId, OrderLineId, UnitPrice, PresentmentUnitPrice, 5, 48, 60);
+
+        // [GIVEN] Shop with "Return and Refund Process" set to "Import Only"
+        Shop := InitializeTest.CreateShop();
+        Shop."Return and Refund Process" := "Shpfy ReturnRefund ProcessType"::"Import Only";
+        Shop.Modify(false);
+
+        // [GIVEN] Two refund lines on the same order line: one removes 1 unit, the other removes 2 units
+        OrderRefundsHelper.SetDefaultSeed();
+        RefundId := OrderRefundsHelper.CreateRefundHeader(OrderId, 0, 0, Shop.Code);
+        OrderRefundsHelper.CreateRefundLineWithoutCreditMemo(RefundId, OrderLineId, 1, UnitPrice, PresentmentUnitPrice, 38.4, 48);
+        OrderRefundsHelper.CreateRefundLineWithoutCreditMemo(RefundId, OrderLineId, 2, UnitPrice, PresentmentUnitPrice, 76.8, 96);
+
+        // [WHEN] ConsiderRefundsInQuantityAndAmounts is executed
+        OrderHeader.Get(OrderId);
+        ImportOrder.SetShop(Shop.Code);
+        ImportOrder.ConsiderRefundsInQuantityAndAmounts(OrderHeader);
+
+        // [THEN] The 3 refunded units are removed, leaving quantity 2
+        OrderLine.Get(OrderId, OrderLineId);
+        LibraryAssert.AreEqual(2, OrderLine.Quantity, 'Quantity must be reduced by the combined refunded quantity.');
+        // [THEN] The discount is reduced by the combined discount of the 3 refunded units: 28.80 shop / 36.00 presentment
+        LibraryAssert.AreEqual(19.2, OrderLine."Discount Amount", 'Discount Amount must be reduced by the combined refunded discount.');
+        LibraryAssert.AreEqual(24, OrderLine."Presentment Discount Amount", 'Presentment Discount Amount must be reduced by the combined refunded presentment discount.');
+    end;
+
+    [Test]
     procedure UnitTestCreateCrMemoFromRefundWithExchangeItem()
     var
         Shop: Record "Shpfy Shop";
@@ -928,6 +1043,21 @@ codeunit 139611 "Shpfy Order Refund Test"
         OrderHeader.Modify(false);
 
         OrderLineId := OrderRefundsHelper.CreateOrderLine(OrderId, 10000, Any.IntegerInRange(100000, 999999), Any.IntegerInRange(100000, 999999));
+        OrderRefundsHelper.ProcessShopifyOrder(OrderId);
+    end;
+
+    local procedure CreateProcessedShopifyOrderWithDiscountedLine(var OrderId: BigInteger; var OrderLineId: BigInteger; UnitPrice: Decimal; PresentmentUnitPrice: Decimal; Quantity: Integer; DiscountAmount: Decimal; PresentmentDiscountAmount: Decimal)
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrderRefundsHelper: Codeunit "Shpfy Order Refunds Helper";
+    begin
+        OrderRefundsHelper.SetDefaultSeed();
+        OrderId := OrderRefundsHelper.CreateShopifyOrder();
+        OrderHeader.Get(OrderId);
+        OrderHeader.Processed := true;
+        OrderHeader.Modify(false);
+
+        OrderLineId := OrderRefundsHelper.CreateDiscountedOrderLine(OrderId, 10000, Any.IntegerInRange(100000, 999999), Any.IntegerInRange(100000, 999999), UnitPrice, PresentmentUnitPrice, Quantity, DiscountAmount, PresentmentDiscountAmount);
         OrderRefundsHelper.ProcessShopifyOrder(OrderId);
     end;
 
