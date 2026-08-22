@@ -23,6 +23,14 @@ codeunit 134619 "Composite Layout Tests"
         CompanySourceTok: Label 'Company', Locked = true;
         GlobalDefaultSourceTok: Label 'Global default', Locked = true;
         DocumentReportExperienceTok: Label 'DocumentReportExperience', Locked = true;
+        InternalDefaultTok: Label 'Internal Default', Locked = true;
+        BaseAppIdTok: Label '437dbf0e-84ff-417a-965d-ed2bb9650972', Locked = true;
+        UnseedablePartTok: Label 'Test Unseedable Part', Locked = true;
+        UnseedablePartDescTok: Label 'A part a test seeds from a layout file that is not in the app.', Locked = true;
+        MissingResourceTok: Label 'ReportParts/HeaderFooterDesign/ThisResourceIsNotInTheApp.docx', Locked = true;
+        RetiredPartTok: Label 'Test Retired Part', Locked = true;
+        RetiredPartDescTok: Label 'A part a test seeds under a name this version of the app does not ship.', Locked = true;
+        ShippedThemeResourceTok: Label 'ReportParts/ReportTheme/Default.dotx', Locked = true;
         TestReportID: Integer;
         BodyReportID: Integer;
         PartsReportID: Integer;
@@ -306,7 +314,350 @@ codeunit 134619 "Composite Layout Tests"
         Assert.ExpectedMessage('Theme', ActualMessage);
         Assert.ExpectedMessage('Used in 1 report configuration', ActualMessage);
         LibraryVariableStorage.AssertEmpty();
+
         RestoreDocumentReportExperience();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SeededPartsAreStoredUnderThisAppId()
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
+    begin
+        // [SCENARIO] The shipped parts are stored under the App ID of the app that ships them rather than under no app
+        // at all. That App ID is part of the Tenant Report Layout key and of the composite reference an assignment
+        // stores, and it is what attributes the parts to Microsoft instead of showing them as parts added on this tenant.
+        Initialize();
+
+        // [GIVEN] The shipped parts are seeded. No cleanup follows: this scenario only adds to the pool.
+        CompositeReportPartsMgt.SeedDefaultParts();
+
+        // [THEN] A shipped part is stored under the App ID the seeding names, and so can be fetched on that key.
+        Assert.IsTrue(
+            TenantReportLayout.Get(
+                LookupHelper.GetTenantReportDefaultsReportID(),
+                CopyStr(InternalDefaultTok, 1, MaxStrLen(TenantReportLayout.Name)),
+                CompositeReportPartsMgt.GetShippedPartAppId()),
+            'A shipped part should be stored under the App ID the seeding pass writes.');
+
+        // [THEN] That App ID is this app's own, spelled out here so changing it is a deliberate act - every assignment
+        // of a shipped part encodes it into its composite reference.
+        Assert.AreEqual(
+            BaseAppIdTok, LowerCase(Format(CompositeReportPartsMgt.GetShippedPartAppId(), 0, 4)),
+            'The shipped parts should be stored under the App ID of the app that ships them.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SeedingRemovesThePartCopySeededWithNoAppId()
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
+        EmptyAppId: Guid;
+        PartName: Text[250];
+    begin
+        // [SCENARIO] An earlier version seeded the shipped parts with no App ID. The App ID is part of the key, so the
+        // part written now does not replace that copy - the pass has to take it out, or the pool shows the part twice.
+        Initialize();
+
+        // [GIVEN] One copy of a shipped part in the pool, moved onto the key the earlier seeding wrote: no App ID. Moved
+        // rather than built, so the row carries the real layout file - the platform validates a layout's type and content.
+        PartName := CopyStr(InternalDefaultTok, 1, MaxStrLen(TenantReportLayout.Name));
+        RemoveShippedPart(PartName);
+        CompositeReportPartsMgt.SeedDefaultParts();
+        TenantReportLayout.Get(LookupHelper.GetTenantReportDefaultsReportID(), PartName, CompositeReportPartsMgt.GetShippedPartAppId());
+        TenantReportLayout.Rename(LookupHelper.GetTenantReportDefaultsReportID(), PartName, EmptyAppId);
+        Assert.AreEqual(1, ShippedPartCount(PartName), 'The old copy should be the only one before the pass.');
+
+        // [WHEN] Seeding runs again.
+        CompositeReportPartsMgt.SeedDefaultParts();
+
+        // [THEN] The part is in the pool exactly once, under the App ID the pass writes.
+        Assert.AreEqual(1, ShippedPartCount(PartName), 'The pass should leave the part in the pool exactly once.');
+        Assert.IsTrue(
+            TenantReportLayout.Get(LookupHelper.GetTenantReportDefaultsReportID(), PartName, CompositeReportPartsMgt.GetShippedPartAppId()),
+            'The remaining part should be the one stored under the App ID the pass writes.');
+
+        // [THEN] The copy that carried no App ID is gone.
+        Assert.IsFalse(
+            TenantReportLayout.Get(LookupHelper.GetTenantReportDefaultsReportID(), PartName, EmptyAppId),
+            'The copy seeded with no App ID should have been removed.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SeedDefaultPartsCreatesShippedParts()
+    var
+        ReportLayoutList: Record "Report Layout List";
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
+    begin
+        // [SCENARIO] Seeding writes the shipped theme and header/footer parts into the shared pool.
+        Initialize();
+
+        // [GIVEN] Neither part is in the pool. The suite shares a company and is not rolled back between methods, so an
+        // earlier run leaves the shipped parts behind - without removing them first these assertions would pass on rows
+        // this call never wrote.
+        RemoveShippedPart('Internal Default');
+        RemoveShippedPart('Default');
+        Assert.IsFalse(
+            ShippedPartExists('Internal Default', Enum::"Report Layout Subtype"::HeaderFooter),
+            'The header/footer part should be gone before seeding, or the test proves nothing.');
+        Assert.IsFalse(
+            ShippedPartExists('Default', Enum::"Report Layout Subtype"::Theme),
+            'The theme part should be gone before seeding, or the test proves nothing.');
+
+        // [WHEN] Seeding the shipped parts, as install and upgrade do.
+        CompositeReportPartsMgt.SeedDefaultParts();
+
+        // [THEN] A shipped header/footer part is in the pool under Tenant Report Defaults, with the header/footer subtype.
+        Assert.IsTrue(
+            ShippedPartExists('Internal Default', Enum::"Report Layout Subtype"::HeaderFooter),
+            'The shipped header/footer part should be in the shared pool after seeding.');
+
+        // [THEN] So is a shipped theme part, with the theme subtype.
+        Assert.IsTrue(
+            ShippedPartExists('Default', Enum::"Report Layout Subtype"::Theme),
+            'The shipped theme part should be in the shared pool after seeding.');
+
+        // [THEN] Themes ship as .dotx templates, so the stored MIME type is the template one, not the document one.
+        ReportLayoutList.SetRange("Report ID", LookupHelper.GetTenantReportDefaultsReportID());
+        ReportLayoutList.SetRange(Name, 'Default');
+        ReportLayoutList.FindFirst();
+        Assert.AreEqual(
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.template', ReportLayoutList."MIME Type",
+            'Themes ship as .dotx templates, so the stored MIME type should be the template one, not the document one.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SeedDefaultPartsIsIdempotentOnRerun()
+    var
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
+    begin
+        // [SCENARIO] Re-seeding replaces a part rather than adding a second copy, so repeated upgrades do not duplicate.
+        Initialize();
+
+        // [GIVEN] The part is not in the pool, so the first pass below is the one that creates it. The suite shares a
+        // company and is not rolled back between methods, so an earlier run would otherwise have seeded it already.
+        RemoveShippedPart('Internal Default');
+        Assert.AreEqual(0, ShippedPartCount('Internal Default'), 'The part should be gone before the first pass.');
+
+        // [GIVEN] A first pass creates it.
+        CompositeReportPartsMgt.SeedDefaultParts();
+        Assert.AreEqual(1, ShippedPartCount('Internal Default'), 'The first pass should create the shipped part.');
+
+        // [WHEN] Seeding again, as a later upgrade would.
+        CompositeReportPartsMgt.SeedDefaultParts();
+
+        // [THEN] The part is still there exactly once.
+        Assert.AreEqual(
+            1, ShippedPartCount('Internal Default'),
+            'Re-seeding should replace the shipped part, not add another copy of it.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SeedingRemovesAPartThisVersionNoLongerShips()
+    var
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
+        RetiredPartName: Text[250];
+    begin
+        // [SCENARIO] Dropping a part from the shipped list - by deleting its layout file or its SeedPart call - has to
+        // take the part out of the shared pool too. Seeding only writes the names it still ships, so without a pass that
+        // removes the rest a retired part would stay in the pool for good.
+        Initialize();
+
+        // [GIVEN] A part in the pool under the shipped App ID, carrying a name this version does not ship.
+        RetiredPartName := CopyStr(RetiredPartTok, 1, MaxStrLen(RetiredPartName));
+        Assert.IsTrue(
+            CompositeReportPartsMgt.SeedPart(RetiredPartName, ShippedThemeResourceTok, Enum::"Report Layout Subtype"::Theme, RetiredPartDescTok),
+            'The retired part should be written before the pass, or the test proves nothing.');
+        Assert.AreEqual(1, ShippedPartCount(RetiredPartName), 'The retired part should be in the pool before the pass.');
+
+        // [WHEN] Seeding runs, as install and upgrade do.
+        CompositeReportPartsMgt.SeedDefaultParts();
+
+        // [THEN] It is gone, because its name is not one this version ships.
+        Assert.AreEqual(
+            0, ShippedPartCount(RetiredPartName),
+            'A part this version no longer ships should be removed from the shared pool.');
+
+        // [THEN] A part the version does ship is untouched, so the pass removes the retired names and nothing more.
+        Assert.IsTrue(
+            ShippedPartExists('Internal Default', Enum::"Report Layout Subtype"::HeaderFooter),
+            'Pruning must not take out a part the version still ships.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PruningARetiredPartClearsItsAssignments()
+    var
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
+        TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
+        RetiredPartName: Text[250];
+    begin
+        // [SCENARIO] A configuration row that assigned a retired part must not be left pointing at it: the reference is
+        // cleared as the part goes, the same way deleting a part from the page clears its assignments.
+        Initialize();
+
+        // [GIVEN] A retired part assigned as the theme of a report configuration row.
+        RetiredPartName := CopyStr(RetiredPartTok, 1, MaxStrLen(RetiredPartName));
+        CompositeReportPartsMgt.SeedPart(RetiredPartName, ShippedThemeResourceTok, Enum::"Report Layout Subtype"::Theme, RetiredPartDescTok);
+        InsertCfg(TestReportID, 'Body', '', '', LookupHelper.EncodeCompositeName(CompositeReportPartsMgt.GetShippedPartAppId(), RetiredPartName));
+
+        // [WHEN] Seeding runs and prunes the retired part.
+        CompositeReportPartsMgt.SeedDefaultParts();
+
+        // [THEN] The configuration row survives with the reference cleared, rather than pointing at a part that is gone.
+        Assert.IsTrue(TenantReportLayoutCfg.Get(TestReportID, 'Body', ''), 'The configuration row should survive the pruning.');
+        Assert.AreEqual('', TenantReportLayoutCfg."Theme Part Name", 'Pruning the part should clear the assignment that referenced it.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CompositeReportPartsUpgradeTagIsRegisteredPerDatabase()
+    var
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        PerDatabaseTags: List of [Code[250]];
+    begin
+        // [SCENARIO] The tag that guards the seeding upgrade is registered per database. Without registration the guard
+        // never records as complete and the pass replays on every later upgrade.
+        Initialize();
+
+        // [WHEN] Collecting the registered per-database upgrade tags.
+        UpgradeTag.GetPerDatabaseUpgradeTags(PerDatabaseTags);
+
+        // [THEN] The composite report parts tag is among them.
+        Assert.IsTrue(
+            PerDatabaseTags.Contains(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()),
+            'The composite report parts upgrade tag should be registered as a per-database tag.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure UpgradeReseedsShippedPartsOnEveryRun()
+    var
+        UpgradeCompositeReportParts: Codeunit "Upgrade Composite Report Parts";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+        UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
+    begin
+        // [SCENARIO] The upgrade is not gated by its tag: it seeds on every run, so a shipped part is always replaced by
+        // the version the app carries, even when the tag from an earlier pass is already recorded.
+        Initialize();
+
+        // [GIVEN] No tag, and one shipped part missing, so the first run has work to do and is not gated. The delete is
+        // guarded because the library helper does a bare Get and throws when the tag is not there - which is the state on
+        // a fresh database, and after anything else has cleared it.
+        if UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()) then
+            UpgradeTagLibrary.DeleteUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag(), '');
+        RemoveShippedPart('Internal Default');
+        Assert.IsFalse(
+            ShippedPartExists('Internal Default', Enum::"Report Layout Subtype"::HeaderFooter),
+            'The part should be missing before the first upgrade, or the seeding assertion below proves nothing.');
+
+        // [WHEN] The upgrade runs with the tag absent.
+        UpgradeCompositeReportParts.RunUpgrade();
+
+        // [THEN] It seeded the missing part, and recorded its database tag.
+        Assert.IsTrue(
+            ShippedPartExists('Internal Default', Enum::"Report Layout Subtype"::HeaderFooter),
+            'The first upgrade should seed the shipped parts.');
+        Assert.IsTrue(
+            UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()),
+            'A completed seeding pass should record its database upgrade tag.');
+
+        // [GIVEN] That part is removed again, behind the pass's back.
+        RemoveShippedPart('Internal Default');
+
+        // [WHEN] The upgrade runs a second time, now with the tag present.
+        UpgradeCompositeReportParts.RunUpgrade();
+
+        // [THEN] The tag did not gate the pass: the removed part was written again.
+        Assert.IsTrue(
+            ShippedPartExists('Internal Default', Enum::"Report Layout Subtype"::HeaderFooter),
+            'The second upgrade should re-seed the shipped parts instead of exiting on the tag.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SeedPartReportsFailureWhenTheResourceIsMissing()
+    var
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
+        PartName: Text[250];
+        PartSeeded: Boolean;
+    begin
+        // [SCENARIO] A part whose layout file cannot be read is reported as not seeded instead of throwing: the seeding
+        // pass runs during install and upgrade, where an uncaught error would abort the whole operation. This false is
+        // also the only thing that makes the pass report itself incomplete - SeedDefaultParts counts these results - and
+        // an incomplete pass is what leaves the upgrade tag unset.
+        Initialize();
+
+        // [GIVEN] The part is not in the pool, so the count below cannot pass on a row from an earlier run.
+        PartName := CopyStr(UnseedablePartTok, 1, MaxStrLen(PartName));
+        RemoveShippedPart(PartName);
+        Assert.AreEqual(0, ShippedPartCount(PartName), 'The part should not be in the pool before the call.');
+
+        // [WHEN] Seeding a part whose layout file is not a resource of the app.
+        PartSeeded := CompositeReportPartsMgt.SeedPart(PartName, MissingResourceTok, Enum::"Report Layout Subtype"::HeaderFooter, UnseedablePartDescTok);
+
+        // [THEN] It reported the failure rather than raising it.
+        Assert.IsFalse(PartSeeded, 'A part whose layout file cannot be read should be reported as not seeded.');
+
+        // [THEN] Nothing was written for it, so a failure leaves no half-seeded part behind.
+        Assert.AreEqual(0, ShippedPartCount(PartName), 'A part that could not be written should leave no row in the pool.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure UpgradeLeavesTagUnsetAfterFailedSeedSoNextRunRetries()
+    var
+        UpgradeCompositeReportParts: Codeunit "Upgrade Composite Report Parts";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+        UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
+    begin
+        // [SCENARIO] A seeding pass that could not write every part must not record the upgrade tag. The tag reports
+        // whether the last pass was complete, so stamping it after a partial seed would claim a completeness the pass
+        // never reached.
+        Initialize();
+
+        // [GIVEN] No tag, and one shipped part missing, so a retry has visible work to do. The delete is guarded because
+        // the library helper does a bare Get and throws when the tag is not there.
+        if UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()) then
+            UpgradeTagLibrary.DeleteUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag(), '');
+        RemoveShippedPart(InternalDefaultTok);
+        Assert.IsFalse(
+            ShippedPartExists(InternalDefaultTok, Enum::"Report Layout Subtype"::HeaderFooter),
+            'The part should be missing before the failed pass, or the retry assertion below proves nothing.');
+
+        // [WHEN] A seeding pass reports that it could not write every part.
+        UpgradeCompositeReportParts.RecordSeedOutcome(false);
+
+        // [THEN] The tag was not recorded, so it does not claim the pass was complete.
+        Assert.IsFalse(
+            UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()),
+            'A pass that did not seed every part must not record its upgrade tag.');
+
+        // [THEN] The failed pass wrote nothing on its own behalf either - the part is still missing.
+        Assert.IsFalse(
+            ShippedPartExists(InternalDefaultTok, Enum::"Report Layout Subtype"::HeaderFooter),
+            'Recording the outcome of a failed pass should not seed anything.');
+
+        // [WHEN] The next upgrade runs.
+        UpgradeCompositeReportParts.RunUpgrade();
+
+        // [THEN] The next run seeded the part that was missing.
+        Assert.IsTrue(
+            ShippedPartExists(InternalDefaultTok, Enum::"Report Layout Subtype"::HeaderFooter),
+            'The next upgrade should seed the missing part.');
+
+        // [THEN] That pass wrote every part, so this time it recorded the tag.
+        Assert.IsTrue(
+            UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()),
+            'A retry that seeded every part should record the upgrade tag.');
     end;
 
     [Test]
@@ -1023,6 +1374,40 @@ codeunit 134619 "Composite Layout Tests"
         LibraryVariableStorage.Enqueue(Message);
     end;
 
+    /// <summary>
+    /// Removes one shipped part from the shared pool so a seeding assertion proves the call under test wrote it. The
+    /// suite runs in a non-isolated bucket against a shared company, so rows an earlier run seeded are still there.
+    /// </summary>
+    local procedure RemoveShippedPart(PartName: Text)
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+    begin
+        // Filtered on Report ID + Name rather than fetched on the full key: the seeded parts are stored under the
+        // platform System app's App ID and a part a test creates under none, and this has to take out whichever is there.
+        TenantReportLayout.SetRange("Report ID", LookupHelper.GetTenantReportDefaultsReportID());
+        TenantReportLayout.SetRange(Name, CopyStr(PartName, 1, MaxStrLen(TenantReportLayout.Name)));
+        TenantReportLayout.DeleteAll(true);
+    end;
+
+    local procedure ShippedPartExists(PartName: Text; Subtype: Enum "Report Layout Subtype"): Boolean
+    var
+        ReportLayoutList: Record "Report Layout List";
+    begin
+        ReportLayoutList.SetRange("Report ID", LookupHelper.GetTenantReportDefaultsReportID());
+        ReportLayoutList.SetRange(Name, CopyStr(PartName, 1, MaxStrLen(ReportLayoutList.Name)));
+        ReportLayoutList.SetRange("Layout Subtype", Subtype);
+        exit(not ReportLayoutList.IsEmpty());
+    end;
+
+    local procedure ShippedPartCount(PartName: Text): Integer
+    var
+        ReportLayoutList: Record "Report Layout List";
+    begin
+        ReportLayoutList.SetRange("Report ID", LookupHelper.GetTenantReportDefaultsReportID());
+        ReportLayoutList.SetRange(Name, CopyStr(PartName, 1, MaxStrLen(ReportLayoutList.Name)));
+        exit(ReportLayoutList.Count());
+    end;
+
     local procedure Initialize()
     var
         TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
@@ -1044,6 +1429,16 @@ codeunit 134619 "Composite Layout Tests"
         ClearTestReportLayouts();
         ClearWildcardCfg('');                                                                     // global default: report 0, all companies
         ClearWildcardCfg(CopyStr(CompanyName(), 1, MaxStrLen(TenantReportLayoutCfg."Company Name"))); // company default: report 0, this company
+
+        RestoreShippedPartPool();
+    end;
+
+    local procedure RestoreShippedPartPool()
+    var
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
+    begin
+        CompositeReportPartsMgt.SeedDefaultParts();
+        RemoveShippedPart(UnseedablePartTok);
     end;
 
     local procedure ClearTestReportLayouts()
