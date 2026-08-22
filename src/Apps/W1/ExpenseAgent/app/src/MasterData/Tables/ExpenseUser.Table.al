@@ -133,6 +133,14 @@ table 6923 "Expense User"
             FieldClass = FlowField;
             CalcFormula = lookup(Employee."Resource No." where("No." = field("Employee No.")));
         }
+        field(41; "Employee Posting Group"; Code[20])
+        {
+            Caption = 'Employee Posting Group';
+            ToolTip = 'Specifies the posting group of the related employee.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = lookup(Employee."Employee Posting Group" where("No." = field("Employee No.")));
+        }
         field(21; "User Id For Approvals"; Code[50])
         {
             Caption = 'User Id For Approvals';

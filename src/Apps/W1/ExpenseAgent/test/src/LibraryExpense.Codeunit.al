@@ -28,11 +28,20 @@ codeunit 148300 "Library - Expense"
         NameTxt: Label 'Name';
 
     internal procedure CreateExpenseUser(var ExpenseUser: Record "Expense User")
+    var
+        Employee: Record Employee;
     begin
         ExpenseUser.Init();
         ExpenseUser.Validate("No.", LibraryUtility.GenerateRandomCode(ExpenseUser.FieldNo("No."), Database::"Expense User"));
         ExpenseUser.Validate("Employee No.", LibraryHumanResource.CreateEmployeeNo());
         ExpenseUser.Insert(true);
+
+        // Ensure the linked employee has a posting group so the user can post expenses.
+        Employee.Get(ExpenseUser."Employee No.");
+        if Employee."Employee Posting Group" = '' then begin
+            Employee.Validate("Employee Posting Group", LibraryHumanResource.FindEmployeePostingGroup());
+            Employee.Modify(true);
+        end;
     end;
 
     procedure CreateEmployee(EmployeeNo: Code[20]): Code[20]
