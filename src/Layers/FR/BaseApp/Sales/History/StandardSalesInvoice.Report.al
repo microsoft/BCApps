@@ -1614,7 +1614,7 @@ report 1306 "Standard Sales - Invoice"
         GotServices: Boolean;
     begin
         SalesInvoiceLine.SetRange("Document No.", Header."No.");
-        SalesInvoiceLine.SetFilter(Type, '<> %1', SalesInvoiceLine.Type::Item);
+        SalesInvoiceLine.SetFilter(Type, '<>%1&<>%2', SalesInvoiceLine.Type::Item, SalesInvoiceLine.Type::" ");
         if not SalesInvoiceLine.IsEmpty() then
             GotServices := true;
         SalesInvoiceLine.SetRange(Type, SalesInvoiceLine.Type::Item);
