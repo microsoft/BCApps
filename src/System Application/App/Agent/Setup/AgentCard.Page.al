@@ -255,7 +255,7 @@ page 4315 "Agent Card"
 
         CopilotAvailabilityTxt := AgentImpl.GetCopilotAvailabilityDisplayText(Rec);
         AgentIsArchived := Rec.Substate = Rec.Substate::Archived;
-        ArchiveActionEnabled := (not AgentIsArchived) and Rec."Can Curr. User Configure Agent";
+        ArchiveActionEnabled := (not AgentIsArchived) and Rec."Can Curr. User Configure Agent" and AgentImpl.IsArchivingSupported(Rec);
         StateEditable := not AgentIsArchived;
     end;
 
