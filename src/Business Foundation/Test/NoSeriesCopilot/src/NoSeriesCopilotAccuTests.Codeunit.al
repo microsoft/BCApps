@@ -15,14 +15,14 @@ codeunit 133689 "No. Series Copilot Accu. Tests"
     Subtype = Test;
     TestPermissions = Disabled;
     TestType = AITest;
+    TestHandlers = "AIT Test Handler";
 
     var
         Assert: codeunit "Library Assert";
-        AITTestContext: codeunit "AIT Test Context";
         NoSeriesCopilotTestLib: codeunit "Library - No. Series Copilot";
 
-    [Test]
-    procedure NoSeriesPositiveTests();
+    [TestDataSource(Codeunit::"AIT Test Data Source", 'NOSERIES-GOOD.YAML')]
+    procedure NoSeriesPositiveTests(context: interface "AIT Test Case Context")
     var
         TempNoSeriesGeneration: Record "No. Series Generation";
         TempNoSeriesGenerationDetail: Record "No. Series Generation Detail";
@@ -31,10 +31,10 @@ codeunit 133689 "No. Series Copilot Accu. Tests"
         ExpectedNumberJson: Codeunit "Test Input Json";
         Found: Boolean;
     begin
-        TestInputJsonQuery := AITTestContext.GetQuery();
+        TestInputJsonQuery := context.GetQuery();
         NoSeriesCopilotTestLib.Generate(TempNoSeriesGeneration, TempNoSeriesGenerationDetail, TestInputJsonQuery.ValueAsText());
 
-        TestInputJsonAnswer := AITTestContext.GetExpectedData();
+        TestInputJsonAnswer := context.GetExpectedData();
 
         ExpectedNumberJson := TestInputJsonAnswer.ElementAt(0).ElementExists('expected_number', Found);
         if not Found then
@@ -43,6 +43,6 @@ codeunit 133689 "No. Series Copilot Accu. Tests"
         Assert.AreNearlyEqual(ExpectedNumberJson.ValueAsInteger(), TempNoSeriesGenerationDetail.Count, 1.0, 'No. Series Copilot failed to generate the expected number of No. Series.');
         Assert.IsTrue(TempNoSeriesGenerationDetail.Count > 0, 'No. Series Copilot did not generate any No. Series, but expected some.');
 
-        AITTestContext.SetTestOutput('Test succeeded. ' + Format(TempNoSeriesGenerationDetail.Count) + ' new No. Series generated based on the input.');
+        context.SetTestOutput('Test succeeded. ' + Format(TempNoSeriesGenerationDetail.Count) + ' new No. Series generated based on the input.');
     end;
 }
