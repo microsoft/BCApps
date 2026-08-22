@@ -150,7 +150,6 @@ page 9001 "Accounting Manager Role Center"
                 Caption = '&Bank Detail Trial Balance';
                 Image = "Report";
                 RunObject = Report "Bank Acc. - Detail Trial Bal.";
-                ToolTip = 'View, print, or send a report that shows a detailed trial balance for selected bank accounts. You can use the report at the close of an accounting period or fiscal year.';
             }
             action("Account Schedule Layout")
             {
