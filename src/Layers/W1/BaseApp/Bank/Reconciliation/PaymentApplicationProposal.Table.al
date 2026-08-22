@@ -491,7 +491,9 @@ table 1293 "Payment Application Proposal"
         VendLedgEntry: Record "Vendor Ledger Entry";
         EmployeeLedgEntry: Record "Employee Ledger Entry";
         BankAccLedgEntry: Record "Bank Account Ledger Entry";
+        LedgerRemainingAmount: Decimal;
         IsHandled: Boolean;
+        RemainingAmountHandled: Boolean;
     begin
         // Reads the applied ledger entry only once to populate both the informational fields and the remaining amount.
         IsHandled := false;
@@ -523,9 +525,9 @@ table 1293 "Payment Application Proposal"
                     "External Document No." := CustLedgEntry."External Document No.";
                     "Currency Code" := CustLedgEntry."Currency Code";
                     if BankAccount.IsInLocalCurrency() then
-                        "Remaining Amount" := CustLedgEntry."Remaining Amt. (LCY)"
+                        LedgerRemainingAmount := CustLedgEntry."Remaining Amt. (LCY)"
                     else
-                        "Remaining Amount" := CustLedgEntry."Remaining Amount";
+                        LedgerRemainingAmount := CustLedgEntry."Remaining Amount";
                 end;
             "Account Type"::Vendor:
                 begin
@@ -544,9 +546,9 @@ table 1293 "Payment Application Proposal"
                     "External Document No." := VendLedgEntry."External Document No.";
                     "Currency Code" := VendLedgEntry."Currency Code";
                     if BankAccount.IsInLocalCurrency() then
-                        "Remaining Amount" := VendLedgEntry."Remaining Amt. (LCY)"
+                        LedgerRemainingAmount := VendLedgEntry."Remaining Amt. (LCY)"
                     else
-                        "Remaining Amount" := VendLedgEntry."Remaining Amount";
+                        LedgerRemainingAmount := VendLedgEntry."Remaining Amount";
                 end;
             "Account Type"::Employee:
                 begin
@@ -563,9 +565,9 @@ table 1293 "Payment Application Proposal"
                     "Document No." := EmployeeLedgEntry."Document No.";
                     "Currency Code" := EmployeeLedgEntry."Currency Code";
                     if BankAccount.IsInLocalCurrency() then
-                        "Remaining Amount" := EmployeeLedgEntry."Remaining Amt. (LCY)"
+                        LedgerRemainingAmount := EmployeeLedgEntry."Remaining Amt. (LCY)"
                     else
-                        "Remaining Amount" := EmployeeLedgEntry."Remaining Amount";
+                        LedgerRemainingAmount := EmployeeLedgEntry."Remaining Amount";
                 end;
             "Account Type"::"Bank Account":
                 begin
@@ -579,11 +581,17 @@ table 1293 "Payment Application Proposal"
                     "Document No." := BankAccLedgEntry."Document No.";
                     "External Document No." := BankAccLedgEntry."External Document No.";
                     "Currency Code" := BankAccLedgEntry."Currency Code";
-                    "Remaining Amount" := BankAccLedgEntry."Remaining Amount";
+                    LedgerRemainingAmount := BankAccLedgEntry."Remaining Amount";
                 end;
             else
                 GetLedgEntryInfo();
         end;
+
+        // Keep firing the legacy event so extensions that override the remaining amount still run when a proposal is created.
+        RemainingAmountHandled := false;
+        OnBeforeUpdateRemainingAmount(Rec, BankAccount, RemainingAmountHandled);
+        if not RemainingAmountHandled then
+            "Remaining Amount" := LedgerRemainingAmount;
     end;
 
     procedure TransferFromBankAccReconLine(BankAccReconLine: Record "Bank Acc. Reconciliation Line")
