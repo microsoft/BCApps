@@ -15,6 +15,7 @@
   "repoVersion": "29.0",
   "memoryLimit": "16G",
   "numberOfTenantsForTesting": 4,
+  "maxTestAppReruns": 2,
   "failOn": "newWarning",
   "workspaceCompilation": {
     "enabled": true,
