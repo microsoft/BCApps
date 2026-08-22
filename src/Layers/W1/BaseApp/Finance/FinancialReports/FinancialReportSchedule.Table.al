@@ -177,6 +177,11 @@ table 8360 "Financial Report Schedule"
                 end;
             end;
         }
+        field(21; "Email Subject"; Text[250])
+        {
+            Caption = 'Email Subject';
+            ToolTip = 'Specifies the email subject used when sending the report via email. Leave this field blank to use the default subject.';
+        }
     }
 
     keys
