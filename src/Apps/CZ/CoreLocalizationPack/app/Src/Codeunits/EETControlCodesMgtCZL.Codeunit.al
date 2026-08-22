@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -8,6 +8,13 @@ using System.Security.Encryption;
 using System.Text;
 using System.Utilities;
 
+/// <summary>
+/// Codeunit for generating EET control codes (PKP - Podpisový kód poplatníka and BKP - Bezpečnostní kód poplatníka).
+/// In EET 2.0 (interface version 4.x), these control codes are no longer part of the data message structure.
+/// The EET 2.0 service returns only POK (Potvrzovací kód) as confirmation of a successfully received transaction.
+/// The data message (element Trzba) in EET 2.0 contains only Hlavicka and Data elements without PKP/BKP codes.
+/// This codeunit is kept for backward compatibility but is not used in the EET 2.0 communication flow.
+/// </summary>
 codeunit 31099 "EET Control Codes Mgt. CZL"
 {
     Access = Internal;

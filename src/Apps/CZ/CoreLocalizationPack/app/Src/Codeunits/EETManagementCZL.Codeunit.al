@@ -61,12 +61,11 @@ codeunit 31118 "EET Management CZL"
         then
             EETEntryCZL.FieldError("Status");
 
-        EETEntryCZL.CheckSignatureCode();
         PrepareEntryToSend(EETEntryCZL);
         EETEntryCZL.ChangeStatus(EETEntryCZL."Status"::Sent);
 
         if EETServiceManagementCZL.Send(EETEntryCZL) then begin
-            EETEntryCZL."Fiscal Identification Code" := EETServiceManagementCZL.GetFIKControlCode();
+            EETEntryCZL."Acknowledgement Code" := EETServiceManagementCZL.GetPOKControlCode();
 
             if EETServiceManagementCZL.HasWarnings() then begin
                 EETServiceManagementCZL.CopyErrorMessageToTemp(TempErrorMessage);
@@ -90,7 +89,6 @@ codeunit 31118 "EET Management CZL"
         then
             EETEntryCZL.FieldError("Status");
 
-        EETEntryCZL.CheckSignatureCode();
         PrepareEntryToSend(EETEntryCZL);
         EETEntryCZL.ChangeStatus(EETEntryCZL."Status"::"Sent to Verification");
 
@@ -109,7 +107,6 @@ codeunit 31118 "EET Management CZL"
 
     local procedure PrepareEntryToSend(var EETEntryCZL: Record "EET Entry CZL")
     begin
-        EETEntryCZL.GenerateControlCodes(false);
         EETEntryCZL."Message UUID" := CreateUUID();
         EETEntryCZL.Modify();
     end;
