@@ -26,35 +26,38 @@ codeunit 8202 "Expense Agent Contoso Module" implements "Contoso Demo Data Modul
     procedure CreateSetupData()
     var
         ExpenseAgentModuleSetup: Record "Expense Agent Module Setup";
+        ExpAgentCountryResolver: Codeunit "Exp. Agent Country Resolver";
+        ExpenseAgentCountryData: Interface "Expense Agent Country Data";
     begin
         ExpenseAgentModuleSetup.InitRecord();
-        Codeunit.Run(Codeunit::"Create Expense Payment Method");
-        Codeunit.Run(Codeunit::"Create Expense No. Series DM");
-        Codeunit.Run(Codeunit::"Create Expense Group");
-        Codeunit.Run(Codeunit::"Create Expense G/L Account");
-        Codeunit.Run(Codeunit::"Create Expense Posting Group");
-        Codeunit.Run(Codeunit::"Create Expense Team");
-        Codeunit.Run(Codeunit::"Create Exp. Agent Setup");
+        ExpenseAgentCountryData := ExpAgentCountryResolver.Resolve();
+        ExpenseAgentCountryData.CreateSetupData();
     end;
 
     procedure CreateMasterData()
+    var
+        ExpAgentCountryResolver: Codeunit "Exp. Agent Country Resolver";
+        ExpenseAgentCountryData: Interface "Expense Agent Country Data";
     begin
-        Codeunit.Run(Codeunit::"Create Expense Location");
-        Codeunit.Run(Codeunit::"Create Expense Categories DM");
-        Codeunit.Run(Codeunit::"Create Expense Subcategories");
-        Codeunit.Run(Codeunit::"Create Expense Rule Header");
-        Codeunit.Run(Codeunit::"Create Expense Rule Condition");
-        Codeunit.Run(Codeunit::"Create Expense User");
+        ExpenseAgentCountryData := ExpAgentCountryResolver.Resolve();
+        ExpenseAgentCountryData.CreateMasterData();
     end;
 
     procedure CreateTransactionalData()
+    var
+        ExpAgentCountryResolver: Codeunit "Exp. Agent Country Resolver";
+        ExpenseAgentCountryData: Interface "Expense Agent Country Data";
     begin
-        Codeunit.Run(Codeunit::"Create Expense");
-        Codeunit.Run(Codeunit::"Create Exp. Report");
+        ExpenseAgentCountryData := ExpAgentCountryResolver.Resolve();
+        ExpenseAgentCountryData.CreateTransactionalData();
     end;
 
     procedure CreateHistoricalData()
+    var
+        ExpAgentCountryResolver: Codeunit "Exp. Agent Country Resolver";
+        ExpenseAgentCountryData: Interface "Expense Agent Country Data";
     begin
-        Codeunit.Run(Codeunit::"Create Posted Expense Report");
+        ExpenseAgentCountryData := ExpAgentCountryResolver.Resolve();
+        ExpenseAgentCountryData.CreateHistoricalData();
     end;
 }
