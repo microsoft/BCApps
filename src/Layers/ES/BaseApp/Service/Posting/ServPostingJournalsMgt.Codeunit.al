@@ -643,31 +643,6 @@ codeunit 5987 "Serv-Posting Journals Mgt."
         exit(true);
     end;
 
-#if not CLEAN27
-    [Obsolete('Moved to codeunit ServicePostingSubscrES', '27.0')]
-    [Scope('OnPrem')]
-    procedure CreateBills(var TotalServiceLine: Record "Service Line"; var Window: Dialog; GenJnlLineDocNo: Code[20]; GenJnlLineExtDocNo: Code[35])
-    var
-        CustLedgEntry: Record Microsoft.Sales.Receivables."Cust. Ledger Entry";
-        PaymentMethod: Record Microsoft.Bank.BankAccount."Payment Method";
-        CarteraSetup: Record "Cartera Setup";
-        SplitPayment: Codeunit "Invoice-Split Payment";
-        CannotCreateCarteraDocErr: Label 'You do not have permissions to create Documents in Cartera.\Please, change the Payment Method.';
-    begin
-        CustLedgEntry.Find('+');
-        if PaymentMethod.Get(ServiceHeader."Payment Method Code") then
-            if (PaymentMethod."Create Bills" or PaymentMethod."Invoices to Cartera") and
-               (not CarteraSetup.ReadPermission) and Invoice
-            then
-                Error(CannotCreateCarteraDocErr);
-        OnCreateBillsOnBeforeSplitServiceInv(ServiceHeader, CustLedgEntry, TotalServiceLine);
-        if (ServiceHeader."Bal. Account No." = '') and (ServiceHeader."Document Type" <> ServiceHeader."Document Type"::"Credit Memo") and CarteraSetup.ReadPermission then
-            SplitPayment.SplitServiceInv(
-              ServiceHeader, CustLedgEntry, Window, SrcCode, GenJnlLineExtDocNo, GenJnlLineDocNo,
-              -(TotalServiceLine."Amount Including VAT" - TotalServiceLine.Amount));
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnAfterTransferValuesToJobJnlLine(var JobJournalLine: Record "Job Journal Line"; ServiceLine: Record "Service Line")
     begin
@@ -687,19 +662,6 @@ codeunit 5987 "Serv-Posting Journals Mgt."
     local procedure OnBeforeResJnlPostLine(var ResJnlLine: Record "Res. Journal Line"; ServiceHeader: Record "Service Header"; ServiceLine: Record "Service Line")
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnCreateBillsOnBeforeSplitServiceInv(ServiceHeader: Record "Service Header"; var CustLedgerEntry: Record Microsoft.Sales.Receivables."Cust. Ledger Entry"; var TotalServiceLine: Record "Service Line")
-    begin
-        OnCreateBillsOnBeforeSplitServiceInv(ServiceHeader, CustLedgerEntry, TotalServiceLine);
-    end;
-
-    [Obsolete('Moved to codeunit ServicePostingSubscrES', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnCreateBillsOnBeforeSplitServiceInv(ServiceHeader: Record "Service Header"; var CustLedgerEntry: Record Microsoft.Sales.Receivables."Cust. Ledger Entry"; var TotalServiceLine: Record "Service Line")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineOnBeforeCreateWhseJnlLine(var ItemJournalLine: Record "Item Journal Line"; ServiceHeader: Record "Service Header"; var ShouldCreateWhseJnlLine: Boolean; ServiceShipmentHeader: Record "Service Shipment Header"; var ServiceLine: Record "Service Line"; var TempWarehouseJournalLine: Record "Warehouse Journal Line" temporary; var WhsePosting: Boolean; var CheckApplFromItemEntry: Boolean);

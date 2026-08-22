@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -61,17 +61,9 @@ table 502 "Reminder Attachment Text"
         {
             Caption = 'Beginning Line';
             DataClassification = CustomerContent;
-#if not CLEAN27
-            ObsoleteReason = 'To support the use of multiple lines, this field will be replaced by the Reminder Attachment Text Line table.';
-            ObsoleteState = Pending;
-#pragma warning disable AS0074
-            ObsoleteTag = '27.0';
-#pragma warning restore AS0074
-#else
             ObsoleteReason = 'To support the use of multiple lines, this is replaced by Reminder Attachment Text Line table.';
             ObsoleteState = Removed;
             ObsoleteTag = '29.0';
-#endif
         }
 #endif
         /// <summary>
@@ -91,17 +83,9 @@ table 502 "Reminder Attachment Text"
         {
             Caption = 'Ending Line';
             DataClassification = CustomerContent;
-#if not CLEAN27
-            ObsoleteReason = 'To support the use of multiple lines, this field will be replaced by the Reminder Attachment Text Line table.';
-            ObsoleteState = Pending;
-#pragma warning disable AS0074
-            ObsoleteTag = '27.0';
-#pragma warning restore AS0074
-#else
             ObsoleteReason = 'To support the use of multiple lines, this is replaced by Reminder Attachment Text Line table.';
             ObsoleteState = Removed;
             ObsoleteTag = '29.0';
-#endif
         }
 #endif
         /// <summary>

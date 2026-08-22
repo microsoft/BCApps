@@ -75,17 +75,11 @@ codeunit 10759 "Serv. SII Management"
     procedure OnAfterPostServiceDoc(var ServiceHeader: Record "Service Header")
     var
         SIISetup: Record "SII Setup";
-#if not CLEAN27
-        SIIJobUploadPendingDocs: Codeunit "SII Job Upload Pending Docs.";
-#endif
         JobType: Option HandlePending,HandleCommError,InitialUpload;
         IsHandled: Boolean;
     begin
         IsHandled := false;
         OnBeforeOnAfterPostServiceDoc(ServiceHeader, IsHandled);
-#if not CLEAN27 
-        SIIJobUploadPendingDocs.RunOnBeforeOnAfterPostServiceDoc(ServiceHeader, IsHandled);
-#endif
         if not IsHandled then
             exit;
 

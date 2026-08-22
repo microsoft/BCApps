@@ -114,15 +114,6 @@ codeunit 827 "Service Post Invoice Events"
         OnPrepareLineOnAfterFillInvoicePostingBuffer(InvoicePostingBuffer, ServiceLine, ServiceLineACY, SuppressCommit, TempInvoicePostingBuffer);
     end;
 
-#if not CLEAN27
-    [Obsolete('Replaced by same procedure with parameter TempInvoicePostingBuffer', '27.0')]
-    procedure RunOnPrepareLineOnAfterFillInvoicePostingBuffer(var InvoicePostingBuffer: Record "Invoice Posting Buffer"; ServiceLine: Record "Service Line"; ServiceLineACY: Record "Service Line"; SuppressCommit: Boolean)
-    var
-        TempDummyInvoicePostingBuffer: Record "Invoice Posting Buffer" temporary;
-    begin
-        OnPrepareLineOnAfterFillInvoicePostingBuffer(InvoicePostingBuffer, ServiceLine, ServiceLineACY, SuppressCommit, TempDummyInvoicePostingBuffer);
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnPrepareLineOnAfterFillInvoicePostingBuffer(var InvoicePostingBuffer: Record "Invoice Posting Buffer"; ServiceLine: Record "Service Line"; ServiceLineACY: Record "Service Line"; SuppressCommit: Boolean; var TempInvoicePostingBuffer: Record "Invoice Posting Buffer" temporary)

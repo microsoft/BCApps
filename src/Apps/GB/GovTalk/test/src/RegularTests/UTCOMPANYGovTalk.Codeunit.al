@@ -11,9 +11,6 @@ codeunit 144036 "UTCOMPANY GovTalk"
     Subtype = Test;
     TestPermissions = Disabled;
     TestType = IntegrationTest;
-#if not CLEAN27
-    EventSubscriberInstance = Manual;
-#endif
 
     var
         LibraryRandom: Codeunit "Library - Random";
@@ -27,18 +24,12 @@ codeunit 144036 "UTCOMPANY GovTalk"
         CompanyInformationPage: TestPage "Company Information";
         BranchNumberValue: Text;
     begin
-#if not CLEAN27
-        BindSubscription(this);
-#endif
         BranchNumberValue := '009'; // This is a valid two-digit branch number for GB.
         CompanyInformationPage.OpenEdit();
         CompanyInformationPage."Branch Number GB".SetValue(BranchNumberValue);
         CompanyInformationPage.Close();
         CompanyInformation.Get();
         CompanyInformation.TestField("Branch Number GB", BranchNumberValue);
-#if not CLEAN27
-        UnbindSubscription(this);
-#endif
     end;
 
     [Test]
@@ -60,12 +51,5 @@ codeunit 144036 "UTCOMPANY GovTalk"
         CompanyInformation.Modify();
     end;
 
-#if not CLEAN27
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::GovTalk, OnAfterCheckFeatureEnabled, '', false, false)]
-    local procedure OnAfterCheckFeatureEnabled(var IsEnabled: Boolean)
-    begin
-        IsEnabled := true;
-    end;
-#endif
 }
 

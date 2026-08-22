@@ -10,13 +10,7 @@ using Microsoft.Manufacturing.Document;
 
 codeunit 20523 "Subc. Carry Out Action Ext."
 {
-#if not CLEAN27
-#pragma warning disable AL0432
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Carry Out Action", OnAfterTransferPlanningComp, '', false, false)]
-#pragma warning restore AL0432
-#else
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mfg. Carry Out Action", OnAfterTransferPlanningComp, '', false, false)]
-#endif
     local procedure OnAfterTransferPlanningComp(var PlanningComponent: Record "Planning Component"; var ProdOrderComponent: Record "Prod. Order Component")
 #if not CLEAN29
     var

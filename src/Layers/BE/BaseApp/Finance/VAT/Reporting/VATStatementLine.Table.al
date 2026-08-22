@@ -272,14 +272,6 @@ table 256 "VAT Statement Line"
         GeneralLedgerSetup: Record "General Ledger Setup";
         GeneralLedgerSetupRead: Boolean;
 
-#if not CLEAN27
-    [Obsolete('use GetAdditionalReportingCurrencyCode instead', '27.0')]
-    procedure GetCurrencyCode(): Code[10]
-    begin
-        exit(GetAdditionalReportingCurrencyCode())
-    end;
-#endif
-
     procedure GetAdditionalReportingCurrencyCode(): Code[10]
     begin
         if not GeneralLedgerSetupRead then begin

@@ -346,13 +346,8 @@ table 312 "Purchases & Payables Setup"
             Caption = 'Create Item from Item No.';
             ToolTip = 'Specifies if the system will suggest to create a new item when no item matches the number that you enter in the No. Field on purchase lines.';
             ObsoleteReason = 'Discontinued function';
-#if CLEAN27
             ObsoleteState = Removed;
             ObsoleteTag = '29.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
         }
 #endif        
         field(58; "Copy Vendor Name to Entries"; Boolean)
@@ -547,9 +542,6 @@ table 312 "Purchases & Payables Setup"
         {
             Caption = 'Posting Date Check on Posting';
             ToolTip = 'Specifies if you want to see a warning when you post a purchase document with a posting date that is different from the Work Date.';
-#if not CLEAN27
-            InitValue = true;
-#endif
         }
 #if not CLEANSCHEMA30
         field(10501; "Reverse Charge VAT Posting Gr."; Code[20])
@@ -557,26 +549,16 @@ table 312 "Purchases & Payables Setup"
             Caption = 'Reverse Charge VAT Posting Gr.';
             TableRelation = "VAT Business Posting Group";
             ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-#if CLEAN27
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
         }
         field(10502; "Domestic Vendors"; Code[20])
         {
             Caption = 'Domestic Vendors';
             TableRelation = "VAT Business Posting Group";
             ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-#if CLEAN27
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
         }
 #endif
         field(11320; "Check Doc. Total Amounts"; Boolean)

@@ -421,15 +421,6 @@ codeunit 10569 "GovTalk Message Management"
         TempBlob.CreateOutStream(BlobOutStream);
         MemoryStream.WriteTo(BlobOutStream);
         MemoryStream.Close();
-#if not CLEAN27
-#pragma warning disable AL0432
-        if MessageType = MessageType::Submission then
-            VATReportArchive.ArchiveSubmissionMessage(
-                VATReportHeader."VAT Report Config. Code".AsInteger(), VATReportHeader."No.", TempBlob, XMLPartID)
-        else
-            VATReportArchive.ArchiveResponseMessage(
-                VATReportHeader."VAT Report Config. Code".AsInteger(), VATReportHeader."No.", TempBlob, XMLPartID);
-#else
         if VATReportArchive.Get(VATReportHeader."VAT Report Config. Code".AsInteger(), VATReportHeader."No.", XMLPartID) then
             if MessageType = MessageType::Submission then begin
                 VATReportArchive.SetXMLPartID(XMLPartID);
@@ -439,7 +430,6 @@ codeunit 10569 "GovTalk Message Management"
                 VATReportArchive.ArchiveResponseMessage(
                     VATReportHeader."VAT Report Config. Code".AsInteger(), VATReportHeader."No.", TempBlob);
 #pragma warning restore AL0432                    
-#endif
     end;
 
     [Scope('OnPrem')]

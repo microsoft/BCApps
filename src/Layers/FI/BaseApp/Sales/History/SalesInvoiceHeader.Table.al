@@ -771,13 +771,7 @@ table 112 "Sales Invoice Header"
         /// <summary>
         /// Specifies the tracking number for tracking shipped packages.
         /// </summary>
-#if not CLEAN27
-#pragma warning disable AS0086
-#endif
         field(106; "Package Tracking No."; Text[50])
-#if not CLEAN27
-#pragma warning restore AS0086
-#endif
         {
             Caption = 'Package Tracking No.';
             ToolTip = 'Specifies the shipping agent''s package number.';
@@ -2004,28 +1998,6 @@ table 112 "Sales Invoice Header"
     local procedure OnBeforeSetSecurityFilterOnRespCenter(var SalesInvoiceHeader: Record "Sales Invoice Header"; var IsHandled: Boolean)
     begin
     end;
-
-#if not CLEAN27
-    /// <summary>
-    /// Raised to retrieve the payment reference for the sales invoice.
-    /// </summary>
-    /// <param name="PaymentReference">Returns the payment reference text.</param>
-    [Obsolete('The event is never raised', '27.0')]
-    [IntegrationEvent(true, false)]
-    local procedure OnGetPaymentReference(var PaymentReference: Text)
-    begin
-    end;
-
-    /// <summary>
-    /// Raised to retrieve the payment reference label for display.
-    /// </summary>
-    /// <param name="PaymentReferenceLbl">Returns the payment reference label text.</param>
-    [Obsolete('The event is never raised', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnGetPaymentReferenceLbl(var PaymentReferenceLbl: Text)
-    begin
-    end;
-#endif
 
     /// <summary>
     /// Raised after setting filters when looking up the applies-to document number.

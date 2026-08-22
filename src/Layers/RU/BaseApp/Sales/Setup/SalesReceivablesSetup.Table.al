@@ -577,13 +577,8 @@ table 311 "Sales & Receivables Setup"
             Caption = 'Create Item from Item No.';
             ToolTip = 'Specifies if the system will suggest to create a new item when no item matches the number that you enter in the No. Field on sales lines.';
             ObsoleteReason = 'Discontinued function';
-#if CLEAN27
             ObsoleteState = Removed;
             ObsoleteTag = '29.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
         }
 #endif
         /// <summary>

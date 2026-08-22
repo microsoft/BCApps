@@ -231,39 +231,6 @@ codeunit 1802 "Data Migration Notifier"
         if Notification.Recall() then;
     end;
 
-#if not CLEAN27
-    [Obsolete('This is very non-performant code. Existing callers should implement a query instead.', '27.0')]
-    procedure ShowContactNotificationIfCustWithoutContExist()
-    var
-        Customer: Record Customer;
-        ContactBusinessRelation: Record "Contact Business Relation";
-    begin
-        if not IsNullGuid(CheckCustVendNotificationIdEnabled(DATABASE::Customer)) then
-            if Customer.FindSet() then
-                repeat
-                    if not ContactBusinessRelation.FindByRelation(ContactBusinessRelation."Link to Table"::Customer, Customer."No.") then begin
-                        OnCustomerListGetCurrRec(Customer);
-                        exit;
-                    end;
-                until Customer.Next() = 0;
-    end;
-
-    [Obsolete('This is very non-performant code. Existing callers should implement a query instead.', '27.0')]
-    procedure ShowContactNotificationIfVendWithoutContExist()
-    var
-        Vendor: Record Vendor;
-        ContactBusinessRelation: Record "Contact Business Relation";
-    begin
-        if not IsNullGuid(CheckCustVendNotificationIdEnabled(DATABASE::Vendor)) then
-            if Vendor.FindSet() then
-                repeat
-                    if not ContactBusinessRelation.FindByRelation(ContactBusinessRelation."Link to Table"::Vendor, Vendor."No.") then begin
-                        OnVendorListGetCurrRec(Vendor);
-                        exit;
-                    end;
-                until Vendor.Next() = 0;
-    end;
-#endif
     [EventSubscriber(ObjectType::Page, Page::"Customer List", 'OnAfterGetCurrRecordEvent', '', false, false)]
     local procedure OnCustomerListGetCurrRec(var Rec: Record Customer)
     begin

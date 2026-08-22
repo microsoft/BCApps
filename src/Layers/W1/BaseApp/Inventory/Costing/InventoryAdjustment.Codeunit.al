@@ -3536,13 +3536,6 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('This event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterSetParameters(var CostAdjustmentParameter: Record "Cost Adjustment Parameter")
-    begin
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnExcludeAvgCostOnValuationDateOnAfterGetItemApplicationTrace(var OutbndValueEntry: Record "Value Entry"; var OutbndEntryItemApplicationTrace: Record "Item Application Trace")
     begin

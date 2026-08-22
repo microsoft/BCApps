@@ -36,20 +36,6 @@ codeunit 144011 "UT COMPANY"
     var
         Assert: Codeunit Assert;
         LibraryUtilityOnPrem: Codeunit "Library - Utility OnPrem";
-#if not CLEAN27
-        LibraryRandom: Codeunit "Library - Random";
-
-    [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
-    procedure RegisteredPostCodeExistOnCompanyInformationPage()
-    var
-        CompanyInformation: Record "Company Information";
-    begin
-        // Purpose of the test is to validate that Registered Post Code field exist on the Company Information Page.
-        CheckControlOnCompanyInformationPage(CompanyInformation.FieldNo("Registered Post Code"));
-    end;
-#endif
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
@@ -62,29 +48,6 @@ codeunit 144011 "UT COMPANY"
         CheckControlOnCompanyInformationPage(CompanyInformation.FieldNo("Post Code"));
     end;
 
-#if not CLEAN27
-    [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
-    procedure RegisteredCityExistOnCompanyInformationPage()
-    var
-        CompanyInformation: Record "Company Information";
-    begin
-        // Purpose of the test is to validate that Registered City field exist on the Company Information Page.
-        CheckControlOnCompanyInformationPage(CompanyInformation.FieldNo("Registered City"));
-    end;
-
-    [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
-    procedure RegisteredNameExistOnCompanyInformationPage()
-    var
-        CompanyInformation: Record "Company Information";
-    begin
-        // Purpose of the test is to validate that Registered Name field exist on the Company Information Page.
-        CheckControlOnCompanyInformationPage(CompanyInformation.FieldNo("Registered Name"));
-    end;
-#endif    
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
@@ -108,51 +71,6 @@ codeunit 144011 "UT COMPANY"
         CheckControlOnCompanyInformationPage(CompanyInformation.FieldNo(County));
     end;
 
-#if not CLEAN27
-    [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
-    procedure RegisteredAddressExistOnCompanyInformationPage()
-    var
-        CompanyInformation: Record "Company Information";
-    begin
-        // Purpose of the test is to validate that Registered Address field exist on the Company Information Page.
-        CheckControlOnCompanyInformationPage(CompanyInformation.FieldNo("Registered Address"));
-    end;
-
-    [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
-    procedure RegisteredAddress2ExistOnCompanyInformationPage()
-    var
-        CompanyInformation: Record "Company Information";
-    begin
-        // Purpose of the test is to validate that Registered Address 2 field exist on the Company Information Page.
-        CheckControlOnCompanyInformationPage(CompanyInformation.FieldNo("Registered Address 2"));
-    end;
-
-    [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
-    procedure RegisteredCountyExistOnCompanyInformationPage()
-    var
-        CompanyInformation: Record "Company Information";
-    begin
-        // Purpose of the test is to validate that Registered County field exist on the Company Information Page.
-        CheckControlOnCompanyInformationPage(CompanyInformation.FieldNo("Registered County"));
-    end;
-
-    [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
-    procedure BranchNumberExistOnCompanyInformationPage()
-    var
-        CompanyInformation: Record "Company Information";
-    begin
-        // Purpose of the test is to validate that Branch Number field exist on the Company Information Page.
-        CheckControlOnCompanyInformationPage(CompanyInformation.FieldNo("Branch Number"));
-    end;
-#endif
 
     local procedure CheckControlOnCompanyInformationPage(FieldNo: Integer)
     var
@@ -165,69 +83,5 @@ codeunit 144011 "UT COMPANY"
         Assert.AreEqual(true, ControlExist, 'Control must exist');
     end;
 
-#if not CLEAN27 
-    [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
-    procedure OnValidateRegisteredCityCompanyInformationTable()
-    var
-        CompanyInformation: Record "Company Information";
-        PostCode: Record "Post Code";
-    begin
-        // Purpose of the test is to validate the On Validate trigger of the Registered City field on Company Information Table.
-
-        // Setup: Find Post Code.
-        PostCode.FindFirst();
-
-        // Exercise.
-        CompanyInformation.Validate("Registered City", PostCode.City);
-        CompanyInformation.Modify();
-
-        // Verify: Verify that Registered Post Code field is populated correctly when validate the Registered City on Company Information Table.
-        CompanyInformation.Get();
-        CompanyInformation.TestField("Registered Post Code", PostCode.Code);
-    end;
-
-    [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
-    procedure OnValidateRegisteredPostCodeCompanyInformationTable()
-    var
-        CompanyInformation: Record "Company Information";
-        PostCode: Record "Post Code";
-    begin
-        // Purpose of the test is to validate the On Validate trigger of the Registered Post Code field on Company Information Table.
-
-        // Setup: Find Post Code.
-        PostCode.FindFirst();
-
-        // Exercise.
-        CompanyInformation.Validate("Registered Post Code", PostCode.Code);
-        CompanyInformation.Modify();
-
-        // Verify: Verify that Registered City field is populated correctly when validate the Registered Post Code on Company Information Table.
-        CompanyInformation.Get();
-        CompanyInformation.TestField("Registered City", PostCode.City);
-    end;
-
-    [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
-    procedure OnValidateBranchNumberThreeDigitNumericAndEmptyCompanyInformationTable()
-    var
-        CompanyInformation: Record "Company Information";
-    begin
-        // Purpose of the test is to validate the On Validate trigger of the Branch Number field on Company Information Table.
-
-        // Enter three digit value in Branch Number
-        CompanyInformation.Validate("Branch Number", Format(LibraryRandom.RandIntInRange(100, 999)));
-        CompanyInformation.Modify();
-
-        // Verify: Verify that Branch Number field is able to blank on Company Information Table.
-        CompanyInformation.Get();
-        CompanyInformation.Validate("Branch Number", '');
-        CompanyInformation.Modify();
-    end;
-#endif    
 }
 

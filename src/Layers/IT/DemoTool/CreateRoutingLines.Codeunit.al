@@ -70,29 +70,6 @@
         RtngLine.Validate("Routing Link Code", RtngLinkCode);
         RtngLine.Validate("Unit Cost per", UnitCostPer);
         RtngLine.Insert();
-#if not CLEAN27
-#pragma warning disable AL0801
-        //BEGIN IT
-        if RoutingNo = '2000' then begin
-            case OperationNo of
-                '10':
-                    RtngLine.Validate("WIP Item", false);
-                '20':
-                    begin
-                        RtngLine.Validate("Standard Task Code", '1');
-                        RtngLine.Validate("WIP Item", true);
-                    end;
-                '30':
-                    begin
-                        RtngLine.Validate("Standard Task Code", '2');
-                        RtngLine.Validate("WIP Item", false);
-                    end;
-            end;
-            RtngLine.Modify();
-        end;
-        //END IT
-#pragma warning restore AL0801
-#endif
     end;
 }
 

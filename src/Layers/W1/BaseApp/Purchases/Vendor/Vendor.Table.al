@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -931,13 +931,7 @@ table 23 Vendor
                 MailManagement.CheckValidEmailAddresses("E-Mail");
             end;
         }
-#if not CLEAN27
-#pragma warning disable AS0086
-#endif
         field(103; "Home Page"; Text[255])
-#if not CLEAN27
-#pragma warning restore AS0086
-#endif
         {
             Caption = 'Home Page';
             ToolTip = 'Specifies the vendor''s web site.';

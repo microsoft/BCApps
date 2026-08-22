@@ -280,16 +280,6 @@ page 31 "Item List"
                     ToolTip = 'Specifies how items are tracked in the supply chain.';
                     Visible = false;
                 }
-#if not CLEAN27
-                field("Reverse Charge Applies"; Rec."Reverse Charge Applies")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-                    ObsoleteTag = '27.0';
-                    ToolTip = 'Specifies if this item is subject to reverse charge.';
-                }
-#endif
                 field("Default Deferral Template Code"; Rec."Default Deferral Template Code")
                 {
                     ApplicationArea = Suite;

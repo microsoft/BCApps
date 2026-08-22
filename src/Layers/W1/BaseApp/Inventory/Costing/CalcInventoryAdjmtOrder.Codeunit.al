@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -453,18 +453,6 @@ codeunit 5896 "Calc. Inventory Adjmt. - Order"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnCalcActualCapacityCostsOnAfterSetFilters(var CapLedgEntry: Record Microsoft.Manufacturing.Capacity."Capacity Ledger Entry"; var InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; var IsHandled: Boolean; ShareOfTotalCapCost: Decimal)
-    begin
-        OnCalcActualCapacityCostsOnAfterSetFilters(CapLedgEntry, InventoryAdjmtEntryOrder, IsHandled, ShareOfTotalCapCost);
-    end;
-
-    [Obsolete('Moved to codeunit MfgInventoryAdjmtOrder', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnCalcActualCapacityCostsOnAfterSetFilters(var CapLedgEntry: Record Microsoft.Manufacturing.Capacity."Capacity Ledger Entry"; var InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; var IsHandled: Boolean; ShareOfTotalCapCost: Decimal)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(true, false)]
     local procedure OnCalcActualMaterialCostsOnAfterSetFilters(var ItemLedgEntry: Record "Item Ledger Entry"; var InventoryAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; var CalculateActualMaterialCost: Query "Calculate Actual Material Cost"; var IsHandled: Boolean)
@@ -496,18 +484,6 @@ codeunit 5896 "Calc. Inventory Adjmt. - Order"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeCalcShareOfCapCost(var InvtAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; var ShareOfCapCost: Decimal; var IsHandled: Boolean)
-    begin
-        OnBeforeCalcShareOfCapCost(InvtAdjmtEntryOrder, ShareOfCapCost, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit MfgInventoryAdjmtEntryOrder', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCalcShareOfCapCost(var InvtAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; var ShareOfCapCost: Decimal; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcExactCostReversingQty(ItemLedgEntry: Record "Item Ledger Entry"; var Qty: Decimal)

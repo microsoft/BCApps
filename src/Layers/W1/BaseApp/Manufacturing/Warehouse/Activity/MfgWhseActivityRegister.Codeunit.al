@@ -14,10 +14,6 @@ codeunit 99000765 "Mfg. Whse. Activity Register"
     Permissions = tabledata "Production Order" = rm,
                   tabledata "Prod. Order Line" = rm;
 
-#if not CLEAN27
-    var
-        WhseActivityRegister: Codeunit "Whse.-Activity-Register";
-#endif
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Register", 'OnUpdateWhseDocHeaderByWhseDocumentType', '', true, false)]
     local procedure OnUpdateWhseDocHeaderByWhseDocumentType(var WarehouseActivityLine: Record "Warehouse Activity Line")
@@ -169,15 +165,9 @@ codeunit 99000765 "Mfg. Whse. Activity Register"
         ProdOrderComponent."Completely Picked" :=
           ProdOrderComponent."Qty. Picked" = ProdOrderComponent."Expected Quantity";
         OnBeforeProdCompLineModify(ProdOrderComponent, WhseActivityLine);
-#if not CLEAN27
-        WhseActivityRegister.RunOnBeforeProdCompLineModify(ProdOrderComponent, WhseActivityLine);
-#endif
         ProdOrderComponent.Modify();
         UpdateCompletelyPickedProdOrderComponent(WhseActivityLine);
         OnAfterProdCompLineModify(ProdOrderComponent);
-#if not CLEAN27
-        WhseActivityRegister.RunOnAfterProdCompLineModify(ProdOrderComponent);
-#endif
     end;
 
     local procedure UpdateProdOrderLine(WarehouseActivityLine: Record "Warehouse Activity Line")

@@ -42,17 +42,6 @@ page 1350 "Posted Sales Shipment - Update"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                 }
-#if not CLEAN27
-                field("Promised Delivery Date"; Rec."Promised Delivery Date")
-                {
-                    ApplicationArea = OrderPromising;
-                    Editable = true;
-                    ToolTip = 'Specifies the date that you have promised to deliver the order, as a result of the Order Promising function.';
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'This field is no longer required and will be removed in a future release.';
-                    ObsoleteTag = '27.0';
-                }
-#endif
             }
             group(Shipping)
             {
@@ -74,26 +63,6 @@ page 1350 "Posted Sales Shipment - Update"
                     ApplicationArea = Suite;
                     Editable = true;
                 }
-#if not CLEAN27
-                field("Outbound Whse. Handling Time"; Rec."Outbound Whse. Handling Time")
-                {
-                    ApplicationArea = Warehouse;
-                    Editable = true;
-                    ToolTip = 'Specifies a date formula for the time it takes to get items ready to ship from this location. The time element is used in the calculation of the delivery date as follows: Shipment Date + Outbound Warehouse Handling Time = Planned Shipment Date + Shipping Time = Planned Delivery Date.';
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'This field is no longer required and will be removed in a future release.';
-                    ObsoleteTag = '27.0';
-                }
-                field("Shipping Time"; Rec."Shipping Time")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = true;
-                    ToolTip = 'Specifies how long it takes from when the items are shipped from the warehouse to when they are delivered.';
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'This field is no longer required and will be removed in a future release.';
-                    ObsoleteTag = '27.0';
-                }
-#endif
             }
         }
     }
@@ -121,14 +90,7 @@ page 1350 "Posted Sales Shipment - Update"
     begin
         IsChanged :=
           (Rec."Shipping Agent Code" <> xSalesShipmentHeader."Shipping Agent Code") or
-#if not CLEAN27
-          (Rec."Promised Delivery Date" <> xSalesShipmentHeader."Promised Delivery Date") or
-#endif
           (Rec."Package Tracking No." <> xSalesShipmentHeader."Package Tracking No.") or
-#if not CLEAN27
-          (Rec."Outbound Whse. Handling Time" <> xSalesShipmentHeader."Outbound Whse. Handling Time") or
-          (Rec."Shipping Time" <> xSalesShipmentHeader."Shipping Time") or
-#endif
           (Rec."Shipping Agent Service Code" <> xSalesShipmentHeader."Shipping Agent Service Code");
 
         OnAfterRecordChanged(Rec, xSalesShipmentHeader, IsChanged);

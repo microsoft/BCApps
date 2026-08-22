@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -70,16 +70,6 @@ page 459 "Sales & Receivables Setup"
                 {
                     ApplicationArea = Basic, Suite;
                 }
-#if not CLEAN27                
-                field("Create Item from Item No."; Rec."Create Item from Item No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Visible = false;
-                    ObsoleteReason = 'Discontinued functionality';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
-#endif                
                 field("Create Item from Description"; Rec."Create Item from Description")
                 {
                     ApplicationArea = Basic, Suite;

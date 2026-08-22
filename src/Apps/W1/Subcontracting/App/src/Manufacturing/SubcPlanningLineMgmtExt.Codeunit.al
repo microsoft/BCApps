@@ -20,13 +20,7 @@ codeunit 20518 "Subc. Planning Line Mgmt Ext."
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
 #endif
-#if not CLEAN27
-#pragma warning disable AL0432
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Planning Line Management", OnAfterTransferRtngLine, '', false, false)]
-#pragma warning restore AL0432
-#else
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mfg. Planning Line Management", OnAfterTransferRtngLine, '', false, false)]
-#endif
     local procedure OnAfterTransferRtngLine(var ReqLine: Record "Requisition Line"; var RoutingLine: Record "Routing Line"; var PlanningRoutingLine: Record "Planning Routing Line")
     var
         SubcPriceManagement: Codeunit "Subc. Price Management";

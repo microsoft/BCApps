@@ -26,9 +26,6 @@ codeunit 144039 "ERM Sales Report GB"
         LibraryReportDataset: Codeunit "Library - Report Dataset";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryRandom: Codeunit "Library - Random";
-#if not CLEAN27        
-        LibraryUtility: Codeunit "Library - Utility";
-#endif        
 
     [Test]
     [HandlerFunctions('StatementRequestPagePreviewHandler')]
@@ -69,32 +66,6 @@ codeunit 144039 "ERM Sales Report GB"
         FileMgt.ServerFileExists(FileName);
     end;
 
-#if not CLEAN27
-    [Test]
-    [HandlerFunctions('OrderConfirmationGBRequestPageHandler')]
-    [Scope('OnPrem')]
-    procedure OrderConfirmationGBExternalDocumentNoIsPrinted()
-    var
-        SalesHeader: Record "Sales Header";
-    begin
-        // [FEATURE] [UI] [Order] [Confirmation]
-        // [SCENARIO 225794] "External Document No." is shown with its caption when report "Order Confirmation GB" is printed for Sales Order
-        Initialize();
-
-        // [GIVEN] Sales Order with "External Document No." = "XXX"
-        MockSalesOrderWithExternalDocumentNo(SalesHeader);
-
-        // [WHEN] Export report "Order Confirmation GB" to XML file
-        RunOrderConfirmationGBReport(SalesHeader."No.");
-        LibraryReportDataset.LoadDataSetFile();
-
-        // [THEN] Value "External Document No." is displayed under Tag <ReferenceText> in export XML file
-        LibraryReportDataset.AssertElementTagWithValueExists('ReferenceText', SalesHeader.FieldCaption("External Document No."));
-
-        // [THEN] Value "XXX" is displayed under Tag <YourRef_SalesHeader> in export XML file
-        LibraryReportDataset.AssertElementTagWithValueExists('YourRef_SalesHeader', SalesHeader."External Document No.");
-    end;
-#endif    
 
     local procedure Initialize()
     var
@@ -107,16 +78,6 @@ codeunit 144039 "ERM Sales Report GB"
         LibraryERMCountryData.UpdateGeneralPostingSetup();
     end;
 
-#if not CLEAN27
-    local procedure RunOrderConfirmationGBReport(SalesHeaderNo: Code[20])
-    var
-        SalesHeader: Record "Sales Header";
-    begin
-        Commit();
-        SalesHeader.SetRange("No.", SalesHeaderNo);
-        REPORT.Run(REPORT::"Order Confirmation GB", true, false, SalesHeader);
-    end;
-#endif    
 
     local procedure CreateCustomer(): Code[20]
     var
@@ -169,21 +130,5 @@ codeunit 144039 "ERM Sales Report GB"
         StatementRequestPage.SaveAsPdf(FileNameVar);
     end;
 
-#if not CLEAN27
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure OrderConfirmationGBRequestPageHandler(var OrderConfirmationGB: TestRequestPage "Order Confirmation GB")
-    begin
-        OrderConfirmationGB.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-
-    local procedure MockSalesOrderWithExternalDocumentNo(var SalesHeader: Record "Sales Header")
-    begin
-        SalesHeader."No." := LibraryUtility.GenerateGUID();
-        SalesHeader."Document Type" := SalesHeader."Document Type"::Order;
-        SalesHeader."External Document No." := LibraryUtility.GenerateGUID();
-        SalesHeader.Insert();
-    end;
-#endif    
 }
 

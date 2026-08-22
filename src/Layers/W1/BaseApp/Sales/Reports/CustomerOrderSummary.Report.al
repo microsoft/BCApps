@@ -30,14 +30,6 @@ report 107 "Customer - Order Summary"
             DataItemTableView = sorting("No.");
             PrintOnlyIfDetail = true;
             RequestFilterFields = "No.", "Search Name", "Customer Posting Group", "Currency Filter";
-#if not CLEAN27
-            column(CompanyName; COMPANYPROPERTY.DisplayName())
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-#endif
             column(PrintAmountsInLCY; PrintAmountsInLCY)
             {
             }
@@ -98,62 +90,6 @@ report 107 "Customer - Order Summary"
             column(TotalCaption; TotalCaptionLbl)
             {
             }
-#if not CLEAN27
-            column(CustomerOrderSummaryCaption; CustomerOrderSummaryCaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(PageNoCaption; PageNoCaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(AllamountsareinLCYCaption; AllamountsareinLCYCaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(OutstandingOrdersCaption; OutstandingOrdersCaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(CustomerNoCaption; CustomerNoCaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(CustomerNameCaption; CustomerNameCap)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(BeforeCaption; BeforeCaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(AfterCaption; AfterCaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(TotalLCYCaption; TotalLCYCaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-#endif
             dataitem("Sales Line"; "Sales Line")
             {
                 DataItemLink = "Bill-to Customer No." = field("No."), "Shortcut Dimension 1 Code" = field("Global Dimension 1 Filter"), "Shortcut Dimension 2 Code" = field("Global Dimension 2 Filter"), "Currency Code" = field("Currency Filter");
@@ -468,18 +404,6 @@ report 107 "Customer - Order Summary"
             Type = Word;
             Summary = 'Built in layout for the Customer Order Summary word report.';
         }
-#if not CLEAN27
-        layout(RDLC)
-        {
-            Caption = 'Customer Order Summary RDLC';
-            Type = RDLC;
-            LayoutFile = '.\Sales\Reports\CustomerOrderSummary.rdlc';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'The RDLC layout has been replaced by the Excel and Word layouts and will be removed in a future release.';
-            ObsoleteTag = '27.0';
-            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
-        }
-#endif
     }
     labels
     {
@@ -582,24 +506,6 @@ report 107 "Customer - Order Summary"
         SalesAmtOnOrder: array[5] of Decimal;
         SalesAmtOnOrder1: array[5] of Decimal;
 
-#if not CLEAN27    
-        [Obsolete('RDLC Only layout field caption. To be removed along with the RDLC layout', '27.0')]
-        CustomerOrderSummaryCaptionLbl: Label 'Customer - Order Summary';
-        [Obsolete('RDLC Only layout field caption. To be removed along with the RDLC layout', '27.0')]
-        PageNoCaptionLbl: Label 'Page';
-        [Obsolete('RDLC Only layout field caption. To be removed along with the RDLC layout', '27.0')]
-        OutstandingOrdersCaptionLbl: Label 'Outstanding Orders';
-        [Obsolete('RDLC Only layout field caption. To be removed along with the RDLC layout', '27.0')]
-        CustomerNoCaptionLbl: Label 'Customer No.';
-#pragma warning disable AA0074
-        [Obsolete('RDLC Only layout field caption. To be removed along with the RDLC layout', '27.0')]
-        CustomerNameCap: Label 'Name';
-#pragma warning restore AA0074
-        [Obsolete('RDLC Only layout field caption. To be removed along with the RDLC layout', '27.0')]
-        BeforeCaptionLbl: Label '...before';
-        [Obsolete('RDLC Only layout field caption. To be removed along with the RDLC layout', '27.0')]
-        AfterCaptionLbl: Label 'after...';
-#endif
     /// <summary>
     /// Initializes the report request options for the Customer Order Summary report.
     /// </summary>

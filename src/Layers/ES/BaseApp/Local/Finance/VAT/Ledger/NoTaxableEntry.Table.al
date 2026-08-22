@@ -302,17 +302,6 @@ table 10740 "No Taxable Entry"
         OnAfterInitFromGenJnlLine(Rec, GenJournalLine);
     end;
 
-#if not CLEAN27
-    [Obsolete('Moved to codeunit Serv. No Taxable Management', '27.0')]
-    [Scope('OnPrem')]
-    procedure InitFromServiceDocument(ServiceHeader: Record Microsoft.Service.Document."Service Header"; PostedDocumentNo: Code[20])
-    var
-        ServNoTaxableManagement: Codeunit "Serv. No Taxable Mgt.";
-    begin
-        ServNoTaxableManagement.InitFromServiceDocument(Rec, ServiceHeader, PostedDocumentNo);
-    end;
-#endif
-
     [Scope('OnPrem')]
     procedure InitFromVendorEntry(VendorLedgerEntry: Record "Vendor Ledger Entry"; CountryRegionCode: Code[10]; EU3PartyTrade: Boolean; VATRegistrationNo: Text[20])
     begin
@@ -443,19 +432,6 @@ table 10740 "No Taxable Entry"
     local procedure OnAfterInitFromCustomerEntry(var NoTaxableEntry: Record "No Taxable Entry"; CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnAfterInitFromServiceDocument(var NoTaxableEntry: Record "No Taxable Entry"; ServiceHeader: Record Microsoft.Service.Document."Service Header")
-    begin
-        OnAfterInitFromServiceDocument(NoTaxableEntry, ServiceHeader);
-    end;
-
-    [Obsolete('Moved to codeunit Serv. No Taxable Management', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterInitFromServiceDocument(var NoTaxableEntry: Record "No Taxable Entry"; ServiceHeader: Record Microsoft.Service.Document."Service Header")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitFromVendorEntry(var NoTaxableEntry: Record "No Taxable Entry"; VendorLedgerEntry: Record "Vendor Ledger Entry")

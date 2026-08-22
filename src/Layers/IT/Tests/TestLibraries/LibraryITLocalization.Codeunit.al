@@ -116,16 +116,6 @@ codeunit 143000 "Library - IT Localization"
             ItemCostingSetup.Insert(true);
     end;
 
-#if not CLEAN27
-    [Scope('OnPrem')]
-    procedure CreatePeriodicVATSettlementEntry(var PeriodicSettlementVATEntry: Record "Periodic Settlement VAT Entry"; PeriodDate: Date)
-    begin
-        PeriodicSettlementVATEntry.Init();
-        PeriodicSettlementVATEntry.Validate(
-          "VAT Period", StrSubstNo(VATPeriodTxt, Date2DMY(PeriodDate, 3), ConvertStr(Format(Date2DMY(PeriodDate, 2), 2), ' ', '0')));
-        PeriodicSettlementVATEntry.Insert(true);
-    end;
-#else
     [Scope('OnPrem')]
     procedure CreatePeriodicSettlementVATEntry(var PeriodicSettlementVATEntry: Record "Periodic VAT Settlement Entry"; PeriodDate: Date)
     begin
@@ -134,7 +124,6 @@ codeunit 143000 "Library - IT Localization"
           "VAT Period", StrSubstNo(VATPeriodTxt, Date2DMY(PeriodDate, 3), ConvertStr(Format(Date2DMY(PeriodDate, 2), 2), ' ', '0')));
         PeriodicSettlementVATEntry.Insert(true);
     end;
-#endif
     [Scope('OnPrem')]
     procedure CreateServiceTariffNumber(var ServiceTariffNumber: Record "Service Tariff Number")
     begin
@@ -144,26 +133,6 @@ codeunit 143000 "Library - IT Localization"
         ServiceTariffNumber.Insert(true);
     end;
 
-#if not CLEAN27
-#pragma warning disable AL0801
-    [Obsolete('Preparation for replacement by Subcontracting app', '27.0')]
-    [Scope('OnPrem')]
-    procedure CreateSubContractingPrice(var SubcontractorPrices: Record "Subcontractor Prices"; WorkCenterNo: Code[20]; VendorNo: Code[20]; ItemNo: Code[20]; StandardTaskCode: Code[10]; VariantCode: Code[10]; StartDate: Date; UnitOfMeasureCode: Code[10]; MinimumQuantity: Decimal; CurrencyCode: Code[10])
-    begin
-        SubcontractorPrices.Init();
-        SubcontractorPrices.Validate("Work Center No.", WorkCenterNo);
-        SubcontractorPrices.Validate("Vendor No.", VendorNo);
-        SubcontractorPrices.Validate("Item No.", ItemNo);
-        SubcontractorPrices.Validate("Standard Task Code", StandardTaskCode);
-        SubcontractorPrices.Validate("Variant Code", VariantCode);
-        SubcontractorPrices.Validate("Start Date", StartDate);
-        SubcontractorPrices.Validate("Unit of Measure Code", UnitOfMeasureCode);
-        SubcontractorPrices.Validate("Minimum Quantity", MinimumQuantity);
-        SubcontractorPrices.Validate("Currency Code", CurrencyCode);
-        SubcontractorPrices.Insert(true);
-    end;
-#pragma warning restore AL0801
-#endif
 
     [Scope('OnPrem')]
     procedure CreateTransportMethod(var TransportMethod: Record "Transport Method")

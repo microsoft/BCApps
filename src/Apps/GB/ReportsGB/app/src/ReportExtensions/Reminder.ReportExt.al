@@ -9,9 +9,7 @@ using Microsoft.Sales.Setup;
 
 reportextension 10584 Reminder extends Reminder
 {
-#if CLEAN27
     RDLCLayout = './src/ReportExtensions/Reminder.rdlc';
-#endif
     dataset
     {
         add("Issued Reminder Header")
@@ -87,20 +85,6 @@ reportextension 10584 Reminder extends Reminder
         }
     }
 
-#if not CLEAN27
-    rendering
-    {
-        layout(GBlocalizationLayout)
-        {
-            Type = RDLC;
-            Caption = 'Reminder GB localization';
-            LayoutFile = './src/ReportExtensions/Reminder.rdlc';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'Feature Reports GB will be enabled by default in version 30.0.';
-            ObsoleteTag = '27.0';
-        }
-    }
-#endif
 
     var
         GLSetup: Record "General Ledger Setup";

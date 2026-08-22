@@ -322,25 +322,7 @@ codeunit 99000833 "Req. Line-Reserve"
           Database::"Purchase Line", PurchaseLine."Document Type".AsInteger(), PurchaseLine."Document No.", '', 0, PurchaseLine."Line No.");
     end;
 
-#if not CLEAN27
-    [Obsolete('Moved to codeunit ProdOrderLineReserve', '27.0')]
-    procedure TransferPlanningLineToPOLine(var OldRequisitionLine: Record "Requisition Line"; var NewProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; TransferQty: Decimal; TransferAll: Boolean)
-    var
-        ProdOrderLineReserve: Codeunit Microsoft.Manufacturing.Document."Prod. Order Line-Reserve";
-    begin
-        ProdOrderLineReserve.TransferPlanningLineToPOLine(OldRequisitionLine, NewProdOrderLine, TransferQty, TransferAll);
-    end;
-#endif
 
-#if not CLEAN27
-    [Obsolete('Moved to codeunit AssemblyHeaderReserve', '27.0')]
-    procedure TransferPlanningLineToAsmHdr(var OldRequisitionLine: Record "Requisition Line"; var NewAssemblyHeader: Record Microsoft.Assembly.Document."Assembly Header"; TransferQty: Decimal; TransferAll: Boolean)
-    var
-        AssemblyHeaderReserve: Codeunit Microsoft.Assembly.Document."Assembly Header-Reserve";
-    begin
-        AssemblyHeaderReserve.TransferPlanningLineToAsmHdr(OldRequisitionLine, NewAssemblyHeader, TransferQty, TransferAll);
-    end;
-#endif
 
     procedure TransferReqLineToTransLine(var RequisitionLine: Record "Requisition Line"; var TransferLine: Record "Transfer Line"; TransferQty: Decimal; TransferAll: Boolean)
     var
@@ -733,36 +715,12 @@ codeunit 99000833 "Req. Line-Reserve"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnTransferReqLineToAsmHdrOnBeforeTransfer(var OldReservEntry: Record "Reservation Entry"; var OldReqLine: Record "Requisition Line"; var AssemblyHeader: Record Microsoft.Assembly.Document."Assembly Header")
-    begin
-        OnTransferReqLineToAsmHdrOnBeforeTransfer(OldReservEntry, OldReqLine, AssemblyHeader);
-    end;
-
-    [Obsolete('Moved to codeunit AssemblyHeaderReserve', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnTransferReqLineToAsmHdrOnBeforeTransfer(var OldReservEntry: Record "Reservation Entry"; var OldReqLine: Record "Requisition Line"; var AssemblyHeader: Record Microsoft.Assembly.Document."Assembly Header")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnTransferReqLineToPurchLineOnBeforeTransfer(var OldReservEntry: Record "Reservation Entry"; var OldReqLine: Record "Requisition Line"; var PurchLine: Record "Purchase Line")
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnTransferReqLineToPOLineOnBeforeTransfer(var OldReservEntry: Record "Reservation Entry"; var OldReqLine: Record "Requisition Line"; var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line")
-    begin
-        OnTransferReqLineToPOLineOnBeforeTransfer(OldReservEntry, OldReqLine, ProdOrderLine);
-    end;
-
-    [Obsolete('Moved to codeunit ProdOrderLineReserve', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnTransferReqLineToPOLineOnBeforeTransfer(var OldReservEntry: Record "Reservation Entry"; var OldReqLine: Record "Requisition Line"; var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnTransferReqLineToReqLineOnBeforeTransfer(var OldReservEntry: Record "Reservation Entry"; var OldReqLine: Record "Requisition Line"; var NewReqLine: Record "Requisition Line")
@@ -789,44 +747,13 @@ codeunit 99000833 "Req. Line-Reserve"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeTransferPlanningLineToPOLine(var OldRequisitionLine: Record "Requisition Line"; var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; TransferQty: Decimal; TransferAll: Boolean; var IsHandled: Boolean)
-    begin
-        OnBeforeTransferPlanningLineToPOLine(OldRequisitionLine, ProdOrderLine, TransferQty, TransferAll, IsHandled);
-    end;
 
-    [Obsolete('Moved to codeunit ProdOrderLineReserve', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeTransferPlanningLineToPOLine(var OldRequisitionLine: Record "Requisition Line"; var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; TransferQty: Decimal; TransferAll: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnTransferPlanningLineToPOLineOnBeforeCheckFields(var OldRequisitionLine: Record "Requisition Line"; var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; TransferQty: Decimal; TransferAll: Boolean; var IsHandled: Boolean)
-    begin
-        OnTransferPlanningLineToPOLineOnBeforeCheckFields(OldRequisitionLine, ProdOrderLine, TransferQty, TransferAll, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit ProdOrderLineReserve', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnTransferPlanningLineToPOLineOnBeforeCheckFields(var OldRequisitionLine: Record "Requisition Line"; var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; TransferQty: Decimal; TransferAll: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnDeleteLineOnAfterCalcShouldExitForBlocked(var RequisitionLine: Record "Requisition Line"; var ShouldExitForBlocked: Boolean)
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('Event is not used', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnSetSourceForReservationOnBeforeUpdateReservation(var ReservEntry: Record "Reservation Entry"; ReqLine: Record "Requisition Line")
-    begin
-    end;
-#endif
 
     // codeunit Create Reserv. Entry
 

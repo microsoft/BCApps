@@ -131,13 +131,6 @@ table 11303 "VAT Summary Buffer"
             Next();
     end;
 
-#if not CLEAN27
-    [Obsolete('use GetAdditionalReportingCurrencyCode instead', '27.0')]
-    procedure GetCurrencyCode(): Code[10]
-    begin
-        exit(GetAdditionalReportingCurrencyCode());
-    end;
-#endif
     procedure GetAdditionalReportingCurrencyCode(): Code[10]
     begin
         if not GLSetupRead then begin

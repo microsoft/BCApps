@@ -287,30 +287,6 @@ page 9001 "Accounting Manager Role Center"
                 RunObject = Report "G/L - VAT Reconciliation";
                 ToolTip = 'Verify that the VAT amounts on the VAT statements match the amounts from the G/L entries.';
             }
-#if not CLEAN27
-            action("VAT Audit")
-            {
-                ApplicationArea = VAT;
-                Caption = 'VAT Audit';
-                Image = "Report";
-                RunObject = Report "VAT Audit";
-                ObsoleteReason = 'Moved to VAT Audit Reports GB app';
-                ObsoleteState = Pending;
-                ObsoleteTag = '27.0';
-                ToolTip = 'Prepare for the HMC&E VAT audit by exports the relevant data for VAT auditors into comma-separated files.';
-            }
-            action("VAT Entry Exception List")
-            {
-                ApplicationArea = VAT;
-                Caption = 'VAT Entry Exception List';
-                Image = "Report";
-                RunObject = Report "VAT Entry Exception Report";
-                ObsoleteReason = 'Moved to VAT Audit Reports GB app';
-                ObsoleteState = Pending;
-                ObsoleteTag = '27.0';
-                ToolTip = 'View or print the differences between the calculated VAT and the changes that occur because of rounding, VAT tolerance percentage, and discounts. The report also displays the difference in VAT amounts for the tax authorities.';
-            }
-#endif
             separator("VAT EU Reporting")
             {
                 Caption = 'VAT EU Reporting';
