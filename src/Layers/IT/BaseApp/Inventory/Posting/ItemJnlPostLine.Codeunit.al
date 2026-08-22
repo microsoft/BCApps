@@ -1752,6 +1752,8 @@ codeunit 22 "Item Jnl.-Post Line"
         if FromItemLedgEntry."Entry Type" = FromItemLedgEntry."Entry Type"::Transfer then begin
             ItemTrackingSetup2."Serial No. Required" := GlobalItemTrackingSetup."Serial No. Required";
             ItemTrackingSetup2."Lot No. Required" := GlobalItemTrackingSetup."Lot No. Required";
+
+            OnAfterSetTrackingFilterFromItemTrackingSetupIfRequired(ItemTrackingSetup2, GlobalItemTrackingSetup);
         end;
 
         if (FromItemLedgEntry."Serial No." <> '') and (ItemTrackingSetup2."Serial No. Required") then
@@ -9008,6 +9010,11 @@ codeunit 22 "Item Jnl.-Post Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnCalcCostPerUnitForPositiveValuedQtyOnBeforeCheckShouldCalculateCostPerUnit(ValueEntry: Record "Value Entry"; ItemJournalLine: Record "Item Journal Line"; var ShouldCalculateCostPerUnit: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterSetTrackingFilterFromItemTrackingSetupIfRequired(var ItemTrackingSetup: Record "Item Tracking Setup"; GlobalItemTrackingSetup: Record "Item Tracking Setup")
     begin
     end;
 }
