@@ -6,7 +6,6 @@ namespace Microsoft;
 
 using Microsoft.Foundation.Reporting;
 using Microsoft.Upgrade;
-using System.Upgrade;
 
 codeunit 5000 "BaseApp Install"
 {
@@ -27,14 +26,9 @@ codeunit 5000 "BaseApp Install"
     local procedure SeedDefaultReportParts()
     var
         CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+        UpgradeCompositeReportParts: Codeunit "Upgrade Composite Report Parts";
     begin
-        if not CompositeReportPartsMgt.SeedDefaultParts() then
-            exit;
-
-        if not UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()) then
-            UpgradeTag.SetDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag());
+        UpgradeCompositeReportParts.RecordSeedOutcome(CompositeReportPartsMgt.SeedDefaultParts());
     end;
 
     local procedure AddWordTemplateTables()

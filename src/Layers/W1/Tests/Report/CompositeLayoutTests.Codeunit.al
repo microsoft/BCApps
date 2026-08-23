@@ -383,8 +383,8 @@ codeunit 134619 "Composite Layout Tests"
             TenantReportLayout.Get(LookupHelper.GetTenantReportDefaultsReportID(), PartName, CompositeReportPartsMgt.GetShippedPartAppId()),
             'The shipped part should be written under the App ID the pass owns.');
 
-        // [THEN] Both rows exist, so the two are kept apart by App ID rather than one overwriting the other.
-        Assert.AreEqual(2, ShippedPartCount(PartName), 'The tenant part and the shipped part should both be in the pool.');
+        // [THEN] The pass owns exactly one row, so the two are kept apart by App ID rather than one overwriting the other.
+        Assert.AreEqual(1, ShippedPartCount(PartName), 'The pass should own exactly one row under its own App ID.');
     end;
 
     [Test]
@@ -1379,30 +1379,43 @@ codeunit 134619 "Composite Layout Tests"
     var
         TenantReportLayout: Record "Tenant Report Layout";
     begin
-        // Filtered on Report ID + Name rather than fetched on the full key: the seeded parts are stored under the
-        // platform System app's App ID and a part a test creates under none, and this has to take out whichever is there.
+        // Deliberately not filtered on App ID: this is cleanup, and it has to take out the row the pass owns as well as
+        // any row of the same name a test left on the no-App-ID key.
         TenantReportLayout.SetRange("Report ID", LookupHelper.GetTenantReportDefaultsReportID());
         TenantReportLayout.SetRange(Name, CopyStr(PartName, 1, MaxStrLen(TenantReportLayout.Name)));
         TenantReportLayout.DeleteAll(true);
     end;
 
+    /// <summary>
+    /// Whether the seeding pass owns a row for this part. Filtered on the shipped App ID: a part the tenant authored
+    /// can carry the same name, and an assertion must not be satisfied by customer content standing in for the row the
+    /// pass is supposed to have written.
+    /// </summary>
     local procedure ShippedPartExists(PartName: Text; Subtype: Enum "Report Layout Subtype"): Boolean
     var
-        ReportLayoutList: Record "Report Layout List";
+        TenantReportLayout: Record "Tenant Report Layout";
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
     begin
-        ReportLayoutList.SetRange("Report ID", LookupHelper.GetTenantReportDefaultsReportID());
-        ReportLayoutList.SetRange(Name, CopyStr(PartName, 1, MaxStrLen(ReportLayoutList.Name)));
-        ReportLayoutList.SetRange("Layout Subtype", Subtype);
-        exit(not ReportLayoutList.IsEmpty());
+        TenantReportLayout.SetRange("Report ID", LookupHelper.GetTenantReportDefaultsReportID());
+        TenantReportLayout.SetRange(Name, CopyStr(PartName, 1, MaxStrLen(TenantReportLayout.Name)));
+        TenantReportLayout.SetRange("App ID", CompositeReportPartsMgt.GetShippedPartAppId());
+        TenantReportLayout.SetRange("Layout Subtype", Subtype);
+        exit(not TenantReportLayout.IsEmpty());
     end;
 
+    /// <summary>
+    /// How many rows the seeding pass owns for this part. Filtered on the shipped App ID for the same reason as
+    /// ShippedPartExists, so a tenant row of the same name cannot inflate the count.
+    /// </summary>
     local procedure ShippedPartCount(PartName: Text): Integer
     var
-        ReportLayoutList: Record "Report Layout List";
+        TenantReportLayout: Record "Tenant Report Layout";
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
     begin
-        ReportLayoutList.SetRange("Report ID", LookupHelper.GetTenantReportDefaultsReportID());
-        ReportLayoutList.SetRange(Name, CopyStr(PartName, 1, MaxStrLen(ReportLayoutList.Name)));
-        exit(ReportLayoutList.Count());
+        TenantReportLayout.SetRange("Report ID", LookupHelper.GetTenantReportDefaultsReportID());
+        TenantReportLayout.SetRange(Name, CopyStr(PartName, 1, MaxStrLen(TenantReportLayout.Name)));
+        TenantReportLayout.SetRange("App ID", CompositeReportPartsMgt.GetShippedPartAppId());
+        exit(TenantReportLayout.Count());
     end;
 
     local procedure Initialize()

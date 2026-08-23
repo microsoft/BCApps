@@ -18,7 +18,13 @@ codeunit 9667 "Composite Report Parts Mgt."
     TableNo = "Tenant Report Layout";
 
     trigger OnRun()
+    var
+        CallerModuleInfo: ModuleInfo;
     begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        if CallerModuleInfo.Id <> GetShippedPartAppId() then
+            Error(CallerNotAllowedErr);
+
         WritePart(Rec);
     end;
 
@@ -56,6 +62,7 @@ codeunit 9667 "Composite Report Parts Mgt."
     begin
         TenantReportLayout.SetRange("Report ID", CompositeLayoutLookupHelper.GetTenantReportDefaultsReportID());
         TenantReportLayout.SetRange("App ID", GetShippedPartAppId());
+        TenantReportLayout.SetLoadFields(Name, "Layout Subtype");
         if TenantReportLayout.FindSet() then
             repeat
                 if not IsShippedPart(TenantReportLayout.Name) then begin
@@ -246,6 +253,8 @@ codeunit 9667 "Composite Report Parts Mgt."
         DefaultThemeDescTxt: Label 'Simple and clear, so the details that matter stand out. Styling-only theme: neutral Segoe UI in semibold and regular for hierarchy, dark-grey text on white, calm accent colours, and softly banded table rows. Works for most reports out of the box.';
         CalmThemeDescTxt: Label 'Classic and calm, and easy to read. Styling-only theme: Sitka serif in semibold and regular for hierarchy, with dark-green text on a soft beige background. A timeless look that gives your reports a quieter, more classic feel.';
         PlayfulThemeDescTxt: Label 'Dynamic and lively, a fresh take on a professional report. Styling-only theme: geometric Bahnschrift in semibold and regular for hierarchy, with backgrounds alternating between green and pink for an energetic, modern feel.';
+
+        CallerNotAllowedErr: Label 'Only the application that ships the composite report parts can write them.';
 
         PartNotSeededTxt: Label 'Composite layout parts: a shipped theme or header/footer part could not be written to the shared pool and was skipped. The remaining parts were seeded.', Locked = true;
         PartNotSeededDetailTxt: Label 'Composite layout parts: the reason a shipped theme or header/footer part could not be written. Publisher-scoped because the platform error text can echo customer content.', Locked = true;
