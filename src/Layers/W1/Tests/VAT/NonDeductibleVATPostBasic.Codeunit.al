@@ -16,7 +16,6 @@ codeunit 134285 "Non-Deductible VAT Post. Basic"
         LibraryERM: Codeunit "Library - ERM";
         LibraryNonDeductibleVAT: Codeunit "Library - NonDeductible VAT";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
-        LibraryUtility: Codeunit "Library - Utility";
         Assert: Codeunit Assert;
         isInitialized: Boolean;
         AmountErr: Label '%1 must be %2 in %3.';
@@ -539,7 +538,6 @@ codeunit 134285 "Non-Deductible VAT Post. Basic"
         LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATBusPostingGroupCode, VATProductPostingGroup.Code);
         VATPostingSetup.Validate("VAT Calculation Type", VATPostingSetup."VAT Calculation Type"::"Full VAT");
         VATPostingSetup.Validate("VAT %", 100);
-        VATPostingSetup.Validate("VAT Identifier", LibraryUtility.GenerateRandomCode(VATPostingSetup.FieldNo("VAT Identifier"), Database::"VAT Posting Setup"));
         LibraryNonDeductibleVAT.SetAllowNonDeductibleVATForVATPostingSetup(VATPostingSetup);
         VATPostingSetup.Validate("Non-Deductible VAT %", NonDeductibleVATPct);
         VATPostingSetup.Modify(true);
