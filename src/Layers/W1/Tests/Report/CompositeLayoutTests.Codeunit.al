@@ -547,7 +547,6 @@ codeunit 134619 "Composite Layout Tests"
         UpgradeCompositeReportParts: Codeunit "Upgrade Composite Report Parts";
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
-        UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
     begin
         // [SCENARIO] The upgrade seeds on its first run and records its tag; a second run exits on the guard at entry
         // instead of re-seeding. Shipping changed layout files takes a new dated tag, not an ungated pass.
@@ -619,7 +618,6 @@ codeunit 134619 "Composite Layout Tests"
         UpgradeCompositeReportParts: Codeunit "Upgrade Composite Report Parts";
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
-        UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
     begin
         // [SCENARIO] A seeding pass that could not write every part must not record the upgrade tag. The tag is what
         // stops the pass from running again, so stamping it after a partial seed would leave the skipped parts missing
