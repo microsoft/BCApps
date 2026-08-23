@@ -22,11 +22,11 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure AddInvoiceOrderMatchWithinCapsSucceedsAndPersists()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         OrderLine, InvoiceLine : Record "Purchase Line";
         MatchedOrderLine: Record "Matched Order Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] An invoice-order edge within caps is accepted and persisted as a (invoice, order, blank) 5817 row.
         Initialize(Vendor, Item);
@@ -51,10 +51,10 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure AddInvoiceOrderMatchExceedingInvoiceQuantityErrors()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         OrderLine, InvoiceLine : Record "Purchase Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] An invoice-order edge exceeding the invoice line quantity is rejected.
         Initialize(Vendor, Item);
@@ -71,10 +71,10 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure AddInvoiceOrderMatchExceedingOrderRemainingErrors()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         OrderLine, InvoiceLine : Record "Purchase Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] An invoice-order edge exceeding the order line's quantity remaining to invoice is rejected.
         Initialize(Vendor, Item);
@@ -91,10 +91,10 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure AddInvoiceOrderMatchRunningTotalPerInvoiceErrors()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         OrderLine1, OrderLine2, InvoiceLine : Record "Purchase Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] Two invoice-order edges from the same invoice line cannot together exceed the invoice quantity.
         Initialize(Vendor, Item);
@@ -115,12 +115,12 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure AddMatchWithDifferentBaseUoMPersistsBase()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         UnitOfMeasure: Record "Unit of Measure";
         OrderLine, InvoiceLine : Record "Purchase Line";
         MatchedOrderLine: Record "Matched Order Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] When the purchase UoM differs from the base UoM, the derived base quantity is persisted.
         Initialize(Vendor, Item);
@@ -143,12 +143,12 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure AddMatchDerivesBaseFromOrderIgnoringSuppliedBase()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         UnitOfMeasure: Record "Unit of Measure";
         OrderLine, InvoiceLine : Record "Purchase Line";
         MatchedOrderLine: Record "Matched Order Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] The base is derived from the order line's UoM; a caller-supplied base is ignored, so qty and base can't disagree.
         Initialize(Vendor, Item);
@@ -170,10 +170,10 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure AddInvoiceOrderMatchWithNonInvoiceDocumentErrors()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         InvoiceRoleLine, OrderLine : Record "Purchase Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         Initialize(Vendor, Item);
         CreateOrderLine(Vendor, Item, 10, InvoiceRoleLine);
@@ -187,10 +187,10 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure AddInvoiceOrderMatchWithNonOrderDocumentErrors()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         InvoiceLine, OrderRoleLine : Record "Purchase Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         Initialize(Vendor, Item);
         CreateInvoiceLine(Vendor, Item, 10, InvoiceLine);
@@ -204,11 +204,11 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure AddInvoiceOrderMatchWithDifferentUnitOfMeasureErrors()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         UnitOfMeasure: Record "Unit of Measure";
         InvoiceLine, OrderLine : Record "Purchase Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         Initialize(Vendor, Item);
         CreatePurchaseUoM(Item, 12, UnitOfMeasure);
@@ -225,13 +225,13 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure AddOrderReceiptMatchWithinBudgetSucceedsAndPersists()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         OrderHeader: Record "Purchase Header";
         OrderLine, InvoiceLine : Record "Purchase Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
         MatchedOrderLine: Record "Matched Order Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] An order-receipt edge within budget is accepted and persisted as a (invoice, order, receipt) 5817 row.
         Initialize(Vendor, Item);
@@ -262,11 +262,11 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure AddOrderReceiptMatchWithNonInvoiceDocumentErrors()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         InvoiceRoleLine, OrderLine : Record "Purchase Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         Initialize(Vendor, Item);
         CreateReceivedOrder(Vendor, Item, 10, 10, OrderLine, PurchRcptLine);
@@ -281,12 +281,12 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure AddOrderReceiptMatchWithDifferentUnitOfMeasureErrors()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         UnitOfMeasure: Record "Unit of Measure";
         InvoiceLine, OrderLine : Record "Purchase Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         Initialize(Vendor, Item);
         CreatePurchaseUoM(Item, 12, UnitOfMeasure);
@@ -302,12 +302,12 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure AddOrderReceiptMatchSecondReceiptExceedsBudgetErrors()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         OrderHeader: Record "Purchase Header";
         OrderLine, InvoiceLine : Record "Purchase Line";
         PurchRcptLine1, PurchRcptLine2 : Record "Purch. Rcpt. Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] The sum of order-receipt edges cannot exceed the invoice-order budget (concern c).
         Initialize(Vendor, Item);
@@ -332,12 +332,12 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure AddOrderReceiptMatchExceedingReceiptNotInvoicedErrors()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         OrderHeader: Record "Purchase Header";
         OrderLine, InvoiceLine : Record "Purchase Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] An order-receipt edge cannot exceed the receipt's quantity received not invoiced.
         Initialize(Vendor, Item);
@@ -361,13 +361,13 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure AddInvoiceReceiptMatchExpandsToBothEdgesAndPersists()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         OrderHeader: Record "Purchase Header";
         OrderLine, InvoiceLine : Record "Purchase Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
         MatchedOrderLine: Record "Matched Order Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] Matching an invoice line directly to a receipt derives the order and creates both edges.
         Initialize(Vendor, Item);
@@ -394,10 +394,10 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure AddMatchWithSingleDocumentErrors()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         InvoiceLine: Record "Purchase Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] A match specifying only one document is rejected.
         Initialize(Vendor, Item);
@@ -413,13 +413,13 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure AddMatchWithAllThreeDocumentsAllocatesReceiptToInvoice()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         OrderHeader: Record "Purchase Header";
         OrderLine, InvoiceLine : Record "Purchase Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
         MatchedOrderLine: Record "Matched Order Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] An edge specifying all three documents pins a receipt to a specific invoice (many-1 support).
         Initialize(Vendor, Item);
@@ -446,11 +446,11 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure AddMatchDuplicateEdgeOverwrites()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         OrderLine, InvoiceLine : Record "Purchase Line";
         MatchedOrderLine: Record "Matched Order Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] Re-adding the same edge overwrites it (delete-and-recreate) instead of erroring.
         Initialize(Vendor, Item);
@@ -476,13 +476,13 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure ReceiptSplitAcrossTwoInvoicesPersistsPerInvoiceRows()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         OrderHeader: Record "Purchase Header";
         OrderLine, InvoiceLine1, InvoiceLine2 : Record "Purchase Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
         MatchedOrderLine: Record "Matched Order Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] A receipt fulfilling an order invoiced by two invoice lines is split into per-invoice receipt rows.
         Initialize(Vendor, Item);
@@ -515,12 +515,12 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure BareOrderReceiptWithTwoInvoicesCannotInferErrors()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         OrderHeader: Record "Purchase Header";
         OrderLine, InvoiceLine1, InvoiceLine2 : Record "Purchase Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] A bare order-receipt edge is rejected when the order line has more than one invoice edge.
         Initialize(Vendor, Item);
@@ -543,12 +543,12 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure BareOrderReceiptWithoutInvoiceEdgeCannotInferErrors()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         OrderHeader: Record "Purchase Header";
         OrderLine: Record "Purchase Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] A bare order-receipt edge is rejected when the order line has no invoice edge to infer from.
         Initialize(Vendor, Item);
@@ -566,12 +566,12 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure ReceiptForInvoiceCannotExceedThatInvoicesBudgetErrors()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         OrderHeader: Record "Purchase Header";
         OrderLine, InvoiceLine1, InvoiceLine2 : Record "Purchase Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] A receipt row for one invoice cannot exceed that invoice's budget even if the order total would allow it.
         Initialize(Vendor, Item);
@@ -595,13 +595,13 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure InvoiceCapCountsBudgetLayerOnlyNotReceiptRows()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         OrderHeader: Record "Purchase Header";
         OrderLine1, OrderLine2, InvoiceLine : Record "Purchase Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
         MatchedOrderLine: Record "Matched Order Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] The invoice cap sums only the budget (blank-receipt) layer, so a pinned receipt row does not double-count.
         Initialize(Vendor, Item);
@@ -630,11 +630,11 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure PersistedAllocationsAreMergedAndEnforceCapsOnAdd()
     var
-        POMatchingGroup1: Codeunit "PO Matching Group";
-        POMatchingGroup2: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         OrderLine, InvoiceLine1, InvoiceLine2 : Record "Purchase Line";
+        POMatchingGroup1: Codeunit "PO Matching Group";
+        POMatchingGroup2: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] Adding an edge reloads persisted allocations on the same order line and counts them toward the order cap.
         Initialize(Vendor, Item);
@@ -656,12 +656,12 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure PersistedEdgeIsOverwrittenWhenReAddedInNewGroup()
     var
-        POMatchingGroup1: Codeunit "PO Matching Group";
-        POMatchingGroup2: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         OrderLine, InvoiceLine : Record "Purchase Line";
         MatchedOrderLine: Record "Matched Order Line";
+        POMatchingGroup1: Codeunit "PO Matching Group";
+        POMatchingGroup2: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] Re-adding a persisted edge in a new group overwrites it rather than erroring.
         Initialize(Vendor, Item);
@@ -685,11 +685,11 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure PersistRevalidatesAgainstExternallyChangedDocuments()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         OrderHeader: Record "Purchase Header";
         OrderLine, InvoiceLine : Record "Purchase Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] A group valid at creation is revalidated at save and rejected if the order was invoiced meanwhile.
         Initialize(Vendor, Item);
@@ -713,13 +713,13 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure ReloadPullsWholeComponentAndEnforcesReceiptCap()
     var
-        POMatchingGroup1: Codeunit "PO Matching Group";
-        POMatchingGroup2: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         OrderHeader: Record "Purchase Header";
         OrderLine, InvoiceLine1, InvoiceLine2 : Record "Purchase Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
+        POMatchingGroup1: Codeunit "PO Matching Group";
+        POMatchingGroup2: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] Reloading from one leg pulls the whole connected component so the receipt cap sees prior allocations.
         Initialize(Vendor, Item);
@@ -747,10 +747,10 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure AddMatchMismatchedLinesErrors()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item1, Item2 : Record Item;
         OrderLine, InvoiceLine : Record "Purchase Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] Matching an invoice line and order line of different items is rejected.
         Initialize(Vendor, Item1);
@@ -768,10 +768,10 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure AddInvoiceOrderMatchPrepaymentOrderErrors()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         OrderLine, InvoiceLine : Record "Purchase Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] Matching to an order line that carries a prepayment is rejected.
         Initialize(Vendor, Item);
@@ -792,10 +792,10 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure AddInvoiceOrderMatchItemChargeOrderErrors()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         OrderLine, InvoiceLine : Record "Purchase Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] Matching to an item charge order line is rejected.
         Initialize(Vendor, Item);
@@ -816,10 +816,10 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure AddInvoiceOrderMatchDifferentVendorErrors()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor1, Vendor2 : Record Vendor;
         Item: Record Item;
         OrderLine, InvoiceLine : Record "Purchase Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] An invoice line can only match order lines of the same vendor and currency.
         Initialize(Vendor1, Item);
@@ -837,12 +837,12 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure AddOrderReceiptMatchReceiptOfOtherOrderErrors()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         OrderHeader1, OrderHeader2 : Record "Purchase Header";
         OrderLine1, OrderLine2, InvoiceLine : Record "Purchase Line";
         PurchRcptLine2: Record "Purch. Rcpt. Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] A receipt line that belongs to a different order line (same item) cannot be pinned to this order line.
         Initialize(Vendor, Item);
@@ -862,11 +862,11 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure AddOrderReceiptMatchTrackedReceiptPartialErrors()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         OrderLine, InvoiceLine : Record "Purchase Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] A receipt carrying item tracking must be invoiced in full; a partial receipt edge is rejected.
         CreateLotTrackedReceivedOrder(Vendor, Item, 100, OrderLine, PurchRcptLine);
@@ -885,12 +885,12 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure AddOrderReceiptMatchTrackedReceiptInFullSucceeds()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         OrderLine, InvoiceLine : Record "Purchase Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
         MatchedOrderLine: Record "Matched Order Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] A tracked receipt pinned in full is accepted and persisted.
         CreateLotTrackedReceivedOrder(Vendor, Item, 100, OrderLine, PurchRcptLine);
@@ -911,12 +911,12 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure ReceiptOnInvoiceComputedFromHeaderAtPersist()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         OrderHeader: Record "Purchase Header";
         OrderLine, InvoiceLine : Record "Purchase Line";
         MatchedOrderLine: Record "Matched Order Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] Receipt on Invoice is computed at persist time from the order header, not while building the buffer.
         Initialize(Vendor, Item);
@@ -941,12 +941,12 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure SuggestCoveringReceiptsFullyCoversBudget()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         OrderLine, InvoiceLine : Record "Purchase Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
         MatchedOrderLine: Record "Matched Order Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] A budget fully backed by a receipt is covered by a full receipt edge.
         Initialize(Vendor, Item);
@@ -970,12 +970,12 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure SuggestCoveringReceiptsPartialLeavesRemainder()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         OrderLine, InvoiceLine : Record "Purchase Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
         MatchedOrderLine: Record "Matched Order Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] When receipts cover only part of the budget, the rest stays uncovered (receive-on-invoice remainder).
         Initialize(Vendor, Item);
@@ -1002,12 +1002,12 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure SuggestCoveringReceiptsGrowsExistingEdge()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         OrderLine, InvoiceLine : Record "Purchase Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
         MatchedOrderLine: Record "Matched Order Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] An existing partial receipt edge is grown to cover the remaining budget.
         Initialize(Vendor, Item);
@@ -1033,12 +1033,12 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure SuggestCoveringReceiptsSplitsSharedReceiptAcrossInvoices()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         OrderLine, InvoiceLine1, InvoiceLine2 : Record "Purchase Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
         MatchedOrderLine: Record "Matched Order Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] Two invoices on the same order line share one receipt's capacity without double-booking.
         Initialize(Vendor, Item);
@@ -1067,12 +1067,12 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure SuggestCoveringReceiptsTrackedReceiptTakenInFull()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         OrderLine, InvoiceLine : Record "Purchase Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
         MatchedOrderLine: Record "Matched Order Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] A tracked receipt whose full quantity fits the budget is covered in full.
         CreateLotTrackedReceivedOrder(Vendor, Item, 100, OrderLine, PurchRcptLine);
@@ -1095,12 +1095,12 @@ codeunit 134469 "PO Matching Group Tests"
     [Test]
     procedure SuggestCoveringReceiptsTrackedReceiptSkippedWhenDoesntFit()
     var
-        POMatchingGroup: Codeunit "PO Matching Group";
         Vendor: Record Vendor;
         Item: Record Item;
         OrderLine, InvoiceLine : Record "Purchase Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
         MatchedOrderLine: Record "Matched Order Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
     begin
         // [SCENARIO] A tracked receipt larger than the budget is skipped (all-or-nothing); nothing is covered.
         CreateLotTrackedReceivedOrder(Vendor, Item, 100, OrderLine, PurchRcptLine);
