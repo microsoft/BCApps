@@ -3110,6 +3110,15 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         PurchasesPayablesSetup.Modify();
     end;
 
+    local procedure SetVendorNoSeriesInSetup()
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+    begin
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup.Validate("Vendor Nos.", LibraryERM.CreateNoSeriesCode());
+        PurchasesPayablesSetup.Modify();
+    end;
+
     local procedure SetupPOMatchingConfiguration(Configuration: Enum "E-Doc. PO M. Configuration"; VendorNo: Code[20]; IncludeVendorInList: Boolean)
     var
         EDocPOMatchingSetup: Record "E-Doc. PO Matching Setup";
@@ -3150,6 +3159,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         LibraryPurchase.SetOrderNoSeriesInSetup();
         LibraryPurchase.SetPostedNoSeriesInSetup();
         SetInvoiceNoSeriesInSetup();
+        SetVendorNoSeriesInSetup();
         ClearPurchaseDocumentsForVendor();
 
         if IsInitialized then
