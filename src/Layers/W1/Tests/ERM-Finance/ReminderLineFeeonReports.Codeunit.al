@@ -16,7 +16,6 @@ codeunit 134993 "Reminder - Line Fee on Reports"
         LibrarySales: Codeunit "Library - Sales";
         LibraryService: Codeunit "Library - Service";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
-        LibraryUtility: Codeunit "Library - Utility";
         LibraryRandom: Codeunit "Library - Random";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         IsInitialized: Boolean;
