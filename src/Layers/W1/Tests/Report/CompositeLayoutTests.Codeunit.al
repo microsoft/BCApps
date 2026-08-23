@@ -529,8 +529,8 @@ codeunit 134619 "Composite Layout Tests"
     [Scope('OnPrem')]
     procedure PruningARetiredPartClearsItsAssignments()
     var
-        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
         TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
         RetiredPartName: Text[250];
     begin
         // [SCENARIO] A configuration row that assigned a retired part must not be left pointing at it: the reference is
