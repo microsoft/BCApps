@@ -38,6 +38,8 @@ codeunit 6987 "Expense Report-Post"
                   TableData "Posted Exp. Rep. Line Per Diem" = rimd,
                   TableData "Posted Exp. Rep. Line Particip" = rimd,
                   TableData "Posted Exp. Rep. Line VAT Spec" = rimd,
+                  TableData "Expense Policy Evaluation" = rd,
+                  TableData "Posted Exp. Policy Evaluation" = i,
                   TableData "Expense Category" = r,
                   TableData "Expense Posting Group" = r,
                   TableData "Expense User" = r;
@@ -119,15 +121,26 @@ codeunit 6987 "Expense Report-Post"
     end;
 
     local procedure CheckAndCreatePostedDocument(var ExpenseReportHeader: Record "Expense Report Header")
+    var
+        ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
     begin
         AmountToEmployee := 0;
         ValidateExpenseReportForPosting(ExpenseReportHeader);
         CreatePostedExpenseReport(ExpenseReportHeader);
+        if not PreviewMode then
+            if ExpenseActivityLogMgt.HasEntriesForSource(Database::"Expense Report Header", ExpenseReportHeader.SystemId) then
+                ExpenseActivityLogMgt.LogExpenseReportEventByBCUser(
+                    ExpenseReportHeader,
+                    Enum::"Expense Activity Event Type"::Posted,
+                    Enum::"Expense Activity Actor Role"::" ",
+                    '');
         UpdateLastPostingNos(ExpenseReportHeader);
         ProcessExpenseReportLines(ExpenseReportHeader);
         InsertPstdExpReportHeaderVATSpecs(ExpenseReportHeader."No.", PostedExpenseReportHeader."No.");
         if AmountToEmployee <> 0 then
             PostEmployeeEntry(ExpenseReportHeader);
+        if not PreviewMode then
+            ExpenseActivityLogMgt.ReassignExpenseReportEntriesToPosted(ExpenseReportHeader, PostedExpenseReportHeader);
     end;
 
     local procedure ValidateExpenseReportForPosting(var ExpenseReportHeader: Record "Expense Report Header")
@@ -182,6 +195,7 @@ codeunit 6987 "Expense Report-Post"
                 PostedExpenseReportLine.Init();
                 PostedExpenseReportLine.TransferFields(ExpenseReportLine);
                 PostedExpenseReportLine."Document No." := PostedExpenseReportHeader."No.";
+                PostedExpenseReportLine."Policy Status At Posting" := ExpenseReportLine.GetPolicyStatus();
                 PostedExpenseReportLine.Insert();
 
                 if not PreviewMode then
@@ -191,6 +205,7 @@ codeunit 6987 "Expense Report-Post"
                 InsertPstdExpReportLinePerDiem(PostedExpenseReportLine, ExpenseReportLine);
                 InsertPstdExpReportLineItemization(PostedExpenseReportLine, ExpenseReportLine);
                 InsertPstdExpReportLineVATSpecs(PostedExpenseReportLine, ExpenseReportLine);
+                InsertPostedPolicyEvaluations(PostedExpenseReportLine, ExpenseReportLine);
                 CreateSalesDocument(PostedExpenseReportHeader, PostedExpenseReportLine);
 
                 if PostedExpenseReportLine."Expense No." <> '' then
@@ -384,6 +399,27 @@ codeunit 6987 "Expense Report-Post"
                 PostedExpRepLineItem."Expense Report Line No." := PstdExpenseReportLine."Line No.";
                 PostedExpRepLineItem.Insert();
             until ExpenseReportLineItem.Next() = 0;
+    end;
+
+    local procedure InsertPostedPolicyEvaluations(PstdExpenseReportLine: Record "Posted Expense Report Line"; ExpenseReportLine: Record "Expense Report Line")
+    var
+        ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
+        PostedExpPolicyEvaluation: Record "Posted Exp. Policy Evaluation";
+    begin
+        // Preserve the policy verdicts that were in effect at posting as an immutable audit
+        // record, re-pointed to the posted line. Only the currently evaluated version is copied;
+        // superseded evaluations are historical noise on the open line.
+        ExpensePolicyEvaluation.SetRange("Subject System Id", ExpenseReportLine.SystemId);
+        ExpensePolicyEvaluation.SetRange("Subject Type", ExpensePolicyEvaluation."Subject Type"::"Expense Report Line");
+        ExpensePolicyEvaluation.SetRange("Subject Version", ExpenseReportLine."Evaluated Policy Version");
+        ExpensePolicyEvaluation.SetRange("Is Current", true);
+        if ExpensePolicyEvaluation.FindSet() then
+            repeat
+                PostedExpPolicyEvaluation.Init();
+                PostedExpPolicyEvaluation.TransferFields(ExpensePolicyEvaluation);
+                PostedExpPolicyEvaluation."Subject System Id" := PstdExpenseReportLine.SystemId;
+                PostedExpPolicyEvaluation.Insert();
+            until ExpensePolicyEvaluation.Next() = 0;
     end;
 
     local procedure DeleteRelatedExpenseReportLines(ExpenseReportHeader: Record "Expense Report Header")
