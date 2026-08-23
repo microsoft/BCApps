@@ -2868,9 +2868,9 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         PurchaseOrderLine1, PurchaseOrderLine2 : Record "Purchase Line";
         PurchaseReceiptHeader: Record "Purch. Rcpt. Header";
         PurchaseReceiptLine: Record "Purch. Rcpt. Line";
+        Item: Record Item;
         POMatching: Codeunit "PO Matching";
         POMatchingGroup: Codeunit "PO Matching Group";
-        Item: Record Item;
     begin
         Initialize();
         CreateMockEDocumentDraftWithLine(EDocument, EDocumentPurchaseHeader, EDocumentPurchaseLine, 10);
