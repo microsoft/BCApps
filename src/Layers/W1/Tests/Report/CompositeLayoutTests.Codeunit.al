@@ -553,11 +553,8 @@ codeunit 134619 "Composite Layout Tests"
         // instead of re-seeding. Shipping changed layout files takes a new dated tag, not an ungated pass.
         Initialize();
 
-        // [GIVEN] No tag, and one shipped part missing, so the first run has work to do and is not gated. The delete is
-        // guarded because the library helper does a bare Get and throws when the tag is not there - which is the state on
-        // a fresh database, and after anything else has cleared it.
-        if UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()) then
-            UpgradeTagLibrary.DeleteUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag(), '');
+        // [GIVEN] One shipped part missing, so the first run has work to do. Initialize already cleared the tag, so the
+        // pass is not gated.
         RemoveShippedPart('Internal Default');
         Assert.IsFalse(
             ShippedPartExists('Internal Default', Enum::"Report Layout Subtype"::HeaderFooter),
@@ -629,10 +626,7 @@ codeunit 134619 "Composite Layout Tests"
         // for good. Left unset, the next upgrade runs the pass again and seeds them.
         Initialize();
 
-        // [GIVEN] No tag, and one shipped part missing, so a retry has visible work to do. The delete is guarded because
-        // the library helper does a bare Get and throws when the tag is not there.
-        if UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()) then
-            UpgradeTagLibrary.DeleteUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag(), '');
+        // [GIVEN] One shipped part missing, so a retry has visible work to do. Initialize already cleared the tag.
         RemoveShippedPart(InternalDefaultTok);
         Assert.IsFalse(
             ShippedPartExists(InternalDefaultTok, Enum::"Report Layout Subtype"::HeaderFooter),
@@ -1436,6 +1430,7 @@ codeunit 134619 "Composite Layout Tests"
         ClearWildcardCfg(CopyStr(CompanyName(), 1, MaxStrLen(TenantReportLayoutCfg."Company Name"))); // company default: report 0, this company
 
         RestoreShippedPartPool();
+        ClearCompositeReportPartsUpgradeTag();
     end;
 
     local procedure RestoreShippedPartPool()
@@ -1444,6 +1439,22 @@ codeunit 134619 "Composite Layout Tests"
     begin
         CompositeReportPartsMgt.SeedDefaultParts();
         RemoveShippedPart(UnseedablePartTok);
+    end;
+
+    /// <summary>
+    /// Takes the seeding upgrade tag back out before each test. It is per-database state this suite mutates, so leaving
+    /// it behind would make any test that reads it - here or in another suite sharing the database - depend on the order
+    /// the runner picked. Absent is the safe state to land on: it only means a later pass reseeds, which is idempotent.
+    /// </summary>
+    local procedure ClearCompositeReportPartsUpgradeTag()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+        UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
+    begin
+        // Guarded because the library helper does a bare Get and throws when the tag is not there.
+        if UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()) then
+            UpgradeTagLibrary.DeleteUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag(), '');
     end;
 
     local procedure ClearTestReportLayouts()

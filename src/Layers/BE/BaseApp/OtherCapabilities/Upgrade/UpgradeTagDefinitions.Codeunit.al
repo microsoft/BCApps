@@ -1394,6 +1394,6 @@ codeunit 9998 "Upgrade Tag Definitions"
 
     internal procedure GetCompositeReportPartsUpgradeTag(): Code[250]
     begin
-        exit('MS-643211-CompositeReportPartsUpgradeTag-20260820');
+        exit('MS-647452-CompositeReportPartsUpgradeTag-20260820');
     end;
 }
