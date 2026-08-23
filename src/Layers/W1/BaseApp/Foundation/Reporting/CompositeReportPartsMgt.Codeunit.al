@@ -6,7 +6,6 @@ namespace Microsoft.Foundation.Reporting;
 
 using System.Environment.Configuration;
 using System.Reflection;
-using System.Utilities;
 
 /// <summary>
 /// Seeds the shipped Composite Layout theme and header/footer parts under Tenant Report Defaults on install and
@@ -123,21 +122,17 @@ codeunit 9667 "Composite Report Parts Mgt."
     internal procedure SeedPart(PartName: Text[250]; ResourceFile: Text; Subtype: Enum "Report Layout Subtype"; Description: Text): Boolean
     var
         TempPartToWrite: Record "Tenant Report Layout" temporary;
-        PartLayout: Codeunit "Temp Blob";
-        LayoutInStream: InStream;
     begin
-        ClearLastError();
-        if not TryGetPartLayout(ResourceFile, PartLayout) then begin
-            LogPartNotSeeded(PartName, ResourceFile, Subtype, GetLastErrorCode(), GetLastErrorText(true));
-            exit(false);
-        end;
-
         TempPartToWrite.Init();
         TempPartToWrite.Name := PartName;
         TempPartToWrite."Layout Subtype" := Subtype;
         TempPartToWrite.Description := CopyStr(Description, 1, MaxStrLen(TempPartToWrite.Description));
-        PartLayout.CreateInStream(LayoutInStream);
-        TempPartToWrite.Layout.ImportStream(LayoutInStream, PartName);
+
+        ClearLastError();
+        if not TryLoadPartLayout(ResourceFile, TempPartToWrite) then begin
+            LogPartNotSeeded(PartName, ResourceFile, Subtype, GetLastErrorCode(), GetLastErrorText(true));
+            exit(false);
+        end;
         TempPartToWrite.Insert();
 
         ClearLastError();
@@ -172,15 +167,12 @@ codeunit 9667 "Composite Report Parts Mgt."
     end;
 
     [TryFunction]
-    local procedure TryGetPartLayout(ResourceFile: Text; var PartLayout: Codeunit "Temp Blob")
+    local procedure TryLoadPartLayout(ResourceFile: Text; var TempPartToWrite: Record "Tenant Report Layout" temporary)
     var
         ResourceInStream: InStream;
-        PartLayoutOutStream: OutStream;
     begin
         NavApp.GetResource(ResourceFile, ResourceInStream);
-
-        PartLayout.CreateOutStream(PartLayoutOutStream);
-        CopyStream(PartLayoutOutStream, ResourceInStream);
+        TempPartToWrite.Layout.ImportStream(ResourceInStream, TempPartToWrite.Name);
     end;
 
     local procedure WritePart(var TempPartToWrite: Record "Tenant Report Layout")
