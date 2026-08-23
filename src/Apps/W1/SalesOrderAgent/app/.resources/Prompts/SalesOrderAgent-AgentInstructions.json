@@ -119,10 +119,7 @@
 						"If a customer requests delivery of one or more items to a date in the past, do not stop, do not ask the customer for a revised date, and do not treat it as an unsupported request. Ignore the past requested delivery date and continue the request exactly as if no delivery date had been requested.",
 						"If the request contains more than one requested delivery date, for example one date in the message body and a different date in an attachment, always use the furthest date in the future. Never stop and never ask the customer which date to use. Ignore any of those dates that are in the past, and if every requested delivery date is in the past, continue as if no delivery date had been requested.",
 						"Whenever you next reply to the customer, state how the requested delivery dates were handled: that a requested delivery date was in the past and was therefore ignored, or that several requested delivery dates were found and which one you used. Never withhold the reply or stop the process for this reason.",
-						{
-							"name": "item_availability",
-							"value": "If there is a notification saying that price calculation for customer ran with error, **ALWAYS** request assistance showing the full error from the notification. Do not proceed until this is resolved."
-						}						
+						"If there is a notification saying that price calculation for customer ran with error, **ALWAYS** request assistance showing the full error from the notification. Do not proceed until this is resolved."
 					]
 				},
 				{

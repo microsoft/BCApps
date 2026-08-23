@@ -27,11 +27,25 @@ codeunit 4415 "SOA Create Task Impl"
 
     internal procedure OpenCreateTaskPage(AgentUserSecurityID: Guid)
     var
+        TempAgentTaskFile: Record "Agent Task File" temporary;
+        SenderEmail: Text[250];
+        MessageText: Text;
+    begin
+        if not OpenCreateTaskPageForData(AgentUserSecurityID, SenderEmail, MessageText, TempAgentTaskFile) then
+            exit;
+
+        SetAgentUserSecurityID(AgentUserSecurityID);
+        CreateTask(SenderEmail, MessageText, TempAgentTaskFile);
+    end;
+
+    internal procedure OpenCreateTaskPageForData(AgentUserSecurityID: Guid; var SenderEmail: Text[250]; var MessageText: Text; var TempAgentTaskFile: Record "Agent Task File" temporary): Boolean
+    var
         SOACreateTask: Page "SOA Create Task";
     begin
         SOACreateTask.SetAgentUserSecurityID(AgentUserSecurityID);
         SOACreateTask.LookupMode(true);
         SOACreateTask.RunModal();
+        exit(SOACreateTask.GetConfirmedTaskData(SenderEmail, MessageText, TempAgentTaskFile));
     end;
 
     internal procedure GetCurrentUserSalespersonCode(): Code[20]
@@ -79,6 +93,15 @@ codeunit 4415 "SOA Create Task Impl"
         Clear(CachedAvailBalance);
     end;
 
+    internal procedure ValidateTaskData(SenderEmail: Text[250]; MessageText: Text)
+    begin
+        if SenderEmail = '' then
+            Error(YouMustSetSenderEmailErr);
+
+        if MessageText = '' then
+            Error(YouMustSetMessageTextErr);
+    end;
+
     internal procedure CreateTask(SenderEmail: Text[250]; MessageText: Text; var TempAgentTaskFile: Record "Agent Task File" temporary)
     var
         SOASetup: Record "SOA Setup";
@@ -87,11 +110,7 @@ codeunit 4415 "SOA Create Task Impl"
         AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder";
         AgentTaskTitle: Text[150];
     begin
-        if SenderEmail = '' then
-            Error(YouMustSetSenderEmailErr);
-
-        if MessageText = '' then
-            Error(YouMustSetMessageTextErr);
+        ValidateTaskData(SenderEmail, MessageText);
 
         SOASetup.SetRange("User Security ID", GlobalAgentUserSecurityID);
         if not SOASetup.FindFirst() then

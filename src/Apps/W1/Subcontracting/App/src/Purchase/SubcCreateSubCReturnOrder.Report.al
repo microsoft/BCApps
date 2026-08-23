@@ -278,6 +278,7 @@ report 20502 "Subc. Create SubCReturnOrder"
         TransferLine2.SetRange("Subc. Purch. Order Line No.", PurchaseLine."Line No.");
         TransferLine2.SetRange("Subc. Prod. Order No.", PurchaseLine."Prod. Order No.");
         TransferLine2.SetRange("Subc. Prod. Order Line No.", PurchaseLine."Prod. Order Line No.");
+        TransferLine2.SetRange("Derived From Line No.", 0);
         TransferLine2.SetRange("Subc. Return Order", true);
         exit(not TransferLine2.IsEmpty());
     end;
@@ -411,6 +412,7 @@ report 20502 "Subc. Create SubCReturnOrder"
         TransferLineToCheck.SetRange("Subc. Prod. Order No.", PurchaseLine."Prod. Order No.");
         TransferLineToCheck.SetRange("Subc. Prod. Order Line No.", PurchaseLine."Prod. Order Line No.");
         TransferLineToCheck.SetRange("Subc. Operation No.", PurchaseLine."Operation No.");
+        TransferLineToCheck.SetRange("Derived From Line No.", 0);
         TransferLineToCheck.SetRange("Transfer WIP Item", true);
         TransferLineToCheck.SetRange("Subc. Return Order", true);
         exit(not TransferLineToCheck.IsEmpty());

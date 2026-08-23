@@ -492,6 +492,31 @@ page 6991 "Expense Agent Setup Wizard"
                     }
                 }
 
+                group(EvaluatePoliciesSection)
+                {
+                    Caption = 'Evaluate policies with AI';
+                    InstructionalText = 'Leverage AI to evaluate natural language policies defined for your organization.';
+                    field("Evaluate Policies"; Rec."Evaluate Policies")
+                    {
+                        ShowCaption = false;
+
+                        ToolTip = 'Specifies whether the agent evaluates expenses against the configured policies. Rules are evaluated by code, while policies are evaluated by AI, so enabling this consumes additional AI credits.';
+
+                        trigger OnValidate()
+                        var
+                            ExpensePoliciesPage: Page "Expense Policies";
+                        begin
+                            if Rec."Evaluate Policies" and (not xRec."Evaluate Policies") then begin
+                                if not Confirm(ActivatePolicyEvalQst, false) then
+                                    Error('');
+                                ExpensePoliciesPage.Editable(true);
+                                ExpensePoliciesPage.RunModal();
+                            end;
+                            ConfigUpdated();
+                        end;
+                    }
+                }
+
                 group(DetectOutdatedExpenseSection)
                 {
                     ShowCaption = false;
@@ -935,6 +960,7 @@ page 6991 "Expense Agent Setup Wizard"
         NoSystemUsersErr: Label 'You must first specify a user in Business Central as expense user.';
         NotAuthorizedToViewSetupErr: Label 'You do not have permission to view the Expense Agent setup. Contact your administrator to be granted agent management rights.';
         ApprovalWorkflowConflictErr: Label 'You must turn off "%1" in Expense Agent Setup to enable Expense Agent.', Comment = '%1 = Field Caption';
+        ActivatePolicyEvalQst: Label 'You are about to activate automated policy evaluation. By doing this, you acknowledge that this feature will consume additional AI credits. Continue?';
         AgentUserNameLbl: Label 'Expense Agent', Locked = true;
         AgentDisplayNameLbl: Label 'Expense Agent', MaxLength = 80;
         AgentSummaryLbl: Label 'Processes employee expense reports by extracting receipt data, validating against company policies, and routing for approval.';
