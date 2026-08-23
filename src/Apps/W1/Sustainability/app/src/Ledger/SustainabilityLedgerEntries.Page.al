@@ -271,6 +271,16 @@ page 6220 "Sustainability Ledger Entries"
                         Rec.SetFilter("Dimension Set ID", DimensionSetIDFilter.LookupFilter());
                     end;
                 }
+                action(CollectedGLEntries)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Collected G/L Entries';
+                    Image = GLRegisters;
+                    RunObject = page "Sust. G/L - Sust. Ledger Rel.";
+                    RunPageLink = "Sust. Ledger Entry No." = field("Entry No.");
+                    Scope = Repeater;
+                    ToolTip = 'View the general ledger entries that were collected into the selected sustainability entry.';
+                }
             }
         }
         area(processing)
@@ -327,6 +337,7 @@ page 6220 "Sustainability Ledger Entries"
                 Caption = 'Entry';
                 actionref(Dimensions_Promoted; Dimensions) { }
                 actionref(SetDimensionFilter_Promoted; SetDimensionFilter) { }
+                actionref(CollectedGLEntries_Promoted; CollectedGLEntries) { }
             }
         }
     }
