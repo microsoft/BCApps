@@ -33,15 +33,16 @@ codeunit 104064 "Upgrade Composite Report Parts"
         if UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()) then
             exit;
 
-        RecordSeedOutcome(CompositeReportPartsMgt.SeedDefaultParts());
+        CompositeReportPartsMgt.SeedDefaultParts();
+        RecordSeedCompleted();
     end;
 
-    internal procedure RecordSeedOutcome(AllPartsSeeded: Boolean)
+    internal procedure RecordSeedCompleted()
     var
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
     begin
-        if not AllPartsSeeded then
+        if UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()) then
             exit;
 
         UpgradeTag.SetDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag());
