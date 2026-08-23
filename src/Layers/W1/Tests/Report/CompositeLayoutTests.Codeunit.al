@@ -539,15 +539,15 @@ codeunit 134619 "Composite Layout Tests"
 
     [Test]
     [Scope('OnPrem')]
-    procedure UpgradeReseedsShippedPartsOnEveryRun()
+    procedure CompositeReportPartsUpgradeTagGatesRerun()
     var
         UpgradeCompositeReportParts: Codeunit "Upgrade Composite Report Parts";
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
         UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
     begin
-        // [SCENARIO] The upgrade is not gated by its tag: it seeds on every run, so a shipped part is always replaced by
-        // the version the app carries, even when the tag from an earlier pass is already recorded.
+        // [SCENARIO] The upgrade seeds on its first run and records its tag; a second run exits on the guard at entry
+        // instead of re-seeding. Shipping changed layout files takes a new dated tag, not an ungated pass.
         Initialize();
 
         // [GIVEN] No tag, and one shipped part missing, so the first run has work to do and is not gated. The delete is
@@ -577,10 +577,10 @@ codeunit 134619 "Composite Layout Tests"
         // [WHEN] The upgrade runs a second time, now with the tag present.
         UpgradeCompositeReportParts.RunUpgrade();
 
-        // [THEN] The tag did not gate the pass: the removed part was written again.
-        Assert.IsTrue(
+        // [THEN] It exited on the guard, so the removed part was not written again.
+        Assert.IsFalse(
             ShippedPartExists('Internal Default', Enum::"Report Layout Subtype"::HeaderFooter),
-            'The second upgrade should re-seed the shipped parts instead of exiting on the tag.');
+            'The second upgrade should exit on the tag instead of re-seeding the parts.');
     end;
 
     [Test]
@@ -621,9 +621,9 @@ codeunit 134619 "Composite Layout Tests"
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
         UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
     begin
-        // [SCENARIO] A seeding pass that could not write every part must not record the upgrade tag. The tag reports
-        // whether the last pass was complete, so stamping it after a partial seed would claim a completeness the pass
-        // never reached.
+        // [SCENARIO] A seeding pass that could not write every part must not record the upgrade tag. The tag is what
+        // stops the pass from running again, so stamping it after a partial seed would leave the skipped parts missing
+        // for good. Left unset, the next upgrade runs the pass again and seeds them.
         Initialize();
 
         // [GIVEN] No tag, and one shipped part missing, so a retry has visible work to do. The delete is guarded because
@@ -638,7 +638,7 @@ codeunit 134619 "Composite Layout Tests"
         // [WHEN] A seeding pass reports that it could not write every part.
         UpgradeCompositeReportParts.RecordSeedOutcome(false);
 
-        // [THEN] The tag was not recorded, so it does not claim the pass was complete.
+        // [THEN] The tag was not recorded, so nothing gates a later attempt.
         Assert.IsFalse(
             UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()),
             'A pass that did not seed every part must not record its upgrade tag.');
