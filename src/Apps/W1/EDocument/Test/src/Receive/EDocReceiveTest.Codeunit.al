@@ -6,6 +6,7 @@ namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
+using Microsoft.eServices.EDocument.IO;
 using Microsoft.eServices.EDocument.IO.Peppol;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Finance.GeneralLedger.Journal;
@@ -2058,8 +2059,10 @@ codeunit 139628 "E-Doc. Receive Test"
         ItemUnitOfMeasure: Record "Item Unit of Measure";
         ItemReference: Record "Item Reference";
         EDocServiceDataExchDef: Record "E-Doc. Service Data Exch. Def.";
+        DataExchDef: Record "Data Exch. Def";
         TempXMLBuffer: Record "XML Buffer" temporary;
         EDocImportPublisherMock: Codeunit "E-Doc. Import Publisher Mock";
+        EDocumentInstall: Codeunit "E-Document Install";
         TempBlob: Codeunit "Temp Blob";
         EDocServicePage: TestPage "E-Document Service";
         EDocumentPage: TestPage "E-Document";
@@ -2115,10 +2118,16 @@ codeunit 139628 "E-Doc. Receive Test"
         EDocService."Validate Receiving Company" := false;
         EDocService.Modify();
 
+        // The PEPPOL import definitions are inserted once per company behind an upgrade tag, so a
+        // freshly created test company can be without them. Same guard as "E-Doc Data Exch Tests" uses.
+        if not DataExchDef.Get('EDOCPEPPOLINVIMP') then
+            EDocumentInstall.ImportInvoiceXML();
+
         EDocServiceDataExchDef."E-Document Format Code" := EDocService.Code;
         EDocServiceDataExchDef."Document Type" := EDocServiceDataExchDef."Document Type"::"Purchase Invoice";
         EDocServiceDataExchDef."Impt. Data Exchange Def. Code" := 'EDOCPEPPOLINVIMP';
-        EDocServiceDataExchDef.Insert();
+        if not EDocServiceDataExchDef.Insert() then
+            EDocServiceDataExchDef.Modify();
 
         TempXMLBuffer.LoadFromText(EDocReceiveFiles.GetDocument1());
         TempXMLBuffer.Reset();
@@ -2173,8 +2182,10 @@ codeunit 139628 "E-Doc. Receive Test"
         ItemUnitOfMeasure: Record "Item Unit of Measure";
         ItemReference: Record "Item Reference";
         EDocServiceDataExchDef: Record "E-Doc. Service Data Exch. Def.";
+        DataExchDef: Record "Data Exch. Def";
         TempXMLBuffer: Record "XML Buffer" temporary;
         EDocImportPublisherMock: Codeunit "E-Doc. Import Publisher Mock";
+        EDocumentInstall: Codeunit "E-Document Install";
         TempBlob: Codeunit "Temp Blob";
         EDocServicePage: TestPage "E-Document Service";
         EDocumentPage: TestPage "E-Document";
@@ -2226,10 +2237,16 @@ codeunit 139628 "E-Doc. Receive Test"
         EDocService."Validate Receiving Company" := false;
         EDocService.Modify();
 
+        // The PEPPOL import definitions are inserted once per company behind an upgrade tag, so a
+        // freshly created test company can be without them. Same guard as "E-Doc Data Exch Tests" uses.
+        if not DataExchDef.Get('EDOCPEPPOLINVIMP') then
+            EDocumentInstall.ImportInvoiceXML();
+
         EDocServiceDataExchDef."E-Document Format Code" := EDocService.Code;
         EDocServiceDataExchDef."Document Type" := EDocServiceDataExchDef."Document Type"::"Purchase Invoice";
         EDocServiceDataExchDef."Impt. Data Exchange Def. Code" := 'EDOCPEPPOLINVIMP';
-        EDocServiceDataExchDef.Insert();
+        if not EDocServiceDataExchDef.Insert() then
+            EDocServiceDataExchDef.Modify();
 
         TempXMLBuffer.LoadFromText(EDocReceiveFiles.GetDocument1());
         TempXMLBuffer.Reset();
