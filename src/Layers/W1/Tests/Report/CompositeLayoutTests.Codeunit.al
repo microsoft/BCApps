@@ -350,39 +350,41 @@ codeunit 134619 "Composite Layout Tests"
 
     [Test]
     [Scope('OnPrem')]
-    procedure SeedingRemovesThePartCopySeededWithNoAppId()
+    procedure SeedingKeepsATenantPartNamedAfterAShippedPart()
     var
         TenantReportLayout: Record "Tenant Report Layout";
         CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
         EmptyAppId: Guid;
         PartName: Text[250];
     begin
-        // [SCENARIO] An earlier version seeded the shipped parts with no App ID. The App ID is part of the key, so the
-        // part written now does not replace that copy - the pass has to take it out, or the pool shows the part twice.
+        // [SCENARIO] A part the tenant authored carries no App ID, and nothing stops it being named after a shipped part.
+        // The seeding pass must leave it alone: it writes under its own App ID, so a row on the no-App-ID key is not a
+        // stale copy of a shipped part to clean up - it is customer content, and deleting it would be silent data loss.
         Initialize();
 
-        // [GIVEN] One copy of a shipped part in the pool, moved onto the key the earlier seeding wrote: no App ID. Moved
-        // rather than built, so the row carries the real layout file - the platform validates a layout's type and content.
+        // [GIVEN] A part on the no-App-ID key carrying the name of a shipped part. Moved rather than built, so the row
+        // carries a real layout file - the platform validates a layout's type and content.
         PartName := CopyStr(InternalDefaultTok, 1, MaxStrLen(TenantReportLayout.Name));
         RemoveShippedPart(PartName);
         CompositeReportPartsMgt.SeedDefaultParts();
         TenantReportLayout.Get(LookupHelper.GetTenantReportDefaultsReportID(), PartName, CompositeReportPartsMgt.GetShippedPartAppId());
         TenantReportLayout.Rename(LookupHelper.GetTenantReportDefaultsReportID(), PartName, EmptyAppId);
-        Assert.AreEqual(1, ShippedPartCount(PartName), 'The old copy should be the only one before the pass.');
 
         // [WHEN] Seeding runs again.
         CompositeReportPartsMgt.SeedDefaultParts();
 
-        // [THEN] The part is in the pool exactly once, under the App ID the pass writes.
-        Assert.AreEqual(1, ShippedPartCount(PartName), 'The pass should leave the part in the pool exactly once.');
+        // [THEN] The tenant's row is still there, untouched.
+        Assert.IsTrue(
+            TenantReportLayout.Get(LookupHelper.GetTenantReportDefaultsReportID(), PartName, EmptyAppId),
+            'A part on the no-App-ID key belongs to the tenant and must survive the seeding pass.');
+
+        // [THEN] The shipped part was written alongside it, under the App ID the pass owns.
         Assert.IsTrue(
             TenantReportLayout.Get(LookupHelper.GetTenantReportDefaultsReportID(), PartName, CompositeReportPartsMgt.GetShippedPartAppId()),
-            'The remaining part should be the one stored under the App ID the pass writes.');
+            'The shipped part should be written under the App ID the pass owns.');
 
-        // [THEN] The copy that carried no App ID is gone.
-        Assert.IsFalse(
-            TenantReportLayout.Get(LookupHelper.GetTenantReportDefaultsReportID(), PartName, EmptyAppId),
-            'The copy seeded with no App ID should have been removed.');
+        // [THEN] Both rows exist, so the two are kept apart by App ID rather than one overwriting the other.
+        Assert.AreEqual(2, ShippedPartCount(PartName), 'The tenant part and the shipped part should both be in the pool.');
     end;
 
     [Test]

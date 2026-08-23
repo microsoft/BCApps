@@ -10,14 +10,20 @@ using System.Utilities;
 
 /// <summary>
 /// Seeds the shipped Composite Layout theme and header/footer parts under Tenant Report Defaults on install and
-/// upgrade, stored under this app's own App ID. Removes the parts this version no longer ships, and the copies an
-/// earlier version seeded under the platform System App ID, moving their assignments onto the new reference.
+/// upgrade, stored under this app's own App ID, and removes the parts this version no longer ships. A part that cannot
+/// be read or written is logged and reported as not seeded rather than raised, so it cannot abort install or upgrade.
 /// </summary>
 codeunit 9667 "Composite Report Parts Mgt."
 {
     Access = Internal;
+    TableNo = "Tenant Report Layout";
 
-    procedure SeedDefaultParts() AllPartsSeeded: Boolean
+    trigger OnRun()
+    begin
+        WritePart(Rec);
+    end;
+
+    internal procedure SeedDefaultParts() AllPartsSeeded: Boolean
     var
         FailedCount: Integer;
     begin
@@ -116,7 +122,9 @@ codeunit 9667 "Composite Report Parts Mgt."
 
     internal procedure SeedPart(PartName: Text[250]; ResourceFile: Text; Subtype: Enum "Report Layout Subtype"; Description: Text): Boolean
     var
+        TempPartToWrite: Record "Tenant Report Layout" temporary;
         PartLayout: Codeunit "Temp Blob";
+        LayoutInStream: InStream;
     begin
         ClearLastError();
         if not TryGetPartLayout(ResourceFile, PartLayout) then begin
@@ -124,7 +132,20 @@ codeunit 9667 "Composite Report Parts Mgt."
             exit(false);
         end;
 
-        UpsertPart(PartName, PartLayout, Subtype, Description);
+        TempPartToWrite.Init();
+        TempPartToWrite.Name := PartName;
+        TempPartToWrite."Layout Subtype" := Subtype;
+        TempPartToWrite.Description := CopyStr(Description, 1, MaxStrLen(TempPartToWrite.Description));
+        PartLayout.CreateInStream(LayoutInStream);
+        TempPartToWrite.Layout.ImportStream(LayoutInStream, PartName);
+        TempPartToWrite.Insert();
+
+        ClearLastError();
+        if not Codeunit.Run(Codeunit::"Composite Report Parts Mgt.", TempPartToWrite) then begin
+            LogPartNotSeeded(PartName, ResourceFile, Subtype, GetLastErrorCode(), GetLastErrorText(true));
+            exit(false);
+        end;
+
         exit(true);
     end;
 
@@ -162,28 +183,26 @@ codeunit 9667 "Composite Report Parts Mgt."
         CopyStream(PartLayoutOutStream, ResourceInStream);
     end;
 
-    local procedure UpsertPart(PartName: Text[250]; var PartLayout: Codeunit "Temp Blob"; Subtype: Enum "Report Layout Subtype"; Description: Text)
+    local procedure WritePart(var TempPartToWrite: Record "Tenant Report Layout")
     var
         TenantReportLayout: Record "Tenant Report Layout";
         CompositeLayoutLookupHelper: Codeunit "Composite Layout Lookup Helper";
         LayoutInStream: InStream;
-        EmptyAppId: Guid;
     begin
-        RemovePart(PartName, GetShippedPartAppId());
-        RemovePart(PartName, EmptyAppId);
+        RemovePart(TempPartToWrite.Name, GetShippedPartAppId());
 
         TenantReportLayout.Init();
         TenantReportLayout."Report ID" := CompositeLayoutLookupHelper.GetTenantReportDefaultsReportID();
-        TenantReportLayout.Name := PartName;
+        TenantReportLayout.Name := TempPartToWrite.Name;
         TenantReportLayout."App ID" := GetShippedPartAppId();
         TenantReportLayout."Company Name" := '';
         TenantReportLayout."Layout Format" := TenantReportLayout."Layout Format"::Word;
-        TenantReportLayout."Layout Subtype" := Subtype;
-        TenantReportLayout.Description := CopyStr(Description, 1, MaxStrLen(TenantReportLayout.Description));
+        TenantReportLayout."Layout Subtype" := TempPartToWrite."Layout Subtype";
+        TenantReportLayout.Description := TempPartToWrite.Description;
         TenantReportLayout."Layout Status" := TenantReportLayout."Layout Status"::Approved;
-        TenantReportLayout."MIME Type" := PartMimeType(Subtype);
-        PartLayout.CreateInStream(LayoutInStream);
-        TenantReportLayout.Layout.ImportStream(LayoutInStream, PartName);
+        TenantReportLayout."MIME Type" := PartMimeType(TempPartToWrite."Layout Subtype");
+        TempPartToWrite.Layout.CreateInStream(LayoutInStream);
+        TenantReportLayout.Layout.ImportStream(LayoutInStream, TempPartToWrite.Name);
         TenantReportLayout.Insert(true);
     end;
 
