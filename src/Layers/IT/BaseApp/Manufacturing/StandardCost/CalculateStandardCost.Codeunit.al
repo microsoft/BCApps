@@ -953,7 +953,7 @@ codeunit 5812 "Calculate Standard Cost"
 
             repeat
                 IsHandled := false;
-                OnCalcRtngCostSKUOnBeforeCalcRtngLineCostSKU(RtngLine, MfgItemQtyBase, SLCap, SLSub, SLCapOvhd, IsHandled);
+                OnCalcRtngCostSKUOnBeforeCalcRtngLineCostSKU(RtngLine, MainItem, MfgItemQtyBase, SLCap, SLSub, SLCapOvhd, IsHandled);
                 if not IsHandled then
                     CalcRtngLineCostSKU(RtngLine, MainItem, MfgItemQtyBase, SLCap, SLSub, SLCapOvhd);
             until RtngLine.Next() = 0;
@@ -1409,7 +1409,7 @@ codeunit 5812 "Calculate Standard Cost"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnCalcRtngCostSKUOnBeforeCalcRtngLineCostSKU(var RoutingLine: Record "Routing Line"; MfgItemQtyBase: Decimal; var SLCap: Decimal; var SLSub: Decimal; var SLCapOvhd: Decimal; var IsHandled: Boolean)
+    local procedure OnCalcRtngCostSKUOnBeforeCalcRtngLineCostSKU(var RoutingLine: Record "Routing Line"; MainItem: Record Item; MfgItemQtyBase: Decimal; var SLCap: Decimal; var SLSub: Decimal; var SLCapOvhd: Decimal; var IsHandled: Boolean)
     begin
     end;
 

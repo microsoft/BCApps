@@ -306,7 +306,13 @@ codeunit 99000758 "Mfg. Cost Calculation Mgt."
         ExpSubDirCostRtng: Decimal;
         ExpCapOvhdCostRtng: Decimal;
         ExpOvhdCost: Decimal;
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeCalcProdOrderLineExpCostWithNonInvMatCost(ProdOrderLine, ShareOfTotalCapCost, ExpMatCost, ExpNonInvMatCost, ExpCapDirCost, ExpSubDirCost, ExpCapOvhdCost, ExpMfgOvhdCost, IsHandled);
+        if IsHandled then
+            exit;
+
         ProdOrderComp.SetCurrentKey(Status, "Prod. Order No.", "Prod. Order Line No.");
         ProdOrderComp.SetRange(Status, ProdOrderLine.Status);
         ProdOrderComp.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
@@ -858,6 +864,11 @@ codeunit 99000758 "Mfg. Cost Calculation Mgt."
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcProdOrderLineExpCost(var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; ShareOfTotalCapCost: Decimal; var ExpMatCost: Decimal; var ExpCapDirCost: Decimal; var ExpSubDirCost: Decimal; var ExpCapOvhdCost: Decimal; var ExpMfgOvhdCost: Decimal; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCalcProdOrderLineExpCostWithNonInvMatCost(var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; ShareOfTotalCapCost: Decimal; var ExpMatCost: Decimal; var ExpNonInvMatCost: Decimal; var ExpCapDirCost: Decimal; var ExpSubDirCost: Decimal; var ExpCapOvhdCost: Decimal; var ExpMfgOvhdCost: Decimal; var IsHandled: Boolean)
     begin
     end;
 
