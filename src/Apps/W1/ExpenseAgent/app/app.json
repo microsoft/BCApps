@@ -24,56 +24,6 @@
       "publisher": "Microsoft"
     },
     {
-      "id": "d4f8bc4d-8a7e-4008-b8a3-93721589ce98",
-      "name": "Expense Agent (Preview) (NZ)",
-      "publisher": "Microsoft"
-    },
-    {
-      "id": "fa126935-93d3-4e4e-a006-4f7406625d2e",
-      "name": "Expense Agent (Preview) (US)",
-      "publisher": "Microsoft"
-    },
-    {
-      "id": "c60a4c19-38b7-4d2b-96bb-edfcea98cf1f",
-      "name": "Expense Agent (Preview) (AT)",
-      "publisher": "Microsoft"
-    },
-    {
-      "id": "646b8424-68af-4eb3-b325-97f695cdb19f",
-      "name": "Expense Agent (Preview) (AU)",
-      "publisher": "Microsoft"
-    },
-    {
-      "id": "9a6af095-afbf-449a-a516-8147c96060da",
-      "name": "Expense Agent (Preview) (CA)",
-      "publisher": "Microsoft"
-    },
-    {
-      "id": "cb71e33d-b543-4d2a-8098-b27b38649687",
-      "name": "Expense Agent (Preview) (DE)",
-      "publisher": "Microsoft"
-    },
-    {
-      "id": "f1c6dae4-c092-429f-845c-00657fa4d293",
-      "name": "Expense Agent (Preview) (DK)",
-      "publisher": "Microsoft"
-    },
-    {
-      "id": "c4b4a30a-16cd-4b0b-9a3f-9962d74d8cb9",
-      "name": "Expense Agent (Preview) (ES)",
-      "publisher": "Microsoft"
-    },
-    {
-      "id": "8b524ccf-12e4-4f6c-9325-71bdb18f7284",
-      "name": "Expense Agent (Preview) (FR)",
-      "publisher": "Microsoft"
-    },
-    {
-      "id": "b299c435-af71-4b42-b15b-f1cdddd1a561",
-      "name": "Expense Agent (Preview) (GB)",
-      "publisher": "Microsoft"
-    },
-    {
       "id": "4cb44e6c-9a37-4d4e-b45f-1b3054ddc59a",
       "name": "Expense Withholding Tax",
       "publisher": "Microsoft"
