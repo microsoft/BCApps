@@ -13,6 +13,7 @@ using System.Upgrade;
 /// </summary>
 codeunit 104064 "Upgrade Composite Report Parts"
 {
+    Access = Internal;
     Subtype = Upgrade;
     InherentEntitlements = X;
     InherentPermissions = X;
