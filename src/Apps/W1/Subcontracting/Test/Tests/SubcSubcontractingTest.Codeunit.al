@@ -1130,8 +1130,8 @@ codeunit 139989 "Subc. Subcontracting Test"
         ManufacturingSetup: Record "Manufacturing Setup";
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
-        SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
         CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
+        SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
         GenBusPostingGroup1, GenBusPostingGroup2 : Code[20];
         ProdPostingGroup1, ProdPostingGroup2 : Code[20];
         VATBusPostingGroup1, VATBusPostingGroup2 : Code[20];
@@ -2007,6 +2007,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         ProductionBOMLine: Record "Production BOM Line";
         RequisitionLine: Record "Requisition Line";
         RequisitionWkshName: Record "Requisition Wksh. Name";
+        ReqWkshName: Record "Requisition Wksh. Name";
         Vendor: Record Vendor;
         WorkCenter: array[2] of Record "Work Center";
         ReqWkshTemplateName: Code[10];
@@ -2073,6 +2074,133 @@ codeunit 139989 "Subc. Subcontracting Test"
         RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
         RequisitionLine.SetRange("No.", ProductionBOMLine."No.");
         Assert.RecordIsEmpty(RequisitionLine);
+
+        // [TEAR DOWN] Clean up the Planning Worksheet lines and names
+        RequisitionLine.Reset();
+        RequisitionLine.DeleteAll(true);
+        ReqWkshName.DeleteAll(true);
+    end;
+
+    [Test]
+    [HandlerFunctions('MakeSupplyOrdersPageHandler')]
+    procedure VendorSuppliedPlanningComponentNotPlannedSeparately()
+    var
+        ComponentItem: Record Item;
+        Item: Record Item;
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ManufacturingUserTemplate: Record "Manufacturing User Template";
+        PlanningComponent: Record "Planning Component";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProductionBOMLine: Record "Production BOM Line";
+        ProductionOrder: Record "Production Order";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        WorkCenter: array[2] of Record "Work Center";
+        ReqWkshTemplateName: Code[10];
+        Direction: Option Forward,Backward;
+    begin
+        // [SCENARIO] Planning Components with Component Supply Method = Vendor-Supplied must not
+        // generate separate demand when CalcRegenPlan is run for the component item, because
+        // vendor-supplied components are purchased through the subcontracting purchase order.
+
+        // [GIVEN] Complete Setup of Manufacturing, include Work- and Machine Centers, Item
+        Initialize();
+        SubcontractingMgmtLibrary.SetupInventorySetup();
+
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+
+        // [GIVEN] Create Item for Production include Routing and Prod. BOM
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+
+        // [GIVEN] Assign Routing Link Code between subcontracting routing line and last BOM line
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+
+        // [GIVEN] Set Component Supply Method = Vendor-Supplied on the linked BOM line
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Vendor-Supplied");
+
+        // [GIVEN] Set up vendor with subcontracting location
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        // [GIVEN] A Planning Worksheet line for the parent item is refreshed, creating Planning Components
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        ReqWkshTemplateName := LibraryPlanning.SelectRequisitionTemplateName();
+        LibraryPlanning.CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplateName);
+        LibraryPlanning.CreateRequisitionLine(RequisitionLine, ReqWkshTemplateName, RequisitionWkshName.Name);
+        RequisitionLine.Validate(Type, RequisitionLine.Type::Item);
+        RequisitionLine.Validate("No.", Item."No.");
+        RequisitionLine.Validate(Quantity, LibraryRandom.RandInt(10) + 5);
+        RequisitionLine.Validate("Location Code", Location.Code);
+        RequisitionLine.Validate("Ending Date", WorkDate());
+        RequisitionLine.Modify(true);
+        LibraryPlanning.RefreshPlanningLine(RequisitionLine, Direction::Backward, true, true);
+
+        // [GIVEN] The component item from the BOM with Vendor-Supplied supply method
+        ProductionBOMLine.SetRange("Production BOM No.", Item."Production BOM No.");
+        ProductionBOMLine.FindLast();
+        ComponentItem.Get(ProductionBOMLine."No.");
+
+        // [WHEN] Run Regenerative Plan for the component item
+        ComponentItem.SetRecFilter();
+        LibraryPlanning.CalcRegenPlanForPlanWksh(ComponentItem, CalcDate('<-1M>', WorkDate()), CalcDate('<+1M>', WorkDate()));
+
+        // [THEN] No requisition line is suggested for the Vendor-Supplied component
+        RequisitionLine.SetRange("No.", ComponentItem."No.");
+        Assert.RecordIsEmpty(RequisitionLine);
+
+        // [THEN] The Vendor-Supplied Planning Component still exists in the planning worksheet (the planning
+        // run must not remove it — it is needed for consumption registration in the production order)
+        PlanningComponent.SetRange("Item No.", ComponentItem."No.");
+        Assert.RecordIsNotEmpty(PlanningComponent);
+        PlanningComponent.FindFirst();
+        PlanningComponent.TestField("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
+
+        // [WHEN] Carry out the parent item's planning line to create a planned production order
+        if not ManufacturingUserTemplate.Get(CopyStr(UserId(), 1, 50)) then
+            LibraryPlanning.CreateManufUserTemplate(
+                ManufacturingUserTemplate, CopyStr(UserId(), 1, 50),
+                ManufacturingUserTemplate."Make Orders"::"All Lines",
+                ManufacturingUserTemplate."Create Purchase Order"::"Make Purch. Orders",
+                ManufacturingUserTemplate."Create Production Order"::"Firm Planned",
+                ManufacturingUserTemplate."Create Transfer Order"::"Make Trans. Orders");
+        RequisitionLine.Reset();
+        RequisitionLine.SetRange("Worksheet Template Name", ReqWkshTemplateName);
+        RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
+        RequisitionLine.SetRange("No.", Item."No.");
+        RequisitionLine.FindFirst();
+        LibraryPlanning.MakeSupplyOrders(ManufacturingUserTemplate, RequisitionLine);
+
+        // [THEN] The created planned production order contains the Vendor-Supplied component
+        // (carrying out the planning line must not strip the component from the production order)
+        ProductionOrder.SetRange("Source No.", Item."No.");
+        ProductionOrder.SetRange(Status, "Production Order Status"::"Firm Planned");
+        ProductionOrder.FindFirst();
+        ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComponent.SetRange("Item No.", ComponentItem."No.");
+        Assert.RecordIsNotEmpty(ProdOrderComponent);
+        ProdOrderComponent.FindFirst();
+        ProdOrderComponent.TestField("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
+
+        // [WHEN] Changing the Prod. Order Component's supply method to Empty
+        // (Planning Components are gone after carry-out; use the Prod. Order Component)
+        ProdOrderComponent."Component Supply Method" := "Component Supply Method"::Empty;
+        ProdOrderComponent.Modify();
+
+        // [WHEN] Run Regenerative Plan again for the component item
+        LibraryPlanning.CalcRegenPlanForPlanWksh(ComponentItem, CalcDate('<-1M>', WorkDate()), CalcDate('<+1M>', WorkDate()));
+
+        // [THEN] Requisition line is now suggested for the component
+        RequisitionLine.SetRange("No.", ComponentItem."No.");
+        Assert.RecordIsNotEmpty(RequisitionLine);
+
+        // [TEAR DOWN] Clean up the Planning Worksheet lines and names
+        RequisitionLine.Reset();
+        RequisitionLine.DeleteAll(true);
+        RequisitionWkshName.DeleteAll(true);
     end;
 
     [Test]
@@ -2109,7 +2237,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 #pragma warning restore AA0210
         PurchaseLine.FindFirst();
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
-        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
 
         // [WHEN] Receive the subcontracting purchase order
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
@@ -2167,7 +2295,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 #pragma warning restore AA0210
         PurchaseLine.FindFirst();
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
-        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
 
         ItemLedgerEntry.SetRange("Item No.", Item."No.");
@@ -2218,7 +2346,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 #pragma warning restore AA0210
         PurchaseLine.FindFirst();
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
-        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
 
         // [GIVEN] The production order is changed to Finished status
@@ -2497,6 +2625,249 @@ codeunit 139989 "Subc. Subcontracting Test"
         Assert.AreEqual(
             ExpectedDescription2, RequisitionLine."Description 2",
             'Description 2 must be populated on the Requisition Line from the subcontracting Work Center');
+    end;
+
+    [Test]
+    procedure ChangingVendorKeepsProdOrderRoutingLineDescriptions()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
+        ExpectedDescription: Text[100];
+        ExpectedDescription2: Text[50];
+    begin
+        // [SCENARIO 550732] Changing the vendor on a subcontracting requisition line keeps the production routing descriptions
+        Initialize();
+
+        // [GIVEN] A released production order with custom descriptions on its subcontracting routing line
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        ProdOrderRoutingLine.FindFirst();
+        ExpectedDescription := 'Custom subcontracting operation';
+        ExpectedDescription2 := 'Custom operation details';
+        ProdOrderRoutingLine.Description := ExpectedDescription;
+        ProdOrderRoutingLine."Description 2" := ExpectedDescription2;
+        ProdOrderRoutingLine.Modify();
+
+        // [GIVEN] The production routing line is suggested on the subcontracting worksheet
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
+        RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
+        SubcCalculateSubContract.SetWkShLine(RequisitionLine);
+        SubcCalculateSubContract.UseRequestPage(false);
+        SubcCalculateSubContract.RunModal();
+        RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
+        RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
+        RequisitionLine.SetRange("Ref. Order No.", ProductionOrder."No.");
+        RequisitionLine.FindFirst();
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [WHEN] The vendor is changed on the subcontracting requisition line
+        RequisitionLine.Validate("Vendor No.", Vendor."No.");
+
+        // [THEN] Both descriptions still come from the production order routing line
+        Assert.AreEqual(ExpectedDescription, RequisitionLine.Description, 'The routing line description must be kept when the vendor changes.');
+        Assert.AreEqual(ExpectedDescription2, RequisitionLine."Description 2", 'The routing line description 2 must be kept when the vendor changes.');
+    end;
+
+    [Test]
+    procedure ChangingVendorKeepsBlankRoutingDescriptionAndUsesWorkCenterDescription2()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
+        ExpectedDescription2: Text[50];
+    begin
+        // [SCENARIO 550732] Changing the vendor keeps a blank routing description and uses work center description 2
+        Initialize();
+
+        // [GIVEN] A released production order with blank descriptions on its subcontracting routing line
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        ExpectedDescription2 := 'Work center details';
+        WorkCenter[2].Validate("Name 2", ExpectedDescription2);
+        WorkCenter[2].Modify(true);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        ProdOrderRoutingLine.FindFirst();
+        Clear(ProdOrderRoutingLine.Description);
+        Clear(ProdOrderRoutingLine."Description 2");
+        ProdOrderRoutingLine.Modify();
+
+        // [GIVEN] The production routing line is suggested on the subcontracting worksheet
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
+        RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
+        SubcCalculateSubContract.SetWkShLine(RequisitionLine);
+        SubcCalculateSubContract.UseRequestPage(false);
+        SubcCalculateSubContract.RunModal();
+        RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
+        RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
+        RequisitionLine.SetRange("Ref. Order No.", ProductionOrder."No.");
+        RequisitionLine.FindFirst();
+        RequisitionLine.Description := 'Description before vendor validation';
+        RequisitionLine."Description 2" := 'Description 2 before validation';
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [WHEN] The vendor is changed on the subcontracting requisition line
+        RequisitionLine.Validate("Vendor No.", Vendor."No.");
+
+        // [THEN] The description remains blank and description 2 comes from the subcontracting work center
+        Assert.AreEqual('', RequisitionLine.Description, 'The blank routing line description must be kept when the vendor changes.');
+        Assert.AreEqual(ExpectedDescription2, RequisitionLine."Description 2", 'The work center description 2 must be used when the routing line description 2 is blank.');
+    end;
+
+    [Test]
+    procedure ChangingVendorUsesWorkCenterDescriptionsWhenRoutingLineNotFound()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
+        ExpectedDescription: Text[100];
+        ExpectedDescription2: Text[50];
+    begin
+        // [SCENARIO 550732] Changing the vendor uses the subcontracting work center descriptions when the routing line is not found
+        Initialize();
+
+        // [GIVEN] A released production order with distinct descriptions on its subcontracting work center
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        ExpectedDescription := 'Subcontracting work center';
+        ExpectedDescription2 := 'Work center details';
+        WorkCenter[2].Validate(Name, ExpectedDescription);
+        WorkCenter[2].Validate("Name 2", ExpectedDescription2);
+        WorkCenter[2].Modify(true);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+
+        // [GIVEN] A subcontracting requisition line whose routing operation does not exist
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
+        RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
+        SubcCalculateSubContract.SetWkShLine(RequisitionLine);
+        SubcCalculateSubContract.UseRequestPage(false);
+        SubcCalculateSubContract.RunModal();
+        RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
+        RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
+        RequisitionLine.SetRange("Ref. Order No.", ProductionOrder."No.");
+        RequisitionLine.FindFirst();
+        RequisitionLine."Operation No." := 'NOTFOUND';
+        RequisitionLine.Description := 'Description before vendor validation';
+        RequisitionLine."Description 2" := 'Description 2 before validation';
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [WHEN] The vendor is changed on the subcontracting requisition line
+        RequisitionLine.Validate("Vendor No.", Vendor."No.");
+
+        // [THEN] Both descriptions fall back to the subcontracting work center
+        Assert.AreEqual(ExpectedDescription, RequisitionLine.Description, 'The work center description must be used when the routing line is not found.');
+        Assert.AreEqual(ExpectedDescription2, RequisitionLine."Description 2", 'The work center description 2 must be used when the routing line is not found.');
+    end;
+
+    [Test]
+    procedure ChangingVendorUsesWorkCenterDescriptionsWhenRoutingLineWorkCenterDiffers()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
+        ExpectedDescription: Text[100];
+        ExpectedDescription2: Text[50];
+    begin
+        // [SCENARIO 550732] Changing the vendor uses the requisition work center descriptions when the routing line work center differs
+        Initialize();
+
+        // [GIVEN] A released production order with distinct descriptions on its subcontracting work center
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        ExpectedDescription := 'Current subcontracting work center';
+        ExpectedDescription2 := 'Current work center details';
+        WorkCenter[2].Validate(Name, ExpectedDescription);
+        WorkCenter[2].Validate("Name 2", ExpectedDescription2);
+        WorkCenter[2].Modify(true);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+
+        // [GIVEN] A subcontracting requisition line and its matching-key routing line with different work centers
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
+        RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
+        SubcCalculateSubContract.SetWkShLine(RequisitionLine);
+        SubcCalculateSubContract.UseRequestPage(false);
+        SubcCalculateSubContract.RunModal();
+        RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
+        RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
+        RequisitionLine.SetRange("Ref. Order No.", ProductionOrder."No.");
+        RequisitionLine.FindFirst();
+        ProdOrderRoutingLine.Get(
+            RequisitionLine."Ref. Order Status", RequisitionLine."Ref. Order No.", RequisitionLine."Routing Reference No.",
+            RequisitionLine."Routing No.", RequisitionLine."Operation No.");
+        ProdOrderRoutingLine."Work Center No." := WorkCenter[1]."No.";
+        ProdOrderRoutingLine.Description := 'Mismatched routing description';
+        ProdOrderRoutingLine."Description 2" := 'Mismatched routing details';
+        ProdOrderRoutingLine.Modify();
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [WHEN] The vendor is changed on the subcontracting requisition line
+        RequisitionLine.Validate("Vendor No.", Vendor."No.");
+
+        // [THEN] Both descriptions fall back to the requisition line's subcontracting work center
+        Assert.AreEqual(ExpectedDescription, RequisitionLine.Description, 'The requisition work center description must be used when the routing line work center differs.');
+        Assert.AreEqual(ExpectedDescription2, RequisitionLine."Description 2", 'The requisition work center description 2 must be used when the routing line work center differs.');
     end;
 
     [Test]
@@ -3326,7 +3697,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 #pragma warning restore AA0210
         PurchaseLine.FindFirst();
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
-        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
 
         // [GIVEN] The existing subcontracting purchase order is fully received
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
@@ -3374,7 +3745,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         PurchaseLine.SetRange("Document No.", ReceivedPurchaseOrderNo);
         PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
         PurchaseLine.FindFirst();
-        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
         PurchaseHeader.Get(PurchaseLine."Document Type", ReceivedPurchaseOrderNo);
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
 
@@ -3718,6 +4089,12 @@ codeunit 139989 "Subc. Subcontracting Test"
             else
                 Reply := false;
         end;
+    end;
+
+    [ModalPageHandler]
+    procedure MakeSupplyOrdersPageHandler(var MakeSupplyOrders: Page "Make Supply Orders"; var Response: Action)
+    begin
+        Response := ACTION::LookupOK;
     end;
 
     [ModalPageHandler]
@@ -4134,25 +4511,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         end;
         WorkCenter.Modify(true);
         WorkCenterNo := WorkCenter."No.";
-    end;
-
-    local procedure EnsureGeneralPostingSetupIsValid(GenBusPostingGroup: Code[20]; GenProdPostingGroup: Code[20])
-    var
-        GeneralPostingSetup: Record "General Posting Setup";
-    begin
-        if GeneralPostingSetup.Get(GenBusPostingGroup, GenProdPostingGroup) then begin
-            if GeneralPostingSetup.Blocked then begin
-                GeneralPostingSetup.Blocked := false;
-                GeneralPostingSetup.Modify();
-            end;
-            exit;
-        end;
-
-        GeneralPostingSetup.Init();
-        GeneralPostingSetup."Gen. Bus. Posting Group" := GenBusPostingGroup;
-        GeneralPostingSetup."Gen. Prod. Posting Group" := GenProdPostingGroup;
-        GeneralPostingSetup.Insert();
-        GeneralPostingSetup.SuggestSetupAccounts();
     end;
 
     local procedure CreateItem(var Item: Record Item; ItemCostingMethod: Enum "Costing Method"; ItemReorderPolicy: Enum "Reordering Policy";
@@ -4832,7 +5190,7 @@ codeunit 139989 "Subc. Subcontracting Test"
 #pragma warning restore AA0210
         SubcPurchaseLine.FindFirst();
         SubcPurchaseHeader.Get(SubcPurchaseLine."Document Type", SubcPurchaseLine."Document No.");
-        EnsureGeneralPostingSetupIsValid(SubcPurchaseLine."Gen. Bus. Posting Group", SubcPurchaseLine."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(SubcPurchaseLine."Gen. Bus. Posting Group", SubcPurchaseLine."Gen. Prod. Posting Group");
 
         LibraryPurchase.PostPurchaseDocument(SubcPurchaseHeader, true, false);
 
@@ -4846,7 +5204,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         LibraryPurchase.CreatePurchaseLine(ItemChargeInvLine, ItemChargeInvHeader, ItemChargeInvLine.Type::"Charge (Item)", ItemCharge."No.", 1);
         ItemChargeInvLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(100, 200, 2));
         ItemChargeInvLine.Modify(true);
-        EnsureGeneralPostingSetupIsValid(ItemChargeInvLine."Gen. Bus. Posting Group", ItemChargeInvLine."Gen. Prod. Posting Group");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(ItemChargeInvLine."Gen. Bus. Posting Group", ItemChargeInvLine."Gen. Prod. Posting Group");
 
         AssignItemChargeToReceiptLine(ItemChargeInvLine, SubcPurchRcptLine, 1);
 

@@ -56,6 +56,10 @@ codeunit 139940 "Qlty. Inspection Utility"
         DefaultResult2PassCodeLbl: Label 'PASS', Locked = true;
         AdminSupervisorRoleIDTok: Label 'QltyMgmt - Admin', Locked = true;
 
+    /// <summary>
+    /// Ensures baseline Quality Management setup exists and grants the current user the admin/supervisor permission set.
+    /// Call this before any test that requires an initialized Quality Management environment.
+    /// </summary>
     internal procedure EnsureSetupExists()
     var
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
@@ -65,6 +69,13 @@ codeunit 139940 "Qlty. Inspection Utility"
         UserPermissionsLibrary.AssignPermissionSetToUser(UserSecurityId(), AdminSupervisorRoleIDTok);
     end;
 
+    /// <summary>
+    /// Creates a template with three tests, a matching production-order generation rule, generates production orders,
+    /// and creates a single inspection against the last routing line of the first order. Asserts that exactly one
+    /// inspection was created.
+    /// </summary>
+    /// <param name="OutCreatedQltyInspectionHeader">Returns the created inspection header.</param>
+    /// <param name="OutQltyInspectionTemplateHdr">Returns the created template header.</param>
     internal procedure CreateABasicTemplateAndInstanceOfAInspection(var OutCreatedQltyInspectionHeader: Record "Qlty. Inspection Header"; var OutQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.")
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
@@ -110,6 +121,13 @@ codeunit 139940 "Qlty. Inspection Utility"
         QltyInspectionCreate.GetCreatedInspection(OutCreatedQltyInspectionHeader);
     end;
 
+    /// <summary>
+    /// Creates a basic template and inspection, then reconfigures the template to use percent-of-quantity sampling
+    /// with the supplied percentage and source base quantity, returning the resulting computed sample size.
+    /// </summary>
+    /// <param name="SamplePercentage">The percentage to configure on the template's Sample Percentage field.</param>
+    /// <param name="SourceQuantityBase">The source base quantity to set on the inspection header.</param>
+    /// <returns>The sample size calculated on the inspection header after the configuration is applied.</returns>
     internal procedure CalculateSampleSizeUsingPercentSource(SamplePercentage: Decimal; SourceQuantityBase: Decimal) SampleSize: Integer
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -127,6 +145,12 @@ codeunit 139940 "Qlty. Inspection Utility"
         exit(QltyInspectionHeader."Sample Size");
     end;
 
+    /// <summary>
+    /// Creates a new Quality Inspection Template with randomized code/description and, optionally, a set of
+    /// text-typed tests attached to it.
+    /// </summary>
+    /// <param name="OutQltyInspectionTemplateHdr">Returns the created template header.</param>
+    /// <param name="HowManyFields">Number of text-typed tests to create and attach; pass 0 to create the header only.</param>
     internal procedure CreateTemplate(var OutQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; HowManyFields: Integer)
     var
         IgnoredQltyTest: Record "Qlty. Test";
@@ -145,6 +169,11 @@ codeunit 139940 "Qlty. Inspection Utility"
                 CreateTestAndAddToTemplate(OutQltyInspectionTemplateHdr, IgnoredQltyTest, "Qlty. Test Value Type"::"Value Type Text")
     end;
 
+    /// <summary>
+    /// Creates a new test of the requested value type and appends it as a line on the supplied template.
+    /// </summary>
+    /// <param name="InExistingQltyInspectionTemplateHdr">The template to add the test to.</param>
+    /// <param name="QltyTestValueType">The value type of the test to create.</param>
     internal procedure CreateTestAndAddToTemplate(InExistingQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; QltyTestValueType: Enum "Qlty. Test Value Type")
     var
         IgnoredQltyTest: Record "Qlty. Test";
@@ -159,6 +188,12 @@ codeunit 139940 "Qlty. Inspection Utility"
         QltyInspectionTemplateLine.Insert(true);
     end;
 
+    /// <summary>
+    /// Creates a new test of the requested value type, appends it as a line on the supplied template, and returns the created test.
+    /// </summary>
+    /// <param name="InExistingQltyInspectionTemplateHdr">The template to add the test to.</param>
+    /// <param name="OutQltyTest">Returns the created test.</param>
+    /// <param name="QltyTestValueType">The value type of the test to create.</param>
     internal procedure CreateTestAndAddToTemplate(InExistingQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; var OutQltyTest: Record "Qlty. Test"; QltyTestValueType: Enum "Qlty. Test Value Type")
     var
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
@@ -172,6 +207,14 @@ codeunit 139940 "Qlty. Inspection Utility"
         QltyInspectionTemplateLine.Insert(true);
     end;
 
+    /// <summary>
+    /// Creates a new test of the requested value type, appends it as a line on the supplied template, and returns both the
+    /// created test and the created template line.
+    /// </summary>
+    /// <param name="InExistingQltyInspectionTemplateHdr">The template to add the test to.</param>
+    /// <param name="QltyTestValueType">The value type of the test to create.</param>
+    /// <param name="QltyTest">Returns the created test.</param>
+    /// <param name="OutQltyInspectionTemplateLine">Returns the created template line linking the test to the template.</param>
     internal procedure CreateTestAndAddToTemplate(InExistingQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; QltyTestValueType: Enum "Qlty. Test Value Type"; var QltyTest: Record "Qlty. Test"; var OutQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line")
     begin
         Clear(OutQltyInspectionTemplateLine);
@@ -183,6 +226,12 @@ codeunit 139940 "Qlty. Inspection Utility"
         OutQltyInspectionTemplateLine.Insert(true);
     end;
 
+    /// <summary>
+    /// Creates a new Quality Test with a randomized code and description, and pre-configures a default PASS result condition
+    /// appropriate to the supplied value type (text, decimal/integer or boolean).
+    /// </summary>
+    /// <param name="QltyTest">Returns the created test.</param>
+    /// <param name="QltyTestValueType">The value type used to determine the default pass condition.</param>
     internal procedure CreateTest(var QltyTest: Record "Qlty. Test"; QltyTestValueType: Enum "Qlty. Test Value Type")
     var
         QltyInspectionResult: Record "Qlty. Inspection Result";
@@ -208,6 +257,12 @@ codeunit 139940 "Qlty. Inspection Utility"
             end;
     end;
 
+    /// <summary>
+    /// Disables all existing generation rules and creates a new rule for the supplied template and source table,
+    /// placed at the top of the sort order so it is evaluated first.
+    /// </summary>
+    /// <param name="InExistingQltyInspectionTemplateHdr">Template that the created rule should reference.</param>
+    /// <param name="SourceTableNo">Source table number the rule should react on.</param>
     internal procedure CreatePrioritizedRule(InExistingQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; SourceTableNo: Integer)
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -215,6 +270,13 @@ codeunit 139940 "Qlty. Inspection Utility"
         CreatePrioritizedRule(InExistingQltyInspectionTemplateHdr, SourceTableNo, QltyInspectionGenRule);
     end;
 
+    /// <summary>
+    /// Disables all existing generation rules and creates a new rule for the supplied template and source table,
+    /// placed at the top of the sort order so it is evaluated first. If the template does not exist yet, it is created.
+    /// </summary>
+    /// <param name="InExistingQltyInspectionTemplateHdr">Template that the created rule should reference; created if empty.</param>
+    /// <param name="SourceTableNo">Source table number the rule should react on.</param>
+    /// <param name="OutQltyInspectionGenRule">Returns the created generation rule.</param>
     internal procedure CreatePrioritizedRule(var InExistingQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; SourceTableNo: Integer; var OutQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
     var
         FindLowestQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -236,6 +298,11 @@ codeunit 139940 "Qlty. Inspection Utility"
         OutQltyInspectionGenRule.Insert(true);
     end;
 
+    /// <summary>
+    /// Creates an item journal template of the requested type and a matching batch on it, returning the created batch.
+    /// </summary>
+    /// <param name="TemplateType">The item journal template type to create.</param>
+    /// <param name="OutItemJournalBatch">Returns the created item journal batch.</param>
     internal procedure CreateItemJournalTemplateAndBatch(TemplateType: Enum "Item Journal Entry Type"; var OutItemJournalBatch: Record "Item Journal Batch")
     var
         ItemJournalTemplate: Record "Item Journal Template";
@@ -245,6 +312,14 @@ codeunit 139940 "Qlty. Inspection Utility"
         LibraryInventory.CreateItemJournalBatch(OutItemJournalBatch, ItemJournalTemplate.Name);
     end;
 
+    /// <summary>
+    /// Fills a Code or Text field on the supplied record with generated random content of the field's full length,
+    /// either assigning the value directly or through <c>Validate</c>. Errors if the field is not a Code/Text field
+    /// or is shorter than 10 characters.
+    /// </summary>
+    /// <param name="RecordVariant">Any record-typed variant containing the target field.</param>
+    /// <param name="FieldNo">The field number to populate.</param>
+    /// <param name="Validate">If true, uses FieldRef.Validate; otherwise assigns via FieldRef.Value.</param>
     local procedure FillTextField(RecordVariant: Variant; FieldNo: Integer; Validate: Boolean)
     var
         DataTypeManagement: Codeunit "Data Type Management";
@@ -266,6 +341,13 @@ codeunit 139940 "Qlty. Inspection Utility"
             FieldRef.Value(Data);
     end;
 
+    /// <summary>
+    /// Produces a text of the requested length composed of a numeric sequence prefix, a millisecond-based
+    /// timestamp component, and random characters padding the remainder. Designed to minimize collisions in
+    /// parallel test runs.
+    /// </summary>
+    /// <param name="NumberOfCharacters">Length of the resulting text.</param>
+    /// <param name="Out">Returns the generated text.</param>
     local procedure FillText(NumberOfCharacters: Integer; var Out: Text)
     var
         CompanyInformation: Record "Company Information";
@@ -305,11 +387,11 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
-    /// Intentionally not using RandText() from Library - Random, because it's not random based on how it
-    /// generates text with the guids, making collision counts very high.
+    /// Generates a text of the requested length composed of random uppercase letters and digits.
+    /// Intentionally not using RandText() from Library - Random, because that helper produces GUID-based text with a very high collision rate.
     /// </summary>
-    /// <param name="NumberOfCharacters"></param>
-    /// <param name="Out"></param>
+    /// <param name="NumberOfCharacters">Number of characters to generate.</param>
+    /// <param name="Out">Returns the generated text.</param>
     internal procedure GenerateRandomCharacters(NumberOfCharacters: Integer; var Out: Text)
     var
         LibraryRandom: Codeunit "Library - Random";
@@ -326,9 +408,9 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
-    /// Creates a lot no. series and a lot-tracked item
+    /// Creates a lot no. series and a lot-tracked item.
     /// </summary>
-    /// <param name="OutItem"></param>
+    /// <param name="OutItem">Returns the created lot-tracked item.</param>
     internal procedure CreateLotTrackedItem(var OutItem: Record Item)
     var
         NoSeries: Record "No. Series";
@@ -337,9 +419,10 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
-    /// Creates a lot no. series and a lot-tracked item
+    /// Creates a lot no. series and a lot-tracked item, returning both the item and the lot no. series that was created for it.
     /// </summary>
-    /// <param name="OutItem"></param>
+    /// <param name="OutItem">Returns the created lot-tracked item.</param>
+    /// <param name="OutLotNoSeries">Returns the lot no. series created for tracking.</param>
     internal procedure CreateLotTrackedItem(var OutItem: Record Item; var OutLotNoSeries: Record "No. Series")
     var
         InventorySetup: Record "Inventory Setup";
@@ -376,9 +459,9 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
-    /// Creates a serial no. series and a serial-tracked item
+    /// Creates a serial no. series and a serial-tracked item.
     /// </summary>
-    /// <param name="OutItem"></param>
+    /// <param name="OutItem">Returns the created serial-tracked item.</param>
     internal procedure CreateSerialTrackedItem(var OutItem: Record Item)
     var
         NoSeries: Record "No. Series";
@@ -387,9 +470,10 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
-    /// Creates a serial no. series and a serial-tracked item
+    /// Creates a serial no. series and a serial-tracked item, returning both the item and the serial no. series that was created for it.
     /// </summary>
-    /// <param name="OutItem"></param>
+    /// <param name="OutItem">Returns the created serial-tracked item.</param>
+    /// <param name="OutSerialNoSeries">Returns the serial no. series created for tracking.</param>
     internal procedure CreateSerialTrackedItem(var OutItem: Record Item; var OutSerialNoSeries: Record "No. Series")
     var
         InventorySetup: Record "Inventory Setup";
@@ -427,9 +511,10 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
-    /// Creates a package no. series and a package-tracked item
+    /// Creates a package no. series (or reuses the one on Inventory Setup) and a package-tracked item that uses it.
     /// </summary>
-    /// <param name="OutItem"></param>
+    /// <param name="OutItem">Returns the created package-tracked item.</param>
+    /// <param name="OutPackageNoSeries">Returns the package no. series used for tracking.</param>
     internal procedure CreatePackageTrackedItemWithNoSeries(var OutItem: Record Item; var OutPackageNoSeries: Record "No. Series")
     var
         InventorySetup: Record "Inventory Setup";
@@ -464,9 +549,9 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
-    /// Sets user as warehouse employee for location
+    /// Sets the current user as a default warehouse employee for the given location.
     /// </summary>
-    /// <param name="Location"></param>
+    /// <param name="Location">Location code to assign the current user to.</param>
     internal procedure SetCurrLocationWhseEmployee(Location: Code[10])
     var
         WhseWarehouseEmployee: Record "Warehouse Employee";
@@ -478,11 +563,12 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
-    /// Creates Quality Inspection from purchase line for tracked item
+    /// Creates a Quality Inspection from a purchase line for a tracked item, using the tracking supplied by the reservation entry.
+    /// Asserts that exactly one inspection was created.
     /// </summary>
-    /// <param name="PurOrdPurchaseLine"></param>
-    /// <param name="ReservationEntry"></param>
-    /// <param name="OutQltyInspectionHeader"></param>
+    /// <param name="PurOrdPurchaseLine">The purchase line to create the inspection from.</param>
+    /// <param name="ReservationEntry">Reservation entry whose tracking specification is applied to the inspection.</param>
+    /// <param name="OutQltyInspectionHeader">Returns the created inspection header.</param>
     internal procedure CreateInspectionWithPurchaseLineAndTracking(PurOrdPurchaseLine: Record "Purchase Line"; ReservationEntry: Record "Reservation Entry"; var OutQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         SpecTrackingSpecification: Record "Tracking Specification";
@@ -502,11 +588,12 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
-    /// Creates Quality Inspection from warehouse entry for tracked item
+    /// Creates a Quality Inspection from a warehouse entry for a tracked item, using the tracking supplied by the reservation entry.
+    /// Asserts that exactly one inspection was created.
     /// </summary>
-    /// <param name="WarehouseEntry"></param>
-    /// <param name="ReservationEntry"></param>
-    /// <param name="OutQltyInspectionHeader"></param>
+    /// <param name="WarehouseEntry">The warehouse entry to create the inspection from.</param>
+    /// <param name="ReservationEntry">Reservation entry whose tracking specification is applied to the inspection.</param>
+    /// <param name="OutQltyInspectionHeader">Returns the created inspection header.</param>
     internal procedure CreateInspectionWithWarehouseEntryAndTracking(WarehouseEntry: Record "Warehouse Entry"; ReservationEntry: Record "Reservation Entry"; var OutQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         SpecTrackingSpecification: Record "Tracking Specification";
@@ -526,11 +613,12 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
-    /// Creates Quality Inspection from purchase line for untracked item
+    /// Creates a Quality Inspection from a purchase line for an untracked item using a specific template.
+    /// Asserts that exactly one inspection was created.
     /// </summary>
-    /// <param name="PurOrdPurchaseLine"></param>
+    /// <param name="PurOrdPurchaseLine">The purchase line to create the inspection from.</param>
     /// <param name="SpecificTemplate">The specific template to use.</param>
-    /// <param name="OutQltyInspectionHeader"></param>
+    /// <param name="OutQltyInspectionHeader">Returns the created inspection header.</param>
     internal procedure CreateInspectionWithPurchaseLine(PurOrdPurchaseLine: Record "Purchase Line"; SpecificTemplate: Code[20]; var OutQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
@@ -546,10 +634,11 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
-    /// Creates Quality Inspection for warehouse entry for untracked item
+    /// Creates a Quality Inspection from a warehouse entry for an untracked item using the currently configured generation rules.
+    /// Asserts that exactly one inspection was created.
     /// </summary>
-    /// <param name="WarehouseEntry"></param>
-    /// <param name="OutQltyInspectionHeader"></param>
+    /// <param name="WarehouseEntry">The warehouse entry to create the inspection from.</param>
+    /// <param name="OutQltyInspectionHeader">Returns the created inspection header.</param>
     internal procedure CreateInspectionWithWarehouseEntry(WarehouseEntry: Record "Warehouse Entry"; var OutQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
@@ -582,18 +671,19 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
-    /// This works around a flaw in "Library - Warehouse"::CreateWhseJournalLine where it only supports the item template and does insufficient filtering.
-    /// It's otherwise nearly identical to CreateReclassWhseJournalLine from "Library - Warehouse"::CreateWhseJournalLine
+    /// Creates a Reclass warehouse journal line, ensuring the batch exists first. This works around a flaw in
+    /// "Library - Warehouse"::CreateWhseJournalLine where it only supports the item template and does insufficient filtering.
+    /// Otherwise it is nearly identical to CreateReclassWhseJournalLine from "Library - Warehouse".
     /// </summary>
-    /// <param name="ReclassWarehouseJournalLine"></param>
-    /// <param name="JournalTemplateName"></param>
-    /// <param name="JournalBatchName"></param>
-    /// <param name="LocationCode"></param>
-    /// <param name="ZoneCode"></param>
-    /// <param name="BinCode"></param>
-    /// <param name="EntryType"></param>
-    /// <param name="ItemNo"></param>
-    /// <param name="NewQuantity"></param>
+    /// <param name="ReclassWarehouseJournalLine">Returns the created warehouse journal line.</param>
+    /// <param name="JournalTemplateName">Journal template to use.</param>
+    /// <param name="JournalBatchName">Journal batch to use; created if it does not exist.</param>
+    /// <param name="LocationCode">Location for the journal line.</param>
+    /// <param name="ZoneCode">Source zone for the reclassification.</param>
+    /// <param name="BinCode">Source bin for the reclassification.</param>
+    /// <param name="EntryType">Entry type option value applied to the journal line.</param>
+    /// <param name="ItemNo">Item to reclassify.</param>
+    /// <param name="NewQuantity">Quantity for the reclassification.</param>
     internal procedure CreateReclassWhseJournalLine(var ReclassWarehouseJournalLine: Record "Warehouse Journal Line"; JournalTemplateName: Code[10]; JournalBatchName: Code[10]; LocationCode: Code[10]; ZoneCode: Code[10]; BinCode: Code[20]; EntryType: Option; ItemNo: Code[20]; NewQuantity: Decimal)
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
@@ -638,6 +728,11 @@ codeunit 139940 "Qlty. Inspection Utility"
         ReclassWarehouseJournalLine.Modify(true);
     end;
 
+    /// <summary>
+    /// Resets all "Item Tracking Allow ..." fields on the supplied result record to Allow and persists the change.
+    /// Used by tests that need a known-good baseline before evaluating tracking-block logic.
+    /// </summary>
+    /// <param name="QltyInspectionResult">The result record to reset and modify.</param>
     internal procedure ClearResultLotSettings(var QltyInspectionResult: Record "Qlty. Inspection Result")
     begin
         QltyInspectionResult."Item Tracking Allow Sales" := QltyInspectionResult."Item Tracking Allow Sales"::Allow;
@@ -656,6 +751,10 @@ codeunit 139940 "Qlty. Inspection Utility"
         QltyInspectionResult.Modify();
     end;
 
+    /// <summary>
+    /// Clears all document-flow trigger fields on the Quality Management Setup so tests start from a NoTrigger baseline.
+    /// </summary>
+    /// <param name="QltyManagementSetup">The setup record to reset and modify.</param>
     internal procedure ClearSetupTriggerDefaults(var QltyManagementSetup: Record "Qlty. Management Setup")
     begin
         QltyManagementSetup."Purchase Order Trigger" := QltyManagementSetup."Purchase Order Trigger"::NoTrigger;
@@ -668,6 +767,13 @@ codeunit 139940 "Qlty. Inspection Utility"
         QltyManagementSetup.Modify();
     end;
 
+    /// <summary>
+    /// Ensures a package no. series, a corresponding no. series line, and a package-only item tracking code exist,
+    /// reusing the series configured on Inventory Setup when present.
+    /// </summary>
+    /// <param name="PackageNoSeries">Returns the package no. series (existing or created).</param>
+    /// <param name="PackageNoSeriesLine">Returns the no. series line associated with the package series.</param>
+    /// <param name="PackageItemTrackingCode">Returns the item tracking code configured for package-only tracking.</param>
     internal procedure CreatePackageTracking(var PackageNoSeries: Record "No. Series"; var PackageNoSeriesLine: Record "No. Series Line"; var PackageItemTrackingCode: Record "Item Tracking Code")
     var
         InventorySetup: Record "Inventory Setup";
@@ -688,6 +794,11 @@ codeunit 139940 "Qlty. Inspection Utility"
         LibraryItemTracking.CreateItemTrackingCode(PackageItemTrackingCode, false, false, true);
     end;
 
+    /// <summary>
+    /// Creates a lot-tracked item and one item variant for it, returning both.
+    /// </summary>
+    /// <param name="LotTrackedItem">Returns the created lot-tracked item.</param>
+    /// <param name="OutOptionalItemVariant">Returns the code of the created item variant.</param>
     internal procedure CreateLotTrackedItemWithVariant(var LotTrackedItem: Record Item; var OutOptionalItemVariant: Code[10])
     var
         ItemVariant: Record "Item Variant";
@@ -698,6 +809,11 @@ codeunit 139940 "Qlty. Inspection Utility"
         LotTrackedItem.Modify(true);
     end;
 
+    /// <summary>
+    /// Creates a serial-tracked item and one item variant for it, returning both.
+    /// </summary>
+    /// <param name="SerialTrackedItem">Returns the created serial-tracked item.</param>
+    /// <param name="OutOptionalItemVariant">Returns the code of the created item variant.</param>
     internal procedure CreateSerialTrackedItemWithVariant(var SerialTrackedItem: Record Item; var OutOptionalItemVariant: Code[10])
     var
         ItemVariant: Record "Item Variant";
@@ -708,6 +824,15 @@ codeunit 139940 "Qlty. Inspection Utility"
         SerialTrackedItem.Modify(true);
     end;
 
+    /// <summary>
+    /// Creates a serial-tracked item and one item variant for it. The additional serial series, tracking code, and
+    /// unit cost parameters are kept for signature compatibility and are not applied by this helper.
+    /// </summary>
+    /// <param name="SerialTrackedItem">Returns the created serial-tracked item.</param>
+    /// <param name="SerialNoSeries">Serial no. series (unused; kept for signature compatibility).</param>
+    /// <param name="SerialTrackingCode">Serial tracking code (unused; kept for signature compatibility).</param>
+    /// <param name="UnitCost">Unit cost (unused; kept for signature compatibility).</param>
+    /// <param name="OutOptionalItemVariant">Returns the code of the created item variant.</param>
     internal procedure CreateSerialTrackedItemWithVariant(var SerialTrackedItem: Record Item; SerialNoSeries: Code[20]; SerialTrackingCode: Code[10]; UnitCost: Decimal; var OutOptionalItemVariant: Code[10])
     var
         ItemVariant: Record "Item Variant";
@@ -717,6 +842,13 @@ codeunit 139940 "Qlty. Inspection Utility"
         OutOptionalItemVariant := LibraryInventory.CreateItemVariant(ItemVariant, SerialTrackedItem."No.");
     end;
 
+    /// <summary>
+    /// Creates an item with the supplied package tracking code and unit cost, and one item variant for it.
+    /// </summary>
+    /// <param name="PackageTrackedItem">Returns the created package-tracked item.</param>
+    /// <param name="PackageTrackingCode">Item tracking code assigned to the item.</param>
+    /// <param name="UnitCost">Unit cost assigned to the item.</param>
+    /// <param name="OutOptionalItemVariant">Returns the code of the created item variant.</param>
     internal procedure CreatePackageTrackedItem(var PackageTrackedItem: Record Item; PackageTrackingCode: Code[10]; UnitCost: Decimal; var OutOptionalItemVariant: Code[10])
     var
         ItemVariant: Record "Item Variant";
@@ -729,6 +861,12 @@ codeunit 139940 "Qlty. Inspection Utility"
         PackageTrackedItem.Modify(true);
     end;
 
+    /// <summary>
+    /// Creates an untracked item with the supplied unit cost and one item variant for it.
+    /// </summary>
+    /// <param name="UntrackedItem">Returns the created untracked item.</param>
+    /// <param name="UnitCost">Unit cost assigned to the item.</param>
+    /// <param name="OutOptionalItemVariant">Returns the code of the created item variant.</param>
     internal procedure CreateUntrackedItem(var UntrackedItem: Record Item; UnitCost: Decimal; var OutOptionalItemVariant: Code[10])
     var
         ItemVariant: Record "Item Variant";
@@ -740,6 +878,13 @@ codeunit 139940 "Qlty. Inspection Utility"
         UntrackedItem.Modify(true);
     end;
 
+    /// <summary>
+    /// Produces a Code[20] starting and ending pair suitable for a no. series line, using the supplied prefix, the
+    /// current datetime, and a per-session sequence number to reduce collisions in parallel test runs.
+    /// </summary>
+    /// <param name="InPrefix">Prefix used at the start of both returned codes.</param>
+    /// <param name="OutStart">Returns the starting code padded with '1'.</param>
+    /// <param name="OutEnd">Returns the ending code padded with '9'.</param>
     internal procedure GetCode20NoSeries(InPrefix: Text; var OutStart: Code[20]; var OutEnd: Code[20])
     var
         Temp: Text;
@@ -751,6 +896,13 @@ codeunit 139940 "Qlty. Inspection Utility"
         OutEnd := CopyStr(Temp.PadRight(MaxStrLen(OutEnd), '9'), 1, MaxStrLen(OutEnd));
     end;
 
+    /// <summary>
+    /// Returns the next per-session sequence number for the supplied key, formatted and left-padded to the requested width.
+    /// The key is post-fixed with the current datetime to reduce collisions across concurrent test sessions.
+    /// </summary>
+    /// <param name="SequenceKey">Identifier used to scope the sequence.</param>
+    /// <param name="PadSize">Minimum width of the returned text; the value is left-padded with '0'.</param>
+    /// <returns>The formatted, padded sequence number.</returns>
     local procedure GetNextSequenceNoAsText(SequenceKey: Text; PadSize: Integer) Out: Text;
     var
         QltySessionHelper: Codeunit "Qlty. Session Helper";
@@ -781,11 +933,27 @@ codeunit 139940 "Qlty. Inspection Utility"
         Out := Out.PadLeft(PadSize, '0');
     end;
 
+    /// <summary>
+    /// Convenience overload of <see cref="CreateWarehouseReceiptSetup"/> that creates the purchase order with a
+    /// default quantity of 123.
+    /// </summary>
+    /// <param name="CreatedQltyInspectionGenRule">Returns the generation rule created for the scenario.</param>
+    /// <param name="OutPurchaseLine">Returns the purchase line created against the WMS location.</param>
+    /// <param name="OutReservationEntry">Returns the reservation entry created for the tracked item on the purchase line.</param>
     internal procedure CreateWarehouseReceiptSetup(var CreatedQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"; var OutPurchaseLine: Record "Purchase Line"; var OutReservationEntry: Record "Reservation Entry")
     begin
         CreateWarehouseReceiptSetup(CreatedQltyInspectionGenRule, OutPurchaseLine, OutReservationEntry, 123);
     end;
 
+    /// <summary>
+    /// Sets up an end-to-end warehouse-receipt scenario: ensures baseline setup exists, creates a full-WMS location,
+    /// a one-test template, a purchase-line-triggered generation rule limited to a new lot-tracked item, and a purchase
+    /// order for that item at the WMS location.
+    /// </summary>
+    /// <param name="CreatedQltyInspectionGenRule">Returns the generation rule created for the scenario.</param>
+    /// <param name="OutPurchaseLine">Returns the purchase line created against the WMS location.</param>
+    /// <param name="OutReservationEntry">Returns the reservation entry created for the tracked item on the purchase line.</param>
+    /// <param name="Quantity">Quantity placed on the purchase line.</param>
     internal procedure CreateWarehouseReceiptSetup(var CreatedQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"; var OutPurchaseLine: Record "Purchase Line"; var OutReservationEntry: Record "Reservation Entry"; Quantity: Decimal)
     var
         Item: Record Item;

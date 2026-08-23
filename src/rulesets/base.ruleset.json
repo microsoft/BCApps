@@ -19,6 +19,11 @@
       "action": "Warning"
     },
     {
+      "id": "AL0424",
+      "action": "Warning",
+      "justification": "Bug 472148. The multilanguage syntax is being deprecated. Please update to the new syntax."
+    },
+    {
       "id": "AL0432",
       "action": "None",
       "justification": "Use pragma to remove obsolete warning."
@@ -105,11 +110,6 @@
       "id": "AS0051",
       "action": "Warning",
       "justification": "The manifest property 'contextSensitiveHelpUrl' must be specified and contain a meaningful value."
-    },
-    {
-      "id": "AS0052",
-      "action": "Warning",
-      "justification": "The manifest property 'url' must be specified and contain a valid URL."
     },
     {
       "id": "AS0062",
