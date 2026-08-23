@@ -22,7 +22,7 @@ codeunit 5000 "BaseApp Install"
         SeedDefaultReportParts();
     end;
 
-    internal procedure SeedDefaultReportParts()
+    local procedure SeedDefaultReportParts()
     var
         UpgradeCompositeReportParts: Codeunit "Upgrade Composite Report Parts";
     begin
