@@ -31,6 +31,9 @@ codeunit 5829 "PO Matching Group"
         LinesMustShareVendorCurrencyErr: Label 'The invoice line and order line must have the same buy-from vendor, pay-to vendor and currency.';
         ReceiptNotForOrderLineErr: Label 'The receipt/shipment line does not belong to the matched order line.';
         ItemTrackingPartialErr: Label 'A receipt/shipment line with item tracking must be invoiced in full. Receipt No.: %1, Line No.: %2', Comment = '%1 = Receipt No., %2 = Receipt Line No.';
+        InvoiceDocumentTypeErr: Label 'The purchase line to match must be an invoice line.';
+        OrderDocumentTypeErr: Label 'The matched purchase line must be an order line.';
+        LinesMustShareUnitOfMeasureErr: Label 'The invoice line and order line must have the same unit of measure.';
 
     /// <summary>
     /// Adds an edge to the group if it's valid in the current context, merging in any already-persisted
@@ -71,12 +74,14 @@ codeunit 5829 "PO Matching Group"
 
         if HasOrder and HasReceipt then
             AddOrderReceiptMatch(NewMatch)
-        else if HasInvoice and HasOrder then
-            AddInvoiceOrderMatch(NewMatch)
-        else if HasInvoice and HasReceipt then
-            AddInvoiceReceiptMatch(NewMatch)
         else
-            Error(AtLeastTwoDocumentsErr);
+            if HasInvoice and HasOrder then
+                AddInvoiceOrderMatch(NewMatch)
+            else
+                if HasInvoice and HasReceipt then
+                    AddInvoiceReceiptMatch(NewMatch)
+                else
+                    Error(AtLeastTwoDocumentsErr);
     end;
 
     local procedure AddInvoiceOrderMatch(NewMatch: Record "Matched Order Line")
@@ -100,7 +105,6 @@ codeunit 5829 "PO Matching Group"
         InvoiceOrderEdge, OrderReceiptEdge : Record "Matched Order Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
         OrderLine: Record "Purchase Line";
-        OrderLineSystemId: Guid;
     begin
         if not PurchRcptLine.GetBySystemId(NewMatch."Matched Rcpt./Shpt. Line SysId") then
             Error(ReceiptLineNotFoundErr);
@@ -132,16 +136,7 @@ codeunit 5829 "PO Matching Group"
         if not OrderLine.GetBySystemId(Match."Matched Order Line SystemId") then
             Error(InvoiceLineNotFoundErr);
 
-        CheckOrderLineMatchable(OrderLine);
-
-        if (InvoiceLine.Type <> OrderLine.Type) or (InvoiceLine."No." <> OrderLine."No.") then
-            Error(LinesMustAgreeErr);
-
-        // The invoice can only draw from an order of the same vendor and currency.
-        if (InvoiceLine."Buy-from Vendor No." <> OrderLine."Buy-from Vendor No.") or
-           (InvoiceLine."Pay-to Vendor No." <> OrderLine."Pay-to Vendor No.") or
-           (InvoiceLine."Currency Code" <> OrderLine."Currency Code") then
-            Error(LinesMustShareVendorCurrencyErr);
+        ValidateInvoiceOrderCompatibility(InvoiceLine, OrderLine);
 
         // The budget must fit in what the invoice line still has to allocate (blank-receipt layer only).
         TempCurrentPOMatchingGroup.Reset();
@@ -171,16 +166,18 @@ codeunit 5829 "PO Matching Group"
 
     local procedure ValidateOrderReceipt(Match: Record "Matched Order Line")
     var
-        OrderLine: Record "Purchase Line";
+        InvoiceLine, OrderLine : Record "Purchase Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
         BudgetQty, BudgetBase, PinnedQty, PinnedBase, ReceiptQty, ReceiptBase : Decimal;
     begin
+        if not InvoiceLine.GetBySystemId(Match."Document Line SystemId") then
+            Error(InvoiceLineNotFoundErr);
         if not OrderLine.GetBySystemId(Match."Matched Order Line SystemId") then
             Error(InvoiceLineNotFoundErr);
         if not PurchRcptLine.GetBySystemId(Match."Matched Rcpt./Shpt. Line SysId") then
             Error(ReceiptLineNotFoundErr);
 
-        CheckOrderLineMatchable(OrderLine);
+        ValidateInvoiceOrderCompatibility(InvoiceLine, OrderLine);
 
         if (OrderLine.Type <> PurchRcptLine.Type) or (OrderLine."No." <> PurchRcptLine."No.") then
             Error(LinesMustAgreeErr);
@@ -216,6 +213,25 @@ codeunit 5829 "PO Matching Group"
             if (Match."Qty. to Invoice" <> PurchRcptLine."Qty. Rcd. Not Invoiced") or
                (Match."Qty. to Invoice (Base)" <> PurchRcptLine."Quantity (Base)" - PurchRcptLine."Qty. Invoiced (Base)") then
                 Error(ItemTrackingPartialErr, PurchRcptLine."Document No.", PurchRcptLine."Line No.");
+    end;
+
+    local procedure ValidateInvoiceOrderCompatibility(InvoiceLine: Record "Purchase Line"; OrderLine: Record "Purchase Line")
+    begin
+        if InvoiceLine."Document Type" <> InvoiceLine."Document Type"::Invoice then
+            Error(InvoiceDocumentTypeErr);
+        if OrderLine."Document Type" <> OrderLine."Document Type"::Order then
+            Error(OrderDocumentTypeErr);
+
+        CheckOrderLineMatchable(OrderLine);
+
+        if (InvoiceLine.Type <> OrderLine.Type) or (InvoiceLine."No." <> OrderLine."No.") then
+            Error(LinesMustAgreeErr);
+        if InvoiceLine."Unit of Measure Code" <> OrderLine."Unit of Measure Code" then
+            Error(LinesMustShareUnitOfMeasureErr);
+        if (InvoiceLine."Buy-from Vendor No." <> OrderLine."Buy-from Vendor No.") or
+           (InvoiceLine."Pay-to Vendor No." <> OrderLine."Pay-to Vendor No.") or
+           (InvoiceLine."Currency Code" <> OrderLine."Currency Code") then
+            Error(LinesMustShareVendorCurrencyErr);
     end;
 
     local procedure RevalidateGroup()
@@ -445,7 +461,7 @@ codeunit 5829 "PO Matching Group"
     begin
         // Protection for future code-churns because of the recursion risk when adding the discovered edges.
         if IsLoading then begin
-            Session.LogMessage('', 'Programming error: EnsureGroupLoaded called while it was already loading', Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'Purchase Order Matching');
+            Session.LogMessage('0000V7K', 'Programming error: EnsureGroupLoaded called while it was already loading', Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'Purchase Order Matching');
             exit;
         end;
         IsLoading := true;
