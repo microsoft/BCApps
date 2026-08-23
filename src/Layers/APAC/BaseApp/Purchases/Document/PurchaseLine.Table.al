@@ -9307,7 +9307,7 @@ table 39 "Purchase Line"
         SkipCheckLocationOnWMS: Boolean;
     begin
         SkipCheckLocationOnWMS := false;
-        OnBeforeCheckWMS(Rec, CurrFieldNo, SkipCheckLocationOnWMS);
+        OnCheckWMSOnBeforeCheckLocationOnWMS(Rec, CurrFieldNo, SkipCheckLocationOnWMS);
         if not SkipCheckLocationOnWMS then
             if CurrFieldNo <> 0 then
                 CheckLocationOnWMS();
@@ -11360,7 +11360,7 @@ table 39 "Purchase Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckWMS(var PurchaseLine: Record "Purchase Line"; CurrFieldNo: Integer; var SkipCheckLocationOnWMS: Boolean)
+    local procedure OnCheckWMSOnBeforeCheckLocationOnWMS(var PurchaseLine: Record "Purchase Line"; CurrFieldNo: Integer; var SkipCheckLocationOnWMS: Boolean)
     begin
     end;
 
