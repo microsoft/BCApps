@@ -1358,6 +1358,8 @@ function Invoke-ParallelTestExecution {
             throw "Clean RequiredTestIsolation=Disabled execution requires at least one secondary tenant."
         }
         Write-Host "Preparing clean-tenant execution for $($requiredDisabledWorkItems.Count) RequiredTestIsolation=Disabled codeunit(s)."
+        # Restart before tests mutate server/tenant state; late restarts can fail on configuration changes made by test apps.
+        Enable-BcTestTaskScheduler -ContainerName $parameters.containerName
         $templateDatabaseName = New-BcTestTenantTemplate -ContainerName $parameters.containerName -SourceTenant $parameters.tenant
     }
 
@@ -1453,7 +1455,6 @@ function Invoke-ParallelTestExecution {
 
     if ($requiredDisabledWorkItems.Count -gt 0) {
         try {
-            Enable-BcTestTaskScheduler -ContainerName $parameters.containerName
             $requiredDisabledPassed = Invoke-RequiredDisabledTestExecution -Parameters $parameters `
                 -WorkItems $requiredDisabledWorkItems -TenantInfo $cleanTenantInfo `
                 -TemplateDatabaseName $templateDatabaseName -ScriptPath $scriptPath -TestType $testType
