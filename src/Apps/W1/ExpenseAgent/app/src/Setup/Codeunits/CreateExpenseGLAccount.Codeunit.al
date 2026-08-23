@@ -252,7 +252,8 @@ codeunit 6971 "Create Expense GL Account"
         if GetCountryCode() = 'ES' then
             UpdateIncomeStatementBalanceAccount()
         else
-            GLAccountIndent.Indent();
+            if GetCountryCode() <> '' then
+                GLAccountIndent.Indent();
     end;
 
     internal procedure InsertGLAccount(AccountNo: Code[20]; Name: Text[100]; IncomeOrBalance: Enum "G/L Account Income/Balance"; AccountCategory: Enum "G/L Account Category"; AccountSubCategory: Text[80]; AccountType: Enum "G/L Account Type"; GenBusPostingGroup: Code[20]; GenProdPostingGroup: Code[20]; TaxGroup: Code[20]; NoOfBlankLines: Integer; Totaling: Text[250]; GenPostingType: Enum "General Posting Type"; VATGenPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; DirectPosting: Boolean; ReconciliationAccount: Boolean; NewPage: Boolean)
