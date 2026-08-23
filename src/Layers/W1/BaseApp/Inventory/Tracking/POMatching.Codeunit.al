@@ -60,9 +60,9 @@ codeunit 5831 "PO Matching"
     procedure SuggestCoveringReceipts(var POMatchingGroup: Codeunit "PO Matching Group")
     var
         TempIntendedEdge: Record "Matched Order Line" temporary;
-        InvoiceableReceipts: Codeunit "Invoiceable Receipts";
         OrderLine: Record "Purchase Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
+        InvoiceableReceipts: Codeunit "Invoiceable Receipts";
         InvoiceLineSystemId, OrderLineSystemId : Guid;
         Missing, Available, Take, NewQty : Decimal;
     begin
