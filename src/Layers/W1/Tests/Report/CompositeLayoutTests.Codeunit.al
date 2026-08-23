@@ -461,14 +461,14 @@ codeunit 134619 "Composite Layout Tests"
 
     [Test]
     [Scope('OnPrem')]
-    procedure InstallSeedsTheShippedPartsAndRecordsTheTag()
+    procedure SeedingShippedPartsRecordsTheTagWithoutTheGuard()
     var
-        BaseAppInstall: Codeunit "BaseApp Install";
+        UpgradeCompositeReportParts: Codeunit "Upgrade Composite Report Parts";
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
     begin
-        // [SCENARIO] The per-database install seeds the shipped parts and records the upgrade tag, so a fresh database
-        // starts with a complete pool and the upgrade pass is gated out rather than repeating the work.
+        // [SCENARIO] SeedShippedParts is the entry point the per-database install uses: it seeds and records the tag
+        // without the guard RunUpgrade applies, so a fresh database ends up with a complete pool and a recorded tag.
         Initialize();
 
         // [GIVEN] One shipped part missing. Initialize already cleared the tag.
@@ -480,13 +480,13 @@ codeunit 134619 "Composite Layout Tests"
             UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()),
             'The tag should be absent before install, or the tag assertion below proves nothing.');
 
-        // [WHEN] The per-database install path runs.
-        BaseAppInstall.SeedDefaultReportParts();
+        // [WHEN] The entry point the install trigger calls runs.
+        UpgradeCompositeReportParts.SeedShippedParts();
 
         // [THEN] It seeded the missing part.
         Assert.IsTrue(
             ShippedPartExists(InternalDefaultTok, Enum::"Report Layout Subtype"::HeaderFooter),
-            'Install should seed the shipped parts.');
+            'Seeding should write the shipped parts.');
 
         // [THEN] And recorded the tag, so a later upgrade exits on the guard instead of seeding again.
         Assert.IsTrue(
