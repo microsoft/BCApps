@@ -491,7 +491,10 @@ codeunit 134619 "Composite Layout Tests"
         // [THEN] And recorded the tag, so a later upgrade exits on the guard instead of seeding again.
         Assert.IsTrue(
             UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()),
-            'Install should record the composite report parts upgrade tag.');
+            'Seeding should record the composite report parts upgrade tag.');
+
+        // Cleared again so the suite does not hand the tag on to whatever runs next in this database.
+        ClearCompositeReportPartsUpgradeTag();
     end;
 
     [Test]
@@ -614,6 +617,9 @@ codeunit 134619 "Composite Layout Tests"
         Assert.IsFalse(
             ShippedPartExists('Internal Default', Enum::"Report Layout Subtype"::HeaderFooter),
             'The second upgrade should exit on the tag instead of re-seeding the parts.');
+
+        // Cleared again so the suite does not hand the tag on to whatever runs next in this database.
+        ClearCompositeReportPartsUpgradeTag();
     end;
 
     [Test]
@@ -1368,12 +1374,27 @@ codeunit 134619 "Composite Layout Tests"
     local procedure RemoveShippedPart(PartName: Text)
     var
         TenantReportLayout: Record "Tenant Report Layout";
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
     begin
-        // Deliberately not filtered on App ID: this is cleanup, and it has to take out the row the pass owns as well as
-        // any row of the same name a test left on the no-App-ID key.
+        // Filtered on the shipped App ID: the shipped names are shared, and a tenant-authored part of the same name is
+        // customer content this cleanup must not touch. RemoveTenantPart handles the clone a test owns.
         TenantReportLayout.SetRange("Report ID", LookupHelper.GetTenantReportDefaultsReportID());
         TenantReportLayout.SetRange(Name, CopyStr(PartName, 1, MaxStrLen(TenantReportLayout.Name)));
+        TenantReportLayout.SetRange("App ID", CompositeReportPartsMgt.GetShippedPartAppId());
         TenantReportLayout.DeleteAll(true);
+    end;
+
+    /// <summary>
+    /// Removes the tenant-owned row for a part name, on the no-App-ID key. Used to take back the clone
+    /// SeedingKeepsATenantPartNamedAfterAShippedPart creates, without reaching into rows the pass owns.
+    /// </summary>
+    local procedure RemoveTenantPart(PartName: Text)
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        EmptyAppId: Guid;
+    begin
+        if TenantReportLayout.Get(LookupHelper.GetTenantReportDefaultsReportID(), CopyStr(PartName, 1, MaxStrLen(TenantReportLayout.Name)), EmptyAppId) then
+            TenantReportLayout.Delete(true);
     end;
 
     /// <summary>
@@ -1438,10 +1459,9 @@ codeunit 134619 "Composite Layout Tests"
     var
         CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
     begin
-        // Takes out the tenant-owned clone SeedingKeepsATenantPartNamedAfterAShippedPart leaves on the no-App-ID key.
-        // RemoveShippedPart is not filtered on App ID, so this clears both keys; the seeding below puts the shipped row
-        // back. Done here rather than relying on another test's GIVEN step happening to clean it.
-        RemoveShippedPart(InternalDefaultTok);
+        // Takes out the tenant-owned clone SeedingKeepsATenantPartNamedAfterAShippedPart leaves on the no-App-ID key,
+        // here rather than relying on another test's GIVEN step happening to clean it.
+        RemoveTenantPart(InternalDefaultTok);
 
         CompositeReportPartsMgt.SeedDefaultParts();
 
