@@ -518,23 +518,26 @@ codeunit 134619 "Composite Layout Tests"
 
     [Test]
     [Scope('OnPrem')]
-    procedure CompositeReportPartsUpgradeTagIsRegisteredPerDatabase()
+    procedure CompositeReportPartsUpgradeTagIsNotRegisteredPerDatabase()
     var
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
         UpgradeTag: Codeunit "Upgrade Tag";
         PerDatabaseTags: List of [Code[250]];
     begin
-        // [SCENARIO] The tag that guards the seeding upgrade is registered per database. Without registration the guard
-        // never records as complete and the pass replays on every later upgrade.
+        // [SCENARIO] The tag that gates the seeding pass must not be registered for OnGetPerDatabaseUpgradeTags.
+        // EnsurePerDatabaseUpgradeTagsExist stamps every registered tag that is missing, without knowing whether the
+        // pass succeeded, and SetAllUpgradeTags runs on every new company. Registering it would therefore mark the tag
+        // complete after a failed seed, and the pass would never retry the parts it could not write. Only a completed
+        // pass may record this tag, and it does so itself in RecordSeedOutcome.
         Initialize();
 
         // [WHEN] Collecting the registered per-database upgrade tags.
         UpgradeTag.GetPerDatabaseUpgradeTags(PerDatabaseTags);
 
-        // [THEN] The composite report parts tag is among them.
-        Assert.IsTrue(
+        // [THEN] The composite report parts tag is not among them.
+        Assert.IsFalse(
             PerDatabaseTags.Contains(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()),
-            'The composite report parts upgrade tag should be registered as a per-database tag.');
+            'Registering the tag per database would stamp it after a failed seed and stop the pass from retrying.');
     end;
 
     [Test]
