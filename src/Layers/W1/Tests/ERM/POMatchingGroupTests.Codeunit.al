@@ -1,3 +1,11 @@
+namespace Microsoft.Inventory.Tracking;
+
+using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Item;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
+using Microsoft.Purchases.Vendor;
+
 codeunit 134469 "PO Matching Group Tests"
 {
     Subtype = Test;
@@ -384,9 +392,9 @@ codeunit 134469 "PO Matching Group Tests"
         MatchedOrderLine.SetRange("Document Line SystemId", InvoiceLine.SystemId);
         Assert.AreEqual(2, MatchedOrderLine.Count(), 'Should persist two rows');
         MatchedOrderLine.SetRange("Matched Rcpt./Shpt. Line SysId", EmptyGuid);
-        Assert.IsTrue(MatchedOrderLine.FindFirst(), 'Invoice-order row should exist');
+        Assert.IsFalse(MatchedOrderLine.IsEmpty(), 'Invoice-order row should exist');
         MatchedOrderLine.SetRange("Matched Rcpt./Shpt. Line SysId", PurchRcptLine.SystemId);
-        Assert.IsTrue(MatchedOrderLine.FindFirst(), 'Invoice-order-receipt row should exist');
+        Assert.IsFalse(MatchedOrderLine.IsEmpty(), 'Invoice-order-receipt row should exist');
     end;
     #endregion
 
