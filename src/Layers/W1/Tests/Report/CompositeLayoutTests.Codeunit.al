@@ -1438,7 +1438,14 @@ codeunit 134619 "Composite Layout Tests"
     var
         CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
     begin
+        // Takes out the tenant-owned clone SeedingKeepsATenantPartNamedAfterAShippedPart leaves on the no-App-ID key.
+        // RemoveShippedPart is not filtered on App ID, so this clears both keys; the seeding below puts the shipped row
+        // back. Done here rather than relying on another test's GIVEN step happening to clean it.
+        RemoveShippedPart(InternalDefaultTok);
+
         CompositeReportPartsMgt.SeedDefaultParts();
+
+        // The part name the missing-resource test owns is deliberately not seedable, so seeding never puts it back.
         RemoveShippedPart(UnseedablePartTok);
     end;
 
