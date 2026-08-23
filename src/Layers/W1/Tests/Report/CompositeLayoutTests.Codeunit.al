@@ -31,6 +31,7 @@ codeunit 134619 "Composite Layout Tests"
         RetiredPartTok: Label 'Test Retired Part', Locked = true;
         RetiredPartDescTok: Label 'A part a test seeds under a name this version of the app does not ship.', Locked = true;
         ShippedThemeResourceTok: Label 'ReportParts/ReportTheme/Default.dotx', Locked = true;
+        ThemeMimeTypeTok: Label 'reportlayout/dotx', Locked = true;
         TestReportID: Integer;
         BodyReportID: Integer;
         PartsReportID: Integer;
@@ -427,8 +428,8 @@ codeunit 134619 "Composite Layout Tests"
         ReportLayoutList.SetRange(Name, 'Default');
         ReportLayoutList.FindFirst();
         Assert.AreEqual(
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.template', ReportLayoutList."MIME Type",
-            'Themes ship as .dotx templates, so the stored MIME type should be the template one, not the document one.');
+            ThemeMimeTypeTok, ReportLayoutList."MIME Type",
+            'Themes ship as .dotx templates, so the stored MIME type should carry the dotx extension, not docx.');
     end;
 
     [Test]
