@@ -242,12 +242,15 @@ codeunit 6218 "Sustainability Calc. Mgt."
         if CollectAmountFromGLEntry.RunModal() = Action::LookupOK then begin
             CollectAmountFromGLEntry.GetDates(FromDate, ToDate);
             SustainabilityJnlLine.Validate("Custom Amount", GetCollectableGLAmount(SustainAccountCategory, FromDate, ToDate));
+            SustainabilityJnlLine.SetGLCollectionInformation(FromDate, ToDate);
         end;
     end;
 
     internal procedure FilterGLEntry(SustainAccountCategory: Record "Sustain. Account Category"; FromDate: Date; ToDate: Date; var GLEntry: Record "G/L Entry");
     begin
         GLEntry.Reset();
+        GLEntry.SetCurrentKey("Sust. Collected", "G/L Account No.", "Posting Date");
+        GLEntry.SetRange("Sust. Collected", false);
         GLEntry.SetFilter("G/L Account No.", SustainAccountCategory."G/L Account Filter");
         GLEntry.SetFilter("Global Dimension 1 Code", SustainAccountCategory."Global Dimension 1 Filter");
         GLEntry.SetFilter("Global Dimension 2 Code", SustainAccountCategory."Global Dimension 2 Filter");
