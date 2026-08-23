@@ -712,6 +712,22 @@ codeunit 230 GenJnlManagement
             InsertCBGStatement(GenJnlTemplate);
     end;
 
+    procedure CalcBatchTotal(var GenJnlLine: Record "Gen. Journal Line"; var BatchTotal: Decimal; var ShowBatchTotal: Boolean)
+    var
+        [SecurityFiltering(SecurityFilter::Filtered)]
+        TotalGenJnlLine: Record "Gen. Journal Line";
+    begin
+        BatchTotal := 0;
+        ShowBatchTotal := not (CurrentClientType in [CLIENTTYPE::SOAP, CLIENTTYPE::OData, CLIENTTYPE::ODataV4, CLIENTTYPE::Api]);
+        if not ShowBatchTotal then
+            exit;
+
+        TotalGenJnlLine.CopyFilters(GenJnlLine);
+        OnCalcBatchTotalOnAfterCopyFilters(TotalGenJnlLine);
+        TotalGenJnlLine.CalcSums("Amount (LCY)");
+        BatchTotal := TotalGenJnlLine."Amount (LCY)";
+    end;
+
     /// <summary>
     /// Generates unique journal template names by checking for conflicts and incrementing names when needed.
     /// Ensures new template names are unique while maintaining meaningful naming based on template type.
@@ -1015,6 +1031,11 @@ codeunit 230 GenJnlManagement
     /// <param name="TempGenJournalLine">Temporary journal line record with copied filters that can be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcBalanceOnAfterCopyFilters(var TempGenJournalLine: Record "Gen. Journal Line" temporary)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCalcBatchTotalOnAfterCopyFilters(var GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
