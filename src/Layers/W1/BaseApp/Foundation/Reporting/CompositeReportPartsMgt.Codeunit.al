@@ -6,6 +6,7 @@ namespace Microsoft.Foundation.Reporting;
 
 using System.Environment.Configuration;
 using System.Reflection;
+using System.Utilities;
 
 /// <summary>
 /// Seeds the shipped Composite Layout theme and header/footer parts under Tenant Report Defaults on install and
@@ -42,9 +43,12 @@ codeunit 9667 "Composite Report Parts Mgt."
     var
         TenantReportLayout: Record "Tenant Report Layout";
         CompositeLayoutLookupHelper: Codeunit "Composite Layout Lookup Helper";
-        ResourceInStream: InStream;
+        PartLayout: Codeunit "Temp Blob";
+        LayoutInStream: InStream;
     begin
-        NavApp.GetResource(ResourceFile, ResourceInStream);
+        ClearLastError();
+        if not TryGetPartLayout(ResourceFile, PartLayout) then
+            Error(ResourceNotReadableError(PartName, ResourceFile));
 
         RemovePart(PartName, GetShippedPartAppId());
 
@@ -58,8 +62,30 @@ codeunit 9667 "Composite Report Parts Mgt."
         TenantReportLayout.Description := CopyStr(Description, 1, MaxStrLen(TenantReportLayout.Description));
         TenantReportLayout."Layout Status" := TenantReportLayout."Layout Status"::Approved;
         TenantReportLayout."MIME Type" := PartMimeType(Subtype);
-        TenantReportLayout.Layout.ImportStream(ResourceInStream, PartName);
+        PartLayout.CreateInStream(LayoutInStream);
+        TenantReportLayout.Layout.ImportStream(LayoutInStream, PartName);
         TenantReportLayout.Insert(true);
+    end;
+
+    [TryFunction]
+    local procedure TryGetPartLayout(ResourceFile: Text; var PartLayout: Codeunit "Temp Blob")
+    var
+        ResourceInStream: InStream;
+        PartLayoutOutStream: OutStream;
+    begin
+        NavApp.GetResource(ResourceFile, ResourceInStream);
+
+        PartLayout.CreateOutStream(PartLayoutOutStream);
+        CopyStream(PartLayoutOutStream, ResourceInStream);
+    end;
+
+    local procedure ResourceNotReadableError(PartName: Text; ResourceFile: Text) LayoutErrorInfo: ErrorInfo
+    begin
+        LayoutErrorInfo.ErrorType := LayoutErrorInfo.ErrorType::Internal;
+        LayoutErrorInfo.Verbosity := LayoutErrorInfo.Verbosity::Error;
+        LayoutErrorInfo.DataClassification := LayoutErrorInfo.DataClassification::SystemMetadata;
+        LayoutErrorInfo.Message := StrSubstNo(ResourceNotReadableErr, PartName);
+        LayoutErrorInfo.DetailedMessage := StrSubstNo(ResourceNotReadableDetailTxt, ResourceFile, GetLastErrorText(true));
     end;
 
     local procedure PruneRetiredParts()
@@ -175,6 +201,9 @@ codeunit 9667 "Composite Report Parts Mgt."
         DefaultThemeDescTxt: Label 'Simple and clear, so the details that matter stand out. Styling-only theme: neutral Segoe UI in semibold and regular for hierarchy, dark-grey text on white, calm accent colours, and softly banded table rows. Works for most reports out of the box.';
         CalmThemeDescTxt: Label 'Classic and calm, and easy to read. Styling-only theme: Sitka serif in semibold and regular for hierarchy, with dark-green text on a soft beige background. A timeless look that gives your reports a quieter, more classic feel.';
         PlayfulThemeDescTxt: Label 'Dynamic and lively, a fresh take on a professional report. Styling-only theme: geometric Bahnschrift in semibold and regular for hierarchy, with backgrounds alternating between green and pink for an energetic, modern feel.';
+
+        ResourceNotReadableErr: Label 'The layout file for the report part %1 could not be read. The part was not seeded.', Comment = '%1 = the name of the shipped theme or header/footer part';
+        ResourceNotReadableDetailTxt: Label 'Resource: %1. Platform error: %2', Locked = true;
 
         ThemeMimeTypeTxt: Label 'reportlayout/dotx', Locked = true;
         HeaderFooterMimeTypeTxt: Label 'reportlayout/docx', Locked = true;

@@ -460,6 +460,41 @@ codeunit 134619 "Composite Layout Tests"
 
     [Test]
     [Scope('OnPrem')]
+    procedure InstallSeedsTheShippedPartsAndRecordsTheTag()
+    var
+        BaseAppInstall: Codeunit "BaseApp Install";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+    begin
+        // [SCENARIO] The per-database install seeds the shipped parts and records the upgrade tag, so a fresh database
+        // starts with a complete pool and the upgrade pass is gated out rather than repeating the work.
+        Initialize();
+
+        // [GIVEN] One shipped part missing. Initialize already cleared the tag.
+        RemoveShippedPart(InternalDefaultTok);
+        Assert.IsFalse(
+            ShippedPartExists(InternalDefaultTok, Enum::"Report Layout Subtype"::HeaderFooter),
+            'The part should be missing before install, or the seeding assertion below proves nothing.');
+        Assert.IsFalse(
+            UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()),
+            'The tag should be absent before install, or the tag assertion below proves nothing.');
+
+        // [WHEN] The per-database install path runs.
+        BaseAppInstall.SeedDefaultReportParts();
+
+        // [THEN] It seeded the missing part.
+        Assert.IsTrue(
+            ShippedPartExists(InternalDefaultTok, Enum::"Report Layout Subtype"::HeaderFooter),
+            'Install should seed the shipped parts.');
+
+        // [THEN] And recorded the tag, so a later upgrade exits on the guard instead of seeding again.
+        Assert.IsTrue(
+            UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()),
+            'Install should record the composite report parts upgrade tag.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure SeedingRemovesAPartThisVersionNoLongerShips()
     var
         CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
