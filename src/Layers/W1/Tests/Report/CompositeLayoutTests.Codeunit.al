@@ -636,8 +636,11 @@ codeunit 134619 "Composite Layout Tests"
         // [WHEN] Seeding a part whose layout file is not a resource of the app.
         asserterror CompositeReportPartsMgt.SeedPart(PartName, MissingResourceTok, Enum::"Report Layout Subtype"::HeaderFooter, UnseedablePartDescTok);
 
-        // [THEN] It raised rather than reporting the part as skipped.
-        Assert.IsTrue(GetLastErrorText() <> '', 'Reading a layout file that is not a resource of the app should raise.');
+        // [THEN] It raised the unreadable-resource error, not some unrelated failure inside the write path.
+        Assert.ExpectedError('could not be read');
+
+        // [THEN] And the error names the part, so the pass points at which one failed.
+        Assert.ExpectedError(PartName);
 
         // [THEN] Nothing was written for it, so the failure leaves no half-seeded part behind.
         Assert.AreEqual(0, ShippedPartCount(PartName), 'A part that could not be read should leave no row in the pool.');
