@@ -319,7 +319,7 @@ page 256 "Payment Journal"
                     trigger OnValidate()
                     begin
                         CheckAmountMatchedToAppliedLines();
-                        UpdateBalance();
+                        UpdateBatchTotalAfterAmountChange();
                     end;
                 }
                 field("Amount (LCY)"; Rec."Amount (LCY)")
@@ -331,7 +331,7 @@ page 256 "Payment Journal"
                     trigger OnValidate()
                     begin
                         CheckAmountMatchedToAppliedLines();
-                        UpdateBalance();
+                        UpdateBatchTotalAfterAmountChange();
                     end;
                 }
                 field("Debit Amount"; Rec."Debit Amount")
@@ -342,7 +342,7 @@ page 256 "Payment Journal"
                     trigger OnValidate()
                     begin
                         CheckAmountMatchedToAppliedLines();
-                        UpdateBalance();
+                        UpdateBatchTotalAfterAmountChange();
                     end;
                 }
                 field("Credit Amount"; Rec."Credit Amount")
@@ -353,7 +353,7 @@ page 256 "Payment Journal"
                     trigger OnValidate()
                     begin
                         CheckAmountMatchedToAppliedLines();
-                        UpdateBalance();
+                        UpdateBatchTotalAfterAmountChange();
                     end;
                 }
                 field("VAT Amount"; Rec."VAT Amount")
@@ -2118,16 +2118,15 @@ page 256 "Payment Journal"
     end;
 
     local procedure UpdateBatchTotal()
-    var
-        IsHandled: Boolean;
     begin
-        IsHandled := false;
-        OnBeforeUpdateBatchTotal(Rec, BatchTotal, BatchTotalVisible, IsHandled);
-        if IsHandled then
-            exit;
-
         GenJnlManagement.CalcBatchTotal(Rec, BatchTotal, ShowBatchTotal);
         BatchTotalVisible := ShowBatchTotal;
+    end;
+
+    local procedure UpdateBatchTotalAfterAmountChange()
+    begin
+        CurrPage.SaveRecord();
+        UpdateBatchTotal();
     end;
 
     local procedure EnableApplyEntriesAction()
@@ -2446,11 +2445,6 @@ page 256 "Payment Journal"
     /// <param name="IsHandled">Set to true to skip standard balance update logic.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeUpdateBalance(var GenJournalLine: Record "Gen. Journal Line"; xGenJournalLine: Record "Gen. Journal Line"; var Balance: Decimal; var TotalBalance: Decimal; var ShowBalance: Boolean; var ShowTotalBalance: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-
-    [IntegrationEvent(true, false)]
-    local procedure OnBeforeUpdateBatchTotal(var GenJournalLine: Record "Gen. Journal Line"; var BatchTotal: Decimal; var BatchTotalVisible: Boolean; var IsHandled: Boolean)
     begin
     end;
 

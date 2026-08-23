@@ -723,7 +723,6 @@ codeunit 230 GenJnlManagement
             exit;
 
         TotalGenJnlLine.CopyFilters(GenJnlLine);
-        OnCalcBatchTotalOnAfterCopyFilters(TotalGenJnlLine);
         TotalGenJnlLine.CalcSums("Amount (LCY)");
         BatchTotal := TotalGenJnlLine."Amount (LCY)";
     end;
@@ -1031,11 +1030,6 @@ codeunit 230 GenJnlManagement
     /// <param name="TempGenJournalLine">Temporary journal line record with copied filters that can be modified.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcBalanceOnAfterCopyFilters(var TempGenJournalLine: Record "Gen. Journal Line" temporary)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnCalcBatchTotalOnAfterCopyFilters(var GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
