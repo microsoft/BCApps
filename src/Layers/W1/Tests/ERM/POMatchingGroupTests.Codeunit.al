@@ -166,6 +166,59 @@ codeunit 134469 "PO Matching Group Tests"
         Assert.AreEqual(10, MatchedOrderLine."Qty. to Invoice", 'Qty. to Invoice');
         Assert.AreEqual(120, MatchedOrderLine."Qty. to Invoice (Base)", 'Base should be derived, not the supplied 999');
     end;
+
+    [Test]
+    procedure AddInvoiceOrderMatchWithNonInvoiceDocumentErrors()
+    var
+        POMatchingGroup: Codeunit "PO Matching Group";
+        Vendor: Record Vendor;
+        Item: Record Item;
+        InvoiceRoleLine, OrderLine : Record "Purchase Line";
+    begin
+        Initialize(Vendor, Item);
+        CreateOrderLine(Vendor, Item, 10, InvoiceRoleLine);
+        CreateOrderLine(Vendor, Item, 10, OrderLine);
+
+        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceRoleLine.SystemId, OrderLine.SystemId, 10, 10));
+
+        Assert.ExpectedError('must be an invoice line');
+    end;
+
+    [Test]
+    procedure AddInvoiceOrderMatchWithNonOrderDocumentErrors()
+    var
+        POMatchingGroup: Codeunit "PO Matching Group";
+        Vendor: Record Vendor;
+        Item: Record Item;
+        InvoiceLine, OrderRoleLine : Record "Purchase Line";
+    begin
+        Initialize(Vendor, Item);
+        CreateInvoiceLine(Vendor, Item, 10, InvoiceLine);
+        CreateInvoiceLine(Vendor, Item, 10, OrderRoleLine);
+
+        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderRoleLine.SystemId, 10, 10));
+
+        Assert.ExpectedError('must be an order line');
+    end;
+
+    [Test]
+    procedure AddInvoiceOrderMatchWithDifferentUnitOfMeasureErrors()
+    var
+        POMatchingGroup: Codeunit "PO Matching Group";
+        Vendor: Record Vendor;
+        Item: Record Item;
+        UnitOfMeasure: Record "Unit of Measure";
+        InvoiceLine, OrderLine : Record "Purchase Line";
+    begin
+        Initialize(Vendor, Item);
+        CreatePurchaseUoM(Item, 12, UnitOfMeasure);
+        CreateOrderLineWithUoM(Vendor, Item, UnitOfMeasure.Code, 10, OrderLine);
+        CreateInvoiceLineWithUoM(Vendor, Item, Item."Base Unit of Measure", 10, InvoiceLine);
+
+        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 10, 10));
+
+        Assert.ExpectedError('must have the same unit of measure');
+    end;
     #endregion
 
     #region Order-receipt edges
@@ -204,6 +257,46 @@ codeunit 134469 "PO Matching Group Tests"
         Assert.IsTrue(MatchedOrderLine.FindFirst(), 'Receipt row should exist');
         Assert.AreEqual(100, MatchedOrderLine."Qty. to Invoice", 'Receipt row Qty. to Invoice');
         Assert.IsFalse(MatchedOrderLine."Receipt on Invoice", 'Receipt row Receipt on Invoice should be false');
+    end;
+
+    [Test]
+    procedure AddOrderReceiptMatchWithNonInvoiceDocumentErrors()
+    var
+        POMatchingGroup: Codeunit "PO Matching Group";
+        Vendor: Record Vendor;
+        Item: Record Item;
+        InvoiceRoleLine, OrderLine : Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+    begin
+        Initialize(Vendor, Item);
+        CreateReceivedOrder(Vendor, Item, 10, 10, OrderLine, PurchRcptLine);
+        CreateOrderLine(Vendor, Item, 10, InvoiceRoleLine);
+
+        asserterror POMatchingGroup.AddMatch(
+            POMatching.InvoiceOrderReceiptEdge(InvoiceRoleLine.SystemId, OrderLine.SystemId, PurchRcptLine.SystemId, 10, 10));
+
+        Assert.ExpectedError('must be an invoice line');
+    end;
+
+    [Test]
+    procedure AddOrderReceiptMatchWithDifferentUnitOfMeasureErrors()
+    var
+        POMatchingGroup: Codeunit "PO Matching Group";
+        Vendor: Record Vendor;
+        Item: Record Item;
+        UnitOfMeasure: Record "Unit of Measure";
+        InvoiceLine, OrderLine : Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+    begin
+        Initialize(Vendor, Item);
+        CreatePurchaseUoM(Item, 12, UnitOfMeasure);
+        CreateReceivedOrder(Vendor, Item, 10, 10, OrderLine, PurchRcptLine);
+        CreateInvoiceLineWithUoM(Vendor, Item, Item."Base Unit of Measure", 10, InvoiceLine);
+
+        asserterror POMatchingGroup.AddMatch(
+            POMatching.InvoiceOrderReceiptEdge(InvoiceLine.SystemId, OrderLine.SystemId, PurchRcptLine.SystemId, 10, 10));
+
+        Assert.ExpectedError('must have the same unit of measure');
     end;
 
     [Test]
