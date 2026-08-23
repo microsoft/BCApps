@@ -561,7 +561,7 @@ codeunit 134619 "Composite Layout Tests"
         // EnsurePerDatabaseUpgradeTagsExist stamps every registered tag that is missing, without knowing whether the
         // pass succeeded, and SetAllUpgradeTags runs on every new company. Registering it would therefore mark the tag
         // complete after a failed seed, and the pass would never retry the parts it could not write. Only a completed
-        // pass may record this tag, and it does so itself in RecordSeedCompleted.
+        // pass may record this tag, and it does so itself in SeedShippedParts.
         Initialize();
 
         // [WHEN] Collecting the registered per-database upgrade tags.

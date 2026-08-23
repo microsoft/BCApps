@@ -25,11 +25,9 @@ codeunit 5000 "BaseApp Install"
 
     internal procedure SeedDefaultReportParts()
     var
-        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
         UpgradeCompositeReportParts: Codeunit "Upgrade Composite Report Parts";
     begin
-        CompositeReportPartsMgt.SeedDefaultParts();
-        UpgradeCompositeReportParts.RecordSeedCompleted();
+        UpgradeCompositeReportParts.SeedShippedParts();
     end;
 
     local procedure AddWordTemplateTables()

@@ -8,9 +8,9 @@ using Microsoft.Foundation.Reporting;
 using System.Upgrade;
 
 /// <summary>
-/// Seeds the shipped Composite Layout theme and header/footer parts once per upgrade tag, guarding at entry. The tag is
-/// recorded only when every part was seeded, so a partial pass is retried by a later upgrade. Add a new dated tag
-/// whenever the shipped layout files change, so the pass runs again and existing tenants receive them.
+/// Seeds the shipped Composite Layout theme and header/footer parts and records the upgrade tag. SeedShippedParts is
+/// the single entry point that does both; RunUpgrade wraps it in the tag guard so an upgrade runs it once, while
+/// install calls it unguarded. Add a new dated tag whenever the shipped layout files change.
 /// </summary>
 codeunit 104064 "Upgrade Composite Report Parts"
 {
@@ -26,22 +26,23 @@ codeunit 104064 "Upgrade Composite Report Parts"
 
     internal procedure RunUpgrade()
     var
-        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
     begin
         if UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()) then
             exit;
 
-        CompositeReportPartsMgt.SeedDefaultParts();
-        RecordSeedCompleted();
+        SeedShippedParts();
     end;
 
-    internal procedure RecordSeedCompleted()
+    internal procedure SeedShippedParts()
     var
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
     begin
+        CompositeReportPartsMgt.SeedDefaultParts();
+
         if UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()) then
             exit;
 
