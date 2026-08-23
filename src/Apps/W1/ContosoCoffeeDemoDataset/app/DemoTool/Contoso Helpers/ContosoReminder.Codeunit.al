@@ -217,18 +217,14 @@ codeunit 5694 "Contoso Reminder"
 
         case SourceType of
             SourceType::"Reminder Level":
-                begin
-                    if IsNullGuid(ReminderLevel."Reminder Email Text") then begin
-                        ReminderLevel.Validate("Reminder Email Text", ReminderEmailText.ID);
-                        ReminderLevel.Modify(true);
-                    end;
+                if IsNullGuid(ReminderLevel."Reminder Email Text") then begin
+                    ReminderLevel.Validate("Reminder Email Text", ReminderEmailText.ID);
+                    ReminderLevel.Modify(true);
                 end;
             SourceType::"Reminder Term":
-                begin
-                    if IsNullGuid(ReminderTerms."Reminder Email Text") then begin
-                        ReminderTerms.Validate("Reminder Email Text", ReminderEmailText.ID);
-                        ReminderTerms.Modify(true);
-                    end;
+                if IsNullGuid(ReminderTerms."Reminder Email Text") then begin
+                    ReminderTerms.Validate("Reminder Email Text", ReminderEmailText.ID);
+                    ReminderTerms.Modify(true);
                 end;
         end;
         exit(ReminderEmailText);
@@ -282,18 +278,14 @@ codeunit 5694 "Contoso Reminder"
 
         case SourceType of
             SourceType::"Reminder Level":
-                begin
-                    if IsNullGuid(ReminderLevel."Reminder Attachment Text") then begin
-                        ReminderLevel.Validate("Reminder Attachment Text", ReminderAttachmentTextId);
-                        ReminderLevel.Modify(true);
-                    end;
+                if IsNullGuid(ReminderLevel."Reminder Attachment Text") then begin
+                    ReminderLevel.Validate("Reminder Attachment Text", ReminderAttachmentTextId);
+                    ReminderLevel.Modify(true);
                 end;
             SourceType::"Reminder Term":
-                begin
-                    if IsNullGuid(ReminderTerms."Reminder Attachment Text") then begin
-                        ReminderTerms.Validate("Reminder Attachment Text", ReminderAttachmentTextId);
-                        ReminderTerms.Modify(true);
-                    end;
+                if IsNullGuid(ReminderTerms."Reminder Attachment Text") then begin
+                    ReminderTerms.Validate("Reminder Attachment Text", ReminderAttachmentTextId);
+                    ReminderTerms.Modify(true);
                 end;
         end;
     end;

@@ -18,7 +18,7 @@ page 432 "Reminder Levels"
     SourceTable = "Reminder Level";
     ObsoleteState = Pending;
     ObsoleteReason = 'Use page 1896 "Reminder Level Setup" instead.';
-    ObsoleteTag = '27.0';
+    ObsoleteTag = '29.0';
 
     layout
     {

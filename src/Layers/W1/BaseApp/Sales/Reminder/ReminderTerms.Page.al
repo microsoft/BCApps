@@ -17,7 +17,7 @@ page 431 "Reminder Terms"
     UsageCategory = None;
     ObsoleteState = Pending;
     ObsoleteReason = 'Use page 837 "Reminder Terms List" instead.';
-    ObsoleteTag = '27.0';
+    ObsoleteTag = '29.0';
 
     layout
     {

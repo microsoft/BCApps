@@ -20,7 +20,7 @@ page 433 "Reminder Text"
     SourceTable = "Reminder Text";
     ObsoleteState = Pending;
     ObsoleteReason = 'Use page 835 "Reminder Level Communication" instead.';
-    ObsoleteTag = '27.0';
+    ObsoleteTag = '29.0';
 
     layout
     {

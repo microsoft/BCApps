@@ -15,7 +15,7 @@ page 1052 "Reminder Terms Translation"
     SourceTable = "Reminder Terms Translation";
     ObsoleteState = Pending;
     ObsoleteReason = 'Use page 1897 "Reminder Term Communication" instead.';
-    ObsoleteTag = '27.0';
+    ObsoleteTag = '29.0';
 
     layout
     {
