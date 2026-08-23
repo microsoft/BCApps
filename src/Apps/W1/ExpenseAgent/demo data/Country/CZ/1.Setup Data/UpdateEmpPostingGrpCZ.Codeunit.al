@@ -26,7 +26,7 @@ codeunit 8470 "Update Emp. Posting Grp CZ"
         CreateEmployeePostingGroup: Codeunit "Create Employee Posting Group";
     begin
         ContosoExpenseAgent.SetOverwriteData(true);
-        ContosoExpenseAgent.UpdateEmployeePostingGroup(CreateEmployeePostingGroup.EmployeeExpenses(), ExpenseGLAccount.FindGLAccountByName(ExpenseGLAccountNamesCZ.PayablesToEmployeesName()), CreateExpGLAccountCZ.EmployeeExpenseAdvances(), CreateExpGLAccountCZ.CompanyCardExpensesPayable(), ExpenseGLAccount.FindGLAccountByName(ExpenseGLAccountNamesCZ.BankAccountKBName()));
+        ContosoExpenseAgent.UpdateEmployeePostingGroup(CreateEmployeePostingGroup.EmployeeExpenses(), ExpenseGLAccount.FindGLAccountByName(ExpenseGLAccountNamesCZ.PayablesToEmployeesName()), CreateExpGLAccountCZ.EmployeeExpenseAdvances(), ExpenseGLAccount.FindGLAccountByName(ExpenseGLAccountNamesCZ.BankAccountKBName()), CreateExpGLAccountCZ.CompanyCardExpensesPayable());
         ContosoExpenseAgent.SetOverwriteData(false);
 
         UpdatePayablesAccountInEmployeePostingGroup(CreateEmployeePostingGroup.EmployeeExpenses(), ExpenseGLAccount.FindGLAccountByName(ExpenseGLAccountNamesCZ.PayablesToEmployeesName()));
