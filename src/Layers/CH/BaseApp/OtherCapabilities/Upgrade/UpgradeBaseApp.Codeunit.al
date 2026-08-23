@@ -261,6 +261,7 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeFinancialReportAuditLogAddRetentionPolicy();
         UpgradeZeroClosedBankAccountLedgerEntries();
         UpgradeDepreciationBooksGLIntegration();
+        UpgradePurchaseLineReceiptOnInvoice();
         UpgradeWarehouseActivitySourceTypeForJobPlanningLine();
     end;
 
@@ -4084,6 +4085,34 @@ codeunit 104000 "Upgrade - BaseApp"
         DepreciationBookDataTransfer.CopyFields();
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetDepreciationBooksGLIntegrationUpgradeTag());
+    end;
+
+    local procedure UpgradePurchaseLineReceiptOnInvoice()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+        ReceiptOnInvoiceDataTransfer: DataTransfer;
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetPurchLineReceiptOnInvoiceUpgradeTag()) then
+            exit;
+
+        PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::Order);
+        PurchaseHeader.SetRange("Receipt on Invoice", true);
+        PurchaseHeader.SetLoadFields("No.");
+        if PurchaseHeader.FindSet() then
+            repeat
+                Clear(ReceiptOnInvoiceDataTransfer);
+                ReceiptOnInvoiceDataTransfer.SetTables(Database::"Purchase Line", Database::"Purchase Line");
+                ReceiptOnInvoiceDataTransfer.AddSourceFilter(PurchaseLine.FieldNo("Document Type"), '=%1', PurchaseLine."Document Type"::Order);
+                ReceiptOnInvoiceDataTransfer.AddSourceFilter(PurchaseLine.FieldNo("Document No."), '=%1', PurchaseHeader."No.");
+                ReceiptOnInvoiceDataTransfer.AddConstantValue(true, PurchaseLine.FieldNo("Receipt on Invoice"));
+                ReceiptOnInvoiceDataTransfer.UpdateAuditFields := false;
+                ReceiptOnInvoiceDataTransfer.CopyFields();
+            until PurchaseHeader.Next() = 0;
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetPurchLineReceiptOnInvoiceUpgradeTag());
     end;
 
     local procedure UpgradeWarehouseActivitySourceTypeForJobPlanningLine()
