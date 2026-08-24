@@ -28,7 +28,7 @@ pagecustomization "SOA Sales Order Subform" customizes "Sales Order Subform"
         }
         modify("Variant Code")
         {
-            Visible = false;
+            Visible = true;
         }
         modify("Description")
         {

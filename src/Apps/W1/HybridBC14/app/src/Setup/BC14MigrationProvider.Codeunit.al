@@ -86,6 +86,6 @@ codeunit 46850 "BC14 Migration Provider" implements "Custom Migration Provider",
 
     procedure ShowConfigureMigrationTablesMappingStep(): Boolean
     begin
-        exit(true);
+        exit(false);
     end;
 }

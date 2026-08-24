@@ -799,6 +799,109 @@ codeunit 136361 "UT C Copy Job"
         Assert.AreEqual(ItemUnitPrice, TargetJobPlanningLine."Unit Price", UnitPriceMustMatchErr);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure CopyJobTasksCopiesAssignedResourcesWhenEnabled()
+    var
+        SourceJob: Record Job;
+        SourceJobTask: Record "Job Task";
+        SourceJobPlanningLine: Record "Job Planning Line";
+        TargetJob: Record Job;
+        Resource: Record Resource;
+        JobAssignedResource: Record "Job Assigned Resource";
+        CopyJob: Codeunit "Copy Job";
+    begin
+        // [FEATURE] [Assigned Resource]
+        // [SCENARIO] Copy Project Tasks with "Copy Assigned Resources" copies project- and task-level assignments.
+        Initialize();
+        SetUp(SourceJob, SourceJobTask, SourceJobPlanningLine);
+        LibraryResource.CreateResourceNew(Resource);
+        LibraryJob.CreateJobAssignedResource(SourceJob."No.", '', Resource."No.", JobAssignedResource);
+        LibraryJob.CreateJobAssignedResource(SourceJob."No.", SourceJobTask."Job Task No.", Resource."No.", JobAssignedResource);
+        LibraryJob.CreateJob(TargetJob);
+
+        // [WHEN] Copy tasks with assigned resources enabled.
+        CopyJob.SetCopyOptions(true, true, true, 0, 0, 0);
+        CopyJob.SetCopyAssignedResources(true);
+        CopyJob.CopyJobTasks(SourceJob, TargetJob);
+
+        // [THEN] The target has both the project-level and the task-level assignment.
+        JobAssignedResource.Reset();
+        JobAssignedResource.SetRange("Job No.", TargetJob."No.");
+        Assert.RecordCount(JobAssignedResource, 2);
+
+        JobAssignedResource.SetRange("Job Task No.", SourceJobTask."Job Task No.");
+        Assert.RecordCount(JobAssignedResource, 1);
+
+        JobAssignedResource.SetRange("Job Task No.", '');
+        Assert.RecordCount(JobAssignedResource, 1);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CopyJobTasksSkipsAssignedResourcesWhenDisabled()
+    var
+        SourceJob: Record Job;
+        SourceJobTask: Record "Job Task";
+        SourceJobPlanningLine: Record "Job Planning Line";
+        TargetJob: Record Job;
+        Resource: Record Resource;
+        JobAssignedResource: Record "Job Assigned Resource";
+        CopyJob: Codeunit "Copy Job";
+    begin
+        // [FEATURE] [Assigned Resource]
+        // [SCENARIO] Copy Project Tasks without the flag does not copy any assigned resources.
+        Initialize();
+        SetUp(SourceJob, SourceJobTask, SourceJobPlanningLine);
+        LibraryResource.CreateResourceNew(Resource);
+        LibraryJob.CreateJobAssignedResource(SourceJob."No.", SourceJobTask."Job Task No.", Resource."No.", JobAssignedResource);
+        LibraryJob.CreateJob(TargetJob);
+
+        // [WHEN] Copy tasks with assigned resources left disabled (default).
+        CopyJob.SetCopyOptions(true, true, true, 0, 0, 0);
+        CopyJob.CopyJobTasks(SourceJob, TargetJob);
+
+        // [THEN] No assigned resources are copied to the target.
+        JobAssignedResource.Reset();
+        JobAssignedResource.SetRange("Job No.", TargetJob."No.");
+        Assert.RecordIsEmpty(JobAssignedResource);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CopyJobTasksDoesNotOverwriteExistingAssignedResources()
+    var
+        SourceJob: Record Job;
+        SourceJobTask: Record "Job Task";
+        SourceJobPlanningLine: Record "Job Planning Line";
+        TargetJob: Record Job;
+        Resource: Record Resource;
+        JobAssignedResource: Record "Job Assigned Resource";
+        CopyJob: Codeunit "Copy Job";
+    begin
+        // [FEATURE] [Assigned Resource]
+        // [SCENARIO] Copying an assignment that already exists on the target does not error or duplicate.
+        Initialize();
+        SetUp(SourceJob, SourceJobTask, SourceJobPlanningLine);
+        LibraryResource.CreateResourceNew(Resource);
+        LibraryJob.CreateJobAssignedResource(SourceJob."No.", '', Resource."No.", JobAssignedResource);
+
+        // [GIVEN] The target already has the same project-level assignment.
+        LibraryJob.CreateJob(TargetJob);
+        LibraryJob.CreateJobAssignedResource(TargetJob."No.", '', Resource."No.", JobAssignedResource);
+
+        // [WHEN] Copy tasks with assigned resources enabled.
+        CopyJob.SetCopyOptions(true, true, true, 0, 0, 0);
+        CopyJob.SetCopyAssignedResources(true);
+        CopyJob.CopyJobTasks(SourceJob, TargetJob);
+
+        // [THEN] The pre-existing assignment is preserved without duplication.
+        JobAssignedResource.Reset();
+        JobAssignedResource.SetRange("Job No.", TargetJob."No.");
+        JobAssignedResource.SetRange("Job Task No.", '');
+        Assert.RecordCount(JobAssignedResource, 1);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

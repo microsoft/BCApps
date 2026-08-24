@@ -236,7 +236,6 @@ page 9077 "Account Receivables"
                     Caption = 'Cus&tomer/Item Sales';
                     Image = "Report";
                     RunObject = Report "Customer/Item Sales";
-                    ToolTip = 'View a list of item sales for each customer during a selected time period. The report contains information on quantity, sales amount, profit, and possible discounts. It can be used, for example, to analyze a company''s customer groups.';
                 }
                 action("Create Recurring Invoices")
                 {

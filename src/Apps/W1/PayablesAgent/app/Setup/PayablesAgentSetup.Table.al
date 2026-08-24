@@ -68,15 +68,32 @@ table 3303 "Payables Agent Setup"
         {
             DataClassification = SystemMetadata;
         }
+#if not CLEANSCHEMA32
+#pragma warning disable AS0072
         field(11; "Use MLLM Processing"; Boolean)
         {
             Caption = 'Use MLLM Processing';
             DataClassification = SystemMetadata;
+            ObsoleteReason = 'The MLLM Payables Agent feature is fully rolled out; the toggle used to roll it out is no longer needed.';
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
         }
+#pragma warning restore AS0072
+#endif
         field(12; "Email Review Policy"; Enum "PA Email Review Policy")
         {
             Caption = 'Email review';
             DataClassification = CustomerContent;
+        }
+        field(13; "Applied Instr. Config Hash"; Text[64])
+        {
+            Caption = 'Applied Instructions Configuration Hash';
+            DataClassification = SystemMetadata;
         }
     }
     keys
@@ -89,11 +106,24 @@ table 3303 "Payables Agent Setup"
 
     internal procedure GetSetup()
     begin
+        if GetSetup(true) then;
+    end;
+
+    /// <summary>
+    /// Gets the setup and optionally creates it if missing
+    /// </summary>
+    /// <param name="InsertIfMissing">Whether to insert the setup record if it is missing</param>
+    /// <returns>True if the setup record exists or was created, false otherwise</returns>
+    internal procedure GetSetup(InsertIfMissing: Boolean): Boolean
+    begin
         if Rec.FindFirst() then
-            exit;
+            exit(true);
 
         Clear(Rec);
-        Rec.Insert();
-
+        if InsertIfMissing then begin
+            Rec.Insert();
+            exit(true);
+        end;
+        exit(false);
     end;
 }

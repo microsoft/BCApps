@@ -15,11 +15,25 @@ These fire inside `ShpfyProductPriceCalc.CalcPrice` and are the right place
 to implement custom pricing tiers, catalog-specific markups, or currency
 overrides.
 
+`Shpfy Update Price Source` (codeunit 30272) is public and is manually bound by
+`CalcPrice` while the temporary Sales Line is validated. It supplies Shopify
+shop pricing context to the price source pipeline when the temporary customer
+does not exist as a real BC Customer.
+
+*Updated: 2026-07-29 -- public price-source subscriber documented*
+
 ## Customizing product mapping (import)
 
 - `OnBeforeFindProductMapping` -- intercept the mapping lookup before the
   SKU-based strategy runs. Set Handled to bypass default logic. You receive
   the Product, Variant, and output Item/ItemVariant records to populate.
+
+If you do not handle the event, the built-in mapping tries the configured SKU
+strategy first and then only falls back to barcode when the Shop's
+`Find Mapping by Barcode` setting is enabled. Subscribers that depend on barcode
+identity should be explicit rather than assuming the fallback is always active.
+
+*Updated: 2026-07-29 -- barcode fallback is now a shop-controlled mapping behavior*
 
 ## Customizing item creation (import)
 
@@ -34,7 +48,7 @@ overrides.
 - `OnBeforeFindItemTemplate` / `OnAfterFindItemTemplate` -- control which
   Item Template is used when auto-creating items.
 
-## Customizing product body HTML (export)
+## Customizing product body html (export)
 
 - `OnBeforeCreateProductBodyHtml` -- completely replace the HTML generation.
   Set Handled and write your own ProductBodyHtml.
@@ -78,7 +92,26 @@ record is deleted in BC. Implementations: `ShpfyRemoveProductDoNothing`,
 `ShpfyToArchivedProduct`, `ShpfyToDraftProduct`. Chosen via the "Action for
 Removed Products" enum on the Shop. Not extensible (enum is non-extensible).
 
-**ICreateProductStatusValue** -- returns the initial Shopify status (Active or
-Draft) when creating a new product from a BC Item. Implementations:
-`ShpfyCreateProdStatusActive`, `ShpfyCreateProdStatusDraft`. Chosen via the
-"Status for Created Products" enum on the Shop.
+**ICreateProductStatusValue** -- returns the initial Shopify status when creating
+a new product from a BC Item. Implementations are Active, Draft, and Unlisted:
+`ShpfyCreateProdStatusActive`, `ShpfyCreateProdStatusDraft`, and
+`ShpfyCreateProdStatusUnlisted`. Chosen via the "Status for Created Products"
+enum on the Shop. The enum is non-extensible, so partners can select the built-in
+strategies but cannot add another creation-status value through enum extension.
+
+*Updated: 2026-07-29 -- Unlisted creation status implementation added*
+
+## Public product facade
+
+`Shpfy Product` (codeunit 30234) is a public facade over the internal
+add-to-Shopify flow. It exposes the same high-level operations used by the Item
+Card: confirming the target shop, adding an Item to Shopify, validating
+attribute-as-option compatibility, resolving product URLs, and opening the
+product overview.
+
+Use this facade when an extension needs "Add to Shopify" parity without reaching
+into internal codeunits such as `Shpfy Sync Products` or `Shpfy Product Export`.
+The facade preserves the same checks as the UI, including shop selection and
+attribute option validation.
+
+*Updated: 2026-07-29 -- public facade procedures exposed for add-to-Shopify parity*

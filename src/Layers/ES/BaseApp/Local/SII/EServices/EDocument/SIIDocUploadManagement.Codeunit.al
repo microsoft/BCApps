@@ -762,7 +762,7 @@ codeunit 10752 "SII Doc. Upload Management"
         exit(SIISetup.Enabled);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Isolated Certificate", 'OnBeforeDeleteEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Isolated Certificate", 'OnBeforeDeleteEvent', '', true, false)]
     local procedure OnBeforeDeleteCertificate(var Rec: Record "Isolated Certificate"; RunTrigger: Boolean)
     var
         ConfirmManagement: Codeunit "Confirm Management";

@@ -1501,6 +1501,7 @@ codeunit 444 "Purchase-Post Prepayments"
             PurchaseHeader."Last Prepmt. Cr. Memo No." := GenJnlLineDocNo;
             PurchaseHeader."Prepmt. Cr. Memo No." := '';
             PurchLine.SetFilter("Prepmt. Amt. Inv.", '<>0');
+            OnUpdatePurchaseDocumentOnBeforeFindSetCrMemoPurchLine(PurchaseHeader, PurchLine);
             if PurchLine.FindSet(true) then
                 repeat
                     PurchLine."Prepmt. Amt. Inv." := PurchLine."Prepmt Amt Deducted";
@@ -1931,6 +1932,11 @@ codeunit 444 "Purchase-Post Prepayments"
 
     [IntegrationEvent(false, false)]
     local procedure OnRoundAmountsOnBeforeIncrAmoutns(PurchaseHeader: Record "Purchase Header"; var PrepmtInvLineBuf: Record "Prepayment Inv. Line Buffer"; var TotalPrepmtInvLineBuf: Record "Prepayment Inv. Line Buffer"; var TotalPrepmtInvLineBufLCY: Record "Prepayment Inv. Line Buffer")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdatePurchaseDocumentOnBeforeFindSetCrMemoPurchLine(PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line")
     begin
     end;
 

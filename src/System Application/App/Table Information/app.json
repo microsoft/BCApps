@@ -16,6 +16,18 @@
       "name": "User Permissions",
       "publisher": "Microsoft",
       "version": "29.0.0.0"
+    },
+    {
+      "id": "4992eeac-2fd3-4515-a50b-7336a332d47f",
+      "name": "Permission Sets",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    },
+    {
+      "id": "2edca772-d3b5-4cfc-9ed6-b17ce4bd53c9",
+      "name": "Object Selection",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
     }
   ],
   "screenshots": [],

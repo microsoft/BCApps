@@ -92,6 +92,7 @@ report 99001017 "Calculate Plan - Plan. Wksh."
                 CalcItemPlan.Initialize(FromDate, ToDate, MPS, MRP, RespectPlanningParm);
 
                 SetAtStartPosition := true;
+                OnOnPreDataItemOnAfterSetAtStartPosition(Item);
 
                 ReqLine.SetRange("Worksheet Template Name", CurrTemplateName);
                 ReqLine.SetRange("Journal Batch Name", CurrWorksheetName);
@@ -379,6 +380,11 @@ report 99001017 "Calculate Plan - Plan. Wksh."
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterItemOnPreDataItem(var Item: Record Item)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnOnPreDataItemOnAfterSetAtStartPosition(var Item: Record Item)
     begin
     end;
 
