@@ -19,9 +19,9 @@ using Microsoft.Sales.Receivables;
 using System.TestLibraries.Utilities;
 
 /// <summary>
-/// Codeunit Shpfy Auto Post Trans. Test (ID 139587).
+/// Codeunit Shpfy Auto Post Trans. Test (ID 139415).
 /// </summary>
-codeunit 139587 "Shpfy Auto Post Trans. Test"
+codeunit 139415 "Shpfy Auto Post Trans. Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
