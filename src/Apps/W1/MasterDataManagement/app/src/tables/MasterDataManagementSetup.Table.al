@@ -79,6 +79,11 @@ table 7230 "Master Data Management Setup"
             Caption = 'Delay Synchronization Job Scheduling';
             DataClassification = SystemMetadata;
         }
+        field(155; "Source Environment Name"; Text[100])
+        {
+            Caption = 'Source Environment';
+            DataClassification = OrganizationIdentifiableInformation;
+        }
     }
 
     keys
@@ -245,6 +250,13 @@ table 7230 "Master Data Management Setup"
             until IntegrationTableMapping.Next() = 0;
     end;
 
+    internal procedure GetDataSource(): Interface "IMDM Data Source"
+    begin
+        if "Source Environment Name" <> '' then
+            Error(CrossEnvNotYetSupportedErr);
+        exit(Enum::"MDM Data Source Type"::LocalCompany);
+    end;
+
     var
         SynchronizationEnabledMsg: label 'The synchronization of data from company %1 is enabled. \\To review the tables and fields that will be synchronized, choose action Synchronization Tables. \\To perform the initial synchronization of data from %1, choose Start Initial Synchronization. \\After the initial synchronization is done, job queue entries will continue to synchronize modifications.', Comment = '%1 - a company name';
         CouplingsWillBeDeletedQst: label 'All the couplings with records from previous source company %1 will be deleted. Do you want to continue?', Comment = '%1 - a company name';
@@ -252,4 +264,5 @@ table 7230 "Master Data Management Setup"
         MustNotPickCurrentCompanyErr: label 'You are currently signed into this company. \\Choose a different company to synchronize data with.';
         MustPickSourceCompanyErr: label 'You must choose a source company to synchronize data from.';
         ResetConfigQst: label 'There are existing synchronization table definitions in this company. Do you want to reset them to the default configuration?';
+        CrossEnvNotYetSupportedErr: label 'Cross-environment synchronization is not yet available.';
 }
