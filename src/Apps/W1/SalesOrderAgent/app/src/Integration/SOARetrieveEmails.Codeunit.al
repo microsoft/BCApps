@@ -216,7 +216,6 @@ codeunit 4582 "SOA Retrieve Emails"
         FileMIMEType: Text[100];
         IsFileMimeTypeSupported: Boolean;
         ExceedsPageCountThreshold: Boolean;
-        ExceedsFileSizeThreshold: Boolean;
         PdfContent: Boolean;
         Ignore: Boolean;
         IgnoredReason: Text[250];
@@ -231,51 +230,50 @@ codeunit 4582 "SOA Retrieve Emails"
         NoOfAttachments := 0;
         repeat
             if not EmailMessage.Attachments_IsInline() then begin
-                Ignore := false;
                 AttachmentSizeInBytes := EmailMessage.Attachments_GetLength();
-                ExceedsFileSizeThreshold := AttachmentSizeInBytes > SOASetup.GetMaxAttachmentSizeInBytes();
                 FileMIMEType := CopyStr(EmailMessage.Attachments_GetContentType(), 1, 100);
 
-                if ExceedsFileSizeThreshold then begin
+                if AttachmentSizeInBytes > SOASetup.GetMaxAttachmentSizeInBytes() then begin
                     Ignore := true;
                     IgnoredReason := CopyStr(Format(Enum::"SOA Email Attachment Status"::ExceedsFileSize), 1, MaxStrLen(IgnoredReason));
                     CreateIgnoredAttachmentPlaceholder(TempAgentTaskFile, InStream, IgnoredReason, AttachmentSizeInBytes);
-                    AgentTaskMessageBuilder.AddAttachment(EmailMessage.Attachments_GetName(), FileMIMEType, InStream, true, IgnoredReason);
+                    AgentTaskMessageBuilder.AddAttachment(EmailMessage.Attachments_GetName(), FileMIMEType, InStream, Ignore, IgnoredReason);
                     LogIgnoredAttachmentTelemetry(SOASetup, IgnoredReason, FileMIMEType, AttachmentSizeInBytes);
                 end else begin
-                    ExceedsPageCountThreshold := false;
-                    IsFileMimeTypeSupported := false;
-                    PdfContent := false;
-                    if SOASetupRec."Analyze Attachments" then begin
-                        IsFileMimeTypeSupported := SOASetup.SupportedAttachmentContentType(FileMIMEType);
-                        if IsFileMimeTypeSupported then
-                            PdfContent := SOASetup.IsPdfAttachmentContentType(FileMIMEType);
-                    end;
-
-                    if PdfContent then begin
-                        // The page count check consumes the stream, so a fresh stream is requested afterwards.
-                        EmailMessage.Attachments_GetContent(InStream);
-
-                        if not SOASetup.DocumentExceedsPageCountThreshold(InStream, ExceedsPageCountThreshold) then
-                            FeatureTelemetry.LogError('0000QHK', SOASetup.GetFeatureName(), 'Document exceeds page count threshold', PageCountCallFailedTelemetryTxt);
-                        if ExceedsPageCountThreshold then
-                            FeatureTelemetry.LogUsage('0000QHL', SOASetup.GetFeatureName(), StrSubstNo(PageCountExceededTelemetryTxt, Format(SOASetup.PageCountThreshold())));
-                    end;
-
                     EmailMessage.Attachments_GetContent(InStream);
 
-                    Ignore := IgnoreAttachment(IsFileMimeTypeSupported, ExceedsPageCountThreshold, NoOfAttachments, SOASetupRec, IgnoredReason);
-                    AgentTaskMessageBuilder.AddAttachment(EmailMessage.Attachments_GetName(), FileMIMEType, InStream, Ignore, IgnoredReason);
+                    if not SOASetupRec."Analyze Attachments" then begin
+                        Ignore := true;
+                        IgnoredReason := CopyStr(Format(Enum::"SOA Email Attachment Status"::AnalyzeAttachmentsNotEnabled), 1, MaxStrLen(IgnoredReason));
+                        AgentTaskMessageBuilder.AddAttachment(EmailMessage.Attachments_GetName(), FileMIMEType, InStream, Ignore, IgnoredReason);
+                    end else begin
+                        ExceedsPageCountThreshold := false;
+                        IsFileMimeTypeSupported := SOASetup.SupportedAttachmentContentType(FileMIMEType);
+                        if IsFileMimeTypeSupported then begin
+                            PdfContent := SOASetup.IsPdfAttachmentContentType(FileMIMEType);
+                            if PdfContent then begin
+                                if not SOASetup.DocumentExceedsPageCountThreshold(InStream, ExceedsPageCountThreshold) then
+                                    FeatureTelemetry.LogError('0000QHK', SOASetup.GetFeatureName(), 'Document exceeds page count threshold', PageCountCallFailedTelemetryTxt);
+                                if ExceedsPageCountThreshold then
+                                    FeatureTelemetry.LogUsage('0000QHL', SOASetup.GetFeatureName(), StrSubstNo(PageCountExceededTelemetryTxt, Format(SOASetup.PageCountThreshold())));
 
-                    if Ignore then
-                        LogIgnoredAttachmentTelemetry(SOASetup, IgnoredReason, FileMIMEType, AttachmentSizeInBytes);
+                                // The page count check consumes the stream, so a fresh stream is requested afterwards.
+                                EmailMessage.Attachments_GetContent(InStream);
+                            end;
+                        end;
 
-                    // Log telemetry for SOA session
-                    if SOASetupRec."Analyze Attachments" then
+                        Ignore := IgnoreAttachment(IsFileMimeTypeSupported, ExceedsPageCountThreshold, NoOfAttachments, SOASetupRec, IgnoredReason);
+                        AgentTaskMessageBuilder.AddAttachment(EmailMessage.Attachments_GetName(), FileMIMEType, InStream, Ignore, IgnoredReason);
+
+                        if Ignore then
+                            LogIgnoredAttachmentTelemetry(SOASetup, IgnoredReason, FileMIMEType, AttachmentSizeInBytes);
+
+                        // Log telemetry for SOA session
                         if IsFileMimeTypeSupported then
                             FeatureTelemetry.LogUsage('0000QBM', SOASetup.GetFeatureName(), StrSubstNo(SupportedAttachmentLbl, FileMIMEType))
                         else
                             FeatureTelemetry.LogUsage('0000QBN', SOASetup.GetFeatureName(), StrSubstNo(UnsupportedAttachmentLbl, FileMIMEType));
+                    end;
                 end;
 
                 if not Ignore then
