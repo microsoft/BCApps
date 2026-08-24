@@ -236,7 +236,7 @@ codeunit 148338 "Expense Permissions Test"
         // [WHEN] A retention administrator with only indirect activity delete permission applies policy "RP".
         LibraryLowerPermissions.SetExactPermissionSet(D365BasicPermissionSetTok);
         LibraryLowerPermissions.AddPermissionSet(RetentionPolicyAdminPermissionSetTok);
-        Assert.IsFalse(ExpenseActivityLogEntry.DeletePermission(), 'The retention caller must not have direct activity delete permission.');
+        Assert.IsFalse(ExpenseActivityLogEntry.WritePermission(), 'The retention caller must not have direct activity write permission.');
         ApplyRetentionPolicy.ApplyRetentionPolicy(RetentionPolicySetup, false);
         RestoreFullPermissions();
 
