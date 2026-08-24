@@ -5777,6 +5777,82 @@ codeunit 137405 "SCM Item Tracking"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [HandlerFunctions('ItemTrackingLinesLotSNQtyModalPageHandler')]
+    [Scope('OnPrem')]
+    procedure GetAvailableLotQtyDoesNotDoubleCountPickWithSourceLineTracking()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        TrackingSpecification: Record "Tracking Specification";
+        ItemTrackingDataCollection: Codeunit "Item Tracking Data Collection";
+        LotNo: Code[50];
+        SalesOrderNo: Code[20];
+        OnHandQty: Integer;
+        PickQty: Integer;
+    begin
+        // [Bug 638344] An unregistered pick whose source line already carries item-tracking reservation must not be counted twice
+        // [SCENARIO] Production flow assigns source-line tracking (reservation entry) and then creates a pick for the same lot; the pick and reservation are one allocation
+        Initialize();
+
+        // [GIVEN] Lot-tracked item with lot warehouse tracking, on hand qty "Q" for lot "L"
+        OnHandQty := LibraryRandom.RandIntInRange(40, 60);
+        PickQty := LibraryRandom.RandIntInRange(10, 20);
+        LotNo := LibraryUtility.GenerateGUID();
+        SalesOrderNo := LibraryUtility.GenerateGUID();
+        CreateLotTrackedItemAtLocation(Item, Location);
+        CreateAndPostLotStockForPick(Item."No.", Location.Code, LotNo, OnHandQty);
+
+        // [GIVEN] Source-line item tracking on a sales line reserves "P" of the lot (as production flow assigns tracking)
+        CreateOutboundLotReservationForSalesLine(Item."No.", Location.Code, LotNo, SalesOrderNo, 10000, PickQty);
+
+        // [GIVEN] An unregistered warehouse pick Take line for the SAME sales line and lot moves the same "P"
+        CreateUnregisteredWhsePickTakeLine(
+            WarehouseActivityHeader, WarehouseActivityLine, Item."No.", Location.Code, LotNo, PickQty,
+            Database::"Sales Line", 1, SalesOrderNo, 10000);
+
+        // [WHEN] Available lot quantity is retrieved for a new demand on the same lot
+        SetTrackingSpecItemLotLocation(TrackingSpecification, Item."No.", Location.Code, LotNo);
+
+        // [THEN] Available equals on hand minus the single allocation, not minus both the reservation and the pick
+        Assert.AreEqual(
+            OnHandQty - PickQty, ItemTrackingDataCollection.GetAvailableLotQty(TrackingSpecification),
+            'Available lot quantity must not double-count a pick already represented by a source-line reservation.');
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    local procedure CreateOutboundLotReservationForSalesLine(ItemNo: Code[20]; LocationCode: Code[10]; LotNo: Code[50]; SourceNo: Code[20]; SourceLineNo: Integer; Qty: Decimal)
+    var
+        ReservationEntry: Record "Reservation Entry";
+        NextEntryNo: Integer;
+    begin
+        ReservationEntry.LockTable();
+        if ReservationEntry.FindLast() then
+            NextEntryNo := ReservationEntry."Entry No." + 1
+        else
+            NextEntryNo := 1;
+
+        ReservationEntry.Init();
+        ReservationEntry."Entry No." := NextEntryNo;
+        ReservationEntry.Positive := false;
+        ReservationEntry."Reservation Status" := ReservationEntry."Reservation Status"::Surplus;
+        ReservationEntry."Item No." := ItemNo;
+        ReservationEntry."Location Code" := LocationCode;
+        ReservationEntry."Quantity (Base)" := -Qty;
+        ReservationEntry.Quantity := -Qty;
+        ReservationEntry."Qty. to Handle (Base)" := -Qty;
+        ReservationEntry."Source Type" := Database::"Sales Line";
+        ReservationEntry."Source Subtype" := 1;
+        ReservationEntry."Source ID" := SourceNo;
+        ReservationEntry."Source Ref. No." := SourceLineNo;
+        ReservationEntry."Lot No." := LotNo;
+        ReservationEntry."Item Tracking" := ReservationEntry."Item Tracking"::"Lot No.";
+        ReservationEntry.Insert(false);
+    end;
+
     local procedure CreateLotTrackedItemAtLocation(var Item: Record Item; var Location: Record Location)
     var
         InventoryPostingSetup: Record "Inventory Posting Setup";
