@@ -35,7 +35,6 @@ codeunit 148148 "Factur-X CII XML Tests"
 
     trigger OnRun()
     begin
-        // [FEATURE] [Factur-X FR E-document]
     end;
 
     var
@@ -185,6 +184,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         // [SCENARIO] Factur-X CII XML has seller name from Company Information
         Initialize();
 
+        // [GIVEN] Posted sales invoice
         // [WHEN] Create CII XML
         CreateSalesInvoiceCIIXML(TempBlob);
 
@@ -203,6 +203,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         // [SCENARIO] Factur-X CII XML has seller VAT registration number with scheme VA
         Initialize();
 
+        // [GIVEN] Posted sales invoice / Company information with VAT Registration No.
         // [WHEN] Create CII XML
         CreateSalesInvoiceCIIXML(TempBlob);
 
@@ -451,6 +452,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         // [SCENARIO] Factur-X CII XML has seller electronic address (BT-34) as SIRET with schemeID 0009
         Initialize();
 
+        // [GIVEN] Posted sales invoice
         // [WHEN] Create CII XML
         CreateSalesInvoiceCIIXML(TempBlob);
 
@@ -709,6 +711,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         // [SCENARIO] Factur-X CII XML has SpecifiedTradeSettlementPaymentMeans with TypeCode 58 (SEPA credit transfer)
         Initialize();
 
+        // [GIVEN] Posted sales invoice
         // [WHEN] Create CII XML
         CreateSalesInvoiceCIIXML(TempBlob);
 
@@ -939,6 +942,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         // [SCENARIO] Factur-X CII XML line BilledQuantity has unitCode attribute (BT-130)
         Initialize();
 
+        // [GIVEN] Posted sales invoice
         // [WHEN] Create CII XML
         CreateSalesInvoiceCIIXML(TempBlob);
 
@@ -957,6 +961,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         // [SCENARIO] Factur-X CII XML line-level ApplicableTradeTax has TypeCode = 'VAT'
         Initialize();
 
+        // [GIVEN] Posted sales invoice
         // [WHEN] Create CII XML
         CreateSalesInvoiceCIIXML(TempBlob);
 
@@ -1326,7 +1331,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         SourceDocumentHeader: RecordRef;
         SourceDocumentLines: RecordRef;
     begin
-        // [FEATURE] [Reminder]
+        // [FEATURE] [AI test]
         // [SCENARIO] An issued reminder line (which has no Quantity field) emits BilledQuantity = 1
         Initialize();
 
@@ -1366,7 +1371,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         SourceDocumentHeader: RecordRef;
         SourceDocumentLines: RecordRef;
     begin
-        // [FEATURE] [Finance Charge Memo]
+        // [FEATURE] [AI test]
         // [SCENARIO] An issued finance charge memo line (which has no Quantity field) emits BilledQuantity = 1
         Initialize();
 

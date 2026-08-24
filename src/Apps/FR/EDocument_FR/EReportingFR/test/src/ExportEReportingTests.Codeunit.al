@@ -28,7 +28,6 @@ codeunit 148145 "Export E-Reporting Tests"
 
     trigger OnRun()
     begin
-        // [FEATURE] [E-Reporting FR E-document]
     end;
 
     var
