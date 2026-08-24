@@ -775,7 +775,7 @@ page 6404 "Purchase Document Entity"
                     EntityName = 'puchaseDocumentLine';
                     EntitySetName = 'purchaseDocumentLines';
                 }
-#pragma warning restore
+#pragma warning restore AW0003
             }
         }
     }

@@ -11,7 +11,7 @@ codeunit 143007 "Library - Journals ES"
         Customer: Record Customer;
 #pragma warning disable AA0087 // Accepted: this helper is invoked from an event subscriber, not directly from a test procedure.
         LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
-#pragma warning restore
+#pragma warning restore AA0087
         LibrarySales: Codeunit "Library - Sales";
         LibraryPurchase: Codeunit "Library - Purchase";
     begin

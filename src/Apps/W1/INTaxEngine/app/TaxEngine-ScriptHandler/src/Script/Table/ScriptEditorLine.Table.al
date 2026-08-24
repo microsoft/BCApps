@@ -65,7 +65,7 @@ table 20201 "Script Editor Line"
             FieldClass = FlowField;
             Caption = 'Has Errors';
         }
-#pragma warning restore
+#pragma warning restore AL0717
         field(12; "Action ID Filter"; Guid)
         {
             FieldClass = FlowFilter;

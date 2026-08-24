@@ -112,7 +112,7 @@ table 26563 "Statutory Report Data Header"
             Caption = 'Set Requisites Quantity';
             FieldClass = FlowField;
         }
-#pragma warning restore
+#pragma warning restore AL0717
         field(34; Period; Text[30])
         {
             Caption = 'Period';

@@ -422,7 +422,7 @@ report 7301 "Movement List"
 
 #pragma warning disable AA0203 // Accepted: renaming this public method would be a breaking change.
     procedure SetBreakbulkFilter(BreakbulkFilter2: Boolean)
-#pragma warning restore
+#pragma warning restore AA0203
     begin
         BreakbulkFilter := BreakbulkFilter2;
     end;
