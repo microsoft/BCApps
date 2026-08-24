@@ -646,6 +646,9 @@ page 6910 "Expense Report"
                 actionref(ReopenSubmitted_Promoted; ReopenSubmitted)
                 {
                 }
+                actionref(AssignInterimApprover_Promoted; "Assign Interim Approver")
+                {
+                }
             }
             group(Category_Expense)
             {

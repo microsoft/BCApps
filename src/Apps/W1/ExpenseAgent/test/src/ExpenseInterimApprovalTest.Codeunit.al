@@ -38,6 +38,7 @@ codeunit 148346 "Expense Interim Approval Test"
         InterimApproverRequiredErr: Label 'Select an interim approver from the available approvers.';
         InterimApproverConflictErr: Label 'The %1 cannot be the same as the %2 %3.', Comment = '%1 = Interim Approver No. caption, %2 = conflicting field caption, %3 = conflicting field value';
         InterimApproverCannotFinalizeErr: Label '%1 %2 cannot give final approval. Final approval must be completed by a different approver.', Comment = '%1 = Interim Approver No. caption, %2 = Interim Approver No.';
+        ActorNotActiveApproverErr: Label 'This expense report is awaiting approval from %1. Only that approver can approve or reject it.', Comment = '%1 = Expense User No. of the approver the report is currently assigned to';
 
     [Test]
     [HandlerFunctions('ExpensesModalPageHandler')]
@@ -308,6 +309,93 @@ codeunit 148346 "Expense Interim Approval Test"
                 InterimApproverCannotFinalizeErr,
                 ExpenseReportHeader.FieldCaption("Interim Approver No."),
                 ExpenseReportHeader."Interim Approver No."));
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure InterimApproverCannotRejectAfterInterimApproval()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 638097] The interim approver cannot reject a report they already interim-approved.
+        Initialize();
+
+        // [GIVEN] A report that has been interim approved and is now routed to the final approver.
+        EnableAgent(true);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        CreateSubmittedExpenseReport(Submitter, ExpenseReportHeader);
+        ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", Submitter."No.");
+        ExpenseReportHeader.PerformManualApproved(InterimApprover."No.", true);
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::"Interim Approved");
+
+        // [WHEN] The interim approver tries to reject the report.
+        asserterror ExpenseReportHeader.PerformManualRejected(InterimApprover."No.", 'Rejected by interim approver.');
+
+        // [THEN] An error is raised.
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        Assert.ExpectedError(
+            StrSubstNo(
+                InterimApproverCannotFinalizeErr,
+                ExpenseReportHeader.FieldCaption("Interim Approver No."),
+                ExpenseReportHeader."Interim Approver No."));
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure FinalApproverCannotApproveWhileInterimPending()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 638097] While the report waits for interim approval, an approver other than the interim approver cannot approve it.
+        Initialize();
+
+        // [GIVEN] A submitted report with an interim approver assigned and awaiting interim approval.
+        EnableAgent(true);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        CreateSubmittedExpenseReport(Submitter, ExpenseReportHeader);
+        ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", Submitter."No.");
+        VerifyActiveApprover(ExpenseReportHeader, InterimApprover);
+
+        // [WHEN] The final approver tries to approve before the interim approver has acted.
+        asserterror ExpenseReportHeader.PerformManualApproved(FinalApprover."No.", true);
+
+        // [THEN] An error is raised.
+        Assert.ExpectedError(StrSubstNo(ActorNotActiveApproverErr, InterimApprover."No."));
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure FinalApproverCannotRejectWhileInterimPending()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 638097] While the report waits for interim approval, an approver other than the interim approver cannot reject it.
+        Initialize();
+
+        // [GIVEN] A submitted report with an interim approver assigned and awaiting interim approval.
+        EnableAgent(true);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        CreateSubmittedExpenseReport(Submitter, ExpenseReportHeader);
+        ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", Submitter."No.");
+        VerifyActiveApprover(ExpenseReportHeader, InterimApprover);
+
+        // [WHEN] The final approver tries to reject before the interim approver has acted.
+        asserterror ExpenseReportHeader.PerformManualRejected(FinalApprover."No.", 'Rejected by final approver.');
+
+        // [THEN] An error is raised.
+        Assert.ExpectedError(StrSubstNo(ActorNotActiveApproverErr, InterimApprover."No."));
     end;
 
     [Test]
