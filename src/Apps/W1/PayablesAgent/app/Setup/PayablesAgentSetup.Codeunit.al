@@ -472,7 +472,8 @@ codeunit 3307 "Payables Agent Setup"
 
         // Apply agent instructions and capture the hash; the outer ApplyPayablesAgentSetup persists it
         // in the single final Modify() so there is no nested row modification of Payables Agent Setup.
-        AppliedInstrConfigHash := ApplyAgentInstructions(AgentUserId);
+        if not IsNullGuid(AgentUserId) then
+            AppliedInstrConfigHash := ApplyAgentInstructions(AgentUserId);
         exit(AgentUserId);
     end;
 
