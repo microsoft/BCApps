@@ -9,7 +9,6 @@ using System.AI;
 using System.DataAdministration;
 using System.Environment;
 using System.Environment.Configuration;
-using System.Upgrade;
 
 codeunit 6992 "Install Expense Agent Setup"
 {
@@ -61,17 +60,8 @@ codeunit 6992 "Install Expense Agent Setup"
     end;
 
     internal procedure RegisterActivityLogRetentionPolicy(): Boolean
-    var
-        UpgradeTag: Codeunit "Upgrade Tag";
     begin
-        if UpgradeTag.HasUpgradeTag(GetActivityLogRetentionPolicyUpgradeTag()) then
-            exit(true);
-
-        if not AddActivityLogToAllowedTables() then
-            exit(false);
-
-        UpgradeTag.SetUpgradeTag(GetActivityLogRetentionPolicyUpgradeTag());
-        exit(true);
+        exit(AddActivityLogToAllowedTables());
     end;
 
     local procedure AddActivityLogToAllowedTables(): Boolean

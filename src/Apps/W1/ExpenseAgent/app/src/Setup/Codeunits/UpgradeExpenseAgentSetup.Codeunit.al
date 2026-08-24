@@ -42,8 +42,13 @@ codeunit 6978 "Upgrade Expense Agent Setup"
     local procedure UpgradeRegisterActivityLogRetentionPolicy()
     var
         InstallExpenseAgentSetup: Codeunit "Install Expense Agent Setup";
+        UpgradeTag: Codeunit "Upgrade Tag";
     begin
-        InstallExpenseAgentSetup.RegisterActivityLogRetentionPolicy();
+        if UpgradeTag.HasUpgradeTag(InstallExpenseAgentSetup.GetActivityLogRetentionPolicyUpgradeTag()) then
+            exit;
+
+        if InstallExpenseAgentSetup.RegisterActivityLogRetentionPolicy() then
+            UpgradeTag.SetUpgradeTag(InstallExpenseAgentSetup.GetActivityLogRetentionPolicyUpgradeTag());
     end;
 
     local procedure UpgradeClearStaleCopyCompanyState()
