@@ -776,3 +776,248 @@ tests:
           lineNo: 2
           jurisdictionCode: QCQST
       matchResult: true
+
+  - name: H13-LargeOrderRepeatedTitleDedup
+    description: 20 order lines all carrying the same CALIFORNIA STATE TAX title (one distinct signature) — de-duplication sends one request, and the single decision must be applied to every line and seed exactly one Tax Detail
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: CATAX
+          Description: California State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: CA
+        city: Los Angeles
+      orderLines:
+        - lineId: 10001
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: CALIFORNIA STATE TAX
+              ratePct: 6.0
+              channelLiable: false
+        - lineId: 10002
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: CALIFORNIA STATE TAX
+              ratePct: 6.0
+              channelLiable: false
+        - lineId: 10003
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: CALIFORNIA STATE TAX
+              ratePct: 6.0
+              channelLiable: false
+        - lineId: 10004
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: CALIFORNIA STATE TAX
+              ratePct: 6.0
+              channelLiable: false
+        - lineId: 10005
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: CALIFORNIA STATE TAX
+              ratePct: 6.0
+              channelLiable: false
+        - lineId: 10006
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: CALIFORNIA STATE TAX
+              ratePct: 6.0
+              channelLiable: false
+        - lineId: 10007
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: CALIFORNIA STATE TAX
+              ratePct: 6.0
+              channelLiable: false
+        - lineId: 10008
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: CALIFORNIA STATE TAX
+              ratePct: 6.0
+              channelLiable: false
+        - lineId: 10009
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: CALIFORNIA STATE TAX
+              ratePct: 6.0
+              channelLiable: false
+        - lineId: 10010
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: CALIFORNIA STATE TAX
+              ratePct: 6.0
+              channelLiable: false
+        - lineId: 10011
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: CALIFORNIA STATE TAX
+              ratePct: 6.0
+              channelLiable: false
+        - lineId: 10012
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: CALIFORNIA STATE TAX
+              ratePct: 6.0
+              channelLiable: false
+        - lineId: 10013
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: CALIFORNIA STATE TAX
+              ratePct: 6.0
+              channelLiable: false
+        - lineId: 10014
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: CALIFORNIA STATE TAX
+              ratePct: 6.0
+              channelLiable: false
+        - lineId: 10015
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: CALIFORNIA STATE TAX
+              ratePct: 6.0
+              channelLiable: false
+        - lineId: 10016
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: CALIFORNIA STATE TAX
+              ratePct: 6.0
+              channelLiable: false
+        - lineId: 10017
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: CALIFORNIA STATE TAX
+              ratePct: 6.0
+              channelLiable: false
+        - lineId: 10018
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: CALIFORNIA STATE TAX
+              ratePct: 6.0
+              channelLiable: false
+        - lineId: 10019
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: CALIFORNIA STATE TAX
+              ratePct: 6.0
+              channelLiable: false
+        - lineId: 10020
+          itemNo: ITEM001
+          taxGroupCode: TAXABLE
+          taxLines:
+            - lineNo: 1
+              title: CALIFORNIA STATE TAX
+              ratePct: 6.0
+              channelLiable: false
+    expected:
+      matchResult: true
+      allTaxLinesMatched: true
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: CATAX
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: CATAX
+        - parentId: 10003
+          lineNo: 1
+          jurisdictionCode: CATAX
+        - parentId: 10004
+          lineNo: 1
+          jurisdictionCode: CATAX
+        - parentId: 10005
+          lineNo: 1
+          jurisdictionCode: CATAX
+        - parentId: 10006
+          lineNo: 1
+          jurisdictionCode: CATAX
+        - parentId: 10007
+          lineNo: 1
+          jurisdictionCode: CATAX
+        - parentId: 10008
+          lineNo: 1
+          jurisdictionCode: CATAX
+        - parentId: 10009
+          lineNo: 1
+          jurisdictionCode: CATAX
+        - parentId: 10010
+          lineNo: 1
+          jurisdictionCode: CATAX
+        - parentId: 10011
+          lineNo: 1
+          jurisdictionCode: CATAX
+        - parentId: 10012
+          lineNo: 1
+          jurisdictionCode: CATAX
+        - parentId: 10013
+          lineNo: 1
+          jurisdictionCode: CATAX
+        - parentId: 10014
+          lineNo: 1
+          jurisdictionCode: CATAX
+        - parentId: 10015
+          lineNo: 1
+          jurisdictionCode: CATAX
+        - parentId: 10016
+          lineNo: 1
+          jurisdictionCode: CATAX
+        - parentId: 10017
+          lineNo: 1
+          jurisdictionCode: CATAX
+        - parentId: 10018
+          lineNo: 1
+          jurisdictionCode: CATAX
+        - parentId: 10019
+          lineNo: 1
+          jurisdictionCode: CATAX
+        - parentId: 10020
+          lineNo: 1
+          jurisdictionCode: CATAX
+      taxDetailCount:
+        jurisdictionCode: CATAX
+        taxGroupCode: TAXABLE
+        count: 1

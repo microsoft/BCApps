@@ -57,4 +57,4 @@ Call the match_tax_jurisdictions function with your results. For each tax line, 
 - **tax_line_id**: The tax line identifier from the input
 - **jurisdiction_code**: The matched Tax Jurisdiction Code, or a suggested new code if auto-create is enabled, or the exact value "UNKNOWN" if the title is not a genuine tax description, or empty string if no match and auto-create is disabled
 - **confidence**: "high" (exact match), "medium" (semantic/keyword match), or "low" (suggested new jurisdiction)
-- **reason**: Brief explanation of why this match was chosen
+- **reason**: Brief explanation of why this match was chosen. Keep it to one short sentence.
