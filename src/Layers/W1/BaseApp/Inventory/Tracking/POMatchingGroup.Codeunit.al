@@ -34,11 +34,13 @@ codeunit 5829 "PO Matching Group"
         InvoiceDocumentTypeErr: Label 'The purchase line to match must be an invoice line.';
         OrderDocumentTypeErr: Label 'The matched purchase line must be an order line.';
         LinesMustShareUnitOfMeasureErr: Label 'The invoice line and order line must have the same unit of measure.';
+        NegativeAllocationErr: Label 'The quantity to allocate cannot be negative.';
 
     /// <summary>
     /// Adds an edge to the group if it's valid in the current context, merging in any already-persisted
     /// allocations that share a line with the edge so validations account for them.
     /// </summary>
+    /// <param name="NewMatch">The desired match to add to the group</param>
     procedure AddMatch(NewMatch: Record "Matched Order Line")
     begin
         AddMatch(NewMatch, true);
@@ -131,6 +133,8 @@ codeunit 5829 "PO Matching Group"
         InvoiceLine, OrderLine : Record "Purchase Line";
         AllocatedQty, AllocatedBase, PinnedQty, PinnedBase : Decimal;
     begin
+        CheckAllocationNotNegative(Match);
+
         if not InvoiceLine.GetBySystemId(Match."Document Line SystemId") then
             Error(InvoiceLineNotFoundErr);
         if not OrderLine.GetBySystemId(Match."Matched Order Line SystemId") then
@@ -170,6 +174,8 @@ codeunit 5829 "PO Matching Group"
         PurchRcptLine: Record "Purch. Rcpt. Line";
         BudgetQty, BudgetBase, PinnedQty, PinnedBase, ReceiptQty, ReceiptBase : Decimal;
     begin
+        CheckAllocationNotNegative(Match);
+
         if not InvoiceLine.GetBySystemId(Match."Document Line SystemId") then
             Error(InvoiceLineNotFoundErr);
         if not OrderLine.GetBySystemId(Match."Matched Order Line SystemId") then
@@ -213,6 +219,12 @@ codeunit 5829 "PO Matching Group"
             if (Match."Qty. to Invoice" <> PurchRcptLine."Qty. Rcd. Not Invoiced") or
                (Match."Qty. to Invoice (Base)" <> PurchRcptLine."Quantity (Base)" - PurchRcptLine."Qty. Invoiced (Base)") then
                 Error(ItemTrackingPartialErr, PurchRcptLine."Document No.", PurchRcptLine."Line No.");
+    end;
+
+    local procedure CheckAllocationNotNegative(Match: Record "Matched Order Line")
+    begin
+        if (Match."Qty. to Invoice" < 0) or (Match."Qty. to Invoice (Base)" < 0) then
+            Error(NegativeAllocationErr);
     end;
 
     local procedure ValidateInvoiceOrderCompatibility(InvoiceLine: Record "Purchase Line"; OrderLine: Record "Purchase Line")
