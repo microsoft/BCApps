@@ -579,10 +579,6 @@ codeunit 135549 "Report Inbox API E2E"
         if ExistingCompany.FindFirst() then
             exit(ExistingCompany.Name);
 
-        // The addressed company may be the only one in the database (for example the
-        // W1 web services test lane ships only CRONUS International Ltd.). Create an
-        // empty company so the cross-company scenarios have a real second company to
-        // address instead of failing during arrangement.
         exit(CreateSecondaryCompany());
     end;
 
