@@ -5,6 +5,7 @@
 namespace Microsoft.Finance.FinancialReports;
 
 using Microsoft.CostAccounting.Account;
+using Microsoft.Finance.GeneralLedger.Setup;
 using System.Utilities;
 
 
@@ -102,6 +103,22 @@ page 489 "Column Layout"
                     begin
                         ColumnLayoutName.Get(CurrentColumnName);
                         ColumnLayoutName.Status := DefinitionStatus;
+                        ColumnLayoutName.Modify();
+                    end;
+                }
+                field(PreviewRowDef; PreviewRowDef)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Row Definition (for Preview)';
+                    TableRelation = "Acc. Schedule Name";
+                    ToolTip = 'Specifies the row definition used when previewing this column definition.';
+
+                    trigger OnValidate()
+                    var
+                        ColumnLayoutName: Record "Column Layout Name";
+                    begin
+                        ColumnLayoutName.Get(CurrentColumnName);
+                        ColumnLayoutName."Preview Row Def." := PreviewRowDef;
                         ColumnLayoutName.Modify();
                     end;
                 }
@@ -355,6 +372,29 @@ page 489 "Column Layout"
                 end;
             }
 #endif
+            action(Preview)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Preview';
+                Image = View;
+                ToolTip = 'Preview the financial report using the current column definition. You can specify a row definition used for preview on the current definition itself, or on the general ledger setup.';
+
+                trigger OnAction()
+                var
+                    GLSetup: Record "General Ledger Setup";
+                    AccScheduleOverview: Page "Acc. Schedule Overview";
+                begin
+                    AccScheduleOverview.SetViewOnlyMode(true);
+                    AccScheduleOverview.SetPreview(AccSchedManagement.GetColumnLayoutCaption(CurrentColumnName));
+                    AccScheduleOverview.SetColumnDefinition(CurrentColumnName);
+                    if PreviewRowDef <> '' then
+                        AccScheduleOverview.SetAccSchedName(PreviewRowDef)
+                    else
+                        if GLSetup.Get() and (GLSetup."Fin. Rep. Preview Row Def." <> '') then
+                            AccScheduleOverview.SetAccSchedName(GLSetup."Fin. Rep. Preview Row Def.");
+                    AccScheduleOverview.Run();
+                end;
+            }
             action(WhereUsed)
             {
                 ApplicationArea = Basic, Suite;
@@ -411,6 +451,7 @@ page 489 "Column Layout"
                     ObsoleteTag = '28.0';
                 }
 #endif
+                actionref(Preview_Promoted; Preview) { }
                 actionref(WhereUsed_Promoted; WhereUsed) { }
                 actionref(HideHeader_Promoted; HideHeader) { }
                 actionref(ShowHeader_Promoted; ShowHeader) { }
@@ -456,6 +497,7 @@ page 489 "Column Layout"
         DimCaptionsInitialized: Boolean;
         CurrentDescription: Text[80];
         InternalDescription: Text[500];
+        PreviewRowDef: Code[10];
         HeaderHidden: Boolean;
 
     local procedure GetDescriptions()
@@ -465,10 +507,12 @@ page 489 "Column Layout"
     begin
         CurrentDescription := '';
         InternalDescription := '';
+        PreviewRowDef := '';
         if ColumnLayoutName.Get(CurrentColumnName) then begin
             DefinitionStatus := ColumnLayoutName.Status;
             CurrentDescription := ColumnLayoutName.Description;
             InternalDescription := ColumnLayoutName."Internal Description";
+            PreviewRowDef := ColumnLayoutName."Preview Row Def.";
             FinancialReportMgt.CheckStatus(ColumnLayoutName.TableCaption(), ColumnLayoutName.Status);
         end;
     end;
