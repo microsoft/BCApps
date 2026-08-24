@@ -1022,6 +1022,9 @@ report 1304 "Standard Sales - Quote"
             LayoutFile = './Sales/Document/StandardSalesQuote.docx';
             Caption = 'Standard Sales Quote (Word)';
             Summary = 'The Standard Sales Quote (Word) provides a basic layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
         }
         layout("StandardSalesQuoteBlue.docx")
         {
@@ -1029,6 +1032,9 @@ report 1304 "Standard Sales - Quote"
             LayoutFile = './Sales/Document/StandardSalesQuoteBlue.docx';
             Caption = 'Standard Sales Quote - Blue (Word)';
             Summary = 'The Standard Sales Quote - Blue (Word) provides a basic layout with a blue theme.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
         }
         layout("StandardSalesQuoteBlueThemable.docx")
         {
@@ -1036,6 +1042,9 @@ report 1304 "Standard Sales - Quote"
             LayoutFile = './Sales/Document/StandardSalesQuoteBlueThemable.docx';
             Caption = 'Standard Sales Quote - blue themable Word layout';
             Summary = 'The Standard Sales Quote - Themable (Word) provides a basic Themable layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
         }
         layout("StandardSalesQuoteEmail.docx")
         {
@@ -1043,6 +1052,26 @@ report 1304 "Standard Sales - Quote"
             LayoutFile = './Sales/Document/StandardSalesQuoteEmail.docx';
             Caption = 'Standard Sales Quote Email (Word)';
             Summary = 'The Standard Sales Quote Email (Word) provides an email body layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
+        }
+        layout("StandardSalesQuoteBody.docx")
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './Sales/Document/StandardSalesQuoteBody.docx';
+            Caption = 'Body-only: Standard Sales Quote (Word)';
+            Summary = 'Portrait orientated. Shows the customer and company address, a header with document number, your reference, valid-to date, salesperson, and payment terms, and item lines with price, discount %, VAT %, and amount. Adds VAT-inclusive totals.';
+        }
+
+        layout("StandardSalesQuoteEmailBody.docx")
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './Sales/Document/StandardSalesQuoteEmailBody.docx';
+            Caption = 'Body-only: Standard Sales Quote Email (Word)';
+            Summary = 'Portrait orientated. Email body with the company address, bill-to customer number, greeting, body, and closing text, followed by document number, due date, and total including VAT. Use it as cover text for the email.';
         }
     }
 
