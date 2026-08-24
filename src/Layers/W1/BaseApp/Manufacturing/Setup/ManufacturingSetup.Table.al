@@ -415,6 +415,7 @@ table 99000765 "Manufacturing Setup"
         {
             AccessByPermission = TableData "Production BOM Header" = R;
             Caption = 'Production BOM Version Nos.';
+            DataClassification = CustomerContent;
             ToolTip = 'Specifies the number series used to assign codes to new production BOM versions when the production BOM does not specify its own version number series.';
             TableRelation = "No. Series";
         }
@@ -422,6 +423,7 @@ table 99000765 "Manufacturing Setup"
         {
             AccessByPermission = TableData "Routing Header" = R;
             Caption = 'Routing Version Nos.';
+            DataClassification = CustomerContent;
             ToolTip = 'Specifies the number series used to assign codes to new routing versions when the routing does not specify its own version number series.';
             TableRelation = "No. Series";
         }

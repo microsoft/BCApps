@@ -36,13 +36,13 @@ codeunit 4784 "Create Mfg No Series"
         WorkCentersLbl: Label 'Work Centers', MaxLength = 100;
         ProductionBOMTok: Label 'PRODBOM', MaxLength = 20;
         ProductionBOMsLbl: Label 'Production BOMs', MaxLength = 100;
-        ProductionBOMVersionTok: Label 'PRODBOM-V', MaxLength = 20;
+        ProductionBOMVersionTok: Label 'PRODBOM-V', Locked = true, MaxLength = 20;
         ProductionBOMVersionsLbl: Label 'Production BOM Versions', MaxLength = 100;
         MachineCenterTok: Label 'MACHCTR', MaxLength = 20;
         MachineCentersLbl: Label 'Machine Centers', MaxLength = 100;
         RoutingTok: Label 'ROUTING', MaxLength = 20;
         RoutingLbl: Label 'Routings', MaxLength = 100;
-        RoutingVersionTok: Label 'ROUTING-V', MaxLength = 20;
+        RoutingVersionTok: Label 'ROUTING-V', Locked = true, MaxLength = 20;
         RoutingVersionsLbl: Label 'Routing Versions', MaxLength = 100;
         SimulatedTok: Label 'M-SIM', MaxLength = 20;
         SimulatedOrdersLbl: Label 'Simulated orders', MaxLength = 100;
