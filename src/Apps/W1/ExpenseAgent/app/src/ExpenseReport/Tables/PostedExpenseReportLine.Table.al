@@ -441,6 +441,18 @@ table 6916 "Posted Expense Report Line"
             ToolTip = 'Specifies that the spend request will be closed when the expense report is posted.';
             DataClassification = CustomerContent;
         }
+        field(102; "Policies Evaluated At"; DateTime)
+        {
+            Caption = 'Policies Evaluated At';
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
+        field(106; "Policy Status At Posting"; Enum "Expense Policy Status")
+        {
+            Caption = 'Policy Status At Posting';
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
         field(1000; "Job Ledger Entry No."; Integer)
         {
             Caption = 'Project Ledger Entry No.';
@@ -492,5 +504,10 @@ table 6916 "Posted Expense Report Line"
         ExpenseReportCommentLine.SetRange("Document Line No.", "Line No.");
         ExpenseCommentSheet.SetTableView(ExpenseReportCommentLine);
         ExpenseCommentSheet.RunModal();
+    end;
+
+    internal procedure GetPolicyStatus(): Enum "Expense Policy Status"
+    begin
+        exit(Rec."Policy Status At Posting");
     end;
 }
