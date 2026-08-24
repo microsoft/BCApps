@@ -27,6 +27,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
         InterimApproverRequiredErr: Label 'Select an interim approver from the available approvers.';
         InterimApproverConflictErr: Label 'The %1 cannot be the same as the %2 %3.', Comment = '%1 = Interim Approver No. caption, %2 = conflicting field caption, %3 = conflicting field value';
         InterimApproverCannotFinalizeErr: Label '%1 %2 cannot give final approval. Final approval must be completed by a different approver.', Comment = '%1 = Interim Approver No. caption, %2 = Interim Approver No.';
+        ActorNotActiveApproverErr: Label 'This expense report is awaiting approval from %1. Only that approver can approve or reject it.', Comment = '%1 = Expense User No. of the approver the report is currently assigned to';
         InterimApproverAssignedCommentTxt: Label 'Interim approver set to %1 (%2).', Locked = true;
 
     procedure ProcessAction(var ExpenseReportHeader: Record "Expense Report Header"; ActionType: Enum "Expense Approval Action")
@@ -176,6 +177,8 @@ codeunit 6901 "Expense Report Approval Mgmt"
         ExpenseReportHeader.TestApprovalPending();
         CheckApproverPermissions(ExpenseReportHeader);
         ApproverExpenseUserNo := GetExpenseUserNo();
+        CheckActorIsNotInterimApprover(ExpenseReportHeader, ApproverExpenseUserNo);
+        CheckActorIsActiveApprover(ExpenseReportHeader, ApproverExpenseUserNo);
 
         SetApprovalStatusInExpenseReport(ExpenseReportHeader, ExpenseReportHeader.Status::Rejected, ApproverExpenseUserNo, CopyStr(UserId(), 1, 50));
         LogExpenseReportRejected(ExpenseReportHeader, ApproverExpenseUserNo, '');
@@ -190,6 +193,8 @@ codeunit 6901 "Expense Report Approval Mgmt"
 
         ExpenseUser.Get(ApproverExpenseUserNo);
         CheckApproverPermissions(ExpenseUser);
+        CheckActorIsNotInterimApprover(ExpenseReportHeader, ApproverExpenseUserNo);
+        CheckActorIsActiveApprover(ExpenseReportHeader, ApproverExpenseUserNo);
 
         UpdateApproverComment(ExpenseReportHeader, RejectReason);
         SetApprovalStatusInExpenseReport(ExpenseReportHeader, ExpenseReportHeader.Status::Rejected, ApproverExpenseUserNo, ExpenseUser."User Id For Approvals");
@@ -207,6 +212,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
         CheckApproverPermissions(ExpenseReportHeader);
         ApproverExpenseUserNo := GetExpenseUserNo();
         CheckActorIsNotInterimApprover(ExpenseReportHeader, ApproverExpenseUserNo);
+        CheckActorIsActiveApprover(ExpenseReportHeader, ApproverExpenseUserNo);
 
         if ShouldRouteToFinalApprover(ExpenseReportHeader) then begin
             RouteToFinalApprover(ExpenseReportHeader, ApproverExpenseUserNo);
@@ -227,6 +233,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
         ExpenseUser.Get(ApproverExpenseUserNo);
         CheckApproverPermissions(ExpenseUser);
         CheckActorIsNotInterimApprover(ExpenseReportHeader, ApproverExpenseUserNo);
+        CheckActorIsActiveApprover(ExpenseReportHeader, ApproverExpenseUserNo);
 
         if ShouldRouteToFinalApprover(ExpenseReportHeader) then begin
             RouteToFinalApprover(ExpenseReportHeader, ApproverExpenseUserNo);
@@ -351,6 +358,18 @@ codeunit 6901 "Expense Report Approval Mgmt"
 
         if ActingApproverExpenseUserNo = ExpenseReportHeader."Interim Approver No." then
             Error(InterimApproverCannotFinalizeErr, ExpenseReportHeader.FieldCaption("Interim Approver No."), ExpenseReportHeader."Interim Approver No.");
+    end;
+
+    local procedure CheckActorIsActiveApprover(ExpenseReportHeader: Record "Expense Report Header"; ActingApproverExpenseUserNo: Code[20])
+    begin
+        if ExpenseReportHeader."Interim Approver No." = '' then
+            exit;
+
+        if ActingApproverExpenseUserNo = '' then
+            exit;
+
+        if ActingApproverExpenseUserNo <> ExpenseReportHeader."Approver Expense User No." then
+            Error(ActorNotActiveApproverErr, ExpenseReportHeader."Approver Expense User No.");
     end;
 
     local procedure SetApprovalStatusInExpenseReport(var ExpenseReportHeader: Record "Expense Report Header"; ExpenseReportStatus: Enum "Expense Report Status"; ApproverExpenseUserNo: Code[20]; ApproverUserId: Code[50])
