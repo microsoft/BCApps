@@ -48,6 +48,21 @@ pageextension 20509 "Subc. Routing Version Lines" extends "Routing Version Lines
     }
     actions
     {
+        addafter("Co&mments")
+        {
+            action("Subc. Subcontracting Comments")
+            {
+                ApplicationArea = Subcontracting;
+                Caption = 'Subcontracting Comments';
+                Enabled = TransferWIPItemEnabled;
+                Image = ViewComments;
+                RunObject = Page "Subc. Routing Comments";
+                RunPageLink = "Routing No." = field("Routing No."),
+                              "Version Code" = field("Version Code"),
+                              "Operation No." = field("Operation No.");
+                ToolTip = 'View or edit subcontracting comments for the routing version line.';
+            }
+        }
         addafter("Quality Measures")
         {
             action("Subc. Prices")
@@ -106,7 +121,7 @@ pageextension 20509 "Subc. Routing Version Lines" extends "Routing Version Lines
     local procedure UpdateWIPEnabled()
     begin
         Rec.Calcfields(Subcontracting);
-        TransferWIPItemEnabled := Rec.Subcontracting;
+        TransferWIPItemEnabled := Rec.Subcontracting and (Rec.Type = Rec.Type::"Work Center");
     end;
 
     procedure ShowRelatedSubcontractorPrices()

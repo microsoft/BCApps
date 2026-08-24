@@ -5,6 +5,7 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Tracking;
 
 using Microsoft.Inventory.Transfer;
@@ -13,7 +14,6 @@ using Microsoft.Purchases.Document;
 using Microsoft.Utilities;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.History;
-using Microsoft.Warehouse.Journal;
 
 codeunit 20551 "Subc. WhsePostReceipt Ext"
 {
@@ -183,7 +183,9 @@ codeunit 20551 "Subc. WhsePostReceipt Ext"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Post Receipt", OnPostWhseJnlLineOnAfterInsertWhseItemEntryRelation, '', false, false)]
-    local procedure SkipWhseItemEntryRelationForSubcontracting_OnPostWhseJnlLineOnAfterInsertWhseItemEntryRelation(var PostedWhseRcptHeader: Record "Posted Whse. Receipt Header"; var PostedWhseRcptLine: Record "Posted Whse. Receipt Line"; var TempWhseSplitSpecification: Record "Tracking Specification" temporary; var IsHandled: Boolean; ReceivingNo: Code[20]; PostingDate: Date; var TempWhseJnlLine: Record "Warehouse Journal Line" temporary)
+    local procedure SkipReceiptWarehouseJournalForSubcontracting_OnPostWhseJnlLineOnAfterInsertWhseItemEntryRelation(var PostedWhseRcptHeader: Record "Posted Whse. Receipt Header"; var PostedWhseRcptLine: Record "Posted Whse. Receipt Line"; var TempWhseSplitSpecification: Record "Tracking Specification" temporary; var IsHandled: Boolean)
+    var
+        Location: Record Location;
     begin
 #if not CLEAN29
 #pragma warning disable AL0432
@@ -191,10 +193,15 @@ codeunit 20551 "Subc. WhsePostReceipt Ext"
 #pragma warning restore AL0432
             exit;
 #endif
-        if PostedWhseRcptLine."Subc. Purchase Line Type" <> "Subc. Purchase Line Type"::None then
-            IsHandled := true;
+        if PostedWhseRcptLine."Subc. Purchase Line Type" = "Subc. Purchase Line Type"::None then
+            exit;
         if PostedWhseRcptLine."Transfer WIP Item" then
-            IsHandled := true;
+            exit;
+        Location.SetLoadFields("Require Put-away");
+        if not Location.Get(PostedWhseRcptLine."Location Code") then
+            exit;
+
+        IsHandled := not Location."Require Put-away";
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Warehouse Receipt Line", OnBeforeOpenItemTrackingLineForPurchLine, '', false, false)]
