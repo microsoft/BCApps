@@ -163,6 +163,11 @@ page 6928 "Expense Reports API"
                     Caption = 'Approver Comment';
                     Editable = false;
                 }
+                field(submitterComment; Rec.GetSubmitterComment())
+                {
+                    Caption = 'Submitter Comment';
+                    Editable = false;
+                }
                 field(reimbursementCurrencyCode; ReimbursementCurrencyCodeDisplay)
                 {
                     Caption = 'Reimbursement Currency Code';
@@ -406,7 +411,18 @@ page 6928 "Expense Reports API"
     [ServiceEnabled]
     procedure ReleaseAndMarkPendingApprovalExpenseReport(var ActionContext: WebServiceActionContext; SubmitterExpenseUserNo: Code[20])
     begin
-        Rec.PerformManualReleaseAndPendingApproval(SubmitterExpenseUserNo);
+        Rec.PerformManualReleaseAndPendingApproval(SubmitterExpenseUserNo, '');
+
+        ActionContext.SetObjectType(ObjectType::Page);
+        ActionContext.SetObjectId(Page::"Expense Reports API");
+        ActionContext.AddEntityKey(Rec.FieldNo(SystemId), Rec.SystemId);
+        ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
+    end;
+
+    [ServiceEnabled]
+    procedure ReleaseAndMarkPendingApprovalExpenseReportWithComment(var ActionContext: WebServiceActionContext; SubmitterExpenseUserNo: Code[20]; SubmissionComment: Text)
+    begin
+        Rec.PerformManualReleaseAndPendingApproval(SubmitterExpenseUserNo, SubmissionComment);
 
         ActionContext.SetObjectType(ObjectType::Page);
         ActionContext.SetObjectId(Page::"Expense Reports API");

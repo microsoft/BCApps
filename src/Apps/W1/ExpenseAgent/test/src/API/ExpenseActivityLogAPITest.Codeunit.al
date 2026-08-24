@@ -27,7 +27,7 @@ codeunit 148343 "Expense Activity Log API Test"
         TestDescriptionPrefixLbl: Label 'ACTIVITY API TEST ', Locked = true;
         MethodNotAllowedResponseErr: Label 'Response code is 405', Locked = true;
         BadRequestResponseErr: Label 'Response code is 400', Locked = true;
-        SubmitActionTok: Label 'Microsoft.NAV.releaseAndMarkPendingApprovalExpenseReport', Locked = true;
+        SubmitWithCommentActionTok: Label 'Microsoft.NAV.releaseAndMarkPendingApprovalExpenseReportWithComment', Locked = true;
         ApproveActionTok: Label 'Microsoft.NAV.approvedExpenseReport', Locked = true;
         RejectAndReopenActionTok: Label 'Microsoft.NAV.rejectAndReopenExpenseReport', Locked = true;
 
@@ -385,16 +385,16 @@ codeunit 148343 "Expense Activity Log API Test"
 
         // [WHEN] The report is submitted, rejected/reopened, resubmitted, and approved through API actions.
         InvokeReportAction(
-            ExpenseReportHeader.SystemId, SubmitActionTok,
-            CreateActorRequestBody('submitterExpenseUserNo', SubmitterExpenseUser."No."));
+            ExpenseReportHeader.SystemId, SubmitWithCommentActionTok,
+            CreateSubmitWithCommentRequestBody(SubmitterExpenseUser."No.", ''));
         ExpenseReportHeader.Get(ExpenseReportHeader."No.");
         InvokeReportAction(
             ExpenseReportHeader.SystemId, RejectAndReopenActionTok,
             CreateRejectRequestBody(ApproverExpenseUser."No.", 'E2E send back ' + RunToken));
         ExpenseReportHeader.Get(ExpenseReportHeader."No.");
         InvokeReportAction(
-            ExpenseReportHeader.SystemId, SubmitActionTok,
-            CreateActorRequestBody('submitterExpenseUserNo', SubmitterExpenseUser."No."));
+            ExpenseReportHeader.SystemId, SubmitWithCommentActionTok,
+            CreateSubmitWithCommentRequestBody(SubmitterExpenseUser."No.", 'E2E submitter response ' + RunToken));
         ExpenseReportHeader.Get(ExpenseReportHeader."No.");
         InvokeReportAction(
             ExpenseReportHeader.SystemId, ApproveActionTok,
@@ -488,6 +488,12 @@ codeunit 148343 "Expense Activity Log API Test"
     begin
         RequestBody.Add('approverExpenseUserNo', ApproverExpenseUserNo);
         RequestBody.Add('rejectReason', RejectReason);
+    end;
+
+    local procedure CreateSubmitWithCommentRequestBody(SubmitterExpenseUserNo: Code[20]; SubmissionComment: Text) RequestBody: JsonObject
+    begin
+        RequestBody.Add('submitterExpenseUserNo', SubmitterExpenseUserNo);
+        RequestBody.Add('submissionComment', SubmissionComment);
     end;
 
     local procedure InvokeReportAction(ReportSystemID: Guid; ActionName: Text; RequestBody: JsonObject)

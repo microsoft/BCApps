@@ -155,7 +155,7 @@ codeunit 6984 "Release Exp. Report Document"
         ExpenseReportApprovalMgmt.Submit(ExpReportHeader, SubmitterExpenseUserNo);
     end;
 
-    procedure PerformManualReleaseAndPendingApproval(var ExpReportHeader: Record "Expense Report Header"; SubmitterExpenseUserNo: Code[20])
+    procedure PerformManualReleaseAndPendingApproval(var ExpReportHeader: Record "Expense Report Header"; SubmitterExpenseUserNo: Code[20]; SubmissionComment: Text)
     var
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
@@ -164,7 +164,7 @@ codeunit 6984 "Release Exp. Report Document"
         ExpReportHeader.Get(ExpReportHeader."No.");
 
         CheckPendingApprovalStatus(ExpReportHeader);
-        ExpenseReportApprovalMgmt.Submit(ExpReportHeader, SubmitterExpenseUserNo);
+        ExpenseReportApprovalMgmt.Submit(ExpReportHeader, SubmitterExpenseUserNo, SubmissionComment);
     end;
 
     local procedure CheckPendingApprovalStatus(var ExpReportHeader: Record "Expense Report Header")

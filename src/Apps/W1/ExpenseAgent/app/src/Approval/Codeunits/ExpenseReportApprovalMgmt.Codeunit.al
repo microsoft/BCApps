@@ -69,24 +69,19 @@ codeunit 6901 "Expense Report Approval Mgmt"
     end;
 
     procedure Submit(var ExpenseReportHeader: Record "Expense Report Header")
-    var
-        ExpenseUser: Record "Expense User";
-        IsResubmission: Boolean;
     begin
         if ExpenseReportHeader.Status = ExpenseReportHeader.Status::"Pending Approval" then
             exit;
 
-        IsResubmission := ExpenseReportHeader."Submission DateTime" <> 0DT;
-        ExpenseUser.Get(GetExpenseUserNo());
-        ExpenseReportHeader.TestApprovalStatus();
-
-        ExpenseReportHeader.UpdateApproverID();
-
-        SetApprovalStatusToPendingApprovalInExpenseReport(ExpenseReportHeader, ExpenseUser."No.", ExpenseUser."User Id For Approvals");
-        LogExpenseReportSubmission(ExpenseReportHeader, ExpenseUser."No.", IsResubmission);
+        Submit(ExpenseReportHeader, GetExpenseUserNo(), '');
     end;
 
     internal procedure Submit(var ExpenseReportHeader: Record "Expense Report Header"; SubmitterExpenseUserNo: Code[20])
+    begin
+        Submit(ExpenseReportHeader, SubmitterExpenseUserNo, '');
+    end;
+
+    internal procedure Submit(var ExpenseReportHeader: Record "Expense Report Header"; SubmitterExpenseUserNo: Code[20]; SubmissionComment: Text)
     var
         ExpenseUser: Record "Expense User";
         IsResubmission: Boolean;
@@ -97,11 +92,10 @@ codeunit 6901 "Expense Report Approval Mgmt"
         IsResubmission := ExpenseReportHeader."Submission DateTime" <> 0DT;
         ExpenseUser.Get(SubmitterExpenseUserNo);
         ExpenseReportHeader.TestApprovalStatus();
-
         ExpenseReportHeader.UpdateApproverID();
-
+        UpdateSubmitterComment(ExpenseReportHeader, SubmissionComment);
         SetApprovalStatusToPendingApprovalInExpenseReport(ExpenseReportHeader, SubmitterExpenseUserNo, ExpenseUser."User Id For Approvals");
-        LogExpenseReportSubmission(ExpenseReportHeader, SubmitterExpenseUserNo, IsResubmission);
+        LogExpenseReportSubmission(ExpenseReportHeader, SubmitterExpenseUserNo, IsResubmission, SubmissionComment);
     end;
 
     procedure ReopenSubmitted(var ExpenseReportHeader: Record "Expense Report Header")
@@ -240,10 +234,17 @@ codeunit 6901 "Expense Report Approval Mgmt"
         Clear(ExpenseReportHeader."Approver Comment");
         ExpenseReportHeader."Approver Comment".CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText(Comment);
-        ExpenseReportHeader.Modify(true);
     end;
 
-    local procedure LogExpenseReportSubmission(ExpenseReportHeader: Record "Expense Report Header"; SubmitterExpenseUserNo: Code[20]; IsResubmission: Boolean)
+    local procedure UpdateSubmitterComment(var ExpenseReportHeader: Record "Expense Report Header"; Comment: Text)
+    var
+        OutStream: OutStream;
+    begin
+        ExpenseReportHeader."Submitter Comment".CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(Comment);
+    end;
+
+    local procedure LogExpenseReportSubmission(ExpenseReportHeader: Record "Expense Report Header"; SubmitterExpenseUserNo: Code[20]; IsResubmission: Boolean; EventComment: Text)
     var
         ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
         EventType: Enum "Expense Activity Event Type";
@@ -263,7 +264,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
             Enum::"Expense Activity Initiator"::User,
             Enum::"Expense Activity Actor Role"::Submitter,
             SubmitterExpenseUserNo,
-            '');
+            EventComment);
     end;
 
     local procedure LogExpenseReportEvent(

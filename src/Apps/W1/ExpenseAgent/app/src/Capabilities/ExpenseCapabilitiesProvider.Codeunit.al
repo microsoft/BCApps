@@ -36,6 +36,8 @@ codeunit 6906 "Expense Capabilities Provider"
                 exit(true);
             Capability::AiAssistedPolicyEvaluation:
                 exit(IsAiAssistedPolicyEvaluationEnabled());
+            Capability::ApprovalConversation:
+                exit(true);
         end;
         exit(false);
     end;

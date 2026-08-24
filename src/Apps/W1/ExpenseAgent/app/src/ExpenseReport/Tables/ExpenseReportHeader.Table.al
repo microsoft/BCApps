@@ -424,7 +424,13 @@ table 6906 "Expense Report Header"
         {
             Caption = 'Approver Comment';
             DataClassification = CustomerContent;
-            ToolTip = 'Specifies the comment from approver when approving or rejecting an expense report.';
+            ToolTip = 'Specifies the latest comment from the approver when approving or rejecting an expense report.';
+        }
+        field(49; "Submitter Comment"; Blob)
+        {
+            Caption = 'Submitter Comment';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the latest comment from the submitter when submitting an expense report or resubmitting a rejected expense report.';
         }
         field(50; "Reimbursement Currency Factor"; Decimal)
         {
@@ -834,14 +840,15 @@ table 6906 "Expense Report Header"
     end;
 
     /// <summary>
-    /// Releases and marks as pending approval in a single atomic operation.
+    /// Releases and submits an expense report with an optional submitter comment.
     /// </summary>
     /// <param name="SubmitterExpenseUserNo">The expense user number of the submitter.</param>
-    procedure PerformManualReleaseAndPendingApproval(SubmitterExpenseUserNo: Code[20])
+    /// <param name="SubmissionComment">The optional comment supplied by the submitter.</param>
+    procedure PerformManualReleaseAndPendingApproval(SubmitterExpenseUserNo: Code[20]; SubmissionComment: Text)
     var
         ReleaseExpenseReportDoc: Codeunit "Release Exp. Report Document";
     begin
-        ReleaseExpenseReportDoc.PerformManualReleaseAndPendingApproval(Rec, SubmitterExpenseUserNo);
+        ReleaseExpenseReportDoc.PerformManualReleaseAndPendingApproval(Rec, SubmitterExpenseUserNo, SubmissionComment);
     end;
 
     /// <summary>
@@ -954,6 +961,20 @@ table 6906 "Expense Report Header"
         Rec.CalcFields("Approver Comment");
         Rec."Approver Comment".CreateInStream(InStream, TextEncoding::UTF8);
         exit(TypeHelper.TryReadAsTextWithSepAndFieldErrMsg(InStream, TypeHelper.LFSeparator(), FieldName(Rec."Approver Comment")));
+    end;
+
+    /// <summary>
+    /// Retrieves submitter comment from the expense report header.
+    /// </summary>
+    /// <returns>Submitter comment.</returns>
+    procedure GetSubmitterComment() SubmitterComment: Text
+    var
+        TypeHelper: Codeunit "Type Helper";
+        InStream: InStream;
+    begin
+        Rec.CalcFields("Submitter Comment");
+        Rec."Submitter Comment".CreateInStream(InStream, TextEncoding::UTF8);
+        exit(TypeHelper.TryReadAsTextWithSepAndFieldErrMsg(InStream, TypeHelper.LFSeparator(), FieldName(Rec."Submitter Comment")));
     end;
 
     local procedure ConfirmUpdateAllLineDim() Confirmed: Boolean;

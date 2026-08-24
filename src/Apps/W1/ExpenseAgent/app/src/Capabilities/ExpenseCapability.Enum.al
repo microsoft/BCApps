@@ -73,4 +73,12 @@ enum 6984 "Expense Capability"
     {
         Caption = 'AI-Assisted Policy Evaluation', Locked = true;
     }
+
+    /// <summary>
+    /// Approval comments can be exchanged during rejection and resubmission.
+    /// </summary>
+    value(6; ApprovalConversation)
+    {
+        Caption = 'Approval Conversation', Locked = true;
+    }
 }
