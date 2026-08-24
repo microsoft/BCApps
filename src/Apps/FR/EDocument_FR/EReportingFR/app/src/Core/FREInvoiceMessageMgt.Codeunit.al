@@ -241,16 +241,16 @@ codeunit 10975 "FR E-Invoice Message Mgt."
         VATEntryCurrencyErrorInfo: ErrorInfo;
         GrossAmount: Decimal;
     begin
-        if VATEntry."Source Currency Code" = CurrencyCode then
-            GrossAmount := -(VATEntry."Source Currency VAT Base" + VATEntry."Source Currency VAT Amount")
-        else
-            if VATEntry."Source Currency Code" = '' then
+        case true of
+            VATEntry."Source Currency Code" = CurrencyCode:
+                GrossAmount := -(VATEntry."Source Currency VAT Base" + VATEntry."Source Currency VAT Amount");
+            VATEntry."Source Currency Code" = '':
                 GrossAmount := -(VATEntry.Base + VATEntry.Amount)
-            else begin
+            else
                 VATEntryCurrencyErrorInfo.ErrorType(ErrorType::Internal);
                 VATEntryCurrencyErrorInfo.Message(StrSubstNo(VATEntryCurrencyErr, VATEntry."Entry No.", CurrencyCode));
                 Error(VATEntryCurrencyErrorInfo);
-            end;
+        end;
 
         if (GrossAmount = 0) and IsVATEntryReportable(VATEntry) then
             GrossAmount := -(VATEntry."Unrealized Base" + VATEntry."Unrealized Amount");
