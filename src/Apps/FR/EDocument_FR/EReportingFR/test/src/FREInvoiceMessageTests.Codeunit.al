@@ -539,6 +539,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
         ReversalVAT: Record "FR E-Invoice Message VAT";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         NewDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        SalesInvoiceLine: Record "Sales Invoice Line";
         VATPostingSetup: Record "VAT Posting Setup";
         FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
     begin
@@ -557,9 +558,9 @@ codeunit 148151 "FR E-Invoice Message Tests"
         OriginalVAT.FindFirst();
 
         // [GIVEN] VAT and sender-platform setup are changed after the original message
-        VATPostingSetup.SetRange("Tax Category", 'S');
-        VATPostingSetup.SetRange("Unrealized VAT Type", VATPostingSetup."Unrealized VAT Type"::Percentage);
-        VATPostingSetup.FindFirst();
+        SalesInvoiceLine.SetRange("Document No.", EDocument."Document No.");
+        SalesInvoiceLine.FindFirst();
+        VATPostingSetup.Get(SalesInvoiceLine."VAT Bus. Posting Group", SalesInvoiceLine."VAT Prod. Posting Group");
         VATPostingSetup."Tax Category" := 'Z';
         VATPostingSetup.Modify();
         EDocumentService.Get(EDocument.Service);

@@ -50,7 +50,6 @@ codeunit 148148 "Factur-X CII XML Tests"
         CIIXMLBuilder: Codeunit "CII XML Builder";
         FacturXFormat: Codeunit "Factur-X Format";
         IncorrectValueErr: Label 'Incorrect value for %1', Comment = '%1 = XML element path', Locked = true;
-        BuyerElectronicAddressRequiredErr: Label 'Electronic Address must be specified for Customer %1 for French e-invoicing.', Comment = '%1 = Customer No.';
         FacturXProfileIdTok: Label 'urn:cen.eu:en16931:2017', Locked = true;
         DialogErrorCodeTok: Label 'Dialog', Locked = true;
         IsInitialized: Boolean;
@@ -1836,13 +1835,6 @@ codeunit 148148 "Factur-X CII XML Tests"
     begin
         SalesHeader.Get("Sales Document Type"::Invoice, CreateSalesDocumentWithLine("Sales Document Type"::Invoice, ''));
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
-    end;
-
-    local procedure CreateSalesDocument(var SalesHeader: Record "Sales Header"; CustomerNo: Code[20])
-    begin
-        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CustomerNo);
-        SalesHeader.Validate("Your Reference", 'FR-BUYER-REF');
-        SalesHeader.Modify(true);
     end;
 
     local procedure CreateAndPostSalesInvoiceForCustomer(CustomerNo: Code[20]): Code[20]
