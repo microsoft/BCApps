@@ -420,8 +420,8 @@ page 6928 "Expense Reports API"
         ActionContext.AddEntityKey(Rec.FieldNo(SystemId), Rec.SystemId);
         ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
     end;
-#endif
 
+#endif
     [ServiceEnabled]
     procedure ReleaseAndMarkPendingApprovalExpenseReportWithComment(var ActionContext: WebServiceActionContext; SubmitterExpenseUserNo: Code[20]; SubmissionComment: Text)
     begin
