@@ -4,18 +4,17 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Formats;
 
-using Microsoft.eServices.EDocument;
+using Microsoft.Sales.Comment;
 
-pageextension 10974 "E-Reporting E-Documents" extends "E-Documents"
+pageextension 10975 "FR Sales Comment Sheet" extends "Sales Comment Sheet"
 {
     layout
     {
-        addlast(DocumentList)
+        addafter(Comment)
         {
-            field("Clearance Date"; Rec."Clearance Date")
+            field("FR Regulatory Comment Type"; Rec."FR Regulatory Comment Type")
             {
-                ApplicationArea = Basic, Suite;
-                Caption = 'E-Reporting Acceptance Date';
+                ApplicationArea = Comments;
             }
         }
     }

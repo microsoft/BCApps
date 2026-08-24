@@ -155,14 +155,30 @@ page 4409 "SOA Create Task"
     }
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
-    var
-        TempAgentTaskFile: Record "Agent Task File" temporary;
     begin
         if not (CloseAction in [Action::Ok, Action::LookupOK, Action::Yes]) then
             exit(true);
 
-        if CurrPage.MessageAttachments.Page.GetUploadedFiles(TempAgentTaskFile) then;
-        SOACreateTaskImpl.CreateTask(SenderEmail, MessageText, TempAgentTaskFile);
+        SOACreateTaskImpl.ValidateTaskData(SenderEmail, MessageText);
+
+        Clear(TempConfirmedAttachment);
+        if CurrPage.MessageAttachments.Page.GetUploadedFiles(TempConfirmedAttachment) then;
+        TaskDataConfirmed := true;
+        exit(true);
+    end;
+
+    internal procedure GetConfirmedTaskData(var SenderEmailValue: Text[250]; var MessageTextValue: Text; var TempAgentTaskFile: Record "Agent Task File" temporary): Boolean
+    begin
+        if not TaskDataConfirmed then
+            exit(false);
+
+        SenderEmailValue := SenderEmail;
+        MessageTextValue := MessageText;
+        if TempConfirmedAttachment.FindSet() then
+            repeat
+                TempAgentTaskFile.Copy(TempConfirmedAttachment);
+                TempAgentTaskFile.Insert();
+            until TempConfirmedAttachment.Next() = 0;
         exit(true);
     end;
 
@@ -191,10 +207,12 @@ page 4409 "SOA Create Task"
     end;
 
     var
+        TempConfirmedAttachment: Record "Agent Task File" temporary;
         SOACreateTaskImpl: Codeunit "SOA Create Task Impl";
         MessageText: Text;
         SenderEmail: Text[250];
         Sender: Option Contact,Customer;
+        TaskDataConfirmed: Boolean;
         UseSampleMessageLbl: Label 'Use sample message';
         SampleMessageOptionsQst: Label 'Message with text only,Message with attachment', Comment = 'Comma-separated options shown when choosing which sample message to load.';
         SampleMessageInstructionQst: Label 'Use a sample:';
