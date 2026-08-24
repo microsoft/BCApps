@@ -719,6 +719,21 @@ codeunit 148148 "Factur-X CII XML Tests"
     end;
 
     [Test]
+    procedure FacturXSalesInvoiceUsesCompanyBankAccountWhenCodeIsBlank()
+    var
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [SCENARIO] A blank company bank account code falls back to Company Information payment details
+        Initialize();
+
+        CreateSalesInvoiceCIIXML(TempBlob);
+
+        Assert.AreEqual(DelChr(CompanyInformation.IBAN, '=', ' '),
+            GetCIINodeValue(TempBlob, '//ram:PayeePartyCreditorFinancialAccount/ram:IBANID'),
+            StrSubstNo(IncorrectValueErr, '//ram:PayeePartyCreditorFinancialAccount/ram:IBANID'));
+    end;
+
+    [Test]
     procedure FacturXSalesInvoiceXMLHasTaxBreakdown()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -805,7 +820,7 @@ codeunit 148148 "Factur-X CII XML Tests"
 
         // [THEN] The category 'E' header VAT breakdown contains fallback exemption reason text
         ExemptionReasonXPath := '//ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax[ram:CategoryCode="E"]/ram:ExemptionReason';
-        Assert.AreEqual('Exempt from VAT', GetCIINodeValue(TempBlob, ExemptionReasonXPath),
+        Assert.AreEqual('Exonéré de TVA', GetCIINodeValue(TempBlob, ExemptionReasonXPath),
             StrSubstNo(IncorrectValueErr, ExemptionReasonXPath));
         Assert.AreEqual(1, GetCIINodeCount(TempBlob, ExemptionReasonXPath + '/following-sibling::ram:BasisAmount'),
             StrSubstNo(IncorrectValueErr, 'ExemptionReason must precede BasisAmount'));
@@ -1798,8 +1813,10 @@ codeunit 148148 "Factur-X CII XML Tests"
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Factur-X CII XML Tests");
         EDocumentService.DeleteAll();
-        if IsInitialized then
+        if IsInitialized then begin
+            LibrarySetupStorage.Restore();
             exit;
+        end;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Factur-X CII XML Tests");
 
         CompanyInformation.Get();
