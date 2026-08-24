@@ -81,6 +81,10 @@ pageextension 20401 "Qlty. Output Journal" extends "Output Journal"
         }
     }
 
+    /// <summary>
+    /// Determines whether the current output journal line identifies a persisted item line.
+    /// </summary>
+    /// <returns>True if the line has a system ID and an item number; otherwise, false.</returns>
     local procedure CanBeProcessed(): Boolean
     begin
         if IsNullGuid(Rec.SystemId) then

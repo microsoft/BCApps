@@ -839,6 +839,7 @@ table 1226 "Payment Export Data"
     local procedure FillSwissFieldsFromVendorBankAccount(VendorBankAccount: Record "Vendor Bank Account")
     var
         DtaMgt: Codeunit DtaMgt;
+        CHMgt: Codeunit CHMgt;
     begin
         if not SwissExport then
             exit;
@@ -853,7 +854,12 @@ table 1226 "Payment Export Data"
                 end;
             "Swiss Payment Type"::"2.2":
                 begin
-                    "Recipient Bank BIC" := CopyStr("Recipient Bank Acc. No.", 1, MaxStrLen("Recipient Bank BIC"));
+                    // The clearing member id (MmbId) is the bank clearing number. Use the Clearing No. when set,
+                    // otherwise derive it from the domestic IBAN so it is not left as the full IBAN.
+                    if VendorBankAccount."Clearing No." <> '' then
+                        "Recipient Bank BIC" := VendorBankAccount."Clearing No."
+                    else
+                        "Recipient Bank BIC" := CHMgt.GetClearingNoFromIBAN(VendorBankAccount.IBAN);
                     "Recipient Bank Acc. No." := DtaMgt.IBANDELCHR(VendorBankAccount.IBAN);
                 end;
             "Swiss Payment Type"::"6":

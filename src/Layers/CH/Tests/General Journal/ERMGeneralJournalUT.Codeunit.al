@@ -25,7 +25,6 @@ codeunit 134920 "ERM General Journal UT"
         GenJnlManagement: Codeunit GenJnlManagement;
         LibraryDimension: Codeunit "Library - Dimension";
         LibraryVariableStorageCounter: Codeunit "Library - Variable Storage";
-        IsInitialized: Boolean;
         DocNoFilterErr: Label 'The document numbers cannot be renumbered while there is an active filter on the Document No. field.';
         WrongJobQueueStatus: Label 'Journal line cannot be modified because it has been scheduled for posting.';
         WrongFieldVisibilityErr: Label 'Wrong field visiblity';
@@ -36,6 +35,17 @@ codeunit 134920 "ERM General Journal UT"
         VATAmountLCYErr: Label 'Invalid VAT Amount LCY';
         GenJouranlLinePostedMsg: Label 'The journal lines were successfully posted.';
         NoSeriesLineStartDateErr: Label 'Starting Date not updated.';
+        ValidRecurringFrequencyTok: Label '1M', Locked = true;
+        InvalidRecurringFrequencyTok: Label 'ABC', Locked = true;
+        InvalidRecurringFrequencyErr: Label 'The recurring frequency %1 is not a valid date formula.', Comment = '%1 = the entered recurring frequency value';
+        RecurringFrequencyNotValidErr: Label 'The test recurring frequency must be a valid date formula.';
+        GenJournalLineNotFoundErr: Label 'The general journal line was not found.';
+        RecurringFrequencyNotDisplayedErr: Label 'Recurring Frequency should be displayed as the formatted date formula.';
+        RecurringFrequencyNotPersistedErr: Label 'The entered recurring frequency was not persisted.';
+        RecurringFrequencyNotClearedErr: Label 'The recurring frequency should be cleared.';
+        YearlyRecurringFrequencyTok: Label '1Y', Locked = true;
+        RecurringFrequencyNotLocalizedErr: Label 'The recurring frequency should be displayed using the localized date formula tokens.';
+        IsInitialized: Boolean;
 
     [Test]
     [Scope('OnPrem')]
@@ -5915,6 +5925,181 @@ codeunit 134920 "ERM General Journal UT"
         Assert.AreEqual(BatchName2, TestPageGeneralJournal.CurrentJnlBatchName.Value(),
             'Should be able to switch from empty batch without error');
         TestPageGeneralJournal.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure RecurringFrequencyDisplaysFormattedText()
+    var
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        RecurringFrequency: DateFormula;
+        RecurringGeneralJournal: TestPage "Recurring General Journal";
+    begin
+        // [SCENARIO] The Recurring Frequency field shows the formatted (localized) date formula that Edit in Excel exports.
+        Initialize();
+
+        // [GIVEN] A recurring journal line with Recurring Frequency 1M
+        CreateRecurringGeneralJournalLine(GenJournalLine, GenJournalTemplate, GenJournalBatch);
+        Assert.IsTrue(Evaluate(RecurringFrequency, ValidRecurringFrequencyTok), RecurringFrequencyNotValidErr);
+        GenJournalLine.Validate("Recurring Frequency", RecurringFrequency);
+        GenJournalLine.Modify(true);
+
+        // [WHEN] The Recurring General Journal page is opened on the line
+        RecurringGeneralJournal.Trap();
+        Page.Run(Page::"Recurring General Journal", GenJournalLine);
+
+        // [THEN] The field displays the formatted date formula
+        Assert.AreEqual(Format(RecurringFrequency), RecurringGeneralJournal."Recurring Frequency".Value, RecurringFrequencyNotDisplayedErr);
+        RecurringGeneralJournal.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure RecurringFrequencyAcceptsValidDateFormula()
+    var
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        ExpectedRecurringFrequency: DateFormula;
+        RecurringGeneralJournal: TestPage "Recurring General Journal";
+    begin
+        // [SCENARIO] Entering a valid date formula text persists it as a DateFormula on the journal line.
+        Initialize();
+        Assert.IsTrue(Evaluate(ExpectedRecurringFrequency, ValidRecurringFrequencyTok), RecurringFrequencyNotValidErr);
+
+        // [GIVEN] A recurring journal line open on the Recurring General Journal page
+        CreateRecurringGeneralJournalLine(GenJournalLine, GenJournalTemplate, GenJournalBatch);
+        RecurringGeneralJournal.Trap();
+        Page.Run(Page::"Recurring General Journal", GenJournalLine);
+
+        // [WHEN] A valid recurring frequency is entered
+        RecurringGeneralJournal."Recurring Frequency".SetValue(ValidRecurringFrequencyTok);
+        RecurringGeneralJournal.Close();
+
+        // [THEN] The date formula is persisted on the line
+        Assert.IsTrue(GenJournalLine.Get(GenJournalLine."Journal Template Name", GenJournalLine."Journal Batch Name", GenJournalLine."Line No."), GenJournalLineNotFoundErr);
+        Assert.AreEqual(ExpectedRecurringFrequency, GenJournalLine."Recurring Frequency", RecurringFrequencyNotPersistedErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure EmptyRecurringFrequencyClearsValue()
+    var
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        RecurringFrequency: DateFormula;
+        RecurringGeneralJournal: TestPage "Recurring General Journal";
+    begin
+        // [SCENARIO] Clearing the Recurring Frequency field empties the date formula without error.
+        Initialize();
+
+        // [GIVEN] A recurring journal line with Recurring Frequency 1M open on the page
+        CreateRecurringGeneralJournalLine(GenJournalLine, GenJournalTemplate, GenJournalBatch);
+        Assert.IsTrue(Evaluate(RecurringFrequency, ValidRecurringFrequencyTok), RecurringFrequencyNotValidErr);
+        GenJournalLine.Validate("Recurring Frequency", RecurringFrequency);
+        GenJournalLine.Modify(true);
+        RecurringGeneralJournal.Trap();
+        Page.Run(Page::"Recurring General Journal", GenJournalLine);
+
+        // [WHEN] The recurring frequency is cleared
+        RecurringGeneralJournal."Recurring Frequency".SetValue('');
+        RecurringGeneralJournal.Close();
+
+        // [THEN] The recurring frequency on the line is empty
+        Assert.IsTrue(GenJournalLine.Get(GenJournalLine."Journal Template Name", GenJournalLine."Journal Batch Name", GenJournalLine."Line No."), GenJournalLineNotFoundErr);
+        Assert.AreEqual('', Format(GenJournalLine."Recurring Frequency"), RecurringFrequencyNotClearedErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure InvalidRecurringFrequencyRaisesError()
+    var
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        RecurringGeneralJournal: TestPage "Recurring General Journal";
+    begin
+        // [SCENARIO] Entering an invalid date formula text raises a descriptive error.
+        Initialize();
+
+        // [GIVEN] A recurring journal line open on the Recurring General Journal page
+        CreateRecurringGeneralJournalLine(GenJournalLine, GenJournalTemplate, GenJournalBatch);
+        RecurringGeneralJournal.Trap();
+        Page.Run(Page::"Recurring General Journal", GenJournalLine);
+
+        // [WHEN] An invalid recurring frequency is entered
+        asserterror RecurringGeneralJournal."Recurring Frequency".SetValue(InvalidRecurringFrequencyTok);
+
+        // [THEN] A date formula validation error is raised
+        Assert.ExpectedError(StrSubstNo(InvalidRecurringFrequencyErr, InvalidRecurringFrequencyTok));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure RecurringFrequencyDisplaysLocalizedGermanDateFormula()
+    var
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        RecurringFrequency: DateFormula;
+        PreviousGlobalLanguage: Integer;
+        InvariantRecurringFrequency: Text;
+        LocalizedRecurringFrequency: Text;
+        ExpectedLocalizedRecurringFrequency: Text;
+        LocalizedValuesRead: Boolean;
+    begin
+        // [SCENARIO 646602] In a German session the Recurring Frequency field exposes the localized date formula token (1J for a year) that Edit in Excel exports, not the invariant token (1Y).
+        Initialize();
+
+        // [GIVEN] A recurring journal line with a yearly Recurring Frequency stored while the session is English (invariant tokens)
+        CreateRecurringGeneralJournalLine(GenJournalLine, GenJournalTemplate, GenJournalBatch);
+        Assert.IsTrue(Evaluate(RecurringFrequency, YearlyRecurringFrequencyTok), RecurringFrequencyNotValidErr);
+        GenJournalLine.Validate("Recurring Frequency", RecurringFrequency);
+        GenJournalLine.Modify(true);
+        InvariantRecurringFrequency := Format(GenJournalLine."Recurring Frequency");
+
+        // [GIVEN] The session language is German (DEU)
+        PreviousGlobalLanguage := GlobalLanguage();
+        GlobalLanguage(1031);
+
+        // [WHEN] The Recurring General Journal page is opened on the line and its localized values are read
+        // Restore the session language through a cleanup path so it is always reset, even if the page interaction fails, preventing German from leaking into later tests
+        LocalizedValuesRead := TryReadLocalizedRecurringFrequency(GenJournalLine, LocalizedRecurringFrequency, ExpectedLocalizedRecurringFrequency);
+        GlobalLanguage(PreviousGlobalLanguage);
+        if not LocalizedValuesRead then
+            Error(GetLastErrorText());
+
+        // [THEN] The field shows the German localized date formula (1J), matching Format() in the German session and differing from the invariant token (1Y)
+        Assert.AreEqual(ExpectedLocalizedRecurringFrequency, LocalizedRecurringFrequency, RecurringFrequencyNotLocalizedErr);
+        Assert.AreNotEqual(InvariantRecurringFrequency, LocalizedRecurringFrequency, RecurringFrequencyNotLocalizedErr);
+    end;
+
+    [TryFunction]
+    local procedure TryReadLocalizedRecurringFrequency(var GenJournalLine: Record "Gen. Journal Line"; var LocalizedRecurringFrequency: Text; var ExpectedLocalizedRecurringFrequency: Text)
+    var
+        RecurringGeneralJournal: TestPage "Recurring General Journal";
+    begin
+        RecurringGeneralJournal.Trap();
+        Page.Run(Page::"Recurring General Journal", GenJournalLine);
+        LocalizedRecurringFrequency := RecurringGeneralJournal."Recurring Frequency".Value;
+        RecurringGeneralJournal.Close();
+        ExpectedLocalizedRecurringFrequency := Format(GenJournalLine."Recurring Frequency");
+    end;
+
+    local procedure CreateRecurringGeneralJournalLine(var GenJournalLine: Record "Gen. Journal Line"; var GenJournalTemplate: Record "Gen. Journal Template"; var GenJournalBatch: Record "Gen. Journal Batch")
+    begin
+        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
+        GenJournalTemplate.Validate(Type, GenJournalTemplate.Type::General);
+        GenJournalTemplate.Modify(true);
+        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
+        LibraryERM.CreateGeneralJnlLine(
+          GenJournalLine, GenJournalTemplate.Name, GenJournalBatch.Name, GenJournalLine."Document Type"::" ",
+          GenJournalLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), 0);
+        GenJournalLine.Validate("Document No.", LibraryUtility.GenerateGUID());
+        GenJournalLine.Modify(true);
     end;
 
     local procedure Initialize()

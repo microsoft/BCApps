@@ -40,6 +40,7 @@ codeunit 4304 "SOA Session Events"
         SetupKPITrackingEvents();
         SetupItemSearchEvents(AgentTaskID);
         SetupFilteringEvents(AgentTaskID);
+        SetupContactSearchEvents(AgentTaskID);
         SetupDocumentEvents(AgentTaskID);
     end;
 
@@ -84,6 +85,12 @@ codeunit 4304 "SOA Session Events"
         if BindSubscription(GlobalSOAVariantSearch) then;
     end;
 
+    local procedure SetupContactSearchEvents(AgentTaskID: BigInteger)
+    begin
+        GlobalSOAContactSearchImpl.SetAgentTaskID(AgentTaskID);
+        if BindSubscription(GlobalSOAContactSearchImpl) then;
+    end;
+
     local procedure SetupDocumentEvents(AgentTaskID: Integer)
     begin
         GlobalSOADocumentEvents.SetAgentTaskID(AgentTaskID);
@@ -112,6 +119,7 @@ codeunit 4304 "SOA Session Events"
     var
         GlobalSOADocumentEvents: Codeunit "SOA Document Events";
         GlobalSessionFilter: Codeunit "SOA Session Filter";
+        GlobalSOAContactSearchImpl: Codeunit "SOA Contact Search Impl";
         GlobalSOAItemSearch: Codeunit "SOA Item Search";
         GlobalSOAVariantSearch: Codeunit "SOA Variant Search";
         GlobalSOAKPITrackAgents: Codeunit "SOA - KPI Track Agents";

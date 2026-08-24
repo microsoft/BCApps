@@ -5180,6 +5180,9 @@ table 81 "Gen. Journal Line"
             then
                 CustCheckCreditLimit.GenJnlLineCheck(Rec);
 
+        if "Spend Request No." <> '' then
+            CheckSpendRequestAmount();
+
         Validate("VAT %");
         Validate("Bal. VAT %");
         UpdateLineBalance();
@@ -5194,6 +5197,13 @@ table 81 "Gen. Journal Line"
         end;
 
         OnAfterValidateAmount(Rec);
+    end;
+
+    local procedure CheckSpendRequestAmount()
+    var
+        SpendRequest: Record "Spend Request";
+    begin
+        SpendRequest.CheckSpendRequestAmount(Rec."Spend Request No.", Rec."Amount (LCY)");
     end;
 
     local procedure UpdateApplyToAmount()
@@ -7298,6 +7308,8 @@ table 81 "Gen. Journal Line"
     end;
 
     procedure CopyFromPurchHeaderPrepmtPost(PurchHeader: Record "Purchase Header"; UsePmtDisc: Boolean)
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
     begin
         "Account Type" := "Account Type"::Vendor;
         "Account No." := PurchHeader."Pay-to Vendor No.";
@@ -7314,6 +7326,13 @@ table 81 "Gen. Journal Line"
         "Due Date" := PurchHeader."Prepayment Due Date";
         "Payment Terms Code" := PurchHeader."Payment Terms Code";
         "Payment Method Code" := PurchHeader."Payment Method Code";
+        if PurchHeader."Payment Reference" <> '' then
+            "Payment Reference" := PurchHeader."Payment Reference"
+        else begin
+            PurchasesPayablesSetup.Get();
+            if PurchasesPayablesSetup."Copy Inv. No. To Pmt. Ref." then
+                "Payment Reference" := PurchHeader."Vendor Invoice No.";
+        end;
         if UsePmtDisc then begin
             "Pmt. Discount Date" := PurchHeader."Prepmt. Pmt. Discount Date";
             "Payment Discount %" := PurchHeader."Prepmt. Payment Discount %";
