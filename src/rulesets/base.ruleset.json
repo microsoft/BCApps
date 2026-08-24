@@ -46,11 +46,6 @@
       "action": "Warning"
     },
     {
-      "id": "AL0659",
-      "action": "Warning",
-      "justification": "The length of the enum identifier 'Acc. Schedule Line Totaling Type' should not exceed 30 characters as it may result in runtime issues in cases where there are other enums with the same first 30 characters."
-    },
-    {
       "id": "AL0667",
       "action": "Warning",
       "justification": "'ObsoleteReason' is being deprecated in the versions: '1.0' or greater. This property is not allowed on areas. This warning will become an error in a future release."
@@ -59,10 +54,6 @@
       "id": "AL0684",
       "action": "None",
       "justification": "The permissionset contains permissionsets or permission for objects from other module. Permissions on objects from other modules will be ignored."
-    },
-    {
-      "id": "AL0685",
-      "action": "Warning"
     },
     {
       "id": "AL0717",
