@@ -1129,7 +1129,7 @@ table 8059 "Subscription Line"
         DimMgt.UpdateGlobalDimFromDimSetID("Dimension Set ID", "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
     end;
 
-    procedure ApplyContractDimensions(ContractDimSetID: Integer; SourceCode: Code[10]; ContractPartnerTableID: Integer)
+    internal procedure ApplyContractDimensions(ContractDimSetID: Integer; SourceCode: Code[10]; ContractPartnerTableID: Integer)
     var
         DefaultDimSource: List of [Dictionary of [Integer, Code[20]]];
         HighPriorityDimSource: List of [Dictionary of [Integer, Code[20]]];
