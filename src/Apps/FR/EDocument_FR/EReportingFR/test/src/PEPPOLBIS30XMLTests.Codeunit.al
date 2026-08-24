@@ -762,7 +762,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     end;
 
     [Test]
-    procedure ExportSalesInvUsesSellerVATFallbackWhenSIRETIsEmpty()
+    procedure ExportSalesInvUsesSellerVATFallbackWhenSIRETAndSIRENAreEmpty()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         XmlDoc: XmlDocument;
@@ -773,9 +773,9 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         Initialize();
 
         // [GIVEN] Company with blank SIRET No. and Registration No., and a VAT registration number
+        CompanyInformation.Get();
         OriginalSIRETNo := CompanyInformation."SIRET No.";
         OriginalRegistrationNo := CompanyInformation."Registration No.";
-        CompanyInformation.Get();
         CompanyInformation."SIRET No." := '';
         CompanyInformation."Registration No." := '';
         CompanyInformation.Modify(true);
@@ -1189,11 +1189,14 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"PEPPOL BIS 3.0 XML Tests");
         ServiceParticipant.SetRange(Service, EDocumentService.Code);
         ServiceParticipant.DeleteAll();
-        InitializeCompanyIdentity();
-        if IsInitialized then
+        if IsInitialized then begin
+            LibrarySetupStorage.Restore();
+            InitializeCompanyIdentity();
             exit;
+        end;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"PEPPOL BIS 3.0 XML Tests");
 
+        InitializeCompanyIdentity();
         CompanyInformation.Get();
         CompanyInformation.Name := 'Test Company FR';
         CompanyInformation.Address := '123 Rue de Paris';
