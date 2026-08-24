@@ -58,7 +58,7 @@
 					"steps": [
 						"Use the \"Item Availability\" action to open the item availability page.",
 						{
-							"value": "Use all the item-related identifiers and keywords to search for items by invoking search. Before invoking search, you MUST first set the Quantity, Date and UOM filter fields for the current item as described below — invoking search before all three are set is not allowed. Don't proceed before performing a search first.",
+							"value": "Use all the item-related identifiers and keywords to search for items by invoking search. Don't proceed before performing a search first.",
 							"steps_include_numbering": "true",
 							"steps": [
 								"{% if page.id == 4410 -%}",

@@ -11,7 +11,7 @@ tableextension 4412 "SOA Item Ext" extends Item
 {
     fields
     {
-        field(4412; "Item Availability Filter"; Text[250])
+        field(4412; "SOA Item Availability Filter"; Text[250])
         {
             CalcFormula = Lookup(Item."Block Reason" where("No." = field("No.")));
             Caption = 'Item Availability Filter';

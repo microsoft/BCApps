@@ -732,11 +732,11 @@ page 4410 "SOA Multi Items Availability"
             AvailabilityFilterValues.Set('Customer', CustomerNo);
             AvailabilityFilterValues.Set('Contact', ContactNo);
             AvailabilityFilterValues.Set('Location', LocationFilter);
-            Rec.SetFilter("Item Availability Filter", BuildAvailabilityFilterText() + '|*');
+            Rec.SetFilter("SOA Item Availability Filter", BuildAvailabilityFilterText() + '|*');
         end else begin
-            if Rec.GetFilter("Item Availability Filter") <> '' then begin
+            if Rec.GetFilter("SOA Item Availability Filter") <> '' then begin
                 ParseAvailabilityFilter();
-                Rec.SetRange("Item Availability Filter");
+                Rec.SetRange("SOA Item Availability Filter");
 
                 MultiItemsAvailability.InitPage(CustomerNo, ContactNo, DateFilter, LocationFilter, QuantityFilter, InUOMCode);
                 MultiItemsAvailability.SetTableView(Rec);
@@ -758,7 +758,7 @@ page 4410 "SOA Multi Items Availability"
             exit;
 
         AvailabilityFilterValues.Set(FilterKey, FilterValue);
-        Rec.SetFilter("Item Availability Filter", BuildAvailabilityFilterText() + '|*');
+        Rec.SetFilter("SOA Item Availability Filter", BuildAvailabilityFilterText() + '|*');
     end;
 
     local procedure BuildAvailabilityFilterText() Result: Text
@@ -790,7 +790,7 @@ page 4410 "SOA Multi Items Availability"
         FilterEntry: Text;
         SeparatorPos: Integer;
     begin
-        RawFilter := Rec.GetFilter("Item Availability Filter");
+        RawFilter := Rec.GetFilter("SOA Item Availability Filter");
 
         if RawFilter.EndsWith('|*') then
             RawFilter := CopyStr(RawFilter, 1, StrLen(RawFilter) - 2);

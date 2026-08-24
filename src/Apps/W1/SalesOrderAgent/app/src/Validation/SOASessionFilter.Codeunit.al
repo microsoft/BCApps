@@ -67,12 +67,9 @@ codeunit 4306 "SOA Session Filter"
         SOASetup: Record "SOA Setup";
         SOAFiltersImpl: Codeunit "SOA Filters Impl.";
         ContactFilter, CustomerFilter : Text;
-        SearchOnlyAvailableItems: Boolean;
     begin
-        if SOASetup.FindFirst() then begin
+        if SOASetup.FindFirst() then
             CalculateEarliestShipmentDate := SOASetup."Incl. Capable to Promise";
-            SearchOnlyAvailableItems := SOASetup."Search Only Available Items";
-        end;
 
         ContactFilter := SOAFiltersImpl.GetSecurityFiltersForContacts(AgentTaskID);
         Contact.SetFilter("No.", ContactFilter);
