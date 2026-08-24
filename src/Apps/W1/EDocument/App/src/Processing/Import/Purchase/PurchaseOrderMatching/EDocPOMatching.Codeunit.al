@@ -784,7 +784,7 @@ codeunit 6196 "E-Doc. PO Matching"
                                     if QtyPerUoM = 0 then
                                         QtyPerUoM := 1;
                                     QtyToAllocate := UnitOfMeasureMgt.CalcQtyFromBase(QtyToAllocateBase, QtyPerUoM);
-                                    POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoicePurchaseLine.SystemId, OrderPurchaseLine.SystemId, QtyToAllocate, QtyToAllocateBase));
+                                    POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoicePurchaseLine.SystemId, OrderPurchaseLine.SystemId, QtyToAllocate));
                                     AddExplicitReceiptMatches(EDocumentPurchaseLine, InvoicePurchaseLine, OrderPurchaseLine, QtyToAllocateBase, POMatchingGroup);
                                     RemainingBaseToDistribute -= QtyToAllocateBase;
                                 end;
@@ -824,7 +824,7 @@ codeunit 6196 "E-Doc. PO Matching"
                 ReceiptQtyBase := MinDecimal(RemainingBase, ReceiptAvailableBase);
                 if ReceiptQtyBase > 0 then begin
                     ReceiptQty := UnitOfMeasureMgt.CalcQtyFromBase(ReceiptQtyBase, QtyPerUoM);
-                    POMatchingGroup.AddMatch(POMatching.InvoiceOrderReceiptEdge(InvoicePurchaseLine.SystemId, OrderPurchaseLine.SystemId, PurchaseReceiptLine.SystemId, ReceiptQty, ReceiptQtyBase));
+                    POMatchingGroup.AddMatch(POMatching.InvoiceOrderReceiptEdge(InvoicePurchaseLine.SystemId, OrderPurchaseLine.SystemId, PurchaseReceiptLine.SystemId, ReceiptQty));
                     RemainingBase -= ReceiptQtyBase;
                 end;
             end;

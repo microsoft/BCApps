@@ -2885,9 +2885,9 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
         LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 10);
         LinkEDocumentLineToPurchaseLine(EDocument, EDocumentPurchaseLine, PurchaseLine);
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(PurchaseLine.SystemId, PurchaseOrderLine1.SystemId, 5, 5));
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderReceiptEdge(PurchaseLine.SystemId, PurchaseOrderLine1.SystemId, PurchaseReceiptLine.SystemId, 5, 5));
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(PurchaseLine.SystemId, PurchaseOrderLine2.SystemId, 5, 5));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(PurchaseLine.SystemId, PurchaseOrderLine1.SystemId, 5));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderReceiptEdge(PurchaseLine.SystemId, PurchaseOrderLine1.SystemId, PurchaseReceiptLine.SystemId, 5));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(PurchaseLine.SystemId, PurchaseOrderLine2.SystemId, 5));
         POMatchingGroup.SaveMatchingGroups();
 
         EDocPOMatching.TransferPOMatchesFromInvoiceToEDocument(PurchaseHeader);
