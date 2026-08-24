@@ -158,6 +158,8 @@ codeunit 148342 "Expense Activity Log Test"
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
         ExpenseReportApprovalMgt: Codeunit "Expense Report Approval Mgmt";
+        RejectedCount: Integer;
+        ResubmittedCount: Integer;
     begin
         // [SCENARIO] The approval lifecycle records creation, submission, rejection, resubmission, and approval.
         // [GIVEN] A released expense report with a submitter and approver.
@@ -214,24 +216,37 @@ codeunit 148342 "Expense Activity Log Test"
         Assert.AreEqual('Second approver comment.', ExpenseReportHeader.GetApproverComment(), 'The header must keep the latest approver comment.');
         Assert.AreEqual('Second submitter response.', ExpenseReportHeader.GetSubmitterComment(), 'The header must keep the latest submitter comment.');
 
-        // [THEN] Every approver comment remains in its Rejected activity entry.
+        // [THEN] Every comment remains in its state-change activity entry.
         ExpenseActivityLogEntry.SetRange("Subject Table ID", Database::"Expense Report Header");
         ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
-        ExpenseActivityLogEntry.SetRange("Event Type", ExpenseActivityLogEntry."Event Type"::Rejected);
         ExpenseActivityLogEntry.SetCurrentKey("Entry No.");
         ExpenseActivityLogEntry.FindSet();
-        Assert.AreEqual('First approver comment.', ExpenseActivityLogEntry.Comment, 'The first rejection comment must remain unchanged.');
-        ExpenseActivityLogEntry.Next();
-        Assert.AreEqual('Second approver comment.', ExpenseActivityLogEntry.Comment, 'The second rejection comment must be appended.');
-        Assert.AreEqual(0, ExpenseActivityLogEntry.Next(), 'Exactly two rejection comments are expected.');
-
-        // [THEN] Every submitter response remains in its Resubmitted activity entry.
-        ExpenseActivityLogEntry.SetRange("Event Type", ExpenseActivityLogEntry."Event Type"::Resubmitted);
-        ExpenseActivityLogEntry.FindSet();
-        Assert.AreEqual('First submitter response.', ExpenseActivityLogEntry.Comment, 'The first submitter response must remain unchanged.');
-        ExpenseActivityLogEntry.Next();
-        Assert.AreEqual('Second submitter response.', ExpenseActivityLogEntry.Comment, 'The second submitter response must be appended.');
-        Assert.AreEqual(0, ExpenseActivityLogEntry.Next(), 'Exactly two submitter responses are expected.');
+        repeat
+            case ExpenseActivityLogEntry."Event Type" of
+                ExpenseActivityLogEntry."Event Type"::Rejected:
+                    begin
+                        RejectedCount += 1;
+                        case RejectedCount of
+                            1:
+                                Assert.AreEqual('First approver comment.', ExpenseActivityLogEntry.Comment, 'The first rejection comment must remain unchanged.');
+                            2:
+                                Assert.AreEqual('Second approver comment.', ExpenseActivityLogEntry.Comment, 'The second rejection comment must be appended.');
+                        end;
+                    end;
+                ExpenseActivityLogEntry."Event Type"::Resubmitted:
+                    begin
+                        ResubmittedCount += 1;
+                        case ResubmittedCount of
+                            1:
+                                Assert.AreEqual('First submitter response.', ExpenseActivityLogEntry.Comment, 'The first submitter response must remain unchanged.');
+                            2:
+                                Assert.AreEqual('Second submitter response.', ExpenseActivityLogEntry.Comment, 'The second submitter response must be appended.');
+                        end;
+                    end;
+            end;
+        until ExpenseActivityLogEntry.Next() = 0;
+        Assert.AreEqual(2, RejectedCount, 'Exactly two rejection comments are expected.');
+        Assert.AreEqual(2, ResubmittedCount, 'Exactly two submitter responses are expected.');
     end;
 
     [Test]
