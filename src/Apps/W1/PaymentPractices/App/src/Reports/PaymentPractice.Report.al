@@ -82,6 +82,9 @@ report 685 "Payment Practice"
             Caption = 'Payment Practice by Period';
             Summary = 'Payment Practice by Period';
             LayoutFile = 'src/Reports/Payment Practice by Period.docx';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
         }
         layout(PaymentPractice_SmallBusinessLayout)
         {
@@ -89,6 +92,9 @@ report 685 "Payment Practice"
             Caption = 'Payment Practice Small Business';
             Summary = 'Payment Practice Small Business';
             LayoutFile = 'src/Reports/Payment Practice Small Business.docx';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
         }
         layout(PaymentPractice_VendorSizeLayout)
         {
@@ -96,6 +102,34 @@ report 685 "Payment Practice"
             Caption = 'Payment Practice by Vendor Size';
             Summary = 'Payment Practice by Vendor Size';
             LayoutFile = 'src/Reports/Payment Practice by Vendor Size.docx';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
+        }
+        layout(PaymentPractice_PeriodLayoutBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = 'src/Reports/Payment Practice by PeriodBody.docx';
+            Caption = 'Body-only: Payment Practice by Period';
+            Summary = 'Portrait orientated. Shows the reporting period and aggregation, the average agreed and actual payment periods, and the percentage paid on time. A line for each payment period shows the share paid and the amount.';
+
+        }
+        layout(PaymentPractice_SmallBusinessLayoutBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = 'src/Reports/Payment Practice Small BusinessBody.docx';
+            Caption = 'Body-only: Payment Practice Small Business';
+            Summary = 'Portrait orientated. Shows the reporting period and aggregation, the agreed and actual payment periods, the percentage paid on time, median, mode, and percentile payment times, Peppol use, and the small business share, with a line for each period.';
+        }
+        layout(PaymentPractice_VendorSizeLayoutBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = 'src/Reports/Payment Practice by Vendor SizeBody.docx';
+            Caption = 'Body-only: Payment Practice by Vendor Size';
+            Summary = 'Portrait orientated. Shows the reporting period, the aggregation, and the overall averages. A line for each company size code shows the average agreed payment period, the average actual payment period, and the percentage paid on time.';
         }
     }
 }
