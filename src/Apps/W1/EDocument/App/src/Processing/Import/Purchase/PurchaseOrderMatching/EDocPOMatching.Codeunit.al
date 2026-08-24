@@ -6,7 +6,6 @@ namespace Microsoft.eServices.EDocument.Processing.Import.Purchase;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Purchases.Document;
@@ -45,7 +44,7 @@ codeunit 6196 "E-Doc. PO Matching"
         PurchaseLine.SetRange("Pay-to Vendor No.", Vendor."No.");
         if EDocumentPurchaseLine."[BC] Unit of Measure" <> '' then
             PurchaseLine.SetRange("Unit of Measure Code", EDocumentPurchaseLine."[BC] Unit of Measure");
-        PurchaseLine.SetLoadFields("Document No.", "Line No.", Description, Quantity, "Qty. Invoiced (Base)", "Qty. Received (Base)", Type, "No.", "Quantity Received", "Quantity Invoiced", "Direct Unit Cost", "Line Discount %", "Currency Code", "Expected Receipt Date");
+        PurchaseLine.SetLoadFields("Document No.", "Line No.", Description, Quantity, Type, "No.", "Quantity Received", "Quantity Invoiced", "Direct Unit Cost", "Line Discount %", "Currency Code", "Expected Receipt Date");
         if PurchaseLine.FindSet() then
             repeat
                 // We exclude lines that have already been matched unless they were matched to the current line
@@ -231,17 +230,18 @@ codeunit 6196 "E-Doc. PO Matching"
         if not TempPurchaseLine.FindSet() then
             exit;
         repeat
-            PurchaseLinesQuantityInvoiced += TempPurchaseLine."Qty. Invoiced (Base)";
-            PurchaseLinesQuantityReceived += TempPurchaseLine."Qty. Received (Base)";
+            PurchaseLinesQuantityInvoiced += TempPurchaseLine."Quantity Invoiced";
+            PurchaseLinesQuantityReceived += TempPurchaseLine."Quantity Received";
             PurchaseLinesQuantity += TempPurchaseLine.Quantity;
         until TempPurchaseLine.Next() = 0;
 
-        if not GetEDocumentLineQuantityInBaseUoM(EDocumentPurchaseLine, EDocLineQuantity) then begin
+        if not HasEDocumentLineQuantityInformation(EDocumentPurchaseLine) then begin
             POMatchWarnings."E-Doc. Purchase Line SystemId" := EDocumentPurchaseLine.SystemId;
             POMatchWarnings."Warning Type" := "E-Doc PO Match Warning"::MissingInformationForMatch;
             POMatchWarnings.Insert();
             exit;
         end;
+        EDocLineQuantity := EDocumentPurchaseLine.Quantity;
 
         //   I = Invoice quantity (from the e-document line)
         //   R = Remaining to invoice on the PO (Ordered - Previously Invoiced)
@@ -677,74 +677,16 @@ codeunit 6196 "E-Doc. PO Matching"
         end;
     end;
 
-    /// <summary>
-    /// If the E-Document has been matched to an order line without specifying receipts, we match with receipt lines for that order line that can cover the E-Document line quantity.
-    /// </summary>
-    /// <param name="EDocumentPurchaseHeader"></param>
-    procedure SuggestReceiptsForMatchedOrderLines(EDocumentPurchaseHeader: Record "E-Document Purchase Header")
-    var
-        EDocumentPurchaseLine: Record "E-Document Purchase Line";
-        EDocPurchaseLinePOMatch: Record "E-Doc. Purchase Line PO Match";
-        PurchaseOrderLine: Record "Purchase Line";
-        PurchaseReceiptLine: Record "Purch. Rcpt. Line";
-        TempPurchaseReceiptLine: Record "Purch. Rcpt. Line" temporary;
-        EDocLineQuantity: Decimal;
-        NullGuid: Guid;
-    begin
-        EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocumentPurchaseHeader."E-Document Entry No.");
-        if EDocumentPurchaseLine.FindSet() then
-            repeat
-                Clear(EDocPurchaseLinePOMatch);
-                EDocPurchaseLinePOMatch.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
-                EDocPurchaseLinePOMatch.SetRange("Receipt Line SystemId", NullGuid);
-                if not EDocPurchaseLinePOMatch.FindFirst() then
-                    continue; // No PO lines matched, so no receipt can be suggested
-                if not PurchaseOrderLine.GetBySystemId(EDocPurchaseLinePOMatch."Purchase Line SystemId") then
-                    continue; // Should not happen, but we skip in case it does, this procedure doesn't error out
-                EDocPurchaseLinePOMatch.SetRange("Purchase Line SystemId", PurchaseOrderLine.SystemId);
-                EDocPurchaseLinePOMatch.SetFilter("Receipt Line SystemId", '<> %1', NullGuid);
-                if not EDocPurchaseLinePOMatch.IsEmpty() then
-                    continue; // There's already at least one receipt line matched, so no suggestion is needed
-                Session.LogMessage('0000QQI', 'Suggesting receipt line for draft line matched to PO line', Verbosity::Verbose, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'E-Document');
-                PurchaseReceiptLine.SetRange("Order No.", PurchaseOrderLine."Document No.");
-                PurchaseReceiptLine.SetRange("Order Line No.", PurchaseOrderLine."Line No.");
-                PurchaseReceiptLine.SetFilter(Quantity, '> 0');
-                if PurchaseReceiptLine.FindSet() then
-                    repeat
-                        if GetEDocumentLineQuantityInBaseUoM(EDocumentPurchaseLine, EDocLineQuantity) then
-                            if PurchaseReceiptLine.Quantity >= EDocLineQuantity then begin
-                                // We suggest the first receipt line that can cover the full quantity of the E-Document line 
-                                Session.LogMessage('0000QQJ', 'Suggested covering receipt line for draft line matched to PO line', Verbosity::Verbose, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'E-Document');
-                                Clear(TempPurchaseReceiptLine);
-                                TempPurchaseReceiptLine.DeleteAll();
-                                TempPurchaseReceiptLine.Copy(PurchaseReceiptLine);
-                                TempPurchaseReceiptLine.Insert();
-                                MatchReceiptLinesToEDocumentLine(TempPurchaseReceiptLine, EDocumentPurchaseLine);
-                                break; // We only suggest a single receipt line
-                            end;
-                    until PurchaseReceiptLine.Next() = 0;
-            until EDocumentPurchaseLine.Next() = 0;
-    end;
-
-    local procedure GetEDocumentLineQuantityInBaseUoM(EDocumentPurchaseLine: Record "E-Document Purchase Line"; var Quantity: Decimal): Boolean
+    local procedure HasEDocumentLineQuantityInformation(EDocumentPurchaseLine: Record "E-Document Purchase Line"): Boolean
     var
         Item: Record Item;
         ItemUnitOfMeasure: Record "Item Unit of Measure";
-        ItemFound, ItemUoMFound : Boolean;
     begin
-        Clear(Quantity);
-        if EDocumentPurchaseLine."[BC] Purchase Line Type" <> Enum::"Purchase Line Type"::Item then begin
-            Quantity := EDocumentPurchaseLine.Quantity;
+        if EDocumentPurchaseLine."[BC] Purchase Line Type" <> Enum::"Purchase Line Type"::Item then
             exit(true);
-        end;
-        Item.SetLoadFields("No.");
-        ItemFound := Item.Get(EDocumentPurchaseLine."[BC] Purchase Type No.");
-        ItemUnitOfMeasure.SetLoadFields("Item No.", Code, "Qty. per Unit of Measure");
-        ItemUoMFound := ItemUnitOfMeasure.Get(Item."No.", EDocumentPurchaseLine."[BC] Unit of Measure");
-        if not (ItemFound and ItemUoMFound) then
+        if not Item.Get(EDocumentPurchaseLine."[BC] Purchase Type No.") then
             exit(false);
-        Quantity := EDocumentPurchaseLine.Quantity * ItemUnitOfMeasure."Qty. per Unit of Measure";
-        exit(true);
+        exit(ItemUnitOfMeasure.Get(Item."No.", EDocumentPurchaseLine."[BC] Unit of Measure"));
     end;
 
     /// <summary>
@@ -759,10 +701,9 @@ codeunit 6196 "E-Doc. PO Matching"
         InvoicePurchaseLine, OrderPurchaseLine : Record "Purchase Line";
         POMatching: Codeunit "PO Matching";
         POMatchingGroup: Codeunit "PO Matching Group";
-        UnitOfMeasureMgt: Codeunit "Unit of Measure Management";
-        RemainingBaseToDistribute, OrderAvailableBase, QtyToAllocateBase, QtyToAllocate, QtyPerUoM : Decimal;
+        RemainingToDistribute, OrderAvailable, QtyToAllocate : Decimal;
         NullGuid: Guid;
-        CantDetermineEDocLineBaseQtyErr: Label 'Could not determine the quantity in base unit of measure for line %1.', Comment = '%1 = E-Document Line No.';
+        CantDetermineEDocLineUnitOfMeasureErr: Label 'Could not determine the unit of measure for line %1.', Comment = '%1 = E-Document Line No.';
     begin
         EDocumentPurchaseHeader.GetFromEDocument(EDocument);
         EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
@@ -773,23 +714,20 @@ codeunit 6196 "E-Doc. PO Matching"
                     EDocPurchaseLinePOMatch.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
                     EDocPurchaseLinePOMatch.SetRange("Receipt Line SystemId", NullGuid);
                     if EDocPurchaseLinePOMatch.FindSet() then begin
-                        if not GetEDocumentLineQuantityInBaseUoM(EDocumentPurchaseLine, RemainingBaseToDistribute) then
-                            Error(CantDetermineEDocLineBaseQtyErr, EDocumentPurchaseLine."Line No.");
+                        if not HasEDocumentLineQuantityInformation(EDocumentPurchaseLine) then
+                            Error(CantDetermineEDocLineUnitOfMeasureErr, EDocumentPurchaseLine."Line No.");
+                        RemainingToDistribute := EDocumentPurchaseLine.Quantity;
                         repeat
                             if OrderPurchaseLine.GetBySystemId(EDocPurchaseLinePOMatch."Purchase Line SystemId") then begin
-                                OrderAvailableBase := OrderPurchaseLine."Quantity (Base)" - OrderPurchaseLine."Qty. Invoiced (Base)";
-                                QtyToAllocateBase := MinDecimal(RemainingBaseToDistribute, OrderAvailableBase);
-                                if QtyToAllocateBase > 0 then begin
-                                    QtyPerUoM := OrderPurchaseLine."Qty. per Unit of Measure";
-                                    if QtyPerUoM = 0 then
-                                        QtyPerUoM := 1;
-                                    QtyToAllocate := UnitOfMeasureMgt.CalcQtyFromBase(QtyToAllocateBase, QtyPerUoM);
+                                OrderAvailable := OrderPurchaseLine.Quantity - OrderPurchaseLine."Quantity Invoiced";
+                                QtyToAllocate := MinDecimal(RemainingToDistribute, OrderAvailable);
+                                if QtyToAllocate > 0 then begin
                                     POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoicePurchaseLine.SystemId, OrderPurchaseLine.SystemId, QtyToAllocate));
-                                    AddExplicitReceiptMatches(EDocumentPurchaseLine, InvoicePurchaseLine, OrderPurchaseLine, QtyToAllocateBase, POMatchingGroup);
-                                    RemainingBaseToDistribute -= QtyToAllocateBase;
+                                    AddExplicitReceiptMatches(EDocumentPurchaseLine, InvoicePurchaseLine, OrderPurchaseLine, QtyToAllocate, POMatchingGroup);
+                                    RemainingToDistribute -= QtyToAllocate;
                                 end;
                             end;
-                        until (EDocPurchaseLinePOMatch.Next() = 0) or (RemainingBaseToDistribute <= 0);
+                        until (EDocPurchaseLinePOMatch.Next() = 0) or (RemainingToDistribute <= 0);
                     end;
                 end;
             until EDocumentPurchaseLine.Next() = 0;
@@ -799,36 +737,34 @@ codeunit 6196 "E-Doc. PO Matching"
         RemoveAllMatchesForEDocument(EDocumentPurchaseHeader);
     end;
 
-    local procedure AddExplicitReceiptMatches(EDocumentPurchaseLine: Record "E-Document Purchase Line"; InvoicePurchaseLine: Record "Purchase Line"; OrderPurchaseLine: Record "Purchase Line"; QtyToAllocateBase: Decimal; var POMatchingGroup: Codeunit "PO Matching Group")
+    local procedure AddExplicitReceiptMatches(EDocumentPurchaseLine: Record "E-Document Purchase Line"; InvoicePurchaseLine: Record "Purchase Line"; OrderPurchaseLine: Record "Purchase Line"; QtyToAllocate: Decimal; var POMatchingGroup: Codeunit "PO Matching Group")
     var
         ReceiptPOMatch: Record "E-Doc. Purchase Line PO Match";
         PurchaseReceiptLine: Record "Purch. Rcpt. Line";
         POMatching: Codeunit "PO Matching";
-        UnitOfMeasureMgt: Codeunit "Unit of Measure Management";
-        RemainingBase, ReceiptAvailableBase, ReceiptQtyBase, ReceiptQty, QtyPerUoM : Decimal;
+        Remaining, ReceiptAvailable, ReceiptQty : Decimal;
         NullGuid: Guid;
+        ReceiptUnitOfMeasureMismatchErr: Label 'The purchase receipt line and purchase order line must have the same unit of measure.';
     begin
-        RemainingBase := QtyToAllocateBase;
+        Remaining := QtyToAllocate;
         ReceiptPOMatch.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
         ReceiptPOMatch.SetRange("Purchase Line SystemId", OrderPurchaseLine.SystemId);
         ReceiptPOMatch.SetFilter("Receipt Line SystemId", '<>%1', NullGuid);
         if not ReceiptPOMatch.FindSet() then
             exit;
 
-        QtyPerUoM := OrderPurchaseLine."Qty. per Unit of Measure";
-        if QtyPerUoM = 0 then
-            QtyPerUoM := 1;
         repeat
             if PurchaseReceiptLine.GetBySystemId(ReceiptPOMatch."Receipt Line SystemId") then begin
-                ReceiptAvailableBase := PurchaseReceiptLine."Quantity (Base)" - PurchaseReceiptLine."Qty. Invoiced (Base)";
-                ReceiptQtyBase := MinDecimal(RemainingBase, ReceiptAvailableBase);
-                if ReceiptQtyBase > 0 then begin
-                    ReceiptQty := UnitOfMeasureMgt.CalcQtyFromBase(ReceiptQtyBase, QtyPerUoM);
+                if PurchaseReceiptLine."Unit of Measure Code" <> OrderPurchaseLine."Unit of Measure Code" then
+                    Error(ReceiptUnitOfMeasureMismatchErr);
+                ReceiptAvailable := PurchaseReceiptLine."Qty. Rcd. Not Invoiced";
+                ReceiptQty := MinDecimal(Remaining, ReceiptAvailable);
+                if ReceiptQty > 0 then begin
                     POMatchingGroup.AddMatch(POMatching.InvoiceOrderReceiptEdge(InvoicePurchaseLine.SystemId, OrderPurchaseLine.SystemId, PurchaseReceiptLine.SystemId, ReceiptQty));
-                    RemainingBase -= ReceiptQtyBase;
+                    Remaining -= ReceiptQty;
                 end;
             end;
-        until (ReceiptPOMatch.Next() = 0) or (RemainingBase <= 0);
+        until (ReceiptPOMatch.Next() = 0) or (Remaining <= 0);
     end;
 
     local procedure MinDecimal(A: Decimal; B: Decimal): Decimal
