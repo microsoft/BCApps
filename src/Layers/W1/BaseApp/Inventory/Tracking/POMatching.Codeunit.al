@@ -16,40 +16,36 @@ codeunit 5831 "PO Matching"
     // Edges are unpersisted "Matched Order Line" records
 
     /// <summary>Builds an invoice-to-order edge.</summary>
-    procedure InvoiceOrderEdge(InvoiceLineSystemId: Guid; OrderLineSystemId: Guid; QtyToAllocate: Decimal; QtyToAllocateBase: Decimal) Edge: Record "Matched Order Line"
+    procedure InvoiceOrderEdge(InvoiceLineSystemId: Guid; OrderLineSystemId: Guid; QtyToAllocate: Decimal) Edge: Record "Matched Order Line"
     begin
         Edge."Document Line SystemId" := InvoiceLineSystemId;
         Edge."Matched Order Line SystemId" := OrderLineSystemId;
         Edge."Qty. to Invoice" := QtyToAllocate;
-        Edge."Qty. to Invoice (Base)" := QtyToAllocateBase;
     end;
 
     /// <summary>Builds an order-to-receipt edge; the invoice is inferred when added if the order has a single invoice edge.</summary>
-    procedure OrderReceiptEdge(OrderLineSystemId: Guid; ReceiptLineSystemId: Guid; QtyToAllocate: Decimal; QtyToAllocateBase: Decimal) Edge: Record "Matched Order Line"
+    procedure OrderReceiptEdge(OrderLineSystemId: Guid; ReceiptLineSystemId: Guid; QtyToAllocate: Decimal) Edge: Record "Matched Order Line"
     begin
         Edge."Matched Order Line SystemId" := OrderLineSystemId;
         Edge."Matched Rcpt./Shpt. Line SysId" := ReceiptLineSystemId;
         Edge."Qty. to Invoice" := QtyToAllocate;
-        Edge."Qty. to Invoice (Base)" := QtyToAllocateBase;
     end;
 
     /// <summary>Builds an order-to-receipt edge with an explicit invoice, used to split a receipt across several invoices.</summary>
-    procedure InvoiceOrderReceiptEdge(InvoiceLineSystemId: Guid; OrderLineSystemId: Guid; ReceiptLineSystemId: Guid; QtyToAllocate: Decimal; QtyToAllocateBase: Decimal) Edge: Record "Matched Order Line"
+    procedure InvoiceOrderReceiptEdge(InvoiceLineSystemId: Guid; OrderLineSystemId: Guid; ReceiptLineSystemId: Guid; QtyToAllocate: Decimal) Edge: Record "Matched Order Line"
     begin
         Edge."Document Line SystemId" := InvoiceLineSystemId;
         Edge."Matched Order Line SystemId" := OrderLineSystemId;
         Edge."Matched Rcpt./Shpt. Line SysId" := ReceiptLineSystemId;
         Edge."Qty. to Invoice" := QtyToAllocate;
-        Edge."Qty. to Invoice (Base)" := QtyToAllocateBase;
     end;
 
     /// <summary>Builds an invoice-to-receipt edge; the order line is derived when added.</summary>
-    procedure InvoiceReceiptEdge(InvoiceLineSystemId: Guid; ReceiptLineSystemId: Guid; QtyToAllocate: Decimal; QtyToAllocateBase: Decimal) Edge: Record "Matched Order Line"
+    procedure InvoiceReceiptEdge(InvoiceLineSystemId: Guid; ReceiptLineSystemId: Guid; QtyToAllocate: Decimal) Edge: Record "Matched Order Line"
     begin
         Edge."Document Line SystemId" := InvoiceLineSystemId;
         Edge."Matched Rcpt./Shpt. Line SysId" := ReceiptLineSystemId;
         Edge."Qty. to Invoice" := QtyToAllocate;
-        Edge."Qty. to Invoice (Base)" := QtyToAllocateBase;
     end;
     #endregion
 
@@ -108,7 +104,6 @@ codeunit 5831 "PO Matching"
                                 TempIntendedEdge."Document Line SystemId",
                                 TempIntendedEdge."Matched Order Line SystemId",
                                 TempIntendedEdge."Matched Rcpt./Shpt. Line SysId",
-                                TempIntendedEdge."Qty. to Invoice",
                                 TempIntendedEdge."Qty. to Invoice"));
                     until TempIntendedEdge.Next() = 0;
             end;

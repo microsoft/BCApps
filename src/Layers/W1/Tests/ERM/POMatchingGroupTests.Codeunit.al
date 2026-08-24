@@ -42,7 +42,7 @@ codeunit 134469 "PO Matching Group Tests"
         CreateInvoiceLine(Vendor, Item, 40, InvoiceLine);
 
         // [WHEN] Adding an invoice-order match for 40 and saving
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 40, 40));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 40));
         POMatchingGroup.SaveMatchingGroups();
 
         // [THEN] One invoice-order Matched Order Line row exists with the expected quantities
@@ -70,7 +70,7 @@ codeunit 134469 "PO Matching Group Tests"
         CreateInvoiceLine(Vendor, Item, 40, InvoiceLine);
 
         // [WHEN] Allocating 50 against an invoice line of 40
-        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 50, 50));
+        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 50));
 
         // [THEN] Rejected: exceeds the invoice line
         Assert.ExpectedError('exceeds the quantity available to invoice on the purchase invoice line');
@@ -90,7 +90,7 @@ codeunit 134469 "PO Matching Group Tests"
         CreateInvoiceLine(Vendor, Item, 150, InvoiceLine);
 
         // [WHEN] Allocating 150 against an order line of 100 (invoice is large enough, order is not)
-        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 150, 150));
+        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 150));
 
         // [THEN] Rejected: exceeds the order line's remaining to invoice
         Assert.ExpectedError('exceeds the quantity remaining to invoice on the purchase order line');
@@ -111,10 +111,10 @@ codeunit 134469 "PO Matching Group Tests"
         CreateInvoiceLine(Vendor, Item, 100, InvoiceLine);
 
         // [GIVEN] 60 already allocated from the invoice line to order 1
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine1.SystemId, 60, 60));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine1.SystemId, 60));
 
         // [WHEN] Allocating 50 more from the same invoice line to order 2 (60 + 50 > 100)
-        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine2.SystemId, 50, 50));
+        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine2.SystemId, 50));
 
         // [THEN] Rejected: only 40 of the invoice remains to allocate
         Assert.ExpectedError('exceeds the quantity available to invoice on the purchase invoice line');
@@ -138,7 +138,7 @@ codeunit 134469 "PO Matching Group Tests"
 
         // [WHEN] Adding an invoice-order edge for the line's quantity, then saving (base is derived from the order UoM)
         POMatchingGroup.AddMatch(
-            POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, OrderLine.Quantity, OrderLine."Quantity (Base)"));
+            POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, OrderLine.Quantity));
         POMatchingGroup.SaveMatchingGroups();
 
         // [THEN] The persisted row carries both quantity (10) and base (120)
@@ -146,33 +146,6 @@ codeunit 134469 "PO Matching Group Tests"
         Assert.IsTrue(MatchedOrderLine.FindFirst(), 'Invoice-order row should exist');
         Assert.AreEqual(10, MatchedOrderLine."Qty. to Invoice", 'Qty. to Invoice');
         Assert.AreEqual(120, MatchedOrderLine."Qty. to Invoice (Base)", 'Qty. to Invoice (Base)');
-    end;
-
-    [Test]
-    procedure AddMatchDerivesBaseFromOrderIgnoringSuppliedBase()
-    var
-        Vendor: Record Vendor;
-        Item: Record Item;
-        UnitOfMeasure: Record "Unit of Measure";
-        OrderLine, InvoiceLine : Record "Purchase Line";
-        MatchedOrderLine: Record "Matched Order Line";
-        POMatchingGroup: Codeunit "PO Matching Group";
-    begin
-        // [SCENARIO] The base is derived from the order line's UoM; a caller-supplied base is ignored, so qty and base can't disagree.
-        Initialize(Vendor, Item);
-        CreatePurchaseUoM(Item, 12, UnitOfMeasure);
-        CreateOrderLineWithUoM(Vendor, Item, UnitOfMeasure.Code, 10, OrderLine);      // 1 purchase UoM = 12 base
-        CreateInvoiceLineWithUoM(Vendor, Item, UnitOfMeasure.Code, 10, InvoiceLine);
-
-        // [WHEN] Adding an edge with a deliberately wrong base (999) for quantity 10, then saving
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 10, 999));
-        POMatchingGroup.SaveMatchingGroups();
-
-        // [THEN] The persisted base is derived from the order line (10 * 12 = 120), not the supplied 999
-        MatchedOrderLine.SetRange("Document Line SystemId", InvoiceLine.SystemId);
-        Assert.IsTrue(MatchedOrderLine.FindFirst(), 'Invoice-order row should exist');
-        Assert.AreEqual(10, MatchedOrderLine."Qty. to Invoice", 'Qty. to Invoice');
-        Assert.AreEqual(120, MatchedOrderLine."Qty. to Invoice (Base)", 'Base should be derived, not the supplied 999');
     end;
 
     [Test]
@@ -187,7 +160,7 @@ codeunit 134469 "PO Matching Group Tests"
         CreateOrderLine(Vendor, Item, 10, InvoiceRoleLine);
         CreateOrderLine(Vendor, Item, 10, OrderLine);
 
-        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceRoleLine.SystemId, OrderLine.SystemId, 10, 10));
+        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceRoleLine.SystemId, OrderLine.SystemId, 10));
 
         Assert.ExpectedError('must be an invoice line');
     end;
@@ -204,7 +177,7 @@ codeunit 134469 "PO Matching Group Tests"
         CreateInvoiceLine(Vendor, Item, 10, InvoiceLine);
         CreateInvoiceLine(Vendor, Item, 10, OrderRoleLine);
 
-        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderRoleLine.SystemId, 10, 10));
+        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderRoleLine.SystemId, 10));
 
         Assert.ExpectedError('must be an order line');
     end;
@@ -223,7 +196,7 @@ codeunit 134469 "PO Matching Group Tests"
         CreateOrderLineWithUoM(Vendor, Item, UnitOfMeasure.Code, 10, OrderLine);
         CreateInvoiceLineWithUoM(Vendor, Item, Item."Base Unit of Measure", 10, InvoiceLine);
 
-        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 10, 10));
+        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 10));
 
         Assert.ExpectedError('must have the same unit of measure');
     end;
@@ -249,8 +222,8 @@ codeunit 134469 "PO Matching Group Tests"
         CreateInvoiceLine(Vendor, Item, 100, InvoiceLine);
 
         // [WHEN] Adding the budget edge and distributing it onto the receipt, then saving
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 100, 100));
-        POMatchingGroup.AddMatch(POMatching.OrderReceiptEdge(OrderLine.SystemId, PurchRcptLine.SystemId, 100, 100));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 100));
+        POMatchingGroup.AddMatch(POMatching.OrderReceiptEdge(OrderLine.SystemId, PurchRcptLine.SystemId, 100));
         POMatchingGroup.SaveMatchingGroups();
 
         // [THEN] Two rows: one invoice-order (blank receipt) and one invoice-order-receipt
@@ -281,7 +254,7 @@ codeunit 134469 "PO Matching Group Tests"
         CreateOrderLine(Vendor, Item, 10, InvoiceRoleLine);
 
         asserterror POMatchingGroup.AddMatch(
-            POMatching.InvoiceOrderReceiptEdge(InvoiceRoleLine.SystemId, OrderLine.SystemId, PurchRcptLine.SystemId, 10, 10));
+            POMatching.InvoiceOrderReceiptEdge(InvoiceRoleLine.SystemId, OrderLine.SystemId, PurchRcptLine.SystemId, 10));
 
         Assert.ExpectedError('must be an invoice line');
     end;
@@ -302,7 +275,7 @@ codeunit 134469 "PO Matching Group Tests"
         CreateInvoiceLineWithUoM(Vendor, Item, Item."Base Unit of Measure", 10, InvoiceLine);
 
         asserterror POMatchingGroup.AddMatch(
-            POMatching.InvoiceOrderReceiptEdge(InvoiceLine.SystemId, OrderLine.SystemId, PurchRcptLine.SystemId, 10, 10));
+            POMatching.InvoiceOrderReceiptEdge(InvoiceLine.SystemId, OrderLine.SystemId, PurchRcptLine.SystemId, 10));
 
         Assert.ExpectedError('must have the same unit of measure');
     end;
@@ -327,11 +300,11 @@ codeunit 134469 "PO Matching Group Tests"
         CreateInvoiceLine(Vendor, Item, 100, InvoiceLine);
 
         // [GIVEN] Budget of 100 and 60 already distributed to receipt 1
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 100, 100));
-        POMatchingGroup.AddMatch(POMatching.OrderReceiptEdge(OrderLine.SystemId, PurchRcptLine1.SystemId, 60, 60));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 100));
+        POMatchingGroup.AddMatch(POMatching.OrderReceiptEdge(OrderLine.SystemId, PurchRcptLine1.SystemId, 60));
 
         // [WHEN] Distributing 60 more to receipt 2 (60 + 60 > 100 budget)
-        asserterror POMatchingGroup.AddMatch(POMatching.OrderReceiptEdge(OrderLine.SystemId, PurchRcptLine2.SystemId, 60, 60));
+        asserterror POMatchingGroup.AddMatch(POMatching.OrderReceiptEdge(OrderLine.SystemId, PurchRcptLine2.SystemId, 60));
 
         // [THEN] Rejected: only 40 of the budget remains to distribute
         Assert.ExpectedError('exceeds the quantity remaining to invoice on the purchase order line');
@@ -355,10 +328,10 @@ codeunit 134469 "PO Matching Group Tests"
         CreateInvoiceLine(Vendor, Item, 100, InvoiceLine);
 
         // [GIVEN] Budget of 100 (order remaining to invoice), but receipt only has 60 received not invoiced
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 100, 100));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 100));
 
         // [WHEN] Distributing 70 onto a receipt that has only 60 received not invoiced
-        asserterror POMatchingGroup.AddMatch(POMatching.OrderReceiptEdge(OrderLine.SystemId, PurchRcptLine.SystemId, 70, 70));
+        asserterror POMatchingGroup.AddMatch(POMatching.OrderReceiptEdge(OrderLine.SystemId, PurchRcptLine.SystemId, 70));
 
         // [THEN] Rejected: exceeds the receipt's received not invoiced
         Assert.ExpectedError('exceeds the quantity received not invoiced');
@@ -385,7 +358,7 @@ codeunit 134469 "PO Matching Group Tests"
         CreateInvoiceLine(Vendor, Item, 100, InvoiceLine);
 
         // [WHEN] Adding an invoice-receipt match for 100
-        POMatchingGroup.AddMatch(POMatching.InvoiceReceiptEdge(InvoiceLine.SystemId, PurchRcptLine.SystemId, 100, 100));
+        POMatchingGroup.AddMatch(POMatching.InvoiceReceiptEdge(InvoiceLine.SystemId, PurchRcptLine.SystemId, 100));
 
         // [THEN] Saving persists both a (invoice, order, blank) and a (invoice, order, receipt) 5817 row
         POMatchingGroup.SaveMatchingGroups();
@@ -412,7 +385,7 @@ codeunit 134469 "PO Matching Group Tests"
         CreateInvoiceLine(Vendor, Item, 40, InvoiceLine);
 
         // [WHEN] Adding a match with only the invoice line set
-        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, EmptyGuid, 40, 40));
+        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, EmptyGuid, 40));
 
         // [THEN] Rejected: at least two documents are required
         Assert.ExpectedError('at least two of');
@@ -437,10 +410,10 @@ codeunit 134469 "PO Matching Group Tests"
         CreateInvoiceLine(Vendor, Item, 100, InvoiceLine);
 
         // [GIVEN] An invoice-order budget of 100
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 100, 100));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 100));
 
         // [WHEN] Adding an explicit invoice-order-receipt edge for 100 and saving
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderReceiptEdge(InvoiceLine.SystemId, OrderLine.SystemId, PurchRcptLine.SystemId, 100, 100));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderReceiptEdge(InvoiceLine.SystemId, OrderLine.SystemId, PurchRcptLine.SystemId, 100));
         POMatchingGroup.SaveMatchingGroups();
 
         // [THEN] The receipt row is persisted against the given invoice
@@ -466,10 +439,10 @@ codeunit 134469 "PO Matching Group Tests"
         CreateInvoiceLine(Vendor, Item, 100, InvoiceLine);
 
         // [GIVEN] An invoice-order edge of 40
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 40, 40));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 40));
 
         // [WHEN] Re-adding the same edge with 70 and saving
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 70, 70));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 70));
         POMatchingGroup.SaveMatchingGroups();
 
         // [THEN] A single row remains, carrying the latest quantity
@@ -501,12 +474,12 @@ codeunit 134469 "PO Matching Group Tests"
         CreateInvoiceLine(Vendor, Item, 40, InvoiceLine2);
 
         // [GIVEN] Two invoice-order budgets on the same order line (60 + 40)
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine1.SystemId, OrderLine.SystemId, 60, 60));
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine2.SystemId, OrderLine.SystemId, 40, 40));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine1.SystemId, OrderLine.SystemId, 60));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine2.SystemId, OrderLine.SystemId, 40));
 
         // [WHEN] Splitting the single receipt across both invoices and saving
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderReceiptEdge(InvoiceLine1.SystemId, OrderLine.SystemId, PurchRcptLine.SystemId, 60, 60));
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderReceiptEdge(InvoiceLine2.SystemId, OrderLine.SystemId, PurchRcptLine.SystemId, 40, 40));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderReceiptEdge(InvoiceLine1.SystemId, OrderLine.SystemId, PurchRcptLine.SystemId, 60));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderReceiptEdge(InvoiceLine2.SystemId, OrderLine.SystemId, PurchRcptLine.SystemId, 40));
         POMatchingGroup.SaveMatchingGroups();
 
         // [THEN] The receipt is persisted as two rows, one per invoice, with the matching quantities
@@ -538,11 +511,11 @@ codeunit 134469 "PO Matching Group Tests"
         CreateInvoiceLine(Vendor, Item, 60, InvoiceLine1);
         CreateInvoiceLine(Vendor, Item, 40, InvoiceLine2);
 
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine1.SystemId, OrderLine.SystemId, 60, 60));
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine2.SystemId, OrderLine.SystemId, 40, 40));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine1.SystemId, OrderLine.SystemId, 60));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine2.SystemId, OrderLine.SystemId, 40));
 
         // [WHEN] Adding a bare order-receipt edge that cannot pick a single invoice
-        asserterror POMatchingGroup.AddMatch(POMatching.OrderReceiptEdge(OrderLine.SystemId, PurchRcptLine.SystemId, 50, 50));
+        asserterror POMatchingGroup.AddMatch(POMatching.OrderReceiptEdge(OrderLine.SystemId, PurchRcptLine.SystemId, 50));
 
         // [THEN] Rejected: the invoice cannot be inferred
         Assert.ExpectedError('determine a single invoice');
@@ -565,7 +538,7 @@ codeunit 134469 "PO Matching Group Tests"
         FindReceiptLine(OrderLine, '', PurchRcptLine);
 
         // [WHEN] Adding a bare order-receipt edge with no invoice-order budget in the group
-        asserterror POMatchingGroup.AddMatch(POMatching.OrderReceiptEdge(OrderLine.SystemId, PurchRcptLine.SystemId, 50, 50));
+        asserterror POMatchingGroup.AddMatch(POMatching.OrderReceiptEdge(OrderLine.SystemId, PurchRcptLine.SystemId, 50));
 
         // [THEN] Rejected: the invoice cannot be inferred
         Assert.ExpectedError('determine a single invoice');
@@ -590,11 +563,11 @@ codeunit 134469 "PO Matching Group Tests"
         CreateInvoiceLine(Vendor, Item, 40, InvoiceLine2);
 
         // [GIVEN] Budgets 60 and 40 (order total 100), receipt has 100 not invoiced
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine1.SystemId, OrderLine.SystemId, 60, 60));
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine2.SystemId, OrderLine.SystemId, 40, 40));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine1.SystemId, OrderLine.SystemId, 60));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine2.SystemId, OrderLine.SystemId, 40));
 
         // [WHEN] Pinning 70 of the receipt to invoice 1 whose budget is only 60
-        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderReceiptEdge(InvoiceLine1.SystemId, OrderLine.SystemId, PurchRcptLine.SystemId, 70, 70));
+        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderReceiptEdge(InvoiceLine1.SystemId, OrderLine.SystemId, PurchRcptLine.SystemId, 70));
 
         // [THEN] Rejected on the invoice-order budget, not the receipt or order total
         Assert.ExpectedError('exceeds the quantity remaining to invoice on the purchase order line');
@@ -620,11 +593,11 @@ codeunit 134469 "PO Matching Group Tests"
         CreateInvoiceLine(Vendor, Item, 200, InvoiceLine);
 
         // [GIVEN] Invoice (cap 200) allocates 100 to order 1 and pins the receipt for 100
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine1.SystemId, 100, 100));
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderReceiptEdge(InvoiceLine.SystemId, OrderLine1.SystemId, PurchRcptLine.SystemId, 100, 100));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine1.SystemId, 100));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderReceiptEdge(InvoiceLine.SystemId, OrderLine1.SystemId, PurchRcptLine.SystemId, 100));
 
         // [WHEN] Allocating the remaining 100 of the invoice to order 2 (would fail if the receipt row were double-counted)
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine2.SystemId, 100, 100));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine2.SystemId, 100));
         POMatchingGroup.SaveMatchingGroups();
 
         // [THEN] Both invoice-order budgets persist (invoice consumed 100 + 100 = 200, its full quantity)
@@ -651,11 +624,11 @@ codeunit 134469 "PO Matching Group Tests"
         CreateInvoiceLine(Vendor, Item, 100, InvoiceLine2);
 
         // [GIVEN] 60 already persisted from invoice 1 to the order line
-        POMatchingGroup1.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine1.SystemId, OrderLine.SystemId, 60, 60));
+        POMatchingGroup1.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine1.SystemId, OrderLine.SystemId, 60));
         POMatchingGroup1.SaveMatchingGroups();
 
         // [WHEN] A fresh group allocates 60 more from invoice 2 to the same order line (60 + 60 > 100)
-        asserterror POMatchingGroup2.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine2.SystemId, OrderLine.SystemId, 60, 60));
+        asserterror POMatchingGroup2.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine2.SystemId, OrderLine.SystemId, 60));
 
         // [THEN] Rejected: the reloaded allocation counts toward the order line's remaining to invoice
         Assert.ExpectedError('exceeds the quantity remaining to invoice on the purchase order line');
@@ -676,11 +649,11 @@ codeunit 134469 "PO Matching Group Tests"
         CreateOrderLine(Vendor, Item, 100, OrderLine);
         CreateInvoiceLine(Vendor, Item, 100, InvoiceLine);
 
-        POMatchingGroup1.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 40, 40));
+        POMatchingGroup1.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 40));
         POMatchingGroup1.SaveMatchingGroups();
 
         // [WHEN] A fresh group re-adds the same edge with 70 and saves
-        POMatchingGroup2.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 70, 70));
+        POMatchingGroup2.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 70));
         POMatchingGroup2.SaveMatchingGroups();
 
         // [THEN] One row persists with the updated quantity
@@ -706,7 +679,7 @@ codeunit 134469 "PO Matching Group Tests"
         CreateInvoiceLine(Vendor, Item, 100, InvoiceLine);
 
         // [GIVEN] An invoice-order edge accepted while the order line has 100 remaining to invoice
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 100, 100));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 100));
 
         // [GIVEN] The order line is partly invoiced by another posting, dropping its remaining to invoice to 40
         PostOrderInvoice(OrderHeader, OrderLine, 60);
@@ -738,13 +711,13 @@ codeunit 134469 "PO Matching Group Tests"
         CreateInvoiceLine(Vendor, Item, 100, InvoiceLine2);
 
         // [GIVEN] Invoice 1 fully consumes the receipt (100 of 100 received not invoiced), persisted
-        POMatchingGroup1.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine1.SystemId, OrderLine.SystemId, 100, 100));
-        POMatchingGroup1.AddMatch(POMatching.InvoiceOrderReceiptEdge(InvoiceLine1.SystemId, OrderLine.SystemId, PurchRcptLine.SystemId, 100, 100));
+        POMatchingGroup1.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine1.SystemId, OrderLine.SystemId, 100));
+        POMatchingGroup1.AddMatch(POMatching.InvoiceOrderReceiptEdge(InvoiceLine1.SystemId, OrderLine.SystemId, PurchRcptLine.SystemId, 100));
         POMatchingGroup1.SaveMatchingGroups();
 
         // [WHEN] A fresh group budgets invoice 2 on the order, then pins the same (already-exhausted) receipt
-        POMatchingGroup2.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine2.SystemId, OrderLine.SystemId, 100, 100));
-        asserterror POMatchingGroup2.AddMatch(POMatching.InvoiceOrderReceiptEdge(InvoiceLine2.SystemId, OrderLine.SystemId, PurchRcptLine.SystemId, 100, 100));
+        POMatchingGroup2.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine2.SystemId, OrderLine.SystemId, 100));
+        asserterror POMatchingGroup2.AddMatch(POMatching.InvoiceOrderReceiptEdge(InvoiceLine2.SystemId, OrderLine.SystemId, PurchRcptLine.SystemId, 100));
 
         // [THEN] Rejected: the reloaded receipt row from invoice 1 leaves nothing not invoiced
         Assert.ExpectedError('exceeds the quantity received not invoiced');
@@ -767,7 +740,7 @@ codeunit 134469 "PO Matching Group Tests"
         CreateInvoiceLine(Vendor, Item2, 100, InvoiceLine);
 
         // [WHEN] Matching lines that do not agree on item
-        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 40, 40));
+        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 40));
 
         // [THEN] Rejected: lines must have the same type and number
         Assert.ExpectedError('same type and number');
@@ -791,7 +764,7 @@ codeunit 134469 "PO Matching Group Tests"
         OrderLine.Modify();
 
         // [WHEN] Adding an invoice-order match
-        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 40, 40));
+        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 40));
 
         // [THEN] Rejected: prepayment not supported
         Assert.ExpectedError('prepayment');
@@ -815,7 +788,7 @@ codeunit 134469 "PO Matching Group Tests"
         OrderLine.Modify();
 
         // [WHEN] Adding an invoice-order match
-        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 40, 40));
+        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 40));
 
         // [THEN] Rejected: item charge not supported
         Assert.ExpectedError('item charge');
@@ -836,7 +809,7 @@ codeunit 134469 "PO Matching Group Tests"
         CreateInvoiceLine(Vendor2, Item, 40, InvoiceLine);
 
         // [WHEN] Matching an invoice of one vendor to an order of another vendor
-        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 40, 40));
+        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 40));
 
         // [THEN] Rejected: vendor/currency must agree
         Assert.ExpectedError('same buy-from vendor');
@@ -861,7 +834,7 @@ codeunit 134469 "PO Matching Group Tests"
         CreateInvoiceLine(Vendor, Item, 100, InvoiceLine);
 
         // [WHEN] Pinning order 2's receipt onto order 1 via an explicit invoice-order-receipt edge
-        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderReceiptEdge(InvoiceLine.SystemId, OrderLine1.SystemId, PurchRcptLine2.SystemId, 100, 100));
+        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderReceiptEdge(InvoiceLine.SystemId, OrderLine1.SystemId, PurchRcptLine2.SystemId, 100));
 
         // [THEN] Rejected: the receipt does not belong to the matched order line
         Assert.ExpectedError('does not belong to the matched order line');
@@ -881,10 +854,10 @@ codeunit 134469 "PO Matching Group Tests"
         CreateInvoiceLine(Vendor, Item, 100, InvoiceLine);
 
         // [GIVEN] An invoice-order budget of 100
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 100, 100));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 100));
 
         // [WHEN] Pinning only 40 of the tracked receipt
-        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderReceiptEdge(InvoiceLine.SystemId, OrderLine.SystemId, PurchRcptLine.SystemId, 40, 40));
+        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderReceiptEdge(InvoiceLine.SystemId, OrderLine.SystemId, PurchRcptLine.SystemId, 40));
 
         // [THEN] Rejected: tracked receipts are all-or-nothing
         Assert.ExpectedError('must be invoiced in full');
@@ -905,8 +878,8 @@ codeunit 134469 "PO Matching Group Tests"
         CreateInvoiceLine(Vendor, Item, 100, InvoiceLine);
 
         // [WHEN] Budgeting the invoice and pinning the tracked receipt in full, then saving
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 100, 100));
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderReceiptEdge(InvoiceLine.SystemId, OrderLine.SystemId, PurchRcptLine.SystemId, 100, 100));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 100));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderReceiptEdge(InvoiceLine.SystemId, OrderLine.SystemId, PurchRcptLine.SystemId, 100));
         POMatchingGroup.SaveMatchingGroups();
 
         // [THEN] The full tracked receipt row is persisted
@@ -934,7 +907,7 @@ codeunit 134469 "PO Matching Group Tests"
         CreateInvoiceLine(Vendor, Item, 40, InvoiceLine);
 
         // [WHEN] Adding an invoice-order edge and saving
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 40, 40));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 40));
         POMatchingGroup.SaveMatchingGroups();
 
         // [THEN] The persisted budget row's Receipt on Invoice reflects the header
@@ -962,7 +935,7 @@ codeunit 134469 "PO Matching Group Tests"
         CreateInvoiceLine(Vendor, Item, 100, InvoiceLine);
 
         // [GIVEN] An invoice-order budget of 100 with no receipt edges
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 100, 100));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 100));
 
         // [WHEN] Suggesting covering receipts and saving
         POMatching.SuggestCoveringReceipts(POMatchingGroup);
@@ -991,7 +964,7 @@ codeunit 134469 "PO Matching Group Tests"
         CreateInvoiceLine(Vendor, Item, 100, InvoiceLine);
 
         // [GIVEN] A budget of 100 but only 60 received not invoiced
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 100, 100));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 100));
 
         // [WHEN] Suggesting covering receipts and saving
         POMatching.SuggestCoveringReceipts(POMatchingGroup);
@@ -1023,8 +996,8 @@ codeunit 134469 "PO Matching Group Tests"
         CreateInvoiceLine(Vendor, Item, 100, InvoiceLine);
 
         // [GIVEN] A budget of 100 and a pre-existing receipt edge of 30
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 100, 100));
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderReceiptEdge(InvoiceLine.SystemId, OrderLine.SystemId, PurchRcptLine.SystemId, 30, 30));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 100));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderReceiptEdge(InvoiceLine.SystemId, OrderLine.SystemId, PurchRcptLine.SystemId, 30));
 
         // [WHEN] Suggesting covering receipts and saving
         POMatching.SuggestCoveringReceipts(POMatchingGroup);
@@ -1055,8 +1028,8 @@ codeunit 134469 "PO Matching Group Tests"
         CreateInvoiceLine(Vendor, Item, 40, InvoiceLine2);
 
         // [GIVEN] Two budgets on the same order line (60 + 40) sharing one receipt of 100
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine1.SystemId, OrderLine.SystemId, 60, 60));
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine2.SystemId, OrderLine.SystemId, 40, 40));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine1.SystemId, OrderLine.SystemId, 60));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine2.SystemId, OrderLine.SystemId, 40));
 
         // [WHEN] Suggesting covering receipts and saving
         POMatching.SuggestCoveringReceipts(POMatchingGroup);
@@ -1087,7 +1060,7 @@ codeunit 134469 "PO Matching Group Tests"
         CreateInvoiceLine(Vendor, Item, 100, InvoiceLine);
 
         // [GIVEN] A budget of 100 on a lot-tracked receipt of 100
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 100, 100));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 100));
 
         // [WHEN] Suggesting covering receipts and saving
         POMatching.SuggestCoveringReceipts(POMatchingGroup);
@@ -1115,7 +1088,7 @@ codeunit 134469 "PO Matching Group Tests"
         CreateInvoiceLine(Vendor, Item, 60, InvoiceLine);
 
         // [GIVEN] A budget of only 60 on a lot-tracked receipt of 100
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 60, 60));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 60));
 
         // [WHEN] Suggesting covering receipts and saving
         POMatching.SuggestCoveringReceipts(POMatchingGroup);
