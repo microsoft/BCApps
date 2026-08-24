@@ -9,6 +9,7 @@ using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Tracking;
@@ -3119,6 +3120,21 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         PurchasesPayablesSetup.Modify();
     end;
 
+    local procedure SetPurchaseInvoiceTemplateInSetup()
+    var
+        GenJournalTemplate: Record "Gen. Journal Template";
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+    begin
+        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
+        GenJournalTemplate.Validate(Type, GenJournalTemplate.Type::Purchases);
+        GenJournalTemplate.Validate("Posting No. Series", LibraryERM.CreateNoSeriesCode());
+        GenJournalTemplate.Modify(true);
+
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup.Validate("P. Invoice Template Name", GenJournalTemplate.Name);
+        PurchasesPayablesSetup.Modify();
+    end;
+
     local procedure SetupPOMatchingConfiguration(Configuration: Enum "E-Doc. PO M. Configuration"; VendorNo: Code[20]; IncludeVendorInList: Boolean)
     var
         EDocPOMatchingSetup: Record "E-Doc. PO Matching Setup";
@@ -3160,6 +3176,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         LibraryPurchase.SetPostedNoSeriesInSetup();
         SetInvoiceNoSeriesInSetup();
         SetVendorNoSeriesInSetup();
+        SetPurchaseInvoiceTemplateInSetup();
         ClearPurchaseDocumentsForVendor();
 
         if IsInitialized then
