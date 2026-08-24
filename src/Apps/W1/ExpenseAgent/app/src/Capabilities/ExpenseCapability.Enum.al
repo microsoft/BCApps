@@ -75,7 +75,7 @@ enum 6984 "Expense Capability"
     }
 
     /// <summary>
-    /// Approval comments can be exchanged during rejection and resubmission.
+    /// Submitter comments can be supplied during submission, and comments can be exchanged during rejection and resubmission.
     /// </summary>
     value(6; ApprovalConversation)
     {

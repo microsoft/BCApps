@@ -240,6 +240,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
     var
         OutStream: OutStream;
     begin
+        Clear(ExpenseReportHeader."Submitter Comment");
         ExpenseReportHeader."Submitter Comment".CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText(Comment);
     end;
