@@ -37,6 +37,14 @@ codeunit 4306 "SOA Session Filter"
         Rec.FilterGroup(0);
     end;
 
+    [EventSubscriber(ObjectType::Page, Page::"Sales Quote Subform", 'OnOpenPageEvent', '', false, false)]
+    local procedure SetFiltersOnOpenSalesQuoteSubform(var Rec: Record "Sales Line")
+    begin
+        Rec.FilterGroup(10);
+        Rec.SetRange(Type, Rec.Type::Item);
+        Rec.FilterGroup(0);
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"Sales Header", 'OnAfterModifyEvent', '', false, false)]
     local procedure VerifySameCustomer(var Rec: Record "Sales Header")
     var

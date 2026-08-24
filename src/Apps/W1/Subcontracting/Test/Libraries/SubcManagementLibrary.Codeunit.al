@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Requisition;
@@ -14,7 +15,9 @@ using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
+using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Warehouse.Setup;
 
 codeunit 139983 "Subc. Management Library"
 {
@@ -166,7 +169,11 @@ codeunit 139983 "Subc. Management Library"
     procedure SetupInventorySetup()
     var
         InventorySetup: Record "Inventory Setup";
+        NoSeries: Record "No. Series";
+        NoSeriesLine: Record "No. Series Line";
         Location: Record Location;
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        WarehouseSetup: Record "Warehouse Setup";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryUtility: Codeunit "Library - Utility";
     begin
@@ -174,9 +181,39 @@ codeunit 139983 "Subc. Management Library"
             InventorySetup.Init();
 
         LibraryInventory.NoSeriesSetup(InventorySetup);
-        InventorySetup."Inventory Put-away Nos." := LibraryUtility.GetGlobalNoSeriesCode();
+        LibraryUtility.CreateNoSeries(NoSeries, true, false, false);
+        LibraryUtility.CreateNoSeriesLine(NoSeriesLine, NoSeries.Code, 'SUBC0000001', 'SUBC9999999');
+        InventorySetup.Validate("Internal Movement Nos.", NoSeries.Code);
+        InventorySetup.Validate("Inventory Movement Nos.", NoSeries.Code);
+        InventorySetup.Validate("Inventory Pick Nos.", NoSeries.Code);
+        InventorySetup.Validate("Inventory Put-away Nos.", NoSeries.Code);
+        InventorySetup.Validate("Item Nos.", NoSeries.Code);
+        InventorySetup.Validate("Posted Invt. Pick Nos.", NoSeries.Code);
+        InventorySetup.Validate("Posted Transfer Rcpt. Nos.", NoSeries.Code);
+        InventorySetup.Validate("Posted Transfer Shpt. Nos.", NoSeries.Code);
+        InventorySetup.Validate("Registered Invt. Movement Nos.", NoSeries.Code);
+        InventorySetup.Validate("Transfer Order Nos.", NoSeries.Code);
+        InventorySetup.Validate("Posted Invt. Put-away Nos.", NoSeries.Code);
         InventorySetup."Direct Transfer Posting Type" := InventorySetup."Direct Transfer Posting Type"::"Direct Transfer";
         InventorySetup.Modify();
+
+        LibraryUtility.UpdateSetupNoSeriesCode(
+            DATABASE::"Purchases & Payables Setup", PurchasesPayablesSetup.FieldNo("Order Nos."));
+
+        WarehouseSetup.Get();
+        WarehouseSetup.Validate("Posted Whse. Receipt Nos.", NoSeries.Code);
+        WarehouseSetup.Validate("Posted Whse. Shipment Nos.", NoSeries.Code);
+        WarehouseSetup.Validate("Registered Whse. Movement Nos.", NoSeries.Code);
+        WarehouseSetup.Validate("Registered Whse. Pick Nos.", NoSeries.Code);
+        WarehouseSetup.Validate("Registered Whse. Put-away Nos.", NoSeries.Code);
+        WarehouseSetup.Validate("Whse. Movement Nos.", NoSeries.Code);
+        WarehouseSetup.Validate("Whse. Pick Nos.", NoSeries.Code);
+        WarehouseSetup.Validate("Whse. Put-away Nos.", NoSeries.Code);
+        WarehouseSetup.Validate("Whse. Receipt Nos.", NoSeries.Code);
+        WarehouseSetup.Validate("Whse. Ship Nos.", NoSeries.Code);
+        WarehouseSetup.Validate("Whse. Internal Pick Nos.", NoSeries.Code);
+        WarehouseSetup.Validate("Whse. Internal Put-away Nos.", NoSeries.Code);
+        WarehouseSetup.Modify(true);
         LibraryInventory.UpdateInventoryPostingSetup(Location);
     end;
 

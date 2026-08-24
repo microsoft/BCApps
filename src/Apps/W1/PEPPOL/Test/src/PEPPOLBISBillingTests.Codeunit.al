@@ -1548,6 +1548,40 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         VerifyTaxTotalAmounts(0, VatPer, 0, 0);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportXml_PEPPOL_BIS3_SalesInvoice_TaxCategoryEZeroValue()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        CompanyInformation: Record "Company Information";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [Invoice] [Tax Category]
+        // [SCENARIO 633222] PEPPOL BIS3. Export zero-value Sales Invoice with Tax Category 'E' - VAT Exempt still exports Seller VAT Identifier
+        Initialize();
+
+        // [GIVEN] Company has "VAT Registration No." = 'NO1234567890'
+        UpdateCompanyVATRegNo();
+
+        // [GIVEN] Posted Sales Invoice with Tax Category 'E' and a fully discounted (zero-value) line
+        SalesInvoiceHeader.Get(
+          CreatePostSalesDocWithTaxCategoryAndFullLineDiscount(
+            CreateCustomerWithAddressAndVATRegNo(), SalesHeader."Document Type"::Invoice, GetTaxCategoryE(), 0));
+
+        // [WHEN] Export Sales Invoice with PEPPOL BIS3
+        SalesInvoiceHeader.SetRecFilter();
+        PEPPOLXMLExportToBlob(SalesInvoiceHeader, CreateBISElectronicDocumentFormatSalesInvoice(), TempBlob);
+
+        // [THEN] <PartyTaxScheme> with Seller VAT Identifier <CompanyID> is exported even though the invoice total is zero
+        CompanyInformation.Get();
+        InitXPathXMLReaderForInvoice(TempBlob);
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+          '//cac:PartyTaxScheme/cbc:CompanyID', GetCompanyVATRegNo(CompanyInformation));
+        // [THEN] <TaxCategory> has <ID> 'E'
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:ID', GetTaxCategoryE());
+    end;
+
     local procedure Initialize()
     var
         CompanyInfo: Record "Company Information";
@@ -1749,6 +1783,19 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         CreateSalesDoc(SalesHeader, SalesLine, CustomerNo, DocumentType, '');
         SalesLine.Validate(
           "VAT Prod. Posting Group", CreateVATPostingSetupWithTaxCategory(SalesHeader."VAT Bus. Posting Group", TaxCategory, VATPct));
+        SalesLine.Modify(true);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreatePostSalesDocWithTaxCategoryAndFullLineDiscount(CustomerNo: Code[20]; DocumentType: Enum "Sales Document Type"; TaxCategory: Code[10]; VATPct: Decimal): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        CreateSalesDoc(SalesHeader, SalesLine, CustomerNo, DocumentType, '');
+        SalesLine.Validate(
+          "VAT Prod. Posting Group", CreateVATPostingSetupWithTaxCategory(SalesHeader."VAT Bus. Posting Group", TaxCategory, VATPct));
+        SalesLine.Validate("Line Discount %", 100);
         SalesLine.Modify(true);
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;

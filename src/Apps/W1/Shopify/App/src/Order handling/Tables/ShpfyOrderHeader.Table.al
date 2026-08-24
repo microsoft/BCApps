@@ -8,6 +8,7 @@ namespace Microsoft.Integration.Shopify;
 using Microsoft.Bank.BankAccount;
 using Microsoft.CRM.BusinessRelation;
 using Microsoft.CRM.Contact;
+using Microsoft.Finance.SalesTax;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
@@ -926,6 +927,23 @@ table 30118 "Shpfy Order Header"
         {
             Caption = 'Processed Currency Handling';
             DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(1070; "Tax Area Code"; Code[20])
+        {
+            Caption = 'Tax Area Code';
+            DataClassification = CustomerContent;
+            TableRelation = "Tax Area";
+        }
+        field(1080; "Tax Liable"; Boolean)
+        {
+            Caption = 'Tax Liable';
+            DataClassification = CustomerContent;
+        }
+        field(1090; "Tax Exempt"; Boolean)
+        {
+            Caption = 'Tax Exempt';
+            DataClassification = CustomerContent;
             Editable = false;
         }
     }

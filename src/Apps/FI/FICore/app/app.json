@@ -18,7 +18,7 @@
   "idRanges": [
     {
       "from": 13411,
-      "to": 13415
+      "to": 13420
     }
   ],
   "resourceExposurePolicy": {
@@ -26,5 +26,12 @@
     "allowDownloadingSource": true,
     "includeSourceInSymbolFile": true
   },
+  "internalsVisibleTo": [
+    {
+      "id": "5fa3b1f0-054d-4b96-a2af-cd57d4114930",
+      "name": "FI Core Tests",
+      "publisher": "Microsoft"
+    }
+  ],
   "target": "OnPrem"
 }

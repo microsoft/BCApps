@@ -134,8 +134,15 @@ codeunit 4350 "Custom Agent Setup"
 
     procedure OpenEditInstructionsPage(AgentSecurityId: Guid)
     var
+        AgentCodeunit: Codeunit Agent;
         AgentEditInstructionsPage: Page "Agent Instruction Editor";
     begin
+        // The test agent page is an authoring surface. Everything it displays is also
+        // available read-only on the agent card and the agent task pages, so archived
+        // agents are blocked here rather than opening a page that can do nothing.
+        if AgentCodeunit.IsArchived(AgentSecurityId) then
+            AgentEditInstructionsPage.ThrowArchivedAgentCannotBeTestedError(AgentSecurityId);
+
         if not ConfirmOpenEditInstructionsPageForInactiveAgent(AgentSecurityId) then
             exit;
 
