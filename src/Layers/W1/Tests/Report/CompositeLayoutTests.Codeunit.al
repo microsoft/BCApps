@@ -535,21 +535,28 @@ codeunit 134619 "Composite Layout Tests"
         TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
         CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
         RetiredPartName: Text[250];
+        BodyKey: Text;
     begin
         // [SCENARIO] A configuration row that assigned a retired part must not be left pointing at it: the reference is
         // cleared as the part goes, the same way deleting a part from the page clears its assignments.
         Initialize();
 
+        // [GIVEN] A body layout the configuration row can legally name. The platform validates that Layout Name
+        // resolves to a Body-subtype layout, so a plain name on a report that does not exist is rejected on insert.
+        BodyKey := CreateLayoutOnReport(BodyReportID, 'PruneBody', Enum::"Report Layout Subtype"::Body);
+
         // [GIVEN] A retired part assigned as the theme of a report configuration row.
         RetiredPartName := CopyStr(RetiredPartTok, 1, MaxStrLen(RetiredPartName));
         CompositeReportPartsMgt.SeedPart(RetiredPartName, ShippedThemeResourceTok, Enum::"Report Layout Subtype"::Theme, RetiredPartDescTok);
-        InsertCfg(TestReportID, 'Body', '', '', LookupHelper.EncodeCompositeName(CompositeReportPartsMgt.GetShippedPartAppId(), RetiredPartName));
+        InsertCfg(BodyReportID, BodyKey, '', '', LookupHelper.EncodeCompositeName(CompositeReportPartsMgt.GetShippedPartAppId(), RetiredPartName));
 
         // [WHEN] Seeding runs and prunes the retired part.
         CompositeReportPartsMgt.SeedDefaultParts();
 
         // [THEN] The configuration row survives with the reference cleared, rather than pointing at a part that is gone.
-        Assert.IsTrue(TenantReportLayoutCfg.Get(TestReportID, 'Body', ''), 'The configuration row should survive the pruning.');
+        Assert.IsTrue(
+            TenantReportLayoutCfg.Get(BodyReportID, CopyStr(BodyKey, 1, MaxStrLen(TenantReportLayoutCfg."Layout Name")), ''),
+            'The configuration row should survive the pruning.');
         Assert.AreEqual('', TenantReportLayoutCfg."Theme Part Name", 'Pruning the part should clear the assignment that referenced it.');
     end;
 
