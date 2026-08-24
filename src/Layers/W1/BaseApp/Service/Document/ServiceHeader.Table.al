@@ -5618,10 +5618,11 @@ table 5900 "Service Header"
         ServiceLedgerEntry.SetRange("Entry Type", ServiceLedgerEntry."Entry Type"::Sale);
         ServiceLedgerEntry.SetFilter("Document No.", '<>%1', ExcludeDocNo);
         ServiceLedgerEntry.SetRange("Applies-to Entry No.", 0);
+        ReversingServiceLedgerEntry.SetCurrentKey("Applies-to Entry No.");
         if ServiceLedgerEntry.FindSet() then
             repeat
                 ReversingServiceLedgerEntry.SetRange("Applies-to Entry No.", ServiceLedgerEntry."Entry No.");
-                InvoicedServiceLedgerEntryExists := ReversingServiceLedgerEntry.IsEmpty();
+                InvoicedServiceLedgerEntryExists := InvoicedServiceLedgerEntryExists or ReversingServiceLedgerEntry.IsEmpty();
             until (ServiceLedgerEntry.Next() = 0) or InvoicedServiceLedgerEntryExists;
         if not InvoicedServiceLedgerEntryExists then
             ServiceContractLine."Invoiced to Date" := 0D
