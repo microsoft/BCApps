@@ -730,16 +730,30 @@ codeunit 57 "Document Totals"
         if PurchHeader."No." = '' then
             exit(false);
 
-        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup.GetRecordOnce();
         if not PurchasesPayablesSetup."Allow VAT Difference" then
             exit(false);
 
         if PurchHeader."Tax Liable" then
             exit(false);
 
+        // Only recompute grouped VAT when a manual VAT difference exists; otherwise keep the line-summed totals.
+        if not PurchaseLinesHaveVATDifference(PurchHeader) then
+            exit(false);
+
         PurchLine.CalcVATAmountLines(0, PurchHeader, PurchLine, TempVATAmountLine);
         GroupedVATAmount := TempVATAmountLine.GetTotalVATAmount();
         exit(true);
+    end;
+
+    local procedure PurchaseLinesHaveVATDifference(var PurchHeader: Record "Purchase Header"): Boolean
+    var
+        PurchLine: Record "Purchase Line";
+    begin
+        PurchLine.SetRange("Document Type", PurchHeader."Document Type");
+        PurchLine.SetRange("Document No.", PurchHeader."No.");
+        PurchLine.SetFilter("VAT Difference", '<>0');
+        exit(not PurchLine.IsEmpty());
     end;
 
     procedure CalculatePostedPurchInvoiceTotals(var PurchInvHeader: Record "Purch. Inv. Header"; var VATAmount: Decimal; PurchInvLine: Record "Purch. Inv. Line")
