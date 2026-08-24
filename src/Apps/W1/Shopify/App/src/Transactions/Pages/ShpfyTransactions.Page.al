@@ -323,6 +323,7 @@ page 30134 "Shpfy Transactions"
         PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
     begin
         // Mark rows whose mapping is auto-post enabled and whose invoice/credit memo is posted.
+        Rec.SetAutoCalcFields("Posted Invoice No.");
         if not Rec.FindSet() then
             exit;
         repeat
@@ -346,7 +347,6 @@ page 30134 "Shpfy Transactions"
             SalesCrMemoHeader.SetRange("Shpfy Refund Id", OrderTransaction."Refund Id");
             exit(not SalesCrMemoHeader.IsEmpty());
         end;
-        OrderTransaction.CalcFields("Posted Invoice No.");
         exit(OrderTransaction."Posted Invoice No." <> '');
     end;
 }

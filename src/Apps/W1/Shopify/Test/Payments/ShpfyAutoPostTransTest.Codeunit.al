@@ -15,6 +15,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
+using Microsoft.Sales.Posting;
 using Microsoft.Sales.Receivables;
 using System.TestLibraries.Utilities;
 
@@ -520,6 +521,86 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
         // Clean up the unposted lines so they don't leak into other tests.
         GenJournalLine.SetRange("Shpfy Transaction Id", TransactionId);
         GenJournalLine.DeleteAll(true);
+    end;
+
+    [Test]
+    procedure UnitTestAutoPostSkippedWhenCommitSuppressed()
+    var
+        SalesHeader: Record "Sales Header";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        SkippedRecord: Record "Shpfy Skipped Record";
+        SalesPost: Codeunit "Sales-Post";
+        OrderId: BigInteger;
+        TransactionId: BigInteger;
+    begin
+        // [SCENARIO] Auto-posting is skipped when the caller suppresses commit and owns the transaction
+
+        // [GIVEN] Initialized test environment
+        Initialize();
+
+        // [GIVEN] A Shopify order with an auto-post-enabled transaction and a matching sales invoice
+        OrderId := LibraryRandom.RandIntInRange(11000000, 11999999);
+        TransactionId := LibraryRandom.RandIntInRange(11000000, 11999999);
+        CreateShopifyOrder(OrderId);
+        CreateOrderTransaction(TransactionId, OrderId, 0, PaymentMethodMapping.Gateway, Enum::"Shpfy Transaction Type"::Sale, Item."Unit Price");
+        EnablePaymentMethodMappingAutoPost(true);
+        CreateSalesOrder(SalesHeader, OrderId);
+
+        // [WHEN] The sales invoice is posted with commit suppressed (the caller owns the transaction)
+        SalesHeader.Ship := true;
+        SalesHeader.Invoice := true;
+        SalesHeader.Modify();
+        SalesPost.SetSuppressCommit(true);
+        SalesPost.Run(SalesHeader);
+
+        // [THEN] Auto-posting did not run: no ledger entry and no skipped record for the transaction
+        CustLedgerEntry.SetRange("Shpfy Transaction Id", TransactionId);
+        LibraryAssert.IsTrue(CustLedgerEntry.IsEmpty(), 'Auto-posting must not run when commit is suppressed');
+        SkippedRecord.SetRange("Shopify Id", TransactionId);
+        LibraryAssert.IsTrue(SkippedRecord.IsEmpty(), 'No skipped record should be logged when auto-posting is skipped');
+    end;
+
+    [Test]
+    procedure UnitTestAutoPostDefersWhilePartialCreditMemoOpen()
+    var
+        SalesHeaderToPost: Record "Sales Header";
+        SalesHeaderOpen: Record "Sales Header";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        OrderId: BigInteger;
+        RefundId: BigInteger;
+        TransactionId: BigInteger;
+    begin
+        // [SCENARIO] The refund transaction is not consumed while another, not-yet-posted credit memo exists for the same refund
+
+        // [GIVEN] Initialized test environment
+        Initialize();
+
+        // [GIVEN] A Shopify refund with an auto-post-enabled transaction that covers both credit memos
+        OrderId := LibraryRandom.RandIntInRange(12000000, 12999999);
+        RefundId := LibraryRandom.RandIntInRange(12000000, 12999999);
+        TransactionId := LibraryRandom.RandIntInRange(12000000, 12999999);
+        CreateShopifyOrder(OrderId);
+        CreateRefund(RefundId, OrderId);
+        CreateOrderTransaction(TransactionId, OrderId, RefundId, PaymentMethodMapping.Gateway, Enum::"Shpfy Transaction Type"::Refund, 2 * Item."Unit Price");
+        EnablePaymentMethodMappingAutoPost(true);
+
+        // [GIVEN] Two credit memos for the same Shopify refund
+        CreateCreditMemo(SalesHeaderOpen, RefundId);
+        CreateCreditMemo(SalesHeaderToPost, RefundId);
+
+        // [WHEN] The first credit memo is posted while the second is still open
+        LibrarySales.PostSalesDocument(SalesHeaderToPost, true, true);
+
+        // [THEN] Auto-posting is deferred - the transaction is not consumed yet
+        CustLedgerEntry.SetRange("Shpfy Transaction Id", TransactionId);
+        LibraryAssert.IsTrue(CustLedgerEntry.IsEmpty(), 'Refund transaction should not be auto-posted while another credit memo for the refund is still open');
+
+        // [WHEN] The remaining credit memo is posted
+        LibrarySales.PostSalesDocument(SalesHeaderOpen, true, true);
+
+        // [THEN] The transaction is now auto-posted
+        CustLedgerEntry.SetRange("Shpfy Transaction Id", TransactionId);
+        LibraryAssert.IsFalse(CustLedgerEntry.IsEmpty(), 'Refund transaction should be auto-posted once no open credit memo remains for the refund.');
     end;
 
     local procedure Initialize()

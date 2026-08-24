@@ -31,7 +31,7 @@ page 30176 "Shpfy Filter Transactions"
                     PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
                 begin
                     PaymentMethodMapping.SetRange("Post Automatically", true);
-                    if Page.RunModal(0, PaymentMethodMapping) = Action::LookupOK then begin
+                    if Page.RunModal(Page::"Shpfy Payment Methods Mapping", PaymentMethodMapping) = Action::LookupOK then begin
                         ShopCode := PaymentMethodMapping."Shop Code";
                         Gateway := PaymentMethodMapping.Gateway;
                         CreditCardCompany := PaymentMethodMapping."Credit Card Company";
