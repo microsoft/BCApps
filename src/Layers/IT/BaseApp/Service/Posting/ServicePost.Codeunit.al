@@ -283,7 +283,7 @@ codeunit 5980 "Service-Post"
             WhseShip := not TempWarehouseShipmentHeader.IsEmpty();
         end;
         IsHandled := false;
-        OnPostDocumentLinesOnBeforeInsertPostedHeaders(ServiceHeader, IsHandled, ServInvoiceNo, ServCrMemoNo);
+        OnPostDocumentLinesOnBeforeInsertPostedHeaders(ServiceHeader, ServDocumentsMgt, IsHandled, ServInvoiceNo, ServCrMemoNo);
         if not IsHandled then
             if Invoice then
                 if ServiceHeader."Document Type" in [ServiceHeader."Document Type"::Order, ServiceHeader."Document Type"::Invoice] then begin
@@ -968,7 +968,7 @@ codeunit 5980 "Service-Post"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnPostDocumentLinesOnBeforeInsertPostedHeaders(var ServiceHeader: Record "Service Header"; var IsHandled: Boolean; var ServInvoiceNo: Code[20]; var ServCrMemoNo: Code[20])
+    local procedure OnPostDocumentLinesOnBeforeInsertPostedHeaders(var ServiceHeader: Record "Service Header"; var ServDocumentsMgt: Codeunit "Serv-Documents Mgt."; var IsHandled: Boolean; var ServInvoiceNo: Code[20]; var ServCrMemoNo: Code[20])
     begin
     end;
 }
