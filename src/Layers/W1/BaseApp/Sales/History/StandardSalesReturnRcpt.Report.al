@@ -613,6 +613,9 @@ report 1309 "Standard Sales - Return Rcpt."
             LayoutFile = './Sales/History/StandardSalesReturnRcpt.docx';
             Caption = 'Standard Sales Return Receipt (Word)';
             Summary = 'The Standard Sales Return Receipt (Word) provides a basic layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
         }
         layout("StandardSalesReturnRcptBlue.docx")
         {
@@ -620,6 +623,9 @@ report 1309 "Standard Sales - Return Rcpt."
             LayoutFile = './Sales/History/StandardSalesReturnRcptBlue.docx';
             Caption = 'Standard Sales Return Receipt - Blue (Word)';
             Summary = 'The Standard Sales Return Receipt - Blue (Word) provides a simple layout with a blue theme.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
         }
         layout("StandardSalesReturnRcptBlueThemable.docx")
         {
@@ -627,6 +633,17 @@ report 1309 "Standard Sales - Return Rcpt."
             LayoutFile = './Sales/History/StandardSalesReturnRcptBlueThemable.docx';
             Caption = 'Standard Sales Return Receipt - themable Word layout';
             Summary = 'The Standard Sales Return Receipt - Themable (Word) provides a Themable layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
+        }
+        layout("StandardSalesReturnRcptBody.docx")
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './Sales/History/StandardSalesReturnRcptBody.docx';
+            Caption = 'Body-only: Standard Sales Return Receipt (Word)';
+            Summary = 'Portrait orientated. Shows the customer and company address and a header with date, shipment date, and return order number. Item lines list number, description, quantity, and unit of measure.';
         }
     }
 

@@ -983,6 +983,9 @@ report 1316 "Standard Statement"
             LayoutFile = './Sales/Customer/StandardStatement.docx';
             Caption = 'Standard Customer Statement (Word)';
             Summary = 'The Standard Customer Statement (Word) provides a basic layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
         }
         layout("StandardCustomerStatementEmail.docx")
         {
@@ -990,6 +993,25 @@ report 1316 "Standard Statement"
             LayoutFile = './Sales/Customer/StandardCustomerStatementEmail.docx';
             Caption = 'Standard Customer Statement Email (Word)';
             Summary = 'The Standard Customer Statement Email (Word) provides an email body layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
+        }
+        layout("StandardStatementBody.docx")
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './Sales/Customer/StandardStatementBody.docx';
+            Caption = 'Standard Customer Statement (Word)';
+            Summary = 'Portrait orientated. Shows the customer and company address, the opening balance, and ledger entries with document, due date, and amounts. Adds overdue entries, aging bands, and the closing balance for each currency.';
+        }
+        layout("StandardCustomerStatementEmailBody.docx")
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './Sales/Customer/StandardCustomerStatementEmailBody.docx';
+            Caption = 'Body-only: Standard Customer Statement Email (Word)';
+            Summary = 'Portrait orientated. Email body with the heading, customer number, greeting, body, and closing text, followed by the company address. Use it as cover text for the email.';
         }
     }
 
