@@ -2202,7 +2202,6 @@ codeunit 134344 "Document Totals Pages"
         VATPostingSetup: array[2] of Record "VAT Posting Setup";
         Vendor: Record Vendor;
         PurchaseInvoicePage: TestPage "Purchase Invoice";
-        GLAccountNo: Code[20];
         MaxVATDifference: Decimal;
         TotalAmountInclVATBefore: Decimal;
         TotalVATAmountBefore: Decimal;
