@@ -130,13 +130,13 @@ page 4309 "Agent Task Message Attachments"
 
     local procedure SetAttachmentIgnoredReason()
     var
-        IgnoredReason: Text;
+        CachedIgnoredReason: Text;
     begin
         Clear(AttachmentIgnoredReason);
-        if not IgnoredReasons.Get(Rec.ID, IgnoredReason) then
+        if not IgnoredReasons.Get(Rec.ID, CachedIgnoredReason) then
             exit;
 
-        AttachmentIgnoredReason := CopyStr(IgnoredReason, 1, MaxStrLen(AttachmentIgnoredReason));
+        AttachmentIgnoredReason := CopyStr(CachedIgnoredReason, 1, MaxStrLen(AttachmentIgnoredReason));
     end;
 
     local procedure SupportedByFileViewer(FileMIMEType: Text): Boolean
