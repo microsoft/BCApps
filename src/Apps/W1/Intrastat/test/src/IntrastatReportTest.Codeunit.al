@@ -4835,6 +4835,7 @@ codeunit 139550 "Intrastat Report Test"
         CountryRegion: array[2] of Record "Country/Region";
         IntrastatReportLine: Record "Intrastat Report Line";
     begin
+        // [FEATURE] [AI test 0.4]
         // [SCENARIO 644797] A manually added Intrastat report line uses the country's Intrastat Code.
         Initialize();
 
