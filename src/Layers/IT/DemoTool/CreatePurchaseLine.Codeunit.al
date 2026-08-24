@@ -89,8 +89,6 @@ codeunit 101039 "Create Purchase Line"
         XSERVICE: Label 'SERVICE';
 
     procedure InsertData("Document Type": Integer; "Document No.": Code[20]; Type: Integer; "No.": Code[20]; "Location Code": Code[10]; Quantity: Decimal; "FA Posting Type": Integer; "Direct Unit Cost": Decimal; "Insurance No.": Code[20]; "Maintenance Code": Code[20]; "No. of Fixed Asset Cards": Integer)
-    var
-        PurchaseHeader: Record "Purchase Header";
     begin
         "Purchase Line".Init();
         "Purchase Line".Validate("Document Type", "Document Type");
@@ -103,10 +101,10 @@ codeunit 101039 "Create Purchase Line"
                     "Purchase Line".Validate("Line No.", "Line No.");
                 end;
             else begin
-                "Line No." := 10000;
-                "Previous Document No." := "Document No.";
-                "Purchase Line".Validate("Line No.", "Line No.");
-            end;
+                    "Line No." := 10000;
+                    "Previous Document No." := "Document No.";
+                    "Purchase Line".Validate("Line No.", "Line No.");
+                end;
         end;
 
         "Purchase Line".Validate(Type, Type);
@@ -127,16 +125,6 @@ codeunit 101039 "Create Purchase Line"
         //END IT
 
         "Purchase Line".Insert();
-
-        //IT
-        "Purchase Line".SetRange("Document Type", "Purchase Line"."Document Type");
-        "Purchase Line".SetRange("Document No.", "Purchase Line"."Document No.");
-        "Purchase Line".CalcSums("Amount Including VAT");
-        PurchaseHeader.Get("Purchase Line"."Document Type", "Purchase Line"."Document No.");
-        PurchaseHeader."Check Total" := "Purchase Line"."Amount Including VAT";
-        PurchaseHeader.Modify();
-        "Purchase Line".Reset();
-        //END IT
     end;
 
     local procedure InsertDataAndUpdateUnitCost(DocumentType: Integer; DocumentNo: Code[20]; Type: Integer; No: Code[20]; LocationCode: Code[10]; Quantity: Decimal; DirectUnitCost: Decimal)
