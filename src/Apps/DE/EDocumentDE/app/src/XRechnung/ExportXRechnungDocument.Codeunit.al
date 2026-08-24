@@ -768,6 +768,19 @@ codeunit 13916 "Export XRechnung Document"
         PartyElement.Add(PartyTaxSchemeElement);
     end;
 
+    local procedure InsertPartyRegistrationNoTaxScheme(var PartyElement: XmlElement; RegistrationNo: Text[20])
+    var
+        PartyTaxSchemeElement: XmlElement;
+        TaxSchemeElement: XmlElement;
+    begin
+        PartyTaxSchemeElement := XmlElement.Create('PartyTaxScheme', XmlNamespaceCAC);
+        PartyTaxSchemeElement.Add(XmlElement.Create('CompanyID', XmlNamespaceCBC, RegistrationNo));
+        TaxSchemeElement := XmlElement.Create('TaxScheme', XmlNamespaceCAC);
+        TaxSchemeElement.Add(XmlElement.Create('ID', XmlNamespaceCBC, 'FC'));
+        PartyTaxSchemeElement.Add(TaxSchemeElement);
+        PartyElement.Add(PartyTaxSchemeElement);
+    end;
+
     local procedure InsertTaxScheme(var RootElement: XmlElement)
     var
         TaxSchemeElement: XmlElement;
@@ -867,8 +880,15 @@ codeunit 13916 "Export XRechnung Document"
         TempCompanyAddress.CopyFromCompanyInformation(CompanyInformation);
         UpdateSellerAddressFromResponsibilityCenter(RespCenterCode, TempCompanyAddress);
         InsertAddress(PartyElement, 'PostalAddress', TempCompanyAddress);
-        if not AllLinesNotSubjectToVAT then
-            InsertPartyTaxScheme(PartyElement, CompanyInformation."VAT Registration No.", CompanyInformation."Country/Region Code");
+        if CompanyInformation."VAT Registration No." = '' then begin
+            if CompanyInformation."Use Reg. No. in E-Document" and
+               (CompanyInformation.GLN = '') and
+               (CompanyInformation."Registration No." <> '')
+            then
+                InsertPartyRegistrationNoTaxScheme(PartyElement, CompanyInformation."Registration No.");
+        end else
+            if not AllLinesNotSubjectToVAT then
+                InsertPartyTaxScheme(PartyElement, CompanyInformation."VAT Registration No.", CompanyInformation."Country/Region Code");
         InsertPartyLegalEntity(PartyElement);
         InsertSupplierContact(SalespersonCode, PartyElement);
         AccountingSupplierPartyElement.Add(PartyElement);
