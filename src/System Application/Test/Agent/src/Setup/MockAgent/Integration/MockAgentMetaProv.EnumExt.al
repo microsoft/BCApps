@@ -13,4 +13,10 @@ enumextension 133952 "Mock Agent Meta. Prov." extends "Agent Metadata Provider"
         Caption = 'SDK Mock Agent';
         Implementation = IAgentFactory = "Mock Agent Meta. Prov.", IAgentMetadata = "Mock Agent Meta. Prov.";
     }
+
+    value(133955; "SDK Mock Agent No Archiving")
+    {
+        Caption = 'SDK Mock Agent No Archiving';
+        Implementation = IAgentFactory = "Mock Agent Meta. Prov.", IAgentMetadata = "Mock Agent Meta. Prov.", IAgentArchiving = "Mock Agent Meta. Prov.";
+    }
 }
