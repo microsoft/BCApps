@@ -697,6 +697,10 @@ table 6906 "Expense Report Header"
         ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.";
     begin
         ExpenseReportLineVATSpec.SetRange("Document No.", "No.");
+        ExpenseReportLineVATSpec.SetLoadFields(
+            "Currency Code", "VAT Base Amount (LCY)", "VAT Amount", "VAT Amount (LCY)", "Amount (LCY)", "Reclaim %",
+            "VAT Base Amount (RCY)", "VAT Amount (RCY)", "Amount (RCY)", "Reclaim VAT Amount",
+            "Reclaim VAT Amount (LCY)", "Reclaim VAT Amount (RCY)");
         if ExpenseReportLineVATSpec.FindSet(true) then
             repeat
                 ExpenseReportLineVATSpec.UpdateReimbursementAmounts(Rec);

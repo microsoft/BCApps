@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-using System.Telemetry;
-
 page 7085 "Expense VAT Spec. API"
 {
     APIGroup = 'expense';
@@ -123,18 +121,9 @@ page 7085 "Expense VAT Spec. API"
     end;
 
     internal procedure InsertVATSpecification(var ExpenseVATSpecification: Record "Expense VAT Specification")
-    var
-        ExpenseAgentSetup: Record "Expense Agent Setup";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
-        TelemetryDimensions: Dictionary of [Text, Text];
     begin
         ExpenseVATSpecification.Source := ExpenseVATSpecification.Source::Agent;
         ExpenseVATSpecification.Insert(true);
-
-        TelemetryDimensions.Add('HasExpenseCategory', Format(ExpenseVATSpecification."Expense Category" <> ''));
-        TelemetryDimensions.Add('HasExpenseSubcategory', Format(ExpenseVATSpecification."Expense Subcategory" <> ''));
-        TelemetryDimensions.Add('HasVATProductPostingGroup', Format(ExpenseVATSpecification."VAT Prod. Posting Group" <> ''));
-        FeatureTelemetry.LogUptake('0000UZ7', ExpenseAgentSetup.GetFeatureName(), Enum::"Feature Uptake Status"::Used, TelemetryDimensions);
     end;
 
     local procedure VerifyExpenseAgentCaller()

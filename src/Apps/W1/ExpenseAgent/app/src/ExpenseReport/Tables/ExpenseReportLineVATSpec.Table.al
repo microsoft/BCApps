@@ -433,8 +433,10 @@ table 6922 "Expense Report Line VAT Spec."
 
     local procedure GetExpenseReportHeader()
     begin
-        if "Document No." <> ExpenseReportHeader."No." then
+        if "Document No." <> ExpenseReportHeader."No." then begin
+            ExpenseReportHeader.SetLoadFields("Reimbursement Currency Code");
             ExpenseReportHeader.Get("Document No.");
+        end;
     end;
 
     local procedure GetExpenseReportLine()

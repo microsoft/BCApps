@@ -288,6 +288,7 @@ table 6934 "Posted Exp. Rep. Line VAT Spec"
     var
         PostedExpenseReportHeader: Record "Posted Expense Report Header";
     begin
+        PostedExpenseReportHeader.SetLoadFields("Reimbursement Currency Code");
         if PostedExpenseReportHeader.Get("Expense Report No.") then
             exit(PostedExpenseReportHeader."Reimbursement Currency Code");
     end;
