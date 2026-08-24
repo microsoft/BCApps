@@ -286,9 +286,6 @@ report 10135 "Item Sales Statistics"
                     Item.SetRange("Variant Filter", Code);
                     Item.CalcFields("Sales (Qty.)", "Sales (LCY)", "COGS (LCY)");
                     SkipRecord := (Item."Sales (Qty.)" = 0) and PrintOnlyIfSales;
-                    OnItemVariantOnAfterGetRecordOnBeforePrintOnlyIfSalesCheck(Item, "Item Variant", PrintOnlyIfSales, SkipRecord);
-                    if SkipRecord then
-                        CurrReport.Skip();
                     Profit := Item."Sales (LCY)" - Item."COGS (LCY)";
                     if Item."Sales (LCY)" <> 0 then
                         ItemProfitPct := Round(Profit / Item."Sales (LCY)" * 100, 0.1)
@@ -304,9 +301,11 @@ report 10135 "Item Sales Statistics"
                                 Item."Sales (Qty.)" := Item."Sales (Qty.)" + ItemLedgerEntry."Invoiced Quantity";
                             end;
                         until ItemLedgerEntry.Next() = 0;
-                    if (Item."Sales (Qty.)" = 0) and (QuantityReturned = 0) and
-                       (Item."Sales (LCY)" = 0) and (Item."COGS (LCY)" = 0)
-                    then
+                    SkipRecord := SkipRecord or
+                        ((Item."Sales (Qty.)" = 0) and (QuantityReturned = 0) and
+                         (Item."Sales (LCY)" = 0) and (Item."COGS (LCY)" = 0));
+                    OnItemVariantOnAfterGetRecordOnBeforePrintOnlyIfSalesCheck(Item, "Item Variant", PrintOnlyIfSales, SkipRecord);
+                    if SkipRecord then
                         CurrReport.Skip();
                 end;
 
@@ -506,4 +505,3 @@ report 10135 "Item Sales Statistics"
     begin
     end;
 }
-
