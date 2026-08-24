@@ -10,7 +10,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SpendRequest;
 using Microsoft.HumanResources.Employee;
 
-codeunit 148338 "Spend Request Test"
+codeunit 148339 "Spend Request Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;

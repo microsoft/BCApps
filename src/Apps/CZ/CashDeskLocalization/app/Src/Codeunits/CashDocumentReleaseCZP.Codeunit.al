@@ -202,16 +202,21 @@ codeunit 11725 "Cash Document-Release CZP"
     local procedure CheckMandatoryFields(CashDocumentHeaderCZP: Record "Cash Document Header CZP")
     var
         SkipPaymentPurposeTestField: Boolean;
+        SkipAmountsTestFields: Boolean;
     begin
         SkipPaymentPurposeTestField := false;
+        SkipAmountsTestFields := false;
         OnBeforeCheckMandatoryFields(CashDocumentHeaderCZP, SkipPaymentPurposeTestField);
+        OnBeforeCheckMandatoryFieldsSkipAmounts(CashDocumentHeaderCZP, SkipAmountsTestFields);
 
         CashDocumentHeaderCZP.TestField(CashDocumentHeaderCZP."No.");
         CashDocumentHeaderCZP.TestField(CashDocumentHeaderCZP."Posting Date");
         CashDocumentHeaderCZP.VATRounding();
-        CashDocumentHeaderCZP.CalcFields(CashDocumentHeaderCZP."Amount Including VAT", CashDocumentHeaderCZP."Amount Including VAT (LCY)");
-        CashDocumentHeaderCZP.TestField(CashDocumentHeaderCZP."Amount Including VAT");
-        CashDocumentHeaderCZP.TestField(CashDocumentHeaderCZP."Amount Including VAT (LCY)");
+        if not SkipAmountsTestFields then begin
+            CashDocumentHeaderCZP.CalcFields(CashDocumentHeaderCZP."Amount Including VAT", CashDocumentHeaderCZP."Amount Including VAT (LCY)");
+            CashDocumentHeaderCZP.TestField(CashDocumentHeaderCZP."Amount Including VAT");
+            CashDocumentHeaderCZP.TestField(CashDocumentHeaderCZP."Amount Including VAT (LCY)");
+        end;
         CashDocumentHeaderCZP.TestField(CashDocumentHeaderCZP."Document Date");
         if not SkipPaymentPurposeTestField then
             CashDocumentHeaderCZP.TestField(CashDocumentHeaderCZP."Payment Purpose");
@@ -374,6 +379,11 @@ codeunit 11725 "Cash Document-Release CZP"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckMandatoryFields(CashDocumentHeaderCZP: Record "Cash Document Header CZP"; var SkipPaymentPurposeTestField: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckMandatoryFieldsSkipAmounts(CashDocumentHeaderCZP: Record "Cash Document Header CZP"; var SkipAmountsTestFields: Boolean)
     begin
     end;
 }

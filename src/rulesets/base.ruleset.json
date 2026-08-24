@@ -19,17 +19,14 @@
       "action": "Warning"
     },
     {
+      "id": "AL0424",
+      "action": "Warning",
+      "justification": "Bug 472148. The multilanguage syntax is being deprecated. Please update to the new syntax."
+    },
+    {
       "id": "AL0432",
       "action": "None",
       "justification": "Use pragma to remove obsolete warning."
-    },
-    {
-      "id": "AL0523",
-      "action": "Warning"
-    },
-    {
-      "id": "AL0547",
-      "action": "Warning"
     },
     {
       "id": "AL0589",
@@ -47,10 +44,6 @@
     {
       "id": "AL0606",
       "action": "Warning"
-    },
-    {
-      "id": "AL0640",
-      "action": "Error"
     },
     {
       "id": "AL0659",
@@ -96,7 +89,7 @@
     {
       "id": "AS0112",
       "action": "None",
-      "justification": "The permission set 'Reten. Pol. Setup - BaseApp' should not be included through a permission set extension because it includes permissions for objects defined in another application."
+      "justification": "Permission set extensions that include permission sets covering objects from another application. Needs a permission set redesign to fix."
     },
     {
       "id": "AS0014",
@@ -117,16 +110,6 @@
       "id": "AS0051",
       "action": "Warning",
       "justification": "The manifest property 'contextSensitiveHelpUrl' must be specified and contain a meaningful value."
-    },
-    {
-      "id": "AS0052",
-      "action": "Warning",
-      "justification": "The property 'url' must be set to a valid URL."
-    },
-    {
-      "id": "AS0058",
-      "action": "Warning",
-      "justification": "Only use AssertError in Test Codeunits."
     },
     {
       "id": "AS0062",
@@ -347,24 +330,9 @@
       "justification": "Variable with placeholders should have a comment explaining their content."
     },
     {
-      "id": "AA0471",
-      "action": "None",
-      "justification": "AutoformatType should be defined for decimal fields in Page objects to ensure proper formatting behavior."
-    },
-    {
-      "id": "AA0472",
-      "action": "None",
-      "justification": "AutoformatExpression should be defined when AutoformatType is not default to ensure proper formatting behavior."
-    },
-    {
       "id": "AA0473",
       "action": "None",
       "justification": "AutoformatType should be defined for decimal fields in Table objects to ensure proper formatting behavior."
-    },
-    {
-      "id": "AA0474",
-      "action": "None",
-      "justification": "AutoformatExpression should be defined when AutoformatType is not default to ensure proper formatting behavior."
     },
     {
       "id": "AW0002",
@@ -402,11 +370,6 @@
       "justification": "Group 'Processing' only contains promoted actions that are not set to PromotedOnly='true'."
     },
     {
-      "id": "AW0014",
-      "action": "Warning",
-      "justification": "The group defined in Page should not be hidden because it contains the target actions for some ActionRefs."
-    },
-    {
       "id": "PTE0002",
       "action": "None",
       "justification": "Field ID must be within the range '[50000..99999]'."
@@ -417,11 +380,6 @@
       "justification": "Table is missing a matching permission set."
     },
     {
-      "id": "PTE0007",
-      "action": "Warning",
-      "justification": "Only use AssertError in Test Codeunits."
-    },
-    {
       "id": "PTE0008",
       "action": "Warning",
       "justification": "Action must have a value for the ApplicationArea property so that they are visible to users. From runtime 11.0, you can specify on the application object level the ApplicationArea to use as default for all its controls and actions."
@@ -429,11 +387,6 @@
     {
       "id": "PTE0018",
       "action": "Warning"
-    },
-    {
-      "id": "AD0001",
-      "action": "Error",
-      "justification": "Analyzer exceptions should be an error as they can prevent other rules from being validated properly."
     },
     {
       "id": "AL0468",
@@ -448,6 +401,10 @@
       "action": "Warning"
     },
     {
+      "id": "AL0523",
+      "action": "Warning"
+    },
+    {
       "id": "AL0604",
       "action": "Warning"
     },
@@ -457,10 +414,6 @@
     },
     {
       "id": "AL0611",
-      "action": "Warning"
-    },
-    {
-      "id": "AL0679",
       "action": "Warning"
     },
     {
@@ -500,10 +453,6 @@
     {
       "id": "AA0241",
       "action": "None"
-    },
-    {
-      "id": "AS0054",
-      "action": "Warning"
     }
   ]
 }
