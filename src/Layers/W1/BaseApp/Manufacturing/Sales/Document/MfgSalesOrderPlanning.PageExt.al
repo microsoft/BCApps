@@ -5,7 +5,6 @@
 namespace Microsoft.Sales.Document;
 
 using Microsoft.Manufacturing.Document;
-using Microsoft.Manufacturing.Wizard;
 
 pageextension 99000883 "Mfg. Sales Order Planning" extends "Sales Order Planning"
 {
@@ -38,7 +37,6 @@ pageextension 99000883 "Mfg. Sales Order Planning" extends "Sales Order Planning
     var
         NewStatus: Enum "Production Order Status";
         NewOrderType: Enum "Create Production Order Type";
-        UseWizard: Boolean;
         NothingToPlanMsg: Label 'There is nothing to plan.';
 
     procedure CreateProdOrder()
@@ -49,7 +47,6 @@ pageextension 99000883 "Mfg. Sales Order Planning" extends "Sales Order Planning
         ShowCreateOrderForm: Boolean;
         IsHandled: Boolean;
     begin
-        UseWizard := false;
         ShowCreateOrderForm := true;
         IsHandled := false;
         NewOrderTypeOption := NewOrderType.AsInteger();
@@ -64,12 +61,10 @@ pageextension 99000883 "Mfg. Sales Order Planning" extends "Sales Order Planning
             exit;
 
         if ShowCreateOrderForm then begin
-            CreateOrderFromSales.SetSingleLineSelected(TempSalesPlanningLine.Count() = 1);
             if CreateOrderFromSales.RunModal() <> ACTION::Yes then
                 exit;
 
             CreateOrderFromSales.GetParameters(NewStatus, NewOrderType);
-            UseWizard := CreateOrderFromSales.GetUseProductDefinitionWizard();
             OnCreateProdOrderOnAfterGetParameters(Rec, NewStatus, NewOrderType);
             Clear(CreateOrderFromSales);
         end;
@@ -130,23 +125,19 @@ pageextension 99000883 "Mfg. Sales Order Planning" extends "Sales Order Planning
 
     local procedure CreateOrder(var TempSalesPlanningLine: Record "Sales Planning Line" temporary; DoCreateProdOrder: Boolean; var SalesLine: Record "Sales Line"; var EndLoop: Boolean; var OrdersCreated: Boolean)
     var
-        ProductionDefinitionManager: Codeunit "Production Definition Manager";
         CreateProdOrderFromSale: Codeunit "Create Prod. Order from Sale";
         HideValidationDialog: Boolean;
     begin
         HideValidationDialog := false;
         OnBeforeCreateOrder(TempSalesPlanningLine, SalesLine, DoCreateProdOrder, HideValidationDialog);
 
-        if DoCreateProdOrder then
-            if not UseWizard then begin
-                OrdersCreated := true;
-                CreateProdOrderFromSale.SetHideValidationDialog(HideValidationDialog);
-                CreateProdOrderFromSale.CreateProductionOrder(SalesLine, NewStatus, NewOrderType);
-                if NewOrderType = NewOrderType::ProjectOrder then
-                    EndLoop := true;
-            end else
-                if ProductionDefinitionManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder, NewStatus) then
-                    OrdersCreated := true;
+        if DoCreateProdOrder then begin
+            OrdersCreated := true;
+            CreateProdOrderFromSale.SetHideValidationDialog(HideValidationDialog);
+            CreateProdOrderFromSale.CreateProductionOrder(SalesLine, NewStatus, NewOrderType);
+            if NewOrderType = NewOrderType::ProjectOrder then
+                EndLoop := true;
+        end;
     end;
 
     [IntegrationEvent(false, false)]
