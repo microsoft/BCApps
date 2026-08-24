@@ -237,6 +237,8 @@ codeunit 30161 "Shpfy Import Order"
                         SetOrderAsConflicting(OrderHeader);
 
             RefundLine.CalcSums(Quantity, Amount, "Presentment Amount", "Subtotal Amount", "Presentment Subtotal Amount", "Total Tax Amount", "Presentment Total Tax Amount");
+            OrderLine."Discount Amount" -= (OrderLine."Unit Price" * RefundLine.Quantity) - RefundLine."Subtotal Amount";
+            OrderLine."Presentment Discount Amount" -= (OrderLine."Presentment Unit Price" * RefundLine.Quantity) - RefundLine."Presentment Subtotal Amount";
             OrderLine.Quantity -= RefundLine.Quantity;
             OrderLine.Modify();
             OrderHeader."Total Amount" -= RefundLine."Subtotal Amount" + RefundLine."Total Tax Amount";
