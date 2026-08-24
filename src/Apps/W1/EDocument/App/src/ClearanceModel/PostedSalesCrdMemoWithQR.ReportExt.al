@@ -29,6 +29,17 @@ reportextension 6168 PostedSalesCrdMemoWithQR extends "Standard Sales - Credit M
             LayoutFile = './.resources/Template/StandardSalesCreditMemowithQR.docx';
             Caption = 'Standard Sales - Credit Memo - E-Document (Word)';
             Summary = 'The Standard Sales - Credit Memo - E-Document (Word) provides the layout including E-Document QR code support.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
+        }
+        layout("StandardSalesCrMemoQRBody.docx")
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './.resources/Template/StandardSalesCreditMemowithQRBody.docx';
+            Caption = 'Body-only: Standard Sales - Credit Memo - E-Document (Word)';
+            Summary = 'Portrait orientated. Shows the customer and company address and a header with reference, salesperson, applies-to document, and due date. Item lines list price, discount %, VAT %, and amount, with VAT-inclusive totals and a QR code.';
         }
     }
 }

@@ -247,6 +247,9 @@ report 6102 "E-Doc Sample Purchase Invoice"
             Caption = 'First sample invoice layout';
             Summary = 'First sample invoice layout';
             LayoutFile = './src/SampleInvoice/EDocSamplePurchInvoice.docx';
+             ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
         }
         layout(SampleInvoiceLayout2)
         {
@@ -254,6 +257,9 @@ report 6102 "E-Doc Sample Purchase Invoice"
             Caption = 'Second sample invoice layout';
             Summary = 'Second sample invoice layout';
             LayoutFile = './src/SampleInvoice/EDocSamplePurchInvoice2.docx';
+             ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
         }
         layout(SampleInvoiceLayout3)
         {
@@ -261,6 +267,17 @@ report 6102 "E-Doc Sample Purchase Invoice"
             Caption = 'Third sample invoice layout';
             Summary = 'Third sample invoice layout';
             LayoutFile = './src/SampleInvoice/EDocSamplePurchInvoice3.docx';
+             ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
+        }
+        layout(SampleInvoiceLayoutBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './src/SampleInvoice/EDocSamplePurchInvoiceBody.docx';
+            Caption = 'Body-only: First sample invoice layout';
+            Summary = 'Portrait orientated. Shows the vendor and company address, invoice number, and posting date. Item lines list quantity, unit of measure, direct unit cost, and amount, followed by the subtotal, VAT, and total including VAT.';
         }
     }
 
