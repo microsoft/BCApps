@@ -116,23 +116,15 @@ codeunit 9667 "Composite Report Parts Mgt."
 
     local procedure ClearAssignments(PartName: Text[250]; Subtype: Enum "Report Layout Subtype")
     var
-        TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
+        ReportLayoutList: Record "Report Layout List";
         CompositeLayoutLookupHelper: Codeunit "Composite Layout Lookup Helper";
-        Composite: Text;
     begin
-        Composite := CompositeLayoutLookupHelper.EncodeCompositeName(GetShippedPartAppId(), PartName);
-        case Subtype of
-            Subtype::HeaderFooter:
-                begin
-                    TenantReportLayoutCfg.SetRange("Header Part Name", CopyStr(Composite, 1, MaxStrLen(TenantReportLayoutCfg."Header Part Name")));
-                    TenantReportLayoutCfg.ModifyAll("Header Part Name", '');
-                end;
-            Subtype::Theme:
-                begin
-                    TenantReportLayoutCfg.SetRange("Theme Part Name", CopyStr(Composite, 1, MaxStrLen(TenantReportLayoutCfg."Theme Part Name")));
-                    TenantReportLayoutCfg.ModifyAll("Theme Part Name", '');
-                end;
-        end;
+        ReportLayoutList.Init();
+        ReportLayoutList."Report ID" := CompositeLayoutLookupHelper.GetTenantReportDefaultsReportID();
+        ReportLayoutList.Name := CopyStr(PartName, 1, MaxStrLen(ReportLayoutList.Name));
+        ReportLayoutList."Application ID" := GetShippedPartAppId();
+        ReportLayoutList."Layout Subtype" := Subtype;
+        CompositeLayoutLookupHelper.ClearPartAssignments(ReportLayoutList);
     end;
 
     internal procedure GetShippedPartAppId() AppId: Guid
