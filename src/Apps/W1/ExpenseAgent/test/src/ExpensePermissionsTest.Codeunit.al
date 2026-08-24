@@ -7,6 +7,7 @@ namespace Microsoft.Test.ExpenseAgent;
 using Microsoft.ExpenseAgent;
 using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Setup;
+using System.DataAdministration;
 
 codeunit 148338 "Expense Permissions Test"
 {
@@ -26,6 +27,7 @@ codeunit 148338 "Expense Permissions Test"
         AutomationPermissionSetTok: Label 'Exp. Auto Test', Locked = true;
         D365BasicPermissionSetTok: Label 'D365 BASIC', Locked = true;
         ExpenseAgentPermissionSetTok: Label 'Expense Agent', Locked = true;
+        RetentionPolicyAdminPermissionSetTok: Label 'Retention Pol. Admin', Locked = true;
         CannotDeleteEmployeeWithExpenseErr: Label 'You cannot delete Employee %1 because they have active expense.', Comment = '%1 = Employee No.';
         CannotDeleteEmployeeWithExpenseReportErr: Label 'You cannot delete Employee %1 because they have active expense report.', Comment = '%1 = Employee No.';
         CannotDeleteEmployeeWithPostedExpenseReportErr: Label 'You cannot delete Employee %1 because they have posted expense report.', Comment = '%1 = Employee No.';
@@ -190,6 +192,76 @@ codeunit 148338 "Expense Permissions Test"
         RestoreFullPermissions();
     end;
 
+    [Test]
+    procedure RetentionPolicyDeletesExpiredPostedActivityWithIndirectPermission()
+    var
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseUser: Record "Expense User";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        RetentionPolicySetup: Record "Retention Policy Setup";
+        ApplyRetentionPolicy: Codeunit "Apply Retention Policy";
+        ActiveEntryNo: BigInteger;
+        ExpiredPostedEntryNo: BigInteger;
+        RecentPostedEntryNo: BigInteger;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 646820] Retention deletes only expired posted activity through indirect permission.
+        Initialize();
+
+        // [GIVEN] Policy "RP" retains posted activity for one week and entries "A1", "A2", and "A3" have different ages.
+        CreateEnabledActivityLogRetentionPolicy(RetentionPolicySetup);
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+        CreatePostedExpenseReportForDeletionGuard(PostedExpenseReportHeader, ExpenseUser."No.");
+        ActiveEntryNo :=
+            CreateActivityLogEntry(
+                Database::"Expense Report Header",
+                ExpenseReportHeader.SystemId,
+                ExpenseReportHeader.SystemId,
+                CreateDateTime(CalcDate('<-2W>', Today()), 120000T));
+        ExpiredPostedEntryNo :=
+            CreateActivityLogEntry(
+                Database::"Posted Expense Report Header",
+                PostedExpenseReportHeader.SystemId,
+                ExpenseReportHeader.SystemId,
+                CreateDateTime(CalcDate('<-2W>', Today()), 120000T));
+        RecentPostedEntryNo :=
+            CreateActivityLogEntry(
+                Database::"Posted Expense Report Header",
+                PostedExpenseReportHeader.SystemId,
+                ExpenseReportHeader.SystemId,
+                CreateDateTime(CalcDate('<-4D>', Today()), 120000T));
+
+        // [WHEN] A retention administrator with only indirect activity delete permission applies policy "RP".
+        LibraryLowerPermissions.SetExactPermissionSet(D365BasicPermissionSetTok);
+        LibraryLowerPermissions.AddPermissionSet(RetentionPolicyAdminPermissionSetTok);
+        Assert.IsFalse(ExpenseActivityLogEntry.DeletePermission(), 'The retention caller must not have direct activity delete permission.');
+        ApplyRetentionPolicy.ApplyRetentionPolicy(RetentionPolicySetup, false);
+        RestoreFullPermissions();
+
+        // [THEN] Only expired posted entry "A2" is deleted.
+        VerifyRetentionPolicyApplicationResult(ActiveEntryNo, ExpiredPostedEntryNo, RecentPostedEntryNo);
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Permissions Test");
+        RestoreFullPermissions();
+        LibraryExpense.CleanTransactionalData();
+        LibraryExpense.CleanUpBeforeTesting();
+        if IsInitialized then
+            exit;
+
+        LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense Permissions Test");
+        EnsureSetupRecordsExist();
+        LibraryExpense.SetupNumberSeriesInExpenseMgmt();
+        LibraryExpense.UpdateEnableApprovalWorkflowInAgentSetup(false);
+        IsInitialized := true;
+        Commit();
+        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Permissions Test");
+    end;
+
     local procedure VerifyCompanyEmailSynchronization(PermissionSetId: Code[20])
     var
         Employee: Record Employee;
@@ -243,22 +315,87 @@ codeunit 148338 "Expense Permissions Test"
         PostedExpenseReportHeader.Insert(false);
     end;
 
-    local procedure Initialize()
+    local procedure CreateEnabledActivityLogRetentionPolicy(var RetentionPolicySetup: Record "Retention Policy Setup")
+    var
+        RetentionPolicySetupLine: Record "Retention Policy Setup Line";
+        RetentionPolicySetupMgt: Codeunit "Retention Policy Setup";
     begin
-        LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Permissions Test");
-        RestoreFullPermissions();
-        LibraryExpense.CleanTransactionalData();
-        LibraryExpense.CleanUpBeforeTesting();
-        if IsInitialized then
-            exit;
+        if RetentionPolicySetup.Get(Database::"Expense Activity Log Entry") then
+            RetentionPolicySetup.Delete(true);
 
-        LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense Permissions Test");
-        EnsureSetupRecordsExist();
-        LibraryExpense.SetupNumberSeriesInExpenseMgmt();
-        LibraryExpense.UpdateEnableApprovalWorkflowInAgentSetup(false);
-        IsInitialized := true;
-        Commit();
-        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Permissions Test");
+        RetentionPolicySetup.Init();
+        RetentionPolicySetup.Validate("Table ID", Database::"Expense Activity Log Entry");
+        RetentionPolicySetup.Insert(true);
+
+        GetActivityLogRetentionPolicyLine(RetentionPolicySetupLine, Database::"Posted Expense Report Header");
+        RetentionPolicySetupLine.Validate(
+            "Retention Period",
+            RetentionPolicySetupMgt.FindOrCreateRetentionPeriod(Enum::"Retention Period Enum"::"1 Week"));
+        RetentionPolicySetupLine.Modify(true);
+
+        RetentionPolicySetup.Validate(Enabled, true);
+        RetentionPolicySetup.Modify(true);
+    end;
+
+    local procedure CreateActivityLogEntry(
+        SourceTableId: Integer;
+        SourceRecordSystemId: Guid;
+        SubjectSystemId: Guid;
+        OccurredAt: DateTime): BigInteger
+    var
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+    begin
+        ExpenseActivityLogEntry.Init();
+        ExpenseActivityLogEntry."Source Table ID" := SourceTableId;
+        ExpenseActivityLogEntry."Source Record System ID" := SourceRecordSystemId;
+        ExpenseActivityLogEntry."Subject Table ID" := Database::"Expense Report Header";
+        ExpenseActivityLogEntry."Subject System ID" := SubjectSystemId;
+        ExpenseActivityLogEntry."Event Type" := Enum::"Expense Activity Event Type"::Created;
+        ExpenseActivityLogEntry."Occurred At" := OccurredAt;
+        ExpenseActivityLogEntry.Insert();
+        exit(ExpenseActivityLogEntry."Entry No.");
+    end;
+
+    local procedure GetActivityLogRetentionPolicyLine(
+        var RetentionPolicySetupLine: Record "Retention Policy Setup Line";
+        SourceTableId: Integer)
+    begin
+        RetentionPolicySetupLine.SetRange("Table ID", Database::"Expense Activity Log Entry");
+        RetentionPolicySetupLine.FindSet();
+        repeat
+            if GetRetentionPolicyLineSourceTableId(RetentionPolicySetupLine) = SourceTableId then
+                exit;
+        until RetentionPolicySetupLine.Next() = 0;
+
+        Error('The activity retention policy line for source table %1 was not found.', SourceTableId);
+    end;
+
+    local procedure GetRetentionPolicyLineSourceTableId(
+        RetentionPolicySetupLine: Record "Retention Policy Setup Line") SourceTableId: Integer
+    var
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        FieldRef: FieldRef;
+        RecordRef: RecordRef;
+    begin
+        RecordRef.Open(Database::"Expense Activity Log Entry");
+        RecordRef.SetView(RetentionPolicySetupLine.GetTableFilterView());
+        FieldRef := RecordRef.Field(ExpenseActivityLogEntry.FieldNo("Source Table ID"));
+        Assert.IsTrue(
+            Evaluate(SourceTableId, FieldRef.GetFilter()),
+            'The source table filter must be a single table ID.');
+        RecordRef.Close();
+    end;
+
+    local procedure VerifyRetentionPolicyApplicationResult(
+        ActiveEntryNo: BigInteger;
+        ExpiredPostedEntryNo: BigInteger;
+        RecentPostedEntryNo: BigInteger)
+    var
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+    begin
+        Assert.IsTrue(ExpenseActivityLogEntry.Get(ActiveEntryNo), 'Expired active activity must be protected by Never Delete.');
+        Assert.IsFalse(ExpenseActivityLogEntry.Get(ExpiredPostedEntryNo), 'Expired posted activity must be deleted.');
+        Assert.IsTrue(ExpenseActivityLogEntry.Get(RecentPostedEntryNo), 'Recent posted activity must remain.');
     end;
 
     local procedure VerifyPermissionSetCanInsertActivity(PermissionSetId: Code[20])

@@ -5,6 +5,7 @@
 namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
+using System.DataAdministration;
 using System.Security.AccessControl;
 using System.Security.User;
 
@@ -584,6 +585,46 @@ codeunit 148342 "Expense Activity Log Test"
         Assert.RecordIsEmpty(ExpenseActivityLogEntry);
     end;
 
+    [Test]
+    procedure ActivityLogRetentionPolicyHasSourceSpecificRules()
+    var
+        RetentionPolicySetup: Record "Retention Policy Setup";
+        InstallExpenseAgentSetup: Codeunit "Install Expense Agent Setup";
+        FirstRegistrationSucceeded: Boolean;
+        SecondRegistrationSucceeded: Boolean;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 646820] Activity history has protected active retention and configurable posted retention.
+        Initialize();
+
+        // [GIVEN] No retention policy setup "RP" exists for activity history.
+        DeleteActivityLogRetentionPolicySetup();
+
+        // [WHEN] Registration runs repeatedly and retention policy "RP" is created.
+        FirstRegistrationSucceeded := InstallExpenseAgentSetup.RegisterActivityLogRetentionPolicy();
+        SecondRegistrationSucceeded := InstallExpenseAgentSetup.RegisterActivityLogRetentionPolicy();
+        RetentionPolicySetup.Init();
+        RetentionPolicySetup.Validate("Table Id", Database::"Expense Activity Log Entry");
+        RetentionPolicySetup.Insert(true);
+
+        // [THEN] Policy "RP" uses Occurred At and has the approved active and posted rules.
+        VerifyActivityLogRetentionPolicyRegistration(
+            RetentionPolicySetup,
+            FirstRegistrationSucceeded,
+            SecondRegistrationSucceeded);
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Activity Log Test");
+        if IsInitialized then
+            exit;
+
+        LibraryExpense.SetupNumberSeriesInExpenseMgmt();
+        IsInitialized := true;
+        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Activity Log Test");
+    end;
+
     local procedure CreateApprovalScenario(
         var
             SubmitterExpenseUser: Record "Expense User";
@@ -643,15 +684,97 @@ codeunit 148342 "Expense Activity Log Test"
         UserSetup.Modify();
     end;
 
-    local procedure Initialize()
+    local procedure DeleteActivityLogRetentionPolicySetup()
+    var
+        RetentionPolicySetup: Record "Retention Policy Setup";
     begin
-        LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Activity Log Test");
-        if IsInitialized then
-            exit;
+        if RetentionPolicySetup.Get(Database::"Expense Activity Log Entry") then
+            RetentionPolicySetup.Delete(true);
+    end;
 
-        LibraryExpense.SetupNumberSeriesInExpenseMgmt();
-        IsInitialized := true;
-        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Activity Log Test");
+    local procedure VerifyActivityLogRetentionPolicyLines()
+    var
+        RetentionPolicySetupLine: Record "Retention Policy Setup Line";
+        ActiveRuleFound: Boolean;
+        PostedRuleFound: Boolean;
+        SourceTableId: Integer;
+    begin
+        RetentionPolicySetupLine.SetRange("Table ID", Database::"Expense Activity Log Entry");
+        Assert.RecordCount(RetentionPolicySetupLine, 2);
+        RetentionPolicySetupLine.FindSet();
+        repeat
+            SourceTableId := GetRetentionPolicyLineSourceTableId(RetentionPolicySetupLine);
+            case SourceTableId of
+                Database::"Expense Report Header":
+                    begin
+                        VerifyRetentionPolicyLine(RetentionPolicySetupLine, true);
+                        ActiveRuleFound := true;
+                    end;
+                Database::"Posted Expense Report Header":
+                    begin
+                        VerifyRetentionPolicyLine(RetentionPolicySetupLine, false);
+                        PostedRuleFound := true;
+                    end;
+                else
+                    Error('Unexpected source table %1 in the activity retention policy.', SourceTableId);
+            end;
+        until RetentionPolicySetupLine.Next() = 0;
+
+        Assert.IsTrue(ActiveRuleFound, 'The active expense report retention rule must exist.');
+        Assert.IsTrue(PostedRuleFound, 'The posted expense report retention rule must exist.');
+    end;
+
+    local procedure VerifyActivityLogRetentionPolicyRegistration(
+        RetentionPolicySetup: Record "Retention Policy Setup";
+        FirstRegistrationSucceeded: Boolean;
+        SecondRegistrationSucceeded: Boolean)
+    var
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        RetenPolAllowedTables: Codeunit "Reten. Pol. Allowed Tables";
+    begin
+        Assert.IsTrue(FirstRegistrationSucceeded, 'The first activity retention registration must succeed.');
+        Assert.IsTrue(SecondRegistrationSucceeded, 'Repeated activity retention registration must be idempotent.');
+        Assert.IsTrue(
+            RetenPolAllowedTables.IsAllowedTable(Database::"Expense Activity Log Entry"),
+            'The activity log table must be allowed for retention policies.');
+        Assert.AreEqual(
+            ExpenseActivityLogEntry.FieldNo("Occurred At"),
+            RetenPolAllowedTables.GetDefaultDateFieldNo(Database::"Expense Activity Log Entry"),
+            'Occurred At must determine the age of activity entries.');
+        Assert.IsFalse(
+            RetentionPolicySetup."Apply to all records",
+            'Source-specific retention rules must disable Apply to all records.');
+        VerifyActivityLogRetentionPolicyLines();
+    end;
+
+    local procedure VerifyRetentionPolicyLine(
+        RetentionPolicySetupLine: Record "Retention Policy Setup Line";
+        ExpectedLocked: Boolean)
+    var
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        RetentionPeriod: Record "Retention Period";
+    begin
+        RetentionPeriod.Get(RetentionPolicySetupLine."Retention Period");
+        Assert.AreEqual(Enum::"Retention Period Enum"::"Never Delete", RetentionPeriod."Retention Period", 'Activity retention must default to Never Delete.');
+        Assert.AreEqual(ExpenseActivityLogEntry.FieldNo("Occurred At"), RetentionPolicySetupLine."Date Field No.", 'Activity retention lines must use Occurred At.');
+        Assert.IsTrue(RetentionPolicySetupLine.Enabled, 'Activity retention lines must be enabled.');
+        Assert.AreEqual(ExpectedLocked, RetentionPolicySetupLine.IsLocked(), 'The activity retention line lock state is incorrect.');
+    end;
+
+    local procedure GetRetentionPolicyLineSourceTableId(
+        RetentionPolicySetupLine: Record "Retention Policy Setup Line") SourceTableId: Integer
+    var
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        FieldRef: FieldRef;
+        RecordRef: RecordRef;
+    begin
+        RecordRef.Open(Database::"Expense Activity Log Entry");
+        RecordRef.SetView(RetentionPolicySetupLine.GetTableFilterView());
+        FieldRef := RecordRef.Field(ExpenseActivityLogEntry.FieldNo("Source Table ID"));
+        Assert.IsTrue(
+            Evaluate(SourceTableId, FieldRef.GetFilter()),
+            'The source table filter must be a single table ID.');
+        RecordRef.Close();
     end;
 
 }
