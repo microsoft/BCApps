@@ -1042,7 +1042,7 @@ codeunit 37201 "PEPPOL30 Impl."
             VATAmtLine."Line Amount" += SalesLine."Line Amount";
             VATAmtLine.Modify();
         end else
-            InsertZeroAmountVATAmtLine(VATAmtLine, PurchaseLine."Line Amount");
+            InsertZeroAmountVATAmtLine(VATAmtLine, SalesLine."Line Amount");
     end;
 
     procedure GetTaxCategories(SalesLine: Record "Sales Line"; var VATProductPostingGroupCategory: Record "VAT Product Posting Group")
