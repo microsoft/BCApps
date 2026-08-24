@@ -44,7 +44,6 @@ codeunit 137500 "SCM Legacy Subcontracting"
         LibraryITLocalization: Codeunit "Library - IT Localization";
 
         Initialized: Boolean;
-        SubcontractingAppInstalledMock: Boolean;
 
     [Test]
     [Scope('OnPrem')]
@@ -693,7 +692,6 @@ codeunit 137500 "SCM Legacy Subcontracting"
             PurchaseLine.DeleteAll();
 
         // [GIVEN] The Subcontracting app and the IT Migration app are mocked as installed
-        SubcontractingAppInstalledMock := true;
         BindSubscription(SCMLegacySubcontracting);
 
         // [WHEN] Call CheckCanDisableLegacySubcontracting
@@ -740,7 +738,7 @@ codeunit 137500 "SCM Legacy Subcontracting"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Legacy Subc. Feature Handler", 'OnCheckIsSubcontractingAppInstalled', '', false, false)]
     local procedure MockSubcontractingAppInstalled(var Result: Boolean)
     begin
-        Result := SubcontractingAppInstalledMock;
+        Result := true;
     end;
 
     local procedure RefreshApplicationAreas()
