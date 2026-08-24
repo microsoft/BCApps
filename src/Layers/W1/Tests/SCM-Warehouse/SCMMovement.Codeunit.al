@@ -1189,8 +1189,8 @@ codeunit 137931 "SCM - Movement"
         ExpirationDate: array[2] of Date;
     begin
         // [FEATURE] [Movement Worksheet] [FEFO] [Item Tracking] [Bin]
-        // [SCENARIO 647067] When the earliest FEFO lot for a bin replenishment already sits in the destination bin,
-        // [SCENARIO 647067] the movement still moves the full quantity from the other bins and removes the worksheet lines.
+        // [SCENARIO 647499] When the earliest FEFO lot for a bin replenishment already sits in the destination bin,
+        // [SCENARIO 647499] the movement still moves the full quantity from the other bins and removes the worksheet lines.
         Initialize();
         LotNo[1] := LibraryUtility.GenerateGUID();
         LotNo[2] := LibraryUtility.GenerateGUID();

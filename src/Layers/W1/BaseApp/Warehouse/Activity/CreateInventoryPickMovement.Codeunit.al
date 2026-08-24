@@ -2256,7 +2256,7 @@ codeunit 7322 "Create Inventory Pick/Movement"
         if FromBinCode <> '' then
             BinContent.SetRange("Bin Code", FromBinCode)
         else
-            if IsInvtMovement and (WarehouseActivityLine."Bin Code" <> '') then
+            if IsInvtMovement and CurrLocation."Pick According to FEFO" and (WarehouseActivityLine."Bin Code" <> '') then
                 BinContent.SetFilter("Bin Code", '<>%1', WarehouseActivityLine."Bin Code");
         BinContent.SetRange("Item No.", WarehouseActivityLine."Item No.");
         BinContent.SetRange("Variant Code", WarehouseActivityLine."Variant Code");
