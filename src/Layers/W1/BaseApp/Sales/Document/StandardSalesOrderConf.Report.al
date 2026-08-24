@@ -1047,9 +1047,6 @@ report 1305 "Standard Sales - Order Conf."
             LayoutFile = './Sales/Document/StandardSalesOrderConf.docx';
             Caption = 'Standard Sales Order Confirmation (Word)';
             Summary = 'Simple layout with most necessary fields.';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '30.0';
         }
         layout("StandardSalesOrderConfThemable.docx")
         {
@@ -1057,9 +1054,6 @@ report 1305 "Standard Sales - Order Conf."
             LayoutFile = './Sales/Document/StandardSalesOrderConfThemable.docx';
             Caption = 'Standard Sales Order Confirmation - themable Word layout';
             Summary = 'Simple themable layout with most necessary fields.';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '30.0';
         }
         layout("StandardOrderConfirmationEmail.docx")
         {
@@ -1067,27 +1061,6 @@ report 1305 "Standard Sales - Order Conf."
             LayoutFile = './Sales/Document/StandardOrderConfirmationEmail.docx';
             Caption = 'Standard Sales Order Confirmation Email (Word)';
             Summary = 'Layout intended for an email body.';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '30.0';
-        }
-
-
-        layout("StandardSalesOrderConfBody.docx")
-        {
-            Type = Word;
-            Subtype = Body;
-            LayoutFile = './Sales/Document/StandardSalesOrderConfBody.docx';
-            Caption = 'Body-only: Standard Sales Order Confirmation Body (Word)';
-            Summary = 'Portrait orientated. Shows the customer and company address and a header with document number, external document number, salesperson, quote number, and shipment method. Item lines list price, discount %, VAT %, and amount, with VAT-inclusive totals.';
-        }
-        layout("StandardOrderConfirmationEmailBody.docx")
-        {
-            Type = Word;
-            Subtype = Body;
-            LayoutFile = './Sales/Document/StandardOrderConfirmationEmailBody.docx';
-            Caption = 'Body-only: Standard Sales Order Confirmation Email (Word)';
-            Summary = 'Portrait orientated. Email body with the company address, bill-to customer number, greeting, body, and closing text, followed by document number, due date, and total including VAT. Use it as cover text for the email.';
         }
     }
 

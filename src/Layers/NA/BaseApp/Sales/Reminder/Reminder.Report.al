@@ -831,17 +831,6 @@ report 117 Reminder
             LayoutFile = './Sales/Reminder/DefaultReminderEmail.docx';
             Caption = 'Default Reminder Email (Word)';
             Summary = 'The Default Reminder Email (Word) provides an email body for the reminder.';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '30.0';
-        }
-        layout("DefaultReminderEmailBody.docx")
-        {
-            Type = Word;
-            Subtype = Body;
-            LayoutFile = './Sales/Reminder/DefaultReminderEmailBody.docx';
-            Caption = 'Body-only: Default Reminder Email (Word)';
-            Summary = 'Portrait orientated. Email body with a greeting, body text, and the amount due. Lines show document number and type, description, due date, and remaining amount, followed by the total including VAT, closing text, and company address.';
         }
     }
 

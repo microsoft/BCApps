@@ -851,9 +851,6 @@ report 1308 "Standard Sales - Shipment"
             LayoutFile = './Sales/History/StandardSalesShipment.docx';
             Caption = 'Standard Sales Shipment (Word)';
             Summary = 'The Standard Sales Shipment (Word) provides a basic layout.';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '30.0';
         }
         layout("StandardSalesShipmentBlue.docx")
         {
@@ -861,9 +858,6 @@ report 1308 "Standard Sales - Shipment"
             LayoutFile = './Sales/History/StandardSalesShipmentBlue.docx';
             Caption = 'Standard Sales Shipment - Blue (Word)';
             Summary = 'The Standard Sales Shipment - Blue (Word) provides a simple layout with a blue theme.';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '30.0';
         }
         layout("StandardSalesShipmentBlueThemable.docx")
         {
@@ -871,17 +865,6 @@ report 1308 "Standard Sales - Shipment"
             LayoutFile = './Sales/History/StandardSalesShipmentBlueThemable.docx';
             Caption = 'Standard Sales Shipment - themable Word layout';
             Summary = 'The Standard Sales Shipment - Themable (Word) provides a Themable layout.';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '30.0';
-        }
-        layout("StandardSalesShipmentBody.docx")
-        {
-            Type = Word;
-            Subtype = Body;
-            LayoutFile = './Sales/History/StandardSalesShipmentBody.docx';
-            Caption = 'Body-only: Standard Sales Shipment (Word)';
-            Summary = 'Portrait orientated. Shows the customer and company address and a header with document number, date, shipping agent, tracking number, and project number. Item lines list quantity and unit of measure, with item tracking by lot or serial number.';
         }
     }
 

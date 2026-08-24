@@ -1083,9 +1083,6 @@ report 1307 "Standard Sales - Credit Memo"
             LayoutFile = './Sales/History/StandardSalesCreditMemo.docx';
             Caption = 'Standard Sales Credit Memo (Word)';
             Summary = 'The Standard Sales Credit Memo (Word) provides a basic layout.';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '30.0';
         }
         layout("StandardSalesCreditMemoThemable.docx")
         {
@@ -1093,9 +1090,6 @@ report 1307 "Standard Sales - Credit Memo"
             LayoutFile = './Sales/History/StandardSalesCreditMemoThemable.docx';
             Caption = 'Standard Sales Credit Memo - themable Word layout';
             Summary = 'The Standard Sales Credit Memo (Word) provides a basic Themable layout.';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '30.0';
         }
         layout("StandardSalesCreditMemoEmail.docx")
         {
@@ -1103,9 +1097,6 @@ report 1307 "Standard Sales - Credit Memo"
             LayoutFile = './Sales/History/StandardSalesCreditMemoEmail.docx';
             Caption = 'Standard Sales Credit Memo Email (Word)';
             Summary = 'The Standard Sales Credit Memo Email (Word) provides an email body layout.';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '30.0';
         }
         layout("StandardSalesCreditMemoBlue.docx")
         {
@@ -1113,25 +1104,6 @@ report 1307 "Standard Sales - Credit Memo"
             LayoutFile = './Sales/History/StandardSalesCreditMemoBlue.docx';
             Caption = 'Standard Sales Credit Memo Blue (Word)';
             Summary = 'The Standard Sales Credit Memo Blue (Word) provides a layout with a blue theme.';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
-            ObsoleteTag = '30.0';
-        }
-        layout("StandardSalesCreditMemoBody.docx")
-        {
-            Type = Word;
-            Subtype = Body;
-            LayoutFile = './Sales/History/StandardSalesCreditMemoBody.docx';
-            Caption = 'Body-only: Standard Sales Credit Memo (Word)';
-            Summary = 'Landscape orientated. Shows the customer and company address and a header with document number, reference, salesperson, applies-to document, and due date. Item lines list price, discount %, VAT %, and amount, with VAT-inclusive totals.';
-        }
-        layout("StandardSalesCreditMemoEmailBody.docx")
-        {
-            Type = Word;
-            Subtype = Body;
-            LayoutFile = './Sales/History/StandardSalesCreditMemoEmailBody.docx';
-            Caption = 'Body-only: Standard Sales Credit Memo Email (Word)';
-            Summary = 'Portrait orientated. Email body with the company address, bill-to customer number, greeting, body, and closing text, followed by document number, due date, and total including VAT. Use it as cover text for the email.';
         }
     }
 
