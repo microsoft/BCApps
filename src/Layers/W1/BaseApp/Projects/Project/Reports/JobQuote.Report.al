@@ -301,6 +301,17 @@ report 1016 "Job Quote"
             LayoutFile = './Projects/Project/JobQuote.docx';
             Caption = 'Project Quote (Word)';
             Summary = 'The Project Quote (Word) provides a basic layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
+        }
+        layout("JobQuoteBody.docx")
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './Projects/Project/Reports/JobQuoteBody.docx';
+            Caption = 'Body-only: Project Quote (Word)';
+            Summary = 'Landscape orientated. Shows the bill-to and company address, project number, and description. Planning lines list type, number, quantity, unit price, line discount percentage, and amount, followed by the total project value.';
         }
     }
 

@@ -251,6 +251,17 @@ report 1017 "Job Task Quote"
             LayoutFile = './Projects/Project/JobTaskQuote.docx';
             Caption = 'Project Task Quote (Word)';
             Summary = 'The Project Task Quote (Word) provides a basic layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
+        }
+        layout("JobTaskQuoteBody.docx")
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './Projects/Project/Reports/JobTaskQuoteBody.docx';
+            Caption = 'Body-only: Project Task Quote (Word)';
+            Summary = 'Landscape orientated. Shows the bill-to and company address, project number, and description. Task lines list task number, type, number, quantity, unit price, line discount percentage, and amount, followed by the total project value.';
         }
     }
 
