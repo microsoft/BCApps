@@ -64,11 +64,13 @@ codeunit 10789 "Service Posting Subscr. ES"
         ValidatePaymentTermsOnPost(ServiceHeader);
     end;
 
+#pragma warning disable AS0022 // Accepted: the scope reduction is a scheduled obsoletion gated on CLEAN29
 #if not CLEAN29
     procedure ValidatePaymentTermsOnPost(var ServiceHeader: Record "Service Header")
 #else
     local procedure ValidatePaymentTermsOnPost(var ServiceHeader: Record "Service Header")
 #endif
+#pragma warning restore AS0022
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
         PaymentTerms: Record "Payment Terms";
