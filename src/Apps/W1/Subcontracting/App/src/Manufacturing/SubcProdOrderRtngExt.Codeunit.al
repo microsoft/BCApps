@@ -148,24 +148,10 @@ codeunit 20520 "Subc. Prod. Order Rtng. Ext."
                 CheckSubcRtngLineDocumentsExist(xRec);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Prod. Order Routing Line", OnAfterValidateEvent, "Routing Link Code", false, false)]
-    local procedure OnAfterValidateRoutingLinkCode(var Rec: Record "Prod. Order Routing Line"; var xRec: Record "Prod. Order Routing Line"; CurrFieldNo: Integer)
-    begin
-#if not CLEAN29
-#pragma warning disable AL0432
-        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
-#pragma warning restore AL0432
-            exit;
-#endif
-        if Rec.IsTemporary then
-            exit;
-        HandleRoutingLinkCodeValidation(Rec, xRec);
-    end;
-
-    [EventSubscriber(ObjectType::Table, Database::"Prod. Order Routing Line", OnAfterValidateEvent, "Standard Task Code", false, false)]
-    local procedure OnAfterValidateStandardTaskCode(var Rec: Record "Prod. Order Routing Line"; var xRec: Record "Prod. Order Routing Line"; CurrFieldNo: Integer)
+    [EventSubscriber(ObjectType::Table, Database::"Prod. Order Routing Line", OnAfterDeleteRelations, '', false, false)]
+    local procedure OnAfterDeleteProdOrderRoutingLineRelations(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; SkipUpdateOfCompBinCodes: Boolean)
     var
-        SubcPriceManagement: Codeunit "Subc. Price Management";
+        ProdOrderRoutingComment: Record "Subc. Prod. Rtng. Comment";
     begin
 #if not CLEAN29
 #pragma warning disable AL0432
@@ -173,9 +159,15 @@ codeunit 20520 "Subc. Prod. Order Rtng. Ext."
 #pragma warning restore AL0432
             exit;
 #endif
-        if Rec.IsTemporary then
+        if ProdOrderRoutingLine.IsTemporary() then
             exit;
-        SubcPriceManagement.GetSubcPriceList(Rec);
+
+        ProdOrderRoutingComment.SetRange(Status, ProdOrderRoutingLine.Status);
+        ProdOrderRoutingComment.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        ProdOrderRoutingComment.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
+        ProdOrderRoutingComment.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
+        ProdOrderRoutingComment.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
+        ProdOrderRoutingComment.DeleteAll();
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Routing Line", OnAfterWorkCenterTransferFields, '', false, false)]
@@ -218,18 +210,42 @@ codeunit 20520 "Subc. Prod. Order Rtng. Ext."
         ProdOrderRoutingLine.CheckForSubcontractingPurchaseLineTypeMismatch();
     end;
 
-    local procedure HandleRoutingLinkCodeValidation(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var xProdOrderRoutingLine: Record "Prod. Order Routing Line")
-    var
-        SubcontractingManagement: Codeunit "Subcontracting Management";
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", OnAfterToProdOrderRtngLineInsert, '', false, false)]
+    local procedure TransferSubcontractingCommentsOnAfterToProdOrderRoutingLineInsert(var ToProdOrderRoutingLine: Record "Prod. Order Routing Line"; var FromProdOrderRoutingLine: Record "Prod. Order Routing Line")
     begin
-        if ProdOrderRoutingLine."Routing Link Code" <> xProdOrderRoutingLine."Routing Link Code" then
-            if xProdOrderRoutingLine."Routing Link Code" <> '' then begin
-                SubcontractingManagement.DelLocationLinkedComponents(xProdOrderRoutingLine, true);
-                if ProdOrderRoutingLine."Routing Link Code" <> '' then
-                    SubcontractingManagement.UpdLinkedComponents(ProdOrderRoutingLine, false);
-            end else
-                if ProdOrderRoutingLine."Routing Link Code" <> '' then
-                    SubcontractingManagement.UpdLinkedComponents(ProdOrderRoutingLine, true);
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if FromProdOrderRoutingLine.IsTemporary() or ToProdOrderRoutingLine.IsTemporary() then
+            exit;
+
+        TransferSubcontractingComments(FromProdOrderRoutingLine, ToProdOrderRoutingLine);
+    end;
+
+    local procedure TransferSubcontractingComments(FromProdOrderRoutingLine: Record "Prod. Order Routing Line"; ToProdOrderRoutingLine: Record "Prod. Order Routing Line")
+    var
+        FromSubcProdRtngComment, ToSubcProdRtngComment : Record "Subc. Prod. Rtng. Comment";
+    begin
+        FromSubcProdRtngComment.SetRange(Status, FromProdOrderRoutingLine.Status);
+        FromSubcProdRtngComment.SetRange("Prod. Order No.", FromProdOrderRoutingLine."Prod. Order No.");
+        FromSubcProdRtngComment.SetRange("Routing Reference No.", FromProdOrderRoutingLine."Routing Reference No.");
+        FromSubcProdRtngComment.SetRange("Routing No.", FromProdOrderRoutingLine."Routing No.");
+        FromSubcProdRtngComment.SetRange("Operation No.", FromProdOrderRoutingLine."Operation No.");
+        if FromSubcProdRtngComment.FindSet() then begin
+            repeat
+                ToSubcProdRtngComment := FromSubcProdRtngComment;
+                ToSubcProdRtngComment.Status := ToProdOrderRoutingLine.Status;
+                ToSubcProdRtngComment."Prod. Order No." := ToProdOrderRoutingLine."Prod. Order No.";
+                ToSubcProdRtngComment."Routing Reference No." := ToProdOrderRoutingLine."Routing Reference No.";
+                ToSubcProdRtngComment."Routing No." := ToProdOrderRoutingLine."Routing No.";
+                ToSubcProdRtngComment."Operation No." := ToProdOrderRoutingLine."Operation No.";
+                ToSubcProdRtngComment.Insert();
+            until FromSubcProdRtngComment.Next() = 0;
+            FromSubcProdRtngComment.DeleteAll();
+        end;
     end;
 
     local procedure HandleSubcontractingAfterRoutingLineDelete(var ProdOrderRoutingLine: Record "Prod. Order Routing Line")

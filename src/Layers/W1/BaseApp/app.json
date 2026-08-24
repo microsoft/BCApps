@@ -235,6 +235,11 @@
       "id": "24f54185-e697-4e03-bae0-f134f2d69673",
       "name": "Payment Management FR",
       "publisher": "Microsoft"
+    },
+    {
+      "id": "1f32a50d-0057-4b95-b5df-cc04d7e89470",
+      "name": "Subcontracting",
+      "publisher": "Microsoft"
     }
   ],
   "platform": "29.0.0.0",
