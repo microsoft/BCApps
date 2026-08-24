@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7106 "Mileage Rate Setup API"
+page 7131 "Mileage Rate Setup API"
 {
     APIGroup = 'expense';
     APIPublisher = 'microsoft';

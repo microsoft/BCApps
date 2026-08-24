@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-table 7105 "Expense Vehicle Type"
+table 7108 "Expense Vehicle Type"
 {
     Access = Internal;
     Caption = 'Vehicle Type';

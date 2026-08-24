@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7105 "Expense Vehicle Types"
+page 7130 "Expense Vehicle Types"
 {
     PageType = List;
     ApplicationArea = Basic, Suite;

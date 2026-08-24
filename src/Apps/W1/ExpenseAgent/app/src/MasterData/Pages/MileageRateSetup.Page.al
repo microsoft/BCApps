@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7104 "Mileage Rate Setup"
+page 7128 "Mileage Rate Setup"
 {
     PageType = List;
     ApplicationArea = Basic, Suite;
