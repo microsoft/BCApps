@@ -2294,8 +2294,8 @@
       "supportedCountries": "US",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
-      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Integrations"
     },
     "Shopify Connector NA Test": {
@@ -2305,8 +2305,8 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
-      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Integrations"
     },
     "Company Hub": {

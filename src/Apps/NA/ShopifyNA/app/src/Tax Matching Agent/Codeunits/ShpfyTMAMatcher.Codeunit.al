@@ -55,6 +55,8 @@ codeunit 30471 "Shpfy TMA Matcher"
         TaxLinesText: Text;
         JurisdictionsText: Text;
         AddressText: Text;
+        RepIdBySignature: Dictionary of [Text, Text];
+        TaxLineIdsByRepId: Dictionary of [Text, List of [Text]];
     begin
         HasRateConflict := false;
         HasUnresolvedLine := false;
@@ -68,18 +70,21 @@ codeunit 30471 "Shpfy TMA Matcher"
         // set. Product lines are gathered first (in line order) so the state -> ... -> city
         // ordering the Tax Area Builder relies on is preserved; shipping jurisdictions typically
         // duplicate product ones and are de-duplicated.
+        //
+        // Lines that share a title/rate/liable signature are matched once and the decision is
+        // fanned back out to each (see ExpandMatchesToAllTaxLines), so the response stays small.
         OrderLine.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
         OrderLine.SetLoadFields("Line Id");
         if OrderLine.FindSet() then
             repeat
-                GatherTaxLines(OrderLine."Line Id", TaxLinesArray, MatchedJurisdictions);
+                GatherTaxLines(OrderLine."Line Id", TaxLinesArray, MatchedJurisdictions, RepIdBySignature, TaxLineIdsByRepId);
             until OrderLine.Next() = 0;
 
         ShippingCharge.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
         ShippingCharge.SetLoadFields("Shopify Shipping Line Id");
         if ShippingCharge.FindSet() then
             repeat
-                GatherTaxLines(ShippingCharge."Shopify Shipping Line Id", TaxLinesArray, MatchedJurisdictions);
+                GatherTaxLines(ShippingCharge."Shopify Shipping Line Id", TaxLinesArray, MatchedJurisdictions, RepIdBySignature, TaxLineIdsByRepId);
             until ShippingCharge.Next() = 0;
 
         if TaxLinesArray.Count() = 0 then
@@ -110,11 +115,11 @@ codeunit 30471 "Shpfy TMA Matcher"
         // Call LLM and process results. HasRateConflict is accumulated per line inside
         // ApplyMatches -> ApplyAssignedJurisdiction, then stored on the order by the caller as the
         // single source of truth.
-        exit(CallLLMAndApplyMatches(OrderHeader, Shop, UserPrompt, SecurityPrompt, MatchedJurisdictions, MatchLog, HasRateConflict, HasUnresolvedLine, HasLowConfidenceMatch));
+        exit(CallLLMAndApplyMatches(OrderHeader, Shop, UserPrompt, SecurityPrompt, TaxLineIdsByRepId, MatchedJurisdictions, MatchLog, HasRateConflict, HasUnresolvedLine, HasLowConfidenceMatch));
     end;
 
     [NonDebuggable]
-    local procedure CallLLMAndApplyMatches(var OrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"; UserPrompt: Text; SecurityPrompt: SecretText; var MatchedJurisdictions: List of [Code[10]]; var MatchLog: JsonArray; var HasRateConflict: Boolean; var HasUnresolvedLine: Boolean; var HasLowConfidenceMatch: Boolean): Boolean
+    local procedure CallLLMAndApplyMatches(var OrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"; UserPrompt: Text; SecurityPrompt: SecretText; var TaxLineIdsByRepId: Dictionary of [Text, List of [Text]]; var MatchedJurisdictions: List of [Code[10]]; var MatchLog: JsonArray; var HasRateConflict: Boolean; var HasUnresolvedLine: Boolean; var HasLowConfidenceMatch: Boolean): Boolean
     var
         AzureOpenAI: Codeunit "Azure OpenAi";
         AOAIDeployments: Codeunit "AOAI Deployments";
@@ -163,7 +168,74 @@ codeunit 30471 "Shpfy TMA Matcher"
         end;
 
         MatchResults := AOAIFunctionResponse.GetResult();
+        // Fan each representative's match back out to every line sharing its signature before applying.
+        MatchResults := ExpandMatchesToAllTaxLines(MatchResults, TaxLineIdsByRepId);
         exit(ApplyMatches(OrderHeader, Shop, MatchResults, MatchedJurisdictions, MatchLog, HasRateConflict, HasUnresolvedLine, HasLowConfidenceMatch));
+    end;
+
+    /// <summary>
+    /// De-duplication signature: the fields the model matches on (title, rate, channel-liable).
+    /// tax_line_id is excluded, so lines with the same signature must receive the same match.
+    /// </summary>
+    local procedure TaxLineSignature(OrderTaxLine: Record "Shpfy Order Tax Line"): Text
+    begin
+        exit(StrSubstNo('%1|%2|%3', OrderTaxLine.Title, Format(OrderTaxLine."Rate %", 0, 9), Format(OrderTaxLine."Channel Liable")));
+    end;
+
+    /// <summary>
+    /// Expands each representative match back to every tax line that shared its signature, so
+    /// ApplyMatches processes every line. An unrecognized tax_line_id is passed through unchanged.
+    /// </summary>
+    local procedure ExpandMatchesToAllTaxLines(MatchResults: JsonObject; var TaxLineIdsByRepId: Dictionary of [Text, List of [Text]]) ExpandedResults: JsonObject
+    var
+        MatchesToken: JsonToken;
+        MatchToken: JsonToken;
+        TaxLineIdToken: JsonToken;
+        RepMatchObj: JsonObject;
+        ExpandedMatches: JsonArray;
+        GroupIds: List of [Text];
+        RepId: Text;
+        GroupId: Text;
+    begin
+        if not MatchResults.Get('matches', MatchesToken) then
+            exit(MatchResults);
+        if not MatchesToken.IsArray() then
+            exit(MatchResults);
+
+        foreach MatchToken in MatchesToken.AsArray() do begin
+            RepMatchObj := MatchToken.AsObject();
+
+            RepId := '';
+            if RepMatchObj.Get('tax_line_id', TaxLineIdToken) then
+                if TaxLineIdToken.IsValue() then
+                    RepId := TaxLineIdToken.AsValue().AsText();
+
+            if (RepId <> '') and TaxLineIdsByRepId.ContainsKey(RepId) then begin
+                TaxLineIdsByRepId.Get(RepId, GroupIds);
+                foreach GroupId in GroupIds do
+                    ExpandedMatches.Add(CloneMatchWithTaxLineId(RepMatchObj, GroupId));
+            end else
+                ExpandedMatches.Add(RepMatchObj);
+        end;
+
+        ExpandedResults.Add('matches', ExpandedMatches);
+    end;
+
+    /// <summary>
+    /// Deep-clones a match object (serialize/parse, so no JSON nodes are shared) with a new tax_line_id.
+    /// </summary>
+    local procedure CloneMatchWithTaxLineId(SourceMatch: JsonObject; NewTaxLineId: Text): JsonObject
+    var
+        Cloned: JsonObject;
+        Serialized: Text;
+    begin
+        SourceMatch.WriteTo(Serialized);
+        Cloned.ReadFrom(Serialized);
+        if Cloned.Contains('tax_line_id') then
+            Cloned.Replace('tax_line_id', NewTaxLineId)
+        else
+            Cloned.Add('tax_line_id', NewTaxLineId);
+        exit(Cloned);
     end;
 
     local procedure ApplyMatches(var OrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"; MatchResults: JsonObject; var MatchedJurisdictions: List of [Code[10]]; var MatchLog: JsonArray; var HasRateConflict: Boolean; var HasUnresolvedLine: Boolean; var HasLowConfidenceMatch: Boolean): Boolean
@@ -579,20 +651,50 @@ codeunit 30471 "Shpfy TMA Matcher"
         TaxDetail.Insert(true);
     end;
 
-    local procedure GatherTaxLines(ParentId: BigInteger; var TaxLinesArray: JsonArray; var MatchedJurisdictions: List of [Code[10]])
+    local procedure GatherTaxLines(ParentId: BigInteger; var TaxLinesArray: JsonArray; var MatchedJurisdictions: List of [Code[10]]; var RepIdBySignature: Dictionary of [Text, Text]; var TaxLineIdsByRepId: Dictionary of [Text, List of [Text]])
     var
         OrderTaxLine: Record "Shpfy Order Tax Line";
+        Signature: Text;
+        TaxLineId: Text;
     begin
         OrderTaxLine.SetRange("Parent Id", ParentId);
         OrderTaxLine.SetLoadFields("Tax Jurisdiction Code", Title, "Rate %", "Channel Liable");
         if OrderTaxLine.FindSet() then
             repeat
-                if OrderTaxLine."Tax Jurisdiction Code" = '' then
-                    TaxLinesArray.Add(BuildTaxLineJson(OrderTaxLine))
-                else
+                if OrderTaxLine."Tax Jurisdiction Code" = '' then begin
+                    TaxLineId := StrSubstNo(TaxLineIdTok, OrderTaxLine."Parent Id", OrderTaxLine."Line No.");
+                    Signature := TaxLineSignature(OrderTaxLine);
+                    if RepIdBySignature.ContainsKey(Signature) then
+                        // Duplicate of a queued line — record it under that representative, not sent again.
+                        AppendToTaxLineGroup(TaxLineIdsByRepId, RepIdBySignature.Get(Signature), TaxLineId)
+                    else begin
+                        RepIdBySignature.Add(Signature, TaxLineId);
+                        StartTaxLineGroup(TaxLineIdsByRepId, TaxLineId);
+                        TaxLinesArray.Add(BuildTaxLineJson(OrderTaxLine));
+                    end;
+                end else
                     if not MatchedJurisdictions.Contains(OrderTaxLine."Tax Jurisdiction Code") then
                         MatchedJurisdictions.Add(OrderTaxLine."Tax Jurisdiction Code");
             until OrderTaxLine.Next() = 0;
+    end;
+
+    // StartTaxLineGroup/AppendToTaxLineGroup use a fresh list per call and Set the result back, so
+    // groups never alias each other whether the dictionary stores the list by reference or by value.
+    local procedure StartTaxLineGroup(var TaxLineIdsByRepId: Dictionary of [Text, List of [Text]]; RepId: Text)
+    var
+        GroupIds: List of [Text];
+    begin
+        GroupIds.Add(RepId);
+        TaxLineIdsByRepId.Add(RepId, GroupIds);
+    end;
+
+    local procedure AppendToTaxLineGroup(var TaxLineIdsByRepId: Dictionary of [Text, List of [Text]]; RepId: Text; TaxLineId: Text)
+    var
+        GroupIds: List of [Text];
+    begin
+        TaxLineIdsByRepId.Get(RepId, GroupIds);
+        GroupIds.Add(TaxLineId);
+        TaxLineIdsByRepId.Set(RepId, GroupIds);
     end;
 
     /// <summary>
