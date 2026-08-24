@@ -91,34 +91,6 @@ codeunit 10978 "CII XML Builder"
         OnAfterAddExchangedDocumentContext(RootElement, SourceDocumentLines);
     end;
 
-    local procedure GetBillingMode(var SourceDocumentLines: RecordRef): Text
-    var
-        FREDocHelpers: Codeunit "EDoc. Helpers";
-        TypeFieldRef: FieldRef;
-        HasItemLine: Boolean;
-        HasServiceLine: Boolean;
-        LineType: Text;
-    begin
-        if not FREDocHelpers.FindFieldByName(SourceDocumentLines, 'Type', TypeFieldRef) then
-            exit(ServiceBillingModeTok);
-
-        if SourceDocumentLines.FindSet() then
-            repeat
-                LineType := DelChr(Format(TypeFieldRef.Value()), '=', ' ');
-                if LineType = ItemLineTypeTok then
-                    HasItemLine := true
-                else
-                    if LineType <> '' then
-                        HasServiceLine := true;
-            until SourceDocumentLines.Next() = 0;
-
-        if HasItemLine and HasServiceLine then
-            exit(MixedBillingModeTok);
-        if HasItemLine then
-            exit(GoodsBillingModeTok);
-        exit(ServiceBillingModeTok);
-    end;
-
     local procedure AddExchangedDocument(var RootElement: XmlElement; var EDocument: Record "E-Document"; TypeCode: Text)
     var
         DocElement: XmlElement;
@@ -324,17 +296,6 @@ codeunit 10978 "CII XML Builder"
             AddVATRegistration(BuyerElement, GetVATRegistrationNoWithCountryPrefix(VATRegistrationNo, BuyerCountryCode));
 
         AgreementElement.Add(BuyerElement);
-    end;
-
-    local procedure NormalizeBuyerVATRegistrationNo(VATRegistrationNo: Text; CountryCode: Text): Text
-    begin
-        if (StrLen(VATRegistrationNo) >= 2) and
-           (StrPos(AlphabetTok, CopyStr(VATRegistrationNo, 1, 1)) > 0) and
-           (StrPos(AlphabetTok, CopyStr(VATRegistrationNo, 2, 1)) > 0)
-        then
-            exit(VATRegistrationNo);
-
-        exit(CountryCode + VATRegistrationNo);
     end;
 
     procedure TryGetBuyerElectronicAddress(Customer: Record Customer; var BuyerElectronicAddress: Text): Boolean
@@ -842,7 +803,6 @@ codeunit 10978 "CII XML Builder"
     local procedure InsertTaxElement(var SettlementElement: XmlElement; CalculatedAmount: Text; BasisAmount: Text; CategoryCode: Text; RateApplicablePercent: Text; VATEXCode: Text)
     var
         TradeTaxElement: XmlElement;
-        ExemptionReasonLbl: Label 'Exempt from VAT', Locked = true;
     begin
         TradeTaxElement := XmlElement.Create('ApplicableTradeTax', RamNamespaceTok);
         TradeTaxElement.Add(XmlElement.Create('CalculatedAmount', RamNamespaceTok, CalculatedAmount));
@@ -1263,12 +1223,7 @@ codeunit 10978 "CII XML Builder"
         RamNamespaceTok: Label 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100', Locked = true;
         QdtNamespaceTok: Label 'urn:un:unece:uncefact:data:standard:QualifiedDataType:100', Locked = true;
         UdtNamespaceTok: Label 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100', Locked = true;
-        AlphabetTok: Label 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', Locked = true;
         FacturXProfileIdTok: Label 'urn:cen.eu:en16931:2017', Locked = true;
-        GoodsBillingModeTok: Label 'B1', Locked = true;
-        ItemLineTypeTok: Label 'Item', Locked = true;
-        MixedBillingModeTok: Label 'M1', Locked = true;
-        ServiceBillingModeTok: Label 'S1', Locked = true;
         RecoveryCostNoteTok: Label 'Indemnité forfaitaire pour frais de recouvrement en cas de retard de paiement : 40 €', Locked = true;
         LatePaymentPenaltyNoteTok: Label 'Taux des pénalités de retard : taux directeur (BCE) majoré de 10 points', Locked = true;
         EarlyPaymentDiscountNoteTok: Label 'Pas d''escompte pour paiement anticipé', Locked = true;
