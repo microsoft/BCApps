@@ -841,7 +841,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         MatchingAmount, OtherAmount : Decimal;
     begin
         // [FEATURE] [Trial Balance] [Dimensions] [AI test 0.4]
-        // [SCENARIO 646061] The query path only returns data for entries matching the Global Dimension 1 Filter.
+        // [SCENARIO 647661] The query path only returns data for entries matching the Global Dimension 1 Filter.
         // [GIVEN] A posting account with entries under two different Global Dimension 1 values
         Initialize();
         CreateGLAccount(GLAccount);
@@ -879,7 +879,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         MatchingAmount, OtherAmount : Decimal;
     begin
         // [FEATURE] [Trial Balance] [Dimensions] [AI test 0.4]
-        // [SCENARIO 646061] The query path only returns data for entries matching the Global Dimension 2 Filter.
+        // [SCENARIO 647661] The query path only returns data for entries matching the Global Dimension 2 Filter.
         // [GIVEN] A posting account with entries under two different Global Dimension 2 values
         Initialize();
         CreateGLAccount(GLAccount);
@@ -917,7 +917,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         MatchingAmount, OtherAmount1, OtherAmount2 : Decimal;
     begin
         // [FEATURE] [Trial Balance] [Dimensions] [AI test 0.4]
-        // [SCENARIO 646061] The query path applies both the Global Dimension 1 and Global Dimension 2 filters together.
+        // [SCENARIO 647661] The query path applies both the Global Dimension 1 and Global Dimension 2 filters together.
         // [GIVEN] A posting account with entries across several Dim1/Dim2 combinations
         Initialize();
         CreateGLAccount(GLAccount);
@@ -962,7 +962,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         PriorYear: Integer;
     begin
         // [FEATURE] [Trial Balance] [Dimensions] [AI test 0.4]
-        // [SCENARIO 646061] The Global Dimension 1 filter constrains the Starting Balance too, not only the Net Change.
+        // [SCENARIO 647661] The Global Dimension 1 filter constrains the Starting Balance too, not only the Net Change.
         // [GIVEN] A posting account with opening (prior-year) and in-period entries under two Global Dimension 1 values
         Initialize();
         CreateGLAccount(GLAccount);
@@ -1005,7 +1005,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         ListedAmount1, ListedAmount2, UnlistedAmount : Decimal;
     begin
         // [FEATURE] [Trial Balance] [Dimensions] [AI test 0.4]
-        // [SCENARIO 646061] The Global Dimension 1 filter accepts a filter expression (value list) and returns the union.
+        // [SCENARIO 647661] The Global Dimension 1 filter accepts a filter expression (value list) and returns the union.
         // [GIVEN] A posting account with entries under three different Global Dimension 1 values
         Initialize();
         CreateGLAccount(GLAccount);
@@ -1052,7 +1052,7 @@ codeunit 139544 "Trial Balance Excel Reports"
         AmountBU1, AmountBU2, OtherDimAmount : Decimal;
     begin
         // [FEATURE] [Trial Balance] [Dimensions] [Consolidation] [AI test 0.4]
-        // [SCENARIO 646061] The consolidated (Business Unit) query path also honors the Global Dimension filters.
+        // [SCENARIO 647661] The consolidated (Business Unit) query path also honors the Global Dimension filters.
         // [GIVEN] A posting account with entries for two Business Units across two Global Dimension 1 values
         Initialize();
         CreateGLAccount(GLAccount);
