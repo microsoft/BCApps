@@ -120,6 +120,17 @@ reportextension 8010 "Contract Sales Order Conf." extends "Standard Sales - Orde
             LayoutFile = './Sales Service Commitments/Report Extensions/Layouts/SalesOrderConfForSubscriptionBilling.docx';
             Caption = 'Sales Order Confirmation for Subscription Billing (Word)';
             Summary = 'The Sales Order Confirmation for Subscription Billing (Word) provides a simple layout that is also relatively easy for an end-user to modify.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
+        }
+        layout("SalesOrderConfForSubscriptionBillingBody.docx")
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './Sales Service Commitments/Report Extensions/Layouts/SalesOrderConfForSubscriptionBillingBody.docx';
+            Caption = 'Body-only: Sales Order Confirmation for Subscription Billing (Word)';
+            Summary = 'Portrait orientated. Shows the customer and company address and a header with external document number, salesperson, quote number, and shipment method. Item lines list price, discount %, VAT %, and amount, with VAT-inclusive totals.';
         }
     }
     var
