@@ -560,6 +560,8 @@ codeunit 134242 "Spend Request Tests"
 
         // [GIVEN] An open spend request.
         CreateSpendRequestWithAmount(SpendRequest, LibraryRandom.RandDec(1000, 2));
+        SpendRequest.Status := SpendRequest.Status::Submitted;
+        SpendRequest.Modify();
         SpendRequestCard.OpenEdit();
         SpendRequestCard.GoToRecord(SpendRequest);
 
