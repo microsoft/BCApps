@@ -158,8 +158,6 @@ codeunit 148342 "Expense Activity Log Test"
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
         ExpenseReportApprovalMgt: Codeunit "Expense Report Approval Mgmt";
-        RejectedCount: Integer;
-        ResubmittedCount: Integer;
     begin
         // [SCENARIO] The approval lifecycle records creation, submission, rejection, resubmission, and approval.
         // [GIVEN] A released expense report with a submitter and approver.
@@ -200,6 +198,8 @@ codeunit 148342 "Expense Activity Log Test"
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
         ExpenseReportApprovalMgt: Codeunit "Expense Report Approval Mgmt";
+        RejectedCount: Integer;
+        ResubmittedCount: Integer;
     begin
         // [SCENARIO] Header comments keep the latest exchange while activity entries preserve every cycle.
         Initialize();
