@@ -1640,7 +1640,7 @@ codeunit 134897 "ERM Source Currency"
     end;
 
     [Test]
-    procedure SalesInvoiceLCYWithPaymentMethodBalAccountPostingPreview()
+    procedure SalesInvoiceLCYWithPaymentMethodBalAccountPosting()
     var
         Customer: Record Customer;
         GeneralLedgerSetup: Record "General Ledger Setup";
@@ -1680,10 +1680,10 @@ codeunit 134897 "ERM Source Currency"
         SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 2));
         SalesLine.Modify(true);
 
-        // [WHEN] The sales invoice posting is previewed.
+        // [WHEN] Posting the salesinvoice.
         SalesPost.Run(SalesHeader);
 
-        // [THEN] The preview completes without a source currency consistency error.
+        // [THEN] The posting completes without a source currency consistency error.
 
         //reset General Ledger Setup to original values
         GeneralLedgerSetup := ExistingGeneralLedgerSetup;
