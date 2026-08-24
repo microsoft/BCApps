@@ -1051,6 +1051,8 @@ codeunit 139500 "MS - PayPal Standard Tests"
         WebhookNotification.VALIDATE("Subscription ID", COPYSTR(Receiver, 1, MAXSTRLEN(WebhookNotification."Subscription ID")));
         WebhookNotification.Notification.CREATEOUTSTREAM(OutStream);
         OutStream.WRITETEXT(NotificationJson);
+        // Commit the posted invoice and webhook subscription so the insert-trigger processing (Codeunit.Run + Commit) sees committed data, as in production.
+        COMMIT();
         WebhookNotification.INSERT();
     end;
 
