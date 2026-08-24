@@ -7,6 +7,7 @@ namespace Microsoft.Integration.Shopify;
 
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
+using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 
 /// <summary>
@@ -15,10 +16,14 @@ using Microsoft.Sales.History;
 /// the related sales invoice or credit memo is posted, provided the transaction's payment method
 /// mapping is configured for automatic posting. Posting is synchronous and best-effort: a failure to
 /// post a payment is logged as a skipped record and never blocks or reverses the document posting.
+/// Each transaction is posted through a dedicated, single-use journal batch so that only the generated
+/// lines are posted and pre-existing lines in the configured batch are never touched.
 /// </summary>
 codeunit 30236 "Shpfy Auto Post Transactions"
 {
     Access = Internal;
+    Permissions = tabledata "Gen. Journal Batch" = rimd,
+                  tabledata "Gen. Journal Line" = rimd;
 
     internal procedure AutoPostTransactions(SalesInvoiceHeaderNo: Code[20]; SalesCrMemoHeaderNo: Code[20])
     begin
@@ -38,6 +43,10 @@ codeunit 30236 "Shpfy Auto Post Transactions"
         if SalesInvoiceHeader."Shpfy Order Id" = 0 then
             exit;
 
+        // Defer until all sales documents for the order are posted, so a partial invoice can't consume the whole transaction.
+        if OpenSalesDocumentExistsForOrder(SalesInvoiceHeader."Shpfy Order Id") then
+            exit;
+
         OrderTransaction.SetRange("Shopify Order Id", SalesInvoiceHeader."Shpfy Order Id");
         OrderTransaction.SetFilter(Type, '%1|%2', OrderTransaction.Type::Capture, OrderTransaction.Type::Sale);
         PostTransactions(OrderTransaction, SalesInvoiceHeader."Posting Date");
@@ -53,34 +62,48 @@ codeunit 30236 "Shpfy Auto Post Transactions"
         if SalesCrMemoHeader."Shpfy Refund Id" = 0 then
             exit;
 
+        // Defer until all credit memos for the refund are posted.
+        if OpenSalesDocumentExistsForRefund(SalesCrMemoHeader."Shpfy Refund Id") then
+            exit;
+
         OrderTransaction.SetRange("Refund Id", SalesCrMemoHeader."Shpfy Refund Id");
         OrderTransaction.SetRange(Type, OrderTransaction.Type::Refund);
         PostTransactions(OrderTransaction, SalesCrMemoHeader."Posting Date");
     end;
 
+    local procedure OpenSalesDocumentExistsForOrder(ShopifyOrderId: BigInteger): Boolean
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        SalesHeader.SetRange("Shpfy Order Id", ShopifyOrderId);
+        exit(not SalesHeader.IsEmpty());
+    end;
+
+    local procedure OpenSalesDocumentExistsForRefund(ShopifyRefundId: BigInteger): Boolean
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        SalesHeader.SetRange("Shpfy Refund Id", ShopifyRefundId);
+        exit(not SalesHeader.IsEmpty());
+    end;
+
     local procedure PostTransactions(var OrderTransaction: Record "Shpfy Order Transaction"; PostingDate: Date)
     var
         PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
-        BoundaryCommitted: Boolean;
+        AutoGenJnlPost: Codeunit "Shpfy Auto Gen. Jnl.-Post";
     begin
         OrderTransaction.SetRange(Status, OrderTransaction.Status::Success);
         OrderTransaction.SetRange(Used, false);
         if not OrderTransaction.FindSet() then
             exit;
 
+        // Bind once per document; unbind after the loop is safe because PostTransaction never raises.
+        BindSubscription(AutoGenJnlPost);
         repeat
-            if GetAutoPostMapping(OrderTransaction, PaymentMethodMapping) then begin
-                if not BoundaryCommitted then begin
-                    // The posted document has already been committed by Sales-Post at this point.
-                    // Commit again to establish a rollback boundary before best-effort payment posting,
-                    // so a posting failure only rolls back to here and preserves the posted document and
-                    // its Shopify document links.
-                    Commit();
-                    BoundaryCommitted := true;
-                end;
-                PostTransaction(OrderTransaction, PaymentMethodMapping, PostingDate);
-            end;
+            if GetAutoPostMapping(OrderTransaction, PaymentMethodMapping) then
+                PostTransaction(AutoGenJnlPost, OrderTransaction, PaymentMethodMapping, PostingDate);
         until OrderTransaction.Next() = 0;
+        UnbindSubscription(AutoGenJnlPost);
     end;
 
     local procedure GetAutoPostMapping(OrderTransaction: Record "Shpfy Order Transaction"; var PaymentMethodMapping: Record "Shpfy Payment Method Mapping"): Boolean
@@ -92,79 +115,63 @@ codeunit 30236 "Shpfy Auto Post Transactions"
         exit((PaymentMethodMapping."Auto-Post Jnl. Template" <> '') and (PaymentMethodMapping."Auto-Post Jnl. Batch" <> ''));
     end;
 
-    local procedure PostTransaction(OrderTransaction: Record "Shpfy Order Transaction"; PaymentMethodMapping: Record "Shpfy Payment Method Mapping"; PostingDate: Date)
+    local procedure PostTransaction(var AutoGenJnlPost: Codeunit "Shpfy Auto Gen. Jnl.-Post"; OrderTransaction: Record "Shpfy Order Transaction"; PaymentMethodMapping: Record "Shpfy Payment Method Mapping"; PostingDate: Date)
     var
         GenJournalLine: Record "Gen. Journal Line";
         GenJnlPostBatch: Codeunit "Gen. Jnl.-Post Batch";
-        AutoGenJnlPost: Codeunit "Shpfy Auto Gen. Jnl.-Post";
         TemplateName: Code[10];
         BatchName: Code[10];
         ErrorText: Text;
     begin
-        TemplateName := PaymentMethodMapping."Auto-Post Jnl. Template";
-        BatchName := PaymentMethodMapping."Auto-Post Jnl. Batch";
-
-        // Guard against lines left behind by a previously interrupted attempt for this transaction.
-        RemoveJournalLines(TemplateName, BatchName, OrderTransaction."Shopify Transaction Id");
-
+        // Build into a single-use batch via Codeunit.Run so any failure is trapped and rolled back.
         AutoGenJnlPost.SetParameters(PaymentMethodMapping, PostingDate);
-        BindSubscription(AutoGenJnlPost);
-
-        // Build the journal line(s) through Codeunit.Run so a failure while building is trapped and rolled
-        // back to the boundary commit instead of blocking the document posting.
         if not AutoGenJnlPost.Run(OrderTransaction) then begin
-            ErrorText := GetLastErrorText();
-            UnbindSubscription(AutoGenJnlPost);
-            LogFailureAndCommit(OrderTransaction, ErrorText);
+            LogFailure(OrderTransaction, GetLastErrorText());
             exit;
         end;
+
+        AutoGenJnlPost.GetIsolatedBatch(TemplateName, BatchName);
+        if BatchName = '' then
+            exit;
 
         GenJournalLine.SetRange("Journal Template Name", TemplateName);
         GenJournalLine.SetRange("Journal Batch Name", BatchName);
-        GenJournalLine.SetRange("Shpfy Transaction Id", OrderTransaction."Shopify Transaction Id");
-        if GenJournalLine.IsEmpty() then begin
-            UnbindSubscription(AutoGenJnlPost);
+        if not GenJournalLine.FindSet() then begin
+            RemoveIsolatedBatch(TemplateName, BatchName);
             exit;
         end;
-        GenJournalLine.SetRange("Shpfy Transaction Id");
-        GenJournalLine.FindSet();
 
-        // Commit the built line(s) so the batch posting - which commits internally - runs in a valid
-        // transaction context (matching the platform's own SendToPosting behavior).
+        // Commit the lines first: batch posting commits internally.
         Commit();
 
         if GenJnlPostBatch.Run(GenJournalLine) then begin
-            UnbindSubscription(AutoGenJnlPost);
+            RemoveIsolatedBatch(TemplateName, BatchName);
             exit;
         end;
+
+        // Posting failed after commit: drop the batch and log, without affecting the posted document.
         ErrorText := GetLastErrorText();
-        UnbindSubscription(AutoGenJnlPost);
-
-        // Posting failed after the line(s) were committed: remove them and log the failure without
-        // blocking or reversing the document posting.
-        RemoveJournalLines(TemplateName, BatchName, OrderTransaction."Shopify Transaction Id");
-        LogFailureAndCommit(OrderTransaction, ErrorText);
+        RemoveIsolatedBatch(TemplateName, BatchName);
+        LogFailure(OrderTransaction, ErrorText);
     end;
 
-    local procedure RemoveJournalLines(TemplateName: Code[10]; BatchName: Code[10]; ShopifyTransactionId: BigInteger)
+    local procedure RemoveIsolatedBatch(TemplateName: Code[10]; BatchName: Code[10])
     var
-        GenJournalLine: Record "Gen. Journal Line";
+        IsolatedBatch: Record "Gen. Journal Batch";
     begin
-        GenJournalLine.SetRange("Journal Template Name", TemplateName);
-        GenJournalLine.SetRange("Journal Batch Name", BatchName);
-        GenJournalLine.SetRange("Shpfy Transaction Id", ShopifyTransactionId);
-        if not GenJournalLine.IsEmpty() then
-            GenJournalLine.DeleteAll(true);
+        // Delete cascades to leftover lines; commit so a later rollback can't resurrect the batch.
+        if IsolatedBatch.Get(TemplateName, BatchName) then
+            IsolatedBatch.Delete(true);
+        Commit();
     end;
 
-    local procedure LogFailureAndCommit(OrderTransaction: Record "Shpfy Order Transaction"; ErrorText: Text)
+    local procedure LogFailure(OrderTransaction: Record "Shpfy Order Transaction"; ErrorText: Text)
     var
         Shop: Record "Shpfy Shop";
         SkippedRecord: Codeunit "Shpfy Skipped Record";
     begin
         if Shop.Get(OrderTransaction.Shop) then
             SkippedRecord.LogSkippedRecord(OrderTransaction."Shopify Transaction Id", OrderTransaction.RecordId, CopyStr(ErrorText, 1, 250), Shop);
-        // Commit the log (and any cleanup) so a subsequent transaction's rollback cannot discard it.
         Commit();
     end;
 }

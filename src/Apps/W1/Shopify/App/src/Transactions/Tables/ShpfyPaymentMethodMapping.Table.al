@@ -75,7 +75,8 @@ table 30134 "Shpfy Payment Method Mapping"
 
             trigger OnValidate()
             begin
-                if "Auto-Post Jnl. Template" = '' then
+                // Clear the batch on any template change so a stale template+batch can't persist.
+                if "Auto-Post Jnl. Template" <> xRec."Auto-Post Jnl. Template" then
                     Clear("Auto-Post Jnl. Batch");
             end;
         }

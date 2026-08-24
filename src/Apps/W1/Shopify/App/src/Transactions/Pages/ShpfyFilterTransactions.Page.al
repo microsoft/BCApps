@@ -64,6 +64,7 @@ page 30176 "Shpfy Filter Transactions"
         NewGateway := Gateway;
         NewCreditCardCompany := CreditCardCompany;
         NewStartDate := CreateDateTime(StartDate, 0T);
-        NewEndDate := CreateDateTime(EndDate, 0T);
+        if EndDate <> 0D then
+            NewEndDate := CreateDateTime(EndDate, 235959.999T);
     end;
 }

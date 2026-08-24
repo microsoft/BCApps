@@ -19,9 +19,9 @@ using Microsoft.Sales.Receivables;
 using System.TestLibraries.Utilities;
 
 /// <summary>
-/// Codeunit Shpfy Auto Post Trans. Test (ID 139627).
+/// Codeunit Shpfy Auto Post Trans. Test (ID 139587).
 /// </summary>
-codeunit 139627 "Shpfy Auto Post Trans. Test"
+codeunit 139587 "Shpfy Auto Post Trans. Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
@@ -70,8 +70,10 @@ codeunit 139627 "Shpfy Auto Post Trans. Test"
         ShpfyPaymentMethodMapping."Auto-Post Jnl. Template" := GenJournalBatch."Journal Template Name";
 
         // [WHEN] Auto-Post Jnl. Batch is validated
-        // [THEN] Validation fails with error
+        // [THEN] Validation fails with the missing balancing-account error
         asserterror ShpfyPaymentMethodMapping.Validate("Auto-Post Jnl. Batch", GenJournalBatch.Name);
+        LibraryAssert.ExpectedError('Bal. Account No.');
+        LibraryAssert.ExpectedErrorCode('TestField');
     end;
 
     [Test]
@@ -401,6 +403,125 @@ codeunit 139627 "Shpfy Auto Post Trans. Test"
         LibraryAssert.IsTrue(SalesInvoiceHeader.IsEmpty(), 'Preview should not post the sales invoice');
     end;
 
+    [Test]
+    procedure UnitTestAutoPostDoesNotPostUnrelatedBatchLines()
+    var
+        SalesHeader: Record "Sales Header";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        UnrelatedDocNo: Code[20];
+        OrderId: BigInteger;
+        TransactionId: BigInteger;
+    begin
+        // [SCENARIO] An unrelated line parked in the configured auto-post batch is not posted when a Shopify invoice auto-posts
+
+        // [GIVEN] Initialized test environment
+        Initialize();
+
+        // [GIVEN] An unrelated manual journal line sitting in the configured auto-post batch
+        UnrelatedDocNo := CreateUnrelatedJournalLine();
+
+        // [GIVEN] A Shopify order with an auto-post-enabled transaction
+        OrderId := LibraryRandom.RandIntInRange(9000000, 9499999);
+        TransactionId := LibraryRandom.RandIntInRange(9000000, 9499999);
+        CreateShopifyOrder(OrderId);
+        CreateOrderTransaction(TransactionId, OrderId, 0, PaymentMethodMapping.Gateway, Enum::"Shpfy Transaction Type"::Sale, Item."Unit Price");
+        EnablePaymentMethodMappingAutoPost(true);
+
+        // [GIVEN] A sales invoice with a Shopify Order Id
+        CreateSalesOrder(SalesHeader, OrderId);
+
+        // [WHEN] The sales invoice is posted
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] The Shopify transaction is auto-posted
+        CustLedgerEntry.SetRange("Shpfy Transaction Id", TransactionId);
+        LibraryAssert.IsFalse(CustLedgerEntry.IsEmpty(), 'Cust. Ledger Entry should be created for the auto-posted transaction');
+
+        // [THEN] The unrelated journal line is untouched (still present, not posted)
+        LibraryAssert.IsTrue(UnrelatedJournalLineExists(UnrelatedDocNo), 'The unrelated journal line in the configured batch must not be posted');
+    end;
+
+    [Test]
+    procedure UnitTestAutoPostDefersWhilePartialInvoiceOpen()
+    var
+        SalesHeaderToPost: Record "Sales Header";
+        SalesHeaderOpen: Record "Sales Header";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        OrderId: BigInteger;
+        TransactionId: BigInteger;
+    begin
+        // [SCENARIO] The order transaction is not consumed while another, not-yet-posted invoice exists for the same order
+
+        // [GIVEN] Initialized test environment
+        Initialize();
+
+        // [GIVEN] A Shopify order with an auto-post-enabled transaction that covers both invoices
+        OrderId := LibraryRandom.RandIntInRange(9500000, 9999999);
+        TransactionId := LibraryRandom.RandIntInRange(9500000, 9999999);
+        CreateShopifyOrder(OrderId);
+        CreateOrderTransaction(TransactionId, OrderId, 0, PaymentMethodMapping.Gateway, Enum::"Shpfy Transaction Type"::Sale, 2 * Item."Unit Price");
+        EnablePaymentMethodMappingAutoPost(true);
+
+        // [GIVEN] Two sales invoices for the same Shopify order
+        CreateSalesOrder(SalesHeaderOpen, OrderId);
+        CreateSalesOrder(SalesHeaderToPost, OrderId);
+
+        // [WHEN] The first invoice is posted while the second is still open
+        LibrarySales.PostSalesDocument(SalesHeaderToPost, true, true);
+
+        // [THEN] Auto-posting is deferred - the transaction is not consumed yet
+        CustLedgerEntry.SetRange("Shpfy Transaction Id", TransactionId);
+        LibraryAssert.IsTrue(CustLedgerEntry.IsEmpty(), 'Transaction should not be auto-posted while another invoice for the order is still open');
+
+        // [WHEN] The remaining invoice is posted
+        LibrarySales.PostSalesDocument(SalesHeaderOpen, true, true);
+
+        // [THEN] The transaction is now auto-posted
+        CustLedgerEntry.SetRange("Shpfy Transaction Id", TransactionId);
+        LibraryAssert.IsFalse(CustLedgerEntry.IsEmpty(), 'Transaction should be auto-posted once no open invoice remains for the order.');
+    end;
+
+    [Test]
+    procedure UnitTestSetJournalParametersPropagatesToGeneratedLine()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        OrderTransaction: Record "Shpfy Order Transaction";
+        SalesHeader: Record "Sales Header";
+        SuggestPayments: Report "Shpfy Suggest Payments";
+        PostedInvoiceNo: Code[20];
+        OrderId: BigInteger;
+        TransactionId: BigInteger;
+    begin
+        // [SCENARIO] SetJournalParameters carries the mapped template, batch, and posting date onto the generated journal line
+
+        // [GIVEN] Initialized test environment with a posted Shopify invoice and transaction
+        Initialize();
+        OrderId := LibraryRandom.RandIntInRange(10000000, 10999999);
+        TransactionId := LibraryRandom.RandIntInRange(10000000, 10999999);
+        CreateShopifyOrder(OrderId);
+        CreateOrderTransaction(TransactionId, OrderId, 0, PaymentMethodMapping.Gateway, Enum::"Shpfy Transaction Type"::Sale, Item."Unit Price");
+        CreateSalesOrder(SalesHeader, OrderId);
+        PostedInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [WHEN] The suggest-payments report generates lines with explicit journal parameters
+        OrderTransaction.Get(TransactionId);
+        SuggestPayments.SetJournalParameters(PaymentMethodMapping."Auto-Post Jnl. Template", PaymentMethodMapping."Auto-Post Jnl. Batch", WorkDate());
+        SuggestPayments.GetOrderTransactions(OrderTransaction);
+        SuggestPayments.CreateGeneralJournalLines();
+
+        // [THEN] The generated line uses the mapped template, batch, and posting date
+        GenJournalLine.SetRange("Shpfy Transaction Id", TransactionId);
+        LibraryAssert.IsTrue(GenJournalLine.FindFirst(), 'A general journal line should be generated for the transaction');
+        LibraryAssert.AreEqual(PaymentMethodMapping."Auto-Post Jnl. Template", GenJournalLine."Journal Template Name", 'Journal template should match the mapping');
+        LibraryAssert.AreEqual(PaymentMethodMapping."Auto-Post Jnl. Batch", GenJournalLine."Journal Batch Name", 'Journal batch should match the mapping');
+        LibraryAssert.AreEqual(WorkDate(), GenJournalLine."Posting Date", 'Posting date should match the value passed to SetJournalParameters');
+        LibraryAssert.AreEqual(PostedInvoiceNo, GenJournalLine."Applies-to Doc. No.", 'Generated payment line should apply to the posted invoice');
+
+        // Clean up the unposted lines so they don't leak into other tests.
+        GenJournalLine.SetRange("Shpfy Transaction Id", TransactionId);
+        GenJournalLine.DeleteAll(true);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -598,5 +719,47 @@ codeunit 139627 "Shpfy Auto Post Trans. Test"
     begin
         GenJournalLine.SetRange("Shpfy Transaction Id", TransactionId);
         exit(GenJournalLine.IsEmpty());
+    end;
+
+    local procedure CreateUnrelatedJournalLine(): Code[20]
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        NoSeries: Codeunit "No. Series";
+        DocNo: Code[20];
+        LastLineNo: Integer;
+    begin
+        // A self-balancing line parked in the configured batch; it would post if the whole batch posted.
+        GenJournalBatch.Get(PaymentMethodMapping."Auto-Post Jnl. Template", PaymentMethodMapping."Auto-Post Jnl. Batch");
+        DocNo := NoSeries.PeekNextNo(GenJournalBatch."No. Series", WorkDate());
+
+        GenJournalLine.SetRange("Journal Template Name", GenJournalBatch."Journal Template Name");
+        GenJournalLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
+        if GenJournalLine.FindLast() then
+            LastLineNo := GenJournalLine."Line No.";
+
+        GenJournalLine.Init();
+        GenJournalLine."Journal Template Name" := GenJournalBatch."Journal Template Name";
+        GenJournalLine."Journal Batch Name" := GenJournalBatch.Name;
+        GenJournalLine."Line No." := LastLineNo + 10000;
+        GenJournalLine.Validate("Posting Date", WorkDate());
+        GenJournalLine."Document No." := DocNo;
+        GenJournalLine.Validate("Account Type", GenJournalLine."Account Type"::"G/L Account");
+        GenJournalLine.Validate("Account No.", CreateGLAccount());
+        GenJournalLine.Validate(Amount, LibraryRandom.RandDecInRange(100, 1000, 2));
+        GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
+        GenJournalLine.Validate("Bal. Account No.", CreateGLAccount());
+        GenJournalLine.Insert(true);
+        exit(DocNo);
+    end;
+
+    local procedure UnrelatedJournalLineExists(DocNo: Code[20]): Boolean
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+    begin
+        GenJournalLine.SetRange("Journal Template Name", PaymentMethodMapping."Auto-Post Jnl. Template");
+        GenJournalLine.SetRange("Journal Batch Name", PaymentMethodMapping."Auto-Post Jnl. Batch");
+        GenJournalLine.SetRange("Document No.", DocNo);
+        exit(not GenJournalLine.IsEmpty());
     end;
 }
