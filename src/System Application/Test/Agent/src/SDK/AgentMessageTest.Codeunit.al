@@ -1277,7 +1277,7 @@ codeunit 133963 "Agent Message Test"
     end;
 
     [Test]
-    procedure AddIgnoredEmptyAttachment()
+    procedure AddIgnoredOversizedAttachment()
     var
         AgentRecord: Record Agent;
         AgentTaskRecord: Record "Agent Task";
@@ -1289,11 +1289,13 @@ codeunit 133963 "Agent Message Test"
         AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder";
         TempBlob: Codeunit "Temp Blob";
         AgentUserId: Guid;
-        EmptyInStream: InStream;
+        PlaceholderInStream: InStream;
+        PlaceholderOutStream: OutStream;
+        PlaceholderTok: Label 'The original attachment was not stored.', Locked = true;
     begin
         Initialize();
 
-        // [SCENARIO] Add an ignored attachment with an empty stream
+        // [SCENARIO] Add an ignored attachment that only carries a placeholder instead of the original file
 
         // [GIVEN] A test agent with a task
         AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
@@ -1303,28 +1305,32 @@ codeunit 133963 "Agent Message Test"
             'You are a test agent for ignored attachment metadata testing.');
 
         AgentTaskBuilder
-            .Initialize(AgentUserId, 'Ignored Empty Attachment Test Task')
+            .Initialize(AgentUserId, 'Ignored Oversized Attachment Test Task')
             .SetExternalId(EmptyIgnoredAttachmentExternalIdTok);
         AgentTaskRecord := AgentTaskBuilder.Create(false, false);
-        TempBlob.CreateInStream(EmptyInStream);
 
-        // [WHEN] A message is created with an ignored empty attachment
+        // [GIVEN] A placeholder that replaces the oversized attachment content
+        TempBlob.CreateOutStream(PlaceholderOutStream, TextEncoding::UTF8);
+        PlaceholderOutStream.WriteText(PlaceholderTok);
+        TempBlob.CreateInStream(PlaceholderInStream, TextEncoding::UTF8);
+
+        // [WHEN] A message is created with the ignored attachment
         AgentTaskMessageBuilder
-            .Initialize('Sender', 'Message with ignored empty attachment')
+            .Initialize('Sender', 'Message with ignored oversized attachment')
             .SetAgentTask(AgentTaskRecord)
-            .AddAttachment('oversized.pdf', 'application/pdf', EmptyInStream, true, ExceedsFileSizeReasonTok);
+            .AddAttachment('oversized.pdf', 'application/pdf', PlaceholderInStream, true, ExceedsFileSizeReasonTok);
         AgentTaskMessageRecord := AgentTaskMessageBuilder.Create(false);
 
         AgentMessage.GetAttachments(AgentTaskRecord.Id, AgentTaskMessageRecord.Id, TempAgentTaskFile);
 
-        // [THEN] The attachment metadata exists with zero-byte content
+        // [THEN] The attachment metadata exists and only holds the placeholder content
         Assert.AreEqual(1, TempAgentTaskFile.Count(), 'One attachment should exist');
         TempAgentTaskFile.FindFirst();
         TempAgentTaskFile.CalcFields(Content);
         Assert.AreEqual('oversized.pdf', TempAgentTaskFile."File Name", 'Attachment file name should match');
         Assert.AreEqual('application/pdf', TempAgentTaskFile."File MIME Type", 'Attachment MIME type should match');
-        Assert.AreEqual(0, TempAgentTaskFile.Content.Length(), 'Ignored attachment should have zero-byte content');
-        Assert.IsFalse(AgentMessageImpl.IsAttachmentDownloadable(TempAgentTaskFile), 'Contentless attachment metadata should not be downloadable');
+        Assert.AreEqual(StrLen(PlaceholderTok), TempAgentTaskFile.Content.Length(), 'Ignored attachment should only hold the placeholder content');
+        Assert.IsTrue(AgentMessageImpl.IsAttachmentDownloadable(TempAgentTaskFile), 'Attachment with placeholder content should be downloadable');
 
         // [THEN] The attachment is ignored with the supplied reason
         AgentTaskMessageAttachment.SetRange("Task ID", AgentTaskRecord.Id);

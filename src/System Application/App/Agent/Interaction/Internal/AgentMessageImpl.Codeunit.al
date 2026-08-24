@@ -130,7 +130,7 @@ codeunit 4308 "Agent Message Impl."
         FileInstream: InStream;
     begin
         TempAgentTaskFile.CalcFields(Content);
-        if not TempAgentTaskFile.Content.HasValue() and (IgnoredReason = '') then
+        if not TempAgentTaskFile.Content.HasValue() then
             exit;
 
         TempAgentTaskFile.Content.CreateInStream(FileInstream, AgentTaskImpl.GetDefaultEncoding());
