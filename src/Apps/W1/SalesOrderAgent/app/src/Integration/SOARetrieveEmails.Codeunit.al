@@ -255,21 +255,16 @@ codeunit 4582 "SOA Retrieve Emails"
                     end;
 
                     if PdfContent then begin
-                        // The page count check consumes the stream, so buffer the content to be able to read it twice.
+                        // The page count check consumes the stream, so a fresh stream is requested afterwards.
                         EmailMessage.Attachments_GetContent(InStream);
-                        Clear(TempAgentTaskFile);
-                        TempAgentTaskFile.Content.CreateOutStream(OutStream);
-                        CopyStream(OutStream, InStream);
-                        TempAgentTaskFile.Content.CreateInStream(InStream);
 
                         if not SOASetup.DocumentExceedsPageCountThreshold(InStream, ExceedsPageCountThreshold) then
                             FeatureTelemetry.LogError('0000QHK', SOASetup.GetFeatureName(), 'Document exceeds page count threshold', PageCountCallFailedTelemetryTxt);
                         if ExceedsPageCountThreshold then
                             FeatureTelemetry.LogUsage('0000QHL', SOASetup.GetFeatureName(), StrSubstNo(PageCountExceededTelemetryTxt, Format(SOASetup.PageCountThreshold())));
+                    end;
 
-                        TempAgentTaskFile.Content.CreateInStream(InStream);
-                    end else
-                        EmailMessage.Attachments_GetContent(InStream);
+                    EmailMessage.Attachments_GetContent(InStream);
 
                     Ignore := IgnoreAttachment(IsFileMimeTypeSupported, ExceedsPageCountThreshold, NoOfAttachments, SOASetupRec, IgnoredReason);
                     AgentTaskMessageBuilder.AddAttachment(EmailMessage.Attachments_GetName(), FileMIMEType, InStream, Ignore, IgnoredReason);

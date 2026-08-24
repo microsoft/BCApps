@@ -170,36 +170,51 @@ codeunit 4308 "Agent Message Impl."
     var
         AgentTaskMessageAttachment: Record "Agent Task Message Attachment";
         AgentTaskFile: Record "Agent Task File";
+        FirstDownloadableFile: Record "Agent Task File";
         DataCompression: Codeunit "Data Compression";
         TempBlob: Codeunit "Temp Blob";
         AgentTaskImpl: Codeunit "Agent Task Impl.";
-        DownloadableFileIDs: List of [BigInteger];
-        FileID: BigInteger;
         FileInStream: InStream;
         ZipOutStream: OutStream;
         ZipInStream: InStream;
         FileName: Text;
+        DownloadableCount: Integer;
         DownloadDialogTitleLbl: Label 'Download Email Attachment';
     begin
         AgentTaskMessageAttachment.SetRange("Task ID", AgentTaskMessage."Task ID");
         AgentTaskMessageAttachment.SetRange("Message ID", AgentTaskMessage.ID);
-
-        GetDownloadableAttachments(AgentTaskMessageAttachment, DownloadableFileIDs);
-        if DownloadableFileIDs.Count() = 0 then
+        if not AgentTaskMessageAttachment.FindSet() then
             exit;
 
-        if DownloadableFileIDs.Count() = 1 then begin
-            ShowOrDownloadAttachment(AgentTaskMessage."Task ID", DownloadableFileIDs.Get(1), true);
+        // Each attachment is read once. The first file with content is kept aside, because a message with a
+        // single attachment is downloaded directly and is never zipped.
+        repeat
+            if AgentTaskFile.Get(AgentTaskMessageAttachment."Task ID", AgentTaskMessageAttachment."File ID") then
+                if IsAttachmentDownloadable(AgentTaskFile) then begin
+                    DownloadableCount += 1;
+
+                    if DownloadableCount = 1 then
+                        FirstDownloadableFile := AgentTaskFile
+                    else begin
+                        if DownloadableCount = 2 then begin
+                            DataCompression.CreateZipArchive();
+                            FirstDownloadableFile.Content.CreateInStream(FileInStream, AgentTaskImpl.GetDefaultEncoding());
+                            DataCompression.AddEntry(FileInStream, FirstDownloadableFile."File Name");
+                        end;
+
+                        AgentTaskFile.Content.CreateInStream(FileInStream, AgentTaskImpl.GetDefaultEncoding());
+                        DataCompression.AddEntry(FileInStream, AgentTaskFile."File Name");
+                    end;
+                end;
+        until AgentTaskMessageAttachment.Next() = 0;
+
+        if DownloadableCount = 0 then
+            exit;
+
+        if DownloadableCount = 1 then begin
+            ShowOrDownloadAttachment(FirstDownloadableFile, true);
             exit;
         end;
-
-        DataCompression.CreateZipArchive();
-        foreach FileID in DownloadableFileIDs do
-            if AgentTaskFile.Get(AgentTaskMessage."Task ID", FileID) then begin
-                AgentTaskFile.CalcFields(Content);
-                AgentTaskFile.Content.CreateInStream(FileInStream, AgentTaskImpl.GetDefaultEncoding());
-                DataCompression.AddEntry(FileInStream, AgentTaskFile."File Name");
-            end;
 
         TempBlob.CreateOutStream(ZipOutStream);
         DataCompression.SaveZipArchive(ZipOutStream);
@@ -304,21 +319,6 @@ codeunit 4308 "Agent Message Impl."
 
         AgentTaskMessage.Status := AgentTaskMessageToModify.Status;
         AgentTaskMessage."Status Reason" := AgentTaskMessageToModify."Status Reason";
-    end;
-
-    local procedure GetDownloadableAttachments(var AgentTaskMessageAttachment: Record "Agent Task Message Attachment"; var DownloadableFileIDs: List of [BigInteger])
-    var
-        AgentTaskFile: Record "Agent Task File";
-    begin
-        Clear(DownloadableFileIDs);
-        if not AgentTaskMessageAttachment.FindSet() then
-            exit;
-
-        repeat
-            if AgentTaskFile.Get(AgentTaskMessageAttachment."Task ID", AgentTaskMessageAttachment."File ID") then
-                if IsAttachmentDownloadable(AgentTaskFile) then
-                    DownloadableFileIDs.Add(AgentTaskFile.ID);
-        until AgentTaskMessageAttachment.Next() = 0;
     end;
 
     procedure GetFileSizeDisplayText(SizeInBytes: Decimal): Text
