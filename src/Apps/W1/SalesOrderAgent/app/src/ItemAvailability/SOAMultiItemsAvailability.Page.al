@@ -110,6 +110,10 @@ page 4410 "SOA Multi Items Availability"
 
                         LanguageCode := GetLanguageCode(ContactNo, CustomerNo);
 
+                        SetAvailabilityFilter('Customer', CustomerNo);
+                        SetAvailabilityFilter('Contact', ContactNo);
+                        SetAvailabilityFilter('Location', LocationFilter);
+
                         CurrPage.Update(false);
                     end;
                 }
@@ -142,6 +146,10 @@ page 4410 "SOA Multi Items Availability"
 
                         LanguageCode := GetLanguageCode(ContactNo, CustomerNo);
 
+                        SetAvailabilityFilter('Customer', CustomerNo);
+                        SetAvailabilityFilter('Contact', ContactNo);
+                        SetAvailabilityFilter('Location', LocationFilter);
+
                         CurrPage.Update(false);
                     end;
                 }
@@ -167,6 +175,8 @@ page 4410 "SOA Multi Items Availability"
                     begin
                         LocationFilter := LocationFilter.ToUpper();
                         Rec.SetFilter("Location Filter", LocationFilter);
+
+                        SetAvailabilityFilter('Location', LocationFilter);
                         CurrPage.Update(false);
                     end;
                 }
@@ -732,7 +742,7 @@ page 4410 "SOA Multi Items Availability"
             AvailabilityFilterValues.Set('Customer', CustomerNo);
             AvailabilityFilterValues.Set('Contact', ContactNo);
             AvailabilityFilterValues.Set('Location', LocationFilter);
-            Rec.SetFilter("SOA Item Availability Filter", BuildAvailabilityFilterText() + '|*');
+            ApplyAvailabilityFilterToRec();
         end else begin
             if Rec.GetFilter("SOA Item Availability Filter") <> '' then begin
                 ParseAvailabilityFilter();
@@ -758,7 +768,19 @@ page 4410 "SOA Multi Items Availability"
             exit;
 
         AvailabilityFilterValues.Set(FilterKey, FilterValue);
-        Rec.SetFilter("SOA Item Availability Filter", BuildAvailabilityFilterText() + '|*');
+        ApplyAvailabilityFilterToRec();
+    end;
+
+    local procedure ApplyAvailabilityFilterToRec()
+    var
+        FilterText: Text;
+    begin
+        FilterText := BuildAvailabilityFilterText();
+
+        if StrLen(FilterText) > MaxStrLen(Rec."SOA Item Availability Filter") then
+            exit;
+
+        Rec.SetFilter("SOA Item Availability Filter", '%1|*', FilterText);
     end;
 
     local procedure BuildAvailabilityFilterText() Result: Text

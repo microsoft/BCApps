@@ -318,8 +318,7 @@ codeunit 4591 "SOA Item Search"
             Item.CopyFilter("Variant Filter", Rec."Variant Filter");
             Item.CopyFilter("SOA Item Availability Filter", Rec."SOA Item Availability Filter");
             Found := Rec.Find(Which);
-        end else
-            Rec.SetRange(SystemId);
+        end;
 
         // Prepare Custom Dimensions for Telemetry
         TelemetryCustomDimension.Add('SearchType', SearchType);
