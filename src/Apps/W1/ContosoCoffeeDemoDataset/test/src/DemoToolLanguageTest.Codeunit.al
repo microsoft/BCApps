@@ -1,8 +1,14 @@
 namespace Microsoft.Test.DemoTool;
 
+using Microsoft.DemoData.Common;
+using Microsoft.DemoData.Manufacturing;
 using Microsoft.DemoData.Inventory;
 using Microsoft.DemoData.Warehousing;
 using Microsoft.DemoTool;
+using Microsoft.Foundation.NoSeries;
+using Microsoft.Manufacturing.ProductionBOM;
+using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.Setup;
 
 codeunit 148049 "Demo Tool Language Test"
 {
@@ -78,6 +84,114 @@ codeunit 148049 "Demo Tool Language Test"
         Assert.AreEqual(CreateLocation.OwnLogLocation(), CreateWhseLocation.TransitLocation(), 'Inventory and Warehousing must use the same own-logistics in-transit location.');
     end;
 
+    [Test]
+    procedure ManufacturingVersionNoSeriesAreCreatedAndAssignedOnlyWhenBlank()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        CreateMfgNoSeries: Codeunit "Create Mfg No Series";
+    begin
+        // [SCENARIO 647371] Contoso creates and assigns the production BOM and routing version number series.
+
+        // [WHEN] Manufacturing setup data is created
+        CreateManufacturingSetupData();
+
+        // [THEN] Both version number series have the expected definitions
+        VerifyNoSeries(CreateMfgNoSeries.ProductionBOMVersion(), 'Production BOM Versions', 'PV10', 'PV99990', 10);
+        VerifyNoSeries(CreateMfgNoSeries.RoutingVersion(), 'Routing Versions', 'RV10', 'RV99990', 10);
+
+        // [THEN] Manufacturing Setup uses both version number series
+        ManufacturingSetup.Get();
+        ManufacturingSetup.TestField("Production BOM Version Nos.", CreateMfgNoSeries.ProductionBOMVersion());
+        ManufacturingSetup.TestField("Routing Version Nos.", CreateMfgNoSeries.RoutingVersion());
+
+        // [WHEN] Setup is rerun after alternate version number series have been selected
+        ManufacturingSetup.Validate("Production BOM Version Nos.", CreateMfgNoSeries.ProductionBOM());
+        ManufacturingSetup.Validate("Routing Version Nos.", CreateMfgNoSeries.Routing());
+        ManufacturingSetup.Modify(true);
+        CreateManufacturingSetupData();
+
+        // [THEN] The existing setup choices are retained
+        ManufacturingSetup.Get();
+        ManufacturingSetup.TestField("Production BOM Version Nos.", CreateMfgNoSeries.ProductionBOM());
+        ManufacturingSetup.TestField("Routing Version Nos.", CreateMfgNoSeries.Routing());
+    end;
+
+    [Test]
+    procedure ManufacturingHeadersUseContosoVersionNoSeries()
+    var
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionBOMVersion: Record "Production BOM Version";
+        RoutingHeader: Record "Routing Header";
+        RoutingVersion: Record "Routing Version";
+        CreateMfgNoSeries: Codeunit "Create Mfg No Series";
+        ExplicitBOMVersionCode: Code[20];
+    begin
+        // [SCENARIO 647371] Contoso headers inherit version series that generate PV10 and RV10 without changing explicit version codes.
+
+        // [GIVEN] Contoso manufacturing setup data
+        CreateManufacturingSetupData();
+
+        // [WHEN] New production BOM and routing headers are inserted
+        ProductionBOMHeader."No." := 'SP-SCM1009';
+        ProductionBOMHeader.Insert(true);
+        RoutingHeader."No." := 'TEST-ROUTING';
+        RoutingHeader.Insert(true);
+
+        // [THEN] The headers inherit the Contoso version number series
+        ProductionBOMHeader.TestField("Version Nos.", CreateMfgNoSeries.ProductionBOMVersion());
+        RoutingHeader.TestField("Version Nos.", CreateMfgNoSeries.RoutingVersion());
+
+        // [WHEN] An explicit BOM version and blank-code BOM and routing versions are inserted
+        ExplicitBOMVersionCode := 'SP-SCM1009-V1';
+        ProductionBOMVersion."Production BOM No." := ProductionBOMHeader."No.";
+        ProductionBOMVersion."Version Code" := ExplicitBOMVersionCode;
+        ProductionBOMVersion.Insert(true);
+        Clear(ProductionBOMVersion);
+        ProductionBOMVersion."Production BOM No." := ProductionBOMHeader."No.";
+        ProductionBOMVersion.Insert(true);
+        RoutingVersion."Routing No." := RoutingHeader."No.";
+        RoutingVersion.Insert(true);
+
+        // [THEN] The explicit code is preserved and blank codes use the inherited series
+        Assert.IsTrue(ProductionBOMVersion.Get(ProductionBOMHeader."No.", ExplicitBOMVersionCode), 'The explicit production BOM version must remain unchanged.');
+        Assert.IsTrue(ProductionBOMVersion.Get(ProductionBOMHeader."No.", 'PV10'), 'The inherited production BOM version series must generate PV10.');
+        Assert.IsTrue(RoutingVersion.Get(RoutingHeader."No.", 'RV10'), 'The inherited routing version series must generate RV10.');
+    end;
+
+    [Test]
+    procedure ManufacturingSetupRerunDoesNotBackfillExistingHeaders()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ProductionBOMHeader: Record "Production BOM Header";
+        RoutingHeader: Record "Routing Header";
+        CreateMfgNoSeries: Codeunit "Create Mfg No Series";
+    begin
+        // [SCENARIO 647371] Rerunning Contoso setup does not backfill existing production BOM or routing headers.
+
+        // [GIVEN] Existing headers were inserted while both setup defaults were blank
+        if not ManufacturingSetup.Get() then
+            ManufacturingSetup.Insert();
+        ManufacturingSetup."Production BOM Version Nos." := '';
+        ManufacturingSetup."Routing Version Nos." := '';
+        ManufacturingSetup.Modify();
+        ProductionBOMHeader."No." := 'EXISTING-BOM';
+        ProductionBOMHeader.Insert(true);
+        RoutingHeader."No." := 'EXISTING-ROUTING';
+        RoutingHeader.Insert(true);
+
+        // [WHEN] Contoso manufacturing setup is rerun
+        CreateManufacturingSetupData();
+
+        // [THEN] Setup receives the defaults but existing headers remain blank
+        ManufacturingSetup.Get();
+        ManufacturingSetup.TestField("Production BOM Version Nos.", CreateMfgNoSeries.ProductionBOMVersion());
+        ManufacturingSetup.TestField("Routing Version Nos.", CreateMfgNoSeries.RoutingVersion());
+        ProductionBOMHeader.Get(ProductionBOMHeader."No.");
+        RoutingHeader.Get(RoutingHeader."No.");
+        ProductionBOMHeader.TestField("Version Nos.", '');
+        RoutingHeader.TestField("Version Nos.", '');
+    end;
+
     [ConfirmHandler]
     procedure DifferentLanguageDialogHandler(Question: Text; var Reply: Boolean)
     begin
@@ -96,5 +210,28 @@ codeunit 148049 "Demo Tool Language Test"
         ContosoDemoDataModule.Validate(Module, Enum::"Contoso Demo Data Module"::"Contoso Test 1");
         if not ContosoDemoDataModule.Get(Enum::"Contoso Demo Data Module"::"Contoso Test 1") then
             ContosoDemoDataModule.Insert();
+    end;
+
+    local procedure VerifyNoSeries(NoSeriesCode: Code[20]; ExpectedDescription: Text[100]; ExpectedStartingNo: Code[20]; ExpectedEndingNo: Code[20]; ExpectedIncrement: Integer)
+    var
+        NoSeries: Record "No. Series";
+        NoSeriesLine: Record "No. Series Line";
+    begin
+        NoSeries.Get(NoSeriesCode);
+        NoSeries.TestField(Description, ExpectedDescription);
+        NoSeries.TestField("Manual Nos.", true);
+        NoSeriesLine.Get(NoSeriesCode, 10000);
+        NoSeriesLine.TestField("Starting No.", ExpectedStartingNo);
+        NoSeriesLine.TestField("Ending No.", ExpectedEndingNo);
+        NoSeriesLine.TestField("Increment-by No.", ExpectedIncrement);
+    end;
+
+    local procedure CreateManufacturingSetupData()
+    var
+        CommonModule: Codeunit "Common Module";
+        ManufacturingModule: Codeunit "Manufacturing Module";
+    begin
+        CommonModule.CreateSetupData();
+        ManufacturingModule.CreateSetupData();
     end;
 }
