@@ -718,7 +718,7 @@ codeunit 6973 "Create Expense Categories"
     begin
         TempExpenseLocation.Reset();
         TempExpenseLocation.DeleteAll();
-        Codeunit.Run(Codeunit::"Create Expense Location", TempExpenseLocation);
+        Codeunit.Run(Codeunit::"Create Expense Locations", TempExpenseLocation);
     end;
 
     /// <summary>
@@ -807,7 +807,7 @@ codeunit 6973 "Create Expense Categories"
         TempRuleHeader.Reset();
         TempRuleHeader.DeleteAll();
 
-        Codeunit.Run(Codeunit::"Create Expense Rule Header", TempRuleHeader);
+        Codeunit.Run(Codeunit::"Create Expense Rule Headers", TempRuleHeader);
 
         OnAfterBuildRuleSeeds(TempRuleHeader);
     end;
@@ -820,7 +820,7 @@ codeunit 6973 "Create Expense Categories"
         TempRuleCondition.Reset();
         TempRuleCondition.DeleteAll();
 
-        Codeunit.Run(Codeunit::"Create Expense Rule Condition", TempRuleCondition);
+        Codeunit.Run(Codeunit::"Create Expense Rule Conditions", TempRuleCondition);
 
         OnAfterBuildRuleConditionSeeds(TempRuleCondition);
     end;

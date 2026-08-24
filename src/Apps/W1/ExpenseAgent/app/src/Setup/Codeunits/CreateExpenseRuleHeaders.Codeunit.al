@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-codeunit 7128 "Create Expense Rule Header"
+codeunit 7128 "Create Expense Rule Headers"
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -301,5 +301,5 @@ codeunit 7128 "Create Expense Rule Header"
 
     var
         CreateExpenseCategories: Codeunit "Create Expense Categories";
-        CreateExpenseLocation: Codeunit "Create Expense Location";
+        CreateExpenseLocation: Codeunit "Create Expense Locations";
 }
