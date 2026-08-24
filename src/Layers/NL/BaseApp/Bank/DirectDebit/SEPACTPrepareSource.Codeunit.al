@@ -159,7 +159,7 @@ codeunit 1222 "SEPA CT-Prepare Source"
 
     local procedure NotifyRemittanceTruncated()
     var
-        MyNotifications: Codeunit "My Notifications";
+        MyNotifications: Record "My Notifications";
         RemittanceNotification: Notification;
     begin
         if not GuiAllowed() then
@@ -180,7 +180,7 @@ codeunit 1222 "SEPA CT-Prepare Source"
     /// <param name="RemittanceNotification">The notification whose action was invoked.</param>
     procedure DisableRemittanceTruncationNotification(RemittanceNotification: Notification)
     var
-        MyNotifications: Codeunit "My Notifications";
+        MyNotifications: Record "My Notifications";
     begin
         MyNotifications.Disable(GetRemittanceTruncationNotificationId());
     end;
@@ -193,7 +193,7 @@ codeunit 1222 "SEPA CT-Prepare Source"
     [EventSubscriber(ObjectType::Page, Page::"My Notifications", 'OnInitializingNotificationWithDefaultState', '', false, false)]
     local procedure OnInitializingNotificationWithDefaultStateRegisterNotifications()
     var
-        MyNotifications: Codeunit "My Notifications";
+        MyNotifications: Record "My Notifications";
     begin
         MyNotifications.InsertDefault(GetRemittanceTruncationNotificationId(), RemittanceTruncationNotificationNameTxt, RemittanceTruncationNotificationDescriptionTxt, true);
     end;
