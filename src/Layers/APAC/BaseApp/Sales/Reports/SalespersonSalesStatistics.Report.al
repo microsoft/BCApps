@@ -151,13 +151,14 @@ report 114 "Salesperson - Sales Statistics"
 
     rendering
     {
-        layout(RDLCLayout)
+        layout(ExcelLayout)
         {
             Caption = 'Salesperson Sales Statistics Excel';
             Type = Excel;
             LayoutFile = './Sales/Reports/SalespersonSalesStatistics.xlsx';
             Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
+#if not CLEAN30
         layout(Word)
         {
             Caption = 'Salesperson Sales Statistics Word';
@@ -167,16 +168,15 @@ report 114 "Salesperson - Sales Statistics"
             ObsoleteState = Pending;
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
+#endif
         }
-#if not CLEAN27
-        layout(RDLC)
+        layout(RDLCLayout)
         {
             Caption = 'Salesperson Sales Statistics RDLC';
             Type = RDLC;
             LayoutFile = './Sales/Reports/SalespersonSalesStatistics.rdlc';
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
-#endif
         layout(WordBody)
         {
             Type = Word;
