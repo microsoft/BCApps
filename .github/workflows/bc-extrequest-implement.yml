@@ -40,18 +40,11 @@ jobs:
       pull-requests: write
       id-token: write
       copilot-requests: write
+    environment: triage
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 60
 
     steps:
-      - name: Validate pull request PAT
-        env:
-          EXT_REQUEST_PR_PAT: ${{ secrets.EXT_REQUEST_PR_PAT }}
-        run: |
-          if ([string]::IsNullOrWhiteSpace($env:EXT_REQUEST_PR_PAT)) {
-            throw 'Secret EXT_REQUEST_PR_PAT is required for draft PR creation.'
-          }
-
       - name: Check telemetry configuration
         id: telemetry-config
         env:
@@ -77,7 +70,7 @@ jobs:
         id: azure-login
         if: steps.telemetry-config.outputs.enabled == 'true'
         continue-on-error: true
-        uses: azure/login@v3
+        uses: azure/login@f5d393ae46f8fde4be8b75f32e3fc50e654ad0ca # v3.0.1
         with:
           client-id: ${{ vars.EXT_REQ_AZURE_CLIENT_ID || secrets.EXT_REQ_AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.EXT_REQ_AZURE_TENANT_ID || secrets.EXT_REQ_AZURE_TENANT_ID }}
@@ -87,10 +80,20 @@ jobs:
         if: steps.telemetry-config.outputs.enabled == 'true' && steps.azure-login.outcome == 'failure'
         run: Write-Warning 'Azure login failed. The implementation will continue without telemetry.'
 
+      - name: Mint token for BCApps
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ vars.TRIAGE_APP_ID }}
+          private-key: ${{ secrets.TRIAGE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: BCApps
+
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Validate skill
         run: |
@@ -99,7 +102,7 @@ jobs:
           }
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
 
@@ -109,8 +112,7 @@ jobs:
       - name: Implement extensibility request
         env:
           COPILOT_GITHUB_TOKEN: ${{ github.token }}
-          GH_TOKEN: ${{ secrets.EXT_REQUEST_PR_PAT }}
-          GITHUB_TOKEN: ${{ secrets.EXT_REQUEST_PR_PAT }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           ISSUE_URL: ${{ github.event.issue.html_url }}
           TELEMETRY_ENABLED: ${{ steps.telemetry-config.outputs.enabled == 'true' && steps.azure-login.outcome == 'success' }}
@@ -152,7 +154,7 @@ jobs:
         id: azure-login
         if: steps.telemetry-config.outputs.enabled == 'true'
         continue-on-error: true
-        uses: azure/login@v3
+        uses: azure/login@f5d393ae46f8fde4be8b75f32e3fc50e654ad0ca # v3.0.1
         with:
           client-id: ${{ vars.EXT_REQ_AZURE_CLIENT_ID || secrets.EXT_REQ_AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.EXT_REQ_AZURE_TENANT_ID || secrets.EXT_REQ_AZURE_TENANT_ID }}
@@ -164,7 +166,7 @@ jobs:
 
       - name: Checkout trusted workflow code
         if: steps.telemetry-config.outputs.enabled == 'true' && steps.azure-login.outcome == 'success'
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Record pull request outcome
         if: steps.telemetry-config.outputs.enabled == 'true' && steps.azure-login.outcome == 'success'
