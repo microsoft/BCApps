@@ -418,7 +418,7 @@ codeunit 10978 "CII XML Builder"
 
         InvoiceDiscountAmount := GetInvoiceDiscountAmount(SourceDocumentHeader, SourceDocumentLines, TaxBasisTotalAmount, LineTotalAmount);
         if InvoiceDiscountAmount = 0 then
-            InvoiceDiscountAmount := Round(LineTotalAmount - TaxBasisTotalAmount, 0.01);
+            InvoiceDiscountAmount := Round(LineTotalAmount - TaxBasisTotalAmount, GetAmountRoundingPrecision());
 
         // BG-16 Payment means (BT-81 TypeCode + BT-84 IBAN + BT-86 BIC)
         if FREDocHelpers.FindFieldByName(SourceDocumentHeader, 'Company Bank Account Code', FieldRefVar) then
@@ -545,7 +545,7 @@ codeunit 10978 "CII XML Builder"
             AllocatedDiscountTotal += DiscountAmount;
         end;
 
-        if Round(AllocatedDiscountTotal - InvoiceDiscountAmount, 0.01) <> 0 then begin
+        if Round(AllocatedDiscountTotal - InvoiceDiscountAmount, GetAmountRoundingPrecision()) <> 0 then begin
             Clear(AllocatedDiscountByKey);
             AllocateInvoiceDiscountByVATKey(InvoiceDiscountAmount, LineBaseAmounts, AllocatedDiscountByKey);
         end;
@@ -628,7 +628,7 @@ codeunit 10978 "CII XML Builder"
                             VATAmount := AmountIncludingVAT - NetBaseAmount;
                         end
                         else
-                            VATAmount := Round(NetBaseAmount * VATPercent / 100, 0.01);
+                            VATAmount := Round(NetBaseAmount * VATPercent / 100, GetAmountRoundingPrecision());
 
                         AddAmountForVATKey(VATAggregationKey, BaseAmount, LineBaseAmounts);
                         AddAmountForVATKey(VATAggregationKey, NetBaseAmount, LineNetBaseAmounts);
@@ -689,7 +689,7 @@ codeunit 10978 "CII XML Builder"
             exit;
 
         foreach VATKey in VATAggregationKeys do begin
-            AllocatedDiscountAmount := Round(InvoiceDiscountAmount * LineBaseAmounts.Get(VATKey) / TotalBaseAmount, 0.01);
+            AllocatedDiscountAmount := Round(InvoiceDiscountAmount * LineBaseAmounts.Get(VATKey) / TotalBaseAmount, GetAmountRoundingPrecision());
             AllocatedDiscountByKey.Add(VATKey, AllocatedDiscountAmount);
             TotalAllocatedDiscountAmount += AllocatedDiscountAmount;
         end;
@@ -954,12 +954,13 @@ codeunit 10978 "CII XML Builder"
         BankAccount: Record "Bank Account";
         CompanyInformation: Record "Company Information";
     begin
-        if CompanyBankAccountCode <> '' then
+        if CompanyBankAccountCode <> '' then begin
             BankAccount.SetLoadFields(IBAN, "SWIFT Code");
-        if BankAccount.Get(CompanyBankAccountCode) then begin
-            IBAN := BankAccount.IBAN;
-            SWIFTCode := BankAccount."SWIFT Code";
-            exit;
+            if BankAccount.Get(CompanyBankAccountCode) then begin
+                IBAN := BankAccount.IBAN;
+                SWIFTCode := BankAccount."SWIFT Code";
+                exit;
+            end;
         end;
 
         CompanyInformation.Get();
@@ -1055,7 +1056,7 @@ codeunit 10978 "CII XML Builder"
         end;
 
         if LineTotalAmount <> 0 then begin
-            InvoiceDiscountAmount := Round(LineTotalAmount - AmountExclVAT, 0.01);
+            InvoiceDiscountAmount := Round(LineTotalAmount - AmountExclVAT, GetAmountRoundingPrecision());
             if InvoiceDiscountAmount <> 0 then
                 exit(InvoiceDiscountAmount);
         end;
@@ -1096,6 +1097,14 @@ codeunit 10978 "CII XML Builder"
     local procedure FormatVATRate(VATPercent: Decimal): Text
     begin
         exit(Format(Round(VATPercent, 0.00001), 0, 9));
+    end;
+
+    local procedure GetAmountRoundingPrecision(): Decimal
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        GeneralLedgerSetup.Get();
+        exit(GeneralLedgerSetup."Amount Rounding Precision");
     end;
 
     local procedure GetVATCategoryCode(TaxCategory: Code[10]; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]): Text
@@ -1172,5 +1181,5 @@ codeunit 10978 "CII XML Builder"
         RecoveryCostNoteTok: Label 'Indemnité forfaitaire pour frais de recouvrement en cas de retard de paiement : 40 €', Locked = true;
         LatePaymentPenaltyNoteTok: Label 'Taux des pénalités de retard : taux directeur (BCE) majoré de 10 points', Locked = true;
         EarlyPaymentDiscountNoteTok: Label 'Pas d''escompte pour paiement anticipé', Locked = true;
-        VATExemptionReasonLbl: Label 'Exempt from VAT', Locked = true;
+        VATExemptionReasonLbl: Label 'Exonéré de TVA', Locked = true;
 }
