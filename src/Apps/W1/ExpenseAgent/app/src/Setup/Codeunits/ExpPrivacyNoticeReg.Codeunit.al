@@ -17,7 +17,9 @@ codeunit 6951 "Exp. Privacy Notice Reg."
 
     var
         AzureOpenAITok: Label 'Azure OpenAI', Locked = true;
+#if not CLEAN29
         AnthropicProductNameTok: Label 'Anthropic', Locked = true;
+#endif
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Privacy Notice", OnRegisterPrivacyNotices, '', false, false)]
     local procedure CreatePrivacyNoticeRegistrations(var TempPrivacyNotice: Record "Privacy Notice" temporary)
@@ -31,13 +33,6 @@ codeunit 6951 "Exp. Privacy Notice Reg."
         TempPrivacyNotice.ID := GetExpenseAgentPrivacyNoticeId();
         TempPrivacyNotice."Integration Service Name" := GetExpenseAgentPrivacyNoticeId();
         if not TempPrivacyNotice.Insert() then;
-
-        if IsAnthropicPrivacyNoticeRequired() then begin
-            TempPrivacyNotice.Init();
-            TempPrivacyNotice.ID := AnthropicProductNameTok;
-            TempPrivacyNotice."Integration Service Name" := AnthropicProductNameTok;
-            if not TempPrivacyNotice.Insert() then;
-        end;
     end;
 
     procedure GetExpenseAgentPrivacyNoticeId(): Text[50]
@@ -47,10 +42,12 @@ codeunit 6951 "Exp. Privacy Notice Reg."
         exit(CopyStr(ExpenseAgentSetup.GetFeatureName(), 1, 50));
     end;
 
+#if not CLEAN29
     internal procedure GetAnthropicName(): Text[50]
     begin
         exit(AnthropicProductNameTok);
     end;
+#endif
 
     procedure IsPrivacyNoticeApproved(): Boolean
     var
@@ -61,9 +58,6 @@ codeunit 6951 "Exp. Privacy Notice Reg."
 
         if PrivacyNotice.GetPrivacyNoticeApprovalState(GetExpenseAgentPrivacyNoticeId(), false) <> "Privacy Notice Approval State"::Agreed then
             exit(false);
-
-        if IsAnthropicPrivacyNoticeRequired() then
-            exit(PrivacyNotice.GetPrivacyNoticeApprovalState(AnthropicProductNameTok, false) = "Privacy Notice Approval State"::Agreed);
 
         exit(true);
     end;
@@ -78,10 +72,7 @@ codeunit 6951 "Exp. Privacy Notice Reg."
         if not PrivacyNotice.ConfirmPrivacyNoticeApproval(GetExpenseAgentPrivacyNoticeId(), false) then
             exit(false);
 
-        if not IsAnthropicPrivacyNoticeRequired() then
-            exit(true);
-
-        exit(PrivacyNotice.ConfirmPrivacyNoticeApproval(AnthropicProductNameTok, false));
+        exit(true);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Privacy Notice Approval", OnAfterModifyEvent, '', false, false)]
@@ -107,8 +98,6 @@ codeunit 6951 "Exp. Privacy Notice Reg."
         if LowerCase(PrivacyNoticeId) = LowerCase(AzureOpenAITok) then
             exit(true);
         if LowerCase(PrivacyNoticeId) = LowerCase(GetExpenseAgentPrivacyNoticeId()) then
-            exit(true);
-        if IsAnthropicPrivacyNoticeRequired() and (LowerCase(PrivacyNoticeId) = LowerCase(AnthropicProductNameTok)) then
             exit(true);
         exit(false);
     end;
@@ -144,28 +133,5 @@ codeunit 6951 "Exp. Privacy Notice Reg."
 
         RequiredPrivacyNotices.Add(AzureOpenAITok);
         RequiredPrivacyNotices.Add(GetExpenseAgentPrivacyNoticeId());
-        if IsAnthropicPrivacyNoticeRequired() then
-            RequiredPrivacyNotices.Add(AnthropicProductNameTok);
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Privacy Notice", OnBeforeShowPrivacyNotice, '', false, false)]
-    local procedure OnBeforeShowPrivacyNotice(PrivacyNotice: Record "Privacy Notice"; var Handled: Boolean)
-    begin
-        if not IsAnthropicPrivacyNoticeRequired() then
-            exit;
-
-        if LowerCase(PrivacyNotice.ID) <> LowerCase(AnthropicProductNameTok) then
-            exit;
-
-        Handled := true;
-
-        if Page.RunModal(Page::"Anthropic Privacy Notice", PrivacyNotice) in [Action::OK, Action::LookupOK] then;
-    end;
-
-    internal procedure IsAnthropicPrivacyNoticeRequired(): Boolean
-    var
-        EnvironmentInformation: Codeunit "Environment Information";
-    begin
-        exit(EnvironmentInformation.GetApplicationFamily() = 'US');
     end;
 }

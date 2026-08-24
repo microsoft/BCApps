@@ -2,6 +2,7 @@
   "id": "c75079ef-aa88-45c3-a2e0-e7df91ae2ff9",
   "name": "Tests-NewObjects-Internal",
   "description": "This test solution contains all tests that are checking if the properties or permissions are set correctly for new objects. It is an internal test solution that is aligned to our processes. If you need to add more tests that are checking if the AL objects are setup in the correct way, use this solution so we have all tests grouped and we do not spend additional time in the gate.",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
   "publisher": "Microsoft",
   "version": "29.0.0.0",
   "platform": "29.0.0.0",

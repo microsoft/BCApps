@@ -172,7 +172,7 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>=Parameters!TotalValueOfServiceSuppliesCode4Caption.Value</Value>
+                                  <Value>=Fields!ServiceSuppliesCode4Caption.Value</Value>
                                   <Style>
                                     <FontSize>7pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
@@ -3695,15 +3695,6 @@
       </DefaultValue>
       <Prompt>TotalValueofItemSuppliesCaption</Prompt>
     </ReportParameter>
-    <ReportParameter Name="TotalValueOfServiceSuppliesCode4Caption">
-      <DataType>String</DataType>
-      <DefaultValue>
-        <Values>
-          <Value>TotalValueOfServiceSuppliesCode4Caption</Value>
-        </Values>
-      </DefaultValue>
-      <Prompt>TotalValueOfServiceSuppliesCode4Caption</Prompt>
-    </ReportParameter>
     <ReportParameter Name="EU3PartyItemTradeAmtCaption">
       <DataType>String</DataType>
       <DefaultValue>
@@ -4100,11 +4091,6 @@
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
-          <RowIndex>65</RowIndex>
-          <ParameterName>TotalValueOfServiceSuppliesCode4Caption</ParameterName>
-        </CellDefinition>
-        <CellDefinition>
-          <ColumnIndex>0</ColumnIndex>
           <RowIndex>66</RowIndex>
           <ParameterName>EU3PartyItemTradeAmtCaption</ParameterName>
         </CellDefinition>
@@ -4272,6 +4258,9 @@ End Function
         </Field>
         <Field Name="RegHomeCityCaption">
           <DataField>RegHomeCityCaption</DataField>
+        </Field>
+        <Field Name="ServiceSuppliesCode4Caption">
+          <DataField>ServiceSuppliesCode4Caption</DataField>
         </Field>
       </Fields>
       <Query>
