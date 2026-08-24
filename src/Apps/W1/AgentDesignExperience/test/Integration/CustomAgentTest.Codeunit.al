@@ -27,6 +27,7 @@ codeunit 133754 "Custom Agent Test"
         TestAgentId2: Guid;
         Initialized: Boolean;
         TestAgentPrefixTxt: Label 'TEST_AGENT', Locked = true;
+        ArchivedAgentCannotBeTestedErr: Label 'archived and can no longer be tested', Locked = true;
 
     local procedure Initialize()
     var
@@ -97,6 +98,27 @@ codeunit 133754 "Custom Agent Test"
         LibraryVariableStorage.AssertEmpty();
 
         Agent.Activate(TestAgentId1);
+    end;
+
+    [Test]
+    procedure TestOpenEditInstructionsPageForArchivedAgentIsBlocked()
+    var
+        Agent: Codeunit Agent;
+        CustomAgentSetup: Codeunit "Custom Agent Setup";
+    begin
+        // [GIVEN] An archived custom agent
+        Initialize();
+        Agent.Deactivate(TestAgentId2);
+        Agent.Archive(TestAgentId2);
+
+        // [WHEN] Opening the edit instructions page for the archived agent
+        asserterror CustomAgentSetup.OpenEditInstructionsPage(TestAgentId2);
+
+        // [THEN] The agent cannot be tested, and no inactive confirmation is shown
+        Assert.ExpectedError(ArchivedAgentCannotBeTestedErr);
+
+        // Archiving is terminal, so the shared test agents must be recreated
+        Initialized := false;
     end;
 
     [Test]
