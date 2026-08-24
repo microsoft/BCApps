@@ -142,7 +142,11 @@ codeunit 148151 "FR E-Invoice Message Tests"
         NewDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
     begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Unapplying a payment creates a negative Collected message linked to the original
         Initialize();
+
+        // [GIVEN] An approved E-Document with a sent Collected message
         CreatePaymentScenario(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Approved);
         FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
         CollectedMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
@@ -151,8 +155,10 @@ codeunit 148151 "FR E-Invoice Message Tests"
         SendMessage(CollectedMessage);
         CreateDetailedLedgerEntry(NewDetailedCustLedgEntry, DetailedCustLedgEntry."Cust. Ledger Entry No.", DetailedCustLedgEntry."Applied Cust. Ledger Entry No.", -120);
 
+        // [WHEN] The payment is unapplied
         FREInvoiceMessageMgt.ProcessUnapplication(DetailedCustLedgEntry, NewDetailedCustLedgEntry);
 
+        // [THEN] A Negative Collected message linked to the original is created;
         NegativeMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
         NegativeMessage.SetRange(Type, NegativeMessage.Type::"Negative Collected");
         NegativeMessage.FindFirst();
@@ -178,11 +184,17 @@ codeunit 148151 "FR E-Invoice Message Tests"
         EDocument: Record "E-Document";
         FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
     begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Refusing an invoice sends a lifecycle message with status 210 and reason code
         Initialize();
+
+        // [GIVEN] An incoming French E-Document
         CreateIncomingEDocument(EDocument);
 
+        // [WHEN] The invoice is refused with a reason
         FREInvoiceMessageMgt.RefuseInvoice(EDocument, 'PRICE', 'The amount is incorrect.');
 
+        // [THEN] A refusal message with status 210 and the reason code is queued and can be sent
         Assert.AreEqual(0, MessageSenderMock.GetSendCount(), 'Refusal must queue the message without invoking the connector.');
         SendFirstMessage(EDocument, "FR E-Invoice Message Type"::Refused);
         Assert.AreEqual(1, MessageSenderMock.GetSendCount(), 'One refusal message must be sent.');
@@ -222,7 +234,11 @@ codeunit 148151 "FR E-Invoice Message Tests"
         OutStream: OutStream;
         MessageEntryNo: Integer;
     begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Sending a message without the connector reporting success raises an error
         Initialize();
+
+        // [GIVEN] An incoming E-Document with a lifecycle message and a mock connector that does not report success
         CreateIncomingEDocument(EDocument);
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText('<Message />');
@@ -230,8 +246,10 @@ codeunit 148151 "FR E-Invoice Message Tests"
             EDocument, "E-Document Message Type"::"FR Invoice Lifecycle", "E-Doc. Response Type"::Refused, TempBlob);
         MessageSenderMock.SetReportSuccess(false);
 
+        // [WHEN] The message is sent
         asserterror EDocumentMessageAPI.SendMessage(MessageEntryNo);
 
+        // [THEN] The connector is invoked before its missing success result is rejected
         Assert.AreEqual(1, MessageSenderMock.GetSendCount(), 'The connector must be invoked before its missing success result is rejected.');
     end;
 
@@ -244,12 +262,18 @@ codeunit 148151 "FR E-Invoice Message Tests"
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
     begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Processing the same payment application twice is idempotent
         Initialize();
+
+        // [GIVEN] An approved French E-Document with an applied payment
         CreatePaymentScenario(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Approved);
 
+        // [WHEN] The payment application is processed twice
         FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
         FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
 
+        // [THEN] Only one payment occurrence and one Collected message exist;
         EDocPaymentOccurrence.SetRange("E-Document Entry No.", EDocument."Entry No");
         EDocPaymentOccurrence.SetRange(Type, EDocPaymentOccurrence.Type::Applied);
         Assert.RecordCount(EDocPaymentOccurrence, 1);
@@ -640,7 +664,11 @@ codeunit 148151 "FR E-Invoice Message Tests"
         FirstMessageEntryNo: Integer;
         DuplicateMessageEntryNo: Integer;
     begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] An incoming lifecycle message is correlated to its E-Document and deduplicated by external ID
         Initialize();
+
+        // [GIVEN] An incoming E-Document with a registered external document reference
         CreateIncomingEDocument(EDocument);
         ExternalDocumentID := CopyStr(Format(CreateGuid()), 1, MaxStrLen(ExternalDocumentID));
         ExternalMessageID := CopyStr(Format(CreateGuid()), 1, MaxStrLen(ExternalMessageID));
@@ -648,6 +676,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText('<Message />');
 
+        // [WHEN] The same incoming message is received twice
         FirstMessageEntryNo := EDocumentMessageAPI.CreateIncomingMessage(
             EDocument.Service, ExternalDocumentID, ExternalMessageID, "E-Document Message Type"::"FR Invoice Lifecycle",
             "E-Doc. Response Type"::Refused, CurrentDateTime(), TempBlob);
@@ -655,6 +684,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
             EDocument.Service, ExternalDocumentID, ExternalMessageID, "E-Document Message Type"::"FR Invoice Lifecycle",
             "E-Doc. Response Type"::Refused, CurrentDateTime(), TempBlob);
 
+        // [THEN] The incoming message is persisted and deduplicated
         Assert.AreNotEqual(0, FirstMessageEntryNo, 'The incoming lifecycle message must be persisted.');
         Assert.AreEqual(FirstMessageEntryNo, DuplicateMessageEntryNo, 'The external message ID must deduplicate repeated delivery.');
     end;
@@ -667,15 +697,21 @@ codeunit 148151 "FR E-Invoice Message Tests"
         TempBlob: Codeunit "Temp Blob";
         OutStream: OutStream;
     begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Creating an incoming message fails when the external document reference is not registered
         Initialize();
+
+        // [GIVEN] An incoming E-Document without a registered external document reference
         CreateIncomingEDocument(EDocument);
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText('<Message />');
 
+        // [WHEN] An incoming message with an unregistered external document ID is created
         asserterror EDocumentMessageAPI.CreateIncomingMessage(
             EDocument.Service, CopyStr(Format(CreateGuid()), 1, 250), CopyStr(Format(CreateGuid()), 1, 250),
             "E-Document Message Type"::"FR Invoice Lifecycle", "E-Doc. Response Type"::Refused, CurrentDateTime(), TempBlob);
 
+        // [THEN] An error about unregistered reference is raised
         Assert.ExpectedError('is not registered');
     end;
 
@@ -686,11 +722,17 @@ codeunit 148151 "FR E-Invoice Message Tests"
         FREInvoiceMessage: Record "FR E-Invoice Message";
         FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
     begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Accepting an invoice queues an Accepted message with status 205
         Initialize();
+
+        // [GIVEN] An incoming French E-Document
         CreateIncomingEDocument(EDocument);
 
+        // [WHEN] The invoice is accepted
         FREInvoiceMessageMgt.AcceptInvoice(EDocument);
 
+        // [THEN] An Accepted message with status 205 is queued and can be sent
         FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
         FREInvoiceMessage.SetRange(Type, FREInvoiceMessage.Type::Accepted);
         Assert.RecordCount(FREInvoiceMessage, 1);
@@ -707,11 +749,18 @@ codeunit 148151 "FR E-Invoice Message Tests"
         EDocument: Record "E-Document";
         FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
     begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] A buyer response cannot follow a previous acceptance
         Initialize();
-        CreateIncomingEDocument(EDocument);
 
+        // [GIVEN] An incoming E-Document that has been accepted
+        CreateIncomingEDocument(EDocument);
         FREInvoiceMessageMgt.AcceptInvoice(EDocument);
+
+        // [WHEN] A refusal is attempted after acceptance
         asserterror FREInvoiceMessageMgt.RefuseInvoice(EDocument, 'OTHER', 'Changed my mind.');
+
+        // [THEN] An error about duplicate buyer response is raised;
         Assert.ExpectedError('already has a buyer response');
         Assert.ExpectedErrorCode('Dialog');
     end;
@@ -722,11 +771,18 @@ codeunit 148151 "FR E-Invoice Message Tests"
         EDocument: Record "E-Document";
         FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
     begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] A buyer response cannot follow a previous refusal
         Initialize();
-        CreateIncomingEDocument(EDocument);
 
+        // [GIVEN] An incoming E-Document that has been refused
+        CreateIncomingEDocument(EDocument);
         FREInvoiceMessageMgt.RefuseInvoice(EDocument, 'OTHER', 'Not accepted.');
+
+        // [WHEN] An acceptance is attempted after refusal
         asserterror FREInvoiceMessageMgt.AcceptInvoice(EDocument);
+
+        // [THEN] An error about duplicate buyer response is raised;
         Assert.ExpectedError('already has a buyer response');
         Assert.ExpectedErrorCode('Dialog');
     end;
@@ -745,7 +801,11 @@ codeunit 148151 "FR E-Invoice Message Tests"
         ReceivedAt: DateTime;
         FREntryNo: Integer;
     begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Receiving a Submitted lifecycle message persists a normalized FR message
         Initialize();
+
+        // [GIVEN] An outgoing E-Document with a registered external document reference and a Submitted lifecycle payload
         CreateOutgoingEDocument(EDocument);
         ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
         ExternalMsgID := CopyStr(Format(CreateGuid()), 1, 250);
@@ -754,8 +814,10 @@ codeunit 148151 "FR E-Invoice Message Tests"
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText(BuildLifecycleXml(EDocument."Document No.", 'Submitted', '', ''));
 
+        // [WHEN] The Submitted lifecycle message is received
         FREntryNo := FREInvoiceMessageAPI.ReceiveMessage(EDocument.Service, ExternalDocID, ExternalMsgID, ReceivedAt, TempBlob);
 
+        // [THEN] The FR message is persisted with Submitted type and correct metadata
         FREInvoiceMessage.Get(FREntryNo);
         Assert.AreEqual(FREInvoiceMessage.Type::Submitted, FREInvoiceMessage.Type, 'FR type must be Submitted.');
         Assert.AreEqual(ExternalMsgID, FREInvoiceMessage."External Message ID", 'External message ID must be stored.');
@@ -778,7 +840,11 @@ codeunit 148151 "FR E-Invoice Message Tests"
         ExternalMsgID: Text[250];
         FREntryNo: Integer;
     begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Receiving an Accepted lifecycle message persists a normalized FR message
         Initialize();
+
+        // [GIVEN] An outgoing E-Document with a received Submitted status and an Accepted lifecycle payload
         CreateOutgoingEDocument(EDocument);
         ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
         ExternalMsgID := CopyStr(Format(CreateGuid()), 1, 250);
@@ -787,8 +853,10 @@ codeunit 148151 "FR E-Invoice Message Tests"
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText(BuildLifecycleXml(EDocument."Document No.", '205', '', ''));
 
+        // [WHEN] The Accepted lifecycle message is received
         FREntryNo := FREInvoiceMessageAPI.ReceiveMessage(EDocument.Service, ExternalDocID, ExternalMsgID, CurrentDateTime(), TempBlob);
 
+        // [THEN] The FR message is persisted with Accepted type
         FREInvoiceMessage.Get(FREntryNo);
         Assert.AreEqual(FREInvoiceMessage.Type::Accepted, FREInvoiceMessage.Type, 'FR type must be Accepted.');
         Assert.AreEqual("E-Doc. Response Type"::Accepted, EDocumentMessageAPI.GetMessageResponseType(FREInvoiceMessage."E-Document Message Entry No."), 'Generic response must be Accepted.');
@@ -807,7 +875,11 @@ codeunit 148151 "FR E-Invoice Message Tests"
         ExternalMsgID: Text[250];
         FREntryNo: Integer;
     begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Receiving a Technical Rejected lifecycle message persists the reason code and description
         Initialize();
+
+        // [GIVEN] An outgoing E-Document with a received Submitted status and a Rejected lifecycle payload with reason
         CreateOutgoingEDocument(EDocument);
         ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
         ExternalMsgID := CopyStr(Format(CreateGuid()), 1, 250);
@@ -816,8 +888,10 @@ codeunit 148151 "FR E-Invoice Message Tests"
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText(BuildLifecycleXml(EDocument."Document No.", 'Rejetée', 'SCHEMA', 'Schema validation failed'));
 
+        // [WHEN] The Rejected lifecycle message is received
         FREntryNo := FREInvoiceMessageAPI.ReceiveMessage(EDocument.Service, ExternalDocID, ExternalMsgID, CurrentDateTime(), TempBlob);
 
+        // [THEN] The FR message is persisted with Technical Rejected type and reason
         FREInvoiceMessage.Get(FREntryNo);
         Assert.AreEqual(FREInvoiceMessage.Type::"Technical Rejected", FREInvoiceMessage.Type, 'FR type must be Technical Rejected.');
         Assert.AreEqual('SCHEMA', Format(FREInvoiceMessage."Reason Code"), 'Reason code must be persisted.');
@@ -839,7 +913,11 @@ codeunit 148151 "FR E-Invoice Message Tests"
         FirstEntryNo: Integer;
         SecondEntryNo: Integer;
     begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Receiving the same lifecycle message twice returns the same entry
         Initialize();
+
+        // [GIVEN] An outgoing E-Document with a registered external document reference
         CreateOutgoingEDocument(EDocument);
         ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
         ExternalMsgID := CopyStr(Format(CreateGuid()), 1, 250);
@@ -847,11 +925,13 @@ codeunit 148151 "FR E-Invoice Message Tests"
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText(BuildLifecycleXml(EDocument."Document No.", 'Submitted', '', ''));
 
+        // [WHEN] The same lifecycle message is received twice
         FirstEntryNo := FREInvoiceMessageAPI.ReceiveMessage(EDocument.Service, ExternalDocID, ExternalMsgID, CurrentDateTime(), TempBlob);
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText(BuildLifecycleXml(EDocument."Document No.", 'Submitted', '', ''));
         SecondEntryNo := FREInvoiceMessageAPI.ReceiveMessage(EDocument.Service, ExternalDocID, ExternalMsgID, CurrentDateTime(), TempBlob);
 
+        // [THEN] The same FR entry is returned and only one Submitted message exists
         Assert.AreEqual(FirstEntryNo, SecondEntryNo, 'Same external message ID must return same FR entry.');
         FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
         FREInvoiceMessage.SetRange(Type, FREInvoiceMessage.Type::Submitted);
@@ -868,16 +948,22 @@ codeunit 148151 "FR E-Invoice Message Tests"
         OutStream: OutStream;
         ExternalDocID: Text[250];
     begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Receiving a lifecycle message with invalid XML raises an error
         Initialize();
+
+        // [GIVEN] An outgoing E-Document with a registered reference and invalid XML payload
         CreateOutgoingEDocument(EDocument);
         ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
         EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText('not xml at all');
 
+        // [WHEN] The invalid message is received
         asserterror FREInvoiceMessageAPI.ReceiveMessage(
             EDocument.Service, ExternalDocID, CopyStr(Format(CreateGuid()), 1, 250), CurrentDateTime(), TempBlob);
 
+        // [THEN] An error about invalid XML is raised;
         Assert.ExpectedError('not valid XML');
         Assert.ExpectedErrorCode('Dialog');
     end;
@@ -892,16 +978,22 @@ codeunit 148151 "FR E-Invoice Message Tests"
         OutStream: OutStream;
         ExternalDocID: Text[250];
     begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Receiving a lifecycle message with an unsupported status raises an error
         Initialize();
+
+        // [GIVEN] An outgoing E-Document with a lifecycle payload containing an unknown status
         CreateOutgoingEDocument(EDocument);
         ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
         EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText(BuildLifecycleXml(EDocument."Document No.", 'Unknown', '', ''));
 
+        // [WHEN] The message with unsupported status is received
         asserterror FREInvoiceMessageAPI.ReceiveMessage(
             EDocument.Service, ExternalDocID, CopyStr(Format(CreateGuid()), 1, 250), CurrentDateTime(), TempBlob);
 
+        // [THEN] An error about unsupported status is raised;
         Assert.ExpectedError('is not supported');
         Assert.ExpectedErrorCode('Dialog');
     end;
@@ -916,16 +1008,22 @@ codeunit 148151 "FR E-Invoice Message Tests"
         OutStream: OutStream;
         ExternalDocID: Text[250];
     begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Receiving a lifecycle message whose invoice ID does not match the E-Document raises an error
         Initialize();
+
+        // [GIVEN] An outgoing E-Document with a lifecycle payload referencing a different invoice
         CreateOutgoingEDocument(EDocument);
         ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
         EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText(BuildLifecycleXml('WRONG-INVOICE-ID', 'Submitted', '', ''));
 
+        // [WHEN] The mismatched message is received
         asserterror FREInvoiceMessageAPI.ReceiveMessage(
             EDocument.Service, ExternalDocID, CopyStr(Format(CreateGuid()), 1, 250), CurrentDateTime(), TempBlob);
 
+        // [THEN] An error about invoice ID mismatch is raised;
         Assert.ExpectedError('does not match');
         Assert.ExpectedErrorCode('Dialog');
     end;
@@ -940,16 +1038,22 @@ codeunit 148151 "FR E-Invoice Message Tests"
         OutStream: OutStream;
         ExternalDocID: Text[250];
     begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] A Technical Rejected message without a reason code is rejected
         Initialize();
+
+        // [GIVEN] An outgoing E-Document with a Rejected lifecycle payload missing the reason code
         CreateOutgoingEDocument(EDocument);
         ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
         EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText(BuildLifecycleXml(EDocument."Document No.", 'Rejected', '', 'Something went wrong'));
 
+        // [WHEN] The Rejected message without reason code is received
         asserterror FREInvoiceMessageAPI.ReceiveMessage(
             EDocument.Service, ExternalDocID, CopyStr(Format(CreateGuid()), 1, 250), CurrentDateTime(), TempBlob);
 
+        // [THEN] An error about missing reason code is raised;
         Assert.ExpectedError('reason code is required');
         Assert.ExpectedErrorCode('Dialog');
     end;
@@ -964,16 +1068,22 @@ codeunit 148151 "FR E-Invoice Message Tests"
         OutStream: OutStream;
         ExternalDocID: Text[250];
     begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] A Technical Rejected message without a reason description is rejected
         Initialize();
+
+        // [GIVEN] An outgoing E-Document with a Rejected lifecycle payload missing the reason description
         CreateOutgoingEDocument(EDocument);
         ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
         EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText(BuildLifecycleXml(EDocument."Document No.", 'Rejected', 'SCHEMA', ''));
 
+        // [WHEN] The Rejected message without reason description is received
         asserterror FREInvoiceMessageAPI.ReceiveMessage(
             EDocument.Service, ExternalDocID, CopyStr(Format(CreateGuid()), 1, 250), CurrentDateTime(), TempBlob);
 
+        // [THEN] An error about missing reason description is raised;
         Assert.ExpectedError('reason description is required');
         Assert.ExpectedErrorCode('Dialog');
     end;
@@ -1231,7 +1341,11 @@ codeunit 148151 "FR E-Invoice Message Tests"
         FREInvoiceMessageBuilder: Codeunit "FR E-Invoice Message Builder";
         TempBlob: Codeunit "Temp Blob";
     begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Building a message with an incoming-only status raises an error
         Initialize();
+
+        // [GIVEN] An incoming E-Document with a Submitted lifecycle message
         CreateIncomingEDocument(EDocument);
         FREInvoiceMessage.Init();
         FREInvoiceMessage."E-Document Entry No." := EDocument."Entry No";
@@ -1241,8 +1355,10 @@ codeunit 148151 "FR E-Invoice Message Tests"
         FREInvoiceMessage."Created At" := CurrentDateTime();
         FREInvoiceMessage.Insert();
 
+        // [WHEN] The message builder attempts to build the message
         asserterror FREInvoiceMessageBuilder.BuildMessage(EDocument, FREInvoiceMessage, TempBlob);
 
+        // [THEN] An error about unsendable status is raised;
         Assert.ExpectedError('cannot be sent');
         Assert.ExpectedErrorCode('Dialog');
     end;
