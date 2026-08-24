@@ -13,6 +13,9 @@ permissionset 20503 "Subcontract. - Edit"
     IncludedPermissionSets = "Subcontract. - Read";
 
     Permissions =
+        tabledata "Subc. Standard Task Comment" = IMD,
+        tabledata "Subc. Routing Comment Line" = IMD,
+        tabledata "Subc. Prod. Rtng. Comment" = IMD,
         tabledata "Subcontractor Price" = IMD,
         tabledata "Subcontractor WIP Ledger Entry" = IMD;
 }

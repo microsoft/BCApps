@@ -415,8 +415,9 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
 
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
         PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
-#pragma warning disable AA0210        
+#pragma warning disable AA0210
         PurchaseLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+#pragma warning restore AA0210
 #pragma warning restore AA0210
         PurchaseLine.FindFirst();
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
