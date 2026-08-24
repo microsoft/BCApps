@@ -478,6 +478,10 @@ report 5802 "Inventory Valuation - WIP"
             Type = Word;
             LayoutFile = '.\Manufacturing\Reports\InventoryValuationWIP.docx';
             Summary = 'Built in layout for the Production Order - WIP Word report.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
+
         }
 #if not CLEAN28
         layout(RDLC)
@@ -491,6 +495,14 @@ report 5802 "Inventory Valuation - WIP"
             Summary = 'Built in layout for the Production Order - WIP RDLC (Obsolete) report.';
         }
 #endif
+        layout(WordBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = '.\Manufacturing\Reports\InventoryValuationWIPBody.docx';
+            Caption = 'Body-only: Production Order - WIP Word';
+            Summary = 'Landscape orientated. Shows status, number, description, and source for each production order, with the work in process value split into material consumption, capacity, and output at the end date, plus the cost posted to G/L and totals.';
+        }
     }
 
     labels
