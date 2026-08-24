@@ -74,6 +74,17 @@ report 6625 "Item GTIN Label"
             Type = Word;
             LayoutFile = './Inventory/Item/ItemGTINLabel.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
+        }
+        layout(WordBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './Inventory/Item/ItemGTINLabelBody.docx';
+            Caption = 'Body-only: Item GTIN Label (Word)';
+            Summary = 'Portrait orientated. Shows the item description and number with a GTIN barcode in both 1D and 2D format. Use it to print physical item and shelf labels.';
         }
     }
 

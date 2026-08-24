@@ -298,6 +298,9 @@ report 708 "Inventory Order Details"
             LayoutFile = '.\Inventory\Reports\InventoryOrderDetails.docx';
             Type = Word;
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
         }
 #if not CLEAN27
         layout(RDLC)
@@ -311,6 +314,14 @@ report 708 "Inventory Order Details"
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
+        layout(WordBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = '.\Inventory\Reports\InventoryOrderDetailsBody.docx';
+            Caption = 'Body-only: Inventory Order Details Word';
+            Summary = 'Landscape orientated. Lists the orders for each item with sales order number, bill-to name, shipment date, quantity, outstanding and back order quantity, unit price, discount, and outstanding amount. Includes totals.';
+        }
     }
 
     labels
