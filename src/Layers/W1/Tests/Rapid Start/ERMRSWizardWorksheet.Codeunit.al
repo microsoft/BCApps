@@ -384,7 +384,7 @@ codeunit 136606 "ERM RS Wizard & Worksheet"
         CheckPage(DATABASE::"Payment Method", PAGE::"Payment Methods");
         CheckPage(DATABASE::"Reminder Terms", PAGE::"Reminder Terms List");
         CheckPage(DATABASE::"Reminder Level", PAGE::"Reminder Level Setup");
-#if not CLEAN27
+#if not CLEAN29
         CheckPage(DATABASE::"Reminder Text", PAGE::"Reminder Text");
 #endif
         CheckPage(DATABASE::"Finance Charge Terms", PAGE::"Finance Charge Terms");

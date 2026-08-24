@@ -50,6 +50,37 @@ codeunit 134904 "ERM Reminder For Additinal Fee"
 
     [Test]
     [Scope('OnPrem')]
+    procedure ArchivedEmailTextDoesNotRequireCurrentReminderSetup()
+    var
+        IssuedReminderHeader: Record "Issued Reminder Header";
+        CompanyInformation: Record "Company Information";
+        ReminderCommunication: Codeunit "Reminder Communication";
+        EmailTextOutStream: OutStream;
+        GreetingTxt: Text;
+        AmtDueTxt: Text;
+        BodyTxt: Text;
+        ClosingTxt: Text;
+        DescriptionTxt: Text;
+        ArchivedBody: Text;
+    begin
+        Initialize();
+        CreateIssuedReminderWithInterestAmount(IssuedReminderHeader);
+        ArchivedBody := LibraryUtility.GenerateGUID();
+
+        IssuedReminderHeader."Email Text".CreateOutStream(EmailTextOutStream, TextEncoding::UTF8);
+        EmailTextOutStream.WriteText(ArchivedBody);
+        IssuedReminderHeader."Reminder Terms Code" := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(IssuedReminderHeader."Reminder Terms Code"));
+        IssuedReminderHeader.Modify();
+        CompanyInformation.Get();
+
+        ReminderCommunication.PopulateEmailText(
+            IssuedReminderHeader, CompanyInformation, GreetingTxt, AmtDueTxt, BodyTxt, ClosingTxt, DescriptionTxt, 0);
+
+        Assert.AreEqual(ArchivedBody, AmtDueTxt, 'The archived email body must be used without reading the current reminder setup.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure ReminderWithAdditionalFee()
     var
         ReminderLevel: Record "Reminder Level";

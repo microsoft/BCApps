@@ -277,7 +277,7 @@ codeunit 8616 "Config. Management"
                 exit(Page::Microsoft.Sales.Reminder."Reminder Terms List");
             Database::Microsoft.Sales.Reminder."Reminder Level":
                 exit(Page::Microsoft.Sales.Reminder."Reminder Level Setup");
-#if not CLEAN27
+#if not CLEAN29
             Database::Microsoft.Sales.Reminder."Reminder Text":
                 exit(Page::Microsoft.Sales.Reminder."Reminder Text");
 #endif

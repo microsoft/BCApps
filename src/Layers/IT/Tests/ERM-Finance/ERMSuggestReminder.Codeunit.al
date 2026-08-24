@@ -40,6 +40,45 @@
 
     [Test]
     [Scope('OnPrem')]
+    procedure SuggestReminderUsesTermsAttachmentTextWhenLevelTextIsMissing()
+    var
+        Customer: Record Customer;
+        ReminderTerms: Record "Reminder Terms";
+        ReminderLevel: Record "Reminder Level";
+        ReminderAttachmentText: Record "Reminder Attachment Text";
+        ReminderAttachmentTextLine: Record "Reminder Attachment Text Line";
+        ReminderLine: Record "Reminder Line";
+        CustomerNo: Code[20];
+        ReminderNo: Code[20];
+        BeginningText: Text[100];
+        EndingText: Text[100];
+    begin
+        Initialize();
+        CustomerNo := CreateCustomer();
+        Customer.Get(CustomerNo);
+        ReminderTerms.Get(Customer."Reminder Terms Code");
+        FindReminderLevel(ReminderLevel, ReminderTerms.Code);
+        Assert.IsTrue(IsNullGuid(ReminderLevel."Reminder Attachment Text"), 'The reminder level must not have attachment text.');
+        BeginningText := CopyStr(LibraryRandom.RandText(MaxStrLen(BeginningText)), 1, MaxStrLen(BeginningText));
+        EndingText := CopyStr(LibraryRandom.RandText(MaxStrLen(EndingText)), 1, MaxStrLen(EndingText));
+        LibraryERM.CreateReminderAttachmentText(ReminderAttachmentText, ReminderTerms, Language.GetUserLanguageCode());
+        LibraryERM.CreateReminderAttachmentTextLine(
+            ReminderAttachmentTextLine, ReminderAttachmentText, ReminderAttachmentTextLine.Position::"Beginning Line", BeginningText);
+        LibraryERM.CreateReminderAttachmentTextLine(
+            ReminderAttachmentTextLine, ReminderAttachmentText, ReminderAttachmentTextLine.Position::"Ending Line", EndingText);
+
+        ReminderNo := CreateAndSuggestReminderLine(LibraryRandom.RandInt(10), CustomerNo);
+
+        Assert.IsTrue(
+            ReminderTextLineExists(ReminderNo, ReminderLine."Line Type"::"Beginning Text", BeginningText),
+            'The terms-level beginning text was not added to the reminder.');
+        Assert.IsTrue(
+            ReminderTextLineExists(ReminderNo, ReminderLine."Line Type"::"Ending Text", EndingText),
+            'The terms-level ending text was not added to the reminder.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure NoReminderLinesBeforeDueDate()
     var
         ReminderLine: Record "Reminder Line";
@@ -360,5 +399,20 @@
     begin
         ReminderLine.SetRange("Reminder No.", ReminderNo);
         ReminderLine.FindFirst();
+    end;
+
+    local procedure ReminderTextLineExists(ReminderNo: Code[20]; LineType: Enum "Reminder Line Type"; ExpectedText: Text[100]): Boolean
+    var
+        ReminderLine: Record "Reminder Line";
+    begin
+        ReminderLine.SetRange("Reminder No.", ReminderNo);
+        ReminderLine.SetRange("Line Type", LineType);
+        if ReminderLine.FindSet() then
+            repeat
+                if ReminderLine.Description = ExpectedText then
+                    exit(true);
+            until ReminderLine.Next() = 0;
+
+        exit(false);
     end;
 }

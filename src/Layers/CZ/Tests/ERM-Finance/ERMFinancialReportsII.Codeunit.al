@@ -59,7 +59,7 @@
         TestReportDifferentCustomerSameDocumentErr: Label '%1 posted on %2, must be separated by an empty line';
         IsInitialized: Boolean;
         InvoiceOutOfBalanceErr: Label 'Invoice %1 is out of balance by %2.';
-        RemitPaymentTxt: Label 'Please remit your payment %7';
+        RemitPaymentTxt: Label 'Please remit your payment %7', Comment = '%7 = Amount due';
         DateOutOfBalanceErr: Label 'As of %1, the lines are out of balance by %2.';
         TotalOutOfBalanceErr: Label 'The total of the lines is out of balance by%1.';
         NotAllowedPostingDateErr: Label 'The Posting Date is not within your range of allowed posting dates.';

@@ -13,7 +13,7 @@ table 293 "Reminder Level"
 {
     Caption = 'Reminder Level';
     DataCaptionFields = "Reminder Terms Code", "No.";
-#if not CLEAN27
+#if not CLEAN29
     DrillDownPageID = "Reminder Levels";
     LookupPageID = "Reminder Levels";
 #endif

@@ -985,7 +985,8 @@ codeunit 134998 "Reminder - Add. Fee Setup"
     procedure AddFeeChartOnOpenPageUT()
     var
         ReminderLevel: Record "Reminder Level";
-        AdditionalFeeChart: Page "Additional Fee Chart";
+        TestClientTypeSubscriber: Codeunit "Test Client Type Subscriber";
+        AdditionalFeeChart: TestPage "Additional Fee Chart";
         ReminderLevelFeeSetup: TestPage "Reminder Level Fee Setup";
     begin
         // [SCENARIO 107048] Verify Add. Fee Chart
@@ -997,10 +998,12 @@ codeunit 134998 "Reminder - Add. Fee Setup"
         ReminderLevel.Modify(true);
 
         // [WHEN] Reminder Level Fee Setup Page is run from Reminder Terms Setup Page and Add. Fee Chart is opened
+        BindSubscription(TestClientTypeSubscriber);
+        TestClientTypeSubscriber.SetClientType(ClientType::Windows);
         OpenReminderLevelFeeSetupPage(ReminderLevelFeeSetup, ReminderLevel."Reminder Terms Code", ReminderLevel."No.");
+        AdditionalFeeChart.Trap();
+        ReminderLevelFeeSetup."View Additional Fee Chart".Invoke();
         ReminderLevelFeeSetup.Close();
-        AdditionalFeeChart.SetViewMode(ReminderLevel, false, true);
-        AdditionalFeeChart.RunModal();
 
         // [THEN] then Additional Fee  per Line, M
     end;

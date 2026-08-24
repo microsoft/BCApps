@@ -10,7 +10,7 @@ namespace Microsoft.Sales.Reminder;
 table 294 "Reminder Text"
 {
     Caption = 'Reminder Text';
-#if not CLEAN27
+#if not CLEAN29
     DrillDownPageID = "Reminder Text";
     LookupPageID = "Reminder Text";
 #endif
