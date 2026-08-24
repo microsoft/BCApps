@@ -2484,6 +2484,111 @@ codeunit 137063 "SCM Manufacturing 7.0"
 
     [Test]
     [Scope('OnPrem')]
+    procedure ProductionBOMAndRoutingHeadersInheritVersionNoSeriesFromManufacturingSetup()
+    var
+        ProductionBOMHeader: Record "Production BOM Header";
+        RoutingHeader: Record "Routing Header";
+        ProductionBOMVersionNos: Code[20];
+        RoutingVersionNos: Code[20];
+    begin
+        // [FEATURE] [No. Series] [Production BOM Version] [Routing Version]
+        // [SCENARIO 647371] New production BOM and routing headers inherit version number series from Manufacturing Setup.
+        Initialize();
+
+        // [GIVEN] Manufacturing Setup has default production BOM and routing version number series
+        ProductionBOMVersionNos := LibraryERM.CreateNoSeriesCode();
+        RoutingVersionNos := LibraryERM.CreateNoSeriesCode();
+        SetManufacturingVersionNoSeries(ProductionBOMVersionNos, RoutingVersionNos);
+
+        // [WHEN] Production BOM and routing headers are inserted without explicit version number series
+        ProductionBOMHeader.Insert(true);
+        RoutingHeader.Insert(true);
+
+        // [THEN] Both headers inherit their respective defaults
+        Assert.AreEqual(ProductionBOMVersionNos, ProductionBOMHeader."Version Nos.", ProductionBOMHeader.FieldCaption("Version Nos."));
+        Assert.AreEqual(RoutingVersionNos, RoutingHeader."Version Nos.", RoutingHeader.FieldCaption("Version Nos."));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExplicitHeaderVersionNoSeriesTakePrecedenceOverManufacturingSetup()
+    var
+        ProductionBOMHeader: Record "Production BOM Header";
+        RoutingHeader: Record "Routing Header";
+        ExplicitProductionBOMVersionNos: Code[20];
+        ExplicitRoutingVersionNos: Code[20];
+    begin
+        // [FEATURE] [No. Series] [Production BOM Version] [Routing Version]
+        // [SCENARIO 647371] Explicit header version number series take precedence over Manufacturing Setup defaults.
+        Initialize();
+
+        // [GIVEN] Manufacturing Setup has default version number series and both headers have explicit series
+        SetManufacturingVersionNoSeries(LibraryERM.CreateNoSeriesCode(), LibraryERM.CreateNoSeriesCode());
+        ExplicitProductionBOMVersionNos := LibraryERM.CreateNoSeriesCode();
+        ExplicitRoutingVersionNos := LibraryERM.CreateNoSeriesCode();
+        ProductionBOMHeader.Validate("Version Nos.", ExplicitProductionBOMVersionNos);
+        RoutingHeader.Validate("Version Nos.", ExplicitRoutingVersionNos);
+
+        // [WHEN] The headers are inserted
+        ProductionBOMHeader.Insert(true);
+        RoutingHeader.Insert(true);
+
+        // [THEN] Both explicit series are retained
+        Assert.AreEqual(ExplicitProductionBOMVersionNos, ProductionBOMHeader."Version Nos.", ProductionBOMHeader.FieldCaption("Version Nos."));
+        Assert.AreEqual(ExplicitRoutingVersionNos, RoutingHeader."Version Nos.", RoutingHeader.FieldCaption("Version Nos."));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure BlankManufacturingSetupLeavesHeaderVersionNoSeriesBlank()
+    var
+        ProductionBOMHeader: Record "Production BOM Header";
+        RoutingHeader: Record "Routing Header";
+    begin
+        // [FEATURE] [No. Series] [Production BOM Version] [Routing Version]
+        // [SCENARIO 647371] Blank Manufacturing Setup defaults preserve blank header version number series.
+        Initialize();
+
+        // [GIVEN] Manufacturing Setup has no default version number series
+        SetManufacturingVersionNoSeries('', '');
+
+        // [WHEN] Production BOM and routing headers are inserted
+        ProductionBOMHeader.Insert(true);
+        RoutingHeader.Insert(true);
+
+        // [THEN] Both header version number series remain blank
+        ProductionBOMHeader.TestField("Version Nos.", '');
+        RoutingHeader.TestField("Version Nos.", '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ManufacturingSetupVersionNoSeriesDoNotBackfillExistingHeaders()
+    var
+        ProductionBOMHeader: Record "Production BOM Header";
+        RoutingHeader: Record "Routing Header";
+    begin
+        // [FEATURE] [No. Series] [Production BOM Version] [Routing Version]
+        // [SCENARIO 647371] Configuring Manufacturing Setup does not backfill existing headers.
+        Initialize();
+
+        // [GIVEN] Production BOM and routing headers were inserted while the setup defaults were blank
+        SetManufacturingVersionNoSeries('', '');
+        ProductionBOMHeader.Insert(true);
+        RoutingHeader.Insert(true);
+
+        // [WHEN] Default version number series are configured in Manufacturing Setup
+        SetManufacturingVersionNoSeries(LibraryERM.CreateNoSeriesCode(), LibraryERM.CreateNoSeriesCode());
+        ProductionBOMHeader.Get(ProductionBOMHeader."No.");
+        RoutingHeader.Get(RoutingHeader."No.");
+
+        // [THEN] The existing header version number series remain blank
+        ProductionBOMHeader.TestField("Version Nos.", '');
+        RoutingHeader.TestField("Version Nos.", '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure ReValidatingUnitOfMeasureCodeOnProdBOMLine()
     var
         ProductionBOMLine: Record "Production BOM Line";
@@ -5339,6 +5444,16 @@ codeunit 137063 "SCM Manufacturing 7.0"
         ManufacturingSetup.Get();
         DocNoIsProdOrderNo := ManufacturingSetup."Doc. No. Is Prod. Order No.";
         ManufacturingSetup.Validate("Doc. No. Is Prod. Order No.", NewDocNoIsProdOrderNo);
+        ManufacturingSetup.Modify(true);
+    end;
+
+    local procedure SetManufacturingVersionNoSeries(ProductionBOMVersionNos: Code[20]; RoutingVersionNos: Code[20])
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+    begin
+        ManufacturingSetup.Get();
+        ManufacturingSetup.Validate("Production BOM Version Nos.", ProductionBOMVersionNos);
+        ManufacturingSetup.Validate("Routing Version Nos.", RoutingVersionNos);
         ManufacturingSetup.Modify(true);
     end;
 
