@@ -133,7 +133,8 @@ codeunit 101039 "Create Purchase Line"
         "Purchase Line".SetRange("Document No.", "Purchase Line"."Document No.");
         "Purchase Line".CalcSums("Amount Including VAT");
         PurchaseHeader.Get("Purchase Line"."Document Type", "Purchase Line"."Document No.");
-        PurchaseHeader."Purchase Header"."Check Total" := "Purchase Line"."Amount Including VAT";
+        PurchaseHeader."Check Total" := "Purchase Line"."Amount Including VAT";
+        PurchaseHeader.Modify();
         "Purchase Line".Reset();
         //END IT
     end;
