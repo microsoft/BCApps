@@ -54,10 +54,31 @@ page 4409 "SOA Create Task"
 
                             trigger OnValidate()
                             var
+                                Contact: Record Contact;
+                                Customer: Record Customer;
                                 MailManagement: Codeunit "Mail Management";
                             begin
                                 if SenderEmail <> '' then
                                     MailManagement.CheckValidEmailAddresses(SenderEmail);
+
+                                SOACreateTaskImpl.ClearSelectedSender();
+                                if SenderEmail = '' then
+                                    exit;
+
+                                case Sender of
+                                    Sender::Contact:
+                                        begin
+                                            Contact.SetRange("E-Mail", SenderEmail);
+                                            if Contact.FindFirst() then
+                                                SOACreateTaskImpl.SetSelectedContact(Contact);
+                                        end;
+                                    Sender::Customer:
+                                        begin
+                                            Customer.SetRange("E-Mail", SenderEmail);
+                                            if Customer.FindFirst() then
+                                                SOACreateTaskImpl.SetSelectedCustomer(Customer);
+                                        end;
+                                end;
                             end;
 
                             trigger OnAssistEdit()

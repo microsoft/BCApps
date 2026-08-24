@@ -106,6 +106,7 @@ codeunit 4415 "SOA Create Task Impl"
     var
         SOASetup: Record "SOA Setup";
         SOARetrieveEmails: Codeunit "SOA Retrieve Emails";
+        SOATaskMessage: Codeunit "SOA Task Message";
         AgentTaskBuilder: Codeunit "Agent Task Builder";
         AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder";
         AgentTaskTitle: Text[150];
@@ -117,7 +118,9 @@ codeunit 4415 "SOA Create Task Impl"
             Error(SOASetupNotFoundErr);
 
         AgentTaskTitle := SOARetrieveEmails.GetAgentTaskTitle(SenderEmail);
-        AgentTaskMessageBuilder.Initialize(SenderEmail, MessageText).SetIgnoreAttachment(not SOASetup."Analyze Attachments");
+        AgentTaskMessageBuilder.Initialize(SenderEmail, MessageText)
+            .SetRequiresReview(SOATaskMessage.MessageRequiresReview(SOASetup, SenderEmail, true))
+            .SetIgnoreAttachment(not SOASetup."Analyze Attachments");
         AddAttachmentsToTaskMessage(AgentTaskMessageBuilder, TempAgentTaskFile);
         AgentTaskBuilder.Initialize(SOASetup."User Security ID", AgentTaskTitle).AddTaskMessage(AgentTaskMessageBuilder);
         AgentTaskBuilder.Create();
