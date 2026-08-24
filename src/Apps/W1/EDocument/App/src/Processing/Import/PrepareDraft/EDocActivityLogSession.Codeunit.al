@@ -111,6 +111,11 @@ codeunit 6175 "E-Doc. Activity Log Session"
         exit('TextToAccountMapping');
     end;
 
+    procedure ItemDescriptionTok(): Text
+    begin
+        exit('ItemDescription');
+    end;
+
     procedure SellerItemIdTok(): Text
     begin
         exit('SellerItemId');
