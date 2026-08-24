@@ -200,6 +200,31 @@ codeunit 134469 "PO Matching Group Tests"
 
         Assert.ExpectedError('must have the same unit of measure');
     end;
+
+    [Test]
+    procedure AddInvoiceOrderMatchNegativeQuantityErrors()
+    var
+        Vendor: Record Vendor;
+        Item: Record Item;
+        OrderLine, OrderLine2, InvoiceLine : Record "Purchase Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
+    begin
+        // [SCENARIO] A negative invoice-order edge is rejected: the caps are upper-bound only, so a negative
+        // budget would lower the aggregate consumed by the invoice line and free room for a later edge.
+        Initialize(Vendor, Item);
+        CreateOrderLine(Vendor, Item, 100, OrderLine);
+        CreateOrderLine(Vendor, Item, 100, OrderLine2);
+        CreateInvoiceLine(Vendor, Item, 40, InvoiceLine);
+
+        // [GIVEN] The whole invoice quantity is already allocated to the first order line
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 40));
+
+        // [WHEN] Adding a negative edge for the same invoice against a second order line
+        asserterror POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine2.SystemId, -10));
+
+        // [THEN] Rejected: the allocation cannot be negative
+        Assert.ExpectedError('cannot be negative');
+    end;
     #endregion
 
     #region Order-receipt edges
@@ -335,6 +360,38 @@ codeunit 134469 "PO Matching Group Tests"
 
         // [THEN] Rejected: exceeds the receipt's received not invoiced
         Assert.ExpectedError('exceeds the quantity received not invoiced');
+    end;
+
+    [Test]
+    procedure AddOrderReceiptMatchNegativeQuantityErrors()
+    var
+        Vendor: Record Vendor;
+        Item: Record Item;
+        OrderHeader: Record "Purchase Header";
+        OrderLine, InvoiceLine : Record "Purchase Line";
+        PurchRcptLine1, PurchRcptLine2 : Record "Purch. Rcpt. Line";
+        POMatchingGroup: Codeunit "PO Matching Group";
+    begin
+        // [SCENARIO] A negative order-receipt edge is rejected: it would reduce the quantity pinned to the
+        // invoice-order budget and the quantity consumed on the receipt, freeing room for a later positive edge.
+        Initialize(Vendor, Item);
+        CreateOrderLineWithHeader(Vendor, Item, 100, OrderHeader, OrderLine);
+        ReceiveOrder(OrderHeader, OrderLine, 60);
+        FindReceiptLine(OrderLine, '', PurchRcptLine1);
+        ReceiveOrder(OrderHeader, OrderLine, 40);
+        FindReceiptLine(OrderLine, PurchRcptLine1."Document No.", PurchRcptLine2);
+        CreateInvoiceLine(Vendor, Item, 100, InvoiceLine);
+
+        // [GIVEN] Budget of 100 fully distributed to receipt 1 and receipt 2
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(InvoiceLine.SystemId, OrderLine.SystemId, 100));
+        POMatchingGroup.AddMatch(POMatching.OrderReceiptEdge(OrderLine.SystemId, PurchRcptLine1.SystemId, 60));
+        POMatchingGroup.AddMatch(POMatching.OrderReceiptEdge(OrderLine.SystemId, PurchRcptLine2.SystemId, 40));
+
+        // [WHEN] Turning receipt 2's distribution negative to free up budget
+        asserterror POMatchingGroup.AddMatch(POMatching.OrderReceiptEdge(OrderLine.SystemId, PurchRcptLine2.SystemId, -40));
+
+        // [THEN] Rejected: the allocation cannot be negative
+        Assert.ExpectedError('cannot be negative');
     end;
     #endregion
 
