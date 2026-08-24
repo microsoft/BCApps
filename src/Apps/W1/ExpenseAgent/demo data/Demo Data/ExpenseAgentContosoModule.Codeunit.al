@@ -26,38 +26,30 @@ codeunit 8202 "Expense Agent Contoso Module" implements "Contoso Demo Data Modul
     procedure CreateSetupData()
     var
         ExpenseAgentModuleSetup: Record "Expense Agent Module Setup";
-        ExpAgentCountryResolver: Codeunit "Exp. Agent Country Resolver";
-        ExpenseAgentCountryData: Interface "Expense Agent Country Data";
+        CreateExpenseCountryData: Codeunit "Create Expense Country Data";
     begin
         ExpenseAgentModuleSetup.InitRecord();
-        ExpenseAgentCountryData := ExpAgentCountryResolver.Resolve();
-        ExpenseAgentCountryData.CreateSetupData();
+        CreateExpenseCountryData.CreateSetupData();
     end;
 
     procedure CreateMasterData()
     var
-        ExpAgentCountryResolver: Codeunit "Exp. Agent Country Resolver";
-        ExpenseAgentCountryData: Interface "Expense Agent Country Data";
+        CreateExpenseCountryData: Codeunit "Create Expense Country Data";
     begin
-        ExpenseAgentCountryData := ExpAgentCountryResolver.Resolve();
-        ExpenseAgentCountryData.CreateMasterData();
+        CreateExpenseCountryData.CreateMasterData();
     end;
 
     procedure CreateTransactionalData()
     var
-        ExpAgentCountryResolver: Codeunit "Exp. Agent Country Resolver";
-        ExpenseAgentCountryData: Interface "Expense Agent Country Data";
+        CreateExpenseCountryData: Codeunit "Create Expense Country Data";
     begin
-        ExpenseAgentCountryData := ExpAgentCountryResolver.Resolve();
-        ExpenseAgentCountryData.CreateTransactionalData();
+        CreateExpenseCountryData.CreateTransactionalData();
     end;
 
     procedure CreateHistoricalData()
     var
-        ExpAgentCountryResolver: Codeunit "Exp. Agent Country Resolver";
-        ExpenseAgentCountryData: Interface "Expense Agent Country Data";
+        CreateExpenseCountryData: Codeunit "Create Expense Country Data";
     begin
-        ExpenseAgentCountryData := ExpAgentCountryResolver.Resolve();
-        ExpenseAgentCountryData.CreateHistoricalData();
+        CreateExpenseCountryData.CreateHistoricalData();
     end;
 }
