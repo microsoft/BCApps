@@ -11,7 +11,7 @@ using Microsoft.Sales.Customer;
 using System.Threading;
 using System.Utilities;
 
-codeunit 139899 "E-Doc. Message Mgt. Tests"
+codeunit 139893 "E-Doc. Message Mgt. Tests"
 {
     Subtype = Test;
     TestType = IntegrationTest;
