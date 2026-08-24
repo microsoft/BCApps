@@ -170,7 +170,7 @@ codeunit 1222 "SEPA CT-Prepare Source"
         RemittanceNotification.Id := GetRemittanceTruncationNotificationId();
         RemittanceNotification.Message(RemittanceTruncatedMsg);
         RemittanceNotification.Scope(NotificationScope::LocalScope);
-        RemittanceNotification.AddAction(DontShowAgainTxt, Codeunit "SEPA CT-Prepare Source", 'DisableRemittanceTruncationNotification');
+        RemittanceNotification.AddAction(DontShowAgainTxt, Codeunit::"SEPA CT-Prepare Source", 'DisableRemittanceTruncationNotification');
         RemittanceNotification.Send();
     end;
 
