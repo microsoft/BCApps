@@ -9,7 +9,7 @@ using Microsoft.Purchases.History;
 
 codeunit 5828 "Invoiceable Receipts"
 {
-    Access = Public;
+    Access = Internal;
 
     // A cursor over the posted receipt lines of a single order line that still have quantity received not
     // invoiced. It nets a receipt's remaining quantity against a "PO Matching Group" so consumers see the
