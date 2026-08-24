@@ -533,23 +533,32 @@ codeunit 134619 "Composite Layout Tests"
     procedure PruningARetiredPartClearsItsAssignments()
     var
         TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
+        RetiredPartLayout: Record "Report Layout List";
         CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
         RetiredPartName: Text[250];
+        BodyKey: Text;
     begin
         // [SCENARIO] A configuration row that assigned a retired part must not be left pointing at it: the reference is
         // cleared as the part goes, the same way deleting a part from the page clears its assignments.
         Initialize();
 
+        // [GIVEN] A body layout the configuration row can legally name. The platform validates that Layout Name
+        // resolves to a Body-subtype layout, so a plain name on a report that does not exist is rejected on insert.
+        BodyKey := CreateLayoutOnReport(BodyReportID, 'PruneBody', Enum::"Report Layout Subtype"::Body);
+
         // [GIVEN] A retired part assigned as the theme of a report configuration row.
         RetiredPartName := CopyStr(RetiredPartTok, 1, MaxStrLen(RetiredPartName));
         CompositeReportPartsMgt.SeedPart(RetiredPartName, ShippedThemeResourceTok, Enum::"Report Layout Subtype"::Theme, RetiredPartDescTok);
-        InsertCfg(TestReportID, 'Body', '', '', LookupHelper.EncodeCompositeName(CompositeReportPartsMgt.GetShippedPartAppId(), RetiredPartName));
+        FindLayout(LookupHelper.GetTenantReportDefaultsReportID(), RetiredPartName, RetiredPartLayout);
+        InsertCfg(BodyReportID, BodyKey, '', '', LookupHelper.EncodeCompositeName(RetiredPartLayout."Application ID", RetiredPartLayout.Name));
 
         // [WHEN] Seeding runs and prunes the retired part.
         CompositeReportPartsMgt.SeedDefaultParts();
 
         // [THEN] The configuration row survives with the reference cleared, rather than pointing at a part that is gone.
-        Assert.IsTrue(TenantReportLayoutCfg.Get(TestReportID, 'Body', ''), 'The configuration row should survive the pruning.');
+        Assert.IsTrue(
+            TenantReportLayoutCfg.Get(BodyReportID, CopyStr(BodyKey, 1, MaxStrLen(TenantReportLayoutCfg."Layout Name")), ''),
+            'The configuration row should survive the pruning.');
         Assert.AreEqual('', TenantReportLayoutCfg."Theme Part Name", 'Pruning the part should clear the assignment that referenced it.');
     end;
 
@@ -628,6 +637,7 @@ codeunit 134619 "Composite Layout Tests"
     var
         CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
         PartName: Text[250];
+        LastErrorText: Text;
     begin
         // [SCENARIO] Every shipped part is a resource of this app, so a layout file that cannot be read is a build
         // defect, not a tenant condition. The pass raises rather than skipping the part, so the failure is loud instead
@@ -641,12 +651,13 @@ codeunit 134619 "Composite Layout Tests"
 
         // [WHEN] Seeding a part whose layout file is not a resource of the app.
         asserterror CompositeReportPartsMgt.SeedPart(PartName, MissingResourceTok, Enum::"Report Layout Subtype"::HeaderFooter, UnseedablePartDescTok);
+        LastErrorText := GetLastErrorText(true);
 
         // [THEN] It raised the unreadable-resource error, not some unrelated failure inside the write path.
-        Assert.ExpectedError('could not be read');
+        Assert.IsTrue(StrPos(LastErrorText, 'could not be read') > 0, 'The error should explain that the layout file could not be read.');
 
         // [THEN] And the error names the part, so the pass points at which one failed.
-        Assert.ExpectedError(PartName);
+        Assert.IsTrue(StrPos(LastErrorText, PartName) > 0, 'The error should include the failing part name.');
 
         // [THEN] Nothing was written for it, so the failure leaves no half-seeded part behind.
         Assert.AreEqual(0, ShippedPartCount(PartName), 'A part that could not be read should leave no row in the pool.');
