@@ -434,11 +434,6 @@ table 6916 "Posted Expense Report Line"
             ObsoleteTag = '29.0';
 #endif
         }
-        field(94; "Is Canceled"; Boolean)
-        {
-            Caption = 'Canceled';
-            Editable = false;
-        }
         field(100; "Spend Request No."; Code[20])
         {
             Caption = 'Spend Request No.';
@@ -450,6 +445,11 @@ table 6916 "Posted Expense Report Line"
             Caption = 'Spend Request Close';
             ToolTip = 'Specifies that the spend request will be closed when the expense report is posted.';
             DataClassification = CustomerContent;
+        }
+        field(999; "Is Canceled"; Boolean)
+        {
+            Caption = 'Canceled';
+            Editable = false;
         }
         field(1000; "Job Ledger Entry No."; Integer)
         {
