@@ -5,6 +5,7 @@
 namespace Microsoft.ExpenseTaxIntegration;
 
 using Microsoft.ExpenseAgent;
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.WithholdingTax;
@@ -27,6 +28,23 @@ codeunit 7056 "WHT Expense Category Mgt."
             Rec."Wthldg. Tax Prod. Post. Group" := ExpenseCategory."Wthldg. Tax Prod. Post. Group"
         else
             Rec."Wthldg. Tax Prod. Post. Group" := '';
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", OnAfterAccountNoOnValidateGetGLBalAccount, '', false, false)]
+    local procedure OnAfterBalAccountNoValidateEmployee(var GenJournalLine: Record "Gen. Journal Line"; var GLAccount: Record "G/L Account")
+    begin
+        if CheckWithholdingTaxDisabled() then
+            exit;
+
+        if (GenJournalLine."Account Type" <> GenJournalLine."Account Type"::Employee) and
+           (GenJournalLine."Bal. Account Type" <> GenJournalLine."Bal. Account Type"::Employee)
+        then
+            exit;
+
+        if GenJournalLine."Expense Category" <> '' then
+            exit;
+
+        GenJournalLine."Wthldg. Tax Prod. Post. Group" := GLAccount."Wthldg. Tax Prod. Post. Group";
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"WHT Employee Calculation", OnBeforeCheckCalcEmployeeWHT, '', false, false)]
