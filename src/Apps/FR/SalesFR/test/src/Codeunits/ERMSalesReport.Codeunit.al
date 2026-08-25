@@ -10,6 +10,10 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Setup;
+#if CLEAN29
+using System.Environment.Configuration;
+using System.Reflection;
+#endif
 using System.TestLibraries.Utilities;
 
 codeunit 148004 "ERM Sales Report"
@@ -34,7 +38,13 @@ codeunit 148004 "ERM Sales Report"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
+#if CLEAN29
+        Assert: Codeunit Assert;
+#endif
         isInitialized: Boolean;
+#if CLEAN29
+        SalesFRAppIdTok: Label '8df591a3-d767-4475-8bff-44b8b5527477', Locked = true;
+#endif
 
     [Test]
     [HandlerFunctions('StandardSalesInvoiceRequestPageHandler')]
@@ -60,7 +70,11 @@ codeunit 148004 "ERM Sales Report"
 
         // [WHEN] Run report "Standard Sales - Invoice FR" for Posted Sales Invoice
         LibraryVariableStorage.Enqueue(false); // DisplayShipmentInformation
+#if CLEAN29
+        Report.Run(Report::"Standard Sales - Invoice", true, false, SalesInvoiceHeader);
+#else
         Report.Run(Report::"Standard Sales - Invoice FR", true, false, SalesInvoiceHeader);
+#endif
 
         // [THEN] Report DataSet contains Customer."SIREN No." with caption
         LibraryReportDataset.LoadDataSetFile();
@@ -89,7 +103,11 @@ codeunit 148004 "ERM Sales Report"
 
         // [WHEN] Run report "Stand. Sales-Draft Invoice FR" for Sales Invoice
         LibraryVariableStorage.Enqueue(true); // request page opened expectation
+#if CLEAN29
+        Report.Run(Report::"Standard Sales - Draft Invoice", true, false, SalesHeader);
+#else
         Report.Run(Report::"Stand. Sales-Draft Invoice FR", true, false, SalesHeader);
+#endif
 
         // [THEN] Report DataSet contains Customer."SIREN No." with caption
         LibraryReportDataset.LoadDataSetFile();
@@ -121,7 +139,11 @@ codeunit 148004 "ERM Sales Report"
 
         // [WHEN] Run report "Standard Sales-Credit Memo FR" for Posted Sales Invoice
         LibraryVariableStorage.Enqueue(true); // DisplayShipmentInformation
+#if CLEAN29
+        Report.Run(Report::"Standard Sales - Credit Memo", true, false, SalesCrMemoHeader);
+#else
         Report.Run(Report::"Standard Sales-Credit Memo FR", true, false, SalesCrMemoHeader);
+#endif
 
         // [THEN] Report DataSet contains Customer."SIREN No." with caption
         LibraryReportDataset.LoadDataSetFile();
@@ -149,7 +171,11 @@ codeunit 148004 "ERM Sales Report"
 
         // [WHEN] Run report "Standard Sales - Invoice FR" for Posted Sales Invoice
         LibraryVariableStorage.Enqueue(false); // DisplayShipmentInformation
+#if CLEAN29
+        Report.Run(Report::"Standard Sales - Invoice", true, false, SalesInvoiceHeader);
+#else
         Report.Run(Report::"Standard Sales - Invoice FR", true, false, SalesInvoiceHeader);
+#endif
 
         // [THEN] Report DataSet contains a line with "VAT Paid on Debits"
         LibraryReportDataset.LoadDataSetFile();
@@ -177,7 +203,11 @@ codeunit 148004 "ERM Sales Report"
 
         // [WHEN] Run report "Standard Sales - Invoice FR" for Posted Sales Invoice
         LibraryVariableStorage.Enqueue(false); // DisplayShipmentInformation
+#if CLEAN29
+        Report.Run(Report::"Standard Sales - Invoice", true, false, SalesInvoiceHeader);
+#else
         Report.Run(Report::"Standard Sales - Invoice FR", true, false, SalesInvoiceHeader);
+#endif
 
         // [THEN] Report DataSet doesn't contain a line with "VAT Paid on Debits"
         LibraryReportDataset.LoadDataSetFile();
@@ -202,7 +232,11 @@ codeunit 148004 "ERM Sales Report"
 
         // [WHEN] Run report "Stand. Sales-Draft Invoice FR" for Sales Invoice
         LibraryVariableStorage.Enqueue(true); // request page opened expectation
+#if CLEAN29
+        Report.Run(Report::"Standard Sales - Draft Invoice", true, false, SalesHeader);
+#else
         Report.Run(Report::"Stand. Sales-Draft Invoice FR", true, false, SalesHeader);
+#endif
 
         // [THEN] Report DataSet contains a line with "VAT Paid on Debits"
         LibraryReportDataset.LoadDataSetFile();
@@ -227,7 +261,11 @@ codeunit 148004 "ERM Sales Report"
 
         // [WHEN] Run report "Stand. Sales-Draft Invoice FR" for Sales Invoice
         LibraryVariableStorage.Enqueue(true); // request page opened expectation
+#if CLEAN29
+        Report.Run(Report::"Standard Sales - Draft Invoice", true, false, SalesHeader);
+#else
         Report.Run(Report::"Stand. Sales-Draft Invoice FR", true, false, SalesHeader);
+#endif
 
         // [THEN] Report DataSet doesn't contain a line with "VAT Paid on Debits"
         LibraryReportDataset.LoadDataSetFile();
@@ -255,7 +293,11 @@ codeunit 148004 "ERM Sales Report"
 
         // [WHEN] Run report "Standard Sales-Credit Memo FR" for Posted Sales Credit Memo
         LibraryVariableStorage.Enqueue(true); // DisplayShipmentInformation
+#if CLEAN29
+        REPORT.Run(REPORT::"Standard Sales - Credit Memo", true, false, SalesCrMemoHeader);
+#else
         REPORT.Run(REPORT::"Standard Sales-Credit Memo FR", true, false, SalesCrMemoHeader);
+#endif
 
         // [THEN] Report DataSet contains a line with "VAT Paid on Debits"
         LibraryReportDataset.LoadDataSetFile();
@@ -283,7 +325,11 @@ codeunit 148004 "ERM Sales Report"
 
         // [WHEN] Run report "Standard Sales-Credit Memo FR" for Posted Sales Credit Memo
         LibraryVariableStorage.Enqueue(true); // DisplayShipmentInformation
+#if CLEAN29
+        REPORT.Run(REPORT::"Standard Sales - Credit Memo", true, false, SalesCrMemoHeader);
+#else
         REPORT.Run(REPORT::"Standard Sales-Credit Memo FR", true, false, SalesCrMemoHeader);
+#endif
 
         // [THEN] Report DataSet doesn't contain a line with "VAT Paid on Debits"
         LibraryReportDataset.LoadDataSetFile();
@@ -291,6 +337,110 @@ codeunit 148004 "ERM Sales Report"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+#if CLEAN29
+    [Test]
+    procedure FRLayoutsAreRegisteredOnW1Reports()
+    var
+        ReportLayoutList: Record "Report Layout List";
+    begin
+        // [SCENARIO] The FR layouts are published as layouts of the W1 reports, not of a copied report.
+        Initialize();
+
+        // [THEN] Each W1 report has the FR Word layout registered by the Sales FR app
+        ReportLayoutList.SetRange("Application ID", SalesFRAppIdTok);
+
+        ReportLayoutList.SetRange("Report ID", Report::"Standard Sales - Invoice");
+        ReportLayoutList.SetRange(Name, 'StandardSalesInvoiceFR.docx');
+        Assert.RecordIsNotEmpty(ReportLayoutList);
+
+        ReportLayoutList.SetRange("Report ID", Report::"Standard Sales - Credit Memo");
+        ReportLayoutList.SetRange(Name, 'StandardSalesCreditMemoFR.docx');
+        Assert.RecordIsNotEmpty(ReportLayoutList);
+
+        ReportLayoutList.SetRange("Report ID", Report::"Standard Sales - Draft Invoice");
+        ReportLayoutList.SetRange(Name, 'StandardSalesDraftInvoiceFR.docx');
+        Assert.RecordIsNotEmpty(ReportLayoutList);
+    end;
+
+    [Test]
+    procedure FRLayoutIsSelectedAsDefault()
+    var
+        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
+        SalesFRReportLayouts: Codeunit "Sales FR Report Layouts";
+        EmptyGuid: Guid;
+    begin
+        // [SCENARIO] The FR Word layout is selected as the default layout for the W1 reports.
+        Initialize();
+
+        // [WHEN] The layout defaults are applied
+        SalesFRReportLayouts.SetDefaultReportLayouts();
+
+        // [THEN] The FR Word layout is the selected layout for each W1 report
+        TenantReportLayoutSelection.Get(Report::"Standard Sales - Invoice", CopyStr(CompanyName(), 1, 30), EmptyGuid);
+        Assert.AreEqual('StandardSalesInvoiceFR.docx', TenantReportLayoutSelection."Layout Name", 'Wrong layout for the sales invoice.');
+
+        TenantReportLayoutSelection.Get(Report::"Standard Sales - Credit Memo", CopyStr(CompanyName(), 1, 30), EmptyGuid);
+        Assert.AreEqual('StandardSalesCreditMemoFR.docx', TenantReportLayoutSelection."Layout Name", 'Wrong layout for the sales credit memo.');
+
+        TenantReportLayoutSelection.Get(Report::"Standard Sales - Draft Invoice", CopyStr(CompanyName(), 1, 30), EmptyGuid);
+        Assert.AreEqual('StandardSalesDraftInvoiceFR.docx', TenantReportLayoutSelection."Layout Name", 'Wrong layout for the draft sales invoice.');
+    end;
+
+    [Test]
+    procedure CustomLayoutsAreRepointedToW1Reports()
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
+        SalesFRReportLayouts: Codeunit "Sales FR Report Layouts";
+        LayoutName: Text[250];
+        LayoutAppId: Guid;
+        EmptyGuid: Guid;
+    begin
+        // [SCENARIO] A tenant custom layout built on the copied FR report is moved to the W1 report.
+        Initialize();
+
+        // [GIVEN] A tenant custom layout on the copied report 10816, selected for this company
+        LayoutName := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(LayoutName));
+        LayoutAppId := CreateGuid();
+        TenantReportLayout.Init();
+        TenantReportLayout."Report ID" := 10816;
+        TenantReportLayout.Name := LayoutName;
+        TenantReportLayout."App ID" := LayoutAppId;
+        TenantReportLayout."Layout Format" := TenantReportLayout."Layout Format"::Word;
+        TenantReportLayout.Insert(true);
+
+        if TenantReportLayoutSelection.Get(10816, CopyStr(CompanyName(), 1, 30), EmptyGuid) then
+            TenantReportLayoutSelection.Delete(true);
+        TenantReportLayoutSelection.Init();
+        TenantReportLayoutSelection."Report ID" := 10816;
+        TenantReportLayoutSelection."Company Name" := CopyStr(CompanyName(), 1, 30);
+        TenantReportLayoutSelection."User ID" := EmptyGuid;
+        TenantReportLayoutSelection."App ID" := LayoutAppId;
+        TenantReportLayoutSelection."Layout Name" := LayoutName;
+        TenantReportLayoutSelection.Insert(true);
+
+        // [WHEN] The custom layouts are re-pointed
+        SalesFRReportLayouts.RepointCustomLayouts();
+
+        // [THEN] The layout now belongs to the W1 report
+        TenantReportLayout.SetRange(Name, LayoutName);
+        TenantReportLayout.SetRange("Report ID", Report::"Standard Sales - Invoice");
+        Assert.RecordIsNotEmpty(TenantReportLayout);
+
+        TenantReportLayout.SetRange("Report ID", 10816);
+        Assert.RecordIsEmpty(TenantReportLayout);
+
+        // [THEN] The selection follows the layout, so the custom layout is still the one printed
+        Assert.IsTrue(
+            TenantReportLayoutSelection.Get(Report::"Standard Sales - Invoice", CopyStr(CompanyName(), 1, 30), EmptyGuid),
+            'The layout selection was not moved to the W1 report.');
+        Assert.AreEqual(LayoutName, TenantReportLayoutSelection."Layout Name", 'The custom layout is no longer selected.');
+        Assert.IsFalse(
+            TenantReportLayoutSelection.Get(10816, CopyStr(CompanyName(), 1, 30), EmptyGuid),
+            'The selection on the retired report was not removed.');
+    end;
+
+#endif
     local procedure Initialize()
     begin
         InitializeCompanyInformation();
@@ -357,7 +507,11 @@ codeunit 148004 "ERM Sales Report"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
+#if CLEAN29
+    procedure StandardSalesInvoiceRequestPageHandler(var StandardSalesInvoice: TestRequestPage "Standard Sales - Invoice")
+#else
     procedure StandardSalesInvoiceRequestPageHandler(var StandardSalesInvoice: TestRequestPage "Standard Sales - Invoice FR")
+#endif
     begin
         StandardSalesInvoice.DisplayShipmentInformation.SetValue(LibraryVariableStorage.DequeueBoolean());
         StandardSalesInvoice.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
@@ -365,7 +519,11 @@ codeunit 148004 "ERM Sales Report"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
+#if CLEAN29
+    procedure DraftSalesInvoiceRequestPageHandler(var StandardSalesDraftInvoice: TestRequestPage "Standard Sales - Draft Invoice")
+#else
     procedure DraftSalesInvoiceRequestPageHandler(var StandardSalesDraftInvoice: TestRequestPage "Stand. Sales-Draft Invoice FR")
+#endif
     begin
         // Consume the queued expectation so the test can assert the request page was opened exactly once.
         LibraryVariableStorage.DequeueBoolean();
@@ -374,7 +532,11 @@ codeunit 148004 "ERM Sales Report"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
+#if CLEAN29
+    procedure StdSalesCrMemoRequestPageHandler(var StandardSalesCreditMemo: TestRequestPage "Standard Sales - Credit Memo")
+#else
     procedure StdSalesCrMemoRequestPageHandler(var StandardSalesCreditMemo: TestRequestPage "Standard Sales-Credit Memo FR")
+#endif
     begin
         if StandardSalesCreditMemo.Editable then;
         StandardSalesCreditMemo.DisplayShipmentInformation.SetValue(LibraryVariableStorage.DequeueBoolean());
