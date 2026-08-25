@@ -56,25 +56,31 @@ page 4409 "SOA Create Task"
                             var
                                 Contact: Record Contact;
                                 Customer: Record Customer;
+                                SOAFiltersImpl: Codeunit "SOA Filters Impl.";
                                 MailManagement: Codeunit "Mail Management";
                             begin
-                                if SenderEmail <> '' then
-                                    MailManagement.CheckValidEmailAddresses(SenderEmail);
-
                                 SOACreateTaskImpl.ClearSelectedSender();
                                 if SenderEmail = '' then
                                     exit;
 
+                                MailManagement.CheckValidEmailAddresses(SenderEmail);
+
                                 case Sender of
                                     Sender::Contact:
                                         begin
-                                            Contact.SetRange("E-Mail", SenderEmail);
+                                            Contact.SetLoadFields(
+                                                "No.", Name, "E-Mail", "Company Name", Address, "Post Code", City,
+                                                "Phone No.", "Language Code", "Company No.", Type);
+                                            Contact.SetRange("Search E-Mail", UpperCase(SenderEmail));
                                             if Contact.FindFirst() then
                                                 SOACreateTaskImpl.SetSelectedContact(Contact);
                                         end;
                                     Sender::Customer:
                                         begin
-                                            Customer.SetRange("E-Mail", SenderEmail);
+                                            Customer.SetLoadFields(
+                                                "No.", Name, "E-Mail", Address, "Post Code", City,
+                                                "Phone No.", "Language Code", "Location Code");
+                                            Customer.SetFilter("E-Mail", SOAFiltersImpl.GetSafeFromEmailFilter(SenderEmail));
                                             if Customer.FindFirst() then
                                                 SOACreateTaskImpl.SetSelectedCustomer(Customer);
                                         end;
