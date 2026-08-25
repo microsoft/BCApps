@@ -69,6 +69,21 @@ codeunit 6243 "Sust. Entry Reverse Mgt."
         exit(EntryCount);
     end;
 
+    procedure ReverseEntriesForTransaction(TransactionNo: Integer)
+    var
+        SustainabilityLedgEntry: Record "Sustainability Ledger Entry";
+    begin
+        if TransactionNo = 0 then
+            exit;
+
+        SustainabilityLedgEntry.SetRange("Transaction No.", TransactionNo);
+        SustainabilityLedgEntry.SetRange(Reversed, false);
+        if SustainabilityLedgEntry.FindSet(true) then
+            repeat
+                ReverseEntry(SustainabilityLedgEntry);
+            until SustainabilityLedgEntry.Next() = 0;
+    end;
+
     local procedure ValidateEntryForReversal(SustLedgEntry: Record "Sustainability Ledger Entry")
     var
         SustainabilityAccount: Record "Sustainability Account";
