@@ -515,14 +515,11 @@ codeunit 6201 "Non-Ded. VAT Impl."
         NonDeductibleVAT.OnBeforeCheckVATPostingSetupChangeIsAllowed(VATPostingSetup, IsHandled);
         if IsHandled then
             exit;
-        if VATPostingSetup."Allow Non-Deductible VAT" = VATPostingSetup."Allow Non-Deductible VAT"::"Do Not Allow" then
-            exit;
         ExistingVATPostingSetup.SetRange("VAT Identifier", VATPostingSetup."VAT Identifier");
-        ExistingVATPostingSetup.SetRange("Allow Non-Deductible VAT", VATPostingSetup."Allow Non-Deductible VAT"::Allow);
         if ExistingVATPostingSetup.FindSet() then
             repeat
                 if (ExistingVATPostingSetup."VAT Bus. Posting Group" <> VATPostingSetup."VAT Bus. Posting Group") or (ExistingVATPostingSetup."VAT Prod. Posting Group" <> VATPostingSetup."VAT Prod. Posting Group") then
-                    if ExistingVATPostingSetup."Non-Deductible VAT %" <> VATPostingSetup."Non-Deductible VAT %" then
+                    if GetNonDeductibleVATPct(ExistingVATPostingSetup, Enum::"General Posting Type"::Purchase) <> GetNonDeductibleVATPct(VATPostingSetup, Enum::"General Posting Type"::Purchase) then
                         error(DifferentNonDedVATRatesSameVATIdentifierErr, ExistingVATPostingSetup."VAT Bus. Posting Group", ExistingVATPostingSetup."VAT Prod. Posting Group");
             until ExistingVATPostingSetup.Next() = 0;
         CheckUnrealizedVATWithNonDeductibleVATInVATPostingSetup(VATPostingSetup);
@@ -538,8 +535,6 @@ codeunit 6201 "Non-Ded. VAT Impl."
         if IsHandled then
             exit;
 
-        if PurchaseLine."Non-Deductible VAT %" = 0 then
-            exit;
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type");
         PurchaseLine.SetRange("Document No.", PurchaseLine."Document No.");
         PurchaseLine.SetFilter("Line No.", '<>%1', PurchaseLine."Line No.");

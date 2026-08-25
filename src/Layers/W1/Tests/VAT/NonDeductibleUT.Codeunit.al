@@ -155,6 +155,52 @@ codeunit 134282 "Non-Deductible UT"
     end;
 
     [Test]
+    procedure CannotSetNonDedVATIdentifierToVATPostingSetupWithoutNonDedVAT()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        VATPostingSetupWithoutNonDedVAT: Record "VAT Posting Setup";
+    begin
+        // [SCENARIO 647053] Stan cannot assign an identifier used for Non-Deductible VAT to a setup without Non-Deductible VAT
+        Initialize();
+
+        // [GIVEN] VAT Posting Setup "V1" with "VAT Identifier" = "X" and "Non-Deductible VAT %" = 10
+        LibraryNonDeductibleVAT.CreateNonDeductibleNormalVATPostingSetup(VATPostingSetup);
+        // [GIVEN] VAT Posting Setup "V2" without Non-Deductible VAT
+        LibraryERM.CreateVATPostingSetupWithAccounts(
+            VATPostingSetupWithoutNonDedVAT, VATPostingSetupWithoutNonDedVAT."VAT Calculation Type"::"Normal VAT", VATPostingSetup."VAT %");
+
+        // [WHEN] Set "VAT Identifier" = "X" in "V2"
+        asserterror VATPostingSetupWithoutNonDedVAT.Validate("VAT Identifier", VATPostingSetup."VAT Identifier");
+
+        // [THEN] An error message is thrown for "V1"
+        Assert.ExpectedError(StrSubstNo(
+            DifferentNonDedVATRatesSameVATIdentifierErr, VATPostingSetup."VAT Bus. Posting Group", VATPostingSetup."VAT Prod. Posting Group"));
+    end;
+
+    [Test]
+    procedure CannotSetVATIdentifierWithoutNonDedVATToNonDedVATPostingSetup()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        VATPostingSetupWithoutNonDedVAT: Record "VAT Posting Setup";
+    begin
+        // [SCENARIO 647053] Stan cannot assign an identifier without Non-Deductible VAT to a Non-Deductible VAT setup
+        Initialize();
+
+        // [GIVEN] VAT Posting Setup "V1" without Non-Deductible VAT and "VAT Identifier" = "X"
+        LibraryERM.CreateVATPostingSetupWithAccounts(
+            VATPostingSetupWithoutNonDedVAT, VATPostingSetupWithoutNonDedVAT."VAT Calculation Type"::"Normal VAT", LibraryRandom.RandIntInRange(10, 25));
+        // [GIVEN] VAT Posting Setup "V2" with "Non-Deductible VAT %" = 10
+        LibraryNonDeductibleVAT.CreateNonDeductibleNormalVATPostingSetup(VATPostingSetup);
+
+        // [WHEN] Set "VAT Identifier" = "X" in "V2"
+        asserterror VATPostingSetup.Validate("VAT Identifier", VATPostingSetupWithoutNonDedVAT."VAT Identifier");
+
+        // [THEN] An error message is thrown for "V1"
+        Assert.ExpectedError(StrSubstNo(
+            DifferentNonDedVATRatesSameVATIdentifierErr, VATPostingSetupWithoutNonDedVAT."VAT Bus. Posting Group", VATPostingSetupWithoutNonDedVAT."VAT Prod. Posting Group"));
+    end;
+
+    [Test]
     procedure CannotSetDiffNonDedVATPercentInPurchaseLineWithSameVATIdentifiers()
     var
         VATPostingSetup: Record "VAT Posting Setup";
@@ -181,6 +227,47 @@ codeunit 134282 "Non-Deductible UT"
         asserterror PurchaseLine.Validate("Non-Deductible VAT %", VATPostingSetup."Non-Deductible VAT %" + 1);
         // [THEN] An error message thrown that it is not possible to set different Non-Deductible VAT percents for the same VAT identifiers
         Assert.ExpectedError(StrSubstNo(DifferentNonDedVATRatesSameVATIdentifierErr, VATPostingSetup."VAT Bus. Posting Group", VATPostingSetup."VAT Prod. Posting Group"));
+    end;
+
+    [Test]
+    procedure CannotAddPurchaseLineWithoutNonDedVATAfterLineWithNonDedVATAndSameVATIdentifier()
+    var
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        VATPostingSetupWithoutNonDedVAT: Record "VAT Posting Setup";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+    begin
+        // [SCENARIO 647053] Stan cannot add a line without Non-Deductible VAT below a line with Non-Deductible VAT when their VAT identifiers match
+        Initialize();
+
+        // [GIVEN] VAT Posting Setup "V1" with "VAT Identifier" = "X" and Non-Deductible VAT
+        LibraryNonDeductibleVAT.CreateNonDeductibleNormalVATPostingSetup(VATPostingSetup);
+        // [GIVEN] VAT Posting Setup "V2" with the same VAT business group and identifier, but without Non-Deductible VAT
+        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
+        LibraryERM.CreateVATPostingSetup(
+            VATPostingSetupWithoutNonDedVAT, VATPostingSetup."VAT Bus. Posting Group", VATProductPostingGroup.Code);
+        VATPostingSetupWithoutNonDedVAT.Validate("VAT Calculation Type", VATPostingSetupWithoutNonDedVAT."VAT Calculation Type"::"Normal VAT");
+        VATPostingSetupWithoutNonDedVAT.Validate("VAT %", VATPostingSetup."VAT %");
+        VATPostingSetupWithoutNonDedVAT."VAT Identifier" := VATPostingSetup."VAT Identifier";
+        VATPostingSetupWithoutNonDedVAT.Modify(true);
+        // [GIVEN] Purchase invoice with a line using "V1"
+        LibraryPurchase.CreatePurchHeader(
+            PurchaseHeader, PurchaseHeader."Document Type"::Invoice,
+            LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
+        LibraryPurchase.CreatePurchaseLine(
+            PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item,
+            LibraryInventory.CreateItemWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"), LibraryRandom.RandInt(100));
+
+        // [WHEN] Add a second line using "V2"
+        Item.Get(LibraryInventory.CreateItemWithVATProdPostingGroup(VATPostingSetupWithoutNonDedVAT."VAT Prod. Posting Group"));
+        asserterror LibraryPurchase.CreatePurchaseLine(
+            PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", LibraryRandom.RandInt(100));
+
+        // [THEN] An error message is thrown for "V1"
+        Assert.ExpectedError(StrSubstNo(
+            DifferentNonDedVATRatesSameVATIdentifierErr, VATPostingSetup."VAT Bus. Posting Group", VATPostingSetup."VAT Prod. Posting Group"));
     end;
 
     [Test]
@@ -324,6 +411,8 @@ codeunit 134282 "Non-Deductible UT"
         // [GIVEN] Create/Modify VAT Product Posting Group and VAT Posting Setup.
         LibraryERM.CreateVATPostingSetup(VATPostingSetup, Vendor."VAT Bus. Posting Group", GLAccount."VAT Prod. Posting Group");
         VATPostingSetup.Validate("VAT Calculation Type", VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        if VATPostingSetup."VAT Identifier" = '' then
+            VATPostingSetup.Validate("VAT Identifier", VATPostingSetup."VAT Prod. Posting Group");
         VATPostingSetup.Validate("Allow Non-Deductible VAT", VATPostingSetup."Allow Non-Deductible VAT"::Allow);
         VATPostingSetup.Validate("VAT %", 20);
         VATPostingSetup.Validate("Non-Deductible VAT %", 100);

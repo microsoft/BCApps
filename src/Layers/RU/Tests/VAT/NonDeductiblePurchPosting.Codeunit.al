@@ -20,6 +20,7 @@ codeunit 134283 "Non-Deductible Purch. Posting"
         Assert: Codeunit Assert;
         isInitialized: Boolean;
         PrepaymentsWithNDVATErr: Label 'You cannot post prepayment that contains Non-Deductible VAT.';
+        DifferentNonDedVATRatesSameVATIdentifierErr: Label 'You cannot set different Non-Deductible VAT % for the combinations of business and product groups with the same VAT identifier.\The following combination with the same VAT identifier has different Non-Deductible VAT %: business group %1, product group %2', Comment = '%1, %2 - codes';
         AmountMustBeEqualErr: Label 'Amount must be equal.';
         CostAmountActualErr: Label '%1 must be %2 in %3', Comment = '%1 = Cost Amount (Actual), %2 = value of Cost Amount (Actual), %3 = Value Entry';
 
@@ -128,52 +129,30 @@ codeunit 134283 "Non-Deductible Purch. Posting"
     end;
 
     [Test]
-    procedure CombinedVATAmountLineForTwoPurchLineFirstNonDedVATSecondNormalVAT()
+    procedure CannotCombineNonDedVATAndNormalVATPostingSetupsWithSameVATIdentifier()
     var
         VATPostingSetup: Record "VAT Posting Setup";
+        NonDeductibleVATPostingSetup: Record "VAT Posting Setup";
         VATProductPostingGroup: Record "VAT Product Posting Group";
-        PurchHeader: Record "Purchase Header";
-        NonDedPurchLine: Record "Purchase Line";
-        NormalPurchLine: Record "Purchase Line";
-        TempPurchLine: Record "Purchase Line" temporary;
-        TempVATAmountLine: Record "VAT Amount Line" temporary;
-        Currency: Record Currency;
-        PurchPost: Codeunit "Purch.-Post";
-        TotalVATAmount: Decimal;
-        VATIdentifier: Code[20];
     begin
-        // [SCENARIO 456471] Combine VAT amount line from two purchase lines (first has Non-Deductible VAT, second is not) has correct Non-Deductible VAT Base and Non-Deductible VAT Amount
+        // [SCENARIO 647053] A VAT Posting Setup with Non-Deductible VAT cannot share a VAT Identifier with a normal VAT Posting Setup
 
         Initialize();
-        LibraryNonDeductibleVAT.CreateNonDeductibleNormalVATPostingSetup(VATPostingSetup);
-        VATIdentifier := VATPostingSetup."VAT Identifier";
-        LibraryPurchase.CreatePurchHeader(
-            PurchHeader, PurchHeader."Document Type"::Invoice,
-            LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
-        CreatePurchLineItemWithVATProdPostingGroup(NonDedPurchLine, PurchHeader, VATPostingSetup."VAT Prod. Posting Group");
-
+        // [GIVEN] VAT Posting Setup "V1" with Non-Deductible VAT and "VAT Identifier" = "X"
+        LibraryNonDeductibleVAT.CreateNonDeductibleNormalVATPostingSetup(NonDeductibleVATPostingSetup);
+        // [GIVEN] VAT Posting Setup "V2" without Non-Deductible VAT
         LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
-        LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Bus. Posting Group", VATProductPostingGroup.Code);
+        LibraryERM.CreateVATPostingSetup(VATPostingSetup, NonDeductibleVATPostingSetup."VAT Bus. Posting Group", VATProductPostingGroup.Code);
         VATPostingSetup.Validate("VAT Calculation Type", VATPostingSetup."VAT Calculation Type"::"Normal VAT");
         VATPostingSetup.Validate("VAT %", LibraryRandom.RandIntInRange(10, 20));
-        VATPostingSetup.Validate("VAT Identifier", VATIdentifier);
-        VATPostingSetup.Modify(true);
 
-        CreatePurchLineItemWithVATProdPostingGroup(NormalPurchLine, PurchHeader, VATPostingSetup."VAT Prod. Posting Group");
-        PurchPost.GetPurchLines(PurchHeader, TempPurchLine, 0);
-        NormalPurchLine.CalcVATAmountLines(0, PurchHeader, TempPurchLine, TempVATAmountLine);
+        // [WHEN] Set "VAT Identifier" = "X" in "V2"
+        asserterror VATPostingSetup.Validate("VAT Identifier", NonDeductibleVATPostingSetup."VAT Identifier");
 
-        // [WHEN]
-        TempVATAmountLine.UpdateLines(
-          TotalVATAmount, Currency, LibraryRandom.RandIntInRange(10, 50), false, 0, '', true, WorkDate(), false);
-
-        // [THEN]
-        Assert.RecordCount(TempVATAmountLine, 1);
-        asserterror TempVATAmountLine.TestField("Non-Deductible VAT Base", NonDedPurchLine."Non-Deductible VAT Base");
-        Assert.ExpectedTestFieldError(NonDedPurchLine.FieldCaption("Non-Deductible VAT Base"), Format(0));
-        ClearLastError();
-        asserterror TempVATAmountLine.TestField("Non-Deductible VAT Amount", NonDedPurchLine."Non-Deductible VAT Amount");
-        Assert.ExpectedTestFieldError(NonDedPurchLine.FieldCaption("Non-Deductible VAT Amount"), Format(0));
+        // [THEN] An error message is thrown for "V1"
+        Assert.ExpectedError(StrSubstNo(
+            DifferentNonDedVATRatesSameVATIdentifierErr,
+            NonDeductibleVATPostingSetup."VAT Bus. Posting Group", NonDeductibleVATPostingSetup."VAT Prod. Posting Group"));
     end;
 
     [Test]
