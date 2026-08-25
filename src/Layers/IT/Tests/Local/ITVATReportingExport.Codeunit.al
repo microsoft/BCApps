@@ -2437,6 +2437,18 @@ codeunit 144012 "IT - VAT Reporting - Export"
         exit(ApplicationPath + '\..\..\..\');
     end;
 
+    local procedure ResolveTestAssetPath(RelativePath: Text): Text
+    var
+        FileManagement: Codeunit "File Management";
+        BCAppsAssetPath: Text;
+    begin
+        // Test assets moved under App\BCApps\src during the submodule migration; probe there first, fall back to the legacy layout.
+        BCAppsAssetPath := GetInetRoot() + '\App\BCApps\src' + RelativePath;
+        if FileManagement.ServerFileExists(BCAppsAssetPath) then
+            exit(BCAppsAssetPath);
+        exit(GetInetRoot() + RelativePath);
+    end;
+
     local procedure GenerateReportLine(var VATReportHeader: Record "VAT Report Header"; var VATReportLine: Record "VAT Report Line"; IndividualPerson: Boolean; Resident: Option; DocumentType: Enum "Gen. Journal Document Type"; GenPostingType: Enum "General Posting Type"; VATReportType: Option; ContractPaymentType: Option)
     var
         VATPostingSetup: Record "VAT Posting Setup";
@@ -2508,9 +2520,9 @@ codeunit 144012 "IT - VAT Reporting - Export"
         XMLDoc.Save(XmlStream);
         XmlFile.Close();
 
-        SignatureXsdPath := GetInetRoot() + '\GDL\IT\App\Test\XMLSchemas\xmldsig-core-schema.xsd';
+        SignatureXsdPath := ResolveTestAssetPath('\GDL\IT\App\Test\XMLSchemas\xmldsig-core-schema.xsd');
         LibraryVerifyXMLSchema.SetAdditionalSchemaPath(SignatureXsdPath);
-        XsdPath := GetInetRoot() + '\GDL\IT\App\Test\XMLSchemas\fornituraIvp_2018_v1.xsd';
+        XsdPath := ResolveTestAssetPath('\GDL\IT\App\Test\XMLSchemas\fornituraIvp_2018_v1.xsd');
         Assert.IsTrue(LibraryVerifyXMLSchema.VerifyXMLAgainstSchema(XmlPath, XsdPath, Message), Message);
     end;
 

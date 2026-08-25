@@ -1180,13 +1180,18 @@
     local procedure ExportXSDShemas()
     var
         LibraryUtilityOnPrem: Codeunit "Library - Utility OnPrem";
+        FileManagement: Codeunit "File Management";
+        SchemaRoot: Text;
     begin
-        XSDSchemaFile_CatalogosParaEsqContE :=
-          LibraryUtilityOnPrem.GetInetRoot() + '..\' + '\GDL\NA\App\Test\XMLSchemas\CatalogosParaEsqContE.xsd';
-        XSDSchemaFile_ChartOfAccount := LibraryUtilityOnPrem.GetInetRoot() + '..\' + '\GDL\NA\App\Test\XMLSchemas\CatalogoCuentas_1_3.xsd';
-        XSDSchemaFile_Balance := LibraryUtilityOnPrem.GetInetRoot() + '..\' + '\GDL\NA\App\Test\XMLSchemas\BalanzaComprobacion_1_3.xsd';
-        XSDSchemaFile_Transactions := LibraryUtilityOnPrem.GetInetRoot() + '..\' + '\GDL\NA\App\Test\XMLSchemas\PolizasPeriodo_1_3.xsd';
-        XSDSchemaFile_AuxAccount := LibraryUtilityOnPrem.GetInetRoot() + '..\' + '\GDL\NA\App\Test\XMLSchemas\AuxiliarCtas_1_3.xsd';
+        SchemaRoot := LibraryUtilityOnPrem.GetInetRoot() + '..\' + '\GDL\NA\App\Test\XMLSchemas\';
+        // Test assets moved under App\BCApps\src during the submodule migration; probe there first, fall back to the legacy layout.
+        if FileManagement.ServerFileExists(LibraryUtilityOnPrem.GetInetRoot() + '..\' + '\App\BCApps\src\GDL\NA\App\Test\XMLSchemas\CatalogoCuentas_1_3.xsd') then
+            SchemaRoot := LibraryUtilityOnPrem.GetInetRoot() + '..\' + '\App\BCApps\src\GDL\NA\App\Test\XMLSchemas\';
+        XSDSchemaFile_CatalogosParaEsqContE := SchemaRoot + 'CatalogosParaEsqContE.xsd';
+        XSDSchemaFile_ChartOfAccount := SchemaRoot + 'CatalogoCuentas_1_3.xsd';
+        XSDSchemaFile_Balance := SchemaRoot + 'BalanzaComprobacion_1_3.xsd';
+        XSDSchemaFile_Transactions := SchemaRoot + 'PolizasPeriodo_1_3.xsd';
+        XSDSchemaFile_AuxAccount := SchemaRoot + 'AuxiliarCtas_1_3.xsd';
     end;
 }
 
