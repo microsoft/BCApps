@@ -115,7 +115,9 @@ codeunit 20130 "App Object Helper"
         Field.TableNo := TableID;
         if FieldID <> 0 then begin
             Field."No." := FieldID;
+#pragma warning disable AA0181 // Positional Find() used to locate a single record; suppression tracked for follow-up
             Field.Find();
+#pragma warning restore AA0181
         end else
             if SearchText <> '' then begin
                 Field.FieldName := CopyStr(SearchText, 1, 30);
@@ -143,7 +145,9 @@ codeunit 20130 "App Object Helper"
         Field.FilterGroup(0);
         if FieldID <> 0 then begin
             Field."No." := FieldID;
+#pragma warning disable AA0181 // Positional Find() used to locate a single record; suppression tracked for follow-up
             Field.Find();
+#pragma warning restore AA0181
         end else
             if SearchText <> '' then begin
                 Field.FieldName := CopyStr(SearchText, 1, 30);
