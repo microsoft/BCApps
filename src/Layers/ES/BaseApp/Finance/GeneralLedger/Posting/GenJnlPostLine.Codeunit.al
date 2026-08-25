@@ -351,7 +351,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         else
             ContinuePosting(GenJnlLine);
 
-        OnCodeOnAfterStartOrContinuePosting(GenJnlLine, LastDocType, LastDocNo, LastDate, NextEntryNo);
+        OnCodeOnAfterStartOrContinuePosting(GenJnlLine, LastDocType, LastDocNo, LastDate, NextEntryNo, NextTransactionNo);
 
         if GenJnlLine."Account No." <> '' then begin
             if (GenJnlLine."Bal. Account No." <> '') and
@@ -10530,7 +10530,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnCodeOnAfterStartOrContinuePosting(var GenJournalLine: Record "Gen. Journal Line"; LastDocType: Enum "Gen. Journal Document Type"; LastDocNo: Code[20]; LastDate: Date; var NextEntryNo: Integer)
+    local procedure OnCodeOnAfterStartOrContinuePosting(var GenJournalLine: Record "Gen. Journal Line"; LastDocType: Enum "Gen. Journal Document Type"; LastDocNo: Code[20]; LastDate: Date; var NextEntryNo: Integer; NextTransactionNo: Integer)
     begin
     end;
 
