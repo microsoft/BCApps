@@ -22,6 +22,7 @@ codeunit 139589 "Shpfy Customer API Test"
         Shop: Record "Shpfy Shop";
         LibraryAssert: Codeunit "Library Assert";
         InitializeTest: Codeunit "Shpfy Initialize Test";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         Any: Codeunit Any;
         ResponseContent: Text;
         IsInitialized: Boolean;
@@ -240,6 +241,9 @@ codeunit 139589 "Shpfy Customer API Test"
             exit;
         IsInitialized := true;
         Shop := InitializeTest.CreateShop();
+        // CreateShop enables the legacy IsTestInProgress mock path; disable it so the app performs a real
+        // HttpClient call that the [HttpClientHandler] below can intercept.
+        CommunicationMgt.SetTestInProgress(false);
         AccessToken := Any.AlphanumericText(20);
         InitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);
         Commit();
