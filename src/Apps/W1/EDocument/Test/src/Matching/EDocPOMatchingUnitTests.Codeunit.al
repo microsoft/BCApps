@@ -2524,7 +2524,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
 
         // [GIVEN] An E-Document draft line of 10 units matched to an order line of 10 units
         CreateMockEDocumentDraftWithLine(EDocument, EDocumentPurchaseHeader, EDocumentPurchaseLine, 10);
-        LibraryInventory.CreateItem(Item);
+        LibraryEDocument.CreateItemWithStandardVAT(Item);
         LibraryPurchase.CreatePurchHeader(PurchaseOrderHeader, PurchaseOrderHeader."Document Type"::Order, Vendor."No.");
         LibraryPurchase.CreatePurchaseLine(PurchaseOrderLine, PurchaseOrderHeader, PurchaseOrderLine.Type::Item, Item."No.", 10);
         MatchEDocumentLineToPOLine(EDocumentPurchaseLine, PurchaseOrderLine);
@@ -2569,7 +2569,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
 
         // [GIVEN] An E-Document draft line of 100 units matched to order lines of 60 and 40 units
         CreateMockEDocumentDraftWithLine(EDocument, EDocumentPurchaseHeader, EDocumentPurchaseLine, 100);
-        LibraryInventory.CreateItem(Item);
+        LibraryEDocument.CreateItemWithStandardVAT(Item);
         LibraryPurchase.CreatePurchHeader(PurchaseOrderHeader, PurchaseOrderHeader."Document Type"::Order, Vendor."No.");
         LibraryPurchase.CreatePurchaseLine(PurchaseOrderLine1, PurchaseOrderHeader, PurchaseOrderLine1.Type::Item, Item."No.", 60);
         LibraryPurchase.CreatePurchaseLine(PurchaseOrderLine2, PurchaseOrderHeader, PurchaseOrderLine2.Type::Item, Item."No.", 40);
@@ -2615,7 +2615,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
 
         // [GIVEN] An E-Document draft line of 10 units matched to an order line of 10 units in unit of measure "UOM" with 12 base units per unit
         CreateMockEDocumentDraftWithLine(EDocument, EDocumentPurchaseHeader, EDocumentPurchaseLine, 10);
-        LibraryInventory.CreateItem(Item);
+        LibraryEDocument.CreateItemWithStandardVAT(Item);
         LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
         LibraryInventory.CreateItemUnitOfMeasure(ItemUnitOfMeasure, Item."No.", UnitOfMeasure.Code, 12);
         LibraryPurchase.CreatePurchHeader(PurchaseOrderHeader, PurchaseOrderHeader."Document Type"::Order, Vendor."No.");
@@ -2657,7 +2657,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
 
         // [GIVEN] An E-Document draft line of 10 units matched to an order line, with the unit of measure cleared on the draft line
         CreateMockEDocumentDraftWithLine(EDocument, EDocumentPurchaseHeader, EDocumentPurchaseLine, 10);
-        LibraryInventory.CreateItem(Item);
+        LibraryEDocument.CreateItemWithStandardVAT(Item);
         LibraryPurchase.CreatePurchHeader(PurchaseOrderHeader, PurchaseOrderHeader."Document Type"::Order, Vendor."No.");
         LibraryPurchase.CreatePurchaseLine(PurchaseOrderLine, PurchaseOrderHeader, PurchaseOrderLine.Type::Item, Item."No.", 10);
         MatchEDocumentLineToPOLine(EDocumentPurchaseLine, PurchaseOrderLine);
@@ -2698,7 +2698,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
 
         // [GIVEN] An E-Document draft line of 10 units matched to an order line of 10 units
         CreateMockEDocumentDraftWithLine(EDocument, EDocumentPurchaseHeader, EDocumentPurchaseLine, 10);
-        LibraryInventory.CreateItem(Item);
+        LibraryEDocument.CreateItemWithStandardVAT(Item);
         LibraryPurchase.CreatePurchHeader(PurchaseOrderHeader, PurchaseOrderHeader."Document Type"::Order, Vendor."No.");
         LibraryPurchase.CreatePurchaseLine(PurchaseOrderLine, PurchaseOrderHeader, PurchaseOrderLine.Type::Item, Item."No.", 10);
         MatchEDocumentLineToPOLine(EDocumentPurchaseLine, PurchaseOrderLine);
@@ -2743,7 +2743,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         // [SCENARIO] TransferPOMatchesFromEDocumentToInvoice transfers receipt match to linked invoice line and removes E-Document matches
         // [GIVEN] An E-Document line matched to a receipt line
         CreateMockEDocumentDraftWithLine(EDocument, EDocumentPurchaseHeader, EDocumentPurchaseLine, 10);
-        LibraryInventory.CreateItem(Item);
+        LibraryEDocument.CreateItemWithStandardVAT(Item);
         LibraryPurchase.CreatePurchHeader(PurchaseOrderHeader, PurchaseOrderHeader."Document Type"::Order, Vendor."No.");
         LibraryPurchase.CreatePurchaseLine(PurchaseOrderLine, PurchaseOrderHeader, PurchaseOrderLine.Type::Item, Item."No.", 10);
         MatchEDocumentLineToPOLine(EDocumentPurchaseLine, PurchaseOrderLine);
@@ -2790,7 +2790,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
 
         // [GIVEN] An E-Document draft line of 10 units matched to an order line and to its receipt line
         CreateMockEDocumentDraftWithLine(EDocument, EDocumentPurchaseHeader, EDocumentPurchaseLine, 10);
-        LibraryInventory.CreateItem(Item);
+        LibraryEDocument.CreateItemWithStandardVAT(Item);
         LibraryPurchase.CreatePurchHeader(PurchaseOrderHeader, PurchaseOrderHeader."Document Type"::Order, Vendor."No.");
         LibraryPurchase.CreatePurchaseLine(PurchaseOrderLine, PurchaseOrderHeader, PurchaseOrderLine.Type::Item, Item."No.", 10);
         MatchEDocumentLineToPOLine(EDocumentPurchaseLine, PurchaseOrderLine);
@@ -2833,7 +2833,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
 
         // [GIVEN] An E-Document draft line of 10 units and a purchase order with two lines of 5 units, where only the first line has a receipt
         CreateMockEDocumentDraftWithLine(EDocument, EDocumentPurchaseHeader, EDocumentPurchaseLine, 10);
-        LibraryInventory.CreateItem(Item);
+        LibraryEDocument.CreateItemWithStandardVAT(Item);
         LibraryPurchase.CreatePurchHeader(PurchaseOrderHeader, PurchaseOrderHeader."Document Type"::Order, Vendor."No.");
         LibraryPurchase.CreatePurchaseLine(PurchaseOrderLine1, PurchaseOrderHeader, PurchaseOrderLine1.Type::Item, Item."No.", 5);
         LibraryPurchase.CreatePurchaseLine(PurchaseOrderLine2, PurchaseOrderHeader, PurchaseOrderLine2.Type::Item, Item."No.", 5);
@@ -2885,11 +2885,11 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
 
         // Create purchase order with three lines
         LibraryPurchase.CreatePurchHeader(PurchaseOrderHeader, PurchaseOrderHeader."Document Type"::Order, Vendor."No.");
-        LibraryInventory.CreateItem(Item1);
+        LibraryEDocument.CreateItemWithStandardVAT(Item1);
         LibraryPurchase.CreatePurchaseLine(PurchaseOrderLine1, PurchaseOrderHeader, PurchaseOrderLine1.Type::Item, Item1."No.", 10);
-        LibraryInventory.CreateItem(Item2);
+        LibraryEDocument.CreateItemWithStandardVAT(Item2);
         LibraryPurchase.CreatePurchaseLine(PurchaseOrderLine2, PurchaseOrderHeader, PurchaseOrderLine2.Type::Item, Item2."No.", 15);
-        LibraryInventory.CreateItem(Item3);
+        LibraryEDocument.CreateItemWithStandardVAT(Item3);
         LibraryPurchase.CreatePurchaseLine(PurchaseOrderLine3, PurchaseOrderHeader, PurchaseOrderLine3.Type::Item, Item3."No.", 20);
 
         // Create receipt lines
@@ -2944,7 +2944,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         Initialize();
         // [SCENARIO] TransferPOMatchesFromInvoiceToEDocument creates matches from invoice line receipt info and clears invoice receipt info
         // [GIVEN] A purchase invoice line with Receipt No. and Receipt Line No.
-        LibraryInventory.CreateItem(Item);
+        LibraryEDocument.CreateItemWithStandardVAT(Item);
         LibraryPurchase.CreatePurchHeader(PurchaseOrderHeader, PurchaseOrderHeader."Document Type"::Order, Vendor."No.");
         LibraryPurchase.CreatePurchaseLine(PurchaseOrderLine, PurchaseOrderHeader, PurchaseOrderLine.Type::Item, Item."No.", 10);
 
@@ -2994,11 +2994,11 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         // [SCENARIO] TransferPOMatchesFromInvoiceToEDocument processes multiple lines independently
         // [GIVEN] A purchase invoice with three lines, each with different receipt information
         LibraryPurchase.CreatePurchHeader(PurchaseOrderHeader, PurchaseOrderHeader."Document Type"::Order, Vendor."No.");
-        LibraryInventory.CreateItem(Item1);
+        LibraryEDocument.CreateItemWithStandardVAT(Item1);
         LibraryPurchase.CreatePurchaseLine(PurchaseOrderLine1, PurchaseOrderHeader, PurchaseOrderLine1.Type::Item, Item1."No.", 10);
-        LibraryInventory.CreateItem(Item2);
+        LibraryEDocument.CreateItemWithStandardVAT(Item2);
         LibraryPurchase.CreatePurchaseLine(PurchaseOrderLine2, PurchaseOrderHeader, PurchaseOrderLine2.Type::Item, Item2."No.", 15);
-        LibraryInventory.CreateItem(Item3);
+        LibraryEDocument.CreateItemWithStandardVAT(Item3);
         LibraryPurchase.CreatePurchaseLine(PurchaseOrderLine3, PurchaseOrderHeader, PurchaseOrderLine3.Type::Item, Item3."No.", 20);
 
         CreateMockReceiptHeader(PurchaseReceiptHeader, Vendor."No.");
