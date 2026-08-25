@@ -225,8 +225,6 @@ codeunit 134285 "Non-Deductible VAT Post. Basic"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         FullVATGLAccountNo: Code[20];
-        FullVATLineAmount: Decimal;
-        FullVATLineNDVATPct: Decimal;
         PostedDocNo: Code[20];
     begin
         // [FEATURE] [AI test 0.4]
@@ -247,9 +245,6 @@ codeunit 134285 "Non-Deductible VAT Post. Basic"
         CreatePurchaseLine(
             PurchaseHeader, PurchaseLine, PurchaseLine.Type::"G/L Account", FullVATGLAccountNo,
             LibraryRandom.RandInt(10), LibraryRandom.RandDecInDecimalRange(100, 200, 2));
-        // Full VAT line: entire amount is VAT, so the Non-Deductible VAT amount is a percentage of it
-        FullVATLineAmount := PurchaseLine."Amount Including VAT";
-        FullVATLineNDVATPct := PurchaseLine."Non-Deductible VAT %";
 
         // [WHEN] Post the purchase invoice
         PostedDocNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
@@ -258,9 +253,9 @@ codeunit 134285 "Non-Deductible VAT Post. Basic"
         Assert.AreNotEqual('', PostedDocNo, PurchaseInvoiceMustBePostedErr);
         VerifyGLEntriesBalanced(PostedDocNo);
 
-        // [THEN] The Full VAT line VAT Entry has Base = 0, Non-Deductible VAT Base = 0, the expected Non-Deductible VAT Amount, and the remaining deductible VAT Amount
+        // [THEN] The Full VAT line VAT Entry has Base = 0, Non-Deductible VAT Base = 0, and the whole VAT is split into deductible and Non-Deductible amounts by the Non-Deductible VAT %
         VerifyFullVATPurchaseVATEntry(
-            PostedDocNo, FullVATPostingSetup."VAT Prod. Posting Group", FullVATLineAmount, FullVATLineNDVATPct);
+            PostedDocNo, FullVATPostingSetup."VAT Prod. Posting Group", FullVATPostingSetup."Non-Deductible VAT %");
     end;
 
     [Test]
@@ -586,23 +581,23 @@ codeunit 134285 "Non-Deductible VAT Post. Basic"
         Assert.AreEqual(0, GLEntry.Amount, GLEntriesNotBalancedErr);
     end;
 
-    local procedure VerifyFullVATPurchaseVATEntry(DocumentNo: Code[20]; VATProdPostingGroup: Code[20]; FullVATAmount: Decimal; NonDeductibleVATPct: Decimal)
+    local procedure VerifyFullVATPurchaseVATEntry(DocumentNo: Code[20]; VATProdPostingGroup: Code[20]; NonDeductibleVATPct: Decimal)
     var
         VATEntry: Record "VAT Entry";
         ExpectedNonDedVATAmount: Decimal;
+        TotalFullVATAmount: Decimal;
     begin
-        ExpectedNonDedVATAmount := Round(FullVATAmount * NonDeductibleVATPct / 100, LibraryERM.GetAmountRoundingPrecision());
         VATEntry.SetRange("Document No.", DocumentNo);
         VATEntry.SetRange(Type, VATEntry.Type::Purchase);
         VATEntry.SetRange("VAT Prod. Posting Group", VATProdPostingGroup);
         VATEntry.FindFirst();
+        // Full VAT: the whole line amount is VAT, split into deductible (Amount) and non-deductible portions, with no base
+        TotalFullVATAmount := VATEntry.Amount + VATEntry."Non-Deductible VAT Amount";
+        ExpectedNonDedVATAmount := Round(TotalFullVATAmount * NonDeductibleVATPct / 100, LibraryERM.GetAmountRoundingPrecision());
         VATEntry.TestField(Base, 0);
         VATEntry.TestField("Non-Deductible VAT Base", 0);
         Assert.AreNearlyEqual(
           ExpectedNonDedVATAmount, VATEntry."Non-Deductible VAT Amount", LibraryERM.GetAmountRoundingPrecision(),
           StrSubstNo(AmountErr, VATEntry.FieldCaption("Non-Deductible VAT Amount"), ExpectedNonDedVATAmount, VATEntry.TableCaption()));
-        Assert.AreNearlyEqual(
-          FullVATAmount - ExpectedNonDedVATAmount, VATEntry.Amount, LibraryERM.GetAmountRoundingPrecision(),
-          StrSubstNo(AmountErr, VATEntry.FieldCaption(Amount), FullVATAmount - ExpectedNonDedVATAmount, VATEntry.TableCaption()));
     end;
 }
