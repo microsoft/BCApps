@@ -8,6 +8,7 @@ using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.Foundation.Enums;
@@ -427,6 +428,40 @@ table 6916 "Posted Expense Report Line"
         {
             Caption = 'Canceled';
             Editable = false;
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteReason = 'Replaced by field "Is Canceled" to resolve TransferFields collision with Expense Report Line field 92 (User Confirmed).';
+            ObsoleteTag = '29.0';
+#endif
+        }
+        field(100; "Spend Request No."; Code[20])
+        {
+            Caption = 'Spend Request No.';
+            ToolTip = 'Specifies the spend request to which the posted expense report line is linked.';
+            TableRelation = "Spend Request";
+        }
+        field(101; "Spend Request Close"; Boolean)
+        {
+            Caption = 'Spend Request Close';
+            ToolTip = 'Specifies that the spend request will be closed when the expense report is posted.';
+            DataClassification = CustomerContent;
+        }
+        field(102; "Policies Evaluated At"; DateTime)
+        {
+            Caption = 'Policies Evaluated At';
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
+        field(106; "Policy Status At Posting"; Enum "Expense Policy Status")
+        {
+            Caption = 'Policy Status At Posting';
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
+        field(999; "Is Canceled"; Boolean)
+        {
+            Caption = 'Canceled';
+            Editable = false;
         }
         field(1000; "Job Ledger Entry No."; Integer)
         {
@@ -479,5 +514,10 @@ table 6916 "Posted Expense Report Line"
         ExpenseReportCommentLine.SetRange("Document Line No.", "Line No.");
         ExpenseCommentSheet.SetTableView(ExpenseReportCommentLine);
         ExpenseCommentSheet.RunModal();
+    end;
+
+    internal procedure GetPolicyStatus(): Enum "Expense Policy Status"
+    begin
+        exit(Rec."Policy Status At Posting");
     end;
 }

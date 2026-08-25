@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Purchases.Document;
 
-codeunit 99001550 "Subc. WhsePurchRelease Ext"
+codeunit 20550 "Subc. WhsePurchRelease Ext"
 {
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Purch. Release", OnAfterReleaseSetFilters, '', false, false)]
     local procedure OnAfterReleaseSetFilters(var PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header")

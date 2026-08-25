@@ -46,4 +46,31 @@ enum 6984 "Expense Capability"
     {
         Caption = 'Consolidated Projects', Locked = true;
     }
+
+    /// <summary>
+    /// VAT specifications are available when VAT reclaim is enabled
+    /// </summary>
+    value(3; VATSpecifications)
+    {
+        Caption = 'VAT Specifications', Locked = true;
+    }
+
+    /// <summary>
+    /// Expense activity history API is available.
+    /// </summary>
+    value(4; ActivityLog)
+    {
+        Caption = 'Activity Log', Locked = true;
+    }
+
+    /// <summary>
+    /// The backend supports AI-assisted policy evaluation. Reported
+    /// enabled only when the admin has turned on "Evaluate Policies" in the Expense Agent
+    /// Setup. A backend that predates this feature omits the value entirely, so the frontend
+    /// can treat an absent capability as "backend not ready".
+    /// </summary>
+    value(5; AiAssistedPolicyEvaluation)
+    {
+        Caption = 'AI-Assisted Policy Evaluation', Locked = true;
+    }
 }
