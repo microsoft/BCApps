@@ -11,7 +11,6 @@ using System.Environment.Configuration;
 codeunit 6993 "Expense Agent API Validation"
 {
     Access = Internal;
-    EventSubscriberInstance = StaticAutomatic;
     InherentEntitlements = X;
     InherentPermissions = X;
 

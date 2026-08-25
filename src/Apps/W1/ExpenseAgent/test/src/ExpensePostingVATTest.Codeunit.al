@@ -713,7 +713,7 @@ codeunit 148330 "Expense Posting VAT Test"
         ExpenseReportHeader.Get(ExpenseReportHeader."No.");
 
         // [WHEN] The reimbursement currency factor is changed to 2 after reopening the report.
-        LibraryVariableStorage.Enqueue(StrSubstNo(CanModifyLinesQst, ExpenseReportHeader.FieldName("Reimbursement Currency Factor")));
+        LibraryVariableStorage.Enqueue(StrSubstNo(CanModifyLinesQst, ExpenseReportHeader.FieldCaption("Reimbursement Currency Factor")));
         LibraryVariableStorage.Enqueue(true);
         ExpenseReportHeader.Validate("Reimbursement Currency Factor", 2);
         ExpenseReportHeader.Modify(true);

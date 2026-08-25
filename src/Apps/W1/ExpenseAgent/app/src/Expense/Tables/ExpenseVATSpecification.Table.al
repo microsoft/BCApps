@@ -264,12 +264,14 @@ table 6918 "Expense VAT Specification"
 
     trigger OnModify()
     begin
+        TestStatusOpenOfExpense();
         if Source = Source::Agent then
             error(ModifyOrDeleteErr);
     end;
 
     trigger OnDelete()
     begin
+        TestStatusOpenOfExpense();
         if Source = Source::Agent then
             error(ModifyOrDeleteErr);
     end;
@@ -381,5 +383,14 @@ table 6918 "Expense VAT Specification"
             exit('');
         Rec.Reasoning.CreateInStream(InStream, TextEncoding::UTF8);
         InStream.ReadText(Result);
+    end;
+
+    local procedure TestStatusOpenOfExpense()
+    var
+        ExpenseRecord: Record Expense;
+    begin
+        ExpenseRecord.SetLoadFields(Status);
+        ExpenseRecord.Get("Expense No.");
+        ExpenseRecord.TestStatusOpen();
     end;
 }
