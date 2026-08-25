@@ -855,6 +855,57 @@ codeunit 134283 "Non-Deductible Purch. Posting"
             'Non-Deductible VAT Amount should be 0 when Allow Non-Deductible VAT is Do Not Allow');
     end;
 
+    [Test]
+    procedure SeparateVATAmountLinesForTwoPurchLineFirstNonDedVATSecondNormalVAT()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+        PurchHeader: Record "Purchase Header";
+        NonDedPurchLine: Record "Purchase Line";
+        NormalPurchLine: Record "Purchase Line";
+        TempPurchLine: Record "Purchase Line" temporary;
+        TempVATAmountLine: Record "VAT Amount Line" temporary;
+        Currency: Record Currency;
+        PurchPost: Codeunit "Purch.-Post";
+        TotalVATAmount: Decimal;
+        NonDedVATIdentifier: Code[20];
+    begin
+        // [SCENARIO 456471] Separate VAT amount lines from two purchase lines (first has Non-Deductible VAT, second is not) have correct Non-Deductible VAT Base and Non-Deductible VAT Amount
+
+        Initialize();
+        LibraryNonDeductibleVAT.CreateNonDeductibleNormalVATPostingSetup(VATPostingSetup);
+        NonDedVATIdentifier := VATPostingSetup."VAT Identifier";
+        LibraryPurchase.CreatePurchHeader(
+            PurchHeader, PurchHeader."Document Type"::Invoice,
+            LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
+        CreatePurchLineItemWithVATProdPostingGroup(NonDedPurchLine, PurchHeader, VATPostingSetup."VAT Prod. Posting Group");
+
+        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
+        LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Bus. Posting Group", VATProductPostingGroup.Code);
+        VATPostingSetup.Validate("VAT Calculation Type", VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        VATPostingSetup.Validate("VAT %", LibraryRandom.RandIntInRange(10, 20));
+        VATPostingSetup.Modify(true);
+
+        CreatePurchLineItemWithVATProdPostingGroup(NormalPurchLine, PurchHeader, VATPostingSetup."VAT Prod. Posting Group");
+        PurchPost.GetPurchLines(PurchHeader, TempPurchLine, 0);
+        NormalPurchLine.CalcVATAmountLines(0, PurchHeader, TempPurchLine, TempVATAmountLine);
+
+        // [WHEN]
+        TempVATAmountLine.UpdateLines(
+          TotalVATAmount, Currency, LibraryRandom.RandIntInRange(10, 50), false, 0, '', true, WorkDate());
+
+        // [THEN]
+        Assert.RecordCount(TempVATAmountLine, 2);
+        TempVATAmountLine.SetRange("VAT Identifier", NonDedVATIdentifier);
+        TempVATAmountLine.FindFirst();
+        TempVATAmountLine.TestField("Non-Deductible VAT Base", NonDedPurchLine."Non-Deductible VAT Base");
+        TempVATAmountLine.TestField("Non-Deductible VAT Amount", NonDedPurchLine."Non-Deductible VAT Amount");
+        TempVATAmountLine.SetRange("VAT Identifier", VATPostingSetup."VAT Identifier");
+        TempVATAmountLine.FindFirst();
+        TempVATAmountLine.TestField("Non-Deductible VAT Base", 0);
+        TempVATAmountLine.TestField("Non-Deductible VAT Amount", 0);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
