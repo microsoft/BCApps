@@ -25,6 +25,7 @@ using System.TestLibraries.Utilities;
 codeunit 139415 "Shpfy Auto Post Trans. Test"
 {
     Subtype = Test;
+    TestType = IntegrationTest;
     TestPermissions = Disabled;
 
     var
