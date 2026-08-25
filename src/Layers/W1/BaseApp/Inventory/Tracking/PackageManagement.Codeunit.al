@@ -2051,8 +2051,8 @@ codeunit 6516 "Package Management"
             OldItemLedgEntry.TestField("Package No.", ItemLedgEntry."Package No.");
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnAfterSetTrackingFilterFromItemTrackingSetupIfRequired', '', false, false)]
-    local procedure ItemJnlPostLineOnAfterSetTrackingFilterFromItemTrackingSetupIfRequired(var ItemTrackingSetup: Record "Item Tracking Setup"; GlobalItemTrackingSetup: Record "Item Tracking Setup")
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnAfterSetTrackingSetupForTransfer', '', false, false)]
+    local procedure ItemJnlPostLineOnAfterSetTrackingSetupForTransfer(var ItemTrackingSetup: Record "Item Tracking Setup"; GlobalItemTrackingSetup: Record "Item Tracking Setup")
     begin
         ItemTrackingSetup."Package No. Required" := GlobalItemTrackingSetup."Package No. Required";
     end;
