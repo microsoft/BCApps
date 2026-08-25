@@ -30,3 +30,4 @@ codeunit 7100 "Contact Sync User Subscriber"
     var
         InvalidDeltaUrlErr: Label 'The Delta URL must be an HTTPS Microsoft Graph URL.';
 }
+
