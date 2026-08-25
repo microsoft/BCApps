@@ -13,7 +13,7 @@ codeunit 20435 "Qlty. Document Navigation"
     Access = Internal;
 
     /// <summary>
-    /// Opens the source document associated with a quality inspection in its appropriate page.
+    /// Opens the inspection's source record on its default page when a source record is available.
     /// Automatically determines the correct page to display based on the source record type.
     /// 
     /// Behavior:
@@ -24,7 +24,7 @@ codeunit 20435 "Qlty. Document Navigation"
     /// Common usage: "View Source" button on Inspection pages to jump to originating document
     /// (e.g., Purchase Order, Sales Order, Production Order).
     /// </summary>
-    /// <param name="QltyInspectionHeader">The Inspection whose source document should be displayed</param>
+    /// <param name="QltyInspectionHeader">The inspection whose source record to open.</param>
     procedure NavigateToSourceDocument(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         PageManagement: Codeunit "Page Management";
@@ -42,7 +42,7 @@ codeunit 20435 "Qlty. Document Navigation"
     end;
 
     /// <summary>
-    /// Opens the Navigate page to find all related entries for an Inspection's source document.
+    /// Opens the Navigate page with the inspection's source item, document, and tracking values.
     /// Pre-fills search criteria with test source information including item, document number, and tracking.
     /// 
     /// Populated Navigate criteria:
@@ -56,7 +56,7 @@ codeunit 20435 "Qlty. Document Navigation"
     /// Common usage: Finding all ledger entries, posted documents, and transactions related to
     /// the item and document that triggered the Inspection.
     /// </summary>
-    /// <param name="QltyInspectionHeader">The Inspection whose related entries should be found</param>
+    /// <param name="QltyInspectionHeader">The inspection whose related entries to find.</param>
     procedure NavigateToFindEntries(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         TempItemTrackingSetup: Record "Item Tracking Setup" temporary;

@@ -20,6 +20,46 @@
     "method": "CapabilitiesConsolidatedProjectsFollowsProjectFieldsViaAPI"
   },
   {
+    "codeunitId": 148318,
+    "codeunitName": "Expense Capabilities API Test",
+    "method": "ActivityLogCapabilityEnabledViaAPI"
+  },
+  {
+    "codeunitId": 148343,
+    "codeunitName": "Expense Activity Log API Test",
+    "method": "ActivityLogEntryIsExposedThroughReadOnlyAPI"
+  },
+  {
+    "codeunitId": 148343,
+    "codeunitName": "Expense Activity Log API Test",
+    "method": "ActivityLogAPIRejectsWrites"
+  },
+  {
+    "codeunitId": 148343,
+    "codeunitName": "Expense Activity Log API Test",
+    "method": "NonSnapshotActivityDoesNotExposeCurrencies"
+  },
+  {
+    "codeunitId": 148343,
+    "codeunitName": "Expense Activity Log API Test",
+    "method": "UnscopedActivityAPIHidesEntries"
+  },
+  {
+    "codeunitId": 148343,
+    "codeunitName": "Expense Activity Log API Test",
+    "method": "SubmitterHistoryReturnsCompleteTimelinesForSubmittedReports"
+  },
+  {
+    "codeunitId": 148343,
+    "codeunitName": "Expense Activity Log API Test",
+    "method": "ApproverHistoryReturnsCompleteTimelinesForActedOnReports"
+  },
+  {
+    "codeunitId": 148343,
+    "codeunitName": "Expense Activity Log API Test",
+    "method": "E2EActivityLogScenario"
+  },
+  {
     "codeunitId": 148333,
     "codeunitName": "Expense Agent Setup API Test",
     "method": "EmailAddressFieldIsExposedThroughAPI"
@@ -118,26 +158,6 @@
     "codeunitId": 148331,
     "codeunitName": "Expense Projects API Test",
     "method": "AssignedProjectsBlockedWhenProjectFieldsDisabledViaAPI"
-  },
-  {
-    "codeunitId": 148302,
-    "codeunitName": "Expense Report Posting Test",
-    "method": "ExpenseReportIsPostedWithCurrencyOnHeaderAndExchangeRateForExpensesIsExpenseDate"
-  },
-  {
-    "codeunitId": 148302,
-    "codeunitName": "Expense Report Posting Test",
-    "method": "ExpenseReportIsPostedWithCurrencyOnHeaderAndExchangeRateForExpensesIsPostingDate"
-  },
-  {
-    "codeunitId": 148302,
-    "codeunitName": "Expense Report Posting Test",
-    "method": "ExpenseReportIsPostedWithFCYOnHeaderAndExchangeRateForExpensesIsPostingDateWithMultipleFCYLinesAndEmployeePaid"
-  },
-  {
-    "codeunitId": 148302,
-    "codeunitName": "Expense Report Posting Test",
-    "method": "ExpenseReportIsPostedWithFCYOnHeaderAndExchangeRateForExpensesIsExpenseDateWithMultipleFCYLinesAndEmployeePaid"
   },
   {
     "codeunitId": 148305,

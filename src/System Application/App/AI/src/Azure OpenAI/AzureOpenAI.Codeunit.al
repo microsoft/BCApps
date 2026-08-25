@@ -86,6 +86,22 @@ codeunit 7771 "Azure OpenAI"
         exit(AzureOpenAIImpl.IsInitialized(CopilotCapability, ModelType, CallerModuleInfo));
     end;
 
+    /// <summary>
+    /// Resolves fast prompt settings using a configuration key.
+    /// </summary>
+    /// <param name="ConfigKey">The configuration key to resolve.</param>
+    /// <param name="Response">Contains the resolved template and any error information.</param>
+    /// <returns>True when a fast prompt template was resolved successfully.</returns>
+    [NonDebuggable]
+    [Scope('OnPrem')]
+    procedure GetFastPrompt(ConfigKey: Text; var Response: Codeunit "AOAI Fast Prompt Response"): Boolean
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        exit(AzureOpenAIImpl.GetFastPrompt(ConfigKey, CallerModuleInfo, Response));
+    end;
+
 #if not CLEAN26
     /// <summary>
     /// Sets the managed Azure OpenAI API authorization to use for a specific model type.
@@ -165,6 +181,8 @@ codeunit 7771 "Azure OpenAI"
         AzureOpenAIImpl.SetAuthorization(ModelType, Deployment);
     end;
 
+#if not CLEAN29
+#pragma warning disable AL0432
     /// <summary>
     /// Generates a text completion given a prompt.
     /// </summary>
@@ -174,6 +192,7 @@ codeunit 7771 "Azure OpenAI"
     /// <error>The completion authentication was not configured.</error>
     /// <error>The completion generation failed with status code %1.</error>
     [NonDebuggable]
+    [Obsolete('Text completion models are retired by Azure OpenAI. Use GenerateChatCompletion instead.', '29.0')]
     procedure GenerateTextCompletion(Prompt: SecretText; var AOAIOperationResponse: Codeunit "AOAI Operation Response"): Text
     var
         CallerModuleInfo: ModuleInfo;
@@ -192,6 +211,7 @@ codeunit 7771 "Azure OpenAI"
     /// <error>The completion authentication was not configured.</error>
     /// <error>The completion generation failed with status code %1.</error>
     [NonDebuggable]
+    [Obsolete('Text completion models are retired by Azure OpenAI. Use GenerateChatCompletion instead.', '29.0')]
     procedure GenerateTextCompletion(Prompt: SecretText; AOAICompletionParams: Codeunit "AOAI Text Completion Params"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"): Text
     var
         CallerModuleInfo: ModuleInfo;
@@ -210,6 +230,7 @@ codeunit 7771 "Azure OpenAI"
     /// <error>The completion authentication was not configured.</error>
     /// <error>The completion generation failed with status code %1.</error>
     [NonDebuggable]
+    [Obsolete('Text completion models are retired by Azure OpenAI. Use GenerateChatCompletion instead.', '29.0')]
     procedure GenerateTextCompletion(Metaprompt: SecretText; Prompt: SecretText; var AOAIOperationResponse: Codeunit "AOAI Operation Response"): Text
     var
         CallerModuleInfo: ModuleInfo;
@@ -229,6 +250,7 @@ codeunit 7771 "Azure OpenAI"
     /// <error>The completion authentication was not configured.</error>
     /// <error>The completion generation failed with status code %1.</error>
     [NonDebuggable]
+    [Obsolete('Text completion models are retired by Azure OpenAI. Use GenerateChatCompletion instead.', '29.0')]
     procedure GenerateTextCompletion(Metaprompt: SecretText; Prompt: SecretText; AOAICompletionParams: Codeunit "AOAI Text Completion Params"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"): Text
     var
         CallerModuleInfo: ModuleInfo;
@@ -236,7 +258,8 @@ codeunit 7771 "Azure OpenAI"
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
         exit(AzureOpenAIImpl.GenerateTextCompletion(Metaprompt, Prompt, AOAICompletionParams, AOAIOperationResponse, CallerModuleInfo));
     end;
-
+#pragma warning restore AL0432
+#endif
 
     /// <summary>
     /// Generates embeddings given an input.

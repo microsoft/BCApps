@@ -248,12 +248,11 @@ codeunit 5815 "Undo Sales Shipment Line"
 
         ItemApplicationEntry.SetBaseLoadFields();
         ItemApplicationEntry.SetRange("Item Ledger Entry No.", ItemLedgerEntry."Entry No.");
-        ItemApplicationEntry.SetRange("Cost Application", true);
         ItemApplicationEntry.SetRange("Inbound Item Entry No.", ItemLedgerEntry."Applies-to Entry");
         ItemApplicationEntry.SetRange("Outbound Item Entry No.", ItemLedgerEntry."Entry No.");
-        ItemApplicationEntry.FindFirst();
-
-        ItemJnlPostLine.UnApplyDropShipment(ItemApplicationEntry, RelevantUndoShipmentLedgerEntryNo);
+        OnUnApplyDropShipmentOnBeforeFindItemApplicationEntry(ItemApplicationEntry, ItemLedgerEntry);
+        if ItemApplicationEntry.FindFirst() then
+            ItemJnlPostLine.UnApplyDropShipment(ItemApplicationEntry, RelevantUndoShipmentLedgerEntryNo);
     end;
 
     local procedure FindRelevantNewSalesShptLedgerEntryNo(SalesShptLine: Record "Sales Shipment Line"; NewSalesShptLine: Record "Sales Shipment Line"; ItemLedgerEntry: Record "Item Ledger Entry"): Integer
@@ -1119,6 +1118,16 @@ codeunit 5815 "Undo Sales Shipment Line"
     /// <param name="UndoSalesShptLineParams">The undo parameters being used.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDeleteRelatedItems(var SalesShipmentLine: Record "Sales Shipment Line"; UndoSalesShptLineParams: Record "Undo Sales Shpt. Line Params")
+    begin
+    end;
+
+    /// <summary>
+    /// Raised before finding the item application entry for a drop shipment being unapplied.
+    /// </summary>
+    /// <param name="ItemApplicationEntry">The item application entry with applied filters.</param>
+    /// <param name="ItemLedgerEntry">The item ledger entry for the drop shipment.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnUnApplyDropShipmentOnBeforeFindItemApplicationEntry(var ItemApplicationEntry: Record "Item Application Entry"; ItemLedgerEntry: Record "Item Ledger Entry")
     begin
     end;
 }
