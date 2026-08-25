@@ -56,7 +56,7 @@ codeunit 10975 "FR E-Invoice Message Mgt."
         OriginalOccurrence: Record "E-Doc. Payment Occurrence";
     begin
         EDocument.Get(EDocPaymentOccurrence."E-Document Entry No.");
-        if not IsEligibleFrenchEDocument(EDocument) then
+        if not ResolveEligibleFrenchService(EDocument) then
             exit;
 
         if EDocPaymentOccurrence.Type = EDocPaymentOccurrence.Type::Applied then begin
@@ -380,18 +380,37 @@ codeunit 10975 "FR E-Invoice Message Mgt."
         exit(GeneralLedgerSetup."LCY Code");
     end;
 
-    local procedure IsEligibleFrenchEDocument(EDocument: Record "E-Document"): Boolean
+    local procedure ResolveEligibleFrenchService(var EDocument: Record "E-Document"): Boolean
     var
         EDocumentService: Record "E-Document Service";
         EDocumentServiceStatus: Record "E-Document Service Status";
     begin
-        if not EDocumentService.Get(EDocument.Service) then
+        EDocumentServiceStatus.SetRange("E-Document Entry No", EDocument."Entry No");
+        EDocumentServiceStatus.SetFilter(Status, '%1|%2', EDocumentServiceStatus.Status::Approved, EDocumentServiceStatus.Status::Cleared);
+        if EDocument.Service <> '' then begin
+            EDocumentServiceStatus.SetRange("E-Document Service Code", EDocument.Service);
+            if EDocumentServiceStatus.FindFirst() then
+                if IsSupportedFrenchService(EDocumentServiceStatus."E-Document Service Code", EDocumentService) then
+                    exit(true);
+            EDocumentServiceStatus.SetRange("E-Document Service Code");
+        end;
+
+        if EDocumentServiceStatus.FindSet() then
+            repeat
+                if IsSupportedFrenchService(EDocumentServiceStatus."E-Document Service Code", EDocumentService) then begin
+                    EDocument.Service := EDocumentService.Code;
+                    exit(true);
+                end;
+            until EDocumentServiceStatus.Next() = 0;
+
+        exit(false);
+    end;
+
+    local procedure IsSupportedFrenchService(ServiceCode: Code[20]; var EDocumentService: Record "E-Document Service"): Boolean
+    begin
+        if not EDocumentService.Get(ServiceCode) then
             exit(false);
-        if not (EDocumentService."Document Format" in [EDocumentService."Document Format"::"Peppol BIS 3.0 FR", EDocumentService."Document Format"::"Factur-X FR"]) then
-            exit(false);
-        if not EDocumentServiceStatus.Get(EDocument."Entry No", EDocument.Service) then
-            exit(false);
-        exit(EDocumentServiceStatus.Status in [EDocumentServiceStatus.Status::Approved, EDocumentServiceStatus.Status::Cleared]);
+        exit(EDocumentService."Document Format" in [EDocumentService."Document Format"::"Peppol BIS 3.0 FR", EDocumentService."Document Format"::"Factur-X FR"]);
     end;
 
     local procedure IsCollectedReportingRequired(EDocument: Record "E-Document"; DetailedLedgerEntryNo: Integer): Boolean
