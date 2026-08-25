@@ -9,7 +9,8 @@ codeunit 139849 "APIV2 - Purchase Receipts E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.InitializeApiTest();
+        LibraryGraphMgt.EnsureAuthenticationAvailable();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Purchase] [Receipt]
     end;
 

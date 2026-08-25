@@ -9,7 +9,8 @@ codeunit 139836 "APIV2 - Sales Quote Lines E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.InitializeApiTest();
+        LibraryGraphMgt.EnsureAuthenticationAvailable();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Sales] [Quote]
     end;
 

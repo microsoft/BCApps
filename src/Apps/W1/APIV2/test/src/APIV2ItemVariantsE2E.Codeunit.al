@@ -9,7 +9,8 @@ codeunit 139839 "APIV2 - Item Variants E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.InitializeApiTest();
+        LibraryGraphMgt.EnsureAuthenticationAvailable();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Item] [Variant]
     end;
 

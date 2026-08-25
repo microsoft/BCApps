@@ -6,7 +6,8 @@ codeunit 139862 "APIV2JobQueueEntriesE2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.InitializeApiTest();
+        LibraryGraphMgt.EnsureAuthenticationAvailable();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [JobQueue] [JobQueueEntry]
         // This API only supports GET request and it is not editable.
         // User can only view the Job Queue Entries or use the action to restart the Job Queue Entry.

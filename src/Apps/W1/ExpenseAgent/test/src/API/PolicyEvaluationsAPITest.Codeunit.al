@@ -117,6 +117,7 @@ codeunit 148344 "Policy Evaluations API Test"
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Policy Evaluations API Test");
         LibraryExpense.CleanUpBeforeTesting();
+        LibraryGraphMgt.EnsureAuthenticationAvailable();
         if IsInitialized then
             exit;
 

@@ -7,7 +7,8 @@ codeunit 139742 "APIV1 - Pictures E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.InitializeApiTest();
+        LibraryGraphMgt.EnsureAuthenticationAvailable();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Image]
     end;
 

@@ -9,7 +9,8 @@ codeunit 139853 "APIV2 - Contacts Inf. E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.InitializeApiTest();
+        LibraryGraphMgt.EnsureAuthenticationAvailable();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Contact]
     end;
 

@@ -9,7 +9,8 @@ codeunit 139829 "APIV2 - Purchase Invoices E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.InitializeApiTest();
+        LibraryGraphMgt.EnsureAuthenticationAvailable();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Purchase] [Invoice]
     end;
 
@@ -32,7 +33,7 @@ codeunit 139829 "APIV2 - Purchase Invoices E2E"
 
     local procedure Initialize()
     begin
-        LibraryGraphMgt.SetApiTestWorkDate();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 
     [Test]

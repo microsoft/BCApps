@@ -7,7 +7,8 @@ codeunit 139843 "APIV2 - Vendor Payments E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.InitializeApiTest();
+        LibraryGraphMgt.EnsureAuthenticationAvailable();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Vendor Payments]
     end;
 
@@ -886,7 +887,7 @@ codeunit 139843 "APIV2 - Vendor Payments E2E"
 
     local procedure Initialize()
     begin
-        LibraryGraphMgt.SetApiTestWorkDate();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryTestInitialize.OnTestInitialize(Codeunit::"APIV2 - Vendor Payments E2E");
 
         if not isInitialized then

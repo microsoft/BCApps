@@ -6,7 +6,8 @@ codeunit 139856 "APIV2 - GenProdPostGroup E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.InitializeApiTest();
+        LibraryGraphMgt.EnsureAuthenticationAvailable();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 
     var

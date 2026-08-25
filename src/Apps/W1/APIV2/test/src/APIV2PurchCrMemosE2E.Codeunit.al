@@ -9,7 +9,8 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.InitializeApiTest();
+        LibraryGraphMgt.EnsureAuthenticationAvailable();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Purchase] [Credit Memo]
     end;
 
@@ -75,7 +76,7 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
     begin
         // [SCENARIO] Create posted and unposted Purchase credit memos and use HTTP POST to delete them
         // [GIVEN] 2 credit memos, one posted and one unposted
-        LibraryGraphMgt.SetApiTestWorkDate();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryPurchase.CreateVendorWithAddress(BuyFromVendor);
         LibraryPurchase.CreateVendorWithAddress(PayToVendor);
         VendorNo := BuyFromVendor."No.";
@@ -311,7 +312,7 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
         // [SCENARIO] Create an credit memo both through the client UI and through the API
         // [SCENARIO] and compare them. They should be the same and have the same fields autocompleted wherever needed.
         // [GIVEN] An unposted credit memo
-        LibraryGraphMgt.SetApiTestWorkDate();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryGraphDocumentTools.InitializeUIPage();
 
         LibraryPurchase.CreateVendor(BuyFromVendor);

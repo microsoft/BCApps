@@ -12,7 +12,7 @@ codeunit 148018 "IRS 1099 API Tests"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.EnsureAuthenticationAvailable();
     end;
 
     var

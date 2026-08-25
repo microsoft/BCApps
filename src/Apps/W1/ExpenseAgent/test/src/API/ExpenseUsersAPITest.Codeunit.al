@@ -14,7 +14,7 @@ codeunit 148315 "Expense Users API Test"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.EnsureAuthenticationAvailable();
     end;
 
     var

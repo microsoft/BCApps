@@ -9,7 +9,8 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.InitializeApiTest();
+        LibraryGraphMgt.EnsureAuthenticationAvailable();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Sales] [Order]
     end;
 
@@ -80,7 +81,7 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
     begin
         // [SCENARIO 184721] Create sales orders JSON and use HTTP POST to create them
 
-        LibraryGraphMgt.SetApiTestWorkDate();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
 
         // [GIVEN] a customer
         LibrarySales.CreateCustomerWithAddress(SellToCustomer);
@@ -334,7 +335,7 @@ codeunit 139811 "APIV2 - Sales Orders E2E"
         OrderJSON: Text;
     begin
         // [SCENARIO 184721] Create an order both through the client UI and through the API and compare them. They should be the same and have the same fields autocompleted wherever needed.
-        LibraryGraphMgt.SetApiTestWorkDate();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryGraphDocumentTools.InitializeUIPage();
 
         // [GIVEN] a customer

@@ -5,7 +5,8 @@ codeunit 139857 "APIV2 - InventoryPostGroup E2E"
     TestPermissions = Disabled;
     trigger OnRun()
     begin
-        LibraryGraphMgt.InitializeApiTest();
+        LibraryGraphMgt.EnsureAuthenticationAvailable();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 
     var

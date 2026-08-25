@@ -8,7 +8,8 @@ codeunit 139717 "APIV1 - CashFlow Statement E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.InitializeApiTest();
+        LibraryGraphMgt.EnsureAuthenticationAvailable();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Cash Flow Statement]
     end;
 

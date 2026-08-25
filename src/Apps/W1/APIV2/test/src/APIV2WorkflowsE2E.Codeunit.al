@@ -6,7 +6,7 @@ codeunit 139921 "APIV2 - Workflows E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.EnsureAuthenticationAvailable();
     end;
 
     var

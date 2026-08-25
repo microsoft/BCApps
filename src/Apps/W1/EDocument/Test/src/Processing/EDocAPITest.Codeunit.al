@@ -18,7 +18,7 @@ codeunit 135575 "E-Doc. API Test"
 
     trigger OnRun()
     begin
-        LibraryGraphMgtForAuthentication.BindAuthentication();
+        LibraryGraphMgtForAuthentication.EnsureAuthenticationAvailable();
     end;
 
     var

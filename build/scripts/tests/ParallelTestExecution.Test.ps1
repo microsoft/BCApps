@@ -112,6 +112,48 @@ Describe "ParallelTestExecution app-name resolution" {
             $result | Should -Not -Contain 'Projects-Json-Key'
         }
     }
+
+    It "removes the clean template when normal app dispatch aborts" {
+        InModuleScope ParallelTestExecution {
+            Mock Get-AvailableBcTenantInfo {
+                @(
+                    [PSCustomObject]@{ Id = 'default'; DatabaseName = 'default' }
+                    [PSCustomObject]@{ Id = 'tenant2'; DatabaseName = 'tenant2' }
+                )
+            }
+            Mock Get-BcContainerAppInfo {
+                @([PSCustomObject]@{ IsInstalled = $true; Name = 'Tests'; AppId = 'tests-id' })
+            }
+            Mock Get-CleanTenantTestAppNames { @('Tests') }
+            Mock Get-RequiredDisabledWorkItems {
+                @([PSCustomObject]@{
+                    Key = 'Tests::500'
+                    AppName = 'Tests'
+                    AppId = 'tests-id'
+                    CodeunitId = '500'
+                    CodeunitName = 'API E2E'
+                    TestCount = 2
+                })
+            }
+            Mock Enable-BcTestTaskScheduler { }
+            Mock New-BcTestTenantTemplate { 'default-test-template' }
+            Mock Invoke-WarmupDispatch { @($Pending) }
+            Mock Wait-ForFreeTenant { 'default' }
+            Mock Start-TestAppDispatch { throw 'dispatch failed' }
+            Mock Remove-BcTestTenantTemplate { }
+
+            {
+                Invoke-ParallelTestExecution -parameters @{
+                    containerName = "ut-$([guid]::NewGuid().ToString('N'))"
+                    tenant = 'default'
+                } -scriptPath 'unused.ps1' -testType 'IntegrationTest' -appNamesToTest @('Tests')
+            } | Should -Throw '*dispatch failed*'
+
+            Should -Invoke Remove-BcTestTenantTemplate -Times 1 -ParameterFilter {
+                $TemplateDatabaseName -eq 'default-test-template'
+            }
+        }
+    }
 }
 
 Describe "ParallelTestExecution transient retry scheduling" {
@@ -336,12 +378,14 @@ Describe "ParallelTestExecution clean tenant scheduling" {
                                 -Because "$($file.Name) runs through NAV's typed Integration task"
                             $content | Should -Not -Match 'RequiredTestIsolation\s*=\s*Disabled\s*;' `
                                 -Because "$($file.Name) runs with normal Codeunit isolation in NAV"
-                            $content | Should -Match 'LibraryGraphMgt\.BindAuthentication\(\);'
+                            $content | Should -Match 'LibraryGraphMgt\.EnsureAuthenticationAvailable\(\);'
                         } else {
                             $content | Should -Match 'RequiredTestIsolation\s*=\s*Disabled\s*;' `
                                 -Because "$($file.Name) runs in a NAV Disabled-isolation path"
-                            $content | Should -Match 'LibraryGraphMgt\.InitializeApiTest\(\);' `
-                                -Because "$($file.Name) must bind authentication and use a license-safe work date"
+                            $content | Should -Match 'LibraryGraphMgt\.EnsureAuthenticationAvailable\(\);' `
+                                -Because "$($file.Name) must preflight authentication"
+                            $content | Should -Match 'LibraryGraphMgt\.SetLicenseSafeWorkDate\(\);' `
+                                -Because "$($file.Name) must explicitly use a license-safe work date"
                             $content | Should -Not -Match 'LibraryERM\.SetWorkDate\(\);' `
                                 -Because "$($file.Name) must not overwrite the API test license-safe work date"
                         }
@@ -557,6 +601,26 @@ Describe "ParallelTestExecution warmup dispatch" {
         Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
     }
 
+    It "defers the Disabled pass when the warmup app uses clean-codeunit execution" {
+        InModuleScope ParallelTestExecution {
+            $script:skipDisabledPass = $false
+            Mock Start-TestAppDispatch {
+                $script:skipDisabledPass = $SkipAutomaticDisabledPass.IsPresent
+            }
+            Mock Wait-ForAllTestJobs { }
+
+            $state = [PSCustomObject]@{ jobs = @(); hasFailures = $false; transient = @(); retried = @{} }
+            $result = Invoke-WarmupDispatch -Parameters @{ containerName = 'c' } `
+                -Pending @('API Tests', 'Other Tests') `
+                -AppIdByName @{ 'API Tests' = 'api-id'; 'Other Tests' = 'other-id' } `
+                -Tenants @('default', 'tenant2') -ScriptPath 'unused.ps1' -TestType 'UnitTest' `
+                -State $state -CleanTenantAppNames @('API Tests')
+
+            $result | Should -Be @('Other Tests')
+            $script:skipDisabledPass | Should -BeTrue
+        }
+    }
+
     It "dispatches the first app alone and awaits it before fanning out the rest" {
         # The first app must run alone and be awaited before any parallel dispatch. This asserts
         # exactly that ordering: dispatch(first) -> wait -> rest.
@@ -699,6 +763,8 @@ Describe "ParallelTestExecution failed-app rerun scheduling" {
                     [PSCustomObject]@{ IsInstalled = $true; Name = $_; AppId = "id-$_" }
                 }
             }
+            Mock Get-CleanTenantTestAppNames { @('Big') }
+            Mock Get-RequiredDisabledWorkItems { @() }
             Mock Invoke-WarmupDispatch { @($Pending) }
             Mock Get-AppRerunBudget { 1 }
             Mock Wait-ForAllTestJobs { $true }
@@ -708,7 +774,12 @@ Describe "ParallelTestExecution failed-app rerun scheduling" {
                 @('default', 'tenant2') | Where-Object { $_ -ne $excludeTenant } | Select-Object -First 1
             }
             Mock Start-TestAppDispatch {
-                $script:dispatched.Add([PSCustomObject]@{ App = $AppName; Tenant = $Tenant; Suffix = $FileSuffix })
+                $script:dispatched.Add([PSCustomObject]@{
+                    App = $AppName
+                    Tenant = $Tenant
+                    Suffix = $FileSuffix
+                    SkipDisabled = $SkipAutomaticDisabledPass.IsPresent
+                })
                 # 'Big' fails on its first dispatch, exactly once.
                 if ($AppName -eq 'Big' -and -not $script:failed) {
                     $script:failed = $true
@@ -726,6 +797,7 @@ Describe "ParallelTestExecution failed-app rerun scheduling" {
             $rerun.App | Should -Be 'Big'
             $rerun.Tenant | Should -Be 'tenant2'
             $rerun.Suffix | Should -Be 'rerun1'
+            $rerun.SkipDisabled | Should -BeTrue
             # The rerun passed, so the run as a whole passed.
             $result | Should -BeTrue
         }

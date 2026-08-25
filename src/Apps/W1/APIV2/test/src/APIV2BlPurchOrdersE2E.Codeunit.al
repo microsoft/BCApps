@@ -8,7 +8,7 @@ codeunit 139908 "APIV2 - Bl. Purch. Orders E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.EnsureAuthenticationAvailable();
         // [FEATURE] [Graph] [Purchase] [Blanket Order]
     end;
 

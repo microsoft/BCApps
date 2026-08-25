@@ -9,7 +9,8 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.InitializeApiTest();
+        LibraryGraphMgt.EnsureAuthenticationAvailable();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Default Dimension]
     end;
 

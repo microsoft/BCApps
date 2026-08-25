@@ -14,19 +14,12 @@ codeunit 130618 "Library - Graph Mgt"
         FailedRequestErr: Label '%1 request failed. Response code is %2 (%3). %4', Comment = '%1 - request method, %2 - response code number, %3 - response code, %4 - error message';
         FailedRequestWithUnexpectedResponseCodeErr: Label '%1 request failed. Response code is %2 (%3), expected code is %4. %5', Comment = '%1 - request method, %2 - response code number, %3 - response code, %4 - expected response code, %5 - error message';
 
-    procedure BindAuthentication()
+    procedure EnsureAuthenticationAvailable()
     begin
         LibraryGraphAuthMgt.EnsureAuthenticationAvailable();
     end;
 
-    procedure InitializeApiTest()
-    begin
-        BindAuthentication();
-        SetApiTestWorkDate();
-        EnsureApiTestReasonCode();
-    end;
-
-    procedure SetApiTestWorkDate()
+    procedure SetLicenseSafeWorkDate()
     begin
         WorkDate := DMY2Date(15, 11, Date2DMY(Today, 3));
     end;
@@ -40,19 +33,6 @@ codeunit 130618 "Library - Graph Mgt"
         RecordField.SetRange(FieldName, SourceFieldName);
         if RecordField.FindFirst() then
             LibraryUtility.AddTempField(TempIgnoredFields, RecordField."No.", SourceTableNo);
-    end;
-
-    local procedure EnsureApiTestReasonCode()
-    var
-        ReasonCode: Record "Reason Code";
-    begin
-        if not ReasonCode.IsEmpty() then
-            exit;
-
-        ReasonCode.Init();
-        ReasonCode.Code := 'API-TEST';
-        ReasonCode.Description := 'API test reason';
-        ReasonCode.Insert();
     end;
 
     procedure EnsureWebServiceExist(ServiceNameTxt: Text[240]; PageNumber: Integer)

@@ -14,7 +14,7 @@ codeunit 148185 "Sustainability API Tests"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.EnsureAuthenticationAvailable();
         // [FEATURE] [Sustainability] [API] [UI]
     end;
 

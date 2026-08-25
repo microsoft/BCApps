@@ -8,7 +8,8 @@ codeunit 139869 "APIV2 - Cust. Ret. Reasons E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.InitializeApiTest();
+        LibraryGraphMgt.EnsureAuthenticationAvailable();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Sales] [Credit Memo]
     end;
 

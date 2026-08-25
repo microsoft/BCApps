@@ -9,7 +9,8 @@ codeunit 139854 "APIV2 - Item Ledg. Entries E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.InitializeApiTest();
+        LibraryGraphMgt.EnsureAuthenticationAvailable();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Item Ledger Entry]
     end;
 

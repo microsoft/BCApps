@@ -5,7 +5,7 @@ codeunit 135548 "API Routes E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.EnsureAuthenticationAvailable();
         // [FEATURE] [API] [Route]
     end;
 

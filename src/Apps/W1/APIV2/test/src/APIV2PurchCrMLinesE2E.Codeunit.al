@@ -9,7 +9,8 @@ codeunit 139874 "APIV2 - Purch. Cr.M. Lines E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.InitializeApiTest();
+        LibraryGraphMgt.EnsureAuthenticationAvailable();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Purchase] [Credit Memo]
     end;
 

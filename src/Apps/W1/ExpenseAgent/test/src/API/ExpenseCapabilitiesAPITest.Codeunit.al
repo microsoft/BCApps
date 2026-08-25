@@ -15,7 +15,7 @@ codeunit 148318 "Expense Capabilities API Test"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.EnsureAuthenticationAvailable();
     end;
 
     var

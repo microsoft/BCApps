@@ -7,7 +7,8 @@ codeunit 139867 "APIV2 - Apply Vendor Ent. E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.InitializeApiTest();
+        LibraryGraphMgt.EnsureAuthenticationAvailable();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Vendor Payments] [Apply Vendor Entries]
     end;
 

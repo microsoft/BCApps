@@ -8,7 +8,7 @@ codeunit 139922 "APIV2 - Purch. Quotes E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.EnsureAuthenticationAvailable();
         // [FEATURE] [Graph] [Purchase] [Quote]
     end;
 

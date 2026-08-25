@@ -8,7 +8,7 @@ codeunit 139909 "APIV2 - Bl. Sales Orders E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.BindAuthentication();
+        LibraryGraphMgt.EnsureAuthenticationAvailable();
         // [FEATURE] [Graph] [Sales] [Blanket Order]
     end;
 

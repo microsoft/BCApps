@@ -9,7 +9,8 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.InitializeApiTest();
+        LibraryGraphMgt.EnsureAuthenticationAvailable();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Purchase] [Order]
     end;
 
@@ -33,7 +34,7 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
 
     local procedure Initialize()
     begin
-        LibraryGraphMgt.SetApiTestWorkDate();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 
     [Test]

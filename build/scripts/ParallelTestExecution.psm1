@@ -1199,6 +1199,8 @@ function Merge-TenantTestResults {
     All available tenant ids. Warmup dispatches onto the first one.
 .PARAMETER State
     The parallel execution state object; mutated (jobs/hasFailures/transient) as the warmup runs.
+.PARAMETER CleanTenantAppNames
+    Apps whose automatic Disabled-isolation pass must be deferred to clean-codeunit execution.
 .OUTPUTS
     [string[]] The remaining app names to dispatch (first app removed if it was warmed up).
 #>
@@ -1210,7 +1212,8 @@ function Invoke-WarmupDispatch {
         [Parameter(Mandatory=$true)][AllowEmptyCollection()][string[]]$Tenants,
         [Parameter(Mandatory=$true)][string]$ScriptPath,
         [string]$TestType,
-        [Parameter(Mandatory=$true)]$State
+        [Parameter(Mandatory=$true)]$State,
+        [string[]]$CleanTenantAppNames = @()
     )
 
     # Only serialize when there is a fan-out to protect: >1 app AND >1 tenant.
@@ -1227,7 +1230,8 @@ function Invoke-WarmupDispatch {
 
     Write-Host "Warming up: dispatching first app '$warmupApp' on '$($Tenants[0])' alone and awaiting completion before parallel fan-out."
     Start-TestAppDispatch -Parameters $Parameters -AppName $warmupApp -AppId $warmupAppId -Tenant $Tenants[0] `
-        -ScriptPath $ScriptPath -TestType $TestType -State $State -Verb 'Dispatching'
+        -ScriptPath $ScriptPath -TestType $TestType -State $State -Verb 'Dispatching' `
+        -SkipAutomaticDisabledPass:($warmupApp -in $CleanTenantAppNames)
 
     # Await the single job so the process is warm before anything runs in parallel. A transient
     # failure here lands in $State.transient and the caller's loop re-queues it; a hard failure is
@@ -1353,15 +1357,16 @@ function Invoke-ParallelTestExecution {
             Where-Object { $_.Id -ne $parameters.tenant }
     )
     $templateDatabaseName = ""
-    if ($requiredDisabledWorkItems.Count -gt 0) {
-        if ($cleanTenantInfo.Count -eq 0) {
-            throw "Clean RequiredTestIsolation=Disabled execution requires at least one secondary tenant."
+    try {
+        if ($requiredDisabledWorkItems.Count -gt 0) {
+            if ($cleanTenantInfo.Count -eq 0) {
+                throw "Clean RequiredTestIsolation=Disabled execution requires at least one secondary tenant."
+            }
+            Write-Host "Preparing clean-tenant execution for $($requiredDisabledWorkItems.Count) RequiredTestIsolation=Disabled codeunit(s)."
+            # Restart before tests mutate server/tenant state; late restarts can fail on configuration changes made by test apps.
+            Enable-BcTestTaskScheduler -ContainerName $parameters.containerName
+            $templateDatabaseName = New-BcTestTenantTemplate -ContainerName $parameters.containerName -SourceTenant $parameters.tenant
         }
-        Write-Host "Preparing clean-tenant execution for $($requiredDisabledWorkItems.Count) RequiredTestIsolation=Disabled codeunit(s)."
-        # Restart before tests mutate server/tenant state; late restarts can fail on configuration changes made by test apps.
-        Enable-BcTestTaskScheduler -ContainerName $parameters.containerName
-        $templateDatabaseName = New-BcTestTenantTemplate -ContainerName $parameters.containerName -SourceTenant $parameters.tenant
-    }
 
     # dispatched=true marks "we started the foreach" - lets concurrent reads notice an in-flight
     # run. completed=false stays false until wait+merge finish; only then is finalResult valid.
@@ -1380,7 +1385,8 @@ function Invoke-ParallelTestExecution {
     # Run the first app alone and await it to warm the container before parallelizing the rest.
     # No-op for single-app/single-tenant.
     $pending = @(Invoke-WarmupDispatch -Parameters $parameters -Pending $pending -AppIdByName $appIdByName `
-        -Tenants $tenants -ScriptPath $scriptPath -TestType $testType -State $state)
+        -Tenants $tenants -ScriptPath $scriptPath -TestType $testType -State $state `
+        -CleanTenantAppNames $cleanTenantAppNames)
 
     $rerunSuffixes = @()
 
@@ -1421,7 +1427,8 @@ function Invoke-ParallelTestExecution {
             $tenant = Wait-ForFreeTenant -state $state -tenants $tenants -excludeTenant $rerunItem.excludeTenant
             Start-TestAppDispatch -Parameters $parameters -AppName $rerunItem.appName -AppId $appIdByName[$rerunItem.appName] `
                 -Tenant $tenant -ScriptPath $scriptPath -TestType $testType -State $state `
-                -Verb 'Re-running' -FileSuffix $rerunItem.suffix
+                -Verb 'Re-running' -FileSuffix $rerunItem.suffix `
+                -SkipAutomaticDisabledPass:($rerunItem.appName -in $cleanTenantAppNames)
             continue
         }
 
@@ -1453,32 +1460,34 @@ function Invoke-ParallelTestExecution {
         }
     }
 
-    if ($requiredDisabledWorkItems.Count -gt 0) {
-        try {
+        if ($requiredDisabledWorkItems.Count -gt 0) {
             $requiredDisabledPassed = Invoke-RequiredDisabledTestExecution -Parameters $parameters `
                 -WorkItems $requiredDisabledWorkItems -TenantInfo $cleanTenantInfo `
                 -TemplateDatabaseName $templateDatabaseName -ScriptPath $scriptPath -TestType $testType
             if (-not $requiredDisabledPassed) {
                 $state.hasFailures = $true
             }
-        } finally {
+        }
+
+        $allPassed = -not $state.hasFailures
+
+        Merge-TenantTestResults -parameters $parameters -tenants $tenants `
+            -workItems $requiredDisabledWorkItems -rerunSuffixes $rerunSuffixes
+
+        # Persist final result and mark complete so subsequent override invocations short-circuit
+        # to this value (and not the placeholder we wrote before dispatch).
+        $state.finalResult = $allPassed
+        $state.completed = $true
+        $state | ConvertTo-Json -Depth 5 | Set-Content $stateFile -Force
+
+        return $allPassed
+    }
+    finally {
+        if ($templateDatabaseName) {
             Remove-BcTestTenantTemplate -ContainerName $parameters.containerName `
                 -TemplateDatabaseName $templateDatabaseName
         }
     }
-
-    $allPassed = -not $state.hasFailures
-
-    Merge-TenantTestResults -parameters $parameters -tenants $tenants `
-        -workItems $requiredDisabledWorkItems -rerunSuffixes $rerunSuffixes
-
-    # Persist final result and mark complete so subsequent override invocations short-circuit
-    # to this value (and not the placeholder we wrote before dispatch).
-    $state.finalResult = $allPassed
-    $state.completed = $true
-    $state | ConvertTo-Json -Depth 5 | Set-Content $stateFile -Force
-
-    return $allPassed
 }
 
 <#

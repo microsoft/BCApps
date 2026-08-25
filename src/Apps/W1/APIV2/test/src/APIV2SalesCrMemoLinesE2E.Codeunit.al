@@ -9,7 +9,8 @@ codeunit 139837 "APIV2 - Sales CrMemo Lines E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.InitializeApiTest();
+        LibraryGraphMgt.EnsureAuthenticationAvailable();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Sales] [Credit Memo]
     end;
 
@@ -32,7 +33,7 @@ codeunit 139837 "APIV2 - Sales CrMemo Lines E2E"
 
     local procedure Initialize()
     begin
-        LibraryGraphMgt.SetApiTestWorkDate();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
 
         if IsInitialized then
             exit;

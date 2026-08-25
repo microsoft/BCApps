@@ -9,7 +9,8 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.InitializeApiTest();
+        LibraryGraphMgt.EnsureAuthenticationAvailable();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Sales] [Credit Memo]
     end;
 
@@ -93,7 +94,7 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
         // [SCENARIO] Create posted and unposted Sales credit memos and use HTTP POST to delete them
         // [GIVEN] 2 credit memos, one posted and one unposted
 
-        LibraryGraphMgt.SetApiTestWorkDate();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibrarySales.CreateCustomerWithAddress(SellToCustomer);
         LibrarySales.CreateCustomerWithAddress(BillToCustomer);
         CustomerNo := SellToCustomer."No.";
@@ -289,7 +290,7 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
         // [SCENARIO] Create an credit memo both through the client UI and through the API
         // [SCENARIO] and compare them. They should be the same and have the same fields autocompleted wherever needed.
         // [GIVEN] An unposted credit memo
-        LibraryGraphMgt.SetApiTestWorkDate();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryGraphDocumentTools.InitializeUIPage();
 
         LibrarySales.CreateCustomer(SellToCustomer);
@@ -764,6 +765,7 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
         InvoiceCode: Code[20];
     begin
         LibrarySales.CreateSalesInvoice(SalesHeader);
+        EnsureReasonCode();
         ReasonCode.FindFirst();
         SalesHeader.Validate("Reason Code", ReasonCode.Code);
         SalesHeader.Modify(true);
@@ -773,6 +775,19 @@ codeunit 139828 "APIV2 - Sales Credit Memos E2E"
         CODEUNIT.Run(CODEUNIT::"Correct Posted Sales Invoice", SalesInvoiceHeader);
         SalesCrMemoHeader.SetRange("Applies-to Doc. No.", SalesInvoiceHeader."No.");
         SalesCrMemoHeader.FindFirst();
+    end;
+
+    local procedure EnsureReasonCode()
+    var
+        ReasonCode: Record "Reason Code";
+    begin
+        if not ReasonCode.IsEmpty() then
+            exit;
+
+        ReasonCode.Init();
+        ReasonCode.Code := 'API-TEST';
+        ReasonCode.Description := 'API test reason';
+        ReasonCode.Insert();
     end;
 
     local procedure CreateDraftSalesCreditMemo(var SalesHeader: Record "Sales Header")

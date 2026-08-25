@@ -9,7 +9,8 @@ codeunit 139728 "APIV1 - Sales Credit Memos E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.InitializeApiTest();
+        LibraryGraphMgt.EnsureAuthenticationAvailable();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Sales] [Credit Memo]
     end;
 
@@ -778,6 +779,7 @@ codeunit 139728 "APIV1 - Sales Credit Memos E2E"
     begin
         LibrarySales.CreateSalesInvoice(SalesHeader);
         ModifySalesHeaderPostingDate(SalesHeader, WORKDATE());
+        EnsureReasonCode();
         ReasonCode.FindFirst();
         SalesHeader.Validate("Reason Code", ReasonCode.Code);
         SalesHeader.Modify(true);
@@ -787,6 +789,19 @@ codeunit 139728 "APIV1 - Sales Credit Memos E2E"
         CODEUNIT.Run(CODEUNIT::"Correct Posted Sales Invoice", SalesInvoiceHeader);
         SalesCrMemoHeader.SetRange("Applies-to Doc. No.", SalesInvoiceHeader."No.");
         SalesCrMemoHeader.FindFirst();
+    end;
+
+    local procedure EnsureReasonCode()
+    var
+        ReasonCode: Record "Reason Code";
+    begin
+        if not ReasonCode.IsEmpty() then
+            exit;
+
+        ReasonCode.Init();
+        ReasonCode.Code := 'API-TEST';
+        ReasonCode.Description := 'API test reason';
+        ReasonCode.Insert();
     end;
 
     local procedure CreateDraftSalesCreditMemo(var SalesHeader: Record "Sales Header")
