@@ -340,13 +340,23 @@ codeunit 10838 "PaymentMgt Subscribers FR"
         if (PaymentLine."Applies-to Doc. No." = '') and (PaymentLine."Applies-to ID" = '') then
             DirectDebitCollectionEntry.InsertPaymentFileError(StrSubstNo(UnappliedLinesNotAllowedErr, PaymentLine."Line No."))
         else begin
+            if (PaymentLine."Applies-to Doc. No." <> '') and
+               (PaymentLine."Applies-to Doc. Type" = PaymentLine."Applies-to Doc. Type"::"Credit Memo")
+            then
+                exit(false);
             PaymentLine.GetAppliesToDocCustLedgEntry(CustLedgerEntry);
-            if CustLedgerEntry.Count > 1 then
-                DirectDebitCollectionEntry.InsertPaymentFileError(SummarizeNotAllowedErr);
-            CustLedgerEntry.FindFirst();
-            if CustLedgerEntry."Document Type" <> CustLedgerEntry."Document Type"::Invoice then
-                DirectDebitCollectionEntry.InsertPaymentFileError(StrSubstNo(UnappliedLinesNotAllowedErr, PaymentLine."Line No."));
-            AppliesToEntryNo := CustLedgerEntry."Entry No.";
+            CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::Invoice);
+            case CustLedgerEntry.Count of
+                0:
+                    DirectDebitCollectionEntry.InsertPaymentFileError(StrSubstNo(UnappliedLinesNotAllowedErr, PaymentLine."Line No."));
+                1:
+                    begin
+                        CustLedgerEntry.FindFirst();
+                        AppliesToEntryNo := CustLedgerEntry."Entry No.";
+                    end;
+                else
+                    DirectDebitCollectionEntry.InsertPaymentFileError(SummarizeNotAllowedErr);
+            end;
         end;
 
         exit(not DirectDebitCollectionEntry.HasPaymentFileErrors());
