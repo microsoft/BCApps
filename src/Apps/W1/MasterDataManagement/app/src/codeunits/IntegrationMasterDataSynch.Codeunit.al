@@ -202,27 +202,21 @@ codeunit 7231 "Integration Master Data Synch."
     local procedure CacheFilteredIntegrationRecords(var IntegrationSystemIDFilterList: List of [Text]; IntegrationTableMapping: Record "Integration Table Mapping"; var TempIntegrationRecordRef: RecordRef): Boolean
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
-        MasterDataManagement: Codeunit "Master Data Management";
+        DataSource: Interface "IMDM Data Source";
         IntegrationRecordRef: RecordRef;
         IntegrationSystemIDFilter: Text;
         Cached: Boolean;
         IsHandled: Boolean;
-        SourceCompanyName: Text[30];
     begin
         OnCacheFilteredIntegrationRecords(IntegrationSystemIDFilterList, IntegrationTableMapping, TempIntegrationRecordRef, Cached, IsHandled);
         if (IsHandled) then
             exit(Cached);
 
         MasterDataManagementSetup.Get();
+        DataSource := MasterDataManagementSetup.GetDataSource();
         foreach IntegrationSystemIDFilter in IntegrationSystemIDFilterList do
             if IntegrationSystemIDFilter <> '' then begin
-                IntegrationRecordRef.Open(IntegrationTableMapping."Integration Table ID");
-                MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, IntegrationTableMapping."Integration Table ID");
-                if SourceCompanyName = '' then
-                    SourceCompanyName := MasterDataManagementSetup."Company Name";
-                IntegrationRecordRef.ChangeCompany(SourceCompanyName);
-                IntegrationRecordRef.Field(IntegrationTableMapping."Integration Table UID Fld. No.").SetFilter(IntegrationSystemIDFilter);
-                if IntegrationRecordRef.FindSet() then
+                if DataSource.GetByUidFilter(IntegrationTableMapping, IntegrationSystemIDFilter, IntegrationRecordRef) then
                     repeat
                         CopyRecordReference(IntegrationTableMapping, IntegrationRecordRef, TempIntegrationRecordRef, false);
                         Cached := true;

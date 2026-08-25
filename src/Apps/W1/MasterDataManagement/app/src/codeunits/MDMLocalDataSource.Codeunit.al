@@ -53,6 +53,13 @@ codeunit 7240 "MDM Local Data Source" implements "IMDM Data Source"
         end;
     end;
 
+    procedure GetByUidFilter(IntegrationTableMapping: Record "Integration Table Mapping"; UidFilter: Text; var SourceRecordRef: RecordRef): Boolean
+    begin
+        OpenSourceRecordRef(IntegrationTableMapping."Integration Table ID", SourceRecordRef);
+        SourceRecordRef.Field(IntegrationTableMapping."Integration Table UID Fld. No.").SetFilter(UidFilter);
+        exit(SourceRecordRef.FindSet());
+    end;
+
     local procedure OpenSourceRecordRef(IntegrationTableId: Integer; var SourceRecordRef: RecordRef)
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";

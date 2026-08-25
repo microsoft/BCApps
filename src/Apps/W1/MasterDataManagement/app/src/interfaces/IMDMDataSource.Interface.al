@@ -28,4 +28,10 @@ interface "IMDM Data Source"
     /// a RecordId, or a business-key text) into SourceRecordRef. Returns true if found.
     /// </summary>
     procedure GetById(IntegrationTableMapping: Record "Integration Table Mapping"; ID: Variant; var SourceRecordRef: RecordRef): Boolean;
+
+    /// <summary>
+    /// Opens the source integration table and returns the set of records whose integration UID field
+    /// matches UidFilter (a filter expression, e.g. a list of SystemIds). Returns true if any matched.
+    /// </summary>
+    procedure GetByUidFilter(IntegrationTableMapping: Record "Integration Table Mapping"; UidFilter: Text; var SourceRecordRef: RecordRef): Boolean;
 }
