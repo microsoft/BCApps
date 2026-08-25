@@ -13,13 +13,11 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Integration.Shopify;
 using Microsoft.Inventory.Item;
-using Microsoft.Inventory.Setup;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Posting;
 using Microsoft.Sales.Receivables;
-using Microsoft.Sales.Setup;
 using System.TestLibraries.Utilities;
 
 /// <summary>
@@ -620,11 +618,10 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
         if IsInitialized then
             exit;
 
-        // This test can be the first Shopify test to run, before the company has any base setup. Seed the
-        // number series and posting setup so the shared shop initializer and the sales posting can succeed.
-        EnsureNumberSeries();
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
+        // Create a self-contained posting setup first: this can be the earliest Shopify test to run, and the
+        // shared shop initializer needs an existing General Posting Setup.
         CreatePostingSetup();
 
         Codeunit.Run(Codeunit::"Shpfy Initialize Test");
@@ -639,36 +636,6 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
         CreatePaymentMethodMapping();
 
         IsInitialized := true;
-    end;
-
-    local procedure EnsureNumberSeries()
-    var
-        SalesReceivablesSetup: Record "Sales & Receivables Setup";
-        InventorySetup: Record "Inventory Setup";
-        LibraryERM: Codeunit "Library - ERM";
-    begin
-        SalesReceivablesSetup.Get();
-        if SalesReceivablesSetup."Customer Nos." = '' then
-            SalesReceivablesSetup.Validate("Customer Nos.", LibraryERM.CreateNoSeriesCode());
-        if SalesReceivablesSetup."Order Nos." = '' then
-            SalesReceivablesSetup.Validate("Order Nos.", LibraryERM.CreateNoSeriesCode());
-        if SalesReceivablesSetup."Invoice Nos." = '' then
-            SalesReceivablesSetup.Validate("Invoice Nos.", LibraryERM.CreateNoSeriesCode());
-        if SalesReceivablesSetup."Posted Invoice Nos." = '' then
-            SalesReceivablesSetup.Validate("Posted Invoice Nos.", LibraryERM.CreateNoSeriesCode());
-        if SalesReceivablesSetup."Posted Shipment Nos." = '' then
-            SalesReceivablesSetup.Validate("Posted Shipment Nos.", LibraryERM.CreateNoSeriesCode());
-        if SalesReceivablesSetup."Credit Memo Nos." = '' then
-            SalesReceivablesSetup.Validate("Credit Memo Nos.", LibraryERM.CreateNoSeriesCode());
-        if SalesReceivablesSetup."Posted Credit Memo Nos." = '' then
-            SalesReceivablesSetup.Validate("Posted Credit Memo Nos.", LibraryERM.CreateNoSeriesCode());
-        SalesReceivablesSetup.Modify();
-
-        InventorySetup.Get();
-        if InventorySetup."Item Nos." = '' then begin
-            InventorySetup.Validate("Item Nos.", LibraryERM.CreateNoSeriesCode());
-            InventorySetup.Modify();
-        end;
     end;
 
     local procedure CreatePostingSetup()
