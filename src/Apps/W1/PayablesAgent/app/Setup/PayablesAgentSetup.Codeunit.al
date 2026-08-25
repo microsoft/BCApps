@@ -254,7 +254,7 @@ codeunit 3307 "Payables Agent Setup"
     /// This helper does NOT modify the Payables Agent Setup record, allowing callers that already hold
     /// a loaded record (such as ApplyPayablesAgentSetup) to persist the hash themselves in a single Modify().
     /// </summary>
-    local procedure ApplyAgentInstructions(AgentUserSecurityId: Guid): Text[64]
+    local procedure ApplyAgentInstructions(AgentUserSecurityId: Guid) ConfigHash: Text[64]
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
         Agent: Codeunit Agent;
@@ -275,7 +275,7 @@ codeunit 3307 "Payables Agent Setup"
         end;
         Agent.SetInstructions(AgentUserSecurityId, CompletePromptSecretText);
 
-        exit(GetInstructionsConfigHash());
+        ConfigHash := CopyStr(GetInstructionsConfigHash(), 1, MaxStrLen(ConfigHash));
     end;
 
     /// <summary>
@@ -323,7 +323,7 @@ codeunit 3307 "Payables Agent Setup"
     /// Generic on purpose: a future prompt-affecting experiment only needs its key added to
     /// GetInstructionsExperimentKeys (and its value consumed in prompt selection) — no new setup field required.
     /// </summary>
-    internal procedure GetInstructionsConfigHash() ConfigHash: Text[64]
+    internal procedure GetInstructionsConfigHash(): Text
     var
         FeatureConfiguration: Codeunit "Feature Configuration";
         CryptographyManagement: Codeunit "Cryptography Management";
@@ -337,7 +337,7 @@ codeunit 3307 "Payables Agent Setup"
             Signature.Append(FeatureConfiguration.GetConfiguration(ConfigKey));
             Signature.Append(';');
         end;
-        ConfigHash := CopyStr(CryptographyManagement.GenerateHash(Signature.ToText(), HashAlgorithmType::SHA256), 1, MaxStrLen(ConfigHash));
+        exit(CryptographyManagement.GenerateHash(Signature.ToText(), HashAlgorithmType::SHA256));
     end;
 
     local procedure GetInstructionsExperimentKeys() Keys: List of [Text]
