@@ -49,10 +49,10 @@ codeunit 9667 "Composite Report Parts Mgt."
         ClearLastError();
 
         if not NavApp.ListResources(ResourceFile).Contains(ResourceFile) then
-            Error(ResourceNotReadableError(PartName, ResourceFile));
+            Error(PartResourceError(PartName, ResourceFile, StrSubstNo(ResourceMissingDetailTxt, ResourceFile)));
 
         if not TryGetPartLayout(ResourceFile, PartLayout) then
-            Error(ResourceNotReadableError(PartName, ResourceFile));
+            Error(PartResourceError(PartName, ResourceFile, StrSubstNo(ResourceNotReadableDetailTxt, ResourceFile, GetLastErrorText(true))));
 
         RemovePart(PartName, GetShippedPartAppId());
 
@@ -83,7 +83,7 @@ codeunit 9667 "Composite Report Parts Mgt."
         CopyStream(PartLayoutOutStream, ResourceInStream);
     end;
 
-    local procedure ResourceNotReadableError(PartName: Text; ResourceFile: Text) LayoutErrorInfo: ErrorInfo
+    local procedure PartResourceError(PartName: Text; ResourceFile: Text; Detail: Text) LayoutErrorInfo: ErrorInfo
     var
         Dimensions: Dictionary of [Text, Text];
     begin
@@ -91,7 +91,7 @@ codeunit 9667 "Composite Report Parts Mgt."
         LayoutErrorInfo.Verbosity := LayoutErrorInfo.Verbosity::Error;
         LayoutErrorInfo.DataClassification := LayoutErrorInfo.DataClassification::SystemMetadata;
         LayoutErrorInfo.Message := StrSubstNo(ResourceNotReadableErr, PartName);
-        LayoutErrorInfo.DetailedMessage := StrSubstNo(ResourceNotReadableDetailTxt, ResourceFile, GetLastErrorText(true));
+        LayoutErrorInfo.DetailedMessage := Detail;
 
         Dimensions.Add('PartName', PartName);
         Dimensions.Add('ResourceFile', ResourceFile);
@@ -205,6 +205,7 @@ codeunit 9667 "Composite Report Parts Mgt."
 
         ResourceNotReadableErr: Label 'The layout file for the report part %1 could not be read. The part was not seeded.', Comment = '%1 = the name of the shipped theme or header/footer part';
         ResourceNotReadableDetailTxt: Label 'Resource: %1. Platform error: %2', Locked = true;
+        ResourceMissingDetailTxt: Label 'Resource: %1. The app does not carry this resource.', Locked = true;
 
         ThemeMimeTypeTxt: Label 'reportlayout/dotx', Locked = true;
         HeaderFooterMimeTypeTxt: Label 'reportlayout/docx', Locked = true;

@@ -657,7 +657,6 @@ codeunit 134619 "Composite Layout Tests"
         Assert.AreEqual(0, ShippedPartCount(PartName), 'A part that could not be read should leave no row in the pool.');
     end;
 
-
     [Test]
     [Scope('OnPrem')]
     procedure CompositeLayoutKeyUsesTheOwningApplicationId()
