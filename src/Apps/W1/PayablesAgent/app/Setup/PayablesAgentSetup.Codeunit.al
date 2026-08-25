@@ -278,6 +278,16 @@ codeunit 3307 "Payables Agent Setup"
     end;
 
     /// <summary>
+    /// Returns true when the tenant is assigned the "Draft from PDF with AI" caption variant, false for the "New from PDF" control.
+    /// </summary>
+    internal procedure IsNewInvoiceAIVariant(): Boolean
+    var
+        FeatureConfiguration: Codeunit "Feature Configuration";
+    begin
+        exit(FeatureConfiguration.GetConfiguration(NewInvoiceAIVariantTok) = NewInvoiceAIVariantTreatmentTok);
+    end;
+
+    /// <summary>
     /// Reconciles the agent's persisted instructions with the current experiment configuration.
     /// The agent instructions are set once (at creation/upgrade), but tenant-level ECS experiments can change
     /// independently; this reapplies the instructions when the configuration that produced them has drifted.
@@ -821,4 +831,6 @@ codeunit 3307 "Payables Agent Setup"
         UnableToConfigureAgentInstructionsErr: Label 'Unable to configure agent instructions.';
         AgentDrivenLineMatchingTok: Label 'PAAgentDrivenLineMatching', Locked = true;
         AgentDrivenTreatmentTok: Label 'agent_driven', Locked = true;
+        NewInvoiceAIVariantTok: Label 'PADraftFromPdfCaption', Locked = true;
+        NewInvoiceAIVariantTreatmentTok: Label 'AI_variant', Locked = true;
 }

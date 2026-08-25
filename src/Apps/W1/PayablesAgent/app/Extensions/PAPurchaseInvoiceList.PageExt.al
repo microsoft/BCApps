@@ -20,11 +20,22 @@ pageextension 3309 "PA Purchase Invoice List" extends "Purchase Invoices"
                 Caption = 'New from PDF';
                 Image = Sparkle;
                 ToolTip = 'Upload a PDF invoice to create a purchase invoice with agent assistance.';
-                Visible = IsAgentActionVisible;
+                Visible = IsAgentActionVisible and not IsNewInvoiceAIVariant;
                 trigger OnAction()
                 begin
-                    UploadInvoiceWithAgent();
-                    ShowTaskPaneForLatestAgentTask();
+                    RunNewInvoiceAction(false);
+                end;
+            }
+            action(PANewInvoiceAIVariant)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Draft from PDF with AI';
+                Image = Sparkle;
+                ToolTip = 'Upload a PDF invoice to create a purchase invoice with agent assistance.';
+                Visible = IsAgentActionVisible and IsNewInvoiceAIVariant;
+                trigger OnAction()
+                begin
+                    RunNewInvoiceAction(true);
                 end;
             }
         }
@@ -36,17 +47,31 @@ pageextension 3309 "PA Purchase Invoice List" extends "Purchase Invoices"
                 Caption = 'New from PDF';
                 Image = Sparkle;
                 ToolTip = 'Upload a PDF invoice to create a purchase invoice with agent assistance.';
-                Visible = IsAgentActionVisible;
+                Visible = IsAgentActionVisible and not IsNewInvoiceAIVariant;
                 trigger OnAction()
                 begin
-                    UploadInvoiceWithAgent();
-                    ShowTaskPaneForLatestAgentTask();
+                    RunNewInvoiceAction(false);
+                end;
+            }
+            action(PANewInvoicePromptingAIVariant)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Draft from PDF with AI';
+                Image = Sparkle;
+                ToolTip = 'Upload a PDF invoice to create a purchase invoice with agent assistance.';
+                Visible = IsAgentActionVisible and IsNewInvoiceAIVariant;
+                trigger OnAction()
+                begin
+                    RunNewInvoiceAction(true);
                 end;
             }
         }
         addlast(Category_New)
         {
             actionref(PANewInvoice_Promoted; PANewInvoice)
+            {
+            }
+            actionref(PANewInvoiceAIVariant_Promoted; PANewInvoiceAIVariant)
             {
             }
         }
@@ -58,9 +83,16 @@ pageextension 3309 "PA Purchase Invoice List" extends "Purchase Invoices"
     trigger OnOpenPage()
     begin
         IsAgentActionVisible := PayablesAgentSetup.CanShowAgentActions();
+        IsNewInvoiceAIVariant := PayablesAgentSetup.IsNewInvoiceAIVariant();
     end;
 
-    local procedure UploadInvoiceWithAgent()
+    local procedure RunNewInvoiceAction(UseAIVariant: Boolean)
+    begin
+        UploadInvoiceWithAgent(UseAIVariant);
+        ShowTaskPaneForLatestAgentTask();
+    end;
+
+    local procedure UploadInvoiceWithAgent(UseAIVariant: Boolean)
     var
         PayablesAgent: Codeunit "Payables Agent";
         PATrialGuide: Page "PA Trial Guide";
@@ -78,7 +110,10 @@ pageextension 3309 "PA Purchase Invoice List" extends "Purchase Invoices"
         AgentExistInEnvironment := PayablesAgent.PayablesAgentExistsAcrossAllCompanies();
         PayablesAgentSetup.EnsureAgentActivated(AlreadyActivated);
         PayablesAgentSetup.ImportInvoiceFile(FileName, InStream);
-        Session.LogMessage('0000SEJ', NewWithAgentTok, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, PayablesAgent.GetCustomDimensions());
+        if UseAIVariant then
+            Session.LogMessage('0000V8J', NewInvoiceAIVariantTok, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, PayablesAgent.GetCustomDimensions())
+        else
+            Session.LogMessage('0000SEJ', NewWithAgentTok, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, PayablesAgent.GetCustomDimensions());
 
         if AgentExistInEnvironment then
             exit;
@@ -109,7 +144,9 @@ pageextension 3309 "PA Purchase Invoice List" extends "Purchase Invoices"
     var
         PayablesAgentSetup: Codeunit "Payables Agent Setup";
         IsAgentActionVisible: Boolean;
+        IsNewInvoiceAIVariant: Boolean;
         SelectFileLbl: Label 'Select file';
         PdfFileFilterLbl: Label 'PDF Files (*.pdf)|*.pdf';
         NewWithAgentTok: Label 'User uploaded invoice via New with agent action.', Locked = true;
+        NewInvoiceAIVariantTok: Label 'User uploaded invoice via Draft from PDF with AI action.', Locked = true;
 }
