@@ -10,7 +10,14 @@ permissionset 7230 "Master Data Mgt. - Objects"
     Assignable = false;
     Access = Public;
 
-    Permissions = codeunit * = X,
+    Permissions = codeunit "Master Data Mgt. Setup Default" = X,
+                  codeunit "Integration Master Data Synch." = X,
+                  codeunit "Master Data Management" = X,
+                  codeunit "Master Data Mgt. Table Couple" = X,
+                  codeunit "Master Data Mgt. Tbl. Uncouple" = X,
+                  codeunit "Master Data Mgt. Subscribers" = X,
+                  codeunit "Master Data Mgt. Upgrade" = X,
+                  codeunit "MDM Local Data Source" = X,
                   page * = X,
                   table * = X,
                   xmlport * = X;

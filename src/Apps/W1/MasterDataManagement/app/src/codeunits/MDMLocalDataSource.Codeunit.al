@@ -12,26 +12,56 @@ codeunit 7240 "MDM Local Data Source" implements "IMDM Data Source"
 
     procedure GetModifiedSet(IntegrationTableMapping: Record "Integration Table Mapping"; TableFilter: Text; var SourceRecordRef: RecordRef): Boolean
     begin
-        OpenSourceRecordRef(IntegrationTableMapping, SourceRecordRef);
+        OpenSourceRecordRef(IntegrationTableMapping."Integration Table ID", SourceRecordRef);
         IntegrationTableMapping.SetIntRecordRefFilter(SourceRecordRef, TableFilter);
         exit(SourceRecordRef.FindSet());
     end;
 
-    procedure GetBySystemId(IntegrationTableMapping: Record "Integration Table Mapping"; SystemId: Guid; var SourceRecordRef: RecordRef): Boolean
+    procedure GetBySystemId(IntegrationTableId: Integer; SystemId: Guid; var SourceRecordRef: RecordRef): Boolean
     begin
-        OpenSourceRecordRef(IntegrationTableMapping, SourceRecordRef);
+        OpenSourceRecordRef(IntegrationTableId, SourceRecordRef);
         exit(SourceRecordRef.GetBySystemId(SystemId));
     end;
 
-    local procedure OpenSourceRecordRef(IntegrationTableMapping: Record "Integration Table Mapping"; var SourceRecordRef: RecordRef)
+    procedure GetById(IntegrationTableMapping: Record "Integration Table Mapping"; ID: Variant; var SourceRecordRef: RecordRef): Boolean
+    var
+        IDFieldRef: FieldRef;
+        RecId: RecordID;
+        TextKey: Text;
+    begin
+        SourceRecordRef.Close();
+        if ID.IsGuid then begin
+            OpenSourceRecordRef(IntegrationTableMapping."Integration Table ID", SourceRecordRef);
+            IDFieldRef := SourceRecordRef.Field(IntegrationTableMapping."Integration Table UID Fld. No.");
+            IDFieldRef.SetFilter(ID);
+            exit(SourceRecordRef.FindFirst());
+        end;
+
+        if ID.IsRecordId then begin
+            OpenSourceRecordRef(IntegrationTableMapping."Integration Table ID", SourceRecordRef);
+            RecId := ID;
+            if RecId.TableNo = IntegrationTableMapping."Table ID" then
+                exit(SourceRecordRef.Get(ID));
+        end;
+
+        if ID.IsText then begin
+            OpenSourceRecordRef(IntegrationTableMapping."Integration Table ID", SourceRecordRef);
+            IDFieldRef := SourceRecordRef.Field(IntegrationTableMapping."Integration Table UID Fld. No.");
+            TextKey := ID;
+            IDFieldRef.SetFilter('%1', TextKey);
+            exit(SourceRecordRef.FindFirst());
+        end;
+    end;
+
+    local procedure OpenSourceRecordRef(IntegrationTableId: Integer; var SourceRecordRef: RecordRef)
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
         MasterDataManagement: Codeunit "Master Data Management";
         SourceCompanyName: Text[30];
     begin
         MasterDataManagementSetup.Get();
-        SourceRecordRef.Open(IntegrationTableMapping."Integration Table ID");
-        MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, IntegrationTableMapping."Integration Table ID");
+        SourceRecordRef.Open(IntegrationTableId);
+        MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, IntegrationTableId);
         if SourceCompanyName = '' then
             SourceCompanyName := MasterDataManagementSetup."Company Name";
         SourceRecordRef.ChangeCompany(SourceCompanyName);

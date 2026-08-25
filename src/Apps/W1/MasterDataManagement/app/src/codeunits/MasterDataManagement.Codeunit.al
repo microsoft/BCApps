@@ -349,46 +349,15 @@ codeunit 7233 "Master Data Management"
     internal procedure GetIntegrationRecordRef(var IntegrationTableMapping: Record "Integration Table Mapping"; ID: Variant; var IntegrationRecordRef: RecordRef): Boolean
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
-        IDFieldRef: FieldRef;
-        RecordID: RecordID;
-        TextKey: Text;
         Found: Boolean;
         IsHandled: Boolean;
-        SourceCompanyName: Text[30];
     begin
         OnGetIntegrationRecordRefByIntegrationSystemId(IntegrationTableMapping, ID, IntegrationRecordRef, Found, IsHandled);
         if IsHandled then
             exit(Found);
 
-        IntegrationRecordRef.Close();
         MasterDataManagementSetup.Get();
-        OnSetSourceCompanyName(SourceCompanyName, IntegrationTableMapping."Integration Table ID");
-        if SourceCompanyName = '' then
-            SourceCompanyName := MasterDataManagementSetup."Company Name";
-        if ID.IsGuid then begin
-            IntegrationRecordRef.Open(IntegrationTableMapping."Integration Table ID");
-            IntegrationRecordRef.ChangeCompany(SourceCompanyName);
-            IDFieldRef := IntegrationRecordRef.Field(IntegrationTableMapping."Integration Table UID Fld. No.");
-            IDFieldRef.SetFilter(ID);
-            exit(IntegrationRecordRef.FindFirst());
-        end;
-
-        if ID.IsRecordId then begin
-            IntegrationRecordRef.Open(IntegrationTableMapping."Integration Table ID");
-            IntegrationRecordRef.ChangeCompany(SourceCompanyName);
-            RecordID := ID;
-            if RecordID.TableNo = IntegrationTableMapping."Table ID" then
-                exit(IntegrationRecordRef.Get(ID));
-        end;
-
-        if ID.IsText then begin
-            IntegrationRecordRef.Open(IntegrationTableMapping."Integration Table ID");
-            IntegrationRecordRef.ChangeCompany(SourceCompanyName);
-            IDFieldRef := IntegrationRecordRef.Field(IntegrationTableMapping."Integration Table UID Fld. No.");
-            TextKey := ID;
-            IDFieldRef.SetFilter('%1', TextKey);
-            exit(IntegrationRecordRef.FindFirst());
-        end;
+        exit(MasterDataManagementSetup.GetDataSource().GetById(IntegrationTableMapping, ID, IntegrationRecordRef));
     end;
 
     local procedure GetRecordRef(RecVariant: Variant; var RecordRef: RecordRef): Integer
@@ -2156,7 +2125,6 @@ codeunit 7233 "Master Data Management"
         MasterDataManagementSetup: Record "Master Data Management Setup";
         IsHandled: Boolean;
         Found: Boolean;
-        SourceCompanyName: Text[30];
     begin
         OnGetIntegrationRecordRefFromCoupling(IntegrationTableID, MasterDataMgtCoupling, RecRef, Found, IsHandled);
         if IsHandled then
@@ -2166,12 +2134,7 @@ codeunit 7233 "Master Data Management"
             exit(false);
 
         MasterDataManagementSetup.Get();
-        RecRef.Open(IntegrationTableID);
-        OnSetSourceCompanyName(SourceCompanyName, IntegrationTableID);
-        if SourceCompanyName = '' then
-            SourceCompanyName := MasterDataManagementSetup."Company Name";
-        RecRef.ChangeCompany(SourceCompanyName);
-        exit(RecRef.GetBySystemId(MasterDataMgtCoupling."Integration System ID"));
+        exit(MasterDataManagementSetup.GetDataSource().GetBySystemId(IntegrationTableID, MasterDataMgtCoupling."Integration System ID", RecRef));
     end;
 
     internal procedure RemoveSubsidiarySubscriptionFromMasterCompany(MasterCompanyName: Text[30]; SubsidiaryCompanyName: Text[30])

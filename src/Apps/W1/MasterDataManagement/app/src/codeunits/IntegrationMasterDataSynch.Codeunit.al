@@ -71,35 +71,30 @@ codeunit 7231 "Integration Master Data Synch."
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
         MasterDataManagement: Codeunit "Master Data Management";
+        DataSource: Interface "IMDM Data Source";
         IntegrationRecordRef: RecordRef;
         IntegrationRecordID: Guid;
         TableFilter: Text;
         FilterList: List of [Text];
         IsHandled: Boolean;
-        SourceCompanyName: Text[30];
     begin
         OnFindModifiedIntegrationRecords(TempIntegrationRecordRef, IntegrationTableMapping, FailedNotSkippedIdDictionary, IsHandled);
         if IsHandled then
             exit;
 
         MasterDataManagementSetup.Get();
+        DataSource := MasterDataManagementSetup.GetDataSource();
         SplitIntegrationTableFilter(IntegrationTableMapping, FilterList);
-        IntegrationRecordRef.Open(IntegrationTableMapping."Integration Table ID");
-        MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, IntegrationTableMapping."Integration Table ID");
-        if SourceCompanyName = '' then
-            SourceCompanyName := MasterDataManagementSetup."Company Name";
-        IntegrationRecordRef.ChangeCompany(SourceCompanyName);
         foreach TableFilter in FilterList do begin
-            IntegrationTableMapping.SetIntRecordRefFilter(IntegrationRecordRef, TableFilter);
-            if IntegrationRecordRef.FindSet() then
+            if DataSource.GetModifiedSet(IntegrationTableMapping, TableFilter, IntegrationRecordRef) then
                 repeat
                     IntegrationRecordID := IntegrationRecordRef.Field(IntegrationTableMapping."Integration Table UID Fld. No.").Value();
                     if not FailedNotSkippedIdDictionary.ContainsKey(IntegrationRecordID) then
                         if not TryCopyRecordReference(IntegrationTableMapping, IntegrationRecordRef, TempIntegrationRecordRef, false) then
                             Session.LogMessage('0000J8Q', StrSubstNo(CopyRecordRefFailedTxt, IntegrationRecordID), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
                 until IntegrationRecordRef.Next() = 0;
+            IntegrationRecordRef.Close();
         end;
-        IntegrationRecordRef.Close();
     end;
 
     [TryFunction]
@@ -260,7 +255,6 @@ codeunit 7231 "Integration Master Data Synch."
         RecordID: RecordID;
         IntegrationSystemID: Guid;
         IsHandled: Boolean;
-        SourceCompanyName: Text[30];
     begin
         case GetSourceType(SourceID) of
             SupportedSourceType::RecordID:
@@ -282,12 +276,7 @@ codeunit 7231 "Integration Master Data Synch."
                     MasterDataManagement.OnGetIntegrationRecordRefBySystemId(IntegrationTableMapping, RecordRef, IntegrationSystemID, IsHandled);
                     if not IsHandled then begin
                         MasterDataManagementSetup.Get();
-                        MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, IntegrationTableMapping."Integration Table ID");
-                        if SourceCompanyName = '' then
-                            SourceCompanyName := MasterDataManagementSetup."Company Name";
-                        RecordRef.Open(IntegrationTableMapping."Integration Table ID");
-                        RecordRef.ChangeCompany(SourceCompanyName);
-                        if not RecordRef.GetBySystemId(IntegrationSystemID) then
+                        if not MasterDataManagementSetup.GetDataSource().GetBySystemId(IntegrationTableMapping."Integration Table ID", IntegrationSystemID, RecordRef) then
                             exit(false);
                     end;
                     exit(IntegrationTableMapping.FindFilteredRec(RecordRef, OutOfMapFilter));

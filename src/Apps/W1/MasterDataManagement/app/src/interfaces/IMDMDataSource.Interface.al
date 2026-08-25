@@ -18,8 +18,14 @@ interface "IMDM Data Source"
     procedure GetModifiedSet(IntegrationTableMapping: Record "Integration Table Mapping"; TableFilter: Text; var SourceRecordRef: RecordRef): Boolean;
 
     /// <summary>
-    /// Fetches a single source integration-table record by its SystemId into SourceRecordRef.
-    /// Returns true if the record was found.
+    /// Fetches a single source record from the given integration table by its SystemId into
+    /// SourceRecordRef. Returns true if the record was found.
     /// </summary>
-    procedure GetBySystemId(IntegrationTableMapping: Record "Integration Table Mapping"; SystemId: Guid; var SourceRecordRef: RecordRef): Boolean;
+    procedure GetBySystemId(IntegrationTableId: Integer; SystemId: Guid; var SourceRecordRef: RecordRef): Boolean;
+
+    /// <summary>
+    /// Fetches a single source integration-table record by its id (the integration UID field value,
+    /// a RecordId, or a business-key text) into SourceRecordRef. Returns true if found.
+    /// </summary>
+    procedure GetById(IntegrationTableMapping: Record "Integration Table Mapping"; ID: Variant; var SourceRecordRef: RecordRef): Boolean;
 }
