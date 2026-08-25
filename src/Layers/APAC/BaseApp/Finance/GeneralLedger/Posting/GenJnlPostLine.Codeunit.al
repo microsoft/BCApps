@@ -11103,8 +11103,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             else
                 exit(GenJnlLine.Amount - WHTAmountLCY);
     end;
-            exit(CalcAmountSrcCurr(GenJnlLine, GenJnlLine."VAT Base Amount (LCY)" + WHTAmountLCY));
-    end;
 
     local procedure GetVendorPayablesAccount2(var DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; var GenJournalLine: Record "Gen. Journal Line"; VendPostingGr: Record "Vendor Posting Group"): Code[20]
     begin
