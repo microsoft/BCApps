@@ -615,6 +615,121 @@ codeunit 139611 "Shpfy Order Refund Test"
     end;
 
     [Test]
+    procedure UnitTestConsiderRefundsReducesLineDiscountForRefundedQuantity()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrderLine: Record "Shpfy Order Line";
+        Shop: Record "Shpfy Shop";
+        OrderRefundsHelper: Codeunit "Shpfy Order Refunds Helper";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        OrderId: BigInteger;
+        OrderLineId: BigInteger;
+        RefundId: BigInteger;
+        UnitPrice: Decimal;
+        PresentmentUnitPrice: Decimal;
+        OriginalQuantity: Integer;
+        OriginalDiscount: Decimal;
+        PresentmentOriginalDiscount: Decimal;
+        RefundQuantity: Integer;
+        RefundSubtotal: Decimal;
+        PresentmentRefundSubtotal: Decimal;
+        ExpectedDiscount: Decimal;
+        ExpectedPresentmentDiscount: Decimal;
+    begin
+        // [SCENARIO] When a refund removes part of a line's quantity, the line's discount amount is reduced by
+        // the discount that was allocated to the removed quantity, so the remaining quantity is not over-discounted.
+        Initialize();
+
+        // [GIVEN] A line with shop unit price 48, quantity 2 and a 20% order-level discount of 19.20 (per unit 9.60)
+        UnitPrice := 48;
+        OriginalQuantity := 2;
+        OriginalDiscount := 19.2;
+        // [GIVEN] Distinct presentment values: unit price 60, discount 24.00 (20% of 120, per unit 12.00)
+        PresentmentUnitPrice := 60;
+        PresentmentOriginalDiscount := 24;
+        // [GIVEN] A refund that removes one unit; discounted subtotals are 38.40 shop / 48.00 presentment
+        RefundQuantity := 1;
+        RefundSubtotal := 38.4;
+        PresentmentRefundSubtotal := 48;
+        // [GIVEN] The remaining unit must keep only its share of the discount: 9.60 shop / 12.00 presentment
+        ExpectedDiscount := 9.6;
+        ExpectedPresentmentDiscount := 12;
+
+        // [GIVEN] A processed Shopify order with that discounted line
+        CreateProcessedShopifyOrderWithDiscountedLine(OrderId, OrderLineId, UnitPrice, PresentmentUnitPrice, OriginalQuantity, OriginalDiscount, PresentmentOriginalDiscount);
+
+        // [GIVEN] Shop with "Return and Refund Process" set to "Import Only"
+        Shop := InitializeTest.CreateShop();
+        Shop."Return and Refund Process" := "Shpfy ReturnRefund ProcessType"::"Import Only";
+        Shop.Modify(false);
+
+        // [GIVEN] A zero-amount (order edit) refund that removes one unit but keeps its discounted subtotal
+        OrderRefundsHelper.SetDefaultSeed();
+        RefundId := OrderRefundsHelper.CreateRefundHeader(OrderId, 0, 0, Shop.Code);
+        OrderRefundsHelper.CreateRefundLineWithoutCreditMemo(RefundId, OrderLineId, RefundQuantity, UnitPrice, PresentmentUnitPrice, RefundSubtotal, PresentmentRefundSubtotal);
+
+        // [WHEN] ConsiderRefundsInQuantityAndAmounts is executed
+        OrderHeader.Get(OrderId);
+        ImportOrder.SetShop(Shop.Code);
+        ImportOrder.ConsiderRefundsInQuantityAndAmounts(OrderHeader);
+
+        // [THEN] The line quantity is reduced by the refunded quantity
+        OrderLine.Get(OrderId, OrderLineId);
+        LibraryAssert.AreEqual(OriginalQuantity - RefundQuantity, OrderLine.Quantity, 'Quantity must be reduced by the refunded quantity.');
+        // [THEN] The shop and presentment discounts are each reduced to the remaining quantity's share
+        LibraryAssert.AreEqual(ExpectedDiscount, OrderLine."Discount Amount", 'Discount Amount must be reduced by the refunded quantity''s discount.');
+        LibraryAssert.AreEqual(ExpectedPresentmentDiscount, OrderLine."Presentment Discount Amount", 'Presentment Discount Amount must be reduced by the refunded quantity''s presentment discount.');
+    end;
+
+    [Test]
+    procedure UnitTestConsiderRefundsAggregatesMultipleRefundLinesForLineDiscount()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrderLine: Record "Shpfy Order Line";
+        Shop: Record "Shpfy Shop";
+        OrderRefundsHelper: Codeunit "Shpfy Order Refunds Helper";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        OrderId: BigInteger;
+        OrderLineId: BigInteger;
+        RefundId: BigInteger;
+        UnitPrice: Decimal;
+        PresentmentUnitPrice: Decimal;
+    begin
+        // [SCENARIO] Multiple refund lines against the same order line are aggregated (CalcSums) so the line discount
+        // is reduced by the combined discount of all refunded quantities, not just a single refund line.
+        Initialize();
+
+        // [GIVEN] A line with shop unit price 48, quantity 5 and a 20% discount of 48.00 (per unit 9.60)
+        // [GIVEN] Distinct presentment values: unit price 60, discount 60.00 (per unit 12.00)
+        UnitPrice := 48;
+        PresentmentUnitPrice := 60;
+        CreateProcessedShopifyOrderWithDiscountedLine(OrderId, OrderLineId, UnitPrice, PresentmentUnitPrice, 5, 48, 60);
+
+        // [GIVEN] Shop with "Return and Refund Process" set to "Import Only"
+        Shop := InitializeTest.CreateShop();
+        Shop."Return and Refund Process" := "Shpfy ReturnRefund ProcessType"::"Import Only";
+        Shop.Modify(false);
+
+        // [GIVEN] Two refund lines on the same order line: one removes 1 unit, the other removes 2 units
+        OrderRefundsHelper.SetDefaultSeed();
+        RefundId := OrderRefundsHelper.CreateRefundHeader(OrderId, 0, 0, Shop.Code);
+        OrderRefundsHelper.CreateRefundLineWithoutCreditMemo(RefundId, OrderLineId, 1, UnitPrice, PresentmentUnitPrice, 38.4, 48);
+        OrderRefundsHelper.CreateRefundLineWithoutCreditMemo(RefundId, OrderLineId, 2, UnitPrice, PresentmentUnitPrice, 76.8, 96);
+
+        // [WHEN] ConsiderRefundsInQuantityAndAmounts is executed
+        OrderHeader.Get(OrderId);
+        ImportOrder.SetShop(Shop.Code);
+        ImportOrder.ConsiderRefundsInQuantityAndAmounts(OrderHeader);
+
+        // [THEN] The 3 refunded units are removed, leaving quantity 2
+        OrderLine.Get(OrderId, OrderLineId);
+        LibraryAssert.AreEqual(2, OrderLine.Quantity, 'Quantity must be reduced by the combined refunded quantity.');
+        // [THEN] The discount is reduced by the combined discount of the 3 refunded units: 28.80 shop / 36.00 presentment
+        LibraryAssert.AreEqual(19.2, OrderLine."Discount Amount", 'Discount Amount must be reduced by the combined refunded discount.');
+        LibraryAssert.AreEqual(24, OrderLine."Presentment Discount Amount", 'Presentment Discount Amount must be reduced by the combined refunded presentment discount.');
+    end;
+
+    [Test]
     procedure UnitTestCreateCrMemoFromRefundWithExchangeItem()
     var
         Shop: Record "Shpfy Shop";
@@ -711,6 +826,160 @@ codeunit 139611 "Shpfy Order Refund Test"
 
         // Tear down
         ResetProcessOnRefund(RefundId);
+    end;
+
+    [Test]
+    procedure UnitTestCreateCrMemoFromRefundWithMoreExpensiveExchangeItem()
+    var
+        Shop: Record "Shpfy Shop";
+        OrderHeader: Record "Shpfy Order Header";
+        RefundHeader: Record "Shpfy Refund Header";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        OrderRefundsHelper: Codeunit "Shpfy Order Refunds Helper";
+        OrderId: BigInteger;
+        OriginalOrderLineId: BigInteger;
+        ExchangeOrderLineId: BigInteger;
+        ReturnId: BigInteger;
+        RefundId: BigInteger;
+        OriginalAmount: Decimal;
+        ExchangeAmount: Decimal;
+        RefundTotal: Decimal;
+        ItemSalesLineCount: Integer;
+        RefundAccountLineCount: Integer;
+        IReturnRefundProcess: Interface "Shpfy IReturnRefund Process";
+    begin
+        // [SCENARIO] Create a Credit Memo from a Shopify refund whose return exchanges the returned item for a MORE expensive one.
+        // [SCENARIO] Shopify floors Total Refunded Amount at 0 (the customer pays the difference), so the returned item (+qty) and
+        // [SCENARIO] the exchange item (-qty) net to a negative credit memo total. No balancing G/L Refund Account line must be
+        // [SCENARIO] added to force the total back up to the (zero) refund amount.
+        Initialize();
+        Shop := InitializeTest.CreateShop();
+        Shop."Process Returns As" := "Sales Document Type"::"Credit Memo";
+        Shop."Currency Handling" := "Shpfy Currency Handling"::"Shop Currency";
+        Shop.Modify(false);
+
+        OriginalAmount := 100; // returned item
+        ExchangeAmount := 250; // kept exchange item, more expensive
+        RefundTotal := 0; // Shopify refunds nothing; the customer pays the 150 difference
+
+        // [GIVEN] A processed Shopify order with the original item and an exchange item flagged Is Exchange Item.
+        OrderRefundsHelper.SetDefaultSeed();
+        OrderId := OrderRefundsHelper.CreateShopifyOrder();
+        OrderHeader.Get(OrderId);
+        OrderHeader."Shop Code" := Shop.Code;
+        OrderHeader."Total Amount" := OriginalAmount;
+        OrderHeader."Subtotal Amount" := OriginalAmount;
+        OrderHeader."VAT Amount" := 0;
+        OrderHeader."Presentment Total Amount" := OriginalAmount;
+        OrderHeader."Presentment Subtotal Amount" := OriginalAmount;
+        OrderHeader."Shipping Charges Amount" := 0;
+        OrderHeader.Processed := true;
+        OrderHeader."Processed Currency Handling" := "Shpfy Currency Handling"::"Shop Currency";
+        OrderHeader.Modify(false);
+        OriginalOrderLineId := OrderRefundsHelper.CreateOrderLineWithUnitPrice(OrderId, 10000, Any.IntegerInRange(100000, 999999), Any.IntegerInRange(100000, 999999), OriginalAmount);
+        ExchangeOrderLineId := OrderRefundsHelper.CreateOrderLineWithUnitPrice(OrderId, 20000, Any.IntegerInRange(100000, 999999), Any.IntegerInRange(100000, 999999), ExchangeAmount);
+        OrderRefundsHelper.MarkOrderLineAsExchangeItem(OrderId, ExchangeOrderLineId);
+        OrderRefundsHelper.ProcessShopifyOrder(OrderId);
+
+        // [GIVEN] A return for the original item and a refund whose total is 0 (kept item is more expensive).
+        ReturnId := OrderRefundsHelper.CreateReturn(OrderId);
+        OrderRefundsHelper.CreateReturnLine(ReturnId, OriginalOrderLineId, 'DEFECTIVE');
+        RefundId := OrderRefundsHelper.CreateRefundHeader(OrderId, ReturnId, RefundTotal, Shop.Code);
+        OrderRefundsHelper.CreateRefundLineForReturnedItem(RefundId, OriginalOrderLineId, 1, OriginalAmount);
+        OrderRefundsHelper.CreateExchangeRefundLine(RefundId, ExchangeOrderLineId, 1, ExchangeAmount);
+
+        // [WHEN] CreateSalesDocument is invoked through the Auto Create Credit Memo process.
+        IReturnRefundProcess := Enum::"Shpfy ReturnRefund ProcessType"::"Auto Create Credit Memo";
+        SalesHeader := IReturnRefundProcess.CreateSalesDocument(Enum::"Shpfy Source Document Type"::Refund, RefundId);
+
+        // [THEN] A Credit Memo was created.
+        LibraryAssert.AreEqual(Enum::"Sales Document Type"::"Credit Memo", SalesHeader."Document Type", 'Sales Header must be a Credit Memo.');
+
+        // [THEN] No Sales Line of Type::"G/L Account" pointing at the Refund Account was added.
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::"G/L Account");
+        SalesLine.SetRange("No.", Shop."Refund Account");
+        RefundAccountLineCount := SalesLine.Count();
+        LibraryAssert.AreEqual(0, RefundAccountLineCount, 'No balancing G/L Refund Account line must be created when the exchange item is more expensive.');
+
+        // [THEN] The credit memo contains exactly two Type::Item lines (returned +qty, exchange -qty).
+        SalesLine.Reset();
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::Item);
+        ItemSalesLineCount := SalesLine.Count();
+        LibraryAssert.AreEqual(2, ItemSalesLineCount, 'Credit memo must contain exactly two Type::Item lines (returned +qty, exchange -qty).');
+
+        // [THEN] The credit memo total equals the net of the item lines (returned - exchange), not the floored refund amount.
+        SalesHeader.CalcFields("Amount Including VAT");
+        LibraryAssert.AreNearlyEqual(OriginalAmount - ExchangeAmount, SalesHeader."Amount Including VAT", 0.5, 'Credit memo total must equal returned minus exchange amount (negative), with no balancing line.');
+
+        // [THEN] Precondition sanity: Shopify Total Refunded Amount is 0 for this scenario.
+        RefundHeader.Get(RefundId);
+        LibraryAssert.AreEqual(0, RefundHeader."Total Refunded Amount", 'Total Refunded Amount must be 0 for a more-expensive-exchange refund.');
+
+        // Tear down
+        ResetProcessOnRefund(RefundId);
+    end;
+
+    [Test]
+    procedure UnitTestExchangeLineDoesNotFlagProcessedOrderAsConflicting()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        TempOrderLine: Record "Shpfy Order Line" temporary;
+        Hash: Codeunit "Shpfy Hash";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        JOrder: JsonObject;
+        JShippingPrice: JsonObject;
+        JShopMoney: JsonObject;
+        ExchangeLineIds: List of [BigInteger];
+        NoExchangeLineIds: List of [BigInteger];
+        OriginalLineId: BigInteger;
+        ExchangeLineId: BigInteger;
+    begin
+        // [SCENARIO] A processed order re-imported after a return-with-exchange (which adds an exchange line item to the Shopify
+        // [SCENARIO] order) must not be flagged as conflicting, because the exchange line is handled through the refund flow.
+        Initialize();
+
+        OriginalLineId := 101;
+        ExchangeLineId := 202;
+
+        // [GIVEN] A processed order whose stored line-item redundancy and quantity reflect only the original (non-exchange) line.
+        OrderHeader."Current Total Items Quantity" := 1;
+        OrderHeader."Line Items Redundancy Code" := Hash.CalcHash('|' + Format(OriginalLineId));
+        OrderHeader."Shipping Charges Amount" := 0;
+
+        // [GIVEN] The re-imported order lines contain the original line plus a newly added exchange line.
+        TempOrderLine.Init();
+        TempOrderLine."Shopify Order Id" := 111111;
+        TempOrderLine."Line Id" := OriginalLineId;
+        TempOrderLine.Quantity := 1;
+        TempOrderLine.Insert();
+        TempOrderLine.Init();
+        TempOrderLine."Shopify Order Id" := 111111;
+        TempOrderLine."Line Id" := ExchangeLineId;
+        TempOrderLine.Quantity := 1;
+        TempOrderLine.Insert();
+
+        // [GIVEN] The imported order JSON reports the current (post-return) quantity and unchanged shipping.
+        JShopMoney.Add('amount', 0);
+        JShippingPrice.Add('shopMoney', JShopMoney);
+        JOrder.Add('totalShippingPriceSet', JShippingPrice);
+        JOrder.Add('currentSubtotalLineItemsQuantity', 1);
+
+        // [WHEN/THEN] With the exchange line recognized, the order is NOT flagged as conflicting.
+        ExchangeLineIds.Add(ExchangeLineId);
+        LibraryAssert.IsFalse(
+            ImportOrder.IsImportedOrderConflictingExistingOrder(JOrder, OrderHeader, TempOrderLine, ExchangeLineIds),
+            'A processed order re-imported with an added exchange line must not be treated as conflicting.');
+
+        // [THEN] Control: without excluding the exchange line, the added line changes the redundancy hash and the order is
+        // [THEN] (correctly) detected as changed - proving the exchange exclusion is what suppresses the false conflict.
+        LibraryAssert.IsTrue(
+            ImportOrder.IsImportedOrderConflictingExistingOrder(JOrder, OrderHeader, TempOrderLine, NoExchangeLineIds),
+            'Control: the added line changes the redundancy hash, so without exchange exclusion the order is detected as changed.');
     end;
 
     [Test]
@@ -928,6 +1197,21 @@ codeunit 139611 "Shpfy Order Refund Test"
         OrderHeader.Modify(false);
 
         OrderLineId := OrderRefundsHelper.CreateOrderLine(OrderId, 10000, Any.IntegerInRange(100000, 999999), Any.IntegerInRange(100000, 999999));
+        OrderRefundsHelper.ProcessShopifyOrder(OrderId);
+    end;
+
+    local procedure CreateProcessedShopifyOrderWithDiscountedLine(var OrderId: BigInteger; var OrderLineId: BigInteger; UnitPrice: Decimal; PresentmentUnitPrice: Decimal; Quantity: Integer; DiscountAmount: Decimal; PresentmentDiscountAmount: Decimal)
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrderRefundsHelper: Codeunit "Shpfy Order Refunds Helper";
+    begin
+        OrderRefundsHelper.SetDefaultSeed();
+        OrderId := OrderRefundsHelper.CreateShopifyOrder();
+        OrderHeader.Get(OrderId);
+        OrderHeader.Processed := true;
+        OrderHeader.Modify(false);
+
+        OrderLineId := OrderRefundsHelper.CreateDiscountedOrderLine(OrderId, 10000, Any.IntegerInRange(100000, 999999), Any.IntegerInRange(100000, 999999), UnitPrice, PresentmentUnitPrice, Quantity, DiscountAmount, PresentmentDiscountAmount);
         OrderRefundsHelper.ProcessShopifyOrder(OrderId);
     end;
 
