@@ -35,6 +35,13 @@ page 6183 "E-Doc. Purchase Draft Subform"
         {
             repeater(DocumentLines)
             {
+                field("Line No."; Rec."Line No.")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                    Importance = Additional;
+                    ToolTip = 'Specifies the technical line number used to identify this draft line.';
+                }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;

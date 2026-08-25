@@ -371,22 +371,19 @@ For taking a decision on your next step you **MUST** follow the guidance under t
 
   Request a review because the draft needs to be verified before creating the finalized purchase invoice. Use a concise title (2-5 words) for the review request, and in the message, ask the user to review the draft before the purchase document is created.
 
-  **Before** requesting the review, add a `memorize` entry with a matching summary for every draft line. This will be captured in the agent logs for development analysis but will not be shown to the user. The summary should include:
-  - Line description
-  - Assigned Type and No.
-  - How it was matched (one of: "Prepare Draft", "Synthesized: Item Reference won", "Synthesized: TTA won", "Synthesized: Historical won", "Synthesized: Chart of Accounts fallback", "User Assigned", or "Unmatched")
-  - The Deferral Code applied (or "none"), and whether it came from history, deferral template lookup, or both confirming
-  - Any notable conflicts across match sources (e.g., history pointed to a different account, or history had no deferral but deferral template suggested one, or "NEW PATTERN DETECTED" if the most recent historical match diverged from the older majority)
+  **Before** requesting the review, add a `memorize` entry with the exact key `PAYABLES_AGENT_MATCHING_TELEMETRY`. Its value must be a compact JSON string using this schema:
+  ```json
+  {"v":1,"lines":[{"lineNo":10000,"matchMethod":"TextToAccount","confidence":"High","deferralSource":"None","hasConflict":false,"newPattern":false}]}
+  ```
 
-  Example memorize content:
-  ```
-  MATCHING SUMMARY:
-  Line 1: "Office Supplies" -> G/L Account 8210 (Synthesized: TTA won | Deferral: none | Conflicts: CoA suggested 8220 but TTA mapping was exact match)
-  Line 2: "Storage Units" -> Item 1964-W (Synthesized: Item Reference won | Deferral: none | Conflicts: none)
-  Line 3: "Yearly license fee" -> Allocation Account LICENSES (Synthesized: Historical won | Deferral: 12-MONTH from history + deferral template confirmed | Conflicts: none)
-  Line 4: "Strategic Planning" -> G/L Account 8320 (Synthesized: Chart of Accounts fallback | Deferral: none | Conflicts: no other source matched)
-  Line 5: "Printer Paper" -> Item 1964-W (Prepare Draft - pre-matched)
-  ```
+  Add one object for every draft line and use the actual **Line No.** shown on the draft. Do not use the line's position in the list. Use only these values:
+  - `matchMethod`: `PrepareDraft`, `ItemReference`, `TextToAccount`, `Historical`, `ChartOfAccounts`, `Items`, `PurchaseOrder`, `UserAssigned`, or `Unmatched`
+  - `confidence`: `High`, `Medium`, `Low`, or `None`
+  - `deferralSource`: `None`, `History`, `Template`, or `HistoryAndTemplate`
+  - `hasConflict`: `true` when usable sources disagreed; otherwise `false`
+  - `newPattern`: `true` when the most recent historical match diverged from the older majority; otherwise `false`
+
+  This entry is used for aggregate telemetry. Never include descriptions, vendor names, account numbers, item numbers, deferral codes, explanations, or any other free-form/customer data in this JSON.
 
   <success_criteria>User has reviewed and acknowledged that you can proceed with finalization</success_criteria>
 </task>
