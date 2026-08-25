@@ -1389,7 +1389,8 @@ codeunit 148219 "Sust. Value Chain Fixed Asset"
     var
         FAReclassJournalTemplate: Record "FA Reclass. Journal Template";
     begin
-        FAReclassJournalTemplate.FindFirst();
+        if not FAReclassJournalTemplate.FindFirst() then
+            LibraryFixedAsset.CreateFAReclassJournalTemplate(FAReclassJournalTemplate);
         LibraryFixedAsset.CreateFAReclassJournalBatch(FAReclassJournalBatch, FAReclassJournalTemplate.Name);
     end;
 
