@@ -116,6 +116,7 @@ codeunit 6283 "Sust. FA Journal Subscriber"
     begin
         FAReclassJournalLine.TestField("Sust. Account No.");
         FAReclassJournalLine.TestField("New Sust. Account No.");
+        FAReclassJournalLine.TestField("Reclassify CO2e %");
         FAReclassJournalLine.CheckSustainabilityAccount(FAReclassJournalLine."Sust. Account No.");
         FAReclassJournalLine.CheckSustainabilityAccount(FAReclassJournalLine."New Sust. Account No.");
 
@@ -126,7 +127,7 @@ codeunit 6283 "Sust. FA Journal Subscriber"
         if FADeprBook."Acquisition Total CO2e" = 0 then
             Error(AcquisitionTotalCO2eIsZeroErr, FAName(OldFA, FADeprBook."Depreciation Book Code"), FADeprBook.FieldCaption("Acquisition Total CO2e"));
 
-        exit(Round(FADeprBook."Acquisition Total CO2e" * FAReclassJournalLine."Reclassify Acq. Cost %" / 100));
+        exit(Round(FADeprBook."Acquisition Total CO2e" * FAReclassJournalLine."Reclassify CO2e %" / 100));
     end;
 
     local procedure CheckTotalCo2eMustNotBeNegative(FANo: Code[20]; FAPostingDate: Date; var FALedgerEntry2: Record "FA Ledger Entry"; DepreciationBookCode: Code[10])
