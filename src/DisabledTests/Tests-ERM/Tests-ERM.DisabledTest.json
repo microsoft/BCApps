@@ -6163,17 +6163,5 @@
     "codeunitId": 134098,
     "codeunitName": "ERM Invoice Disc. Distribution",
     "method": "PurchaseOrderPartialInvoicingInvoiceDiscountAmtOnSubtotals"
-  },
-  {
-    "codeunitId": 134154,
-    "codeunitName": "ERM Intercompany III",
-    "method": "OpenICPurchaseInvoiceWithVendorOrderNoExceeding20Chars",
-    "bug": "Flaky order-dependent isolation failure surfaced by PR #10498 (Pmt. Recon. Journal perf); passes standalone and on other PRs. Re-enable after fixing test isolation."
-  },
-  {
-    "codeunitId": 134154,
-    "codeunitName": "ERM Intercompany III",
-    "method": "AutoAcceptICGenJnlTransactionUT",
-    "bug": "Flaky order-dependent isolation failure surfaced by PR #10498 (Pmt. Recon. Journal perf); passes standalone and on other PRs. Re-enable after fixing test isolation."
   }
 ]

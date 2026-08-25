@@ -20645,23 +20645,5 @@
     "codeunitName": "ERM Tax Register Mgt.",
     "method": "*",
     "bug": "RU: tax accounting tests - RU tax-accounting demo data cannot be generated in W1 container (no RU language)"
-  },
-  {
-    "codeunitId": 144052,
-    "codeunitName": "UT REP Purchase & Sales",
-    "method": "PrintRemittanceAdviceReportSelectionsRemittanceAdviceJournal",
-    "bug": "Flaky order-dependent isolation failure surfaced by PR #10498 (Pmt. Recon. Journal perf); passes standalone and on other PRs. Re-enable after fixing test isolation."
-  },
-  {
-    "codeunitId": 144052,
-    "codeunitName": "UT REP Purchase & Sales",
-    "method": "PrintRemittanceAdviceReportSelectionsGenJournalTest",
-    "bug": "Flaky order-dependent isolation failure surfaced by PR #10498 (Pmt. Recon. Journal perf); passes standalone and on other PRs. Re-enable after fixing test isolation."
-  },
-  {
-    "codeunitId": 144052,
-    "codeunitName": "UT REP Purchase & Sales",
-    "method": "PrintRemittanceAdviceReportSelectionsNotExist",
-    "bug": "Flaky order-dependent isolation failure surfaced by PR #10498 (Pmt. Recon. Journal perf); passes standalone and on other PRs. Re-enable after fixing test isolation."
   }
 ]

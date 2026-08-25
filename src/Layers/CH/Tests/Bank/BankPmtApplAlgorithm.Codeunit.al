@@ -6443,14 +6443,19 @@
         SalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         DocumentNo: Code[20];
+        SavedWorkDate: Date;
     begin
         CreateItem(Item, Amount);
+        // Align the work date to the posting date so back-dated posting does not raise the work-date confirmation.
+        SavedWorkDate := WorkDate();
+        WorkDate(PostingDate);
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerNo);
         SalesHeader.Validate("Posting Date", PostingDate);
         SalesHeader.Validate("External Document No.", GenerateExtDocNo());
         SalesHeader.Modify(true);
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
         DocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        WorkDate(SavedWorkDate);
 
         CustLedgerEntry.SetRange("Customer No.", CustomerNo);
         CustLedgerEntry.SetRange("Document No.", DocumentNo);
@@ -6465,14 +6470,19 @@
         PurchaseLine: Record "Purchase Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         DocumentNo: Code[20];
+        SavedWorkDate: Date;
     begin
         CreateItem(Item, Amount);
+        // Align the work date to the posting date so back-dated posting does not raise the work-date confirmation.
+        SavedWorkDate := WorkDate();
+        WorkDate(PostingDate);
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VendorNo);
         PurchaseHeader.Validate("Posting Date", PostingDate);
         PurchaseHeader.Validate("Vendor Invoice No.", GenerateExtDocNo());
         PurchaseHeader.Modify(true);
         LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
         DocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+        WorkDate(SavedWorkDate);
 
         VendorLedgerEntry.SetRange("Vendor No.", VendorNo);
         VendorLedgerEntry.SetRange("Document No.", DocumentNo);

@@ -1666,11 +1666,5 @@
     "codeunitName": "Composite Layout Tests",
     "method": "ShowInfoReportsPartDetailsAndUsage",
     "bug": "Must be aligned with updated platform behavior for layout level assignment resolution; disabled globally."
-  },
-  {
-    "codeunitId": 134982,
-    "codeunitName": "ERM Financial Reports",
-    "method": "CloseIncomeStatementWithARCAndMixedInvoiceCurrencies2",
-    "bug": "Flaky order-dependent isolation failure surfaced by PR #10498 (Pmt. Recon. Journal perf); passes standalone and on other PRs. Re-enable after fixing test isolation."
   }
 ]

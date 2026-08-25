@@ -3495,11 +3495,5 @@
     "codeunitId": 139020,
     "codeunitName": "Test Job Queue SNAP",
     "method": "T181_CalcNextDailyRunTestStartingAndEndingTimesAreEqual"
-  },
-  {
-    "codeunitId": 139480,
-    "codeunitName": "Notification Lifecycle Tests",
-    "method": "TestDisabledStateResetOnOpenPageAndClosePage",
-    "bug": "Flaky order-dependent isolation failure surfaced by PR #10498 (Pmt. Recon. Journal perf); passes standalone and on other PRs. Re-enable after fixing test isolation."
   }
 ]
