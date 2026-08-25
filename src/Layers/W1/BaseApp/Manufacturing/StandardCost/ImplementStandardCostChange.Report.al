@@ -11,6 +11,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Location;
 using Microsoft.Manufacturing.MachineCenter;
+using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Pricing.Calculation;
 using Microsoft.Pricing.PriceList;
@@ -72,6 +73,7 @@ report 5855 "Implement Standard Cost Change"
                 LockTable();
 
                 RevalJnlCreated := false;
+                LoadSKUCostOnMfg := LoadSKUCostOnManufacturing();
             end;
         }
     }
@@ -189,6 +191,8 @@ report 5855 "Implement Standard Cost Change"
         WorkCtrCostsUpdated: Boolean;
         ResCostsUpdated: Boolean;
         SKUCostsUpdated: Boolean;
+        SKUCostUpdateSkipped: Boolean;
+        LoadSKUCostOnMfg: Boolean;
         NoMessage: Boolean;
         HideDuplWarning: Boolean;
 #pragma warning disable AA0074
@@ -199,6 +203,7 @@ report 5855 "Implement Standard Cost Change"
         Text013: Label 'Standard Cost Worksheet %1 is empty.';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
+        SKUCalcStdCostInstructionMsg: Label 'To update the standard cost on stockkeeping units, open the Stockkeeping Unit Card and use the Calc. Standard Cost action.';
 
     protected var
         PostingDate: Date;
@@ -238,6 +243,10 @@ report 5855 "Implement Standard Cost Change"
     begin
         SKU.SetRange("Item No.", StdCostWksh."No.");
         if SKU.Find('-') then begin
+            if LoadSKUCostOnMfg then begin
+                SKUCostUpdateSkipped := true;
+                exit;
+            end;
             SKUCostsUpdated := true;
             repeat
                 IsHandled := false;
@@ -247,6 +256,15 @@ report 5855 "Implement Standard Cost Change"
                 SKU.Modify(true);
             until SKU.Next() = 0;
         end;
+    end;
+
+    local procedure LoadSKUCostOnManufacturing(): Boolean
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+    begin
+        if not ManufacturingSetup.Get() then
+            exit(false);
+        exit(ManufacturingSetup."Load SKU Cost on Manufacturing");
     end;
 
     local procedure UpdateMachCenter(StdCostWksh: Record "Standard Cost Worksheet")
@@ -325,7 +343,7 @@ report 5855 "Implement Standard Cost Change"
         StdCostWkshName := NewStdCostWkshName;
     end;
 
-    local procedure GetMessage() TheMsg: Text[250]
+    local procedure GetMessage() TheMsg: Text
     var
         Item: Record Item;
         MachCtr: Record "Machine Center";
@@ -357,6 +375,11 @@ report 5855 "Implement Standard Cost Change"
         end;
         if TheMsg <> '' then
             TheMsg := Text010 + TheMsg + Text012;
+        if SKUCostUpdateSkipped then begin
+            if TheMsg <> '' then
+                TheMsg += '\';
+            TheMsg += SKUCalcStdCostInstructionMsg;
+        end;
         if RevalJnlCreated then
             TheMsg := TheMsg + Text009;
         exit(TheMsg);
