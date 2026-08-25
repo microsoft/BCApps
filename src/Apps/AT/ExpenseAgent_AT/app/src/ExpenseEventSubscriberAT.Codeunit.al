@@ -83,15 +83,15 @@ codeunit 6914 "Expense Event Subscriber AT"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Expense Categories", 'OnAfterBuildRuleConditionSeeds', '', false, false)]
     local procedure OnAfterBuildRuleConditionSeeds(var TempRuleCondition: Record "Expense Rule Condition" temporary)
     var
-        CreateExpenseRuleCondition: codeunit "Create Expense Rule Condition";
+        CreateExpenseRuleConditions: codeunit "Create Expense Rule Conditions";
     begin
-        CreateExpenseRuleCondition.InsertExpenseRuleCondition(TempRuleCondition, PerDiemI(), CreateExpenseCategories.GetCANADAALLTxt(), 0D, 10000, "Expense Rule Condition Type"::"Daily Rate", 125);
-        CreateExpenseRuleCondition.InsertExpenseRuleCondition(TempRuleCondition, PerDiemI(), CreateExpenseCategories.GetDENMARKALLTxt(), 0D, 10000, "Expense Rule Condition Type"::"Daily Rate", 450);
-        CreateExpenseRuleCondition.InsertExpenseRuleCondition(TempRuleCondition, PerDiemA(), CreateExpenseCategories.GetDOMESTICTxt(), 0D, 10000, "Expense Rule Condition Type"::"Daily Rate", 50);
-        CreateExpenseRuleCondition.InsertExpenseRuleCondition(TempRuleCondition, PerDiemI(), CreateExpenseCategories.GetFRANCEALLTxt(), 0D, 10000, "Expense Rule Condition Type"::"Daily Rate", 110);
-        CreateExpenseRuleCondition.InsertExpenseRuleCondition(TempRuleCondition, PerDiemI(), CreateExpenseCategories.GetGERMANYALLTxt(), 0D, 10000, "Expense Rule Condition Type"::"Daily Rate", 105);
-        CreateExpenseRuleCondition.InsertExpenseRuleCondition(TempRuleCondition, PerDiemI(), CreateExpenseCategories.GetUKOTHERTxt(), 0D, 10000, "Expense Rule Condition Type"::"Daily Rate", 115);
-        CreateExpenseRuleCondition.InsertExpenseRuleCondition(TempRuleCondition, PerDiemI(), CreateExpenseCategories.GetUSAOTHERTxt(), 0D, 10000, "Expense Rule Condition Type"::"Daily Rate", 120);
+        CreateExpenseRuleConditions.InsertExpenseRuleCondition(TempRuleCondition, PerDiemI(), CreateExpenseCategories.GetCANADAALLTxt(), 0D, 10000, "Expense Rule Condition Type"::"Daily Rate", 125);
+        CreateExpenseRuleConditions.InsertExpenseRuleCondition(TempRuleCondition, PerDiemI(), CreateExpenseCategories.GetDENMARKALLTxt(), 0D, 10000, "Expense Rule Condition Type"::"Daily Rate", 450);
+        CreateExpenseRuleConditions.InsertExpenseRuleCondition(TempRuleCondition, PerDiemA(), CreateExpenseCategories.GetDOMESTICTxt(), 0D, 10000, "Expense Rule Condition Type"::"Daily Rate", 50);
+        CreateExpenseRuleConditions.InsertExpenseRuleCondition(TempRuleCondition, PerDiemI(), CreateExpenseCategories.GetFRANCEALLTxt(), 0D, 10000, "Expense Rule Condition Type"::"Daily Rate", 110);
+        CreateExpenseRuleConditions.InsertExpenseRuleCondition(TempRuleCondition, PerDiemI(), CreateExpenseCategories.GetGERMANYALLTxt(), 0D, 10000, "Expense Rule Condition Type"::"Daily Rate", 105);
+        CreateExpenseRuleConditions.InsertExpenseRuleCondition(TempRuleCondition, PerDiemI(), CreateExpenseCategories.GetUKOTHERTxt(), 0D, 10000, "Expense Rule Condition Type"::"Daily Rate", 115);
+        CreateExpenseRuleConditions.InsertExpenseRuleCondition(TempRuleCondition, PerDiemI(), CreateExpenseCategories.GetUSAOTHERTxt(), 0D, 10000, "Expense Rule Condition Type"::"Daily Rate", 120);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Expense Categories", 'OnBeforeAddCategorySeed', '', false, false)]
