@@ -38,7 +38,7 @@ codeunit 148332 "Expense API Test Auth Helper"
         if EnvironmentInfo.IsSaaSInfrastructure() then
             exit(false);
 
-        // Integration test containers use username/password authentication.
+        // On-prem API test requests use the configured Basic credentials.
         exit(true);
     end;
 
