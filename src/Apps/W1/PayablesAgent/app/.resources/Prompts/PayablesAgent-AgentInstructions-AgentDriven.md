@@ -373,10 +373,10 @@ For taking a decision on your next step you **MUST** follow the guidance under t
 
   **Before** requesting the review, add a `memorize` entry with the exact key `PAYABLES_AGENT_MATCHING_TELEMETRY`. Its value must be a compact JSON string using this schema:
   ```json
-  {"v":1,"lines":[{"lineNo":10000,"matchMethod":"TextToAccount","confidence":"High","deferralSource":"None","hasConflict":false,"newPattern":false}]}
+  {"v":1,"lines":[{"matchMethod":"TextToAccount","confidence":"High","deferralSource":"None","hasConflict":false,"newPattern":false}]}
   ```
 
-  Add one object for every draft line and use the actual **Line No.** shown on the draft. Do not use the line's position in the list. Use only these values:
+  Add one object for every draft line, in the same order the lines appear on the draft. Use only these values:
   - `matchMethod`: `PrepareDraft`, `ItemReference`, `TextToAccount`, `Historical`, `ChartOfAccounts`, `Items`, `PurchaseOrder`, `UserAssigned`, or `Unmatched`
   - `confidence`: `High`, `Medium`, `Low`, or `None`
   - `deferralSource`: `None`, `History`, `Template`, or `HistoryAndTemplate`

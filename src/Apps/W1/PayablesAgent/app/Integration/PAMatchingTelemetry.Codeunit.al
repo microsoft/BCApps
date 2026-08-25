@@ -18,117 +18,75 @@ codeunit 3319 "PA Matching Telemetry"
     InherentPermissions = X;
     Permissions =
         tabledata Agent = r,
-        tabledata "Agent Task Log Entry" = r,
+        tabledata "Agent Task" = r,
         tabledata "Agent Task Memory Entry" = r,
         tabledata "E-Document" = r,
-        tabledata "E-Document Purchase Line" = r,
-        tabledata "PA Matching Telemetry Log" = rimd;
+        tabledata "E-Document Purchase Line" = r;
 
-    [EventSubscriber(ObjectType::Table, Database::"Agent Task", OnAfterModifyEvent, '', false, false)]
-    local procedure OnAfterModifyAgentTask(var Rec: Record "Agent Task"; var xRec: Record "Agent Task"; RunTrigger: Boolean)
+    [EventSubscriber(ObjectType::Table, Database::"Agent Task Log Entry", OnAfterInsertEvent, '', false, false)]
+    local procedure OnAfterInsertAgentTaskLogEntry(var Rec: Record "Agent Task Log Entry"; RunTrigger: Boolean)
     begin
         if Rec.IsTemporary() then
             exit;
-        if Rec.Status <> Rec.Status::Completed then
-            exit;
-        if xRec.Status = Rec.Status then
+        if Rec.Type <> Rec.Type::"User Intervention Request" then
             exit;
 
         EmitMatchingTelemetry(Rec);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Agent Task", OnAfterDeleteEvent, '', false, false)]
-    local procedure OnAfterDeleteAgentTask(var Rec: Record "Agent Task"; RunTrigger: Boolean)
-    var
-        MatchingTelemetryLog: Record "PA Matching Telemetry Log";
-    begin
-        if Rec.IsTemporary() then
-            exit;
-        if MatchingTelemetryLog.Get(Rec.ID) then
-            MatchingTelemetryLog.Delete();
-    end;
-
-    local procedure EmitMatchingTelemetry(AgentTask: Record "Agent Task")
+    local procedure EmitMatchingTelemetry(AgentTaskLogEntry: Record "Agent Task Log Entry")
     var
         Agent: Record Agent;
+        AgentTask: Record "Agent Task";
         EDocument: Record "E-Document";
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
-        TempMatchingSummaryLine: Record "PA Matching Summary Line" temporary;
-        MatchingTelemetryLog: Record "PA Matching Telemetry Log";
         PayablesAgentSetup: Codeunit "Payables Agent Setup";
+        LinesArray: JsonArray;
         SummaryText: Text;
         Status: Text;
         EDocumentEntryNo: Integer;
         ExpectedLineCount: Integer;
-        EmptyGuid: Guid;
     begin
-        if MatchingTelemetryLog.Get(AgentTask.ID) then
+        if not AgentTask.Get(AgentTaskLogEntry."Task ID") then
             exit;
-
         if not Agent.Get(AgentTask."Agent User Security ID") then
             exit;
         if Agent."Agent Metadata Provider" <> "Agent Metadata Provider"::"Payables Agent" then
             exit;
-        if not Evaluate(EDocumentEntryNo, AgentTask."External ID") then begin
-            LogProcessingStatus(AgentTask, EDocumentNotFoundStatusTok, EmptyGuid, 0, 0);
+        if not Evaluate(EDocumentEntryNo, AgentTask."External ID") then
             exit;
-        end;
-        if not EDocument.Get(EDocumentEntryNo) then begin
-            LogProcessingStatus(AgentTask, EDocumentNotFoundStatusTok, EmptyGuid, 0, 0);
+        if not EDocument.Get(EDocumentEntryNo) then
             exit;
-        end;
         if not PayablesAgentSetup.WasEDocumentCreatedByAgent(EDocument) then
             exit;
-
-        if not TryGetMatchingSummary(AgentTask.ID, SummaryText) then begin
-            LogProcessingStatus(AgentTask, MissingSummaryStatusTok, EDocument.SystemId, 0, 0);
+        if not TryGetMatchingSummary(AgentTaskLogEntry, SummaryText) then
             exit;
-        end;
 
-        if not ParseSummary(SummaryText, TempMatchingSummaryLine, Status) then begin
-            LogProcessingStatus(AgentTask, Status, EDocument.SystemId, 0, 0);
+        if not ParseSummary(SummaryText, LinesArray, Status) then begin
+            LogProcessingStatus(AgentTaskLogEntry, AgentTask, Status, EDocument.SystemId, 0, 0);
             exit;
         end;
 
         EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
         ExpectedLineCount := EDocumentPurchaseLine.Count();
-        if ExpectedLineCount <> TempMatchingSummaryLine.Count() then begin
-            LogProcessingStatus(AgentTask, CountMismatchStatusTok, EDocument.SystemId, ExpectedLineCount, TempMatchingSummaryLine.Count());
+        if ExpectedLineCount <> LinesArray.Count() then begin
+            LogProcessingStatus(AgentTaskLogEntry, AgentTask, CountMismatchStatusTok, EDocument.SystemId, ExpectedLineCount, LinesArray.Count());
             exit;
         end;
 
-        if TempMatchingSummaryLine.FindSet() then
-            repeat
-                if not EDocumentPurchaseLine.Get(EDocument."Entry No", TempMatchingSummaryLine."Line No.") then begin
-                    LogProcessingStatus(AgentTask, LineNotFoundStatusTok, EDocument.SystemId, ExpectedLineCount, TempMatchingSummaryLine.Count());
-                    exit;
-                end;
-            until TempMatchingSummaryLine.Next() = 0;
-
-        MatchingTelemetryLog.LockTable();
-        if MatchingTelemetryLog.Get(AgentTask.ID) then
-            exit;
-
-        LogProcessingStatus(AgentTask, SuccessStatusTok, EDocument.SystemId, ExpectedLineCount, TempMatchingSummaryLine.Count());
-        LogSummaryLines(AgentTask, EDocument, TempMatchingSummaryLine);
-
-        MatchingTelemetryLog."Agent Task ID" := AgentTask.ID;
-        MatchingTelemetryLog."E-Document System ID" := EDocument.SystemId;
-        MatchingTelemetryLog."Emitted At" := CurrentDateTime();
-        MatchingTelemetryLog.Insert();
+        LogProcessingStatus(AgentTaskLogEntry, AgentTask, SuccessStatusTok, EDocument.SystemId, ExpectedLineCount, LinesArray.Count());
+        LogSummaryLines(AgentTaskLogEntry, AgentTask, EDocument, LinesArray);
     end;
 
-    internal procedure ParseSummary(SummaryText: Text; var TempMatchingSummaryLine: Record "PA Matching Summary Line" temporary; var Status: Text): Boolean
+    internal procedure ParseSummary(SummaryText: Text; var LinesArray: JsonArray; var Status: Text): Boolean
     var
         RootObject: JsonObject;
-        LinesArray: JsonArray;
         LinesToken: JsonToken;
         LineToken: JsonToken;
         LineObject: JsonObject;
         SchemaVersion: Integer;
     begin
-        TempMatchingSummaryLine.Reset();
-        TempMatchingSummaryLine.DeleteAll();
+        Clear(LinesArray);
 
         if not RootObject.ReadFrom(SummaryText) then begin
             Status := InvalidJsonStatusTok;
@@ -154,83 +112,44 @@ codeunit 3319 "PA Matching Telemetry"
                 exit(false);
             end;
             LineObject := LineToken.AsObject();
-            if not TryReadSummaryLine(LineObject, TempMatchingSummaryLine, Status) then
+            if not IsValidSummaryLine(LineObject) then begin
+                Status := InvalidValueStatusTok;
                 exit(false);
+            end;
         end;
 
         Status := SuccessStatusTok;
         exit(true);
     end;
 
-    local procedure TryReadSummaryLine(LineObject: JsonObject; var TempMatchingSummaryLine: Record "PA Matching Summary Line" temporary; var Status: Text): Boolean
+    local procedure IsValidSummaryLine(LineObject: JsonObject): Boolean
     var
-        LineNo: Integer;
         MatchMethod: Text;
         Confidence: Text;
         DeferralSource: Text;
         HasConflict: Boolean;
         NewPattern: Boolean;
     begin
-        if not TryGetInteger(LineObject, LineNoTok, LineNo) or (LineNo <= 0) then begin
-            Status := InvalidLineStatusTok;
+        if not TryGetText(LineObject, MatchMethodTok, MatchMethod) then
             exit(false);
-        end;
-        if TempMatchingSummaryLine.Get(LineNo) then begin
-            Status := DuplicateLineStatusTok;
+        if not TryGetText(LineObject, ConfidenceTok, Confidence) then
             exit(false);
-        end;
-        if not TryGetText(LineObject, MatchMethodTok, MatchMethod) then begin
-            Status := InvalidLineStatusTok;
+        if not TryGetText(LineObject, DeferralSourceTok, DeferralSource) then
             exit(false);
-        end;
-        if not TryGetText(LineObject, ConfidenceTok, Confidence) then begin
-            Status := InvalidLineStatusTok;
+        if not TryGetBoolean(LineObject, HasConflictTok, HasConflict) then
             exit(false);
-        end;
-        if not TryGetText(LineObject, DeferralSourceTok, DeferralSource) then begin
-            Status := InvalidLineStatusTok;
+        if not TryGetBoolean(LineObject, NewPatternTok, NewPattern) then
             exit(false);
-        end;
-        if not TryGetBoolean(LineObject, HasConflictTok, HasConflict) then begin
-            Status := InvalidLineStatusTok;
-            exit(false);
-        end;
-        if not TryGetBoolean(LineObject, NewPatternTok, NewPattern) then begin
-            Status := InvalidLineStatusTok;
-            exit(false);
-        end;
-        if not IsAllowedMatchMethod(MatchMethod) or not IsAllowedConfidence(Confidence) or not IsAllowedDeferralSource(DeferralSource) then begin
-            Status := InvalidValueStatusTok;
-            exit(false);
-        end;
 
-        TempMatchingSummaryLine.Init();
-        TempMatchingSummaryLine."Line No." := LineNo;
-        TempMatchingSummaryLine."Match Method" := CopyStr(MatchMethod, 1, MaxStrLen(TempMatchingSummaryLine."Match Method"));
-        TempMatchingSummaryLine.Confidence := CopyStr(Confidence, 1, MaxStrLen(TempMatchingSummaryLine.Confidence));
-        TempMatchingSummaryLine."Deferral Source" := CopyStr(DeferralSource, 1, MaxStrLen(TempMatchingSummaryLine."Deferral Source"));
-        TempMatchingSummaryLine."Has Conflict" := HasConflict;
-        TempMatchingSummaryLine."New Pattern" := NewPattern;
-        TempMatchingSummaryLine.Insert();
-        exit(true);
+        exit(IsAllowedMatchMethod(MatchMethod) and IsAllowedConfidence(Confidence) and IsAllowedDeferralSource(DeferralSource));
     end;
 
-    local procedure TryGetMatchingSummary(AgentTaskID: BigInteger; var SummaryText: Text): Boolean
+    local procedure TryGetMatchingSummary(AgentTaskLogEntry: Record "Agent Task Log Entry"; var SummaryText: Text): Boolean
     var
-        AgentTaskLogEntry: Record "Agent Task Log Entry";
         ContextText: Text;
     begin
-        AgentTaskLogEntry.SetRange("Task ID", AgentTaskID);
-        AgentTaskLogEntry.SetCurrentKey(ID);
-        if not AgentTaskLogEntry.FindLast() then
-            exit(false);
-
-        repeat
-            ContextText := ReadContext(AgentTaskLogEntry);
-            if TryGetSummaryFromContext(ContextText, SummaryText) then
-                exit(true);
-        until AgentTaskLogEntry.Next(-1) = 0;
-        exit(false);
+        ContextText := ReadContext(AgentTaskLogEntry);
+        exit(TryGetSummaryFromContext(ContextText, SummaryText));
     end;
 
     local procedure ReadContext(var AgentTaskLogEntry: Record "Agent Task Log Entry") ContextText: Text
@@ -277,7 +196,7 @@ codeunit 3319 "PA Matching Telemetry"
         exit(SummaryText <> '');
     end;
 
-    local procedure LogProcessingStatus(AgentTask: Record "Agent Task"; Status: Text; EDocumentSystemId: Guid; ExpectedLineCount: Integer; SummaryLineCount: Integer)
+    local procedure LogProcessingStatus(AgentTaskLogEntry: Record "Agent Task Log Entry"; AgentTask: Record "Agent Task"; Status: Text; EDocumentSystemId: Guid; ExpectedLineCount: Integer; SummaryLineCount: Integer)
     var
         EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         Telemetry: Codeunit Telemetry;
@@ -285,43 +204,43 @@ codeunit 3319 "PA Matching Telemetry"
     begin
         CustomDimensions.Add(CategoryTok, PayablesAgentCategoryTok);
         CustomDimensions.Add(AgentTaskIdTok, Format(AgentTask.ID, 0, 9));
+        CustomDimensions.Add(AgentTaskLogEntryIdTok, Format(AgentTaskLogEntry.ID, 0, 9));
         CustomDimensions.Add(SchemaVersionTok, '1');
         CustomDimensions.Add(StatusTok, Status);
         CustomDimensions.Add(ExpectedLineCountTok, Format(ExpectedLineCount, 0, 9));
         CustomDimensions.Add(SummaryLineCountTok, Format(SummaryLineCount, 0, 9));
-        if not IsNullGuid(EDocumentSystemId) then
-            CustomDimensions.Add(EDocumentSystemIdTok, EDocImpSessionTelemetry.CreateSystemIdText(EDocumentSystemId));
+        CustomDimensions.Add(EDocumentSystemIdTok, EDocImpSessionTelemetry.CreateSystemIdText(EDocumentSystemId));
 
         Telemetry.LogMessage('0000V7M', MatchingSummaryTelemetryMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
     end;
 
-    local procedure LogSummaryLines(AgentTask: Record "Agent Task"; EDocument: Record "E-Document"; var TempMatchingSummaryLine: Record "PA Matching Summary Line" temporary)
+    local procedure LogSummaryLines(AgentTaskLogEntry: Record "Agent Task Log Entry"; AgentTask: Record "Agent Task"; EDocument: Record "E-Document"; LinesArray: JsonArray)
     var
-        EDocumentPurchaseLine: Record "E-Document Purchase Line";
         EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         Telemetry: Codeunit Telemetry;
         CustomDimensions: Dictionary of [Text, Text];
+        LineObject: JsonObject;
+        LineToken: JsonToken;
+        LineIndex: Integer;
     begin
-        if not TempMatchingSummaryLine.FindSet() then
-            exit;
-
-        repeat
-            EDocumentPurchaseLine.Get(EDocument."Entry No", TempMatchingSummaryLine."Line No.");
+        foreach LineToken in LinesArray do begin
+            LineIndex += 1;
+            LineObject := LineToken.AsObject();
             Clear(CustomDimensions);
             CustomDimensions.Add(CategoryTok, PayablesAgentCategoryTok);
             CustomDimensions.Add(AgentTaskIdTok, Format(AgentTask.ID, 0, 9));
+            CustomDimensions.Add(AgentTaskLogEntryIdTok, Format(AgentTaskLogEntry.ID, 0, 9));
             CustomDimensions.Add(EDocumentSystemIdTok, EDocImpSessionTelemetry.CreateSystemIdText(EDocument.SystemId));
-            CustomDimensions.Add(EDocumentLineSystemIdTok, EDocImpSessionTelemetry.CreateSystemIdText(EDocumentPurchaseLine.SystemId));
-            CustomDimensions.Add(EDocumentLineNoTok, Format(TempMatchingSummaryLine."Line No.", 0, 9));
+            CustomDimensions.Add(SummaryLineIndexTok, Format(LineIndex, 0, 9));
             CustomDimensions.Add(SchemaVersionTok, '1');
-            CustomDimensions.Add(MatchMethodDimensionTok, TempMatchingSummaryLine."Match Method");
-            CustomDimensions.Add(ConfidenceDimensionTok, TempMatchingSummaryLine.Confidence);
-            CustomDimensions.Add(DeferralSourceDimensionTok, TempMatchingSummaryLine."Deferral Source");
-            CustomDimensions.Add(HasConflictDimensionTok, Format(TempMatchingSummaryLine."Has Conflict", 0, 9));
-            CustomDimensions.Add(NewPatternDimensionTok, Format(TempMatchingSummaryLine."New Pattern", 0, 9));
+            CustomDimensions.Add(MatchMethodDimensionTok, LineObject.GetText(MatchMethodTok));
+            CustomDimensions.Add(ConfidenceDimensionTok, LineObject.GetText(ConfidenceTok));
+            CustomDimensions.Add(DeferralSourceDimensionTok, LineObject.GetText(DeferralSourceTok));
+            CustomDimensions.Add(HasConflictDimensionTok, Format(LineObject.GetBoolean(HasConflictTok), 0, 9));
+            CustomDimensions.Add(NewPatternDimensionTok, Format(LineObject.GetBoolean(NewPatternTok), 0, 9));
 
             Telemetry.LogMessage('0000V7N', MatchingSummaryLineTelemetryMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
-        until TempMatchingSummaryLine.Next() = 0;
+        end;
     end;
 
     local procedure IsAllowedMatchMethod(Value: Text): Boolean
@@ -362,7 +281,6 @@ codeunit 3319 "PA Matching Telemetry"
         MemorizedDataTok: Label 'memorizedData', Locked = true;
         VersionTok: Label 'v', Locked = true;
         LinesTok: Label 'lines', Locked = true;
-        LineNoTok: Label 'lineNo', Locked = true;
         MatchMethodTok: Label 'matchMethod', Locked = true;
         ConfidenceTok: Label 'confidence', Locked = true;
         DeferralSourceTok: Label 'deferralSource', Locked = true;
@@ -385,25 +303,20 @@ codeunit 3319 "PA Matching Telemetry"
         TemplateTok: Label 'Template', Locked = true;
         HistoryAndTemplateTok: Label 'HistoryAndTemplate', Locked = true;
         SuccessStatusTok: Label 'Success', Locked = true;
-        MissingSummaryStatusTok: Label 'MissingSummary', Locked = true;
         InvalidJsonStatusTok: Label 'InvalidJson', Locked = true;
         UnsupportedSchemaStatusTok: Label 'UnsupportedSchema', Locked = true;
-        InvalidLineStatusTok: Label 'InvalidLine', Locked = true;
         InvalidValueStatusTok: Label 'InvalidValue', Locked = true;
-        DuplicateLineStatusTok: Label 'DuplicateLineNo', Locked = true;
-        LineNotFoundStatusTok: Label 'LineNotFound', Locked = true;
         CountMismatchStatusTok: Label 'CountMismatch', Locked = true;
-        EDocumentNotFoundStatusTok: Label 'EDocumentNotFound', Locked = true;
         CategoryTok: Label 'Category', Locked = true;
         PayablesAgentCategoryTok: Label 'Payables Agent', Locked = true;
         AgentTaskIdTok: Label 'Agent Task Id', Locked = true;
+        AgentTaskLogEntryIdTok: Label 'Agent Task Log Entry Id', Locked = true;
         SchemaVersionTok: Label 'Schema Version', Locked = true;
         StatusTok: Label 'Summary Status', Locked = true;
         ExpectedLineCountTok: Label 'Expected Line Count', Locked = true;
         SummaryLineCountTok: Label 'Summary Line Count', Locked = true;
         EDocumentSystemIdTok: Label 'E-Document System Id', Locked = true;
-        EDocumentLineSystemIdTok: Label 'E-Document Line System Id', Locked = true;
-        EDocumentLineNoTok: Label 'E-Document Line No.', Locked = true;
+        SummaryLineIndexTok: Label 'Summary Line Index', Locked = true;
         MatchMethodDimensionTok: Label 'Match Method', Locked = true;
         ConfidenceDimensionTok: Label 'Confidence', Locked = true;
         DeferralSourceDimensionTok: Label 'Deferral Source', Locked = true;
