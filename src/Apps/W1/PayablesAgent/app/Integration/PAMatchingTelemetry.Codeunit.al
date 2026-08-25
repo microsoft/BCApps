@@ -23,21 +23,23 @@ codeunit 3319 "PA Matching Telemetry"
         tabledata "E-Document" = r,
         tabledata "E-Document Purchase Line" = r;
 
-    [EventSubscriber(ObjectType::Table, Database::"Agent Task Log Entry", OnAfterInsertEvent, '', false, false)]
-    local procedure OnAfterInsertAgentTaskLogEntry(var Rec: Record "Agent Task Log Entry"; RunTrigger: Boolean)
+    [EventSubscriber(ObjectType::Table, Database::"Agent Task", OnAfterModifyEvent, '', false, false)]
+    local procedure OnAfterModifyAgentTask(var Rec: Record "Agent Task"; var xRec: Record "Agent Task"; RunTrigger: Boolean)
     begin
         if Rec.IsTemporary() then
             exit;
-        if Rec.Type <> Rec.Type::"User Intervention Request" then
+        if Rec.Status <> Rec.Status::Completed then
+            exit;
+        if xRec.Status = Rec.Status then
             exit;
 
         EmitMatchingTelemetry(Rec);
     end;
 
-    local procedure EmitMatchingTelemetry(AgentTaskLogEntry: Record "Agent Task Log Entry")
+    local procedure EmitMatchingTelemetry(AgentTask: Record "Agent Task")
     var
         Agent: Record Agent;
-        AgentTask: Record "Agent Task";
+        AgentTaskLogEntry: Record "Agent Task Log Entry";
         EDocument: Record "E-Document";
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
         PayablesAgentSetup: Codeunit "Payables Agent Setup";
@@ -47,8 +49,6 @@ codeunit 3319 "PA Matching Telemetry"
         EDocumentEntryNo: Integer;
         ExpectedLineCount: Integer;
     begin
-        if not AgentTask.Get(AgentTaskLogEntry."Task ID") then
-            exit;
         if not Agent.Get(AgentTask."Agent User Security ID") then
             exit;
         if Agent."Agent Metadata Provider" <> "Agent Metadata Provider"::"Payables Agent" then
@@ -59,7 +59,7 @@ codeunit 3319 "PA Matching Telemetry"
             exit;
         if not PayablesAgentSetup.WasEDocumentCreatedByAgent(EDocument) then
             exit;
-        if not TryGetMatchingSummary(AgentTaskLogEntry, SummaryText) then
+        if not TryGetMatchingSummary(AgentTask.ID, AgentTaskLogEntry, SummaryText) then
             exit;
 
         if not ParseSummary(SummaryText, LinesArray, Status) then begin
@@ -144,12 +144,22 @@ codeunit 3319 "PA Matching Telemetry"
         exit(IsAllowedMatchMethod(MatchMethod) and IsAllowedConfidence(Confidence) and IsAllowedDeferralSource(DeferralSource));
     end;
 
-    local procedure TryGetMatchingSummary(AgentTaskLogEntry: Record "Agent Task Log Entry"; var SummaryText: Text): Boolean
+    local procedure TryGetMatchingSummary(AgentTaskID: BigInteger; var AgentTaskLogEntry: Record "Agent Task Log Entry"; var SummaryText: Text): Boolean
     var
         ContextText: Text;
     begin
-        ContextText := ReadContext(AgentTaskLogEntry);
-        exit(TryGetSummaryFromContext(ContextText, SummaryText));
+        AgentTaskLogEntry.SetRange("Task ID", AgentTaskID);
+        AgentTaskLogEntry.SetRange(Type, AgentTaskLogEntry.Type::"User Intervention Request");
+        AgentTaskLogEntry.SetCurrentKey(ID);
+        if not AgentTaskLogEntry.FindLast() then
+            exit(false);
+
+        repeat
+            ContextText := ReadContext(AgentTaskLogEntry);
+            if TryGetSummaryFromContext(ContextText, SummaryText) then
+                exit(true);
+        until AgentTaskLogEntry.Next(-1) = 0;
+        exit(false);
     end;
 
     local procedure ReadContext(var AgentTaskLogEntry: Record "Agent Task Log Entry") ContextText: Text
