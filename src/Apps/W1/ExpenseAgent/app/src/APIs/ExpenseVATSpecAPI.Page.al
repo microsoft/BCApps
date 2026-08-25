@@ -108,12 +108,6 @@ page 7085 "Expense VAT Spec. API"
         ExpenseAgentAPIValidation.VerifyAgentAccess();
     end;
 
-    trigger OnNewRecord(BelowxRec: Boolean)
-    begin
-        VerifyExpenseAgentCaller();
-        Rec.Source := Rec.Source::Agent;
-    end;
-
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
         InsertVATSpecification(Rec);
@@ -124,12 +118,5 @@ page 7085 "Expense VAT Spec. API"
     begin
         ExpenseVATSpecification.Source := ExpenseVATSpecification.Source::Agent;
         ExpenseVATSpecification.Insert(true);
-    end;
-
-    local procedure VerifyExpenseAgentCaller()
-    var
-        ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
-    begin
-        ExpenseAgentAPIValidation.VerifyAgentVATSpecificationAccess();
     end;
 }

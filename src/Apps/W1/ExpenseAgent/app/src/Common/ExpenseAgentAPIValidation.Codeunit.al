@@ -18,23 +18,7 @@ codeunit 6993 "Expense Agent API Validation"
     var
         AgentNotEnabledErr: Label 'Expense Agent is not enabled. Please contact your administrator.';
         CapabilityNotEnabledErr: Label 'The "%1" capability is not enabled. Please contact your administrator to enable the capability.', Comment = '%1 = a capability name, such as Expense Agent';
-        AgentVATSpecInsertNotAuthorizedErr: Label 'Agent-authored VAT specifications must be created through an authorized Expense Agent request.';
         ExpenseAgentAadAppIdTxt: Label 'ee1eb5fd-719b-44f2-97d0-0efd34bc4148', Locked = true;
-
-    [EventSubscriber(ObjectType::Table, Database::"Expense VAT Specification", OnBeforeInsertEvent, '', false, false)]
-    local procedure CheckAgentVATSpecificationInsert(var Rec: Record "Expense VAT Specification"; RunTrigger: Boolean)
-    begin
-        if Rec.IsTemporary() or (Rec.Source <> Rec.Source::Agent) then
-            exit;
-
-        VerifyAgentVATSpecificationAccess();
-    end;
-
-    internal procedure VerifyAgentVATSpecificationAccess()
-    begin
-        if not IsCurrentUserExpenseAgent() then
-            Error(AgentVATSpecInsertNotAuthorizedErr);
-    end;
 
     procedure VerifyAgentAccess()
     begin

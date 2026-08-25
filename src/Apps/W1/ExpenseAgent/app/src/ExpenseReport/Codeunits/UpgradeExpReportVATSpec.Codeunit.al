@@ -23,6 +23,9 @@ codeunit 7105 "Upgrade Exp. Report VAT Spec"
                   tabledata "Posted Expense Report Header" = r,
                   tabledata "Posted Exp. Rep. Line VAT Spec" = rm;
 
+    var
+        BackfillCompletedTelemetryMsg: Label 'Expense VAT specification reimbursement amount backfill completed.', Locked = true;
+
     trigger OnUpgradePerCompany()
     begin
         BackfillReimbursementAmounts();
@@ -77,7 +80,23 @@ codeunit 7105 "Upgrade Exp. Report VAT Spec"
         BackfillExpenseReportLineVATSpecs();
         BackfillPostedExpenseReportLineVATSpecs();
 
+        LogBackfillCompleted();
         SetBackfillReimbursementAmountsUpgradeTag();
+    end;
+
+    local procedure LogBackfillCompleted()
+    var
+        ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.";
+        PostedExpenseReportLineVATSpec: Record "Posted Exp. Rep. Line VAT Spec";
+        ExpenseAuditSubscribers: Codeunit "Expense Audit Subscribers";
+        TelemetryDimensions: Dictionary of [Text, Text];
+    begin
+        TelemetryDimensions.Add('Category', ExpenseAuditSubscribers.TelemetryCategory());
+        TelemetryDimensions.Add('ExpenseReportVATSpecificationCount', Format(ExpenseReportLineVATSpec.Count()));
+        TelemetryDimensions.Add('PostedExpenseReportVATSpecificationCount', Format(PostedExpenseReportLineVATSpec.Count()));
+        Session.LogMessage(
+            '0000V16', BackfillCompletedTelemetryMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher,
+            TelemetryDimensions);
     end;
 
     internal procedure SetBackfillReimbursementAmountsUpgradeTag()

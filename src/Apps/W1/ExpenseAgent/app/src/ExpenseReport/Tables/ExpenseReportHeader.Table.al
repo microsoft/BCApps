@@ -103,7 +103,7 @@ table 6906 "Expense Report Header"
                 UpdateCurrencyFactor();
 
                 if xRec."Posting Date" <> Rec."Posting Date" then
-                    UpdateReportLines(Rec.FieldName("Posting Date"));
+                    UpdateReportLines(Rec.FieldCaption("Posting Date"));
             end;
         }
         field(6; "Description"; Text[100])
@@ -357,7 +357,7 @@ table 6906 "Expense Report Header"
             begin
                 TestStatusOpen();
                 if xRec."VAT Bus. Posting Group" <> Rec."VAT Bus. Posting Group" then
-                    UpdateReportLines(Rec.FieldName("VAT Bus. Posting Group"));
+                    UpdateReportLines(Rec.FieldCaption("VAT Bus. Posting Group"));
             end;
         }
         field(42; "Submission DateTime"; DateTime)
@@ -438,7 +438,7 @@ table 6906 "Expense Report Header"
             begin
                 if "Reimbursement Currency Factor" <> xRec."Reimbursement Currency Factor" then begin
                     TestStatusOpen();
-                    UpdateReportLines(Rec.FieldName("Reimbursement Currency Factor"));
+                    UpdateReportLines(Rec.FieldCaption("Reimbursement Currency Factor"));
                 end;
             end;
         }
@@ -527,7 +527,7 @@ table 6906 "Expense Report Header"
                     Rec."Spend Request Close" := false;
 
                 if xRec."Spend Request No." <> Rec."Spend Request No." then
-                    UpdateReportLines(Rec.FieldName("Spend Request No."));
+                    UpdateReportLines(Rec.FieldCaption("Spend Request No."));
             end;
         }
         field(101; "Spend Request Close"; Boolean)
@@ -660,7 +660,7 @@ table 6906 "Expense Report Header"
         end;
     end;
 
-    local procedure UpdateReportLines(CalledFromFieldName: Text)
+    local procedure UpdateReportLines(CalledFromFieldCaption: Text)
     var
         ExpenseReportLine: Record "Expense Report Line";
         ConfirmManagement: Codeunit "Confirm Management";
@@ -668,7 +668,7 @@ table 6906 "Expense Report Header"
         if not ExpenseLinesExist() then
             exit;
 
-        if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(CanModifyLinesQst, CalledFromFieldName), true) then
+        if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(CanModifyLinesQst, CalledFromFieldCaption), true) then
             Error('');
 
         ExpenseReportLine.SetRange("Document No.", "No.");
@@ -676,19 +676,19 @@ table 6906 "Expense Report Header"
             repeat
                 ExpenseReportLine.Initialize(Rec);
 
-                case CalledFromFieldName of
-                    Rec.FieldName("Reimbursement Currency Code"), Rec.FieldName("Reimbursement Currency Factor"):
+                case CalledFromFieldCaption of
+                    Rec.FieldCaption("Reimbursement Currency Code"), Rec.FieldCaption("Reimbursement Currency Factor"):
                         UpdateCurrFactorOnReportLine(ExpenseReportLine);
-                    Rec.FieldName("VAT Bus. Posting Group"):
+                    Rec.FieldCaption("VAT Bus. Posting Group"):
                         UpdateVATBusPostingGroupOnReportLine(ExpenseReportLine);
-                    Rec.FieldName("Posting Date"):
+                    Rec.FieldCaption("Posting Date"):
                         UpdatePostingDateOnReportLine(ExpenseReportLine);
-                    Rec.FieldName("Spend Request No."):
+                    Rec.FieldCaption("Spend Request No."):
                         UpdateSpendRequestOnReportLine(ExpenseReportLine);
                 end;
             until ExpenseReportLine.Next() = 0;
 
-        if CalledFromFieldName in [Rec.FieldName("Reimbursement Currency Code"), Rec.FieldName("Reimbursement Currency Factor"), Rec.FieldName("Posting Date")] then
+        if CalledFromFieldCaption in [Rec.FieldCaption("Reimbursement Currency Code"), Rec.FieldCaption("Reimbursement Currency Factor"), Rec.FieldCaption("Posting Date")] then
             UpdateVATSpecReimbursementAmounts();
     end;
 
@@ -1101,13 +1101,13 @@ table 6906 "Expense Report Header"
             if UpdateCurrencyExchangeRates.ExchangeRatesForCurrencyExist(CurrencyDate, Rec."Reimbursement Currency Code") then begin
                 Rec."Reimbursement Currency Factor" := CurrExchRate.ExchangeRate(CurrencyDate, Rec."Reimbursement Currency Code");
                 if (Rec."Reimbursement Currency Code" <> xRec."Reimbursement Currency Code") and (xRec."No." <> '') then
-                    UpdateReportLines(Rec.FieldName("Reimbursement Currency Code"));
+                    UpdateReportLines(Rec.FieldCaption("Reimbursement Currency Code"));
             end else
                 UpdateCurrencyExchangeRates.ShowMissingExchangeRatesNotification("Reimbursement Currency Code");
         end else begin
             Rec."Reimbursement Currency Factor" := 0;
             if "Reimbursement Currency Code" <> xRec."Reimbursement Currency Code" then
-                UpdateReportLines(Rec.FieldName("Reimbursement Currency Code"));
+                UpdateReportLines(Rec.FieldCaption("Reimbursement Currency Code"));
         end;
     end;
 

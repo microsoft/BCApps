@@ -164,6 +164,7 @@ table 6918 "Expense VAT Specification"
                     end else begin
                         TestField("Amount (LCY)");
                         TestField(Amount);
+                        Expense."Currency Factor" := Amount / "Amount (LCY)";
                     end;
                     Validate("VAT %");
                 end;
