@@ -6,7 +6,6 @@
 namespace System.Agents.Troubleshooting;
 
 using System.Agents;
-using System.Agents.TaskPane;
 
 #pragma warning disable AS0007 // Aligning namespaces.
 page 4343 "Agent Task Context Part"
@@ -31,9 +30,9 @@ page 4343 "Agent Task Context Part"
 
                 trigger OnDrillDown()
                 var
-                    TaskPane: Codeunit "Task Pane";
+                    AgentImpl: Codeunit "Agent Impl.";
                 begin
-                    TaskPane.ShowAgent(Rec."Agent User Security ID");
+                    AgentImpl.ShowAgent(Rec."Agent User Security ID");
                 end;
             }
             field(TaskID; Rec.ID)
@@ -45,9 +44,9 @@ page 4343 "Agent Task Context Part"
 
                 trigger OnDrillDown()
                 var
-                    TaskPane: Codeunit "Task Pane";
+                    AgentTaskImpl: Codeunit "Agent Task Impl.";
                 begin
-                    TaskPane.ShowTask(Rec);
+                    AgentTaskImpl.ShowTask(Rec);
                 end;
             }
             field(TaskTitle; Rec.Title)

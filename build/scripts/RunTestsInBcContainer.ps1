@@ -179,8 +179,10 @@ if (Test-UseAlToolRunner -TestType $TestType) {
         -JUnitResultFileName $parameters.JUnitResultFileName
 }
 else {
-    $maxAttempts = if ($TestType -eq "Legacy") { 1 } else { 2 }
-    $result = Invoke-TestsWithReruns -parameters $parameters -maxAttempts $maxAttempts
+    # A failing app is retried once by the parallel dispatcher, on a different tenant (see
+    # ParallelTestExecution.psm1). Retrying in place here would reuse the tenant the app just dirtied,
+    # so the same residue could re-trigger the failure - hence a single attempt per dispatch.
+    $result = Invoke-TestsWithReruns -parameters $parameters -maxAttempts 1
 
     # For UnitTests, also run with DisableTestIsolation on the same tenant
     if ($TestType -eq "UnitTest") {

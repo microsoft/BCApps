@@ -9,13 +9,15 @@
   "usePsSessionForBc28": true,
   "gitHubRunner": "windows-latest",
   "githubRunnerShell": "pwsh",
-  "artifact": "bcinsider/Sandbox/29.0.53757.0//latest",
+  "artifact": "bcinsider/Sandbox/29.0.53783.0//latest",
   "country": "base",
   "useProjectDependencies": true,
   "repoVersion": "29.0",
   "memoryLimit": "16G",
   "numberOfTenantsForTesting": 4,
   "useSeparateTestAction": true,
+  "maxTestAppReruns": 2,
+  "failOn": "newWarning",
   "workspaceCompilation": {
     "enabled": true,
     "parallelism": -1
@@ -156,7 +158,7 @@
     ]
   },
   "UpdateALGoSystemFilesEnvironment": "Official-Build",
-  "templateSha": "3885bca01def1da8c04663b54c16062b22bc7a27",
+  "templateSha": "b733a9483f7420cffd717b619c97c3b8ba17098a",
   "commitOptions": {
     "messageSuffix": "Related to AB#539394",
     "pullRequestAutoMerge": true,
