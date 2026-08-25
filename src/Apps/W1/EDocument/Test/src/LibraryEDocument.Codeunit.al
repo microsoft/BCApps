@@ -183,6 +183,7 @@ codeunit 139629 "Library - E-Document"
     begin
         WorkflowSetup.InitWorkflow();
         SetupCompanyInfo();
+        CleanGeneralPostingSetup();
 
         // Create Customer for sales scenario
         LibraryPurchase.CreateVendor(Vendor);
@@ -215,6 +216,35 @@ codeunit 139629 "Library - E-Document"
         CreateGenericItem(ExtraItem, VATPostingSetup."VAT Prod. Posting Group");
         CreateItemUnitOfMeasure(ExtraItem."No.", UnitOfMeasure.Code);
         LibraryItemReference.CreateItemReference(ItemReference, ExtraItem."No.", '', 'PCS', Enum::"Item Reference Type"::Vendor, Vendor."No.", '2000');
+    end;
+
+    local procedure CleanGeneralPostingSetup()
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+        GeneralPostingSetupToDelete: Record "General Posting Setup";
+    begin
+        if GeneralPostingSetup.FindSet() then
+            repeat
+                if IsGeneralPostingSetupOrphaned(GeneralPostingSetup) then begin
+                    GeneralPostingSetupToDelete := GeneralPostingSetup;
+                    GeneralPostingSetupToDelete.Delete();
+                end;
+            until GeneralPostingSetup.Next() = 0;
+    end;
+
+    local procedure IsGeneralPostingSetupOrphaned(GeneralPostingSetup: Record "General Posting Setup"): Boolean
+    var
+        GenBusinessPostingGroup: Record "Gen. Business Posting Group";
+        GenProductPostingGroup: Record "Gen. Product Posting Group";
+    begin
+        if (GeneralPostingSetup."Gen. Bus. Posting Group" <> '') and
+           (not GenBusinessPostingGroup.Get(GeneralPostingSetup."Gen. Bus. Posting Group"))
+        then
+            exit(true);
+
+        exit(
+            (GeneralPostingSetup."Gen. Prod. Posting Group" <> '') and
+            (not GenProductPostingGroup.Get(GeneralPostingSetup."Gen. Prod. Posting Group")));
     end;
 
     procedure PostInvoice(var Customer: Record Customer) SalesInvHeader: Record "Sales Invoice Header";
