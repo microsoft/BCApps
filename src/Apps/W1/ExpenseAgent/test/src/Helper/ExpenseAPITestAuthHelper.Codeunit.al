@@ -7,7 +7,6 @@ namespace Microsoft.Test.ExpenseAgent;
 using System.Azure.KeyVault;
 using System.Environment;
 using System.Integration;
-using System.Security.AccessControl;
 
 /// <summary>
 /// Test-only authentication helper for the API test codeunits in this app.
@@ -34,19 +33,12 @@ codeunit 148332 "Expense API Test Auth Helper"
 
     local procedure ShouldInjectBasicAuth(): Boolean
     var
-        User: Record User;
         EnvironmentInfo: Codeunit "Environment Information";
     begin
         if EnvironmentInfo.IsSaaSInfrastructure() then
             exit(false);
 
-        // If the current user authenticates via Windows
-        if not User.Get(UserSecurityId()) then
-            exit(false);
-        if User."Windows Security ID" <> '' then
-            exit(false);
-
-        // Inject Basic auth when using username password authentication.
+        // Integration test containers use username/password authentication.
         exit(true);
     end;
 
@@ -58,4 +50,3 @@ codeunit 148332 "Expense API Test Auth Helper"
         AzureKeyVault.GetAzureKeyVaultSecret(NavServerUserPasswordKeyTok, Password);
     end;
 }
-
