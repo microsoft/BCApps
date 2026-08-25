@@ -47,6 +47,10 @@ codeunit 9667 "Composite Report Parts Mgt."
         LayoutInStream: InStream;
     begin
         ClearLastError();
+
+        if not NavApp.ListResources(ResourceFile).Contains(ResourceFile) then
+            Error(ResourceNotReadableError(PartName, ResourceFile));
+
         if not TryGetPartLayout(ResourceFile, PartLayout) then
             Error(ResourceNotReadableError(PartName, ResourceFile));
 
@@ -80,12 +84,18 @@ codeunit 9667 "Composite Report Parts Mgt."
     end;
 
     local procedure ResourceNotReadableError(PartName: Text; ResourceFile: Text) LayoutErrorInfo: ErrorInfo
+    var
+        Dimensions: Dictionary of [Text, Text];
     begin
         LayoutErrorInfo.ErrorType := LayoutErrorInfo.ErrorType::Internal;
         LayoutErrorInfo.Verbosity := LayoutErrorInfo.Verbosity::Error;
         LayoutErrorInfo.DataClassification := LayoutErrorInfo.DataClassification::SystemMetadata;
         LayoutErrorInfo.Message := StrSubstNo(ResourceNotReadableErr, PartName);
         LayoutErrorInfo.DetailedMessage := StrSubstNo(ResourceNotReadableDetailTxt, ResourceFile, GetLastErrorText(true));
+
+        Dimensions.Add('PartName', PartName);
+        Dimensions.Add('ResourceFile', ResourceFile);
+        LayoutErrorInfo.CustomDimensions := Dimensions;
     end;
 
     local procedure PruneRetiredParts()
@@ -119,12 +129,11 @@ codeunit 9667 "Composite Report Parts Mgt."
         ReportLayoutList: Record "Report Layout List";
         CompositeLayoutLookupHelper: Codeunit "Composite Layout Lookup Helper";
     begin
-        ReportLayoutList.Init();
-        ReportLayoutList."Report ID" := CompositeLayoutLookupHelper.GetTenantReportDefaultsReportID();
-        ReportLayoutList.Name := CopyStr(PartName, 1, MaxStrLen(ReportLayoutList.Name));
-        ReportLayoutList."Application ID" := GetShippedPartAppId();
-        ReportLayoutList."Layout Subtype" := Subtype;
-        CompositeLayoutLookupHelper.ClearPartAssignments(ReportLayoutList);
+        ReportLayoutList.SetRange("Report ID", CompositeLayoutLookupHelper.GetTenantReportDefaultsReportID());
+        ReportLayoutList.SetRange(Name, CopyStr(PartName, 1, MaxStrLen(ReportLayoutList.Name)));
+        ReportLayoutList.SetRange("Layout Subtype", Subtype);
+        if ReportLayoutList.FindFirst() then
+            CompositeLayoutLookupHelper.ClearPartAssignments(ReportLayoutList);
     end;
 
     internal procedure GetShippedPartAppId() AppId: Guid
