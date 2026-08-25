@@ -9,7 +9,6 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Preview;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Integration.Shopify;
 using Microsoft.Inventory.Item;
@@ -36,10 +35,6 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
         LibraryAssert: Codeunit "Library Assert";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
-        GenBusPostingGroupCode: Code[20];
-        GenProdPostingGroupCode: Code[20];
-        VATBusPostingGroupCode: Code[20];
-        VATProdPostingGroupCode: Code[20];
         IsInitialized: Boolean;
 
     [Test]
@@ -502,8 +497,6 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
 
         // [GIVEN] Initialized test environment with a posted Shopify invoice and transaction
         Initialize();
-        // Auto-post must stay off here so the transaction is left for the manual suggest-payments call below.
-        EnablePaymentMethodMappingAutoPost(false);
         OrderId := LibraryRandom.RandIntInRange(10000000, 10999999);
         TransactionId := LibraryRandom.RandIntInRange(10000000, 10999999);
         CreateShopifyOrder(OrderId);
@@ -618,16 +611,12 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
         if IsInitialized then
             exit;
 
-        LibraryERMCountryData.CreateVATData();
-        LibraryERMCountryData.UpdateGeneralPostingSetup();
-        // Create a self-contained posting setup first: this can be the earliest Shopify test to run, and the
-        // shared shop initializer needs an existing General Posting Setup.
-        CreatePostingSetup();
-
         Codeunit.Run(Codeunit::"Shpfy Initialize Test");
 
+        LibraryERMCountryData.CreateVATData();
+        LibraryERMCountryData.UpdateGeneralPostingSetup();
         CreateItem();
-        CreateCustomer();
+        LibrarySales.CreateCustomer(Customer);
 
         Shop := CommunicationMgt.GetShopRecord();
         Shop."Logging Mode" := Shop."Logging Mode"::"Error Only";
@@ -638,66 +627,16 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
         IsInitialized := true;
     end;
 
-    local procedure CreatePostingSetup()
-    var
-        GenBusinessPostingGroup: Record "Gen. Business Posting Group";
-        GenProductPostingGroup: Record "Gen. Product Posting Group";
-        GeneralPostingSetup: Record "General Posting Setup";
-        VATPostingSetup: Record "VAT Posting Setup";
-        LibraryERM: Codeunit "Library - ERM";
-    begin
-        LibraryERM.CreateGenBusPostingGroup(GenBusinessPostingGroup);
-        LibraryERM.CreateGenProdPostingGroup(GenProductPostingGroup);
-        LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, GenBusinessPostingGroup.Code, GenProductPostingGroup.Code);
-        GeneralPostingSetup.Validate("Sales Account", LibraryERM.CreateGLAccountNoWithDirectPosting());
-        GeneralPostingSetup.Validate("Sales Credit Memo Account", LibraryERM.CreateGLAccountNoWithDirectPosting());
-        GeneralPostingSetup.Validate("Sales Prepayments Account", LibraryERM.CreateGLAccountNoWithDirectPosting());
-        GeneralPostingSetup.Validate("Sales Line Disc. Account", LibraryERM.CreateGLAccountNoWithDirectPosting());
-        GeneralPostingSetup.Validate("Sales Inv. Disc. Account", LibraryERM.CreateGLAccountNoWithDirectPosting());
-        GeneralPostingSetup.Validate("Purch. Account", LibraryERM.CreateGLAccountNoWithDirectPosting());
-        GeneralPostingSetup.Validate("Purch. Credit Memo Account", LibraryERM.CreateGLAccountNoWithDirectPosting());
-        GeneralPostingSetup.Validate("Purch. Prepayments Account", LibraryERM.CreateGLAccountNoWithDirectPosting());
-        GeneralPostingSetup.Validate("COGS Account", LibraryERM.CreateGLAccountNoWithDirectPosting());
-        GeneralPostingSetup.Validate("Inventory Adjmt. Account", LibraryERM.CreateGLAccountNoWithDirectPosting());
-        GeneralPostingSetup.Modify(true);
-
-        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 0);
-
-        GenBusPostingGroupCode := GenBusinessPostingGroup.Code;
-        GenProdPostingGroupCode := GenProductPostingGroup.Code;
-        VATBusPostingGroupCode := VATPostingSetup."VAT Bus. Posting Group";
-        VATProdPostingGroupCode := VATPostingSetup."VAT Prod. Posting Group";
-    end;
-
-    local procedure CreateCustomer()
-    var
-        CustomerPostingGroup: Record "Customer Posting Group";
-        LibraryERM: Codeunit "Library - ERM";
-    begin
-        LibrarySales.CreateCustomer(Customer);
-        Customer.Validate("Gen. Bus. Posting Group", GenBusPostingGroupCode);
-        Customer.Validate("VAT Bus. Posting Group", VATBusPostingGroupCode);
-        Customer.Modify(true);
-
-        // Guarantee the customer's posting group can post receivables even in a company without demo setup.
-        if CustomerPostingGroup.Get(Customer."Customer Posting Group") then
-            if CustomerPostingGroup."Receivables Account" = '' then begin
-                CustomerPostingGroup.Validate("Receivables Account", LibraryERM.CreateGLAccountNoWithDirectPosting());
-                CustomerPostingGroup.Modify(true);
-            end;
-    end;
-
     local procedure CreateItem()
     var
         LibraryInventory: Codeunit "Library - Inventory";
         Amount: Decimal;
     begin
         Amount := LibraryRandom.RandIntInRange(10000, 99999);
-        // A service item is used so posting the sales invoice does not require Inventory Posting Setup.
+        // A service item is used so posting the sales invoice does not require Inventory Posting Setup;
+        // the feature only depends on the resulting customer ledger entry, not on inventory posting.
         LibraryInventory.CreateItem(Item);
         Item.Validate(Type, Item.Type::Service);
-        Item.Validate("Gen. Prod. Posting Group", GenProdPostingGroupCode);
-        Item.Validate("VAT Prod. Posting Group", VATProdPostingGroupCode);
         Item.Validate("Unit Price", Amount);
         Item.Modify(true);
     end;
