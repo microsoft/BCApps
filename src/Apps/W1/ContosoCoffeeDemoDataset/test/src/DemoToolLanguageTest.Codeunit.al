@@ -1,11 +1,12 @@
 namespace Microsoft.Test.DemoTool;
 
 using Microsoft.DemoData.Common;
-using Microsoft.DemoData.Manufacturing;
 using Microsoft.DemoData.Inventory;
+using Microsoft.DemoData.Manufacturing;
 using Microsoft.DemoData.Warehousing;
 using Microsoft.DemoTool;
 using Microsoft.Foundation.NoSeries;
+using Microsoft.Foundation.UOM;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
@@ -17,6 +18,8 @@ codeunit 148049 "Demo Tool Language Test"
 
     var
         Assert: Codeunit Assert;
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryManufacturing: Codeunit "Library - Manufacturing";
 
     [Test]
     procedure ContosoDemoToolLanguageInitializationTest()
@@ -123,6 +126,7 @@ codeunit 148049 "Demo Tool Language Test"
         ProductionBOMVersion: Record "Production BOM Version";
         RoutingHeader: Record "Routing Header";
         RoutingVersion: Record "Routing Version";
+        UnitOfMeasure: Record "Unit of Measure";
         CreateMfgNoSeries: Codeunit "Create Mfg No Series";
         ExplicitBOMVersionCode: Code[20];
     begin
@@ -132,25 +136,19 @@ codeunit 148049 "Demo Tool Language Test"
         CreateManufacturingSetupData();
 
         // [WHEN] New production BOM and routing headers are inserted
-        ProductionBOMHeader."No." := 'SP-SCM1009';
-        ProductionBOMHeader.Insert(true);
-        RoutingHeader."No." := 'TEST-ROUTING';
-        RoutingHeader.Insert(true);
+        LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
+        LibraryManufacturing.CreateProductionBOMHeader(ProductionBOMHeader, UnitOfMeasure.Code);
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
 
         // [THEN] The headers inherit the Contoso version number series
         ProductionBOMHeader.TestField("Version Nos.", CreateMfgNoSeries.ProductionBOMVersion());
         RoutingHeader.TestField("Version Nos.", CreateMfgNoSeries.RoutingVersion());
 
         // [WHEN] An explicit BOM version and blank-code BOM and routing versions are inserted
-        ExplicitBOMVersionCode := 'SP-SCM1009-V1';
-        ProductionBOMVersion."Production BOM No." := ProductionBOMHeader."No.";
-        ProductionBOMVersion."Version Code" := ExplicitBOMVersionCode;
-        ProductionBOMVersion.Insert(true);
-        Clear(ProductionBOMVersion);
-        ProductionBOMVersion."Production BOM No." := ProductionBOMHeader."No.";
-        ProductionBOMVersion.Insert(true);
-        RoutingVersion."Routing No." := RoutingHeader."No.";
-        RoutingVersion.Insert(true);
+        ExplicitBOMVersionCode := 'EXPLICIT-V1';
+        LibraryManufacturing.CreateProductionBOMVersion(ProductionBOMVersion, ProductionBOMHeader."No.", ExplicitBOMVersionCode, UnitOfMeasure.Code);
+        LibraryManufacturing.CreateProductionBOMVersion(ProductionBOMVersion, ProductionBOMHeader."No.", '', UnitOfMeasure.Code);
+        LibraryManufacturing.CreateRoutingVersion(RoutingVersion, RoutingHeader."No.", '');
 
         // [THEN] The explicit code is preserved and blank codes use the inherited series
         Assert.IsTrue(ProductionBOMVersion.Get(ProductionBOMHeader."No.", ExplicitBOMVersionCode), 'The explicit production BOM version must remain unchanged.');
