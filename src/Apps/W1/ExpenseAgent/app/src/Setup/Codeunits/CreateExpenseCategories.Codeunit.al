@@ -1240,16 +1240,16 @@ codeunit 6973 "Create Expense Categories"
             exit;
 
         ExpenseCategory.Init();
-        ExpenseCategory.Validate(Code, Code);
-        ExpenseCategory.Validate(Description, Description);
-        ExpenseCategory.Validate("Posting Description", PostingDescription);
-        ExpenseCategory.Validate("Expense Group", ExpenseGroupCode);
-        ExpenseCategory.Validate("Posting Group", PostingGroupCode);
-        ExpenseCategory.Validate("Default Payment Method", PaymentMethod);
-        ExpenseCategory.Validate(Refundable, IsRefundable);
-        ExpenseCategory.Validate("Prepayment-Cash Advance", IsPrepayment);
-        ExpenseCategory.Validate("Attachment Enforcement", AttachmentEnforcement);
-        ExpenseCategory.Validate("Expense Detail Required", DetailRequired);
+        ExpenseCategory.Code := Code;
+        ExpenseCategory.Description := Description;
+        ExpenseCategory."Posting Description" := PostingDescription;
+        ExpenseCategory."Expense Group" := ExpenseGroupCode;
+        ExpenseCategory."Posting Group" := PostingGroupCode;
+        ExpenseCategory."Default Payment Method" := PaymentMethod;
+        ExpenseCategory.Refundable := IsRefundable;
+        ExpenseCategory."Prepayment-Cash Advance" := IsPrepayment;
+        ExpenseCategory."Attachment Enforcement" := AttachmentEnforcement;
+        ExpenseCategory."Expense Detail Required" := DetailRequired;
         ExpenseCategory.Insert(true);
     end;
 
@@ -1279,10 +1279,10 @@ codeunit 6973 "Create Expense Categories"
         if not EmployeePostingGroup.Get(Code) then
             exit;
 
-        EmployeePostingGroup.Validate("Expense Report Payable Account", ExpenseReportPayableAccount);
-        EmployeePostingGroup.Validate("Expense Payable Bank Paid Acc.", ExpensePayableBankPaidAccount);
-        EmployeePostingGroup.Validate("Expense Payable Card Paid Acc.", ExpensePayableCardPaidAccount);
-        EmployeePostingGroup.Validate("Exp. Report Prepayment Account", ExpenseReportPrepaymentAccount);
+        EmployeePostingGroup."Expense Report Payable Account" := ExpenseReportPayableAccount;
+        EmployeePostingGroup."Expense Payable Bank Paid Acc." := ExpensePayableBankPaidAccount;
+        EmployeePostingGroup."Expense Payable Card Paid Acc." := ExpensePayableCardPaidAccount;
+        EmployeePostingGroup."Exp. Report Prepayment Account" := ExpenseReportPrepaymentAccount;
         EmployeePostingGroup.Modify(true);
     end;
 
@@ -1292,8 +1292,8 @@ codeunit 6973 "Create Expense Categories"
             exit;
 
         ExpenseGroup.Init();
-        ExpenseGroup.Validate(Code, Code);
-        ExpenseGroup.Validate("Description", CopyStr(Description, 1, MaxStrLen(ExpenseGroup.Description)));
+        ExpenseGroup.Code := Code;
+        ExpenseGroup."Description" := CopyStr(Description, 1, MaxStrLen(ExpenseGroup.Description));
         ExpenseGroup.Insert(true);
     end;
 
@@ -1303,13 +1303,13 @@ codeunit 6973 "Create Expense Categories"
             exit;
 
         ExpensePostingGroup.Init();
-        ExpensePostingGroup.Validate(Code, Code);
-        ExpensePostingGroup.Validate("Description", Description);
-        ExpensePostingGroup.Validate("Refundable Debit Account", RefundableDebitAccount);
-        ExpensePostingGroup.Validate("Non-Refundable Debit Account", NonRefundableDebitAccount);
-        ExpensePostingGroup.Validate("Prepayment Credit Account", PrepaymentCreditAccount);
-        ExpensePostingGroup.Validate("Debit Rounding Account", ExpenseDebitRoundingAccount);
-        ExpensePostingGroup.Validate("Credit Rounding Account", ExpenseCreditRoundingAccount);
+        ExpensePostingGroup.Code := Code;
+        ExpensePostingGroup."Description" := Description;
+        ExpensePostingGroup."Refundable Debit Account" := RefundableDebitAccount;
+        ExpensePostingGroup."Non-Refundable Debit Account" := NonRefundableDebitAccount;
+        ExpensePostingGroup."Prepayment Credit Account" := PrepaymentCreditAccount;
+        ExpensePostingGroup."Debit Rounding Account" := ExpenseDebitRoundingAccount;
+        ExpensePostingGroup."Credit Rounding Account" := ExpenseCreditRoundingAccount;
         ExpensePostingGroup.Insert(true);
     end;
 
@@ -1319,11 +1319,11 @@ codeunit 6973 "Create Expense Categories"
             exit;
 
         ExpenseRuleHeader.Init();
-        ExpenseRuleHeader.Validate("Expense Category Code", CategoryCode);
-        ExpenseRuleHeader.Validate("Expense Location", ExpenseLocationCode);
+        ExpenseRuleHeader."Expense Category Code" := CategoryCode;
+        ExpenseRuleHeader."Expense Location" := ExpenseLocationCode;
         if Currency.Get(CurrencyCode) then
-            ExpenseRuleHeader.Validate("Currency Code", CurrencyCode);
-        ExpenseRuleHeader.Validate("Justification Required", JustificationRequired);
+            ExpenseRuleHeader."Currency Code" := CurrencyCode;
+        ExpenseRuleHeader."Justification Required" := JustificationRequired;
         ExpenseRuleHeader.Insert(true);
     end;
 
@@ -1344,11 +1344,11 @@ codeunit 6973 "Create Expense Categories"
             NextLineNo := 1;
 
         ExpenseRuleCondition.Init();
-        ExpenseRuleCondition.Validate("Expense Category Code", CategoryCode);
-        ExpenseRuleCondition.Validate("Expense Location", ExpenseLocationCode);
-        ExpenseRuleCondition.Validate("Condition Type", ConditionType);
-        ExpenseRuleCondition.Validate("Line No.", NextLineNo);
-        ExpenseRuleCondition.Validate("Value", Value);
+        ExpenseRuleCondition."Expense Category Code" := CategoryCode;
+        ExpenseRuleCondition."Expense Location" := ExpenseLocationCode;
+        ExpenseRuleCondition."Condition Type" := ConditionType;
+        ExpenseRuleCondition."Line No." := NextLineNo;
+        ExpenseRuleCondition."Value" := Value;
         ExpenseRuleCondition.Insert(true);
     end;
 
