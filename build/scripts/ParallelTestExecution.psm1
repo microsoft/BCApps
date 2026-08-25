@@ -405,12 +405,25 @@ function New-BcTestTenantTemplate {
         $source = Get-NAVTenant -ServerInstance $ServerInstance -Tenant $sourceTenant
         $templateDatabaseName = "$($source.DatabaseName)-test-template"
 
-        if (Test-NAVDatabase -DatabaseName $templateDatabaseName) {
-            Remove-NAVDatabase -DatabaseName $templateDatabaseName | Out-Null
-        }
+        $maxAttempts = 3
+        $retryDelaySeconds = 5
+        for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+            try {
+                if (Test-NAVDatabase -DatabaseName $templateDatabaseName) {
+                    Remove-NAVDatabase -DatabaseName $templateDatabaseName | Out-Null
+                }
 
-        Write-Host "Creating immutable test tenant template '$templateDatabaseName' from '$($source.DatabaseName)'..."
-        Copy-NAVDatabase -SourceDatabaseName $source.DatabaseName -DestinationDatabaseName $templateDatabaseName -DatabaseServer "." | Out-Null
+                Write-Host "Creating immutable test tenant template '$templateDatabaseName' from '$($source.DatabaseName)' (attempt $attempt/$maxAttempts)..."
+                Copy-NAVDatabase -SourceDatabaseName $source.DatabaseName -DestinationDatabaseName $templateDatabaseName -DatabaseServer "." | Out-Null
+                break
+            } catch {
+                Write-Host "WARNING: Template database copy failed on attempt $attempt/${maxAttempts}: $($_.Exception.Message)"
+                if ($attempt -eq $maxAttempts) {
+                    throw "Failed to create test tenant template '$templateDatabaseName' after $maxAttempts attempts. Last error: $($_.Exception.Message)"
+                }
+                Start-Sleep -Seconds $retryDelaySeconds
+            }
+        }
         $templateDatabaseName
     } -argumentList $SourceTenant)
 
@@ -453,11 +466,24 @@ function Reset-BcTestTenant {
             Dismount-NAVTenant -ServerInstance $ServerInstance -Tenant $tenant -Force | Out-Null
         }
 
-        if (Test-NAVDatabase -DatabaseName $tenantDatabaseName) {
-            Remove-NAVDatabase -DatabaseName $tenantDatabaseName | Out-Null
-        }
+        $maxAttempts = 3
+        $retryDelaySeconds = 5
+        for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+            try {
+                if (Test-NAVDatabase -DatabaseName $tenantDatabaseName) {
+                    Remove-NAVDatabase -DatabaseName $tenantDatabaseName | Out-Null
+                }
 
-        Copy-NAVDatabase -SourceDatabaseName $templateDatabaseName -DestinationDatabaseName $tenantDatabaseName -DatabaseServer "." | Out-Null
+                Copy-NAVDatabase -SourceDatabaseName $templateDatabaseName -DestinationDatabaseName $tenantDatabaseName -DatabaseServer "." | Out-Null
+                break
+            } catch {
+                Write-Host "WARNING: Tenant database refresh failed on attempt $attempt/${maxAttempts}: $($_.Exception.Message)"
+                if ($attempt -eq $maxAttempts) {
+                    throw "Failed to refresh tenant database '$tenantDatabaseName' after $maxAttempts attempts. Last error: $($_.Exception.Message)"
+                }
+                Start-Sleep -Seconds $retryDelaySeconds
+            }
+        }
         Mount-NAVTenant -ServerInstance $ServerInstance -Id $tenant -DatabaseServer "." -DatabaseName $tenantDatabaseName -OverwriteTenantIdInDatabase -Force | Out-Null
 
         $maxWaitSeconds = 300
