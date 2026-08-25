@@ -30,10 +30,13 @@ codeunit 134776 "Document Attachment Tests"
         ExpectedPurchaseDocumentFlow: Boolean;
         isInitialized: Boolean;
         RecallNotifications: Boolean;
+        ResolveRecRefInSubscriber: Boolean;
         ReportSelectionUsage: Enum "Report Selection Usage";
+        SubscriberSourceRecordId: RecordId;
         AttachedDateInvalidErr: Label 'Attached date is invalid';
         AttachmentFileNameLbl: Label '%1.jpeg', Comment = '%1=File Name';
         AttachmentNotDeletedErr: Label 'Attachment is not deleted';
+        CannotResolveSourceRecordErr: Label 'The source record for this attachment cannot be resolved in table %1.', Comment = '%1 = Table Caption';
         ConfirmConvertToOrderQst: Label 'Do you want to convert the quote to an order?';
         ConfirmOpeningNewOrderAfterQuoteToOrderQst: Label 'Do you want to open the new order?';
         DeleteAttachmentsConfirmQst: Label 'Do you want to delete the attachments for this document?';
@@ -52,11 +55,14 @@ codeunit 134776 "Document Attachment Tests"
         OpportunityOneLbl: Label 'Opportunity1';
         OpportunityTwoLbl: Label 'Opportunity2';
         PrintedToAttachmentTxt: Label 'The document has been printed to attachments.';
+        RecRefMustNotBeOpenErr: Label 'The RecordRef must not be opened when the source table is not mapped.';
         RenameCodeLbl: Label 'T';
         SecondAttachmentFileNameMismatchErr: Label 'Second file name not equal to saved attachment.';
+        SourceRecordMustNotBeResolvedErr: Label 'The source record must not be resolved when the source table is not mapped.';
         SourceRecordNotResolvedErr: Label 'The source record must be resolved for the %1.', Comment = '%1 = Table Caption';
         UnexpectedSourceTableErr: Label 'The RecordRef must be opened on the %1.', Comment = '%1 = Table Caption';
         TwoAttachmentsExpectedErr: Label 'Two attachments were expected for this record.';
+        UnexpectedAttachmentInDetailsErr: Label 'The Document Attachment Details page must open for the record that the subscriber resolved.';
         UnexpectedFieldVisibilityErr: Label 'Unexpected visibility for field %1', Comment = '%1=FieldCaption';
         UnexpectedFieldVisibleErr: Label 'Unexpected field visible! %1', Comment = '%1=FieldName';
         ValueMustBeEqualErr: Label '%1 must be equal to %2 in the %3.', Comment = '%1 = Field Caption , %2 = Expected Value, %3 = Table Caption';
@@ -4622,6 +4628,79 @@ codeunit 134776 "Document Attachment Tests"
         CheckDocAttachmentsForPostedDocs(Database::"Return Receipt Header", 1, ReturnReceiptHeader."No.", 'PostedReturnReceipt');
     end;
 
+    [Test]
+    procedure EnsureSourceRecordIsNotResolvedForUnmappedTable()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
+        RecRef: RecordRef;
+    begin
+        // [SCENARIO 646549] All Documents FactBox actions share the same source resolution, which must leave the RecordRef closed for an unmapped table.
+        Initialize();
+
+        // [GIVEN] Document Attachment that points to a table neither the FactBox nor any subscriber maps.
+        CreateDocAttachForUnmappedTable(DocumentAttachment);
+
+        // [WHEN] The Documents FactBox resolves the source record.
+        // [THEN] Resolution fails and the RecordRef stays closed, so the actions raise the controlled error instead of "The record is not open".
+        Assert.IsFalse(DocumentAttachmentMgmt.GetRefTable(RecRef, DocumentAttachment), SourceRecordMustNotBeResolvedErr);
+        Assert.AreEqual(0, RecRef.Number(), RecRefMustNotBeOpenErr);
+    end;
+
+    [Test]
+    procedure EnsureShowDetailsErrorsWhenSourceRecordCannotBeResolved()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        PaymentTerms: Record "Payment Terms";
+        DocAttachmentListFactbox: TestPage "Doc. Attachment List Factbox";
+    begin
+        // [SCENARIO 646549] Show details reports the unresolved source record instead of failing with "The record is not open".
+        // Upload files and Attach from email cannot be invoked from a TestPage, but they run the same source resolution as Show details.
+        Initialize();
+
+        // [GIVEN] Document Attachment that points to a table neither the FactBox nor any subscriber maps.
+        CreateDocAttachForUnmappedTable(DocumentAttachment);
+
+        // [WHEN] Show details is invoked for that attachment.
+        DocAttachmentListFactbox.OpenView();
+        DocAttachmentListFactbox.GoToRecord(DocumentAttachment);
+        asserterror DocAttachmentListFactbox.OpenInDetail.Invoke();
+
+        // [THEN] The error states that the source record cannot be resolved and names the table.
+        Assert.ExpectedError(StrSubstNo(CannotResolveSourceRecordErr, PaymentTerms.TableCaption()));
+    end;
+
+    [Test]
+    [HandlerFunctions('DocumentAttachmentDetailsMPH')]
+    procedure EnsureShowDetailsUsesRecRefResolvedBySubscriber()
+    var
+        Customer: Record Customer;
+        DocumentAttachment: Record "Document Attachment";
+        RecRef: RecordRef;
+        DocAttachmentListFactbox: TestPage "Doc. Attachment List Factbox";
+    begin
+        // [SCENARIO 646549] An extension that resolves the RecordRef in OnAfterGetRecRefFail must still be able to open the attachments.
+        Initialize();
+
+        // [GIVEN] Customer with an attachment "SubscriberCust", which the subscriber returns as the source record.
+        LibrarySales.CreateCustomer(Customer);
+        RecRef.Get(Customer.RecordId());
+        CreateDocAttach(RecRef, 'SubscriberCust.jpeg', false, false);
+        SubscriberSourceRecordId := Customer.RecordId();
+        ResolveRecRefInSubscriber := true;
+
+        // [GIVEN] Document Attachment that points to a table the FactBox cannot map on its own.
+        CreateDocAttachForUnmappedTable(DocumentAttachment);
+
+        // [WHEN] Show details is invoked for that attachment.
+        DocAttachmentListFactbox.OpenView();
+        DocAttachmentListFactbox.GoToRecord(DocumentAttachment);
+        DocAttachmentListFactbox.OpenInDetail.Invoke();
+
+        // [THEN] No error is raised and the details page opens for the record that the subscriber resolved.
+        Assert.AreEqual('SubscriberCust', LibraryVariableStorage.DequeueText(), UnexpectedAttachmentInDetailsErr);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -4630,6 +4709,8 @@ codeunit 134776 "Document Attachment Tests"
 
         LibraryVariableStorage.Clear();
         LibrarySetupStorage.Restore();
+        ResolveRecRefInSubscriber := false;
+        Clear(SubscriberSourceRecordId);
         if isInitialized then
             exit;
 
@@ -5293,6 +5374,29 @@ codeunit 134776 "Document Attachment Tests"
 
         Item.Validate("Inventory Posting Group", InventoryPostingGroup.Code);
         Item.Modify(true);
+    end;
+
+    local procedure CreateDocAttachForUnmappedTable(var DocumentAttachment: Record "Document Attachment")
+    var
+        PaymentTerms: Record "Payment Terms";
+    begin
+        // Payment Terms is not mapped in GetRefTable and has no OnAfterGetRefTable subscriber, so the RecordRef is left closed.
+        LibraryERM.CreatePaymentTerms(PaymentTerms);
+
+        DocumentAttachment.Init();
+        DocumentAttachment."Table ID" := Database::"Payment Terms";
+        DocumentAttachment."No." := PaymentTerms.Code;
+        DocumentAttachment."File Name" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(DocumentAttachment."File Name"));
+        DocumentAttachment.Insert();
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Doc. Attachment List Factbox", 'OnAfterGetRecRefFail', '', false, false)]
+    local procedure ResolveSourceRecordOnAfterGetRecRefFail(var DocumentAttachment: Record "Document Attachment"; var RecRef: RecordRef)
+    begin
+        if not ResolveRecRefInSubscriber then
+            exit;
+
+        RecRef.Get(SubscriberSourceRecordId);
     end;
 
     [ModalPageHandler]
