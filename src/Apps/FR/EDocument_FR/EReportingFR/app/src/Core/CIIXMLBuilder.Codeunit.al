@@ -6,6 +6,7 @@ namespace Microsoft.eServices.EDocument.Formats;
 
 using Microsoft.Bank.BankAccount;
 using Microsoft.eServices.EDocument;
+using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Clause;
 using Microsoft.Finance.VAT.Setup;
@@ -44,6 +45,7 @@ codeunit 10978 "CII XML Builder"
     begin
         FREDocHelpers.CheckBuyerElectronicAddress(SourceDocumentHeader);
         CompanyInformation.Get();
+        InitializeAmountRoundingPrecision(EDocument."Currency Code");
 
         XmlDoc := XmlDocument.Create();
 
@@ -1099,12 +1101,22 @@ codeunit 10978 "CII XML Builder"
         exit(Format(Round(VATPercent, 0.00001), 0, 9));
     end;
 
-    local procedure GetAmountRoundingPrecision(): Decimal
+    local procedure InitializeAmountRoundingPrecision(CurrencyCode: Code[10])
     var
-        GeneralLedgerSetup: Record "General Ledger Setup";
+        Currency: Record Currency;
     begin
-        GeneralLedgerSetup.Get();
-        exit(GeneralLedgerSetup."Amount Rounding Precision");
+        if CurrencyCode = '' then
+            Currency.InitRoundingPrecision()
+        else begin
+            Currency.Get(CurrencyCode);
+            Currency.TestField("Amount Rounding Precision");
+        end;
+        AmountRoundingPrecision := Currency."Amount Rounding Precision";
+    end;
+
+    local procedure GetAmountRoundingPrecision(): Decimal
+    begin
+        exit(AmountRoundingPrecision);
     end;
 
     local procedure GetVATCategoryCode(TaxCategory: Code[10]; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]): Text
@@ -1173,6 +1185,7 @@ codeunit 10978 "CII XML Builder"
     end;
 
     var
+        AmountRoundingPrecision: Decimal;
         RsmNamespaceTok: Label 'urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100', Locked = true;
         RamNamespaceTok: Label 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100', Locked = true;
         QdtNamespaceTok: Label 'urn:un:unece:uncefact:data:standard:QualifiedDataType:100', Locked = true;

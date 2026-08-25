@@ -721,16 +721,32 @@ codeunit 148148 "Factur-X CII XML Tests"
     [Test]
     procedure FacturXSalesInvoiceUsesCompanyBankAccountWhenCodeIsBlank()
     var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
         TempBlob: Codeunit "Temp Blob";
     begin
+        // [FEATURE] [AI test]
         // [SCENARIO] A blank company bank account code falls back to Company Information payment details
         Initialize();
 
-        CreateSalesInvoiceCIIXML(TempBlob);
+        // [GIVEN] Company Information with payment details and posted sales invoice "SI" with a blank company bank account code
+        CompanyInformation.Get();
+        CompanyInformation.IBAN := 'FR7630006000011234567890189';
+        CompanyInformation."SWIFT Code" := 'AGRIFRPP';
+        CompanyInformation.Modify();
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice());
+        SalesInvoiceHeader."Company Bank Account Code" := '';
+        SalesInvoiceHeader.Modify();
 
+        // [WHEN] Create CII XML
+        CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
+
+        // [THEN] Payment account uses Company Information IBAN and BIC
         Assert.AreEqual(DelChr(CompanyInformation.IBAN, '=', ' '),
             GetCIINodeValue(TempBlob, '//ram:PayeePartyCreditorFinancialAccount/ram:IBANID'),
             StrSubstNo(IncorrectValueErr, '//ram:PayeePartyCreditorFinancialAccount/ram:IBANID'));
+        Assert.AreEqual(CompanyInformation."SWIFT Code",
+            GetCIINodeValue(TempBlob, '//ram:PayeeSpecifiedCreditorFinancialInstitution/ram:BICID'),
+            StrSubstNo(IncorrectValueErr, '//ram:PayeeSpecifiedCreditorFinancialInstitution/ram:BICID'));
     end;
 
     [Test]
@@ -1328,7 +1344,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         SourceDocumentHeader: RecordRef;
         SourceDocumentLines: RecordRef;
     begin
-        // [FEATURE] [Reminder]
+        // [FEATURE] [AI test]
         // [SCENARIO] An issued reminder line (which has no Quantity field) emits BilledQuantity = 1
         Initialize();
 
@@ -1368,7 +1384,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         SourceDocumentHeader: RecordRef;
         SourceDocumentLines: RecordRef;
     begin
-        // [FEATURE] [Finance Charge Memo]
+        // [FEATURE] [AI test]
         // [SCENARIO] An issued finance charge memo line (which has no Quantity field) emits BilledQuantity = 1
         Initialize();
 
