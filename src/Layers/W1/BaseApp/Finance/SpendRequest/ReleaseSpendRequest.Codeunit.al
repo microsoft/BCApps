@@ -6,41 +6,40 @@ namespace Microsoft.Finance.SpendRequest;
 
 using System.Utilities;
 
-codeunit 6840 "Submit Spend Request"
+codeunit 6840 "Release Spend Request"
 {
     TableNo = "Spend Request";
 
     trigger OnRun()
     begin
-        Submit(Rec);
+        Release(Rec);
     end;
 
     var
         HasExpensesErr: Label 'A spend request with posted expenses cannot be reopened.';
         ClosedRequestErr: Label 'A closed spend request cannot be reopened.';
         CloseSpendRequestQst: Label 'Do you want to close spend request %1?', Comment = '%1 is the spend request no.';
-        PendingApprovalErr: Label 'The approval process must be cancelled or completed to reopen this document.';
 
     /// <summary>
-    /// Sets the status of the spend request to Submitted.
+    /// Sets the status of the spend request to Released.
     /// </summary>
-    /// <param name="SpendRequest">The spend request to Submit.</param>
-    procedure Submit(var SpendRequest: Record "Spend Request")
+    /// <param name="SpendRequest">The spend request to release.</param>
+    procedure Release(var SpendRequest: Record "Spend Request")
     var
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeSubmit(SpendRequest, IsHandled);
+        OnBeforeRelease(SpendRequest, IsHandled);
         if IsHandled then
             exit;
 
-        if SpendRequest.Status = SpendRequest.Status::Submitted then
+        if SpendRequest.Status = SpendRequest.Status::Released then
             exit;
-        SpendRequest.TestField(Status, SpendRequest.Status::Open);
-        SpendRequest.Status := SpendRequest.Status::Submitted;
+
+        SpendRequest.Status := SpendRequest.Status::Released;
         SpendRequest.Modify();
 
-        OnAfterSubmit(SpendRequest);
+        OnAfterRelease(SpendRequest);
     end;
 
     /// <summary>
@@ -99,12 +98,12 @@ codeunit 6840 "Submit Spend Request"
     end;
 
     /// <summary>
-    /// Performs a manual Submit of the spend request triggered from the UI.
+    /// Performs a manual release of the spend request triggered from the UI.
     /// </summary>
-    /// <param name="SpendRequest">The spend request to Submit.</param>
-    procedure PerformManualSubmit(var SpendRequest: Record "Spend Request")
+    /// <param name="SpendRequest">The spend request to release.</param>
+    procedure PerformManualRelease(var SpendRequest: Record "Spend Request")
     begin
-        Codeunit.Run(Codeunit::"Submit Spend Request", SpendRequest);
+        Codeunit.Run(Codeunit::"Release Spend Request", SpendRequest);
     end;
 
     /// <summary>
@@ -113,9 +112,6 @@ codeunit 6840 "Submit Spend Request"
     /// <param name="SpendRequest">The spend request to reopen.</param>
     procedure PerformManualReopen(var SpendRequest: Record "Spend Request")
     begin
-        if SpendRequest.Status = SpendRequest.Status::"Pending Approval" then
-            Error(PendingApprovalErr);
-
         Reopen(SpendRequest);
     end;
 
@@ -131,19 +127,19 @@ codeunit 6840 "Submit Spend Request"
     /// <summary>
     /// Integration event raised before releasing the spend request.
     /// </summary>
-    /// <param name="SpendRequest">The spend request being Submitted.</param>
-    /// <param name="IsHandled">Set to true to skip the standard Submit logic.</param>
+    /// <param name="SpendRequest">The spend request being released.</param>
+    /// <param name="IsHandled">Set to true to skip the standard release logic.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeSubmit(var SpendRequest: Record "Spend Request"; var IsHandled: Boolean)
+    local procedure OnBeforeRelease(var SpendRequest: Record "Spend Request"; var IsHandled: Boolean)
     begin
     end;
 
     /// <summary>
     /// Integration event raised after releasing the spend request.
     /// </summary>
-    /// <param name="SpendRequest">The spend request that was Submitted.</param>
+    /// <param name="SpendRequest">The spend request that was released.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterSubmit(var SpendRequest: Record "Spend Request")
+    local procedure OnAfterRelease(var SpendRequest: Record "Spend Request")
     begin
     end;
 

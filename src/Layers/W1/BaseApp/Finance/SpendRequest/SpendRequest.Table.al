@@ -404,8 +404,7 @@ table 6840 "Spend Request"
         OldDimSetID: Integer;
     begin
         OldDimSetID := "Dimension Set ID";
-        "Dimension Set ID" := DimMgt.EditDimensionSet(Rec, "Dimension Set ID", StrSubstNo('%1 %2', Rec.TableCaption, "No."),
-            "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
+        "Dimension Set ID" := DimMgt.EditDimensionSet(Rec, "Dimension Set ID", CopyStr(StrSubstNo('%1 %2', Rec.TableCaption, "No."), 1, 250), "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
         if OldDimSetID <> "Dimension Set ID" then
             Modify();
     end;
@@ -417,7 +416,7 @@ table 6840 "Spend Request"
     begin
         if Rec.Status = Rec.Status::Approved then
             exit;
-        Rec.TestField(Status, Rec.Status::Submitted);
+        Rec.TestField(Status, Rec.Status::Released);
         Rec.Status := Rec.Status::Approved;
         Rec."Approved/Rejected At" := CurrentDateTime();
         Rec."Approved/Rejected by User ID" := UserSecurityId();
@@ -431,7 +430,7 @@ table 6840 "Spend Request"
     begin
         if Rec.Status in [Rec.Status::Rejected, Rec.Status::Closed] then
             exit;
-        Rec.TestField(Status, Rec.Status::Submitted);
+        Rec.TestField(Status, Rec.Status::Released);
         Rec.Status := Rec.Status::Rejected;
         Rec."Approved/Rejected At" := CurrentDateTime();
         Rec."Approved/Rejected by User ID" := UserSecurityId();

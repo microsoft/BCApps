@@ -348,12 +348,12 @@ codeunit 134242 "Spend Request Tests"
         SpendRequest: Record "Spend Request";
         SpendRequestDetail: Record "Spend Request Detail";
     begin
-        // [SCENARIO] Cannot insert a detail line on a Submitted spend request.
+        // [SCENARIO] Cannot insert a detail line on a Released spend request.
         Initialize();
 
-        // [GIVEN] A Submitted spend request.
+        // [GIVEN] A Released spend request.
         CreateSpendRequestWithAmount(SpendRequest, LibraryRandom.RandDec(1000, 2));
-        SpendRequest.Status := SpendRequest.Status::Submitted;
+        SpendRequest.Status := SpendRequest.Status::Released;
         SpendRequest.Modify();
 
         // [WHEN] Attempting to insert a detail line.
@@ -395,12 +395,12 @@ codeunit 134242 "Spend Request Tests"
     var
         SpendRequest: Record "Spend Request";
     begin
-        // [SCENARIO] A Submitted spend request can be reopened.
+        // [SCENARIO] A Released spend request can be reopened.
         Initialize();
 
-        // [GIVEN] A Submitted spend request.
+        // [GIVEN] A Released spend request.
         CreateSpendRequestWithAmount(SpendRequest, LibraryRandom.RandDec(1000, 2));
-        SpendRequest.Status := SpendRequest.Status::Submitted;
+        SpendRequest.Status := SpendRequest.Status::Released;
         SpendRequest.Modify();
 
         // [WHEN] Status is set back to Open.
@@ -560,7 +560,7 @@ codeunit 134242 "Spend Request Tests"
 
         // [GIVEN] An open spend request.
         CreateSpendRequestWithAmount(SpendRequest, LibraryRandom.RandDec(1000, 2));
-        SpendRequest.Status := SpendRequest.Status::Submitted;
+        SpendRequest.Status := SpendRequest.Status::Released;
         SpendRequest.Modify();
         SpendRequestCard.OpenEdit();
         SpendRequestCard.GoToRecord(SpendRequest);
@@ -582,7 +582,7 @@ codeunit 134242 "Spend Request Tests"
         SpendRequest: Record "Spend Request";
         SpendRequestCard: TestPage "Spend Request Card";
     begin
-        // [SCENARIO] The Reject action requires the spend request to be in Submitted status.
+        // [SCENARIO] The Reject action requires the spend request to be in Released status.
         Initialize();
 
         // [GIVEN] A closed spend request.
@@ -595,7 +595,7 @@ codeunit 134242 "Spend Request Tests"
         // [WHEN] The Reject action is invoked.
         SpendRequestCard.Reject.Invoke();
 
-        // [THEN] An error is raised because Status is not Submitted.
+        // [THEN] An error is raised because Status is not Released.
         SpendRequestCard.Close();
         SpendRequest.Find(); // retrieve the same record
         SpendRequest.TestField(Status, SpendRequest.Status::Closed);
@@ -608,12 +608,12 @@ codeunit 134242 "Spend Request Tests"
         SpendRequest: Record "Spend Request";
         SpendRequestCard: TestPage "Spend Request Card";
     begin
-        // [SCENARIO] The Reject action succeeds when the spend request is in Submitted status.
+        // [SCENARIO] The Reject action succeeds when the spend request is in Released status.
         Initialize();
 
-        // [GIVEN] A Submitted spend request.
+        // [GIVEN] A Released spend request.
         CreateSpendRequestWithAmount(SpendRequest, LibraryRandom.RandDec(1000, 2));
-        SpendRequest.Status := SpendRequest.Status::Submitted;
+        SpendRequest.Status := SpendRequest.Status::Released;
         SpendRequest.Modify();
         SpendRequestCard.OpenEdit();
         SpendRequestCard.GoToRecord(SpendRequest);
@@ -656,12 +656,12 @@ codeunit 134242 "Spend Request Tests"
         SpendRequest: Record "Spend Request";
         SpendRequestCard: TestPage "Spend Request Card";
     begin
-        // [SCENARIO] The ReOpen action sets a Submitted spend request back to Open.
+        // [SCENARIO] The ReOpen action sets a Released spend request back to Open.
         Initialize();
 
-        // [GIVEN] A Submitted spend request.
+        // [GIVEN] A Released spend request.
         CreateSpendRequestWithAmount(SpendRequest, LibraryRandom.RandDec(1000, 2));
-        SpendRequest.Status := SpendRequest.Status::Submitted;
+        SpendRequest.Status := SpendRequest.Status::Released;
         SpendRequest.Modify();
         SpendRequestCard.OpenEdit();
         SpendRequestCard.GoToRecord(SpendRequest);
@@ -743,10 +743,10 @@ codeunit 134242 "Spend Request Tests"
         // [SCENARIO] Validating Description on a detail line checks that the header is Open.
         Initialize();
 
-        // [GIVEN] A spend request with a detail line that is then Submitted.
+        // [GIVEN] A spend request with a detail line that is then Released.
         CreateSpendRequestWithAmount(SpendRequest, LibraryRandom.RandDec(1000, 2));
         CreateSpendRequestDetail(SpendRequestDetail, SpendRequest."No.", SpendRequest."Total Expected Amount");
-        SpendRequest.Status := SpendRequest.Status::Submitted;
+        SpendRequest.Status := SpendRequest.Status::Released;
         SpendRequest.Modify();
 
         // [WHEN] Attempting to validate Description on the detail line.
@@ -814,9 +814,9 @@ codeunit 134242 "Spend Request Tests"
         // [SCENARIO] Validating Requested By on a non-open request raises an error.
         Initialize();
 
-        // [GIVEN] A Submitted spend request.
+        // [GIVEN] A Released spend request.
         CreateSpendRequest(SpendRequest);
-        SpendRequest.Status := SpendRequest.Status::Submitted;
+        SpendRequest.Status := SpendRequest.Status::Released;
         SpendRequest.Modify();
 
         LibraryHumanResource.CreateEmployee(Employee);

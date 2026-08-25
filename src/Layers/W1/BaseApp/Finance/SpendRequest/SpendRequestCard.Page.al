@@ -136,14 +136,14 @@ page 6841 "Spend Request Card"
                     Caption = 'Submit';
                     ToolTip = 'Set the status field to Submitted so that it can be processed for approval.';
                     ApplicationArea = Basic, Suite;
-                    Enabled = Rec.Status <> Rec.Status::Submitted;
+                    Enabled = Rec.Status <> Rec.Status::Released;
                     Image = ReleaseDoc;
 
                     trigger OnAction()
                     var
-                        SubmitSpendRequest: Codeunit "Submit Spend Request";
+                        ReleaseSpendRequest: Codeunit "Release Spend Request";
                     begin
-                        SubmitSpendRequest.PerformManualSubmit(Rec);
+                        ReleaseSpendRequest.PerformManualRelease(Rec);
                     end;
                 }
                 action(ReOpen)
@@ -156,9 +156,9 @@ page 6841 "Spend Request Card"
 
                     trigger OnAction()
                     var
-                        SubmitSpendRequest: Codeunit "Submit Spend Request";
+                        ReleaseSpendRequest: Codeunit "Release Spend Request";
                     begin
-                        SubmitSpendRequest.PerformManualReopen(Rec);
+                        ReleaseSpendRequest.PerformManualReopen(Rec);
                     end;
                 }
                 action(Close)
@@ -171,9 +171,9 @@ page 6841 "Spend Request Card"
 
                     trigger OnAction()
                     var
-                        SubmitSpendRequest: Codeunit "Submit Spend Request";
+                        ReleaseSpendRequest: Codeunit "Release Spend Request";
                     begin
-                        SubmitSpendRequest.PerformManualClose(Rec);
+                        ReleaseSpendRequest.PerformManualClose(Rec);
                     end;
                 }
             }
