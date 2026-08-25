@@ -581,16 +581,47 @@ codeunit 148300 "Library - Expense"
         ExpenseApprovalSetup.Insert();
     end;
 
+    internal procedure CreateExpensePolicy(var ExpensePolicy: Record "Expense Policy"; ExpenseCategoryCode: Code[20]; PolicyText: Text[2048])
+    begin
+        ExpensePolicy.Init();
+        ExpensePolicy."Expense Category Code" := ExpenseCategoryCode;
+        ExpensePolicy."Policy Text" := PolicyText;
+        ExpensePolicy.Enabled := true;
+        ExpensePolicy."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
+        ExpensePolicy.Insert(true);
+    end;
+
+    internal procedure CreateExpensePolicyEvaluation(var ExpensePolicyEvaluation: Record "Expense Policy Evaluation"; ExpenseReportLine: Record "Expense Report Line"; ExpensePolicy: Record "Expense Policy"; EvaluationReason: Text[2048]; Compliant: Boolean)
+    begin
+        ExpensePolicyEvaluation.Init();
+        ExpensePolicyEvaluation."Subject System Id" := ExpenseReportLine.SystemId;
+        ExpensePolicyEvaluation."Subject Type" := "Expense Policy Subject"::"Expense Report Line";
+        ExpensePolicyEvaluation."Subject Version" := ExpenseReportLine."Policy Eval Version";
+        ExpensePolicyEvaluation."Policy System Id" := ExpensePolicy.SystemId;
+        ExpensePolicyEvaluation."Policy Version" := ExpensePolicy."Version";
+        ExpensePolicyEvaluation.Reason := EvaluationReason;
+        ExpensePolicyEvaluation.Compliant := Compliant;
+        ExpensePolicyEvaluation.Insert(true);
+    end;
+
     procedure CleanUpBeforeTesting()
     var
         ExpenseGroup: Record "Expense Group";
         ExpenseLocation: Record "Expense Location";
         ExpenseUser: Record "Expense User";
         ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpensePolicy: Record "Expense Policy";
+        ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
     begin
         ExpenseGroup.DeleteAll();
         ExpenseUser.DeleteAll();
         ExpenseLocation.DeleteAll();
+
+        // Codeunit test isolation keeps data written by earlier test methods, so shared policy
+        // master data must be reset between tests. A leaked blank-category policy in particular
+        // would otherwise apply to every report line and skew policy-status assertions.
+        ExpensePolicyEvaluation.DeleteAll();
+        ExpensePolicy.DeleteAll();
 
         // Ensure the agent is disabled so tests that toggle approval workflow don't fail
         // when the test environment was left with the agent enabled.
