@@ -60,7 +60,7 @@ Describe "BuildOptimization" {
             $affected = Get-AffectedApps -ChangedFiles @('src/Apps/W1/EDocument/App/src/SomeFile.al') -BaseFolder $baseFolder -Graph $graph
             # E-Document Core fans out to every connector, country demo-data, format and test app that depends on it.
             # This count tracks the number of such apps in the repo, so adding a new E-Document app moves it by one.
-            $affected.Count | Should -Be 56
+            $affected.Count | Should -Be 57
             $affected | Should -Contain 'e1d97edc-c239-46b4-8d84-6368bdf67c8b'
         }
 

@@ -153,9 +153,9 @@ $parameters["renewClientContextBetweenTests"] = $true
 if ($AppNamesToTest.Count -gt 0) {
     Import-Module $PSScriptRoot\ParallelTestExecution.psm1
     if (Test-UseAlToolRunner -TestType $TestType) {
-        # Move to the newest prerelease altool once here (mutex-guarded) so the per-app background
+        # Ensure altool is installed once here (mutex-guarded, idempotent) so the per-app background
         # jobs that follow just find `al` on PATH instead of each racing `dotnet tool install`.
-        Install-AlTool -Force | Out-Null
+        Install-AlTool | Out-Null
     }
     return Invoke-ParallelTestExecution -parameters $parameters -scriptPath $PSCommandPath -testType $TestType -appNamesToTest $AppNamesToTest
 }
@@ -167,6 +167,18 @@ if (Test-UseAlToolRunner -TestType $TestType) {
     # fan-out is preserved. Invoke-AlToolTestRun batches the app's codeunits into a single
     # `al runtests --testgroups` call and appends to the per-tenant JUnit file the harness later
     # merges. The tolerance check below still applies to that JUnit file.
+    #
+    # The vendored AL-Go altool runner requires DisabledTests as hashtable[], but BCApps'
+    # Get-DisabledTests yields PSCustomObjects (ConvertFrom-Json). Convert each entry to a hashtable.
+    $disabledTestsForAlTool = @(
+        foreach ($dt in @($parameters.disabledTests)) {
+            if ($null -eq $dt) { continue }
+            if ($dt -is [hashtable]) { $dt; continue }
+            $entry = @{}
+            foreach ($prop in $dt.PSObject.Properties) { $entry[$prop.Name] = $prop.Value }
+            $entry
+        }
+    )
     $result = Invoke-AlToolTestRun `
         -ContainerName $parameters.containerName `
         -Credential $parameters.credential `
@@ -174,7 +186,7 @@ if (Test-UseAlToolRunner -TestType $TestType) {
         -AppName "$($parameters.appName)" `
         -CompanyName "$($parameters.companyName)" `
         -Tenant "$($parameters.tenant)" `
-        -DisabledTests @($parameters.disabledTests) `
+        -DisabledTests $disabledTestsForAlTool `
         -TestType $TestType `
         -JUnitResultFileName $parameters.JUnitResultFileName
 }
