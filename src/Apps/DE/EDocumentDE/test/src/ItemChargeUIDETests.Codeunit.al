@@ -8,7 +8,7 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.Inventory.Item;
 
-codeunit 13927 "Item Charge UI DE Tests"
+codeunit 148502 "Item Charge UI DE Tests"
 {
     Subtype = Test;
     TestType = Uncategorized;
