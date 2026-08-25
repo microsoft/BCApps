@@ -550,7 +550,6 @@ page 7100 "Contact Sync"
             if not (NewDeltaLink = '') then begin
                 ContactSyncUserRec."Last Sync Date Time" := CurrentDateTime();
                 ContactSyncUserRec.SetDeltaUrl(CopyStr(NewDeltaLink, 1, 2048));
-                ContactSyncUserRec.Modify(false);
             end;
     end;
 

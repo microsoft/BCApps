@@ -245,7 +245,7 @@ codeunit 7106 "O365 Bidirectional Sync"
         ContactSyncUserRec.SetCurrentKey("User ID", "Folder ID");
         ContactSyncUserRec.SetRange("User ID", CopyStr(UserId(), 1, 50));
         ContactSyncUserRec.SetRange("Folder ID", CopyStr(FolderId, 1, 250));
-        ContactSyncUserRec.SetLoadFields("Delta Url");
+        ContactSyncUserRec.SetLoadFields("Delta Url", "User ID");
         if ContactSyncUserRec.FindFirst() and not (NewDeltaLink = '') then
             ContactSyncUserRec.SetDeltaUrl(CopyStr(NewDeltaLink, 1, 2048));
     end;
