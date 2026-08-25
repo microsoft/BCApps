@@ -57,9 +57,18 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         ZUGFeRDFormat: Codeunit "ZUGFeRD Format";
         ExportZUGFeRDDocument: Codeunit "Export ZUGFeRD Document";
         IncorrectValueErr: Label 'Incorrect value for %1', Locked = true;
+        AttributeNotFoundErr: Label 'Attribute %1 not found for node: %2', Locked = true, Comment = '%1 = XML attribute name, %2 = XML element XPath';
         UnexpectedNodeErr: Label 'Node %1 must not exist.', Locked = true;
         DocumentLineTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem', Locked = true;
+        SellerTaxRegistrationTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:SpecifiedTaxRegistration/ram:ID', Locked = true;
+        BuyerGlobalIdTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:GlobalID', Locked = true;
+        ShipToGlobalIdTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeDelivery/ram:ShipToTradeParty/ram:GlobalID', Locked = true;
         IsInitialized: Boolean;
+        OriginalCompanyGLN: Code[13];
+        OriginalCompanyUsesGLN: Boolean;
+        OriginalCompanyUsesRegistrationNo: Boolean;
+        OriginalCompanyVATRegistrationNo: Text[20];
+        OriginalCompanyRegistrationNo: Text[20];
 
     #region SalesInvoice
     [Test]
@@ -286,6 +295,72 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
 
         // [THEN] ZUGFeRD Electronic Document is created with customer data
         VerifyBuyerData(SalesInvoiceHeader, TempXMLBuffer);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifySupplierRegistrationNo()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        RegistrationNo: Text[20];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 646793] Supplier Registration No. is exported as the FC tax identifier when GLN and VAT ID are unavailable
+        Initialize();
+
+        // [GIVEN] Company "C" has a Registration No. but no GLN or VAT ID
+        RegistrationNo := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(RegistrationNo));
+        SetCompanyRegistrationNo(RegistrationNo);
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+
+        // [WHEN] Export ZUGFeRD electronic document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Seller tax identifier contains the Registration No. with FC tax scheme
+        Assert.AreEqual(RegistrationNo, GetNodeByPathWithError(TempXMLBuffer, SellerTaxRegistrationTok), StrSubstNo(IncorrectValueErr, SellerTaxRegistrationTok));
+        Assert.AreEqual('FC', GetAttributeByPathWithError(TempXMLBuffer, SellerTaxRegistrationTok, 'schemeID'), StrSubstNo(IncorrectValueErr, SellerTaxRegistrationTok + '/@schemeID'));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyCustomerGLN();
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 646443] Customer GLN is exported for buyer and ship-to parties in ZUGFeRD format
+        Initialize();
+
+        // [GIVEN] Create and post a sales invoice for a customer that uses GLN in electronic documents
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceForCustomerWithGLNAndShipToGLN(CustomerGLN(), ShipToGLN(), true));
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Buyer and ship-to GlobalID contain the customer GLN with schemeID 0088
+        VerifyGLNIdentifier(CustomerGLN(), TempXMLBuffer, BuyerGlobalIdTok);
+        VerifyGLNIdentifier(ShipToGLN(), TempXMLBuffer, ShipToGlobalIdTok);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatDoesNotExportCustomerGLNWhenDisabled();
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 646443] Customer GLN is not exported in ZUGFeRD format when GLN use is disabled
+        Initialize();
+
+        // [GIVEN] A customer and ship-to address with GLNs, but GLN use in electronic documents disabled
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceForCustomerWithGLNAndShipToGLN(CustomerGLN(), ShipToGLN(), false));
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Buyer and ship-to GLN identifiers are not exported
+        VerifyNodeDoesNotExist(TempXMLBuffer, BuyerGlobalIdTok);
+        VerifyNodeDoesNotExist(TempXMLBuffer, ShipToGlobalIdTok);
     end;
 
     [Test]
@@ -882,6 +957,27 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
 
         // [THEN] ZUGFeRD Electronic Document is created with buyer reference XX
         VerifyBuyerReference(SalesCrMemoHeader."Your Reference", TempXMLBuffer, '/rsm:CrossIndustryInvoice');
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDFormatVerifyCustomerGLN();
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 646443] Customer GLN is exported for buyer and ship-to parties in ZUGFeRD credit memo format
+        Initialize();
+
+        // [GIVEN] Create and post a sales credit memo for a customer that uses GLN in electronic documents
+        SalesCrMemoHeader.Get(CreateAndPostSalesCrMemoForCustomerWithGLN(CustomerGLN()));
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] Buyer and ship-to GlobalID contain the customer GLN with schemeID 0088
+        VerifyGLNIdentifier(CustomerGLN(), TempXMLBuffer, BuyerGlobalIdTok);
+        VerifyGLNIdentifier(CustomerGLN(), TempXMLBuffer, ShipToGlobalIdTok);
     end;
 
     [Test]
@@ -2179,6 +2275,53 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         exit(Customer."No.");
     end;
 
+    local procedure CreateCustomerWithGLN(GLN: Code[13]; UseGLNInElectronicDocument: Boolean): Code[20]
+    var
+        Customer: Record Customer;
+    begin
+        Customer.Get(CreateCustomer());
+        Customer.GLN := GLN;
+        Customer."Use GLN in Electronic Document" := UseGLNInElectronicDocument;
+        Customer.Modify(true);
+        exit(Customer."No.");
+    end;
+
+    local procedure CreateAndPostSalesInvoiceForCustomerWithGLNAndShipToGLN(GLN: Code[13]; NewShipToGLN: Code[13]; UseGLNInElectronicDocument: Boolean): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+        ShipToAddress: Record "Ship-to Address";
+        CustomerNo: Code[20];
+    begin
+        CustomerNo := CreateCustomerWithGLN(GLN, UseGLNInElectronicDocument);
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CustomerNo);
+        LibrarySales.CreateShipToAddress(ShipToAddress, CustomerNo);
+        ShipToAddress.GLN := NewShipToGLN;
+        ShipToAddress.Modify(true);
+        SalesHeader.Validate("Ship-to Code", ShipToAddress.Code);
+        SalesHeader.Modify(true);
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreateAndPostSalesCrMemoForCustomerWithGLN(GLN: Code[13]): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::"Credit Memo", CreateCustomerWithGLN(GLN, true));
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CustomerGLN(): Code[13]
+    begin
+        exit('4313205158428');
+    end;
+
+    local procedure ShipToGLN(): Code[13]
+    begin
+        exit('1234567890128');
+    end;
+
     local procedure CreateResponsibilityCenter(var ResponsibilityCenter: Record "Responsibility Center")
     begin
         ResponsibilityCenter.Init();
@@ -2474,6 +2617,17 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         PDFDocument.GetDocumentAttachmentStream(PdfInStream, TempBlob2);
         TempBlob2.CreateInStream(PdfAttachmentStream);
         TempXMLBuffer.LoadFromStream(PdfAttachmentStream);
+    end;
+
+    local procedure VerifyGLNIdentifier(ExpectedGLN: Code[13]; var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text)
+    begin
+        Assert.AreEqual(ExpectedGLN, GetNodeByPathWithError(TempXMLBuffer, XPath), StrSubstNo(IncorrectValueErr, XPath));
+        Assert.AreEqual('0088', GetAttributeByPathWithError(TempXMLBuffer, XPath, 'schemeID'), StrSubstNo(IncorrectValueErr, XPath + '/@schemeID'));
+    end;
+
+    local procedure VerifyNodeDoesNotExist(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text)
+    begin
+        Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, XPath), StrSubstNo(UnexpectedNodeErr, XPath));
     end;
 
     local procedure VerifyHeaderData(SalesInvoiceHeader: Record "Sales Invoice Header"; var TempXMLBuffer: Record "XML Buffer" temporary);
@@ -3117,6 +3271,25 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Error('Node not found: %1', XPath);
     end;
 
+    local procedure GetAttributeByPathWithError(var TempXMLBuffer: Record "XML Buffer" temporary; ElementXPath: Text; AttributeName: Text): Text
+    var
+        TempXMLBufferAttribute: Record "XML Buffer" temporary;
+    begin
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+        TempXMLBuffer.SetRange(Path, ElementXPath);
+        if TempXMLBuffer.FindFirst() then begin
+            TempXMLBufferAttribute.Copy(TempXMLBuffer, true);
+            TempXMLBufferAttribute.Reset();
+            TempXMLBufferAttribute.SetRange("Parent Entry No.", TempXMLBuffer."Entry No.");
+            TempXMLBufferAttribute.SetRange(Type, TempXMLBufferAttribute.Type::Attribute);
+            TempXMLBufferAttribute.SetRange(Name, AttributeName);
+            if TempXMLBufferAttribute.FindFirst() then
+                exit(TempXMLBufferAttribute.Value);
+        end;
+        Error(AttributeNotFoundErr, AttributeName, ElementXPath);
+    end;
+
     local procedure NodeExistsByPath(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text): Boolean
     begin
         TempXMLBuffer.Reset();
@@ -3355,14 +3528,32 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         VATPostingSetup.Modify(true);
     end;
 
+    local procedure SetCompanyRegistrationNo(RegistrationNo: Text[20])
+    begin
+        CompanyInformation.Get();
+        CompanyInformation.GLN := '';
+        CompanyInformation."Use GLN in Electronic Document" := false;
+        CompanyInformation."VAT Registration No." := '';
+        CompanyInformation."Registration No." := RegistrationNo;
+        CompanyInformation."Use Reg. No. in E-Document" := true;
+        CompanyInformation.Modify();
+    end;
+
     local procedure Initialize();
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"ZUGFeRD XML Document Tests");
-        if IsInitialized then
+        if IsInitialized then begin
+            RestoreCompanyIdentifiers();
             exit;
+        end;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"ZUGFeRD XML Document Tests");
         IsInitialized := true;
         CompanyInformation.Get();
+        OriginalCompanyGLN := CompanyInformation.GLN;
+        OriginalCompanyUsesGLN := CompanyInformation."Use GLN in Electronic Document";
+        OriginalCompanyUsesRegistrationNo := CompanyInformation."Use Reg. No. in E-Document";
+        OriginalCompanyVATRegistrationNo := CompanyInformation."VAT Registration No.";
+        OriginalCompanyRegistrationNo := CompanyInformation."Registration No.";
         CompanyInformation.IBAN := LibraryUtility.GenerateMOD97CompliantCode();
         CompanyInformation."SWIFT Code" := LibraryUtility.GenerateGUID();
         CompanyInformation."E-Mail" := LibraryUtility.GenerateRandomEmail();
@@ -3373,6 +3564,17 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Commit();
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"ZUGFeRD XML Document Tests");
+    end;
+
+    local procedure RestoreCompanyIdentifiers()
+    begin
+        CompanyInformation.Get();
+        CompanyInformation.GLN := OriginalCompanyGLN;
+        CompanyInformation."Use GLN in Electronic Document" := OriginalCompanyUsesGLN;
+        CompanyInformation."Use Reg. No. in E-Document" := OriginalCompanyUsesRegistrationNo;
+        CompanyInformation."VAT Registration No." := OriginalCompanyVATRegistrationNo;
+        CompanyInformation."Registration No." := OriginalCompanyRegistrationNo;
+        CompanyInformation.Modify();
     end;
 
     [ConfirmHandler]

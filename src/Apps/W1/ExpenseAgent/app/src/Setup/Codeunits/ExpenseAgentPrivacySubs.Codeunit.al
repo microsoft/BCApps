@@ -51,6 +51,8 @@ codeunit 6950 "Expense Agent Privacy Subs."
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Expense Location");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Expense Rule Condition");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Expense Rule Header");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"Expense Policy");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"Expense Policy Evaluation");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Expense Posting Group");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Expense Subcategory");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Expense VAT Specification");
@@ -78,6 +80,7 @@ codeunit 6950 "Expense Agent Privacy Subs."
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Posted Exp. Rep. Line Item");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Posted Exp. Rep. Line Per Diem");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Posted Exp. Rep. Line VAT Spec");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"Posted Exp. Policy Evaluation");
         DataClassificationMgt.SetFieldToPersonal(
             Database::"Posted Exp. Rep. Line VAT Spec", PostedExpRepLineVATSpec.FieldNo("Reclaim Approved By"));
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Tenant Feedback Setting");

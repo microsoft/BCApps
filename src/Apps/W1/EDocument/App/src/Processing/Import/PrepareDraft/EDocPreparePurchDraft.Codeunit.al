@@ -168,6 +168,7 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
         Log(EDocActivityLogSession, EDocActivityLogSession.DeferralTok());
         Log(EDocActivityLogSession, EDocActivityLogSession.ItemRefTok());
         Log(EDocActivityLogSession, EDocActivityLogSession.TextToAccountMappingTok());
+        Log(EDocActivityLogSession, EDocActivityLogSession.ItemDescriptionTok());
     end;
 
     local procedure Log(EDocActivityLogSession: Codeunit "E-Doc. Activity Log Session"; ActivityLogName: Text)

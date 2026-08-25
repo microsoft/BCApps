@@ -181,7 +181,7 @@ page 20414 "Qlty. Inspections API"
     /// <summary>
     /// Finishes the inspection.
     /// </summary>
-    /// <param name="ActionContext"></param>
+    /// <param name="ActionContext">The web service action context updated with the operation result.</param>
     [ServiceEnabled]
     procedure FinishInspection(var ActionContext: WebServiceActionContext)
     begin
@@ -192,7 +192,7 @@ page 20414 "Qlty. Inspections API"
     /// <summary>
     /// Creates a reinspection.
     /// </summary>
-    /// <param name="ActionContext"></param>
+    /// <param name="ActionContext">The web service action context updated with the operation result.</param>
     [ServiceEnabled]
     procedure CreateReinspection(var ActionContext: WebServiceActionContext)
     begin
@@ -203,7 +203,7 @@ page 20414 "Qlty. Inspections API"
     /// <summary>
     /// Reopens an inspection.
     /// </summary>
-    /// <param name="ActionContext"></param>
+    /// <param name="ActionContext">The web service action context updated with the operation result.</param>
     [ServiceEnabled]
     procedure ReopenInspection(var ActionContext: WebServiceActionContext)
     begin
@@ -214,9 +214,9 @@ page 20414 "Qlty. Inspections API"
     /// <summary>
     /// Sets a test value.
     /// </summary>
-    /// <param name="ActionContext"></param>
-    /// <param name="testCode">Text. The field code to set.</param>
-    /// <param name="testValue">Text. The field value to set.</param>
+    /// <param name="ActionContext">The web service action context updated with the operation result.</param>
+    /// <param name="testCode">The test code whose value to set.</param>
+    /// <param name="testValue">The test value to assign.</param>
     [ServiceEnabled]
     procedure SetTestValue(var ActionContext: WebServiceActionContext; testCode: Text; testValue: Text)
     begin
@@ -227,8 +227,8 @@ page 20414 "Qlty. Inspections API"
     /// <summary>
     /// Assigns the inspection to a user.
     /// </summary>
-    /// <param name="ActionContext"></param>
-    /// <param name="assignToUser">Text. The user id to assign the inspection to.</param>
+    /// <param name="ActionContext">The web service action context updated with the operation result.</param>
+    /// <param name="assignToUser">The user ID to assign the inspection to.</param>
     [ServiceEnabled]
     procedure AssignTo(var ActionContext: WebServiceActionContext; assignToUser: Text)
     begin
@@ -240,7 +240,7 @@ page 20414 "Qlty. Inspections API"
     /// <summary>
     /// Blocks the lot.
     /// </summary>
-    /// <param name="ActionContext"></param>
+    /// <param name="ActionContext">The web service action context updated with the operation result.</param>
     [ServiceEnabled]
     procedure BlockLot(var ActionContext: WebServiceActionContext)
     var
@@ -253,7 +253,7 @@ page 20414 "Qlty. Inspections API"
     /// <summary>
     /// Unblocks the lot.
     /// </summary>
-    /// <param name="ActionContext"></param>
+    /// <param name="ActionContext">The web service action context updated with the operation result.</param>
     [ServiceEnabled]
     procedure UnBlockLot(var ActionContext: WebServiceActionContext)
     var
@@ -267,7 +267,7 @@ page 20414 "Qlty. Inspections API"
     /// <summary>
     /// Blocks the serial number.
     /// </summary>
-    /// <param name="ActionContext"></param>
+    /// <param name="ActionContext">The web service action context updated with the operation result.</param>
     [ServiceEnabled]
     procedure BlockSerial(var ActionContext: WebServiceActionContext)
     var
@@ -280,7 +280,7 @@ page 20414 "Qlty. Inspections API"
     /// <summary>
     /// Unblocks the serial number.
     /// </summary>
-    /// <param name="ActionContext"></param>
+    /// <param name="ActionContext">The web service action context updated with the operation result.</param>
     [ServiceEnabled]
     procedure UnBlockSerial(var ActionContext: WebServiceActionContext)
     var
@@ -293,7 +293,7 @@ page 20414 "Qlty. Inspections API"
     /// <summary>
     /// Blocks the package.
     /// </summary>
-    /// <param name="ActionContext"></param>
+    /// <param name="ActionContext">The web service action context updated with the operation result.</param>
     [ServiceEnabled]
     procedure BlockPackage(var ActionContext: WebServiceActionContext)
     var
@@ -306,7 +306,7 @@ page 20414 "Qlty. Inspections API"
     /// <summary>
     /// Unblocks the package.
     /// </summary>
-    /// <param name="ActionContext"></param>
+    /// <param name="ActionContext">The web service action context updated with the operation result.</param>
     [ServiceEnabled]
     procedure UnBlockPackage(var ActionContext: WebServiceActionContext)
     var
@@ -319,13 +319,13 @@ page 20414 "Qlty. Inspections API"
     /// <summary>
     /// Moves inventory with an Inventory Movement.
     /// </summary>
-    /// <param name="ActionContext"></param>
-    /// <param name="optionalDestinationLocation"></param>
-    /// <param name="binCode"></param>
-    /// <param name="optionalSpecificQuantity"></param>
-    /// <param name="moveEntireLot"></param>
-    /// <param name="optionalSourceLocationFilter"></param>
-    /// <param name="optionalSourceBinFilter"></param>
+    /// <param name="ActionContext">The web service action context updated with the operation result.</param>
+    /// <param name="optionalDestinationLocation">The destination location, or blank to retain the source location.</param>
+    /// <param name="binCode">The destination bin code.</param>
+    /// <param name="optionalSpecificQuantity">The quantity to move when a specific quantity is requested.</param>
+    /// <param name="moveEntireLot">A Boolean text value that selects the item-tracked quantity when true.</param>
+    /// <param name="optionalSourceLocationFilter">An optional filter for source locations.</param>
+    /// <param name="optionalSourceBinFilter">An optional filter for source bins.</param>
     [ServiceEnabled]
     procedure CreateMovement(var ActionContext: WebServiceActionContext; optionalDestinationLocation: Text; binCode: Text; optionalSpecificQuantity: Text; moveEntireLot: Text; optionalSourceLocationFilter: Text; optionalSourceBinFilter: Text)
     var
@@ -359,6 +359,11 @@ page 20414 "Qlty. Inspections API"
             ActionContext.SetResultCode(WebServiceActionResultCode::None);
     end;
 
+    /// <summary>
+    /// Converts a quantity behavior name to its enum value, defaulting to specific quantity when no name matches.
+    /// </summary>
+    /// <param name="TextToConvert">The enum value name to convert.</param>
+    /// <returns>The matching quantity behavior, or specific quantity when no name matches.</returns>
     local procedure ConvertTextToQuantityBehaviorEnum(TextToConvert: Text) QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"
     var
         IndexOfText: Integer;
@@ -377,7 +382,7 @@ page 20414 "Qlty. Inspections API"
     /// Creates a Warehouse Internal Put-away document.
     /// This feature can be used with directed pick and put locations with lot warehouse tracked items.
     /// </summary>
-    /// <param name="ActionContext"></param>
+    /// <param name="ActionContext">The web service action context updated with the operation result.</param>
     /// <param name="optionalSpecificQuantity">When non zero this indicates the quantity to move.</param>
     /// <param name="releaseImmediately">When set to TRUE, will release the internal put-away</param>
     /// <param name="optionalSourceLocationFilter">Optionally restrict the locations to move from. </param>
@@ -417,11 +422,11 @@ page 20414 "Qlty. Inspections API"
     /// Creates a Warehouse Put-away document.
     /// This feature can be used with directed pick and put locations with lot warehouse tracked items.
     /// </summary>
-    /// <param name="ActionContext"></param>
+    /// <param name="ActionContext">The web service action context updated with the operation result.</param>
     /// <param name="optionalSpecificQuantity">Quantity to move, if updating a specific quantity</param>
     /// <param name="optionalSourceLocationFilter">Optionally restrict the locations to move from. </param>
     /// <param name="optionalSourceBinFilter">Optionally restrict the specific bins to move from.</param>
-    /// <param name="putawayBehavior">valid options are KEEPOPEN (create internal put-away), RELEASE (create and release internal put-away), or CREATEPUTAWAY (create and release internal put-away and create warehouse put-away) </param>
+    /// <param name="putAwayBehavior">The handling mode: KEEPOPEN, RELEASE, or CREATEPUTAWAY.</param>
     /// <param name="moveBehavior">Valid options are: SpecificQuantity (quantity defined in optionalSpecificQuantity), TrackedQuantity (quantity of lot/package/serial), SampleQuantity (sample size), FailQuantity (number of failed samples), PassQuantity (number of passed samples)</param>
     [ServiceEnabled]
     procedure CreateWarehousePutAway(var ActionContext: WebServiceActionContext; optionalSpecificQuantity: Text; optionalSourceLocationFilter: Text; optionalSourceBinFilter: Text; putAwayBehavior: Text; moveBehavior: Text)
@@ -466,14 +471,14 @@ page 20414 "Qlty. Inspections API"
     /// <summary>
     /// Uses an item/warehouse reclassification journal or movement worksheet to move the inventory.
     /// </summary>
-    /// <param name="ActionContext"></param>
+    /// <param name="ActionContext">The web service action context updated with the operation result.</param>
     /// <param name="optionalDestinationLocation">When left blank this assumes the same location as the from location.</param>
     /// <param name="optionalDestinationBin">The target bin to move to.</param>
     /// <param name="optionalSpecificQuantity">Quantity to move, if updating a specific quantity</param>
     /// <param name="postImmediately">When set to TRUE this will post journals immediately or create the warehouse movement. Verify you have sufficient licensing to use this flag.</param>
     /// <param name="optionalSourceLocationFilter">Optionally restrict the locations to move from. </param>
     /// <param name="optionalSourceBinFilter">Optionally restrict the specific bins to move from.</param>
-    /// <param name="useMoveSheet">When set to TRUE, will use the Movement Worksheet instead of a reclassification journal.</param>
+    /// <param name="useMoveSheet">Reserved for movement worksheet selection; the current implementation does not read this value.</param>
     /// <param name="moveBehavior">Valid options are: SpecificQuantity (quantity defined in optionalSpecificQuantity), TrackedQuantity (quantity of lot/package/serial) SampleQuantity (sample size), FailQuantity (number of failed samples), PassQuantity (number of passed samples)</param>
     [ServiceEnabled]
     procedure MoveInventory(var ActionContext: WebServiceActionContext; optionalDestinationLocation: Text; optionalDestinationBin: Text; optionalSpecificQuantity: Text; postImmediately: Text; optionalSourceLocationFilter: Text; optionalSourceBinFilter: Text; useMoveSheet: Text; moveBehavior: Text)
@@ -519,7 +524,7 @@ page 20414 "Qlty. Inspections API"
     /// <summary>
     /// Creates a negative inventory adjustment.
     /// </summary>
-    /// <param name="ActionContext"></param>
+    /// <param name="ActionContext">The web service action context updated with the operation result.</param>
     /// <param name="optionalSourceLocationFilter">Optional additional location filter for item on test</param>
     /// <param name="optionalSourceBinFilter">Optional additional bin filter for item on test</param>
     /// <param name="optionalSpecificQuantity">Quantity to remove, if moving a specific quantity</param>
@@ -553,6 +558,11 @@ page 20414 "Qlty. Inspections API"
 
     end;
 
+    /// <summary>
+    /// Converts an adjustment posting behavior name to its enum value, defaulting to prepare only when no name matches.
+    /// </summary>
+    /// <param name="InputText">The enum value name to convert.</param>
+    /// <returns>The matching posting behavior, or prepare only when no name matches.</returns>
     local procedure ConvertTextToItemAdjPostBehaviorEnum(InputText: Text) QltyItemAdjPostBehavior: Enum "Qlty. Item Adj. Post Behavior"
     var
         IndexOfText: Integer;
@@ -570,7 +580,7 @@ page 20414 "Qlty. Inspections API"
     /// <summary>
     /// Updates item tracking information.
     /// </summary>
-    /// <param name="ActionContext"></param>
+    /// <param name="ActionContext">The web service action context updated with the operation result.</param>
     /// <param name="optionalSourceLocationFilter">Optional additional location filter for item on test</param>
     /// <param name="optionalSourceBinFilter">Optional additional bin filter for item on test</param>
     /// <param name="optionalSpecificQuantity">Quantity to update, if updating a specific quantity</param>
@@ -619,7 +629,7 @@ page 20414 "Qlty. Inspections API"
     /// <summary>
     /// Creates a transfer order to move the inventory.
     /// </summary>
-    /// <param name="ActionContext"></param>
+    /// <param name="ActionContext">The web service action context updated with the operation result.</param>
     /// <param name="optionalSourceLocationFilter">Optional additional location filter for item on test</param>
     /// <param name="optionalSourceBinFilter">Optional additional bin filter for item on test</param>
     /// <param name="destinationLocation">Destination location for the transfer</param>
