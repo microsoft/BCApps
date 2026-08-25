@@ -65,6 +65,7 @@ codeunit 6987 "Expense Report-Post"
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         PreviewMode: Boolean;
+        DisableNonDeductibleVATAfterPost: Boolean;
         AmountToEmployee: Decimal;
         AmountToEmployeeLCY: Decimal;
         CanPostExpenseReportQst: Label 'Do you want to post Expense Report %1?', Comment = '%1 = Expense Report No.';
@@ -108,6 +109,12 @@ codeunit 6987 "Expense Report-Post"
         if not PreviewMode then begin
             if TrySendReimbursementNotification(PostedExpenseReportHeader) then;
             ExpenseReportHeader.Delete(true);
+            if DisableNonDeductibleVATAfterPost then begin
+                VATSetup.Get();
+                VATSetup."Enable Non-Deductible VAT" := false;
+                VATSetup.Modify();
+                DisableNonDeductibleVATAfterPost := false;
+            end;
             LogAgentVATSpecificationUsage(AgentVATSpecificationCount);
         end;
 
@@ -902,7 +909,11 @@ codeunit 6987 "Expense Report-Post"
             exit;
 
         VATSetup.Get();
-        VATSetup.TestField("Enable Non-Deductible VAT");
+        if not VATSetup."Enable Non-Deductible VAT" then begin
+            VATSetup."Enable Non-Deductible VAT" := true;
+            VATSetup.Modify();
+            DisableNonDeductibleVATAfterPost := true;
+        end;
         GenJournalLine.Validate("Non-Deductible VAT %", 100 - ExpenseReportLineVATSpec."Reclaim %");
         GenJournalLine.Validate("Non-Deductible VAT Base", ExpenseReportLineVATSpec."VAT Base Amount (RCY)" * (100 - ExpenseReportLineVATSpec."Reclaim %") / 100);
         GenJournalLine.Validate("Non-Deductible VAT Amount", ExpenseReportLineVATSpec."VAT Amount (RCY)" - ExpenseReportLineVATSpec."Reclaim VAT Amount (RCY)");

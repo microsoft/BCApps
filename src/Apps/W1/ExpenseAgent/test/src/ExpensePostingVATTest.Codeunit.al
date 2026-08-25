@@ -26,7 +26,6 @@ codeunit 148330 "Expense Posting VAT Test"
         LibraryExpense: Codeunit "Library - Expense";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        LibraryNonDeductibleVAT: Codeunit "Library - NonDeductible VAT";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         IsInitialized: Boolean;
@@ -1130,8 +1129,6 @@ codeunit 148330 "Expense Posting VAT Test"
         LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
         ExpenseAgentSetup.Validate("Default VAT Bus. Posting Group", VATBusinessPostingGroup.Code);
         ExpenseAgentSetup.Modify(true);
-
-        LibraryNonDeductibleVAT.EnableNonDeductibleVAT();
 
         LibraryERMCountryData.UpdateJournalTemplMandatory(false);
         LibraryERMCountryData.UpdateLocalData();
