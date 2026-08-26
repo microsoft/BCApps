@@ -72,6 +72,11 @@ pageextension 6222 "Sust. Item Card" extends "Item Card"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the value of the Item of Concern field.';
                 }
+                field("EUDR Relevant"; Rec."EUDR Relevant")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies that this item is subject to the EU Deforestation Regulation (EUDR) and requires EUDR certification information on its lot information.';
+                }
                 field("Recyclability Percentage"; Rec."Recyclability Percentage")
                 {
                     ApplicationArea = Basic, Suite;
