@@ -104,6 +104,18 @@ page 6220 "Sustainability Ledger Entries"
                 {
                     ToolTip = 'Specifies the custom amount of the entry.';
                 }
+                field("Collected from G/L Entries"; Rec."Collected from G/L Entries")
+                {
+                    ToolTip = 'Specifies whether the amount of the entry was collected from general ledger entries. Use the Collected G/L Entries action to see which entries were consumed.';
+                }
+                field("Collect From Date"; Rec."Collect From Date")
+                {
+                    ToolTip = 'Specifies the start of the period that the general ledger entries were collected for.';
+                }
+                field("Collect To Date"; Rec."Collect To Date")
+                {
+                    ToolTip = 'Specifies the end of the period that the general ledger entries were collected for.';
+                }
                 field("Emission Factor CO2"; Rec."Emission Factor CO2")
                 {
                     ToolTip = 'Specifies the emission factor CO2 of the entry.';
