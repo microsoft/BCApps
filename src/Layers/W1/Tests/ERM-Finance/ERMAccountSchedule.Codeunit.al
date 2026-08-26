@@ -5612,6 +5612,7 @@ codeunit 134902 "ERM Account Schedule"
         AccScheduleName: Record "Acc. Schedule Name";
         ColumnLayoutName: Record "Column Layout Name";
         ConfigPackage: Record "Config. Package";
+        ConfigPackageData: Record "Config. Package Data";
         AccountScheduleNames: TestPage "Account Schedule Names";
         PackageCode: Code[20];
         StatusCode: Code[10];
@@ -5622,19 +5623,23 @@ codeunit 134902 "ERM Account Schedule"
 
         // [GIVEN] Financial Report Status 'S'
         StatusCode := CreateFinancialReportStatus(FinancialReportStatus);
+
         // [GIVEN] Row definition 'X' with a line, where Status is 'S'
         CreateAccountScheduleNameAndColumn(AccScheduleName, ColumnLayoutName);
         AccScheduleName.Validate(Status, StatusCode);
         AccScheduleName.Modify(true);
         AccScheduleLine.SetRange("Schedule Name", AccScheduleName.Name);
         NoOfLines := AccScheduleLine.Count();
+
         // [GIVEN] Row definition 'X' is exported as a rapidstart package
         AccountScheduleNames.OpenView();
         AccountScheduleNames.Filter.SetFilter(Name, AccScheduleName.Name);
         AccountScheduleNames.ExportAccountSchedule.Invoke();
         PackageCode := StrSubstNo(TwoPosTxt, AccSchedPrefixTxt, AccScheduleName.Name);
+
         // [GIVEN] Row definition 'X' is removed, simulating a destination company that does not have it yet
         ExportToXMLImport(PackageCode, AccScheduleName.Name);
+
         // [GIVEN] Status 'S' does not exist in the destination company
         FinancialReportStatus.Delete(true);
 
@@ -5645,14 +5650,24 @@ codeunit 134902 "ERM Account Schedule"
         Assert.ExpectedMessage(
             StrSubstNo(NoTablesAndErrorsMsg, 2, 0, 2, 0), LibraryVariableStorage.DequeueText());
         LibraryVariableStorage.AssertEmpty();
+
         // [THEN] Config Package is imported
         Assert.IsTrue(ConfigPackage.Get(PackageCode), 'Package must be imported');
+
         // [THEN] Row definition 'X' with its line is imported
         Assert.IsTrue(AccScheduleName.Get(AccScheduleName.Name), 'Row definition must be imported');
         AccScheduleLine.SetRange("Schedule Name", AccScheduleName.Name);
         Assert.RecordCount(AccScheduleLine, NoOfLines);
+
         // [THEN] The non-existent status is cleared on the imported row definition
         AccScheduleName.TestField(Status, '');
+        
+        // [THEN] The status value is preserved in the package, so that it can be applied again
+        ConfigPackageData.SetRange("Package Code", PackageCode);
+        ConfigPackageData.SetRange("Table ID", Database::"Acc. Schedule Name");
+        ConfigPackageData.SetRange("Field ID", AccScheduleName.FieldNo(Status));
+        ConfigPackageData.FindFirst();
+        ConfigPackageData.TestField(Value, StatusCode);
     end;
 
     [Test]
