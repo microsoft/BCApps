@@ -640,6 +640,7 @@ codeunit 148300 "Library - Expense"
         ExpenseParticipant: Record "Expense Participant";
         ExpensePerDiem: Record "Expense Per Diem";
         ExpenseVATSpecification: Record "Expense VAT Specification";
+        ExpenseVendor: Record "Expense Vendor";
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
         ExpenseReportLineItem: Record "Expense Report Line Item";
@@ -669,6 +670,7 @@ codeunit 148300 "Library - Expense"
 
         Expense.DeleteAll();
         ExpenseRuleViolation.DeleteAll();
+        ExpenseVendor.DeleteAll();
     end;
 
     local procedure DeleteExpenseAttachments()

@@ -14,12 +14,7 @@ using System.Agents;
 
 codeunit 148307 "Expense Test Handler API"
 {
-    /// <summary>
-    /// Ensures that the current company has an enabled Expense Agent.
-    /// The operation is idempotent so E2E tests can call it during per-test initialization.
-    /// </summary>
-    [ServiceEnabled]
-    procedure EnsureExpenseAgent(): Guid
+    local procedure EnsureExpenseAgent(): Guid
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
         Agent: Record Agent;
@@ -80,16 +75,17 @@ codeunit 148307 "Expense Test Handler API"
     [ServiceEnabled]
     procedure Initialize(): Text[30]
     var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
         CreateExpenseAgentSetup: Codeunit "Create Expense Agent Setup";
-        CreateExpenseCategories: Codeunit "Create Expense Categories";
         CreateExpenseGLAccount: Codeunit "Create Expense GL Account";
         LibraryExpense: Codeunit "Library - Expense";
     begin
         LibraryExpense.CleanTransactionalData();
         CreateExpenseAgentSetup.Run();
         CreateExpenseGLAccount.Run();
-        CreateExpenseCategories.InsertAccountingDefaults();
-        CreateExpenseCategories.InsertManagementDefaults();
+        EnsureExpenseAgent();
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.CreateDefaultSettings();
         exit('Initialize completed');
     end;
 

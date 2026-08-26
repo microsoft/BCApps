@@ -6,6 +6,7 @@ namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Foundation.NoSeries;
 using System.Agents;
 
 codeunit 148333 "Expense Agent Setup API Test"
@@ -62,7 +63,7 @@ codeunit 148333 "Expense Agent Setup API Test"
     end;
 
     [Test]
-    procedure EnsureExpenseAgentIsIdempotent()
+    procedure TestHandlerInitializeCreatesEnabledExpenseAgent()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
         Agent: Record Agent;
@@ -70,11 +71,21 @@ codeunit 148333 "Expense Agent Setup API Test"
         FirstAgentUserSecurityId: Guid;
         SecondAgentUserSecurityId: Guid;
     begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Test handler initialization creates and reuses an enabled Expense Agent
         Initialize();
 
-        FirstAgentUserSecurityId := ExpenseTestHandlerAPI.EnsureExpenseAgent();
-        SecondAgentUserSecurityId := ExpenseTestHandlerAPI.EnsureExpenseAgent();
+        // [WHEN] The E2E test handler initializes the company
+        ExpenseTestHandlerAPI.Initialize();
+        ExpenseAgentSetup.Get();
+        FirstAgentUserSecurityId := ExpenseAgentSetup."User Security ID";
 
+        // [WHEN] The E2E test handler initializes the company again
+        ExpenseTestHandlerAPI.Initialize();
+        ExpenseAgentSetup.Get();
+        SecondAgentUserSecurityId := ExpenseAgentSetup."User Security ID";
+
+        // [THEN] The same enabled Expense Agent is reused
         Assert.AreEqual(
             FirstAgentUserSecurityId,
             SecondAgentUserSecurityId,
@@ -99,16 +110,75 @@ codeunit 148333 "Expense Agent Setup API Test"
         // [SCENARIO] Test handler initialization creates valid default master data
         Initialize();
 
+        // [GIVEN] Required Expense Agent setup data is absent
+        ClearRequiredSetupData();
+
         // [WHEN] The E2E test handler initializes Expense Agent master data
         ExpenseTestHandlerAPI.Initialize();
 
-        // [THEN] Default payment methods, categories, and posting accounts exist
+        // [THEN] Default number series, payment methods, categories, and posting accounts exist
+        VerifyDefaultNumberSeriesExist();
         Assert.IsTrue(ExpensePaymentMethod.Get('CARD'), 'The credit-card payment method must exist.');
         Assert.IsTrue(ExpenseCategory.Get('MEALS'), 'The meals category must exist.');
         Assert.IsTrue(ExpenseCategory.Get('HOTELS'), 'The hotels category must exist.');
         Assert.IsTrue(ExpenseCategory.Get('ENTERTAIN'), 'The entertainment category must exist.');
         Assert.IsTrue(ExpenseCategory.Get('PER-DIEM'), 'The per-diem category must exist.');
         VerifyDefaultPostingGroupAccountsExist();
+    end;
+
+    [Test]
+    procedure TestHandlerInitializeIsIdempotent()
+    var
+        ExpenseCategory: Record "Expense Category";
+        ExpensePaymentMethod: Record "Expense Payment Method";
+        ExpensePostingGroup: Record "Expense Posting Group";
+        ExpenseTestHandlerAPI: Codeunit "Expense Test Handler API";
+        CategoryCount: Integer;
+        PaymentMethodCount: Integer;
+        PostingGroupCount: Integer;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Repeated test handler initialization preserves default setup data
+        Initialize();
+
+        // [GIVEN] Required Expense Agent setup data is absent
+        ClearRequiredSetupData();
+
+        // [GIVEN] The E2E test handler initializes Expense Agent master data
+        ExpenseTestHandlerAPI.Initialize();
+        CategoryCount := ExpenseCategory.Count();
+        PaymentMethodCount := ExpensePaymentMethod.Count();
+        PostingGroupCount := ExpensePostingGroup.Count();
+
+        // [WHEN] The E2E test handler initializes the same company again
+        ExpenseTestHandlerAPI.Initialize();
+
+        // [THEN] Default setup records are not duplicated
+        Assert.AreEqual(CategoryCount, ExpenseCategory.Count(), 'Expense categories must not be duplicated.');
+        Assert.AreEqual(PaymentMethodCount, ExpensePaymentMethod.Count(), 'Payment methods must not be duplicated.');
+        Assert.AreEqual(PostingGroupCount, ExpensePostingGroup.Count(), 'Posting groups must not be duplicated.');
+    end;
+
+    [Test]
+    procedure TestHandlerInitializeDeletesExpenseVendors()
+    var
+        ExpenseVendor: Record "Expense Vendor";
+        ExpenseTestHandlerAPI: Codeunit "Expense Test Handler API";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Test handler initialization removes stale Expense Vendors
+        Initialize();
+
+        // [GIVEN] An Expense Vendor exists from a previous test
+        ExpenseVendor.Init();
+        ExpenseVendor."No." := 'E2E-VENDOR';
+        ExpenseVendor.Insert(false);
+
+        // [WHEN] The E2E test handler initializes the company
+        ExpenseTestHandlerAPI.Initialize();
+
+        // [THEN] The stale Expense Vendor is removed
+        Assert.IsFalse(ExpenseVendor.Get('E2E-VENDOR'), 'Expense Vendor must be deleted during test initialization.');
     end;
 
     local procedure Initialize()
@@ -122,6 +192,49 @@ codeunit 148333 "Expense Agent Setup API Test"
         IsInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Agent Setup API Test");
+    end;
+
+    local procedure ClearRequiredSetupData()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseCategory: Record "Expense Category";
+        ExpensePaymentMethod: Record "Expense Payment Method";
+        ExpensePostingGroup: Record "Expense Posting Group";
+        ExpenseSubcategory: Record "Expense Subcategory";
+    begin
+        LibraryExpense.CleanTransactionalData();
+        ExpenseSubcategory.DeleteAll();
+        ExpenseCategory.DeleteAll();
+        ExpensePaymentMethod.DeleteAll();
+        ExpensePostingGroup.DeleteAll();
+
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup."Expense Nos." := '';
+        ExpenseAgentSetup."Expense User Nos." := '';
+        ExpenseAgentSetup."Expense Vendor Nos." := '';
+        ExpenseAgentSetup."Expense Reports Nos." := '';
+        ExpenseAgentSetup."Posted Expense Reports Nos." := '';
+        ExpenseAgentSetup."No. Series Applied" := false;
+        ExpenseAgentSetup."Payment Methods Applied" := false;
+        ExpenseAgentSetup."Posting Groups Applied" := false;
+        ExpenseAgentSetup."Exp. Categories Applied" := false;
+        ExpenseAgentSetup."Exp. Locations Applied" := false;
+        ExpenseAgentSetup."Management Rules Applied" := false;
+        ExpenseAgentSetup."VAT Rates Applied" := false;
+        ExpenseAgentSetup.Modify(false);
+    end;
+
+    local procedure VerifyDefaultNumberSeriesExist()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        NoSeries: Record "No. Series";
+    begin
+        ExpenseAgentSetup.Get();
+        Assert.IsTrue(NoSeries.Get(ExpenseAgentSetup."Expense Nos."), 'The expense number series must exist.');
+        Assert.IsTrue(NoSeries.Get(ExpenseAgentSetup."Expense User Nos."), 'The expense user number series must exist.');
+        Assert.IsTrue(NoSeries.Get(ExpenseAgentSetup."Expense Vendor Nos."), 'The expense vendor number series must exist.');
+        Assert.IsTrue(NoSeries.Get(ExpenseAgentSetup."Expense Reports Nos."), 'The expense report number series must exist.');
+        Assert.IsTrue(NoSeries.Get(ExpenseAgentSetup."Posted Expense Reports Nos."), 'The posted expense report number series must exist.');
     end;
 
     local procedure VerifyDefaultPostingGroupAccountsExist()
