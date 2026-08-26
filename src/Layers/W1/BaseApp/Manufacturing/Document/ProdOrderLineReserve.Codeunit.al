@@ -409,6 +409,10 @@ codeunit 99000837 "Prod. Order Line-Reserve"
 
         if ProdOrderLine.Status = ProdOrderLine.Status::Simulated then
             exit;
+
+        if ProdOrderLine.IsTemporary() then
+            exit;
+
         if ProdOrderLine."Item No." <> '' then
             PlanningAssignment.ChkAssignOne(ProdOrderLine."Item No.", ProdOrderLine."Variant Code", ProdOrderLine."Location Code", WorkDate());
     end;
