@@ -398,37 +398,32 @@ function New-BcTestTenantTemplate {
         [Parameter(Mandatory=$true)]
         [string]$ContainerName,
         [Parameter(Mandatory=$true)]
-        [string]$SourceTenant
+        [string]$SourceDatabaseName
     )
 
-    # PowerShell Direct has a fixed 100-second HTTP timeout; docker exec waits for long database copies to finish.
-    $result = @(Invoke-ScriptInBcContainer -containerName $ContainerName -useSession $false -scriptblock { Param($sourceTenant)
-        $templateDatabaseName = $null
+    $result = @(Invoke-ScriptInBcContainer -containerName $ContainerName -useSession $false -scriptblock { Param($sourceDatabaseName)
+        $templateDatabaseName = "$sourceDatabaseName-test-template"
         $maxAttempts = 3
         $retryDelaySeconds = 5
         for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
             try {
-                Write-Host "Resolving source tenant '$sourceTenant' for test template creation (attempt $attempt/$maxAttempts)..."
-                $source = Get-NAVTenant -ServerInstance $ServerInstance -Tenant $sourceTenant
-                $templateDatabaseName = "$($source.DatabaseName)-test-template"
-
                 if (Test-NAVDatabase -DatabaseName $templateDatabaseName) {
                     Remove-NAVDatabase -DatabaseName $templateDatabaseName | Out-Null
                 }
 
-                Write-Host "Creating immutable test tenant template '$templateDatabaseName' from '$($source.DatabaseName)' (attempt $attempt/$maxAttempts)..."
-                Copy-NAVDatabase -SourceDatabaseName $source.DatabaseName -DestinationDatabaseName $templateDatabaseName -DatabaseServer "." | Out-Null
+                Write-Host "Creating immutable test tenant template '$templateDatabaseName' from '$sourceDatabaseName' (attempt $attempt/$maxAttempts)..."
+                Copy-NAVDatabase -SourceDatabaseName $sourceDatabaseName -DestinationDatabaseName $templateDatabaseName -DatabaseServer "." | Out-Null
                 break
             } catch {
                 Write-Host "WARNING: Template database copy failed on attempt $attempt/${maxAttempts}: $($_.Exception.Message)"
                 if ($attempt -eq $maxAttempts) {
-                    throw "Failed to create a test tenant template from '$sourceTenant' after $maxAttempts attempts. Last error: $($_.Exception.Message)"
+                    throw "Failed to create a test tenant template from '$sourceDatabaseName' after $maxAttempts attempts. Last error: $($_.Exception.Message)"
                 }
                 Start-Sleep -Seconds $retryDelaySeconds
             }
         }
         $templateDatabaseName
-    } -argumentList $SourceTenant)
+    } -argumentList $SourceDatabaseName)
 
     if ($result.Count -eq 0) {
         throw "Creating the clean test tenant template returned no database name."
@@ -1392,9 +1387,13 @@ function Invoke-ParallelTestExecution {
                 throw "Clean RequiredTestIsolation=Disabled execution requires at least one secondary tenant."
             }
             Write-Host "Preparing clean-tenant execution for $($requiredDisabledWorkItems.Count) RequiredTestIsolation=Disabled codeunit(s)."
+            $sourceTenantInfo = @($tenantInfo | Where-Object { $_.Id -eq $parameters.tenant }) | Select-Object -First 1
+            if (-not $sourceTenantInfo -or [string]::IsNullOrEmpty($sourceTenantInfo.DatabaseName)) {
+                throw "Could not determine the database name for source tenant '$($parameters.tenant)'."
+            }
             # Restart before tests mutate server/tenant state; late restarts can fail on configuration changes made by test apps.
             Enable-BcTestTaskScheduler -ContainerName $parameters.containerName
-            $templateDatabaseName = New-BcTestTenantTemplate -ContainerName $parameters.containerName -SourceTenant $parameters.tenant
+            $templateDatabaseName = New-BcTestTenantTemplate -ContainerName $parameters.containerName -SourceDatabaseName $sourceTenantInfo.DatabaseName
         }
 
     # dispatched=true marks "we started the foreach" - lets concurrent reads notice an in-flight

@@ -130,7 +130,7 @@ Describe "ParallelTestExecution app-name resolution" {
         InModuleScope ParallelTestExecution {
             Mock Invoke-ScriptInBcContainer { 'default-test-template' }
 
-            New-BcTestTenantTemplate -ContainerName 'bc' -SourceTenant 'default' | Should -Be 'default-test-template'
+            New-BcTestTenantTemplate -ContainerName 'bc' -SourceDatabaseName 'default' | Should -Be 'default-test-template'
 
             Should -Invoke Invoke-ScriptInBcContainer -Times 1 -ParameterFilter {
                 $containerName -eq 'bc' -and $useSession -eq $false
@@ -619,7 +619,9 @@ Describe "ParallelTestExecution clean tenant scheduling" {
             } -scriptPath 'unused.ps1' -testType 'IntegrationTest' -appNamesToTest @('Tests')
 
             $result | Should -BeTrue
-            Should -Invoke New-BcTestTenantTemplate -Times 1
+            Should -Invoke New-BcTestTenantTemplate -Times 1 -ParameterFilter {
+                $SourceDatabaseName -eq 'default'
+            }
             Should -Invoke Enable-BcTestTaskScheduler -Times 1
             Should -Invoke Invoke-RequiredDisabledTestExecution -Times 1 -ParameterFilter {
                 $TemplateDatabaseName -eq 'default-test-template' -and
