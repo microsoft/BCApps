@@ -54,6 +54,11 @@ codeunit 130473 "Test Configuration Mgt"
         if not BaseSuite.Get(BaseSuiteName) then
             Error(SuiteNotFoundErr, BaseSuiteName);
 
+        // Defensively leave stability mode before starting. Stability state lives in a single-instance
+        // codeunit and is not rolled back if a previous run errored out before it could exit, so this
+        // self-heals any stale flag/seed from an aborted run and prevents it from affecting this run.
+        ConfiguredRandomSeed.ExitStabilityMode();
+
         EnsureDefaultConfigurations();
         // Validate every enabled configuration before entering stability mode, so bad settings (for
         // example an invalid WorkDate formula) are reported up front and cannot leave stability mode
