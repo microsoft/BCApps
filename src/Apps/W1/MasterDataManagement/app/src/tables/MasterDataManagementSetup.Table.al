@@ -253,7 +253,7 @@ table 7230 "Master Data Management Setup"
     internal procedure GetDataSource(): Interface "IMDM Data Source"
     begin
         if "Source Environment Name" <> '' then
-            Error(CrossEnvNotYetSupportedErr);
+            exit(Enum::"MDM Data Source Type"::CrossEnvironment);
         exit(Enum::"MDM Data Source Type"::LocalCompany);
     end;
 
@@ -264,5 +264,4 @@ table 7230 "Master Data Management Setup"
         MustNotPickCurrentCompanyErr: label 'You are currently signed into this company. \\Choose a different company to synchronize data with.';
         MustPickSourceCompanyErr: label 'You must choose a source company to synchronize data from.';
         ResetConfigQst: label 'There are existing synchronization table definitions in this company. Do you want to reset them to the default configuration?';
-        CrossEnvNotYetSupportedErr: label 'Cross-environment synchronization is not yet available.';
 }

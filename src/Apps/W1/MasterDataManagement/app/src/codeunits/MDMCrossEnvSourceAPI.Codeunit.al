@@ -10,9 +10,6 @@ codeunit 7241 "MDM Cross-Env Source API"
 {
     Access = Public;
 
-    var
-        NotYetImplementedErr: Label 'This master data management source action is not yet available.';
-
     /// <summary>
     /// Wire-version negotiation: returns the API contract version and the action/feature names this source
     /// supports, so a newer subsidiary only calls actions an older source actually implements.
@@ -33,28 +30,438 @@ codeunit 7241 "MDM Cross-Env Source API"
     end;
 
     /// <summary>
-    /// Returns a page of changed source records for the given table. Selector is either a change-feed
-    /// cursor { modifiedAt, systemId, pageSize } or a targeted { systemIds } list. Response carries the
-    /// records, nextCursor and hasMore. Only tables/fields in a configured mapping are served.
+    /// Returns a page of changed source records for the given table. FieldIds is a JSON array of field
+    /// numbers. Selector is either a change-feed cursor { modifiedAt, systemId } or a targeted
+    /// { systemIds } list. Response carries records, hasMore and (cursor mode) nextCursor. The table read
+    /// runs under the CALLER's permission set, so table-level access is enforced by permissions, not here.
     /// </summary>
     [ServiceEnabled]
     procedure GetRecords(TableId: Integer; FieldIds: Text; Selector: Text; PageSize: Integer): Text
+    var
+        RecRef: RecordRef;
+        Response: JsonObject;
+        Records: JsonArray;
+        UnavailableFields: JsonArray;
+        SystemIds: JsonArray;
+        ProjectedFields: List of [Integer];
+        CursorModifiedAt: DateTime;
+        NextModifiedAt: DateTime;
+        CursorSystemId: Guid;
+        NextSystemId: Guid;
+        HasCursor: Boolean;
+        HasMore: Boolean;
+        GroupTooLarge: Boolean;
+        Count: Integer;
+        ResultText: Text;
     begin
-        // TODO(cross-env): authorize (calling app + mapping scope), project FieldIds, page by the composite
-        // cursor (SystemModifiedAt, SystemId), serialize field types, and report unavailable table/fields.
-        Error(NotYetImplementedErr);
+        Response.Add('tableId', TableId);
+
+        if not TryOpenTable(TableId, RecRef) then
+            exit(WriteResponse(Response, false, Records, false));
+        Response.Add('tableAvailable', true);
+
+        // Missing field => HALT that table's sync (no partial records); subsidiary logs a synch error.
+        // Fields that exist but are media/blob/flow are skipped silently (media sync is deferred).
+        ResolveProjection(RecRef, FieldIds, ProjectedFields, UnavailableFields);
+        if UnavailableFields.Count() > 0 then begin
+            Response.Add('unavailableFields', UnavailableFields);
+            exit(WriteResponse(Response, true, Records, false));
+        end;
+
+        PageSize := ClampPageSize(PageSize);
+
+        // Targeted mode: caller asked for specific SystemIds (no paging).
+        if SelectorSystemIds(Selector, SystemIds) then begin
+            FillBySystemIds(RecRef, SystemIds, ProjectedFields, Records);
+            exit(WriteResponse(Response, true, Records, false));
+        end;
+
+        HasCursor := SelectorCursor(Selector, CursorModifiedAt, CursorSystemId);
+
+        if HasCompositeChangeFeedKey(RecRef) then begin
+            // Bounded paging: the (SystemModifiedAt, SystemId) key lets us split even a big same-timestamp group.
+            RecRef.SetView(StrSubstNo('SORTING(Field%1,Field%2)', SystemModifiedAtFieldNo(), SystemIdFieldNo()));
+            HasMore := FillCursorPage(RecRef, HasCursor, CursorModifiedAt, CursorSystemId, ProjectedFields, PageSize, Records, Count, NextModifiedAt, NextSystemId);
+            if Count > 0 then
+                Response.Add('nextCursor', BuildCursor(NextModifiedAt, NextSystemId));
+        end else
+            if HasModifiedAtLeadingKey(RecRef) then begin
+                // Fallback for tables without the SystemId tiebreak (kept off small/setup tables): drain each
+                // timestamp group whole so the cursor can advance by SystemModifiedAt alone. Safe while groups
+                // are small; a group too large to page keylessly asks for the composite key instead.
+                RecRef.SetView(StrSubstNo('SORTING(Field%1)', SystemModifiedAtFieldNo()));
+                HasMore := FillDrainPage(RecRef, HasCursor, CursorModifiedAt, ProjectedFields, PageSize, Records, Count, NextModifiedAt, GroupTooLarge);
+                if GroupTooLarge then begin
+                    Clear(Records);
+                    Response.Add('indexed', false);
+                    exit(WriteResponse(Response, true, Records, false));
+                end;
+                if Count > 0 then
+                    Response.Add('nextCursor', BuildModifiedAtCursor(NextModifiedAt));
+            end else begin
+                // No SystemModifiedAt index at all: no-code scan fallback. Order by primary key (always indexed),
+                // filter SystemModifiedAt > watermark, and return the whole changed set in one shot (capped).
+                // Over the cap, ask for the composite key (only large unindexed tables need it).
+                HasMore := FillScanPage(RecRef, HasCursor, CursorModifiedAt, ProjectedFields, Records, Count, NextModifiedAt, GroupTooLarge);
+                if GroupTooLarge then begin
+                    Clear(Records);
+                    Response.Add('indexed', false);
+                    exit(WriteResponse(Response, true, Records, false));
+                end;
+                if Count > 0 then
+                    Response.Add('nextCursor', BuildModifiedAtCursor(NextModifiedAt));
+            end;
+
+        Response.Add('records', Records);
+        Response.Add('hasMore', HasMore);
+        Response.WriteTo(ResultText);
+        exit(ResultText);
+    end;
+
+    local procedure WriteResponse(var Response: JsonObject; TableAvailable: Boolean; var Records: JsonArray; HasMore: Boolean): Text
+    var
+        ResultText: Text;
+    begin
+        if not Response.Contains('tableAvailable') then
+            Response.Add('tableAvailable', TableAvailable);
+        Response.Add('records', Records);
+        Response.Add('hasMore', HasMore);
+        Response.WriteTo(ResultText);
+        exit(ResultText);
+    end;
+
+    [TryFunction]
+    local procedure TryOpenTable(TableId: Integer; var RecRef: RecordRef)
+    begin
+        RecRef.Open(TableId);
+    end;
+
+    local procedure ResolveProjection(var RecRef: RecordRef; FieldIds: Text; var ProjectedFields: List of [Integer]; var UnavailableFields: JsonArray)
+    var
+        RequestedFields: JsonArray;
+        Token: JsonToken;
+        FieldNo: Integer;
+    begin
+        if not TryReadJsonArray(FieldIds, RequestedFields) then
+            exit;
+        foreach Token in RequestedFields do begin
+            FieldNo := Token.AsValue().AsInteger();
+            if not RecRef.FieldExist(FieldNo) then
+                UnavailableFields.Add(FieldNo)
+            else
+                if IsProjectableField(RecRef.Field(FieldNo)) then
+                    ProjectedFields.Add(FieldNo);
+        end;
+    end;
+
+    local procedure IsProjectableField(FieldReference: FieldRef): Boolean
+    begin
+        exit((FieldReference.Class() = FieldClass::Normal) and
+             not (FieldReference.Type() in [FieldType::Blob, FieldType::Media, FieldType::MediaSet]));
+    end;
+
+    local procedure SelectorSystemIds(Selector: Text; var SystemIds: JsonArray): Boolean
+    var
+        SelectorObject: JsonObject;
+        Token: JsonToken;
+    begin
+        if not TryReadJsonObject(Selector, SelectorObject) then
+            exit(false);
+        if not SelectorObject.Get('systemIds', Token) then
+            exit(false);
+        if not Token.IsArray() then
+            exit(false);
+        SystemIds := Token.AsArray();
+        exit(SystemIds.Count() > 0);
+    end;
+
+    local procedure SelectorCursor(Selector: Text; var CursorModifiedAt: DateTime; var CursorSystemId: Guid): Boolean
+    var
+        SelectorObject: JsonObject;
+        Token: JsonToken;
+    begin
+        if not TryReadJsonObject(Selector, SelectorObject) then
+            exit(false);
+        if not SelectorObject.Get('modifiedAt', Token) then
+            exit(false);
+        if not Evaluate(CursorModifiedAt, Token.AsValue().AsText(), 9) then
+            exit(false);
+        if SelectorObject.Get('systemId', Token) then
+            Evaluate(CursorSystemId, Token.AsValue().AsText());
+        exit(true);
+    end;
+
+    local procedure HasCompositeChangeFeedKey(var RecRef: RecordRef): Boolean
+    var
+        CurrentKey: KeyRef;
+        Index: Integer;
+    begin
+        for Index := 1 to RecRef.KeyCount() do begin
+            CurrentKey := RecRef.KeyIndex(Index);
+            if CurrentKey.FieldCount() >= 2 then
+                if (CurrentKey.FieldIndex(1).Number() = SystemModifiedAtFieldNo()) and
+                   (CurrentKey.FieldIndex(2).Number() = SystemIdFieldNo())
+                then
+                    exit(true);
+        end;
+        exit(false);
+    end;
+
+    local procedure HasModifiedAtLeadingKey(var RecRef: RecordRef): Boolean
+    var
+        CurrentKey: KeyRef;
+        Index: Integer;
+    begin
+        for Index := 1 to RecRef.KeyCount() do begin
+            CurrentKey := RecRef.KeyIndex(Index);
+            if CurrentKey.FieldCount() >= 1 then
+                if CurrentKey.FieldIndex(1).Number() = SystemModifiedAtFieldNo() then
+                    exit(true);
+        end;
+        exit(false);
+    end;
+
+    // No SystemId tiebreak available, so never split a timestamp group across pages: fill to PageSize, then
+    // drain the trailing group whole and advance the cursor by SystemModifiedAt with a strict '>'.
+    local procedure FillDrainPage(var RecRef: RecordRef; HasCursor: Boolean; CursorModifiedAt: DateTime; ProjectedFields: List of [Integer]; PageSize: Integer; var Records: JsonArray; var Count: Integer; var NextModifiedAt: DateTime; var GroupTooLarge: Boolean): Boolean
+    var
+        ModifiedAtRef: FieldRef;
+        CurrentModifiedAt: DateTime;
+        LastEmittedAt: DateTime;
+        IgnoredSystemId: Guid;
+        MaxKeylessGroup: Integer;
+    begin
+        Count := 0;
+        GroupTooLarge := false;
+        MaxKeylessGroup := 10000;
+        ModifiedAtRef := RecRef.Field(SystemModifiedAtFieldNo());
+        if HasCursor then
+            ModifiedAtRef.SetFilter('>%1', CursorModifiedAt);
+        if RecRef.FindSet() then
+            repeat
+                CurrentModifiedAt := ModifiedAtRef.Value();
+                // Stop only at a clean group boundary once the page is full.
+                if (Count >= PageSize) and (CurrentModifiedAt <> LastEmittedAt) then
+                    exit(true);
+                if Count >= MaxKeylessGroup then begin
+                    GroupTooLarge := true;
+                    exit(false);
+                end;
+                AppendRecord(RecRef, ProjectedFields, Records, NextModifiedAt, IgnoredSystemId);
+                LastEmittedAt := NextModifiedAt;
+                Count += 1;
+            until RecRef.Next() = 0;
+        exit(false);
+    end;
+
+    // No SystemModifiedAt index at all: order by primary key (always indexed) and filter SystemModifiedAt >
+    // watermark. Single-shot up to a cap; a bigger changed set trips TooLarge so the caller asks for a key.
+    local procedure FillScanPage(var RecRef: RecordRef; HasCursor: Boolean; CursorModifiedAt: DateTime; ProjectedFields: List of [Integer]; var Records: JsonArray; var Count: Integer; var MaxModifiedAt: DateTime; var TooLarge: Boolean): Boolean
+    var
+        ModifiedAtRef: FieldRef;
+        CurrentModifiedAt: DateTime;
+        IgnoredModifiedAt: DateTime;
+        IgnoredSystemId: Guid;
+        MaxUnindexedRecords: Integer;
+    begin
+        Count := 0;
+        TooLarge := false;
+        MaxUnindexedRecords := 10000;
+        ModifiedAtRef := RecRef.Field(SystemModifiedAtFieldNo());
+        if HasCursor then
+            ModifiedAtRef.SetFilter('>%1', CursorModifiedAt);
+        if RecRef.FindSet() then
+            repeat
+                if Count >= MaxUnindexedRecords then begin
+                    TooLarge := true;
+                    exit(false);
+                end;
+                CurrentModifiedAt := ModifiedAtRef.Value();
+                if CurrentModifiedAt > MaxModifiedAt then
+                    MaxModifiedAt := CurrentModifiedAt;
+                AppendRecord(RecRef, ProjectedFields, Records, IgnoredModifiedAt, IgnoredSystemId);
+                Count += 1;
+            until RecRef.Next() = 0;
+        exit(false);
+    end;
+
+    local procedure FillCursorPage(var RecRef: RecordRef; HasCursor: Boolean; CursorModifiedAt: DateTime; CursorSystemId: Guid; ProjectedFields: List of [Integer]; PageSize: Integer; var Records: JsonArray; var Count: Integer; var NextModifiedAt: DateTime; var NextSystemId: Guid): Boolean
+    var
+        ModifiedAtRef: FieldRef;
+        SystemIdRef: FieldRef;
+    begin
+        Count := 0;
+        ModifiedAtRef := RecRef.Field(SystemModifiedAtFieldNo());
+        SystemIdRef := RecRef.Field(SystemIdFieldNo());
+
+        // Pass 1: records at exactly the cursor timestamp but a later SystemId (DB uniqueidentifier order).
+        if HasCursor then begin
+            ModifiedAtRef.SetRange(CursorModifiedAt);
+            SystemIdRef.SetFilter('>%1', CursorSystemId);
+            if RecRef.FindSet() then
+                repeat
+                    if Count = PageSize then
+                        exit(true);
+                    AppendRecord(RecRef, ProjectedFields, Records, NextModifiedAt, NextSystemId);
+                    Count += 1;
+                until RecRef.Next() = 0;
+            ModifiedAtRef.SetRange();
+            SystemIdRef.SetRange();
+        end;
+
+        // Pass 2: records strictly after the cursor timestamp (or all records on the first call).
+        if HasCursor then
+            ModifiedAtRef.SetFilter('>%1', CursorModifiedAt);
+        if RecRef.FindSet() then
+            repeat
+                if Count = PageSize then
+                    exit(true);
+                AppendRecord(RecRef, ProjectedFields, Records, NextModifiedAt, NextSystemId);
+                Count += 1;
+            until RecRef.Next() = 0;
+
+        exit(false);
+    end;
+
+    local procedure FillBySystemIds(var RecRef: RecordRef; SystemIds: JsonArray; ProjectedFields: List of [Integer]; var Records: JsonArray)
+    var
+        SystemIdRef: FieldRef;
+        Token: JsonToken;
+        SystemIdValue: Guid;
+        IgnoredModifiedAt: DateTime;
+        IgnoredSystemId: Guid;
+        FilterText: Text;
+    begin
+        foreach Token in SystemIds do
+            if Evaluate(SystemIdValue, Token.AsValue().AsText()) then begin
+                if FilterText <> '' then
+                    FilterText += '|';
+                FilterText += Format(SystemIdValue);
+            end;
+        if FilterText = '' then
+            exit;
+
+        SystemIdRef := RecRef.Field(SystemIdFieldNo());
+        SystemIdRef.SetFilter(FilterText);
+        if RecRef.FindSet() then
+            repeat
+                AppendRecord(RecRef, ProjectedFields, Records, IgnoredModifiedAt, IgnoredSystemId);
+            until RecRef.Next() = 0;
+    end;
+
+    local procedure AppendRecord(var RecRef: RecordRef; ProjectedFields: List of [Integer]; var Records: JsonArray; var LastModifiedAt: DateTime; var LastSystemId: Guid)
+    var
+        RecordObject: JsonObject;
+        FieldsObject: JsonObject;
+        FieldNo: Integer;
+    begin
+        LastModifiedAt := RecRef.Field(SystemModifiedAtFieldNo()).Value();
+        LastSystemId := RecRef.Field(SystemIdFieldNo()).Value();
+        RecordObject.Add('systemId', Format(LastSystemId));
+        RecordObject.Add('systemModifiedAt', FormatFieldValue(RecRef.Field(SystemModifiedAtFieldNo())));
+        foreach FieldNo in ProjectedFields do
+            FieldsObject.Add(Format(FieldNo), FormatFieldValue(RecRef.Field(FieldNo)));
+        RecordObject.Add('fields', FieldsObject);
+        Records.Add(RecordObject);
+    end;
+
+    local procedure BuildCursor(ModifiedAt: DateTime; SystemId: Guid): JsonObject
+    var
+        Cursor: JsonObject;
+    begin
+        Cursor.Add('modifiedAt', Format(ModifiedAt, 0, 9));
+        Cursor.Add('systemId', Format(SystemId));
+        exit(Cursor);
+    end;
+
+    local procedure BuildModifiedAtCursor(ModifiedAt: DateTime): JsonObject
+    var
+        Cursor: JsonObject;
+    begin
+        Cursor.Add('modifiedAt', Format(ModifiedAt, 0, 9));
+        exit(Cursor);
+    end;
+
+    // Invariant (XML) format so field values round-trip via Evaluate(..., 9) on the subsidiary.
+    local procedure FormatFieldValue(FieldReference: FieldRef): Text
+    begin
+        exit(Format(FieldReference.Value(), 0, 9));
+    end;
+
+    [TryFunction]
+    local procedure TryReadJsonArray(Value: Text; var JsonArrayValue: JsonArray)
+    begin
+        JsonArrayValue.ReadFrom(Value);
+    end;
+
+    [TryFunction]
+    local procedure TryReadJsonObject(Value: Text; var JsonObjectValue: JsonObject)
+    begin
+        JsonObjectValue.ReadFrom(Value);
+    end;
+
+    local procedure ClampPageSize(PageSize: Integer): Integer
+    begin
+        if PageSize <= 0 then
+            exit(100);
+        if PageSize > 1000 then
+            exit(1000);
+        exit(PageSize);
+    end;
+
+    local procedure SystemIdFieldNo(): Integer
+    begin
+        exit(2000000000);
+    end;
+
+    local procedure SystemModifiedAtFieldNo(): Integer
+    begin
+        exit(2000000003);
     end;
 
     /// <summary>
     /// Change detection: for each requested table id, returns its latest source modification timestamp so
-    /// the subsidiary detector can decide which per-table sync jobs to reschedule.
+    /// the subsidiary detector can decide which per-table sync jobs to reschedule. Read from the change-feed
+    /// index tip (FindLast), so no scan and no summary table to maintain.
     /// </summary>
     [ServiceEnabled]
     procedure LastModifiedAtPerTable(TableIds: Text): Text
+    var
+        RequestedTables: JsonArray;
+        Tables: JsonArray;
+        Response: JsonObject;
+        Token: JsonToken;
+        ResultText: Text;
     begin
-        // TODO(cross-env): read the trigger-maintained (TableId, LastModifiedAt) summary table (not yet built)
-        // rather than scanning; return [{ tableId, lastModifiedAt }].
-        Error(NotYetImplementedErr);
+        if TryReadJsonArray(TableIds, RequestedTables) then
+            foreach Token in RequestedTables do
+                Tables.Add(BuildTableModifiedAt(Token.AsValue().AsInteger()));
+        Response.Add('tables', Tables);
+        Response.WriteTo(ResultText);
+        exit(ResultText);
+    end;
+
+    local procedure BuildTableModifiedAt(TableId: Integer): JsonObject
+    var
+        RecRef: RecordRef;
+        Entry: JsonObject;
+    begin
+        Entry.Add('tableId', TableId);
+        if not TryOpenTable(TableId, RecRef) then begin
+            Entry.Add('tableAvailable', false);
+            exit(Entry);
+        end;
+        Entry.Add('tableAvailable', true);
+        if not HasModifiedAtLeadingKey(RecRef) then begin
+            Entry.Add('indexed', false);
+            exit(Entry);
+        end;
+        RecRef.SetView(StrSubstNo('SORTING(Field%1)', SystemModifiedAtFieldNo()));
+        if RecRef.FindLast() then
+            Entry.Add('lastModifiedAt', Format(RecRef.Field(SystemModifiedAtFieldNo()).Value(), 0, 9))
+        else
+            Entry.Add('lastModifiedAt', ''); // empty table: no changes to detect
+        exit(Entry);
     end;
 
     local procedure ApiVersion(): Integer

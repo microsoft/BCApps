@@ -19,6 +19,9 @@ permissionset 7230 "Master Data Mgt. - Objects"
                   codeunit "Master Data Mgt. Upgrade" = X,
                   codeunit "Master Data Mgt. Install" = X,
                   codeunit "MDM Local Data Source" = X,
+                  codeunit "MDM Source Response" = X,
+                  codeunit "MDM Http Source Transport" = X,
+                  codeunit "MDM Cross-Env Data Source" = X,
                   page * = X,
                   table * = X,
                   xmlport * = X;

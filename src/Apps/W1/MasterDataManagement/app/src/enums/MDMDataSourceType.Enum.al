@@ -14,4 +14,10 @@ enum 7239 "MDM Data Source Type" implements "IMDM Data Source"
         Caption = 'Local Company';
         Implementation = "IMDM Data Source" = "MDM Local Data Source";
     }
+
+    value(1; CrossEnvironment)
+    {
+        Caption = 'Cross Environment';
+        Implementation = "IMDM Data Source" = "MDM Cross-Env Data Source";
+    }
 }
