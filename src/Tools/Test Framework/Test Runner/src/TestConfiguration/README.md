@@ -7,6 +7,13 @@ troubleshoot.
 
 It can be run from the **UI** (AL Test Tool) and from **PowerShell/CI** (Command Line Test Tool).
 
+## Folder layout
+
+- `Providers/` — the `ITest Configuration Provider` interface, the `Test Configuration Provider` enum and the built-in provider codeunits.
+- `Configurations/` — the `Test Configuration` and `Test Configuration Line` tables and the pages used to edit them (list, card, lines part).
+- `Run/` — the run engine: context, orchestrator (`Test Configuration Mgt`), runner subscribers, the result table and the results page.
+- Top level — the page extensions on the AL Test Tool and Command Line Test Tool, and this README.
+
 ## Concepts
 
 - **Test Configuration** (`Test Configuration` table) — a named, reusable set of changes to apply to a
