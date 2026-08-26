@@ -122,7 +122,7 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
 
         // [THEN] A Cust. Ledger Entry is created for the transaction
         CustLedgerEntry.SetRange("Shpfy Transaction Id", TransactionId);
-        LibraryAssert.IsFalse(CustLedgerEntry.IsEmpty(), 'Cust. Ledger Entry should be created for the auto-posted transaction');
+        LibraryAssert.IsFalse(CustLedgerEntry.IsEmpty(), 'Cust. Ledger Entry should be created for the auto-posted transaction. ' + GetSkippedReason(TransactionId));
     end;
 
     [Test]
@@ -498,6 +498,8 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
 
         // [GIVEN] Initialized test environment with a posted Shopify invoice and transaction
         Initialize();
+        // Auto-post must stay off here so the transaction is left for the manual suggest-payments call below.
+        EnablePaymentMethodMappingAutoPost(false);
         OrderId := LibraryRandom.RandIntInRange(10000000, 10999999);
         TransactionId := LibraryRandom.RandIntInRange(10000000, 10999999);
         CreateShopifyOrder(OrderId);
@@ -696,6 +698,16 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
         RefundHeader."Refund Id" := RefundId;
         RefundHeader."Order Id" := OrderId;
         RefundHeader.Insert();
+    end;
+
+    local procedure GetSkippedReason(TransactionId: BigInteger): Text
+    var
+        SkippedRecord: Record "Shpfy Skipped Record";
+    begin
+        SkippedRecord.SetRange("Shopify Id", TransactionId);
+        if SkippedRecord.FindLast() then
+            exit('Skipped reason: ' + SkippedRecord."Skipped Reason");
+        exit('No skipped record logged.');
     end;
 
     local procedure EnablePaymentMethodMappingAutoPost(AutoPost: Boolean)
