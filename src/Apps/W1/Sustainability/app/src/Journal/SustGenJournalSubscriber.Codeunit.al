@@ -46,7 +46,7 @@ codeunit 6251 "Sust. Gen. Journal Subscriber"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnCodeOnAfterStartOrContinuePosting', '', false, false)]
-    local procedure OnAfterPostGenJnlLine(var GenJournalLine: Record "Gen. Journal Line"; NextTransactionNo: Integer)
+    local procedure OnAfterPostGenJnlLine(var GenJournalLine: Record "Gen. Journal Line"; var NextEntryNo: Integer)
     var
         SourceCodeSetup: Record "Source Code Setup";
     begin
@@ -54,10 +54,10 @@ codeunit 6251 "Sust. Gen. Journal Subscriber"
         if (GenJournalLine."Job No." = '') and
            ((SourceCodeSetup."General Journal" = GenJournalLine."Source Code") or (GenJournalLine.IsSourceFixedAssetGLJournal()))
         then
-            PostSustainabilityLine(GenJournalLine, NextTransactionNo);
+            PostSustainabilityLine(GenJournalLine, NextEntryNo);
     end;
 
-    local procedure PostSustainabilityLine(var GenJournalLine: Record "Gen. Journal Line"; TransactionNo: Integer)
+    local procedure PostSustainabilityLine(var GenJournalLine: Record "Gen. Journal Line"; GLEntryNo: Integer)
     var
         SustainabilitySetup: Record "Sustainability Setup";
         SustainabilityJnlLine: Record "Sustainability Jnl. Line";
@@ -120,7 +120,7 @@ codeunit 6251 "Sust. Gen. Journal Subscriber"
         SustainabilityJnlLine.Validate("Emission N2O", N2OToPost);
         SustainabilityJnlLine.Validate("CO2e Emission", CO2eToPost);
         SustainabilityJnlLine.Validate("Country/Region Code", GenJournalLine."Country/Region Code");
-        SustainabilityPostMgt.SetNextTransactionNo(TransactionNo);
+        SustainabilityPostMgt.SetNextGLEntryNo(GLEntryNo);
         SustainabilityPostMgt.InsertLedgerEntry(SustainabilityJnlLine);
     end;
 
