@@ -1112,6 +1112,7 @@ codeunit 10978 "CII XML Builder"
             exit;
         end;
 
+        Currency.SetLoadFields("Amount Rounding Precision");
         Currency.Get(CurrencyCode);
         Currency.TestField("Amount Rounding Precision");
         AmountRoundingPrecision := Currency."Amount Rounding Precision";
