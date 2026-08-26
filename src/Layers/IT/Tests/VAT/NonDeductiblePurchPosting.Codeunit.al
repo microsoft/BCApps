@@ -153,7 +153,6 @@ codeunit 134283 "Non-Deductible Purch. Posting"
 
         LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
         LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Bus. Posting Group", VATProductPostingGroup.Code);
-        VATPostingSetup.Validate("VAT Identifier", VATProductPostingGroup.Code);
         VATPostingSetup.Validate("VAT Calculation Type", VATPostingSetup."VAT Calculation Type"::"Normal VAT");
         VATPostingSetup.Validate("VAT %", LibraryRandom.RandIntInRange(10, 20));
         VATPostingSetup.Modify(true);
