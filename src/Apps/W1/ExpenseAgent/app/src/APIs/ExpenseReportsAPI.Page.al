@@ -206,16 +206,24 @@ page 6928 "Expense Reports API"
                     Caption = 'Modified By Expense User Id';
                     Editable = false;
                 }
+#if not CLEAN30
                 field(spendRequestNo; Rec."Spend Request No.")
                 {
                     Caption = 'Spend Request No.';
                     Visible = false;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by travelRequestNo.';
+                    ObsoleteTag = '30.0';
                 }
                 field(spendRequestClose; Rec."Spend Request Close")
                 {
                     Caption = 'Spend Request Close';
                     Visible = false;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by travelRequestClose.';
+                    ObsoleteTag = '30.0';
                 }
+#endif
                 field(travelRequestNo; Rec."Spend Request No.")
                 {
                     Caption = 'Travel Request No.';
