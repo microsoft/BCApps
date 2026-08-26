@@ -1039,9 +1039,8 @@ codeunit 148188 "Sust. General Journal Test"
         GenJournalBatch: Record "Gen. Journal Batch";
         GenJournalLine: Record "Gen. Journal Line";
         GLEntry: Record "G/L Entry";
-        BankAccount: Record "Bank Account";
         GLAccount: Record "G/L Account";
-        Vendor: Record Vendor;
+        BalGLAccount: Record "G/L Account";
         ReversalEntry: Record "Reversal Entry";
         OriginalEntryNo: Integer;
         OriginalCO2e: Decimal;
@@ -1063,16 +1062,15 @@ codeunit 148188 "Sust. General Journal Test"
         EmissionCH4 := LibraryRandom.RandIntInRange(1, 5);
         EmissionN2O := LibraryRandom.RandIntInRange(1, 5);
 
-        // [GIVEN] A Bank Account (with G/L posting group), a Vendor and a Gen. Journal Batch.
+        // [GIVEN] Two G/L Accounts and a Gen. Journal Batch.
         LibraryERM.CreateGLAccount(GLAccount);
-        LibraryERM.CreateBankAccount(BankAccount, GLAccount);
-        LibraryPurchase.CreateVendor(Vendor);
+        LibraryERM.CreateGLAccount(BalGLAccount);
         LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
         LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
 
         // [GIVEN] A posted General Journal Line with a Sustainability Account, creating a Sustainability Ledger Entry linked to the G/L transaction.
-        CreateGenJournalLineWithEmission(
-            GenJournalLine, GenJournalBatch, Vendor."No.", BankAccount."No.", SustainabilityAccount."No.",
+        CreateGLGenJournalLineWithEmission(
+            GenJournalLine, GenJournalBatch, GLAccount."No.", BalGLAccount."No.", SustainabilityAccount."No.",
             EmissionCO2, EmissionCH4, EmissionN2O);
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
 
@@ -1114,9 +1112,8 @@ codeunit 148188 "Sust. General Journal Test"
         GenJournalBatch: Record "Gen. Journal Batch";
         GenJournalLine: Record "Gen. Journal Line";
         GLEntry: Record "G/L Entry";
-        BankAccount: Record "Bank Account";
         GLAccount: Record "G/L Account";
-        Vendor: Record Vendor;
+        BalGLAccount: Record "G/L Account";
         ReversalEntry: Record "Reversal Entry";
         SustEntryReverseMgt: Codeunit "Sust. Entry Reverse Mgt.";
         CategoryCode: Code[20];
@@ -1137,16 +1134,15 @@ codeunit 148188 "Sust. General Journal Test"
         EmissionCH4 := LibraryRandom.RandIntInRange(1, 5);
         EmissionN2O := LibraryRandom.RandIntInRange(1, 5);
 
-        // [GIVEN] A Bank Account (with G/L posting group), a Vendor and a Gen. Journal Batch.
+        // [GIVEN] Two G/L Accounts and a Gen. Journal Batch.
         LibraryERM.CreateGLAccount(GLAccount);
-        LibraryERM.CreateBankAccount(BankAccount, GLAccount);
-        LibraryPurchase.CreateVendor(Vendor);
+        LibraryERM.CreateGLAccount(BalGLAccount);
         LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
         LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
 
         // [GIVEN] A posted General Journal Line with a Sustainability Account.
-        CreateGenJournalLineWithEmission(
-            GenJournalLine, GenJournalBatch, Vendor."No.", BankAccount."No.", SustainabilityAccount."No.",
+        CreateGLGenJournalLineWithEmission(
+            GenJournalLine, GenJournalBatch, GLAccount."No.", BalGLAccount."No.", SustainabilityAccount."No.",
             EmissionCO2, EmissionCH4, EmissionN2O);
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
 
@@ -1184,6 +1180,27 @@ codeunit 148188 "Sust. General Journal Test"
 
         GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"Bank Account");
         GenJournalLine.Validate("Bal. Account No.", BankAccountNo);
+        GenJournalLine.Validate("Sust. Account No.", SustAccountNo);
+        GenJournalLine.Validate("Total Emission CH4", EmissionCH4);
+        GenJournalLine.Validate("Total Emission N2O", EmissionN2O);
+        GenJournalLine.Validate("Total Emission CO2", EmissionCO2);
+        GenJournalLine.Modify(true);
+    end;
+
+    local procedure CreateGLGenJournalLineWithEmission(var GenJournalLine: Record "Gen. Journal Line"; GenJournalBatch: Record "Gen. Journal Batch"; GLAccountNo: Code[20]; BalGLAccountNo: Code[20]; SustAccountNo: Code[20]; EmissionCO2: Decimal; EmissionCH4: Decimal; EmissionN2O: Decimal)
+    begin
+        // Use a blank document type G/L-to-G/L line so the transaction is reversible in all localizations (e.g. IT blocks reversing invoice documents).
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine,
+            GenJournalBatch."Journal Template Name",
+            GenJournalBatch.Name,
+            GenJournalLine."Document Type"::" ",
+            GenJournalLine."Account Type"::"G/L Account",
+            GLAccountNo,
+            LibraryRandom.RandIntInRange(100, 200));
+
+        GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
+        GenJournalLine.Validate("Bal. Account No.", BalGLAccountNo);
         GenJournalLine.Validate("Sust. Account No.", SustAccountNo);
         GenJournalLine.Validate("Total Emission CH4", EmissionCH4);
         GenJournalLine.Validate("Total Emission N2O", EmissionN2O);
