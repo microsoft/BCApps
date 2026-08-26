@@ -82,10 +82,12 @@ codeunit 148307 "Expense Test Handler API"
     var
         CreateExpenseAgentSetup: Codeunit "Create Expense Agent Setup";
         CreateExpenseCategories: Codeunit "Create Expense Categories";
+        CreateExpenseGLAccount: Codeunit "Create Expense GL Account";
         LibraryExpense: Codeunit "Library - Expense";
     begin
         LibraryExpense.CleanTransactionalData();
         CreateExpenseAgentSetup.Run();
+        CreateExpenseGLAccount.Run();
         CreateExpenseCategories.InsertAccountingDefaults();
         CreateExpenseCategories.InsertManagementDefaults();
         exit('Initialize completed');

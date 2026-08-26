@@ -94,15 +94,20 @@ codeunit 148333 "Expense Agent Setup API Test"
         ExpensePaymentMethod: Record "Expense Payment Method";
         ExpenseTestHandlerAPI: Codeunit "Expense Test Handler API";
     begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Test handler initialization creates valid default master data
         Initialize();
 
+        // [WHEN] The E2E test handler initializes Expense Agent master data
         ExpenseTestHandlerAPI.Initialize();
 
+        // [THEN] Default payment methods, categories, and posting accounts exist
         Assert.IsTrue(ExpensePaymentMethod.Get('CARD'), 'The credit-card payment method must exist.');
         Assert.IsTrue(ExpenseCategory.Get('MEALS'), 'The meals category must exist.');
         Assert.IsTrue(ExpenseCategory.Get('HOTELS'), 'The hotels category must exist.');
         Assert.IsTrue(ExpenseCategory.Get('ENTERTAIN'), 'The entertainment category must exist.');
         Assert.IsTrue(ExpenseCategory.Get('PER-DIEM'), 'The per-diem category must exist.');
+        VerifyDefaultPostingGroupAccountsExist();
     end;
 
     local procedure Initialize()
@@ -116,5 +121,30 @@ codeunit 148333 "Expense Agent Setup API Test"
         IsInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Agent Setup API Test");
+    end;
+
+    local procedure VerifyDefaultPostingGroupAccountsExist()
+    var
+        ExpensePostingGroup: Record "Expense Posting Group";
+        GLAccount: Record "G/L Account";
+    begin
+        Assert.IsTrue(ExpensePostingGroup.FindSet(), 'At least one default expense posting group must exist.');
+        repeat
+            Assert.IsTrue(
+                GLAccount.Get(ExpensePostingGroup."Refundable Debit Account"),
+                'The refundable debit account must exist.');
+            Assert.IsTrue(
+                GLAccount.Get(ExpensePostingGroup."Non-Refundable Debit Account"),
+                'The non-refundable debit account must exist.');
+            Assert.IsTrue(
+                GLAccount.Get(ExpensePostingGroup."Prepayment Credit Account"),
+                'The prepayment credit account must exist.');
+            Assert.IsTrue(
+                GLAccount.Get(ExpensePostingGroup."Debit Rounding Account"),
+                'The debit rounding account must exist.');
+            Assert.IsTrue(
+                GLAccount.Get(ExpensePostingGroup."Credit Rounding Account"),
+                'The credit rounding account must exist.');
+        until ExpensePostingGroup.Next() = 0;
     end;
 }
