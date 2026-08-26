@@ -40,6 +40,42 @@ codeunit 139757 "Library - Master Data Mgt."
         MasterDataSynchTables.FindRelatedTables(ExistingSynchTableNos, RelatedTablesToAdd, RelatedTablesToAddText, TableId);
     end;
 
+    procedure SetSourceCompanyToCurrent()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        MasterDataManagementSetup.Get();
+        MasterDataManagementSetup."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(MasterDataManagementSetup."Company Name"));
+        MasterDataManagementSetup.Modify(false);
+    end;
+
+    procedure GetIntegrationRecordRefByCoupling(IntegrationTableID: Integer; var MasterDataMgtCoupling: Record "Master Data Mgt. Coupling"; var RecRef: RecordRef): Boolean
+    begin
+        exit(MasterDataManagement.GetIntegrationRecordRef(IntegrationTableID, MasterDataMgtCoupling, RecRef));
+    end;
+
+    procedure GetIntegrationRecordRefById(var IntegrationTableMapping: Record "Integration Table Mapping"; ID: Variant; var RecRef: RecordRef): Boolean
+    begin
+        exit(MasterDataManagement.GetIntegrationRecordRef(IntegrationTableMapping, ID, RecRef));
+    end;
+
+    procedure DataSourceGetModifiedSet(IntegrationTableMapping: Record "Integration Table Mapping"; TableFilter: Text; var SourceRecordRef: RecordRef): Boolean
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        MasterDataManagementSetup.Get();
+        exit(MasterDataManagementSetup.GetDataSource().GetModifiedSet(IntegrationTableMapping, TableFilter, SourceRecordRef));
+    end;
+
+    procedure DataSourceGetByUidFilter(IntegrationTableMapping: Record "Integration Table Mapping"; UidFilter: Text; var SourceRecordRef: RecordRef): Boolean
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        MasterDataManagementSetup.Get();
+        exit(MasterDataManagementSetup.GetDataSource().GetByUidFilter(IntegrationTableMapping, UidFilter, SourceRecordRef));
+    end;
+
     var
         MasterDataMgtSubscribers: Codeunit "Master Data Mgt. Subscribers";
+        MasterDataManagement: Codeunit "Master Data Management";
 }
