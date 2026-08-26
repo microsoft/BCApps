@@ -113,6 +113,31 @@ Describe "ParallelTestExecution app-name resolution" {
         }
     }
 
+    It "uses docker exec for the long-running template database copy" {
+        InModuleScope ParallelTestExecution {
+            Mock Invoke-ScriptInBcContainer { 'default-test-template' }
+
+            New-BcTestTenantTemplate -ContainerName 'bc' -SourceTenant 'default' | Should -Be 'default-test-template'
+
+            Should -Invoke Invoke-ScriptInBcContainer -Times 1 -ParameterFilter {
+                $containerName -eq 'bc' -and $useSession -eq $false
+            }
+        }
+    }
+
+    It "uses docker exec for long-running tenant database refreshes" {
+        InModuleScope ParallelTestExecution {
+            Mock Invoke-ScriptInBcContainer { }
+
+            Reset-BcTestTenant -ContainerName 'bc' -Tenant 'tenant2' `
+                -TenantDatabaseName 'tenant2' -TemplateDatabaseName 'default-test-template'
+
+            Should -Invoke Invoke-ScriptInBcContainer -Times 1 -ParameterFilter {
+                $containerName -eq 'bc' -and $useSession -eq $false
+            }
+        }
+    }
+
     It "removes the clean template when normal app dispatch aborts" {
         InModuleScope ParallelTestExecution {
             Mock Get-AvailableBcTenantInfo {

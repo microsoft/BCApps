@@ -401,7 +401,8 @@ function New-BcTestTenantTemplate {
         [string]$SourceTenant
     )
 
-    $result = @(Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock { Param($sourceTenant)
+    # PowerShell Direct has a fixed 100-second HTTP timeout; docker exec waits for long database copies to finish.
+    $result = @(Invoke-ScriptInBcContainer -containerName $ContainerName -useSession $false -scriptblock { Param($sourceTenant)
         $source = Get-NAVTenant -ServerInstance $ServerInstance -Tenant $sourceTenant
         $templateDatabaseName = "$($source.DatabaseName)-test-template"
 
@@ -457,7 +458,7 @@ function Reset-BcTestTenant {
         [string]$TemplateDatabaseName
     )
 
-    Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock {
+    Invoke-ScriptInBcContainer -containerName $ContainerName -useSession $false -scriptblock {
         Param($tenant, $tenantDatabaseName, $templateDatabaseName)
 
         $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
