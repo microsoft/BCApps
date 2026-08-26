@@ -17,8 +17,10 @@
 
     This script drives the Command Line Test Tool page (130455) through BcContainerHelper's client
     context: it sets the base suite, invokes the "Run stability tests" action and reads the
-    resulting JSON from the TestConfigResultsJSON control. The JSON mirrors the shape of the
-    unstable-tests.json artifact so it can be uploaded from CI.
+    resulting JSON from the TestConfigResultsJSON control. The run stops as soon as a configuration
+    fails, so the returned JSON carries a "stoppedEarly" flag and a per-configuration summary. The
+    script keeps the parsed results in memory, reports on every configuration that ran and then the
+    totals, and writes the raw JSON to the output path so it can be uploaded from CI.
 
     NOTE: Wiring this into a GitHub workflow is intentionally out of scope for this change and will
     be done in a follow-up PR.
@@ -90,7 +92,22 @@ try {
     Set-Content -Path $OutputPath -Value $resultJson -Encoding UTF8
     Write-Host "Stability results written to '$OutputPath'."
 
+    # Keep the parsed results in memory and report on every configuration that ran, then the totals.
     $parsed = $resultJson | ConvertFrom-Json
+
+    Write-Host ''
+    Write-Host "Stability run report for suite '$($parsed.baseSuite)':"
+    if ($parsed.configurations) {
+        foreach ($config in $parsed.configurations) {
+            $status = if ($config.failures -gt 0) { 'FAILED' } else { 'passed' }
+            Write-Host ("  [{0}] {1} - {2} test(s), {3} failure(s)" -f $status, $config.code, $config.total, $config.failures)
+        }
+    }
+
+    if ($parsed.stoppedEarly) {
+        Write-Host "Run stopped early after the first failing configuration." -ForegroundColor Yellow
+    }
+
     Write-Host "Total results: $($parsed.total); failures: $($parsed.failures)."
 
     return $parsed

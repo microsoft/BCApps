@@ -61,15 +61,21 @@ isolation flag and clears the results on the base suite using trigger-free write
 ## How a run works
 
 1. `Test Configuration Mgt.RunTestConfigurations(BaseSuite)` creates the default configurations if none
-   exist, enters stability mode, then for every enabled configuration:
+   exist, enters stability mode, then for each enabled configuration in turn:
+   - clears the previous configuration's results so the run starts from a clean suite;
    - activates the context and asks each enabled provider to `Prepare` (write seed/WorkDate/order/isolation intent);
    - stores the seed in `Configured Random Seed` when a seed provider is used (or clears it);
    - runs the **base suite** in place, in the requested order and isolation;
-   - captures every failing method's error and call stack, tagged with the configuration code.
+   - captures every failing method's error and call stack, tagged with the configuration code, and keeps
+     a per-configuration summary in memory.
+   The run **stops as soon as a configuration fails**, leaving the failing state on the suite for
+   troubleshooting; the remaining configurations are not run.
 2. `Test Configuration Runner` subscribes to `OnBeforeTestMethodRun` / `OnAfterTestMethodRun` and fans
    out to the active configuration's providers for per-method behavior (for example the WorkDate shift).
-3. After all configurations have run, the aggregated outcome is written back onto the base suite's test
-   method lines (failures concatenated per line), and the results are also returned as JSON for CI.
+3. After the run stops (all configurations passed, or one failed), the aggregated outcome is written back
+   onto the base suite's test method lines (failures concatenated per line). The results are also returned
+   as JSON for CI, including a `stoppedEarly` flag and a `configurations` array summarizing each
+   configuration that ran.
 
 ## Default configurations
 

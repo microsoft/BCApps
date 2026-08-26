@@ -30,14 +30,18 @@ codeunit 130473 "Test Configuration Mgt"
         BestResult: Dictionary of [Text, Integer];
         AggMessages: Dictionary of [Text, Text];
         AggStacks: Dictionary of [Text, Text];
+        ConfigResults: JsonArray;
+        StoppedEarly: Boolean;
         SuiteNotFoundErr: Label 'Test suite %1 was not found.', Comment = '%1 = suite name';
         ConfigHeaderTok: Label '=== %1 ===', Comment = '%1 = configuration code', Locked = true;
         KeyTok: Label '%1|%2', Locked = true;
 
     /// <summary>
-    /// Runs every enabled configuration against the base suite, writes the aggregated outcome onto the
-    /// base suite's test method lines and returns the results as JSON. If no configurations exist yet,
-    /// a default, editable set is created first.
+    /// Runs the enabled configurations against the base suite in order, clearing the previous
+    /// configuration's results before each run. The run stops as soon as a configuration produces a
+    /// failure, so the failing state is preserved for troubleshooting and later configurations are not
+    /// run. The aggregated outcome is written onto the base suite's test method lines and returned as
+    /// JSON. If no configurations exist yet, a default, editable set is created first.
     /// </summary>
     /// <param name="BaseSuiteName">The name of the base test suite.</param>
     /// <returns>The results serialized to JSON.</returns>
@@ -57,8 +61,11 @@ codeunit 130473 "Test Configuration Mgt"
         TestConfiguration.SetRange("Enabled", true);
         if TestConfiguration.FindSet() then
             repeat
-                RunConfiguration(BaseSuite, TestConfiguration);
-            until TestConfiguration.Next() = 0;
+                // Stop as soon as a configuration produces a failure so the failing state is preserved
+                // for troubleshooting and the remaining configurations are not run.
+                if RunConfiguration(BaseSuite, TestConfiguration) then
+                    StoppedEarly := true;
+            until (TestConfiguration.Next() = 0) or StoppedEarly;
         ConfiguredRandomSeed.ExitStabilityMode();
 
         WriteAggregatedResults(BaseSuite);
@@ -99,12 +106,15 @@ codeunit 130473 "Test Configuration Mgt"
             until TestMethodLine.Next() = 0;
     end;
 
-    local procedure RunConfiguration(var BaseSuite: Record "AL Test Suite"; TestConfiguration: Record "Test Configuration")
+    local procedure RunConfiguration(var BaseSuite: Record "AL Test Suite"; TestConfiguration: Record "Test Configuration"): Boolean
     var
         ConfiguredRandomSeed: Codeunit "Configured Random Seed";
     begin
         TestConfigurationContext.Activate(BaseSuite.Name, TestConfiguration."Code");
         PrepareProviders(TestConfiguration."Code");
+
+        // Clear the previous configuration's results so this configuration starts from a clean suite.
+        ClearSuiteResults(BaseSuite.Name);
 
         // Start from a clean seed so a configuration without a seed provider is not affected by a
         // previous one; "Reset State Before Test Run" reads this before every test method.
@@ -113,10 +123,11 @@ codeunit 130473 "Test Configuration Mgt"
             ConfiguredRandomSeed.SetSeed(TestConfigurationContext.Seed());
 
         ExecuteSuite(BaseSuite);
-        CaptureConfigResults(BaseSuite.Name, TestConfiguration."Code");
 
         ConfiguredRandomSeed.ClearSeed();
         TestConfigurationContext.Deactivate();
+
+        exit(CaptureConfigResults(BaseSuite.Name, TestConfiguration));
     end;
 
     local procedure ExecuteSuite(var BaseSuite: Record "AL Test Suite")
@@ -147,11 +158,6 @@ codeunit 130473 "Test Configuration Mgt"
         // One by one runs each test method on its own so its setup runs again for that method only.
         OriginalStabilityRun := BaseSuite."Stability Run";
         TestSuiteMgt.ChangeStabilityRun(BaseSuite, true);
-
-        // RunNextTest only selects codeunit lines whose result is still blank and it does not reset
-        // results itself, unlike the full suite run. Clear the base suite first so every codeunit runs
-        // for this configuration even when a previous configuration already left results on the lines.
-        ClearSuiteResults(BaseSuite.Name);
 
         TestMethodLine.SetRange("Test Suite", BaseSuite.Name);
         if TestMethodLine.FindFirst() then begin
@@ -222,23 +228,41 @@ codeunit 130473 "Test Configuration Mgt"
             until TestConfigurationLine.Next() = 0;
     end;
 
-    local procedure CaptureConfigResults(BaseSuiteName: Code[10]; ConfigCode: Code[20])
+    local procedure CaptureConfigResults(BaseSuiteName: Code[10]; TestConfiguration: Record "Test Configuration"): Boolean
     var
         TestMethodLine: Record "Test Method Line";
+        ConfigObject: JsonObject;
         LineKey: Text;
+        ConfigCode: Code[20];
+        ConfigTotal: Integer;
+        ConfigFailures: Integer;
     begin
+        ConfigCode := TestConfiguration."Code";
         TestMethodLine.SetRange("Test Suite", BaseSuiteName);
         TestMethodLine.SetRange("Line Type", TestMethodLine."Line Type"::"Function");
         if TestMethodLine.FindSet() then
             repeat
                 LineKey := MakeKey(TestMethodLine."Test Codeunit", TestMethodLine."Function");
                 RecordBestResult(LineKey, TestMethodLine.Result);
+                ConfigTotal += 1;
                 if TestMethodLine.Result = TestMethodLine.Result::Failure then begin
+                    ConfigFailures += 1;
                     FailedMethods.Set(LineKey, true);
                     AppendEntry(AggMessages, LineKey, StrSubstNo(ConfigHeaderTok, ConfigCode) + NewLine() + TestSuiteMgt.GetFullErrorMessage(TestMethodLine));
                     AppendEntry(AggStacks, LineKey, StrSubstNo(ConfigHeaderTok, ConfigCode) + NewLine() + TestSuiteMgt.GetErrorCallStack(TestMethodLine));
                 end;
             until TestMethodLine.Next() = 0;
+
+        // Keep an in memory summary per configuration so callers (for example the PowerShell script)
+        // can report on every configuration that ran, including the one that stopped the run.
+        Clear(ConfigObject);
+        ConfigObject.Add('code', ConfigCode);
+        ConfigObject.Add('description', TestConfiguration."Description");
+        ConfigObject.Add('total', ConfigTotal);
+        ConfigObject.Add('failures', ConfigFailures);
+        ConfigResults.Add(ConfigObject);
+
+        exit(ConfigFailures > 0);
     end;
 
     local procedure RecordBestResult(LineKey: Text; ResultValue: Option " ",Failure,Success,Skipped)
@@ -403,6 +427,8 @@ codeunit 130473 "Test Configuration Mgt"
         Clear(BestResult);
         Clear(AggMessages);
         Clear(AggStacks);
+        Clear(ConfigResults);
+        StoppedEarly := false;
     end;
 
     /// <summary>
@@ -508,6 +534,8 @@ codeunit 130473 "Test Configuration Mgt"
         RootObject.Add('baseSuite', BaseSuiteName);
         RootObject.Add('total', TotalCount);
         RootObject.Add('failures', FailureCount);
+        RootObject.Add('stoppedEarly', StoppedEarly);
+        RootObject.Add('configurations', ConfigResults);
         RootObject.Add('results', ResultsArray);
         RootObject.WriteTo(ResultText);
         exit(ResultText);
