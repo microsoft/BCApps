@@ -34,11 +34,10 @@ It can be run from the **UI** (AL Test Tool) and from **PowerShell/CI** (Command
 | `Seed` | `{ "seed": 2 }` | Uses a different random seed. The seed is stored in `Configured Random Seed` (Any app). While stability mode is active, `Any` and `Library - Random` read it from their own `SetSeed`, so the configured seed wins even when a test reseeds in its own `Initialize`. |
 | `WorkDateFuture` | `{ "formula": "<1Y>" }` | Moves WorkDate into the future by the given date formula. Re-applied before every test method because the runner restores WorkDate after each codeunit. |
 | `OneByOne` | none | Runs each test method on its own so its setup runs again for that method only (reuses the suite stability run behavior). |
-| `ReverseCodeunits` | none | Runs the test codeunits in reverse order in a normal, shared-state run. |
-| `ReverseMethods` | none | Runs the test methods in reverse order in a normal, shared-state run. |
+| `ReverseOrder` | none | Runs the suite in reverse order in a normal, shared-state run. |
 
 Execution order is realized by handing the base suite's lines to the test runner from the last to the
-first (the runner honors that for the codeunit sequence), so the reverse providers need no change to
+first (the runner honors that for the codeunit sequence), so the reverse provider needs no change to
 the Test Runner itself and no extra suite. Reverse runs are **not** isolated — all tests run and share
 state, only the order changes. One-by-one is the isolated mode, where each method's setup runs again.
 
@@ -88,7 +87,7 @@ isolation flag and clears the results on the base suite using trigger-free write
 - `SEED1-WD1Y` — seed 1 + WorkDate +1 year.
 - `ONEBYONE` — each method on its own (setup re-runs per method).
 - `SEED2-WD2Y` — seed 2 + WorkDate +2 years.
-- `REVERSE-METH` — methods in reverse order.
+- `REVERSE` — the whole suite in reverse order.
 
 These are editable: change them on the **Test Configurations** page, or add your own configuration and
 providers.

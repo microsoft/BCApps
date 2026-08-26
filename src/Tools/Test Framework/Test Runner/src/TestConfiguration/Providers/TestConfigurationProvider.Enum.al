@@ -29,14 +29,9 @@ enum 130466 "Test Configuration Provider" implements "ITest Configuration Provid
         Caption = 'One by one';
         Implementation = "ITest Configuration Provider" = "One By One Test Config. Prov.";
     }
-    value(3; ReverseCodeunits)
+    value(3; ReverseOrder)
     {
-        Caption = 'Reverse codeunit order';
-        Implementation = "ITest Configuration Provider" = "Reverse CU Test Config. Prov.";
-    }
-    value(4; ReverseMethods)
-    {
-        Caption = 'Reverse method order';
-        Implementation = "ITest Configuration Provider" = "Reverse Meth. Test Cfg. Prov.";
+        Caption = 'Reverse order';
+        Implementation = "ITest Configuration Provider" = "Reverse Order Test Cfg. Prov.";
     }
 }

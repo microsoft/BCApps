@@ -152,7 +152,7 @@ codeunit 130473 "Test Configuration Mgt"
         TestMethodLine.SetCurrentKey("Test Suite", "Line No.");
         // Reverse order is realized by iterating the suite lines from the last to the first, which the
         // test runner honors for the codeunit sequence. The run stays a normal, shared state run.
-        TestMethodLine.Ascending(not (TestConfigurationContext.ReverseCodeunits() or TestConfigurationContext.ReverseMethods()));
+        TestMethodLine.Ascending(not TestConfigurationContext.ReverseOrder());
         if TestMethodLine.FindSet() then
             TestSuiteMgt.RunTests(TestMethodLine, BaseSuite);
     end;
@@ -492,8 +492,8 @@ codeunit 130473 "Test Configuration Mgt"
         WorkDateSettings.Add('formula', '<2Y>');
         AddLine('SEED2-WD2Y', 20000, "Test Configuration Provider"::WorkDateFuture, WorkDateSettings);
 
-        AddConfiguration('REVERSE-METH', 'Runs the test methods in reverse order.');
-        AddLine('REVERSE-METH', 10000, "Test Configuration Provider"::ReverseMethods, EmptySettings());
+        AddConfiguration('REVERSE', 'Runs the suite in reverse order.');
+        AddLine('REVERSE', 10000, "Test Configuration Provider"::ReverseOrder, EmptySettings());
     end;
 
     local procedure AddConfiguration(ConfigCode: Code[20]; Description: Text[100])

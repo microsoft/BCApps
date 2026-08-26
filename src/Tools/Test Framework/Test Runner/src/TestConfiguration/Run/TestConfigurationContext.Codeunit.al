@@ -18,8 +18,7 @@ codeunit 130469 "Test Configuration Context"
         ContextActive: Boolean;
         ActiveConfigCode: Code[20];
         ActiveBaseSuite: Code[10];
-        DoReverseCodeunits: Boolean;
-        DoReverseMethods: Boolean;
+        DoReverseOrder: Boolean;
         DoOneByOne: Boolean;
         SeedValue: Integer;
         SeedIsSet: Boolean;
@@ -37,8 +36,7 @@ codeunit 130469 "Test Configuration Context"
         ContextActive := true;
         ActiveBaseSuite := BaseSuiteName;
         ActiveConfigCode := ConfigCode;
-        DoReverseCodeunits := false;
-        DoReverseMethods := false;
+        DoReverseOrder := false;
         DoOneByOne := false;
         SeedValue := 0;
         SeedIsSet := false;
@@ -70,24 +68,14 @@ codeunit 130469 "Test Configuration Context"
         exit(ActiveBaseSuite);
     end;
 
-    procedure SetReverseCodeunits(NewValue: Boolean)
+    procedure SetReverseOrder(NewValue: Boolean)
     begin
-        DoReverseCodeunits := NewValue;
+        DoReverseOrder := NewValue;
     end;
 
-    procedure ReverseCodeunits(): Boolean
+    procedure ReverseOrder(): Boolean
     begin
-        exit(DoReverseCodeunits);
-    end;
-
-    procedure SetReverseMethods(NewValue: Boolean)
-    begin
-        DoReverseMethods := NewValue;
-    end;
-
-    procedure ReverseMethods(): Boolean
-    begin
-        exit(DoReverseMethods);
+        exit(DoReverseOrder);
     end;
 
     procedure SetOneByOne(NewValue: Boolean)
