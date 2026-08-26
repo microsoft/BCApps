@@ -2,7 +2,7 @@
   "id": "24099a81-b0ad-4b04-9669-3b2f7def7736",
   "name": "Subcontracting Migration for IT - Test",
   "publisher": "Microsoft",
-  "version": "29.0.0.0",
+  "version": "30.0.0.0",
   "logo": "ExtensionLogo.png",
   "description": "Provides migration tools and resources for IT Subcontracting data when upgrading from italian legacy subcontracting solution to the new subcontracting solution.",
   "brief": "Subcontracting Migration for IT",
@@ -17,17 +17,17 @@
       "id": "6d51d1f2-2b87-4e3a-bf5e-c27682fa0320",
       "name": "Subcontracting Migration for IT",
       "publisher": "Microsoft",
-      "version": "29.0.0.0"
+      "version": "30.0.0.0"
     },
     {
       "id": "5d86850b-0d76-4eca-bd7b-951ad998e997",
       "name": "Tests-TestLibraries",
       "publisher": "Microsoft",
-      "version": "29.0.0.0"
+      "version": "30.0.0.0"
     }
   ],
   "platform": "29.0.0.0",
-  "application": "29.0.0.0",
+  "application": "30.0.0.0",
   "idRanges": [
     {
       "from": 149956,
