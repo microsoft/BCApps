@@ -403,13 +403,15 @@ function New-BcTestTenantTemplate {
 
     # PowerShell Direct has a fixed 100-second HTTP timeout; docker exec waits for long database copies to finish.
     $result = @(Invoke-ScriptInBcContainer -containerName $ContainerName -useSession $false -scriptblock { Param($sourceTenant)
-        $source = Get-NAVTenant -ServerInstance $ServerInstance -Tenant $sourceTenant
-        $templateDatabaseName = "$($source.DatabaseName)-test-template"
-
+        $templateDatabaseName = $null
         $maxAttempts = 3
         $retryDelaySeconds = 5
         for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
             try {
+                Write-Host "Resolving source tenant '$sourceTenant' for test template creation (attempt $attempt/$maxAttempts)..."
+                $source = Get-NAVTenant -ServerInstance $ServerInstance -Tenant $sourceTenant
+                $templateDatabaseName = "$($source.DatabaseName)-test-template"
+
                 if (Test-NAVDatabase -DatabaseName $templateDatabaseName) {
                     Remove-NAVDatabase -DatabaseName $templateDatabaseName | Out-Null
                 }
@@ -420,7 +422,7 @@ function New-BcTestTenantTemplate {
             } catch {
                 Write-Host "WARNING: Template database copy failed on attempt $attempt/${maxAttempts}: $($_.Exception.Message)"
                 if ($attempt -eq $maxAttempts) {
-                    throw "Failed to create test tenant template '$templateDatabaseName' after $maxAttempts attempts. Last error: $($_.Exception.Message)"
+                    throw "Failed to create a test tenant template from '$sourceTenant' after $maxAttempts attempts. Last error: $($_.Exception.Message)"
                 }
                 Start-Sleep -Seconds $retryDelaySeconds
             }
