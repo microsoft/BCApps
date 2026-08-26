@@ -18,7 +18,7 @@
         LibraryRandom: Codeunit "Library - Random";
         Language: Codeunit Language;
         IsInitialized: Boolean;
-        ReminderLevelCommunicationCaptionTxt: Label 'Reminder Level Communication';
+        ReminderLevelCommunicationCaptionTxt: Label 'Reminder Level Communication - %1 ∙ %2', Comment = '%1 = Reminder Terms Code, %2 = Reminder Level No.';
         CaptionErr: Label 'Page Captions must match.';
         ReminderLineExistErr: Label 'Reminder Line must not exist.';
 
@@ -124,6 +124,9 @@
         Initialize();
         ReminderTermsCode := CreateReminderTerms(true);
         BeginningText := ReminderTermsCode + Format(LibraryRandom.RandInt(10));  // Create any Beginning Text using Random.
+        ReminderTerms.Get(ReminderTermsCode);
+        LibraryERM.CreateReminderAttachmentText(ReminderAttachmentText, ReminderTerms, Language.GetUserLanguageCode());
+        LibraryERM.CreateReminderEmailText(ReminderEmailText, ReminderTerms, Language.GetUserLanguageCode());
         FindReminderLevel(ReminderLevel, ReminderTermsCode);
         LibraryERM.CreateReminderAttachmentText(ReminderAttachmentText, ReminderLevel, Language.GetUserLanguageCode());
         LibraryERM.CreateReminderAttachmentTextLine(
@@ -139,7 +142,10 @@
         ReminderTermsSetup.ReminderLevelSetup.CustomerCommunications.Invoke();
 
         // Verify: Verify page caption for Reminder Level Communication Page.
-        Assert.AreEqual(ReminderLevelCommunicationCaptionTxt, ReminderLevelCommunication.Caption, CaptionErr);
+        Assert.AreEqual(
+            StrSubstNo(ReminderLevelCommunicationCaptionTxt, ReminderTermsCode, ReminderLevel."No."),
+            ReminderLevelCommunication.Caption,
+            CaptionErr);
 
         // Tear Down: Delete Reminder Terms created earlier.
         ReminderTerms.Get(ReminderTermsCode);

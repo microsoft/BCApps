@@ -1681,6 +1681,7 @@ codeunit 134979 "Reminder Automation Tests"
 
         for I := 1 to NumberOfEntries do begin
             LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+            SalesHeader.SetHideValidationDialog(true);
             SalesHeader.Validate("Posting Date", PostingDate);
             SalesHeader.Validate("Due Date", PostingDate);
             SalesHeader.Validate("Document Date", PostingDate);
