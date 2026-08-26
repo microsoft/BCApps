@@ -537,6 +537,20 @@ page 130 "Posted Sales Shipment"
                                   "Document Line No." = const(0);
                     ToolTip = 'View or add comments for the record.';
                 }
+                action(Invoices)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'In&voices';
+                    Image = Invoice;
+                    ToolTip = 'View the posted sales invoices that the items on this shipment were invoiced with. If only one invoice is related to the shipment, it opens directly.';
+
+                    trigger OnAction()
+                    var
+                        SalesShipmentInvoiceLink: Codeunit "Sales Shipment-Invoice Link";
+                    begin
+                        SalesShipmentInvoiceLink.ShowInvoicesForShipment(Rec);
+                    end;
+                }
                 action(Dimensions)
                 {
                     AccessByPermission = TableData Dimension = R;
