@@ -10,7 +10,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SpendRequest;
 using Microsoft.HumanResources.Employee;
 
-codeunit 148339 "Travel Request Test"
+codeunit 148339 "Spend Request Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
@@ -901,7 +901,7 @@ codeunit 148339 "Travel Request Test"
         GeneralLedgerSetup: Record "General Ledger Setup";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
-        LibraryTestInitialize.OnTestInitialize(Codeunit::"Travel Request Test");
+        LibraryTestInitialize.OnTestInitialize(Codeunit::"Spend Request Test");
         LibraryExpense.CleanUpBeforeTesting();
         LibraryExpense.CleanTransactionalData();
         CloseConfirmCount := 0;
@@ -916,7 +916,7 @@ codeunit 148339 "Travel Request Test"
         if IsInitialized then
             exit;
 
-        LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Travel Request Test");
+        LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Spend Request Test");
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
         LibraryERMCountryData.CreateGeneralPostingSetupData();
@@ -929,7 +929,7 @@ codeunit 148339 "Travel Request Test"
         LibraryExpense.UpdateUseRulesInAgentSetup(false);
         IsInitialized := true;
 
-        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Travel Request Test");
+        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Spend Request Test");
     end;
 
     local procedure CreateExpenseReportWithRefundableLine(var ExpenseReportLine: Record "Expense Report Line"; var ExpenseUser: Record "Expense User"; Refundable: Boolean)
