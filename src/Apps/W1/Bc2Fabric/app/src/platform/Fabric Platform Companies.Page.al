@@ -1,5 +1,7 @@
 namespace Microsoft.Bc2Fabric;
 
+using Microsoft.Foundation.Company;
+using System.Environment;
 using System.Fabric;
 
 page 150001 "Fabric Platform Companies"
@@ -8,6 +10,7 @@ page 150001 "Fabric Platform Companies"
     PageType = List;
     SourceTable = "Tenant Fabric Companies";
     ApplicationArea = All;
+    InsertAllowed = false;
 
     layout
     {
@@ -18,6 +21,7 @@ page 150001 "Fabric Platform Companies"
                 field("Company Name"; Rec."Company Name")
                 {
                     ApplicationArea = All;
+                    Editable = false;
                     ToolTip = 'Specifies the company included in the Fabric export.';
                 }
                 field(Enabled; Rec.Enabled)
@@ -25,6 +29,44 @@ page 150001 "Fabric Platform Companies"
                     ApplicationArea = All;
                     ToolTip = 'Specifies whether this company is exported. Disabled companies are skipped.';
                 }
+            }
+        }
+    }
+
+    actions
+    {
+        area(Processing)
+        {
+            action(AddCompany)
+            {
+                Caption = 'Add Company';
+                ApplicationArea = All;
+                Image = New;
+                ToolTip = 'Adds a company to the Fabric export selection.';
+
+                trigger OnAction()
+                var
+                    Company: Record Company;
+                    FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+                    Companies: Page Companies;
+                begin
+                    Companies.LookupMode(true);
+                    if Companies.RunModal() <> Action::LookupOK then
+                        exit;
+
+                    Companies.GetRecord(Company);
+                    FabricPlatformMgt.AddCompany(Company.Name);
+                    CurrPage.Update(false);
+                end;
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Process)
+            {
+                Caption = 'Process';
+
+                actionref(AddCompany_Promoted; AddCompany) { }
             }
         }
     }

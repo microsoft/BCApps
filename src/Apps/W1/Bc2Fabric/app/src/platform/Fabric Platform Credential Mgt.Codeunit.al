@@ -10,8 +10,16 @@ codeunit 150005 "Fabric Platform Credential Mgt"
 
     var
         ClientIdRequiredErr: Label 'Client ID must be filled in before acquiring a Fabric API token.';
+#if BC2FABRIC_DEMO
+        TenantIdRequiredErr: Label 'Microsoft Entra tenant ID could not be determined. Fill in the demo Tenant ID before acquiring a Fabric API token.';
+#else
+        TenantIdRequiredErr: Label 'Microsoft Entra tenant ID could not be determined.';
+#endif
         FabricApiTokenInteractiveErr: Label 'Failed to acquire the Fabric API token interactively. Verify the app registration and that redirect URL %1 is registered.', Comment = '%1 = redirect URL';
         EncryptionNotEnabledErr: Label 'The Client Secret cannot be stored because data encryption is not enabled for this environment. An administrator must enable it first: search for ''Data Encryption Management'' and choose ''Activate Encryption''.';
+#if BC2FABRIC_DEMO
+        DemoUnencryptedSecretWarningMsg: Label 'DEMO MODE: Data encryption is not enabled, so the Client Secret is being stored unencrypted. Do not use this environment for anything beyond the demo.';
+#endif
 
     procedure SetClientId(ClientId: Text)
     begin
@@ -27,6 +35,22 @@ codeunit 150005 "Fabric Platform Credential Mgt"
         exit('');
     end;
 
+#if BC2FABRIC_DEMO
+    procedure SetTenantId(TenantId: Text)
+    begin
+        IsolatedStorage.Set('FabricPlat.TenantId', TenantId, DataScope::Module);
+    end;
+
+    procedure GetTenantId(): Text
+    var
+        Value: Text;
+    begin
+        if IsolatedStorage.Get('FabricPlat.TenantId', DataScope::Module, Value) then
+            exit(Value);
+        exit('');
+    end;
+#endif
+
     procedure SetPrincipalId(PrincipalId: Text)
     begin
         IsolatedStorage.Set('FabricPlat.PrincipalId', PrincipalId, DataScope::Module);
@@ -41,18 +65,49 @@ codeunit 150005 "Fabric Platform Credential Mgt"
         exit('');
     end;
 
+    procedure SetLakehouseName(LakehouseName: Text)
+    begin
+        IsolatedStorage.Set('FabricPlat.LakehouseName', LakehouseName, DataScope::Module);
+    end;
+
+    procedure GetLakehouseName(): Text
+    var
+        Value: Text;
+    begin
+        if IsolatedStorage.Get('FabricPlat.LakehouseName', DataScope::Module, Value) then
+            exit(Value);
+        exit('');
+    end;
+
     [NonDebuggable]
     procedure SetClientSecret(ClientSecret: SecretText)
     var
         CryptographyManagement: Codeunit "Cryptography Management";
     begin
-        if not CryptographyManagement.IsEncryptionEnabled() then
-            Error(EncryptionNotEnabledErr);
-
         if IsolatedStorage.Contains('FabricPlat.ClientSecret', DataScope::Module) then
             IsolatedStorage.Delete('FabricPlat.ClientSecret', DataScope::Module);
-        IsolatedStorage.SetEncrypted('FabricPlat.ClientSecret', ClientSecret, DataScope::Module);
+
+        if CryptographyManagement.IsEncryptionEnabled() then begin
+            IsolatedStorage.SetEncrypted('FabricPlat.ClientSecret', ClientSecret, DataScope::Module);
+            exit;
+        end;
+
+#if BC2FABRIC_DEMO
+        if not IsDemoUnencryptedSecretFallbackAllowed() then
+            Error(EncryptionNotEnabledErr);
+        Message(DemoUnencryptedSecretWarningMsg);
+        IsolatedStorage.Set('FabricPlat.ClientSecret', ClientSecret, DataScope::Module);
+#else
+        Error(EncryptionNotEnabledErr);
+#endif
     end;
+
+#if BC2FABRIC_DEMO
+    local procedure IsDemoUnencryptedSecretFallbackAllowed(): Boolean
+    begin
+        exit(true);
+    end;
+#endif
 
     [NonDebuggable]
     procedure IsClientSecretSet(): Boolean
@@ -76,10 +131,10 @@ codeunit 150005 "Fabric Platform Credential Mgt"
     var
         OAuth2: Codeunit OAuth2;
         LookupState: Codeunit "Fabric Platform Lookup State";
-        AzureADTenant: Codeunit "Azure AD Tenant";
         AccessToken: SecretText;
         IdToken: Text;
         Scopes: List of [Text];
+        AuthorityTenantId: Text;
         OAuthAuthorityUrl: Text;
         RedirectUrl: Text;
     begin
@@ -89,7 +144,11 @@ codeunit 150005 "Fabric Platform Credential Mgt"
         if LookupState.HasFabricApiToken() then
             exit(LookupState.GetFabricApiToken());
 
-        OAuthAuthorityUrl := StrSubstNo('https://login.microsoftonline.com/%1/oauth2/v2.0/authorize', AzureADTenant.GetAadTenantId());
+        AuthorityTenantId := GetAuthorityTenantId();
+        if AuthorityTenantId = '' then
+            Error(TenantIdRequiredErr);
+
+        OAuthAuthorityUrl := StrSubstNo('https://login.microsoftonline.com/%1/oauth2/v2.0/authorize', AuthorityTenantId);
         Scopes.Add('https://api.fabric.microsoft.com/.default');
         OAuth2.GetDefaultRedirectUrl(RedirectUrl);
 
@@ -109,6 +168,21 @@ codeunit 150005 "Fabric Platform Credential Mgt"
         // Delegated tokens from AL OAuth2 do not expose expires_in; use a conservative 1-hour TTL.
         LookupState.SetFabricApiToken(AccessToken, 3600);
         exit(AccessToken);
+    end;
+
+    local procedure GetAuthorityTenantId(): Text
+    var
+        AzureADTenant: Codeunit "Azure AD Tenant";
+#if BC2FABRIC_DEMO
+        AuthorityTenantId: Text;
+#endif
+    begin
+#if BC2FABRIC_DEMO
+        AuthorityTenantId := GetTenantId();
+        if AuthorityTenantId <> '' then
+            exit(AuthorityTenantId);
+#endif
+        exit(AzureADTenant.GetAadTenantId());
     end;
 
     [NonDebuggable]

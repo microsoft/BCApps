@@ -9,6 +9,7 @@ page 150005 "Fabric Platform Tables"
     PageType = List;
     SourceTable = "Tenant Fabric Tables";
     ApplicationArea = All;
+    InsertAllowed = false;
 
     layout
     {
@@ -19,6 +20,7 @@ page 150005 "Fabric Platform Tables"
                 field("Table ID"; Rec."Table ID")
                 {
                     ApplicationArea = All;
+                    Editable = false;
                     ToolTip = 'Specifies the ID of the Business Central table to export.';
                 }
                 field("Table Name"; Rec."Table Name")
@@ -36,6 +38,7 @@ page 150005 "Fabric Platform Tables"
                 field("Fabric Entity Name"; Rec."Fabric Entity Name")
                 {
                     ApplicationArea = All;
+                    Editable = false;
                     ToolTip = 'Specifies the destination entity name used in Microsoft Fabric.';
                 }
                 field("Fabric Schema Type"; Rec."Fabric Schema Type")
@@ -88,11 +91,4 @@ page 150005 "Fabric Platform Tables"
             }
         }
     }
-
-    trigger OnNewRecord(BelowxRec: Boolean)
-    var
-        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
-    begin
-        FabricPlatformMgt.CheckCanAddTable();
-    end;
 }

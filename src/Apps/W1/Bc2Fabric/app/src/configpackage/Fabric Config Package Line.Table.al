@@ -1,5 +1,6 @@
 namespace Microsoft.Bc2Fabric;
 
+using System.Fabric;
 using System.Reflection;
 
 table 150001 "Fabric Config Package Line"
@@ -55,6 +56,11 @@ table 150001 "Fabric Config Package Line"
             DataClassification = SystemMetadata;
             Editable = false;
             InitValue = true;
+        }
+        field(5; "Fabric Schema Type"; Enum "Fabric Schema Type")
+        {
+            Caption = 'Fabric Schema Type';
+            DataClassification = SystemMetadata;
         }
     }
 

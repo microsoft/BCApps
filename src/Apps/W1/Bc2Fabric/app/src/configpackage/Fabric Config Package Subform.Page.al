@@ -31,6 +31,11 @@ page 150007 "Fabric Config Package Subform"
                     ApplicationArea = All;
                     ToolTip = 'Specifies whether the table is exported per company.';
                 }
+                field("Fabric Schema Type"; Rec."Fabric Schema Type")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies whether the table is exported as data or logging.';
+                }
             }
         }
     }

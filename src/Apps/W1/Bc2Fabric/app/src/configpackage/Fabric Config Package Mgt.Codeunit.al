@@ -35,8 +35,12 @@ codeunit 150002 "Fabric Config Package Mgt"
         PackageLine.SetRange("Package Code", Pkg."Code");
         if PackageLine.FindSet() then
             repeat
-                if not TenantFabricTables.Get(PackageLine."Table ID") then
+                if not TenantFabricTables.Get(PackageLine."Table ID") then begin
                     FabricPlatformMgt.AddTable(PackageLine."Table ID");
+                    TenantFabricTables.Get(PackageLine."Table ID");
+                    TenantFabricTables.Validate("Fabric Schema Type", PackageLine."Fabric Schema Type");
+                    TenantFabricTables.Modify(true);
+                end;
             until PackageLine.Next() = 0;
 
         Pkg.Active := true;
@@ -122,8 +126,12 @@ codeunit 150002 "Fabric Config Package Mgt"
         PackageLine.SetRange("Package Code", Pkg."Code");
         if PackageLine.FindSet() then
             repeat
-                if not TenantFabricTables.Get(PackageLine."Table ID") then
+                if not TenantFabricTables.Get(PackageLine."Table ID") then begin
                     FabricPlatformMgt.AddTable(PackageLine."Table ID");
+                    TenantFabricTables.Get(PackageLine."Table ID");
+                    TenantFabricTables.Validate("Fabric Schema Type", PackageLine."Fabric Schema Type");
+                    TenantFabricTables.Modify(true);
+                end;
             until PackageLine.Next() = 0;
 
         Pkg."Activated On" := CurrentDateTime();

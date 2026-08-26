@@ -12,7 +12,7 @@ codeunit 150007 "Fabric Platform Admin Client"
         RetrieveWorkspacesHttpErr: Label 'Failed to retrieve workspaces. HTTP %1.', Comment = '%1 = HTTP status code';
         WorkspaceRequiredForLakehouseErr: Label 'Select a workspace before choosing a lakehouse.';
         RetrieveLakehousesTransportErr: Label 'Failed to retrieve lakehouses: transport error.';
-        RetrieveLakehousesHttpErr: Label 'Failed to retrieve lakehouses. HTTP %1.', Comment = '%1 = HTTP status code';
+        RetrieveLakehousesHttpErr: Label 'Failed to retrieve lakehouses. HTTP %1.\%2', Comment = '%1 = HTTP status code, %2 = response body';
         WorkspaceRequiredForSPErr: Label 'Select a workspace before adding the service principal.';
         PrincipalIdRequiredErr: Label 'Principal ID must be filled in before adding to the workspace.';
         AddSPTransportErr: Label 'Failed to add service principal to workspace: transport error.';
@@ -81,9 +81,15 @@ codeunit 150007 "Fabric Platform Admin Client"
         IdToken: JsonToken;
         NameToken: JsonToken;
         JsonArr: JsonArray;
+        ResponseText: Text;
+        WorkspaceIdForUrl: Text;
         i: Integer;
     begin
         if WorkspaceId = '' then
+            Error(WorkspaceRequiredForLakehouseErr);
+
+        WorkspaceIdForUrl := FormatGuidForFabricUrl(WorkspaceId);
+        if WorkspaceIdForUrl = '' then
             Error(WorkspaceRequiredForLakehouseErr);
 
         TempBuffer.Reset();
@@ -93,12 +99,14 @@ codeunit 150007 "Fabric Platform Admin Client"
         RestClientResult := HttpClient.CreateClientWithBearer(AccessToken);
         Req := HttpClient.BuildJsonRequest(
             'GET',
-            StrSubstNo('https://api.fabric.microsoft.com/v1/workspaces/%1/lakehouses', WorkspaceId),
+            StrSubstNo('https://api.fabric.microsoft.com/v1/workspaces/%1/lakehouses', WorkspaceIdForUrl),
             '');
         if not HttpClient.TrySend(RestClientResult, Req, Resp) then
             Error(RetrieveLakehousesTransportErr);
-        if not Resp.GetIsSuccessStatusCode() then
-            Error(RetrieveLakehousesHttpErr, Resp.GetHttpStatusCode());
+        if not Resp.GetIsSuccessStatusCode() then begin
+            ResponseText := Resp.GetContent().AsText();
+            Error(RetrieveLakehousesHttpErr, Resp.GetHttpStatusCode(), ResponseText);
+        end;
 
         RootObj.ReadFrom(Resp.GetContent().AsText());
         if not RootObj.Get('value', ArrayToken) then
@@ -125,6 +133,7 @@ codeunit 150007 "Fabric Platform Admin Client"
         Resp: Codeunit "Http Response Message";
         AccessToken: SecretText;
         ResponseText: Text;
+        WorkspaceIdForUrl: Text;
         BodyObj: JsonObject;
         PrincipalObj: JsonObject;
         Body: Text;
@@ -133,6 +142,10 @@ codeunit 150007 "Fabric Platform Admin Client"
             Error(WorkspaceRequiredForSPErr);
         if PrincipalId = '' then
             Error(PrincipalIdRequiredErr);
+
+        WorkspaceIdForUrl := FormatGuidForFabricUrl(WorkspaceId);
+        if WorkspaceIdForUrl = '' then
+            Error(WorkspaceRequiredForSPErr);
 
         AccessToken := CredMgt.AcquireFabricApiTokenDelegated();
 
@@ -145,7 +158,7 @@ codeunit 150007 "Fabric Platform Admin Client"
         RestClientResult := HttpClient.CreateClientWithBearer(AccessToken);
         Req := HttpClient.BuildJsonRequest(
             'POST',
-            StrSubstNo('https://api.fabric.microsoft.com/v1/workspaces/%1/roleAssignments', WorkspaceId),
+            StrSubstNo('https://api.fabric.microsoft.com/v1/workspaces/%1/roleAssignments', WorkspaceIdForUrl),
             Body);
         if not HttpClient.TrySend(RestClientResult, Req, Resp) then
             Error(AddSPTransportErr);
@@ -156,5 +169,10 @@ codeunit 150007 "Fabric Platform Admin Client"
         if Resp.GetHttpStatusCode() = 409 then
             Error(SPAlreadyMemberErr);
         Error(AddSPHttpErr, Resp.GetHttpStatusCode(), ResponseText);
+    end;
+
+    local procedure FormatGuidForFabricUrl(GuidText: Text): Text
+    begin
+        exit(DelChr(GuidText, '<>', ' {}'));
     end;
 }

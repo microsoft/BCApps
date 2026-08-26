@@ -30,9 +30,11 @@ page 150004 "Fabric Platform Setup"
                     trigger OnAssistEdit()
                     var
                         AdminClient: Codeunit "Fabric Platform Admin Client";
+                        CredMgt: Codeunit "Fabric Platform Credential Mgt";
                         LookupState: Codeunit "Fabric Platform Lookup State";
                         TempBuffer: Record "Name/Value Buffer" temporary;
                         LookupPage: Page "Fabric Platform Name Lookup";
+                        WorkspaceId: Guid;
                     begin
                         AdminClient.GetWorkspaces(TempBuffer);
                         if TempBuffer.IsEmpty() then
@@ -42,10 +44,14 @@ page 150004 "Fabric Platform Setup"
                         LookupPage.RunModal();
                         if LookupPage.IsRecordSelected() then begin
                             LookupPage.GetSelectedRecord(TempBuffer);
-                            Rec."Fabric Workspace ID" := CopyStr(TempBuffer.Value, 1, MaxStrLen(Rec."Fabric Workspace ID"));
+                            if not Evaluate(WorkspaceId, TempBuffer.Value) then
+                                Error(WorkspaceIdInvalidErr, TempBuffer.Value);
+                            Rec."Fabric Workspace ID" := WorkspaceId;
                             Rec."Fabric Workspace Name" := CopyStr(TempBuffer.Name, 1, MaxStrLen(Rec."Fabric Workspace Name"));
-                            Rec."Fabric Lakehouse ID" := '';
+                            Clear(Rec."Fabric Lakehouse ID");
                             Rec.Modify(true);
+                            LakehouseNameValue := '';
+                            CredMgt.SetLakehouseName(LakehouseNameValue);
                             CurrPage.Update(false);
                         end;
                     end;
@@ -54,19 +60,24 @@ page 150004 "Fabric Platform Setup"
                 {
                     ApplicationArea = All;
                     Editable = false;
+                    Importance = Additional;
                     ToolTip = 'Specifies the Microsoft Fabric workspace that receives the exported data.';
                 }
-                field("Fabric Lakehouse ID"; Rec."Fabric Lakehouse ID")
+                field("Fabric Lakehouse Name"; LakehouseNameValue)
                 {
+                    Caption = 'Fabric Lakehouse Name';
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the Microsoft Fabric lakehouse that receives the exported data. Use the assist button to browse lakehouses in the selected workspace.';
+                    Editable = false;
+                    ToolTip = 'Specifies the display name of the selected Microsoft Fabric lakehouse. Use the assist button to browse lakehouses in the selected workspace.';
 
                     trigger OnAssistEdit()
                     var
                         AdminClient: Codeunit "Fabric Platform Admin Client";
+                        CredMgt: Codeunit "Fabric Platform Credential Mgt";
                         LookupState: Codeunit "Fabric Platform Lookup State";
                         TempBuffer: Record "Name/Value Buffer" temporary;
                         LookupPage: Page "Fabric Platform Name Lookup";
+                        LakehouseId: Guid;
                     begin
                         AdminClient.GetLakehouses(Rec."Fabric Workspace ID", TempBuffer);
                         if TempBuffer.IsEmpty() then
@@ -76,11 +87,22 @@ page 150004 "Fabric Platform Setup"
                         LookupPage.RunModal();
                         if LookupPage.IsRecordSelected() then begin
                             LookupPage.GetSelectedRecord(TempBuffer);
-                            Rec."Fabric Lakehouse ID" := CopyStr(TempBuffer.Value, 1, MaxStrLen(Rec."Fabric Lakehouse ID"));
+                            if not Evaluate(LakehouseId, TempBuffer.Value) then
+                                Error(LakehouseIdInvalidErr, TempBuffer.Value);
+                            Rec."Fabric Lakehouse ID" := LakehouseId;
                             Rec.Modify(true);
+                            LakehouseNameValue := CopyStr(TempBuffer.Name, 1, MaxStrLen(LakehouseNameValue));
+                            CredMgt.SetLakehouseName(LakehouseNameValue);
                             CurrPage.Update(false);
                         end;
                     end;
+                }
+                field("Fabric Lakehouse ID"; Rec."Fabric Lakehouse ID")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                    Importance = Additional;
+                    ToolTip = 'Specifies the Microsoft Fabric lakehouse that receives the exported data.';
                 }
                 field("Fabric Data Namespace"; Rec."Fabric Data Namespace")
                 {
@@ -124,8 +146,25 @@ page 150004 "Fabric Platform Setup"
                         CredMgt: Codeunit "Fabric Platform Credential Mgt";
                     begin
                         CredMgt.SetClientId(ClientIdValue);
+                        CredMgt.ClearTokenCache();
                     end;
                 }
+#if BC2FABRIC_DEMO
+                field(TenantId; TenantIdValue)
+                {
+                    Caption = 'Tenant ID';
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the Microsoft Entra tenant ID that owns the demo app registration and Fabric workspace. Leave blank to use the Business Central tenant.';
+
+                    trigger OnValidate()
+                    var
+                        CredMgt: Codeunit "Fabric Platform Credential Mgt";
+                    begin
+                        CredMgt.SetTenantId(TenantIdValue);
+                        CredMgt.ClearTokenCache();
+                    end;
+                }
+#endif
                 field(ClientSecret; ClientSecretValue)
                 {
                     Caption = 'Client Secret';
@@ -323,18 +362,28 @@ page 150004 "Fabric Platform Setup"
     begin
         FabricPlatformMgt.EnsureSetup(Rec);
         ClientIdValue := CopyStr(CredMgt.GetClientId(), 1, MaxStrLen(ClientIdValue));
+#if BC2FABRIC_DEMO
+        TenantIdValue := CopyStr(CredMgt.GetTenantId(), 1, MaxStrLen(TenantIdValue));
+#endif
         PrincipalIdValue := CopyStr(CredMgt.GetPrincipalId(), 1, MaxStrLen(PrincipalIdValue));
+        LakehouseNameValue := CopyStr(CredMgt.GetLakehouseName(), 1, MaxStrLen(LakehouseNameValue));
         if CredMgt.IsClientSecretSet() then
             ClientSecretValue := ClientSecretSetLbl;
     end;
 
     var
         ClientIdValue: Text[250];
+#if BC2FABRIC_DEMO
+        TenantIdValue: Text[250];
+#endif
         PrincipalIdValue: Text[250];
+        LakehouseNameValue: Text[250];
         [NonDebuggable]
         ClientSecretValue: Text[250];
         ClientSecretSetLbl: Label '*** secret stored ***', Locked = true;
         NoWorkspacesFoundErr: Label 'No workspaces found. Verify the Client ID and Client Secret.';
         NoLakehousesFoundErr: Label 'No lakehouses found in the selected workspace.';
+        WorkspaceIdInvalidErr: Label 'Fabric returned an invalid workspace ID: %1.', Comment = '%1 = workspace ID';
+        LakehouseIdInvalidErr: Label 'Fabric returned an invalid lakehouse ID: %1.', Comment = '%1 = lakehouse ID';
         SPAddedToWorkspaceMsg: Label 'Service principal added as Contributor to workspace ''%1''.', Comment = '%1 = workspace name';
 }

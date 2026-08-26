@@ -1,5 +1,6 @@
 namespace Microsoft.Bc2Fabric;
 
+using System.Environment;
 using System.Fabric;
 using System.Reflection;
 
@@ -11,6 +12,8 @@ codeunit 150001 "Fabric Platform Mgt"
         MaxTablesErr: Label 'A maximum of %1 tables can be exported to Microsoft Fabric. Remove a table before adding another.', Comment = '%1 = maximum number of tables';
         TableInvalidErr: Label 'Table %1 does not exist or is not accessible.', Comment = '%1 = table id';
         TableExistsErr: Label 'Table %1 is already selected for export.', Comment = '%1 = table id';
+        CompanyInvalidErr: Label 'Company %1 does not exist.', Comment = '%1 = company name';
+        CompanyExistsErr: Label 'Company %1 is already selected for export.', Comment = '%1 = company name';
         EnableRequestedMsg: Label 'Enable was requested. The platform runs asynchronously; open Export Summary to follow progress.';
         StartRequestedMsg: Label 'Start was requested. The platform runs asynchronously; open Export Summary to follow progress.';
         StopRequestedMsg: Label 'Stop was requested. The platform runs asynchronously; open Export Summary to follow progress.';
@@ -78,7 +81,7 @@ codeunit 150001 "Fabric Platform Mgt"
     begin
         AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
         AllObjWithCaption.SetRange("Object ID", TableId);
-        if AllObjWithCaption.IsEmpty() then
+        if not AllObjWithCaption.FindFirst() then
             Error(TableInvalidErr, TableId);
 
         if TenantFabricTables.Get(TableId) then
@@ -88,7 +91,30 @@ codeunit 150001 "Fabric Platform Mgt"
 
         TenantFabricTables.Init();
         TenantFabricTables.Validate("Table ID", TableId);
+        TenantFabricTables."Table Name" := CopyStr(AllObjWithCaption."Object Caption", 1, MaxStrLen(TenantFabricTables."Table Name"));
+        TenantFabricTables."Fabric Entity Name" := CopyStr(AllObjWithCaption."Object Caption", 1, MaxStrLen(TenantFabricTables."Fabric Entity Name"));
         TenantFabricTables.Insert(true);
+    end;
+
+    // -------------------------------------------------------------------------
+    // Company selection
+    // -------------------------------------------------------------------------
+
+    procedure AddCompany(CompanyName: Text[30])
+    var
+        TenantFabricCompanies: Record "Tenant Fabric Companies";
+        Company: Record Company;
+    begin
+        if not Company.Get(CompanyName) then
+            Error(CompanyInvalidErr, CompanyName);
+
+        if TenantFabricCompanies.Get(CompanyName) then
+            Error(CompanyExistsErr, CompanyName);
+
+        TenantFabricCompanies.Init();
+        TenantFabricCompanies.Validate("Company Name", CompanyName);
+        TenantFabricCompanies.Enabled := true;
+        TenantFabricCompanies.Insert(true);
     end;
 
     // -------------------------------------------------------------------------
