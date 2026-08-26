@@ -1436,7 +1436,15 @@ function Invoke-ParallelTestExecution {
             }
         }
         finally {
-            Disable-BcTestTaskScheduler -ContainerName $parameters.containerName
+            try {
+                Disable-BcTestTaskScheduler -ContainerName $parameters.containerName
+            }
+            finally {
+                foreach ($cleanTenant in $cleanTenantInfo) {
+                    Reset-BcTestTenant -ContainerName $parameters.containerName -Tenant $cleanTenant.Id `
+                        -TenantDatabaseName $cleanTenant.DatabaseName -TemplateDatabaseName $templateDatabaseName
+                }
+            }
         }
     }
 

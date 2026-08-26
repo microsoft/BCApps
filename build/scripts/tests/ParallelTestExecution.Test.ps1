@@ -177,6 +177,7 @@ Describe "ParallelTestExecution app-name resolution" {
             Mock Disable-BcTestTaskScheduler { }
             Mock New-BcTestTenantTemplate { 'default-test-template' }
             Mock Invoke-RequiredDisabledTestExecution { $true }
+            Mock Reset-BcTestTenant { }
             Mock Invoke-WarmupDispatch { @($Pending) }
             Mock Wait-ForFreeTenant { 'default' }
             Mock Start-TestAppDispatch { throw 'dispatch failed' }
@@ -617,6 +618,9 @@ Describe "ParallelTestExecution clean tenant scheduling" {
                 $script:taskSchedulerEnabled | Should -BeTrue
                 $true
             }
+            Mock Reset-BcTestTenant {
+                $script:taskSchedulerEnabled | Should -BeFalse
+            }
             Mock Remove-BcTestTenantTemplate { }
             Mock Enable-BcTestTaskScheduler { $script:taskSchedulerEnabled = $true }
             Mock Disable-BcTestTaskScheduler { $script:taskSchedulerEnabled = $false }
@@ -633,6 +637,11 @@ Describe "ParallelTestExecution clean tenant scheduling" {
             }
             Should -Invoke Enable-BcTestTaskScheduler -Times 1
             Should -Invoke Disable-BcTestTaskScheduler -Times 1
+            Should -Invoke Reset-BcTestTenant -Times 1 -ParameterFilter {
+                $Tenant -eq 'tenant2' -and
+                $TenantDatabaseName -eq 'tenant2' -and
+                $TemplateDatabaseName -eq 'default-test-template'
+            }
             Should -Invoke Invoke-RequiredDisabledTestExecution -Times 1 -ParameterFilter {
                 $TemplateDatabaseName -eq 'default-test-template' -and
                 $WorkItems.Count -eq 1 -and
