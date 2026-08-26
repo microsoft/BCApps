@@ -7231,7 +7231,7 @@ table 39 "Purchase Line"
                                     else
                                         NonDedVATAmount :=
                                             NonDeductibleVAT.GetNonDedVATAmountFromVATAmountLine(
-                                                TempVATAmountLineRemainder, VATAmountLine, Currency, PurchLine.CalcLineAmount(), VATAmountLine.CalcLineAmount());
+                                                TempVATAmountLineRemainder, VATAmountLine, Currency, VATAmount, VATAmountLine.CalcLineAmount());
                                 end else begin
                                     NewAmount := PurchLine.CalcLineAmount() - PurchLine."Pmt. Discount Amount";
                                     NewVATBaseAmount :=
