@@ -21,7 +21,7 @@ interface "ITest Configuration Provider"
 
     /// <summary>
     /// Reads the provider settings and writes the intent (seed, WorkDate shift, order, isolation)
-    /// into the shared context before the generated suite is cloned and executed.
+    /// into the shared context before the base suite runs.
     /// </summary>
     /// <param name="Settings">The provider specific settings, for example { "seed": 2 }.</param>
     /// <param name="TestConfigurationContext">The shared run context to write intent into.</param>

@@ -21,7 +21,6 @@ permissionset 130452 "Test Runner - Obj."
         table "Test Output" = X,
         table "Test Configuration" = X,
         table "Test Configuration Line" = X,
-        table "Test Configuration Run Result" = X,
         codeunit "ALTestRunner Reset Environment" = X,
         codeunit "Test Profile Management" = X,
         codeunit "Test Runner - Get Methods" = X,
@@ -62,6 +61,5 @@ permissionset 130452 "Test Runner - Obj."
         page "Test Outputs" = X,
         page "Test Configurations" = X,
         page "Test Configuration Card" = X,
-        page "Test Configuration Lines" = X,
-        page "Test Config. Run Results" = X;
+        page "Test Configuration Lines" = X;
 }

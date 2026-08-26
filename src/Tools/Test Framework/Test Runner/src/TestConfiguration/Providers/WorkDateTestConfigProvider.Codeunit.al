@@ -27,7 +27,8 @@ codeunit 130476 "WorkDate Test Config. Prov." implements "ITest Configuration Pr
     begin
         FormulaText := '<1Y>';
         if Settings.Get('formula', FormulaToken) then
-            FormulaText := FormulaToken.AsValue().AsText();
+            if FormulaToken.IsValue() and not FormulaToken.AsValue().IsNull() then
+                FormulaText := FormulaToken.AsValue().AsText();
         TestConfigurationContext.SetWorkDateFormula(CopyStr(FormulaText, 1, 30));
     end;
 

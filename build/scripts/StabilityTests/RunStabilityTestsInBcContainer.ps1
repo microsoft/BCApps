@@ -11,8 +11,9 @@
     Stability mode re-runs an existing test suite under several preset combinations (different
     random seeds, WorkDate shifted into the future, one-by-one isolation and reverse execution
     order) to surface flaky, order-dependent and data-dependent tests. The presets are configured
-    as reusable "Test Configuration" records (each is a list of providers) and the outcome of every
-    test method is stored in the "Test Configuration Run Result" table.
+    as reusable "Test Configuration" records (each is a list of providers). No extra suites are
+    created: the base suite is run in place under every configuration and the aggregated outcome is
+    written back onto the base suite's own test method lines (failures concatenated per line).
 
     This script drives the Command Line Test Tool page (130455) through BcContainerHelper's client
     context: it sets the base suite, invokes the "Run stability tests" action and reads the

@@ -7,7 +7,8 @@ namespace System.TestTools.TestRunner;
 
 /// <summary>
 /// Adds stability mode entry points to the interactive AL Test Tool page. A stability run executes
-/// the current suite under every enabled test configuration and stores the outcome of every method.
+/// the current suite under every enabled test configuration and writes the aggregated outcome back
+/// onto the suite's own test lines, so the results can be reviewed in the normal AL Test Tool.
 /// </summary>
 pageextension 130486 "Test Config. AL Test Tool" extends "AL Test Tool"
 {
@@ -24,16 +25,15 @@ pageextension 130486 "Test Config. AL Test Tool" extends "AL Test Tool"
                 {
                     ApplicationArea = All;
                     Caption = 'Run stability tests';
-                    ToolTip = 'Re-runs the current suite under every enabled test configuration and stores the outcome of every test method.';
+                    ToolTip = 'Re-runs the current suite under every enabled test configuration and writes the aggregated outcome onto the suite''s test lines.';
                     Image = TestReport;
 
                     trigger OnAction()
                     var
                         TestConfigurationMgt: Codeunit "Test Configuration Mgt";
-                        TestConfigRunResults: Page "Test Config. Run Results";
                     begin
                         TestConfigurationMgt.RunTestConfigurations(GetCurrentSuite());
-                        TestConfigRunResults.Run();
+                        CurrPage.Update(false);
                     end;
                 }
 
@@ -53,18 +53,19 @@ pageextension 130486 "Test Config. AL Test Tool" extends "AL Test Tool"
                     end;
                 }
 
-                action(TestConfigResults)
+                action(ResetStabilityMode)
                 {
                     ApplicationArea = All;
-                    Caption = 'Stability results';
-                    ToolTip = 'Opens the stored results of the last stability run.';
-                    Image = ShowList;
+                    Caption = 'Reset stability mode';
+                    ToolTip = 'Exits stability mode and safely clears the results on the current suite without running any triggers.';
+                    Image = Undo;
 
                     trigger OnAction()
                     var
-                        TestConfigRunResults: Page "Test Config. Run Results";
+                        TestConfigurationMgt: Codeunit "Test Configuration Mgt";
                     begin
-                        TestConfigRunResults.Run();
+                        TestConfigurationMgt.ResetStabilityMode(GetCurrentSuite());
+                        CurrPage.Update(false);
                     end;
                 }
             }

@@ -7,8 +7,9 @@ namespace System.TestTools.TestRunner;
 
 /// <summary>
 /// Provider that runs each test method in isolation (one by one) by turning on the stability run
-/// behavior of the generated suite. This surfaces tests that only pass because of state left behind
-/// by earlier tests. No settings.
+/// behavior of the base suite for the duration of the configuration. Each method runs on its own so
+/// its setup runs again for that method only. This surfaces tests that only pass because of state
+/// left behind by earlier tests. No settings.
 /// </summary>
 codeunit 130477 "One By One Test Config. Prov." implements "ITest Configuration Provider"
 {

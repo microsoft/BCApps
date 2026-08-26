@@ -29,7 +29,8 @@ codeunit 130475 "Seed Test Config. Provider" implements "ITest Configuration Pro
     begin
         Seed := 1;
         if Settings.Get('seed', SeedToken) then
-            Seed := SeedToken.AsValue().AsInteger();
+            if SeedToken.IsValue() and not SeedToken.AsValue().IsNull() then
+                Seed := SeedToken.AsValue().AsInteger();
         TestConfigurationContext.SetSeed(Seed);
     end;
 

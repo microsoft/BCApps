@@ -8,29 +8,36 @@ namespace System.TestTools.TestRunner;
 using System.TestLibraries.Utilities;
 
 /// <summary>
-/// Orchestrates a test configuration run. For every enabled configuration it clones the base suite
-/// (applying the requested execution order), asks each provider to prepare the shared context, seeds
-/// the random libraries when requested and executes the clone. The outcome of every test method is
-/// captured by codeunit "Test Configuration Runner". This surfaces flaky, order dependent and data
-/// dependent tests.
+/// Orchestrates a stability run. For every enabled configuration it runs the base suite in place
+/// (applying the requested execution order and isolation), asks each provider to prepare the shared
+/// context and seeds the random libraries when requested. No extra suites are created: the outcome of
+/// every test method is captured after each configuration and, once all configurations have run, the
+/// aggregated result is written back onto the base suite's own test method lines. When a method fails
+/// under more than one configuration the individual error messages are concatenated into that line's
+/// error message, so the results can be reviewed in the normal AL Test Tool.
 /// </summary>
 codeunit 130473 "Test Configuration Mgt"
 {
     Permissions = tabledata "AL Test Suite" = rimd,
                   tabledata "Test Method Line" = rimd,
                   tabledata "Test Configuration" = rimd,
-                  tabledata "Test Configuration Line" = rimd,
-                  tabledata "Test Configuration Run Result" = rimd;
+                  tabledata "Test Configuration Line" = rimd;
 
     var
         TestConfigurationContext: Codeunit "Test Configuration Context";
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
-        GeneratedSuitePrefixTok: Label 'TCFG', Locked = true;
+        FailedMethods: Dictionary of [Text, Boolean];
+        BestResult: Dictionary of [Text, Integer];
+        AggMessages: Dictionary of [Text, Text];
+        AggStacks: Dictionary of [Text, Text];
         SuiteNotFoundErr: Label 'Test suite %1 was not found.', Comment = '%1 = suite name';
+        ConfigHeaderTok: Label '=== %1 ===', Comment = '%1 = configuration code', Locked = true;
+        KeyTok: Label '%1|%2', Locked = true;
 
     /// <summary>
-    /// Runs every enabled configuration against the base suite and returns the results as JSON.
-    /// If no configurations exist yet, a default, editable set is created first.
+    /// Runs every enabled configuration against the base suite, writes the aggregated outcome onto the
+    /// base suite's test method lines and returns the results as JSON. If no configurations exist yet,
+    /// a default, editable set is created first.
     /// </summary>
     /// <param name="BaseSuiteName">The name of the base test suite.</param>
     /// <returns>The results serialized to JSON.</returns>
@@ -38,58 +45,139 @@ codeunit 130473 "Test Configuration Mgt"
     var
         BaseSuite: Record "AL Test Suite";
         TestConfiguration: Record "Test Configuration";
-        TestConfigurationRunResult: Record "Test Configuration Run Result";
-        GeneratedSuiteNo: Integer;
+        ConfiguredRandomSeed: Codeunit "Configured Random Seed";
     begin
         if not BaseSuite.Get(BaseSuiteName) then
             Error(SuiteNotFoundErr, BaseSuiteName);
 
         EnsureDefaultConfigurations();
+        ClearAggregation();
 
-        TestConfigurationRunResult.SetRange("Base Suite", BaseSuiteName);
-        TestConfigurationRunResult.DeleteAll();
-
-        GeneratedSuiteNo := 0;
+        ConfiguredRandomSeed.EnterStabilityMode();
         TestConfiguration.SetRange("Enabled", true);
         if TestConfiguration.FindSet() then
             repeat
-                GeneratedSuiteNo += 1;
-                RunConfiguration(BaseSuite, TestConfiguration, GeneratedSuiteNo);
+                RunConfiguration(BaseSuite, TestConfiguration);
             until TestConfiguration.Next() = 0;
+        ConfiguredRandomSeed.ExitStabilityMode();
 
+        WriteAggregatedResults(BaseSuite);
         exit(ResultsToJson(BaseSuiteName));
     end;
 
-    local procedure RunConfiguration(BaseSuite: Record "AL Test Suite"; TestConfiguration: Record "Test Configuration"; GeneratedSuiteNo: Integer)
+    /// <summary>
+    /// Exits stability mode and resets the base suite to a clean state without running any triggers.
+    /// This is the safe way to leave stability mode: the stored seed is cleared, the isolation flag is
+    /// turned off and every result on the base suite is cleared using trigger free writes.
+    /// </summary>
+    /// <param name="BaseSuiteName">The name of the base test suite.</param>
+    procedure ResetStabilityMode(BaseSuiteName: Code[10])
     var
-        GeneratedSuite: Record "AL Test Suite";
-        GeneratedTestMethodLine: Record "Test Method Line";
+        BaseSuite: Record "AL Test Suite";
+        TestMethodLine: Record "Test Method Line";
         ConfiguredRandomSeed: Codeunit "Configured Random Seed";
-        GeneratedSuiteName: Code[10];
     begin
-        GeneratedSuiteName := GetGeneratedSuiteName(GeneratedSuiteNo);
+        TestConfigurationContext.Deactivate();
+        ConfiguredRandomSeed.ExitStabilityMode();
 
-        TestConfigurationContext.Activate(BaseSuite.Name, GeneratedSuiteName, TestConfiguration."Code");
+        if not BaseSuite.Get(BaseSuiteName) then
+            exit;
+
+        if BaseSuite."Stability Run" then begin
+            BaseSuite."Stability Run" := false;
+            BaseSuite.Modify(false);
+        end;
+
+        TestMethodLine.SetRange("Test Suite", BaseSuiteName);
+        if TestMethodLine.FindSet(true) then
+            repeat
+                TestMethodLine.Result := TestMethodLine.Result::" ";
+                ClearLineError(TestMethodLine);
+                TestMethodLine."Start Time" := 0DT;
+                TestMethodLine."Finish Time" := 0DT;
+                TestMethodLine.Modify(false);
+            until TestMethodLine.Next() = 0;
+    end;
+
+    local procedure RunConfiguration(var BaseSuite: Record "AL Test Suite"; TestConfiguration: Record "Test Configuration")
+    var
+        ConfiguredRandomSeed: Codeunit "Configured Random Seed";
+    begin
+        TestConfigurationContext.Activate(BaseSuite.Name, TestConfiguration."Code");
         PrepareProviders(TestConfiguration."Code");
 
-        CloneSuite(BaseSuite, GeneratedSuite, GeneratedSuiteName);
-        TestSuiteMgt.ChangeStabilityRun(GeneratedSuite, TestConfigurationContext.OneByOne());
-
-        // Start from a clean seed so a configuration without a seed provider is not affected by a previous one.
+        // Start from a clean seed so a configuration without a seed provider is not affected by a
+        // previous one; "Reset State Before Test Run" reads this before every test method.
         ConfiguredRandomSeed.ClearSeed();
         if TestConfigurationContext.IsSeedSet() then
             ConfiguredRandomSeed.SetSeed(TestConfigurationContext.Seed());
 
-        GeneratedTestMethodLine.SetRange("Test Suite", GeneratedSuiteName);
-        if GeneratedTestMethodLine.FindFirst() then
-            if TestConfigurationContext.OneByOne() then begin
-                while TestSuiteMgt.RunNextTest(GeneratedTestMethodLine) do;
-            end else
-                TestSuiteMgt.RunAllTests(GeneratedTestMethodLine);
+        ExecuteSuite(BaseSuite);
+        CaptureConfigResults(BaseSuite.Name, TestConfiguration."Code");
 
-        // Leave the seed store and context inactive so a later regular test run is unaffected.
         ConfiguredRandomSeed.ClearSeed();
         TestConfigurationContext.Deactivate();
+    end;
+
+    local procedure ExecuteSuite(var BaseSuite: Record "AL Test Suite")
+    var
+        TestMethodLine: Record "Test Method Line";
+    begin
+        if TestConfigurationContext.OneByOne() then begin
+            RunOneByOne(BaseSuite);
+            exit;
+        end;
+
+        TestMethodLine.SetRange("Test Suite", BaseSuite.Name);
+        TestMethodLine.SetCurrentKey("Test Suite", "Line No.");
+        // Reverse order is realized by iterating the suite lines from the last to the first, which the
+        // test runner honors for the codeunit sequence. The run stays a normal, shared state run.
+        TestMethodLine.Ascending(not (TestConfigurationContext.ReverseCodeunits() or TestConfigurationContext.ReverseMethods()));
+        if TestMethodLine.FindSet() then
+            TestSuiteMgt.RunTests(TestMethodLine, BaseSuite);
+    end;
+
+    local procedure RunOneByOne(var BaseSuite: Record "AL Test Suite")
+    var
+        TestMethodLine: Record "Test Method Line";
+        OriginalStabilityRun: Boolean;
+        RemainingBefore: Integer;
+        RemainingAfter: Integer;
+    begin
+        // One by one runs each test method on its own so its setup runs again for that method only.
+        OriginalStabilityRun := BaseSuite."Stability Run";
+        TestSuiteMgt.ChangeStabilityRun(BaseSuite, true);
+
+        TestMethodLine.SetRange("Test Suite", BaseSuite.Name);
+        if TestMethodLine.FindFirst() then begin
+            RemainingBefore := CountUnrunCodeunits(BaseSuite.Name);
+            while RemainingBefore > 0 do begin
+                if not TestSuiteMgt.RunNextTest(TestMethodLine) then
+                    RemainingBefore := 0
+                else begin
+                    RemainingAfter := CountUnrunCodeunits(BaseSuite.Name);
+                    // Stop if a codeunit could not be advanced (for example it has no runnable method),
+                    // so the loop cannot spin forever on the same codeunit.
+                    if RemainingAfter >= RemainingBefore then
+                        RemainingBefore := 0
+                    else
+                        RemainingBefore := RemainingAfter;
+                end;
+            end;
+        end;
+
+        TestSuiteMgt.ChangeStabilityRun(BaseSuite, OriginalStabilityRun);
+    end;
+
+    local procedure CountUnrunCodeunits(SuiteName: Code[10]): Integer
+    var
+        CodeunitLine: Record "Test Method Line";
+    begin
+        CodeunitLine.SetRange("Test Suite", SuiteName);
+        CodeunitLine.SetRange("Line Type", CodeunitLine."Line Type"::Codeunit);
+        CodeunitLine.SetRange(Result, CodeunitLine.Result::" ");
+        CodeunitLine.SetRange(Run, true);
+        exit(CodeunitLine.Count());
     end;
 
     local procedure PrepareProviders(ConfigCode: Code[20])
@@ -106,63 +194,187 @@ codeunit 130473 "Test Configuration Mgt"
             until TestConfigurationLine.Next() = 0;
     end;
 
-    local procedure CloneSuite(BaseSuite: Record "AL Test Suite"; var GeneratedSuite: Record "AL Test Suite"; GeneratedSuiteName: Code[10])
+    local procedure CaptureConfigResults(BaseSuiteName: Code[10]; ConfigCode: Code[20])
     var
-        BaseCodeunitLine: Record "Test Method Line";
-        BaseFunctionLine: Record "Test Method Line";
-        LineNoCounter: Integer;
+        TestMethodLine: Record "Test Method Line";
+        LineKey: Text;
     begin
-        if GeneratedSuite.Get(GeneratedSuiteName) then begin
-            TestSuiteMgt.DeleteAllMethods(GeneratedSuite);
-            GeneratedSuite.Delete(true);
-        end;
-
-        GeneratedSuite.Init();
-        GeneratedSuite.Name := GeneratedSuiteName;
-        GeneratedSuite."Test Runner Id" := BaseSuite."Test Runner Id";
-        GeneratedSuite.Insert(true);
-
-        LineNoCounter := 0;
-
-        BaseCodeunitLine.SetRange("Test Suite", BaseSuite.Name);
-        BaseCodeunitLine.SetRange("Line Type", BaseCodeunitLine."Line Type"::Codeunit);
-        BaseCodeunitLine.Ascending(not TestConfigurationContext.ReverseCodeunits());
-        if BaseCodeunitLine.FindSet() then
+        TestMethodLine.SetRange("Test Suite", BaseSuiteName);
+        TestMethodLine.SetRange("Line Type", TestMethodLine."Line Type"::"Function");
+        if TestMethodLine.FindSet() then
             repeat
-                LineNoCounter += 10000;
-                InsertClonedLine(GeneratedSuiteName, BaseCodeunitLine, LineNoCounter);
-
-                BaseFunctionLine.SetRange("Test Suite", BaseSuite.Name);
-                BaseFunctionLine.SetRange("Line Type", BaseFunctionLine."Line Type"::"Function");
-                BaseFunctionLine.SetRange("Test Codeunit", BaseCodeunitLine."Test Codeunit");
-                BaseFunctionLine.Ascending(not TestConfigurationContext.ReverseMethods());
-                if BaseFunctionLine.FindSet() then
-                    repeat
-                        LineNoCounter += 10;
-                        InsertClonedLine(GeneratedSuiteName, BaseFunctionLine, LineNoCounter);
-                    until BaseFunctionLine.Next() = 0;
-            until BaseCodeunitLine.Next() = 0;
+                LineKey := MakeKey(TestMethodLine."Test Codeunit", TestMethodLine."Function");
+                RecordBestResult(LineKey, TestMethodLine.Result);
+                if TestMethodLine.Result = TestMethodLine.Result::Failure then begin
+                    FailedMethods.Set(LineKey, true);
+                    AppendEntry(AggMessages, LineKey, StrSubstNo(ConfigHeaderTok, ConfigCode) + NewLine() + TestSuiteMgt.GetFullErrorMessage(TestMethodLine));
+                    AppendEntry(AggStacks, LineKey, StrSubstNo(ConfigHeaderTok, ConfigCode) + NewLine() + TestSuiteMgt.GetErrorCallStack(TestMethodLine));
+                end;
+            until TestMethodLine.Next() = 0;
     end;
 
-    local procedure InsertClonedLine(GeneratedSuiteName: Code[10]; SourceLine: Record "Test Method Line"; NewLineNo: Integer)
+    local procedure RecordBestResult(LineKey: Text; ResultValue: Option " ",Failure,Success,Skipped)
     var
-        NewLine: Record "Test Method Line";
+        Priority: Integer;
     begin
-        NewLine.Init();
-        NewLine."Test Suite" := GeneratedSuiteName;
-        NewLine."Line No." := NewLineNo;
-        NewLine."Line Type" := SourceLine."Line Type";
-        NewLine."Test Codeunit" := SourceLine."Test Codeunit";
-        NewLine.Name := SourceLine.Name;
-        NewLine."Function" := SourceLine."Function";
-        NewLine.Run := SourceLine.Run;
-        NewLine.Level := SourceLine.Level;
-        NewLine.Insert(true);
+        Priority := ResultPriority(ResultValue);
+        if BestResult.ContainsKey(LineKey) then begin
+            if Priority > BestResult.Get(LineKey) then
+                BestResult.Set(LineKey, Priority);
+        end else
+            BestResult.Add(LineKey, Priority);
     end;
 
-    local procedure GetGeneratedSuiteName(GeneratedSuiteNo: Integer): Code[10]
+    local procedure ResultPriority(ResultValue: Option " ",Failure,Success,Skipped): Integer
     begin
-        exit(CopyStr(StrSubstNo('%1%2', GeneratedSuitePrefixTok, GeneratedSuiteNo), 1, 10));
+        // A failure in any configuration wins, then a success, then skipped, then not executed.
+        case ResultValue of
+            ResultValue::Failure:
+                exit(3);
+            ResultValue::Success:
+                exit(2);
+            ResultValue::Skipped:
+                exit(1);
+            else
+                exit(0);
+        end;
+    end;
+
+    local procedure WriteAggregatedResults(var BaseSuite: Record "AL Test Suite")
+    var
+        FunctionLine: Record "Test Method Line";
+        CodeunitLine: Record "Test Method Line";
+        LineKey: Text;
+    begin
+        FunctionLine.SetRange("Test Suite", BaseSuite.Name);
+        FunctionLine.SetRange("Line Type", FunctionLine."Line Type"::"Function");
+        if FunctionLine.FindSet(true) then
+            repeat
+                LineKey := MakeKey(FunctionLine."Test Codeunit", FunctionLine."Function");
+                ClearLineError(FunctionLine);
+                ApplyBestResult(FunctionLine, LineKey);
+                if FailedMethods.ContainsKey(LineKey) then begin
+                    FunctionLine."Error Message Preview" := CopyStr(AggMessages.Get(LineKey), 1, MaxStrLen(FunctionLine."Error Message Preview"));
+                    SetLineErrorMessage(FunctionLine, AggMessages.Get(LineKey));
+                    SetLineErrorCallStack(FunctionLine, AggStacks.Get(LineKey));
+                end;
+                FunctionLine.Modify(false);
+            until FunctionLine.Next() = 0;
+
+        CodeunitLine.SetRange("Test Suite", BaseSuite.Name);
+        CodeunitLine.SetRange("Line Type", CodeunitLine."Line Type"::Codeunit);
+        if CodeunitLine.FindSet(true) then
+            repeat
+                CodeunitLine.Result := CodeunitResult(BaseSuite.Name, CodeunitLine."Test Codeunit");
+                CodeunitLine.Modify(false);
+            until CodeunitLine.Next() = 0;
+    end;
+
+    local procedure ApplyBestResult(var FunctionLine: Record "Test Method Line"; LineKey: Text)
+    var
+        Priority: Integer;
+    begin
+        if not BestResult.ContainsKey(LineKey) then begin
+            FunctionLine.Result := FunctionLine.Result::" ";
+            exit;
+        end;
+        Priority := BestResult.Get(LineKey);
+        case Priority of
+            3:
+                FunctionLine.Result := FunctionLine.Result::Failure;
+            2:
+                FunctionLine.Result := FunctionLine.Result::Success;
+            1:
+                FunctionLine.Result := FunctionLine.Result::Skipped;
+            else
+                FunctionLine.Result := FunctionLine.Result::" ";
+        end;
+    end;
+
+    local procedure CodeunitResult(SuiteName: Code[10]; TestCodeunit: Integer): Integer
+    var
+        FunctionLine: Record "Test Method Line";
+        BestPriority: Integer;
+        Priority: Integer;
+    begin
+        // Roll the codeunit up from its function lines, keeping never-executed codeunits blank.
+        FunctionLine.SetRange("Test Suite", SuiteName);
+        FunctionLine.SetRange("Test Codeunit", TestCodeunit);
+        FunctionLine.SetRange("Line Type", FunctionLine."Line Type"::"Function");
+        if FunctionLine.FindSet() then
+            repeat
+                Priority := ResultPriority(FunctionLine.Result);
+                if Priority > BestPriority then
+                    BestPriority := Priority;
+            until FunctionLine.Next() = 0;
+
+        case BestPriority of
+            3:
+                exit(FunctionLine.Result::Failure);
+            2:
+                exit(FunctionLine.Result::Success);
+            1:
+                exit(FunctionLine.Result::Skipped);
+            else
+                exit(FunctionLine.Result::" ");
+        end;
+    end;
+
+    local procedure ClearLineError(var TestMethodLine: Record "Test Method Line")
+    begin
+        Clear(TestMethodLine."Error Message");
+        Clear(TestMethodLine."Error Call Stack");
+        TestMethodLine."Error Code" := '';
+        TestMethodLine."Error Message Preview" := '';
+    end;
+
+    local procedure SetLineErrorMessage(var TestMethodLine: Record "Test Method Line"; Message: Text)
+    var
+        OutStr: OutStream;
+    begin
+        Clear(TestMethodLine."Error Message");
+        TestMethodLine."Error Message".CreateOutStream(OutStr, TextEncoding::UTF16);
+        OutStr.WriteText(Message);
+    end;
+
+    local procedure SetLineErrorCallStack(var TestMethodLine: Record "Test Method Line"; CallStack: Text)
+    var
+        OutStr: OutStream;
+    begin
+        Clear(TestMethodLine."Error Call Stack");
+        TestMethodLine."Error Call Stack".CreateOutStream(OutStr, TextEncoding::UTF16);
+        OutStr.WriteText(CallStack);
+    end;
+
+    local procedure AppendEntry(var Entries: Dictionary of [Text, Text]; LineKey: Text; Entry: Text)
+    begin
+        if Entries.ContainsKey(LineKey) then
+            Entries.Set(LineKey, Entries.Get(LineKey) + NewLine() + NewLine() + Entry)
+        else
+            Entries.Add(LineKey, Entry);
+    end;
+
+    local procedure MakeKey(TestCodeunit: Integer; FunctionName: Text[128]): Text
+    begin
+        exit(StrSubstNo(KeyTok, TestCodeunit, FunctionName));
+    end;
+
+    local procedure NewLine(): Text
+    var
+        CarriageReturn: Char;
+        LineFeed: Char;
+    begin
+        CarriageReturn := 13;
+        LineFeed := 10;
+        exit(Format(CarriageReturn) + Format(LineFeed));
+    end;
+
+    local procedure ClearAggregation()
+    begin
+        Clear(FailedMethods);
+        Clear(BestResult);
+        Clear(AggMessages);
+        Clear(AggStacks);
     end;
 
     /// <summary>
@@ -224,8 +436,9 @@ codeunit 130473 "Test Configuration Mgt"
         TestConfigurationLine."Line No." := LineNo;
         TestConfigurationLine."Provider" := Provider;
         TestConfigurationLine."Enabled" := true;
-        TestConfigurationLine.SetSettings(Settings);
         TestConfigurationLine.Insert(true);
+        TestConfigurationLine.SetSettings(Settings);
+        TestConfigurationLine.Modify(true);
     end;
 
     local procedure EmptySettings() Settings: JsonObject
@@ -233,13 +446,13 @@ codeunit 130473 "Test Configuration Mgt"
     end;
 
     /// <summary>
-    /// Serializes all stored results for a base suite to JSON.
+    /// Serializes the aggregated results stored on the base suite's test method lines to JSON.
     /// </summary>
     /// <param name="BaseSuiteName">The name of the base test suite.</param>
     /// <returns>The results serialized to JSON.</returns>
     procedure ResultsToJson(BaseSuiteName: Code[10]): Text
     var
-        TestConfigurationRunResult: Record "Test Configuration Run Result";
+        TestMethodLine: Record "Test Method Line";
         RootObject: JsonObject;
         ResultsArray: JsonArray;
         ResultObject: JsonObject;
@@ -247,32 +460,22 @@ codeunit 130473 "Test Configuration Mgt"
         TotalCount: Integer;
         FailureCount: Integer;
     begin
-        TestConfigurationRunResult.SetRange("Base Suite", BaseSuiteName);
-        if TestConfigurationRunResult.FindSet() then
+        TestMethodLine.SetRange("Test Suite", BaseSuiteName);
+        TestMethodLine.SetRange("Line Type", TestMethodLine."Line Type"::"Function");
+        if TestMethodLine.FindSet() then
             repeat
                 Clear(ResultObject);
-                ResultObject.Add('configuration', TestConfigurationRunResult."Configuration");
-                ResultObject.Add('generatedSuite', TestConfigurationRunResult."Generated Suite");
-                ResultObject.Add('testCodeunit', TestConfigurationRunResult."Test Codeunit");
-                ResultObject.Add('codeunitName', TestConfigurationRunResult."Codeunit Name");
-                ResultObject.Add('method', TestConfigurationRunResult."Method");
-                ResultObject.Add('result', Format(TestConfigurationRunResult."Result"));
-                ResultObject.Add('seed', TestConfigurationRunResult."Seed");
-                ResultObject.Add('seedSet', TestConfigurationRunResult."Seed Set");
-                ResultObject.Add('workDateOffset', TestConfigurationRunResult."WorkDate Offset");
-                ResultObject.Add('workDate', Format(TestConfigurationRunResult."WorkDate", 0, 9));
-                ResultObject.Add('reverseCodeunits', TestConfigurationRunResult."Reverse Codeunits");
-                ResultObject.Add('reverseMethods', TestConfigurationRunResult."Reverse Methods");
-                ResultObject.Add('oneByOne', TestConfigurationRunResult."One By One");
-                ResultObject.Add('duration', Format(TestConfigurationRunResult."Duration"));
-                ResultObject.Add('errorMessage', TestConfigurationRunResult.GetErrorMessage());
-                ResultObject.Add('errorCallStack', TestConfigurationRunResult.GetErrorCallStack());
-                ResultsArray.Add(ResultObject);
-
-                TotalCount += 1;
-                if TestConfigurationRunResult."Result" = TestConfigurationRunResult."Result"::Failure then
+                ResultObject.Add('testCodeunit', TestMethodLine."Test Codeunit");
+                ResultObject.Add('method', TestMethodLine."Function");
+                ResultObject.Add('result', Format(TestMethodLine.Result));
+                if TestMethodLine.Result = TestMethodLine.Result::Failure then begin
+                    ResultObject.Add('errorMessage', TestSuiteMgt.GetFullErrorMessage(TestMethodLine));
+                    ResultObject.Add('errorCallStack', TestSuiteMgt.GetErrorCallStack(TestMethodLine));
                     FailureCount += 1;
-            until TestConfigurationRunResult.Next() = 0;
+                end;
+                ResultsArray.Add(ResultObject);
+                TotalCount += 1;
+            until TestMethodLine.Next() = 0;
 
         RootObject.Add('baseSuite', BaseSuiteName);
         RootObject.Add('total', TotalCount);

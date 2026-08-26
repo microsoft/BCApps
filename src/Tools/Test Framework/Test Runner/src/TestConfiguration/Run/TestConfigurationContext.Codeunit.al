@@ -7,7 +7,7 @@ namespace System.TestTools.TestRunner;
 
 /// <summary>
 /// Shared, single instance state for the configuration that is currently running. Providers write
-/// their intent here during Prepare; the orchestrator and the runner read it while a generated suite
+/// their intent here during Prepare; the orchestrator and the runner read it while the base suite
 /// runs. Everything is a no-op unless a configuration is active, so regular test runs are unaffected.
 /// </summary>
 codeunit 130469 "Test Configuration Context"
@@ -18,7 +18,6 @@ codeunit 130469 "Test Configuration Context"
         ContextActive: Boolean;
         ActiveConfigCode: Code[20];
         ActiveBaseSuite: Code[10];
-        ActiveGeneratedSuite: Code[10];
         DoReverseCodeunits: Boolean;
         DoReverseMethods: Boolean;
         DoOneByOne: Boolean;
@@ -32,13 +31,11 @@ codeunit 130469 "Test Configuration Context"
     /// Activates the context for a configuration run and resets all provider intent.
     /// </summary>
     /// <param name="BaseSuiteName">The base suite being exercised.</param>
-    /// <param name="GeneratedSuiteName">The generated clone that is actually executed.</param>
     /// <param name="ConfigCode">The code of the configuration being applied.</param>
-    procedure Activate(BaseSuiteName: Code[10]; GeneratedSuiteName: Code[10]; ConfigCode: Code[20])
+    procedure Activate(BaseSuiteName: Code[10]; ConfigCode: Code[20])
     begin
         ContextActive := true;
         ActiveBaseSuite := BaseSuiteName;
-        ActiveGeneratedSuite := GeneratedSuiteName;
         ActiveConfigCode := ConfigCode;
         DoReverseCodeunits := false;
         DoReverseMethods := false;
@@ -71,11 +68,6 @@ codeunit 130469 "Test Configuration Context"
     procedure BaseSuite(): Code[10]
     begin
         exit(ActiveBaseSuite);
-    end;
-
-    procedure GeneratedSuite(): Code[10]
-    begin
-        exit(ActiveGeneratedSuite);
     end;
 
     procedure SetReverseCodeunits(NewValue: Boolean)

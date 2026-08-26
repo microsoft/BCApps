@@ -31,11 +31,30 @@ page 130484 "Test Configuration Lines"
                 {
                     ToolTip = 'Specifies whether the provider is applied.';
                 }
-                field("Settings"; Rec."Settings")
+                field(SettingsText; SettingsText)
                 {
+                    Caption = 'Settings';
                     ToolTip = 'Specifies the provider settings as JSON, for example { "seed": 2 } or { "formula": "<1Y>" }.';
+
+                    trigger OnValidate()
+                    begin
+                        Rec.SetSettingsText(SettingsText);
+                    end;
                 }
             }
         }
     }
+
+    var
+        SettingsText: Text;
+
+    trigger OnAfterGetRecord()
+    begin
+        SettingsText := Rec.GetSettingsText();
+    end;
+
+    trigger OnNewRecord(BelowxRec: Boolean)
+    begin
+        Clear(SettingsText);
+    end;
 }

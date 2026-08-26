@@ -6,8 +6,8 @@
 namespace System.TestTools.TestRunner;
 
 /// <summary>
-/// Provider that runs the test codeunits in reverse order. The order is realized when the generated
-/// suite is cloned (the test runner executes lines by ascending line number), so no runner change is
+/// Provider that runs the test codeunits in reverse order. The order is realized by handing the suite
+/// lines to the test runner from the last to the first, so no runner change and no extra suite is
 /// needed. This surfaces tests that depend on the order codeunits run in. No settings.
 /// </summary>
 codeunit 130478 "Reverse CU Test Config. Prov." implements "ITest Configuration Provider"

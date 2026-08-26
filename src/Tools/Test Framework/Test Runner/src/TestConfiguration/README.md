@@ -1,9 +1,11 @@
 # Test Configuration (stability mode)
 
 Stability mode re-runs an existing test suite under one or more **test configurations** to surface
-flaky, order-dependent and data-dependent tests. When a test fails, the outcome of every test method
-(which configuration, seed, WorkDate, order, error and call stack) is stored so it is easy to
-troubleshoot.
+flaky, order-dependent and data-dependent tests. It never creates extra suites: the base suite is run
+in place under every enabled configuration, and the aggregated outcome is written back onto the base
+suite's own test method lines. When a test fails under more than one configuration, the individual
+error messages are concatenated into that line's error message, so results can be reviewed directly in
+the normal AL Test Tool.
 
 It can be run from the **UI** (AL Test Tool) and from **PowerShell/CI** (Command Line Test Tool).
 
@@ -11,7 +13,7 @@ It can be run from the **UI** (AL Test Tool) and from **PowerShell/CI** (Command
 
 - `Providers/` — the `ITest Configuration Provider` interface, the `Test Configuration Provider` enum and the built-in provider codeunits.
 - `Configurations/` — the `Test Configuration` and `Test Configuration Line` tables and the pages used to edit them (list, card, lines part).
-- `Run/` — the run engine: context, orchestrator (`Test Configuration Mgt`), runner subscribers, the result table and the results page.
+- `Run/` — the run engine: context, orchestrator (`Test Configuration Mgt`) and runner subscribers.
 - Top level — the page extensions on the AL Test Tool and Command Line Test Tool, and this README.
 
 ## Concepts
@@ -19,10 +21,10 @@ It can be run from the **UI** (AL Test Tool) and from **PowerShell/CI** (Command
 - **Test Configuration** (`Test Configuration` table) — a named, reusable set of changes to apply to a
   run. An empty configuration (no lines) applies nothing.
 - **Provider** (`Test Configuration Line` + enum `Test Configuration Provider`) — one part of a
-  configuration. Each line has a provider and provider-specific JSON settings. Adding a line is how a
-  configuration is extended.
+  configuration. Each line has a provider and provider-specific JSON settings (stored as a full-length
+  BLOB, not truncated). Adding a line is how a configuration is extended.
 - **Context** (`Test Configuration Context`) — single-instance state that providers write their intent
-  into and that the orchestrator and runner read while a generated suite runs. It is inactive during
+  into and that the orchestrator and runner read while the base suite runs. It is inactive during
   normal test runs, so the framework has no effect outside a stability run.
 
 ## Built-in providers
@@ -30,32 +32,50 @@ It can be run from the **UI** (AL Test Tool) and from **PowerShell/CI** (Command
 | Provider | Settings | Effect |
 | --- | --- | --- |
 | `Seed` | `{ "seed": 2 }` | Uses a different random seed. The seed is stored in `Configured Random Seed` (Any app) and applied by `Reset State Before Test Run` via the existing `SetSeed` methods, so a test that sets its own seed still wins. |
-| `WorkDateFuture` | `{ "formula": "1Y" }` | Moves WorkDate into the future by the given date formula. Re-applied before every test method because the runner restores WorkDate after each codeunit. |
-| `OneByOne` | none | Runs each test method in isolation (reuses the suite stability run behavior). |
-| `ReverseCodeunits` | none | Runs the test codeunits in reverse order. |
-| `ReverseMethods` | none | Runs the test methods within each codeunit in reverse order. |
+| `WorkDateFuture` | `{ "formula": "<1Y>" }` | Moves WorkDate into the future by the given date formula. Re-applied before every test method because the runner restores WorkDate after each codeunit. |
+| `OneByOne` | none | Runs each test method on its own so its setup runs again for that method only (reuses the suite stability run behavior). |
+| `ReverseCodeunits` | none | Runs the test codeunits in reverse order in a normal, shared-state run. |
+| `ReverseMethods` | none | Runs the test methods in reverse order in a normal, shared-state run. |
 
-Execution order is realized when the generated suite is cloned (the runner executes lines by ascending
-line number), so the reverse providers need no change to the Test Runner itself.
+Execution order is realized by handing the base suite's lines to the test runner from the last to the
+first (the runner honors that for the codeunit sequence), so the reverse providers need no change to
+the Test Runner itself and no extra suite. Reverse runs are **not** isolated — all tests run and share
+state, only the order changes. One-by-one is the isolated mode, where each method's setup runs again.
+
+## Seed and stability state
+
+`Configured Random Seed` (Any app) is a passive single-instance store that also tracks whether
+stability mode is active. `Reset State Before Test Run` checks this state **before every test method**:
+
+- while stability mode is active it seeds both `Library - Random` and `Any` deterministically (with the
+  configuration's seed, or `1` when the configuration sets none), so one configuration cannot leak
+  randomness into the next;
+- once stability mode is exited it falls back to the normal behavior (`Library - Random` seed `1`),
+  so a stability run cannot affect later normal runs.
+
+The orchestrator enters stability mode at the start of a run and exits it at the end. **Reset stability
+mode** (an action on both tool pages, `Test Configuration Mgt.ResetStabilityMode`) is the safe way to
+leave stability mode at any time: it exits stability mode, clears the stored seed, turns off the
+isolation flag and clears the results on the base suite using trigger-free writes.
 
 ## How a run works
 
 1. `Test Configuration Mgt.RunTestConfigurations(BaseSuite)` creates the default configurations if none
-   exist, then for every enabled configuration:
+   exist, enters stability mode, then for every enabled configuration:
    - activates the context and asks each enabled provider to `Prepare` (write seed/WorkDate/order/isolation intent);
-   - clones the base suite into a generated suite (`TCFG<n>`), honoring the requested order;
-   - stores the seed in `Configured Random Seed` when a seed provider is used;
-   - runs the generated suite (one-by-one or all at once).
-2. `Test Configuration Runner` subscribes to `OnBeforeTestMethodRun` / `OnAfterTestMethodRun`, fans out
-   to the active configuration's providers for per-method behavior, and records every outcome in
-   `Test Configuration Run Result`.
-3. Results are available on the **Test Configuration Run Results** page and as JSON (used by CI).
+   - stores the seed in `Configured Random Seed` when a seed provider is used (or clears it);
+   - runs the **base suite** in place, in the requested order and isolation;
+   - captures every failing method's error and call stack, tagged with the configuration code.
+2. `Test Configuration Runner` subscribes to `OnBeforeTestMethodRun` / `OnAfterTestMethodRun` and fans
+   out to the active configuration's providers for per-method behavior (for example the WorkDate shift).
+3. After all configurations have run, the aggregated outcome is written back onto the base suite's test
+   method lines (failures concatenated per line), and the results are also returned as JSON for CI.
 
 ## Default configurations
 
 - `BASELINE` — no changes.
 - `SEED1-WD1Y` — seed 1 + WorkDate +1 year.
-- `ONEBYONE` — each method in isolation.
+- `ONEBYONE` — each method on its own (setup re-runs per method).
 - `SEED2-WD2Y` — seed 2 + WorkDate +2 years.
 - `REVERSE-METH` — methods in reverse order.
 
@@ -72,8 +92,8 @@ To add a new kind of change:
 
 ## Entry points
 
-- **UI**: the **Stability** group on the AL Test Tool (Run stability tests, Test configurations,
-  Stability results).
+- **UI**: the **Stability** group on the AL Test Tool (Run stability tests, Test configurations, Reset
+  stability mode). Results appear on the normal test lines after a run.
 - **PowerShell**: `build/scripts/StabilityTests/RunStabilityTestsInBcContainer.ps1` drives the Command
   Line Test Tool and writes the results JSON. Wiring it into a GitHub workflow is intentionally out of
   scope for this change.

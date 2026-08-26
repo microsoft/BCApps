@@ -21,6 +21,5 @@ permissionset 130450 "Test Runner - Exec"
         tabledata "Test Input Group" = rimd,
         tabledata "Test Output" = rmid,
         tabledata "Test Configuration" = rimd,
-        tabledata "Test Configuration Line" = rimd,
-        tabledata "Test Configuration Run Result" = rimd;
+        tabledata "Test Configuration Line" = rimd;
 }

@@ -8,12 +8,19 @@ codeunit 130301 "Reset State Before Test Run"
         LibraryNotificationMgt: Codeunit "Library - Notification Mgt.";
         Any: Codeunit "Any";
         ConfiguredRandomSeed: Codeunit "Configured Random Seed";
+        SeedToUse: Integer;
     begin
-        if ConfiguredRandomSeed.IsSet() then begin
-            // A test run (for example stability mode) asked the random libraries to use a specific
-            // seed. Use the existing SetSeed methods so a test that later sets its own seed still wins.
-            LibraryRandom.SetSeed(ConfiguredRandomSeed.GetSeed());
-            Any.SetSeed(ConfiguredRandomSeed.GetSeed());
+        // The stability state is checked before every test method so entering or exiting stability
+        // mode takes effect immediately and cannot leak into later runs.
+        if ConfiguredRandomSeed.IsStabilityMode() then begin
+            // Seed both libraries deterministically so a configuration that does not set its own seed
+            // still starts from a known state and one configuration cannot affect the next.
+            if ConfiguredRandomSeed.IsSet() then
+                SeedToUse := ConfiguredRandomSeed.GetSeed()
+            else
+                SeedToUse := 1;
+            LibraryRandom.SetSeed(SeedToUse);
+            Any.SetSeed(SeedToUse);
         end else
             LibraryRandom.SetSeed(1);
         RunLegacyPermissionSet();

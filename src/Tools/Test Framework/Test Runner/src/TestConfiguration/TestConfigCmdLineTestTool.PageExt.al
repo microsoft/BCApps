@@ -59,6 +59,23 @@ pageextension 130487 "Test Config. Cmd Line Tool" extends "Command Line Test Too
                     CurrPage.Update(false);
                 end;
             }
+
+            action(ResetStabilityMode)
+            {
+                ApplicationArea = All;
+                Caption = 'Reset stability mode';
+                ToolTip = 'Exits stability mode and safely clears the results on the current suite without running any triggers.';
+                Image = Undo;
+
+                trigger OnAction()
+                var
+                    TestConfigurationMgt: Codeunit "Test Configuration Mgt";
+                begin
+                    Clear(TestConfigResultsJSON);
+                    TestConfigurationMgt.ResetStabilityMode(GetCurrentSuite());
+                    CurrPage.Update(false);
+                end;
+            }
         }
     }
 

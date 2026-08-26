@@ -36,7 +36,7 @@ table 130468 "Test Configuration Line"
             Caption = 'Enabled';
             InitValue = true;
         }
-        field(5; "Settings"; Text[250])
+        field(5; "Settings"; Blob)
         {
             Caption = 'Settings';
         }
@@ -55,14 +55,17 @@ table 130468 "Test Configuration Line"
     /// </summary>
     /// <returns>The settings JSON object.</returns>
     procedure GetSettings() Settings: JsonObject
+    var
+        SettingsText: Text;
     begin
-        if "Settings" = '' then
+        SettingsText := GetSettingsText();
+        if SettingsText = '' then
             exit;
-        Settings.ReadFrom("Settings");
+        Settings.ReadFrom(SettingsText);
     end;
 
     /// <summary>
-    /// Stores the provider settings JSON object.
+    /// Stores the provider settings JSON object. The full JSON is kept (no truncation).
     /// </summary>
     /// <param name="Settings">The settings JSON object.</param>
     procedure SetSettings(Settings: JsonObject)
@@ -70,6 +73,39 @@ table 130468 "Test Configuration Line"
         SettingsText: Text;
     begin
         Settings.WriteTo(SettingsText);
-        "Settings" := CopyStr(SettingsText, 1, MaxStrLen("Settings"));
+        SetSettingsText(SettingsText);
+    end;
+
+    /// <summary>
+    /// Returns the raw settings JSON text. Used by the page to edit the settings.
+    /// </summary>
+    /// <returns>The settings JSON text.</returns>
+    procedure GetSettingsText(): Text
+    var
+        SettingsInStream: InStream;
+        SettingsText: Text;
+    begin
+        CalcFields("Settings");
+        if not "Settings".HasValue() then
+            exit('');
+        "Settings".CreateInStream(SettingsInStream, TextEncoding::UTF8);
+        SettingsInStream.ReadText(SettingsText);
+        exit(SettingsText);
+    end;
+
+    /// <summary>
+    /// Stores the raw settings JSON text on the record without saving it, so it works for both new
+    /// (delayed insert) and existing lines. The page persists it with the normal record save.
+    /// </summary>
+    /// <param name="SettingsText">The settings JSON text.</param>
+    procedure SetSettingsText(SettingsText: Text)
+    var
+        SettingsOutStream: OutStream;
+    begin
+        Clear("Settings");
+        if SettingsText = '' then
+            exit;
+        "Settings".CreateOutStream(SettingsOutStream, TextEncoding::UTF8);
+        SettingsOutStream.WriteText(SettingsText);
     end;
 }

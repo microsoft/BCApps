@@ -6,9 +6,9 @@
 namespace System.TestTools.TestRunner;
 
 /// <summary>
-/// Provider that runs the test methods within each codeunit in reverse order. The order is realized
-/// when the generated suite is cloned, so no runner change is needed. This surfaces tests that depend
-/// on the order methods run in within a codeunit. No settings.
+/// Provider that runs the test methods in reverse order. The order is realized by handing the suite
+/// lines to the test runner from the last to the first, so no extra suite is needed. This surfaces
+/// tests that depend on the order methods run in. No settings.
 /// </summary>
 codeunit 130479 "Reverse Meth. Test Cfg. Prov." implements "ITest Configuration Provider"
 {
