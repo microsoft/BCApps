@@ -5570,6 +5570,7 @@ codeunit 134902 "ERM Account Schedule"
         AccScheduleName: Record "Acc. Schedule Name";
         ColumnLayoutName: Record "Column Layout Name";
         ConfigPackage: Record "Config. Package";
+        ConfigPackageRecord: Record "Config. Package Record";
         ConfigPackageData: Record "Config. Package Data";
         AccountScheduleNames: TestPage "Account Schedule Names";
         PackageCode: Code[20];
@@ -5608,7 +5609,7 @@ codeunit 134902 "ERM Account Schedule"
         Assert.ExpectedMessage(
             StrSubstNo(NoTablesAndErrorsMsg, 2, 0, 2, 0), LibraryVariableStorage.DequeueText());
         LibraryVariableStorage.AssertEmpty();
-        
+
         // [THEN] Config Package is imported
         Assert.IsTrue(ConfigPackage.Get(PackageCode), 'Package must be imported');
 
@@ -5620,11 +5621,15 @@ codeunit 134902 "ERM Account Schedule"
         // [THEN] The non-existent status is cleared on the imported row definition
         AccScheduleName.TestField(Status, '');
 
+        // [THEN] The package record of the row definition is restored, so the package data is not orphaned
+        ConfigPackageRecord.SetRange("Package Code", PackageCode);
+        ConfigPackageRecord.SetRange("Table ID", Database::"Acc. Schedule Name");
+        Assert.RecordCount(ConfigPackageRecord, 1);
+        ConfigPackageRecord.FindFirst();
+
         // [THEN] The status value is preserved in the package, so that it can be applied again
-        ConfigPackageData.SetRange("Package Code", PackageCode);
-        ConfigPackageData.SetRange("Table ID", Database::"Acc. Schedule Name");
-        ConfigPackageData.SetRange("Field ID", AccScheduleName.FieldNo(Status));
-        ConfigPackageData.FindFirst();
+        ConfigPackageData.Get(
+            PackageCode, Database::"Acc. Schedule Name", ConfigPackageRecord."No.", AccScheduleName.FieldNo(Status));
         ConfigPackageData.TestField(Value, StatusCode);
     end;
 
