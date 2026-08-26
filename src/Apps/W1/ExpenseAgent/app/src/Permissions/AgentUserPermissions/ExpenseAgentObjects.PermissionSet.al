@@ -57,6 +57,8 @@ permissionset 6952 "Expense Agent - Objects"
                   page "Posted Exp. Report Lines API" = X,
                   page "Spend Requests API" = X,
                   page "Spend Request Details API" = X,
+                  page "Travel Requests API" = X,
+                  page "Travel Request Details API" = X,
                   page "Travelers API" = X,
                   page "Tenant Feedback Setting API" = X,
                   page "Expense Projects API" = X,

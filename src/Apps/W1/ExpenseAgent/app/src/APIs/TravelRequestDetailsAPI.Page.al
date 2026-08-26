@@ -4,20 +4,22 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7103 "Travelers API"
+using Microsoft.Finance.SpendRequest;
+
+page 7131 "Travel Request Details API"
 {
     APIGroup = 'expense';
     APIPublisher = 'microsoft';
     APIVersion = 'beta';
-    EntityCaption = 'Traveler';
-    EntitySetCaption = 'Travelers';
+    EntityCaption = 'Travel Request Detail';
+    EntitySetCaption = 'Travel Request Details';
     DelayedInsert = true;
-    EntityName = 'traveler';
-    EntitySetName = 'travelers';
+    EntityName = 'travelRequestDetail';
+    EntitySetName = 'travelRequestDetails';
     PageType = API;
     ODataKeyFields = SystemId;
-    SourceTable = Traveler;
-    AboutText = 'Provides access to data from the Traveler table';
+    SourceTable = "Spend Request Detail";
+    AboutText = 'Provides access to data from the Travel Request Detail table';
     AutoSplitKey = true;
 
     layout
@@ -31,11 +33,6 @@ page 7103 "Travelers API"
                     Caption = 'Id';
                     Editable = false;
                 }
-                field(spendRequestNo; Rec."Spend Request No.")
-                {
-                    Caption = 'Spend Request No.';
-                    Visible = false;
-                }
                 field(travelRequestNo; Rec."Spend Request No.")
                 {
                     Caption = 'Travel Request No.';
@@ -44,13 +41,31 @@ page 7103 "Travelers API"
                 {
                     Caption = 'Line No.';
                 }
-                field(expenseUserNo; Rec."Expense User No.")
+                field(description; Rec.Description)
                 {
-                    Caption = 'Expense User No.';
+                    Caption = 'Description';
                 }
-                field(expenseUserName; Rec."Expense User Name")
+                field(currencyCode; Rec."Currency Code")
                 {
-                    Caption = 'Expense User Name';
+                    Caption = 'Currency Code';
+                }
+                field(expectedAmount; Rec."Expected Amount")
+                {
+                    Caption = 'Expected Amount';
+                }
+                field(currencyExchangeRate; Rec."Currency Exchange Rate")
+                {
+                    Caption = 'Currency Exchange Rate';
+                    Editable = false;
+                }
+                field(expectedAmountLCY; Rec."Expected Amount (LCY)")
+                {
+                    Caption = 'Expected Amount (LCY)';
+                    Editable = false;
+                }
+                field(glAccountNo; Rec."G/L Account No.")
+                {
+                    Caption = 'G/L Account No.';
                 }
             }
         }
