@@ -79,7 +79,7 @@ page 4409 "SOA Create Task"
                                         begin
                                             Customer.SetLoadFields(
                                                 "No.", Name, "E-Mail", Address, "Post Code", City,
-                                                "Phone No.", "Language Code", "Location Code");
+                                                "Phone No.", "Language Code", "Location Code", "Ship-to Code", "Responsibility Center");
                                             Customer.SetFilter("E-Mail", SOAFiltersImpl.GetSafeFromEmailFilter(SenderEmail));
                                             if Customer.FindFirst() then
                                                 SOACreateTaskImpl.SetSelectedCustomer(Customer);
