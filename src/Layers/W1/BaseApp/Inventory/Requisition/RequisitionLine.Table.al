@@ -2734,7 +2734,7 @@ table 246 "Requisition Line"
     /// </summary>
     /// <param name="LeadTime">Provided lead time formula.</param>
     /// <remarks>In case 'LeadTime' is empty, lead time code will be defined according to the reference order type. 
-    /// 'Order Date' of the current requisition line will be set to newly calculated 'Starting Date'. </remarks>
+    /// 'Order Date' of the current requisition line will be updated. </remarks>
     procedure CalcStartingDate(LeadTime: Code[20])
     var
         IsHandled: Boolean;
