@@ -141,6 +141,14 @@ if (($null -ne $TestType) -and ($TestType -ne "Legacy")) {
     Write-Host "Using test type $TestType"
     $parameters["testType"] = $TestType
 }
+elseif ($TestType -eq "Legacy") {
+    # "Legacy" is a BCApps bucket name, not a BC test category. BCH's Run-TestsInBcContainer
+    # (Set-TestType) only accepts UnitTest/IntegrationTest/Uncategorized and throws a ValidateSet
+    # error on "Legacy". The AL-Go RunTests action forwards settings.testType into $parameters, so it
+    # arrives here as "Legacy"; remove it so BCH runs all tests for the legacy apps instead of throwing.
+    Write-Host "Legacy bucket: not passing testType to BCH (runs all tests for the legacy apps)."
+    $parameters.Remove("testType") | Out-Null
+}
 
 $parameters["disabledTests"] = @(Get-DisabledTests -AppName $parameters["appName"]) # Add disabled tests to parameters
 $parameters["renewClientContextBetweenTests"] = $true
