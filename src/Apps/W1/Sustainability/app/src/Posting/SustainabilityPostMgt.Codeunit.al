@@ -40,7 +40,7 @@ codeunit 6212 "Sustainability Post Mgt"
         CopyDateFromAccountSubCategory(SustainabilityLedgerEntry, SustainabilityJnlLine."Account Category", SustainabilityJnlLine."Account Subcategory");
 
         SustainabilityLedgerEntry.Validate("User ID", CopyStr(UserId(), 1, 50));
-        SustainabilityLedgerEntry."Transaction No." := TransactionNo;
+        SustainabilityLedgerEntry."G/L Entry No." := GLEntryNo;
         UpdateCarbonFeeEmission(SustainabilityLedgerEntry);
 
         OnBeforeInsertSustainabilityLedgerEntry(SustainabilityLedgerEntry, SustainabilityJnlLine);
@@ -482,9 +482,9 @@ codeunit 6212 "Sustainability Post Mgt"
         SkipUpdateCarbonEmissionValue := NewSkipUpdateCarbonEmissionValue;
     end;
 
-    internal procedure SetNextTransactionNo(NewTransactionNo: Integer)
+    internal procedure SetNextGLEntryNo(NewGLEntryNo: Integer)
     begin
-        TransactionNo := NewTransactionNo;
+        GLEntryNo := NewGLEntryNo;
     end;
 
     local procedure CopyDataFromAccountCategory(var SustainabilityLedgerEntry: Record "Sustainability Ledger Entry"; CategoryCode: Code[20])
@@ -554,7 +554,7 @@ codeunit 6212 "Sustainability Post Mgt"
 
     var
         SkipUpdateCarbonEmissionValue: Boolean;
-        TransactionNo: Integer;
+        GLEntryNo: Integer;
         PostingSustainabilityJournalLbl: Label 'Posting Sustainability Journal Lines: \ #1', Comment = '#1 = sub-process progress message';
         CheckSustainabilityJournalLineLbl: Label 'Checking Sustainability Journal Line: %1', Comment = '%1 = Line No.';
         ProcessingLineLbl: Label 'Processing Line: %1', Comment = '%1 = Line No.';
