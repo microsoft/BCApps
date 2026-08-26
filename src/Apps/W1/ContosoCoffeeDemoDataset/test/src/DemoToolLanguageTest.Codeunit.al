@@ -96,6 +96,9 @@ codeunit 148049 "Demo Tool Language Test"
     begin
         // [SCENARIO 647371] Contoso creates and assigns the production BOM and routing version number series.
 
+        // [GIVEN] Manufacturing Setup has no version number series
+        SetManufacturingVersionNoSeries('', '');
+
         // [WHEN] Manufacturing setup data is created
         CreateManufacturingSetupData();
 
@@ -134,6 +137,7 @@ codeunit 148049 "Demo Tool Language Test"
         // [SCENARIO 647371] Contoso headers inherit version series that generate PV10 and RV10 without changing explicit version codes.
 
         // [GIVEN] Contoso manufacturing setup data
+        SetManufacturingVersionNoSeries('', '');
         CreateManufacturingSetupData();
 
         // [WHEN] New production BOM and routing headers are inserted
@@ -163,20 +167,16 @@ codeunit 148049 "Demo Tool Language Test"
         ManufacturingSetup: Record "Manufacturing Setup";
         ProductionBOMHeader: Record "Production BOM Header";
         RoutingHeader: Record "Routing Header";
+        UnitOfMeasure: Record "Unit of Measure";
         CreateMfgNoSeries: Codeunit "Create Mfg No Series";
     begin
         // [SCENARIO 647371] Rerunning Contoso setup does not backfill existing production BOM or routing headers.
 
         // [GIVEN] Existing headers were inserted while both setup defaults were blank
-        if not ManufacturingSetup.Get() then
-            ManufacturingSetup.Insert();
-        ManufacturingSetup."Production BOM Version Nos." := '';
-        ManufacturingSetup."Routing Version Nos." := '';
-        ManufacturingSetup.Modify();
-        ProductionBOMHeader."No." := 'EXISTING-BOM';
-        ProductionBOMHeader.Insert(true);
-        RoutingHeader."No." := 'EXISTING-ROUTING';
-        RoutingHeader.Insert(true);
+        SetManufacturingVersionNoSeries('', '');
+        LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
+        LibraryManufacturing.CreateProductionBOMHeader(ProductionBOMHeader, UnitOfMeasure.Code);
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
 
         // [WHEN] Contoso manufacturing setup is rerun
         CreateManufacturingSetupData();
@@ -223,6 +223,17 @@ codeunit 148049 "Demo Tool Language Test"
         NoSeriesLine.TestField("Starting No.", ExpectedStartingNo);
         NoSeriesLine.TestField("Ending No.", ExpectedEndingNo);
         NoSeriesLine.TestField("Increment-by No.", ExpectedIncrement);
+    end;
+
+    local procedure SetManufacturingVersionNoSeries(ProductionBOMVersionNos: Code[20]; RoutingVersionNos: Code[20])
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+    begin
+        if not ManufacturingSetup.Get() then
+            ManufacturingSetup.Insert();
+        ManufacturingSetup."Production BOM Version Nos." := ProductionBOMVersionNos;
+        ManufacturingSetup."Routing Version Nos." := RoutingVersionNos;
+        ManufacturingSetup.Modify();
     end;
 
     local procedure CreateManufacturingSetupData()
