@@ -23,7 +23,7 @@ codeunit 133961 "Agent Test"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         DeactivateBeforeArchivingErr: Label 'Deactivate the agent before archiving it.', Locked = true;
         AgentArchivedCannotBeModifiedErr: Label 'The agent is archived and cannot be modified.', Locked = true;
-        ArchivingNotSupportedErr: Label 'is not supported', Locked = true;
+        ArchivingNotSupportedErr: Label 'Archiving agents of type ''%1'' is not supported.', Locked = true;
 
     local procedure Initialize()
     begin
@@ -1034,7 +1034,7 @@ codeunit 133961 "Agent Test"
         // [WHEN] Archiving the agent
         // [THEN] An error is raised and the agent is not archived
         asserterror Agent.Archive(AgentId);
-        Assert.ExpectedError(ArchivingNotSupportedErr);
+        Assert.ExpectedError(StrSubstNo(ArchivingNotSupportedErr, "Agent Metadata Provider"::"SDK Mock Agent No Archiving"));
         Assert.IsFalse(Agent.IsArchived(AgentId), 'Agent should not be archived');
     end;
 
