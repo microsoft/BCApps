@@ -1,3 +1,4 @@
+#if not CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -8,6 +9,10 @@ using Microsoft.Finance.SpendRequest;
 
 pageextension 6902 "Expense Spend Request Card" extends "Spend Request Card"
 {
+    ObsoleteState = Pending;
+    ObsoleteReason = 'The Expense Agent no longer extends the generic Spend Request pages. Travel-specific fields and actions moved to the dedicated Travel Request pages.';
+    ObsoleteTag = '30.0';
+
     layout
     {
         addafter("Requested By")
@@ -98,3 +103,4 @@ pageextension 6902 "Expense Spend Request Card" extends "Spend Request Card"
         }
     }
 }
+#endif

@@ -31,11 +31,16 @@ page 7103 "Travelers API"
                     Caption = 'Id';
                     Editable = false;
                 }
+#if not CLEAN30
                 field(spendRequestNo; Rec."Travel Request No.")
                 {
                     Caption = 'Spend Request No.';
                     Visible = false;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by travelRequestNo.';
+                    ObsoleteTag = '30.0';
                 }
+#endif
                 field(travelRequestNo; Rec."Travel Request No.")
                 {
                     Caption = 'Travel Request No.';
