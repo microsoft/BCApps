@@ -731,6 +731,7 @@ codeunit 139758 "Master Data Mgt. Synch. Tests"
         IntegrationRecordRef: RecordRef;
         Found: Boolean;
     begin
+        // [FEATURE] [AI test 0.4]
         // [SCENARIO] The local data source (IMDM Data Source.GetBySystemId) fetches the source record for a coupling.
         Initialize();
         LibraryMasterDataMgt.SetSourceCompanyToCurrent();
@@ -760,6 +761,7 @@ codeunit 139758 "Master Data Mgt. Synch. Tests"
         IntegrationRecordRef: RecordRef;
         Found: Boolean;
     begin
+        // [FEATURE] [AI test 0.4]
         // [SCENARIO] The local data source (IMDM Data Source.GetById) fetches the source record by its SystemId.
         Initialize();
         LibraryMasterDataMgt.SetSourceCompanyToCurrent();
@@ -785,6 +787,7 @@ codeunit 139758 "Master Data Mgt. Synch. Tests"
         SourceRecordRef: RecordRef;
         Found: Boolean;
     begin
+        // [FEATURE] [AI test 0.4]
         // [SCENARIO] The local data source (IMDM Data Source.GetByUidFilter) returns records matching a UID (SystemId) filter.
         Initialize();
         LibraryMasterDataMgt.SetSourceCompanyToCurrent();
@@ -812,6 +815,7 @@ codeunit 139758 "Master Data Mgt. Synch. Tests"
         FoundOurs: Boolean;
         RecSystemId: Guid;
     begin
+        // [FEATURE] [AI test 0.4]
         // [SCENARIO] The local data source (IMDM Data Source.GetModifiedSet) returns the source records for the mapping.
         Initialize();
         LibraryMasterDataMgt.SetSourceCompanyToCurrent();
@@ -843,6 +847,7 @@ codeunit 139758 "Master Data Mgt. Synch. Tests"
         MasterDataMgtCoupling: Record "Master Data Mgt. Coupling";
         IntegrationRecordRef: RecordRef;
     begin
+        // [FEATURE] [AI test 0.4]
         // [SCENARIO] Setting Source Environment Name makes the data-source resolver fail (cross-environment not yet supported).
         Initialize();
 
