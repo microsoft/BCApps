@@ -7,6 +7,7 @@ namespace Microsoft.Test.EServices.EDocument;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.Test;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
@@ -283,8 +284,15 @@ codeunit 139649 "E-Doc. Attachment Tests"
     end;
 
     local procedure Initialize()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"E-Doc. Attachment Tests");
+
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."VAT Reporting Date Usage" := GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled;
+        GeneralLedgerSetup.Modify(false);
+
         if IsInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"E-Doc. Attachment Tests");
