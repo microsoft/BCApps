@@ -11,11 +11,22 @@ using Microsoft.Finance.GeneralLedger.Reversal;
 
 codeunit 6245 "Sust. GL Reverse Subscriber"
 {
+    SingleInstance = true;
+
+    var
+        LastReversedTransactionNo: Integer;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Reverse", 'OnReverseGLEntryOnAfterInsertGLEntry', '', false, false)]
     local procedure ReverseSustainabilityOnAfterReverseGLEntry(var GLEntry: Record "G/L Entry"; GenJnlLine: Record "Gen. Journal Line"; GLEntry2: Record "G/L Entry"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     var
         SustEntryReverseMgt: Codeunit "Sust. Entry Reverse Mgt.";
     begin
+        // Fires per reversed G/L entry, but a transaction's entries are consecutive, so reverse the
+        // sustainability part once per transaction instead of re-querying for every G/L entry row.
+        if GLEntry2."Transaction No." = LastReversedTransactionNo then
+            exit;
+        LastReversedTransactionNo := GLEntry2."Transaction No.";
+
         SustEntryReverseMgt.ReverseEntriesForTransaction(GLEntry2."Transaction No.");
     end;
 }
