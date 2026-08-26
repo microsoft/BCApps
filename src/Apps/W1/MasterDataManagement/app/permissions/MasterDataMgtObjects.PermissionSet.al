@@ -17,6 +17,7 @@ permissionset 7230 "Master Data Mgt. - Objects"
                   codeunit "Master Data Mgt. Tbl. Uncouple" = X,
                   codeunit "Master Data Mgt. Subscribers" = X,
                   codeunit "Master Data Mgt. Upgrade" = X,
+                  codeunit "Master Data Mgt. Install" = X,
                   codeunit "MDM Local Data Source" = X,
                   page * = X,
                   table * = X,
