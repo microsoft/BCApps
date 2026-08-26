@@ -99,6 +99,16 @@ codeunit 20404 "Qlty. Inspection - Create"
         exit(LastQltyInspectionCreateStatus = LastQltyInspectionCreateStatus::Created);
     end;
 
+    /// <summary>
+    /// Converts a primary record variant to a record reference and creates an inspection with optional source context.
+    /// </summary>
+    /// <param name="ReferenceVariant">The primary source Record, RecordRef, or RecordId.</param>
+    /// <param name="IsManualCreation">Specifies whether creation was requested manually.</param>
+    /// <param name="OptionalSpecificTemplate">The template code to use, or an empty value for generation-rule selection.</param>
+    /// <param name="OptionalRec2Variant">An optional secondary source record.</param>
+    /// <param name="OptionalRec3Variant">An optional tertiary source record.</param>
+    /// <param name="OptionalRec4Variant">An optional fourth source record.</param>
+    /// <returns>The inspection creation status.</returns>
     local procedure InternalCreateInspectionWithVariantAndTemplate(ReferenceVariant: Variant; IsManualCreation: Boolean; OptionalSpecificTemplate: Code[20]; OptionalRec2Variant: Variant; OptionalRec3Variant: Variant; OptionalRec4Variant: Variant) QltyInspectionCreateStatus: Enum "Qlty. Inspection Create Status"
     var
         TempDummyQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
@@ -114,6 +124,16 @@ codeunit 20404 "Qlty. Inspection - Create"
         exit(InternalCreateInspectionWithSpecificTemplate(TargetRecordRef, IsManualCreation, OptionalSpecificTemplate, OptionalRec2Variant, OptionalRec3Variant, OptionalRec4Variant, TempDummyQltyInspectionGenRule));
     end;
 
+    /// <summary>
+    /// Converts a primary record variant and creates an inspection using filtered generation rules and optional source context.
+    /// </summary>
+    /// <param name="ReferenceVariant">The primary source Record, RecordRef, or RecordId.</param>
+    /// <param name="OptionalRec2Variant">An optional secondary source record.</param>
+    /// <param name="OptionalRec3Variant">An optional tertiary source record.</param>
+    /// <param name="OptionalRec4Variant">An optional fourth source record.</param>
+    /// <param name="IsManualCreation">Specifies whether creation was requested manually.</param>
+    /// <param name="TempFiltersQltyInspectionGenRule">The temporary generation-rule filters to apply.</param>
+    /// <returns>The inspection creation status.</returns>
     local procedure InternalCreateInspectionWithGenerationRule(ReferenceVariant: Variant; OptionalRec2Variant: Variant; OptionalRec3Variant: Variant; OptionalRec4Variant: Variant; IsManualCreation: Boolean; var TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary) QltyInspectionCreateStatus: Enum "Qlty. Inspection Create Status"
     var
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
@@ -183,6 +203,16 @@ codeunit 20404 "Qlty. Inspection - Create"
         AvoidThrowingErrorWhenPossible := PreviousAvoidErrorState;
     end;
 
+    /// <summary>
+    /// Tries each supplied record variant as the primary source until an inspection is created with the specified template.
+    /// </summary>
+    /// <param name="OptionalRec1Variant">The first source record candidate.</param>
+    /// <param name="OptionalRec2Variant">The second source record candidate.</param>
+    /// <param name="OptionalRec3Variant">The third source record candidate.</param>
+    /// <param name="OptionalRec4Variant">The fourth source record candidate.</param>
+    /// <param name="IsManualCreation">Specifies whether creation was requested manually.</param>
+    /// <param name="OptionalSpecificTemplate">The template code to use.</param>
+    /// <returns>True if an inspection was created and remains available; otherwise, false.</returns>
     internal procedure CreateInspectionWithMultiVariantsAndTemplate(OptionalRec1Variant: Variant; OptionalRec2Variant: Variant; OptionalRec3Variant: Variant; OptionalRec4Variant: Variant; IsManualCreation: Boolean; OptionalSpecificTemplate: Code[20]) HasInspection: Boolean
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -216,14 +246,14 @@ codeunit 20404 "Qlty. Inspection - Create"
     end;
 
     /// <summary>
-    /// 
-    /// Use this to create a Quality Inspection for any given record.
-    /// The generatin rule configuration will be used to find the most appropriate
+    /// Creates an inspection for a record reference using matching generation-rule configuration.
+    /// Use this to create a quality inspection for any given record.
+    /// The generation rule configuration will be used to find the most appropriate
     /// inspection to create.
-    /// 
     /// </summary>
-    /// <param name="TargetRecordRef">The record to try and create an inspection from.</param>
-    /// <param name="IsManualCreation">Explicitly set if this inspection is being manually created or not.</param>
+    /// <param name="TargetRecordRef">The primary source record.</param>
+    /// <param name="IsManualCreation">Specifies whether creation was requested manually.</param>
+    /// <returns>True if an inspection was created; otherwise, false.</returns>
     internal procedure CreateInspection(TargetRecordRef: RecordRef; IsManualCreation: Boolean): Boolean
     var
         Dummy2Variant: Variant;
@@ -236,14 +266,15 @@ codeunit 20404 "Qlty. Inspection - Create"
     end;
 
     /// <summary>
+    /// Creates an inspection for a record reference using a specific template.
     /// If you do not know which template you need, use CreateInspection.
     /// If you do know which template you need, then use this procedure.
     /// The caller must know in advance that the template and configuration is correct.
     /// </summary>
-    /// <param name="TargetRecordRef">The record to try and create an inspection from.</param>
-    /// <param name="IsManualCreation">Explicitly set if this inspection is being manually created or not.</param>
-    /// <param name="OptionalSpecificTemplate">The specific template to create</param>
-    /// <returns></returns>
+    /// <param name="TargetRecordRef">The primary source record.</param>
+    /// <param name="IsManualCreation">Specifies whether creation was requested manually.</param>
+    /// <param name="OptionalSpecificTemplate">The template code to use.</param>
+    /// <returns>True if an inspection was created; otherwise, false.</returns>
     internal procedure CreateInspectionWithSpecificTemplate(TargetRecordRef: RecordRef; IsManualCreation: Boolean; OptionalSpecificTemplate: Code[20]): Boolean
     var
         Dummy2Variant: Variant;
@@ -254,6 +285,15 @@ codeunit 20404 "Qlty. Inspection - Create"
         exit(LastQltyInspectionCreateStatus = LastQltyInspectionCreateStatus::Created);
     end;
 
+    /// <summary>
+    /// Creates an inspection with a specific template and up to two additional source records.
+    /// </summary>
+    /// <param name="TargetRecordRef">The primary source record.</param>
+    /// <param name="IsManualCreation">Specifies whether creation was requested manually.</param>
+    /// <param name="OptionalSpecificTemplate">The template code to use.</param>
+    /// <param name="OptionalRec2Variant">An optional secondary source record.</param>
+    /// <param name="OptionalRec3Variant">An optional tertiary source record.</param>
+    /// <returns>The inspection creation status.</returns>
     local procedure InternalCreateInspectionWithSpecificTemplate(TargetRecordRef: RecordRef; IsManualCreation: Boolean; OptionalSpecificTemplate: Code[20]; OptionalRec2Variant: Variant; OptionalRec3Variant: Variant): Enum "Qlty. Inspection Create Status"
     var
         TempDummyQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
@@ -262,6 +302,17 @@ codeunit 20404 "Qlty. Inspection - Create"
         exit(InternalCreateInspectionWithSpecificTemplate(TargetRecordRef, IsManualCreation, OptionalSpecificTemplate, OptionalRec2Variant, OptionalRec3Variant, DummyRec4Variant, TempDummyQltyInspectionGenRule));
     end;
 
+    /// <summary>
+    /// Resolves generation configuration, source fields, reuse policy, workflows, and user feedback for inspection creation.
+    /// </summary>
+    /// <param name="TargetRecordRef">The primary source record.</param>
+    /// <param name="IsManualCreation">Specifies whether creation was requested manually.</param>
+    /// <param name="OptionalSpecificTemplate">The template code to use, or an empty value for generation-rule selection.</param>
+    /// <param name="OptionalRec2Variant">An optional secondary source record.</param>
+    /// <param name="OptionalRec3Variant">An optional tertiary source record.</param>
+    /// <param name="OptionalRec4Variant">An optional fourth source record.</param>
+    /// <param name="TempFiltersQltyInspectionGenRule">The temporary generation-rule filters to apply.</param>
+    /// <returns>The inspection creation status.</returns>
     local procedure InternalCreateInspectionWithSpecificTemplate(TargetRecordRef: RecordRef; IsManualCreation: Boolean; OptionalSpecificTemplate: Code[20]; OptionalRec2Variant: Variant; OptionalRec3Variant: Variant; OptionalRec4Variant: Variant; var TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary) QltyInspectionCreateStatus: Enum "Qlty. Inspection Create Status"
     var
         TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
@@ -381,14 +432,15 @@ codeunit 20404 "Qlty. Inspection - Create"
     end;
 
     /// <summary>
+    /// Tries to open an inspection page for the supplied inspection record or filtered set.
     /// Attempts to run the specified inspection page for the given inspection header.
     /// Wrapped as a TryFunction because <c>Page.Run</c> will throw a permission error
     /// when the current user is not permitted to read the underlying inspection records.
     /// Callers should treat a false return as "page could not be shown" and fall back to a
     /// non-interactive path such as a notification.
     /// </summary>
-    /// <param name="PageId">The ID of the page to run (e.g. Page::"Qlty. Inspection" or Page::"Qlty. Inspection List").</param>
-    /// <param name="QltyInspectionHeader">The inspection header (or filtered set) to display on the page.</param>
+    /// <param name="PageId">The page identifier to run.</param>
+    /// <param name="QltyInspectionHeader">The inspection record or filtered set to display.</param>
     [TryFunction]
     local procedure TryRunInspectionPage(PageId: Integer; var QltyInspectionHeader: Record "Qlty. Inspection Header")
     begin
@@ -396,11 +448,12 @@ codeunit 20404 "Qlty. Inspection - Create"
     end;
 
     /// <summary>
-    /// Finds an existing inspection based on the supplied variant, typically a record.
+    /// Finds existing inspections for a primary source record variant.
     /// </summary>
-    /// <param name="ReferenceVariant">This should be a record, record ref, or record id</param>
-    /// <param name="QltyInspectionHeader">The created inspection</param>
-    /// <returns></returns>
+    /// <param name="RaiseErrorIfNoRuleIsFound">Specifies whether a missing generation rule should cause an error.</param>
+    /// <param name="ReferenceVariant">The primary source Record, RecordRef, or RecordId.</param>
+    /// <param name="QltyInspectionHeader">The marked set of matching inspections.</param>
+    /// <returns>True if at least one matching inspection was found; otherwise, false.</returns>
     internal procedure FindExistingInspectionWithVariant(RaiseErrorIfNoRuleIsFound: Boolean; ReferenceVariant: Variant; var QltyInspectionHeader: Record "Qlty. Inspection Header"): Boolean
     var
         Dummy2Variant: Variant;
@@ -411,13 +464,15 @@ codeunit 20404 "Qlty. Inspection - Create"
     end;
 
     /// <summary>
-    /// Finds existing inspections based on the multiple variants supplied.
+    /// Finds existing inspections using a primary source variant and up to three related source variants.
     /// </summary>
-    /// <param name="ReferenceVariant"></param>
-    /// <param name="OptionalVariant2"></param>
-    /// <param name="OptionalVariant3"></param>
-    /// <param name="QltyInspectionHeader">The created inspection</param>
-    /// <returns></returns>
+    /// <param name="RaiseErrorIfNoRuleIsFound">Specifies whether a missing generation rule should cause an error.</param>
+    /// <param name="ReferenceVariant">The primary source Record, RecordRef, or RecordId.</param>
+    /// <param name="OptionalVariant2">An optional secondary source record.</param>
+    /// <param name="OptionalVariant3">An optional tertiary source record.</param>
+    /// <param name="OptionalVariant4">An optional fourth source record.</param>
+    /// <param name="QltyInspectionHeader">The marked set of matching inspections.</param>
+    /// <returns>True if at least one matching inspection was found; otherwise, false.</returns>
     internal procedure FindExistingInspectionWithMultipleVariants(RaiseErrorIfNoRuleIsFound: Boolean; ReferenceVariant: Variant; OptionalVariant2: Variant; OptionalVariant3: Variant; OptionalVariant4: Variant; var QltyInspectionHeader: Record "Qlty. Inspection Header"): Boolean
     var
         DataTypeManagement: Codeunit "Data Type Management";
@@ -437,11 +492,15 @@ codeunit 20404 "Qlty. Inspection - Create"
     end;
 
     /// <summary>
-    /// Finds existing inspections based on the setup on the quality inspector.
+    /// Finds and marks inspections matching generation rules and the supplied source records.
     /// </summary>
-    /// <param name="TargetRecordRef">The main target record that the inspection will be created against</param>
-    /// <param name="QltyInspectionHeader">The created inspection</param>
-    /// <returns></returns>
+    /// <param name="RaiseErrorIfNoRuleIsFound">Specifies whether a missing generation rule should cause an error.</param>
+    /// <param name="TargetRecordRef">The primary source record.</param>
+    /// <param name="Optional2RecordRef">An optional secondary source record.</param>
+    /// <param name="Optional3RecordRef">An optional tertiary source record.</param>
+    /// <param name="Optional4RecordRef">An optional fourth source record.</param>
+    /// <param name="QltyInspectionHeader">The marked set of matching inspections.</param>
+    /// <returns>True if at least one matching inspection was found; otherwise, false.</returns>
     internal procedure FindExistingInspection(RaiseErrorIfNoRuleIsFound: Boolean; TargetRecordRef: RecordRef; Optional2RecordRef: RecordRef; Optional3RecordRef: RecordRef; Optional4RecordRef: RecordRef; var QltyInspectionHeader: Record "Qlty. Inspection Header") Result: Boolean;
     var
         TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
@@ -494,12 +553,15 @@ codeunit 20404 "Qlty. Inspection - Create"
     end;
 
     /// <summary>
-    /// Will either find an existing open inspection, or create a new inspection.
+    /// Reuses or creates an inspection according to setup and generation-rule context.
     /// </summary>
-    /// <param name="TargetRecordRef">The main target record that the inspection will be created against</param>
-    /// <param name="TempQltyInspectionGenRule">The generation rule that helped determine which template to use.</param>
-    /// <param name="QltyInspectionHeader">The created inspection</param>
-    /// <returns></returns>
+    /// <param name="TempSourceFieldsFilledStubInspectionBufferQltyInspectionHeader">The temporary header containing resolved source fields.</param>
+    /// <param name="TargetRecordRef">The primary source record.</param>
+    /// <param name="OriginalTriggeringRecordRef">The record that triggered creation.</param>
+    /// <param name="TempQltyInspectionGenRule">The generation rule used to select the template and behavior.</param>
+    /// <param name="QltyInspectionHeader">The resolved existing or newly created inspection.</param>
+    /// <param name="InspectionIsNew">Set to true when a new inspection is inserted.</param>
+    /// <returns>True if an existing or newly created inspection was resolved; otherwise, false.</returns>
     local procedure GetExistingOrCreateNewInspectionFor(var TempSourceFieldsFilledStubInspectionBufferQltyInspectionHeader: Record "Qlty. Inspection Header" temporary; TargetRecordRef: RecordRef; OriginalTriggeringRecordRef: RecordRef; TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var InspectionIsNew: Boolean) HasInspection: Boolean
     var
         PrecedingQltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -593,9 +655,9 @@ codeunit 20404 "Qlty. Inspection - Create"
     end;
 
     /// <summary>
-    /// This will create the Quality Inspection lines for the given header.
+    /// Creates inspection lines and result conditions from the header's template and evaluates the new lines.
     /// </summary>
-    /// <param name="QltyInspectionHeader">The quality inspection involved</param>
+    /// <param name="QltyInspectionHeader">The inspection for which to create lines.</param>
     local procedure CreateQualityInspectionResultLinesFromTemplate(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
@@ -638,16 +700,16 @@ codeunit 20404 "Qlty. Inspection - Create"
     end;
 
     /// <summary>
-    /// Finds an existing inspection using optionally supplied variants of records/recordids/recordrefs
+    /// Finds inspections matching a primary source record, optional source variants, and a generation rule.
     /// </summary>
-    /// <param name="TargetRecordRef"></param>
-    /// <param name="OptionalVariant2">Must be a recordid,recordref,or record</param>
-    /// <param name="OptionalVariant3">Must be a recordid,recordref,or record</param>
-    /// <param name="OptionalVariant4">Must be a recordid,recordref,or record</param>
-    /// <param name="TempQltyInspectionGenRule">Must be a recordid,recordref,or record</param>
-    /// <param name="PrecedingQltyInspectionHeader"></param>
-    /// <param name="FindAll"></param>
-    /// <returns></returns>
+    /// <param name="TargetRecordRef">The primary source record.</param>
+    /// <param name="OptionalVariant2">An optional secondary source Record, RecordRef, or RecordId.</param>
+    /// <param name="OptionalVariant3">An optional tertiary source Record, RecordRef, or RecordId.</param>
+    /// <param name="OptionalVariant4">An optional fourth source Record, RecordRef, or RecordId.</param>
+    /// <param name="TempQltyInspectionGenRule">The generation rule used to constrain matching.</param>
+    /// <param name="PrecedingQltyInspectionHeader">The matching inspection record or record set.</param>
+    /// <param name="FindAll">Specifies whether to return all matches instead of the latest match.</param>
+    /// <returns>True if at least one matching inspection was found; otherwise, false.</returns>
     internal procedure FindExistingInspectionWithVariant(TargetRecordRef: RecordRef; OptionalVariant2: Variant; OptionalVariant3: Variant; OptionalVariant4: Variant; TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary; var PrecedingQltyInspectionHeader: Record "Qlty. Inspection Header"; FindAll: Boolean): Boolean
     var
         DataTypeManagement: Codeunit "Data Type Management";
@@ -662,13 +724,16 @@ codeunit 20404 "Qlty. Inspection - Create"
     end;
 
     /// <summary>
-    /// Finds an existing inspection that matches the source criteria.
-    /// If there are multiple inspections finds the re-inspection.
+    /// Finds inspections matching up to four source records and a generation rule.
     /// </summary>
-    /// <param name="TargetRecordRef">The main target record that the inspection will be created against</param>
-    /// <param name="TempQltyInspectionGenRule">The generation rule that helped determine which template to use.</param>
-    /// <param name="PrecedingQltyInspectionHeader"></param>
-    /// <returns></returns>
+    /// <param name="TargetRecordRef">The primary source record.</param>
+    /// <param name="Optional2RecordRef">An optional secondary source record.</param>
+    /// <param name="Optional3RecordRef">An optional tertiary source record.</param>
+    /// <param name="Optional4RecordRef">An optional fourth source record.</param>
+    /// <param name="TempQltyInspectionGenRule">The generation rule used to constrain matching.</param>
+    /// <param name="PrecedingQltyInspectionHeader">The matching inspection record or record set.</param>
+    /// <param name="FindAll">Specifies whether to return all matches instead of the latest match.</param>
+    /// <returns>True if at least one matching inspection was found; otherwise, false.</returns>
     internal procedure FindExistingInspection(TargetRecordRef: RecordRef; Optional2RecordRef: RecordRef; Optional3RecordRef: RecordRef; Optional4RecordRef: RecordRef; TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary; var PrecedingQltyInspectionHeader: Record "Qlty. Inspection Header"; FindAll: Boolean): Boolean
     var
         TempInStubSearchForSimilarInspectionBufferQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
@@ -682,6 +747,14 @@ codeunit 20404 "Qlty. Inspection - Create"
         exit(FindExistingInspectionWithStub(TempInStubSearchForSimilarInspectionBufferQltyInspectionHeader, TempQltyInspectionGenRule, PrecedingQltyInspectionHeader, FindAll));
     end;
 
+    /// <summary>
+    /// Applies configured search criteria to a source-field stub and finds matching inspections.
+    /// </summary>
+    /// <param name="TempInStubSearchForSimilarInspectionBufferQltyInspectionHeader">The temporary source-field stub used to build filters.</param>
+    /// <param name="TempQltyInspectionGenRule">The generation rule used to supply the template constraint.</param>
+    /// <param name="PrecedingQltyInspectionHeader">The matching inspection record or record set.</param>
+    /// <param name="FindAll">Specifies whether to return all matches instead of the latest match.</param>
+    /// <returns>True if at least one matching inspection was found; otherwise, false.</returns>
     local procedure FindExistingInspectionWithStub(var TempInStubSearchForSimilarInspectionBufferQltyInspectionHeader: Record "Qlty. Inspection Header" temporary; var TempQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary; var PrecedingQltyInspectionHeader: Record "Qlty. Inspection Header"; FindAll: Boolean): Boolean
     begin
         if not QltyManagementSetup.Get() then
@@ -724,10 +797,10 @@ codeunit 20404 "Qlty. Inspection - Create"
     end;
 
     /// <summary>
-    /// Use this to create a Re-inspection.
+    /// Creates the next reinspection from the latest inspection with the same number.
     /// </summary>
-    /// <param name="FromThisQltyInspectionHeader"></param>
-    /// <param name="CreatedReinspectionQltyInspectionHeader"></param>
+    /// <param name="FromThisQltyInspectionHeader">The inspection for which a reinspection is requested.</param>
+    /// <param name="CreatedReinspectionQltyInspectionHeader">The created reinspection.</param>
     internal procedure CreateReinspection(FromThisQltyInspectionHeader: Record "Qlty. Inspection Header"; var CreatedReinspectionQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         PrecedingQltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -757,6 +830,11 @@ codeunit 20404 "Qlty. Inspection - Create"
         OnAfterCreateReinspection(FromThisQltyInspectionHeader, CreatedReinspectionQltyInspectionHeader);
     end;
 
+    /// <summary>
+    /// Initializes an open reinspection by copying the preceding inspection and clearing completion values.
+    /// </summary>
+    /// <param name="FromThisQltyInspectionHeader">The preceding inspection to copy.</param>
+    /// <param name="CreatedReinspectionQltyInspectionHeader">The reinspection header to initialize.</param>
     local procedure InitReinspectionHeader(FromThisQltyInspectionHeader: Record "Qlty. Inspection Header"; var CreatedReinspectionQltyInspectionHeader: Record "Qlty. Inspection Header")
     begin
         CreatedReinspectionQltyInspectionHeader.Init();
@@ -771,13 +849,11 @@ codeunit 20404 "Qlty. Inspection - Create"
     end;
 
     /// <summary>
-    /// 
-    /// Returns the last created inspection in the scope of the instance of this codeunit.
+    /// Gets the inspection resolved by the latest creation call on this codeunit instance.
     /// Only use if you just called one of the CreateInspection() procedures.
-    /// 
     /// </summary>
-    /// <param name="LastCreatedQltyInspectionHeader2"></param>
-    /// <returns>True if the last created inspection is available and exists. Returns false if no inspection was created previously or is othewise no longer available.</returns>
+    /// <param name="LastCreatedQltyInspectionHeader2">The latest resolved inspection with a record filter applied.</param>
+    /// <returns>True if the latest resolved inspection still exists; otherwise, false.</returns>
     internal procedure GetCreatedInspection(var LastCreatedQltyInspectionHeader2: Record "Qlty. Inspection Header") StillExists: Boolean
     begin
         if LastCreatedQltyInspectionHeader."No." = '' then
@@ -789,21 +865,18 @@ codeunit 20404 "Qlty. Inspection - Create"
     end;
 
     /// <summary>
-    /// Returns the last created status.
+    /// Gets the status from the latest inspection creation attempt.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The latest inspection creation status.</returns>
     internal procedure GetLastCreatedStatus(): Enum "Qlty. Inspection Create Status"
     begin
         exit(LastQltyInspectionCreateStatus);
     end;
 
     /// <summary>
-    /// Indicates whether the inspection returned by the last create call was newly inserted
-    /// or whether an existing matching inspection was reused (e.g. when the Inspection Creation
-    /// Option is configured to use an existing inspection if available).
-    /// Only valid immediately after a successful CreateInspection* call on this instance.
+    /// Determines whether the latest resolved inspection was newly inserted rather than reused.
     /// </summary>
-    /// <returns>True when the last inspection was newly created; false when it was reused, no inspection was returned.</returns>
+    /// <returns>True if the latest resolved inspection was newly created; otherwise, false.</returns>
     internal procedure IsLastInspectionNewlyCreated(): Boolean
     begin
         if LastCreatedQltyInspectionHeader."No." = '' then
@@ -813,11 +886,11 @@ codeunit 20404 "Qlty. Inspection - Create"
     end;
 
     /// <summary>
-    /// Use this to log QMERR0001
+    /// Logs an inspection creation error with source-record context.
     /// </summary>
-    /// <param name="ContextRecordRef"></param>
-    /// <param name="Input"></param>
-    /// <param name="Variable1"></param>
+    /// <param name="ContextRecordRef">The source record associated with the error.</param>
+    /// <param name="Input">The message template to log.</param>
+    /// <param name="Variable1">The value substituted into the message template.</param>
     local procedure LogCreateInspectionProblem(ContextRecordRef: RecordRef; Input: Text; Variable1: Text)
     var
         DetailRecord: Text;
@@ -831,19 +904,19 @@ codeunit 20404 "Qlty. Inspection - Create"
     end;
 
     /// <summary>
-    /// Use this with Marked records.
+    /// Creates inspections for the marked temporary tracking specifications as a manual operation.
     /// </summary>
-    /// <param name="TempTrackingSpecification">You must mark your records as a pre-requisite.</param>
+    /// <param name="TempTrackingSpecification">The temporary tracking specifications whose marked records to process.</param>
     internal procedure CreateMultipleInspectionsForMarkedTrackingSpecification(var TempTrackingSpecification: Record "Tracking Specification" temporary)
     begin
         CreateMultipleInspectionsForMarkedTrackingSpecification(TempTrackingSpecification, true);
     end;
 
     /// <summary>
-    /// Use this with Marked records.
+    /// Creates inspections for the marked temporary tracking specifications.
     /// </summary>
-    /// <param name="TempTrackingSpecification">You must mark your records as a pre-requisite.</param>
-    /// <param name="IsManualCreation">Whether this is a manual test creation or automated.</param>
+    /// <param name="TempTrackingSpecification">The temporary tracking specifications whose marked records to process.</param>
+    /// <param name="IsManualCreation">Specifies whether creation was requested manually.</param>
     internal procedure CreateMultipleInspectionsForMarkedTrackingSpecification(var TempTrackingSpecification: Record "Tracking Specification" temporary; IsManualCreation: Boolean)
     var
         TempNotUsedOptionalFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
@@ -863,6 +936,11 @@ codeunit 20404 "Qlty. Inspection - Create"
         CreateMultipleInspectionsForMultipleRecords(TempRecCopyOfTrackingSpecificationRecordRef, IsManualCreation, TempNotUsedOptionalFiltersQltyInspectionGenRule);
     end;
 
+    /// <summary>
+    /// Creates inspections for a set of records without generation-rule filters.
+    /// </summary>
+    /// <param name="SetOfRecordsRecordRef">The record reference containing the records to process.</param>
+    /// <param name="IsManualCreation">Specifies whether creation was requested manually.</param>
     internal procedure CreateMultipleInspectionsForMultipleRecords(var SetOfRecordsRecordRef: RecordRef; IsManualCreation: Boolean)
     var
         TempDummyFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
@@ -870,6 +948,12 @@ codeunit 20404 "Qlty. Inspection - Create"
         CreateMultipleInspectionsForMultipleRecords(SetOfRecordsRecordRef, IsManualCreation, TempDummyFiltersQltyInspectionGenRule);
     end;
 
+    /// <summary>
+    /// Creates or resolves inspections for a set of records and displays manual results when appropriate.
+    /// </summary>
+    /// <param name="SetOfRecordsRecordRef">The record reference containing the records to process.</param>
+    /// <param name="IsManualCreation">Specifies whether creation was requested manually.</param>
+    /// <param name="TempFiltersQltyInspectionGenRule">The temporary generation-rule filters to apply.</param>
     internal procedure CreateMultipleInspectionsForMultipleRecords(var SetOfRecordsRecordRef: RecordRef; IsManualCreation: Boolean; var TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary)
     var
         NewlyCreatedQltyInspectionIds, AllResolvedQltyInspectionIds : List of [Code[20]];
@@ -890,6 +974,11 @@ codeunit 20404 "Qlty. Inspection - Create"
         end;
     end;
 
+    /// <summary>
+    /// Shows one or more resolved inspections, falling back to notifications when pages cannot be opened or filters are too long.
+    /// </summary>
+    /// <param name="IsManualCreation">Specifies whether creation was requested manually.</param>
+    /// <param name="ToDisplayQltyInspectionIds">The inspection numbers to display or report.</param>
     internal procedure DisplayInspectionsIfConfigured(IsManualCreation: Boolean; var ToDisplayQltyInspectionIds: List of [Code[20]])
     var
         CreatedQltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -940,15 +1029,13 @@ codeunit 20404 "Qlty. Inspection - Create"
     end;
 
     /// <summary>
-    /// Use this if you need to keep track of multiple inspections without displaying the results.
-    /// Distinguishes inspections that were newly inserted from inspections that were reused
-    /// (matched an existing open inspection).
+    /// Resolves inspections for multiple records without displaying them and separates new from reused inspections.
     /// </summary>
-    /// <param name="SetOfRecordsRecordRef"></param>
-    /// <param name="IsManualCreation"></param>
-    /// <param name="TempFiltersQltyInspectionGenRule"></param>
-    /// <param name="NewlyCreatedQltyInspectionIds">Receives only inspections that were newly inserted by this call.</param>
-    /// <param name="AllResolvedQltyInspectionIds">Receives every inspection that was either newly inserted or reused (matched an existing open inspection).</param>
+    /// <param name="SetOfRecordsRecordRef">The record reference containing the records to process.</param>
+    /// <param name="IsManualCreation">Specifies whether creation was requested manually.</param>
+    /// <param name="TempFiltersQltyInspectionGenRule">The temporary generation-rule filters to apply.</param>
+    /// <param name="NewlyCreatedQltyInspectionIds">The inspection numbers newly inserted by this call.</param>
+    /// <param name="AllResolvedQltyInspectionIds">All inspection numbers resolved by creation or reuse.</param>
     internal procedure CreateMultipleInspectionsWithoutDisplaying(var SetOfRecordsRecordRef: RecordRef; IsManualCreation: Boolean; var TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary; var NewlyCreatedQltyInspectionIds: List of [Code[20]]; var AllResolvedQltyInspectionIds: List of [Code[20]])
     var
         TempCopyOfSingleRecordRecordRef: RecordRef;
@@ -987,18 +1074,28 @@ codeunit 20404 "Qlty. Inspection - Create"
         end;
     end;
 
+    /// <summary>
+    /// Resolves inspections for a record, its direct parent, related item, and applicable tracking entries.
+    /// </summary>
+    /// <param name="TempSelfRecordRef">The temporary source record to process.</param>
+    /// <param name="TempFiltersQltyInspectionGenRule">The temporary generation-rule filters to apply.</param>
+    /// <param name="FoundParentRecordRef">The direct parent record when one is found.</param>
+    /// <param name="NewlyCreatedQltyInspectionIds">The inspection numbers newly inserted by this call.</param>
+    /// <param name="AllResolvedQltyInspectionIds">All inspection numbers resolved by creation or reuse.</param>
+    /// <param name="PreventInspectionFromDisplayingEvenIfConfigured">Specifies whether generated inspections must remain hidden.</param>
+    /// <param name="IsManualCreation">Specifies whether creation was requested manually.</param>
     local procedure CreateInspectionForSelfOrDirectParent(var TempSelfRecordRef: RecordRef; var TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary; var FoundParentRecordRef: RecordRef; var NewlyCreatedQltyInspectionIds: List of [Code[20]]; var AllResolvedQltyInspectionIds: List of [Code[20]]; PreventInspectionFromDisplayingEvenIfConfigured: Boolean; IsManualCreation: Boolean)
     var
         Item: Record Item;
         TempTrackingSpecification: Record "Tracking Specification" temporary;
-        LocalQltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+        QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         QltyItemTracking: Codeunit "Qlty. Item Tracking";
         ReservationManagement: Codeunit "Reservation Management";
         ParentRecordRef: RecordRef;
         VariantEmptyOrTrackingSpecification: Variant;
         Dummy4Variant: Variant;
     begin
-        LocalQltyInspectionCreate.SetPreventDisplayingInspectionEvenIfConfigured(PreventInspectionFromDisplayingEvenIfConfigured);
+        QltyInspectionCreate.SetPreventDisplayingInspectionEvenIfConfigured(PreventInspectionFromDisplayingEvenIfConfigured);
 
         Clear(FoundParentRecordRef);
         if QltyTraversal.FindSingleParentRecord(TempSelfRecordRef, ParentRecordRef) then begin
@@ -1059,8 +1156,8 @@ codeunit 20404 "Qlty. Inspection - Create"
                     VariantEmptyOrTrackingSpecification := TempTrackingSpecification;
                 end;
 
-                if LocalQltyInspectionCreate.CreateInspectionWithMultiVariants(ParentRecordRef, TempSelfRecordRef, VariantEmptyOrTrackingSpecification, Dummy4Variant, IsManualCreation, TempFiltersQltyInspectionGenRule) then
-                    TrackResolvedInspection(LocalQltyInspectionCreate, NewlyCreatedQltyInspectionIds, AllResolvedQltyInspectionIds);
+                if QltyInspectionCreate.CreateInspectionWithMultiVariants(ParentRecordRef, TempSelfRecordRef, VariantEmptyOrTrackingSpecification, Dummy4Variant, IsManualCreation, TempFiltersQltyInspectionGenRule) then
+                    TrackResolvedInspection(QltyInspectionCreate, NewlyCreatedQltyInspectionIds, AllResolvedQltyInspectionIds);
             until RelatedReservFilterReservationEntry.Next() = 0;
         end else begin
             if TempFiltersQltyInspectionGenRule."Item Filter" <> '' then begin
@@ -1069,46 +1166,54 @@ codeunit 20404 "Qlty. Inspection - Create"
                     exit;
             end;
 
-            if LocalQltyInspectionCreate.CreateInspectionWithMultiVariants(TempSelfRecordRef, ParentRecordRef, Dummy4Variant, Dummy4Variant, IsManualCreation, TempFiltersQltyInspectionGenRule) then
-                TrackResolvedInspection(LocalQltyInspectionCreate, NewlyCreatedQltyInspectionIds, AllResolvedQltyInspectionIds);
+            if QltyInspectionCreate.CreateInspectionWithMultiVariants(TempSelfRecordRef, ParentRecordRef, Dummy4Variant, Dummy4Variant, IsManualCreation, TempFiltersQltyInspectionGenRule) then
+                TrackResolvedInspection(QltyInspectionCreate, NewlyCreatedQltyInspectionIds, AllResolvedQltyInspectionIds);
         end;
     end;
 
     /// <summary>
-    /// Records the inspection returned by the last create call on <paramref name="LocalQltyInspectionCreate"/> in the
+    /// Adds the latest resolved inspection to deduplicated all-resolved and newly-created lists.
+    /// Records the inspection returned by the last create call on <paramref name="QltyInspectionCreate"/> in the
     /// supplied tracking lists, deduplicating by inspection "No.". The all-resolved list captures both newly created
     /// and reused matching inspections so callers can detect reuse; the newly-created list only captures inspections that were
     /// actually inserted and is used to drive "created inspections" notifications and display.
     /// </summary>
-    local procedure TrackResolvedInspection(var LocalQltyInspectionCreate: Codeunit "Qlty. Inspection - Create"; var NewlyCreatedQltyInspectionIds: List of [Code[20]]; var AllResolvedQltyInspectionIds: List of [Code[20]])
+    /// <param name="QltyInspectionCreate">The creation codeunit containing the latest resolved inspection.</param>
+    /// <param name="NewlyCreatedQltyInspectionIds">The list of newly inserted inspection numbers.</param>
+    /// <param name="AllResolvedQltyInspectionIds">The list of all resolved inspection numbers.</param>
+    local procedure TrackResolvedInspection(var QltyInspectionCreate: Codeunit "Qlty. Inspection - Create"; var NewlyCreatedQltyInspectionIds: List of [Code[20]]; var AllResolvedQltyInspectionIds: List of [Code[20]])
     var
         LastResolvedQltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
-        if not LocalQltyInspectionCreate.GetCreatedInspection(LastResolvedQltyInspectionHeader) then
+        if not QltyInspectionCreate.GetCreatedInspection(LastResolvedQltyInspectionHeader) then
             exit;
 
         if not AllResolvedQltyInspectionIds.Contains(LastResolvedQltyInspectionHeader."No.") then
             AllResolvedQltyInspectionIds.Add(LastResolvedQltyInspectionHeader."No.");
 
-        if LocalQltyInspectionCreate.IsLastInspectionNewlyCreated() then
+        if QltyInspectionCreate.IsLastInspectionNewlyCreated() then
             if not NewlyCreatedQltyInspectionIds.Contains(LastResolvedQltyInspectionHeader."No.") then
                 NewlyCreatedQltyInspectionIds.Add(LastResolvedQltyInspectionHeader."No.");
     end;
 
+    /// <summary>
+    /// Sets whether generated inspections should remain hidden even when setup would display them.
+    /// </summary>
+    /// <param name="PreventDisplayingInspectionEvenIfConfigured">The display-suppression state to use.</param>
     internal procedure SetPreventDisplayingInspectionEvenIfConfigured(PreventDisplayingInspectionEvenIfConfigured: Boolean)
     begin
         PreventShowingGeneratedInspectionEvenIfConfigured := PreventDisplayingInspectionEvenIfConfigured;
     end;
 
     /// <summary>
-    /// Stubs in and fills the source config fields.
+    /// Populates an inspection stub from a primary source record and up to three optional source records.
     /// </summary>
-    /// <param name="InspectionStubToFillQualityOrder"></param>
-    /// <param name="MandatoryPrimaryRecordRef"></param>
-    /// <param name="OptionalVariant2"></param>
-    /// <param name="OptionalVariant3"></param>
-    /// <param name="OptionalVariant4"></param>
-    /// <returns></returns>
+    /// <param name="InspectionStubToFillQltyInspectionHeader">The inspection stub to populate.</param>
+    /// <param name="MandatoryPrimaryRecordRef">The primary source record.</param>
+    /// <param name="OptionalVariant2">An optional secondary source record.</param>
+    /// <param name="OptionalVariant3">An optional tertiary source record.</param>
+    /// <param name="OptionalVariant4">An optional fourth source record.</param>
+    /// <returns>False because the current implementation does not assign a return value.</returns>
     local procedure ApplyAllSourceFieldsToStub(var InspectionStubToFillQltyInspectionHeader: Record "Qlty. Inspection Header"; MandatoryPrimaryRecordRef: RecordRef; OptionalVariant2: Variant; OptionalVariant3: Variant; OptionalVariant4: Variant): Boolean
     var
         DataTypeManagement: Codeunit "Data Type Management";
@@ -1146,11 +1251,11 @@ codeunit 20404 "Qlty. Inspection - Create"
     #region Event Subscribers
 
     /// <summary>
-    /// Used with BindSubscription to help find related reservation entries.
+    /// Captures the calculated reservation-entry filters while the subscriber is explicitly bound.
     /// </summary>
-    /// <param name="SourceRecRef"></param>
-    /// <param name="CalcReservEntry"></param>
-    /// <param name="Direction"></param>
+    /// <param name="SourceRecRef">The reservation source record.</param>
+    /// <param name="CalcReservEntry">The calculated reservation entry whose filters are captured.</param>
+    /// <param name="Direction">The transfer direction used by reservation management.</param>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnAfterSetReservSource', '', true, true)]
     local procedure HandleReservationManagementOnAfterSetReservSource(var SourceRecRef: RecordRef; var CalcReservEntry: Record "Reservation Entry"; var Direction: Enum "Transfer Direction")
     begin
@@ -1183,7 +1288,7 @@ codeunit 20404 "Qlty. Inspection - Create"
     /// <param name="IsManualCreation">True when the inspection is being manually created and not automatically triggered</param>
     /// <param name="OptionalSpecificTemplate">When supplied refers to a specific desired template</param>
     /// <param name="TempQltyInspectionGenRule">The generation rule that helped determine which template to use.</param>
-    /// <param name="QualityOrder">The quality inspection</param>
+    /// <param name="QltyInspectionHeader">The resolved inspection.</param>
     /// <param name="OptionalRec2Variant">For complex automation can be additional source records</param>
     /// <param name="OptionalRec3Variant">For complex automation can be additional source records</param>
     [IntegrationEvent(false, false)]
@@ -1199,7 +1304,7 @@ codeunit 20404 "Qlty. Inspection - Create"
     /// <param name="IsManualCreation">True when the inspection is being manually created and not automatically triggered</param>
     /// <param name="OptionalSpecificTemplate">When supplied refers to a specific desired template</param>
     /// <param name="TempQltyInspectionGenRule">The generation rule that helped determine which template to use.</param>
-    /// <param name="QualityOrder">The quality inspection</param>
+    /// <param name="QltyInspectionHeader">The resolved inspection.</param>
     /// <param name="OptionalRec2Variant">For complex automation can be additional source records</param>
     /// <param name="OptionalRec3Variant">For complex automation can be additional source records</param>
     [IntegrationEvent(false, false)]

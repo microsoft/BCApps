@@ -148,6 +148,264 @@ codeunit 148181 "Sustainability Journal Test"
         Assert.AreEqual(Abs(GLAmount), CustomAmount, CustomAmountMustBePositiveLbl);
     end;
 
+    [Test]
+    procedure TestSustainabilityJournalFormulaInputEditabilityMatrix()
+    var
+        SustainabilityJnlBatch: Record "Sustainability Jnl. Batch";
+        SustainabilityJournalMgt: Codeunit "Sustainability Journal Mgt.";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 641058] Formula inputs on sustainability journals are editable only when the calculation uses them.
+        Initialize();
+
+        // [GIVEN] Sustainability journal setup is clean and one journal batch is available for all matrix cases.
+        SustainabilityJnlBatch := SustainabilityJournalMgt.GetASustainabilityJournalBatch(false);
+
+        // [WHEN] Journal lines are opened for each supported and unsupported matrix combination.
+
+        // [THEN] Each line exposes only the formula inputs used by its scope and calculation foundation.
+        VerifySustainabilityJournalFormulaInputEditability(SustainabilityJnlBatch, "Emission Scope"::"Scope 1", "Calculation Foundation"::"Fuel/Electricity", true, false, false, false, false);
+        VerifySustainabilityJournalFormulaInputEditability(SustainabilityJnlBatch, "Emission Scope"::"Scope 1", "Calculation Foundation"::Distance, false, true, false, false, false);
+        VerifySustainabilityJournalFormulaInputEditability(SustainabilityJnlBatch, "Emission Scope"::"Scope 1", "Calculation Foundation"::Installations, false, false, true, true, true);
+        VerifySustainabilityJournalFormulaInputEditability(SustainabilityJnlBatch, "Emission Scope"::"Scope 1", "Calculation Foundation"::Custom, false, false, false, false, false);
+        VerifySustainabilityJournalFormulaInputEditability(SustainabilityJnlBatch, "Emission Scope"::"Scope 2", "Calculation Foundation"::"Fuel/Electricity", true, false, false, false, false);
+        VerifySustainabilityJournalFormulaInputEditability(SustainabilityJnlBatch, "Emission Scope"::"Scope 2", "Calculation Foundation"::Distance, false, false, false, false, false);
+        VerifySustainabilityJournalFormulaInputEditability(SustainabilityJnlBatch, "Emission Scope"::"Scope 2", "Calculation Foundation"::Installations, false, false, false, false, false);
+        VerifySustainabilityJournalFormulaInputEditability(SustainabilityJnlBatch, "Emission Scope"::"Scope 2", "Calculation Foundation"::Custom, false, false, true, false, false);
+        VerifySustainabilityJournalFormulaInputEditability(SustainabilityJnlBatch, "Emission Scope"::"Scope 3", "Calculation Foundation"::"Fuel/Electricity", true, false, false, false, false);
+        VerifySustainabilityJournalFormulaInputEditability(SustainabilityJnlBatch, "Emission Scope"::"Scope 3", "Calculation Foundation"::Distance, false, true, false, true, false);
+        VerifySustainabilityJournalFormulaInputEditability(SustainabilityJnlBatch, "Emission Scope"::"Scope 3", "Calculation Foundation"::Installations, false, false, false, false, false);
+        VerifySustainabilityJournalFormulaInputEditability(SustainabilityJnlBatch, "Emission Scope"::"Scope 3", "Calculation Foundation"::Custom, false, false, true, false, false);
+        VerifySustainabilityJournalFormulaInputEditability(SustainabilityJnlBatch, "Emission Scope"::"Water/Waste", "Calculation Foundation"::"Fuel/Electricity", false, false, false, false, false);
+        VerifySustainabilityJournalFormulaInputEditability(SustainabilityJnlBatch, "Emission Scope"::"Water/Waste", "Calculation Foundation"::Distance, false, false, false, false, false);
+        VerifySustainabilityJournalFormulaInputEditability(SustainabilityJnlBatch, "Emission Scope"::"Water/Waste", "Calculation Foundation"::Installations, false, false, false, false, false);
+        VerifySustainabilityJournalFormulaInputEditability(SustainabilityJnlBatch, "Emission Scope"::"Water/Waste", "Calculation Foundation"::Custom, false, false, true, false, false);
+        VerifySustainabilityJournalFormulaInputEditability(SustainabilityJnlBatch, "Emission Scope"::"Scope 1", "Calculation Foundation"::" ", false, false, false, false, false);
+    end;
+
+    [Test]
+    procedure TestSustainabilityJournalFormulaInputEditabilityFallbacks()
+    var
+        SustainabilityJnlBatch: Record "Sustainability Jnl. Batch";
+        SustainabilityJournalMgt: Codeunit "Sustainability Journal Mgt.";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 641058] Incomplete journal account context disables formula inputs without making the unit read-only.
+        Initialize();
+
+        // [GIVEN] Sustainability journal setup is clean and one journal batch is available for all fallback cases.
+        SustainabilityJnlBatch := SustainabilityJournalMgt.GetASustainabilityJournalBatch(false);
+
+        // [WHEN] Journal lines are opened with a blank scope, missing category, or blank account.
+
+        // [THEN] All numeric formula inputs are disabled and Unit of Measure remains editable.
+        VerifySustainabilityJournalBlankScopeFormulaInputEditability(SustainabilityJnlBatch);
+        VerifySustainabilityJournalMissingCategoryFormulaInputEditability(SustainabilityJnlBatch);
+        VerifySustainabilityJournalBlankAccountFormulaInputEditability(SustainabilityJnlBatch);
+    end;
+
+    [Test]
+    procedure TestSustainabilityJournalFormulaInputEditabilityRefresh()
+    var
+        SustainabilityJnlBatch: Record "Sustainability Jnl. Batch";
+        SustainabilityJournalLine: Record "Sustainability Jnl. Line";
+        Scope1SustainabilityAccount: Record "Sustainability Account";
+        Scope3SustainabilityAccount: Record "Sustainability Account";
+        SustainabilityJournalMgt: Codeunit "Sustainability Journal Mgt.";
+        SustainabilityJournal: TestPage "Sustainability Journal";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 641058] Account and Manual Input changes refresh journal formula editability immediately.
+        Initialize();
+
+        // [GIVEN] A journal line uses a Scope 1 Fuel/Electricity account and a Scope 3 Distance account exists.
+        SustainabilityJnlBatch := SustainabilityJournalMgt.GetASustainabilityJournalBatch(false);
+        Scope1SustainabilityAccount := CreateSustainabilityAccount("Emission Scope"::"Scope 1", "Calculation Foundation"::"Fuel/Electricity");
+        Scope3SustainabilityAccount := CreateSustainabilityAccount("Emission Scope"::"Scope 3", "Calculation Foundation"::Distance);
+        SustainabilityJournalLine := LibrarySustainability.InsertSustainabilityJournalLine(
+            SustainabilityJnlBatch, Scope1SustainabilityAccount, GetNewSustainabilityJournalLineNo(SustainabilityJnlBatch));
+
+        // [WHEN] The journal line is opened.
+        SustainabilityJournal.OpenEdit();
+        SustainabilityJournal.Filter.SetFilter("Journal Template Name", SustainabilityJournalLine."Journal Template Name");
+        SustainabilityJournal.Filter.SetFilter("Journal Batch Name", SustainabilityJournalLine."Journal Batch Name");
+        SustainabilityJournal.Filter.SetFilter("Line No.", Format(SustainabilityJournalLine."Line No."));
+        Assert.IsTrue(SustainabilityJournal.First(), 'The Sustainability Journal line must be available.');
+
+        // [THEN] Only Fuel/Electricity is editable.
+        AssertSustainabilityJournalFormulaInputEditability(SustainabilityJournal, true, false, false, false, false);
+
+        // [WHEN] The account is changed to Scope 3 Distance.
+        SustainabilityJournal."Sustainability Account No.".SetValue(Scope3SustainabilityAccount."No.");
+
+        // [THEN] Distance and Installation Multiplier become editable.
+        AssertSustainabilityJournalFormulaInputEditability(SustainabilityJournal, false, true, false, true, false);
+
+        // [WHEN] Manual Input is enabled.
+        SustainabilityJournal."Manual Input".SetValue(true);
+
+        // [THEN] All numeric formula inputs are disabled.
+        AssertSustainabilityJournalFormulaInputEditability(SustainabilityJournal, false, false, false, false, false);
+
+        // [WHEN] Manual Input is disabled.
+        SustainabilityJournal."Manual Input".SetValue(false);
+
+        // [THEN] The Scope 3 Distance editability is restored.
+        AssertSustainabilityJournalFormulaInputEditability(SustainabilityJournal, false, true, false, true, false);
+
+        // [WHEN] The sustainability account is cleared.
+        SustainabilityJournal."Sustainability Account No.".SetValue('');
+
+        // [THEN] All numeric formula inputs are disabled.
+        AssertSustainabilityJournalFormulaInputEditability(SustainabilityJournal, false, false, false, false, false);
+    end;
+
+    local procedure Initialize()
+    var
+        SustainabilityJournalLine: Record "Sustainability Jnl. Line";
+    begin
+        SustainabilityJournalLine.DeleteAll();
+        LibrarySustainability.CleanUpBeforeTesting();
+    end;
+
+    local procedure GetNewSustainabilityJournalLineNo(SustainabilityJnlBatch: Record "Sustainability Jnl. Batch"): Integer
+    var
+        SustainabilityJournalLine: Record "Sustainability Jnl. Line";
+    begin
+        SustainabilityJournalLine."Journal Template Name" := SustainabilityJnlBatch."Journal Template Name";
+        SustainabilityJournalLine."Journal Batch Name" := SustainabilityJnlBatch.Name;
+        exit(LibraryUtility.GetNewRecNo(SustainabilityJournalLine, SustainabilityJournalLine.FieldNo("Line No.")));
+    end;
+
+    local procedure VerifySustainabilityJournalFormulaInputEditability(SustainabilityJnlBatch: Record "Sustainability Jnl. Batch"; Scope: Enum "Emission Scope"; CalcFoundation: Enum "Calculation Foundation"; ExpectedFuelElectricityEditable: Boolean; ExpectedDistanceEditable: Boolean; ExpectedCustomAmountEditable: Boolean; ExpectedInstallationMultiplierEditable: Boolean; ExpectedTimeFactorEditable: Boolean)
+    var
+        SustainabilityAccount: Record "Sustainability Account";
+        SustainabilityJournalLine: Record "Sustainability Jnl. Line";
+        SustainabilityJournal: TestPage "Sustainability Journal";
+    begin
+        SustainabilityAccount := CreateSustainabilityAccount(Scope, CalcFoundation);
+        SustainabilityJournalLine := LibrarySustainability.InsertSustainabilityJournalLine(
+            SustainabilityJnlBatch, SustainabilityAccount, GetNewSustainabilityJournalLineNo(SustainabilityJnlBatch));
+
+        SustainabilityJournal.OpenEdit();
+        SustainabilityJournal.Filter.SetFilter("Journal Template Name", SustainabilityJournalLine."Journal Template Name");
+        SustainabilityJournal.Filter.SetFilter("Journal Batch Name", SustainabilityJournalLine."Journal Batch Name");
+        SustainabilityJournal.Filter.SetFilter("Line No.", Format(SustainabilityJournalLine."Line No."));
+        Assert.IsTrue(SustainabilityJournal.First(), 'The Sustainability Journal line must be available.');
+
+        AssertSustainabilityJournalFormulaInputEditability(
+            SustainabilityJournal, ExpectedFuelElectricityEditable, ExpectedDistanceEditable, ExpectedCustomAmountEditable,
+            ExpectedInstallationMultiplierEditable, ExpectedTimeFactorEditable);
+        SustainabilityJournal.Close();
+    end;
+
+    local procedure VerifySustainabilityJournalBlankScopeFormulaInputEditability(SustainabilityJnlBatch: Record "Sustainability Jnl. Batch")
+    var
+        SustainAccountCategory: Record "Sustain. Account Category";
+        SustainabilityAccount: Record "Sustainability Account";
+        SustainabilityJournalLine: Record "Sustainability Jnl. Line";
+        SustainabilityJournal: TestPage "Sustainability Journal";
+    begin
+        SustainabilityAccount := CreateSustainabilityAccount("Emission Scope"::"Scope 1", "Calculation Foundation"::Custom);
+        SustainabilityJournalLine := LibrarySustainability.InsertSustainabilityJournalLine(
+            SustainabilityJnlBatch, SustainabilityAccount, GetNewSustainabilityJournalLineNo(SustainabilityJnlBatch));
+        SustainAccountCategory.Get(SustainabilityAccount.Category);
+        SustainAccountCategory."Emission Scope" := "Emission Scope"::" ";
+        SustainAccountCategory.Modify(false);
+
+        SustainabilityJournal.OpenEdit();
+        SustainabilityJournal.Filter.SetFilter("Journal Template Name", SustainabilityJournalLine."Journal Template Name");
+        SustainabilityJournal.Filter.SetFilter("Journal Batch Name", SustainabilityJournalLine."Journal Batch Name");
+        SustainabilityJournal.Filter.SetFilter("Line No.", Format(SustainabilityJournalLine."Line No."));
+        Assert.IsTrue(SustainabilityJournal.First(), 'The Sustainability Journal line must be available.');
+
+        AssertSustainabilityJournalFormulaInputEditability(SustainabilityJournal, false, false, false, false, false);
+        SustainabilityJournal.Close();
+    end;
+
+    local procedure VerifySustainabilityJournalMissingCategoryFormulaInputEditability(SustainabilityJnlBatch: Record "Sustainability Jnl. Batch")
+    var
+        SustainabilityAccount: Record "Sustainability Account";
+        SustainabilityJournalLine: Record "Sustainability Jnl. Line";
+        SustainabilityJournal: TestPage "Sustainability Journal";
+    begin
+        SustainabilityAccount := CreateSustainabilityAccount("Emission Scope"::"Scope 1", "Calculation Foundation"::"Fuel/Electricity");
+        SustainabilityJournalLine := LibrarySustainability.InsertSustainabilityJournalLine(
+            SustainabilityJnlBatch, SustainabilityAccount, GetNewSustainabilityJournalLineNo(SustainabilityJnlBatch));
+        SustainabilityJournalLine."Account Category" := 'MISSING';
+        SustainabilityJournalLine.Modify(false);
+
+        SustainabilityJournal.OpenEdit();
+        SustainabilityJournal.Filter.SetFilter("Journal Template Name", SustainabilityJournalLine."Journal Template Name");
+        SustainabilityJournal.Filter.SetFilter("Journal Batch Name", SustainabilityJournalLine."Journal Batch Name");
+        SustainabilityJournal.Filter.SetFilter("Line No.", Format(SustainabilityJournalLine."Line No."));
+        Assert.IsTrue(SustainabilityJournal.First(), 'The Sustainability Journal line must be available.');
+
+        AssertSustainabilityJournalFormulaInputEditability(SustainabilityJournal, false, false, false, false, false);
+        SustainabilityJournal.Close();
+    end;
+
+    local procedure VerifySustainabilityJournalBlankAccountFormulaInputEditability(SustainabilityJnlBatch: Record "Sustainability Jnl. Batch")
+    var
+        SustainabilityAccount: Record "Sustainability Account";
+        SustainabilityJournalLine: Record "Sustainability Jnl. Line";
+        SustainabilityJournal: TestPage "Sustainability Journal";
+    begin
+        SustainabilityAccount := CreateSustainabilityAccount("Emission Scope"::"Scope 1", "Calculation Foundation"::"Fuel/Electricity");
+        SustainabilityJournalLine := LibrarySustainability.InsertSustainabilityJournalLine(
+            SustainabilityJnlBatch, SustainabilityAccount, GetNewSustainabilityJournalLineNo(SustainabilityJnlBatch));
+        SustainabilityJournalLine.Validate("Account No.", '');
+        SustainabilityJournalLine.Modify(true);
+
+        SustainabilityJournal.OpenEdit();
+        SustainabilityJournal.Filter.SetFilter("Journal Template Name", SustainabilityJournalLine."Journal Template Name");
+        SustainabilityJournal.Filter.SetFilter("Journal Batch Name", SustainabilityJournalLine."Journal Batch Name");
+        SustainabilityJournal.Filter.SetFilter("Line No.", Format(SustainabilityJournalLine."Line No."));
+        Assert.IsTrue(SustainabilityJournal.First(), 'The Sustainability Journal line must be available.');
+
+        AssertSustainabilityJournalFormulaInputEditability(SustainabilityJournal, false, false, false, false, false);
+        SustainabilityJournal.Close();
+    end;
+
+    local procedure CreateSustainabilityAccount(Scope: Enum "Emission Scope"; CalcFoundation: Enum "Calculation Foundation") SustainabilityAccount: Record "Sustainability Account"
+    var
+        CategoryCode: Code[20];
+        SubcategoryCode: Code[20];
+        AccountCode: Code[20];
+        TracksEmissions: Boolean;
+    begin
+        CategoryCode := LibraryUtility.GenerateGUID();
+        SubcategoryCode := LibraryUtility.GenerateGUID();
+        AccountCode := LibraryUtility.GenerateGUID();
+        TracksEmissions := Scope <> "Emission Scope"::"Water/Waste";
+        LibrarySustainability.InsertAccountCategory(
+            CategoryCode, CategoryCode, Scope, CalcFoundation, TracksEmissions, TracksEmissions, TracksEmissions, '', false);
+        LibrarySustainability.InsertAccountSubcategory(CategoryCode, SubcategoryCode, SubcategoryCode, 1, 1, 1, false);
+        SustainabilityAccount := LibrarySustainability.InsertSustainabilityAccount(
+            AccountCode, AccountCode, CategoryCode, SubcategoryCode, "Sustainability Account Type"::Posting, '', true);
+    end;
+
+    local procedure AssertSustainabilityJournalFormulaInputEditability(var SustainabilityJournal: TestPage "Sustainability Journal"; ExpectedFuelElectricityEditable: Boolean; ExpectedDistanceEditable: Boolean; ExpectedCustomAmountEditable: Boolean; ExpectedInstallationMultiplierEditable: Boolean; ExpectedTimeFactorEditable: Boolean)
+    begin
+        AssertFormulaInputEditability(
+            ExpectedFuelElectricityEditable, ExpectedDistanceEditable, ExpectedCustomAmountEditable,
+            ExpectedInstallationMultiplierEditable, ExpectedTimeFactorEditable,
+            SustainabilityJournal."Fuel/Electricity".Editable(), SustainabilityJournal.Distance.Editable(),
+            SustainabilityJournal."Custom Amount".Editable(), SustainabilityJournal."Installation Multiplier".Editable(),
+            SustainabilityJournal."Time Factor".Editable());
+        Assert.IsTrue(SustainabilityJournal."Unit of Measure".Editable(), 'Unit of Measure must remain editable.');
+        Assert.AreEqual(1, SustainabilityJournal."Installation Multiplier".AsDecimal(), 'Installation Multiplier must retain its default value.');
+    end;
+
+    local procedure AssertFormulaInputEditability(ExpectedFuelElectricityEditable: Boolean; ExpectedDistanceEditable: Boolean; ExpectedCustomAmountEditable: Boolean; ExpectedInstallationMultiplierEditable: Boolean; ExpectedTimeFactorEditable: Boolean; ActualFuelElectricityEditable: Boolean; ActualDistanceEditable: Boolean; ActualCustomAmountEditable: Boolean; ActualInstallationMultiplierEditable: Boolean; ActualTimeFactorEditable: Boolean)
+    begin
+        Assert.AreEqual(ExpectedFuelElectricityEditable, ActualFuelElectricityEditable, 'Unexpected Fuel/Electricity editability.');
+        Assert.AreEqual(ExpectedDistanceEditable, ActualDistanceEditable, 'Unexpected Distance editability.');
+        Assert.AreEqual(ExpectedCustomAmountEditable, ActualCustomAmountEditable, 'Unexpected Custom Amount editability.');
+        Assert.AreEqual(ExpectedInstallationMultiplierEditable, ActualInstallationMultiplierEditable, 'Unexpected Installation Multiplier editability.');
+        Assert.AreEqual(ExpectedTimeFactorEditable, ActualTimeFactorEditable, 'Unexpected Time Factor editability.');
+    end;
+
     local procedure CreateSustAccountCategoryWithGLAccountNo(GLAccountNo: Code[20]) SustainAccountCategory: Record "Sustain. Account Category"
     begin
         SustainAccountCategory := LibrarySustainability.InsertAccountCategory(LibraryUtility.GenerateGUID(), LibraryUtility.GenerateGUID(), Enum::"Emission Scope"::"Scope 2", Enum::"Calculation Foundation"::Custom, true, true, true, 'GL', true);

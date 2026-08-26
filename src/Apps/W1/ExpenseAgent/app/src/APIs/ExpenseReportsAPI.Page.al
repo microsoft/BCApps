@@ -221,6 +221,14 @@ page 6928 "Expense Reports API"
                     EntitySetName = 'expenseReportLines';
                     SubPageLink = "Document No." = field("No.");
                 }
+                part(activityLogEntries; "Expense Activity Log API")
+                {
+                    Caption = 'Activity Log Entries';
+                    EntityName = 'expenseActivityLogEntry';
+                    EntitySetName = 'expenseActivityLogEntries';
+                    SubPageLink = "Source Table ID" = const(Database::"Expense Report Header"),
+                                  "Source Record System ID" = field(SystemId);
+                }
             }
         }
     }
@@ -418,6 +426,17 @@ page 6928 "Expense Reports API"
     end;
 
     [ServiceEnabled]
+    procedure ApprovedExpenseReportWithPolicyOverride(var ActionContext: WebServiceActionContext; ApproverExpenseUserNo: Code[20]; SkipPolicyValidation: Boolean)
+    begin
+        Rec.PerformManualApproved(ApproverExpenseUserNo, SkipPolicyValidation);
+
+        ActionContext.SetObjectType(ObjectType::Page);
+        ActionContext.SetObjectId(Page::"Expense Reports API");
+        ActionContext.AddEntityKey(Rec.FieldNo(SystemId), Rec.SystemId);
+        ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
+    end;
+
+    [ServiceEnabled]
     procedure RejectedExpenseReport(var ActionContext: WebServiceActionContext; ApproverExpenseUserNo: Code[20]; RejectReason: Text)
     begin
         Rec.PerformManualRejected(ApproverExpenseUserNo, RejectReason);
@@ -459,4 +478,5 @@ page 6928 "Expense Reports API"
         ActionContext.AddEntityKey(Rec.FieldNo(SystemId), Rec.SystemId);
         ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
     end;
+
 }

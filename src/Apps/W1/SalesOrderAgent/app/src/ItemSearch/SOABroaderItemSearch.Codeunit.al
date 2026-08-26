@@ -53,7 +53,7 @@ codeunit 4596 "SOA Broader Item Search"
         CompletionAnswer: Text;
     begin
         // Generate OpenAI Completion
-        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41Latest());
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT55ChatLatest());
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Sales Order Agent");
 
         AOAIChatCompletionParams.SetMaxTokens(MaxTokens());

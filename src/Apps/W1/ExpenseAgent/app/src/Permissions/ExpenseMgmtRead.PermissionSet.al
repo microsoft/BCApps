@@ -49,6 +49,9 @@ permissionset 6907 "Expense Mgmt. Read"
         tabledata "Expense Team" = R,
         tabledata "Expense Approval Setup" = R,
         tabledata "Expense Rule Violation" = R,
+        tabledata "Expense Policy" = R,
+        tabledata "Expense Policy Evaluation" = R,
+        tabledata "Posted Exp. Policy Evaluation" = R,
         tabledata "Expense Report Rule Violation" = R,
         tabledata "Posted Exp. Rep. Line Particip" = R,
         tabledata "Tenant Feedback Setting" = R,
@@ -58,5 +61,6 @@ permissionset 6907 "Expense Mgmt. Read"
         tabledata Traveler = R,
         tabledata "Expense VAT Specification" = R,
         tabledata "Expense Report Line VAT Spec." = R,
+        tabledata "Expense Activity Log Entry" = R,
         tabledata "Posted Exp. Rep. Line VAT Spec" = R;
 }
