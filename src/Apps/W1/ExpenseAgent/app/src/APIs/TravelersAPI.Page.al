@@ -31,9 +31,14 @@ page 7103 "Travelers API"
                     Caption = 'Id';
                     Editable = false;
                 }
-                field(spendRequestNo; Rec."Spend Request No.")
+                field(spendRequestNo; Rec."Travel Request No.")
                 {
                     Caption = 'Spend Request No.';
+                    Visible = false;
+                }
+                field(travelRequestNo; Rec."Travel Request No.")
+                {
+                    Caption = 'Travel Request No.';
                 }
                 field(lineNo; Rec."Line No.")
                 {

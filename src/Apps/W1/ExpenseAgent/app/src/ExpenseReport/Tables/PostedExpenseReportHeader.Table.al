@@ -285,16 +285,16 @@ table 6915 "Posted Expense Report Header"
             CalcFormula = sum("Posted Exp. Rep. Line VAT Spec"."Reclaim VAT Amount (LCY)" where("Expense Report No." = field("No."), "Reclaim Status" = const(Approved)));
             ToolTip = 'Specifies the total VAT amount approved for reclaim across all VAT specification lines of this posted expense report, in local currency.';
         }
-        field(100; "Spend Request No."; Code[20])
+        field(100; "Travel Request No."; Code[20])
         {
-            Caption = 'Spend Request No.';
-            ToolTip = 'Specifies the spend request to which the posted expense report is linked.';
+            Caption = 'Travel Request No.';
+            ToolTip = 'Specifies the travel request to which the posted expense report is linked.';
             TableRelation = "Spend Request";
         }
-        field(101; "Spend Request Close"; Boolean)
+        field(101; "Travel Request Close"; Boolean)
         {
-            Caption = 'Spend Request Close';
-            ToolTip = 'Specifies that the spend request will be closed when the expense report is posted.';
+            Caption = 'Travel Request Close';
+            ToolTip = 'Specifies that the travel request will be closed when the expense report is posted.';
         }
     }
 

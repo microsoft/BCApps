@@ -134,7 +134,7 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
     var
         Traveler: Record Traveler;
     begin
-        Traveler.SetRange("Spend Request No.", Rec."No.");
+        Traveler.SetRange("Travel Request No.", Rec."No.");
         Traveler.DeleteAll();
     end;
 
@@ -152,7 +152,7 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
             exit;
 
         Traveler.Init();
-        Traveler."Spend Request No." := Rec."No.";
+        Traveler."Travel Request No." := Rec."No.";
         Traveler."Line No." := GetNextTravelerLineNo();
         Traveler.Validate("Expense User No.", Rec."Requested For");
         Traveler.Insert(true);
@@ -182,7 +182,7 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
         if ExpenseUserNo = '' then
             exit(false);
 
-        Traveler.SetRange("Spend Request No.", Rec."No.");
+        Traveler.SetRange("Travel Request No.", Rec."No.");
         Traveler.SetRange("Expense User No.", ExpenseUserNo);
         exit(not Traveler.IsEmpty());
     end;
@@ -191,7 +191,7 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
     var
         Traveler: Record Traveler;
     begin
-        Traveler.SetRange("Spend Request No.", Rec."No.");
+        Traveler.SetRange("Travel Request No.", Rec."No.");
         Traveler.SetRange("Expense User No.", ExpenseUserNo);
         Traveler.DeleteAll(true);
     end;

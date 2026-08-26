@@ -5,7 +5,6 @@
 namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.Dimension;
-using Microsoft.Finance.SpendRequest;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Navigate;
 
@@ -77,7 +76,7 @@ page 6998 "Posted Expense Report"
                     Importance = Additional;
                     Visible = false;
                 }
-                field("Spend Request No."; Rec."Spend Request No.")
+                field("Spend Request No."; Rec."Travel Request No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Visible = false;
@@ -263,11 +262,11 @@ page 6998 "Posted Expense Report"
                 {
                     ApplicationArea = Basic, Suite;
                     Image = ProjectExpense;
-                    Caption = 'Spend Request';
-                    ToolTip = 'View the details of the spend request associated with this posted expense report.';
-                    RunObject = Page "Spend Request Card";
-                    RunPageLink = "No." = field("Spend Request No.");
-                    Visible = Rec."Spend Request No." <> '';
+                    Caption = 'Travel Request';
+                    ToolTip = 'View the details of the travel request associated with this posted expense report.';
+                    RunObject = Page "Travel Request Card";
+                    RunPageLink = "No." = field("Travel Request No.");
+                    Visible = Rec."Travel Request No." <> '';
                 }
             }
         }

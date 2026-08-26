@@ -5,7 +5,6 @@
 namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.Dimension;
-using Microsoft.Finance.SpendRequest;
 
 page 6999 "Expense Report SubPage"
 {
@@ -202,7 +201,7 @@ page 6999 "Expense Report SubPage"
                     ToolTip = 'Specifies the portion of the expense that will be refundable. Calculated from amount, VAT, and reductions.';
                     Visible = false;
                 }
-                field("Spend Request No."; Rec."Spend Request No.")
+                field("Spend Request No."; Rec."Travel Request No.")
                 {
                     ApplicationArea = Basic, Suite;
                     Visible = false;
@@ -601,11 +600,11 @@ page 6999 "Expense Report SubPage"
                 {
                     ApplicationArea = Basic, Suite;
                     Image = ProjectExpense;
-                    Caption = 'Spend Request';
-                    ToolTip = 'View the details of the spend request associated with this expense report line.';
-                    RunObject = Page "Spend Request Card";
-                    RunPageLink = "No." = field("Spend Request No.");
-                    Visible = Rec."Spend Request No." <> '';
+                    Caption = 'Travel Request';
+                    ToolTip = 'View the details of the travel request associated with this expense report line.';
+                    RunObject = Page "Travel Request Card";
+                    RunPageLink = "No." = field("Travel Request No.");
+                    Visible = Rec."Travel Request No." <> '';
                 }
             }
         }
