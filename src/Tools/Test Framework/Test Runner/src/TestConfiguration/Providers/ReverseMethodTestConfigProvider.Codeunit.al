@@ -26,6 +26,10 @@ codeunit 130479 "Reverse Meth. Test Cfg. Prov." implements "ITest Configuration 
         TestConfigurationContext.SetReverseMethods(true);
     end;
 
+    procedure Validate(Settings: JsonObject)
+    begin
+    end;
+
     procedure OnBeforeTestMethodRun(var CurrentTestMethodLine: Record "Test Method Line"; Settings: JsonObject; TestConfigurationContext: Codeunit "Test Configuration Context")
     begin
     end;

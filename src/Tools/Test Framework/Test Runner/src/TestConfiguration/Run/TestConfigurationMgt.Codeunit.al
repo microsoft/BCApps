@@ -55,6 +55,10 @@ codeunit 130473 "Test Configuration Mgt"
             Error(SuiteNotFoundErr, BaseSuiteName);
 
         EnsureDefaultConfigurations();
+        // Validate every enabled configuration before entering stability mode, so bad settings (for
+        // example an invalid WorkDate formula) are reported up front and cannot leave stability mode
+        // active for later runs.
+        ValidateConfigurations();
         ClearAggregation();
 
         ConfiguredRandomSeed.EnterStabilityMode();
@@ -212,6 +216,25 @@ codeunit 130473 "Test Configuration Mgt"
         CodeunitLine.SetRange(Result, CodeunitLine.Result::" ");
         CodeunitLine.SetRange(Run, true);
         exit(CodeunitLine.Count());
+    end;
+
+    local procedure ValidateConfigurations()
+    var
+        TestConfiguration: Record "Test Configuration";
+        TestConfigurationLine: Record "Test Configuration Line";
+        Provider: Interface "ITest Configuration Provider";
+    begin
+        TestConfiguration.SetRange("Enabled", true);
+        if TestConfiguration.FindSet() then
+            repeat
+                TestConfigurationLine.SetRange("Configuration Code", TestConfiguration."Code");
+                TestConfigurationLine.SetRange("Enabled", true);
+                if TestConfigurationLine.FindSet() then
+                    repeat
+                        Provider := TestConfigurationLine."Provider";
+                        Provider.Validate(TestConfigurationLine.GetSettings());
+                    until TestConfigurationLine.Next() = 0;
+            until TestConfiguration.Next() = 0;
     end;
 
     local procedure PrepareProviders(ConfigCode: Code[20])

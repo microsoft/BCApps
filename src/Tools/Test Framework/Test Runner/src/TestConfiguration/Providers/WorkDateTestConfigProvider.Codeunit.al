@@ -14,10 +14,30 @@ codeunit 130476 "WorkDate Test Config. Prov." implements "ITest Configuration Pr
 {
     var
         DescriptionTxt: Label 'Moves WorkDate into the future.';
+        InvalidFormulaErr: Label 'The WorkDate shift ''%1'' is not a valid date formula.', Comment = '%1 = the configured formula';
 
     procedure GetDescription(): Text
     begin
         exit(DescriptionTxt);
+    end;
+
+    procedure Validate(Settings: JsonObject)
+    var
+        WorkDateFormula: DateFormula;
+        FormulaToken: JsonToken;
+        FormulaText: Text;
+    begin
+        if not Settings.Get('formula', FormulaToken) then
+            exit;
+        if not FormulaToken.IsValue() then
+            exit;
+        if FormulaToken.AsValue().IsNull() then
+            exit;
+        FormulaText := FormulaToken.AsValue().AsText();
+        if FormulaText = '' then
+            exit;
+        if not Evaluate(WorkDateFormula, CopyStr(FormulaText, 1, 30)) then
+            Error(InvalidFormulaErr, FormulaText);
     end;
 
     procedure Prepare(Settings: JsonObject; TestConfigurationContext: Codeunit "Test Configuration Context")
@@ -27,8 +47,9 @@ codeunit 130476 "WorkDate Test Config. Prov." implements "ITest Configuration Pr
     begin
         FormulaText := '<1Y>';
         if Settings.Get('formula', FormulaToken) then
-            if FormulaToken.IsValue() and not FormulaToken.AsValue().IsNull() then
-                FormulaText := FormulaToken.AsValue().AsText();
+            if FormulaToken.IsValue() then
+                if not FormulaToken.AsValue().IsNull() then
+                    FormulaText := FormulaToken.AsValue().AsText();
         TestConfigurationContext.SetWorkDateFormula(CopyStr(FormulaText, 1, 30));
     end;
 

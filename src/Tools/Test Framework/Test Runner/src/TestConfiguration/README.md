@@ -31,7 +31,7 @@ It can be run from the **UI** (AL Test Tool) and from **PowerShell/CI** (Command
 
 | Provider | Settings | Effect |
 | --- | --- | --- |
-| `Seed` | `{ "seed": 2 }` | Uses a different random seed. The seed is stored in `Configured Random Seed` (Any app) and applied by `Reset State Before Test Run` via the existing `SetSeed` methods, so a test that sets its own seed still wins. |
+| `Seed` | `{ "seed": 2 }` | Uses a different random seed. The seed is stored in `Configured Random Seed` (Any app). While stability mode is active, `Any` and `Library - Random` read it from their own `SetSeed`, so the configured seed wins even when a test reseeds in its own `Initialize`. |
 | `WorkDateFuture` | `{ "formula": "<1Y>" }` | Moves WorkDate into the future by the given date formula. Re-applied before every test method because the runner restores WorkDate after each codeunit. |
 | `OneByOne` | none | Runs each test method on its own so its setup runs again for that method only (reuses the suite stability run behavior). |
 | `ReverseCodeunits` | none | Runs the test codeunits in reverse order in a normal, shared-state run. |
@@ -45,13 +45,16 @@ state, only the order changes. One-by-one is the isolated mode, where each metho
 ## Seed and stability state
 
 `Configured Random Seed` (Any app) is a passive single-instance store that also tracks whether
-stability mode is active. `Reset State Before Test Run` checks this state **before every test method**:
+stability mode is active. It is honored in two complementary places:
 
-- while stability mode is active it seeds both `Library - Random` and `Any` deterministically (with the
-  configuration's seed, or `1` when the configuration sets none), so one configuration cannot leak
-  randomness into the next;
-- once stability mode is exited it falls back to the normal behavior (`Library - Random` seed `1`),
-  so a stability run cannot affect later normal runs.
+- `Any` and `Library - Random` read it from their own `SetSeed`: while stability mode is active and a
+  seed is set, they use the configured seed instead of the passed value, so the configured seed wins
+  even when a test reseeds inside its own `Initialize` (which runs after the pre-test reset);
+- `Reset State Before Test Run` checks the state **before every test method**: while stability mode is
+  active it seeds both `Library - Random` and `Any` deterministically (with the configuration's seed,
+  or `1` when the configuration sets none) so tests that never reseed still start from a known state and
+  one configuration cannot leak randomness into the next; once stability mode is exited it falls back to
+  the normal behavior (`Library - Random` seed `1`), so a stability run cannot affect later normal runs.
 
 The orchestrator enters stability mode at the start of a run and exits it at the end. **Reset stability
 mode** (an action on both tool pages, `Test Configuration Mgt.ResetStabilityMode`) is the safe way to
@@ -61,7 +64,9 @@ isolation flag and clears the results on the base suite using trigger-free write
 ## How a run works
 
 1. `Test Configuration Mgt.RunTestConfigurations(BaseSuite)` creates the default configurations if none
-   exist, enters stability mode, then for each enabled configuration in turn:
+   exist, **validates every enabled configuration's settings up front** (for example that a WorkDate
+   formula parses) so bad settings error before stability mode is entered and cannot leak state, enters
+   stability mode, then for each enabled configuration in turn:
    - clears the previous configuration's results so the run starts from a clean suite;
    - activates the context and asks each enabled provider to `Prepare` (write seed/WorkDate/order/isolation intent);
    - stores the seed in `Configured Random Seed` when a seed provider is used (or clears it);

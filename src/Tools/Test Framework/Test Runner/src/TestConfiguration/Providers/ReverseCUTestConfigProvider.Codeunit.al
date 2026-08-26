@@ -26,6 +26,10 @@ codeunit 130478 "Reverse CU Test Config. Prov." implements "ITest Configuration 
         TestConfigurationContext.SetReverseCodeunits(true);
     end;
 
+    procedure Validate(Settings: JsonObject)
+    begin
+    end;
+
     procedure OnBeforeTestMethodRun(var CurrentTestMethodLine: Record "Test Method Line"; Settings: JsonObject; TestConfigurationContext: Codeunit "Test Configuration Context")
     begin
     end;

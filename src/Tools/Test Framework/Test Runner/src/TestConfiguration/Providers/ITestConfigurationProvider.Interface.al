@@ -28,6 +28,14 @@ interface "ITest Configuration Provider"
     procedure Prepare(Settings: JsonObject; TestConfigurationContext: Codeunit "Test Configuration Context");
 
     /// <summary>
+    /// Validates the provider settings before the run starts. A provider that cannot apply its
+    /// settings safely must error here so the problem is reported before stability mode is entered
+    /// and no state can leak into later runs. Providers without settings can leave the body empty.
+    /// </summary>
+    /// <param name="Settings">The provider specific settings.</param>
+    procedure Validate(Settings: JsonObject);
+
+    /// <summary>
     /// Applies per test method behavior (for example the WorkDate shift) before a test method runs.
     /// </summary>
     /// <param name="CurrentTestMethodLine">The test method line that is about to run.</param>

@@ -7,11 +7,12 @@ namespace System.TestLibraries.Utilities;
 
 /// <summary>
 /// Passive, single instance store that carries the stability run state and the pseudo-random seed a
-/// test run should use. It does NOT change how "Any" or "Library - Random" work: it only holds state.
+/// test run should use. While stability mode is active and a seed is set, "Any" and "Library - Random"
+/// read this seed from their own SetSeed so a configured seed is honored even when a test reseeds in
+/// its own Initialize (which runs after the pre-test reset). "Reset State Before Test Run" also seeds
+/// both libraries before every test method so tests that never reseed still start from a known state.
 /// The test runner turns stability mode on before a run and off afterwards, and sets the seed for the
-/// current configuration. The code that already seeds the random libraries before every test method
-/// ("Reset State Before Test Run") reads this state and updates the libraries accordingly, so exiting
-/// stability mode restores normal behavior on the very next test.
+/// current configuration, so exiting stability mode restores normal behavior on the very next test.
 /// This codeunit lives in the "Any" app because it is the only app both "Any" and "Library - Random"
 /// can reference.
 /// </summary>
