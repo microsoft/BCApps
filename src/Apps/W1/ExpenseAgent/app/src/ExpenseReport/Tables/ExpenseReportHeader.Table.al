@@ -505,9 +505,9 @@ table 6906 "Expense Report Header"
         }
         field(100; "Spend Request No."; Code[20])
         {
-            Caption = 'Spend Request No.';
-            ToolTip = 'Specifies the spend request number that is associated with this expense report.';
-            TableRelation = "Spend Request" where(Status = const(Approved));
+            Caption = 'Travel Request No.';
+            ToolTip = 'Specifies the travel request number that is associated with this expense report.';
+            TableRelation = "Spend Request" where(Status = const(Approved), "Document Type" = const("Travel Request"));
 
             trigger OnValidate()
             var
@@ -532,8 +532,8 @@ table 6906 "Expense Report Header"
         }
         field(101; "Spend Request Close"; Boolean)
         {
-            Caption = 'Spend Request Close';
-            ToolTip = 'Specifies that the spend request will be closed when the expense report is posted.';
+            Caption = 'Travel Request Close';
+            ToolTip = 'Specifies that the travel request will be closed when the expense report is posted.';
             DataClassification = CustomerContent;
         }
     }
@@ -615,7 +615,7 @@ table 6906 "Expense Report Header"
         CanModifyLinesQst: Label 'You have modified %1 which will also update the lines.\\Do you want to continue?', Comment = '%1 = Field Caption';
         CannotChangeExpenseUserErr: Label 'You cannot change %1 in Expense Report No. %2 as there are associated lines to it.', Comment = '%1 = Field Caption, %2 = Expense Report No.';
         ExpenseUserMustBeLinkedToAnEmployeeErr: Label 'Expense User %1 must be linked to an Employee No.', Comment = '%1 - Expense User No.';
-        ExpenseUserNotTravelerErr: Label 'Expense User %1 is not a traveler on Spend Request %2.', Comment = '%1 = Expense User No., %2 = Spend Request No.';
+        ExpenseUserNotTravelerErr: Label 'Expense User %1 is not a traveler on Travel Request %2.', Comment = '%1 = Expense User No., %2 = Travel Request No.';
 
     procedure AssistEdit() Result: Boolean
     begin

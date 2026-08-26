@@ -5,7 +5,6 @@
 namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.Dimension;
-using Microsoft.Finance.SpendRequest;
 
 page 6999 "Expense Report SubPage"
 {
@@ -601,9 +600,9 @@ page 6999 "Expense Report SubPage"
                 {
                     ApplicationArea = Basic, Suite;
                     Image = ProjectExpense;
-                    Caption = 'Spend Request';
-                    ToolTip = 'View the details of the spend request associated with this expense report line.';
-                    RunObject = Page "Spend Request Card";
+                    Caption = 'Travel Request';
+                    ToolTip = 'View the details of the travel request associated with this expense report line.';
+                    RunObject = Page "Travel Request Card";
                     RunPageLink = "No." = field("Spend Request No.");
                     Visible = Rec."Spend Request No." <> '';
                 }
