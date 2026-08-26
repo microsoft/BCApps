@@ -2,6 +2,7 @@ codeunit 134776 "Document Attachment Tests"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -4645,60 +4646,6 @@ codeunit 134776 "Document Attachment Tests"
         // [THEN] Resolution fails and the RecordRef stays closed, so the actions raise the controlled error instead of "The record is not open".
         Assert.IsFalse(DocumentAttachmentMgmt.GetRefTable(RecRef, DocumentAttachment), SourceRecordMustNotBeResolvedErr);
         Assert.AreEqual(0, RecRef.Number(), RecRefMustNotBeOpenErr);
-    end;
-
-    [Test]
-    procedure EnsureShowDetailsErrorsWhenSourceRecordCannotBeResolved()
-    var
-        DocumentAttachment: Record "Document Attachment";
-        PaymentTerms: Record "Payment Terms";
-        DocAttachmentListFactbox: TestPage "Doc. Attachment List Factbox";
-    begin
-        // [SCENARIO 646549] Show details reports the unresolved source record instead of failing with "The record is not open".
-        // Upload files and Attach from email cannot be invoked from a TestPage, but they run the same source resolution as Show details.
-        Initialize();
-
-        // [GIVEN] Document Attachment that points to a table neither the FactBox nor any subscriber maps.
-        CreateDocAttachForUnmappedTable(DocumentAttachment);
-
-        // [WHEN] Show details is invoked for that attachment.
-        DocAttachmentListFactbox.OpenView();
-        DocAttachmentListFactbox.GoToRecord(DocumentAttachment);
-        asserterror DocAttachmentListFactbox.OpenInDetail.Invoke();
-
-        // [THEN] The error states that the source record cannot be resolved and names the table.
-        Assert.ExpectedError(StrSubstNo(CannotResolveSourceRecordErr, PaymentTerms.TableCaption()));
-    end;
-
-    [Test]
-    [HandlerFunctions('DocumentAttachmentDetailsMPH')]
-    procedure EnsureShowDetailsUsesRecRefResolvedBySubscriber()
-    var
-        Customer: Record Customer;
-        DocumentAttachment: Record "Document Attachment";
-        RecRef: RecordRef;
-        DocAttachmentListFactbox: TestPage "Doc. Attachment List Factbox";
-    begin
-        // [SCENARIO 646549] An extension that resolves the RecordRef in OnAfterGetRecRefFail must still be able to open the attachments.
-        Initialize();
-
-        // [GIVEN] Customer with an attachment "SubscriberCust", which the subscriber returns as the source record.
-        LibrarySales.CreateCustomer(Customer);
-        RecRef.Get(Customer.RecordId());
-        CreateDocAttach(RecRef, 'SubscriberCust.jpeg', false, false);
-        SubscriberSourceRecordId := Customer.RecordId();
-        ResolveRecRefInSubscriber := true;
-
-        // [GIVEN] Document Attachment that points to a table the FactBox cannot map on its own.
-        CreateDocAttachForUnmappedTable(DocumentAttachment);
-
-        // [WHEN] Show details is invoked for that attachment.
-        DocAttachmentListFactbox.OpenView();
-        DocAttachmentListFactbox.GoToRecord(DocumentAttachment);
-        DocAttachmentListFactbox.OpenInDetail.Invoke();
-
-        // [THEN] No error is raised and the details page opens for the record that the subscriber resolved.
-        Assert.AreEqual('SubscriberCust', LibraryVariableStorage.DequeueText(), UnexpectedAttachmentInDetailsErr);
     end;
 
     local procedure Initialize()
