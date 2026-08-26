@@ -6,6 +6,7 @@
 namespace System.Agents.Troubleshooting;
 
 using System.Agents;
+using System.Utilities;
 
 page 4303 "Agent Task Log Entry List"
 {
@@ -150,6 +151,9 @@ page 4303 "Agent Task Log Entry List"
             actionref(Refresh_Promoted; Refresh)
             {
             }
+            actionref(Export_Promoted; Export)
+            {
+            }
             actionref(Feedback_Promoted; Feedback)
             {
             }
@@ -201,6 +205,31 @@ page 4303 "Agent Task Log Entry List"
                     Page.Run(Page::"Agent Task Log Entry", Rec);
                 end;
             }
+            action(Export)
+            {
+                ApplicationArea = All;
+                Caption = 'Export selected';
+                ToolTip = 'Download the selected log entries and their troubleshooting details as a JSON file.';
+                Image = ExportFile;
+                Scope = Repeater;
+
+                trigger OnAction()
+                var
+                    SelectedAgentTaskLogEntry: Record "Agent Task Log Entry";
+                    TempBlob: Codeunit "Temp Blob";
+                    AgentTaskLogEntry: Codeunit "Agent Task Log Entry";
+                    ExportInStream: InStream;
+                    ExportOutStream: OutStream;
+                    FileName: Text;
+                begin
+                    CurrPage.SetSelectionFilter(SelectedAgentTaskLogEntry);
+                    TempBlob.CreateOutStream(ExportOutStream, TextEncoding::UTF8);
+                    AgentTaskLogEntry.ExportToJson(SelectedAgentTaskLogEntry, ExportOutStream);
+                    TempBlob.CreateInStream(ExportInStream, TextEncoding::UTF8);
+                    FileName := StrSubstNo(ExportFileNameLbl, Format(CurrentDateTime(), 0, '<Year4><Month,2><Day,2>_<Hours24,2><Minutes,2><Seconds,2>'));
+                    DownloadFromStream(ExportInStream, ExportDialogTitleLbl, '', JsonFileFilterLbl, FileName);
+                end;
+            }
         }
     }
 
@@ -240,4 +269,7 @@ page 4303 "Agent Task Log Entry List"
         IsFeedbackActionEnabled: Boolean;
         DetailsTxt: Text;
         TypeStyle: Text;
+        ExportFileNameLbl: Label 'AgentTaskLog_%1.json', Comment = '%1 is a timestamp.', Locked = true;
+        ExportDialogTitleLbl: Label 'Export agent task log';
+        JsonFileFilterLbl: Label 'JSON files (*.json)|*.json', Locked = true;
 }

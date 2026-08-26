@@ -7,10 +7,12 @@ namespace System.Test.Agents;
 
 using System.Agents.Troubleshooting;
 using System.TestLibraries.Utilities;
+using System.Utilities;
 
 codeunit 133964 "Agent Task Log Page Test"
 {
     Subtype = Test;
+    TestPermissions = NonRestrictive;
 
     var
         Assert: Codeunit "Library Assert";
@@ -160,8 +162,10 @@ codeunit 133964 "Agent Task Log Page Test"
         TempMemorizedDataRecords: Record "Agent JSON Buffer" temporary;
         AgentTaskLogEntry: Codeunit "Agent Task Log Entry";
         ContextRootObject: JsonObject;
+        MemorizedDataObject: JsonObject;
         PageStackArray: JsonArray;
         AvailableToolsArray: JsonArray;
+        Success: Boolean;
     begin
         // [GIVEN] A complete context object with all components
         PageStackArray.Add('HomePage');
@@ -173,28 +177,98 @@ codeunit 133964 "Agent Task Log Page Test"
         AvailableToolsArray.Add('Tool2');
         ContextRootObject.Add('availableTools', AvailableToolsArray);
 
-        TempMemorizedDataRecords.DeleteAll();
-        TempMemorizedDataRecords.Init();
-        TempMemorizedDataRecords.Id := 1;
-        TempMemorizedDataRecords.Insert();
-        TempMemorizedDataRecords.SetJsonText('{"key":"key1","value":"value1"}');
-        TempMemorizedDataRecords.Id := 2;
-        TempMemorizedDataRecords.Insert();
-        TempMemorizedDataRecords.SetJsonText('{"key":"key2","value":"value2"}');
+        MemorizedDataObject.Add('key1', 'value1');
+        MemorizedDataObject.Add('key2', 'value2');
+        ContextRootObject.Add('memorizedData', MemorizedDataObject);
 
         ContextRootObject.Add('isDecisionPoint', true);
-        ContextRootObject.Add('success', true);
 
         // [WHEN] Extraction methods are called
         AgentTaskLogEntry.ExtractPageStack(TempPageStackRecords, ContextRootObject);
         AgentTaskLogEntry.ExtractAvailableTools(TempAvailableToolsRecords, ContextRootObject);
+        AgentTaskLogEntry.ExtractMemorizedData(TempMemorizedDataRecords, ContextRootObject);
 
         // [THEN] All data should be extracted correctly
         Assert.AreEqual(3, TempPageStackRecords.Count(), 'Should have 3 pages');
         Assert.AreEqual(2, TempAvailableToolsRecords.Count(), 'Should have 2 tools');
         Assert.AreEqual(2, TempMemorizedDataRecords.Count(), 'Should have 2 memorized entries');
+        Assert.IsTrue(AgentTaskLogEntry.GetDecisionPoint(ContextRootObject), 'Should identify the decision point');
+        Assert.IsTrue(AgentTaskLogEntry.TryGetSuccess('{"success":true}', Success), 'Should find the success value');
+        Assert.IsTrue(Success, 'Should parse the success value');
 
         ValidateFullContext(TempPageStackRecords, TempAvailableToolsRecords, TempMemorizedDataRecords);
+    end;
+
+    [Test]
+    procedure TestBuildContextJson_IncludesCalculatedDetails()
+    var
+        AgentTaskLogEntry: Codeunit "Agent Task Log Entry";
+        ContextJson: JsonObject;
+        PageToken: JsonToken;
+        ContextTxt: Text;
+    begin
+        // [GIVEN] Troubleshooting context containing all calculated detail-page sections
+        ContextTxt := '{"serializedPage":"{\"page\":\"Customer Card\"}","isDecisionPoint":true,"pageStack":["Customer List","Customer Card"],"availableTools":["Edit record"],"memorizedData":{"customerNo":"10000"},"taskPageContext":{"currencyCode":"USD","currencySymbol":"$","outgoingCommunicationCulture":{"language":"en-US","dateFormat":"M/d/yyyy","timeFormat":"h:mm tt","formattedNumberExample":"1,234.56"}}}';
+
+        // [WHEN] The context is projected for an authorized export
+        AgentTaskLogEntry.BuildContextJson(ContextTxt, 'logEntry', true, ContextJson);
+
+        // [THEN] The native JSON values and calculated flags are preserved
+        Assert.IsTrue(ContextJson.GetBoolean('valid'), 'The context should be valid.');
+        Assert.IsTrue(ContextJson.GetBoolean('decisionPoint'), 'The decision point should be exported.');
+        Assert.IsTrue(ContextJson.GetBoolean('serializedPageIncluded'), 'The serialized page should be included.');
+        Assert.IsFalse(ContextJson.GetBoolean('serializedPageRedacted'), 'The serialized page should not be redacted.');
+        Assert.AreEqual(2, ContextJson.GetArray('pageStack').Count(), 'The page stack should be exported.');
+        ContextJson.GetArray('pageStack').Get(0, PageToken);
+        Assert.AreEqual('Customer Card', PageToken.AsValue().AsText(), 'The page stack should use the detail page order.');
+        Assert.AreEqual(1, ContextJson.GetArray('availableTools').Count(), 'The available tools should be exported.');
+        Assert.AreEqual('10000', ContextJson.GetObject('memorizedData').GetText('customerNo'), 'The memorized data should be exported.');
+        Assert.AreEqual('USD', ContextJson.GetObject('taskPageSettings').GetText('currencyCode'), 'The task page settings should be exported.');
+        Assert.AreEqual('en-US', ContextJson.GetObject('taskPageSettings').GetText('communicationLanguage'), 'The communication settings should be flattened like the detail page.');
+        Assert.AreEqual('Customer Card', ContextJson.GetObject('serializedPage').GetText('page'), 'The serialized page should remain JSON.');
+    end;
+
+    [Test]
+    procedure TestBuildContextJson_RedactsSerializedPage()
+    var
+        AgentTaskLogEntry: Codeunit "Agent Task Log Entry";
+        ContextJson: JsonObject;
+    begin
+        // [GIVEN] Troubleshooting context containing a sensitive page snapshot
+        // [WHEN] The context is projected without the troubleshooting permission
+        AgentTaskLogEntry.BuildContextJson('{"serializedPage":"{\"secret\":\"value\"}"}', 'logEntry', false, ContextJson);
+
+        // [THEN] The snapshot is not present and the redaction is explicit
+        Assert.IsFalse(ContextJson.GetBoolean('serializedPageIncluded'), 'The serialized page should not be included.');
+        Assert.IsTrue(ContextJson.GetBoolean('serializedPageRedacted'), 'The serialized page should be marked as redacted.');
+        Assert.IsFalse(ContextJson.Contains('serializedPage'), 'The sensitive serialized page must not be exported.');
+        Assert.IsTrue(ContextJson.GetText('serializedPageRedactionReason').Contains('Troubleshoot All Agents'), 'The redaction reason should identify the required permission.');
+    end;
+
+    [Test]
+    procedure TestExportToJson_EmptySelectionProducesVersionedDocument()
+    var
+        AgentTaskLogEntryRecord: Record "Agent Task Log Entry";
+        AgentTaskLogEntry: Codeunit "Agent Task Log Entry";
+        TempBlob: Codeunit "Temp Blob";
+        ExportJson: JsonObject;
+        ExportInStream: InStream;
+        ExportOutStream: OutStream;
+        ExportTxt: Text;
+    begin
+        // [GIVEN] A selection filter that cannot match a log entry
+        AgentTaskLogEntryRecord.SetRange(ID, -1);
+        TempBlob.CreateOutStream(ExportOutStream, TextEncoding::UTF8);
+
+        // [WHEN] The export is invoked programmatically
+        AgentTaskLogEntry.ExportToJson(AgentTaskLogEntryRecord, ExportOutStream);
+        TempBlob.CreateInStream(ExportInStream, TextEncoding::UTF8);
+        ExportInStream.ReadText(ExportTxt);
+
+        // [THEN] A valid, versioned JSON document is returned
+        Assert.IsTrue(ExportJson.ReadFrom(ExportTxt), 'The export should contain valid JSON.');
+        Assert.AreEqual('1.0', ExportJson.GetText('formatVersion'), 'The export format version should be stable.');
+        Assert.AreEqual(0, ExportJson.GetArray('entries').Count(), 'No entries should be exported.');
     end;
 
     local procedure ValidateFullContext(var TempPageStackRecords: Record "Agent JSON Buffer" temporary; var TempAvailableToolsRecords: Record "Agent JSON Buffer" temporary; var TempMemorizedDataRecords: Record "Agent JSON Buffer" temporary)
@@ -241,7 +315,11 @@ codeunit 133964 "Agent Task Log Page Test"
         // [WHEN] ExtractPageStack is called
         AgentTaskLogEntry.ExtractPageStack(TempPageStackRecords, ContextRootObject);
 
-        // [THEN] Should handle null values (count may be 2 or 3 depending on implementation)
-        Assert.IsTrue(TempPageStackRecords.Count() >= 2, 'Should extract at least 2 non-null pages');
+        // [THEN] Null values are skipped and the remaining pages are reversed
+        Assert.AreEqual(2, TempPageStackRecords.Count(), 'Should extract exactly 2 non-null pages');
+        TempPageStackRecords.FindFirst();
+        Assert.AreEqual('Page3', TempPageStackRecords.GetJsonText(), 'The last page should be first');
+        TempPageStackRecords.Next();
+        Assert.AreEqual('Page1', TempPageStackRecords.GetJsonText(), 'The first page should be last');
     end;
 }
