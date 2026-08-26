@@ -7,7 +7,6 @@ namespace Microsoft.eServices.EDocument.Test;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.Inventory.Item;
-using System.TestLibraries.Utilities;
 
 codeunit 139788 "E-Doc. Item Charge UI Tests"
 {

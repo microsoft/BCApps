@@ -12,7 +12,6 @@ using Microsoft.Inventory.Setup;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
-using System.TestLibraries.Utilities;
 
 codeunit 139786 "E-Doc. Item Charge Tests"
 {
