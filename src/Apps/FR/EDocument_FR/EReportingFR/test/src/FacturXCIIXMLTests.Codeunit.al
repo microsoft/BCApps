@@ -380,6 +380,36 @@ codeunit 148148 "Factur-X CII XML Tests"
     end;
 
     [Test]
+    procedure FacturXForeignCurrencyRoundingPrecisionIsUsedForInvoiceDiscountAllocation()
+    var
+        Currency: Record Currency;
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempBlob: Codeunit "Temp Blob";
+        AllowanceAmount: Decimal;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Factur-X allocates an invoice discount using the foreign currency rounding precision
+        Initialize();
+
+        // [GIVEN] Posted sales invoice "SI" with mixed VAT rates and a foreign currency whose rounding precision is 1
+        LibraryERM.CreateCurrency(Currency);
+        Currency.Validate("Amount Rounding Precision", 1);
+        Currency.Modify(true);
+        SalesInvoiceHeader.Get(CreateAndPostMultiVATInvoiceWithDiscount(false));
+        SalesInvoiceHeader."Currency Code" := Currency.Code;
+        SalesInvoiceHeader."Invoice Discount Amount" := 1.4;
+        SalesInvoiceHeader.Modify();
+
+        // [WHEN] Create CII XML
+        CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
+
+        // [THEN] The discount allocated to the 20% VAT breakdown is rounded from 0.56 to 1
+        AllowanceAmount := GetCIINodeDecimalValue(TempBlob,
+            '//ram:SpecifiedTradeAllowanceCharge[ram:CategoryTradeTax/ram:RateApplicablePercent="20"]/ram:ActualAmount');
+        Assert.AreEqual(1, AllowanceAmount, StrSubstNo(IncorrectValueErr, 'ActualAmount 20%'));
+    end;
+
+    [Test]
     procedure FacturXSalesInvoiceXMLHasIssueDateTimeFormat102()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
