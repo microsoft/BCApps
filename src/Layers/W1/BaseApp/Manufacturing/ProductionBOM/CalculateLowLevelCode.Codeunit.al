@@ -45,6 +45,7 @@ codeunit 99000793 "Calculate Low-Level Code"
         ProdBOMLine: Record "Production BOM Line";
         AsmBOMComp: Record "BOM Component";
         SKU: Record "Stockkeeping Unit";
+        ProcessedItemNos: List of [Code[20]];
         ActLevel: Integer;
         TotalLevels: Integer;
         CalculateDeeperLevel: Boolean;
@@ -72,12 +73,16 @@ codeunit 99000793 "Calculate Low-Level Code"
                                 TotalLevels := ActLevel;
                         until Item2.Next() = 0;
 
+                    SKU.SetCurrentKey("Production BOM No.");
                     SKU.SetRange("Production BOM No.", No);
                     if SKU.FindSet() then
                         repeat
-                            ActLevel := CalcLevels(Type::Item, SKU."Item No.", Level + 1, LevelDepth + 1);
-                            if ActLevel > TotalLevels then
-                                TotalLevels := ActLevel;
+                            if not ProcessedItemNos.Contains(SKU."Item No.") then begin
+                                ProcessedItemNos.Add(SKU."Item No.");
+                                ActLevel := CalcLevels(Type::Item, SKU."Item No.", Level + 1, LevelDepth + 1);
+                                if ActLevel > TotalLevels then
+                                    TotalLevels := ActLevel;
+                            end;
                         until SKU.Next() = 0;
                     OnCalcLevelsForProdBOM(Item2, No, Level, LevelDepth, TotalLevels);
                 end;

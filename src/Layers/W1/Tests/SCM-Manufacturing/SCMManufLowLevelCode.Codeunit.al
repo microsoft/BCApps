@@ -204,7 +204,7 @@ codeunit 137039 "SCM Manuf Low Level Code"
         ProductionBOMLine: Record "Production BOM Line";
         LocationCode: Code[10];
     begin
-        // [SCENARIO 635868] Multi-level BOMs assigned on Stockkeeping Units must get correct Low-Level Codes in a single pass.
+        // [SCENARIO 646101] [AI] 0.2 Multi-level BOMs assigned on Stockkeeping Units must get correct Low-Level Codes in a single pass.
         // [GIVEN] Dynamic Low-Level Code enabled.
         Initialize();
         UpdateManufacturingSetup(TempManufacturingSetup, true);
@@ -246,7 +246,7 @@ codeunit 137039 "SCM Manuf Low Level Code"
         SemiBOMNo: Code[20];
         FinishedBOMNo: Code[20];
     begin
-        // [SCENARIO 635868] Recalculating an item through Calculate Low-Level Code must resolve the full multi-level chain when the BOMs already exist on Stockkeeping Units.
+        // [SCENARIO 646101] [AI] 0.2 Recalculating an item through Calculate Low-Level Code must resolve the full multi-level chain when the BOMs already exist on Stockkeeping Units.
         // [GIVEN] Dynamic Low-Level Code enabled and a 3-level SKU-only BOM structure (Finished -> Semi -> Component).
         Initialize();
         UpdateManufacturingSetup(TempManufacturingSetup, true);
@@ -285,6 +285,50 @@ codeunit 137039 "SCM Manuf Low Level Code"
 
         // [THEN] The component still resolves to level 2 by traversing its SKU-level BOM parents.
         VerifyLowLevelCode(CompItem."No.", '', 2);
+
+        // Tear Down: Dynamic Low-Level Code set to Default in Manufacturing setup.
+        RestoreManufacturingSetup(TempManufacturingSetup);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure LowLevelCodeWithMultipleSKUsForSameItemAndBOM()
+    var
+        CompItem: Record Item;
+        ParentItem: Record Item;
+        TempManufacturingSetup: Record "Manufacturing Setup" temporary;
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionBOMLine: Record "Production BOM Line";
+        FirstLocationCode: Code[10];
+        SecondLocationCode: Code[10];
+        ParentBOMNo: Code[20];
+    begin
+        // [SCENARIO 646101] [AI] 0.2 Calculate Low-Level Code must resolve correctly and process the item only once when several SKUs of the same item share the same production BOM.
+        // [GIVEN] Dynamic Low-Level Code enabled and two locations.
+        Initialize();
+        UpdateManufacturingSetup(TempManufacturingSetup, true);
+        FirstLocationCode := CreateLocation();
+        SecondLocationCode := CreateLocation();
+
+        // [GIVEN] A component item and a parent item, with the parent's certified BOM (containing the component) assigned to two SKUs of the same parent item.
+        LibraryInventory.CreateItem(CompItem);
+        LibraryInventory.CreateItem(ParentItem);
+        CreateProdBOM(ProductionBOMHeader, ProductionBOMLine.Type::Item, CompItem."No.", '', ParentItem."Base Unit of Measure", false);
+        ParentBOMNo := ProductionBOMHeader."No.";
+        CreateSKUWithProdBOM(ParentItem."No.", FirstLocationCode, ParentBOMNo);
+        CreateSKUWithProdBOM(ParentItem."No.", SecondLocationCode, ParentBOMNo);
+
+        // [GIVEN] All low-level codes are reset, simulating a recalculation over pre-existing data.
+        ResetItemLowLevelCode(CompItem."No.");
+        ResetItemLowLevelCode(ParentItem."No.");
+        ResetProdBOMLowLevelCode(ParentBOMNo);
+
+        // [WHEN] Calculate Low-Level Code is run for the component (CalcLevels walks up through both SKUs pointing to the same BOM).
+        RunCalculateLowLevelCode(CompItem."No.");
+
+        // [THEN] The codes resolve correctly regardless of the number of duplicate SKUs pointing to the same BOM.
+        VerifyLowLevelCode(ParentItem."No.", '', 0);
+        VerifyLowLevelCode(CompItem."No.", '', 1);
 
         // Tear Down: Dynamic Low-Level Code set to Default in Manufacturing setup.
         RestoreManufacturingSetup(TempManufacturingSetup);
