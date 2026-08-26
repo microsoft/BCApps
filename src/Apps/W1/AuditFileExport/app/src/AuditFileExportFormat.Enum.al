@@ -10,6 +10,9 @@ enum 5262 "Audit File Export Format" implements "Audit File Export Data Handling
     DefaultImplementation = "Audit File Export Data Handling" = "Audit File Data Handling",
                          "Audit File Export Data Check" = "Audit File Data Check",
                          "Audit File Export Page Visibility" = "Audit File Page Visibility";
+    UnknownValueImplementation = "Audit File Export Data Handling" = "Audit File Data Handling",
+                         "Audit File Export Data Check" = "Audit File Data Check",
+                         "Audit File Export Page Visibility" = "Audit File Page Visibility";
 
     value(0; None)
     {

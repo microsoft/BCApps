@@ -37,6 +37,8 @@ codeunit 10811 "Generate File XML"
         CheckGLEntriesExist(AuditFileExportHeader);
         InitGlobalVariables(AuditFileExportHeader);
 
+        FeatureTelemetry.LogUptake('0000V8T', FRGeneralLedgerXMLTok, Enum::"Feature Uptake Status"::"Set up");
+
         OpenProgressDialog(CreateFileTxt + ProcessTransactionsTxt);
 
         TempBlob.CreateOutStream(OutStream);

@@ -30,7 +30,7 @@ tableextension 10803 "Audit File Export Header XML" extends "Audit File Export H
                     Rec.Validate("Split By Date", false);
                     Rec.Validate("Create Multiple Zip Files", false);
 
-                    FeatureTelemetry.LogUptake('0000QPG', XMLAuditFileTok, Enum::"Feature Uptake Status"::Discovered);
+                    FeatureTelemetry.LogUptake('0000V8S', FRGeneralLedgerXMLTok, Enum::"Feature Uptake Status"::Discovered);
                 end;
             end;
         }
@@ -38,5 +38,5 @@ tableextension 10803 "Audit File Export Header XML" extends "Audit File Export H
 
     var
         AuditExportFormatSetupNotExistErr: Label 'XML export format setup not found. Reinstall extension or add XML format in Audit File Export Format setup.';
-        XMLAuditFileTok: label 'XML Audit File', Locked = true;
+        FRGeneralLedgerXMLTok: Label 'FR Export General Ledger Entries to XML File', Locked = true;
 }

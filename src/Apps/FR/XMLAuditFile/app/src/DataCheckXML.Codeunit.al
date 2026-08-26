@@ -5,7 +5,6 @@
 namespace Microsoft.Finance.AuditFileExport;
 
 using Microsoft.CRM.Contact;
-using Microsoft.Foundation.Company;
 
 codeunit 10805 "Data Check XML" implements "Audit File Export Data Check"
 {
@@ -22,14 +21,9 @@ codeunit 10805 "Data Check XML" implements "Audit File Export Data Check"
     end;
 
     procedure CheckAuditDocReadyToExport(var AuditFileExportHeader: Record "Audit File Export Header"): Enum "Audit Data Check Status"
-    var
-        CompanyInformation: Record "Company Information";
     begin
         AuditFileExportHeader.TestField("Starting Date");
         AuditFileExportHeader.TestField("Ending Date");
-
-        CompanyInformation.Get();
-        CompanyInformation.TestField("Registration No.");
 
         exit("Audit Data Check Status"::Passed);
     end;

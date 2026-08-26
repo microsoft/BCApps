@@ -8,6 +8,7 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Foundation.Company;
 using Microsoft.Utilities;
+using System.TestLibraries.Utilities;
 
 codeunit 148006 "UT REP Export G/L FR"
 {
@@ -18,8 +19,10 @@ codeunit 148006 "UT REP Export G/L FR"
     var
         Assert: Codeunit Assert;
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         IsInitialized: Boolean;
         NoEntriesToExportErr: Label 'There are no entries to export within the defined filter. The file was not created.';
+        GenerateAuditFileImmediatelyQst: Label 'Since you did not schedule the audit file generation, it will be generated immediately which can take a while. Do you want to continue?';
 
     [Test]
     procedure MissingStartingDateErrTest()
@@ -50,23 +53,21 @@ codeunit 148006 "UT REP Export G/L FR"
     [HandlerFunctions('ConfirmHandlerYes')]
     procedure NoEntriesToExportError()
     var
-        CompanyInformation: Record "Company Information";
-        LibraryRandom: Codeunit "Library - Random";
         AuditFileExportHeaderID: Integer;
         StartingDate: Date;
     begin
         Initialize();
         StartingDate := GetStartingDate();
-        CompanyInformation.Get();
-        CompanyInformation.Validate("Registration No.", Format(LibraryRandom.RandIntInRange(100000000, 999999999)));
-        CompanyInformation.Modify();
+        LibraryVariableStorage.Enqueue(GenerateAuditFileImmediatelyQst);
         AuditFileExportHeaderID := RunXMLExport('', StartingDate, StartingDate);
         VerifyError(AuditFileExportHeaderID, NoEntriesToExportErr);
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     local procedure Initialize()
     begin
         LibrarySetupStorage.Restore();
+        LibraryVariableStorage.Clear();
 
         if IsInitialized then
             exit;
@@ -143,6 +144,7 @@ codeunit 148006 "UT REP Export G/L FR"
     [ConfirmHandler]
     procedure ConfirmHandlerYes(Question: Text[1024]; var Reply: Boolean)
     begin
+        Assert.AreEqual(LibraryVariableStorage.DequeueText(), Question, '');
         Reply := true;
     end;
 }
