@@ -9,6 +9,7 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Preview;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Integration.Shopify;
 using Microsoft.Inventory.Item;
@@ -122,7 +123,7 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
 
         // [THEN] A Cust. Ledger Entry is created for the transaction
         CustLedgerEntry.SetRange("Shpfy Transaction Id", TransactionId);
-        LibraryAssert.IsFalse(CustLedgerEntry.IsEmpty(), 'Cust. Ledger Entry should be created for the auto-posted transaction. ' + GetSkippedReason(TransactionId));
+        LibraryAssert.IsFalse(CustLedgerEntry.IsEmpty(), 'Cust. Ledger Entry should be created for the auto-posted transaction');
     end;
 
     [Test]
@@ -700,16 +701,6 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
         RefundHeader.Insert();
     end;
 
-    local procedure GetSkippedReason(TransactionId: BigInteger): Text
-    var
-        SkippedRecord: Record "Shpfy Skipped Record";
-    begin
-        SkippedRecord.SetRange("Shopify Id", TransactionId);
-        if SkippedRecord.FindLast() then
-            exit('Skipped reason: ' + SkippedRecord."Skipped Reason");
-        exit('No skipped record logged.');
-    end;
-
     local procedure EnablePaymentMethodMappingAutoPost(AutoPost: Boolean)
     begin
         PaymentMethodMapping."Post Automatically" := AutoPost;
@@ -762,9 +753,15 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
     local procedure CreateJournalBatch(var GenJournalBatch: Record "Gen. Journal Batch")
     var
         GenJournalTemplate: Record "Gen. Journal Template";
+        SourceCode: Record "Source Code";
+        LibraryERM: Codeunit "Library - ERM";
     begin
+        // A source code is required on the template so the generated journal lines carry one; some country
+        // localizations enforce a mandatory Source Code at posting time.
+        LibraryERM.CreateSourceCode(SourceCode);
         GenJournalTemplate.Name := CopyStr(LibraryRandom.RandText(10), 1, MaxStrLen(GenJournalTemplate.Name));
         GenJournalTemplate.Type := GenJournalTemplate.Type::"Cash Receipts";
+        GenJournalTemplate."Source Code" := SourceCode.Code;
         GenJournalTemplate.Insert();
 
         GenJournalBatch."Journal Template Name" := GenJournalTemplate.Name;
