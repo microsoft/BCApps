@@ -15,7 +15,7 @@ namespace Microsoft.eServices.EDocument;
 /// accordingly. Both events are raised last, so the structure a subscriber sets wins over the built-in
 /// classification.
 /// </remarks>
-enum 6430 "Item Charge E-Invoice Mapping"
+enum 6533 "Item Charge E-Invoice Mapping"
 {
     Extensible = true;
     Caption = 'Item Charge E-Invoice Mapping';

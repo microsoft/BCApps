@@ -7,7 +7,7 @@ namespace Microsoft.eServices.EDocument;
 /// <summary>
 /// The structure that an item charge line is exported as in an e-document.
 /// </summary>
-enum 6431 "Item Charge E-Doc. Structure"
+enum 6534 "Item Charge E-Doc. Structure"
 {
     Extensible = true;
     Caption = 'Item Charge E-Document Structure';

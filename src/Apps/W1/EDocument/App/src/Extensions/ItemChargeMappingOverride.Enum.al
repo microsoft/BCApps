@@ -17,7 +17,7 @@ namespace Microsoft.eServices.EDocument;
 /// the Structure parameter accordingly. Both events are raised last, so the structure a subscriber sets wins
 /// over the built-in classification.
 /// </remarks>
-enum 6432 "Item Charge Mapping Override"
+enum 6535 "Item Charge Mapping Override"
 {
     Extensible = true;
     Caption = 'Item Charge Mapping Override';

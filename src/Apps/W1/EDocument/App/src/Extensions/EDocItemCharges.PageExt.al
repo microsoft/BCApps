@@ -11,7 +11,7 @@ using Microsoft.Inventory.Item;
 /// The columns are hidden, because they only take effect for e-document formats whose export evaluates them.
 /// An extension for such a format makes the columns visible.
 /// </summary>
-pageextension 6435 "E-Doc. Item Charges" extends "Item Charges"
+pageextension 6537 "E-Doc. Item Charges" extends "Item Charges"
 {
     layout
     {
