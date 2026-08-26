@@ -56,6 +56,49 @@ codeunit 1300 "Sales Shipment-Invoice Link"
     end;
 
     /// <summary>
+    /// Shows the posted sales invoices that a posted sales shipment line was invoiced with.
+    /// When the line was invoiced by exactly one invoice, that invoice opens directly.
+    /// Otherwise the related posted sales invoice lines are shown in a list.
+    /// </summary>
+    /// <param name="SalesShipmentLine">The posted sales shipment line to find the related invoices for.</param>
+    procedure ShowInvoicesForShipmentLine(SalesShipmentLine: Record "Sales Shipment Line")
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempSalesInvoiceLine: Record "Sales Invoice Line" temporary;
+        InvoiceNo: Code[20];
+    begin
+        if SalesShipmentLine.Type <> SalesShipmentLine.Type::Item then
+            exit;
+
+        SalesShipmentLine.GetSalesInvLines(TempSalesInvoiceLine);
+
+        if FindSingleInvoiceNo(TempSalesInvoiceLine, InvoiceNo) and SalesInvoiceHeader.Get(InvoiceNo) then begin
+            Page.RunModal(Page::"Posted Sales Invoice", SalesInvoiceHeader);
+            exit;
+        end;
+
+        Page.RunModal(Page::"Posted Sales Invoice Lines", TempSalesInvoiceLine);
+    end;
+
+    local procedure FindSingleInvoiceNo(var TempSalesInvoiceLine: Record "Sales Invoice Line" temporary; var InvoiceNo: Code[20]) Result: Boolean
+    begin
+        InvoiceNo := '';
+        if TempSalesInvoiceLine.FindSet() then begin
+            Result := true;
+            repeat
+                if (InvoiceNo <> '') and (InvoiceNo <> TempSalesInvoiceLine."Document No.") then
+                    Result := false;
+                InvoiceNo := TempSalesInvoiceLine."Document No.";
+            until (TempSalesInvoiceLine.Next() = 0) or not Result;
+        end;
+
+        if TempSalesInvoiceLine.FindFirst() then;
+        if not Result then
+            InvoiceNo := '';
+        exit(Result and (InvoiceNo <> ''));
+    end;
+
+    /// <summary>
     /// Finds the posted sales shipments that are related to a posted sales invoice.
     /// The relation is resolved from the item ledger entries that the invoice invoiced, and from the shipment
     /// that individual invoice lines were created from.
@@ -64,12 +107,14 @@ codeunit 1300 "Sales Shipment-Invoice Link"
     /// <param name="SalesShipmentHeader">Returns the related shipments as a marked-only record set.</param>
     /// <returns>True if at least one related shipment was found; otherwise false.</returns>
     procedure GetShipmentsForInvoice(SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesShipmentHeader: Record "Sales Shipment Header"): Boolean
+    var
+        ProcessedShipmentNos: Dictionary of [Code[20], Boolean];
     begin
         SalesShipmentHeader.Reset();
         SalesShipmentHeader.ClearMarks();
 
-        MarkShipmentsFromItemEntries(SalesInvoiceHeader."No.", SalesShipmentHeader);
-        MarkShipmentsFromInvoiceLines(SalesInvoiceHeader."No.", SalesShipmentHeader);
+        MarkShipmentsFromItemEntries(SalesInvoiceHeader."No.", SalesShipmentHeader, ProcessedShipmentNos);
+        MarkShipmentsFromInvoiceLines(SalesInvoiceHeader."No.", SalesShipmentHeader, ProcessedShipmentNos);
         OnAfterGetShipmentsForInvoice(SalesInvoiceHeader, SalesShipmentHeader);
 
         SalesShipmentHeader.MarkedOnly(true);
@@ -85,19 +130,21 @@ codeunit 1300 "Sales Shipment-Invoice Link"
     /// <param name="SalesInvoiceHeader">Returns the related invoices as a marked-only record set.</param>
     /// <returns>True if at least one related invoice was found; otherwise false.</returns>
     procedure GetInvoicesForShipment(SalesShipmentHeader: Record "Sales Shipment Header"; var SalesInvoiceHeader: Record "Sales Invoice Header"): Boolean
+    var
+        ProcessedInvoiceNos: Dictionary of [Code[20], Boolean];
     begin
         SalesInvoiceHeader.Reset();
         SalesInvoiceHeader.ClearMarks();
 
-        MarkInvoicesFromItemEntries(SalesShipmentHeader."No.", SalesInvoiceHeader);
-        MarkInvoicesFromInvoiceLines(SalesShipmentHeader."No.", SalesInvoiceHeader);
+        MarkInvoicesFromItemEntries(SalesShipmentHeader."No.", SalesInvoiceHeader, ProcessedInvoiceNos);
+        MarkInvoicesFromInvoiceLines(SalesShipmentHeader."No.", SalesInvoiceHeader, ProcessedInvoiceNos);
         OnAfterGetInvoicesForShipment(SalesShipmentHeader, SalesInvoiceHeader);
 
         SalesInvoiceHeader.MarkedOnly(true);
         exit(SalesInvoiceHeader.FindFirst());
     end;
 
-    local procedure MarkShipmentsFromItemEntries(InvoiceNo: Code[20]; var SalesShipmentHeader: Record "Sales Shipment Header")
+    local procedure MarkShipmentsFromItemEntries(InvoiceNo: Code[20]; var SalesShipmentHeader: Record "Sales Shipment Header"; var ProcessedShipmentNos: Dictionary of [Code[20], Boolean])
     var
         ValueItemLedgerEntries: Query "Value Item Ledger Entries";
     begin
@@ -107,11 +154,11 @@ codeunit 1300 "Sales Shipment-Invoice Link"
         ValueItemLedgerEntries.SetRange(Value_Entry_Doc_No, InvoiceNo);
         ValueItemLedgerEntries.Open();
         while ValueItemLedgerEntries.Read() do
-            MarkShipmentHeader(SalesShipmentHeader, ValueItemLedgerEntries.Item_Ledg_Document_No);
+            MarkShipmentHeader(SalesShipmentHeader, ValueItemLedgerEntries.Item_Ledg_Document_No, ProcessedShipmentNos);
         ValueItemLedgerEntries.Close();
     end;
 
-    local procedure MarkInvoicesFromItemEntries(ShipmentNo: Code[20]; var SalesInvoiceHeader: Record "Sales Invoice Header")
+    local procedure MarkInvoicesFromItemEntries(ShipmentNo: Code[20]; var SalesInvoiceHeader: Record "Sales Invoice Header"; var ProcessedInvoiceNos: Dictionary of [Code[20], Boolean])
     var
         ValueItemLedgerEntries: Query "Value Item Ledger Entries";
     begin
@@ -121,7 +168,7 @@ codeunit 1300 "Sales Shipment-Invoice Link"
         ValueItemLedgerEntries.SetRange(Item_Ledg_Document_No, ShipmentNo);
         ValueItemLedgerEntries.Open();
         while ValueItemLedgerEntries.Read() do
-            MarkInvoiceHeader(SalesInvoiceHeader, ValueItemLedgerEntries.Value_Entry_Doc_No);
+            MarkInvoiceHeader(SalesInvoiceHeader, ValueItemLedgerEntries.Value_Entry_Doc_No, ProcessedInvoiceNos);
         ValueItemLedgerEntries.Close();
     end;
 
@@ -141,7 +188,7 @@ codeunit 1300 "Sales Shipment-Invoice Link"
         exit(true);
     end;
 
-    local procedure MarkShipmentsFromInvoiceLines(InvoiceNo: Code[20]; var SalesShipmentHeader: Record "Sales Shipment Header")
+    local procedure MarkShipmentsFromInvoiceLines(InvoiceNo: Code[20]; var SalesShipmentHeader: Record "Sales Shipment Header"; var ProcessedShipmentNos: Dictionary of [Code[20], Boolean])
     var
         SalesInvoiceLine: Record "Sales Invoice Line";
     begin
@@ -150,11 +197,11 @@ codeunit 1300 "Sales Shipment-Invoice Link"
         SalesInvoiceLine.SetFilter("Shipment No.", '<>%1', '');
         if SalesInvoiceLine.FindSet() then
             repeat
-                MarkShipmentHeader(SalesShipmentHeader, SalesInvoiceLine."Shipment No.");
+                MarkShipmentHeader(SalesShipmentHeader, SalesInvoiceLine."Shipment No.", ProcessedShipmentNos);
             until SalesInvoiceLine.Next() = 0;
     end;
 
-    local procedure MarkInvoicesFromInvoiceLines(ShipmentNo: Code[20]; var SalesInvoiceHeader: Record "Sales Invoice Header")
+    local procedure MarkInvoicesFromInvoiceLines(ShipmentNo: Code[20]; var SalesInvoiceHeader: Record "Sales Invoice Header"; var ProcessedInvoiceNos: Dictionary of [Code[20], Boolean])
     var
         SalesInvoiceLine: Record "Sales Invoice Line";
     begin
@@ -163,22 +210,30 @@ codeunit 1300 "Sales Shipment-Invoice Link"
         SalesInvoiceLine.SetRange("Shipment No.", ShipmentNo);
         if SalesInvoiceLine.FindSet() then
             repeat
-                MarkInvoiceHeader(SalesInvoiceHeader, SalesInvoiceLine."Document No.");
+                MarkInvoiceHeader(SalesInvoiceHeader, SalesInvoiceLine."Document No.", ProcessedInvoiceNos);
             until SalesInvoiceLine.Next() = 0;
     end;
 
-    local procedure MarkShipmentHeader(var SalesShipmentHeader: Record "Sales Shipment Header"; ShipmentNo: Code[20])
+    local procedure MarkShipmentHeader(var SalesShipmentHeader: Record "Sales Shipment Header"; ShipmentNo: Code[20]; var ProcessedShipmentNos: Dictionary of [Code[20], Boolean])
     begin
         if ShipmentNo = '' then
             exit;
+        if ProcessedShipmentNos.ContainsKey(ShipmentNo) then
+            exit;
+        ProcessedShipmentNos.Add(ShipmentNo, true);
+
         if SalesShipmentHeader.Get(ShipmentNo) then
             SalesShipmentHeader.Mark(true);
     end;
 
-    local procedure MarkInvoiceHeader(var SalesInvoiceHeader: Record "Sales Invoice Header"; InvoiceNo: Code[20])
+    local procedure MarkInvoiceHeader(var SalesInvoiceHeader: Record "Sales Invoice Header"; InvoiceNo: Code[20]; var ProcessedInvoiceNos: Dictionary of [Code[20], Boolean])
     begin
         if InvoiceNo = '' then
             exit;
+        if ProcessedInvoiceNos.ContainsKey(InvoiceNo) then
+            exit;
+        ProcessedInvoiceNos.Add(InvoiceNo, true);
+
         if SalesInvoiceHeader.Get(InvoiceNo) then
             SalesInvoiceHeader.Mark(true);
     end;

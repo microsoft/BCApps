@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -380,7 +380,7 @@ page 131 "Posted Sales Shpt. Subform"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Item Invoice &Lines';
                     Image = ItemInvoice;
-                    ToolTip = 'View posted sales invoice lines for the item.';
+                    ToolTip = 'View the posted sales invoices that this shipment line was invoiced with. If only one invoice is related to the line, it opens directly.';
 
                     trigger OnAction()
                     begin
