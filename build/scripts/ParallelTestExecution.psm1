@@ -1086,7 +1086,7 @@ function Start-TestJob {
     $bchModulePath = if ($bchModule) { $bchModule.Path } else { "BcContainerHelper" }
     $parallelModulePath = (Get-Module ParallelTestExecution | Select-Object -First 1).Path
 
-    return Start-Job -ScriptBlock {
+    $jobScript = {
         param($params, $scriptPath, $testType, $bchPath, $parallelPath, $skipDisabledPass, $tenantDatabaseName, $templateDatabaseName)
         Import-Module $bchPath
         if ($templateDatabaseName) {
@@ -1100,7 +1100,9 @@ function Start-TestJob {
         $passed = . $scriptPath -parameters $params -TestType $testType -AppNamesToTest @() `
             -SkipAutomaticDisabledPass:$skipDisabledPass
         if (-not $passed) { throw "Test execution failed" }
-    } -ArgumentList $jobParams, $scriptPath, $testType, $bchModulePath, $parallelModulePath, `
+    }
+
+    return Start-Job -ScriptBlock $jobScript -ArgumentList $jobParams, $scriptPath, $testType, $bchModulePath, $parallelModulePath, `
         $skipAutomaticDisabledPass.IsPresent, $tenantDatabaseName, $templateDatabaseName
 }
 
