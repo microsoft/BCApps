@@ -343,6 +343,7 @@ table 84 "Acc. Schedule Name"
         ConfigPackage: Record "Config. Package";
         ConfigPackageTable: Record "Config. Package Table";
         ConfigPackageMgt: Codeunit "Config. Package Management";
+        ClearedStatusValues: Dictionary of [Integer, Text];
         NewName: Code[10];
     begin
         if not ConfigPackage.Get(PackageCode) then
@@ -352,14 +353,16 @@ table 84 "Acc. Schedule Name"
         if NewName = '' then
             Error(PackageImportErr);
 
-        ClearNonExistingStatusInPackage(PackageCode);
+        ClearNonExistingStatusInPackage(PackageCode, ClearedStatusValues);
 
         ConfigPackageTable.SetRange("Package Code", PackageCode);
         ConfigPackageMgt.ApplyPackage(ConfigPackage, ConfigPackageTable, false);
+
+        RestoreClearedStatusInPackage(PackageCode, ClearedStatusValues);
         LogImportExportTelemetry(NewName, 'imported');
     end;
 
-    local procedure ClearNonExistingStatusInPackage(PackageCode: Code[20])
+    local procedure ClearNonExistingStatusInPackage(PackageCode: Code[20]; var ClearedStatusValues: Dictionary of [Integer, Text])
     var
         AccScheduleName: Record "Acc. Schedule Name";
         FinancialReportStatus: Record "Financial Report Status";
@@ -372,10 +375,24 @@ table 84 "Acc. Schedule Name"
         if ConfigPackageData.FindSet() then
             repeat
                 if not FinancialReportStatus.Get(CopyStr(ConfigPackageData.Value, 1, MaxStrLen(FinancialReportStatus.Code))) then begin
+                    ClearedStatusValues.Add(ConfigPackageData."No.", ConfigPackageData.Value);
                     ConfigPackageData.Value := '';
                     ConfigPackageData.Modify();
                 end;
             until ConfigPackageData.Next() = 0;
+    end;
+
+    local procedure RestoreClearedStatusInPackage(PackageCode: Code[20]; var ClearedStatusValues: Dictionary of [Integer, Text])
+    var
+        AccScheduleName: Record "Acc. Schedule Name";
+        ConfigPackageData: Record "Config. Package Data";
+        RecordNo: Integer;
+    begin
+        foreach RecordNo in ClearedStatusValues.Keys() do
+            if ConfigPackageData.Get(PackageCode, Database::"Acc. Schedule Name", RecordNo, AccScheduleName.FieldNo(Status)) then begin
+                ConfigPackageData.Value := CopyStr(ClearedStatusValues.Get(RecordNo), 1, MaxStrLen(ConfigPackageData.Value));
+                ConfigPackageData.Modify();
+            end;
     end;
 
     local procedure GetPackageAccSchedName(PackageCode: Code[20]) NewName: Code[10]
