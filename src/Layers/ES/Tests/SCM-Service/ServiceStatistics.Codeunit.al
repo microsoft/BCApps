@@ -435,8 +435,9 @@ codeunit 136130 "Service Statistics"
         CreateServiceCreditMemoLine(ServiceCreditMemo, ServiceLine.Type::Resource, LibraryResource.CreateResourceNo());
         CreateServiceCreditMemoLine(ServiceCreditMemo, ServiceLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithSalesSetup());
         CreateServiceCreditMemoLine(ServiceCreditMemo, ServiceLine.Type::Cost, ServiceCost.Code);
+
         ServiceCreditMemo."Calculate Invoice Discount".Invoke();
-        ServiceCreditMemo.Statistics.Invoke();
+        ServiceCreditMemo.ServiceStatistics.Invoke();
 
         // 3. Verify: Verify Statistics Page with details on Page handler.
     end;
@@ -497,7 +498,7 @@ codeunit 136130 "Service Statistics"
         DocumentType2 := ServiceLine."Document Type"::"Credit Memo";  // Assign global variable for page handler.
         CreateServiceCreditMemoLine(ServiceCreditMemo, ServiceLine.Type::Item, LibraryInventory.CreateItemNo());
         ServiceCreditMemo."Calculate Invoice Discount".Invoke();
-        ServiceCreditMemo.Statistics.Invoke();
+        ServiceCreditMemo.ServiceStatistics.Invoke();
         UpdateDiscountAmount := true;  // Assign global variable for page handler.
         ServiceCreditMemo.ServiceStatistics.Invoke();
 
@@ -527,7 +528,7 @@ codeunit 136130 "Service Statistics"
         DocumentType2 := ServiceLine."Document Type"::"Credit Memo";  // Assign global variable for page handler.
         CreateServiceCreditMemoLine(ServiceCreditMemo, ServiceLine.Type::Item, LibraryInventory.CreateItemNo());
         ServiceCreditMemo."Calculate Invoice Discount".Invoke();
-        ServiceCreditMemo.Statistics.Invoke();
+        ServiceCreditMemo.ServiceStatistics.Invoke();
         UpdateTotalVAT := true;  // Assign global variable for page handler.
         ServiceCreditMemo.ServiceStatistics.Invoke();
 

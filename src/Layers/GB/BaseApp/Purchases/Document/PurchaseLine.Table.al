@@ -1581,8 +1581,6 @@ table 39 "Purchase Line"
                                     TestField("No.", VATPostingSetup.GetPurchAccount(false));
                                 end;
                         end;
-
-
                     ShouldUpdateUnitCost := PurchHeader."Prices Including VAT" and (Rec.Type in [Rec.Type::"G/L Account", Rec.Type::Item, Rec.Type::Resource]);
                     OnValidateVATProdPostingGroupOnAfterCalcShouldUpdateUnitCost(Rec, VATPostingSetup, ShouldUpdateUnitCost);
                     if ShouldUpdateUnitCost then
@@ -3879,8 +3877,8 @@ table 39 "Purchase Line"
             Caption = 'Reverse Charge Item';
             Editable = false;
             ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
+            ObsoleteState = Removed;
+            ObsoleteTag = '30.0';
         }
 #endif
         field(12100; "No. of Fixed Asset Cards"; Integer)
