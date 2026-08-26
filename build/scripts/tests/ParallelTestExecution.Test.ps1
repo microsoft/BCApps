@@ -174,7 +174,9 @@ Describe "ParallelTestExecution app-name resolution" {
                 })
             }
             Mock Enable-BcTestTaskScheduler { }
+            Mock Disable-BcTestTaskScheduler { }
             Mock New-BcTestTenantTemplate { 'default-test-template' }
+            Mock Invoke-RequiredDisabledTestExecution { $true }
             Mock Invoke-WarmupDispatch { @($Pending) }
             Mock Wait-ForFreeTenant { 'default' }
             Mock Start-TestAppDispatch { throw 'dispatch failed' }
@@ -604,13 +606,20 @@ Describe "ParallelTestExecution clean tenant scheduling" {
                     TestCount = 2
                 })
             }
+            $script:taskSchedulerEnabled = $false
             Mock New-BcTestTenantTemplate { 'default-test-template' }
             Mock Wait-ForFreeTenant { 'default' }
-            Mock Start-TestAppDispatch { }
+            Mock Start-TestAppDispatch {
+                $script:taskSchedulerEnabled | Should -BeFalse
+            }
             Mock Wait-ForAllTestJobs { $true }
-            Mock Invoke-RequiredDisabledTestExecution { $true }
+            Mock Invoke-RequiredDisabledTestExecution {
+                $script:taskSchedulerEnabled | Should -BeTrue
+                $true
+            }
             Mock Remove-BcTestTenantTemplate { }
-            Mock Enable-BcTestTaskScheduler { }
+            Mock Enable-BcTestTaskScheduler { $script:taskSchedulerEnabled = $true }
+            Mock Disable-BcTestTaskScheduler { $script:taskSchedulerEnabled = $false }
             Mock Merge-TenantTestResults { }
 
             $result = Invoke-ParallelTestExecution -parameters @{
@@ -623,6 +632,7 @@ Describe "ParallelTestExecution clean tenant scheduling" {
                 $SourceDatabaseName -eq 'default'
             }
             Should -Invoke Enable-BcTestTaskScheduler -Times 1
+            Should -Invoke Disable-BcTestTaskScheduler -Times 1
             Should -Invoke Invoke-RequiredDisabledTestExecution -Times 1 -ParameterFilter {
                 $TemplateDatabaseName -eq 'default-test-template' -and
                 $WorkItems.Count -eq 1 -and

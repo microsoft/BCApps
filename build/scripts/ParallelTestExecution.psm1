@@ -517,26 +517,48 @@ function Remove-BcTestTenantTemplate {
     } -argumentList $TemplateDatabaseName
 }
 
-function Enable-BcTestTaskScheduler {
+function Set-BcTestTaskScheduler {
     param(
         [Parameter(Mandatory=$true)]
-        [string]$ContainerName
+        [string]$ContainerName,
+        [Parameter(Mandatory=$true)]
+        [bool]$Enabled
     )
 
-    Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock {
-        Write-Host "Enabling Task Scheduler for clean RequiredTestIsolation=Disabled execution..."
-        Set-NAVServerConfiguration -ServerInstance $ServerInstance -KeyName "EnableTaskScheduler" -KeyValue "true" -WarningAction SilentlyContinue
+    Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock { Param($enabled)
+        $state = if ($enabled) { "Enabling" } else { "Disabling" }
+        $value = if ($enabled) { "true" } else { "false" }
+        Write-Host "$state Task Scheduler for clean RequiredTestIsolation=Disabled execution..."
+        Set-NAVServerConfiguration -ServerInstance $ServerInstance -KeyName "EnableTaskScheduler" -KeyValue $value -WarningAction SilentlyContinue
         Set-NAVServerInstance -ServerInstance $ServerInstance -Restart
 
         $maxWaitSeconds = 300
         $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
         while (Get-NAVTenant $ServerInstance | Where-Object { $_.State -eq "Mounting" }) {
             if ($stopwatch.Elapsed.TotalSeconds -ge $maxWaitSeconds) {
-                throw "Tenants did not finish mounting within $maxWaitSeconds seconds after enabling Task Scheduler."
+                throw "Tenants did not finish mounting within $maxWaitSeconds seconds after changing Task Scheduler state."
             }
             Start-Sleep -Milliseconds 250
         }
-    }
+    } -argumentList $Enabled
+}
+
+function Enable-BcTestTaskScheduler {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ContainerName
+    )
+
+    Set-BcTestTaskScheduler -ContainerName $ContainerName -Enabled $true
+}
+
+function Disable-BcTestTaskScheduler {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ContainerName
+    )
+
+    Set-BcTestTaskScheduler -ContainerName $ContainerName -Enabled $false
 }
 
 <#
@@ -1391,8 +1413,6 @@ function Invoke-ParallelTestExecution {
             if (-not $sourceTenantInfo -or [string]::IsNullOrEmpty($sourceTenantInfo.DatabaseName)) {
                 throw "Could not determine the database name for source tenant '$($parameters.tenant)'."
             }
-            # Restart before tests mutate server/tenant state; late restarts can fail on configuration changes made by test apps.
-            Enable-BcTestTaskScheduler -ContainerName $parameters.containerName
             $templateDatabaseName = New-BcTestTenantTemplate -ContainerName $parameters.containerName -SourceDatabaseName $sourceTenantInfo.DatabaseName
         }
 
@@ -1404,6 +1424,21 @@ function Invoke-ParallelTestExecution {
         rerun = @(); rerunDone = @{}; rerunBudget = (Get-AppRerunBudget); tenantCount = $tenants.Count
     }
     $state | ConvertTo-Json -Depth 5 | Set-Content $stateFile -Force
+
+    if ($requiredDisabledWorkItems.Count -gt 0) {
+        Enable-BcTestTaskScheduler -ContainerName $parameters.containerName
+        try {
+            $requiredDisabledPassed = Invoke-RequiredDisabledTestExecution -Parameters $parameters `
+                -WorkItems $requiredDisabledWorkItems -TenantInfo $cleanTenantInfo `
+                -TemplateDatabaseName $templateDatabaseName -ScriptPath $scriptPath -TestType $testType
+            if (-not $requiredDisabledPassed) {
+                $state.hasFailures = $true
+            }
+        }
+        finally {
+            Disable-BcTestTaskScheduler -ContainerName $parameters.containerName
+        }
+    }
 
     # Single dispatch loop, FIFO. TestConfiguration.json lists the smallest app first (a cheap
     # serial warmup) and the rest longest-first (LPT, keeps the tail short). The retry cap lives in
@@ -1487,15 +1522,6 @@ function Invoke-ParallelTestExecution {
             $null = Wait-ForAllTestJobs -state $state
         }
     }
-
-        if ($requiredDisabledWorkItems.Count -gt 0) {
-            $requiredDisabledPassed = Invoke-RequiredDisabledTestExecution -Parameters $parameters `
-                -WorkItems $requiredDisabledWorkItems -TenantInfo $cleanTenantInfo `
-                -TemplateDatabaseName $templateDatabaseName -ScriptPath $scriptPath -TestType $testType
-            if (-not $requiredDisabledPassed) {
-                $state.hasFailures = $true
-            }
-        }
 
         $allPassed = -not $state.hasFailures
 
