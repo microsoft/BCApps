@@ -12,7 +12,8 @@ using Microsoft.Manufacturing.Setup;
 codeunit 99000793 "Calculate Low-Level Code"
 {
     Permissions = TableData Item = rm,
-                  TableData "Manufacturing Setup" = r;
+                  TableData "Manufacturing Setup" = r,
+                  TableData "Stockkeeping Unit" = r;
     TableNo = Item;
 
     trigger OnRun()
