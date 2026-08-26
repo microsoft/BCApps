@@ -148,6 +148,11 @@ codeunit 130473 "Test Configuration Mgt"
         OriginalStabilityRun := BaseSuite."Stability Run";
         TestSuiteMgt.ChangeStabilityRun(BaseSuite, true);
 
+        // RunNextTest only selects codeunit lines whose result is still blank and it does not reset
+        // results itself, unlike the full suite run. Clear the base suite first so every codeunit runs
+        // for this configuration even when a previous configuration already left results on the lines.
+        ClearSuiteResults(BaseSuite.Name);
+
         TestMethodLine.SetRange("Test Suite", BaseSuite.Name);
         if TestMethodLine.FindFirst() then begin
             RemainingBefore := CountUnrunCodeunits(BaseSuite.Name);
@@ -156,17 +161,40 @@ codeunit 130473 "Test Configuration Mgt"
                     RemainingBefore := 0
                 else begin
                     RemainingAfter := CountUnrunCodeunits(BaseSuite.Name);
-                    // Stop if a codeunit could not be advanced (for example it has no runnable method),
-                    // so the loop cannot spin forever on the same codeunit.
+                    // A codeunit with no runnable method never gets a result, so RunNextTest would keep
+                    // reselecting it. Mark just that codeunit skipped so the remaining codeunits still run.
                     if RemainingAfter >= RemainingBefore then
-                        RemainingBefore := 0
-                    else
-                        RemainingBefore := RemainingAfter;
+                        SkipFirstUnrunCodeunit(BaseSuite.Name);
+                    RemainingBefore := CountUnrunCodeunits(BaseSuite.Name);
                 end;
             end;
         end;
 
         TestSuiteMgt.ChangeStabilityRun(BaseSuite, OriginalStabilityRun);
+    end;
+
+    local procedure ClearSuiteResults(SuiteName: Code[10])
+    var
+        TestMethodLine: Record "Test Method Line";
+    begin
+        // Trigger free reset, matching how the platform runner clears results before a run.
+        TestMethodLine.SetRange("Test Suite", SuiteName);
+        TestMethodLine.ModifyAll("Error Message Preview", '');
+        TestMethodLine.ModifyAll(Result, TestMethodLine.Result::" ");
+    end;
+
+    local procedure SkipFirstUnrunCodeunit(SuiteName: Code[10])
+    var
+        CodeunitLine: Record "Test Method Line";
+    begin
+        CodeunitLine.SetRange("Test Suite", SuiteName);
+        CodeunitLine.SetRange("Line Type", CodeunitLine."Line Type"::Codeunit);
+        CodeunitLine.SetRange(Result, CodeunitLine.Result::" ");
+        CodeunitLine.SetRange(Run, true);
+        if CodeunitLine.FindFirst() then begin
+            CodeunitLine.Result := CodeunitLine.Result::Skipped;
+            CodeunitLine.Modify(false);
+        end;
     end;
 
     local procedure CountUnrunCodeunits(SuiteName: Code[10]): Integer
