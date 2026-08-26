@@ -290,8 +290,10 @@ codeunit 139649 "E-Doc. Attachment Tests"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"E-Doc. Attachment Tests");
 
         GeneralLedgerSetup.Get();
-        GeneralLedgerSetup."VAT Reporting Date Usage" := GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled;
-        GeneralLedgerSetup.Modify(false);
+        if GeneralLedgerSetup."VAT Reporting Date Usage" <> GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled then begin
+            GeneralLedgerSetup."VAT Reporting Date Usage" := GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled;
+            GeneralLedgerSetup.Modify(false);
+        end;
 
         if IsInitialized then
             exit;
