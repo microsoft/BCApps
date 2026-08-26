@@ -2907,7 +2907,6 @@ codeunit 144200 "FatturaPA Test"
 
     local procedure VerifyXSDSchemaForStream(XmlInStream: InStream)
     VAR
-        FileManagement: Codeunit "File Management";
         LibraryUtilityOnPrem: Codeunit "Library - Utility OnPrem";
         LibraryVerifyXMLSchema: Codeunit "Library - Verify XML Schema";
         Message: Text;
@@ -2916,7 +2915,6 @@ codeunit 144200 "FatturaPA Test"
         InetRoot: Text;
     BEGIN
         InetRoot := LibraryUtilityOnPrem.GetInetRoot() + InetRootRelativePathTxt;
-        // Test assets moved under App\BCApps\src during the submodule migration; probe there first, fall back to the legacy layout.
         if FileManagement.ServerFileExists(InetRoot + BCAppsRelativePathTxt + XSDRelativePathTxt) then
             InetRoot := InetRoot + BCAppsRelativePathTxt;
         SignatureXsdPath := InetRoot + SignatureXSDRelativePathTxt;

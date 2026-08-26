@@ -1204,10 +1204,8 @@ codeunit 144150 "Periodic VAT Pmt. Comm. Tests"
 
     local procedure ResolveTestAssetPath(RelativePath: Text): Text
     var
-        FileManagement: Codeunit "File Management";
         BCAppsAssetPath: Text;
     begin
-        // Test assets moved under App\BCApps\src during the submodule migration; probe there first, fall back to the legacy layout.
         BCAppsAssetPath := GetInetRoot() + '\App\BCApps\src' + RelativePath;
         if FileManagement.ServerFileExists(BCAppsAssetPath) then
             exit(BCAppsAssetPath);

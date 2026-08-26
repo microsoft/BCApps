@@ -1180,11 +1180,9 @@
     local procedure ExportXSDShemas()
     var
         LibraryUtilityOnPrem: Codeunit "Library - Utility OnPrem";
-        FileManagement: Codeunit "File Management";
         SchemaRoot: Text;
     begin
         SchemaRoot := LibraryUtilityOnPrem.GetInetRoot() + '..\' + '\GDL\NA\App\Test\XMLSchemas\';
-        // Test assets moved under App\BCApps\src during the submodule migration; probe there first, fall back to the legacy layout.
         if FileManagement.ServerFileExists(LibraryUtilityOnPrem.GetInetRoot() + '..\' + '\App\BCApps\src\GDL\NA\App\Test\XMLSchemas\CatalogoCuentas_1_3.xsd') then
             SchemaRoot := LibraryUtilityOnPrem.GetInetRoot() + '..\' + '\App\BCApps\src\GDL\NA\App\Test\XMLSchemas\';
         XSDSchemaFile_CatalogosParaEsqContE := SchemaRoot + 'CatalogosParaEsqContE.xsd';

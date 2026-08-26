@@ -2442,7 +2442,6 @@ codeunit 144012 "IT - VAT Reporting - Export"
         FileManagement: Codeunit "File Management";
         BCAppsAssetPath: Text;
     begin
-        // Test assets moved under App\BCApps\src during the submodule migration; probe there first, fall back to the legacy layout.
         BCAppsAssetPath := GetInetRoot() + '\App\BCApps\src' + RelativePath;
         if FileManagement.ServerFileExists(BCAppsAssetPath) then
             exit(BCAppsAssetPath);
