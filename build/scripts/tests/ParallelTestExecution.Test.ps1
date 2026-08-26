@@ -15,6 +15,19 @@ if (-not (Get-Command Get-TestsFromBcContainer -ErrorAction SilentlyContinue)) {
     }
 }
 
+if (-not (Get-Command Invoke-ScriptInBcContainer -ErrorAction SilentlyContinue)) {
+    function global:Invoke-ScriptInBcContainer {
+        param(
+            [string]$containerName,
+            [scriptblock]$scriptblock,
+            [object[]]$argumentList,
+            [bool]$useSession
+        )
+        $null = $containerName, $scriptblock, $argumentList, $useSession
+        throw "Invoke-ScriptInBcContainer stub should never be called; a Pester mock must intercept it."
+    }
+}
+
 Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
 
 Describe "ParallelTestExecution app-name resolution" {
