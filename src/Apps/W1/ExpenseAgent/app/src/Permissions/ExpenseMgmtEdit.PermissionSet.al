@@ -14,6 +14,7 @@ permissionset 6906 "Expense Mgmt. Edit"
     Permissions =
         tabledata Expense = IMD,
         tabledata "Expense User" = IMD,
+        tabledata "Expense Spend Limit" = IMD,
         tabledata "Expense Report Comment Line" = IMD,
         tabledata "Expense Itemization" = IMD,
         tabledata "Expense Participant" = IMD,
