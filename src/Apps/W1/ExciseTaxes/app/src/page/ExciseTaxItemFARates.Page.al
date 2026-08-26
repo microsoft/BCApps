@@ -38,6 +38,14 @@ page 7412 "Excise Tax Item/FA Rates"
                 {
                     ToolTip = 'Specifies the excise duty.';
                 }
+                field("Calculation Type"; Rec."Calculation Type")
+                {
+                    ToolTip = 'Specifies whether the excise duty is calculated as a specific amount per unit, ad valorem (a percentage of value), or a hybrid of both.';
+                }
+                field("Ad Valorem %"; Rec."Ad Valorem %")
+                {
+                    ToolTip = 'Specifies the percentage of value used when the calculation type is Ad Valorem or Hybrid.';
+                }
                 field("Effective From Date"; Rec."Effective From Date")
                 {
                     ToolTip = 'Specifies when this excise duty becomes effective.';
