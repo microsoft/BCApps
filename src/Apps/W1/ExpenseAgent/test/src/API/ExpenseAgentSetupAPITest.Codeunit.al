@@ -5,6 +5,7 @@
 namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
+using Microsoft.Finance.GeneralLedger.Account;
 using System.Agents;
 
 codeunit 148333 "Expense Agent Setup API Test"
