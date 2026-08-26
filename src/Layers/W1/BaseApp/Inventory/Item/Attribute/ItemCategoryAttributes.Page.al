@@ -53,8 +53,9 @@ page 5734 "Item Category Attributes"
                         PersistInheritanceData();
 
                         ItemAttribute.SetLoadFields(Type);
-                        ItemAttribute.Get(Rec."Attribute ID");
-                        if (ItemAttribute.Type = ItemAttribute.Type::Option) and (Rec.Value = '') then
+                        if (Rec."Attribute ID" <> 0) and ItemAttribute.Get(Rec."Attribute ID") and
+                           (ItemAttribute.Type = ItemAttribute.Type::Option) and (Rec.Value = '')
+                        then
                             Error(BlankOptionAttributeNotificationMsg, Rec."Attribute Name")
                         else
                             ChangeDefaultValue();

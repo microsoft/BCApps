@@ -2275,6 +2275,39 @@ codeunit 137414 "SCM Item Categories"
         Assert.RecordCount(ItemAttributeValueMapping, 1);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestItemCategoryAttributeUntouchedBlankOptionValueOnCloseBug641060()
+    var
+        ItemCategory: Record "Item Category";
+        ItemAttribute: Record "Item Attribute";
+        ItemAttributeValue: Record "Item Attribute Value";
+        ItemAttributeValueMapping: Record "Item Attribute Value Mapping";
+        ItemCategoryCard: TestPage "Item Category Card";
+    begin
+        // [FEATURE] [Bug 641060] - User experience for adding attribute in item categories
+        // [SCENARIO] Selecting an Option-type attribute but leaving Value untouched no longer blocks closing the Item Category Card and persists no mapping
+        Initialize();
+
+        // [GIVEN] An item category and an Option-type item attribute with a value
+        LibraryInventory.CreateItemCategory(ItemCategory);
+        LibraryInventory.CreateItemAttribute(ItemAttribute, ItemAttribute.Type::Option, '');
+        LibraryInventory.CreateItemAttributeValue(ItemAttributeValue, ItemAttribute.ID, LibraryUtility.GenerateGUID());
+
+        // [WHEN] The user selects the Option attribute, leaves Value untouched, and closes the Item Category Card
+        ItemCategoryCard.OpenEdit();
+        ItemCategoryCard.GotoRecord(ItemCategory);
+        ItemCategoryCard.Attributes.New();
+        ItemCategoryCard.Attributes."Attribute Name".SetValue(ItemAttribute.Name);
+        ItemCategoryCard.Close();
+
+        // [THEN] The card closes successfully and no attribute mapping is persisted for the category
+        ItemAttributeValueMapping.SetRange("Table ID", Database::"Item Category");
+        ItemAttributeValueMapping.SetRange("No.", ItemCategory.Code);
+        ItemAttributeValueMapping.SetRange("Item Attribute ID", ItemAttribute.ID);
+        Assert.RecordIsEmpty(ItemAttributeValueMapping);
+    end;
+
     local procedure CreatePairOfItemAttributeValues(var Item: Record Item; var ItemAttributeValue: array[2] of Record "Item Attribute Value"; Type: Option)
     var
         ItemAttribute: Record "Item Attribute";
