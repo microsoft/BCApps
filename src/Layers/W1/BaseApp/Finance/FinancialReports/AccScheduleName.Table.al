@@ -392,6 +392,14 @@ table 84 "Acc. Schedule Name"
             if ConfigPackageData.Get(PackageCode, Database::"Acc. Schedule Name", RecordNo, AccScheduleName.FieldNo(Status)) then begin
                 ConfigPackageData.Value := CopyStr(ClearedStatusValues.Get(RecordNo), 1, MaxStrLen(ConfigPackageData.Value));
                 ConfigPackageData.Modify();
+            end else begin
+                ConfigPackageData.Init();
+                ConfigPackageData."Package Code" := PackageCode;
+                ConfigPackageData."Table ID" := Database::"Acc. Schedule Name";
+                ConfigPackageData."No." := RecordNo;
+                ConfigPackageData."Field ID" := AccScheduleName.FieldNo(Status);
+                ConfigPackageData.Value := CopyStr(ClearedStatusValues.Get(RecordNo), 1, MaxStrLen(ConfigPackageData.Value));
+                ConfigPackageData.Insert();
             end;
     end;
 
