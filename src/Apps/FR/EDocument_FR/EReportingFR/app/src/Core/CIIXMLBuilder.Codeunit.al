@@ -1104,13 +1104,16 @@ codeunit 10978 "CII XML Builder"
     local procedure InitializeAmountRoundingPrecision(CurrencyCode: Code[10])
     var
         Currency: Record Currency;
+        GeneralLedgerSetup: Record "General Ledger Setup";
     begin
-        if CurrencyCode = '' then
-            Currency.InitRoundingPrecision()
-        else begin
-            Currency.Get(CurrencyCode);
-            Currency.TestField("Amount Rounding Precision");
+        GeneralLedgerSetup.Get();
+        if (CurrencyCode = '') or (CurrencyCode = GeneralLedgerSetup."LCY Code") then begin
+            AmountRoundingPrecision := GeneralLedgerSetup."Amount Rounding Precision";
+            exit;
         end;
+
+        Currency.Get(CurrencyCode);
+        Currency.TestField("Amount Rounding Precision");
         AmountRoundingPrecision := Currency."Amount Rounding Precision";
     end;
 
