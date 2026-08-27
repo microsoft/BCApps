@@ -69,7 +69,7 @@ table 6840 "Spend Request"
                 CreateDimFromDefaultDim(FieldNo("G/L Account No."));
             end;
         }
-        field(8; Purpose; Text[1000])
+        field(8; Purpose; Text[100])
         {
             Caption = 'Purpose';
             ToolTip = 'Specifies the purpose of the spend request.';

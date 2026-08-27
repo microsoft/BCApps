@@ -197,6 +197,15 @@ codeunit 6908 "Expense Event Subscriber"
         AutoApproveSpendRequestWhenAgentDisabled(SpendRequest);
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::"Spend Request", OnAfterModifyEvent, '', false, false)]
+    local procedure OnAfterModifySpendRequest(var Rec: Record "Spend Request")
+    begin
+        if (Rec.Status <> Rec.Status::Approved) or (Rec."Requested For" = '') then
+            exit;
+
+        CreateExpenseReportFromSpendRequest(Rec);
+    end;
+
     internal procedure IsSourceExpense(SourceCode: Code[10]): Boolean
     var
         SourceCodeSetup: Record "Source Code Setup";
@@ -320,5 +329,24 @@ codeunit 6908 "Expense Event Subscriber"
 
         SpendRequest.Status := SpendRequest.Status::Approved;
         SpendRequest.Modify();
+    end;
+
+    local procedure CreateExpenseReportFromSpendRequest(SpendRequest: Record "Spend Request")
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        SpendRequest.TestField("Requested For");
+
+        ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
+        if not ExpenseReportHeader.IsEmpty() then
+            exit;
+
+        ExpenseReportHeader.Init();
+        ExpenseReportHeader.Validate(Description, CopyStr(SpendRequest.Purpose, 1, MaxStrLen(ExpenseReportHeader.Description)));
+        ExpenseReportHeader.Validate("Expense User No.", SpendRequest."Requested For");
+        ExpenseReportHeader.Validate("Expense Report Date", SpendRequest."Expected Start Date");
+        ExpenseReportHeader.Validate("Reimbursement Currency Code", SpendRequest."Currency Code");
+        ExpenseReportHeader.Validate("Spend Request No.", SpendRequest."No.");
+        ExpenseReportHeader.Insert(true);
     end;
 }

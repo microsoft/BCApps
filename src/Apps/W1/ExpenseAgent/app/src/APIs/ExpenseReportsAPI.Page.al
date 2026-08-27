@@ -214,6 +214,14 @@ page 6928 "Expense Reports API"
                 {
                     Caption = 'Spend Request Close';
                 }
+                part(spendRequest; "Spend Requests API")
+                {
+                    Caption = 'Spend Request';
+                    EntityName = 'spendRequest';
+                    EntitySetName = 'spendRequests';
+                    Multiplicity = ZeroOrOne;
+                    SubPageLink = "No." = field("Spend Request No.");
+                }
                 part(expenseReportLines; "Expense Report Lines API")
                 {
                     Caption = 'Expense Report Lines';
