@@ -135,18 +135,23 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         if IsJobQueueEntryDataSynchJob(Sender, IntegrationTableMapping) then begin
             MasterDataManagementSetup.Get();
             if MasterDataManagementSetup."Is Enabled" then begin
-                MasterDataManagement.OnSetIntegrationTableFilter(IntegrationTableMapping, RecRef, IsHandled);
-                if not IsHandled then begin
-                    RecRef.Open(IntegrationTableMapping."Integration Table ID", false);
-                    MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, IntegrationTableMapping."Integration Table ID");
-                    if SourceCompanyName = '' then
-                        SourceCompanyName := MasterDataManagementSetup."Company Name";
-                    RecRef.ChangeCompany(SourceCompanyName);
-                    IntegrationTableMapping.SetIntRecordRefFilter(RecRef);
+                if MasterDataManagementSetup."Source Environment Name" <> '' then
+                    // Cross-environment: the change detector governs when this job is nudged; let it run and fetch the delta.
+                    Result := true
+                else begin
+                    MasterDataManagement.OnSetIntegrationTableFilter(IntegrationTableMapping, RecRef, IsHandled);
+                    if not IsHandled then begin
+                        RecRef.Open(IntegrationTableMapping."Integration Table ID", false);
+                        MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, IntegrationTableMapping."Integration Table ID");
+                        if SourceCompanyName = '' then
+                            SourceCompanyName := MasterDataManagementSetup."Company Name";
+                        RecRef.ChangeCompany(SourceCompanyName);
+                        IntegrationTableMapping.SetIntRecordRefFilter(RecRef);
+                    end;
+                    if not RecRef.IsEmpty() then
+                        Result := true;
+                    RecRef.Close();
                 end;
-                if not RecRef.IsEmpty() then
-                    Result := true;
-                RecRef.Close();
             end;
         end;
     end;
@@ -501,7 +506,7 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         MasterDataManagement: Codeunit "Master Data Management";
         BeforeRenameDestinationRecordRef: RecordRef;
         IsHandled: Boolean;
-        SourceCompanyName: Text[30];
+        SourceSystemId: Guid;
     begin
         if not MasterDataManagement.IsEnabled() then
             exit;
@@ -512,11 +517,9 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         MasterDataManagementSetup.Get();
         MasterDataManagement.OnGetIntegrationRecordRef(IntegrationTableMapping, SourceRecordRef, IsHandled);
         if not IsHandled then begin
-            MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, IntegrationTableMapping."Table ID");
-            if SourceCompanyName = '' then
-                SourceCompanyName := MasterDataManagementSetup."Company Name";
-            SourceRecordRef.ChangeCompany(SourceCompanyName);
-            SourceRecordRef.GetBySystemId(SourceRecordRef.Field(SourceRecordRef.SystemIdNo()).Value());
+            // Route the source re-fetch: the record lives in the local company or another environment.
+            SourceSystemId := SourceRecordRef.Field(SourceRecordRef.SystemIdNo()).Value();
+            if MasterDataManagementSetup.GetDataSource().GetBySystemId(SourceRecordRef.Number(), SourceSystemId, SourceRecordRef) then;
         end;
         BeforeRenameDestinationRecordRef.Open(DestinationRecordRef.Number());
         BeforeRenameDestinationRecordRef.GetBySystemId(DestinationRecordRef.Field(DestinationRecordRef.SystemIdNo()).Value());
@@ -687,19 +690,14 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         ModifiedFieldRef: FieldRef;
         IsHandled: Boolean;
         IntRecSystemId: Guid;
-        SourceCompanyName: Text[30];
     begin
         MasterDataManagementSetup.Get();
         IntegrationRecordRef.Open(FromRecordRef.Number, false);
         IntRecSystemId := FromRecordRef.Field(FromRecordRef.SystemIdNo).Value();
         MasterDataManagement.OnGetIntegrationRecordRefBySystemId(IntegrationTableMapping, IntegrationRecordRef, IntRecSystemId, IsHandled);
-        if not IsHandled then begin
-            MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, IntegrationTableMapping."Table ID");
-            if SourceCompanyName = '' then
-                SourceCompanyName := MasterDataManagementSetup."Company Name";
-            IntegrationRecordRef.ChangeCompany(SourceCompanyName);
-            IntegrationRecordRef.GetBySystemId(IntRecSystemId);
-        end;
+        if not IsHandled then
+            // Route the source re-fetch: the record lives in the local company or another environment.
+            if MasterDataManagementSetup.GetDataSource().GetBySystemId(FromRecordRef.Number, IntRecSystemId, IntegrationRecordRef) then;
         if FromRecordRef.Number() = IntegrationTableMapping."Integration Table ID" then begin
             ModifiedFieldRef := IntegrationRecordRef.Field(IntegrationTableMapping."Int. Tbl. Modified On Fld. No.");
             exit(ModifiedFieldRef.Value());
@@ -913,6 +911,10 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         if not MasterDataManagementSetup."Is Enabled" then
             exit;
 
+        // Media synchronization is not supported cross-environment (deferred); skip so pictures are not cleared.
+        if MasterDataManagementSetup."Source Environment Name" <> '' then
+            exit;
+
         IntegrationTableMapping.SetRange(Type, IntegrationTableMapping.Type::"Master Data Management");
         IntegrationTableMapping.SetRange(Status, IntegrationTableMapping.Status::Enabled);
         IntegrationTableMapping.SetRange("Delete After Synchronization", false);
@@ -1091,6 +1093,9 @@ codeunit 7237 "Master Data Mgt. Subscribers"
             exit(false);
 
         MasterDataManagementSetup.Get();
+        // Cross-environment: related contact/customer resolution reads the source company directly; deferred for now.
+        if MasterDataManagementSetup."Source Environment Name" <> '' then
+            exit(false);
         DestinationRecordRef.SetTable(Contact);
         IntegrationContact.ChangeCompany(MasterDataManagementSetup."Company Name");
         SourceRecordRef.SetTable(IntegrationContact);
@@ -1198,6 +1203,9 @@ codeunit 7237 "Master Data Mgt. Subscribers"
             exit; // all contacts have parent company set
 
         MasterDataManagementSetup.Get();
+        // Cross-environment: related contact resolution reads the source company directly; deferred for now.
+        if MasterDataManagementSetup."Source Environment Name" <> '' then
+            exit;
         IntegrationCustomer.ChangeCompany(MasterDataManagementSetup."Company Name");
         IntegrationVendor.ChangeCompany(MasterDataManagementSetup."Company Name");
         IntegrationContact.ChangeCompany(MasterDataManagementSetup."Company Name");

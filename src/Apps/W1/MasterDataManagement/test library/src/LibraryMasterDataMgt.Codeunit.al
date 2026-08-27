@@ -75,6 +75,21 @@ codeunit 139757 "Library - Master Data Mgt."
         exit(MasterDataManagementSetup.GetDataSource().GetByUidFilter(IntegrationTableMapping, UidFilter, SourceRecordRef));
     end;
 
+    procedure DataSourceGetByFilter(IntegrationTableMapping: Record "Integration Table Mapping"; TableFilter: Text; var SourceRecordRef: RecordRef): Boolean
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        MasterDataManagementSetup.Get();
+        exit(MasterDataManagementSetup.GetDataSource().GetByFilter(IntegrationTableMapping, TableFilter, SourceRecordRef));
+    end;
+
+    procedure GetIntegrationRecRefCount(IntegrationTableMapping: Record "Integration Table Mapping"): Integer
+    var
+        MasterDataManagement: Codeunit "Master Data Management";
+    begin
+        exit(MasterDataManagement.GetIntegrationRecRefCount(IntegrationTableMapping));
+    end;
+
     procedure DataSourceGetBySystemId(IntegrationTableId: Integer; SystemId: Guid; var SourceRecordRef: RecordRef): Boolean
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";

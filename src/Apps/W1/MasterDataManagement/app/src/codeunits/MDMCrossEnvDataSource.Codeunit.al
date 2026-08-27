@@ -14,10 +14,13 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
 
     var
         SourceResponse: Codeunit "MDM Source Response";
+        SourceCapabilities: Codeunit "MDM Source Capabilities";
         InvalidResponseErr: Label 'The source environment returned an unexpected response for table %1.', Comment = '%1 = table caption';
         TableUnavailableErr: Label 'Table %1 is not available on the source environment. Expose it there or remove it from Synchronization Tables.', Comment = '%1 = table caption';
         NotIndexedErr: Label 'Table %1 on the source has too many same-timestamp changes to synchronize without an index. Add a key on SystemModifiedAt and SystemId to that table on the source environment.', Comment = '%1 = table caption';
         FieldsUnavailableErr: Label 'One or more fields set up for synchronization do not exist on table %1 on the source environment.', Comment = '%1 = table caption';
+        RecordsFeatureTok: Label 'records', Locked = true;
+        LastModifiedFeatureTok: Label 'lastModifiedPerTable', Locked = true;
 
     procedure GetModifiedSet(IntegrationTableMapping: Record "Integration Table Mapping"; TableFilter: Text; var SourceRecordRef: RecordRef): Boolean
     var
@@ -27,6 +30,15 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         // Interface entry point: unbounded (fetch the whole delta). The scheduled cross-env synch uses the
         // bounded GetModifiedBatch instead, so a large initial load is drained across several job runs.
         exit(GetModifiedBatch(IntegrationTableMapping, TableFilter, CursorSelector(IntegrationTableMapping."Synch. Modified On Filter"), 0, SourceRecordRef, EndCursor, HasMore));
+    end;
+
+    procedure GetByFilter(IntegrationTableMapping: Record "Integration Table Mapping"; TableFilter: Text; var SourceRecordRef: RecordRef): Boolean
+    var
+        EndCursor: Text;
+        HasMore: Boolean;
+    begin
+        // Full read from the start (selector '{}' = no watermark), then apply the row filter - for coupling/uncoupling.
+        exit(GetModifiedBatch(IntegrationTableMapping, TableFilter, '{}', 0, SourceRecordRef, EndCursor, HasMore));
     end;
 
     /// <summary>
@@ -45,6 +57,7 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         SourceRecordRef.Close();
         SourceRecordRef.Open(IntegrationTableMapping."Integration Table ID", true);
         Transport := GetTransport();
+        SourceCapabilities.EnsureSupported(Transport, RecordsFeatureTok);
         FieldIds := BuildFieldIds(IntegrationTableMapping);
         if StartCursor <> '' then
             Selector := StartCursor
@@ -71,6 +84,43 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         if TableFilter <> '' then
             SourceRecordRef.SetView(TableFilter);
         exit(SourceRecordRef.FindSet());
+    end;
+
+    /// <summary>
+    /// Cheap existence probe for the full-synch review: the source reports an empty lastModifiedAt for an empty
+    /// table, so this avoids counting the whole table over the wire.
+    /// </summary>
+    internal procedure SourceHasRecords(IntegrationTableId: Integer): Boolean
+    var
+        Transport: Interface "IMDM Source Transport";
+        Response: JsonObject;
+        Entry: JsonObject;
+        Tables: JsonArray;
+        Token: JsonToken;
+        TableIds: JsonArray;
+        TableIdsText: Text;
+        LastModifiedAtText: Text;
+    begin
+        TableIds.Add(IntegrationTableId);
+        TableIds.WriteTo(TableIdsText);
+        Transport := GetTransport();
+        SourceCapabilities.EnsureSupported(Transport, LastModifiedFeatureTok);
+        if not SourceResponse.TryParse(Transport.LastModifiedAtPerTable(TableIdsText), Response) then
+            exit(false);
+        if not Response.Get('tables', Token) then
+            exit(false);
+        Tables := Token.AsArray();
+        if Tables.Count() = 0 then
+            exit(false);
+        Tables.Get(0, Token);
+        Entry := Token.AsObject();
+        if Entry.Get('tableAvailable', Token) then
+            if not Token.AsValue().AsBoolean() then
+                exit(false);
+        if Entry.Get('lastModifiedAt', Token) then
+            if Token.IsValue() then
+                LastModifiedAtText := Token.AsValue().AsText();
+        exit(LastModifiedAtText <> '');
     end;
 
     procedure GetBySystemId(IntegrationTableId: Integer; SystemId: Guid; var SourceRecordRef: RecordRef): Boolean
@@ -120,6 +170,7 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         if SystemIds.Count() = 0 then
             exit;
         Transport := GetTransport();
+        SourceCapabilities.EnsureSupported(Transport, RecordsFeatureTok);
         ParseOrError(
             IntegrationTableId,
             Transport.GetRecords(IntegrationTableId, FieldIds, SystemIdsSelector(SystemIds), PageSize()),

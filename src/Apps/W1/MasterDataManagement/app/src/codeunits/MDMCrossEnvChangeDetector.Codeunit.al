@@ -27,9 +27,11 @@ codeunit 7245 "MDM Cross-Env Change Detector"
         MasterDataManagementSetup: Record "Master Data Management Setup";
         SourceConnection: Codeunit "MDM Source Connection";
         SourceResponse: Codeunit "MDM Source Response";
+        SourceCapabilities: Codeunit "MDM Source Capabilities";
         Transport: Interface "IMDM Source Transport";
         Response: JsonObject;
         TableIds: JsonArray;
+        LastModifiedFeatureTok: Label 'lastModifiedPerTable', Locked = true;
     begin
         if not MasterDataManagementSetup.Get() then
             exit;
@@ -42,6 +44,9 @@ codeunit 7245 "MDM Cross-Env Change Detector"
             exit;
 
         Transport := SourceConnection.GetTransport();
+        // Skip (rather than error every run) if an older source doesn't advertise the detection action.
+        if not SourceCapabilities.IsSupported(Transport, LastModifiedFeatureTok) then
+            exit;
         if not SourceResponse.TryParse(Transport.LastModifiedAtPerTable(WriteArray(TableIds)), Response) then
             exit;
 

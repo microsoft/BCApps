@@ -34,4 +34,11 @@ interface "IMDM Data Source"
     /// matches UidFilter (a filter expression, e.g. a list of SystemIds). Returns true if any matched.
     /// </summary>
     procedure GetByUidFilter(IntegrationTableMapping: Record "Integration Table Mapping"; UidFilter: Text; var SourceRecordRef: RecordRef): Boolean;
+
+    /// <summary>
+    /// Opens SourceRecordRef on the source integration table and returns ALL records matching TableFilter
+    /// (the whole set, not just those modified since the watermark) - used by coupling and uncoupling.
+    /// Returns true if at least one record matches.
+    /// </summary>
+    procedure GetByFilter(IntegrationTableMapping: Record "Integration Table Mapping"; TableFilter: Text; var SourceRecordRef: RecordRef): Boolean;
 }

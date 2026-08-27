@@ -655,7 +655,6 @@ codeunit 7233 "Master Data Management"
         LocalRecordRef: RecordRef;
         IntegrationRecordRef: RecordRef;
         CountFailed: Integer;
-        SourceCompanyName: Text[30];
     begin
         AddIntegrationTableMapping(IntegrationTableMapping);
         IntegrationTableMapping.SetTableFilter(LocalTableFilter);
@@ -670,13 +669,8 @@ codeunit 7233 "Master Data Management"
                 until LocalRecordRef.Next() = 0
         end else begin
             MasterDataManagementSetup.Get();
-            IntegrationRecordRef.Open(IntegrationTableMapping."Integration Table ID");
-            OnSetSourceCompanyName(SourceCompanyName, IntegrationTableMapping."Integration Table ID");
-            if SourceCompanyName = '' then
-                SourceCompanyName := MasterDataManagementSetup."Company Name";
-            IntegrationRecordRef.ChangeCompany(SourceCompanyName);
-            IntegrationRecordRef.SetView(IntegrationTableFilter);
-            if IntegrationRecordRef.FindSet() then
+            // Route the source read so uncoupling works against the local company or another environment.
+            if MasterDataManagementSetup.GetDataSource().GetByFilter(IntegrationTableMapping, IntegrationTableFilter, IntegrationRecordRef) then
                 repeat
                     if not PerformUncoupling(IntegrationTableMapping, LocalRecordRef, IntegrationRecordRef) then
                         CountFailed += 1;
@@ -2155,23 +2149,15 @@ codeunit 7233 "Master Data Management"
     local procedure FindCouplingByIntegrationSystemID(var MasterDataMgtCoupling: Record "Master Data Mgt. Coupling"; IntegrationSystemID: Guid) Found: Boolean
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
-        RecRef: RecordRef;
-        RecId: RecordId;
-        SourceCompanyName: Text[30];
+        IntegrationRecordRef: RecordRef;
     begin
         Clear(MasterDataMgtCoupling."Integration System ID");
         MasterDataManagementSetup.Get();
         MasterDataMgtCoupling.Reset();
         MasterDataMgtCoupling.SetRange("Integration System ID", IntegrationSystemID);
         if MasterDataMgtCoupling.FindFirst() then
-            if MasterDataMgtCoupling.FindRecordId(RecId) then begin
-                RecRef.Open(RecId.TableNo());
-                OnSetSourceCompanyName(SourceCompanyName, RecId.TableNo());
-                if SourceCompanyName = '' then
-                    SourceCompanyName := MasterDataManagementSetup."Company Name";
-                RecRef.ChangeCompany(SourceCompanyName);
-                Found := RecRef.Get(RecId);
-            end;
+            // Route through the data source: the source record is in the local company or another environment.
+            Found := GetIntegrationRecordRef(MasterDataMgtCoupling."Table ID", MasterDataMgtCoupling, IntegrationRecordRef);
     end;
 
     internal procedure GetIntegrationRecRefCount(var IntegrationTableMapping: Record "Integration Table Mapping"): Integer
@@ -2180,11 +2166,18 @@ codeunit 7233 "Master Data Management"
         INtegrationVendor: Record Vendor;
         IntegrationCustomer: Record Customer;
         MasterDataManagementSetup: Record "Master Data Management Setup";
+        CrossEnvDataSource: Codeunit "MDM Cross-Env Data Source";
         IntegrationRecRef: RecordRef;
         IntegrationRecRefCount: Integer;
         SourceCompanyName: Text[30];
     begin
         MasterDataManagementSetup.Get();
+        if MasterDataManagementSetup."Source Environment Name" <> '' then begin
+            // Cross-environment: the review only needs existence; probe the source instead of counting over the wire.
+            if CrossEnvDataSource.SourceHasRecords(IntegrationTableMapping."Integration Table ID") then
+                exit(1);
+            exit(0);
+        end;
         OnSetSourceCompanyName(SourceCompanyName, IntegrationTableMapping."Table ID");
         if SourceCompanyName = '' then
             SourceCompanyName := MasterDataManagementSetup."Company Name";
@@ -2293,9 +2286,6 @@ codeunit 7233 "Master Data Management"
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
         IntegrationRecordRef: RecordRef;
-        IntegrationSystemIdFieldRef: FieldRef;
-        IntegrationTableView: Text;
-        SourceCompanyName: Text[30];
     begin
         MasterDataManagementSetup.Get();
         IntegrationTableMapping.SetRange(Status, IntegrationTableMapping.Status::Enabled);
@@ -2304,17 +2294,8 @@ codeunit 7233 "Master Data Management"
         IntegrationTableMapping.SetFilter("Integration Table ID", '<>0');
         if IntegrationTableMapping.FindSet() then
             repeat
-                IntegrationRecordRef.Close();
-                IntegrationTableView := IntegrationTableMapping.GetIntegrationTableFilter();
-                IntegrationRecordRef.Open(IntegrationTableMapping."Integration Table ID");
-                OnSetSourceCompanyName(SourceCompanyName, IntegrationTableMapping."Integration Table ID");
-                if SourceCompanyName = '' then
-                    SourceCompanyName := MasterDataManagementSetup."Company Name";
-                IntegrationRecordRef.ChangeCompany(SourceCompanyName);
-                IntegrationSystemIdFieldRef := IntegrationRecordRef.Field(IntegrationRecordRef.SystemIdNo);
-                IntegrationRecordRef.SetView(IntegrationTableView);
-                IntegrationSystemIdFieldRef.SetRange(MasterDataMgtCoupling."Integration System ID");
-                if not IntegrationRecordRef.IsEmpty() then
+                // Route through the data source: find which enabled mapping's source table holds this record.
+                if MasterDataManagementSetup.GetDataSource().GetBySystemId(IntegrationTableMapping."Integration Table ID", MasterDataMgtCoupling."Integration System ID", IntegrationRecordRef) then
                     exit(true);
             until IntegrationTableMapping.Next() = 0;
         exit(false);

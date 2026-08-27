@@ -10,8 +10,10 @@ codeunit 139929 "MDM In-Process Transport" implements "IMDM Source Transport"
 
     var
         CannedResponse: Text;
+        CannedCapabilities: Text;
         Active: Boolean;
         UseCanned: Boolean;
+        UseCannedCapabilities: Boolean;
 
     procedure Activate()
     begin
@@ -19,16 +21,27 @@ codeunit 139929 "MDM In-Process Transport" implements "IMDM Source Transport"
     end;
 
     procedure Deactivate()
+    var
+        SourceCapabilities: Codeunit "MDM Source Capabilities";
     begin
         Active := false;
         UseCanned := false;
+        UseCannedCapabilities := false;
         Clear(CannedResponse);
+        Clear(CannedCapabilities);
+        SourceCapabilities.Reset(); // clear negotiated capabilities between tests
     end;
 
     procedure SetCannedResponse(Response: Text)
     begin
         CannedResponse := Response;
         UseCanned := true;
+    end;
+
+    procedure SetCannedCapabilities(Response: Text)
+    begin
+        CannedCapabilities := Response;
+        UseCannedCapabilities := true;
     end;
 
     procedure GetRecords(TableId: Integer; FieldIds: Text; Selector: Text; PageSize: Integer): Text
@@ -53,6 +66,8 @@ codeunit 139929 "MDM In-Process Transport" implements "IMDM Source Transport"
     var
         SourceApi: Codeunit "MDM Cross-Env Source API";
     begin
+        if UseCannedCapabilities then
+            exit(CannedCapabilities);
         exit(SourceApi.GetCapabilities());
     end;
 

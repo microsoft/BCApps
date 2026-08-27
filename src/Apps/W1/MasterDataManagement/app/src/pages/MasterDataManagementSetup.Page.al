@@ -51,6 +51,18 @@ page 7230 "Master Data Management Setup"
     {
         area(Processing)
         {
+            action(ConnectionDetails)
+            {
+                ApplicationArea = Suite;
+                Caption = 'Connection Details';
+                Image = LinkAccount;
+                ToolTip = 'Set up the connection to a company in a different Business Central environment for cross-environment synchronization.';
+
+                trigger OnAction()
+                begin
+                    Page.RunModal(Page::"MDM Connection Details");
+                end;
+            }
             action(ResetConfiguration)
             {
                 ApplicationArea = Suite;

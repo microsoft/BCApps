@@ -135,6 +135,115 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     end;
 
     [Test]
+    procedure CrossEnvIntegrationRecRefCountReportsExistence()
+    var
+        Customer: Record Customer;
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] The full-synch review existence probe reports records for a non-empty cross-env source table.
+        Initialize();
+        LibrarySalesLib.CreateCustomer(Customer);
+        CreateMinimalCustomerMapping(IntegrationTableMapping);
+        LibraryMasterDataMgt.SetSourceEnvironmentName('PROD');
+        InProcessTransport.Activate();
+
+        Assert.AreEqual(1, LibraryMasterDataMgt.GetIntegrationRecRefCount(IntegrationTableMapping), 'A non-empty source table should report records to the full-synch review');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure ConnectionDetailsWizardSavesConfiguration()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        ConnectionDetails: TestPage "MDM Connection Details";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] The Connection Details wizard collects the source connection details and saves them (secret to Isolated Storage).
+        Initialize();
+
+        ConnectionDetails.OpenEdit();
+        // Welcome step: accept the terms so Next is enabled.
+        ConnectionDetails.Consent.SetValue(true);
+        ConnectionDetails.ActionNext.Invoke();
+        // Connection step: provide the source environment and credentials.
+        ConnectionDetails.SourceEnvironmentName.SetValue('CONTOSO-PROD');
+        ConnectionDetails.SourceEnvironmentUrl.SetValue('https://api.businesscentral.dynamics.com/v2.0/contoso-prod');
+        ConnectionDetails.SourceCompanyName.SetValue('CRONUS');
+        ConnectionDetails.OAuth2ClientId.SetValue('11111111-2222-3333-4444-555555555555');
+        ConnectionDetails.OAuth2ClientSecret.SetValue('super-secret');
+        ConnectionDetails.ActionNext.Invoke(); // -> Test Connection step
+        ConnectionDetails.ActionNext.Invoke(); // -> Finish step (optional test skipped)
+        ConnectionDetails.ActionFinish.Invoke();
+
+        // [THEN] the setup holds the connection and a stored client secret
+        MasterDataManagementSetup.Get();
+        Assert.AreEqual('CONTOSO-PROD', MasterDataManagementSetup."Source Environment Name", 'Source environment not saved');
+        Assert.AreEqual('CRONUS', MasterDataManagementSetup."Source Company Name", 'Source company not saved');
+        Assert.IsFalse(IsNullGuid(MasterDataManagementSetup."Source Client Secret Key"), 'Client secret should be stored');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure CrossEnvGetByFilterReturnsRecordsPastTheWatermark()
+    var
+        Customer: Record Customer;
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        FilterSourceRef: RecordRef;
+        ModifiedSetSourceRef: RecordRef;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] GetByFilter returns the whole filtered set (used by coupling/uncoupling), ignoring the mapping's
+        //            watermark, unlike GetModifiedSet which only returns changes after the watermark.
+        Initialize();
+        LibrarySalesLib.CreateCustomer(Customer);
+        CreateMinimalCustomerMapping(IntegrationTableMapping);
+        // [GIVEN] a watermark far in the future, so the seeded customer is not "modified since"
+        IntegrationTableMapping."Synch. Modified On Filter" := CreateDateTime(DMY2Date(1, 1, 2099), 0T);
+        IntegrationTableMapping.Modify();
+
+        LibraryMasterDataMgt.SetSourceEnvironmentName('PROD');
+        InProcessTransport.Activate();
+
+        // [THEN] the watermark-based read excludes it, but the full filtered read includes it
+        Assert.IsFalse(
+            LibraryMasterDataMgt.DataSourceGetModifiedSet(IntegrationTableMapping, '', ModifiedSetSourceRef) and ContainsSystemId(ModifiedSetSourceRef, Customer.SystemId),
+            'GetModifiedSet should not return records at or before the watermark');
+        Assert.IsTrue(LibraryMasterDataMgt.DataSourceGetByFilter(IntegrationTableMapping, '', FilterSourceRef), 'GetByFilter should return records');
+        Assert.IsTrue(ContainsSystemId(FilterSourceRef, Customer.SystemId), 'GetByFilter should return the seeded customer regardless of the watermark');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure CrossEnvErrorsWhenSourceLacksRecordsCapability()
+    var
+        Customer: Record Customer;
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        SourceRecordRef: RecordRef;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] The subsidiary negotiates capabilities first and fails clearly if the source doesn't advertise 'records'.
+        Initialize();
+        LibrarySalesLib.CreateCustomer(Customer);
+        LibraryMasterDataMgt.SetSourceEnvironmentName('PROD');
+        InProcessTransport.Activate();
+        InProcessTransport.SetCannedCapabilities('{"version":1,"features":["lastModifiedPerTable"]}');
+
+        asserterror LibraryMasterDataMgt.DataSourceGetBySystemId(Database::Customer, Customer.SystemId, SourceRecordRef);
+        Assert.ExpectedError('does not support the required');
+
+        CleanUp();
+    end;
+
+    [Test]
     procedure CrossEnvGetModifiedBatchResumesAcrossRuns()
     var
         Customer: Record Customer;

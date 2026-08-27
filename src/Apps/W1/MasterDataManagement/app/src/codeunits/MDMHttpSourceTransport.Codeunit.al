@@ -4,6 +4,7 @@ using System.Azure.Identity;
 using System.Environment;
 using System.Security.Authentication;
 using System.Reflection;
+using System.Telemetry;
 
 /// <summary>
 /// Production transport: calls the source environment's ODataV4 web service with an app-only (client
@@ -28,6 +29,11 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         ScopeTok: Label 'https://api.businesscentral.dynamics.com/.default', Locked = true;
         TokenEndpointTok: Label 'https://login.microsoftonline.com/%1/oauth2/v2.0/token', Locked = true, Comment = '%1 = Entra tenant id';
         ActionUrlTok: Label '%1/ODataV4/%2_%3?company=%4', Locked = true, Comment = '%1 = base url, %2 = service, %3 = action, %4 = company';
+        TelemetryCategoryTok: Label 'MDM Cross-Environment', Locked = true;
+        TokenAcquiredAuditTxt: Label 'Acquired an application access token to read master data from source environment %1.', Comment = '%1 = source environment name';
+        TokenFailedAuditTxt: Label 'Failed to acquire an application access token for source environment %1.', Comment = '%1 = source environment name';
+        AccessDeniedAuditTxt: Label 'Source environment %1 denied the master data request (HTTP %2).', Comment = '%1 = source environment name, %2 = HTTP status code';
+        RequestFailedTelemetryTxt: Label 'Cross-environment %1 request failed with HTTP %2.', Locked = true;
 
     procedure GetRecords(TableId: Integer; FieldIds: Text; Selector: Text; PageSize: Integer): Text
     var
@@ -75,10 +81,23 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
             ResponseMessage.Content().ReadAs(ResponseBodyText);
             if ResponseMessage.IsSuccessStatusCode() then
                 exit(UnwrapODataValue(ResponseBodyText));
-            if not ShouldRetry(ResponseMessage, Attempt, RetryAfter) then
+            if not ShouldRetry(ResponseMessage, Attempt, RetryAfter) then begin
+                LogRequestFailure(MasterDataManagementSetup, ActionName, ResponseMessage);
                 Error(HttpErr, ResponseMessage.HttpStatusCode(), ResponseBodyText);
+            end;
             Sleep(RetryAfter);
         end;
+    end;
+
+    local procedure LogRequestFailure(var MasterDataManagementSetup: Record "Master Data Management Setup"; ActionName: Text; var ResponseMessage: HttpResponseMessage)
+    var
+        AuditLog: Codeunit "Audit Log";
+    begin
+        // Operational telemetry: action + status only, never record data or credentials.
+        Session.LogMessage('', StrSubstNo(RequestFailedTelemetryTxt, ActionName, ResponseMessage.HttpStatusCode()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
+        // Security audit: an authorization failure crossing the environment boundary.
+        if ResponseMessage.HttpStatusCode() in [401, 403] then
+            AuditLog.LogAuditMessage(StrSubstNo(AccessDeniedAuditTxt, MasterDataManagementSetup."Source Environment Name", ResponseMessage.HttpStatusCode()), SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
     end;
 
     local procedure Send(var MasterDataManagementSetup: Record "Master Data Management Setup"; ActionName: Text; RequestBody: Text; var ResponseMessage: HttpResponseMessage)
@@ -142,6 +161,7 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
     var
         OAuth2: Codeunit OAuth2;
         AzureADTenant: Codeunit "Azure AD Tenant";
+        AuditLog: Codeunit "Audit Log";
         Scopes: List of [Text];
         TokenEndpoint: Text;
     begin
@@ -151,8 +171,11 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
             MasterDataManagementSetup."Source OAuth Client Id",
             MasterDataManagementSetup.GetSourceClientSecret(),
             TokenEndpoint, '', Scopes, Token);
-        if Token.IsEmpty() then
+        if Token.IsEmpty() then begin
+            AuditLog.LogAuditMessage(StrSubstNo(TokenFailedAuditTxt, MasterDataManagementSetup."Source Environment Name"), SecurityOperationResult::Failure, AuditCategory::Authentication, 4, 0);
             Error(NoTokenErr);
+        end;
+        AuditLog.LogAuditMessage(StrSubstNo(TokenAcquiredAuditTxt, MasterDataManagementSetup."Source Environment Name"), SecurityOperationResult::Success, AuditCategory::Authentication, 4, 0);
     end;
 
     local procedure GetConfiguredSetup(var MasterDataManagementSetup: Record "Master Data Management Setup")

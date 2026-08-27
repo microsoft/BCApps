@@ -24,6 +24,7 @@ permissionset 7230 "Master Data Mgt. - Objects"
                   codeunit "MDM Cross-Env Data Source" = X,
                   codeunit "MDM Source Connection" = X,
                   codeunit "MDM Cross-Env Change Detector" = X,
+                  codeunit "MDM Source Capabilities" = X,
                   page * = X,
                   table * = X,
                   xmlport * = X;
