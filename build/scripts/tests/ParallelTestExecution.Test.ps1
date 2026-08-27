@@ -208,6 +208,7 @@ Describe "ParallelTestExecution transient retry scheduling" {
                 "ObjName:Command Line Test Tool, ObjID:130455, Type:Form, MethodName:ExtensionId_a45_OnValidate`nOffset and length were out of bounds for the array"
                 "ObjName:Command Line Test Tool, ObjID:130455, Type:Form, MethodName:ExtensionId_a45_OnValidate`nNullable object must have a value."
                 "TRANSIENT TEST PLATFORM RACE detected for app 'Tests' on tenant 'tenant2'."
+                "Exception occurred while running tests: ClientSession State is InError (Wait time 25 seconds)"
             ) | ForEach-Object {
                 Test-TransientTestFailure -Output $_ | Should -BeTrue
             }
@@ -487,19 +488,11 @@ Describe "ParallelTestExecution clean tenant scheduling" {
         }
     }
 
-    It "dispatches one codeunit with Disabled isolation after requesting a tenant refresh" {
+    It "dispatches one codeunit with Disabled isolation" {
         InModuleScope ParallelTestExecution {
             $script:capturedParameters = $null
-            $script:resetTenant = $null
-            $script:resetDatabaseName = $null
-            $script:resetTemplateName = $null
 
             Mock Get-DisabledTestsForApp { @() }
-            Mock Reset-BcTestTenant {
-                $script:resetTenant = $Tenant
-                $script:resetDatabaseName = $TenantDatabaseName
-                $script:resetTemplateName = $TemplateDatabaseName
-            }
             Mock Start-Sleep { }
             Mock Start-TestJob {
                 $script:capturedParameters = $parameters
@@ -528,9 +521,6 @@ Describe "ParallelTestExecution clean tenant scheduling" {
             $script:capturedParameters.requiredTestIsolation | Should -Be 'Disabled'
             $script:capturedParameters.testRunnerCodeunitId | Should -Be '130451'
             $script:capturedParameters.AppendToJUnitResultFile | Should -BeTrue
-            $script:resetTenant | Should -Be 'tenant2'
-            $script:resetDatabaseName | Should -Be 'tenant2'
-            $script:resetTemplateName | Should -Be 'default-test-template'
             $state.jobs.Count | Should -Be 1
         }
     }
@@ -569,8 +559,7 @@ Describe "ParallelTestExecution clean tenant scheduling" {
             $script:dispatchTenants = [System.Collections.Generic.List[string]]::new()
             $script:firstDispatch = $true
 
-            Mock Wait-ForFreeTenant { 'tenant2' }
-            Mock Wait-ForSpecificTenant { $tenant }
+            Mock Reset-BcTestTenant { }
             Mock Wait-ForAllTestJobs { $true }
             Mock Start-RequiredDisabledDispatch {
                 $script:dispatchTenants.Add($TenantInfo.Id)
@@ -600,6 +589,34 @@ Describe "ParallelTestExecution clean tenant scheduling" {
 
             $result | Should -BeTrue
             $script:dispatchTenants | Should -Be @('tenant2', 'tenant2')
+        }
+    }
+
+    It "finishes all tenant resets before dispatching a clean-codeunit batch" {
+        InModuleScope ParallelTestExecution {
+            $script:events = [System.Collections.Generic.List[string]]::new()
+            Mock Reset-BcTestTenant {
+                $script:events.Add("reset:$Tenant")
+            }
+            Mock Start-RequiredDisabledDispatch {
+                $script:events.Add("dispatch:$($TenantInfo.Id)")
+            }
+            Mock Wait-ForAllTestJobs { }
+
+            $workItems = @(
+                [PSCustomObject]@{ Key = 'Tests::500'; AppName = 'Tests'; AppId = 'id'; CodeunitId = '500'; CodeunitName = 'A' }
+                [PSCustomObject]@{ Key = 'Tests::501'; AppName = 'Tests'; AppId = 'id'; CodeunitId = '501'; CodeunitName = 'B' }
+            )
+            $tenantInfo = @(
+                [PSCustomObject]@{ Id = 'tenant2'; DatabaseName = 'tenant2' }
+                [PSCustomObject]@{ Id = 'tenant3'; DatabaseName = 'tenant3' }
+            )
+
+            Invoke-RequiredDisabledTestExecution -Parameters @{ containerName = 'c' } `
+                -WorkItems $workItems -TenantInfo $tenantInfo -TemplateDatabaseName 'template' `
+                -ScriptPath 'runner.ps1' -TestType 'UnitTest' | Should -BeTrue
+
+            $script:events | Should -Be @('reset:tenant2', 'reset:tenant3', 'dispatch:tenant2', 'dispatch:tenant3')
         }
     }
 

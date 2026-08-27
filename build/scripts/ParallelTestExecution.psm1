@@ -657,6 +657,7 @@ function Test-TransientTestFailure {
     if ([string]::IsNullOrEmpty($Output)) { return $false }
     return [bool](
         ($Output -match 'TRANSIENT TEST PLATFORM RACE') -or
+        ($Output -match 'ClientSession State is InError') -or
         ($Output -match 'Cannot open page 130455|InvokeInteractions failed with status code 500|InteractionManager\.cs:line \d+') -or
         ($Output -match '(?s)ObjName:Command Line Test Tool.*MethodName:ExtensionId_a45_OnValidate.*(?:Offset and length were out of bounds|Nullable object must have a value)')
     )
@@ -809,11 +810,6 @@ function Start-RequiredDisabledDispatch {
         }
     }
 
-    # Serialize database restore/mount operations. Running one reset in each background job makes
-    # SQL backup/restore activity overlap and can corrupt the test runner's metadata enumeration.
-    Reset-BcTestTenant -ContainerName $Parameters.containerName -Tenant $TenantInfo.Id `
-        -TenantDatabaseName $TenantInfo.DatabaseName -TemplateDatabaseName $TemplateDatabaseName
-
     $job = Start-TestJob -parameters $codeunitParameters -tenant $TenantInfo.Id -scriptPath $ScriptPath `
         -testType $TestType -skipAutomaticDisabledPass
     $State.jobs = @($State.jobs) + @(
@@ -859,9 +855,8 @@ function Invoke-RequiredDisabledTestExecution {
         retryTenant = @{}
     }
     $pending = @($WorkItems)
-    $tenants = @($TenantInfo | ForEach-Object { $_.Id })
 
-    while ($pending.Count -gt 0 -or $state.jobs.Count -gt 0 -or $state.transient.Count -gt 0) {
+    while ($pending.Count -gt 0 -or $state.transient.Count -gt 0) {
         if ($state.transient.Count -gt 0) {
             $retryItems = @()
             foreach ($transient in @($state.transient)) {
@@ -874,23 +869,43 @@ function Invoke-RequiredDisabledTestExecution {
             $pending = @($retryItems) + @($pending)
         }
 
-        if ($pending.Count -gt 0) {
+        $availableTenantInfo = @($TenantInfo)
+        $batch = @()
+        while ($pending.Count -gt 0 -and $availableTenantInfo.Count -gt 0) {
             $workItem = $pending[0]
             $pending = @($pending | Select-Object -Skip 1)
-            $tenant = if ($state.retryTenant.ContainsKey($workItem.Key)) {
-                Wait-ForSpecificTenant -state $state -tenants $tenants -tenant $state.retryTenant[$workItem.Key]
+            $selectedTenantInfo = if ($state.retryTenant.ContainsKey($workItem.Key)) {
+                $availableTenantInfo |
+                    Where-Object { $_.Id -eq $state.retryTenant[$workItem.Key] } |
+                    Select-Object -First 1
             } else {
-                Wait-ForFreeTenant -state $state -tenants $tenants
+                $availableTenantInfo | Select-Object -First 1
             }
-            $selectedTenantInfo = $TenantInfo | Where-Object { $_.Id -eq $tenant } | Select-Object -First 1
+            if (-not $selectedTenantInfo) {
+                throw "Could not reserve tenant for clean codeunit '$($workItem.Key)'."
+            }
+            $availableTenantInfo = @($availableTenantInfo | Where-Object { $_.Id -ne $selectedTenantInfo.Id })
             $verb = if ($state.retried.ContainsKey($workItem.Key)) { "Re-dispatching" } else { "Dispatching" }
 
-            Start-RequiredDisabledDispatch -Parameters $Parameters -WorkItem $workItem `
-                -TenantInfo $selectedTenantInfo -TemplateDatabaseName $TemplateDatabaseName `
-                -ScriptPath $ScriptPath -TestType $TestType -State $state -Verb $verb
-        } else {
-            $null = Wait-ForAllTestJobs -state $state
+            $batch += [PSCustomObject]@{
+                WorkItem = $workItem
+                TenantInfo = $selectedTenantInfo
+                Verb = $verb
+            }
         }
+
+        # Finish every restore in the batch before any test starts. This keeps SQL backup/restore
+        # activity from overlapping page 130455 metadata enumeration and API cold starts.
+        foreach ($dispatch in $batch) {
+            Reset-BcTestTenant -ContainerName $Parameters.containerName -Tenant $dispatch.TenantInfo.Id `
+                -TenantDatabaseName $dispatch.TenantInfo.DatabaseName -TemplateDatabaseName $TemplateDatabaseName
+        }
+        foreach ($dispatch in $batch) {
+            Start-RequiredDisabledDispatch -Parameters $Parameters -WorkItem $dispatch.WorkItem `
+                -TenantInfo $dispatch.TenantInfo -TemplateDatabaseName $TemplateDatabaseName `
+                -ScriptPath $ScriptPath -TestType $TestType -State $state -Verb $dispatch.Verb
+        }
+        $null = Wait-ForAllTestJobs -state $state
     }
 
     return (-not $state.hasFailures)
