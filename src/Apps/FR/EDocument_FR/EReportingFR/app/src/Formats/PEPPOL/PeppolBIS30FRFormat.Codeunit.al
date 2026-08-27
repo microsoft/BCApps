@@ -22,8 +22,6 @@ using System.Utilities;
 
 codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
 {
-    Access = Internal;
-
     var
         ImportPeppol: Codeunit "EDoc Import PEPPOL BIS 3.0";
 
