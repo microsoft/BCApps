@@ -42,12 +42,21 @@ codeunit 99008501 "Legacy Subc. Feature Handler"
 
     /// <summary>
     /// Checks whether Legacy Subcontracting can be disabled and raises an error if the preconditions are not met.
+    /// When a required app is missing, it offers to install it inline.
+    /// </summary>
+    procedure CheckCanDisableLegacySubcontracting()
+    begin
+        CanDisableLegacySubcontracting();
+    end;
+
+    /// <summary>
+    /// Checks whether Legacy Subcontracting can be disabled and raises an error if the preconditions are not met.
     /// When a required app is missing, it offers to install it inline and returns false so the caller does not disable
     /// Legacy Subcontracting - after the install completes and the session reloads, the user runs the disable action again
     /// (installing one app per run until both are present and migration proceeds).
     /// Returns true only when all prerequisites are met and disabling Legacy Subcontracting can proceed.
     /// </summary>
-    procedure CheckCanDisableLegacySubcontracting(): Boolean
+    internal procedure CanDisableLegacySubcontracting(): Boolean
     begin
         if OpenWIPTransfersExist() then
             Error(OpenSubcontractingTransfersExistErr);
@@ -132,7 +141,7 @@ codeunit 99008501 "Legacy Subc. Feature Handler"
             exit;
 
         if not Enabled then begin
-            if not CheckCanDisableLegacySubcontracting() then
+            if not CanDisableLegacySubcontracting() then
                 exit;
             if DatabaseHasLegacySubcontractingData() then
                 MigrateData();

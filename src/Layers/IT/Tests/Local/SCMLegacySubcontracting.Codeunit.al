@@ -587,8 +587,8 @@ codeunit 137500 "SCM Legacy Subcontracting"
         TransferLine."WIP Outstanding Qty." := 1;
         TransferLine.Insert();
 
-        // [WHEN] Call CheckCanDisableLegacySubcontracting
-        asserterror LegacySubcFeatureHandler.CheckCanDisableLegacySubcontracting();
+        // [WHEN] Call CanDisableLegacySubcontracting
+        asserterror LegacySubcFeatureHandler.CanDisableLegacySubcontracting();
 
         // [THEN] Error: open subcontracting transfers must be completed first
         Assert.ExpectedError(OpenSubcontractingTransfersExistErr);
@@ -624,8 +624,8 @@ codeunit 137500 "SCM Legacy Subcontracting"
         PurchaseLine."WIP Item" := true;
         PurchaseLine.Modify();
 
-        // [WHEN] Call CheckCanDisableLegacySubcontracting
-        asserterror LegacySubcFeatureHandler.CheckCanDisableLegacySubcontracting();
+        // [WHEN] Call CanDisableLegacySubcontracting
+        asserterror LegacySubcFeatureHandler.CanDisableLegacySubcontracting();
 
         // [THEN] Error: open WIP purchase orders must be completed first
         Assert.ExpectedError(OpenWIPPurchaseOrdersExistErr);
@@ -661,8 +661,8 @@ codeunit 137500 "SCM Legacy Subcontracting"
         PurchaseLine."WIP Item" := true;
         PurchaseLine.Modify();
 
-        // [WHEN] Call CheckCanDisableLegacySubcontracting
-        asserterror LegacySubcFeatureHandler.CheckCanDisableLegacySubcontracting();
+        // [WHEN] Call CanDisableLegacySubcontracting
+        asserterror LegacySubcFeatureHandler.CanDisableLegacySubcontracting();
 
         // [THEN] The full error message consistently refers to purchase orders "with WIP Items" in both sentences, not "all subcontracting purchase orders"
         Assert.AreEqual(OpenWIPPurchaseOrdersExistErr, GetLastErrorText(), 'Error message wording must consistently describe purchase orders with WIP Items in both sentences.');
@@ -695,9 +695,9 @@ codeunit 137500 "SCM Legacy Subcontracting"
         // [GIVEN] The Subcontracting app and the IT Migration app are mocked as installed
         BindSubscription(SCMLegacySubcontracting);
 
-        // [WHEN] Call CheckCanDisableLegacySubcontracting
+        // [WHEN] Call CanDisableLegacySubcontracting
         ClearLastError();
-        LegacySubcFeatureHandler.CheckCanDisableLegacySubcontracting();
+        LegacySubcFeatureHandler.CanDisableLegacySubcontracting();
 
         // [THEN] No error is raised - disabling is no longer restricted to sandbox environments
         Assert.AreEqual('', GetLastErrorText(), 'Disabling Legacy Subcontracting should be allowed when the prerequisites are met.');
