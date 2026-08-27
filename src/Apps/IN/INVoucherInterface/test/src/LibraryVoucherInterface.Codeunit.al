@@ -23,7 +23,7 @@ codeunit 18995 "Library Voucher Interface"
     begin
         ChequeNo := LibUtility.GenerateRandomCode(GenJnlLine.FieldNo("Cheque No."), DATABASE::"Gen. Journal Line");
         GenJnlLine.SetRange("Document No.", DocumentNo);
-        if GenJnlLine.FindSet(true, false) then begin
+        if GenJnlLine.FindSet(true) then begin
             GenJnlLine.ModifyAll("Cheque No.", ChequeNo);
             GenJnlLine.ModifyAll("Cheque Date", CalcDate('< +1D>', WorkDate()), true);
         end;

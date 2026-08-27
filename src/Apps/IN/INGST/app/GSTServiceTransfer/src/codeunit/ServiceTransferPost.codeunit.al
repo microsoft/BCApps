@@ -201,7 +201,7 @@ codeunit 18350 "Service Transfer Post"
 
         ServiceTransferLine.SetRange("Document No.", ServiceTransferHeader."No.");
         ServiceTransferLine.SetFilter("Transfer From G/L Account No.", '<>%1', '');
-        if ServiceTransferLine.FindSet(true, false) then
+        if ServiceTransferLine.FindSet(true) then
             repeat
                 InsertDetailedGSTLedgEntryServiceTransfer(
                     ServiceTransferLine, ServiceTransferHeader,

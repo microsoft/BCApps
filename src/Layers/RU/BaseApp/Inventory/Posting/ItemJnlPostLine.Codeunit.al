@@ -6146,7 +6146,7 @@ codeunit 22 "Item Jnl.-Post Line"
 
         ValueEntry.Reset();
         ValueEntry.LockTable(true);
-        if ValueEntry.FindSet(true, false) then
+        if ValueEntry.FindSet(true) then
             repeat
                 ValueEntry."Red Storno" := false;
                 ValueEntry.Modify();
