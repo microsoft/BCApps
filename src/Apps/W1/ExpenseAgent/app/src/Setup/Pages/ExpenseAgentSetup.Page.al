@@ -184,6 +184,26 @@ page 6996 "Expense Agent Setup"
                     }
                 }
             }
+            group("Corporate Card")
+            {
+                Caption = 'Corporate Card';
+
+                field("Corp Card Default Provider"; Rec."Corp Card Default Provider")
+                {
+                }
+                field("Corp Card Create Mode"; Rec."Corp Card Create Mode")
+                {
+                }
+                field("Corp Card Auto Create Draft"; Rec."Corp Card Auto Create Draft")
+                {
+                }
+                field("Corp Card Date Match Window"; Rec."Corp Card Date Match Window")
+                {
+                }
+                field("Corp Card Amount Tolerance"; Rec."Corp Card Amount Tolerance")
+                {
+                }
+            }
             group("Rule & Controls")
             {
                 field("Use Rules"; Rec."Use Rules")
@@ -400,6 +420,34 @@ page 6996 "Expense Agent Setup"
                     trigger OnAction()
                     begin
                         Rec.CreateDefaultSettings();
+                    end;
+                }
+                action("Apply Corp Card Default Settings")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Apply corp card default settings';
+                    Image = SetupPayment;
+                    ToolTip = 'Applies corporate card defaults, including provider setup, data exchange mapping, user card links, and corporate card setup values.';
+
+                    trigger OnAction()
+                    var
+                        CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
+                    begin
+                        CreateCorpCardSetup.CreateDefaults();
+                    end;
+                }
+                action("Apply Corp Card Level 3 Demo")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Apply corp card level 3 demo';
+                    Image = SetupPayment;
+                    ToolTip = 'Creates a dedicated Level 3 corporate card demo provider with sample payload and data exchange definition for VAT detail processing demos.';
+
+                    trigger OnAction()
+                    var
+                        CreateCorpCardL3Demo: Codeunit "EA Create Corp Card L3 Demo";
+                    begin
+                        CreateCorpCardL3Demo.CreateDefaults();
                     end;
                 }
             }

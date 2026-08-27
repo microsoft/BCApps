@@ -150,14 +150,18 @@ codeunit 6975 "Create Expense VAT Rates"
         end;
 
         if SubcategoryCode = '' then begin
-            ExpenseCategory.Get(CategoryCode);
+            // Default seeds can be partially present when categories are customer-owned.
+            // In that case, skip missing combinations instead of failing the full setup run.
+            if not ExpenseCategory.Get(CategoryCode) then
+                exit;
             ExpenseCategory.Validate("VAT Prod. Posting Group", VATProdPostingGroup);
             ExpenseCategory.Validate("Default VAT %", VATPostingSetup."VAT %");
             if ExpenseCategory."Default VAT %" <> 0 then
                 ExpenseCategory.Validate("Default VAT Reclaim %", 100);
             ExpenseCategory.Modify();
         end else begin
-            ExpenseSubcategory.Get(CategoryCode, SubcategoryCode);
+            if not ExpenseSubcategory.Get(CategoryCode, SubcategoryCode) then
+                exit;
             ExpenseSubcategory.Validate("VAT Prod. Posting Group", VATProdPostingGroup);
             ExpenseSubcategory.Validate("Default VAT %", VATPostingSetup."VAT %");
             if ExpenseSubcategory."Default VAT %" <> 0 then
