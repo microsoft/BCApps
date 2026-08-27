@@ -527,7 +527,7 @@ table 6906 "Expense Report Header"
                     Rec."Spend Request Close" := false;
 
                 if xRec."Spend Request No." <> Rec."Spend Request No." then
-                    UpdateReportLines(Rec.FieldName("Spend Request No."));
+                    UpdateReportLines(Rec.FieldCaption("Spend Request No."));
             end;
         }
         field(101; "Spend Request Close"; Boolean)
@@ -683,7 +683,7 @@ table 6906 "Expense Report Header"
                         UpdateVATBusPostingGroupOnReportLine(ExpenseReportLine);
                     Rec.FieldName("Posting Date"):
                         UpdatePostingDateOnReportLine(ExpenseReportLine);
-                    Rec.FieldName("Spend Request No."):
+                    Rec.FieldCaption("Spend Request No."):
                         UpdateSpendRequestOnReportLine(ExpenseReportLine);
                 end;
             until ExpenseReportLine.Next() = 0;
