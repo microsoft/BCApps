@@ -246,6 +246,7 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeIntegrationTableMappingTemplates();
         UpgradeICOutboxTransactionSourceType();
         UpgradeICTransactionSourceType();
+        SetShowCurrencySymbolPosition();
         UpgradeABCAnalysisSetup();
         UpgradePurchRcptLineFields();
         UpgradeSalesShptLineFields();
@@ -3930,6 +3931,36 @@ codeunit 104000 "Upgrade - BaseApp"
         Clear(ICTransactionDataTransfer);
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetICTransactionSourceTypeUpgradeTag());
+    end;
+
+    local procedure SetShowCurrencySymbolPosition()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        Currency: Record Currency;
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetShowCurrencySymbolPositionUpgradeTag()) then
+            exit;
+
+        if GeneralLedgerSetup.Get() then
+            if GeneralLedgerSetup."Currency Symbol Position" = GeneralLedgerSetup."Currency Symbol Position"::Default then begin
+                GeneralLedgerSetup."Currency Symbol Position" := GeneralLedgerSetup."Currency Symbol Position"::"Before Amount";
+                GeneralLedgerSetup.Modify();
+            end else
+                if GeneralLedgerSetup."Currency Symbol Position" = GeneralLedgerSetup."Currency Symbol Position"::"Before Amount" then begin
+                    GeneralLedgerSetup."Currency Symbol Position" := GeneralLedgerSetup."Currency Symbol Position"::"After Amount";
+                    GeneralLedgerSetup.Modify();
+                end;
+
+        Currency.SetRange("Currency Symbol Position", Currency."Currency Symbol Position"::"Before Amount");
+        if Currency.FindSet(true) then
+            repeat
+                Currency."Currency Symbol Position" := Currency."Currency Symbol Position"::"After Amount";
+                Currency.Modify();
+            until Currency.Next() = 0;
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetShowCurrencySymbolPositionUpgradeTag());
     end;
 
     local procedure UpgradePurchRcptLineFields()
