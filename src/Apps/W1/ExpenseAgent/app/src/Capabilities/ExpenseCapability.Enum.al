@@ -62,4 +62,15 @@ enum 6984 "Expense Capability"
     {
         Caption = 'Activity Log', Locked = true;
     }
+
+    /// <summary>
+    /// The backend supports AI-assisted policy evaluation. Reported
+    /// enabled only when the admin has turned on "Evaluate Policies" in the Expense Agent
+    /// Setup. A backend that predates this feature omits the value entirely, so the frontend
+    /// can treat an absent capability as "backend not ready".
+    /// </summary>
+    value(5; AiAssistedPolicyEvaluation)
+    {
+        Caption = 'AI-Assisted Policy Evaluation', Locked = true;
+    }
 }
