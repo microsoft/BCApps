@@ -489,15 +489,19 @@ Describe "ParallelTestExecution clean tenant scheduling" {
     It "dispatches one codeunit with Disabled isolation after requesting a tenant refresh" {
         InModuleScope ParallelTestExecution {
             $script:capturedParameters = $null
-            $script:capturedDatabaseName = $null
-            $script:capturedTemplateName = $null
+            $script:resetTenant = $null
+            $script:resetDatabaseName = $null
+            $script:resetTemplateName = $null
 
             Mock Get-DisabledTestsForApp { @() }
+            Mock Reset-BcTestTenant {
+                $script:resetTenant = $Tenant
+                $script:resetDatabaseName = $TenantDatabaseName
+                $script:resetTemplateName = $TemplateDatabaseName
+            }
             Mock Start-Sleep { }
             Mock Start-TestJob {
                 $script:capturedParameters = $parameters
-                $script:capturedDatabaseName = $tenantDatabaseName
-                $script:capturedTemplateName = $templateDatabaseName
                 [PSCustomObject]@{ Id = 42 }
             }
 
@@ -523,8 +527,9 @@ Describe "ParallelTestExecution clean tenant scheduling" {
             $script:capturedParameters.requiredTestIsolation | Should -Be 'Disabled'
             $script:capturedParameters.testRunnerCodeunitId | Should -Be '130451'
             $script:capturedParameters.AppendToJUnitResultFile | Should -BeTrue
-            $script:capturedDatabaseName | Should -Be 'tenant2'
-            $script:capturedTemplateName | Should -Be 'default-test-template'
+            $script:resetTenant | Should -Be 'tenant2'
+            $script:resetDatabaseName | Should -Be 'tenant2'
+            $script:resetTemplateName | Should -Be 'default-test-template'
             $state.jobs.Count | Should -Be 1
         }
     }
@@ -534,6 +539,7 @@ Describe "ParallelTestExecution clean tenant scheduling" {
             $script:capturedParameters = $null
 
             Mock Get-DisabledTestsForApp { @() }
+            Mock Reset-BcTestTenant { }
             Mock Start-Sleep { }
             Mock Start-TestJob {
                 $script:capturedParameters = $parameters

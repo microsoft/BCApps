@@ -808,9 +808,13 @@ function Start-RequiredDisabledDispatch {
         }
     }
 
+    # Serialize database restore/mount operations. Running one reset in each background job makes
+    # SQL backup/restore activity overlap and can corrupt the test runner's metadata enumeration.
+    Reset-BcTestTenant -ContainerName $Parameters.containerName -Tenant $TenantInfo.Id `
+        -TenantDatabaseName $TenantInfo.DatabaseName -TemplateDatabaseName $TemplateDatabaseName
+
     $job = Start-TestJob -parameters $codeunitParameters -tenant $TenantInfo.Id -scriptPath $ScriptPath `
-        -testType $TestType -skipAutomaticDisabledPass -tenantDatabaseName $TenantInfo.DatabaseName `
-        -templateDatabaseName $TemplateDatabaseName
+        -testType $TestType -skipAutomaticDisabledPass
     $State.jobs = @($State.jobs) + @(
         [PSCustomObject]@{
             jobId = $job.Id
@@ -1065,8 +1069,6 @@ function Start-TestJob {
         [string]$scriptPath,
         [string]$testType,
         [switch]$skipAutomaticDisabledPass,
-        [string]$tenantDatabaseName,
-        [string]$templateDatabaseName,
         [string]$fileSuffix
     )
 
@@ -1089,16 +1091,10 @@ function Start-TestJob {
     # Resolve BCH module path from the currently loaded module
     $bchModule = Get-Module BcContainerHelper | Select-Object -First 1
     $bchModulePath = if ($bchModule) { $bchModule.Path } else { "BcContainerHelper" }
-    $parallelModulePath = (Get-Module ParallelTestExecution | Select-Object -First 1).Path
 
     $jobScript = {
-        param($params, $scriptPath, $testType, $bchPath, $parallelPath, $skipDisabledPass, $tenantDatabaseName, $templateDatabaseName)
+        param($params, $scriptPath, $testType, $bchPath, $skipDisabledPass)
         Import-Module $bchPath
-        if ($templateDatabaseName) {
-            Import-Module $parallelPath
-            Reset-BcTestTenant -ContainerName $params.containerName -Tenant $params.tenant `
-                -TenantDatabaseName $tenantDatabaseName -TemplateDatabaseName $templateDatabaseName
-        }
         # Background jobs run a single app sequentially. Pass an empty $AppNamesToTest so the
         # shared script skips the parallel dispatch branch and falls through to running this
         # one app's tests directly.
@@ -1107,8 +1103,8 @@ function Start-TestJob {
         if (-not $passed) { throw "Test execution failed" }
     }
 
-    return Start-Job -ScriptBlock $jobScript -ArgumentList $jobParams, $scriptPath, $testType, $bchModulePath, $parallelModulePath, `
-        $skipAutomaticDisabledPass.IsPresent, $tenantDatabaseName, $templateDatabaseName
+    return Start-Job -ScriptBlock $jobScript -ArgumentList $jobParams, $scriptPath, $testType, $bchModulePath, `
+        $skipAutomaticDisabledPass.IsPresent
 }
 
 <#
