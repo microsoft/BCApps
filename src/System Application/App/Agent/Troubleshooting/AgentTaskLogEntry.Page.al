@@ -268,7 +268,7 @@ page 4312 "Agent Task Log Entry"
         ContentInStream: InStream;
     begin
         LogEntryDetailsTxt := AgentTaskImpl.GetDetailsForAgentTaskLogEntry(Rec);
-        IsAgentAction := AgentTaskLogEntry.IsAgentAction(Rec);
+        SetIsAgentAction();
 
         if not MemoryEntry.Get(Rec."Task ID", Rec."Memory Entry ID") then begin
             MemoryEntryDetailsTxt := '';
@@ -303,9 +303,15 @@ page 4312 "Agent Task Log Entry"
         AgentTaskLogEntry: Codeunit "Agent Task Log Entry";
         Success: Boolean;
     begin
-        IsSuccess := AgentTaskLogEntry.TryGetSuccess(MemoryEntryDetailsTxt, Success)
-            ? Format(Success)
-            : '';
+        if not AgentTaskLogEntry.GetSuccess(MemoryEntryDetailsTxt, Success) then begin
+            IsSuccess := '';
+            exit;
+        end;
+
+        if Success then
+            IsSuccess := YesLbl
+        else
+            IsSuccess := NoLbl;
     end;
 
     local procedure SetAgentName()
@@ -313,6 +319,13 @@ page 4312 "Agent Task Log Entry"
         AgentTaskLogEntry: Codeunit "Agent Task Log Entry";
     begin
         AgentName := AgentTaskLogEntry.GetAgentName(Rec);
+    end;
+
+    local procedure SetIsAgentAction()
+    var
+        AgentTaskLogEntry: Codeunit "Agent Task Log Entry";
+    begin
+        IsAgentAction := AgentTaskLogEntry.IsAgentAction(Rec);
     end;
 
     local procedure GetPageContext()
@@ -326,7 +339,7 @@ page 4312 "Agent Task Log Entry"
         TaskPageContextObj: JsonObject;
         RawSerializedPageJson: Text;
     begin
-        ContextTxt := AgentTaskLogEntry.ReadContextWithFallback(Rec, MemoryEntry, ContextSource);
+        ContextTxt := AgentTaskLogEntry.ReadContextSafe(Rec, MemoryEntry, ContextSource);
 
         IsSerializedPageVisible := ContextTxt <> '';
 
@@ -416,5 +429,7 @@ page 4312 "Agent Task Log Entry"
         GlobalCurrentID: Integer;
         SerializedPageLbl: Label 'serializedPage', Locked = true;
         TaskPageContextLbl: Label 'taskPageContext', Locked = true;
+        YesLbl: Label 'Yes';
+        NoLbl: Label 'No';
         PageCaptionLbl: Label 'Log %1 - %2', Comment = '%1 is the id, and %2 is the description of it.';
 }

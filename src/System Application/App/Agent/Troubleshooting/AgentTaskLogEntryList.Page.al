@@ -217,16 +217,16 @@ page 4303 "Agent Task Log Entry List"
                 var
                     SelectedAgentTaskLogEntry: Record "Agent Task Log Entry";
                     TempBlob: Codeunit "Temp Blob";
-                    AgentTaskLogEntry: Codeunit "Agent Task Log Entry";
+                    AgentTaskLogExport: Codeunit "Agent Task Log Export";
                     ExportInStream: InStream;
                     ExportOutStream: OutStream;
                     FileName: Text;
                 begin
                     CurrPage.SetSelectionFilter(SelectedAgentTaskLogEntry);
                     TempBlob.CreateOutStream(ExportOutStream, TextEncoding::UTF8);
-                    AgentTaskLogEntry.ExportToJson(SelectedAgentTaskLogEntry, ExportOutStream);
+                    AgentTaskLogExport.ExportToJson(SelectedAgentTaskLogEntry, ExportOutStream);
                     TempBlob.CreateInStream(ExportInStream, TextEncoding::UTF8);
-                    FileName := StrSubstNo(ExportFileNameLbl, Format(CurrentDateTime(), 0, '<Year4><Month,2><Day,2>_<Hours24,2><Minutes,2><Seconds,2>'));
+                    FileName := StrSubstNo(ExportFileNameLbl, GetExportAgentName(SelectedAgentTaskLogEntry), Format(Today(), 0, 9));
                     DownloadFromStream(ExportInStream, ExportDialogTitleLbl, '', JsonFileFilterLbl, FileName);
                 end;
             }
@@ -264,12 +264,39 @@ page 4303 "Agent Task Log Entry List"
             IsFeedbackActionEnabled := false
     end;
 
+    local procedure GetExportAgentName(var SelectedAgentTaskLogEntry: Record "Agent Task Log Entry"): Text
+    var
+        AgentTaskLogEntryRecord: Record "Agent Task Log Entry";
+        AgentTaskLogEntry: Codeunit "Agent Task Log Entry";
+        AgentName: Text;
+        CurrentAgentName: Text;
+    begin
+        AgentTaskLogEntryRecord.Copy(SelectedAgentTaskLogEntry);
+        if not AgentTaskLogEntryRecord.FindSet() then
+            exit(UnknownAgentTok);
+
+        AgentName := AgentTaskLogEntry.GetAgentName(AgentTaskLogEntryRecord);
+        repeat
+            CurrentAgentName := AgentTaskLogEntry.GetAgentName(AgentTaskLogEntryRecord);
+            if CurrentAgentName <> AgentName then
+                exit(MultipleAgentsTok);
+        until AgentTaskLogEntryRecord.Next() = 0;
+
+        if AgentName = '' then
+            AgentName := UnknownAgentTok;
+        exit(ConvertStr(AgentName, InvalidFileNameCharactersTok, FileNameCharacterReplacementsTok));
+    end;
+
     var
         AIGeneratedContentDisclaimerLbl: Label 'AI-generated content may be incorrect.';
         IsFeedbackActionEnabled: Boolean;
         DetailsTxt: Text;
         TypeStyle: Text;
-        ExportFileNameLbl: Label 'AgentTaskLog_%1.json', Comment = '%1 is a timestamp.', Locked = true;
+        ExportFileNameLbl: Label 'AgentTaskLog_%1_%2.json', Comment = '%1 is the agent name and %2 is the export date.', Locked = true;
         ExportDialogTitleLbl: Label 'Export agent task log';
         JsonFileFilterLbl: Label 'JSON files (*.json)|*.json', Locked = true;
+        UnknownAgentTok: Label 'UnknownAgent', Locked = true;
+        MultipleAgentsTok: Label 'MultipleAgents', Locked = true;
+        InvalidFileNameCharactersTok: Label '\/:*?"<>|', Locked = true;
+        FileNameCharacterReplacementsTok: Label '_________', Locked = true;
 }
