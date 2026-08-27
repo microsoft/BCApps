@@ -1,7 +1,7 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/992ee305e2c6d86d85d53e18c4fc88a5171a8cd4/Actions/.Modules/settings.schema.json",
+  "$schema": "https://raw.githubusercontent.com/spetersenms/AL-Go/spetersen/separateTestAction/Actions/.Modules/settings.schema.json",
   "type": "PTE",
-  "templateUrl": "https://github.com/microsoft/AL-Go-PTE@preview",
+  "templateUrl": "https://github.com/spetersenms/AL-Go@spetersen/separateTestAction",
   "bcContainerHelperVersion": "preview",
   "runs-on": "windows-latest",
   "cacheImageName": "",
@@ -15,6 +15,7 @@
   "repoVersion": "30.0",
   "memoryLimit": "16G",
   "numberOfTenantsForTesting": 4,
+  "useSeparateTestAction": true,
   "maxTestAppReruns": 2,
   "failOn": "newWarning",
   "workspaceCompilation": {
@@ -158,7 +159,7 @@
     ]
   },
   "UpdateALGoSystemFilesEnvironment": "Official-Build",
-  "templateSha": "91a92acd455ddc5e2139a102c714ecbb3e8073d8",
+  "templateSha": "b733a9483f7420cffd717b619c97c3b8ba17098a",
   "commitOptions": {
     "messageSuffix": "Related to AB#539394",
     "pullRequestAutoMerge": true,

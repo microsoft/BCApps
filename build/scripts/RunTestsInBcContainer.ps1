@@ -10,6 +10,22 @@ Param(
 
 Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
 Import-Module $PSScriptRoot\TestTolerance\TestTolerance.psm1 -Force
+# altool runner for the buckets BCApps routes to `al runtests` (see Test-UseAlToolRunner below).
+Import-Module $PSScriptRoot\AlToolTestRunner.psm1 -Force
+
+# Test types that run on Microsoft's headless `al runtests` (public altool) instead of the BCH
+# client-session runner. UnitTest and Legacy stay on BCH: UnitTest needs the DisableTestIsolation
+# second pass and Legacy is not altool-compatible. Only IntegrationTest and Uncategorized are routed
+# to altool, and only the leaf execution changes - BCApps' parallel-tenant fan-out, reruns and test
+# tolerance still wrap the run.
+$script:AlToolTestTypes = @("IntegrationTest", "Uncategorized")
+
+function Test-UseAlToolRunner {
+    param(
+        [string] $TestType
+    )
+    return ($script:AlToolTestTypes -contains $TestType)
+}
 
 function Get-DisabledTests
 {
@@ -125,6 +141,14 @@ if (($null -ne $TestType) -and ($TestType -ne "Legacy")) {
     Write-Host "Using test type $TestType"
     $parameters["testType"] = $TestType
 }
+elseif ($TestType -eq "Legacy") {
+    # "Legacy" is a BCApps bucket name, not a BC test category. BCH's Run-TestsInBcContainer
+    # (Set-TestType) only accepts UnitTest/IntegrationTest/Uncategorized and throws a ValidateSet
+    # error on "Legacy". The AL-Go RunTests action forwards settings.testType into $parameters, so it
+    # arrives here as "Legacy"; remove it so BCH runs all tests for the legacy apps instead of throwing.
+    Write-Host "Legacy bucket: not passing testType to BCH (runs all tests for the legacy apps)."
+    $parameters.Remove("testType") | Out-Null
+}
 
 $parameters["disabledTests"] = @(Get-DisabledTests -AppName $parameters["appName"]) # Add disabled tests to parameters
 $parameters["renewClientContextBetweenTests"] = $true
@@ -136,22 +160,59 @@ $parameters["renewClientContextBetweenTests"] = $true
 # and we fall through to the sequential single-app path below.
 if ($AppNamesToTest.Count -gt 0) {
     Import-Module $PSScriptRoot\ParallelTestExecution.psm1
+    if (Test-UseAlToolRunner -TestType $TestType) {
+        # Ensure altool is installed once here (mutex-guarded, idempotent) so the per-app background
+        # jobs that follow just find `al` on PATH instead of each racing `dotnet tool install`.
+        Install-AlTool | Out-Null
+    }
     return Invoke-ParallelTestExecution -parameters $parameters -scriptPath $PSCommandPath -testType $TestType -appNamesToTest $AppNamesToTest
 }
 
-# A failing app is retried once by the parallel dispatcher, on a different tenant (see
-# ParallelTestExecution.psm1). Retrying in place here would reuse the tenant the app just dirtied,
-# so the same residue could re-trigger the failure - hence a single attempt per dispatch.
-$result = Invoke-TestsWithReruns -parameters $parameters -maxAttempts 1
+if (Test-UseAlToolRunner -TestType $TestType) {
+    # IntegrationTest and Uncategorized run through Microsoft's headless `al runtests` (altool) using
+    # the AL-Go RunTests action's batched runner vendored in AlToolTestRunner.psm1. This is a
+    # single-app leaf invocation dispatched onto one tenant by the parallel harness above, so tenant
+    # fan-out is preserved. Invoke-AlToolTestRun batches the app's codeunits into a single
+    # `al runtests --testgroups` call and appends to the per-tenant JUnit file the harness later
+    # merges. The tolerance check below still applies to that JUnit file.
+    #
+    # The vendored AL-Go altool runner requires DisabledTests as hashtable[], but BCApps'
+    # Get-DisabledTests yields PSCustomObjects (ConvertFrom-Json). Convert each entry to a hashtable.
+    $disabledTestsForAlTool = @(
+        foreach ($dt in @($parameters.disabledTests)) {
+            if ($null -eq $dt) { continue }
+            if ($dt -is [hashtable]) { $dt; continue }
+            $entry = @{}
+            foreach ($prop in $dt.PSObject.Properties) { $entry[$prop.Name] = $prop.Value }
+            $entry
+        }
+    )
+    $result = Invoke-AlToolTestRun `
+        -ContainerName $parameters.containerName `
+        -Credential $parameters.credential `
+        -ExtensionId "$($parameters.extensionId)" `
+        -AppName "$($parameters.appName)" `
+        -CompanyName "$($parameters.companyName)" `
+        -Tenant "$($parameters.tenant)" `
+        -DisabledTests $disabledTestsForAlTool `
+        -TestType $TestType `
+        -JUnitResultFileName $parameters.JUnitResultFileName
+}
+else {
+    # A failing app is retried once by the parallel dispatcher, on a different tenant (see
+    # ParallelTestExecution.psm1). Retrying in place here would reuse the tenant the app just dirtied,
+    # so the same residue could re-trigger the failure - hence a single attempt per dispatch.
+    $result = Invoke-TestsWithReruns -parameters $parameters -maxAttempts 1
 
-# For UnitTests, also run with DisableTestIsolation on the same tenant
-if ($TestType -eq "UnitTest") {
-    Write-Host "Running DisableTestIsolation pass for UnitTest"
-    $parameters["requiredTestIsolation"] = "Disabled"
-    $parameters["testRunnerCodeunitId"] = "130451"
-    $parameters.Remove("ReRun") # Clear rerun state from the first pass
-    $isolationResult = Invoke-TestsWithReruns -parameters $parameters -maxAttempts 1
-    $result = $result -and $isolationResult
+    # For UnitTests, also run with DisableTestIsolation on the same tenant
+    if ($TestType -eq "UnitTest") {
+        Write-Host "Running DisableTestIsolation pass for UnitTest"
+        $parameters["requiredTestIsolation"] = "Disabled"
+        $parameters["testRunnerCodeunitId"] = "130451"
+        $parameters.Remove("ReRun") # Clear rerun state from the first pass
+        $isolationResult = Invoke-TestsWithReruns -parameters $parameters -maxAttempts 1
+        $result = $result -and $isolationResult
+    }
 }
 
 # If tests failed, check if we can tolerate failures based on the test results and unstable tests list.
