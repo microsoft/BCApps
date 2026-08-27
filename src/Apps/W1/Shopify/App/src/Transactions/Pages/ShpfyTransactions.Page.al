@@ -321,32 +321,14 @@ page 30134 "Shpfy Transactions"
     local procedure MarkPostableTransactions()
     var
         PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
+        AutoPostEligibility: Codeunit "Shpfy Auto Post Eligibility";
     begin
-        // Mark rows whose mapping is auto-post enabled and whose invoice/credit memo is posted.
-        Rec.SetAutoCalcFields("Posted Invoice No.");
+        Rec.SetLoadFields("Shopify Order Id", Shop, Gateway, "Credit Card Company", Type, Status, "Refund Id");
         if not Rec.FindSet() then
             exit;
         repeat
-            if PaymentMethodMapping.Get(Rec.Shop, Rec.Gateway, Rec."Credit Card Company") then
-                if PaymentMethodMapping."Post Automatically" and
-                   (PaymentMethodMapping."Auto-Post Jnl. Template" <> '') and
-                   (PaymentMethodMapping."Auto-Post Jnl. Batch" <> '') and
-                   PostedDocumentExists(Rec)
-                then
-                    Rec.Mark(true);
+            if AutoPostEligibility.IsReadyToPost(Rec, PaymentMethodMapping) then
+                Rec.Mark(true);
         until Rec.Next() = 0;
-    end;
-
-    local procedure PostedDocumentExists(OrderTransaction: Record "Shpfy Order Transaction"): Boolean
-    var
-        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
-    begin
-        if OrderTransaction.Type = OrderTransaction.Type::Refund then begin
-            if OrderTransaction."Refund Id" = 0 then
-                exit(false);
-            SalesCrMemoHeader.SetRange("Shpfy Refund Id", OrderTransaction."Refund Id");
-            exit(not SalesCrMemoHeader.IsEmpty());
-        end;
-        exit(OrderTransaction."Posted Invoice No." <> '');
     end;
 }

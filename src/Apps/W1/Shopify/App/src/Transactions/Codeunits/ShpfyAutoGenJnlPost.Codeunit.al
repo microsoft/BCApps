@@ -21,7 +21,6 @@ codeunit 30422 "Shpfy Auto Gen. Jnl.-Post"
     Access = Internal;
     EventSubscriberInstance = Manual;
     TableNo = "Shpfy Order Transaction";
-    Permissions = tabledata "Gen. Journal Batch" = rim;
 
     trigger OnRun()
     begin

@@ -213,7 +213,12 @@ table 30133 "Shpfy Order Transaction"
         {
             Caption = 'Auto-Post Enabled';
             FieldClass = FlowField;
-            CalcFormula = lookup("Shpfy Payment Method Mapping"."Post Automatically" where("Shop Code" = field("Shop"), Gateway = field(Gateway), "Credit Card Company" = field("Credit Card Company")));
+            CalcFormula = exist("Shpfy Payment Method Mapping" where("Shop Code" = field("Shop"),
+                                                                     Gateway = field(Gateway),
+                                                                     "Credit Card Company" = field("Credit Card Company"),
+                                                                     "Post Automatically" = const(true),
+                                                                     "Auto-Post Jnl. Template" = filter(<> ''),
+                                                                     "Auto-Post Jnl. Batch" = filter(<> '')));
         }
         field(101; "Sales Document No."; code[20])
         {

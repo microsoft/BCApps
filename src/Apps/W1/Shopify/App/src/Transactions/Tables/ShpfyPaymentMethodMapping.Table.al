@@ -33,7 +33,7 @@ table 30134 "Shpfy Payment Method Mapping"
             DataClassification = CustomerContent;
             TableRelation = "Shpfy Transaction Gateway";
         }
-        field(3; "Credit Card Company"; Text[30])
+        field(3; "Credit Card Company"; Text[50])
         {
             Caption = 'Credit Card Company';
             DataClassification = CustomerContent;
@@ -65,33 +65,44 @@ table 30134 "Shpfy Payment Method Mapping"
         field(7; "Post Automatically"; Boolean)
         {
             Caption = 'Post Automatically';
-            DataClassification = CustomerContent;
+            DataClassification = SystemMetadata;
+
+            trigger OnValidate()
+            begin
+                if "Post Automatically" then begin
+                    TestField("Auto-Post Jnl. Template");
+                    TestField("Auto-Post Jnl. Batch");
+                end;
+            end;
         }
         field(8; "Auto-Post Jnl. Template"; Code[10])
         {
             Caption = 'Auto-Post Journal Template';
-            DataClassification = CustomerContent;
+            DataClassification = SystemMetadata;
             TableRelation = "Gen. Journal Template" where(Type = const("Cash Receipts"));
 
             trigger OnValidate()
             begin
-                // Clear the batch on any template change so a stale template+batch can't persist.
-                if "Auto-Post Jnl. Template" <> xRec."Auto-Post Jnl. Template" then
+                if "Auto-Post Jnl. Template" <> xRec."Auto-Post Jnl. Template" then begin
                     Clear("Auto-Post Jnl. Batch");
+                    "Post Automatically" := false;
+                end;
             end;
         }
         field(9; "Auto-Post Jnl. Batch"; Code[10])
         {
             Caption = 'Auto-Post Journal Batch';
-            DataClassification = CustomerContent;
+            DataClassification = SystemMetadata;
             TableRelation = "Gen. Journal Batch".Name where("Journal Template Name" = field("Auto-Post Jnl. Template"));
 
             trigger OnValidate()
             var
                 GenJournalBatch: Record "Gen. Journal Batch";
             begin
-                if "Auto-Post Jnl. Batch" = '' then
+                if "Auto-Post Jnl. Batch" = '' then begin
+                    "Post Automatically" := false;
                     exit;
+                end;
                 TestField("Auto-Post Jnl. Template");
                 GenJournalBatch.Get("Auto-Post Jnl. Template", "Auto-Post Jnl. Batch");
                 GenJournalBatch.TestField("Bal. Account No.");
@@ -106,4 +117,21 @@ table 30134 "Shpfy Payment Method Mapping"
         }
     }
 
+    trigger OnInsert()
+    begin
+        ValidateAutoPostSetup();
+    end;
+
+    trigger OnModify()
+    begin
+        ValidateAutoPostSetup();
+    end;
+
+    local procedure ValidateAutoPostSetup()
+    begin
+        if not "Post Automatically" then
+            exit;
+        TestField("Auto-Post Jnl. Template");
+        TestField("Auto-Post Jnl. Batch");
+    end;
 }

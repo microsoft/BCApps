@@ -18,6 +18,8 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Posting;
 using Microsoft.Sales.Receivables;
+using Microsoft.Utilities;
+using System.Environment.Configuration;
 using System.TestLibraries.Utilities;
 
 /// <summary>
@@ -35,6 +37,7 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
         Shop: Record "Shpfy Shop";
         PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
         LibraryAssert: Codeunit "Library Assert";
+        LibraryERM: Codeunit "Library - ERM";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
         IsInitialized: Boolean;
@@ -75,8 +78,7 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
         // [WHEN] Auto-Post Jnl. Batch is validated
         // [THEN] Validation fails with the missing balancing-account error
         asserterror ShpfyPaymentMethodMapping.Validate("Auto-Post Jnl. Batch", GenJournalBatch.Name);
-        LibraryAssert.ExpectedError('Bal. Account No.');
-        LibraryAssert.ExpectedErrorCode('TestField');
+        LibraryAssert.ExpectedTestFieldError(GenJournalBatch.FieldCaption("Bal. Account No."), '');
     end;
 
     [Test]
@@ -91,6 +93,19 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
 
         // [THEN] Validation passes without error
         LibraryAssert.AreEqual('', ShpfyPaymentMethodMapping."Auto-Post Jnl. Batch", 'Auto-Post Jnl. Batch should be empty');
+    end;
+
+    [Test]
+    procedure UnitTestAutoPostRequiresJournalSetup()
+    var
+        ShpfyPaymentMethodMapping: Record "Shpfy Payment Method Mapping";
+    begin
+        // [SCENARIO] Automatic posting cannot be enabled without a configured journal template and batch
+
+        // [WHEN] Post Automatically is enabled without journal setup
+        // [THEN] Validation fails on the missing journal template
+        asserterror ShpfyPaymentMethodMapping.Validate("Post Automatically", true);
+        LibraryAssert.ExpectedTestFieldError(ShpfyPaymentMethodMapping.FieldCaption("Auto-Post Jnl. Template"), '');
     end;
 
     [Test]
@@ -124,6 +139,30 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
         // [THEN] A Cust. Ledger Entry is created for the transaction
         CustLedgerEntry.SetRange("Shpfy Transaction Id", TransactionId);
         LibraryAssert.IsFalse(CustLedgerEntry.IsEmpty(), 'Cust. Ledger Entry should be created for the auto-posted transaction');
+    end;
+
+    [Test]
+    procedure UnitTestPostSalesOrderWithAutoPostCaptureTransaction()
+    var
+        SalesHeader: Record "Sales Header";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        OrderId: BigInteger;
+        TransactionId: BigInteger;
+    begin
+        // [SCENARIO] A successful capture transaction is automatically posted with its invoice
+        Initialize();
+
+        OrderId := LibraryRandom.RandIntInRange(13000000, 13999999);
+        TransactionId := LibraryRandom.RandIntInRange(13000000, 13999999);
+        CreateShopifyOrder(OrderId);
+        CreateOrderTransaction(TransactionId, OrderId, 0, PaymentMethodMapping.Gateway, Enum::"Shpfy Transaction Type"::Capture, Item."Unit Price");
+        EnablePaymentMethodMappingAutoPost(true);
+        CreateSalesOrder(SalesHeader, OrderId);
+
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        CustLedgerEntry.SetRange("Shpfy Transaction Id", TransactionId);
+        LibraryAssert.IsFalse(CustLedgerEntry.IsEmpty(), 'Cust. Ledger Entry should be created for the capture transaction');
     end;
 
     [Test]
@@ -445,6 +484,31 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
     end;
 
     [Test]
+    procedure UnitTestAutoPostAfterDocumentLinkCreation()
+    var
+        SalesHeader: Record "Sales Header";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        OrderId: BigInteger;
+        TransactionId: BigInteger;
+    begin
+        // [SCENARIO] Document-link writes are committed before the isolated automatic-posting operation runs
+        Initialize();
+
+        OrderId := LibraryRandom.RandIntInRange(14000000, 14999999);
+        TransactionId := LibraryRandom.RandIntInRange(14000000, 14999999);
+        CreateShopifyOrder(OrderId);
+        CreateOrderTransaction(TransactionId, OrderId, 0, PaymentMethodMapping.Gateway, Enum::"Shpfy Transaction Type"::Sale, Item."Unit Price");
+        EnablePaymentMethodMappingAutoPost(true);
+        CreateSalesOrderDocument(SalesHeader, OrderId);
+        CreateShopifyOrderDocumentLink(SalesHeader, OrderId);
+
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        CustLedgerEntry.SetRange("Shpfy Transaction Id", TransactionId);
+        LibraryAssert.IsFalse(CustLedgerEntry.IsEmpty(), 'Document-link creation must not prevent the transaction from being auto-posted');
+    end;
+
+    [Test]
     procedure UnitTestAutoPostDefersWhilePartialInvoiceOpen()
     var
         SalesHeaderToPost: Record "Sales Header";
@@ -528,6 +592,36 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
     end;
 
     [Test]
+    procedure UnitTestAutoPostWithFuturePostingDateIsHeadless()
+    var
+        SalesHeader: Record "Sales Header";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        PostingDate: Date;
+        OrderId: BigInteger;
+        TransactionId: BigInteger;
+    begin
+        // [SCENARIO] Automatic posting pre-confirms the journal posting-date prompt
+        Initialize();
+
+        PostingDate := CalcDate('<1D>', WorkDate());
+        OrderId := LibraryRandom.RandIntInRange(15000000, 15999999);
+        TransactionId := LibraryRandom.RandIntInRange(15000000, 15999999);
+        CreateShopifyOrder(OrderId);
+        CreateOrderTransaction(TransactionId, OrderId, 0, PaymentMethodMapping.Gateway, Enum::"Shpfy Transaction Type"::Sale, Item."Unit Price");
+        EnablePaymentMethodMappingAutoPost(true);
+        CreateSalesOrder(SalesHeader, OrderId);
+        SalesHeader.Validate("Posting Date", PostingDate);
+        SalesHeader.Modify(true);
+        EnablePostingAfterWorkingDateConfirmation();
+
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        CustLedgerEntry.SetRange("Shpfy Transaction Id", TransactionId);
+        LibraryAssert.IsFalse(CustLedgerEntry.IsEmpty(), 'The transaction should be auto-posted without a confirmation dialog');
+        DisablePostingAfterWorkingDateConfirmation();
+    end;
+
+    [Test]
     procedure UnitTestAutoPostSkippedWhenCommitSuppressed()
     var
         SalesHeader: Record "Sales Header";
@@ -607,6 +701,41 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
         LibraryAssert.IsFalse(CustLedgerEntry.IsEmpty(), 'Refund transaction should be auto-posted once no open credit memo remains for the refund.');
     end;
 
+    [Test]
+    procedure UnitTestPostableEligibilityExcludesOpenSalesDocument()
+    var
+        SalesHeaderOpen: Record "Sales Header";
+        SalesHeaderToPost: Record "Sales Header";
+        OrderTransaction: Record "Shpfy Order Transaction";
+        PaymentMethodMappingForEligibility: Record "Shpfy Payment Method Mapping";
+        AutoPostEligibility: Codeunit "Shpfy Auto Post Eligibility";
+        OrderId: BigInteger;
+        TransactionId: BigInteger;
+    begin
+        // [SCENARIO] The postable-transactions predicate matches automatic posting's partial-invoice deferral
+        Initialize();
+
+        OrderId := LibraryRandom.RandIntInRange(16000000, 16999999);
+        TransactionId := LibraryRandom.RandIntInRange(16000000, 16999999);
+        CreateShopifyOrder(OrderId);
+        CreateOrderTransaction(TransactionId, OrderId, 0, PaymentMethodMapping.Gateway, Enum::"Shpfy Transaction Type"::Sale, 2 * Item."Unit Price");
+        EnablePaymentMethodMappingAutoPost(false);
+        CreateSalesOrder(SalesHeaderOpen, OrderId);
+        CreateSalesOrder(SalesHeaderToPost, OrderId);
+        LibrarySales.PostSalesDocument(SalesHeaderToPost, true, true);
+        EnablePaymentMethodMappingAutoPost(true);
+        OrderTransaction.Get(TransactionId);
+
+        LibraryAssert.IsFalse(
+            AutoPostEligibility.IsReadyToPost(OrderTransaction, PaymentMethodMappingForEligibility),
+            'A transaction must not be shown as postable while another sales document for its order is open');
+
+        SalesHeaderOpen.Delete(true);
+        LibraryAssert.IsTrue(
+            AutoPostEligibility.IsReadyToPost(OrderTransaction, PaymentMethodMappingForEligibility),
+            'A transaction should be postable after its invoice is posted and no related sales document remains open');
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -681,6 +810,27 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
     end;
 
+    local procedure CreateSalesOrderDocument(var SalesHeader: Record "Sales Header"; OrderId: BigInteger)
+    var
+        SalesLine: Record "Sales Line";
+    begin
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        SalesHeader."Shpfy Order Id" := OrderId;
+        SalesHeader.Modify();
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+    end;
+
+    local procedure CreateShopifyOrderDocumentLink(SalesHeader: Record "Sales Header"; OrderId: BigInteger)
+    var
+        DocLinkToBCDoc: Record "Shpfy Doc. Link To Doc.";
+    begin
+        DocLinkToBCDoc."Shopify Document Type" := DocLinkToBCDoc."Shopify Document Type"::"Shopify Shop Order";
+        DocLinkToBCDoc."Shopify Document Id" := OrderId;
+        DocLinkToBCDoc."Document Type" := DocLinkToBCDoc."Document Type"::"Sales Order";
+        DocLinkToBCDoc."Document No." := SalesHeader."No.";
+        DocLinkToBCDoc.Insert();
+    end;
+
     local procedure CreateCreditMemo(var SalesHeader: Record "Sales Header"; RefundId: BigInteger)
     var
         SalesLine: Record "Sales Line";
@@ -724,21 +874,14 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
     local procedure CreateFailingPaymentMethodMapping(): Text[30]
     var
         FailingMapping: Record "Shpfy Payment Method Mapping";
-        GenJournalTemplate: Record "Gen. Journal Template";
         GenJournalBatch: Record "Gen. Journal Batch";
         FailingGateway: Text[30];
     begin
         // A batch with a balancing account but without a number series: journal lines get no document number
         // and posting therefore fails, which is used to exercise the best-effort failure handling.
-        GenJournalTemplate.Name := CopyStr(LibraryRandom.RandText(10), 1, MaxStrLen(GenJournalTemplate.Name));
-        GenJournalTemplate.Type := GenJournalTemplate.Type::"Cash Receipts";
-        GenJournalTemplate.Insert();
-
-        GenJournalBatch."Journal Template Name" := GenJournalTemplate.Name;
-        GenJournalBatch.Name := CopyStr(LibraryRandom.RandText(10), 1, MaxStrLen(GenJournalBatch.Name));
-        GenJournalBatch."Bal. Account Type" := GenJournalBatch."Bal. Account Type"::"G/L Account";
-        GenJournalBatch."Bal. Account No." := CreateGLAccount();
-        GenJournalBatch.Insert();
+        CreateJournalBatch(GenJournalBatch);
+        GenJournalBatch.Validate("No. Series", '');
+        GenJournalBatch.Modify(true);
 
         FailingGateway := CopyStr(LibraryRandom.RandText(30), 1, MaxStrLen(FailingMapping.Gateway));
         FailingMapping."Shop Code" := Shop.Code;
@@ -754,54 +897,52 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
     var
         GenJournalTemplate: Record "Gen. Journal Template";
         SourceCode: Record "Source Code";
-        LibraryERM: Codeunit "Library - ERM";
     begin
-        // A source code is required on the template so the generated journal lines carry one; some country
-        // localizations enforce a mandatory Source Code at posting time.
         LibraryERM.CreateSourceCode(SourceCode);
-        GenJournalTemplate.Name := CopyStr(LibraryRandom.RandText(10), 1, MaxStrLen(GenJournalTemplate.Name));
-        GenJournalTemplate.Type := GenJournalTemplate.Type::"Cash Receipts";
-        GenJournalTemplate."Source Code" := SourceCode.Code;
-        GenJournalTemplate.Insert();
-
-        GenJournalBatch."Journal Template Name" := GenJournalTemplate.Name;
-        GenJournalBatch.Name := CopyStr(LibraryRandom.RandText(10), 1, MaxStrLen(GenJournalBatch.Name));
-        GenJournalBatch."Bal. Account Type" := GenJournalBatch."Bal. Account Type"::"G/L Account";
-        GenJournalBatch."Bal. Account No." := CreateGLAccount();
-        GenJournalBatch."No. Series" := CopyStr(LibraryRandom.RandText(20), 1, MaxStrLen(GenJournalBatch."No. Series"));
-        CreateNoSeries(GenJournalBatch."No. Series");
-        GenJournalBatch.Insert();
+        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
+        GenJournalTemplate.Validate(Type, GenJournalTemplate.Type::"Cash Receipts");
+        GenJournalTemplate.Validate("Source Code", SourceCode.Code);
+        GenJournalTemplate.Modify(true);
+        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
+        GenJournalBatch.Validate("Bal. Account Type", GenJournalBatch."Bal. Account Type"::"G/L Account");
+        GenJournalBatch.Validate("Bal. Account No.", CreateGLAccount());
+        GenJournalBatch.Validate("No. Series", LibraryERM.CreateNoSeriesCode());
+        GenJournalBatch.Modify(true);
     end;
 
     local procedure CreateGLAccount(): Code[20]
     var
         GLAccount: Record "G/L Account";
-        LibraryERM: Codeunit "Library - ERM";
     begin
-        // A plain direct-posting G/L account is used as the journal batch balancing account, mirroring a
-        // cash/bank account used for payments (no VAT or general posting groups are required).
         LibraryERM.CreateGLAccount(GLAccount);
         GLAccount.Validate("Direct Posting", true);
         GLAccount.Modify(true);
         exit(GLAccount."No.");
     end;
 
-    local procedure CreateNoSeries(NoSeriesCode: Code[20])
+    local procedure EnablePostingAfterWorkingDateConfirmation()
     var
-        NoSeries: Record "No. Series";
-        NoSeriesLine: Record "No. Series Line";
+        AccountingPeriod: Record "Accounting Period";
+        MyNotifications: Record "My Notifications";
+        InstructionMgt: Codeunit "Instruction Mgt.";
     begin
-        if not NoSeries.Get(NoSeriesCode) then begin
-            NoSeries.Code := NoSeriesCode;
-            NoSeries."Default Nos." := true;
-            NoSeries.Insert();
-            NoSeriesLine."Series Code" := NoSeriesCode;
-            NoSeriesLine."Starting No." := Format(LibraryRandom.RandIntInRange(10000, 39999));
-            NoSeriesLine."Increment-by No." := 1;
-            NoSeriesLine."Ending No." := Format(LibraryRandom.RandIntInRange(50000, 99999));
-            NoSeriesLine.Open := true;
-            NoSeriesLine.Insert();
+        if AccountingPeriod.IsEmpty() then begin
+            AccountingPeriod."Starting Date" := WorkDate();
+            AccountingPeriod.Insert();
         end;
+        MyNotifications.InsertDefault(
+            InstructionMgt.GetPostingAfterWorkingDateNotificationId(),
+            InstructionMgt.PostingAfterWorkingDateNotAllowedCode(),
+            '', true);
+    end;
+
+    local procedure DisablePostingAfterWorkingDateConfirmation()
+    var
+        MyNotifications: Record "My Notifications";
+        InstructionMgt: Codeunit "Instruction Mgt.";
+    begin
+        if MyNotifications.Get(UserId(), InstructionMgt.GetPostingAfterWorkingDateNotificationId()) then
+            MyNotifications.Delete();
     end;
 
     local procedure NoJournalLineExistsForTransaction(TransactionId: BigInteger): Boolean
