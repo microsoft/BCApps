@@ -66,6 +66,7 @@ permissionset 6904 "Expense Management - Objects"
         table Traveler = X,
         table "Expense Activity Log Entry" = X,
         table "Expense Project Buf" = X,
+        table "Expense Spend Limit" = X,
         page "EA Billing Overview" = X,
         page "EA Scheduler Tasks" = X,
         page "EA Outbox Emails" = X,
