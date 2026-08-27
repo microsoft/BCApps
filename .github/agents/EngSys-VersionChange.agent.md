@@ -23,7 +23,7 @@ This agent is designed to update version numbers across the BCApps repository. I
    - Read the current content
    - Update the `version` field to the specified targetVersion
    - Do NOT update the `platform` field to the specified targetVersion unless explicitly asked to. This field follows a different versioning scheme.
-   - Update the `application` field to the specified targetVersion (if present)
+   - Update the `application` field to the specified targetVersion (if present).
    - **Update dependency versions**: For each item in the `dependencies` array, update the `version` field to the specified targetVersion
    - Save the file with proper JSON formatting
 
