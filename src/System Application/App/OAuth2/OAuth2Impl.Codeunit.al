@@ -925,6 +925,7 @@ codeunit 502 OAuth2Impl
     end;
 
     [TryFunction]
+    [NonDebuggable]
     procedure AcquireTokensWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: SecretText; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
     var
         CertificatePassword: SecretText;
@@ -933,6 +934,7 @@ codeunit 502 OAuth2Impl
     end;
 
     [TryFunction]
+    [NonDebuggable]
     procedure AcquireTokensWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: SecretText; CertificatePassword: SecretText; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
     var
         ScopesArray: DotNet StringArray;
