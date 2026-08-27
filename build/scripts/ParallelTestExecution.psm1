@@ -587,15 +587,27 @@ function Start-TestJob {
     $bchModule = Get-Module BcContainerHelper | Select-Object -First 1
     $bchModulePath = if ($bchModule) { $bchModule.Path } else { "BcContainerHelper" }
 
+    # The background job runs in a fresh process that does not inherit the AL-Go action's imported
+    # modules. AlToolTestRunner.psm1 (and the override) call AL-Go output helpers such as OutputDebug,
+    # which are defined in .Modules/DebugLogHelper.psm1 and imported process-wide by AL-Go-Helper.ps1 in
+    # the parent action process only. Resolve that module here and import it in the job too, so those
+    # helpers are available; otherwise the job throws "OutputDebug is not recognized" the first time
+    # al runtests writes to stderr (i.e. for every app that actually has test codeunits to run).
+    $debugLogModule = Get-Module DebugLogHelper | Select-Object -First 1
+    $debugLogModulePath = if ($debugLogModule) { $debugLogModule.Path } else { $null }
+
     return Start-Job -ScriptBlock {
-        param($params, $scriptPath, $testType, $bchPath)
+        param($params, $scriptPath, $testType, $bchPath, $debugLogPath)
         Import-Module $bchPath
+        if ($debugLogPath -and (Test-Path $debugLogPath)) {
+            Import-Module $debugLogPath -DisableNameChecking -Force
+        }
         # Background jobs run a single app sequentially. Pass an empty $AppNamesToTest so the
         # shared script skips the parallel dispatch branch and falls through to running this
         # one app's tests directly.
         $passed = . $scriptPath -parameters $params -TestType $testType -AppNamesToTest @()
         if (-not $passed) { throw "Test execution failed" }
-    } -ArgumentList $jobParams, $scriptPath, $testType, $bchModulePath
+    } -ArgumentList $jobParams, $scriptPath, $testType, $bchModulePath, $debugLogModulePath
 }
 
 <#
