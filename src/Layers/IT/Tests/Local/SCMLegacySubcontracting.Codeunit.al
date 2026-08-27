@@ -703,6 +703,42 @@ codeunit 137500 "SCM Legacy Subcontracting"
         UnbindSubscription(SCMLegacySubcontracting);
     end;
 
+    [Test]
+    [HandlerFunctions('DeclineInstallConfirmHandler')]
+    [Scope('OnPrem')]
+    procedure DisableKeepsLegacyEnabledWhenAppInstallDeclined()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        TransferLine: Record "Transfer Line";
+        PurchaseLine: Record "Purchase Line";
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
+    begin
+        // [SCENARIO 647791] Declining the "install the Subcontracting app" prompt must keep Legacy Subcontracting enabled instead of disabling it and stranding the legacy data
+        Initialize();
+
+        // [GIVEN] ManufacturingSetup."Legacy Subcontracting" = true
+        SetLegacySubcontracting(true);
+
+        // [GIVEN] No open WIP data blocking the disable pre-checks
+        TransferLine.SetRange("WIP Item", true);
+        if not TransferLine.IsEmpty() then
+            TransferLine.DeleteAll();
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("WIP Item", true);
+        if not PurchaseLine.IsEmpty() then
+            PurchaseLine.DeleteAll();
+
+        // [GIVEN] The Subcontracting app is not installed (subscription not bound, so it reports as missing)
+
+        // [WHEN] Disabling Legacy Subcontracting and declining the prompt to install the Subcontracting app
+        ManufacturingSetup.Get();
+        LegacySubcFeatureHandler.SetLegacySubcontracting(ManufacturingSetup, false);
+
+        // [THEN] Legacy Subcontracting remains enabled so the legacy price list and data stay intact and migration can still be triggered later
+        ManufacturingSetup.Get();
+        Assert.IsTrue(ManufacturingSetup."Legacy Subcontracting", 'Declining the app install must not disable Legacy Subcontracting.');
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"SCM Legacy Subcontracting");
@@ -739,6 +775,13 @@ codeunit 137500 "SCM Legacy Subcontracting"
     local procedure MockSubcontractingAppInstalled(var Result: Boolean)
     begin
         Result := true;
+    end;
+
+    [ConfirmHandler]
+    [Scope('OnPrem')]
+    procedure DeclineInstallConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := false;
     end;
 
     local procedure RefreshApplicationAreas()

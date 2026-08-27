@@ -42,10 +42,12 @@ codeunit 99008501 "Legacy Subc. Feature Handler"
 
     /// <summary>
     /// Checks whether Legacy Subcontracting can be disabled and raises an error if the preconditions are not met.
-    /// When a required app is missing, it offers to install it inline and stops - after the install completes and the
-    /// session reloads, the user runs the disable action again (installing one app per run until both are present and migration proceeds).
+    /// When a required app is missing, it offers to install it inline and returns false so the caller does not disable
+    /// Legacy Subcontracting - after the install completes and the session reloads, the user runs the disable action again
+    /// (installing one app per run until both are present and migration proceeds).
+    /// Returns true only when all prerequisites are met and disabling Legacy Subcontracting can proceed.
     /// </summary>
-    procedure CheckCanDisableLegacySubcontracting()
+    procedure CheckCanDisableLegacySubcontracting(): Boolean
     begin
         if OpenWIPTransfersExist() then
             Error(OpenSubcontractingTransfersExistErr);
@@ -55,14 +57,16 @@ codeunit 99008501 "Legacy Subc. Feature Handler"
 
         if not IsSubcontractingAppInstalled() then begin
             OfferToInstallApp(SubcontractingAppIdTok, InstallSubcontractingAppQst);
-            exit;
+            exit(false);
         end;
 
         if DatabaseHasLegacySubcontractingData() then
             if not IsITMigrationAppInstalled() then begin
                 OfferToInstallApp(ITMigrationAppIdTok, InstallITMigrationAppQst);
-                exit;
+                exit(false);
             end;
+
+        exit(true);
     end;
 
     /// <summary>
@@ -128,7 +132,8 @@ codeunit 99008501 "Legacy Subc. Feature Handler"
             exit;
 
         if not Enabled then begin
-            CheckCanDisableLegacySubcontracting();
+            if not CheckCanDisableLegacySubcontracting() then
+                exit;
             if DatabaseHasLegacySubcontractingData() then
                 MigrateData();
         end else
