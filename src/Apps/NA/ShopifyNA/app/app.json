@@ -4,7 +4,7 @@
     "publisher": "Microsoft",
     "brief": "North America localization for the Shopify Connector.",
     "description": "North America localization for the Shopify Connector. Includes AI-assisted matching of Shopify tax line descriptions to Business Central Tax Jurisdictions during order import, finding or creating the appropriate Tax Areas. A container for North America-specific Shopify features.",
-    "version": "29.0.0.0",
+    "version": "29.1.0.0",
     "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
     "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
     "help": "https://go.microsoft.com/fwlink/?linkid=2179727",
@@ -12,7 +12,7 @@
     "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2179727",
     "logo": "ExtensionLogo.png",
     "screenshots": [],
-    "application": "29.0.0.0",
+    "application": "29.1.0.0",
     "platform": "29.0.0.0",
     "target": "OnPrem",
     "propagateDependencies": true,
@@ -21,7 +21,7 @@
             "id": "ec255f57-31d0-4ca2-b751-f2fa7c745abb",
             "name": "Shopify Connector",
             "publisher": "Microsoft",
-            "version": "29.0.0.0"
+            "version": "29.1.0.0"
         }
     ],
     "internalsVisibleTo": [
