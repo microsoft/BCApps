@@ -116,10 +116,14 @@ jobs:
               const teamByNormalised = new Map();
               for (const label of labelNames) {
                 const team = label.slice(TEAM_LABEL_PREFIX.length).trim();
-                if (!team) {
-                  throw new Error(`Label "${label}" has no team name after the prefix.`);
-                }
                 const key = normaliseTeam(team);
+                // Emptiness is checked after normalising, not before: a label
+                // like "Team: !!!" has a name but not a comparable one, and an
+                // empty key would become a bucket that every unusable answer
+                // -- null, "", [] -- silently normalises into.
+                if (!key) {
+                  throw new Error(`Label "${label}" has no usable team name after the prefix.`);
+                }
                 if (teamByNormalised.has(key)) {
                   throw new Error(
                     `Team labels "${teamByNormalised.get(key)}" and "${team}" are indistinguishable ` +
@@ -129,8 +133,20 @@ jobs:
                 labelByTeam.set(team, label);
                 teamByNormalised.set(key, team);
               }
+              // The unresolved bucket is load-bearing -- it is what
+              // "Ownership: Needs Review" keys off -- and discovery cannot
+              // infer which team it is, so it is required by name. Without
+              // this, deleting the label makes every unresolved answer look
+              // like a malformed one from BCAppsTriage, and renaming it stops
+              // anything being flagged for review without saying so.
+              if (!teamByNormalised.has(normaliseTeam(UNRESOLVED_TEAM))) {
+                throw new Error(
+                  `No "${TEAM_LABEL_PREFIX}${UNRESOLVED_TEAM}" label exists; found ` +
+                  `${[...labelByTeam.keys()].map(name => `"${name}"`).join(', ')}. This repository ` +
+                  'needs that label for work the agent cannot attribute to a team.',
+                );
+              }
               return {
-                teams: [...labelByTeam.keys()],
                 teamLabelNames: [...labelByTeam.values()],
                 labelFor: team => labelByTeam.get(team),
                 canonicalTeam: value => teamByNormalised.get(normaliseTeam(value)) ?? null,
@@ -328,10 +344,10 @@ jobs:
               const teamByNormalised = new Map();
               for (const label of labelNames) {
                 const team = label.slice(TEAM_LABEL_PREFIX.length).trim();
-                if (!team) {
-                  throw new Error(`Label "${label}" has no team name after the prefix.`);
-                }
                 const key = normaliseTeam(team);
+                if (!key) {
+                  throw new Error(`Label "${label}" has no usable team name after the prefix.`);
+                }
                 if (teamByNormalised.has(key)) {
                   throw new Error(
                     `Team labels "${teamByNormalised.get(key)}" and "${team}" are indistinguishable ` +
@@ -341,8 +357,14 @@ jobs:
                 labelByTeam.set(team, label);
                 teamByNormalised.set(key, team);
               }
+              if (!teamByNormalised.has(normaliseTeam(UNRESOLVED_TEAM))) {
+                throw new Error(
+                  `No "${TEAM_LABEL_PREFIX}${UNRESOLVED_TEAM}" label exists; found ` +
+                  `${[...labelByTeam.keys()].map(name => `"${name}"`).join(', ')}. This repository ` +
+                  'needs that label for work the agent cannot attribute to a team.',
+                );
+              }
               return {
-                teams: [...labelByTeam.keys()],
                 teamLabelNames: [...labelByTeam.values()],
                 labelFor: team => labelByTeam.get(team),
                 canonicalTeam: value => teamByNormalised.get(normaliseTeam(value)) ?? null,
@@ -394,6 +416,11 @@ jobs:
               result.subject.kind !== process.env.SUBJECT_KIND ||
               result.subject.number !== issue_number ||
               !Number.isSafeInteger(result.subject.number) ||
+              // Checked as a string before it is normalised. normaliseTeam
+              // coerces, so without this ["Finance"] from the artifact would
+              // stringify to a valid team name -- something the hardcoded
+              // teams.includes() rejected for free.
+              typeof result.ownership.team !== 'string' ||
               canonicalTeam(result.ownership.team) === null ||
               !confidenceValues.includes(result.ownership.confidence) ||
               !sources.includes(result.ownership.source) ||
