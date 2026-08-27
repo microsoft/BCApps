@@ -2534,6 +2534,7 @@ codeunit 148309 "Expense Test II"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
     procedure EmployeeIsNotCreatedFromExpenseUserWhenNameIsEmpty()
     var
         ExpenseUser: Record "Expense User";
@@ -2563,6 +2564,7 @@ codeunit 148309 "Expense Test II"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
     procedure EmployeeIsNotCreatedFromExpenseUserWhenEmailIsEmpty()
     var
         ExpenseUser: Record "Expense User";
