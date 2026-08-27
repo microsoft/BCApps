@@ -38,7 +38,7 @@ pageextension 99000883 "Mfg. Sales Order Planning" extends "Sales Order Planning
         NewStatus: Enum "Production Order Status";
         NewOrderType: Enum "Create Production Order Type";
 
-        Text001: Label 'There is nothing to plan.';
+        NothingToPlanMsg: Label 'There is nothing to plan.';
 
     procedure CreateProdOrder()
     var
@@ -65,7 +65,7 @@ pageextension 99000883 "Mfg. Sales Order Planning" extends "Sales Order Planning
         end;
 
         if not CreateOrders() then
-            Message(Text001);
+            Message(NothingToPlanMsg);
 
         Rec.SetRange("Planning Status");
 
