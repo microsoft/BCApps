@@ -110,8 +110,8 @@ codeunit 30199 "Shpfy Authentication Mgt."
     [NonDebuggable]
     local procedure GetToken(Store: Text; AuthorizationCode: SecretText)
     var
-        JsonHelper: Codeunit "Shpfy Json Helper";
         Body: Text;
+        Scope: Text;
         SecretBody: SecretText;
         Url: Text;
         HttpClient: HttpClient;
@@ -119,6 +119,8 @@ codeunit 30199 "Shpfy Authentication Mgt."
         RequestHttpContent: HttpContent;
         HttpResponseMessage: HttpResponseMessage;
         JObject: JsonObject;
+        JToken: JsonToken;
+        AccessToken: SecretText;
         RequestBody: JsonObject;
         Credentials: Dictionary of [Text, SecretText];
         AccessTokenURLTxt: Label 'https://%1/admin/oauth/access_token', Comment = '%1 = Store', Locked = true;
@@ -152,7 +154,13 @@ codeunit 30199 "Shpfy Authentication Mgt."
         Clear(Body);
         HttpResponseMessage.Content().ReadAs(Body);
         JObject.ReadFrom(Body);
-        SaveStoreInfo(Store, JsonHelper.GetValueAsText(JObject.AsToken(), 'scope'), JsonHelper.GetValueAsText(JObject.AsToken(), 'access_token'));
+        if JObject.Get('access_token', JToken) then
+            AccessToken := JToken.AsValue().AsText();
+        // Extract 'scope' inline so the response JObject (which still holds the access token) is never
+        // passed into the debuggable Json Helper frame.
+        if JObject.Get('scope', JToken) then
+            Scope := JToken.AsValue().AsText();
+        SaveStoreInfo(Store, Scope, AccessToken);
     end;
 
     local procedure SaveStoreInfo(Store: Text; ActualScope: Text; AccessToken: SecretText)
