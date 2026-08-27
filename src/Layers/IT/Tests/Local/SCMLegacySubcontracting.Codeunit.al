@@ -44,6 +44,7 @@ codeunit 137500 "SCM Legacy Subcontracting"
         LibraryITLocalization: Codeunit "Library - IT Localization";
 
         Initialized: Boolean;
+        SubcontractingAppNotInstalled: Boolean;
 
     [Test]
     [Scope('OnPrem')]
@@ -712,6 +713,7 @@ codeunit 137500 "SCM Legacy Subcontracting"
         TransferLine: Record "Transfer Line";
         PurchaseLine: Record "Purchase Line";
         LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
+        SCMLegacySubcontracting: Codeunit "SCM Legacy Subcontracting";
     begin
         // [SCENARIO 647791] Declining the "install the Subcontracting app" prompt must keep Legacy Subcontracting enabled instead of disabling it and stranding the legacy data
         Initialize();
@@ -728,15 +730,19 @@ codeunit 137500 "SCM Legacy Subcontracting"
         if not PurchaseLine.IsEmpty() then
             PurchaseLine.DeleteAll();
 
-        // [GIVEN] The Subcontracting app is not installed (subscription not bound, so it reports as missing)
+        // [GIVEN] The Subcontracting app is reported as not installed
+        SCMLegacySubcontracting.SetSubcontractingAppNotInstalled(true);
+        BindSubscription(SCMLegacySubcontracting);
 
         // [WHEN] Disabling Legacy Subcontracting and declining the prompt to install the Subcontracting app
         ManufacturingSetup.Get();
         LegacySubcFeatureHandler.SetLegacySubcontracting(ManufacturingSetup, false);
 
-        // [THEN] Legacy Subcontracting remains enabled so the legacy price list and data stay intact and migration can still be triggered later
+        // [THEN] Legacy Subcontracting remains enabled so the legacy price list and data stay intact and migration can still be triggered later (no install, no migration, no session restart)
         ManufacturingSetup.Get();
         Assert.IsTrue(ManufacturingSetup."Legacy Subcontracting", 'Declining the app install must not disable Legacy Subcontracting.');
+
+        UnbindSubscription(SCMLegacySubcontracting);
     end;
 
     local procedure Initialize()
@@ -774,7 +780,12 @@ codeunit 137500 "SCM Legacy Subcontracting"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Legacy Subc. Feature Handler", 'OnCheckIsSubcontractingAppInstalled', '', false, false)]
     local procedure MockSubcontractingAppInstalled(var Result: Boolean)
     begin
-        Result := true;
+        Result := not SubcontractingAppNotInstalled;
+    end;
+
+    internal procedure SetSubcontractingAppNotInstalled(NotInstalled: Boolean)
+    begin
+        SubcontractingAppNotInstalled := NotInstalled;
     end;
 
     [ConfirmHandler]
