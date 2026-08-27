@@ -33,11 +33,6 @@ page 7103 "Travelers API"
                 }
                 field(spendRequestNo; Rec."Spend Request No.")
                 {
-                    Caption = 'Spend Request No.';
-                    Visible = false;
-                }
-                field(travelRequestNo; Rec."Spend Request No.")
-                {
                     Caption = 'Travel Request No.';
                 }
                 field(lineNo; Rec."Line No.")

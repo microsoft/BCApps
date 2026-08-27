@@ -196,19 +196,9 @@ page 6929 "Expense Report Lines API"
                 }
                 field(spendRequestNo; Rec."Spend Request No.")
                 {
-                    Caption = 'Spend Request No.';
-                    Visible = false;
-                }
-                field(spendRequestClose; Rec."Spend Request Close")
-                {
-                    Caption = 'Spend Request Close';
-                    Visible = false;
-                }
-                field(travelRequestNo; Rec."Spend Request No.")
-                {
                     Caption = 'Travel Request No.';
                 }
-                field(travelRequestClose; Rec."Spend Request Close")
+                field(spendRequestClose; Rec."Spend Request Close")
                 {
                     Caption = 'Travel Request Close';
                 }
