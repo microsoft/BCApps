@@ -848,7 +848,7 @@ codeunit 139758 "Master Data Mgt. Synch. Tests"
         IntegrationRecordRef: RecordRef;
     begin
         // [FEATURE] [AI test 0.4]
-        // [SCENARIO] Setting Source Environment Name makes the data-source resolver fail (cross-environment not yet supported).
+        // [SCENARIO] Setting Source Environment Name routes reads to the cross-environment source, which fails until a connection is configured.
         Initialize();
 
         // [GIVEN] a coupled source customer and a source environment name set on the setup
@@ -865,8 +865,8 @@ codeunit 139758 "Master Data Mgt. Synch. Tests"
         // [WHEN] a read that resolves the data source is invoked
         asserterror LibraryMasterDataMgt.GetIntegrationRecordRefByCoupling(Database::Customer, MasterDataMgtCoupling, IntegrationRecordRef);
 
-        // [THEN] it fails because cross-environment synchronization is not yet available
-        Assert.ExpectedError('Cross-environment synchronization is not yet available');
+        // [THEN] it fails because the cross-environment connection to the source is not configured yet
+        Assert.ExpectedError('The cross-environment connection to the source is not configured yet');
     end;
 
     local procedure GetCustomerMapping(var IntegrationTableMapping: Record "Integration Table Mapping")

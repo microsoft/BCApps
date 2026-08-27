@@ -75,6 +75,31 @@ codeunit 139757 "Library - Master Data Mgt."
         exit(MasterDataManagementSetup.GetDataSource().GetByUidFilter(IntegrationTableMapping, UidFilter, SourceRecordRef));
     end;
 
+    procedure DataSourceGetBySystemId(IntegrationTableId: Integer; SystemId: Guid; var SourceRecordRef: RecordRef): Boolean
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        MasterDataManagementSetup.Get();
+        exit(MasterDataManagementSetup.GetDataSource().GetBySystemId(IntegrationTableId, SystemId, SourceRecordRef));
+    end;
+
+    // Setting a Source Environment Name routes GetDataSource() to the cross-environment implementation.
+    procedure SetSourceEnvironmentName(EnvironmentName: Text)
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        MasterDataManagementSetup.Get();
+        MasterDataManagementSetup."Source Environment Name" := CopyStr(EnvironmentName, 1, MaxStrLen(MasterDataManagementSetup."Source Environment Name"));
+        MasterDataManagementSetup.Modify(false);
+    end;
+
+    procedure RunChangeDetector()
+    var
+        MDMCrossEnvChangeDetector: Codeunit "MDM Cross-Env Change Detector";
+    begin
+        MDMCrossEnvChangeDetector.DetectChanges();
+    end;
+
     var
         MasterDataMgtSubscribers: Codeunit "Master Data Mgt. Subscribers";
         MasterDataManagement: Codeunit "Master Data Management";

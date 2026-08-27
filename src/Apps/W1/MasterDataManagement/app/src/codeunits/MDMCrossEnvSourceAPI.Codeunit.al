@@ -457,6 +457,9 @@ codeunit 7241 "MDM Cross-Env Source API"
             exit(Entry);
         end;
         RecRef.SetView(StrSubstNo('SORTING(Field%1)', SystemModifiedAtFieldNo()));
+        // Detection only needs an approximate max, so read uncommitted: never takes or waits on a lock, even
+        // where snapshot isolation is off (OnPrem). Data reads (GetRecords) stay at committed isolation.
+        RecRef.ReadIsolation := IsolationLevel::ReadUncommitted;
         if RecRef.FindLast() then
             Entry.Add('lastModifiedAt', Format(RecRef.Field(SystemModifiedAtFieldNo()).Value(), 0, 9))
         else

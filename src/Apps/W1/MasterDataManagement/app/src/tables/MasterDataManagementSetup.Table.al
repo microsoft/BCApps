@@ -27,10 +27,13 @@ table 7230 "Master Data Management Setup"
             DataClassification = SystemMetadata;
 
             trigger OnValidate()
+            var
+                MasterDataMgtSetupDefault: Codeunit "Master Data Mgt. Setup Default";
             begin
                 if "Is Enabled" then
                     if "Company Name" = '' then
                         Error(MustPickSourceCompanyErr);
+                MasterDataMgtSetupDefault.UpdateChangeDetectorJob(Rec);
             end;
         }
         field(151; "Company Name"; Text[30])
@@ -83,6 +86,13 @@ table 7230 "Master Data Management Setup"
         {
             Caption = 'Source Environment';
             DataClassification = OrganizationIdentifiableInformation;
+
+            trigger OnValidate()
+            var
+                MasterDataMgtSetupDefault: Codeunit "Master Data Mgt. Setup Default";
+            begin
+                MasterDataMgtSetupDefault.UpdateChangeDetectorJob(Rec);
+            end;
         }
     }
 

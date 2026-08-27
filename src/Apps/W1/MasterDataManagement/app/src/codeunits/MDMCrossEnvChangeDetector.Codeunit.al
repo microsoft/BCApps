@@ -1,0 +1,209 @@
+namespace Microsoft.Integration.MDM;
+
+using Microsoft.Integration.SyncEngine;
+using System.Environment;
+using System.Threading;
+
+/// <summary>
+/// Cross-environment change detector. One recurring job on the subsidiary polls the source's
+/// LastModifiedAtPerTable for the tables it synchronizes and, for those changed since the mapping's watermark,
+/// nudges that table's synchronization job to run now. A job already In Process is left alone.
+/// </summary>
+codeunit 7245 "MDM Cross-Env Change Detector"
+{
+    Access = Internal;
+    Permissions = tabledata "Master Data Management Setup" = r,
+                  tabledata "Integration Table Mapping" = r,
+                  tabledata "Job Queue Entry" = rm,
+                  tabledata "Scheduled Task" = r;
+
+    trigger OnRun()
+    begin
+        DetectChanges();
+    end;
+
+    internal procedure DetectChanges()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        SourceConnection: Codeunit "MDM Source Connection";
+        SourceResponse: Codeunit "MDM Source Response";
+        Transport: Interface "IMDM Source Transport";
+        Response: JsonObject;
+        TableIds: JsonArray;
+    begin
+        if not MasterDataManagementSetup.Get() then
+            exit;
+        if not MasterDataManagementSetup."Is Enabled" then
+            exit;
+        if MasterDataManagementSetup."Source Environment Name" = '' then
+            exit; // detector is cross-environment only
+
+        if not CollectSynchronizedTableIds(TableIds) then
+            exit;
+
+        Transport := SourceConnection.GetTransport();
+        if not SourceResponse.TryParse(Transport.LastModifiedAtPerTable(WriteArray(TableIds)), Response) then
+            exit;
+
+        ProcessDetectionResponse(Response);
+    end;
+
+    local procedure CollectSynchronizedTableIds(var TableIds: JsonArray): Boolean
+    var
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        AddedTables: List of [Integer];
+    begin
+        IntegrationTableMapping.SetRange(Type, IntegrationTableMapping.Type::"Master Data Management");
+        IntegrationTableMapping.SetRange("Delete After Synchronization", false);
+        IntegrationTableMapping.SetRange(Status, IntegrationTableMapping.Status::Enabled);
+        if not IntegrationTableMapping.FindSet() then
+            exit(false);
+        repeat
+            if not AddedTables.Contains(IntegrationTableMapping."Integration Table ID") then begin
+                AddedTables.Add(IntegrationTableMapping."Integration Table ID");
+                TableIds.Add(IntegrationTableMapping."Integration Table ID");
+            end;
+        until IntegrationTableMapping.Next() = 0;
+        exit(TableIds.Count() > 0);
+    end;
+
+    local procedure ProcessDetectionResponse(var Response: JsonObject)
+    var
+        Tables: JsonArray;
+        TablesToken: JsonToken;
+        EntryToken: JsonToken;
+    begin
+        if not Response.Get('tables', TablesToken) then
+            exit;
+        if not TablesToken.IsArray() then
+            exit;
+        Tables := TablesToken.AsArray();
+        foreach EntryToken in Tables do
+            ProcessTableEntry(EntryToken.AsObject());
+    end;
+
+    local procedure ProcessTableEntry(Entry: JsonObject)
+    var
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        LastModifiedAt: DateTime;
+        TableId: Integer;
+        HasTimestamp: Boolean;
+    begin
+        TableId := GetInteger(Entry, 'tableId');
+        if TableId = 0 then
+            exit;
+        if not GetBoolean(Entry, 'tableAvailable', true) then
+            exit; // the sync job itself will report the unavailability
+
+        // No timestamp (indexed:false or empty table): can't compare cheaply, so let the sync job poll (scan).
+        HasTimestamp := GetDateTime(Entry, 'lastModifiedAt', LastModifiedAt);
+
+        IntegrationTableMapping.SetRange(Type, IntegrationTableMapping.Type::"Master Data Management");
+        IntegrationTableMapping.SetRange("Delete After Synchronization", false);
+        IntegrationTableMapping.SetRange("Integration Table ID", TableId);
+        IntegrationTableMapping.SetRange(Status, IntegrationTableMapping.Status::Enabled);
+        if not IntegrationTableMapping.FindSet() then
+            exit;
+        repeat
+            if (not HasTimestamp) or (LastModifiedAt > IntegrationTableMapping."Synch. Modified On Filter") then
+                NudgeSynchJob(IntegrationTableMapping);
+        until IntegrationTableMapping.Next() = 0;
+    end;
+
+    local procedure NudgeSynchJob(IntegrationTableMapping: Record "Integration Table Mapping")
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+        IsHandled: Boolean;
+    begin
+        // In Process / Error / missing jobs are left alone (FindIdleSynchJob returns only idle jobs).
+        if not FindIdleSynchJob(IntegrationTableMapping, JobQueueEntry) then
+            exit;
+
+        // Seam so tests can observe the decision and skip the reschedule (jobs can't be scheduled in the test lab).
+        OnBeforeRescheduleSynchJob(JobQueueEntry, IntegrationTableMapping, IsHandled);
+        if IsHandled then
+            exit;
+
+        RescheduleSynchJobNow(JobQueueEntry);
+    end;
+
+    local procedure FindIdleSynchJob(IntegrationTableMapping: Record "Integration Table Mapping"; var JobQueueEntry: Record "Job Queue Entry"): Boolean
+    begin
+        JobQueueEntry.ReadIsolation := IsolationLevel::ReadUncommitted;
+        JobQueueEntry.SetLoadFields(Status, "System Task ID");
+        JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
+        JobQueueEntry.SetRange("Object ID to Run", Codeunit::"Integration Synch. Job Runner");
+        JobQueueEntry.SetRange("Record ID to Process", IntegrationTableMapping.RecordId());
+        JobQueueEntry.SetRange("Recurring Job", true);
+        // Only idle jobs. In Process / Error / plain On Hold are excluded, so a running job is left alone.
+        JobQueueEntry.SetFilter(Status, '%1|%2', JobQueueEntry.Status::Ready, JobQueueEntry.Status::"On Hold with Inactivity Timeout");
+        exit(JobQueueEntry.FindFirst());
+    end;
+
+    local procedure RescheduleSynchJobNow(JobQueueEntry: Record "Job Queue Entry")
+    var
+        JobQueueEntryUpdate: Record "Job Queue Entry";
+        ScheduledTask: Record "Scheduled Task";
+        NewEarliestStart: DateTime;
+    begin
+        NewEarliestStart := CurrentDateTime();
+        ScheduledTask.ReadIsolation := IsolationLevel::ReadUncommitted;
+        if not ScheduledTask.Get(JobQueueEntry."System Task ID") then
+            exit;
+        if ScheduledTask."Not Before" <= NewEarliestStart then
+            exit; // already due to run
+
+        if not TaskScheduler.SetTaskReady(ScheduledTask.ID, NewEarliestStart) then
+            exit;
+
+        JobQueueEntryUpdate.ReadIsolation := IsolationLevel::UpdLock;
+        JobQueueEntryUpdate.ID := JobQueueEntry.ID;
+        if JobQueueEntryUpdate.GetRecLockedExtendedTimeout() then
+            if JobQueueEntryUpdate.Status in [JobQueueEntryUpdate.Status::Ready, JobQueueEntryUpdate.Status::"On Hold with Inactivity Timeout"] then begin
+                JobQueueEntryUpdate.Status := JobQueueEntryUpdate.Status::Ready;
+                JobQueueEntryUpdate."Earliest Start Date/Time" := NewEarliestStart;
+                JobQueueEntryUpdate.Modify();
+            end;
+    end;
+
+    [InternalEvent(false)]
+    local procedure OnBeforeRescheduleSynchJob(var JobQueueEntry: Record "Job Queue Entry"; IntegrationTableMapping: Record "Integration Table Mapping"; var IsHandled: Boolean)
+    begin
+    end;
+
+    local procedure GetInteger(var Container: JsonObject; PropertyName: Text): Integer
+    var
+        Token: JsonToken;
+    begin
+        if Container.Get(PropertyName, Token) then
+            exit(Token.AsValue().AsInteger());
+        exit(0);
+    end;
+
+    local procedure GetBoolean(var Container: JsonObject; PropertyName: Text; DefaultValue: Boolean): Boolean
+    var
+        Token: JsonToken;
+    begin
+        if Container.Get(PropertyName, Token) then
+            exit(Token.AsValue().AsBoolean());
+        exit(DefaultValue);
+    end;
+
+    local procedure GetDateTime(var Container: JsonObject; PropertyName: Text; var Value: DateTime): Boolean
+    var
+        Token: JsonToken;
+        ValueText: Text;
+    begin
+        if not Container.Get(PropertyName, Token) then
+            exit(false);
+        ValueText := Token.AsValue().AsText();
+        if ValueText = '' then
+            exit(false);
+        exit(Evaluate(Value, ValueText, 9));
+    end;
+
+    local procedure WriteArray(JsonArrayValue: JsonArray) ResultText: Text
+    begin
+        JsonArrayValue.WriteTo(ResultText);
+    end;
+}

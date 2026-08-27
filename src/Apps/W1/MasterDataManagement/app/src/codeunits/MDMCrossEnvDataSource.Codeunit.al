@@ -245,16 +245,10 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         exit(1000);
     end;
 
-    local procedure GetTransport() Transport: Interface "IMDM Source Transport"
+    local procedure GetTransport(): Interface "IMDM Source Transport"
     var
-        HttpTransport: Codeunit "MDM Http Source Transport";
+        SourceConnection: Codeunit "MDM Source Connection";
     begin
-        Transport := HttpTransport;
-        OnResolveSourceTransport(Transport);
-    end;
-
-    [InternalEvent(false)]
-    local procedure OnResolveSourceTransport(var Transport: Interface "IMDM Source Transport")
-    begin
+        exit(SourceConnection.GetTransport());
     end;
 }

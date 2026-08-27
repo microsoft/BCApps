@@ -49,6 +49,7 @@ codeunit 7230 "Master Data Mgt. Setup Default"
         JobQueueEntryNameTok: Label ' %1 - %2 synchronization job.', Comment = '%1 = The Integration Table Name to synchronized (ex. CUSTOMER), %2 = Business Central product name';
         UncoupleJobQueueEntryNameTok: Label ' %1 uncouple job.', Comment = '%1 = Integration mapping description, for example, CUSTOMER <-> CUSTOMER';
         CoupleJobQueueEntryNameTok: Label ' %1 coupling job.', Comment = '%1 = Integration mapping description, for example, CUSTOMER <-> CUSTOMER';
+        ChangeDetectorJobDescriptionTxt: Label 'Master Data Management cross-environment change detection.';
         IntegrationTablePrefixTok: Label 'Business Central', Comment = 'Product name', Locked = true;
         CustomerConfigTemplateCodeTok: Label 'MDMCUST', Comment = 'Customer template code for new customers created from source company data. Max length 10.', Locked = true;
         VendorConfigTemplateCodeTok: Label 'MDMVEND', Comment = 'Vendor template code for new vendors created from source company data. Max length 10.', Locked = true;
@@ -97,6 +98,8 @@ codeunit 7230 "Master Data Mgt. Setup Default"
         ResetDimensionValueMapping('MDM_DIMENSIONVALUE', (not MasterDataManagementSetup."Delay Job Scheduling"));
 
         SetCustomIntegrationsTableMappings(MasterDataManagementSetup);
+
+        UpdateChangeDetectorJob(MasterDataManagementSetup);
     end;
 
     internal procedure ResetSalesPeopleSystemUserMapping(IntegrationTableMappingName: Code[20]; ShouldRecreateJobQueueEntry: Boolean)
@@ -1433,6 +1436,50 @@ codeunit 7230 "Master Data Mgt. Setup Default"
         JobQueueEntry."Rerun Delay (sec.)" := 30;
         JobQueueEntry.Description := CopyStr(JobDescription, 1, MaxStrLen(JobQueueEntry.Description));
         exit(Codeunit.Run(Codeunit::"Job Queue - Enqueue", JobQueueEntry))
+    end;
+
+    // One recurring detector job per subsidiary; the cross-environment analog of same-env's event-driven reschedule.
+    internal procedure UpdateChangeDetectorJob(MasterDataManagementSetup: Record "Master Data Management Setup")
+    begin
+        if MasterDataManagementSetup."Is Enabled" and (MasterDataManagementSetup."Source Environment Name" <> '') then
+            EnsureChangeDetectorJob()
+        else
+            RemoveChangeDetectorJob();
+    end;
+
+    local procedure EnsureChangeDetectorJob()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+    begin
+        JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
+        JobQueueEntry.SetRange("Object ID to Run", Codeunit::"MDM Cross-Env Change Detector");
+        if not JobQueueEntry.IsEmpty() then
+            exit;
+
+        JobQueueEntry.InitRecurringJob(ChangeDetectorIntervalInMinutes());
+        JobQueueEntry."Object Type to Run" := JobQueueEntry."Object Type to Run"::Codeunit;
+        JobQueueEntry."Object ID to Run" := Codeunit::"MDM Cross-Env Change Detector";
+        JobQueueEntry."Run in User Session" := false;
+        JobQueueEntry.Description := CopyStr(ChangeDetectorJobDescriptionTxt, 1, MaxStrLen(JobQueueEntry.Description));
+        JobQueueEntry."Maximum No. of Attempts to Run" := 10;
+        JobQueueEntry.Status := JobQueueEntry.Status::Ready;
+        JobQueueEntry."Rerun Delay (sec.)" := 30;
+        JobQueueEntry."Job Queue Category Code" := JobQueueCategoryLbl;
+        Codeunit.Run(Codeunit::"Job Queue - Enqueue", JobQueueEntry);
+    end;
+
+    local procedure RemoveChangeDetectorJob()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+    begin
+        JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
+        JobQueueEntry.SetRange("Object ID to Run", Codeunit::"MDM Cross-Env Change Detector");
+        JobQueueEntry.DeleteTasks();
+    end;
+
+    local procedure ChangeDetectorIntervalInMinutes(): Integer
+    begin
+        exit(1);
     end;
 
     internal procedure RecreateJobQueueEntryFromIntTableMapping(IntegrationTableMapping: Record "Integration Table Mapping"; IntervalInMinutes: Integer; ShouldRecreateJobQueueEntry: Boolean; InactivityTimeoutPeriod: Integer)
