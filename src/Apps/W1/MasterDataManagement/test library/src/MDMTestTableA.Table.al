@@ -19,6 +19,14 @@ table 139757 "MDM Test Table A"
             Caption = 'TableB Reference';
             TableRelation = "MDM Test Table B"."Primary Key";
         }
+        field(4; "Test Blob"; Blob)
+        {
+            Caption = 'Test Blob';
+        }
+        field(5; "Test Image"; Media)
+        {
+            Caption = 'Test Image';
+        }
     }
 
     keys

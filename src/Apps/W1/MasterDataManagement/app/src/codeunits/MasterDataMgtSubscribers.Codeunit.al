@@ -17,6 +17,7 @@ using System.IO;
 using System.Reflection;
 using System.Telemetry;
 using System.Threading;
+using System.Utilities;
 
 codeunit 7237 "Master Data Mgt. Subscribers"
 {
@@ -321,6 +322,9 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         MediaUpdated: Boolean;
         SourceMediaName, DestinationMediaName : Text;
     begin
+        if IsCrossEnvironmentSync() then
+            exit(UpdateMediaCrossEnvironment(SourceFieldRef, DestinationFieldRef, NewValue));
+
         SourceTenantMedia.SetAutoCalcFields(Content);
         DestinationTenantMedia.SetAutoCalcFields(Content);
 
@@ -357,6 +361,62 @@ codeunit 7237 "Master Data Mgt. Subscribers"
             end;
 
         exit(MediaUpdated);
+    end;
+
+    local procedure IsCrossEnvironmentSync(): Boolean
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        if not MasterDataManagementSetup.Get() then
+            exit(false);
+        exit(MasterDataManagementSetup.IsCrossEnvironment());
+    end;
+
+    // Cross-env: the source Tenant Media lives in another environment, so the bytes arrive inline (per-batch
+    // cache) rather than via the source field's GUID. Build the destination Tenant Media from them, keeping the
+    // same length+name change check. Returns the new media id via NewValue during transfer -> single write.
+    local procedure UpdateMediaCrossEnvironment(var SourceFieldRef: FieldRef; var DestinationFieldRef: FieldRef; var NewValue: Variant): Boolean
+    var
+        DestinationTenantMedia: Record "Tenant Media";
+        InlineMedia: Codeunit "MDM Inline Media";
+        TempBlob: Codeunit "Temp Blob";
+        SourceRecordRef: RecordRef;
+        SourceSystemId, DestinationMediaId, EmptyGuid : Guid;
+        MediaInStream: InStream;
+        MediaOutStream: OutStream;
+        FileName, MimeType, DestinationName : Text;
+        SourceLength, DestinationLength : Integer;
+    begin
+        SourceRecordRef := SourceFieldRef.Record();
+        SourceSystemId := SourceRecordRef.Field(SourceRecordRef.SystemIdNo()).Value();
+        if not InlineMedia.TryGet(SourceSystemId, SourceFieldRef.Number(), FileName, MimeType, TempBlob) then
+            exit(false); // no inline bytes (empty source or over-cap skip): leave the destination untouched
+        SourceLength := TempBlob.Length();
+
+        DestinationMediaId := DestinationFieldRef.Value();
+        DestinationTenantMedia.SetAutoCalcFields(Content);
+        if DestinationTenantMedia.Get(DestinationMediaId) then begin
+            DestinationLength := DestinationTenantMedia.Content.Length();
+            DestinationName := DestinationTenantMedia."File Name";
+        end;
+        if (SourceLength = DestinationLength) and (FileName = DestinationName) then
+            exit(false); // unchanged
+
+        if DestinationMediaId <> EmptyGuid then
+            if DestinationTenantMedia.Get(DestinationMediaId) then
+                DestinationTenantMedia.Delete();
+
+        Clear(DestinationTenantMedia);
+        DestinationTenantMedia.ID := CreateGuid();
+        DestinationTenantMedia."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(DestinationTenantMedia."Company Name"));
+        DestinationTenantMedia."File Name" := CopyStr(FileName, 1, MaxStrLen(DestinationTenantMedia."File Name"));
+        DestinationTenantMedia."Mime Type" := CopyStr(MimeType, 1, MaxStrLen(DestinationTenantMedia."Mime Type"));
+        TempBlob.CreateInStream(MediaInStream);
+        DestinationTenantMedia.Content.CreateOutStream(MediaOutStream);
+        CopyStream(MediaOutStream, MediaInStream);
+        DestinationTenantMedia.Insert();
+        NewValue := DestinationTenantMedia.ID;
+        exit(true);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Integration Table Synch.", 'OnDetermineSynchDirection', '', false, false)]

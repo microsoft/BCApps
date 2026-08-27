@@ -122,6 +122,13 @@ codeunit 139757 "Library - Master Data Mgt."
         MDMCrossEnvChangeDetector.DetectChanges();
     end;
 
+    procedure InlineMediaCacheContains(SystemId: Guid; FieldNo: Integer): Boolean
+    var
+        InlineMedia: Codeunit "MDM Inline Media";
+    begin
+        exit(InlineMedia.Contains(SystemId, FieldNo));
+    end;
+
     var
         MasterDataMgtSubscribers: Codeunit "Master Data Mgt. Subscribers";
         MasterDataManagement: Codeunit "Master Data Management";

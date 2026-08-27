@@ -15,6 +15,7 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
     var
         SourceResponse: Codeunit "MDM Source Response";
         SourceCapabilities: Codeunit "MDM Source Capabilities";
+        InlineMedia: Codeunit "MDM Inline Media";
         InvalidResponseErr: Label 'The source environment returned an unexpected response for table %1.', Comment = '%1 = table caption';
         TableUnavailableErr: Label 'Table %1 is not available on the source environment. Expose it there or remove it from Synchronization Tables.', Comment = '%1 = table caption';
         NotIndexedErr: Label 'Table %1 on the source has too many same-timestamp changes to synchronize without an index. Add a key on SystemModifiedAt and SystemId to that table on the source environment.', Comment = '%1 = table caption';
@@ -56,6 +57,7 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
     begin
         SourceRecordRef.Close();
         SourceRecordRef.Open(IntegrationTableMapping."Integration Table ID", true);
+        InlineMedia.Reset(); // fresh batch: drop the previous page's inline media bytes
         Transport := GetTransport();
         SourceCapabilities.EnsureSupported(Transport, RecordsFeatureTok);
         FieldIds := BuildFieldIds(IntegrationTableMapping);
@@ -167,6 +169,7 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
     begin
         SourceRecordRef.Close();
         SourceRecordRef.Open(IntegrationTableId, true);
+        InlineMedia.Reset(); // fresh fetch: drop any prior inline media bytes
         if SystemIds.Count() = 0 then
             exit;
         Transport := GetTransport();
@@ -252,7 +255,7 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         for Index := 1 to RecRef.FieldCount() do begin
             CurrentField := RecRef.FieldIndex(Index);
             if CurrentField.Class() = FieldClass::Normal then
-                if not (CurrentField.Type() in [FieldType::Blob, FieldType::Media, FieldType::MediaSet]) then
+                if not (CurrentField.Type() in [FieldType::MediaSet, FieldType::TableFilter]) then
                     AddFieldId(FieldIds, AddedFields, CurrentField.Number());
         end;
         RecRef.Close();

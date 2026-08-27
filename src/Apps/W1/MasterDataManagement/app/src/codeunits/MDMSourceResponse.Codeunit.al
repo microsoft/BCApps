@@ -1,5 +1,8 @@
 namespace Microsoft.Integration.MDM;
 
+using System.Text;
+using System.Utilities;
+
 /// <summary>
 /// Parses a GetRecords/LastModifiedAtPerTable JSON response from the source and materializes records into a
 /// temporary RecordRef, so the existing synchronization engine can read them as if they were local. Also
@@ -9,6 +12,9 @@ namespace Microsoft.Integration.MDM;
 codeunit 7248 "MDM Source Response"
 {
     Access = Internal;
+
+    var
+        SkippedFieldTxt: Label 'Cross-environment media or blob field exceeds the inline size cap and was not synchronized.', Locked = true;
 
     [TryFunction]
     procedure TryParse(ResponseText: Text; var Response: JsonObject)
@@ -101,6 +107,7 @@ codeunit 7248 "MDM Source Response"
         FieldNo: Integer;
     begin
         TempSourceRecordRef.Init();
+        GetGuid(RecordObject, 'systemId', SystemIdValue);
         if RecordObject.Get('fields', FieldsToken) then begin
             FieldsObject := FieldsToken.AsObject();
             foreach FieldName in FieldsObject.Keys() do
@@ -108,12 +115,97 @@ codeunit 7248 "MDM Source Response"
                     if TempSourceRecordRef.FieldExist(FieldNo) then begin
                         FieldsObject.Get(FieldName, ValueToken);
                         DestField := TempSourceRecordRef.Field(FieldNo);
-                        SetFieldFromText(DestField, ValueToken.AsValue().AsText());
+                        case DestField.Type() of
+                            FieldType::Media:
+                                ApplyInlineMedia(SystemIdValue, FieldNo, TempSourceRecordRef.Number(), ValueToken);
+                            FieldType::Blob:
+                                ApplyInlineBlob(DestField, SystemIdValue, FieldNo, TempSourceRecordRef.Number(), ValueToken);
+                            else
+                                SetFieldFromText(DestField, ValueToken.AsValue().AsText());
+                        end;
                     end;
         end;
-        if GetGuid(RecordObject, 'systemId', SystemIdValue) then
+        if not IsNullGuid(SystemIdValue) then
             TempSourceRecordRef.Field(TempSourceRecordRef.SystemIdNo()).Value := SystemIdValue;
         TempSourceRecordRef.Insert(false);
+    end;
+
+    // Media bytes travel in a per-batch cache keyed by (SystemId, fieldNo); the temp record's Media field only
+    // holds a GUID that is meaningless in the subsidiary. UpdateMedia (cross-env) reads the cache during transfer.
+    local procedure ApplyInlineMedia(SystemId: Guid; FieldNo: Integer; TableId: Integer; ValueToken: JsonToken)
+    var
+        InlineMedia: Codeunit "MDM Inline Media";
+        MediaObject: JsonObject;
+        ContentToken: JsonToken;
+        NameToken: JsonToken;
+        MimeToken: JsonToken;
+        FileName: Text;
+        MimeType: Text;
+    begin
+        if not ValueToken.IsObject() then
+            exit;
+        MediaObject := ValueToken.AsObject();
+        if IsSkipped(MediaObject) then begin
+            LogSkippedField(TableId, FieldNo, SystemId, MediaObject);
+            exit;
+        end;
+        if not MediaObject.Get('content', ContentToken) then
+            exit; // empty source media: leave the destination picture untouched
+        if MediaObject.Get('name', NameToken) then
+            FileName := NameToken.AsValue().AsText();
+        if MediaObject.Get('mimeType', MimeToken) then
+            MimeType := MimeToken.AsValue().AsText();
+        InlineMedia.Put(SystemId, FieldNo, FileName, MimeType, ContentToken.AsValue().AsText());
+    end;
+
+    // Blob bytes are placed directly on the temp source record; the framework's record transfer carries them to
+    // the destination (the same path same-env uses for mapped blobs), so no destination-side apply is needed.
+    local procedure ApplyInlineBlob(var DestField: FieldRef; SystemId: Guid; FieldNo: Integer; TableId: Integer; ValueToken: JsonToken)
+    var
+        Base64Convert: Codeunit "Base64 Convert";
+        TempBlob: Codeunit "Temp Blob";
+        BlobObject: JsonObject;
+        ContentToken: JsonToken;
+        ContentOutStream: OutStream;
+    begin
+        if not ValueToken.IsObject() then
+            exit;
+        BlobObject := ValueToken.AsObject();
+        if IsSkipped(BlobObject) then begin
+            LogSkippedField(TableId, FieldNo, SystemId, BlobObject);
+            exit;
+        end;
+        if not BlobObject.Get('content', ContentToken) then
+            exit; // empty source blob: leave the destination untouched
+        TempBlob.CreateOutStream(ContentOutStream);
+        Base64Convert.FromBase64(ContentToken.AsValue().AsText(), ContentOutStream);
+        TempBlob.ToFieldRef(DestField);
+    end;
+
+    local procedure IsSkipped(FieldObject: JsonObject): Boolean
+    var
+        Token: JsonToken;
+    begin
+        if FieldObject.Get('skipped', Token) then
+            exit(Token.AsValue().AsBoolean());
+        exit(false);
+    end;
+
+    // Over-cap media/blob is not synchronized (v1). We can't error (it would retry the record every run) and MDM
+    // surfaces no synch warnings, so the skip is emitted as telemetry only; the record's other fields still sync.
+    local procedure LogSkippedField(TableId: Integer; FieldNo: Integer; SystemId: Guid; FieldObject: JsonObject)
+    var
+        MasterDataManagement: Codeunit "Master Data Management";
+        Dimensions: Dictionary of [Text, Text];
+        LengthToken: JsonToken;
+    begin
+        Dimensions.Add('Category', MasterDataManagement.GetTelemetryCategory());
+        Dimensions.Add('tableId', Format(TableId));
+        Dimensions.Add('fieldNo', Format(FieldNo));
+        Dimensions.Add('systemId', Format(SystemId, 0, 4));
+        if FieldObject.Get('length', LengthToken) then
+            Dimensions.Add('length', Format(LengthToken.AsValue().AsBigInteger()));
+        Session.LogMessage('', SkippedFieldTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Dimensions);
     end;
 
     // Round-trips a value serialized with Format(v, 0, 9) on the source back into the destination field's type.

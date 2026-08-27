@@ -31,8 +31,12 @@ table 7230 "Master Data Management Setup"
                 MasterDataMgtSetupDefault: Codeunit "Master Data Mgt. Setup Default";
             begin
                 if "Is Enabled" then
-                    if "Company Name" = '' then
-                        Error(MustPickSourceCompanyErr);
+                    if IsCrossEnvironment() then begin
+                        if not IsCrossEnvConnectionConfigured() then
+                            Error(MustConfigureConnectionErr);
+                    end else
+                        if "Company Name" = '' then
+                            Error(MustPickSourceCompanyErr);
                 MasterDataMgtSetupDefault.UpdateChangeDetectorJob(Rec);
             end;
         }
@@ -183,6 +187,11 @@ table 7230 "Master Data Management Setup"
         exit(("Source Environment URL" <> '') and ("Source Company Name" <> '') and ("Source OAuth Client Id" <> '') and (not IsNullGuid("Source Client Secret Key")));
     end;
 
+    internal procedure IsCrossEnvironment(): Boolean
+    begin
+        exit("Source Environment Name" <> '');
+    end;
+
     [NonDebuggable]
     internal procedure SetSourceClientSecret(ClientSecret: SecretText)
     begin
@@ -237,6 +246,14 @@ table 7230 "Master Data Management Setup"
             ResetConfig := Confirm(ResetConfigQst);
         if ResetConfig then
             MasterDataMgtSetupDefault.ResetConfiguration(Rec);
+
+        if IsCrossEnvironment() then begin
+            // Cross-environment: the source is a different environment; never write to its subscriber table.
+            Message(StrSubstNo(SynchronizationEnabledMsg, "Source Company Name"));
+            Session.LogMessage('0000JIM', "Source Environment Name", Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
+            exit;
+        end;
+
         CurrentCompanyName := CopyStr(CompanyName(), 1, MaxStrLen(MasterDataMgtSubscriber."Company Name"));
         MasterDataManagement.AddSubsidiarySubscriptionToMasterCompany(Rec."Company Name", CurrentCompanyName);
         Message(StrSubstNo(SynchronizationEnabledMsg, Rec."Company Name"));
@@ -264,7 +281,9 @@ table 7230 "Master Data Management Setup"
     begin
         CurrentCompanyName := CopyStr(CompanyName(), 1, MaxStrLen(Rec."Company Name"));
 
-        MasterDataManagement.RemoveSubsidiarySubscriptionFromMasterCompany(Rec."Company Name", CurrentCompanyName);
+        // Cross-environment: the source is a different environment; never touch its subscriber table.
+        if not IsCrossEnvironment() then
+            MasterDataManagement.RemoveSubsidiarySubscriptionFromMasterCompany(Rec."Company Name", CurrentCompanyName);
         UpdateDataSynchJobQueueEntriesStatus();
 
         if not MasterDataMgtCoupling.IsEmpty() then
@@ -336,5 +355,6 @@ table 7230 "Master Data Management Setup"
         KeepTheCouplingsQst: label 'Data synchronization with company %1 is disabled. \\We recommend to keep the table setup and coupling information, especially if you intend to reenable the synchronization with the same company. \\Do you want to keep the table setup and coupling information?', Comment = '%1 - a company name';
         MustNotPickCurrentCompanyErr: label 'You are currently signed into this company. \\Choose a different company to synchronize data with.';
         MustPickSourceCompanyErr: label 'You must choose a source company to synchronize data from.';
+        MustConfigureConnectionErr: label 'Enter the cross-environment connection details before you enable synchronization.';
         ResetConfigQst: label 'There are existing synchronization table definitions in this company. Do you want to reset them to the default configuration?';
 }

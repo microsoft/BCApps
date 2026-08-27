@@ -1,5 +1,9 @@
 namespace Microsoft.Integration.MDM;
 
+using System.Environment;
+using System.Text;
+using System.Utilities;
+
 /// <summary>
 /// Source-side generic API, published as an ODataV4 web service. The cross-environment implementation of
 /// "IMDM Data Source" (running in a subsidiary) calls these unbound actions to read source master data.
@@ -156,8 +160,9 @@ codeunit 7241 "MDM Cross-Env Source API"
 
     local procedure IsProjectableField(FieldReference: FieldRef): Boolean
     begin
+        // Media and Blob are projected inline (base64); MediaSet is deferred and TableFilter carries no data.
         exit((FieldReference.Class() = FieldClass::Normal) and
-             not (FieldReference.Type() in [FieldType::Blob, FieldType::Media, FieldType::MediaSet]));
+             not (FieldReference.Type() in [FieldType::MediaSet, FieldType::TableFilter]));
     end;
 
     local procedure SelectorSystemIds(Selector: Text; var SystemIds: JsonArray): Boolean
@@ -351,6 +356,7 @@ codeunit 7241 "MDM Cross-Env Source API"
 
     local procedure AppendRecord(var RecRef: RecordRef; ProjectedFields: List of [Integer]; var Records: JsonArray; var LastModifiedAt: DateTime; var LastSystemId: Guid)
     var
+        CurrentField: FieldRef;
         RecordObject: JsonObject;
         FieldsObject: JsonObject;
         FieldNo: Integer;
@@ -359,8 +365,17 @@ codeunit 7241 "MDM Cross-Env Source API"
         LastSystemId := RecRef.Field(SystemIdFieldNo()).Value();
         RecordObject.Add('systemId', Format(LastSystemId));
         RecordObject.Add('systemModifiedAt', FormatFieldValue(RecRef.Field(SystemModifiedAtFieldNo())));
-        foreach FieldNo in ProjectedFields do
-            FieldsObject.Add(Format(FieldNo), FormatFieldValue(RecRef.Field(FieldNo)));
+        foreach FieldNo in ProjectedFields do begin
+            CurrentField := RecRef.Field(FieldNo);
+            case CurrentField.Type() of
+                FieldType::Media:
+                    FieldsObject.Add(Format(FieldNo), BuildMediaValue(CurrentField));
+                FieldType::Blob:
+                    FieldsObject.Add(Format(FieldNo), BuildBlobValue(CurrentField));
+                else
+                    FieldsObject.Add(Format(FieldNo), FormatFieldValue(CurrentField));
+            end;
+        end;
         RecordObject.Add('fields', FieldsObject);
         Records.Add(RecordObject);
     end;
@@ -386,6 +401,72 @@ codeunit 7241 "MDM Cross-Env Source API"
     local procedure FormatFieldValue(FieldReference: FieldRef): Text
     begin
         exit(Format(FieldReference.Value(), 0, 9));
+    end;
+
+    // Single Media field: emit { media, name, mimeType, length, content(base64) }, or { media, empty } when the
+    // source has no picture, or { media, skipped, length } when it exceeds the inline cap.
+    local procedure BuildMediaValue(FieldReference: FieldRef): JsonObject
+    var
+        TenantMedia: Record "Tenant Media";
+        Base64Convert: Codeunit "Base64 Convert";
+        MediaValue: JsonObject;
+        MediaId: Guid;
+        ContentInStream: InStream;
+    begin
+        MediaValue.Add('media', true);
+        MediaId := FieldReference.Value();
+        if IsNullGuid(MediaId) then begin
+            MediaValue.Add('empty', true);
+            exit(MediaValue);
+        end;
+        TenantMedia.SetAutoCalcFields(Content);
+        if not TenantMedia.Get(MediaId) then begin
+            MediaValue.Add('empty', true);
+            exit(MediaValue);
+        end;
+        if TenantMedia.Content.Length() > MaxInlineContentSize() then begin
+            MediaValue.Add('skipped', true);
+            MediaValue.Add('length', TenantMedia.Content.Length());
+            exit(MediaValue);
+        end;
+        MediaValue.Add('name', TenantMedia."File Name");
+        MediaValue.Add('mimeType', TenantMedia."Mime Type");
+        MediaValue.Add('length', TenantMedia.Content.Length());
+        TenantMedia.Content.CreateInStream(ContentInStream);
+        MediaValue.Add('content', Base64Convert.ToBase64(ContentInStream));
+        exit(MediaValue);
+    end;
+
+    // Blob field: emit { blob, length, content(base64) }, or { blob, empty }, or { blob, skipped, length }.
+    local procedure BuildBlobValue(FieldReference: FieldRef): JsonObject
+    var
+        Base64Convert: Codeunit "Base64 Convert";
+        TempBlob: Codeunit "Temp Blob";
+        BlobValue: JsonObject;
+        ContentInStream: InStream;
+    begin
+        BlobValue.Add('blob', true);
+        TempBlob.FromFieldRef(FieldReference);
+        if not TempBlob.HasValue() then begin
+            BlobValue.Add('empty', true);
+            exit(BlobValue);
+        end;
+        if TempBlob.Length() > MaxInlineContentSize() then begin
+            BlobValue.Add('skipped', true);
+            BlobValue.Add('length', TempBlob.Length());
+            exit(BlobValue);
+        end;
+        BlobValue.Add('length', TempBlob.Length());
+        TempBlob.CreateInStream(ContentInStream);
+        BlobValue.Add('content', Base64Convert.ToBase64(ContentInStream));
+        exit(BlobValue);
+    end;
+
+    // 512 KB raw. Its base64 form (~700 KB) stays under BC's 1,000,000-byte single-stream-read limit; do not
+    // raise toward 1 MB, where the encoded value would exceed that limit on a single read.
+    local procedure MaxInlineContentSize(): Integer
+    begin
+        exit(512 * 1024);
     end;
 
     [TryFunction]

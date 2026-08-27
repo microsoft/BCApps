@@ -301,6 +301,138 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         CleanUp();
     end;
 
+    [Test]
+    procedure CrossEnvBlobFieldRoundTrips()
+    var
+        TestTableA: Record "MDM Test Table A";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        TempBlob: Codeunit "Temp Blob";
+        SourceRecordRef: RecordRef;
+        BlobField: FieldRef;
+        BlobInStream: InStream;
+        BlobText: Text;
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] A Blob field is projected inline (base64) and materialized back onto the temp source record.
+        Initialize();
+        CreateTestTableAWithBlob(TestTableA, 'the quick brown fox');
+
+        LibraryMasterDataMgt.SetSourceEnvironmentName('PROD');
+        InProcessTransport.Activate();
+
+        Assert.IsTrue(LibraryMasterDataMgt.DataSourceGetBySystemId(Database::"MDM Test Table A", TestTableA.SystemId, SourceRecordRef), 'Record should be materialized');
+        BlobField := SourceRecordRef.Field(TestTableA.FieldNo("Test Blob"));
+        TempBlob.FromFieldRef(BlobField);
+        Assert.IsTrue(TempBlob.HasValue(), 'Blob should round-trip onto the materialized record');
+        TempBlob.CreateInStream(BlobInStream, TextEncoding::UTF8);
+        BlobInStream.ReadText(BlobText);
+        Assert.AreEqual('the quick brown fox', BlobText, 'Blob content should round-trip through the wire');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure CrossEnvOversizeBlobIsSkipped()
+    var
+        TestTableA: Record "MDM Test Table A";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        TempBlob: Codeunit "Temp Blob";
+        SourceRecordRef: RecordRef;
+        BlobField: FieldRef;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] A Blob over the 512 KB inline cap is skipped: the record materializes without the blob.
+        Initialize();
+        CreateTestTableAWithBlob(TestTableA, PadStr('', 600000, 'A')); // > 512 KB raw
+
+        LibraryMasterDataMgt.SetSourceEnvironmentName('PROD');
+        InProcessTransport.Activate();
+
+        Assert.IsTrue(LibraryMasterDataMgt.DataSourceGetBySystemId(Database::"MDM Test Table A", TestTableA.SystemId, SourceRecordRef), 'Record should still materialize');
+        BlobField := SourceRecordRef.Field(TestTableA.FieldNo("Test Blob"));
+        TempBlob.FromFieldRef(BlobField);
+        Assert.IsFalse(TempBlob.HasValue(), 'Over-cap blob must be skipped, not synchronized');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure CrossEnvMediaFieldIsCachedForApply()
+    var
+        TestTableA: Record "MDM Test Table A";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        SourceRecordRef: RecordRef;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] A Media field's bytes are cached (keyed by SystemId+fieldNo) for the transfer-time apply.
+        Initialize();
+        CreateTestTableAWithImage(TestTableA, 'small picture bytes');
+
+        LibraryMasterDataMgt.SetSourceEnvironmentName('PROD');
+        InProcessTransport.Activate();
+
+        Assert.IsTrue(LibraryMasterDataMgt.DataSourceGetBySystemId(Database::"MDM Test Table A", TestTableA.SystemId, SourceRecordRef), 'Record should be materialized');
+        Assert.IsTrue(
+            LibraryMasterDataMgt.InlineMediaCacheContains(TestTableA.SystemId, TestTableA.FieldNo("Test Image")),
+            'Inline media bytes should be cached for the transfer-time apply');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure CrossEnvOversizeMediaIsSkipped()
+    var
+        TestTableA: Record "MDM Test Table A";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        SourceRecordRef: RecordRef;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] A Media over the 512 KB cap is skipped: no bytes are cached (telemetry-only warning).
+        Initialize();
+        CreateTestTableAWithImage(TestTableA, PadStr('', 600000, 'A')); // > 512 KB raw
+
+        LibraryMasterDataMgt.SetSourceEnvironmentName('PROD');
+        InProcessTransport.Activate();
+
+        Assert.IsTrue(LibraryMasterDataMgt.DataSourceGetBySystemId(Database::"MDM Test Table A", TestTableA.SystemId, SourceRecordRef), 'Record should still materialize');
+        Assert.IsFalse(
+            LibraryMasterDataMgt.InlineMediaCacheContains(TestTableA.SystemId, TestTableA.FieldNo("Test Image")),
+            'Over-cap media must not be cached (skipped, telemetry only)');
+
+        CleanUp();
+    end;
+
+    local procedure CreateTestTableAWithBlob(var TestTableA: Record "MDM Test Table A"; Content: Text)
+    var
+        BlobOutStream: OutStream;
+    begin
+        Clear(TestTableA);
+        TestTableA."Primary Key" := CopyStr('B' + Format(LibraryRandomInt()), 1, MaxStrLen(TestTableA."Primary Key"));
+        TestTableA."Test Blob".CreateOutStream(BlobOutStream, TextEncoding::UTF8);
+        BlobOutStream.WriteText(Content);
+        TestTableA.Insert();
+    end;
+
+    local procedure CreateTestTableAWithImage(var TestTableA: Record "MDM Test Table A"; Content: Text)
+    var
+        TempBlob: Codeunit "Temp Blob";
+        MediaInStream: InStream;
+        MediaOutStream: OutStream;
+    begin
+        Clear(TestTableA);
+        TestTableA."Primary Key" := CopyStr('M' + Format(LibraryRandomInt()), 1, MaxStrLen(TestTableA."Primary Key"));
+        TestTableA.Insert();
+        TempBlob.CreateOutStream(MediaOutStream, TextEncoding::UTF8);
+        MediaOutStream.WriteText(Content);
+        TempBlob.CreateInStream(MediaInStream, TextEncoding::UTF8);
+        TestTableA."Test Image".ImportStream(MediaInStream, 'pic.bin', 'application/octet-stream');
+        TestTableA.Modify();
+    end;
+
     local procedure Initialize()
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
@@ -333,9 +465,11 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     local procedure DeleteTestArtifacts()
     var
         IntegrationTableMapping: Record "Integration Table Mapping";
+        TestTableA: Record "MDM Test Table A";
     begin
         IntegrationTableMapping.SetFilter(Name, 'MDMXENV*');
         IntegrationTableMapping.DeleteAll();
+        TestTableA.DeleteAll(); // deterministic LibraryRandom keys collide across tests; the setup commit survives rollback
     end;
 
     local procedure CreateMinimalCustomerMapping(var IntegrationTableMapping: Record "Integration Table Mapping")

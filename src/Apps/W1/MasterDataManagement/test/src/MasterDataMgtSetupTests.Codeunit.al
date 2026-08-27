@@ -99,6 +99,53 @@ codeunit 139770 "Master Data Mgt. Setup Tests"
     end;
 
     [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure EnableCrossEnvironmentAllowsSameSourceCompanyName()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        MasterDataMgtSubscriber: Record "Master Data Mgt. Subscriber";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Cross-env enables with a source company whose name equals the current company (different environment),
+        //            and never writes to the source subscriber table.
+        Initialize();
+        MasterDataManagementSetup.Init();
+        MasterDataManagementSetup."Source Environment Name" := 'CONTOSO-PROD';
+        MasterDataManagementSetup."Source Environment URL" := 'https://example/v2.0/contoso-prod';
+        MasterDataManagementSetup."Source Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(MasterDataManagementSetup."Source Company Name"));
+        MasterDataManagementSetup."Source OAuth Client Id" := '11111111-2222-3333-4444-555555555555';
+        MasterDataManagementSetup."Source Client Secret Key" := CreateGuid(); // simulate a stored secret
+        MasterDataManagementSetup.Insert();
+
+        MasterDataManagementSetup.Validate("Is Enabled", true);
+        MasterDataManagementSetup.Modify(true);
+
+        // [THEN] no subscriber row was written for the current company
+        MasterDataMgtSubscriber.SetRange("Company Name", CompanyName());
+        Assert.AreEqual(0, MasterDataMgtSubscriber.Count(), 'Cross-env enable must not write to the source subscriber table');
+
+        // cleanup: disable to remove the detector job
+        MasterDataManagementSetup.Validate("Is Enabled", false);
+        MasterDataManagementSetup.Modify(true);
+    end;
+
+    [Test]
+    procedure EnableCrossEnvironmentRequiresConnectionDetails()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Enabling cross-env without a configured connection is blocked with a clear error.
+        Initialize();
+        MasterDataManagementSetup.Init();
+        MasterDataManagementSetup."Source Environment Name" := 'CONTOSO-PROD'; // env set, but URL/company/client id/secret missing
+        MasterDataManagementSetup.Insert();
+
+        asserterror MasterDataManagementSetup.Validate("Is Enabled", true);
+        Assert.ExpectedError('connection details');
+    end;
+
+    [Test]
     [HandlerFunctions('SynchronizationEnabledMessageHandler,ConfirmHandlerYes')]
     procedure DisableSetupKeepCouplingTable()
     var
