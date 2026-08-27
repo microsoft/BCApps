@@ -4419,6 +4419,88 @@
         AssertNoRequisitionLinesForSalesOrder(SalesHeader);
     end;
 
+    [Test]
+    [HandlerFunctions('PurchOrderFromSalesOrderCancelModalPageHandler')]
+    procedure CancelCreatePurchOrderFromSalesOrderWithLotTracking()
+    var
+        Item: Record Item;
+        ReservationEntry: Record "Reservation Entry";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesOrder: TestPage "Sales Order";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 646796] Cancel creating purchase order from sales order with lot-tracked item does not cause error
+        Initialize();
+
+        // [GIVEN] Item "I" with lot tracking
+        LibraryItemTracking.CreateLotItem(Item);
+
+        // [GIVEN] Sales Order "SO" with Item "I", Qty = 1
+        CreateSalesOrder(SalesHeader, SalesLine, SalesLine.Type::Item, LibrarySales.CreateCustomerNo(), Item."No.", 1, '');
+
+        // [GIVEN] Lot tracking assigned on Sales Order Line "SOL"
+        LibraryItemTracking.CreateSalesOrderItemTracking(ReservationEntry, SalesLine, '', LibraryUtility.GenerateGUID(), SalesLine."Quantity (Base)");
+
+        // [WHEN] Invoke "Create Purchase Order" and cancel
+        SalesOrder.OpenEdit();
+        SalesOrder.GoToRecord(SalesHeader);
+        SalesOrder.CreatePurchaseOrder.Invoke();
+
+        // [THEN] No requisition lines remain
+        AssertNoRequisitionLinesForSalesOrder(SalesHeader);
+
+        // [THEN] Sales line reservation entry is intact
+        VerifySalesLineReservationEntryExists(SalesLine);
+    end;
+
+    [Test]
+    [HandlerFunctions('PurchOrderFromSalesOrderConditionalModalPageHandler')]
+    procedure CreatePurchOrderFromSalesOrderWithLotTrackingAfterCancel()
+    var
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        ReservationEntry: Record "Reservation Entry";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        Vendor: Record Vendor;
+        SalesOrder: TestPage "Sales Order";
+        PurchaseOrder: TestPage "Purchase Order";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 646796] Purchase order is created from sales order with lot-tracked item after a prior cancel
+        Initialize();
+
+        // [GIVEN] Item "I" with lot tracking
+        LibraryItemTracking.CreateLotItem(Item);
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [GIVEN] Sales Order "SO" with Item "I", Qty = 1
+        CreateSalesOrder(SalesHeader, SalesLine, SalesLine.Type::Item, LibrarySales.CreateCustomerNo(), Item."No.", 1, '');
+
+        // [GIVEN] Lot tracking assigned on Sales Order Line "SOL"
+        LibraryItemTracking.CreateSalesOrderItemTracking(ReservationEntry, SalesLine, '', LibraryUtility.GenerateGUID(), SalesLine."Quantity (Base)");
+
+        // [GIVEN] Invoke "Create Purchase Order" and cancel
+        LibraryVariableStorage.Enqueue(false);
+        SalesOrder.OpenEdit();
+        SalesOrder.GoToRecord(SalesHeader);
+        SalesOrder.CreatePurchaseOrder.Invoke();
+
+        // [WHEN] Invoke "Create Purchase Order" again with Vendor "V"
+        LibraryVariableStorage.Enqueue(true);
+        LibraryVariableStorage.Enqueue(Vendor."No.");
+        PurchaseOrder.Trap();
+        SalesOrder.CreatePurchaseOrder.Invoke();
+
+        // [THEN] Purchase order is created
+        PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::Order);
+        PurchaseHeader.SetRange("No.", PurchaseOrder."No.".Value);
+        Assert.RecordIsNotEmpty(PurchaseHeader);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"SCM Orders VI");
@@ -6188,6 +6270,17 @@
         Assert.RecordIsEmpty(RequisitionLine);
     end;
 
+    local procedure VerifySalesLineReservationEntryExists(SalesLine: Record "Sales Line")
+    var
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        ReservationEntry.SetRange("Source Type", Database::"Sales Line");
+        ReservationEntry.SetRange("Source Subtype", SalesLine."Document Type");
+        ReservationEntry.SetRange("Source ID", SalesLine."Document No.");
+        ReservationEntry.SetRange("Source Ref. No.", SalesLine."Line No.");
+        Assert.RecordIsNotEmpty(ReservationEntry);
+    end;
+
     [MessageHandler]
     [Scope('OnPrem')]
     procedure MessageHandler(Message: Text[1024])
@@ -6393,6 +6486,22 @@
     begin
         CreateInvtPutAwayPickMvmt.CInvtPick.SetValue(true);
         CreateInvtPutAwayPickMvmt.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure PurchOrderFromSalesOrderCancelModalPageHandler(var PurchOrderFromSalesOrder: TestPage "Purch. Order From Sales Order")
+    begin
+        PurchOrderFromSalesOrder.Cancel().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure PurchOrderFromSalesOrderConditionalModalPageHandler(var PurchOrderFromSalesOrder: TestPage "Purch. Order From Sales Order")
+    begin
+        if LibraryVariableStorage.DequeueBoolean() then begin
+            PurchOrderFromSalesOrder.Vendor.SetValue(LibraryVariableStorage.DequeueText());
+            PurchOrderFromSalesOrder.OK().Invoke();
+        end else
+            PurchOrderFromSalesOrder.Cancel().Invoke();
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnDeleteAfterPostingOnBeforeDeleteSalesHeader', '', false, false)]

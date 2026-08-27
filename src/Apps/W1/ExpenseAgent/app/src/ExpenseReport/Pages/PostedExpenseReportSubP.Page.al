@@ -32,6 +32,23 @@ page 6993 "Posted Expense Report SubP."
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the category that classifies this expense line.';
                 }
+                field(PolicyStatus; PolicyStatus)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Policy Status';
+                    Editable = false;
+                    Visible = PolicyEvaluationEnabled;
+                    ToolTip = 'Specifies the policy evaluation status captured when the expense was posted: Not Evaluated when the agent had not assessed it, Flagged when one or more policies were not met, or Cleared when all evaluated policies were met. Choose the value to see the policies that were evaluated for this expense.';
+
+                    trigger OnDrillDown()
+                    var
+                        PostedExpPolicyEvaluation: Record "Posted Exp. Policy Evaluation";
+                    begin
+                        PostedExpPolicyEvaluation.SetRange("Subject Type", "Expense Policy Subject"::"Expense Report Line");
+                        PostedExpPolicyEvaluation.SetRange("Subject System Id", Rec.SystemId);
+                        Page.RunModal(Page::"Posted Exp. Policy Evaluations", PostedExpPolicyEvaluation);
+                    end;
+                }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
@@ -426,6 +443,7 @@ page 6993 "Posted Expense Report SubP."
         ExpenseAgentSetup: Record "Expense Agent Setup";
         PostedExpenseReportHeader: Record "Posted Expense Report Header";
         ExpenseAutoPopulation: Codeunit "Expense Auto Population";
+        ExpenseCapabilitiesProvider: Codeunit "Expense Capabilities Provider";
         TotalAmountLCY: Decimal;
         TotalVATAmountLCY: Decimal;
         TotalAmountWithoutVATLCY: Decimal;
@@ -436,6 +454,8 @@ page 6993 "Posted Expense Report SubP."
         IsRuleApplied: Boolean;
         TotalMileage: Decimal;
         AllowVATReclaim: Boolean;
+        PolicyEvaluationEnabled: Boolean;
+        PolicyStatus: Enum "Expense Policy Status";
 
     local procedure UpdateControls()
     begin
@@ -452,6 +472,9 @@ page 6993 "Posted Expense Report SubP."
 
         ExpenseAgentSetup.GetRecordOnce();
         AllowVATReclaim := ExpenseAgentSetup."Allow VAT Reclaim";
+        PolicyEvaluationEnabled := ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::AiAssistedPolicyEvaluation);
+        if PolicyEvaluationEnabled then
+            PolicyStatus := Rec.GetPolicyStatus();
     end;
 
     local procedure ValidateHeaderAmountField()

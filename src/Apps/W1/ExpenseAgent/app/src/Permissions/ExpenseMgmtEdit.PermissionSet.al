@@ -35,6 +35,8 @@ permissionset 6906 "Expense Mgmt. Edit"
         tabledata "Expense Ledger Entry" = im,
         tabledata "Expense Payment Method" = IMD,
         tabledata "Expense Rule Violation" = IMD,
+        tabledata "Expense Policy Evaluation" = imd,
+        tabledata "Posted Exp. Policy Evaluation" = id,
         tabledata "Expense Report Rule Violation" = IMD,
         tabledata "Tenant Feedback Setting" = IMD,
         tabledata "EA KPI" = IMD,
