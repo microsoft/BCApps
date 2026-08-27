@@ -36,6 +36,10 @@ codeunit 148339 "Spend Request Test"
         ClosedByDocMsg: Label 'Closed By Document No. should be set on the closed spend request.';
         SpendReqReleasedMsg: Label 'The spend request should be released.';
         SpendReqApprovedMsg: Label 'The spend request should be approved automatically when the agent is disabled.';
+        ExpenseReportCreatedMsg: Label 'One expense report should be created for the approved spend request.';
+        ExpenseReportUserMsg: Label 'The expense report should be created for the requested expense user.';
+        ExpenseReportDescriptionMsg: Label 'The expense report description should match the spend request purpose.';
+        ExpenseReportDateMsg: Label 'The expense report date should match the spend request start date.';
         SpendReqNoSetMsg: Label 'The Spend Request No. should be assigned to the expense report line.';
         HeaderSpendReqNoSetMsg: Label 'The Spend Request No. should be assigned to the expense report header.';
         HeaderCloseFlagMsg: Label 'The header should store the confirmed close flag.';
@@ -319,6 +323,7 @@ codeunit 148339 "Spend Request Test"
     [Test]
     procedure ReleaseSpendReqAutoApprovesWhenAgentDisabled()
     var
+        ExpenseReportHeader: Record "Expense Report Header";
         SpendRequest: Record "Spend Request";
         ExpenseUser: Record "Expense User";
         ReleaseSpendRequest: Codeunit "Release Spend Request";
@@ -335,11 +340,18 @@ codeunit 148339 "Spend Request Test"
         // [THEN] The spend request is approved automatically because there is no agent to approve it.
         SpendRequest.Get(SpendRequest."No.");
         Assert.AreEqual(SpendRequest.Status::Approved, SpendRequest.Status, SpendReqApprovedMsg);
+
+        // [THEN] An expense report is created and linked to the spend request.
+        ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
+        Assert.AreEqual(1, ExpenseReportHeader.Count(), ExpenseReportCreatedMsg);
+        ExpenseReportHeader.FindFirst();
+        Assert.AreEqual(ExpenseUser."No.", ExpenseReportHeader."Expense User No.", ExpenseReportUserMsg);
     end;
 
     [Test]
     procedure ReleaseSpendReqStaysReleasedWhenAgentEnabled()
     var
+        ExpenseReportHeader: Record "Expense Report Header";
         SpendRequest: Record "Spend Request";
         ExpenseUser: Record "Expense User";
         ReleaseSpendRequest: Codeunit "Release Spend Request";
@@ -357,6 +369,51 @@ codeunit 148339 "Spend Request Test"
         // [THEN] The spend request stays released.
         SpendRequest.Get(SpendRequest."No.");
         Assert.AreEqual(SpendRequest.Status::Released, SpendRequest.Status, SpendReqReleasedMsg);
+        ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
+        Assert.RecordIsEmpty(ExpenseReportHeader);
+    end;
+
+    [Test]
+    procedure ApproveSpendReqCreatesExpenseReport()
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        ReleaseSpendRequest: Codeunit "Release Spend Request";
+        StartDate: Date;
+        ExpectedPurpose: Text[100];
+    begin
+        // [SCENARIO] Approving a released spend request creates one linked expense report.
+        Initialize();
+        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
+
+        // [GIVEN] A released spend request.
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        StartDate := DMY2Date(4, 10, 2026);
+        ExpectedPurpose := 'Customer conference';
+        SpendRequest.Validate("Expected End Date", StartDate + 7);
+        SpendRequest.Validate("Expected Start Date", StartDate);
+        SpendRequest.Validate(Purpose, ExpectedPurpose);
+        SpendRequest.Modify(true);
+        ReleaseSpendRequest.Release(SpendRequest);
+
+        // [WHEN] The spend request is approved.
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Approved);
+
+        // [THEN] One expense report is created for the requested expense user.
+        ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
+        Assert.AreEqual(1, ExpenseReportHeader.Count(), ExpenseReportCreatedMsg);
+        ExpenseReportHeader.FindFirst();
+        Assert.AreEqual(ExpenseUser."No.", ExpenseReportHeader."Expense User No.", ExpenseReportUserMsg);
+        Assert.AreEqual(ExpectedPurpose, ExpenseReportHeader.Description, ExpenseReportDescriptionMsg);
+        Assert.AreEqual(StartDate, ExpenseReportHeader."Expense Report Date", ExpenseReportDateMsg);
+
+        // [WHEN] The approved spend request is modified again.
+        SpendRequest.Modify();
+
+        // [THEN] A duplicate expense report is not created.
+        ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
+        Assert.AreEqual(1, ExpenseReportHeader.Count(), ExpenseReportCreatedMsg);
     end;
 
     [Test]
@@ -487,6 +544,30 @@ codeunit 148339 "Spend Request Test"
         SpendRequest.Modify(true);
 
         // [THEN] A traveler is created for that user.
+        Traveler.SetRange("Spend Request No.", SpendRequest."No.");
+        Traveler.SetRange("Expense User No.", ExpenseUser."No.");
+        Assert.RecordCount(Traveler, 1);
+    end;
+
+    [Test]
+    procedure RequestedForBeforeInsertAddsTravelerAfterInsert()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        Traveler: Record Traveler;
+    begin
+        // [SCENARIO] Setting "Requested For" before inserting a spend request creates the traveler after the request exists.
+        Initialize();
+
+        // [GIVEN] An expense user and a new, uninserted spend request.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        SpendRequest.Init();
+
+        // [WHEN] "Requested For" is assigned before the delayed insert used by the API.
+        SpendRequest.Validate("Requested For", ExpenseUser."No.");
+        SpendRequest.Insert(true);
+
+        // [THEN] The spend request is inserted and the requested user is added as a traveler.
         Traveler.SetRange("Spend Request No.", SpendRequest."No.");
         Traveler.SetRange("Expense User No.", ExpenseUser."No.");
         Assert.RecordCount(Traveler, 1);

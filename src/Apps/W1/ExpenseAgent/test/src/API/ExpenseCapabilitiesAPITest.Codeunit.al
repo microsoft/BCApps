@@ -22,6 +22,7 @@ codeunit 148318 "Expense Capabilities API Test"
         IsInitialized: Boolean;
         ServiceNameTok: Label 'expenseCapabilities', Locked = true;
         ActivityLogCapabilityNameTok: Label 'activityLog', Locked = true;
+        SpendRequestCapabilityNameTok: Label 'spendRequest', Locked = true;
 
     [Test]
     procedure CapabilitiesProjectsEnabledViaAPI()
@@ -59,22 +60,25 @@ codeunit 148318 "Expense Capabilities API Test"
     end;
 
     [Test]
-    procedure ActivityLogCapabilityEnabledViaAPI()
+    procedure AlwaysEnabledCapabilitiesEnabledViaAPI()
     var
         TargetURL: Text;
         ResponseText: Text;
     begin
-        // [SCENARIO] The Activity Log capability is always advertised when the API is installed.
+        // [SCENARIO] Always-enabled capabilities are advertised when the API is installed.
         Initialize();
 
         // [WHEN] The expenseCapabilities collection is fetched through the API.
         TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Capabilities API", ServiceNameTok);
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
 
-        // [THEN] ActivityLog is present and enabled.
+        // [THEN] ActivityLog and SpendRequest are present and enabled.
         Assert.IsTrue(
             ResponseContainsCapabilityState(ResponseText, ActivityLogCapabilityNameTok, true),
             'Response must contain an enabled activityLog capability row.');
+        Assert.IsTrue(
+            ResponseContainsCapabilityState(ResponseText, SpendRequestCapabilityNameTok, true),
+            'Response must contain an enabled spendRequest capability row.');
     end;
 
     [Test]

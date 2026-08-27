@@ -73,4 +73,12 @@ enum 6984 "Expense Capability"
     {
         Caption = 'AI-Assisted Policy Evaluation', Locked = true;
     }
+
+    /// <summary>
+    /// Spend requests are available in the expense app.
+    /// </summary>
+    value(6; SpendRequest)
+    {
+        Caption = 'Spend Request', Locked = true;
+    }
 }

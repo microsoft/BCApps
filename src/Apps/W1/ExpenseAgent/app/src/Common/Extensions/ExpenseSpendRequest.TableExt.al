@@ -23,7 +23,8 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
             trigger OnValidate()
             begin
                 TestStatusOpen();
-                UpdateRequestedForTraveler(xRec."Requested For");
+                if SpendRequestExists() then
+                    UpdateRequestedForTraveler(xRec."Requested For");
             end;
         }
         field(6901; "Business Justification"; Text[2048])
@@ -130,6 +131,11 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
             end;
         }
     }
+    trigger OnAfterInsert()
+    begin
+        InsertRequestedForTraveler();
+    end;
+
     trigger OnDelete()
     var
         Traveler: Record Traveler;
@@ -211,5 +217,15 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
         end;
 
         Rec.Validate("International Travel", Rec."Origin Country/Region Code" <> Rec."Dest. Country/Region Code");
+    end;
+
+    local procedure SpendRequestExists(): Boolean
+    var
+        SpendRequest: Record "Spend Request";
+    begin
+        if Rec."No." = '' then
+            exit(false);
+
+        exit(SpendRequest.Get(Rec."No."));
     end;
 }

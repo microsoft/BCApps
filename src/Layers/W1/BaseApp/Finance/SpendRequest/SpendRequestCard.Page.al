@@ -31,7 +31,6 @@ page 6841 "Spend Request Card"
                 }
                 field(Purpose; Rec.Purpose)
                 {
-                    MultiLine = true;
                 }
                 field(Status; Rec.Status)
                 {
