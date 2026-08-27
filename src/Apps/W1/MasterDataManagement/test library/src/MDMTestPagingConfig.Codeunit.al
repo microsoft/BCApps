@@ -9,6 +9,8 @@ codeunit 139934 "MDM Test Paging Config"
     var
         Active: Boolean;
         PageSizeValue: Integer;
+        InlineBytesActive: Boolean;
+        InlineBytesValue: Integer;
 
     procedure Activate(NewPageSize: Integer)
     begin
@@ -16,10 +18,18 @@ codeunit 139934 "MDM Test Paging Config"
         PageSizeValue := NewPageSize;
     end;
 
+    procedure ActivateInlineBytes(NewMaxBytes: Integer)
+    begin
+        InlineBytesActive := true;
+        InlineBytesValue := NewMaxBytes;
+    end;
+
     procedure Deactivate()
     begin
         Active := false;
         PageSizeValue := 0;
+        InlineBytesActive := false;
+        InlineBytesValue := 0;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"MDM Cross-Env Data Source", 'OnGetCrossEnvPageSize', '', false, false)]
@@ -27,5 +37,12 @@ codeunit 139934 "MDM Test Paging Config"
     begin
         if Active then
             PageSize := PageSizeValue;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"MDM Cross-Env Source API", 'OnGetMaxPageInlineBytes', '', false, false)]
+    local procedure HandleGetMaxPageInlineBytes(var MaxBytes: Integer)
+    begin
+        if InlineBytesActive then
+            MaxBytes := InlineBytesValue;
     end;
 }

@@ -235,6 +235,7 @@ codeunit 7241 "MDM Cross-Env Source API"
         LastEmittedAt: DateTime;
         IgnoredSystemId: Guid;
         MaxKeylessGroup: Integer;
+        PageBytes: Integer;
     begin
         Count := 0;
         GroupTooLarge := false;
@@ -245,14 +246,14 @@ codeunit 7241 "MDM Cross-Env Source API"
         if RecRef.FindSet() then
             repeat
                 CurrentModifiedAt := ModifiedAtRef.Value();
-                // Stop only at a clean group boundary once the page is full.
-                if (Count >= PageSize) and (CurrentModifiedAt <> LastEmittedAt) then
+                // Stop only at a clean group boundary once the page is full (by count or inline bytes).
+                if ((Count >= PageSize) or (PageBytes >= MaxPageInlineBytes())) and (CurrentModifiedAt <> LastEmittedAt) then
                     exit(true);
                 if Count >= MaxKeylessGroup then begin
                     GroupTooLarge := true;
                     exit(false);
                 end;
-                AppendRecord(RecRef, ProjectedFields, Records, NextModifiedAt, IgnoredSystemId);
+                AppendRecord(RecRef, ProjectedFields, Records, NextModifiedAt, IgnoredSystemId, PageBytes);
                 LastEmittedAt := NextModifiedAt;
                 Count += 1;
             until RecRef.Next() = 0;
@@ -268,6 +269,7 @@ codeunit 7241 "MDM Cross-Env Source API"
         IgnoredModifiedAt: DateTime;
         IgnoredSystemId: Guid;
         MaxUnindexedRecords: Integer;
+        PageBytes: Integer;
     begin
         Count := 0;
         TooLarge := false;
@@ -277,14 +279,15 @@ codeunit 7241 "MDM Cross-Env Source API"
             ModifiedAtRef.SetFilter('>%1', CursorModifiedAt);
         if RecRef.FindSet() then
             repeat
-                if Count >= MaxUnindexedRecords then begin
+                // Unindexed scan can't resume mid-set, so too many records OR too many inline bytes => ask for a key.
+                if (Count >= MaxUnindexedRecords) or (PageBytes >= MaxPageInlineBytes()) then begin
                     TooLarge := true;
                     exit(false);
                 end;
                 CurrentModifiedAt := ModifiedAtRef.Value();
                 if CurrentModifiedAt > MaxModifiedAt then
                     MaxModifiedAt := CurrentModifiedAt;
-                AppendRecord(RecRef, ProjectedFields, Records, IgnoredModifiedAt, IgnoredSystemId);
+                AppendRecord(RecRef, ProjectedFields, Records, IgnoredModifiedAt, IgnoredSystemId, PageBytes);
                 Count += 1;
             until RecRef.Next() = 0;
         exit(false);
@@ -294,6 +297,7 @@ codeunit 7241 "MDM Cross-Env Source API"
     var
         ModifiedAtRef: FieldRef;
         SystemIdRef: FieldRef;
+        PageBytes: Integer;
     begin
         Count := 0;
         ModifiedAtRef := RecRef.Field(SystemModifiedAtFieldNo());
@@ -307,8 +311,10 @@ codeunit 7241 "MDM Cross-Env Source API"
                 repeat
                     if Count = PageSize then
                         exit(true);
-                    AppendRecord(RecRef, ProjectedFields, Records, NextModifiedAt, NextSystemId);
+                    AppendRecord(RecRef, ProjectedFields, Records, NextModifiedAt, NextSystemId, PageBytes);
                     Count += 1;
+                    if PageBytes >= MaxPageInlineBytes() then
+                        exit(true); // inline-byte budget: >=1 record emitted; resume from NextModifiedAt/NextSystemId
                 until RecRef.Next() = 0;
             ModifiedAtRef.SetRange();
             SystemIdRef.SetRange();
@@ -321,8 +327,10 @@ codeunit 7241 "MDM Cross-Env Source API"
             repeat
                 if Count = PageSize then
                     exit(true);
-                AppendRecord(RecRef, ProjectedFields, Records, NextModifiedAt, NextSystemId);
+                AppendRecord(RecRef, ProjectedFields, Records, NextModifiedAt, NextSystemId, PageBytes);
                 Count += 1;
+                if PageBytes >= MaxPageInlineBytes() then
+                    exit(true);
             until RecRef.Next() = 0;
 
         exit(false);
@@ -335,6 +343,7 @@ codeunit 7241 "MDM Cross-Env Source API"
         SystemIdValue: Guid;
         IgnoredModifiedAt: DateTime;
         IgnoredSystemId: Guid;
+        IgnoredPageBytes: Integer;
         FilterText: Text;
     begin
         foreach Token in SystemIds do
@@ -350,11 +359,11 @@ codeunit 7241 "MDM Cross-Env Source API"
         SystemIdRef.SetFilter(FilterText);
         if RecRef.FindSet() then
             repeat
-                AppendRecord(RecRef, ProjectedFields, Records, IgnoredModifiedAt, IgnoredSystemId);
+                AppendRecord(RecRef, ProjectedFields, Records, IgnoredModifiedAt, IgnoredSystemId, IgnoredPageBytes);
             until RecRef.Next() = 0;
     end;
 
-    local procedure AppendRecord(var RecRef: RecordRef; ProjectedFields: List of [Integer]; var Records: JsonArray; var LastModifiedAt: DateTime; var LastSystemId: Guid)
+    local procedure AppendRecord(var RecRef: RecordRef; ProjectedFields: List of [Integer]; var Records: JsonArray; var LastModifiedAt: DateTime; var LastSystemId: Guid; var PageBytes: Integer)
     var
         CurrentField: FieldRef;
         RecordObject: JsonObject;
@@ -369,9 +378,9 @@ codeunit 7241 "MDM Cross-Env Source API"
             CurrentField := RecRef.Field(FieldNo);
             case CurrentField.Type() of
                 FieldType::Media:
-                    FieldsObject.Add(Format(FieldNo), BuildMediaValue(CurrentField));
+                    FieldsObject.Add(Format(FieldNo), BuildMediaValue(CurrentField, PageBytes));
                 FieldType::Blob:
-                    FieldsObject.Add(Format(FieldNo), BuildBlobValue(CurrentField));
+                    FieldsObject.Add(Format(FieldNo), BuildBlobValue(CurrentField, PageBytes));
                 else
                     FieldsObject.Add(Format(FieldNo), FormatFieldValue(CurrentField));
             end;
@@ -405,7 +414,7 @@ codeunit 7241 "MDM Cross-Env Source API"
 
     // Single Media field: emit { media, name, mimeType, length, content(base64) }, or { media, empty } when the
     // source has no picture, or { media, skipped, length } when it exceeds the inline cap.
-    local procedure BuildMediaValue(FieldReference: FieldRef): JsonObject
+    local procedure BuildMediaValue(FieldReference: FieldRef; var PageBytes: Integer): JsonObject
     var
         TenantMedia: Record "Tenant Media";
         Base64Convert: Codeunit "Base64 Convert";
@@ -434,11 +443,12 @@ codeunit 7241 "MDM Cross-Env Source API"
         MediaValue.Add('length', TenantMedia.Content.Length());
         TenantMedia.Content.CreateInStream(ContentInStream);
         MediaValue.Add('content', Base64Convert.ToBase64(ContentInStream));
+        PageBytes += TenantMedia.Content.Length();
         exit(MediaValue);
     end;
 
     // Blob field: emit { blob, length, content(base64) }, or { blob, empty }, or { blob, skipped, length }.
-    local procedure BuildBlobValue(FieldReference: FieldRef): JsonObject
+    local procedure BuildBlobValue(FieldReference: FieldRef; var PageBytes: Integer): JsonObject
     var
         Base64Convert: Codeunit "Base64 Convert";
         TempBlob: Codeunit "Temp Blob";
@@ -459,6 +469,7 @@ codeunit 7241 "MDM Cross-Env Source API"
         BlobValue.Add('length', TempBlob.Length());
         TempBlob.CreateInStream(ContentInStream);
         BlobValue.Add('content', Base64Convert.ToBase64(ContentInStream));
+        PageBytes += TempBlob.Length();
         exit(BlobValue);
     end;
 
@@ -467,6 +478,22 @@ codeunit 7241 "MDM Cross-Env Source API"
     local procedure MaxInlineContentSize(): Integer
     begin
         exit(512 * 1024);
+    end;
+
+    // Cap inline media/blob bytes per page (~3 MB raw, ~4 MB base64) so a media-heavy page stays well under the
+    // 8-minute operation timeout and memory; the composite cursor resumes the remaining records on the next page.
+    local procedure MaxPageInlineBytes(): Integer
+    var
+        MaxBytes: Integer;
+    begin
+        MaxBytes := 3 * 1024 * 1024;
+        OnGetMaxPageInlineBytes(MaxBytes);
+        exit(MaxBytes);
+    end;
+
+    [InternalEvent(false)]
+    local procedure OnGetMaxPageInlineBytes(var MaxBytes: Integer)
+    begin
     end;
 
     [TryFunction]

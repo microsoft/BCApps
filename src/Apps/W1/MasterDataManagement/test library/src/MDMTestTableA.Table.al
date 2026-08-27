@@ -35,5 +35,8 @@ table 139757 "MDM Test Table A"
         {
             Clustered = true;
         }
+        key(ChangeFeed; SystemModifiedAt, SystemId)
+        {
+        }
     }
 }

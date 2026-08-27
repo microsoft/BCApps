@@ -406,6 +406,74 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         CleanUp();
     end;
 
+    [Test]
+    procedure CrossEnvPageStopsAtInlineByteBudget()
+    var
+        TestTableA: Record "MDM Test Table A";
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        PagingConfig: Codeunit "MDM Test Paging Config";
+        SourceRecordRef: RecordRef;
+        Watermark: DateTime;
+        EndCursor: Text;
+        HasMore: Boolean;
+        Index: Integer;
+        Count: Integer;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] A page stops at the inline-byte budget: media-heavy records page out even under the record count cap.
+        Initialize();
+
+        // [GIVEN] three media records created after a captured watermark, and a byte budget so small any one media fills it
+        Watermark := CurrentDateTime();
+        Sleep(100);
+        for Index := 1 to 3 do
+            CreateTestTableAWithImage(TestTableA, 'picture bytes');
+        CreateTestTableAMapping(IntegrationTableMapping);
+        IntegrationTableMapping."Synch. Modified On Filter" := Watermark;
+        IntegrationTableMapping.Modify();
+
+        LibraryMasterDataMgt.SetSourceEnvironmentName('PROD');
+        InProcessTransport.Activate();
+        PagingConfig.ActivateInlineBytes(1); // 1-byte budget: the first inlined media ends the page
+
+        // [WHEN] a single page is fetched
+        LibraryMasterDataMgt.DataSourceGetModifiedBatch(IntegrationTableMapping, '', '', 1, SourceRecordRef, EndCursor, HasMore);
+        if SourceRecordRef.FindSet() then
+            repeat
+                Count += 1;
+            until SourceRecordRef.Next() = 0;
+
+        // [THEN] the byte budget capped the page to one record, with more remaining
+        Assert.AreEqual(1, Count, 'The inline-byte budget should stop the page after the first media record');
+        Assert.IsTrue(HasMore, 'More records should remain past the byte-budget cap');
+
+        PagingConfig.Deactivate();
+        CleanUp();
+    end;
+
+    local procedure CreateTestTableAMapping(var IntegrationTableMapping: Record "Integration Table Mapping")
+    var
+        IntegrationFieldMapping: Record "Integration Field Mapping";
+    begin
+        IntegrationTableMapping.Init();
+        IntegrationTableMapping.Name := CopyStr('MDMXENV' + Format(LibraryRandomInt()), 1, MaxStrLen(IntegrationTableMapping.Name));
+        IntegrationTableMapping.Type := IntegrationTableMapping.Type::"Master Data Management";
+        IntegrationTableMapping."Table ID" := Database::"MDM Test Table A";
+        IntegrationTableMapping."Integration Table ID" := Database::"MDM Test Table A";
+        IntegrationTableMapping."Integration Table UID Fld. No." := 2000000000; // SystemId
+        IntegrationTableMapping."Int. Tbl. Modified On Fld. No." := 2000000003; // SystemModifiedAt
+        IntegrationTableMapping."Delete After Synchronization" := false;
+        IntegrationTableMapping.Insert();
+        // map the Media field (5) so the batch requests it and the page carries inline bytes
+        IntegrationFieldMapping.Init();
+        IntegrationFieldMapping."Integration Table Mapping Name" := IntegrationTableMapping.Name;
+        IntegrationFieldMapping."Field No." := 5;
+        IntegrationFieldMapping."Integration Table Field No." := 5;
+        IntegrationFieldMapping.Insert(true);
+    end;
+
     local procedure CreateTestTableAWithBlob(var TestTableA: Record "MDM Test Table A"; Content: Text)
     var
         BlobOutStream: OutStream;
@@ -465,8 +533,11 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     local procedure DeleteTestArtifacts()
     var
         IntegrationTableMapping: Record "Integration Table Mapping";
+        IntegrationFieldMapping: Record "Integration Field Mapping";
         TestTableA: Record "MDM Test Table A";
     begin
+        IntegrationFieldMapping.SetFilter("Integration Table Mapping Name", 'MDMXENV*');
+        IntegrationFieldMapping.DeleteAll();
         IntegrationTableMapping.SetFilter(Name, 'MDMXENV*');
         IntegrationTableMapping.DeleteAll();
         TestTableA.DeleteAll(); // deterministic LibraryRandom keys collide across tests; the setup commit survives rollback
