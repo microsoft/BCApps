@@ -237,17 +237,17 @@ page 4581 "Ext. SharePoint Account Wizard"
                 var
                     SecretToPass: SecretText;
                 begin
+                    case Rec."Authentication Type" of
+                        Enum::"Ext. SharePoint Auth Type"::"Client Secret":
+                            SecretToPass := ClientSecret;
+                        Enum::"Ext. SharePoint Auth Type"::Certificate:
+                            SecretToPass := Certificate;
+                    end;
                     if (Step = Step::AccountDetails) and not MultipleCompanies then begin
                         SharePointConnectorImpl.CreateAccount(Rec, SecretToPass, CertificatePassword, SharePointAccount);
                         CurrPage.Close();
                     end;
                     if Step = Step::CompanySelection then begin
-                        case Rec."Authentication Type" of
-                            Enum::"Ext. SharePoint Auth Type"::"Client Secret":
-                                SecretToPass := ClientSecret;
-                            Enum::"Ext. SharePoint Auth Type"::Certificate:
-                                SecretToPass := Certificate;
-                        end;
                         CreateAccountInCompanies(Rec, SecretToPass, CertificatePassword);
                         CurrPage.Close();
                     end;
@@ -336,6 +336,7 @@ page 4581 "Ext. SharePoint Account Wizard"
         Company: Record Company;
         ExtSharePointAccount: Record "Ext. SharePoint Account";
         ExtSharePointCreateAccount: Codeunit "Ext. SharePoint Create Account";
+        FailedCompanies: List of [Text];
         SessionId: Integer;
         AccountCurrentCompanyCreated: Boolean;
         I: Integer;
@@ -354,12 +355,18 @@ page 4581 "Ext. SharePoint Account Wizard"
                         Sleep(200);
                     if Company.Name = CompanyName() then
                         AccountCurrentCompanyCreated := true;
+                    ExtSharePointAccount.ChangeCompany(Company.Name);
+                    ExtSharePointAccount.SetRange(Name, AccountToCopy.Name);
+                    if ExtSharePointAccount.IsEmpty() then
+                        FailedCompanies.Add(Company.Name);
                 end;
             until Company.Next() = 0;
             RemoveSecretsFromSession(AccountToCopy);
         end;
 
         if AccountCurrentCompanyCreated then begin
+            ExtSharePointAccount.Reset();
+            ExtSharePointAccount.ChangeCompany(CompanyName());
             ExtSharePointAccount.SetRange(Name, AccountToCopy.Name);
             if ExtSharePointAccount.FindFirst() then begin
                 SharePointAccount."Account Id" := ExtSharePointAccount.Id;
@@ -367,6 +374,9 @@ page 4581 "Ext. SharePoint Account Wizard"
                 SharePointAccount.Connector := Enum::"Ext. File Storage Connector"::"SharePoint";
             end;
         end;
+
+        if FailedCompanies.Count() > 0 then
+            ShowFailedCompanies(FailedCompanies);
     end;
 
     local procedure StoreSecretsForSession(AccountToCopy: Record "Ext. SharePoint Account")
@@ -398,5 +408,20 @@ page 4581 "Ext. SharePoint Account Wizard"
         if AccountToCopy."Authentication Type" = Enum::"Ext. SharePoint Auth Type"::Certificate then
             if IsolatedStorage.Delete(ExtSharePointCreateAccount.GetCertPwdKeyToken(AccountToCopy.Id), DataScope::Module) then;
         if IsolatedStorage.Delete(ExtSharePointCreateAccount.GetSetAsDefaultKeyToken(AccountToCopy.Id), DataScope::Module) then;
+    end;
+
+    local procedure ShowFailedCompanies(FailedCompanies: List of [Text])
+    var
+        FailedCompaniesMsg: Label 'The SharePoint account could not be created in the following companies:\%1', Comment = '%1 - Formatted list of company names';
+        FailedCompaniesBuilder: TextBuilder;
+        FailedCompany: Text;
+    begin
+        foreach FailedCompany in FailedCompanies do begin
+            if FailedCompaniesBuilder.Length() > 0 then
+                FailedCompaniesBuilder.AppendLine();
+            FailedCompaniesBuilder.Append(FailedCompany);
+        end;
+        if GuiAllowed() then
+            Message(FailedCompaniesMsg, FailedCompaniesBuilder.ToText());
     end;
 }
