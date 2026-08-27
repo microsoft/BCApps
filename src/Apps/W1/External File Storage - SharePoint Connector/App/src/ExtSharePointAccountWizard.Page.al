@@ -339,7 +339,6 @@ page 4581 "Ext. SharePoint Account Wizard"
         FailedCompanies: List of [Text];
         SessionId: Integer;
         AccountCurrentCompanyCreated: Boolean;
-        I: Integer;
     begin
         AccountToCopy.Id := CreateGuid();
 
