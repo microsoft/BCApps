@@ -76,7 +76,7 @@ function GetPath($Path, $Relative) {
 
 <#
 .Synopsis
-    Gets the path to the AL-Go settings file
+    Gets the path to the AL-Go settings file.
 .Parameter Relative
     If specified, the path will be relative to the base folder
 .Outputs
