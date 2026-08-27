@@ -316,6 +316,7 @@ codeunit 4591 "SOA Item Search"
             Item.CopyFilter("Date Filter", Rec."Date Filter");
             Item.CopyFilter("Location Filter", Rec."Location Filter");
             Item.CopyFilter("Variant Filter", Rec."Variant Filter");
+            Item.CopyFilter("SOA Item Availability Filter", Rec."SOA Item Availability Filter");
             Found := Rec.Find(Which);
         end;
 

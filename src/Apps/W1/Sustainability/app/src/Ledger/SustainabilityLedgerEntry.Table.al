@@ -340,6 +340,26 @@ table 6216 "Sustainability Ledger Entry"
         {
             Caption = 'Correction';
         }
+        field(5818; Reversed; Boolean)
+        {
+            Caption = 'Reversed';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(5819; "Reversed by Entry No."; Integer)
+        {
+            Caption = 'Reversed by Entry No.';
+            DataClassification = SystemMetadata;
+            Editable = false;
+            TableRelation = "Sustainability Ledger Entry"."Entry No.";
+        }
+        field(5820; "Reversed Entry No."; Integer)
+        {
+            Caption = 'Reversed Entry No.';
+            DataClassification = SystemMetadata;
+            Editable = false;
+            TableRelation = "Sustainability Ledger Entry"."Entry No.";
+        }
     }
 
     keys

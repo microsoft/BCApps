@@ -7255,6 +7255,96 @@ codeunit 148187 "Sust. Certificate Test"
             StrSubstNo(FieldShouldNotBeVisibleErr, ServiceOrderSubform."Total CO2e".Caption(), ServiceOrderSubform.Caption()));
     end;
 
+    [Test]
+    procedure VerifySustValueEntriesActionVisibleOnItemCardWhenItemEmissionsEnabled()
+    var
+        Item: Record Item;
+        SustainabilitySetup: Record "Sustainability Setup";
+        ItemCard: TestPage "Item Card";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 640778] Sustainability Value Entries action visibility on Item Card follows Item Emissions setup.
+        LibrarySustainability.CleanUpBeforeTesting();
+
+        // [GIVEN] Item Emissions is disabled.
+        SustainabilitySetup.Get();
+        SustainabilitySetup.Validate("Item Emissions", false);
+        SustainabilitySetup.Modify(true);
+
+        // [GIVEN] An Item exists.
+        LibraryInventory.CreateItem(Item);
+
+        // [WHEN] Open Item Card.
+        ItemCard.OpenView();
+        ItemCard.GoToRecord(Item);
+
+        // [THEN] Sustainability Value Entries action is not visible.
+        Assert.AreEqual(
+            false,
+            ItemCard."Sustainability Value Entries".Visible(),
+            StrSubstNo(SustValueEntriesActionShouldNotBeVisibleErr, ItemCard.Caption()));
+
+        // [GIVEN] Close and enable Item Emissions.
+        ItemCard.Close();
+        SustainabilitySetup.Validate("Item Emissions", true);
+        SustainabilitySetup.Modify(true);
+
+        // [WHEN] Open Item Card again.
+        ItemCard.OpenView();
+        ItemCard.GoToRecord(Item);
+
+        // [THEN] Sustainability Value Entries action is visible.
+        Assert.AreEqual(
+            true,
+            ItemCard."Sustainability Value Entries".Visible(),
+            StrSubstNo(SustValueEntriesActionShouldBeVisibleErr, ItemCard.Caption()));
+    end;
+
+    [Test]
+    procedure VerifySustValueEntriesActionVisibleOnItemListWhenItemEmissionsEnabled()
+    var
+        Item: Record Item;
+        SustainabilitySetup: Record "Sustainability Setup";
+        ItemList: TestPage "Item List";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 640778] Sustainability Value Entries action visibility on Item List follows Item Emissions setup.
+        LibrarySustainability.CleanUpBeforeTesting();
+
+        // [GIVEN] Item Emissions is disabled.
+        SustainabilitySetup.Get();
+        SustainabilitySetup.Validate("Item Emissions", false);
+        SustainabilitySetup.Modify(true);
+
+        // [GIVEN] An Item exists.
+        LibraryInventory.CreateItem(Item);
+
+        // [WHEN] Open Item List.
+        ItemList.OpenView();
+        ItemList.GoToRecord(Item);
+
+        // [THEN] Sustainability Value Entries action is not visible.
+        Assert.AreEqual(
+            false,
+            ItemList."Sustainability Value Entries".Visible(),
+            StrSubstNo(SustValueEntriesActionShouldNotBeVisibleErr, ItemList.Caption()));
+
+        // [GIVEN] Close and enable Item Emissions.
+        ItemList.Close();
+        SustainabilitySetup.Validate("Item Emissions", true);
+        SustainabilitySetup.Modify(true);
+
+        // [WHEN] Open Item List again.
+        ItemList.OpenView();
+        ItemList.GoToRecord(Item);
+
+        // [THEN] Sustainability Value Entries action is visible.
+        Assert.AreEqual(
+            true,
+            ItemList."Sustainability Value Entries".Visible(),
+            StrSubstNo(SustValueEntriesActionShouldBeVisibleErr, ItemList.Caption()));
+    end;
+
     local procedure CreateSustainabilityAccount(var AccountCode: Code[20]; var CategoryCode: Code[20]; var SubcategoryCode: Code[20]; i: Integer): Record "Sustainability Account"
     begin
         CreateSustainabilitySubcategory(CategoryCode, SubcategoryCode, i);

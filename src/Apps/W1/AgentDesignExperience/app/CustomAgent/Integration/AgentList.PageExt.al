@@ -36,7 +36,7 @@ pageextension 4354 "Agent List" extends "Agent List"
                 Caption = 'Test agent';
                 ToolTip = 'Open the test agent page to test and interact with this agent.';
                 Scope = Repeater;
-                Enabled = IsCustomAgent and CanModifyCustomAgent;
+                Enabled = IsCustomAgent and CanModifyCustomAgent and not CustomAgentIsArchived;
                 Image = DocumentEdit;
 
                 trigger OnAction()
@@ -160,6 +160,7 @@ pageextension 4354 "Agent List" extends "Agent List"
     begin
         IsCustomAgent := CustomAgentSetup.Get(Rec."User Security ID");
         CanModifyCustomAgent := AgentDesignerPermissions.CurrentUserCanConfigureCustomAgent(Rec."User Security ID");
+        CustomAgentIsArchived := Rec.Substate = Rec.Substate::Archived;
     end;
 
     local procedure VerifyAgentSelected()
@@ -202,6 +203,7 @@ pageextension 4354 "Agent List" extends "Agent List"
         AgentDesignerPermissions: Codeunit "Agent Designer Permissions";
         IsCustomAgent: Boolean;
         CanModifyCustomAgent: Boolean;
+        CustomAgentIsArchived: Boolean;
         CanCreateCustomAgents: Boolean;
         CanDeleteCustomAgents: Boolean;
         CanExportCustomAgents: Boolean;
