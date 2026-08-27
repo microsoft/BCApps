@@ -580,7 +580,7 @@ codeunit 148181 "Sustainability Journal Test"
         SustainabilityJournal.Close();
 
         // [THEN] The collection information is cleared on the journal line.
-        SustainabilityJnlLine.Find();
+        GetSustainabilityJnlLine(SustainabilityJnlLine);
         VerifyCollectionInformation(
             SustainabilityJnlLine."Collected from G/L Entries", SustainabilityJnlLine."Collect From Date",
             SustainabilityJnlLine."Collect To Date", false, 0D, 0D);
@@ -642,7 +642,7 @@ codeunit 148181 "Sustainability Journal Test"
 
         // [WHEN] The sustainability account of the line is changed to "A2".
         CreateGLCollectionSetup(OtherGLAccountNo, SustainAccountCategory, OtherSustainabilityAccount);
-        SustainabilityJnlLine.Find();
+        GetSustainabilityJnlLine(SustainabilityJnlLine);
         SustainabilityJnlLine.Validate("Account No.", OtherSustainabilityAccount."No.");
         SustainabilityJnlLine.Modify(true);
 
@@ -666,7 +666,6 @@ codeunit 148181 "Sustainability Journal Test"
         GLAccountNo: Code[20];
         FirstGLEntryNo, SecondGLEntryNo : Integer;
         FirstSustLedgerEntryNo, SecondSustLedgerEntryNo : Integer;
-        FirstLineNo, SecondLineNo : Integer;
     begin
         // [FEATURE] [AI test 1.0]
         // [SCENARIO] Two collected lines in the same batch never consume the same general ledger entry.
@@ -680,19 +679,16 @@ codeunit 148181 "Sustainability Journal Test"
         // [GIVEN] Line 1 collected the first date only and line 2 collected both dates in the same batch.
         CreateSustainabilityJnlLine(FirstSustainabilityJnlLine, SustainabilityAccount);
         CollectAmountFromGL(FirstSustainabilityJnlLine, WorkDate(), WorkDate());
-        FirstLineNo := FirstSustainabilityJnlLine."Line No.";
 
         CreateSustainabilityJnlLine(SecondSustainabilityJnlLine, SustainabilityAccount);
         CollectAmountFromGL(SecondSustainabilityJnlLine, WorkDate(), WorkDate() + 1);
-        SecondLineNo := SecondSustainabilityJnlLine."Line No.";
         Assert.AreEqual(300, SecondSustainabilityJnlLine."Custom Amount", CollectableAmountMustBeEqualLbl);
 
         // [WHEN] The batch is posted.
         PostSustainabilityJnlBatch(FirstSustainabilityJnlLine);
 
         // [THEN] Each G/L entry is linked to one sustainability entry only.
-        FirstSustLedgerEntryNo := GetSustLedgerEntryNo(FirstSustainabilityJnlLine, FirstLineNo);
-        SecondSustLedgerEntryNo := GetSustLedgerEntryNo(FirstSustainabilityJnlLine, SecondLineNo);
+        GetTwoSustLedgerEntryNos(FirstSustainabilityJnlLine, FirstSustLedgerEntryNo, SecondSustLedgerEntryNo);
         VerifyGLEntryRelation(FirstGLEntryNo, FirstSustLedgerEntryNo, SustainAccountCategory.Code, 100);
         VerifyGLEntryRelation(SecondGLEntryNo, SecondSustLedgerEntryNo, SustainAccountCategory.Code, 200);
 
@@ -927,12 +923,14 @@ codeunit 148181 "Sustainability Journal Test"
 
     local procedure PostSustainabilityJnlLine(var SustainabilityJnlLine: Record "Sustainability Jnl. Line"): Integer
     var
-        LineNo: Integer;
+        SustainabilityLedgerEntry: Record "Sustainability Ledger Entry";
     begin
-        LineNo := SustainabilityJnlLine."Line No.";
-        SustainabilityJnlLine.SetRange("Line No.", LineNo);
+        SustainabilityJnlLine.SetRange("Line No.", SustainabilityJnlLine."Line No.");
         PostSustainabilityJnlBatch(SustainabilityJnlLine);
-        exit(GetSustLedgerEntryNo(SustainabilityJnlLine, LineNo));
+
+        FilterSustLedgerEntryOnBatch(SustainabilityLedgerEntry, SustainabilityJnlLine);
+        SustainabilityLedgerEntry.FindLast();
+        exit(SustainabilityLedgerEntry."Entry No.");
     end;
 
     local procedure PostSustainabilityJnlBatch(var SustainabilityJnlLine: Record "Sustainability Jnl. Line")
@@ -942,15 +940,28 @@ codeunit 148181 "Sustainability Journal Test"
         Codeunit.Run(Codeunit::"Sustainability Jnl.-Post", SustainabilityJnlLine);
     end;
 
-    local procedure GetSustLedgerEntryNo(SustainabilityJnlLine: Record "Sustainability Jnl. Line"; LineNo: Integer): Integer
+    local procedure GetTwoSustLedgerEntryNos(SustainabilityJnlLine: Record "Sustainability Jnl. Line"; var FirstEntryNo: Integer; var SecondEntryNo: Integer)
     var
         SustainabilityLedgerEntry: Record "Sustainability Ledger Entry";
     begin
+        // Entries are numbered in the order the journal lines were posted, so the primary key order matches the line order.
+        FilterSustLedgerEntryOnBatch(SustainabilityLedgerEntry, SustainabilityJnlLine);
+        SustainabilityLedgerEntry.FindSet();
+        FirstEntryNo := SustainabilityLedgerEntry."Entry No.";
+        Assert.AreEqual(1, SustainabilityLedgerEntry.Next(), 'A second sustainability ledger entry must exist.');
+        SecondEntryNo := SustainabilityLedgerEntry."Entry No.";
+    end;
+
+    local procedure FilterSustLedgerEntryOnBatch(var SustainabilityLedgerEntry: Record "Sustainability Ledger Entry"; SustainabilityJnlLine: Record "Sustainability Jnl. Line")
+    begin
         SustainabilityLedgerEntry.SetRange("Journal Template Name", SustainabilityJnlLine."Journal Template Name");
         SustainabilityLedgerEntry.SetRange("Journal Batch Name", SustainabilityJnlLine."Journal Batch Name");
-        SustainabilityLedgerEntry.SetRange("Line No.", LineNo);
-        SustainabilityLedgerEntry.FindLast();
-        exit(SustainabilityLedgerEntry."Entry No.");
+    end;
+
+    local procedure GetSustainabilityJnlLine(var SustainabilityJnlLine: Record "Sustainability Jnl. Line")
+    begin
+        SustainabilityJnlLine.Get(
+            SustainabilityJnlLine."Journal Template Name", SustainabilityJnlLine."Journal Batch Name", SustainabilityJnlLine."Line No.");
     end;
 
     local procedure OpenSustainabilityJournalOnLine(var SustainabilityJournal: TestPage "Sustainability Journal"; SustainabilityJnlLine: Record "Sustainability Jnl. Line")
