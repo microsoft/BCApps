@@ -100,7 +100,8 @@ codeunit 5997 "Assembly Warehouse Mgt."
         WhseValidateSourceLine.VerifyFieldNotChanged(NewRecordRef, OldRecordRef, NewAssemblyLine.FieldNo(Quantity));
         WhseValidateSourceLine.VerifyFieldNotChanged(NewRecordRef, OldRecordRef, NewAssemblyLine.FieldNo("Quantity per"));
         if Location.Get(NewAssemblyLine."Location Code") and not Location."Require Shipment" then
-            WhseValidateSourceLine.VerifyFieldNotChanged(NewRecordRef, OldRecordRef, NewAssemblyLine.FieldNo("Quantity to Consume"));
+            if NewAssemblyLine."Quantity to Consume (Base)" < NewAssemblyLine."Qty. Picked (Base)" then
+                WhseValidateSourceLine.VerifyFieldNotChanged(NewRecordRef, OldRecordRef, NewAssemblyLine.FieldNo("Quantity to Consume"));
 
         OnAfterAssemblyLineVerifyChange(NewRecordRef, OldRecordRef);
     end;

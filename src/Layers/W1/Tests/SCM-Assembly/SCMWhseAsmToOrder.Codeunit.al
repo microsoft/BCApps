@@ -2322,6 +2322,123 @@ codeunit 137914 "SCM Whse.-Asm. To Order"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [HandlerFunctions('BinMandatoryRequirePick_MsgPickCreated,BinMandatoryRequirePick_ReportCreatePickHandled')]
+    [Scope('OnPrem')]
+    procedure PostInvtPickForUnrelatedLineWithATOInvtMovement()
+    var
+        AssemblySetup: Record "Assembly Setup";
+        Location: Record Location;
+        NonAsmItem: Record Item;
+        ATOItem: Record Item;
+        ComponentItem: Record Item;
+        StockBin: Record Bin;
+        ToAsmBin: Record Bin;
+        SalesHeader: Record "Sales Header";
+        SalesLine1: Record "Sales Line";
+        SalesLine2: Record "Sales Line";
+        AsmHeader: Record "Assembly Header";
+        AsmLine: Record "Assembly Line";
+        WhseActivityHeader: Record "Warehouse Activity Header";
+        WhseActivityLine: Record "Warehouse Activity Line";
+        WarehouseRequest: Record "Warehouse Request";
+        WarehouseEmployee: Record "Warehouse Employee";
+        OldAutoCreateInvtMvmt: Boolean;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 647991] Posting an inventory pick for a non-assembly sales line should succeed
+        // [SCENARIO 647991] when an unrelated ATO sales line with inventory movement exists in the same order.
+        Initialize();
+
+        // [GIVEN] Assembly Setup with "Create Movements Automatically" = TRUE
+        AssemblySetup.Get();
+        OldAutoCreateInvtMvmt := AssemblySetup."Create Movements Automatically";
+        AssemblySetup."Create Movements Automatically" := true;
+        AssemblySetup.Modify();
+
+        // [GIVEN] Location "L" with "Require Pick" = TRUE and "Asm. Consump. Whse. Handling" = "Inventory Movement"
+        MockLocation(Location, true, true);
+        MockBin(StockBin, Location.Code);
+        MockBin(ToAsmBin, Location.Code);
+        Location.Validate("To-Assembly Bin Code", ToAsmBin.Code);
+        Location.Modify();
+        CreateWarehouseEmployee(WarehouseEmployee, Location.Code);
+
+        // [GIVEN] Regular non-assembly item "I1" with inventory at location "L"
+        LibraryInventory.CreateItem(NonAsmItem);
+        MockBinContent(NonAsmItem, Location, StockBin, '', false);
+        AddItemToInventory(NonAsmItem, Location, StockBin, 10, '', '');
+
+        // [GIVEN] Assemble-to-Order item "I2" with component item "C" and inventory for "C" at location "L"
+        MockATOItem(ATOItem, ComponentItem);
+        MockBinContent(ComponentItem, Location, StockBin, '', false);
+        AddItemToInventory(ComponentItem, Location, StockBin, 100, '', '');
+
+        // [GIVEN] Sales Order at location "L" with two lines:
+        // [GIVEN] Line 1: Non-assembly item "I1", Quantity = 4
+        // [GIVEN] Line 2: ATO item "I2", Quantity = 1, "Qty. to Assemble to Order" = 1
+        MockSalesHeaderWithItemsAndLocation(SalesHeader, NonAsmItem, Location);
+        LibrarySales.CreateSalesLine(SalesLine1, SalesHeader, SalesLine1.Type::Item, NonAsmItem."No.", 4);
+        LibrarySales.CreateSalesLine(SalesLine2, SalesHeader, SalesLine2.Type::Item, ATOItem."No.", 1);
+
+        // [GIVEN] Sales Order is released
+        LibrarySales.ReleaseSalesDocument(SalesHeader);
+
+        // [GIVEN] Create Inventory Pick and Inventory Movements for the Sales Order
+        // [GIVEN] Inventory Pick for sales lines and Inventory Movement for ATO assembly component exist
+        WarehouseRequest.SetRange("Source Type", DATABASE::"Sales Line");
+        WarehouseRequest.SetRange("Source Subtype", SalesHeader."Document Type");
+        WarehouseRequest.SetRange("Source No.", SalesHeader."No.");
+        Commit();
+        REPORT.RunModal(REPORT::"Create Invt Put-away/Pick/Mvmt", true, false, WarehouseRequest);
+
+        // [GIVEN] Verify ATO assembly order exists and inventory movement was created
+        SalesLine2.AsmToOrderExists(AsmHeader);
+        AsmLine.SetRange("Document Type", AsmHeader."Document Type");
+        AsmLine.SetRange("Document No.", AsmHeader."No.");
+        AsmLine.SetRange(Type, AsmLine.Type::Item);
+        AsmLine.FindFirst();
+        WhseActivityHeader.SetRange(Type, WhseActivityHeader.Type::"Invt. Movement");
+        WhseActivityHeader.SetRange("Source Type", DATABASE::"Assembly Line");
+        WhseActivityHeader.SetRange("Source Subtype", AsmHeader."Document Type");
+        WhseActivityHeader.SetRange("Source No.", AsmHeader."No.");
+        Assert.IsFalse(WhseActivityHeader.IsEmpty, 'Inventory Movement should exist for ATO assembly components');
+
+        // [GIVEN] Inventory movement for ATO components is NOT registered (Qty. Picked (Base) = 0)
+        AsmLine.TestField("Qty. Picked (Base)", 0);
+
+        // [WHEN] Set Qty. to Handle for non-assembly item only and post Inventory Pick
+        WhseActivityHeader.SetRange(Type, WhseActivityHeader.Type::"Invt. Pick");
+        WhseActivityHeader.SetRange("Source Type", DATABASE::"Sales Line");
+        WhseActivityHeader.SetRange("Source Subtype", SalesHeader."Document Type");
+        WhseActivityHeader.SetRange("Source No.", SalesHeader."No.");
+        WhseActivityHeader.FindLast();
+        WhseActivityLine.SetRange("Activity Type", WhseActivityHeader.Type);
+        WhseActivityLine.SetRange("No.", WhseActivityHeader."No.");
+        WhseActivityLine.SetRange("Source Line No.", SalesLine1."Line No.");
+        WhseActivityLine.FindFirst();
+        WhseActivityLine.Validate("Qty. to Handle", WhseActivityLine.Quantity);
+        WhseActivityLine.Modify(true);
+        WhseActivityLine.SetRange("Source Line No.", SalesLine2."Line No.");
+        WhseActivityLine.FindFirst();
+        WhseActivityLine.Validate("Bin Code", ToAsmBin.Code);
+        WhseActivityLine.Modify(true);
+        LibraryWarehouse.PostInventoryActivity(WhseActivityHeader, false);
+
+        // [THEN] Post succeeds without error "Quantity to Consume must not be changed"
+        // [THEN] Non-assembly sales line is shipped (Quantity Shipped > 0)
+        SalesLine1.Get(SalesLine1."Document Type", SalesLine1."Document No.", SalesLine1."Line No.");
+        Assert.IsTrue(SalesLine1."Quantity Shipped" > 0, 'Non-assembly sales line should be shipped');
+
+        // [THEN] ATO assembly line "Quantity to Consume" remains unchanged
+        AsmLine.Get(AsmLine."Document Type", AsmLine."Document No.", AsmLine."Line No.");
+        Assert.AreEqual(1, AsmLine."Quantity to Consume", 'Assembly line Quantity to Consume should remain 1');
+
+        // Cleanup: Revert Assembly Setup
+        AssemblySetup."Create Movements Automatically" := OldAutoCreateInvtMvmt;
+        AssemblySetup.Modify();
+    end;
+
     local procedure SetLotOnInvtPickLine(SalesHeaderNo: Code[20]; ItemNo: Code[20]; LotNo: Code[20])
     var
         WhseActivityLine: Record "Warehouse Activity Line";
