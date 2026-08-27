@@ -18,7 +18,7 @@
     "allowDownloadingSource": true,
     "includeSourceInSymbolFile": true
   },
-  "platform": "29.0.0.0",
+  "platform": "30.0.0.0",
   "target": "OnPrem",
   "application": "30.0.0.0"
 }
