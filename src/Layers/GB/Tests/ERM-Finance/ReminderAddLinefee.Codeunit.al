@@ -19,6 +19,7 @@ codeunit 134997 "Reminder - Add. Line fee"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        Language: Codeunit Language;
         IsInitialized: Boolean;
         ReminderLineMustExistErr: Label 'The Reminder Line does not exists. Filters: %1.';
         ReminderLineMustNotExistErr: Label 'The Reminder Line should not exists. Filters: %1.';
@@ -46,9 +47,7 @@ codeunit 134997 "Reminder - Add. Line fee"
         ReminderTerms: Record "Reminder Terms";
         ReminderLevel: Record "Reminder Level";
         CurrencyForReminderLvl: Record "Currency for Reminder Level";
-        ReminderText: Record "Reminder Text";
         AdditionalFeeSetup: Record "Additional Fee Setup";
-        Text: Text[100];
         ReminderTermsCode: Code[10];
         NewReminderTermsCode: Code[10];
         Level: Integer;
@@ -68,13 +67,6 @@ codeunit 134997 "Reminder - Add. Line fee"
         for Level := 1 to 2 do
             for Index := 1 to 3 do
                 CreateCurrencyforReminderLevel(ReminderTermsCode, Level, LibraryERM.CreateCurrencyWithRandomExchRates(), 0, 0);
-
-        // [GIVEN] L1 and L2 have 2 Reminder texts associated
-        for Level := 1 to 2 do
-            for Index := 1 to 2 do begin
-                Text := StrSubstNo('Random text: %1-%2', Level, Index);
-                AddReminderText(ReminderTermsCode, Level, ReminderText.Position::Ending, Text);
-            end;
 
         // [GIVEN] L1 and L2 have 2 10 Additional Fee Setup lines associated
         for Level := 1 to 2 do
@@ -96,12 +88,6 @@ codeunit 134997 "Reminder - Add. Line fee"
         for Level := 1 to 2 do begin
             CurrencyForReminderLvl.SetRange("No.", Level);
             Assert.AreEqual(3, CurrencyForReminderLvl.Count, StrSubstNo(CountMismatchErr, CurrencyForReminderLvl.TableCaption()));
-        end;
-
-        ReminderText.SetRange("Reminder Terms Code", NewReminderTermsCode);
-        for Level := 1 to 2 do begin
-            ReminderText.SetRange("Reminder Level", Level);
-            Assert.AreEqual(2, ReminderText.Count, StrSubstNo(CountMismatchErr, ReminderText.TableCaption()));
         end;
 
         AdditionalFeeSetup.SetRange("Reminder Terms Code", NewReminderTermsCode);
@@ -335,6 +321,7 @@ codeunit 134997 "Reminder - Add. Line fee"
     [Scope('OnPrem')]
     procedure SuggestSalesInvWithLineFee1stRmd()
     var
+        ReminderAttachmentText: Record "Reminder Attachment Text";
         ReminderLine: Record "Reminder Line";
         ReminderLevel: Record "Reminder Level";
         ReminderNo: Code[20];
@@ -362,7 +349,8 @@ codeunit 134997 "Reminder - Add. Line fee"
         // [THEN] A Line Fee line is added with amount = X and description = D
         VerifyReminderLineExists(ReminderLine, ReminderNo, ReminderLine.Type::"Line Fee", ReminderLine."Document Type"::Invoice, InvoiceA);
         ReminderLevel.Get(ReminderTermCode, 1);
-        Assert.AreEqual(ReminderLevel."Add. Fee per Line Description", ReminderLine.Description,
+        ReminderAttachmentText.Get(ReminderLevel."Reminder Attachment Text", Language.GetUserLanguageCode());
+        Assert.AreEqual(ReminderAttachmentText."Inline Fee Description", ReminderLine.Description,
           StrSubstNo(MustMatchErr, ReminderLine.FieldCaption(Description), ReminderLine.TableCaption()));
     end;
 
@@ -563,6 +551,7 @@ codeunit 134997 "Reminder - Add. Line fee"
     [Scope('OnPrem')]
     procedure SuggestSalesInvoiceValidateLineFeeText()
     var
+        ReminderAttachmentText: Record "Reminder Attachment Text";
         ReminderLine: Record "Reminder Line";
         ReminderLevel: Record "Reminder Level";
         ReminderNo: Code[20];
@@ -580,8 +569,8 @@ codeunit 134997 "Reminder - Add. Line fee"
 
         // [GIVEN] The Line Fee description (Dx) contains a substitute for invoice number
         ReminderLevel.Get(ReminderTermCode, 1);
-        ReminderLevel."Add. Fee per Line Description" := 'Something %8';
-        ReminderLevel.Modify(true);
+        ReminderAttachmentText.Get(ReminderLevel."Reminder Attachment Text", Language.GetUserLanguageCode());
+        LibraryERM.SetReminderAttachmentTextInlineFeeDescription(ReminderAttachmentText, 'Something %8');
 
         // [GIVEN] A sales invoice (A) is posted for the customer
         InvoiceA := PostSalesInvoice(CustNo, CalcDate('<-10D>', WorkDate()));
@@ -603,8 +592,11 @@ codeunit 134997 "Reminder - Add. Line fee"
     [Scope('OnPrem')]
     procedure SuggestUpdateReminderTextTotalCorrect()
     var
+        ReminderAttachmentText: Record "Reminder Attachment Text";
+        ReminderAttachmentTextLine: Record "Reminder Attachment Text Line";
         ReminderLine: Record "Reminder Line";
         ReminderLine2: Record "Reminder Line";
+        ReminderLevel: Record "Reminder Level";
         ReminderTermCode: Code[10];
         CustNo: Code[20];
         InvoiceA: Code[20];
@@ -618,7 +610,10 @@ codeunit 134997 "Reminder - Add. Line fee"
 
         // [GIVEN] Reminder terms set up without additional fee and with Line Fee = X, where X > 0
         CreateStandardReminderTermSetupWithCust(CustNo, ReminderTermCode, true);
-        AddReminderText(ReminderTermCode, 1, "Reminder Text Position"::Ending, 'Total due: %7');
+        ReminderLevel.Get(ReminderTermCode, 1);
+        ReminderAttachmentText.Get(ReminderLevel."Reminder Attachment Text", Language.GetUserLanguageCode());
+        LibraryERM.CreateReminderAttachmentTextLine(
+            ReminderAttachmentTextLine, ReminderAttachmentText, ReminderAttachmentTextLine.Position::"Ending Line", 'Total due: %7');
 
         // [GIVEN] A reminder with over due invoice (A) and Line Fee for invoice A
         InvoiceA := PostSalesInvoice(CustNo, CalcDate('<-10D>', WorkDate()));
@@ -653,8 +648,11 @@ codeunit 134997 "Reminder - Add. Line fee"
     [Scope('OnPrem')]
     procedure SuggestUpdateReminderTextLineFeeAmountChanged()
     var
+        ReminderAttachmentText: Record "Reminder Attachment Text";
+        ReminderAttachmentTextLine: Record "Reminder Attachment Text Line";
         ReminderLine: Record "Reminder Line";
         ReminderLine2: Record "Reminder Line";
+        ReminderLevel: Record "Reminder Level";
         ReminderTermCode: Code[10];
         CustNo: Code[20];
         InvoiceA: Code[20];
@@ -668,7 +666,10 @@ codeunit 134997 "Reminder - Add. Line fee"
 
         // [GIVEN] Reminder terms set up without additional fee and with Line Fee = X, where X > 0
         CreateStandardReminderTermSetupWithCust(CustNo, ReminderTermCode, true);
-        AddReminderText(ReminderTermCode, 1, "Reminder Text Position"::Ending, 'Total due: %7');
+        ReminderLevel.Get(ReminderTermCode, 1);
+        ReminderAttachmentText.Get(ReminderLevel."Reminder Attachment Text", Language.GetUserLanguageCode());
+        LibraryERM.CreateReminderAttachmentTextLine(
+            ReminderAttachmentTextLine, ReminderAttachmentText, ReminderAttachmentTextLine.Position::"Ending Line", 'Total due: %7');
 
         // [GIVEN] A reminder with over due invoice (A) and Line Fee for invoice A
         InvoiceA := PostSalesInvoice(CustNo, CalcDate('<-10D>', WorkDate()));
@@ -1507,6 +1508,7 @@ codeunit 134997 "Reminder - Add. Line fee"
     [Scope('OnPrem')]
     procedure EditChangeAppliesTo()
     var
+        ReminderAttachmentText: Record "Reminder Attachment Text";
         ReminderHeader: Record "Reminder Header";
         ReminderLine: Record "Reminder Line";
         ReminderLevel: Record "Reminder Level";
@@ -1522,8 +1524,8 @@ codeunit 134997 "Reminder - Add. Line fee"
 
         // [GIVEN] The Reminder Term level has a description with document no. substituion
         ReminderLevel.Get(ReminderHeader."Reminder Terms Code", 1);
-        ReminderLevel."Add. Fee per Line Description" := 'Line Fee %8';
-        ReminderLevel.Modify(true);
+        ReminderAttachmentText.Get(ReminderLevel."Reminder Attachment Text", Language.GetUserLanguageCode());
+        LibraryERM.SetReminderAttachmentTextInlineFeeDescription(ReminderAttachmentText, 'Line Fee %8');
 
         // [GIVEN] A overdue sales invoice exists
         InvoiceA := PostSalesInvoice(ReminderHeader."Customer No.", CalcDate('<-10D>', WorkDate()));
@@ -2647,8 +2649,6 @@ codeunit 134997 "Reminder - Add. Line fee"
     var
         CustomerPostingGroup: Record "Customer Posting Group";
         ReminderHeader: Record "Reminder Header";
-        FeatureKey: Record "Feature Key";
-        FeatureKeyUpdateStatus: Record "Feature Data Update Status";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
     begin
@@ -2660,15 +2660,6 @@ codeunit 134997 "Reminder - Add. Line fee"
 
         if ClearExtReminders then
             ReminderHeader.DeleteAll(true);
-
-        if FeatureKey.Get('ReminderTermsCommunicationTexts') then begin
-            FeatureKey.Enabled := FeatureKey.Enabled::None;
-            FeatureKey.Modify();
-        end;
-        if FeatureKeyUpdateStatus.Get('ReminderTermsCommunicationTexts', CompanyName()) then begin
-            FeatureKeyUpdateStatus."Feature Status" := FeatureKeyUpdateStatus."Feature Status"::Disabled;
-            FeatureKeyUpdateStatus.Modify();
-        end;
 
         if IsInitialized then
             exit;
@@ -2687,10 +2678,6 @@ codeunit 134997 "Reminder - Add. Line fee"
         LibrarySetupStorage.SaveGeneralLedgerSetup();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"Reminder - Add. Line fee");
 
-        if FeatureKey.Get('ReminderTermsCommunicationTexts') then begin
-            FeatureKey.Enabled := FeatureKey.Enabled::None;
-            FeatureKey.Modify();
-        end;
     end;
 
     local procedure ResetDocumentValueRange()
@@ -2854,16 +2841,17 @@ codeunit 134997 "Reminder - Add. Line fee"
         ReminderTerms.Validate("Post Interest", PostInterest);
         ReminderTerms.Validate("Post Add. Fee per Line", PostLineFee);
         ReminderTerms.Validate("Post Additional Fee", PostAddFee);
-        ReminderTerms.Validate("Note About Line Fee on Report", '%1 %2 %3 %4');
         ReminderTerms.Modify(true);
         exit(ReminderTerms.Code)
     end;
 
     local procedure CreateReminderTermsLevel(ReminderTermsCode: Code[10]; DueDateDays: Integer; GracePeriodDays: Integer; CurrencyCode: Code[10]; AdditionalFee: Decimal; LineFee: Decimal; CalculateInterest: Boolean; Level: Integer)
     var
+        ReminderAttachmentText: Record "Reminder Attachment Text";
         ReminderLevel: Record "Reminder Level";
         DueDateCalcFormula: DateFormula;
         GracePeriodCalcFormula: DateFormula;
+        InlineFeeDescription: Text[100];
     begin
         LibraryERM.CreateReminderLevel(ReminderLevel, ReminderTermsCode);
         Evaluate(DueDateCalcFormula, '<+' + Format(DueDateDays) + 'D>');
@@ -2872,8 +2860,6 @@ codeunit 134997 "Reminder - Add. Line fee"
         ReminderLevel.Validate("Due Date Calculation", DueDateCalcFormula);
         ReminderLevel.Validate("Grace Period", GracePeriodCalcFormula);
         ReminderLevel.Validate("Calculate Interest", CalculateInterest);
-        ReminderLevel.Validate("Add. Fee per Line Description",
-          LibraryUtility.GenerateRandomCode(ReminderLevel.FieldNo("Add. Fee per Line Description"), DATABASE::"Reminder Level"));
         if CurrencyCode <> '' then
             CreateCurrencyforReminderLevel(ReminderTermsCode, Level, CurrencyCode, AdditionalFee, LineFee)
         else begin
@@ -2881,6 +2867,11 @@ codeunit 134997 "Reminder - Add. Line fee"
             ReminderLevel.Validate("Additional Fee (LCY)", AdditionalFee);
         end;
         ReminderLevel.Modify(true);
+        InlineFeeDescription :=
+            LibraryUtility.GenerateRandomCode(
+                ReminderAttachmentText.FieldNo("Inline Fee Description"), DATABASE::"Reminder Attachment Text");
+        LibraryERM.CreateReminderAttachmentText(ReminderAttachmentText, ReminderLevel, Language.GetUserLanguageCode());
+        LibraryERM.SetReminderAttachmentTextInlineFeeDescription(ReminderAttachmentText, InlineFeeDescription);
     end;
 
     local procedure CreateAdditionalFeeSetupLine(ReminderTermsCode: Code[10]; Level: Integer; PerLine: Boolean; Currency: Code[10]; Threshold: Decimal)
@@ -2988,25 +2979,6 @@ codeunit 134997 "Reminder - Add. Line fee"
         ReminderHeader.SetRange("Customer No.", CustomerNo);
         ReminderHeader.FindFirst();
         ReminderNo := ReminderHeader."No.";
-    end;
-
-    local procedure AddReminderText(ReminderTermCode: Code[10]; Level: Integer; Position: Enum "Reminder Text Position"; Text: Text[100])
-    var
-        ReminderText: Record "Reminder Text";
-        NextLineNo: Integer;
-    begin
-        ReminderText.SetRange("Reminder Terms Code", ReminderTermCode);
-        ReminderText.SetRange("Reminder Level", Level);
-        if ReminderText.FindLast() then;
-        NextLineNo := ReminderText."Line No." + 1000;
-
-        ReminderText.Init();
-        ReminderText."Reminder Terms Code" := ReminderTermCode;
-        ReminderText."Reminder Level" := Level;
-        ReminderText.Position := Position;
-        ReminderText.Text := Text;
-        ReminderText."Line No." := NextLineNo;
-        ReminderText.Insert(true);
     end;
 
     local procedure UpdateReminderText(ReminderNo: Code[20]; Level: Integer)
@@ -3269,4 +3241,3 @@ codeunit 134997 "Reminder - Add. Line fee"
         ActiveDirectoryMockEvents.Enable();
     end;
 }
-
