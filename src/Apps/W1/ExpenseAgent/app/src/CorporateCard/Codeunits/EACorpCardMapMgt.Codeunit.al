@@ -7,14 +7,14 @@ namespace Microsoft.ExpenseAgent;
 using System.IO;
 using System.Utilities;
 
-codeunit 7227 EACorpCardMapMgt
+codeunit 7227 "EA Corp Card Map Mgt"
 {
     Access = Internal;
 
     var
         MandatoryFieldMapMissingErr: Label 'Missing Data Exchange field mapping for %1 on provider %2 (Definition: %3).', Comment = '%1 = Field caption, %2 = Provider code, %3 = Data Exchange Definition Code';
 
-    internal procedure InitTransForBatch(var CorpCardTrans: Record EACorpCardTrans; BatchNo: Integer; ProviderCode: Code[20])
+    internal procedure InitTransForBatch(var CorpCardTrans: Record "EA Corp Card Trans"; BatchNo: Integer; ProviderCode: Code[20])
     begin
         CorpCardTrans.Init();
         CorpCardTrans."Batch No." := BatchNo;
@@ -22,22 +22,22 @@ codeunit 7227 EACorpCardMapMgt
         CorpCardTrans.Status := CorpCardTrans.Status::Imported;
     end;
 
-    internal procedure ValidateMandatoryFieldMappings(CorpCardProvider: Record EACorpCardProvider)
+    internal procedure ValidateMandatoryFieldMappings(CorpCardProvider: Record "EA Corp Card Provider")
     var
-        CorpCardTrans: Record EACorpCardTrans;
+        CorpCardTrans: Record "EA Corp Card Trans";
     begin
         EnsureFieldMappingExists(CorpCardProvider, CorpCardTrans.FieldNo("Card Id"), CorpCardTrans.FieldCaption("Card Id"));
         EnsureFieldMappingExists(CorpCardProvider, CorpCardTrans.FieldNo("Provider Trans Id"), CorpCardTrans.FieldCaption("Provider Trans Id"));
         EnsureFieldMappingExists(CorpCardProvider, CorpCardTrans.FieldNo("Trans Date"), CorpCardTrans.FieldCaption("Trans Date"));
-        EnsureFieldMappingExists(CorpCardProvider, CorpCardTrans.FieldNo(Amount), CorpCardTrans.FieldCaption(Amount));
+        EnsureFieldMappingExists(CorpCardProvider, CorpCardTrans.FieldNo("Amount"), CorpCardTrans.FieldCaption("Amount"));
     end;
 
-    local procedure EnsureFieldMappingExists(CorpCardProvider: Record EACorpCardProvider; FieldId: Integer; FieldCaption: Text)
+    local procedure EnsureFieldMappingExists(CorpCardProvider: Record "EA Corp Card Provider"; FieldId: Integer; FieldCaption: Text)
     var
         DataExchFieldMapping: Record "Data Exch. Field Mapping";
     begin
         DataExchFieldMapping.SetRange("Data Exch. Def Code", CorpCardProvider."Data Exch Def Code");
-        DataExchFieldMapping.SetRange("Table ID", Database::EACorpCardTrans);
+        DataExchFieldMapping.SetRange("Table ID", Database::"EA Corp Card Trans");
         DataExchFieldMapping.SetRange("Field ID", FieldId);
 
         if CorpCardProvider."Data Exch Map Code" <> '' then
@@ -47,10 +47,10 @@ codeunit 7227 EACorpCardMapMgt
             Error(MandatoryFieldMapMissingErr, FieldCaption, CorpCardProvider.Code, CorpCardProvider."Data Exch Def Code");
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::EACorpCardDataExchProv, 'OnProvideSourceContent', '', false, false)]
-    local procedure OnProvideSourceContent(CorpCardProvider: Record EACorpCardProvider; CorpCardBatch: Record EACorpCardBatch; var TempBlob: Codeunit "Temp Blob"; var SourceFileName: Text[250]; var Handled: Boolean)
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"EA Corp Card Data Exch Prov", 'OnProvideSourceContent', '', false, false)]
+    local procedure OnProvideSourceContent(CorpCardProvider: Record "EA Corp Card Provider"; CorpCardBatch: Record "EA Corp Card Batch"; var TempBlob: Codeunit "Temp Blob"; var SourceFileName: Text[250]; var Handled: Boolean)
     var
-        ProviderRefreshed: Record EACorpCardProvider;
+        ProviderRefreshed: Record "EA Corp Card Provider";
         SourceInStr: InStream;
         TempOutStr: OutStream;
     begin
@@ -80,23 +80,25 @@ codeunit 7227 EACorpCardMapMgt
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Process Data Exch.", 'OnSetFieldOnBeforeFieldRefValidate', '', false, false)]
     local procedure OnSetFieldOnBeforeFieldRefValidate(TransformedValue: Text; var DataExchField: Record "Data Exch. Field"; DataExchFieldMapping: Record "Data Exch. Field Mapping"; FieldRef: FieldRef; DataExchColumnDef: Record "Data Exch. Column Def"; var IsHandled: Boolean)
     var
-        CorpCardTrans: Record EACorpCardTrans;
-        NormalizedCardId: Text;
+        CorpCardTrans: Record "EA Corp Card Trans";
+        NormalizedValue: Text;
     begin
-        if DataExchFieldMapping."Table ID" <> Database::EACorpCardTrans then
+        if DataExchFieldMapping."Table ID" <> Database::"EA Corp Card Trans" then
             exit;
 
-        if DataExchFieldMapping."Field ID" <> CorpCardTrans.FieldNo("Card Id") then
+        case DataExchFieldMapping."Field ID" of
+            CorpCardTrans.FieldNo("Card Id"):
+                NormalizedValue := ExtractTaggedValueCaseInsensitive(TransformedValue, 'CARDID=');
+            CorpCardTrans.FieldNo(MCC):
+                NormalizedValue := ExtractTaggedValueCaseInsensitive(TransformedValue, 'MCC=');
+            else
+                exit;
+        end;
+
+        if NormalizedValue = '' then
             exit;
 
-        if StrPos(UpperCase(TransformedValue), 'CARDID=') = 0 then
-            exit;
-
-        NormalizedCardId := ExtractTaggedValueCaseInsensitive(TransformedValue, 'CARDID=');
-        if NormalizedCardId = '' then
-            exit;
-
-        FieldRef.Value := CopyStr(NormalizedCardId, 1, FieldRef.Length);
+        FieldRef.Value := CopyStr(NormalizedValue, 1, FieldRef.Length);
         FieldRef.Validate();
         IsHandled := true;
     end;

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-enum 7225 EACorpCardCreateMode
+enum 7225 "EA Corp Card Create Mode"
 {
     Access = Internal;
     Caption = 'Corp Card Create Mode';

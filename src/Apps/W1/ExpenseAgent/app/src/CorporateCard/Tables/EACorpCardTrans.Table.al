@@ -7,12 +7,12 @@ namespace Microsoft.ExpenseAgent;
 using Microsoft.Finance.Currency;
 using Microsoft.Foundation.Address;
 
-table 7218 EACorpCardTrans
+table 7218 "EA Corp Card Trans"
 {
     Caption = 'Corp Card Transaction';
     DataClassification = CustomerContent;
-    LookupPageId = EACorpCardTransList;
-    DrillDownPageId = EACorpCardTransList;
+    LookupPageId = "EA Corp Card Trans List";
+    DrillDownPageId = "EA Corp Card Trans List";
     ReplicateData = false;
 
     fields
@@ -26,19 +26,19 @@ table 7218 EACorpCardTrans
         field(2; "Batch No."; Integer)
         {
             Caption = 'Batch No.';
-            TableRelation = EACorpCardBatch."Batch No.";
+            TableRelation = "EA Corp Card Batch"."Batch No.";
             Tooltip = 'Specifies the batch number of the corporate card transaction batch that this transaction belongs to.';
         }
         field(3; "Provider Code"; Code[20])
         {
             Caption = 'Provider Code';
-            TableRelation = EACorpCardProvider.Code;
+            TableRelation = "EA Corp Card Provider".Code;
             Tooltip = 'Specifies the provider code of the corporate card provider that provided this transaction.';
         }
         field(4; "Card Id"; Code[50])
         {
             Caption = 'Card Id';
-            TableRelation = EACorpCard."Card Id";
+            TableRelation = "EA Corp Card"."Card Id";
             Tooltip = 'Specifies the card id of the corporate card that was used for this transaction.';
         }
         field(5; "Provider Trans Id"; Code[100])
@@ -82,7 +82,7 @@ table 7218 EACorpCardTrans
         field(12; MCC; Code[4])
         {
             Caption = 'Merchant Category Code';
-            TableRelation = EACorpCardMCCMap.MCC;
+            TableRelation = "EA Corp Card MCC Map".MCC;
             ToolTip = 'Specifies the merchant category code of the corporate card transaction.';
         }
         field(13; Country; Code[10])
@@ -91,12 +91,12 @@ table 7218 EACorpCardTrans
             TableRelation = "Country/Region".Code;
             ToolTip = 'Specifies the country/region code of the corporate card transaction.';
         }
-        field(14; Status; Enum EACorpCardTransStatus)
+        field(14; Status; Enum "EA Corp Card Trans Status")
         {
             Caption = 'Status';
             ToolTip = 'Specifies the status of the corporate card transaction.';
         }
-        field(15; "Match Type"; Enum EACorpCardMatchType)
+        field(15; "Match Type"; Enum "EA Corp Card Match Type")
         {
             Caption = 'Match Type';
             ToolTip = 'Specifies the match type of the corporate card transaction.';

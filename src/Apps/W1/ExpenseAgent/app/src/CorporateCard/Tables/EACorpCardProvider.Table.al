@@ -7,27 +7,27 @@ namespace Microsoft.ExpenseAgent;
 using System.IO;
 using System.Threading;
 
-table 7216 EACorpCardProvider
+table 7216 "EA Corp Card Provider"
 {
     Access = Internal;
     Caption = 'Corp Card Provider';
     DataClassification = CustomerContent;
-    LookupPageId = EACorpCardProviders;
-    DrillDownPageId = EACorpCardProviders;
+    LookupPageId = "EA Corp Card Providers";
+    DrillDownPageId = "EA Corp Card Providers";
     ReplicateData = false;
     Permissions =
-        tabledata EACorpCard = rimd,
-        tabledata EACorpCardBatch = rimd,
-        tabledata EACorpCardException = rimd,
-        tabledata EACorpCardTrans = rimd,
-        tabledata EACorpCardTransDetail = rimd,
+        tabledata "EA Corp Card" = rimd,
+        tabledata "EA Corp Card Batch" = rimd,
+        tabledata "EA Corp Card Exception" = rimd,
+        tabledata "EA Corp Card Trans" = rimd,
+        tabledata "EA Corp Card Trans Detail" = rimd,
         tabledata "Data Exch." = rimd,
         tabledata "Data Exch. Def" = rimd,
         tabledata "Data Exch. Mapping" = rimd,
         tabledata "Data Exch. Line Def" = rimd,
         tabledata "Data Exch. Column Def" = rimd,
         tabledata "Data Exch. Field Mapping" = rimd,
-        tabledata EACorpCardProvider = rimd;
+        tabledata "EA Corp Card Provider" = rimd;
 
     fields
     {
@@ -46,12 +46,12 @@ table 7216 EACorpCardProvider
             Caption = 'Enabled';
             ToolTip = 'Specifies whether the corporate card provider is enabled.';
         }
-        field(4; "Feed Type"; Enum EACorpCardFeedType)
+        field(4; "Feed Type"; Enum "EA Corp Card Feed Type")
         {
             Caption = 'Feed Type';
             ToolTip = 'Specifies the feed type for the corporate card provider.';
         }
-        field(5; "Auth Type"; Enum EACorpCardAuthType)
+        field(5; "Auth Type"; Enum "EA Corp Card Auth Type")
         {
             Caption = 'Authentication Type';
             ToolTip = 'Specifies the authentication type for the corporate card provider.';
@@ -127,9 +127,9 @@ table 7216 EACorpCardProvider
 
     local procedure HasRelatedData(): Boolean
     var
-        CorpCard: Record EACorpCard;
-        CorpCardBatch: Record EACorpCardBatch;
-        CorpCardTrans: Record EACorpCardTrans;
+        CorpCard: Record "EA Corp Card";
+        CorpCardBatch: Record "EA Corp Card Batch";
+        CorpCardTrans: Record "EA Corp Card Trans";
         DataExch: Record "Data Exch.";
         JobQueueEntry: Record "Job Queue Entry";
     begin
@@ -158,11 +158,11 @@ table 7216 EACorpCardProvider
 
     local procedure DeleteRelatedData()
     var
-        CorpCard: Record EACorpCard;
-        CorpCardBatch: Record EACorpCardBatch;
-        CorpCardException: Record EACorpCardException;
-        CorpCardTrans: Record EACorpCardTrans;
-        CorpCardTransDetail: Record EACorpCardTransDetail;
+        CorpCard: Record "EA Corp Card";
+        CorpCardBatch: Record "EA Corp Card Batch";
+        CorpCardException: Record "EA Corp Card Exception";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        CorpCardTransDetail: Record "EA Corp Card Trans Detail";
         DataExch: Record "Data Exch.";
         DataExchDef: Record "Data Exch. Def";
         DataExchLineDef: Record "Data Exch. Line Def";

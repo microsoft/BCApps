@@ -200,14 +200,14 @@ page 6933 "Expense Management Role Center"
                     {
                         Caption = 'Corp Card Dashboard';
                         ApplicationArea = Basic, Suite;
-                        RunObject = Page "EACorpCardDashboard";
+                        RunObject = Page "EA Corp Card Dashboard";
                         ToolTip = 'View corporate card import statistics and recent batches.';
                     }
                     action("Corp Card Providers")
                     {
                         Caption = 'Corp Card Providers';
                         ApplicationArea = Basic, Suite;
-                        RunObject = Page "EACorpCardProviders";
+                        RunObject = Page "EA Corp Card Providers";
                         ToolTip = 'Manage corporate card providers and scheduling.';
                     }
                     action("Corp Card Setup")
@@ -221,14 +221,14 @@ page 6933 "Expense Management Role Center"
                     {
                         Caption = 'Merchant Normalization Rules';
                         ApplicationArea = Basic, Suite;
-                        RunObject = Page "EACorpCardMerchantRules";
+                        RunObject = Page "EA Corp Card Merchant Rules";
                         ToolTip = 'Setup regex patterns for merchant name normalization.';
                     }
                     action("MCC Code Mappings")
                     {
                         Caption = 'MCC Code Mappings';
                         ApplicationArea = Basic, Suite;
-                        RunObject = Page "EACorpCardMCCMap";
+                        RunObject = Page "EA Corp Card MCC Map";
                         ToolTip = 'Map merchant category codes to expense categories.';
                     }
                 }

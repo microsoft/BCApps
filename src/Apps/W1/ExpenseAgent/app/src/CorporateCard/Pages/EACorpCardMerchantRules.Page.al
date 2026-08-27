@@ -4,13 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7227 "EACorpCardMerchantRules"
+page 7227 "EA Corp Card Merchant Rules"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Merchant Normalization Rules';
     PageType = List;
     UsageCategory = Lists;
-    SourceTable = EACorpCardMerchantRule;
+    SourceTable = "EA Corp Card Merchant Rule";
     SourceTableView = sorting(Priority);
 
     layout

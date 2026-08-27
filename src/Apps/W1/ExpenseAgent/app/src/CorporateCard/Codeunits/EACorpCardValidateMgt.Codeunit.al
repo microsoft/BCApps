@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-codeunit 7225 EACorpCardValidateMgt
+using Microsoft.Finance.GeneralLedger.Setup;
+
+codeunit 7225 "EA Corp Card Validate Mgt"
 {
     Access = Internal;
 
@@ -14,15 +16,17 @@ codeunit 7225 EACorpCardValidateMgt
         MissingProviderTransIdErr: Label 'Provider Trans Id is missing.';
         MissingTransDateErr: Label 'Trans Date is missing.';
 
-    internal procedure ValidateTrans(var CorpCardTrans: Record EACorpCardTrans): Boolean
+    internal procedure ValidateTrans(var CorpCardTrans: Record "EA Corp Card Trans"): Boolean
     var
         ValidationReason: Text[250];
     begin
         exit(ValidateTrans(CorpCardTrans, ValidationReason));
     end;
 
-    internal procedure ValidateTrans(var CorpCardTrans: Record EACorpCardTrans; var ValidationReason: Text[250]): Boolean
+    internal procedure ValidateTrans(var CorpCardTrans: Record "EA Corp Card Trans"; var ValidationReason: Text[250]): Boolean
     begin
+        NormalizeCurrencyCode(CorpCardTrans."Currency Code");
+
         if CorpCardTrans."Provider Code" = '' then begin
             ValidationReason := MissingProviderCodeErr;
             exit(false);
@@ -43,5 +47,17 @@ codeunit 7225 EACorpCardValidateMgt
         ValidationReason := '';
 
         exit(true);
+    end;
+
+    internal procedure NormalizeCurrencyCode(var CurrencyCode: Code[10])
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        if CurrencyCode = '' then
+            exit;
+
+        GeneralLedgerSetup.Get();
+        if CurrencyCode = GeneralLedgerSetup."LCY Code" then
+            CurrencyCode := '';
     end;
 }

@@ -4,16 +4,16 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-codeunit 7221 EACorpCardProvReg
+codeunit 7221 "EA Corp Card Prov Reg"
 {
     Access = Internal;
 
     var
         UnsupportedFeedTypeErr: Label 'Feed type %1 is not supported yet.', Comment = '%1 = Feed type';
 
-    internal procedure ResolveProvider(CorpCardProvider: Record EACorpCardProvider; var CorpCardProviderImpl: Interface EACorpCardProviderInterface)
+    internal procedure ResolveProvider(CorpCardProvider: Record "EA Corp Card Provider"; var CorpCardProviderImpl: Interface "EA Corp Card Provider")
     var
-        CorpCardDataExchProv: Codeunit EACorpCardDataExchProv;
+        CorpCardDataExchProv: Codeunit "EA Corp Card Data Exch Prov";
     begin
         case CorpCardProvider."Feed Type" of
             CorpCardProvider."Feed Type"::DataExch,

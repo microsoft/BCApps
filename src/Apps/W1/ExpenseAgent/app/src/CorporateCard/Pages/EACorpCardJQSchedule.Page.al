@@ -4,18 +4,18 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7229 "EACorpCardJQSchedule"
+page 7229 "EA Corp Card JQ Schedule"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Corp Card Import Schedule';
     PageType = ListPlus;
-    SourceTable = EACorpCardProvider;
+    SourceTable = "EA Corp Card Provider";
 
     layout
     {
         area(Content)
         {
-            part(Schedule; EACorpCardJQScheduleSubpage)
+            part(Schedule; "EA Corp Card JQ Schedule Sub")
             {
                 ApplicationArea = Basic, Suite;
                 UpdatePropagation = Both;

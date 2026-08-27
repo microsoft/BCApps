@@ -9,7 +9,7 @@ namespace Microsoft.ExpenseAgent;
 /// Creates and manages Expense Reports from individual corp card transactions.
 /// GL posting is handled by the standard ExpenseReportPost codeunit when the report is posted.
 /// </summary>
-codeunit 7219 EACorpCardReportMgt
+codeunit 7219 "EA Corp Card Report Mgt"
 {
     Access = Internal;
 
@@ -26,7 +26,7 @@ codeunit 7219 EACorpCardReportMgt
         Expense: Record Expense;
         ExpenseAgentSetup: Record "Expense Agent Setup";
         ExpenseUser: Record "Expense User";
-        AuditSubscribers: Codeunit EACorpCardAuditSubscribers;
+        AuditSubscribers: Codeunit "EA Corp Card Audit Subscribers";
     begin
         ExpenseUser.Get(ExpenseUserNo);
         ExpenseAgentSetup.GetRecordOnce();

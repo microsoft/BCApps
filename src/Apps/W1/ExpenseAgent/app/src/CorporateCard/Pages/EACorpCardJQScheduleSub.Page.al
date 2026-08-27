@@ -6,7 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 using System.Threading;
 
-page 7235 "EACorpCardJQScheduleSubpage"
+page 7235 "EA Corp Card JQ Schedule Sub"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Job Queue Schedule';
@@ -72,7 +72,7 @@ page 7235 "EACorpCardJQScheduleSubpage"
 
     procedure SetProviderFilter(ProviderCode: Code[20])
     var
-        CorpCardProvider: Record EACorpCardProvider;
+        CorpCardProvider: Record "EA Corp Card Provider";
     begin
         CorpCardProvider.Get(ProviderCode);
         Rec.SetRange("Record ID to Process", CorpCardProvider.RecordId);

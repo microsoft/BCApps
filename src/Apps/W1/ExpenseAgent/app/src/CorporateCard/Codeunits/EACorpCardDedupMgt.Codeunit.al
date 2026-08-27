@@ -4,13 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-codeunit 7226 EACorpCardDedupMgt
+codeunit 7226 "EA Corp Card Dedup Mgt"
 {
     Access = Internal;
 
-    internal procedure IsDuplicate(CorpCardTrans: Record EACorpCardTrans): Boolean
+    internal procedure IsDuplicate(CorpCardTrans: Record "EA Corp Card Trans"): Boolean
     var
-        ExistingCorpCardTrans: Record EACorpCardTrans;
+        ExistingCorpCardTrans: Record "EA Corp Card Trans";
     begin
         ExistingCorpCardTrans.SetRange("Provider Code", CorpCardTrans."Provider Code");
         ExistingCorpCardTrans.SetRange("Provider Trans Id", CorpCardTrans."Provider Trans Id");

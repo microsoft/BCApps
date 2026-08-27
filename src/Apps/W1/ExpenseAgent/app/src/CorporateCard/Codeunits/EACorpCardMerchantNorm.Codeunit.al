@@ -8,11 +8,11 @@ namespace Microsoft.ExpenseAgent;
 /// Applies merchant normalization rules to corporate card transactions.
 /// Normalizes raw merchant names using configured patterns and priority-based rules.
 /// </summary>
-codeunit 7210 EACorpCardMerchantNorm
+codeunit 7210 "EA Corp Card Merchant Norm"
 {
     Access = Internal;
 
-    internal procedure NormalizeTransaction(var CorpCardTrans: Record EACorpCardTrans)
+    internal procedure NormalizeTransaction(var CorpCardTrans: Record "EA Corp Card Trans")
     var
         NormalizedName: Text[100];
         MatchedCategory: Code[20];
@@ -32,7 +32,7 @@ codeunit 7210 EACorpCardMerchantNorm
 
     local procedure FindMatchingRule(MerchantRaw: Text[100]; var NormalizedName: Text[100]; var MatchedCategory: Code[20]): Boolean
     var
-        MerchantRule: Record EACorpCardMerchantRule;
+        MerchantRule: Record "EA Corp Card Merchant Rule";
     begin
         MerchantRule.SetRange(Active, true);
         MerchantRule.SetCurrentKey(Priority);

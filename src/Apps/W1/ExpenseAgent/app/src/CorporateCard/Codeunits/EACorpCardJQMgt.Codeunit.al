@@ -10,7 +10,7 @@ using System.Threading;
 /// Manages Job Queue entry creation and scheduling for corporate card imports.
 /// Provides helper methods to schedule provider imports with configurable frequency.
 /// </summary>
-codeunit 7215 EACorpCardJQMgt
+codeunit 7215 "EA Corp Card JQ Mgt"
 {
     Access = Internal;
 
@@ -21,9 +21,9 @@ codeunit 7215 EACorpCardJQMgt
 
     internal procedure ScheduleProviderImport(ProviderCode: Code[20]; MinutesBetweenRuns: Integer; StartTime: Time; StartDate: Date): Guid
     var
-        CorpCardProvider: Record EACorpCardProvider;
+        CorpCardProvider: Record "EA Corp Card Provider";
         JobQueueEntry: Record "Job Queue Entry";
-        AuditSubscribers: Codeunit EACorpCardAuditSubscribers;
+        AuditSubscribers: Codeunit "EA Corp Card Audit Subscribers";
     begin
         if not CorpCardProvider.Get(ProviderCode) then
             Error(NoProviderErr, ProviderCode);
@@ -33,7 +33,7 @@ codeunit 7215 EACorpCardJQMgt
 
         JobQueueEntry.Init();
         JobQueueEntry."Object Type to Run" := JobQueueEntry."Object Type to Run"::Codeunit;
-        JobQueueEntry."Object ID to Run" := Codeunit::EACorpCardJQRunner;
+        JobQueueEntry."Object ID to Run" := Codeunit::"EA Corp Card JQ Runner";
         JobQueueEntry.Description := StrSubstNo(CorpCardImportTxt, ProviderCode);
         JobQueueEntry."Record ID to Process" := CorpCardProvider.RecordId;
         JobQueueEntry."Maximum No. of Attempts to Run" := 3;
@@ -50,7 +50,7 @@ codeunit 7215 EACorpCardJQMgt
 
     internal procedure UnscheduleProviderImport(ProviderCode: Code[20])
     var
-        CorpCardProvider: Record EACorpCardProvider;
+        CorpCardProvider: Record "EA Corp Card Provider";
         JobQueueEntry: Record "Job Queue Entry";
     begin
         if not CorpCardProvider.Get(ProviderCode) then
@@ -62,7 +62,7 @@ codeunit 7215 EACorpCardJQMgt
 
     internal procedure UpdateJobQueueFrequency(ProviderCode: Code[20]; NewMinutesBetweenRuns: Integer)
     var
-        CorpCardProvider: Record EACorpCardProvider;
+        CorpCardProvider: Record "EA Corp Card Provider";
         JobQueueEntry: Record "Job Queue Entry";
     begin
         if not CorpCardProvider.Get(ProviderCode) then

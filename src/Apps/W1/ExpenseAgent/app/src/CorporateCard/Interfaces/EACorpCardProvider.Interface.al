@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-interface EACorpCardProviderInterface
+interface "EA Corp Card Provider"
 {
-    procedure Download(var CorpCardBatch: Record EACorpCardBatch);
+    procedure Download(var CorpCardBatch: Record "EA Corp Card Batch");
     procedure ParseToStaging(BatchNo: Integer);
     procedure Ack(BatchNo: Integer);
 }

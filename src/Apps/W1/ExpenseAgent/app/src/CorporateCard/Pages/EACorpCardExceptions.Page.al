@@ -4,13 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7222 EACorpCardExceptions
+page 7222 "EA Corp Card Exceptions"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Corp Card Exceptions';
     PageType = List;
     UsageCategory = Lists;
-    SourceTable = EACorpCardException;
+    SourceTable = "EA Corp Card Exception";
 
     layout
     {

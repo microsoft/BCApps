@@ -8,14 +8,14 @@ namespace Microsoft.ExpenseAgent;
 /// Matches corporate card transactions to existing Expense records.
 /// Uses employee, date, and amount tolerance to find potential matches.
 /// </summary>
-codeunit 7211 EACorpCardMatchMgt
+codeunit 7211 "EA Corp Card Match Mgt"
 {
     Access = Internal;
 
-    internal procedure MatchTransaction(var CorpCardTrans: Record EACorpCardTrans; var ExpenseNo: Code[20]): Boolean
+    internal procedure MatchTransaction(var CorpCardTrans: Record "EA Corp Card Trans"; var ExpenseNo: Code[20]): Boolean
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
-        CorpCard: Record EACorpCard;
+        CorpCard: Record "EA Corp Card";
         Expense: Record Expense;
         DateWindow: Integer;
         AmountTolerance: Decimal;

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-enum 7220 EACorpCardFeedType
+enum 7220 "EA Corp Card Feed Type"
 {
     Access = Internal;
     Caption = 'Corp Card Feed Type';

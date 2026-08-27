@@ -4,12 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7231 "EACorpCardDashboardFactbox"
+page 7231 "EA Corp Card Dashboard Fact"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Recent Import Batches';
     PageType = ListPart;
-    SourceTable = EACorpCardBatch;
+    SourceTable = "EA Corp Card Batch";
 
     layout
     {

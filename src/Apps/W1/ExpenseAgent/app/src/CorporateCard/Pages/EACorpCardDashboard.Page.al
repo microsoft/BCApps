@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7228 "EACorpCardDashboard"
+page 7228 "EA Corp Card Dashboard"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Corp Card Import Dashboard';
@@ -17,14 +17,14 @@ page 7228 "EACorpCardDashboard"
         {
             group(Group1)
             {
-                part(RecentBatches; EACorpCardDashboardFactbox)
+                part(RecentBatches; "EA Corp Card Dashboard Fact")
                 {
                     ApplicationArea = Basic, Suite;
                 }
             }
             group(Group2)
             {
-                part(Statistics; EACorpCardStatisticsFactbox)
+                part(Statistics; "EA Corp Card Stats Factbox")
                 {
                     ApplicationArea = Basic, Suite;
                 }
@@ -43,7 +43,7 @@ page 7228 "EACorpCardDashboard"
                     Caption = 'Providers';
                     ApplicationArea = Basic, Suite;
                     Image = Setup;
-                    RunObject = Page EACorpCardProviders;
+                    RunObject = Page "EA Corp Card Providers";
                     ToolTip = 'View and manage corporate card providers.';
                 }
                 action(Transactions)
@@ -51,7 +51,7 @@ page 7228 "EACorpCardDashboard"
                     Caption = 'Transactions';
                     ApplicationArea = Basic, Suite;
                     Image = List;
-                    RunObject = Page EACorpCardTransList;
+                    RunObject = Page "EA Corp Card Trans List";
                     ToolTip = 'View imported corporate card transactions.';
                 }
                 action(Batches)
@@ -59,7 +59,7 @@ page 7228 "EACorpCardDashboard"
                     Caption = 'Import Batches';
                     ApplicationArea = Basic, Suite;
                     Image = History;
-                    RunObject = Page EACorpCardBatches;
+                    RunObject = Page "EA Corp Card Batches";
                     ToolTip = 'View all import batches.';
                 }
                 action(Exceptions)
@@ -67,7 +67,7 @@ page 7228 "EACorpCardDashboard"
                     Caption = 'Exceptions';
                     ApplicationArea = Basic, Suite;
                     Image = ErrorLog;
-                    RunObject = Page EACorpCardExceptions;
+                    RunObject = Page "EA Corp Card Exceptions";
                     ToolTip = 'View import exceptions and errors.';
                 }
                 action(Setup)

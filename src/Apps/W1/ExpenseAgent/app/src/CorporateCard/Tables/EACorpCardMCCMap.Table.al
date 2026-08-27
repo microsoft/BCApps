@@ -6,13 +6,13 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.VAT.Setup;
 
-table 7214 EACorpCardMCCMap
+table 7214 "EA Corp Card MCC Map"
 {
     Access = Internal;
     Caption = 'Corp Card MCC Map';
     DataClassification = CustomerContent;
-    LookupPageId = EACorpCardMCCMap;
-    DrillDownPageId = EACorpCardMCCMap;
+    LookupPageId = "EA Corp Card MCC Map";
+    DrillDownPageId = "EA Corp Card MCC Map";
     ReplicateData = false;
 
     fields

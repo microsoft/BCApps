@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-enum 7221 EACorpCardAuthType
+enum 7221 "EA Corp Card Auth Type"
 {
     Access = Internal;
     Caption = 'Corp Card Auth Type';

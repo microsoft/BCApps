@@ -7,7 +7,7 @@ namespace Microsoft.ExpenseAgent;
 using System.Azure.KeyVault;
 using System.Utilities;
 
-codeunit 7228 EACorpCardApiSourceProv
+codeunit 7228 "EA Corp Card Api Source Prov"
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -24,8 +24,8 @@ codeunit 7228 EACorpCardApiSourceProv
         DefaultXmlFileNameTok: Label 'CorpCardApiPayload.xml', Locked = true;
         DefaultCsvFileNameTok: Label 'CorpCardApiPayload.csv', Locked = true;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::EACorpCardDataExchProv, 'OnProvideSourceContent', '', false, false)]
-    local procedure OnProvideSourceContent(CorpCardProvider: Record EACorpCardProvider; CorpCardBatch: Record EACorpCardBatch; var TempBlob: Codeunit "Temp Blob"; var SourceFileName: Text[250]; var Handled: Boolean)
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"EA Corp Card Data Exch Prov", 'OnProvideSourceContent', '', false, false)]
+    local procedure OnProvideSourceContent(CorpCardProvider: Record "EA Corp Card Provider"; CorpCardBatch: Record "EA Corp Card Batch"; var TempBlob: Codeunit "Temp Blob"; var SourceFileName: Text[250]; var Handled: Boolean)
     var
         OutStr: OutStream;
         SourceContent: Text;
@@ -52,7 +52,7 @@ codeunit 7228 EACorpCardApiSourceProv
         Handled := true;
     end;
 
-    local procedure DownloadSourceContent(CorpCardProvider: Record EACorpCardProvider; var ContentType: Text) Result: Text
+    local procedure DownloadSourceContent(CorpCardProvider: Record "EA Corp Card Provider"; var ContentType: Text) Result: Text
     var
         Client: HttpClient;
         RequestMessage: HttpRequestMessage;
@@ -76,7 +76,7 @@ codeunit 7228 EACorpCardApiSourceProv
         ContentType := '';
     end;
 
-    local procedure AddAuthHeaders(var Headers: HttpHeaders; CorpCardProvider: Record EACorpCardProvider)
+    local procedure AddAuthHeaders(var Headers: HttpHeaders; CorpCardProvider: Record "EA Corp Card Provider")
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
         SecretValue: SecretText;
@@ -102,7 +102,7 @@ codeunit 7228 EACorpCardApiSourceProv
         end;
     end;
 
-    local procedure ResolveSourceFileName(CorpCardProvider: Record EACorpCardProvider; ContentType: Text): Text[250]
+    local procedure ResolveSourceFileName(CorpCardProvider: Record "EA Corp Card Provider"; ContentType: Text): Text[250]
     var
         EndpointLower: Text;
         ContentTypeLower: Text;

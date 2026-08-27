@@ -8,7 +8,7 @@ namespace Microsoft.ExpenseAgent;
 /// Enhanced matching for corporate card transactions.
 /// Provides receipt-based matching, fuzzy merchant matching, and match scoring.
 /// </summary>
-codeunit 7216 EACorpCardEnhancedMatchMgt
+codeunit 7216 "EA Corp Card Enh. Match Mgt"
 {
     Access = Internal;
 
@@ -19,7 +19,7 @@ codeunit 7216 EACorpCardEnhancedMatchMgt
     /// Enhanced transaction matching with multiple strategies.
     /// Tries receipt-based first, then fuzzy merchant matching.
     /// </summary>
-    internal procedure EnhancedMatchTransaction(var CorpCardTrans: Record EACorpCardTrans; var ExpenseNo: Code[20]): Boolean
+    internal procedure EnhancedMatchTransaction(var CorpCardTrans: Record "EA Corp Card Trans"; var ExpenseNo: Code[20]): Boolean
     var
         MatchScore: Decimal;
     begin
@@ -54,10 +54,10 @@ codeunit 7216 EACorpCardEnhancedMatchMgt
     /// Exact match on amount, date within window, and expense user.
     /// Returns match score 90-100 based on exactness.
     /// </summary>
-    local procedure ExactAmountDateMatch(var CorpCardTrans: Record EACorpCardTrans; var ExpenseNo: Code[20]; var MatchScore: Decimal): Boolean
+    local procedure ExactAmountDateMatch(var CorpCardTrans: Record "EA Corp Card Trans"; var ExpenseNo: Code[20]; var MatchScore: Decimal): Boolean
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
-        CorpCard: Record EACorpCard;
+        CorpCard: Record "EA Corp Card";
         Expense: Record Expense;
         DateDiff: Integer;
         AmountDiff: Decimal;
@@ -99,9 +99,9 @@ codeunit 7216 EACorpCardEnhancedMatchMgt
     /// Fuzzy merchant name matching using string similarity.
     /// Returns true if similarity >= MediumScoreThreshold.
     /// </summary>
-    local procedure FuzzyMerchantMatch(var CorpCardTrans: Record EACorpCardTrans; var ExpenseNo: Code[20]; var MatchScore: Decimal): Boolean
+    local procedure FuzzyMerchantMatch(var CorpCardTrans: Record "EA Corp Card Trans"; var ExpenseNo: Code[20]; var MatchScore: Decimal): Boolean
     var
-        CorpCard: Record EACorpCard;
+        CorpCard: Record "EA Corp Card";
         Expense: Record Expense;
         SimilarityScore: Decimal;
         BestScore: Decimal;
@@ -138,9 +138,9 @@ codeunit 7216 EACorpCardEnhancedMatchMgt
     /// Employee-only match: matches to any Open expense for same user.
     /// Requires manual review by user before posting.
     /// </summary>
-    local procedure EmployeeOnlyMatch(var CorpCardTrans: Record EACorpCardTrans; var ExpenseNo: Code[20]): Boolean
+    local procedure EmployeeOnlyMatch(var CorpCardTrans: Record "EA Corp Card Trans"; var ExpenseNo: Code[20]): Boolean
     var
-        CorpCard: Record EACorpCard;
+        CorpCard: Record "EA Corp Card";
         Expense: Record Expense;
     begin
         if not CorpCard.Get(CorpCardTrans."Card Id") then

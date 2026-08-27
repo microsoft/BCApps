@@ -4,13 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7221 EACorpCardCards
+page 7221 "EA Corp Card Cards"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Corp Cards';
     PageType = List;
     UsageCategory = Lists;
-    SourceTable = EACorpCard;
+    SourceTable = "EA Corp Card";
 
     layout
     {
@@ -64,11 +64,11 @@ page 7221 EACorpCardCards
 
                 trigger OnAction()
                 var
-                    CorpCardTrans: Record EACorpCardTrans;
+                    CorpCardTrans: Record "EA Corp Card Trans";
                 begin
                     CorpCardTrans.SetRange("Provider Code", Rec."Provider Code");
                     CorpCardTrans.SetRange("Card Id", Rec."Card Id");
-                    Page.RunModal(Page::EACorpCardTransList, CorpCardTrans);
+                    Page.RunModal(Page::"EA Corp Card Trans List", CorpCardTrans);
                 end;
             }
         }

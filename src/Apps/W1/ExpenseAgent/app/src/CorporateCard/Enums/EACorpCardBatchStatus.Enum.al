@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-enum 7226 EACorpCardBatchStatus
+enum 7226 "EA Corp Card Batch Status"
 {
     Caption = 'Corp Card Batch Status';
 

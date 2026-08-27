@@ -4,13 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-table 7213 EACorpCardException
+table 7213 "EA Corp Card Exception"
 {
     Access = Internal;
     Caption = 'Corp Card Exception';
     DataClassification = CustomerContent;
-    LookupPageId = EACorpCardExceptions;
-    DrillDownPageId = EACorpCardExceptions;
+    LookupPageId = "EA Corp Card Exceptions";
+    DrillDownPageId = "EA Corp Card Exceptions";
     ReplicateData = false;
 
     fields
@@ -24,16 +24,16 @@ table 7213 EACorpCardException
         field(2; "Batch No."; Integer)
         {
             Caption = 'Batch No.';
-            TableRelation = EACorpCardBatch."Batch No.";
+            TableRelation = "EA Corp Card Batch"."Batch No.";
             ToolTip = 'Specifies the batch number for the corporate card exception.';
         }
         field(3; "Trans Entry No."; Integer)
         {
             Caption = 'Transaction Entry No.';
-            TableRelation = EACorpCardTrans."Entry No.";
+            TableRelation = "EA Corp Card Trans"."Entry No.";
             ToolTip = 'Specifies the transaction entry number for the corporate card exception.';
         }
-        field(4; "Exception Type"; Enum EACorpCardExcpType)
+        field(4; "Exception Type"; Enum "EA Corp Card Exception Type")
         {
             Caption = 'Exception Type';
             ToolTip = 'Specifies the exception type for the corporate card exception.';

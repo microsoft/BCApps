@@ -4,14 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7223 EACorpCardTransList
+page 7223 "EA Corp Card Trans List"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Corp Card Transactions';
     Editable = false;
     PageType = List;
     UsageCategory = Lists;
-    SourceTable = EACorpCardTrans;
+    SourceTable = "EA Corp Card Trans";
 
     layout
     {
@@ -110,10 +110,10 @@ page 7223 EACorpCardTransList
 
                 trigger OnAction()
                 var
-                    CorpCardTransDetail: Record EACorpCardTransDetail;
+                    CorpCardTransDetail: Record "EA Corp Card Trans Detail";
                 begin
                     CorpCardTransDetail.SetRange("Trans Entry No.", Rec."Entry No.");
-                    Page.RunModal(Page::EACorpCardDetails, CorpCardTransDetail);
+                    Page.RunModal(Page::"EA Corp Card Details", CorpCardTransDetail);
                 end;
             }
         }

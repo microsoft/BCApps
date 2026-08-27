@@ -4,14 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-codeunit 7220 EACorpCardFeedMgt
+codeunit 7220 "EA Corp Card Feed Mgt"
 {
     Access = Internal;
 
     internal procedure RunImport(ProviderCode: Code[20])
     var
-        CorpCardProvider: Record EACorpCardProvider;
-        CorpCardImportOrch: Codeunit EACorpCardImportOrch;
+        CorpCardProvider: Record "EA Corp Card Provider";
+        CorpCardImportOrch: Codeunit "EA Corp Card Import Orch";
     begin
         CorpCardProvider.Get(ProviderCode);
         CorpCardProvider.TestField(Enabled, true);
@@ -21,8 +21,8 @@ codeunit 7220 EACorpCardFeedMgt
 
     internal procedure RunAllEnabledProviders()
     var
-        CorpCardProvider: Record EACorpCardProvider;
-        CorpCardImportOrch: Codeunit EACorpCardImportOrch;
+        CorpCardProvider: Record "EA Corp Card Provider";
+        CorpCardImportOrch: Codeunit "EA Corp Card Import Orch";
     begin
         CorpCardProvider.SetRange(Enabled, true);
         if not CorpCardProvider.FindSet() then

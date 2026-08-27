@@ -707,7 +707,7 @@ table 6930 "Expense Agent Setup"
                 end;
             end;
         }
-        field(123; "Corp Card Create Mode"; Enum EACorpCardCreateMode)
+        field(123; "Corp Card Create Mode"; Enum "EA Corp Card Create Mode")
         {
             Caption = 'Corp Card Create Mode';
             ToolTip = 'Specifies how expense entries are created from imported corporate card transactions.';
@@ -733,7 +733,7 @@ table 6930 "Expense Agent Setup"
         field(127; "Corp Card Default Provider"; Code[20])
         {
             Caption = 'Corp Card Default Provider';
-            TableRelation = EACorpCardProvider.Code;
+            TableRelation = "EA Corp Card Provider".Code;
             ToolTip = 'Specifies the default provider used for corporate card imports.';
         }
         field(150; "Use Canary Endpoint"; Boolean)
