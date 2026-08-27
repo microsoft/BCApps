@@ -656,6 +656,7 @@ function Test-TransientTestFailure {
 
     if ([string]::IsNullOrEmpty($Output)) { return $false }
     return [bool](
+        ($Output -match 'TRANSIENT TEST PLATFORM RACE') -or
         ($Output -match 'Cannot open page 130455|InvokeInteractions failed with status code 500|InteractionManager\.cs:line \d+') -or
         ($Output -match '(?s)ObjName:Command Line Test Tool.*MethodName:ExtensionId_a45_OnValidate.*(?:Offset and length were out of bounds|Nullable object must have a value)')
     )
@@ -1597,4 +1598,4 @@ function Invoke-PerProjectTestRun {
     return (. $script -parameters $parameters -TestType $testType -AppNamesToTest $appNamesToTest)
 }
 
-Export-ModuleMember -Function Invoke-ParallelTestExecution, Get-AvailableBcTenants, Get-CachedTestRunResult, Get-InstalledTestAppNames, Get-AppNamesForBucket, Invoke-PerProjectTestRun, Get-AppNameFromMetadata, Get-DisabledTestsForApp, Reset-BcTestTenant, Invoke-WarmupDispatch, Merge-TestResultFiles, Get-AppRerunBudget
+Export-ModuleMember -Function Invoke-ParallelTestExecution, Get-AvailableBcTenants, Get-CachedTestRunResult, Get-InstalledTestAppNames, Get-AppNamesForBucket, Invoke-PerProjectTestRun, Get-AppNameFromMetadata, Get-DisabledTestsForApp, Reset-BcTestTenant, Invoke-WarmupDispatch, Merge-TestResultFiles, Get-AppRerunBudget, Test-TransientTestFailure

@@ -207,6 +207,7 @@ Describe "ParallelTestExecution transient retry scheduling" {
             @(
                 "ObjName:Command Line Test Tool, ObjID:130455, Type:Form, MethodName:ExtensionId_a45_OnValidate`nOffset and length were out of bounds for the array"
                 "ObjName:Command Line Test Tool, ObjID:130455, Type:Form, MethodName:ExtensionId_a45_OnValidate`nNullable object must have a value."
+                "TRANSIENT TEST PLATFORM RACE detected for app 'Tests' on tenant 'tenant2'."
             ) | ForEach-Object {
                 Test-TransientTestFailure -Output $_ | Should -BeTrue
             }

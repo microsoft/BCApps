@@ -58,15 +58,21 @@ function Invoke-RunTestsWithCancellationDetection {
     }
 
     $bchCancelled = $false
+    $transientPlatformRace = $false
     if ($transcriptStarted -and (Test-Path $transcriptFile)) {
-        if (Select-String -Path $transcriptFile -Pattern 'database command was cancelled|ERROR DIALOG' -Quiet) {
+        $transcriptContent = Get-Content -Path $transcriptFile -Raw
+        if ($transcriptContent -match 'database command was cancelled|ERROR DIALOG') {
             Write-Host "::warning::BCH client cancellation detected for app '$($parameters['appName'])' on tenant '$($parameters['tenant'])'. Tests were silently truncated - subsequent codeunits did not run."
             $bchCancelled = $true
+        }
+        if (Test-TransientTestFailure -Output $transcriptContent) {
+            Write-Host "::warning::TRANSIENT TEST PLATFORM RACE detected for app '$($parameters['appName'])' on tenant '$($parameters['tenant'])'."
+            $transientPlatformRace = $true
         }
     }
     Remove-Item $transcriptFile -Force -ErrorAction SilentlyContinue
 
-    return ($bchPassed -and -not $bchCancelled)
+    return ($bchPassed -and -not $bchCancelled -and -not $transientPlatformRace)
 }
 
 function Invoke-TestsWithReruns {
