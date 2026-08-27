@@ -198,6 +198,9 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         InProcessTransport: Codeunit "MDM In-Process Transport";
     begin
         InProcessTransport.Deactivate();
+        // SetSourceEnvironmentName validates the setup, which schedules the detector job and commits, so a mapping
+        // created earlier in a test survives AutoRollback; clear leftovers to keep tests independent.
+        DeleteTestArtifacts();
         if not MasterDataManagementSetup.Get() then begin
             MasterDataManagementSetup.Init();
             MasterDataManagementSetup.Insert();
@@ -215,6 +218,15 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         InProcessTransport.Deactivate();
         PagingConfig.Deactivate();
         LibraryMasterDataMgt.SetSourceEnvironmentName('');
+        DeleteTestArtifacts();
+    end;
+
+    local procedure DeleteTestArtifacts()
+    var
+        IntegrationTableMapping: Record "Integration Table Mapping";
+    begin
+        IntegrationTableMapping.SetFilter(Name, 'MDMXENV*');
+        IntegrationTableMapping.DeleteAll();
     end;
 
     local procedure CreateMinimalCustomerMapping(var IntegrationTableMapping: Record "Integration Table Mapping")

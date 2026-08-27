@@ -65,7 +65,11 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
                 Selector := EndCursor;
             end;
         until (not HasMore) or ((MaxPages > 0) and (PagesFetched >= MaxPages));
-        IntegrationTableMapping.SetIntRecordRefFilter(SourceRecordRef, TableFilter);
+        // Apply only the mapping's row filter. The source already filtered by the watermark cursor server-side;
+        // re-applying the modified-on filter here would drop every record, since the materialized temp rows
+        // carry no SystemModifiedAt.
+        if TableFilter <> '' then
+            SourceRecordRef.SetView(TableFilter);
         exit(SourceRecordRef.FindSet());
     end;
 
