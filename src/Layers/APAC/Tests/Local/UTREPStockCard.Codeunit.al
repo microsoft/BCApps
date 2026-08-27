@@ -15,10 +15,14 @@ codeunit 141070 "UT REP Stock Card"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryRandom: Codeunit "Library - Random";
         AmountCap: Label 'Amount';
+        BalanceQtyCap: Label 'BalanceQty';
         CostingMethodCap: Label 'CostingMethod';
         DialogErr: Label 'Dialog';
         OpeningStockAmountCap: Label 'OpeningStockAmount';
         OpeningStockCap: Label 'OpeningStock';
+        ReceivedCostCap: Label 'ReceivedCost';
+        ReceivedQtyCap: Label 'ReceivedQty';
+        TotalBalanceAmountCap: Label 'TotalBalanceAmount';
 
     [Test]
     [HandlerFunctions('StockCardRequestPageHandler')]
@@ -186,10 +190,8 @@ codeunit 141070 "UT REP Stock Card"
         // [WHEN] The Stock Card report is run
         REPORT.Run(REPORT::"Stock Card");
 
-        // [THEN] ReceivedQty should be the sum of all Value Entries, not just the first one
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementWithValueExists('ReceivedQty', TotalInvoicedQty);
-        LibraryReportDataset.AssertElementWithValueExists(AmountCap, TotalCostAmount);
+        // [THEN] ReceivedQty, ReceivedCost, Amount and the balances are derived from all Value Entries, not just the first one
+        VerifyStockCardReceiptValues(TotalInvoicedQty, UnitCost, TotalCostAmount);
     end;
 
     [Test]
@@ -230,10 +232,8 @@ codeunit 141070 "UT REP Stock Card"
         // [WHEN] The Stock Card report is run
         REPORT.Run(REPORT::"Stock Card");
 
-        // [THEN] ReceivedQty should be the sum of all Value Entries
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementWithValueExists('ReceivedQty', TotalInvoicedQty);
-        LibraryReportDataset.AssertElementWithValueExists(AmountCap, TotalCostAmount);
+        // [THEN] ReceivedQty, ReceivedCost, Amount and the balances are derived from all Value Entries
+        VerifyStockCardReceiptValues(TotalInvoicedQty, UnitCost, TotalCostAmount);
     end;
 
     local procedure Initialize()
@@ -357,6 +357,17 @@ codeunit 141070 "UT REP Stock Card"
             ValueEntry."Cost per Unit" := CostAmountActual / InvoicedQuantity;
         ValueEntry."Entry Type" := ValueEntry."Entry Type"::"Direct Cost";
         ValueEntry.Insert();
+    end;
+
+    local procedure VerifyStockCardReceiptValues(ExpectedReceivedQty: Decimal; ExpectedReceivedCost: Decimal; ExpectedAmount: Decimal)
+    begin
+        // The item and location are created by the test, so there is no opening stock and the balances equal the received values.
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.AssertElementWithValueExists(ReceivedQtyCap, ExpectedReceivedQty);
+        LibraryReportDataset.AssertElementWithValueExists(ReceivedCostCap, ExpectedReceivedCost);
+        LibraryReportDataset.AssertElementWithValueExists(AmountCap, ExpectedAmount);
+        LibraryReportDataset.AssertElementWithValueExists(BalanceQtyCap, ExpectedReceivedQty);
+        LibraryReportDataset.AssertElementWithValueExists(TotalBalanceAmountCap, ExpectedAmount);
     end;
 
     [RequestPageHandler]
