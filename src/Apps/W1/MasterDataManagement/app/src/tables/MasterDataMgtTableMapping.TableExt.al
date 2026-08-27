@@ -42,6 +42,13 @@ tableextension 7235 MasterDataMgtTableMapping extends "Integration Table Mapping
                 Commit();
             end;
         }
+        field(7236; "Source Change Cursor"; Text[150])
+        {
+            // Composite (SystemModifiedAt, SystemId) resume point ({"modifiedAt":...,"systemId":...}, ~93 chars).
+            // Empty means "caught up": the run drained the source and the watermark is authoritative.
+            Caption = 'Source Change Cursor';
+            DataClassification = SystemMetadata;
+        }
     }
 
     var

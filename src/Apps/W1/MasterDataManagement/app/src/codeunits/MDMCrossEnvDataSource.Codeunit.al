@@ -21,28 +21,50 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
 
     procedure GetModifiedSet(IntegrationTableMapping: Record "Integration Table Mapping"; TableFilter: Text; var SourceRecordRef: RecordRef): Boolean
     var
+        EndCursor: Text;
+        HasMore: Boolean;
+    begin
+        // Interface entry point: unbounded (fetch the whole delta). The scheduled cross-env synch uses the
+        // bounded GetModifiedBatch instead, so a large initial load is drained across several job runs.
+        exit(GetModifiedBatch(IntegrationTableMapping, TableFilter, CursorSelector(IntegrationTableMapping."Synch. Modified On Filter"), 0, SourceRecordRef, EndCursor, HasMore));
+    end;
+
+    /// <summary>
+    /// Fetches at most MaxPages pages of changed source records starting from StartCursor (a cursor selector).
+    /// MaxPages = 0 means unbounded. On return EndCursor holds the resume point and HasMore tells the caller
+    /// whether more pages remain past the cap, so the next job run can continue from where this one stopped.
+    /// </summary>
+    internal procedure GetModifiedBatch(IntegrationTableMapping: Record "Integration Table Mapping"; TableFilter: Text; StartCursor: Text; MaxPages: Integer; var SourceRecordRef: RecordRef; var EndCursor: Text; var HasMore: Boolean): Boolean
+    var
         Transport: Interface "IMDM Source Transport";
         Response: JsonObject;
         FieldIds: Text;
         Selector: Text;
-        MoreToFetch: Boolean;
+        PagesFetched: Integer;
     begin
         SourceRecordRef.Close();
         SourceRecordRef.Open(IntegrationTableMapping."Integration Table ID", true);
         Transport := GetTransport();
         FieldIds := BuildFieldIds(IntegrationTableMapping);
-        // Watermark = 'Synchronize Changes Since'; the wire pages the delta, all accumulated into the temp ref.
-        Selector := CursorSelector(IntegrationTableMapping."Synch. Modified On Filter");
+        if StartCursor <> '' then
+            Selector := StartCursor
+        else
+            Selector := CursorSelector(IntegrationTableMapping."Synch. Modified On Filter");
+        EndCursor := '';
+        HasMore := false;
         repeat
             ParseOrError(
                 IntegrationTableMapping."Integration Table ID",
                 Transport.GetRecords(IntegrationTableMapping."Integration Table ID", FieldIds, Selector, PageSize()),
                 Response);
             SourceResponse.InsertRecords(Response, SourceRecordRef);
-            MoreToFetch := SourceResponse.HasMore(Response);
-            if MoreToFetch then
-                Selector := SourceResponse.GetNextCursor(Response);
-        until not MoreToFetch;
+            PagesFetched += 1;
+            HasMore := SourceResponse.HasMore(Response);
+            if HasMore then begin
+                EndCursor := SourceResponse.GetNextCursor(Response);
+                Selector := EndCursor;
+            end;
+        until (not HasMore) or ((MaxPages > 0) and (PagesFetched >= MaxPages));
         IntegrationTableMapping.SetIntRecordRefFilter(SourceRecordRef, TableFilter);
         exit(SourceRecordRef.FindSet());
     end;
@@ -241,8 +263,17 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
     end;
 
     local procedure PageSize(): Integer
+    var
+        Size: Integer;
     begin
-        exit(1000);
+        Size := 1000;
+        OnGetCrossEnvPageSize(Size);
+        exit(Size);
+    end;
+
+    [InternalEvent(false)]
+    local procedure OnGetCrossEnvPageSize(var PageSize: Integer)
+    begin
     end;
 
     local procedure GetTransport(): Interface "IMDM Source Transport"

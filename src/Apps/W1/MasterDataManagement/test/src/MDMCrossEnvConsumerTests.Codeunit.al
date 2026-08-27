@@ -134,6 +134,64 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         CleanUp();
     end;
 
+    [Test]
+    procedure CrossEnvGetModifiedBatchResumesAcrossRuns()
+    var
+        Customer: Record Customer;
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        PagingConfig: Codeunit "MDM Test Paging Config";
+        SourceRecordRef: RecordRef;
+        SeededSystemId: Guid;
+        SeededSystemIds: List of [Guid];
+        CollectedSystemIds: List of [Guid];
+        Watermark: DateTime;
+        Cursor: Text;
+        EndCursor: Text;
+        Index: Integer;
+        Runs: Integer;
+        HasMore: Boolean;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] A page-capped batch (MaxPages=1) drains a multi-page change set across several runs, resuming
+        //            from the returned cursor each time, and covers every source record exactly once.
+        Initialize();
+
+        // [GIVEN] five source customers created strictly after a captured watermark (so only they are in the feed)
+        Watermark := CurrentDateTime();
+        Sleep(100);
+        for Index := 1 to 5 do begin
+            LibrarySalesLib.CreateCustomer(Customer);
+            SeededSystemIds.Add(Customer.SystemId);
+        end;
+        CreateMinimalCustomerMapping(IntegrationTableMapping);
+        IntegrationTableMapping."Synch. Modified On Filter" := Watermark;
+        IntegrationTableMapping.Modify();
+
+        LibraryMasterDataMgt.SetSourceEnvironmentName('PROD');
+        InProcessTransport.Activate();
+        PagingConfig.Activate(2); // two records per page
+
+        // [WHEN] the batch is drained one page per run, resuming from the returned cursor
+        Cursor := '';
+        repeat
+            LibraryMasterDataMgt.DataSourceGetModifiedBatch(IntegrationTableMapping, '', Cursor, 1, SourceRecordRef, EndCursor, HasMore);
+            CollectSystemIds(SourceRecordRef, CollectedSystemIds);
+            Cursor := EndCursor;
+            Runs += 1;
+        until not HasMore;
+
+        // [THEN] it took multiple runs and every seeded record was returned exactly once
+        Assert.IsTrue(Runs >= 3, 'A 5-record set at 2/page and 1 page/run should need at least three runs');
+        Assert.AreEqual(5, CollectedSystemIds.Count(), 'Every seeded record should be returned exactly once across runs');
+        foreach SeededSystemId in SeededSystemIds do
+            Assert.IsTrue(CollectedSystemIds.Contains(SeededSystemId), 'Every seeded record should be covered by the resumed batches');
+
+        PagingConfig.Deactivate();
+        CleanUp();
+    end;
+
     local procedure Initialize()
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
@@ -152,8 +210,10 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     var
         InProcessTransport: Codeunit "MDM In-Process Transport";
         LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        PagingConfig: Codeunit "MDM Test Paging Config";
     begin
         InProcessTransport.Deactivate();
+        PagingConfig.Deactivate();
         LibraryMasterDataMgt.SetSourceEnvironmentName('');
     end;
 
@@ -178,6 +238,18 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
                     exit(true);
             until SourceRecordRef.Next() = 0;
         exit(false);
+    end;
+
+    local procedure CollectSystemIds(var SourceRecordRef: RecordRef; var CollectedSystemIds: List of [Guid])
+    var
+        SystemIdValue: Guid;
+    begin
+        if SourceRecordRef.FindSet() then
+            repeat
+                SystemIdValue := SourceRecordRef.Field(SourceRecordRef.SystemIdNo()).Value();
+                if not CollectedSystemIds.Contains(SystemIdValue) then
+                    CollectedSystemIds.Add(SystemIdValue);
+            until SourceRecordRef.Next() = 0;
     end;
 
     local procedure LibraryRandomText(): Text

@@ -83,6 +83,13 @@ codeunit 139757 "Library - Master Data Mgt."
         exit(MasterDataManagementSetup.GetDataSource().GetBySystemId(IntegrationTableId, SystemId, SourceRecordRef));
     end;
 
+    procedure DataSourceGetModifiedBatch(IntegrationTableMapping: Record "Integration Table Mapping"; TableFilter: Text; StartCursor: Text; MaxPages: Integer; var SourceRecordRef: RecordRef; var EndCursor: Text; var HasMore: Boolean): Boolean
+    var
+        CrossEnvDataSource: Codeunit "MDM Cross-Env Data Source";
+    begin
+        exit(CrossEnvDataSource.GetModifiedBatch(IntegrationTableMapping, TableFilter, StartCursor, MaxPages, SourceRecordRef, EndCursor, HasMore));
+    end;
+
     // Setting a Source Environment Name routes GetDataSource() to the cross-environment implementation.
     procedure SetSourceEnvironmentName(EnvironmentName: Text)
     var

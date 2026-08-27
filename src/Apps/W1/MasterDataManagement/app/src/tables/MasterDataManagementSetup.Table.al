@@ -94,6 +94,28 @@ table 7230 "Master Data Management Setup"
                 MasterDataMgtSetupDefault.UpdateChangeDetectorJob(Rec);
             end;
         }
+        field(156; "Source Environment URL"; Text[250])
+        {
+            Caption = 'Source Environment URL';
+            DataClassification = OrganizationIdentifiableInformation;
+        }
+        field(157; "Source Company Name"; Text[100])
+        {
+            Caption = 'Source Company';
+            DataClassification = OrganizationIdentifiableInformation;
+        }
+        field(158; "Source OAuth Client Id"; Text[100])
+        {
+            Caption = 'Source Client ID';
+            ExtendedDatatype = Masked;
+            DataClassification = SystemMetadata;
+        }
+        field(159; "Source Client Secret Key"; Guid)
+        {
+            Caption = 'Source Client Secret Key';
+            ExtendedDatatype = Masked;
+            DataClassification = SystemMetadata;
+        }
     }
 
     keys
@@ -154,6 +176,47 @@ table 7230 "Master Data Management Setup"
             Clear(Company);
 
         exit(Result);
+    end;
+
+    internal procedure IsCrossEnvConnectionConfigured(): Boolean
+    begin
+        exit(("Source Environment URL" <> '') and ("Source Company Name" <> '') and ("Source OAuth Client Id" <> '') and (not IsNullGuid("Source Client Secret Key")));
+    end;
+
+    [NonDebuggable]
+    internal procedure SetSourceClientSecret(ClientSecret: SecretText)
+    begin
+        "Source Client Secret Key" := SetSecret("Source Client Secret Key", ClientSecret);
+    end;
+
+    internal procedure GetSourceClientSecret(): SecretText
+    begin
+        exit(GetSecret("Source Client Secret Key"));
+    end;
+
+    // Mirrors the Intercompany connection pattern: secrets live in module-scoped Isolated Storage, keyed by a Guid.
+    [NonDebuggable]
+    local procedure SetSecret(SecretKey: Guid; SecretValue: SecretText): Guid
+    var
+        NewSecretKey: Guid;
+    begin
+        if not IsNullGuid(SecretKey) then
+            if not IsolatedStorage.Delete(SecretKey, DataScope::Company) then;
+
+        NewSecretKey := CreateGuid();
+        if not EncryptionEnabled() then
+            IsolatedStorage.Set(NewSecretKey, SecretValue, DataScope::Company)
+        else
+            IsolatedStorage.SetEncrypted(NewSecretKey, SecretValue, DataScope::Company);
+
+        exit(NewSecretKey);
+    end;
+
+    local procedure GetSecret(SecretKey: Guid) SecretValue: SecretText
+    begin
+        if IsNullGuid(SecretKey) then
+            exit;
+        if not IsolatedStorage.Get(SecretKey, DataScope::Company, SecretValue) then;
     end;
 
     local procedure EnableConnection()
