@@ -129,6 +129,7 @@ codeunit 148333 "Expense Agent Setup API Test"
     [Test]
     procedure TestHandlerInitializeIsIdempotent()
     var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
         ExpenseCategory: Record "Expense Category";
         ExpensePaymentMethod: Record "Expense Payment Method";
         ExpensePostingGroup: Record "Expense Posting Group";
@@ -136,9 +137,10 @@ codeunit 148333 "Expense Agent Setup API Test"
         CategoryCount: Integer;
         PaymentMethodCount: Integer;
         PostingGroupCount: Integer;
+        AgentUserSecurityId: Guid;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Repeated test handler initialization preserves default setup data
+        // [SCENARIO] Repeated test handler initialization reuses completed setup data
         Initialize();
 
         // [GIVEN] Required Expense Agent setup data is absent
@@ -146,14 +148,21 @@ codeunit 148333 "Expense Agent Setup API Test"
 
         // [GIVEN] The E2E test handler initializes Expense Agent master data
         ExpenseTestHandlerAPI.Initialize();
+        ExpenseAgentSetup.Get();
         CategoryCount := ExpenseCategory.Count();
         PaymentMethodCount := ExpensePaymentMethod.Count();
         PostingGroupCount := ExpensePostingGroup.Count();
+        AgentUserSecurityId := ExpenseAgentSetup."User Security ID";
 
         // [WHEN] The E2E test handler initializes the same company again
         ExpenseTestHandlerAPI.Initialize();
 
-        // [THEN] Default setup records are not duplicated
+        // [THEN] The completed setup and default records are reused
+        ExpenseAgentSetup.Get();
+        Assert.AreEqual(
+            AgentUserSecurityId,
+            ExpenseAgentSetup."User Security ID",
+            'The completed setup must reuse the same Expense Agent.');
         Assert.AreEqual(CategoryCount, ExpenseCategory.Count(), 'Expense categories must not be duplicated.');
         Assert.AreEqual(PaymentMethodCount, ExpensePaymentMethod.Count(), 'Payment methods must not be duplicated.');
         Assert.AreEqual(PostingGroupCount, ExpensePostingGroup.Count(), 'Posting groups must not be duplicated.');

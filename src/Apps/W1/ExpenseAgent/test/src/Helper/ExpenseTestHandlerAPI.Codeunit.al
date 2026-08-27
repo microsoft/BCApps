@@ -81,12 +81,39 @@ codeunit 148307 "Expense Test Handler API"
         LibraryExpense: Codeunit "Library - Expense";
     begin
         LibraryExpense.CleanTransactionalData();
+        if ExpenseAgentSetupIsComplete() then
+            exit('Initialize completed');
+
         CreateExpenseAgentSetup.Run();
         CreateExpenseGLAccount.Run();
         EnsureExpenseAgent();
         ExpenseAgentSetup.Get();
         ExpenseAgentSetup.CreateDefaultSettings();
         exit('Initialize completed');
+    end;
+
+    local procedure ExpenseAgentSetupIsComplete(): Boolean
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        Agent: Record Agent;
+    begin
+        if not ExpenseAgentSetup.Get() then
+            exit(false);
+        if not ExpenseAgentSetup."Enable Agent" then
+            exit(false);
+        if IsNullGuid(ExpenseAgentSetup."User Security ID") then
+            exit(false);
+        if not Agent.Get(ExpenseAgentSetup."User Security ID") then
+            exit(false);
+
+        exit(
+            ExpenseAgentSetup."No. Series Applied" and
+            ExpenseAgentSetup."Payment Methods Applied" and
+            ExpenseAgentSetup."Posting Groups Applied" and
+            ExpenseAgentSetup."Exp. Categories Applied" and
+            ExpenseAgentSetup."Exp. Locations Applied" and
+            ExpenseAgentSetup."Management Rules Applied" and
+            ExpenseAgentSetup."VAT Rates Applied");
     end;
 
     /// <summary>
