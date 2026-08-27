@@ -428,6 +428,11 @@ table 6916 "Posted Expense Report Line"
         {
             Caption = 'Canceled';
             Editable = false;
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteReason = 'Replaced by field "Is Canceled" to resolve TransferFields collision with Expense Report Line field 92 (User Confirmed).';
+            ObsoleteTag = '29.0';
+#endif
         }
         field(100; "Spend Request No."; Code[20])
         {
@@ -451,6 +456,11 @@ table 6916 "Posted Expense Report Line"
         {
             Caption = 'Policy Status At Posting';
             DataClassification = CustomerContent;
+            Editable = false;
+        }
+        field(999; "Is Canceled"; Boolean)
+        {
+            Caption = 'Canceled';
             Editable = false;
         }
         field(1000; "Job Ledger Entry No."; Integer)
