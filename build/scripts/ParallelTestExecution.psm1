@@ -642,7 +642,9 @@ function Merge-TestResultFiles {
     Any of these fingerprints is sufficient evidence: "Cannot open page 130455",
     "InvokeInteractions failed with status code 500", or a stack frame referencing
     "InteractionManager.cs:line N" (line number not pinned, so platform refactors do not
-    silently invalidate the match).
+    silently invalidate the match). The platform can also fail while page 130455 resolves an
+    extension's codeunit metadata; the known variants surface from ExtensionId_a45_OnValidate
+    as an invalid metadata BLOB range or a missing nullable metadata value.
 .PARAMETER Output
     The combined output (stdout + stderr + verbose) captured from a finished background
     job. Null or empty returns $false.
@@ -653,7 +655,10 @@ function Test-TransientTestFailure {
     )
 
     if ([string]::IsNullOrEmpty($Output)) { return $false }
-    return [bool]($Output -match 'Cannot open page 130455|InvokeInteractions failed with status code 500|InteractionManager\.cs:line \d+')
+    return [bool](
+        ($Output -match 'Cannot open page 130455|InvokeInteractions failed with status code 500|InteractionManager\.cs:line \d+') -or
+        ($Output -match '(?s)ObjName:Command Line Test Tool.*MethodName:ExtensionId_a45_OnValidate.*(?:Offset and length were out of bounds|Nullable object must have a value)')
+    )
 }
 
 <#

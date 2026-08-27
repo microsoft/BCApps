@@ -202,6 +202,17 @@ Describe "ParallelTestExecution transient retry scheduling" {
         Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
     }
 
+    It "classifies page 130455 metadata-resolution runtime failures as transient" {
+        InModuleScope ParallelTestExecution {
+            @(
+                "ObjName:Command Line Test Tool, ObjID:130455, Type:Form, MethodName:ExtensionId_a45_OnValidate`nOffset and length were out of bounds for the array"
+                "ObjName:Command Line Test Tool, ObjID:130455, Type:Form, MethodName:ExtensionId_a45_OnValidate`nNullable object must have a value."
+            ) | ForEach-Object {
+                Test-TransientTestFailure -Output $_ | Should -BeTrue
+            }
+        }
+    }
+
     It "re-dispatches a transient platform-race victim ahead of the apps still queued" {
         # The dispatch order is what decides the critical path: a platform race normally kills a
         # job within a minute of dispatch, so the victim is one of the first (longest) apps. If the
