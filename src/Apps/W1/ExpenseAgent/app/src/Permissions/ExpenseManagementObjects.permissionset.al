@@ -214,6 +214,7 @@ permissionset 6904 "Expense Management - Objects"
         codeunit "Expense Capabilities Provider" = X,
         codeunit "Expense Activity Log Mgt." = X,
         codeunit "Expense Projects Builder" = X,
+        codeunit "Exp. Policies To Eval Builder" = X,
         codeunit "Import Expense User" = X,
         report "Expense Report Cover Page" = X,
         report "Expense Report Summary Page" = X,
