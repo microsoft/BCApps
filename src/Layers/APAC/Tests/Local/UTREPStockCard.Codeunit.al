@@ -15,14 +15,14 @@ codeunit 141070 "UT REP Stock Card"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryRandom: Codeunit "Library - Random";
         AmountCap: Label 'Amount';
-        BalanceQtyCap: Label 'BalanceQty';
+        BalanceQtyLbl: Label 'BalanceQty';
         CostingMethodCap: Label 'CostingMethod';
         DialogErr: Label 'Dialog';
         OpeningStockAmountCap: Label 'OpeningStockAmount';
         OpeningStockCap: Label 'OpeningStock';
-        ReceivedCostCap: Label 'ReceivedCost';
-        ReceivedQtyCap: Label 'ReceivedQty';
-        TotalBalanceAmountCap: Label 'TotalBalanceAmount';
+        ReceivedCostLbl: Label 'ReceivedCost';
+        ReceivedQtyLbl: Label 'ReceivedQty';
+        TotalBalanceAmountLbl: Label 'TotalBalanceAmount';
 
     [Test]
     [HandlerFunctions('StockCardRequestPageHandler')]
@@ -363,11 +363,11 @@ codeunit 141070 "UT REP Stock Card"
     begin
         // The item and location are created by the test, so there is no opening stock and the balances equal the received values.
         LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementWithValueExists(ReceivedQtyCap, ExpectedReceivedQty);
-        LibraryReportDataset.AssertElementWithValueExists(ReceivedCostCap, ExpectedReceivedCost);
+        LibraryReportDataset.AssertElementWithValueExists(ReceivedQtyLbl, ExpectedReceivedQty);
+        LibraryReportDataset.AssertElementWithValueExists(ReceivedCostLbl, ExpectedReceivedCost);
         LibraryReportDataset.AssertElementWithValueExists(AmountCap, ExpectedAmount);
-        LibraryReportDataset.AssertElementWithValueExists(BalanceQtyCap, ExpectedReceivedQty);
-        LibraryReportDataset.AssertElementWithValueExists(TotalBalanceAmountCap, ExpectedAmount);
+        LibraryReportDataset.AssertElementWithValueExists(BalanceQtyLbl, ExpectedReceivedQty);
+        LibraryReportDataset.AssertElementWithValueExists(TotalBalanceAmountLbl, ExpectedAmount);
     end;
 
     [RequestPageHandler]
