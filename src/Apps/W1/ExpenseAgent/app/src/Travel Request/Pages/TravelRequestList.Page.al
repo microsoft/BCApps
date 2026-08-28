@@ -6,7 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.SpendRequest;
 
-page 7107 "Travel Request List"
+page 7136 "Travel Request List"
 {
     Caption = 'Travel Requests';
     PageType = List;

@@ -6,7 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.SpendRequest;
 
-page 7128 "Travel Request Subform"
+page 7137 "Travel Request Subform"
 {
     Caption = 'Lines';
     PageType = ListPart;

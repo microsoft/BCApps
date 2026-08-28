@@ -10,7 +10,7 @@ using Microsoft.Finance.SpendRequest;
 page 7099 "Spend Requests API"
 {
     ObsoleteState = Pending;
-    ObsoleteReason = 'Replaced by the Travel Requests API (page 7130). The Expense Agent exposes requests through the dedicated Travel Request API.';
+    ObsoleteReason = 'Replaced by the Travel Requests API (page 7134). The Expense Agent exposes requests through the dedicated Travel Request API.';
     ObsoleteTag = '30.0';
     APIGroup = 'expense';
     APIPublisher = 'microsoft';
