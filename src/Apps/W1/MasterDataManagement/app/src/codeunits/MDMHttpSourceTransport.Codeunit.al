@@ -209,11 +209,11 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
     begin
         Scopes.Add(ScopeTok);
         TokenEndpoint := StrSubstNo(TokenEndpointTok, AzureADTenant.GetAadTenantId());
-        OAuth2.AcquireTokenWithClientCredentials(
+        if not OAuth2.AcquireTokenWithClientCredentials(
             MasterDataManagementSetup."Source OAuth Client Id",
             MasterDataManagementSetup.GetSourceClientSecret(),
-            TokenEndpoint, '', Scopes, Token);
-        if Token.IsEmpty() then begin
+            TokenEndpoint, '', Scopes, Token) or Token.IsEmpty()
+        then begin
             AuditLog.LogAuditMessage(StrSubstNo(TokenFailedAuditTxt, MasterDataManagementSetup."Source Environment Name"), SecurityOperationResult::Failure, AuditCategory::Authentication, 4, 0);
             Error(NoTokenErr);
         end;

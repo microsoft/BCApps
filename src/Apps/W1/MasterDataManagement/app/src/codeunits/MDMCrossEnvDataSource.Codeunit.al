@@ -188,13 +188,23 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         SourceResponse.InsertRecords(Response, SourceRecordRef);
     end;
 
+    // A malformed wire response is an internal integration defect, not something the user can act on.
+    local procedure InternalError(MessageText: Text): ErrorInfo
+    var
+        ErrInfo: ErrorInfo;
+    begin
+        ErrInfo.Message := MessageText;
+        ErrInfo.ErrorType := ErrorType::Internal;
+        exit(ErrInfo);
+    end;
+
     local procedure ParseOrError(IntegrationTableId: Integer; ResponseText: Text; var Response: JsonObject)
     var
         UnavailableFields: JsonArray;
     begin
         Clear(Response);
         if not SourceResponse.TryParse(ResponseText, Response) then
-            Error(InvalidResponseErr, TableCaption(IntegrationTableId));
+            Error(InternalError(StrSubstNo(InvalidResponseErr, TableCaption(IntegrationTableId))));
         if not SourceResponse.TableAvailable(Response) then
             Error(TableUnavailableErr, TableCaption(IntegrationTableId));
         if not SourceResponse.Indexed(Response) then

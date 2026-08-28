@@ -30,7 +30,7 @@ page 7232 "MDM Connection Details"
                 group(TermsAndConditions)
                 {
                     Caption = 'Review the terms and conditions';
-                    InstructionalText = 'By enabling this feature, you consent to your data being shared between Business Central environments. Your privacy is important to us. To learn more, follow the link below.';
+                    InstructionalText = 'By enabling this, you consent that this environment will read data from the source environment that you configure. Your privacy is important to us. To learn more, follow the link below.';
 
                     field(Consent; ConsentState)
                     {
@@ -40,6 +40,9 @@ page 7232 "MDM Connection Details"
 
                         trigger OnValidate()
                         begin
+                            // Ticking "I accept" records the durable platform privacy-notice approval.
+                            if ConsentState then
+                                ConsentState := MDMPrivacyNotice.ConfirmApproval();
                             SetControls();
                         end;
                     }

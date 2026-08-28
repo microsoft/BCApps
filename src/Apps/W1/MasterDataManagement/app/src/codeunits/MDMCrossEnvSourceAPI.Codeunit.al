@@ -139,6 +139,7 @@ codeunit 7241 "MDM Cross-Env Source API"
     local procedure TryOpenTable(TableId: Integer; var RecRef: RecordRef)
     begin
         RecRef.Open(TableId);
+        RecRef.ReadIsolation := IsolationLevel::ReadCommitted;
     end;
 
     local procedure ResolveProjection(var RecRef: RecordRef; FieldIds: Text; var ProjectedFields: List of [Integer]; var UnavailableFields: JsonArray)

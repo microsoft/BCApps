@@ -9,6 +9,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     var
         Assert: Codeunit Assert;
         LibrarySalesLib: Codeunit "Library - Sales";
+        WizardOpenedPrivacyNotice: Boolean;
 
     [Test]
     procedure CrossEnvGetBySystemIdRoundTripsSourceRecord()
@@ -57,6 +58,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         // [THEN] the gate reports not approved and the transport check fails closed
         Assert.IsFalse(LibraryMasterDataMgt.PrivacyNoticeIsApproved(), 'Gate should report not approved before consent');
         asserterror LibraryMasterDataMgt.PrivacyNoticeCheckApproved();
+        Assert.ExpectedError('privacy notice to be approved');
 
         // [WHEN] the admin approves the notice
         PrivacyNotice.SetApprovalState(LibraryMasterDataMgt.PrivacyNoticeId(), "Privacy Notice Approval State"::Agreed);
@@ -68,6 +70,41 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         // reset approval so it does not leak into later tests
         PrivacyNotice.SetApprovalState(LibraryMasterDataMgt.PrivacyNoticeId(), "Privacy Notice Approval State"::Disagreed);
         CleanUp();
+    end;
+
+    [Test]
+    [HandlerFunctions('PrivacyNoticeModalHandler')]
+    procedure WizardConsentOpensPrivacyNotice()
+    var
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        ConnectionWizard: TestPage "MDM Connection Details";
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment] [Privacy]
+        // [SCENARIO] Ticking consent in the wizard opens the platform privacy notice - a regression guard that the
+        // wizard actually calls ConfirmApproval (the handler below fires only if the notice dialog is shown).
+        Initialize();
+
+        // [GIVEN] the privacy notice has no recorded decision, so accepting consent must prompt it
+        LibraryMasterDataMgt.PrivacyNoticeResetApproval();
+        WizardOpenedPrivacyNotice := false;
+
+        // [WHEN] the admin ticks consent in the connection wizard
+        ConnectionWizard.OpenEdit();
+        ConnectionWizard.Consent.SetValue(true);
+        ConnectionWizard.Close();
+
+        // [THEN] the privacy-notice dialog was shown - proving the wizard invoked ConfirmApproval
+        Assert.IsTrue(WizardOpenedPrivacyNotice, 'Ticking consent should open the privacy notice (call ConfirmApproval)');
+
+        LibraryMasterDataMgt.PrivacyNoticeResetApproval();
+        CleanUp();
+    end;
+
+    [ModalPageHandler]
+    procedure PrivacyNoticeModalHandler(var PrivacyNoticePage: TestPage "Privacy Notice")
+    begin
+        // Reached only if the wizard actually opened the notice.
+        WizardOpenedPrivacyNotice := true;
     end;
 
     [Test]
@@ -188,11 +225,15 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     procedure ConnectionDetailsWizardSavesConfiguration()
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
+        PrivacyNotice: Codeunit "Privacy Notice";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
         ConnectionDetails: TestPage "MDM Connection Details";
     begin
         // [FEATURE] [AI test 0.4]
         // [SCENARIO] The Connection Details wizard collects the source connection details and saves them (secret to Isolated Storage).
         Initialize();
+        // Pre-approve so ticking consent doesn't open the notice dialog in this configuration-focused test.
+        PrivacyNotice.SetApprovalState(LibraryMasterDataMgt.PrivacyNoticeId(), "Privacy Notice Approval State"::Agreed);
 
         ConnectionDetails.OpenEdit();
         // Welcome step: accept the terms so Next is enabled.

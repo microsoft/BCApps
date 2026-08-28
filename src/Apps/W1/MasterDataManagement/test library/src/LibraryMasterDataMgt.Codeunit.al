@@ -153,6 +153,16 @@ codeunit 139757 "Library - Master Data Mgt."
         MDMPrivacyNotice.CheckApproved();
     end;
 
+    /// <summary>Removes any recorded approval for the cross-env privacy notice, resetting it to Not set.</summary>
+    procedure PrivacyNoticeResetApproval()
+    var
+        PrivacyNoticeApproval: Record "Privacy Notice Approval";
+        MDMPrivacyNotice: Codeunit "MDM Privacy Notice";
+    begin
+        PrivacyNoticeApproval.SetRange(ID, MDMPrivacyNotice.GetPrivacyNoticeId());
+        PrivacyNoticeApproval.DeleteAll();
+    end;
+
     var
         MasterDataMgtSubscribers: Codeunit "Master Data Mgt. Subscribers";
         MasterDataManagement: Codeunit "Master Data Management";

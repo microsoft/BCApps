@@ -17,6 +17,7 @@ codeunit 7242 "MDM Privacy Notice"
         PrivacyNoticeIdTok: Label 'MDMCrossEnvSync', Locked = true;
         IntegrationServiceNameTxt: Label 'Master Data Management - cross-environment synchronization';
         NotApprovedErr: Label 'Cross-environment master data synchronization requires the privacy notice to be approved. Open Master Data Management Setup and approve sharing data between Business Central environments.';
+        OpenSetupActionTxt: Label 'Open Master Data Management Setup';
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Privacy Notice", OnRegisterPrivacyNotices, '', false, false)]
     local procedure RegisterPrivacyNotice(var TempPrivacyNotice: Record "Privacy Notice" temporary)
@@ -49,8 +50,17 @@ codeunit 7242 "MDM Privacy Notice"
 
     // Non-interactive gate for background/transport paths: fail closed if consent isn't recorded.
     procedure CheckApproved()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        ErrInfo: ErrorInfo;
     begin
-        if not IsApproved() then
-            Error(NotApprovedErr);
+        if IsApproved() then
+            exit;
+        ErrInfo.Message := NotApprovedErr;
+        if MasterDataManagementSetup.Get() then begin
+            ErrInfo.RecordId := MasterDataManagementSetup.RecordId();
+            ErrInfo.AddNavigationAction(OpenSetupActionTxt);
+        end;
+        Error(ErrInfo);
     end;
 }
