@@ -8,7 +8,7 @@ namespace System.Environment.Configuration;
 using System.Apps;
 using System.Utilities;
 
-codeunit 10803 "Sales FR Feature Mgt."
+codeunit 10821 "Sales FR Feature Mgt."
 {
     Access = Internal;
     InherentEntitlements = X;
