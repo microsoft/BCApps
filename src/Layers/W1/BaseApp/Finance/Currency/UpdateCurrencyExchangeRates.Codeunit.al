@@ -125,13 +125,13 @@ codeunit 1281 "Update Currency Exchange Rates"
         HttpRequestMessage.GetHeaders(HttpHeaders);
         HttpHeaders.Add('Accept', 'application/xml,text/xml');
         if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
-            ShowHttpError(CurrExchRateUpdateSetup, URL, GetLastErrorText());
+            ShowHttpError(CurrExchRateUpdateSetup, GetLastErrorText());
             exit;
         end;
 
         if not HttpResponseMessage.IsSuccessStatusCode() then begin
             HttpResponseMessage.Content.ReadAs(ResponseErrorText);
-            ShowHttpError(CurrExchRateUpdateSetup, URL, ResponseErrorText);
+            ShowHttpError(CurrExchRateUpdateSetup, ResponseErrorText);
             exit;
         end;
 
@@ -154,7 +154,7 @@ codeunit 1281 "Update Currency Exchange Rates"
         DataExch.Delete(true);
     end;
 
-    local procedure ShowHttpError(CurrExchRateUpdateSetup: Record "Curr. Exch. Rate Update Setup"; WebServiceURL: Text; ErrorText: Text)
+    local procedure ShowHttpError(CurrExchRateUpdateSetup: Record "Curr. Exch. Rate Update Setup"; ErrorText: Text)
     var
         ActivityLog: Record "Activity Log";
     begin
