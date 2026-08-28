@@ -1125,18 +1125,6 @@ codeunit 5826 "Matched Order Line Mgmt."
         exit(true);
     end;
 
-    internal procedure CheckReceiptOnInvoiceAllowedForItem(Item: Record Item; PurchaseHeader: Record "Purchase Header")
-    begin
-        if PurchaseHeader."Receipt on Invoice" and not IsReceiptOnInvoiceAllowedForItem(Item) then
-            Error(ReceiptOnInvoiceItemTrackingLineValidationErr, Item."No.", PurchaseHeader.FieldCaption("Receipt on Invoice"));
-    end;
-
-    internal procedure CheckReceiptOnInvoiceAllowedForLocation(LocationCode: Code[10]; PurchaseHeader: Record "Purchase Header")
-    begin
-        if PurchaseHeader."Receipt on Invoice" and not IsReceiptOnInvoiceAllowedForLocation(LocationCode) then
-            Error(ReceiptOnInvoiceLocationLineValidationErr, LocationCode, PurchaseHeader.FieldCaption("Receipt on Invoice"));
-    end;
-
     internal procedure ApplyPurchaseLineReceiptSettingToMatches(PurchaseLine: Record "Purchase Line")
     var
         MatchedOrderLine: Record "Matched Order Line";
