@@ -116,12 +116,15 @@ codeunit 1281 "Update Currency Exchange Rates"
         HttpClient: HttpClient;
         HttpRequestMessage: HttpRequestMessage;
         HttpResponseMessage: HttpResponseMessage;
+        HttpHeaders: HttpHeaders;
         ResponseErrorText: Text;
         URL: Text;
     begin
         CurrExchRateUpdateSetup.GetWebServiceURL(URL);
         HttpRequestMessage.Method('GET');
         HttpRequestMessage.SetRequestUri(URL);
+        HttpRequestMessage.GetHeaders(HttpHeaders);
+        HttpHeaders.Add('Accept', 'application/xml,text/xml');
         if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
             ShowHttpError(CurrExchRateUpdateSetup, URL, GetLastErrorText());
             exit;
