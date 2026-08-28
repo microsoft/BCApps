@@ -27,7 +27,7 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         SendFailedErr: Label 'The request to the source environment could not be sent. Check the source environment URL.';
         InvalidSourceUrlErr: Label 'The source environment URL is not a valid Business Central endpoint.';
         InvalidSourceUrlAuditTxt: Label 'Blocked a cross-environment request: the configured source environment URL host ''%1'' is not a valid Business Central endpoint.', Comment = '%1 = the rejected host';
-        HttpErr: Label 'The source environment returned HTTP %1. %2', Comment = '%1 = HTTP status code, %2 = response detail';
+        HttpErr: Label 'The source environment returned HTTP %1.', Comment = '%1 = HTTP status code';
         ServiceNameTok: Label 'MDMCrossEnvSource', Locked = true;
         ScopeTok: Label 'https://api.businesscentral.dynamics.com/.default', Locked = true;
         TokenEndpointTok: Label 'https://login.microsoftonline.com/%1/oauth2/v2.0/token', Locked = true, Comment = '%1 = Entra tenant id';
@@ -36,7 +36,8 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         TokenAcquiredAuditTxt: Label 'Acquired an application access token to read master data from source environment %1.', Comment = '%1 = source environment name';
         TokenFailedAuditTxt: Label 'Failed to acquire an application access token for source environment %1.', Comment = '%1 = source environment name';
         AccessDeniedAuditTxt: Label 'Source environment %1 denied the master data request (HTTP %2).', Comment = '%1 = source environment name, %2 = HTTP status code';
-        RequestFailedTelemetryTxt: Label 'Cross-environment %1 request failed with HTTP %2.', Locked = true;
+        RequestFailedTelemetryTxt: Label 'Cross-environment %1 request failed with HTTP %2.', Locked = true, Comment = '%1 = action name, %2 = HTTP status code';
+        TransportFailedTelemetryTxt: Label 'Cross-environment %1 request could not be sent to the source environment.', Locked = true, Comment = '%1 = action name';
 
     procedure GetRecords(TableId: Integer; FieldIds: Text; Selector: Text; PageSize: Integer): Text
     var
@@ -87,22 +88,37 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
             if ResponseMessage.IsSuccessStatusCode() then
                 exit(UnwrapODataValue(ResponseBodyText));
             if not ShouldRetry(ResponseMessage, Attempt, RetryAfter) then begin
-                LogRequestFailure(MasterDataManagementSetup, ActionName, ResponseMessage);
-                Error(HttpErr, ResponseMessage.HttpStatusCode(), ResponseBodyText);
+                LogRequestFailure(MasterDataManagementSetup, ActionName, ResponseMessage, ResponseBodyText);
+                Error(HttpErr, ResponseMessage.HttpStatusCode());
             end;
             Sleep(RetryAfter);
         end;
     end;
 
-    local procedure LogRequestFailure(var MasterDataManagementSetup: Record "Master Data Management Setup"; ActionName: Text; var ResponseMessage: HttpResponseMessage)
+    local procedure LogRequestFailure(var MasterDataManagementSetup: Record "Master Data Management Setup"; ActionName: Text; var ResponseMessage: HttpResponseMessage; ResponseBodyText: Text)
     var
         AuditLog: Codeunit "Audit Log";
+        Dimensions: Dictionary of [Text, Text];
     begin
-        // Operational telemetry: action + status only, never record data or credentials.
-        Session.LogMessage('0000QF1', StrSubstNo(RequestFailedTelemetryTxt, ActionName, ResponseMessage.HttpStatusCode()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
+        // The raw response body stays in structured telemetry context, never in a user-facing error.
+        Dimensions.Add('Category', TelemetryCategoryTok);
+        Dimensions.Add('action', ActionName);
+        Dimensions.Add('httpStatusCode', Format(ResponseMessage.HttpStatusCode()));
+        Dimensions.Add('responseBody', CopyStr(ResponseBodyText, 1, 2048));
+        Session.LogMessage('0000QF1', StrSubstNo(RequestFailedTelemetryTxt, ActionName, ResponseMessage.HttpStatusCode()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
         // Security audit: an authorization failure crossing the environment boundary.
         if ResponseMessage.HttpStatusCode() in [401, 403] then
             AuditLog.LogAuditMessage(StrSubstNo(AccessDeniedAuditTxt, MasterDataManagementSetup."Source Environment Name", ResponseMessage.HttpStatusCode()), SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
+    end;
+
+    local procedure LogTransportFailure(ActionName: Text; SendErrorText: Text)
+    var
+        Dimensions: Dictionary of [Text, Text];
+    begin
+        Dimensions.Add('Category', TelemetryCategoryTok);
+        Dimensions.Add('action', ActionName);
+        Dimensions.Add('transportError', CopyStr(SendErrorText, 1, 2048));
+        Session.LogMessage('0000QF3', StrSubstNo(TransportFailedTelemetryTxt, ActionName), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
     end;
 
     local procedure Send(var MasterDataManagementSetup: Record "Master Data Management Setup"; ActionName: Text; RequestBody: Text; var ResponseMessage: HttpResponseMessage)
@@ -113,6 +129,7 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         HttpContent: HttpContent;
         ContentHeaders: HttpHeaders;
     begin
+        HttpClient.Timeout := 100000; // explicit 100s cap so a stalled connection can't hang a background sync run
         RequestMessage.Method('POST');
         RequestMessage.SetRequestUri(BuildActionUrl(MasterDataManagementSetup, ActionName));
         RequestMessage.GetHeaders(RequestHeaders);
@@ -125,8 +142,10 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         ContentHeaders.Add('Content-Type', 'application/json');
         RequestMessage.Content(HttpContent);
 
-        if not HttpClient.Send(RequestMessage, ResponseMessage) then
+        if not HttpClient.Send(RequestMessage, ResponseMessage) then begin
+            LogTransportFailure(ActionName, GetLastErrorText());
             Error(SendFailedErr);
+        end;
     end;
 
     local procedure BuildActionUrl(var MasterDataManagementSetup: Record "Master Data Management Setup"; ActionName: Text): Text

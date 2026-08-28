@@ -73,6 +73,7 @@ codeunit 7241 "MDM Cross-Env Source API"
         end;
 
         PageSize := ClampPageSize(PageSize);
+        ApplyProjectionLoadFields(RecRef, ProjectedFields);
 
         // Targeted mode: caller asked for specific SystemIds (no paging).
         if SelectorSystemIds(Selector, SystemIds) then begin
@@ -163,6 +164,16 @@ codeunit 7241 "MDM Cross-Env Source API"
         // Media and Blob are projected inline (base64); MediaSet is deferred and TableFilter carries no data.
         exit((FieldReference.Class() = FieldClass::Normal) and
              not (FieldReference.Type() in [FieldType::MediaSet, FieldType::TableFilter]));
+    end;
+
+    // Load only the projected fields (plus the change-feed keys) so wide source tables aren't fully materialized.
+    local procedure ApplyProjectionLoadFields(var RecRef: RecordRef; ProjectedFields: List of [Integer])
+    var
+        FieldNo: Integer;
+    begin
+        RecRef.SetLoadFields(SystemModifiedAtFieldNo(), SystemIdFieldNo());
+        foreach FieldNo in ProjectedFields do
+            RecRef.AddLoadFields(FieldNo);
     end;
 
     local procedure SelectorSystemIds(Selector: Text; var SystemIds: JsonArray): Boolean

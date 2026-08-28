@@ -19,6 +19,7 @@ codeunit 7245 "MDM Cross-Env Change Detector"
 
     var
         LastModifiedFeatureTok: Label 'lastModifiedPerTable', Locked = true;
+        DetectorParseFailedTxt: Label 'The cross-environment change detector received an invalid response from the source and skipped this run.', Locked = true;
 
     trigger OnRun()
     begin
@@ -31,6 +32,7 @@ codeunit 7245 "MDM Cross-Env Change Detector"
         SourceConnection: Codeunit "MDM Source Connection";
         SourceResponse: Codeunit "MDM Source Response";
         SourceCapabilities: Codeunit "MDM Source Capabilities";
+        MasterDataManagement: Codeunit "Master Data Management";
         Transport: Interface "IMDM Source Transport";
         Response: JsonObject;
         TableIds: JsonArray;
@@ -49,8 +51,10 @@ codeunit 7245 "MDM Cross-Env Change Detector"
         // Skip (rather than error every run) if an older source doesn't advertise the detection action.
         if not SourceCapabilities.IsSupported(Transport, LastModifiedFeatureTok) then
             exit;
-        if not SourceResponse.TryParse(Transport.LastModifiedAtPerTable(WriteArray(TableIds)), Response) then
+        if not SourceResponse.TryParse(Transport.LastModifiedAtPerTable(WriteArray(TableIds)), Response) then begin
+            Session.LogMessage('0000QF4', DetectorParseFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
             exit;
+        end;
 
         ProcessDetectionResponse(Response);
     end;

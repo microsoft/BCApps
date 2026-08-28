@@ -207,16 +207,22 @@ table 7230 "Master Data Management Setup"
     [NonDebuggable]
     local procedure SetSecret(SecretKey: Guid; SecretValue: SecretText): Guid
     var
+        EnvironmentInformation: Codeunit "Environment Information";
         NewSecretKey: Guid;
     begin
         if not IsNullGuid(SecretKey) then
             if not IsolatedStorage.Delete(SecretKey, DataScope::Company) then;
 
         NewSecretKey := CreateGuid();
-        if not EncryptionEnabled() then
-            IsolatedStorage.Set(NewSecretKey, SecretValue, DataScope::Company)
-        else
-            IsolatedStorage.SetEncrypted(NewSecretKey, SecretValue, DataScope::Company);
+        if EncryptionEnabled() then
+            IsolatedStorage.SetEncrypted(NewSecretKey, SecretValue, DataScope::Company)
+        else begin
+            // On SaaS (the only runtime for cross-env) encryption is always available, so refuse to store the
+            // secret unencrypted there; off-SaaS dev/test/on-prem may lack encryption, so fall back as Intercompany does.
+            if EnvironmentInformation.IsSaaSInfrastructure() then
+                Error(EncryptionRequiredErr);
+            IsolatedStorage.Set(NewSecretKey, SecretValue, DataScope::Company);
+        end;
 
         exit(NewSecretKey);
     end;
@@ -249,16 +255,26 @@ table 7230 "Master Data Management Setup"
 
         if IsCrossEnvironment() then begin
             // Cross-environment: the source is a different environment; never write to its subscriber table.
-            Message(StrSubstNo(SynchronizationEnabledMsg, "Source Company Name"));
-            Session.LogMessage('0000JIM', "Source Environment Name", Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
+            Message(SynchronizationEnabledMsg, "Source Company Name");
+            LogCrossEnvironmentEnabled(MasterDataManagement.GetTelemetryCategory());
             exit;
         end;
 
         CurrentCompanyName := CopyStr(CompanyName(), 1, MaxStrLen(MasterDataMgtSubscriber."Company Name"));
         MasterDataManagement.AddSubsidiarySubscriptionToMasterCompany(Rec."Company Name", CurrentCompanyName);
-        Message(StrSubstNo(SynchronizationEnabledMsg, Rec."Company Name"));
+        Message(SynchronizationEnabledMsg, Rec."Company Name");
         Session.LogMessage('0000JIM', Rec."Company Name", Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
         Session.LogMessage('0000JIN', CurrentCompanyName, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
+    end;
+
+    // Env name is organization-identifiable: keep it out of the free-text message and in a structured dimension.
+    local procedure LogCrossEnvironmentEnabled(TelemetryCategory: Text)
+    var
+        Dimensions: Dictionary of [Text, Text];
+    begin
+        Dimensions.Add('Category', TelemetryCategory);
+        Dimensions.Add('sourceEnvironment', "Source Environment Name");
+        Session.LogMessage('0000JIM', CrossEnvEnabledTelemetryTxt, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, Dimensions);
     end;
 
     local procedure GetConfigurationUpdates(var IsEnabledChanged: Boolean)
@@ -356,5 +372,7 @@ table 7230 "Master Data Management Setup"
         MustNotPickCurrentCompanyErr: label 'You are currently signed into this company. \\Choose a different company to synchronize data with.';
         MustPickSourceCompanyErr: label 'You must choose a source company to synchronize data from.';
         MustConfigureConnectionErr: label 'Enter the cross-environment connection details before you enable synchronization.';
+        EncryptionRequiredErr: label 'Enable data encryption before saving the source connection secret. Cross-environment credentials are never stored unencrypted.';
+        CrossEnvEnabledTelemetryTxt: label 'Cross-environment master data synchronization was enabled.', Locked = true;
         ResetConfigQst: label 'There are existing synchronization table definitions in this company. Do you want to reset them to the default configuration?';
 }

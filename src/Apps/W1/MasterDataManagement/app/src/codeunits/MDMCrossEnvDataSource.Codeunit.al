@@ -112,15 +112,20 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         if not SourceResponse.TryParse(Transport.LastModifiedAtPerTable(TableIdsText), Response) then
             Error(SourceProbeFailedErr, TableCaption(IntegrationTableId));
         if not Response.Get('tables', Token) then
-            exit(false);
+            Error(SourceProbeFailedErr, TableCaption(IntegrationTableId));
         Tables := Token.AsArray();
         if Tables.Count() = 0 then
-            exit(false);
+            Error(SourceProbeFailedErr, TableCaption(IntegrationTableId));
         Tables.Get(0, Token);
         Entry := Token.AsObject();
         if Entry.Get('tableAvailable', Token) then
             if not Token.AsValue().AsBoolean() then
                 exit(false);
+        // Unindexed source table: LastModifiedAtPerTable reports indexed:false and no timestamp, so we can't prove
+        // emptiness cheaply - assume records may exist so the full-synch review isn't wrongly suppressed.
+        if Entry.Get('indexed', Token) then
+            if Token.IsValue() and (not Token.AsValue().AsBoolean()) then
+                exit(true);
         if Entry.Get('lastModifiedAt', Token) then
             if Token.IsValue() then
                 LastModifiedAtText := Token.AsValue().AsText();
