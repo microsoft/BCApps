@@ -12,18 +12,23 @@ codeunit 139934 "MDM Test Paging Config"
         InlineBytesActive: Boolean;
         InlineBytesValue: Integer;
 
+    /// <summary>Activates a forced cross-environment page size for paging/resume tests.</summary>
+    /// <param name="NewPageSize">The page size to force.</param>
     procedure Activate(NewPageSize: Integer)
     begin
         Active := true;
         PageSizeValue := NewPageSize;
     end;
 
+    /// <summary>Activates a forced maximum inline-bytes cap so the over-cap media skip path can be exercised.</summary>
+    /// <param name="NewMaxBytes">The maximum inline bytes to force.</param>
     procedure ActivateInlineBytes(NewMaxBytes: Integer)
     begin
         InlineBytesActive := true;
         InlineBytesValue := NewMaxBytes;
     end;
 
+    /// <summary>Deactivates all forced paging and inline-bytes overrides.</summary>
     procedure Deactivate()
     begin
         Active := false;

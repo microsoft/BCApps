@@ -22,6 +22,7 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         TokenExpiresAt: DateTime;
         MaxRetriesValue: Integer;
         NotConfiguredErr: Label 'The cross-environment connection to the source is not configured yet.';
+        OpenSetupActionTxt: Label 'Open Master Data Management Setup';
         NonSaaSErr: Label 'Cross-environment synchronization is only available in online environments.';
         NoTokenErr: Label 'Could not acquire an access token for the source environment. Check the client ID and secret.';
         SendFailedErr: Label 'The request to the source environment could not be sent. Check the source environment URL.';
@@ -89,7 +90,7 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
                 exit(UnwrapODataValue(ResponseBodyText));
             if not ShouldRetry(ResponseMessage, Attempt, RetryAfter) then begin
                 LogRequestFailure(MasterDataManagementSetup, ActionName, ResponseMessage);
-                Error(HttpErr, ResponseMessage.HttpStatusCode());
+                Error(SetupNavigationError(StrSubstNo(HttpErr, ResponseMessage.HttpStatusCode())));
             end;
             Sleep(RetryAfter);
         end;
@@ -230,9 +231,22 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
     local procedure GetConfiguredSetup(var MasterDataManagementSetup: Record "Master Data Management Setup")
     begin
         if not MasterDataManagementSetup.Get() then
-            Error(NotConfiguredErr);
+            Error(SetupNavigationError(NotConfiguredErr));
         if not MasterDataManagementSetup.IsCrossEnvConnectionConfigured() then
-            Error(NotConfiguredErr);
+            Error(SetupNavigationError(NotConfiguredErr));
+    end;
+
+    local procedure SetupNavigationError(MessageText: Text): ErrorInfo
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        ErrInfo: ErrorInfo;
+    begin
+        ErrInfo.Message := MessageText;
+        if MasterDataManagementSetup.Get() then begin
+            ErrInfo.RecordId := MasterDataManagementSetup.RecordId();
+            ErrInfo.AddNavigationAction(OpenSetupActionTxt);
+        end;
+        exit(ErrInfo);
     end;
 
     local procedure ShouldRetry(var ResponseMessage: HttpResponseMessage; Attempt: Integer; var RetryAfter: Duration): Boolean

@@ -10,23 +10,30 @@ codeunit 139930 "MDM Test Detector Probe"
         NudgedTableIds: List of [Integer];
         Active: Boolean;
 
+    /// <summary>Activates the probe so it captures detector nudges and clears any previously captured table IDs.</summary>
     procedure Activate()
     begin
         Active := true;
         Clear(NudgedTableIds);
     end;
 
+    /// <summary>Deactivates the probe and clears the captured table IDs.</summary>
     procedure Deactivate()
     begin
         Active := false;
         Clear(NudgedTableIds);
     end;
 
+    /// <summary>Checks whether the change detector nudged the sync job for a given table.</summary>
+    /// <param name="TableId">The integration table ID to check.</param>
+    /// <returns>True if the table was nudged since activation; otherwise false.</returns>
     procedure WasNudged(TableId: Integer): Boolean
     begin
         exit(NudgedTableIds.Contains(TableId));
     end;
 
+    /// <summary>Returns the number of distinct tables the detector nudged since activation.</summary>
+    /// <returns>The nudge count.</returns>
     procedure NudgeCount(): Integer
     begin
         exit(NudgedTableIds.Count());

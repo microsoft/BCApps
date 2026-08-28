@@ -23,6 +23,11 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         SourceProbeFailedErr: Label 'Could not read the change probe from the source environment for table %1.', Comment = '%1 = table caption';
         RecordsFeatureTok: Label 'records', Locked = true;
         LastModifiedFeatureTok: Label 'lastModifiedPerTable', Locked = true;
+        ParseFailureTelemetryTxt: Label 'The cross-environment sync received an unusable response for table %1 (reason: %2).', Locked = true, Comment = '%1 = table id, %2 = reason';
+        InvalidResponseReasonTok: Label 'InvalidResponse', Locked = true;
+        TableUnavailableReasonTok: Label 'TableUnavailable', Locked = true;
+        NotIndexedReasonTok: Label 'NotIndexed', Locked = true;
+        FieldsUnavailableReasonTok: Label 'FieldsUnavailable', Locked = true;
 
     procedure GetModifiedSet(IntegrationTableMapping: Record "Integration Table Mapping"; TableFilter: Text; var SourceRecordRef: RecordRef): Boolean
     var
@@ -198,19 +203,34 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         exit(ErrInfo);
     end;
 
+    local procedure LogParseFailure(IntegrationTableId: Integer; Reason: Text)
+    var
+        MasterDataManagement: Codeunit "Master Data Management";
+    begin
+        Session.LogMessage('0000QF8', StrSubstNo(ParseFailureTelemetryTxt, IntegrationTableId, Reason), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
+    end;
+
     local procedure ParseOrError(IntegrationTableId: Integer; ResponseText: Text; var Response: JsonObject)
     var
         UnavailableFields: JsonArray;
     begin
         Clear(Response);
-        if not SourceResponse.TryParse(ResponseText, Response) then
+        if not SourceResponse.TryParse(ResponseText, Response) then begin
+            LogParseFailure(IntegrationTableId, InvalidResponseReasonTok);
             Error(InternalError(StrSubstNo(InvalidResponseErr, TableCaption(IntegrationTableId))));
-        if not SourceResponse.TableAvailable(Response) then
+        end;
+        if not SourceResponse.TableAvailable(Response) then begin
+            LogParseFailure(IntegrationTableId, TableUnavailableReasonTok);
             Error(TableUnavailableErr, TableCaption(IntegrationTableId));
-        if not SourceResponse.Indexed(Response) then
+        end;
+        if not SourceResponse.Indexed(Response) then begin
+            LogParseFailure(IntegrationTableId, NotIndexedReasonTok);
             Error(NotIndexedErr, TableCaption(IntegrationTableId));
-        if SourceResponse.GetUnavailableFields(Response, UnavailableFields) then
+        end;
+        if SourceResponse.GetUnavailableFields(Response, UnavailableFields) then begin
+            LogParseFailure(IntegrationTableId, FieldsUnavailableReasonTok);
             Error(FieldsUnavailableErr, TableCaption(IntegrationTableId));
+        end;
     end;
 
     // FieldIds = the mapping's integration-side fields + the table's primary-key fields (so temp inserts don't collide).

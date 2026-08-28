@@ -20,6 +20,7 @@ codeunit 7245 "MDM Cross-Env Change Detector"
     var
         LastModifiedFeatureTok: Label 'lastModifiedPerTable', Locked = true;
         DetectorParseFailedTxt: Label 'The cross-environment change detector received an invalid response from the source and skipped this run.', Locked = true;
+        DetectionContractFailedTxt: Label 'The cross-environment change detector received a response without a valid tables array and skipped this run.', Locked = true;
 
     trigger OnRun()
     begin
@@ -81,14 +82,15 @@ codeunit 7245 "MDM Cross-Env Change Detector"
 
     local procedure ProcessDetectionResponse(var Response: JsonObject)
     var
+        MasterDataManagement: Codeunit "Master Data Management";
         Tables: JsonArray;
         TablesToken: JsonToken;
         EntryToken: JsonToken;
     begin
-        if not Response.Get('tables', TablesToken) then
+        if (not Response.Get('tables', TablesToken)) or (not TablesToken.IsArray()) then begin
+            Session.LogMessage('0000QF7', DetectionContractFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
             exit;
-        if not TablesToken.IsArray() then
-            exit;
+        end;
         Tables := TablesToken.AsArray();
         foreach EntryToken in Tables do
             ProcessTableEntry(EntryToken.AsObject());
