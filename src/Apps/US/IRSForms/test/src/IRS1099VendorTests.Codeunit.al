@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
+using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
@@ -25,6 +26,7 @@ codeunit 148011 "IRS 1099 Vendor Tests"
         LibraryIRS1099Document: Codeunit "Library IRS 1099 Document";
         LibraryIRS1099FormBox: Codeunit "Library IRS 1099 Form Box";
         LibraryIRSReportingPeriod: Codeunit "Library IRS Reporting Period";
+        LibraryJournals: Codeunit "Library - Journals";
 
         LibraryRandom: Codeunit "Library - Random";
         Assert: Codeunit Assert;
@@ -561,6 +563,73 @@ codeunit 148011 "IRS 1099 Vendor Tests"
         IRS1099VendorOverviewPage.Close();
     end;
 
+    [Test]
+    procedure NonReportableVendorViaJournalLeavesIRS1099FieldsBlank()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        PeriodNo, VendNo : Code[20];
+        PostingDate: Date;
+    begin
+        // [FEATURE] [1099] [AI test]
+        // [SCENARIO 642635] Posting a journal line for a vendor without a 1099 Form Box No. must not stamp IRS 1099 data on the vendor ledger entry
+        Initialize();
+        PostingDate := WorkDate();
+
+        // [GIVEN] An IRS Reporting Period
+        PeriodNo := LibraryIRSReportingPeriod.CreateOneDayReportingPeriod(PostingDate);
+
+        // [GIVEN] A vendor without any IRS 1099 Form Box setup (non-1099 vendor)
+        VendNo := LibraryPurchase.CreateVendorNo();
+
+        // [GIVEN] A journal line carrying a non-zero IRS 1099 Reporting Amount but no Form No./Form Box No.
+        // [WHEN] The journal line is posted
+        CreateAndPostGenJnlLineWithIRSData(GenJournalLine, VendNo, PostingDate, PeriodNo, '', '', -LibraryRandom.RandDec(100, 2));
+
+        // [THEN] The resulting vendor ledger entry has no IRS 1099 data, consistent with the purchase-invoice path
+        LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry, VendorLedgerEntry."Document Type"::Payment, GenJournalLine."Document No.");
+        VendorLedgerEntry.TestField("IRS 1099 Subject For Reporting", false);
+        VendorLedgerEntry.TestField("IRS 1099 Reporting Period", '');
+        VendorLedgerEntry.TestField("IRS 1099 Form No.", '');
+        VendorLedgerEntry.TestField("IRS 1099 Form Box No.", '');
+        VendorLedgerEntry.TestField("IRS 1099 Reporting Amount", 0);
+    end;
+
+    [Test]
+    procedure ReportableVendorViaJournalStampsIRS1099Fields()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        FormNo, FormBoxNo, PeriodNo, VendNo : Code[20];
+        PostingDate: Date;
+        IRSReportingAmount: Decimal;
+    begin
+        // [FEATURE] [1099] [AI test]
+        // [SCENARIO 642635] Posting a journal line for a vendor with a 1099 Form Box No. still stamps IRS 1099 data on the vendor ledger entry
+        Initialize();
+        PostingDate := WorkDate();
+
+        // [GIVEN] An IRS Reporting Period with a form and form box
+        PeriodNo := LibraryIRSReportingPeriod.CreateOneDayReportingPeriod(PostingDate);
+        FormNo := LibraryIRS1099FormBox.CreateSingleFormInReportingPeriod(PostingDate);
+        FormBoxNo := LibraryIRS1099FormBox.CreateSingleFormBoxInReportingPeriod(PostingDate, FormNo);
+
+        // [GIVEN] A vendor with the Form Box setup (1099 vendor)
+        VendNo := LibraryIRS1099FormBox.CreateVendorNoWithFormBox(PostingDate, FormNo, FormBoxNo);
+        IRSReportingAmount := -LibraryRandom.RandDec(100, 2);
+
+        // [WHEN] A journal line with IRS 1099 data is posted
+        CreateAndPostGenJnlLineWithIRSData(GenJournalLine, VendNo, PostingDate, PeriodNo, FormNo, FormBoxNo, IRSReportingAmount);
+
+        // [THEN] The vendor ledger entry is stamped with the IRS 1099 data
+        LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry, VendorLedgerEntry."Document Type"::Payment, GenJournalLine."Document No.");
+        VendorLedgerEntry.TestField("IRS 1099 Subject For Reporting", true);
+        VendorLedgerEntry.TestField("IRS 1099 Reporting Period", PeriodNo);
+        VendorLedgerEntry.TestField("IRS 1099 Form No.", FormNo);
+        VendorLedgerEntry.TestField("IRS 1099 Form Box No.", FormBoxNo);
+        VendorLedgerEntry.TestField("IRS 1099 Reporting Amount", IRSReportingAmount);
+    end;
+
     local procedure Initialize()
     var
         IRSReportingPeriod: Record "IRS Reporting Period";
@@ -574,6 +643,19 @@ codeunit 148011 "IRS 1099 Vendor Tests"
         IsInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"IRS 1099 Vendor Tests");
+    end;
+
+    local procedure CreateAndPostGenJnlLineWithIRSData(var GenJournalLine: Record "Gen. Journal Line"; VendNo: Code[20]; PostingDate: Date; PeriodNo: Code[20]; FormNo: Code[20]; FormBoxNo: Code[20]; IRSReportingAmount: Decimal)
+    begin
+        LibraryJournals.CreateGenJournalLineWithBatch(
+            GenJournalLine, GenJournalLine."Document Type"::Payment, GenJournalLine."Account Type"::Vendor, VendNo, LibraryRandom.RandDec(100, 2));
+        GenJournalLine.Validate("Posting Date", PostingDate);
+        GenJournalLine."IRS 1099 Reporting Period" := PeriodNo;
+        GenJournalLine."IRS 1099 Form No." := FormNo;
+        GenJournalLine."IRS 1099 Form Box No." := FormBoxNo;
+        GenJournalLine."IRS 1099 Reporting Amount" := IRSReportingAmount;
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
     end;
 
     local procedure PostPurchaseInvoiceForMultipleVendors(var VendorNo: array[3] of Code[20]; FormNo: Code[20]; FormBoxNo: Code[20])

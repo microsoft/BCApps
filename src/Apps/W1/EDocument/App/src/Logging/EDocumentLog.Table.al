@@ -6,6 +6,7 @@ namespace Microsoft.eServices.EDocument;
 
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.Processing.Import;
+using System.IO;
 using System.Utilities;
 
 table 6124 "E-Document Log"
@@ -152,6 +153,8 @@ table 6124 "E-Document Log"
     internal procedure ExportDataStorage()
     var
         EDocDataStorage: Record "E-Doc. Data Storage";
+        EDocumentService: Record "E-Document Service";
+        FileManagement: Codeunit "File Management";
         InStr: InStream;
         FileName: Text;
     begin
@@ -168,7 +171,11 @@ table 6124 "E-Document Log"
 
         OnBeforeExportDataStorage(Rec, FileName);
 
-        DownloadFromStream(InStr, '', '', '', FileName);
+        if FileManagement.GetExtension(FileName) = '' then
+            if EDocumentService.Get("Service Code") then
+                FileName += EDocumentService.GetDefaultFileExtension();
+
+        FileManagement.DownloadFromStreamHandler(InStr, '', '', '', FileName);
     end;
 
     internal procedure GetDataStorage(var TempBlob: Codeunit "Temp Blob"): Boolean

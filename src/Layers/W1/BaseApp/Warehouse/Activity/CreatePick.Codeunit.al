@@ -2007,7 +2007,7 @@ codeunit 7312 "Create Pick"
             CreatePickParameters."Whse. Document"::Job:
                 LineReservedQty :=
                   WarehouseAvailabilityMgt.CalcLineReservedQtyOnInvt(
-                    Database::Job, Enum::"Job Planning Line Status"::Order.AsInteger(), CurrJobPlanningLine."Job No.",
+                    Database::"Job Planning Line", "Job Planning Line Status"::Order.AsInteger(), CurrJobPlanningLine."Job No.",
                     CurrJobPlanningLine."Job Contract Entry No.",
                     CurrJobPlanningLine."Line No.", true, TempWarehouseActivityLine);
             else
@@ -2165,6 +2165,7 @@ codeunit 7312 "Create Pick"
         CalcPickableQtyFromWhseEntry.SetRange(Location_Code, LocationCode);
         CalcPickableQtyFromWhseEntry.SetRange(Item_No_, ItemNo);
         CalcPickableQtyFromWhseEntry.SetRange(Variant_Code, VariantCode);
+        CalcPickableQtyFromWhseEntry.SetFilter(Bin_Type_Code, GetBinTypeFilter(3));
         CalcPickableQtyFromWhseEntry.Open();
         if CalcPickableQtyFromWhseEntry.Read() then
             QtyInBinNotBlockedNotDedicatedWithoutItemTrackingFilter := CalcPickableQtyFromWhseEntry.TotalPickableQtyBase;

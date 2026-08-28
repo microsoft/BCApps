@@ -2,6 +2,7 @@ namespace Microsoft.Test.Sustainability;
 
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Preview;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Journal;
@@ -36,6 +37,7 @@ codeunit 148219 "Sust. Value Chain Fixed Asset"
         ValueMustBeEqualErr: Label '%1 must be equal to %2 in the %3.', Comment = '%1 = Field Caption , %2 = Expected Value, %3 = Table Caption';
         FAPostingTypeErr: Label '%1 must be equal to ''Acquisition Cost''', Comment = '%1 = FA Posting Type Field Caption';
         CO2eMustNotBeZeroErr: Label 'The CO2e fields must have a value that is not 0.';
+        AllowedToPostSustainabilityEntryForAcquisitionErr: Label 'It is only allowed to post Sustainability Entry for Acquisition Cost.';
 
     [Test]
     procedure TestSustValueChainFixedAssetForPurchaseInvoicePosting()
@@ -859,6 +861,181 @@ codeunit 148219 "Sust. Value Chain Fixed Asset"
             StrSubstNo(ValueMustBeEqualErr, FALedgerEntry.FieldCaption(Amount), 0, FALedgerEntry.TableCaption()));
     end;
 
+    [Test]
+    procedure TestSustValueChainFixedAssetForPurchaseInvoiceWithoutAcqCost()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        SustainabilityAccount: Record "Sustainability Account";
+        DepreciationBook: Record "Depreciation Book";
+        FixedAsset: Record "Fixed Asset";
+        EmissionFee: array[3] of Record "Emission Fee";
+        SustainabilityLedgerEntry: Record "Sustainability Ledger Entry";
+        EmissionCO2: Decimal;
+        EmissionCH4: Decimal;
+        EmissionN2O: Decimal;
+        CategoryCode: Code[20];
+        SubcategoryCode: Code[20];
+        AccountCode: Code[20];
+    begin
+        // [SCENARIO 641224]  Verify that the system throws an error message when posting a purchase invoice with a fixed asset line where the "FA Posting Type" is changed to Maintenance.
+        Initialize();
+
+        // [GIVEN] Update "Enable Value Chain Tracking" in Sustainability Setup.
+        LibrarySustainability.UpdateValueChainTrackingInSustainabilitySetup(true);
+
+        // [GIVEN] Create a Sustainability Account.
+        CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
+        SustainabilityAccount.Get(AccountCode);
+
+        // [GIVEN] Generate Emission.
+        EmissionCO2 := LibraryRandom.RandIntInRange(100, 100);
+        EmissionCH4 := LibraryRandom.RandIntInRange(200, 200);
+        EmissionN2O := LibraryRandom.RandIntInRange(300, 300);
+
+        // [GIVEN] Create Emission Fee With Emission Scope and Country/Region.
+        CreateEmissionFeeWithEmissionScope(EmissionFee, SustainabilityAccount."Emission Scope", '');
+
+        // [GIVEN] Create a Fixed Asset.
+        CreateFixedAssetSetup(DepreciationBook);
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
+        CreateFADepreciationBook(FixedAsset."No.", DepreciationBook.Code, FixedAsset."FA Posting Group");
+        UpdateIntegrationInBook(DepreciationBook, true, true, true, true, true, true, true);
+
+        // [GIVEN] Update "Default Sust. Account", "Default CO2 Emission", "Default CH4 Emission", "Default N2O Emission" in a Fixed Asset.
+        FixedAsset.Validate("Default Sust. Account", SustainabilityAccount."No.");
+        FixedAsset.Validate("Default CO2 Emission", EmissionCO2);
+        FixedAsset.Validate("Default CH4 Emission", EmissionCH4);
+        FixedAsset.Validate("Default N2O Emission", EmissionN2O);
+        FixedAsset.Modify(true);
+
+        // [GIVEN] Create a Purchase Invoice with a Fixed Asset Line where the "FA Posting Type" is changed to Maintenance.
+        CreatePurchaseHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, LibraryPurchase.CreateVendorNo());
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"Fixed Asset", FixedAsset."No.", LibraryRandom.RandIntInRange(10, 10));
+        PurchaseLine.Validate("FA Posting Type", PurchaseLine."FA Posting Type"::Maintenance);
+        PurchaseLine.Modify(true);
+
+        // [WHEN] Post the Purchase Invoice.
+        asserterror LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] Verify that the system throws an error message because emissions are only allowed for "Acquisition Cost".
+        Assert.ExpectedError(AllowedToPostSustainabilityEntryForAcquisitionErr);
+
+        // [THEN] Verify that no Sustainability Ledger Entry is created for the Sustainability Account.
+        SustainabilityLedgerEntry.SetRange("Account No.", AccountCode);
+        Assert.RecordCount(SustainabilityLedgerEntry, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('GLPostingPreviewPageHandler')]
+    procedure TestSustFAJournalPreviewDoesNotConsumeLedgerEntryNo()
+    var
+        FAJournalLine: Record "FA Journal Line";
+        SustainabilityAccount: Record "Sustainability Account";
+        DepreciationBook: Record "Depreciation Book";
+        FixedAsset: Record "Fixed Asset";
+        EmissionFee: array[3] of Record "Emission Fee";
+        SustainabilityLedgerEntry: Record "Sustainability Ledger Entry";
+        FAJnlPost: Codeunit "FA. Jnl.-Post";
+        CategoryCode: Code[20];
+        SubcategoryCode: Code[20];
+        AccountCode: Code[20];
+        BaselineEntryNo: Integer;
+        BaselineCO2eEmission: Decimal;
+        ExpectedCO2eEmission: Decimal;
+    begin
+        // [SCENARIO 580142] [Sustainability] - Value Chain: Fixed Assets (🌱)
+        // [SCENARIO] FA journal posting preview must not consume the Sustainability Ledger Entry identity.
+        Initialize();
+
+        // [GIVEN] Update "Enable Value Chain Tracking" in Sustainability Setup.
+        LibrarySustainability.UpdateValueChainTrackingInSustainabilitySetup(true);
+
+        // [GIVEN] Create a Sustainability Account.
+        CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
+        SustainabilityAccount.Get(AccountCode);
+
+        // [GIVEN] Create Emission Fee With Emission Scope and Country/Region.
+        CreateEmissionFeeWithEmissionScope(EmissionFee, SustainabilityAccount."Emission Scope", '');
+
+        // [GIVEN] Save Expected CO2e Emission for the baseline and preview lines.
+        BaselineCO2eEmission := LibraryRandom.RandDecInRange(1, 2, 2);
+        ExpectedCO2eEmission := LibraryRandom.RandDecInRange(1, 2, 2);
+
+        // [GIVEN] Create a Fixed Asset.
+        CreateFixedAssetSetup(DepreciationBook);
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
+        CreateFADepreciationBook(FixedAsset."No.", DepreciationBook.Code, FixedAsset."FA Posting Group");
+        UpdateIntegrationInBook(DepreciationBook, false, false, false, false, false, false, false);
+
+        // [GIVEN] Update "Default Sust. Account" in a Fixed Asset.
+        FixedAsset.Validate("Default Sust. Account", SustainabilityAccount."No.");
+        FixedAsset.Modify(true);
+
+        // [GIVEN] Post a first FA Journal Line to establish a committed baseline Sustainability Ledger Entry.
+        CreateFAJournalLine(FAJournalLine, FixedAsset."No.", DepreciationBook.Code);
+        FAJournalLine.Validate("Sust. Account No.", SustainabilityAccount."No.");
+        FAJournalLine.Validate("Total CO2e", BaselineCO2eEmission);
+        FAJournalLine.Modify(true);
+        LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+        Commit();
+
+        // [GIVEN] Record the committed baseline Sustainability Ledger Entry No.
+        SustainabilityLedgerEntry.SetRange("Account No.", AccountCode);
+        SustainabilityLedgerEntry.FindLast();
+        BaselineEntryNo := SustainabilityLedgerEntry."Entry No.";
+
+        // [GIVEN] Create a second FA Journal Line with Sustainability data.
+        Clear(FAJournalLine);
+        CreateFAJournalLine(FAJournalLine, FixedAsset."No.", DepreciationBook.Code);
+        FAJournalLine.Validate("Sust. Account No.", SustainabilityAccount."No.");
+        FAJournalLine.Validate("Total CO2e", ExpectedCO2eEmission);
+        FAJournalLine.Modify(true);
+        Commit();
+
+        // [WHEN] Preview the second FA Journal Line through FA Jnl.-Post.Preview.
+        FAJournalLine.SetRange("Journal Template Name", FAJournalLine."Journal Template Name");
+        FAJournalLine.SetRange("Journal Batch Name", FAJournalLine."Journal Batch Name");
+        asserterror FAJnlPost.Preview(FAJournalLine);
+
+        // [THEN] No errors occured - preview mode error only.
+        Assert.ExpectedError('');
+
+        // [WHEN] Post the second FA Journal Line.
+        LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+
+        // [THEN] The posted Sustainability Ledger Entry No. is baseline plus one, so preview consumed no positive identity.
+        SustainabilityLedgerEntry.Reset();
+        SustainabilityLedgerEntry.SetRange("Account No.", AccountCode);
+        SustainabilityLedgerEntry.FindLast();
+        Assert.AreEqual(
+            BaselineEntryNo + 1,
+            SustainabilityLedgerEntry."Entry No.",
+            StrSubstNo(ValueMustBeEqualErr, SustainabilityLedgerEntry.FieldCaption("Entry No."), BaselineEntryNo + 1, SustainabilityLedgerEntry.TableCaption()));
+
+        // [THEN] Verify the Sustainability field values on the posted entry.
+        Assert.AreEqual(
+            0,
+            SustainabilityLedgerEntry."Emission CO2",
+            StrSubstNo(ValueMustBeEqualErr, SustainabilityLedgerEntry.FieldCaption("Emission CO2"), 0, SustainabilityLedgerEntry.TableCaption()));
+        Assert.AreEqual(
+            0,
+            SustainabilityLedgerEntry."Emission CH4",
+            StrSubstNo(ValueMustBeEqualErr, SustainabilityLedgerEntry.FieldCaption("Emission CH4"), 0, SustainabilityLedgerEntry.TableCaption()));
+        Assert.AreEqual(
+            0,
+            SustainabilityLedgerEntry."Emission N2O",
+            StrSubstNo(ValueMustBeEqualErr, SustainabilityLedgerEntry.FieldCaption("Emission N2O"), 0, SustainabilityLedgerEntry.TableCaption()));
+        Assert.AreEqual(
+            ExpectedCO2eEmission,
+            SustainabilityLedgerEntry."CO2e Emission",
+            StrSubstNo(ValueMustBeEqualErr, SustainabilityLedgerEntry.FieldCaption("CO2e Emission"), 0, SustainabilityLedgerEntry.TableCaption()));
+        Assert.AreEqual(
+            0,
+            SustainabilityLedgerEntry."Carbon Fee",
+            StrSubstNo(ValueMustBeEqualErr, SustainabilityLedgerEntry.FieldCaption("Carbon Fee"), 0, SustainabilityLedgerEntry.TableCaption()));
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1135,6 +1312,11 @@ codeunit 148219 "Sust. Value Chain Fixed Asset"
 
     [MessageHandler]
     procedure MessageHandler(Message: Text[1024])
+    begin
+    end;
+
+    [PageHandler]
+    procedure GLPostingPreviewPageHandler(var GLPostingPreview: TestPage "G/L Posting Preview")
     begin
     end;
 }

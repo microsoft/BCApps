@@ -138,7 +138,7 @@ codeunit 8055 "Sub. Contracts Item Management"
         if (SellToCustomerNo = '') or (ItemNo = '') then
             exit;
         CreateTempSalesHeader(TempSalesHeader, TempSalesHeader."Document Type"::Order, SellToCustomerNo, SellToCustomerNo, 0D, CurrencyCode);
-        CreateTempSalesLine(TempSalesLine, TempSalesHeader, "Service Object Type"::Item, ItemNo, Quantity, 0D);
+        CreateTempSalesLine(TempSalesLine, TempSalesHeader, "Service Object Type"::Item, ItemNo, Quantity, 0D, '');
         UnitPrice := CalculateUnitPrice(TempSalesHeader, TempSalesLine);
     end;
 
@@ -159,12 +159,7 @@ codeunit 8055 "Sub. Contracts Item Management"
 
     internal procedure CreateTempSalesLine(var TempSalesLine: Record "Sales Line" temporary; var TempSalesHeader: Record "Sales Header" temporary; ServiceObject: Record "Subscription Header"; OrderDate: Date)
     begin
-        CreateTempSalesLine(TempSalesLine, TempSalesHeader, ServiceObject.Type, ServiceObject."Source No.", ServiceObject.Quantity, OrderDate);
-    end;
-
-    local procedure CreateTempSalesLine(var TempSalesLine: Record "Sales Line" temporary; var TempSalesHeader: Record "Sales Header" temporary; ServiceObjectType: enum "Service Object Type"; SourceNo: Code[20]; Quantity: Decimal; OrderDate: Date)
-    begin
-        CreateTempSalesLine(TempSalesLine, TempSalesHeader, ServiceObjectType, SourceNo, Quantity, OrderDate, '');
+        CreateTempSalesLine(TempSalesLine, TempSalesHeader, ServiceObject.Type, ServiceObject."Source No.", ServiceObject.Quantity, OrderDate, ServiceObject."Variant Code");
     end;
 
     internal procedure CreateTempSalesLine(var TempSalesLine: Record "Sales Line" temporary; var TempSalesHeader: Record "Sales Header" temporary; ServiceObjectType: enum "Service Object Type"; SourceNo: Code[20]; Quantity: Decimal; OrderDate: Date; VariantCode: Code[10])
@@ -228,12 +223,7 @@ codeunit 8055 "Sub. Contracts Item Management"
 
     internal procedure CreateTempPurchaseLine(var TempPurchaseLine: Record "Purchase Line" temporary; var TempPurchaseHeader: Record "Purchase Header" temporary; ServiceObject: Record "Subscription Header"; OrderDate: Date)
     begin
-        CreateTempPurchaseLine(TempPurchaseLine, TempPurchaseHeader, ServiceObject.Type, ServiceObject."Source No.", ServiceObject.Quantity, OrderDate);
-    end;
-
-    local procedure CreateTempPurchaseLine(var TempPurchaseLine: Record "Purchase Line" temporary; var TempPurchaseHeader: Record "Purchase Header" temporary; ServiceObjectType: enum "Service Object Type"; SourceNo: Code[20]; Quantity: Decimal; OrderDate: Date)
-    begin
-        CreateTempPurchaseLine(TempPurchaseLine, TempPurchaseHeader, ServiceObjectType, SourceNo, Quantity, OrderDate, '');
+        CreateTempPurchaseLine(TempPurchaseLine, TempPurchaseHeader, ServiceObject.Type, ServiceObject."Source No.", ServiceObject.Quantity, OrderDate, ServiceObject."Variant Code");
     end;
 
     internal procedure CreateTempPurchaseLine(var TempPurchaseLine: Record "Purchase Line" temporary; var TempPurchaseHeader: Record "Purchase Header" temporary; ServiceObjectType: enum "Service Object Type"; SourceNo: Code[20]; Quantity: Decimal; OrderDate: Date; VariantCode: Code[10])
@@ -254,6 +244,7 @@ codeunit 8055 "Sub. Contracts Item Management"
         TempPurchaseLine."No." := SourceNo;
         TempPurchaseLine.Quantity := Quantity;
         TempPurchaseLine."Currency Code" := TempPurchaseHeader."Currency Code";
+        TempPurchaseLine."Variant Code" := VariantCode;
         if OrderDate <> 0D then
             TempPurchaseLine."Expected Receipt Date" := OrderDate;
     end;

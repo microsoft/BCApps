@@ -6,6 +6,7 @@
 namespace Microsoft.Integration.Shopify.Test;
 
 using Microsoft.Finance.Currency;
+using Microsoft.Finance.SalesTax;
 using Microsoft.Integration.Shopify;
 using Microsoft.Inventory.Location;
 using Microsoft.Sales.Document;
@@ -63,6 +64,48 @@ codeunit 139611 "Shpfy Order Refund Test"
         SalesHeader.CalcFields("Amount Including VAT");
         LibraryAssert.AreEqual(RefundHeader."Total Refunded Amount", SalesHeader."Amount Including VAT", 'The SalesHeader."Amount Including VAT" must be equal to RefundHeader."Total Refunded Amount".');
         // Tear down
+        ResetProcessOnRefund(RefundId);
+    end;
+
+    [Test]
+    procedure UnitTestCrMemoInheritsTaxAreaAndTaxLiable()
+    var
+        SalesHeader: Record "Sales Header";
+        RefundHeader: Record "Shpfy Refund Header";
+        OrderHeader: Record "Shpfy Order Header";
+        RefundId: BigInteger;
+        IReturnRefundProcess: Interface "Shpfy IReturnRefund Process";
+        CanCreateDocument: Boolean;
+        ErrorInfo: ErrorInfo;
+    begin
+        // [SCENARIO] Credit memo from refund inherits Tax Area Code and Tax Liable from parent order
+        Initialize();
+
+        // [GIVEN] Set the process of the document: "Auto Create Credit Memo"
+        IReturnRefundProcess := Enum::"Shpfy ReturnRefund ProcessType"::"Auto Create Credit Memo";
+        RefundId := ShopifyIds.Get('Refund').Get(1);
+
+        // [GIVEN] Parent order has Tax Area Code and Tax Liable = true
+        RefundHeader.Get(RefundId);
+        OrderHeader.Get(RefundHeader."Order Id");
+        EnsureTaxAreaExists('SHPFY-TEST');
+        OrderHeader."Tax Area Code" := 'SHPFY-TEST';
+        OrderHeader."Tax Liable" := true;
+        OrderHeader.Modify();
+
+        // [WHEN] Credit memo is created from refund
+        CanCreateDocument := IReturnRefundProcess.CanCreateSalesDocumentFor(Enum::"Shpfy Source Document Type"::Refund, RefundId, ErrorInfo);
+        LibraryAssert.IsTrue(CanCreateDocument, 'Must be able to create credit memo');
+        SalesHeader := IReturnRefundProcess.CreateSalesDocument(Enum::"Shpfy Source Document Type"::Refund, RefundId);
+
+        // [THEN] Credit memo has Tax Area Code and Tax Liable from parent order
+        LibraryAssert.AreEqual(OrderHeader."Tax Area Code", SalesHeader."Tax Area Code", 'Credit memo Tax Area Code must match parent order');
+        LibraryAssert.IsTrue(SalesHeader."Tax Liable", 'Credit memo Tax Liable must be true when parent order is Tax Liable');
+
+        // Tear down — restore order header and remove doc link
+        OrderHeader."Tax Area Code" := '';
+        OrderHeader."Tax Liable" := false;
+        OrderHeader.Modify();
         ResetProcessOnRefund(RefundId);
     end;
 
@@ -572,6 +615,105 @@ codeunit 139611 "Shpfy Order Refund Test"
     end;
 
     [Test]
+    procedure UnitTestCreateCrMemoFromRefundWithExchangeItem()
+    var
+        Shop: Record "Shpfy Shop";
+        OrderHeader: Record "Shpfy Order Header";
+        RefundHeader: Record "Shpfy Refund Header";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        OrderRefundsHelper: Codeunit "Shpfy Order Refunds Helper";
+        OrderId: BigInteger;
+        OriginalOrderLineId: BigInteger;
+        ExchangeOrderLineId: BigInteger;
+        ReturnId: BigInteger;
+        RefundId: BigInteger;
+        OriginalAmount: Decimal;
+        ExchangeAmount: Decimal;
+        RefundTotal: Decimal;
+        ItemSalesLineCount: Integer;
+        RefundAccountLineCount: Integer;
+        IReturnRefundProcess: Interface "Shpfy IReturnRefund Process";
+    begin
+        // [SCENARIO] Create a Credit Memo from a Shopify refund that originates from a return with an exchange item.
+        // [SCENARIO] The original item (returned) yields a positive-qty sales line; the exchange item (kept by customer)
+        // [SCENARIO] yields a negative-qty sales line that offsets the credit memo total so it matches the Shopify refund
+        // [SCENARIO] total without an extra balancing G/L Refund Account line.
+        Initialize();
+        Shop := InitializeTest.CreateShop();
+        Shop."Process Returns As" := "Sales Document Type"::"Credit Memo";
+        Shop."Currency Handling" := "Shpfy Currency Handling"::"Shop Currency";
+        Shop.Modify(false);
+
+        OriginalAmount := 1893;
+        ExchangeAmount := 365;
+        RefundTotal := OriginalAmount - ExchangeAmount; // 1,528
+
+        // [GIVEN] A processed Shopify order with two lines: an original item and an exchange item flagged Is Exchange Item.
+        OrderRefundsHelper.SetDefaultSeed();
+        OrderId := OrderRefundsHelper.CreateShopifyOrder();
+        OrderHeader.Get(OrderId);
+        OrderHeader."Shop Code" := Shop.Code;
+        OrderHeader."Total Amount" := OriginalAmount; // BC sales invoice value (exchange item excluded)
+        OrderHeader."Subtotal Amount" := OriginalAmount;
+        OrderHeader."VAT Amount" := 0;
+        OrderHeader."Presentment Total Amount" := OriginalAmount;
+        OrderHeader."Presentment Subtotal Amount" := OriginalAmount;
+        OrderHeader."Shipping Charges Amount" := 0;
+        OrderHeader.Processed := true;
+        OrderHeader."Processed Currency Handling" := "Shpfy Currency Handling"::"Shop Currency";
+        OrderHeader.Modify(false);
+        OriginalOrderLineId := OrderRefundsHelper.CreateOrderLineWithUnitPrice(OrderId, 10000, Any.IntegerInRange(100000, 999999), Any.IntegerInRange(100000, 999999), OriginalAmount);
+        ExchangeOrderLineId := OrderRefundsHelper.CreateOrderLineWithUnitPrice(OrderId, 20000, Any.IntegerInRange(100000, 999999), Any.IntegerInRange(100000, 999999), ExchangeAmount);
+        OrderRefundsHelper.MarkOrderLineAsExchangeItem(OrderId, ExchangeOrderLineId);
+        OrderRefundsHelper.ProcessShopifyOrder(OrderId);
+
+        // [GIVEN] A return for the original item plus an exchange item, and a refund whose total reflects the net refund.
+        ReturnId := OrderRefundsHelper.CreateReturn(OrderId);
+        OrderRefundsHelper.CreateReturnLine(ReturnId, OriginalOrderLineId, 'DEFECTIVE');
+        RefundId := OrderRefundsHelper.CreateRefundHeader(OrderId, ReturnId, RefundTotal, Shop.Code);
+        OrderRefundsHelper.CreateRefundLineForReturnedItem(RefundId, OriginalOrderLineId, 1, OriginalAmount);
+        OrderRefundsHelper.CreateExchangeRefundLine(RefundId, ExchangeOrderLineId, 1, ExchangeAmount);
+
+        // [WHEN] CreateSalesDocument is invoked through the Auto Create Credit Memo process.
+        IReturnRefundProcess := Enum::"Shpfy ReturnRefund ProcessType"::"Auto Create Credit Memo";
+        SalesHeader := IReturnRefundProcess.CreateSalesDocument(Enum::"Shpfy Source Document Type"::Refund, RefundId);
+
+        // [THEN] A Credit Memo was created.
+        LibraryAssert.AreEqual(Enum::"Sales Document Type"::"Credit Memo", SalesHeader."Document Type", 'Sales Header must be a Credit Memo.');
+
+        // [THEN] The credit memo amount equals RefundHeader.Total Refunded Amount.
+        RefundHeader.Get(RefundId);
+        SalesHeader.CalcFields("Amount Including VAT");
+        LibraryAssert.AreNearlyEqual(RefundHeader."Total Refunded Amount", SalesHeader."Amount Including VAT", 0.5, 'Credit memo Amount Including VAT must equal RefundHeader."Total Refunded Amount" (no balancing G/L line should be needed).');
+
+        // [THEN] No Sales Line of Type::"G/L Account" was added pointing at the Refund Account.
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::"G/L Account");
+        SalesLine.SetRange("No.", Shop."Refund Account");
+        RefundAccountLineCount := SalesLine.Count();
+        LibraryAssert.AreEqual(0, RefundAccountLineCount, 'No Sales Line of Type G/L Account pointing at Shop."Refund Account" must be created.');
+
+        // [THEN] The credit memo contains two Type::Item lines (the original positive line and the exchange negative line).
+        SalesLine.Reset();
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::Item);
+        ItemSalesLineCount := SalesLine.Count();
+        LibraryAssert.AreEqual(2, ItemSalesLineCount, 'Credit memo must contain exactly two Type::Item lines (returned item +qty, exchange item -qty).');
+
+        // [THEN] One item line carries a positive quantity, one a negative quantity, summing to the net refund.
+        SalesLine.SetFilter(Quantity, '>%1', 0);
+        LibraryAssert.IsFalse(SalesLine.IsEmpty(), 'Credit memo must contain a positive-qty Type::Item line for the returned item.');
+        SalesLine.SetFilter(Quantity, '<%1', 0);
+        LibraryAssert.IsFalse(SalesLine.IsEmpty(), 'Credit memo must contain a negative-qty Type::Item line for the exchange item.');
+
+        // Tear down
+        ResetProcessOnRefund(RefundId);
+    end;
+
+    [Test]
     procedure UnitTestDoesNotCreateCrMemoFromRefundWithPendingTransaction()
     var
         SalesHeader: Record "Sales Header";
@@ -684,6 +826,16 @@ codeunit 139611 "Shpfy Order Refund Test"
 
         IsInitialized := true;
         Commit();
+    end;
+
+    local procedure EnsureTaxAreaExists(TaxAreaCode: Code[20])
+    var
+        TaxArea: Record "Tax Area";
+    begin
+        if not TaxArea.Get(TaxAreaCode) then begin
+            TaxArea.Code := TaxAreaCode;
+            TaxArea.Insert();
+        end;
     end;
 
     local procedure ResetProcessOnRefund(ReFundId: Integer)

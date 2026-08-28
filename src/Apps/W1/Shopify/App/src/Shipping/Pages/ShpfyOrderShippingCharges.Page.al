@@ -16,7 +16,6 @@ page 30128 "Shpfy Order Shipping Charges"
     InsertAllowed = false;
     ModifyAllowed = false;
     PageType = List;
-    PromotedActionCategories = 'New,Process,Report,Inspect';
     SourceTable = "Shpfy Order Shipping Charges";
     UsageCategory = None;
 
@@ -87,15 +86,26 @@ page 30128 "Shpfy Order Shipping Charges"
     {
         area(Processing)
         {
+            action(TaxLines)
+            {
+                ApplicationArea = All;
+                Caption = 'Tax Lines';
+                Image = TaxDetail;
+                ToolTip = 'View the tax lines for the selected shipping charge.';
+
+                trigger OnAction();
+                var
+                    OrderTaxLine: Record "Shpfy Order Tax Line";
+                begin
+                    OrderTaxLine.SetRange("Parent Id", Rec."Shopify Shipping Line Id");
+                    Page.Run(Page::"Shpfy Order Tax Lines", OrderTaxLine);
+                end;
+            }
             action(RetrievedShopifyData)
             {
                 ApplicationArea = All;
                 Caption = 'Retrieved Shopify Data';
                 Image = Entry;
-                Promoted = true;
-                PromotedCategory = Category4;
-                PromotedIsBig = true;
-                PromotedOnly = true;
                 ToolTip = 'View the data retrieved from Shopify.';
 
                 trigger OnAction();
@@ -108,6 +118,11 @@ page 30128 "Shpfy Order Shipping Charges"
                     Page.Run(Page::"Shpfy Data Capture List", DataCapture);
                 end;
             }
+        }
+        area(Promoted)
+        {
+            actionref(TaxLines_Promoted; TaxLines) { }
+            actionref(RetrievedShopifyData_Promoted; RetrievedShopifyData) { }
         }
     }
 

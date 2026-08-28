@@ -54,6 +54,8 @@ codeunit 10032 "IRS 1099 BaseApp Subscribers"
     [EventSubscriber(ObjectType::Table, Database::"Vendor Ledger Entry", 'OnAfterCopyVendLedgerEntryFromGenJnlLine', '', false, false)]
     local procedure UpdateIRSDataOnAfterCopyVendLedgerEntryFromGenJnlLine(var VendorLedgerEntry: Record "Vendor Ledger Entry"; GenJournalLine: Record "Gen. Journal Line")
     begin
+        if GenJournalLine."IRS 1099 Form Box No." = '' then
+            exit;
         if GenJournalLine."IRS 1099 Reporting Amount" = 0 then
             exit;
         VendorLedgerEntry."IRS 1099 Subject For Reporting" := true;

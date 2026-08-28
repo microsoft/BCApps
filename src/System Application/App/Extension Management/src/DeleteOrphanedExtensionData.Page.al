@@ -137,9 +137,9 @@ page 2514 "Delete Orphaned Extension Data"
 
                     trigger OnAction()
                     var
-                        ExtensionDatabaseManagement: Codeunit "Extension Database Management";
+                        ExtensionOperationImpl: Codeunit "Extension Operation Impl";
                     begin
-                        ExtensionDatabaseManagement.MarkAllOrphanedExtensionDataAsReviewed();
+                        ExtensionOperationImpl.MarkAllOrphanedExtensionDataAsReviewed();
                         UpdateHasUnreviewedExtensions();
                         CurrPage.Update(false);
                     end;
@@ -198,5 +198,4 @@ page 2514 "Delete Orphaned Extension Data"
         HasUnreviewedExtensions := not ExtensionDatabaseSnapshot.IsEmpty();
     end;
 }
-
 
