@@ -115,12 +115,14 @@ codeunit 1545 "Workflow Webhook Notification"
         end;
     end;
 
+#pragma warning disable AL0547 // Accepted violation: turning off global variable access is a breaking change for existing subscribers of this published event.
     [TryFunction]
     [IntegrationEvent(true, true)]
     [Scope('OnPrem')]
     procedure OnPostNotificationRequest(DataID: Guid; WorkflowStepInstanceID: Guid; NotificationUrl: Text; RequestedByUserEmail: Text)
     begin
     end;
+#pragma warning restore AL0547
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Workflow Webhook Notification", 'OnPostNotificationRequest', '', false, false)]
     [TryFunction]
