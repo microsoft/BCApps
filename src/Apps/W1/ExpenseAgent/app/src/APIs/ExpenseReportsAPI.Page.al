@@ -228,11 +228,11 @@ page 6928 "Expense Reports API"
                 }
                 field(spendRequestNo; Rec."Spend Request No.")
                 {
-                    Caption = 'Spend Request No.';
+                    Caption = 'Travel Request No.';
                 }
                 field(spendRequestClose; Rec."Spend Request Close")
                 {
-                    Caption = 'Spend Request Close';
+                    Caption = 'Travel Request Close';
                 }
                 part(expenseReportLines; "Expense Report Lines API")
                 {

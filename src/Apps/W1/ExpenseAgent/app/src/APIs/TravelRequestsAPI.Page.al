@@ -1,4 +1,3 @@
-#if not CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -7,23 +6,21 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.SpendRequest;
 
-page 7099 "Spend Requests API"
+page 7134 "Travel Requests API"
 {
-    ObsoleteState = Pending;
-    ObsoleteReason = 'Replaced by the Travel Requests API (page 7134). The Expense Agent exposes requests through the dedicated Travel Request API.';
-    ObsoleteTag = '30.0';
     APIGroup = 'expense';
     APIPublisher = 'microsoft';
     APIVersion = 'beta';
-    EntityCaption = 'Spend Request';
-    EntitySetCaption = 'Spend Requests';
+    EntityCaption = 'Travel Request';
+    EntitySetCaption = 'Travel Requests';
     DelayedInsert = true;
-    EntityName = 'spendRequest';
-    EntitySetName = 'spendRequests';
+    EntityName = 'travelRequest';
+    EntitySetName = 'travelRequests';
     PageType = API;
     ODataKeyFields = SystemId;
     SourceTable = "Spend Request";
-    AboutText = 'Provides access to data from the Spend Request table';
+    SourceTableView = where("Document Type" = const("Travel Request"));
+    AboutText = 'Provides access to data from the Travel Request table';
 
     layout
     {
@@ -146,11 +143,11 @@ page 7099 "Spend Requests API"
                 {
                     Caption = 'Actual End Date and Time';
                 }
-                part(spendRequestDetails; "Spend Request Details API")
+                part(travelRequestDetails; "Travel Request Details API")
                 {
-                    Caption = 'Spend Request Details';
-                    EntityName = 'spendRequestDetail';
-                    EntitySetName = 'spendRequestDetails';
+                    Caption = 'Travel Request Details';
+                    EntityName = 'travelRequestDetail';
+                    EntitySetName = 'travelRequestDetails';
                     SubPageLink = "Spend Request No." = field("No.");
                 }
                 part(travelers; "Travelers API")
@@ -171,4 +168,3 @@ page 7099 "Spend Requests API"
         ExpenseAgentAPIValidation.VerifyAgentAccess();
     end;
 }
-#endif

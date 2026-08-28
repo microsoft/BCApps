@@ -1,4 +1,3 @@
-#if not CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -7,23 +6,20 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.SpendRequest;
 
-page 7102 "Spend Request Details API"
+page 7135 "Travel Request Details API"
 {
-    ObsoleteState = Pending;
-    ObsoleteReason = 'Replaced by the Travel Request Details API (page 7135). The Expense Agent exposes request lines through the dedicated Travel Request API.';
-    ObsoleteTag = '30.0';
     APIGroup = 'expense';
     APIPublisher = 'microsoft';
     APIVersion = 'beta';
-    EntityCaption = 'Spend Request Detail';
-    EntitySetCaption = 'Spend Request Details';
+    EntityCaption = 'Travel Request Detail';
+    EntitySetCaption = 'Travel Request Details';
     DelayedInsert = true;
-    EntityName = 'spendRequestDetail';
-    EntitySetName = 'spendRequestDetails';
+    EntityName = 'travelRequestDetail';
+    EntitySetName = 'travelRequestDetails';
     PageType = API;
     ODataKeyFields = SystemId;
     SourceTable = "Spend Request Detail";
-    AboutText = 'Provides access to data from the Spend Request Detail table';
+    AboutText = 'Provides access to data from the Travel Request Detail table';
     AutoSplitKey = true;
 
     layout
@@ -37,9 +33,9 @@ page 7102 "Spend Request Details API"
                     Caption = 'Id';
                     Editable = false;
                 }
-                field(spendRequestNo; Rec."Spend Request No.")
+                field(travelRequestNo; Rec."Spend Request No.")
                 {
-                    Caption = 'Spend Request No.';
+                    Caption = 'Travel Request No.';
                 }
                 field(lineNo; Rec."Line No.")
                 {
@@ -82,4 +78,3 @@ page 7102 "Spend Request Details API"
         ExpenseAgentAPIValidation.VerifyAgentAccess();
     end;
 }
-#endif
