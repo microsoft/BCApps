@@ -8,8 +8,8 @@ using Microsoft.Inventory.Ledger;
 
 codeunit 907 "Invt. Ledger Assembly Source"
 {
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Invt. Ledger Source Mgt.", OnGetSourceOrderNo, '', false, false)]
-    local procedure OnGetSourceOrderNo(DocType: Enum "Item Ledger Document Type"; DocNo: Code[20]; var SourceOrderNo: Code[20])
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Invt. Ledger Source Mgt.", OnGetSourceOrderNoWithLineNo, '', false, false)]
+    local procedure OnGetSourceOrderNo(DocType: Enum "Item Ledger Document Type"; DocNo: Code[20]; DocLineNo: Integer; var SourceOrderNo: Code[20])
     var
         PostedAssemblyHdr: Record "Posted Assembly Header";
     begin
