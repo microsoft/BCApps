@@ -228,7 +228,14 @@
 						},
 						{
 							"name": "item_availability",
-							"value": "If there is a notification on the page regarding low inventory, request assistance."
+							"value": "If there is a notification on the page regarding low inventory, request assistance.",
+							"steps_include_numbering": "true",
+							"steps": [
+								{
+									"name": "capable_to_promise",
+									"value": "Ignore this notification. Check whether an earliest shipment date was already provided for the item referenced by the low inventory notification before the sales quote was created (that is, it came from the item availability search results). If it was not, recalculate the earliest shipment date, and make sure you specify the new shipment date later in the email. After that, treat the item as available and set the 'Shipment Date' on that item's sales quote line to the earliest shipment date or the requested delivery date, whichever is later. If the requested delivery date is blank or in the past, use the earliest shipment date. If assistance was already requested for this notification and you are asked to continue the task, set the 'Shipment Date' as described here before proceeding."
+								}
+							]
 						},
 						"{% endif -%}",
 						{
