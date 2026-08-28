@@ -7,7 +7,8 @@
   "description": "GST Purchase lets you calculate GST on purchase transactions such as purchase orders, invoices, purchase returns, credit memos, and journals.",
   "features": [
     "TranslationFile",
-    "GenerateCaptions"
+    "GenerateCaptions",
+    "TranslationsWithNamespaces"
   ],
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=724013",

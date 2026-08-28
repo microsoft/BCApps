@@ -6,7 +6,8 @@
   "brief": "Returns and settlement for GST payables and receivables.",
   "description": "GST Return and Settlement lets you settle GST payables with GST receiveables, and pay differential amounts to tax authorities.",
   "features": [
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ],
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=724013",

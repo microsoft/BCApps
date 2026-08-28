@@ -63,5 +63,8 @@
       "name": "BC14 Reimplementation Tool Tests",
       "publisher": "Microsoft"
     }
+  ],
+  "features": [
+    "TranslationsWithNamespaces"
   ]
 }

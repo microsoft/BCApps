@@ -74,6 +74,7 @@
   },
   "target": "OnPrem",
   "features": [
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ]
 }

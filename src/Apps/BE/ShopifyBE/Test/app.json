@@ -65,6 +65,7 @@
   },
   "application": "30.0.0.0",
   "features": [
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ]
 }

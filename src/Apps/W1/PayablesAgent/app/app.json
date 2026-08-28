@@ -44,7 +44,8 @@
     ],
     "features": [
         "TranslationFile",
-        "NoImplicitWith"
+        "NoImplicitWith",
+        "TranslationsWithNamespaces"
     ],
     "resourceFolders": [
         ".resources"

@@ -60,7 +60,8 @@
   ],
   "features": [
     "TranslationFile",
-    "GenerateCaptions"
+    "GenerateCaptions",
+    "TranslationsWithNamespaces"
   ],
   "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2139719",
   "resourceExposurePolicy": {

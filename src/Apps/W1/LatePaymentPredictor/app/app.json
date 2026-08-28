@@ -29,5 +29,8 @@
     "allowDownloadingSource": false,
     "includeSourceInSymbolFile": false
   },
-  "application": "30.0.0.0"
+  "application": "30.0.0.0",
+  "features": [
+    "TranslationsWithNamespaces"
+  ]
 }

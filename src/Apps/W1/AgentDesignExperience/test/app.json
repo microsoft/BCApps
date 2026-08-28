@@ -42,7 +42,8 @@
     "GenerateCaptions",
     "TranslationFile",
     "NoImplicitWith",
-    "NoPromotedActionProperties"
+    "NoPromotedActionProperties",
+    "TranslationsWithNamespaces"
   ],
   "target": "OnPrem",
   "resourceFolders": [

@@ -28,6 +28,7 @@
   "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=870429",
   "application": "30.0.0.0",
   "features": [
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ]
 }

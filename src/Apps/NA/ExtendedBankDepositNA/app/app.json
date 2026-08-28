@@ -38,6 +38,7 @@
     "application":  "30.0.0.0",
     "features":  [
                      "TranslationFile",
-                     "GenerateCaptions"
+                     "GenerateCaptions",
+                     "TranslationsWithNamespaces"
                  ]
 }

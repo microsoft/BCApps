@@ -20,7 +20,8 @@
     }
   ],
   "features": [
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ],
   "internalsVisibleTo": [
     {
