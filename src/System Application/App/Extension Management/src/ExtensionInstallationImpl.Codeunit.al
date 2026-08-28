@@ -6,6 +6,8 @@
 namespace System.Apps;
 
 using System.Environment.Configuration;
+using System.Security.AccessControl;
+using System.Security.User;
 using System.Utilities;
 
 codeunit 2500 "Extension Installation Impl"
@@ -177,15 +179,33 @@ codeunit 2500 "Extension Installation Impl"
 
     procedure CheckPermissions()
     begin
-        if not CanManageExtensions() then
+        CheckPermissions(UserSecurityId());
+    end;
+
+    procedure CheckPermissions(UserSecurityIdToCheck: Guid)
+    begin
+        if not CanManageExtensions(UserSecurityIdToCheck) then
             Error(NotSufficientPermissionErr);
     end;
 
     procedure CanManageExtensions(): Boolean
-    var
-        ApplicationObjectMetadata: Record "Application Object Metadata";
     begin
-        exit(ApplicationObjectMetadata.ReadPermission());
+        exit(CanManageExtensions(UserSecurityId()));
+    end;
+
+    procedure CanManageExtensions(UserSecurityIdToCheck: Guid): Boolean
+    var
+        AccessControl: Record "Access Control";
+        CurrentModuleInfo: ModuleInfo;
+        UserPermissions: Codeunit "User Permissions";
+        ExtensionManagementAdminTok: Label 'Exten. Mgt. - Admin', Locked = true;
+    begin
+        if UserPermissions.IsSuper(UserSecurityIdToCheck) then
+            exit(true);
+
+        NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
+        exit(UserPermissions.HasUserPermissionSetAssigned(
+            UserSecurityIdToCheck, '', ExtensionManagementAdminTok, AccessControl.Scope::Tenant, CurrentModuleInfo.Id()));
     end;
 
     procedure UninstallExtension(PackageID: Guid; IsUIEnabled: Boolean): Boolean
@@ -418,4 +438,3 @@ codeunit 2500 "Extension Installation Impl"
         exit(Result = PolicyToTestFor);
     end;
 }
-

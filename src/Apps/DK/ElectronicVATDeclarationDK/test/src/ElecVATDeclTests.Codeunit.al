@@ -1,3 +1,5 @@
+using System.Security.Encryption;
+
 codeunit 148015 "Elec. VAT Decl. Tests"
 {
     Subtype = Test;
@@ -49,6 +51,18 @@ codeunit 148015 "Elec. VAT Decl. Tests"
 
         Assert.AreEqual(20260630D, EndDate, 'The semi-annual end date is incorrect.');
         Assert.AreEqual(20260101D, ElecVATDeclGetPeriods.CalcPeriodStartDate(EndDate, ReportingFrequency::"Semi-Annual"), 'The semi-annual start date is incorrect.');
+    end;
+
+    [Test]
+    procedure TrustedAppCanRequestCertificatePrivateKey()
+    var
+        IsolatedCertificate: Record "Isolated Certificate";
+        ElecVATDeclCryptography: Codeunit "Elec. VAT Decl. Cryptography";
+        SignatureKey: Codeunit "Signature Key";
+    begin
+        asserterror ElecVATDeclCryptography.GetCertificatePrivateKeyForSigning(IsolatedCertificate, SignatureKey);
+
+        Assert.ExpectedTestFieldError(IsolatedCertificate.FieldCaption("Has Private Key"), '');
     end;
 
     [Test]

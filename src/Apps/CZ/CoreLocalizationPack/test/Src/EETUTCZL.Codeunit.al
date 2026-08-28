@@ -1,3 +1,6 @@
+using System.Security.Encryption;
+using System.Utilities;
+
 codeunit 148083 "EET UT CZL"
 {
     // // [FEATURE] [EET] [UT]
@@ -102,6 +105,22 @@ codeunit 148083 "EET UT CZL"
         // [THEN] Service URL must be filled by playground URL from EET Service Mgt.
         Assert.AreEqual(
           GetWebServicePlayGroundURLTxt(), EETServiceSetup."Service URL", ServiceURLMustBeFilledByPGURLErr);
+    end;
+
+    [Test]
+    procedure TrustedAppCanRequestCertificatePrivateKey()
+    var
+        IsolatedCertificate: Record "Isolated Certificate";
+        EETTextSignProviderCZL: Codeunit "EET Text Sign. Provider CZL";
+        TempBlob: Codeunit "Temp Blob";
+        SignatureOutStream: OutStream;
+    begin
+        Initialize();
+        TempBlob.CreateOutStream(SignatureOutStream);
+
+        asserterror EETTextSignProviderCZL.SignData('', IsolatedCertificate, SignatureOutStream);
+
+        Assert.ExpectedTestFieldError(IsolatedCertificate.FieldCaption("Has Private Key"), '');
     end;
 
     [Test]
@@ -237,4 +256,3 @@ codeunit 148083 "EET UT CZL"
         Choice := LibraryVariableStorage.DequeueInteger();
     end;
 }
-
