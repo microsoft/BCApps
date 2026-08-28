@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -6,6 +6,7 @@ namespace Microsoft.Purchases.Document;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.OrderMatch;
+using Microsoft.eServices.EDocument.Processing.Message;
 
 pageextension 6132 "E-Doc. Purchase Order" extends "Purchase Order"
 {
@@ -21,6 +22,21 @@ pageextension 6132 "E-Doc. Purchase Order" extends "Purchase Order"
                 Caption = 'Linked with E-Document';
                 Editable = false;
                 Visible = true;
+            }
+        }
+        addlast(FactBoxes)
+        {
+            part(EDocStatusFactBox; "E-Doc. Status FactBox")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'E-Document';
+                ShowFilter = false;
+            }
+            part(EDocMessages; "E-Document Messages FactBox")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'E-Document Messages';
+                ShowFilter = false;
             }
         }
     }
@@ -113,6 +129,7 @@ pageextension 6132 "E-Doc. Purchase Order" extends "Purchase Order"
     trigger OnAfterGetCurrRecord()
     var
         EDocument: Record "E-Document";
+        OutboundEDocument: Record "E-Document";
         EDocumentServiceStatus: Record "E-Document Service Status";
     begin
         ShowMapToEDocument := false;
@@ -122,6 +139,14 @@ pageextension 6132 "E-Doc. Purchase Order" extends "Purchase Order"
             EDocumentServiceStatus.FindFirst();
             ShowMapToEDocument := EDocumentServiceStatus.Status = Enum::"E-Document Service Status"::"Order Linked";
         end;
+
+        OutboundEDocument.SetRange("Document Record ID", Rec.RecordId());
+        OutboundEDocument.SetRange(Direction, OutboundEDocument.Direction::Outgoing);
+        if OutboundEDocument.FindLast() then
+            CurrPage.EDocMessages.Page.SetEDocumentFilter(OutboundEDocument."Entry No")
+        else
+            CurrPage.EDocMessages.Page.SetEDocumentFilter(-1);
+        CurrPage.EDocStatusFactBox.Page.SetDocumentRecordId(Rec.RecordId());
     end;
 
 }

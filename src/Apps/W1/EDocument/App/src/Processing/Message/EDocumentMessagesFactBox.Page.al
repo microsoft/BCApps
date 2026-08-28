@@ -90,6 +90,15 @@ page 6434 "E-Document Messages FactBox"
     var
         FileNameTok: Label 'E-Document_%1_Response_%2.xml', Comment = '%1 = E-Document number, %2 = human-readable response type', Locked = true;
 
+    internal procedure SetEDocumentFilter(EDocumentEntryNo: Integer)
+    begin
+        if EDocumentEntryNo <= 0 then
+            Rec.SetRange("E-Document Entry No.", -1)  // impossible value — hides all rows
+        else
+            Rec.SetRange("E-Document Entry No.", EDocumentEntryNo);
+        CurrPage.Update(false);
+    end;
+
     local procedure BuildFileName(): Text
     var
         ResponseTypeText: Text;
