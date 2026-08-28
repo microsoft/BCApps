@@ -5,6 +5,7 @@
 namespace Microsoft.Peppol;
 
 using Microsoft.Foundation.Company;
+using Microsoft.Utilities;
 
 codeunit 37217 "PEPPOL 3.0 Subscribers"
 {
