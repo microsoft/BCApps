@@ -795,6 +795,10 @@ table 25 "Vendor Ledger Entry"
         {
             IncludedFields = "Accepted Payment Tolerance";
         }
+        // Supports the Payment Reconciliation Journal candidate search (Document Type + Open + date range).
+        key(PmtReconCandidates; "Document Type", Open, "Posting Date")
+        {
+        }
         key(TransactionMode; Open, "On Hold", "Transaction Mode Code")
         {
         }
