@@ -148,6 +148,7 @@ codeunit 7105 "Upgrade Exp. Report VAT Spec"
             if (not HasCachedDocumentNo) or (CachedDocumentNo <> ExpenseReportLineVATSpec."Document No.") then begin
                 CachedDocumentNo := ExpenseReportLineVATSpec."Document No.";
                 HasCachedDocumentNo := true;
+                ExpenseReportHeader.SetLoadFields("Reimbursement Currency Code", "Posting Date", "Reimbursement Currency Factor");
                 HeaderFound := ExpenseReportHeader.Get(CachedDocumentNo);
             end;
 
@@ -194,6 +195,7 @@ codeunit 7105 "Upgrade Exp. Report VAT Spec"
             if (not HasCachedExpenseReportNo) or (CachedExpenseReportNo <> PostedExpenseReportLineVATSpec."Expense Report No.") then begin
                 CachedExpenseReportNo := PostedExpenseReportLineVATSpec."Expense Report No.";
                 HasCachedExpenseReportNo := true;
+                PostedExpenseReportHeader.SetLoadFields("Reimbursement Currency Code", "Posting Date", "Reimbursement Currency Factor");
                 HeaderFound := PostedExpenseReportHeader.Get(CachedExpenseReportNo);
             end;
 

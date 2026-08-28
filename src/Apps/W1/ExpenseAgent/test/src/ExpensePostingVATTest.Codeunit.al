@@ -10,6 +10,8 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.HumanResources.Employee;
+using Microsoft.Projects.Project.Job;
+using Microsoft.Projects.Project.Ledger;
 using Microsoft.Purchases.Vendor;
 using System.Environment;
 using System.TestLibraries.Utilities;
@@ -24,6 +26,7 @@ codeunit 148330 "Expense Posting VAT Test"
         Assert: Codeunit "Assert";
         LibraryERM: Codeunit "Library - ERM";
         LibraryExpense: Codeunit "Library - Expense";
+        LibraryJob: Codeunit "Library - Job";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
@@ -33,6 +36,7 @@ codeunit 148330 "Expense Posting VAT Test"
         NotApprovedForVATReclaimCategoryErr: Label 'VAT Reclaim Status is not set for Line with Expense Category %1.', Comment = '%1 = Expense Category';
         NotApprovedForVATReclaimErr: Label 'VAT Reclaim Status is not set for Line with Expense Category %1 and Expense Subcategory %2.', Comment = '%1 = Expense Category, %2 = Expense Subcategory';
         ModifyOrDeleteAgentVATSpecErr: Label 'Modifications and delete are not allowed for records created by the Expense Agent API.';
+        RoundingDifferenceTooLargeErr: Label 'exceeds the currency rounding precision';
 
     [Test]
     [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
@@ -83,6 +87,56 @@ codeunit 148330 "Expense Posting VAT Test"
         // [THEN] GL entries created with correct VAT amounts for each subcategory
         Employee.Get(ExpenseUser."Employee No.");
         VerifyGLEntry(PostedExpenseReportHeader."No.", GetRefundableDebitAccount(ExpenseCategory.Code), 144.09);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
+    procedure MultipleVATSpecificationsPostCompleteAmountToProject()
+    var
+        Expense: Record Expense;
+        ExpenseUser: Record "Expense User";
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubCategory: array[4] of Record "Expense Subcategory";
+        ExpenseReportHeader: Record "Expense Report Header";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+        Job: Record Job;
+        JobTask: Record "Job Task";
+        JobLedgerEntry: Record "Job Ledger Entry";
+        VATPostingSetup: array[3] of Record "VAT Posting Setup";
+    begin
+        // [SCENARIO] A project receives the complete expense-line amount when the line has multiple VAT specifications.
+        Initialize();
+
+        // [GIVEN] An expense assigned to a project with two VAT specifications whose LCY bases total 200.
+        CreateExpenseUserAndCategory(ExpenseUser, ExpenseCategory);
+        CreateSubcategoryWithVATRate(ExpenseSubCategory[1], ExpenseCategory.Code, 10, VATPostingSetup[1]);
+        CreateSubcategoryWithVATRate(ExpenseSubCategory[2], ExpenseCategory.Code, 20, VATPostingSetup[2]);
+        CreateExpenseWithHotelItemizations(Expense, ExpenseUser, ExpenseCategory, ExpenseSubCategory, VATPostingSetup, 110, 120, 0, 0);
+        LibraryJob.CreateJob(Job);
+        LibraryJob.CreateJobTask(Job, JobTask);
+        Expense.PerformManualReopen(Expense);
+        Expense.Get(Expense."No.");
+        Expense.Validate("Job No.", JobTask."Job No.");
+        Expense.Validate("Job Task No.", JobTask."Job Task No.");
+        Expense.Modify(true);
+        ReleaseExpenseAndUpdateAccounts(Expense, ExpenseUser);
+
+        // [WHEN] The expense report is posted.
+        PostExpenseReport(ExpenseReportHeader, Expense, ExpenseUser);
+
+        // [THEN] One project ledger entry contains the sum of both specification journal amounts.
+        FindPostedExpenseReport(PostedExpenseReportHeader, Expense);
+        PostedExpenseReportLine.SetRange("Document No.", PostedExpenseReportHeader."No.");
+        PostedExpenseReportLine.FindFirst();
+#pragma warning disable AA0210
+        JobLedgerEntry.SetRange("Expense Report No.", PostedExpenseReportHeader."No.");
+        JobLedgerEntry.SetRange("Expense Report Line No.", PostedExpenseReportLine."Line No.");
+#pragma warning restore AA0210
+        JobLedgerEntry.FindFirst();
+        Assert.RecordCount(JobLedgerEntry, 1);
+        Assert.AreNearlyEqual(200, JobLedgerEntry."Unit Cost (LCY)", 0.01, 'Project unit cost must include all VAT specification journal amounts.');
+        Assert.AreNearlyEqual(200, JobLedgerEntry."Unit Price (LCY)", 0.01, 'Project unit price must include all VAT specification journal amounts.');
     end;
 
     [Test]
@@ -405,6 +459,59 @@ codeunit 148330 "Expense Posting VAT Test"
 
         // [THEN] A reclaim-status error is raised and posting does not create a posted report.
         Assert.ExpectedError(StrSubstNo(NotApprovedForVATReclaimErr, ExpenseCategory.Code, ExpenseSubCategory[1].Code));
+        LibraryVariableStorage.AssertEmpty();
+        PostedExpenseReportHeader.SetRange("Expense User No.", ExpenseUser."No.");
+        Assert.RecordCount(PostedExpenseReportHeader, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
+    procedure MaterialVATSpecificationDifferenceBlocksPosting()
+    var
+        Expense: Record Expense;
+        ExpenseUser: Record "Expense User";
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubCategory: array[4] of Record "Expense Subcategory";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        VATPostingSetup: array[3] of Record "VAT Posting Setup";
+        CreateExpenseReport: Codeunit "Create Expense Report";
+        ExpenseReportPost: Codeunit "Expense Report-Post";
+    begin
+        // [SCENARIO] A material difference between an expense report line and its VAT specifications blocks posting.
+        Initialize();
+
+        // [GIVEN] An LCY expense report whose VAT specification total is lower than the line amount by 1.00.
+        CreateExpenseUserAndCategory(ExpenseUser, ExpenseCategory);
+        CreateSubcategoryWithVATRate(ExpenseSubCategory[1], ExpenseCategory.Code, 10, VATPostingSetup[1]);
+        CreateExpenseWithHotelItemizations(Expense, ExpenseUser, ExpenseCategory, ExpenseSubCategory, VATPostingSetup, 110, 0, 0, 0);
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', Expense."VAT Bus. Posting Group");
+        AddExpensesToReport(CreateExpenseReport, ExpenseReportHeader, Expense."No.");
+        UpdateExpenseReportLinesWithVendor(ExpenseReportHeader);
+        ExpenseReportHeader.PerformManualRelease();
+        ExpenseReportLineVATSpec.SetRange("Document No.", ExpenseReportHeader."No.");
+        ExpenseReportLineVATSpec.SetFilter("Document Line No.", '<>%1', 0);
+        ExpenseReportLineVATSpec.FindFirst();
+        ExpenseReportLineVATSpec."VAT Base Amount (RCY)" -= 1;
+        ExpenseReportLineVATSpec."VAT Base Amount (LCY)" -= 1;
+        ExpenseReportLineVATSpec.Modify(false);
+        ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
+        ExpenseReportLine.FindFirst();
+        ExpenseReportLineVATSpec.CalcSums("VAT Base Amount (RCY)", "VAT Amount (RCY)", "VAT Base Amount (LCY)", "VAT Amount (LCY)");
+        Assert.AreNearlyEqual(
+            1, ExpenseReportLine."Reimbursable Amount" - ExpenseReportLineVATSpec."VAT Base Amount (RCY)" - ExpenseReportLineVATSpec."VAT Amount (RCY)", 0.01,
+            'The test must create a material reimbursement-currency difference.');
+        Assert.AreNearlyEqual(
+            1, ExpenseReportLine."Reimbursable Amount (LCY)" - ExpenseReportLineVATSpec."VAT Base Amount (LCY)" - ExpenseReportLineVATSpec."VAT Amount (LCY)", 0.01,
+            'The test must create a material local-currency difference.');
+
+        // [WHEN] Posting is attempted.
+        asserterror PostExpenseReportWithConfirmation(ExpenseReportPost, ExpenseReportHeader);
+
+        // [THEN] The material difference is not reclassified to an expense rounding account.
+        Assert.ExpectedError(RoundingDifferenceTooLargeErr);
         LibraryVariableStorage.AssertEmpty();
         PostedExpenseReportHeader.SetRange("Expense User No.", ExpenseUser."No.");
         Assert.RecordCount(PostedExpenseReportHeader, 0);
@@ -909,6 +1016,7 @@ codeunit 148330 "Expense Posting VAT Test"
     [Test]
     procedure AgentVATSpecificationAPIAcceptsNonSaaSCaller()
     var
+        Expense: Record Expense;
         ExpenseVATSpecification: Record "Expense VAT Specification";
         EnvironmentInfo: Codeunit "Environment Information";
         ExpenseVATSpecAPI: Page "Expense VAT Spec. API";
@@ -917,20 +1025,22 @@ codeunit 148330 "Expense Posting VAT Test"
         if EnvironmentInfo.IsSaaSInfrastructure() then
             exit;
 
-        // [GIVEN] A VAT specification with a business posting group.
-        ExpenseVATSpecification."VAT Bus. Posting Group" := 'LOCAL';
+        // [GIVEN] A VAT specification whose relational fields have been validated against a persisted expense.
+        Initialize();
+        CreateAgentVATSpecificationFixture(ExpenseVATSpecification, Expense);
 
         // [WHEN] A caller attempts to insert an agent-authored VAT specification through the API.
         ExpenseVATSpecAPI.InsertVATSpecification(ExpenseVATSpecification);
 
         // [THEN] The agent-authored VAT specification is inserted.
         Assert.AreEqual(ExpenseVATSpecification.Source::Agent, ExpenseVATSpecification.Source, 'The VAT specification source must be Agent.');
-        Assert.IsTrue(ExpenseVATSpecification.Get(ExpenseVATSpecification."Expense No.", ExpenseVATSpecification."Line No."), 'The VAT specification must be inserted.');
+        Assert.IsTrue(ExpenseVATSpecification.Get(Expense."No.", ExpenseVATSpecification."Line No."), 'The VAT specification must be inserted for the parent expense.');
     end;
 
     [Test]
     procedure AgentVATSpecificationInsertAcceptsNonSaaSCaller()
     var
+        Expense: Record Expense;
         ExpenseVATSpecification: Record "Expense VAT Specification";
         EnvironmentInfo: Codeunit "Environment Information";
     begin
@@ -938,14 +1048,16 @@ codeunit 148330 "Expense Posting VAT Test"
         if EnvironmentInfo.IsSaaSInfrastructure() then
             exit;
 
-        // [GIVEN] An agent-authored VAT specification.
+        // [GIVEN] A VAT specification whose relational fields have been validated against a persisted expense.
+        Initialize();
+        CreateAgentVATSpecificationFixture(ExpenseVATSpecification, Expense);
         ExpenseVATSpecification.Source := ExpenseVATSpecification.Source::Agent;
 
-        // [WHEN] A caller attempts to insert an agent-authored VAT specification without running table triggers.
-        ExpenseVATSpecification.Insert(false);
+        // [WHEN] A caller attempts to insert an agent-authored VAT specification with table triggers.
+        ExpenseVATSpecification.Insert(true);
 
         // [THEN] The agent-authored VAT specification is inserted.
-        Assert.IsTrue(ExpenseVATSpecification.Get(ExpenseVATSpecification."Expense No.", ExpenseVATSpecification."Line No."), 'The VAT specification must be inserted.');
+        Assert.IsTrue(ExpenseVATSpecification.Get(Expense."No.", ExpenseVATSpecification."Line No."), 'The VAT specification must be inserted for the parent expense.');
     end;
 
     [Test]
@@ -1383,6 +1495,30 @@ codeunit 148330 "Expense Posting VAT Test"
         end;
         ExpenseVATSpecification.Validate(Amount, Amount);
         ExpenseVATSpecification.Insert(true);
+    end;
+
+    local procedure CreateAgentVATSpecificationFixture(var ExpenseVATSpecification: Record "Expense VAT Specification"; var Expense: Record Expense)
+    var
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubcategory: Record "Expense Subcategory";
+        ExpenseUser: Record "Expense User";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        CreateSubcategoryWithVATRate(ExpenseSubcategory, ExpenseCategory.Code, 20, VATPostingSetup);
+        LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, ExpenseSubcategory.Code, '', true, '', 120);
+        Expense.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Expense.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        Expense.Modify(true);
+
+        ExpenseVATSpecification.Init();
+        ExpenseVATSpecification.Validate("Expense No.", Expense."No.");
+        ExpenseVATSpecification.Validate("Expense Category", ExpenseCategory.Code);
+        ExpenseVATSpecification.Validate("Expense Subcategory", ExpenseSubcategory.Code);
+        ExpenseVATSpecification.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        ExpenseVATSpecification.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        ExpenseVATSpecification.Validate(Amount, Expense.Amount);
     end;
 
     local procedure UpdateExpenseReportLinesWithVendor(ExpenseReportHeader: Record "Expense Report Header")

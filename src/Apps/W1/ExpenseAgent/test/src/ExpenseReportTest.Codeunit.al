@@ -3333,6 +3333,20 @@ codeunit 148306 "Expense Report Test"
             ExpenseReportLine.UpdatePostingDescription(ExpenseCategory.Code, ExpenseSubcategory[2].Code),
             'The posting description must use the selected subcategory description.');
 
+        // [WHEN] The original subcategory suffix was truncated by the description length limit.
+        BaseDescription := PadStr('', 95, 'B');
+        ExpenseSubcategory[1]."Posting Description" := 'OLD SUFFIX';
+        ExpenseSubcategory[1].Modify();
+        ExpenseSubcategory[2]."Posting Description" := 'NEW SUFFIX';
+        ExpenseSubcategory[2].Modify();
+        ExpenseReportLine.Description := CopyStr(BaseDescription + ' / ' + ExpenseSubcategory[1]."Posting Description", 1, MaxStrLen(ExpenseReportLine.Description));
+
+        // [THEN] The stored part of the old suffix is removed before the new suffix is applied.
+        Assert.AreEqual(
+            CopyStr(BaseDescription + ' / ' + ExpenseSubcategory[2]."Posting Description", 1, MaxStrLen(ExpenseReportLine.Description)),
+            ExpenseReportLine.UpdatePostingDescription(ExpenseCategory.Code, ExpenseSubcategory[2].Code),
+            'The truncated posting-description suffix must be replaced.');
+
         // [WHEN] The selected subcategory has no posting description.
         ExpenseSubcategory[2]."Posting Description" := '';
         ExpenseSubcategory[2].Modify();

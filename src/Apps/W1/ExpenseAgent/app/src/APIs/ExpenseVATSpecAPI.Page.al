@@ -92,6 +92,7 @@ page 7085 "Expense VAT Spec. API"
                 field(source; Rec.Source)
                 {
                     Caption = 'Source';
+                    Editable = false;
                 }
                 field(confidence; Rec.Confidence)
                 {

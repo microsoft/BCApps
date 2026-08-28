@@ -441,8 +441,10 @@ table 6922 "Expense Report Line VAT Spec."
 
     local procedure GetExpenseReportLine()
     begin
-        if ("Document No." <> ExpenseReportLine."Document No.") or ("Document Line No." <> ExpenseReportLine."Line No.") then
+        if ("Document No." <> ExpenseReportLine."Document No.") or ("Document Line No." <> ExpenseReportLine."Line No.") then begin
+            ExpenseReportLine.SetLoadFields("Expense Date");
             ExpenseReportLine.Get("Document No.", "Document Line No.");
+        end;
     end;
 
     local procedure GetReimbursementCurrencyCode(): Code[20]

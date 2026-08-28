@@ -1593,6 +1593,7 @@ table 6907 "Expense Report Line"
         ExpenseSubcategory: Record "Expense Subcategory";
         BaseDescription: Text[100];
         PostingDescriptionSuffix: Text;
+        StoredSuffixLength: Integer;
     begin
         BaseDescription := Description;
         if ("Expense Subcategory Code" <> '') and
@@ -1600,11 +1601,19 @@ table 6907 "Expense Report Line"
            (ExpenseSubcategory."Posting Description" <> '')
         then begin
             PostingDescriptionSuffix := ' / ' + ExpenseSubcategory."Posting Description";
-#pragma warning disable AA0139
-            if BaseDescription.EndsWith(PostingDescriptionSuffix) then
-                BaseDescription := CopyStr(BaseDescription, 1, StrLen(BaseDescription) - StrLen(PostingDescriptionSuffix));
+            StoredSuffixLength := StrLen(PostingDescriptionSuffix);
+            if StoredSuffixLength > MaxStrLen(BaseDescription) then
+                StoredSuffixLength := MaxStrLen(BaseDescription);
+            while (StoredSuffixLength >= StrLen(' / ')) and
+                  (not BaseDescription.EndsWith(CopyStr(PostingDescriptionSuffix, 1, StoredSuffixLength)))
+            do
+                StoredSuffixLength -= 1;
+            if (StoredSuffixLength = StrLen(PostingDescriptionSuffix)) or
+               ((StrLen(BaseDescription) = MaxStrLen(BaseDescription)) and (StoredSuffixLength >= StrLen(' / ')))
+            then
+                BaseDescription := CopyStr(
+                    DelStr(BaseDescription, StrLen(BaseDescription) - StoredSuffixLength + 1), 1, MaxStrLen(BaseDescription));
         end;
-#pragma warning restore AA0139
 
         if (ExpenseSubcategoryCode = '') or
            (not ExpenseSubcategory.Get(ExpenseCategoryCode, ExpenseSubcategoryCode)) or

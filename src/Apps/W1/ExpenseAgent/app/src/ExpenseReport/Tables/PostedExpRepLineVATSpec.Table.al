@@ -284,13 +284,18 @@ table 6934 "Posted Exp. Rep. Line VAT Spec"
         }
     }
 
-    local procedure GetReimbursementCurrencyCode(): Code[20]
     var
         PostedExpenseReportHeader: Record "Posted Expense Report Header";
+
+    local procedure GetReimbursementCurrencyCode(): Code[20]
     begin
-        PostedExpenseReportHeader.SetLoadFields("Reimbursement Currency Code");
-        if PostedExpenseReportHeader.Get("Expense Report No.") then
-            exit(PostedExpenseReportHeader."Reimbursement Currency Code");
+        if "Expense Report No." <> PostedExpenseReportHeader."No." then begin
+            PostedExpenseReportHeader.SetLoadFields("Reimbursement Currency Code");
+            if not PostedExpenseReportHeader.Get("Expense Report No.") then
+                Clear(PostedExpenseReportHeader);
+        end;
+
+        exit(PostedExpenseReportHeader."Reimbursement Currency Code");
     end;
 
     /// <summary>Stores a UTF-8 reclaim justification text into the blob.</summary>
