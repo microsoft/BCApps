@@ -200,7 +200,7 @@ page 1965 "Early Access Preview Features"
         HasVideoUrl: Boolean;
         HasHelpUrl: Boolean;
         VideoFieldText: Text;
-        EarlyAccessPreviewFeatureAreaTok: Label 'EarlyAccessPreview', Locked = true;
+        EarlyAccessPreviewFeatureAreaTok: Label 'EarlyPreview', Locked = true;
         EarlyAccessPreviewFeatureAreaDisplayNameTok: Label 'Early Access Preview', Locked = true;
         WatchVideoLbl: Label 'Watch Video';
 }
