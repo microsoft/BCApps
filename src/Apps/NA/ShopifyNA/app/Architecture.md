@@ -15,33 +15,72 @@ The feature is part of the Shopify Connector NA app and is currently enabled for
 - **Keep people in control**: Incomplete, conflicting, or policy-selected matches are held for review before a sales document is created.
 - **Remain auditable**: Applied matches and review decisions are recorded through standard Business Central surfaces.
 
-## High-level flow
+## Execution flow
 
 ```text
 Shopify order import
-    |
-    v
-Standard address-based tax mapping
-    |
-    v
-Eligibility and safety checks
-    |
-    v
+  |
+  v
+Standard order mapping
+  |-- Import the order, lines, shipping charges, and tax lines
+  |-- Attempt the standard address-based Tax Area lookup
+  |
+  v
+Tax Matching Agent eligibility checks
+  |-- Did order mapping succeed?
+  |-- Is the order taxable?
+  |-- Is the Tax Area still unresolved?
+  |-- Are the feature and Copilot capability enabled?
+  |-- Are the required AI safeguards available?
+  |     \-- No: skip matching and continue standard synchronization
+  |
+  v
+Prepare the matching request
+  |-- Collect unmatched product and shipping tax lines
+  |-- Retain existing jurisdiction assignments for reprocessing
+  |-- Include candidate jurisdictions and coarse ship-to geography
+  |
+  v
 AI-assisted jurisdiction matching
-    |
-    v
-Validate and apply accepted matches
-    |
-    v
-Reuse or create a Tax Area
-    |
-    +--> Hold for review when required
-    |
-    v
-Continue sales document creation
+  |-- Receive structured match proposals
+  |-- Reject malformed or invalid references
+  |-- Leave unresolved tax lines unmatched
+  |-- Create missing jurisdictions only when configured
+  |     \-- Newly created jurisdictions remain provisional
+  |
+  v
+Apply and validate tax setup
+  |-- Assign validated jurisdictions to tax lines
+  |-- Reuse or seed the relevant Tax Details
+  |-- Preserve existing Business Central rates
+  |     \-- Rate difference: flag a conflict; do not overwrite
+  |-- Reuse an exact Tax Area or create one when configured
+  |
+  v
+Record the result
+  |-- Store applied, confidence, incomplete, and conflict state
+  |-- Record audit entries for the applied decisions
+  |
+  v
+Review gate before Sales Document creation
+  |-- Incomplete match or rate conflict: always hold
+  |-- Otherwise evaluate the shop's review mode
+  |     |-- Always: hold
+  |     |-- Low Confidence Only: hold when additional validation is needed
+  |     \-- Never: continue
+  |
+  +-- Held for review
+  |     |-- Reviewer inspects and corrects jurisdictions or rates
+  |     |-- Approval rebuilds the Tax Area and rechecks safety conditions
+  |     \-- The order remains held while incomplete or conflicting
+  |
+  v
+Sales Document creation
+  |-- Propagate the resolved tax context
+  \-- Expose the applied-match marker and review entry points
 ```
 
-The matcher processes product and shipping tax lines. Existing assignments are retained, unresolved lines remain unmatched, and the Tax Area is built only from validated jurisdiction assignments.
+The standard address-based result always takes precedence. On a re-run, existing assignments are included so the Tax Area is rebuilt from the order's complete jurisdiction set rather than only newly matched lines.
 
 ## Responsibilities
 
