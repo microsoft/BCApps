@@ -42,6 +42,35 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     end;
 
     [Test]
+    procedure CrossEnvTransferBlockedUntilPrivacyNoticeApproved()
+    var
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        PrivacyNotice: Codeunit "Privacy Notice";
+    begin
+        // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment] [Privacy]
+        // [SCENARIO] Cross-env data transfer is gated on the privacy notice: blocked until approved, allowed after.
+        Initialize();
+
+        // [GIVEN] the cross-environment privacy notice is not approved
+        PrivacyNotice.SetApprovalState(LibraryMasterDataMgt.PrivacyNoticeId(), "Privacy Notice Approval State"::Disagreed);
+
+        // [THEN] the gate reports not approved and the transport check fails closed
+        Assert.IsFalse(LibraryMasterDataMgt.PrivacyNoticeIsApproved(), 'Gate should report not approved before consent');
+        asserterror LibraryMasterDataMgt.PrivacyNoticeCheckApproved();
+
+        // [WHEN] the admin approves the notice
+        PrivacyNotice.SetApprovalState(LibraryMasterDataMgt.PrivacyNoticeId(), "Privacy Notice Approval State"::Agreed);
+
+        // [THEN] the gate reports approved and the transport check passes
+        Assert.IsTrue(LibraryMasterDataMgt.PrivacyNoticeIsApproved(), 'Gate should report approved after consent');
+        LibraryMasterDataMgt.PrivacyNoticeCheckApproved();
+
+        // reset approval so it does not leak into later tests
+        PrivacyNotice.SetApprovalState(LibraryMasterDataMgt.PrivacyNoticeId(), "Privacy Notice Approval State"::Disagreed);
+        CleanUp();
+    end;
+
+    [Test]
     procedure CrossEnvGetModifiedSetMaterializesSourceChange()
     var
         Customer: Record Customer;

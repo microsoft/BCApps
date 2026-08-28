@@ -70,6 +70,7 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
         EnvironmentInformation: Codeunit "Environment Information";
+        PrivacyNotice: Codeunit "MDM Privacy Notice";
         ResponseMessage: HttpResponseMessage;
         ResponseBodyText: Text;
         RetryAfter: Duration;
@@ -78,6 +79,7 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         GetConfiguredSetup(MasterDataManagementSetup);
         if not EnvironmentInformation.IsSaaSInfrastructure() then
             Error(NonSaaSErr);
+        PrivacyNotice.CheckApproved();
 
         for Attempt := 0 to MaxRetries() do begin
             Send(MasterDataManagementSetup, ActionName, RequestBody, ResponseMessage);

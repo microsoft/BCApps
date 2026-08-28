@@ -129,6 +129,30 @@ codeunit 139757 "Library - Master Data Mgt."
         exit(InlineMedia.Contains(SystemId, FieldNo));
     end;
 
+    /// <summary>Returns the registered privacy-notice ID that gates cross-environment synchronization.</summary>
+    procedure PrivacyNoticeId(): Code[50]
+    var
+        MDMPrivacyNotice: Codeunit "MDM Privacy Notice";
+    begin
+        exit(MDMPrivacyNotice.GetPrivacyNoticeId());
+    end;
+
+    /// <summary>Returns whether the cross-environment privacy notice is currently approved.</summary>
+    procedure PrivacyNoticeIsApproved(): Boolean
+    var
+        MDMPrivacyNotice: Codeunit "MDM Privacy Notice";
+    begin
+        exit(MDMPrivacyNotice.IsApproved());
+    end;
+
+    /// <summary>Runs the fail-closed transport gate; errors when the privacy notice is not approved.</summary>
+    procedure PrivacyNoticeCheckApproved()
+    var
+        MDMPrivacyNotice: Codeunit "MDM Privacy Notice";
+    begin
+        MDMPrivacyNotice.CheckApproved();
+    end;
+
     var
         MasterDataMgtSubscribers: Codeunit "Master Data Mgt. Subscribers";
         MasterDataManagement: Codeunit "Master Data Management";
