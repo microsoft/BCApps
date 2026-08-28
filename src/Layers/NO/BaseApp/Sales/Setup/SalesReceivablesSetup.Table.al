@@ -576,7 +576,7 @@ table 311 "Sales & Receivables Setup"
             ToolTip = 'Specifies if the system will suggest to create a new item when no item matches the number that you enter in the No. Field on sales lines.';
             ObsoleteReason = 'Discontinued function';
             ObsoleteState = Removed;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
         }
 #endif
         /// <summary>

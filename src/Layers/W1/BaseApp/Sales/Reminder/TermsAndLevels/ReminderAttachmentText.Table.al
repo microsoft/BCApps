@@ -63,7 +63,7 @@ table 502 "Reminder Attachment Text"
             DataClassification = CustomerContent;
             ObsoleteReason = 'To support the use of multiple lines, this is replaced by Reminder Attachment Text Line table.';
             ObsoleteState = Removed;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
         }
 #endif
         /// <summary>
@@ -85,7 +85,7 @@ table 502 "Reminder Attachment Text"
             DataClassification = CustomerContent;
             ObsoleteReason = 'To support the use of multiple lines, this is replaced by Reminder Attachment Text Line table.';
             ObsoleteState = Removed;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
         }
 #endif
         /// <summary>

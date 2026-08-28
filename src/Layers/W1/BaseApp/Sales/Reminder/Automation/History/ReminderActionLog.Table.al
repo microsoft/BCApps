@@ -54,7 +54,7 @@ table 6752 "Reminder Action Log"
             ToolTip = 'Specifies the total number of errors that occurred during the action job.';
             ObsoleteState = Removed;
             ObsoleteReason = 'This field is obsolete and should not be used.';
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
         }
 #endif
         /// <summary>

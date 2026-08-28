@@ -47,7 +47,7 @@ table 420 "Handled IC Inbox Trans."
             Editable = false;
             ObsoleteReason = 'Replaced by IC Source Type for Enum typing';
             ObsoleteState = Removed;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
         }
 #endif
         /// <summary>

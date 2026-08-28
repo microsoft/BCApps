@@ -344,7 +344,7 @@ table 312 "Purchases & Payables Setup"
             ToolTip = 'Specifies if the system will suggest to create a new item when no item matches the number that you enter in the No. Field on purchase lines.';
             ObsoleteReason = 'Discontinued function';
             ObsoleteState = Removed;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
         }
 #endif        
         field(58; "Copy Vendor Name to Entries"; Boolean)
@@ -551,7 +551,7 @@ table 312 "Purchases & Payables Setup"
             Caption = 'Part. Pay. Nos.';
             TableRelation = "No. Series";
             ObsoleteReason = 'The field is not used and will be obsoleted';
-			ObsoleteState = Removed;
+            ObsoleteState = Removed;
             ObsoleteTag = '26.0';
         }
 #endif

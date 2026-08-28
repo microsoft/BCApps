@@ -49,7 +49,7 @@ table 418 "IC Inbox Transaction"
             Editable = false;
             ObsoleteReason = 'Replaced by IC Source Type for Enum typing';
             ObsoleteState = Removed;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
         }
 #endif
         /// <summary>
