@@ -35,11 +35,13 @@ pageextension 10806 "Customer Card" extends "Customer Card"
     var
         SalesFRFeatureEnabled: Boolean;
 
+#pragma warning disable AL0432
     trigger OnOpenPage()
     var
         SalesFR: Codeunit "Sales FR";
     begin
         SalesFRFeatureEnabled := SalesFR.IsEnabled();
     end;
+#pragma warning restore AL0432
 #endif
 }

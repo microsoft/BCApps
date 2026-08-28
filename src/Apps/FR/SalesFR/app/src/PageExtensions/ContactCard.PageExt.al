@@ -36,11 +36,13 @@ pageextension 10812 "Contact Card" extends "Contact Card"
     var
         SalesFRFeatureEnabled: Boolean;
 
+#pragma warning disable AL0432
     trigger OnOpenPage()
     var
         SalesFR: Codeunit "Sales FR";
     begin
         SalesFRFeatureEnabled := SalesFR.IsEnabled();
     end;
+#pragma warning restore AL0432
 #endif
 }
