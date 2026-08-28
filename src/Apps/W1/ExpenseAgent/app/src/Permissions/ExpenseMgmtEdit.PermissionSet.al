@@ -13,6 +13,8 @@ permissionset 6906 "Expense Mgmt. Edit"
 
     Permissions =
         tabledata Expense = IMD,
+        tabledata "Expense Vehicle Type" = IMD,
+        tabledata "Mileage Rate Setup" = IMD,
         tabledata "Expense User" = IMD,
         tabledata "Expense Report Comment Line" = IMD,
         tabledata "Expense Itemization" = IMD,
