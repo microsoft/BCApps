@@ -167,6 +167,10 @@ page 6993 "Posted Expense Report SubP."
                 {
                     ApplicationArea = Basic, Suite;
                 }
+                field("Vehicle Type"; Rec."Vehicle Type")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
                 field("Job Ledger Entry No."; Rec."Job Ledger Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
