@@ -1,7 +1,6 @@
 ﻿namespace System.IO;
 
 using System;
-using System.Integration;
 using System.Utilities;
 
 codeunit 1237 "Get Json Structure"
@@ -12,10 +11,7 @@ codeunit 1237 "Get Json Structure"
     end;
 
     var
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
         JsonConvert: DotNet JsonConvert;
-        GLBHttpStatusCode: DotNet HttpStatusCode;
-        GLBResponseHeaders: DotNet NameValueCollection;
         FileContent: Text;
         InvalidResponseErr: Label 'The response was not valid.';
 
@@ -28,18 +24,27 @@ codeunit 1237 "Get Json Structure"
         JsonInStream: InStream;
         XMLOutStream: OutStream;
         File: File;
+        HttpClient: HttpClient;
+        HttpRequestMessage: HttpRequestMessage;
+        HttpResponseMessage: HttpResponseMessage;
+        HttpHeaders: HttpHeaders;
+        HttpContent: HttpContent;
     begin
         if File.Open(Path) then
             File.CreateInStream(JsonInStream)
         else begin
             TempBlobResponse.CreateInStream(JsonInStream);
-            Clear(HttpWebRequestMgt);
-            HttpWebRequestMgt.Initialize(Path);
-            HttpWebRequestMgt.SetMethod('POST');
-            HttpWebRequestMgt.SetReturnType('application/json');
-            HttpWebRequestMgt.SetContentType('application/x-www-form-urlencoded');
-            HttpWebRequestMgt.AddHeader('Accept-Encoding', 'utf-8');
-            HttpWebRequestMgt.GetResponse(JsonInStream, GLBHttpStatusCode, GLBResponseHeaders);
+            HttpRequestMessage.Method('POST');
+            HttpRequestMessage.SetRequestUri(Path);
+            HttpRequestMessage.GetHeaders(HttpHeaders);
+            HttpHeaders.Add('Accept', 'application/json');
+            HttpHeaders.Add('Accept-Encoding', 'utf-8');
+            HttpContent.GetHeaders(HttpHeaders);
+            HttpHeaders.Remove('Content-Type');
+            HttpHeaders.Add('Content-Type', 'application/x-www-form-urlencoded');
+            HttpRequestMessage.Content(HttpContent);
+            HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
+            HttpResponseMessage.Content.ReadAs(JsonInStream);
         end;
 
         TempBlob.CreateOutStream(XMLOutStream);
@@ -81,4 +86,3 @@ codeunit 1237 "Get Json Structure"
         XmlDocument.Save(XMLOutStream);
     end;
 }
-

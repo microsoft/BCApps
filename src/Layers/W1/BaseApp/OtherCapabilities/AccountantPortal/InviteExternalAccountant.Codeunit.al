@@ -3,7 +3,6 @@ namespace Microsoft.AccountantPortal;
 using System;
 using System.Azure.Identity;
 using System.Environment.Configuration;
-using System.Integration;
 using System.Text;
 using System.Utilities;
 
@@ -281,33 +280,51 @@ codeunit 9033 "Invite External Accountant"
     var
         AzureADMgt: Codeunit "Azure AD Mgt.";
         AzureADTenant: Codeunit "Azure AD Tenant";
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
-        HttpStatusCode: DotNet HttpStatusCode;
-        ResponseHeaders: DotNet NameValueCollection;
+        HttpClient: HttpClient;
+        HttpRequestMessage: HttpRequestMessage;
+        HttpResponseMessage: HttpResponseMessage;
+        HttpContent: HttpContent;
+        HttpHeaders: HttpHeaders;
         ResponseErrorMessage: Text;
         ResponseErrorDetails: Text;
         AccessToken: Text;
+        AccessTokenSecret: SecretText;
     begin
         AccessToken := AzureADMgt.GetGuestAccessToken(AuthResourceUrl, AzureADTenant.GetAadTenantId());
 
         if AccessToken = '' then
             Error(ErrorAcquiringTokenErr);
 
-        HttpWebRequestMgt.Initialize(Url);
-        HttpWebRequestMgt.DisableUI();
-        HttpWebRequestMgt.SetReturnType('application/json');
-        HttpWebRequestMgt.SetContentType('application/json');
-        HttpWebRequestMgt.SetMethod(Verb);
-        HttpWebRequestMgt.AddHeader('Authorization', 'Bearer ' + AccessToken);
-        if Verb <> 'GET' then
-            HttpWebRequestMgt.AddBodyAsText(Body);
+        AccessTokenSecret := AccessToken;
+        HttpRequestMessage.Method(Verb);
+        HttpRequestMessage.SetRequestUri(Url);
+        HttpRequestMessage.GetHeaders(HttpHeaders);
+        HttpHeaders.Add('Authorization', SecretStrSubstNo('Bearer %1', AccessTokenSecret));
+        HttpHeaders.Add('Accept', 'application/json');
+        if Verb <> 'GET' then begin
+            HttpContent.WriteFrom(Body);
+            HttpContent.GetHeaders(HttpHeaders);
+            HttpHeaders.Remove('Content-Type');
+            HttpHeaders.Add('Content-Type', 'application/json');
+            HttpRequestMessage.Content(HttpContent);
+        end;
 
-        if HttpWebRequestMgt.SendRequestAndReadTextResponse(ResponseContent, ResponseErrorMessage, ResponseErrorDetails, HttpStatusCode, ResponseHeaders) then
+        if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
+            ResponseErrorMessage := GetLastErrorText();
+            Session.LogMessage('0000B3O', StrSubstNo(InvokeWebRequestFailedTxt, 0, ResponseErrorMessage), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', InviteExternalAccountantTelemetryCategoryTxt);
+            Session.LogMessage('0000B3P', StrSubstNo(InvokeWebRequestFailedDetailedTxt, 0, ResponseErrorMessage, ResponseErrorDetails), Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', InviteExternalAccountantTelemetryCategoryTxt);
+            exit(false);
+        end;
+
+        HttpResponseMessage.Content.ReadAs(ResponseContent);
+        if HttpResponseMessage.IsSuccessStatusCode() then
             exit(true)
         else begin
-            Session.LogMessage('0000B3O', StrSubstNo(InvokeWebRequestFailedTxt, HttpStatusCode, ResponseErrorMessage), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', InviteExternalAccountantTelemetryCategoryTxt);
+            ResponseErrorMessage := HttpResponseMessage.ReasonPhrase();
+            ResponseErrorDetails := ResponseContent;
+            Session.LogMessage('0000B3O', StrSubstNo(InvokeWebRequestFailedTxt, HttpResponseMessage.HttpStatusCode(), ResponseErrorMessage), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', InviteExternalAccountantTelemetryCategoryTxt);
 
-            Session.LogMessage('0000B3P', StrSubstNo(InvokeWebRequestFailedDetailedTxt, HttpStatusCode, ResponseErrorMessage, ResponseErrorDetails), Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', InviteExternalAccountantTelemetryCategoryTxt);
+            Session.LogMessage('0000B3P', StrSubstNo(InvokeWebRequestFailedDetailedTxt, HttpResponseMessage.HttpStatusCode(), ResponseErrorMessage, ResponseErrorDetails), Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', InviteExternalAccountantTelemetryCategoryTxt);
 
             exit(false);
         end;
@@ -399,4 +416,3 @@ codeunit 9033 "Invite External Accountant"
         // This event is called when the invitation process tries to create a user.
     end;
 }
-

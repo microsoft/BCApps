@@ -638,26 +638,59 @@ codeunit 6710 ODataUtility
     [Scope('OnPrem')]
     procedure DownloadODataMetadataDocument()
     var
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
+        HttpClient: HttpClient;
+        HttpRequestMessage: HttpRequestMessage;
+        HttpResponseMessage: HttpResponseMessage;
         MetadataTempBlob: Codeunit "Temp Blob";
-        HttpStatusCode: DotNet HttpStatusCode;
-        ResponseHeaders: DotNet NameValueCollection;
         ResponseInStream: InStream;
         FileName: Text;
     begin
         MetadataTempBlob.CreateInStream(ResponseInStream);
 
-        if not CreateMetadataWebRequest(HttpWebRequestMgt) then
+        if not CreateMetadataRequest(HttpRequestMessage) then
             Error(FailedToSendRequestErr, GetLastErrorText());
 
-        if not HttpWebRequestMgt.GetResponse(ResponseInStream, HttpStatusCode, ResponseHeaders) then
+        if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then
             Error(FailedToSendRequestErr, GetLastErrorText());
 
-        if not HttpStatusCode.Equals(HttpStatusCode.OK) then
-            Error(ErrorStatusCodeReturnedErr, HttpStatusCode);
+        if HttpResponseMessage.HttpStatusCode() <> 200 then
+            Error(ErrorStatusCodeReturnedErr, HttpResponseMessage.HttpStatusCode());
 
+        HttpResponseMessage.Content.ReadAs(ResponseInStream);
         FileName := MetadataFileNameTxt;
         DownloadFromStream(ResponseInStream, SaveFileDialogTitleMsg, '', SaveFileDialogFilterMsg, FileName);
+    end;
+
+    [Scope('OnPrem')]
+    procedure CreateMetadataRequest(var HttpRequestMessage: HttpRequestMessage): Boolean
+    var
+        AzureAdMgt: Codeunit "Azure AD Mgt.";
+        UrlHelper: Codeunit "Url Helper";
+        HttpHeaders: HttpHeaders;
+        Token: SecretText;
+        Endpoint: Text;
+        CorrelationId: Guid;
+    begin
+        if not EnvironmentInfo.IsSaaS() then
+            exit(false);
+
+        Endpoint := GetUrl(CLIENTTYPE::ODataV4) + '/$metadata';
+        Token := AzureAdMgt.GetAccessTokenAsSecretText(UrlHelper.GetFixedEndpointWebServiceUrl(), '', false);
+        if Token.IsEmpty() then begin
+            Session.LogMessage('0000E51', NoTokenForMetadataTelemetryErr, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ODataUtilityTelemetryCategoryTxt);
+            exit(false);
+        end;
+
+        CorrelationId := CreateGuid();
+        Session.LogMessage('0000E53', StrSubstNo(CallingEndpointTxt, Endpoint, CorrelationId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ODataUtilityTelemetryCategoryTxt);
+
+        HttpRequestMessage.Method('GET');
+        HttpRequestMessage.SetRequestUri(Endpoint);
+        HttpRequestMessage.GetHeaders(HttpHeaders);
+        HttpHeaders.Add('Authorization', SecretStrSubstNo(BearerTokenTemplateTxt, Token));
+        HttpHeaders.Add('x-ms-correlation-id', CorrelationId);
+        HttpHeaders.Add('User-Agent', 'BusinessCentral/cod6170');
+        exit(true);
     end;
 
     [Scope('OnPrem')]

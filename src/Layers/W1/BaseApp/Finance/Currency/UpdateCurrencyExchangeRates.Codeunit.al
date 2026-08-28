@@ -7,10 +7,8 @@ namespace Microsoft.Finance.Currency;
 using Microsoft.Utilities;
 using System;
 using System.Environment.Configuration;
-using System.Integration;
 using System.IO;
 using System.Utilities;
-using System.Xml;
 
 /// <summary>
 /// Manages automatic updates of currency exchange rates from external services.
@@ -33,7 +31,6 @@ codeunit 1281 "Update Currency Exchange Rates"
 
     var
         TempBlobResponse: Codeunit "Temp Blob";
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
         NoSyncCurrencyExchangeRatesSetupErr: Label 'There are no active Currency Exchange Rate Sync. Setup records.';
         MissingExchRateNotificationNameTxt: Label 'Missing Exchange Rates';
         MissingExchRateNotificationDescriptionTxt: Label 'Show warning to enter exchange rates when a new currency is created.';
@@ -116,21 +113,27 @@ codeunit 1281 "Update Currency Exchange Rates"
 
     local procedure ExecuteWebServiceRequest(CurrExchRateUpdateSetup: Record "Curr. Exch. Rate Update Setup"; var ResponseInStream: InStream)
     var
-        HttpStatusCode: DotNet HttpStatusCode;
-        ResponseHeaders: DotNet NameValueCollection;
+        HttpClient: HttpClient;
+        HttpRequestMessage: HttpRequestMessage;
+        HttpResponseMessage: HttpResponseMessage;
+        ResponseErrorText: Text;
         URL: Text;
     begin
         CurrExchRateUpdateSetup.GetWebServiceURL(URL);
-        HttpWebRequestMgt.Initialize(URL);
-        HttpWebRequestMgt.SetReturnType('application/xml,text/xml');
+        HttpRequestMessage.Method('GET');
+        HttpRequestMessage.SetRequestUri(URL);
+        if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
+            ShowHttpError(CurrExchRateUpdateSetup, URL, GetLastErrorText());
+            exit;
+        end;
 
-        if not GuiAllowed then
-            HttpWebRequestMgt.DisableUI();
+        if not HttpResponseMessage.IsSuccessStatusCode() then begin
+            HttpResponseMessage.Content.ReadAs(ResponseErrorText);
+            ShowHttpError(CurrExchRateUpdateSetup, URL, ResponseErrorText);
+            exit;
+        end;
 
-        HttpWebRequestMgt.SetTraceLogEnabled(CurrExchRateUpdateSetup."Log Web Requests");
-
-        if not HttpWebRequestMgt.GetResponse(ResponseInStream, HttpStatusCode, ResponseHeaders) then
-            ShowHttpError(CurrExchRateUpdateSetup, URL);
+        HttpResponseMessage.Content.ReadAs(ResponseInStream);
     end;
 
     procedure GenerateTempDataFromService(var TempCurrencyExchangeRate: Record "Currency Exchange Rate" temporary; CurrExchRateUpdateSetup: Record "Curr. Exch. Rate Update Setup")
@@ -149,30 +152,13 @@ codeunit 1281 "Update Currency Exchange Rates"
         DataExch.Delete(true);
     end;
 
-    local procedure ShowHttpError(CurrExchRateUpdateSetup: Record "Curr. Exch. Rate Update Setup"; WebServiceURL: Text)
+    local procedure ShowHttpError(CurrExchRateUpdateSetup: Record "Curr. Exch. Rate Update Setup"; WebServiceURL: Text; ErrorText: Text)
     var
         ActivityLog: Record "Activity Log";
-        WebRequestHelper: Codeunit "Web Request Helper";
-        XMLDOMMgt: Codeunit "XML DOM Management";
-        WebException: DotNet WebException;
-        XmlNode: DotNet XmlNode;
-        ResponseInputStream: InStream;
-        ErrorText: Text;
     begin
-        ErrorText := WebRequestHelper.GetWebResponseError(WebException, WebServiceURL);
-
         ActivityLog.LogActivity(
           CurrExchRateUpdateSetup, ActivityLog.Status::Failed, CurrExchRateUpdateSetup."Service Provider",
           CurrExchRateUpdateSetup.Description, ErrorText);
-
-        if IsNull(WebException.Response) then
-            Error(ErrorText);
-
-        ResponseInputStream := WebException.Response.GetResponseStream();
-
-        XMLDOMMgt.LoadXMLNodeFromInStream(ResponseInputStream, XmlNode);
-
-        ErrorText := WebException.Message;
 
         Error(ErrorText);
     end;
@@ -268,4 +254,3 @@ codeunit 1281 "Update Currency Exchange Rates"
     begin
     end;
 }
-
