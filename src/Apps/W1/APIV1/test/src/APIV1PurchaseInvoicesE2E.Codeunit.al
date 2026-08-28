@@ -468,7 +468,7 @@ codeunit 139729 "APIV1 - Purchase Invoices E2E"
         PaymentLineFieldRef.SetRange(DocumentNo);
         PaymentLineFieldRef := PaymentLineRecordRef.Field(7);
         PaymentLineFieldRef.SetFilter('>%1', 0);
-        exit(PaymentLineRecordRef.FindFirst());
+        exit(not PaymentLineRecordRef.IsEmpty());
     end;
 
     local procedure CreatePurchaseInvoices(var InvoiceID1: Text; var InvoiceID2: Text)

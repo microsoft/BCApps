@@ -21,7 +21,7 @@ codeunit 131022 "Library - Graph Auth Mgt."
         NavServerUserPasswordKeyTok: Label 'NavServerUserPassword', Locked = true;
         ContainerPasswordReadErr: Label 'The API test password could not be read from %1.', Comment = '%1 - Password file path';
         KeyVaultPasswordReadErr: Label 'The API test password could not be retrieved from the %1 secret.', Comment = '%1 - Azure Key Vault secret name';
-        PasswordRetrievalFailedErr: Label 'The API test password could not be retrieved.', Locked = true;
+        PasswordRetrievalFailedErr: Label 'The API test password could not be retrieved.';
 
     [NonDebuggable]
     internal procedure AddAuthentication(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt."; TargetURL: Text)
