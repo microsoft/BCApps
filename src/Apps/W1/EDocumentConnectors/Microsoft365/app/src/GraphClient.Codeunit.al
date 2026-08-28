@@ -6,6 +6,7 @@ namespace Microsoft.EServices.EDocumentConnector.Microsoft365;
 
 using System;
 using System.Environment;
+using System.Integration;
 using System.Utilities;
 
 #pragma warning disable AS0130
