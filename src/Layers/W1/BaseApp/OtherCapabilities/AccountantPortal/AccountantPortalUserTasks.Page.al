@@ -45,7 +45,9 @@ page 1316 "Accountant Portal User Tasks"
                     Caption = 'Priority', Locked = true;
                     ToolTip = 'Specifies the priority of the task.';
                 }
+#pragma warning disable AW0004 // Accepted: pre-existing page field; changing the source expression would be a breaking change.
                 field(Description; Rec.Description)
+#pragma warning restore AW0004
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Description', Locked = true;

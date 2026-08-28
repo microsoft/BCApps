@@ -114,6 +114,9 @@ page 20438 "Qlty. Management Setup Guide"
         QltyMgmtFeatureTelemetry.LogFeatureUptakeDiscovered(ObjectType::Page, Page::"Qlty. Management Setup Guide");
     end;
 
+    /// <summary>
+    /// Completes assisted setup, initializes notifications, refreshes the experience tier, and closes the page.
+    /// </summary>
     local procedure DoneAction();
     var
         QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
@@ -130,6 +133,9 @@ page 20438 "Qlty. Management Setup Guide"
         CurrPage.Close();
     end;
 
+    /// <summary>
+    /// Loads the standard assisted setup banner and sets its visibility.
+    /// </summary>
     local procedure LoadTopBanners()
     begin
         if MediaRepositoryStandard.Get('AssistedSetup-NoText-400px.png', Format(CurrentClientType())) then

@@ -19,21 +19,14 @@
       "action": "Warning"
     },
     {
+      "id": "AL0424",
+      "action": "Warning",
+      "justification": "Bug 472148. The multilanguage syntax is being deprecated. Please update to the new syntax."
+    },
+    {
       "id": "AL0432",
       "action": "None",
       "justification": "Use pragma to remove obsolete warning."
-    },
-    {
-      "id": "AL0523",
-      "action": "Warning"
-    },
-    {
-      "id": "AL0547",
-      "action": "Warning"
-    },
-    {
-      "id": "AL0589",
-      "action": "Warning"
     },
     {
       "id": "AA0247",
@@ -49,11 +42,6 @@
       "action": "Warning"
     },
     {
-      "id": "AL0659",
-      "action": "Warning",
-      "justification": "The length of the enum identifier 'Acc. Schedule Line Totaling Type' should not exceed 30 characters as it may result in runtime issues in cases where there are other enums with the same first 30 characters."
-    },
-    {
       "id": "AL0667",
       "action": "Warning",
       "justification": "'ObsoleteReason' is being deprecated in the versions: '1.0' or greater. This property is not allowed on areas. This warning will become an error in a future release."
@@ -62,10 +50,6 @@
       "id": "AL0684",
       "action": "None",
       "justification": "The permissionset contains permissionsets or permission for objects from other module. Permissions on objects from other modules will be ignored."
-    },
-    {
-      "id": "AL0685",
-      "action": "Warning"
     },
     {
       "id": "AL0717",
@@ -79,10 +63,6 @@
       "id": "AL0729",
       "action": "Warning",
       "justification": "Bug 472138. The property 'Promoted' can only be set if the property 'PageType' is set with any of the values of: 'Card,Document,List,ListPlus,Worksheet' This warning will become an error in a future release."
-    },
-    {
-      "id": "AL0749",
-      "action": "Warning"
     },
     {
       "id": "AS0059",
@@ -113,16 +93,6 @@
       "id": "AS0051",
       "action": "Warning",
       "justification": "The manifest property 'contextSensitiveHelpUrl' must be specified and contain a meaningful value."
-    },
-    {
-      "id": "AS0052",
-      "action": "Warning",
-      "justification": "The property 'url' must be set to a valid URL."
-    },
-    {
-      "id": "AS0058",
-      "action": "Warning",
-      "justification": "Only use AssertError in Test Codeunits."
     },
     {
       "id": "AS0062",
@@ -358,11 +328,6 @@
       "justification": "The Web client does not support displaying Repeater controls containing Parts."
     },
     {
-      "id": "AW0004",
-      "action": "Warning",
-      "justification": "A Blob cannot be used as a source expression for a page field."
-    },
-    {
       "id": "AW0005",
       "action": "Warning",
       "justification": "Action should have a value for the Image property."
@@ -383,11 +348,6 @@
       "justification": "Group 'Processing' only contains promoted actions that are not set to PromotedOnly='true'."
     },
     {
-      "id": "AW0014",
-      "action": "Warning",
-      "justification": "The group defined in Page should not be hidden because it contains the target actions for some ActionRefs."
-    },
-    {
       "id": "PTE0002",
       "action": "None",
       "justification": "Field ID must be within the range '[50000..99999]'."
@@ -396,11 +356,6 @@
       "id": "PTE0004",
       "action": "Warning",
       "justification": "Table is missing a matching permission set."
-    },
-    {
-      "id": "PTE0007",
-      "action": "Warning",
-      "justification": "Only use AssertError in Test Codeunits."
     },
     {
       "id": "PTE0008",
@@ -412,15 +367,11 @@
       "action": "Warning"
     },
     {
-      "id": "AL0468",
-      "action": "Warning"
-    },
-    {
       "id": "AL0603",
       "action": "Warning"
     },
     {
-      "id": "AL0520",
+      "id": "AL0523",
       "action": "Warning"
     },
     {
@@ -429,14 +380,6 @@
     },
     {
       "id": "AL0607",
-      "action": "Warning"
-    },
-    {
-      "id": "AL0611",
-      "action": "Warning"
-    },
-    {
-      "id": "AL0679",
       "action": "Warning"
     },
     {
@@ -476,10 +419,6 @@
     {
       "id": "AA0241",
       "action": "None"
-    },
-    {
-      "id": "AS0054",
-      "action": "Warning"
     }
   ]
 }

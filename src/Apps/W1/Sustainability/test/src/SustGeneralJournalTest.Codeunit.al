@@ -1,6 +1,7 @@
 namespace Microsoft.Test.Sustainability;
 
 using Microsoft.Bank.BankAccount;
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Preview;
@@ -867,6 +868,185 @@ codeunit 148188 "Sust. General Journal Test"
         Navigate.Run();
     end;
 
+    [Test]
+    [HandlerFunctions('GLPostingPreviewSingleEntryHandler')]
+    procedure VerifyPreviewPostingOfGenJournalDoesNotConsumeSustainabilityLedgerEntryNo()
+    var
+        SustainabilityLedgerEntry: Record "Sustainability Ledger Entry";
+        SustainabilityAccount: Record "Sustainability Account";
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        BaselineGenJournalLine: Record "Gen. Journal Line";
+        GenJournalLine: Record "Gen. Journal Line";
+        BankAccount: Record "Bank Account";
+        GLAccount: Record "G/L Account";
+        Vendor: Record Vendor;
+        GenJnlPost: Codeunit "Gen. Jnl.-Post";
+        CategoryCode: Code[20];
+        SubcategoryCode: Code[20];
+        AccountCode: Code[20];
+        BaselineEntryNo: Integer;
+        Index: Integer;
+        EmissionCO2: Decimal;
+        EmissionCH4: Decimal;
+        EmissionN2O: Decimal;
+    begin
+        // [SCENARIO 640599] Preview Posting of a General Journal Line must not consume the Sustainability Ledger Entry identity.
+        LibrarySustainability.CleanUpBeforeTesting();
+
+        // [GIVEN] Create a Sustainability Account.
+        CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
+        SustainabilityAccount.Get(AccountCode);
+
+        // [GIVEN] Generate Emission.
+        EmissionCO2 := LibraryRandom.RandInt(20);
+        EmissionCH4 := LibraryRandom.RandInt(5);
+        EmissionN2O := LibraryRandom.RandInt(5);
+
+        // [GIVEN] Create a Bank Account whose posting group has a G/L account so the line can post.
+        LibraryERM.CreateGLAccount(GLAccount);
+        LibraryERM.CreateBankAccount(BankAccount, GLAccount);
+
+        // [GIVEN] Create a Vendor.
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [GIVEN] Create a Gen Journal Template.
+        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
+
+        // [GIVEN] Create a Gen Journal Batch.
+        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
+
+        // [GIVEN] Post a baseline General Journal Line to observe the committed Sustainability Ledger Entry identity.
+        CreateGenJournalLineWithEmission(
+            BaselineGenJournalLine, GenJournalBatch, Vendor."No.", BankAccount."No.", SustainabilityAccount."No.",
+            EmissionCO2, EmissionCH4, EmissionN2O);
+        LibraryERM.PostGeneralJnlLine(BaselineGenJournalLine);
+
+        // [GIVEN] Record the committed baseline Entry No.
+        SustainabilityLedgerEntry.SetRange("Document No.", BaselineGenJournalLine."Document No.");
+        SustainabilityLedgerEntry.FindLast();
+        BaselineEntryNo := SustainabilityLedgerEntry."Entry No.";
+
+        // [GIVEN] Prepare a single General Journal Line with Sustainability emissions.
+        CreateGenJournalLineWithEmission(
+            GenJournalLine, GenJournalBatch, Vendor."No.", BankAccount."No.", SustainabilityAccount."No.",
+            EmissionCO2, EmissionCH4, EmissionN2O);
+
+        // [GIVEN] Save a transaction.
+        Commit();
+
+        // [WHEN] Preview the General Journal Line three times.
+        GenJournalLine.SetRange("Journal Template Name", GenJournalBatch."Journal Template Name");
+        GenJournalLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
+        for Index := 1 to 3 do begin
+            asserterror GenJnlPost.Preview(GenJournalLine);
+            Assert.ExpectedError('');
+        end;
+
+        // [WHEN] Post the General Journal Line.
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] The committed Sustainability Ledger Entry equals the baseline plus one, proving the three previews consumed no identity.
+        SustainabilityLedgerEntry.Reset();
+        SustainabilityLedgerEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        SustainabilityLedgerEntry.FindLast();
+        Assert.AreEqual(
+            BaselineEntryNo + 1,
+            SustainabilityLedgerEntry."Entry No.",
+            StrSubstNo(ValueMustBeEqualErr, SustainabilityLedgerEntry.FieldCaption("Entry No."), BaselineEntryNo + 1, SustainabilityLedgerEntry.TableCaption()));
+    end;
+
+    [Test]
+    [HandlerFunctions('GLPostingPreviewResetKeyDrillDownHandler')]
+    procedure VerifyRepeatedGenJournalPreviewResetsNegativeTemporaryKeys()
+    var
+        SustainabilityLedgerEntry: Record "Sustainability Ledger Entry";
+        SustainabilityAccount: Record "Sustainability Account";
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: array[2] of Record "Gen. Journal Line";
+        BankAccount: Record "Bank Account";
+        GLAccount: Record "G/L Account";
+        Vendor: Record Vendor;
+        GenJnlPost: Codeunit "Gen. Jnl.-Post";
+        CategoryCode: Code[20];
+        SubcategoryCode: Code[20];
+        AccountCode: Code[20];
+        Index: Integer;
+        EmissionCO2: Decimal;
+        EmissionCH4: Decimal;
+        EmissionN2O: Decimal;
+    begin
+        // [SCENARIO 640599] Every repeated General Journal preview reuses the same reset pair of negative temporary Entry No. values.
+        LibrarySustainability.CleanUpBeforeTesting();
+
+        // [GIVEN] Create a Sustainability Account.
+        CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
+        SustainabilityAccount.Get(AccountCode);
+
+        // [GIVEN] Generate Emission.
+        EmissionCO2 := LibraryRandom.RandInt(20);
+        EmissionCH4 := LibraryRandom.RandInt(5);
+        EmissionN2O := LibraryRandom.RandInt(5);
+
+        // [GIVEN] Create a Bank Account whose posting group has a G/L account so the line can post.
+        LibraryERM.CreateGLAccount(GLAccount);
+        LibraryERM.CreateBankAccount(BankAccount, GLAccount);
+
+        // [GIVEN] Create a Vendor.
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [GIVEN] Create a Gen Journal Template.
+        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
+
+        // [GIVEN] Create a Gen Journal Batch.
+        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
+
+        // [GIVEN] Prepare two General Journal Lines each producing a preview Sustainability Ledger Entry.
+        CreateGenJournalLineWithEmission(
+            GenJournalLine[1], GenJournalBatch, Vendor."No.", BankAccount."No.", SustainabilityAccount."No.",
+            EmissionCO2, EmissionCH4, EmissionN2O);
+        CreateGenJournalLineWithEmission(
+            GenJournalLine[2], GenJournalBatch, Vendor."No.", BankAccount."No.", SustainabilityAccount."No.",
+            EmissionCO2, EmissionCH4, EmissionN2O);
+
+        // [GIVEN] Save a transaction.
+        Commit();
+
+        // [WHEN] Preview the General Journal Lines multiple times.
+        GenJournalLine[1].SetRange("Journal Template Name", GenJournalBatch."Journal Template Name");
+        GenJournalLine[1].SetRange("Journal Batch Name", GenJournalBatch.Name);
+        for Index := 1 to 2 do begin
+            // [THEN] The drilldown handler asserts the same reset key pair (-1999999999 then -2000000000) on every preview run.
+            asserterror GenJnlPost.Preview(GenJournalLine[1]);
+            Assert.ExpectedError('');
+        end;
+
+        // [THEN] No physical preview Sustainability Ledger Entry persists in the real table.
+        SustainabilityLedgerEntry.Reset();
+        Assert.RecordIsEmpty(SustainabilityLedgerEntry);
+    end;
+
+    local procedure CreateGenJournalLineWithEmission(var GenJournalLine: Record "Gen. Journal Line"; GenJournalBatch: Record "Gen. Journal Batch"; VendorNo: Code[20]; BankAccountNo: Code[20]; SustAccountNo: Code[20]; EmissionCO2: Decimal; EmissionCH4: Decimal; EmissionN2O: Decimal)
+    begin
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine,
+            GenJournalBatch."Journal Template Name",
+            GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Invoice,
+            GenJournalLine."Account Type"::Vendor,
+            VendorNo,
+            -LibraryRandom.RandIntInRange(100, 200));
+
+        GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"Bank Account");
+        GenJournalLine.Validate("Bal. Account No.", BankAccountNo);
+        GenJournalLine.Validate("Sust. Account No.", SustAccountNo);
+        GenJournalLine.Validate("Total Emission CH4", EmissionCH4);
+        GenJournalLine.Validate("Total Emission N2O", EmissionN2O);
+        GenJournalLine.Validate("Total Emission CO2", EmissionCO2);
+        GenJournalLine.Modify(true);
+    end;
+
     local procedure CreateSustainabilityAccount(var AccountCode: Code[20]; var CategoryCode: Code[20]; var SubcategoryCode: Code[20]; i: Integer): Record "Sustainability Account"
     begin
         CreateSustainabilitySubcategory(CategoryCode, SubcategoryCode, i);
@@ -898,6 +1078,35 @@ codeunit 148188 "Sust. General Journal Test"
     begin
         GLPostingPreview.Filter.SetFilter("Table ID", Format(Database::"Sustainability Ledger Entry"));
         GLPostingPreview."No. of Records".AssertEquals(2);
+        GLPostingPreview.OK().Invoke();
+    end;
+
+    [PageHandler]
+    procedure GLPostingPreviewSingleEntryHandler(var GLPostingPreview: TestPage "G/L Posting Preview")
+    begin
+        GLPostingPreview.Filter.SetFilter("Table ID", Format(Database::"Sustainability Ledger Entry"));
+        GLPostingPreview."No. of Records".AssertEquals(1);
+        GLPostingPreview.OK().Invoke();
+    end;
+
+    [PageHandler]
+    procedure GLPostingPreviewResetKeyDrillDownHandler(var GLPostingPreview: TestPage "G/L Posting Preview")
+    var
+        SustainabilityLedgerEntries: TestPage "Sustainability Ledger Entries";
+    begin
+        GLPostingPreview.Filter.SetFilter("Table ID", Format(Database::"Sustainability Ledger Entry"));
+        GLPostingPreview."No. of Records".AssertEquals(2);
+
+        // Drill down to the temporary preview Sustainability Ledger Entries page (descending Entry No. order).
+        SustainabilityLedgerEntries.Trap();
+        GLPostingPreview."No. of Records".DrillDown();
+
+        SustainabilityLedgerEntries.First();
+        SustainabilityLedgerEntries."Entry No.".AssertEquals(-1999999999);
+        SustainabilityLedgerEntries.Next();
+        SustainabilityLedgerEntries."Entry No.".AssertEquals(-2000000000);
+        SustainabilityLedgerEntries.Close();
+
         GLPostingPreview.OK().Invoke();
     end;
 
