@@ -659,7 +659,8 @@ function Test-TransientTestFailure {
         ($Output -match 'TRANSIENT TEST PLATFORM RACE') -or
         ($Output -match 'ClientSession State is InError') -or
         ($Output -match 'Cannot open page 130455|InvokeInteractions failed with status code 500|InteractionManager\.cs:line \d+') -or
-        ($Output -match '(?s)ObjName:Command Line Test Tool.*MethodName:ExtensionId_a45_OnValidate.*(?:Offset and length were out of bounds|Nullable object must have a value)')
+        ($Output -match '(?s)ObjName:Command Line Test Tool.*MethodName:ExtensionId_a45_OnValidate.*(?:Offset and length were out of bounds|Nullable object must have a value)') -or
+        ($Output -match '(?s)GET request failed\..*Response code is 500.*Object reference not set to an instance of an object')
     )
 }
 

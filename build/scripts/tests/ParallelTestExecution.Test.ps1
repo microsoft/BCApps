@@ -209,6 +209,7 @@ Describe "ParallelTestExecution transient retry scheduling" {
                 "ObjName:Command Line Test Tool, ObjID:130455, Type:Form, MethodName:ExtensionId_a45_OnValidate`nNullable object must have a value."
                 "TRANSIENT TEST PLATFORM RACE detected for app 'Tests' on tenant 'tenant2'."
                 "Exception occurred while running tests: ClientSession State is InError (Wait time 25 seconds)"
+                "GET request failed. Response code is 500 (InternalServerError), expected code is 200. Error message: Object reference not set to an instance of an object."
             ) | ForEach-Object {
                 Test-TransientTestFailure -Output $_ | Should -BeTrue
             }
