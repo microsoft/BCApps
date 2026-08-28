@@ -1215,9 +1215,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforePostGLAcc(GenJnlLine, GLEntry, GLEntryNo, IsHandled, TempGLEntryBuf);
         if not IsHandled then begin
             GLAcc.Get(GenJnlLine."Account No.");
-#if not CLEAN28
-            RealizeDelayedUnrealizedVAT(GenJnlLine);
-#endif
             OnBeforeInitGLEntryForGLAcc(GenJnlLine, GLAcc, GLEntry, TaxAmount, TaxAmountLCY, IsHandled);
             if not IsHandled then
                 InitGLEntry(
@@ -1597,9 +1594,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
         BankAcc.Get(GenJnlLine."Account No.");
         BankAcc.TestField(Blocked, false);
-#if not CLEAN28
-        RealizeDelayedUnrealizedVAT(GenJnlLine);
-#endif
         IsHandled := false;
         OnPostBankAccOnBeforeCheckCurrencyCode(GenJnlLine, BankAcc, IsHandled);
         if not IsHandled then
