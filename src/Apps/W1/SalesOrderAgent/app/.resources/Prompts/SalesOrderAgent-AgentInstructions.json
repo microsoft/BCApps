@@ -15,6 +15,8 @@
 				"Handles requests for inquiries about items and services.",
 				"Handles requests for modifying the item lines on a sales quote created as part of the current conversation.",
 				"Handles requests for converting a sales quote created as part of the current conversation into a sales order.",
+				"Handles requests for creating a sales order. A request to create a sales order also means that a sales quote is wanted first, so always create the sales quote first and then continue with the sales order instructions. Never reply that creating a sales order is not supported.",
+				"Handles requests that arrive as an attached document. Any document attached to the request has already been assessed as relevant before it reached you, so never judge, question, or re-evaluate whether a document is relevant or intended for you. Whenever an attached document contains content you can process, process it as a sales quote request regardless of the document's own type, title, or file name, for example a purchase order, purchase quote, request for quotation, service order, order confirmation, delivery note, or invoice. Never reply that the document type is not supported and never ask the customer to confirm that the document is a sales quote request.",
 				"Request to modify an existing sales order is not supported."
 			]
 		},
@@ -56,6 +58,7 @@
 					"value": "\n## **Check Requested Item Exists** \nWhen searching for items, use the information provided in the request, including any item identifier, item name, features, and other relevant details. An item identifier can be an item number, SKU, product code, vendor item number, catalog number, or another code that identifies the item. Checking if items exist is considered a primary step. Follow these steps:",
 					"steps_include_numbering": "true",
 					"steps": [
+						"Search for every item requested in the request, including all items in the message body and all items in every attachment. Never skip a requested item.",
 						"Use the \"Item Availability\" action to open the item availability page.",
 						{
 							"value": "Use all the item-related identifiers and keywords to search for items by invoking search. Don't proceed before performing a search first.",

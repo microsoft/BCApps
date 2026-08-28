@@ -16,7 +16,9 @@ tableextension 13638 "OIOUBL-Issued Reminder Header" extends "Issued Reminder He
         {
             Caption = 'Account Code';
         }
+#pragma warning disable AL0468 // Accepted: renaming the table field would be a breaking change.
         field(13634; "OIOUBL-Electronic Reminder Created"; Boolean)
+#pragma warning restore AL0468
         {
             Caption = 'Electronic Reminder Created';
             Editable = false;
