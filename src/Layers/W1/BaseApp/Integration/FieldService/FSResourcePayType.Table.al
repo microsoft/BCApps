@@ -85,7 +85,9 @@ table 6206 "FS Resource Pay Type"
             TableRelation = "CRM Systemuser".SystemUserId;
             DataClassification = SystemMetadata;
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(8; CreatedByName; Text[100])
+#pragma warning restore AL0685
         {
             FieldClass = FlowField;
             CalcFormula = lookup("CRM Systemuser".FullName where(SystemUserId = field(CreatedBy)));
@@ -93,7 +95,9 @@ table 6206 "FS Resource Pay Type"
             ExternalType = 'String';
             ExternalAccess = Read;
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(10; CreatedOnBehalfByName; Text[100])
+#pragma warning restore AL0685
         {
             FieldClass = FlowField;
             CalcFormula = lookup("CRM Systemuser".FullName where(SystemUserId = field(CreatedOnBehalfBy)));
@@ -101,7 +105,9 @@ table 6206 "FS Resource Pay Type"
             ExternalType = 'String';
             ExternalAccess = Read;
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(12; ModifiedByName; Text[100])
+#pragma warning restore AL0685
         {
             FieldClass = FlowField;
             CalcFormula = lookup("CRM Systemuser".FullName where(SystemUserId = field(ModifiedBy)));
@@ -109,7 +115,9 @@ table 6206 "FS Resource Pay Type"
             ExternalType = 'String';
             ExternalAccess = Read;
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(14; ModifiedOnBehalfByName; Text[100])
+#pragma warning restore AL0685
         {
             FieldClass = FlowField;
             CalcFormula = lookup("CRM Systemuser".FullName where(SystemUserId = field(ModifiedOnBehalfBy)));
@@ -155,7 +163,9 @@ table 6206 "FS Resource Pay Type"
             TableRelation = "CRM Team".TeamId;
             DataClassification = SystemMetadata;
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(24; OwningBusinessUnitName; Text[100])
+#pragma warning restore AL0685
         {
             FieldClass = FlowField;
             CalcFormula = lookup("CRM BusinessUnit".Name where(BusinessUnitId = field(OwningBusinessUnit)));
