@@ -3280,7 +3280,7 @@ codeunit 134976 "ERM Sales Report"
         Assert.RecordIsEmpty(InteractionLogEntry);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [HandlerFunctions('StandardSalesInvoiceRequestPageHandler')]
     procedure StandardSalesInvoice_HasSirenNo()
@@ -3372,7 +3372,7 @@ codeunit 134976 "ERM Sales Report"
         LibraryReportDataset.AssertElementTagWithValueExists('AlternativeAddress1', '');
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [HandlerFunctions('StandardSalesInvoiceRequestPageHandler')]
     procedure StandardSalesInvoice_VATPaidOnDebitsTrue()
@@ -3519,7 +3519,7 @@ codeunit 134976 "ERM Sales Report"
         LibraryReportDataset.AssertElementTagWithValueExists('GoodsAndServices_Lbl', InvIncludesGoodsAndServicesTxt);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [HandlerFunctions('DraftSalesInvoiceRequestPageHandler')]
     procedure StandardSalesDraftInvoice_HasSirenNo()
@@ -3602,7 +3602,7 @@ codeunit 134976 "ERM Sales Report"
         LibraryReportDataset.AssertElementTagWithValueExists('AlternativeAddress1', '');
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [HandlerFunctions('DraftSalesInvoiceRequestPageHandler')]
     procedure StandardSalesDraftInvoice_VATPaidOnDebitsTrue()
@@ -3734,7 +3734,7 @@ codeunit 134976 "ERM Sales Report"
         LibraryReportDataset.AssertElementTagWithValueExists('GoodsAndServices_Lbl', InvIncludesGoodsAndServicesTxt);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [HandlerFunctions('StdSalesCrMemoRequestPageHandler')]
     procedure StandardSalesCreditMemo_HasSirenNo()
@@ -4821,7 +4821,7 @@ codeunit 134976 "ERM Sales Report"
         SalesInvoiceLine.Insert();
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure CreateSalesInvoiceWithVATPaidOnDebits(var SalesHeader: Record "Sales Header"; VATPaidOnDebits: Boolean)
     begin
         LibrarySales.CreateSalesInvoiceForCustomerNo(SalesHeader, LibrarySales.CreateCustomerNo());
@@ -4980,7 +4980,7 @@ codeunit 134976 "ERM Sales Report"
         Customer.Modify(true);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure CreateCustomerWithSirenNo(var Customer: Record Customer)
     begin
         LibrarySales.CreateCustomer(Customer);

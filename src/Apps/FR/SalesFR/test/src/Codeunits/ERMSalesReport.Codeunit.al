@@ -10,7 +10,7 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Setup;
-#if CLEAN29
+#if CLEAN30
 using System.Environment.Configuration;
 using System.Reflection;
 #endif
@@ -38,11 +38,11 @@ codeunit 148004 "ERM Sales Report"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
-#if CLEAN29
+#if CLEAN30
         Assert: Codeunit Assert;
 #endif
         isInitialized: Boolean;
-#if CLEAN29
+#if CLEAN30
         SalesFRAppIdTok: Label '8df591a3-d767-4475-8bff-44b8b5527477', Locked = true;
 #endif
 
@@ -70,7 +70,7 @@ codeunit 148004 "ERM Sales Report"
 
         // [WHEN] Run report "Standard Sales - Invoice FR" for Posted Sales Invoice
         LibraryVariableStorage.Enqueue(false); // DisplayShipmentInformation
-#if CLEAN29
+#if CLEAN30
         Report.Run(Report::"Standard Sales - Invoice", true, false, SalesInvoiceHeader);
 #else
         Report.Run(Report::"Standard Sales - Invoice FR", true, false, SalesInvoiceHeader);
@@ -103,7 +103,7 @@ codeunit 148004 "ERM Sales Report"
 
         // [WHEN] Run report "Stand. Sales-Draft Invoice FR" for Sales Invoice
         LibraryVariableStorage.Enqueue(true); // request page opened expectation
-#if CLEAN29
+#if CLEAN30
         Report.Run(Report::"Standard Sales - Draft Invoice", true, false, SalesHeader);
 #else
         Report.Run(Report::"Stand. Sales-Draft Invoice FR", true, false, SalesHeader);
@@ -139,7 +139,7 @@ codeunit 148004 "ERM Sales Report"
 
         // [WHEN] Run report "Standard Sales-Credit Memo FR" for Posted Sales Invoice
         LibraryVariableStorage.Enqueue(true); // DisplayShipmentInformation
-#if CLEAN29
+#if CLEAN30
         Report.Run(Report::"Standard Sales - Credit Memo", true, false, SalesCrMemoHeader);
 #else
         Report.Run(Report::"Standard Sales-Credit Memo FR", true, false, SalesCrMemoHeader);
@@ -171,7 +171,7 @@ codeunit 148004 "ERM Sales Report"
 
         // [WHEN] Run report "Standard Sales - Invoice FR" for Posted Sales Invoice
         LibraryVariableStorage.Enqueue(false); // DisplayShipmentInformation
-#if CLEAN29
+#if CLEAN30
         Report.Run(Report::"Standard Sales - Invoice", true, false, SalesInvoiceHeader);
 #else
         Report.Run(Report::"Standard Sales - Invoice FR", true, false, SalesInvoiceHeader);
@@ -203,7 +203,7 @@ codeunit 148004 "ERM Sales Report"
 
         // [WHEN] Run report "Standard Sales - Invoice FR" for Posted Sales Invoice
         LibraryVariableStorage.Enqueue(false); // DisplayShipmentInformation
-#if CLEAN29
+#if CLEAN30
         Report.Run(Report::"Standard Sales - Invoice", true, false, SalesInvoiceHeader);
 #else
         Report.Run(Report::"Standard Sales - Invoice FR", true, false, SalesInvoiceHeader);
@@ -232,7 +232,7 @@ codeunit 148004 "ERM Sales Report"
 
         // [WHEN] Run report "Stand. Sales-Draft Invoice FR" for Sales Invoice
         LibraryVariableStorage.Enqueue(true); // request page opened expectation
-#if CLEAN29
+#if CLEAN30
         Report.Run(Report::"Standard Sales - Draft Invoice", true, false, SalesHeader);
 #else
         Report.Run(Report::"Stand. Sales-Draft Invoice FR", true, false, SalesHeader);
@@ -261,7 +261,7 @@ codeunit 148004 "ERM Sales Report"
 
         // [WHEN] Run report "Stand. Sales-Draft Invoice FR" for Sales Invoice
         LibraryVariableStorage.Enqueue(true); // request page opened expectation
-#if CLEAN29
+#if CLEAN30
         Report.Run(Report::"Standard Sales - Draft Invoice", true, false, SalesHeader);
 #else
         Report.Run(Report::"Stand. Sales-Draft Invoice FR", true, false, SalesHeader);
@@ -293,7 +293,7 @@ codeunit 148004 "ERM Sales Report"
 
         // [WHEN] Run report "Standard Sales-Credit Memo FR" for Posted Sales Credit Memo
         LibraryVariableStorage.Enqueue(true); // DisplayShipmentInformation
-#if CLEAN29
+#if CLEAN30
         REPORT.Run(REPORT::"Standard Sales - Credit Memo", true, false, SalesCrMemoHeader);
 #else
         REPORT.Run(REPORT::"Standard Sales-Credit Memo FR", true, false, SalesCrMemoHeader);
@@ -325,7 +325,7 @@ codeunit 148004 "ERM Sales Report"
 
         // [WHEN] Run report "Standard Sales-Credit Memo FR" for Posted Sales Credit Memo
         LibraryVariableStorage.Enqueue(true); // DisplayShipmentInformation
-#if CLEAN29
+#if CLEAN30
         REPORT.Run(REPORT::"Standard Sales - Credit Memo", true, false, SalesCrMemoHeader);
 #else
         REPORT.Run(REPORT::"Standard Sales-Credit Memo FR", true, false, SalesCrMemoHeader);
@@ -337,7 +337,7 @@ codeunit 148004 "ERM Sales Report"
         LibraryVariableStorage.AssertEmpty();
     end;
 
-#if CLEAN29
+#if CLEAN30
     [Test]
     procedure FRLayoutsAreRegisteredOnW1Reports()
     var
@@ -507,7 +507,7 @@ codeunit 148004 "ERM Sales Report"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-#if CLEAN29
+#if CLEAN30
     procedure StandardSalesInvoiceRequestPageHandler(var StandardSalesInvoice: TestRequestPage "Standard Sales - Invoice")
 #else
     procedure StandardSalesInvoiceRequestPageHandler(var StandardSalesInvoice: TestRequestPage "Standard Sales - Invoice FR")
@@ -519,7 +519,7 @@ codeunit 148004 "ERM Sales Report"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-#if CLEAN29
+#if CLEAN30
     procedure DraftSalesInvoiceRequestPageHandler(var StandardSalesDraftInvoice: TestRequestPage "Standard Sales - Draft Invoice")
 #else
     procedure DraftSalesInvoiceRequestPageHandler(var StandardSalesDraftInvoice: TestRequestPage "Stand. Sales-Draft Invoice FR")
@@ -532,7 +532,7 @@ codeunit 148004 "ERM Sales Report"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-#if CLEAN29
+#if CLEAN30
     procedure StdSalesCrMemoRequestPageHandler(var StandardSalesCreditMemo: TestRequestPage "Standard Sales - Credit Memo")
 #else
     procedure StdSalesCrMemoRequestPageHandler(var StandardSalesCreditMemo: TestRequestPage "Standard Sales-Credit Memo FR")

@@ -493,7 +493,7 @@ page 43 "Sales Invoice"
                 {
                     ApplicationArea = BasicEU;
                 }
-#if not CLEAN29
+#if not CLEAN30
                 field("VAT Paid on Debits"; Rec."VAT Paid on Debits")
                 {
                     ApplicationArea = Basic, Suite;

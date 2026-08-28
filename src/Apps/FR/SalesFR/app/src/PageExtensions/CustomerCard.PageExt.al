@@ -16,12 +16,12 @@ pageextension 10806 "Customer Card" extends "Customer Card"
             {
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Specifies the SIREN No. for the customer.';
-#if not CLEAN29
+#if not CLEAN30
                 Visible = SalesFRFeatureEnabled;
 #endif
             }
         }
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
         modify("SIREN No.")
         {
@@ -30,7 +30,7 @@ pageextension 10806 "Customer Card" extends "Customer Card"
 #pragma warning restore AL0432
 #endif
     }
-#if not CLEAN29
+#if not CLEAN30
 
     var
         SalesFRFeatureEnabled: Boolean;

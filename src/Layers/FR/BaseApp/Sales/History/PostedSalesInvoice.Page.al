@@ -371,7 +371,7 @@ page 132 "Posted Sales Invoice"
                     Editable = false;
                     Importance = Additional;
                 }
-#if not CLEAN29
+#if not CLEAN30
                 field("VAT Paid on Debits"; Rec."VAT Paid on Debits")
                 {
                     ApplicationArea = Basic, Suite;

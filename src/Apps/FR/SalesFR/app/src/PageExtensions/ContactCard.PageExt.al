@@ -17,12 +17,12 @@ pageextension 10812 "Contact Card" extends "Contact Card"
             {
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Specifies the SIREN No. for the contact.';
-#if not CLEAN29
+#if not CLEAN30
                 Visible = SalesFRFeatureEnabled;
 #endif
             }
         }
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
         modify("SIREN No.")
         {
@@ -31,7 +31,7 @@ pageextension 10812 "Contact Card" extends "Contact Card"
 #pragma warning restore AL0432
 #endif
     }
-#if not CLEAN29
+#if not CLEAN30
 
     var
         SalesFRFeatureEnabled: Boolean;

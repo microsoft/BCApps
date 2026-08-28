@@ -256,7 +256,7 @@ page 5050 "Contact Card"
                     Enabled = "APE CodeEnable";
                     ToolTip = 'Specifies the APE code for the contact.';
                 }
-#if not CLEAN29
+#if not CLEAN30
                 field("SIREN No."; Rec."SIREN No.")
                 {
                     ApplicationArea = Basic, Suite;

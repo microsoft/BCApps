@@ -2327,14 +2327,14 @@ table 18 Customer
             Caption = 'Contact Graph Id';
             OptimizeForTextSearch = true;
         }
-#if not CLEANSCHEMA29
+#if not CLEANSCHEMA33
         field(10805; "SIREN No."; Code[9])
         {
             Caption = 'SIREN No.';
             ObsoleteReason = 'Moved to Sales FR app.';
-#if CLEAN29
+#if CLEAN30
             ObsoleteState = Removed;
-            ObsoleteTag = '31.0';
+            ObsoleteTag = '33.0';
 #else
             ObsoleteState = Pending;
             ObsoleteTag = '30.0';
@@ -2596,7 +2596,7 @@ table 18 Customer
         RemovePaymentRoleranceQst: Label 'Do you want to remove payment tolerance from entries that are currently open?';
         CreateNewCustTxt: Label 'Create a new customer card for %1', Comment = '%1 is the name to be used to create the customer. ';
         SelectCustErr: Label 'You must select an existing customer.';
-#if not CLEAN29
+#if not CLEAN30
         SirenNoTemplateTxt: Label '%1: %2', Locked = true;
 #endif
         CustNotRegisteredTxt: Label 'This customer is not registered. To continue, choose one of the following options:';
@@ -2989,7 +2989,7 @@ table 18 Customer
                 exit(CustomerPriceGroup."Price Calculation Method");
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Obsolete('GetSIRENNoWithCaption() moved to Sales FR app', '30.0')]
     procedure GetSIRENNoWithCaption(): Text
     begin
