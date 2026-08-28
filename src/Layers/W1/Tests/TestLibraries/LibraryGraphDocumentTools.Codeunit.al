@@ -643,6 +643,9 @@ codeunit 130619 "Library - Graph Document Tools"
           PurchaseLineGLAccount, PurchaseHeader, PurchaseLineGLAccount.Type::"G/L Account", GLAccount."No.", 1);
     end;
 
+    /// <summary>Creates VAT posting setup when the specified posting-group combination does not exist.</summary>
+    /// <param name="VATBusPostingGroup">VAT business posting group.</param>
+    /// <param name="VATProdPostingGroup">VAT product posting group.</param>
     procedure EnsureVATPostingSetupExists(VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20])
     var
         VATPostingSetup: Record "VAT Posting Setup";
@@ -652,10 +655,7 @@ codeunit 130619 "Library - Graph Document Tools"
         if VATPostingSetup.Get(VATBusPostingGroup, VATProdPostingGroup) then
             exit;
 
-        VATPostingSetup.Init();
-        VATPostingSetup."VAT Bus. Posting Group" := VATBusPostingGroup;
-        VATPostingSetup."VAT Prod. Posting Group" := VATProdPostingGroup;
-        VATPostingSetup.Insert();
+        LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATBusPostingGroup, VATProdPostingGroup);
     end;
 
     [Scope('OnPrem')]

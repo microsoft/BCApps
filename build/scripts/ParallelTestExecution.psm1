@@ -780,7 +780,6 @@ function Start-RequiredDisabledDispatch {
         [Hashtable]$Parameters,
         $WorkItem,
         $TenantInfo,
-        [string]$TemplateDatabaseName,
         [string]$ScriptPath,
         [string]$TestType,
         $State,
@@ -903,7 +902,7 @@ function Invoke-RequiredDisabledTestExecution {
         }
         foreach ($dispatch in $batch) {
             Start-RequiredDisabledDispatch -Parameters $Parameters -WorkItem $dispatch.WorkItem `
-                -TenantInfo $dispatch.TenantInfo -TemplateDatabaseName $TemplateDatabaseName `
+                -TenantInfo $dispatch.TenantInfo `
                 -ScriptPath $ScriptPath -TestType $TestType -State $state -Verb $dispatch.Verb
         }
         $null = Wait-ForAllTestJobs -state $state

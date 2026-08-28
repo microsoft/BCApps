@@ -1246,6 +1246,7 @@ codeunit 139709 "Sales Invoices E2E"
         CreatePostedSalesInvoice(SalesInvoiceHeader);
         EnsureReasonCode();
         LibrarySales.SetDefaultCancelReasonCodeForSalesAndReceivablesSetup();
+        Commit();
         CODEUNIT.Run(CODEUNIT::"Correct Posted Sales Invoice", SalesInvoiceHeader);
     end;
 
@@ -1256,10 +1257,7 @@ codeunit 139709 "Sales Invoices E2E"
         if not ReasonCode.IsEmpty() then
             exit;
 
-        ReasonCode.Init();
-        ReasonCode.Code := 'API-TEST';
-        ReasonCode.Description := 'API test reason';
-        ReasonCode.Insert();
+        LibraryERM.CreateReasonCode(ReasonCode);
     end;
 
     local procedure CreateSalesInvoices(var InvoiceID1: Text; var InvoiceID2: Text)

@@ -715,7 +715,6 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
         ResponseText: Text;
         InvoiceLineJSON: Text;
         LineDescription: Text;
-        LineFound: Boolean;
     begin
         // [SCENARIO] Posting a line with description only will get a type item
         // [GIVEN] A post request with description only
@@ -739,11 +738,8 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
         // [THEN] Line of type Item is created
         PurchaseLine.SETRANGE("Document Type", PurchaseHeader."Document Type");
         PurchaseLine.SETRANGE("Document No.", PurchaseHeader."No.");
-        if PurchaseLine.FINDSET() then
-            repeat
-                LineFound := PurchaseLine.Description = LineDescription;
-            until LineFound or (PurchaseLine.NEXT() = 0);
-        Assert.IsTrue(LineFound, 'Could not find the created purchase invoice line');
+        PurchaseLine.SETRANGE(Description, LineDescription);
+        Assert.IsTrue(PurchaseLine.FINDFIRST(), 'Could not find the created purchase invoice line');
         Assert.AreEqual('', PurchaseLine."No.", 'No should be blank');
         Assert.AreEqual(PurchaseLine.Type, PurchaseLine.Type::Item, 'Wrong type is set');
 
@@ -1091,7 +1087,6 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
         NotificationLifecycleMgt.RecallAllNotifications();
     end;
 }
-
 
 
 

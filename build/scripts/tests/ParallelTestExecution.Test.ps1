@@ -515,7 +515,7 @@ Describe "ParallelTestExecution clean tenant scheduling" {
             } -WorkItem $workItem -TenantInfo ([PSCustomObject]@{
                 Id = 'tenant2'
                 DatabaseName = 'tenant2'
-            }) -TemplateDatabaseName 'default-test-template' -ScriptPath 'runner.ps1' `
+            }) -ScriptPath 'runner.ps1' `
                 -TestType 'IntegrationTest' -State $state
 
             $script:capturedParameters.testCodeunit | Should -Be '500'
@@ -547,7 +547,7 @@ Describe "ParallelTestExecution clean tenant scheduling" {
             }) -TenantInfo ([PSCustomObject]@{
                 Id = 'tenant2'
                 DatabaseName = 'tenant2'
-            }) -TemplateDatabaseName 'default-test-template' -ScriptPath 'runner.ps1' `
+            }) -ScriptPath 'runner.ps1' `
                 -TestType 'IntegrationTest' -State ([PSCustomObject]@{ jobs = @() }) `
                 -Verb 'Re-dispatching'
 

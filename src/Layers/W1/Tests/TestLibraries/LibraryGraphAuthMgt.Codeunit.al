@@ -7,9 +7,9 @@ namespace Microsoft.TestLibraries.ERP;
 
 using System;
 using System.Azure.KeyVault;
+using System.Environment;
 using System.Integration;
 using System.Security.AccessControl;
-using System.Text;
 
 codeunit 131022 "Library - Graph Auth Mgt."
 {
@@ -18,16 +18,17 @@ codeunit 131022 "Library - Graph Auth Mgt."
     var
         ApiTestPasswordFileTok: Label 'C:\Run\my\ApiTestPassword', Locked = true;
         NavServerUserPasswordKeyTok: Label 'NavServerUserPassword', Locked = true;
-        CurrentUserNotFoundErr: Label 'The current test user could not be found.';
         ContainerPasswordReadErr: Label 'The API test password could not be read from %1.', Comment = '%1 - Password file path';
         KeyVaultPasswordReadErr: Label 'The API test password could not be retrieved from the %1 secret.', Comment = '%1 - Azure Key Vault secret name';
         PasswordRetrievalFailedErr: Label 'The API test password could not be retrieved.', Locked = true;
 
     [NonDebuggable]
-    internal procedure AddAuthentication(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt.")
+    internal procedure AddAuthentication(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt."; TargetURL: Text)
     var
         Password: SecretText;
     begin
+        if not IsLocalTestServiceURL(TargetURL) then
+            exit;
         if not GetAuthenticationPassword(Password) then
             exit;
 
@@ -46,9 +47,10 @@ codeunit 131022 "Library - Graph Auth Mgt."
     local procedure GetAuthenticationPassword(var Password: SecretText): Boolean
     var
         User: Record User;
+        EnvironmentInfo: Codeunit "Environment Information";
     begin
-        if not User.Get(UserSecurityId()) then
-            Error(CurrentUserNotFoundErr);
+        if EnvironmentInfo.IsSaaSInfrastructure() then
+            exit(false);
 
         if ContainerPasswordFileExists() then begin
             if not TryGetContainerPassword(Password) then
@@ -56,6 +58,8 @@ codeunit 131022 "Library - Graph Auth Mgt."
             exit(true);
         end;
 
+        if not User.Get(UserSecurityId()) then
+            exit(false);
         if User."Windows Security ID" <> '' then
             exit(false);
 
@@ -67,13 +71,20 @@ codeunit 131022 "Library - Graph Auth Mgt."
 
     [NonDebuggable]
     local procedure AddUserPasswordAuthentication(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt."; Password: SecretText)
-    var
-        Base64Convert: Codeunit "Base64 Convert";
     begin
         HttpWebRequestMgt.AddBasicAuthentication(UserId(), Password);
-        HttpWebRequestMgt.AddHeader(
-            'Authorization',
-            SecretStrSubstNo('Basic %1', Base64Convert.ToBase64(SecretStrSubstNo('%1:%2', UserId(), Password))));
+    end;
+
+    local procedure IsLocalTestServiceURL(TargetURL: Text): Boolean
+    var
+        NormalizedURL: Text;
+    begin
+        NormalizedURL := LowerCase(TargetURL);
+        exit(
+            (StrPos(NormalizedURL, 'http://localhost') = 1) or
+            (StrPos(NormalizedURL, 'https://localhost') = 1) or
+            (StrPos(NormalizedURL, 'http://127.0.0.1') = 1) or
+            (StrPos(NormalizedURL, 'https://127.0.0.1') = 1));
     end;
 
     [Scope('OnPrem')]

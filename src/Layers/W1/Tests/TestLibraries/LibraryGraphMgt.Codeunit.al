@@ -14,16 +14,22 @@ codeunit 130618 "Library - Graph Mgt"
         FailedRequestErr: Label '%1 request failed. Response code is %2 (%3). %4', Comment = '%1 - request method, %2 - response code number, %3 - response code, %4 - error message';
         FailedRequestWithUnexpectedResponseCodeErr: Label '%1 request failed. Response code is %2 (%3), expected code is %4. %5', Comment = '%1 - request method, %2 - response code number, %3 - response code, %4 - expected response code, %5 - error message';
 
+    /// <summary>Verifies that authentication is available for local API test requests.</summary>
     procedure EnsureAuthenticationAvailable()
     begin
         LibraryGraphAuthMgt.EnsureAuthenticationAvailable();
     end;
 
+    /// <summary>Sets the work date to November 15 in the current year to stay within test-license date limits.</summary>
     procedure SetLicenseSafeWorkDate()
     begin
         WorkDate := DMY2Date(15, 11, Date2DMY(Today, 3));
     end;
 
+    /// <summary>Adds a field to the ignored-field buffer when the field exists in the source table.</summary>
+    /// <param name="TempIgnoredFields">Temporary ignored-field buffer.</param>
+    /// <param name="SourceTableNo">Source table number.</param>
+    /// <param name="SourceFieldName">Source field name.</param>
     procedure AddFieldToIgnoreIfExists(var TempIgnoredFields: Record 2000000041 temporary; SourceTableNo: Integer; SourceFieldName: Text)
     var
         RecordField: Record Field;
@@ -157,7 +163,7 @@ codeunit 130618 "Library - Graph Mgt"
     procedure InitializeWebRequestWithURL(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt."; TargetURL: Text)
     begin
         HttpWebRequestMgt.Initialize(TargetURL);
-        LibraryGraphAuthMgt.AddAuthentication(HttpWebRequestMgt);
+        LibraryGraphAuthMgt.AddAuthentication(HttpWebRequestMgt, TargetURL);
         OnAfterInitializeWebRequestWithURL(HttpWebRequestMgt);
     end;
 
@@ -308,6 +314,10 @@ codeunit 130618 "Library - Graph Mgt"
         exit(TargetURL);
     end;
 
+    /// <summary>Appends a path before any query string in an API target URL.</summary>
+    /// <param name="TargetURL">API target URL.</param>
+    /// <param name="Path">Path to append.</param>
+    /// <returns>The URL with the appended path.</returns>
     procedure AppendPathToTargetURL(TargetURL: Text; Path: Text): Text
     var
         QueryPosition: Integer;
@@ -319,6 +329,10 @@ codeunit 130618 "Library - Graph Mgt"
         exit(CopyStr(TargetURL, 1, QueryPosition - 1) + Path + CopyStr(TargetURL, QueryPosition));
     end;
 
+    /// <summary>Appends a query parameter using the appropriate query separator.</summary>
+    /// <param name="TargetURL">API target URL.</param>
+    /// <param name="QueryParameter">Query parameter to append.</param>
+    /// <returns>The URL with the appended query parameter.</returns>
     procedure AppendQueryParameterToTargetURL(TargetURL: Text; QueryParameter: Text): Text
     begin
         if StrPos(TargetURL, '?') = 0 then

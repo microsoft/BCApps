@@ -798,10 +798,7 @@ codeunit 139728 "APIV1 - Sales Credit Memos E2E"
         if not ReasonCode.IsEmpty() then
             exit;
 
-        ReasonCode.Init();
-        ReasonCode.Code := 'API-TEST';
-        ReasonCode.Description := 'API test reason';
-        ReasonCode.Insert();
+        LibraryERM.CreateReasonCode(ReasonCode);
     end;
 
     local procedure CreateDraftSalesCreditMemo(var SalesHeader: Record "Sales Header")

@@ -15,6 +15,7 @@ codeunit 148349 "Expense PerDiem Locations Test"
     trigger OnRun()
     begin
         LibraryGraphMgt.EnsureAuthenticationAvailable();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 
     var
