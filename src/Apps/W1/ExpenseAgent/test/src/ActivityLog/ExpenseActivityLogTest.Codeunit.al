@@ -6,6 +6,7 @@ namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
 using System.Security.AccessControl;
+using System.Security.User;
 
 codeunit 148342 "Expense Activity Log Test"
 {
@@ -199,9 +200,10 @@ codeunit 148342 "Expense Activity Log Test"
         EntryCountBeforeRejectedReopen: Integer;
     begin
         // [SCENARIO] Returning a pending report to Open is a recall, while reopening a rejected report is not logged.
-        // [GIVEN] A submitted expense report whose submitter is the current BC user.
+        // [GIVEN] A submitted expense report whose submitter is the current BC user without Unlimited Expense Approval.
         Initialize();
         CreateApprovalScenario(SubmitterExpenseUser, ApproverExpenseUser, ExpenseReportHeader);
+        SetCurrentUserUnlimitedExpenseApproval(false);
         ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.");
 
         // [WHEN] The pending report is reopened.
@@ -211,6 +213,9 @@ codeunit 148342 "Expense Activity Log Test"
         ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
         ExpenseActivityLogEntry.FindLast();
         Assert.AreEqual(Enum::"Expense Activity Event Type"::Recalled, ExpenseActivityLogEntry."Event Type", 'Pending approval to Open must be recorded as recalled.');
+        Assert.AreEqual(Enum::"Expense Activity Actor Role"::Submitter, ExpenseActivityLogEntry."Actor Role", 'The original submitter must be recorded with the Submitter role.');
+        Assert.AreEqual(Database::"Expense User", ExpenseActivityLogEntry."Actor Table ID", 'A submitter recall must identify an Expense User.');
+        Assert.AreEqual(SubmitterExpenseUser.SystemId, ExpenseActivityLogEntry."Actor Record System ID", 'A submitter recall must identify the captured submitter.');
 
         // [WHEN] The same operation reopens a rejected report.
         ExpenseReportHeader.Status := ExpenseReportHeader.Status::Rejected;
@@ -222,6 +227,140 @@ codeunit 148342 "Expense Activity Log Test"
         ExpenseActivityLogEntry.Reset();
         ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
         Assert.AreEqual(EntryCountBeforeRejectedReopen, ExpenseActivityLogEntry.Count(), 'Reopening a rejected report must not create an activity entry.');
+    end;
+
+    [Test]
+    procedure SubmitterWithUnlimitedApprovalRecallStillLogsSubmitter()
+    var
+        SubmitterExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        ExpenseReportApprovalMgt: Codeunit "Expense Report Approval Mgmt";
+    begin
+        // [SCENARIO] A submitter with Unlimited Expense Approval is still classified as the submitter.
+        // [GIVEN] A submitted expense report whose submitter is the current unlimited BC user.
+        Initialize();
+        CreateApprovalScenario(SubmitterExpenseUser, ApproverExpenseUser, ExpenseReportHeader);
+        SetCurrentUserUnlimitedExpenseApproval(true);
+        ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.");
+
+        // [WHEN] The submitter recalls the pending report.
+        ExpenseReportApprovalMgt.ReopenSubmitted(ExpenseReportHeader);
+
+        // [THEN] Submitter identity takes precedence over the administrator capability.
+        ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
+        ExpenseActivityLogEntry.FindLast();
+        Assert.AreEqual(Enum::"Expense Activity Actor Role"::Submitter, ExpenseActivityLogEntry."Actor Role", 'A submitter with unlimited approval must retain the Submitter role.');
+        Assert.AreEqual(SubmitterExpenseUser.SystemId, ExpenseActivityLogEntry."Actor Record System ID", 'The recall must identify the captured submitter.');
+    end;
+
+    [Test]
+    procedure UnmappedAdministratorRecallLogsBCUser()
+    var
+        SubmitterExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        User: Record User;
+        ExpenseReportApprovalMgt: Codeunit "Expense Report Approval Mgmt";
+    begin
+        // [SCENARIO] An unlimited user without an Expense User mapping can administratively recall a submitted report.
+        // [GIVEN] A report submitted by another user and the current user has Unlimited Expense Approval.
+        Initialize();
+        CreateApprovalScenario(SubmitterExpenseUser, ApproverExpenseUser, ExpenseReportHeader);
+        SetSubmitterToDifferentUser(SubmitterExpenseUser);
+        RemoveCurrentExpenseUserMappings();
+        SetCurrentUserUnlimitedExpenseApproval(true);
+        ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.");
+        User.Get(UserSecurityId());
+
+        // [WHEN] The current user recalls the pending report.
+        ExpenseReportApprovalMgt.ReopenSubmitted(ExpenseReportHeader);
+
+        // [THEN] The recall is attributed to the actual BC User acting as Administrator.
+        Assert.AreEqual(ExpenseReportHeader.Status::Open, ExpenseReportHeader.Status, 'Administrative recall must reopen the report.');
+        ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
+        ExpenseActivityLogEntry.FindLast();
+        Assert.AreEqual(Enum::"Expense Activity Event Type"::Recalled, ExpenseActivityLogEntry."Event Type", 'Administrative recall must be recorded.');
+        Assert.AreEqual(Enum::"Expense Activity Actor Role"::Administrator, ExpenseActivityLogEntry."Actor Role", 'An administrative recall must use the Administrator role.');
+        Assert.AreEqual(Database::User, ExpenseActivityLogEntry."Actor Table ID", 'An administrative recall must identify a BC User.');
+        Assert.AreEqual(User.SystemId, ExpenseActivityLogEntry."Actor Record System ID", 'An administrative recall must identify the current BC User.');
+        Assert.AreNotEqual('', ExpenseActivityLogEntry."Actor Display Name", 'An administrative recall must retain the BC User display name.');
+
+        // [THEN] The administrative event does not make the administrator a submitter or approver participant.
+        ExpenseActivityLogEntry.SetRange("History Actor Table ID Filter", Database::User);
+        ExpenseActivityLogEntry.SetRange("History Actor System ID Filter", User.SystemId);
+        ExpenseActivityLogEntry.SetRange("History Actor Role Filter", Enum::"Expense Activity Actor Role"::Submitter);
+        ExpenseActivityLogEntry.CalcFields("History Subject Match");
+        Assert.IsFalse(ExpenseActivityLogEntry."History Subject Match", 'An administrator must not gain submitter history participation.');
+        ExpenseActivityLogEntry.SetRange("History Actor Role Filter", Enum::"Expense Activity Actor Role"::Approver);
+        ExpenseActivityLogEntry.CalcFields("History Subject Match");
+        Assert.IsFalse(ExpenseActivityLogEntry."History Subject Match", 'An administrator must not gain approver history participation.');
+    end;
+
+    [Test]
+    procedure MappedAdministratorRecallStillLogsAdministrator()
+    var
+        SubmitterExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
+        AdministratorExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        ExpenseReportApprovalMgt: Codeunit "Expense Report Approval Mgmt";
+    begin
+        // [SCENARIO] An unlimited user mapped to an Expense User still acts as Administrator when recalling another submitter's report.
+        // [GIVEN] A report submitted by another user and the current unlimited user has an unrelated Expense User mapping.
+        Initialize();
+        CreateApprovalScenario(SubmitterExpenseUser, ApproverExpenseUser, ExpenseReportHeader);
+        SetSubmitterToDifferentUser(SubmitterExpenseUser);
+        RemoveCurrentExpenseUserMappings();
+        LibraryExpense.CreateExpenseUser(AdministratorExpenseUser);
+        AdministratorExpenseUser."User Id For Approvals" := CopyStr(UserId(), 1, MaxStrLen(AdministratorExpenseUser."User Id For Approvals"));
+        AdministratorExpenseUser.Modify();
+        SetCurrentUserUnlimitedExpenseApproval(true);
+        ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.");
+
+        // [WHEN] The mapped current user recalls the pending report.
+        ExpenseReportApprovalMgt.ReopenSubmitted(ExpenseReportHeader);
+
+        // [THEN] Mapping presence does not misclassify the action as a submitter recall.
+        ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
+        ExpenseActivityLogEntry.FindLast();
+        Assert.AreEqual(Enum::"Expense Activity Actor Role"::Administrator, ExpenseActivityLogEntry."Actor Role", 'Recalling another submitter''s report must use the Administrator role.');
+        Assert.AreEqual(Database::User, ExpenseActivityLogEntry."Actor Table ID", 'The administrator must be represented by the BC User, not an unrelated Expense User mapping.');
+    end;
+
+    [Test]
+    procedure UnauthorizedUserCannotRecallSubmittedReport()
+    var
+        SubmitterExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        UserSetup: Record "User Setup";
+        ExpenseReportApprovalMgt: Codeunit "Expense Report Approval Mgmt";
+        EntryCountBeforeRecall: Integer;
+    begin
+        // [SCENARIO] A user who is neither the captured submitter nor unlimited cannot recall a submitted report.
+        // [GIVEN] A report submitted by another user and the current user has limited approval rights.
+        Initialize();
+        CreateApprovalScenario(SubmitterExpenseUser, ApproverExpenseUser, ExpenseReportHeader);
+        SetSubmitterToDifferentUser(SubmitterExpenseUser);
+        SetCurrentUserUnlimitedExpenseApproval(false);
+        ExpenseReportApprovalMgt.Submit(ExpenseReportHeader, SubmitterExpenseUser."No.");
+        ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
+        EntryCountBeforeRecall := ExpenseActivityLogEntry.Count();
+        Commit();
+
+        // [WHEN] The current user attempts to recall the pending report.
+        asserterror ExpenseReportApprovalMgt.ReopenSubmitted(ExpenseReportHeader);
+
+        // [THEN] The operation is denied before status or history changes.
+        Assert.ExpectedError(UserSetup.FieldCaption("Unlimited Expense Approval"));
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        Assert.AreEqual(ExpenseReportHeader.Status::"Pending Approval", ExpenseReportHeader.Status, 'An unauthorized recall must not change the report status.');
+        Assert.AreEqual(EntryCountBeforeRecall, ExpenseActivityLogEntry.Count(), 'An unauthorized recall must not append activity.');
     end;
 
     [Test]
@@ -464,11 +603,44 @@ codeunit 148342 "Expense Activity Log Test"
         ApproverExpenseUser."Can Approve" := true;
         ApproverExpenseUser."User Id For Approvals" := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(ApproverExpenseUser."User Id For Approvals"));
         ApproverExpenseUser.Modify();
-        LibraryExpense.CreateExpenseApprovalSetup(ExpenseApprovalSetup, SubmitterExpenseUser."No.", ApproverExpenseUser."No.");
+        if ExpenseApprovalSetup.Get(SubmitterExpenseUser."No.") then begin
+            ExpenseApprovalSetup.Validate("Approver No.", ApproverExpenseUser."No.");
+            ExpenseApprovalSetup.Modify();
+        end else
+            LibraryExpense.CreateExpenseApprovalSetup(ExpenseApprovalSetup, SubmitterExpenseUser."No.", ApproverExpenseUser."No.");
 
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, SubmitterExpenseUser."No.", '', '');
         ExpenseReportHeader.Status := ExpenseReportHeader.Status::Released;
         ExpenseReportHeader.Modify(true);
+    end;
+
+    local procedure SetSubmitterToDifferentUser(var SubmitterExpenseUser: Record "Expense User")
+    begin
+        SubmitterExpenseUser."User Id For Approvals" :=
+            CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(SubmitterExpenseUser."User Id For Approvals"));
+        SubmitterExpenseUser.Modify();
+    end;
+
+    local procedure RemoveCurrentExpenseUserMappings()
+    var
+        ExpenseUser: Record "Expense User";
+    begin
+        ExpenseUser.SetRange("User Id For Approvals", UserId());
+        ExpenseUser.ModifyAll("User Id For Approvals", '');
+    end;
+
+    local procedure SetCurrentUserUnlimitedExpenseApproval(UnlimitedExpenseApproval: Boolean)
+    var
+        UserSetup: Record "User Setup";
+    begin
+        if not UserSetup.Get(UserId()) then begin
+            UserSetup.Init();
+            UserSetup."User ID" := CopyStr(UserId(), 1, MaxStrLen(UserSetup."User ID"));
+            UserSetup.Insert();
+        end;
+
+        UserSetup."Unlimited Expense Approval" := UnlimitedExpenseApproval;
+        UserSetup.Modify();
     end;
 
     local procedure Initialize()
@@ -481,4 +653,5 @@ codeunit 148342 "Expense Activity Log Test"
         IsInitialized := true;
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Activity Log Test");
     end;
+
 }

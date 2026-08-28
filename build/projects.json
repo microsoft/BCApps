@@ -3708,7 +3708,6 @@
       "dvdFolder": "Applications\\Subcontracting\\Source",
       "supportedCountries": "All",
       "installOnEnvironmentUpdate": false,
-      "skipInstallOnPrem": true,
       "hasTranslations": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",

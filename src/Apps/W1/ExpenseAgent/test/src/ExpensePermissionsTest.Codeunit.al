@@ -8,7 +8,7 @@ using Microsoft.ExpenseAgent;
 using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Setup;
 
-codeunit 148338 "Expense Event Subs. Perm. Test"
+codeunit 148338 "Expense Permissions Test"
 {
     Subtype = Test;
     TestType = UnitTest;
@@ -24,9 +24,43 @@ codeunit 148338 "Expense Event Subs. Perm. Test"
         EmployeeOnlyPermissionSetTok: Label 'Exp. Emp. Only Test', Locked = true;
         HREditPermissionSetTok: Label 'Exp. HR Edit Test', Locked = true;
         AutomationPermissionSetTok: Label 'Exp. Auto Test', Locked = true;
+        D365BasicPermissionSetTok: Label 'D365 BASIC', Locked = true;
+        ExpenseAgentPermissionSetTok: Label 'Expense Agent', Locked = true;
         CannotDeleteEmployeeWithExpenseErr: Label 'You cannot delete Employee %1 because they have active expense.', Comment = '%1 = Employee No.';
         CannotDeleteEmployeeWithExpenseReportErr: Label 'You cannot delete Employee %1 because they have active expense report.', Comment = '%1 = Employee No.';
         CannotDeleteEmployeeWithPostedExpenseReportErr: Label 'You cannot delete Employee %1 because they have posted expense report.', Comment = '%1 = Employee No.';
+
+    [Test]
+    procedure D365BasicCanInsertActivityIndirectly()
+    begin
+        VerifyPermissionSetCanInsertActivity(D365BasicPermissionSetTok);
+    end;
+
+    [Test]
+    procedure D365BasicCanGetExpensePolicyStatus()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        PolicyStatus: Enum "Expense Policy Status";
+    begin
+        Initialize();
+
+        ExpenseReportLine.Init();
+        ExpenseReportLine."Document No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(ExpenseReportLine."Document No."));
+        ExpenseReportLine."Line No." := 10000;
+        ExpenseReportLine.Insert(false);
+
+        LibraryLowerPermissions.SetExactPermissionSet(D365BasicPermissionSetTok);
+        PolicyStatus := ExpenseReportLine.GetPolicyStatus();
+        RestoreFullPermissions();
+
+        Assert.AreEqual("Expense Policy Status"::"No Policies", PolicyStatus, 'A D365 BASIC user must be able to get the expense policy status.');
+    end;
+
+    [Test]
+    procedure ExpenseAgentCanInsertActivityIndirectly()
+    begin
+        VerifyPermissionSetCanInsertActivity(ExpenseAgentPermissionSetTok);
+    end;
 
     [Test]
     procedure CompanyEmailSyncsWithEmployeeOnlyPermissions()
@@ -231,20 +265,49 @@ codeunit 148338 "Expense Event Subs. Perm. Test"
 
     local procedure Initialize()
     begin
-        LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Event Subs. Perm. Test");
+        LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Permissions Test");
         RestoreFullPermissions();
         LibraryExpense.CleanTransactionalData();
         LibraryExpense.CleanUpBeforeTesting();
         if IsInitialized then
             exit;
 
-        LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense Event Subs. Perm. Test");
+        LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense Permissions Test");
         EnsureSetupRecordsExist();
         LibraryExpense.SetupNumberSeriesInExpenseMgmt();
         LibraryExpense.UpdateEnableApprovalWorkflowInAgentSetup(false);
         IsInitialized := true;
         Commit();
-        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Event Subs. Perm. Test");
+        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Permissions Test");
+    end;
+
+    local procedure VerifyPermissionSetCanInsertActivity(PermissionSetId: Code[20])
+    var
+        ExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
+        EntryNo: BigInteger;
+    begin
+        Initialize();
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+
+        LibraryLowerPermissions.SetExactPermissionSet(PermissionSetId);
+        Assert.IsFalse(
+            ExpenseActivityLogEntry.WritePermission(),
+            'The caller must not have direct write permission on the activity log.');
+        EntryNo := ExpenseActivityLogMgt.LogExpenseReportEvent(
+            ExpenseReportHeader,
+            Enum::"Expense Activity Event Type"::Created,
+            Enum::"Expense Activity Initiator"::User,
+            Enum::"Expense Activity Actor Role"::Submitter,
+            ExpenseUser."No.",
+            '');
+        RestoreFullPermissions();
+
+        Assert.IsTrue(EntryNo > 0, 'The activity entry must be inserted through indirect permissions.');
+        ExpenseActivityLogEntry.Get(EntryNo);
     end;
 
     local procedure EnsureSetupRecordsExist()
