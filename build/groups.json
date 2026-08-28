@@ -9567,19 +9567,24 @@
     "name": "Sales FR",
     "groups": [
       {
-        "name": "AllExtensions"
+        "name": "AllExtensions",
+        "doNotInstall": true
       },
       {
-        "name": "Financials"
+        "name": "Financials",
+        "doNotInstall": true
       },
       {
-        "name": "FinancialsExtensions"
+        "name": "FinancialsExtensions",
+        "doNotInstall": true
       },
       {
-        "name": "OnPrem"
+        "name": "OnPrem",
+        "doNotInstall": true
       },
       {
-        "name": "OnPremExtensions"
+        "name": "OnPremExtensions",
+        "doNotInstall": true
       }
     ]
   },
@@ -9587,19 +9592,24 @@
     "name": "Sales FR Tests",
     "groups": [
       {
-        "name": "AllExtensions"
+        "name": "AllExtensions",
+        "doNotInstall": true
       },
       {
-        "name": "Financials"
+        "name": "Financials",
+        "doNotInstall": true
       },
       {
-        "name": "FinancialsExtensions"
+        "name": "FinancialsExtensions",
+        "doNotInstall": true
       },
       {
-        "name": "OnPrem"
+        "name": "OnPrem",
+        "doNotInstall": true
       },
       {
-        "name": "OnPremExtensions"
+        "name": "OnPremExtensions",
+        "doNotInstall": true
       }
     ]
   },
