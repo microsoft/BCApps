@@ -4163,19 +4163,14 @@ codeunit 104000 "Upgrade - BaseApp"
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetPurchLineReceiptOnInvoiceUpgradeTag()) then
             exit;
 
-        PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::Order);
-        PurchaseHeader.SetRange("Receipt on Invoice", true);
-        PurchaseHeader.SetLoadFields("No.");
-        if PurchaseHeader.FindSet() then
-            repeat
-                Clear(ReceiptOnInvoiceDataTransfer);
-                ReceiptOnInvoiceDataTransfer.SetTables(Database::"Purchase Line", Database::"Purchase Line");
-                ReceiptOnInvoiceDataTransfer.AddSourceFilter(PurchaseLine.FieldNo("Document Type"), '=%1', PurchaseLine."Document Type"::Order);
-                ReceiptOnInvoiceDataTransfer.AddSourceFilter(PurchaseLine.FieldNo("Document No."), '=%1', PurchaseHeader."No.");
-                ReceiptOnInvoiceDataTransfer.AddConstantValue(true, PurchaseLine.FieldNo("Receipt on Invoice"));
-                ReceiptOnInvoiceDataTransfer.UpdateAuditFields := false;
-                ReceiptOnInvoiceDataTransfer.CopyFields();
-            until PurchaseHeader.Next() = 0;
+        ReceiptOnInvoiceDataTransfer.SetTables(Database::"Purchase Header", Database::"Purchase Line");
+        ReceiptOnInvoiceDataTransfer.AddSourceFilter(PurchaseHeader.FieldNo("Document Type"), '=%1', PurchaseHeader."Document Type"::Order);
+        ReceiptOnInvoiceDataTransfer.AddSourceFilter(PurchaseHeader.FieldNo("Receipt on Invoice"), '=%1', true);
+        ReceiptOnInvoiceDataTransfer.AddJoin(PurchaseHeader.FieldNo("Document Type"), PurchaseLine.FieldNo("Document Type"));
+        ReceiptOnInvoiceDataTransfer.AddJoin(PurchaseHeader.FieldNo("No."), PurchaseLine.FieldNo("Document No."));
+        ReceiptOnInvoiceDataTransfer.AddConstantValue(true, PurchaseLine.FieldNo("Receipt on Invoice"));
+        ReceiptOnInvoiceDataTransfer.UpdateAuditFields := false;
+        ReceiptOnInvoiceDataTransfer.CopyFields();
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetPurchLineReceiptOnInvoiceUpgradeTag());
     end;
