@@ -163,7 +163,7 @@ report 8051 "Contract Deferrals Release"
             InsertTempGenJournalLine(
                 CustomerContractDeferral."Document No.",
                 CustomerContractDeferral."Subscription Contract No.",
-                CustomerContractDeferral."Entry No.",
+                CustomerContractDeferral."Entry Number",
                 CustomerContractDeferral."Dimension Set ID",
                 GenPostingSetup."Cust. Sub. Contract Account",
                 GenPostingSetup."Cust. Sub. Contr. Def Account",
@@ -176,7 +176,7 @@ report 8051 "Contract Deferrals Release"
             InsertTempGenJournalLine(
                 CustomerContractDeferral."Document No.",
                 CustomerContractDeferral."Subscription Contract No.",
-                CustomerContractDeferral."Entry No.",
+                CustomerContractDeferral."Entry Number",
                 CustomerContractDeferral."Dimension Set ID",
                 GenPostingSetup."Sales Line Disc. Account",
                 GenPostingSetup."Cust. Sub. Contr. Def Account",

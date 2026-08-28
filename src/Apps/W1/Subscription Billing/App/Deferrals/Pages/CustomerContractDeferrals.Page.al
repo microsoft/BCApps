@@ -105,7 +105,7 @@ page 8079 "Customer Contract Deferrals"
                 {
                     ToolTip = 'Specifies the number of the G/L item with which the deferral was released.';
                 }
-                field("Entry No."; Rec."Entry No.")
+                field("Entry Number"; Rec."Entry Number")
                 {
                     ToolTip = 'Specifies the number of the deferral that was assigned when it was created from the specified number series.';
                 }

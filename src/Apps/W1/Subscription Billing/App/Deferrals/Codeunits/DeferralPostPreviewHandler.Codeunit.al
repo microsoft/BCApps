@@ -15,7 +15,7 @@ codeunit 8077 "Deferral Post. Preview Handler"
         if Rec.IsTemporary() then
             exit;
 
-        if TempCustSubContractDeferral.Get(Rec."Entry No.") then
+        if TempCustSubContractDeferral.Get(Rec."Entry Number") then
             exit;
 
         TempCustSubContractDeferral := Rec;

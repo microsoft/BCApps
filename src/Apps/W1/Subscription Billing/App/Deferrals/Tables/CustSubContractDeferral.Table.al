@@ -20,9 +20,9 @@ table 8066 "Cust. Sub. Contract Deferral"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry Number"; Integer)
         {
-            Caption = 'Entry No.';
+            Caption = 'Entry Number';
             AutoIncrement = true;
         }
         field(2; "Subscription Contract No."; Code[20])
@@ -161,7 +161,7 @@ table 8066 "Cust. Sub. Contract Deferral"
     }
     keys
     {
-        key(PK; "Entry No.")
+        key(PK; "Entry Number")
         {
             Clustered = true;
         }
@@ -203,7 +203,7 @@ table 8066 "Cust. Sub. Contract Deferral"
         DimMgt: Codeunit DimensionManagement;
         DimTextLbl: Label '%1 %2', Locked = true;
     begin
-        DimMgt.ShowDimensionSet("Dimension Set ID", CopyStr(StrSubstNo(DimTextLbl, TableCaption, "Entry No."), 1, 250));
+        DimMgt.ShowDimensionSet("Dimension Set ID", CopyStr(StrSubstNo(DimTextLbl, TableCaption, "Entry Number"), 1, 250));
     end;
 
     internal procedure FilterOnDocumentTypeAndDocumentNo(RecurringBillingDocumentType: Enum "Rec. Billing Document Type"; DocumentNo: Code[20])

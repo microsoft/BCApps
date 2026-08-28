@@ -661,7 +661,7 @@ codeunit 139912 "Customer Deferrals Test"
             PostingDate := CustomerContractDeferral."Posting Date";
             Commit(); // close transaction before report is called
             ContractDeferralsRelease.Run();  // ContractDeferralsReleaseRequestPageHandler
-            CustomerContractDeferral.Get(CustomerContractDeferral."Entry No.");
+            CustomerContractDeferral.Get(CustomerContractDeferral."Entry Number");
             GLEntry.Get(CustomerContractDeferral."G/L Entry No.");
             GLEntry.TestField("Subscription Contract No.", CustomerContractDeferral."Subscription Contract No.");
             FetchAndTestUpdatedCustomerContractDeferral(CustomerContractDeferral);
@@ -691,7 +691,7 @@ codeunit 139912 "Customer Deferrals Test"
             PostingDate := CustomerContractDeferral."Posting Date";
             Commit(); // close transaction before report is called
             ContractDeferralsRelease.Run();  // ContractDeferralsReleaseRequestPageHandler
-            CustomerContractDeferral.Get(CustomerContractDeferral."Entry No.");
+            CustomerContractDeferral.Get(CustomerContractDeferral."Entry Number");
             GLEntry.Get(CustomerContractDeferral."G/L Entry No.");
             GLEntry.TestField("Subscription Contract No.", CustomerContractDeferral."Subscription Contract No.");
             FetchAndTestUpdatedCustomerContractDeferral(CustomerContractDeferral);
@@ -873,7 +873,7 @@ codeunit 139912 "Customer Deferrals Test"
         ContractDeferralsRelease.Run(); // ContractDeferralsReleaseRequestPageHandler
 
         // [THEN] The first deferral is released without creating a GL entry
-        CustomerContractDeferral.Get(CustomerContractDeferral."Entry No.");
+        CustomerContractDeferral.Get(CustomerContractDeferral."Entry Number");
         CustomerContractDeferral.TestField(Released, true);
         CustomerContractDeferral.TestField("G/L Entry No.", 0);
     end;
@@ -1249,7 +1249,7 @@ codeunit 139912 "Customer Deferrals Test"
     var
         UpdatedCustomerContractDeferral: Record "Cust. Sub. Contract Deferral";
     begin
-        UpdatedCustomerContractDeferral.Get(CustomerDeferrals."Entry No.");
+        UpdatedCustomerContractDeferral.Get(CustomerDeferrals."Entry Number");
         Assert.AreNotEqual(PrevGLEntry, UpdatedCustomerContractDeferral."G/L Entry No.", 'G/L Entry No. is not properly assigned');
         TestSalesInvoiceDeferralsReleasedFields(UpdatedCustomerContractDeferral, PostingDate);
         TestGLEntryFields(UpdatedCustomerContractDeferral."G/L Entry No.", UpdatedCustomerContractDeferral);

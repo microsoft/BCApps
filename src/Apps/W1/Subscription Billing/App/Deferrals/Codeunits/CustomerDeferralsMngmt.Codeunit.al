@@ -229,7 +229,7 @@ codeunit 8067 "Customer Deferrals Mngmt."
 
             CustomerContractDeferral.Amount := PeriodLineAmount;
             CustomerContractDeferral."Discount Amount" := PeriodLineDiscountAmount;
-            CustomerContractDeferral."Entry No." := 0;
+            CustomerContractDeferral."Entry Number" := 0;
 #if not CLEAN29
 #pragma warning disable AL0432
             if FirstMonthIsPartial then
@@ -285,7 +285,7 @@ codeunit 8067 "Customer Deferrals Mngmt."
                 CreditMemoCustContractDeferral."Release Posting Date" := 0D;
                 CreditMemoCustContractDeferral.Released := false;
                 CreditMemoCustContractDeferral."G/L Entry No." := 0;
-                CreditMemoCustContractDeferral."Entry No." := 0;
+                CreditMemoCustContractDeferral."Entry Number" := 0;
                 CreditMemoCustContractDeferral.Insert(false);
                 SalesInvoiceLine.Get(InvoiceCustContractDeferral."Document No.", InvoiceCustContractDeferral."Document Line No.");
                 if not InvoiceCustContractDeferral.Released then begin
