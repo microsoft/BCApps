@@ -4672,7 +4672,7 @@ codeunit 134468 "ERM Matched Order Line Tests"
         LibraryPurchase.CreatePurchHeader(PurchaseHeaderInvoice, PurchaseHeaderInvoice."Document Type"::Invoice, Vendor."No.");
         LibraryPurchase.CreatePurchaseLine(PurchaseLineInvoice, PurchaseHeaderInvoice, PurchaseLineInvoice.Type::Item, Item."No.", Quantity);
 
-        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(PurchaseLineInvoice.SystemId, PurchaseLineOrder.SystemId, Quantity, Quantity));
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(PurchaseLineInvoice.SystemId, PurchaseLineOrder.SystemId, Quantity));
         POMatchingGroup.SaveMatchingGroups();
 
         MatchedOrderLine.SetRange("Document Line SystemId", PurchaseLineInvoice.SystemId);
