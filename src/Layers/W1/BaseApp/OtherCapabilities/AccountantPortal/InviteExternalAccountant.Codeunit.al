@@ -276,6 +276,7 @@ codeunit 9033 "Invite External Accountant"
         exit(InvokeRequest(Url, Verb, Body, UrlHelper.GetGraphUrl(), ResponseContent));
     end;
 
+    [NonDebuggable]
     local procedure InvokeRequest(Url: Text; Verb: Text; Body: Text; AuthResourceUrl: Text; var ResponseContent: Text): Boolean
     var
         AzureADMgt: Codeunit "Azure AD Mgt.";
