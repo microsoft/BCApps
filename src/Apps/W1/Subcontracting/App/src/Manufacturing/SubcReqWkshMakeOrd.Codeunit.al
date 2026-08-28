@@ -26,7 +26,7 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
 #pragma warning restore AL0432
             exit;
 #endif
-        HandleSubcontractingAfterPurchOrderLineInsert(PurchOrderLine, RequisitionLine);
+        HandleSubcontractingAfterPurchOrderLineInsert(PurchOrderLine, NextLineNo, RequisitionLine);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Req. Wksh.-Make Order", OnInsertPurchOrderLineOnAfterCheckInsertFinalizePurchaseOrderHeader, '', false, false)]
@@ -50,6 +50,8 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Carry Out Action", OnPurchOrderChgAndResheduleOnAfterGetPurchHeader, '', false, false)]
     local procedure OnPurchOrderChgAndResheduleOnAfterGetPurchHeader(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var RequisitionLine: Record "Requisition Line")
+    var
+        SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
     begin
 #if not CLEAN29
 #pragma warning disable AL0432
@@ -57,15 +59,18 @@ codeunit 20516 "Subc. Req. Wksh. Make Ord."
 #pragma warning restore AL0432
             exit;
 #endif
+        SubcPurchaseOrderCreator.TransferSubcontractingProdOrderLineAttachments(PurchaseLine, RequisitionLine);
         UpdateSubcontractingComponentPurchLines(PurchaseLine, RequisitionLine);
     end;
 
-    local procedure HandleSubcontractingAfterPurchOrderLineInsert(var PurchaseLine: Record "Purchase Line"; var RequisitionLine: Record "Requisition Line")
+    local procedure HandleSubcontractingAfterPurchOrderLineInsert(var PurchaseLine: Record "Purchase Line"; var NextLineNo: Integer; var RequisitionLine: Record "Requisition Line")
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
     begin
         SubcPurchaseOrderCreator.InsertProdDescriptionOnAfterInsertPurchOrderLine(PurchaseLine, RequisitionLine);
+        SubcPurchaseOrderCreator.TransferSubcontractingProdOrderLineAttachments(PurchaseLine, RequisitionLine);
+        SubcPurchaseOrderCreator.InsertSubcontractingProdOrderComments(PurchaseLine, RequisitionLine, NextLineNo);
         if (RequisitionLine."Prod. Order No." <> '') and (RequisitionLine."Operation No." <> '') then begin
             ProdOrderRoutingLine.SetLoadFields("Transfer WIP Item");
             if ProdOrderRoutingLine.Get(

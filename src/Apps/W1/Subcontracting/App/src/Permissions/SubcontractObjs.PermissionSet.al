@@ -11,6 +11,9 @@ permissionset 20501 "Subcontract. - Objs"
     Access = Internal;
     Permissions =
         // Tables
+        table "Subc. Standard Task Comment" = X,
+        table "Subc. Routing Comment Line" = X,
+        table "Subc. Prod. Rtng. Comment" = X,
         table "Subcontractor Price" = X,
         table "Subcontractor WIP Ledger Entry" = X,
 
@@ -77,8 +80,13 @@ permissionset 20501 "Subcontract. - Objs"
 #endif
         codeunit "Subc. Upgrade Tag Def. Ext." = X,
         codeunit "Subc. Worksheet Handler" = X,
+        codeunit "Subc. Attachment Details Ext." = X,
+        codeunit "Subc. Routing Line Ext." = X,
 
         // Pages
+        page "Subc. Standard Task Comments" = X,
+        page "Subc. Routing Comments" = X,
+        page "Subc. Prod. Rtng. Comments" = X,
         page "Subc. Prod. Order Components" = X,
         page "Subc. Subcontracting Worksheet" = X,
         page "Subc. Purchase Line Factbox" = X,

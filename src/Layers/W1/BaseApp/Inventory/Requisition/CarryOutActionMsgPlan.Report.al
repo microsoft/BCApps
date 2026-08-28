@@ -6,6 +6,7 @@ namespace Microsoft.Inventory.Requisition;
 
 using Microsoft.Foundation.Navigate;
 using Microsoft.Inventory.Planning;
+using Microsoft.Manufacturing.Setup;
 using Microsoft.Purchases.Document;
 
 report 99001020 "Carry Out Action Msg. - Plan."
@@ -32,9 +33,11 @@ report 99001020 "Carry Out Action Msg. - Plan."
                 if not "Accept Action Message" then
                     CurrReport.Skip();
 
-                Commit();
+                if not SimulationMode then
+                    Commit();
                 RunCarryOutActionsByRefOrderType("Requisition Line");
-                Commit();
+                if not SimulationMode then
+                    Commit();
 
                 OnAfterRequisitionLineOnAfterGetRecord("Requisition Line", ProdOrderChoice.AsInteger());
             end;
@@ -61,10 +64,13 @@ report 99001020 "Carry Out Action Msg. - Plan."
                         PrintOrders := (PurchOrderChoice = PurchOrderChoice::"Make Purch. Orders & Print");
 
                         Clear(ReqWkshMakeOrders);
+                        ReqWkshMakeOrders.SetSimulationMode(SimulationMode);
                         ReqWkshMakeOrders.SetCreatedDocumentBuffer(TempDocumentEntry);
                         ReqWkshMakeOrders.Set(PurchOrderHeader, EndOrderDate, PrintOrders);
                         if not NoPlanningResiliency then
                             ReqWkshMakeOrders.SetPlanningResiliency();
+                        if SimulationMode then
+                            ReqWkshMakeOrders.SetSuppressCommit(true);
                         ReqWkshMakeOrders.CarryOutBatchAction("Requisition Line");
                         CounterFailed := CounterFailed + ReqWkshMakeOrders.GetFailedCounter();
                     end;
@@ -87,6 +93,8 @@ report 99001020 "Carry Out Action Msg. - Plan."
                     CheckCopyToWksh(TransWkshTemp, TransWkshName);
                 if ProdOrderChoice = ProdOrderChoice::"Copy to Req. Wksh" then
                     CheckCopyToWksh(ProdWkshTempl, ProdWkshName);
+
+                CheckReleasedProductionOrderNoSeries();
 
                 if not HideDialog then
                     Window.Open(Text012);
@@ -319,6 +327,7 @@ report 99001020 "Carry Out Action Msg. - Plan."
         EndOrderDate: Date;
         PurchOrderCopyToReqWksh: Boolean;
         TransOrderCopyToReqWksh: Boolean;
+        SimulationMode: Boolean;
 
 #pragma warning disable AA0074
         Text000: Label 'There are no planning lines to make orders for.';
@@ -352,6 +361,16 @@ report 99001020 "Carry Out Action Msg. - Plan."
                 CounterFailed := CounterFailed + 1;
                 OnCarryOutActionsOnAfterUpdateCounterFailed("Requisition Line", WkshTempl, WkshName);
             end;
+    end;
+
+    internal procedure SetSimulationMode(NewSimulationMode: Boolean)
+    begin
+        SimulationMode := NewSimulationMode;
+    end;
+
+    internal procedure SetPlanningResiliency(NewPlanningResiliency: Boolean)
+    begin
+        NoPlanningResiliency := NewPlanningResiliency;
     end;
 
     local procedure RunCarryOutActionsByRefOrderType(var RequisitionLine: Record "Requisition Line")
@@ -492,6 +511,24 @@ report 99001020 "Carry Out Action Msg. - Plan."
         repeat
             CheckLine();
         until "Requisition Line".Next() = 0;
+    end;
+
+    local procedure CheckReleasedProductionOrderNoSeries()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        RequisitionLine2: Record "Requisition Line";
+    begin
+        if not (ProdOrderChoice in [ProdOrderChoice::Released, ProdOrderChoice::"Released & Print"]) then
+            exit;
+
+        RequisitionLine2.Copy("Requisition Line");
+        RequisitionLine2.SetRange("Accept Action Message", true);
+        RequisitionLine2.SetRange("Ref. Order Type", RequisitionLine2."Ref. Order Type"::"Prod. Order");
+        if RequisitionLine2.IsEmpty() then
+            exit;
+
+        ManufacturingSetup.Get();
+        ManufacturingSetup.TestField("Released Order Nos.");
     end;
 
     local procedure CheckLine()
@@ -672,4 +709,3 @@ report 99001020 "Carry Out Action Msg. - Plan."
     begin
     end;
 }
-
