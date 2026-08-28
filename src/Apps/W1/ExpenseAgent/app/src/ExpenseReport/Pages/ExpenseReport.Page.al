@@ -228,7 +228,7 @@ page 6910 "Expense Report"
                 SubPageLink = "No." = field("No.");
                 ObsoleteReason = 'Replaced by Expense Report FactBox';
                 ObsoleteState = Pending;
-                ObsoleteTag = '30.0';
+                ObsoleteTag = '29.0';
                 Visible = false;
             }
 #pragma warning restore AL0432
@@ -498,7 +498,7 @@ page 6910 "Expense Report"
                         CurrPage.SaveRecord();
                     end;
                 }
-#if not CLEAN29
+#if not CLEAN30
                 action(VATSpecification)
                 {
                     ApplicationArea = Basic, Suite;
@@ -665,7 +665,7 @@ page 6910 "Expense Report"
                 actionref(dimension_Promoted; Dimensions)
                 {
                 }
-#if not CLEAN29
+#if not CLEAN30
                 actionref(VATSpecification_Promoted; VATSpecification)
                 {
                     ObsoleteReason = 'Replaced by Expense Report Statistics';
