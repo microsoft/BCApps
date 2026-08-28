@@ -339,8 +339,10 @@ page 4581 "Ext. SharePoint Account Wizard"
         FailedCompanies: List of [Text];
         SessionId: Integer;
         AccountCurrentCompanyCreated: Boolean;
+        StartOfProcess: DateTime;
     begin
         AccountToCopy.Id := CreateGuid();
+        StartOfProcess := CurrentDateTime();
 
         if CompanyFilter <> '' then
             Company.SetFilter(Name, CompanyFilter);
@@ -356,6 +358,7 @@ page 4581 "Ext. SharePoint Account Wizard"
                         AccountCurrentCompanyCreated := true;
                     ExtSharePointAccount.ChangeCompany(Company.Name);
                     ExtSharePointAccount.SetRange(Name, AccountToCopy.Name);
+                    ExtSharePointAccount.SetFilter(SystemCreatedAt, '>%1', StartOfProcess);
                     if ExtSharePointAccount.IsEmpty() then
                         FailedCompanies.Add(Company.Name);
                 end;
