@@ -244,6 +244,7 @@ page 7232 "MDM Connection Details"
         LearnMoreTok: Label 'Privacy and Cookies';
         PrivacyLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=521839', Locked = true;
         ConnectionOkMsg: Label 'Successfully connected to the source environment (contract version %1).', Comment = '%1 = wire contract version';
+        ConnectionFailedErr: Label 'Could not connect to the source environment. Check the URL, company, and credentials, then try again.';
 
     local procedure LoadConfiguration()
     var
@@ -289,7 +290,8 @@ page 7232 "MDM Connection Details"
         SaveConfiguration();
         Commit();
         Transport := SourceConnection.GetTransport();
-        Capabilities.ReadFrom(Transport.GetCapabilities());
+        if not Capabilities.ReadFrom(Transport.GetCapabilities()) then
+            Error(ConnectionFailedErr);
         if Capabilities.Get('version', VersionToken) then
             VersionText := Format(VersionToken.AsValue().AsInteger());
         Message(ConnectionOkMsg, VersionText);

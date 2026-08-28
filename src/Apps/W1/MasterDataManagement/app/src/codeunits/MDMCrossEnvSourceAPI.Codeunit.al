@@ -249,7 +249,8 @@ codeunit 7241 "MDM Cross-Env Source API"
                 // Stop only at a clean group boundary once the page is full (by count or inline bytes).
                 if ((Count >= PageSize) or (PageBytes >= MaxPageInlineBytes())) and (CurrentModifiedAt <> LastEmittedAt) then
                     exit(true);
-                if Count >= MaxKeylessGroup then begin
+                // A single same-timestamp group that can't be paged cleanly (too many rows OR too many inline bytes) => ask for a key.
+                if (Count >= MaxKeylessGroup) or (PageBytes >= MaxPageInlineBytes()) then begin
                     GroupTooLarge := true;
                     exit(false);
                 end;
