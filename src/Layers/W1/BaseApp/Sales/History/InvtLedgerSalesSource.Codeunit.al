@@ -28,7 +28,7 @@ codeunit 5860 "Invt. Ledger Sales Source"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Invt. Ledger Source Mgt.", OnGetSourceOrderNo, '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Invt. Ledger Source Mgt.", OnGetSourceOrderNoWithLineNo, '', false, false)]
     local procedure OnGetSourceOrderNo(DocType: Enum "Item Ledger Document Type"; DocNo: Code[20]; DocLineNo: Integer; var SourceOrderNo: Code[20])
     var
         SalesShptHdr: Record "Sales Shipment Header";

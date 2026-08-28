@@ -8,10 +8,9 @@ using Microsoft.Inventory.Ledger;
 
 codeunit 5914 "Invt. Ledger Service Source"
 {
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Invt. Ledger Source Mgt.", OnGetSourceOrderNo, '', true, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Invt. Ledger Source Mgt.", OnGetSourceOrderNoWithLineNo, '', true, false)]
     local procedure OnGetSourceOrderNo(DocType: Enum "Item Ledger Document Type"; DocNo: Code[20]; DocLineNo: Integer; var SourceOrderNo: Code[20])
     var
-
         ServiceInvoiceHdr: Record "Service Invoice Header";
         ServiceInvoiceLine: Record "Service Invoice Line";
     begin
