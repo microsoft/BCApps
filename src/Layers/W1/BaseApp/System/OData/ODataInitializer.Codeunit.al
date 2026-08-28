@@ -2,7 +2,6 @@
 
 using System.Environment;
 using System.Environment.Configuration;
-using System.Utilities;
 
 codeunit 1738 "OData Initializer"
 {
