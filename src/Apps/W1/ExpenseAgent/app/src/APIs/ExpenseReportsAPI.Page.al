@@ -163,6 +163,26 @@ page 6928 "Expense Reports API"
                     Caption = 'Approver Comment';
                     Editable = false;
                 }
+                field(finalApproverNo; Rec."Final Approver No.")
+                {
+                    Caption = 'Final Approver No.';
+                    Editable = false;
+                }
+                field(finalApproverName; Rec."Final Approver Name")
+                {
+                    Caption = 'Final Approver Name';
+                    Editable = false;
+                }
+                field(interimApproverNo; Rec."Interim Approver No.")
+                {
+                    Caption = 'Interim Approver No.';
+                    Editable = false;
+                }
+                field(interimApproverName; Rec."Interim Approver Name")
+                {
+                    Caption = 'Interim Approver Name';
+                    Editable = false;
+                }
                 field(reimbursementCurrencyCode; ReimbursementCurrencyCodeDisplay)
                 {
                     Caption = 'Reimbursement Currency Code';
@@ -472,6 +492,17 @@ page 6928 "Expense Reports API"
             EAKPITrack.UpdateExpenseReportLineEntry(ExpenseReportLine);
         end else
             Error(ExpenseNotFoundErr, ExpenseId);
+
+        ActionContext.SetObjectType(ObjectType::Page);
+        ActionContext.SetObjectId(Page::"Expense Reports API");
+        ActionContext.AddEntityKey(Rec.FieldNo(SystemId), Rec.SystemId);
+        ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
+    end;
+
+    [ServiceEnabled]
+    procedure AssignInterimApprover(var ActionContext: WebServiceActionContext; InterimApproverExpenseUserNo: Code[20]; ActorExpenseUserNo: Code[20])
+    begin
+        Rec.AssignInterimApprover(InterimApproverExpenseUserNo, ActorExpenseUserNo);
 
         ActionContext.SetObjectType(ObjectType::Page);
         ActionContext.SetObjectId(Page::"Expense Reports API");

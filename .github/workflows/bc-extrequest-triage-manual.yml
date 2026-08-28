@@ -108,12 +108,23 @@ jobs:
               );
             }
 
+            // Labels this workflow clears before applying the agent's result.
+            // Both spellings of the team labels are listed: BCApps renamed them
+            // to the "Team: " namespace, and a rename does not rewrite items
+            // that nothing has touched since, so an issue can still carry the
+            // old one. Removing a label that is not present is a no-op here, so
+            // listing both is free and leaving one out would silently strand it.
             const managedLabels = [
               'missing-info',
               'agent-not-processable',
+              'Team: Finance',
+              'Team: SCM',
+              'Team: Integrations',
+              'Team: Other',
               'Finance',
               'SCM',
               'Integration',
+              'Other',
               'event-request',
               'request-for-external',
               'enum-request',
