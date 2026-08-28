@@ -2217,8 +2217,6 @@ codeunit 148148 "Factur-X CII XML Tests"
     end;
 
     local procedure CheckFacturX(var SourceDocumentHeader: RecordRef)
-    var
-        EDocumentService: Record "E-Document Service";
     begin
         FacturXFormat.Check(SourceDocumentHeader, EDocumentService, "E-Document Processing Phase"::Create);
     end;
