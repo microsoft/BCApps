@@ -17,6 +17,9 @@ codeunit 7245 "MDM Cross-Env Change Detector"
                   tabledata "Job Queue Entry" = rm,
                   tabledata "Scheduled Task" = r;
 
+    var
+        LastModifiedFeatureTok: Label 'lastModifiedPerTable', Locked = true;
+
     trigger OnRun()
     begin
         DetectChanges();
@@ -31,7 +34,6 @@ codeunit 7245 "MDM Cross-Env Change Detector"
         Transport: Interface "IMDM Source Transport";
         Response: JsonObject;
         TableIds: JsonArray;
-        LastModifiedFeatureTok: Label 'lastModifiedPerTable', Locked = true;
     begin
         if not MasterDataManagementSetup.Get() then
             exit;
@@ -61,6 +63,7 @@ codeunit 7245 "MDM Cross-Env Change Detector"
         IntegrationTableMapping.SetRange(Type, IntegrationTableMapping.Type::"Master Data Management");
         IntegrationTableMapping.SetRange("Delete After Synchronization", false);
         IntegrationTableMapping.SetRange(Status, IntegrationTableMapping.Status::Enabled);
+        IntegrationTableMapping.SetLoadFields("Integration Table ID");
         if not IntegrationTableMapping.FindSet() then
             exit(false);
         repeat
@@ -125,6 +128,7 @@ codeunit 7245 "MDM Cross-Env Change Detector"
             exit;
 
         // Seam so tests can observe the decision and skip the reschedule (jobs can't be scheduled in the test lab).
+        IsHandled := false;
         OnBeforeRescheduleSynchJob(JobQueueEntry, IntegrationTableMapping, IsHandled);
         if IsHandled then
             exit;

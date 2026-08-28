@@ -5,6 +5,7 @@ using System.Environment;
 using System.Security.Authentication;
 using System.Reflection;
 using System.Telemetry;
+using System.Utilities;
 
 /// <summary>
 /// Production transport: calls the source environment's ODataV4 web service with an app-only (client
@@ -24,6 +25,8 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         NonSaaSErr: Label 'Cross-environment synchronization is only available in online environments.';
         NoTokenErr: Label 'Could not acquire an access token for the source environment. Check the client ID and secret.';
         SendFailedErr: Label 'The request to the source environment could not be sent. Check the source environment URL.';
+        InvalidSourceUrlErr: Label 'The source environment URL is not a valid Business Central endpoint.';
+        InvalidSourceUrlAuditTxt: Label 'Blocked a cross-environment request: the configured source environment URL host ''%1'' is not a valid Business Central endpoint.', Comment = '%1 = the rejected host';
         HttpErr: Label 'The source environment returned HTTP %1. %2', Comment = '%1 = HTTP status code, %2 = response detail';
         ServiceNameTok: Label 'MDMCrossEnvSource', Locked = true;
         ScopeTok: Label 'https://api.businesscentral.dynamics.com/.default', Locked = true;
@@ -94,7 +97,7 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         AuditLog: Codeunit "Audit Log";
     begin
         // Operational telemetry: action + status only, never record data or credentials.
-        Session.LogMessage('', StrSubstNo(RequestFailedTelemetryTxt, ActionName, ResponseMessage.HttpStatusCode()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
+        Session.LogMessage('0000QF1', StrSubstNo(RequestFailedTelemetryTxt, ActionName, ResponseMessage.HttpStatusCode()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
         // Security audit: an authorization failure crossing the environment boundary.
         if ResponseMessage.HttpStatusCode() in [401, 403] then
             AuditLog.LogAuditMessage(StrSubstNo(AccessDeniedAuditTxt, MasterDataManagementSetup."Source Environment Name", ResponseMessage.HttpStatusCode()), SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
@@ -129,7 +132,25 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         BaseUrl: Text;
     begin
         BaseUrl := DelChr(MasterDataManagementSetup."Source Environment URL", '>', '/');
+        ValidateSourceHost(BaseUrl);
         exit(StrSubstNo(ActionUrlTok, BaseUrl, ServiceNameTok, ActionName, UriEncodeCompany(MasterDataManagementSetup."Source Company Name")));
+    end;
+
+    // The source must be a Business Central SaaS endpoint over HTTPS. Validating the configured URL before the
+    // bearer token is attached stops the setup field from redirecting the authenticated call to an arbitrary host (SSRF).
+    local procedure ValidateSourceHost(BaseUrl: Text)
+    var
+        AuditLog: Codeunit "Audit Log";
+        Uri: Codeunit Uri;
+        Host: Text;
+    begin
+        Uri.Init(BaseUrl);
+        // Embed/ISV clusters vary in hostname but always end with dynamics.com; dynamics-tie.com is the test (TIE) ring.
+        Host := LowerCase(Uri.GetHost());
+        if (Uri.GetScheme() = 'https') and (Host.EndsWith('.dynamics.com') or Host.EndsWith('.dynamics-tie.com')) then
+            exit;
+        AuditLog.LogAuditMessage(StrSubstNo(InvalidSourceUrlAuditTxt, Host), SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
+        Error(InvalidSourceUrlErr);
     end;
 
     // The ODataV4 envelope for an action returning Text is { "@odata.context": "...", "value": "<inner json>" };

@@ -75,6 +75,8 @@ codeunit 7240 "MDM Local Data Source" implements "IMDM Data Source"
         SourceCompanyName: Text[30];
     begin
         MasterDataManagementSetup.Get();
+        if SourceRecordRef.Number() <> 0 then
+            SourceRecordRef.Close(); // a re-fetch may pass an already-open ref; start from a clean handle
         SourceRecordRef.Open(IntegrationTableId);
         MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, IntegrationTableId);
         if SourceCompanyName = '' then

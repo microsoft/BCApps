@@ -34,13 +34,13 @@ codeunit 7238 "Master Data Mgt. Upgrade"
         TenantWebService: Record "Tenant Web Service";
         UpgradeTag: Codeunit "Upgrade Tag";
     begin
-        if UpgradeTag.HasUpgradeTag(GetCrossEnvWebServiceUpgradeTag()) then
+        if UpgradeTag.HasDatabaseUpgradeTag(GetCrossEnvWebServiceUpgradeTag()) then
             exit;
 
         // Idempotent: creates or updates the service. Access stays gated by the dedicated "Cross Env" permission set, not by publishing.
         WebServiceManagement.CreateTenantWebService(TenantWebService."Object Type"::Codeunit, Codeunit::"MDM Cross-Env Source API", CrossEnvSourceWebServiceName(), true);
 
-        UpgradeTag.SetUpgradeTag(GetCrossEnvWebServiceUpgradeTag());
+        UpgradeTag.SetDatabaseUpgradeTag(GetCrossEnvWebServiceUpgradeTag());
     end;
 
     internal procedure CrossEnvSourceWebServiceName(): Text[240]

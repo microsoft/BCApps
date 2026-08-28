@@ -20,6 +20,7 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         TableUnavailableErr: Label 'Table %1 is not available on the source environment. Expose it there or remove it from Synchronization Tables.', Comment = '%1 = table caption';
         NotIndexedErr: Label 'Table %1 on the source has too many same-timestamp changes to synchronize without an index. Add a key on SystemModifiedAt and SystemId to that table on the source environment.', Comment = '%1 = table caption';
         FieldsUnavailableErr: Label 'One or more fields set up for synchronization do not exist on table %1 on the source environment.', Comment = '%1 = table caption';
+        SourceProbeFailedErr: Label 'Could not read the change probe from the source environment for table %1.', Comment = '%1 = table caption';
         RecordsFeatureTok: Label 'records', Locked = true;
         LastModifiedFeatureTok: Label 'lastModifiedPerTable', Locked = true;
 
@@ -107,8 +108,9 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         TableIds.WriteTo(TableIdsText);
         Transport := GetTransport();
         SourceCapabilities.EnsureSupported(Transport, LastModifiedFeatureTok);
+        // A transport/parse failure is not an empty source; surface it so the full-synch review isn't misled.
         if not SourceResponse.TryParse(Transport.LastModifiedAtPerTable(TableIdsText), Response) then
-            exit(false);
+            Error(SourceProbeFailedErr, TableCaption(IntegrationTableId));
         if not Response.Get('tables', Token) then
             exit(false);
         Tables := Token.AsArray();
@@ -205,6 +207,7 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
     begin
         AddPrimaryKeyFields(IntegrationTableMapping."Integration Table ID", FieldIds, AddedFields);
         IntegrationFieldMapping.SetRange("Integration Table Mapping Name", IntegrationTableMapping.Name);
+        IntegrationFieldMapping.SetLoadFields("Integration Table Field No.");
         if IntegrationFieldMapping.FindSet() then
             repeat
                 if IntegrationFieldMapping."Integration Table Field No." <> 0 then

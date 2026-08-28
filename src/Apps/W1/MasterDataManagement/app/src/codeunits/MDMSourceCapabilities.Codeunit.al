@@ -15,6 +15,7 @@ codeunit 7246 "MDM Source Capabilities"
         ContractVersion: Integer;
         SupportedFeatures: List of [Text];
         UnsupportedFeatureErr: Label 'The source environment does not support the required ''%1'' capability. Update the Master Data Management app on the source environment.', Comment = '%1 = capability name';
+        CapabilitiesParseErr: Label 'The source environment returned an invalid capabilities response.';
 
     procedure EnsureSupported(Transport: Interface "IMDM Source Transport"; Feature: Text)
     begin
@@ -51,16 +52,18 @@ codeunit 7246 "MDM Source Capabilities"
     begin
         if Negotiated then
             exit;
-        if Capabilities.ReadFrom(Transport.GetCapabilities()) then begin
-            if Capabilities.Get('version', VersionToken) then
-                if VersionToken.IsValue() then
-                    ContractVersion := VersionToken.AsValue().AsInteger();
-            if Capabilities.Get('features', FeaturesToken) then
-                if FeaturesToken.IsArray() then
-                    foreach FeatureToken in FeaturesToken.AsArray() do
-                        if FeatureToken.IsValue() then
-                            SupportedFeatures.Add(FeatureToken.AsValue().AsText());
-        end;
+        // Don't cache a failed parse as a successful (empty) negotiation - that would surface as a misleading
+        // "capability unsupported / update the source app" error instead of the real bad-response problem.
+        if not Capabilities.ReadFrom(Transport.GetCapabilities()) then
+            Error(CapabilitiesParseErr);
+        if Capabilities.Get('version', VersionToken) then
+            if VersionToken.IsValue() then
+                ContractVersion := VersionToken.AsValue().AsInteger();
+        if Capabilities.Get('features', FeaturesToken) then
+            if FeaturesToken.IsArray() then
+                foreach FeatureToken in FeaturesToken.AsArray() do
+                    if FeatureToken.IsValue() then
+                        SupportedFeatures.Add(FeatureToken.AsValue().AsText());
         Negotiated := true;
     end;
 }
