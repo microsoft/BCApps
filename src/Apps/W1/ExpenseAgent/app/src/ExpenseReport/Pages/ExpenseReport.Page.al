@@ -228,7 +228,7 @@ page 6910 "Expense Report"
                 SubPageLink = "No." = field("No.");
                 ObsoleteReason = 'Replaced by Expense Report FactBox';
                 ObsoleteState = Pending;
-                ObsoleteTag = '29.0';
+                ObsoleteTag = '30.0';
                 Visible = false;
             }
 #pragma warning restore AL0432
@@ -510,7 +510,7 @@ page 6910 "Expense Report"
                     Visible = false;
                     ObsoleteReason = 'Replaced by Expense Report Statistics';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                 }
 #endif
                 action("Spend Request")
@@ -670,7 +670,7 @@ page 6910 "Expense Report"
                 {
                     ObsoleteReason = 'Replaced by Expense Report Statistics';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                 }
 #endif
                 actionref("Spend Request_Promoted"; "Spend Request")
