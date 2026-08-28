@@ -40,6 +40,7 @@ codeunit 139757 "Library - Master Data Mgt."
         MasterDataSynchTables.FindRelatedTables(ExistingSynchTableNos, RelatedTablesToAdd, RelatedTablesToAddText, TableId);
     end;
 
+    /// <summary>Sets the source company on Master Data Management Setup to the current company.</summary>
     procedure SetSourceCompanyToCurrent()
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
@@ -49,16 +50,31 @@ codeunit 139757 "Library - Master Data Mgt."
         MasterDataManagementSetup.Modify(false);
     end;
 
+    /// <summary>Gets the integration record reference for a coupling.</summary>
+    /// <param name="IntegrationTableID">The integration table ID to resolve.</param>
+    /// <param name="MasterDataMgtCoupling">The coupling whose integration record is requested.</param>
+    /// <param name="RecRef">Returns the resolved integration record reference.</param>
+    /// <returns>True if the integration record was found; otherwise false.</returns>
     procedure GetIntegrationRecordRefByCoupling(IntegrationTableID: Integer; var MasterDataMgtCoupling: Record "Master Data Mgt. Coupling"; var RecRef: RecordRef): Boolean
     begin
         exit(MasterDataManagement.GetIntegrationRecordRef(IntegrationTableID, MasterDataMgtCoupling, RecRef));
     end;
 
+    /// <summary>Gets the integration record reference identified by a coupling ID.</summary>
+    /// <param name="IntegrationTableMapping">The integration table mapping to resolve against.</param>
+    /// <param name="ID">The coupling ID to resolve.</param>
+    /// <param name="RecRef">Returns the resolved integration record reference.</param>
+    /// <returns>True if the integration record was found; otherwise false.</returns>
     procedure GetIntegrationRecordRefById(var IntegrationTableMapping: Record "Integration Table Mapping"; ID: Variant; var RecRef: RecordRef): Boolean
     begin
         exit(MasterDataManagement.GetIntegrationRecordRef(IntegrationTableMapping, ID, RecRef));
     end;
 
+    /// <summary>Gets the set of modified source records for a table mapping from the configured data source.</summary>
+    /// <param name="IntegrationTableMapping">The integration table mapping to read.</param>
+    /// <param name="TableFilter">The source table filter to apply.</param>
+    /// <param name="SourceRecordRef">Returns the record reference positioned on the modified set.</param>
+    /// <returns>True if any modified records were found; otherwise false.</returns>
     procedure DataSourceGetModifiedSet(IntegrationTableMapping: Record "Integration Table Mapping"; TableFilter: Text; var SourceRecordRef: RecordRef): Boolean
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
@@ -67,6 +83,11 @@ codeunit 139757 "Library - Master Data Mgt."
         exit(MasterDataManagementSetup.GetDataSource().GetModifiedSet(IntegrationTableMapping, TableFilter, SourceRecordRef));
     end;
 
+    /// <summary>Gets source records matching a UID filter from the configured data source.</summary>
+    /// <param name="IntegrationTableMapping">The integration table mapping to read.</param>
+    /// <param name="UidFilter">The UID filter to apply.</param>
+    /// <param name="SourceRecordRef">Returns the record reference positioned on the matching set.</param>
+    /// <returns>True if any matching records were found; otherwise false.</returns>
     procedure DataSourceGetByUidFilter(IntegrationTableMapping: Record "Integration Table Mapping"; UidFilter: Text; var SourceRecordRef: RecordRef): Boolean
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
@@ -75,6 +96,11 @@ codeunit 139757 "Library - Master Data Mgt."
         exit(MasterDataManagementSetup.GetDataSource().GetByUidFilter(IntegrationTableMapping, UidFilter, SourceRecordRef));
     end;
 
+    /// <summary>Gets source records matching a table filter from the configured data source.</summary>
+    /// <param name="IntegrationTableMapping">The integration table mapping to read.</param>
+    /// <param name="TableFilter">The source table filter to apply.</param>
+    /// <param name="SourceRecordRef">Returns the record reference positioned on the matching set.</param>
+    /// <returns>True if any matching records were found; otherwise false.</returns>
     procedure DataSourceGetByFilter(IntegrationTableMapping: Record "Integration Table Mapping"; TableFilter: Text; var SourceRecordRef: RecordRef): Boolean
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
@@ -83,6 +109,9 @@ codeunit 139757 "Library - Master Data Mgt."
         exit(MasterDataManagementSetup.GetDataSource().GetByFilter(IntegrationTableMapping, TableFilter, SourceRecordRef));
     end;
 
+    /// <summary>Gets the count of integration records for a table mapping.</summary>
+    /// <param name="IntegrationTableMapping">The integration table mapping to count.</param>
+    /// <returns>The number of integration records.</returns>
     procedure GetIntegrationRecRefCount(IntegrationTableMapping: Record "Integration Table Mapping"): Integer
     var
         MasterDataManagement: Codeunit "Master Data Management";
@@ -90,6 +119,11 @@ codeunit 139757 "Library - Master Data Mgt."
         exit(MasterDataManagement.GetIntegrationRecRefCount(IntegrationTableMapping));
     end;
 
+    /// <summary>Gets a single source record by its SystemId from the configured data source.</summary>
+    /// <param name="IntegrationTableId">The integration table ID to read.</param>
+    /// <param name="SystemId">The SystemId of the source record.</param>
+    /// <param name="SourceRecordRef">Returns the record reference positioned on the found record.</param>
+    /// <returns>True if the record was found; otherwise false.</returns>
     procedure DataSourceGetBySystemId(IntegrationTableId: Integer; SystemId: Guid; var SourceRecordRef: RecordRef): Boolean
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
@@ -98,6 +132,15 @@ codeunit 139757 "Library - Master Data Mgt."
         exit(MasterDataManagementSetup.GetDataSource().GetBySystemId(IntegrationTableId, SystemId, SourceRecordRef));
     end;
 
+    /// <summary>Gets a cursor-paged batch of modified source records from the cross-environment data source.</summary>
+    /// <param name="IntegrationTableMapping">The integration table mapping to read.</param>
+    /// <param name="TableFilter">The source table filter to apply.</param>
+    /// <param name="StartCursor">The cursor to resume from; empty starts a new scan.</param>
+    /// <param name="MaxPages">The maximum number of pages to fetch in this call.</param>
+    /// <param name="SourceRecordRef">Returns the record reference positioned on the fetched batch.</param>
+    /// <param name="EndCursor">Returns the cursor to resume from on the next call.</param>
+    /// <param name="HasMore">Returns true if more records remain beyond this batch.</param>
+    /// <returns>True if any records were fetched; otherwise false.</returns>
     procedure DataSourceGetModifiedBatch(IntegrationTableMapping: Record "Integration Table Mapping"; TableFilter: Text; StartCursor: Text; MaxPages: Integer; var SourceRecordRef: RecordRef; var EndCursor: Text; var HasMore: Boolean): Boolean
     var
         CrossEnvDataSource: Codeunit "MDM Cross-Env Data Source";
@@ -106,6 +149,8 @@ codeunit 139757 "Library - Master Data Mgt."
     end;
 
     // Setting a Source Environment Name routes GetDataSource() to the cross-environment implementation.
+    /// <summary>Sets the source environment name, routing the data source to the cross-environment implementation.</summary>
+    /// <param name="EnvironmentName">The source environment name to set.</param>
     procedure SetSourceEnvironmentName(EnvironmentName: Text)
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
@@ -115,6 +160,7 @@ codeunit 139757 "Library - Master Data Mgt."
         MasterDataManagementSetup.Modify(false);
     end;
 
+    /// <summary>Runs the cross-environment change detector once.</summary>
     procedure RunChangeDetector()
     var
         MDMCrossEnvChangeDetector: Codeunit "MDM Cross-Env Change Detector";
@@ -122,6 +168,19 @@ codeunit 139757 "Library - Master Data Mgt."
         MDMCrossEnvChangeDetector.DetectChanges();
     end;
 
+    /// <summary>Validates a source environment URL against the HTTP transport's host allow-list; errors if it is not a valid Business Central endpoint.</summary>
+    /// <param name="BaseUrl">The source environment base URL to validate.</param>
+    procedure ValidateHttpTransportSourceHost(BaseUrl: Text)
+    var
+        MDMHttpSourceTransport: Codeunit "MDM Http Source Transport";
+    begin
+        MDMHttpSourceTransport.ValidateSourceHostUrl(BaseUrl);
+    end;
+
+    /// <summary>Checks whether the inline media cache holds an entry for a record field.</summary>
+    /// <param name="SystemId">The SystemId of the source record.</param>
+    /// <param name="FieldNo">The field number of the media/blob field.</param>
+    /// <returns>True if the cache contains the entry; otherwise false.</returns>
     procedure InlineMediaCacheContains(SystemId: Guid; FieldNo: Integer): Boolean
     var
         InlineMedia: Codeunit "MDM Inline Media";

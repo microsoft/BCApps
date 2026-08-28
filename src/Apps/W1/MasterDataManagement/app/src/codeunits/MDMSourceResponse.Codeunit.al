@@ -146,7 +146,7 @@ codeunit 7248 "MDM Source Response"
             exit;
         MediaObject := ValueToken.AsObject();
         if IsSkipped(MediaObject) then begin
-            LogSkippedField(TableId, FieldNo, SystemId, MediaObject);
+            LogSkippedField(TableId, FieldNo, MediaObject);
             exit;
         end;
         if not MediaObject.Get('content', ContentToken) then
@@ -172,7 +172,7 @@ codeunit 7248 "MDM Source Response"
             exit;
         BlobObject := ValueToken.AsObject();
         if IsSkipped(BlobObject) then begin
-            LogSkippedField(TableId, FieldNo, SystemId, BlobObject);
+            LogSkippedField(TableId, FieldNo, BlobObject);
             exit;
         end;
         if not BlobObject.Get('content', ContentToken) then
@@ -193,16 +193,17 @@ codeunit 7248 "MDM Source Response"
 
     // Over-cap media/blob is not synchronized (v1). We can't error (it would retry the record every run) and MDM
     // surfaces no synch warnings, so the skip is emitted as telemetry only; the record's other fields still sync.
-    local procedure LogSkippedField(TableId: Integer; FieldNo: Integer; SystemId: Guid; FieldObject: JsonObject)
+    local procedure LogSkippedField(TableId: Integer; FieldNo: Integer; FieldObject: JsonObject)
     var
         MasterDataManagement: Codeunit "Master Data Management";
         Dimensions: Dictionary of [Text, Text];
         LengthToken: JsonToken;
     begin
+        // The source record identifier (systemId) is customer data, so it is not emitted; only the table, field,
+        // and length (non-identifying diagnostics) are logged.
         Dimensions.Add('Category', MasterDataManagement.GetTelemetryCategory());
         Dimensions.Add('tableId', Format(TableId));
         Dimensions.Add('fieldNo', Format(FieldNo));
-        Dimensions.Add('systemId', Format(SystemId, 0, 4));
         if FieldObject.Get('length', LengthToken) then
             Dimensions.Add('length', Format(LengthToken.AsValue().AsBigInteger()));
         Session.LogMessage('0000QF2', SkippedFieldTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);

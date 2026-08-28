@@ -88,36 +88,37 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
             if ResponseMessage.IsSuccessStatusCode() then
                 exit(UnwrapODataValue(ResponseBodyText));
             if not ShouldRetry(ResponseMessage, Attempt, RetryAfter) then begin
-                LogRequestFailure(MasterDataManagementSetup, ActionName, ResponseMessage, ResponseBodyText);
+                LogRequestFailure(MasterDataManagementSetup, ActionName, ResponseMessage);
                 Error(HttpErr, ResponseMessage.HttpStatusCode());
             end;
             Sleep(RetryAfter);
         end;
     end;
 
-    local procedure LogRequestFailure(var MasterDataManagementSetup: Record "Master Data Management Setup"; ActionName: Text; var ResponseMessage: HttpResponseMessage; ResponseBodyText: Text)
+    local procedure LogRequestFailure(var MasterDataManagementSetup: Record "Master Data Management Setup"; ActionName: Text; var ResponseMessage: HttpResponseMessage)
     var
         AuditLog: Codeunit "Audit Log";
         Dimensions: Dictionary of [Text, Text];
     begin
-        // The raw response body stays in structured telemetry context, never in a user-facing error.
+        // The response body can echo source-environment record content, so it is never emitted to telemetry; only
+        // the action and HTTP status (non-content diagnostics) are logged.
         Dimensions.Add('Category', TelemetryCategoryTok);
         Dimensions.Add('action', ActionName);
         Dimensions.Add('httpStatusCode', Format(ResponseMessage.HttpStatusCode()));
-        Dimensions.Add('responseBody', CopyStr(ResponseBodyText, 1, 2048));
         Session.LogMessage('0000QF1', StrSubstNo(RequestFailedTelemetryTxt, ActionName, ResponseMessage.HttpStatusCode()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
         // Security audit: an authorization failure crossing the environment boundary.
         if ResponseMessage.HttpStatusCode() in [401, 403] then
             AuditLog.LogAuditMessage(StrSubstNo(AccessDeniedAuditTxt, MasterDataManagementSetup."Source Environment Name", ResponseMessage.HttpStatusCode()), SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
     end;
 
-    local procedure LogTransportFailure(ActionName: Text; SendErrorText: Text)
+    local procedure LogTransportFailure(ActionName: Text)
     var
         Dimensions: Dictionary of [Text, Text];
     begin
+        // GetLastErrorText() can contain record keys or file names, so the raw error is never emitted to telemetry;
+        // only the action is logged.
         Dimensions.Add('Category', TelemetryCategoryTok);
         Dimensions.Add('action', ActionName);
-        Dimensions.Add('transportError', CopyStr(SendErrorText, 1, 2048));
         Session.LogMessage('0000QF3', StrSubstNo(TransportFailedTelemetryTxt, ActionName), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
     end;
 
@@ -143,7 +144,7 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         RequestMessage.Content(HttpContent);
 
         if not HttpClient.Send(RequestMessage, ResponseMessage) then begin
-            LogTransportFailure(ActionName, GetLastErrorText());
+            LogTransportFailure(ActionName);
             Error(SendFailedErr);
         end;
     end;
@@ -172,6 +173,12 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
             exit;
         AuditLog.LogAuditMessage(StrSubstNo(InvalidSourceUrlAuditTxt, Host), SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
         Error(InvalidSourceUrlErr);
+    end;
+
+    // Test seam: exercise the source-host allow-list without a live environment or the SaaS gate.
+    internal procedure ValidateSourceHostUrl(BaseUrl: Text)
+    begin
+        ValidateSourceHost(BaseUrl);
     end;
 
     // The ODataV4 envelope for an action returning Text is { "@odata.context": "...", "value": "<inner json>" };

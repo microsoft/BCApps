@@ -33,7 +33,7 @@ table 7230 "Master Data Management Setup"
                 if "Is Enabled" then
                     if IsCrossEnvironment() then begin
                         if not IsCrossEnvConnectionConfigured() then
-                            Error(MustConfigureConnectionErr);
+                            Error(BuildConfigureConnectionError());
                     end else
                         if "Company Name" = '' then
                             Error(MustPickSourceCompanyErr);
@@ -95,6 +95,9 @@ table 7230 "Master Data Management Setup"
             var
                 MasterDataMgtSetupDefault: Codeunit "Master Data Mgt. Setup Default";
             begin
+                // Re-pointing an enabled setup would leave stale couplings/cursors against the old source; force a disable/rebuild.
+                if "Is Enabled" and ("Source Environment Name" <> xRec."Source Environment Name") then
+                    Error(CannotChangeSourceWhileEnabledErr);
                 MasterDataMgtSetupDefault.UpdateChangeDetectorJob(Rec);
             end;
         }
@@ -255,6 +258,11 @@ table 7230 "Master Data Management Setup"
 
         if IsCrossEnvironment() then begin
             // Cross-environment: the source is a different environment; never write to its subscriber table.
+            // Drop any stale local-company subscription left from a prior local-source setup.
+            if "Company Name" <> '' then begin
+                CurrentCompanyName := CopyStr(CompanyName(), 1, MaxStrLen(MasterDataMgtSubscriber."Company Name"));
+                MasterDataManagement.RemoveSubsidiarySubscriptionFromMasterCompany("Company Name", CurrentCompanyName);
+            end;
             Message(SynchronizationEnabledMsg, "Source Company Name");
             LogCrossEnvironmentEnabled(MasterDataManagement.GetTelemetryCategory());
             exit;
@@ -365,6 +373,16 @@ table 7230 "Master Data Management Setup"
         exit(Enum::"MDM Data Source Type"::LocalCompany);
     end;
 
+    local procedure BuildConfigureConnectionError(): ErrorInfo
+    var
+        ErrInfo: ErrorInfo;
+    begin
+        ErrInfo.Message := MustConfigureConnectionErr;
+        ErrInfo.RecordId := Rec.RecordId();
+        ErrInfo.AddNavigationAction(OpenSetupNavigationTxt);
+        exit(ErrInfo);
+    end;
+
     var
         SynchronizationEnabledMsg: label 'The synchronization of data from company %1 is enabled. \\To review the tables and fields that will be synchronized, choose action Synchronization Tables. \\To perform the initial synchronization of data from %1, choose Start Initial Synchronization. \\After the initial synchronization is done, job queue entries will continue to synchronize modifications.', Comment = '%1 - a company name';
         CouplingsWillBeDeletedQst: label 'All the couplings with records from previous source company %1 will be deleted. Do you want to continue?', Comment = '%1 - a company name';
@@ -372,6 +390,8 @@ table 7230 "Master Data Management Setup"
         MustNotPickCurrentCompanyErr: label 'You are currently signed into this company. \\Choose a different company to synchronize data with.';
         MustPickSourceCompanyErr: label 'You must choose a source company to synchronize data from.';
         MustConfigureConnectionErr: label 'Enter the cross-environment connection details before you enable synchronization.';
+        OpenSetupNavigationTxt: label 'Open Master Data Management Setup';
+        CannotChangeSourceWhileEnabledErr: label 'You cannot change the source environment while synchronization is enabled. Disable synchronization first, then change the source.';
         EncryptionRequiredErr: label 'Enable data encryption before saving the source connection secret. Cross-environment credentials are never stored unencrypted.';
         CrossEnvEnabledTelemetryTxt: label 'Cross-environment master data synchronization was enabled.', Locked = true;
         ResetConfigQst: label 'There are existing synchronization table definitions in this company. Do you want to reset them to the default configuration?';

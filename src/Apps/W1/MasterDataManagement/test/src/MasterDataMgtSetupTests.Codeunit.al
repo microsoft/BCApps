@@ -96,6 +96,7 @@ codeunit 139770 "Master Data Mgt. Setup Tests"
         Initialize();
         MasterDataManagementSetup.Init();
         asserterror MasterDataManagementSetup.Validate("Company Name", CopyStr(CompanyName(), 1, MaxStrLen(MasterDataManagementSetup."Company Name")));
+        Assert.ExpectedError('You are currently signed into this company');
     end;
 
     [Test]

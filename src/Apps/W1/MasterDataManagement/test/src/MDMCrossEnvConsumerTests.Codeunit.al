@@ -43,6 +43,34 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     end;
 
     [Test]
+    procedure HttpTransportRejectsNonBusinessCentralHosts()
+    var
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Security]
+        // [SCENARIO] The HTTP transport's source-host allow-list accepts only HTTPS Business Central endpoints (SSRF guard).
+        Initialize();
+
+        // [GIVEN] valid Business Central SaaS and TIE endpoints over HTTPS [THEN] validation passes
+        LibraryMasterDataMgt.ValidateHttpTransportSourceHost('https://myenv.api.bc.dynamics.com');
+        LibraryMasterDataMgt.ValidateHttpTransportSourceHost('https://myenv.api.bc.dynamics-tie.com');
+
+        // [GIVEN] a non-HTTPS scheme [THEN] validation is rejected
+        asserterror LibraryMasterDataMgt.ValidateHttpTransportSourceHost('http://myenv.api.bc.dynamics.com');
+        Assert.ExpectedError('not a valid Business Central endpoint');
+
+        // [GIVEN] a host outside the dynamics.com allow-list [THEN] validation is rejected
+        asserterror LibraryMasterDataMgt.ValidateHttpTransportSourceHost('https://evil.example.com');
+        Assert.ExpectedError('not a valid Business Central endpoint');
+
+        // [GIVEN] a look-alike host that only embeds dynamics.com as a non-final label [THEN] validation is rejected
+        asserterror LibraryMasterDataMgt.ValidateHttpTransportSourceHost('https://myenv.dynamics.com.evil.example.com');
+        Assert.ExpectedError('not a valid Business Central endpoint');
+
+        CleanUp();
+    end;
+
+    [Test]
     procedure CrossEnvTransferBlockedUntilPrivacyNoticeApproved()
     var
         LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";

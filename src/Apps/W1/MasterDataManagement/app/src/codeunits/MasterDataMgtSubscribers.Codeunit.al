@@ -747,23 +747,32 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         MasterDataManagementSetup: Record "Master Data Management Setup";
         MasterDataManagement: Codeunit "Master Data Management";
         IntegrationRecordRef: RecordRef;
-        ModifiedFieldRef: FieldRef;
         IsHandled: Boolean;
         IntRecSystemId: Guid;
     begin
         MasterDataManagementSetup.Get();
+        // Cross-environment: FromRecordRef is already the source row materialized from the fetched batch, so read
+        // the watermark from it instead of issuing another per-record OData round-trip (avoids an N+1 fetch).
+        if MasterDataManagementSetup."Source Environment Name" <> '' then
+            exit(ModifiedOnFromRecordRef(IntegrationTableMapping, FromRecordRef));
+
         IntegrationRecordRef.Open(FromRecordRef.Number, false);
         IntRecSystemId := FromRecordRef.Field(FromRecordRef.SystemIdNo).Value();
         MasterDataManagement.OnGetIntegrationRecordRefBySystemId(IntegrationTableMapping, IntegrationRecordRef, IntRecSystemId, IsHandled);
         if not IsHandled then
             // Route the source re-fetch: the record lives in the local company or another environment.
             if MasterDataManagementSetup.GetDataSource().GetBySystemId(FromRecordRef.Number, IntRecSystemId, IntegrationRecordRef) then;
-        if FromRecordRef.Number() = IntegrationTableMapping."Integration Table ID" then begin
-            ModifiedFieldRef := IntegrationRecordRef.Field(IntegrationTableMapping."Int. Tbl. Modified On Fld. No.");
-            exit(ModifiedFieldRef.Value());
-        end;
+        exit(ModifiedOnFromRecordRef(IntegrationTableMapping, IntegrationRecordRef));
+    end;
 
-        ModifiedFieldRef := IntegrationRecordRef.Field(IntegrationRecordRef.SystemModifiedAtNo());
+    local procedure ModifiedOnFromRecordRef(IntegrationTableMapping: Record "Integration Table Mapping"; var SourceRecordRef: RecordRef): DateTime
+    var
+        ModifiedFieldRef: FieldRef;
+    begin
+        if SourceRecordRef.Number() = IntegrationTableMapping."Integration Table ID" then
+            ModifiedFieldRef := SourceRecordRef.Field(IntegrationTableMapping."Int. Tbl. Modified On Fld. No.")
+        else
+            ModifiedFieldRef := SourceRecordRef.Field(SourceRecordRef.SystemModifiedAtNo());
         exit(ModifiedFieldRef.Value());
     end;
 

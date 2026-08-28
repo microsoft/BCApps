@@ -114,6 +114,7 @@ codeunit 7245 "MDM Cross-Env Change Detector"
         IntegrationTableMapping.SetRange("Delete After Synchronization", false);
         IntegrationTableMapping.SetRange("Integration Table ID", TableId);
         IntegrationTableMapping.SetRange(Status, IntegrationTableMapping.Status::Enabled);
+        IntegrationTableMapping.SetLoadFields("Synch. Modified On Filter");
         if not IntegrationTableMapping.FindSet() then
             exit;
         repeat
