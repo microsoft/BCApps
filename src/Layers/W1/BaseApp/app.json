@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "description": "Provides business processes that are typical for small and mid-sized companies, such as sales and purchasing, and customer and vendor management, plus complex processes, such as assembly, manufacturing, service, and directed warehouse management. https://go.microsoft.com/fwlink/?LinkId=2205496",
   "brief": "Provides business processes that are typical for small and mid-sized companies, such as sales and purchasing, and customer and vendor management, plus complex processes, such as assembly, manufacturing, service, and directed warehouse management.",
-  "version": "29.0.0.0",
+  "version": "30.0.0.0",
   "logo": "ExtensionLogo.png",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
@@ -16,13 +16,13 @@
       "id": "63ca2fa4-4f03-4f2b-a480-172fef340d3f",
       "name": "System Application",
       "publisher": "Microsoft",
-      "version": "29.0.0.0"
+      "version": "30.0.0.0"
     },
     {
       "id": "f3552374-a1f2-4356-848e-196002525837",
       "name": "Business Foundation",
       "publisher": "Microsoft",
-      "version": "29.0.0.0"
+      "version": "30.0.0.0"
     }
   ],
   "internalsVisibleTo": [
@@ -234,6 +234,11 @@
     {
       "id": "24f54185-e697-4e03-bae0-f134f2d69673",
       "name": "Payment Management FR",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "1f32a50d-0057-4b95-b5df-cc04d7e89470",
+      "name": "Subcontracting",
       "publisher": "Microsoft"
     }
   ],
