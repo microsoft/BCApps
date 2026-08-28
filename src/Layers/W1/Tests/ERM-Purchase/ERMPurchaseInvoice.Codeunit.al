@@ -3453,8 +3453,9 @@
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: array[2] of Record "Purchase Line";
         PurchRcptLine: Record "Purch. Rcpt. Line";
+        ValueEntry: Record "Value Entry";
         PurchGetReceipt: Codeunit "Purch.-Get Receipt";
-        ValueEntries: TestPage "Value Entries";
+        InvtLedgerSourceMgt: Codeunit "Invt. Ledger Source Mgt.";
         VendorNo: Code[20];
         InvoiceNo: Code[20];
         i: Integer;
@@ -3480,12 +3481,11 @@
         InvoiceNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true);
 
         // [THEN] The Source Order No. of each invoice value entry points to the original purchase order
-        ValueEntries.OpenView();
         for i := 1 to ArrayLen(PurchaseLine) do begin
-            ValueEntries.Filter.SetFilter("Document No.", InvoiceNo);
-            ValueEntries.Filter.SetFilter("Item No.", PurchaseLine[i]."No.");
-            ValueEntries.First();
-            ValueEntries."Source Order No.".AssertEquals(PurchaseLine[i]."Document No.");
+            ValueEntry.SetRange("Document No.", InvoiceNo);
+            ValueEntry.SetRange("Item No.", PurchaseLine[i]."No.");
+            ValueEntry.FindFirst();
+            Assert.AreEqual(PurchaseLine[i]."Document No.", InvtLedgerSourceMgt.GetSourceOrderNo(ValueEntry."Document Type", ValueEntry."Document No.", ValueEntry."Document Line No."), 'The calculate source order no. does not match the actual.');
         end;
     end;
 
@@ -3495,8 +3495,9 @@
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: array[2] of Record "Purchase Line";
         ReturnShipmentLine: Record "Return Shipment Line";
+        ValueEntry: Record "Value Entry";
         PurchGetReturnShipments: Codeunit "Purch.-Get Return Shipments";
-        ValueEntries: TestPage "Value Entries";
+        InvtLedgerSourceMgt: Codeunit "Invt. Ledger Source Mgt.";
         VendorNo: Code[20];
         CreditMemoNo: Code[20];
         i: Integer;
@@ -3522,15 +3523,14 @@
         CreditMemoNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true);
 
         // [THEN] The Source Order No. of each credit memo value entry points to the original purchase return order
-        ValueEntries.OpenView();
         for i := 1 to ArrayLen(PurchaseLine) do begin
-            ValueEntries.Filter.SetFilter("Document No.", CreditMemoNo);
-            ValueEntries.Filter.SetFilter("Item No.", PurchaseLine[i]."No.");
-            ValueEntries.First();
-            ValueEntries."Source Order No.".AssertEquals(PurchaseLine[i]."Document No.");
+            ValueEntry.SetRange("Document No.", CreditMemoNo);
+            ValueEntry.SetRange("Item No.", PurchaseLine[i]."No.");
+            ValueEntry.FindFirst();
+            Assert.AreEqual(PurchaseLine[i]."Document No.", InvtLedgerSourceMgt.GetSourceOrderNo(ValueEntry."Document Type", ValueEntry."Document No.", ValueEntry."Document Line No."), 'The calculate source order no. does not match the actual.');
         end;
     end;
-    
+
     local procedure Initialize()
     var
         ICSetup: Record "IC Setup";

@@ -4574,8 +4574,9 @@ codeunit 134386 "ERM Sales Documents II"
         SalesHeader: Record "Sales Header";
         SalesLine: array[2] of Record "Sales Line";
         SalesShipmentLine: Record "Sales Shipment Line";
+        ValueEntry: Record "Value Entry";
         SalesGetShipment: Codeunit "Sales-Get Shipment";
-        ValueEntries: TestPage "Value Entries";
+        InvtLedgerSourceMgt: Codeunit "Invt. Ledger Source Mgt.";
         CustomerNo: Code[20];
         InvoiceNo: Code[20];
         i: Integer;
@@ -4602,12 +4603,11 @@ codeunit 134386 "ERM Sales Documents II"
         InvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, false, true);
 
         // [THEN] The Source Order No. of each invoice value entry points to the original sales order
-        ValueEntries.OpenView();
         for i := 1 to ArrayLen(SalesLine) do begin
-            ValueEntries.Filter.SetFilter("Document No.", InvoiceNo);
-            ValueEntries.Filter.SetFilter("Item No.", SalesLine[i]."No.");
-            ValueEntries.First();
-            ValueEntries."Source Order No.".AssertEquals(SalesLine[i]."Document No.");
+            ValueEntry.SetRange("Document No.", InvoiceNo);
+            ValueEntry.SetRange("Item No.", SalesLine[i]."No.");
+            ValueEntry.FindFirst();
+            Assert.AreEqual(SalesLine[i]."Document No.", InvtLedgerSourceMgt.GetSourceOrderNo(ValueEntry."Document Type", ValueEntry."Document No.", ValueEntry."Document Line No."), 'The calculate source order no. does not match the actual.');
         end;
     end;
 
@@ -4617,8 +4617,9 @@ codeunit 134386 "ERM Sales Documents II"
         SalesHeader: Record "Sales Header";
         SalesLine: array[2] of Record "Sales Line";
         ReturnReceiptLine: Record "Return Receipt Line";
+        ValueEntry: Record "Value Entry";
         SalesGetReturnReceipts: Codeunit "Sales-Get Return Receipts";
-        ValueEntries: TestPage "Value Entries";
+        InvtLedgerSourceMgt: Codeunit "Invt. Ledger Source Mgt.";
         CustomerNo: Code[20];
         CreditMemoNo: Code[20];
         i: Integer;
@@ -4645,12 +4646,11 @@ codeunit 134386 "ERM Sales Documents II"
         CreditMemoNo := LibrarySales.PostSalesDocument(SalesHeader, false, true);
 
         // [THEN] The Source Order No. of each credit memo value entry points to the original sales return order
-        ValueEntries.OpenView();
         for i := 1 to ArrayLen(SalesLine) do begin
-            ValueEntries.Filter.SetFilter("Document No.", CreditMemoNo);
-            ValueEntries.Filter.SetFilter("Item No.", SalesLine[i]."No.");
-            ValueEntries.First();
-            ValueEntries."Source Order No.".AssertEquals(SalesLine[i]."Document No.");
+            ValueEntry.SetRange("Document No.", CreditMemoNo);
+            ValueEntry.SetRange("Item No.", SalesLine[i]."No.");
+            ValueEntry.FindFirst();
+            Assert.AreEqual(SalesLine[i]."Document No.", InvtLedgerSourceMgt.GetSourceOrderNo(ValueEntry."Document Type", ValueEntry."Document No.", ValueEntry."Document Line No."), 'The calculate source order no. does not match the actual.');
         end;
     end;
 

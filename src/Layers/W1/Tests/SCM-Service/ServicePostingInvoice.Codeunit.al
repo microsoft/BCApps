@@ -3273,8 +3273,9 @@ codeunit 136108 "Service Posting - Invoice"
         ServiceLine: array[2] of Record "Service Line";
         ServiceShipmentLine: Record "Service Shipment Line";
         ServiceInvoiceHeader: Record "Service Invoice Header";
+        ValueEntry: Record "Value Entry";
         ServiceGetShipment: Codeunit "Service-Get Shipment";
-        ValueEntries: TestPage "Value Entries";
+        InvtLedgerSourceMgt: Codeunit "Invt. Ledger Source Mgt.";
         CustomerNo: Code[20];
         InvoiceNo: Code[20];
         i: Integer;
@@ -3306,15 +3307,14 @@ codeunit 136108 "Service Posting - Invoice"
         InvoiceNo := ServiceInvoiceHeader."No.";
 
         // [THEN] The Source Order No. of each invoice value entry points to the original service order
-        ValueEntries.OpenView();
         for i := 1 to ArrayLen(ServiceLine) do begin
-            ValueEntries.Filter.SetFilter("Document No.", InvoiceNo);
-            ValueEntries.Filter.SetFilter("Item No.", ServiceLine[i]."No.");
-            ValueEntries.First();
-            ValueEntries."Source Order No.".AssertEquals(ServiceLine[i]."Document No.");
+            ValueEntry.SetRange("Document No.", InvoiceNo);
+            ValueEntry.SetRange("Item No.", ServiceLine[i]."No.");
+            ValueEntry.FindFirst();
+            Assert.AreEqual(ServiceLine[i]."Document No.", InvtLedgerSourceMgt.GetSourceOrderNo(ValueEntry."Document Type", ValueEntry."Document No.", ValueEntry."Document Line No."), 'The calculate source order no. does not match the actual.');
         end;
     end;
-    
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Service-Post", OnSetCommitBehavior, '', false, false)]
     local procedure OnSetCommitBehaviorHandler(var IgnoreCommit: Boolean)
     begin
