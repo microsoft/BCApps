@@ -11,8 +11,8 @@ page 37096 "PBI Machine Center Load"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = Manufacturing;
     PageType = UserControlHost;
-    Caption = 'Machine Center Load';
-    AboutTitle = 'About Machine Center Load';
+    Caption = 'Machine Center Load (Power BI)';
+    AboutTitle = 'About Machine Center Load (Power BI)';
     AboutText = 'View your machine center load and usage, including allocated time and availability for each machine center, helping you optimize resource allocation and improve operational efficiency.';
 
     layout

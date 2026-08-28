@@ -6,6 +6,7 @@ namespace Microsoft.eServices.EDocument;
 
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.Processing.Import;
+using System.IO;
 using System.Utilities;
 
 table 6124 "E-Document Log"
@@ -57,7 +58,9 @@ table 6124 "E-Document Log"
             ObsoleteReason = 'Replaced by Service Integration V2.';
 #if CLEAN26
             ObsoleteState = Removed;
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 #else
             ObsoleteState = Pending;
             ObsoleteTag = '26.0';
@@ -113,7 +116,9 @@ table 6124 "E-Document Log"
             ObsoleteReason = 'Replaced by Key4.';
 #if CLEAN26
             ObsoleteState = Removed;
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 #else
             ObsoleteState = Pending;
             ObsoleteTag = '26.0';
@@ -152,6 +157,8 @@ table 6124 "E-Document Log"
     internal procedure ExportDataStorage()
     var
         EDocDataStorage: Record "E-Doc. Data Storage";
+        EDocumentService: Record "E-Document Service";
+        FileManagement: Codeunit "File Management";
         InStr: InStream;
         FileName: Text;
     begin
@@ -168,7 +175,11 @@ table 6124 "E-Document Log"
 
         OnBeforeExportDataStorage(Rec, FileName);
 
-        DownloadFromStream(InStr, '', '', '', FileName);
+        if FileManagement.GetExtension(FileName) = '' then
+            if EDocumentService.Get("Service Code") then
+                FileName += EDocumentService.GetDefaultFileExtension();
+
+        FileManagement.DownloadFromStreamHandler(InStr, '', '', '', FileName);
     end;
 
     internal procedure GetDataStorage(var TempBlob: Codeunit "Temp Blob"): Boolean

@@ -5,11 +5,13 @@
 
 namespace System.Agents;
 
+using System.Agents.TaskPane;
 using System.AI;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Reflection;
 using System.Security.AccessControl;
+using System.Telemetry;
 
 codeunit 4301 "Agent Impl."
 {
@@ -54,6 +56,53 @@ codeunit 4301 "Agent Impl."
     procedure Deactivate(AgentUserSecurityID: Guid)
     begin
         ChangeAgentState(AgentUserSecurityID, false);
+    end;
+
+    procedure Archive(AgentUserSecurityID: Guid)
+    var
+        Agent: Record Agent;
+    begin
+        GetAgent(Agent, AgentUserSecurityID);
+
+        if Agent.Substate = Agent.Substate::Archived then
+            exit; // Archiving is terminal; idempotent no-op avoids the platform "archived agent cannot be modified" error on re-archive.
+
+        if Agent.State <> Agent.State::Disabled then
+            Error(DeactivateBeforeArchivingErr);
+
+        Agent.Substate := Agent.Substate::Archived;
+        Agent.Modify(true);
+    end;
+
+    procedure IsArchived(AgentUserSecurityID: Guid): Boolean
+    var
+        Agent: Record Agent;
+    begin
+        GetAgent(Agent, AgentUserSecurityID);
+
+        exit(Agent.Substate = Agent.Substate::Archived);
+    end;
+
+    procedure ShowAgent(AgentUserSecurityID: Guid)
+    var
+        Agent: Record Agent;
+        TaskPane: Codeunit "Task Pane";
+    begin
+        // Route archived agents to the agent card, which keeps the agent reachable for auditing.
+        if Agent.Get(AgentUserSecurityID) and (Agent.Substate = Agent.Substate::Archived) then begin
+            Agent.SetRecFilter();
+            Page.Run(Page::"Agent Card", Agent);
+            exit;
+        end;
+
+        TaskPane.ShowAgent(AgentUserSecurityID);
+    end;
+
+    // Agent-record changes are frozen by the platform VDP; this guards the other tables.
+    local procedure EnsureNotArchived(AgentUserSecurityID: Guid)
+    begin
+        if IsArchived(AgentUserSecurityID) then
+            Error(AgentArchivedCannotBeModifiedErr);
     end;
 
     procedure GetUserAccess(AgentUserSecurityID: Guid; var TempAgentAccessControl: Record "Agent Access Control" temporary)
@@ -281,6 +330,8 @@ codeunit 4301 "Agent Impl."
     var
         UserPersonalization: Record "User Personalization";
     begin
+        EnsureNotArchived(NewUserSettings."User Security ID");
+
         UserPersonalization.Get(NewUserSettings."User Security ID");
 
         UserPersonalization."Language ID" := NewUserSettings."Language ID";
@@ -340,6 +391,8 @@ codeunit 4301 "Agent Impl."
     var
         AgentUtilities: Codeunit "Agent Utilities";
     begin
+        EnsureNotArchived(UserSecurityID);
+
         // Calling system codeunit to allow the assignment of permissions to Agents without SUPER or SECURITY.
         // This method ensure that the user has Configure permission for the specified agent in all the companies
         // for which permissions are modified (both removed and added).
@@ -516,13 +569,20 @@ codeunit 4301 "Agent Impl."
     var
         PageMetadata: Record "Page Metadata";
         FieldMetadata: Record Field;
+        Telemetry: Codeunit Telemetry;
         SetupPageRecordRef: RecordRef;
         UserSecurityIdFieldRef: FieldRef;
         AgentMetadata: Interface IAgentMetadata;
         SourceRecordVariant: Variant;
+        CustomDimensions: Dictionary of [Text, Text];
         SetupPageId: Integer;
         UserSecurityIdTok: Label 'User Security ID', Locked = true;
     begin
+        if IsArchived(AgentUserSecurityID) then begin
+            CustomDimensions.Add('AgentMetadataProvider', Format(AgentMetadataProvider));
+            Telemetry.LogMessage('0000UTO', ConfigureOpenedOnArchivedAgentTelemetryLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
+        end;
+
         AgentMetadata := AgentMetadataProvider;
         SetupPageId := AgentMetadata.GetSetupPageId(AgentUserSecurityID);
 
@@ -582,6 +642,8 @@ codeunit 4301 "Agent Impl."
 
     var
         AgentDoesNotExistErr: Label 'Agent does not exist.';
+        AgentArchivedCannotBeModifiedErr: Label 'The agent is archived and cannot be modified.';
+        DeactivateBeforeArchivingErr: Label 'Deactivate the agent before archiving it.';
         AutoLbl: Label 'Auto';
         NoActiveAgentsErr: Label 'There are no active agents setup on the system.';
         NoAgentsAvailableNotificationLbl: Label 'Business Central agents are currently not available in your country.';
@@ -592,4 +654,5 @@ codeunit 4301 "Agent Impl."
         SetupPageSourceTableMissingFieldErr: Label 'The source table for setup page %1 must include a field named ''%2''.', Comment = '%1 = Setup page ID, %2 = Required field name.';
         SetupPageSourceTableFieldWrongTypeErr: Label 'Field ''%1'' on the source table for setup page %2 must be of type %3.', Comment = '%1 = Field name, %2 = Setup page ID, %3 = Required field type.';
         UnknownCopilotAvailabilityLbl: Label 'Unknown';
+        ConfigureOpenedOnArchivedAgentTelemetryLbl: Label 'Configure page opened for an archived agent.', Locked = true;
 }

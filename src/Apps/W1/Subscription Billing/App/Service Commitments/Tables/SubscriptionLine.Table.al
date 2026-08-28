@@ -587,7 +587,9 @@ table 8059 "Subscription Line"
             ObsoleteTag = '26.0';
 #else
             ObsoleteState = Removed;
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 #endif
         }
 #endif
@@ -613,6 +615,9 @@ table 8059 "Subscription Line"
         key(Key3; "Subscription Header No.", Partner)
         {
 
+        }
+        key(Key4; "Supplier Reference Entry No.", "Subscription Line Start Date")
+        {
         }
     }
 
@@ -1831,9 +1836,7 @@ table 8059 "Subscription Line"
 
     internal procedure SetUsageDataBillingFilters(var UsageDataBilling: Record "Usage Data Billing"; BillingFromDate: Date; BillingToDate: Date)
     begin
-        UsageDataBilling.SetRange("Subscription Header No.", Rec."Subscription Header No.");
         UsageDataBilling.SetRange("Subscription Line Entry No.", Rec."Entry No.");
-        UsageDataBilling.SetRange(Partner, Rec.Partner);
         UsageDataBilling.SetRange("Usage Base Pricing", Enum::"Usage Based Pricing"::"Usage Quantity", Enum::"Usage Based Pricing"::"Unit Cost Surcharge");
         UsageDataBilling.SetRange("Document Type", "Usage Based Billing Doc. Type"::None);
         UsageDataBilling.SetFilter("Charge Start Date", '>=%1', BillingFromDate);
@@ -1996,21 +1999,29 @@ table 8059 "Subscription Line"
     var
         DistanceToEndOfMonth: Integer;
         LastDateInLastMonth: Date;
+        PeriodFormulaInteger: Integer;
+        Letter: Char;
     begin
         case Rec."Period Calculation" of
             Rec."Period Calculation"::"Align to Start of Month":
                 NextToDate := CalcDate(PeriodFormula, FromDate) - 1;
             Rec."Period Calculation"::"Align to End of Month":
                 begin
-                    DistanceToEndOfMonth := CalcDate('<CM>', GetBillingReferenceDate()) - GetBillingReferenceDate();
-                    if DistanceToEndOfMonth > 2 then
+                    DateFormulaManagement.FindDateFormulaType(PeriodFormula, PeriodFormulaInteger, Letter);
+                    if Letter in ['D', 'W'] then
+                        // Day/week periods have a fixed length and must not be aligned to the end of the month.
                         NextToDate := CalcDate(PeriodFormula, FromDate) - 1
                     else begin
-                        LastDateInLastMonth := CalcDate(PeriodFormula, FromDate);
-                        LastDateInLastMonth := CalcDate('<CM>', LastDateInLastMonth);
-                        NextToDate := LastDateInLastMonth - DistanceToEndOfMonth - 1;
-                        if NextToDate < FromDate then
-                            NextToDate := CalcDate(PeriodFormula, FromDate) - 1;
+                        DistanceToEndOfMonth := CalcDate('<CM>', GetBillingReferenceDate()) - GetBillingReferenceDate();
+                        if DistanceToEndOfMonth > 2 then
+                            NextToDate := CalcDate(PeriodFormula, FromDate) - 1
+                        else begin
+                            LastDateInLastMonth := CalcDate(PeriodFormula, FromDate);
+                            LastDateInLastMonth := CalcDate('<CM>', LastDateInLastMonth);
+                            NextToDate := LastDateInLastMonth - DistanceToEndOfMonth - 1;
+                            if NextToDate < FromDate then
+                                NextToDate := CalcDate(PeriodFormula, FromDate) - 1;
+                        end;
                     end;
                 end;
         end;

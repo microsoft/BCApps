@@ -1,19 +1,22 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/b57bbcc7f3234fcf83699f463d9334c0605ef4a0/Actions/.Modules/settings.schema.json",
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/6958720b2e1ccfda94fab92c83143ee5e093afec/Actions/.Modules/settings.schema.json",
   "type": "PTE",
   "templateUrl": "https://github.com/microsoft/AL-Go-PTE@preview",
   "bcContainerHelperVersion": "preview",
   "runs-on": "windows-latest",
   "cacheImageName": "",
-  "UsePsSession": false,
+  "UsePsSession": true,
+  "usePsSessionForBc28": true,
   "gitHubRunner": "windows-latest",
   "githubRunnerShell": "pwsh",
-  "artifact": "bcinsider/Sandbox/29.0.52913.0//latest",
+  "artifact": "bcinsider/Sandbox/29.0.53783.0//latest",
   "country": "base",
   "useProjectDependencies": true,
-  "repoVersion": "29.0",
+  "repoVersion": "30.0",
   "memoryLimit": "16G",
-  "numberOfTenantsForTesting": 3,
+  "numberOfTenantsForTesting": 4,
+  "maxTestAppReruns": 2,
+  "failOn": "newWarning",
   "workspaceCompilation": {
     "enabled": true,
     "parallelism": -1
@@ -29,7 +32,8 @@
           "CLEAN26",
           "CLEAN27",
           "CLEAN28",
-          "CLEAN29"
+          "CLEAN29",
+          "CLEAN30"
         ]
       }
     },
@@ -154,7 +158,7 @@
     ]
   },
   "UpdateALGoSystemFilesEnvironment": "Official-Build",
-  "templateSha": "7472f4228dbec6e5a3d789396272d4fe247317e2",
+  "templateSha": "35d89f97b4a2065f65322dbc3bd7e78cf22f45b9",
   "commitOptions": {
     "messageSuffix": "Related to AB#539394",
     "pullRequestAutoMerge": true,
