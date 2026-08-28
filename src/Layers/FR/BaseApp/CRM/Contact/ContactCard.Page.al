@@ -263,7 +263,7 @@ page 5050 "Contact Card"
                     ToolTip = 'Specifies the SIREN No. for the contact.';
                     ObsoleteReason = 'Moved to Sales FR app.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                 }
 #endif
                 field("Legal Form"; Rec."Legal Form")

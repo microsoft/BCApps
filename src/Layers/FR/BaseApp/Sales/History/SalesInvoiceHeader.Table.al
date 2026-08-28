@@ -1293,7 +1293,7 @@ table 112 "Sales Invoice Header"
             ObsoleteTag = '31.0';
 #else
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
 #endif
         }
 #endif

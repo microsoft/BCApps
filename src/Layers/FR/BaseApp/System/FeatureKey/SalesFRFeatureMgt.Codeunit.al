@@ -16,7 +16,7 @@ codeunit 10803 "Sales FR Feature Mgt."
     Permissions = tabledata "NAV App Installed App" = r;
     ObsoleteReason = 'Feature Sales FR will be enabled by default in version 31.0.';
     ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '30.0';
 
     var
         SalesFRFeatureKeyIdTok: Label 'SalesFR', Locked = true;

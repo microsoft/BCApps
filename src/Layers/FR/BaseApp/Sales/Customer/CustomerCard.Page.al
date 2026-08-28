@@ -412,7 +412,7 @@ page 21 "Customer Card"
                     ToolTip = 'Specifies the SIREN No. for the customer.';
                     ObsoleteReason = 'Moved to Sales FR app.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                 }
 #endif
                 group(PostingDetails)

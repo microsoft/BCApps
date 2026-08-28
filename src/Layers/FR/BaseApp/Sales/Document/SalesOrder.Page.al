@@ -531,7 +531,7 @@ page 42 "Sales Order"
                     ToolTip = 'Specifies if the VAT was paid on debits for this document.';
                     ObsoleteReason = 'Moved to Sales FR app.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                 }
                 #endif
                 group(Control76)

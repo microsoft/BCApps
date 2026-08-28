@@ -2337,7 +2337,7 @@ table 18 Customer
             ObsoleteTag = '31.0';
 #else
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
 #endif
         }
 #endif
@@ -2990,7 +2990,7 @@ table 18 Customer
     end;
 
 #if not CLEAN29
-    [Obsolete('GetSIRENNoWithCaption() moved to Sales FR app', '29.0')]
+    [Obsolete('GetSIRENNoWithCaption() moved to Sales FR app', '30.0')]
     procedure GetSIRENNoWithCaption(): Text
     begin
         exit(StrSubstNo(SirenNoTemplateTxt, Rec.FieldCaption("Siren No."), Rec."Siren No."));
