@@ -130,7 +130,9 @@ table 6930 "Expense Agent Setup"
 #else
             ObsoleteState = Pending;
 #endif
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
             ObsoleteReason = 'This field is no longer required and will be removed in a future release.';
             ToolTip = 'Specifies how amounts are rounded: nearest, up, or down.';
         }
@@ -306,6 +308,20 @@ table 6930 "Expense Agent Setup"
         {
             Caption = 'Display anti-corruption attestation';
             ToolTip = 'Specifies whether users must confirm an anti-corruption attestation before submitting expenses.';
+        }
+        field(31; "Evaluate Policies"; Boolean)
+        {
+            Caption = 'Evaluate policies';
+            DataClassification = SystemMetadata;
+            ToolTip = 'Specifies whether the agent automatically evaluates expenses against the configured policies. Enabling this consumes additional AI credits.';
+
+            trigger OnValidate()
+            var
+                FeatureTelemetry: Codeunit "Feature Telemetry";
+            begin
+                if "Evaluate Policies" and (not xRec."Evaluate Policies") then
+                    FeatureTelemetry.LogUptake('0000V3F', GetFeatureName(), Enum::"Feature Uptake Status"::Used);
+            end;
         }
         field(34; "Expense User Nos."; Code[20])
         {

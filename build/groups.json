@@ -826,20 +826,6 @@
     ]
   },
   {
-    "name": "Tests-Performance-Internal",
-    "groups": [
-      {
-        "name": "Base"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "OnPrem"
-      }
-    ]
-  },
-  {
     "name": "TestRunner-Internal",
     "groups": [
       {
@@ -2973,24 +2959,19 @@
     "name": "Subcontracting",
     "groups": [
       {
-        "name": "AllExtensions",
-        "doNotInstall": true
+        "name": "AllExtensions"
       },
       {
-        "name": "Financials",
-        "doNotInstall": true
+        "name": "Financials"
       },
       {
-        "name": "FinancialsExtensions",
-        "doNotInstall": true
+        "name": "FinancialsExtensions"
       },
       {
-        "name": "OnPrem",
-        "doNotInstall": true
+        "name": "OnPrem"
       },
       {
-        "name": "OnPremExtensions",
-        "doNotInstall": true
+        "name": "OnPremExtensions"
       }
     ]
   },
@@ -2998,24 +2979,19 @@
     "name": "Subcontracting-Tests",
     "groups": [
       {
-        "name": "AllExtensions",
-        "doNotInstall": true
+        "name": "AllExtensions"
       },
       {
-        "name": "Financials",
-        "doNotInstall": true
+        "name": "Financials"
       },
       {
-        "name": "FinancialsExtensions",
-        "doNotInstall": true
+        "name": "FinancialsExtensions"
       },
       {
-        "name": "OnPrem",
-        "doNotInstall": true
+        "name": "OnPrem"
       },
       {
-        "name": "OnPremExtensions",
-        "doNotInstall": true
+        "name": "OnPremExtensions"
       }
     ]
   },
@@ -3590,6 +3566,26 @@
   },
   {
     "name": "External Storage - Document Attachments",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem"
+      },
+      {
+        "name": "OnPremExtensions"
+      }
+    ]
+  },
+  {
+    "name": "External Storage - Document Attachments Tests",
     "groups": [
       {
         "name": "AllExtensions"
@@ -5029,28 +5025,6 @@
     ]
   },
   {
-    "name": "PEPPOL DE",
-    "groups": [
-      {
-        "name": "AllExtensions"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "FinancialsExtensions"
-      },
-      {
-        "name": "OnPrem",
-        "doNotInstall": true
-      },
-      {
-        "name": "OnPremExtensions",
-        "doNotInstall": true
-      }
-    ]
-  },
-  {
     "name": "PEPPOL NA",
     "groups": [
       {
@@ -5233,6 +5207,28 @@
       },
       {
         "name": "Internal"
+      }
+    ]
+  },
+  {
+    "name": "PEPPOL DE",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
       }
     ]
   },
@@ -9714,6 +9710,20 @@
       },
       {
         "name": "OnPremExtensions"
+      }
+    ]
+  },
+  {
+    "name": "Expense Withholding Tax",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
       }
     ]
   },
