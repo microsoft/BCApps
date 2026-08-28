@@ -163,8 +163,8 @@ codeunit 130618 "Library - Graph Mgt"
     procedure InitializeWebRequestWithURL(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt."; TargetURL: Text)
     begin
         HttpWebRequestMgt.Initialize(TargetURL);
-        LibraryGraphAuthMgt.AddAuthentication(HttpWebRequestMgt, TargetURL);
         OnAfterInitializeWebRequestWithURL(HttpWebRequestMgt);
+        LibraryGraphAuthMgt.AddAuthentication(HttpWebRequestMgt, TargetURL);
     end;
 
     procedure PatchToWebServiceAndCheckResponseCode(TargetURL: Text; JSONBody: Text; var ResponseText: Text; ExpectedResponseCode: Integer)

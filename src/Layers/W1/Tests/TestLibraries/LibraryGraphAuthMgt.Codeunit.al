@@ -19,6 +19,9 @@ codeunit 131022 "Library - Graph Auth Mgt."
     var
         ApiTestPasswordFileTok: Label 'C:\Run\my\ApiTestPassword', Locked = true;
         NavServerUserPasswordKeyTok: Label 'NavServerUserPassword', Locked = true;
+        CachedAuthenticationPassword: SecretText;
+        AuthenticationResolved: Boolean;
+        AuthenticationRequired: Boolean;
         ContainerPasswordReadErr: Label 'The API test password could not be read from %1.', Comment = '%1 - Password file path';
         KeyVaultPasswordReadErr: Label 'The API test password could not be retrieved from the %1 secret.', Comment = '%1 - Azure Key Vault secret name';
         PasswordRetrievalFailedErr: Label 'The API test password could not be retrieved.';
@@ -50,24 +53,39 @@ codeunit 131022 "Library - Graph Auth Mgt."
         User: Record User;
         EnvironmentInfo: Codeunit "Environment Information";
     begin
-        if EnvironmentInfo.IsSaaSInfrastructure() then
-            exit(false);
+        if AuthenticationResolved then begin
+            if AuthenticationRequired then
+                Password := CachedAuthenticationPassword;
+            exit(AuthenticationRequired);
+        end;
 
+        if EnvironmentInfo.IsSaaSInfrastructure() then
+            exit(CacheAuthenticationResult(Password, false));
         if ContainerPasswordFileExists() then begin
             if not TryGetContainerPassword(Password) then
                 Error(ContainerPasswordReadErr, ApiTestPasswordFileTok);
-            exit(true);
+            exit(CacheAuthenticationResult(Password, true));
         end;
 
         if not User.Get(UserSecurityId()) then
-            exit(false);
+            exit(CacheAuthenticationResult(Password, false));
         if User."Windows Security ID" <> '' then
-            exit(false);
+            exit(CacheAuthenticationResult(Password, false));
 
         if not TryGetNavEnlistmentPassword(Password) then
             Error(KeyVaultPasswordReadErr, NavServerUserPasswordKeyTok);
 
-        exit(true);
+        exit(CacheAuthenticationResult(Password, true));
+    end;
+
+    [NonDebuggable]
+    local procedure CacheAuthenticationResult(Password: SecretText; IsRequired: Boolean): Boolean
+    begin
+        AuthenticationRequired := IsRequired;
+        AuthenticationResolved := true;
+        if IsRequired then
+            CachedAuthenticationPassword := Password;
+        exit(IsRequired);
     end;
 
     [NonDebuggable]
