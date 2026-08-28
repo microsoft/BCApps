@@ -1999,21 +1999,29 @@ table 8059 "Subscription Line"
     var
         DistanceToEndOfMonth: Integer;
         LastDateInLastMonth: Date;
+        PeriodFormulaInteger: Integer;
+        Letter: Char;
     begin
         case Rec."Period Calculation" of
             Rec."Period Calculation"::"Align to Start of Month":
                 NextToDate := CalcDate(PeriodFormula, FromDate) - 1;
             Rec."Period Calculation"::"Align to End of Month":
                 begin
-                    DistanceToEndOfMonth := CalcDate('<CM>', GetBillingReferenceDate()) - GetBillingReferenceDate();
-                    if DistanceToEndOfMonth > 2 then
+                    DateFormulaManagement.FindDateFormulaType(PeriodFormula, PeriodFormulaInteger, Letter);
+                    if Letter in ['D', 'W'] then
+                        // Day/week periods have a fixed length and must not be aligned to the end of the month.
                         NextToDate := CalcDate(PeriodFormula, FromDate) - 1
                     else begin
-                        LastDateInLastMonth := CalcDate(PeriodFormula, FromDate);
-                        LastDateInLastMonth := CalcDate('<CM>', LastDateInLastMonth);
-                        NextToDate := LastDateInLastMonth - DistanceToEndOfMonth - 1;
-                        if NextToDate < FromDate then
-                            NextToDate := CalcDate(PeriodFormula, FromDate) - 1;
+                        DistanceToEndOfMonth := CalcDate('<CM>', GetBillingReferenceDate()) - GetBillingReferenceDate();
+                        if DistanceToEndOfMonth > 2 then
+                            NextToDate := CalcDate(PeriodFormula, FromDate) - 1
+                        else begin
+                            LastDateInLastMonth := CalcDate(PeriodFormula, FromDate);
+                            LastDateInLastMonth := CalcDate('<CM>', LastDateInLastMonth);
+                            NextToDate := LastDateInLastMonth - DistanceToEndOfMonth - 1;
+                            if NextToDate < FromDate then
+                                NextToDate := CalcDate(PeriodFormula, FromDate) - 1;
+                        end;
                     end;
                 end;
         end;
