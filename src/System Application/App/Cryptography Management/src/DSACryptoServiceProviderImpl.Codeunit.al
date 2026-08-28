@@ -110,12 +110,14 @@ codeunit 1448 "DSACryptoServiceProvider Impl." implements "Signature Algorithm v
     #endregion
 
     #region XmlString
+    [NonDebuggable]
     procedure FromXmlString(XmlString: Text)
     begin
         DSACryptoServiceProvider();
         DotNetDSACryptoServiceProvider.FromXmlString(XmlString);
     end;
 
+    [NonDebuggable]
     procedure ToXmlString(IncludePrivateParameters: Boolean): Text
     begin
         exit(DotNetDSACryptoServiceProvider.ToXmlString(IncludePrivateParameters));
