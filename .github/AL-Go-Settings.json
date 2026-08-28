@@ -10,6 +10,11 @@
   "country": "base",
   "useProjectDependencies": true,
   "repoVersion": "28.5",
+  "incrementalBuilds": {
+    "onPush": false,
+    "onPull_Request": false,
+    "onSchedule": false
+  },
   "conditionalSettings": [
     {
       "buildModes": [
