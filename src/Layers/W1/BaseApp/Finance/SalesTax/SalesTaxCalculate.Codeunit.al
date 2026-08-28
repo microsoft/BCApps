@@ -33,13 +33,9 @@ codeunit 398 "Sales Tax Calculate"
         TaxOnTaxCalculated: Boolean;
         CalculationOrderViolation: Boolean;
 
-#pragma warning disable AA0074
-#pragma warning disable AA0470
         MissingTaxAreaValuesErr: Label '%1 in %2 %3 must be filled in with unique values when %4 is %5.', Comment = '%1 - Field Caption, %2 - Table Caption, %3 - Tax Area Code, %4 - Field Caption, %5 - Boolean value';
         SalesTaxAmountIncorrectErr: Label 'The sales tax amount for the %1 %2 and the %3 %4 is incorrect. The calculated sales tax amount is %5, but was supposed to be %6.', Comment = '%1 - Tax Area Code, %2 - Field Caption, %3 - Tax Group Code, %4 - Field Caption, %5 - Calculated Sales Tax Amount, %6 - Expected Sales Tax Amount';
         LineIsNotInitializedErr: Label 'Lines is not initialized';
-#pragma warning restore AA0470
-#pragma warning restore AA0074
 
     /// <summary>
     /// Calculates total sales tax amount for a transaction based on tax area and group codes.
@@ -103,14 +99,14 @@ codeunit 398 "Sales Tax Calculate"
                     TempTaxDetailMaximums := TaxDetail;
                     if not TempTaxDetailMaximums.Find() then
                         TempTaxDetailMaximums.Insert();
-                    if (Abs(TaxBaseAmount) <= TaxDetail."Maximum Amount/Qty.") or
-                       (TaxDetail."Maximum Amount/Qty." = 0)
+                    if (Abs(TaxBaseAmount) <= TempTaxDetailMaximums."Maximum Amount/Qty.") or
+                        (TaxDetail."Maximum Amount/Qty." = 0)
                     then begin
                         TaxAmount := TaxAmount + TaxBaseAmount * TaxDetail."Tax Below Maximum" / 100;
                         TempTaxDetailMaximums."Maximum Amount/Qty." := TempTaxDetailMaximums."Maximum Amount/Qty." - TaxBaseAmount;
                         TempTaxDetailMaximums.Modify();
                     end else begin
-                        MaxAmount := TaxBaseAmount / Abs(TaxBaseAmount) * TaxDetail."Maximum Amount/Qty.";
+                        MaxAmount := TaxBaseAmount / Abs(TaxBaseAmount) * TempTaxDetailMaximums."Maximum Amount/Qty.";
                         TaxAmount :=
                           TaxAmount + ((MaxAmount * TaxDetail."Tax Below Maximum") +
                                        ((TaxBaseAmount - MaxAmount) * TaxDetail."Tax Above Maximum")) / 100;
@@ -123,14 +119,14 @@ codeunit 398 "Sales Tax Calculate"
                     TempTaxDetailMaximums := TaxDetail;
                     if not TempTaxDetailMaximums.Find() then
                         TempTaxDetailMaximums.Insert();
-                    if (Abs(Quantity) <= TaxDetail."Maximum Amount/Qty.") or
-                       (TaxDetail."Maximum Amount/Qty." = 0)
+                    if (Abs(Quantity) <= TempTaxDetailMaximums."Maximum Amount/Qty.") or
+                        (TaxDetail."Maximum Amount/Qty." = 0)
                     then begin
                         TaxAmount := TaxAmount + Quantity * TaxDetail."Tax Below Maximum";
                         TempTaxDetailMaximums."Maximum Amount/Qty." := TempTaxDetailMaximums."Maximum Amount/Qty." - Quantity;
                         TempTaxDetailMaximums.Modify();
                     end else begin
-                        MaxAmount := Quantity / Abs(Quantity) * TaxDetail."Maximum Amount/Qty.";
+                        MaxAmount := Quantity / Abs(Quantity) * TempTaxDetailMaximums."Maximum Amount/Qty.";
                         TaxAmount :=
                           TaxAmount + (MaxAmount * TaxDetail."Tax Below Maximum") +
                           ((Quantity - MaxAmount) * TaxDetail."Tax Above Maximum");
@@ -139,11 +135,11 @@ codeunit 398 "Sales Tax Calculate"
                     end;
                 end;
             until TaxAreaLine.Next(-1) = 0;
+
+            if TaxOnTaxCalculated and CalculationOrderViolation then
+                ShowMissingTaxAreaValuesErr(TaxAreaLine, CalculationOrderViolation);
         end;
         TaxAmount := TaxAmount * ExchangeFactor;
-
-        if TaxOnTaxCalculated and CalculationOrderViolation then
-            ShowMissingTaxAreaValuesErr(TaxAreaLine, CalculationOrderViolation);
     end;
 
     /// <summary>
@@ -311,10 +307,10 @@ codeunit 398 "Sales Tax Calculate"
                         Constant[i] := Constant[i] + ConstantHigher;
                 end;
             until TaxAreaLine.Next(-1) = 0;
-        end;
 
-        if TaxOnTaxCalculated and CalculationOrderViolation then
-            ShowMissingTaxAreaValuesErr(TaxAreaLine, CalculationOrderViolation);
+            if TaxOnTaxCalculated and CalculationOrderViolation then
+                ShowMissingTaxAreaValuesErr(TaxAreaLine, CalculationOrderViolation);
+        end;
 
         i := 1;
         Found := false;
@@ -410,14 +406,14 @@ codeunit 398 "Sales Tax Calculate"
                         if not TempTaxDetailMaximums.Find() then
                             TempTaxDetailMaximums.Insert();
 
-                        if (Abs(TaxBaseAmount) <= TaxDetail."Maximum Amount/Qty.") or
-                           (TaxDetail."Maximum Amount/Qty." = 0)
+                        if (Abs(TaxBaseAmount) <= TempTaxDetailMaximums."Maximum Amount/Qty.") or
+                            (TaxDetail."Maximum Amount/Qty." = 0)
                         then begin
                             AddedTaxAmount := TaxBaseAmount * TaxDetail."Tax Below Maximum" / 100;
-                            TempTaxDetailMaximums."Maximum Amount/Qty." := TempTaxDetailMaximums."Maximum Amount/Qty." - Quantity;
+                            TempTaxDetailMaximums."Maximum Amount/Qty." := TempTaxDetailMaximums."Maximum Amount/Qty." - TaxBaseAmount;
                             TempTaxDetailMaximums.Modify();
                         end else begin
-                            MaxAmount := TaxBaseAmount / Abs(TaxBaseAmount) * TaxDetail."Maximum Amount/Qty.";
+                            MaxAmount := TaxBaseAmount / Abs(TaxBaseAmount) * TempTaxDetailMaximums."Maximum Amount/Qty.";
                             AddedTaxAmount :=
                               ((MaxAmount * TaxDetail."Tax Below Maximum") +
                                ((TaxBaseAmount - MaxAmount) * TaxDetail."Tax Above Maximum")) / 100;
@@ -441,14 +437,14 @@ codeunit 398 "Sales Tax Calculate"
                         TempTaxDetailMaximums := TaxDetail;
                         if not TempTaxDetailMaximums.Find() then
                             TempTaxDetailMaximums.Insert();
-                        if (Abs(Quantity) <= TaxDetail."Maximum Amount/Qty.") or
-                           (TaxDetail."Maximum Amount/Qty." = 0)
+                        if (Abs(Quantity) <= TempTaxDetailMaximums."Maximum Amount/Qty.") or
+                            (TaxDetail."Maximum Amount/Qty." = 0)
                         then begin
                             AddedTaxAmount := Quantity * TaxDetail."Tax Below Maximum";
                             TempTaxDetailMaximums."Maximum Amount/Qty." := TempTaxDetailMaximums."Maximum Amount/Qty." - Quantity;
                             TempTaxDetailMaximums.Modify();
                         end else begin
-                            MaxAmount := Quantity / Abs(Quantity) * TaxDetail."Maximum Amount/Qty.";
+                            MaxAmount := Quantity / Abs(Quantity) * TempTaxDetailMaximums."Maximum Amount/Qty.";
                             AddedTaxAmount :=
                               (MaxAmount * TaxDetail."Tax Below Maximum") +
                               ((Quantity - MaxAmount) * TaxDetail."Tax Above Maximum");
@@ -465,6 +461,9 @@ codeunit 398 "Sales Tax Calculate"
                     RemainingTaxDetails := RemainingTaxDetails + 1;
                 end;
             until TaxAreaLine.Next(-1) = 0;
+
+            if TaxOnTaxCalculated and CalculationOrderViolation then
+                ShowMissingTaxAreaValuesErr(TaxAreaLine, CalculationOrderViolation);
         end;
 
         TaxAmount := Round(TaxAmount);
@@ -475,9 +474,6 @@ codeunit 398 "Sales Tax Calculate"
                 TempTaxDetail.Modify();
                 TaxAmount := DesiredTaxAmount;
             end;
-
-        if TaxOnTaxCalculated and CalculationOrderViolation then
-            ShowMissingTaxAreaValuesErr(TaxAreaLine, CalculationOrderViolation);
 
         if TaxAmount <> DesiredTaxAmount then
             Error(

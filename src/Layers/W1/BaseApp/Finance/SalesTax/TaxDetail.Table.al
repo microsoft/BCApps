@@ -94,12 +94,16 @@ table 322 "Tax Detail"
         {
             Caption = 'Calculate Tax on Tax';
             Editable = false;
+            Tooltip = 'Specifies whether tax is calculated on previously calculated taxes (compound taxation).';
         }
-        // This field moved to W1
+        /// <summary>
+        /// Indicates whether the expense/capitalize option is applied to this tax detail.
+        /// </summary>
         field(10010; "Expense/Capitalize"; Boolean)
         {
             Caption = 'Expense/Capitalize';
             DataClassification = SystemMetadata;
+            Tooltip = 'Specifies whether the expense/capitalize option is applied to this tax detail.';
         }
     }
 
