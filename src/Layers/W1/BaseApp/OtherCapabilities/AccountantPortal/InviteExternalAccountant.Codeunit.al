@@ -286,8 +286,6 @@ codeunit 9033 "Invite External Accountant"
         HttpResponseMessage: HttpResponseMessage;
         HttpContent: HttpContent;
         HttpHeaders: HttpHeaders;
-        ResponseErrorMessage: Text;
-        ResponseErrorDetails: Text;
         AccessToken: Text;
         AccessTokenSecret: SecretText;
     begin
@@ -311,9 +309,7 @@ codeunit 9033 "Invite External Accountant"
         end;
 
         if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
-            ResponseErrorMessage := GetLastErrorText();
-            Session.LogMessage('0000B3O', StrSubstNo(InvokeWebRequestFailedTxt, 0, ResponseErrorMessage), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', InviteExternalAccountantTelemetryCategoryTxt);
-            Session.LogMessage('0000B3P', StrSubstNo(InvokeWebRequestFailedDetailedTxt, 0, ResponseErrorMessage, ResponseErrorDetails), Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', InviteExternalAccountantTelemetryCategoryTxt);
+            LogInvokeRequestFailure(0, GetLastErrorText(), '');
             exit(false);
         end;
 
@@ -321,14 +317,15 @@ codeunit 9033 "Invite External Accountant"
         if HttpResponseMessage.IsSuccessStatusCode() then
             exit(true)
         else begin
-            ResponseErrorMessage := HttpResponseMessage.ReasonPhrase();
-            ResponseErrorDetails := ResponseContent;
-            Session.LogMessage('0000B3O', StrSubstNo(InvokeWebRequestFailedTxt, HttpResponseMessage.HttpStatusCode(), ResponseErrorMessage), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', InviteExternalAccountantTelemetryCategoryTxt);
-
-            Session.LogMessage('0000B3P', StrSubstNo(InvokeWebRequestFailedDetailedTxt, HttpResponseMessage.HttpStatusCode(), ResponseErrorMessage, ResponseErrorDetails), Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', InviteExternalAccountantTelemetryCategoryTxt);
-
+            LogInvokeRequestFailure(HttpResponseMessage.HttpStatusCode(), HttpResponseMessage.ReasonPhrase(), ResponseContent);
             exit(false);
         end;
+    end;
+
+    local procedure LogInvokeRequestFailure(HttpStatusCode: Integer; ResponseErrorMessage: Text; ResponseErrorDetails: Text)
+    begin
+        Session.LogMessage('0000B3O', StrSubstNo(InvokeWebRequestFailedTxt, HttpStatusCode, ResponseErrorMessage), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', InviteExternalAccountantTelemetryCategoryTxt);
+        Session.LogMessage('0000B3P', StrSubstNo(InvokeWebRequestFailedDetailedTxt, HttpStatusCode, ResponseErrorMessage, ResponseErrorDetails), Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', InviteExternalAccountantTelemetryCategoryTxt);
     end;
 
     local procedure GetMessageFromErrorJSON(ResponseContent: Text): Text
