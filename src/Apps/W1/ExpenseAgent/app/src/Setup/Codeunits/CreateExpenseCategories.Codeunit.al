@@ -101,8 +101,6 @@ codeunit 6973 "Create Expense Categories"
         AddPostingGroupSeed(TempPostingGroup, XEXPENSEMILEAGETxt, XExpenseMileageDescTxt, CreateExpenseGLAccount.ExpenseMileageRefundableDebitAccountNo());
         AddPostingGroupSeed(TempPostingGroup, XEXPENSEMEALSTxt, XExpenseMealsDescTxt, CreateExpenseGLAccount.ExpenseMealsRefundableDebitAccountNo());
         AddPostingGroupSeed(TempPostingGroup, XEXPENSEENTERTAINTxt, XExpenseEntertainDescTxt, CreateExpenseGLAccount.ExpenseEntertainRefundableDebitAccountNo());
-
-        OnAfterBuildPostingGroupSeeds(TempPostingGroup);
     end;
 
     /// <summary>
@@ -136,13 +134,7 @@ codeunit 6973 "Create Expense Categories"
     end;
 
     internal procedure AddPostingGroupSeed(var TempPostingGroup: Record "Expense Posting Group" temporary; Code: Code[20]; Description: Text[100]; RefundableDebitAccount: Code[20])
-    var
-        IsHandled: Boolean;
     begin
-        OnBeforeAddPostingGroupSeed(Code, Description, RefundableDebitAccount, IsHandled);
-        if IsHandled then
-            exit;
-
         TempPostingGroup.Init();
         TempPostingGroup.Code := Code;
         TempPostingGroup.Description := Description;
@@ -151,7 +143,6 @@ codeunit 6973 "Create Expense Categories"
         TempPostingGroup."Prepayment Credit Account" := CreateExpenseGLAccount.ExpensePrepaymentDebitAccountNo();
         TempPostingGroup."Debit Rounding Account" := CreateExpenseGLAccount.ExpenseDebitRoundingAccountNo();
         TempPostingGroup."Credit Rounding Account" := CreateExpenseGLAccount.ExpenseCreditRoundingAccountNo();
-        OnBeforeInsertPostingGroupSeed(TempPostingGroup);
         TempPostingGroup.Insert();
     end;
 
@@ -239,8 +230,6 @@ codeunit 6973 "Create Expense Categories"
         AddCategorySeed(TempCategory, XSUBSCRIPTIONTxt, XProfessionalSubscriptionsTxt, XSubscriptionsPostingTxt, XDAYEXPENSETxt, XEXPENSEOTHERTxt, XCARDTxt, true, false, "Expense Attachment Enforcement"::Warning, "Expense Detail Needed"::" ");
         AddCategorySeed(TempCategory, XTIPSTxt, XTipsDescTxt, XTipsPostingTxt, XFOODBEVERAGETxt, XEXPENSEOTHERTxt, XCASHTxt, false, false, "Expense Attachment Enforcement"::" ", "Expense Detail Needed"::" ");
         AddCategorySeed(TempCategory, XTOLLSTxt, XTollRoadUsageFeeTxt, XTollsPostingTxt, XDAYEXPENSETxt, XEXPENSEOTHERTxt, XCASHTxt, true, false, "Expense Attachment Enforcement"::Warning, "Expense Detail Needed"::" ");
-
-        OnAfterBuildCategorySeeds(TempCategory);
     end;
 
     /// <summary>
@@ -355,8 +344,6 @@ codeunit 6973 "Create Expense Categories"
 
         // FINES
         AddSubcategorySeed(TempSubcategory, XFINESTxt, XFINESTxt, XFinesSubDescTxt, XFinesPostingTxt, true, false);
-
-        OnAfterBuildSubcategorySeeds(TempSubcategory);
     end;
 
     internal procedure GetTRAVELTxt(): Code[20]
@@ -616,13 +603,7 @@ codeunit 6973 "Create Expense Categories"
     end;
 
     internal procedure AddCategorySeed(var TempCategory: Record "Expense Category" temporary; Code: Code[20]; Description: Text[250]; PostingDescription: Text[100]; ExpenseGroupCode: Code[20]; PostingGroupCode: Code[20]; PaymentMethod: Code[10]; IsRefundable: Boolean; IsPrepayment: Boolean; AttachmentEnforcement: Enum "Expense Attachment Enforcement"; DetailRequired: Enum "Expense Detail Needed")
-    var
-        IsHandled: Boolean;
     begin
-        OnBeforeAddCategorySeed(Code, Description, PostingDescription, ExpenseGroupCode, PostingGroupCode, PaymentMethod, IsRefundable, IsPrepayment, AttachmentEnforcement, DetailRequired, IsHandled);
-        if IsHandled then
-            exit;
-
         TempCategory.Init();
         TempCategory.Code := Code;
         TempCategory.Description := Description;
@@ -638,13 +619,7 @@ codeunit 6973 "Create Expense Categories"
     end;
 
     internal procedure AddSubcategorySeed(var TempSubcategory: Record "Expense Subcategory" temporary; SubcategoryCode: Code[20]; CategoryCode: Code[20]; Description: Text[250]; PostingDescription: Text[100]; Refundable: Boolean; DescriptionMandatory: Boolean)
-    var
-        IsHandled: Boolean;
     begin
-        OnBeforeAddSubcategorySeed(SubcategoryCode, CategoryCode, Description, PostingDescription, Refundable, DescriptionMandatory, IsHandled);
-        if IsHandled then
-            exit;
-
         TempSubcategory.Init();
         TempSubcategory."Expense Category Code" := CategoryCode;
         TempSubcategory.Code := SubcategoryCode;
@@ -828,8 +803,6 @@ codeunit 6973 "Create Expense Categories"
         AddRuleSeed(TempRuleHeader, XPERDIEMTxt, XGERMANYALLTxt, 'EUR', "Expense Justification"::" ");
         AddRuleSeed(TempRuleHeader, XPERDIEMTxt, XUKOTHERTxt, 'GBP', "Expense Justification"::" ");
         AddRuleSeed(TempRuleHeader, XPERDIEMTxt, XUSAOTHERTxt, 'USD', "Expense Justification"::" ");
-
-        OnAfterBuildRuleSeeds(TempRuleHeader);
     end;
 
     /// <summary>
@@ -850,8 +823,6 @@ codeunit 6973 "Create Expense Categories"
         AddRuleConditionSeed(TempRuleCondition, XPERDIEMTxt, XGERMANYALLTxt, "Expense Rule Condition Type"::"Daily Rate", 105);
         AddRuleConditionSeed(TempRuleCondition, XPERDIEMTxt, XUKOTHERTxt, "Expense Rule Condition Type"::"Daily Rate", 115);
         AddRuleConditionSeed(TempRuleCondition, XPERDIEMTxt, XUSAOTHERTxt, "Expense Rule Condition Type"::"Daily Rate", 120);
-
-        OnAfterBuildRuleConditionSeeds(TempRuleCondition);
     end;
 
     /// <summary>
@@ -933,31 +904,19 @@ codeunit 6973 "Create Expense Categories"
     end;
 
     internal procedure AddRuleSeed(var TempRuleHeader: Record "Expense Rule Header" temporary; CategoryCode: Code[20]; ExpenseLocationCode: Code[20]; CurrencyCode: Code[10]; JustificationRequired: Enum "Expense Justification")
-    var
-        IsHandled: Boolean;
     begin
-        OnBeforeAddRuleSeed(TempRuleHeader, CategoryCode, ExpenseLocationCode, CurrencyCode, JustificationRequired, IsHandled);
-        if IsHandled then
-            exit;
-
         TempRuleHeader.Init();
         TempRuleHeader."Expense Category Code" := CategoryCode;
         TempRuleHeader."Expense Location" := ExpenseLocationCode;
         TempRuleHeader."Currency Code" := CurrencyCode;
         TempRuleHeader."Justification Required" := JustificationRequired;
-        OnBeforeInsertRuleSeed(TempRuleHeader);
         TempRuleHeader.Insert();
     end;
 
     internal procedure AddRuleConditionSeed(var TempRuleCondition: Record "Expense Rule Condition" temporary; CategoryCode: Code[20]; ExpenseLocationCode: Code[20]; ConditionType: Enum "Expense Rule Condition Type"; Value: Decimal)
     var
         NextLineNo: Integer;
-        IsHandled: Boolean;
     begin
-        OnBeforeAddRuleConditionSeed(TempRuleCondition, CategoryCode, ExpenseLocationCode, ConditionType, Value, IsHandled);
-        if IsHandled then
-            exit;
-
         TempRuleCondition.Reset();
         TempRuleCondition.SetRange("Expense Category Code", CategoryCode);
         TempRuleCondition.SetRange("Expense Location", ExpenseLocationCode);
@@ -1293,13 +1252,7 @@ codeunit 6973 "Create Expense Categories"
     end;
 
     internal procedure UpdateEmployeePostingGroup(Code: Code[20]; ExpenseReportPayableAccount: Code[20]; ExpensePayableBankPaidAccount: Code[20]; ExpensePayableCardPaidAccount: Code[20]; ExpenseReportPrepaymentAccount: Code[20])
-    var
-        IsHandled: Boolean;
     begin
-        OnBeforeUpdateEmployeePostingGroup(Code, ExpenseReportPayableAccount, ExpensePayableBankPaidAccount, ExpensePayableCardPaidAccount, ExpenseReportPrepaymentAccount, IsHandled);
-        if IsHandled then
-            exit;
-
         if not EmployeePostingGroup.Get(Code) then
             exit;
 
