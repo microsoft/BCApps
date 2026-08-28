@@ -2205,6 +2205,71 @@ codeunit 137087 "SCM Order Planning - II"
         SalesReceivablesSetup.Modify(true);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure CreatePurchaseOrderFromDropShipmentSalesOrderWithLotTracking()
+    var
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        RequisitionLine: Record "Requisition Line";
+        TempManufacturingUserTemplate: Record "Manufacturing User Template" temporary;
+        TempDocumentEntry: Record "Document Entry" temporary;
+        Purchasing: Record Purchasing;
+        PurchaseLine: Record "Purchase Line";
+        ReservationEntry: Record "Reservation Entry";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
+        OrderPlanningMgt: Codeunit "Order Planning Mgt.";
+        MakeSupplyOrdersYesNo: Codeunit "Make Supply Orders (Yes/No)";
+        LotNo: Code[20];
+        Quantity: Integer;
+    begin
+        // [FEATURE] [AI test 0.3] [Drop Shipment] [Item Tracking] [Order Planning]
+        // [SCENARIO 647806] Purchase Order is created from Sales Order with Drop Shipment and Lot Tracking without an item tracking error.
+        Initialize();
+        Quantity := LibraryRandom.RandIntInRange(1, 10);
+        LotNo := LibraryUtility.GenerateGUID();
+
+        // [GIVEN] Item "I" with lot tracking, Replenishment System = Purchase, and a Vendor assigned.
+        LibraryItemTracking.CreateLotItem(Item);
+        Item.Validate("Replenishment System", Item."Replenishment System"::Purchase);
+        Item.Validate("Vendor No.", LibraryPurchase.CreateVendorNo());
+        Item.Modify(true);
+
+        // [GIVEN] Sales Order "SO" with a Drop Shipment purchasing code on the sales line.
+        LibrarySales.CreateSalesDocumentWithItem(
+          SalesHeader, SalesLine, SalesHeader."Document Type"::Order, '', Item."No.", Quantity, '', WorkDate());
+        LibraryPurchase.CreatePurchasingCode(Purchasing);
+        Purchasing.Validate("Drop Shipment", true);
+        Purchasing.Modify(true);
+        SalesLine.Validate("Purchasing Code", Purchasing.Code);
+        SalesLine.Modify(true);
+
+        // [GIVEN] Lot No. "L" is assigned to the sales line item tracking.
+        LibraryItemTracking.CreateSalesOrderItemTracking(ReservationEntry, SalesLine, '', LotNo, Quantity);
+
+        // [WHEN] Create Purchase Order from Sales Order via OrderPlanningMgt.PlanSpecificSalesOrder (codeunit 1314 path).
+        TempManufacturingUserTemplate.Init();
+        TempManufacturingUserTemplate."User ID" := UserId;
+        TempManufacturingUserTemplate."Make Orders" := TempManufacturingUserTemplate."Make Orders"::"The Active Order";
+        TempManufacturingUserTemplate."Create Purchase Order" := TempManufacturingUserTemplate."Create Purchase Order"::"Make Purch. Orders";
+        TempManufacturingUserTemplate."Create Production Order" := TempManufacturingUserTemplate."Create Production Order"::" ";
+        TempManufacturingUserTemplate."Create Transfer Order" := TempManufacturingUserTemplate."Create Transfer Order"::" ";
+        TempManufacturingUserTemplate."Create Assembly Order" := TempManufacturingUserTemplate."Create Assembly Order"::" ";
+        TempManufacturingUserTemplate.Insert();
+        OrderPlanningMgt.PlanSpecificSalesOrder(RequisitionLine, SalesHeader."No.");
+        RequisitionLine.SetFilter(Quantity, '>%1', 0);
+        RequisitionLine.FindFirst();
+        MakeSupplyOrdersYesNo.SetManufUserTemplate(TempManufacturingUserTemplate);
+        MakeSupplyOrdersYesNo.SetBlockForm();
+        MakeSupplyOrdersYesNo.SetCreatedDocumentBuffer(TempDocumentEntry);
+        MakeSupplyOrdersYesNo.Run(RequisitionLine);
+
+        // [THEN] Purchase Order line is created for item "I" with the correct quantity.
+        SelectPurchaseOrderLine(PurchaseLine, Item."No.");
+        PurchaseLine.TestField(Quantity, Quantity);
+    end;
+
     [ModalPageHandler]
     [Scope('OnPrem')]
     procedure MakeSupplyOrdersPageHandler(var MakeSupplyOrders: Page "Make Supply Orders"; var Response: Action)

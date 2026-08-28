@@ -133,16 +133,18 @@ codeunit 99000833 "Req. Line-Reserve"
                 HasError := true;
 
         if NewRequisitionLine."Sales Order No." <> '' then
-            if ShowError then
-                NewRequisitionLine.FieldError("Sales Order No.", Text003)
-            else
-                HasError := true;
+            if not NewRequisitionLine.IsDropShipment() then
+                if ShowError then
+                    NewRequisitionLine.FieldError("Sales Order No.", Text003)
+                else
+                    HasError := true;
 
         if NewRequisitionLine."Sales Order Line No." <> 0 then
-            if ShowError then
-                NewRequisitionLine.FieldError("Sales Order Line No.", Text003)
-            else
-                HasError := true;
+            if not NewRequisitionLine.IsDropShipment() then
+                if ShowError then
+                    NewRequisitionLine.FieldError("Sales Order Line No.", Text003)
+                else
+                    HasError := true;
 
         CheckSellToCustomerNo(NewRequisitionLine, OldRequisitionLine, ShowError, HasError);
 
@@ -201,10 +203,11 @@ codeunit 99000833 "Req. Line-Reserve"
             exit;
 
         if NewRequisitionLine."Sell-to Customer No." <> '' then
-            if ShowError then
-                NewRequisitionLine.FieldError("Sell-to Customer No.", Text003)
-            else
-                HasError := true;
+            if not NewRequisitionLine.IsDropShipment() then
+                if ShowError then
+                    NewRequisitionLine.FieldError("Sell-to Customer No.", Text003)
+                else
+                    HasError := true;
     end;
 
     procedure VerifyQuantity(var NewRequisitionLine: Record "Requisition Line"; var OldRequisitionLine: Record "Requisition Line")
