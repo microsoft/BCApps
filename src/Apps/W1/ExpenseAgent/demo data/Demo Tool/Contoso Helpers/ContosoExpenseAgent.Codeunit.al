@@ -215,14 +215,14 @@ codeunit 8205 "Contoso Expense Agent"
                 exit;
         end;
 
-        ExpenseRuleHeader.Validate("Expense Category Code", ExpenseCategoryCode);
-        ExpenseRuleHeader.Validate("Expense Location", ExpenseLocationCode);
-        ExpenseRuleHeader.Validate("Effective Date", EffectiveDate);
-        ExpenseRuleHeader.Validate("Justification Required", JustificationRequired);
-        ExpenseRuleHeader.Validate("Required Specific Merchant", RequiredSpecificMerchant);
-        ExpenseRuleHeader.Validate("Specific Merchant Name", SpecificMerchantName);
-        ExpenseRuleHeader.Validate("Currency Code", CurrencyCode);
-        ExpenseRuleHeader.Validate("Unit of Measure Code", UnitOfMeasureCode);
+        ExpenseRuleHeader."Expense Category Code" := ExpenseCategoryCode;
+        ExpenseRuleHeader."Expense Location" := ExpenseLocationCode;
+        ExpenseRuleHeader."Effective Date" := EffectiveDate;
+        ExpenseRuleHeader."Justification Required" := JustificationRequired;
+        ExpenseRuleHeader."Required Specific Merchant" := RequiredSpecificMerchant;
+        ExpenseRuleHeader."Specific Merchant Name" := SpecificMerchantName;
+        ExpenseRuleHeader."Currency Code" := CurrencyCode;
+        ExpenseRuleHeader."Unit of Measure Code" := UnitOfMeasureCode;
 
         if Exists then
             ExpenseRuleHeader.Modify(true)
