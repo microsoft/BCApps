@@ -6,7 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.SpendRequest;
 
-page 7131 "Travel Request Details API"
+page 7135 "Travel Request Details API"
 {
     APIGroup = 'expense';
     APIPublisher = 'microsoft';
