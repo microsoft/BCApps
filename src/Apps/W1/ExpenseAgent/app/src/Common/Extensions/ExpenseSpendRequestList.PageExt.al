@@ -10,15 +10,12 @@ pageextension 6903 "Expense Spend Request List" extends "Spend Request List"
 {
     layout
     {
-        modify("Requested By")
-        {
-            Visible = false;
-        }
         addafter("Requested By")
         {
             field("Requested For"; Rec."Requested For")
             {
                 ApplicationArea = Basic, Suite;
+                Visible = false;
                 ToolTip = 'Specifies the expense user for whom the spend request is being created.';
             }
         }
@@ -33,6 +30,7 @@ pageextension 6903 "Expense Spend Request List" extends "Spend Request List"
                 Caption = 'Travelers';
                 ToolTip = 'View the travelers associated with this spend request.';
                 ApplicationArea = Basic, Suite;
+                Visible = false;
                 RunObject = page "Travelers";
                 RunPageLink = "Spend Request No." = field("No.");
             }

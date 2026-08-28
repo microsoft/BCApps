@@ -19,9 +19,9 @@ table 6938 Traveler
     {
         field(1; "Spend Request No."; Code[20])
         {
-            Caption = 'Spend Request No.';
+            Caption = 'Travel Request No.';
             TableRelation = "Spend Request";
-            ToolTip = 'Specifies the spend request to which the traveler is added.';
+            ToolTip = 'Specifies the travel request to which the traveler is added.';
         }
         field(3; "Line No."; Integer)
         {
@@ -86,7 +86,7 @@ table 6938 Traveler
     end;
 
     var
-        DuplicateTravelerErr: Label 'Traveler %1 is already on this %2. Each traveler can be added only once. Choose a different traveler or remove the existing line.', Comment = '%1 = Traveler No., %2 = Spend Request Table Caption';
+        DuplicateTravelerErr: Label 'Traveler %1 is already on this travel request. Each traveler can be added only once. Choose a different traveler or remove the existing line.', Comment = '%1 = Traveler No.';
 
     local procedure TestStatusOpenOfSpendRequest()
     var
@@ -101,12 +101,11 @@ table 6938 Traveler
     local procedure CheckDuplicateTraveler()
     var
         ExistingTraveler: Record Traveler;
-        SpendRequest: Record "Spend Request";
     begin
         ExistingTraveler.SetRange("Spend Request No.", Rec."Spend Request No.");
         ExistingTraveler.SetRange("Expense User No.", Rec."Expense User No.");
         ExistingTraveler.SetFilter("Line No.", '<>%1', Rec."Line No.");
         if not ExistingTraveler.IsEmpty() then
-            Error(DuplicateTravelerErr, Rec."Expense User No.", SpendRequest.TableCaption());
+            Error(DuplicateTravelerErr, Rec."Expense User No.");
     end;
 }
