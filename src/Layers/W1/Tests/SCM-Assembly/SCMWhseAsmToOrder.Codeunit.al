@@ -2398,27 +2398,30 @@ codeunit 137914 "SCM Whse.-Asm. To Order"
         AsmLine.SetRange("Document No.", AsmHeader."No.");
         AsmLine.SetRange(Type, AsmLine.Type::Item);
         AsmLine.FindFirst();
-        WhseActivityHeader.SetRange(Type, WhseActivityHeader.Type::"Invt. Movement");
-        WhseActivityHeader.SetRange("Source Type", DATABASE::"Assembly Line");
-        WhseActivityHeader.SetRange("Source Subtype", AsmHeader."Document Type");
-        WhseActivityHeader.SetRange("Source No.", AsmHeader."No.");
-        Assert.IsFalse(WhseActivityHeader.IsEmpty, 'Inventory Movement should exist for ATO assembly components');
+        WhseActivityLine.SetRange("Activity Type", WhseActivityLine."Activity Type"::"Invt. Movement");
+        WhseActivityLine.SetRange("Source Type", DATABASE::"Assembly Line");
+        WhseActivityLine.SetRange("Source Subtype", AsmHeader."Document Type");
+        WhseActivityLine.SetRange("Source No.", AsmHeader."No.");
+        Assert.IsFalse(WhseActivityLine.IsEmpty, 'Inventory Movement should exist for ATO assembly components');
 
         // [GIVEN] Inventory movement for ATO components is NOT registered (Qty. Picked (Base) = 0)
         AsmLine.TestField("Qty. Picked (Base)", 0);
 
         // [WHEN] Set Qty. to Handle for non-assembly item only and post Inventory Pick
-        WhseActivityHeader.SetRange(Type, WhseActivityHeader.Type::"Invt. Pick");
-        WhseActivityHeader.SetRange("Source Type", DATABASE::"Sales Line");
-        WhseActivityHeader.SetRange("Source Subtype", SalesHeader."Document Type");
-        WhseActivityHeader.SetRange("Source No.", SalesHeader."No.");
-        WhseActivityHeader.FindLast();
-        WhseActivityLine.SetRange("Activity Type", WhseActivityHeader.Type);
-        WhseActivityLine.SetRange("No.", WhseActivityHeader."No.");
+        WhseActivityLine.Reset();
+        WhseActivityLine.SetRange("Activity Type", WhseActivityLine."Activity Type"::"Invt. Pick");
+        WhseActivityLine.SetRange("Source Type", DATABASE::"Sales Line");
+        WhseActivityLine.SetRange("Source Subtype", SalesHeader."Document Type");
+        WhseActivityLine.SetRange("Source No.", SalesHeader."No.");
+
+        // Non-assembly line: set full quantity to handle
         WhseActivityLine.SetRange("Source Line No.", SalesLine1."Line No.");
         WhseActivityLine.FindFirst();
+        WhseActivityHeader.Get(WhseActivityLine."Activity Type", WhseActivityLine."No.");
         WhseActivityLine.Validate("Qty. to Handle", WhseActivityLine.Quantity);
         WhseActivityLine.Modify(true);
+
+        // ATO line: assign the to-assembly bin
         WhseActivityLine.SetRange("Source Line No.", SalesLine2."Line No.");
         WhseActivityLine.FindFirst();
         WhseActivityLine.Validate("Bin Code", ToAsmBin.Code);
