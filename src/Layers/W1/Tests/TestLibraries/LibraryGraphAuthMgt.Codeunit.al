@@ -10,6 +10,7 @@ using System.Azure.KeyVault;
 using System.Environment;
 using System.Integration;
 using System.Security.AccessControl;
+using System.Utilities;
 
 codeunit 131022 "Library - Graph Auth Mgt."
 {
@@ -27,7 +28,7 @@ codeunit 131022 "Library - Graph Auth Mgt."
     var
         Password: SecretText;
     begin
-        if not IsLocalTestServiceURL(TargetURL) then
+        if not IsCurrentTestServiceURL(TargetURL) then
             exit;
         if not GetAuthenticationPassword(Password) then
             exit;
@@ -75,16 +76,14 @@ codeunit 131022 "Library - Graph Auth Mgt."
         HttpWebRequestMgt.AddBasicAuthentication(UserId(), Password);
     end;
 
-    local procedure IsLocalTestServiceURL(TargetURL: Text): Boolean
+    local procedure IsCurrentTestServiceURL(TargetURL: Text): Boolean
     var
-        NormalizedURL: Text;
+        CurrentServiceUri: Codeunit Uri;
+        TargetUri: Codeunit Uri;
     begin
-        NormalizedURL := LowerCase(TargetURL);
-        exit(
-            (StrPos(NormalizedURL, 'http://localhost') = 1) or
-            (StrPos(NormalizedURL, 'https://localhost') = 1) or
-            (StrPos(NormalizedURL, 'http://127.0.0.1') = 1) or
-            (StrPos(NormalizedURL, 'https://127.0.0.1') = 1));
+        CurrentServiceUri.Init(GetUrl(ClientType::Api));
+        TargetUri.Init(TargetURL);
+        exit(LowerCase(TargetUri.GetAuthority()) = LowerCase(CurrentServiceUri.GetAuthority()));
     end;
 
     [Scope('OnPrem')]
