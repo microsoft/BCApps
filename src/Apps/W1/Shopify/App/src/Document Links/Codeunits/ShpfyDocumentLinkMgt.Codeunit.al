@@ -5,7 +5,6 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Posting;
@@ -67,7 +66,7 @@ codeunit 30262 "Shpfy Document Link Mgt."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnAfterPostSalesDoc', '', true, false)]
     local procedure OnAfterSalesPosting(var SalesHeader: Record "Sales Header"; PreviewMode: Boolean; CommitIsSuppressed: Boolean; InvtPickPutaway: Boolean; SalesShptHdrNo: Code[20]; SalesInvHdrNo: Code[20]; RetRcpHdrNo: Code[20]; SalesCrMemoHdrNo: Code[20])
     var
-        ShpfyAutoPostTransactions: Codeunit "Shpfy Auto Post Transactions";
+        AutoPostTransactions: Codeunit "Shpfy Auto Post Transactions";
     begin
         if SalesHeader.IsTemporary() then
             exit;
@@ -83,13 +82,13 @@ codeunit 30262 "Shpfy Document Link Mgt."
         // CreateDocLinksToBCDocs can open a write transaction after Sales-Post's final commit.
         // Flush those links before invoking the isolated Codeunit.Run posting operations.
         Commit();
-        ShpfyAutoPostTransactions.AutoPostTransactions(SalesInvHdrNo, SalesCrMemoHdrNo, HasJournalPermissions());
+        AutoPostTransactions.AutoPostTransactions(SalesInvHdrNo, SalesCrMemoHdrNo);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Post", 'OnAfterPostWhseActivityCompleted', '', false, false)]
     local procedure OnAfterPostWhseActivityCompleted(WhseActivHeader: Record "Warehouse Activity Header"; var SalesHeader: Record "Sales Header"; SuppressCommit: Boolean; IsPreview: Boolean)
     var
-        ShpfyAutoPostTransactions: Codeunit "Shpfy Auto Post Transactions";
+        AutoPostTransactions: Codeunit "Shpfy Auto Post Transactions";
     begin
         if not (WhseActivHeader.Type in [WhseActivHeader.Type::"Invt. Pick", WhseActivHeader.Type::"Invt. Put-away"]) then
             exit;
@@ -100,21 +99,11 @@ codeunit 30262 "Shpfy Document Link Mgt."
         case SalesHeader."Document Type" of
             SalesHeader."Document Type"::Order,
             SalesHeader."Document Type"::Invoice:
-                ShpfyAutoPostTransactions.AutoPostTransactions(SalesHeader."Last Posting No.", '', HasJournalPermissions());
+                AutoPostTransactions.AutoPostTransactions(SalesHeader."Last Posting No.", '');
             SalesHeader."Document Type"::"Return Order",
             SalesHeader."Document Type"::"Credit Memo":
-                ShpfyAutoPostTransactions.AutoPostTransactions('', SalesHeader."Last Posting No.", HasJournalPermissions());
+                AutoPostTransactions.AutoPostTransactions('', SalesHeader."Last Posting No.");
         end;
-    end;
-
-    local procedure HasJournalPermissions(): Boolean
-    var
-        GenJournalBatch: Record "Gen. Journal Batch";
-        GenJournalLine: Record "Gen. Journal Line";
-    begin
-        exit(
-            GenJournalBatch.ReadPermission() and GenJournalBatch.WritePermission() and
-            GenJournalLine.ReadPermission() and GenJournalLine.WritePermission());
     end;
 
     local procedure CreateDocLinksToBCDocs(var SalesHeader: Record "Sales Header"; SalesShptHdrNo: Code[20]; SalesInvHdrNo: Code[20]; RetRcpHdrNo: Code[20]; SalesCrMemoHdrNo: Code[20])

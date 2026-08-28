@@ -15,8 +15,6 @@ codeunit 30423 "Shpfy Auto Post Finalize"
 {
     Access = Internal;
     TableNo = "Shpfy Order Transaction";
-    Permissions = tabledata "Gen. Journal Batch" = rimd,
-                  tabledata "Gen. Journal Line" = rimd;
 
     trigger OnRun()
     begin

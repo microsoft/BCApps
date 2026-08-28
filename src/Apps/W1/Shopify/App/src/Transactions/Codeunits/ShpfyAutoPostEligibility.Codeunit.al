@@ -44,7 +44,6 @@ codeunit 30424 "Shpfy Auto Post Eligibility"
         if not (OrderTransaction.Type in [OrderTransaction.Type::Capture, OrderTransaction.Type::Sale, OrderTransaction.Type::Refund]) then
             exit(false);
 
-        OrderTransaction.CalcFields(Used);
         if OrderTransaction.Used then
             exit(false);
         if OpenSalesDocumentExists(OrderTransaction) then

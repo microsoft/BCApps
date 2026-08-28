@@ -11,6 +11,7 @@ using Microsoft.Finance.GeneralLedger.Preview;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
+using Microsoft.Foundation.Period;
 using Microsoft.Integration.Shopify;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Customer;
@@ -45,26 +46,26 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
     [Test]
     procedure UnitTestAutoPostJnlBatchValidateWithBalAccountNo()
     var
-        ShpfyPaymentMethodMapping: Record "Shpfy Payment Method Mapping";
+        PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
         GenJournalBatch: Record "Gen. Journal Batch";
     begin
         // [SCENARIO] Auto-Post Jnl. Batch field validates successfully when the journal batch has a balancing account number
 
         // [GIVEN] A Gen. Journal Batch with a balancing account number
         CreateJournalBatch(GenJournalBatch);
-        ShpfyPaymentMethodMapping."Auto-Post Jnl. Template" := GenJournalBatch."Journal Template Name";
+        PaymentMethodMapping."Auto-Post Jnl. Template" := GenJournalBatch."Journal Template Name";
 
         // [WHEN] Auto-Post Jnl. Batch is validated
-        ShpfyPaymentMethodMapping.Validate("Auto-Post Jnl. Batch", GenJournalBatch.Name);
+        PaymentMethodMapping.Validate("Auto-Post Jnl. Batch", GenJournalBatch.Name);
 
         // [THEN] Validation passes without error
-        LibraryAssert.AreEqual(GenJournalBatch.Name, ShpfyPaymentMethodMapping."Auto-Post Jnl. Batch", 'Auto-Post Jnl. Batch should be set');
+        LibraryAssert.AreEqual(GenJournalBatch.Name, PaymentMethodMapping."Auto-Post Jnl. Batch", 'Auto-Post Jnl. Batch should be set');
     end;
 
     [Test]
     procedure UnitTestAutoPostJnlBatchValidateWithoutBalAccountNo()
     var
-        ShpfyPaymentMethodMapping: Record "Shpfy Payment Method Mapping";
+        PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
         GenJournalBatch: Record "Gen. Journal Batch";
     begin
         // [SCENARIO] Auto-Post Jnl. Batch field validation fails when the journal batch does not have a balancing account number
@@ -73,39 +74,39 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
         CreateJournalBatch(GenJournalBatch);
         GenJournalBatch."Bal. Account No." := '';
         GenJournalBatch.Modify();
-        ShpfyPaymentMethodMapping."Auto-Post Jnl. Template" := GenJournalBatch."Journal Template Name";
+        PaymentMethodMapping."Auto-Post Jnl. Template" := GenJournalBatch."Journal Template Name";
 
         // [WHEN] Auto-Post Jnl. Batch is validated
         // [THEN] Validation fails with the missing balancing-account error
-        asserterror ShpfyPaymentMethodMapping.Validate("Auto-Post Jnl. Batch", GenJournalBatch.Name);
+        asserterror PaymentMethodMapping.Validate("Auto-Post Jnl. Batch", GenJournalBatch.Name);
         LibraryAssert.ExpectedTestFieldError(GenJournalBatch.FieldCaption("Bal. Account No."), '');
     end;
 
     [Test]
     procedure UnitTestAutoPostJnlBatchValidateWithEmptyValue()
     var
-        ShpfyPaymentMethodMapping: Record "Shpfy Payment Method Mapping";
+        PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
     begin
         // [SCENARIO] Auto-Post Jnl. Batch field can be set to empty without a validation error
 
         // [WHEN] Auto-Post Jnl. Batch is set to empty
-        ShpfyPaymentMethodMapping.Validate("Auto-Post Jnl. Batch", '');
+        PaymentMethodMapping.Validate("Auto-Post Jnl. Batch", '');
 
         // [THEN] Validation passes without error
-        LibraryAssert.AreEqual('', ShpfyPaymentMethodMapping."Auto-Post Jnl. Batch", 'Auto-Post Jnl. Batch should be empty');
+        LibraryAssert.AreEqual('', PaymentMethodMapping."Auto-Post Jnl. Batch", 'Auto-Post Jnl. Batch should be empty');
     end;
 
     [Test]
     procedure UnitTestAutoPostRequiresJournalSetup()
     var
-        ShpfyPaymentMethodMapping: Record "Shpfy Payment Method Mapping";
+        PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
     begin
         // [SCENARIO] Automatic posting cannot be enabled without a configured journal template and batch
 
         // [WHEN] Post Automatically is enabled without journal setup
         // [THEN] Validation fails on the missing journal template
-        asserterror ShpfyPaymentMethodMapping.Validate("Post Automatically", true);
-        LibraryAssert.ExpectedTestFieldError(ShpfyPaymentMethodMapping.FieldCaption("Auto-Post Jnl. Template"), '');
+        asserterror PaymentMethodMapping.Validate("Post Automatically", true);
+        LibraryAssert.ExpectedTestFieldError(PaymentMethodMapping.FieldCaption("Auto-Post Jnl. Template"), '');
     end;
 
     [Test]
@@ -724,6 +725,7 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
         CreateSalesOrder(SalesHeaderToPost, OrderId);
         LibrarySales.PostSalesDocument(SalesHeaderToPost, true, true);
         EnablePaymentMethodMappingAutoPost(true);
+        OrderTransaction.SetAutoCalcFields(Used);
         OrderTransaction.Get(TransactionId);
 
         LibraryAssert.IsFalse(
@@ -776,12 +778,12 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
 
     local procedure CreateShopifyOrder(OrderId: BigInteger)
     var
-        ShpfyOrderHeader: Record "Shpfy Order Header";
+        OrderHeader: Record "Shpfy Order Header";
     begin
-        ShpfyOrderHeader.Init();
-        ShpfyOrderHeader."Shopify Order Id" := OrderId;
-        ShpfyOrderHeader.Processed := true;
-        ShpfyOrderHeader.Insert();
+        OrderHeader.Init();
+        OrderHeader."Shopify Order Id" := OrderId;
+        OrderHeader.Processed := true;
+        OrderHeader.Insert();
     end;
 
     local procedure CreateOrderTransaction(TransactionId: BigInteger; OrderId: BigInteger; RefundId: BigInteger; Gateway: Text[30]; TransactionType: Enum "Shpfy Transaction Type"; Amount: Decimal)

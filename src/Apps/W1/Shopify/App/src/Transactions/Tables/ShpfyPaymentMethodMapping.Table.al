@@ -33,7 +33,7 @@ table 30134 "Shpfy Payment Method Mapping"
             DataClassification = CustomerContent;
             TableRelation = "Shpfy Transaction Gateway";
         }
-        field(3; "Credit Card Company"; Text[50])
+        field(3; "Credit Card Company"; Text[30])
         {
             Caption = 'Credit Card Company';
             DataClassification = CustomerContent;

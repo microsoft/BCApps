@@ -5,7 +5,6 @@
 
 namespace Microsoft.Integration.Shopify;
 
-using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 
 /// <summary>
@@ -324,6 +323,7 @@ page 30134 "Shpfy Transactions"
         AutoPostEligibility: Codeunit "Shpfy Auto Post Eligibility";
     begin
         Rec.SetLoadFields("Shopify Order Id", Shop, Gateway, "Credit Card Company", Type, Status, "Refund Id");
+        Rec.SetAutoCalcFields(Used);
         if not Rec.FindSet() then
             exit;
         repeat

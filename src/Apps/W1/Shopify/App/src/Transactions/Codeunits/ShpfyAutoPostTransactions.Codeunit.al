@@ -7,7 +7,6 @@ namespace Microsoft.Integration.Shopify;
 
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
-using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 
 /// <summary>
@@ -23,15 +22,15 @@ codeunit 30236 "Shpfy Auto Post Transactions"
 {
     Access = Internal;
 
-    internal procedure AutoPostTransactions(SalesInvoiceHeaderNo: Code[20]; SalesCrMemoHeaderNo: Code[20]; HasJournalPermissions: Boolean)
+    internal procedure AutoPostTransactions(SalesInvoiceHeaderNo: Code[20]; SalesCrMemoHeaderNo: Code[20])
     begin
         if SalesInvoiceHeaderNo <> '' then
-            PostOrderTransactions(SalesInvoiceHeaderNo, HasJournalPermissions);
+            PostOrderTransactions(SalesInvoiceHeaderNo);
         if SalesCrMemoHeaderNo <> '' then
-            PostRefundTransactions(SalesCrMemoHeaderNo, HasJournalPermissions);
+            PostRefundTransactions(SalesCrMemoHeaderNo);
     end;
 
-    local procedure PostOrderTransactions(SalesInvoiceHeaderNo: Code[20]; HasJournalPermissions: Boolean)
+    local procedure PostOrderTransactions(SalesInvoiceHeaderNo: Code[20])
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         OrderTransaction: Record "Shpfy Order Transaction";
@@ -43,10 +42,10 @@ codeunit 30236 "Shpfy Auto Post Transactions"
 
         OrderTransaction.SetRange("Shopify Order Id", SalesInvoiceHeader."Shpfy Order Id");
         OrderTransaction.SetFilter(Type, '%1|%2', OrderTransaction.Type::Capture, OrderTransaction.Type::Sale);
-        PostTransactions(OrderTransaction, SalesInvoiceHeader."Posting Date", HasJournalPermissions);
+        PostTransactions(OrderTransaction, SalesInvoiceHeader."Posting Date");
     end;
 
-    local procedure PostRefundTransactions(SalesCrMemoHeaderNo: Code[20]; HasJournalPermissions: Boolean)
+    local procedure PostRefundTransactions(SalesCrMemoHeaderNo: Code[20])
     var
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         OrderTransaction: Record "Shpfy Order Transaction";
@@ -58,10 +57,10 @@ codeunit 30236 "Shpfy Auto Post Transactions"
 
         OrderTransaction.SetRange("Refund Id", SalesCrMemoHeader."Shpfy Refund Id");
         OrderTransaction.SetRange(Type, OrderTransaction.Type::Refund);
-        PostTransactions(OrderTransaction, SalesCrMemoHeader."Posting Date", HasJournalPermissions);
+        PostTransactions(OrderTransaction, SalesCrMemoHeader."Posting Date");
     end;
 
-    local procedure PostTransactions(var OrderTransaction: Record "Shpfy Order Transaction"; PostingDate: Date; HasJournalPermissions: Boolean)
+    local procedure PostTransactions(var OrderTransaction: Record "Shpfy Order Transaction"; PostingDate: Date)
     var
         PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
         AutoGenJnlPost: Codeunit "Shpfy Auto Gen. Jnl.-Post";
@@ -69,6 +68,8 @@ codeunit 30236 "Shpfy Auto Post Transactions"
     begin
         OrderTransaction.SetRange(Status, OrderTransaction.Status::Success);
         OrderTransaction.SetRange(Used, false);
+        OrderTransaction.SetLoadFields("Shopify Order Id", Shop, Gateway, "Credit Card Company", Type, Status, "Refund Id");
+        OrderTransaction.SetAutoCalcFields(Used);
         if not OrderTransaction.FindSet() then
             exit;
 
@@ -76,13 +77,10 @@ codeunit 30236 "Shpfy Auto Post Transactions"
             if AutoPostEligibility.GetPaymentMethodMapping(OrderTransaction, PaymentMethodMapping) then
                 if PaymentMethodMapping."Post Automatically" then
                     if not AutoPostEligibility.IsMappingConfigured(PaymentMethodMapping) then
-                        RecordFailure(OrderTransaction, '', '', ConfigurationStageTok, IncompleteSetupReasonLbl, '')
+                        RecordFailure(OrderTransaction, '', '', IncompleteSetupReasonLbl)
                     else
                         if AutoPostEligibility.IsTransactionPostable(OrderTransaction) then
-                            if HasJournalPermissions then
-                                PostTransaction(AutoGenJnlPost, OrderTransaction, PaymentMethodMapping, PostingDate)
-                            else
-                                RecordFailure(OrderTransaction, '', '', AuthorizationStageTok, InsufficientPermissionsReasonLbl, '');
+                            PostTransaction(AutoGenJnlPost, OrderTransaction, PaymentMethodMapping, PostingDate);
         until OrderTransaction.Next() = 0;
     end;
 
@@ -93,20 +91,17 @@ codeunit 30236 "Shpfy Auto Post Transactions"
         TemplateName: Code[10];
         BatchName: Code[10];
         ErrorText: Text;
-        ErrorCallStack: Text;
         BuildSucceeded: Boolean;
         PostingSucceeded: Boolean;
     begin
         AutoGenJnlPost.SetParameters(PaymentMethodMapping, PostingDate);
         BindSubscription(AutoGenJnlPost);
         BuildSucceeded := AutoGenJnlPost.Run(OrderTransaction);
-        if not BuildSucceeded then begin
+        if not BuildSucceeded then
             ErrorText := GetLastErrorText();
-            ErrorCallStack := GetLastErrorCallStack();
-        end;
         UnbindSubscription(AutoGenJnlPost);
         if not BuildSucceeded then begin
-            RecordFailure(OrderTransaction, '', '', BuildStageTok, ErrorText, ErrorCallStack);
+            RecordFailure(OrderTransaction, '', '', ErrorText);
             exit;
         end;
 
@@ -123,95 +118,64 @@ codeunit 30236 "Shpfy Auto Post Transactions"
 
         BindSubscription(AutoGenJnlPost);
         PostingSucceeded := GenJnlPostBatch.Run(GenJournalLine);
-        if not PostingSucceeded then begin
+        if not PostingSucceeded then
             ErrorText := GetLastErrorText();
-            ErrorCallStack := GetLastErrorCallStack();
-        end;
         UnbindSubscription(AutoGenJnlPost);
         if PostingSucceeded then begin
             CleanupBatch(OrderTransaction, TemplateName, BatchName);
             exit;
         end;
 
-        RecordFailure(OrderTransaction, TemplateName, BatchName, PostingStageTok, ErrorText, ErrorCallStack);
+        RecordFailure(OrderTransaction, TemplateName, BatchName, ErrorText);
     end;
 
-    local procedure RecordFailure(OrderTransaction: Record "Shpfy Order Transaction"; TemplateName: Code[10]; BatchName: Code[10]; Stage: Text; ErrorText: Text; ErrorCallStack: Text)
+    local procedure RecordFailure(OrderTransaction: Record "Shpfy Order Transaction"; TemplateName: Code[10]; BatchName: Code[10]; ErrorText: Text)
     begin
-        LogFailureTelemetry(OrderTransaction, TemplateName, BatchName, Stage, ErrorText, ErrorCallStack);
         if BatchName <> '' then
             CleanupBatch(OrderTransaction, TemplateName, BatchName);
-        PersistFailure(OrderTransaction, TemplateName, BatchName, ErrorText);
+        PersistFailure(OrderTransaction, ErrorText);
     end;
 
     local procedure CleanupBatch(OrderTransaction: Record "Shpfy Order Transaction"; TemplateName: Code[10]; BatchName: Code[10])
     var
         AutoPostFinalize: Codeunit "Shpfy Auto Post Finalize";
-        FinalizeErrorText: Text;
-        FinalizeErrorCallStack: Text;
+        FinalizeErrorCode: Text;
     begin
         AutoPostFinalize.SetCleanupParameters(TemplateName, BatchName);
         if AutoPostFinalize.Run(OrderTransaction) then
             exit;
 
-        FinalizeErrorText := GetLastErrorText();
-        FinalizeErrorCallStack := GetLastErrorCallStack();
-        LogFinalizationFailureTelemetry(OrderTransaction, TemplateName, BatchName, CleanupStageTok, FinalizeErrorText, FinalizeErrorCallStack);
+        FinalizeErrorCode := GetLastErrorCode();
+        LogFinalizationFailureTelemetry(CleanupStageTok, FinalizeErrorCode);
     end;
 
-    local procedure PersistFailure(OrderTransaction: Record "Shpfy Order Transaction"; TemplateName: Code[10]; BatchName: Code[10]; ErrorText: Text)
+    local procedure PersistFailure(OrderTransaction: Record "Shpfy Order Transaction"; ErrorText: Text)
     var
         AutoPostFinalize: Codeunit "Shpfy Auto Post Finalize";
-        FinalizeErrorText: Text;
-        FinalizeErrorCallStack: Text;
+        FinalizeErrorCode: Text;
     begin
         AutoPostFinalize.SetFailureParameters(ErrorText);
         if AutoPostFinalize.Run(OrderTransaction) then
             exit;
 
-        FinalizeErrorText := GetLastErrorText();
-        FinalizeErrorCallStack := GetLastErrorCallStack();
-        LogFinalizationFailureTelemetry(OrderTransaction, TemplateName, BatchName, FailureLogStageTok, FinalizeErrorText, FinalizeErrorCallStack);
+        FinalizeErrorCode := GetLastErrorCode();
+        LogFinalizationFailureTelemetry(FailureLogStageTok, FinalizeErrorCode);
     end;
 
-    local procedure LogFailureTelemetry(OrderTransaction: Record "Shpfy Order Transaction"; TemplateName: Code[10]; BatchName: Code[10]; Stage: Text; ErrorText: Text; ErrorCallStack: Text)
+    local procedure LogFinalizationFailureTelemetry(Stage: Text; ErrorCode: Text)
     var
         CustomDimensions: Dictionary of [Text, Text];
-    begin
-        AddTelemetryDimensions(CustomDimensions, OrderTransaction, TemplateName, BatchName, Stage, ErrorText, ErrorCallStack);
-        Session.LogMessage('0000S2A', AutoPostFailedTelemetryMsg, Verbosity::Warning, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, CustomDimensions);
-    end;
-
-    local procedure LogFinalizationFailureTelemetry(OrderTransaction: Record "Shpfy Order Transaction"; TemplateName: Code[10]; BatchName: Code[10]; Stage: Text; ErrorText: Text; ErrorCallStack: Text)
-    var
-        CustomDimensions: Dictionary of [Text, Text];
-    begin
-        AddTelemetryDimensions(CustomDimensions, OrderTransaction, TemplateName, BatchName, Stage, ErrorText, ErrorCallStack);
-        Session.LogMessage('0000S2B', AutoPostFinalizationFailedTelemetryMsg, Verbosity::Warning, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, CustomDimensions);
-    end;
-
-    local procedure AddTelemetryDimensions(var CustomDimensions: Dictionary of [Text, Text]; OrderTransaction: Record "Shpfy Order Transaction"; TemplateName: Code[10]; BatchName: Code[10]; Stage: Text; ErrorText: Text; ErrorCallStack: Text)
     begin
         CustomDimensions.Add('Category', CategoryTok);
         CustomDimensions.Add('Stage', Stage);
-        CustomDimensions.Add('Shop Code', OrderTransaction.Shop);
-        CustomDimensions.Add('Shopify Transaction Id', Format(OrderTransaction."Shopify Transaction Id"));
-        CustomDimensions.Add('Journal Template Name', TemplateName);
-        CustomDimensions.Add('Journal Batch Name', BatchName);
-        CustomDimensions.Add('Error Text', CopyStr(ErrorText, 1, 250));
-        CustomDimensions.Add('Error Call Stack', CopyStr(ErrorCallStack, 1, 2048));
+        CustomDimensions.Add('ErrorCode', ErrorCode);
+        Session.LogMessage('0000S2B', AutoPostFinalizationFailedTelemetryMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
     end;
 
     var
-        AutoPostFailedTelemetryMsg: Label 'Automatic Shopify transaction posting failed.', Locked = true;
         AutoPostFinalizationFailedTelemetryMsg: Label 'Finalizing a failed automatic Shopify transaction posting attempt failed.', Locked = true;
         IncompleteSetupReasonLbl: Label 'Automatic posting is enabled, but the journal template or journal batch is not configured.';
-        InsufficientPermissionsReasonLbl: Label 'Automatic posting requires permission to read and write general journal batches and lines.';
         CategoryTok: Label 'Shopify Integration', Locked = true;
-        AuthorizationStageTok: Label 'Authorization', Locked = true;
-        BuildStageTok: Label 'Build journal lines', Locked = true;
         CleanupStageTok: Label 'Cleanup journal batch', Locked = true;
-        ConfigurationStageTok: Label 'Configuration', Locked = true;
         FailureLogStageTok: Label 'Log skipped record', Locked = true;
-        PostingStageTok: Label 'Post journal batch', Locked = true;
 }
