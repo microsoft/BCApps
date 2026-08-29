@@ -1397,9 +1397,9 @@ codeunit 134468 "ERM Matched Order Line Tests"
         PurchaseHeaderOrder.Modify(true);
 
         // [WHEN] Add line with tracked item
-        // [THEN] Error: Item tracking not supported with Receipt on Invoice
-        asserterror LibraryPurchase.CreatePurchaseLine(PurchaseLineOrder, PurchaseHeaderOrder, PurchaseLineOrder.Type::Item, Item."No.", Quantity);
-        Assert.ExpectedError('specific tracking');
+        // [THEN] Line is created but Receipt on Invoice is silently disabled on the line
+        LibraryPurchase.CreatePurchaseLine(PurchaseLineOrder, PurchaseHeaderOrder, PurchaseLineOrder.Type::Item, Item."No.", Quantity);
+        Assert.IsFalse(PurchaseLineOrder."Receipt on Invoice", 'Receipt on Invoice should be disabled on a line with specific item tracking');
     end;
 
 
@@ -1480,9 +1480,9 @@ codeunit 134468 "ERM Matched Order Line Tests"
         PurchaseLineOrder.Modify(true);
 
         // [WHEN] Use WMS location
-        // [THEN] Error: Directed Put-away and Pick not supported
-        asserterror PurchaseLineOrder.Validate("Location Code", WMSLocation.Code);
-        Assert.ExpectedError('Directed Put-away and Pick');
+        // [THEN] Receipt on Invoice is silently disabled on the line
+        PurchaseLineOrder.Validate("Location Code", WMSLocation.Code);
+        Assert.IsFalse(PurchaseLineOrder."Receipt on Invoice", 'Receipt on Invoice should be disabled on a Directed Put-away and Pick location');
     end;
 
     [Test]
