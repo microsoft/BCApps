@@ -12,6 +12,7 @@ codeunit 7246 "MDM Source Capabilities"
 
     var
         Negotiated: Boolean;
+        NegotiatedForUrl: Text;
         ContractVersion: Integer;
         SupportedFeatures: List of [Text];
         UnsupportedFeatureErr: Label 'The source environment does not support the required ''%1'' capability. Update the Master Data Management app on the source environment.', Comment = '%1 = capability name';
@@ -39,19 +40,29 @@ codeunit 7246 "MDM Source Capabilities"
     procedure Reset()
     begin
         Negotiated := false;
+        NegotiatedForUrl := '';
         ContractVersion := 0;
         Clear(SupportedFeatures);
     end;
 
     local procedure Negotiate(Transport: Interface "IMDM Source Transport")
     var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
         Capabilities: JsonObject;
         FeaturesToken: JsonToken;
         VersionToken: JsonToken;
         FeatureToken: JsonToken;
+        CurrentSource: Text;
     begin
-        if Negotiated then
+        if MasterDataManagementSetup.Get() then
+            CurrentSource := MasterDataManagementSetup."Source Environment URL";
+        // Re-negotiate when the configured source changes so a switched environment can't reuse the previous
+        // source's cached feature/version data.
+        if Negotiated and (NegotiatedForUrl = CurrentSource) then
             exit;
+        Negotiated := false;
+        ContractVersion := 0;
+        Clear(SupportedFeatures);
         // Don't cache a failed parse as a successful (empty) negotiation - that would surface as a misleading
         // "capability unsupported / update the source app" error instead of the real bad-response problem.
         if not Capabilities.ReadFrom(Transport.GetCapabilities()) then
@@ -65,5 +76,6 @@ codeunit 7246 "MDM Source Capabilities"
                     if FeatureToken.IsValue() then
                         SupportedFeatures.Add(FeatureToken.AsValue().AsText());
         Negotiated := true;
+        NegotiatedForUrl := CurrentSource;
     end;
 }

@@ -146,7 +146,7 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
 
         if not HttpClient.Send(RequestMessage, ResponseMessage) then begin
             LogTransportFailure(ActionName);
-            Error(SendFailedErr);
+            Error(SetupNavigationError(SendFailedErr));
         end;
     end;
 
@@ -196,6 +196,12 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         exit(ResponseBody);
     end;
 
+    // Test seam: exercise OData envelope unwrapping without a live transport.
+    internal procedure UnwrapODataValueForTest(ResponseBody: Text): Text
+    begin
+        exit(UnwrapODataValue(ResponseBody));
+    end;
+
     local procedure GetBearerToken(var MasterDataManagementSetup: Record "Master Data Management Setup"): SecretText
     begin
         // Cached in-instance for the lifetime of a single sync run (the paging loop reuses this transport).
@@ -217,15 +223,32 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
     begin
         Scopes.Add(ScopeTok);
         TokenEndpoint := StrSubstNo(TokenEndpointTok, AzureADTenant.GetAadTenantId());
-        if not OAuth2.AcquireTokenWithClientCredentials(
-            MasterDataManagementSetup."Source OAuth Client Id",
-            MasterDataManagementSetup.GetSourceClientSecret(),
-            TokenEndpoint, '', Scopes, Token) or Token.IsEmpty()
-        then begin
-            AuditLog.LogAuditMessage(StrSubstNo(TokenFailedAuditTxt, MasterDataManagementSetup."Source Environment Name"), SecurityOperationResult::Failure, AuditCategory::Authentication, 4, 0);
-            Error(NoTokenErr);
-        end;
+        // Prefer a cached/refreshed token (no round-trip when a valid one exists); fall back to a fresh
+        // client-credentials grant if the cache misses, errors, or returns an empty token.
+        if not TryAcquireTokenFromCache(MasterDataManagementSetup, TokenEndpoint, Scopes, Token) then
+            Clear(Token);
+        if Token.IsEmpty() then
+            if not OAuth2.AcquireTokenWithClientCredentials(
+                MasterDataManagementSetup."Source OAuth Client Id",
+                MasterDataManagementSetup.GetSourceClientSecret(),
+                TokenEndpoint, '', Scopes, Token) or Token.IsEmpty()
+            then begin
+                AuditLog.LogAuditMessage(StrSubstNo(TokenFailedAuditTxt, MasterDataManagementSetup."Source Environment Name"), SecurityOperationResult::Failure, AuditCategory::Authentication, 4, 0);
+                Error(SetupNavigationError(NoTokenErr));
+            end;
         AuditLog.LogAuditMessage(StrSubstNo(TokenAcquiredAuditTxt, MasterDataManagementSetup."Source Environment Name"), SecurityOperationResult::Success, AuditCategory::Authentication, 4, 0);
+    end;
+
+    // Reuses a token from the platform (MSAL) cache when one is valid; a cache miss or error is treated as "no token"
+    // so the caller falls back to a fresh client-credentials grant.
+    [TryFunction]
+    [NonDebuggable]
+    local procedure TryAcquireTokenFromCache(MasterDataManagementSetup: Record "Master Data Management Setup"; TokenEndpoint: Text; Scopes: List of [Text]; var Token: SecretText)
+    var
+        OAuth2: Codeunit OAuth2;
+    begin
+        if not OAuth2.AcquireAuthorizationCodeTokenFromCache(MasterDataManagementSetup."Source OAuth Client Id", MasterDataManagementSetup.GetSourceClientSecret(), '', TokenEndpoint, Scopes, Token) then
+            Clear(Token);
     end;
 
     local procedure GetConfiguredSetup(var MasterDataManagementSetup: Record "Master Data Management Setup")

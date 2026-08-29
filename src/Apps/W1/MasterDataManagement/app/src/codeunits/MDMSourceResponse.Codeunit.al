@@ -127,6 +127,15 @@ codeunit 7248 "MDM Source Response"
         end;
         if not IsNullGuid(SystemIdValue) then
             TempSourceRecordRef.Field(TempSourceRecordRef.SystemIdNo()).Value := SystemIdValue;
+        // A record re-modified between page fetches can arrive on two pages under the advancing cursor; keep the
+        // newest copy instead of aborting the whole batch on the duplicate primary key.
+        if not TryInsertTempRecord(TempSourceRecordRef) then
+            TempSourceRecordRef.Modify(false);
+    end;
+
+    [TryFunction]
+    local procedure TryInsertTempRecord(var TempSourceRecordRef: RecordRef)
+    begin
         TempSourceRecordRef.Insert(false);
     end;
 

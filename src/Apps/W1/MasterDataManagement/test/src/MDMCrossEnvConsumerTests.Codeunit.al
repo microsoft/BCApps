@@ -9,7 +9,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     var
         Assert: Codeunit Assert;
         LibrarySalesLib: Codeunit "Library - Sales";
-        WizardOpenedPrivacyNotice: Boolean;
+        WizardPrivacyNoticeOpenCount: Integer;
 
     [Test]
     procedure CrossEnvGetBySystemIdRoundTripsSourceRecord()
@@ -114,17 +114,70 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
 
         // [GIVEN] the privacy notice has no recorded decision, so accepting consent must prompt it
         LibraryMasterDataMgt.PrivacyNoticeResetApproval();
-        WizardOpenedPrivacyNotice := false;
+        WizardPrivacyNoticeOpenCount := 0;
 
         // [WHEN] the admin ticks consent in the connection wizard
         ConnectionWizard.OpenEdit();
         ConnectionWizard.Consent.SetValue(true);
         ConnectionWizard.Close();
 
-        // [THEN] the privacy-notice dialog was shown - proving the wizard invoked ConfirmApproval
-        Assert.IsTrue(WizardOpenedPrivacyNotice, 'Ticking consent should open the privacy notice (call ConfirmApproval)');
+        // [THEN] the privacy-notice dialog was shown exactly once - proving the wizard invoked ConfirmApproval
+        Assert.AreEqual(1, WizardPrivacyNoticeOpenCount, 'Ticking consent should open the privacy notice exactly once (call ConfirmApproval)');
 
         LibraryMasterDataMgt.PrivacyNoticeResetApproval();
+        CleanUp();
+    end;
+
+    [Test]
+    procedure CrossEnvGetByUidFilterAndGetByIdMaterializeSourceRecords()
+    var
+        Customer1: Record Customer;
+        Customer2: Record Customer;
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        SourceRecordRef: RecordRef;
+        UidFilter: Text;
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] Cross-env GetByUidFilter (pipe-split selector) and GetById (variant->SystemId) fetch source records.
+        Initialize();
+        LibrarySalesLib.CreateCustomer(Customer1);
+        LibrarySalesLib.CreateCustomer(Customer2);
+        CreateMinimalCustomerMapping(IntegrationTableMapping);
+        LibraryMasterDataMgt.SetSourceEnvironmentName('PROD');
+        InProcessTransport.Activate();
+
+        // [GIVEN] a pipe-delimited UID filter of two source SystemIds
+        UidFilter := Format(Customer1.SystemId) + '|' + Format(Customer2.SystemId);
+
+        // [WHEN] fetched via the cross-env UID filter [THEN] both records materialize (exercises ParseSystemIds pipe-split)
+        Assert.IsTrue(LibraryMasterDataMgt.DataSourceGetByUidFilter(IntegrationTableMapping, UidFilter, SourceRecordRef), 'GetByUidFilter should return records');
+        Assert.IsTrue(ContainsSystemId(SourceRecordRef, Customer1.SystemId), 'UID filter should include the first customer');
+        Assert.IsTrue(ContainsSystemId(SourceRecordRef, Customer2.SystemId), 'UID filter should include the second customer');
+
+        // [WHEN] fetched via GetById with a text SystemId [THEN] the record materializes (exercises the variant->SystemId conversion)
+        Assert.IsTrue(LibraryMasterDataMgt.DataSourceGetById(IntegrationTableMapping, Format(Customer1.SystemId), SourceRecordRef), 'GetById should return the record');
+        Assert.IsTrue(ContainsSystemId(SourceRecordRef, Customer1.SystemId), 'GetById should include the requested customer');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure HttpTransportUnwrapsODataValueEnvelope()
+    var
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] The HTTP transport unwraps the ODataV4 { value: <inner> } envelope and passes other bodies through.
+        Initialize();
+
+        // [GIVEN] an OData action envelope [THEN] the inner value is returned
+        Assert.AreEqual('{"records":[]}', LibraryMasterDataMgt.UnwrapHttpTransportODataValue('{"@odata.context":"x","value":"{\"records\":[]}"}'), 'Envelope value should be unwrapped');
+
+        // [GIVEN] a body that is not a value-envelope [THEN] it is returned unchanged
+        Assert.AreEqual('{"records":[]}', LibraryMasterDataMgt.UnwrapHttpTransportODataValue('{"records":[]}'), 'A non-envelope body should pass through unchanged');
+
         CleanUp();
     end;
 
@@ -132,7 +185,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     procedure PrivacyNoticeModalHandler(var PrivacyNoticePage: TestPage "Privacy Notice")
     begin
         // Reached only if the wizard actually opened the notice.
-        WizardOpenedPrivacyNotice := true;
+        WizardPrivacyNoticeOpenCount += 1;
     end;
 
     [Test]

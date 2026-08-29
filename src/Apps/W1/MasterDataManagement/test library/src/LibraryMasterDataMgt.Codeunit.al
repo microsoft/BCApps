@@ -96,6 +96,19 @@ codeunit 139757 "Library - Master Data Mgt."
         exit(MasterDataManagementSetup.GetDataSource().GetByUidFilter(IntegrationTableMapping, UidFilter, SourceRecordRef));
     end;
 
+    /// <summary>Gets a single source record by its coupling ID (SystemId as GUID or text) from the configured data source.</summary>
+    /// <param name="IntegrationTableMapping">The integration table mapping to read.</param>
+    /// <param name="ID">The record ID (SystemId as a GUID or its text form).</param>
+    /// <param name="SourceRecordRef">Returns the record reference positioned on the found record.</param>
+    /// <returns>True if the record was found; otherwise false.</returns>
+    procedure DataSourceGetById(IntegrationTableMapping: Record "Integration Table Mapping"; ID: Variant; var SourceRecordRef: RecordRef): Boolean
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        MasterDataManagementSetup.Get();
+        exit(MasterDataManagementSetup.GetDataSource().GetById(IntegrationTableMapping, ID, SourceRecordRef));
+    end;
+
     /// <summary>Gets source records matching a table filter from the configured data source.</summary>
     /// <param name="IntegrationTableMapping">The integration table mapping to read.</param>
     /// <param name="TableFilter">The source table filter to apply.</param>
@@ -175,6 +188,16 @@ codeunit 139757 "Library - Master Data Mgt."
         MDMHttpSourceTransport: Codeunit "MDM Http Source Transport";
     begin
         MDMHttpSourceTransport.ValidateSourceHostUrl(BaseUrl);
+    end;
+
+    /// <summary>Unwraps the ODataV4 action envelope the HTTP transport receives, returning the inner value (or the raw body).</summary>
+    /// <param name="ResponseBody">The raw response body to unwrap.</param>
+    /// <returns>The inner OData value, or the body unchanged if it is not a value-envelope.</returns>
+    procedure UnwrapHttpTransportODataValue(ResponseBody: Text): Text
+    var
+        MDMHttpSourceTransport: Codeunit "MDM Http Source Transport";
+    begin
+        exit(MDMHttpSourceTransport.UnwrapODataValueForTest(ResponseBody));
     end;
 
     /// <summary>Checks whether the inline media cache holds an entry for a record field.</summary>
