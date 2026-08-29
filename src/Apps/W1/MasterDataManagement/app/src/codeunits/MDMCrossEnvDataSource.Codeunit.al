@@ -23,6 +23,7 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         SourceProbeFailedErr: Label 'Could not read the change probe from the source environment for table %1.', Comment = '%1 = table caption';
         RecordsFeatureTok: Label 'records', Locked = true;
         LastModifiedFeatureTok: Label 'lastModifiedPerTable', Locked = true;
+        SourceProbeTelemetryTxt: Label 'The cross-environment source-record probe failed for table %1.', Locked = true, Comment = '%1 = table id';
         ParseFailureTelemetryTxt: Label 'The cross-environment sync received an unusable response for table %1 (reason: %2).', Locked = true, Comment = '%1 = table id, %2 = reason';
         InvalidResponseReasonTok: Label 'InvalidResponse', Locked = true;
         TableUnavailableReasonTok: Label 'TableUnavailable', Locked = true;
@@ -114,13 +115,19 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         Transport := GetTransport();
         SourceCapabilities.EnsureSupported(Transport, LastModifiedFeatureTok);
         // A transport/parse failure is not an empty source; surface it so the full-synch review isn't misled.
-        if not SourceResponse.TryParse(Transport.LastModifiedAtPerTable(TableIdsText), Response) then
+        if not SourceResponse.TryParse(Transport.LastModifiedAtPerTable(TableIdsText), Response) then begin
+            LogProbeFailure(IntegrationTableId);
             Error(SourceProbeFailedErr, TableCaption(IntegrationTableId));
-        if not Response.Get('tables', Token) then
+        end;
+        if not Response.Get('tables', Token) then begin
+            LogProbeFailure(IntegrationTableId);
             Error(SourceProbeFailedErr, TableCaption(IntegrationTableId));
+        end;
         Tables := Token.AsArray();
-        if Tables.Count() = 0 then
+        if Tables.Count() = 0 then begin
+            LogProbeFailure(IntegrationTableId);
             Error(SourceProbeFailedErr, TableCaption(IntegrationTableId));
+        end;
         Tables.Get(0, Token);
         Entry := Token.AsObject();
         if Entry.Get('tableAvailable', Token) then
@@ -208,6 +215,13 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         MasterDataManagement: Codeunit "Master Data Management";
     begin
         Session.LogMessage('0000QF8', StrSubstNo(ParseFailureTelemetryTxt, IntegrationTableId, Reason), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
+    end;
+
+    local procedure LogProbeFailure(IntegrationTableId: Integer)
+    var
+        MasterDataManagement: Codeunit "Master Data Management";
+    begin
+        Session.LogMessage('0000QFB', StrSubstNo(SourceProbeTelemetryTxt, IntegrationTableId), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
     end;
 
     local procedure ParseOrError(IntegrationTableId: Integer; ResponseText: Text; var Response: JsonObject)

@@ -276,8 +276,12 @@ page 7232 "MDM Connection Details"
         MasterDataManagementSetup."Source Environment URL" := SourceEnvironmentUrl;
         MasterDataManagementSetup."Source Company Name" := SourceCompanyName;
         MasterDataManagementSetup."Source OAuth Client Id" := OAuth2ClientId;
-        if OAuth2ClientSecret <> '' then
+        if OAuth2ClientSecret <> '' then begin
             MasterDataManagementSetup.SetSourceClientSecret(OAuth2ClientSecret);
+            // Minimize the plain-text window: the secret is now encrypted at rest, so drop the wizard copy.
+            Clear(OAuth2ClientSecret);
+            SecretAlreadyStored := true;
+        end;
         MasterDataManagementSetup.Modify(true);
     end;
 

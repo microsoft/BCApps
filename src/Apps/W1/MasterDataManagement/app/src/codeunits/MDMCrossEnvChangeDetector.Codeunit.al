@@ -21,6 +21,7 @@ codeunit 7245 "MDM Cross-Env Change Detector"
         LastModifiedFeatureTok: Label 'lastModifiedPerTable', Locked = true;
         DetectorParseFailedTxt: Label 'The cross-environment change detector received an invalid response from the source and skipped this run.', Locked = true;
         DetectionContractFailedTxt: Label 'The cross-environment change detector received a response without a valid tables array and skipped this run.', Locked = true;
+        DetectorTransportFailedTxt: Label 'The cross-environment change detector could not reach the source and skipped this run; the next scheduled run will retry.', Locked = true;
 
     trigger OnRun()
     begin
@@ -32,11 +33,13 @@ codeunit 7245 "MDM Cross-Env Change Detector"
         MasterDataManagementSetup: Record "Master Data Management Setup";
         SourceConnection: Codeunit "MDM Source Connection";
         SourceResponse: Codeunit "MDM Source Response";
-        SourceCapabilities: Codeunit "MDM Source Capabilities";
         MasterDataManagement: Codeunit "Master Data Management";
         Transport: Interface "IMDM Source Transport";
         Response: JsonObject;
         TableIds: JsonArray;
+        Dimensions: Dictionary of [Text, Text];
+        ResponseText: Text;
+        Supported: Boolean;
     begin
         if not MasterDataManagementSetup.Get() then
             exit;
@@ -49,15 +52,39 @@ codeunit 7245 "MDM Cross-Env Change Detector"
             exit;
 
         Transport := SourceConnection.GetTransport();
-        // Skip (rather than error every run) if an older source doesn't advertise the detection action.
-        if not SourceCapabilities.IsSupported(Transport, LastModifiedFeatureTok) then
+        // An operational transport failure (source outage, auth, bad connection state) must NOT error this recurring
+        // detector job - that would burn its retry budget and could stop change detection. Skip this poll instead;
+        // the next scheduled run recovers.
+        if not TryFetchDetection(Transport, TableIds, Supported, ResponseText) then begin
+            // The detector's transport errors are operational (HTTP status, connection, auth, config) with no record
+            // content, so the caught message - which carries the HTTP status code for HttpErr - is safe as system metadata.
+            Dimensions.Add('Category', MasterDataManagement.GetTelemetryCategory());
+            Dimensions.Add('failure', CopyStr(GetLastErrorText(), 1, 2048));
+            Session.LogMessage('0000QF9', DetectorTransportFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
             exit;
-        if not SourceResponse.TryParse(Transport.LastModifiedAtPerTable(WriteArray(TableIds)), Response) then begin
+        end;
+        // Older source doesn't advertise the detection action: skip rather than error every run.
+        if not Supported then
+            exit;
+        if not SourceResponse.TryParse(ResponseText, Response) then begin
             Session.LogMessage('0000QF4', DetectorParseFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
             exit;
         end;
 
         ProcessDetectionResponse(Response);
+    end;
+
+    // Contains the source calls (capability negotiation + LastModifiedAtPerTable) so an operational transport error
+    // is caught by the caller (log + skip) instead of escaping and erroring the recurring detector job.
+    [TryFunction]
+    local procedure TryFetchDetection(Transport: Interface "IMDM Source Transport"; TableIds: JsonArray; var Supported: Boolean; var ResponseText: Text)
+    var
+        SourceCapabilities: Codeunit "MDM Source Capabilities";
+    begin
+        Supported := SourceCapabilities.IsSupported(Transport, LastModifiedFeatureTok);
+        if not Supported then
+            exit;
+        ResponseText := Transport.LastModifiedAtPerTable(WriteArray(TableIds));
     end;
 
     local procedure CollectSynchronizedTableIds(var TableIds: JsonArray): Boolean

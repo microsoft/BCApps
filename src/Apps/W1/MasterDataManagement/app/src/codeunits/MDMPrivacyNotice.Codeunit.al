@@ -18,6 +18,7 @@ codeunit 7242 "MDM Privacy Notice"
         IntegrationServiceNameTxt: Label 'Master Data Management - cross-environment synchronization';
         NotApprovedErr: Label 'Cross-environment master data synchronization requires the privacy notice to be approved. Open Master Data Management Setup and approve sharing data between Business Central environments.';
         OpenSetupActionTxt: Label 'Open Master Data Management Setup';
+        PrivacyLinkTok: Label 'https://go.microsoft.com/fwlink/?linkid=521839', Locked = true;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Privacy Notice", OnRegisterPrivacyNotices, '', false, false)]
     local procedure RegisterPrivacyNotice(var TempPrivacyNotice: Record "Privacy Notice" temporary)
@@ -25,6 +26,7 @@ codeunit 7242 "MDM Privacy Notice"
         TempPrivacyNotice.Init();
         TempPrivacyNotice.ID := PrivacyNoticeIdTok;
         TempPrivacyNotice."Integration Service Name" := IntegrationServiceNameTxt;
+        TempPrivacyNotice.Link := PrivacyLinkTok;
         if not TempPrivacyNotice.Insert() then;
     end;
 
@@ -59,6 +61,7 @@ codeunit 7242 "MDM Privacy Notice"
         ErrInfo.Message := NotApprovedErr;
         if MasterDataManagementSetup.Get() then begin
             ErrInfo.RecordId := MasterDataManagementSetup.RecordId();
+            ErrInfo.PageNo := Page::"Master Data Management Setup";
             ErrInfo.AddNavigationAction(OpenSetupActionTxt);
         end;
         Error(ErrInfo);

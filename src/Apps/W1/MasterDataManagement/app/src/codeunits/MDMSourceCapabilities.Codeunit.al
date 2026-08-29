@@ -17,6 +17,7 @@ codeunit 7246 "MDM Source Capabilities"
         SupportedFeatures: List of [Text];
         UnsupportedFeatureErr: Label 'The source environment does not support the required ''%1'' capability. Update the Master Data Management app on the source environment.', Comment = '%1 = capability name';
         CapabilitiesParseErr: Label 'The source environment returned an invalid capabilities response.';
+        CapabilitiesParseTelemetryTxt: Label 'The source environment returned a malformed capabilities response during cross-environment negotiation.', Locked = true;
 
     procedure EnsureSupported(Transport: Interface "IMDM Source Transport"; Feature: Text)
     begin
@@ -58,6 +59,7 @@ codeunit 7246 "MDM Source Capabilities"
     local procedure Negotiate(Transport: Interface "IMDM Source Transport")
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
+        MasterDataManagement: Codeunit "Master Data Management";
         Capabilities: JsonObject;
         FeaturesToken: JsonToken;
         VersionToken: JsonToken;
@@ -75,8 +77,10 @@ codeunit 7246 "MDM Source Capabilities"
         Clear(SupportedFeatures);
         // Don't cache a failed parse as a successful (empty) negotiation - that would surface as a misleading
         // "capability unsupported / update the source app" error instead of the real bad-response problem.
-        if not Capabilities.ReadFrom(Transport.GetCapabilities()) then
+        if not Capabilities.ReadFrom(Transport.GetCapabilities()) then begin
+            Session.LogMessage('0000QFA', CapabilitiesParseTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
             Error(InternalError(CapabilitiesParseErr));
+        end;
         if Capabilities.Get('version', VersionToken) then
             if VersionToken.IsValue() then
                 ContractVersion := VersionToken.AsValue().AsInteger();
