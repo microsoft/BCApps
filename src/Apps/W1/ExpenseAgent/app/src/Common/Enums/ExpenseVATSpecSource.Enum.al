@@ -11,13 +11,13 @@ enum 6921 "Expense VAT Spec Source"
 {
     Extensible = false;
 
-    value(0; Manual)
-    {
-        Caption = 'Manual';
-    }
-    value(1; Agent)
+    value(0; Agent)
     {
         Caption = 'Agent';
+    }
+    value(1; Manual)
+    {
+        Caption = 'Manual';
     }
     value(2; Override)
     {
