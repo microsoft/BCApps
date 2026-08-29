@@ -17,6 +17,7 @@ codeunit 139770 "Master Data Mgt. Setup Tests"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
         InitializeHandled: Boolean;
+        IncorrectTablesListErr: Label 'Synchronization tables list is incorrect.';
 
     [Test]
     [HandlerFunctions('SynchronizationEnabledMessageHandler')]
@@ -379,7 +380,6 @@ codeunit 139770 "Master Data Mgt. Setup Tests"
         SynchTables: List of [Integer];
         RelatedTablesToAdd: List of [Integer];
         TablesToAddText: Text;
-        IncorrectTablesListErr: Label 'Synchronization tables list is incorrect.';
     begin
         // [SCENARIO] When selecting a table that has a self-reference or other reference that create a cycle, duplicate records are not added to the setup list
 
