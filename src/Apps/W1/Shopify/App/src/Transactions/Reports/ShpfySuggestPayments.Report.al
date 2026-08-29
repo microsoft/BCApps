@@ -284,6 +284,7 @@ report 30118 "Shpfy Suggest Payments"
                 begin
                     RefundHeader.SetLoadFields("Order Id", "Refund Id");
                     RefundHeader.SetRange("Order Id", OrderTransaction."Shopify Order Id");
+                    RefundHeader.SetRange("Refund Id", OrderTransaction."Refund Id");
                     if RefundHeader.FindSet() then begin
                         repeat
                             SalesCreditMemoHeader.SetLoadFields("Shpfy Refund Id", "No.", Paid);

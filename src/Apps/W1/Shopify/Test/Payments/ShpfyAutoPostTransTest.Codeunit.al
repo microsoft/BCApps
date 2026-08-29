@@ -46,26 +46,26 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
     [Test]
     procedure UnitTestAutoPostJnlBatchValidateWithBalAccountNo()
     var
-        PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
+        PaymentMethodMappingUnderTest: Record "Shpfy Payment Method Mapping";
         GenJournalBatch: Record "Gen. Journal Batch";
     begin
         // [SCENARIO] Auto-Post Jnl. Batch field validates successfully when the journal batch has a balancing account number
 
         // [GIVEN] A Gen. Journal Batch with a balancing account number
         CreateJournalBatch(GenJournalBatch);
-        PaymentMethodMapping."Auto-Post Jnl. Template" := GenJournalBatch."Journal Template Name";
+        PaymentMethodMappingUnderTest."Auto-Post Jnl. Template" := GenJournalBatch."Journal Template Name";
 
         // [WHEN] Auto-Post Jnl. Batch is validated
-        PaymentMethodMapping.Validate("Auto-Post Jnl. Batch", GenJournalBatch.Name);
+        PaymentMethodMappingUnderTest.Validate("Auto-Post Jnl. Batch", GenJournalBatch.Name);
 
         // [THEN] Validation passes without error
-        LibraryAssert.AreEqual(GenJournalBatch.Name, PaymentMethodMapping."Auto-Post Jnl. Batch", 'Auto-Post Jnl. Batch should be set');
+        LibraryAssert.AreEqual(GenJournalBatch.Name, PaymentMethodMappingUnderTest."Auto-Post Jnl. Batch", 'Auto-Post Jnl. Batch should be set');
     end;
 
     [Test]
     procedure UnitTestAutoPostJnlBatchValidateWithoutBalAccountNo()
     var
-        PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
+        PaymentMethodMappingUnderTest: Record "Shpfy Payment Method Mapping";
         GenJournalBatch: Record "Gen. Journal Batch";
     begin
         // [SCENARIO] Auto-Post Jnl. Batch field validation fails when the journal batch does not have a balancing account number
@@ -74,39 +74,39 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
         CreateJournalBatch(GenJournalBatch);
         GenJournalBatch."Bal. Account No." := '';
         GenJournalBatch.Modify();
-        PaymentMethodMapping."Auto-Post Jnl. Template" := GenJournalBatch."Journal Template Name";
+        PaymentMethodMappingUnderTest."Auto-Post Jnl. Template" := GenJournalBatch."Journal Template Name";
 
         // [WHEN] Auto-Post Jnl. Batch is validated
         // [THEN] Validation fails with the missing balancing-account error
-        asserterror PaymentMethodMapping.Validate("Auto-Post Jnl. Batch", GenJournalBatch.Name);
+        asserterror PaymentMethodMappingUnderTest.Validate("Auto-Post Jnl. Batch", GenJournalBatch.Name);
         LibraryAssert.ExpectedTestFieldError(GenJournalBatch.FieldCaption("Bal. Account No."), '');
     end;
 
     [Test]
     procedure UnitTestAutoPostJnlBatchValidateWithEmptyValue()
     var
-        PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
+        PaymentMethodMappingUnderTest: Record "Shpfy Payment Method Mapping";
     begin
         // [SCENARIO] Auto-Post Jnl. Batch field can be set to empty without a validation error
 
         // [WHEN] Auto-Post Jnl. Batch is set to empty
-        PaymentMethodMapping.Validate("Auto-Post Jnl. Batch", '');
+        PaymentMethodMappingUnderTest.Validate("Auto-Post Jnl. Batch", '');
 
         // [THEN] Validation passes without error
-        LibraryAssert.AreEqual('', PaymentMethodMapping."Auto-Post Jnl. Batch", 'Auto-Post Jnl. Batch should be empty');
+        LibraryAssert.AreEqual('', PaymentMethodMappingUnderTest."Auto-Post Jnl. Batch", 'Auto-Post Jnl. Batch should be empty');
     end;
 
     [Test]
     procedure UnitTestAutoPostRequiresJournalSetup()
     var
-        PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
+        PaymentMethodMappingUnderTest: Record "Shpfy Payment Method Mapping";
     begin
         // [SCENARIO] Automatic posting cannot be enabled without a configured journal template and batch
 
         // [WHEN] Post Automatically is enabled without journal setup
         // [THEN] Validation fails on the missing journal template
-        asserterror PaymentMethodMapping.Validate("Post Automatically", true);
-        LibraryAssert.ExpectedTestFieldError(PaymentMethodMapping.FieldCaption("Auto-Post Jnl. Template"), '');
+        asserterror PaymentMethodMappingUnderTest.Validate("Post Automatically", true);
+        LibraryAssert.ExpectedTestFieldError(PaymentMethodMappingUnderTest.FieldCaption("Auto-Post Jnl. Template"), '');
     end;
 
     [Test]
@@ -313,6 +313,50 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
         // [THEN] A Cust. Ledger Entry is created for the refund transaction
         CustLedgerEntry.SetRange("Shpfy Transaction Id", TransactionId);
         LibraryAssert.IsFalse(CustLedgerEntry.IsEmpty(), 'Cust. Ledger Entry should be created for the auto-posted refund transaction');
+    end;
+
+    [Test]
+    procedure UnitTestRefundAutoPostAppliesOnlyToMatchingRefund()
+    var
+        OtherSalesCrMemoHeader: Record "Sales Header";
+        TargetSalesCrMemoHeader: Record "Sales Header";
+        PostedSalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        OrderId: BigInteger;
+        OtherRefundId: BigInteger;
+        TargetRefundId: BigInteger;
+        TransactionId: BigInteger;
+    begin
+        // [SCENARIO] A refund transaction only applies to the credit memo for the same Shopify refund
+
+        // [GIVEN] Two refunds for the same Shopify order and a transaction for the second refund
+        Initialize();
+        OrderId := LibraryRandom.RandIntInRange(17000000, 17999999);
+        OtherRefundId := LibraryRandom.RandIntInRange(17000000, 17499999);
+        TargetRefundId := OtherRefundId + 500000;
+        TransactionId := LibraryRandom.RandIntInRange(17000000, 17999999);
+        CreateShopifyOrder(OrderId);
+        CreateRefund(OtherRefundId, OrderId);
+        CreateRefund(TargetRefundId, OrderId);
+        CreateOrderTransaction(TransactionId, OrderId, TargetRefundId, PaymentMethodMapping.Gateway, Enum::"Shpfy Transaction Type"::Refund, Item."Unit Price");
+
+        // [GIVEN] The other refund's credit memo is posted while automatic posting is disabled
+        EnablePaymentMethodMappingAutoPost(false);
+        CreateCreditMemo(OtherSalesCrMemoHeader, OtherRefundId);
+        LibrarySales.PostSalesDocument(OtherSalesCrMemoHeader, true, true);
+
+        // [WHEN] The target refund's credit memo is posted with automatic posting enabled
+        EnablePaymentMethodMappingAutoPost(true);
+        CreateCreditMemo(TargetSalesCrMemoHeader, TargetRefundId);
+        LibrarySales.PostSalesDocument(TargetSalesCrMemoHeader, true, true);
+
+        // [THEN] Only the target refund's credit memo is paid
+        PostedSalesCrMemoHeader.SetAutoCalcFields(Paid);
+        PostedSalesCrMemoHeader.SetRange("Shpfy Refund Id", OtherRefundId);
+        LibraryAssert.IsTrue(PostedSalesCrMemoHeader.FindFirst(), 'The other refund credit memo should exist');
+        LibraryAssert.IsFalse(PostedSalesCrMemoHeader.Paid, 'A refund transaction must not be applied to a different refund credit memo');
+        PostedSalesCrMemoHeader.SetRange("Shpfy Refund Id", TargetRefundId);
+        LibraryAssert.IsTrue(PostedSalesCrMemoHeader.FindFirst(), 'The target refund credit memo should exist');
+        LibraryAssert.IsTrue(PostedSalesCrMemoHeader.Paid, 'The refund transaction should be applied to the matching refund credit memo');
     end;
 
     [Test]
