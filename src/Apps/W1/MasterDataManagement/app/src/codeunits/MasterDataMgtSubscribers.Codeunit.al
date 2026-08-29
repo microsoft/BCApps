@@ -135,7 +135,7 @@ codeunit 7237 "Master Data Mgt. Subscribers"
 
         if IsJobQueueEntryDataSynchJob(Sender, IntegrationTableMapping) then begin
             MasterDataManagementSetup.Get();
-            if MasterDataManagementSetup."Is Enabled" then begin
+            if MasterDataManagementSetup."Is Enabled" then
                 if MasterDataManagementSetup."Source Environment Name" <> '' then
                     // Cross-environment: the change detector governs when this job is nudged; let it run and fetch the delta.
                     Result := true
@@ -153,7 +153,6 @@ codeunit 7237 "Master Data Mgt. Subscribers"
                         Result := true;
                     RecRef.Close();
                 end;
-            end;
         end;
     end;
 

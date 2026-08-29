@@ -68,13 +68,18 @@ codeunit 139931 "MDM Cross-Env Source Tests"
         Response: JsonObject;
         NextCursor: Text;
         Index: Integer;
+        SeededSystemIds: List of [Guid];
+        PagedSystemIds: List of [Guid];
+        SeededSystemId: Guid;
     begin
         // [FEATURE] [AI test 0.4]
         // [SCENARIO] Cursor mode pages ascending by (SystemModifiedAt, SystemId) and reports hasMore / nextCursor.
         Watermark := CurrentDateTime();
         Sleep(50); // ensure the seeded records sort strictly after the watermark
-        for Index := 1 to 3 do
+        for Index := 1 to 3 do begin
             LibrarySales.CreateCustomer(Customer);
+            SeededSystemIds.Add(Customer.SystemId);
+        end;
 
         // [WHEN] the first page of size 2 is requested from the watermark
         Response.ReadFrom(SourceApi.GetRecords(Database::Customer, FieldIdsArray(Customer.FieldNo(Name)), CursorSelector(Watermark), 2));
@@ -82,6 +87,7 @@ codeunit 139931 "MDM Cross-Env Source Tests"
         // [THEN] two records come back and hasMore is true
         Assert.AreEqual(2, RecordCount(Response), 'First page should hold the page size');
         Assert.IsTrue(GetBoolean(Response, 'hasMore'), 'hasMore should be true while records remain');
+        CollectResponseSystemIds(Response, PagedSystemIds);
         NextCursor := NextCursorText(Response);
 
         // [WHEN] the next page is requested with the returned cursor
@@ -91,6 +97,12 @@ codeunit 139931 "MDM Cross-Env Source Tests"
         // [THEN] the remaining record comes back and hasMore is false
         Assert.AreEqual(1, RecordCount(Response), 'Second page should hold the remaining record');
         Assert.IsFalse(GetBoolean(Response, 'hasMore'), 'hasMore should be false on the last page');
+        CollectResponseSystemIds(Response, PagedSystemIds);
+
+        // [THEN] the two pages together returned every seeded record exactly once - no repeats, no dropped/reordered records
+        Assert.AreEqual(3, PagedSystemIds.Count(), 'Paging should return each record exactly once across the two pages');
+        foreach SeededSystemId in SeededSystemIds do
+            Assert.IsTrue(PagedSystemIds.Contains(SeededSystemId), 'Every seeded record should appear in the paged results');
     end;
 
     [Test]
@@ -140,6 +152,21 @@ codeunit 139931 "MDM Cross-Env Source Tests"
     begin
         Response.Get('records', Token);
         exit(Token.AsArray().Count());
+    end;
+
+    local procedure CollectResponseSystemIds(var Response: JsonObject; var SystemIds: List of [Guid])
+    var
+        RecordsToken: JsonToken;
+        RecordToken: JsonToken;
+        SystemIdToken: JsonToken;
+        SystemIdValue: Guid;
+    begin
+        // Record every returned systemId (no de-dup) so a repeat across pages is caught by the count assertion.
+        Response.Get('records', RecordsToken);
+        foreach RecordToken in RecordsToken.AsArray() do
+            if RecordToken.AsObject().Get('systemId', SystemIdToken) then
+                if Evaluate(SystemIdValue, SystemIdToken.AsValue().AsText()) then
+                    SystemIds.Add(SystemIdValue);
     end;
 
     local procedure GetBoolean(var Response: JsonObject; PropertyName: Text): Boolean

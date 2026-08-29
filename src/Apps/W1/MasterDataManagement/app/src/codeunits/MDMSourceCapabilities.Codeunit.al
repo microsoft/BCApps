@@ -45,6 +45,16 @@ codeunit 7246 "MDM Source Capabilities"
         Clear(SupportedFeatures);
     end;
 
+    // A malformed capabilities response is an internal contract failure; keep the detail in telemetry and show a generic error.
+    local procedure InternalError(MessageText: Text): ErrorInfo
+    var
+        ErrInfo: ErrorInfo;
+    begin
+        ErrInfo.Message := MessageText;
+        ErrInfo.ErrorType := ErrorType::Internal;
+        exit(ErrInfo);
+    end;
+
     local procedure Negotiate(Transport: Interface "IMDM Source Transport")
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
@@ -66,7 +76,7 @@ codeunit 7246 "MDM Source Capabilities"
         // Don't cache a failed parse as a successful (empty) negotiation - that would surface as a misleading
         // "capability unsupported / update the source app" error instead of the real bad-response problem.
         if not Capabilities.ReadFrom(Transport.GetCapabilities()) then
-            Error(CapabilitiesParseErr);
+            Error(InternalError(CapabilitiesParseErr));
         if Capabilities.Get('version', VersionToken) then
             if VersionToken.IsValue() then
                 ContractVersion := VersionToken.AsValue().AsInteger();

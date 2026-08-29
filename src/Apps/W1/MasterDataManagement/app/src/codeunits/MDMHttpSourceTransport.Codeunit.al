@@ -2,8 +2,8 @@ namespace Microsoft.Integration.MDM;
 
 using System.Azure.Identity;
 using System.Environment;
-using System.Security.Authentication;
 using System.Reflection;
+using System.Security.Authentication;
 using System.Telemetry;
 using System.Utilities;
 
@@ -173,7 +173,7 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         if (Uri.GetScheme() = 'https') and (Host.EndsWith('.dynamics.com') or Host.EndsWith('.dynamics-tie.com')) then
             exit;
         AuditLog.LogAuditMessage(StrSubstNo(InvalidSourceUrlAuditTxt, Host), SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
-        Error(InvalidSourceUrlErr);
+        Error(SetupNavigationError(InvalidSourceUrlErr));
     end;
 
     // Test seam: exercise the source-host allow-list without a live environment or the SaaS gate.

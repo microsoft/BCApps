@@ -119,7 +119,7 @@ codeunit 7248 "MDM Source Response"
                             FieldType::Media:
                                 ApplyInlineMedia(SystemIdValue, FieldNo, TempSourceRecordRef.Number(), ValueToken);
                             FieldType::Blob:
-                                ApplyInlineBlob(DestField, SystemIdValue, FieldNo, TempSourceRecordRef.Number(), ValueToken);
+                                ApplyInlineBlob(DestField, FieldNo, TempSourceRecordRef.Number(), ValueToken);
                             else
                                 SetFieldFromText(DestField, ValueToken.AsValue().AsText());
                         end;
@@ -169,7 +169,7 @@ codeunit 7248 "MDM Source Response"
 
     // Blob bytes are placed directly on the temp source record; the framework's record transfer carries them to
     // the destination (the same path same-env uses for mapped blobs), so no destination-side apply is needed.
-    local procedure ApplyInlineBlob(var DestField: FieldRef; SystemId: Guid; FieldNo: Integer; TableId: Integer; ValueToken: JsonToken)
+    local procedure ApplyInlineBlob(var DestField: FieldRef; FieldNo: Integer; TableId: Integer; ValueToken: JsonToken)
     var
         Base64Convert: Codeunit "Base64 Convert";
         TempBlob: Codeunit "Temp Blob";

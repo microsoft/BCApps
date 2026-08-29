@@ -721,11 +721,11 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     var
         SystemIdValue: Guid;
     begin
+        // Record every occurrence (no de-dup) so a record returned on two pages makes the count exceed the seeded set.
         if SourceRecordRef.FindSet() then
             repeat
                 SystemIdValue := SourceRecordRef.Field(SourceRecordRef.SystemIdNo()).Value();
-                if not CollectedSystemIds.Contains(SystemIdValue) then
-                    CollectedSystemIds.Add(SystemIdValue);
+                CollectedSystemIds.Add(SystemIdValue);
             until SourceRecordRef.Next() = 0;
     end;
 
