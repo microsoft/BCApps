@@ -3,36 +3,67 @@ codeunit 139757 "Library - Master Data Mgt."
 {
     Access = Public;
 
+    /// <summary>Invokes the field-transfer subscriber logic that resolves the value to synchronize for a field.</summary>
+    /// <param name="SourceFieldRef">The source field being transferred.</param>
+    /// <param name="DestinationFieldRef">The destination field receiving the value.</param>
+    /// <param name="NewValue">Returns the value to apply to the destination field.</param>
+    /// <param name="IsValueFound">Returns true when the subscriber resolved the value.</param>
+    /// <param name="NeedsConversion">Returns whether the resolved value still needs type conversion.</param>
     procedure HandleOnTransferFieldData(SourceFieldRef: FieldRef; DestinationFieldRef: FieldRef; var NewValue: Variant; var IsValueFound: Boolean; var NeedsConversion: Boolean)
     begin
         MasterDataMgtSubscribers.HandleOnTransferFieldData(SourceFieldRef, DestinationFieldRef, NewValue, IsValueFound, NeedsConversion);
     end;
 
+    /// <summary>Renames the destination record before modification when the source primary key has changed.</summary>
+    /// <param name="IntegrationTableMapping">The integration table mapping being synchronized.</param>
+    /// <param name="SourceRecordRef">The source record providing the new primary key.</param>
+    /// <param name="DestinationRecordRef">The destination record to rename in place.</param>
     procedure RenameIfNeededOnBeforeModifyRecord(IntegrationTableMapping: Record "Integration Table Mapping"; SourceRecordRef: RecordRef; var DestinationRecordRef: RecordRef)
     begin
         MasterDataMgtSubscribers.RenameIfNeededOnBeforeModifyRecord(IntegrationTableMapping, SourceRecordRef, DestinationRecordRef);
     end;
 
+    /// <summary>Determines whether the source record was modified after the last synchronization.</summary>
+    /// <param name="IntegrationTableConnectionType">The connection type of the integration table.</param>
+    /// <param name="IntegrationTableMapping">The integration table mapping being synchronized.</param>
+    /// <param name="SourceRecordRef">The source record to evaluate.</param>
+    /// <param name="SourceWasChanged">Returns true when the source record changed since the last synch.</param>
+    /// <param name="IsHandled">Returns true when the subscriber handled the evaluation.</param>
     procedure HandleOnWasModifiedAfterLastSynch(IntegrationTableConnectionType: TableConnectionType; IntegrationTableMapping: Record "Integration Table Mapping"; var SourceRecordRef: RecordRef; var SourceWasChanged: Boolean; var IsHandled: Boolean)
     begin
         MasterDataMgtSubscribers.HandleOnWasModifiedAfterLastSynch(IntegrationTableConnectionType, IntegrationTableMapping, SourceRecordRef, SourceWasChanged, IsHandled);
     end;
 
+    /// <summary>Resolves the local record ID coupled to an integration SystemId, synchronizing it first if needed.</summary>
+    /// <param name="IntegrationSystemId">The SystemId of the integration record.</param>
+    /// <param name="TableId">The table ID to resolve against.</param>
+    /// <param name="LocalRecordID">Returns the coupled local record ID.</param>
+    /// <param name="IsHandled">Returns true when the subscriber handled the resolution.</param>
     procedure HandleOnFindAndSynchRecordIDFromIntegrationSystemId(IntegrationSystemId: Guid; TableId: Integer; var LocalRecordID: RecordID; var IsHandled: Boolean)
     begin
         MasterDataMgtSubscribers.HandleOnFindAndSynchRecordIDFromIntegrationSystemId(IntegrationSystemId, TableId, LocalRecordID, IsHandled);
     end;
 
+    /// <summary>Evaluates whether a data-synchronization job queue entry needs to run.</summary>
+    /// <param name="Sender">The job queue entry being evaluated.</param>
+    /// <param name="Result">Returns true when the job needs to run.</param>
     procedure HandleOnFindingIfJobNeedsToBeRun(var Sender: Record "Job Queue Entry"; var Result: Boolean)
     begin
         MasterDataMgtSubscribers.HandleOnFindingIfJobNeedsToBeRun(Sender, Result);
     end;
 
+    /// <summary>Runs the post-run handling for a data-synchronization job queue entry.</summary>
+    /// <param name="JobQueueEntry">The job queue entry that finished running.</param>
     procedure HandleOnAfterJobQueueEntryRun(var JobQueueEntry: Record "Job Queue Entry")
     begin
         MasterDataMgtSubscribers.HandleOnAfterJobQueueEntryRun(JobQueueEntry);
     end;
 
+    /// <summary>Finds the tables related to a synchronization table, as offered when adding it to the setup.</summary>
+    /// <param name="ExistingSynchTableNos">The tables already in the synchronization setup.</param>
+    /// <param name="RelatedTablesToAdd">Returns the related table IDs proposed for adding.</param>
+    /// <param name="RelatedTablesToAddText">Returns the display text for the proposed related tables.</param>
+    /// <param name="TableId">The table whose related tables are resolved.</param>
     procedure FindRelatedTables(var ExistingSynchTableNos: List of [Integer]; var RelatedTablesToAdd: List of [Integer]; var RelatedTablesToAddText: Text; TableId: Integer)
     var
         MasterDataSynchTables: Page "Master Data Synch. Tables";

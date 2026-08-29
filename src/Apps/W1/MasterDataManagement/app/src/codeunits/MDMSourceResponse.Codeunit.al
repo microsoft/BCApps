@@ -15,6 +15,7 @@ codeunit 7248 "MDM Source Response"
 
     var
         SkippedFieldTxt: Label 'Cross-environment media or blob field exceeds the inline size cap and was not synchronized.', Locked = true;
+        BadFieldValueErr: Label 'The source returned a value for field %1 that could not be converted to the expected type %2.', Comment = '%1 - a field caption, %2 - a field type';
 
     [TryFunction]
     procedure TryParse(ResponseText: Text; var Response: JsonObject)
@@ -218,7 +219,8 @@ codeunit 7248 "MDM Source Response"
         Session.LogMessage('0000QF2', SkippedFieldTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
     end;
 
-    // Round-trips a value serialized with Format(v, 0, 9) on the source back into the destination field's type.
+    // Round-trips a value serialized with Format(v, 0, 9) on the source back into the destination field's type. A
+    // failed conversion means a drifted/malformed source value; error rather than silently syncing a defaulted one.
     local procedure SetFieldFromText(var DestField: FieldRef; ValueText: Text)
     var
         IntegerValue: Integer;
@@ -231,41 +233,65 @@ codeunit 7248 "MDM Source Response"
         DurationValue: Duration;
         DateFormulaValue: DateFormula;
         GuidValue: Guid;
+        Converted: Boolean;
     begin
+        Converted := true;
         case DestField.Type() of
             FieldType::Text, FieldType::Code:
                 DestField.Value := CopyStr(ValueText, 1, DestField.Length());
             FieldType::Integer, FieldType::Option:
                 if Evaluate(IntegerValue, ValueText, 9) then
-                    DestField.Value := IntegerValue;
+                    DestField.Value := IntegerValue
+                else
+                    Converted := false;
             FieldType::BigInteger:
                 if Evaluate(BigIntegerValue, ValueText, 9) then
-                    DestField.Value := BigIntegerValue;
+                    DestField.Value := BigIntegerValue
+                else
+                    Converted := false;
             FieldType::Decimal:
                 if Evaluate(DecimalValue, ValueText, 9) then
-                    DestField.Value := DecimalValue;
+                    DestField.Value := DecimalValue
+                else
+                    Converted := false;
             FieldType::Boolean:
                 if Evaluate(BooleanValue, ValueText, 9) then
-                    DestField.Value := BooleanValue;
+                    DestField.Value := BooleanValue
+                else
+                    Converted := false;
             FieldType::Date:
                 if Evaluate(DateValue, ValueText, 9) then
-                    DestField.Value := DateValue;
+                    DestField.Value := DateValue
+                else
+                    Converted := false;
             FieldType::Time:
                 if Evaluate(TimeValue, ValueText, 9) then
-                    DestField.Value := TimeValue;
+                    DestField.Value := TimeValue
+                else
+                    Converted := false;
             FieldType::DateTime:
                 if Evaluate(DateTimeValue, ValueText, 9) then
-                    DestField.Value := DateTimeValue;
+                    DestField.Value := DateTimeValue
+                else
+                    Converted := false;
             FieldType::Duration:
                 if Evaluate(DurationValue, ValueText, 9) then
-                    DestField.Value := DurationValue;
+                    DestField.Value := DurationValue
+                else
+                    Converted := false;
             FieldType::DateFormula:
                 if Evaluate(DateFormulaValue, ValueText, 9) then
-                    DestField.Value := DateFormulaValue;
+                    DestField.Value := DateFormulaValue
+                else
+                    Converted := false;
             FieldType::Guid:
                 if Evaluate(GuidValue, ValueText) then
-                    DestField.Value := GuidValue;
+                    DestField.Value := GuidValue
+                else
+                    Converted := false;
         end;
+        if not Converted then
+            Error(BadFieldValueErr, DestField.Caption(), Format(DestField.Type()));
     end;
 
     local procedure GetGuid(var Container: JsonObject; PropertyName: Text; var Value: Guid): Boolean
