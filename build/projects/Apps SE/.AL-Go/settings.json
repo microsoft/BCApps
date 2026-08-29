@@ -131,6 +131,7 @@
                         "../../../src/Apps/SE/SECore/test",
                         "../../../src/Apps/SE/SIE/test",
                         "../../../src/Apps/W1/AMCBanking365Fundamentals/test",
+                        "../../../src/Apps/W1/APICodeunits/test",
                         "../../../src/Apps/W1/APIV1/test",
                         "../../../src/Apps/W1/APIV2/test",
                         "../../../src/Apps/W1/AuditFileExport/test",

@@ -1,0 +1,8 @@
+namespace Microsoft.API.Codeunits;
+
+entitlement "Dynamics 365 Business Central Essential - Attach API Codeunits"
+{
+    Type = PerUserServicePlan;
+    Id = '17ca446c-d7a4-4d29-8dec-8e241592164b';
+    ObjectEntitlements = "D365 API Codeunits";
+}

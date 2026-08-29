@@ -19,6 +19,7 @@ codeunit 6010 "Environment API"
 {
     Access = Public;
     InherentEntitlements = X;
+    InherentPermissions = X;
 
     /// <summary>Gets the name of the environment.</summary>
     /// <returns>The environment name.</returns>

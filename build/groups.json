@@ -3789,6 +3789,26 @@
     ]
   },
   {
+    "name": "API - Codeunits Tests",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem"
+      },
+      {
+        "name": "OnPremExtensions"
+      }
+    ]
+  },
+  {
     "name": "API Reports - Finance",
     "groups": [
       {

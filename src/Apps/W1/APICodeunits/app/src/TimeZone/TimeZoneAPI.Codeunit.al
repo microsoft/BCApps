@@ -19,6 +19,7 @@ codeunit 6012 "Time Zone API"
 {
     Access = Public;
     InherentEntitlements = X;
+    InherentPermissions = X;
 
     /// <summary>Gets the offset between UTC and a time zone at a specified date and time.</summary>
     /// <param name="SourceDateTime">The date and time at which to evaluate the offset.</param>

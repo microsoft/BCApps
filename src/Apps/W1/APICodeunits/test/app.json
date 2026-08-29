@@ -1,0 +1,44 @@
+{
+  "id": "f6444052-56d5-436e-aaa8-a50648acfb11",
+  "name": "API - Codeunits Tests",
+  "publisher": "Microsoft",
+  "version": "29.0.0.0",
+  "brief": "Tests for the API - Codeunits app.",
+  "description": "Tests the environment, installed app, and time zone contracts exposed by API codeunits.",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2103698",
+  "url": "https://go.microsoft.com/fwlink/?linkid=724011",
+  "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2134520",
+  "platform": "29.0.0.0",
+  "application": "29.0.0.0",
+  "target": "OnPrem",
+  "dependencies": [
+    {
+      "id": "2573cc59-1cfc-4991-85e4-32d0cc0f60e2",
+      "name": "API - Codeunits",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    },
+    {
+      "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
+      "name": "Library Assert",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    }
+  ],
+  "idRanges": [
+    {
+      "from": 139930,
+      "to": 139930
+    }
+  ],
+  "features": [
+    "TranslationFile"
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": false,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  }
+}

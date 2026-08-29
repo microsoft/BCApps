@@ -5,13 +5,10 @@
 
 namespace Microsoft.API.Codeunits;
 
-permissionset 6014 "API Codeunits - Read"
+// This permission set should always be internal.
+permissionset 6014 "D365 API Codeunits"
 {
-    Access = Public;
-    Assignable = true;
-    Caption = 'API Codeunits - Read';
-
-    Permissions =
-        codeunit "Environment API" = X,
-        codeunit "Time Zone API" = X;
+    Access = Internal;
+    Assignable = false;
+    Permissions = codeunit * = X;
 }
