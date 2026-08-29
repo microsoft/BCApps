@@ -98,7 +98,6 @@ codeunit 5826 "Matched Order Line Mgmt."
                         PurchaseLineOrder.GetBySystemId(MatchedOrderLine."Matched Order Line SystemId");
 
                         PurchaseLineOrder.TestField("Receipt on Invoice");
-                        CheckLineReceiptOnInvoiceAllowed(PurchaseLineOrder);
                         PurchaseHeaderOrder.Get(PurchaseLineOrder."Document Type", PurchaseLineOrder."Document No.");
                         TempPurchaseHeader := PurchaseHeaderOrder;
                         if TempPurchaseHeader.Insert() then;
