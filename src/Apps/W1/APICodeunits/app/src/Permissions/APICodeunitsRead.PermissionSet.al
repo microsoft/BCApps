@@ -5,16 +5,13 @@
 
 namespace Microsoft.API.Codeunits;
 
-permissionset 6014 "API Codeunits - Objects"
+permissionset 6014 "API Codeunits - Read"
 {
     Access = Public;
-    Assignable = false;
-    Caption = 'API Codeunits - Objects';
+    Assignable = true;
+    Caption = 'API Codeunits - Read';
 
     Permissions =
-        codeunit "No. Series API" = X,
-        codeunit "Approvals API" = X,
         codeunit "Environment API" = X,
-        codeunit "Identity API" = X,
-        codeunit "Date Time API" = X;
+        codeunit "Time Zone API" = X;
 }
