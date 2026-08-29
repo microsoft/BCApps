@@ -1128,6 +1128,7 @@ codeunit 6987 "Expense Report-Post"
         ReimbursementCurrency: Record Currency;
         ExpenseCategory: Record "Expense Category";
         ExpensePostingGroup: Record "Expense Posting Group";
+        ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.";
         GenJournalLine: Record "Gen. Journal Line";
         AccNo: Code[20];
         AmountForAccountSelection: Decimal;
@@ -1146,8 +1147,11 @@ codeunit 6987 "Expense Report-Post"
             AmountForAccountSelection := AmountToPost;
             AmountRoundingPrecision := ReimbursementCurrency."Amount Rounding Precision";
         end;
-        if Abs(AmountForAccountSelection) > AmountRoundingPrecision then
-            Error(RoundingDifferenceTooLargeErr, ExpenseReportLine."Line No.", AmountToPost, AmountToPostLCY);
+        ExpenseReportLineVATSpec.SetRange("Document No.", ExpenseReportLine."Document No.");
+        ExpenseReportLineVATSpec.SetRange("Document Line No.", ExpenseReportLine."Line No.");
+        if not ExpenseReportLineVATSpec.IsEmpty() then
+            if Abs(AmountForAccountSelection) > AmountRoundingPrecision then
+                Error(RoundingDifferenceTooLargeErr, ExpenseReportLine."Line No.", AmountToPost, AmountToPostLCY);
         if AmountForAccountSelection > 0 then begin
             ExpensePostingGroup.TestField("Debit Rounding Account");
             AccNo := ExpensePostingGroup."Debit Rounding Account";
