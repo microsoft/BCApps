@@ -430,6 +430,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         DestinationLocation: Record Location;
         ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         Bin: Record Bin;
+        DestinationBin: Record Bin;
         Item: Record Item;
         ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -443,6 +444,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         TransferLine: Record "Transfer Line";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryUtility: Codeunit "Library - Utility";
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
         MoveBehavior: Enum "Qlty. Quantity Behavior";
     begin
@@ -455,12 +457,13 @@ codeunit 139969 "Qlty. Tests - Workflows"
         QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 0);
         QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
-        // [GIVEN] A source location with bins and a destination location
+        // [GIVEN] A source location and a destination location with mandatory bins
         LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
 
         LibraryWarehouse.CreateNumberOfBins(Location.Code, '', '', 3, false);
 
-        LibraryWarehouse.CreateLocationWMS(DestinationLocation, false, false, false, false, false);
+        LibraryWarehouse.CreateLocationWMS(DestinationLocation, true, false, false, false, false);
+        LibraryWarehouse.CreateBin(DestinationBin, DestinationLocation.Code, LibraryUtility.GenerateGUID(), '', '');
 
         // [GIVEN] A purchase order received with inspection created
         LibraryInventory.CreateItem(Item);
@@ -481,6 +484,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         CreateWorkflowResponseArgument(Workflow, CopyStr(QltyInspectionUtility.GetWorkflowResponseCreateTransfer(), 1, 128), ResponseWorkflowStep, WorkflowStepArgument);
         QltyInspectionUtility.SetStepConfigurationValueAsQuantityBehaviorEnum(WorkflowStepArgument, QltyInspectionUtility.GetWellKnownMoveAll(), MoveBehavior::"Failed Quantity");
         QltyInspectionUtility.SetStepConfigurationValue(WorkflowStepArgument, QltyInspectionUtility.GetWellKnownKeyLocation(), DestinationLocation.Code);
+        QltyInspectionUtility.SetStepConfigurationValue(WorkflowStepArgument, QltyInspectionUtility.GetWellKnownKeyBin(), DestinationBin.Code);
         QltyInspectionUtility.SetStepConfigurationValueAsBoolean(WorkflowStepArgument, QltyInspectionUtility.GetWellKnownDirectTransfer(), true);
         Workflow.Enabled := true;
         Workflow.Modify();
@@ -508,6 +512,7 @@ codeunit 139969 "Qlty. Tests - Workflows"
         TransferLine.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionHeader."Fail Quantity", TransferLine.Quantity, 'Should have requested quantity.');
         LibraryAssert.AreEqual(Bin.Code, TransferLine."Transfer-from Bin Code", 'Should have transfer-from bin code.');
+        LibraryAssert.AreEqual(DestinationBin.Code, TransferLine."Transfer-To Bin Code", 'Should have transfer-to bin code.');
 
         QltyInspectionGenRule.Delete();
         DeleteWorkflows();
