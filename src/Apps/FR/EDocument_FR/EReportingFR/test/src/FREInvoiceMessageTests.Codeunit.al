@@ -653,7 +653,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
     end;
 
     [Test]
-    procedure IncomingMessageIsCorrelatedAndDeduplicated()
+    procedure IncomingMessageForOutgoingDocumentIsCorrelatedAndDeduplicated()
     var
         EDocument: Record "E-Document";
         EDocumentMessageAPI: Codeunit "E-Document Message API";
@@ -668,11 +668,10 @@ codeunit 148151 "FR E-Invoice Message Tests"
         // [SCENARIO] An incoming lifecycle message is correlated to its E-Document and deduplicated by external ID
         Initialize();
 
-        // [GIVEN] An incoming E-Document with a registered external document reference
-        CreateIncomingEDocument(EDocument);
-        ExternalDocumentID := CopyStr(Format(CreateGuid()), 1, MaxStrLen(ExternalDocumentID));
+        // [GIVEN] An outgoing E-Document with a registered external document reference
+        CreateOutgoingEDocument(EDocument);
+        ExternalDocumentID := RegisterExternalDocumentReference(EDocument);
         ExternalMessageID := CopyStr(Format(CreateGuid()), 1, MaxStrLen(ExternalMessageID));
-        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocumentID);
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText('<Message />');
 
@@ -807,10 +806,9 @@ codeunit 148151 "FR E-Invoice Message Tests"
 
         // [GIVEN] An outgoing E-Document with a registered external document reference and a Submitted lifecycle payload
         CreateOutgoingEDocument(EDocument);
-        ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
+        ExternalDocID := RegisterExternalDocumentReference(EDocument);
         ExternalMsgID := CopyStr(Format(CreateGuid()), 1, 250);
         ReceivedAt := CreateDateTime(20260101D, 120000T);
-        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText(BuildLifecycleXml(EDocument."Document No.", 'Submitted', '', ''));
 
@@ -846,9 +844,8 @@ codeunit 148151 "FR E-Invoice Message Tests"
 
         // [GIVEN] An outgoing E-Document with a received Submitted status and an Accepted lifecycle payload
         CreateOutgoingEDocument(EDocument);
-        ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
+        ExternalDocID := RegisterExternalDocumentReference(EDocument);
         ExternalMsgID := CopyStr(Format(CreateGuid()), 1, 250);
-        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
         ReceiveLifecycleMessage(EDocument, ExternalDocID, 'Submitted', '', '');
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText(BuildLifecycleXml(EDocument."Document No.", '205', '', ''));
@@ -881,9 +878,8 @@ codeunit 148151 "FR E-Invoice Message Tests"
 
         // [GIVEN] An outgoing E-Document with a received Submitted status and a Rejected lifecycle payload with reason
         CreateOutgoingEDocument(EDocument);
-        ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
+        ExternalDocID := RegisterExternalDocumentReference(EDocument);
         ExternalMsgID := CopyStr(Format(CreateGuid()), 1, 250);
-        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
         ReceiveLifecycleMessage(EDocument, ExternalDocID, 'Submitted', '', '');
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText(BuildLifecycleXml(EDocument."Document No.", 'Rejetée', 'SCHEMA', 'Schema validation failed'));
@@ -904,7 +900,6 @@ codeunit 148151 "FR E-Invoice Message Tests"
     var
         EDocument: Record "E-Document";
         FREInvoiceMessage: Record "FR E-Invoice Message";
-        EDocumentMessageAPI: Codeunit "E-Document Message API";
         FREInvoiceMessageAPI: Codeunit "FR E-Invoice Message API";
         TempBlob: Codeunit "Temp Blob";
         OutStream: OutStream;
@@ -919,9 +914,8 @@ codeunit 148151 "FR E-Invoice Message Tests"
 
         // [GIVEN] An outgoing E-Document with a registered external document reference
         CreateOutgoingEDocument(EDocument);
-        ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
+        ExternalDocID := RegisterExternalDocumentReference(EDocument);
         ExternalMsgID := CopyStr(Format(CreateGuid()), 1, 250);
-        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText(BuildLifecycleXml(EDocument."Document No.", 'Submitted', '', ''));
 
@@ -942,7 +936,6 @@ codeunit 148151 "FR E-Invoice Message Tests"
     procedure ReceiveMessageRejectsInvalidXml()
     var
         EDocument: Record "E-Document";
-        EDocumentMessageAPI: Codeunit "E-Document Message API";
         FREInvoiceMessageAPI: Codeunit "FR E-Invoice Message API";
         TempBlob: Codeunit "Temp Blob";
         OutStream: OutStream;
@@ -954,8 +947,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
 
         // [GIVEN] An outgoing E-Document with a registered reference and invalid XML payload
         CreateOutgoingEDocument(EDocument);
-        ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
-        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
+        ExternalDocID := RegisterExternalDocumentReference(EDocument);
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText('not xml at all');
 
@@ -972,7 +964,6 @@ codeunit 148151 "FR E-Invoice Message Tests"
     procedure ReceiveMessageRejectsUnsupportedStatus()
     var
         EDocument: Record "E-Document";
-        EDocumentMessageAPI: Codeunit "E-Document Message API";
         FREInvoiceMessageAPI: Codeunit "FR E-Invoice Message API";
         TempBlob: Codeunit "Temp Blob";
         OutStream: OutStream;
@@ -984,8 +975,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
 
         // [GIVEN] An outgoing E-Document with a lifecycle payload containing an unknown status
         CreateOutgoingEDocument(EDocument);
-        ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
-        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
+        ExternalDocID := RegisterExternalDocumentReference(EDocument);
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText(BuildLifecycleXml(EDocument."Document No.", 'Unknown', '', ''));
 
@@ -1002,7 +992,6 @@ codeunit 148151 "FR E-Invoice Message Tests"
     procedure ReceiveMessageRejectsInvoiceMismatch()
     var
         EDocument: Record "E-Document";
-        EDocumentMessageAPI: Codeunit "E-Document Message API";
         FREInvoiceMessageAPI: Codeunit "FR E-Invoice Message API";
         TempBlob: Codeunit "Temp Blob";
         OutStream: OutStream;
@@ -1014,8 +1003,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
 
         // [GIVEN] An outgoing E-Document with a lifecycle payload referencing a different invoice
         CreateOutgoingEDocument(EDocument);
-        ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
-        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
+        ExternalDocID := RegisterExternalDocumentReference(EDocument);
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText(BuildLifecycleXml('WRONG-INVOICE-ID', 'Submitted', '', ''));
 
@@ -1032,7 +1020,6 @@ codeunit 148151 "FR E-Invoice Message Tests"
     procedure ReceiveTechnicalRejectedRequiresReasonCode()
     var
         EDocument: Record "E-Document";
-        EDocumentMessageAPI: Codeunit "E-Document Message API";
         FREInvoiceMessageAPI: Codeunit "FR E-Invoice Message API";
         TempBlob: Codeunit "Temp Blob";
         OutStream: OutStream;
@@ -1044,8 +1031,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
 
         // [GIVEN] An outgoing E-Document with a Rejected lifecycle payload missing the reason code
         CreateOutgoingEDocument(EDocument);
-        ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
-        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
+        ExternalDocID := RegisterExternalDocumentReference(EDocument);
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText(BuildLifecycleXml(EDocument."Document No.", 'Rejected', '', 'Something went wrong'));
 
@@ -1062,7 +1048,6 @@ codeunit 148151 "FR E-Invoice Message Tests"
     procedure ReceiveTechnicalRejectedRequiresReasonDescription()
     var
         EDocument: Record "E-Document";
-        EDocumentMessageAPI: Codeunit "E-Document Message API";
         FREInvoiceMessageAPI: Codeunit "FR E-Invoice Message API";
         TempBlob: Codeunit "Temp Blob";
         OutStream: OutStream;
@@ -1074,8 +1059,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
 
         // [GIVEN] An outgoing E-Document with a Rejected lifecycle payload missing the reason description
         CreateOutgoingEDocument(EDocument);
-        ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
-        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
+        ExternalDocID := RegisterExternalDocumentReference(EDocument);
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText(BuildLifecycleXml(EDocument."Document No.", 'Rejected', 'SCHEMA', ''));
 
@@ -1093,7 +1077,6 @@ codeunit 148151 "FR E-Invoice Message Tests"
     var
         EDocument: Record "E-Document";
         FREInvoiceMessage: Record "FR E-Invoice Message";
-        EDocumentMessageAPI: Codeunit "E-Document Message API";
         ExternalDocID: Text[250];
         FREntryNo: Integer;
     begin
@@ -1103,8 +1086,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
 
         // [GIVEN] Outgoing E-Document "ED" with a received Submitted status
         CreateOutgoingEDocument(EDocument);
-        ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
-        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
+        ExternalDocID := RegisterExternalDocumentReference(EDocument);
         ReceiveLifecycleMessage(EDocument, ExternalDocID, 'Submitted', '', '');
 
         // [WHEN] A Refused status is received
@@ -1120,7 +1102,6 @@ codeunit 148151 "FR E-Invoice Message Tests"
     var
         EDocument: Record "E-Document";
         FREInvoiceMessage: Record "FR E-Invoice Message";
-        EDocumentMessageAPI: Codeunit "E-Document Message API";
         ExternalDocID: Text[250];
         FREntryNo: Integer;
     begin
@@ -1130,8 +1111,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
 
         // [GIVEN] Outgoing E-Document "ED" with a received Submitted status
         CreateOutgoingEDocument(EDocument);
-        ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
-        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
+        ExternalDocID := RegisterExternalDocumentReference(EDocument);
         ReceiveLifecycleMessage(EDocument, ExternalDocID, 'Submitted', '', '');
 
         // [WHEN] A Technical Rejected status is received
@@ -1146,7 +1126,6 @@ codeunit 148151 "FR E-Invoice Message Tests"
     procedure ReceiveResponseBeforeSubmittedIsRejected()
     var
         EDocument: Record "E-Document";
-        EDocumentMessageAPI: Codeunit "E-Document Message API";
         ExternalDocID: Text[250];
     begin
         // [FEATURE] [AI test]
@@ -1155,8 +1134,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
 
         // [GIVEN] Outgoing E-Document "ED" without a lifecycle status
         CreateOutgoingEDocument(EDocument);
-        ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
-        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
+        ExternalDocID := RegisterExternalDocumentReference(EDocument);
 
         // [WHEN] An Accepted status is received
         asserterror ReceiveLifecycleMessage(EDocument, ExternalDocID, 'Accepted', '', '');
@@ -1169,7 +1147,6 @@ codeunit 148151 "FR E-Invoice Message Tests"
     procedure ReceiveDuplicateSubmittedIsRejected()
     var
         EDocument: Record "E-Document";
-        EDocumentMessageAPI: Codeunit "E-Document Message API";
         ExternalDocID: Text[250];
     begin
         // [FEATURE] [AI test]
@@ -1178,8 +1155,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
 
         // [GIVEN] Outgoing E-Document "ED" with a received Submitted status
         CreateOutgoingEDocument(EDocument);
-        ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
-        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
+        ExternalDocID := RegisterExternalDocumentReference(EDocument);
         ReceiveLifecycleMessage(EDocument, ExternalDocID, 'Submitted', '', '');
 
         // [WHEN] Another Submitted status is received
@@ -1193,7 +1169,6 @@ codeunit 148151 "FR E-Invoice Message Tests"
     procedure ReceiveStatusAfterTerminalStatusIsRejected()
     var
         EDocument: Record "E-Document";
-        EDocumentMessageAPI: Codeunit "E-Document Message API";
         ExternalDocID: Text[250];
     begin
         // [FEATURE] [AI test]
@@ -1202,8 +1177,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
 
         // [GIVEN] Outgoing E-Document "ED" with Submitted and Refused statuses
         CreateOutgoingEDocument(EDocument);
-        ExternalDocID := CopyStr(Format(CreateGuid()), 1, 250);
-        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocID);
+        ExternalDocID := RegisterExternalDocumentReference(EDocument);
         ReceiveLifecycleMessage(EDocument, ExternalDocID, 'Submitted', '', '');
         ReceiveLifecycleMessage(EDocument, ExternalDocID, 'Refused', '', '');
 
@@ -1398,6 +1372,13 @@ codeunit 148151 "FR E-Invoice Message Tests"
         OutStream.WriteText(BuildLifecycleXml(EDocument."Document No.", Status, ReasonCode, ReasonDescription));
         exit(FREInvoiceMessageAPI.ReceiveMessage(
             EDocument.Service, ExternalDocID, CopyStr(Format(CreateGuid()), 1, 250), CurrentDateTime(), TempBlob));
+    end;
+
+    local procedure RegisterExternalDocumentReference(EDocument: Record "E-Document") ExternalDocumentID: Text[250]
+    var
+        FREDocMsgSenderMock: Codeunit "FR E-Doc. Msg. Sender Mock";
+    begin
+        ExternalDocumentID := FREDocMsgSenderMock.RegisterExternalDocumentReference(EDocument);
     end;
 
     local procedure BuildPPFValidationXml(ProfileID: Text; IncludeSender: Boolean; SenderRole: Text; RecipientScheme: Text; InvoiceDateFormat: Text): Text
