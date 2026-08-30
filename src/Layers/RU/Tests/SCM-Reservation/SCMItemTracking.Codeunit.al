@@ -5824,6 +5824,61 @@ codeunit 137405 "SCM Item Tracking"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [HandlerFunctions('ItemTrackingLinesLotSNQtyModalPageHandler')]
+    [Scope('OnPrem')]
+    procedure GetAvailableLotQtyNetsSourceReservationOnceAcrossSplitPickTakeLines()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        TrackingSpecification: Record "Tracking Specification";
+        ItemTrackingDataCollection: Codeunit "Item Tracking Data Collection";
+        LotNo: Code[50];
+        SalesOrderNo: Code[20];
+        OnHandQty: Integer;
+        ReservedQty: Integer;
+        FirstTakeQty: Integer;
+        SecondTakeQty: Integer;
+    begin
+        // [Bug 638344] A partial source reservation must be netted only once against the aggregate of split Take lines
+        // [SCENARIO] A pick has two Take lines (e.g. after SplitLine or when taken from multiple bins) for the same source and lot, with a smaller source reservation; the full picked quantity must be committed
+        Initialize();
+
+        // [GIVEN] Lot-tracked item with lot warehouse tracking, on hand qty "Q" for lot "L"
+        // [GIVEN] Take lines of 7 and 3 with a partial source reservation of 5 (the exact case that used to overstate availability by 3)
+        OnHandQty := LibraryRandom.RandIntInRange(40, 60);
+        FirstTakeQty := 7;
+        SecondTakeQty := 3;
+        ReservedQty := 5;
+        LotNo := LibraryUtility.GenerateGUID();
+        SalesOrderNo := LibraryUtility.GenerateGUID();
+        CreateLotTrackedItemAtLocation(Item, Location);
+        CreateAndPostLotStockForPick(Item."No.", Location.Code, LotNo, OnHandQty);
+
+        // [GIVEN] Source-line item tracking on the sales line reserves only part of the lot ("R" < total picked)
+        CreateOutboundLotReservationForSalesLine(Item."No.", Location.Code, LotNo, SalesOrderNo, 10000, ReservedQty);
+
+        // [GIVEN] Two unregistered warehouse pick Take lines for the SAME sales line and lot (split pick)
+        CreateUnregisteredWhsePickTakeLine(
+            WarehouseActivityHeader, WarehouseActivityLine, Item."No.", Location.Code, LotNo, FirstTakeQty,
+            Database::"Sales Line", 1, SalesOrderNo, 10000);
+        AddWhsePickTakeLine(
+            WarehouseActivityHeader, Item."No.", Location.Code, LotNo, SecondTakeQty,
+            Database::"Sales Line", 1, SalesOrderNo, 10000, 20000);
+
+        // [WHEN] Available lot quantity is retrieved for a new demand on the same lot
+        SetTrackingSpecItemLotLocation(TrackingSpecification, Item."No.", Location.Code, LotNo);
+
+        // [THEN] Available equals on hand minus the full picked quantity; the reservation is netted only once, not once per Take line
+        Assert.AreEqual(
+            OnHandQty - (FirstTakeQty + SecondTakeQty), ItemTrackingDataCollection.GetAvailableLotQty(TrackingSpecification),
+            'A partial source reservation must be netted only once against the aggregate of split Take lines.');
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure CreateOutboundLotReservationForSalesLine(ItemNo: Code[20]; LocationCode: Code[10]; LotNo: Code[50]; SourceNo: Code[20]; SourceLineNo: Integer; Qty: Decimal)
     var
         ReservationEntry: Record "Reservation Entry";
@@ -5890,6 +5945,28 @@ codeunit 137405 "SCM Item Tracking"
         WarehouseActivityLine."Activity Type" := WarehouseActivityLine."Activity Type"::Pick;
         WarehouseActivityLine."No." := WarehouseActivityHeader."No.";
         WarehouseActivityLine."Line No." := 10000;
+        WarehouseActivityLine."Action Type" := WarehouseActivityLine."Action Type"::Take;
+        WarehouseActivityLine."Item No." := ItemNo;
+        WarehouseActivityLine."Location Code" := LocationCode;
+        WarehouseActivityLine."Lot No." := LotNo;
+        WarehouseActivityLine."Qty. Outstanding" := Qty;
+        WarehouseActivityLine."Qty. Outstanding (Base)" := Qty;
+        WarehouseActivityLine."Breakbulk No." := 0;
+        WarehouseActivityLine."Source Type" := SourceType;
+        WarehouseActivityLine."Source Subtype" := SourceSubtype;
+        WarehouseActivityLine."Source No." := SourceNo;
+        WarehouseActivityLine."Source Line No." := SourceLineNo;
+        WarehouseActivityLine.Insert(false);
+    end;
+
+    local procedure AddWhsePickTakeLine(WarehouseActivityHeader: Record "Warehouse Activity Header"; ItemNo: Code[20]; LocationCode: Code[10]; LotNo: Code[50]; Qty: Decimal; SourceType: Integer; SourceSubtype: Integer; SourceNo: Code[20]; SourceLineNo: Integer; LineNo: Integer)
+    var
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+    begin
+        WarehouseActivityLine.Init();
+        WarehouseActivityLine."Activity Type" := WarehouseActivityLine."Activity Type"::Pick;
+        WarehouseActivityLine."No." := WarehouseActivityHeader."No.";
+        WarehouseActivityLine."Line No." := LineNo;
         WarehouseActivityLine."Action Type" := WarehouseActivityLine."Action Type"::Take;
         WarehouseActivityLine."Item No." := ItemNo;
         WarehouseActivityLine."Location Code" := LocationCode;
