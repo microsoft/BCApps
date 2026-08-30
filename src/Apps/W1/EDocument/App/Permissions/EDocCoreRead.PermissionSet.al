@@ -36,8 +36,6 @@ permissionset 6101 "E-Doc. Core - Read"
         tabledata "E-Document Service Status" = R,
         tabledata "E-Document Integration Log" = R,
         tabledata "E-Document Message" = R,
-        tabledata "E-Doc. Payment Occurrence" = R,
-        tabledata "E-Doc. External Reference" = R,
     #endregion Logging
         tabledata "E-Doc. Imported Line" = R,
         tabledata "E-Doc. Order Match" = R,

@@ -26,6 +26,7 @@ codeunit 139893 "E-Doc. Message Mgt. Tests"
         IsInitialized: Boolean;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure QueueMessageSchedulesBackgroundSend()
     var
         Customer: Record Customer;
@@ -62,6 +63,7 @@ codeunit 139893 "E-Doc. Message Mgt. Tests"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure RetryMessageRequeuesExistingMessage()
     var
         Customer: Record Customer;
@@ -240,6 +242,7 @@ codeunit 139893 "E-Doc. Message Mgt. Tests"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PollMessageResponseReschedulesPendingMessage()
     var
         Customer: Record Customer;
@@ -353,6 +356,7 @@ codeunit 139893 "E-Doc. Message Mgt. Tests"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure RetryMessageReschedulesFailedResponsePoll()
     var
         Customer: Record Customer;

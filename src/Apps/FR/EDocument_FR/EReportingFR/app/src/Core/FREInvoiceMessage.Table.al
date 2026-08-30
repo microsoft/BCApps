@@ -13,6 +13,7 @@ table 10970 "FR E-Invoice Message"
     DataClassification = CustomerContent;
     InherentEntitlements = X;
     InherentPermissions = X;
+    Permissions = tabledata "FR E-Invoice Message VAT" = d;
     ReplicateData = false;
 
     fields
@@ -169,6 +170,9 @@ table 10970 "FR E-Invoice Message"
         {
             Unique = true;
         }
+        key(EDocumentType; "E-Document Entry No.", Type)
+        {
+        }
         key(DetailedLedgerEntry; Type, "Detailed Ledger Entry No.")
         {
         }
@@ -176,4 +180,12 @@ table 10970 "FR E-Invoice Message"
         {
         }
     }
+
+    trigger OnDelete()
+    var
+        FREInvoiceMessageVAT: Record "FR E-Invoice Message VAT";
+    begin
+        FREInvoiceMessageVAT.SetRange("Message Entry No.", Rec."Entry No.");
+        FREInvoiceMessageVAT.DeleteAll(false);
+    end;
 }

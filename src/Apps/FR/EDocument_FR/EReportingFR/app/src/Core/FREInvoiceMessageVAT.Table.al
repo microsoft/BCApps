@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Formats;
 
+using Microsoft.Finance.Currency;
+
 table 10971 "FR E-Invoice Message VAT"
 {
     Access = Internal;
@@ -48,6 +50,7 @@ table 10971 "FR E-Invoice Message VAT"
         {
             Caption = 'Currency Code';
             DataClassification = CustomerContent;
+            TableRelation = Currency;
         }
     }
 
