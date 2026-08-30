@@ -122,6 +122,7 @@ codeunit 6433 "E-Doc. Message Mgt."
         EDocumentLog: Codeunit "E-Document Log";
         TempBlob: Codeunit "Temp Blob";
         MessageSender: Interface IMessageSender;
+        ConnectorErrorInfo: ErrorInfo;
         MessageSendingErrorInfo: ErrorInfo;
     begin
         EDocMessage.Get(MessageEntryNo);
@@ -138,11 +139,21 @@ codeunit 6433 "E-Doc. Message Mgt."
 
         EDocMessageContext.Initialize(EDocMessage, TempBlob);
         MessageSender := EDocumentService."Service Integration V2";
-        MessageSender.SendMessage(EDocument, EDocumentService, EDocMessageContext);
+        if not TrySendMessage(MessageSender, EDocument, EDocumentService, EDocMessageContext) then begin
+            ConnectorErrorInfo := GetLastErrorObject();
+            EDocumentLog.InsertIntegrationLog(
+                EDocument, EDocumentService, EDocMessageContext.Http().GetHttpRequestMessage(), EDocMessageContext.Http().GetHttpResponseMessage());
+            Commit();
+            Error(ConnectorErrorInfo);
+        end;
         if not (EDocMessageContext.Status().GetStatus() in ["E-Document Service Status"::Sent, "E-Document Service Status"::"Pending Response"]) then begin
+            EDocumentLog.InsertIntegrationLog(
+                EDocument, EDocumentService, EDocMessageContext.Http().GetHttpRequestMessage(), EDocMessageContext.Http().GetHttpResponseMessage());
+            Commit();
             MessageSendingErrorInfo.ErrorType := ErrorType::Internal;
             MessageSendingErrorInfo.Message := StrSubstNo(MessageSendingErr, MessageEntryNo);
             MessageSendingErrorInfo.DetailedMessage := StrSubstNo(MessageSendingDetailedErr, EDocMessageContext.Status().GetStatus());
+            MessageSendingErrorInfo.DataClassification := DataClassification::SystemMetadata;
             Error(MessageSendingErrorInfo);
         end;
 
@@ -155,8 +166,10 @@ codeunit 6433 "E-Doc. Message Mgt."
         EDocMessage."Last Attempt At" := CurrentDateTime();
         Clear(EDocMessage."Last Error");
         EDocMessage.Modify();
-        if EDocMessage.Status = EDocMessage.Status::"Pending Response" then
+        if EDocMessage.Status = EDocMessage.Status::"Pending Response" then begin
+            Commit();
             EDocumentBackgroundJobs.ScheduleMessageResponse(EDocMessage);
+        end;
     end;
 
     procedure PollMessageResponse(MessageEntryNo: Integer)
@@ -169,6 +182,7 @@ codeunit 6433 "E-Doc. Message Mgt."
         EDocumentLog: Codeunit "E-Document Log";
         TempBlob: Codeunit "Temp Blob";
         MessageResponseHandler: Interface IMessageResponseHandler;
+        ConnectorErrorInfo: ErrorInfo;
         ResponseReceived: Boolean;
     begin
         EDocMessage.Get(MessageEntryNo);
@@ -180,15 +194,29 @@ codeunit 6433 "E-Doc. Message Mgt."
         GetMessageBlob(MessageEntryNo, TempBlob);
         EDocMessageContext.Initialize(EDocMessage, TempBlob);
         MessageResponseHandler := EDocumentService."Service Integration V2";
-        ResponseReceived := MessageResponseHandler.GetResponse(EDocument, EDocumentService, EDocMessageContext);
+        if not TryGetResponse(MessageResponseHandler, EDocument, EDocumentService, EDocMessageContext, ResponseReceived) then begin
+            ConnectorErrorInfo := GetLastErrorObject();
+            EDocumentLog.InsertIntegrationLog(
+                EDocument, EDocumentService, EDocMessageContext.Http().GetHttpRequestMessage(), EDocMessageContext.Http().GetHttpResponseMessage());
+            Commit();
+            Error(ConnectorErrorInfo);
+        end;
 
         if ResponseReceived then begin
-            if EDocMessageContext.Status().GetStatus() <> "E-Document Service Status"::Sent then
+            if EDocMessageContext.Status().GetStatus() <> "E-Document Service Status"::Sent then begin
+                EDocumentLog.InsertIntegrationLog(
+                    EDocument, EDocumentService, EDocMessageContext.Http().GetHttpRequestMessage(), EDocMessageContext.Http().GetHttpResponseMessage());
+                Commit();
                 Error(MessageResponseStatusErr, MessageEntryNo, EDocMessageContext.Status().GetStatus());
+            end;
             EDocMessage.Status := EDocMessage.Status::Sent;
         end else begin
-            if EDocMessageContext.Status().GetStatus() <> "E-Document Service Status"::"Pending Response" then
+            if EDocMessageContext.Status().GetStatus() <> "E-Document Service Status"::"Pending Response" then begin
+                EDocumentLog.InsertIntegrationLog(
+                    EDocument, EDocumentService, EDocMessageContext.Http().GetHttpRequestMessage(), EDocMessageContext.Http().GetHttpResponseMessage());
+                Commit();
                 Error(MessageResponseStatusErr, MessageEntryNo, EDocMessageContext.Status().GetStatus());
+            end;
             EDocMessage.Status := EDocMessage.Status::"Pending Response";
         end;
 
@@ -199,6 +227,18 @@ codeunit 6433 "E-Doc. Message Mgt."
         EDocMessage.Modify();
         if not ResponseReceived then
             EDocumentBackgroundJobs.ScheduleMessageResponse(EDocMessage);
+    end;
+
+    [TryFunction]
+    local procedure TrySendMessage(MessageSender: Interface IMessageSender; var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; EDocMessageContext: Codeunit "E-Doc. Message Context")
+    begin
+        MessageSender.SendMessage(EDocument, EDocumentService, EDocMessageContext);
+    end;
+
+    [TryFunction]
+    local procedure TryGetResponse(MessageResponseHandler: Interface IMessageResponseHandler; var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; EDocMessageContext: Codeunit "E-Doc. Message Context"; var ResponseReceived: Boolean)
+    begin
+        ResponseReceived := MessageResponseHandler.GetResponse(EDocument, EDocumentService, EDocMessageContext);
     end;
 
     procedure QueueMessage(MessageEntryNo: Integer)

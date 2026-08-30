@@ -171,6 +171,46 @@ codeunit 139893 "E-Doc. Message Mgt. Tests"
     end;
 
     [Test]
+    procedure CleanupDocumentDeletesMessagePayloadAndExternalReference()
+    var
+        Customer: Record Customer;
+        EDocument: Record "E-Document";
+        EDocDataStorage: Record "E-Doc. Data Storage";
+        EDocExternalReference: Record "E-Doc. External Reference";
+        EDocMessage: Record "E-Document Message";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
+        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
+        TempBlob: Codeunit "Temp Blob";
+        OutStream: OutStream;
+        DataStorageEntryNo: Integer;
+        MessageEntryNo: Integer;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 637593] Cleaning an E-Document removes child message storage and external correlation
+        Initialize(Customer);
+
+        // [GIVEN] E-Document "ED" with a child message payload and an external document reference
+        CreateOutgoingEDocument(EDocument);
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText('<Message />');
+        MessageEntryNo := EDocMessageMgt.CreateMessage(
+            EDocument, "E-Document Message Type"::Unknown, "E-Document Direction"::Outgoing,
+            "E-Doc. Response Type"::None, TempBlob);
+        EDocMessage.Get(MessageEntryNo);
+        DataStorageEntryNo := EDocMessage."Data Storage Entry No.";
+        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, 'EXTERNAL-DOCUMENT-ID');
+
+        // [WHEN] E-Document "ED" is cleaned up
+        EDocument.CleanupDocument();
+
+        // [THEN] The child message, its payload, and its external reference are deleted
+        Assert.IsFalse(EDocMessage.Get(MessageEntryNo), 'The child message must be deleted.');
+        Assert.IsFalse(EDocDataStorage.Get(DataStorageEntryNo), 'The child message payload must be deleted.');
+        EDocExternalReference.SetRange("E-Document Entry No.", EDocument."Entry No");
+        Assert.RecordIsEmpty(EDocExternalReference);
+    end;
+
+    [Test]
     procedure PollMessageResponseCompletesPendingMessage()
     var
         Customer: Record Customer;
@@ -236,6 +276,7 @@ codeunit 139893 "E-Doc. Message Mgt. Tests"
     var
         Customer: Record Customer;
         EDocument: Record "E-Document";
+        EDocumentIntegrationLog: Record "E-Document Integration Log";
         EDocMessage: Record "E-Document Message";
         JobQueueEntry: Record "Job Queue Entry";
         MessageEntryNo: Integer;
@@ -250,6 +291,7 @@ codeunit 139893 "E-Doc. Message Mgt. Tests"
         EDocMessage.Get(MessageEntryNo);
         JobQueueEntry."Record ID to Process" := EDocMessage.RecordId();
         BindSubscription(EDocImplState);
+        EDocImplState.SetEnableHttpData();
         EDocImplState.SetThrowIntegrationRuntimeError();
 
         // [WHEN] The response polling background job runs
@@ -261,6 +303,53 @@ codeunit 139893 "E-Doc. Message Mgt. Tests"
         Assert.AreEqual(EDocMessage.Status::"Response Error", EDocMessage.Status, 'The message must have a response error.');
         Assert.AreEqual(1, EDocMessage."Retry Count", 'The failed polling attempt must increment the retry count.');
         Assert.IsTrue(EDocMessage."Last Error".Contains('TEST'), 'The connector error must be stored.');
+        EDocumentIntegrationLog.SetRange("E-Doc. Entry No", EDocument."Entry No");
+        Assert.RecordCount(EDocumentIntegrationLog, 1);
+    end;
+
+    [Test]
+    procedure SendMessageJobStoresConnectorErrorAndIntegrationLog()
+    var
+        Customer: Record Customer;
+        EDocument: Record "E-Document";
+        EDocumentIntegrationLog: Record "E-Document Integration Log";
+        EDocMessage: Record "E-Document Message";
+        JobQueueEntry: Record "Job Queue Entry";
+        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
+        TempBlob: Codeunit "Temp Blob";
+        OutStream: OutStream;
+        MessageEntryNo: Integer;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 647423] A failed child-message send retains diagnostics and the HTTP exchange
+        Initialize(Customer);
+
+        // [GIVEN] Queued message "M" and a connector that records HTTP data before failing
+        CreateOutgoingEDocument(EDocument);
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText('<Message />');
+        MessageEntryNo := EDocMessageMgt.CreateMessage(
+            EDocument, "E-Document Message Type"::Unknown, "E-Document Direction"::Outgoing,
+            "E-Doc. Response Type"::None, TempBlob);
+        EDocMessage.Get(MessageEntryNo);
+        EDocMessage.Status := EDocMessage.Status::Queued;
+        EDocMessage.Modify();
+        JobQueueEntry."Record ID to Process" := EDocMessage.RecordId();
+        BindSubscription(EDocImplState);
+        EDocImplState.SetEnableHttpData();
+        EDocImplState.SetThrowIntegrationRuntimeError();
+
+        // [WHEN] The message send background job runs
+        Assert.IsFalse(Codeunit.Run(Codeunit::"E-Doc. Message Send Job", JobQueueEntry), 'The send job must report the connector failure.');
+        UnbindSubscription(EDocImplState);
+
+        // [THEN] Message "M" contains diagnostics and its HTTP exchange is retained
+        EDocMessage.Get(MessageEntryNo);
+        Assert.AreEqual(EDocMessage.Status::Error, EDocMessage.Status, 'The message must have a send error.');
+        Assert.AreEqual(1, EDocMessage."Retry Count", 'The failed send attempt must increment the retry count.');
+        Assert.IsTrue(EDocMessage."Last Error".Contains('TEST'), 'The connector error must be stored.');
+        EDocumentIntegrationLog.SetRange("E-Doc. Entry No", EDocument."Entry No");
+        Assert.RecordCount(EDocumentIntegrationLog, 1);
     end;
 
     [Test]

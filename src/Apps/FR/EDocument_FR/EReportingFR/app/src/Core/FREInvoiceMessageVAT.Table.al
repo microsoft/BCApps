@@ -6,6 +6,7 @@ namespace Microsoft.eServices.EDocument.Formats;
 
 table 10971 "FR E-Invoice Message VAT"
 {
+    Access = Internal;
     Caption = 'FR E-Invoice Message VAT';
     DataClassification = CustomerContent;
     InherentEntitlements = X;
