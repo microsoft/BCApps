@@ -20,7 +20,8 @@ codeunit 10975 "FR E-Invoice Message Mgt."
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    Permissions = tabledata "FR E-Invoice Message VAT" = ri;
+    Permissions = tabledata "FR E-Invoice Message" = d,
+                  tabledata "FR E-Invoice Message VAT" = rid;
 
     internal procedure AcceptInvoice(EDocument: Record "E-Document")
     begin
@@ -156,7 +157,7 @@ codeunit 10975 "FR E-Invoice Message Mgt."
         CompanyInformation.TestField(Name);
         FREInvoiceMessage."Invoice Issue Date" := EDocument."Document Date";
         FREInvoiceMessage."Invoice Receipt At" := EDocument."Clearance Date";
-        FREInvoiceMessage."Invoice Issuer ID" := CopyStr(CompanyInformation."Registration No.", 1, 9);
+        FREInvoiceMessage."Invoice Issuer ID" := NormalizeSIREN(CompanyInformation."Registration No.");
         FREInvoiceMessage."Invoice Issuer Scheme" := SIRENSchemeTok;
         FREInvoiceMessage."Invoice Issuer Name" := CompanyInformation.Name;
     end;
@@ -198,6 +199,7 @@ codeunit 10975 "FR E-Invoice Message Mgt."
             "VAT Bus. Posting Group", "VAT Prod. Posting Group", "Source Currency Code",
             "Source Currency VAT Base", "Source Currency VAT Amount", Base, Amount,
             "VAT Calculation Type", "Tax Jurisdiction Code", "Unrealized Amount", "Unrealized Base");
+        VATPostingSetup.SetLoadFields("VAT %", "Tax Category");
         if VATEntry.FindSet() then
             repeat
                 GrossAmount := GetVATEntryGrossAmount(VATEntry, CurrencyCode);
@@ -334,10 +336,15 @@ codeunit 10975 "FR E-Invoice Message Mgt."
     var
         OriginalMessageVAT: Record "FR E-Invoice Message VAT";
         ReversalMessageVAT: Record "FR E-Invoice Message VAT";
+        OriginalVATBreakdownErrorInfo: ErrorInfo;
     begin
         OriginalMessageVAT.SetRange("Message Entry No.", OriginalEntryNo);
-        if not OriginalMessageVAT.FindSet() then
-            Error(OriginalVATBreakdownErr, OriginalEntryNo);
+        if not OriginalMessageVAT.FindSet() then begin
+            OriginalVATBreakdownErrorInfo.ErrorType := ErrorType::Internal;
+            OriginalVATBreakdownErrorInfo.Message := StrSubstNo(OriginalVATBreakdownErr, OriginalEntryNo);
+            OriginalVATBreakdownErrorInfo.DataClassification := DataClassification::SystemMetadata;
+            Error(OriginalVATBreakdownErrorInfo);
+        end;
 
         repeat
             InsertVATBreakdown(
@@ -371,6 +378,16 @@ codeunit 10975 "FR E-Invoice Message Mgt."
         Currency.Get(CurrencyCode);
         Currency.TestField("Amount Rounding Precision");
         exit(Currency."Amount Rounding Precision");
+    end;
+
+    local procedure NormalizeSIREN(RegistrationNo: Text): Code[9]
+    var
+        NormalizedSIREN: Text;
+    begin
+        NormalizedSIREN := DelChr(RegistrationNo, '=', ' .-/');
+        if (StrLen(NormalizedSIREN) <> 9) or (DelChr(NormalizedSIREN, '=', '0123456789') <> '') then
+            Error(InvalidSIRENErr, RegistrationNo);
+        exit(CopyStr(NormalizedSIREN, 1, 9));
     end;
 
     local procedure ResolveCurrencyCode(CurrencyCode: Code[10]): Code[10]
@@ -467,6 +484,15 @@ codeunit 10975 "FR E-Invoice Message Mgt."
             Error(AlreadyRespondedErr, EDocument."Document No.");
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::"E-Document", 'OnBeforeDeleteEvent', '', false, false)]
+    local procedure DeleteFREInvoiceMessages(var Rec: Record "E-Document"; RunTrigger: Boolean)
+    var
+        FREInvoiceMessage: Record "FR E-Invoice Message";
+    begin
+        FREInvoiceMessage.SetRange("E-Document Entry No.", Rec."Entry No");
+        FREInvoiceMessage.DeleteAll(true);
+    end;
+
     local procedure GetResponseType(MessageType: Enum "FR E-Invoice Message Type"): Enum "E-Doc. Response Type"
     begin
         case MessageType of
@@ -486,4 +512,5 @@ codeunit 10975 "FR E-Invoice Message Mgt."
         VATBreakdownErr: Label 'A reportable VAT breakdown could not be determined for posted sales invoice %1.', Comment = '%1 = posted sales invoice number';
         VATEntryCurrencyErr: Label 'VAT entry %1 does not contain amounts in lifecycle currency %2.', Comment = '%1 = VAT entry number, %2 = currency code';
         OriginalVATBreakdownErr: Label 'The VAT breakdown for original French invoice message %1 does not exist.', Comment = '%1 = French invoice message entry number';
+        InvalidSIRENErr: Label 'Company registration number %1 cannot be normalized to a nine-digit SIREN.', Comment = '%1 = company registration number';
 }

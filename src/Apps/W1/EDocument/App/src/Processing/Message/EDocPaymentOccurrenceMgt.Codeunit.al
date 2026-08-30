@@ -83,6 +83,7 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
 
         AppliedOccurrence.SetRange("Source Occurrence ID", OldDetailedCustLedgEntry.SystemId);
         AppliedOccurrence.SetRange(Type, AppliedOccurrence.Type::Applied);
+        AppliedOccurrence.SetLoadFields("E-Document Entry No.", Amount, "Currency Code", "Entry No.");
         if not AppliedOccurrence.FindSet() then
             exit;
 
@@ -145,6 +146,7 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
     /// Notifies localization and format apps after a payment occurrence has been persisted.
     /// </summary>
     /// <param name="EDocPaymentOccurrence">The persisted payment occurrence.</param>
+    [CommitBehavior(CommitBehavior::Ignore)]
     [IntegrationEvent(false, false)]
     procedure OnAfterCreatePaymentOccurrence(var EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence")
     begin

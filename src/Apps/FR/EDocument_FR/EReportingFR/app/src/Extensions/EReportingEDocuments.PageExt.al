@@ -27,7 +27,7 @@ pageextension 10974 "E-Reporting E-Documents" extends "E-Documents"
                 Caption = 'Refuse E-Invoice';
                 Image = Reject;
                 ToolTip = 'Refuse the incoming French electronic purchase invoice and send the response to the supplier.';
-                Visible = (Rec.Direction = Rec.Direction::Incoming) and (Rec."Document Type" = Rec."Document Type"::"Purchase Invoice");
+                Visible = (Rec.Direction = Rec.Direction::Incoming) and (Rec."Document Type" = Rec."Document Type"::"Purchase Invoice") and IsSupportedFrenchService;
 
                 trigger OnAction()
                 var
@@ -49,7 +49,7 @@ pageextension 10974 "E-Reporting E-Documents" extends "E-Documents"
                 Caption = 'Accept E-Invoice';
                 Image = Approve;
                 ToolTip = 'Accept the incoming French electronic purchase invoice and send the response to the supplier.';
-                Visible = (Rec.Direction = Rec.Direction::Incoming) and (Rec."Document Type" = Rec."Document Type"::"Purchase Invoice");
+                Visible = (Rec.Direction = Rec.Direction::Incoming) and (Rec."Document Type" = Rec."Document Type"::"Purchase Invoice") and IsSupportedFrenchService;
 
                 trigger OnAction()
                 var
@@ -61,4 +61,16 @@ pageextension 10974 "E-Reporting E-Documents" extends "E-Documents"
             }
         }
     }
+
+    trigger OnAfterGetCurrRecord()
+    var
+        EDocumentService: Record "E-Document Service";
+    begin
+        IsSupportedFrenchService := false;
+        if EDocumentService.Get(Rec.Service) then
+            IsSupportedFrenchService := EDocumentService."Document Format" in [EDocumentService."Document Format"::"Peppol BIS 3.0 FR", EDocumentService."Document Format"::"Factur-X FR"];
+    end;
+
+    var
+        IsSupportedFrenchService: Boolean;
 }

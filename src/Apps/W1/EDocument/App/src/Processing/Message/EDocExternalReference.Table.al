@@ -57,5 +57,8 @@ table 6434 "E-Doc. External Reference"
         {
             Unique = true;
         }
+        key(EDocument; "E-Document Entry No.")
+        {
+        }
     }
 }
