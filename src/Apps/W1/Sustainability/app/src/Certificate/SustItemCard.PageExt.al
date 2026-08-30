@@ -3,6 +3,7 @@ namespace Microsoft.Sustainability.Certificate;
 using Microsoft.Inventory.Item;
 using Microsoft.Sustainability.Codes;
 using Microsoft.Sustainability.EPR;
+using Microsoft.Sustainability.Ledger;
 using Microsoft.Sustainability.Setup;
 
 pageextension 6222 "Sust. Item Card" extends "Item Card"
@@ -204,6 +205,19 @@ pageextension 6222 "Sust. Item Card" extends "Item Card"
                 ToolTip = 'Opens the Product Classification Codes page.';
                 RunPageMode = Edit;
                 RunObject = page "Product Classification List";
+            }
+        }
+        addafter("&Warehouse Entries")
+        {
+            action("Sustainability Value Entries")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Sustainability Value Entries';
+                Image = ValueLedger;
+                Visible = SustainabilityVisible;
+                RunObject = Page "Sustainability Value Entries";
+                RunPageLink = Type = const(Item), "No." = field("No.");
+                ToolTip = 'View the sustainability value entries for the item.';
             }
         }
     }
