@@ -127,7 +127,6 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
         if not SalesInvoiceHeader.Get(InvoiceCustLedgerEntry."Document No.") then
             exit(false);
 
-        EDocument.SetLoadFields("Entry No");
         EDocument.SetRange("Document Record ID", SalesInvoiceHeader.RecordId);
         EDocument.SetRange(Direction, EDocument.Direction::Outgoing);
         EDocument.SetRange("Document Type", EDocument."Document Type"::"Sales Invoice");
