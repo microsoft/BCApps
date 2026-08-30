@@ -26,6 +26,7 @@ permissionset 6105 "E-Doc. Core - User"
 
     Permissions =
         codeunit "E-Document Message API" = X,
+        codeunit "E-Doc. Message Response Job" = X,
         codeunit "E-Doc. Message Send Job" = X,
         codeunit "E-Doc. Message Send Runner" = X,
         codeunit "E-Doc. Payment Occurrence Mgt." = X,
@@ -46,8 +47,8 @@ permissionset 6105 "E-Doc. Core - User"
         tabledata "E-Doc. Data Storage" = imd,
         tabledata "E-Document Integration Log" = imd,
         tabledata "E-Document Message" = imd,
-        tabledata "E-Doc. Payment Occurrence" = imd,
-        tabledata "E-Doc. External Reference" = imd,
+        tabledata "E-Doc. Payment Occurrence" = rimd,
+        tabledata "E-Doc. External Reference" = rimd,
     #endregion Logging
         tabledata "E-Doc. Imported Line" = IMD,
         tabledata "E-Doc. Order Match" = IMD,
