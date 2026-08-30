@@ -56,11 +56,6 @@ permissionset 6100 "E-Doc. Core - Objects"
         table "ED Purchase Line Field Setup" = X,
         table "E-Doc Sample Purch. Inv File" = X,
         table "E-Document Message" = X,
-#if not CLEAN28
-#pragma warning disable AL0432
-        table "EDoc Historical Matching Setup" = X,
-#pragma warning restore AL0432
-#endif
         codeunit "E-Document Import Job" = X,
         codeunit "E-Doc. Integration Management" = X,
         codeunit "E-Doc. Mapping" = X,
