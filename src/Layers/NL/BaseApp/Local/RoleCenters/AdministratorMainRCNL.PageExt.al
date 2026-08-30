@@ -16,6 +16,7 @@ pageextension 11350 "Administrator Main RC NL" extends "Administrator Main Role 
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Post Code Updates';
+                Image = Setup;
                 RunObject = page "Post Code Updates";
                 Tooltip = 'Manage the post code updates.';
             }

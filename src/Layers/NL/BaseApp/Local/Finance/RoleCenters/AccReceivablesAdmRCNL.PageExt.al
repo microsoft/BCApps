@@ -17,6 +17,7 @@ pageextension 11357 "Acc. Receivables Adm. RC NL" extends "Acc. Receivables Adm.
             {
                 ApplicationArea = Advanced;
                 Caption = 'Bank/Giro Journals';
+                Image = Journals;
                 RunObject = Page "Bank/Giro Journal List";
                 RunPageView = where(Type = const("Bank/Giro"));
                 ToolTip = 'Reconcile a bank account by comparing incoming and outgoing bank transactions to a physical bank statement or by importing an electronic bank statement file, and apply the related payments to open customer or vendor documents.';
@@ -25,6 +26,7 @@ pageextension 11357 "Acc. Receivables Adm. RC NL" extends "Acc. Receivables Adm.
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Cash Journals';
+                Image = Journals;
                 RunObject = Page "Cash Journal List";
                 RunPageView = where(Type = const(Cash));
                 ToolTip = 'Post transactions to the cash account in the general ledger.';

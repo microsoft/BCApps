@@ -21,6 +21,7 @@ pageextension 11359 "Finance Manager RC NL" extends "Finance Manager Role Center
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Bank/Giro Journal';
+                Image = Journals;
                 RunObject = page "Bank/Giro Journal List";
                 Tooltip = 'Manage the bank/giro journal entries.';
             }
@@ -28,6 +29,7 @@ pageextension 11359 "Finance Manager RC NL" extends "Finance Manager Role Center
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Cash Journal';
+                Image = Journals;
                 RunObject = page "Cash Journal List";
                 Tooltip = 'Manage the cash journal entries.';
             }
@@ -35,6 +37,7 @@ pageextension 11359 "Finance Manager RC NL" extends "Finance Manager Role Center
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Telebank - Bank Overview';
+                Image = Bank;
                 RunObject = page "Telebank - Bank Overview";
                 Tooltip = 'View the overview of telebanking bank accounts.';
             }
@@ -48,12 +51,14 @@ pageextension 11359 "Finance Manager RC NL" extends "Finance Manager Role Center
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Elec. Tax Declarations';
+                    Image = CalculateVAT;
                     RunObject = page "Elec. Tax Declaration List";
                     Tooltip = 'Manage the electronic tax declarations.';
                 }
                 action("Elec. Tax Decl. Response Msgs.")
                 {
                     ApplicationArea = Basic, Suite;
+                    Image = CalculateVAT;
                     Caption = 'Elec. Tax Decl. Response Msgs.';
                     RunObject = page "Elec. Tax Decl. Response Msgs.";
                     Tooltip = 'View the response messages for electronic tax declarations.';
@@ -66,6 +71,7 @@ pageextension 11359 "Finance Manager RC NL" extends "Finance Manager Role Center
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Tax Authority - Audit File';
+                Image = Report;
                 RunObject = report "Tax Authority - Audit File";
                 Tooltip = 'Generate the audit file for the tax authority.';
             }
@@ -73,6 +79,7 @@ pageextension 11359 "Finance Manager RC NL" extends "Finance Manager Role Center
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'NL Export Financial Data to XML';
+                Image = Export;
                 RunObject = report "Export Financial Data to XML";
                 Tooltip = 'Export the financial data to an XML file.';
             }
@@ -86,6 +93,7 @@ pageextension 11359 "Finance Manager RC NL" extends "Finance Manager Role Center
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Elec. Tax Declaration Setup';
+                    Image = CalculateVAT;
                     RunObject = page "Elec. Tax Declaration Setup";
                     Tooltip = 'Configure the electronic tax declaration settings.';
                 }
@@ -93,6 +101,7 @@ pageextension 11359 "Finance Manager RC NL" extends "Finance Manager Role Center
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Elec. Tax Decl. VAT Categories';
+                    Image = CalculateVAT;
                     RunObject = page "Elec. Tax Decl. VAT Categ.";
                     Tooltip = 'Manage the VAT categories for electronic tax declarations.';
                 }
@@ -104,6 +113,7 @@ pageextension 11359 "Finance Manager RC NL" extends "Finance Manager Role Center
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Transaction Modes';
+                    Image = Setup;
                     RunObject = page "Transaction Mode List";
                     Tooltip = 'Manage the transaction modes for telebanking.';
                 }
@@ -111,6 +121,7 @@ pageextension 11359 "Finance Manager RC NL" extends "Finance Manager Role Center
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Export Protocols';
+                    Image = Export;
                     RunObject = page "Export Protocols";
                     Tooltip = 'Manage the export protocols for telebanking.';
                 }
@@ -118,6 +129,7 @@ pageextension 11359 "Finance Manager RC NL" extends "Finance Manager Role Center
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Import Protocols';
+                    Image = Import;
                     RunObject = page "Import Protocols";
                     Tooltip = 'Manage the import protocols for telebanking.';
                 }
@@ -125,6 +137,7 @@ pageextension 11359 "Finance Manager RC NL" extends "Finance Manager Role Center
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Freely Transferable Maximums';
+                    Image = Setup;
                     RunObject = page "Freely Transferable Maximums";
                     Tooltip = 'Manage the freely transferable maximums for telebanking.';
                 }

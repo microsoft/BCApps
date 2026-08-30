@@ -20,6 +20,7 @@ pageextension 11362 "Small Business Owner RC NL" extends "Small Business Owner R
             {
                 ApplicationArea = Advanced;
                 Caption = 'Telebanking';
+                Image = Bank;
                 RunObject = Page "Telebank - Bank Overview";
                 ToolTip = 'Prepare to exchange your payments to vendors and collections from customers with your bank electronically. This includes the export of payment and collection data that need to be forwarded to the bank as well as the import of bank statements sent to you by the bank.';
             }
@@ -27,6 +28,7 @@ pageextension 11362 "Small Business Owner RC NL" extends "Small Business Owner R
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Telebank - Bank Overview';
+                Image = Bank;
                 RunObject = Page "Telebank - Bank Overview";
                 ToolTip = 'View a list of bank accounts that are set up for electronic bank file transfers using the Telebanking functionality.';
             }
@@ -37,6 +39,7 @@ pageextension 11362 "Small Business Owner RC NL" extends "Small Business Owner R
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Bank/Giro Journals';
+                Image = Journals;
                 RunObject = Page "Bank/Giro Journal List";
                 ToolTip = 'Reconcile a bank account by comparing incoming and outgoing bank transactions to a physical bank statement or by importing an electronic bank statement file, and apply the related payments to open customer or vendor documents.';
             }
@@ -44,6 +47,7 @@ pageextension 11362 "Small Business Owner RC NL" extends "Small Business Owner R
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Cash Journals';
+                Image = Journals;
                 RunObject = Page "Cash Journal List";
                 ToolTip = 'Post transactions to the cash account in the general ledger.';
             }
@@ -54,6 +58,7 @@ pageextension 11362 "Small Business Owner RC NL" extends "Small Business Owner R
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Import Bank Statement';
+                Image = Import;
                 RunObject = Codeunit "Import Protocol Management";
                 ToolTip = 'Prepare to reconcile the bank account by importing an electronic bank statement with the actual bank transactions.';
             }
@@ -64,6 +69,7 @@ pageextension 11362 "Small Business Owner RC NL" extends "Small Business Owner R
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Elec. Tax Declarations';
+                Image = CalculateVAT;
                 RunObject = Page "Elec. Tax Declaration List";
                 ToolTip = 'View the list of VAT and ICP declarations that you send to the tax authorities.';
             }
@@ -71,6 +77,7 @@ pageextension 11362 "Small Business Owner RC NL" extends "Small Business Owner R
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Elec. Tax Decl. Response Msgs.';
+                Image = CalculateVAT;
                 RunObject = Page "Elec. Tax Decl. Response Msgs.";
                 ToolTip = 'View all the response messages received from the tax authorities. The status of the response message indicates if the message is processed or not.';
             }
