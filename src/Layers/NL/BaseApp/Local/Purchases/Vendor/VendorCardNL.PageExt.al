@@ -18,12 +18,12 @@ pageextension 11301 VendorCardNL extends "Vendor Card"
         }
         addafter(City)
         {
-#if not CLEAN29
+#if not CLEAN30
             group(Control198)
             {
                 ObsoleteReason = 'Replaced by Control1199';
                 ObsoleteState = Pending;
-                ObsoleteTag = '29.0';
+                ObsoleteTag = '30.0';
             }
 #endif
         }
