@@ -328,7 +328,7 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
     begin
         // [SCENARIO] A refund transaction only applies to the credit memo for the same Shopify refund
 
-        // [GIVEN] Two refunds for the same Shopify order and a transaction for the second refund
+        // [GIVEN] Two refunds for the same Shopify order
         Initialize();
         OrderId := LibraryRandom.RandIntInRange(17000000, 17999999);
         OtherRefundId := LibraryRandom.RandIntInRange(17000000, 17499999);
@@ -337,16 +337,19 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
         CreateShopifyOrder(OrderId);
         CreateRefund(OtherRefundId, OrderId);
         CreateRefund(TargetRefundId, OrderId);
-        CreateOrderTransaction(TransactionId, OrderId, TargetRefundId, PaymentMethodMapping.Gateway, Enum::"Shpfy Transaction Type"::Refund, Item."Unit Price");
 
         // [GIVEN] The other refund's credit memo is posted while automatic posting is disabled
         EnablePaymentMethodMappingAutoPost(false);
         CreateCreditMemo(OtherSalesCrMemoHeader, OtherRefundId);
         LibrarySales.PostSalesDocument(OtherSalesCrMemoHeader, true, true);
 
-        // [WHEN] The target refund's credit memo is posted with automatic posting enabled
-        EnablePaymentMethodMappingAutoPost(true);
+        // [GIVEN] A transaction matching the localized total of the target refund's credit memo
         CreateCreditMemo(TargetSalesCrMemoHeader, TargetRefundId);
+        TargetSalesCrMemoHeader.CalcFields("Amount Including VAT");
+        CreateOrderTransaction(TransactionId, OrderId, TargetRefundId, PaymentMethodMapping.Gateway, Enum::"Shpfy Transaction Type"::Refund, TargetSalesCrMemoHeader."Amount Including VAT");
+        EnablePaymentMethodMappingAutoPost(true);
+
+        // [WHEN] The target refund's credit memo is posted with automatic posting enabled
         LibrarySales.PostSalesDocument(TargetSalesCrMemoHeader, true, true);
 
         // [THEN] Only the target refund's credit memo is paid
@@ -654,9 +657,7 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
         CreateShopifyOrder(OrderId);
         CreateOrderTransaction(TransactionId, OrderId, 0, PaymentMethodMapping.Gateway, Enum::"Shpfy Transaction Type"::Sale, Item."Unit Price");
         EnablePaymentMethodMappingAutoPost(true);
-        CreateSalesOrder(SalesHeader, OrderId);
-        SalesHeader.Validate("Posting Date", PostingDate);
-        SalesHeader.Modify(true);
+        CreateSalesOrderWithPostingDate(SalesHeader, OrderId, PostingDate);
         EnablePostingAfterWorkingDateConfirmation();
 
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
@@ -852,6 +853,17 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
     begin
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
         SalesHeader."Shpfy Order Id" := OrderId;
+        SalesHeader.Modify();
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+    end;
+
+    local procedure CreateSalesOrderWithPostingDate(var SalesHeader: Record "Sales Header"; OrderId: BigInteger; PostingDate: Date)
+    var
+        SalesLine: Record "Sales Line";
+    begin
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        SalesHeader."Shpfy Order Id" := OrderId;
+        SalesHeader.Validate("Posting Date", PostingDate);
         SalesHeader.Modify();
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
     end;
