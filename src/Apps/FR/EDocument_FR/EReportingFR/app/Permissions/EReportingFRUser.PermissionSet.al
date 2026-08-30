@@ -15,7 +15,7 @@ permissionset 10988 "E-Reporting FR User"
 
     Permissions =
         table "FR E-Invoice Message" = X,
-        tabledata "FR E-Invoice Message" = RIMD,
+        tabledata "FR E-Invoice Message" = R,
         table "FR E-Invoice Message VAT" = X,
         tabledata "FR E-Invoice Message VAT" = R,
         codeunit "FR E-Invoice Message Mgt." = X,

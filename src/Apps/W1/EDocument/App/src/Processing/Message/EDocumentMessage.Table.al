@@ -114,4 +114,15 @@ table 6432 "E-Document Message"
         {
         }
     }
+
+    trigger OnDelete()
+    var
+        EDocDataStorage: Record "E-Doc. Data Storage";
+    begin
+        if Rec."Data Storage Entry No." = 0 then
+            exit;
+
+        if EDocDataStorage.Get(Rec."Data Storage Entry No.") then
+            EDocDataStorage.Delete(true);
+    end;
 }
