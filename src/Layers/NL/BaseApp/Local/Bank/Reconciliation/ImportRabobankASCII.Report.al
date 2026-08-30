@@ -287,13 +287,13 @@ report 11000023 "Import Rabobank ASCII"
 
     local procedure FindBankAcct(AcctNo: Text[30]): Code[20]
     var
-        BankAcct: Record "Bank Account";
+        BankAccount: Record "Bank Account";
     begin
-        if BankAcct.FindSet(false, false) then
+        if BankAccount.FindSet() then
             repeat
-                if TextFilter(BankAcct."Bank Account No.", '0123456789') = TextFilter(AcctNo, '0123456789') then
-                    exit(BankAcct."No.");
-            until BankAcct.Next() = 0;
+                if TextFilter(BankAccount."Bank Account No.", '0123456789') = TextFilter(AcctNo, '0123456789') then
+                    exit(BankAccount."No.");
+            until BankAccount.Next() = 0;
     end;
 
     [Scope('OnPrem')]
