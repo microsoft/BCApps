@@ -177,12 +177,6 @@ codeunit 139630 "E-Doc. Impl. State"
         IsAsync := IsAsync2;
         HttpResponse := LocalHttpResponse;
 
-        if ThrowIntegrationRuntimeError then
-            Error('TEST');
-
-        if ThrowIntegrationLoggedError then
-            EDocErrorHelper.LogSimpleErrorMessage(EDocument, 'TEST');
-
         if EnableHttpData then begin
             HttpRequest.SetRequestUri('http://cronus.test');
             HttpRequest.Method := 'POST';
@@ -191,6 +185,12 @@ codeunit 139630 "E-Doc. Impl. State"
             HttpResponse.Content.WriteFrom('Test response');
             HttpResponse.Headers.Add('Accept', '*');
         end;
+
+        if ThrowIntegrationRuntimeError then
+            Error('TEST');
+
+        if ThrowIntegrationLoggedError then
+            EDocErrorHelper.LogSimpleErrorMessage(EDocument, 'TEST');
 
     end;
 
@@ -226,12 +226,6 @@ codeunit 139630 "E-Doc. Impl. State"
         Success := OnGetResponseSuccess;
         HttpResponse := LocalHttpResponse;
 
-        if ThrowIntegrationRuntimeError then
-            Error('TEST');
-
-        if ThrowIntegrationLoggedError then
-            EDocErrorHelper.LogSimpleErrorMessage(EDocument, 'TEST');
-
         if EnableHttpData then begin
             HttpRequest.SetRequestUri('http://cronus.test');
             HttpRequest.Method := 'POST';
@@ -240,6 +234,12 @@ codeunit 139630 "E-Doc. Impl. State"
             HttpResponse.Content.WriteFrom('Test response');
             HttpResponse.Headers.Add('Accept', '*');
         end;
+
+        if ThrowIntegrationRuntimeError then
+            Error('TEST');
+
+        if ThrowIntegrationLoggedError then
+            EDocErrorHelper.LogSimpleErrorMessage(EDocument, 'TEST');
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Integration Mock V2", OnReceiveDocuments, '', false, false)]

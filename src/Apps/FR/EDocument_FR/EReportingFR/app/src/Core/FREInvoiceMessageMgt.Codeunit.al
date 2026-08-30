@@ -249,6 +249,7 @@ codeunit 10975 "FR E-Invoice Message Mgt."
             else
                 VATEntryCurrencyErrorInfo.ErrorType(ErrorType::Internal);
                 VATEntryCurrencyErrorInfo.Message(StrSubstNo(VATEntryCurrencyErr, VATEntry."Entry No.", CurrencyCode));
+                VATEntryCurrencyErrorInfo.DataClassification := DataClassification::SystemMetadata;
                 Error(VATEntryCurrencyErrorInfo);
         end;
 
