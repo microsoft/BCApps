@@ -222,7 +222,7 @@ codeunit 4415 "SOA Create Task Impl"
     local procedure EnsureSampleSenderDefaults(SenderEmail: Text[250]; SenderName: Text[250])
     begin
         if SampleSenderEmail = '' then
-            SampleSenderEmail := SenderEmail;
+            SampleSenderEmail := LowerCase(SenderEmail);
         if SampleSenderName = '' then
             SampleSenderName := SenderName;
         if SampleSenderCompany = '' then

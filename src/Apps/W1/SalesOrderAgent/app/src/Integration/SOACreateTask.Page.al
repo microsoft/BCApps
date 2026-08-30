@@ -58,6 +58,7 @@ page 4409 "SOA Create Task"
                                 Customer: Record Customer;
                                 SOAFiltersImpl: Codeunit "SOA Filters Impl.";
                                 MailManagement: Codeunit "Mail Management";
+                                ContactCount: Integer;
                             begin
                                 SOACreateTaskImpl.ClearSelectedSender();
                                 if SenderEmail = '' then
@@ -67,14 +68,8 @@ page 4409 "SOA Create Task"
 
                                 case Sender of
                                     Sender::Contact:
-                                        begin
-                                            Contact.SetLoadFields(
-                                                "No.", Name, "E-Mail", "Company Name", Address, "Post Code", City,
-                                                "Phone No.", "Language Code", "Company No.", Type);
-                                            Contact.SetRange("Search E-Mail", UpperCase(SenderEmail));
-                                            if Contact.FindFirst() then
-                                                SOACreateTaskImpl.SetSelectedContact(Contact);
-                                        end;
+                                        if SOAFiltersImpl.FindContactByEmail(Contact, SenderEmail, ContactCount) then
+                                            SOACreateTaskImpl.SetSelectedContact(Contact);
                                     Sender::Customer:
                                         begin
                                             Customer.SetLoadFields(
