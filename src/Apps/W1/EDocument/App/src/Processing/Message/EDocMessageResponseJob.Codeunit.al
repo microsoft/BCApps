@@ -16,13 +16,15 @@ codeunit 6539 "E-Doc. Message Response Job"
     trigger OnRun()
     var
         EDocumentMessage: Record "E-Document Message";
+        LastErrorInfo: ErrorInfo;
         LastErrorText: Text;
     begin
         EDocumentMessage.Get(Rec."Record ID to Process");
         if TryPollMessageResponse(EDocumentMessage."Entry No.") then
             exit;
 
-        LastErrorText := GetLastErrorText();
+        LastErrorInfo := GetLastErrorObject();
+        LastErrorText := LastErrorInfo.Message;
         EDocumentMessage.Get(EDocumentMessage."Entry No.");
         EDocumentMessage.Status := EDocumentMessage.Status::"Response Error";
         EDocumentMessage."Last Attempt At" := CurrentDateTime();
@@ -30,7 +32,7 @@ codeunit 6539 "E-Doc. Message Response Job"
         EDocumentMessage."Last Error" := CopyStr(LastErrorText, 1, MaxStrLen(EDocumentMessage."Last Error"));
         EDocumentMessage.Modify();
         Commit();
-        Error(MessageResponseFailedErr, EDocumentMessage."Entry No.", LastErrorText);
+        Error(LastErrorInfo);
     end;
 
     [TryFunction]
@@ -40,7 +42,4 @@ codeunit 6539 "E-Doc. Message Response Job"
     begin
         EDocMessageMgt.PollMessageResponse(MessageEntryNo);
     end;
-
-    var
-        MessageResponseFailedErr: Label 'The response for E-Document message %1 could not be retrieved. %2', Comment = '%1 = message entry number, %2 = connector error';
 }

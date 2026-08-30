@@ -183,7 +183,7 @@ codeunit 6133 "E-Document Background Jobs"
         TelemetryDimensions.Add('Record Id', Format(JobRecordId));
         TelemetryDimensions.Add('User Session ID', Format(JobQueueEntry."User Session ID"));
         TelemetryDimensions.Add('Earliest Start Date/Time', Format(JobQueueEntry."Earliest Start Date/Time"));
-        Telemetry.LogMessage('0000LC6', EDocumentJobTelemetryLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::All, TelemetryDimensions);
+        Telemetry.LogMessage('0000LC6', EDocumentJobTelemetryLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, TelemetryDimensions);
         Codeunit.Run(Codeunit::"Job Queue - Enqueue", JobQueueEntry);
         exit(JobQueueEntry.ID);
     end;

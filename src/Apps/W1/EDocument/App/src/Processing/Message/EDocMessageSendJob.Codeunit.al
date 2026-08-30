@@ -16,13 +16,15 @@ codeunit 6535 "E-Doc. Message Send Job"
     trigger OnRun()
     var
         EDocumentMessage: Record "E-Document Message";
+        LastErrorInfo: ErrorInfo;
         LastErrorText: Text;
     begin
         EDocumentMessage.Get(Rec."Record ID to Process");
         if Codeunit.Run(Codeunit::"E-Doc. Message Send Runner", EDocumentMessage) then
             exit;
 
-        LastErrorText := GetLastErrorText();
+        LastErrorInfo := GetLastErrorObject();
+        LastErrorText := LastErrorInfo.Message;
         EDocumentMessage.Get(EDocumentMessage."Entry No.");
         EDocumentMessage.Status := EDocumentMessage.Status::Error;
         EDocumentMessage."Last Attempt At" := CurrentDateTime();
@@ -30,9 +32,6 @@ codeunit 6535 "E-Doc. Message Send Job"
         EDocumentMessage."Last Error" := CopyStr(LastErrorText, 1, MaxStrLen(EDocumentMessage."Last Error"));
         EDocumentMessage.Modify();
         Commit();
-        Error(MessageSendFailedErr, EDocumentMessage."Entry No.", LastErrorText);
+        Error(LastErrorInfo);
     end;
-
-    var
-        MessageSendFailedErr: Label 'E-Document message %1 could not be sent. %2', Comment = '%1 = message entry number, %2 = connector error';
 }

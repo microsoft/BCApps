@@ -8,6 +8,7 @@ using Microsoft.eServices.EDocument;
 
 table 10970 "FR E-Invoice Message"
 {
+    Access = Internal;
     Caption = 'FR E-Invoice Message';
     DataClassification = CustomerContent;
     InherentEntitlements = X;

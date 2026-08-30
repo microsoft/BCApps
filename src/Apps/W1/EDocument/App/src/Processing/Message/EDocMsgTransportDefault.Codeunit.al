@@ -18,6 +18,7 @@ codeunit 6534 "E-Doc. Msg. Transport Default" implements IMessageSender, IMessag
         MessageTransportErrorInfo: ErrorInfo;
     begin
         MessageTransportErrorInfo.Message := StrSubstNo(MessageTransportNotSupportedErr, EDocumentService.Code);
+        MessageTransportErrorInfo.DataClassification := DataClassification::SystemMetadata;
         MessageTransportErrorInfo.RecordId := EDocumentService.RecordId;
         MessageTransportErrorInfo.PageNo := Page::"E-Document Service";
         MessageTransportErrorInfo.AddNavigationAction(ShowEDocumentServiceLbl);
@@ -29,6 +30,7 @@ codeunit 6534 "E-Doc. Msg. Transport Default" implements IMessageSender, IMessag
         MessageTransportErrorInfo: ErrorInfo;
     begin
         MessageTransportErrorInfo.Message := StrSubstNo(MessageResponseNotSupportedErr, EDocumentService.Code);
+        MessageTransportErrorInfo.DataClassification := DataClassification::SystemMetadata;
         MessageTransportErrorInfo.RecordId := EDocumentService.RecordId;
         MessageTransportErrorInfo.PageNo := Page::"E-Document Service";
         MessageTransportErrorInfo.AddNavigationAction(ShowEDocumentServiceLbl);
