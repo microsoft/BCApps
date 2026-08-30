@@ -53,6 +53,8 @@ codeunit 137298 "SCM Prod. Whse. Handling"
         NothingToHandleMsg: Label 'Nothing to handle. The production components are completely picked or not eligible for picking.';
         CannotPostConsumptionMsg: Label 'You cannot post consumption for order no. %1 because a quantity of %2 remains to be picked.', Comment = '%1 - Production Order No., %2 - Quantity';
         PickActivitiesCreatedMsg: Label 'Number of Invt. Pick activities created';
+        BinPickQtyIsWrongErr: Label 'Bin pick quantity is wrong.';
+        ShortageLineQtyIsWrongErr: Label 'Shortage line quantity is wrong.';
 
     [Test]
     [Scope('OnPrem')]
@@ -1602,6 +1604,77 @@ codeunit 137298 "SCM Prod. Whse. Handling"
         ItemLedgerEntry.FindFirst();
 
         Assert.RecordIsNotEmpty(ItemLedgerEntry);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('SimpleMessageHandler')]
+    procedure AlwaysCreatePickLineCreatesShortageWhenBinStockInsufficient()
+    var
+        Bin: Record Bin;
+        CompItem: Record Item;
+        Location: Record Location;
+        ParentItem: Record Item;
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionOrder: Record "Production Order";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        BinStockQty: Decimal;
+        ComponentQty: Decimal;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Blank-bin shortage line is created for unfulfilled quantity when bin stock is less than component demand.
+        Initialize();
+        ComponentQty := LibraryRandom.RandIntInRange(5, 20);
+        BinStockQty := LibraryRandom.RandInt(ComponentQty - 1);
+
+        // [GIVEN] Create a Location with Bin Mandatory and "Always Create Pick Line" enabled.
+        CreateLocationSetupWithBins(Location, false, false, false, false, true, 1, false);
+        Location.Validate("Always Create Pick Line", true);
+        Location."Prod. Consump. Whse. Handling" := "Prod. Consump. Whse. Handling"::"Inventory Pick/Movement";
+        Location.Modify(true);
+
+        // [GIVEN] Create a Production item with one component.
+        LibraryInventory.CreateItem(CompItem);
+        LibraryInventory.CreateItem(ParentItem);
+        LibraryManufacturing.CreateCertifiedProductionBOM(ProductionBOMHeader, CompItem."No.", ComponentQty);
+        ParentItem."Production BOM No." := ProductionBOMHeader."No.";
+        ParentItem."Replenishment System" := ParentItem."Replenishment System"::"Prod. Order";
+        ParentItem.Modify(true);
+
+        // [GIVEN] Post less than demanded quantity of the component to the bin.
+        Bin.SetRange("Location Code", Location.Code);
+        Bin.FindFirst();
+        CreateAndPostItemJournalLine(CompItem."No.", "Item Ledger Entry Type"::"Positive Adjmt.", BinStockQty, Location.Code, Bin.Code, '');
+
+        // [GIVEN] Create Released Production Order.
+        CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, "Prod. Order Source Type"::Item,
+            ParentItem."No.", 1, Location.Code);
+
+        // [WHEN] Create Inventory Pick for the production order.
+        LibraryWarehouse.CreateInvtPutPickMovement(
+            "Warehouse Request Source Document"::"Prod. Consumption", ProductionOrder."No.", false, true, false);
+
+        // [THEN] Verify that a pick line from the bin is created for the available bin quantity.
+        FindWarehouseActivityLine(
+            WarehouseActivityLine, ProductionOrder."No.",
+            WarehouseActivityLine."Activity Type"::"Invt. Pick", Location.Code,
+            WarehouseActivityLine."Action Type"::Take);
+        WarehouseActivityLine.SetRange("Bin Code", Bin.Code);
+        Assert.RecordCount(WarehouseActivityLine, 1);
+        WarehouseActivityLine.FindFirst();
+        Assert.AreEqual(BinStockQty, WarehouseActivityLine."Qty. (Base)", BinPickQtyIsWrongErr);
+
+        // [THEN] Verify that a blank-bin shortage line is created for the remaining quantity.
+        WarehouseActivityLine.SetRange("Bin Code", '');
+        Assert.RecordCount(WarehouseActivityLine, 1);
+        WarehouseActivityLine.FindFirst();
+        Assert.AreEqual(
+            ComponentQty - BinStockQty, WarehouseActivityLine."Qty. (Base)",
+            ShortageLineQtyIsWrongErr);
+
+        LibraryVariableStorage.DequeueText();
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     local procedure Initialize()
