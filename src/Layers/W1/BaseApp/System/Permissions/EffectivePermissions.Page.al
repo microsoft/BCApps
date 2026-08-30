@@ -9,6 +9,8 @@ page 9852 "Effective Permissions"
 {
     ApplicationArea = All;
     Caption = 'Effective Permissions';
+    AboutTitle = 'About Effective Permissions';
+    AboutText = 'View the permissions a user actually has in Business Central. Effective permissions combine all assigned permission sets and filters to show the final access to objects and data, helping you verify access, troubleshoot permission issues, and support audits.';
     DeleteAllowed = false;
     InsertAllowed = false;
     ModifyAllowed = false;
