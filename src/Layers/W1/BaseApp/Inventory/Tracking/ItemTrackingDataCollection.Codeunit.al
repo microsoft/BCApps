@@ -545,6 +545,7 @@ codeunit 6501 "Item Tracking Data Collection"
     local procedure TransferUnregisteredPicksToTempRec(var TrackingSpecification: Record "Tracking Specification" temporary)
     var
         WhseActivLine: Record "Warehouse Activity Line";
+        TempWhseActivLine: Record "Warehouse Activity Line" temporary;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -576,10 +577,42 @@ codeunit 6501 "Item Tracking Data Collection"
             repeat
                 if (WhseActivLine."Lot No." <> '') or (WhseActivLine."Serial No." <> '') or (WhseActivLine."Package No." <> '') then
                     if not PickBelongsToCurrentSource(WhseActivLine, TrackingSpecification) then
-                        AddUnregisteredPickToTempRec(WhseActivLine, TrackingSpecification);
+                        AggregateUnregisteredPick(TempWhseActivLine, WhseActivLine);
             until WhseActivLine.Next() = 0;
 
+        if TempWhseActivLine.FindSet() then
+            repeat
+                AddUnregisteredPickToTempRec(TempWhseActivLine, TrackingSpecification);
+            until TempWhseActivLine.Next() = 0;
+
         OnAfterTransferUnregisteredPicksToTempRec(TrackingSpecification, TempGlobalReservEntry);
+    end;
+
+    local procedure AggregateUnregisteredPick(var TempWhseActivLine: Record "Warehouse Activity Line" temporary; var WhseActivLine: Record "Warehouse Activity Line")
+    begin
+        // Split Take lines (e.g. after SplitLine or when taken from multiple bins) can repeat the same source and
+        // tracking identity. Group their outstanding quantity so the source reservation is netted only once against
+        // the aggregate, instead of subtracting it from every line and overstating availability.
+        TempWhseActivLine.Reset();
+        TempWhseActivLine.SetRange("Source Type", WhseActivLine."Source Type");
+        TempWhseActivLine.SetRange("Source Subtype", WhseActivLine."Source Subtype");
+        TempWhseActivLine.SetRange("Source No.", WhseActivLine."Source No.");
+        TempWhseActivLine.SetRange("Source Line No.", WhseActivLine."Source Line No.");
+        TempWhseActivLine.SetRange("Item No.", WhseActivLine."Item No.");
+        TempWhseActivLine.SetRange("Variant Code", WhseActivLine."Variant Code");
+        TempWhseActivLine.SetRange("Location Code", WhseActivLine."Location Code");
+        TempWhseActivLine.SetRange("Serial No.", WhseActivLine."Serial No.");
+        TempWhseActivLine.SetRange("Lot No.", WhseActivLine."Lot No.");
+        TempWhseActivLine.SetRange("Package No.", WhseActivLine."Package No.");
+        if TempWhseActivLine.FindFirst() then begin
+            TempWhseActivLine."Qty. Outstanding (Base)" += WhseActivLine."Qty. Outstanding (Base)";
+            TempWhseActivLine.Modify();
+        end else begin
+            TempWhseActivLine.Reset();
+            TempWhseActivLine := WhseActivLine;
+            TempWhseActivLine.Insert();
+        end;
+        TempWhseActivLine.Reset();
     end;
 
     local procedure AddUnregisteredPickToTempRec(var WhseActivLine: Record "Warehouse Activity Line"; var TrackingSpecification: Record "Tracking Specification" temporary)
