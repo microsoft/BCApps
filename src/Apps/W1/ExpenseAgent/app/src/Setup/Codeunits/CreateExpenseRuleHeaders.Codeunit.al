@@ -281,8 +281,15 @@ codeunit 7128 "Create Expense Rule Headers"
 
     local procedure InsertExpenseRuleHeader(var ExpenseRuleHeader: Record "Expense Rule Header"; ExpenseCategoryCode: Code[20]; ExpenseLocationCode: Code[20]; EffectiveDate: Date; JustificationRequired: Enum "Expense Justification"; RequiredSpecificMerchant: Boolean; SpecificMerchantName: Text[100]; CurrencyCode: Code[10]; UnitOfMeasureCode: Code[10])
     var
+        ExistingCategory: Record "Expense Category";
         IsHandled: Boolean;
     begin
+        // prevent inserting invalid data
+        if ExpenseCategoryCode <> '' then
+            if ExistingCategory.Get(ExpenseCategoryCode) then
+                if ExistingCategory."Expense Detail Required" <> ExistingCategory."Expense Detail Required"::"Per Diem" then
+                    exit;
+
         CreateExpenseCategories.OnBeforeAddRuleSeed(ExpenseRuleHeader, ExpenseCategoryCode, ExpenseLocationCode, CurrencyCode, JustificationRequired, IsHandled);
         if IsHandled then
             exit;
