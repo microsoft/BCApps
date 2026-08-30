@@ -12,7 +12,6 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
-using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
@@ -1221,7 +1220,6 @@ codeunit 148148 "Factur-X CII XML Tests"
     procedure FacturXSalesCrMemoZeroVATCatSPreservedWithGermanBuyer()
     var
         Customer: Record Customer;
-        DocumentSendingProfile: Record "Document Sending Profile";
         GLAccount: Record "G/L Account";
         VATPostingSetup: Record "VAT Posting Setup";
         SalesHeader: Record "Sales Header";
@@ -1247,13 +1245,6 @@ codeunit 148148 "Factur-X CII XML Tests"
         Customer."VAT Registration No." := '533435789';
         Customer."Registration Number" := '';
         Customer."FR Electronic Address" := '123456789_FOREIGN';
-        if not DocumentSendingProfile.Get('NON-EDOC') then begin
-            DocumentSendingProfile.Init();
-            DocumentSendingProfile.Code := 'NON-EDOC';
-            DocumentSendingProfile."Electronic Document" := DocumentSendingProfile."Electronic Document"::No;
-            DocumentSendingProfile.Insert(true);
-        end;
-        Customer.Validate("Document Sending Profile", DocumentSendingProfile.Code);
         Customer.Modify(true);
         CustomerNo := Customer."No.";
 
@@ -2181,6 +2172,8 @@ codeunit 148148 "Factur-X CII XML Tests"
     end;
 
     local procedure CheckFacturX(var SourceDocumentHeader: RecordRef)
+    var
+        EDocumentService: Record "E-Document Service";
     begin
         FacturXFormat.Check(SourceDocumentHeader, EDocumentService, "E-Document Processing Phase"::Create);
     end;
