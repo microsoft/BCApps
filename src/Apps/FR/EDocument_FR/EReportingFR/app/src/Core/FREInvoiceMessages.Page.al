@@ -4,9 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Formats;
 
-using Microsoft.eServices.EDocument;
-using Microsoft.eServices.EDocument.Processing.Message;
-
 page 10973 "FR E-Invoice Messages"
 {
     ApplicationArea = Basic, Suite;
@@ -71,24 +68,6 @@ page 10973 "FR E-Invoice Messages"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the related generic E-Document message entry.';
                 }
-                field(MessageStatus; MessageStatus)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Processing Status';
-                    ToolTip = 'Specifies the processing status of the related E-Document message.';
-                }
-                field(MessageRetryCount; MessageRetryCount)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Retry Count';
-                    ToolTip = 'Specifies how many background processing attempts have failed for the related E-Document message.';
-                }
-                field(MessageLastError; MessageLastError)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Last Error';
-                    ToolTip = 'Specifies the error returned by the most recent failed processing attempt.';
-                }
                 field("External Message ID"; Rec."External Message ID")
                 {
                     ApplicationArea = Basic, Suite;
@@ -147,62 +126,4 @@ page 10973 "FR E-Invoice Messages"
             }
         }
     }
-
-    actions
-    {
-        area(processing)
-        {
-            action(Retry)
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Retry';
-                Enabled = RetryEnabled;
-                Image = Refresh;
-                Scope = Repeater;
-                ToolTip = 'Retry the failed lifecycle message transmission or response polling operation using its existing payload.';
-
-                trigger OnAction()
-                var
-                    EDocumentMessageAPI: Codeunit "E-Document Message API";
-                begin
-                    EDocumentMessageAPI.RetryMessage(Rec."E-Document Message Entry No.");
-                    CurrPage.Update(false);
-                end;
-            }
-        }
-    }
-
-    trigger OnAfterGetRecord()
-    begin
-        LoadMessageState();
-    end;
-
-    trigger OnAfterGetCurrRecord()
-    begin
-        LoadMessageState();
-    end;
-
-    var
-        MessageStatus: Enum "E-Doc. Message Status";
-        MessageLastError: Text[2048];
-        MessageRetryCount: Integer;
-        RetryEnabled: Boolean;
-
-    local procedure LoadMessageState()
-    var
-        EDocumentMessage: Record "E-Document Message";
-    begin
-        Clear(MessageStatus);
-        Clear(MessageLastError);
-        Clear(MessageRetryCount);
-        RetryEnabled := false;
-        if (Rec."E-Document Message Entry No." = 0) or not EDocumentMessage.Get(Rec."E-Document Message Entry No.") then
-            exit;
-
-        MessageStatus := EDocumentMessage.Status;
-        MessageLastError := EDocumentMessage."Last Error";
-        MessageRetryCount := EDocumentMessage."Retry Count";
-        RetryEnabled := (EDocumentMessage.Direction = EDocumentMessage.Direction::Outgoing) and
-            (EDocumentMessage.Status in [EDocumentMessage.Status::Error, EDocumentMessage.Status::"Response Error"]);
-    end;
 }
