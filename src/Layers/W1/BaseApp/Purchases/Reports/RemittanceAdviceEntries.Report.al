@@ -256,26 +256,37 @@ report 400 "Remittance Advice - Entries"
                     CalcFields(Amount, "Remaining Amount");
                     DtldVendLedgEntry.SetRange("Vendor Ledger Entry No.", "Entry No.");
                     DtldVendLedgEntry.SetRange("Entry Type", DtldVendLedgEntry."Entry Type"::Application);
-                    DtldVendLedgEntry.SetRange("Document Type", DtldVendLedgEntry."Document Type"::Payment);
-                    DtldVendLedgEntry.SetRange("Document No.", "Vendor Ledger Entry"."Document No.");
+                    if "Document Type" = "Document Type"::Refund then begin
+                        DtldVendLedgEntry.SetRange("Document Type", DtldVendLedgEntry."Document Type"::Refund);
+                        DtldVendLedgEntry.SetRange("Document No.", "Document No.");
+                    end else begin
+                        DtldVendLedgEntry.SetRange("Document Type", DtldVendLedgEntry."Document Type"::Payment);
+                        DtldVendLedgEntry.SetRange("Document No.", "Vendor Ledger Entry"."Document No.");
+                    end;
                     DtldVendLedgEntry.SetRange(Unapplied, false);
                     if DtldVendLedgEntry.IsEmpty() then
                         CurrReport.Skip();
                     DtldVendLedgEntry.CalcSums(Amount, "Remaining Pmt. Disc. Possible");
                     LineAmount := DtldVendLedgEntry.Amount;
 
-                    if "Currency Code" <> '' then begin
-                        if IsDiscountAppliedToPayment("Vendor Ledger Entry"."Entry No.", "Vendor Ledger Entry"."Document No.") then
-                            LineDiscount := DtldVendLedgEntry."Remaining Pmt. Disc. Possible"
-                    end else
-                        LineDiscount := CurrExchRate.ExchangeAmtFCYToFCY("Posting Date", '', "Currency Code", "Pmt. Disc. Rcd.(LCY)");
+                    Clear(LineDiscount);
+                    if "Document Type" <> "Document Type"::Refund then
+                        if "Currency Code" <> '' then begin
+                            if IsDiscountAppliedToPayment("Vendor Ledger Entry"."Entry No.", "Vendor Ledger Entry"."Document No.") then
+                                LineDiscount := DtldVendLedgEntry."Remaining Pmt. Disc. Possible"
+                        end else
+                            LineDiscount := CurrExchRate.ExchangeAmtFCYToFCY("Posting Date", '', "Currency Code", "Pmt. Disc. Rcd.(LCY)");
 
                     "Vendor Ledger Entry".Amount += LineDiscount;
+                    if "Document Type" = "Document Type"::Refund then
+                        "Vendor Ledger Entry".Amount -= LineAmount;
 
                     LAmountWDiscCur := -LineAmount - LineDiscount;
                 end;
 
                 trigger OnPreDataItem()
+                var
+                    RefundVendLedgEntry: Record "Vendor Ledger Entry";
                 begin
                     CreateVendLedgEntry := "Vendor Ledger Entry";
                     FindApplnEntriesDtldtLedgEntry();
@@ -293,6 +304,15 @@ report 400 "Remittance Advice - Entries"
                         repeat
                             Mark(true);
                         until Next() = 0;
+
+                    RefundVendLedgEntry.SetRange("Vendor No.", CreateVendLedgEntry."Vendor No.");
+                    RefundVendLedgEntry.SetRange("Document No.", CreateVendLedgEntry."Document No.");
+                    RefundVendLedgEntry.SetRange("Document Type", RefundVendLedgEntry."Document Type"::Refund);
+                    if RefundVendLedgEntry.FindSet() then
+                        repeat
+                            "Entry No." := RefundVendLedgEntry."Entry No.";
+                            Mark(true);
+                        until RefundVendLedgEntry.Next() = 0;
 
                     SetCurrentKey("Entry No.");
                     SetRange("Closed by Entry No.");
