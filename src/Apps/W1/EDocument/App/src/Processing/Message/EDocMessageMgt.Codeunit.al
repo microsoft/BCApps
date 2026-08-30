@@ -84,6 +84,7 @@ codeunit 6433 "E-Doc. Message Mgt."
     var
         EDocMessage: Record "E-Document Message";
     begin
+        EDocMessage.SetLoadFields("E-Document Entry No.");
         EDocMessage.Get(MessageEntryNo);
         EDocument.Get(EDocMessage."E-Document Entry No.");
     end;
@@ -92,6 +93,7 @@ codeunit 6433 "E-Doc. Message Mgt."
     var
         EDocMessage: Record "E-Document Message";
     begin
+        EDocMessage.SetLoadFields(Direction);
         EDocMessage.Get(MessageEntryNo);
         exit(EDocMessage.Direction);
     end;
@@ -100,6 +102,7 @@ codeunit 6433 "E-Doc. Message Mgt."
     var
         EDocMessage: Record "E-Document Message";
     begin
+        EDocMessage.SetLoadFields(Status);
         EDocMessage.Get(MessageEntryNo);
         exit(EDocMessage.Status);
     end;
@@ -108,6 +111,7 @@ codeunit 6433 "E-Doc. Message Mgt."
     var
         EDocMessage: Record "E-Document Message";
     begin
+        EDocMessage.SetLoadFields("Response Type");
         EDocMessage.Get(MessageEntryNo);
         exit(EDocMessage."Response Type");
     end;
@@ -122,7 +126,7 @@ codeunit 6433 "E-Doc. Message Mgt."
         EDocumentLog: Codeunit "E-Document Log";
         TempBlob: Codeunit "Temp Blob";
         MessageSender: Interface IMessageSender;
-        ConnectorErrorText: Text;
+        ConnectorErrorInfo: ErrorInfo;
         MessageSendingErrorInfo: ErrorInfo;
     begin
         EDocMessage.Get(MessageEntryNo);
@@ -140,11 +144,13 @@ codeunit 6433 "E-Doc. Message Mgt."
         EDocMessageContext.Initialize(EDocMessage, TempBlob);
         MessageSender := EDocumentService."Service Integration V2";
         if not TrySendMessage(MessageSender, EDocument, EDocumentService, EDocMessageContext) then begin
-            ConnectorErrorText := GetLastErrorText();
+            ConnectorErrorInfo := GetLastErrorObject();
             EDocumentLog.InsertIntegrationLog(
                 EDocument, EDocumentService, EDocMessageContext.Http().GetHttpRequestMessage(), EDocMessageContext.Http().GetHttpResponseMessage());
             Commit();
-            Error(ConnectorErrorText);
+            ConnectorErrorInfo.Message := StrSubstNo(MessageSendingErr, MessageEntryNo);
+            ConnectorErrorInfo.DataClassification := DataClassification::SystemMetadata;
+            Error(ConnectorErrorInfo);
         end;
         if not (EDocMessageContext.Status().GetStatus() in ["E-Document Service Status"::Sent, "E-Document Service Status"::"Pending Response"]) then begin
             EDocumentLog.InsertIntegrationLog(
@@ -182,7 +188,7 @@ codeunit 6433 "E-Doc. Message Mgt."
         EDocumentLog: Codeunit "E-Document Log";
         TempBlob: Codeunit "Temp Blob";
         MessageResponseHandler: Interface IMessageResponseHandler;
-        ConnectorErrorText: Text;
+        ConnectorErrorInfo: ErrorInfo;
         ResponseReceived: Boolean;
     begin
         EDocMessage.Get(MessageEntryNo);
@@ -195,11 +201,13 @@ codeunit 6433 "E-Doc. Message Mgt."
         EDocMessageContext.Initialize(EDocMessage, TempBlob);
         MessageResponseHandler := EDocumentService."Service Integration V2";
         if not TryGetResponse(MessageResponseHandler, EDocument, EDocumentService, EDocMessageContext, ResponseReceived) then begin
-            ConnectorErrorText := GetLastErrorText();
+            ConnectorErrorInfo := GetLastErrorObject();
             EDocumentLog.InsertIntegrationLog(
                 EDocument, EDocumentService, EDocMessageContext.Http().GetHttpRequestMessage(), EDocMessageContext.Http().GetHttpResponseMessage());
             Commit();
-            Error(ConnectorErrorText);
+            ConnectorErrorInfo.Message := StrSubstNo(MessageResponseErr, MessageEntryNo);
+            ConnectorErrorInfo.DataClassification := DataClassification::SystemMetadata;
+            Error(ConnectorErrorInfo);
         end;
 
         if ResponseReceived then begin
@@ -225,8 +233,10 @@ codeunit 6433 "E-Doc. Message Mgt."
         EDocMessage."Last Attempt At" := CurrentDateTime();
         Clear(EDocMessage."Last Error");
         EDocMessage.Modify();
-        if not ResponseReceived then
+        if not ResponseReceived then begin
+            Commit();
             EDocumentBackgroundJobs.ScheduleMessageResponse(EDocMessage);
+        end;
     end;
 
     [TryFunction]
@@ -285,12 +295,14 @@ codeunit 6433 "E-Doc. Message Mgt."
         EDocExternalReference: Record "E-Doc. External Reference";
         EDocumentService: Record "E-Document Service";
     begin
-        EDocument.Get(EDocument."Entry No");
-        EDocument.TestField(Service, ServiceCode);
-        EDocumentService.Get(ServiceCode);
         if ExternalDocumentID = '' then
             Error(ExternalDocumentIDRequiredErr);
 
+        EDocument.Get(EDocument."Entry No");
+        EDocument.TestField(Service, ServiceCode);
+        EDocumentService.Get(ServiceCode);
+
+        EDocExternalReference.SetCurrentKey(Service, "External Document ID");
         EDocExternalReference.SetRange(Service, ServiceCode);
         EDocExternalReference.SetRange("External Document ID", ExternalDocumentID);
         if EDocExternalReference.FindFirst() then begin
@@ -322,11 +334,13 @@ codeunit 6433 "E-Doc. Message Mgt."
             Error(IncomingMessagePayloadRequiredErr);
 
         EDocMessage.LockTable();
+        EDocMessage.SetCurrentKey(Service, "External Message ID");
         EDocMessage.SetRange(Service, ServiceCode);
         EDocMessage.SetRange("External Message ID", ExternalMessageID);
         if EDocMessage.FindFirst() then
             exit(EDocMessage."Entry No.");
 
+        EDocExternalReference.SetCurrentKey(Service, "External Document ID");
         EDocExternalReference.SetRange(Service, ServiceCode);
         EDocExternalReference.SetRange("External Document ID", ExternalDocumentID);
         if not EDocExternalReference.FindFirst() then
@@ -367,6 +381,7 @@ codeunit 6433 "E-Doc. Message Mgt."
     var
         MessagePayloadErr: Label 'E-Document message %1 does not contain a payload.', Comment = '%1 = E-Document message entry number';
         MessageSendingErr: Label 'E-Document message %1 could not be sent.', Comment = '%1 = E-Document message entry number';
+        MessageResponseErr: Label 'A response for E-Document message %1 could not be retrieved.', Comment = '%1 = E-Document message entry number';
         MessageSendingDetailedErr: Label 'The E-Document message integration returned status %1.', Comment = '%1 = integration status';
         MessageResponseStatusErr: Label 'The connector returned invalid response status %2 for E-Document message %1.', Comment = '%1 = message entry number, %2 = connector status';
         ExternalDocumentIDRequiredErr: Label 'An external document ID is required.';
