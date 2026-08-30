@@ -131,7 +131,7 @@ page 6841 "Spend Request Card"
                 Caption = 'Submit';
                 Image = ReleaseDoc;
 
-                action(Submit)
+                action(Release)
                 {
                     Caption = 'Submit';
                     ToolTip = 'Set the status field to Submitted so that it can be processed for approval.';
@@ -245,21 +245,27 @@ page 6841 "Spend Request Card"
         }
         area(Reporting)
         {
-            action(Print)
+            group(Report)
             {
-                Caption = 'Spend Request Document';
-                ToolTip = 'Prints the spend request so it can be sent to the requester.';
-                ApplicationArea = Basic, Suite;
+                Caption = 'Report';
                 Image = Print;
 
-                trigger OnAction()
-                var
-                    SpendRequestDocument: Report "Spend Request Document";
-                begin
-                    Rec.SetRecFilter();
-                    SpendRequestDocument.SetTableView(Rec);
-                    SpendRequestDocument.Run();
-                end;
+                action(Print)
+                {
+                    Caption = 'Spend Request Document';
+                    ToolTip = 'Prints the spend request so it can be sent to the requester.';
+                    ApplicationArea = Basic, Suite;
+                    Image = Print;
+
+                    trigger OnAction()
+                    var
+                        SpendRequestDocument: Report "Spend Request Document";
+                    begin
+                        Rec.SetRecFilter();
+                        SpendRequestDocument.SetTableView(Rec);
+                        SpendRequestDocument.Run();
+                    end;
+                }
             }
         }
         area(Promoted)
@@ -268,12 +274,12 @@ page 6841 "Spend Request Card"
             {
                 Caption = 'Process';
 
-                group(Category_Submit)
+                group(Category_Release)
                 {
                     Caption = 'Submit';
                     ShowAs = SplitButton;
 
-                    actionref(Submit_Promoted; Submit)
+                    actionref(Release_Promoted; Release)
                     {
                     }
                     actionref(Reopen_Promoted; Reopen)

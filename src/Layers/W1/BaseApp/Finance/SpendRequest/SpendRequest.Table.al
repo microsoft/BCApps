@@ -173,8 +173,6 @@ table 6840 "Spend Request"
             Caption = 'Approved/Rejected by User Name';
             ToolTip = 'Specifies the user name who approved or rejected the spend request.';
             Editable = false;
-            FieldClass = FlowField;
-            CalcFormula = lookup(User."User Name" where("User Security ID" = field("Approved/Rejected by User ID")));
         }
         field(17; "Approved/Rejected At"; DateTime)
         {
