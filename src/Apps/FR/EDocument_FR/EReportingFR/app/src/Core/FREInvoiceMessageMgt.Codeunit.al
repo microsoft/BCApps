@@ -24,12 +24,16 @@ codeunit 10975 "FR E-Invoice Message Mgt."
 
     internal procedure AcceptInvoice(EDocument: Record "E-Document")
     begin
+        if not ResolveFrenchService(EDocument) then
+            Error(FrenchServiceNotFoundErr, EDocument."Entry No");
         CheckBuyerResponseAllowed(EDocument);
         CreateAndSendMessage(EDocument, "FR E-Invoice Message Type"::Accepted, CreateGuid(), 0, '', Today(), 0, 0, '', '');
     end;
 
     internal procedure RefuseInvoice(EDocument: Record "E-Document"; ReasonCode: Code[20]; ReasonDescription: Text[500])
     begin
+        if not ResolveFrenchService(EDocument) then
+            Error(FrenchServiceNotFoundErr, EDocument."Entry No");
         CheckBuyerResponseAllowed(EDocument);
         CreateAndSendMessage(EDocument, "FR E-Invoice Message Type"::Refused, CreateGuid(), 0, '', Today(), 0, 0, ReasonCode, ReasonDescription);
     end;
@@ -407,6 +411,26 @@ codeunit 10975 "FR E-Invoice Message Mgt."
         exit(false);
     end;
 
+    local procedure ResolveFrenchService(var EDocument: Record "E-Document"): Boolean
+    var
+        EDocumentService: Record "E-Document Service";
+        EDocumentServiceStatus: Record "E-Document Service Status";
+    begin
+        if IsSupportedFrenchService(EDocument.Service, EDocumentService) then
+            exit(true);
+
+        EDocumentServiceStatus.SetRange("E-Document Entry No", EDocument."Entry No");
+        if EDocumentServiceStatus.FindSet() then
+            repeat
+                if IsSupportedFrenchService(EDocumentServiceStatus."E-Document Service Code", EDocumentService) then begin
+                    EDocument.Service := EDocumentService.Code;
+                    exit(true);
+                end;
+            until EDocumentServiceStatus.Next() = 0;
+
+        exit(false);
+    end;
+
     local procedure IsSupportedFrenchService(ServiceCode: Code[20]; var EDocumentService: Record "E-Document Service"): Boolean
     begin
         if not EDocumentService.Get(ServiceCode) then
@@ -458,6 +482,7 @@ codeunit 10975 "FR E-Invoice Message Mgt."
     var
         SIRENSchemeTok: Label '0002', Locked = true;
         AlreadyRespondedErr: Label 'Invoice %1 already has a buyer response.', Comment = '%1 = invoice number';
+        FrenchServiceNotFoundErr: Label 'A supported French service could not be found for E-Document %1.', Comment = '%1 = E-Document entry number';
         VATBreakdownErr: Label 'A reportable VAT breakdown could not be determined for posted sales invoice %1.', Comment = '%1 = posted sales invoice number';
         VATEntryCurrencyErr: Label 'VAT entry %1 does not contain amounts in lifecycle currency %2.', Comment = '%1 = VAT entry number, %2 = currency code';
         OriginalVATBreakdownErr: Label 'The VAT breakdown for original French invoice message %1 does not exist.', Comment = '%1 = French invoice message entry number';

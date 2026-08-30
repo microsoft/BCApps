@@ -122,7 +122,7 @@ codeunit 6433 "E-Doc. Message Mgt."
         EDocumentLog: Codeunit "E-Document Log";
         TempBlob: Codeunit "Temp Blob";
         MessageSender: Interface IMessageSender;
-        ConnectorErrorInfo: ErrorInfo;
+        ConnectorErrorText: Text;
         MessageSendingErrorInfo: ErrorInfo;
     begin
         EDocMessage.Get(MessageEntryNo);
@@ -140,11 +140,11 @@ codeunit 6433 "E-Doc. Message Mgt."
         EDocMessageContext.Initialize(EDocMessage, TempBlob);
         MessageSender := EDocumentService."Service Integration V2";
         if not TrySendMessage(MessageSender, EDocument, EDocumentService, EDocMessageContext) then begin
-            ConnectorErrorInfo := GetLastErrorObject();
+            ConnectorErrorText := GetLastErrorText();
             EDocumentLog.InsertIntegrationLog(
                 EDocument, EDocumentService, EDocMessageContext.Http().GetHttpRequestMessage(), EDocMessageContext.Http().GetHttpResponseMessage());
             Commit();
-            Error(ConnectorErrorInfo);
+            Error(ConnectorErrorText);
         end;
         if not (EDocMessageContext.Status().GetStatus() in ["E-Document Service Status"::Sent, "E-Document Service Status"::"Pending Response"]) then begin
             EDocumentLog.InsertIntegrationLog(
@@ -182,7 +182,7 @@ codeunit 6433 "E-Doc. Message Mgt."
         EDocumentLog: Codeunit "E-Document Log";
         TempBlob: Codeunit "Temp Blob";
         MessageResponseHandler: Interface IMessageResponseHandler;
-        ConnectorErrorInfo: ErrorInfo;
+        ConnectorErrorText: Text;
         ResponseReceived: Boolean;
     begin
         EDocMessage.Get(MessageEntryNo);
@@ -195,11 +195,11 @@ codeunit 6433 "E-Doc. Message Mgt."
         EDocMessageContext.Initialize(EDocMessage, TempBlob);
         MessageResponseHandler := EDocumentService."Service Integration V2";
         if not TryGetResponse(MessageResponseHandler, EDocument, EDocumentService, EDocMessageContext, ResponseReceived) then begin
-            ConnectorErrorInfo := GetLastErrorObject();
+            ConnectorErrorText := GetLastErrorText();
             EDocumentLog.InsertIntegrationLog(
                 EDocument, EDocumentService, EDocMessageContext.Http().GetHttpRequestMessage(), EDocMessageContext.Http().GetHttpResponseMessage());
             Commit();
-            Error(ConnectorErrorInfo);
+            Error(ConnectorErrorText);
         end;
 
         if ResponseReceived then begin
