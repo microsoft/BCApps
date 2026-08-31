@@ -26,8 +26,8 @@ codeunit 6535 "E-Doc. Message Send Job"
         if Codeunit.Run(Codeunit::"E-Doc. Message Send Runner", EDocumentMessage) then
             exit;
 
-        LastErrorInfo := GetLastErrorObject();
-        LastErrorText := LastErrorInfo.Message;
+        LastErrorText := GetLastErrorText();
+        LastErrorInfo := ErrorInfo.Create(LastErrorText);
         EDocumentMessage.Get(EDocumentMessage."Entry No.");
         EDocumentMessage.Status := EDocumentMessage.Status::Error;
         EDocumentMessage."Last Attempt At" := CurrentDateTime();
