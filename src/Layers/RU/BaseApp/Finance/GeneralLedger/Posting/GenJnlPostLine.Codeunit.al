@@ -2385,11 +2385,14 @@ codeunit 12 "Gen. Jnl.-Post Line"
         FirstNewVATEntryNo := NextVATEntryNo;
 
         OnStartPostingOnAfterSetNextTaxEntryNo(NextTaxEntryNo);
-        GLReg.LockTable();
-        if GLReg.FindLast() then
-            GLReg."No." := GLReg."No." + 1
-        else
-            GLReg."No." := 1;
+        if not GLSetup.UseConcurrentPosting() then begin
+            GLReg.LockTable();
+            if GLReg.FindLast() then
+                GLReg."No." := GLReg."No." + 1
+            else
+                GLReg."No." := 1;
+        end else
+            GLReg."No." := GLReg.GetNextRegisterNo();
         GLReg.Init();
         GLReg."From Entry No." := NextEntryNo;
         GLReg."From VAT Entry No." := NextVATEntryNo;
@@ -7019,7 +7022,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         InitialVATEntry: Record "VAT Entry";
     begin
         OnBeforePostUnrealVATEntry(GenJnlLine, VATEntry);
-        VATEntry.LockTable();
+        if not GLSetup.UseConcurrentPosting() then
+            VATEntry.LockTable();
         VATEntry := VATEntry2;
         VATEntry."Entry No." := NextVATEntryNo;
         VATEntry.CopyPostingDataFromGenJnlLine(GenJnlLine);
@@ -7266,15 +7270,19 @@ codeunit 12 "Gen. Jnl.-Post Line"
         CustomerPostingGroup.Get(GenJournalLineToPost."Posting Group");
         GetCustomerReceivablesAccount(GenJournalLineToPost, CustomerPostingGroup);
 
-        VATEntry.LockTable();
+        if not GLSetup.UseConcurrentPosting() then
+            VATEntry.LockTable();
         DetailedCustLedgEntry.LockTable();
         CustLedgerEntry.LockTable();
 
         DetailedCustLedgEntry.TestField("Entry Type", DetailedCustLedgEntry."Entry Type"::Application);
 
-        DetailedCustLedgEntry2.Reset();
-        DetailedCustLedgEntry2.FindLast();
-        NextDtldLedgEntryNo := DetailedCustLedgEntry2."Entry No." + 1;
+        if not GLSetup.UseConcurrentPosting() then begin
+            DetailedCustLedgEntry2.Reset();
+            DetailedCustLedgEntry2.FindLast();
+            NextDtldLedgEntryNo := DetailedCustLedgEntry2."Entry No." + 1;
+        end else
+            NextDtldLedgEntryNo := DetailedCustLedgEntry.GetNextEntryNo();
         OnUnapplyCustLedgEntryOnAfterGetNextDtldLedgEntryNo(GenJournalLine);
 
         if DetailedCustLedgEntry."Transaction No." = 0 then begin
@@ -7514,7 +7522,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         GetVendorPostingGroup(GenJournalLineToPost, VendorPostingGroup);
         VendorPostingGroup.GetPayablesAccount();
 
-        VATEntry.LockTable();
+        if not GLSetup.UseConcurrentPosting() then
+            VATEntry.LockTable();
         DetailedVendorLedgEntry.LockTable();
         VendorLedgerEntry.LockTable();
 
@@ -7523,9 +7532,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if GLSetup."Enable Russian Accounting" then
             VATSettlementMgt.CheckForUnapplyByTransNo(DetailedVendorLedgEntry."Transaction No.");
 
-        DetailedVendorLedgEntry2.Reset();
-        DetailedVendorLedgEntry2.FindLast();
-        NextDtldLedgEntryNo := DetailedVendorLedgEntry2."Entry No." + 1;
+        if not GLSetup.UseConcurrentPosting() then begin
+            DetailedVendorLedgEntry2.Reset();
+            DetailedVendorLedgEntry2.FindLast();
+            NextDtldLedgEntryNo := DetailedVendorLedgEntry2."Entry No." + 1
+        end else
+            NextDtldLedgEntryNo := DetailedVendorLedgEntry.GetNextEntryNo();
         if DetailedVendorLedgEntry."Transaction No." = 0 then begin
             DetailedVendorLedgEntry2.SetCurrentKey("Application No.", "Vendor No.", "Entry Type");
             DetailedVendorLedgEntry2.SetRange("Application No.", DetailedVendorLedgEntry."Application No.");
@@ -7743,9 +7755,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
         DetailedEmployeeLedgerEntry.TestField("Entry Type", DetailedEmployeeLedgerEntry."Entry Type"::Application);
 
-        DetailedEmployeeLedgerEntry2.Reset();
-        DetailedEmployeeLedgerEntry2.FindLast();
-        NextDtldLedgEntryNo := DetailedEmployeeLedgerEntry2."Entry No." + 1;
+        if not GLSetup.UseConcurrentPosting() then begin
+            DetailedEmployeeLedgerEntry2.Reset();
+            DetailedEmployeeLedgerEntry2.FindLast();
+            NextDtldLedgEntryNo := DetailedEmployeeLedgerEntry2."Entry No." + 1;
+        end else
+            NextDtldLedgEntryNo := DetailedEmployeeLedgerEntry.GetNextEntryNo();
         if DetailedEmployeeLedgerEntry."Transaction No." = 0 then begin
             DetailedEmployeeLedgerEntry2.SetCurrentKey("Application No.", "Employee No.", "Entry Type");
             DetailedEmployeeLedgerEntry2.SetRange("Application No.", DetailedEmployeeLedgerEntry."Application No.");
@@ -8090,7 +8105,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
         NewDtldCustLedgEntry."G/L Register No." := GLReg."No.";
         OnBeforeInsertDtldCustLedgEntryUnapply(NewDtldCustLedgEntry, GenJnlLine, OldDtldCustLedgEntry, GLReg);
         NewDtldCustLedgEntry.Insert(true);
-        NextDtldLedgEntryNo := NextDtldLedgEntryNo + 1;
+        if not GLSetup.UseConcurrentPosting() then
+            NextDtldLedgEntryNo := NextDtldLedgEntryNo + 1
+        else
+            NextDtldLedgEntryNo := NewDtldCustLedgEntry.GetNextEntryNo();
 
         OnAfterInsertDtldCustLedgEntryUnapply(CustomerPostingGroup, OldDtldCustLedgEntry, GenJnlLine, NewDtldCustLedgEntry);
     end;
@@ -8129,7 +8147,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
         NewDtldVendLedgEntry."G/L Register No." := GLReg."No.";
         OnBeforeInsertDtldVendLedgEntryUnapply(NewDtldVendLedgEntry, GenJnlLine, OldDtldVendLedgEntry, GLReg);
         NewDtldVendLedgEntry.Insert(true);
-        NextDtldLedgEntryNo := NextDtldLedgEntryNo + 1;
+        if not GLSetup.UseConcurrentPosting() then
+            NextDtldLedgEntryNo := NextDtldLedgEntryNo + 1
+        else
+            NextDtldLedgEntryNo := NewDtldVendLedgEntry.GetNextEntryNo();
+
         OnAfterInsertDtldVendLedgEntryUnapply(OldDtldVendLedgEntry, GenJnlLine, NewDtldVendLedgEntry);
     end;
 
@@ -8155,7 +8177,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
         NewDtldEmplLedgEntry."G/L Register No." := GLReg."No.";
         OnBeforeInsertDtldEmplLedgEntryUnapply(NewDtldEmplLedgEntry, GenJnlLine, OldDtldEmplLedgEntry);
         NewDtldEmplLedgEntry.Insert(true);
-        NextDtldLedgEntryNo := NextDtldLedgEntryNo + 1;
+        if not GLSetup.UseConcurrentPosting() then
+            NextDtldLedgEntryNo := NextDtldLedgEntryNo + 1
+        else
+            NextDtldLedgEntryNo := NewDtldEmplLedgEntry.GetNextEntryNo();
     end;
 
     local procedure InsertTempVATEntry(GenJnlLine: Record "Gen. Journal Line"; VATEntry: Record "VAT Entry"; var TempVATEntryNo: Integer; var TempVATEntry: Record "VAT Entry" temporary)

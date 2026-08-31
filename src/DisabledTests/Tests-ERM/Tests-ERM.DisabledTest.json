@@ -1427,6 +1427,11 @@
   {
     "codeunitId": 134154,
     "codeunitName": "ERM Intercompany III",
+    "method": "AutoAcceptICGenJnlTransactionUT"
+  },
+  {
+    "codeunitId": 134154,
+    "codeunitName": "ERM Intercompany III",
     "method": "CheckTheSendICDocumentWorkCorrectlyForSalesCrMemo"
   },
   {
@@ -1518,6 +1523,11 @@
     "codeunitId": 134154,
     "codeunitName": "ERM Intercompany III",
     "method": "IncomingSalesOrderPostedSendsInvoice"
+  },
+  {
+    "codeunitId": 134154,
+    "codeunitName": "ERM Intercompany III",
+    "method": "OpenICPurchaseInvoiceWithVendorOrderNoExceeding20Chars"
   },
   {
     "codeunitId": 134154,

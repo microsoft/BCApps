@@ -891,7 +891,7 @@ table 17 "G/L Entry"
 
     trigger OnInsert()
     begin
-        Rec."SIFT Bucket No." := Rec."G/L Register No." mod 5;
+        Rec."SIFT Bucket No." := Rec."Entry No." mod 5;
         "Last Modified DateTime" := CurrentDateTime;
     end;
 

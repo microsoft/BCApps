@@ -13,6 +13,7 @@ using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
 using System.Security.AccessControl;
@@ -478,6 +479,18 @@ table 379 "Detailed Cust. Ledg. Entry"
     begin
         SetLedgerEntryAmount();
         SetOriginalDocumentInfo();
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Detailed Cust. Ledg. Entry", 'r')]
+    /// <summary>
+    /// Retrieves the next entry number from the Detailed Cust. Ledg. Entry table.
+    /// </summary>
+    /// <returns>Next Detailed Cust. Ledg. Entry number to be used in the system</returns>
+    procedure GetNextEntryNo(): Integer
+    var
+        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
+    begin
+        exit(SequenceNoMgt.GetNextSeqNo(DATABASE::"Detailed Cust. Ledg. Entry"));
     end;
 
     /// <summary>
