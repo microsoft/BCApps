@@ -309,7 +309,7 @@ table 11000003 "Detail Line"
         {
             Clustered = true;
         }
-        key(Key2; "Account Type", "Serial No. (Entry)", Status, Date, "Connect Batches", "Connect Lines", "Our Bank")
+        key(Key2; "Account Type", "Serial No. (Entry)", Status, "Connect Batches", "Connect Lines", "Our Bank", Date)
         {
             SumIndexFields = Amount, "Amount (Entry)";
         }
