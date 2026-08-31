@@ -5612,6 +5612,7 @@ table 5900 "Service Header"
         ServContractMgt: Codeunit ServContractManagement;
         InvoicedServiceLedgerEntryExists: Boolean;
     begin
+        ServiceLedgerEntry.SetLoadFields("Entry No.");
         ServiceLedgerEntry.SetCurrentKey("Service Contract No.");
         ServiceLedgerEntry.SetRange("Service Contract No.", ServiceContractLine."Contract No.");
         ServiceLedgerEntry.SetRange("Service Item No. (Serviced)", ServiceContractLine."Service Item No.");
