@@ -19,6 +19,8 @@ codeunit 6168 "E-Document Upgrade"
     InherentEntitlements = X;
 
     trigger OnUpgradePerCompany()
+    var
+        EDocumentBackgroundJobs: Codeunit "E-Document Background Jobs";
     begin
         UpgradeLogURLMaxLength();
 #if not CLEAN29
@@ -26,6 +28,8 @@ codeunit 6168 "E-Document Upgrade"
 #endif
         UpgradeDataExchV2Defs();
         UpgradeEnableVATOptionsForPurchEDoc();
+        if not EDocumentBackgroundJobs.TryEnsurePaymentOccurrenceDispatcher() then
+            ClearLastError();
     end;
 
     local procedure UpgradeLogURLMaxLength()

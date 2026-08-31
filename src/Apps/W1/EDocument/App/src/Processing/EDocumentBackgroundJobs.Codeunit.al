@@ -32,6 +32,31 @@ codeunit 6133 "E-Document Background Jobs"
         ScheduleEDocumentJob(Codeunit::"E-Doc. Payment Occurrence Mgt.", EDocPaymentOccurrence.RecordId(), 0);
     end;
 
+    [TryFunction]
+    procedure TrySchedulePaymentOccurrence(EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence")
+    begin
+        SchedulePaymentOccurrence(EDocPaymentOccurrence);
+    end;
+
+    [TryFunction]
+    internal procedure TryEnsurePaymentOccurrenceDispatcher()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+        BlankRecordId: RecordId;
+    begin
+        JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
+        JobQueueEntry.SetRange("Object ID to Run", Codeunit::"E-Doc. Payment Occ. Dispatcher");
+        JobQueueEntry.SetFilter(Status, '<>%1', JobQueueEntry.Status::Finished);
+        if not JobQueueEntry.IsEmpty() then
+            exit;
+
+        JobQueueEntry.ScheduleRecurrentJobQueueEntryWithFrequency(
+            JobQueueEntry."Object Type to Run"::Codeunit, Codeunit::"E-Doc. Payment Occ. Dispatcher", BlankRecordId, 5);
+        JobQueueEntry."Job Queue Category Code" := JobQueueCategoryTok;
+        JobQueueEntry."No. of Attempts to Run" := 0;
+        JobQueueEntry.Modify();
+    end;
+
     procedure TryScheduleMessageSend(EDocumentMessage: Record "E-Document Message"): Boolean
     begin
         exit(TryScheduleEDocumentJob(Codeunit::"E-Doc. Message Send Job", EDocumentMessage.RecordId(), 0));

@@ -19,15 +19,9 @@ codeunit 10975 "FR E-Invoice Message Mgt."
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
-    TableNo = "E-Doc. Payment Occurrence";
 
     Permissions = tabledata "FR E-Invoice Message" = rimd,
                   tabledata "FR E-Invoice Message VAT" = rid;
-
-    trigger OnRun()
-    begin
-        CreatePaymentLifecycleMessage(Rec);
-    end;
 
     internal procedure AcceptInvoice(EDocument: Record "E-Document")
     begin
@@ -62,21 +56,7 @@ codeunit 10975 "FR E-Invoice Message Mgt."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Payment Occurrence Mgt.", 'OnAfterCreatePaymentOccurrence', '', false, false)]
     local procedure OnAfterCreatePaymentOccurrence(var EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence")
     begin
-        ProcessPaymentOccurrence(EDocPaymentOccurrence);
-    end;
-
-    internal procedure ProcessPaymentOccurrence(EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence")
-    var
-        ErrorMessage: Text;
-    begin
-        if Codeunit.Run(Codeunit::"FR E-Invoice Message Mgt.", EDocPaymentOccurrence) then
-            exit;
-
-        ErrorMessage := GetLastErrorText();
-        Session.LogMessage(
-            '0000N1F', StrSubstNo(PaymentLifecycleMessageFailedTelemetryMsg, EDocPaymentOccurrence."Entry No.", EDocPaymentOccurrence."E-Document Entry No.", ErrorMessage),
-            Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PaymentLifecycleTelemetryCategoryTok);
-        ClearLastError();
+        CreatePaymentLifecycleMessage(EDocPaymentOccurrence);
     end;
 
     local procedure CreatePaymentLifecycleMessage(EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence")
@@ -546,6 +526,4 @@ codeunit 10975 "FR E-Invoice Message Mgt."
         VATEntryCurrencyErr: Label 'VAT entry %1 does not contain amounts in lifecycle currency %2.', Comment = '%1 = VAT entry number, %2 = currency code';
         OriginalVATBreakdownErr: Label 'The VAT breakdown for original French invoice message %1 does not exist.', Comment = '%1 = French invoice message entry number';
         InvalidSIRENErr: Label 'Company registration number %1 cannot be normalized to a nine-digit SIREN.', Comment = '%1 = company registration number';
-        PaymentLifecycleMessageFailedTelemetryMsg: Label 'French lifecycle message creation failed for payment occurrence %1 and E-Document %2. Error: %3', Locked = true;
-        PaymentLifecycleTelemetryCategoryTok: Label 'E-Document', Locked = true;
 }
