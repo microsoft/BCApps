@@ -22,7 +22,7 @@ table 8066 "Cust. Sub. Contract Deferral"
     {
         field(1; "Entry No."; Integer)
         {
-            Caption = 'Entry No.';
+            Caption = 'Entry Number';
             AutoIncrement = true;
         }
         field(2; "Subscription Contract No."; Code[20])
