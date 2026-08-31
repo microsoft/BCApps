@@ -350,7 +350,7 @@ codeunit 10975 "FR E-Invoice Message Mgt."
             InsertVATBreakdown(
                 ReversalMessageVAT, FREInvoiceMessage."Entry No.", OriginalMessageVAT."Line No.",
                 OriginalMessageVAT."VAT %", OriginalMessageVAT."VAT Category Code",
-                -OriginalMessageVAT.Amount, FREInvoiceMessage."Currency Code");
+                -OriginalMessageVAT.Amount, OriginalMessageVAT."Currency Code");
         until OriginalMessageVAT.Next() = 0;
     end;
 
