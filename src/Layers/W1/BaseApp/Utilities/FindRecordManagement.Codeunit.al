@@ -168,7 +168,6 @@ codeunit 703 "Find Record Management"
         OnBeforeFindNoFromTypedValue(Type, Value, FoundNo);
         if FoundNo <> '' then
             exit(FoundNo);
-
         if Type = Type::Item then
             exit(Item.GetItemNo(Value));
 
@@ -187,7 +186,6 @@ codeunit 703 "Find Record Management"
     begin
         if UseDefaultTableRelationFilters and (Type = Type::"G/L Account") then
             RecordView := GetGLAccountTableRelationView();
-
         if FindRecordByDescriptionAndView(ResultValue, Type, Description, RecordView) = 1 then
             exit(CopyStr(ResultValue, 1, MaxStrLen(GLAccount."No.")));
 
@@ -217,7 +215,6 @@ codeunit 703 "Find Record Management"
         // SearchFieldNo[2] - "Description"/"Name"
         // SearchFieldNo[3] - "Base Unit of Measure" (used for items)
         Result := '';
-
         if SearchText = '' then
             exit(0);
 
@@ -293,7 +290,6 @@ codeunit 703 "Find Record Management"
         OnBeforeFindRecordStartingWithSearchString(Type, RecRef, RecFilterFromStart);
         GetRecordsSearchResult(RecRef, SearchFieldRef[1].Number, Result, RecordsCount);
         SearchFieldRef[2].SetRange();
-
         if RecordsCount > 0 then
             exit(RecordsCount);
 
@@ -306,7 +302,6 @@ codeunit 703 "Find Record Management"
             SearchFieldRef[3].SetFilter(RecFilterContains);
         OnBeforeFindRecordContainingSearchString(Type, RecRef, RecFilterContains);
         GetRecordsSearchResult(RecRef, SearchFieldRef[1].Number, Result, RecordsCount);
-
         if RecordsCount > 0 then
             exit(RecordsCount);
 
@@ -351,7 +346,6 @@ codeunit 703 "Find Record Management"
                 TextBuilder.Append('|' + SelectionFilterManagement.AddQuotes(Format(FieldRef.Value)));
                 RecordsCount += 1;
             until ((RecRef.Next() = 0) or (RecordsCount > GetMaxRecordCountToReturn()));
-
         if RecordsCount = 1 then begin //to avoid adding single quotes
             Result := Format(FieldRef.Value);
             exit;
