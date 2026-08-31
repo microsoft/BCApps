@@ -61,7 +61,7 @@ codeunit 1328 "Top Customers By Sales Job"
         CustomerCounter: Integer;
         OtherCustomersSalesLCY: Decimal;
         DTUpdated: DateTime;
-        LastCustomerLedgerEntryNo: Integer;
+        LastCustomerLedgerEntryNo: BigInteger;
     begin
         if ChartManagement.TopCustomerListUpdatedRecently(LastCustomerLedgerEntryNo) then
             exit;

@@ -904,7 +904,7 @@ table 17 "G/L Entry"
     procedure GetLastEntry(var LastEntryNo: BigInteger; var LastTransactionNo: BigInteger)
     var
         FindRecordManagement: Codeunit "Find Record Management";
-        FieldNoValues: List of [Integer];
+        FieldNoValues: List of [BigInteger];
     begin
         FieldNoValues.Add(FieldNo("Entry No."));
         FieldNoValues.Add(FieldNo("Transaction No."));
