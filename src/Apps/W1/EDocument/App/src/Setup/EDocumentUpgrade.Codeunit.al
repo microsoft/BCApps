@@ -24,8 +24,7 @@ codeunit 6168 "E-Document Upgrade"
 #if not CLEAN29
         UpgradeProcessDraftEnum();
 #endif
-        if not EDocumentBackgroundJobs.TryEnsurePaymentOccurrenceDispatcher() then
-            ClearLastError();
+        EDocumentBackgroundJobs.EnsurePaymentOccurrenceDispatcher();
     end;
 
     local procedure UpgradeLogURLMaxLength()
@@ -78,5 +77,4 @@ codeunit 6168 "E-Document Upgrade"
     begin
         exit('MS-EDoc-ProcessDraftEnum-20260407');
     end;
-
 }

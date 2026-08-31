@@ -5,6 +5,7 @@
 namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Document;
@@ -21,7 +22,7 @@ codeunit 139630 "E-Doc. Impl. State"
         PurchDocTestBuffer: Codeunit "E-Doc. Test Buffer";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         EnableOnCheck, DisableOnCreateOutput, DisableOnCreateBatch, IsAsync2, EnableHttpData, ThrowIntegrationRuntimeError, ThrowIntegrationLoggedError : Boolean;
-        ThrowPaymentOccurrenceProcessingError, ThrowPaymentOccurrenceSchedulingError: Boolean;
+        ThrowPaymentOccurrenceProcessingError, ThrowPaymentOccurrenceSchedulingError : Boolean;
         ThrowRuntimeError, ThrowLoggedError, ThrowBasicInfoError, ThrowCompleteInfoError, OnGetResponseSuccess, OnGetApprovalSuccess, ActionHasUpdate : Boolean;
         LocalHttpResponse: HttpResponseMessage;
         ActionStatus: Enum "E-Document Service Status";

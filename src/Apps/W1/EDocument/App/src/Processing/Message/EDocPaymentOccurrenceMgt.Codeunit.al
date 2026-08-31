@@ -133,7 +133,7 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
             EDocPaymentOccurrence.Status := EDocPaymentOccurrence.Status::Error;
             EDocPaymentOccurrence."Retry Count" := 1;
             EDocPaymentOccurrence."Last Attempt At" := CurrentDateTime();
-            EDocPaymentOccurrence."Next Attempt At" := CurrentDateTime() + RetryDelay;
+            EDocPaymentOccurrence."Next Attempt At" := CurrentDateTime() + RetryDelay();
             EDocPaymentOccurrence."Last Error" := CopyStr(GetLastErrorText(), 1, MaxStrLen(EDocPaymentOccurrence."Last Error"));
             EDocPaymentOccurrence.Modify();
             ClearLastError();
@@ -154,7 +154,7 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
 
         EDocPaymentOccurrence.Status := EDocPaymentOccurrence.Status::Processing;
         EDocPaymentOccurrence."Last Attempt At" := CurrentDateTime();
-        EDocPaymentOccurrence."Next Attempt At" := CurrentDateTime() + RetryDelay;
+        EDocPaymentOccurrence."Next Attempt At" := CurrentDateTime() + RetryDelay();
         EDocPaymentOccurrence.Modify();
         Commit();
         if Codeunit.Run(Codeunit::"E-Doc. Payment Occ. Runner", EDocPaymentOccurrence) then begin
@@ -172,7 +172,7 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
         EDocPaymentOccurrence.Status := EDocPaymentOccurrence.Status::Error;
         EDocPaymentOccurrence."Last Attempt At" := CurrentDateTime();
         EDocPaymentOccurrence."Retry Count" += 1;
-        EDocPaymentOccurrence."Next Attempt At" := CurrentDateTime() + RetryDelay;
+        EDocPaymentOccurrence."Next Attempt At" := CurrentDateTime() + RetryDelay();
         EDocPaymentOccurrence."Last Error" := CopyStr(LastErrorText, 1, MaxStrLen(EDocPaymentOccurrence."Last Error"));
         EDocPaymentOccurrence.Modify();
         ClearLastError();
@@ -216,6 +216,8 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
     begin
     end;
 
-    var
-        RetryDelay: Duration = 300000;
+    local procedure RetryDelay(): Duration
+    begin
+        exit(300000);
+    end;
 }

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Message;
 
-codeunit 6435 "E-Doc. Payment Occ. Dispatcher"
+codeunit 6248 "E-Doc. Payment Occ. Dispatcher"
 {
     Access = Internal;
     InherentEntitlements = X;
