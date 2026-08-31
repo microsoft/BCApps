@@ -8,7 +8,8 @@ codeunit 139820 "APIV2 - Aged AR E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.EnsureAuthenticationAvailable();
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Sales] [Aged Report]
     end;

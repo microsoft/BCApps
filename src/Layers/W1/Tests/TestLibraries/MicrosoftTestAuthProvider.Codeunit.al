@@ -12,7 +12,10 @@ using System.Integration;
 using System.Security.AccessControl;
 using System.Utilities;
 
-codeunit 131022 "Library - Graph Auth Mgt."
+/// <summary>
+/// Provides authentication for API tests running in Microsoft test environments.
+/// </summary>
+codeunit 131022 "Microsoft Test Auth Provider" implements "API Test Auth Provider"
 {
     Access = Internal;
 
@@ -26,8 +29,12 @@ codeunit 131022 "Library - Graph Auth Mgt."
         KeyVaultPasswordReadErr: Label 'The API test password could not be retrieved from the %1 secret.', Comment = '%1 - Azure Key Vault secret name';
         PasswordRetrievalFailedErr: Label 'The API test password could not be retrieved.';
 
-    [NonDebuggable]
-    internal procedure AddAuthentication(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt."; TargetURL: Text)
+    /// <summary>
+    /// Configures authentication for a request targeting the current Business Central API service.
+    /// </summary>
+    /// <param name="TargetURL">The final request URL after URL overrides have been applied.</param>
+    /// <param name="Authentication">The authentication context to configure.</param>
+    procedure ConfigureAuthentication(TargetURL: Text; var Authentication: Codeunit "API Test Auth Context")
     var
         Password: SecretText;
     begin
@@ -36,18 +43,9 @@ codeunit 131022 "Library - Graph Auth Mgt."
         if not GetAuthenticationPassword(Password) then
             exit;
 
-        AddUserPasswordAuthentication(HttpWebRequestMgt, Password);
+        Authentication.SetBasicAuthentication(UserId(), Password);
     end;
 
-    [NonDebuggable]
-    internal procedure EnsureAuthenticationAvailable()
-    var
-        Password: SecretText;
-    begin
-        GetAuthenticationPassword(Password);
-    end;
-
-    [NonDebuggable]
     local procedure GetAuthenticationPassword(var Password: SecretText): Boolean
     var
         User: Record User;
@@ -78,7 +76,6 @@ codeunit 131022 "Library - Graph Auth Mgt."
         exit(CacheAuthenticationResult(Password, true));
     end;
 
-    [NonDebuggable]
     local procedure CacheAuthenticationResult(Password: SecretText; IsRequired: Boolean): Boolean
     begin
         AuthenticationRequired := IsRequired;
@@ -86,12 +83,6 @@ codeunit 131022 "Library - Graph Auth Mgt."
         if IsRequired then
             CachedAuthenticationPassword := Password;
         exit(IsRequired);
-    end;
-
-    [NonDebuggable]
-    local procedure AddUserPasswordAuthentication(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt."; Password: SecretText)
-    begin
-        HttpWebRequestMgt.AddBasicAuthentication(UserId(), Password);
     end;
 
     local procedure IsCurrentTestServiceURL(TargetURL: Text): Boolean
@@ -112,7 +103,6 @@ codeunit 131022 "Library - Graph Auth Mgt."
         exit(File.Exists(ApiTestPasswordFileTok));
     end;
 
-    [NonDebuggable]
     [TryFunction]
     local procedure TryGetContainerPassword(var Password: SecretText)
     var
@@ -128,7 +118,6 @@ codeunit 131022 "Library - Graph Auth Mgt."
             Error(PasswordRetrievalFailedErr);
     end;
 
-    [NonDebuggable]
     [TryFunction]
     local procedure TryGetNavEnlistmentPassword(var Password: SecretText)
     var

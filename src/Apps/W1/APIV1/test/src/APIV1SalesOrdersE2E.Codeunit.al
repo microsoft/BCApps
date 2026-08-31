@@ -9,7 +9,8 @@ codeunit 139711 "APIV1 - Sales Orders E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.EnsureAuthenticationAvailable();
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Sales] [Order]
     end;

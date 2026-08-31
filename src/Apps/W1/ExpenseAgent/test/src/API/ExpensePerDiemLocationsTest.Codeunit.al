@@ -14,7 +14,8 @@ codeunit 148349 "Expense PerDiem Locations Test"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.EnsureAuthenticationAvailable();
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 

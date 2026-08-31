@@ -9,7 +9,8 @@ codeunit 139832 "APIV2 - Default Dimensions E2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.EnsureAuthenticationAvailable();
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Default Dimension]
     end;

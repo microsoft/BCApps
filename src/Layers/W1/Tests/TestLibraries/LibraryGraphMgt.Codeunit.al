@@ -7,17 +7,24 @@ codeunit 130618 "Library - Graph Mgt"
 
     var
         Assert: Codeunit Assert;
-        LibraryGraphAuthMgt: Codeunit Microsoft.TestLibraries.ERP."Library - Graph Auth Mgt.";
+        Authentication: Enum "API Test Authentication";
+        AuthenticationProvider: Interface "API Test Auth Provider";
+        AuthenticationProviderResolved: Boolean;
         IncorrectValueErr: Label 'Incorrect value found in JSON for %1 property.', Comment = '%1 - Name of property';
         GraphCollectionMgtItem: Codeunit "Graph Collection Mgt - Item";
         UnexpectedResponseCodeErr: Label 'Response code %1 (%2) differs from the expected %3.', Comment = '%1 - Actual response code number, %2 - Actual response code, %3 - Expected response code number';
         FailedRequestErr: Label '%1 request failed. Response code is %2 (%3). %4', Comment = '%1 - request method, %2 - response code number, %3 - response code, %4 - error message';
         FailedRequestWithUnexpectedResponseCodeErr: Label '%1 request failed. Response code is %2 (%3), expected code is %4. %5', Comment = '%1 - request method, %2 - response code number, %3 - response code, %4 - expected response code, %5 - error message';
 
-    /// <summary>Verifies that authentication is available for local API test requests.</summary>
-    procedure EnsureAuthenticationAvailable()
+    /// <summary>
+    /// Sets the authentication provider used by this library instance.
+    /// </summary>
+    /// <param name="NewAuthentication">The authentication provider to use for subsequent API test requests.</param>
+    procedure SetAuthenticationProvider(NewAuthentication: Enum "API Test Authentication")
     begin
-        LibraryGraphAuthMgt.EnsureAuthenticationAvailable();
+        Authentication := NewAuthentication;
+        AuthenticationProvider := Authentication;
+        AuthenticationProviderResolved := true;
     end;
 
     /// <summary>Sets the work date to November 15 in the current year to stay within test-license date limits.</summary>
@@ -163,8 +170,28 @@ codeunit 130618 "Library - Graph Mgt"
     procedure InitializeWebRequestWithURL(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt."; TargetURL: Text)
     begin
         HttpWebRequestMgt.Initialize(TargetURL);
+        ApplyAuthentication(HttpWebRequestMgt);
         OnAfterInitializeWebRequestWithURL(HttpWebRequestMgt);
-        LibraryGraphAuthMgt.AddAuthentication(HttpWebRequestMgt, TargetURL);
+    end;
+
+    local procedure ApplyAuthentication(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt.")
+    var
+        AuthenticationContext: Codeunit "API Test Auth Context";
+        CurrentAuthenticationProvider: Interface "API Test Auth Provider";
+    begin
+        CurrentAuthenticationProvider := GetAuthenticationProvider();
+        CurrentAuthenticationProvider.ConfigureAuthentication(HttpWebRequestMgt.GetUrl(), AuthenticationContext);
+        AuthenticationContext.Apply(HttpWebRequestMgt);
+    end;
+
+    local procedure GetAuthenticationProvider(): Interface "API Test Auth Provider"
+    begin
+        if not AuthenticationProviderResolved then begin
+            AuthenticationProvider := Authentication;
+            AuthenticationProviderResolved := true;
+        end;
+
+        exit(AuthenticationProvider);
     end;
 
     procedure PatchToWebServiceAndCheckResponseCode(TargetURL: Text; JSONBody: Text; var ResponseText: Text; ExpectedResponseCode: Integer)

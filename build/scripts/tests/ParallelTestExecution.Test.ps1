@@ -433,12 +433,12 @@ Describe "ParallelTestExecution clean tenant scheduling" {
                                 -Because "$($file.Name) runs through NAV's typed Integration task"
                             $content | Should -Not -Match 'RequiredTestIsolation\s*=\s*Disabled\s*;' `
                                 -Because "$($file.Name) runs with normal Codeunit isolation in NAV"
-                            $content | Should -Match 'LibraryGraphMgt\.EnsureAuthenticationAvailable\(\);'
+                            $content | Should -Match 'LibraryGraphMgt\.SetAuthenticationProvider\(\s*Enum::"API Test Authentication"::"Microsoft Test Environment"\s*\);'
                         } else {
                             $content | Should -Match 'RequiredTestIsolation\s*=\s*Disabled\s*;' `
                                 -Because "$($file.Name) runs in a NAV Disabled-isolation path"
-                            $content | Should -Match 'LibraryGraphMgt\.EnsureAuthenticationAvailable\(\);' `
-                                -Because "$($file.Name) must preflight authentication"
+                            $content | Should -Match 'LibraryGraphMgt\.SetAuthenticationProvider\(\s*Enum::"API Test Authentication"::"Microsoft Test Environment"\s*\);' `
+                                -Because "$($file.Name) must select Microsoft test-environment authentication"
                             $content | Should -Match 'LibraryGraphMgt\.SetLicenseSafeWorkDate\(\);' `
                                 -Because "$($file.Name) must explicitly use a license-safe work date"
                             $content | Should -Not -Match 'LibraryERM\.SetWorkDate\(\);' `
@@ -450,6 +450,55 @@ Describe "ParallelTestExecution clean tenant scheduling" {
                 $expectedEnabledCodeunits = if ($apiVersion -eq 'APIV1') { 44 } else { 75 }
                 $enabledCodeunitCount | Should -Be $expectedEnabledCodeunits `
                     -Because "$apiVersion must match the union of NAV's web-service and typed test tasks"
+            }
+        }
+    }
+
+    Describe "API test authentication extensibility" {
+        BeforeAll {
+            $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
+            $testLibraryRoot = Join-Path $repoRoot 'src\Layers\W1\Tests\TestLibraries'
+            $script:authenticationInterface = Get-Content (Join-Path $testLibraryRoot 'APITestAuthProvider.Interface.al') -Raw
+            $script:authenticationEnum = Get-Content (Join-Path $testLibraryRoot 'APITestAuthentication.Enum.al') -Raw
+            $script:authenticationContext = Get-Content (Join-Path $testLibraryRoot 'APITestAuthContext.Codeunit.al') -Raw
+            $script:graphManagement = Get-Content (Join-Path $testLibraryRoot 'LibraryGraphMgt.Codeunit.al') -Raw
+            $script:microsoftProvider = Get-Content (Join-Path $testLibraryRoot 'MicrosoftTestAuthProvider.Codeunit.al') -Raw
+        }
+
+        It "exposes an extensible provider contract with a no-auth default" {
+            $script:authenticationInterface | Should -Match 'interface\s+"API Test Auth Provider"'
+            $script:authenticationInterface | Should -Match 'ConfigureAuthentication\(TargetURL:\s*Text;\s*var\s+Authentication:\s*Codeunit\s+"API Test Auth Context"\)'
+            $script:authenticationEnum | Should -Match 'Extensible\s*=\s*true\s*;'
+            $script:authenticationEnum | Should -Match 'DefaultImplementation\s*=\s*"API Test Auth Provider"\s*=\s*"No API Test Auth Provider"\s*;'
+            $script:authenticationEnum | Should -Match 'value\(1;\s*"Microsoft Test Environment"\)'
+            $script:authenticationEnum | Should -Not -Match 'UnknownValueImplementation'
+        }
+
+        It "keeps request mutation inside the authentication context" {
+            $script:authenticationContext | Should -Match 'procedure\s+SetBasicAuthentication\(UserName:\s*Text;\s*Password:\s*SecretText\)'
+            $script:authenticationContext | Should -Match 'HttpWebRequestMgt\.AddBasicAuthentication\(BasicUserName,\s*BasicPassword\)'
+            $script:microsoftProvider | Should -Not -Match 'HttpWebRequestMgt'
+            $script:microsoftProvider | Should -Match 'Authentication\.SetBasicAuthentication\(UserId\(\),\s*Password\)'
+        }
+
+        It "applies the selected provider after URL rewriting and before the final request event" {
+            $script:graphManagement | Should -Match 'AuthenticationProviderResolved:\s*Boolean\s*;'
+            $script:graphManagement | Should -Match 'HttpWebRequestMgt\.Initialize\(TargetURL\);\s*ApplyAuthentication\(HttpWebRequestMgt\);\s*OnAfterInitializeWebRequestWithURL\(HttpWebRequestMgt\);'
+            $script:graphManagement | Should -Match 'ConfigureAuthentication\(HttpWebRequestMgt\.GetUrl\(\),\s*AuthenticationContext\)'
+            $script:graphManagement | Should -Not -Match 'Microsoft Test Auth Provider'
+        }
+
+        It "selects Microsoft test authentication in every test codeunit that issues Graph requests" {
+            $candidateFiles = @(
+                & git -C $repoRoot grep -l 'Codeunit "Library - Graph Mgt"' -- '*.al'
+            )
+            foreach ($candidateFile in $candidateFiles) {
+                $content = Get-Content (Join-Path $repoRoot $candidateFile) -Raw
+                if (($content -match 'Subtype\s*=\s*Test\s*;') -and
+                    ($content -match '\.(GetFromWebService|PostToWebService|PatchToWebService|DeleteFromWebService|InitializeWebRequestWithURL|GetBinaryFromWebService)')) {
+                    $content | Should -Match 'SetAuthenticationProvider\(\s*Enum::"API Test Authentication"::"Microsoft Test Environment"\s*\);' `
+                        -Because "$candidateFile issues API requests"
+                }
             }
         }
     }

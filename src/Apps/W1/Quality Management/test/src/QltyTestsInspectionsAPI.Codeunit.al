@@ -22,7 +22,8 @@ codeunit 139972 "Qlty. Tests - Inspections API"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.EnsureAuthenticationAvailable();
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         // [FEATURE] [Quality Management] [API]
     end;
 

@@ -16,7 +16,8 @@ codeunit 148343 "Expense Activity Log API Test"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.EnsureAuthenticationAvailable();
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
 
     var
@@ -582,7 +583,6 @@ codeunit 148343 "Expense Activity Log API Test"
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Activity Log API Test");
         CleanupTestData();
-        LibraryGraphMgt.EnsureAuthenticationAvailable();
         if IsInitialized then
             exit;
 

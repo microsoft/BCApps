@@ -6,7 +6,8 @@ codeunit 139861 "APIV2JobQueueLogEntriesE2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.EnsureAuthenticationAvailable();
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [JobQueue] [JobQueueLogEntry]
     end;

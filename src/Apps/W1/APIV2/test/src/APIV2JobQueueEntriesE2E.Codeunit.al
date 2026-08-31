@@ -6,7 +6,8 @@ codeunit 139862 "APIV2JobQueueEntriesE2E"
 
     trigger OnRun()
     begin
-        LibraryGraphMgt.EnsureAuthenticationAvailable();
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [JobQueue] [JobQueueEntry]
         // This API only supports GET request and it is not editable.
