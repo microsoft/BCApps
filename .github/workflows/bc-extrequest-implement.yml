@@ -102,7 +102,7 @@ jobs:
       - name: Implement extensibility request
         env:
           COPILOT_GITHUB_TOKEN: ${{ github.token }}
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.EXT_REQ_PR_CREATE }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           ISSUE_URL: ${{ github.event.issue.html_url }}
           TELEMETRY_ENABLED: ${{ steps.telemetry-config.outputs.enabled == 'true' && steps.azure-login.outcome == 'success' }}
