@@ -137,6 +137,7 @@ page 99000888 "Work Center Load Lines"
     protected var
         WorkCenter: Record "Work Center";
         CapacityUoM: Code[10];
+        CapacityTimeFactor: Decimal;
 
     procedure SetLines(var NewWorkCenter: Record "Work Center"; NewPeriodType: Enum "Analysis Period Type"; NewAmountType: Enum "Analysis Amount Type")
     var
@@ -150,12 +151,19 @@ page 99000888 "Work Center Load Lines"
     end;
 
     procedure SetLines(var NewWorkCenter: Record "Work Center"; NewPeriodType: Enum "Analysis Period Type"; NewAmountType: Enum "Analysis Amount Type"; NewCapUoM: Code[10])
+    var
+        CalendarMgt: Codeunit "Shop Calendar Management";
     begin
         WorkCenter.Copy(NewWorkCenter);
         Rec.DeleteAll();
         PeriodType := NewPeriodType;
         AmountType := NewAmountType;
         CapacityUoM := NewCapUoM;
+
+        CapacityTimeFactor := 1;
+        if (CapacityUoM <> '') and (WorkCenter."Unit of Measure Code" <> '') then
+            CapacityTimeFactor := CalendarMgt.TimeFactor(WorkCenter."Unit of Measure Code") / CalendarMgt.TimeFactor(CapacityUoM);
+
         CurrPage.Update(false);
 
         OnAfterSetLines(WorkCenter, PeriodType, AmountType);
@@ -170,18 +178,9 @@ page 99000888 "Work Center Load Lines"
     end;
 
     local procedure CalcLine()
-    var
-        CalendarMgt: Codeunit "Shop Calendar Management";
-        CapacityTimeFactor: Decimal;
     begin
         SetDateFilter();
         WorkCenter.CalcFields("Capacity (Effective)", "Prod. Order Need (Qty.)");
-        if (CapacityUoM <> '') and (WorkCenter."Unit of Measure Code" <> '') then
-            CapacityTimeFactor :=
-                CalendarMgt.TimeFactor(WorkCenter."Unit of Measure Code") /
-                CalendarMgt.TimeFactor(CapacityUoM)
-        else
-            CapacityTimeFactor := 1;
         Rec.Capacity := WorkCenter."Capacity (Effective)" * CapacityTimeFactor;
         Rec."Allocated Qty." := WorkCenter."Prod. Order Need (Qty.)" * CapacityTimeFactor;
         Rec."Availability After Orders" := Rec.Capacity - Rec."Allocated Qty.";
@@ -190,11 +189,11 @@ page 99000888 "Work Center Load Lines"
         else
             Rec.Load := 0;
 
-        OnAfterCalcLine(WorkCenter, Rec);
+        OnAfterCalcLine(WorkCenter, Rec, CapacityUoM);
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterCalcLine(var WorkCenter: Record "Work Center"; var LoadBuffer: Record "Load Buffer")
+    local procedure OnAfterCalcLine(var WorkCenter: Record "Work Center"; var LoadBuffer: Record "Load Buffer"; CapacityUoM: Code[10])
     begin
     end;
 

@@ -95,9 +95,8 @@ page 99000889 "Machine Center Load"
         MfgSetup: Record "Manufacturing Setup";
         PeriodTypeOption: Option;
     begin
-        MfgSetup.Get();
-        MfgSetup.TestField("Show Capacity In");
-        CapacityUoM := MfgSetup."Show Capacity In";
+        if MfgSetup.Get() then
+            CapacityUoM := MfgSetup."Show Capacity In";
         PeriodTypeOption := PeriodType.AsInteger();
         OnBeforeOpenPage(PeriodTypeOption, AmountType);
         PeriodType := Enum::"Analysis Period Type".FromInteger(PeriodTypeOption);

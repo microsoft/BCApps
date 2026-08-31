@@ -6,9 +6,9 @@ namespace Microsoft.Manufacturing.WorkCenter;
 
 using Microsoft.Finance.Analysis;
 using Microsoft.Foundation.Enums;
-using System.Utilities;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Setup;
+using System.Utilities;
 
 page 99000769 "Work Center Calendar"
 {
@@ -126,9 +126,8 @@ page 99000769 "Work Center Calendar"
     var
         MfgSetup: Record "Manufacturing Setup";
     begin
-        MfgSetup.Get();
-        MfgSetup.TestField("Show Capacity In");
-        CapacityUoM := MfgSetup."Show Capacity In";
+        if MfgSetup.Get() then
+            CapacityUoM := MfgSetup."Show Capacity In";
         GenerateColumnCaptions(Enum::"Matrix Page Step Type"::Initial);
         MATRIX_UseNameForCaption := false;
         MATRIX_CurrentSetLenght := ArrayLen(MATRIX_CaptionSet);
