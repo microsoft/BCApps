@@ -14,11 +14,13 @@ pageextension 11315 PostedPurchaseInvoiceNL extends "Posted Purchase Invoice"
             {
                 ApplicationArea = Basic, Suite;
                 Editable = false;
+                    ToolTip = 'Specifies the transaction mode used in telebanking.';
             }
             field("Bank Account"; Rec."Bank Account")
             {
                 ApplicationArea = Basic, Suite;
                 Editable = false;
+                    ToolTip = 'Specifies the vendor''s bank account used for payments and collections through telebanking.';
             }
         }
     }

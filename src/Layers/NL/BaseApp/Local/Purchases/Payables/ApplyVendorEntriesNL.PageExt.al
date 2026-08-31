@@ -13,6 +13,7 @@ pageextension 11319 ApplyVendorEntriesNL extends "Apply Vendor Entries"
             field("Payments in Process"; Rec."Payments in Process")
             {
                 ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the total amount of payments/collections in process.';
             }
         }
     }

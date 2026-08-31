@@ -13,6 +13,7 @@ pageextension 11352 "Employee Card NL" extends "Employee Card"
             field("Transaction Mode Code"; Rec."Transaction Mode Code")
             {
                 ApplicationArea = BasicHR;
+                    ToolTip = 'Specifies the transaction mode used in telebanking.';
             }
         }
         addafter("Bank Account No.")
@@ -20,10 +21,12 @@ pageextension 11352 "Employee Card NL" extends "Employee Card"
             field("Bank Name"; Rec."Bank Name")
             {
                 ApplicationArea = BasicHR;
+                    ToolTip = 'Specifies the name of the bank where the employee has an account.';
             }
             field("Bank City"; Rec."Bank City")
             {
                 ApplicationArea = BasicHR;
+                    ToolTip = 'Specifies the city of the bank where the employee has an account.';
             }
         }
     }

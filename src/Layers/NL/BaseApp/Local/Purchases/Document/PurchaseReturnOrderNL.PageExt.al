@@ -13,10 +13,12 @@ pageextension 11312 PurchaseReturnOrderNL extends "Purchase Return Order"
             field("Transaction Mode Code"; Rec."Transaction Mode Code")
             {
                 ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the transaction mode used in telebanking.';
             }
             field("Bank Account Code"; Rec."Bank Account Code")
             {
                 ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the vendor''s bank account that is used for payments and collections through telebanking.';
             }
         }
     }

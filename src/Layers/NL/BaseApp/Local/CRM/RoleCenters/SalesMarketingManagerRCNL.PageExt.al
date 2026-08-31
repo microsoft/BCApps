@@ -16,6 +16,7 @@ pageextension 11364 "Sales Marketing Manager RC NL" extends "Sales & Marketing M
             {
                 ApplicationArea = Warehouse;
                 Caption = 'CMR - Sales Shipment';
+                Image = PrintReport;
                 RunObject = report "CMR - Sales Shipment";
                 Tooltip = 'Use this report to print a CMR document for a sales shipment. The CMR document is a standard consignment note used in international road transport. It contains information about the sender, recipient, and goods being transported, and serves as a contract of carriage between the parties involved.';
             }

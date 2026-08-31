@@ -18,6 +18,7 @@ pageextension 11356 "Acc. Payables Coord. RC NL" extends "Acc. Payables Coordina
             {
                 ApplicationArea = Advanced;
                 Caption = 'Telebanking';
+                Image = BankAccount;
                 RunObject = Page "Telebank - Bank Overview";
                 ToolTip = 'Prepare to exchange your payments to vendors and collections from customers with your bank electronically. This includes the export of payment and collection data that need to be forwarded to the bank as well as the import of bank statements sent to you by the bank.';
             }
@@ -25,6 +26,7 @@ pageextension 11356 "Acc. Payables Coord. RC NL" extends "Acc. Payables Coordina
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Telebank - Bank Overview';
+                Image = BankAccount;
                 RunObject = Page "Telebank - Bank Overview";
                 ToolTip = 'View a list of bank accounts that are set up for electronic bank file transfers.';
             }
@@ -35,6 +37,7 @@ pageextension 11356 "Acc. Payables Coord. RC NL" extends "Acc. Payables Coordina
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Bank/Giro Journals';
+                Image = Journals;
                 RunObject = Page "Bank/Giro Journal List";
                 RunPageView = where(Type = const("Bank/Giro"));
                 ToolTip = 'Reconcile a bank account by comparing incoming and outgoing bank transactions to a physical bank statement or by importing an electronic bank statement file, and apply the related payments to open customer or vendor documents.';
@@ -43,6 +46,7 @@ pageextension 11356 "Acc. Payables Coord. RC NL" extends "Acc. Payables Coordina
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Cash Journals';
+                Image = Journals;
                 RunObject = Page "Cash Journal List";
                 RunPageView = where(Type = const(Cash));
                 ToolTip = 'Post transactions to the cash account in the general ledger.';
@@ -54,6 +58,7 @@ pageextension 11356 "Acc. Payables Coord. RC NL" extends "Acc. Payables Coordina
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Bank/Giro Journal';
+                Image = Journals;
                 RunObject = Page "Bank/Giro Journal List";
                 ToolTip = 'Reconcile a bank account by comparing incoming and outgoing bank transactions to a physical bank statement or by importing an electronic bank statement file, and apply the related payments to open customer or vendor documents.';
             }
@@ -61,6 +66,7 @@ pageextension 11356 "Acc. Payables Coord. RC NL" extends "Acc. Payables Coordina
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Cash Journal';
+                Image = Journals;
                 RunObject = Page "Cash Journal List";
                 ToolTip = 'Post transactions to the cash account in the general ledger.';
             }

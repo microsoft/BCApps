@@ -16,7 +16,9 @@ pageextension 11322 "PurchasingMgrRoleCenterNL" extends "Purchasing Manager Role
             {
                 ApplicationArea = Suite;
                 Caption = 'CMR - Return Shipment';
+                Image = PrintReport;
                 RunObject = report "CMR - Return Shipment";
+                ToolTip = 'Run the CMR - Return Shipment report to print the CMR for purchase return shipments.';
             }
         }
     }

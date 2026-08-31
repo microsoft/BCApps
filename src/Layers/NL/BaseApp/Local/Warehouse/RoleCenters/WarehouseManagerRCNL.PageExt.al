@@ -16,6 +16,7 @@ pageextension 11389 "Warehouse Manager RC NL" extends "Warehouse Manager Role Ce
             {
                 ApplicationArea = Warehouse;
                 Caption = 'CMR - Transfer Shipment';
+                Image = PrintReport;
                 RunObject = report "CMR - Transfer Shipment";
                 ToolTip = 'Run the CMR - Transfer Shipment report to print the CMR for transfer shipments.';
             }

@@ -13,6 +13,7 @@ pageextension 11318 VendorLedgerEntriesNL extends "Vendor Ledger Entries"
             field("Payments in Process"; Rec."Payments in Process")
             {
                 ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the total amount of payments/collections in process.';
             }
         }
 
@@ -21,10 +22,12 @@ pageextension 11318 VendorLedgerEntriesNL extends "Vendor Ledger Entries"
             field("Transaction Mode Code"; Rec."Transaction Mode Code")
             {
                 ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the way a ledger entry can be paid or collected through telebanking.';
             }
             field("Recipient Bank Account"; Rec."Recipient Bank Account")
             {
                 ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the recipient bank account used for the payment.';
             }
         }
     }
