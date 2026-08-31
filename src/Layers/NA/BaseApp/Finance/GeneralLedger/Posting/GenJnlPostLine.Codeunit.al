@@ -4502,6 +4502,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         VATPostingSetup: Record "VAT Posting Setup";
         GLEntry: Record "G/L Entry";
         InvoicePartAmountByVAT: Decimal;
+        SettledAmountByVAT: Decimal;
         VATPart: Decimal;
         VATAmount: Decimal;
         VATBase: Decimal;
@@ -4525,7 +4526,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
         VATAmountFCY: Decimal;
         VATAmountCash: Decimal;
         VATBaseCash: Decimal;
+        ShouldPostGLEntries: Boolean;
     begin
+        ShouldPostGLEntries := not (
+            (GenJnlLine."Document Type" = GenJnlLine."Document Type"::"Credit Memo") and
+            (((CustLedgEntry2."Document Type" = CustLedgEntry2."Document Type"::Invoice) and ShouldConsiderVATPostingGrouping) or
+             (CustLedgEntry2."Document Type" = CustLedgEntry2."Document Type"::"Credit Memo")));
         PaidAmount := CustLedgEntry2."Amount (LCY)" - CustLedgEntry2."Remaining Amt. (LCY)";
         OnCustUnrealizedVATOnAfterCalcPaidAmount(GenJnlLine, CustLedgEntry2, SettledAmount, PaidAmount);
         VATEntry2.ReadIsolation := IsolationLevel::ReadUncommitted;
@@ -4558,14 +4564,15 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
                 if ShouldConsiderVATPostingGrouping then begin
                     InvoicePartAmountByVAT := CustLedgEntry2.GetInvoicePartAmountByVAT(CustLedgEntry2."Document Type", GenJnlLine, TempVATPostingSetup."VAT Bus. Posting Group", TempVATPostingSetup."VAT Prod. Posting Group");
+                    SettledAmountByVAT := CustLedgEntry2.GetCreditMemoPartAmountByVAT(GenJnlLine, TempVATPostingSetup."VAT Bus. Posting Group", TempVATPostingSetup."VAT Prod. Posting Group", SettledAmount);
                     VATPart :=
                         VATEntry2.GetUnrealizedVATPart(
-                        Round(SettledAmount / CustLedgEntry2.GetAdjustedCurrencyFactor()),
+                        Round(SettledAmountByVAT / CustLedgEntry2.GetAdjustedCurrencyFactor()),
                         PaidAmount,
                         InvoicePartAmountByVAT,
                         TotalUnrealVATAmountFirst,
                         TotalUnrealVATAmountLast,
-                        InvoicePartAmountByVAT);
+                        InvoicePartAmountByVAT)
                 end else
                     VATPart :=
                         VATEntry2.GetUnrealizedVATPart(
@@ -4661,54 +4668,57 @@ codeunit 12 "Gen. Jnl.-Post Line"
                         RealizedVATBase := -(VATBase - VATBaseCash);
                     end;
 
-                    IsHandled := false;
-                    OnCustUnrealizedVATOnBeforeInitGLEntryVAT(
-                      GenJnlLine, VATEntry2, VATAmount, VATBase, VATAmountAddCurr, VATBaseAddCurr, IsHandled, SalesVATUnrealAccount, CustLedgEntry2, SettledAmount);
-                    if not IsHandled then
-                        InitGLEntryVAT(
-                            GenJnlLine, SalesVATUnrealAccount, SalesVATAccount, -VATAmount, -VATAmountAddCurr, false);
 
-                    GLEntryNo :=
-                      InitGLEntryVATCopy(
-                        GenJnlLine, SalesVATAccount, SalesVATUnrealAccount,
-                        VATAmount + RealizedVATAmount, VATAmountAddCurr + RealizedVATAmountAddCurr, VATEntry2);
+                    if ShouldPostGLEntries then begin
+                        IsHandled := false;
+                        OnCustUnrealizedVATOnBeforeInitGLEntryVAT(
+                          GenJnlLine, VATEntry2, VATAmount, VATBase, VATAmountAddCurr, VATBaseAddCurr, IsHandled, SalesVATUnrealAccount, CustLedgEntry2, SettledAmount);
+                        if not IsHandled then
+                            InitGLEntryVAT(
+                                GenJnlLine, SalesVATUnrealAccount, SalesVATAccount, -VATAmount, -VATAmountAddCurr, false);
 
-                    if (GainLossLCY <> 0) and (CustLedgEntry2."Currency Code" <> '') and
-                       (VATPostingSetup."Unrealized VAT Type" = VATPostingSetup."Unrealized VAT Type"::"Cash Basis")
-                    then begin
-                        Currency.Get(CustLedgEntry2."Currency Code");
-                        case CustLedgEntry2."Document Type" of
-                            CustLedgEntry2."Document Type"::"Credit Memo":
-                                if GainLossLCY > 0 then begin
-                                    Currency.TestField("Realized Losses Acc.");
-                                    InitGLEntry(
-                                        GenJnlLine, GLEntry, Currency."Realized Losses Acc.", -RealizedVATAmount, 0, false, true,
-                                        CalcAmountSrcCurr(GenJnlLine, -RealizedVATAmount));
-                                    GLEntry."Additional-Currency Amount" := -RealizedVATAmountAddCurr;
-                                end else begin
-                                    Currency.TestField("Realized Gains Acc.");
-                                    InitGLEntry(
-                                        GenJnlLine, GLEntry, Currency."Realized Gains Acc.", -RealizedVATAmount, 0, false, true,
-                                        CalcAmountSrcCurr(GenJnlLine, -RealizedVATAmount));
-                                    GLEntry."Additional-Currency Amount" := -RealizedVATAmountAddCurr;
-                                end;
-                            else
-                                if GainLossLCY < 0 then begin
-                                    Currency.TestField("Realized Losses Acc.");
-                                    InitGLEntry(
-                                        GenJnlLine, GLEntry, Currency."Realized Losses Acc.", -RealizedVATAmount, 0, false, true,
-                                        CalcAmountSrcCurr(GenJnlLine, -RealizedVATAmount));
-                                    GLEntry."Additional-Currency Amount" := -RealizedVATAmountAddCurr;
-                                end else begin
-                                    Currency.TestField("Realized Gains Acc.");
-                                    InitGLEntry(
-                                        GenJnlLine, GLEntry, Currency."Realized Gains Acc.", -RealizedVATAmount, 0, false, true,
-                                        CalcAmountSrcCurr(GenJnlLine, -RealizedVATAmount));
-                                    GLEntry."Additional-Currency Amount" := -RealizedVATAmountAddCurr;
-                                end;
+                        GLEntryNo :=
+                          InitGLEntryVATCopy(
+                            GenJnlLine, SalesVATAccount, SalesVATUnrealAccount,
+                            VATAmount + RealizedVATAmount, VATAmountAddCurr + RealizedVATAmountAddCurr, VATEntry2);
+
+                        if (GainLossLCY <> 0) and (CustLedgEntry2."Currency Code" <> '') and
+                           (VATPostingSetup."Unrealized VAT Type" = VATPostingSetup."Unrealized VAT Type"::"Cash Basis")
+                        then begin
+                            Currency.Get(CustLedgEntry2."Currency Code");
+                            case CustLedgEntry2."Document Type" of
+                                CustLedgEntry2."Document Type"::"Credit Memo":
+                                    if GainLossLCY > 0 then begin
+                                        Currency.TestField("Realized Losses Acc.");
+                                        InitGLEntry(
+                                            GenJnlLine, GLEntry, Currency."Realized Losses Acc.", -RealizedVATAmount, 0, false, true,
+                                            CalcAmountSrcCurr(GenJnlLine, -RealizedVATAmount));
+                                        GLEntry."Additional-Currency Amount" := -RealizedVATAmountAddCurr;
+                                    end else begin
+                                        Currency.TestField("Realized Gains Acc.");
+                                        InitGLEntry(
+                                            GenJnlLine, GLEntry, Currency."Realized Gains Acc.", -RealizedVATAmount, 0, false, true,
+                                            CalcAmountSrcCurr(GenJnlLine, -RealizedVATAmount));
+                                        GLEntry."Additional-Currency Amount" := -RealizedVATAmountAddCurr;
+                                    end;
+                                else
+                                    if GainLossLCY < 0 then begin
+                                        Currency.TestField("Realized Losses Acc.");
+                                        InitGLEntry(
+                                            GenJnlLine, GLEntry, Currency."Realized Losses Acc.", -RealizedVATAmount, 0, false, true,
+                                            CalcAmountSrcCurr(GenJnlLine, -RealizedVATAmount));
+                                        GLEntry."Additional-Currency Amount" := -RealizedVATAmountAddCurr;
+                                    end else begin
+                                        Currency.TestField("Realized Gains Acc.");
+                                        InitGLEntry(
+                                            GenJnlLine, GLEntry, Currency."Realized Gains Acc.", -RealizedVATAmount, 0, false, true,
+                                            CalcAmountSrcCurr(GenJnlLine, -RealizedVATAmount));
+                                        GLEntry."Additional-Currency Amount" := -RealizedVATAmountAddCurr;
+                                    end;
+                            end;
+                            GLEntry.CopyPostingGroupsFromVATEntry(VATEntry2);
+                            SummarizeVAT(GLSetup."Summarize G/L Entries", GLEntry);
                         end;
-                        GLEntry.CopyPostingGroupsFromVATEntry(VATEntry2);
-                        SummarizeVAT(GLSetup."Summarize G/L Entries", GLEntry);
                     end;
 
                     OnCustUnrealizedVATOnBeforePostUnrealVATEntry(GenJnlLine, VATEntry2, VATAmount, VATBase, VATAmountAddCurr, VATBaseAddCurr, GLEntryNo, VATPart);
@@ -6260,7 +6270,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeInsertPostUnrealVATEntry(VATEntry, GenJnlLine, VATEntry2);
         VATEntry.Insert(true);
         OnPostUnrealVATEntryOnBeforeInsertLinkSelf(TempGLEntryVATEntryLink, VATEntry, GLEntryNo, NextVATEntryNo);
-        TempGLEntryVATEntryLink.InsertLinkSelf(GLEntryNo + 1, NextVATEntryNo);
+        if GLEntryNo <> 0 then
+            TempGLEntryVATEntryLink.InsertLinkSelf(GLEntryNo + 1, NextVATEntryNo);
         NextVATEntryNo := NextVATEntryNo + 1;
 
         VATEntry2."Remaining Unrealized Amount" :=
