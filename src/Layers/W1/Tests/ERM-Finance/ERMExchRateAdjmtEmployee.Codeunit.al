@@ -16,7 +16,7 @@ codeunit 134884 "ERM Exch. Rate Adjmt. Employee"
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         isInitialized: Boolean;
-        AmountMismatchErr: Label '%1 field must be %2 in %3 table for %4 field %5.';
+        AmountMismatchErr: Label '%1 field must be %2 in %3 table for %4 field %5.', Comment = '%1 = Field Caption, %2 = Expected Amount, %3 = Table Caption, %4 = Field Caption, %5 = Entry No.';
 
     [Test]
     [Scope('OnPrem')]
@@ -437,7 +437,9 @@ codeunit 134884 "ERM Exch. Rate Adjmt. Employee"
         DetailedEmployeeLedgEntry: Record "Detailed Employee Ledger Entry";
     begin
         Currency.Get(CurrencyCode);
+#pragma warning disable AA0210
         DetailedEmployeeLedgEntry.SetRange("Document No.", DocumentNo);
+#pragma warning restore AA0210
         DetailedEmployeeLedgEntry.SetRange("Entry Type", EntryType);
         DetailedEmployeeLedgEntry.FindFirst();
         DetailedEmployeeLedgEntry.TestField("Ledger Entry Amount", true);
@@ -454,8 +456,10 @@ codeunit 134884 "ERM Exch. Rate Adjmt. Employee"
         DetailedEmployeeLedgEntry: Record "Detailed Employee Ledger Entry";
         ExchRateAdjmtLedgEntry: Record "Exch. Rate Adjmt. Ledg. Entry";
     begin
+#pragma warning disable AA0210
         ExchRateAdjmtLedgEntry.SetRange("Account Type", AccountType);
         ExchRateAdjmtLedgEntry.SetRange("Account No.", AccountNo);
+#pragma warning restore AA0210
         ExchRateAdjmtLedgEntry.FindSet();
         repeat
             DetailedEmployeeLedgEntry.Get(ExchRateAdjmtLedgEntry."Detailed Ledger Entry No.");
