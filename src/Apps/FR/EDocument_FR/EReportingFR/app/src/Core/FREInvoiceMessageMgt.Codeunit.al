@@ -217,7 +217,7 @@ codeunit 10975 "FR E-Invoice Message Mgt."
             until VATEntry.Next() = 0;
 
         if (VATKeys.Count() = 0) or (EligibleGrossAmount = 0) or (TotalGrossAmount = 0) then
-            Error(VATBreakdownErr, EDocument."Document No.");
+            RaiseInternalError(StrSubstNo(VATBreakdownErr, EDocument."Document No."));
 
         FREInvoiceMessage.Amount := Round(
             FREInvoiceMessage.Amount * EligibleGrossAmount / TotalGrossAmount,
@@ -336,15 +336,10 @@ codeunit 10975 "FR E-Invoice Message Mgt."
     var
         OriginalMessageVAT: Record "FR E-Invoice Message VAT";
         ReversalMessageVAT: Record "FR E-Invoice Message VAT";
-        OriginalVATBreakdownErrorInfo: ErrorInfo;
     begin
         OriginalMessageVAT.SetRange("Message Entry No.", OriginalEntryNo);
-        if not OriginalMessageVAT.FindSet() then begin
-            OriginalVATBreakdownErrorInfo.ErrorType := ErrorType::Internal;
-            OriginalVATBreakdownErrorInfo.Message := StrSubstNo(OriginalVATBreakdownErr, OriginalEntryNo);
-            OriginalVATBreakdownErrorInfo.DataClassification := DataClassification::SystemMetadata;
-            Error(OriginalVATBreakdownErrorInfo);
-        end;
+        if not OriginalMessageVAT.FindSet() then
+            RaiseInternalError(StrSubstNo(OriginalVATBreakdownErr, OriginalEntryNo));
 
         repeat
             InsertVATBreakdown(
@@ -352,6 +347,16 @@ codeunit 10975 "FR E-Invoice Message Mgt."
                 OriginalMessageVAT."VAT %", OriginalMessageVAT."VAT Category Code",
                 -OriginalMessageVAT.Amount, OriginalMessageVAT."Currency Code");
         until OriginalMessageVAT.Next() = 0;
+    end;
+
+    local procedure RaiseInternalError(ErrorMessage: Text)
+    var
+        InternalErrorInfo: ErrorInfo;
+    begin
+        InternalErrorInfo.ErrorType := ErrorType::Internal;
+        InternalErrorInfo.Message := ErrorMessage;
+        InternalErrorInfo.DataClassification := DataClassification::SystemMetadata;
+        Error(InternalErrorInfo);
     end;
 
     local procedure InsertVATBreakdown(var FREInvoiceMessageVAT: Record "FR E-Invoice Message VAT"; MessageEntryNo: Integer; LineNo: Integer; VATRate: Decimal; VATCategoryCode: Text; Amount: Decimal; CurrencyCode: Code[10])

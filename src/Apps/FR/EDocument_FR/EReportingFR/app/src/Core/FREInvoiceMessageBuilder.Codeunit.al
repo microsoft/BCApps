@@ -81,7 +81,7 @@ codeunit 10976 "FR E-Invoice Message Builder"
                     AddVATBreakdown(ReferenceElement, FREInvoiceMessage);
                 end;
             else
-                Error(UnsupportedMessageTypeErr, FREInvoiceMessage.Type);
+                RaiseInternalError(StrSubstNo(UnsupportedMessageTypeErr, FREInvoiceMessage.Type));
         end;
         AcknowledgementElement.Add(ReferenceElement);
         RootElement.Add(AcknowledgementElement);
@@ -150,7 +150,7 @@ codeunit 10976 "FR E-Invoice Message Builder"
     begin
         FREInvoiceMessageVAT.SetRange("Message Entry No.", FREInvoiceMessage."Entry No.");
         if not FREInvoiceMessageVAT.FindSet() then
-            Error(VATBreakdownErr, FREInvoiceMessage."Entry No.");
+            RaiseInternalError(StrSubstNo(VATBreakdownErr, FREInvoiceMessage."Entry No."));
 
         CurrencyCode := ResolveCurrencyCode(FREInvoiceMessage."Currency Code");
         StatusElement := XmlElement.Create('SpecifiedDocumentStatus', RamNamespaceTok);
@@ -257,6 +257,16 @@ codeunit 10976 "FR E-Invoice Message Builder"
         GeneralLedgerSetup.Get();
         GeneralLedgerSetup.TestField("LCY Code");
         exit(GeneralLedgerSetup."LCY Code");
+    end;
+
+    local procedure RaiseInternalError(ErrorMessage: Text)
+    var
+        InternalErrorInfo: ErrorInfo;
+    begin
+        InternalErrorInfo.ErrorType := ErrorType::Internal;
+        InternalErrorInfo.Message := ErrorMessage;
+        InternalErrorInfo.DataClassification := DataClassification::SystemMetadata;
+        Error(InternalErrorInfo);
     end;
 
     var

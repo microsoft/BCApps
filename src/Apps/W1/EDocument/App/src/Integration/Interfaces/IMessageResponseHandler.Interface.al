@@ -22,6 +22,8 @@ interface IMessageResponseHandler
     /// <remarks>
     /// A completed response must set the context status to Sent. A response that is not ready must set it to Pending Response.
     /// Implementations must use MessageContext.GetMessageEntryNo() to correlate the external request.
+    /// The E-Document Core app does not provide connector endpoint, authentication, or response parsing behavior.
+    /// A connector or integration adapter must implement those transport-specific responsibilities.
     /// </remarks>
     procedure GetResponse(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; MessageContext: Codeunit "E-Doc. Message Context"): Boolean;
 }
