@@ -68,7 +68,7 @@
 /src/Layers/*/BaseApp/OtherCapabilities/ @microsoft/d365-bc-integrations
 /src/Layers/*/BaseApp/Permissions/ @microsoft/d365-bc-integrations
 /src/Layers/*/BaseApp/Pricing/ @microsoft/d365-bc-scm
-/src/Layers/*/BaseApp/Projects/ @microsoft/d365-bc-finance-1
+/src/Layers/*/BaseApp/Projects/ @microsoft/d365-bc-scm
 /src/Layers/*/BaseApp/Purchases/ @microsoft/d365-bc-scm
 /src/Layers/*/BaseApp/RoleCenters/ @microsoft/d365-bc-integrations
 /src/Layers/*/BaseApp/Sales/ @microsoft/d365-bc-scm
