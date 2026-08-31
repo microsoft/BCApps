@@ -1464,15 +1464,16 @@ codeunit 148148 "Factur-X CII XML Tests"
     end;
 
     [Test]
-    procedure FacturXCheckAcceptsNonemptyBuyerElectronicAddress()
+    procedure FacturXCheckRaisesErrorWhenBuyerElectronicAddressIsMalformed()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         Customer: Record Customer;
+        EDocHelpers: Codeunit "EDoc. Helpers";
         SourceDocumentHeader: RecordRef;
         CustomerNo: Code[20];
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO] Factur-X Format Check accepts a nonempty buyer electronic address
+        // [SCENARIO] Factur-X Format Check raises error when buyer electronic address does not match SIREN format
         Initialize();
 
         // [GIVEN] Customer "C" with malformed FR Electronic Address (non-digit prefix)
@@ -1487,8 +1488,11 @@ codeunit 148148 "Factur-X CII XML Tests"
         SourceDocumentHeader.GetTable(SalesInvoiceHeader);
 
         // [WHEN] Factur-X Format Check is called
-        // [THEN] No error is raised
-        CheckFacturX(SourceDocumentHeader);
+        asserterror CheckFacturX(SourceDocumentHeader);
+
+        // [THEN] Error about malformed buyer identifier is raised
+        AssertExpectedDialogError(EDocHelpers.GetBuyerElectronicAddressInvalidError(
+            Customer.FieldCaption("FR Electronic Address"), CustomerNo));
     end;
 
     [Test]

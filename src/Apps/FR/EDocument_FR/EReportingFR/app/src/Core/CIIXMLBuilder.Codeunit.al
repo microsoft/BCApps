@@ -78,7 +78,7 @@ codeunit 10978 "CII XML Builder"
         ContextElement := XmlElement.Create('ExchangedDocumentContext', RsmNamespaceTok);
 
         BusinessProcessElement := XmlElement.Create('BusinessProcessSpecifiedDocumentContextParameter', RamNamespaceTok);
-        IdElement := XmlElement.Create('ID', RamNamespaceTok, GetBillingMode(SourceDocumentLines));
+        IdElement := XmlElement.Create('ID', RamNamespaceTok, PeppolBIS30FRFormat.GetFrenchBillingMode(SourceDocumentLines));
         BusinessProcessElement.Add(IdElement);
         ContextElement.Add(BusinessProcessElement);
 
@@ -293,10 +293,7 @@ codeunit 10978 "CII XML Builder"
         VATRegistrationNo := GetHeaderFieldText(SourceDocumentHeader, 'VAT Registration No.', '');
 
         if VATRegistrationNo <> '' then
-            AddVATRegistration(
-                BuyerElement,
-                NormalizeBuyerVATRegistrationNo(
-                    VATRegistrationNo, GetHeaderFieldText(SourceDocumentHeader, 'Sell-to Country/Region Code', 'Country/Region Code')));
+            AddVATRegistration(BuyerElement, GetVATRegistrationNoWithCountryPrefix(VATRegistrationNo, BuyerCountryCode));
 
         AgreementElement.Add(BuyerElement);
     end;
