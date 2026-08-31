@@ -11096,7 +11096,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
             if GenJnlLine."Source Curr. VAT Base Amount" <> 0 then
                 exit(GenJnlLine."Source Curr. VAT Base Amount" + CalcAmountSrcCurr(GenJnlLine, WHTAmountLCY))
             else
-                exit(GenJnlLine."Source Currency Amount" + CalcAmountSrcCurr(GenJnlLine, WHTAmountLCY));
+                exit(GenJnlLine."Source Currency Amount");
         end else
             if (GenJnlLine."Source Currency amount" <> (GenJnlLine.Amount - WHTAmountLCY)) and (GenJnlLine."Source Currency Amount" <> 0) then
                 exit(GenJnlLine."Source Currency amount")
