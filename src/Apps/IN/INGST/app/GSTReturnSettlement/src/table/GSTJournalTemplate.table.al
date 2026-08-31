@@ -79,7 +79,9 @@ table 18323 "GST Journal Template"
             TableRelation = "Reason Code";
             DataClassification = CustomerContent;
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(7; "Page Name"; Text[80])
+#pragma warning restore AL0685
         {
             CalcFormula = Lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Page), "Object ID" = field("Page ID")));
             Caption = 'Page Name';
