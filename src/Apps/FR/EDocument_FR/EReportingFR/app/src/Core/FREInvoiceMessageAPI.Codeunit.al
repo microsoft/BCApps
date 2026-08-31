@@ -16,6 +16,8 @@ codeunit 10987 "FR E-Invoice Message API"
 
     /// <summary>
     /// Receives, validates, and stores a French invoice lifecycle message from an E-Document service.
+    /// This is the supported production entry point for connector implementations and integration adapter apps.
+    /// The connector supplies its external document and message identifiers; this app owns French parsing and history.
     /// </summary>
     /// <param name="ServiceCode">The E-Document service that received the message.</param>
     /// <param name="ExternalDocumentID">The service-specific identifier registered for the parent E-Document.</param>

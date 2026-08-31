@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Message;
 
+using System.Telemetry;
 using System.Threading;
 
 codeunit 6539 "E-Doc. Message Response Job"
@@ -18,6 +19,8 @@ codeunit 6539 "E-Doc. Message Response Job"
         EDocumentMessage: Record "E-Document Message";
         LastErrorInfo: ErrorInfo;
         LastErrorText: Text;
+        Telemetry: Codeunit Telemetry;
+        TelemetryDimensions: Dictionary of [Text, Text];
     begin
         EDocumentMessage.Get(Rec."Record ID to Process");
         if TryPollMessageResponse(EDocumentMessage."Entry No.") then
@@ -31,6 +34,12 @@ codeunit 6539 "E-Doc. Message Response Job"
         EDocumentMessage."Retry Count" += 1;
         EDocumentMessage."Last Error" := CopyStr(LastErrorText, 1, MaxStrLen(EDocumentMessage."Last Error"));
         EDocumentMessage.Modify();
+        TelemetryDimensions.Add('Message Entry No.', Format(EDocumentMessage."Entry No."));
+        TelemetryDimensions.Add('Message Type', Format(EDocumentMessage."Message Type"));
+        TelemetryDimensions.Add('Service', EDocumentMessage.Service);
+        TelemetryDimensions.Add('Retry Count', Format(EDocumentMessage."Retry Count"));
+        TelemetryDimensions.Add('Job Queue Entry ID', Format(Rec.ID));
+        Telemetry.LogMessage('0000LC8', MessageResponseFailureTelemetryLbl, Verbosity::Error, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::All, TelemetryDimensions);
         Commit();
         Error(LastErrorInfo);
     end;
@@ -42,4 +51,7 @@ codeunit 6539 "E-Doc. Message Response Job"
     begin
         EDocMessageMgt.PollMessageResponse(MessageEntryNo);
     end;
+
+    var
+        MessageResponseFailureTelemetryLbl: Label 'E-Document child message response polling failed', Locked = true;
 }
