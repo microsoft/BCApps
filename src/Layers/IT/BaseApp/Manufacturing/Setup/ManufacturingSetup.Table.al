@@ -387,16 +387,32 @@ table 99000765 "Manufacturing Setup"
         field(12180; "Subcontr. Ship. Reason Code"; Code[10])
         {
             Caption = 'Subcontr. Ship. Reason Code';
+#if not CLEAN28
+            TableRelation = Microsoft.Inventory.Setup."Transport Reason Code";
+#endif
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
+#if not CLEAN28
+            ObsoleteState = Pending;
+            ObsoleteTag = '27.0';
+#else
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
+#endif
         }
         field(12181; "Subcontr. Return Reason Code"; Code[10])
         {
             Caption = 'Subcontr. Return Reason Code';
+#if not CLEAN28
+            TableRelation = Microsoft.Inventory.Setup."Transport Reason Code";
+#endif
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
+#if not CLEAN28
+            ObsoleteState = Pending;
+            ObsoleteTag = '27.0';
+#else
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
+#endif
         }
 #endif
     }
