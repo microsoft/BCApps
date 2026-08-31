@@ -18,12 +18,10 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.Customer;
-using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
 using System.Email;
 using System.Globalization;
-using System.Text;
 using System.Utilities;
 
 report 117 Reminder
@@ -689,52 +687,9 @@ report 117 Reminder
 
                     trigger OnPreDataItem()
                     var
-                        FinanceChargeTerms: Record "Finance Charge Terms";
-                        ReminderEmailText: Record "Reminder Email Text";
-                        AutoFormat: Codeunit "Auto Format";
                         ReminderCommunication: Codeunit "Reminder Communication";
-                        AutoFormatType: Enum "Auto Format";
-                        EmailTextInStream: InStream;
-                        EmailTextLine: Text;
                     begin
-                        if ReminderCommunication.NewReminderCommunicationEnabled() then
-                            ReminderCommunication.PopulateEmailText("Issued Reminder Header", CompanyInfo, GreetingTxt, AmtDueTxt, BodyTxt, ClosingTxt, DescriptionTxt, NNC_TotalInclVAT)
-                        else begin
-                            AmtDueTxt := '';
-                            BodyTxt := '';
-                            GreetingTxt := ReminderEmailText.GetDefaultGreetingLbl();
-                            ClosingTxt := ReminderEmailText.GetDefaultClosingLbl();
-                            DescriptionTxt := ReminderEmailText.GetDescriptionLbl();
-                            if Format("Issued Reminder Header"."Due Date") <> '' then
-                                AmtDueTxt := StrSubstNo(ReminderEmailText.GetAmtDueLbl(), "Issued Reminder Header"."Due Date");
-
-                            if GetEmailTextInStream(EmailTextInStream, "Issued Reminder Header") then begin
-                                AmtDueTxt := '';
-                                BodyTxt := '';
-                                if "Issued Reminder Header"."Fin. Charge Terms Code" <> '' then
-                                    FinanceChargeTerms.Get("Issued Reminder Header"."Fin. Charge Terms Code");
-
-                                while EmailTextInStream.ReadText(EmailTextLine) > 0 do
-                                    BodyTxt += EmailTextLine;
-
-                                BodyTxt := StrSubstNo(
-                                    BodyTxt,
-                                    "Issued Reminder Header"."Document Date",
-                                    "Issued Reminder Header"."Due Date",
-                                    FinanceChargeTerms."Interest Rate",
-                                    Format("Issued Reminder Header"."Remaining Amount", 0,
-                                        AutoFormat.ResolveAutoFormat(AutoFormatType::AmountFormat, "Issued Reminder Header"."Currency Code")),
-                                    "Issued Reminder Header"."Interest Amount",
-                                    "Issued Reminder Header"."Additional Fee",
-                                    Format(NNC_TotalInclVAT, 0, AutoFormat.ResolveAutoFormat(AutoFormatType::AmountFormat, "Issued Reminder Header"."Currency Code")),
-                                    "Issued Reminder Header"."Reminder Level",
-                                    "Issued Reminder Header"."Currency Code",
-                                    "Issued Reminder Header"."Posting Date",
-                                    CompanyInfo.Name,
-                                    "Issued Reminder Header"."Add. Fee per Line");
-                            end else
-                                BodyTxt := ReminderEmailText.GetBodyLbl();
-                        end;
+                        ReminderCommunication.PopulateEmailText("Issued Reminder Header", CompanyInfo, GreetingTxt, AmtDueTxt, BodyTxt, ClosingTxt, DescriptionTxt, NNC_TotalInclVAT);
                         OnLetterTextOnPreDataItemOnAfterSetAmtDueTxt("Issued Reminder Header", AmtDueTxt, GreetingTxt, BodyTxt, ClosingTxt, DescriptionTxt);
                     end;
                 }
@@ -949,37 +904,6 @@ report 117 Reminder
                       8, "Issued Reminder Header"."No.", 0, 0, DATABASE::Customer, "Issued Reminder Header"."Customer No.",
                       '', '', "Issued Reminder Header".GetLogInteractionDescription(), '');
                 until "Issued Reminder Header".Next() = 0;
-    end;
-
-    local procedure GetEmailTextInStream(var EmailTextInStream: InStream; var IssuedReminderHeader: Record "Issued Reminder Header"): Boolean
-    var
-        ReminderText: Record "Reminder Text";
-        ReminderTextPosition: Enum "Reminder Text Position";
-    begin
-        IssuedReminderHeader.CalcFields("Email Text");
-        ReminderText.SetAutoCalcFields("Email Text");
-
-        // if there is email text on the reminder, prepare to read it                       
-        if IssuedReminderHeader."Email Text".HasValue() then begin
-            IssuedReminderHeader."Email Text".CreateInStream(EmailTextInStream);
-            exit(true);
-        end;
-
-        // otherwise, if there is email text on the reminder level, prepare to read it                       
-        if ReminderText.Get(IssuedReminderHeader."Reminder Terms Code", IssuedReminderHeader."Reminder Level", ReminderTextPosition::"Email Body", 0) then
-            if ReminderText."Email Text".HasValue() then begin
-                ReminderText."Email Text".CreateInStream(EmailTextInstream);
-                exit(true);
-            end;
-
-        // otherwise, if there is email text on the reminder terms, prepare to read it                       
-        if ReminderText.Get(IssuedReminderHeader."Reminder Terms Code", 0, ReminderTextPosition::"Email Body", 0) then
-            if ReminderText."Email Text".HasValue() then begin
-                ReminderText."Email Text".CreateInStream(EmailTextInstream);
-                exit(true)
-            end;
-
-        exit(false)
     end;
 
     var
