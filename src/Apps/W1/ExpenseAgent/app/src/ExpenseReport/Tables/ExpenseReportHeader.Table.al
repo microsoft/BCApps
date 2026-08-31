@@ -896,6 +896,15 @@ table 6906 "Expense Report Header"
     end;
 
     /// <summary>
+    /// Releases and marks as pending approval in a single atomic operation.
+    /// </summary>
+    /// <param name="SubmitterExpenseUserNo">The expense user number of the submitter.</param>
+    procedure PerformManualReleaseAndPendingApproval(SubmitterExpenseUserNo: Code[20])
+    begin
+        PerformManualReleaseAndPendingApproval(SubmitterExpenseUserNo, '');
+    end;
+
+    /// <summary>
     /// Releases and submits an expense report with an optional submitter comment.
     /// </summary>
     /// <param name="SubmitterExpenseUserNo">The expense user number of the submitter.</param>

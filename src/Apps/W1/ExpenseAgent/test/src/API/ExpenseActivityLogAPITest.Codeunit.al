@@ -396,6 +396,10 @@ codeunit 148343 "Expense Activity Log API Test"
             ExpenseReportHeader.SystemId, SubmitWithCommentActionTok,
             CreateSubmitWithCommentRequestBody(SubmitterExpenseUser."No.", 'E2E submitter response ' + RunToken));
         ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+
+        // [THEN] The report API exposes the latest submitter response.
+        VerifyReportSubmitterComment(ExpenseReportHeader.SystemId, 'E2E submitter response ' + RunToken);
+
         InvokeReportAction(
             ExpenseReportHeader.SystemId, ApproveActionTok,
             CreateActorRequestBody('approverExpenseUserNo', ApproverExpenseUser."No."));
@@ -545,6 +549,20 @@ codeunit 148343 "Expense Activity Log API Test"
             0,
             StrPos(LowerCase(ResponseText), LowerCase(Format(ExpectedEventType))),
             'The report activity response does not contain the expected event type.');
+    end;
+
+    local procedure VerifyReportSubmitterComment(ReportSystemID: Guid; ExpectedComment: Text)
+    var
+        ResponseText: Text;
+        TargetURL: Text;
+    begin
+        TargetURL := LibraryGraphMgt.CreateTargetURL(
+            Format(ReportSystemID), Page::"Expense Reports API", ExpenseReportsServiceNameTok);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+        Assert.AreNotEqual(
+            0,
+            StrPos(ResponseText, StrSubstNo('"submitterComment":"%1"', ExpectedComment)),
+            'The expense report API response must contain the latest submitter comment.');
     end;
 
     local procedure VerifyUserHistory(ExpenseUserSystemID: Guid; HistoryRole: Text; SubjectSystemID: Guid)
