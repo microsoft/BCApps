@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -1763,7 +1763,9 @@ table 23 Vendor
                 end;
             end;
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(12404; "Customer Name"; Text[50])
+#pragma warning restore AL0685
         {
             CalcFormula = lookup(Customer.Name where("No." = field("Customer No.")));
             Caption = 'Customer Name';

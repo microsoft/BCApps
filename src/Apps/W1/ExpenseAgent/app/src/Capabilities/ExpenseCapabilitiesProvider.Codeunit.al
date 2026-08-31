@@ -32,6 +32,12 @@ codeunit 6906 "Expense Capabilities Provider"
                 exit(IsConsolidatedProjectsEnabled());
             Capability::VATSpecifications:
                 exit(IsVATSpecificationsEnabled());
+            Capability::ActivityLog:
+                exit(true);
+            Capability::AiAssistedPolicyEvaluation:
+                exit(IsAiAssistedPolicyEvaluationEnabled());
+            Capability::MileageRateSetup:
+                exit(true);
         end;
         exit(false);
     end;
@@ -62,6 +68,14 @@ codeunit 6906 "Expense Capabilities Provider"
         if not ExpenseAgentSetup.Get() then
             exit(false);
         exit(ExpenseAgentSetup."Allow VAT Reclaim");
+    end;
+
+    local procedure IsAiAssistedPolicyEvaluationEnabled(): Boolean
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        ExpenseAgentSetup.GetRecordOnce();
+        exit(ExpenseAgentSetup."Evaluate Policies");
     end;
 
     /// <summary>

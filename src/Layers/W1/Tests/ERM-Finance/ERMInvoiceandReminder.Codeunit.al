@@ -3,8 +3,7 @@ codeunit 134907 "ERM Invoice and Reminder"
     Permissions = TableData "Issued Reminder Header" = rimd,
                   TableData "Issued Reminder Line" = rimd,
                   TableData "Cust. Ledger Entry" = rimd,
-                  TableData "Detailed Cust. Ledg. Entry" = rimd,
-                  TableData "Feature Data Update Status" = rimd;
+                  TableData "Detailed Cust. Ledg. Entry" = rimd;
     Subtype = Test;
     TestPermissions = NonRestrictive;
 
@@ -877,22 +876,10 @@ codeunit 134907 "ERM Invoice and Reminder"
 
     local procedure Initialize()
     var
-        FeatureKey: Record "Feature Key";
-        FeatureKeyUpdateStatus: Record "Feature Data Update Status";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"ERM Invoice and Reminder");
         LibrarySetupStorage.Restore();
-        if FeatureKey.Get('ReminderTermsCommunicationTexts') then begin
-            FeatureKey.Enabled := FeatureKey.Enabled::None;
-            FeatureKey.Modify();
-            Commit();
-        end;
-        if FeatureKeyUpdateStatus.Get('ReminderTermsCommunicationTexts', CompanyName()) then begin
-            FeatureKeyUpdateStatus."Feature Status" := FeatureKeyUpdateStatus."Feature Status"::Disabled;
-            FeatureKeyUpdateStatus.Modify();
-            Commit();
-        end;
         // Lazy Setup.
         if IsInitialized then
             exit;
@@ -1460,4 +1447,3 @@ codeunit 134907 "ERM Invoice and Reminder"
         Languages.OK().Invoke();
     end;
 }
-

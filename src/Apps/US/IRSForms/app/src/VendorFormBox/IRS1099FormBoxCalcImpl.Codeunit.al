@@ -66,7 +66,7 @@ codeunit 10041 "IRS 1099 Form Box Calc. Impl." implements "IRS 1099 Form Box Cal
         PmtVendLedgEntry: Record "Vendor Ledger Entry";
         TempInteger: Record "Integer" temporary;
     begin
-        FilterPaymentVendorLedgerEntries(PmtVendLedgEntry, IRSReportingPeriod);
+        FilterPaymentVendorLedgerEntries(PmtVendLedgEntry, IRSReportingPeriod, VendorNo);
         if PmtVendLedgEntry.FindSet() then
             repeat
                 GetAppliedVendorEntriesFromtPmtEntry(IRS1099VendEntryBuffer, TempIRS1099Form, TempInteger, PmtVendLedgEntry, VendorNo);
@@ -92,12 +92,14 @@ codeunit 10041 "IRS 1099 Form Box Calc. Impl." implements "IRS 1099 Form Box Cal
             until PmtDtldVendLedgEntry.Next() = 0;
     end;
 
-    local procedure FilterPaymentVendorLedgerEntries(var VendLedgEntry: Record "Vendor Ledger Entry"; IRSReportingPeriod: Record "IRS Reporting Period")
+    local procedure FilterPaymentVendorLedgerEntries(var VendLedgEntry: Record "Vendor Ledger Entry"; IRSReportingPeriod: Record "IRS Reporting Period"; VendorNo: Code[20])
     begin
         VendLedgEntry.SetCurrentKey("Document Type", "Vendor No.", "Posting Date");
         VendLedgEntry.SetLoadFields("Document Type", "Vendor No.", "Posting Date", "Closed by Entry No.");
         VendLedgEntry.SetFilter("Document Type", '%1|%2', VendLedgEntry."Document Type"::Payment, VendLedgEntry."Document Type"::Refund);
         VendLedgEntry.SetRange("Posting Date", IRSReportingPeriod."Starting Date", IRSReportingPeriod."Ending Date");
+        if VendorNo <> '' then
+            VendLedgEntry.SetRange("Vendor No.", VendorNo);
     end;
 
     local procedure FilterApplicationDetailedVendorLedgerEntries(var DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry"; VendLedgEntry: Record "Vendor Ledger Entry")
@@ -111,7 +113,7 @@ codeunit 10041 "IRS 1099 Form Box Calc. Impl." implements "IRS 1099 Form Box Cal
 
     local procedure FindRelatedApplicationDetailedVendorLedgerEntries(var DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry"; VendLedgEntry: Record "Vendor Ledger Entry"; RelatedDtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry")
     begin
-        DtldVendLedgEntry.SetCurrentKey("Vendor Ledger Entry No.", "Entry Type");
+        DtldVendLedgEntry.SetCurrentKey("Application No.", "Vendor No.", "Entry Type");
         DtldVendLedgEntry.SetLoadFields("Vendor Ledger Entry No.", "Entry Type", "Vendor No.", "Transaction No.", "Application No.", Amount, "Amount (LCY)");
         DtldVendLedgEntry.SetFilter("Vendor Ledger Entry No.", '<>%1', VendLedgEntry."Entry No.");
         DtldVendLedgEntry.SetRange("Entry Type", DtldVendLedgEntry."Entry Type"::Application);
