@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Message;
 
+using System.Telemetry;
 using System.Threading;
 
 codeunit 6535 "E-Doc. Message Send Job"
@@ -18,6 +19,8 @@ codeunit 6535 "E-Doc. Message Send Job"
         EDocumentMessage: Record "E-Document Message";
         LastErrorInfo: ErrorInfo;
         LastErrorText: Text;
+        Telemetry: Codeunit Telemetry;
+        TelemetryDimensions: Dictionary of [Text, Text];
     begin
         EDocumentMessage.Get(Rec."Record ID to Process");
         if Codeunit.Run(Codeunit::"E-Doc. Message Send Runner", EDocumentMessage) then
@@ -31,7 +34,16 @@ codeunit 6535 "E-Doc. Message Send Job"
         EDocumentMessage."Retry Count" += 1;
         EDocumentMessage."Last Error" := CopyStr(LastErrorText, 1, MaxStrLen(EDocumentMessage."Last Error"));
         EDocumentMessage.Modify();
+        TelemetryDimensions.Add('Message Entry No.', Format(EDocumentMessage."Entry No."));
+        TelemetryDimensions.Add('Message Type', Format(EDocumentMessage."Message Type"));
+        TelemetryDimensions.Add('Service', EDocumentMessage.Service);
+        TelemetryDimensions.Add('Retry Count', Format(EDocumentMessage."Retry Count"));
+        TelemetryDimensions.Add('Job Queue Entry ID', Format(Rec.ID));
+        Telemetry.LogMessage('0000LC7', MessageSendFailureTelemetryLbl, Verbosity::Error, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::All, TelemetryDimensions);
         Commit();
         Error(LastErrorInfo);
     end;
+
+    var
+        MessageSendFailureTelemetryLbl: Label 'E-Document child message send failed', Locked = true;
 }

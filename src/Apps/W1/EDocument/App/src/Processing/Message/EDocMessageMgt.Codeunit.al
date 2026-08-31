@@ -148,7 +148,7 @@ codeunit 6433 "E-Doc. Message Mgt."
             EDocumentLog.InsertIntegrationLog(
                 EDocument, EDocumentService, EDocMessageContext.Http().GetHttpRequestMessage(), EDocMessageContext.Http().GetHttpResponseMessage());
             Commit();
-            ConnectorErrorInfo.Message := StrSubstNo(MessageSendingErr, MessageEntryNo);
+            ConnectorErrorInfo.DetailedMessage := StrSubstNo(MessageSendingErr, MessageEntryNo);
             ConnectorErrorInfo.DataClassification := DataClassification::SystemMetadata;
             Error(ConnectorErrorInfo);
         end;
@@ -205,7 +205,7 @@ codeunit 6433 "E-Doc. Message Mgt."
             EDocumentLog.InsertIntegrationLog(
                 EDocument, EDocumentService, EDocMessageContext.Http().GetHttpRequestMessage(), EDocMessageContext.Http().GetHttpResponseMessage());
             Commit();
-            ConnectorErrorInfo.Message := StrSubstNo(MessageResponseErr, MessageEntryNo);
+            ConnectorErrorInfo.DetailedMessage := StrSubstNo(MessageResponseErr, MessageEntryNo);
             ConnectorErrorInfo.DataClassification := DataClassification::SystemMetadata;
             Error(ConnectorErrorInfo);
         end;
