@@ -45,9 +45,9 @@ codeunit 137293 "SCM Inventory Miscellaneous"
         WrongNumberOfOrdersToPrintErr: Label 'Wrong number of transfer orders to print';
         CurrentSaveValuesId: Integer;
         AvailableQtyToPickMsg: Label 'AvailableQtyToPick returned wrong value.';
-        ErrorDifferentQtyToHandle: Label 'Quantity to Handle on pick worksheet line different from expected.';
-        ErrorDifferentQty: Label 'Quantity on pick worksheet line different from expected.';
-        ErrorDifferentAvailQty: Label 'Quantity Available to Pick on pick worksheet line different from expected.';
+        ErrorDifferentQtyToHandleErr: Label 'Quantity to Handle on pick worksheet line different from expected.';
+        ErrorDifferentQtyErr: Label 'Quantity on pick worksheet line different from expected.';
+        ErrorDifferentAvailQtyErr: Label 'Quantity Available to Pick on pick worksheet line different from expected.';
 
     [Test]
     [Scope('OnPrem')]
@@ -2290,14 +2290,14 @@ codeunit 137293 "SCM Inventory Miscellaneous"
     var
         PurchaseHeader: Record "Purchase Header";
         Vendor: Record Vendor;
-        LibraryPurchase: Codeunit "Library - Purchase";
+        LocalLibraryPurchase: Codeunit "Library - Purchase";
     begin
-        LibraryPurchase.CreateVendor(Vendor);
-        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
-        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, ItemNo, Quantity);  // Integer value is required for Quantity.
+        LocalLibraryPurchase.CreateVendor(Vendor);
+        LocalLibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LocalLibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, ItemNo, Quantity);  // Integer value is required for Quantity.
         PurchaseLine.Validate("Location Code", LocationCode);
         PurchaseLine.Modify(true);
-        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        LocalLibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
     end;
 
     local procedure CreateAndReleaseSalesOrder(var SalesLine: Record "Sales Line"; CustomerNo: Code[20]; ItemNo: Code[20]; LocationCode: Code[10]; Quantity: Decimal)
@@ -3112,8 +3112,7 @@ codeunit 137293 "SCM Inventory Miscellaneous"
 
                 if QtyToRegister <> 0 then
                     RegisterWhseActivity(
-                      WhseActivityLine."Activity Type"::Pick, 37,
-                      WhseActivityLine."Source Document"::"Sales Order", SalesHeader."No.", QtyToRegister, '', '');
+                      WhseActivityLine."Activity Type"::Pick, 37, SalesHeader."No.", QtyToRegister, '', '');
             end;
         end;
 
@@ -3139,9 +3138,9 @@ codeunit 137293 "SCM Inventory Miscellaneous"
     begin
         WhseWorksheetLine.SetRange("Line No.", LineNo);
         WhseWorksheetLine.FindFirst();
-        Assert.AreEqual(Qty, WhseWorksheetLine.Quantity, ErrorDifferentQty);
-        Assert.AreEqual(QtyToHandle, WhseWorksheetLine."Qty. to Handle", ErrorDifferentQtyToHandle);
-        Assert.AreEqual(QtyAvailToPick, WhseWorksheetLine.AvailableQtyToPick(), ErrorDifferentAvailQty);
+        Assert.AreEqual(Qty, WhseWorksheetLine.Quantity, ErrorDifferentQtyErr);
+        Assert.AreEqual(QtyToHandle, WhseWorksheetLine."Qty. to Handle", ErrorDifferentQtyToHandleErr);
+        Assert.AreEqual(QtyAvailToPick, WhseWorksheetLine.AvailableQtyToPick(), ErrorDifferentAvailQtyErr);
     end;
 
     local procedure CreateAndPostItemJournalLine(ItemNo: Code[20]; Quantity: Decimal; LocationCode: Code[10]; BinCode: Code[20])
@@ -3217,7 +3216,7 @@ codeunit 137293 "SCM Inventory Miscellaneous"
         Location.Modify(true);
     end;
 
-    local procedure RegisterWhseActivity(ActivityType: Enum "Warehouse Activity Type"; SourceType: Integer; SourceDocument: Enum "Warehouse Activity Source Document"; SourceNo: Code[20]; QtyToHandle: Decimal; TakeBinCode: Code[10]; PlaceBinCode: Code[10])
+    local procedure RegisterWhseActivity(ActivityType: Enum "Warehouse Activity Type"; SourceType: Integer; SourceNo: Code[20]; QtyToHandle: Decimal; TakeBinCode: Code[10]; PlaceBinCode: Code[10])
     var
         WhseActivityLine: Record "Warehouse Activity Line";
         WhseActivityHeader: Record "Warehouse Activity Header";
@@ -3225,7 +3224,6 @@ codeunit 137293 "SCM Inventory Miscellaneous"
         Clear(WhseActivityLine);
         WhseActivityLine.Reset();
         WhseActivityLine.SetRange("Source Type", SourceType);
-        WhseActivityLine.SetRange("Source Document", SourceDocument);
         WhseActivityLine.SetRange("Source No.", SourceNo);
         WhseActivityLine.FindSet();
         repeat
@@ -3484,4 +3482,3 @@ codeunit 137293 "SCM Inventory Miscellaneous"
         Reply := false;
     end;
 }
-
