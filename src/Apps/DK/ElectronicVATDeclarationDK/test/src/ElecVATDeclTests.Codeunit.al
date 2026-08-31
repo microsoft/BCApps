@@ -1,5 +1,3 @@
-using System.Security.Encryption;
-
 codeunit 148015 "Elec. VAT Decl. Tests"
 {
     Subtype = Test;
