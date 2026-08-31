@@ -626,6 +626,16 @@ codeunit 139547 "E-Doc. Remit. Advice Test"
 
         CreatePaymentJournalBatch();
 
+        // Apply this after the shared scenario setup so localization initialization cannot enable it again.
+        GeneralLedgerSetup.Get();
+        if GeneralLedgerSetup."VAT Reporting Date Usage" <> GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled then begin
+            GeneralLedgerSetup."VAT Reporting Date Usage" := GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled;
+            GeneralLedgerSetup.Modify(false);
+        end;
+
+        // Keep the fixture records in sync with IsInitialized even when a test fails and rolls back.
+        Commit();
+
         IsInitialized := true;
     end;
 
