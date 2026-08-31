@@ -766,7 +766,7 @@ table 5405 "Production Order"
         end;
 
         if Status = Status::Released then
-            ConfirmDeletion();
+            CheckPickedQtyBeforeDeletion();
 
         if Status = Status::Finished then
             DeleteFinishedProdOrderRelations()
@@ -868,7 +868,7 @@ table 5405 "Production Order"
         Text010: Label 'You may have changed a dimension.\\Do you want to update the lines?';
         Text011: Label 'You cannot change Finished Production Order dimensions.';
 #pragma warning restore AA0074
-        ConfirmDeleteQst: Label 'The items have been picked. If you delete the Production Order, then the items will remain in the operation area until you put them away.\Related item tracking information that is defined during the pick will be deleted.\Are you sure that you want to delete the Production Order?';
+        CannotDeleteWithPickedQtyErr: Label 'You cannot delete the production order because one or more components have a picked quantity that has not been consumed. Consume or return the picked quantity before deleting the production order.';
 
     protected var
         HideValidationDialog: Boolean;
@@ -1647,20 +1647,17 @@ table 5405 "Production Order"
         RemQtyBaseInvtItemProdOrdComp.Close();
     end;
 
-    local procedure ConfirmDeletion()
+    local procedure CheckPickedQtyBeforeDeletion()
     var
         ProdOrderComponent: Record "Prod. Order Component";
-        Confirmed: Boolean;
     begin
+        ProdOrderComponent.SetRange(Status, Status);
         ProdOrderComponent.SetRange("Prod. Order No.", "No.");
         if ProdOrderComponent.FindSet() then
             repeat
-                if (ProdOrderComponent."Expected Quantity" - ProdOrderComponent."Remaining Quantity") < ProdOrderComponent."Qty. Picked" then begin
-                    if not Confirm(ConfirmDeleteQst) then
-                        Error('');
-                    Confirmed := true;
-                end;
-            until (ProdOrderComponent.Next() = 0) or Confirmed;
+                if (ProdOrderComponent."Expected Qty. (Base)" - ProdOrderComponent."Remaining Qty. (Base)") < ProdOrderComponent."Qty. Picked (Base)" then
+                    Error(CannotDeleteWithPickedQtyErr);
+            until ProdOrderComponent.Next() = 0;
     end;
 
     local procedure ValidateWarehousePutAwayLocation(ProductionOrder: Record "Production Order")
