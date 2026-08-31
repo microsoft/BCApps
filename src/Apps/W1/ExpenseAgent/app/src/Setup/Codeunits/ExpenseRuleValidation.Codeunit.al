@@ -610,9 +610,9 @@ codeunit 6902 "Expense Rule Validation"
         else
             ExpenseCurrency.Get(Expense."Currency Code");
 
-        StandardRate := ExpenseAgentSetup."Standard Rate of Mileage";
+        StandardRate := ExpenseAutoPopulation.GetStandardRateOfMileage(Expense."Expense Date", Expense."Currency Code", Expense."Currency Factor", ExpenseAgentSetup."Standard Rate of Mileage", Expense."Vehicle Type");
         EffectiveDistance := ExpenseAutoPopulation.GetEffectiveDistance(Expense.Mileage, Expense."Round Trip");
-        CalculatedAmount := Round(EffectiveDistance * ExpenseAutoPopulation.GetStandardRateOfMileage(Expense."Expense Date", Expense."Currency Code", Expense."Currency Factor", StandardRate), ExpenseCurrency."Amount Rounding Precision");
+        CalculatedAmount := Round(EffectiveDistance * StandardRate, ExpenseCurrency."Amount Rounding Precision");
 
         if CalculatedAmount <> Expense.Amount then
             ExpenseRuleViolation.AddRuleViolation(Expense."No.", StrSubstNo(MileageCalculationMismatchErr, EffectiveDistance, StandardRate, CalculatedAmount, Expense.Amount));
@@ -914,9 +914,9 @@ codeunit 6902 "Expense Rule Validation"
         else
             ExpenseCurrency.Get(ExpenseReportLine."Expense Currency Code");
 
-        StandardRate := ExpenseAgentSetup."Standard Rate of Mileage";
+        StandardRate := ExpenseAutoPopulation.GetStandardRateOfMileage(ExpenseReportLine."Expense Date", ExpenseReportLine."Expense Currency Code", ExpenseReportLine."Expense Currency Factor", ExpenseAgentSetup."Standard Rate of Mileage", ExpenseReportLine."Vehicle Type");
         EffectiveDistance := ExpenseAutoPopulation.GetEffectiveDistance(ExpenseReportLine.Mileage, ExpenseReportLine."Round Trip");
-        CalculatedAmount := Round(EffectiveDistance * ExpenseAutoPopulation.GetStandardRateOfMileage(ExpenseReportLine."Expense Date", ExpenseReportLine."Expense Currency Code", ExpenseReportLine."Expense Currency Factor", StandardRate), ExpenseCurrency."Amount Rounding Precision");
+        CalculatedAmount := Round(EffectiveDistance * StandardRate, ExpenseCurrency."Amount Rounding Precision");
 
         if CalculatedAmount <> ExpenseReportLine.Amount then
             ExpenseReportRuleViolation.AddRuleViolation(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.", StrSubstNo(MileageCalculationMismatchErr, EffectiveDistance, StandardRate, CalculatedAmount, ExpenseReportLine.Amount));
