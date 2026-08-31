@@ -18,6 +18,7 @@ codeunit 133771 "Remittance REP Check UT"
         EntryNoElementTok: Label 'EntryNo_VendLedgEntry2', Locked = true;
         DocTypeElementTok: Label 'DocType_VendLedgEntry2', Locked = true;
         LineAmountElementTok: Label 'LAmountWDiscCur', Locked = true;
+        TotalAmountElementTok: Label 'Amount_VendLedgEntry', Locked = true;
 
     [Test]
     [HandlerFunctions('RemittanceAdviceJournalRequestPageHandler')]
@@ -228,6 +229,7 @@ codeunit 133771 "Remittance REP Check UT"
         LibraryReportDataset.AssertElementWithValueExists(EntryNoElementTok, RefundVendorLedgerEntry."Entry No.");
         LibraryReportDataset.AssertElementWithValueExists(DocTypeElementTok, Format(RefundVendorLedgerEntry."Document Type"));
         LibraryReportDataset.AssertElementWithValueExists(LineAmountElementTok, -RefundAmount);
+        LibraryReportDataset.AssertElementWithValueExists(TotalAmountElementTok, -RefundAmount);
         LibraryVariableStorage.AssertEmpty();
     end;
 

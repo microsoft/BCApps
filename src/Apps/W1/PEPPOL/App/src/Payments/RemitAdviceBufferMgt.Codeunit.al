@@ -267,19 +267,25 @@ codeunit 37207 "Remit. Advice Buffer Mgt."
                 DetailedVendLedgEntry.Reset();
                 DetailedVendLedgEntry.SetRange("Vendor Ledger Entry No.", AppliedVendLedgEntry."Entry No.");
                 DetailedVendLedgEntry.SetRange("Entry Type", DetailedVendLedgEntry."Entry Type"::Application);
-                DetailedVendLedgEntry.SetRange("Document Type", DetailedVendLedgEntry."Document Type"::Payment);
-                DetailedVendLedgEntry.SetRange("Document No.", PaymentVendLedgEntry."Document No.");
+                if AppliedVendLedgEntry."Document Type" = AppliedVendLedgEntry."Document Type"::Refund then begin
+                    DetailedVendLedgEntry.SetRange("Document Type", DetailedVendLedgEntry."Document Type"::Refund);
+                    DetailedVendLedgEntry.SetRange("Document No.", AppliedVendLedgEntry."Document No.");
+                end else begin
+                    DetailedVendLedgEntry.SetRange("Document Type", DetailedVendLedgEntry."Document Type"::Payment);
+                    DetailedVendLedgEntry.SetRange("Document No.", PaymentVendLedgEntry."Document No.");
+                end;
                 DetailedVendLedgEntry.SetRange(Unapplied, false);
                 if not DetailedVendLedgEntry.IsEmpty() then begin
                     DetailedVendLedgEntry.CalcSums(Amount, "Remaining Pmt. Disc. Possible");
                     LineAmount := DetailedVendLedgEntry.Amount;
 
                     LineDiscount := 0;
-                    if AppliedVendLedgEntry."Currency Code" <> '' then begin
-                        if IsDiscountAppliedToPayment(AppliedVendLedgEntry."Entry No.", PaymentVendLedgEntry."Document No.") then
-                            LineDiscount := DetailedVendLedgEntry."Remaining Pmt. Disc. Possible";
-                    end else
-                        LineDiscount := CurrExchRate.ExchangeAmtFCYToFCY(AppliedVendLedgEntry."Posting Date", '', AppliedVendLedgEntry."Currency Code", AppliedVendLedgEntry."Pmt. Disc. Rcd.(LCY)");
+                    if AppliedVendLedgEntry."Document Type" <> AppliedVendLedgEntry."Document Type"::Refund then
+                        if AppliedVendLedgEntry."Currency Code" <> '' then begin
+                            if IsDiscountAppliedToPayment(AppliedVendLedgEntry."Entry No.", PaymentVendLedgEntry."Document No.") then
+                                LineDiscount := DetailedVendLedgEntry."Remaining Pmt. Disc. Possible";
+                        end else
+                            LineDiscount := CurrExchRate.ExchangeAmtFCYToFCY(AppliedVendLedgEntry."Posting Date", '', AppliedVendLedgEntry."Currency Code", AppliedVendLedgEntry."Pmt. Disc. Rcd.(LCY)");
 
                     LineNo += 1;
                     TempBuffer.Init();
@@ -357,6 +363,7 @@ codeunit 37207 "Remit. Advice Buffer Mgt."
     var
         DetailedVendLedgEntry1: Record "Detailed Vendor Ledg. Entry";
         DetailedVendLedgEntry2: Record "Detailed Vendor Ledg. Entry";
+        RefundVendLedgEntry: Record "Vendor Ledger Entry";
         EntryNo: Integer;
     begin
         AppliedVendLedgEntry.Reset();
@@ -406,6 +413,16 @@ codeunit 37207 "Remit. Advice Buffer Mgt."
                         AppliedVendLedgEntry.Mark(true);
                 end;
             until DetailedVendLedgEntry1.Next() = 0;
+
+        RefundVendLedgEntry.SetRange("Vendor No.", PaymentVendLedgEntry."Vendor No.");
+        RefundVendLedgEntry.SetRange("Document No.", PaymentVendLedgEntry."Document No.");
+        RefundVendLedgEntry.SetRange("Document Type", RefundVendLedgEntry."Document Type"::Refund);
+        if RefundVendLedgEntry.FindSet() then
+            repeat
+                AppliedVendLedgEntry.SetRange("Entry No.", RefundVendLedgEntry."Entry No.");
+                if AppliedVendLedgEntry.FindFirst() then
+                    AppliedVendLedgEntry.Mark(true);
+            until RefundVendLedgEntry.Next() = 0;
 
         AppliedVendLedgEntry.SetCurrentKey("Entry No.");
         AppliedVendLedgEntry.SetRange("Entry No.");
