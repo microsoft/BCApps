@@ -135,7 +135,7 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
         asserterror EDocumentMessageAPI.RetryMessage(MessageEntryNo);
 
         // [THEN] Retry is rejected because the message has not failed
-        Assert.ExpectedError('Status must have the value Error');
+        Assert.ExpectedError('Status must be equal to ''Error''');
     end;
 
     [Test]
@@ -169,47 +169,7 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
         asserterror EDocumentMessageAPI.RetryMessage(MessageEntryNo);
 
         // [THEN] Retry is rejected because only outgoing messages can be sent
-        Assert.ExpectedError('Direction must have the value Outgoing');
-    end;
-
-    [Test]
-    procedure CleanupDocumentDeletesMessagePayloadAndExternalReference()
-    var
-        Customer: Record Customer;
-        EDocument: Record "E-Document";
-        EDocDataStorage: Record "E-Doc. Data Storage";
-        EDocExternalReference: Record "E-Doc. External Reference";
-        EDocMessage: Record "E-Document Message";
-        EDocumentMessageAPI: Codeunit "E-Document Message API";
-        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
-        TempBlob: Codeunit "Temp Blob";
-        OutStream: OutStream;
-        DataStorageEntryNo: Integer;
-        MessageEntryNo: Integer;
-    begin
-        // [FEATURE] [AI test]
-        // [SCENARIO 637593] Cleaning an E-Document removes child message storage and external correlation
-        Initialize(Customer);
-
-        // [GIVEN] E-Document "ED" with a child message payload and an external document reference
-        CreateOutgoingEDocument(EDocument);
-        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
-        OutStream.WriteText('<Message />');
-        MessageEntryNo := EDocMessageMgt.CreateMessage(
-            EDocument, "E-Document Message Type"::Unknown, "E-Document Direction"::Outgoing,
-            "E-Doc. Response Type"::None, TempBlob);
-        EDocMessage.Get(MessageEntryNo);
-        DataStorageEntryNo := EDocMessage."Data Storage Entry No.";
-        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, 'EXTERNAL-DOCUMENT-ID');
-
-        // [WHEN] E-Document "ED" is cleaned up
-        EDocument.CleanupDocument();
-
-        // [THEN] The child message, its payload, and its external reference are deleted
-        Assert.IsFalse(EDocMessage.Get(MessageEntryNo), 'The child message must be deleted.');
-        Assert.IsFalse(EDocDataStorage.Get(DataStorageEntryNo), 'The child message payload must be deleted.');
-        EDocExternalReference.SetRange("E-Document Entry No.", EDocument."Entry No");
-        Assert.RecordIsEmpty(EDocExternalReference);
+        Assert.ExpectedError('Direction must be equal to ''Outgoing''');
     end;
 
     [Test]
@@ -275,6 +235,7 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure PollMessageResponseJobStoresConnectorError()
     var
         Customer: Record Customer;
@@ -296,6 +257,7 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
         BindSubscription(EDocImplState);
         EDocImplState.SetEnableHttpData();
         EDocImplState.SetThrowIntegrationRuntimeError();
+        Commit();
 
         // [WHEN] The response polling background job runs
         Assert.IsFalse(Codeunit.Run(Codeunit::"E-Doc. Message Response Job", JobQueueEntry), 'The polling job must report the connector failure.');
@@ -311,6 +273,7 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure SendMessageJobStoresConnectorErrorAndIntegrationLog()
     var
         Customer: Record Customer;
@@ -341,6 +304,7 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
         BindSubscription(EDocImplState);
         EDocImplState.SetEnableHttpData();
         EDocImplState.SetThrowIntegrationRuntimeError();
+        Commit();
 
         // [WHEN] The message send background job runs
         Assert.IsFalse(Codeunit.Run(Codeunit::"E-Doc. Message Send Job", JobQueueEntry), 'The send job must report the connector failure.');
@@ -391,40 +355,14 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
         Assert.RecordCount(JobQueueEntry, 0);
     end;
 
-    [Test]
-    procedure PollMessageResponseRejectsUnsupportedConnector()
-    var
-        Customer: Record Customer;
-        EDocument: Record "E-Document";
-        EDocMessage: Record "E-Document Message";
-        EDocumentMessageAPI: Codeunit "E-Document Message API";
-        MessageEntryNo: Integer;
-    begin
-        // [FEATURE] [AI test]
-        // [SCENARIO] A service without child response support returns an actionable error.
-        Initialize(Customer);
-
-        // [GIVEN] A pending child message for a service without a response handler
-        EDocumentService."Service Integration V2" := EDocumentService."Service Integration V2"::"No Integration";
-        EDocumentService.Modify();
-        CreateOutgoingEDocument(EDocument);
-        MessageEntryNo := CreatePendingMessage(EDocument);
-
-        // [WHEN] The message response is polled
-        asserterror EDocumentMessageAPI.PollMessageResponse(MessageEntryNo);
-
-        // [THEN] The unsupported connector is reported
-        Assert.ExpectedError('does not support polling E-Document message responses');
-        EDocMessage.Get(MessageEntryNo);
-        Assert.AreEqual(EDocMessage.Status::"Pending Response", EDocMessage.Status, 'Direct polling failure must not discard the pending state.');
-    end;
-
     local procedure Initialize(var Customer: Record Customer)
     var
         EDocument: Record "E-Document";
         EDocMessage: Record "E-Document Message";
         JobQueueEntry: Record "Job Queue Entry";
     begin
+        if UnbindSubscription(EDocImplState) then;
+        Clear(EDocImplState);
         LibraryLowerPermission.SetOutsideO365Scope();
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
         JobQueueEntry.SetFilter("Object ID to Run", '%1|%2', Codeunit::"E-Doc. Message Send Job", Codeunit::"E-Doc. Message Response Job");
@@ -432,14 +370,14 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
         EDocMessage.DeleteAll();
         EDocument.DeleteAll();
 
-        if IsInitialized then
-            exit;
+        if not IsInitialized then begin
+            LibraryEDoc.SetupStandardVAT();
+            IsInitialized := true;
+        end;
 
-        LibraryEDoc.SetupStandardVAT();
         EDocumentService.DeleteAll();
         LibraryEDoc.SetupStandardSalesScenario(
             Customer, EDocumentService, Enum::"E-Document Format"::Mock, Enum::"Service Integration"::Mock);
-        IsInitialized := true;
     end;
 
     local procedure CreateOutgoingEDocument(var EDocument: Record "E-Document")

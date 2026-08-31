@@ -27,9 +27,19 @@ codeunit 6133 "E-Document Background Jobs"
         ScheduleEDocumentJob(Codeunit::"E-Doc. Message Send Job", EDocumentMessage.RecordId(), 0);
     end;
 
+    procedure TryScheduleMessageSend(EDocumentMessage: Record "E-Document Message"): Boolean
+    begin
+        exit(TryScheduleEDocumentJob(Codeunit::"E-Doc. Message Send Job", EDocumentMessage.RecordId(), 0));
+    end;
+
     procedure ScheduleMessageResponse(EDocumentMessage: Record "E-Document Message")
     begin
         ScheduleEDocumentJob(Codeunit::"E-Doc. Message Response Job", EDocumentMessage.RecordId(), 300000);
+    end;
+
+    procedure TryScheduleMessageResponse(EDocumentMessage: Record "E-Document Message"): Boolean
+    begin
+        exit(TryScheduleEDocumentJob(Codeunit::"E-Doc. Message Response Job", EDocumentMessage.RecordId(), 300000));
     end;
 
     procedure ScheduleGetResponseJob()
@@ -166,6 +176,22 @@ codeunit 6133 "E-Document Background Jobs"
     local procedure ScheduleEDocumentJob(CodeunitId: Integer; JobRecordId: RecordId; EarliestStartDateTime: Integer): Guid
     var
         JobQueueEntry: Record "Job Queue Entry";
+    begin
+        PrepareEDocumentJob(JobQueueEntry, CodeunitId, JobRecordId, EarliestStartDateTime);
+        Codeunit.Run(Codeunit::"Job Queue - Enqueue", JobQueueEntry);
+        exit(JobQueueEntry.ID);
+    end;
+
+    local procedure TryScheduleEDocumentJob(CodeunitId: Integer; JobRecordId: RecordId; EarliestStartDateTime: Integer): Boolean
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+    begin
+        PrepareEDocumentJob(JobQueueEntry, CodeunitId, JobRecordId, EarliestStartDateTime);
+        exit(Codeunit.Run(Codeunit::"Job Queue - Enqueue", JobQueueEntry));
+    end;
+
+    local procedure PrepareEDocumentJob(var JobQueueEntry: Record "Job Queue Entry"; CodeunitId: Integer; JobRecordId: RecordId; EarliestStartDateTime: Integer)
+    var
         Telemetry: Codeunit Telemetry;
         TelemetryDimensions: Dictionary of [Text, Text];
     begin
@@ -185,8 +211,6 @@ codeunit 6133 "E-Document Background Jobs"
         TelemetryDimensions.Add('User Session ID', Format(JobQueueEntry."User Session ID"));
         TelemetryDimensions.Add('Earliest Start Date/Time', Format(JobQueueEntry."Earliest Start Date/Time"));
         Telemetry.LogMessage('0000LC6', EDocumentJobTelemetryLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, TelemetryDimensions);
-        Codeunit.Run(Codeunit::"Job Queue - Enqueue", JobQueueEntry);
-        exit(JobQueueEntry.ID);
     end;
 
     [InternalEvent(false, false)]
