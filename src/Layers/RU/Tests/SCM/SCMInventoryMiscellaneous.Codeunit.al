@@ -51,7 +51,6 @@ codeunit 137293 "SCM Inventory Miscellaneous"
         ErrorDifferentQty: Label 'Quantity on pick worksheet line different from expected.';
         ErrorDifferentAvailQty: Label 'Quantity Available to Pick on pick worksheet line different from expected.';
 
-
     [Test]
     [Scope('OnPrem')]
     procedure PlanningLinesForDemandLocation()
