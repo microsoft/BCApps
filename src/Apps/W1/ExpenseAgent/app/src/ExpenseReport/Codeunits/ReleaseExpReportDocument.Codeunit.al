@@ -142,7 +142,7 @@ codeunit 6984 "Release Exp. Report Document"
 
     local procedure CheckReopenStatus(ExpReportHeader: Record "Expense Report Header")
     begin
-        if ExpReportHeader.Status = ExpReportHeader.Status::"Pending Approval" then
+        if ExpReportHeader.Status in [ExpReportHeader.Status::"Pending Approval", ExpReportHeader.Status::"Interim Approved"] then
             Error(ApprovalProcessMustBeCancelledErr);
     end;
 
@@ -222,7 +222,7 @@ codeunit 6984 "Release Exp. Report Document"
     var
         ExpenseReportLine: Record "Expense Report Line";
     begin
-        ExpReportHeader.TestField(Status, ExpReportHeader.Status::"Pending Approval");
+        ExpReportHeader.TestApprovalPending();
         ExpReportHeader.TestField("Expense User No.");
 
         CheckExpenseReportLines(ExpenseReportLine, ExpReportHeader);
@@ -253,7 +253,7 @@ codeunit 6984 "Release Exp. Report Document"
 
     local procedure CheckRejectedStatus(var ExpReportHeader: Record "Expense Report Header")
     begin
-        ExpReportHeader.TestField(Status, ExpReportHeader.Status::"Pending Approval");
+        ExpReportHeader.TestApprovalPending();
         ExpReportHeader.TestField("Expense User No.");
     end;
 
