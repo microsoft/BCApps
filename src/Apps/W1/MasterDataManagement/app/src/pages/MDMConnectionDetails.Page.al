@@ -235,10 +235,10 @@ page 7232 "MDM Connection Details"
     end;
 
     var
+        MDMPrivacyNotice: Codeunit "MDM Privacy Notice";
         Step: Option Welcome,Connection,TestConnection,Finish;
         NextEnabled, BackEnabled, FinishEnabled, TestConnectionEnabled : Boolean;
         ConsentState, SecretAlreadyStored : Boolean;
-        MDMPrivacyNotice: Codeunit "MDM Privacy Notice";
         SourceEnvironmentName: Text[100];
         SourceEnvironmentUrl: Text[250];
         SourceCompanyName: Text[100];

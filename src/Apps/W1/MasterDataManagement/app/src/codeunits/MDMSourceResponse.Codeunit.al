@@ -16,6 +16,7 @@ codeunit 7248 "MDM Source Response"
     var
         SkippedFieldTxt: Label 'Cross-environment media or blob field exceeds the inline size cap and was not synchronized.', Locked = true;
         BadFieldValueErr: Label 'The source returned a value for field %1 that could not be converted to the expected type %2.', Comment = '%1 - a field caption, %2 - a field type';
+        SourceWatermark: Codeunit "MDM Source Watermark";
 
     [TryFunction]
     procedure TryParse(ResponseText: Text; var Response: JsonObject)
@@ -99,12 +100,13 @@ codeunit 7248 "MDM Source Response"
 
     local procedure InsertRecord(RecordObject: JsonObject; var TempSourceRecordRef: RecordRef)
     var
+        DestField: FieldRef;
         FieldsToken: JsonToken;
         ValueToken: JsonToken;
         FieldsObject: JsonObject;
-        DestField: FieldRef;
         FieldName: Text;
         SystemIdValue: Guid;
+        SystemModifiedAtValue: DateTime;
         FieldNo: Integer;
     begin
         TempSourceRecordRef.Init();
@@ -132,6 +134,10 @@ codeunit 7248 "MDM Source Response"
         // newest copy instead of aborting the whole batch on the duplicate primary key.
         if not TryInsertTempRecord(TempSourceRecordRef) then
             TempSourceRecordRef.Modify(false);
+        // The temp row can't hold SystemModifiedAt (the platform ignores the write), so stash the source watermark
+        // in a side cache the sync loop reads back via GetRowLastModifiedOn.
+        if GetDateTime(RecordObject, 'systemModifiedAt', SystemModifiedAtValue) then
+            SourceWatermark.Put(SystemIdValue, SystemModifiedAtValue);
     end;
 
     [TryFunction]
@@ -223,6 +229,7 @@ codeunit 7248 "MDM Source Response"
     // failed conversion means a drifted/malformed source value; error rather than silently syncing a defaulted one.
     local procedure SetFieldFromText(var DestField: FieldRef; ValueText: Text)
     var
+        DateFormulaValue: DateFormula;
         IntegerValue: Integer;
         BigIntegerValue: BigInteger;
         DecimalValue: Decimal;
@@ -231,9 +238,9 @@ codeunit 7248 "MDM Source Response"
         TimeValue: Time;
         DateTimeValue: DateTime;
         DurationValue: Duration;
-        DateFormulaValue: DateFormula;
         GuidValue: Guid;
         Converted: Boolean;
+        ErrInfo: ErrorInfo;
     begin
         Converted := true;
         case DestField.Type() of
@@ -290,8 +297,12 @@ codeunit 7248 "MDM Source Response"
                 else
                     Converted := false;
         end;
-        if not Converted then
-            Error(BadFieldValueErr, DestField.Caption(), Format(DestField.Type()));
+        if not Converted then begin
+            // Internal contract failure the user can't fix: detail goes to telemetry, user sees a generic dialog.
+            ErrInfo.Message := StrSubstNo(BadFieldValueErr, DestField.Caption(), Format(DestField.Type()));
+            ErrInfo.ErrorType := ErrorType::Internal;
+            Error(ErrInfo);
+        end;
     end;
 
     local procedure GetGuid(var Container: JsonObject; PropertyName: Text; var Value: Guid): Boolean
@@ -301,5 +312,14 @@ codeunit 7248 "MDM Source Response"
         if not Container.Get(PropertyName, Token) then
             exit(false);
         exit(Evaluate(Value, Token.AsValue().AsText()));
+    end;
+
+    local procedure GetDateTime(var Container: JsonObject; PropertyName: Text; var Value: DateTime): Boolean
+    var
+        Token: JsonToken;
+    begin
+        if not Container.Get(PropertyName, Token) then
+            exit(false);
+        exit(Evaluate(Value, Token.AsValue().AsText(), 9));
     end;
 }

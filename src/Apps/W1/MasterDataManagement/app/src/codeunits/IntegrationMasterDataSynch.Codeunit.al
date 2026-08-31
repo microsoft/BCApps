@@ -74,8 +74,8 @@ codeunit 7231 "Integration Master Data Synch."
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
         MasterDataManagement: Codeunit "Master Data Management";
-        DataSource: Interface "IMDM Data Source";
         IntegrationRecordRef: RecordRef;
+        DataSource: Interface "IMDM Data Source";
         IntegrationRecordID: Guid;
         TableFilter: Text;
         FilterList: List of [Text];
@@ -230,8 +230,8 @@ codeunit 7231 "Integration Master Data Synch."
     local procedure CacheFilteredIntegrationRecords(var IntegrationSystemIDFilterList: List of [Text]; IntegrationTableMapping: Record "Integration Table Mapping"; var TempIntegrationRecordRef: RecordRef): Boolean
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
-        DataSource: Interface "IMDM Data Source";
         IntegrationRecordRef: RecordRef;
+        DataSource: Interface "IMDM Data Source";
         IntegrationSystemIDFilter: Text;
         Cached: Boolean;
         IsHandled: Boolean;
@@ -245,10 +245,11 @@ codeunit 7231 "Integration Master Data Synch."
         foreach IntegrationSystemIDFilter in IntegrationSystemIDFilterList do
             if IntegrationSystemIDFilter <> '' then begin
                 if DataSource.GetByUidFilter(IntegrationTableMapping, IntegrationSystemIDFilter, IntegrationRecordRef) then
-                    repeat
-                        CopyRecordReference(IntegrationTableMapping, IntegrationRecordRef, TempIntegrationRecordRef, false);
-                        Cached := true;
-                    until IntegrationRecordRef.Next() = 0;
+                    if IntegrationRecordRef.FindSet() then
+                        repeat
+                            CopyRecordReference(IntegrationTableMapping, IntegrationRecordRef, TempIntegrationRecordRef, false);
+                            Cached := true;
+                        until IntegrationRecordRef.Next() = 0;
                 IntegrationRecordRef.Close();
             end;
         exit(Cached);

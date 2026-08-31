@@ -30,8 +30,8 @@ codeunit 139931 "MDM Cross-Env Source Tests"
     [Test]
     procedure GetRecordsBySystemIdReturnsRequestedFields()
     var
-        SourceApi: Codeunit "MDM Cross-Env Source API";
         Customer: Record Customer;
+        SourceApi: Codeunit "MDM Cross-Env Source API";
         Response: JsonObject;
         RecordObject: JsonObject;
         FieldsObject: JsonObject;
@@ -62,8 +62,8 @@ codeunit 139931 "MDM Cross-Env Source Tests"
     [Test]
     procedure GetRecordsCursorModePagesWithHasMore()
     var
-        SourceApi: Codeunit "MDM Cross-Env Source API";
         Customer: Record Customer;
+        SourceApi: Codeunit "MDM Cross-Env Source API";
         Watermark: DateTime;
         Response: JsonObject;
         NextCursor: Text;
@@ -108,8 +108,8 @@ codeunit 139931 "MDM Cross-Env Source Tests"
     [Test]
     procedure LastModifiedAtPerTableReturnsLatestTimestamp()
     var
-        SourceApi: Codeunit "MDM Cross-Env Source API";
         Customer: Record Customer;
+        SourceApi: Codeunit "MDM Cross-Env Source API";
         Response: JsonObject;
         Entry: JsonObject;
         Tables: JsonArray;

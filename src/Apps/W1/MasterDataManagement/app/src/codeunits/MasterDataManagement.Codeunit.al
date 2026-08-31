@@ -671,10 +671,11 @@ codeunit 7233 "Master Data Management"
             MasterDataManagementSetup.Get();
             // Route the source read so uncoupling works against the local company or another environment.
             if MasterDataManagementSetup.GetDataSource().GetByFilter(IntegrationTableMapping, IntegrationTableFilter, IntegrationRecordRef) then
-                repeat
-                    if not PerformUncoupling(IntegrationTableMapping, LocalRecordRef, IntegrationRecordRef) then
-                        CountFailed += 1;
-                until IntegrationRecordRef.Next() = 0;
+                if IntegrationRecordRef.FindSet() then
+                    repeat
+                        if not PerformUncoupling(IntegrationTableMapping, LocalRecordRef, IntegrationRecordRef) then
+                            CountFailed += 1;
+                    until IntegrationRecordRef.Next() = 0;
         end;
         IntegrationTableMapping.Delete(true);
         exit(CountFailed = 0);

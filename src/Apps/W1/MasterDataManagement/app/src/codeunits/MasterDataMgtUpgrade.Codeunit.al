@@ -30,8 +30,8 @@ codeunit 7238 "Master Data Mgt. Upgrade"
     // Guaranteed provisioning path: install codeunits are skipped when BC is pre-baked into a package and mounted per tenant.
     internal procedure RegisterCrossEnvSourceWebService()
     var
-        WebServiceManagement: Codeunit "Web Service Management";
         TenantWebService: Record "Tenant Web Service";
+        WebServiceManagement: Codeunit "Web Service Management";
         UpgradeTag: Codeunit "Upgrade Tag";
     begin
         if UpgradeTag.HasDatabaseUpgradeTag(GetCrossEnvWebServiceUpgradeTag()) then

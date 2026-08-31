@@ -14,6 +14,10 @@ codeunit 7241 "MDM Cross-Env Source API"
 {
     Access = Public;
 
+    var
+        SortByChangeFeedKeyTok: Label 'SORTING(Field%1,Field%2)', Locked = true;
+        SortByModifiedAtTok: Label 'SORTING(Field%1)', Locked = true;
+
     /// <summary>
     /// Wire-version negotiation: returns the API contract version and the action/feature names this source
     /// supports, so a newer subsidiary only calls actions an older source actually implements.
@@ -85,7 +89,7 @@ codeunit 7241 "MDM Cross-Env Source API"
 
         if HasCompositeChangeFeedKey(RecRef) then begin
             // Bounded paging: the (SystemModifiedAt, SystemId) key lets us split even a big same-timestamp group.
-            RecRef.SetView(StrSubstNo('SORTING(Field%1,Field%2)', SystemModifiedAtFieldNo(), SystemIdFieldNo()));
+            RecRef.SetView(StrSubstNo(SortByChangeFeedKeyTok, SystemModifiedAtFieldNo(), SystemIdFieldNo()));
             HasMore := FillCursorPage(RecRef, HasCursor, CursorModifiedAt, CursorSystemId, ProjectedFields, PageSize, Records, Count, NextModifiedAt, NextSystemId);
             if Count > 0 then
                 Response.Add('nextCursor', BuildCursor(NextModifiedAt, NextSystemId));
@@ -94,7 +98,7 @@ codeunit 7241 "MDM Cross-Env Source API"
                 // Fallback for tables without the SystemId tiebreak (kept off small/setup tables): drain each
                 // timestamp group whole so the cursor can advance by SystemModifiedAt alone. Safe while groups
                 // are small; a group too large to page keylessly asks for the composite key instead.
-                RecRef.SetView(StrSubstNo('SORTING(Field%1)', SystemModifiedAtFieldNo()));
+                RecRef.SetView(StrSubstNo(SortByModifiedAtTok, SystemModifiedAtFieldNo()));
                 HasMore := FillDrainPage(RecRef, HasCursor, CursorModifiedAt, ProjectedFields, PageSize, Records, Count, NextModifiedAt, GroupTooLarge);
                 if GroupTooLarge then begin
                     Clear(Records);
@@ -250,6 +254,8 @@ codeunit 7241 "MDM Cross-Env Source API"
         PageBytes: Integer;
     begin
         Count := 0;
+        PageBytes := 0;
+        LastEmittedAt := 0DT;
         GroupTooLarge := false;
         MaxKeylessGroup := 10000;
         ModifiedAtRef := RecRef.Field(SystemModifiedAtFieldNo());
@@ -285,6 +291,7 @@ codeunit 7241 "MDM Cross-Env Source API"
         PageBytes: Integer;
     begin
         Count := 0;
+        PageBytes := 0;
         TooLarge := false;
         MaxUnindexedRecords := 10000;
         ModifiedAtRef := RecRef.Field(SystemModifiedAtFieldNo());
@@ -577,7 +584,7 @@ codeunit 7241 "MDM Cross-Env Source API"
             Entry.Add('indexed', false);
             exit(Entry);
         end;
-        RecRef.SetView(StrSubstNo('SORTING(Field%1)', SystemModifiedAtFieldNo()));
+        RecRef.SetView(StrSubstNo(SortByModifiedAtTok, SystemModifiedAtFieldNo()));
         // Detection only needs an approximate max, so read uncommitted: never takes or waits on a lock, even
         // where snapshot isolation is off (OnPrem). Data reads (GetRecords) stay at committed isolation.
         RecRef.ReadIsolation := IsolationLevel::ReadUncommitted;

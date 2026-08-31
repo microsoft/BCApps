@@ -16,6 +16,7 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         SourceResponse: Codeunit "MDM Source Response";
         SourceCapabilities: Codeunit "MDM Source Capabilities";
         InlineMedia: Codeunit "MDM Inline Media";
+        SourceWatermark: Codeunit "MDM Source Watermark";
         InvalidResponseErr: Label 'The source environment returned an unexpected response for table %1.', Comment = '%1 = table caption';
         TableUnavailableErr: Label 'Table %1 is not available on the source environment. Expose it there or remove it from Synchronization Tables.', Comment = '%1 = table caption';
         NotIndexedErr: Label 'Table %1 on the source has too many same-timestamp changes to synchronize without an index. Add a key on SystemModifiedAt and SystemId to that table on the source environment.', Comment = '%1 = table caption';
@@ -65,6 +66,7 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         SourceRecordRef.Close();
         SourceRecordRef.Open(IntegrationTableMapping."Integration Table ID", true);
         InlineMedia.Reset(); // fresh batch: drop the previous page's inline media bytes
+        SourceWatermark.Reset();
         Transport := GetTransport();
         SourceCapabilities.EnsureSupported(Transport, RecordsFeatureTok);
         FieldIds := BuildFieldIds(IntegrationTableMapping);
@@ -189,6 +191,7 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         SourceRecordRef.Close();
         SourceRecordRef.Open(IntegrationTableId, true);
         InlineMedia.Reset(); // fresh fetch: drop any prior inline media bytes
+        SourceWatermark.Reset();
         if SystemIds.Count() = 0 then
             exit;
         Transport := GetTransport();
@@ -221,7 +224,7 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
     var
         MasterDataManagement: Codeunit "Master Data Management";
     begin
-        Session.LogMessage('0000QFB', StrSubstNo(SourceProbeTelemetryTxt, IntegrationTableId), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
+        Session.LogMessage('0000QFB', StrSubstNo(SourceProbeTelemetryTxt, IntegrationTableId), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
     end;
 
     local procedure ParseOrError(IntegrationTableId: Integer; ResponseText: Text; var Response: JsonObject)
@@ -298,9 +301,9 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
     local procedure AllNormalFields(IntegrationTableId: Integer): Text
     var
         RecRef: RecordRef;
+        CurrentField: FieldRef;
         FieldIds: JsonArray;
         AddedFields: List of [Integer];
-        CurrentField: FieldRef;
         Index: Integer;
     begin
         RecRef.Open(IntegrationTableId, true);

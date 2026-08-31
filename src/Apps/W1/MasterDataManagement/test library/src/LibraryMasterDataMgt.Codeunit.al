@@ -157,8 +157,6 @@ codeunit 139757 "Library - Master Data Mgt."
     /// <param name="IntegrationTableMapping">The integration table mapping to count.</param>
     /// <returns>The number of integration records.</returns>
     procedure GetIntegrationRecRefCount(IntegrationTableMapping: Record "Integration Table Mapping"): Integer
-    var
-        MasterDataManagement: Codeunit "Master Data Management";
     begin
         exit(MasterDataManagement.GetIntegrationRecRefCount(IntegrationTableMapping));
     end;
@@ -240,6 +238,17 @@ codeunit 139757 "Library - Master Data Mgt."
         InlineMedia: Codeunit "MDM Inline Media";
     begin
         exit(InlineMedia.Contains(SystemId, FieldNo));
+    end;
+
+    /// <summary>Reads the source SystemModifiedAt watermark cached during cross-environment materialization.</summary>
+    /// <param name="SystemId">The SystemId of the source record.</param>
+    /// <param name="ModifiedAt">Returns the cached source SystemModifiedAt.</param>
+    /// <returns>True if the watermark was cached; otherwise false.</returns>
+    procedure TryGetSourceWatermark(SystemId: Guid; var ModifiedAt: DateTime): Boolean
+    var
+        SourceWatermark: Codeunit "MDM Source Watermark";
+    begin
+        exit(SourceWatermark.TryGet(SystemId, ModifiedAt));
     end;
 
     /// <summary>Returns the registered privacy-notice ID that gates cross-environment synchronization.</summary>

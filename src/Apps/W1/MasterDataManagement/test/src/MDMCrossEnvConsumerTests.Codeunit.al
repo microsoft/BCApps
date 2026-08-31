@@ -18,6 +18,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
         InProcessTransport: Codeunit "MDM In-Process Transport";
         SourceRecordRef: RecordRef;
+        MaterializedModifiedAt: DateTime;
         Found: Boolean;
     begin
         // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment]
@@ -34,10 +35,13 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         // [WHEN] the record is fetched by SystemId
         Found := LibraryMasterDataMgt.DataSourceGetBySystemId(Database::Customer, Customer.SystemId, SourceRecordRef);
 
-        // [THEN] the materialized record carries the same SystemId and field values
+        // [THEN] the materialized record carries the same SystemId and field values, and the source SystemModifiedAt
+        // watermark survives materialization (the sync loop reads it via the side cache, not the temp row)
         Assert.IsTrue(Found, 'Cross-env GetBySystemId should find the source record');
         Assert.AreEqual(Customer.SystemId, SourceRecordRef.Field(SourceRecordRef.SystemIdNo()).Value(), 'Wrong SystemId materialized');
         Assert.AreEqual(Customer.Name, Format(SourceRecordRef.Field(Customer.FieldNo(Name)).Value()), 'Name should round-trip through the wire');
+        Assert.IsTrue(LibraryMasterDataMgt.TryGetSourceWatermark(Customer.SystemId, MaterializedModifiedAt), 'Source watermark should be cached during materialization');
+        Assert.AreEqual(Customer.SystemModifiedAt, MaterializedModifiedAt, 'Source SystemModifiedAt should survive materialization');
 
         CleanUp();
     end;

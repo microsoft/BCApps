@@ -18,6 +18,7 @@ codeunit 139770 "Master Data Mgt. Setup Tests"
         LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
         InitializeHandled: Boolean;
         IncorrectTablesListErr: Label 'Synchronization tables list is incorrect.';
+        UnexpectedConfirmErr: Label 'Unexpected confirmation dialog: %1', Locked = true;
 
     [Test]
     [HandlerFunctions('SynchronizationEnabledMessageHandler')]
@@ -175,6 +176,7 @@ codeunit 139770 "Master Data Mgt. Setup Tests"
         MasterDataMgtCoupling."Local System ID" := EmptyGuid;
         MasterDataMgtCoupling.Insert();
 
+        LibraryVariableStorage.Enqueue('keep the table setup and coupling');
         MasterDataManagementSetup.Validate("Is Enabled", false);
         BindSubscription(MasterDataMgtSetupTests);
         MasterDataManagementSetup.Modify(true);
@@ -189,6 +191,7 @@ codeunit 139770 "Master Data Mgt. Setup Tests"
         Assert.IsTrue(IntegrationTableMapping.Count() > 0, '');
         Assert.IsTrue(IntegrationFieldMapping.Count() > 0, '');
         Assert.AreEqual(1, MasterDataMgtCoupling.Count(), '');
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -220,8 +223,10 @@ codeunit 139770 "Master Data Mgt. Setup Tests"
 
         // reset configuration
         MasterDataManagementSetupPage.OpenEdit();
+        LibraryVariableStorage.Enqueue('restore the default synchronization table setup');
         MasterDataManagementSetupPage.ResetConfiguration.Invoke();
         VerifyDefaultSetup();
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -326,6 +331,7 @@ codeunit 139770 "Master Data Mgt. Setup Tests"
         IntegrationFieldMapping.SetRange(Status);
         IntegrationFieldMapping.SetRange("Field Caption", '');
         Assert.IsTrue(IntegrationFieldMapping.Count() = 0, 'All synchronization fields for the added table should have a caption.');
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -358,6 +364,7 @@ codeunit 139770 "Master Data Mgt. Setup Tests"
         MasterDataMgtCoupling."Local System ID" := EmptyGuid;
         MasterDataMgtCoupling.Insert();
 
+        LibraryVariableStorage.Enqueue('keep the table setup and coupling');
         MasterDataManagementSetup.Validate("Is Enabled", false);
         BindSubscription(MasterDataMgtSetupTests);
         MasterDataManagementSetup.Modify(true);
@@ -372,6 +379,7 @@ codeunit 139770 "Master Data Mgt. Setup Tests"
         Assert.AreEqual(0, IntegrationTableMapping.Count(), '');
         Assert.AreEqual(0, IntegrationFieldMapping.Count(), '');
         Assert.AreEqual(0, MasterDataMgtCoupling.Count(), '');
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -404,6 +412,7 @@ codeunit 139770 "Master Data Mgt. Setup Tests"
             exit;
 
         LibrarySetupStorage.Restore();
+        LibraryVariableStorage.Clear();
 
         BindSubscription(MasterDataMgtSynchTests);
         IntegrationTableMapping.SetRange(Type, IntegrationTableMapping.Type::"Master Data Management");
@@ -457,12 +466,14 @@ codeunit 139770 "Master Data Mgt. Setup Tests"
     [ConfirmHandler]
     internal procedure ConfirmHandlerYes(Question: Text; var Reply: Boolean)
     begin
+        Assert.IsTrue(StrPos(Question, LibraryVariableStorage.DequeueText()) > 0, StrSubstNo(UnexpectedConfirmErr, Question));
         Reply := true;
     end;
 
     [ConfirmHandler]
     internal procedure ConfirmHandlerNo(Question: Text; var Reply: Boolean)
     begin
+        Assert.IsTrue(StrPos(Question, LibraryVariableStorage.DequeueText()) > 0, StrSubstNo(UnexpectedConfirmErr, Question));
         Reply := false;
     end;
 

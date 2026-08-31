@@ -745,15 +745,23 @@ codeunit 7237 "Master Data Mgt. Subscribers"
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
         MasterDataManagement: Codeunit "Master Data Management";
+        SourceWatermark: Codeunit "MDM Source Watermark";
         IntegrationRecordRef: RecordRef;
         IsHandled: Boolean;
         IntRecSystemId: Guid;
+        SourceSystemId: Guid;
+        SourceModifiedAt: DateTime;
     begin
         MasterDataManagementSetup.Get();
-        // Cross-environment: FromRecordRef is already the source row materialized from the fetched batch, so read
-        // the watermark from it instead of issuing another per-record OData round-trip (avoids an N+1 fetch).
-        if MasterDataManagementSetup."Source Environment Name" <> '' then
+        // Cross-environment: FromRecordRef is the source row materialized from the fetched batch. Its SystemModifiedAt
+        // can't be carried on a temp row (the platform ignores the write), so the real watermark rides a side cache;
+        // fall back to the row's own value on a cache miss.
+        if MasterDataManagementSetup."Source Environment Name" <> '' then begin
+            SourceSystemId := FromRecordRef.Field(FromRecordRef.SystemIdNo()).Value();
+            if SourceWatermark.TryGet(SourceSystemId, SourceModifiedAt) then
+                exit(SourceModifiedAt);
             exit(ModifiedOnFromRecordRef(IntegrationTableMapping, FromRecordRef));
+        end;
 
         IntegrationRecordRef.Open(FromRecordRef.Number, false);
         IntRecSystemId := FromRecordRef.Field(FromRecordRef.SystemIdNo).Value();
