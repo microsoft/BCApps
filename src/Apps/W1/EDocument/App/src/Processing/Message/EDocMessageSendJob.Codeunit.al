@@ -17,10 +17,10 @@ codeunit 6535 "E-Doc. Message Send Job"
     trigger OnRun()
     var
         EDocumentMessage: Record "E-Document Message";
-        LastErrorInfo: ErrorInfo;
-        LastErrorText: Text;
         Telemetry: Codeunit Telemetry;
         TelemetryDimensions: Dictionary of [Text, Text];
+        LastErrorInfo: ErrorInfo;
+        LastErrorText: Text;
     begin
         EDocumentMessage.Get(Rec."Record ID to Process");
         if Codeunit.Run(Codeunit::"E-Doc. Message Send Runner", EDocumentMessage) then
