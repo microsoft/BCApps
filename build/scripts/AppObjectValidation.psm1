@@ -564,7 +564,13 @@ function Get-ObjectCollectionAtCommit {
         & git cat-file -e "$Commitish^{commit}" 2>$null
         if ($LASTEXITCODE -ne 0) {
             Write-Host "Base commit '$Commitish' is not available locally. Attempting to fetch it from origin."
-            & git fetch --no-tags --quiet origin $Commitish 2>$null
+            $fetchRef = $Commitish
+            if ($Commitish -match '^origin/(?<BranchName>.+)$') {
+                $branchName = $Matches['BranchName']
+                $fetchRef = "+refs/heads/$branchName`:refs/remotes/origin/$branchName"
+            }
+
+            & git fetch --no-tags --quiet origin $fetchRef 2>$null
         }
 
         $resolvedCommit = (& git rev-parse --verify --quiet "$Commitish^{commit}")

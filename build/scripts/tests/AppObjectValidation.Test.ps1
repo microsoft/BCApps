@@ -382,6 +382,34 @@ Describe "AppObjectValidation" {
     }
 
     Context "Get-ObjectCollectionAtCommit" {
+        It "fetches a missing origin tracking ref before building the base object collection" -Skip:(-not [bool](Get-Command git -ErrorAction SilentlyContinue)) {
+            $sourceRepo = New-UniqueFolder
+            $sourceFolder = Join-Path $sourceRepo "src"
+            $remoteRepo = New-UniqueFolder
+            $clientRepo = New-UniqueFolder
+            New-TestAlFile -Directory $sourceFolder -FileName "base.al" -Declaration 'table 40000 "Base"'
+
+            & git -C $sourceRepo init --quiet --initial-branch=main
+            & git -C $sourceRepo -c user.email="test@example.com" -c user.name="Test" add -A
+            & git -C $sourceRepo -c user.email="test@example.com" -c user.name="Test" commit --quiet -m "base"
+            & git clone --quiet --bare $sourceRepo $remoteRepo
+
+            & git -C $clientRepo init --quiet
+            "client" | Set-Content -Path (Join-Path $clientRepo "README.md") -Encoding UTF8
+            & git -C $clientRepo -c user.email="test@example.com" -c user.name="Test" add -A
+            & git -C $clientRepo -c user.email="test@example.com" -c user.name="Test" commit --quiet -m "client"
+            & git -C $clientRepo remote add origin $remoteRepo
+
+            & git -C $clientRepo show-ref --verify --quiet refs/remotes/origin/main
+            $LASTEXITCODE | Should -Not -Be 0
+
+            $baseObjects = Get-ObjectCollectionAtCommit -Commitish 'origin/main' -RepositoryRoot $clientRepo -RelativeSourcePaths @('src')
+
+            $baseObjects.ObjectSignatures.ContainsKey('table 40000') | Should -Be $true
+            & git -C $clientRepo show-ref --verify --quiet refs/remotes/origin/main
+            $LASTEXITCODE | Should -Be 0
+        }
+
         It "builds the base object collection from a commit and detects renumbering" -Skip:(-not [bool](Get-Command git -ErrorAction SilentlyContinue)) {
             $repo = New-UniqueFolder
             $sourceFolder = Join-Path $repo "src"
