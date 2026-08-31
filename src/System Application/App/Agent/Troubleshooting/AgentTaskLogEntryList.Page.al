@@ -6,8 +6,6 @@
 namespace System.Agents.Troubleshooting;
 
 using System.Agents;
-using System.Utilities;
-
 page 4303 "Agent Task Log Entry List"
 {
     PageType = List;
@@ -216,18 +214,10 @@ page 4303 "Agent Task Log Entry List"
                 trigger OnAction()
                 var
                     SelectedAgentTaskLogEntry: Record "Agent Task Log Entry";
-                    TempBlob: Codeunit "Temp Blob";
                     AgentTaskLogExport: Codeunit "Agent Task Log Export";
-                    ExportInStream: InStream;
-                    ExportOutStream: OutStream;
-                    FileName: Text;
                 begin
                     CurrPage.SetSelectionFilter(SelectedAgentTaskLogEntry);
-                    TempBlob.CreateOutStream(ExportOutStream, TextEncoding::UTF8);
-                    AgentTaskLogExport.ExportToJson(SelectedAgentTaskLogEntry, ExportOutStream);
-                    TempBlob.CreateInStream(ExportInStream, TextEncoding::UTF8);
-                    FileName := StrSubstNo(ExportFileNameLbl, GetExportAgentName(SelectedAgentTaskLogEntry), Format(Today(), 0, 9));
-                    DownloadFromStream(ExportInStream, ExportDialogTitleLbl, '', JsonFileFilterLbl, FileName);
+                    AgentTaskLogExport.ExportToJsonFile(SelectedAgentTaskLogEntry, GetExportAgentName(SelectedAgentTaskLogEntry));
                 end;
             }
         }
@@ -282,9 +272,7 @@ page 4303 "Agent Task Log Entry List"
                 exit(MultipleAgentsTok);
         until AgentTaskLogEntryRecord.Next() = 0;
 
-        if AgentName = '' then
-            AgentName := UnknownAgentTok;
-        exit(ConvertStr(AgentName, InvalidFileNameCharactersTok, FileNameCharacterReplacementsTok));
+        exit(AgentName);
     end;
 
     var
@@ -292,11 +280,6 @@ page 4303 "Agent Task Log Entry List"
         IsFeedbackActionEnabled: Boolean;
         DetailsTxt: Text;
         TypeStyle: Text;
-        ExportFileNameLbl: Label 'AgentTaskLog_%1_%2.json', Comment = '%1 is the agent name and %2 is the export date.', Locked = true;
-        ExportDialogTitleLbl: Label 'Export agent task log';
-        JsonFileFilterLbl: Label 'JSON files (*.json)|*.json', Locked = true;
         UnknownAgentTok: Label 'UnknownAgent', Locked = true;
         MultipleAgentsTok: Label 'MultipleAgents', Locked = true;
-        InvalidFileNameCharactersTok: Label '\/:*?"<>|', Locked = true;
-        FileNameCharacterReplacementsTok: Label '_________', Locked = true;
 }

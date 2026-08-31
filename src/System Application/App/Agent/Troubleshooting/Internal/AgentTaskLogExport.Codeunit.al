@@ -7,6 +7,7 @@ namespace System.Agents.Troubleshooting;
 
 using System.Agents;
 using System.Environment;
+using System.Utilities;
 
 codeunit 4313 "Agent Task Log Export"
 {
@@ -35,7 +36,21 @@ codeunit 4313 "Agent Task Log Export"
         ExportRoot.WriteTo(ExportOutStream);
     end;
 
-    local procedure BuildEntryJson(AgentTaskLogEntryRecord: Record "Agent Task Log Entry"; IncludeSerializedPage: Boolean): JsonObject
+    procedure ExportToJsonFile(var SelectedAgentTaskLogEntry: Record "Agent Task Log Entry"; AgentName: Text)
+    var
+        TempBlob: Codeunit "Temp Blob";
+        ExportInStream: InStream;
+        ExportOutStream: OutStream;
+        FileName: Text;
+    begin
+        TempBlob.CreateOutStream(ExportOutStream, TextEncoding::UTF8);
+        ExportToJson(SelectedAgentTaskLogEntry, ExportOutStream);
+        TempBlob.CreateInStream(ExportInStream, TextEncoding::UTF8);
+        FileName := StrSubstNo(ExportFileNameLbl, GetAlphaNumericValue(AgentName), Format(Today(), 0, 9));
+        DownloadFromStream(ExportInStream, ExportDialogTitleLbl, '', JsonFileFilterLbl, FileName);
+    end;
+
+    local procedure BuildEntryJson(var AgentTaskLogEntryRecord: Record "Agent Task Log Entry"; IncludeSerializedPage: Boolean): JsonObject
     var
         AgentTaskMemoryEntry: Record "Agent Task Memory Entry";
         AgentTaskImpl: Codeunit "Agent Task Impl.";
@@ -96,7 +111,7 @@ codeunit 4313 "Agent Task Log Export"
         exit(EntryJson);
     end;
 
-    local procedure ReadMemoryEntryDetails(AgentTaskMemoryEntry: Record "Agent Task Memory Entry") MemoryDetailsTxt: Text
+    local procedure ReadMemoryEntryDetails(var AgentTaskMemoryEntry: Record "Agent Task Memory Entry") MemoryDetailsTxt: Text
     var
         AgentTaskLogEntry: Codeunit "Agent Task Log Entry";
         ContentInStream: InStream;
@@ -157,19 +172,20 @@ codeunit 4313 "Agent Task Log Export"
         PageStackEntry: JsonObject;
         PageToken: JsonToken;
         Index: Integer;
-        Order: Integer;
+        Order: Text;
     begin
         PageStack := ContextRoot.GetArray(PageStackLbl, true);
-        for Index := PageStack.Count() - 1 downto 0 do begin
+        Order := '1';
+        for Index := 0 to PageStack.Count() - 1 do begin
             PageStack.Get(Index, PageToken);
             if PageToken.AsValue().IsNull() then
                 continue;
 
-            Order += 1;
             Clear(PageStackEntry);
             PageStackEntry.Add(OrderLbl, Order);
             PageStackEntry.Add(PageCaptionLbl, PageToken.AsValue().AsText());
             ExportPageStack.Add(PageStackEntry);
+            Order := IncStr(Order);
         end;
 
         exit(ExportPageStack);
@@ -179,6 +195,7 @@ codeunit 4313 "Agent Task Log Export"
     var
         TaskPageContext: JsonObject;
         CommunicationCulture: JsonObject;
+        CommunicationJson: JsonObject;
         TaskPageSettings: JsonObject;
     begin
         if not ContextRoot.Contains(TaskPageContextLbl) then
@@ -192,11 +209,21 @@ codeunit 4313 "Agent Task Log Export"
             exit(TaskPageSettings);
 
         CommunicationCulture := TaskPageContext.GetObject(OutgoingCommunicationCultureLbl, true);
-        AddTextProperty(TaskPageSettings, CommunicationCulture, CommunicationLanguageSourceLbl, CommunicationLanguageLbl);
-        AddTextProperty(TaskPageSettings, CommunicationCulture, CommunicationDateFormatSourceLbl, CommunicationDateFormatLbl);
-        AddTextProperty(TaskPageSettings, CommunicationCulture, CommunicationTimeFormatSourceLbl, CommunicationTimeFormatLbl);
-        AddTextProperty(TaskPageSettings, CommunicationCulture, CommunicationFormattedNumberExampleSourceLbl, CommunicationFormattedNumberExampleLbl);
+        AddTextProperty(CommunicationJson, CommunicationCulture, CommunicationLanguageSourceLbl, CommunicationLanguageSourceLbl);
+        AddTextProperty(CommunicationJson, CommunicationCulture, CommunicationDateFormatSourceLbl, CommunicationDateFormatSourceLbl);
+        AddTextProperty(CommunicationJson, CommunicationCulture, CommunicationTimeFormatSourceLbl, CommunicationTimeFormatSourceLbl);
+        AddTextProperty(CommunicationJson, CommunicationCulture, CommunicationFormattedNumberExampleSourceLbl, CommunicationFormattedNumberExampleSourceLbl);
+        if CommunicationJson.Keys().Count() > 0 then
+            TaskPageSettings.Add(CommunicationLbl, CreateCommunicationJson(CommunicationJson));
         exit(TaskPageSettings);
+    end;
+
+    local procedure CreateCommunicationJson(CultureJson: JsonObject): JsonObject
+    var
+        CommunicationJson: JsonObject;
+    begin
+        CommunicationJson.Add(CultureLbl, CultureJson);
+        exit(CommunicationJson);
     end;
 
     local procedure AddContextToken(var ContextJson: JsonObject; ContextRoot: JsonObject; PropertyName: Text; ExpectArray: Boolean)
@@ -219,7 +246,7 @@ codeunit 4313 "Agent Task Log Export"
             TargetJson.Add(TargetPropertyName, SourceJson.GetText(SourcePropertyName, true));
     end;
 
-    local procedure BuildTaskContextJson(AgentTaskLogEntry: Record "Agent Task Log Entry"): JsonObject
+    local procedure BuildTaskContextJson(var AgentTaskLogEntry: Record "Agent Task Log Entry"): JsonObject
     var
         AgentTask: Record "Agent Task";
         TaskContextJson: JsonObject;
@@ -238,43 +265,42 @@ codeunit 4313 "Agent Task Log Export"
         exit(TaskContextJson);
     end;
 
-    local procedure BuildMessagesJson(AgentTaskLogEntry: Record "Agent Task Log Entry"): JsonObject
+    local procedure BuildMessagesJson(var AgentTaskLogEntry: Record "Agent Task Log Entry"): JsonObject
     var
         MessagesJson: JsonObject;
         Messages: JsonArray;
     begin
-        Messages := BuildMessageArray(AgentTaskLogEntry, true, false);
-        if Messages.Count() > 0 then
-            MessagesJson.Add(InputLbl, Messages);
+        case AgentTaskLogEntry.Type of
+            AgentTaskLogEntry.Type::"Input Message":
+                begin
+                    Messages := BuildMessageArray(AgentTaskLogEntry, '=%1');
+                    if Messages.Count() > 0 then
+                        MessagesJson.Add(InputLbl, Messages);
+                end;
+            AgentTaskLogEntry.Type::"Output Message",
+            AgentTaskLogEntry.Type::"Output Message Draft":
+                begin
+                    Messages := BuildMessageArray(AgentTaskLogEntry, '=%1');
+                    if Messages.Count() > 0 then
+                        MessagesJson.Add(OutputLbl, Messages);
+                end;
+        end;
 
         Clear(Messages);
-        Messages := BuildMessageArray(AgentTaskLogEntry, false, false);
-        if Messages.Count() > 0 then
-            MessagesJson.Add(OutputLbl, Messages);
-
-        Clear(Messages);
-        Messages := BuildMessageArray(AgentTaskLogEntry, false, true);
+        Messages := BuildMessageArray(AgentTaskLogEntry, '<%1');
         if Messages.Count() > 0 then
             MessagesJson.Add(EarlierLbl, Messages);
 
         exit(MessagesJson);
     end;
 
-    local procedure BuildMessageArray(AgentTaskLogEntry: Record "Agent Task Log Entry"; InputMessages: Boolean; EarlierMessages: Boolean): JsonArray
+    local procedure BuildMessageArray(var AgentTaskLogEntry: Record "Agent Task Log Entry"; MemoryEntryFilter: Text): JsonArray
     var
         AgentTaskMessage: Record "Agent Task Message";
         Messages: JsonArray;
     begin
         AgentTaskMessage.SetRange("Task ID", AgentTaskLogEntry."Task ID");
-        if EarlierMessages then
-            AgentTaskMessage.SetFilter("Memory Entry ID", '<%1', AgentTaskLogEntry."Memory Entry ID")
-        else begin
-            AgentTaskMessage.SetRange("Memory Entry ID", AgentTaskLogEntry."Memory Entry ID");
-            if InputMessages then
-                AgentTaskMessage.SetRange(Type, AgentTaskMessage.Type::Input)
-            else
-                AgentTaskMessage.SetRange(Type, AgentTaskMessage.Type::Output);
-        end;
+        AgentTaskMessage.SetFilter("Memory Entry ID", MemoryEntryFilter, AgentTaskLogEntry."Memory Entry ID");
 
         AgentTaskMessage.SetCurrentKey("Memory Entry ID");
         AgentTaskMessage.Ascending(false);
@@ -286,7 +312,7 @@ codeunit 4313 "Agent Task Log Export"
         exit(Messages);
     end;
 
-    local procedure BuildMessageJson(AgentTaskMessage: Record "Agent Task Message"): JsonObject
+    local procedure BuildMessageJson(var AgentTaskMessage: Record "Agent Task Message"): JsonObject
     var
         AgentMessage: Codeunit "Agent Message";
         MessageJson: JsonObject;
@@ -302,7 +328,7 @@ codeunit 4313 "Agent Task Log Export"
         exit(MessageJson);
     end;
 
-    local procedure BuildSiblingActionsJson(AgentTaskLogEntry: Record "Agent Task Log Entry"): JsonArray
+    local procedure BuildSiblingActionsJson(var AgentTaskLogEntry: Record "Agent Task Log Entry"): JsonArray
     var
         SiblingLogEntry: Record "Agent Task Log Entry";
         SiblingActions: JsonArray;
@@ -320,7 +346,7 @@ codeunit 4313 "Agent Task Log Export"
         exit(SiblingActions);
     end;
 
-    local procedure BuildSiblingActionJson(SiblingLogEntry: Record "Agent Task Log Entry"): JsonObject
+    local procedure BuildSiblingActionJson(var SiblingLogEntry: Record "Agent Task Log Entry"): JsonObject
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
         SiblingActionJson: JsonObject;
@@ -335,6 +361,24 @@ codeunit 4313 "Agent Task Log Export"
         SiblingActionJson.Add(UserFullNameLbl, SiblingLogEntry."User Full Name");
         SiblingActionJson.Add(TimestampLbl, Format(SiblingLogEntry.SystemCreatedAt, 0, 9));
         exit(SiblingActionJson);
+    end;
+
+    local procedure GetAlphaNumericValue(Value: Text) AlphaNumericValue: Text
+    var
+        Character: Text;
+        Index: Integer;
+    begin
+        for Index := 1 to StrLen(Value) do begin
+            Character := CopyStr(Value, Index, 1);
+            if (Character in ['0' .. '9']) or
+               (Character in ['A' .. 'Z']) or
+               (Character in ['a' .. 'z'])
+            then
+                AlphaNumericValue += Character;
+        end;
+
+        if AlphaNumericValue = '' then
+            AlphaNumericValue := UnknownAgentTok;
     end;
 
     var
@@ -373,10 +417,8 @@ codeunit 4313 "Agent Task Log Export"
         CurrencyCodeLbl: Label 'currencyCode', Locked = true;
         CurrencySymbolLbl: Label 'currencySymbol', Locked = true;
         OutgoingCommunicationCultureLbl: Label 'outgoingCommunicationCulture', Locked = true;
-        CommunicationLanguageLbl: Label 'communicationLanguage', Locked = true;
-        CommunicationDateFormatLbl: Label 'communicationDateFormat', Locked = true;
-        CommunicationTimeFormatLbl: Label 'communicationTimeFormat', Locked = true;
-        CommunicationFormattedNumberExampleLbl: Label 'communicationFormattedNumberExample', Locked = true;
+        CommunicationLbl: Label 'communication', Locked = true;
+        CultureLbl: Label 'culture', Locked = true;
         CommunicationLanguageSourceLbl: Label 'language', Locked = true;
         CommunicationDateFormatSourceLbl: Label 'dateFormat', Locked = true;
         CommunicationTimeFormatSourceLbl: Label 'timeFormat', Locked = true;
@@ -395,4 +437,8 @@ codeunit 4313 "Agent Task Log Export"
         SerializedPageLbl: Label 'serializedPage', Locked = true;
         IsDecisionPointLbl: Label 'isDecisionPoint', Locked = true;
         TaskPageContextLbl: Label 'taskPageContext', Locked = true;
+        ExportFileNameLbl: Label 'AgentTaskLog_%1_%2.json', Comment = '%1 is the agent name and %2 is the export date.', Locked = true;
+        ExportDialogTitleLbl: Label 'Export agent task log';
+        JsonFileFilterLbl: Label 'JSON files (*.json)|*.json', Locked = true;
+        UnknownAgentTok: Label 'UnknownAgent', Locked = true;
 }

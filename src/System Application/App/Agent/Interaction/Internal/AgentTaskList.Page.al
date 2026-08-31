@@ -5,6 +5,8 @@
 
 namespace System.Agents;
 
+using System.Agents.Troubleshooting;
+
 page 4300 "Agent Task List"
 {
     PageType = List;
@@ -165,6 +167,24 @@ page 4300 "Agent Task List"
                     AgentTaskImpl.ShowTaskLogEntries(Rec);
                 end;
             }
+            action(ExportTaskLogEntries)
+            {
+                ApplicationArea = All;
+                Caption = 'Export log entries';
+                ToolTip = 'Download all log entries for the selected task as a JSON file.';
+                Enabled = TaskSelected;
+                Image = ExportFile;
+                Scope = Repeater;
+
+                trigger OnAction()
+                var
+                    AgentTaskLogEntry: Record "Agent Task Log Entry";
+                    AgentTaskLogExport: Codeunit "Agent Task Log Export";
+                begin
+                    AgentTaskLogEntry.SetRange("Task ID", Rec.ID);
+                    AgentTaskLogExport.ExportToJsonFile(AgentTaskLogEntry, Rec."Agent Display Name");
+                end;
+            }
             action(Stop)
             {
                 ApplicationArea = All;
@@ -268,6 +288,9 @@ page 4300 "Agent Task List"
                 {
                 }
                 actionref(ViewTaskLogEntries_Promoted; ViewTaskLogEntries)
+                {
+                }
+                actionref(ExportTaskLogEntries_Promoted; ExportTaskLogEntries)
                 {
                 }
             }

@@ -308,10 +308,7 @@ page 4312 "Agent Task Log Entry"
             exit;
         end;
 
-        if Success then
-            IsSuccess := YesLbl
-        else
-            IsSuccess := NoLbl;
+        IsSuccess := Format(Success, 0, 9);
     end;
 
     local procedure SetAgentName()
@@ -429,7 +426,5 @@ page 4312 "Agent Task Log Entry"
         GlobalCurrentID: Integer;
         SerializedPageLbl: Label 'serializedPage', Locked = true;
         TaskPageContextLbl: Label 'taskPageContext', Locked = true;
-        YesLbl: Label 'Yes';
-        NoLbl: Label 'No';
         PageCaptionLbl: Label 'Log %1 - %2', Comment = '%1 is the id, and %2 is the description of it.';
 }

@@ -221,12 +221,12 @@ codeunit 133964 "Agent Task Log Page Test"
         Assert.AreEqual(2, ContextJson.GetArray('pageStack').Count(), 'The page stack should be exported.');
         ContextJson.GetArray('pageStack').Get(0, PageToken);
         PageStackEntry := PageToken.AsObject();
-        Assert.AreEqual(1, PageStackEntry.GetInteger('order'), 'The first page should have order 1.');
-        Assert.AreEqual('Customer Card', PageStackEntry.GetText('pageCaption'), 'The page stack should use the detail page order.');
+        Assert.AreEqual('1', PageStackEntry.GetText('order'), 'The first page should have order 1.');
+        Assert.AreEqual('Customer List', PageStackEntry.GetText('pageCaption'), 'The page stack should preserve the stored order.');
         Assert.AreEqual(1, ContextJson.GetArray('availableTools').Count(), 'The available tools should be exported.');
         Assert.AreEqual('10000', ContextJson.GetObject('memorizedData').GetText('customerNo'), 'The memorized data should be exported.');
         Assert.AreEqual('USD', ContextJson.GetObject('taskPageSettings').GetText('currencyCode'), 'The task page settings should be exported.');
-        Assert.AreEqual('en-US', ContextJson.GetObject('taskPageSettings').GetText('communicationLanguage'), 'The communication settings should be flattened like the detail page.');
+        Assert.AreEqual('en-US', ContextJson.GetObject('taskPageSettings').GetObject('communication').GetObject('culture').GetText('language'), 'The communication settings should be nested.');
         Assert.AreEqual('Customer Card', ContextJson.GetObject('serializedPage').GetText('page'), 'The serialized page should remain JSON.');
     end;
 
