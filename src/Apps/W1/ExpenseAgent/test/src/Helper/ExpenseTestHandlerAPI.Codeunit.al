@@ -86,9 +86,9 @@ codeunit 148307 "Expense Test Handler API"
 
         CreateExpenseAgentSetup.Run();
         CreateExpenseGLAccount.Run();
-        EnsureExpenseAgent();
         ExpenseAgentSetup.Get();
         ExpenseAgentSetup.CreateDefaultSettings();
+        EnsureExpenseAgent();
         exit('Initialize completed');
     end;
 

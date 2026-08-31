@@ -230,7 +230,7 @@ codeunit 148333 "Expense Agent Setup API Test"
         ExpensePaymentMethod.DeleteAll();
         ExpensePostingGroup.DeleteAll();
 
-        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.InitRecord();
         ExpenseAgentSetup."Expense Nos." := '';
         ExpenseAgentSetup."Expense User Nos." := '';
         ExpenseAgentSetup."Expense Vendor Nos." := '';
