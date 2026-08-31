@@ -11,6 +11,8 @@ namespace System.Privacy;
 codeunit 1563 "Privacy Notice"
 {
     Access = Public;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     /// <summary>
     /// Creates a privacy notice.
@@ -60,6 +62,7 @@ codeunit 1563 "Privacy Notice"
     /// User:
     ///     If admin has agreed or disagreed, that will be returned
     ///     If user has agreed, that will be returned
+    ///     If the integration is enabled by default for the environment's region, it is pre-approved for the organization when the notice is registered; an admin can change this on the Privacy Notices page.
     ///     Privacy Notice will be shown and any agreement will be stored.
     ///     If the Privacy Notice was simply closed, we return false and nothing is stored.
     ///
@@ -84,6 +87,7 @@ codeunit 1563 "Privacy Notice"
     /// User:
     ///     If admin has agreed or disagreed, that will be returned
     ///     If user has agreed, that will be returned
+    ///     If the integration is enabled by default for the environment's region, it is pre-approved for the organization when the notice is registered; an admin can change this on the Privacy Notices page.
     ///     Privacy Notice will be shown and any agreement will be stored.
     ///     If the Privacy Notice was simply closed, we return false and nothing is stored.
     ///

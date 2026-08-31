@@ -26,7 +26,7 @@ page 30124 "Shpfy Payment Transactions"
                 field(ProcessedAt; Rec."Processed At")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the date and time at which the transaction is processed.';
+                    ToolTip = 'Specifies the date and time when the transaction was processed in Shopify.';
                 }
                 field(Type; Rec.Type)
                 {

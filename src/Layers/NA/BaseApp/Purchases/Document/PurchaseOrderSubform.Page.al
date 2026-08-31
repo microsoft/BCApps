@@ -18,6 +18,7 @@ using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Purchases.History;
@@ -943,6 +944,11 @@ page 54 "Purchase Order Subform"
                     ApplicationArea = Basic, Suite;
                     Visible = AttachingLinesEnabled;
                 }
+                field("Spend Request No."; Rec."Spend Request No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Visible = false;
+                }
             }
             group(Control43)
             {
@@ -1380,6 +1386,20 @@ page 54 "Purchase Order Subform"
                     trigger OnAction()
                     begin
                         Rec.ShowOrderTracking();
+                    end;
+                }
+                action(SupplyWhatIfPlanningAnalysis)
+                {
+                    ApplicationArea = Planning;
+                    Caption = 'Supply Planning What-If Analysis';
+                    Image = CalculateRegenerativePlan;
+                    ToolTip = 'Analyze how changes to this purchase order would impact the overall supply planning suggestions.';
+
+                    trigger OnAction()
+                    var
+                        SupplyWhatIfPlanningEngine: Codeunit "Supply What-If Planning Engine";
+                    begin
+                        SupplyWhatIfPlanningEngine.OpenWhatIfPlanning(Rec);
                     end;
                 }
             }

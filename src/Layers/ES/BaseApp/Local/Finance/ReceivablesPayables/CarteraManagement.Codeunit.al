@@ -165,19 +165,9 @@ codeunit 7000000 CarteraManagement
     procedure InsertReceivableDocs(var CarteraDoc2: Record "Cartera Doc.")
     var
         CarteraDoc: Record "Cartera Doc.";
-        CarteraDocToProcess: Record "Cartera Doc.";
-        BankAcc: Record "Bank Account";
         BillGr: Record "Bill Group";
-        CarteraSetup: Record "Cartera Setup";
-        Cust: Record Customer;
-        CustLedgEntry: Record "Cust. Ledger Entry";
         CarteraDocuments: Page "Cartera Documents";
-        CheckDiscCreditLimit: Page "Check Discount Credit Limit";
-        SelectedEntryNos: List of [Integer];
-        EntryNo: Integer;
-        SelectedAmount: Decimal;
         GroupNo: Code[20];
-        CustLedgEntryFound: Boolean;
     begin
         CarteraDoc2.FilterGroup(2);
         CarteraDoc2.SetRange("Bill Gr./Pmt. Order No.");
@@ -210,6 +200,22 @@ codeunit 7000000 CarteraManagement
             exit;
         CarteraDocuments.GetSelected(CarteraDoc);
         Clear(CarteraDocuments);
+        InsertSelectedReceivableDocs(GroupNo, BillGr, CarteraDoc);
+    end;
+
+    procedure InsertSelectedReceivableDocs(GroupNo: Code[20]; var BillGr: Record "Bill Group"; var CarteraDoc: Record "Cartera Doc.")
+    var
+        CarteraDocToProcess: Record "Cartera Doc.";
+        BankAcc: Record "Bank Account";
+        CarteraSetup: Record "Cartera Setup";
+        Cust: Record Customer;
+        CustLedgEntry: Record "Cust. Ledger Entry";
+        CheckDiscCreditLimit: Page "Check Discount Credit Limit";
+        SelectedEntryNos: List of [Integer];
+        EntryNo: Integer;
+        SelectedAmount: Decimal;
+        CustLedgEntryFound: Boolean;
+    begin
         if not CarteraDoc.Find('-') then
             exit;
 

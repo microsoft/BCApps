@@ -21,7 +21,13 @@ tableextension 31028 "Cash Document Line CZZ" extends "Cash Document Line CZP"
             var
                 SalesAdvLetterHeaderCZZ: Record "Sales Adv. Letter Header CZZ";
                 PurchAdvLetterHeaderCZZ: Record "Purch. Adv. Letter Header CZZ";
+                IsHandled: Boolean;
             begin
+                IsHandled := false;
+                OnBeforeValidateAdvanceLetterNoCZZ(Rec, IsHandled);
+                if IsHandled then
+                    exit;
+
                 if "Advance Letter No. CZZ" <> '' then begin
                     TestField("Gen. Document Type", "Gen. Document Type"::Payment);
                     case "Document Type" of
@@ -59,7 +65,13 @@ tableextension 31028 "Cash Document Line CZZ" extends "Cash Document Line CZP"
             var
                 SalesAdvLetterHeaderCZZ: Record "Sales Adv. Letter Header CZZ";
                 PurchAdvLetterHeaderCZZ: Record "Purch. Adv. Letter Header CZZ";
+                IsHandled: Boolean;
             begin
+                IsHandled := false;
+                OnBeforeLookupAdvanceLetterNoCZZ(Rec, IsHandled);
+                if IsHandled then
+                    exit;
+
                 TestField("Gen. Document Type", "Gen. Document Type"::Payment);
                 if not ((("Document Type" = "Document Type"::Receipt) and ("Account Type" = "Account Type"::Customer)) or
                         (("Document Type" = "Document Type"::Withdrawal) and ("Account Type" = "Account Type"::Vendor))) then
@@ -144,5 +156,15 @@ tableextension 31028 "Cash Document Line CZZ" extends "Cash Document Line CZP"
           ("Gen. Document Type" = "Gen. Document Type"::Refund) and
           ("Applies-To Doc. Type" = "Applies-To Doc. Type"::Payment) and
           ("Applies-To Doc. No." <> ''));
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeValidateAdvanceLetterNoCZZ(var CashDocumentLineCZP: Record "Cash Document Line CZP"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeLookupAdvanceLetterNoCZZ(var CashDocumentLineCZP: Record "Cash Document Line CZP"; var IsHandled: Boolean)
+    begin
     end;
 }
