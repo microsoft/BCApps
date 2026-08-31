@@ -35,7 +35,7 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
         EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
     begin
         EDocPaymentOccurrence.Get(Rec."Record ID to Process");
-        OnAfterCreatePaymentOccurrence(EDocPaymentOccurrence);
+        ProcessPaymentOccurrence(EDocPaymentOccurrence);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnAfterInsertDtldCustLedgEntry', '', false, false)]
@@ -110,6 +110,7 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
         EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
         EDocumentBackgroundJobs: Codeunit "E-Document Background Jobs";
     begin
+        EDocPaymentOccurrence.LockTable();
         EDocPaymentOccurrence.SetRange("E-Document Entry No.", EDocumentEntryNo);
         EDocPaymentOccurrence.SetRange("Source Occurrence ID", SourceOccurrenceID);
         EDocPaymentOccurrence.SetRange(Type, OccurrenceType);
@@ -126,8 +127,60 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
         EDocPaymentOccurrence."Event Date" := EventDate;
         EDocPaymentOccurrence."Detailed Ledger Entry No." := DetailedLedgerEntryNo;
         EDocPaymentOccurrence."Created At" := CurrentDateTime();
+        EDocPaymentOccurrence.Status := EDocPaymentOccurrence.Status::Pending;
         EDocPaymentOccurrence.Insert();
-        EDocumentBackgroundJobs.SchedulePaymentOccurrence(EDocPaymentOccurrence);
+        if not EDocumentBackgroundJobs.TrySchedulePaymentOccurrence(EDocPaymentOccurrence) then begin
+            EDocPaymentOccurrence.Status := EDocPaymentOccurrence.Status::Error;
+            EDocPaymentOccurrence."Retry Count" := 1;
+            EDocPaymentOccurrence."Last Attempt At" := CurrentDateTime();
+            EDocPaymentOccurrence."Next Attempt At" := CurrentDateTime() + RetryDelay;
+            EDocPaymentOccurrence."Last Error" := CopyStr(GetLastErrorText(), 1, MaxStrLen(EDocPaymentOccurrence."Last Error"));
+            EDocPaymentOccurrence.Modify();
+            ClearLastError();
+        end;
+    end;
+
+    internal procedure ProcessPaymentOccurrence(var EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence")
+    var
+        LastErrorText: Text;
+    begin
+        EDocPaymentOccurrence.LockTable();
+        EDocPaymentOccurrence.Get(EDocPaymentOccurrence."Entry No.");
+        if (EDocPaymentOccurrence.Status = EDocPaymentOccurrence.Status::Processed) or
+           ((EDocPaymentOccurrence.Status = EDocPaymentOccurrence.Status::Processing) and
+            (EDocPaymentOccurrence."Next Attempt At" > CurrentDateTime()))
+        then
+            exit;
+
+        EDocPaymentOccurrence.Status := EDocPaymentOccurrence.Status::Processing;
+        EDocPaymentOccurrence."Last Attempt At" := CurrentDateTime();
+        EDocPaymentOccurrence."Next Attempt At" := CurrentDateTime() + RetryDelay;
+        EDocPaymentOccurrence.Modify();
+        Commit();
+        if Codeunit.Run(Codeunit::"E-Doc. Payment Occ. Runner", EDocPaymentOccurrence) then begin
+            EDocPaymentOccurrence.Get(EDocPaymentOccurrence."Entry No.");
+            EDocPaymentOccurrence.Status := EDocPaymentOccurrence.Status::Processed;
+            EDocPaymentOccurrence."Last Attempt At" := CurrentDateTime();
+            EDocPaymentOccurrence."Next Attempt At" := 0DT;
+            Clear(EDocPaymentOccurrence."Last Error");
+            EDocPaymentOccurrence.Modify();
+            exit;
+        end;
+
+        LastErrorText := GetLastErrorText();
+        EDocPaymentOccurrence.Get(EDocPaymentOccurrence."Entry No.");
+        EDocPaymentOccurrence.Status := EDocPaymentOccurrence.Status::Error;
+        EDocPaymentOccurrence."Last Attempt At" := CurrentDateTime();
+        EDocPaymentOccurrence."Retry Count" += 1;
+        EDocPaymentOccurrence."Next Attempt At" := CurrentDateTime() + RetryDelay;
+        EDocPaymentOccurrence."Last Error" := CopyStr(LastErrorText, 1, MaxStrLen(EDocPaymentOccurrence."Last Error"));
+        EDocPaymentOccurrence.Modify();
+        ClearLastError();
+    end;
+
+    internal procedure NotifyPaymentOccurrence(var EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence")
+    begin
+        OnAfterCreatePaymentOccurrence(EDocPaymentOccurrence);
     end;
 
     local procedure FindInvoiceEDocuments(var EDocument: Record "E-Document"; InvoiceCustLedgerEntry: Record "Cust. Ledger Entry"): Boolean
@@ -162,4 +215,7 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
     procedure OnAfterCreatePaymentOccurrence(var EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence")
     begin
     end;
+
+    var
+        RetryDelay: Duration = 300000;
 }
