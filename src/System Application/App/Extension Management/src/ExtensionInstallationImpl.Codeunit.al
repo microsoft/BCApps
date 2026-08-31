@@ -196,8 +196,8 @@ codeunit 2500 "Extension Installation Impl"
     procedure CanManageExtensions(UserSecurityIdToCheck: Guid): Boolean
     var
         AccessControl: Record "Access Control";
-        CurrentModuleInfo: ModuleInfo;
         UserPermissions: Codeunit "User Permissions";
+        CurrentModuleInfo: ModuleInfo;
         ExtensionManagementAdminTok: Label 'Exten. Mgt. - Admin', Locked = true;
     begin
         if UserPermissions.IsSuper(UserSecurityIdToCheck) then
