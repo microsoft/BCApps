@@ -7,6 +7,7 @@ namespace Microsoft.Agent.SalesOrderAgent;
 
 using Microsoft.CRM.Contact;
 using System.Agents;
+using System.Email;
 
 codeunit 4398 "SOA Task Message"
 {
