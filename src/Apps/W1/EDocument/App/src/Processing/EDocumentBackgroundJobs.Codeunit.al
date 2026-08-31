@@ -38,8 +38,7 @@ codeunit 6133 "E-Document Background Jobs"
         SchedulePaymentOccurrence(EDocPaymentOccurrence);
     end;
 
-    [TryFunction]
-    internal procedure TryEnsurePaymentOccurrenceDispatcher()
+    internal procedure EnsurePaymentOccurrenceDispatcher()
     var
         JobQueueEntry: Record "Job Queue Entry";
         BlankRecordId: RecordId;

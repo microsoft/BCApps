@@ -18,8 +18,7 @@ codeunit 6145 "E-Document Setup"
     begin
         InstallWorkFlowTableRelation();
         AddEDocumentLogToAllowedTables();
-        if not EDocumentBackgroundJobs.TryEnsurePaymentOccurrenceDispatcher() then
-            ClearLastError();
+        EDocumentBackgroundJobs.EnsurePaymentOccurrenceDispatcher();
     end;
 
     local procedure AddEDocumentLogToAllowedTables()
