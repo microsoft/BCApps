@@ -260,7 +260,7 @@ page 6949 "Expense User"
     var
         NoFieldVisible: Boolean;
         IsCreateEmployeeVisible: Boolean;
-        CloseWithoutEmployeeNoQst: Label '%1 is blank. Do you want to close the card without linking an %1?', Comment = '%1 = Employee No. field caption';
+        CloseWithoutEmployeeNoQst: Label '%1 is blank. The expense user will not be linked to an employee.\\Are you sure you want to exit?', Comment = '%1 = Employee No. field caption';
 
     local procedure SetCodeFieldVisible()
     var
