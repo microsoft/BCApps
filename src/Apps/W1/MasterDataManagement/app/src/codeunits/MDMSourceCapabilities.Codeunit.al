@@ -78,7 +78,7 @@ codeunit 7246 "MDM Source Capabilities"
         // Don't cache a failed parse as a successful (empty) negotiation - that would surface as a misleading
         // "capability unsupported / update the source app" error instead of the real bad-response problem.
         if not Capabilities.ReadFrom(Transport.GetCapabilities()) then begin
-            Session.LogMessage('', CapabilitiesParseTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
+            Session.LogMessage('0000VAV', CapabilitiesParseTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
             Error(InternalError(CapabilitiesParseErr));
         end;
         if Capabilities.Get('version', VersionToken) then

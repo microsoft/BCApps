@@ -282,7 +282,7 @@ table 7230 "Master Data Management Setup"
     begin
         Dimensions.Add('Category', TelemetryCategory);
         Dimensions.Add('sourceEnvironment', "Source Environment Name");
-        Session.LogMessage('', CrossEnvEnabledTelemetryTxt, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, Dimensions);
+        Session.LogMessage('0000VAX', CrossEnvEnabledTelemetryTxt, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, Dimensions);
     end;
 
     local procedure GetConfigurationUpdates(var IsEnabledChanged: Boolean)

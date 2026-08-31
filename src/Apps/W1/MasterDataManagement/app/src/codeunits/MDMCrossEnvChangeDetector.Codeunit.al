@@ -59,14 +59,14 @@ codeunit 7245 "MDM Cross-Env Change Detector"
             // A transport failure here is operational (source outage, auth, bad connection state); skip this poll. The
             // raw error text is not emitted: GetLastErrorText can carry customer content and this event is All-scope.
             Dimensions.Add('Category', MasterDataManagement.GetTelemetryCategory());
-            Session.LogMessage('', DetectorTransportFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
+            Session.LogMessage('0000VAO', DetectorTransportFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
             exit;
         end;
         // Older source doesn't advertise the detection action: skip rather than error every run.
         if not Supported then
             exit;
         if not SourceResponse.TryParse(ResponseText, Response) then begin
-            Session.LogMessage('', DetectorParseFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
+            Session.LogMessage('0000VAP', DetectorParseFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
             exit;
         end;
 
@@ -114,7 +114,7 @@ codeunit 7245 "MDM Cross-Env Change Detector"
         EntryToken: JsonToken;
     begin
         if (not Response.Get('tables', TablesToken)) or (not TablesToken.IsArray()) then begin
-            Session.LogMessage('', DetectionContractFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
+            Session.LogMessage('0000VAQ', DetectionContractFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
             exit;
         end;
         Tables := TablesToken.AsArray();

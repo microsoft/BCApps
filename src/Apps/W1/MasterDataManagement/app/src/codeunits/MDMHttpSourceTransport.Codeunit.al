@@ -106,7 +106,7 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         Dimensions.Add('Category', TelemetryCategoryTok);
         Dimensions.Add('action', ActionName);
         Dimensions.Add('httpStatusCode', Format(ResponseMessage.HttpStatusCode()));
-        Session.LogMessage('', StrSubstNo(RequestFailedTelemetryTxt, ActionName, ResponseMessage.HttpStatusCode()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
+        Session.LogMessage('0000VAT', StrSubstNo(RequestFailedTelemetryTxt, ActionName, ResponseMessage.HttpStatusCode()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
         // Security audit: an authorization failure crossing the environment boundary.
         if ResponseMessage.HttpStatusCode() in [401, 403] then
             AuditLog.LogAuditMessage(StrSubstNo(AccessDeniedAuditTxt, MasterDataManagementSetup."Source Environment Name", ResponseMessage.HttpStatusCode()), SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
@@ -120,7 +120,7 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         // only the action is logged.
         Dimensions.Add('Category', TelemetryCategoryTok);
         Dimensions.Add('action', ActionName);
-        Session.LogMessage('', StrSubstNo(TransportFailedTelemetryTxt, ActionName), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
+        Session.LogMessage('0000VAU', StrSubstNo(TransportFailedTelemetryTxt, ActionName), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
     end;
 
     local procedure Send(var MasterDataManagementSetup: Record "Master Data Management Setup"; ActionName: Text; RequestBody: Text; var ResponseMessage: HttpResponseMessage)
