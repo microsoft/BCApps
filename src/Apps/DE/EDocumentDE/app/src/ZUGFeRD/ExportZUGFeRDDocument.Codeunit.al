@@ -18,6 +18,7 @@ using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Peppol;
+using Microsoft.Sales.Customer;
 using Microsoft.Sales.History;
 using Microsoft.Service.History;
 using System.IO;
@@ -40,6 +41,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         FeatureNameTok: Label 'E-document ZUGFeRD Format', Locked = true;
         StartEventNameTok: Label 'E-document ZUGFeRD export started', Locked = true;
         EndEventNameTok: Label 'E-document ZUGFeRD export completed', Locked = true;
+        GLNSchemeIDTok: Label '0088', Locked = true;
         XmlNamespaceRSM: Text;
         XmlNamespaceRAM: Text;
         XmlNamespaceUDT: Text;
@@ -519,6 +521,7 @@ codeunit 13917 "Export ZUGFeRD Document"
 
     local procedure InsertApplicableHeaderTradeAgreement(var RootXMLNode: XmlElement; RecordVariant: Variant)
     var
+        Customer: Record Customer;
         SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         TempBodyReportSelections: Record "Report Selections" temporary;
@@ -526,10 +529,11 @@ codeunit 13917 "Export ZUGFeRD Document"
         DataTypeManagement: Codeunit "Data Type Management";
         HeaderRecordRef: RecordRef;
         HeaderTradeAgreementElement, SellerTradePartyElement, BuyerTradePartyElement, SpecifiedTaxRegistrationElement, IDElement : XmlElement;
-        SellerOrderReferencedDocumentElement, BuyerOrderReferencedDocumentElement: XmlElement;
+        SellerOrderReferencedDocumentElement, BuyerOrderReferencedDocumentElement : XmlElement;
         PostalTradeAddressElement, ContactElement : XmlElement;
         SellerIDAttr, BuyerIDAttr : XmlAttribute;
         CustomerNo: Code[20];
+        CustomerGLN: Code[13];
         CustomerName: Text[100];
         Address: Text[100];
         Address2: Text[100];
@@ -601,13 +605,17 @@ codeunit 13917 "Export ZUGFeRD Document"
         end;
 
         GetSellerPostalAddr(RespCentrCode, SellerStreetName, SellerAdditionalStreetName, SellerCityName, SellerPostalZone, SellerCountryCode);
+        Customer.SetLoadFields("Use GLN in Electronic Document", GLN);
+        if Customer.Get(CustomerNo) then
+            if Customer."Use GLN in Electronic Document" then
+                CustomerGLN := Customer.GLN;
         HeaderTradeAgreementElement := XmlElement.Create('ApplicableHeaderTradeAgreement', XmlNamespaceRAM);
         HeaderTradeAgreementElement.Add(XmlElement.Create('BuyerReference', XmlNamespaceRAM, GetBuyerReference(RecordVariant)));
 
         // Seller
         SellerTradePartyElement := XmlElement.Create('SellerTradeParty', XmlNamespaceRAM);
         if CompanyInformation."Use GLN in Electronic Document" and (CompanyInformation.GLN <> '') then begin
-            SellerIDAttr := XmlAttribute.Create('schemeID', '0088');
+            SellerIDAttr := XmlAttribute.Create('schemeID', GLNSchemeIDTok);
             SellerTradePartyElement.Add(XmlElement.Create('GlobalID', XmlNamespaceRAM, SellerIDAttr, CompanyInformation.GLN));
         end;
         SellerTradePartyElement.Add(XmlElement.Create('Name', XmlNamespaceRAM, CompanyInformation.Name));
@@ -619,8 +627,8 @@ codeunit 13917 "Export ZUGFeRD Document"
             ContactElement.Add(XmlElement.Create('TelephoneUniversalCommunication', XmlNamespaceRAM,
                 XmlElement.Create('CompleteNumber', XmlNamespaceRAM, SellerPhoneNumber)));
             if SellerEmailAddress <> '' then
-            ContactElement.Add(XmlElement.Create('EmailURIUniversalCommunication', XmlNamespaceRAM,
-                XmlElement.Create('URIID', XmlNamespaceRAM, SellerEmailAddress)));
+                ContactElement.Add(XmlElement.Create('EmailURIUniversalCommunication', XmlNamespaceRAM,
+                    XmlElement.Create('URIID', XmlNamespaceRAM, SellerEmailAddress)));
             SellerTradePartyElement.Add(ContactElement);
         end;
 
@@ -645,11 +653,23 @@ codeunit 13917 "Export ZUGFeRD Document"
             SpecifiedTaxRegistrationElement := XmlElement.Create('SpecifiedTaxRegistration', XmlNamespaceRAM);
             SpecifiedTaxRegistrationElement.Add(IDElement);
             SellerTradePartyElement.Add(SpecifiedTaxRegistrationElement);
-        end;
+        end else
+            if CompanyInformation."Use Reg. No. in E-Document" and
+               (CompanyInformation.GLN = '') and
+               (CompanyInformation."Registration No." <> '')
+            then begin
+                SellerIDAttr := XmlAttribute.Create('schemeID', 'FC');
+                IDElement := XmlElement.Create('ID', XmlNamespaceRAM, SellerIDAttr, CompanyInformation."Registration No.");
+                SpecifiedTaxRegistrationElement := XmlElement.Create('SpecifiedTaxRegistration', XmlNamespaceRAM);
+                SpecifiedTaxRegistrationElement.Add(IDElement);
+                SellerTradePartyElement.Add(SpecifiedTaxRegistrationElement);
+            end;
         HeaderTradeAgreementElement.Add(SellerTradePartyElement);
 
         // Buyer
         BuyerTradePartyElement := XmlElement.Create('BuyerTradeParty', XmlNamespaceRAM);
+        if CustomerGLN <> '' then
+            BuyerTradePartyElement.Add(XmlElement.Create('GlobalID', XmlNamespaceRAM, XmlAttribute.Create('schemeID', GLNSchemeIDTok), CustomerGLN));
         BuyerTradePartyElement.Add(XmlElement.Create('Name', XmlNamespaceRAM, CustomerName));
 
         // Buyer Contact
@@ -703,6 +723,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         DeliveryElement := XmlElement.Create('ApplicableHeaderTradeDelivery', XmlNamespaceRAM);
 
         ShipToPartyElement := XmlElement.Create('ShipToTradeParty', XmlNamespaceRAM);
+        InsertDeliveryGLN(ShipToPartyElement, SalesInvoiceHeader."Sell-to Customer No.", SalesInvoiceHeader."Ship-to Code");
         ShipToPartyElement.Add(XmlElement.Create('Name', XmlNamespaceRAM, SalesInvoiceHeader."Sell-to Customer Name"));
 
         PostalAddressElement := XmlElement.Create('PostalTradeAddress', XmlNamespaceRAM);
@@ -730,6 +751,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         DeliveryElement := XmlElement.Create('ApplicableHeaderTradeDelivery', XmlNamespaceRAM);
 
         ShipToPartyElement := XmlElement.Create('ShipToTradeParty', XmlNamespaceRAM);
+        InsertDeliveryGLN(ShipToPartyElement, SalesCrMemoHeader."Sell-to Customer No.", SalesCrMemoHeader."Ship-to Code");
         ShipToPartyElement.Add(XmlElement.Create('Name', XmlNamespaceRAM, SalesCrMemoHeader."Sell-to Customer Name"));
 
         PostalAddressElement := XmlElement.Create('PostalTradeAddress', XmlNamespaceRAM);
@@ -748,6 +770,26 @@ codeunit 13917 "Export ZUGFeRD Document"
         DeliveryElement.Add(ActualDeliveryDateElement);
 
         RootXMLNode.Add(DeliveryElement);
+    end;
+
+    local procedure InsertDeliveryGLN(var ShipToPartyElement: XmlElement; CustomerNo: Code[20]; ShipToCode: Code[10])
+    var
+        Customer: Record Customer;
+        ShipToAddress: Record "Ship-to Address";
+        DeliveryGLN: Code[13];
+    begin
+        Customer.SetLoadFields("Use GLN in Electronic Document", GLN);
+        if not Customer.Get(CustomerNo) then
+            exit;
+        if not Customer."Use GLN in Electronic Document" then
+            exit;
+        ShipToAddress.SetLoadFields(GLN);
+        if (ShipToCode <> '') and ShipToAddress.Get(CustomerNo, ShipToCode) then
+            DeliveryGLN := ShipToAddress.GLN;
+        if DeliveryGLN = '' then
+            DeliveryGLN := Customer.GLN;
+        if DeliveryGLN <> '' then
+            ShipToPartyElement.Add(XmlElement.Create('GlobalID', XmlNamespaceRAM, XmlAttribute.Create('schemeID', GLNSchemeIDTok), DeliveryGLN));
     end;
 
     local procedure InsertApplicableHeaderTradeSettlement(var RootXMLNode: XmlElement; var SalesInvHeader: Record "Sales Invoice Header"; var SalesInvLine: Record "Sales Invoice Line"; CurrencyCode: Code[10]; var LineAmount: Dictionary of [Decimal, Decimal]; var LineVATAmount: Dictionary of [Decimal, Decimal]; var LineAmounts: Dictionary of [Text, Decimal]; var LineDiscAmount: Dictionary of [Decimal, Decimal])

@@ -1,7 +1,11 @@
+#if not CLEAN29
 codeunit 144010 "Company Field Report Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the FI Core app.';
+    ObsoleteTag = '29.0';
 
     trigger OnRun()
     begin
@@ -23,21 +27,11 @@ codeunit 144010 "Company Field Report Test"
     local procedure Initialize()
     var
         SalesAndReceivablesSetup: Record "Sales & Receivables Setup";
-        FeatureKey: Record "Feature Key";
-        FeatureKeyUpdateStatus: Record "Feature Data Update Status";
     begin
         LibrarySales.SetCreditWarningsToNoWarnings();
         LibrarySales.SetStockoutWarning(false);
         LibraryVariableStorage.Clear();
 
-        if FeatureKey.Get('ReminderTermsCommunicationTexts') then begin
-            FeatureKey.Enabled := FeatureKey.Enabled::None;
-            FeatureKey.Modify();
-        end;
-        if FeatureKeyUpdateStatus.Get('ReminderTermsCommunicationTexts', CompanyName()) then begin
-            FeatureKeyUpdateStatus."Feature Status" := FeatureKeyUpdateStatus."Feature Status"::Disabled;
-            FeatureKeyUpdateStatus.Modify();
-        end;
 
         LibraryReportDataset.Reset();
         CompanyInformation.FindFirst();
@@ -767,3 +761,4 @@ codeunit 144010 "Company Field Report Test"
 
 
 }
+#endif

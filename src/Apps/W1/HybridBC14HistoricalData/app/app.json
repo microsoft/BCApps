@@ -2,7 +2,7 @@
   "id": "f4e3d2c1-b0a9-4867-8765-432109876543",
   "name": "Business Central 14 Historical Data",
   "publisher": "Microsoft",
-  "version": "29.0.0.0",
+  "version": "30.0.0.0",
   "brief": "This extension retains historical data from Business Central 14 after cloud migration.",
   "description": "This extension adds the necessary components to retain historical Business Central 14 data after the cloud migration. Only uninstall this extension if the historical data is no longer needed.",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
@@ -14,7 +14,7 @@
   "dependencies": [],
   "screenshots": [],
   "platform": "29.0.0.0",
-  "application": "29.0.0.0",
+  "application": "30.0.0.0",
   "idRanges": [
     {
       "from": 46882,
