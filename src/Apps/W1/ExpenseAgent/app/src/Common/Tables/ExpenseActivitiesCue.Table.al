@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-table 6939 "Expense Activities Cue"
+table 6940 "Expense Activities Cue"
 {
     Access = Internal;
     Caption = 'Expense Activities Cue';

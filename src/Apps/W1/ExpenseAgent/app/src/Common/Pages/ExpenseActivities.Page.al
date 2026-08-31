@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7107 "Expense Activities"
+page 7140 "Expense Activities"
 {
     Caption = 'Expense Activities';
     PageType = CardPart;
