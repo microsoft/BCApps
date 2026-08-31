@@ -176,21 +176,23 @@ codeunit 148333 "Expense Agent Setup API Test"
     var
         ExpenseVendor: Record "Expense Vendor";
         ExpenseTestHandlerAPI: Codeunit "Expense Test Handler API";
+        ExpenseVendorNo: Code[20];
     begin
         // [FEATURE] [AI test 1.0]
         // [SCENARIO] Test handler initialization removes stale Expense Vendors
         Initialize();
 
         // [GIVEN] An Expense Vendor exists from a previous test
-        ExpenseVendor.Init();
-        ExpenseVendor."No." := 'E2E-VENDOR';
-        ExpenseVendor.Insert(false);
+        LibraryExpense.CreateExpenseVendor(ExpenseVendor);
+        ExpenseVendorNo := ExpenseVendor."No.";
 
         // [WHEN] The E2E test handler initializes the company
         ExpenseTestHandlerAPI.Initialize();
 
         // [THEN] The stale Expense Vendor is removed
-        Assert.IsFalse(ExpenseVendor.Get('E2E-VENDOR'), 'Expense Vendor must be deleted during test initialization.');
+        Assert.IsFalse(
+            ExpenseVendor.Get(ExpenseVendorNo),
+            'Expense Vendor must be deleted during test initialization.');
     end;
 
     local procedure Initialize()

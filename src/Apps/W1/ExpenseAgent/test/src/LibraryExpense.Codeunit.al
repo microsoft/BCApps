@@ -27,6 +27,12 @@ codeunit 148300 "Library - Expense"
         FirstNameTxt: Label 'First Name';
         NameTxt: Label 'Name';
 
+    internal procedure CreateExpenseVendor(var ExpenseVendor: Record "Expense Vendor")
+    begin
+        ExpenseVendor.Init();
+        ExpenseVendor.Insert(true);
+    end;
+
     internal procedure CreateExpenseUser(var ExpenseUser: Record "Expense User")
     begin
         ExpenseUser.Init();
