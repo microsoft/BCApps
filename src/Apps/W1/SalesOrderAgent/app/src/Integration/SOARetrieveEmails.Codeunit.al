@@ -188,7 +188,7 @@ codeunit 4582 "SOA Retrieve Emails"
 
         AgentMessageBuilder.Initialize(EmailInbox."Sender Address", MessageText)
             .SetMessageExternalID(EmailInbox."External Message Id")
-            .SetRequiresReview(SOATaskMessage.MessageRequiresReview(SOASetup, EmailInbox, true))
+            .SetRequiresReview(SOATaskMessage.MessageRequiresReview(SOASetup, EmailInbox."Sender Address", true))
             .SetIgnoreAttachment(not SOASetup."Analyze Attachments");
 
         AgentTaskBuilder.Initialize(SOASetup."User Security ID", AgentTaskTitle)
@@ -327,7 +327,7 @@ codeunit 4582 "SOA Retrieve Emails"
 
         AgentTaskMessageBuilder.Initialize(EmailInbox."Sender Address", MessageText)
             .SetMessageExternalID(EmailInbox."External Message Id")
-            .SetRequiresReview(SOATaskMessage.MessageRequiresReview(SOASetup, EmailInbox, false))
+            .SetRequiresReview(SOATaskMessage.MessageRequiresReview(SOASetup, EmailInbox."Sender Address", false))
             .SetIgnoreAttachment(not SOASetup."Analyze Attachments")
             .SetAgentTask(AgentTaskRecord);
 
