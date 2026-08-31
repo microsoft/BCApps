@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+#pragma warning disable AA0247
+
 /// <summary>
 /// Leaves API test requests configured with the transport's default authentication behavior.
 /// </summary>

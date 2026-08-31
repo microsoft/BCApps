@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+#pragma warning disable AA0247
+
 /// <summary>
 /// Provides authentication configuration for API test requests.
 /// </summary>
