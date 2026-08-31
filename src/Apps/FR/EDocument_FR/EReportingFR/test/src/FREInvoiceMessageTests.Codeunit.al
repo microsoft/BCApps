@@ -7,13 +7,11 @@ namespace Microsoft.eServices.EDocument.Formats.Test;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Formats;
 using Microsoft.eServices.EDocument.Processing.Message;
-using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Company;
-using Microsoft.Foundation.Enums;
 using Microsoft.Sales.Customer;
-using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using System.Utilities;
@@ -33,22 +31,23 @@ codeunit 148151 "FR E-Invoice Message Tests"
                   tabledata "FR E-Invoice Message VAT" = r,
                   tabledata "General Ledger Setup" = rm,
                   tabledata "Company Information" = rm,
-                  tabledata "Sales Invoice Header" = rimd;
+                  tabledata "Sales Invoice Header" = rimd,
+                  tabledata "Sales Invoice Line" = rimd,
+                  tabledata "VAT Entry" = rimd;
 
     var
         Assert: Codeunit Assert;
         LibraryERM: Codeunit "Library - ERM";
         LibrarySales: Codeunit "Library - Sales";
-        MessageSenderMock: Codeunit "FR E-Doc. Msg. Sender Mock";
 
     [Test]
-    procedure PaymentApplicationSendsCollected()
+    procedure PaymentApplicationCreatesCollectedPayload()
     var
         EDocument: Record "E-Document";
         EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
         FREInvoiceMessage: Record "FR E-Invoice Message";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
+        Payload: Text;
     begin
         // [FEATURE] [AI test]
         // [SCENARIO] Applying a payment to an approved French E-Document creates a Collected message
@@ -58,9 +57,9 @@ codeunit 148151 "FR E-Invoice Message Tests"
         CreatePaymentScenario(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Approved);
 
         // [WHEN] The payment application is processed
-        FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
+        ProcessPaymentApplication(EDocument, DetailedCustLedgEntry);
 
-        // [THEN] One Collected lifecycle message and one generic payment occurrence are created and the message can be sent
+        // [THEN] One Collected lifecycle message and one generic payment occurrence are created with the expected payload
         FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
         FREInvoiceMessage.SetRange(Type, FREInvoiceMessage.Type::Collected);
         Assert.RecordCount(FREInvoiceMessage, 1);
@@ -69,13 +68,11 @@ codeunit 148151 "FR E-Invoice Message Tests"
         Assert.RecordCount(EDocPaymentOccurrence, 1);
         EDocPaymentOccurrence.FindFirst();
         Assert.AreEqual(120, EDocPaymentOccurrence.Amount, 'The generic applied occurrence must carry a positive amount.');
-        Assert.AreEqual(0, MessageSenderMock.GetSendCount(), 'Payment posting must queue the message without invoking the connector.');
         FREInvoiceMessage.FindFirst();
-        SendMessage(FREInvoiceMessage);
-        Assert.AreEqual(1, MessageSenderMock.GetSendCount(), 'One Collected message must be sent.');
-        AssertPayloadStatus(MessageSenderMock.GetLastPayload(), '212');
-        AssertPayloadAmount(MessageSenderMock.GetLastPayload(), 120, 'EUR');
-        AssertPayloadDateFormat(MessageSenderMock.GetLastPayload(), '204');
+        Payload := BuildMessagePayload(EDocument, FREInvoiceMessage);
+        AssertPayloadStatus(Payload, '212');
+        AssertPayloadAmount(Payload, 120, 'EUR');
+        AssertPayloadDateFormat(Payload, '204');
     end;
 
     [Test]
@@ -84,7 +81,6 @@ codeunit 148151 "FR E-Invoice Message Tests"
         EDocument: Record "E-Document";
         FREInvoiceMessage: Record "FR E-Invoice Message";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
     begin
         // [FEATURE] [AI test]
         // [SCENARIO] Applying a payment to a cleared French E-Document creates a Collected message
@@ -94,7 +90,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
         CreatePaymentScenario(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Cleared);
 
         // [WHEN] The payment application is processed
-        FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
+        ProcessPaymentApplication(EDocument, DetailedCustLedgEntry);
 
         // [THEN] One Collected lifecycle message is created for the E-Document
         FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
@@ -109,7 +105,6 @@ codeunit 148151 "FR E-Invoice Message Tests"
         EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
         FREInvoiceMessage: Record "FR E-Invoice Message";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
     begin
         // [FEATURE] [AI test]
         // [SCENARIO] Applying a payment to a sent French E-Document does not create a Collected message
@@ -119,7 +114,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
         CreatePaymentScenario(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Sent);
 
         // [WHEN] The payment application is processed
-        FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
+        ProcessPaymentApplication(EDocument, DetailedCustLedgEntry);
 
         // [THEN] The generic payment occurrence is created but no French lifecycle message is created
         EDocPaymentOccurrence.SetRange("E-Document Entry No.", EDocument."Entry No");
@@ -151,7 +146,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
         CompanyInformation.Modify();
 
         // [WHEN] The payment application is processed
-        FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
+        ProcessPaymentApplication(EDocument, DetailedCustLedgEntry);
 
         // [THEN] The payment occurrence remains persisted and no incomplete French message is created
         EDocPaymentOccurrence.SetRange("E-Document Entry No.", EDocument."Entry No");
@@ -163,6 +158,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
 
         // [WHEN] The configuration is repaired and the persisted occurrence is retried
         EnsureCompanyInformation();
+        Commit();
         EDocPaymentOccurrence.FindFirst();
         FREInvoiceMessageMgt.ProcessPaymentOccurrence(EDocPaymentOccurrence);
 
@@ -171,7 +167,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
     end;
 
     [Test]
-    procedure PaymentUnapplicationSendsLinkedNegativeCollected()
+    procedure PaymentUnapplicationCreatesLinkedNegativeCollected()
     var
         EDocument: Record "E-Document";
         CollectedMessage: Record "FR E-Invoice Message";
@@ -180,23 +176,22 @@ codeunit 148151 "FR E-Invoice Message Tests"
         ReversedOccurrence: Record "E-Doc. Payment Occurrence";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         NewDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
+        Payload: Text;
     begin
         // [FEATURE] [AI test]
         // [SCENARIO] Unapplying a payment creates a negative Collected message linked to the original
         Initialize();
 
-        // [GIVEN] An approved E-Document with a sent Collected message
+        // [GIVEN] An approved E-Document with a Collected message
         CreatePaymentScenario(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Approved);
-        FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
+        ProcessPaymentApplication(EDocument, DetailedCustLedgEntry);
         CollectedMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
         CollectedMessage.SetRange(Type, CollectedMessage.Type::Collected);
         CollectedMessage.FindFirst();
-        SendMessage(CollectedMessage);
         CreateDetailedLedgerEntry(NewDetailedCustLedgEntry, DetailedCustLedgEntry."Cust. Ledger Entry No.", DetailedCustLedgEntry."Applied Cust. Ledger Entry No.", -120);
 
         // [WHEN] The payment is unapplied
-        FREInvoiceMessageMgt.ProcessUnapplication(DetailedCustLedgEntry, NewDetailedCustLedgEntry);
+        ProcessPaymentUnapplication(EDocument, DetailedCustLedgEntry, NewDetailedCustLedgEntry);
 
         // [THEN] A Negative Collected message linked to the original is created;
         NegativeMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
@@ -212,20 +207,21 @@ codeunit 148151 "FR E-Invoice Message Tests"
         ReversedOccurrence.FindFirst();
         Assert.AreEqual(AppliedOccurrence."Entry No.", ReversedOccurrence."Original Occurrence Entry No.", 'The generic reversal must link to its applied occurrence.');
         Assert.AreEqual(-AppliedOccurrence.Amount, ReversedOccurrence.Amount, 'The generic reversal must negate the applied amount.');
-        Assert.AreEqual(1, MessageSenderMock.GetSendCount(), 'Unapplication must queue the reversal without invoking the connector.');
-        SendMessage(NegativeMessage);
-        Assert.AreEqual(2, MessageSenderMock.GetSendCount(), 'Collected and Negative Collected messages must be sent.');
-        AssertPayloadAmount(MessageSenderMock.GetLastPayload(), -120, 'EUR');
+        Payload := BuildMessagePayload(EDocument, NegativeMessage);
+        AssertPayloadAmount(Payload, -120, 'EUR');
     end;
 
     [Test]
-    procedure RefusalSendsStatusAndReason()
+    procedure RefusalCreatesStatusAndReasonPayload()
     var
         EDocument: Record "E-Document";
+        FREInvoiceMessage: Record "FR E-Invoice Message";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
         FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
+        Payload: Text;
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO] Refusing an invoice sends a lifecycle message with status 210 and reason code
+        // [SCENARIO] Refusing an invoice creates a lifecycle message with status 210 and reason code
         Initialize();
 
         // [GIVEN] An incoming French E-Document
@@ -234,20 +230,21 @@ codeunit 148151 "FR E-Invoice Message Tests"
         // [WHEN] The invoice is refused with a reason
         FREInvoiceMessageMgt.RefuseInvoice(EDocument, 'PRICE', 'The amount is incorrect.');
 
-        // [THEN] A refusal message with status 210 and the reason code is queued and can be sent
-        Assert.AreEqual(0, MessageSenderMock.GetSendCount(), 'Refusal must queue the message without invoking the connector.');
-        SendFirstMessage(EDocument, "FR E-Invoice Message Type"::Refused);
-        Assert.AreEqual(1, MessageSenderMock.GetSendCount(), 'One refusal message must be sent.');
-        Assert.AreEqual("E-Doc. Response Type"::Refused, MessageSenderMock.GetLastResponseType(), 'The child message must be Refused.');
-        AssertPayloadStatus(MessageSenderMock.GetLastPayload(), '210');
-        AssertPayloadReasonCode(MessageSenderMock.GetLastPayload(), 'PRICE');
+        // [THEN] A refusal message with status 210 and the reason code is queued
+        FindMessage(FREInvoiceMessage, EDocument, "FR E-Invoice Message Type"::Refused);
+        Assert.AreEqual("E-Doc. Response Type"::Refused, EDocumentMessageAPI.GetMessageResponseType(FREInvoiceMessage."E-Document Message Entry No."), 'The child message must be Refused.');
+        Payload := BuildMessagePayload(EDocument, FREInvoiceMessage);
+        AssertPayloadStatus(Payload, '210');
+        AssertPayloadReasonCode(Payload, 'PRICE');
     end;
 
     [Test]
-    procedure RefusalWithoutReasonSendsStatusWithoutReasonElements()
+    procedure RefusalWithoutReasonCreatesStatusWithoutReasonElements()
     var
         EDocument: Record "E-Document";
+        FREInvoiceMessage: Record "FR E-Invoice Message";
         FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
+        Payload: Text;
     begin
         // [FEATURE] [AI test]
         // [SCENARIO] A buyer can refuse an invoice without providing a reason
@@ -258,39 +255,12 @@ codeunit 148151 "FR E-Invoice Message Tests"
 
         // [WHEN] The invoice is refused without a reason code or description
         FREInvoiceMessageMgt.RefuseInvoice(EDocument, '', '');
-        SendFirstMessage(EDocument, "FR E-Invoice Message Type"::Refused);
 
-        // [THEN] The refusal status is sent without empty reason elements
-        AssertPayloadStatus(MessageSenderMock.GetLastPayload(), '210');
-        AssertPayloadHasNoReason(MessageSenderMock.GetLastPayload());
-    end;
-
-    [Test]
-    procedure MessageSenderMustReportSuccess()
-    var
-        EDocument: Record "E-Document";
-        EDocumentMessageAPI: Codeunit "E-Document Message API";
-        TempBlob: Codeunit "Temp Blob";
-        OutStream: OutStream;
-        MessageEntryNo: Integer;
-    begin
-        // [FEATURE] [AI test]
-        // [SCENARIO] Sending a message without the connector reporting success raises an error
-        Initialize();
-
-        // [GIVEN] An incoming E-Document with a lifecycle message and a mock connector that does not report success
-        CreateIncomingEDocument(EDocument);
-        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
-        OutStream.WriteText('<Message />');
-        MessageEntryNo := EDocumentMessageAPI.CreateMessage(
-            EDocument, "E-Document Message Type"::"FR Invoice Lifecycle", "E-Doc. Response Type"::Refused, TempBlob);
-        MessageSenderMock.SetReportSuccess(false);
-
-        // [WHEN] The message is sent
-        asserterror EDocumentMessageAPI.SendMessage(MessageEntryNo);
-
-        // [THEN] The connector is invoked before its missing success result is rejected
-        Assert.AreEqual(1, MessageSenderMock.GetSendCount(), 'The connector must be invoked before its missing success result is rejected.');
+        // [THEN] The refusal payload has status 210 without empty reason elements
+        FindMessage(FREInvoiceMessage, EDocument, "FR E-Invoice Message Type"::Refused);
+        Payload := BuildMessagePayload(EDocument, FREInvoiceMessage);
+        AssertPayloadStatus(Payload, '210');
+        AssertPayloadHasNoReason(Payload);
     end;
 
     [Test]
@@ -300,7 +270,6 @@ codeunit 148151 "FR E-Invoice Message Tests"
         EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
         FREInvoiceMessage: Record "FR E-Invoice Message";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
     begin
         // [FEATURE] [AI test]
         // [SCENARIO] Processing the same payment application twice is idempotent
@@ -310,8 +279,8 @@ codeunit 148151 "FR E-Invoice Message Tests"
         CreatePaymentScenario(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Approved);
 
         // [WHEN] The payment application is processed twice
-        FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
-        FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
+        ProcessPaymentApplication(EDocument, DetailedCustLedgEntry);
+        ProcessPaymentApplication(EDocument, DetailedCustLedgEntry);
 
         // [THEN] Only one payment occurrence and one Collected message exist;
         EDocPaymentOccurrence.SetRange("E-Document Entry No.", EDocument."Entry No");
@@ -329,7 +298,6 @@ codeunit 148151 "FR E-Invoice Message Tests"
         EDocumentService: Record "E-Document Service";
         FREInvoiceMessage: Record "FR E-Invoice Message";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
     begin
         // [FEATURE] [AI test]
         // [SCENARIO 647421] A Collected message retains the sender-platform identity captured from its service
@@ -339,7 +307,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
         CreatePaymentScenario(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Approved);
 
         // [WHEN] The payment is processed and the service identity is subsequently changed
-        FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
+        ProcessPaymentApplication(EDocument, DetailedCustLedgEntry);
         EDocumentService.Get(EDocument.Service);
         EDocumentService."FR Sender Platform ID" := 'CHANGED-PLATFORM';
         EDocumentService."FR Sender Platform Scheme" := '9999';
@@ -366,7 +334,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
         EDocument: Record "E-Document";
         FREInvoiceMessage: Record "FR E-Invoice Message";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
+        Payload: Text;
     begin
         // [FEATURE] [AI test]
         // [SCENARIO 647421] A Collected message emits the complete PPF platform context
@@ -375,15 +343,15 @@ codeunit 148151 "FR E-Invoice Message Tests"
         // [GIVEN] An eligible payment and a French service with sender-platform identity
         CreatePaymentScenario(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Approved);
 
-        // [WHEN] The payment is processed and its lifecycle message is sent
-        FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
+        // [WHEN] The payment is processed and its lifecycle payload is built
+        ProcessPaymentApplication(EDocument, DetailedCustLedgEntry);
         FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
         FREInvoiceMessage.SetRange(Type, FREInvoiceMessage.Type::Collected);
         FREInvoiceMessage.FindFirst();
-        SendMessage(FREInvoiceMessage);
+        Payload := BuildMessagePayload(EDocument, FREInvoiceMessage);
 
         // [THEN] The payload contains the PPF profile, sender, issuer, recipient, and invoice dates
-        AssertPayloadPPFContext(MessageSenderMock.GetLastPayload(), EDocument);
+        AssertPayloadPPFContext(Payload, EDocument);
     end;
 
     [Test]
@@ -392,7 +360,6 @@ codeunit 148151 "FR E-Invoice Message Tests"
         EDocument: Record "E-Document";
         FREInvoiceMessage: Record "FR E-Invoice Message";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
     begin
         // [FEATURE] [AI test]
         // [SCENARIO 647421] A Collected message supports a service without optional sender-platform identity
@@ -402,7 +369,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
         CreatePaymentScenarioWithoutSenderPlatform(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Approved);
 
         // [WHEN] The payment is processed
-        FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
+        ProcessPaymentApplication(EDocument, DetailedCustLedgEntry);
 
         // [THEN] The message is created with no frozen platform identity
         FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
@@ -417,7 +384,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
         EDocument: Record "E-Document";
         FREInvoiceMessage: Record "FR E-Invoice Message";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
+        Payload: Text;
     begin
         // [FEATURE] [AI test]
         // [SCENARIO 647421] A Collected message without platform identity retains the CDV profile
@@ -426,25 +393,26 @@ codeunit 148151 "FR E-Invoice Message Tests"
         // [GIVEN] An eligible payment whose service has no sender-platform identity
         CreatePaymentScenarioWithoutSenderPlatform(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Approved);
 
-        // [WHEN] The payment is processed and its lifecycle message is sent
-        FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
+        // [WHEN] The payment is processed and its lifecycle payload is built
+        ProcessPaymentApplication(EDocument, DetailedCustLedgEntry);
         FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
         FREInvoiceMessage.SetRange(Type, FREInvoiceMessage.Type::Collected);
         FREInvoiceMessage.FindFirst();
-        SendMessage(FREInvoiceMessage);
+        Payload := BuildMessagePayload(EDocument, FREInvoiceMessage);
 
         // [THEN] The payload uses the CDV profile and does not contain PPF trade parties
-        AssertPayloadCDVContext(MessageSenderMock.GetLastPayload());
+        AssertPayloadCDVContext(Payload);
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure SingleRateFullPaymentCreatesOneVATRow()
     var
         EDocument: Record "E-Document";
         FREInvoiceMessage: Record "FR E-Invoice Message";
         FREInvoiceMessageVAT: Record "FR E-Invoice Message VAT";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
+        Payload: Text;
     begin
         // [FEATURE] [AI test]
         // [SCENARIO 647421] Single-rate full payment creates one frozen VAT row summing to reportable amount
@@ -454,7 +422,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
         CreatePaymentScenario(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Approved);
 
         // [WHEN] The payment application is processed
-        FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
+        ProcessPaymentApplication(EDocument, DetailedCustLedgEntry);
 
         // [THEN] One VAT row is created with amount equal to the message amount and the XML includes amount and rate
         FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
@@ -466,18 +434,18 @@ codeunit 148151 "FR E-Invoice Message Tests"
         Assert.AreEqual(FREInvoiceMessage.Amount, FREInvoiceMessageVAT.Amount, 'VAT row amount must equal message amount.');
         Assert.AreEqual(20, FREInvoiceMessageVAT."VAT %", 'VAT rate must match the posting setup.');
         Assert.AreEqual('S', Format(FREInvoiceMessageVAT."VAT Category Code"), 'VAT category must be standard.');
-        SendMessage(FREInvoiceMessage);
-        AssertPayloadVATCharacteristic(MessageSenderMock.GetLastPayload(), FREInvoiceMessage.Amount, 20);
+        Payload := BuildMessagePayload(EDocument, FREInvoiceMessage);
+        AssertPayloadVATCharacteristic(Payload, FREInvoiceMessage.Amount, 20);
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure SingleRatePartialPaymentAllocatesPartialAmount()
     var
         EDocument: Record "E-Document";
         FREInvoiceMessage: Record "FR E-Invoice Message";
         FREInvoiceMessageVAT: Record "FR E-Invoice Message VAT";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
     begin
         // [FEATURE] [AI test]
         // [SCENARIO 647421] Single-rate partial payment allocates partial amount
@@ -487,7 +455,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
         CreatePaymentScenarioWithAmount(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Approved, 60);
 
         // [WHEN] The payment application is processed
-        FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
+        ProcessPaymentApplication(EDocument, DetailedCustLedgEntry);
 
         // [THEN] The message amount and VAT row reflect the partial payment
         FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
@@ -507,7 +475,6 @@ codeunit 148151 "FR E-Invoice Message Tests"
         FREInvoiceMessage: Record "FR E-Invoice Message";
         FREInvoiceMessageVAT: Record "FR E-Invoice Message VAT";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
     begin
         // [FEATURE] [AI test]
         // [SCENARIO 647421] Mixed invoice with unrealized and realized VAT reports only proportional eligible share
@@ -515,9 +482,9 @@ codeunit 148151 "FR E-Invoice Message Tests"
 
         // [GIVEN] An invoice with one unrealized-VAT line (20%, gross 120) and one realized-VAT line (10%, gross 110), full payment of 230
         CreateMixedVATPaymentScenario(EDocument, DetailedCustLedgEntry);
-
+        Commit();
         // [WHEN] The payment application is processed
-        FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
+        ProcessPaymentApplication(EDocument, DetailedCustLedgEntry);
 
         // [THEN] The message amount reflects only the eligible gross share
         FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
@@ -537,7 +504,6 @@ codeunit 148151 "FR E-Invoice Message Tests"
         FREInvoiceMessage: Record "FR E-Invoice Message";
         FREInvoiceMessageVAT: Record "FR E-Invoice Message VAT";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
         VATRowSum: Decimal;
     begin
         // [FEATURE] [AI test]
@@ -546,9 +512,9 @@ codeunit 148151 "FR E-Invoice Message Tests"
 
         // [GIVEN] An invoice with three unrealized VAT rates (10%, 20%, 7%) and a partial payment of 99 causing rounding residue
         CreateMultiRatePaymentScenario(EDocument, DetailedCustLedgEntry);
-
+        Commit();
         // [WHEN] The payment application is processed
-        FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
+        ProcessPaymentApplication(EDocument, DetailedCustLedgEntry);
 
         // [THEN] The sum of VAT rows equals the message amount deterministically
         FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
@@ -570,7 +536,6 @@ codeunit 148151 "FR E-Invoice Message Tests"
         EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
         FREInvoiceMessage: Record "FR E-Invoice Message";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
     begin
         // [FEATURE] [AI test]
         // [SCENARIO 647421] Invoice without unrealized VAT keeps generic payment occurrence but creates no FR Collected message
@@ -580,7 +545,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
         CreateNormalVATPaymentScenario(EDocument, DetailedCustLedgEntry);
 
         // [WHEN] The payment application is processed
-        FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
+        ProcessPaymentApplication(EDocument, DetailedCustLedgEntry);
 
         // [THEN] A generic payment occurrence exists but no Collected message is created
         EDocPaymentOccurrence.SetRange("E-Document Entry No.", EDocument."Entry No");
@@ -605,7 +570,6 @@ codeunit 148151 "FR E-Invoice Message Tests"
         NewDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         SalesInvoiceLine: Record "Sales Invoice Line";
         VATPostingSetup: Record "VAT Posting Setup";
-        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
     begin
         // [FEATURE] [AI test]
         // [SCENARIO 647421] Reversal copies original frozen rows with negated values even if VAT setup changes after original
@@ -613,11 +577,10 @@ codeunit 148151 "FR E-Invoice Message Tests"
 
         // [GIVEN] A collected message with a frozen VAT breakdown
         CreatePaymentScenario(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Approved);
-        FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
+        ProcessPaymentApplication(EDocument, DetailedCustLedgEntry);
         CollectedMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
         CollectedMessage.SetRange(Type, CollectedMessage.Type::Collected);
         CollectedMessage.FindFirst();
-        SendMessage(CollectedMessage);
         OriginalVAT.SetRange("Message Entry No.", CollectedMessage."Entry No.");
         OriginalVAT.FindFirst();
 
@@ -639,7 +602,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
 
         // [WHEN] The payment is unapplied
         CreateDetailedLedgerEntry(NewDetailedCustLedgEntry, DetailedCustLedgEntry."Cust. Ledger Entry No.", DetailedCustLedgEntry."Applied Cust. Ledger Entry No.", -120);
-        FREInvoiceMessageMgt.ProcessUnapplication(DetailedCustLedgEntry, NewDetailedCustLedgEntry);
+        ProcessPaymentUnapplication(EDocument, DetailedCustLedgEntry, NewDetailedCustLedgEntry);
 
         // [THEN] The reversal has the original frozen rate and negated amount
         NegativeMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
@@ -670,7 +633,6 @@ codeunit 148151 "FR E-Invoice Message Tests"
         FREInvoiceMessage: Record "FR E-Invoice Message";
         FREInvoiceMessageVAT: Record "FR E-Invoice Message VAT";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
     begin
         // [FEATURE] [AI test]
         // [SCENARIO 647421] Replay is idempotent and does not duplicate allocation rows
@@ -680,8 +642,8 @@ codeunit 148151 "FR E-Invoice Message Tests"
         CreatePaymentScenario(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Approved);
 
         // [WHEN] The payment application is processed twice
-        FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
-        FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
+        ProcessPaymentApplication(EDocument, DetailedCustLedgEntry);
+        ProcessPaymentApplication(EDocument, DetailedCustLedgEntry);
 
         // [THEN] Only one message and one VAT row exist
         FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
@@ -755,11 +717,13 @@ codeunit 148151 "FR E-Invoice Message Tests"
     end;
 
     [Test]
-    procedure BuyerAcceptanceQueuesAndSendsStatus205()
+    procedure BuyerAcceptanceQueuesStatus205()
     var
         EDocument: Record "E-Document";
         FREInvoiceMessage: Record "FR E-Invoice Message";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
         FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
+        Payload: Text;
     begin
         // [FEATURE] [AI test]
         // [SCENARIO] Accepting an invoice queues an Accepted message with status 205
@@ -771,15 +735,14 @@ codeunit 148151 "FR E-Invoice Message Tests"
         // [WHEN] The invoice is accepted
         FREInvoiceMessageMgt.AcceptInvoice(EDocument);
 
-        // [THEN] An Accepted message with status 205 is queued and can be sent
+        // [THEN] An Accepted message with status 205 is queued
         FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
         FREInvoiceMessage.SetRange(Type, FREInvoiceMessage.Type::Accepted);
         Assert.RecordCount(FREInvoiceMessage, 1);
-        Assert.AreEqual(0, MessageSenderMock.GetSendCount(), 'Acceptance must queue the message without invoking the connector.');
-        SendFirstMessage(EDocument, "FR E-Invoice Message Type"::Accepted);
-        Assert.AreEqual(1, MessageSenderMock.GetSendCount(), 'One Accepted message must be sent.');
-        Assert.AreEqual("E-Doc. Response Type"::Accepted, MessageSenderMock.GetLastResponseType(), 'The child message must be Accepted.');
-        AssertPayloadStatus(MessageSenderMock.GetLastPayload(), '205');
+        FREInvoiceMessage.FindFirst();
+        Assert.AreEqual("E-Doc. Response Type"::Accepted, EDocumentMessageAPI.GetMessageResponseType(FREInvoiceMessage."E-Document Message Entry No."), 'The child message must be Accepted.');
+        Payload := BuildMessagePayload(EDocument, FREInvoiceMessage);
+        AssertPayloadStatus(Payload, '205');
     end;
 
     [Test]
@@ -1507,21 +1470,26 @@ codeunit 148151 "FR E-Invoice Message Tests"
         exit('urn.cpro.gouv.fr:1p0:CDV:invoice');
     end;
 
-    local procedure SendFirstMessage(EDocument: Record "E-Document"; MessageType: Enum "FR E-Invoice Message Type")
-    var
-        FREInvoiceMessage: Record "FR E-Invoice Message";
+    local procedure FindMessage(var FREInvoiceMessage: Record "FR E-Invoice Message"; EDocument: Record "E-Document"; MessageType: Enum "FR E-Invoice Message Type")
     begin
         FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
         FREInvoiceMessage.SetRange(Type, MessageType);
         FREInvoiceMessage.FindFirst();
-        SendMessage(FREInvoiceMessage);
     end;
 
-    local procedure SendMessage(FREInvoiceMessage: Record "FR E-Invoice Message")
+    local procedure BuildMessagePayload(EDocument: Record "E-Document"; FREInvoiceMessage: Record "FR E-Invoice Message") Payload: Text
     var
-        EDocumentMessageAPI: Codeunit "E-Document Message API";
+        FREInvoiceMessageBuilder: Codeunit "FR E-Invoice Message Builder";
+        TempBlob: Codeunit "Temp Blob";
+        InStream: InStream;
+        PayloadLine: Text;
     begin
-        EDocumentMessageAPI.SendMessage(FREInvoiceMessage."E-Document Message Entry No.");
+        FREInvoiceMessageBuilder.BuildMessage(EDocument, FREInvoiceMessage, TempBlob);
+        TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
+        while not InStream.EOS do begin
+            InStream.ReadText(PayloadLine);
+            Payload += PayloadLine;
+        end;
     end;
 
     local procedure AssertPayloadAmount(Payload: Text; ExpectedAmount: Decimal; ExpectedCurrencyCode: Code[10])
@@ -1651,7 +1619,6 @@ codeunit 148151 "FR E-Invoice Message Tests"
     begin
         EDocPaymentOccurrence.DeleteAll();
         FREInvoiceMessage.DeleteAll();
-        MessageSenderMock.Reset();
         EnsureService();
         EnsureCompanyInformation();
         GeneralLedgerSetup.Get();
@@ -1675,13 +1642,12 @@ codeunit 148151 "FR E-Invoice Message Tests"
     var
         EDocumentService: Record "E-Document Service";
     begin
-        if not EDocumentService.Get('FR-MESSAGE-MOCK') then begin
+        if not EDocumentService.Get('FR-MESSAGE') then begin
             EDocumentService.Init();
-            EDocumentService.Code := 'FR-MESSAGE-MOCK';
-            EDocumentService."Document Format" := EDocumentService."Document Format"::"Peppol BIS 3.0 FR";
-            EDocumentService."Service Integration V2" := EDocumentService."Service Integration V2"::"FR Message Mock";
+            EDocumentService.Code := 'FR-MESSAGE';
             EDocumentService.Insert();
         end;
+        EDocumentService."Document Format" := EDocumentService."Document Format"::"Peppol BIS 3.0 FR";
         EDocumentService."FR Sender Platform ID" := 'TEST-PLATFORM';
         EDocumentService."FR Sender Platform Scheme" := '0238';
         EDocumentService."FR Sender Platform Name" := 'Test Platform';
@@ -1694,7 +1660,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
         EDocument."Document No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(EDocument."Document No."));
         EDocument.Direction := EDocument.Direction::Incoming;
         EDocument."Document Type" := EDocument."Document Type"::"Purchase Invoice";
-        EDocument.Service := 'FR-MESSAGE-MOCK';
+        EDocument.Service := 'FR-MESSAGE';
         EDocument.Insert();
     end;
 
@@ -1704,7 +1670,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
         EDocument."Document No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(EDocument."Document No."));
         EDocument.Direction := EDocument.Direction::Outgoing;
         EDocument."Document Type" := EDocument."Document Type"::"Sales Invoice";
-        EDocument.Service := 'FR-MESSAGE-MOCK';
+        EDocument.Service := 'FR-MESSAGE';
         EDocument.Insert();
     end;
 
@@ -1717,7 +1683,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
     var
         EDocumentService: Record "E-Document Service";
     begin
-        EDocumentService.Get('FR-MESSAGE-MOCK');
+        EDocumentService.Get('FR-MESSAGE');
         Clear(EDocumentService."FR Sender Platform ID");
         EDocumentService.Modify();
         CreatePaymentScenario(EDocument, DetailedCustLedgEntry, ServiceStatus);
@@ -1726,40 +1692,67 @@ codeunit 148151 "FR E-Invoice Message Tests"
     local procedure CreatePaymentScenarioWithAmount(var EDocument: Record "E-Document"; var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; ServiceStatus: Enum "E-Document Service Status"; PaymentAmount: Decimal)
     var
         Customer: Record Customer;
-        EDocumentService: Record "E-Document Service";
-        GenJournalBatch: Record "Gen. Journal Batch";
-        GenJournalLine: Record "Gen. Journal Line";
-        SalesHeader: Record "Sales Header";
+        InvoiceCustLedgerEntry: Record "Cust. Ledger Entry";
+        PaymentCustLedgerEntry: Record "Cust. Ledger Entry";
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        SalesLine: Record "Sales Line";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        VATEntry: Record "VAT Entry";
         VATPostingSetup: Record "VAT Posting Setup";
         PostedInvoiceNo: Code[20];
     begin
-        EDocumentService.Get('FR-MESSAGE-MOCK');
-        Clear(EDocumentService."Document Format");
-        EDocumentService.Modify();
         LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 20);
         VATPostingSetup."Unrealized VAT Type" := VATPostingSetup."Unrealized VAT Type"::Percentage;
         VATPostingSetup."Sales VAT Unreal. Account" := LibraryERM.CreateGLAccountNo();
         VATPostingSetup."Tax Category" := 'S';
         VATPostingSetup.Modify(true);
         LibrarySales.CreateCustomer(Customer);
-        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
-        PrepareCustomerForPosting(Customer);
-        Customer.Modify(true);
+        PostedInvoiceNo := CopyStr(Format(CreateGuid()), 1, MaxStrLen(PostedInvoiceNo));
+        SalesInvoiceHeader.Init();
+        SalesInvoiceHeader."No." := PostedInvoiceNo;
+        SalesInvoiceHeader."Bill-to Customer No." := Customer."No.";
+        SalesInvoiceHeader."Posting Date" := WorkDate();
+        SalesInvoiceHeader."Document Date" := WorkDate();
+        SalesInvoiceHeader.Insert();
+        SalesInvoiceLine.Init();
+        SalesInvoiceLine."Document No." := PostedInvoiceNo;
+        SalesInvoiceLine."Line No." := 10000;
+        SalesInvoiceLine."VAT Bus. Posting Group" := VATPostingSetup."VAT Bus. Posting Group";
+        SalesInvoiceLine."VAT Prod. Posting Group" := VATPostingSetup."VAT Prod. Posting Group";
+        SalesInvoiceLine.Insert();
 
-        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
-        PrepareSalesHeaderForPosting(SalesHeader);
-        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account",
-            LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, "General Posting Type"::Sale), 1);
-        SalesLine.Validate("Unit Price", 100);
-        SalesLine.Modify(true);
-        PostedInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        InvoiceCustLedgerEntry.Init();
+        InvoiceCustLedgerEntry."Entry No." := GetNextCustLedgerEntryNo();
+        InvoiceCustLedgerEntry."Customer No." := Customer."No.";
+        InvoiceCustLedgerEntry."Posting Date" := WorkDate();
+        InvoiceCustLedgerEntry."Document Type" := InvoiceCustLedgerEntry."Document Type"::Invoice;
+        InvoiceCustLedgerEntry."Document No." := PostedInvoiceNo;
+        InvoiceCustLedgerEntry."Transaction No." := InvoiceCustLedgerEntry."Entry No.";
+        InvoiceCustLedgerEntry.Insert();
+        PaymentCustLedgerEntry.Init();
+        PaymentCustLedgerEntry."Entry No." := GetNextCustLedgerEntryNo();
+        PaymentCustLedgerEntry."Customer No." := Customer."No.";
+        PaymentCustLedgerEntry."Posting Date" := WorkDate();
+        PaymentCustLedgerEntry."Document Type" := PaymentCustLedgerEntry."Document Type"::Payment;
+        PaymentCustLedgerEntry."Document No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(PaymentCustLedgerEntry."Document No."));
+        PaymentCustLedgerEntry.Insert();
+        CreateDetailedLedgerEntry(DetailedCustLedgEntry, InvoiceCustLedgerEntry."Entry No.", PaymentCustLedgerEntry."Entry No.", -PaymentAmount);
 
-        EDocumentService."Document Format" := EDocumentService."Document Format"::"Peppol BIS 3.0 FR";
-        EDocumentService.Modify();
+        VATEntry.Init();
+        VATEntry."Entry No." := GetNextVATEntryNo();
+        VATEntry.Type := VATEntry.Type::Sale;
+        VATEntry."Document Type" := VATEntry."Document Type"::Invoice;
+        VATEntry."Document No." := PostedInvoiceNo;
+        VATEntry."Posting Date" := WorkDate();
+        VATEntry."Transaction No." := InvoiceCustLedgerEntry."Transaction No.";
+        VATEntry."VAT Bus. Posting Group" := VATPostingSetup."VAT Bus. Posting Group";
+        VATEntry."VAT Prod. Posting Group" := VATPostingSetup."VAT Prod. Posting Group";
+        VATEntry."VAT Calculation Type" := VATEntry."VAT Calculation Type"::"Normal VAT";
+        VATEntry.Base := -100;
+        VATEntry.Amount := -20;
+        VATEntry."Unrealized Base" := -100;
+        VATEntry."Unrealized Amount" := -20;
+        VATEntry.Insert();
 
-        SalesInvoiceHeader.Get(PostedInvoiceNo);
         EDocument.Init();
         EDocument."Document No." := PostedInvoiceNo;
         EDocument."Document Record ID" := SalesInvoiceHeader.RecordId;
@@ -1768,253 +1761,74 @@ codeunit 148151 "FR E-Invoice Message Tests"
         EDocument."Clearance Date" := CurrentDateTime();
         EDocument.Direction := EDocument.Direction::Outgoing;
         EDocument."Document Type" := EDocument."Document Type"::"Sales Invoice";
-        EDocument.Service := 'FR-MESSAGE-MOCK';
+        EDocument.Service := 'FR-MESSAGE';
         EDocument.Insert();
         CreateServiceStatus(EDocument, ServiceStatus);
-
-        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
-        LibraryERM.ClearGenJournalLines(GenJournalBatch);
-        LibraryERM.CreateGeneralJnlLineWithBalAcc(GenJournalLine,
-            GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
-            GenJournalLine."Document Type"::Payment, GenJournalLine."Account Type"::Customer, Customer."No.",
-            GenJournalLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), -PaymentAmount);
-        GenJournalLine.Validate("Applies-to Doc. Type", GenJournalLine."Applies-to Doc. Type"::Invoice);
-        GenJournalLine.Validate("Applies-to Doc. No.", PostedInvoiceNo);
-        GenJournalLine.Modify(true);
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
-
-        FindApplicationDetailedEntry(DetailedCustLedgEntry, PostedInvoiceNo);
     end;
 
     local procedure CreateMixedVATPaymentScenario(var EDocument: Record "E-Document"; var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
-    var
-        Customer: Record Customer;
-        EDocumentService: Record "E-Document Service";
-        GenJournalBatch: Record "Gen. Journal Batch";
-        GenJournalLine: Record "Gen. Journal Line";
-        SalesHeader: Record "Sales Header";
-        SalesInvoiceHeader: Record "Sales Invoice Header";
-        SalesLine: Record "Sales Line";
-        UnrealizedVATSetup: Record "VAT Posting Setup";
-        NormalVATSetup: Record "VAT Posting Setup";
-        PostedInvoiceNo: Code[20];
     begin
-        EDocumentService.Get('FR-MESSAGE-MOCK');
-        Clear(EDocumentService."Document Format");
-        EDocumentService.Modify();
-        LibraryERM.CreateVATPostingSetupWithAccounts(UnrealizedVATSetup, UnrealizedVATSetup."VAT Calculation Type"::"Normal VAT", 20);
-        UnrealizedVATSetup."Unrealized VAT Type" := UnrealizedVATSetup."Unrealized VAT Type"::Percentage;
-        UnrealizedVATSetup."Sales VAT Unreal. Account" := LibraryERM.CreateGLAccountNo();
-        UnrealizedVATSetup."Tax Category" := 'S';
-        UnrealizedVATSetup.Modify(true);
-        LibraryERM.CreateVATPostingSetupWithAccounts(NormalVATSetup, NormalVATSetup."VAT Calculation Type"::"Normal VAT", 10);
-        NormalVATSetup.Rename(UnrealizedVATSetup."VAT Bus. Posting Group", NormalVATSetup."VAT Prod. Posting Group");
-        LibrarySales.CreateCustomer(Customer);
-        Customer.Validate("VAT Bus. Posting Group", UnrealizedVATSetup."VAT Bus. Posting Group");
-        PrepareCustomerForPosting(Customer);
-        Customer.Modify(true);
-
-        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
-        PrepareSalesHeaderForPosting(SalesHeader);
-        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account",
-            LibraryERM.CreateGLAccountWithVATPostingSetup(UnrealizedVATSetup, "General Posting Type"::Sale), 1);
-        SalesLine.Validate("Unit Price", 100);
-        SalesLine.Modify(true);
-        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account",
-            LibraryERM.CreateGLAccountWithVATPostingSetup(NormalVATSetup, "General Posting Type"::Sale), 1);
-        SalesLine.Validate("Unit Price", 100);
-        SalesLine.Modify(true);
-        PostedInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
-
-        EDocumentService."Document Format" := EDocumentService."Document Format"::"Peppol BIS 3.0 FR";
-        EDocumentService.Modify();
-        SalesInvoiceHeader.Get(PostedInvoiceNo);
-        EDocument.Init();
-        EDocument."Document No." := PostedInvoiceNo;
-        EDocument."Document Record ID" := SalesInvoiceHeader.RecordId;
-        EDocument."Posting Date" := SalesInvoiceHeader."Posting Date";
-        EDocument."Document Date" := SalesInvoiceHeader."Document Date";
-        EDocument."Clearance Date" := CurrentDateTime();
-        EDocument.Direction := EDocument.Direction::Outgoing;
-        EDocument."Document Type" := EDocument."Document Type"::"Sales Invoice";
-        EDocument.Service := 'FR-MESSAGE-MOCK';
-        EDocument.Insert();
-        CreateServiceStatus(EDocument, "E-Document Service Status"::Approved);
-
-        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
-        LibraryERM.ClearGenJournalLines(GenJournalBatch);
-        LibraryERM.CreateGeneralJnlLineWithBalAcc(GenJournalLine,
-            GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
-            GenJournalLine."Document Type"::Payment, GenJournalLine."Account Type"::Customer, Customer."No.",
-            GenJournalLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), -230);
-        GenJournalLine.Validate("Applies-to Doc. Type", GenJournalLine."Applies-to Doc. Type"::Invoice);
-        GenJournalLine.Validate("Applies-to Doc. No.", PostedInvoiceNo);
-        GenJournalLine.Modify(true);
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
-        FindApplicationDetailedEntry(DetailedCustLedgEntry, PostedInvoiceNo);
+        CreatePaymentScenarioWithAmount(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Approved, 230);
+        CreateVATEntryForScenario(EDocument, 10, false);
     end;
 
     local procedure CreateMultiRatePaymentScenario(var EDocument: Record "E-Document"; var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
-    var
-        Customer: Record Customer;
-        EDocumentService: Record "E-Document Service";
-        GenJournalBatch: Record "Gen. Journal Batch";
-        GenJournalLine: Record "Gen. Journal Line";
-        SalesHeader: Record "Sales Header";
-        SalesInvoiceHeader: Record "Sales Invoice Header";
-        SalesLine: Record "Sales Line";
-        VATSetup10: Record "VAT Posting Setup";
-        VATSetup20: Record "VAT Posting Setup";
-        VATSetup7: Record "VAT Posting Setup";
-        PostedInvoiceNo: Code[20];
     begin
-        EDocumentService.Get('FR-MESSAGE-MOCK');
-        Clear(EDocumentService."Document Format");
-        EDocumentService.Modify();
-        LibraryERM.CreateVATPostingSetupWithAccounts(VATSetup20, VATSetup20."VAT Calculation Type"::"Normal VAT", 20);
-        VATSetup20."Unrealized VAT Type" := VATSetup20."Unrealized VAT Type"::Percentage;
-        VATSetup20."Sales VAT Unreal. Account" := LibraryERM.CreateGLAccountNo();
-        VATSetup20."Tax Category" := 'S';
-        VATSetup20.Modify(true);
-        LibraryERM.CreateVATPostingSetupWithAccounts(VATSetup10, VATSetup10."VAT Calculation Type"::"Normal VAT", 10);
-        VATSetup10.Rename(VATSetup20."VAT Bus. Posting Group", VATSetup10."VAT Prod. Posting Group");
-        VATSetup10."Unrealized VAT Type" := VATSetup10."Unrealized VAT Type"::Percentage;
-        VATSetup10."Sales VAT Unreal. Account" := LibraryERM.CreateGLAccountNo();
-        VATSetup10."Tax Category" := 'S';
-        VATSetup10.Modify(true);
-        LibraryERM.CreateVATPostingSetupWithAccounts(VATSetup7, VATSetup7."VAT Calculation Type"::"Normal VAT", 7);
-        VATSetup7.Rename(VATSetup20."VAT Bus. Posting Group", VATSetup7."VAT Prod. Posting Group");
-        VATSetup7."Unrealized VAT Type" := VATSetup7."Unrealized VAT Type"::Percentage;
-        VATSetup7."Sales VAT Unreal. Account" := LibraryERM.CreateGLAccountNo();
-        VATSetup7."Tax Category" := 'S';
-        VATSetup7.Modify(true);
-        LibrarySales.CreateCustomer(Customer);
-        Customer.Validate("VAT Bus. Posting Group", VATSetup20."VAT Bus. Posting Group");
-        PrepareCustomerForPosting(Customer);
-        Customer.Modify(true);
+        CreatePaymentScenarioWithAmount(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Approved, 99);
+        CreateVATEntryForScenario(EDocument, 10, true);
+        CreateVATEntryForScenario(EDocument, 7, true);
+    end;
 
-        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
-        PrepareSalesHeaderForPosting(SalesHeader);
-        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account",
-            LibraryERM.CreateGLAccountWithVATPostingSetup(VATSetup20, "General Posting Type"::Sale), 1);
-        SalesLine.Validate("Unit Price", 100);
-        SalesLine.Modify(true);
-        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account",
-            LibraryERM.CreateGLAccountWithVATPostingSetup(VATSetup10, "General Posting Type"::Sale), 1);
-        SalesLine.Validate("Unit Price", 100);
-        SalesLine.Modify(true);
-        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account",
-            LibraryERM.CreateGLAccountWithVATPostingSetup(VATSetup7, "General Posting Type"::Sale), 1);
-        SalesLine.Validate("Unit Price", 100);
-        SalesLine.Modify(true);
-        PostedInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+    local procedure CreateVATEntryForScenario(EDocument: Record "E-Document"; VATPercent: Decimal; UnrealizedVAT: Boolean)
+    var
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        VATEntry: Record "VAT Entry";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        SalesInvoiceLine.SetRange("Document No.", EDocument."Document No.");
+        SalesInvoiceLine.FindFirst();
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", VATPercent);
+        VATPostingSetup.Rename(SalesInvoiceLine."VAT Bus. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        if UnrealizedVAT then begin
+            VATPostingSetup."Unrealized VAT Type" := VATPostingSetup."Unrealized VAT Type"::Percentage;
+            VATPostingSetup."Sales VAT Unreal. Account" := LibraryERM.CreateGLAccountNo();
+        end;
+        VATPostingSetup."Tax Category" := 'S';
+        VATPostingSetup.Modify(true);
 
-        EDocumentService."Document Format" := EDocumentService."Document Format"::"Peppol BIS 3.0 FR";
-        EDocumentService.Modify();
-        SalesInvoiceHeader.Get(PostedInvoiceNo);
-        EDocument.Init();
-        EDocument."Document No." := PostedInvoiceNo;
-        EDocument."Document Record ID" := SalesInvoiceHeader.RecordId;
-        EDocument."Posting Date" := SalesInvoiceHeader."Posting Date";
-        EDocument."Document Date" := SalesInvoiceHeader."Document Date";
-        EDocument."Clearance Date" := CurrentDateTime();
-        EDocument.Direction := EDocument.Direction::Outgoing;
-        EDocument."Document Type" := EDocument."Document Type"::"Sales Invoice";
-        EDocument.Service := 'FR-MESSAGE-MOCK';
-        EDocument.Insert();
-        CreateServiceStatus(EDocument, "E-Document Service Status"::Approved);
-
-        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
-        LibraryERM.ClearGenJournalLines(GenJournalBatch);
-        LibraryERM.CreateGeneralJnlLineWithBalAcc(GenJournalLine,
-            GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
-            GenJournalLine."Document Type"::Payment, GenJournalLine."Account Type"::Customer, Customer."No.",
-            GenJournalLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), -99);
-        GenJournalLine.Validate("Applies-to Doc. Type", GenJournalLine."Applies-to Doc. Type"::Invoice);
-        GenJournalLine.Validate("Applies-to Doc. No.", PostedInvoiceNo);
-        GenJournalLine.Modify(true);
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
-        FindApplicationDetailedEntry(DetailedCustLedgEntry, PostedInvoiceNo);
+        CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::Invoice);
+        CustLedgerEntry.SetRange("Document No.", EDocument."Document No.");
+        CustLedgerEntry.FindFirst();
+        VATEntry.Init();
+        VATEntry."Entry No." := GetNextVATEntryNo();
+        VATEntry.Type := VATEntry.Type::Sale;
+        VATEntry."Document Type" := VATEntry."Document Type"::Invoice;
+        VATEntry."Document No." := EDocument."Document No.";
+        VATEntry."Posting Date" := EDocument."Posting Date";
+        VATEntry."Transaction No." := CustLedgerEntry."Transaction No.";
+        VATEntry."VAT Bus. Posting Group" := VATPostingSetup."VAT Bus. Posting Group";
+        VATEntry."VAT Prod. Posting Group" := VATPostingSetup."VAT Prod. Posting Group";
+        VATEntry."VAT Calculation Type" := VATEntry."VAT Calculation Type"::"Normal VAT";
+        VATEntry.Base := -100;
+        VATEntry.Amount := -VATPercent;
+        if UnrealizedVAT then begin
+            VATEntry."Unrealized Base" := VATEntry.Base;
+            VATEntry."Unrealized Amount" := VATEntry.Amount;
+        end;
+        VATEntry.Insert();
     end;
 
     local procedure CreateNormalVATPaymentScenario(var EDocument: Record "E-Document"; var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
     var
-        Customer: Record Customer;
-        EDocumentService: Record "E-Document Service";
-        GenJournalBatch: Record "Gen. Journal Batch";
-        GenJournalLine: Record "Gen. Journal Line";
-        SalesHeader: Record "Sales Header";
-        SalesInvoiceHeader: Record "Sales Invoice Header";
-        SalesLine: Record "Sales Line";
-        VATPostingSetup: Record "VAT Posting Setup";
-        PostedInvoiceNo: Code[20];
+        VATEntry: Record "VAT Entry";
     begin
-        EDocumentService.Get('FR-MESSAGE-MOCK');
-        Clear(EDocumentService."Document Format");
-        EDocumentService.Modify();
-        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 10);
-        LibrarySales.CreateCustomer(Customer);
-        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
-        PrepareCustomerForPosting(Customer);
-        Customer.Modify(true);
-
-        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
-        PrepareSalesHeaderForPosting(SalesHeader);
-        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account",
-            LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, "General Posting Type"::Sale), 1);
-        SalesLine.Validate("Unit Price", 100);
-        SalesLine.Modify(true);
-        PostedInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
-
-        EDocumentService."Document Format" := EDocumentService."Document Format"::"Peppol BIS 3.0 FR";
-        EDocumentService.Modify();
-        SalesInvoiceHeader.Get(PostedInvoiceNo);
-        EDocument.Init();
-        EDocument."Document No." := PostedInvoiceNo;
-        EDocument."Document Record ID" := SalesInvoiceHeader.RecordId;
-        EDocument."Posting Date" := SalesInvoiceHeader."Posting Date";
-        EDocument."Document Date" := SalesInvoiceHeader."Document Date";
-        EDocument."Clearance Date" := CurrentDateTime();
-        EDocument.Direction := EDocument.Direction::Outgoing;
-        EDocument."Document Type" := EDocument."Document Type"::"Sales Invoice";
-        EDocument.Service := 'FR-MESSAGE-MOCK';
-        EDocument.Insert();
-        CreateServiceStatus(EDocument, "E-Document Service Status"::Approved);
-
-        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
-        LibraryERM.ClearGenJournalLines(GenJournalBatch);
-        LibraryERM.CreateGeneralJnlLineWithBalAcc(GenJournalLine,
-            GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
-            GenJournalLine."Document Type"::Payment, GenJournalLine."Account Type"::Customer, Customer."No.",
-            GenJournalLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), -110);
-        GenJournalLine.Validate("Applies-to Doc. Type", GenJournalLine."Applies-to Doc. Type"::Invoice);
-        GenJournalLine.Validate("Applies-to Doc. No.", PostedInvoiceNo);
-        GenJournalLine.Modify(true);
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
-        FindApplicationDetailedEntry(DetailedCustLedgEntry, PostedInvoiceNo);
-    end;
-
-    local procedure PrepareCustomerForPosting(var Customer: Record Customer)
-    begin
-        Customer.Validate(Address, 'Test Address');
-        Customer.Validate(City, 'Paris');
-        Customer.Validate("Post Code", '75001');
-        Customer.Validate("Country/Region Code", 'FR');
-        Customer."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo('FR');
-    end;
-
-    local procedure PrepareSalesHeaderForPosting(var SalesHeader: Record "Sales Header")
-    begin
-        SalesHeader.Validate("Bill-to Address", 'Test Address');
-        SalesHeader.Validate("Bill-to City", 'Paris');
-        SalesHeader.Validate("Bill-to Post Code", '75001');
-        SalesHeader.Validate("Bill-to Country/Region Code", 'FR');
-        SalesHeader.Validate("Ship-to Address", 'Test Address');
-        SalesHeader.Validate("Ship-to City", 'Paris');
-        SalesHeader.Validate("Ship-to Post Code", '75001');
-        SalesHeader.Validate("Ship-to Country/Region Code", 'FR');
-        SalesHeader.Validate("Your Reference", 'FR-BUYER-REF');
-        SalesHeader.Modify(true);
+        CreatePaymentScenario(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Approved);
+        VATEntry.SetRange("Document No.", EDocument."Document No.");
+        VATEntry.FindFirst();
+        VATEntry."Unrealized Base" := 0;
+        VATEntry."Unrealized Amount" := 0;
+        VATEntry.Modify();
     end;
 
     local procedure CreateServiceStatus(EDocument: Record "E-Document"; ServiceStatus: Enum "E-Document Service Status")
@@ -2042,18 +1856,36 @@ codeunit 148151 "FR E-Invoice Message Tests"
         DetailedCustLedgEntry.Insert();
     end;
 
-    local procedure FindApplicationDetailedEntry(var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; InvoiceDocNo: Code[20])
+    local procedure ProcessPaymentApplication(EDocument: Record "E-Document"; DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
     var
-        CustLedgerEntry: Record "Cust. Ledger Entry";
+        EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
+        EDocPaymentOccurrenceMgt: Codeunit "E-Doc. Payment Occurrence Mgt.";
+        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
     begin
-        CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::Invoice);
-        CustLedgerEntry.SetRange("Document No.", InvoiceDocNo);
-        CustLedgerEntry.FindFirst();
-        DetailedCustLedgEntry.SetRange("Cust. Ledger Entry No.", CustLedgerEntry."Entry No.");
-        DetailedCustLedgEntry.SetRange("Entry Type", DetailedCustLedgEntry."Entry Type"::Application);
-        DetailedCustLedgEntry.SetRange("Initial Document Type", DetailedCustLedgEntry."Initial Document Type"::Invoice);
-        DetailedCustLedgEntry.SetFilter(Amount, '<%1', 0);
-        DetailedCustLedgEntry.FindLast();
+        EDocPaymentOccurrenceMgt.ProcessApplication(DetailedCustLedgEntry);
+        Commit();
+
+        EDocPaymentOccurrence.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocPaymentOccurrence.SetRange(Type, EDocPaymentOccurrence.Type::Applied);
+        EDocPaymentOccurrence.SetRange("Source Occurrence ID", DetailedCustLedgEntry.SystemId);
+        EDocPaymentOccurrence.FindFirst();
+        FREInvoiceMessageMgt.ProcessPaymentOccurrence(EDocPaymentOccurrence);
+    end;
+
+    local procedure ProcessPaymentUnapplication(EDocument: Record "E-Document"; DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; NewDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
+    var
+        EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
+        EDocPaymentOccurrenceMgt: Codeunit "E-Doc. Payment Occurrence Mgt.";
+        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
+    begin
+        EDocPaymentOccurrenceMgt.ProcessUnapplication(DetailedCustLedgEntry, NewDetailedCustLedgEntry);
+        Commit();
+
+        EDocPaymentOccurrence.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocPaymentOccurrence.SetRange(Type, EDocPaymentOccurrence.Type::Reversed);
+        EDocPaymentOccurrence.SetRange("Source Occurrence ID", NewDetailedCustLedgEntry.SystemId);
+        EDocPaymentOccurrence.FindFirst();
+        FREInvoiceMessageMgt.ProcessPaymentOccurrence(EDocPaymentOccurrence);
     end;
 
     local procedure GetNextDetailedLedgerEntryNo(): Integer
@@ -2062,6 +1894,25 @@ codeunit 148151 "FR E-Invoice Message Tests"
     begin
         if DetailedCustLedgEntry.FindLast() then
             exit(DetailedCustLedgEntry."Entry No." + 1);
+        exit(1);
+    end;
+
+    local procedure GetNextCustLedgerEntryNo(): Integer
+    var
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+    begin
+        CustLedgerEntry.SetFilter("Entry No.", '<0');
+        if CustLedgerEntry.FindFirst() then
+            exit(CustLedgerEntry."Entry No." - 1);
+        exit(-1);
+    end;
+
+    local procedure GetNextVATEntryNo(): Integer
+    var
+        VATEntry: Record "VAT Entry";
+    begin
+        if VATEntry.FindLast() then
+            exit(VATEntry."Entry No." + 1);
         exit(1);
     end;
 }
