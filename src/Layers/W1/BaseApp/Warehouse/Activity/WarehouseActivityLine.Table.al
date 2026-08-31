@@ -1048,8 +1048,13 @@ table 5767 "Warehouse Activity Line"
         OutstandingQtyCannotbeLessThanZeroErr: Label 'Outstanding Qty. base cannot be less than 0.';
 
     procedure CalcQty(QtyBase: Decimal): Decimal
+    var
+        NewQtyBase: Decimal;
+        IsHandled: Boolean;
     begin
-        OnBeforeCalcQty(Rec, QtyBase);
+        OnBeforeCalcQty(Rec, QtyBase, NewQtyBase, IsHandled);
+        if IsHandled then
+            exit(Round(NewQtyBase, UOMMgt.QtyRndPrecision()));
         TestField("Qty. per Unit of Measure");
         exit(Round(QtyBase / "Qty. per Unit of Measure", UOMMgt.QtyRndPrecision()));
     end;
@@ -1066,9 +1071,13 @@ table 5767 "Warehouse Activity Line"
             NotEnough := false;
             if WarehouseActivityLine.Find('-') then
                 repeat
-                    WarehouseActivityLine.Validate("Qty. to Handle", WarehouseActivityLine."Qty. Outstanding");
-                    if WarehouseActivityLine."Qty. to Handle (Base)" <> WarehouseActivityLine."Qty. Outstanding (Base)" then
-                        WarehouseActivityLine.Validate("Qty. to Handle (Base)", WarehouseActivityLine."Qty. Outstanding (Base)");
+                    IsHandled := false;
+                    OnBeforeAutofillQtyToHandleLine(WarehouseActivityLine, IsHandled);
+                    if not IsHandled then begin
+                        WarehouseActivityLine.Validate("Qty. to Handle", WarehouseActivityLine."Qty. Outstanding");
+                        if WarehouseActivityLine."Qty. to Handle (Base)" <> WarehouseActivityLine."Qty. Outstanding (Base)" then
+                            WarehouseActivityLine.Validate("Qty. to Handle (Base)", WarehouseActivityLine."Qty. Outstanding (Base)");
+                    end;
                     WarehouseActivityLine.Modify();
                     OnAfterAutofillQtyToHandleLine(WarehouseActivityLine);
 
@@ -1098,12 +1107,18 @@ table 5767 "Warehouse Activity Line"
     end;
 
     procedure AutofillQtyToHandleOnLine(var WarehouseActivityLine: Record "Warehouse Activity Line")
+    var
+        IsHandled: Boolean;
     begin
         OnBeforeAutofillQtyToHandleOnLine(WarehouseActivityLine);
 
-        WarehouseActivityLine.Validate("Qty. to Handle", WarehouseActivityLine."Qty. Outstanding");
-        if WarehouseActivityLine."Qty. to Handle (Base)" <> WarehouseActivityLine."Qty. Outstanding (Base)" then
-            WarehouseActivityLine.Validate("Qty. to Handle (Base)", WarehouseActivityLine."Qty. Outstanding (Base)");
+        IsHandled := false;
+        OnBeforeAutofillQtyToHandleLine(WarehouseActivityLine, IsHandled);
+        if not IsHandled then begin
+            WarehouseActivityLine.Validate("Qty. to Handle", WarehouseActivityLine."Qty. Outstanding");
+            if WarehouseActivityLine."Qty. to Handle (Base)" <> WarehouseActivityLine."Qty. Outstanding (Base)" then
+                WarehouseActivityLine.Validate("Qty. to Handle (Base)", WarehouseActivityLine."Qty. Outstanding (Base)");
+        end;
         WarehouseActivityLine.Modify();
 
         if WarehouseActivityLine."Qty. to Handle" < WarehouseActivityLine."Qty. Outstanding" then
@@ -1299,7 +1314,7 @@ table 5767 "Warehouse Activity Line"
                     AssemblyLine.Get("Source Subtype", "Source No.", "Source Line No.");
                     TestField("Bin Code", AssemblyLine."Bin Code");
                 end;
-            Database::Job:
+            Database::Job, Database::"Job Planning Line":
                 begin
                     JobPlanningLine.SetRange("Job Contract Entry No.", "Source Line No.");
                     JobPlanningLine.SetLoadFields("Bin Code");
@@ -2292,8 +2307,8 @@ table 5767 "Warehouse Activity Line"
         Job: Record Job;
     begin
         "Activity Type" := "Activity Type"::Pick;
-        "Source Type" := Database::Job;
-        "Source Subtype" := 0;
+        "Source Type" := Database::"Job Planning Line";
+        "Source Subtype" := "Job Planning Line Status"::Order.AsInteger(); // Warehouse operations only apply to Order status
         "Source No." := JobPlanningLine."Job No.";
         "Source Line No." := JobPlanningLine."Job Contract Entry No.";
         "Source Subline No." := JobPlanningLine."Line No.";
@@ -2661,6 +2676,7 @@ table 5767 "Warehouse Activity Line"
         "Source No." := SourceNo;
         "Source Line No." := SourceLineNo;
         "Source Subline No." := SourceSublineNo;
+        OnAfterSetSource(Rec);
     end;
 
     procedure SetSourceFilter(SourceType: Integer; SourceSubType: Option; SourceNo: Code[20]; SourceLineNo: Integer; SourceSubLineNo: Integer; SetKey: Boolean)
@@ -3464,7 +3480,12 @@ table 5767 "Warehouse Activity Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCalcQty(var WarehouseActivityLine: Record "Warehouse Activity Line"; QtyBase: Decimal)
+    local procedure OnBeforeAutofillQtyToHandleLine(var WarehouseActivityLine: Record "Warehouse Activity Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCalcQty(var WarehouseActivityLine: Record "Warehouse Activity Line"; QtyBase: Decimal; var NewQtyBase: Decimal; var IsHandled: Boolean)
     begin
     end;
 
@@ -3855,5 +3876,9 @@ table 5767 "Warehouse Activity Line"
     local procedure OnBeforeDeleteQtyToHandleOnLine(var WarehouseActivityLine: Record "Warehouse Activity Line")
     begin
     end;
-}
 
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterSetSource(var WarehouseActivityLine: Record "Warehouse Activity Line")
+    begin
+    end;
+}

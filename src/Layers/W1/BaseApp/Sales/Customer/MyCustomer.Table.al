@@ -67,7 +67,8 @@ table 9150 "My Customer"
         {
             AutoFormatType = 1;
             AutoFormatExpression = '';
-            CalcFormula = sum("Detailed Cust. Ledg. Entry"."Amount (LCY)" where("Customer No." = field("Customer No.")));
+            CalcFormula = sum("Detailed Cust. Ledg. Entry"."Amount (LCY)" where("Customer No." = field("Customer No."),
+                                                                                 "Excluded from calculation" = const(false)));
             Caption = 'Balance (LCY)';
             Editable = false;
             FieldClass = FlowField;

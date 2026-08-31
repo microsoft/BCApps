@@ -15,7 +15,9 @@ table 160801 "Acc. Schedules Conversion"
             Caption = 'Line No.';
             TableRelation = "Acc. Schedule Line"."Line No." where("Schedule Name" = field("Schedule Name"));
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(3; "Totaling (Old)"; Text[80])
+#pragma warning restore AL0685
         {
             CalcFormula = lookup("Acc. Schedule Line".Totaling where("Schedule Name" = field("Schedule Name"),
                                                                       "Line No." = field("Line No.")));
@@ -35,7 +37,9 @@ table 160801 "Acc. Schedules Conversion"
             Editable = false;
             FieldClass = FlowField;
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(6; Description; Text[80])
+#pragma warning restore AL0685
         {
             CalcFormula = lookup("Acc. Schedule Line".Description where("Schedule Name" = field("Schedule Name"),
                                                                          "Line No." = field("Line No.")));

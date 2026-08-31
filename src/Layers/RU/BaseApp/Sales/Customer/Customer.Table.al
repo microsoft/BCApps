@@ -732,6 +732,7 @@ table 18 Customer
                                                                          "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                          "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
                                                                          "Currency Code" = field("Currency Filter"),
+                                                                         "Excluded from calculation" = const(false),
                                                                          "Agreement No." = field("Agreement Filter"),
                                                                          "Prepmt. Diff. in TA" = const(false)));
             Caption = 'Balance';
@@ -749,6 +750,7 @@ table 18 Customer
                                                                                  "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                                  "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
                                                                                  "Currency Code" = field("Currency Filter"),
+                                                                                 "Excluded from calculation" = const(false),
                                                                                  "Agreement No." = field("Agreement Filter"),
                                                                                  "Prepmt. Diff. in TA" = const(false)));
             Caption = 'Balance (LCY)';
@@ -768,6 +770,7 @@ table 18 Customer
                                                                          "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
                                                                          "Posting Date" = field("Date Filter"),
                                                                          "Currency Code" = field("Currency Filter"),
+                                                                         "Excluded from calculation" = const(false),
                                                                          "Agreement No." = field("Agreement Filter"),
                                                                          "Prepmt. Diff. in TA" = const(false)));
             Caption = 'Net Change';
@@ -786,6 +789,7 @@ table 18 Customer
                                                                                  "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
                                                                                  "Posting Date" = field("Date Filter"),
                                                                                  "Currency Code" = field("Currency Filter"),
+                                                                                 "Excluded from calculation" = const(false),
                                                                                  "Agreement No." = field("Agreement Filter"),
                                                                                  "Prepmt. Diff. in TA" = const(false)));
             Caption = 'Net Change (LCY)';
@@ -874,6 +878,7 @@ table 18 Customer
                                                                          "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                          "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
                                                                          "Currency Code" = field("Currency Filter"),
+                                                                         "Excluded from calculation" = const(false),
                                                                          "Agreement No." = field("Agreement Filter"),
                                                                          "Prepmt. Diff. in TA" = const(false)));
             Caption = 'Balance Due';
@@ -892,6 +897,7 @@ table 18 Customer
                                                                                  "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                                  "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
                                                                                  "Currency Code" = field("Currency Filter"),
+                                                                                 "Excluded from calculation" = const(false),
                                                                                  "Agreement No." = field("Agreement Filter"),
                                                                                  "Prepmt. Diff. in TA" = const(false)));
             Caption = 'Overdue Balance (LCY)';
@@ -2388,7 +2394,9 @@ table 18 Customer
                 end;
             end;
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(12402; "Vendor Name"; Text[50])
+#pragma warning restore AL0685
         {
             CalcFormula = lookup(Vendor.Name where("No." = field("Vendor No.")));
             Caption = 'Vendor Name';

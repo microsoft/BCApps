@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "description": "Provides business processes that are typical for small and mid-sized companies, such as sales and purchasing, and customer and vendor management, plus complex processes, such as assembly, manufacturing, service, and directed warehouse management. https://go.microsoft.com/fwlink/?LinkId=2205496",
   "brief": "Provides business processes that are typical for small and mid-sized companies, such as sales and purchasing, and customer and vendor management, plus complex processes, such as assembly, manufacturing, service, and directed warehouse management.",
-  "version": "29.0.0.0",
+  "version": "30.0.0.0",
   "logo": "ExtensionLogo.png",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
@@ -16,13 +16,13 @@
       "id": "63ca2fa4-4f03-4f2b-a480-172fef340d3f",
       "name": "System Application",
       "publisher": "Microsoft",
-      "version": "29.0.0.0"
+      "version": "30.0.0.0"
     },
     {
       "id": "f3552374-a1f2-4356-848e-196002525837",
       "name": "Business Foundation",
       "publisher": "Microsoft",
-      "version": "29.0.0.0"
+      "version": "30.0.0.0"
     }
   ],
   "internalsVisibleTo": [
@@ -92,6 +92,26 @@
       "publisher": "Microsoft"
     },
     {
+      "id": "f469f78f-a0ec-4469-b312-7a25fcab8357",
+      "name": "Tests-ERM-Application",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "973f745d-a630-4a01-874e-1c454470bffd",
+      "name": "Tests-ERM-Sales",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "589810f5-1ed0-4fca-b4b4-6f049cb8dbfa",
+      "name": "Tests-ERM-Purchase",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "6ed824d3-8f8f-47c7-b85e-8e9d81c33741",
+      "name": "Tests-ERM-Finance",
+      "publisher": "Microsoft"
+    },
+    {
       "id": "79447c3f-14b4-4c10-8779-03911f30ab26",
       "name": "Tests-Report",
       "publisher": "Microsoft"
@@ -147,6 +167,31 @@
       "publisher": "Microsoft"
     },
     {
+      "id": "1ecba011-fc8c-4b60-b6bf-97248fe43419",
+      "name": "Tests-SCM-Warehouse",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "4f458f6b-47c2-41bb-9b05-78b66b52dcde",
+      "name": "Tests-SCM-Costing",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "47946531-3c0b-4b18-8e92-c7673c785e2a",
+      "name": "Tests-SCM-Planning",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "8f41d123-35ca-46d5-bf6e-c4fd2a9470d4",
+      "name": "Tests-SCM-Reservation",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "1c6b74a7-fa42-42f5-bc45-00a03f2e83a2",
+      "name": "Tests-SCM-Workflow",
+      "publisher": "Microsoft"
+    },
+    {
       "id": "88f3615c-370c-4f39-bb5f-54e096c984e9",
       "name": "Tests-SCM-Manufacturing",
       "publisher": "Microsoft"
@@ -189,6 +234,11 @@
     {
       "id": "24f54185-e697-4e03-bae0-f134f2d69673",
       "name": "Payment Management FR",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "1f32a50d-0057-4b95-b5df-cc04d7e89470",
+      "name": "Subcontracting",
       "publisher": "Microsoft"
     }
   ],

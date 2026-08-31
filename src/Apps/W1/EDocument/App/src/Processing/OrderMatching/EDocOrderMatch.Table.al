@@ -1,7 +1,9 @@
 namespace Microsoft.eServices.EDocument.OrderMatch;
 
 using Microsoft.eServices.EDocument;
+#if not CLEAN29
 using Microsoft.eServices.EDocument.OrderMatch.Copilot;
+#endif
 using Microsoft.Purchases.Document;
 
 table 6164 "E-Doc. Order Match"
@@ -39,7 +41,9 @@ table 6164 "E-Doc. Order Match"
             ObsoleteReason = 'This field has been replaced by the Precise Quantity field.';
 #if CLEAN26
             ObsoleteState = Removed;
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 #else
             ObsoleteState = Pending;
             ObsoleteTag = '26.0';
@@ -110,6 +114,7 @@ table 6164 "E-Doc. Order Match"
         ImportedLine.Get(Rec."E-Document Entry No.", Rec."E-Document Line No.");
     end;
 
+#if not CLEAN29
     procedure InsertMatch(var TempAIProposalBuffer: Record "E-Doc. PO Match Prop. Buffer" temporary; var TempEDocMatches: Record "E-Doc. Order Match" temporary)
     begin
         TempEDocMatches.Init();
@@ -125,6 +130,7 @@ table 6164 "E-Doc. Order Match"
         TempEDocMatches."PO Description" := TempAIProposalBuffer."PO Description";
         TempEDocMatches.Insert();
     end;
+#endif
 
 
 }

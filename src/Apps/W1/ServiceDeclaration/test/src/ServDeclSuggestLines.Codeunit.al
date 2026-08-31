@@ -90,6 +90,7 @@ codeunit 139905 "Serv. Decl. Suggest Lines"
         Initialize();
         LibraryLowerPermissions.SetO365Setup();
         LibraryLowerPermissions.AddSalesDocsPost();
+        LibraryLowerPermissions.AddeRead();
 
         LibraryServiceDeclaration.CreateServDeclSalesHeader(SalesHeader);
         SalesHeader.Validate("Currency Code",
@@ -331,6 +332,7 @@ codeunit 139905 "Serv. Decl. Suggest Lines"
 
         // [GIVEN] Add Sales Document.
         LibraryLowerPermissions.AddSalesDocsPost();
+        LibraryLowerPermissions.AddeRead();
 
         // [GIVEN] Create Sales Document with Service Type Code.
         LibraryServiceDeclaration.CreateSalesDocWithServTransTypeCode(SalesHeader, SalesLine);

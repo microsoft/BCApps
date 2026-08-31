@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -486,6 +486,7 @@ table 23 Vendor
                                                                            "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                            "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
                                                                            "Currency Code" = field("Currency Filter"),
+                                                                           "Excluded from calculation" = const(false),
                                                                            "Agreement No." = field("Agreement Filter"),
                                                                            "Prepmt. Diff. in TA" = const(false)));
             Caption = 'Balance';
@@ -500,6 +501,7 @@ table 23 Vendor
                                                                                    "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                                    "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
                                                                                    "Currency Code" = field("Currency Filter"),
+                                                                                   "Excluded from calculation" = const(false),
                                                                                    "Agreement No." = field("Agreement Filter"),
                                                                                    "Prepmt. Diff. in TA" = const(false)));
             Caption = 'Balance (LCY)';
@@ -515,6 +517,7 @@ table 23 Vendor
                                                                            "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
                                                                            "Posting Date" = field("Date Filter"),
                                                                            "Currency Code" = field("Currency Filter"),
+                                                                           "Excluded from calculation" = const(false),
                                                                            "Agreement No." = field("Agreement Filter"),
                                                                            "Prepmt. Diff. in TA" = const(false)));
             Caption = 'Net Change';
@@ -530,6 +533,7 @@ table 23 Vendor
                                                                                    "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
                                                                                    "Posting Date" = field("Date Filter"),
                                                                                    "Currency Code" = field("Currency Filter"),
+                                                                                   "Excluded from calculation" = const(false),
                                                                                    "Agreement No." = field("Agreement Filter"),
                                                                                    "Prepmt. Diff. in TA" = const(false)));
             Caption = 'Net Change (LCY)';
@@ -588,6 +592,7 @@ table 23 Vendor
                                                                            "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                            "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
                                                                            "Currency Code" = field("Currency Filter"),
+                                                                           "Excluded from calculation" = const(false),
                                                                            "Agreement No." = field("Agreement Filter"),
                                                                            "Prepmt. Diff. in TA" = const(false)));
             Caption = 'Balance Due';
@@ -603,6 +608,7 @@ table 23 Vendor
                                                                                    "Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                                    "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
                                                                                    "Currency Code" = field("Currency Filter"),
+                                                                                   "Excluded from calculation" = const(false),
                                                                                    "Agreement No." = field("Agreement Filter"),
                                                                                    "Prepmt. Diff. in TA" = const(false)));
             Caption = 'Balance Due (LCY)';
@@ -1321,6 +1327,18 @@ table 23 Vendor
         {
             Caption = 'Self-Billing Agreement';
             ToolTip = 'Specifies the value of the Self-Billing Agreement field.';
+
+            trigger OnValidate()
+            begin
+                if not Rec."Self-Billing Agreement" then
+                    Rec.TestField("Self-Billing Invoice Nos.", '');
+            end;
+        }
+        field(181; "Self-Billing Invoice Nos."; Code[20])
+        {
+            Caption = 'Self-Billing Invoice Nos.';
+            ToolTip = 'Specifies the number series that is used to assign numbers to self-billed purchase invoices for this vendor. If it is empty, the number series from the Posted Self-Billing Inv. Nos. field in Purchases & Payables Setup is used.';
+            TableRelation = "No. Series";
         }
         field(288; "Preferred Bank Account Code"; Code[20])
         {
@@ -1745,7 +1763,9 @@ table 23 Vendor
                 end;
             end;
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(12404; "Customer Name"; Text[50])
+#pragma warning restore AL0685
         {
             CalcFormula = lookup(Customer.Name where("No." = field("Customer No.")));
             Caption = 'Customer Name';
