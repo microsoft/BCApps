@@ -9318,13 +9318,13 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnAfterCheckWithholdingTaxTotalAmount(var WithhSocSec: Record Microsoft.Finance.WithholdingTax."Purch. Withh. Contribution"; var PurchHeader: Record "Purchase Header")
     begin
         OnAfterCheckWithholdingTaxTotalAmount(WithhSocSec, PurchHeader);
     end;
 
-    [Obsolete('Moved to codeunit WHTPurchPostIT', '29.0')]
+    [Obsolete('Moved to codeunit WHTPurchPostIT', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckWithholdingTaxTotalAmount(var WithhSocSec: Record Microsoft.Finance.WithholdingTax."Purch. Withh. Contribution"; var PurchHeader: Record "Purchase Header")
     begin
@@ -10953,13 +10953,13 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnPostWithhSocSecOnBeforeCompWithhTaxInsert(var ComputedWithholdingTax: Record Microsoft.Finance.WithholdingTax."Computed Withholding Tax"; PurchWithhContribution: Record Microsoft.Finance.WithholdingTax."Purch. Withh. Contribution")
     begin
         OnPostWithhSocSecOnBeforeCompWithhTaxInsert(ComputedWithholdingTax, PurchWithhContribution);
     end;
 
-    [Obsolete('Moved to codeunit WHTPurchPostIT', '29.0')]
+    [Obsolete('Moved to codeunit WHTPurchPostIT', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnPostWithhSocSecOnBeforeCompWithhTaxInsert(var ComputedWithholdingTax: Record Microsoft.Finance.WithholdingTax."Computed Withholding Tax"; PurchWithhContribution: Record Microsoft.Finance.WithholdingTax."Purch. Withh. Contribution")
     begin

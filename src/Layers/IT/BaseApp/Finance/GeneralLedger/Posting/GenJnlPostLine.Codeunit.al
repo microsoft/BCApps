@@ -11837,13 +11837,13 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnBeforeCheckWithholdTax(DocType: Option " ",,Invoice,"Credit Memo"; DocNo: Code[20]; GenJournalLine: Record "Gen. Journal Line"; ApplyInGenJnlLine: Boolean; var IsHandled: Boolean)
     begin
         OnBeforeCheckWithholdTax(DocType, DocNo, GenJournalLine, ApplyInGenJnlLine, IsHandled);
     end;
 
-    [Obsolete('Moved to codeunit WHT Gen. Jnl.-Post Line', '29.0')]
+    [Obsolete('Moved to codeunit WHT Gen. Jnl.-Post Line', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckWithholdTax(DocType: Option " ",,Invoice,"Credit Memo"; DocNo: Code[20]; GenJournalLine: Record "Gen. Journal Line"; ApplyInGenJnlLine: Boolean; var IsHandled: Boolean)
     begin
@@ -12045,8 +12045,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
     end;
 
-#if not CLEAN29
-    [Obsolete('This event is replaced by OnBeforeInsertDeferralNonDeductibleVATGLEntries2.', '29.0')]
+#if not CLEAN30
+    [Obsolete('This event is replaced by OnBeforeInsertDeferralNonDeductibleVATGLEntries2.', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertDeferralNonDeductibleVATGLEntries(var NonDeductibleVATPct: Decimal; DeferralPostingBuffer: Record "Deferral Posting Buffer"; VATPostingSetup: Record "VAT Posting Setup"; GenJournalLine: Record "Gen. Journal Line"; DeferralTemplate: Record "Deferral Template"; var VATAmountRounding: Decimal; var PositiveNDVATAmountRounding: Decimal; var NegativeNDVATAmountRounding: Decimal; var IsHandled: Boolean)
     begin
