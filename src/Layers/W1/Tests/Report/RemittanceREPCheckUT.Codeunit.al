@@ -15,6 +15,9 @@ codeunit 133771 "Remittance REP Check UT"
         LibraryReportDataset: Codeunit "Library - Report Dataset";
         LibraryERM: Codeunit "Library - ERM";
         Assert: Codeunit Assert;
+        EntryNoElementTok: Label 'EntryNo_VendLedgEntry2', Locked = true;
+        DocTypeElementTok: Label 'DocType_VendLedgEntry2', Locked = true;
+        LineAmountElementTok: Label 'LAmountWDiscCur', Locked = true;
 
     [Test]
     [HandlerFunctions('RemittanceAdviceJournalRequestPageHandler')]
@@ -199,8 +202,7 @@ codeunit 133771 "Remittance REP Check UT"
         RefundVendorLedgerEntry: Record "Vendor Ledger Entry";
         VendorNo: Code[20];
         DocumentNo: Code[20];
-        EntryNoElementTok: Label 'EntryNo_VendLedgEntry2', Locked = true;
-        DocTypeElementTok: Label 'DocType_VendLedgEntry2', Locked = true;
+        RefundAmount: Decimal;
     begin
         // [FEATURE] [Report] [Remittance Advice - Entries] [AI test 0.4]
         // [SCENARIO] A vendor refund sharing the payment's document is rendered as a line on Report 400 - Remittance Advice - Entries
@@ -212,18 +214,20 @@ codeunit 133771 "Remittance REP Check UT"
         CreatePaymentAndRefundWithDocumentNo(PaymentVendorLedgerEntry, RefundVendorLedgerEntry, VendorNo, DocumentNo);
 
         // [GIVEN] Refund has an applied refund detailed entry.
-        CreateDetailedVendorLedgerEntry(
-          RefundVendorLedgerEntry, RefundVendorLedgerEntry."Entry No.", DetailedVendorLedgEntry."Entry Type"::Application,
-          DetailedVendorLedgEntry."Document Type"::Refund, 1);
+        RefundAmount :=
+          CreateDetailedVendorLedgerEntry(
+            RefundVendorLedgerEntry, RefundVendorLedgerEntry."Entry No.", DetailedVendorLedgEntry."Entry Type"::Application,
+            DetailedVendorLedgEntry."Document Type"::Refund, 1);
 
         // [WHEN] Run report Remittance Advice - Entries filtered on payment.
         LibraryVariableStorage.Enqueue(PaymentVendorLedgerEntry."Entry No.");
         REPORT.Run(REPORT::"Remittance Advice - Entries");
 
-        // [THEN] Verify that the Refund is displayed as a transaction line on the report.
+        // [THEN] Verify that the Refund is displayed as a transaction line on the report with the refund amount.
         LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.AssertElementWithValueExists(EntryNoElementTok, RefundVendorLedgerEntry."Entry No.");
         LibraryReportDataset.AssertElementWithValueExists(DocTypeElementTok, Format(RefundVendorLedgerEntry."Document Type"));
+        LibraryReportDataset.AssertElementWithValueExists(LineAmountElementTok, -RefundAmount);
         LibraryVariableStorage.AssertEmpty();
     end;
 
