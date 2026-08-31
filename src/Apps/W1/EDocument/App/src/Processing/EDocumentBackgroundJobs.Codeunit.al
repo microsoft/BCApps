@@ -27,6 +27,11 @@ codeunit 6133 "E-Document Background Jobs"
         ScheduleEDocumentJob(Codeunit::"E-Doc. Message Send Job", EDocumentMessage.RecordId(), 0);
     end;
 
+    procedure SchedulePaymentOccurrence(EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence")
+    begin
+        ScheduleEDocumentJob(Codeunit::"E-Doc. Payment Occurrence Mgt.", EDocPaymentOccurrence.RecordId(), 0);
+    end;
+
     procedure TryScheduleMessageSend(EDocumentMessage: Record "E-Document Message"): Boolean
     begin
         exit(TryScheduleEDocumentJob(Codeunit::"E-Doc. Message Send Job", EDocumentMessage.RecordId(), 0));

@@ -128,8 +128,9 @@ codeunit 10988 "FR E-Invoice Profile Validator"
     begin
         if not XmlDoc.SelectSingleNode(XPath, XmlNode) then
             Error(RequiredProfileNodeErr, XPath);
-        if XmlNode.IsXmlElement() and (XmlNode.AsXmlElement().InnerText() = '') then
-            Error(EmptyProfileNodeErr, XPath);
+        if XmlNode.IsXmlElement() then
+            if XmlNode.AsXmlElement().InnerText() = '' then
+                Error(EmptyProfileNodeErr, XPath);
     end;
 
     local procedure RequireNodeText(XmlDoc: XmlDocument; XPath: Text; ExpectedValue: Text)
