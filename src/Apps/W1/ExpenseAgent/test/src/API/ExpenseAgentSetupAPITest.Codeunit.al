@@ -75,6 +75,9 @@ codeunit 148333 "Expense Agent Setup API Test"
         // [SCENARIO] Test handler initialization creates and reuses an enabled Expense Agent
         Initialize();
 
+        // [GIVEN] No Expense Agent setup exists
+        ClearExpenseAgentSetup();
+
         // [WHEN] The E2E test handler initializes the company
         ExpenseTestHandlerAPI.Initialize();
         ExpenseAgentSetup.Get();
@@ -201,6 +204,14 @@ codeunit 148333 "Expense Agent Setup API Test"
         IsInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Agent Setup API Test");
+    end;
+
+    local procedure ClearExpenseAgentSetup()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        if ExpenseAgentSetup.Get() then
+            ExpenseAgentSetup.Delete(false);
     end;
 
     local procedure ClearRequiredSetupData()

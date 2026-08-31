@@ -64,7 +64,7 @@ codeunit 148307 "Expense Test Handler API"
         if not ExpenseAgentSetup.Get() then
             ExpenseAgentSetup.InitRecord();
         ExpenseAgentSetup."User Security ID" := AgentUserSecurityId;
-        ExpenseAgentSetup."Enable Agent" := true;
+        ExpenseAgentSetup.Validate("Enable Agent", true);
         ExpenseAgentSetup.Modify(false);
     end;
 
