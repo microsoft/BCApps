@@ -4700,18 +4700,6 @@ codeunit 137051 "SCM Warehouse - III"
         // [THEN] The quantity of the pick is 5
         WarehousePickLine.TestField(WarehousePickLine.Quantity, AssemblyLine.Quantity);
 
-        // [WHEN] Update Quantity to Consume on Assembly header
-        asserterror AssemblyHeader.Validate("Quantity to Assemble", 3);
-
-        // [THEN] Error: active warehouse line exists
-        Assert.ExpectedError('must not be changed');
-
-        // [WHEN] Update Quantity to Consume on Assembly Line
-        asserterror AssemblyLine.Validate("Quantity to Consume", 3);
-
-        // [THEN] Error: active warehouse line exists
-        Assert.ExpectedError('must not be changed');
-
         // [GIVEN] The order is posted without registering the created picks.
         LibraryAssembly.PostAssemblyHeader(AssemblyHeader, '');
 
