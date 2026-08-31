@@ -126,6 +126,7 @@ codeunit 6433 "E-Doc. Message Mgt."
         TempBlob: Codeunit "Temp Blob";
         MessageSender: Interface IMessageSender;
         ConnectorErrorInfo: ErrorInfo;
+        ConnectorErrorText: Text;
         MessageSendingErrorInfo: ErrorInfo;
     begin
         EDocMessage.Get(MessageEntryNo);
@@ -143,7 +144,10 @@ codeunit 6433 "E-Doc. Message Mgt."
         EDocMessageContext.Initialize(EDocMessage, TempBlob);
         MessageSender := EDocumentService."Service Integration V2";
         if not TrySendMessage(MessageSender, EDocument, EDocumentService, EDocMessageContext) then begin
-            ConnectorErrorInfo := GetLastErrorObject();
+            ConnectorErrorText := GetLastErrorText();
+            if ConnectorErrorText = '' then
+                ConnectorErrorText := StrSubstNo(MessageSendingErr, MessageEntryNo);
+            ConnectorErrorInfo := ErrorInfo.Create(ConnectorErrorText);
             EDocumentLog.InsertIntegrationLog(
                 EDocument, EDocumentService, EDocMessageContext.Http().GetHttpRequestMessage(), EDocMessageContext.Http().GetHttpResponseMessage());
             Commit();
@@ -188,6 +192,7 @@ codeunit 6433 "E-Doc. Message Mgt."
         TempBlob: Codeunit "Temp Blob";
         MessageResponseHandler: Interface IMessageResponseHandler;
         ConnectorErrorInfo: ErrorInfo;
+        ConnectorErrorText: Text;
         ResponseReceived: Boolean;
     begin
         EDocMessage.Get(MessageEntryNo);
@@ -200,7 +205,10 @@ codeunit 6433 "E-Doc. Message Mgt."
         EDocMessageContext.Initialize(EDocMessage, TempBlob);
         MessageResponseHandler := EDocumentService."Service Integration V2";
         if not TryGetResponse(MessageResponseHandler, EDocument, EDocumentService, EDocMessageContext, ResponseReceived) then begin
-            ConnectorErrorInfo := GetLastErrorObject();
+            ConnectorErrorText := GetLastErrorText();
+            if ConnectorErrorText = '' then
+                ConnectorErrorText := StrSubstNo(MessageResponseErr, MessageEntryNo);
+            ConnectorErrorInfo := ErrorInfo.Create(ConnectorErrorText);
             EDocumentLog.InsertIntegrationLog(
                 EDocument, EDocumentService, EDocMessageContext.Http().GetHttpRequestMessage(), EDocMessageContext.Http().GetHttpResponseMessage());
             Commit();
@@ -269,20 +277,18 @@ codeunit 6433 "E-Doc. Message Mgt."
         SetMessageSchedulingError(EDocMessage, EDocMessage.Status::Error);
     end;
 
-    [TryFunction]
-    local procedure TryScheduleMessageSend(EDocMessage: Record "E-Document Message")
+    local procedure TryScheduleMessageSend(EDocMessage: Record "E-Document Message"): Boolean
     var
         EDocumentBackgroundJobs: Codeunit "E-Document Background Jobs";
     begin
-        EDocumentBackgroundJobs.ScheduleMessageSend(EDocMessage);
+        exit(EDocumentBackgroundJobs.TryScheduleMessageSend(EDocMessage));
     end;
 
-    [TryFunction]
-    local procedure TryScheduleMessageResponse(EDocMessage: Record "E-Document Message")
+    local procedure TryScheduleMessageResponse(EDocMessage: Record "E-Document Message"): Boolean
     var
         EDocumentBackgroundJobs: Codeunit "E-Document Background Jobs";
     begin
-        EDocumentBackgroundJobs.ScheduleMessageResponse(EDocMessage);
+        exit(EDocumentBackgroundJobs.TryScheduleMessageResponse(EDocMessage));
     end;
 
     local procedure SetMessageSchedulingError(var EDocMessage: Record "E-Document Message"; ErrorStatus: Enum "E-Doc. Message Status")
