@@ -8,6 +8,8 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.History;
+using Microsoft.Sales.Receivables;
 using System.Threading;
 using System.Utilities;
 
@@ -355,6 +357,74 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
         Assert.RecordCount(JobQueueEntry, 0);
     end;
 
+    [Test]
+    procedure PaymentOccurrenceSchedulingFailureDoesNotEscapeCapture()
+    var
+        Customer: Record Customer;
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
+        EDocument: Record "E-Document";
+        EDocPaymentOccurrenceMgt: Codeunit "E-Doc. Payment Occurrence Mgt.";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] A background-job scheduling failure does not fail payment occurrence capture
+        Initialize(Customer);
+
+        // [GIVEN] An outgoing invoice E-Document and a payment application
+        CreatePaymentOccurrenceScenario(EDocument, DetailedCustLedgEntry);
+        EDocImplState.SetThrowPaymentOccurrenceSchedulingError();
+        BindSubscription(EDocImplState);
+
+        // [WHEN] The payment application is captured while scheduling fails
+        EDocPaymentOccurrenceMgt.ProcessApplication(DetailedCustLedgEntry);
+        UnbindSubscription(EDocImplState);
+
+        // [THEN] The occurrence remains available for retry and contains the scheduling error
+        EDocPaymentOccurrence.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocPaymentOccurrence.FindFirst();
+        Assert.AreEqual(EDocPaymentOccurrence.Status::Error, EDocPaymentOccurrence.Status, 'A scheduling failure must leave the occurrence in Error.');
+        Assert.AreEqual(1, EDocPaymentOccurrence."Retry Count", 'A scheduling failure must increment the retry count.');
+        Assert.IsTrue(EDocPaymentOccurrence."Last Error".Contains('TEST PAYMENT OCCURRENCE SCHEDULING'), 'The scheduling error must be retained.');
+    end;
+
+    [Test]
+    procedure PaymentOccurrenceDispatcherRetriesFailedProcessing()
+    var
+        Customer: Record Customer;
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
+        EDocument: Record "E-Document";
+        EDocPaymentOccurrenceDispatcher: Codeunit "E-Doc. Payment Occ. Dispatcher";
+        EDocPaymentOccurrenceMgt: Codeunit "E-Doc. Payment Occurrence Mgt.";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] A failed payment occurrence is retained and processed by the dispatcher retry
+        Initialize(Customer);
+
+        // [GIVEN] A persisted payment occurrence whose localization processing fails
+        CreatePaymentOccurrenceScenario(EDocument, DetailedCustLedgEntry);
+        EDocPaymentOccurrenceMgt.ProcessApplication(DetailedCustLedgEntry);
+        EDocPaymentOccurrence.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocPaymentOccurrence.FindFirst();
+        EDocImplState.SetThrowPaymentOccurrenceProcessingError();
+        BindSubscription(EDocImplState);
+        EDocPaymentOccurrenceMgt.ProcessPaymentOccurrence(EDocPaymentOccurrence);
+        UnbindSubscription(EDocImplState);
+        EDocPaymentOccurrence.Get(EDocPaymentOccurrence."Entry No.");
+        Assert.AreEqual(EDocPaymentOccurrence.Status::Error, EDocPaymentOccurrence.Status, 'Failed processing must leave the occurrence in Error.');
+        Assert.AreEqual(1, EDocPaymentOccurrence."Retry Count", 'Failed processing must increment the retry count.');
+        EDocPaymentOccurrence."Next Attempt At" := 0DT;
+        EDocPaymentOccurrence.Modify();
+
+        // [WHEN] The recurrent dispatcher retries the occurrence
+        EDocPaymentOccurrenceDispatcher.Run();
+
+        // [THEN] The occurrence is marked processed and its error is cleared
+        EDocPaymentOccurrence.Get(EDocPaymentOccurrence."Entry No.");
+        Assert.AreEqual(EDocPaymentOccurrence.Status::Processed, EDocPaymentOccurrence.Status, 'A successful retry must mark the occurrence Processed.');
+        Assert.AreEqual('', EDocPaymentOccurrence."Last Error", 'A successful retry must clear the previous error.');
+    end;
+
     local procedure Initialize(var Customer: Record Customer)
     var
         EDocument: Record "E-Document";
@@ -368,6 +438,7 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
         JobQueueEntry.SetFilter("Object ID to Run", '%1|%2', Codeunit::"E-Doc. Message Send Job", Codeunit::"E-Doc. Message Response Job");
         JobQueueEntry.DeleteAll();
         EDocMessage.DeleteAll();
+        EDocPaymentOccurrence.DeleteAll();
         EDocument.DeleteAll();
 
         if not IsInitialized then begin
@@ -378,6 +449,41 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
         EDocumentService.DeleteAll();
         LibraryEDoc.SetupStandardSalesScenario(
             Customer, EDocumentService, Enum::"E-Document Format"::Mock, Enum::"Service Integration"::Mock);
+    end;
+
+    local procedure CreatePaymentOccurrenceScenario(var EDocument: Record "E-Document"; var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
+    var
+        InvoiceCustLedgerEntry: Record "Cust. Ledger Entry";
+        PaymentCustLedgerEntry: Record "Cust. Ledger Entry";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+    begin
+        SalesInvoiceHeader.Init();
+        SalesInvoiceHeader."No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(SalesInvoiceHeader."No."));
+        SalesInvoiceHeader.Insert();
+        EDocument.Init();
+        EDocument."Document No." := SalesInvoiceHeader."No.";
+        EDocument."Document Record ID" := SalesInvoiceHeader.RecordId;
+        EDocument.Direction := EDocument.Direction::Outgoing;
+        EDocument."Document Type" := EDocument."Document Type"::"Sales Invoice";
+        EDocument.Insert();
+        InvoiceCustLedgerEntry.Init();
+        InvoiceCustLedgerEntry."Entry No." := -1;
+        InvoiceCustLedgerEntry."Document Type" := InvoiceCustLedgerEntry."Document Type"::Invoice;
+        InvoiceCustLedgerEntry."Document No." := SalesInvoiceHeader."No.";
+        InvoiceCustLedgerEntry.Insert();
+        PaymentCustLedgerEntry.Init();
+        PaymentCustLedgerEntry."Entry No." := -2;
+        PaymentCustLedgerEntry."Document Type" := PaymentCustLedgerEntry."Document Type"::Payment;
+        PaymentCustLedgerEntry.Insert();
+        DetailedCustLedgEntry.Init();
+        DetailedCustLedgEntry."Entry No." := -1;
+        DetailedCustLedgEntry."Cust. Ledger Entry No." := InvoiceCustLedgerEntry."Entry No.";
+        DetailedCustLedgEntry."Applied Cust. Ledger Entry No." := PaymentCustLedgerEntry."Entry No.";
+        DetailedCustLedgEntry."Entry Type" := DetailedCustLedgEntry."Entry Type"::Application;
+        DetailedCustLedgEntry."Initial Document Type" := DetailedCustLedgEntry."Initial Document Type"::Invoice;
+        DetailedCustLedgEntry.Amount := -100;
+        DetailedCustLedgEntry.SystemId := CreateGuid();
+        DetailedCustLedgEntry.Insert();
     end;
 
     local procedure CreateOutgoingEDocument(var EDocument: Record "E-Document")
