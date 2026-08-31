@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -147,6 +147,7 @@ report 1401 Check
                     column(DocDate; DocDate)
                     {
                     }
+#if CLEAN27
                     column(CurrencyCode2; CurrencyCode2)
                     {
                         AutoFormatExpression = GenJnlLine."Currency Code";
@@ -157,6 +158,7 @@ report 1401 Check
                         AutoFormatExpression = GenJnlLine."Currency Code";
                         AutoFormatType = 1;
                     }
+#endif
                     column(ExtDocNo; ExtDocNo)
                     {
                     }
@@ -175,9 +177,11 @@ report 1401 Check
                     column(DocDateCaption; DocDateCaptionLbl)
                     {
                     }
+#if CLEAN27
                     column(CurrencyCodeCaption; CurrencyCodeCaptionLbl)
                     {
                     }
+#endif
                     column(YourDocNoCaption; YourDocNoCaptionLbl)
                     {
                     }
@@ -1016,6 +1020,7 @@ report 1401 Check
         Text025: Label 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX';
         Text026: Label 'ZERO';
         Text027: Label 'HUNDRED';
+        Text028: Label 'AND';
 #pragma warning disable AA0470
         Text029: Label '%1 results in a written number that is too long.';
         Text030: Label ' is already applied to %1 %2 for customer %3.';
@@ -1063,6 +1068,7 @@ report 1401 Check
         AmountCaptionLbl: Label 'Amount';
         DocNoCaptionLbl: Label 'Document No.';
         DocDateCaptionLbl: Label 'Document Date';
+        CurrencyCodeCaptionLbl: Label 'Currency Code';
         YourDocNoCaptionLbl: Label 'Your Doc. No.';
         TransportCaptionLbl: Label 'Transport';
         BlockedEmplForCheckErr: Label 'You cannot print check because employee %1 is blocked due to privacy.', Comment = '%1 - Employee no.';
@@ -1082,6 +1088,7 @@ report 1401 Check
         Hundreds: Integer;
         Exponent: Integer;
         NoTextIndex: Integer;
+        DecimalPosition: Decimal;
     begin
         Clear(NoText);
         NoTextIndex := 1;
@@ -1373,6 +1380,19 @@ report 1401 Check
         end;
     end;
 
+    local procedure GetAmtDecimalPosition(): Decimal
+    var
+        Currency: Record Currency;
+    begin
+        if GenJnlLine."Currency Code" = '' then
+            Currency.InitRoundingPrecision()
+        else begin
+            Currency.Get(GenJnlLine."Currency Code");
+            Currency.TestField("Amount Rounding Precision");
+        end;
+        exit(1 / Currency."Amount Rounding Precision");
+    end;
+
     local procedure CheckGenJournalBatchAndLineIsApproved(GenJournalLine: Record "Gen. Journal Line"): Boolean
     var
         GenJournalBatch: Record "Gen. Journal Batch";
@@ -1561,4 +1581,3 @@ report 1401 Check
     begin
     end;
 }
-
