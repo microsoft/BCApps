@@ -147,7 +147,6 @@ report 1401 Check
                     column(DocDate; DocDate)
                     {
                     }
-#if CLEAN27
                     column(CurrencyCode2; CurrencyCode2)
                     {
                         AutoFormatExpression = GenJnlLine."Currency Code";
@@ -158,7 +157,6 @@ report 1401 Check
                         AutoFormatExpression = GenJnlLine."Currency Code";
                         AutoFormatType = 1;
                     }
-#endif
                     column(ExtDocNo; ExtDocNo)
                     {
                     }
@@ -177,11 +175,9 @@ report 1401 Check
                     column(DocDateCaption; DocDateCaptionLbl)
                     {
                     }
-#if CLEAN27
                     column(CurrencyCodeCaption; CurrencyCodeCaptionLbl)
                     {
                     }
-#endif
                     column(YourDocNoCaption; YourDocNoCaptionLbl)
                     {
                     }
@@ -535,7 +531,8 @@ report 1401 Check
                                 DescriptionLine[2] := DescriptionLine[1];
                                 VoidText := Text022;
                             end;
-                        end else begin
+                        end
+                        else begin
                             CheckLedgEntry.Init();
                             CheckLedgEntry."Bank Account No." := BankAcc2."No.";
                             CheckLedgEntry."Posting Date" := GenJnlLine."Posting Date";
@@ -1119,9 +1116,11 @@ report 1401 Check
                     AddToNoText(NoText, NoTextIndex, PrintExponent, ExponentText[Exponent]);
                 No := No - (Hundreds * 100 + Tens * 10 + Ones) * Power(1000, Exponent - 1);
             end;
+
         AddToNoText(NoText, NoTextIndex, PrintExponent, Text028);
         DecimalPosition := GetAmtDecimalPosition();
         AddToNoText(NoText, NoTextIndex, PrintExponent, (Format(No * DecimalPosition) + '/' + Format(DecimalPosition)));
+
         if CurrencyCode <> '' then
             AddToNoText(NoText, NoTextIndex, PrintExponent, CurrencyCode);
 
