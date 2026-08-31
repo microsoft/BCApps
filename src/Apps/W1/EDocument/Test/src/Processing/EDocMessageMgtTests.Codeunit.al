@@ -429,6 +429,7 @@ codeunit 139898 "E-Doc. Message Mgt. Tests"
     var
         EDocument: Record "E-Document";
         EDocMessage: Record "E-Document Message";
+        EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
         JobQueueEntry: Record "Job Queue Entry";
     begin
         if UnbindSubscription(EDocImplState) then;
