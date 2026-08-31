@@ -1,10 +1,9 @@
+#if not CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Reminder;
-
-using System.Telemetry;
 
 /// <summary>
 /// Displays and manages reminder terms configurations including posting options and fee settings.
@@ -16,6 +15,9 @@ page 431 "Reminder Terms"
     PageType = List;
     SourceTable = "Reminder Terms";
     UsageCategory = None;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Use page 837 "Reminder Terms List" instead.';
+    ObsoleteTag = '30.0';
 
     layout
     {
@@ -114,24 +116,11 @@ page 431 "Reminder Terms"
     }
 
     trigger OnOpenPage()
-    var
-        ReminderCommunication: Codeunit "Reminder Communication";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
         if CurrPage.LookupMode() then
             exit;
-        FeatureTelemetry.LogUptake('0000LAY', 'Reminder', Enum::"Feature Uptake Status"::Discovered);
-        if ReminderCommunication.NewReminderCommunicationEnabled() then begin
-            Page.Run(Page::"Reminder Terms List");
-            Error('');
-        end;
-    end;
-
-    trigger OnInsertRecord(BelowxRec: Boolean): Boolean
-    var
-        FeatureTelemetry: Codeunit "Feature Telemetry";
-    begin
-        FeatureTelemetry.LogUptake('0000LAZ', 'Reminder', Enum::"Feature Uptake Status"::"Set up");
+        Page.Run(Page::"Reminder Terms List");
+        Error('');
     end;
 }
-
+#endif
