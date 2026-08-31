@@ -1462,9 +1462,10 @@ codeunit 148151 "FR E-Invoice Message Tests"
 
     local procedure RegisterExternalDocumentReference(EDocument: Record "E-Document") ExternalDocumentID: Text[250]
     var
-        FREDocMsgSenderMock: Codeunit "FR E-Doc. Msg. Sender Mock";
+        EDocumentMessageAPI: Codeunit "E-Document Message API";
     begin
-        ExternalDocumentID := FREDocMsgSenderMock.RegisterExternalDocumentReference(EDocument);
+        ExternalDocumentID := CopyStr(Format(CreateGuid()), 1, MaxStrLen(ExternalDocumentID));
+        EDocumentMessageAPI.RegisterExternalDocumentReference(EDocument, EDocument.Service, ExternalDocumentID);
     end;
 
     local procedure BuildPPFValidationXml(ProfileID: Text; IncludeSender: Boolean; SenderRole: Text; RecipientScheme: Text; InvoiceDateFormat: Text): Text
