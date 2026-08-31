@@ -124,7 +124,7 @@ codeunit 139494 "API Test Auth Provider Tests"
 
     local procedure Initialize()
     begin
-        APITestAuthRecorder.Clear();
+        APITestAuthRecorder.Reset();
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
         if IsInitialized then
             exit;

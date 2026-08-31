@@ -24,7 +24,7 @@ codeunit 139493 "Mock API Test Auth Provider" implements "API Test Auth Provider
     begin
         InvocationCount += 1;
         APITestAuthRecorder.RecordCall(StrSubstNo(ProviderCallTok, InvocationCount, TargetURL));
-        Password := PasswordTxt;
+        Password := SecretStrSubstNo('%1', PasswordTxt);
         Authentication.SetBasicAuthentication('User', Password);
     end;
 }

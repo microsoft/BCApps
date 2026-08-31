@@ -34,8 +34,8 @@ codeunit 139495 "API Test Auth Recorder"
         exit(Calls.Count());
     end;
 
-    internal procedure Clear()
+    internal procedure Reset()
     begin
-        Calls.Clear();
+        Clear(Calls);
     end;
 }
