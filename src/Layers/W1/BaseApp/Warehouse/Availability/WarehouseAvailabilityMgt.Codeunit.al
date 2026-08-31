@@ -851,8 +851,11 @@ codeunit 7314 "Warehouse Availability Mgt."
         BinContent: Record "Bin Content";
         TempWhseActivLine: Record "Warehouse Activity Line" temporary;
         TypeHelper: Codeunit "Type Helper";
+        InventoryAvailQtyBase: Decimal;
+        QtyOnDedicatedBins: Decimal;
         QtyReservedOnPickShip: Decimal;
         QtyReservedForCurrLine: Decimal;
+        ExcludeShipmentBin: Boolean;
     begin
         AvailQtyBase := 0;
 
@@ -866,6 +869,7 @@ codeunit 7314 "Warehouse Availability Mgt."
             BinContent.SetRange("Location Code", WhseWorksheetLine."Location Code");
             BinContent.SetRange("Item No.", WhseWorksheetLine."Item No.");
             BinContent.SetRange("Variant Code", WhseWorksheetLine."Variant Code");
+            SetPickableBinFilter(BinContent, Location);
             if BinContent.FindSet() then
                 repeat
                     AvailQtyBase += TypeHelper.Maximum(0, BinContent.CalcQtyAvailToPick(0));
@@ -874,7 +878,10 @@ codeunit 7314 "Warehouse Availability Mgt."
             Item.SetRange("Location Filter", WhseWorksheetLine."Location Code");
             Item.SetRange("Variant Filter", WhseWorksheetLine."Variant Code");
             Item.CalcFields("Reserved Qty. on Inventory");
-            AvailQtyBase := AvailQtyBase - Item."Reserved Qty. on Inventory" - CalcQtyBasePickedNotShippedOnWarehouseShipmentLine(WhseWorksheetLine, Item);
+            ExcludeShipmentBin := Location."Require Pick" and (Location."Shipment Bin Code" <> '');
+            AvailQtyBase := AvailQtyBase - Item."Reserved Qty. on Inventory";
+            if not ExcludeShipmentBin then
+                AvailQtyBase -= CalcQtyBasePickedNotShippedOnWarehouseShipmentLine(WhseWorksheetLine, Item);
         end else
             AvailQtyBase := CalcInvtAvailQty(Item, Location, WhseWorksheetLine."Variant Code", TempWhseActivLine);
 
@@ -887,6 +894,26 @@ codeunit 7314 "Warehouse Availability Mgt."
               WhseWorksheetLine."Source Type", WhseWorksheetLine."Source Subtype", WhseWorksheetLine."Source No.", WhseWorksheetLine."Source Line No.", WhseWorksheetLine."Source Subline No.", true, TempWhseActivLine));
 
         AvailQtyBase := AvailQtyBase + QtyReservedOnPickShip + QtyReservedForCurrLine;
+
+        if Location."Bin Mandatory" and Location."Require Receive" and Location."Require Put-away" then begin
+            QtyOnDedicatedBins := CalcQtyOnDedicatedBins(Location.Code, Item."No.", WhseWorksheetLine."Variant Code");
+            InventoryAvailQtyBase :=
+                CalcInvtAvailQty(Item, Location, WhseWorksheetLine."Variant Code", TempWhseActivLine) +
+                QtyReservedOnPickShip + QtyReservedForCurrLine - QtyOnDedicatedBins;
+            AvailQtyBase := TypeHelper.Minimum(AvailQtyBase, InventoryAvailQtyBase);
+        end;
+    end;
+
+    local procedure SetPickableBinFilter(var BinContent: Record "Bin Content"; Location: Record Location)
+    begin
+        if Location."Require Pick" and (Location."Shipment Bin Code" <> '') then
+            if Location."Require Put-away" and (Location."Receipt Bin Code" <> '') then
+                BinContent.SetFilter("Bin Code", '<>%1&<>%2', Location."Shipment Bin Code", Location."Receipt Bin Code")
+            else
+                BinContent.SetFilter("Bin Code", '<>%1', Location."Shipment Bin Code")
+        else
+            if Location."Require Put-away" and (Location."Receipt Bin Code" <> '') then
+                BinContent.SetFilter("Bin Code", '<>%1', Location."Receipt Bin Code");
     end;
 
     local procedure CalcQtyBasePickedNotShippedOnWarehouseShipmentLine(WhseWorksheetLine: Record "Whse. Worksheet Line"; Item: Record Item): Decimal
