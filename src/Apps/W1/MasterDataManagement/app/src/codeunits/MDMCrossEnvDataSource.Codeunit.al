@@ -22,6 +22,7 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         NotIndexedErr: Label 'Table %1 on the source has too many same-timestamp changes to synchronize without an index. Add a key on SystemModifiedAt and SystemId to that table on the source environment.', Comment = '%1 = table caption';
         FieldsUnavailableErr: Label 'One or more fields set up for synchronization do not exist on table %1 on the source environment.', Comment = '%1 = table caption';
         SourceProbeFailedErr: Label 'Could not read the change probe from the source environment for table %1.', Comment = '%1 = table caption';
+        OpenSynchTablesActionTxt: Label 'Open Synchronization Tables';
         RecordsFeatureTok: Label 'records', Locked = true;
         LastModifiedFeatureTok: Label 'lastModifiedPerTable', Locked = true;
         SourceProbeTelemetryTxt: Label 'The cross-environment source-record probe failed for table %1.', Locked = true, Comment = '%1 = table id';
@@ -121,9 +122,9 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
             LogProbeFailure(IntegrationTableId);
             Error(SourceProbeFailedErr, TableCaption(IntegrationTableId));
         end;
-        if not Response.Get('tables', Token) then begin
+        if (not Response.Get('tables', Token)) or (not Token.IsArray()) then begin
             LogProbeFailure(IntegrationTableId);
-            Error(SourceProbeFailedErr, TableCaption(IntegrationTableId));
+            Error(InternalError(StrSubstNo(InvalidResponseErr, TableCaption(IntegrationTableId))));
         end;
         Tables := Token.AsArray();
         if Tables.Count() = 0 then begin
@@ -131,6 +132,10 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
             Error(SourceProbeFailedErr, TableCaption(IntegrationTableId));
         end;
         Tables.Get(0, Token);
+        if not Token.IsObject() then begin
+            LogProbeFailure(IntegrationTableId);
+            Error(InternalError(StrSubstNo(InvalidResponseErr, TableCaption(IntegrationTableId))));
+        end;
         Entry := Token.AsObject();
         if Entry.Get('tableAvailable', Token) then
             if not Token.AsValue().AsBoolean() then
@@ -213,6 +218,17 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         exit(ErrInfo);
     end;
 
+    // The table isn't exposed on the source: a recoverable setup issue, so point the user at Synchronization Tables.
+    local procedure SynchTablesNavigationError(MessageText: Text): ErrorInfo
+    var
+        ErrInfo: ErrorInfo;
+    begin
+        ErrInfo.Message := MessageText;
+        ErrInfo.PageNo := Page::"Master Data Synch. Tables";
+        ErrInfo.AddNavigationAction(OpenSynchTablesActionTxt);
+        exit(ErrInfo);
+    end;
+
     local procedure LogParseFailure(IntegrationTableId: Integer; Reason: Text)
     var
         MasterDataManagement: Codeunit "Master Data Management";
@@ -238,7 +254,7 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         end;
         if not SourceResponse.TableAvailable(Response) then begin
             LogParseFailure(IntegrationTableId, TableUnavailableReasonTok);
-            Error(TableUnavailableErr, TableCaption(IntegrationTableId));
+            Error(SynchTablesNavigationError(StrSubstNo(TableUnavailableErr, TableCaption(IntegrationTableId))));
         end;
         if not SourceResponse.Indexed(Response) then begin
             LogParseFailure(IntegrationTableId, NotIndexedReasonTok);

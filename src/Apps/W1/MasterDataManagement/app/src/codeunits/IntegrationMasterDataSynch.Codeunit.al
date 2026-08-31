@@ -244,12 +244,14 @@ codeunit 7231 "Integration Master Data Synch."
         DataSource := MasterDataManagementSetup.GetDataSource();
         foreach IntegrationSystemIDFilter in IntegrationSystemIDFilterList do
             if IntegrationSystemIDFilter <> '' then begin
+                // GetByUidFilter returns the ref already positioned on the matching set; a separate FindSet would re-read it.
+#pragma warning disable AA0181
                 if DataSource.GetByUidFilter(IntegrationTableMapping, IntegrationSystemIDFilter, IntegrationRecordRef) then
-                    if IntegrationRecordRef.FindSet() then
-                        repeat
-                            CopyRecordReference(IntegrationTableMapping, IntegrationRecordRef, TempIntegrationRecordRef, false);
-                            Cached := true;
-                        until IntegrationRecordRef.Next() = 0;
+                    repeat
+                        CopyRecordReference(IntegrationTableMapping, IntegrationRecordRef, TempIntegrationRecordRef, false);
+                        Cached := true;
+                    until IntegrationRecordRef.Next() = 0;
+#pragma warning restore AA0181
                 IntegrationRecordRef.Close();
             end;
         exit(Cached);

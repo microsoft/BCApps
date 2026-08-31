@@ -167,13 +167,21 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         Uri: Codeunit Uri;
         Host: Text;
     begin
-        Uri.Init(BaseUrl);
         // Embed/ISV clusters vary in hostname but always end with dynamics.com; dynamics-tie.com is the test (TIE) ring.
-        Host := LowerCase(Uri.GetHost());
-        if (Uri.GetScheme() = 'https') and (Host.EndsWith('.dynamics.com') or Host.EndsWith('.dynamics-tie.com')) then
-            exit;
+        // A malformed URL must surface the actionable setup error, not the URI parser's raw exception.
+        if TryInitUri(Uri, BaseUrl) then begin
+            Host := LowerCase(Uri.GetHost());
+            if (Uri.GetScheme() = 'https') and (Host.EndsWith('.dynamics.com') or Host.EndsWith('.dynamics-tie.com')) then
+                exit;
+        end;
         AuditLog.LogAuditMessage(StrSubstNo(InvalidSourceUrlAuditTxt, Host), SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
         Error(SetupNavigationError(InvalidSourceUrlErr));
+    end;
+
+    [TryFunction]
+    local procedure TryInitUri(var Uri: Codeunit Uri; BaseUrl: Text)
+    begin
+        Uri.Init(BaseUrl);
     end;
 
     // Test seam: exercise the source-host allow-list without a live environment or the SaaS gate.

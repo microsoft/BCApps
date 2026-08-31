@@ -672,12 +672,14 @@ codeunit 7233 "Master Data Management"
         end else begin
             MasterDataManagementSetup.Get();
             // Route the source read so uncoupling works against the local company or another environment.
+            // GetByFilter returns the ref already positioned on the matching set; a separate FindSet would re-read it.
+#pragma warning disable AA0181
             if MasterDataManagementSetup.GetDataSource().GetByFilter(IntegrationTableMapping, IntegrationTableFilter, IntegrationRecordRef) then
-                if IntegrationRecordRef.FindSet() then
-                    repeat
-                        if not PerformUncoupling(IntegrationTableMapping, LocalRecordRef, IntegrationRecordRef) then
-                            CountFailed += 1;
-                    until IntegrationRecordRef.Next() = 0;
+                repeat
+                    if not PerformUncoupling(IntegrationTableMapping, LocalRecordRef, IntegrationRecordRef) then
+                        CountFailed += 1;
+                until IntegrationRecordRef.Next() = 0;
+#pragma warning restore AA0181
         end;
         IntegrationTableMapping.Delete(true);
         exit(CountFailed = 0);
