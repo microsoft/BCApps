@@ -110,13 +110,14 @@ page 7140 "Expense Activities"
                 field("Policy Violated Expenses"; Rec."Policy Violated Expenses")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of expense policy violations that are registered on expenses.';
+                    ToolTip = 'Specifies the number of expenses with policy violations.';
 
                     trigger OnDrillDown()
                     var
-                        ExpenseRuleViolation: Record "Expense Rule Violation";
+                        Expense: Record Expense;
                     begin
-                        Page.Run(Page::"Expense Rule Violations", ExpenseRuleViolation);
+                        Expense.SetRange("Rule Violations", true);
+                        Page.Run(Page::Expenses, Expense);
                     end;
                 }
             }

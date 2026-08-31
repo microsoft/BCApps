@@ -78,7 +78,7 @@ table 6940 "Expense Activities Cue"
         {
             Caption = 'Policy Violated Expenses';
             FieldClass = FlowField;
-            CalcFormula = count("Expense Rule Violation");
+            CalcFormula = count(Expense where("Rule Violations" = const(true)));
             Editable = false;
         }
     }

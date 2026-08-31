@@ -14,6 +14,7 @@ pageextension 6904 "Exp. Accountant RC Ext" extends "Accountant Role Center"
         {
             part("Expense Activities"; "Expense Activities")
             {
+                AccessByPermission = tabledata Expense = R;
                 ApplicationArea = Basic, Suite;
             }
         }
