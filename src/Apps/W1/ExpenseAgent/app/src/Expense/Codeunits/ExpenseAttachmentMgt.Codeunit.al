@@ -426,7 +426,8 @@ codeunit 6989 "Expense Attachment Mgt."
             exit;
         end;
 
-        DocumentAttachment.GetAsTempBlob(TempBlob);
+        if not TryGetAsTempBlob(DocumentAttachment, TempBlob) then
+            Clear(TempBlob);
         if not TempBlob.HasValue() then begin
             if DocumentAttachment."Content Hash" = '' then
                 exit;
@@ -447,6 +448,12 @@ codeunit 6989 "Expense Attachment Mgt."
 
         DocumentAttachment."Content Hash" := NewHash;
         DocumentAttachment.Modify(false);
+    end;
+
+    [TryFunction]
+    local procedure TryGetAsTempBlob(var DocumentAttachment: Record "Document Attachment"; var TempBlob: Codeunit "Temp Blob")
+    begin
+        DocumentAttachment.GetAsTempBlob(TempBlob);
     end;
 
     internal procedure HasPDFAttachment(TableID: Integer; DocumentNo: Code[20]; LineNo: Integer): Boolean

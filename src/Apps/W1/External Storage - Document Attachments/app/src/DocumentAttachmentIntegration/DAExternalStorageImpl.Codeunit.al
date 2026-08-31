@@ -21,6 +21,9 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
                   tabledata "File Account" = r,
                   tabledata "DA External Storage Setup" = r;
 
+    var
+        CannotRetrieveExternalFileErr: Label 'The file %1 could not be retrieved from external storage. Verify that the file exists and that the external file storage account is configured and accessible.', Comment = '%1 = File name';
+
     #region File Scenario Interface Implementation
     /// <summary>
     /// Called before adding or modifying a file scenario.
@@ -877,7 +880,8 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if not ExternalStorageImpl.IsFileUploadedToExternalStorageAndDeletedInternally(DocumentAttachment) then
             exit;
 
-        ExternalStorageImpl.DownloadFromExternalStorageToStream(DocumentAttachment."External File Path", AttachmentOutStream);
+        if not ExternalStorageImpl.DownloadFromExternalStorageToStream(DocumentAttachment."External File Path", AttachmentOutStream) then
+            Error(CannotRetrieveExternalFileErr, DocumentAttachment."File Name" + '.' + DocumentAttachment."File Extension");
         IsHandled := true;
     end;
 
@@ -896,7 +900,8 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if not ExternalStorageImpl.IsFileUploadedToExternalStorageAndDeletedInternally(DocumentAttachment) then
             exit;
 
-        ExternalStorageImpl.DownloadFromExternalStorageToTempBlob(DocumentAttachment."External File Path", TempBlob);
+        if not ExternalStorageImpl.DownloadFromExternalStorageToTempBlob(DocumentAttachment."External File Path", TempBlob) then
+            Error(CannotRetrieveExternalFileErr, DocumentAttachment."File Name" + '.' + DocumentAttachment."File Extension");
         IsHandled := true;
     end;
 

@@ -30,6 +30,8 @@ codeunit 135810 "File Connector Mock"
         TestFileAccount.DeleteAll();
 
         TestFileStorageConnector.ResetLastDeletedPath();
+        TestFileStorageConnector.ResetFileExistsCallCount();
+        TestFileStorageConnector.SetFailOnGetFile(false);
     end;
 
     procedure GetAccounts(var FileAccount: Record "File Account")
@@ -125,5 +127,19 @@ codeunit 135810 "File Connector Mock"
         TestFileStorageConnector: Codeunit "Test File Storage Connector";
     begin
         exit(TestFileStorageConnector.GetLastDeletedPath());
+    end;
+
+    procedure GetFileExistsCallCount(): Integer
+    var
+        TestFileStorageConnector: Codeunit "Test File Storage Connector";
+    begin
+        exit(TestFileStorageConnector.GetFileExistsCallCount());
+    end;
+
+    procedure SetFailOnGetFile(FailOnGetFile: Boolean)
+    var
+        TestFileStorageConnector: Codeunit "Test File Storage Connector";
+    begin
+        TestFileStorageConnector.SetFailOnGetFile(FailOnGetFile);
     end;
 }
