@@ -19,9 +19,15 @@ codeunit 10975 "FR E-Invoice Message Mgt."
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+    TableNo = "E-Doc. Payment Occurrence";
 
     Permissions = tabledata "FR E-Invoice Message" = rimd,
                   tabledata "FR E-Invoice Message VAT" = rid;
+
+    trigger OnRun()
+    begin
+        CreatePaymentLifecycleMessage(Rec);
+    end;
 
     internal procedure AcceptInvoice(EDocument: Record "E-Document")
     begin
@@ -63,7 +69,7 @@ codeunit 10975 "FR E-Invoice Message Mgt."
     var
         ErrorMessage: Text;
     begin
-        if TryCreatePaymentLifecycleMessage(EDocPaymentOccurrence) then
+        if Codeunit.Run(Codeunit::"FR E-Invoice Message Mgt.", EDocPaymentOccurrence) then
             exit;
 
         ErrorMessage := GetLastErrorText();
@@ -73,8 +79,7 @@ codeunit 10975 "FR E-Invoice Message Mgt."
         ClearLastError();
     end;
 
-    [TryFunction]
-    local procedure TryCreatePaymentLifecycleMessage(EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence")
+    local procedure CreatePaymentLifecycleMessage(EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence")
     var
         CollectedMessage: Record "FR E-Invoice Message";
         EDocument: Record "E-Document";
