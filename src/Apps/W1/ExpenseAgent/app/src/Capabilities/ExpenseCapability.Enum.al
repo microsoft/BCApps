@@ -75,9 +75,17 @@ enum 6984 "Expense Capability"
     }
 
     /// <summary>
+    /// Mileage rate setup (vehicle types and date-range rates) is available in the expense app
+    /// </summary>
+    value(6; MileageRateSetup)
+    {
+        Caption = 'Mileage Rate Setup', Locked = true;
+    }
+
+    /// <summary>
     /// Submitter comments can be supplied during submission, and comments can be exchanged during rejection and resubmission.
     /// </summary>
-    value(6; ApprovalConversation)
+    value(7; ApprovalConversation)
     {
         Caption = 'Approval Conversation', Locked = true;
     }
