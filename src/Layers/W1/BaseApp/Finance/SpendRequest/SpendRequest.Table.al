@@ -16,7 +16,6 @@ using System.Security.AccessControl;
 table 6840 "Spend Request"
 {
     Caption = 'Spend Request';
-    ReplicateData = false;
     DataClassification = CustomerContent;
     DataCaptionFields = "No.", Purpose;
     Permissions = tabledata "Spend Request Detail" = rimd,
@@ -41,10 +40,11 @@ table 6840 "Spend Request"
                 end;
             end;
         }
-        field(2; Type; Enum "Spend Request Type")
+        field(2; "Document Type"; Enum "Spend Request Document Type")
         {
             Caption = 'Document Type';
             ToolTip = 'Specifies the document type of the spend request.';
+
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -116,6 +116,7 @@ table 6840 "Spend Request"
             Editable = false;
             DecimalPlaces = 0 : 5;
             InitValue = 1;
+            AutoFormatType = 0;
             ToolTip = 'Specifies the most recent exchange rate for the specified currency (1 = pari).';
             trigger OnValidate()
             begin
@@ -300,10 +301,10 @@ table 6840 "Spend Request"
     }
     fieldgroups
     {
-        fieldgroup(DropDown; "No.", Type, "Requested By", Purpose, Status)
+        fieldgroup(DropDown; "No.", Purpose, Status)
         {
         }
-        fieldgroup(Brick; "No.", Purpose, "Requested By", Status, "Total Expected Amount")
+        fieldgroup(Brick; "No.", Purpose, Status, "Total Expected Amount")
         {
         }
     }
@@ -344,7 +345,7 @@ table 6840 "Spend Request"
     begin
         Rec.CalcFields("Total Spent Amount (LCY)");
         if Rec."Total Spent Amount (LCY)" <> 0 then
-            Error(CannotDeleteErr);
+            Error(CannotDeleteErr, Rec.GetDocumentTypeDescription());
         SpendRequestDetail.SetRange("Spend Request No.", Rec."No.");
         SpendRequestDetail.DeleteAll();
         SpendReqToGLLink.SetRange("Spend Request No.", Rec."No.");
@@ -353,11 +354,13 @@ table 6840 "Spend Request"
 
     var
         EndBeforeStartErr: Label 'Expected End Date cannot be before Expected Start Date.';
-        CannotDeleteErr: Label 'You cannot delete a spend request that has expenses posted against it.';
+        CannotDeleteErr: Label 'You cannot delete a %1 that has expenses posted against it.', Comment = '%1 = document type description, e.g. spend request or Travel Request';
         CannotBeLessThanSumOfLinesErr: Label 'You cannot specify an amount less than the total of the lines.';
         ChangeCurrCodeOnLineQst: Label 'You have changed the currency code on the expense request. Do you also want to update the lines that had the same currency code?';
-        SpendRequestIsUsedMsg: Label 'Spend request %1 was approved for %2 and current allocation is %3.', Comment = '%1 is a document no., %2 and %3 are amounts in local currency.';
-        SpendRequestCloseQst: Label 'Do you want to close spend request %1 after posting this entry?', Comment = '%1 is a document no.';
+        SpendRequestIsUsedMsg: Label 'The %1 %2 was approved for %3 and current allocation is %4.', Comment = '%1 = document type description, %2 is a document no., %3 and %4 are amounts in local currency.';
+        SpendRequestCloseQst: Label 'Do you want to close %1 %2 after posting this entry?', Comment = '%1 = document type description, %2 is a document no.';
+        StatusMustBeErr: Label 'The %1 %2 must have the status %3.', Comment = '%1 = document type description, %2 = document no., %3 = required status';
+        SkipSpendRequestClose: Boolean;
 
     /// <summary>
     /// Returns the difference between estimated amount and actually spent amount
@@ -366,6 +369,14 @@ table 6840 "Spend Request"
     procedure GetRemainingAmountLCY(): Decimal
     begin
         exit(Rec."Total Expected Amount (LCY)" - Rec."Total Spent Amount (LCY)");
+    end;
+
+    procedure GetDocumentTypeDescription(): Text
+    begin
+        if Rec."Document Type" = Rec."Document Type"::" " then
+            exit(Rec.TableCaption());
+
+        exit(Format(Rec."Document Type"));
     end;
 
     local procedure CheckStartAndEndDate()
@@ -378,7 +389,7 @@ table 6840 "Spend Request"
     /// <summary>
     /// Allows the user to select a number from another no. series.
     /// </summary>
-    internal procedure AssistEditNo() Result: Boolean
+    procedure AssistEditNo() Result: Boolean
     var
         GLSetup: Record "General Ledger Setup";
         NoSeries: Codeunit "No. Series";
@@ -398,7 +409,17 @@ table 6840 "Spend Request"
     /// </summary>
     procedure TestStatusOpen()
     begin
-        Rec.TestField(Status, Status::Open);
+        TestStatus(Status::Open);
+    end;
+
+    /// <summary>
+    /// Verifies the request has the expected status, using the document type in the error message.
+    /// </summary>
+    /// <param name="ExpectedStatus">The status the request must currently have.</param>
+    procedure TestStatus(ExpectedStatus: Enum "Spend Request Status")
+    begin
+        if Rec.Status <> ExpectedStatus then
+            Error(StatusMustBeErr, GetDocumentTypeDescription(), Rec."No.", ExpectedStatus);
     end;
 
     /// <summary>
@@ -574,9 +595,20 @@ table 6840 "Spend Request"
         end;
         Rec.SetAutoCalcFields("Total Spent Amount (LCY)");
         Rec.Get(SpendRequestNo);
-        Rec.TestField(Status, Rec.Status::Approved);
-        if GuiAllowed() then
-            SpendRequestclose := Confirm(SpendRequestCloseQst, true, Rec."No.");
+        Rec.TestStatus(Rec.Status::Approved);
+
+        if GuiAllowed() and not SkipSpendRequestClose then
+            SpendRequestclose := Confirm(SpendRequestCloseQst, true, Rec.GetDocumentTypeDescription(), Rec."No.");
+    end;
+
+    /// <summary>
+    /// Sets whether the confirmation to close the spend request should be skipped during validation.
+    /// When set to true, ValidateSpendRequest does not prompt to close the spend request.
+    /// </summary>
+    /// <param name="NewSkipSpendRequestClose">True to skip the close confirmation; otherwise false.</param>
+    procedure SetSkipSpendRequestClose(NewSkipSpendRequestClose: Boolean)
+    begin
+        SkipSpendRequestClose := NewSkipSpendRequestClose;
     end;
 
     /// <summary>
@@ -594,11 +626,11 @@ table 6840 "Spend Request"
         NewAmountLCY := Abs(NewAmountLCY);
         Rec.SetAutoCalcFields("Total Spent Amount (LCY)");
         Rec.Get(SpendRequestNo);
-        Rec.TestField(Status, Rec.Status::Approved);
+        Rec.TestStatus(Rec.Status::Approved);
         if GuiAllowed() then
             if Rec."Total Spent Amount (LCY)" + NewAmountLCY > Rec."Total Expected Amount (LCY)" then begin
                 AlreadyAllocatedNotification.Scope := AlreadyAllocatedNotification.Scope::LocalScope;
-                AlreadyAllocatedNotification.Message := StrSubstNo(SpendRequestIsUsedMsg, Rec."No.", Rec."Total Expected Amount (LCY)", Rec."Total Spent Amount (LCY)");
+                AlreadyAllocatedNotification.Message := StrSubstNo(SpendRequestIsUsedMsg, Rec.GetDocumentTypeDescription(), Rec."No.", Rec."Total Expected Amount (LCY)", Rec."Total Spent Amount (LCY)");
                 NotificationLifecycleMgt.SendNotification(AlreadyAllocatedNotification, Rec.RecordId);
             end;
     end;

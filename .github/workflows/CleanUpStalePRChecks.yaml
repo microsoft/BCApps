@@ -17,6 +17,7 @@ defaults:
 
 jobs:
   CleanUpStatusChecks:
+    if: github.repository_owner == 'microsoft'
     runs-on: ubuntu-latest
     name: Clean Up Stale PR Status Checks
     steps:
