@@ -41,9 +41,9 @@ codeunit 703 "Find Record Management"
     end;
 
     [Scope('OnPrem')]
-    procedure GetIntFieldValue(RecRef: RecordRef; FieldNo: Integer): Integer;
+    procedure GetIntFieldValue(RecRef: RecordRef; FieldNo: Integer): BigInteger;
     var
-        IntFields: list of [Integer];
+        IntFields: list of [BigInteger];
     begin
         IntFields.Add(FieldNo);
         GetIntFieldValues(RecRef, IntFields);
@@ -51,31 +51,31 @@ codeunit 703 "Find Record Management"
     end;
 
     [Scope('OnPrem')]
-    procedure GetIntFieldValues(RecRef: RecordRef; var IntFields: list of [Integer])
+    procedure GetIntFieldValues(RecRef: RecordRef; var IntFields: list of [BigInteger])
     var
-        FieldNos: list of [Integer];
+        FieldNos: list of [BigInteger];
         FieldNo: Integer;
         FieldValue: Variant;
     begin
         FieldNos := IntFields;
         clear(IntFields);
         foreach FieldNo in FieldNos do
-            if IsFieldValid(RecRef, FieldNo, FieldType::Integer, FieldValue) then
+            if IsFieldValid(RecRef, FieldNo, FieldType::Integer, FieldType::BigInteger, FieldValue) then
                 IntFields.Add(FieldValue)
             else
                 IntFields.Add(0);
     end;
 
-    procedure GetLastEntryIntFieldValue(SourceRec: Variant; FieldNo: Integer): Integer;
+    procedure GetLastEntryIntFieldValue(SourceRec: Variant; FieldNo: Integer): BigInteger;
     var
-        IntFields: list of [Integer];
+        IntFields: list of [BigInteger];
     begin
         IntFields.Add(FieldNo);
         GetLastEntryIntFieldValues(SourceRec, IntFields);
         exit(IntFields.Get(1));
     end;
 
-    procedure GetLastEntryIntFieldValues(SourceRec: Variant; var FieldNoValues: List of [Integer])
+    procedure GetLastEntryIntFieldValues(SourceRec: Variant; var FieldNoValues: List of [BigInteger])
     var
         RecRef: RecordRef;
         FieldNo: Integer;
@@ -108,14 +108,14 @@ codeunit 703 "Find Record Management"
         end;
     end;
 
-    local procedure IsFieldValid(RecRef: RecordRef; FieldNo: Integer; ExpectedFieldType: FieldType; var Value: Variant): Boolean
+    local procedure IsFieldValid(RecRef: RecordRef; FieldNo: Integer; ExpectedFieldType1: FieldType; ExpectedFieldType2: FieldType; var Value: Variant): Boolean
     var
         FldRef: FieldRef;
     begin
         Clear(Value);
         if RecRef.FieldExist(FieldNo) then begin
             FldRef := RecRef.Field(FieldNo);
-            if FldRef.Type = ExpectedFieldType then begin
+            if FldRef.Type in [ExpectedFieldType1, ExpectedFieldType2] then begin
                 if FldRef.Class = FieldClass::FlowField then
                     FldRef.CalcField();
                 Value := FldRef.Value();

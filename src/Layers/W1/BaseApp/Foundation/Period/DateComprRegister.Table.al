@@ -174,7 +174,7 @@ table 87 "Date Compr. Register"
         exit(FindRecordManagement.GetLastEntryIntFieldValue(Rec, FieldNo("No.")))
     end;
 
-    procedure InitRegister(TableID: Integer; RegNo: Integer; StartingDate: Date; EndingDate: Date; PeriodLength: Integer; EntryFilter: Text[250]; RelatedRegNo: Integer; SourceCode: Code[10])
+    procedure InitRegister(TableID: Integer; RegNo: BigInteger; StartingDate: Date; EndingDate: Date; PeriodLength: Integer; EntryFilter: Text[250]; RelatedRegNo: BigInteger; SourceCode: Code[10])
     begin
         Init();
         "No." := RegNo;
