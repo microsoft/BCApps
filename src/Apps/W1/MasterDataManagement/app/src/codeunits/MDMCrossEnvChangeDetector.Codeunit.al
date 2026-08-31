@@ -58,7 +58,7 @@ codeunit 7245 "MDM Cross-Env Change Detector"
         // Still non-fatal to this recurring job: skip the poll, the next scheduled run retries.
         if not TryNegotiateDetectionSupport(Transport, Supported) then begin
             Dimensions.Add('Category', MasterDataManagement.GetTelemetryCategory());
-            Session.LogMessage('', DetectorCapabilitiesFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
+            Session.LogMessage('0000VAZ', DetectorCapabilitiesFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
             exit;
         end;
         // Older source doesn't advertise the detection action: skip rather than error every run.
