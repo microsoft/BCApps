@@ -242,6 +242,7 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         ErrInfo: ErrorInfo;
     begin
         ErrInfo.Message := MessageText;
+        ErrInfo.DataClassification := DataClassification::SystemMetadata; // Message is emitted to telemetry
         ErrInfo.ErrorType := ErrorType::Internal;
         exit(ErrInfo);
     end;
@@ -252,6 +253,7 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         ErrInfo: ErrorInfo;
     begin
         ErrInfo.Message := MessageText;
+        ErrInfo.DataClassification := DataClassification::SystemMetadata; // Message is emitted to telemetry
         ErrInfo.PageNo := Page::"Master Data Synch. Tables";
         ErrInfo.AddNavigationAction(OpenSynchTablesActionTxt);
         exit(ErrInfo);

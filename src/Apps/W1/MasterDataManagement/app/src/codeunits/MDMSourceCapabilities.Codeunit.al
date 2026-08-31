@@ -52,6 +52,7 @@ codeunit 7246 "MDM Source Capabilities"
         ErrInfo: ErrorInfo;
     begin
         ErrInfo.Message := MessageText;
+        ErrInfo.DataClassification := DataClassification::SystemMetadata; // Message is emitted to telemetry
         ErrInfo.ErrorType := ErrorType::Internal;
         exit(ErrInfo);
     end;

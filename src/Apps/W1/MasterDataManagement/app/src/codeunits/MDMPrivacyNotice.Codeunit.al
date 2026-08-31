@@ -59,6 +59,7 @@ codeunit 7242 "MDM Privacy Notice"
         if IsApproved() then
             exit;
         ErrInfo.Message := NotApprovedErr;
+        ErrInfo.DataClassification := DataClassification::SystemMetadata; // Message is emitted to telemetry
         if MasterDataManagementSetup.Get() then begin
             ErrInfo.RecordId := MasterDataManagementSetup.RecordId();
             ErrInfo.PageNo := Page::"Master Data Management Setup";

@@ -317,6 +317,7 @@ codeunit 7248 "MDM Source Response"
         if not Converted then begin
             // Internal contract failure the user can't fix: detail goes to telemetry, user sees a generic dialog.
             ErrInfo.Message := StrSubstNo(BadFieldValueErr, DestField.Caption(), Format(DestField.Type()));
+            ErrInfo.DataClassification := DataClassification::SystemMetadata; // Message is emitted to telemetry
             ErrInfo.ErrorType := ErrorType::Internal;
             Error(ErrInfo);
         end;

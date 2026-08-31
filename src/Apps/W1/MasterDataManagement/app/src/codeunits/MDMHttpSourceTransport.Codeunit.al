@@ -274,6 +274,7 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         ErrInfo: ErrorInfo;
     begin
         ErrInfo.Message := MessageText;
+        ErrInfo.DataClassification := DataClassification::SystemMetadata; // Message is emitted to telemetry
         // The remedy is always the setup page, even before the record exists; only RecordId needs an existing record.
         ErrInfo.PageNo := Page::"Master Data Management Setup";
         ErrInfo.AddNavigationAction(OpenSetupActionTxt);

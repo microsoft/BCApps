@@ -378,6 +378,7 @@ table 7230 "Master Data Management Setup"
         ErrInfo: ErrorInfo;
     begin
         ErrInfo.Message := MustConfigureConnectionErr;
+        ErrInfo.DataClassification := DataClassification::SystemMetadata; // Message is emitted to telemetry
         ErrInfo.RecordId := Rec.RecordId();
         ErrInfo.PageNo := Page::"Master Data Management Setup";
         ErrInfo.AddNavigationAction(OpenSetupNavigationTxt);
