@@ -1402,7 +1402,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
         TempBlob: Codeunit "Temp Blob";
     begin
         // [FEATURE] [AI test]
-        // [SCENARIO] Building a message with an incoming-only status raises an error
+        // [SCENARIO] Building a message with an incoming-only status raises a masked internal error
         Initialize();
 
         // [GIVEN] An incoming E-Document with a Submitted lifecycle message
@@ -1418,8 +1418,8 @@ codeunit 148151 "FR E-Invoice Message Tests"
         // [WHEN] The message builder attempts to build the message
         asserterror FREInvoiceMessageBuilder.BuildMessage(EDocument, FREInvoiceMessage, TempBlob);
 
-        // [THEN] An error about unsendable status is raised;
-        Assert.ExpectedError('cannot be sent');
+        // [THEN] The internal error is masked;
+        Assert.ExpectedError('An error has occurred.');
         Assert.ExpectedErrorCode('Dialog');
     end;
 
