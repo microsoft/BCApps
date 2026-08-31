@@ -428,8 +428,6 @@ page 6928 "Expense Reports API"
         ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
     end;
 
-#if not CLEAN30
-    [Obsolete('Use ReleaseAndMarkPendingApprovalExpenseReportWithComment instead.', '30.0')]
     [ServiceEnabled]
     procedure ReleaseAndMarkPendingApprovalExpenseReport(var ActionContext: WebServiceActionContext; SubmitterExpenseUserNo: Code[20])
     begin
@@ -441,7 +439,6 @@ page 6928 "Expense Reports API"
         ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
     end;
 
-#endif
     [ServiceEnabled]
     procedure ReleaseAndMarkPendingApprovalExpenseReportWithComment(var ActionContext: WebServiceActionContext; SubmitterExpenseUserNo: Code[20]; SubmissionComment: Text)
     begin
