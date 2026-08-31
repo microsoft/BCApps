@@ -131,6 +131,46 @@ codeunit 148151 "FR E-Invoice Message Tests"
     end;
 
     [Test]
+    procedure PaymentLifecycleFailureDoesNotBlockApplicationAndCanBeRetried()
+    var
+        CompanyInformation: Record "Company Information";
+        EDocument: Record "E-Document";
+        EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
+        FREInvoiceMessage: Record "FR E-Invoice Message";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        FREInvoiceMessageMgt: Codeunit "FR E-Invoice Message Mgt.";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Invalid optional lifecycle configuration does not block a payment and its occurrence can be retried
+        Initialize();
+
+        // [GIVEN] An eligible French payment whose issuer registration number is invalid
+        CreatePaymentScenario(EDocument, DetailedCustLedgEntry, "E-Document Service Status"::Approved);
+        CompanyInformation.Get();
+        CompanyInformation."Registration No." := 'INVALID';
+        CompanyInformation.Modify();
+
+        // [WHEN] The payment application is processed
+        FREInvoiceMessageMgt.ProcessApplication(DetailedCustLedgEntry);
+
+        // [THEN] The payment occurrence remains persisted and no incomplete French message is created
+        EDocPaymentOccurrence.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocPaymentOccurrence.SetRange(Type, EDocPaymentOccurrence.Type::Applied);
+        Assert.RecordCount(EDocPaymentOccurrence, 1);
+        FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
+        FREInvoiceMessage.SetRange(Type, FREInvoiceMessage.Type::Collected);
+        Assert.RecordCount(FREInvoiceMessage, 0);
+
+        // [WHEN] The configuration is repaired and the persisted occurrence is retried
+        EnsureCompanyInformation();
+        EDocPaymentOccurrence.FindFirst();
+        FREInvoiceMessageMgt.ProcessPaymentOccurrence(EDocPaymentOccurrence);
+
+        // [THEN] The French lifecycle message is created from the original occurrence
+        Assert.RecordCount(FREInvoiceMessage, 1);
+    end;
+
+    [Test]
     procedure PaymentUnapplicationSendsLinkedNegativeCollected()
     var
         EDocument: Record "E-Document";

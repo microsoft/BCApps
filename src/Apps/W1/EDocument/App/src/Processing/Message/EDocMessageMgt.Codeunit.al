@@ -122,7 +122,6 @@ codeunit 6433 "E-Doc. Message Mgt."
         EDocumentService: Record "E-Document Service";
         EDocMessage: Record "E-Document Message";
         EDocMessageContext: Codeunit "E-Doc. Message Context";
-        EDocumentBackgroundJobs: Codeunit "E-Document Background Jobs";
         EDocumentLog: Codeunit "E-Document Log";
         TempBlob: Codeunit "Temp Blob";
         MessageSender: Interface IMessageSender;
@@ -174,7 +173,8 @@ codeunit 6433 "E-Doc. Message Mgt."
         EDocMessage.Modify();
         if EDocMessage.Status = EDocMessage.Status::"Pending Response" then begin
             Commit();
-            EDocumentBackgroundJobs.ScheduleMessageResponse(EDocMessage);
+            if not TryScheduleMessageResponse(EDocMessage) then
+                SetMessageSchedulingError(EDocMessage, EDocMessage.Status::"Response Error");
         end;
     end;
 
@@ -184,7 +184,6 @@ codeunit 6433 "E-Doc. Message Mgt."
         EDocumentService: Record "E-Document Service";
         EDocMessage: Record "E-Document Message";
         EDocMessageContext: Codeunit "E-Doc. Message Context";
-        EDocumentBackgroundJobs: Codeunit "E-Document Background Jobs";
         EDocumentLog: Codeunit "E-Document Log";
         TempBlob: Codeunit "Temp Blob";
         MessageResponseHandler: Interface IMessageResponseHandler;
@@ -235,7 +234,8 @@ codeunit 6433 "E-Doc. Message Mgt."
         EDocMessage.Modify();
         if not ResponseReceived then begin
             Commit();
-            EDocumentBackgroundJobs.ScheduleMessageResponse(EDocMessage);
+            if not TryScheduleMessageResponse(EDocMessage) then
+                SetMessageSchedulingError(EDocMessage, EDocMessage.Status::"Response Error");
         end;
     end;
 
@@ -254,7 +254,6 @@ codeunit 6433 "E-Doc. Message Mgt."
     procedure QueueMessage(MessageEntryNo: Integer)
     var
         EDocMessage: Record "E-Document Message";
-        EDocumentBackgroundJobs: Codeunit "E-Document Background Jobs";
     begin
         EDocMessage.Get(MessageEntryNo);
         EDocMessage.TestField(Direction, EDocMessage.Direction::Outgoing);
@@ -264,13 +263,45 @@ codeunit 6433 "E-Doc. Message Mgt."
         EDocMessage.Status := EDocMessage.Status::Queued;
         EDocMessage.Modify();
         Commit();
+        if TryScheduleMessageSend(EDocMessage) then
+            exit;
+
+        SetMessageSchedulingError(EDocMessage, EDocMessage.Status::Error);
+    end;
+
+    [TryFunction]
+    local procedure TryScheduleMessageSend(EDocMessage: Record "E-Document Message")
+    var
+        EDocumentBackgroundJobs: Codeunit "E-Document Background Jobs";
+    begin
         EDocumentBackgroundJobs.ScheduleMessageSend(EDocMessage);
+    end;
+
+    [TryFunction]
+    local procedure TryScheduleMessageResponse(EDocMessage: Record "E-Document Message")
+    var
+        EDocumentBackgroundJobs: Codeunit "E-Document Background Jobs";
+    begin
+        EDocumentBackgroundJobs.ScheduleMessageResponse(EDocMessage);
+    end;
+
+    local procedure SetMessageSchedulingError(var EDocMessage: Record "E-Document Message"; ErrorStatus: Enum "E-Doc. Message Status")
+    var
+        SchedulingError: Text;
+    begin
+        SchedulingError := GetLastErrorText();
+        EDocMessage.Get(EDocMessage."Entry No.");
+        EDocMessage.Status := ErrorStatus;
+        EDocMessage."Last Attempt At" := CurrentDateTime();
+        EDocMessage."Retry Count" += 1;
+        EDocMessage."Last Error" := CopyStr(SchedulingError, 1, MaxStrLen(EDocMessage."Last Error"));
+        EDocMessage.Modify();
+        ClearLastError();
     end;
 
     procedure RetryMessage(MessageEntryNo: Integer)
     var
         EDocMessage: Record "E-Document Message";
-        EDocumentBackgroundJobs: Codeunit "E-Document Background Jobs";
     begin
         EDocMessage.Get(MessageEntryNo);
         EDocMessage.TestField(Direction, EDocMessage.Direction::Outgoing);
@@ -284,10 +315,12 @@ codeunit 6433 "E-Doc. Message Mgt."
             EDocMessage.Status := EDocMessage.Status::Queued;
         EDocMessage.Modify();
         Commit();
-        if EDocMessage.Status = EDocMessage.Status::"Pending Response" then
-            EDocumentBackgroundJobs.ScheduleMessageResponse(EDocMessage)
-        else
-            EDocumentBackgroundJobs.ScheduleMessageSend(EDocMessage);
+        if EDocMessage.Status = EDocMessage.Status::"Pending Response" then begin
+            if not TryScheduleMessageResponse(EDocMessage) then
+                SetMessageSchedulingError(EDocMessage, EDocMessage.Status::"Response Error");
+        end else
+            if not TryScheduleMessageSend(EDocMessage) then
+                SetMessageSchedulingError(EDocMessage, EDocMessage.Status::Error);
     end;
 
     procedure RegisterExternalDocumentReference(EDocument: Record "E-Document"; ServiceCode: Code[20]; ExternalDocumentID: Text[250])
