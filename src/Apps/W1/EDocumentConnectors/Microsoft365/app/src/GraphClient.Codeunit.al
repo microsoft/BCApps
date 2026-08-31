@@ -72,10 +72,10 @@ codeunit 6384 "Graph Client"
     [NonDebuggable]
     procedure GetFileContent(SiteId: Text; var TempDocumentSharing: Record "Document Sharing" temporary)
     var
+        TempBlob: Codeunit "Temp Blob";
         HttpClient: HttpClient;
         HttpRequestMessage: HttpRequestMessage;
         HttpResponseMessage: HttpResponseMessage;
-        TempBlob: Codeunit "Temp Blob";
         FileUrl: Text;
         ErrorDetails: Text;
         InStream: InStream;

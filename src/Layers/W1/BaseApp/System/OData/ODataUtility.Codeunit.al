@@ -638,10 +638,10 @@ codeunit 6710 ODataUtility
     [Scope('OnPrem')]
     procedure DownloadODataMetadataDocument()
     var
+        MetadataTempBlob: Codeunit "Temp Blob";
         HttpClient: HttpClient;
         HttpRequestMessage: HttpRequestMessage;
         HttpResponseMessage: HttpResponseMessage;
-        MetadataTempBlob: Codeunit "Temp Blob";
         ResponseInStream: InStream;
         FileName: Text;
     begin
