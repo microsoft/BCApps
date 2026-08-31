@@ -213,6 +213,10 @@
 # from the localization wildcard above without naming anyone.
 /src/Apps/*/*ContosoCoffeeDemoDataset*/
 
+# Dedicated application reviewers. These review-routing overrides intentionally
+# differ from the functional ownership labels generated above.
+/src/Apps/W1/ExpenseAgent/ @microsoft/d365-bc-app-expense-agent
+
 # App Rulesets
 /src/rulesets/ @microsoft/d365-bc-app-rulesets
 
