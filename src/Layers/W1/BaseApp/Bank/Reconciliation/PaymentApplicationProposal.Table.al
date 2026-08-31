@@ -485,6 +485,115 @@ table 1293 "Payment Application Proposal"
         TransferFields(TempAppliedPmtEntry);
     end;
 
+    local procedure LoadLedgEntryInfoAndRemainingAmount(BankAccount: Record "Bank Account")
+    var
+        CustLedgEntry: Record "Cust. Ledger Entry";
+        VendLedgEntry: Record "Vendor Ledger Entry";
+        EmployeeLedgEntry: Record "Employee Ledger Entry";
+        BankAccLedgEntry: Record "Bank Account Ledger Entry";
+        LedgerRemainingAmount: Decimal;
+        IsHandled: Boolean;
+        RemainingAmountHandled: Boolean;
+    begin
+        // Reads the applied ledger entry only once to populate both the informational fields and the remaining amount.
+        IsHandled := false;
+        OnBeforeLoadLedgEntryInfoAndRemainingAmount(Rec, BankAccount, IsHandled);
+        if IsHandled then begin
+            GetLedgEntryInfo();
+            exit;
+        end;
+
+        "Remaining Amount" := 0;
+        if "Applies-to Entry No." = 0 then
+            exit;
+
+        case "Account Type" of
+            "Account Type"::Customer:
+                begin
+                    CustLedgEntry.SetLoadFields(
+                      Description, "Posting Date", "Due Date", "Document Type", "Document No.", "External Document No.", "Currency Code");
+                    if BankAccount.IsInLocalCurrency() then
+                        CustLedgEntry.SetAutoCalcFields("Remaining Amt. (LCY)")
+                    else
+                        CustLedgEntry.SetAutoCalcFields("Remaining Amount");
+                    CustLedgEntry.Get("Applies-to Entry No.");
+                    Description := CustLedgEntry.Description;
+                    "Posting Date" := CustLedgEntry."Posting Date";
+                    "Due Date" := CustLedgEntry."Due Date";
+                    "Document Type" := CustLedgEntry."Document Type";
+                    "Document No." := CustLedgEntry."Document No.";
+                    "External Document No." := CustLedgEntry."External Document No.";
+                    "Currency Code" := CustLedgEntry."Currency Code";
+                    if BankAccount.IsInLocalCurrency() then
+                        LedgerRemainingAmount := CustLedgEntry."Remaining Amt. (LCY)"
+                    else
+                        LedgerRemainingAmount := CustLedgEntry."Remaining Amount";
+                end;
+            "Account Type"::Vendor:
+                begin
+                    VendLedgEntry.SetLoadFields(
+                      Description, "Posting Date", "Due Date", "Document Type", "Document No.", "External Document No.", "Currency Code");
+                    if BankAccount.IsInLocalCurrency() then
+                        VendLedgEntry.SetAutoCalcFields("Remaining Amt. (LCY)")
+                    else
+                        VendLedgEntry.SetAutoCalcFields("Remaining Amount");
+                    VendLedgEntry.Get("Applies-to Entry No.");
+                    Description := VendLedgEntry.Description;
+                    "Posting Date" := VendLedgEntry."Posting Date";
+                    "Due Date" := VendLedgEntry."Due Date";
+                    "Document Type" := VendLedgEntry."Document Type";
+                    "Document No." := VendLedgEntry."Document No.";
+                    "External Document No." := VendLedgEntry."External Document No.";
+                    "Currency Code" := VendLedgEntry."Currency Code";
+                    if BankAccount.IsInLocalCurrency() then
+                        LedgerRemainingAmount := VendLedgEntry."Remaining Amt. (LCY)"
+                    else
+                        LedgerRemainingAmount := VendLedgEntry."Remaining Amount";
+                end;
+            "Account Type"::Employee:
+                begin
+                    EmployeeLedgEntry.SetLoadFields(
+                      Description, "Posting Date", "Document Type", "Document No.", "Currency Code");
+                    if BankAccount.IsInLocalCurrency() then
+                        EmployeeLedgEntry.SetAutoCalcFields("Remaining Amt. (LCY)")
+                    else
+                        EmployeeLedgEntry.SetAutoCalcFields("Remaining Amount");
+                    EmployeeLedgEntry.Get("Applies-to Entry No.");
+                    Description := EmployeeLedgEntry.Description;
+                    "Posting Date" := EmployeeLedgEntry."Posting Date";
+                    "Document Type" := EmployeeLedgEntry."Document Type";
+                    "Document No." := EmployeeLedgEntry."Document No.";
+                    "Currency Code" := EmployeeLedgEntry."Currency Code";
+                    if BankAccount.IsInLocalCurrency() then
+                        LedgerRemainingAmount := EmployeeLedgEntry."Remaining Amt. (LCY)"
+                    else
+                        LedgerRemainingAmount := EmployeeLedgEntry."Remaining Amount";
+                end;
+            "Account Type"::"Bank Account":
+                begin
+                    BankAccLedgEntry.SetLoadFields(
+                      Description, "Posting Date", "Document Type", "Document No.", "External Document No.", "Currency Code", "Remaining Amount");
+                    BankAccLedgEntry.Get("Applies-to Entry No.");
+                    Description := BankAccLedgEntry.Description;
+                    "Posting Date" := BankAccLedgEntry."Posting Date";
+                    "Due Date" := 0D;
+                    "Document Type" := BankAccLedgEntry."Document Type";
+                    "Document No." := BankAccLedgEntry."Document No.";
+                    "External Document No." := BankAccLedgEntry."External Document No.";
+                    "Currency Code" := BankAccLedgEntry."Currency Code";
+                    LedgerRemainingAmount := BankAccLedgEntry."Remaining Amount";
+                end;
+            else
+                GetLedgEntryInfo();
+        end;
+
+        // Keep firing the legacy event so extensions that override the remaining amount still run when a proposal is created.
+        RemainingAmountHandled := false;
+        OnBeforeUpdateRemainingAmount(Rec, BankAccount, RemainingAmountHandled);
+        if not RemainingAmountHandled then
+            "Remaining Amount" := LedgerRemainingAmount;
+    end;
+
     procedure TransferFromBankAccReconLine(BankAccReconLine: Record "Bank Acc. Reconciliation Line")
     begin
         "Statement Type" := BankAccReconLine."Statement Type";
@@ -524,12 +633,12 @@ table 1293 "Payment Application Proposal"
         else
             "Applies-to Entry No." := TempBankStmtMatchingBuffer."Entry No.";
 
-        GetLedgEntryInfo();
+        LoadLedgEntryInfoAndRemainingAmount(BankAccount);
         Quality := TempBankStmtMatchingBuffer.Quality;
         "Match Confidence" :=
             Enum::"Bank Rec. Match Confidence".FromInteger(BankPmtApplRule.GetMatchConfidence(TempBankStmtMatchingBuffer.Quality));
 
-        UpdateDefaultCalculatedFields(BankAccount, Rec."Applies-to Entry No.");
+        UpdateDefaultCalculatedFields(BankAccount, Rec."Applies-to Entry No.", true);
 
         "Stmt To Rem. Amount Difference" := Abs(BankAccReconciliationLine."Statement Amount" - "Remaining Amount");
         "Applied Amt. Incl. Discount" := "Applied Amount" - "Applied Pmt. Discount";
@@ -539,8 +648,14 @@ table 1293 "Payment Application Proposal"
 
     procedure UpdateDefaultCalculatedFields(var BankAccount: Record "Bank Account"; AppliesToEntryNo: Integer)
     begin
+        UpdateDefaultCalculatedFields(BankAccount, AppliesToEntryNo, false);
+    end;
+
+    procedure UpdateDefaultCalculatedFields(var BankAccount: Record "Bank Account"; AppliesToEntryNo: Integer; SkipRemainingAmountUpdate: Boolean)
+    begin
         UpdatePaymentDiscInfo();
-        UpdateRemainingAmount(BankAccount);
+        if not SkipRemainingAmountUpdate then
+            UpdateRemainingAmount(BankAccount);
         UpdateRemainingAmountExclDiscount();
 
         if AppliesToEntryNo > 0 then
@@ -940,6 +1055,12 @@ table 1293 "Payment Application Proposal"
     var
         CheckLedgerEntry: Record "Check Ledger Entry";
     begin
+        // Type only distinguishes bank account entries; the check-ledger lookup is skipped for other account types.
+        if "Account Type" <> "Account Type"::"Bank Account" then begin
+            Type := Type::"Bank Account Ledger Entry";
+            exit;
+        end;
+
         CheckLedgerEntry.SetRange("Bank Account Ledger Entry No.", EntryNo);
         if CheckLedgerEntry.FindFirst() then
             Type := Type::"Check Ledger Entry"
@@ -985,6 +1106,11 @@ table 1293 "Payment Application Proposal"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateRemainingAmount(var PaymentApplicationProposal: Record "Payment Application Proposal"; BankAccount: Record "Bank Account"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeLoadLedgEntryInfoAndRemainingAmount(var PaymentApplicationProposal: Record "Payment Application Proposal"; BankAccount: Record "Bank Account"; var IsHandled: Boolean)
     begin
     end;
 

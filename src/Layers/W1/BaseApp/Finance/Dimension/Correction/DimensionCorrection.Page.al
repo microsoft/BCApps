@@ -93,7 +93,9 @@ page 2588 "Dimension Correction"
                         ShowCaption = false;
                         Visible = Rec.Status = Rec."Update Analysis Views Status"::Failed;
 
+#pragma warning disable AW0004 // Accepted: pre-existing page field; changing the source expression would be a breaking change.
                         field(AnalysisViewsErrorMessageText; Rec."Update Analysis Views Error")
+#pragma warning restore AW0004
                         {
                             ApplicationArea = All;
                             MultiLine = true;

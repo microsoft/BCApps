@@ -18,16 +18,17 @@ codeunit 137414 "SCM Item Categories"
         LibraryRandom: Codeunit "Library - Random";
         LibraryNotificationMgt: Codeunit "Library - Notification Mgt.";
         CodeCoverageMgt: Codeunit "Code Coverage Mgt.";
-        IncorrectParentErr: Label 'Category ''%1'' has an incorrect parent ''%2'', correct parent should be ''%3''   ';
+        IncorrectParentErr: Label 'Category ''%1'' has an incorrect parent ''%2'', correct parent should be ''%3''   ', Comment = '%1 - category code, %2 - current parent code, %3 - expected parent code';
         CyclicInheritanceErr: Label 'An item category cannot be a parent of itself or any of its children.';
-        RenamingErr: Label 'Item Category ''%1'' should have been renamed to ''%2''';
-        CategoryNotDeletedErr: Label 'Item Category ''%1'' should have been deleted.';
-        CategoryWithChildrenDeleteErr: Label 'Item Category ''%1'' shouldn''t be deleted as it has children';
+        RenamingErr: Label 'Item Category ''%1'' should have been renamed to ''%2''', Comment = '%1 - original item category code, %2 - expected renamed code';
+        CategoryNotDeletedErr: Label 'Item Category ''%1'' should have been deleted.', Comment = '%1 - item category code';
+        CategoryWithChildrenDeleteErr: Label 'Item Category ''%1'' shouldn''t be deleted as it has children', Comment = '%1 - item category code';
         DeleteQst: Label 'Delete %1?', Comment = '%1 - item category name';
         DeleteAttributesInheritedFromOldCategoryQst: Label 'Do you want to delete the attributes that are inherited from item category ''%1''?', Comment = '%1 - item category code';
-        DeleteItemInheritedParentCategoryAttributesQst: Label 'One or more items belong to item category ''''%1'''', which is a child of item category ''''%2''''.\\Do you want to delete the inherited item attributes for the items in question?', Comment = '%1 - item category code';
-        ChangingDefaultValueMsg: Label 'The new default value will not apply to items that use the current item category, ''''%1''''. It will only apply to new items.';
+        DeleteItemInheritedParentCategoryAttributesQst: Label 'One or more items belong to item category ''''%1'''', which is a child of item category ''''%2''''.\\Do you want to delete the inherited item attributes for the items in question?', Comment = '%1 - child item category code, %2 - parent item category code';
+        ChangingDefaultValueMsg: Label 'The new default value will not apply to items that use the current item category, ''''%1''''. It will only apply to new items.', Comment = '%1 - item category code';
         CategoryStructureNotValidErr: Label 'The item category structure is not valid. The category %1 is a parent of itself or any of its children.', Comment = '%1 - Category Name';
+        BlankOptionAttributeErr: Label 'You must enter a value for the Option attribute %1. Blank values are not allowed for Option-type attributes.', Comment = '%1 - attribute name';
         IsInitialized: Boolean;
 
     local procedure Initialize()
@@ -66,8 +67,8 @@ codeunit 137414 "SCM Item Categories"
         ItemCategoryCard."Parent Category".SetValue(FirstItemCategory.Code);
         ItemCategoryCard.OK().Invoke();
 
-        LastItemCategory.Find();
-        FirstItemCategory.Find();
+        LastItemCategory.Get(LastItemCategory.Code);
+        FirstItemCategory.Get(FirstItemCategory.Code);
         // [THEN] The last item category parent and the tree view is updated
         Assert.AreEqual(
           FirstItemCategory.Code, LastItemCategory."Parent Category",
@@ -180,8 +181,8 @@ codeunit 137414 "SCM Item Categories"
         ItemCategoryCard."Parent Category".SetValue(FirstItemCategory.Code);
         ItemCategoryCard.OK().Invoke();
 
-        SecondItemCategory.Find();
-        FirstItemCategory.Find();
+        SecondItemCategory.Get(SecondItemCategory.Code);
+        FirstItemCategory.Get(FirstItemCategory.Code);
         // [THEN] The last item category parent and the tree view is updated
         Assert.AreEqual(
           FirstItemCategory.Code, SecondItemCategory."Parent Category",
@@ -2200,6 +2201,111 @@ codeunit 137414 "SCM Item Categories"
 
         asserterror TempItemAttributeValue.LoadCategoryAttributesFactBoxData(ItemCategory.Code);
         Assert.ExpectedError(StrSubstNo(CategoryStructureNotValidErr, ItemCategory.Code));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestItemCategoryAttributeBlankOptionValueRejectedBug641060()
+    var
+        ItemCategory: Record "Item Category";
+        ItemAttribute: Record "Item Attribute";
+        ItemAttributeValue: Record "Item Attribute Value";
+        ItemAttributeValueMapping: Record "Item Attribute Value Mapping";
+        ItemCategoryCard: TestPage "Item Category Card";
+    begin
+        // [FEATURE] [Bug 641060] - User experience for adding attribute in item categories
+        // [SCENARIO] Validating a blank Value for an Option-type attribute on the Item Category Card is rejected and no mapping is persisted
+        Initialize();
+
+        // [GIVEN] An item category and an Option-type item attribute with a value
+        LibraryInventory.CreateItemCategory(ItemCategory);
+        LibraryInventory.CreateItemAttribute(ItemAttribute, ItemAttribute.Type::Option, '');
+        LibraryInventory.CreateItemAttributeValue(ItemAttributeValue, ItemAttribute.ID, LibraryUtility.GenerateGUID());
+
+        // [GIVEN] The Item Category Card is open with the Option attribute selected on a new attribute row
+        ItemCategoryCard.OpenEdit();
+        ItemCategoryCard.GotoRecord(ItemCategory);
+        ItemCategoryCard.Attributes.New();
+        ItemCategoryCard.Attributes."Attribute Name".SetValue(ItemAttribute.Name);
+
+        // [WHEN] The user validates a blank Value for the Option attribute
+        asserterror ItemCategoryCard.Attributes.Value.SetValue('');
+
+        // [THEN] The blank Option value is rejected with the expected error
+        Assert.ExpectedError(StrSubstNo(BlankOptionAttributeErr, ItemAttribute.Name));
+
+        // [THEN] No attribute mapping is persisted for the category
+        ItemAttributeValueMapping.SetRange("Table ID", Database::"Item Category");
+        ItemAttributeValueMapping.SetRange("No.", ItemCategory.Code);
+        ItemAttributeValueMapping.SetRange("Item Attribute ID", ItemAttribute.ID);
+        Assert.RecordIsEmpty(ItemAttributeValueMapping);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestItemCategoryAttributeValidOptionValuePersistedBug641060()
+    var
+        ItemCategory: Record "Item Category";
+        ItemAttribute: Record "Item Attribute";
+        ItemAttributeValue: Record "Item Attribute Value";
+        ItemAttributeValueMapping: Record "Item Attribute Value Mapping";
+        ItemCategoryCard: TestPage "Item Category Card";
+    begin
+        // [FEATURE] [Bug 641060] - User experience for adding attribute in item categories
+        // [SCENARIO] Assigning a valid Value for an Option-type attribute on the Item Category Card persists the mapping (no regression)
+        Initialize();
+
+        // [GIVEN] An item category and an Option-type item attribute with a value
+        LibraryInventory.CreateItemCategory(ItemCategory);
+        LibraryInventory.CreateItemAttribute(ItemAttribute, ItemAttribute.Type::Option, '');
+        LibraryInventory.CreateItemAttributeValue(ItemAttributeValue, ItemAttribute.ID, LibraryUtility.GenerateGUID());
+
+        // [WHEN] The user adds the Option attribute with a valid Value on the Item Category Card and closes the page
+        ItemCategoryCard.OpenEdit();
+        ItemCategoryCard.GotoRecord(ItemCategory);
+        ItemCategoryCard.Attributes.New();
+        ItemCategoryCard.Attributes."Attribute Name".SetValue(ItemAttribute.Name);
+        ItemCategoryCard.Attributes.Value.SetValue(ItemAttributeValue.Value);
+        ItemCategoryCard.Close();
+
+        // [THEN] The attribute mapping is persisted for the category
+        ItemAttributeValueMapping.SetRange("Table ID", Database::"Item Category");
+        ItemAttributeValueMapping.SetRange("No.", ItemCategory.Code);
+        ItemAttributeValueMapping.SetRange("Item Attribute ID", ItemAttribute.ID);
+        Assert.RecordCount(ItemAttributeValueMapping, 1);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestItemCategoryAttributeUntouchedBlankOptionValueOnCloseBug641060()
+    var
+        ItemCategory: Record "Item Category";
+        ItemAttribute: Record "Item Attribute";
+        ItemAttributeValue: Record "Item Attribute Value";
+        ItemAttributeValueMapping: Record "Item Attribute Value Mapping";
+        ItemCategoryCard: TestPage "Item Category Card";
+    begin
+        // [FEATURE] [Bug 641060] - User experience for adding attribute in item categories
+        // [SCENARIO] Selecting an Option-type attribute but leaving Value untouched no longer blocks closing the Item Category Card and persists no mapping
+        Initialize();
+
+        // [GIVEN] An item category and an Option-type item attribute with a value
+        LibraryInventory.CreateItemCategory(ItemCategory);
+        LibraryInventory.CreateItemAttribute(ItemAttribute, ItemAttribute.Type::Option, '');
+        LibraryInventory.CreateItemAttributeValue(ItemAttributeValue, ItemAttribute.ID, LibraryUtility.GenerateGUID());
+
+        // [WHEN] The user selects the Option attribute, leaves Value untouched, and closes the Item Category Card
+        ItemCategoryCard.OpenEdit();
+        ItemCategoryCard.GotoRecord(ItemCategory);
+        ItemCategoryCard.Attributes.New();
+        ItemCategoryCard.Attributes."Attribute Name".SetValue(ItemAttribute.Name);
+        ItemCategoryCard.Close();
+
+        // [THEN] The card closes successfully and no attribute mapping is persisted for the category
+        ItemAttributeValueMapping.SetRange("Table ID", Database::"Item Category");
+        ItemAttributeValueMapping.SetRange("No.", ItemCategory.Code);
+        ItemAttributeValueMapping.SetRange("Item Attribute ID", ItemAttribute.ID);
+        Assert.RecordIsEmpty(ItemAttributeValueMapping);
     end;
 
     local procedure CreatePairOfItemAttributeValues(var Item: Record Item; var ItemAttributeValue: array[2] of Record "Item Attribute Value"; Type: Option)
