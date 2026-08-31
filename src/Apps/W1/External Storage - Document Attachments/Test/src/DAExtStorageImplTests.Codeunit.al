@@ -836,6 +836,27 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     end;
 
     [Test]
+    procedure ExportToStreamErrorsWithoutFileAccount()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        TempBlob: Codeunit "Temp Blob";
+        AttachmentOutStream: OutStream;
+    begin
+        // [SCENARIO] Exporting an external attachment without a file account mapping surfaces an error
+        Initialize();
+
+        // [GIVEN] An externally stored attachment without a configured file account
+        CreateExternallyStoredOnlyDocument(DocumentAttachment);
+        TempBlob.CreateOutStream(AttachmentOutStream);
+
+        // [WHEN] Exporting the attachment to a stream
+        asserterror DocumentAttachment.ExportToStream(AttachmentOutStream);
+
+        // [THEN] The missing configuration is surfaced
+        Assert.ExpectedError('could not be retrieved from external storage');
+    end;
+
+    [Test]
     procedure IsFileUploadedExternallyReturnsFalseWhenStoredInternally()
     var
         DocumentAttachment: Record "Document Attachment";

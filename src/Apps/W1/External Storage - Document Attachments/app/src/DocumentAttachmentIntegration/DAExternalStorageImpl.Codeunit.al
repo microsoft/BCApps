@@ -340,28 +340,6 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     end;
 
     /// <summary>
-    /// Checks if a file exists in external storage.
-    /// </summary>
-    /// <param name="ExternalFilePath">The path of the external file to check.</param>
-    /// <returns>True if the file exists, false otherwise.</returns>
-    procedure CheckIfFileExistInExternalStorage(ExternalFilePath: Text): Boolean
-    var
-        TempFileAccount: Record "File Account";
-        ExternalFileStorage: Codeunit "External File Storage";
-        FileScenarioCU: Codeunit "File Scenario";
-        FileScenario: Enum "File Scenario";
-    begin
-        // Search for External Storage assigned File Scenario
-        FileScenario := FileScenario::"Doc. Attach. - External Storage";
-        if not FileScenarioCU.GetSpecificFileAccount(FileScenario, TempFileAccount) then
-            exit(false);
-
-        // Get the file from external storage
-        ExternalFileStorage.Initialize(FileScenario);
-        exit(ExternalFileStorage.FileExists(ExternalFilePath));
-    end;
-
-    /// <summary>
     /// Deletes a document attachment from external storage.
     /// </summary>
     /// <param name="DocumentAttachment">The document attachment record to delete from external storage.</param>
