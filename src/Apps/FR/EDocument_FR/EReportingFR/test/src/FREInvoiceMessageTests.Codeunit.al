@@ -1208,6 +1208,52 @@ codeunit 148151 "FR E-Invoice Message Tests"
     end;
 
     [Test]
+    procedure PPFProfileRejectsMismatchedLifecycleStatusName()
+    var
+        FREInvoiceProfileValidator: Codeunit "FR E-Invoice Profile Validator";
+        XmlDoc: XmlDocument;
+        ValidationXml: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 637593] A lifecycle status code must use its official French status name.
+        Initialize();
+
+        // [GIVEN] A PPF lifecycle document with status code 210 and the name for status 205
+        ValidationXml := BuildPPFValidationXml(PPFProfileID(), true, 'WK', '0238', '102');
+        ValidationXml := ValidationXml.Replace('<ram:ProcessConditionCode>205</ram:ProcessConditionCode>', '<ram:ProcessConditionCode>210</ram:ProcessConditionCode>');
+        XmlDocument.ReadFrom(ValidationXml, XmlDoc);
+
+        // [WHEN] The PPF profile is validated
+        asserterror FREInvoiceProfileValidator.Validate(XmlDoc, true);
+
+        // [THEN] The mismatched lifecycle status name is rejected
+        Assert.ExpectedError('must have value Refusée instead of Approuvée');
+    end;
+
+    [Test]
+    procedure PPFCollectedProfileRequiresVATBreakdown()
+    var
+        FREInvoiceProfileValidator: Codeunit "FR E-Invoice Profile Validator";
+        XmlDoc: XmlDocument;
+        ValidationXml: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 637593] A collected lifecycle status requires its CDAR amount and VAT structure.
+        Initialize();
+
+        // [GIVEN] A PPF collected lifecycle document without a VAT characteristic
+        ValidationXml := BuildPPFValidationXml(PPFProfileID(), true, 'WK', '0238', '102');
+        ValidationXml := ValidationXml.Replace('<ram:ProcessConditionCode>205</ram:ProcessConditionCode><ram:ProcessCondition>Approuvée</ram:ProcessCondition>', '<ram:ProcessConditionCode>212</ram:ProcessConditionCode><ram:ProcessCondition>Encaissée</ram:ProcessCondition>');
+        XmlDocument.ReadFrom(ValidationXml, XmlDoc);
+
+        // [WHEN] The PPF profile is validated
+        asserterror FREInvoiceProfileValidator.Validate(XmlDoc, true);
+
+        // [THEN] The missing collected VAT characteristic is rejected
+        Assert.ExpectedError('SpecifiedDocumentCharacteristic');
+    end;
+
+    [Test]
     procedure PPFProfileRejectsWrongProfileID()
     var
         FREInvoiceProfileValidator: Codeunit "FR E-Invoice Profile Validator";
@@ -1405,7 +1451,7 @@ codeunit 148151 "FR E-Invoice Message Tests"
         XmlText.Append(PPFProfileID());
         XmlText.Append('</ram:ReferenceTypeCode><ram:FormattedIssueDateTime><qdt:DateTimeString format="');
         XmlText.Append(InvoiceDateFormat);
-        XmlText.Append('">20260821</qdt:DateTimeString></ram:FormattedIssueDateTime><ram:ProcessConditionCode>205</ram:ProcessConditionCode>');
+        XmlText.Append('">20260821</qdt:DateTimeString></ram:FormattedIssueDateTime><ram:ProcessConditionCode>205</ram:ProcessConditionCode><ram:ProcessCondition>Approuvée</ram:ProcessCondition>');
         XmlText.Append('</ram:ReferenceReferencedDocument></rsm:AcknowledgementDocument></rsm:CrossDomainAcknowledgementAndResponse>');
         exit(XmlText.ToText());
     end;
