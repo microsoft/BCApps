@@ -6,6 +6,7 @@ using Microsoft.eServices.EDocument.RemittanceAdvice;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Preview;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Item;
@@ -596,6 +597,7 @@ codeunit 139547 "E-Doc. Remit. Advice Test"
     var
         EDocument: Record "E-Document";
         EDocumentServiceStatus: Record "E-Document Service Status";
+        GeneralLedgerSetup: Record "General Ledger Setup";
     begin
         LibraryVariableStorage.Clear();
         Clear(EDocImplState);
@@ -611,6 +613,12 @@ codeunit 139547 "E-Doc. Remit. Advice Test"
 
         if BindSubscription(LibraryJobQueue) then;
         LibraryJobQueue.SetDoNotHandleCodeunitJobQueueEnqueueEvent(true);
+
+        GeneralLedgerSetup.Get();
+        if GeneralLedgerSetup."VAT Reporting Date Usage" <> GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled then begin
+            GeneralLedgerSetup."VAT Reporting Date Usage" := GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled;
+            GeneralLedgerSetup.Modify(false);
+        end;
 
         EDocumentService.DeleteAll();
 

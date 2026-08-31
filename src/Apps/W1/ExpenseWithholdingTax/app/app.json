@@ -2,7 +2,7 @@
   "id": "4cb44e6c-9a37-4d4e-b45f-1b3054ddc59a",
   "name": "Expense Withholding Tax",
   "publisher": "Microsoft",
-  "version": "29.0.0.0",
+  "version": "30.0.0.0",
   "brief": "Expense Withholding Tax",
   "description": "Expense Withholding Tax",
   "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
@@ -16,18 +16,18 @@
       "id": "66efe10c-8033-403b-a86d-77c0887178ba",
       "name": "Expense Agent (Preview)",
       "publisher": "Microsoft",
-      "version": "29.0.0.0"
+      "version": "30.0.0.0"
     },
     {
       "id": "c31ee575-3fc7-4388-98ee-d75aa2fc5f87",
       "name": "Withholding Tax",
       "publisher": "Microsoft",
-      "version": "29.0.0.0"
+      "version": "30.0.0.0"
     }
   ],
   "screenshots": [],
   "platform": "29.0.0.0",
-  "application": "29.0.0.0",
+  "application": "30.0.0.0",
   "idRanges": [
     {
       "from": 7055,

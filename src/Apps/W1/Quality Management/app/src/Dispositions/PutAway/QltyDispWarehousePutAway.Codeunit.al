@@ -23,18 +23,18 @@ codeunit 20453 "Qlty. Disp. Warehouse Put-away" implements "Qlty. Disposition"
         CreatedWarehouseActivityHeader: Code[20];
         DocumentTypeLbl: Label 'Warehouse Put-Away';
 
-    ///<summary>
+    /// <summary>
     /// Create a warehouse put-away(s) from the supplied inspection.
     /// It's possible that multiple put-away's could be created if the lot is in multiple bins, but the typical scenario would be
     /// one internal put-away.
     /// You must be in a directed pick and put location, and you must be using lot warehouse tracking to use this feature.
     /// </summary>
-    /// <param name="QltyInspectionHeader">The inspection to create the internal put-away from</param>
-    /// <param name="OptionalSpecificQuantity">Optional quantity. Leave blank to use the entire lot or the quantity from the inspection.</param>
-    /// <param name="OptionalSourceLocationFilter">Optional limitations on the source location.</param>
-    /// <param name="OptionalSourceBinFilter">Optional limitations on the source bin.</param>
-    /// <param name="QltyQuantityBehavior">The quantity behavior</param>
-    /// <returns>Confirming internal putaway lines created.</returns>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the inventory to put away.</param>
+    /// <param name="OptionalSpecificQuantity">The specific base quantity to put away when required by the quantity behavior.</param>
+    /// <param name="OptionalSourceLocationFilter">An optional source location filter.</param>
+    /// <param name="OptionalSourceBinFilter">An optional source bin filter.</param>
+    /// <param name="QltyQuantityBehavior">The rule used to determine the put-away quantity.</param>
+    /// <returns>True if a warehouse put-away document was created; otherwise, false.</returns>
     internal procedure PerformDisposition(QltyInspectionHeader: Record "Qlty. Inspection Header"; OptionalSpecificQuantity: Decimal; OptionalSourceLocationFilter: Text; OptionalSourceBinFilter: Text; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior") DidSomething: Boolean
     var
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
@@ -47,15 +47,14 @@ codeunit 20453 "Qlty. Disp. Warehouse Put-away" implements "Qlty. Disposition"
         exit(PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer));
     end;
 
-    ///<summary>
-    /// Create a warehouse put-away(s) from the supplied inspection.
-    /// It's possible that multiple put-away's could be created if the lot is in multiple bins, but the typical scenario would be
-    /// one internal put-away.
+    /// <summary>
+    /// Creates warehouse put-away documents through released internal put-away documents.
+    /// It's possible that multiple put-away's could be created if the lot is in multiple bins, but the typical scenario would be one internal put-away.
     /// You must be in a directed pick and put location, and you must be using lot warehouse tracking to use this feature.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="TempInstructionQltyDispositionBuffer"></param>
-    /// <returns></returns>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the inventory to put away.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The disposition instructions containing source filters and quantity.</param>
+    /// <returns>True if a warehouse put-away document was created; otherwise, false.</returns>
     procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
     var
         TempCreatedBufferWhseInternalPutAwayHeader: Record "Whse. Internal Put-away Header" temporary;
@@ -99,6 +98,11 @@ codeunit 20453 "Qlty. Disp. Warehouse Put-away" implements "Qlty. Disposition"
 
     #region Event Subscribers
 
+    /// <summary>
+    /// Captures the last warehouse activity number created by the warehouse source report.
+    /// </summary>
+    /// <param name="FirstActivityNo">The first warehouse activity number created by the report.</param>
+    /// <param name="LastActivityNo">The last warehouse activity number created by the report.</param>
     [EventSubscriber(ObjectType::Report, Report::"Whse.-Source - Create Document", 'OnAfterPostReport', '', true, true)]
     local procedure HandleOnAfterPostReport(FirstActivityNo: Code[20]; LastActivityNo: Code[20])
     begin

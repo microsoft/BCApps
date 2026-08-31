@@ -203,7 +203,7 @@ page 6841 "Spend Request Card"
                     begin
                         if Rec.Status = Rec.Status::Rejected then
                             exit;
-                        Rec.TestField(Status, Rec.Status::Released);
+                        Rec.TestStatus(Rec.Status::Released);
                         Rec.Status := Rec.Status::Rejected;
                         Rec."Approved/Rejected At" := CurrentDateTime();
                         Rec."Approved/Rejected by User ID" := UserSecurityId();
@@ -222,7 +222,7 @@ page 6841 "Spend Request Card"
                 trigger OnAction()
                 begin
                     if Rec.Status = Rec.Status::Closed then
-                        Error(SpendRequestClosedErr);
+                        Error(SpendRequestClosedErr, Rec.GetDocumentTypeDescription());
                     Rec.UpdateCurrencyExchangeRate();
                     Rec.Modify();
                 end;
@@ -313,5 +313,5 @@ page 6841 "Spend Request Card"
     }
 
     var
-        SpendRequestClosedErr: Label 'A closed spend request cannot be updated.';
+        SpendRequestClosedErr: Label 'A closed %1 cannot be updated.', Comment = '%1 = document type description, e.g. spend request or Travel Request';
 }

@@ -2,7 +2,7 @@
   "id": "8038abf4-6fc9-4212-ac03-1137b06ca8ca",
   "name": "FI Core",
   "publisher": "Microsoft",
-  "version": "29.0.0.0",
+  "version": "30.0.0.0",
   "brief": "Provides standard local functionality in Business Central for Finland.",
   "description": "Provides standard local functionality in Business Central for Finland.",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
@@ -14,11 +14,11 @@
   "dependencies": [],
   "screenshots": [],
   "platform": "29.0.0.0",
-  "application": "29.0.0.0",
+  "application": "30.0.0.0",
   "idRanges": [
     {
       "from": 13411,
-      "to": 13415
+      "to": 13420
     }
   ],
   "resourceExposurePolicy": {
@@ -26,5 +26,12 @@
     "allowDownloadingSource": true,
     "includeSourceInSymbolFile": true
   },
+  "internalsVisibleTo": [
+    {
+      "id": "5fa3b1f0-054d-4b96-a2af-cd57d4114930",
+      "name": "FI Core Tests",
+      "publisher": "Microsoft"
+    }
+  ],
   "target": "OnPrem"
 }

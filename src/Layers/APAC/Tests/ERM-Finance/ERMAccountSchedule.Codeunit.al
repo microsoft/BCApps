@@ -65,6 +65,7 @@ codeunit 134902 "ERM Account Schedule"
         IncorrectExpectedMessageErr: Label 'Incorrect Expected Message';
         IncorrectCalcCellValueErr: Label 'Incorrect CalcCell Value';
         Dim1FilterErr: Label 'Incorrect Dimension 1 Filter was created.';
+        RecalcFilterRetainErr: Label 'Recalculate must retain the entered %1 filter.', Comment = '%1 = filter name';
         PeriodTextCaptionLbl: Label 'Period: ';
         ClearDimTotalingConfirmTxt: Label 'Changing Analysis View will clear differing dimension totaling columns of Account Schedule Lines. \Do you want to continue?';
         AccSchedPrefixTxt: Label 'ROW.DEF.', MaxLength = 10, Comment = 'Part of the name for the configuration package, stands for Row Definition';
@@ -4138,6 +4139,49 @@ codeunit 134902 "ERM Account Schedule"
         // Tear down
         ResultDimValue.Reset();
         ResultDimValue.DeleteAll();
+    end;
+
+    [Test]
+    procedure RecalculateRetainsGlobalDimensionFilters()
+    var
+        AccScheduleLine: Record "Acc. Schedule Line";
+        DimensionValue1: Record "Dimension Value";
+        DimensionValue2: Record "Dimension Value";
+        GLSetup: Record "General Ledger Setup";
+        AccScheduleOverview: TestPage "Acc. Schedule Overview";
+    begin
+        // [FEATURE] [Dimension]
+        // [SCENARIO 646172] Recalculate on Acc. Schedule Overview retains the entered Global Dimension filters.
+        Initialize();
+
+        // [GIVEN] Create a dimension value exists for Global Dimension 1 and for Global Dimension 2.
+        GLSetup.Get();
+        LibraryDimension.CreateDimensionValue(DimensionValue1, GLSetup."Global Dimension 1 Code");
+        LibraryDimension.CreateDimensionValue(DimensionValue2, GLSetup."Global Dimension 2 Code");
+
+        // [GIVEN] Acc. Schedule Overview is opened for a financial report.
+        CreateAccountScheduleWithGLAccount(AccScheduleLine);
+        AccScheduleOverview.Trap();
+        OpenAccountScheduleOverviewPage(AccScheduleLine."Schedule Name");
+
+        // [GIVEN] Global Dimension 1 and 2 filters are set on the page.
+        AccScheduleOverview.Dim1Filter.SetValue(DimensionValue1.Code);
+        AccScheduleOverview.Dim2Filter.SetValue(DimensionValue2.Code);
+
+        // [WHEN] Recalculate is invoked.
+        AccScheduleOverview.Recalculate.Invoke();
+
+        // [THEN] The dimension filter controls retain their values.
+        Assert.AreEqual(DimensionValue1.Code, AccScheduleOverview.Dim1Filter.Value, StrSubstNo(RecalcFilterRetainErr, 'Dimension 1'));
+        Assert.AreEqual(DimensionValue2.Code, AccScheduleOverview.Dim2Filter.Value, StrSubstNo(RecalcFilterRetainErr, 'Dimension 2'));
+
+        // [THEN] The underlying Acc. Schedule Line FlowFilters retain the same dimension filters.
+        Assert.AreEqual(
+            DimensionValue1.Code, AccScheduleOverview.FILTER.GetFilter("Dimension 1 Filter"), StrSubstNo(RecalcFilterRetainErr, 'Dimension 1'));
+        Assert.AreEqual(
+            DimensionValue2.Code, AccScheduleOverview.FILTER.GetFilter("Dimension 2 Filter"), StrSubstNo(RecalcFilterRetainErr, 'Dimension 2'));
+
+        AccScheduleOverview.OK().Invoke();
     end;
 
     [Test]
