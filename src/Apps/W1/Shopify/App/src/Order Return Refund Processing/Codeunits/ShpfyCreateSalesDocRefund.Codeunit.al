@@ -132,6 +132,10 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
                 MapPaymentMethodCode(SalesHeader);
             end;
             SalesHeader."Shpfy Refund Id" := RefundHeader."Refund Id";
+            if RefundHasExchangeItemLines(RefundHeader."Refund Id") then begin
+                SalesHeader."Shpfy Order Id" := OrderHeader."Shopify Order Id";
+                SalesHeader."Shpfy Order No." := OrderHeader."Shopify Order No.";
+            end;
             SalesHeader.Modify(true);
             Clear(DocLinkToBCDoc);
             DocLinkToBCDoc."Document Type" := BCDocumentTypeConvert.Convert(SalesHeader."Document Type");
@@ -203,10 +207,14 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
         GiftCard: Record "Shpfy Gift Card";
         ShopLocation: Record "Shpfy Shop Location";
         ExchangeOrderLine: Record "Shpfy Order Line";
+        OrderHeader: Record "Shpfy Order Header";
         OpenAmount: Decimal;
         LocationId: BigInteger;
+        ShopifyOrderNo: Code[50];
         IsHandled: Boolean;
     begin
+        if OrderHeader.Get(RefundHeader."Order Id") then
+            ShopifyOrderNo := OrderHeader."Shopify Order No.";
         repeat
             case RefundLine."Restock Type" of
                 "Shpfy Restock Type"::"Legacy Restock",
@@ -276,6 +284,10 @@ codeunit 30246 "Shpfy Create Sales Doc. Refund"
                         end;
                         SalesLine."Shpfy Refund Id" := RefundHeader."Refund Id";
                         SalesLine."Shpfy Refund Line Id" := RefundLine."Refund Line Id";
+                        if RefundLine."Is Exchange Item" then begin
+                            SalesLine."Shpfy Order Line Id" := RefundLine."Order Line Id";
+                            SalesLine."Shpfy Order No." := ShopifyOrderNo;
+                        end;
                         SalesLine.Modify();
                         if RefundLine."Gift Card" then begin
                             GiftCard.SetRange("Order Line Id", RefundLine."Order Line Id");
