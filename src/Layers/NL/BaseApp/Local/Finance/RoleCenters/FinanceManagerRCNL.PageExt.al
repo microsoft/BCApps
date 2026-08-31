@@ -58,7 +58,6 @@ pageextension 11359 "Finance Manager RC NL" extends "Finance Manager Role Center
                 action("Elec. Tax Decl. Response Msgs.")
                 {
                     ApplicationArea = Basic, Suite;
-                    Image = CalculateVAT;
                     Caption = 'Elec. Tax Decl. Response Msgs.';
                     Image = VATStatement;
                     RunObject = page "Elec. Tax Decl. Response Msgs.";
