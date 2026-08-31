@@ -921,6 +921,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
 
     /// <summary>
     /// Handles checking if attachment content is available for externally stored document attachments.
+    /// Uses the persisted external storage metadata to avoid remote calls when pages evaluate attachment actions.
     /// </summary>
     /// <param name="DocumentAttachment">The document attachment record.</param>
     /// <param name="AttachmentIsAvailable">Indicates if the attachment is available.</param>
@@ -934,7 +935,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if not ExternalStorageImpl.IsFileUploadedToExternalStorageAndDeletedInternally(DocumentAttachment) then
             exit;
 
-        AttachmentIsAvailable := ExternalStorageImpl.CheckIfFileExistInExternalStorage(DocumentAttachment."External File Path");
+        AttachmentIsAvailable := true;
         IsHandled := true;
     end;
 

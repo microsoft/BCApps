@@ -711,22 +711,30 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         Initialize();
 
         // [GIVEN] A document that is externally stored but not internally stored
-        DocumentAttachment.Init();
-        DocumentAttachment.ID := Any.IntegerInRange(10000, 99999);
-        DocumentAttachment."Table ID" := Database::"Document Attachment";
-        DocumentAttachment."No." := CopyStr(Any.AlphanumericText(20), 1, 20);
-        DocumentAttachment."File Name" := 'TestFile';
-        DocumentAttachment."File Extension" := 'txt';
-        DocumentAttachment."Stored Externally" := true;
-        DocumentAttachment."Stored Internally" := false;
-        DocumentAttachment."External File Path" := 'test/path/file.txt';
-        DocumentAttachment.Insert();
+        CreateExternallyStoredOnlyDocument(DocumentAttachment);
 
         // [WHEN] Checking if uploaded externally and deleted internally
         Result := DAExternalStorageImpl.IsFileUploadedToExternalStorageAndDeletedInternally(DocumentAttachment);
 
         // [THEN] Should return true
         Assert.IsTrue(Result, 'Should return true for externally stored and internally deleted file');
+    end;
+
+    [Test]
+    procedure HasContentUsesExternalStorageMetadataWithFileAccount()
+    var
+        DocumentAttachment: Record "Document Attachment";
+    begin
+        // [SCENARIO] Checking attachment content should not contact external storage
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+
+        // [GIVEN] An externally stored attachment with a configured file account
+        CreateExternallyStoredOnlyDocument(DocumentAttachment);
+
+        // [WHEN] Checking if the attachment has content
+        // [THEN] The external storage metadata indicates content is available
+        Assert.IsTrue(DocumentAttachment.HasContent(), 'Externally stored attachment should report content from its metadata');
     end;
 
     [Test]
@@ -978,6 +986,20 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         DocumentAttachment."External File Path" := 'test/environment/Document_Attachment/file-' + Format(CreateGuid()) + '.txt';
         DocumentAttachment."External Upload Date" := CurrentDateTime();
         DocumentAttachment.Modify();
+    end;
+
+    local procedure CreateExternallyStoredOnlyDocument(var DocumentAttachment: Record "Document Attachment")
+    begin
+        DocumentAttachment.Init();
+        DocumentAttachment.ID := Any.IntegerInRange(10000, 99999);
+        DocumentAttachment."Table ID" := Database::"Document Attachment";
+        DocumentAttachment."No." := CopyStr(Any.AlphanumericText(20), 1, 20);
+        DocumentAttachment."File Name" := 'TestFile';
+        DocumentAttachment."File Extension" := 'txt';
+        DocumentAttachment."Stored Externally" := true;
+        DocumentAttachment."Stored Internally" := false;
+        DocumentAttachment."External File Path" := 'test/path/file.txt';
+        DocumentAttachment.Insert();
     end;
 
     local procedure RefreshAttachment(var DocumentAttachment: Record "Document Attachment")
