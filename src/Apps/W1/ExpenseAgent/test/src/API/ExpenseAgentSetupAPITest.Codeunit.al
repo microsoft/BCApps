@@ -67,6 +67,8 @@ codeunit 148333 "Expense Agent Setup API Test"
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
         Agent: Record Agent;
+        TempAgentSetupBuffer: Record "Agent Setup Buffer" temporary;
+        AgentSetup: Codeunit "Agent Setup";
         ExpenseTestHandlerAPI: Codeunit "Expense Test Handler API";
         FirstAgentUserSecurityId: Guid;
         SecondAgentUserSecurityId: Guid;
@@ -79,12 +81,12 @@ codeunit 148333 "Expense Agent Setup API Test"
         ClearExpenseAgentSetup();
 
         // [WHEN] The E2E test handler initializes the company
-        ExpenseTestHandlerAPI.Initialize();
+        ExpenseTestHandlerAPI.Configure();
         ExpenseAgentSetup.Get();
         FirstAgentUserSecurityId := ExpenseAgentSetup."User Security ID";
 
         // [WHEN] The E2E test handler initializes the company again
-        ExpenseTestHandlerAPI.Initialize();
+        ExpenseTestHandlerAPI.Configure();
         ExpenseAgentSetup.Get();
         SecondAgentUserSecurityId := ExpenseAgentSetup."User Security ID";
 
@@ -100,6 +102,17 @@ codeunit 148333 "Expense Agent Setup API Test"
             ExpenseAgentSetup."User Security ID",
             'Expense Agent Setup must reference the created agent.');
         Assert.IsTrue(ExpenseAgentSetup."Enable Agent", 'Expense Agent Setup must be enabled.');
+        AgentSetup.GetSetupRecord(
+            TempAgentSetupBuffer,
+            FirstAgentUserSecurityId,
+            "Agent Metadata Provider"::"Expense Agent",
+            '',
+            '',
+            '');
+        Assert.AreEqual(
+            TempAgentSetupBuffer.State::Enabled,
+            TempAgentSetupBuffer.State,
+            'The underlying Expense Agent state must be enabled.');
     end;
 
     [Test]
@@ -117,7 +130,7 @@ codeunit 148333 "Expense Agent Setup API Test"
         ClearRequiredSetupData();
 
         // [WHEN] The E2E test handler initializes Expense Agent master data
-        ExpenseTestHandlerAPI.Initialize();
+        ExpenseTestHandlerAPI.Configure();
 
         // [THEN] Default number series, payment methods, categories, and posting accounts exist
         VerifyDefaultNumberSeriesExist();
@@ -150,7 +163,7 @@ codeunit 148333 "Expense Agent Setup API Test"
         ClearRequiredSetupData();
 
         // [GIVEN] The E2E test handler initializes Expense Agent master data
-        ExpenseTestHandlerAPI.Initialize();
+        ExpenseTestHandlerAPI.Configure();
         ExpenseAgentSetup.Get();
         CategoryCount := ExpenseCategory.Count();
         PaymentMethodCount := ExpensePaymentMethod.Count();
@@ -158,7 +171,7 @@ codeunit 148333 "Expense Agent Setup API Test"
         AgentUserSecurityId := ExpenseAgentSetup."User Security ID";
 
         // [WHEN] The E2E test handler initializes the same company again
-        ExpenseTestHandlerAPI.Initialize();
+        ExpenseTestHandlerAPI.Configure();
 
         // [THEN] The completed setup and default records are reused
         ExpenseAgentSetup.Get();

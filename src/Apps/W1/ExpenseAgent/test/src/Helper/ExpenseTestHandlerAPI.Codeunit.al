@@ -75,21 +75,31 @@ codeunit 148307 "Expense Test Handler API"
     [ServiceEnabled]
     procedure Initialize(): Text[30]
     var
-        ExpenseAgentSetup: Record "Expense Agent Setup";
-        CreateExpenseAgentSetup: Codeunit "Create Expense Agent Setup";
-        CreateExpenseGLAccount: Codeunit "Create Expense GL Account";
         LibraryExpense: Codeunit "Library - Expense";
     begin
         LibraryExpense.CleanTransactionalData();
+        exit('Initialize completed');
+    end;
+
+    /// <summary>
+    /// Explicitly provisions and enables Expense Agent setup for E2E tests.
+    /// </summary>
+    [ServiceEnabled]
+    procedure Configure(): Text[30]
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        CreateExpenseAgentSetup: Codeunit "Create Expense Agent Setup";
+        CreateExpenseGLAccount: Codeunit "Create Expense GL Account";
+    begin
         if ExpenseAgentSetupIsComplete() then
-            exit('Initialize completed');
+            exit('Configure completed');
 
         CreateExpenseAgentSetup.Run();
         CreateExpenseGLAccount.Run();
         ExpenseAgentSetup.Get();
         ExpenseAgentSetup.CreateDefaultSettings();
         EnsureExpenseAgent();
-        exit('Initialize completed');
+        exit('Configure completed');
     end;
 
     local procedure ExpenseAgentSetupIsComplete(): Boolean
