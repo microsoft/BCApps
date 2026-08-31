@@ -554,6 +554,7 @@ codeunit 148343 "Expense Activity Log API Test"
     local procedure VerifyReportSubmitterComment(ReportSystemID: Guid; ExpectedComment: Text)
     var
         ResponseText: Text;
+        SubmitterCommentPropertyTxt: Label '"submitterComment":"%1"', Locked = true;
         TargetURL: Text;
     begin
         TargetURL := LibraryGraphMgt.CreateTargetURL(
@@ -561,7 +562,7 @@ codeunit 148343 "Expense Activity Log API Test"
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
         Assert.AreNotEqual(
             0,
-            StrPos(ResponseText, StrSubstNo('"submitterComment":"%1"', ExpectedComment)),
+            StrPos(ResponseText, StrSubstNo(SubmitterCommentPropertyTxt, ExpectedComment)),
             'The expense report API response must contain the latest submitter comment.');
     end;
 
