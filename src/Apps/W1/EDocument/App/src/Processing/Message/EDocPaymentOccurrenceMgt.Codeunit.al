@@ -31,13 +31,38 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnAfterInsertDtldCustLedgEntry', '', false, false)]
     local procedure OnAfterInsertDtldCustLedgEntry(var DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; GenJournalLine: Record "Gen. Journal Line"; DtldCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; Offset: Integer)
     begin
-        ProcessApplication(DtldCustLedgEntry);
+        if not TryProcessApplication(DtldCustLedgEntry) then begin
+            LogProcessingFailure(DtldCustLedgEntry, ApplicationTelemetryMessage);
+            ClearLastError();
+        end;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnAfterInsertDtldCustLedgEntryUnapply', '', false, false)]
     local procedure OnAfterInsertDtldCustLedgEntryUnapply(var CustomerPostingGroup: Record "Customer Posting Group"; var OldDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; var GenJnlLine: Record "Gen. Journal Line"; var NewDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
     begin
+        if not TryProcessUnapplication(OldDetailedCustLedgEntry, NewDetailedCustLedgEntry) then begin
+            LogProcessingFailure(NewDetailedCustLedgEntry, UnapplicationTelemetryMessage);
+            ClearLastError();
+        end;
+    end;
+
+    [TryFunction]
+    local procedure TryProcessApplication(DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
+    begin
+        ProcessApplication(DetailedCustLedgEntry);
+    end;
+
+    [TryFunction]
+    local procedure TryProcessUnapplication(OldDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; NewDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
+    begin
         ProcessUnapplication(OldDetailedCustLedgEntry, NewDetailedCustLedgEntry);
+    end;
+
+    local procedure LogProcessingFailure(DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; TelemetryMessage: Text)
+    begin
+        Session.LogMessage(
+            '0000N1G', StrSubstNo(TelemetryMessage, DetailedCustLedgEntry."Entry No.", GetLastErrorText()),
+            Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PaymentOccurrenceTelemetryCategoryTok);
     end;
 
     /// <summary>
@@ -151,4 +176,9 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
     procedure OnAfterCreatePaymentOccurrence(var EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence")
     begin
     end;
+
+    var
+        ApplicationTelemetryMessage: Label 'E-Document payment occurrence processing failed for detailed customer ledger entry %1. Error: %2', Locked = true;
+        UnapplicationTelemetryMessage: Label 'E-Document payment reversal occurrence processing failed for detailed customer ledger entry %1. Error: %2', Locked = true;
+        PaymentOccurrenceTelemetryCategoryTok: Label 'E-Document', Locked = true;
 }

@@ -20,7 +20,7 @@ codeunit 10975 "FR E-Invoice Message Mgt."
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    Permissions = tabledata "FR E-Invoice Message" = d,
+    Permissions = tabledata "FR E-Invoice Message" = rimd,
                   tabledata "FR E-Invoice Message VAT" = rid;
 
     internal procedure AcceptInvoice(EDocument: Record "E-Document")
@@ -55,6 +55,26 @@ codeunit 10975 "FR E-Invoice Message Mgt."
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Payment Occurrence Mgt.", 'OnAfterCreatePaymentOccurrence', '', false, false)]
     local procedure OnAfterCreatePaymentOccurrence(var EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence")
+    begin
+        ProcessPaymentOccurrence(EDocPaymentOccurrence);
+    end;
+
+    internal procedure ProcessPaymentOccurrence(EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence")
+    var
+        ErrorMessage: Text;
+    begin
+        if TryCreatePaymentLifecycleMessage(EDocPaymentOccurrence) then
+            exit;
+
+        ErrorMessage := GetLastErrorText();
+        Session.LogMessage(
+            '0000N1F', StrSubstNo(PaymentLifecycleMessageFailedTelemetryMsg, EDocPaymentOccurrence."Entry No.", EDocPaymentOccurrence."E-Document Entry No.", ErrorMessage),
+            Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PaymentLifecycleTelemetryCategoryTok);
+        ClearLastError();
+    end;
+
+    [TryFunction]
+    local procedure TryCreatePaymentLifecycleMessage(EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence")
     var
         CollectedMessage: Record "FR E-Invoice Message";
         EDocument: Record "E-Document";
@@ -99,8 +119,11 @@ codeunit 10975 "FR E-Invoice Message Mgt."
         FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
         FREInvoiceMessage.SetRange("Source Occurrence ID", SourceOccurrenceID);
         FREInvoiceMessage.SetRange(Type, MessageType);
-        if FREInvoiceMessage.FindFirst() then
-            exit;
+        if FREInvoiceMessage.FindFirst() then begin
+            if FREInvoiceMessage."E-Document Message Entry No." <> 0 then
+                exit;
+            FREInvoiceMessage.Delete(true);
+        end;
 
         FREInvoiceMessage.Init();
         FREInvoiceMessage."E-Document Entry No." := EDocument."Entry No";
@@ -518,4 +541,6 @@ codeunit 10975 "FR E-Invoice Message Mgt."
         VATEntryCurrencyErr: Label 'VAT entry %1 does not contain amounts in lifecycle currency %2.', Comment = '%1 = VAT entry number, %2 = currency code';
         OriginalVATBreakdownErr: Label 'The VAT breakdown for original French invoice message %1 does not exist.', Comment = '%1 = French invoice message entry number';
         InvalidSIRENErr: Label 'Company registration number %1 cannot be normalized to a nine-digit SIREN.', Comment = '%1 = company registration number';
+        PaymentLifecycleMessageFailedTelemetryMsg: Label 'French lifecycle message creation failed for payment occurrence %1 and E-Document %2. Error: %3', Locked = true;
+        PaymentLifecycleTelemetryCategoryTok: Label 'E-Document', Locked = true;
 }
