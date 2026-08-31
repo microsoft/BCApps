@@ -2241,6 +2241,9 @@ page 256 "Payment Journal"
 
     local procedure UpdateBatchTotalAfterAmountChange()
     begin
+        if (Rec."Line No." = xRec."Line No.") and (Rec."Amount (LCY)" = xRec."Amount (LCY)") then
+            exit;
+
         CurrPage.SaveRecord();
         UpdateBatchTotal();
     end;
