@@ -154,6 +154,14 @@ codeunit 148333 "Expense Agent Setup API Test"
         PaymentMethodCount: Integer;
         PostingGroupCount: Integer;
         AgentUserSecurityId: Guid;
+        PaymentMethodSystemId: Guid;
+        CategorySystemId: Guid;
+        PostingGroupSystemId: Guid;
+        ExpenseNoSeriesCode: Code[20];
+        ExpenseUserNoSeriesCode: Code[20];
+        ExpenseVendorNoSeriesCode: Code[20];
+        ExpenseReportNoSeriesCode: Code[20];
+        PostedExpenseReportNoSeriesCode: Code[20];
     begin
         // [FEATURE] [AI test 1.0]
         // [SCENARIO] Repeated test handler initialization reuses completed setup data
@@ -169,6 +177,17 @@ codeunit 148333 "Expense Agent Setup API Test"
         PaymentMethodCount := ExpensePaymentMethod.Count();
         PostingGroupCount := ExpensePostingGroup.Count();
         AgentUserSecurityId := ExpenseAgentSetup."User Security ID";
+        ExpenseNoSeriesCode := ExpenseAgentSetup."Expense Nos.";
+        ExpenseUserNoSeriesCode := ExpenseAgentSetup."Expense User Nos.";
+        ExpenseVendorNoSeriesCode := ExpenseAgentSetup."Expense Vendor Nos.";
+        ExpenseReportNoSeriesCode := ExpenseAgentSetup."Expense Reports Nos.";
+        PostedExpenseReportNoSeriesCode := ExpenseAgentSetup."Posted Expense Reports Nos.";
+        ExpensePaymentMethod.Get('CARD');
+        PaymentMethodSystemId := ExpensePaymentMethod.SystemId;
+        ExpenseCategory.Get('MEALS');
+        CategorySystemId := ExpenseCategory.SystemId;
+        ExpensePostingGroup.FindFirst();
+        PostingGroupSystemId := ExpensePostingGroup.SystemId;
 
         // [WHEN] The E2E test handler initializes the same company again
         ExpenseTestHandlerAPI.Configure();
@@ -182,6 +201,30 @@ codeunit 148333 "Expense Agent Setup API Test"
         Assert.AreEqual(CategoryCount, ExpenseCategory.Count(), 'Expense categories must not be duplicated.');
         Assert.AreEqual(PaymentMethodCount, ExpensePaymentMethod.Count(), 'Payment methods must not be duplicated.');
         Assert.AreEqual(PostingGroupCount, ExpensePostingGroup.Count(), 'Posting groups must not be duplicated.');
+        Assert.AreEqual(ExpenseNoSeriesCode, ExpenseAgentSetup."Expense Nos.", 'Expense number series must be reused.');
+        Assert.AreEqual(
+            ExpenseUserNoSeriesCode,
+            ExpenseAgentSetup."Expense User Nos.",
+            'Expense User number series must be reused.');
+        Assert.AreEqual(
+            ExpenseVendorNoSeriesCode,
+            ExpenseAgentSetup."Expense Vendor Nos.",
+            'Expense Vendor number series must be reused.');
+        Assert.AreEqual(
+            ExpenseReportNoSeriesCode,
+            ExpenseAgentSetup."Expense Reports Nos.",
+            'Expense Report number series must be reused.');
+        Assert.AreEqual(
+            PostedExpenseReportNoSeriesCode,
+            ExpenseAgentSetup."Posted Expense Reports Nos.",
+            'Posted Expense Report number series must be reused.');
+        Assert.IsTrue(
+            ExpensePaymentMethod.GetBySystemId(PaymentMethodSystemId),
+            'The CARD payment method must be reused.');
+        Assert.IsTrue(ExpenseCategory.GetBySystemId(CategorySystemId), 'The MEALS category must be reused.');
+        Assert.IsTrue(
+            ExpensePostingGroup.GetBySystemId(PostingGroupSystemId),
+            'The default Expense Posting Group must be reused.');
     end;
 
     [Test]

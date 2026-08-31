@@ -84,6 +84,7 @@ codeunit 148307 "Expense Test Handler API"
     /// <summary>
     /// Explicitly provisions and enables Expense Agent setup for E2E tests.
     /// </summary>
+    /// <returns>A completion message after the Expense Agent setup is configured.</returns>
     [ServiceEnabled]
     procedure Configure(): Text[30]
     var
