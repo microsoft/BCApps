@@ -135,9 +135,12 @@ page 6918 "Expense Users API"
         // and blocks sign-in there. Apply the constraint in FilterGroup 2 so it
         // AND-combines with any caller-supplied $filter on Employee No., rather
         // than replacing it in the default FilterGroup 0.
+        // The same applies when the employee posting group was removed from the
+        // employee after the expense user was linked.
         OriginalFilterGroup := Rec.FilterGroup();
         Rec.FilterGroup(2);
         Rec.SetFilter("Employee No.", '<>%1', '');
+        Rec.SetFilter("Employee Posting Group", '<>%1', '');
         Rec.FilterGroup(OriginalFilterGroup);
     end;
 }
