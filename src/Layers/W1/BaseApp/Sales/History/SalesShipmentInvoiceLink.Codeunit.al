@@ -6,14 +6,17 @@ namespace Microsoft.Sales.History;
 
 using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Ledger;
+using System.Telemetry;
 
 codeunit 1300 "Sales Shipment-Invoice Link"
 {
     Access = Internal;
 
     var
+        FeatureTelemetry: Codeunit "Feature Telemetry";
         NoRelatedShipmentsMsg: Label 'There are no posted sales shipments related to sales invoice %1.', Comment = '%1 = the number of the posted sales invoice';
         NoRelatedInvoicesMsg: Label 'There are no posted sales invoices related to sales shipment %1.', Comment = '%1 = the number of the posted sales shipment';
+        SalesShipmentInvoiceLinkTok: Label 'Sales Shipment-Invoice Link', Locked = true;
 
     /// <summary>
     /// Shows the posted sales shipments that are related to a posted sales invoice.
@@ -24,6 +27,8 @@ codeunit 1300 "Sales Shipment-Invoice Link"
     var
         SalesShipmentHeader: Record "Sales Shipment Header";
     begin
+        FeatureTelemetry.LogUptake('0000VAF', SalesShipmentInvoiceLinkTok, Enum::"Feature Uptake Status"::Used);
+
         if not GetShipmentsForInvoice(SalesInvoiceHeader, SalesShipmentHeader) then begin
             Message(NoRelatedShipmentsMsg, SalesInvoiceHeader."No.");
             exit;
@@ -44,6 +49,8 @@ codeunit 1300 "Sales Shipment-Invoice Link"
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
     begin
+        FeatureTelemetry.LogUptake('0000VAG', SalesShipmentInvoiceLinkTok, Enum::"Feature Uptake Status"::Used);
+
         if not GetInvoicesForShipment(SalesShipmentHeader, SalesInvoiceHeader) then begin
             Message(NoRelatedInvoicesMsg, SalesShipmentHeader."No.");
             exit;
@@ -69,6 +76,8 @@ codeunit 1300 "Sales Shipment-Invoice Link"
     begin
         if SalesShipmentLine.Type <> SalesShipmentLine.Type::Item then
             exit;
+
+        FeatureTelemetry.LogUptake('0000VAH', SalesShipmentInvoiceLinkTok, Enum::"Feature Uptake Status"::Used);
 
         SalesShipmentLine.GetSalesInvLines(TempSalesInvoiceLine);
 
