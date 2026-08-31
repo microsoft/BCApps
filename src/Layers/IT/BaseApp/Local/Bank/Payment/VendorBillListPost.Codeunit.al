@@ -266,8 +266,8 @@ codeunit 12173 "Vendor Bill List - Post"
         GenJnlPostLine.RunWithCheck(GenJnlLine);
     end;
 
-#if not CLEAN29
-    [Obsolete('Moved to codeunit WHTVendorBillListPost', '29.0')]
+#if not CLEAN30
+    [Obsolete('Moved to codeunit WHTVendorBillListPost', '30.0')]
     procedure PostTax(VendorBillHeader: Record "Vendor Bill Header"; VendorBillLine: Record "Vendor Bill Line"; VendorBillWithholdingTax: Record "Vendor Bill Withholding Tax"; VendLedgEntry: Record "Vendor Ledger Entry"; Bill: Record Bill; Tax: Option " ",Withhold,"Free Lance",Company)
     begin
     end;
@@ -335,13 +335,13 @@ codeunit 12173 "Vendor Bill List - Post"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnAfterPostTax(var VendorBillHeader: Record "Vendor Bill Header"; var VendorBillLine: Record "Vendor Bill Line"; var VendBillWithhTax: Record "Vendor Bill Withholding Tax"; var VendLedgEntry: Record "Vendor Ledger Entry"; BillCode: Record Bill; TaxType2: Option);
     begin
         OnAfterPostTax(VendorBillHeader, VendorBillLine, VendBillWithhTax, VendLedgEntry, BillCode, TaxType2);
     end;
 
-    [Obsolete('Moved to codeunit WHTVendorBillListPost', '29.0')]
+    [Obsolete('Moved to codeunit WHTVendorBillListPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostTax(var VendorBillHeader: Record "Vendor Bill Header"; var VendorBillLine: Record "Vendor Bill Line"; var VendBillWithhTax: Record "Vendor Bill Withholding Tax"; var VendLedgEntry: Record "Vendor Ledger Entry"; BillCode: Record Bill; TaxType: Option);
     begin
@@ -368,13 +368,13 @@ codeunit 12173 "Vendor Bill List - Post"
     begin
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure RunOnBeforePostWithholdingTax(var GenJnlLine: Record "Gen. Journal Line"; VendorBillHeader: Record "Vendor Bill Header"; VendorBillLine: Record "Vendor Bill Line"; VendLedgEntry: Record "Vendor Ledger Entry"; VendorBillWithholdingTax: Record "Vendor Bill Withholding Tax")
     begin
         OnBeforePostWithholdingTax(GenJnlLine, VendorBillHeader, VendorBillLine, VendLedgEntry, VendorBillWithholdingTax);
     end;
 
-    [Obsolete('Moved to codeunit WHTVendorBillListPost', '29.0')]
+    [Obsolete('Moved to codeunit WHTVendorBillListPost', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostWithholdingTax(var GenJnlLine: Record "Gen. Journal Line"; VendorBillHeader: Record "Vendor Bill Header"; VendorBillLine: Record "Vendor Bill Line"; VendLedgEntry: Record "Vendor Ledger Entry"; VendorBillWithholdingTax: Record "Vendor Bill Withholding Tax")
     begin
