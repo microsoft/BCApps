@@ -8,7 +8,6 @@ namespace Microsoft.TestLibraries.ERP;
 using System;
 using System.Azure.KeyVault;
 using System.Environment;
-using System.Integration;
 using System.Security.AccessControl;
 using System.Utilities;
 
