@@ -120,7 +120,7 @@ codeunit 7231 "Integration Master Data Synch."
                 IntegrationRecordID := IntegrationRecordRef.Field(IntegrationTableMapping."Integration Table UID Fld. No.").Value();
                 if not FailedNotSkippedIdDictionary.ContainsKey(IntegrationRecordID) then
                     if not TryCopyRecordReference(IntegrationTableMapping, IntegrationRecordRef, TempIntegrationRecordRef, false) then
-                        Session.LogMessage('0000QF6', StrSubstNo(CrossEnvCopyFailedTelemetryTxt, IntegrationTableMapping."Integration Table ID"), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
+                        Session.LogMessage('', StrSubstNo(CrossEnvCopyFailedTelemetryTxt, IntegrationTableMapping."Integration Table ID"), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
             until IntegrationRecordRef.Next() = 0;
         IntegrationRecordRef.Close();
     end;

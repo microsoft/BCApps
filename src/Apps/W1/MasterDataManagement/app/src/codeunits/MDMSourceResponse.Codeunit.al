@@ -222,7 +222,7 @@ codeunit 7248 "MDM Source Response"
         Dimensions.Add('fieldNo', Format(FieldNo));
         if FieldObject.Get('length', LengthToken) then
             Dimensions.Add('length', Format(LengthToken.AsValue().AsBigInteger()));
-        Session.LogMessage('0000QF2', SkippedFieldTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
+        Session.LogMessage('', SkippedFieldTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
     end;
 
     // Round-trips a value serialized with Format(v, 0, 9) on the source back into the destination field's type. A

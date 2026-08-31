@@ -217,14 +217,14 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
     var
         MasterDataManagement: Codeunit "Master Data Management";
     begin
-        Session.LogMessage('0000QF8', StrSubstNo(ParseFailureTelemetryTxt, IntegrationTableId, Reason), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
+        Session.LogMessage('', StrSubstNo(ParseFailureTelemetryTxt, IntegrationTableId, Reason), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
     end;
 
     local procedure LogProbeFailure(IntegrationTableId: Integer)
     var
         MasterDataManagement: Codeunit "Master Data Management";
     begin
-        Session.LogMessage('0000QFB', StrSubstNo(SourceProbeTelemetryTxt, IntegrationTableId), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
+        Session.LogMessage('', StrSubstNo(SourceProbeTelemetryTxt, IntegrationTableId), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
     end;
 
     local procedure ParseOrError(IntegrationTableId: Integer; ResponseText: Text; var Response: JsonObject)

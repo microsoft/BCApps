@@ -56,18 +56,17 @@ codeunit 7245 "MDM Cross-Env Change Detector"
         // detector job - that would burn its retry budget and could stop change detection. Skip this poll instead;
         // the next scheduled run recovers.
         if not TryFetchDetection(Transport, TableIds, Supported, ResponseText) then begin
-            // The detector's transport errors are operational (HTTP status, connection, auth, config) with no record
-            // content, so the caught message - which carries the HTTP status code for HttpErr - is safe as system metadata.
+            // A transport failure here is operational (source outage, auth, bad connection state); skip this poll. The
+            // raw error text is not emitted: GetLastErrorText can carry customer content and this event is All-scope.
             Dimensions.Add('Category', MasterDataManagement.GetTelemetryCategory());
-            Dimensions.Add('failure', CopyStr(GetLastErrorText(), 1, 2048));
-            Session.LogMessage('0000QF9', DetectorTransportFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
+            Session.LogMessage('', DetectorTransportFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
             exit;
         end;
         // Older source doesn't advertise the detection action: skip rather than error every run.
         if not Supported then
             exit;
         if not SourceResponse.TryParse(ResponseText, Response) then begin
-            Session.LogMessage('0000QF4', DetectorParseFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
+            Session.LogMessage('', DetectorParseFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
             exit;
         end;
 
@@ -115,7 +114,7 @@ codeunit 7245 "MDM Cross-Env Change Detector"
         EntryToken: JsonToken;
     begin
         if (not Response.Get('tables', TablesToken)) or (not TablesToken.IsArray()) then begin
-            Session.LogMessage('0000QF7', DetectionContractFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
+            Session.LogMessage('', DetectionContractFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
             exit;
         end;
         Tables := TablesToken.AsArray();
