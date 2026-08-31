@@ -359,6 +359,7 @@ codeunit 7241 "MDM Cross-Env Source API"
     local procedure FillBySystemIds(var RecRef: RecordRef; SystemIds: JsonArray; ProjectedFields: List of [Integer]; var Records: JsonArray)
     var
         SystemIdRef: FieldRef;
+        FilterBuilder: TextBuilder;
         Token: JsonToken;
         SystemIdValue: Guid;
         IgnoredModifiedAt: DateTime;
@@ -368,10 +369,11 @@ codeunit 7241 "MDM Cross-Env Source API"
     begin
         foreach Token in SystemIds do
             if Evaluate(SystemIdValue, Token.AsValue().AsText()) then begin
-                if FilterText <> '' then
-                    FilterText += '|';
-                FilterText += Format(SystemIdValue);
+                if FilterBuilder.Length() > 0 then
+                    FilterBuilder.Append('|');
+                FilterBuilder.Append(Format(SystemIdValue));
             end;
+        FilterText := FilterBuilder.ToText();
         if FilterText = '' then
             exit;
 

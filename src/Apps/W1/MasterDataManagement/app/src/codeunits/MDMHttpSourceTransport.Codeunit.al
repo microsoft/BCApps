@@ -265,11 +265,11 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         ErrInfo: ErrorInfo;
     begin
         ErrInfo.Message := MessageText;
-        if MasterDataManagementSetup.Get() then begin
+        // The remedy is always the setup page, even before the record exists; only RecordId needs an existing record.
+        ErrInfo.PageNo := Page::"Master Data Management Setup";
+        ErrInfo.AddNavigationAction(OpenSetupActionTxt);
+        if MasterDataManagementSetup.Get() then
             ErrInfo.RecordId := MasterDataManagementSetup.RecordId();
-            ErrInfo.PageNo := Page::"Master Data Management Setup";
-            ErrInfo.AddNavigationAction(OpenSetupActionTxt);
-        end;
         exit(ErrInfo);
     end;
 
