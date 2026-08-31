@@ -251,6 +251,7 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeFinancialReportAuditLogAddRetentionPolicy();
         UpgradeZeroClosedBankAccountLedgerEntries();
         UpgradeDepreciationBooksGLIntegration();
+        UpgradePurchaseLineReceiptOnInvoice();
         UpgradeWarehouseActivitySourceTypeForJobPlanningLine();
     end;
 
@@ -4019,6 +4020,29 @@ codeunit 104000 "Upgrade - BaseApp"
         DepreciationBookDataTransfer.CopyFields();
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetDepreciationBooksGLIntegrationUpgradeTag());
+    end;
+
+    local procedure UpgradePurchaseLineReceiptOnInvoice()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+        ReceiptOnInvoiceDataTransfer: DataTransfer;
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetPurchLineReceiptOnInvoiceUpgradeTag()) then
+            exit;
+
+        ReceiptOnInvoiceDataTransfer.SetTables(Database::"Purchase Header", Database::"Purchase Line");
+        ReceiptOnInvoiceDataTransfer.AddSourceFilter(PurchaseHeader.FieldNo("Document Type"), '=%1', PurchaseHeader."Document Type"::Order);
+        ReceiptOnInvoiceDataTransfer.AddSourceFilter(PurchaseHeader.FieldNo("Receipt on Invoice"), '=%1', true);
+        ReceiptOnInvoiceDataTransfer.AddJoin(PurchaseHeader.FieldNo("Document Type"), PurchaseLine.FieldNo("Document Type"));
+        ReceiptOnInvoiceDataTransfer.AddJoin(PurchaseHeader.FieldNo("No."), PurchaseLine.FieldNo("Document No."));
+        ReceiptOnInvoiceDataTransfer.AddConstantValue(true, PurchaseLine.FieldNo("Receipt on Invoice"));
+        ReceiptOnInvoiceDataTransfer.UpdateAuditFields := false;
+        ReceiptOnInvoiceDataTransfer.CopyFields();
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetPurchLineReceiptOnInvoiceUpgradeTag());
     end;
 
     local procedure UpgradeWarehouseActivitySourceTypeForJobPlanningLine()

@@ -253,6 +253,11 @@ page 54 "Purchase Order Subform"
                     Importance = Additional;
                     Visible = false;
                 }
+                field("Receipt on Invoice"; Rec."Receipt on Invoice")
+                {
+                    ApplicationArea = All;
+                    Visible = false;
+                }
                 field("Drop Shipment"; Rec."Drop Shipment")
                 {
                     ApplicationArea = Suite;
@@ -2035,4 +2040,3 @@ page 54 "Purchase Order Subform"
     begin
     end;
 }
-
