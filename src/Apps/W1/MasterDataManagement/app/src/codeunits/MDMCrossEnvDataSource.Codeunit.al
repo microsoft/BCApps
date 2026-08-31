@@ -292,7 +292,7 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         end;
         if SourceResponse.GetUnavailableFields(Response, UnavailableFields) then begin
             LogParseFailure(IntegrationTableId, FieldsUnavailableReasonTok);
-            Error(FieldsUnavailableErr, TableCaption(IntegrationTableId));
+            Error(SynchTablesNavigationError(StrSubstNo(FieldsUnavailableErr, TableCaption(IntegrationTableId))));
         end;
     end;
 
