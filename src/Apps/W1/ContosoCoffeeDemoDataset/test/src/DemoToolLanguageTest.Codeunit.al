@@ -242,8 +242,8 @@ codeunit 148049 "Demo Tool Language Test"
         FinanceModule: Codeunit "Finance Module";
         ManufacturingModule: Codeunit "Manufacturing Module";
     begin
-        FinanceModule.CreateSetupData();
         CommonModule.CreateSetupData();
+        FinanceModule.CreateSetupData();
         ManufacturingModule.CreateSetupData();
     end;
 }
