@@ -73,4 +73,12 @@ enum 6984 "Expense Capability"
     {
         Caption = 'AI-Assisted Policy Evaluation', Locked = true;
     }
+
+    /// <summary>
+    /// Mileage rate setup (vehicle types and date-range rates) is available in the expense app
+    /// </summary>
+    value(6; MileageRateSetup)
+    {
+        Caption = 'Mileage Rate Setup', Locked = true;
+    }
 }

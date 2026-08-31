@@ -260,6 +260,7 @@ codeunit 148300 "Library - Expense"
     internal procedure CreateSpendRequest(var SpendRequest: Record "Spend Request")
     begin
         SpendRequest.Init();
+        SpendRequest."Document Type" := SpendRequest."Document Type"::"Travel Request";
         SpendRequest.Insert(true);
     end;
 
