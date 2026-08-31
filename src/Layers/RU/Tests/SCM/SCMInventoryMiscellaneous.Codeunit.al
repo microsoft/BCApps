@@ -47,7 +47,6 @@ codeunit 137293 "SCM Inventory Miscellaneous"
         CurrentSaveValuesId: Integer;
         AvailableQtyToPickMsg: Label 'AvailableQtyToPick returned wrong value.';
         ErrorDifferentQtyToHandle: Label 'Quantity to Handle on pick worksheet line different from expected.';
-        ErrorDifferentQtyOnPickLine: Label 'Quantity to Handle on pick line different from expected.';
         ErrorDifferentQty: Label 'Quantity on pick worksheet line different from expected.';
         ErrorDifferentAvailQty: Label 'Quantity Available to Pick on pick worksheet line different from expected.';
 
@@ -160,7 +159,7 @@ codeunit 137293 "SCM Inventory Miscellaneous"
     begin
         // Verify Planning Lines for Production Forecast with Item Variant when 'Use forecast on Variants' is ON and Calculate Regenerative Plan is invoked.
 
-        // Setup: Update Sales Receivables Setup and Manufacturing Setup.
+        // Setup: Update Sales Receivables Setup and Manufacturing Setup. 
         Initialize();
         Quantity := LibraryRandom.RandInt(10);  // Use Random value for Quantity.
         SetupSalesAndManufacturingSetup();
@@ -219,8 +218,8 @@ codeunit 137293 "SCM Inventory Miscellaneous"
         RequisitionLine: Record "Requisition Line";
         BatchName: Code[10];
     begin
-        // [FEATURE] [Planning Worksheet] [Production Order]
-        // [SCENARIO 502388] Calculate Order Plan and Recalculate Requisition Plan for Item with Frozen period.
+        // [FEATURE] [Planning Worksheet] [Production Order] 
+        // [SCENARIO 502388] Calculate Order Plan and Recalculate Requisition Plan for Item with Frozen period. 
         // Calculation have the issue just with specific scenario with exact values for dates and Rescheduling Period.
         Initialize();
 
@@ -301,7 +300,7 @@ codeunit 137293 "SCM Inventory Miscellaneous"
     begin
         // Verify Planning Lines for Production Forecast with Item Variant when 'Use forecast on Variants' is OFF and Calculate Regenerative Plan is invoked.
 
-        // Setup: Update Sales Receivables Setup and Manufacturing Setup.
+        // Setup: Update Sales Receivables Setup and Manufacturing Setup. 
         Initialize();
         Quantity := LibraryRandom.RandInt(10);  // Use Random value for Quantity.
         SetupSalesAndManufacturingSetup();
@@ -360,7 +359,7 @@ codeunit 137293 "SCM Inventory Miscellaneous"
     begin
         // Verify Planning Lines for Production Forecast with Item Variant when 'Use forecast on Variants' is ON and Calculate Regenerative Plan is invoked.
 
-        // Setup: Update Sales Receivables Setup and Manufacturing Setup.
+        // Setup: Update Sales Receivables Setup and Manufacturing Setup. 
         Initialize();
         Quantity := LibraryRandom.RandInt(10);  // Use Random value for Quantity.
         SetupSalesAndManufacturingSetup();
@@ -401,7 +400,7 @@ codeunit 137293 "SCM Inventory Miscellaneous"
     begin
         // Verify Planning Lines for Production Forecast with Item Variant when 'Use forecast on Variants' is OFF and Calculate Regenerative Plan is invoked.
 
-        // Setup: Update Sales Receivables Setup and Manufacturing Setup.
+        // Setup: Update Sales Receivables Setup and Manufacturing Setup. 
         Initialize();
         Quantity := LibraryRandom.RandInt(10);  // Use Random value for Quantity.
         SetupSalesAndManufacturingSetup();
@@ -443,7 +442,7 @@ codeunit 137293 "SCM Inventory Miscellaneous"
     begin
         // Verify Planning Lines for Production Forecast with Item Variant when 'Use forecast on Variants' is OFF and Calculate Regenerative Plan is invoked.
 
-        // Setup: Update Sales Receivables Setup and Manufacturing Setup.
+        // Setup: Update Sales Receivables Setup and Manufacturing Setup. 
         Initialize();
         Quantity := LibraryRandom.RandInt(10);  // Use Random value for Quantity.
         SetupSalesAndManufacturingSetup();
@@ -3144,29 +3143,12 @@ codeunit 137293 "SCM Inventory Miscellaneous"
         Assert.AreEqual(QtyAvailToPick, WhseWorksheetLine.AvailableQtyToPick(), ErrorDifferentAvailQty);
     end;
 
-    local procedure PickWorksheetUpdateQtyToHandle(WhseWorksheetLine: Record "Whse. Worksheet Line"; LineNo: Integer; QtyToHandle: Decimal)
-    begin
-        WhseWorksheetLine.SetRange("Line No.", LineNo);
-        WhseWorksheetLine.FindFirst();
-        WhseWorksheetLine.Validate("Qty. to Handle", QtyToHandle);
-        WhseWorksheetLine.Modify(true);
-    end;
-
     local procedure CreateAndPostItemJournalLine(ItemNo: Code[20]; Quantity: Decimal; LocationCode: Code[10]; BinCode: Code[20])
     var
         ItemJournalLine: Record "Item Journal Line";
     begin
         LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, ItemNo, LocationCode, BinCode, Quantity);
         LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
-    end;
-
-    local procedure CreateInitialSetupForPickWorksheet(LocationCode: Code[10]; BinCode: Code[20]; Quantity: Decimal): Code[20]
-    var
-        Item: Record Item;
-    begin
-        LibraryInventory.CreateItem(Item);
-        CreateAndPostItemJournalLine(Item."No.", Quantity, LocationCode, BinCode);
-        exit(CreateSales(Item."No.", LocationCode, Quantity, true, true, false, 0));
     end;
 
     local procedure CreatePurchaseLineWithLocation(var PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header"; ItemNo: Code[20]; Qty: Decimal; LocationCode: Code[10])
@@ -3208,21 +3190,6 @@ codeunit 137293 "SCM Inventory Miscellaneous"
         WhseShipmentLine.FindFirst();
         WhseShipmentHeader.Get(WhseShipmentLine."No.");
         LibraryWarehouse.ReleaseWarehouseShipment(WhseShipmentHeader);
-    end;
-
-    local procedure GetSingleWhsePickDoc(var WhseWorksheetLine: Record "Whse. Worksheet Line"; LocationCode: Code[10])
-    var
-        WhseWorksheetTemplate: Record "Whse. Worksheet Template";
-        WhseWorksheetName: Record "Whse. Worksheet Name";
-        GetSourceDocOutbound: Codeunit "Get Source Doc. Outbound";
-    begin
-        LibraryWarehouse.SelectWhseWorksheetTemplate(WhseWorksheetTemplate, WhseWorksheetTemplate.Type::Pick);
-        LibraryWarehouse.CreateWhseWorksheetName(WhseWorksheetName, WhseWorksheetTemplate.Name, LocationCode);
-
-        GetSourceDocOutbound.GetSingleWhsePickDoc(WhseWorksheetName."Worksheet Template Name", WhseWorksheetName.Name, LocationCode);
-        WhseWorksheetLine.SetRange("Worksheet Template Name", WhseWorksheetTemplate.Name);
-        WhseWorksheetLine.SetRange("Location Code", LocationCode);
-        WhseWorksheetLine.FindFirst();
     end;
 
     local procedure CreateBin(var Bin: Record Bin; LocationCode: Text[10]; BinCode: Text[20]; ZoneCode: Text[10]; BinTypeCode: Text[10])
@@ -3454,25 +3421,6 @@ codeunit 137293 "SCM Inventory Miscellaneous"
     [Scope('OnPrem')]
     procedure MessageHandler(Message: Text[1024])
     begin
-    end;
-
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure ReportSelectionPrintModalPageHandler(var ReportSelectionPrint: TestPage "Report Selection - Print")
-    begin
-        ReportSelectionPrint.OK().Invoke();
-    end;
-
-    [EventSubscriber(ObjectType::Report, Report::"Transfer Receipt TORG-13", 'OnBeforeExport', '', false, false)]
-    local procedure SetTranferReceiptTORG13FileNameOnBeforeExport(var FileName: Text)
-    begin
-        FileName := GetSaveFileName();
-    end;
-
-    [EventSubscriber(ObjectType::Report, Report::"Transfer Shipment TORG-13", 'OnBeforeExport', '', false, false)]
-    local procedure SetTranferShipmentTORG13FileNameOnBeforeExport(var FileName: Text)
-    begin
-        FileName := GetSaveFileName();
     end;
 
     [SendNotificationHandler]

@@ -46,7 +46,6 @@ codeunit 137293 "SCM Inventory Miscellaneous"
         CurrentSaveValuesId: Integer;
         AvailableQtyToPickMsg: Label 'AvailableQtyToPick returned wrong value.';
         ErrorDifferentQtyToHandle: Label 'Quantity to Handle on pick worksheet line different from expected.';
-        ErrorDifferentQtyOnPickLine: Label 'Quantity to Handle on pick line different from expected.';
         ErrorDifferentQty: Label 'Quantity on pick worksheet line different from expected.';
         ErrorDifferentAvailQty: Label 'Quantity Available to Pick on pick worksheet line different from expected.';
 
@@ -3145,29 +3144,12 @@ codeunit 137293 "SCM Inventory Miscellaneous"
         Assert.AreEqual(QtyAvailToPick, WhseWorksheetLine.AvailableQtyToPick(), ErrorDifferentAvailQty);
     end;
 
-    local procedure PickWorksheetUpdateQtyToHandle(WhseWorksheetLine: Record "Whse. Worksheet Line"; LineNo: Integer; QtyToHandle: Decimal)
-    begin
-        WhseWorksheetLine.SetRange("Line No.", LineNo);
-        WhseWorksheetLine.FindFirst();
-        WhseWorksheetLine.Validate("Qty. to Handle", QtyToHandle);
-        WhseWorksheetLine.Modify(true);
-    end;
-
     local procedure CreateAndPostItemJournalLine(ItemNo: Code[20]; Quantity: Decimal; LocationCode: Code[10]; BinCode: Code[20])
     var
         ItemJournalLine: Record "Item Journal Line";
     begin
         LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, ItemNo, LocationCode, BinCode, Quantity);
         LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
-    end;
-
-    local procedure CreateInitialSetupForPickWorksheet(LocationCode: Code[10]; BinCode: Code[20]; Quantity: Decimal): Code[20]
-    var
-        Item: Record Item;
-    begin
-        LibraryInventory.CreateItem(Item);
-        CreateAndPostItemJournalLine(Item."No.", Quantity, LocationCode, BinCode);
-        exit(CreateSales(Item."No.", LocationCode, Quantity, true, true, false, 0));
     end;
 
     local procedure CreatePurchaseLineWithLocation(var PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header"; ItemNo: Code[20]; Qty: Decimal; LocationCode: Code[10])
@@ -3209,21 +3191,6 @@ codeunit 137293 "SCM Inventory Miscellaneous"
         WhseShipmentLine.FindFirst();
         WhseShipmentHeader.Get(WhseShipmentLine."No.");
         LibraryWarehouse.ReleaseWarehouseShipment(WhseShipmentHeader);
-    end;
-
-    local procedure GetSingleWhsePickDoc(var WhseWorksheetLine: Record "Whse. Worksheet Line"; LocationCode: Code[10])
-    var
-        WhseWorksheetTemplate: Record "Whse. Worksheet Template";
-        WhseWorksheetName: Record "Whse. Worksheet Name";
-        GetSourceDocOutbound: Codeunit "Get Source Doc. Outbound";
-    begin
-        LibraryWarehouse.SelectWhseWorksheetTemplate(WhseWorksheetTemplate, WhseWorksheetTemplate.Type::Pick);
-        LibraryWarehouse.CreateWhseWorksheetName(WhseWorksheetName, WhseWorksheetTemplate.Name, LocationCode);
-
-        GetSourceDocOutbound.GetSingleWhsePickDoc(WhseWorksheetName."Worksheet Template Name", WhseWorksheetName.Name, LocationCode);
-        WhseWorksheetLine.SetRange("Worksheet Template Name", WhseWorksheetTemplate.Name);
-        WhseWorksheetLine.SetRange("Location Code", LocationCode);
-        WhseWorksheetLine.FindFirst();
     end;
 
     local procedure CreateBin(var Bin: Record Bin; LocationCode: Text[10]; BinCode: Text[20]; ZoneCode: Text[10]; BinTypeCode: Text[10])
