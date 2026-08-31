@@ -14,9 +14,9 @@ codeunit 7248 "MDM Source Response"
     Access = Internal;
 
     var
+        SourceWatermark: Codeunit "MDM Source Watermark";
         SkippedFieldTxt: Label 'Cross-environment media or blob field exceeds the inline size cap and was not synchronized.', Locked = true;
         BadFieldValueErr: Label 'The source returned a value for field %1 that could not be converted to the expected type %2.', Comment = '%1 - a field caption, %2 - a field type';
-        SourceWatermark: Codeunit "MDM Source Watermark";
 
     [TryFunction]
     procedure TryParse(ResponseText: Text; var Response: JsonObject)
