@@ -21,6 +21,7 @@ codeunit 139630 "E-Doc. Impl. State"
         PurchDocTestBuffer: Codeunit "E-Doc. Test Buffer";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         EnableOnCheck, DisableOnCreateOutput, DisableOnCreateBatch, IsAsync2, EnableHttpData, ThrowIntegrationRuntimeError, ThrowIntegrationLoggedError : Boolean;
+        ThrowPaymentOccurrenceProcessingError, ThrowPaymentOccurrenceSchedulingError: Boolean;
         ThrowRuntimeError, ThrowLoggedError, ThrowBasicInfoError, ThrowCompleteInfoError, OnGetResponseSuccess, OnGetApprovalSuccess, ActionHasUpdate : Boolean;
         LocalHttpResponse: HttpResponseMessage;
         ActionStatus: Enum "E-Document Service Status";
@@ -29,6 +30,20 @@ codeunit 139630 "E-Doc. Impl. State"
     local procedure OnAfterCreateEDocument(var EDocument: Record "E-Document")
     begin
         LibraryVariableStorage.Enqueue(EDocument);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Document Background Jobs", 'OnBeforeScheduleEDocumentJob', '', false, false)]
+    local procedure OnBeforeScheduleEDocumentJob(CodeunitId: Integer; JobRecordId: RecordId)
+    begin
+        if ThrowPaymentOccurrenceSchedulingError and (CodeunitId = Codeunit::"E-Doc. Payment Occurrence Mgt.") then
+            Error('TEST PAYMENT OCCURRENCE SCHEDULING');
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Payment Occurrence Mgt.", 'OnAfterCreatePaymentOccurrence', '', false, false)]
+    local procedure OnAfterCreatePaymentOccurrence(var EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence")
+    begin
+        if ThrowPaymentOccurrenceProcessingError then
+            Error('TEST PAYMENT OCCURRENCE PROCESSING');
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Export", 'OnBeforeCreateEDocument', '', false, false)]
@@ -476,6 +491,16 @@ codeunit 139630 "E-Doc. Impl. State"
     internal procedure SetThrowIntegrationRuntimeError()
     begin
         ThrowIntegrationRuntimeError := true;
+    end;
+
+    internal procedure SetThrowPaymentOccurrenceProcessingError()
+    begin
+        ThrowPaymentOccurrenceProcessingError := true;
+    end;
+
+    internal procedure SetThrowPaymentOccurrenceSchedulingError()
+    begin
+        ThrowPaymentOccurrenceSchedulingError := true;
     end;
 
     internal procedure SetHttpResponse(HttpResponse: HttpResponseMessage)

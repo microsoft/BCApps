@@ -101,6 +101,8 @@ permissionset 6100 "E-Doc. Core - Objects"
         codeunit "E-Doc. Message Context" = X,
         codeunit "E-Doc. Message Mgt." = X,
         codeunit "E-Doc. Msg. Transport Default" = X,
+        codeunit "E-Doc. Payment Occ. Dispatcher" = X,
+        codeunit "E-Doc. Payment Occ. Runner" = X,
         codeunit "Service Participant" = X,
         page "E-Doc. Changes Part" = X,
         page "E-Doc. Changes Preview" = X,

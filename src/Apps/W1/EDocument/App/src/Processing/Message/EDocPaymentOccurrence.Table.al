@@ -75,6 +75,31 @@ table 6433 "E-Doc. Payment Occurrence"
             Caption = 'Created At';
             DataClassification = SystemMetadata;
         }
+        field(11; Status; Enum "E-Doc. Payment Occ. Status")
+        {
+            Caption = 'Status';
+            DataClassification = SystemMetadata;
+        }
+        field(12; "Last Attempt At"; DateTime)
+        {
+            Caption = 'Last Attempt At';
+            DataClassification = SystemMetadata;
+        }
+        field(13; "Retry Count"; Integer)
+        {
+            Caption = 'Retry Count';
+            DataClassification = SystemMetadata;
+        }
+        field(14; "Last Error"; Text[2048])
+        {
+            Caption = 'Last Error';
+            DataClassification = CustomerContent;
+        }
+        field(15; "Next Attempt At"; DateTime)
+        {
+            Caption = 'Next Attempt At';
+            DataClassification = SystemMetadata;
+        }
     }
 
     keys
@@ -88,6 +113,9 @@ table 6433 "E-Doc. Payment Occurrence"
             Unique = true;
         }
         key(Source; "Source Occurrence ID", Type)
+        {
+        }
+        key(Processing; Status, "Next Attempt At")
         {
         }
     }

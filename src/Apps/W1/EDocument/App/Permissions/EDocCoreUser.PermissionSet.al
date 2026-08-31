@@ -27,6 +27,8 @@ permissionset 6105 "E-Doc. Core - User"
         codeunit "E-Doc. Message Response Job" = X,
         codeunit "E-Doc. Message Send Job" = X,
         codeunit "E-Doc. Message Send Runner" = X,
+        codeunit "E-Doc. Payment Occ. Dispatcher" = X,
+        codeunit "E-Doc. Payment Occ. Runner" = X,
         codeunit "E-Doc. Payment Occurrence Mgt." = X,
         tabledata "E-Document" = iMD,
     #region Service
