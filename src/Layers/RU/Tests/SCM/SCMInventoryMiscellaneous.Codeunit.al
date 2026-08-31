@@ -159,7 +159,7 @@ codeunit 137293 "SCM Inventory Miscellaneous"
     begin
         // Verify Planning Lines for Production Forecast with Item Variant when 'Use forecast on Variants' is ON and Calculate Regenerative Plan is invoked.
 
-        // Setup: Update Sales Receivables Setup and Manufacturing Setup. 
+        // Setup: Update Sales Receivables Setup and Manufacturing Setup.
         Initialize();
         Quantity := LibraryRandom.RandInt(10);  // Use Random value for Quantity.
         SetupSalesAndManufacturingSetup();
@@ -218,8 +218,8 @@ codeunit 137293 "SCM Inventory Miscellaneous"
         RequisitionLine: Record "Requisition Line";
         BatchName: Code[10];
     begin
-        // [FEATURE] [Planning Worksheet] [Production Order] 
-        // [SCENARIO 502388] Calculate Order Plan and Recalculate Requisition Plan for Item with Frozen period. 
+        // [FEATURE] [Planning Worksheet] [Production Order]
+        // [SCENARIO 502388] Calculate Order Plan and Recalculate Requisition Plan for Item with Frozen period.
         // Calculation have the issue just with specific scenario with exact values for dates and Rescheduling Period.
         Initialize();
 
@@ -300,7 +300,7 @@ codeunit 137293 "SCM Inventory Miscellaneous"
     begin
         // Verify Planning Lines for Production Forecast with Item Variant when 'Use forecast on Variants' is OFF and Calculate Regenerative Plan is invoked.
 
-        // Setup: Update Sales Receivables Setup and Manufacturing Setup. 
+        // Setup: Update Sales Receivables Setup and Manufacturing Setup.
         Initialize();
         Quantity := LibraryRandom.RandInt(10);  // Use Random value for Quantity.
         SetupSalesAndManufacturingSetup();
@@ -359,7 +359,7 @@ codeunit 137293 "SCM Inventory Miscellaneous"
     begin
         // Verify Planning Lines for Production Forecast with Item Variant when 'Use forecast on Variants' is ON and Calculate Regenerative Plan is invoked.
 
-        // Setup: Update Sales Receivables Setup and Manufacturing Setup. 
+        // Setup: Update Sales Receivables Setup and Manufacturing Setup.
         Initialize();
         Quantity := LibraryRandom.RandInt(10);  // Use Random value for Quantity.
         SetupSalesAndManufacturingSetup();
@@ -400,7 +400,7 @@ codeunit 137293 "SCM Inventory Miscellaneous"
     begin
         // Verify Planning Lines for Production Forecast with Item Variant when 'Use forecast on Variants' is OFF and Calculate Regenerative Plan is invoked.
 
-        // Setup: Update Sales Receivables Setup and Manufacturing Setup. 
+        // Setup: Update Sales Receivables Setup and Manufacturing Setup.
         Initialize();
         Quantity := LibraryRandom.RandInt(10);  // Use Random value for Quantity.
         SetupSalesAndManufacturingSetup();
@@ -442,7 +442,7 @@ codeunit 137293 "SCM Inventory Miscellaneous"
     begin
         // Verify Planning Lines for Production Forecast with Item Variant when 'Use forecast on Variants' is OFF and Calculate Regenerative Plan is invoked.
 
-        // Setup: Update Sales Receivables Setup and Manufacturing Setup. 
+        // Setup: Update Sales Receivables Setup and Manufacturing Setup.
         Initialize();
         Quantity := LibraryRandom.RandInt(10);  // Use Random value for Quantity.
         SetupSalesAndManufacturingSetup();
@@ -3421,6 +3421,25 @@ codeunit 137293 "SCM Inventory Miscellaneous"
     [Scope('OnPrem')]
     procedure MessageHandler(Message: Text[1024])
     begin
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure ReportSelectionPrintModalPageHandler(var ReportSelectionPrint: TestPage "Report Selection - Print")
+    begin
+        ReportSelectionPrint.OK().Invoke();
+    end;
+
+    [EventSubscriber(ObjectType::Report, Report::"Transfer Receipt TORG-13", 'OnBeforeExport', '', false, false)]
+    local procedure SetTranferReceiptTORG13FileNameOnBeforeExport(var FileName: Text)
+    begin
+        FileName := GetSaveFileName();
+    end;
+
+    [EventSubscriber(ObjectType::Report, Report::"Transfer Shipment TORG-13", 'OnBeforeExport', '', false, false)]
+    local procedure SetTranferShipmentTORG13FileNameOnBeforeExport(var FileName: Text)
+    begin
+        FileName := GetSaveFileName();
     end;
 
     [SendNotificationHandler]
