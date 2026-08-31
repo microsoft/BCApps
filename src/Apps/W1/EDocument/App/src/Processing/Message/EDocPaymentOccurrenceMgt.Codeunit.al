@@ -32,7 +32,7 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
     local procedure OnAfterInsertDtldCustLedgEntry(var DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; GenJournalLine: Record "Gen. Journal Line"; DtldCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; Offset: Integer)
     begin
         if not TryProcessApplication(DtldCustLedgEntry) then begin
-            LogProcessingFailure(DtldCustLedgEntry, ApplicationTelemetryMessage);
+            LogProcessingFailure(DtldCustLedgEntry, ApplicationTelemetryLbl);
             ClearLastError();
         end;
     end;
@@ -41,7 +41,7 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
     local procedure OnAfterInsertDtldCustLedgEntryUnapply(var CustomerPostingGroup: Record "Customer Posting Group"; var OldDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; var GenJnlLine: Record "Gen. Journal Line"; var NewDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
     begin
         if not TryProcessUnapplication(OldDetailedCustLedgEntry, NewDetailedCustLedgEntry) then begin
-            LogProcessingFailure(NewDetailedCustLedgEntry, UnapplicationTelemetryMessage);
+            LogProcessingFailure(NewDetailedCustLedgEntry, UnapplicationTelemetryLbl);
             ClearLastError();
         end;
     end;
@@ -178,7 +178,7 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
     end;
 
     var
-        ApplicationTelemetryMessage: Label 'E-Document payment occurrence processing failed for detailed customer ledger entry %1. Error: %2', Locked = true;
-        UnapplicationTelemetryMessage: Label 'E-Document payment reversal occurrence processing failed for detailed customer ledger entry %1. Error: %2', Locked = true;
+        ApplicationTelemetryLbl: Label 'E-Document payment occurrence processing failed for detailed customer ledger entry %1. Error: %2', Locked = true;
+        UnapplicationTelemetryLbl: Label 'E-Document payment reversal occurrence processing failed for detailed customer ledger entry %1. Error: %2', Locked = true;
         PaymentOccurrenceTelemetryCategoryTok: Label 'E-Document', Locked = true;
 }
