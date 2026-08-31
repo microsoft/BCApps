@@ -28,6 +28,16 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
         tabledata "E-Doc. Payment Occurrence" = rim,
         tabledata "Sales Invoice Header" = r;
 
+    trigger OnRun()
+    begin
+        if ProcessUnapplicationCall then begin
+            ProcessUnapplication(OldDetailedCustLedgEntry, DetailedCustLedgEntry);
+            exit;
+        end;
+
+        ProcessApplication(DetailedCustLedgEntry);
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnAfterInsertDtldCustLedgEntry', '', false, false)]
     local procedure OnAfterInsertDtldCustLedgEntry(var DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; GenJournalLine: Record "Gen. Journal Line"; DtldCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; Offset: Integer)
     begin
@@ -46,16 +56,32 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
         end;
     end;
 
-    [TryFunction]
-    local procedure TryProcessApplication(DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
+    local procedure TryProcessApplication(DetailedCustLedgEntryParameter: Record "Detailed Cust. Ledg. Entry"): Boolean
+    var
+        EDocPaymentOccurrenceMgt: Codeunit "E-Doc. Payment Occurrence Mgt.";
     begin
-        ProcessApplication(DetailedCustLedgEntry);
+        EDocPaymentOccurrenceMgt.SetApplicationParameters(DetailedCustLedgEntryParameter);
+        exit(EDocPaymentOccurrenceMgt.Run());
     end;
 
-    [TryFunction]
-    local procedure TryProcessUnapplication(OldDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; NewDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
+    local procedure TryProcessUnapplication(OldDetailedCustLedgEntryParameter: Record "Detailed Cust. Ledg. Entry"; NewDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"): Boolean
+    var
+        EDocPaymentOccurrenceMgt: Codeunit "E-Doc. Payment Occurrence Mgt.";
     begin
-        ProcessUnapplication(OldDetailedCustLedgEntry, NewDetailedCustLedgEntry);
+        EDocPaymentOccurrenceMgt.SetUnapplicationParameters(OldDetailedCustLedgEntryParameter, NewDetailedCustLedgEntry);
+        exit(EDocPaymentOccurrenceMgt.Run());
+    end;
+
+    internal procedure SetApplicationParameters(DetailedCustLedgEntryParameter: Record "Detailed Cust. Ledg. Entry")
+    begin
+        DetailedCustLedgEntry := DetailedCustLedgEntryParameter;
+    end;
+
+    internal procedure SetUnapplicationParameters(OldDetailedCustLedgEntryParameter: Record "Detailed Cust. Ledg. Entry"; NewDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
+    begin
+        ProcessUnapplicationCall := true;
+        OldDetailedCustLedgEntry := OldDetailedCustLedgEntryParameter;
+        DetailedCustLedgEntry := NewDetailedCustLedgEntry;
     end;
 
     local procedure LogProcessingFailure(DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; TelemetryMessage: Text)
@@ -178,6 +204,9 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
     end;
 
     var
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        OldDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        ProcessUnapplicationCall: Boolean;
         ApplicationTelemetryLbl: Label 'E-Document payment occurrence processing failed for detailed customer ledger entry %1. Error: %2', Locked = true;
         UnapplicationTelemetryLbl: Label 'E-Document payment reversal occurrence processing failed for detailed customer ledger entry %1. Error: %2', Locked = true;
         PaymentOccurrenceTelemetryCategoryTok: Label 'E-Document', Locked = true;
