@@ -1974,9 +1974,6 @@ codeunit 6620 "Copy Document Mgt."
         OnAfterRecalculateSalesLine(ToSalesHeader, ToSalesLine, FromSalesHeader, FromSalesLine, CopyThisLine);
     end;
 
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Header", 'RIM', InherentPermissionsScope::Both)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Line", 'RIM', InherentPermissionsScope::Both)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Assemble-to-Order Link", 'RIM', InherentPermissionsScope::Both)]
     procedure HandleAsmAttachedToSalesLine(var ToSalesLine: Record "Sales Line")
     var
         AssemblyItem: Record Item;
@@ -5731,7 +5728,7 @@ codeunit 6620 "Copy Document Mgt."
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Header", 'RIM', InherentPermissionsScope::Both)]
     [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Line", 'RIM', InherentPermissionsScope::Both)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Assemble-to-Order Link", 'RIM', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assemble-to-Order Link", 'RI', InherentPermissionsScope::Both)]
     local procedure CopyAsmOrderToAsmOrder(var TempFromAsmHeader: Record "Assembly Header" temporary; var TempFromAsmLine: Record "Assembly Line" temporary; ToSalesLine: Record "Sales Line"; ToAsmHeaderDocType: Option; ToAsmHeaderDocNo: Code[20]; InclAsmHeader: Boolean)
     var
         FromAsmHeader: Record "Assembly Header";
