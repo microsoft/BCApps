@@ -6,7 +6,7 @@
 /// <summary>
 /// Provides authentication configuration for API test requests.
 /// </summary>
-interface 131023 "API Test Auth Provider"
+interface "API Test Auth Provider"
 {
     /// <summary>
     /// Configures authentication for an API test request.

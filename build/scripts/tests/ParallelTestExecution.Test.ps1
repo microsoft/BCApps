@@ -466,7 +466,7 @@ Describe "ParallelTestExecution clean tenant scheduling" {
         }
 
         It "exposes an extensible provider contract with a no-auth default" {
-            $script:authenticationInterface | Should -Match 'interface\s+\d+\s+"API Test Auth Provider"'
+            $script:authenticationInterface | Should -Match 'interface\s+"API Test Auth Provider"'
             $script:authenticationInterface | Should -Match 'ConfigureAuthentication\(TargetURL:\s*Text;\s*var\s+Authentication:\s*Codeunit\s+"API Test Auth Context"\)'
             $script:authenticationEnum | Should -Match 'Extensible\s*=\s*true\s*;'
             $script:authenticationEnum | Should -Match 'DefaultImplementation\s*=\s*"API Test Auth Provider"\s*=\s*"No API Test Auth Provider"\s*;'

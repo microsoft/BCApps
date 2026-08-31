@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+using Microsoft.TestLibraries.ERP;
+
 /// <summary>
 /// Specifies the authentication provider used for API test requests.
 /// </summary>
@@ -19,6 +21,6 @@ enum 131023 "API Test Authentication" implements "API Test Auth Provider"
     value(1; "Microsoft Test Environment")
     {
         Caption = 'Microsoft Test Environment';
-        Implementation = "API Test Auth Provider" = Microsoft.TestLibraries.ERP."Microsoft Test Auth Provider";
+        Implementation = "API Test Auth Provider" = "Microsoft Test Auth Provider";
     }
 }
