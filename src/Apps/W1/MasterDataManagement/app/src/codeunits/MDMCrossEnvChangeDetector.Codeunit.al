@@ -22,6 +22,7 @@ codeunit 7245 "MDM Cross-Env Change Detector"
         DetectorParseFailedTxt: Label 'The cross-environment change detector received an invalid response from the source and skipped this run.', Locked = true;
         DetectionContractFailedTxt: Label 'The cross-environment change detector received a response without a valid tables array and skipped this run.', Locked = true;
         DetectorTransportFailedTxt: Label 'The cross-environment change detector could not reach the source and skipped this run; the next scheduled run will retry.', Locked = true;
+        DetectorCapabilitiesFailedTxt: Label 'The cross-environment change detector could not negotiate capabilities with the source (malformed or unsupported response) and skipped this run.', Locked = true;
 
     trigger OnRun()
     begin
@@ -52,19 +53,24 @@ codeunit 7245 "MDM Cross-Env Change Detector"
             exit;
 
         Transport := SourceConnection.GetTransport();
-        // An operational transport failure (source outage, auth, bad connection state) must NOT error this recurring
-        // detector job - that would burn its retry budget and could stop change detection. Skip this poll instead;
-        // the next scheduled run recovers.
-        if not TryFetchDetection(Transport, TableIds, Supported, ResponseText) then begin
-            // A transport failure here is operational (source outage, auth, bad connection state); skip this poll. The
-            // raw error text is not emitted: GetLastErrorText can carry customer content and this event is All-scope.
+        // Capability negotiation is a deterministic contract exchange; a failure here (e.g. malformed capabilities) is
+        // NOT a transport outage, so classify it distinctly instead of masking it as "could not reach the source".
+        // Still non-fatal to this recurring job: skip the poll, the next scheduled run retries.
+        if not TryNegotiateDetectionSupport(Transport, Supported) then begin
             Dimensions.Add('Category', MasterDataManagement.GetTelemetryCategory());
-            Session.LogMessage('0000VAO', DetectorTransportFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
+            Session.LogMessage('', DetectorCapabilitiesFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
             exit;
         end;
         // Older source doesn't advertise the detection action: skip rather than error every run.
         if not Supported then
             exit;
+        // An operational transport failure (source outage, auth, bad connection state) must NOT error this recurring
+        // detector job - that would burn its retry budget. Skip this poll; the next scheduled run recovers.
+        if not TryFetchDetection(Transport, TableIds, ResponseText) then begin
+            Dimensions.Add('Category', MasterDataManagement.GetTelemetryCategory());
+            Session.LogMessage('0000VAO', DetectorTransportFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
+            exit;
+        end;
         if not SourceResponse.TryParse(ResponseText, Response) then begin
             Session.LogMessage('0000VAP', DetectorParseFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
             exit;
@@ -73,16 +79,21 @@ codeunit 7245 "MDM Cross-Env Change Detector"
         ProcessDetectionResponse(Response);
     end;
 
-    // Contains the source calls (capability negotiation + LastModifiedAtPerTable) so an operational transport error
-    // is caught by the caller (log + skip) instead of escaping and erroring the recurring detector job.
+    // Capability negotiation is a deterministic contract exchange; isolate it so a malformed-capabilities failure is
+    // classified distinctly from a transport outage. Both are caught by the caller (log + skip), never erroring the job.
     [TryFunction]
-    local procedure TryFetchDetection(Transport: Interface "IMDM Source Transport"; TableIds: JsonArray; var Supported: Boolean; var ResponseText: Text)
+    local procedure TryNegotiateDetectionSupport(Transport: Interface "IMDM Source Transport"; var Supported: Boolean)
     var
         SourceCapabilities: Codeunit "MDM Source Capabilities";
     begin
         Supported := SourceCapabilities.IsSupported(Transport, LastModifiedFeatureTok);
-        if not Supported then
-            exit;
+    end;
+
+    // Isolates the LastModifiedAtPerTable transport call so an operational transport error skips the poll instead of
+    // escaping and erroring the recurring detector job.
+    [TryFunction]
+    local procedure TryFetchDetection(Transport: Interface "IMDM Source Transport"; TableIds: JsonArray; var ResponseText: Text)
+    begin
         ResponseText := Transport.LastModifiedAtPerTable(WriteArray(TableIds));
     end;
 

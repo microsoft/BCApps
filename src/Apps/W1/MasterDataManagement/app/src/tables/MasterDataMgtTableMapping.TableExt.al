@@ -46,8 +46,9 @@ tableextension 7235 MasterDataMgtTableMapping extends "Integration Table Mapping
         {
             // Composite (SystemModifiedAt, SystemId) resume point ({"modifiedAt":...,"systemId":...}, ~93 chars).
             // Empty means "caught up": the run drained the source and the watermark is authoritative.
+            // Internal sync resume state (the systemId is a pagination pointer, not business data), so SystemMetadata.
             Caption = 'Source Change Cursor';
-            DataClassification = CustomerContent;
+            DataClassification = SystemMetadata;
         }
     }
 

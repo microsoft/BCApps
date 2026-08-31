@@ -56,13 +56,13 @@ codeunit 139929 "MDM In-Process Transport" implements "IMDM Source Transport"
     /// <param name="Selector">The cursor/systemId selector.</param>
     /// <param name="PageSize">The page size.</param>
     /// <returns>The raw JSON records response.</returns>
-    procedure GetRecords(TableId: Integer; FieldIds: Text; Selector: Text; PageSize: Integer): Text
+    procedure GetRecords(TableId: Integer; FieldIds: Text; Selector: Text; PageSize: Integer; Filter: Text): Text
     var
         SourceApi: Codeunit "MDM Cross-Env Source API";
     begin
         if UseCanned then
             exit(CannedResponse);
-        exit(SourceApi.GetRecords(TableId, FieldIds, Selector, PageSize));
+        exit(SourceApi.GetRecords(TableId, FieldIds, Selector, PageSize, Filter));
     end;
 
     /// <summary>Returns the last-modified-per-table probe, using the canned response if set, otherwise the real source API.</summary>

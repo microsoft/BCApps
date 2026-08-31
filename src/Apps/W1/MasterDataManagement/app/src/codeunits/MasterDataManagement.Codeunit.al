@@ -2188,7 +2188,7 @@ codeunit 7233 "Master Data Management"
         MasterDataManagementSetup.Get();
         if MasterDataManagementSetup."Source Environment Name" <> '' then begin
             // Cross-environment: the review only needs existence; probe the source instead of counting over the wire.
-            if CrossEnvDataSource.SourceHasRecords(IntegrationTableMapping."Integration Table ID") then
+            if CrossEnvDataSource.SourceHasRecords(IntegrationTableMapping, IntegrationTableMapping.GetIntegrationTableFilter()) then
                 exit(1);
             exit(0);
         end;

@@ -9,7 +9,7 @@ interface "IMDM Source Transport"
 {
     Access = Internal;
 
-    procedure GetRecords(TableId: Integer; FieldIds: Text; Selector: Text; PageSize: Integer): Text;
+    procedure GetRecords(TableId: Integer; FieldIds: Text; Selector: Text; PageSize: Integer; Filter: Text): Text;
 
     procedure LastModifiedAtPerTable(TableIds: Text): Text;
 

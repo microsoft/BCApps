@@ -80,7 +80,7 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         repeat
             ParseOrError(
                 IntegrationTableMapping."Integration Table ID",
-                Transport.GetRecords(IntegrationTableMapping."Integration Table ID", FieldIds, Selector, PageSize()),
+                Transport.GetRecords(IntegrationTableMapping."Integration Table ID", FieldIds, Selector, PageSize(), TableFilter),
                 Response);
             SourceResponse.InsertRecords(Response, SourceRecordRef);
             PagesFetched += 1;
@@ -90,11 +90,8 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
                 Selector := EndCursor;
             end;
         until (not HasMore) or ((MaxPages > 0) and (PagesFetched >= MaxPages));
-        // Apply only the mapping's row filter. The source already filtered by the watermark cursor server-side;
-        // re-applying the modified-on filter here would drop every record, since the materialized temp rows
-        // carry no SystemModifiedAt.
-        if TableFilter <> '' then
-            SourceRecordRef.SetView(TableFilter);
+        // The mapping row filter is applied server-side in GetRecords now (parity with same-env), so the materialized
+        // set is already narrowed; no client-side re-filtering, which would misfire on fields outside the projection.
         exit(SourceRecordRef.FindSet());
     end;
 
@@ -102,7 +99,7 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
     /// Cheap existence probe for the full-synch review: the source reports an empty lastModifiedAt for an empty
     /// table, so this avoids counting the whole table over the wire.
     /// </summary>
-    internal procedure SourceHasRecords(IntegrationTableId: Integer): Boolean
+    internal procedure SourceHasRecords(IntegrationTableMapping: Record "Integration Table Mapping"; TableFilter: Text): Boolean
     var
         Transport: Interface "IMDM Source Transport";
         Response: JsonObject;
@@ -112,7 +109,13 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         TableIds: JsonArray;
         TableIdsText: Text;
         LastModifiedAtText: Text;
+        IntegrationTableId: Integer;
     begin
+        IntegrationTableId := IntegrationTableMapping."Integration Table ID";
+        // With a row filter the cheap per-table timestamp can't tell whether any MATCHING record exists (parity with
+        // same-env, which counts filtered rows), so fetch a single filtered record and report on its presence.
+        if TableFilter <> '' then
+            exit(SourceHasFilteredRecords(IntegrationTableMapping, TableFilter));
         TableIds.Add(IntegrationTableId);
         TableIds.WriteTo(TableIdsText);
         Transport := GetTransport();
@@ -149,6 +152,31 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
             if Token.IsValue() then
                 LastModifiedAtText := Token.AsValue().AsText();
         exit(LastModifiedAtText <> '');
+    end;
+
+    /// <summary>
+    /// Existence probe honoring the mapping row filter: fetches a single matching record from the source so the
+    /// full-synch review reflects the filtered set, matching how the same-env path counts filtered rows.
+    /// </summary>
+    local procedure SourceHasFilteredRecords(IntegrationTableMapping: Record "Integration Table Mapping"; TableFilter: Text): Boolean
+    var
+        Transport: Interface "IMDM Source Transport";
+        Response: JsonObject;
+        Token: JsonToken;
+        IntegrationTableId: Integer;
+    begin
+        IntegrationTableId := IntegrationTableMapping."Integration Table ID";
+        Transport := GetTransport();
+        SourceCapabilities.EnsureSupported(Transport, RecordsFeatureTok);
+        // '{}' selector = read from the start (no watermark); PageSize 1 keeps this an existence check, not a count.
+        if not SourceResponse.TryParse(Transport.GetRecords(IntegrationTableId, BuildFieldIds(IntegrationTableMapping), '{}', 1, TableFilter), Response) then begin
+            LogProbeFailure(IntegrationTableId);
+            Error(SourceProbeFailedErr, TableCaption(IntegrationTableId));
+        end;
+        // An unavailable table yields no records array; treat as no matching records for the review.
+        if Response.Get('records', Token) and Token.IsArray() then
+            exit(Token.AsArray().Count() > 0);
+        exit(false);
     end;
 
     procedure GetBySystemId(IntegrationTableId: Integer; SystemId: Guid; var SourceRecordRef: RecordRef): Boolean
@@ -203,7 +231,7 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         SourceCapabilities.EnsureSupported(Transport, RecordsFeatureTok);
         ParseOrError(
             IntegrationTableId,
-            Transport.GetRecords(IntegrationTableId, FieldIds, SystemIdsSelector(SystemIds), PageSize()),
+            Transport.GetRecords(IntegrationTableId, FieldIds, SystemIdsSelector(SystemIds), PageSize(), ''),
             Response);
         SourceResponse.InsertRecords(Response, SourceRecordRef);
     end;

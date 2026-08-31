@@ -18,10 +18,9 @@ codeunit 7248 "MDM Source Response"
         SkippedFieldTxt: Label 'Cross-environment media or blob field exceeds the inline size cap and was not synchronized.', Locked = true;
         BadFieldValueErr: Label 'The source returned a value for field %1 that could not be converted to the expected type %2.', Comment = '%1 - a field caption, %2 - a field type';
 
-    [TryFunction]
-    procedure TryParse(ResponseText: Text; var Response: JsonObject)
+    procedure TryParse(ResponseText: Text; var Response: JsonObject): Boolean
     begin
-        Response.ReadFrom(ResponseText);
+        exit(Response.ReadFrom(ResponseText));
     end;
 
     procedure TableAvailable(var Response: JsonObject): Boolean
@@ -165,8 +164,12 @@ codeunit 7248 "MDM Source Response"
             LogSkippedField(TableId, FieldNo, MediaObject);
             exit;
         end;
+        if IsEmptyField(MediaObject) then begin
+            InlineMedia.PutCleared(SystemId, FieldNo); // source cleared the picture: mirror it on the destination
+            exit;
+        end;
         if not MediaObject.Get('content', ContentToken) then
-            exit; // empty source media: leave the destination picture untouched
+            exit; // no content and not flagged empty: leave the destination picture untouched
         if MediaObject.Get('name', NameToken) then
             FileName := NameToken.AsValue().AsText();
         if MediaObject.Get('mimeType', MimeToken) then
@@ -191,8 +194,13 @@ codeunit 7248 "MDM Source Response"
             LogSkippedField(TableId, FieldNo, BlobObject);
             exit;
         end;
+        if IsEmptyField(BlobObject) then begin
+            Clear(TempBlob);
+            TempBlob.ToFieldRef(DestField); // source cleared the blob: write empty so the transfer clears the destination
+            exit;
+        end;
         if not BlobObject.Get('content', ContentToken) then
-            exit; // empty source blob: leave the destination untouched
+            exit; // no content and not flagged empty: leave the destination untouched
         TempBlob.CreateOutStream(ContentOutStream);
         Base64Convert.FromBase64(ContentToken.AsValue().AsText(), ContentOutStream);
         TempBlob.ToFieldRef(DestField);
@@ -203,6 +211,15 @@ codeunit 7248 "MDM Source Response"
         Token: JsonToken;
     begin
         if FieldObject.Get('skipped', Token) then
+            exit(Token.AsValue().AsBoolean());
+        exit(false);
+    end;
+
+    local procedure IsEmptyField(FieldObject: JsonObject): Boolean
+    var
+        Token: JsonToken;
+    begin
+        if FieldObject.Get('empty', Token) then
             exit(Token.AsValue().AsBoolean());
         exit(false);
     end;

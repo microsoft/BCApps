@@ -44,7 +44,7 @@ codeunit 139931 "MDM Cross-Env Source Tests"
         Customer.Name := CopyStr(LibraryRandom.RandText(20), 1, MaxStrLen(Customer.Name));
         Customer.Modify();
 
-        Response.ReadFrom(SourceApi.GetRecords(Database::Customer, FieldIdsArray(Customer.FieldNo(Name)), SystemIdsSelector(Customer.SystemId), 100));
+        Response.ReadFrom(SourceApi.GetRecords(Database::Customer, FieldIdsArray(Customer.FieldNo(Name)), SystemIdsSelector(Customer.SystemId), 100, ''));
 
         Response.Get('records', Token);
         RecordsArray := Token.AsArray();
@@ -82,7 +82,7 @@ codeunit 139931 "MDM Cross-Env Source Tests"
         end;
 
         // [WHEN] the first page of size 2 is requested from the watermark
-        Response.ReadFrom(SourceApi.GetRecords(Database::Customer, FieldIdsArray(Customer.FieldNo(Name)), CursorSelector(Watermark), 2));
+        Response.ReadFrom(SourceApi.GetRecords(Database::Customer, FieldIdsArray(Customer.FieldNo(Name)), CursorSelector(Watermark), 2, ''));
 
         // [THEN] two records come back and hasMore is true
         Assert.AreEqual(2, RecordCount(Response), 'First page should hold the page size');
@@ -92,7 +92,7 @@ codeunit 139931 "MDM Cross-Env Source Tests"
 
         // [WHEN] the next page is requested with the returned cursor
         Clear(Response);
-        Response.ReadFrom(SourceApi.GetRecords(Database::Customer, FieldIdsArray(Customer.FieldNo(Name)), NextCursor, 2));
+        Response.ReadFrom(SourceApi.GetRecords(Database::Customer, FieldIdsArray(Customer.FieldNo(Name)), NextCursor, 2, ''));
 
         // [THEN] the remaining record comes back and hasMore is false
         Assert.AreEqual(1, RecordCount(Response), 'Second page should hold the remaining record');
@@ -130,6 +130,53 @@ codeunit 139931 "MDM Cross-Env Source Tests"
         Entry.Get('lastModifiedAt', Token);
         Assert.IsTrue(Evaluate(LastModified, Token.AsValue().AsText(), 9), 'lastModifiedAt should be a round-trippable timestamp');
         Assert.IsTrue(LastModified >= Customer.SystemModifiedAt, 'lastModifiedAt should be at least the just-created customer');
+    end;
+
+    [Test]
+    procedure GetRecordsRejectsTenantMediaInfrastructureTable()
+    var
+        SourceApi: Codeunit "MDM Cross-Env Source API";
+        Response: JsonObject;
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Security]
+        // [SCENARIO] The source API refuses to serve Tenant Media as a top-level table, so a caller holding the media
+        // read grant cannot enumerate blobs directly; media stays reachable only inline via a record's media field.
+        Response.ReadFrom(SourceApi.GetRecords(Database::"Tenant Media", FieldIdsArray(1), CursorSelector(CurrentDateTime()), 10, ''));
+
+        // [THEN] the table is reported unavailable and no records are returned
+        Assert.IsFalse(GetBoolean(Response, 'tableAvailable'), 'Tenant Media must not be served as a top-level table');
+        Assert.AreEqual(0, RecordCount(Response), 'A blocked table must return no records');
+    end;
+
+    [Test]
+    procedure GetRecordsAppliesRowFilterOnUnprojectedField()
+    var
+        MatchCustomer: Record Customer;
+        OtherCustomer: Record Customer;
+        FilterCustomer: Record Customer;
+        SourceApi: Codeunit "MDM Cross-Env Source API";
+        Response: JsonObject;
+        Watermark: DateTime;
+        SystemIds: List of [Guid];
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] The source applies the mapping row filter server-side even when it references a field outside the
+        // projection (parity with same-env), so only matching records are returned rather than filtered post-hoc.
+        Watermark := CurrentDateTime();
+        Sleep(50); // ensure the seeded records sort strictly after the watermark
+        LibrarySales.CreateCustomer(MatchCustomer);
+        MatchCustomer.Blocked := MatchCustomer.Blocked::All;
+        MatchCustomer.Modify();
+        LibrarySales.CreateCustomer(OtherCustomer); // Blocked = " ": excluded by the filter
+
+        // [WHEN] records are fetched projecting only Name, with a filter on the (unprojected) Blocked field
+        FilterCustomer.SetRange(Blocked, MatchCustomer.Blocked::All);
+        Response.ReadFrom(SourceApi.GetRecords(Database::Customer, FieldIdsArray(MatchCustomer.FieldNo(Name)), CursorSelector(Watermark), 100, FilterCustomer.GetView(false)));
+
+        // [THEN] only the customer matching the row filter comes back
+        CollectResponseSystemIds(Response, SystemIds);
+        Assert.IsTrue(SystemIds.Contains(MatchCustomer.SystemId), 'The customer matching the row filter should be returned');
+        Assert.IsFalse(SystemIds.Contains(OtherCustomer.SystemId), 'A customer outside the row filter must be excluded server-side');
     end;
 
     local procedure FeaturesContain(var Response: JsonObject; Feature: Text): Boolean

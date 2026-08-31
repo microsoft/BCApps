@@ -388,8 +388,16 @@ codeunit 7237 "Master Data Mgt. Subscribers"
     begin
         SourceRecordRef := SourceFieldRef.Record();
         SourceSystemId := SourceRecordRef.Field(SourceRecordRef.SystemIdNo()).Value();
+        // Source cleared the picture: mirror it by deleting the destination media and emptying the field.
+        if InlineMedia.IsCleared(SourceSystemId, SourceFieldRef.Number()) then begin
+            DestinationMediaId := DestinationFieldRef.Value();
+            if (DestinationMediaId <> EmptyGuid) and DestinationTenantMedia.Get(DestinationMediaId) then
+                DestinationTenantMedia.Delete();
+            NewValue := EmptyGuid;
+            exit(true);
+        end;
         if not InlineMedia.TryGet(SourceSystemId, SourceFieldRef.Number(), FileName, MimeType, TempBlob) then
-            exit(false); // no inline bytes (empty source or over-cap skip): leave the destination untouched
+            exit(false); // no inline bytes (over-cap skip or field not projected): leave the destination untouched
         SourceLength := TempBlob.Length();
 
         DestinationMediaId := DestinationFieldRef.Value();

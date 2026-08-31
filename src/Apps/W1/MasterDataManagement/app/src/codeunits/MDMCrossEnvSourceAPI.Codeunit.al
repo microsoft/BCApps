@@ -44,7 +44,7 @@ codeunit 7241 "MDM Cross-Env Source API"
     /// runs under the CALLER's permission set, so table-level access is enforced by permissions, not here.
     /// </summary>
     [ServiceEnabled]
-    procedure GetRecords(TableId: Integer; FieldIds: Text; Selector: Text; PageSize: Integer): Text
+    procedure GetRecords(TableId: Integer; FieldIds: Text; Selector: Text; PageSize: Integer; Filter: Text): Text
     var
         RecRef: RecordRef;
         Response: JsonObject;
@@ -64,6 +64,8 @@ codeunit 7241 "MDM Cross-Env Source API"
     begin
         Response.Add('tableId', TableId);
 
+        if IsBlockedSourceTable(TableId) then
+            exit(WriteResponse(Response, false, Records, false));
         if not TryOpenTable(TableId, RecRef) then
             exit(WriteResponse(Response, false, Records, false));
         Response.Add('tableAvailable', true);
@@ -79,7 +81,8 @@ codeunit 7241 "MDM Cross-Env Source API"
         PageSize := ClampPageSize(PageSize);
         ApplyProjectionLoadFields(RecRef, ProjectedFields);
 
-        // Targeted mode: caller asked for specific SystemIds (no paging).
+        // Targeted mode: caller asked for specific SystemIds (no paging). The mapping row filter is not applied here,
+        // matching same-env GetById/GetByUidFilter (targeted fetches return the requested records directly).
         if SelectorSystemIds(Selector, SystemIds) then begin
             FillBySystemIds(RecRef, SystemIds, ProjectedFields, Records);
             exit(WriteResponse(Response, true, Records, false));
@@ -90,6 +93,7 @@ codeunit 7241 "MDM Cross-Env Source API"
         if HasCompositeChangeFeedKey(RecRef) then begin
             // Bounded paging: the (SystemModifiedAt, SystemId) key lets us split even a big same-timestamp group.
             RecRef.SetView(StrSubstNo(SortByChangeFeedKeyTok, SystemModifiedAtFieldNo(), SystemIdFieldNo()));
+            ApplyRowFilter(RecRef, Filter);
             HasMore := FillCursorPage(RecRef, HasCursor, CursorModifiedAt, CursorSystemId, ProjectedFields, PageSize, Records, Count, NextModifiedAt, NextSystemId);
             if Count > 0 then
                 Response.Add('nextCursor', BuildCursor(NextModifiedAt, NextSystemId));
@@ -99,6 +103,7 @@ codeunit 7241 "MDM Cross-Env Source API"
                 // timestamp group whole so the cursor can advance by SystemModifiedAt alone. Safe while groups
                 // are small; a group too large to page keylessly asks for the composite key instead.
                 RecRef.SetView(StrSubstNo(SortByModifiedAtTok, SystemModifiedAtFieldNo()));
+                ApplyRowFilter(RecRef, Filter);
                 HasMore := FillDrainPage(RecRef, HasCursor, CursorModifiedAt, ProjectedFields, PageSize, Records, Count, NextModifiedAt, GroupTooLarge);
                 if GroupTooLarge then begin
                     Clear(Records);
@@ -111,6 +116,7 @@ codeunit 7241 "MDM Cross-Env Source API"
                 // No SystemModifiedAt index at all: no-code scan fallback. Order by primary key (always indexed),
                 // filter SystemModifiedAt > watermark, and return the whole changed set in one shot (capped).
                 // Over the cap, ask for the composite key (only large unindexed tables need it).
+                ApplyRowFilter(RecRef, Filter);
                 HasMore := FillScanPage(RecRef, HasCursor, CursorModifiedAt, ProjectedFields, Records, Count, NextModifiedAt, GroupTooLarge);
                 if GroupTooLarge then begin
                     Clear(Records);
@@ -144,6 +150,36 @@ codeunit 7241 "MDM Cross-Env Source API"
     begin
         RecRef.Open(TableId);
         RecRef.ReadIsolation := IsolationLevel::ReadCommitted;
+    end;
+
+    // Media/infrastructure tables are only reachable inline (BuildMediaValue, tied to a record's media field). Never
+    // serve them as a top-level read, or a caller holding the Tenant Media read grant could enumerate every blob.
+    local procedure IsBlockedSourceTable(TableId: Integer): Boolean
+    begin
+        exit(TableId in [Database::"Tenant Media", Database::"Tenant Media Set", Database::"Tenant Media Thumbnails"]);
+    end;
+
+    // Applies the mapping's row filter server-side (parity with same-env, which filters the source record directly).
+    // Re-hydrated as field-level filters so it composes with the change-feed SORTING view already set for paging,
+    // and works even when the filter references a field outside the projection (which the temp buffer would default).
+    local procedure ApplyRowFilter(var RecRef: RecordRef; Filter: Text)
+    var
+        FilterSource: RecordRef;
+        SourceField: FieldRef;
+        FieldFilter: Text;
+        Index: Integer;
+    begin
+        if Filter = '' then
+            exit;
+        FilterSource.Open(RecRef.Number());
+        FilterSource.SetView(Filter);
+        for Index := 1 to FilterSource.FieldCount() do begin
+            SourceField := FilterSource.FieldIndex(Index);
+            FieldFilter := SourceField.GetFilter();
+            if FieldFilter <> '' then
+                RecRef.Field(SourceField.Number()).SetFilter(FieldFilter);
+        end;
+        FilterSource.Close();
     end;
 
     local procedure ResolveProjection(var RecRef: RecordRef; FieldIds: Text; var ProjectedFields: List of [Integer]; var UnavailableFields: JsonArray)
@@ -518,16 +554,14 @@ codeunit 7241 "MDM Cross-Env Source API"
     begin
     end;
 
-    [TryFunction]
-    local procedure TryReadJsonArray(Value: Text; var JsonArrayValue: JsonArray)
+    local procedure TryReadJsonArray(Value: Text; var JsonArrayValue: JsonArray): Boolean
     begin
-        JsonArrayValue.ReadFrom(Value);
+        exit(JsonArrayValue.ReadFrom(Value));
     end;
 
-    [TryFunction]
-    local procedure TryReadJsonObject(Value: Text; var JsonObjectValue: JsonObject)
+    local procedure TryReadJsonObject(Value: Text; var JsonObjectValue: JsonObject): Boolean
     begin
-        JsonObjectValue.ReadFrom(Value);
+        exit(JsonObjectValue.ReadFrom(Value));
     end;
 
     local procedure ClampPageSize(PageSize: Integer): Integer
@@ -577,7 +611,7 @@ codeunit 7241 "MDM Cross-Env Source API"
         Entry: JsonObject;
     begin
         Entry.Add('tableId', TableId);
-        if not TryOpenTable(TableId, RecRef) then begin
+        if IsBlockedSourceTable(TableId) or (not TryOpenTable(TableId, RecRef)) then begin
             Entry.Add('tableAvailable', false);
             exit(Entry);
         end;

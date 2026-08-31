@@ -240,6 +240,17 @@ codeunit 139757 "Library - Master Data Mgt."
         exit(InlineMedia.Contains(SystemId, FieldNo));
     end;
 
+    /// <summary>Checks whether an inline media field was marked cleared (empty on the source) for destination removal.</summary>
+    /// <param name="SystemId">The SystemId of the source record.</param>
+    /// <param name="FieldNo">The field number of the media field.</param>
+    /// <returns>True if the field was marked cleared; otherwise false.</returns>
+    procedure InlineMediaIsCleared(SystemId: Guid; FieldNo: Integer): Boolean
+    var
+        InlineMedia: Codeunit "MDM Inline Media";
+    begin
+        exit(InlineMedia.IsCleared(SystemId, FieldNo));
+    end;
+
     /// <summary>Reads the source SystemModifiedAt watermark cached during cross-environment materialization.</summary>
     /// <param name="SystemId">The SystemId of the source record.</param>
     /// <param name="ModifiedAt">Returns the cached source SystemModifiedAt.</param>

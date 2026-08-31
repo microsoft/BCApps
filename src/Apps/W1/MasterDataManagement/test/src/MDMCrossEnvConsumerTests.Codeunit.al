@@ -538,6 +538,36 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     end;
 
     [Test]
+    procedure CrossEnvEmptyMediaFieldMarksDestinationCleared()
+    var
+        TestTableA: Record "MDM Test Table A";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        SourceRecordRef: RecordRef;
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] A source record whose Media field is empty is marked cleared so the destination picture is
+        // removed during transfer (mirroring a source deletion), instead of leaving a stale image behind.
+        Initialize();
+        Clear(TestTableA);
+        TestTableA."Primary Key" := CopyStr('M' + Format(LibraryRandomInt()), 1, MaxStrLen(TestTableA."Primary Key"));
+        TestTableA.Insert(); // no Test Image: the source serializes the media field as empty
+
+        LibraryMasterDataMgt.SetSourceEnvironmentName('PROD');
+        InProcessTransport.Activate();
+
+        Assert.IsTrue(LibraryMasterDataMgt.DataSourceGetBySystemId(Database::"MDM Test Table A", TestTableA.SystemId, SourceRecordRef), 'Record should be materialized');
+        Assert.IsTrue(
+            LibraryMasterDataMgt.InlineMediaIsCleared(TestTableA.SystemId, TestTableA.FieldNo("Test Image")),
+            'An empty source media field must be marked cleared so the destination picture is removed');
+        Assert.IsFalse(
+            LibraryMasterDataMgt.InlineMediaCacheContains(TestTableA.SystemId, TestTableA.FieldNo("Test Image")),
+            'An empty source media field must not cache any bytes');
+
+        CleanUp();
+    end;
+
+    [Test]
     procedure CrossEnvOversizeMediaIsSkipped()
     var
         TestTableA: Record "MDM Test Table A";

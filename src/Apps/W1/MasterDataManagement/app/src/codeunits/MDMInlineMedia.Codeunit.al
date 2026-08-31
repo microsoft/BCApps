@@ -20,12 +20,14 @@ codeunit 7232 "MDM Inline Media"
         ContentByKey: Dictionary of [Text, Text];
         NameByKey: Dictionary of [Text, Text];
         MimeByKey: Dictionary of [Text, Text];
+        ClearedByKey: Dictionary of [Text, Boolean];
 
     procedure Reset()
     begin
         Clear(ContentByKey);
         Clear(NameByKey);
         Clear(MimeByKey);
+        Clear(ClearedByKey);
     end;
 
     procedure Put(SystemId: Guid; FieldNo: Integer; FileName: Text; MimeType: Text; ContentBase64: Text)
@@ -36,6 +38,18 @@ codeunit 7232 "MDM Inline Media"
         ContentByKey.Set(MediaKey, ContentBase64);
         NameByKey.Set(MediaKey, FileName);
         MimeByKey.Set(MediaKey, MimeType);
+    end;
+
+    // The source reported the media field empty (cleared): record it so the transfer clears the destination media
+    // instead of leaving stale bytes. Distinct from an absent entry, which means "not projected / leave untouched".
+    procedure PutCleared(SystemId: Guid; FieldNo: Integer)
+    begin
+        ClearedByKey.Set(MakeKey(SystemId, FieldNo), true);
+    end;
+
+    procedure IsCleared(SystemId: Guid; FieldNo: Integer): Boolean
+    begin
+        exit(ClearedByKey.ContainsKey(MakeKey(SystemId, FieldNo)));
     end;
 
     procedure Contains(SystemId: Guid; FieldNo: Integer): Boolean

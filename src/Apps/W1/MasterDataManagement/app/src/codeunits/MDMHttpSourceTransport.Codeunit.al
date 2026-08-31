@@ -40,7 +40,7 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         RequestFailedTelemetryTxt: Label 'Cross-environment %1 request failed with HTTP %2.', Locked = true, Comment = '%1 = action name, %2 = HTTP status code';
         TransportFailedTelemetryTxt: Label 'Cross-environment %1 request could not be sent to the source environment.', Locked = true, Comment = '%1 = action name';
 
-    procedure GetRecords(TableId: Integer; FieldIds: Text; Selector: Text; PageSize: Integer): Text
+    procedure GetRecords(TableId: Integer; FieldIds: Text; Selector: Text; PageSize: Integer; Filter: Text): Text
     var
         Body: JsonObject;
         BodyText: Text;
@@ -49,6 +49,7 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         Body.Add('fieldIds', FieldIds);
         Body.Add('selector', Selector);
         Body.Add('pageSize', PageSize);
+        Body.Add('filter', Filter);
         Body.WriteTo(BodyText);
         exit(InvokeAction('GetRecords', BodyText));
     end;
