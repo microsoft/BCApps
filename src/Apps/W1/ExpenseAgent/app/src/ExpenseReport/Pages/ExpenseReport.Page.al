@@ -468,7 +468,6 @@ page 6910 "Expense Report"
                         CurrPage.SaveRecord();
                     end;
                 }
-#if not CLEAN30
                 action(VATSpecification)
                 {
                     ApplicationArea = Basic, Suite;
@@ -478,11 +477,7 @@ page 6910 "Expense Report"
                     RunPageLink = "Document No." = field("No."), "Document Line No." = const(0);
                     ToolTip = 'View the VAT details for the record.';
                     Visible = false;
-                    ObsoleteReason = 'Replaced by Expense Report Statistics';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '30.0';
                 }
-#endif
                 action("Spend Request")
                 {
                     ApplicationArea = Basic, Suite;
@@ -632,14 +627,9 @@ page 6910 "Expense Report"
                 actionref(dimension_Promoted; Dimensions)
                 {
                 }
-#if not CLEAN30
                 actionref(VATSpecification_Promoted; VATSpecification)
                 {
-                    ObsoleteReason = 'Replaced by Expense Report Statistics';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '30.0';
                 }
-#endif
                 actionref("Spend Request_Promoted"; "Spend Request")
                 {
                 }
