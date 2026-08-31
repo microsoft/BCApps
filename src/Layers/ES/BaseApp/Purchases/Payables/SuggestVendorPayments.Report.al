@@ -1131,7 +1131,7 @@ report 393 "Suggest Vendor Payments"
         TempPayableVendorLedgerEntry.SetRange("Amount (LCY)");
     end;
 
-    local procedure InsertDimBuf(var DimBuf: Record "Dimension Buffer"; TableID: Integer; EntryNo: Integer; DimCode: Code[20]; DimValue: Code[20])
+    local procedure InsertDimBuf(var DimBuf: Record "Dimension Buffer"; TableID: BigInteger; EntryNo: Integer; DimCode: Code[20]; DimValue: Code[20])
     begin
         DimBuf.Init();
         DimBuf."Table ID" := TableID;

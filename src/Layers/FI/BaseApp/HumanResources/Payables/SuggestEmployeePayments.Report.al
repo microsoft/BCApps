@@ -720,7 +720,7 @@ report 394 "Suggest Employee Payments"
         PayableEmplLedgEntry.SetRange(Amount);
     end;
 
-    local procedure InsertDimBuf(var DimBuf: Record "Dimension Buffer"; TableID: Integer; EntryNo: Integer; DimCode: Code[20]; DimValue: Code[20])
+    local procedure InsertDimBuf(var DimBuf: Record "Dimension Buffer"; TableID: BigInteger; EntryNo: Integer; DimCode: Code[20]; DimValue: Code[20])
     begin
         DimBuf.Init();
         DimBuf."Table ID" := TableID;

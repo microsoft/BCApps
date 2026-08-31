@@ -9224,7 +9224,7 @@ table 37 "Sales Line"
     /// </summary>
     /// <param name="ItemTrackingSetup">The item tracking setup to filter the item ledger entry with.</param>
     /// <returns>The item ledger entry no. if found, otherwise zero.</returns>
-    procedure FindOpenATOEntry(ItemTrackingSetup: Record "Item Tracking Setup"): Integer
+    procedure FindOpenATOEntry(ItemTrackingSetup: Record "Item Tracking Setup"): BigInteger
     var
         PostedATOLink: Record "Posted Assemble-to-Order Link";
         ItemLedgEntry: Record "Item Ledger Entry";

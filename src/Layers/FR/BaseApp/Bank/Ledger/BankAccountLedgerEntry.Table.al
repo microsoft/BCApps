@@ -36,7 +36,7 @@ table 271 "Bank Account Ledger Entry"
         /// <summary>
         /// Unique sequential identifier for each bank account ledger entry.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
@@ -195,7 +195,7 @@ table 271 "Bank Account Ledger Entry"
         /// <summary>
         /// Entry number of the bank account ledger entry that closed this entry.
         /// </summary>
-        field(44; "Closed by Entry No."; Integer)
+        field(44; "Closed by Entry No."; BigInteger)
         {
             Caption = 'Closed by Entry No.';
             TableRelation = "Bank Account Ledger Entry";
@@ -362,7 +362,7 @@ table 271 "Bank Account Ledger Entry"
         /// <summary>
         /// Entry number of the bank account ledger entry that reversed this entry.
         /// </summary>
-        field(65; "Reversed by Entry No."; Integer)
+        field(65; "Reversed by Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Reversed by Entry No.';
@@ -372,7 +372,7 @@ table 271 "Bank Account Ledger Entry"
         /// <summary>
         /// Entry number of the original bank account ledger entry that this entry reverses.
         /// </summary>
-        field(66; "Reversed Entry No."; Integer)
+        field(66; "Reversed Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Reversed Entry No.';

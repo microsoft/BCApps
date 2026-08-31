@@ -527,7 +527,7 @@ codeunit 432 Consolidate
     /// <returns>Entry number assigned to the temporary consolidation entry</returns>
     procedure InsertGLEntry(NewGLEntry: Record "G/L Entry"): Integer
     var
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
     begin
         NextEntryNo := TempSubsidGLEntry.GetLastEntryNo() + 1;
 
@@ -1206,7 +1206,7 @@ codeunit 432 Consolidate
 
     local procedure UpdateTempGLEntry(var GLEntry: Record "G/L Entry")
     var
-        DimEntryNo: Integer;
+        DimEntryNo: BigInteger;
         Found: Boolean;
         IsHandled: Boolean;
     begin

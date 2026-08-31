@@ -1,4 +1,10 @@
+<<<<<<< src/Layers/APAC/BaseApp/Purchases/Document/PurchaseHeader.Table.al
 // ------------------------------------------------------------------------------------------------
+||||||| Base: src/Layers/W1/BaseApp/Purchases/Document/PurchaseHeader.Table.al
+∩╗┐// ------------------------------------------------------------------------------------------------
+=======
+﻿// ------------------------------------------------------------------------------------------------
+>>>>>>> src/Layers/W1/BaseApp/Purchases/Document/PurchaseHeader.Table.al
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -2242,7 +2248,7 @@ table 38 "Purchase Header"
             Caption = 'Job Queue Entry ID';
             Editable = false;
         }
-        field(165; "Incoming Document Entry No."; Integer)
+        field(165; "Incoming Document Entry No."; BigInteger)
         {
             Caption = 'Incoming Document Entry No.';
             ToolTip = 'Specifies the number of the incoming document that this purchase document is created for.';
