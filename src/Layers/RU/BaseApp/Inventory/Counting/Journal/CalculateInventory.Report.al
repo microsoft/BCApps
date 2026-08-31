@@ -1056,7 +1056,7 @@ report 790 "Calculate Inventory"
             until DefaultDimension.Next() = 0;
     end;
 
-    local procedure InsertDim(TableID: Integer; EntryNo: BigInteger; DimCode: Code[20]; DimValueCode: Code[20])
+    local procedure InsertDim(TableID: Integer; EntryNo: Integer; DimCode: Code[20]; DimValueCode: Code[20])
     begin
         TempDimBufIn.Init();
         TempDimBufIn."Table ID" := TableID;

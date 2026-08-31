@@ -4658,6 +4658,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         SalesVATAccount: Code[20];
         SalesVATUnrealAccount: Code[20];
         LastConnectionNo: Integer;
+<<<<<<< src/Layers/ES/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
         Doc: Record "Cartera Doc.";
         ClosedDoc: Record "Closed Cartera Doc.";
         PostedDoc: Record "Posted Cartera Doc.";
@@ -6318,6 +6319,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         PurchReverseAccount: Code[20];
         PurchReverseUnrealAccount: Code[20];
         LastConnectionNo: Integer;
+<<<<<<< src/Layers/ES/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
         Doc: Record "Cartera Doc.";
         ClosedDoc: Record "Closed Cartera Doc.";
         PostedDoc: Record "Posted Cartera Doc.";

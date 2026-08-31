@@ -988,7 +988,7 @@ table 15 "G/L Account"
         /// <summary>
         /// Reference to the account subcategory entry for detailed financial statement classification.
         /// </summary>
-        field(80; "Account Subcategory Entry No."; Integer)
+        field(80; "Account Subcategory Entry No."; BigInteger)
         {
             Caption = 'Account Subcategory Entry No.';
             TableRelation = "G/L Account Category";

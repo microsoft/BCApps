@@ -8183,10 +8183,18 @@ codeunit 12 "Gen. Jnl.-Post Line"
                            DtldCVLedgEntryBuf."Entry Type"::"Payment Discount Tolerance (VAT Excl.)"]);
     end;
 
-    [Scope('OnPrem')]
-    procedure IncrNextTransactionNo()
+    local procedure UpdateVATEntryTaxDetails(GenJnlLine: Record "Gen. Journal Line"; var VATEntry: Record "VAT Entry"; TaxDetail: Record "Tax Detail"; var TaxJurisdiction: Record "Tax Jurisdiction")
     begin
-        NextTransactionNo := NextTransactionNo + 1;
+        if TaxDetail."Tax Jurisdiction Code" <> '' then
+            TaxJurisdiction.Get(TaxDetail."Tax Jurisdiction Code");
+        if GenJnlLine."Gen. Posting Type" <> GenJnlLine."Gen. Posting Type"::Settlement then begin
+            VATEntry."Tax Group Used" := TaxDetail."Tax Group Code";
+            VATEntry."Tax Type" := TaxDetail."Tax Type";
+            VATEntry."Tax on Tax" := TaxDetail."Calculate Tax on Tax";
+        end;
+        VATEntry."Tax Jurisdiction Code" := TaxDetail."Tax Jurisdiction Code";
+
+        OnAfterUpdateVATEntryTaxDetails(VATEntry, TaxDetail);
     end;
 
     [Scope('OnPrem')]
@@ -10137,7 +10145,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnBeforeCustLedgEntryInsert(var CustLedgerEntry: Record "Cust. Ledger Entry"; var GenJournalLine: Record "Gen. Journal Line"; GLRegister: Record "G/L Register"; var TempDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; var NextEntryNo: BigInteger; PaymentTermsLine: Record "Payment Lines")
+    local procedure OnBeforeCustLedgEntryInsert(var CustLedgerEntry: Record "Cust. Ledger Entry"; var GenJournalLine: Record "Gen. Journal Line"; GLRegister: Record "G/L Register"; var TempDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; var NextEntryNo: BigInteger; PaymentTermsLine: Record "Payment 
     begin
     end;
 

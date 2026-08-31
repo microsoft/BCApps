@@ -919,7 +919,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
     /// can filter temp entries per posting group. The actual register number is assigned
     /// when the entry is copied to the real table.
     /// </summary>
-    local procedure TagExchRateAdjmtLedgEntry(BufferIndex: Integer)
+    local procedure TagExchRateAdjmtLedgEntry(BufferIndex: BigInteger)
     begin
         if TempExchRateAdjmtLedgEntry.Get(0, NewRegLedgEntryNo) then begin
             TempExchRateAdjmtLedgEntry.Delete();
