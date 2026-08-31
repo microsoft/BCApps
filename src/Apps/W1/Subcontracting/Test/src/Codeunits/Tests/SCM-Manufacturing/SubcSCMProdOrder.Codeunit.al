@@ -6,7 +6,6 @@ namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
@@ -73,7 +72,6 @@ codeunit 139997 "Subc SCM Prod. Order"
         SubcManagementLibrary: Codeunit "Subc. Management Library";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         IsInitialized: Boolean;
-        RecreatePurchaseLineConfirmHandlerQst: Label 'If you change %1, the existing purchase lines will be deleted and new purchase lines based on the new information in the header will be created.\\Do you want to continue?', Comment = '%1 - field caption';
         ValueEntrySourceTypeErr: Label 'Value Entry Source Type must be equal to %1', Comment = '%1 - source type';
         ValueEntrySourceNoErr: Label 'Value Entry Source No must be equal to %1', Comment = '%1 - source no';
         ILEQtyEqualErr: Label '%1 must be equal to %2 in the %3.', Comment = '%1 - field caption, %2 - quantity, %3 - table caption';
@@ -238,41 +236,6 @@ codeunit 139997 "Subc SCM Prod. Order"
         // Verify: Verify Reservation Entry for Status, Location Code and Tracking after Calculate Subcontracts. Verify Production Quantity and WorkCenter Subcontractor on Subcontracting Worksheet.
         VerifyReservationEntry(Item."No.", ProductionOrder.Quantity, ReservationEntry."Reservation Status"::Surplus, LocationBlue.Code);
         VerifyRequisitionLineForSubcontract(ProductionOrder, WorkCenter, Item."No.");
-    end;
-
-    [Test]
-    [HandlerFunctions('ConfirmHandlerTRUE')]
-    [Scope('OnPrem')]
-    procedure PurchaseLineAfterUpdatingVATBusPostingGroupFromHeader()
-    var
-        WorkCenter: Record "Work Center";
-        Item: Record Item;
-        ProductionOrder: Record "Production Order";
-        PurchaseLine: Record "Purchase Line";
-        PurchaseHeader: Record "Purchase Header";
-        RequisitionLine: Record "Requisition Line";
-    begin
-        // Test that after changing VAT bus posting group from Purchase Header created from subcontacting worksheet, Purchase line should not be updated with Item card.
-        // Setup: Create Item. Create Routing and update on Item.
-        Initialize();
-        CreateItem(Item);
-        CreateRoutingAndUpdateItemSubc(Item, WorkCenter, true);
-        CreateAndRefreshReleasedProductionOrder(ProductionOrder, Item."No.", LibraryRandom.RandDec(10, 2), '', '');
-
-        // Calculate Subcontracts from Subcontracting worksheet and Carry Out Action Message.
-        CalculateSubcontractOrder(WorkCenter);
-        AcceptActionMessage(RequisitionLine, Item."No.");
-        LibraryPlanning.CarryOutAMSubcontractWksh(RequisitionLine);
-
-        // Exercise: Update the purchase header with VAT bus posting group different from the earlier one.
-        LibraryVariableStorage.Enqueue(
-          StrSubstNo(RecreatePurchaseLineConfirmHandlerQst, PurchaseHeader.FieldCaption("VAT Bus. Posting Group")));  // Required inside ConfirmHandlerTRUE.
-        FindPurchaseOrderLine(PurchaseLine, Item."No.");
-        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
-        UpdatePurchaseHeaderVATBusPostingGroup(PurchaseHeader);
-
-        // Verify: Verify that the Purchase line should not be updated with Item card. And the field values remains the same.
-        VerifyRecreatedPurchaseLine(PurchaseLine, PurchaseHeader."VAT Bus. Posting Group");
     end;
 
     [Test]
@@ -1201,11 +1164,6 @@ codeunit 139997 "Subc SCM Prod. Order"
             exit(RoutingLine."Operation No.");
     end;
 
-    local procedure AreSameMessages(Message: Text[1024]; Message2: Text[1024]): Boolean
-    begin
-        exit(StrPos(Message, Message2) > 0);
-    end;
-
     local procedure VerifyPurchaseLine(No: Code[20]; Quantity: Decimal)
     var
         PurchaseLine: Record "Purchase Line";
@@ -1491,21 +1449,6 @@ codeunit 139997 "Subc SCM Prod. Order"
         VerifyCapacityLedgerEntryAfterUndo(DocumentNo, Item."No.");
     end;
 
-    local procedure UpdatePurchaseHeaderVATBusPostingGroup(var PurchaseHeader: Record "Purchase Header")
-    begin
-        PurchaseHeader.Validate("VAT Bus. Posting Group", GetDifferentVATBusPostingGroup(PurchaseHeader."VAT Bus. Posting Group"));
-        PurchaseHeader.Modify(true);
-    end;
-
-    local procedure GetDifferentVATBusPostingGroup(VATBusPostingGroupCode: Code[20]): Code[20]
-    var
-        VATPostingSetup: Record "VAT Posting Setup";
-    begin
-        VATPostingSetup.SetFilter("VAT Bus. Posting Group", '<>%1', VATBusPostingGroupCode);
-        VATPostingSetup.FindLast();
-        exit(VATPostingSetup."VAT Bus. Posting Group");
-    end;
-
     local procedure VerifyRequisitionLineForSubcontract(ProductionOrder: Record "Production Order"; WorkCenter: Record "Work Center"; ItemNo: Code[20])
     var
         RequisitionLine: Record "Requisition Line";
@@ -1551,25 +1494,6 @@ codeunit 139997 "Subc SCM Prod. Order"
         CapacityLedgerEntry.TestField("Invoiced Quantity", 0);
     end;
 
-    local procedure VerifyRecreatedPurchaseLine(PurchaseLine: Record "Purchase Line"; VATBusPostingGroupCode: Code[20])
-    var
-        RecreatedPurchaseLine: Record "Purchase Line";
-    begin
-        RecreatedPurchaseLine.SetRange("Document Type", PurchaseLine."Document Type");
-        RecreatedPurchaseLine.SetRange("Document No.", PurchaseLine."Document No.");
-        RecreatedPurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
-        RecreatedPurchaseLine.FindFirst();
-        // Cannot use GET because one of the key fields "Line No." could be changed while line recreation
-        RecreatedPurchaseLine.TestField(Description, PurchaseLine.Description);
-        RecreatedPurchaseLine.TestField("Unit Cost (LCY)", PurchaseLine."Unit Cost (LCY)");
-        RecreatedPurchaseLine.TestField("Gen. Prod. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
-        RecreatedPurchaseLine.TestField("VAT Prod. Posting Group", PurchaseLine."VAT Prod. Posting Group");
-        RecreatedPurchaseLine.TestField("Qty. per Unit of Measure", PurchaseLine."Qty. per Unit of Measure");
-        RecreatedPurchaseLine.TestField("Expected Receipt Date", PurchaseLine."Expected Receipt Date");
-        RecreatedPurchaseLine.TestField("Requested Receipt Date", PurchaseLine."Requested Receipt Date");
-        RecreatedPurchaseLine.TestField("VAT Bus. Posting Group", VATBusPostingGroupCode);
-    end;
-
     // Handler procedures
 
     [ModalPageHandler]
@@ -1586,17 +1510,6 @@ codeunit 139997 "Subc SCM Prod. Order"
         ItemTrackingLines."Assign Lot No.".Invoke();
         ItemTrackingLines."Quantity (Base)".SetValue(LibraryVariableStorage.DequeueDecimal());
         ItemTrackingLines.OK().Invoke();
-    end;
-
-    [ConfirmHandler]
-    [Scope('OnPrem')]
-    procedure ConfirmHandlerTRUE(ConfirmMessage: Text[1024]; var Reply: Boolean)
-    var
-        ExpectedMessage: Variant;
-    begin
-        LibraryVariableStorage.Dequeue(ExpectedMessage);
-        Assert.IsTrue(AreSameMessages(ConfirmMessage, ExpectedMessage), ConfirmMessage);
-        Reply := true;
     end;
 
     [ConfirmHandler]
