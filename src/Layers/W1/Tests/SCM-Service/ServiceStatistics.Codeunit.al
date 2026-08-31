@@ -1962,6 +1962,7 @@ codeunit 136130 "Service Statistics"
         ServiceQuoteLines."Unit Price".SetValue(LibraryRandom.RandDec(100, 2));
         ServiceQuoteLines.New();
     end;
+
     local procedure CreateAndPostServiceOrderWithInvoiceDiscountAmountNM(CustomerNo: Code[20]; var InvoiceDiscountAmount: Decimal)
     var
         ServiceLine: Record "Service Line";
@@ -2677,6 +2678,7 @@ codeunit 136130 "Service Statistics"
     begin
         Reply := true;
     end;
+
     [PageHandler]
     [Scope('OnPrem')]
     procedure ChangeDiscountOrderPostHandlerNM(var ServiceOrderStatistics: TestPage "Service Order Statistics")
