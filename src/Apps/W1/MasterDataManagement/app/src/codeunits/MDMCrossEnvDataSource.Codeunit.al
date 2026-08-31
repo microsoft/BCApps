@@ -140,9 +140,14 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
             Error(InternalError(StrSubstNo(InvalidResponseErr, TableCaption(IntegrationTableId))));
         end;
         Entry := Token.AsObject();
-        if Entry.Get('tableAvailable', Token) then
+        if Entry.Get('tableAvailable', Token) then begin
+            if not Token.IsValue() then begin // malformed contract, not an empty source: keep it in the internal-error path
+                LogProbeFailure(IntegrationTableId);
+                Error(InternalError(StrSubstNo(InvalidResponseErr, TableCaption(IntegrationTableId))));
+            end;
             if not Token.AsValue().AsBoolean() then
                 exit(false);
+        end;
         // Unindexed source table: LastModifiedAtPerTable reports indexed:false and no timestamp, so we can't prove
         // emptiness cheaply - assume records may exist so the full-synch review isn't wrongly suppressed.
         if Entry.Get('indexed', Token) then
@@ -169,7 +174,8 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         Transport := GetTransport();
         SourceCapabilities.EnsureSupported(Transport, RecordsFeatureTok);
         // '{}' selector = read from the start (no watermark); PageSize 1 keeps this an existence check, not a count.
-        if not SourceResponse.TryParse(Transport.GetRecords(IntegrationTableId, BuildFieldIds(IntegrationTableMapping), '{}', 1, TableFilter), Response) then begin
+        // Project only the primary key: the row filter is applied server-side, so no mapped media/blob need materialize.
+        if not SourceResponse.TryParse(Transport.GetRecords(IntegrationTableId, BuildPrimaryKeyFieldIds(IntegrationTableId), '{}', 1, TableFilter), Response) then begin
             LogProbeFailure(IntegrationTableId);
             Error(SourceProbeFailedErr, TableCaption(IntegrationTableId));
         end;
@@ -311,6 +317,17 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
                 if IntegrationFieldMapping."Integration Table Field No." <> 0 then
                     AddFieldId(FieldIds, AddedFields, IntegrationFieldMapping."Integration Table Field No.");
             until IntegrationFieldMapping.Next() = 0;
+        exit(WriteArray(FieldIds));
+    end;
+
+    // Primary-key-only projection for the existence probe: the server-side filter still evaluates against every field,
+    // so no mapped fields (in particular media/blob) need to be projected just to learn whether a record exists.
+    local procedure BuildPrimaryKeyFieldIds(IntegrationTableId: Integer): Text
+    var
+        FieldIds: JsonArray;
+        AddedFields: List of [Integer];
+    begin
+        AddPrimaryKeyFields(IntegrationTableId, FieldIds, AddedFields);
         exit(WriteArray(FieldIds));
     end;
 

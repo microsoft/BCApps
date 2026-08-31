@@ -17,6 +17,7 @@ codeunit 7248 "MDM Source Response"
         SourceWatermark: Codeunit "MDM Source Watermark";
         SkippedFieldTxt: Label 'Cross-environment media or blob field exceeds the inline size cap and was not synchronized.', Locked = true;
         BadFieldValueErr: Label 'The source returned a value for field %1 that could not be converted to the expected type %2.', Comment = '%1 - a field caption, %2 - a field type';
+        MalformedControlFieldErr: Label 'The source returned a malformed value for the response control field ''%1''.', Comment = '%1 = response control field name';
 
     procedure TryParse(ResponseText: Text; var Response: JsonObject): Boolean
     begin
@@ -24,22 +25,14 @@ codeunit 7248 "MDM Source Response"
     end;
 
     procedure TableAvailable(var Response: JsonObject): Boolean
-    var
-        Token: JsonToken;
     begin
-        if Response.Get('tableAvailable', Token) then
-            exit(Token.AsValue().AsBoolean());
-        exit(true);
+        exit(ReadControlBoolean(Response, 'tableAvailable', true));
     end;
 
     procedure Indexed(var Response: JsonObject): Boolean
-    var
-        Token: JsonToken;
     begin
         // 'indexed' is only emitted when false (a too-large unindexed/keyless table).
-        if Response.Get('indexed', Token) then
-            exit(Token.AsValue().AsBoolean());
-        exit(true);
+        exit(ReadControlBoolean(Response, 'indexed', true));
     end;
 
     procedure GetUnavailableFields(var Response: JsonObject; var UnavailableFields: JsonArray): Boolean
@@ -55,12 +48,38 @@ codeunit 7248 "MDM Source Response"
     end;
 
     procedure HasMore(var Response: JsonObject): Boolean
+    begin
+        exit(ReadControlBoolean(Response, 'hasMore', false));
+    end;
+
+    // Control fields (tableAvailable/indexed/hasMore) are always booleans in the contract; a present-but-malformed
+    // token is an internal contract failure, so surface it as an internal diagnostic instead of a raw runtime throw.
+    local procedure ReadControlBoolean(var Response: JsonObject; PropertyName: Text; DefaultValue: Boolean): Boolean
     var
         Token: JsonToken;
+        Value: Boolean;
     begin
-        if Response.Get('hasMore', Token) then
-            exit(Token.AsValue().AsBoolean());
-        exit(false);
+        if not Response.Get(PropertyName, Token) then
+            exit(DefaultValue);
+        if not (Token.IsValue() and TryReadBoolean(Token, Value)) then
+            Error(MalformedControlField(PropertyName));
+        exit(Value);
+    end;
+
+    [TryFunction]
+    local procedure TryReadBoolean(Token: JsonToken; var Value: Boolean)
+    begin
+        Value := Token.AsValue().AsBoolean();
+    end;
+
+    local procedure MalformedControlField(PropertyName: Text): ErrorInfo
+    var
+        ErrInfo: ErrorInfo;
+    begin
+        ErrInfo.Message := StrSubstNo(MalformedControlFieldErr, PropertyName);
+        ErrInfo.DataClassification := DataClassification::SystemMetadata; // Message is emitted to telemetry
+        ErrInfo.ErrorType := ErrorType::Internal;
+        exit(ErrInfo);
     end;
 
     // The nextCursor object, re-serialized so the caller can pass it straight back as the next Selector.

@@ -227,19 +227,36 @@ codeunit 7245 "MDM Cross-Env Change Detector"
     local procedure GetInteger(var Container: JsonObject; PropertyName: Text): Integer
     var
         Token: JsonToken;
+        Value: Integer;
     begin
+        // A parseable but malformed entry must not throw and kill the recurring job: skip it (returns 0).
         if Container.Get(PropertyName, Token) then
-            exit(Token.AsValue().AsInteger());
+            if Token.IsValue() and TryReadInteger(Token, Value) then
+                exit(Value);
         exit(0);
+    end;
+
+    [TryFunction]
+    local procedure TryReadInteger(Token: JsonToken; var Value: Integer)
+    begin
+        Value := Token.AsValue().AsInteger();
     end;
 
     local procedure GetBoolean(var Container: JsonObject; PropertyName: Text; DefaultValue: Boolean): Boolean
     var
         Token: JsonToken;
+        Value: Boolean;
     begin
         if Container.Get(PropertyName, Token) then
-            exit(Token.AsValue().AsBoolean());
+            if Token.IsValue() and TryReadBoolean(Token, Value) then
+                exit(Value);
         exit(DefaultValue);
+    end;
+
+    [TryFunction]
+    local procedure TryReadBoolean(Token: JsonToken; var Value: Boolean)
+    begin
+        Value := Token.AsValue().AsBoolean();
     end;
 
     local procedure GetDateTime(var Container: JsonObject; PropertyName: Text; var Value: DateTime): Boolean
@@ -248,6 +265,8 @@ codeunit 7245 "MDM Cross-Env Change Detector"
         ValueText: Text;
     begin
         if not Container.Get(PropertyName, Token) then
+            exit(false);
+        if not Token.IsValue() then
             exit(false);
         ValueText := Token.AsValue().AsText();
         if ValueText = '' then
