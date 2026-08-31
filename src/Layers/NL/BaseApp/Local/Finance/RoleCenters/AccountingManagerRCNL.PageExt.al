@@ -114,7 +114,7 @@ pageextension 11355 "Accounting Manager RC NL" extends "Accounting Manager Role 
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Tax Authority - Audit File';
-                Image = "Report";
+                Image = Report;
                 RunObject = Report "Tax Authority - Audit File";
                 ToolTip = 'Create an audit file that contains all journal transactions from the general ledger. During a tax audit, this file is imported from the tax authority for additional analysis.';
             }
