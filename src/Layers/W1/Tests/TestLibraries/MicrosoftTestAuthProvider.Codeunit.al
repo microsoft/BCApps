@@ -91,7 +91,9 @@ codeunit 131022 "Microsoft Test Auth Provider" implements "API Test Auth Provide
     begin
         CurrentServiceUri.Init(GetUrl(ClientType::Api));
         TargetUri.Init(TargetURL);
-        exit(LowerCase(TargetUri.GetAuthority()) = LowerCase(CurrentServiceUri.GetAuthority()));
+        exit(
+            (LowerCase(TargetUri.GetScheme()) = LowerCase(CurrentServiceUri.GetScheme())) and
+            (LowerCase(TargetUri.GetAuthority()) = LowerCase(CurrentServiceUri.GetAuthority())));
     end;
 
     [Scope('OnPrem')]

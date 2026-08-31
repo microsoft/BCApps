@@ -479,6 +479,8 @@ Describe "ParallelTestExecution clean tenant scheduling" {
             $script:authenticationContext | Should -Match 'HttpWebRequestMgt\.AddBasicAuthentication\(BasicUserName,\s*BasicPassword\)'
             $script:microsoftProvider | Should -Not -Match 'HttpWebRequestMgt'
             $script:microsoftProvider | Should -Match 'Authentication\.SetBasicAuthentication\(UserId\(\),\s*Password\)'
+            $script:microsoftProvider | Should -Match 'TargetUri\.GetScheme\(\).*CurrentServiceUri\.GetScheme\(\)'
+            $script:microsoftProvider | Should -Match 'TargetUri\.GetAuthority\(\).*CurrentServiceUri\.GetAuthority\(\)'
         }
 
         It "applies the selected provider after URL rewriting and before the final request event" {
