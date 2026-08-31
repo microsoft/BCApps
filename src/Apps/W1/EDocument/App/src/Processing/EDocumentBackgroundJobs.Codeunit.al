@@ -169,6 +169,7 @@ codeunit 6133 "E-Document Background Jobs"
         Telemetry: Codeunit Telemetry;
         TelemetryDimensions: Dictionary of [Text, Text];
     begin
+        OnBeforeScheduleEDocumentJob(CodeunitId, JobRecordId);
         JobQueueEntry.Init();
         JobQueueEntry."Object Type to Run" := JobQueueEntry."Object Type to Run"::Codeunit;
         JobQueueEntry."Object ID to Run" := CodeunitId;
@@ -186,6 +187,11 @@ codeunit 6133 "E-Document Background Jobs"
         Telemetry.LogMessage('0000LC6', EDocumentJobTelemetryLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, TelemetryDimensions);
         Codeunit.Run(Codeunit::"Job Queue - Enqueue", JobQueueEntry);
         exit(JobQueueEntry.ID);
+    end;
+
+    [InternalEvent(false, false)]
+    local procedure OnBeforeScheduleEDocumentJob(CodeunitId: Integer; JobRecordId: RecordId)
+    begin
     end;
 
     var

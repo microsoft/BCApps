@@ -14,6 +14,8 @@ codeunit 10987 "FR E-Invoice Message API"
     InherentEntitlements = X;
     InherentPermissions = X;
 
+    Permissions = tabledata "FR E-Invoice Message" = ri;
+
     /// <summary>
     /// Receives, validates, and stores a French invoice lifecycle message from an E-Document service.
     /// This is the supported production entry point for connector implementations and integration adapter apps.
