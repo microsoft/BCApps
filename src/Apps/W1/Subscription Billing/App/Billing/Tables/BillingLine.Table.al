@@ -470,6 +470,11 @@ table 8061 "Billing Line"
         Rec.SetRange("Subscription Contract Line No.", ContractLineNo);
     end;
 
+    internal procedure FilterBillingLineOnServiceCommitment(ServiceCommitmentEntryNo: Integer)
+    begin
+        Rec.SetRange("Subscription Line Entry No.", ServiceCommitmentEntryNo);
+    end;
+
     local procedure RecalculateCustomerContractHarmonizedBillingFields()
     var
         CustomerContract: Record "Customer Subscription Contract";
