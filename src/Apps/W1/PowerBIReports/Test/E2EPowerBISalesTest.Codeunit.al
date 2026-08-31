@@ -29,13 +29,13 @@ codeunit 139881 "E2E PowerBI Sales Test"
     Subtype = Test;
     TestType = Uncategorized;
     Access = Internal;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
         LibGraphMgt.SetAuthenticationProvider(
             Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
-    EventSubscriberInstance = Manual;
 
     var
         Assert: Codeunit Assert;

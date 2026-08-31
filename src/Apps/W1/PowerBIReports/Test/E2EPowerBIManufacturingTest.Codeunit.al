@@ -35,13 +35,13 @@ codeunit 139878 "E2E PowerBI Manufacturing Test"
     Subtype = Test;
     TestType = Uncategorized;
     Access = Internal;
+    TestPermissions = Disabled;
 
     trigger OnRun()
     begin
         LibGraphMgt.SetAuthenticationProvider(
             Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
-    TestPermissions = Disabled;
 
     var
         Assert: Codeunit Assert;
