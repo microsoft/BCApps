@@ -853,7 +853,6 @@ codeunit 7314 "Warehouse Availability Mgt."
         TypeHelper: Codeunit "Type Helper";
         InventoryAvailQtyBase: Decimal;
         QtyOnDedicatedBins: Decimal;
-        QtyOnShipmentBin: Decimal;
         QtyPickedNotShipped: Decimal;
         QtyReservedOnPickShip: Decimal;
         QtyReservedForCurrLine: Decimal;
@@ -882,17 +881,13 @@ codeunit 7314 "Warehouse Availability Mgt."
             Item.CalcFields("Reserved Qty. on Inventory");
             ExcludeShipmentBin := Location."Require Pick" and (Location."Shipment Bin Code" <> '');
 
-            QtyPickedNotShipped := CalcQtyBasePickedNotShippedOnWarehouseShipmentLine(WhseWorksheetLine, Item);
-            if ExcludeShipmentBin then begin
-                BinContent.SetRange("Bin Code", Location."Shipment Bin Code");
-                if BinContent.FindSet() then
-                    repeat
-                        QtyOnShipmentBin += TypeHelper.Maximum(0, BinContent.CalcQtyAvailToPick(0));
-                    until BinContent.Next() = 0;
-            end;
+            QtyPickedNotShipped := CalcQtyBasePickedNotShippedOnWarehouseShipmentLine(WhseWorksheetLine, Item, '');
+            if ExcludeShipmentBin then
+                QtyPickedNotShipped -=
+                    CalcQtyBasePickedNotShippedOnWarehouseShipmentLine(WhseWorksheetLine, Item, Location."Shipment Bin Code");
 
             AvailQtyBase :=
-                AvailQtyBase - Item."Reserved Qty. on Inventory" - TypeHelper.Maximum(0, QtyPickedNotShipped - QtyOnShipmentBin);
+                AvailQtyBase - Item."Reserved Qty. on Inventory" - TypeHelper.Maximum(0, QtyPickedNotShipped);
         end else
             AvailQtyBase := CalcInvtAvailQty(Item, Location, WhseWorksheetLine."Variant Code", TempWhseActivLine);
 
@@ -933,7 +928,7 @@ codeunit 7314 "Warehouse Availability Mgt."
         end;
     end;
 
-    local procedure CalcQtyBasePickedNotShippedOnWarehouseShipmentLine(WhseWorksheetLine: Record "Whse. Worksheet Line"; Item: Record Item): Decimal
+    local procedure CalcQtyBasePickedNotShippedOnWarehouseShipmentLine(WhseWorksheetLine: Record "Whse. Worksheet Line"; Item: Record Item; BinCodeFilter: Code[20]): Decimal
     var
         WarehouseShipmentLine: Record "Warehouse Shipment Line";
     begin
@@ -941,6 +936,8 @@ codeunit 7314 "Warehouse Availability Mgt."
         WarehouseShipmentLine.SetRange("Location Code", WhseWorksheetLine."Location Code");
         if WhseWorksheetLine."Variant Code" <> '' then
             WarehouseShipmentLine.SetRange("Variant Code", WhseWorksheetLine."Variant Code");
+        if BinCodeFilter <> '' then
+            WarehouseShipmentLine.SetRange("Bin Code", BinCodeFilter);
         WarehouseShipmentLine.CalcSums("Qty. Picked (Base)", "Qty. Shipped (Base)");
         exit(WarehouseShipmentLine."Qty. Picked (Base)" - WarehouseShipmentLine."Qty. Shipped (Base)")
     end;

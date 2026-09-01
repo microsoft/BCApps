@@ -2173,6 +2173,50 @@ codeunit 137293 "SCM Inventory Miscellaneous"
         PickWorkSheetValidateLine(WhseWorksheetLine, 10000, InventoryQty, InventoryQty - PickedQty, InventoryQty - PickedQty);
     end;
 
+    [Test]
+    procedure AvailableQtyToPickExcludesRegisteredPickWhenNewShipmentBinHasOtherInventory()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        WarehouseEmployee: Record "Warehouse Employee";
+        WhseWorksheetLine: Record "Whse. Worksheet Line";
+        WhseWorksheetName: Record "Whse. Worksheet Name";
+        WhseWorksheetTemplate: Record "Whse. Worksheet Template";
+        InventoryQty: Decimal;
+        PickedQty: Decimal;
+        ShipmentNo: Code[20];
+        PickBinCode: Code[20];
+        NewShipmentBinCode: Code[20];
+    begin
+        // [SCENARIO 647203] Inventory sitting in the new shipment bin does not offset a registered pick left in the former shipment bin.
+        Initialize();
+        WhseWorksheetLine.DeleteAll();
+        InventoryQty := LibraryRandom.RandIntInRange(10, 20);
+        PickedQty := LibraryRandom.RandInt(InventoryQty - 1);
+        PickBinCode := CreateNonDirectedPickLocation(Location, true, true);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, true);
+        LibraryInventory.CreateItem(Item);
+        CreateAndPostItemJournalLine(Item."No.", InventoryQty, Location.Code, PickBinCode);
+
+        // [GIVEN] Part of the inventory is picked and registered into the configured shipment bin.
+        CreateSales(Item."No.", Location.Code, PickedQty, false, true, true, PickedQty);
+
+        // [GIVEN] The location is pointed at another shipment bin, which already holds unrelated inventory of the same item.
+        NewShipmentBinCode := CreateBin(Location.Code);
+        Location.Validate("Shipment Bin Code", NewShipmentBinCode);
+        Location.Modify(true);
+        CreateAndPostItemJournalLine(Item."No.", InventoryQty, Location.Code, NewShipmentBinCode);
+        ShipmentNo := CreateSales(Item."No.", Location.Code, InventoryQty, false, true, false, 0);
+
+        // [WHEN] A second shipment is added to the pick worksheet.
+        GetPickWksheetTemplate(WhseWorksheetTemplate);
+        LibraryWarehouse.CreateWhseWorksheetName(WhseWorksheetName, WhseWorksheetTemplate.Name, Location.Code);
+        PickWorksheetGetSourceDocument(WhseWorksheetTemplate.Name, WhseWorksheetName.Name, Location.Code, 0, ShipmentNo);
+
+        // [THEN] The registered pick in the former shipment bin stays unavailable, even though the new shipment bin holds inventory.
+        PickWorkSheetValidateLine(WhseWorksheetLine, 10000, InventoryQty, InventoryQty - PickedQty, InventoryQty - PickedQty);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
