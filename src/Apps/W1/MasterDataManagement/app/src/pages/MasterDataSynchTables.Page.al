@@ -80,14 +80,14 @@ page 7233 "Master Data Synch. Tables"
                             Error(TableMetadataNotFoundErr, AllObjWithCaption."Object ID");
 
                         if not TableMetadata.DataPerCompany then
-                            Error(TableNotPerCompanyErr, AllObjWithCaption."Object Name");
+                            Error(TableNotPerCompanyErr, AllObjWithCaption."Object Caption");
 
                         if TableMetadata.TableType <> TableMetadata.TableType::Normal then
-                            Error(TableNotOfTypeNormalErr, AllObjWithCaption."Object Name");
+                            Error(TableNotOfTypeNormalErr, AllObjWithCaption."Object Caption");
 
                         RecRef.Open(AllObjWithCaption."Object ID");
                         if not RecRef.WritePermission() then
-                            Error(TablePermissionMissingErr, AllObjWithCaption."Object Name");
+                            Error(TablePermissionMissingErr, AllObjWithCaption."Object Caption");
                         RecRef.Close();
 
                         FindRelatedTables(ExistingSynchTableNos, RelatedTablesToAdd, RelatedTablesToAddText, AllObjWithCaption."Object ID");
@@ -105,7 +105,7 @@ page 7233 "Master Data Synch. Tables"
                                             IntegrationTableMapping.Validate(Status, IntegrationTableMapping.Status::Disabled);
                                             IntegrationTableMapping.Modify();
                                         end;
-                                Message(StrSubstNo(RelatedTablesAddedMsg, AllObjWithCaption."Object Name", RelatedTablesToAddText));
+                                Message(StrSubstNo(RelatedTablesAddedMsg, AllObjWithCaption."Object Caption", RelatedTablesToAddText));
                                 exit;
                             end;
 
@@ -543,9 +543,9 @@ page 7233 "Master Data Synch. Tables"
                         if RecRef.WritePermission() then begin
                             RelatedTablesToAdd.Add(Field.RelationTableNo);
                             if RelatedTablesToAddText = '' then
-                                RelatedTablesToAddText := TableMetadata.Name
+                                RelatedTablesToAddText := RecRef.Caption()
                             else
-                                RelatedTablesToAddText += ', ' + TableMetadata.Name;
+                                RelatedTablesToAddText += ', ' + RecRef.Caption();
                             FindRelatedTables(ExistingSynchTableNos, RelatedTablesToAdd, RelatedTablesToAddText, Field.RelationTableNo, TopLevelTableId);
                         end;
                         RecRef.Close();
@@ -655,8 +655,8 @@ page 7233 "Master Data Synch. Tables"
         UserEditedIntegrationTableFilterTxt: Label 'The user edited the Integration Table Filter on %1 mapping.', Locked = true;
         EditIntegrationTableFilterTxt: Label '<Edit table filter>';
         NoCoupledRecordsMsg: label 'No records of this table are currently coupled to records from the source company. \\Choose the action Run Full Synchronization.';
-        RelatedTablesQst: label 'The chosen table has a relation to the following tables that are currently not included in the synchronization: %1. \\Do you want to synchronize these tables too?', Comment = '%1 - comma-separated list of table names';
-        RelatedTablesAddedMsg: label 'Table %1 and related tables: %2 are added to the synchronization with state set to Disabled. \\Open Synchronization Tables page, choose synchronization fields for each of the added tables and then set their status to Enabled.', Comment = '%1 - a table name, %2 - comma-separated list of table names';
+        RelatedTablesQst: label 'The chosen table has a relation to the following tables that are currently not included in the synchronization: %1. \\Do you want to synchronize these tables too?', Comment = '%1 - comma-separated list of table captions';
+        RelatedTablesAddedMsg: label 'Table %1 and related tables: %2 are added to the synchronization with state set to Disabled. \\Open Synchronization Tables page, choose synchronization fields for each of the added tables and then set their status to Enabled.', Comment = '%1 - a table caption, %2 - comma-separated list of table captions';
         TableMetadataNotFoundErr: label 'Metadata for table %1 cannot be loaded. Choose another table.', Comment = '%1 - a table name';
         TableNotPerCompanyErr: label 'Table %1 is shared across all companies of this environment. Choose another table.', Comment = '%1 - a table name';
         TableNotOfTypeNormalErr: label 'Table %1 is either declared as temporary, a query or as an interface for accessing an external entity. Choose another table.', Comment = '%1 - a table name';
