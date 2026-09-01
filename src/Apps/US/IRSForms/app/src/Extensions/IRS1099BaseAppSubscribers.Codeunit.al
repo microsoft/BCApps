@@ -239,7 +239,6 @@ codeunit 10032 "IRS 1099 BaseApp Subscribers"
         GenJnlLine.Validate("IRS 1099 Reporting Period", NewPeriodNo);
         GenJnlLine.Validate("IRS 1099 Form No.", NewFormNo);
         GenJnlLine.Validate("IRS 1099 Form Box No.", NewFormBoxNo);
-        SaveChangesInGenJnlLine(GenJnlLine);
     end;
 
     local procedure GetIRS1099VendorFormBoxSetupFromGenJnlLine(var IRS1099VendorFormBoxSetup: Record "IRS 1099 Vendor Form Box Setup"; GenJnlLine: Record "Gen. Journal Line"; PeriodNo: Code[20])
@@ -257,7 +256,6 @@ codeunit 10032 "IRS 1099 BaseApp Subscribers"
         if not SyncIRSDataInGenJnlLine(GenJnlLine) then
             exit;
         GenJnlLine.Validate("IRS 1099 Reporting Amount", GenJnlLine.Amount);
-        SaveChangesInGenJnlLine(GenJnlLine);
     end;
 
     local procedure SyncIRSDataInGenJnlLine(var GenJnlLine: Record "Gen. Journal Line"): Boolean
@@ -265,12 +263,6 @@ codeunit 10032 "IRS 1099 BaseApp Subscribers"
         if GenJnlLine.IsTemporary() then
             exit(false);
         exit(GenJnlLine."Document Type" in [GenJnlLine."Document Type"::Invoice, GenJnlLine."Document Type"::"Credit Memo"]);
-    end;
-
-    local procedure SaveChangesInGenJnlLine(var GenJnlLine: Record "Gen. Journal Line")
-    begin
-        if GenJnlLine."Line No." <> 0 then
-            if GenJnlLine.Modify(true) then;
     end;
 
 }
