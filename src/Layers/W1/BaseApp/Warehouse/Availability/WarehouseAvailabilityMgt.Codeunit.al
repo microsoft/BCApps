@@ -906,6 +906,7 @@ codeunit 7314 "Warehouse Availability Mgt."
             InventoryAvailQtyBase :=
                 CalcInvtAvailQty(Item, Location, WhseWorksheetLine."Variant Code", TempWhseActivLine) +
                 QtyReservedOnPickShip + QtyReservedForCurrLine - QtyOnDedicatedBins;
+            InventoryAvailQtyBase := TypeHelper.Maximum(0, InventoryAvailQtyBase);
             AvailQtyBase := TypeHelper.Minimum(AvailQtyBase, InventoryAvailQtyBase);
         end;
     end;
