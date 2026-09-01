@@ -494,6 +494,7 @@ table 1293 "Payment Application Proposal"
         LedgerRemainingAmount: Decimal;
         IsHandled: Boolean;
         RemainingAmountHandled: Boolean;
+        LedgEntryInfoLoaded: Boolean;
     begin
         // Reads the applied ledger entry only once to populate both the informational fields and the remaining amount.
         IsHandled := false;
@@ -507,6 +508,7 @@ table 1293 "Payment Application Proposal"
         if "Applies-to Entry No." = 0 then
             exit;
 
+        LedgEntryInfoLoaded := true;
         case "Account Type" of
             "Account Type"::Customer:
                 begin
@@ -583,15 +585,31 @@ table 1293 "Payment Application Proposal"
                     "Currency Code" := BankAccLedgEntry."Currency Code";
                     LedgerRemainingAmount := BankAccLedgEntry."Remaining Amount";
                 end;
-            else
+            else begin
                 GetLedgEntryInfo();
+                LedgEntryInfoLoaded := false;
+            end;
         end;
+
+        // Re-fire the legacy OnAfterGetLedgEntryInfo extension point for the fast path without a second ledger read.
+        if LedgEntryInfoLoaded then
+            RaiseOnAfterGetLedgEntryInfoEvent();
 
         // Keep firing the legacy event so extensions that override the remaining amount still run when a proposal is created.
         RemainingAmountHandled := false;
         OnBeforeUpdateRemainingAmount(Rec, BankAccount, RemainingAmountHandled);
         if not RemainingAmountHandled then
             "Remaining Amount" := LedgerRemainingAmount;
+    end;
+
+    local procedure RaiseOnAfterGetLedgEntryInfoEvent()
+    var
+        TempAppliedPmtEntry: Record "Applied Payment Entry" temporary;
+    begin
+        // Round-trips already-loaded fields through a temp Applied Payment Entry so existing OnAfterGetLedgEntryInfo subscribers still run.
+        TempAppliedPmtEntry.TransferFields(Rec);
+        TempAppliedPmtEntry.RunOnAfterGetLedgEntryInfo();
+        TransferFields(TempAppliedPmtEntry);
     end;
 
     procedure TransferFromBankAccReconLine(BankAccReconLine: Record "Bank Acc. Reconciliation Line")
