@@ -614,12 +614,9 @@ codeunit 134897 "ERM Source Currency"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         GLAccount: Record "G/L Account";
-        GLEntry: Record "G/L Entry";
         Currency: Record Currency;
         VendorNo: Code[20];
         PostedPurchaseInvoiceNo: Code[20];
-        Factor: Integer;
-        SCYBalance: Decimal;
         ExpectedVATAmount: Decimal;
         DirectUnitCost: Decimal;
     begin

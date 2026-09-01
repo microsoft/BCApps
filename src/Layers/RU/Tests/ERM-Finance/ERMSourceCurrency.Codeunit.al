@@ -1851,6 +1851,20 @@ codeunit 134897 "ERM Source Currency"
         PostedDeferralLine.FindSet();
     end;
 
+    local procedure CreateCurrencyExchangeRate(CurrencyCode: Code[10]; StartingDate: Date; ExchRateAmount: Decimal; RelationalExchRateAmount: Decimal)
+    var
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+    begin
+        CurrencyExchangeRate.Init();
+        CurrencyExchangeRate."Currency Code" := CurrencyCode;
+        CurrencyExchangeRate."Starting Date" := StartingDate;
+        CurrencyExchangeRate."Exchange Rate Amount" := ExchRateAmount;
+        CurrencyExchangeRate."Relational Exch. Rate Amount" := RelationalExchRateAmount;
+        CurrencyExchangeRate."Adjustment Exch. Rate Amount" := ExchRateAmount;
+        CurrencyExchangeRate."Relational Adjmt Exch Rate Amt" := RelationalExchRateAmount;
+        CurrencyExchangeRate.Insert(true);
+    end;
+
     local procedure UpdateAdjustForPaymentDiscount(var VATPostingSetup: Record "VAT Posting Setup")
     begin
         if VATPostingSetup."Adjust for Payment Discount" then begin
