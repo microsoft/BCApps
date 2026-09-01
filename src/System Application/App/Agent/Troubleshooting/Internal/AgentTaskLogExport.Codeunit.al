@@ -370,9 +370,6 @@ codeunit 4313 "Agent Task Log Export"
     local procedure RemoveNonAlphanumericCharacters(Value: Text) AlphanumericValue: Text
     begin
         AlphanumericValue := DelChr(Value, '=', DelChr(Value, '=', AllowedAlphanumericCharactersTok));
-
-        if AlphanumericValue = '' then
-            AlphanumericValue := UnknownAgentTok;
     end;
 
     local procedure GetDefaultEncoding(): TextEncoding
@@ -438,6 +435,5 @@ codeunit 4313 "Agent Task Log Export"
         ExportFileNameLbl: Label 'AgentTaskLog_%1_%2.json', Comment = '%1 is the agent name and %2 is the export date.', Locked = true;
         ExportDialogTitleLbl: Label 'Export agent task log';
         JsonFileFilterLbl: Label 'JSON files (*.json)|*.json', Locked = true;
-        UnknownAgentTok: Label 'UnknownAgent', Locked = true;
         AllowedAlphanumericCharactersTok: Label 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', Locked = true;
 }
