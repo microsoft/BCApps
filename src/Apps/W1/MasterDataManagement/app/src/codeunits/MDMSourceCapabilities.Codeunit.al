@@ -100,7 +100,7 @@ codeunit 7246 "MDM Source Capabilities"
 
     local procedure RaiseCapabilitiesParseError(MasterDataManagement: Codeunit "Master Data Management")
     begin
-        Session.LogMessage('0000VAV', CapabilitiesParseTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
+        Session.LogMessage('0000VAV', CapabilitiesParseTelemetryTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
         Error(InternalError(CapabilitiesParseErr));
     end;
 

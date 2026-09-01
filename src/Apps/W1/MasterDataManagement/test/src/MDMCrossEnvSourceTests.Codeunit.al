@@ -69,14 +69,15 @@ codeunit 139931 "MDM Cross-Env Source Tests"
         NextCursor: Text;
         Index: Integer;
         SeededSystemIds: List of [Guid];
-        PagedSystemIds: List of [Guid];
-        SeededSystemId: Guid;
+        Page1SystemIds: List of [Guid];
+        Page2SystemIds: List of [Guid];
     begin
         // [FEATURE] [AI test 0.4]
         // [SCENARIO] Cursor mode pages ascending by (SystemModifiedAt, SystemId) and reports hasMore / nextCursor.
         Watermark := CurrentDateTime();
         Sleep(50); // ensure the seeded records sort strictly after the watermark
         for Index := 1 to 3 do begin
+            Sleep(20); // distinct, strictly increasing SystemModifiedAt so creation order == cursor order
             LibrarySales.CreateCustomer(Customer);
             SeededSystemIds.Add(Customer.SystemId);
         end;
@@ -87,7 +88,7 @@ codeunit 139931 "MDM Cross-Env Source Tests"
         // [THEN] two records come back and hasMore is true
         Assert.AreEqual(2, RecordCount(Response), 'First page should hold the page size');
         Assert.IsTrue(GetBoolean(Response, 'hasMore'), 'hasMore should be true while records remain');
-        CollectResponseSystemIds(Response, PagedSystemIds);
+        CollectResponseSystemIds(Response, Page1SystemIds);
         NextCursor := NextCursorText(Response);
 
         // [WHEN] the next page is requested with the returned cursor
@@ -97,12 +98,14 @@ codeunit 139931 "MDM Cross-Env Source Tests"
         // [THEN] the remaining record comes back and hasMore is false
         Assert.AreEqual(1, RecordCount(Response), 'Second page should hold the remaining record');
         Assert.IsFalse(GetBoolean(Response, 'hasMore'), 'hasMore should be false on the last page');
-        CollectResponseSystemIds(Response, PagedSystemIds);
+        CollectResponseSystemIds(Response, Page2SystemIds);
 
-        // [THEN] the two pages together returned every seeded record exactly once - no repeats, no dropped/reordered records
-        Assert.AreEqual(3, PagedSystemIds.Count(), 'Paging should return each record exactly once across the two pages');
-        foreach SeededSystemId in SeededSystemIds do
-            Assert.IsTrue(PagedSystemIds.Contains(SeededSystemId), 'Every seeded record should appear in the paged results');
+        // [THEN] the pages follow the ascending (SystemModifiedAt, SystemId) order: first two seeded on page one, last on page two
+        Assert.AreEqual(2, Page1SystemIds.Count(), 'First page should contain exactly two records');
+        Assert.AreEqual(SeededSystemIds.Get(1), Page1SystemIds.Get(1), 'First page, first record should be the earliest-modified customer');
+        Assert.AreEqual(SeededSystemIds.Get(2), Page1SystemIds.Get(2), 'First page, second record should be the second-earliest customer');
+        Assert.AreEqual(1, Page2SystemIds.Count(), 'Second page should contain exactly one record');
+        Assert.AreEqual(SeededSystemIds.Get(3), Page2SystemIds.Get(1), 'Second page should contain the latest-modified customer');
     end;
 
     [Test]

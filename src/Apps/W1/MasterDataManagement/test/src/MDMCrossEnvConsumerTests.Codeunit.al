@@ -163,6 +163,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
 
         // [WHEN] fetched via GetById with a text SystemId [THEN] the record materializes (exercises the variant->SystemId conversion)
         Assert.IsTrue(LibraryMasterDataMgt.DataSourceGetById(IntegrationTableMapping, Format(Customer1.SystemId), SourceRecordRef), 'GetById should return the record');
+        Assert.AreEqual(1, SourceRecordRef.Count(), 'GetById should return exactly one record');
         Assert.IsTrue(ContainsSystemId(SourceRecordRef, Customer1.SystemId), 'GetById should include the requested customer');
 
         CleanUp();

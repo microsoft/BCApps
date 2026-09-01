@@ -18,6 +18,7 @@ codeunit 7248 "MDM Source Response"
         SkippedFieldTxt: Label 'Cross-environment media or blob field exceeds the inline size cap and was not synchronized.', Locked = true;
         BadFieldValueErr: Label 'The source returned a value for field %1 that could not be converted to the expected type %2.', Comment = '%1 - a field caption, %2 - a field type';
         MalformedControlFieldErr: Label 'The source returned a malformed value for the response control field ''%1''.', Comment = '%1 = response control field name';
+        MalformedRecordErr: Label 'The source returned a malformed record entry.', Locked = true;
 
     procedure TryParse(ResponseText: Text; var Response: JsonObject): Boolean
     begin
@@ -82,6 +83,16 @@ codeunit 7248 "MDM Source Response"
         exit(ErrInfo);
     end;
 
+    local procedure MalformedRecordEntry(): ErrorInfo
+    var
+        ErrInfo: ErrorInfo;
+    begin
+        ErrInfo.Message := MalformedRecordErr;
+        ErrInfo.DataClassification := DataClassification::SystemMetadata; // Message is emitted to telemetry
+        ErrInfo.ErrorType := ErrorType::Internal;
+        exit(ErrInfo);
+    end;
+
     // The nextCursor object, re-serialized so the caller can pass it straight back as the next Selector.
     procedure GetNextCursor(var Response: JsonObject): Text
     var
@@ -110,6 +121,8 @@ codeunit 7248 "MDM Source Response"
             exit(0);
         RecordsArray := RecordsToken.AsArray();
         foreach RecordToken in RecordsArray do begin
+            if not RecordToken.IsObject() then
+                Error(MalformedRecordEntry());
             InsertRecord(RecordToken.AsObject(), TempSourceRecordRef);
             Count += 1;
         end;
@@ -254,10 +267,10 @@ codeunit 7248 "MDM Source Response"
         // The source record identifier (systemId) is customer data, so it is not emitted; only the table, field,
         // and length (non-identifying diagnostics) are logged.
         Dimensions.Add('Category', MasterDataManagement.GetTelemetryCategory());
-        Dimensions.Add('tableId', Format(TableId));
-        Dimensions.Add('fieldNo', Format(FieldNo));
+        Dimensions.Add('TableId', Format(TableId));
+        Dimensions.Add('FieldNo', Format(FieldNo));
         if FieldObject.Get('length', LengthToken) then
-            Dimensions.Add('length', Format(LengthToken.AsValue().AsBigInteger()));
+            Dimensions.Add('Length', Format(LengthToken.AsValue().AsBigInteger()));
         Session.LogMessage('0000VAW', SkippedFieldTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
     end;
 

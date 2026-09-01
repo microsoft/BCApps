@@ -130,7 +130,8 @@ codeunit 7245 "MDM Cross-Env Change Detector"
         end;
         Tables := TablesToken.AsArray();
         foreach EntryToken in Tables do
-            ProcessTableEntry(EntryToken.AsObject());
+            if EntryToken.IsObject() then // skip a malformed non-object entry instead of aborting the recurring job
+                ProcessTableEntry(EntryToken.AsObject());
     end;
 
     local procedure ProcessTableEntry(Entry: JsonObject)

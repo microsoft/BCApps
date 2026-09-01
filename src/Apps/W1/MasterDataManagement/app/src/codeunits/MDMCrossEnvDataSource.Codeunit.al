@@ -260,13 +260,17 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
     end;
 
     // The table isn't exposed on the source: a recoverable setup issue, so point the user at Synchronization Tables.
-    local procedure SynchTablesNavigationError(MessageText: Text): ErrorInfo
+    local procedure SynchTablesNavigationError(IntegrationTableId: Integer; MessageText: Text): ErrorInfo
     var
+        IntegrationTableMapping: Record "Integration Table Mapping";
         ErrInfo: ErrorInfo;
     begin
         ErrInfo.Message := MessageText;
         ErrInfo.DataClassification := DataClassification::SystemMetadata; // Message is emitted to telemetry
         ErrInfo.PageNo := Page::"Master Data Synch. Tables";
+        // Land on the specific mapping row the user must fix, when it resolves to one.
+        if GetMappingByIntegrationTableId(IntegrationTableId, IntegrationTableMapping) then
+            ErrInfo.RecordId := IntegrationTableMapping.RecordId();
         ErrInfo.AddNavigationAction(OpenSynchTablesActionTxt);
         exit(ErrInfo);
     end;
@@ -296,7 +300,7 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         end;
         if not SourceResponse.TableAvailable(Response) then begin
             LogParseFailure(IntegrationTableId, TableUnavailableReasonTok);
-            Error(SynchTablesNavigationError(StrSubstNo(TableUnavailableErr, TableCaption(IntegrationTableId))));
+            Error(SynchTablesNavigationError(IntegrationTableId, StrSubstNo(TableUnavailableErr, TableCaption(IntegrationTableId))));
         end;
         if not SourceResponse.Indexed(Response) then begin
             LogParseFailure(IntegrationTableId, NotIndexedReasonTok);
@@ -304,7 +308,7 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         end;
         if SourceResponse.GetUnavailableFields(Response, UnavailableFields) then begin
             LogParseFailure(IntegrationTableId, FieldsUnavailableReasonTok);
-            Error(SynchTablesNavigationError(StrSubstNo(FieldsUnavailableErr, TableCaption(IntegrationTableId))));
+            Error(SynchTablesNavigationError(IntegrationTableId, StrSubstNo(FieldsUnavailableErr, TableCaption(IntegrationTableId))));
         end;
     end;
 
