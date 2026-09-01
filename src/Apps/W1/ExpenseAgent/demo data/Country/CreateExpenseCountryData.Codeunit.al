@@ -154,13 +154,13 @@ codeunit 8222 "Create Expense Country Data"
         CreateExpensePaymentMethod: Codeunit "Create Expense Payment Method";
         ContosoExpenseAgent: Codeunit "Contoso Expense Agent";
     begin
+        ContosoExpenseAgent.SetOverwriteData(true);
         if CountryCode = 'AT' then begin
             ContosoExpenseAgent.InsertExpenseCategory(PerDiemI(), PerDiemByAssignedPolicyLbl, PerDiemIByAssignedPolicyPostingLbl, ExpensePerDiemI(), Enum::"Expense Attachment Enforcement"::" ", CreateExpensePaymentMethod.Cash(), false, false, CreateExpenseGroup.Travel(), true, Enum::"Expense Reimbursement Type"::"Employee Paid", Enum::"Expense Detail Needed"::"Per Diem");
             ContosoExpenseAgent.InsertExpenseCategory(PerDiemA(), PerDiemByAssignedPolicyLbl, PerDiemAByAssignedPolicyPostingLbl, ExpensePerDiemA(), Enum::"Expense Attachment Enforcement"::" ", CreateExpensePaymentMethod.Cash(), false, false, CreateExpenseGroup.Travel(), true, Enum::"Expense Reimbursement Type"::"Employee Paid", Enum::"Expense Detail Needed"::"Per Diem");
-            exit;
-        end;
-
-        ContosoExpenseAgent.InsertExpenseCategory(PerDiem(), PerDiemByAssignedPolicyLbl, PerDiemByAssignedPolicyPostingLbl, GetExpensePerDiemPostingGroup(), Enum::"Expense Attachment Enforcement"::" ", CreateExpensePaymentMethod.Cash(), false, false, CreateExpenseGroup.Travel(), true, Enum::"Expense Reimbursement Type"::"Employee Paid", Enum::"Expense Detail Needed"::"Per Diem");
+        end else
+            ContosoExpenseAgent.InsertExpenseCategory(PerDiem(), PerDiemByAssignedPolicyLbl, PerDiemByAssignedPolicyPostingLbl, GetExpensePerDiemPostingGroup(), Enum::"Expense Attachment Enforcement"::" ", CreateExpensePaymentMethod.Cash(), false, false, CreateExpenseGroup.Travel(), true, Enum::"Expense Reimbursement Type"::"Employee Paid", Enum::"Expense Detail Needed"::"Per Diem");
+        ContosoExpenseAgent.SetOverwriteData(false);
     end;
 
     local procedure CreateExpenseSubcategories(CountryCode: Code[10])
