@@ -97,7 +97,9 @@ codeunit 148333 "Expense Agent Setup API Test"
         AgentSetup.SaveChanges(TempAgentSetupBuffer);
 
         // [WHEN] The E2E test handler configures the company again
+        EnqueueCopyEmployeesConfirmation();
         ExpenseTestHandlerAPI.Configure();
+        LibraryVariableStorage.AssertEmpty();
 
         // [THEN] The existing Expense Agent is enabled
         Clear(TempAgentSetupBuffer);
