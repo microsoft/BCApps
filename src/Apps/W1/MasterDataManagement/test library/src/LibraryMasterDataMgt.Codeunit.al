@@ -263,6 +263,7 @@ codeunit 139757 "Library - Master Data Mgt."
     end;
 
     /// <summary>Returns the registered privacy-notice ID that gates cross-environment synchronization.</summary>
+    /// <returns>The privacy-notice ID code.</returns>
     procedure PrivacyNoticeId(): Code[50]
     var
         MDMPrivacyNotice: Codeunit "MDM Privacy Notice";
@@ -271,6 +272,7 @@ codeunit 139757 "Library - Master Data Mgt."
     end;
 
     /// <summary>Returns whether the cross-environment privacy notice is currently approved.</summary>
+    /// <returns>True if the notice is approved; otherwise false.</returns>
     procedure PrivacyNoticeIsApproved(): Boolean
     var
         MDMPrivacyNotice: Codeunit "MDM Privacy Notice";

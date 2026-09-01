@@ -22,6 +22,7 @@ codeunit 7241 "MDM Cross-Env Source API"
     /// Wire-version negotiation: returns the API contract version and the action/feature names this source
     /// supports, so a newer subsidiary only calls actions an older source actually implements.
     /// </summary>
+    /// <returns>A JSON object with the numeric contract 'version' and a 'features' array of supported action names.</returns>
     [ServiceEnabled]
     procedure GetCapabilities(): Text
     var
@@ -43,6 +44,12 @@ codeunit 7241 "MDM Cross-Env Source API"
     /// { systemIds } list. Response carries records, hasMore and (cursor mode) nextCursor. The table read
     /// runs under the CALLER's permission set, so table-level access is enforced by permissions, not here.
     /// </summary>
+    /// <param name="TableId">The source table ID to read.</param>
+    /// <param name="FieldIds">A JSON array of the field numbers to project.</param>
+    /// <param name="Selector">A JSON object: a change-feed cursor { modifiedAt, systemId } or a targeted { systemIds } list.</param>
+    /// <param name="PageSize">The maximum number of records to return in this page.</param>
+    /// <param name="Filter">An optional source row filter (view) restricting which records are returned.</param>
+    /// <returns>A JSON object with 'records', 'hasMore', 'unavailableFields' and, in cursor mode, 'nextCursor'.</returns>
     [ServiceEnabled]
     procedure GetRecords(TableId: Integer; FieldIds: Text; Selector: Text; PageSize: Integer; Filter: Text): Text
     var
@@ -616,6 +623,8 @@ codeunit 7241 "MDM Cross-Env Source API"
     /// the subsidiary detector can decide which per-table sync jobs to reschedule. Read from the change-feed
     /// index tip (FindLast), so no scan and no summary table to maintain.
     /// </summary>
+    /// <param name="TableIds">A JSON array of the source table IDs to probe.</param>
+    /// <returns>A JSON object with a 'tables' array of { tableId, tableAvailable, indexed, lastModifiedAt } entries.</returns>
     [ServiceEnabled]
     procedure LastModifiedAtPerTable(TableIds: Text): Text
     var

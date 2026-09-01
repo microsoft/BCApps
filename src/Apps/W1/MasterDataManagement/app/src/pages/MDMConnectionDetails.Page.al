@@ -292,6 +292,7 @@ page 7232 "MDM Connection Details"
         Transport: Interface "IMDM Source Transport";
         Capabilities: JsonObject;
         VersionToken: JsonToken;
+        VersionValue: Integer;
         VersionText: Text;
     begin
         // Persist first so the transport reads the details entered in the wizard.
@@ -301,9 +302,9 @@ page 7232 "MDM Connection Details"
         if not Capabilities.ReadFrom(Transport.GetCapabilities()) then
             Error(ConnectionFailedErr);
         if Capabilities.Get('version', VersionToken) then begin
-            if not VersionToken.IsValue() then // a non-scalar version is a broken capabilities contract, not user-actionable
+            if not (VersionToken.IsValue() and Evaluate(VersionValue, VersionToken.AsValue().AsText())) then // malformed version is a broken capabilities contract, not user-actionable
                 Error(ConnectionFailedErr);
-            VersionText := Format(VersionToken.AsValue().AsInteger());
+            VersionText := Format(VersionValue);
         end;
         Message(ConnectionOkMsg, VersionText);
     end;

@@ -55,6 +55,7 @@ codeunit 139929 "MDM In-Process Transport" implements "IMDM Source Transport"
     /// <param name="FieldIds">The projected field IDs.</param>
     /// <param name="Selector">The cursor/systemId selector.</param>
     /// <param name="PageSize">The page size.</param>
+    /// <param name="Filter">The optional source row filter (view).</param>
     /// <returns>The raw JSON records response.</returns>
     procedure GetRecords(TableId: Integer; FieldIds: Text; Selector: Text; PageSize: Integer; Filter: Text): Text
     var
