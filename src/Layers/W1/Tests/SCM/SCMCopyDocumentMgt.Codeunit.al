@@ -1883,13 +1883,13 @@ codeunit 137212 "SCM Copy Document Mgt."
         // and the copy reproduces the ATO link on the target line.
         Initialize();
 
-        // [GIVEN] Assemble-to-order item with a single item component
+        // [GIVEN] Assemble-to-order item with a resource component
         LibraryInventory.CreateItem(Item);
         Item.Validate("Replenishment System", Item."Replenishment System"::Assembly);
         Item.Validate("Assembly Policy", Item."Assembly Policy"::"Assemble-to-Order");
         Item.Modify(true);
         LibraryAssembly.CreateAssemblyList(
-            AssemblyItem."Costing Method"::Standard, Item."No.", true, 1, 0, 0, LibraryRandom.RandInt(5), '', '');
+            AssemblyItem."Costing Method"::Standard, Item."No.", true, 0, 1, 0, LibraryRandom.RandInt(5), '', '');
 
         // [GIVEN] Source sales quote with the ATO item; validating the item auto-creates the ATO link
         Qty := LibraryRandom.RandIntInRange(2, 10);
@@ -1909,7 +1909,9 @@ codeunit 137212 "SCM Copy Document Mgt."
         LibraryE2EPlanPermissions.SetTeamMemberPlan();
 
         // [WHEN] Copy Document is executed for the archived quote into the target quote
-        CopyDocumentMgt.SetProperties(true, false, false, false, true, false, false);
+        // Recalculate lines is required: the sales line archive does not persist "Qty. to Assemble to Order",
+        // so the ATO quantity is re-derived from the item's assembly policy during the copy.
+        CopyDocumentMgt.SetProperties(true, true, false, false, true, false, false);
         CopyDocumentMgt.SetArchDocVal(SalesHeaderArchive."Doc. No. Occurrence", SalesHeaderArchive."Version No.");
         CopyDocumentMgt.CopySalesDoc("Sales Document Type From"::"Arch. Quote", SalesHeaderArchive."No.", ToSalesHeader);
 
