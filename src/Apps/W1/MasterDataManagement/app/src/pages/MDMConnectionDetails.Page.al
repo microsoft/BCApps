@@ -110,7 +110,7 @@ page 7232 "MDM Connection Details"
                 group(OAuth2ConnectionDetails)
                 {
                     Caption = 'Authentication details';
-                    InstructionalText = 'Provide the Microsoft Entra application that this environment uses to authenticate to the source environment.';
+                    InstructionalText = 'Provide the Microsoft Entra application that this environment uses to authenticate to the source environment. Register it as a single-tenant application, because synchronization only connects to environments in the same Microsoft Entra tenant.';
 
                     field(OAuth2ClientId; OAuth2ClientId)
                     {

@@ -9,8 +9,9 @@ using System.Utilities;
 
 /// <summary>
 /// Production transport: calls the source environment's ODataV4 web service with an app-only (client
-/// credentials) token. Same-tenant by construction — the OAuth authority is derived from THIS environment's
-/// Entra tenant, so there is no tenant-id setting to point the connection at another tenant. Tests never hit
+/// credentials) token. Same-tenant by construction — the OAuth authority (tenant + ring) is derived from THIS
+/// environment, so there is no tenant-id setting to point the connection at another tenant; production and the
+/// TIE/PPE ring use different Entra authorities and Business Central resource audiences. Tests never hit
 /// this: they inject an in-process transport that calls the source API directly.
 /// </summary>
 codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
@@ -31,7 +32,11 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         HttpErr: Label 'The source environment returned HTTP %1.', Comment = '%1 = HTTP status code';
         ServiceNameTok: Label 'MDMCrossEnvSource', Locked = true;
         ScopeTok: Label 'https://api.businesscentral.dynamics.com/.default', Locked = true;
+        ScopePPETok: Label 'https://api.businesscentral.dynamics-tie.com/.default', Locked = true;
         TokenEndpointTok: Label 'https://login.microsoftonline.com/%1/oauth2/v2.0/token', Locked = true, Comment = '%1 = Entra tenant id';
+        TokenEndpointPPETok: Label 'https://login.windows-ppe.net/%1/oauth2/v2.0/token', Locked = true, Comment = '%1 = Entra tenant id';
+        SourceHostProdTok: Label 'api.businesscentral.dynamics.com', Locked = true;
+        SourceHostPPETok: Label 'api.businesscentral.dynamics-tie.com', Locked = true;
         ActionUrlTok: Label '%1/ODataV4/%2_%3?company=%4', Locked = true, Comment = '%1 = base url, %2 = service, %3 = action, %4 = company';
         TelemetryCategoryTok: Label 'MDM Cross-Environment', Locked = true;
         TokenAcquiredAuditTxt: Label 'Acquired an application access token to read master data from source environment %1.', Comment = '%1 = source environment name';
@@ -168,11 +173,13 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         Uri: Codeunit Uri;
         Host: Text;
     begin
-        // Embed/ISV clusters vary in hostname but always end with dynamics.com; dynamics-tie.com is the test (TIE) ring.
-        // A malformed URL must surface the actionable setup error, not the URI parser's raw exception.
+        // Only the standard Business Central API hosts are allowed - production and the TIE ring. Embed/ISV
+        // deployments must be on a normal cluster that serves api.businesscentral.dynamics.com. Matching the host
+        // EXACTLY (not a dynamics.com suffix) blocks SSRF via look-alike hosts; a malformed URL surfaces the
+        // actionable setup error instead of the URI parser's raw exception.
         if TryInitUri(Uri, BaseUrl) then begin
             Host := LowerCase(Uri.GetHost());
-            if (Uri.GetScheme() = 'https') and (Host.EndsWith('.dynamics.com') or Host.EndsWith('.dynamics-tie.com')) then
+            if (Uri.GetScheme() = 'https') and ((Host = SourceHostProdTok) or (Host = SourceHostPPETok)) then
                 exit;
         end;
         AuditLog.LogAuditMessage(StrSubstNo(InvalidSourceUrlAuditTxt, Host), SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
@@ -230,8 +237,8 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         Scopes: List of [Text];
         TokenEndpoint: Text;
     begin
-        Scopes.Add(ScopeTok);
-        TokenEndpoint := StrSubstNo(TokenEndpointTok, AzureADTenant.GetAadTenantId());
+        Scopes.Add(GetBcResourceScope());
+        TokenEndpoint := StrSubstNo(GetTokenEndpointTemplate(), AzureADTenant.GetAadTenantId());
         // Prefer a cached/refreshed token (no round-trip when a valid one exists); fall back to a fresh
         // client-credentials grant if the cache misses, errors, or returns an empty token.
         if not TryAcquireTokenFromCache(MasterDataManagementSetup, TokenEndpoint, Scopes, Token) then
@@ -258,6 +265,27 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
     begin
         if not OAuth2.AcquireAuthorizationCodeTokenFromCache(MasterDataManagementSetup."Source OAuth Client Id", MasterDataManagementSetup.GetSourceClientSecret(), '', TokenEndpoint, Scopes, Token) then
             Clear(Token);
+    end;
+
+    // Production and the TIE/PPE ring use different Entra authorities and BC resource audiences. Cross-env is same
+    // tenant and same ring, so detect the ring from this environment's web URL and mint the token for the right one.
+    local procedure IsPPE(): Boolean
+    begin
+        exit(StrPos(LowerCase(GetUrl(ClientType::Web)), 'businesscentral.dynamics-tie.com') <> 0);
+    end;
+
+    local procedure GetBcResourceScope(): Text
+    begin
+        if IsPPE() then
+            exit(ScopePPETok);
+        exit(ScopeTok);
+    end;
+
+    local procedure GetTokenEndpointTemplate(): Text
+    begin
+        if IsPPE() then
+            exit(TokenEndpointPPETok);
+        exit(TokenEndpointTok);
     end;
 
     local procedure GetConfiguredSetup(var MasterDataManagementSetup: Record "Master Data Management Setup")

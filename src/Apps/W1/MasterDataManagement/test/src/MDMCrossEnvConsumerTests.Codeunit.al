@@ -53,23 +53,31 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
     begin
         // [FEATURE] [Master Data Management] [Cross-Environment] [Security]
-        // [SCENARIO] The HTTP transport's source-host allow-list accepts only HTTPS Business Central endpoints (SSRF guard).
+        // [SCENARIO] The source-host allow-list accepts only the exact HTTPS Business Central API hosts (SSRF guard).
         Initialize();
 
-        // [GIVEN] valid Business Central SaaS and TIE endpoints over HTTPS [THEN] validation passes
-        LibraryMasterDataMgt.ValidateHttpTransportSourceHost('https://myenv.api.bc.dynamics.com');
-        LibraryMasterDataMgt.ValidateHttpTransportSourceHost('https://myenv.api.bc.dynamics-tie.com');
+        // [GIVEN] the exact Business Central API hosts (production and TIE) over HTTPS [THEN] validation passes
+        LibraryMasterDataMgt.ValidateHttpTransportSourceHost('https://api.businesscentral.dynamics.com/v2.0/CRONUS/Production');
+        LibraryMasterDataMgt.ValidateHttpTransportSourceHost('https://api.businesscentral.dynamics-tie.com/v2.0/CRONUS/Sandbox');
 
         // [GIVEN] a non-HTTPS scheme [THEN] validation is rejected
-        asserterror LibraryMasterDataMgt.ValidateHttpTransportSourceHost('http://myenv.api.bc.dynamics.com');
+        asserterror LibraryMasterDataMgt.ValidateHttpTransportSourceHost('http://api.businesscentral.dynamics.com/v2.0/CRONUS/Production');
         Assert.ExpectedError(InvalidSourceHostErr);
 
-        // [GIVEN] a host outside the dynamics.com allow-list [THEN] validation is rejected
+        // [GIVEN] any non-standard dynamics.com host (e.g. an Embed/ISV per-cluster hostname) [THEN] validation is rejected
+        asserterror LibraryMasterDataMgt.ValidateHttpTransportSourceHost('https://myenv.api.bc.dynamics.com');
+        Assert.ExpectedError(InvalidSourceHostErr);
+
+        // [GIVEN] a subdomain of the allowed host [THEN] validation is rejected (exact host only)
+        asserterror LibraryMasterDataMgt.ValidateHttpTransportSourceHost('https://sub.api.businesscentral.dynamics.com');
+        Assert.ExpectedError(InvalidSourceHostErr);
+
+        // [GIVEN] a host outside the allow-list [THEN] validation is rejected
         asserterror LibraryMasterDataMgt.ValidateHttpTransportSourceHost('https://evil.example.com');
         Assert.ExpectedError(InvalidSourceHostErr);
 
-        // [GIVEN] a look-alike host that only embeds dynamics.com as a non-final label [THEN] validation is rejected
-        asserterror LibraryMasterDataMgt.ValidateHttpTransportSourceHost('https://myenv.dynamics.com.evil.example.com');
+        // [GIVEN] a look-alike host that only embeds the allowed host as a non-final label [THEN] validation is rejected
+        asserterror LibraryMasterDataMgt.ValidateHttpTransportSourceHost('https://api.businesscentral.dynamics.com.evil.example.com');
         Assert.ExpectedError(InvalidSourceHostErr);
 
         CleanUp();
