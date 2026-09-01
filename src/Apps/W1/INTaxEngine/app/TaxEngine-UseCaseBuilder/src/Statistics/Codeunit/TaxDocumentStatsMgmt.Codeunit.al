@@ -9,7 +9,9 @@ using Microsoft.Finance.TaxEngine.TaxTypeHandler;
 
 codeunit 20301 "Tax Document Stats Mgmt."
 {
+#pragma warning disable AL0749 // Accepted: widening the parameter type is a breaking change
     procedure UpdateTaxComponent(RecordIDList: List of [RecordID]; var ComponentSummary: Record "Tax Component Summary" temporary)
+#pragma warning restore AL0749
     var
         CaseIDList: List of [Guid];
         i: Integer;

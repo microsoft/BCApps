@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Requisition;
@@ -14,7 +15,10 @@ using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Warehouse.Setup;
 
 codeunit 139983 "Subc. Management Library"
 {
@@ -166,7 +170,11 @@ codeunit 139983 "Subc. Management Library"
     procedure SetupInventorySetup()
     var
         InventorySetup: Record "Inventory Setup";
+        NoSeries: Record "No. Series";
+        NoSeriesLine: Record "No. Series Line";
         Location: Record Location;
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        WarehouseSetup: Record "Warehouse Setup";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryUtility: Codeunit "Library - Utility";
     begin
@@ -174,9 +182,39 @@ codeunit 139983 "Subc. Management Library"
             InventorySetup.Init();
 
         LibraryInventory.NoSeriesSetup(InventorySetup);
-        InventorySetup."Inventory Put-away Nos." := LibraryUtility.GetGlobalNoSeriesCode();
+        LibraryUtility.CreateNoSeries(NoSeries, true, false, false);
+        LibraryUtility.CreateNoSeriesLine(NoSeriesLine, NoSeries.Code, 'SUBC0000001', 'SUBC9999999');
+        InventorySetup.Validate("Internal Movement Nos.", NoSeries.Code);
+        InventorySetup.Validate("Inventory Movement Nos.", NoSeries.Code);
+        InventorySetup.Validate("Inventory Pick Nos.", NoSeries.Code);
+        InventorySetup.Validate("Inventory Put-away Nos.", NoSeries.Code);
+        InventorySetup.Validate("Item Nos.", NoSeries.Code);
+        InventorySetup.Validate("Posted Invt. Pick Nos.", NoSeries.Code);
+        InventorySetup.Validate("Posted Transfer Rcpt. Nos.", NoSeries.Code);
+        InventorySetup.Validate("Posted Transfer Shpt. Nos.", NoSeries.Code);
+        InventorySetup.Validate("Registered Invt. Movement Nos.", NoSeries.Code);
+        InventorySetup.Validate("Transfer Order Nos.", NoSeries.Code);
+        InventorySetup.Validate("Posted Invt. Put-away Nos.", NoSeries.Code);
         InventorySetup."Direct Transfer Posting Type" := InventorySetup."Direct Transfer Posting Type"::"Direct Transfer";
         InventorySetup.Modify();
+
+        LibraryUtility.UpdateSetupNoSeriesCode(
+            DATABASE::"Purchases & Payables Setup", PurchasesPayablesSetup.FieldNo("Order Nos."));
+
+        WarehouseSetup.Get();
+        WarehouseSetup.Validate("Posted Whse. Receipt Nos.", NoSeries.Code);
+        WarehouseSetup.Validate("Posted Whse. Shipment Nos.", NoSeries.Code);
+        WarehouseSetup.Validate("Registered Whse. Movement Nos.", NoSeries.Code);
+        WarehouseSetup.Validate("Registered Whse. Pick Nos.", NoSeries.Code);
+        WarehouseSetup.Validate("Registered Whse. Put-away Nos.", NoSeries.Code);
+        WarehouseSetup.Validate("Whse. Movement Nos.", NoSeries.Code);
+        WarehouseSetup.Validate("Whse. Pick Nos.", NoSeries.Code);
+        WarehouseSetup.Validate("Whse. Put-away Nos.", NoSeries.Code);
+        WarehouseSetup.Validate("Whse. Receipt Nos.", NoSeries.Code);
+        WarehouseSetup.Validate("Whse. Ship Nos.", NoSeries.Code);
+        WarehouseSetup.Validate("Whse. Internal Pick Nos.", NoSeries.Code);
+        WarehouseSetup.Validate("Whse. Internal Put-away Nos.", NoSeries.Code);
+        WarehouseSetup.Modify(true);
         LibraryInventory.UpdateInventoryPostingSetup(Location);
     end;
 
@@ -259,5 +297,86 @@ codeunit 139983 "Subc. Management Library"
         Item.Get(ItemNo);
         WIPLedgerEntry."Base Unit of Measure" := Item."Base Unit of Measure";
         WIPLedgerEntry.Insert();
+    end;
+
+    /// <summary>
+    /// Updates the component supply method on all components of a production order.
+    /// </summary>
+    /// <param name="ProductionOrder">The production order whose components are updated.</param>
+    /// <param name="ComponentSupplyMethod">The component supply method to assign.</param>
+    procedure UpdateProdOrderComponentWithComponentSupplyMethod(ProductionOrder: Record "Production Order"; ComponentSupplyMethod: Enum "Component Supply Method")
+    var
+        ProdOrderComp: Record "Prod. Order Component";
+    begin
+        ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComp.ModifyAll("Component Supply Method", ComponentSupplyMethod);
+    end;
+
+    /// <summary>
+    /// Calculates subcontracts for a worksheet and finds the line for a production order.
+    /// </summary>
+    /// <param name="RequisitionWkshName">The subcontracting worksheet to calculate.</param>
+    /// <param name="ProdOrderNo">The production order number to find.</param>
+    /// <param name="RequisitionLine">Returns the calculated requisition line.</param>
+    procedure CalculateSubcontractsAndFindReqLine(RequisitionWkshName: Record "Requisition Wksh. Name"; ProdOrderNo: Code[20]; var RequisitionLine: Record "Requisition Line")
+    var
+        SubcCalculateSubContract: Report "Subc. Calculate Subcontracts";
+    begin
+        Clear(RequisitionLine);
+        RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
+        RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
+
+        SubcCalculateSubContract.SetWkShLine(RequisitionLine);
+        SubcCalculateSubContract.UseRequestPage(false);
+        SubcCalculateSubContract.RunModal();
+
+        RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
+        RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
+#pragma warning disable AA0210
+        RequisitionLine.SetRange("Prod. Order No.", ProdOrderNo);
+#pragma warning restore AA0210
+        RequisitionLine.FindFirst();
+    end;
+
+    /// <summary>
+    /// Carries out the action message for a subcontracting requisition line.
+    /// </summary>
+    /// <param name="RequisitionLine">The requisition line whose action message is carried out.</param>
+    procedure CarryOutSubcontractingAction(var RequisitionLine: Record "Requisition Line")
+    var
+        CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
+    begin
+        CarryOutActionMsgReq.SetReqWkshLine(RequisitionLine);
+        CarryOutActionMsgReq.UseRequestPage(false);
+        CarryOutActionMsgReq.RunModal();
+    end;
+
+    /// <summary>
+    /// Finds a subcontracting purchase line for an item and production order.
+    /// </summary>
+    /// <param name="PurchaseLine">Returns the matching purchase line.</param>
+    /// <param name="ItemNo">The item number to find.</param>
+    /// <param name="ProdOrderNo">The production order number to find.</param>
+    procedure FindSubcPurchLineForProdOrder(var PurchaseLine: Record "Purchase Line"; ItemNo: Code[20]; ProdOrderNo: Code[20])
+    begin
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange(Type, "Purchase Line Type"::Item);
+        PurchaseLine.SetRange("No.", ItemNo);
+        PurchaseLine.SetRange("Prod. Order No.", ProdOrderNo);
+        PurchaseLine.FindFirst();
+    end;
+
+    /// <summary>
+    /// Filters purchase lines to a component item on a purchase order.
+    /// </summary>
+    /// <param name="PurchaseLineComp">Returns the filtered purchase-line record.</param>
+    /// <param name="DocumentNo">The purchase order number to filter by.</param>
+    /// <param name="ComponentItemNo">The component item number to filter by.</param>
+    procedure FindComponentPurchLine(var PurchaseLineComp: Record "Purchase Line"; DocumentNo: Code[20]; ComponentItemNo: Code[20])
+    begin
+        PurchaseLineComp.SetRange("Document Type", PurchaseLineComp."Document Type"::Order);
+        PurchaseLineComp.SetRange("Document No.", DocumentNo);
+        PurchaseLineComp.SetRange(Type, "Purchase Line Type"::Item);
+        PurchaseLineComp.SetRange("No.", ComponentItemNo);
     end;
 }
