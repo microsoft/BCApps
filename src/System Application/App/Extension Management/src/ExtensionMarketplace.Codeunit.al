@@ -48,6 +48,7 @@ codeunit 2501 "Extension Marketplace"
         TelemetryTok: Label 'ExtensionManagementTelemetryCategoryTok', Locked = true;
         OperationResult: Option UserNotAuthorized,DeploymentFailedDueToPackage,DeploymentFailed,Successful,UserCancel,UserTimeOut;
         AppDoesntNeedSetupMsg: Label 'Your app is installed and ready to use.';
+        AppInstallationFailedMsg: Label 'The app could not be installed. Contact your administrator for more information.';
 
     local procedure GetValue(JObject: DotNet JObject; Property: Text; ThrowError: Boolean): Text
     begin
@@ -263,7 +264,8 @@ codeunit 2501 "Extension Marketplace"
     begin
         ExtensionInstallationImpl.CheckPermissions();
 
-        if not InstallAppsourceExtension(MarketplaceApplicationID, TelemetryURL) then begin // successful installation returns false
+        // The page-level TryFunction can return false after a successful install, so verify the installed state.
+        if not InstallAppsourceExtension(MarketplaceApplicationID, TelemetryURL) then begin
             AppId := MapMarketplaceIdToAppId(MarketplaceApplicationID);
             if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then begin
                 SaveExtensionPendingSetup(AppId);
@@ -284,7 +286,8 @@ codeunit 2501 "Extension Marketplace"
     begin
         ExtensionInstallationImpl.CheckPermissions();
 
-        if not InstallAppsourceExtension(AppId, TelemetryURL) then // successful installation returns false
+        // The page-level TryFunction can return false after a successful install, so verify the installed state.
+        if not InstallAppsourceExtension(AppId, TelemetryURL) then
             if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then begin
                 SaveExtensionPendingSetup(AppId);
                 MySessionSettings.Init();
@@ -366,10 +369,19 @@ codeunit 2501 "Extension Marketplace"
 
     local procedure InstallApp(PackageId: Guid; ResponseURL: Text; lcid: Integer): Boolean
     var
-        ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         HasSucceeded: Boolean;
+        InstallErrorText: Text;
     begin
-        HasSucceeded := ExtensionInstallationImpl.InstallExtensionWithConfirmDialog(PackageId, lcid);
+        ClearLastError();
+        if not TryInstallApp(PackageId, lcid, HasSucceeded) then begin
+            InstallErrorText := GetLastErrorText();
+            MakeMarketplaceTelemetryCallback(ResponseURL, OperationResult::DeploymentFailedDueToPackage);
+            if InstallErrorText = '' then
+                Message(AppInstallationFailedMsg)
+            else
+                Message(InstallErrorText);
+            exit(false);
+        end;
 
         if HasSucceeded = true then
             MakeMarketplaceTelemetryCallback(ResponseURL, OperationResult::Successful)
@@ -377,6 +389,14 @@ codeunit 2501 "Extension Marketplace"
             MakeMarketplaceTelemetryCallback(ResponseURL, OperationResult::DeploymentFailedDueToPackage);
 
         exit(HasSucceeded);
+    end;
+
+    [TryFunction]
+    local procedure TryInstallApp(PackageId: Guid; lcid: Integer; var HasSucceeded: Boolean)
+    var
+        ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
+    begin
+        HasSucceeded := ExtensionInstallationImpl.InstallExtensionWithConfirmDialog(PackageId, lcid);
     end;
 
     local procedure InstallApp(PackageId: Guid; AppId: Guid; ResponseURL: Text; lcid: Integer)
