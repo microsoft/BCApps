@@ -12,6 +12,7 @@ using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.Receivables;
+using Microsoft.Utilities;
 using System.Utilities;
 
 codeunit 10975 "FR E-Invoice Message Mgt."
@@ -57,6 +58,15 @@ codeunit 10975 "FR E-Invoice Message Mgt."
     local procedure OnAfterCreatePaymentOccurrence(var EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence")
     begin
         CreatePaymentLifecycleMessage(EDocPaymentOccurrence);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Data Classification Eval. Data", 'OnCreateEvaluationDataOnAfterClassifyTablesToNormal', '', false, false)]
+    local procedure ClassifyDataSensitivity()
+    var
+        DataClassificationEvalData: Codeunit "Data Classification Eval. Data";
+    begin
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"FR E-Invoice Message");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"FR E-Invoice Message VAT");
     end;
 
     local procedure CreatePaymentLifecycleMessage(EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence")
