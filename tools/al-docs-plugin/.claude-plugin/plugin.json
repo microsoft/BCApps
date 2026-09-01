@@ -1,0 +1,9 @@
+{
+  "name": "al-docs",
+  "version": "0.1.0",
+  "description": "AL codebase documentation generator - bootstrap, update, and audit hierarchical docs for Business Central AL apps",
+  "author": {
+    "name": "BC Application Team"
+  },
+  "keywords": ["al", "business-central", "documentation", "docs"]
+}

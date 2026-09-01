@@ -57,6 +57,7 @@ table 8061 "Billing Line"
         field(31; "Subscription Line Entry No."; Integer)
         {
             Caption = 'Subscription Line Entry No.';
+            TableRelation = "Subscription Line"."Entry No.";
         }
         field(32; "Subscription Description"; Text[100])
         {
@@ -243,11 +244,22 @@ table 8061 "Billing Line"
         key(SK6; "Billing Template Code", Partner)
         {
         }
+        key(SK7; "Subscription Line Entry No.")
+        {
+        }
+    }
+
+    fieldgroups
+    {
+        fieldgroup(DropDown; "Subscription Header No.", "Billing from", "Billing to", Amount)
+        {
+        }
     }
 
     trigger OnDelete()
     var
         BillingLine2: Record "Billing Line";
+        UsageDataBilling: Record "Usage Data Billing";
     begin
         if "Document No." <> '' then
             Error(CannotDeleteBillingLinesWithDocumentNoErr);
@@ -257,6 +269,8 @@ table 8061 "Billing Line"
         else
             Error(OnlyLastServiceLineCanBeDeletedErr, "Subscription Header No.");
         RecalculateCustomerContractHarmonizedBillingFields();
+        UsageDataBilling.SetRange("Billing Line Entry No.", "Entry No.");
+        UsageDataBilling.ModifyAll("Billing Line Entry No.", 0, false);
     end;
 
     var
@@ -278,7 +292,8 @@ table 8061 "Billing Line"
     var
         ServiceCommitment: Record "Subscription Line";
     begin
-        GetServiceCommitment(ServiceCommitment);
+        if not GetServiceCommitment(ServiceCommitment) then
+            exit;
 
         OnBeforeUpdateNextBillingDateInResetSubscriptionLineNextBillingDate(ServiceCommitment);
         if ("Document Type" = "Document Type"::"Credit Memo") and ("Correction Document Type" <> "Rec. Billing Document Type"::None) then
@@ -455,6 +470,11 @@ table 8061 "Billing Line"
         Rec.SetRange("Subscription Contract Line No.", ContractLineNo);
     end;
 
+    internal procedure FilterBillingLineOnServiceCommitment(ServiceCommitmentEntryNo: Integer)
+    begin
+        Rec.SetRange("Subscription Line Entry No.", ServiceCommitmentEntryNo);
+    end;
+
     local procedure RecalculateCustomerContractHarmonizedBillingFields()
     var
         CustomerContract: Record "Customer Subscription Contract";
@@ -500,9 +520,9 @@ table 8061 "Billing Line"
     begin
     end;
 
-    internal procedure GetServiceCommitment(var ServiceCommitment: Record "Subscription Line")
+    internal procedure GetServiceCommitment(var ServiceCommitment: Record "Subscription Line"): Boolean
     begin
-        ServiceCommitment.Get("Subscription Line Entry No.");
+        exit(ServiceCommitment.Get("Subscription Line Entry No."));
     end;
 
     local procedure UpdateNextBillingDateFromUsageDataMetadata(var ServiceCommitment: Record "Subscription Line")

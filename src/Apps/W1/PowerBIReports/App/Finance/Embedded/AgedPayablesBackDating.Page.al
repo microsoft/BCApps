@@ -11,8 +11,8 @@ page 36994 "Aged Payables (Back Dating)"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Aged Payables (Back Dating)';
-    AboutTitle = 'About Aged Payables (Back Dating)';
+    Caption = 'Aged Payables (Back Dating) (Power BI)';
+    AboutTitle = 'About Aged Payables (Back Dating) (Power BI)';
     AboutText = 'The Aged Payables Back Dating report categorizes vendor balances into aging buckets. It offers flexibility with filters for different payment terms, aging dates, and custom aging bucket sizes.';
 
     layout
@@ -48,11 +48,8 @@ page 36994 "Aged Payables (Back Dating)"
         ReportPageLbl: Label 'ReportSection904474b579cc92816425', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Finance Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Finance App");
     end;
 }
 

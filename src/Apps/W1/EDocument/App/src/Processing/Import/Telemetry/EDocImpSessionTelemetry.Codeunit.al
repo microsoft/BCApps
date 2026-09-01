@@ -85,7 +85,7 @@ codeunit 6122 "E-Doc. Imp. Session Telemetry"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Imp. Session Telemetry", SetBool, '', false, false)]
     local procedure OnSetBool("Key": Text; "Value": Boolean)
     begin
-        Data.Set("Key", Format("Value", 0, 9));
+        Data.Set("Key", Value ? 'true' : 'false');
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Imp. Session Telemetry", SetLine, '', false, false)]
@@ -105,7 +105,7 @@ codeunit 6122 "E-Doc. Imp. Session Telemetry"
         if not LineData.ContainsKey(LineId) then
             LineData.Set(LineId, EmptyDict);
 
-        LineData.Get(LineId).Set("Key", Format("Value", 0, 9));
+        LineData.Get(LineId).Set("Key", Value ? 'true' : 'false');
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Imp. Session Telemetry", SetLineText, '', false, false)]

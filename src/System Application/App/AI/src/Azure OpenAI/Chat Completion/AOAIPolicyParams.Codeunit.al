@@ -77,6 +77,15 @@ codeunit 7787 "AOAI Policy Params"
     end;
 
     /// <summary>
+    /// Gets whether the current Azure AOAI policy is the default one.
+    /// </summary>
+    /// <returns>True if the current policy is the default; otherwise, false.</returns>
+    procedure IsDefaultPolicy(): Boolean
+    begin
+        exit(AOAIPolicyParamsImpl.IsDefaultPolicy());
+    end;
+
+    /// <summary>
     /// Gets the AOAI policy as text based on the provided policy parameters or a Custom one.
     /// </summary>
     internal procedure GetAOAIPolicy(): Text

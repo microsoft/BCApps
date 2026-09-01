@@ -15,6 +15,7 @@ using Microsoft.QualityManagement.Dispositions.Move;
 using Microsoft.QualityManagement.Dispositions.Purchase;
 using Microsoft.QualityManagement.Dispositions.PutAway;
 using Microsoft.QualityManagement.Dispositions.Transfer;
+using Microsoft.QualityManagement.Telemetry;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.Warehouse.Structure;
 
@@ -30,8 +31,12 @@ page 20408 "Qlty. Inspection List"
     PageType = List;
     SourceTable = "Qlty. Inspection Header";
     SourceTableView = sorting("No.", "Re-inspection No.") order(descending);
+    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
     UsageCategory = Lists;
     ApplicationArea = QualityManagement;
+    RefreshOnActivate = true;
+    AboutTitle = 'About Quality Inspections';
+    AboutText = 'Review all quality inspections created by rules or manually. Track their progress through the inspection process and take action when needed.';
 
     layout
     {
@@ -58,13 +63,20 @@ page 20408 "Qlty. Inspection List"
                 }
                 field(Status; Rec.Status)
                 {
+                    AboutTitle = 'Inspection status at a glance';
+                    AboutText = '**Status** shows whether the inspection is still in progress or finished. Finished inspections are locked and can''t be changed.';
+                    StyleExpr = StatusStyleExpr;
                 }
                 field("Result Code"; Rec."Result Code")
                 {
                     Visible = false;
+                    StyleExpr = ResultStyleExpr;
                 }
                 field("Result Description"; Rec."Result Description")
                 {
+                    AboutTitle = 'Inspection results';
+                    AboutText = '**Result** shows the outcome of the inspection. It''s automatically calculated from the test values on the lines and the result conditions in the quality test page.';
+                    StyleExpr = ResultStyleExpr;
                 }
                 field("Finished Date"; Rec."Finished Date")
                 {
@@ -89,10 +101,10 @@ page 20408 "Qlty. Inspection List"
                 {
                     Visible = false;
                 }
-                field("Serial No."; Rec."Source Serial No.")
+                field("Lot No."; Rec."Source Lot No.")
                 {
                 }
-                field("Lot No."; Rec."Source Lot No.")
+                field("Serial No."; Rec."Source Serial No.")
                 {
                 }
                 field("Package No."; Rec."Source Package No.")
@@ -181,14 +193,14 @@ page 20408 "Qlty. Inspection List"
             action(CreateInspection)
             {
                 Scope = Repeater;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = I;
                 Caption = 'Create Inspection';
-                ToolTip = 'Specifies to create a new Quality Inspection.';
-                Image = CreateForm;
+                ToolTip = 'Create a new quality inspection.';
+                Image = BulletList;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
                 PromotedOnly = true;
-                Enabled = CanCreateInspection;
 
                 trigger OnAction()
                 var
@@ -201,19 +213,26 @@ page 20408 "Qlty. Inspection List"
             }
             action("Create Re-inspection")
             {
+                AccessByPermission = tabledata "Qlty. Inspection Header" = I;
                 Caption = 'Create Re-inspection';
                 Image = Reuse;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
                 PromotedOnly = true;
-                ToolTip = 'Create Re-inspection';
+                ToolTip = 'Create a new re-inspection based on this inspection. If the inspection is still open, it will be finished first. Finishing may be blocked if the current result does not allow it.';
                 Enabled = CanCreateReinspection;
 
                 trigger OnAction()
+                var
+                    ReinspectionQltyInspectionHeader: Record "Qlty. Inspection Header";
                 begin
-                    Rec.CreateReinspection();
+                    Rec.CreateReinspection(ReinspectionQltyInspectionHeader);
                     CurrPage.Update(false);
+                    if not IsNullGuid(ReinspectionQltyInspectionHeader.SystemId) then begin
+                        Commit();
+                        Page.Run(Page::"Qlty. Inspection", ReinspectionQltyInspectionHeader);
+                    end;
                 end;
             }
             action(TakePicture)
@@ -225,11 +244,12 @@ page 20408 "Qlty. Inspection List"
 
                 trigger OnAction()
                 begin
-                    Rec.TakeNewPicture();
+                    Rec.TakeNewMostRecentPicture();
                 end;
             }
             action(ChangeStatusFinish)
             {
+                AccessByPermission = tabledata "Qlty. Inspection Header" = M;
                 Caption = 'Finish';
                 Image = ReleaseDoc;
                 Promoted = true;
@@ -253,13 +273,14 @@ page 20408 "Qlty. Inspection List"
             }
             action(ChangeStatusReopen)
             {
+                AccessByPermission = tabledata "Qlty. Inspection Header" = M;
                 Caption = 'Reopen';
                 Image = ReOpen;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
                 PromotedOnly = true;
-                ToolTip = 'Reopen';
+                ToolTip = 'Reopen a finished inspection. Only users with the Quality Admin & Supervisor role can perform this action.';
                 Enabled = CanReopen;
 
                 trigger OnAction()
@@ -277,10 +298,10 @@ page 20408 "Qlty. Inspection List"
             action(AssignToSelf)
             {
                 Scope = Repeater;
-                Image = CreateInventoryPick;
-                Caption = 'Pick Up';
-                ToolTip = 'Specifies whether to assign the inspection to yourself.';
-                AboutTitle = 'Pick Up';
+                Image = AddContacts;
+                Caption = 'Take ownership';
+                ToolTip = 'Assign the inspection to yourself.';
+                AboutTitle = 'Take ownership';
                 AboutText = 'Use this to assign the inspection to yourself.';
                 Visible = CanAssignToSelf;
                 Enabled = CanAssignToSelf;
@@ -301,9 +322,9 @@ page 20408 "Qlty. Inspection List"
             action(Unassign)
             {
                 Scope = Repeater;
-                Image = CreatePutAway;
+                Image = ExportContact;
                 Caption = 'Unassign';
-                ToolTip = 'Specifies whether to unassign this inspection.';
+                ToolTip = 'Unassign the inspection.';
                 AboutTitle = 'Unassign';
                 AboutText = 'Use this to unassign this inspection.';
                 Visible = CanUnassign;
@@ -343,7 +364,7 @@ page 20408 "Qlty. Inspection List"
                 Caption = 'Create Internal Put-away';
                 Enabled = RowActionsAreEnabled;
                 Image = CreatePutAway;
-                ToolTip = 'Creates an Internal Put-away document.';
+                ToolTip = 'Create an Internal Put-away document.';
 
                 trigger OnAction()
                 var
@@ -358,7 +379,7 @@ page 20408 "Qlty. Inspection List"
             {
                 Caption = 'Create Transfer Order';
                 Enabled = RowActionsAreEnabled;
-                Image = NewShipment;
+                Image = NewTransferOrder;
                 ToolTip = 'Transfer related inventory to a different location.';
 
                 trigger OnAction()
@@ -374,7 +395,7 @@ page 20408 "Qlty. Inspection List"
             {
                 Caption = 'Create Negative Adjustment';
                 Enabled = RowActionsAreEnabled;
-                Image = CalculateWarehouseAdjustment;
+                Image = MoveNegativeLines;
                 ToolTip = 'Reduce inventory quantity, for disposal after performing destructive testing or doing a stock write-off for damage or spoilage.';
 
                 trigger OnAction()
@@ -390,7 +411,7 @@ page 20408 "Qlty. Inspection List"
             {
                 Caption = 'Change Item Tracking';
                 Enabled = RowActionsAreEnabled;
-                Image = CalculateWarehouseAdjustment;
+                Image = ItemTrackingLedger;
                 ToolTip = 'Change Item Tracking Information.';
 
                 trigger OnAction()
@@ -406,7 +427,7 @@ page 20408 "Qlty. Inspection List"
             {
                 Caption = 'Create Purchase Return Order';
                 Enabled = RowActionsAreEnabled;
-                Image = PurchaseCreditMemo;
+                Image = ReturnOrder;
                 ToolTip = 'Create a purchase Return Order.';
 
                 trigger OnAction()
@@ -425,7 +446,9 @@ page 20408 "Qlty. Inspection List"
             {
                 Caption = 'Certificate of Analysis';
                 Enabled = RowActionsAreEnabled;
-                ToolTip = 'Certificate of Analysis (CoA) for this inspection.';
+                ToolTip = 'Print a certificate of analysis (CoA) report.';
+                AboutTitle = 'Print and share reports';
+                AboutText = 'You can preview, print, or share the certificate of analysis and other inspection reports to support quality, traceability, and compliance.';
                 Image = Certificate;
                 Scope = Repeater;
                 Promoted = true;
@@ -448,8 +471,8 @@ page 20408 "Qlty. Inspection List"
                 PromotedCategory = Report;
                 Caption = 'Non Conformance Report';
                 Enabled = RowActionsAreEnabled;
-                ToolTip = 'Specifies the Non Conformance Report has a layout suitable for quality inspection templates that typically contain Non Conformance Report questions.';
-                Image = Certificate;
+                ToolTip = 'Print a non-conformance inspection report.';
+                Image = Report;
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedOnly = true;
@@ -469,8 +492,8 @@ page 20408 "Qlty. Inspection List"
                 PromotedCategory = Report;
                 Caption = 'Inspection Report';
                 Enabled = RowActionsAreEnabled;
-                ToolTip = 'General purpose inspection report.';
-                Image = Certificate;
+                ToolTip = 'Print a general-purpose inspection report.';
+                Image = Report;
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedOnly = true;
@@ -507,16 +530,16 @@ page 20408 "Qlty. Inspection List"
             }
             action(OpenSourceDocument)
             {
-                Caption = 'Open Source Document';
+                Caption = 'Show source document';
                 Enabled = RowActionsAreEnabled;
                 Image = ViewSourceDocumentLine;
-                ToolTip = 'Opens the related source document.';
+                ToolTip = 'Open the related source document.';
 
                 trigger OnAction()
                 var
-                    QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+                    QltyDocumentNavigation: Codeunit "Qlty. Document Navigation";
                 begin
-                    QltyMiscHelpers.NavigateToSourceDocument(Rec);
+                    QltyDocumentNavigation.NavigateToSourceDocument(Rec);
                 end;
             }
             action(FindEntries)
@@ -530,17 +553,17 @@ page 20408 "Qlty. Inspection List"
 
                 trigger OnAction()
                 var
-                    QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
+                    QltyDocumentNavigation: Codeunit "Qlty. Document Navigation";
                 begin
-                    QltyMiscHelpers.NavigateToFindEntries(Rec);
+                    QltyDocumentNavigation.NavigateToFindEntries(Rec);
                 end;
             }
-            group(SettingsForItemAvailabilityBy)
+            group(ItemAvailabilityBy)
             {
                 Caption = 'Item Availability by';
                 Enabled = RowActionsAreEnabled;
                 Image = ItemAvailability;
-                action(tItemAvailabilityByEvent)
+                action(ItemAvailabilityByEvent)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Event';
@@ -557,7 +580,7 @@ page 20408 "Qlty. Inspection List"
                         AvailItemAvailabilityFormsMgt.ShowItemAvailabilityFromItem(Item, "Item Availability Type"::"Event");
                     end;
                 }
-                action(Period)
+                action(ItemAvailabilityByPeriod)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Period';
@@ -569,7 +592,7 @@ page 20408 "Qlty. Inspection List"
                                       "Variant Filter" = field("Source Variant Code");
                     ToolTip = 'Show the projected quantity of the item over time according to time periods, such as day, week, or month.';
                 }
-                action(Variant)
+                action(ItemAvailabilityByVariant)
                 {
                     ApplicationArea = Planning;
                     Caption = 'Variant';
@@ -581,7 +604,7 @@ page 20408 "Qlty. Inspection List"
                                       "Variant Filter" = field("Source Variant Code");
                     ToolTip = 'View the current and projected quantity of the item for each variant.';
                 }
-                action(Location)
+                action(ItemAvailabilityByLocation)
                 {
                     ApplicationArea = Suite;
                     Caption = 'Location';
@@ -593,7 +616,7 @@ page 20408 "Qlty. Inspection List"
                                       "Variant Filter" = field("Source Variant Code");
                     ToolTip = 'View the actual and projected quantity of the item per location.';
                 }
-                action(Lot)
+                action(ItemAvailabilityByLot)
                 {
                     ApplicationArea = ItemTracking;
                     Caption = 'Lot';
@@ -603,7 +626,7 @@ page 20408 "Qlty. Inspection List"
                     RunPageLink = "No." = field("Source Item No.");
                     ToolTip = 'View the current and projected quantity of the item for each lot.';
                 }
-                action(BinContents)
+                action(ItemAvailabilityByBinContents)
                 {
                     ApplicationArea = Warehouse;
                     Caption = 'Bin Contents';
@@ -630,7 +653,7 @@ page 20408 "Qlty. Inspection List"
         {
             Caption = 'Open and Due (all)';
             Filters = where(Status = const(Open),
-                            "Planned Start Date" = filter('<=T'));
+                            "Planned Start Date" = filter('<=%NOW'));
             OrderBy = descending("No.", "Re-inspection No.");
         }
         view(viewFinished)
@@ -651,7 +674,7 @@ page 20408 "Qlty. Inspection List"
             Caption = 'Open and Due (mine)';
             Filters = where(Status = const(Open),
                             "Assigned User ID" = filter('%me'),
-                            "Planned Start Date" = filter('<=T'));
+                            "Planned Start Date" = filter('<=%NOW'));
             OrderBy = descending("No.", "Re-inspection No.");
         }
         view(viewMyFinished)
@@ -678,21 +701,26 @@ page 20408 "Qlty. Inspection List"
     var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
-        CanCreateInspection: Boolean;
+        ResultStyleExpr: Text;
         CanAssignToSelf: Boolean;
         CanCreateReinspection: Boolean;
         CanUnassign: Boolean;
         CanFinish: Boolean;
         CanReopen: Boolean;
         RowActionsAreEnabled: Boolean;
+        StatusStyleExpr: Text;
 
     trigger OnOpenPage()
+    var
+        QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
     begin
-        RowActionsAreEnabled := not IsNullGuid(Rec.SystemId);
-        CanCreateInspection := QltyPermissionMgmt.CanCreateManualInspection();
-        CanReopen := RowActionsAreEnabled and QltyPermissionMgmt.CanReopenInspection() and not Rec.HasMoreRecentReinspection();
-        CanFinish := RowActionsAreEnabled and QltyPermissionMgmt.CanFinishInspection() and not (Rec.Status = Rec.Status::Finished);
-        CanCreateReinspection := RowActionsAreEnabled and QltyPermissionMgmt.CanCreateReinspection();
+        QltyMgmtFeatureTelemetry.LogFeatureUptakeDiscovered(ObjectType::Page, Page::"Qlty. Inspection List");
+    end;
+
+    trigger OnAfterGetRecord()
+    begin
+        ResultStyleExpr := Rec.GetResultStyle();
+        StatusStyleExpr := Rec.GetStatusStyleExpression();
     end;
 
     trigger OnAfterGetCurrRecord()
@@ -700,8 +728,10 @@ page 20408 "Qlty. Inspection List"
         CanAssignToSelf := false;
         CanUnassign := false;
         RowActionsAreEnabled := not IsNullGuid(Rec.SystemId);
-        CanReopen := RowActionsAreEnabled and QltyPermissionMgmt.CanReopenInspection() and not Rec.HasMoreRecentReinspection();
-        CanFinish := RowActionsAreEnabled and QltyPermissionMgmt.CanFinishInspection() and not (Rec.Status = Rec.Status::Finished);
+        CanCreateReinspection := RowActionsAreEnabled;
+        CanReopen := RowActionsAreEnabled and (Rec.Status <> Rec.Status::Open) and not Rec.HasMoreRecentReinspection();
+        CanFinish := RowActionsAreEnabled and (Rec.Status <> Rec.Status::Finished);
+        StatusStyleExpr := Rec.GetStatusStyleExpression();
 
         if (Rec."Assigned User ID" = '') or ((Rec."Assigned User ID" <> UserId()) and QltyPermissionMgmt.CanChangeOtherInspections()) then
             CanAssignToSelf := RowActionsAreEnabled;
@@ -711,26 +741,54 @@ page 20408 "Qlty. Inspection List"
             CanUnassign := RowActionsAreEnabled;
     end;
 
+    /// <summary>
+    /// Opens the inspection list filtered by the source document of the supplied record.
+    /// </summary>
+    /// <param name="RecordVariant">The record whose source document identifies inspections.</param>
+    /// <returns>The action used to close the inspection list.</returns>
     procedure RunModalSourceDocumentFilterWithRecord(RecordVariant: Variant) ResultAction: Action
     begin
         ResultAction := RunModalFilterWith(RecordVariant, false, false, true);
     end;
 
+    /// <summary>
+    /// Opens the inspection list filtered by the source item of the supplied record.
+    /// </summary>
+    /// <param name="RecordVariant">The record whose source item identifies inspections.</param>
+    /// <returns>The action used to close the inspection list.</returns>
     procedure RunModalSourceItemFilterWithRecord(RecordVariant: Variant) ResultAction: Action
     begin
         ResultAction := RunModalFilterWith(RecordVariant, true, false, false);
     end;
 
+    /// <summary>
+    /// Opens the inspection list filtered by the source item and document of the supplied record.
+    /// </summary>
+    /// <param name="RecordVariant">The record whose source item and document identify inspections.</param>
+    /// <returns>The action used to close the inspection list.</returns>
     procedure RunModalSourceItemAndSourceDocumentFilterWithRecord(RecordVariant: Variant) ResultAction: Action
     begin
         ResultAction := RunModalFilterWith(RecordVariant, true, false, true);
     end;
 
+    /// <summary>
+    /// Opens the inspection list filtered by the source item tracking of the supplied record.
+    /// </summary>
+    /// <param name="RecordVariant">The record whose source item tracking identifies inspections.</param>
+    /// <returns>The action used to close the inspection list.</returns>
     procedure RunModalSourceItemTrackingFilterWithRecord(RecordVariant: Variant) ResultAction: Action
     begin
         ResultAction := RunModalFilterWith(RecordVariant, true, true, false);
     end;
 
+    /// <summary>
+    /// Applies the selected source filters and opens the inspection list modally.
+    /// </summary>
+    /// <param name="RecordVariant">The source record used to derive inspection filters.</param>
+    /// <param name="UseItem">Specifies whether to filter by source item.</param>
+    /// <param name="UseTracking">Specifies whether to filter by source item tracking.</param>
+    /// <param name="UseDocument">Specifies whether to filter by source document.</param>
+    /// <returns>The action used to close the inspection list.</returns>
     local procedure RunModalFilterWith(RecordVariant: Variant; UseItem: Boolean; UseTracking: Boolean; UseDocument: Boolean) ResultAction: Action
     begin
         Rec.SetRecordFiltersToFindInspectionFor(true, RecordVariant, UseItem, UseTracking, UseDocument);

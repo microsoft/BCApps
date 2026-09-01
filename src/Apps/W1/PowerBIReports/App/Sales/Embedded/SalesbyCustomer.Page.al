@@ -11,8 +11,8 @@ page 37005 "Sales by Customer"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Sales by Customer';
-    AboutTitle = 'About Sales by Customer';
+    Caption = 'Sales by Customer (Power BI)';
+    AboutTitle = 'About Sales by Customer (Power BI)';
     AboutText = 'The Sales by Customer report breaks down sales performance highlighting key metrics such as Sales Amount, Cost Amount, Gross Profit and Gross Profit Margin by customer. This report provides detailed insights into which customer and items driving revenue and profitability.';
 
     layout
@@ -48,11 +48,8 @@ page 37005 "Sales by Customer"
         ReportPageLbl: Label 'ReportSection48bbd51044e094b7a9a2', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Sales Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Sales App");
     end;
 }
 

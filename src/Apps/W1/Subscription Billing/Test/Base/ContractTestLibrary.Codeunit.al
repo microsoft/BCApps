@@ -368,6 +368,14 @@ codeunit 139685 "Contract Test Library"
         ContractType.Insert(true)
     end;
 
+    procedure CreateContractTypeAllowingDiffCurrency(var ContractType: Record "Subscription Contract Type")
+    begin
+        CreateContractType(ContractType);
+        ContractType."Allow Diff. Curr. in Vend. UD" := true;
+        ContractType."Allow Diff. Curr. in Cust. UD" := true;
+        ContractType.Modify(false);
+    end;
+
     procedure CreateCustomerContract(var CustomerContract: Record "Customer Subscription Contract"; CustomerNo: Code[20])
     var
         CustomerContractNo: Code[20];
@@ -652,7 +660,7 @@ codeunit 139685 "Contract Test Library"
     var
         Item: Record Item;
     begin
-        if (InvoicingVia = InvoicingVia::Contract) and (ItemNo = '') then begin
+        if (InvoicingVia = InvoicingVia::Contract) and (ItemNo = '') and not CreateDiscountLine then begin
             CreateItemWithServiceCommitmentOption(Item, Enum::"Item Service Commitment Type"::"Invoicing Item");
             ItemNo := Item."No.";
         end;
@@ -780,11 +788,12 @@ codeunit 139685 "Contract Test Library"
 
         CreateServiceCommitmentTemplate(ServiceCommitmentTemplate, '', LibraryRandom.RandDec(100, 2), NewInvoicingVia, Enum::"Calculation Base Type"::"Item Price", false);
 
-        if ServiceCommitmentTemplate."Invoicing via" = ServiceCommitmentTemplate."Invoicing via"::Contract then begin
-            CreateItemWithServiceCommitmentOption(Item2, Enum::"Item Service Commitment Type"::"Invoicing Item");
-            ServiceCommitmentTemplate.Validate("Invoicing Item No.", Item2."No.");
-            ServiceCommitmentTemplate.Modify(false);
-        end;
+        if ServiceCommitmentTemplate."Invoicing via" = ServiceCommitmentTemplate."Invoicing via"::Contract then
+            if not Item.IsServiceCommitmentItem() then begin
+                CreateItemWithServiceCommitmentOption(Item2, Enum::"Item Service Commitment Type"::"Invoicing Item");
+                ServiceCommitmentTemplate.Validate("Invoicing Item No.", Item2."No.");
+                ServiceCommitmentTemplate.Modify(false);
+            end;
 
         CreateServiceCommitmentPackage(ServiceCommitmentPackage);
 
@@ -802,6 +811,24 @@ codeunit 139685 "Contract Test Library"
     procedure CreateServiceObjectForItemWithServiceCommitments(var ServiceObject: Record "Subscription Header"; NewInvoicingVia: Enum "Invoicing Via"; SNSpecificTracking: Boolean; var Item: Record Item; NoOfNewCustomerServCommLines: Integer; NoOfNewVendorServCommLines: Integer)
     begin
         CreateServiceObjectForItemWithServiceCommitments(ServiceObject, NewInvoicingVia, SNSpecificTracking, Item, NoOfNewCustomerServCommLines, NoOfNewVendorServCommLines, '<1Y>', '<1M>');
+    end;
+
+    internal procedure CreateServiceObjectForItemWithTerms(var SubscriptionHeader: Record "Subscription Header"; StartDate: Date; InitialTerm: Text; ExtensionTerm: Text; NoticePeriod: Text)
+    var
+        Item: Record Item;
+        SubscriptionLine: Record "Subscription Line";
+    begin
+        CreateServiceObjectForItemWithServiceCommitments(SubscriptionHeader, Enum::"Invoicing Via"::Contract, false, Item, 1, 0, '<1Y>', '<1M>');
+        FilterSubscriptionLinesWithoutContractNo(SubscriptionLine, SubscriptionHeader."No.", Enum::"Service Partner"::Customer);
+        if SubscriptionLine.FindFirst() then begin
+            SubscriptionLine."Subscription Line Start Date" := StartDate;
+            Evaluate(SubscriptionLine."Initial Term", InitialTerm);
+            Evaluate(SubscriptionLine."Extension Term", ExtensionTerm);
+            Evaluate(SubscriptionLine."Notice Period", NoticePeriod);
+            SubscriptionLine.CalculateSubscriptionDates();
+            SubscriptionLine.Modify(false);
+        end;
+
     end;
     #endregion Service Object
 

@@ -126,15 +126,15 @@ codeunit 8906 "Email Editor"
 
     procedure CreateOutbox(var EmailOutbox: Record "Email Outbox")
     var
-        DefaultEmailAccount: Record "Email Account";
+        TempDefaultEmailAccount: Record "Email Account";
         EmailScenario: Codeunit "Email Scenario";
     begin
         EmailOutbox."User Security Id" := UserSecurityId();
         EmailOutbox.Status := Enum::"Email Status"::Draft;
 
-        if EmailScenario.GetDefaultEmailAccount(DefaultEmailAccount) then begin
-            EmailOutbox."Account Id" := DefaultEmailAccount."Account Id";
-            EmailOutbox.Connector := DefaultEmailAccount.Connector;
+        if EmailScenario.GetDefaultEmailAccount(TempDefaultEmailAccount) then begin
+            EmailOutbox."Account Id" := TempDefaultEmailAccount."Account Id";
+            EmailOutbox.Connector := TempDefaultEmailAccount.Connector;
         end;
 
         EmailOutbox.Insert();
@@ -281,7 +281,7 @@ codeunit 8906 "Email Editor"
 
     procedure AttachFromRelatedRecords(EmailMessageID: Guid);
     var
-        EmailRelatedAttachment: Record "Email Related Attachment";
+        TempEmailRelatedAttachment: Record "Email Related Attachment";
         Email: Codeunit Email;
         EmailRelatedAttachmentsPage: Page "Email Related Attachments";
     begin
@@ -290,11 +290,11 @@ codeunit 8906 "Email Editor"
         if EmailRelatedAttachmentsPage.RunModal() <> Action::LookupOK then
             exit;
 
-        EmailRelatedAttachmentsPage.GetSelectedAttachments(EmailRelatedAttachment);
-        if EmailRelatedAttachment.FindSet() then
+        EmailRelatedAttachmentsPage.GetSelectedAttachments(TempEmailRelatedAttachment);
+        if TempEmailRelatedAttachment.FindSet() then
             repeat
-                Email.OnGetAttachment(EmailRelatedAttachment."Attachment Table ID", EmailRelatedAttachment."Attachment System ID", EmailMessageID);
-            until EmailRelatedAttachment.Next() = 0;
+                Email.OnGetAttachment(TempEmailRelatedAttachment."Attachment Table ID", TempEmailRelatedAttachment."Attachment System ID", EmailMessageID);
+            until TempEmailRelatedAttachment.Next() = 0;
     end;
 
     local procedure GetPrimarySourceEntity(var PrimarySource: Integer; EmailMessageID: Guid; RelatedIds: List of [Integer]): Boolean
@@ -416,7 +416,7 @@ codeunit 8906 "Email Editor"
 
     procedure LookupRecipients(MessageID: Guid; var Text: Text): Boolean
     var
-        SuggestedEmailAddressLookup: Record "Email Address Lookup";
+        TempSuggestedEmailAddressLookup: Record "Email Address Lookup";
         EmailRelatedRecord: Record "Email Related Record";
         EmailAddressLookup: Codeunit "Email Address Lookup";
         EmailAddressLookupPage: Page "Email Address Lookup";
@@ -427,26 +427,26 @@ codeunit 8906 "Email Editor"
         EmailRelatedRecord.SetRange("Email Message Id", MessageID);
         if EmailRelatedRecord.FindSet() then
             repeat
-                EmailAddressLookup.OnGetSuggestedAddresses(EmailRelatedRecord."Table Id", EmailRelatedRecord."System Id", SuggestedEmailAddressLookup);
+                EmailAddressLookup.OnGetSuggestedAddresses(EmailRelatedRecord."Table Id", EmailRelatedRecord."System Id", TempSuggestedEmailAddressLookup);
             until EmailRelatedRecord.Next() = 0;
 
-        if SuggestedEmailAddressLookup.FindFirst() then
-            EntityType := SuggestedEmailAddressLookup."Entity type";
-        EmailAddressLookupPage.AddSuggestions(SuggestedEmailAddressLookup);
-        SuggestedEmailAddressLookup.DeleteAll();
+        if TempSuggestedEmailAddressLookup.FindFirst() then
+            EntityType := TempSuggestedEmailAddressLookup."Entity type";
+        EmailAddressLookupPage.AddSuggestions(TempSuggestedEmailAddressLookup);
+        TempSuggestedEmailAddressLookup.DeleteAll();
 
         EmailAddressLookupPage.LookupMode(true);
         EmailAddressLookupPage.SetEntityType(EntityType);
         if (EmailAddressLookupPage.RunModal() = Action::LookupOK) or (EmailAddressLookupPage.WasFullAddressLookup()) then begin
-            EmailAddressLookupPage.GetSelectedSuggestions(SuggestedEmailAddressLookup);
+            EmailAddressLookupPage.GetSelectedSuggestions(TempSuggestedEmailAddressLookup);
 
-            if SuggestedEmailAddressLookup.FindSet() then begin
+            if TempSuggestedEmailAddressLookup.FindSet() then begin
                 if (Text <> '') and (not Text.EndsWith(';')) then
                     Text += ';';
-                Text += EmailAddressLookup.GetSelectedSuggestionsAsText(SuggestedEmailAddressLookup);
+                Text += EmailAddressLookup.GetSelectedSuggestionsAsText(TempSuggestedEmailAddressLookup);
 
                 // Added recipients is added as related entities on the email
-                AddRelatedRecordsFromEmailAddress(MessageID, SuggestedEmailAddressLookup);
+                AddRelatedRecordsFromEmailAddress(MessageID, TempSuggestedEmailAddressLookup);
                 exit(true);
             end;
         end;
@@ -499,7 +499,7 @@ codeunit 8906 "Email Editor"
     internal procedure PopulateRelatedRecordCache(MessageID: Guid)
     var
         EmailRelatedRecord: Record "Email Related Record";
-        EmailAddressLookupRecord: Record "Email Address Lookup";
+        TempEmailAddressLookupRecord: Record "Email Address Lookup";
         EmailAddressLookup: Codeunit "Email Address Lookup";
     begin
         EmailRelatedRecord.SetFilter("Email Message Id", MessageID);
@@ -508,8 +508,8 @@ codeunit 8906 "Email Editor"
 
         repeat
             if EmailRelatedRecord."Relation Origin" = Enum::"Email Relation Origin"::"Email Address Lookup" then begin
-                EmailAddressLookup.OnGetSuggestedAddresses(EmailRelatedRecord."Table Id", EmailRelatedRecord."System Id", EmailAddressLookupRecord);
-                if RelatedRecordsCache.Add(EmailAddressLookupRecord."E-Mail Address", EmailRelatedRecord.SystemId) then;
+                EmailAddressLookup.OnGetSuggestedAddresses(EmailRelatedRecord."Table Id", EmailRelatedRecord."System Id", TempEmailAddressLookupRecord);
+                if RelatedRecordsCache.Add(TempEmailAddressLookupRecord."E-Mail Address", EmailRelatedRecord.SystemId) then;
             end;
         until EmailRelatedRecord.Next() = 0;
     end;

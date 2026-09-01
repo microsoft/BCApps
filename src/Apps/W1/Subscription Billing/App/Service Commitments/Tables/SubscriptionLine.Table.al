@@ -3,8 +3,11 @@ namespace Microsoft.SubscriptionBilling;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Calendar;
 using Microsoft.Inventory.Item;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Pricing;
 using System.Utilities;
@@ -53,11 +56,13 @@ table 8059 "Subscription Line"
 
             trigger OnValidate()
             begin
+                CheckSubscriptionLineStartDateChangeAllowed();
                 DateFormulaManagement.ErrorIfDateEmpty("Subscription Line Start Date", FieldCaption("Subscription Line Start Date"));
                 UpdateNextBillingDate("Subscription Line Start Date" - 1);
                 CheckServiceDates();
                 RecalculateHarmonizedBillingFieldsOnCustomerContract();
                 UpdateNextPriceUpdate();
+                CalculateSubscriptionDates();
             end;
         }
         field(7; "Subscription Line End Date"; Date)
@@ -230,7 +235,7 @@ table 8059 "Subscription Line"
                 DateFormulaManagement.ErrorIfDateFormulaNegative("Notice Period");
 
                 if "Term until" <> 0D then
-                    UpdateCancellationPossibleUntil();
+                    CalculateCancellationPossibleUntil();
             end;
         }
         field(21; "Initial Term"; DateFormula)
@@ -270,7 +275,7 @@ table 8059 "Subscription Line"
 
             trigger OnValidate()
             begin
-                UpdateTermUntilUsingNoticePeriod();
+                CalculateTermUntilFromCancellationPossibleUntil();
             end;
         }
         field(25; "Term Until"; Date)
@@ -279,7 +284,7 @@ table 8059 "Subscription Line"
 
             trigger OnValidate()
             begin
-                UpdateCancellationPossibleUntil();
+                CalculateCancellationPossibleUntil();
             end;
         }
         field(26; "Sub. Header Customer No."; Code[20])
@@ -299,6 +304,7 @@ table 8059 "Subscription Line"
         {
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
 
@@ -311,6 +317,7 @@ table 8059 "Subscription Line"
         {
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
 
@@ -581,7 +588,9 @@ table 8059 "Subscription Line"
             ObsoleteTag = '26.0';
 #else
             ObsoleteState = Removed;
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 #endif
         }
 #endif
@@ -607,6 +616,9 @@ table 8059 "Subscription Line"
         key(Key3; "Subscription Header No.", Partner)
         {
 
+        }
+        key(Key4; "Supplier Reference Entry No.", "Subscription Line Start Date")
+        {
         }
     }
 
@@ -739,7 +751,13 @@ table 8059 "Subscription Line"
         end;
     end;
 
-    internal procedure CalculateInitialServiceEndDate()
+    internal procedure CalculateSubscriptionDates()
+    begin
+        CalculateServiceEndDate();
+        CalculateTermUntilDate();
+    end;
+
+    internal procedure CalculateServiceEndDate()
     begin
         if IsInitialTermEmpty() then
             exit;
@@ -752,58 +770,26 @@ table 8059 "Subscription Line"
         RefreshRenewalTerm();
     end;
 
-    internal procedure CalculateInitialCancellationPossibleUntilDate()
+    internal procedure CalculateTermUntilDate()
     begin
-        if IsExtensionTermEmpty() then
-            exit;
-        if IsNoticePeriodEmpty() then
-            exit;
-        if IsInitialTermEmpty() then
-            exit;
-
-        TestField("Subscription Line Start Date");
-        "Cancellation Possible Until" := CalcDate("Initial Term", "Subscription Line Start Date");
-        CalendarManagement.ReverseDateFormula(NegativeDateFormula, "Notice Period");
-        "Cancellation Possible Until" := CalcDate(NegativeDateFormula, "Cancellation Possible Until");
-        "Cancellation Possible Until" := CalcDate('<-1D>', "Cancellation Possible Until");
+        if "Subscription Line End Date" <> 0D then
+            "Term Until" := "Subscription Line End Date"
+        else
+            if not IsExtensionTermEmpty() then begin
+                TestField("Subscription Line Start Date");
+                if not IsInitialTermEmpty() then begin
+                    "Term Until" := CalcDate("Initial Term", "Subscription Line Start Date");
+                    "Term Until" := CalcDate('<-1D>', "Term Until");
+                end else
+                    if not IsNoticePeriodEmpty() then begin
+                        "Term Until" := CalcDate("Notice Period", "Subscription Line Start Date");
+                        "Term Until" := CalcDate('<-1D>', "Term Until");
+                    end;
+            end;
+        CalculateCancellationPossibleUntil();
     end;
 
-    internal procedure CalculateInitialTermUntilDate()
-    begin
-        if "Subscription Line End Date" <> 0D then begin
-            "Term Until" := "Subscription Line End Date";
-            exit;
-        end;
-
-        if IsExtensionTermEmpty() then
-            exit;
-        if IsNoticePeriodEmpty() and IsInitialTermEmpty() then
-            exit;
-
-        TestField("Subscription Line Start Date");
-        if IsInitialTermEmpty() then begin
-            "Term Until" := CalcDate("Notice Period", "Subscription Line Start Date");
-            "Term Until" := CalcDate('<-1D>', "Term Until");
-            UpdateCancellationPossibleUntil();
-        end else begin
-            "Term Until" := CalcDate("Initial Term", "Subscription Line Start Date");
-            "Term Until" := CalcDate('<-1D>', "Term Until");
-        end;
-    end;
-
-    internal procedure GetReferenceDate(): Date
-    begin
-        case true of
-            "Cancellation Possible Until" <> 0D:
-                exit("Cancellation Possible Until");
-            "Term Until" <> 0D:
-                exit("Term Until");
-            "Subscription Line Start Date" <> 0D:
-                exit("Subscription Line Start Date");
-        end;
-    end;
-
-    internal procedure UpdateTermUntilUsingExtensionTerm(): Boolean
+    internal procedure CalculateTermUntilUsingExtensionTerm(): Boolean
     var
         PreviousTermUntil: Date;
     begin
@@ -823,7 +809,7 @@ table 8059 "Subscription Line"
         exit(true);
     end;
 
-    local procedure UpdateTermUntilUsingNoticePeriod()
+    local procedure CalculateTermUntilFromCancellationPossibleUntil()
     begin
         if IsNoticePeriodEmpty() then
             exit;
@@ -835,7 +821,7 @@ table 8059 "Subscription Line"
             DateTimeManagement.MoveDateToLastDayOfMonth("Term until");
     end;
 
-    internal procedure UpdateCancellationPossibleUntil(): Boolean
+    internal procedure CalculateCancellationPossibleUntil(): Boolean
     begin
         if IsNoticePeriodEmpty() or ("Term until" = 0D) then
             exit(false);
@@ -845,6 +831,18 @@ table 8059 "Subscription Line"
             DateTimeManagement.MoveDateToLastDayOfMonth("Cancellation possible until");
 
         exit(true);
+    end;
+
+    internal procedure GetReferenceDate(): Date
+    begin
+        case true of
+            "Cancellation Possible Until" <> 0D:
+                exit("Cancellation Possible Until");
+            "Term Until" <> 0D:
+                exit("Term Until");
+            "Subscription Line Start Date" <> 0D:
+                exit("Subscription Line Start Date");
+        end;
     end;
 
     internal procedure CalculatePrice()
@@ -878,7 +876,6 @@ table 8059 "Subscription Line"
             if MaxServiceAmount <> 0 then
                 "Discount %" := Round(100 - (Amount / MaxServiceAmount * 100), 0.00001);
         end else begin
-            ServiceObject.TestField(Quantity);
             Amount := Price * ServiceObject.Quantity;
             if not "Usage Based Billing" then
                 Amount := Round(Amount, Currency."Amount Rounding Precision");
@@ -888,7 +885,10 @@ table 8059 "Subscription Line"
                     "Discount Amount" := Round("Discount Amount", Currency."Amount Rounding Precision");
             end;
             if CalledByFieldNo = FieldNo("Discount Amount") then
-                "Discount %" := Round("Discount Amount" / Amount * 100, 0.00001);
+                if Amount <> 0 then
+                    "Discount %" := Round("Discount Amount" / Amount * 100, 0.00001)
+                else
+                    "Discount %" := 0;
             if ("Discount Amount" > MaxServiceAmount) and ("Discount Amount" <> 0) then
                 Error(CannotBeGreaterThanErr, FieldCaption("Discount Amount"), Format(MaxServiceAmount));
             Amount := Amount - "Discount Amount";
@@ -899,7 +899,7 @@ table 8059 "Subscription Line"
         OnAfterCalculateServiceAmount(Rec, CalledByFieldNo);
     end;
 
-    local procedure SetUpdateRequiredOnBillingLines()
+    internal procedure SetUpdateRequiredOnBillingLines()
     var
         BillingLine: Record "Billing Line";
     begin
@@ -1025,11 +1025,7 @@ table 8059 "Subscription Line"
                     FieldNo("Invoicing Item No."):
                         Validate("Invoicing Item No.", "Invoicing Item No.");
                     FieldNo("Subscription Line Start Date"):
-                        begin
-                            Rec.ErrorIfBillingLineArchiveForServiceCommitmentExist();
-                            Rec.ErrorIfBillingLineForServiceCommitmentExist();
-                            Validate("Subscription Line Start Date", "Subscription Line Start Date");
-                        end;
+                        Validate("Subscription Line Start Date", "Subscription Line Start Date");
                     FieldNo("Subscription Line End Date"):
                         Validate("Subscription Line End Date", "Subscription Line End Date");
                     FieldNo(Quantity):
@@ -1070,6 +1066,10 @@ table 8059 "Subscription Line"
                         Validate("Unit Cost (LCY)", "Unit Cost (LCY)");
                     FieldNo("Create Contract Deferrals"):
                         Validate("Create Contract Deferrals", "Create Contract Deferrals");
+                    FieldNo("Shortcut Dimension 1 Code"):
+                        Validate("Shortcut Dimension 1 Code", "Shortcut Dimension 1 Code");
+                    FieldNo("Shortcut Dimension 2 Code"):
+                        Validate("Shortcut Dimension 2 Code", "Shortcut Dimension 2 Code");
                 end;
                 Modify(true);
             end;
@@ -1085,7 +1085,7 @@ table 8059 "Subscription Line"
 
         OldDimSetID := "Dimension Set ID";
         "Dimension Set ID" := DimMgt.EditDimensionSet(
-            "Dimension Set ID", "Subscription Header No." + '' + Format("Entry No."),
+            "Dimension Set ID", "Subscription Header No." + ' ' + FieldCaption("Entry No.") + ' ' + Format("Entry No."),
             "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
 
         if OldDimSetID <> "Dimension Set ID" then begin
@@ -1102,32 +1102,62 @@ table 8059 "Subscription Line"
         OnBeforeValidateShortcutDimCode(Rec, xRec, FieldNumber, ShortcutDimCode);
         OldDimSetID := "Dimension Set ID";
         DimMgt.ValidateShortcutDimValues(FieldNumber, ShortcutDimCode, "Dimension Set ID");
-        if OldDimSetID <> "Dimension Set ID" then
+        if OldDimSetID <> "Dimension Set ID" then begin
             Modify();
+            UpdateRelatedVendorServiceCommDimensions(OldDimSetID, "Dimension Set ID");
+        end;
 
         OnAfterValidateShortcutDimCode(Rec, xRec, FieldNumber, ShortcutDimCode);
     end;
 
     internal procedure SetDefaultDimensions(UseSource: Boolean)
     var
-        ServiceObject: Record "Subscription Header";
         DefaultDimSource: List of [Dictionary of [Integer, Code[20]]];
+    begin
+        AddDefaultDimensionSources(DefaultDimSource, UseSource);
+        "Dimension Set ID" := DimMgt.GetDefaultDimID(DefaultDimSource, '', "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code", 0, 0);
+        DimMgt.UpdateGlobalDimFromDimSetID("Dimension Set ID", "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
+    end;
+
+    internal procedure ApplyContractDimensions(ContractDimSetID: Integer; SourceCode: Code[10]; ContractPartnerTableID: Integer)
+    var
+        DefaultDimSource: List of [Dictionary of [Integer, Code[20]]];
+        HighPriorityDimSource: List of [Dictionary of [Integer, Code[20]]];
+        DimSetIDArr: array[10] of Integer;
+        TempDimValue1: Code[20];
+        TempDimValue2: Code[20];
+    begin
+        DimSetIDArr[1] := "Dimension Set ID";
+        DimSetIDArr[2] := ContractDimSetID;
+
+        AddDefaultDimensionSources(DefaultDimSource, true);
+
+        if DimMgt.GetTableIDsForHigherPriorities(DefaultDimSource, HighPriorityDimSource, SourceCode, ContractPartnerTableID) then
+            DimSetIDArr[3] :=
+                DimMgt.GetRecDefaultDimID(
+                    Rec, CurrFieldNo, HighPriorityDimSource, SourceCode,
+                    TempDimValue1, TempDimValue2, 0, 0);
+
+        "Dimension Set ID" :=
+            DimMgt.GetCombinedDimensionSetID(DimSetIDArr, "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
+        OnAfterGetCombinedDimensionSetID(Rec);
+    end;
+
+    local procedure AddDefaultDimensionSources(var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; UseSource: Boolean)
+    var
+        ServiceObject: Record "Subscription Header";
     begin
         if Rec."Invoicing Item No." <> '' then
             DimMgt.AddDimSource(DefaultDimSource, Database::Item, Rec."Invoicing Item No.");
 
-        if UseSource then begin
-            ServiceObject.Get("Subscription Header No.");
-            case ServiceObject.Type of
-                ServiceObject.Type::Item:
-                    DimMgt.AddDimSource(DefaultDimSource, Database::Item, ServiceObject."Source No.");
-                ServiceObject.Type::"G/L Account":
-                    DimMgt.AddDimSource(DefaultDimSource, Database::"G/L Account", ServiceObject."Source No.");
-            end;
-        end;
-
-        "Dimension Set ID" := DimMgt.GetDefaultDimID(DefaultDimSource, '', "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code", 0, 0);
-        DimMgt.UpdateGlobalDimFromDimSetID("Dimension Set ID", "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
+        if UseSource then
+            if ServiceObject.Get("Subscription Header No.") then
+                case ServiceObject.Type of
+                    ServiceObject.Type::Item:
+                        DimMgt.AddDimSource(DefaultDimSource, Database::Item, ServiceObject."Source No.");
+                    ServiceObject.Type::"G/L Account":
+                        DimMgt.AddDimSource(DefaultDimSource, Database::"G/L Account", ServiceObject."Source No.");
+                end;
     end;
 
     internal procedure GetCombinedDimensionSetID(DimSetID1: Integer; DimSetID2: Integer)
@@ -1241,18 +1271,24 @@ table 8059 "Subscription Line"
     end;
 
     internal procedure UpdateFromCustomerContract(CustomerContract: Record "Customer Subscription Contract")
+    var
+        SourceCodeSetup: Record "Source Code Setup";
     begin
         "Currency Code" := CustomerContract."Currency Code";
         InitCurrencyData();
-        GetCombinedDimensionSetID("Dimension Set ID", CustomerContract."Dimension Set ID");
+        SourceCodeSetup.Get();
+        ApplyContractDimensions(CustomerContract."Dimension Set ID", SourceCodeSetup.Sales, Database::Customer);
         "Exclude from Price Update" := CustomerContract.DefaultExcludeFromPriceUpdate;
     end;
 
     internal procedure UpdateFromVendorContract(VendorContract: Record "Vendor Subscription Contract")
+    var
+        SourceCodeSetup: Record "Source Code Setup";
     begin
         "Currency Code" := VendorContract."Currency Code";
         InitCurrencyData();
-        GetCombinedDimensionSetID("Dimension Set ID", VendorContract."Dimension Set ID");
+        SourceCodeSetup.Get();
+        ApplyContractDimensions(VendorContract."Dimension Set ID", SourceCodeSetup.Purchases, Database::Vendor);
         "Exclude from Price Update" := VendorContract.DefaultExcludeFromPriceUpdate;
     end;
 
@@ -1358,7 +1394,9 @@ table 8059 "Subscription Line"
             repeat
 #pragma warning disable AA0214
                 ServiceCommitment.ResetAmountsAndCurrencyFromLCY();
-                ServiceCommitment.Modify(true);
+                ServiceCommitment.SetUpdateRequiredOnBillingLines();
+                ServiceCommitment.ArchiveServiceCommitment();
+                ServiceCommitment.Modify(false);
 #pragma warning restore AA0214
             until ServiceCommitment.Next() = 0;
     end;
@@ -1382,7 +1420,9 @@ table 8059 "Subscription Line"
                     CurrencyCode := ServiceCommitment."Currency Code";
                 ServiceCommitment.SetCurrencyData(CurrencyFactor, CurrencyFactorDate, CurrencyCode);
                 ServiceCommitment.RecalculateAmountsFromCurrencyData();
-                ServiceCommitment.Modify(true);
+                ServiceCommitment.SetUpdateRequiredOnBillingLines();
+                ServiceCommitment.ArchiveServiceCommitment();
+                ServiceCommitment.Modify(false);
             until ServiceCommitment.Next() = 0;
     end;
 
@@ -1415,10 +1455,59 @@ table 8059 "Subscription Line"
         Rec."Currency Code" := CurrencyCode;
     end;
 
-    internal procedure ErrorIfBillingLineForServiceCommitmentExist()
+    internal procedure EnsureCalculationBaseAmountExcludesVAT(SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header")
+    var
+        LocalCurrency: Record Currency;
+        NetBaseAmount: Decimal;
     begin
-        if BillingLineExists() then
+        if not SalesHeader."Prices Including VAT" then
+            exit;
+        if SalesLine."VAT Calculation Type" = SalesLine."VAT Calculation Type"::"Full VAT" then
+            exit;
+        if SalesLine.GetVATPct() = 0 then
+            exit;
+        LocalCurrency.Initialize(SalesHeader."Currency Code");
+        NetBaseAmount := Round(
+            Rec."Calculation Base Amount" / (1 + SalesLine.GetVATPct() / 100),
+            LocalCurrency."Unit-Amount Rounding Precision");
+        Rec.Validate("Calculation Base Amount", NetBaseAmount);
+    end;
+
+    internal procedure ErrorIfBillingLineForServiceCommitmentExist()
+    var
+        BillingLine: Record "Billing Line";
+    begin
+        BillingLine.FilterBillingLineOnServiceCommitment(Rec."Entry No.");
+        if not BillingLine.IsEmpty() then
             Error(BillingLineForServiceCommitmentExistErr);
+    end;
+
+    /// <summary>
+    /// Checks whether the Subscription Line Start Date may still be changed.
+    /// The change is allowed as long as no billing has taken place for the Subscription Line, or as long as the
+    /// Next Billing Date is still on the Subscription Line Start Date, which is the state after a cancellation
+    /// or a credit memo and the case in which the billing period legitimately has to be corrected.
+    /// </summary>
+    local procedure CheckSubscriptionLineStartDateChangeAllowed()
+    begin
+        CheckBillingStateAllowsSubscriptionLineStartDateChange();
+        OnAfterCheckSubscriptionLineStartDateChangeAllowed(Rec);
+    end;
+
+    local procedure CheckBillingStateAllowsSubscriptionLineStartDateChange()
+    var
+        SubscriptionLine: Record "Subscription Line";
+    begin
+        if Rec.IsTemporary() then
+            exit;
+        SubscriptionLine.SetLoadFields("Subscription Line Start Date", "Next Billing Date");
+        if not SubscriptionLine.Get(Rec."Entry No.") then
+            exit;
+        if SubscriptionLine."Next Billing Date" = SubscriptionLine."Subscription Line Start Date" then
+            exit;
+
+        ErrorIfBillingLineArchiveForServiceCommitmentExist();
+        ErrorIfBillingLineForServiceCommitmentExist();
     end;
 
     internal procedure GetPartnerNoFromContract(): Code[20]
@@ -1445,8 +1534,7 @@ table 8059 "Subscription Line"
         BillingLineArchive: Record "Billing Line Archive";
     begin
         BillingLineArchive.FilterBillingLineArchiveOnServiceCommitment(Rec."Entry No.");
-        BillingLineArchive.CalcSums(Amount);
-        if BillingLineArchive.Amount <> 0 then
+        if not BillingLineArchive.IsEmpty() then
             Error(BillingLineArchiveForServiceCommitmentExistErr);
     end;
 
@@ -1547,7 +1635,7 @@ table 8059 "Subscription Line"
         end;
     end;
 
-    local procedure RefreshRenewalTerm()
+    internal procedure RefreshRenewalTerm()
     var
         BlankDateFormula: DateFormula;
     begin
@@ -1775,9 +1863,7 @@ table 8059 "Subscription Line"
 
     internal procedure SetUsageDataBillingFilters(var UsageDataBilling: Record "Usage Data Billing"; BillingFromDate: Date; BillingToDate: Date)
     begin
-        UsageDataBilling.SetRange("Subscription Header No.", Rec."Subscription Header No.");
         UsageDataBilling.SetRange("Subscription Line Entry No.", Rec."Entry No.");
-        UsageDataBilling.SetRange(Partner, Rec.Partner);
         UsageDataBilling.SetRange("Usage Base Pricing", Enum::"Usage Based Pricing"::"Usage Quantity", Enum::"Usage Based Pricing"::"Unit Cost Surcharge");
         UsageDataBilling.SetRange("Document Type", "Usage Based Billing Doc. Type"::None);
         UsageDataBilling.SetFilter("Charge Start Date", '>=%1', BillingFromDate);
@@ -1849,7 +1935,7 @@ table 8059 "Subscription Line"
         Page.RunModal(Page::"Usage Data Billing Metadata", UsageDataBillingMetadata);
     end;
 
-    internal procedure UnitPriceForPeriod(ChargePeriodStart: Date; ChargePeriodEnd: Date) UnitPrice: Decimal
+    procedure UnitPriceForPeriod(ChargePeriodStart: Date; ChargePeriodEnd: Date) UnitPrice: Decimal
     var
         UnitCost: Decimal;
         UnitCostLCY: Decimal;
@@ -1940,19 +2026,29 @@ table 8059 "Subscription Line"
     var
         DistanceToEndOfMonth: Integer;
         LastDateInLastMonth: Date;
+        PeriodFormulaInteger: Integer;
+        Letter: Char;
     begin
         case Rec."Period Calculation" of
             Rec."Period Calculation"::"Align to Start of Month":
                 NextToDate := CalcDate(PeriodFormula, FromDate) - 1;
             Rec."Period Calculation"::"Align to End of Month":
                 begin
-                    DistanceToEndOfMonth := CalcDate('<CM>', GetBillingReferenceDate()) - GetBillingReferenceDate();
-                    if DistanceToEndOfMonth > 2 then
+                    DateFormulaManagement.FindDateFormulaType(PeriodFormula, PeriodFormulaInteger, Letter);
+                    if Letter in ['D', 'W'] then
+                        // Day/week periods have a fixed length and must not be aligned to the end of the month.
                         NextToDate := CalcDate(PeriodFormula, FromDate) - 1
                     else begin
-                        LastDateInLastMonth := CalcDate(PeriodFormula, FromDate);
-                        LastDateInLastMonth := CalcDate('<CM>', LastDateInLastMonth);
-                        NextToDate := LastDateInLastMonth - DistanceToEndOfMonth - 1;
+                        DistanceToEndOfMonth := CalcDate('<CM>', GetBillingReferenceDate()) - GetBillingReferenceDate();
+                        if DistanceToEndOfMonth > 2 then
+                            NextToDate := CalcDate(PeriodFormula, FromDate) - 1
+                        else begin
+                            LastDateInLastMonth := CalcDate(PeriodFormula, FromDate);
+                            LastDateInLastMonth := CalcDate('<CM>', LastDateInLastMonth);
+                            NextToDate := LastDateInLastMonth - DistanceToEndOfMonth - 1;
+                            if NextToDate < FromDate then
+                                NextToDate := CalcDate(PeriodFormula, FromDate) - 1;
+                        end;
                     end;
                 end;
         end;
@@ -2049,6 +2145,16 @@ table 8059 "Subscription Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateNextBillingDate(var SubscriptionLine: Record "Subscription Line"; LastBillingToDate: Date)
+    begin
+    end;
+
+    /// <summary>
+    /// Raised after the Subscription Line Start Date change has passed the billing state check.
+    /// Subscribers can only tighten the rule, by raising an error of their own.
+    /// </summary>
+    /// <param name="SubscriptionLine">The Subscription Line carrying the new Subscription Line Start Date.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCheckSubscriptionLineStartDateChangeAllowed(SubscriptionLine: Record "Subscription Line")
     begin
     end;
 

@@ -145,7 +145,7 @@ page 9204 "User Settings"
         if not Rec.Initialized then
             UserSettingsImpl.GetUserSettings(UserSecurityId(), Rec);
 
-        OldUserSettings := Rec;
+        TempOldUserSettings := Rec;
 
         LastLoginInfo := UserSettingsImpl.GetLastLoginInfo(Rec."Last Login");
         LastLoginInfoVisible := (Rec."User Security ID" = UserSecurityId()) and (LastLoginInfo <> '');
@@ -154,11 +154,11 @@ page 9204 "User Settings"
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     begin
         if CloseAction = Action::OK then
-            UserSettingsImpl.UpdateUserSettings(OldUserSettings, Rec);
+            UserSettingsImpl.UpdateUserSettings(TempOldUserSettings, Rec);
     end;
 
     var
-        OldUserSettings: Record "User Settings";
+        TempOldUserSettings: Record "User Settings";
         Language: Codeunit Language;
         TimeZoneSelection: Codeunit "Time Zone Selection";
         UserSettingsImpl: Codeunit "User Settings Impl.";

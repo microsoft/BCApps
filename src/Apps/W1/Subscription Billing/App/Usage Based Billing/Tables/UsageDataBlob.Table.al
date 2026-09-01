@@ -115,4 +115,21 @@ table 8011 "Usage Data Blob"
         RRef.GetTable(Rec);
         TextManagement.ShowFieldText(RRef, FieldNo(Reason));
     end;
+
+    internal procedure ExportData()
+    var
+        InStream: InStream;
+        FileName: Text;
+        NoDataToExportErr: Label 'There is no data to export for this entry.';
+        NoSourceNameErr: Label 'The source file name is empty.';
+    begin
+        CalcFields(Data);
+        if not Data.HasValue() then
+            Error(NoDataToExportErr);
+        if Source = '' then
+            Error(NoSourceNameErr);
+        Data.CreateInStream(InStream);
+        FileName := Source;
+        DownloadFromStream(InStream, '', '', '', FileName);
+    end;
 }

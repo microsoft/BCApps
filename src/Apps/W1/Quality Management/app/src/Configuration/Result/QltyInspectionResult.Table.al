@@ -13,7 +13,7 @@ using Microsoft.QualityManagement.Document;
 /// It is typical to have three results (incomplete, fail, pass), however you can configure as many results as you want, and in what circumstances. 
 /// The results with a lower number for the priority tests are evaluated first. 
 /// If you are not sure what to configure here then use the three defaults. 
-/// The document specific lot/serial/package blocking is for item+variant+lot+serial+package combinations, and can be used for serial-only tracking, or package-only tracking.
+/// The document specific item tracking blocking is for item+variant+item tracking combinations, and can be used for serial-only tracking, or package-only tracking.
 /// </summary>
 table 20411 "Qlty. Inspection Result"
 {
@@ -21,6 +21,9 @@ table 20411 "Qlty. Inspection Result"
     LookupPageId = "Qlty. Inspection Result List";
     DrillDownPageId = "Qlty. Inspection Result List";
     DataClassification = CustomerContent;
+    Permissions = tabledata "Qlty. Inspection Header" = r,
+                  tabledata "Qlty. Inspection Line" = r,
+                  tabledata "Qlty. I. Result Condit. Conf." = rmd;
 
     fields
     {
@@ -60,7 +63,6 @@ table 20411 "Qlty. Inspection Result"
         field(10; "Default Number Condition"; Text[500])
         {
             Caption = 'Default Number Condition';
-            NotBlank = true;
             ToolTip = 'Specifies the default condition of when this result is activated.';
 
             trigger OnValidate()
@@ -76,7 +78,6 @@ table 20411 "Qlty. Inspection Result"
         field(11; "Default Text Condition"; Text[500])
         {
             Caption = 'Default Text Condition';
-            NotBlank = false;
             ToolTip = 'Specifies the default condition of when this result is activated.';
 
             trigger OnValidate()
@@ -92,7 +93,6 @@ table 20411 "Qlty. Inspection Result"
         field(12; "Default Boolean Condition"; Text[500])
         {
             Caption = 'Default Boolean Condition';
-            NotBlank = false;
             ToolTip = 'Specifies the default condition of when this result is activated.';
 
             trigger OnValidate()
@@ -116,70 +116,70 @@ table 20411 "Qlty. Inspection Result"
             ToolTip = 'Specifies if an inspection can be finished given the applicable result.';
             InitValue = "Allow Finish";
         }
-        field(20; "Lot Allow Sales"; Enum "Qlty. Item Trkg Block Behavior")
+        field(20; "Item Tracking Allow Sales"; Enum "Qlty. Item Trkg Block Behavior")
         {
             Caption = 'Allow Sales';
-            ToolTip = 'Specifies whether an inspection for a lot/serial/package with this result allows sales transactions.';
+            ToolTip = 'Specifies whether an inspection for an item tracking with this result allows sales transactions.';
         }
-        field(21; "Lot Allow Assembly Consumption"; Enum "Qlty. Item Trkg Block Behavior")
+        field(21; "Item Tracking Allow Asm. Cons."; Enum "Qlty. Item Trkg Block Behavior")
         {
             Caption = 'Allow Assembly Consumption';
-            ToolTip = 'Specifies whether an inspection for a lot/serial/package with this result allows Assembly Consumption transactions.';
+            ToolTip = 'Specifies whether an inspection for an item tracking with this result allows Assembly Consumption transactions.';
         }
-        field(22; "Lot Allow Consumption"; Enum "Qlty. Item Trkg Block Behavior")
+        field(22; "Item Tracking Allow Consump."; Enum "Qlty. Item Trkg Block Behavior")
         {
             Caption = 'Allow Consumption';
-            ToolTip = 'Specifies whether an inspection for a lot/serial/package with this result allows Consumption transactions.';
+            ToolTip = 'Specifies whether an inspection for an item tracking with this result allows Consumption transactions.';
         }
-        field(23; "Lot Allow Output"; Enum "Qlty. Item Trkg Block Behavior")
+        field(23; "Item Tracking Allow Output"; Enum "Qlty. Item Trkg Block Behavior")
         {
             Caption = 'Allow Output';
-            ToolTip = 'Specifies whether an inspection for a lot/serial/package with this result allows Output transactions.';
+            ToolTip = 'Specifies whether an inspection for an item tracking with this result allows Output transactions.';
         }
-        field(24; "Lot Allow Purchase"; Enum "Qlty. Item Trkg Block Behavior")
+        field(24; "Item Tracking Allow Purchase"; Enum "Qlty. Item Trkg Block Behavior")
         {
             Caption = 'Allow Purchase';
-            ToolTip = 'Specifies whether an inspection for a lot/serial/package with this result allows Purchase transactions.';
+            ToolTip = 'Specifies whether an inspection for an item tracking with this result allows Purchase transactions.';
         }
-        field(25; "Lot Allow Transfer"; Enum "Qlty. Item Trkg Block Behavior")
+        field(25; "Item Tracking Allow Transfer"; Enum "Qlty. Item Trkg Block Behavior")
         {
             Caption = 'Allow Transfer';
-            ToolTip = 'Specifies whether an inspection for a lot/serial/package with this result allows Transfer transactions.';
+            ToolTip = 'Specifies whether an inspection for an item tracking with this result allows Transfer transactions.';
         }
-        field(26; "Lot Allow Assembly Output"; Enum "Qlty. Item Trkg Block Behavior")
+        field(26; "Item Tracking Allow Asm. Out."; Enum "Qlty. Item Trkg Block Behavior")
         {
             Caption = 'Allow Assembly Output';
-            ToolTip = 'Specifies whether an inspection for a lot/serial/package with this result allows Assembly Output transactions.';
+            ToolTip = 'Specifies whether an inspection for an item tracking with this result allows Assembly Output transactions.';
         }
-        field(27; "Lot Allow Invt. Movement"; Enum "Qlty. Item Trkg Block Behavior")
+        field(27; "Item Tracking Allow Invt. Mov."; Enum "Qlty. Item Trkg Block Behavior")
         {
             Caption = 'Allow Inventory Movement';
-            ToolTip = 'Specifies whether an inspection for a lot/serial/package with this result allows Inventory Movement transactions.';
+            ToolTip = 'Specifies whether an inspection for an item tracking with this result allows Inventory Movement transactions.';
         }
-        field(28; "Lot Allow Invt. Pick"; Enum "Qlty. Item Trkg Block Behavior")
+        field(28; "Item Tracking Allow Invt. Pick"; Enum "Qlty. Item Trkg Block Behavior")
         {
             Caption = 'Allow Inventory Pick';
-            ToolTip = 'Specifies whether an inspection for a lot/serial/package with this result allows Inventory Pick transactions.';
+            ToolTip = 'Specifies whether an inspection for an item tracking with this result allows Inventory Pick transactions.';
         }
-        field(29; "Lot Allow Invt. Put-Away"; Enum "Qlty. Item Trkg Block Behavior")
+        field(29; "Item Tracking Allow Invt. PA"; Enum "Qlty. Item Trkg Block Behavior")
         {
             Caption = 'Allow Inventory Put-Away';
-            ToolTip = 'Specifies whether an inspection for a lot/serial/package with this result allows Inventory Put-Away transactions.';
+            ToolTip = 'Specifies whether an inspection for an item tracking with this result allows Inventory Put-Away transactions.';
         }
-        field(30; "Lot Allow Movement"; Enum "Qlty. Item Trkg Block Behavior")
+        field(30; "Item Tracking Allow Movement"; Enum "Qlty. Item Trkg Block Behavior")
         {
             Caption = 'Allow Movement';
-            ToolTip = 'Specifies whether an inspection for a lot/serial/package with this result allows Inventory Movement transactions.';
+            ToolTip = 'Specifies whether an inspection for an item tracking with this result allows Inventory Movement transactions.';
         }
-        field(31; "Lot Allow Pick"; Enum "Qlty. Item Trkg Block Behavior")
+        field(31; "Item Tracking Allow Pick"; Enum "Qlty. Item Trkg Block Behavior")
         {
             Caption = 'Allow Pick';
-            ToolTip = 'Specifies whether an inspection for a lot/serial/package with this result allows Pick transactions.';
+            ToolTip = 'Specifies whether an inspection for an item tracking with this result allows Pick transactions.';
         }
-        field(32; "Lot Allow Put-Away"; Enum "Qlty. Item Trkg Block Behavior")
+        field(32; "Item Tracking Allow Put-Away"; Enum "Qlty. Item Trkg Block Behavior")
         {
             Caption = 'Allow Put-Away';
-            ToolTip = 'Specifies whether an inspection for a lot/serial/package with this result allows Put-Away transactions.';
+            ToolTip = 'Specifies whether an inspection for an item tracking with this result allows Put-Away transactions.';
         }
         field(50; "Override Style"; Text[100])
         {
@@ -195,6 +195,9 @@ table 20411 "Qlty. Inspection Result"
             Clustered = true;
         }
         key(Key2; "Evaluation Sequence")
+        {
+        }
+        key(Key3; "Result Visibility", "Evaluation Sequence")
         {
         }
     }
@@ -214,7 +217,16 @@ table 20411 "Qlty. Inspection Result"
         PromptFirstExistingInspectionQst: Label 'This result, although not set on an inspection, is available to previous inspections. Are you sure you want to remove this result? This cannot be undone.';
         PromptFirstExistingTemplateQst: Label 'This result is currently defined on some Quality Inspection Templates. Are you sure you want to remove this result? This cannot be undone.';
         PromptFirstExistingTestQst: Label 'This result is currently defined on some tests. Are you sure you want to remove this result? This cannot be undone.';
+        EvaluationSequencePriorityMustBeUniqueErr: Label 'Evaluation Sequence priority must be unique, you cannot have two results with the same evaluation sequence. Result %1 %2 already has the same evaluation sequence %3.', Comment = '%1=Result Code, %2=Result description, %3=Evaluation Sequence';
         DefaultResultInProgressCodeLbl: Label 'INPROGRESS', Locked = true, MaxLength = 20;
+        ResultCodePassLbl: Label 'PASS', MaxLength = 20;
+        ResultCodeGoodLbl: Label 'GOOD', MaxLength = 20;
+        ResultCodeAcceptableLbl: Label 'ACCEPTABLE', MaxLength = 20;
+        ResultCodeFailLbl: Label 'FAIL', MaxLength = 20;
+        ResultCodeBadLbl: Label 'BAD', MaxLength = 20;
+        ResultCodeUnacceptableLbl: Label 'UNACCEPTABLE', MaxLength = 20;
+        ResultCodeErrorLbl: Label 'ERROR', MaxLength = 20;
+        ResultCodeRejectLbl: Label 'REJECT', MaxLength = 20;
 
     trigger OnInsert()
     begin
@@ -230,15 +242,18 @@ table 20411 "Qlty. Inspection Result"
         UpdateExistingConditions();
     end;
 
+    /// <summary>
+    /// Infers an uncategorized result category from recognized result codes.
+    /// </summary>
     internal procedure AutoSetResultCategoryFromName()
     begin
         if Rec."Result Category" <> Rec."Result Category"::Uncategorized then
             exit;
 
         case Rec.Code of
-            'PASS', 'GOOD', 'ACCEPTABLE':
+            ResultCodePassLbl, ResultCodeGoodLbl, ResultCodeAcceptableLbl:
                 Rec."Result Category" := Rec."Result Category"::Acceptable;
-            'FAIL', 'BAD', 'UNACCEPTABLE', 'ERROR', 'REJECT':
+            ResultCodeFailLbl, ResultCodeBadLbl, ResultCodeUnacceptableLbl, ResultCodeErrorLbl, ResultCodeRejectLbl:
                 Rec."Result Category" := Rec."Result Category"::"Not acceptable";
         end;
     end;
@@ -285,6 +300,9 @@ table 20411 "Qlty. Inspection Result"
         QltyIResultConditConf.DeleteAll();
     end;
 
+    /// <summary>
+    /// Propagates the result evaluation sequence and visibility to existing condition configurations.
+    /// </summary>
     local procedure UpdateExistingConditions()
     var
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
@@ -312,7 +330,7 @@ table 20411 "Qlty. Inspection Result"
     /// If there is an override style then it will be used.
     /// If there is no override style then it will make an assumption based on the category.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The override style, inferred category style, or the default no-style value.</returns>
     procedure GetResultStyle(): Text
     begin
         if Rec."Override Style" <> '' then
@@ -326,5 +344,45 @@ table 20411 "Qlty. Inspection Result"
             else
                 exit(Format(RowStyle::None));
         end;
+    end;
+
+    /// <summary>
+    /// Sets the default evaluation sequence for a new record.
+    /// </summary>
+    internal procedure SetDefaultEvaluationSequence()
+    var
+        ExistingQltyInspectionResult: Record "Qlty. Inspection Result";
+    begin
+        ExistingQltyInspectionResult.SetCurrentKey("Evaluation Sequence");
+        ExistingQltyInspectionResult.Ascending(false);
+        if not ExistingQltyInspectionResult.FindFirst() then
+            Rec."Evaluation Sequence" := 0
+        else
+            Rec."Evaluation Sequence" := ExistingQltyInspectionResult."Evaluation Sequence" + 1;
+    end;
+
+    /// <summary>
+    /// Validates that the evaluation sequence is not used by another result.
+    /// </summary>
+    internal procedure ValidateEvaluationSequenceNotUsedElsewhere()
+    var
+        ExistingQltyInspectionResult: Record "Qlty. Inspection Result";
+    begin
+        ExistingQltyInspectionResult.SetFilter(Code, '<>%1', Rec.Code);
+        ExistingQltyInspectionResult.SetRange("Evaluation Sequence", Rec."Evaluation Sequence");
+        ExistingQltyInspectionResult.SetLoadFields(Description);
+        if ExistingQltyInspectionResult.FindFirst() then
+            Error(EvaluationSequencePriorityMustBeUniqueErr, ExistingQltyInspectionResult.Code, ExistingQltyInspectionResult.Description, Rec."Evaluation Sequence");
+    end;
+
+    /// <summary>
+    /// Updates tests, templates, and inspections with result changes.
+    /// Adds newly created results to existing quality tests and templates, adjusts evaluation sequences, and updates promoted results.
+    /// </summary>
+    internal procedure UpdateTestsTemplatesAndInspections()
+    var
+        QltyResultConditionMgmt2: Codeunit "Qlty. Result Condition Mgmt.";
+    begin
+        QltyResultConditionMgmt2.CopyGradeConditionsFromDefaultToAllTemplates();
     end;
 }

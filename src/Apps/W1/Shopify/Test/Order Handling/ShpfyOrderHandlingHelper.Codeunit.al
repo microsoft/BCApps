@@ -128,6 +128,7 @@ codeunit 139607 "Shpfy Order Handling Helper"
         ShippingPrice: Decimal;
         OrderNumber: Integer;
         AddressId: BigInteger;
+        IpFormatLbl: Label '%1.%2.%3.%4', Locked = true;
     begin
         Clear(OrdersToImport);
         if not OrdersToImport.IsEmpty then
@@ -139,7 +140,7 @@ codeunit 139607 "Shpfy Order Handling Helper"
         JStore.Add('name', 'Online Store');
         Customer := GetCustomer();
         AddressId := Any.IntegerInRange(1000000, 9999999);
-        BrowserIp := StrSubstNo('%1.%2.%3.%4', Any.IntegerInRange(1, 255), Any.IntegerInRange(0, 255), Any.IntegerInRange(0, 255), Any.IntegerInRange(0, 255));
+        BrowserIp := StrSubstNo(IpFormatLbl, Any.IntegerInRange(1, 255), Any.IntegerInRange(0, 255), Any.IntegerInRange(0, 255), Any.IntegerInRange(0, 255));
         Price := OrdersToImport."Order Amount";
         TaxRate := 10;
         TaxPrice := Price - Round(Price / (1 + TaxRate / 100), 0.01);

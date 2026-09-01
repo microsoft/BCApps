@@ -2,6 +2,7 @@ namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Pricing.PriceList;
 using System.Utilities;
@@ -18,10 +19,14 @@ tableextension 8052 Item extends Item
             trigger OnValidate()
             var
                 ItemReference: Record "Item Reference";
+                ItemLedgerEntry: Record "Item Ledger Entry";
             begin
                 ErrorIfItemIsNonInventory();
                 AskToRemoveAssignedItemServiceCommPackages();
                 ErrorIfPackageLineInvoicedViaContractWithoutInvoicingItemExist();
+                if ExistsItemLedgerEntry() then
+                    Error(GetCannotChangeItemWithExistingDocumentLinesErr(), FieldCaption("Subscription Option"), TableCaption(), "No.", ItemLedgerEntry.TableCaption());
+                CheckDocuments(FieldNo("Subscription Option"), FieldNo("Subscription Option"), FieldCaption("Subscription Option"));
                 UpdateItemPriceList();
 
                 if xRec."Subscription Option" = Enum::"Item Service Commitment Type"::"Service Commitment Item" then begin

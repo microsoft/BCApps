@@ -5,7 +5,10 @@
 
 namespace System.DataAdministration;
 
+using System.Diagnostics;
 using System.Environment;
+using System.Reflection;
+using System.Security.AccessControl;
 using System.Security.User;
 
 /// <summary>
@@ -14,7 +17,7 @@ using System.Security.User;
 page 8700 "Table Information"
 {
     Caption = 'Table Information';
-    AdditionalSearchTerms = 'Database,Size,Storage';
+    AdditionalSearchTerms = 'Database,Size,Storage,Index';
     PageType = List;
     ApplicationArea = All;
     Extensible = true;
@@ -25,7 +28,9 @@ page 8700 "Table Information"
     InsertAllowed = false;
     ModifyAllowed = false;
     DeleteAllowed = false;
-    Permissions = tabledata "Table Information" = r;
+    Permissions = tabledata "Table Information" = r,
+                  tabledata "Database Index" = r,
+                  tabledata "Table Metadata" = r;
     AboutTitle = 'About Table Information';
     AboutText = 'Get information about the number of records in all system and business tables, and how much data each table contains. This information is useful for troubleshooting performance problems, because it lets you see the distribution of data size across tables.';
 
@@ -51,6 +56,11 @@ page 8700 "Table Information"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the ID of the table.';
+
+                    trigger OnDrillDown()
+                    begin
+                        OpenTableDataManagement();
+                    end;
                 }
 
                 field("No. of Records"; Rec."No. of Records")
@@ -101,6 +111,53 @@ page 8700 "Table Information"
         }
     }
 
+    actions
+    {
+        area(Processing)
+        {
+            action("Manage Indexes")
+            {
+                ApplicationArea = All;
+                Caption = 'Manage Indexes';
+                Image = "Table";
+                Scope = Repeater;
+                ToolTip = 'Manage indexes on the selected table. You can investigate index cost and usage, and turn indexes on/off.';
+
+                trigger OnAction()
+                begin
+                    OpenTableDataManagement();
+                end;
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Process)
+            {
+                actionref(ManageIndexesPromoted; "Manage Indexes")
+                {
+                }
+            }
+        }
+        area(Navigation)
+        {
+            action("View Table Permissions")
+            {
+                ApplicationArea = All;
+                Caption = 'View Table Permissions';
+                Image = Permission;
+                Scope = Repeater;
+                ToolTip = 'View an overview of permissions that apply to this table across all permission sets.';
+
+                trigger OnAction()
+                var
+                    PermissionsOverviewCU: Codeunit "Permissions Overview";
+                begin
+                    PermissionsOverviewCU.OpenForTable(Rec."Table No.");
+                end;
+            }
+        }
+    }
+
     trigger OnInit()
     var
         UserPermissions: Codeunit "User Permissions";
@@ -111,5 +168,13 @@ page 8700 "Table Information"
         else
             Rec.SetFilter("Company Name", '%1|%2', '', CompanyName);
         Rec.FilterGroup(0);
+    end;
+
+    local procedure OpenTableDataManagement()
+    var
+        TableMetadata: Record "Table Metadata";
+    begin
+        TableMetadata.SetRange(ID, Rec."Table No.");
+        Page.Run(Page::"Table Information Card", TableMetadata);
     end;
 }

@@ -522,9 +522,9 @@ codeunit 324 "No. Series Copilot Impl."
 
     local procedure ValidateGeneratedNoSeries(var RecRef: RecordRef)
     var
-        GeneratedNoSeries: Record "No. Series Generation Detail";
+        TempGeneratedNoSeries: Record "No. Series Generation Detail";
     begin
-        ValidateRecFieldNo(RecRef, GeneratedNoSeries.FieldNo("Is Next Year"));
+        ValidateRecFieldNo(RecRef, TempGeneratedNoSeries.FieldNo("Is Next Year"));
         RecRef.Modify(true);
     end;
 

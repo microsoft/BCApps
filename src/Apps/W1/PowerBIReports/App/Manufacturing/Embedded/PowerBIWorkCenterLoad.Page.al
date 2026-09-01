@@ -11,8 +11,8 @@ page 37042 "PowerBI Work Center Load"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = Manufacturing;
     PageType = UserControlHost;
-    Caption = 'Work Center Load';
-    AboutTitle = 'About Work Center Load';
+    Caption = 'Work Center Load (Power BI)';
+    AboutTitle = 'About Work Center Load (Power BI)';
     AboutText = 'View the percentage of production order time assigned vs. Available Capacity for each Work Centre Group and/or Work Centre in a specified period. Allows you to determine if a Work Centre is overloaded and requires rescheduling.';
 
     layout
@@ -48,11 +48,8 @@ page 37042 "PowerBI Work Center Load"
         ReportPageLbl: Label 'ReportSection83a7395d207d5b47b1a4', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Manufacturing Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Manufacturing App");
     end;
 }
 

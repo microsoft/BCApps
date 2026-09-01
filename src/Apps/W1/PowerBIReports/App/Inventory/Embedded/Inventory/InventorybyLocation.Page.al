@@ -11,8 +11,8 @@ page 37024 "Inventory by Location"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Inventory by Location';
-    AboutTitle = 'About Inventory by Location';
+    Caption = 'Inventory by Location (Power BI)';
+    AboutTitle = 'About Inventory by Location (Power BI)';
     AboutText = 'The Inventory by Location report shows inventory quantities by item and by location. ';
 
     layout
@@ -48,11 +48,8 @@ page 37024 "Inventory by Location"
         ReportPageLbl: Label 'ReportSection2765ed5a1005d04217d1', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Inventory Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Inventory App");
     end;
 }
 

@@ -11,8 +11,8 @@ page 36990 "Liabilities"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Liabilities';
-    AboutTitle = 'About Liabilities';
+    Caption = 'Liabilities (Power BI)';
+    AboutTitle = 'About Liabilities (Power BI)';
     AboutText = 'The Liabilities report provides a snapshot of liability account balances as of a specific date. It also highlights key performance metrics influenced by liabilities, such as the Debt Ratio and Debt-to-Equity Ratio.';
 
     layout
@@ -48,11 +48,8 @@ page 36990 "Liabilities"
         ReportPageLbl: Label 'ReportSectioncd819efac970874e83c3', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Finance Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Finance App");
     end;
 }
 

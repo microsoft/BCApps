@@ -30,7 +30,7 @@ codeunit 30278 "Shpfy Bulk Operation API"
         JBulkOperation: JsonObject;
     begin
         Parameters.Add('BulkOperationId', Format(BulkOperationId));
-        JResponse := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::GetBulkOperation, Parameters);
+        JResponse := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::BulkOperations_GetBulkOperation, Parameters);
         if JsonHelper.GetJsonObject(JResponse, JBulkOperation, 'data.node') then begin
             Status := ConvertToBulkOperationStatus(JsonHelper.GetValueAsText(JBulkOperation, 'status'));
             ErrorCode := JsonHelper.GetValueAsText(JBulkOperation, 'errorCode');
@@ -49,7 +49,7 @@ codeunit 30278 "Shpfy Bulk Operation API"
     begin
         Parameters.Add('BulkMutation', Mutation);
         Parameters.Add('ResourceUrl', ResourceUrl);
-        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::RunBulkOperationMutation, Parameters);
+        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::BulkOperations_RunBulkOperationMutation, Parameters);
         if JsonHelper.GetValueAsText(JResponse, 'data.bulkOperationRunMutation.bulkOperation.status') = 'CREATED' then
             exit(CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JResponse, 'data.bulkOperationRunMutation.bulkOperation.id')))
         else begin
@@ -92,7 +92,7 @@ codeunit 30278 "Shpfy Bulk Operation API"
         Parameters.Add('MimeType', 'text/jsonl');
         Parameters.Add('Resource', BulkOperationMutationResourceLbl);
         Parameters.Add('HttpMethod', 'POST');
-        JResponse := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::CreateUploadUrl, Parameters);
+        JResponse := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::Products_CreateUploadUrl, Parameters);
         JArray := JsonHelper.GetJsonArray(JResponse, 'data.stagedUploadsCreate.stagedTargets');
         if JArray.Count = 1 then
             if JArray.Get(0, JResponse) then begin

@@ -417,7 +417,7 @@ codeunit 139886 "E-Doc Link To Existing Test"
         CreatedPurchaseHeader: Record "Purchase Header";
         ExistingPurchaseHeader: Record "Purchase Header";
         ICPartner: Record "IC Partner";
-        EDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
         EDocImport: Codeunit "E-Doc. Import";
         EDocPurchaseDraftTestPage: TestPage "E-Document Purchase Draft";
         CreatedDocNo: Code[20];
@@ -438,8 +438,8 @@ codeunit 139886 "E-Doc Link To Existing Test"
         EDocumentPurchaseHeader.Modify();
 
         // [GIVEN] Finalize draft to create a new PI from e-document
-        EDocImportParameters."Step to Run" := Enum::"Import E-Document Steps"::"Finish draft";
-        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+        TempEDocImportParameters."Step to Run" := Enum::"Import E-Document Steps"::"Finish draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
         EDocument.Get(EDocument."Entry No");
 
         // [GIVEN] Find the created purchase invoice

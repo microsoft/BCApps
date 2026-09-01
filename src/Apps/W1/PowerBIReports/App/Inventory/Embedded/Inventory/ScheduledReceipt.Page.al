@@ -11,8 +11,8 @@ page 37028 "Scheduled Receipt"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Scheduled Receipt';
-    AboutTitle = 'About Scheduled Receipt';
+    Caption = 'Scheduled Receipt (Power BI)';
+    AboutTitle = 'About Scheduled Receipt (Power BI)';
     AboutText = 'The Scheduled Receipt report visualizes Scheduled Receipt against Projected Available Balance over time, offering a clear view of inventory supply. A table matrix breaks this down by item, showcasing key metrics like Scheduled Receipt Quantity, Projected Available Balance, and quantities from supply documents such as purchase orders, transfer receipts and manufacturing documents.';
 
     layout
@@ -48,11 +48,8 @@ page 37028 "Scheduled Receipt"
         ReportPageLbl: Label 'ReportSection5aaca347e8eb867da682', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Inventory Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Inventory App");
     end;
 }
 

@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Peppol;
 
+using Microsoft.Finance.AllocationAccount;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
@@ -118,6 +119,14 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
         unitCode: Text;
         unitCodeListID: Text;
     begin
+        // Allocation account lines are placeholder lines that are expanded into their underlying G/L
+        // distribution lines during posting and are never themselves exported in the electronic
+        // document. Validate the G/L accounts they will be expanded into instead.
+        if SalesLine.Type = SalesLine.Type::"Allocation Account" then begin
+            this.CheckAllocationAccountExpandedLines(SalesLine);
+            exit;
+        end;
+
         PEPPOL30Management.GetLineUnitCodeInfo(SalesLine, unitCode, unitCodeListID);
         if (SalesLine.Type <> SalesLine.Type::" ") and (SalesLine."No." <> '') and (unitCode = '') then
             Error(EmptyUnitOfMeasureErr, SalesLine."Unit of Measure Code");
@@ -135,6 +144,31 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
                 if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(NegativeUnitPriceErr, SalesLine.RecordId), false) then
                     Error('');
         end;
+    end;
+
+    local procedure CheckAllocationAccountExpandedLines(SalesLine: Record "Sales Line")
+    var
+        AllocationAccount: Record "Allocation Account";
+        TempAllocationLine: Record "Allocation Line";
+        ExpandedSalesLine: Record "Sales Line";
+        AllocationAccountMgt: Codeunit "Allocation Account Mgt.";
+    begin
+        if not AllocationAccount.Get(SalesLine."No.") then
+            exit;
+
+        AllocationAccountMgt.GenerateAllocationLines(
+            AllocationAccount, TempAllocationLine, SalesLine.Amount,
+            SalesLine.GetSalesHeader()."Posting Date", SalesLine."Dimension Set ID", SalesLine."Currency Code");
+
+        if TempAllocationLine.FindSet() then
+            repeat
+                if TempAllocationLine."Destination Account Type" = TempAllocationLine."Destination Account Type"::"G/L Account" then begin
+                    ExpandedSalesLine := SalesLine;
+                    ExpandedSalesLine.Type := ExpandedSalesLine.Type::"G/L Account";
+                    ExpandedSalesLine."No." := TempAllocationLine."Destination Account Number";
+                    this.CheckSalesDocumentLine(ExpandedSalesLine);
+                end;
+            until TempAllocationLine.Next() = 0;
     end;
 
     procedure CheckPostedDocument(PostedDocumentVariant: Variant)
@@ -156,7 +190,7 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
         end;
     end;
 
-    local procedure CheckSalesInvoice(SalesInvoiceHeader: Record "Sales Invoice Header")
+    internal procedure CheckSalesInvoice(SalesInvoiceHeader: Record "Sales Invoice Header")
     var
         SalesHeader: Record "Sales Header";
         SalesInvoiceLine: Record "Sales Invoice Line";
@@ -174,7 +208,7 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
             until SalesInvoiceLine.Next() = 0;
     end;
 
-    local procedure CheckSalesCreditMemo(SalesCrMemoHeader: Record "Sales Cr.Memo Header")
+    internal procedure CheckSalesCreditMemo(SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     var
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
         SalesHeader: Record "Sales Header";
@@ -192,7 +226,7 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
             until SalesCrMemoLine.Next() = 0;
     end;
 
-    local procedure CheckCurrencyCode(CurrencyCode: Code[10])
+    internal procedure CheckCurrencyCode(CurrencyCode: Code[10])
     var
         Currency: Record Currency;
         GLSetup: Record "General Ledger Setup";
@@ -216,7 +250,7 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
             Currency.FieldError(Code, StrSubstNo(WrongLengthErr, MaxCurrencyCodeLength));
     end;
 
-    local procedure CheckCountryRegionCode(CountryRegionCode: Code[10])
+    internal procedure CheckCountryRegionCode(CountryRegionCode: Code[10])
     var
         CompanyInfo: Record "Company Information";
         CountryRegion: Record "Country/Region";
@@ -236,7 +270,7 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
             CountryRegion.FieldError("ISO Code", StrSubstNo(WrongLengthErr, MaxCountryCodeLength));
     end;
 
-    local procedure CheckShipToAddress(SalesHeader: Record "Sales Header")
+    internal procedure CheckShipToAddress(SalesHeader: Record "Sales Header")
     begin
         SalesHeader.TestField("Ship-to Address");
         SalesHeader.TestField("Ship-to City");
@@ -245,7 +279,7 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
         CheckCountryRegionCode(SalesHeader."Ship-to Country/Region Code");
     end;
 
-    local procedure CheckTaxCategory(SalesLine: Record "Sales Line")
+    internal procedure CheckTaxCategory(SalesLine: Record "Sales Line")
     var
         VATPostingSetup: Record "VAT Posting Setup";
         PEPPOL30Management: Codeunit "PEPPOL30";
@@ -266,19 +300,19 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
         end
     end;
 
-    local procedure EnsureZeroRate(VatPercent: Decimal; TaxCategoryCode: Code[10])
+    internal procedure EnsureZeroRate(VatPercent: Decimal; TaxCategoryCode: Code[10])
     begin
         if VatPercent > 0 then
             Error(VatMustBeZeroForCategoryErr, TaxCategoryCode);
     end;
 
-    local procedure EnsurePositiveRate(VatPercent: Decimal; TaxCategoryCode: Code[10])
+    internal procedure EnsurePositiveRate(VatPercent: Decimal; TaxCategoryCode: Code[10])
     begin
         if VatPercent = 0 then
             Error(VATGreaterThanZeroErr, TaxCategoryCode);
     end;
 
-    local procedure EnsureSingleOutsideScopeVATBreakdown(SalesLine: Record "Sales Line")
+    internal procedure EnsureSingleOutsideScopeVATBreakdown(SalesLine: Record "Sales Line")
     var
         BreakdownKey: Text;
     begin

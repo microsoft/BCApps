@@ -20,6 +20,7 @@ codeunit 139606 "Shpfy Shipping Test"
         Shop: Record "Shpfy Shop";
         Any: Codeunit Any;
         LibraryAssert: Codeunit "Library Assert";
+        OutboundHttpRequests: Codeunit "Library - Variable Storage";
         InitializeTest: Codeunit "Shpfy Initialize Test";
         IsInitialized: Boolean;
 
@@ -184,9 +185,109 @@ codeunit 139606 "Shpfy Shipping Test"
         LibraryAssert.AreEqual(0, FulfillmentRequests.Count, 'FulfillmentRequest count check');
     end;
 
+    [Test]
+    procedure UnitTestExportShipmentMultipleLocations()
+    var
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        OrderHeader: Record "Shpfy Order Header";
+        FulfillmentOrderHeaderA: Record "Shpfy FulFillment Order Header";
+        FulfillmentOrderHeaderB: Record "Shpfy FulFillment Order Header";
+        ExportShipments: Codeunit "Shpfy Export Shipments";
+        ShippingHelper: Codeunit "Shpfy Shipping Helper";
+        DeliveryMethodType: Enum "Shpfy Delivery Method Type";
+        FulfillmentRequest: Text;
+        FulfillmentRequests: List of [Text];
+        AssignedFulfillmentOrderIds: Dictionary of [BigInteger, Code[20]];
+        ShopifyOrderId: BigInteger;
+        LocationIdA: BigInteger;
+        LocationIdB: BigInteger;
+        LineItemId: BigInteger;
+        VariantId: BigInteger;
+        ProductId: BigInteger;
+    begin
+        // [SCENARIO] A shipment spanning two Shopify locations must produce separate fulfillment requests per location
+        // [GIVEN] One item (qty 17) split across two locations: 10 at Location A, 7 at Location B
+        Initialize();
+        Any.SetDefaultSeed();
+        LocationIdA := Any.IntegerInRange(10000, 49999);
+        LocationIdB := Any.IntegerInRange(50000, 99999);
+        DeliveryMethodType := DeliveryMethodType::Shipping;
+        LineItemId := Any.IntegerInRange(10000, 99999);
+        VariantId := Any.IntegerInRange(10000, 99999);
+        ProductId := Any.IntegerInRange(10000, 99999);
+
+        Clear(OrderHeader);
+        ShopifyOrderId := Any.IntegerInRange(10000, 99999);
+        OrderHeader."Shopify Order Id" := ShopifyOrderId;
+        OrderHeader.Insert();
+
+        // Same item split across two locations with different quantities
+        ShippingHelper.CreateOrderLine(ShopifyOrderId, LocationIdA, DeliveryMethodType, LineItemId, VariantId, ProductId, 10);
+        ShippingHelper.CreateOrderLine(ShopifyOrderId, LocationIdB, DeliveryMethodType, LineItemId + 1, VariantId, ProductId, 7);
+
+        // Create fulfillment orders per location
+        FulfillmentOrderHeaderA := ShippingHelper.CreateShopifyFulfillmentOrderForLocation(ShopifyOrderId, LocationIdA, DeliveryMethodType);
+        FulfillmentOrderHeaderB := ShippingHelper.CreateShopifyFulfillmentOrderForLocation(ShopifyOrderId, LocationIdB, DeliveryMethodType);
+
+        // [GIVEN] A shipment of qty 9 that spans both locations (needs items from both fulfillment orders)
+        Clear(SalesShipmentHeader);
+        SalesShipmentHeader."No." := CopyStr(Any.AlphanumericText(MaxStrLen(SalesShipmentHeader."No.")), 1, MaxStrLen(SalesShipmentHeader."No."));
+        SalesShipmentHeader."Shpfy Order Id" := ShopifyOrderId;
+        SalesShipmentHeader."Package Tracking No." := CopyStr(Any.AlphanumericText(MaxStrLen(SalesShipmentHeader."Package Tracking No.")), 1, MaxStrLen(SalesShipmentHeader."Package Tracking No."));
+        SalesShipmentHeader.Insert();
+
+        // Shipment line for item at Location A: ship 5 out of 10
+        ShippingHelper.CreateSalesShipmentLine(SalesShipmentHeader."No.", LineItemId, 5, 10000);
+        // Shipment line for item at Location B: ship 4 out of 7
+        ShippingHelper.CreateSalesShipmentLine(SalesShipmentHeader."No.", LineItemId + 1, 4, 20000);
+
+        // [WHEN] Invoke the function CreateFulfillmentOrderRequest()
+        FulfillmentRequests := ExportShipments.CreateFulfillmentOrderRequest(SalesShipmentHeader, Shop, AssignedFulfillmentOrderIds);
+
+        // [THEN] Two separate requests are created, one per location
+        LibraryAssert.AreEqual(2, FulfillmentRequests.Count, 'Should produce two fulfillment requests, one per location');
+
+        // [THEN] First request contains only Location A's fulfillment order
+        FulfillmentRequests.Get(1, FulfillmentRequest);
+        LibraryAssert.IsTrue(FulfillmentRequest.Contains(Format(FulfillmentOrderHeaderA."Shopify Fulfillment Order Id")), 'First request should contain Location A fulfillment order');
+        LibraryAssert.IsFalse(FulfillmentRequest.Contains(Format(FulfillmentOrderHeaderB."Shopify Fulfillment Order Id")), 'First request should not contain Location B fulfillment order');
+
+        // [THEN] Second request contains only Location B's fulfillment order
+        FulfillmentRequests.Get(2, FulfillmentRequest);
+        LibraryAssert.IsTrue(FulfillmentRequest.Contains(Format(FulfillmentOrderHeaderB."Shopify Fulfillment Order Id")), 'Second request should contain Location B fulfillment order');
+        LibraryAssert.IsFalse(FulfillmentRequest.Contains(Format(FulfillmentOrderHeaderA."Shopify Fulfillment Order Id")), 'Second request should not contain Location A fulfillment order');
+    end;
+
+    [Test]
+    [HandlerFunctions('MarketDrivenShippingHttpHandler')]
+    procedure UnitTestGetMarketDrivenShippingMethods()
+    var
+        ShipmentMethodMapping: Record "Shpfy Shipment Method Mapping";
+        ShippingMethods: Codeunit "Shpfy Shipping Methods";
+    begin
+        // [SCENARIO] On a market-driven-shipping shop, GetShippingMethods reads shipping options from the Markets API
+        // [GIVEN] A shop whose features.marketDrivenShipping is true, with one market exposing two active and one inactive shipping option
+        Initialize();
+        ShipmentMethodMapping.SetRange("Shop Code", Shop.Code);
+        ShipmentMethodMapping.DeleteAll();
+        // The handler returns responses in enqueue order: first the feature-detection query, then the markets query.
+        OutboundHttpRequests.Enqueue('GQL Get Market Driven Shipping Feature');
+        OutboundHttpRequests.Enqueue('GQL Get Market Shipping Methods');
+
+        // [WHEN] Retrieving the shipping methods
+        ShippingMethods.GetShippingMethods(Shop);
+
+        // [THEN] Each active market shipping option name is stored as a shipment method mapping
+        LibraryAssert.IsTrue(ShipmentMethodMapping.Get(Shop.Code, 'Standard Shipping'), 'Standard Shipping mapping should be created');
+        LibraryAssert.IsTrue(ShipmentMethodMapping.Get(Shop.Code, 'Express Shipping'), 'Express Shipping mapping should be created');
+        // [THEN] Inactive shipping options are skipped
+        LibraryAssert.IsFalse(ShipmentMethodMapping.Get(Shop.Code, 'Inactive Method'), 'Inactive shipping option should not be created');
+        // [THEN] Exactly the two expected API calls were made
+        OutboundHttpRequests.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
-        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryRandom: Codeunit "Library - Random";
         AccessToken: SecretText;
@@ -208,8 +309,6 @@ codeunit 139606 "Shpfy Shipping Test"
 
         // Creating Shopify Shop
         Shop := InitializeTest.CreateShop();
-
-        CommunicationMgt.SetTestInProgress(false);
 
         //Register Shopify Access Token
         AccessToken := LibraryRandom.RandText(20);
@@ -237,5 +336,34 @@ codeunit 139606 "Shpfy Shipping Test"
 
         Response.Content.WriteFrom(NavApp.GetResourceAsText('Shipping/FulfillmentOrderAcceptResponse.txt', TextEncoding::UTF8));
         exit(false); // Prevents actual HTTP call
+    end;
+
+    [HttpClientHandler]
+    internal procedure MarketDrivenShippingHttpHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        FeatureResponseTok: Label 'Shipping/MarketDrivenShippingFeatureResponse.txt', Locked = true;
+        MarketShippingResponseTok: Label 'Shipping/MarketShippingMethodsResponse.txt', Locked = true;
+        UnexpectedApiCallErr: Label 'Unexpected number of API calls.', Locked = true;
+    begin
+        if not InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
+            exit(true);
+
+        // The handler cannot read the request body, so responses are returned in enqueued order,
+        // dispatched on the remaining queue length: first the feature-detection query, then the markets query.
+        case OutboundHttpRequests.Length() of
+            2:
+                LoadResourceIntoHttpResponse(FeatureResponseTok, Response);
+            1:
+                LoadResourceIntoHttpResponse(MarketShippingResponseTok, Response);
+            0:
+                Error(UnexpectedApiCallErr);
+        end;
+        exit(false); // Prevents actual HTTP call
+    end;
+
+    local procedure LoadResourceIntoHttpResponse(ResourceText: Text; var Response: TestHttpResponseMessage)
+    begin
+        Response.Content.WriteFrom(NavApp.GetResourceAsText(ResourceText, TextEncoding::UTF8));
+        OutboundHttpRequests.DequeueText();
     end;
 }

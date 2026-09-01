@@ -14,6 +14,7 @@ query 37012 "Work Center Groups - PBI API"
     Access = Internal;
     Caption = 'Power BI Work Center Groups';
     QueryType = API;
+    AboutText = 'Provides access to work center group master data including codes and names. Work center groups organize work centers for aggregate capacity planning and reporting. Enables Power BI reports to analyze capacity utilization at the group level.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

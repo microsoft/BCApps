@@ -10,6 +10,7 @@ query 37109 "Sales Credit Lines - PBI API"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to posted sales credit memo lines for G/L account and resource types including amounts, quantities, return reasons, and dimension data. Enables Power BI reports to analyze sales returns, adjustments, and credit memo trends by customer and salesperson.';
     Caption = 'Power BI Sales Credit Lines';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

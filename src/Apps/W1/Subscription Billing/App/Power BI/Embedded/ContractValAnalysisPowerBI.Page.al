@@ -7,8 +7,8 @@ page 8099 "Contract Val Analysis Power BI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Total Contract Value Analysis';
-    AboutTitle = 'About Total Contract Value Analysis';
+    Caption = 'Total Contract Value Analysis (Power BI)';
+    AboutTitle = 'About Total Contract Value Analysis (Power BI)';
     AboutText = 'The Total Contract Value Analysis report breaks down Total Contract Value by various dimension such as billing rhythm, contract type or customer.';
 
     layout
@@ -44,17 +44,8 @@ page 8099 "Contract Val Analysis Power BI"
         ReportPageLbl: Label '6d4dcc705ea9db21d91b', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-#if not CLEAN28
-#pragma warning disable AL0801
-#endif
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Subscription Billing Report Id"));
-#if not CLEAN28
-#pragma warning restore AL0801
-#endif
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Subscription Billing App");
     end;
 }
 

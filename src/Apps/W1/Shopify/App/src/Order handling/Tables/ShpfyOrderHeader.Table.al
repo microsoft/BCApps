@@ -6,6 +6,9 @@
 namespace Microsoft.Integration.Shopify;
 
 using Microsoft.Bank.BankAccount;
+using Microsoft.CRM.BusinessRelation;
+using Microsoft.CRM.Contact;
+using Microsoft.Finance.SalesTax;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
@@ -392,7 +395,7 @@ table 30118 "Shpfy Order Header"
         }
         field(82; "Closed At"; DateTime)
         {
-            Caption = 'Closed At';
+            Caption = 'Closed At (Shopify)';
             DataClassification = SystemMetadata;
             Editable = false;
         }
@@ -408,7 +411,7 @@ table 30118 "Shpfy Order Header"
         }
         field(87; "Processed At"; DateTime)
         {
-            Caption = 'Processed At';
+            Caption = 'Processed At (Shopify)';
             DataClassification = SystemMetadata;
         }
         field(89; "Shopify Order No."; Text[50])
@@ -424,7 +427,7 @@ table 30118 "Shpfy Order Header"
         }
         field(91; "Created At"; DateTime)
         {
-            Caption = 'Created At';
+            Caption = 'Created At (Shopify)';
             DataClassification = SystemMetadata;
         }
         field(92; "Source Name"; Code[20])
@@ -435,7 +438,7 @@ table 30118 "Shpfy Order Header"
         }
         field(93; "Updated At"; DateTime)
         {
-            Caption = 'Updated At';
+            Caption = 'Updated At (Shopify)';
             DataClassification = SystemMetadata;
         }
         field(94; "Shipping Charges Amount"; Decimal)
@@ -689,6 +692,12 @@ table 30118 "Shpfy Order Header"
             FieldClass = FlowField;
             CalcFormula = exist("Shpfy Order Tax Line" where("Parent Id" = field("Shopify Order Id"), "Channel Liable" = const(true)));
         }
+        field(135; "Use Shopify Order No."; Boolean)
+        {
+            Caption = 'Use Shopify Order No.';
+            DataClassification = SystemMetadata;
+            ToolTip = 'Specifies whether the Shopify order number is used as the document number for this specific order.';
+        }
         field(500; "Shop Code"; Code[20])
         {
             Caption = 'Shop Code';
@@ -730,6 +739,14 @@ table 30118 "Shpfy Order Header"
             Caption = 'Sell-to Customer No.';
             DataClassification = SystemMetadata;
             TableRelation = Customer;
+
+            trigger OnValidate()
+            var
+                OrderMapping: Codeunit "Shpfy Order Mapping";
+            begin
+                "Sell-to Contact No." := OrderMapping.FindContactNo("Sell-to Contact Name", "Sell-to Customer No.");
+                "Ship-to Contact No." := OrderMapping.FindContactNo("Ship-to Contact Name", "Sell-to Customer No.");
+            end;
         }
         field(1001; "Sales Order No."; Code[20])
         {
@@ -796,6 +813,13 @@ table 30118 "Shpfy Order Header"
             Caption = 'Bill-to Customer No.';
             DataClassification = CustomerContent;
             TableRelation = Customer;
+
+            trigger OnValidate()
+            var
+                OrderMapping: Codeunit "Shpfy Order Mapping";
+            begin
+                "Bill-to Contact No." := OrderMapping.FindContactNo("Bill-to Contact Name", "Bill-to Customer No.");
+            end;
         }
         field(1012; "Shipping Method Code"; Code[10])
         {
@@ -828,16 +852,28 @@ table 30118 "Shpfy Order Header"
         {
             Caption = 'Sell-to Contact No.';
             DataClassification = CustomerContent;
+            trigger OnValidate()
+            begin
+                CheckContactRelatedToCustomer("Sell-to Contact No.", "Sell-to Customer No.");
+            end;
         }
         field(1018; "Bill-to Contact No."; Code[20])
         {
             Caption = 'Bill-to Contact No.';
             DataClassification = CustomerContent;
+            trigger OnValidate()
+            begin
+                CheckContactRelatedToCustomer("Bill-to Contact No.", "Bill-to Customer No.");
+            end;
         }
         field(1019; "Ship-to Contact No."; Code[20])
         {
             Caption = 'Ship-to Contact No.';
             DataClassification = CustomerContent;
+            trigger OnValidate()
+            begin
+                CheckContactRelatedToCustomer("Ship-to Contact No.", "Sell-to Customer No.");
+            end;
         }
         field(1020; "Has Order State Error"; Boolean)
         {
@@ -893,6 +929,23 @@ table 30118 "Shpfy Order Header"
             DataClassification = SystemMetadata;
             Editable = false;
         }
+        field(1070; "Tax Area Code"; Code[20])
+        {
+            Caption = 'Tax Area Code';
+            DataClassification = CustomerContent;
+            TableRelation = "Tax Area";
+        }
+        field(1080; "Tax Liable"; Boolean)
+        {
+            Caption = 'Tax Liable';
+            DataClassification = CustomerContent;
+        }
+        field(1090; "Tax Exempt"; Boolean)
+        {
+            Caption = 'Tax Exempt';
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
     }
     keys
     {
@@ -904,6 +957,9 @@ table 30118 "Shpfy Order Header"
         {
         }
         key(Key3; "Created At")
+        {
+        }
+        key(Key4; "Has Order State Error")
         {
         }
     }
@@ -1012,4 +1068,40 @@ table 30118 "Shpfy Order Header"
         Shop.Get(Rec."Shop Code");
         exit(Shop."Currency Handling" = "Shpfy Currency Handling"::"Presentment Currency");
     end;
+
+    local procedure CheckContactRelatedToCustomer(ContactNo: Code[20]; CustomerNo: Code[20])
+    var
+        Contact: Record Contact;
+        ContactBusinessRelation: Record "Contact Business Relation";
+    begin
+        if (ContactNo = '') or (CustomerNo = '') then
+            exit;
+        if not Contact.Get(ContactNo) then
+            exit;
+        ContactBusinessRelation.SetRange("Link to Table", "Contact Business Relation Link To Table"::Customer);
+        ContactBusinessRelation.SetRange("No.", CustomerNo);
+        if ContactBusinessRelation.FindFirst() then
+            if (Contact."No." = ContactBusinessRelation."Contact No.") or
+               (Contact."Company No." = ContactBusinessRelation."Contact No.") then
+                exit;
+        Error(ContactNotRelatedToCustomerErr, ContactNo, Contact.Name, CustomerNo);
+    end;
+
+    internal procedure LookupContactForCustomer(CustomerNo: Code[20]; ContactNo: Code[20]; var Contact: Record Contact)
+    var
+        ContactBusinessRelation: Record "Contact Business Relation";
+    begin
+        if CustomerNo <> '' then begin
+            ContactBusinessRelation.SetRange("Link to Table", "Contact Business Relation Link To Table"::Customer);
+            ContactBusinessRelation.SetRange("No.", CustomerNo);
+            if ContactBusinessRelation.FindFirst() then
+                Contact.SetRange("Company No.", ContactBusinessRelation."Contact No.");
+        end;
+        if ContactNo <> '' then
+            if Contact.Get(ContactNo) then;
+    end;
+
+    var
+        ContactNotRelatedToCustomerErr: Label 'Contact %1 %2 is not related to customer %3.', Comment = '%1 = Contact No., %2 = Contact Name, %3 = Customer No.';
+
 }

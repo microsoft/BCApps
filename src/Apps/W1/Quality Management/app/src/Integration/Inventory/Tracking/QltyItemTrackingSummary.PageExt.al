@@ -13,12 +13,12 @@ pageextension 20409 "Qlty. Item Tracking Summary" extends "Item Tracking Summary
 {
     layout
     {
-        addafter("Total Available Quantity")
+        addafter("Selected Quantity")
         {
             field(QltyInspectionResultDescription; MostRecentQltyResultDescription)
             {
-                AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                 ApplicationArea = QualityManagement;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                 Caption = 'Quality Result';
                 ToolTip = 'Specifies the most recent result for this item tracking specification.';
                 Editable = false;
@@ -36,8 +36,8 @@ pageextension 20409 "Qlty. Item Tracking Summary" extends "Item Tracking Summary
             }
             field("Qlty. Inspection Count"; Rec."Qlty. Inspection Count")
             {
-                AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                 ApplicationArea = QualityManagement;
+                AccessByPermission = tabledata "Qlty. Inspection Header" = R;
                 Editable = false;
             }
         }
@@ -52,7 +52,7 @@ pageextension 20409 "Qlty. Item Tracking Summary" extends "Item Tracking Summary
                 ApplicationArea = QualityManagement;
                 Image = AllLines;
                 Caption = 'Show all Tracking for Item';
-                ToolTip = 'Click this to see item tracking regardless of the source document. Use this if you need to choose a lot, serial or package number that is not related to the source document you are creating the inspection for.';
+                ToolTip = 'View item tracking from any document. Use this to select a lot, serial, or package number that isn’t related to the source document.';
                 Visible = ShowQltyManagementActions;
 
                 trigger OnAction()
@@ -65,7 +65,7 @@ pageextension 20409 "Qlty. Item Tracking Summary" extends "Item Tracking Summary
             {
                 ApplicationArea = QualityManagement;
                 Image = Line;
-                Caption = 'Source Document Item Tracking only';
+                Caption = 'Source Document Item Tracking';
                 ToolTip = 'Shows item tracking that relates to the matching source document number.';
                 Visible = ShowQltyManagementActions;
 

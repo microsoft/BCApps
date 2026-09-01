@@ -18,54 +18,54 @@ codeunit 135043 "IDA 1D Code128 Test"
     [Test]
     procedure TestCode128aEncoding();
     var
-        BarcodeEncodeSettings: Record "Barcode Encode Settings";
+        TempBarcodeEncodeSettings: Record "Barcode Encode Settings";
         GenericBarcodeTestHelper: Codeunit "Generic Barcode Test Helper";
     begin
         // [Scenario] Encoding a text using Code128 symbology with code set 'A' yields the correct result
 
-        BarcodeEncodeSettings."Code Set" := BarcodeEncodeSettings."Code Set"::A;
+        TempBarcodeEncodeSettings."Code Set" := TempBarcodeEncodeSettings."Code Set"::A;
 
-        GenericBarcodeTestHelper.EncodeFontSuccessTest(/* input */'1234', Enum::"Barcode Symbology"::Code128, BarcodeEncodeSettings, /* expected result */'Ë1234wÎ');
+        GenericBarcodeTestHelper.EncodeFontSuccessTest(/* input */'1234', Enum::"Barcode Symbology"::Code128, TempBarcodeEncodeSettings, /* expected result */'Ë1234wÎ');
     end;
 
     [Test]
     procedure TestCode128bEncoding();
     var
-        BarcodeEncodeSettings: Record "Barcode Encode Settings";
+        TempBarcodeEncodeSettings: Record "Barcode Encode Settings";
         GenericBarcodeTestHelper: Codeunit "Generic Barcode Test Helper";
     begin
         // [Scenario] Encoding a text using Code128 symbology with code set 'B' yields the correct result
 
-        BarcodeEncodeSettings."Code Set" := BarcodeEncodeSettings."Code Set"::B;
+        TempBarcodeEncodeSettings."Code Set" := TempBarcodeEncodeSettings."Code Set"::B;
 
-        GenericBarcodeTestHelper.EncodeFontSuccessTest(/* input */'1234', Enum::"Barcode Symbology"::Code128, BarcodeEncodeSettings, /* expected result */'Ì1234xÎ');
+        GenericBarcodeTestHelper.EncodeFontSuccessTest(/* input */'1234', Enum::"Barcode Symbology"::Code128, TempBarcodeEncodeSettings, /* expected result */'Ì1234xÎ');
     end;
 
     [Test]
     procedure TestCode128cEncoding();
     var
-        BarcodeEncodeSettings: Record "Barcode Encode Settings";
+        TempBarcodeEncodeSettings: Record "Barcode Encode Settings";
         GenericBarcodeTestHelper: Codeunit "Generic Barcode Test Helper";
     begin
         // [Scenario] Encoding a text using Code128 symbology with code set 'C' yields the correct result
 
-        BarcodeEncodeSettings."Code Set" := BarcodeEncodeSettings."Code Set"::C;
+        TempBarcodeEncodeSettings."Code Set" := TempBarcodeEncodeSettings."Code Set"::C;
 
-        GenericBarcodeTestHelper.EncodeFontSuccessTest(/* input */'1234', Enum::"Barcode Symbology"::Code128, BarcodeEncodeSettings, /* expected result */'Í,BrÎ');
+        GenericBarcodeTestHelper.EncodeFontSuccessTest(/* input */'1234', Enum::"Barcode Symbology"::Code128, TempBarcodeEncodeSettings, /* expected result */'Í,BrÎ');
     end;
 
     [Test]
     procedure TestCode128EncodingWithNoCodeSetSelected();
     var
-        BarcodeEncodeSettings: Record "Barcode Encode Settings";
+        TempBarcodeEncodeSettings: Record "Barcode Encode Settings";
         GenericBarcodeTestHelper: Codeunit "Generic Barcode Test Helper";
     begin
         // [Scenario] Encoding a text using Code128 symbology with no code set set yields an error
 
-        BarcodeEncodeSettings."Code Set" := BarcodeEncodeSettings."Code Set"::None;
+        TempBarcodeEncodeSettings."Code Set" := TempBarcodeEncodeSettings."Code Set"::None;
 
         GenericBarcodeTestHelper.EncodeFontSuccessTest(/* input */'1234', Enum::"Barcode Symbology"::Code128, 'Í,BrÎ');
-        GenericBarcodeTestHelper.EncodeFontSuccessTest(/* input */'1234', Enum::"Barcode Symbology"::Code128, BarcodeEncodeSettings, /* expected result */'Í,BrÎ');
+        GenericBarcodeTestHelper.EncodeFontSuccessTest(/* input */'1234', Enum::"Barcode Symbology"::Code128, TempBarcodeEncodeSettings, /* expected result */'Í,BrÎ');
     end;
 
     [Test]
@@ -81,52 +81,52 @@ codeunit 135043 "IDA 1D Code128 Test"
     [Test]
     procedure TestCode128aValidationWithNormalString();
     var
-        BarcodeEncodeSettings: Record "Barcode Encode Settings";
+        TempBarcodeEncodeSettings: Record "Barcode Encode Settings";
         GenericBarcodeTestHelper: Codeunit "Generic Barcode Test Helper";
     begin
         // [Scenario] Validating a correctly formatted text using Code128 symbology with code set 'A' doesn't yield an error
 
-        BarcodeEncodeSettings."Code Set" := BarcodeEncodeSettings."Code Set"::A;
+        TempBarcodeEncodeSettings."Code Set" := TempBarcodeEncodeSettings."Code Set"::A;
 
-        GenericBarcodeTestHelper.ValidateFontSuccessTest(/* input */'1234', Enum::"Barcode Symbology"::Code128, BarcodeEncodeSettings);
+        GenericBarcodeTestHelper.ValidateFontSuccessTest(/* input */'1234', Enum::"Barcode Symbology"::Code128, TempBarcodeEncodeSettings);
     end;
 
     [Test]
     procedure TestCode128aValidationWithInvalidString();
     var
-        BarcodeEncodeSettings: Record "Barcode Encode Settings";
+        TempBarcodeEncodeSettings: Record "Barcode Encode Settings";
         GenericBarcodeTestHelper: Codeunit "Generic Barcode Test Helper";
     begin
         // [Scenario] Validating an incorrectly formatted text using Code128 symbology with code set 'A' yields an error
 
-        BarcodeEncodeSettings."Code Set" := BarcodeEncodeSettings."Code Set"::A;
+        TempBarcodeEncodeSettings."Code Set" := TempBarcodeEncodeSettings."Code Set"::A;
 
-        GenericBarcodeTestHelper.ValidateFontFailureTest(/* input */'lowercase', Enum::"Barcode Symbology"::Code128, BarcodeEncodeSettings, /* expected error */StrSubstNo(InvalidTextErr, 'lowercase'));
+        GenericBarcodeTestHelper.ValidateFontFailureTest(/* input */'lowercase', Enum::"Barcode Symbology"::Code128, TempBarcodeEncodeSettings, /* expected error */StrSubstNo(InvalidTextErr, 'lowercase'));
     end;
 
     [Test]
     procedure TestCode128bValidationWithInvalidString();
     var
-        BarcodeEncodeSettings: Record "Barcode Encode Settings";
+        TempBarcodeEncodeSettings: Record "Barcode Encode Settings";
         GenericBarcodeTestHelper: Codeunit "Generic Barcode Test Helper";
     begin
         // [Scenario] Validating an incorrectly formatted text using Code128 symbology with code set 'B' yields an error
 
-        BarcodeEncodeSettings."Code Set" := BarcodeEncodeSettings."Code Set"::B;
+        TempBarcodeEncodeSettings."Code Set" := TempBarcodeEncodeSettings."Code Set"::B;
 
-        GenericBarcodeTestHelper.ValidateFontFailureTest(/* input */'€€€', Enum::"Barcode Symbology"::Code128, BarcodeEncodeSettings, /* expected error */StrSubstNo(InvalidTextErr, '€€€'));
+        GenericBarcodeTestHelper.ValidateFontFailureTest(/* input */'€€€', Enum::"Barcode Symbology"::Code128, TempBarcodeEncodeSettings, /* expected error */StrSubstNo(InvalidTextErr, '€€€'));
     end;
 
     [Test]
     procedure TestCode128cValidationWithInvalidString();
     var
-        BarcodeEncodeSettings: Record "Barcode Encode Settings";
+        TempBarcodeEncodeSettings: Record "Barcode Encode Settings";
         GenericBarcodeTestHelper: Codeunit "Generic Barcode Test Helper";
     begin
         // [Scenario] Validating an incorrectly formatted text using Code128 symbology with code set 'C' yields an error
 
-        BarcodeEncodeSettings."Code Set" := BarcodeEncodeSettings."Code Set"::C;
+        TempBarcodeEncodeSettings."Code Set" := TempBarcodeEncodeSettings."Code Set"::C;
 
-        GenericBarcodeTestHelper.ValidateFontFailureTest(/* input */'ABC', Enum::"Barcode Symbology"::Code128, BarcodeEncodeSettings, /* expected error */StrSubstNo(InvalidTextErr, 'ABC'));
+        GenericBarcodeTestHelper.ValidateFontFailureTest(/* input */'ABC', Enum::"Barcode Symbology"::Code128, TempBarcodeEncodeSettings, /* expected error */StrSubstNo(InvalidTextErr, 'ABC'));
     end;
 }

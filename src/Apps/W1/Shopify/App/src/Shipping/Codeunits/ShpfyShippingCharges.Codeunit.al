@@ -28,14 +28,12 @@ codeunit 30191 "Shpfy Shipping Charges"
         JShipmentLines: JsonArray;
         JResponse: JsonToken;
     begin
-        if CommunicationMgt.GetTestInProgress() then
-            exit;
         CommunicationMgt.SetShop(OrderHeader."Shop Code");
         Parameters.Add('OrderId', Format(OrderHeader."Shopify Order Id"));
-        GraphQLType := "Shpfy GraphQL Type"::GetShipmentLines;
+        GraphQLType := "Shpfy GraphQL Type"::Shipping_GetShipmentLines;
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
         if JsonHelper.GetJsonObject(JResponse, JOrder, 'data.order') then begin
-            GraphQLType := "Shpfy GraphQL Type"::GetNextShipmentLines;
+            GraphQLType := "Shpfy GraphQL Type"::Shipping_GetNextShipmentLines;
             repeat
                 JShipmentLines := JsonHelper.GetJsonArray(JOrder, 'shippingLines.nodes');
                 UpdateShippingCostInfos(OrderHeader, JShipmentLines);
@@ -55,6 +53,7 @@ codeunit 30191 "Shpfy Shipping Charges"
         OrderShippingCharges: Record "Shpfy Order Shipping Charges";
         ShipmentMethodMapping: Record "Shpfy Shipment Method Mapping";
         DataCapture: Record "Shpfy Data Capture";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
         RecordRef: RecordRef;
         Id: BigInteger;
         JToken: JsonToken;
@@ -85,6 +84,7 @@ codeunit 30191 "Shpfy Shipping Charges"
             else
                 OrderShippingCharges.Modify();
             RecordRef.Close();
+            OrderTaxLine.ImportFromJson(OrderShippingCharges."Shopify Shipping Line Id", JsonHelper.GetJsonArray(JToken, 'taxLines'));
             DataCapture.Add(Database::"Shpfy Order Shipping Charges", OrderShippingCharges.SystemId, JToken);
             if not ShipmentMethodMapping.Get(OrderHeader."Shop Code", OrderShippingCharges.Title) then begin
                 Clear(ShipmentMethodMapping);

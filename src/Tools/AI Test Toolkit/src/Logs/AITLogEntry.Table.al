@@ -72,7 +72,7 @@ table 149034 "AIT Log Entry"
         field(10; Status; Option)
         {
             Caption = 'Status';
-            OptionMembers = Success,Error;
+            OptionMembers = Success,Error,Skipped;
             ToolTip = 'Specifies the status of the iteration.';
         }
         field(11; Operation; Text[100])
@@ -179,7 +179,7 @@ table 149034 "AIT Log Entry"
         field(50; "Tokens Consumed"; Integer)
         {
             Caption = 'Total Tokens Consumed';
-            ToolTip = 'Specifies the aggregated number of tokens consumed by the eval. This is applicable only when using Microsoft AI Module.';
+            ToolTip = 'Specifies the aggregated number of tokens consumed by the eval. This is applicable only when using Microsoft AI Module. Tokens consumed by agent sessions are not included in this number.';
         }
     }
 

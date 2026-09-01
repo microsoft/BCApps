@@ -1,0 +1,2 @@
+# cost: 23
+{"query":"{ shopifyPaymentsAccount { balanceTransactions(first: 200, query: \"id:{{IdFilter}}\") { nodes { id associatedPayout { id } } } } }"}

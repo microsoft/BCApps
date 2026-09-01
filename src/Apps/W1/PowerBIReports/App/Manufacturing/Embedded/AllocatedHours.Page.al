@@ -11,8 +11,8 @@ page 37043 "Allocated Hours"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = Manufacturing;
     PageType = UserControlHost;
-    Caption = 'Allocated Hours';
-    AboutTitle = 'About Allocated Hours';
+    Caption = 'Allocated Hours (Power BI)';
+    AboutTitle = 'About Allocated Hours (Power BI)';
     AboutText = 'View the number of hours remaining for production allocated to each Work Centre in a specified period. Allows you to determine if a Work Centre is under or overloaded and requires rescheduling.';
 
     layout
@@ -48,11 +48,8 @@ page 37043 "Allocated Hours"
         ReportPageLbl: Label 'ReportSectionf3f7e4f23b609a9d9cb2', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Manufacturing Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Manufacturing App");
     end;
 }
 

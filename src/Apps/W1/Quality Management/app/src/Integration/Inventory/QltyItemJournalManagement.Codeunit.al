@@ -25,30 +25,30 @@ codeunit 20454 "Qlty. Item Journal Management"
         PostedJournalEntryDocumentTypeLbl: Label 'posted item journal entry';
 
     /// <summary>
-    /// This will create a warehouse journal line.
+    /// Creates a warehouse movement or adjustment journal line and its warehouse tracking line when required.
     /// The kind of line it creates depends on the batch supplied and the instruction.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="TempQuantityToActQltyDispositionBuffer"></param>
-    /// <param name="WarehouseJournalBatch"></param>
-    /// <param name="WarehouseJournalLine"></param>
-    /// <param name="WhseItemTrackingLine"></param>
-    procedure CreateWarehouseJournalLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalBatch: Record "Warehouse Journal Batch"; var WarehouseJournalLine: Record "Warehouse Journal Line"; var WhseItemTrackingLine: Record "Whse. Item Tracking Line")
+    /// <param name="QltyInspectionHeader">The inspection supplying the item and item-tracking values.</param>
+    /// <param name="TempQuantityToActQltyDispositionBuffer">The disposition quantity and destination instruction.</param>
+    /// <param name="WarehouseJournalBatch">The warehouse journal batch in which to create the line.</param>
+    /// <param name="WarehouseJournalLine">The created warehouse journal line.</param>
+    /// <param name="WhseItemTrackingLine">The warehouse item-tracking line created when tracking is required.</param>
+    internal procedure CreateWarehouseJournalLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalBatch: Record "Warehouse Journal Batch"; var WarehouseJournalLine: Record "Warehouse Journal Line"; var WhseItemTrackingLine: Record "Whse. Item Tracking Line")
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         Location: Record Location;
         LastWhseJnlWarehouseJournalLine: Record "Warehouse Journal Line";
         QltyItemTrackingMgmt: Codeunit "Qlty. Item Tracking Mgmt.";
         ManagementNoSeries: Codeunit "No. Series";
-        Handled: Boolean;
+        IsHandled: Boolean;
         ExpirationDate: Date;
         WhseTracked: Boolean;
     begin
         QltyManagementSetup.Get();
         WarehouseJournalLine.Reset();
 
-        OnBeforeGenericCreateWarehouseJournalLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, WarehouseJournalBatch, WarehouseJournalLine, Handled);
-        if Handled then
+        OnBeforeGenericCreateWarehouseJournalLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, WarehouseJournalBatch, WarehouseJournalLine, IsHandled);
+        if IsHandled then
             exit;
 
         WarehouseJournalLine.Reset();
@@ -126,7 +126,7 @@ codeunit 20454 "Qlty. Item Journal Management"
             WarehouseJournalLine."Item No.");
 
         if WhseTracked then
-            if ((QltyInspectionHeader."Source Serial No." <> '') or (QltyInspectionHeader."Source Lot No." <> '') or (QltyInspectionHeader."Source Package No." <> '') or
+            if ((QltyInspectionHeader."Source Lot No." <> '') or (QltyInspectionHeader."Source Serial No." <> '') or (QltyInspectionHeader."Source Package No." <> '') or
                ((TempQuantityToActQltyDispositionBuffer."New Expiration Date" = 0D) and (ExpirationDate <> TempQuantityToActQltyDispositionBuffer."New Expiration Date")))
             then
                 QltyItemTrackingMgmt.CreateWarehouseJournalLineReservationEntry(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, WarehouseJournalLine, WhseItemTrackingLine);
@@ -134,6 +134,13 @@ codeunit 20454 "Qlty. Item Journal Management"
         OnAfterGenericCreateWarehouseJournalLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, WarehouseJournalBatch, WarehouseJournalLine);
     end;
 
+    /// <summary>
+    /// Determines whether the disposition requires a warehouse movement rather than an adjustment.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection supplying current item-tracking values.</param>
+    /// <param name="TempQuantityToActQltyDispositionBuffer">The disposition instruction supplying new tracking and bin values.</param>
+    /// <param name="Location">The warehouse location containing the source and adjustment bins.</param>
+    /// <returns>True when tracking or bin values require a movement; otherwise, false.</returns>
     local procedure CheckConditionsForWarehouseMovement(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var Location: Record Location): Boolean
     begin
         // Check for item tracking movement
@@ -156,13 +163,13 @@ codeunit 20454 "Qlty. Item Journal Management"
     end;
 
     /// <summary>
-    /// Posts the supplied warehouse journal line based on the supplied inspection and instruction.
+    /// Posts the filtered warehouse journal lines and reports document-creation failures for individual lines.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="TempInstructionQltyDispositionBuffer"></param>
-    /// <param name="WarehouseJournalLine"></param>
-    /// <returns></returns>
-    procedure PostWarehouseJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalLine: Record "Warehouse Journal Line") AllLinesPosted: Boolean
+    /// <param name="QltyInspectionHeader">The inspection associated with the posting operation.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The disposition instruction associated with the posting operation.</param>
+    /// <param name="WarehouseJournalLine">The warehouse journal line or filtered set of lines to post.</param>
+    /// <returns>True if every considered warehouse journal line posted successfully; otherwise, false.</returns>
+    internal procedure PostWarehouseJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalLine: Record "Warehouse Journal Line") AllLinesPosted: Boolean
     var
         ToPostWarehouseJournalLine: Record "Warehouse Journal Line";
         WhseJnlRegisterBatch: Codeunit "Whse. Jnl.-Register Batch";
@@ -171,10 +178,10 @@ codeunit 20454 "Qlty. Item Journal Management"
         ErroredLinesErrorMessages: List of [Text];
         ErrorMessage: Text;
         ErrorStack: Text;
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
-        OnBeforePostWarehouseJournal(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, WarehouseJournalLine, AllLinesPosted, Handled);
-        if Handled then
+        OnBeforePostWarehouseJournal(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, WarehouseJournalLine, AllLinesPosted, IsHandled);
+        if IsHandled then
             exit;
 
         if WarehouseJournalLine."Line No." <> 0 then
@@ -189,6 +196,7 @@ codeunit 20454 "Qlty. Item Journal Management"
                 ToPostWarehouseJournalLine.SetRecFilter();
                 if not ConsideredLines.Contains(Format(ToPostWarehouseJournalLine.RecordId())) then begin
                     Commit();
+                    ClearLastError();
                     if not WhseJnlRegisterBatch.Run(ToPostWarehouseJournalLine) then begin
                         ErrorMessage := GetLastErrorText();
                         ErrorStack := GetLastErrorCallStack();
@@ -205,23 +213,23 @@ codeunit 20454 "Qlty. Item Journal Management"
     end;
 
     /// <summary>
-    /// Creates an item journal line in the appropriate batch.
+    /// Creates an item journal movement or adjustment line and its reservation entry when tracking is required.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="TempQuantityToActQltyDispositionBuffer"></param>
-    /// <param name="ItemJournalBatch"></param>
-    /// <param name="ItemJournalLine"></param>
-    /// <param name="ReservationEntry"></param>
-    procedure CreateItemJournalLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ItemJournalBatch: Record "Item Journal Batch"; var ItemJournalLine: Record "Item Journal Line"; var ReservationEntry: Record "Reservation Entry")
+    /// <param name="QltyInspectionHeader">The inspection supplying the item and item-tracking values.</param>
+    /// <param name="TempQuantityToActQltyDispositionBuffer">The disposition quantity and destination instruction.</param>
+    /// <param name="ItemJournalBatch">The item journal batch in which to create the line.</param>
+    /// <param name="ItemJournalLine">The created item journal line.</param>
+    /// <param name="ReservationEntry">The reservation entry created when item tracking is required.</param>
+    internal procedure CreateItemJournalLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ItemJournalBatch: Record "Item Journal Batch"; var ItemJournalLine: Record "Item Journal Line"; var ReservationEntry: Record "Reservation Entry")
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         LastJnlItemJournalLine: Record "Item Journal Line";
         QltyItemTrackingMgmt: Codeunit "Qlty. Item Tracking Mgmt.";
         ManagementNoSeries: Codeunit "No. Series";
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
-        OnBeforeGenericCreateItemJournalLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, ItemJournalBatch, ItemJournalLine, ReservationEntry, Handled);
-        if Handled then
+        OnBeforeGenericCreateItemJournalLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, ItemJournalBatch, ItemJournalLine, ReservationEntry, IsHandled);
+        if IsHandled then
             exit;
 
         QltyManagementSetup.Get();
@@ -286,12 +294,9 @@ codeunit 20454 "Qlty. Item Journal Management"
         if ((QltyInspectionHeader."Source Lot No." <> '') or (QltyInspectionHeader."Source Serial No." <> '') or (QltyInspectionHeader."Source Package No." <> '') or
            ((TempQuantityToActQltyDispositionBuffer."New Expiration Date" <> 0D) and (ItemJournalLine."Expiration Date" <> TempQuantityToActQltyDispositionBuffer."New Expiration Date")))
         then begin
-            ItemJournalLine."Serial No." := QltyInspectionHeader."Source Serial No.";
             ItemJournalLine."Lot No." := QltyInspectionHeader."Source Lot No.";
+            ItemJournalLine."Serial No." := QltyInspectionHeader."Source Serial No.";
             ItemJournalLine."Package No." := QltyInspectionHeader."Source Package No.";
-
-            if TempQuantityToActQltyDispositionBuffer."New Package No." <> '' then
-                ItemJournalLine."New Package No." := TempQuantityToActQltyDispositionBuffer."New Package No.";
 
             if TempQuantityToActQltyDispositionBuffer."New Expiration Date" <> 0D then
                 ItemJournalLine."New Item Expiration Date" := TempQuantityToActQltyDispositionBuffer."New Expiration Date"
@@ -303,6 +308,10 @@ codeunit 20454 "Qlty. Item Journal Management"
 
             if TempQuantityToActQltyDispositionBuffer."New Serial No." <> '' then
                 ItemJournalLine."New Serial No." := TempQuantityToActQltyDispositionBuffer."New Serial No.";
+
+            if TempQuantityToActQltyDispositionBuffer."New Package No." <> '' then
+                ItemJournalLine."New Package No." := TempQuantityToActQltyDispositionBuffer."New Package No.";
+
             if ItemJournalBatch."Item Tracking on Lines" then
                 ItemJournalLine.Modify();
 
@@ -320,13 +329,13 @@ codeunit 20454 "Qlty. Item Journal Management"
     end;
 
     /// <summary>
-    /// Posts the supplied item journal line.
+    /// Posts the filtered item journal lines and reports document-creation failures for individual lines.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="TempInstructionQltyDispositionBuffer"></param>
-    /// <param name="ItemJournalLine"></param>
-    /// <returns></returns>
-    procedure PostItemJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ItemJournalLine: Record "Item Journal Line") AllLinesPosted: Boolean
+    /// <param name="QltyInspectionHeader">The inspection associated with the posting operation.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The disposition instruction associated with the posting operation.</param>
+    /// <param name="ItemJournalLine">The item journal line or filtered set of lines to post.</param>
+    /// <returns>True if every considered item journal line posted successfully; otherwise, false.</returns>
+    internal procedure PostItemJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ItemJournalLine: Record "Item Journal Line") AllLinesPosted: Boolean
     var
         ToPostItemJournalLine: Record "Item Journal Line";
         ItemJnlPostBatch: Codeunit "Item Jnl.-Post Batch";
@@ -335,10 +344,10 @@ codeunit 20454 "Qlty. Item Journal Management"
         ErroredLinesErrorMessages: List of [Text];
         ErrorMessage: Text;
         ErrorStack: Text;
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
-        OnBeforePostItemJournal(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, ItemJournalLine, AllLinesPosted, Handled);
-        if Handled then
+        OnBeforePostItemJournal(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, ItemJournalLine, AllLinesPosted, IsHandled);
+        if IsHandled then
             exit;
 
         if ItemJournalLine."Line No." <> 0 then
@@ -354,6 +363,7 @@ codeunit 20454 "Qlty. Item Journal Management"
 
                 if not ConsideredLines.Contains(Format(ToPostItemJournalLine.RecordId())) then begin
                     Commit();
+                    ClearLastError();
                     if not ItemJnlPostBatch.Run(ToPostItemJournalLine) then begin
                         ErrorMessage := GetLastErrorText();
                         ErrorStack := GetLastErrorCallStack();
@@ -370,105 +380,104 @@ codeunit 20454 "Qlty. Item Journal Management"
     end;
 
     /// <summary>
-    /// Used for any warehouse journal line creation.
+    /// Notifies subscribers before a warehouse journal line is created and permits replacement of the standard behavior.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="TempQuantityToActQltyDispositionBuffer"></param>
-    /// <param name="WarehouseJournalBatch"></param>
-    /// <param name="WarehouseJournalLine"></param>
-    /// <param name="Handled"></param>
+    /// <param name="QltyInspectionHeader">The inspection supplying item details.</param>
+    /// <param name="TempQuantityToActQltyDispositionBuffer">The disposition instruction being applied.</param>
+    /// <param name="WarehouseJournalBatch">The target warehouse journal batch.</param>
+    /// <param name="WarehouseJournalLine">The warehouse journal line that subscribers can populate.</param>
+    /// <param name="IsHandled">Set to true to skip standard line creation.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeGenericCreateWarehouseJournalLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalBatch: Record "Warehouse Journal Batch"; var WarehouseJournalLine: Record "Warehouse Journal Line"; var Handled: Boolean);
+    local procedure OnBeforeGenericCreateWarehouseJournalLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalBatch: Record "Warehouse Journal Batch"; var WarehouseJournalLine: Record "Warehouse Journal Line"; var IsHandled: Boolean);
     begin
     end;
 
     /// <summary>
-    /// Used for any warehouse journal line creation.
+    /// Notifies subscribers after a warehouse journal line is created.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="TempQuantityToActQltyDispositionBuffer"></param>
-    /// <param name="WarehouseJournalBatch"></param>
-    /// <param name="WarehouseJournalLine"></param>
+    /// <param name="QltyInspectionHeader">The inspection supplying item details.</param>
+    /// <param name="TempQuantityToActQltyDispositionBuffer">The applied disposition instruction.</param>
+    /// <param name="WarehouseJournalBatch">The target warehouse journal batch.</param>
+    /// <param name="WarehouseJournalLine">The created warehouse journal line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGenericCreateWarehouseJournalLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalBatch: Record "Warehouse Journal Batch"; var WarehouseJournalLine: Record "Warehouse Journal Line")
     begin
     end;
 
     /// <summary>
-    /// Provides an opportunity to extend or replace the creation of a generic item journal line.
+    /// Notifies subscribers before an item journal line is created and permits replacement of the standard behavior.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="TempQuantityToActQltyDispositionBuffer"></param>
-    /// <param name="ItemJournalBatch"></param>
-    /// <param name="ItemJournalLine"></param>
-    /// <param name="ReservationEntry"></param>
-    /// <param name="Handled"></param>
+    /// <param name="QltyInspectionHeader">The inspection supplying item details.</param>
+    /// <param name="TempQuantityToActQltyDispositionBuffer">The disposition instruction being applied.</param>
+    /// <param name="ItemJournalBatch">The target item journal batch.</param>
+    /// <param name="ItemJournalLine">The item journal line that subscribers can populate.</param>
+    /// <param name="ReservationEntry">The reservation entry that subscribers can populate.</param>
+    /// <param name="IsHandled">Set to true to skip standard line creation.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeGenericCreateItemJournalLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ItemJournalBatch: Record "Item Journal Batch"; var ItemJournalLine: Record "Item Journal Line"; var ReservationEntry: Record "Reservation Entry"; var Handled: Boolean)
+    local procedure OnBeforeGenericCreateItemJournalLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ItemJournalBatch: Record "Item Journal Batch"; var ItemJournalLine: Record "Item Journal Line"; var ReservationEntry: Record "Reservation Entry"; var IsHandled: Boolean)
     begin
     end;
 
     /// <summary>
-    /// Occurs after a generic item journal line has been made, giving the opportunity 
-    /// to extend or replace it's functionality.
+    /// Notifies subscribers after an item journal line and optional reservation entry are created.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="TempQuantityToActQltyDispositionBuffer"></param>
-    /// <param name="ItemJournalBatch"></param>
-    /// <param name="ItemJournalLine"></param>
-    /// <param name="ReservationEntry"></param>
+    /// <param name="QltyInspectionHeader">The inspection supplying item details.</param>
+    /// <param name="TempQuantityToActQltyDispositionBuffer">The applied disposition instruction.</param>
+    /// <param name="ItemJournalBatch">The target item journal batch.</param>
+    /// <param name="ItemJournalLine">The created item journal line.</param>
+    /// <param name="ReservationEntry">The reservation entry created when tracking was required.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGenericCreateItemJournalLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ItemJournalBatch: Record "Item Journal Batch"; var ItemJournalLine: Record "Item Journal Line"; var ReservationEntry: Record "Reservation Entry")
     begin
     end;
 
     /// <summary>
-    /// Occurs before an item journal post has occurred.
+    /// Notifies subscribers before item journal lines are posted and permits replacement of the standard behavior.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="TempInstructionQltyDispositionBuffer"></param>
-    /// <param name="ItemJournalLine"></param>
-    /// <param name="prbAllLinesPosted"></param>
-    /// <param name="Handled"></param>
+    /// <param name="QltyInspectionHeader">The inspection associated with the posting operation.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The disposition instruction associated with the posting operation.</param>
+    /// <param name="ItemJournalLine">The item journal line or filtered set of lines to post.</param>
+    /// <param name="AllLinesPosted">The posting result that subscribers can set.</param>
+    /// <param name="IsHandled">Set to true to skip standard posting.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforePostItemJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ItemJournalLine: Record "Item Journal Line"; var prbAllLinesPosted: Boolean; var Handled: Boolean)
+    local procedure OnBeforePostItemJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ItemJournalLine: Record "Item Journal Line"; var AllLinesPosted: Boolean; var IsHandled: Boolean)
     begin
     end;
 
     /// <summary>
-    /// Occurs after an item journal post has occurred.
+    /// Notifies subscribers after item journal lines have been posted.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="TempInstructionQltyDispositionBuffer"></param>
-    /// <param name="ItemJournalLine"></param>
-    /// <param name="prbAllLinesPosted"></param>
+    /// <param name="QltyInspectionHeader">The inspection associated with the posting operation.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The disposition instruction associated with the posting operation.</param>
+    /// <param name="ItemJournalLine">The posted item journal line or filtered set.</param>
+    /// <param name="AllLinesPosted">Indicates whether all considered lines posted successfully.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterPostItemJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ItemJournalLine: Record "Item Journal Line"; var prbAllLinesPosted: Boolean)
+    local procedure OnAfterPostItemJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ItemJournalLine: Record "Item Journal Line"; var AllLinesPosted: Boolean)
     begin
     end;
 
     /// <summary>
-    /// Occurs before a warehouse journal line has been posted.
+    /// Notifies subscribers before warehouse journal lines are posted and permits replacement of the standard behavior.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="TempInstructionQltyDispositionBuffer"></param>
-    /// <param name="WarehouseJournalLine"></param>
-    /// <param name="prbAllLinesPosted"></param>
-    /// <param name="Handled"></param>
+    /// <param name="QltyInspectionHeader">The inspection associated with the posting operation.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The disposition instruction associated with the posting operation.</param>
+    /// <param name="WarehouseJournalLine">The warehouse journal line or filtered set of lines to post.</param>
+    /// <param name="AllLinesPosted">The posting result that subscribers can set.</param>
+    /// <param name="IsHandled">Set to true to skip standard posting.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforePostWarehouseJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalLine: Record "Warehouse Journal Line"; var prbAllLinesPosted: Boolean; var Handled: Boolean)
+    local procedure OnBeforePostWarehouseJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalLine: Record "Warehouse Journal Line"; var AllLinesPosted: Boolean; var IsHandled: Boolean)
     begin
     end;
 
     /// <summary>
-    /// Occurs after a warehouse journal line has been posted.
+    /// Notifies subscribers after warehouse journal lines have been posted.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="TempInstructionQltyDispositionBuffer"></param>
-    /// <param name="WarehouseJournalLine"></param>
-    /// <param name="prbAllLinesPosted"></param>
+    /// <param name="QltyInspectionHeader">The inspection associated with the posting operation.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The disposition instruction associated with the posting operation.</param>
+    /// <param name="WarehouseJournalLine">The posted warehouse journal line or filtered set.</param>
+    /// <param name="AllLinesPosted">Indicates whether all considered lines posted successfully.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterPostWarehouseJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalLine: Record "Warehouse Journal Line"; var prbAllLinesPosted: Boolean)
+    local procedure OnAfterPostWarehouseJournal(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalLine: Record "Warehouse Journal Line"; var AllLinesPosted: Boolean)
     begin
     end;
 }

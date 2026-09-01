@@ -32,7 +32,7 @@ codeunit 30372 "Shpfy Sales Channel API"
         CurrentChannels := CollectChannels(ShopCode);
 
         CommunicationMgt.SetShop(ShopCode);
-        GraphQLType := GraphQLType::GetSalesChannels;
+        GraphQLType := GraphQLType::Base_GetSalesChannels;
 
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
@@ -42,7 +42,7 @@ codeunit 30372 "Shpfy Sales Channel API"
                     Parameters.Set('After', Cursor)
                 else
                     Parameters.Add('After', Cursor);
-                GraphQLType := GraphQLType::GetNextSalesChannels;
+                GraphQLType := GraphQLType::Base_GetNextSalesChannels;
             end;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.publications.pageInfo.hasNextPage');
 

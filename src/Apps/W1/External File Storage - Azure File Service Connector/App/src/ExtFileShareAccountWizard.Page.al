@@ -115,7 +115,7 @@ page 4571 "Ext. File Share Account Wizard"
 
                 trigger OnAction()
                 begin
-                    FileShareConnectorImpl.CreateAccount(Rec, Secret, FileShareAccount);
+                    FileShareConnectorImpl.CreateAccount(Rec, Secret, TempFileShareAccount);
                     CurrPage.Close();
                 end;
             }
@@ -123,7 +123,7 @@ page 4571 "Ext. File Share Account Wizard"
     }
 
     var
-        FileShareAccount: Record "File Account";
+        TempFileShareAccount: Record "File Account";
         MediaResources: Record "Media Resources";
         FileShareConnectorImpl: Codeunit "Ext. File Share Connector Impl";
         [NonDebuggable]
@@ -144,10 +144,10 @@ page 4571 "Ext. File Share Account Wizard"
 
     internal procedure GetAccount(var FileAccount: Record "File Account"): Boolean
     begin
-        if IsNullGuid(FileShareAccount."Account Id") then
+        if IsNullGuid(TempFileShareAccount."Account Id") then
             exit(false);
 
-        FileAccount := FileShareAccount;
+        FileAccount := TempFileShareAccount;
 
         exit(true);
     end;

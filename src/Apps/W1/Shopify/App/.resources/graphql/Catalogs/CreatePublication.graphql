@@ -1,0 +1,2 @@
+# cost: 10
+{"query": "mutation { publicationCreate(input: {autoPublish: true, catalogId: \"gid://shopify/CompanyLocationCatalog/{{CatalogId}}\", defaultState: ALL_PRODUCTS}) { publication {id}, userErrors {field, message}}}"}

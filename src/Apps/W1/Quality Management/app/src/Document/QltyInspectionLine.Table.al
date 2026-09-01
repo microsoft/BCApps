@@ -22,6 +22,12 @@ table 20406 "Qlty. Inspection Line"
     LookupPageId = "Qlty. Inspection Lines";
     DrillDownPageId = "Qlty. Inspection Lines";
     DataClassification = CustomerContent;
+    Permissions = tabledata "Qlty. I. Result Condit. Conf." = rd,
+                  tabledata "Qlty. Test" = r,
+                  tabledata "Qlty. Inspection Result" = r,
+                  tabledata "Qlty. Inspection Template Line" = r,
+                  tabledata "Qlty. Inspection Header" = r,
+                  tabledata "Qlty. Inspection Line" = rm;
 
     fields
     {
@@ -93,7 +99,7 @@ table 20406 "Qlty. Inspection Line"
             Caption = 'Test Value Type';
             Editable = false;
             FieldClass = FlowField;
-            ToolTip = 'Specifies the data type of the values you can enter or select for this test. Use Decimal for numerical measurements. Use Choice to give a list of options to choose from. If you want to choose options from an existing table, use Table Lookup.';
+            ToolTip = 'Specifies the data value type of the test. The value is automatically retrieved from the Test Value Type field on the test template.';
         }
         field(16; "Allowable Values"; Text[500])
         {
@@ -110,14 +116,14 @@ table 20406 "Qlty. Inspection Line"
             trigger OnValidate()
             var
                 QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
-                Handled: Boolean;
+                IsHandled: Boolean;
             begin
                 QltyInspectionTemplateLine.Get(Rec."Template Code", Rec."Template Line No.");
                 ValidateTestValue();
-                Rec."Numeric Value" := 0;
-                OnBeforeEvaluateNumericTestValue(Rec, Handled);
-                if not Handled then
-                    if Evaluate(Rec."Numeric Value", Rec."Test Value") then;
+                Rec."Derived Numeric Value" := 0;
+                OnBeforeEvaluateNumericTestValue(Rec, IsHandled);
+                if not IsHandled then
+                    if Evaluate(Rec."Derived Numeric Value", Rec."Test Value") then;
 
                 SetLargeText(Rec."Test Value", false, true);
 
@@ -129,27 +135,28 @@ table 20406 "Qlty. Inspection Line"
             Caption = 'Test Value Blob';
             ToolTip = 'Specifies large test value data. Typically used for larger text that is captured.';
         }
-        field(25; "Numeric Value"; Decimal)
+        field(25; "Derived Numeric Value"; Decimal)
         {
+            Caption = 'Derived Numeric Value';
+            ToolTip = 'Specifies an evaluated numeric value of Test Value for use in calculations and analysis. This value is automatically calculated when the Test Value is entered or modified based on the configuration of the Test Value and is not directly editable.';
             Editable = false;
             AutoFormatType = 0;
             DecimalPlaces = 0 : 5;
-            Caption = 'Numeric Value';
-            ToolTip = 'Specifies an evaluated numeric value of Test Value for use in calculations. eg: easier to use for Business Central charting.';
+            BlankZero = true;
         }
         field(28; "Result Code"; Code[20])
         {
             Editable = false;
             TableRelation = "Qlty. Inspection Result".Code;
             Caption = 'Result Code';
-            ToolTip = 'Specifies the result is automatically determined based on the test value and result configuration.';
+            ToolTip = 'Specifies the automatically calculated result based on the evaluation of the actual test value against the defined result conditions.';
 
             trigger OnValidate()
             var
-                QltyResult: Record "Qlty. Inspection Result";
+                QltyInspectionResult: Record "Qlty. Inspection Result";
             begin
-                if QltyResult.Get(Rec."Result Code") then begin
-                    Rec."Evaluation Sequence" := QltyResult."Evaluation Sequence";
+                if QltyInspectionResult.Get(Rec."Result Code") then begin
+                    Rec."Evaluation Sequence" := QltyInspectionResult."Evaluation Sequence";
                     Rec.CalcFields("Result Description");
                 end;
             end;
@@ -160,13 +167,13 @@ table 20406 "Qlty. Inspection Line"
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Qlty. Inspection Result"."Description" where("Code" = field("Result Code")));
-            ToolTip = 'Specifies the result description for this test result. The result is automatically determined based on the test value and result configuration.';
+            ToolTip = 'Specifies the description of the test result. This value is automatically retrieved from the result definition based on the Result Code field.';
         }
         field(30; "Evaluation Sequence"; Integer)
         {
             Editable = false;
             Caption = 'Evaluation Sequence';
-            ToolTip = 'Specifies the associated evaluation sequence for this test result. The result is automatically determined based on the test value and result configuration.';
+            ToolTip = 'Specifies the associated evaluation sequence of the test result. The value is automatically determined based on the actual test value and result configuration.';
         }
         field(33; "Failure State"; Enum "Qlty. Line Failure State")
         {
@@ -192,14 +199,14 @@ table 20406 "Qlty. Inspection Line"
         {
             Clustered = true;
         }
-        key(byResult; "Template Code", "Inspection No.", "Re-inspection No.", "Test Code", "Result Code")
+        key(Key2; "Template Code", "Inspection No.", "Re-inspection No.", "Test Code", "Result Code")
         {
             SumIndexFields = "Evaluation Sequence";
         }
-        key(byEvaluationSequence; "Template Code", "Inspection No.", "Re-inspection No.", "Evaluation Sequence")
+        key(Key3; "Template Code", "Inspection No.", "Re-inspection No.", "Evaluation Sequence")
         {
         }
-        key(byDate; "Template Code", "Inspection No.", "Re-inspection No.", "Test Code", SystemCreatedAt, SystemModifiedAt)
+        key(Key4; "Template Code", "Inspection No.", "Re-inspection No.", "Test Code", SystemCreatedAt, SystemModifiedAt)
         {
         }
     }
@@ -213,8 +220,8 @@ table 20406 "Qlty. Inspection Line"
         if not Rec.IsTemporary() then
             TestStatusOpen();
 
-        Rec."Numeric Value" := 0;
-        if Evaluate(Rec."Numeric Value", Rec."Test Value") then;
+        Rec."Derived Numeric Value" := 0;
+        if Evaluate(Rec."Derived Numeric Value", Rec."Test Value") then;
     end;
 
     trigger OnDelete()
@@ -228,6 +235,9 @@ table 20406 "Qlty. Inspection Line"
         QltyIResultConditConf.DeleteAll();
     end;
 
+    /// <summary>
+    /// Validates and evaluates the current test value against its inspection and result configuration.
+    /// </summary>
     protected procedure ValidateTestValue()
     var
         QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
@@ -236,6 +246,10 @@ table 20406 "Qlty. Inspection Line"
         QltyResultEvaluation.ValidateQltyInspectionLine(Rec, QltyInspectionHeader, true);
     end;
 
+    /// <summary>
+    /// Loads the parent inspection for a persistent inspection line.
+    /// </summary>
+    /// <returns>True if the parent inspection was found; otherwise, false.</returns>
     local procedure GetInspection(): Boolean
     begin
         if Rec.IsTemporary() then
@@ -244,6 +258,9 @@ table 20406 "Qlty. Inspection Line"
         exit(QltyInspectionHeader.Get(Rec."Inspection No.", Rec."Re-inspection No."));
     end;
 
+    /// <summary>
+    /// Verifies that the parent inspection is open when the line is persistent.
+    /// </summary>
     local procedure TestStatusOpen()
     begin
         if GetInspection() then
@@ -251,7 +268,7 @@ table 20406 "Qlty. Inspection Line"
     end;
 
     /// <summary>
-    /// Starts the appropriate 'assist edit' dialog for the given data type and conditions.
+    /// Opens the assist-edit interaction appropriate for the current test value type.
     /// </summary>
     procedure AssistEditTestValue()
     var
@@ -278,6 +295,9 @@ table 20406 "Qlty. Inspection Line"
         end;
     end;
 
+    /// <summary>
+    /// Opens the large-text editor and stores an accepted value on the inspection line.
+    /// </summary>
     internal procedure AssistEditFreeText()
     var
         QltyEditLargeText: Page "Qlty. Edit Large Text";
@@ -289,6 +309,10 @@ table 20406 "Qlty. Inspection Line"
             SetLargeText(ExistingText, true, false);
     end;
 
+    /// <summary>
+    /// Reads the full test value from the text BLOB, falling back to the Test Value field.
+    /// </summary>
+    /// <returns>The full test value.</returns>
     internal procedure GetLargeText() Result: Text
     var
         InStreamForText: InStream;
@@ -307,6 +331,12 @@ table 20406 "Qlty. Inspection Line"
             Result := Rec."Test Value";
     end;
 
+    /// <summary>
+    /// Stores a large test value in the field and, for text tests, in the text BLOB.
+    /// </summary>
+    /// <param name="LargeText">The full test value to store.</param>
+    /// <param name="ValidateValue">Specifies whether to validate the Test Value field when it is updated.</param>
+    /// <param name="OnlySetBlob">Specifies whether to leave the Test Value field unchanged.</param>
     internal procedure SetLargeText(LargeText: Text; ValidateValue: Boolean; OnlySetBlob: Boolean)
     var
         OutStreamForText: OutStream;
@@ -325,6 +355,10 @@ table 20406 "Qlty. Inspection Line"
         end;
     end;
 
+    /// <summary>
+    /// Presents a menu of allowable values and validates the selected test value.
+    /// </summary>
+    /// <param name="Options">The comma-separated values to present.</param>
     local procedure AssistEditChooseFromList(Options: Text)
     var
         Selection: Integer;
@@ -334,25 +368,29 @@ table 20406 "Qlty. Inspection Line"
             Rec.Validate("Test Value", SelectStr(Selection, Options));
     end;
 
+    /// <summary>
+    /// Opens the configured lookup values and validates the selected test value.
+    /// </summary>
     local procedure AssistEditChooseFromTableLookup()
     var
-        TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary;
+        TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary;
     begin
-        CollectAllowableValues(TempBufferQltyLookupCode);
+        CollectAllowableValues(TempBufferQltyTestLookupValue);
 
-        if Page.RunModal(Page::"Qlty. Lookup Field Choose", TempBufferQltyLookupCode) = Action::LookupOK then
-            Rec.Validate("Test Value", CopyStr(TempBufferQltyLookupCode."Custom 1", 1, MaxStrLen(Rec."Test Value")));
+        if Page.RunModal(Page::"Qlty. Lookup Field Choose", TempBufferQltyTestLookupValue) = Action::LookupOK then
+            Rec.Validate("Test Value", CopyStr(TempBufferQltyTestLookupValue."Custom 1", 1, MaxStrLen(Rec."Test Value")));
     end;
 
     /// <summary>
+    /// Collects the allowable lookup values for the current test and inspection context.
     /// Code = the unique code
     /// Description = raw description.
     /// Custom 1 = original value
     /// Custom 2 = lowercase value
     /// Custom 3 = uppercase value.
     /// </summary>
-    /// <param name="TempBufferQltyLookupCode"></param>
-    internal procedure CollectAllowableValues(var TempBufferQltyLookupCode: Record "Qlty. Lookup Code" temporary)
+    /// <param name="TempBufferQltyTestLookupValue">The temporary buffer populated with allowable values.</param>
+    internal procedure CollectAllowableValues(var TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary)
     var
         QltyTest: Record "Qlty. Test";
     begin
@@ -361,13 +399,13 @@ table 20406 "Qlty. Inspection Line"
             exit;
 
         if not GetInspection() then;
-        QltyTest.CollectAllowableValues(QltyInspectionHeader, Rec, TempBufferQltyLookupCode, Rec."Test Value");
+        QltyTest.CollectAllowableValues(QltyInspectionHeader, Rec, TempBufferQltyTestLookupValue, Rec."Test Value");
     end;
 
     /// <summary>
-    /// Returns true if the test is a numeric field type.
+    /// Determines whether the current test uses a numeric value type.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>True if the current test uses a numeric value type; otherwise, false.</returns>
     internal procedure IsNumericFieldType(): Boolean
     var
         QltyTest: Record "Qlty. Test";
@@ -377,21 +415,33 @@ table 20406 "Qlty. Inspection Line"
                 exit(QltyTest.IsNumericFieldType());
     end;
 
+    /// <summary>
+    /// Gets the failed sample count, which is currently always zero.
+    /// </summary>
+    /// <returns>Zero.</returns>
     internal procedure GetFailedSampleCount() FailedSamples: Integer
     begin
     end;
 
     /// <summary>
-    /// Gets the preferred result style to use.
+    /// Gets the display style configured for the current result.
     /// </summary>
+    /// <returns>The configured result style, or an empty value when no result style is available.</returns>
     procedure GetResultStyle(): Text
     var
         QltyInspectionResult: Record "Qlty. Inspection Result";
     begin
+        if Rec."Result Code" = '' then
+            exit('');
+
+        QltyInspectionResult.SetLoadFields("Override Style", "Result Category");
         if QltyInspectionResult.Get(Rec."Result Code") then
             exit(QltyInspectionResult.GetResultStyle());
     end;
 
+    /// <summary>
+    /// Reevaluates expression and condition-dependent lines in the same inspection after this line changes.
+    /// </summary>
     internal procedure UpdateExpressionsInOtherInspectionLinesInSameInspection()
     var
         OthersInSameQltyInspectionLine: Record "Qlty. Inspection Line";
@@ -402,6 +452,8 @@ table 20406 "Qlty. Inspection Line"
     begin
         if not GetInspection() then
             exit;
+
+        EvaluateSelfIfOnlyLineIsTextExpression();
 
         OthersInSameQltyInspectionLine.SetRange("Inspection No.", Rec."Inspection No.");
         OthersInSameQltyInspectionLine.SetRange("Re-inspection No.", Rec."Re-inspection No.");
@@ -459,6 +511,28 @@ table 20406 "Qlty. Inspection Line"
             until OthersInSameQltyInspectionLine.Next() = 0;
     end;
 
+    /// <summary>
+    /// Evaluates the current text-expression line when it is the inspection's only line.
+    /// </summary>
+    local procedure EvaluateSelfIfOnlyLineIsTextExpression()
+    var
+        OtherQltyInspectionLine: Record "Qlty. Inspection Line";
+    begin
+        Rec.CalcFields("Test Value Type");
+        if Rec."Test Value Type" <> Rec."Test Value Type"::"Value Type Text Expression" then
+            exit;
+
+        OtherQltyInspectionLine.SetRange("Inspection No.", Rec."Inspection No.");
+        OtherQltyInspectionLine.SetRange("Re-inspection No.", Rec."Re-inspection No.");
+        OtherQltyInspectionLine.SetFilter("Line No.", '<>%1', Rec."Line No.");
+        if OtherQltyInspectionLine.IsEmpty() then
+            Rec.EvaluateTextExpression(QltyInspectionHeader);
+    end;
+
+    /// <summary>
+    /// Evaluates the current line's text expression against the supplied inspection header.
+    /// </summary>
+    /// <param name="EvaluateAgainstQltyInspectionHeader">The inspection header that supplies expression values.</param>
     internal procedure EvaluateTextExpression(var EvaluateAgainstQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";
@@ -467,10 +541,9 @@ table 20406 "Qlty. Inspection Line"
     end;
 
     /// <summary>
-    /// Reads the last measurement note for the specific inspection line.
-    /// If there are multiple notes it only reads the last one.
+    /// Reads the most recent note linked to the inspection line.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The most recent measurement note, or an empty value when no note exists.</returns>
     procedure GetMeasurementNote() Note: Text
     var
         RecordLink: Record "Record Link";
@@ -485,10 +558,9 @@ table 20406 "Qlty. Inspection Line"
     end;
 
     /// <summary>
-    /// Sets the measurement note on the last associated note line for the inspection line.
-    /// If there is no note record yet (record link) then it will create a new one.
+    /// Updates the latest note linked to the inspection line or creates one when none exists.
     /// </summary>
-    /// <param name="Note"></param>
+    /// <param name="Note">The measurement note to store.</param>
     procedure SetMeasurementNote(Note: Text)
     var
         RecordLink: Record "Record Link";
@@ -522,7 +594,7 @@ table 20406 "Qlty. Inspection Line"
     end;
 
     /// <summary>
-    /// Opens up a dialog to collect note text.
+    /// Opens an editable note dialog and stores the accepted measurement note.
     /// </summary>
     internal procedure RunModalEditMeasurementNote()
     var
@@ -538,7 +610,7 @@ table 20406 "Qlty. Inspection Line"
     end;
 
     /// <summary>
-    /// Opens up a dialog to collect note text.
+    /// Opens the current measurement note in a read-only dialog.
     /// </summary>
     internal procedure RunModalReadOnlyComment()
     var
@@ -550,12 +622,12 @@ table 20406 "Qlty. Inspection Line"
     end;
 
     /// <summary>
-    /// Provides an opportunity to modify the evaluation of the Numeric Test Value from the Test Value.
+    /// Allows subscribers to replace numeric test-value evaluation.
     /// </summary>
-    /// <param name="QltyInspectionLine">Qlty. Inspection Line</param>
-    /// <param name="Handled">Provides an opportunity to replace the default behavior</param>
+    /// <param name="QltyInspectionLine">The inspection line being evaluated.</param>
+    /// <param name="IsHandled">Set to true to replace the default evaluation.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeEvaluateNumericTestValue(var QltyInspectionLine: Record "Qlty. Inspection Line"; var Handled: Boolean)
+    local procedure OnBeforeEvaluateNumericTestValue(var QltyInspectionLine: Record "Qlty. Inspection Line"; var IsHandled: Boolean)
     begin
     end;
 }

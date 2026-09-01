@@ -25,7 +25,7 @@ report 4406 "EXR Trial BalanceBudgetExcel"
         dataitem(GLAccounts; "G/L Account")
         {
             DataItemTableView = sorting("No.");
-            RequestFilterFields = "No.", "Account Type", "Date Filter", "Budget Filter";
+            RequestFilterFields = "No.", "Account Type", "Date Filter", "Budget Filter", "Global Dimension 1 Filter", "Global Dimension 2 Filter";
             column(AccountNumber; "No.") { IncludeCaption = true; }
             column(AccountName; Name) { IncludeCaption = true; }
             column(IncomeBalance; "Income/Balance") { IncludeCaption = true; }
@@ -134,7 +134,7 @@ report 4406 "EXR Trial BalanceBudgetExcel"
         TrialBalanceBudgetData.SecurityFiltering(SecurityFilter::Filtered);
         CompanyInformation.Get();
         ExcelReportsTelemetry.LogReportUsage(Report::"EXR Trial BalanceBudgetExcel");
-        TrialBalance.ConfigureTrialBalance(true, false);
+        TrialBalance.ConfigureTrialBalance(false, true);
         TrialBalance.InsertTrialBalanceReportData(GLAccounts, Dimension1, Dimension2, TrialBalanceBudgetData);
     end;
 

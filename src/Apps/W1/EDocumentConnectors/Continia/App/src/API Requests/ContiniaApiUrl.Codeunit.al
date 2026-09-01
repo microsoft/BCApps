@@ -172,13 +172,16 @@ codeunit 6392 "Continia Api Url"
 
     local procedure COBaseUrl() Url: Text
     var
+        EnvironmentInformation: Codeunit "Environment Information";
         Handled: Boolean;
     begin
         OnGetCOBaseUrl(Url, Handled);
         if Handled then
             exit(Url);
 
-        exit('https://auth.continiaonline.com/api/v1');
+        if not EnvironmentInformation.IsSandbox() then
+            exit('https://auth.continiaonline.com/api/v1');
+        exit('https://demoauth.continiaonline.com/api/v1');
     end;
 
 
@@ -191,6 +194,9 @@ codeunit 6392 "Continia Api Url"
         OnGetCdnBaseUrl(Url, Handled);
         if Handled then
             exit(Url);
+
+        if EnvironmentInformation.IsSandbox() then
+            exit('https://democdnapi.continiaonline.com/api/v1.0');
 
         LocalizedBaseUrl := GetBaseUrlForLocalization(EnvironmentInformation.GetApplicationFamily());
         if LocalizedBaseUrl <> '' then

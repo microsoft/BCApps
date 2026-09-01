@@ -41,6 +41,8 @@ codeunit 304 "No. Series - Impl."
         NoSeries: Record "No. Series";
         NoSeriesErrorsImpl: Codeunit "No. Series - Errors Impl.";
     begin
+        if NoSeriesCode = '' then
+            exit;
         NoSeries.Get(NoSeriesCode);
         if not NoSeries."Manual Nos." then
             NoSeriesErrorsImpl.Throw(ErrorText, NoSeriesCode, NoSeriesErrorsImpl.OpenNoSeriesLinesAction());
@@ -275,17 +277,17 @@ codeunit 304 "No. Series - Impl."
         NoSeries: Record "No. Series";
         NoSeriesRelationship: Record "No. Series Relationship";
     begin
-            NoSeriesRelationship.SetRange(Code, OriginalNoSeriesCode);
-            if NoSeriesRelationship.FindSet() then
-                repeat
-                    NoSeries.Code := NoSeriesRelationship."Series Code";
-                    NoSeries.Mark := true;
-                until NoSeriesRelationship.Next() = 0;
+        NoSeriesRelationship.SetRange(Code, OriginalNoSeriesCode);
+        if NoSeriesRelationship.FindSet() then
+            repeat
+                NoSeries.Code := NoSeriesRelationship."Series Code";
+                NoSeries.Mark := true;
+            until NoSeriesRelationship.Next() = 0;
 
-            // Mark the original series
-            NoSeries.Code := OriginalNoSeriesCode;
-            NoSeries.Mark := true;
-            NoSeries.MarkedOnly := true;
+        // Mark the original series
+        NoSeries.Code := OriginalNoSeriesCode;
+        NoSeries.Mark := true;
+        NoSeries.MarkedOnly := true;
 
         // If DefaultHighlightedNoSeriesCode is set, make sure we select it by default on the page
         if DefaultHighlightedNoSeriesCode <> '' then

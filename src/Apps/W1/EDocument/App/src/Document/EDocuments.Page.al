@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
+using Microsoft.eServices.EDocument.Processing.Message;
+using Microsoft.eServices.EDocument.Service;
+using Microsoft.Foundation.Attachment;
+
 page 6122 "E-Documents"
 {
     ApplicationArea = Basic, Suite;
@@ -13,7 +17,7 @@ page 6122 "E-Documents"
     AdditionalSearchTerms = 'Edoc,Electronic Document,EDocuments,E Documents,E invoices,Einvoices,Electronic';
     RefreshOnActivate = true;
     Editable = false;
-    DeleteAllowed = false;
+    DeleteAllowed = true;
     InsertAllowed = false;
     SourceTableView = sorting("Entry No") order(descending);
 
@@ -61,6 +65,39 @@ page 6122 "E-Documents"
                 }
             }
         }
+        area(FactBoxes)
+        {
+            part("Attached Documents List"; "Doc. Attachment List Factbox")
+            {
+                ApplicationArea = All;
+                Caption = 'Documents';
+                UpdatePropagation = Both;
+                SubPageLink = "E-Document Entry No." = field("Entry No"),
+                              "E-Document Attachment" = const(true);
+            }
+            part(InboundEDocFactbox; "Inbound E-Doc. Factbox")
+            {
+                Caption = 'Details';
+                SubPageLink = "E-Document Entry No" = field("Entry No");
+                ShowFilter = false;
+                Enabled = Rec.Direction = Rec.Direction::Incoming;
+                Visible = Rec.Direction = Rec.Direction::Incoming;
+            }
+            part("Outbound E-Doc. Factbox"; "Outbound E-Doc. Factbox")
+            {
+                Caption = 'Details';
+                SubPageLink = "E-Document Entry No" = field("Entry No");
+                ShowFilter = false;
+                Enabled = Rec.Direction = Rec.Direction::Outgoing;
+                Visible = Rec.Direction = Rec.Direction::Outgoing;
+            }
+            part(EDocMessages; "E-Document Messages FactBox")
+            {
+                Caption = 'Messages';
+                SubPageLink = "E-Document Entry No." = field("Entry No");
+                ShowFilter = false;
+            }
+        }
     }
     actions
     {
@@ -97,7 +134,6 @@ page 6122 "E-Documents"
                 Caption = 'View file';
                 ToolTip = 'View the source file.';
                 Image = ViewDetails;
-                Visible = NewEDocumentExperienceActive;
 
                 trigger OnAction()
                 begin
@@ -111,7 +147,6 @@ page 6122 "E-Documents"
             {
                 Caption = 'Inbound';
                 ToolTip = 'View inbound electronic documents.';
-                Visible = NewEDocumentExperienceActive;
                 RunObject = Page "Inbound E-Documents";
                 RunPageMode = View;
                 Image = InwardEntry;
@@ -120,7 +155,6 @@ page 6122 "E-Documents"
             {
                 Caption = 'Outbound';
                 ToolTip = 'View outbound electronic documents.';
-                Visible = NewEDocumentExperienceActive;
                 RunObject = Page "Outbound E-Documents";
                 Image = OutboundEntry;
             }
@@ -135,25 +169,20 @@ page 6122 "E-Documents"
         }
     }
 
-    var
-        NewEDocumentExperienceActive: Boolean;
-
-    trigger OnOpenPage()
-    var
-        EDocumentsSetup: Record "E-Documents Setup";
-    begin
-        NewEDocumentExperienceActive := EDocumentsSetup.IsNewEDocumentExperienceActive();
-    end;
-
     local procedure NewFromFile()
     var
         EDocument: Record "E-Document";
         EDocImport: Codeunit "E-Doc. Import";
     begin
         EDocImport.UploadDocument(EDocument);
-        if EDocument."Entry No" <> 0 then begin
-            EDocImport.ProcessIncomingEDocument(EDocument, EDocument.GetEDocumentService().GetDefaultImportParameters());
+        if EDocument."Entry No" = 0 then
+            exit;
+        if EDocument.Direction = EDocument.Direction::Outgoing then begin
+            // File was classified as a message (e.g. OrderResponse) linked to this outbound document.
             Page.Run(Page::"E-Document", EDocument);
+            exit;
         end;
+        EDocImport.ProcessIncomingEDocument(EDocument, EDocument.GetEDocumentService().GetDefaultImportParameters());
+        Page.Run(Page::"E-Document", EDocument);
     end;
 }

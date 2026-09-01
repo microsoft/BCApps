@@ -121,6 +121,8 @@ page 4317 "Agent User Settings"
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
+    var
+        AgentImpl: Codeunit "Agent Impl.";
     begin
         if not (CloseAction in [Action::LookupOK, Action::OK]) then
             exit(true);
@@ -130,6 +132,9 @@ page 4317 "Agent User Settings"
         if TemporaryRecord then
             exit(true);
 
+        if AgentImpl.IsArchived(Rec."User Security ID") then
+            Error(AgentArchivedCannotBeModifiedErr);
+
         UserSettings.UpdateUserSettings(Rec);
         exit(true);
     end;
@@ -137,11 +142,20 @@ page 4317 "Agent User Settings"
     procedure InitializeTemp(var UserSettingsRec: Record "User Settings")
     begin
         TemporaryRecord := true;
+        Rec."User Security ID" := UserSettingsRec."User Security ID";
         SetGlobalsFromRec(UserSettingsRec);
     end;
 
     procedure GetValues(var UserSettingsRec: Record "User Settings")
     begin
+        if TemporaryRecord then begin
+            UserSettingsRec."User Security ID" := GlobalUserSecurityId;
+            UserSettingsRec."Language ID" := GlobalLanguageID;
+            UserSettingsRec."Locale ID" := GlobalLocaleID;
+            UserSettingsRec."Time Zone" := GlobalTimeZoneText;
+            exit;
+        end;
+
         UserSettingsRec.Copy(Rec);
     end;
 
@@ -155,6 +169,7 @@ page 4317 "Agent User Settings"
     local procedure SetGlobalsFromRec(var UserSettingsRec: Record "User Settings")
     begin
         Rec.Copy(UserSettingsRec);
+        GlobalUserSecurityId := Rec."User Security ID";
         GlobalLanguageID := Rec."Language ID";
         GlobalLocaleID := Rec."Locale ID";
         GlobalTimeZoneText := Rec."Time Zone";
@@ -164,10 +179,12 @@ page 4317 "Agent User Settings"
         Language: Codeunit Language;
         TimeZoneSelection: Codeunit "Time Zone Selection";
         UserSettings: Codeunit "User Settings";
+        GlobalUserSecurityId: Guid;
         ProfileDisplayName: Text;
         GlobalTimeZoneText: Text[180];
         GlobalLocaleID: Integer;
         GlobalLanguageID: Integer;
         TemporaryRecord: Boolean;
         ProfileChangedQst: Label 'Changing the agent''s profile may affect its accuracy and performance. It could also grant access to unexpected fields and actions. Do you want to continue?';
+        AgentArchivedCannotBeModifiedErr: Label 'The agent is archived and cannot be modified.';
 }

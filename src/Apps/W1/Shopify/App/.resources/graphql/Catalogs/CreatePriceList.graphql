@@ -1,0 +1,2 @@
+# cost: 10
+{"query": "mutation { priceListCreate(input: {name: \"{{Name}}\", currency: {{Currency}}, catalogId: \"gid://shopify/CompanyLocationCatalog/{{CatalogId}}\", parent: {adjustment: {type: PERCENTAGE_DECREASE, value: 0}, settings: {compareAtMode: NULLIFY}}}) { priceList {id}, userErrors {field, message}}}"}

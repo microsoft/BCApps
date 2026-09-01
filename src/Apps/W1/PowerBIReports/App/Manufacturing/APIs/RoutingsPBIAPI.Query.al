@@ -14,6 +14,7 @@ query 37010 "Routings - PBI API"
     Access = Internal;
     Caption = 'Power BI Routings';
     QueryType = API;
+    AboutText = 'Provides access to routing header master data including routing type, status, and description. Enables Power BI reports to list manufacturing routings and filter production data by routing characteristics.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

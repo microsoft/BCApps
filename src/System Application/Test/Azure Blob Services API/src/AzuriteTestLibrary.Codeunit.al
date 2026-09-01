@@ -25,7 +25,7 @@ codeunit 132923 "Azurite Test Library"
     /// </summary>
     procedure ClearStorageAccount()
     var
-        Container: Record "ABS Container";
+        TempContainer: Record "ABS Container";
         ABSContainerClient: Codeunit "ABS Container Client";
         StorageServiceAuthorization: Codeunit "Storage Service Authorization";
         Authorization: Interface "Storage Service Authorization";
@@ -33,14 +33,14 @@ codeunit 132923 "Azurite Test Library"
         Authorization := StorageServiceAuthorization.CreateSharedKey(GetAccessKey());
 
         ABSContainerClient.Initialize(GetStorageAccountName(), Authorization);
-        ABSContainerClient.ListContainers(Container);
+        ABSContainerClient.ListContainers(TempContainer);
 
-        if not Container.Find('-') then
+        if not TempContainer.Find('-') then
             exit;
 
         repeat
-            ABSContainerClient.DeleteContainer(Container.Name);
-        until Container.Next() = 0;
+            ABSContainerClient.DeleteContainer(TempContainer.Name);
+        until TempContainer.Next() = 0;
     end;
 
     /// <summary>

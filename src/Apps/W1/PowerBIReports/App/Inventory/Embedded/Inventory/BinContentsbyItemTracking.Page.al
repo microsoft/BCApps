@@ -11,8 +11,8 @@ page 37032 "Bin Contents by Item Tracking"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Bin Contents by Item Tracking';
-    AboutTitle = 'About Bin Contents by Item Tracking';
+    Caption = 'Bin Contents by Item Tracking (Power BI)';
+    AboutTitle = 'About Bin Contents by Item Tracking (Power BI)';
     AboutText = 'The Bin Contents by Item Tracking report provides a detailed view of warehouse quantities by Item, Location, Bin Code, Zone Code, Lot number or Serial number. ';
 
     layout
@@ -50,11 +50,8 @@ page 37032 "Bin Contents by Item Tracking"
 #pragma warning restore AA240
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Inventory Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Inventory App");
     end;
 }
 

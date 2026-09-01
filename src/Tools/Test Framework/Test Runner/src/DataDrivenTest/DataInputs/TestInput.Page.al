@@ -50,6 +50,10 @@ page 130457 "Test Input"
                 {
                     Editable = false;
                 }
+                field("Suite Setup Done"; Rec."Suite Setup Done")
+                {
+                    Importance = Additional;
+                }
             }
             part(TestInputPart; "Test Input Part")
             {

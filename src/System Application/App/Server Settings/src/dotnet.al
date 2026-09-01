@@ -15,6 +15,8 @@ dotnet
         type("Microsoft.Dynamics.Nav.Types.ALConfigSettings"; "ALConfigSettings")
         {
         }
+        type("Microsoft.Dynamics.Nav.Types.PPACTenantSettings"; "PPACTenantSettings")
+        {
+        }
     }
-
 }

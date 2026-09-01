@@ -1,5 +1,7 @@
 # Contributing
 
+BCApps is the single home for Business Central application development. Whether you want to improve the **System Application**, the **Business Foundation**, the **Base Application**, one of Microsoft's **first-party apps**, or the **developer tools**, this is the place to do it — side-by-side with the Microsoft product team and the rest of the community.
+
 ## What to contribute
 
 This project primarily welcomes contributions of two types:
@@ -44,7 +46,7 @@ Let's take a look at what it takes to contribute with **A)**:
 
 4. **Get a succesful build and code review approval**
 
-    Before your Pull Request can be merged, it must have successful required status checks, all conversations resolved and an approval from a code owner. This code review can be done by both Microsoft and members of the community. This ensures that quality of the code is on par with Microsoft's and the community's standards.
+    Before your Pull Request can be merged, it must have successful required status checks, all conversations resolved and an approval from a code owner. BCApps builds and tests run automatically through [AL-Go for GitHub](https://github.com/microsoft/AL-Go), and an automated **Copilot code review agent** inspects each PR and posts review comments against shared best practices (see [`tools/Code Review`](tools/Code%20Review/README.md) and [BCQuality](https://github.com/microsoft/BCQuality)). The human code review can be done by both Microsoft and members of the community. This ensures that quality of the code is on par with Microsoft's and the community's standards.
 
 5. **Final validation**
 
@@ -66,9 +68,11 @@ If you would like to add new capabilities to the product as described in **B)**,
 
     Once the issue is created on GitHub, it still needs to be approved. Once approved, the rest of the process is identical to the process described in **A)**.
 
-## Get to Know the System App
+## Get to know the codebase
 
-Before updating the System Application, familiarize yourself with the following sites on Microsoft Learn:
+BCApps spans the whole Business Central application platform, so the right starting point depends on what you're changing.
+
+**Working on the System Application?** Familiarize yourself with the following sites on Microsoft Learn:
 
 - [Module architecture](https://learn.microsoft.com/dynamics365/business-central/dev-itpro/developer/devenv-blueprint)
 - [Get started with modules](https://learn.microsoft.com/dynamics365/business-central/dev-itpro/developer/devenv-blueprint)
@@ -76,6 +80,8 @@ Before updating the System Application, familiarize yourself with the following 
 - [Create a new module](https://learn.microsoft.com/dynamics365/business-central/dev-itpro/developer/devenv-new-module)
 - [Create a .NET wrapper module](https://learn.microsoft.com/dynamics365/business-central/dev-itpro/developer/devenv-create-a-wrapper-module)
 - [Change a module](https://learn.microsoft.com/dynamics365/business-central/dev-itpro/developer/devenv-change-a-module)
+
+**Working on the Base Application, a first-party app, or a developer tool?** Many apps under `src/Apps` and `src/Tools` ship their own `README.md` describing their architecture and test setup — start there. The whole repository is built and tested with [AL-Go for GitHub](https://github.com/microsoft/AL-Go); the AL-Go projects are defined under `build/projects`.
 
 ## More Resources
 * This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).

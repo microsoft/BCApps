@@ -9,14 +9,16 @@ using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
+using System.Reflection;
 using System.Utilities;
 
 report 20400 "Qlty. Create Inspection"
 {
     Caption = 'Create Quality Inspection';
     ProcessingOnly = true;
+    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
     UsageCategory = ReportsAndAnalysis;
-    ApplicationArea = All;
+    ApplicationArea = QualityManagement;
     Permissions =
         tabledata "Qlty. Inspection Header" = Rim,
         tabledata "Qlty. Inspection Line" = Rim;
@@ -40,11 +42,6 @@ report 20400 "Qlty. Create Inspection"
         {
             area(Content)
             {
-                group(DidYouKnow)
-                {
-                    Caption = 'Did you know';
-                    InstructionalText = 'Did you know that you can create inspections from many subforms in Business Central already? You can create inspections from the output journal, production order routing lines, consumption journal, purchase order sub form, sales return subform, and item tracking lines. You can also use power automate or easily extend existing pages to create inspections.';
-                }
                 group(Parameters)
                 {
                     Caption = 'Parameters';
@@ -75,6 +72,9 @@ report 20400 "Qlty. Create Inspection"
                             QltyInspectSourceConfigList: Page "Qlty. Ins. Source Config. List";
                             OldTableNo: Integer;
                         begin
+                            if not QltyInspecGenRuleMgmt.EnsureCompatibleGenerationRuleExists(QltInspectionTemplateToCreate) then
+                                exit(false);
+
                             OldTableNo := QltyInspectSourceConfig."From Table No.";
                             QltyInspectSourceConfig.Reset();
                             QltyInspectSourceConfig.FilterGroup(20);
@@ -127,19 +127,6 @@ report 20400 "Qlty. Create Inspection"
                         ToolTip = 'Specifies the Item No.';
                         Editable = false;
                     }
-                    field(ChooseSerialNo; TempQltyInspectionHeader."Source Serial No.")
-                    {
-                        ApplicationArea = All;
-                        Caption = 'Serial No.';
-                        ToolTip = 'Specifies the Serial No.';
-                        Editable = EditSerialNo;
-                        Visible = VisibleSerialNo;
-
-                        trigger OnAssistEdit()
-                        begin
-                            TempQltyInspectionHeader.AssistEditSerialNo();
-                        end;
-                    }
                     field(ChooseLotNo; TempQltyInspectionHeader."Source Lot No.")
                     {
                         ApplicationArea = All;
@@ -151,6 +138,19 @@ report 20400 "Qlty. Create Inspection"
                         trigger OnAssistEdit()
                         begin
                             TempQltyInspectionHeader.AssistEditLotNo();
+                        end;
+                    }
+                    field(ChooseSerialNo; TempQltyInspectionHeader."Source Serial No.")
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Serial No.';
+                        ToolTip = 'Specifies the Serial No.';
+                        Editable = EditSerialNo;
+                        Visible = VisibleSerialNo;
+
+                        trigger OnAssistEdit()
+                        begin
+                            TempQltyInspectionHeader.AssistEditSerialNo();
                         end;
                     }
                     field(ChoosePackageNo; TempQltyInspectionHeader."Source Package No.")
@@ -170,7 +170,7 @@ report 20400 "Qlty. Create Inspection"
                     {
                         ApplicationArea = All;
                         Caption = 'Source Quantity (base)';
-                        ToolTip = 'Specifies the lot size used to create the inspection with.';
+                        ToolTip = 'Specifies the quantity used to create the inspection with.';
                         AutoFormatType = 0;
                         DecimalPlaces = 0 : 5;
                         Editable = EditSourceQuantity;
@@ -217,18 +217,15 @@ report 20400 "Qlty. Create Inspection"
         VariantForRecordRef: Variant;
         SourceTable: Code[20];
         CustomFilter: Text;
-        VisibleSerialNo: Boolean;
-        VisibleLotNo: Boolean;
-        VisiblePackageNo: Boolean;
+        VisibleLotNo, VisibleSerialNo, VisiblePackageNo : Boolean;
         VisibleGetRecord: Boolean;
-        EditSerialNo: Boolean;
-        EditLotNo: Boolean;
-        EditPackageNo: Boolean;
+        EditLotNo, EditSerialNo, EditPackageNo : Boolean;
         EditSourceQuantity: Boolean;
         VisibleSourceQuantity: Boolean;
         DidChangeSourceQuantity: Boolean;
         NotAValidQltyInspectionTemplateErr: Label '''%1'' is not a valid Quality Inspection Template. Please re-configure the available Quality Inspection Templates.', Comment = '%1=The template that was expected';
         PleaseChooseARecordFirstErr: Label 'Choose which record you want to create a Quality Inspection for, then try again.';
+        NoLookupPageForSourceTableErr: Label 'The source configuration ''%1'' is mapped to table ''%2'', which has no list or lookup page available. Choose a different Source.', Comment = '%1=Source configuration code, %2=From Table caption';
 
     trigger OnPreReport()
     var
@@ -239,12 +236,9 @@ report 20400 "Qlty. Create Inspection"
     end;
 
     /// <summary>
-    /// InitializeReportParameters can be used to specify a specific desired quality inspection template code to create the inspection from.
-    /// Use this if you're using this report to let the user decide what kind of inspection they want, and just want 
-    /// to express a preference. This will not limit them to this template, it just sets the default.
-    /// This will also fire OnAfterInitializeCreateInspectionReportParameters
+    /// Initializes the preferred inspection template and infers a compatible source configuration for the request page.
     /// </summary>
-    /// <param name="QltyInspectionTemplateCode">Code[20]. The quality inspection template code to default to.</param>
+    /// <param name="QltyInspectionTemplateCode">The inspection template code to select by default.</param>
     procedure InitializeReportParameters(QltyInspectionTemplateCode: Code[20])
     var
         TempCompatibleQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
@@ -276,6 +270,9 @@ report 20400 "Qlty. Create Inspection"
         SetRequestPageControlVisibility();
     end;
 
+    /// <summary>
+    /// Clears the selected source record and its derived filter values.
+    /// </summary>
     local procedure ClearParameters()
     begin
         Clear(TempQltyInspectionHeader);
@@ -283,20 +280,29 @@ report 20400 "Qlty. Create Inspection"
         Clear(Target);
     end;
 
+    /// <summary>
+    /// Clears the record reference and its variant container.
+    /// </summary>
     local procedure ClearVariables()
     begin
         Clear(TargetRecordRef);
         Clear(VariantForRecordRef);
     end;
 
+    /// <summary>
+    /// Makes the item-tracking and source-record controls visible on the request page.
+    /// </summary>
     local procedure SetRequestPageControlVisibility()
     begin
-        VisibleSerialNo := true;
         VisibleLotNo := true;
+        VisibleSerialNo := true;
         VisiblePackageNo := true;
         VisibleGetRecord := true;
     end;
 
+    /// <summary>
+    /// Creates an inspection for the selected source record with the entered tracking and quantity values.
+    /// </summary>
     local procedure CreateQltyInspection()
     var
         TempTrackingSpecification: Record "Tracking Specification" temporary;
@@ -329,19 +335,33 @@ report 20400 "Qlty. Create Inspection"
         QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(TargetRecordRef, TempTrackingSpecification, Dummy3Variant, Dummy4Variant, true, QltInspectionTemplateToCreate);
     end;
 
+    /// <summary>
+    /// Opens the configured source table lookup and derives inspection source values from the selected record.
+    /// </summary>
     local procedure AssistEditChooseRecord()
     var
         TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
+        TableMetadata: Record "Table Metadata";
         QltyTraversal: Codeunit "Qlty. Traversal";
+        LookupPageId: Integer;
     begin
         if QltyInspectSourceConfig."From Table No." <> 0 then begin
             ClearVariables();
 
             TargetRecordRef.Open(QltyInspectSourceConfig."From Table No.");
             TargetRecordRef.SetView(QltyInspectSourceConfig."From Table Filter");
+
+            if TableMetadata.Get(TargetRecordRef.Number) then
+                LookupPageId := TableMetadata.LookupPageID;
+            if LookupPageId = 0 then begin
+                QltyInspectSourceConfig.CalcFields("From Table Caption");
+                TargetRecordRef.Close();
+                Error(NoLookupPageForSourceTableErr, QltyInspectSourceConfig.Code, QltyInspectSourceConfig."From Table Caption");
+            end;
+
             VariantForRecordRef := TargetRecordRef;
 
-            if Page.RunModal(0, VariantForRecordRef) = Action::LookupOK then begin
+            if Page.RunModal(LookupPageId, VariantForRecordRef) = Action::LookupOK then begin
                 ClearParameters();
                 TargetRecordRef := VariantForRecordRef;
                 Target := TargetRecordRef.RecordId();
@@ -367,14 +387,14 @@ report 20400 "Qlty. Create Inspection"
     end;
 
     /// <summary>
-    /// Provides an opportunity to create defaults in the Create Inspection report page.
+    /// Allows subscribers to change the initial values used by the Create Inspection report.
     /// </summary>
-    /// <param name="QltyInspectionTemplateCode">var Code[20].</param>
-    /// <param name="SourceTable">var Code[20].</param>
-    /// <param name="CustomFilter">var Text.</param>
-    /// <param name="Target">var RecordId.</param>
-    /// <param name="TargetRecordRef">var RecordRef.</param>
-    /// <param name="TempQltyInspectionHeader">var Record "Qlty. Inspection Header" temporary.</param>
+    /// <param name="QltyInspectionTemplateCode">The default inspection template code.</param>
+    /// <param name="SourceTable">The default source configuration code.</param>
+    /// <param name="CustomFilter">The default custom source filter.</param>
+    /// <param name="Target">The default source record identifier.</param>
+    /// <param name="TargetRecordRef">The default source record reference.</param>
+    /// <param name="TempQltyInspectionHeader">The temporary inspection header containing default source values.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitializeCreateInspectionReportParameters(var QltyInspectionTemplateCode: Code[20]; var SourceTable: Code[20]; var CustomFilter: Text; var Target: RecordId; var TargetRecordRef: RecordRef; var TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary)
     begin

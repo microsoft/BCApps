@@ -25,13 +25,13 @@ page 20440 "Qlty. Inspection Template Edit"
     {
         area(Content)
         {
-            group(SettingsForRawHtml)
+            group(RawHtml)
             {
                 ShowCaption = false;
                 Caption = ' ';
                 Visible = not IsHTMLFormatted;
 
-                field(htmlContent; HtmlContentText)
+                field(HtmlContent; HtmlContentText)
                 {
                     Caption = 'Text';
                     ShowCaption = false;
@@ -40,7 +40,7 @@ page 20440 "Qlty. Inspection Template Edit"
                     MultiLine = true;
                 }
             }
-            group(SettingsForTestExpressionWithAInspection)
+            group(TestExpressionWithAInspection)
             {
                 Caption = 'Test expression with an existing Quality Inspection';
                 Visible = ShowAddTestFromInspection;
@@ -48,7 +48,7 @@ page 20440 "Qlty. Inspection Template Edit"
                 {
                     ApplicationArea = All;
                     Caption = 'Choose inspection';
-                    ToolTip = 'Specifies an existing inspection to test the expression with.';
+                    ToolTip = 'Specifies an existing quality inspection to test the expression with.';
                     Editable = false;
 
                     trigger OnAssistEdit()
@@ -88,7 +88,7 @@ page 20440 "Qlty. Inspection Template Edit"
                 {
                     ApplicationArea = All;
                     Caption = 'Choose inspection line';
-                    ToolTip = 'Specifies an existing inspection line to test the expression with.';
+                    ToolTip = 'Specifies an existing quality inspection line to test the expression with.';
                     Editable = false;
 
                     trigger OnAssistEdit()
@@ -127,7 +127,7 @@ page 20440 "Qlty. Inspection Template Edit"
                     ShowCaption = false;
                     Editable = false;
                     Caption = ' ';
-                    Tooltip = ' ';
+                    ToolTip = 'Select to test the expression with the selected inspection and inspection line.';
 
                     trigger OnDrillDown()
                     var
@@ -160,11 +160,9 @@ page 20440 "Qlty. Inspection Template Edit"
             action(AddInspectionTest)
             {
                 ApplicationArea = All;
-                Caption = 'Add Inspection Test';
+                Caption = 'Add Test';
                 Image = TaskQualityMeasure;
-                ToolTip = 'Click here to use a Quality Inspection test in this expression.';
-                AboutTitle = 'Add inspection test';
-                AboutText = 'Click here to use a Quality Inspection test in this expression.';
+                ToolTip = 'Use a quality inspection test in this expression.';
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedOnly = true;
@@ -180,9 +178,7 @@ page 20440 "Qlty. Inspection Template Edit"
                 ApplicationArea = All;
                 Caption = 'Add Table Field';
                 Image = Add;
-                ToolTip = 'Click here to insert additional Fields into the template.';
-                AboutTitle = 'Add a field from a table.';
-                AboutText = 'Click here to insert additional Fields into the template.';
+                ToolTip = 'Insert additional fields into the template.';
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedOnly = true;
@@ -199,9 +195,9 @@ page 20440 "Qlty. Inspection Template Edit"
                 ApplicationArea = All;
                 Caption = 'Add Inspection Information';
                 Image = Add;
-                ToolTip = 'Click here to insert additional tests into the template.';
+                ToolTip = 'Insert additional tests into the template.';
                 AboutTitle = 'Add a test from a quality inspection.';
-                AboutText = 'Click here to insert additional tests into the template.';
+                AboutText = 'Insert additional tests into the template.';
                 Promoted = true;
                 PromotedIsBig = true;
                 PromotedOnly = true;
@@ -233,6 +229,9 @@ page 20440 "Qlty. Inspection Template Edit"
         ChooseAValidInspectionFirstBeforeChoosingLineErr: Label 'Please choose a valid existing inspection before choosing a line.';
         ChooseAValidInspectionFirstBeforeTestingErr: Label 'Please choose a valid existing inspection before testing this expression.';
 
+    /// <summary>
+    /// Appends the selected table field name as an expression placeholder.
+    /// </summary>
     local procedure HandleOnAddFieldFromTable()
     var
         RecordRefToLookup: RecordRef;
@@ -247,6 +246,13 @@ page 20440 "Qlty. Inspection Template Edit"
         end;
     end;
 
+    /// <summary>
+    /// Opens the expression editor for a table and writes accepted HTML-formatted content back to the template text.
+    /// </summary>
+    /// <param name="TableNo2">The table whose fields can be inserted into the expression.</param>
+    /// <param name="OptionalNameFilter2">The optional field-name filter used by field lookup.</param>
+    /// <param name="ExistingTemplate">The expression to edit and the accepted edited result.</param>
+    /// <returns>The action used to close the modal editor.</returns>
     procedure RunModalWith(TableNo2: Integer; OptionalNameFilter2: Text; var ExistingTemplate: Text) ResultAction: Action
     begin
         TableNo := TableNo2;
@@ -261,6 +267,9 @@ page 20440 "Qlty. Inspection Template Edit"
             ExistingTemplate := QltyExpressionMgmt.ConvertCarriageReturnsToHTMLBRs(HtmlContentText);
     end;
 
+    /// <summary>
+    /// Opens a test lookup for all tests or only tests on the restricted template.
+    /// </summary>
     local procedure HandleOnAddQltyInspectionTest()
     begin
         if LimitedToTemplateCode = '' then
@@ -269,6 +278,9 @@ page 20440 "Qlty. Inspection Template Edit"
             LookupOnlyTestsInTemplate();
     end;
 
+    /// <summary>
+    /// Appends a selected quality test code as an expression placeholder.
+    /// </summary>
     local procedure LookupAnyQltyInspectionTest()
     var
         QltyTest: Record "Qlty. Test";
@@ -282,6 +294,9 @@ page 20440 "Qlty. Inspection Template Edit"
         end;
     end;
 
+    /// <summary>
+    /// Appends a selected test from the restricted template as an expression placeholder.
+    /// </summary>
     local procedure LookupOnlyTestsInTemplate()
     var
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
@@ -310,6 +325,10 @@ page 20440 "Qlty. Inspection Template Edit"
         end;
     end;
 
+    /// <summary>
+    /// Restricts test insertion to tests used by a template.
+    /// </summary>
+    /// <param name="TemplateCode">The template whose tests may be inserted.</param>
     procedure RestrictTestsToThoseOnTemplate(TemplateCode: Code[20])
     begin
         LimitedToTemplateCode := TemplateCode;

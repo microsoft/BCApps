@@ -1,3 +1,4 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -5,23 +6,27 @@
 
 namespace Microsoft.Integration.Shopify;
 
-codeunit 30298 "Shpfy GQL UpdateCatalogPrices" implements "Shpfy IGraphQL"
+codeunit 30298 "Shpfy GQL UpdateCatalogPrices"
 {
-    /// <summary>
-    /// GetGraphQL.
-    /// </summary>
-    /// <returns>Return value of type Text.</returns>
-    internal procedure GetGraphQL(): Text
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Replaced by .graphql resource files. Use "Shpfy GraphQL Queries".GetQueryWithCost() instead.';
+    ObsoleteTag = '29.0';
+
+    procedure GetGraphQL(): Text
+    var
+        GraphQLQueries: Codeunit "Shpfy GraphQL Queries";
+        ExpectedCost: Integer;
     begin
-        exit('{"query":"mutation priceListFixedPricesAdd($priceListId: ID!, $prices: [PriceListPriceInput!]!) { priceListFixedPricesAdd(priceListId: $priceListId, prices: $prices) { prices { variant { id }} userErrors { field message }}}","variables":{"priceListId": "gid://shopify/PriceList/{{PriceListID}}","prices": []}}');
+        exit(GraphQLQueries.GetQueryWithCost(Enum::"Shpfy GraphQL Type"::Catalogs_UpdateCatalogPrices, ExpectedCost));
     end;
 
-    /// <summary>
-    /// GetExpectedCost.
-    /// </summary>
-    /// <returns>Return value of type Integer.</returns>
-    internal procedure GetExpectedCost(): Integer
+    procedure GetExpectedCost(): Integer
+    var
+        GraphQLQueries: Codeunit "Shpfy GraphQL Queries";
+        ExpectedCost: Integer;
     begin
-        exit(11);
+        GraphQLQueries.GetQueryWithCost(Enum::"Shpfy GraphQL Type"::Catalogs_UpdateCatalogPrices, ExpectedCost);
+        exit(ExpectedCost);
     end;
 }
+#endif

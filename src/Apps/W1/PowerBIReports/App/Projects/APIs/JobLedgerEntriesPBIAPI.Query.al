@@ -10,6 +10,7 @@ query 36992 "Job Ledger Entries - PBI API"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to project ledger entries including posted costs, prices, quantities, entry types, and dimension data. Enables Power BI reports to analyze project profitability, cost tracking, and actual vs. budget performance at the transaction level.';
     Caption = 'Power BI Project Ledger Entry';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

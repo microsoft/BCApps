@@ -1,0 +1,39 @@
+{
+	"@nextLink": null,
+	"value": [
+		{
+			"id": "doc-001",
+			"companyId": "comp-001",
+			"processDateTime": "2024-08-16T12:00:00.000Z",
+			"status": "Complete",
+			"documentNumber": "INV-001",
+			"documentType": "ubl-invoice",
+			"documentVersion": "2.1",
+			"documentDate": "2024-04-08",
+			"flow": "in",
+			"countryCode": "GB",
+			"countryMandate": "GB-B2B-PEPPOL",
+			"receiver": "9932:GB777777771",
+			"supplierName": "CRONUS UK Ltd.",
+			"customerName": "Adatum Corporation",
+			"interface": "PEPPOL"
+		},
+		{
+			"id": "doc-002",
+			"companyId": "comp-001",
+			"processDateTime": "2024-08-17T14:30:00.000Z",
+			"status": "Complete",
+			"documentNumber": "INV-002",
+			"documentType": "ubl-invoice",
+			"documentVersion": "2.1",
+			"documentDate": "2024-04-09",
+			"flow": "in",
+			"countryCode": "GB",
+			"countryMandate": "GB-B2B-PEPPOL",
+			"receiver": "9932:GB777777771",
+			"supplierName": "Test Supplier",
+			"customerName": "Test Customer",
+			"interface": "PEPPOL"
+		}
+	]
+}

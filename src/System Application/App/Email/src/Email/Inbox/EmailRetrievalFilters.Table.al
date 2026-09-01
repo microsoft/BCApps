@@ -67,6 +67,10 @@ table 8885 "Email Retrieval Filters"
             InitValue = "Include";
             Caption = 'Category Filter Type';
         }
+        field(11; "Load Headers"; Boolean)
+        {
+            Caption = 'Load Headers';
+        }
     }
 
     keys
@@ -79,6 +83,7 @@ table 8885 "Email Retrieval Filters"
 
     var
         CategoryFilters: List of [Text];
+        BypassBodySanitization: Boolean;
 
     /// <summary>Clears all category filters.</summary>
     procedure ClearCategoryFilters()
@@ -98,5 +103,29 @@ table 8885 "Email Retrieval Filters"
     procedure GetCategoryFilters(): List of [Text]
     begin
         exit(CategoryFilters);
+    end;
+
+    /// <summary>
+    /// Sets whether the email body sanitization should be bypassed when building retrieved messages.
+    /// By default sanitization is applied, which strips potentially unsafe HTML/script from the body.
+    /// This is restricted to on-premises, first-party (Microsoft) callers.
+    /// </summary>
+    /// <remarks>
+    /// Worth a moment's thought before turning this on: bypassing sanitization keeps the raw email body
+    /// exactly as received, including any unsafe HTML or script. Only use it when the calling code fully
+    /// controls how that content is subsequently processed and is not rendered to a user as-is.
+    /// </remarks>
+    /// <param name="Bypass">True to keep the body unsanitized; false (default) to sanitize the body.</param>
+    [Scope('OnPrem')]
+    procedure SetBypassBodySanitization(Bypass: Boolean)
+    begin
+        BypassBodySanitization := Bypass;
+    end;
+
+    /// <summary>Gets whether the email body sanitization should be bypassed.</summary>
+    /// <returns>True if the body should be kept unsanitized; otherwise false.</returns>
+    procedure GetBypassBodySanitization(): Boolean
+    begin
+        exit(BypassBodySanitization);
     end;
 }

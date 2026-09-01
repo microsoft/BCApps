@@ -1,3 +1,4 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -20,6 +21,9 @@ page 8353 "MCP API Config Tool Lookup"
     DeleteAllowed = false;
     InherentEntitlements = X;
     InherentPermissions = X;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Replaced by page "MCP API Object Lookup", which lists API pages and API queries together.';
+    ObsoleteTag = '29.0';
 
     layout
     {
@@ -27,11 +31,6 @@ page 8353 "MCP API Config Tool Lookup"
         {
             repeater(Control1)
             {
-                field(ID; Rec.ID)
-                {
-                    Caption = 'ID';
-                    ToolTip = 'Specifies the unique identifier for the API page.';
-                }
                 field(Name; Rec.Name)
                 {
                     Caption = 'Name';
@@ -41,6 +40,11 @@ page 8353 "MCP API Config Tool Lookup"
                 {
                     Caption = 'Entity Name';
                     ToolTip = 'Specifies the entity name of the API page.';
+                }
+                field(ID; Rec.ID)
+                {
+                    Caption = 'ID';
+                    ToolTip = 'Specifies the unique identifier for the API page.';
                 }
                 field(APIPublisher; Rec.APIPublisher)
                 {
@@ -61,3 +65,4 @@ page 8353 "MCP API Config Tool Lookup"
         }
     }
 }
+#endif

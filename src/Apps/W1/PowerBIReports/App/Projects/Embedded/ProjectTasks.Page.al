@@ -11,8 +11,8 @@ page 37034 "Project Tasks"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Project Tasks';
-    AboutTitle = 'About Project Tasks';
+    Caption = 'Project Tasks (Power BI)';
+    AboutTitle = 'About Project Tasks (Power BI)';
     AboutText = 'The Project Task report details tasks related to each project, with metrics for each task clearly outlined. It presents tasks in a table matrix in a hierarchical view, making it easy to navigate and analyze project task information.';
 
     layout
@@ -48,11 +48,8 @@ page 37034 "Project Tasks"
         ReportPageLbl: Label '89b75bcf2e511c341a05', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Projects Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Projects App");
     end;
 }
 

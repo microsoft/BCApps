@@ -1,6 +1,5 @@
 table 'Translated Localized Labels'
-	isHidden
-	lineageTag: 93479982-1377-4891-99f9-b02ea8b1234c
+	lineageTag: 4a89d588-ea42-4e83-a901-82d0ed79720f
 
 	measure 'My Report Title Label' =
 			SWITCH(USERCULTURE(),
@@ -29,8 +28,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Min rapportrubrik",
 			   "My Report Title"
 			)
-		isHidden
-		lineageTag: 5f874db8-6c18-4367-872d-86545a590753
+		lineageTag: 78f6310c-1158-4814-b9af-5c3f3f77241d
 
 	measure 'My Button Caption Label' =
 			SWITCH(USERCULTURE(),
@@ -59,8 +57,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Min knapprubrik",
 			   "My Button Caption"
 			)
-		isHidden
-		lineageTag: 339f334d-4c46-49e3-bcd7-e92742123677
+		lineageTag: 26dc7ccb-9176-41d5-8d81-ad5b9f2637ca
 
 	measure 'My Visual Title Label' =
 			SWITCH(USERCULTURE(),
@@ -89,8 +86,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Min visuella rubrik",
 			   "My Visual Title"
 			)
-		isHidden
-		lineageTag: 6b7700b2-10fa-41dd-9905-3cb12c99ba1d
+		lineageTag: 6af40ce8-dfcb-4894-8c14-59b9223c27de
 
 	measure 'Top 5 Items Gross Profit Label' =
 			SWITCH(USERCULTURE(),
@@ -119,8 +115,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "5 bästa artiklar per bruttovinst",
 			   "Top 5 Items Gross Profit"
 			)
-		isHidden
-		lineageTag: 6f055949-cc01-4830-9f03-1de6beb12d1e
+		lineageTag: 8069a088-cd28-4b61-8f75-a769afc682d9
 
 	measure 'Top 5 Salesperson Label' =
 			SWITCH(USERCULTURE(),
@@ -149,8 +144,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "5 bästa säljare",
 			   "Top 5 Salesperson"
 			)
-		isHidden
-		lineageTag: 5a43bfeb-f997-437e-853a-f95b7fde2d92
+		lineageTag: e9ad8131-e99a-476d-9e7c-cd980e4a0405
 
 	measure 'Top 5 Customers Label' =
 			SWITCH(USERCULTURE(),
@@ -179,8 +173,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "5 bästa kunder",
 			   "Top 5 Customers"
 			)
-		isHidden
-		lineageTag: 1c1790f7-a08a-44ce-bb49-e3545ef38060
+		lineageTag: 24441667-e8ff-4ea7-aa31-70042507b8c4
 
 	measure 'Document Value Label' =
 			SWITCH(USERCULTURE(),
@@ -209,8 +202,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Dokumentvärde",
 			   "Document Value"
 			)
-		isHidden
-		lineageTag: 8c059739-1800-438e-bc14-3abb44d468c5
+		lineageTag: b589777d-e9cf-452e-a807-36be25c707dd
 
 	measure 'Document Count Label' =
 			SWITCH(USERCULTURE(),
@@ -239,8 +231,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Antal dokument",
 			   "Document Count"
 			)
-		isHidden
-		lineageTag: 09f61d17-6c6f-47f9-8664-05236f313118
+		lineageTag: 612ef7a7-4097-4660-aec6-8c0841d347f6
 
 	measure 'Sales Amount and Sales Amount AVG 30D (Fiscal) by Fiscal Month Year Label' =
 			SWITCH(USERCULTURE(),
@@ -269,8 +260,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljningsbelopp och Försäljningsbelopp genomsnitt 30 dagar (räkenskapskalender) per Räkenskapskalender Månad År",
 			   "Sales Amount and Sales Amount Average 30 Days (Fiscal) by Fiscal Month Year"
 			)
-		isHidden
-		lineageTag: 8a979bba-b616-4fe3-8ddc-2863db69d30d
+		lineageTag: 6ebe6fea-d19c-4048-8c2c-6f50853a044c
 
 	measure 'Sales Overview Label' =
 			SWITCH(USERCULTURE(),
@@ -299,8 +289,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljningsöversikt",
 			   "Sales Overview"
 			)
-		isHidden
-		lineageTag: e9b48a8f-eb89-43e4-a020-0c5e76028399
+		lineageTag: c189a8e6-b271-43f7-afc9-c75335f643b7
 
 	measure 'Daily Sales Label' =
 			SWITCH(USERCULTURE(),
@@ -329,8 +318,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Daglig försäljning",
 			   "Daily Sales"
 			)
-		isHidden
-		lineageTag: 92d84a2a-2a28-42e4-8f1c-d8e6464199d6
+		lineageTag: 8dea7cf9-a4e8-43d4-98a6-d93bf6fa06f8
 
 	measure 'Moving Averages Label' =
 			SWITCH(USERCULTURE(),
@@ -359,8 +347,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Glidande medelvärde",
 			   "Moving Averages"
 			)
-		isHidden
-		lineageTag: 08ccc637-27ee-44da-9cb8-85dd8af58e46
+		lineageTag: 579592ee-2bc6-4e74-af3a-451613d54935
 
 	measure 'Moving Annual Total Label' =
 			SWITCH(USERCULTURE(),
@@ -389,8 +376,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Glidande årssumma",
 			   "Moving Annual Total"
 			)
-		isHidden
-		lineageTag: b326446f-3d61-4f3d-86ce-b3f990ded45e
+		lineageTag: 3837d29e-5e25-4fe8-a82b-b5aa8cb17139
 
 	measure 'Previous Year MAT and MAT by Fiscal Month Year Label' =
 			SWITCH(USERCULTURE(),
@@ -419,8 +405,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Föregående år GÅS och GÅS per Räkenskapskalender Månad År",
 			   "Previous Year MAT and MAT by Fiscal Month Year"
 			)
-		isHidden
-		lineageTag: 6009a366-a842-4ca7-bba8-4caeed0d12b8
+		lineageTag: e485ca3a-b14d-436b-9a2f-066164ee292a
 
 	measure 'Period-Over-Period Growth Label' =
 			SWITCH(USERCULTURE(),
@@ -449,8 +434,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Tillväxt period-för-period",
 			   "Period-Over-Period Growth"
 			)
-		isHidden
-		lineageTag: c200d8c4-a21f-43bd-b56d-6a1e74e450d8
+		lineageTag: 2cff6e97-45df-42d7-990d-2aff82a1d397
 
 	measure 'Month-To-Date Label' =
 			SWITCH(USERCULTURE(),
@@ -479,8 +463,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Månad-till-datum",
 			   "Month-To-Date"
 			)
-		isHidden
-		lineageTag: c2730c79-1736-47a3-8be3-95afe439fdcb
+		lineageTag: 519c639b-f0d9-449d-83da-75a8c750b013
 
 	measure '% Share of Sales Label' =
 			SWITCH(USERCULTURE(),
@@ -509,8 +492,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "% av försäljningskostnaden",
 			   "% Share of Sales"
 			)
-		isHidden
-		lineageTag: 69a956fc-bae9-4cb6-901f-0ec098fde823
+		lineageTag: 9d4ce41b-3685-40c5-89c8-494191815cf1
 
 	measure 'Sales Amount, Sales Quantity and Gross Profit by Item Category Code Label' =
 			SWITCH(USERCULTURE(),
@@ -539,8 +521,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljningsbelopp, Försäljningsantal och Bruttovinst per Artikelkategorinamn",
 			   "Sales Amount, Sales Quantity and Gross Profit by Item Category Code"
 			)
-		isHidden
-		lineageTag: 00dbac6a-4c9f-498b-b7bb-ff25028f886f
+		lineageTag: 8ece8216-005f-4900-b4ec-d6f889a644aa
 
 	measure 'Sales by Item Label' =
 			SWITCH(USERCULTURE(),
@@ -569,8 +550,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljning per artikel",
 			   "Sales by Item"
 			)
-		isHidden
-		lineageTag: 356a5cb4-3e5f-4a71-ab33-648d66114f57
+		lineageTag: 0926dbfe-7171-444c-b662-809235b6c16f
 
 	measure 'Sales by Customer Label' =
 			SWITCH(USERCULTURE(),
@@ -599,8 +579,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljning per kund",
 			   "Sales by Customer"
 			)
-		isHidden
-		lineageTag: 8596cf15-88ad-450f-84d2-cdce3d9ba25b
+		lineageTag: 685ab4df-5787-4175-b43f-0e0b15230c88
 
 	measure 'Sales Amount, Sales Quantity and Gross Profit by Customer Name Label' =
 			SWITCH(USERCULTURE(),
@@ -629,8 +608,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljningsbelopp, Försäljningsantal och Bruttovinst efter Kundnamn",
 			   "Sales Amount, Sales Quantity and Gross Profit by Customer Name"
 			)
-		isHidden
-		lineageTag: 7452e6c0-dbed-4cf0-8191-df5fac579967
+		lineageTag: e72d381a-5c8b-4c5c-9839-c429ff0a25dc
 
 	measure 'Sales by Salesperson Label' =
 			SWITCH(USERCULTURE(),
@@ -659,8 +637,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljning per säljare",
 			   "Sales by Salesperson"
 			)
-		isHidden
-		lineageTag: 31175767-d476-4820-8a9b-515283517dc2
+		lineageTag: b45aeeaf-34f2-4d56-98ea-75201b101c70
 
 	measure 'Sales Amount, Sales Quantity and Gross Profit by Salesperson Code Label' =
 			SWITCH(USERCULTURE(),
@@ -689,8 +666,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljningsbelopp, Försäljningsantal och Bruttovinst per Säljarkod",
 			   "Sales Amount, Sales Quantity and Gross Profit by Salesperson Code"
 			)
-		isHidden
-		lineageTag: af8afa25-d266-4975-82de-4df5828cf317
+		lineageTag: 1d90b75e-309c-4d0a-a3c4-6d81926c112e
 
 	measure 'Actual vs Budget Quantity Label' =
 			SWITCH(USERCULTURE(),
@@ -719,8 +695,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Faktiskt vs. budgeterat antal",
 			   "Actual vs Budget Quantity"
 			)
-		isHidden
-		lineageTag: 90c6c4eb-b09a-4ab6-9e85-5f48ae1c8c67
+		lineageTag: 92325b20-0c04-4c93-bafd-77fd9c13cd90
 
 	measure 'Actual vs Budget Amount Label' =
 			SWITCH(USERCULTURE(),
@@ -749,8 +724,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Faktiskt vs. budgeterat belopp",
 			   "Actual vs Budget Amount"
 			)
-		isHidden
-		lineageTag: a1397aac-7415-44c0-9eac-969cc54eeb2a
+		lineageTag: 34616ba2-ba4d-4d95-9e64-76a394f9571b
 
 	measure 'Sales Label' =
 			SWITCH(USERCULTURE(),
@@ -779,8 +753,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljning",
 			   "Sales"
 			)
-		isHidden
-		lineageTag: f5d5b444-f6c2-4250-a836-d8aec0eccdff
+		lineageTag: 003418be-f697-4f15-8087-4a4688d60ad0
 
 	measure 'for Business Central Label' =
 			SWITCH(USERCULTURE(),
@@ -809,8 +782,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "för Business Central",
 			   "for Business Central"
 			)
-		isHidden
-		lineageTag: cf8527ca-4eff-4df7-b12a-9e963a7489df
+		lineageTag: 5740ba6f-7cee-4788-8cbe-fee29e7d48d9
 
 	measure 'USE, EDIT AND BUILD YOUR OWN REPORTS Label' =
 			SWITCH(USERCULTURE(),
@@ -839,8 +811,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "ANVÄND, REDIGERA OCH SKAPA EGNA RAPPORTER",
 			   "USE, EDIT AND BUILD YOUR OWN REPORTS"
 			)
-		isHidden
-		lineageTag: 171d9506-4920-45c2-ba90-fae024e518f4
+		lineageTag: faa067bf-ab7a-4ad7-8df8-612e65d4e405
 
 	measure 'Sales includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch. Label' =
 			SWITCH(USERCULTURE(),
@@ -869,8 +840,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljning omfattar en mängd olika färdiga rapporter som gör det enkelt att se data direkt. Du kan redigera dessa rapporter eller skapa en egen rapport från grunden.",
 			   "Sales includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch."
 			)
-		isHidden
-		lineageTag: 7f16985e-9513-4ed5-b0bf-2c17c382bf45
+		lineageTag: e5c6db71-96bb-459f-9002-e03fe2053836
 
 	measure 'CONNECT YOUR DATA Label' =
 			SWITCH(USERCULTURE(),
@@ -899,8 +869,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "ANSLUT DINA DATA",
 			   "CONNECT YOUR DATA"
 			)
-		isHidden
-		lineageTag: 434ce231-c4ce-48c3-9d03-04fae06bc699
+		lineageTag: ac40f62c-7540-4d21-a867-f53252448ded
 
 	measure '1. Download the Sales Connector for Power BI Label' =
 			SWITCH(USERCULTURE(),
@@ -929,8 +898,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "1. Ladda ned Sales Connector for Power BI",
 			   "1. Download the Sales Connector for Power BI"
 			)
-		isHidden
-		lineageTag: 5c531cea-f51a-4167-8f9c-20e077b72c7a
+		lineageTag: 6cae21e2-8150-441b-99e8-611a273374b8
 
 	measure '2. Configure Dynamics 365 Business Central Label' =
 			SWITCH(USERCULTURE(),
@@ -959,8 +927,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "2. Konfigurera Dynamics 365 Business Central",
 			   "2. Configure Dynamics 365 Business Central"
 			)
-		isHidden
-		lineageTag: 55568433-1340-4583-a5a5-4b7330b600c8
+		lineageTag: 4142b886-d4d3-42cd-a328-41af8f43a898
 
 	measure 'HELP AND SUPPORT Label' =
 			SWITCH(USERCULTURE(),
@@ -989,8 +956,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "HJÄLP OCH SUPPORT",
 			   "HELP AND SUPPORT"
 			)
-		isHidden
-		lineageTag: 0ec97384-b7e6-44d0-acfd-f7abacba7e9a
+		lineageTag: 019d97d2-8f09-4cc4-ba9e-5af903a44ae7
 
 	measure 'For help and support with your new report please visit the Analytics overview documentation. Label' =
 			SWITCH(USERCULTURE(),
@@ -1019,8 +985,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Hjälp och support med den nya rapporten finns i översiktsdokumentationen för Analys.",
 			   "For help and support with your new report please visit the Analytics overview documentation."
 			)
-		isHidden
-		lineageTag: 64013763-ae0f-4653-bc1c-ce13c10dfc90
+		lineageTag: c20b7e50-c307-440d-b005-d8f68b60d5c9
 
 	measure 'OTHER POWER BI REPORTS Label' =
 			SWITCH(USERCULTURE(),
@@ -1049,8 +1014,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "ÖVRIGA POWER BI-RAPPORTER",
 			   "OTHER POWER BI REPORTS"
 			)
-		isHidden
-		lineageTag: 25356582-b767-449f-8d76-fa85f292993a
+		lineageTag: ac7b689d-85ca-49e8-91b8-ac63353f28e6
 
 	measure 'PURCHASE Label' =
 			SWITCH(USERCULTURE(),
@@ -1079,8 +1043,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "INKÖP",
 			   "PURCHASE"
 			)
-		isHidden
-		lineageTag: 747c1a18-19a6-499e-aad6-150175bb27b9
+		lineageTag: 89022deb-fa74-44b8-a171-b1dced96def7
 
 	measure 'FINANCE Label' =
 			SWITCH(USERCULTURE(),
@@ -1109,8 +1072,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "EKONOMI",
 			   "FINANCE"
 			)
-		isHidden
-		lineageTag: b4d8e6c6-c3ab-4ed1-b2a4-d0c1d09020a7
+		lineageTag: acf84e82-eed0-4394-bcb0-929ec5ec6b78
 
 	measure 'REBATES Label' =
 			SWITCH(USERCULTURE(),
@@ -1139,8 +1101,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "RABATTER",
 			   "REBATES"
 			)
-		isHidden
-		lineageTag: 8770de2b-94ce-4636-b078-2049b44cbf12
+		lineageTag: 863d89b9-0456-4638-9c90-67edd950e97d
 
 	measure 'INVENTORY Label' =
 			SWITCH(USERCULTURE(),
@@ -1169,8 +1130,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "LAGER",
 			   "INVENTORY"
 			)
-		isHidden
-		lineageTag: ae00d423-a7bd-4177-9865-032b1dc646d0
+		lineageTag: 6e3e8187-0020-4091-9e54-cee753527021
 
 	measure 'JOBS Label' =
 			SWITCH(USERCULTURE(),
@@ -1199,8 +1159,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "PROJEKT",
 			   "JOBS"
 			)
-		isHidden
-		lineageTag: f4c150e1-c1b5-4ac5-8c91-273fb7bd265d
+		lineageTag: a8634c05-a4ee-4191-9771-afe8a1fbe0c3
 
 	measure 'SALES  Label' =
 			SWITCH(USERCULTURE(),
@@ -1229,8 +1188,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "FÖRSÄLJNING ",
 			   "SALES "
 			)
-		isHidden
-		lineageTag: a48b9882-3b1e-43f2-9830-59d4d9d6d0b7
+		lineageTag: fe74ffa4-7585-434c-ba45-26eb04c9c750
 
 	measure 'Sales Amount  Label' =
 			SWITCH(USERCULTURE(),
@@ -1259,8 +1217,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljningsbelopp ",
 			   "Sales Amount "
 			)
-		isHidden
-		lineageTag: 59cfd50c-9546-4162-8ec5-47672418acbd
+		lineageTag: fab6f405-4640-49c3-b634-066fe14a4058
 
 	measure 'Sales Amount and Sales Amount Average 30 Days (Fiscal) by Fiscal Month Year Label' =
 			SWITCH(USERCULTURE(),
@@ -1289,8 +1246,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljningsbelopp och Försäljningsbelopp genomsnitt 30 dagar (räkenskapskalender) per Räkenskapskalender Månad År",
 			   "Sales Amount and Sales Amount Average 30 Days (Fiscal) by Fiscal Month Year"
 			)
-		isHidden
-		lineageTag: 6e21ad02-129d-42e6-a437-346f66ecc322
+		lineageTag: e0e5383d-ace3-4491-8686-9d651bc87bb0
 
 	measure 'Previous Year and Current Moving Annual Total by Fiscal Month Year Label' =
 			SWITCH(USERCULTURE(),
@@ -1319,8 +1275,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Föregående år och aktuell glidande årssumma per Räkenskapskalender Månad År",
 			   "Previous Year and Current Moving Annual Total by Fiscal Month Year"
 			)
-		isHidden
-		lineageTag: ff01f65d-d5b5-405c-9d01-f465796469c9
+		lineageTag: 6da6650e-c68b-4728-bc31-b90d5efe673d
 
 	measure 'Sales Amount Period-over-Period (Fiscal) and Sales Amount by Fiscal Month Year Label' =
 			SWITCH(USERCULTURE(),
@@ -1349,8 +1304,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljningsbelopp period för period (räkenskapskalender) Försäljningsbelopp per Räkenskapskalender Månad År",
 			   "Sales Amount Period-over-Period (Fiscal) and Sales Amount by Fiscal Month Year"
 			)
-		isHidden
-		lineageTag: 252370f6-a42a-49a1-bb36-ea58c0dfd1ec
+		lineageTag: 1e994ea6-366e-4890-a7c2-9d04a67914cf
 
 	measure 'Sales Amount Month-to-Date (Fiscal) by Date Label' =
 			SWITCH(USERCULTURE(),
@@ -1379,8 +1333,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljningsbelopp Månad-till-datum (räkenskapskalender) per Datum",
 			   "Sales Amount Month-to-Date (Fiscal) by Date"
 			)
-		isHidden
-		lineageTag: bfafaa2e-d84c-4847-ba6c-810944bcab22
+		lineageTag: 6be23d10-73eb-4bab-b8c5-39618a4e2491
 
 	measure 'Last Refreshed Label' =
 			SWITCH(USERCULTURE(),
@@ -1409,8 +1362,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Uppdaterades senast",
 			   "Last Refreshed"
 			)
-		isHidden
-		lineageTag: e4392d68-9ead-42ea-862a-b000b5b136e3
+		lineageTag: 10a04209-737f-434e-b5d4-9028ea9d2e91
 
 	measure 'Company Name Label' =
 			SWITCH(USERCULTURE(),
@@ -1439,8 +1391,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Företagsnamn",
 			   "Company Name"
 			)
-		isHidden
-		lineageTag: 4186a71c-af46-4663-a4b9-4a1ebe4dabf5
+		lineageTag: 941a9560-837a-4682-a9f9-b7485b714fae
 
 	measure 'Sales Amount by Salesperson Label' =
 			SWITCH(USERCULTURE(),
@@ -1469,8 +1420,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljningsbelopp per säljare",
 			   "Sales Amount by Salesperson"
 			)
-		isHidden
-		lineageTag: 2d8e8c74-7422-47a8-a23b-51c4b3bd11d0
+		lineageTag: 2440e6b3-1745-4944-89fa-6185b87824dc
 
 	measure 'Gross Profit by Item Label' =
 			SWITCH(USERCULTURE(),
@@ -1499,8 +1449,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Bruttovinst per artikel",
 			   "Gross Profit by Item"
 			)
-		isHidden
-		lineageTag: d7b2cf4a-a059-42a6-9f77-2968067b6848
+		lineageTag: 3afcb386-ff24-4b17-b899-855e7b1a210c
 
 	measure 'Sales Amount by Customer Label' =
 			SWITCH(USERCULTURE(),
@@ -1529,8 +1478,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljningsbelopp per kund",
 			   "Sales Amount by Customer"
 			)
-		isHidden
-		lineageTag: a8db3828-07db-42c1-ba1c-ff92d7f0f652
+		lineageTag: 605050d0-5e29-4561-a4b3-3e7d59ff90c8
 
 	measure 'Sales Amount and Sales Amount Average 30 Days (Fiscal) by Fiscal Year Label' =
 			SWITCH(USERCULTURE(),
@@ -1559,8 +1507,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljningsbelopp och Försäljningsbelopp genomsnitt 30 dagar (räkenskapskalender) per räkenskapsår",
 			   "Sales Amount and Sales Amount Average 30 Days (Fiscal) by Fiscal Year"
 			)
-		isHidden
-		lineageTag: 174a7865-2c04-41a4-b149-a2614c9d4229
+		lineageTag: 2e13eb52-9b35-4310-a393-114dcff55c3f
 
 	measure 'Monthly Comparison of Previous Year and Current Year Moving Annual Totals Label' =
 			SWITCH(USERCULTURE(),
@@ -1589,8 +1536,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Månadsjämförelse av glidande årssumma för föregående år och innevarande år",
 			   "Monthly Comparison of Previous Year and Current Year Moving Annual Totals"
 			)
-		isHidden
-		lineageTag: b9dfe150-1c21-4857-89a1-d31f2d09288f
+		lineageTag: b5b0ec75-4cdd-409d-a55f-f57dd9380787
 
 	measure 'Sales Amount Period-over-Period (Fiscal) and Sales Amount by Fiscal Year Label' =
 			SWITCH(USERCULTURE(),
@@ -1619,8 +1565,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljningsbelopp period för period (räkenskapskalender) Försäljningsbelopp per räkenskapsår",
 			   "Sales Amount Period-over-Period (Fiscal) and Sales Amount by Fiscal Year"
 			)
-		isHidden
-		lineageTag: d6eaa2b9-2211-4730-8c99-f55354317112
+		lineageTag: 06654c5c-3b9b-4f8b-aa34-5a2a4e0aabef
 
 	measure 'Sales Amount by Item Category Label' =
 			SWITCH(USERCULTURE(),
@@ -1649,8 +1594,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljningsbelopp per artikelkategori",
 			   "Sales Amount by Item Category"
 			)
-		isHidden
-		lineageTag: cc40e53e-b9da-4e22-a084-5afdfb915b43
+		lineageTag: be8925dc-bc7b-4cf1-8ca0-4d4873a1c54a
 
 	measure 'Sales Metrics by Salesperson Label' =
 			SWITCH(USERCULTURE(),
@@ -1679,8 +1623,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljningsmått per säljare",
 			   "Sales Metrics by Salesperson"
 			)
-		isHidden
-		lineageTag: 62967707-3252-4ccc-a9ef-d53dde4d8674
+		lineageTag: 42d1ed57-767a-4762-aaf8-2b7c29c35812
 
 	measure 'Sales by Location Label' =
 			SWITCH(USERCULTURE(),
@@ -1709,8 +1652,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljning per lagerställe",
 			   "Sales by Location"
 			)
-		isHidden
-		lineageTag: 884ac8c7-c66f-4830-acdb-4767f8437721
+		lineageTag: 26019d26-4284-4b5d-9b3c-baea99afecde
 
 	measure 'Sales Amount by Location Label' =
 			SWITCH(USERCULTURE(),
@@ -1739,8 +1681,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljningsbelopp per lagerställe",
 			   "Sales Amount by Location"
 			)
-		isHidden
-		lineageTag: 3b88e09d-2df5-4332-a259-f02522f3f2d2
+		lineageTag: 90dfbc25-f5cd-400b-ae09-b7ad3d479f4d
 
 	measure 'Actual vs Budget Label' =
 			SWITCH(USERCULTURE(),
@@ -1769,8 +1710,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Utfall kontra budget",
 			   "Actual vs Budget"
 			)
-		isHidden
-		lineageTag: 1fd67658-7776-4a94-9432-9eee731a21f5
+		lineageTag: 3d957a5b-5bc3-461f-8b98-577e45443751
 
 	measure 'Actual vs Budget Purchase Analysis by Item Category Label' =
 			SWITCH(USERCULTURE(),
@@ -1799,8 +1739,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Analys av faktiska kontra budgeterade inköp per artikelkategori",
 			   "Actual vs Budget Purchase Analysis by Item Category"
 			)
-		isHidden
-		lineageTag: a5331b82-44a3-4af6-ad11-24e2a057549e
+		lineageTag: f1d2967a-97b0-4b5e-b503-3bf45ecf2896
 
 	measure 'Sales Drillthrough Label' =
 			SWITCH(USERCULTURE(),
@@ -1829,8 +1768,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Detaljerad analys av försäljning",
 			   "Sales Drillthrough"
 			)
-		isHidden
-		lineageTag: 2a037db4-1b8d-43d7-a56b-775909ff8167
+		lineageTag: 0c6ca2fa-4d4b-4db9-a0eb-4f75437df718
 
 	measure 'Detailed Sales Ledger Label' =
 			SWITCH(USERCULTURE(),
@@ -1859,8 +1797,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Detaljerad försäljningsredovisning",
 			   "Detailed Sales Ledger"
 			)
-		isHidden
-		lineageTag: f2505f15-3669-4355-8876-fe207b48fe10
+		lineageTag: e5e0999e-ef7e-4dab-8b1d-50c2a622afd9
 
 	measure 'Sales Amount by Month Label' =
 			SWITCH(USERCULTURE(),
@@ -1889,8 +1826,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljningsbelopp per månad",
 			   "Sales Amount by Month"
 			)
-		isHidden
-		lineageTag: 91c936ee-8d89-4a6e-9b04-f729b315d169
+		lineageTag: 735f0722-9cec-458f-9033-9899bc3a2bd1
 
 	measure 'PROJECTS Label' =
 			SWITCH(USERCULTURE(),
@@ -1919,8 +1855,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "PROJEKT",
 			   "PROJECTS"
 			)
-		isHidden
-		lineageTag: 1733a7cf-a57b-448d-a2f6-c8709d28c487
+		lineageTag: 21202647-2b82-424d-81b3-aa42b61eef6b
 
 	measure 'MANUFACTURING Label' =
 			SWITCH(USERCULTURE(),
@@ -1949,8 +1884,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "PRODUKTION",
 			   "MANUFACTURING"
 			)
-		isHidden
-		lineageTag: ffc28ded-1263-489a-abfc-25618d4a077f
+		lineageTag: 2c54ca87-21b2-4dd1-b400-31cb1d689d4a
 
 	measure 'Month-To-Date Sales Performance Label' =
 			SWITCH(USERCULTURE(),
@@ -1979,8 +1913,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljningsresultat hittills till månad",
 			   "Month-To-Date Sales Performance"
 			)
-		isHidden
-		lineageTag: f4c08787-2f8b-47dd-9f85-66b1311d936d
+		lineageTag: 42862242-233a-46d9-9621-fe3d34fb81dd
 
 	measure 'Top Customer Sales Contributions Label' =
 			SWITCH(USERCULTURE(),
@@ -2009,8 +1942,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljningsbidrag från främsta kunder",
 			   "Top Customer Sales Contributions"
 			)
-		isHidden
-		lineageTag: e8997d17-33cd-4a2a-a1b2-11671ff80c8e
+		lineageTag: 17359e5b-7c18-45e0-819a-e6dd24d2c005
 
 	measure 'Daily Sales by Date Label' =
 			SWITCH(USERCULTURE(),
@@ -2039,8 +1971,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Daglig försäljning per datum",
 			   "Daily Sales by Date"
 			)
-		isHidden
-		lineageTag: b31df422-892c-4655-a106-25b8e1e55c6c
+		lineageTag: 2edb5e71-314f-4018-ad3b-b63f00783286
 
 	measure 'Daily Sales by Entry No Label' =
 			SWITCH(USERCULTURE(),
@@ -2069,8 +2000,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Daglig försäljning per transaktionsnummer",
 			   "Daily Sales by Entry No"
 			)
-		isHidden
-		lineageTag: c205fd4b-69fd-4719-a144-2eca686bf2a1
+		lineageTag: e419c049-84b2-489b-8d3b-f88733f5f274
 
 	measure 'Daily Sales Details Label' =
 			SWITCH(USERCULTURE(),
@@ -2099,8 +2029,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Daglig försäljningsinformation",
 			   "Daily Sales Details"
 			)
-		isHidden
-		lineageTag: be5e46e2-0648-4c71-80aa-a2703f1f801b
+		lineageTag: 7ee8af6b-afbd-4bcf-8eba-53a915d80ee4
 
 	measure 'Moving Annual Total Details Label' =
 			SWITCH(USERCULTURE(),
@@ -2129,8 +2058,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Information om glidande årssumma",
 			   "Moving Annual Total Details"
 			)
-		isHidden
-		lineageTag: ef6ce5e9-d9be-490e-a366-5314cd5413bc
+		lineageTag: 25bd2503-ec86-4650-b41c-e62e2770c3a7
 
 	measure 'Period-Over-Period Growth Details Label' =
 			SWITCH(USERCULTURE(),
@@ -2159,8 +2087,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Information om tillväxt period-för-period",
 			   "Period-Over-Period Growth Details"
 			)
-		isHidden
-		lineageTag: 24eb74c5-7009-49e3-a087-af66e18853f6
+		lineageTag: ca13f222-8449-432f-ad01-92d2d495c846
 
 	measure 'Month-To-Date Details Label' =
 			SWITCH(USERCULTURE(),
@@ -2189,8 +2116,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Information om hittills till månad",
 			   "Month-To-Date Details"
 			)
-		isHidden
-		lineageTag: 7415e02b-2e2f-4217-832f-f09acf32f5d0
+		lineageTag: aaeed997-ee27-48a0-b4c8-e088400a71af
 
 	measure 'Sales by Item Category Over Time Label' =
 			SWITCH(USERCULTURE(),
@@ -2219,8 +2145,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljning per artikelkategori över tid",
 			   "Sales by Item Category Over Time"
 			)
-		isHidden
-		lineageTag: f0656528-5ec3-4009-814f-407859f0a8c9
+		lineageTag: 4a2fef4a-10eb-4277-b930-bddb5a914b6c
 
 	measure 'Sales by Item Details Label' =
 			SWITCH(USERCULTURE(),
@@ -2249,8 +2174,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Information om försäljning per artikel",
 			   "Sales by Item Details"
 			)
-		isHidden
-		lineageTag: d41e2c26-7b28-4f49-ba9a-37dc24cf104e
+		lineageTag: 59ce89d7-3b19-49af-b83f-08a4667636b3
 
 	measure 'Profitability by Item Category Label' =
 			SWITCH(USERCULTURE(),
@@ -2279,8 +2203,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Lönsamhet per artikelkategori",
 			   "Profitability by Item Category"
 			)
-		isHidden
-		lineageTag: cf6f6925-9771-4d56-90d3-fb8e0d50f994
+		lineageTag: fa76ff4a-20ae-4891-810d-59997d48c6e6
 
 	measure 'Gross Profit Pareto Analysis by Customer Label' =
 			SWITCH(USERCULTURE(),
@@ -2309,8 +2232,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Bruttovinst – Pareto-diagram per kund",
 			   "Gross Profit Pareto Analysis by Customer"
 			)
-		isHidden
-		lineageTag: 8a25e0da-8e90-4999-a7f2-2d49f7356478
+		lineageTag: 0cd28eb1-50d2-44e2-a1a5-888f108f6c9e
 
 	measure 'Sales by Customer Details Label' =
 			SWITCH(USERCULTURE(),
@@ -2339,8 +2261,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Information om försäljning per kund",
 			   "Sales by Customer Details"
 			)
-		isHidden
-		lineageTag: 36581b5d-a1b1-4855-a3cc-a52f1f648484
+		lineageTag: da0c40df-afda-4882-a8f2-0dc8995682b9
 
 	measure 'Estimated Opportunity Value Label' =
 			SWITCH(USERCULTURE(),
@@ -2369,8 +2290,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Uppskattat affärsmöjlighetsvärde",
 			   "Estimated Opportunity Value"
 			)
-		isHidden
-		lineageTag: cc95bd56-b8b7-40cf-9990-4370abecba10
+		lineageTag: 39ab7a5c-e407-41ec-8ce8-735daa433556
 
 	measure 'Sales by Salesperson Details Label' =
 			SWITCH(USERCULTURE(),
@@ -2399,8 +2319,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Information om försäljning per säljare",
 			   "Sales by Salesperson Details"
 			)
-		isHidden
-		lineageTag: 4b70c28e-8e3c-4af0-8c64-a852fff35663
+		lineageTag: 9eb6eb1e-f104-43b1-a9f4-a2178a58565f
 
 	measure 'Profitability by Salesperson Label' =
 			SWITCH(USERCULTURE(),
@@ -2429,8 +2348,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Lönsamhet per säljare",
 			   "Profitability by Salesperson"
 			)
-		isHidden
-		lineageTag: 45f87f90-f208-4aa4-afc1-a32fc95fee3d
+		lineageTag: 06ea571b-7d37-4603-adc9-ea4741e811f0
 
 	measure 'Sales Amount by Customer Location Label' =
 			SWITCH(USERCULTURE(),
@@ -2459,8 +2377,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljningsbelopp per kundlagerställe",
 			   "Sales Amount by Customer Location"
 			)
-		isHidden
-		lineageTag: 3e002d13-066c-4220-bd82-75122b58582f
+		lineageTag: af7cdbae-2a7c-447f-a5cc-ce4f0d48d2d7
 
 	measure 'Sales by Location Details Label' =
 			SWITCH(USERCULTURE(),
@@ -2489,8 +2406,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Information om försäljning per lagerställe",
 			   "Sales by Location Details"
 			)
-		isHidden
-		lineageTag: 7a110838-9fb8-4a6b-b9a5-0cc3ae00b8ef
+		lineageTag: f5f3de65-ef84-471d-9b38-6a29895220bc
 
 	measure 'Sales Demographics Label' =
 			SWITCH(USERCULTURE(),
@@ -2519,8 +2435,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljningsdemografi",
 			   "Sales Demographics"
 			)
-		isHidden
-		lineageTag: 761048c9-f4de-49a3-9886-fbf76b8c9131
+		lineageTag: 135af523-bd15-44d1-aec5-20d079696760
 
 	measure 'Sales Metrics by Item Category Label' =
 			SWITCH(USERCULTURE(),
@@ -2549,8 +2464,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljningsmått per artikelkategori",
 			   "Sales Metrics by Item Category"
 			)
-		isHidden
-		lineageTag: 079dcc4c-c323-4cd1-a015-b61f5e5f9702
+		lineageTag: 6db3933e-a040-44c2-9331-0488f675b4ec
 
 	measure 'Sales by Customer Posting Group Label' =
 			SWITCH(USERCULTURE(),
@@ -2579,8 +2493,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljning per kundbokföringsmall",
 			   "Sales by Customer Posting Group"
 			)
-		isHidden
-		lineageTag: 25ac162b-8ad9-4e63-90b0-7b3780544513
+		lineageTag: 72cc9b32-287f-4356-898e-8e010ff9b4e7
 
 	measure 'Sales by Document Type Label' =
 			SWITCH(USERCULTURE(),
@@ -2609,8 +2522,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljning per dokumenttyp",
 			   "Sales by Document Type"
 			)
-		isHidden
-		lineageTag: 16c97c0f-bc32-4883-9ed4-8b62f6fe6588
+		lineageTag: 233aad14-27db-436e-aada-b01905a5971c
 
 	measure 'No. of Customers by Location Label' =
 			SWITCH(USERCULTURE(),
@@ -2639,8 +2551,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Antal kunder per lagerställe",
 			   "No. of Customers by Location"
 			)
-		isHidden
-		lineageTag: ab984096-2d99-4094-b7c6-515faa16008c
+		lineageTag: df049f6b-3be0-4e2c-a7d6-bdee91429057
 
 	measure 'Sales Decomposition Label' =
 			SWITCH(USERCULTURE(),
@@ -2669,8 +2580,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljningsuppdelning",
 			   "Sales Decomposition"
 			)
-		isHidden
-		lineageTag: 6bac4b63-7837-4f0b-954b-071f5a8b2e4d
+		lineageTag: c99ae8cc-87b6-4e99-8aff-8f5f615d42e5
 
 	measure 'Sales Amount by Item Category Description Label' =
 			SWITCH(USERCULTURE(),
@@ -2699,8 +2609,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Beskrivning av försäljningsbelopp per artikelkategori",
 			   "Sales Amount by Item Category Description"
 			)
-		isHidden
-		lineageTag: cce2a2ac-489a-4a63-ae10-731cdeb247a0
+		lineageTag: 11fb584c-0ac6-4c3a-a6ac-60ca51aa785f
 
 	measure 'Sales Quantity by Salesperson Name Label' =
 			SWITCH(USERCULTURE(),
@@ -2729,8 +2638,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljningskvantitet per säljares namn",
 			   "Sales Quantity by Salesperson Name"
 			)
-		isHidden
-		lineageTag: f9eafac0-0091-44c7-8fc4-0d5b979f645f
+		lineageTag: 6313d34c-067f-42a2-a36d-a00d6252ae2b
 
 	measure 'Key Sales Influencers Label' =
 			SWITCH(USERCULTURE(),
@@ -2759,8 +2667,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Viktiga försäljningsinfluerare",
 			   "Key Sales Influencers"
 			)
-		isHidden
-		lineageTag: 06ff817c-b50f-4ed8-917f-db4b5e22c9ad
+		lineageTag: 8ca43056-f86d-47d4-965b-f382bae4b399
 
 	measure 'Sales Amount by Item Category Code Label' =
 			SWITCH(USERCULTURE(),
@@ -2789,8 +2696,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljningsbelopp per artikelkategorikod",
 			   "Sales Amount by Item Category Code"
 			)
-		isHidden
-		lineageTag: ad5b8a9e-3af2-4550-9f50-2bb2e147b820
+		lineageTag: 5dc77029-1cbf-4578-987c-a404679b757c
 
 	measure 'Opportunity Overview Label' =
 			SWITCH(USERCULTURE(),
@@ -2819,8 +2725,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Översikt över affärsmöjligheten",
 			   "Opportunity Overview"
 			)
-		isHidden
-		lineageTag: 3eccc2ac-63b0-47b2-8a23-a9f78a964a5b
+		lineageTag: 5e57f778-f6e6-488f-b568-ca9e639dc1b3
 
 	measure 'Opportunity Value by Status Label' =
 			SWITCH(USERCULTURE(),
@@ -2849,8 +2754,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Affärsmöjlighetsvärde per status",
 			   "Opportunity Value by Status"
 			)
-		isHidden
-		lineageTag: e12db723-d90f-4509-b17e-133f0760a81b
+		lineageTag: 5f619744-b496-4c6c-b06b-1e73beae67ef
 
 	measure 'Open Opportunities by Sales Cycle Label' =
 			SWITCH(USERCULTURE(),
@@ -2879,8 +2783,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Öppna affärsmöjligheter per försäljningscykel",
 			   "Open Opportunities by Sales Cycle"
 			)
-		isHidden
-		lineageTag: 09487d3a-fc02-4072-aa64-8903dbcb9f57
+		lineageTag: 5b26ea02-ae1b-4044-bf7d-141740d9ad53
 
 	measure 'Open Opportunities by Sales Cycle Stage Label' =
 			SWITCH(USERCULTURE(),
@@ -2909,8 +2812,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Öppna affärsmöjligheter per stadium i försäljningscykel",
 			   "Open Opportunities by Sales Cycle Stage"
 			)
-		isHidden
-		lineageTag: fec02479-9489-41f9-8324-3f29a64a2bfc
+		lineageTag: 230ca1ef-ef11-4f68-9fe3-63ab43f5fddc
 
 	measure 'Estimated Value by Salesperson Label' =
 			SWITCH(USERCULTURE(),
@@ -2939,8 +2841,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Uppskattat värde per säljare",
 			   "Estimated Value by Salesperson"
 			)
-		isHidden
-		lineageTag: 94d70804-c71a-441f-aa0d-887b6e7dbcfa
+		lineageTag: 37ae4f49-5b4c-41fa-8fcd-b17cd6dbf451
 
 	measure 'Estimated Value by Contact Location Label' =
 			SWITCH(USERCULTURE(),
@@ -2969,8 +2870,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Uppskattat värde per kontaktlagerställe",
 			   "Estimated Value by Contact Location"
 			)
-		isHidden
-		lineageTag: 80fdaa58-6914-45bb-8a4b-cdbd083f889d
+		lineageTag: 6757816b-920c-4621-b43a-dbd7e82f592c
 
 	measure 'Sales Quote Overview Label' =
 			SWITCH(USERCULTURE(),
@@ -2999,8 +2899,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Översikt över försäljningsoffert",
 			   "Sales Quote Overview"
 			)
-		isHidden
-		lineageTag: 2e62a07b-1c8a-4a0c-91f5-e616924327a8
+		lineageTag: 605067f5-c655-4442-b4a5-9afd66715efd
 
 	measure 'Sales Quotes by Customer Details Label' =
 			SWITCH(USERCULTURE(),
@@ -3029,8 +2928,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Information om försäljningsofferter per kund",
 			   "Sales Quotes by Customer Details"
 			)
-		isHidden
-		lineageTag: 77d81fdf-392c-41b7-8266-1840a7a85bd2
+		lineageTag: c9706712-d927-47c9-a4a7-26192fd6aa01
 
 	measure 'Sales Quote Amount by Salesperson Label' =
 			SWITCH(USERCULTURE(),
@@ -3059,8 +2957,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljningsoffertbelopp per säljare",
 			   "Sales Quote Amount by Salesperson"
 			)
-		isHidden
-		lineageTag: c0b9b3f8-6512-4c7b-b984-847f5a7e438e
+		lineageTag: 6eafe540-0507-4d4e-8b92-05aea1a34aba
 
 	measure 'Sales Quote Amount Over Time Label' =
 			SWITCH(USERCULTURE(),
@@ -3089,8 +2986,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljningsoffertbelopp över tid",
 			   "Sales Quote Amount Over Time"
 			)
-		isHidden
-		lineageTag: d8bc4a45-3207-4520-b87a-6d771dc38d49
+		lineageTag: 22042f24-0edb-4df2-92de-b8c1f5547a9f
 
 	measure 'Sales Quote Amount by Item Category Code Label' =
 			SWITCH(USERCULTURE(),
@@ -3119,8 +3015,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljningsoffertbelopp per artikelkategorikod",
 			   "Sales Quote Amount by Item Category Code"
 			)
-		isHidden
-		lineageTag: 597dd2e9-22b4-41ae-ba2a-50ed1e237fcc
+		lineageTag: f9d2a65a-384e-4257-a7c1-5a1719cfe308
 
 	measure 'Sales Returns Overview Label' =
 			SWITCH(USERCULTURE(),
@@ -3149,8 +3044,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Översikt över försäljningsreturer",
 			   "Sales Returns Overview"
 			)
-		isHidden
-		lineageTag: 7a291d56-53d8-48d8-8664-f6679971316d
+		lineageTag: 72787ed4-115e-4378-92e7-de74c829c4ef
 
 	measure 'Sales Returns by Customer Label' =
 			SWITCH(USERCULTURE(),
@@ -3179,8 +3073,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljningsreturer per kund",
 			   "Sales Returns by Customer"
 			)
-		isHidden
-		lineageTag: 41777028-9068-46b8-b8e9-6ab2db56ad71
+		lineageTag: 478e8a95-a4de-4c01-a763-12f9f3115eef
 
 	measure 'Sales Return Amount by Reason Code Label' =
 			SWITCH(USERCULTURE(),
@@ -3209,8 +3102,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljningsreturbelopp per uppföljningskod",
 			   "Sales Return Amount by Reason Code"
 			)
-		isHidden
-		lineageTag: e450f32e-1a7a-4a33-aa00-fab7e3c2d336
+		lineageTag: ebfd72a7-d3fd-42fb-820e-7d07e5b056f3
 
 	measure 'Sales Return Amount Over Time Label' =
 			SWITCH(USERCULTURE(),
@@ -3239,8 +3131,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljningsreturbelopp över tid",
 			   "Sales Return Amount Over Time"
 			)
-		isHidden
-		lineageTag: 34bf34f8-962b-46c8-8f20-f59c50a1ed93
+		lineageTag: f646011c-a69c-4c56-a9ab-293000d890d3
 
 	measure 'Sales Return Amount by Item Category Code Label' =
 			SWITCH(USERCULTURE(),
@@ -3269,8 +3160,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Försäljningsreturbelopp per artikelkategorikod",
 			   "Sales Return Amount by Item Category Code"
 			)
-		isHidden
-		lineageTag: 327d2876-de1c-4837-ad72-d738edfcc6f6
+		lineageTag: 330157f7-9da7-47af-b78f-49703ddb01e0
 
 	measure 'Sales Opportunity Analysis Label' =
 			SWITCH(USERCULTURE(),
@@ -3299,8 +3189,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Analys av försäljningsmöjligheter",
 			   "Sales Opportunity Analysis"
 			)
-		isHidden
-		lineageTag: 82b6e68e-54a6-4b6c-96cc-1e0cef43d3ea
+		lineageTag: 5d085082-9a38-4b41-83bc-3e4b97dbb261
 
 	measure 'Estimated Value by Opportunity Label' =
 			SWITCH(USERCULTURE(),
@@ -3329,8 +3218,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Uppskattat per affärsmöjlighet",
 			   "Estimated Value by Opportunity"
 			)
-		isHidden
-		lineageTag: fb7038df-cc22-43e0-b7bc-436b1d19cc55
+		lineageTag: 64207f54-a015-4d9c-b7dd-ccdc2660e7d7
 
 	measure 'Opportunities by Closed Opportunity Code Label' =
 			SWITCH(USERCULTURE(),
@@ -3359,8 +3247,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Affärsmöjligheter per kod för avslutade affärsmöjligheter",
 			   "Opportunities by Closed Opportunity Code"
 			)
-		isHidden
-		lineageTag: 0f7f69b3-c122-44c0-82bd-7354cbe887d8
+		lineageTag: b6a212c4-cd73-4e64-acdd-552023e8b57d
 
 	measure 'Opportunities by Salesperson Details Label' =
 			SWITCH(USERCULTURE(),
@@ -3389,8 +3276,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Information om affärsmöjligheter per säljare",
 			   "Opportunities by Salesperson Details"
 			)
-		isHidden
-		lineageTag: e8ad6ef0-d4fc-447f-8cbf-d7ac595993ea
+		lineageTag: f9c8809f-b2f1-4e80-8518-246d0e0515df
 
 	measure 'Opportunities by Closed Status Label' =
 			SWITCH(USERCULTURE(),
@@ -3418,8 +3304,7 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Affärsmöjligheter per avslutad status",
 			   "Opportunities by Closed Status"
 			)
-		isHidden
-		lineageTag: 46e11cca-1450-4670-ba35-c022a1bce8f1
+		lineageTag: d1ac01b1-e53b-4735-810e-951eb7759c99
 
 	measure 'Sales Drillthrough Details Label' =
 			SWITCH(USERCULTURE(),
@@ -3448,101 +3333,102 @@ table 'Translated Localized Labels'
 			   "sv-SE", "Information om detaljerad analys av försäljning",
 			   "Sales Drillthrough Details"
 			)
-		isHidden
-		lineageTag: d22fbebe-4ba1-45b7-8118-52834da7e3c6
+		lineageTag: 15858c47-f1aa-4d2a-beda-48e4df77a17d
 
 	measure 'Actual vs Budget Sales Analysis by Item Category Label' = "Actual vs Budget Sales Analysis by Item Category"
-		isHidden
-		lineageTag: 98b547c2-3f61-4fa6-9e1e-e7962e4c0c5f
+		lineageTag: 3fa2e2bc-a305-458c-a2a0-61e977f2e375
 
 	measure 'Adjusted Profit Pareto Analysis by Customer Label' = "Adjusted Profit Pareto Analysis by Customer"
-		isHidden
-		lineageTag: 32c17c77-58e4-4d72-936c-856bc71f2626
+		lineageTag: 0448099d-7d7b-48f3-829b-2ff5742244c6
 
 	measure 'Sales Quantity Text Label' = "Sales Quantity Text"
-		isHidden
-		lineageTag: 05a223bf-bf29-4004-8624-624e53d856ed
+		lineageTag: de8b9491-2895-4081-9d02-f4f51bd5c0b9
 
-	measure 'Sales (LCY) Text Label' = "Sales (LCY)"
-		isHidden
-		lineageTag: 6b25dfe2-16f4-4f52-9c07-87cd2262e5de
+	measure 'Sales (LCY) Text Label' = "Sales (LCY) Text"
+		lineageTag: d495941d-f881-4999-a7b6-6b0810903f47
 
 	measure 'Actual vs Budget Over Period Label' = "Actual vs Budget Over Period"
-		isHidden
-		lineageTag: 909c3081-8559-4a7f-8293-951fb2c2a022
+		lineageTag: 948e59aa-f7c9-493e-b315-0949b666bee8
 
 	measure 'Sales Forecasting Label' = "Sales Forecasting"
-		isHidden
-		lineageTag: af801fcb-282b-4ca1-b6c4-3ce0edf659eb
+		lineageTag: a2f64930-8040-457d-a73f-7765a94352dc
 
 	measure 'Sales Amount Forecast Label' = "Sales Amount Forecast"
-		isHidden
-		lineageTag: caa38196-2075-4e46-85bc-4f0203454262
+		lineageTag: 26a8c78f-cf51-4612-a2d6-2c7ee52ccd94
 
 	measure 'Sales Amount by Document Type Label' = "Sales Amount by Document Type"
-		isHidden
-		lineageTag: 0d0b59f3-8a26-4485-b09f-801d06ede00a
+		lineageTag: 7b0c0c78-213c-421c-aa90-68b3a50876c8
 
 	measure 'Sales by Projects Label' = "Sales by Projects"
-		isHidden
-		lineageTag: 40905a24-6ea5-447e-934e-b9e072a6bc12
+		lineageTag: 50c7992d-d259-4d06-93df-53a97f8a4461
 
 	measure 'Project Sales by Status Label' = "Project Sales by Status"
-		isHidden
-		lineageTag: 85f5059f-2795-4c8b-9042-8ad2090cf523
+		lineageTag: ac35a9f1-3467-49b2-b645-22f44379841f
 
 	measure 'Project Sales by Type Label' = "Project Sales by Type"
-		isHidden
-		lineageTag: 29516b9f-7bff-4017-8143-318aa5321a09
+		lineageTag: f79088ab-3f58-431a-b7af-d633c151c062
 
 	measure 'Project Sales by Project Label' = "Project Sales by Project"
-		isHidden
-		lineageTag: a23ce41e-789c-461f-936f-cb1b3480ad53
+		lineageTag: 66fdab09-820f-46ec-a82d-f836be9ce591
 
 	measure 'Sales by Project Details Label' = "Sales by Project Details"
-		isHidden
-		lineageTag: f3a7f07e-35c0-440c-890a-5c9ef49a15f0
+		lineageTag: ccca78ff-663f-4062-9e0d-bcde24c5a126
 
 	measure 'Project Sales by Customer Label' = "Project Sales by Customer"
-		isHidden
-		lineageTag: 732a6438-7c6f-4614-9766-c9149a774cc0
+		lineageTag: ccd7625e-adaa-4618-8fec-60874cbe36e0
 
 	measure 'Return Rate (Amount) by Customer Label' = "Return Rate (Amount) by Customer"
-		isHidden
-		lineageTag: 33b5bd0c-a2c4-49c4-a8ae-5cc71e9b7e20
+		lineageTag: 49f7454c-6dfa-4ce0-8bfe-2b02d754edc2
 
 	measure 'Total Credit (Amount) by Type and No Label' = "Total Credit (Amount) by Type and No"
-		isHidden
-		lineageTag: 313535a5-6678-4221-b7d3-78fcd32d03be
+		lineageTag: 2e50c993-f1a0-4266-b5b8-99e384657f9f
 
 	measure 'Total Credit (Amount) Over Time Label' = "Total Credit (Amount) Over Time"
-		isHidden
-		lineageTag: 73545c9e-0722-40e0-b87f-1c01caf2c72a
+		lineageTag: 93d68291-a124-4ac9-a20e-9659d4831f1f
 
 	measure 'Total Credit (Amount) by Return Reason Code Label' = "Total Credit (Amount) by Return Reason Code"
-		isHidden
-		lineageTag: e78bdafd-4ea8-462d-b0aa-246c27103e58
+		lineageTag: 65cfb8bd-bd57-4caf-a8d4-2e775fbdfc42
 
 	measure 'Sales % by Category Label' = "Sales % by Category"
-		isHidden
-		lineageTag: 356f4ffa-8df6-4c2a-89fc-37ad354c61b4
+		lineageTag: 1dd548f6-5272-455c-a0c8-9fc6c9dd6ff7
 
 	measure 'Sales (LCY) by Dimension  Label' = "Sales (LCY) by Dimension "
-		isHidden
-		lineageTag: a0858e04-c77a-46f7-96bb-ca6b0a8eaf42
+		lineageTag: 862ac071-314d-4010-9e7d-d4a68206d21b
 
 	measure 'Actual vs. Budget Sales (LCY) by Item Label' = "Actual vs. Budget Sales (LCY) by Item"
-		isHidden
-		lineageTag: 91818d4c-a7ba-4816-880b-7647c4d82c2f
+		lineageTag: 42789c8c-6ff9-4ba0-be12-4c9531a23bba
 
 	measure 'Year-To-Date Sales (LCY) Over Time Label' = "Year-To-Date Sales (LCY) Over Time"
-		isHidden
-		lineageTag: 52e03e74-ad20-4604-9ad1-95991eb93c83
+		lineageTag: bad3ed8a-df6d-4429-97af-8c2e64efbd42
+
+	measure 'Customer Retention Overview Label' = "Customer Retention Overview"
+		lineageTag: 4fab94de-94bd-4b65-aad7-bef9560d241a
+
+	measure 'Customer Retention Over Time Label' = "Customer Retention Over Time"
+		lineageTag: a3c13130-416a-4750-bebc-7798472c25a1
+
+	measure 'Customer Retention Label' = "Customer Retention"
+		lineageTag: 0d6c6739-815b-4624-9863-9b874698cc4f
+
+	measure 'Customer Retention History Label' = "Customer Retention History"
+		lineageTag: 6c61136c-7dfb-4af0-9a47-762b37931ecb
+
+	measure 'New and Returning Customers Label' = "New and Returning Customers"
+		lineageTag: b02cb462-60f3-497e-971c-79bbafe75b35
+
+	measure 'New and Returning Customer Sales Label' = "New and Returning Customer Sales"
+		lineageTag: ca09302b-5090-4e8c-8cda-70fd210de6b0
+
+	measure 'Temporarily Lost vs. Recovered Customers Label' = "Temporarily Lost vs. Recovered Customers"
+		lineageTag: 0615929d-eb18-411a-9a21-c8861278a4d1
+
+	measure 'Temporarily Lost vs. Lost Customers Label' = "Temporarily Lost vs. Lost Customers"
+		lineageTag: 528b67dd-b96a-4609-bb41-e42c333b114d
 
 	column unused
 		isHidden
 		displayFolder: unused
-		lineageTag: bda4affe-2b95-4f61-adfd-a051615fc07b
+		lineageTag: d8cb0ef0-79e1-4de9-96bd-ad5698d782db
 		isNameInferred
 		sourceColumn: [unused]
 

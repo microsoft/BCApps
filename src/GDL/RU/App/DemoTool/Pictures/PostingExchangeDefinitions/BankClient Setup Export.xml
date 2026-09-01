@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<root>
+  <DataExchDef Code="EXPORT" Name="EXPORT" Type="1" ReadingWritingXMLport="1230" ExternalDataHandlingCodeunit="1277" ColumnSeparator="5" FileEncoding="0" FileType="1" ReadingWritingCodeunit="1276" ColumnsAsRows="true" DocumentStartTag="СекцияДокумент=Платежное поручение" DocumentEndTag="КонецДокумента">
+    <DataExchLineDef Code="DEFAULT" Name="DEFAULT" ColumnCount="27">
+      <DataExchColumnDef ColumnNo="1" Name="1CClientBankExchange" Show="false" DataType="0" Constant="1CClientBankExchange" ColumnType="1" />
+      <DataExchColumnDef ColumnNo="2" Name="СекцияДокумент=Платежное поручение" Show="false" DataType="0" Constant="СекцияДокумент=Платежное поручение" ColumnType="1" />
+      <DataExchColumnDef ColumnNo="3" Name="Номер" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="4" Name="Дата" Show="false" DataType="1" DataFormat="&lt;Day,2&gt;.&lt;Month,2&gt;.&lt;Year,2&gt;" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="5" Name="Сумма" Show="false" DataType="2" DataFormat="&lt;Precision,2:2&gt;&lt;Standard Format,0&gt;" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="6" Name="ПлательщикИНН" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="7" Name="Плательщик" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="8" Name="ПлательщикРасчСчет" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="9" Name="ПлательщикБанк1" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="10" Name="ПлательщикБанк2" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="11" Name="ПлательщикБИК" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="12" Name="ПлательщикКорсчет" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="13" Name="ПолучательИНН" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="14" Name="Получатель" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="15" Name="ПолучательРасчСчет" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="16" Name="ПолучательБанк1" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="17" Name="ПолучательБанк2" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="18" Name="ПолучательБИК" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="19" Name="ПолучательКорсчет" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="20" Name="ВидПлатежа" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="21" Name="ВидОплаты" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="22" Name="Очередность" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="23" Name="НазначениеПлатежа1" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="24" Name="НазначениеПлатежа2" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="25" Name="НазначениеПлатежа3" Show="false" DataType="0" ColumnType="0" />
+      <DataExchColumnDef ColumnNo="26" Name="КонецДокумента" Show="false" DataType="0" Constant="КонецДокумента" ColumnType="2" />
+      <DataExchColumnDef ColumnNo="27" Name="КонецФайла" Show="false" DataType="0" Constant="КонецФайла" ColumnType="2" />
+      <DataExchMapping TableId="1226" Name="" MappingCodeunit="1274" PreMappingCodeunit="1273">
+        <DataExchFieldMapping ColumnNo="3" FieldID="85" />
+        <DataExchFieldMapping ColumnNo="4" FieldID="82" />
+        <DataExchFieldMapping ColumnNo="5" FieldID="80" />
+      </DataExchMapping>
+    </DataExchLineDef>
+  </DataExchDef>
+</root>

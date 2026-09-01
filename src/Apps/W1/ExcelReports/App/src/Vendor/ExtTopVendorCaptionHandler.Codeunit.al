@@ -13,7 +13,7 @@ codeunit 4404 "EXT Top Vendor Caption Handler"
     [EventSubscriber(ObjectType::Table, Database::"EXR Top Vendor Report Buffer", 'OnGetAmount1Caption', '', false, false)]
     local procedure GetAmount1Caption(var NewCaption: Text; var Handled: Boolean)
     begin
-        if (EXTTopReportBuffer."Ranking Based On" = EXTTopReportBuffer."Ranking Based On"::"Balance (LCY)") then begin
+        if (TempEXTTopReportBuffer."Ranking Based On" = TempEXTTopReportBuffer."Ranking Based On"::"Balance (LCY)") then begin
             NewCaption := BalanceLCYTok;
             Handled := true;
             exit;
@@ -26,7 +26,7 @@ codeunit 4404 "EXT Top Vendor Caption Handler"
     [EventSubscriber(ObjectType::Table, Database::"EXR Top Vendor Report Buffer", 'OnGetAmount2Caption', '', false, false)]
     local procedure GetAmount2Caption(var NewCaption: Text; var Handled: Boolean)
     begin
-        if EXTTopReportBuffer."Ranking Based On" <> EXTTopReportBuffer."Ranking Based On"::"Balance (LCY)" then begin
+        if TempEXTTopReportBuffer."Ranking Based On" <> TempEXTTopReportBuffer."Ranking Based On"::"Balance (LCY)" then begin
             NewCaption := BalanceLCYTok;
             Handled := true;
             exit;
@@ -38,11 +38,11 @@ codeunit 4404 "EXT Top Vendor Caption Handler"
 
     internal procedure SetRankingBasedOn(NewRankingBasedOn: Option)
     begin
-        EXTTopReportBuffer."Ranking Based On" := NewRankingBasedOn;
+        TempEXTTopReportBuffer."Ranking Based On" := NewRankingBasedOn;
     end;
 
     var
-        EXTTopReportBuffer: Record "EXR Top Vendor Report Buffer";
+        TempEXTTopReportBuffer: Record "EXR Top Vendor Report Buffer";
         BalanceLCYTok: Label 'Balance (LCY)';
         PurchasesLCYTok: Label 'Purchases (LCY)';
 

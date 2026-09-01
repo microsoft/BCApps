@@ -1,0 +1,2 @@
+# cost: 9
+{"query":"{ deliveryProfiles(first: 50) { pageInfo { hasNextPage } edges { cursor node { id } } } }"}

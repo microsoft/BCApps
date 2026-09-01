@@ -84,7 +84,6 @@ codeunit 7774 "Copilot Capability Impl"
         CopilotSettings.Init();
         CopilotSettings.Capability := CopilotCapability;
         CopilotSettings."App Id" := CallerModuleInfo.Id();
-        CopilotSettings.Publisher := CopyStr(CallerModuleInfo.Publisher, 1, MaxStrLen(CopilotSettings.Publisher));
         CopilotSettings.Availability := CopilotAvailability;
         CopilotSettings."Learn More Url" := LearnMoreUrl;
         CopilotSettings."Service Type" := AzureAIServiceType;
@@ -517,6 +516,15 @@ codeunit 7774 "Copilot Capability Impl"
     begin
         CopilotCapability := Enum::"Copilot Capability".FromInteger(Capability);
         IsEnabled := AzureOpenAI.IsEnabled(CopilotCapability, Silent, AppId);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Navigation Bar Subscribers", 'OnBeforeDefaultOpenCopilotCapabilities', '', false, false)]
+    local procedure OpenCopilotCapabilities(var Handled: Boolean)
+    begin
+        if Handled then
+            exit;
+        Page.Run(Page::"Copilot AI Capabilities");
+        Handled := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", GetCopilotCapabilityInfo, '', false, false)]

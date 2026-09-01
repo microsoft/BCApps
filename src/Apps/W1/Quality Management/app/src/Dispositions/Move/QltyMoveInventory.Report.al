@@ -14,15 +14,16 @@ report 20404 "Qlty. Move Inventory"
     Caption = 'Quality Management - Move Inventory';
     AdditionalSearchTerms = 'Quarantine';
     ProcessingOnly = true;
-    ApplicationArea = QualityManagement;
+    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
     UsageCategory = Tasks;
+    ApplicationArea = QualityManagement;
     AllowScheduling = false;
 
     dataset
     {
         dataitem(CurrentInspection; "Qlty. Inspection Header")
         {
-            RequestFilterFields = "No.", "Re-inspection No.", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Document No.", "Template Code";
+            RequestFilterFields = "No.", "Re-inspection No.", "Source Item No.", "Source Variant Code", "Source Lot No.", "Source Serial No.", "Source Package No.", "Source Document No.", "Template Code";
 
             trigger OnAfterGetRecord()
             var
@@ -60,7 +61,7 @@ report 20404 "Qlty. Move Inventory"
         {
             area(Content)
             {
-                group(SettingsForMovementMethod)
+                group(MovementMethod)
                 {
                     Caption = 'Movement Method';
 
@@ -87,7 +88,7 @@ report 20404 "Qlty. Move Inventory"
                         end;
                     }
                 }
-                group(SettingsForQuantity)
+                group(Quantity)
                 {
                     Caption = 'Quantity';
                     InstructionalText = 'In most scenarios you will want to move the entire lot/serial/package if it is being quarantined. If you want a specific amount you can define it here. If this value is zero and also you are not moving the entire amount then the journal entry will use the Quantity defined on the inspection itself.';
@@ -134,7 +135,7 @@ report 20404 "Qlty. Move Inventory"
                             CurrReport.RequestOptionsPage.Update(true);
                         end;
                     }
-                    group(SettingsForSpecificQty)
+                    group(SpecificQty)
                     {
                         ShowCaption = false;
                         Visible = IsMoveSpecific;
@@ -214,10 +215,10 @@ report 20404 "Qlty. Move Inventory"
                         end;
                     }
                 }
-                group(SettingsForSource)
+                group(Source)
                 {
                     Caption = 'Source (optional)';
-                    InstructionalText = 'Optional filters that limit where the inventory is moved from. When left blank then the current location/bin that the lot/serial/package resides in will be used. When this section is filled in then this will limit the from location to only the locations and filters specified. When you are quarantining entire lots you can leave this blank to move all existing inventory regardless of where it currently is.';
+                    InstructionalText = 'Optional filters that limit where the inventory is moved from. When left blank then the current location/bin that the lot/serial/package resides in will be used. When this section is filled in then this will limit the from location to only the locations and filters specified. When you are quarantining entire item tracking combinations you can leave this blank to move all existing inventory regardless of where it currently is.';
 
                     field(ChooseSourceLocationFilter; FilterOfSourceLocationCode)
                     {
@@ -237,7 +238,7 @@ report 20404 "Qlty. Move Inventory"
                     }
                 }
 
-                group(SettingsForDestination)
+                group(Destination)
                 {
                     Caption = 'Destination';
                     InstructionalText = 'Where the inventory should be moved to.';
@@ -249,6 +250,7 @@ report 20404 "Qlty. Move Inventory"
                         Caption = 'Location';
                         ToolTip = 'Specifies the destination location to move the inventory to.';
                         ShowMandatory = true;
+                        Editable = IsDestinationLocationEditable;
 
                         trigger OnValidate()
                         var
@@ -257,20 +259,50 @@ report 20404 "Qlty. Move Inventory"
                             ShowBinCode := true;
                             if DestinationLocation.Get(DestinationLocationCode) then
                                 ShowBinCode := DestinationLocation."Bin Mandatory";
+                            DestinationBinCode := '';
                         end;
                     }
 
                     field(ChooseDestinationBin; DestinationBinCode)
                     {
                         ApplicationArea = All;
-                        TableRelation = Bin.Code;
                         Caption = 'Bin';
                         ToolTip = 'Specifies the destination bin to move the inventory to.';
                         ShowMandatory = true;
                         Enabled = ShowBinCode;
+
+                        trigger OnLookup(var Text: Text): Boolean
+                        var
+                            DestinationBin: Record Bin;
+                            BinList: Page "Bin List";
+                        begin
+                            if DestinationLocationCode = '' then
+                                exit(false);
+
+                            DestinationBin.SetRange("Location Code", DestinationLocationCode);
+                            BinList.SetTableView(DestinationBin);
+                            BinList.LookupMode(true);
+                            if BinList.RunModal() = Action::LookupOK then begin
+                                BinList.GetRecord(DestinationBin);
+                                Text := DestinationBin.Code;
+                                exit(true);
+                            end;
+                            exit(false);
+                        end;
+
+                        trigger OnValidate()
+                        var
+                            DestinationBin: Record Bin;
+                        begin
+                            if DestinationBinCode = '' then
+                                exit;
+                            if DestinationLocationCode = '' then
+                                exit;
+                            DestinationBin.Get(DestinationLocationCode, DestinationBinCode);
+                        end;
                     }
                 }
-                group(SettingsForPostImmediately)
+                group(PostImmediately)
                 {
                     Caption = 'Post Now or Later';
 
@@ -299,6 +331,28 @@ report 20404 "Qlty. Move Inventory"
                 }
             }
         }
+
+        trigger OnOpenPage()
+        var
+            QltyInspectionHeader: Record "Qlty. Inspection Header";
+            DestinationLocation: Record Location;
+        begin
+            QltyInspectionHeader.CopyFilters(CurrentInspection);
+            if not QltyInspectionHeader.FindSet() then
+                exit;
+            if QltyInspectionHeader.Next() <> 0 then
+                exit;
+
+            if QltyInspectionHeader."Location Code" = '' then
+                exit;
+
+            DestinationLocationCode := QltyInspectionHeader."Location Code";
+            IsDestinationLocationEditable := false;
+
+            ShowBinCode := false;
+            if DestinationLocation.Get(DestinationLocationCode) then
+                ShowBinCode := DestinationLocation."Bin Mandatory";
+        end;
     }
 
     var
@@ -312,6 +366,7 @@ report 20404 "Qlty. Move Inventory"
         ShouldPostImmediately: Boolean;
         ShouldPostLater: Boolean;
         ShowBinCode: Boolean;
+        IsDestinationLocationEditable: Boolean;
         UseMovement: Boolean;
         UseReclass: Boolean;
         IsMoveSpecific: Boolean;
@@ -326,5 +381,6 @@ report 20404 "Qlty. Move Inventory"
         ShouldPostLater := not ShouldPostImmediately;
         UseReclass := not UseMovement;
         IsMoveSpecific := true;
+        IsDestinationLocationEditable := true;
     end;
 }

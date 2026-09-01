@@ -10,6 +10,7 @@ query 37024 "Sales Line V2 - PBI API"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to open sales document lines with header data including quantities, amounts, delivery dates, shipping status, and return information. Enables Power BI reports to analyze sales pipeline, delivery performance, and document status across quotes, orders, and returns.';
     Caption = 'Power BI Sales Lines';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

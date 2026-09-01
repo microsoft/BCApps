@@ -162,6 +162,34 @@ page 9515 "Azure AD User Update Wizard"
                         ShowCaption = false;
                     }
                 }
+                group(FailedUpdatesGroup)
+                {
+                    Visible = HasFailures;
+                    Caption = 'Failed updates';
+                    InstructionalText = 'The following changes could not be applied. Resolve the issues and run this guide again to retry.';
+                    repeater(Failures)
+                    {
+                        Editable = false;
+                        field(FailedDisplayName; Rec."Display Name")
+                        {
+                            Caption = 'User';
+                            ToolTip = 'Specifies the display name of the user that failed to update.';
+                            ApplicationArea = All;
+                        }
+                        field(FailedEntity; Rec."Update Entity")
+                        {
+                            Caption = 'Information';
+                            ToolTip = 'Specifies the user information that failed to update.';
+                            ApplicationArea = All;
+                        }
+                        field(FailedError; Rec."Error Message")
+                        {
+                            Caption = 'Error';
+                            ToolTip = 'Specifies the error returned when applying the update.';
+                            ApplicationArea = All;
+                        }
+                    }
+                }
             }
         }
     }
@@ -289,12 +317,22 @@ page 9515 "Azure AD User Update Wizard"
                     AzureADUserSyncImpl: Codeunit "Azure AD User Sync Impl.";
                     GuidedExperience: Codeunit "Guided Experience";
                     SuccessCount: Integer;
+                    TotalCount: Integer;
                     UpdateUsersfromMicrosoft365RunLbl: Label 'Update users from Microsoft 365 wizard has been run by the UserSecurityId %1.', Locked = true;
                 begin
                     Rec.Reset();
+                    TotalCount := Rec.Count();
                     SuccessCount := AzureADUserSyncImpl.ApplyUpdatesFromAzureGraph(Rec);
-                    NumberOfUpdatesApplied := StrSubstNo(NumberOfUpdatesAppliedTxt, SuccessCount, Rec.Count());
+                    HasFailures := SuccessCount < TotalCount;
+                    if HasFailures then
+                        NumberOfUpdatesApplied := StrSubstNo(SomeUpdatesFailedTxt, SuccessCount, TotalCount)
+                    else
+                        NumberOfUpdatesApplied := StrSubstNo(NumberOfUpdatesAppliedTxt, SuccessCount, TotalCount);
+
+                    // Keep failed records so the user can see them; drop the successful ones.
+                    Rec.SetRange("Error Message", '');
                     Rec.DeleteAll();
+                    Rec.SetRange("Error Message");
 
                     GuidedExperience.CompleteAssistedSetup(ObjectType::Page, Page::"Azure AD User Update Wizard");
                     Session.LogAuditMessage(StrSubstNo(UpdateUsersfromMicrosoft365RunLbl, UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
@@ -343,9 +381,12 @@ page 9515 "Azure AD User Update Wizard"
         CountOfManagedPermissionUpdates: Integer;
         CountOfApplicableUpdates: Integer;
 
+        HasFailures: Boolean;
+
         ConfirmCancelQst: Label 'Are you sure you wish to cancel the updates?';
         NumberOfUpdatesApplied: Text;
         NumberOfUpdatesAppliedTxt: Label '%1 out of %2 updates have been applied in Business Central. You can close this guide.', Comment = '%1 = An integer count of total updates applied; %2 = total count of updates';
+        SomeUpdatesFailedTxt: Label '%1 out of %2 updates have been applied in Business Central. Review the details of the failed updates below and try again.', Comment = '%1 = An integer count of total updates applied; %2 = total count of updates';
 
         NoAvailableUpdatesVisible: Boolean;
 

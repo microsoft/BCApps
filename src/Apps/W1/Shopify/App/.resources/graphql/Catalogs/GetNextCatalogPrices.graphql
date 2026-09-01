@@ -1,0 +1,2 @@
+# cost: 31
+{"query": "query { catalog(id: \"gid://shopify/Catalog/{{CatalogId}}\") { id priceList {id currency prices(first:100, after:\"{{After}}\") {edges {cursor node {variant {id product {id}} price {amount} compareAtPrice {amount}}} pageInfo {hasNextPage}}}}}"}

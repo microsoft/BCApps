@@ -29,12 +29,12 @@ table 30129 "Shpfy Variant"
         }
         field(3; "Created At"; DateTime)
         {
-            Caption = 'CreatedAt';
+            Caption = 'Created At (Shopify)';
             DataClassification = CustomerContent;
         }
         field(4; "Updated At"; DateTime)
         {
-            Caption = 'Updated At';
+            Caption = 'Updated At (Shopify)';
             DataClassification = CustomerContent;
         }
         field(5; "Available For Sales"; Boolean)
@@ -201,6 +201,16 @@ table 30129 "Shpfy Variant"
         field(108; "Image Hash"; Integer)
         {
             DataClassification = SystemMetadata;
+        }
+        field(109; "Tariff No."; Code[20])
+        {
+            Caption = 'Tariff No.';
+            DataClassification = CustomerContent;
+        }
+        field(110; "Country/Region of Origin Code"; Code[10])
+        {
+            Caption = 'Country/Region of Origin Code';
+            DataClassification = CustomerContent;
         }
     }
     keys

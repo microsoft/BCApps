@@ -7,6 +7,7 @@ namespace Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
+using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Purchases.Vendor;
 using System.IO;
 using System.Utilities;
@@ -34,7 +35,7 @@ codeunit 6104 "Import E-Document Process"
 
         ImportProcessVersion := GlobalEDocument.GetEDocumentService().GetImportProcessVersion();
         if ImportProcessVersion = "E-Document Import Process"::"Version 1.0" then begin
-            ProcessEDocumentV1(GlobalEDocument, GlobalEDocImportParameters, GlobalStep, GlobalUndoStep);
+            ProcessEDocumentV1(GlobalEDocument, TempGlobalEDocImportParameters, GlobalStep, GlobalUndoStep);
             exit;
         end;
 
@@ -51,9 +52,9 @@ codeunit 6104 "Import E-Document Process"
                 GlobalStep::"Read into Draft":
                     ReadIntoDraft(GlobalEDocument);
                 GlobalStep::"Prepare draft":
-                    PrepareDraft(GlobalEDocument, GlobalEDocImportParameters);
+                    PrepareDraft(GlobalEDocument, TempGlobalEDocImportParameters);
                 GlobalStep::"Finish draft":
-                    FinishDraft(GlobalEDocument, GlobalEDocImportParameters);
+                    FinishDraft(GlobalEDocument, TempGlobalEDocImportParameters);
             end;
         GlobalEDocument.Get(GlobalEDocument."Entry No");
 
@@ -118,8 +119,13 @@ codeunit 6104 "Import E-Document Process"
     local procedure ReadIntoDraft(EDocument: Record "E-Document")
     var
         EDocumentDataStorage: Record "E-Doc. Data Storage";
+        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
         FromBlob: Codeunit "Temp Blob";
+        ResponseBlob: Codeunit "Temp Blob";
         IStructuredFormatReader: Interface IStructuredFormatReader;
+        IResponseProvider: Interface IEDocResponseProvider;
+        IMessageBuilder: Interface IEDocMessageBuilder;
+        MessageType: Enum "E-Document Message Type";
     begin
         if EDocumentDataStorage.Get(EDocument."Structured Data Entry No.") then
             FromBlob := EDocumentDataStorage.GetTempBlob();
@@ -131,6 +137,14 @@ codeunit 6104 "Import E-Document Process"
 
         EDocument."Process Draft Impl." := IStructuredFormatReader.ReadIntoDraft(EDocument, FromBlob);
         EDocument.Modify();
+
+        IResponseProvider := EDocument.GetEDocumentService()."Document Format";
+        MessageType := IResponseProvider.GetResponseMessageType(EDocument);
+        if MessageType <> "E-Document Message Type"::Unknown then begin
+            IMessageBuilder := MessageType;
+            IMessageBuilder.BuildMessage(EDocument, "E-Doc. Response Type"::Acknowledged, ResponseBlob);
+            EDocMessageMgt.CreateMessage(EDocument, MessageType, "E-Document Direction"::Outgoing, "E-Doc. Response Type"::Acknowledged, ResponseBlob);
+        end;
     end;
 
     local procedure PrepareDraft(EDocument: Record "E-Document"; EDocImportParameters: Record "E-Doc. Import Parameters")
@@ -157,6 +171,14 @@ codeunit 6104 "Import E-Document Process"
 
             OnFoundVendorNo(EDocument, VendNo);
         end;
+
+        if EDocumentPurchaseHeader.Get(EDocument."Entry No") then begin
+            if EDocumentPurchaseHeader."Document Date" <> 0D then
+                EDocument."Document Date" := EDocumentPurchaseHeader."Document Date";
+            if EDocumentPurchaseHeader."Due Date" <> 0D then
+                EDocument."Due Date" := EDocumentPurchaseHeader."Due Date";
+        end;
+
         EDocument.Modify();
     end;
 
@@ -164,6 +186,9 @@ codeunit 6104 "Import E-Document Process"
     var
         IEDocumentFinishDraft: Interface IEDocumentFinishDraft;
     begin
+        if EDocument."Document Type" = "E-Document Type"::None then
+            exit;
+
         IEDocumentFinishDraft := EDocument."Document Type";
 
         // Clean up / reset E-Document fields
@@ -236,7 +261,7 @@ codeunit 6104 "Import E-Document Process"
         this.GlobalEDocument := EDocument;
         GlobalStep := NewStep;
         GlobalUndoStep := NewUndoStep;
-        this.GlobalEDocImportParameters := EDocImportParameters;
+        this.TempGlobalEDocImportParameters := EDocImportParameters;
     end;
 
     procedure IsEDocumentInStateGE(EDocument: Record "E-Document"; QueriedState: Enum "Import E-Doc. Proc. Status"): Boolean
@@ -360,7 +385,7 @@ codeunit 6104 "Import E-Document Process"
 
     var
         GlobalEDocument: Record "E-Document";
-        GlobalEDocImportParameters: Record "E-Doc. Import Parameters";
+        TempGlobalEDocImportParameters: Record "E-Doc. Import Parameters";
         EDocumentProcessing: Codeunit "E-Document Processing";
         GlobalStep: Enum "Import E-Document Steps";
         GlobalUndoStep: Boolean;

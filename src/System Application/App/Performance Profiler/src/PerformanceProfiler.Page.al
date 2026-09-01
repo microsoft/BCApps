@@ -308,14 +308,14 @@ page 24 "Performance Profiler"
 
     procedure UpdateData()
     var
-        RawProfilingNodes: Record "Profiling Node";
-        CallTreeProfilingNodes: Record "Profiling Node";
+        TempRawProfilingNodes: Record "Profiling Node";
+        TempCallTreeProfilingNodes: Record "Profiling Node";
     begin
         FeatureTelemetry.LogUptake('0000GMQ', PerformanceProfilingFeatureTxt, Enum::"Feature Uptake Status"::Used);
         UpdateControlProperties(); // update controls in case the following lines throw an error
-        SamplingPerformanceProfiler.GetProfilingNodes(RawProfilingNodes);
-        SamplingPerformanceProfiler.GetProfilingCallTree(CallTreeProfilingNodes);
-        ProfilingDataProcessor.Initialize(RawProfilingNodes, CallTreeProfilingNodes);
+        SamplingPerformanceProfiler.GetProfilingNodes(TempRawProfilingNodes);
+        SamplingPerformanceProfiler.GetProfilingCallTree(TempCallTreeProfilingNodes);
+        ProfilingDataProcessor.Initialize(TempRawProfilingNodes, TempCallTreeProfilingNodes);
         UpdateControlProperties();
         if not IsDataPresent then
             exit;

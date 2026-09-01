@@ -11,8 +11,8 @@ page 37001 "Sales Moving Annual Total"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Sales Moving Annual Total';
-    AboutTitle = 'About Sales Moving Annual Total';
+    Caption = 'Sales Moving Annual Total (Power BI)';
+    AboutTitle = 'About Sales Moving Annual Total (Power BI)';
     AboutText = 'The Sales Moving Annual Total report provides a rolling 12-month view of sales figures, tracking the current year to the previous year''s performance. ';
 
     layout
@@ -48,11 +48,8 @@ page 37001 "Sales Moving Annual Total"
         ReportPageLbl: Label 'ReportSection713e48d18640066bc508', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Sales Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Sales App");
     end;
 }
 

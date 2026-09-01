@@ -8,12 +8,11 @@ using Microsoft.Bank.Reconciliation;
 using Microsoft.eServices.EDocument.Integration.Receive;
 using Microsoft.eServices.EDocument.Integration.Send;
 using Microsoft.eServices.EDocument.OrderMatch;
-using Microsoft.eServices.EDocument.OrderMatch.Copilot;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.eServices.EDocument.Service;
 using Microsoft.Foundation.Attachment;
-using System.Telemetry;
 using System.Utilities;
 
 page 6121 "E-Document"
@@ -220,6 +219,12 @@ page 6121 "E-Document"
                 Enabled = Rec.Direction = Rec.Direction::Outgoing;
                 Visible = Rec.Direction = Rec.Direction::Outgoing;
             }
+            part(EDocMessages; "E-Document Messages FactBox")
+            {
+                Caption = 'Messages';
+                SubPageLink = "E-Document Entry No." = field("Entry No");
+                ShowFilter = false;
+            }
         }
     }
     actions
@@ -305,13 +310,25 @@ page 6121 "E-Document"
                         end
                     end;
                 }
+                action(RejectOrder)
+                {
+                    Caption = 'Reject Order';
+                    ToolTip = 'Sends a rejection response to the sender of this inbound order.';
+                    ApplicationArea = Basic, Suite;
+                    Image = Reject;
+                    Visible = IsIncomingDoc;
+
+                    trigger OnAction()
+                    begin
+                        EDocumentHelper.SendOrderRejection(Rec);
+                    end;
+                }
                 action(ViewFile)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'View file';
                     ToolTip = 'View the source file.';
                     Image = ViewDetails;
-                    Visible = NewEDocumentExperienceActive;
 
                     trigger OnAction()
                     begin
@@ -343,12 +360,12 @@ page 6121 "E-Document"
 
                     trigger OnAction()
                     var
-                        EDocImportParameters: Record "E-Doc. Import Parameters";
+                        TempEDocImportParameters: Record "E-Doc. Import Parameters";
                     begin
-                        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
-                        EDocImportParameters."Purch. Journal V1 Behavior" := EDocImportParameters."Purch. Journal V1 Behavior"::"Create purchase document";
-                        EDocImportParameters."Create Document V1 Behavior" := true;
-                        EDocImport.ProcessIncomingEDocument(Rec, EDocImportParameters);
+                        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+                        TempEDocImportParameters."Purch. Journal V1 Behavior" := TempEDocImportParameters."Purch. Journal V1 Behavior"::"Create purchase document";
+                        TempEDocImportParameters."Create Document V1 Behavior" := true;
+                        EDocImport.ProcessIncomingEDocument(Rec, TempEDocImportParameters);
                         if EDocumentErrorHelper.HasErrors(Rec) then
                             Message(DocNotCreatedMsg, Rec."Document Type");
                     end;
@@ -362,12 +379,12 @@ page 6121 "E-Document"
 
                     trigger OnAction()
                     var
-                        EDocImportParameters: Record "E-Doc. Import Parameters";
+                        TempEDocImportParameters: Record "E-Doc. Import Parameters";
                     begin
-                        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
-                        EDocImportParameters."Purch. Journal V1 Behavior" := EDocImportParameters."Purch. Journal V1 Behavior"::"Create journal line";
-                        EDocImportParameters."Create Document V1 Behavior" := true;
-                        EDocImport.ProcessIncomingEDocument(Rec, EDocImportParameters);
+                        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+                        TempEDocImportParameters."Purch. Journal V1 Behavior" := TempEDocImportParameters."Purch. Journal V1 Behavior"::"Create journal line";
+                        TempEDocImportParameters."Create Document V1 Behavior" := true;
+                        EDocImport.ProcessIncomingEDocument(Rec, TempEDocImportParameters);
                         if EDocumentErrorHelper.HasErrors(Rec) then
                             Message(DocNotCreatedMsg, Rec."Document Type");
                     end;
@@ -461,7 +478,15 @@ page 6121 "E-Document"
         {
             group(Category_Process)
             {
-                actionref(MatchToOrderCE_Promoted; MatchToOrderCopilotEnabled) { }
+#if not CLEAN29
+                actionref(MatchToOrderCE_Promoted; MatchToOrderCopilotEnabled)
+                {
+                    Visible = false;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'The E-Document Purchase Order Matching Copilot has been deprecated. AI-assisted line matching is now handled at import time in the E-Document Purchase Draft experience by codeunit "E-Doc. AI Tool Processor".';
+                    ObsoleteTag = '29.0';
+                }
+#endif
                 actionref(MatchToOrder_Promoted; MatchToOrder) { }
                 actionref(LinkOrder_Promoted; LinkOrder) { }
                 actionref(CreateDocument_Promoted; CreateDocument) { }
@@ -483,32 +508,34 @@ page 6121 "E-Document"
         }
         area(Prompting)
         {
+#if not CLEAN29
             action(MatchToOrderCopilotEnabled)
             {
                 Caption = 'Match Purchase Order';
                 ToolTip = 'Match E-document lines to Purchase Order.';
                 Image = SparkleFilled;
-                Visible = ShowMapToOrder;
+                Visible = false;
+                ObsoleteState = Pending;
+                ObsoleteReason = 'The E-Document Purchase Order Matching Copilot has been deprecated. AI-assisted line matching is now handled at import time in the E-Document Purchase Draft experience by codeunit "E-Doc. AI Tool Processor".';
+                ObsoleteTag = '29.0';
 
                 trigger OnAction()
                 var
                     EDocOrderMatch: Codeunit "E-Doc. Line Matching";
                 begin
-                    EDocOrderMatch.RunMatching(Rec, true);
+                    EDocOrderMatch.RunMatching(Rec);
                 end;
             }
+#endif
         }
     }
 
     trigger OnOpenPage()
-    var
-        EDocumentsSetup: Record "E-Documents Setup";
     begin
         ShowMapToOrder := false;
         HasErrorsOrWarnings := false;
         HasErrors := false;
         IsProcessed := false;
-        NewEDocumentExperienceActive := EDocumentsSetup.IsNewEDocumentExperienceActive();
 
         if Rec."Entry No" <> 0 then
             Rec.SetRecFilter(); // Filter the record to only this instance to avoid navigation 
@@ -517,7 +544,7 @@ page 6121 "E-Document"
     trigger OnAfterGetRecord()
     begin
         ShowClearanceInfo := Rec."Last Clearance Request Time" <> 0DT;
-        SubmitClearanceVisible := Rec."Document Type" = Enum::"E-Document Type"::"Sales Invoice";
+        SubmitClearanceVisible := GetClearanceVisibility();
         IsProcessed := Rec.Status = Rec.Status::Processed;
         IsIncomingDoc := Rec.Direction = Rec.Direction::Incoming;
 
@@ -530,11 +557,18 @@ page 6121 "E-Document"
             ClearErrorsAndWarnings();
 
         SetStyle();
-        ResetActionVisiability();
+        ResetActionVisibility();
         SetIncomingDocActions();
         FillLineBuffer();
 
         EDocImport.V1_ProcessEDocPendingOrderMatch(Rec);
+    end;
+
+    local procedure GetClearanceVisibility(): Boolean
+    begin
+        exit(Rec."Document Type" in
+            [Enum::"E-Document Type"::"Sales Invoice", Enum::"E-Document Type"::"Sales Order", Enum::"E-Document Type"::"Service Invoice", Enum::"E-Document Type"::"Sales Credit Memo",
+            Enum::"E-Document Type"::"Service Credit Memo", Enum::"E-Document Type"::"Service Order"]);
     end;
 
     local procedure SetStyle()
@@ -596,8 +630,6 @@ page 6121 "E-Document"
         EDocService: Record "E-Document Service";
         EDocServiceStatus2: Record "E-Document Service Status";
         EDocLog: Codeunit "E-Document Log";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
-        EDocPOCopilotMatching: Codeunit "E-Doc. PO Copilot Matching";
     begin
         if not IsIncomingDoc then
             exit;
@@ -607,11 +639,10 @@ page 6121 "E-Document"
             EDocServiceStatus2.Get(Rec."Entry No", EDocService.Code);
             ShowMapToOrder := EDocServiceStatus2.Status = Enum::"E-Document Service Status"::"Order Linked";
             ShowRelink := true;
-            FeatureTelemetry.LogUptake('0000MMK', EDocPOCopilotMatching.FeatureName(), Enum::"Feature Uptake Status"::Discovered);
         end;
     end;
 
-    local procedure ResetActionVisiability()
+    local procedure ResetActionVisibility()
     begin
         ShowMapToOrder := false;
         ShowRelink := false;
@@ -632,7 +663,6 @@ page 6121 "E-Document"
         EDocumentErrorHelper: Codeunit "E-Document Error Helper";
         EDocumentHelper: Codeunit "E-Document Processing";
         ErrorsAndWarningsNotification: Notification;
-        NewEDocumentExperienceActive: Boolean;
         ShowClearanceInfo: Boolean;
         RecordLinkTxt, StyleStatusTxt : Text;
         ShowRelink, ShowMapToOrder, HasErrorsOrWarnings, HasErrors, IsIncomingDoc, IsProcessed, SubmitClearanceVisible : Boolean;

@@ -11,6 +11,7 @@ query 36980 "Whse. Journal Lines - From Bin"
     Access = Internal;
     Caption = 'Power BI From Bin Warehouse Journal Lines';
     QueryType = API;
+    AboutText = 'Provides access to warehouse journal lines with source bin information including item quantities, bin codes, zones, and tracking numbers. Enables Power BI reports to analyze pending warehouse movements from source bins for warehouse planning and reconciliation.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

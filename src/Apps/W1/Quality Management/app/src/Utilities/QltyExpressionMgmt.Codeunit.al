@@ -61,7 +61,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// <param name="QltyInspectionLine">The inspection line containing the expression to evaluate</param>
     /// <param name="CurrentQltyInspectionHeader">The inspection header providing context for evaluation</param>
     /// <returns>The evaluated text result</returns>
-    procedure EvaluateTextExpression(var QltyInspectionLine: Record "Qlty. Inspection Line"; CurrentQltyInspectionHeader: Record "Qlty. Inspection Header") Result: Text
+    internal procedure EvaluateTextExpression(var QltyInspectionLine: Record "Qlty. Inspection Line"; CurrentQltyInspectionHeader: Record "Qlty. Inspection Header") Result: Text
     var
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         Value: Text;
@@ -100,7 +100,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// <param name="Input">The text expression containing [FieldName] tokens to replace</param>
     /// <param name="CurrentQltyInspectionHeader">If the inspection doesn't exist pass in a blank empty temporary record instead.</param>
     /// <returns>The evaluated text with tokens replaced by actual values</returns>
-    procedure EvaluateTextExpression(Input: Text; CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"): Text
+    internal procedure EvaluateTextExpression(Input: Text; CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"): Text
     var
         TempDummyQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
     begin
@@ -119,7 +119,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// <param name="CurrentQltyInspectionHeader">If the inspection doesn't exist pass in a blank empty temporary record instead.</param>
     /// <param name="CurrentQltyInspectionLine">If the inspection line doesn't exist pass in a blank empty temporary record instead.</param>
     /// <returns>The evaluated text with tokens replaced by actual values</returns>
-    procedure EvaluateTextExpression(Input: Text; CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"; CurrentQltyInspectionLine: Record "Qlty. Inspection Line"): Text
+    internal procedure EvaluateTextExpression(Input: Text; CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"; CurrentQltyInspectionLine: Record "Qlty. Inspection Line"): Text
     begin
         exit(EvaluateTextExpression(Input, CurrentQltyInspectionHeader, CurrentQltyInspectionLine, false));
     end;
@@ -158,7 +158,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// <param name="SpecificQltyInspectionLine">When supplied, a specific inspection line providing additional context</param>
     /// <param name="EvaluateEmbeddedNumericExpressions">True to evaluate {expression} patterns; False to skip</param>
     /// <returns>The fully evaluated text result</returns>
-    procedure EvaluateTextExpression(Input: Text; CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"; SpecificQltyInspectionLine: Record "Qlty. Inspection Line"; EvaluateEmbeddedNumericExpressions: Boolean) Result: Text
+    internal procedure EvaluateTextExpression(Input: Text; CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"; SpecificQltyInspectionLine: Record "Qlty. Inspection Line"; EvaluateEmbeddedNumericExpressions: Boolean) Result: Text
     var
         InputCurrentQltyInspectionLine: Record "Qlty. Inspection Line";
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
@@ -177,7 +177,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
             repeat
                 SearchFor := StrSubstno(TokenReplacementTok, InputCurrentQltyInspectionLine."Test Code");
                 if InputCurrentQltyInspectionLine.IsNumericFieldType() then
-                    Result := TextReplace(Result, SearchFor, Format(InputCurrentQltyInspectionLine."Numeric Value", 0, 1), "Qlty. Case Sensitivity"::Insensitive)
+                    Result := TextReplace(Result, SearchFor, Format(InputCurrentQltyInspectionLine."Derived Numeric Value", 0, 1), "Qlty. Case Sensitivity"::Insensitive)
                 else
                     Result := TextReplace(Result, SearchFor, InputCurrentQltyInspectionLine."Test Value", "Qlty. Case Sensitivity"::Insensitive);
             until InputCurrentQltyInspectionLine.Next() = 0
@@ -206,11 +206,11 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// <summary>
     /// This will replace [fieldname] tokens with the field value for the supplied data.
     /// </summary>
-    /// <param name="Input"></param>
-    /// <param name="RecordVariant"></param>
+    /// <param name="Input">The expression containing field-name tokens.</param>
+    /// <param name="RecordVariant">The record whose field values replace the tokens.</param>
     /// <param name="FormatText">Set to true to use localization format, set to false to not format.</param>
-    /// <returns></returns>
-    procedure EvaluateExpressionForRecord(Input: Text; RecordVariant: Variant; FormatText: Boolean) Result: Text
+    /// <returns>The expression with recognized field tokens replaced by record values.</returns>
+    internal procedure EvaluateExpressionForRecord(Input: Text; RecordVariant: Variant; FormatText: Boolean) Result: Text
     var
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
@@ -308,6 +308,11 @@ codeunit 20416 "Qlty. Expression Mgmt."
             ResultText := Input;
     end;
 
+    /// <summary>
+    /// Converts carriage return and line feed characters to HTML line breaks.
+    /// </summary>
+    /// <param name="Input">The text containing line breaks.</param>
+    /// <returns>The text with line breaks replaced by HTML break elements.</returns>
     internal procedure ConvertCarriageReturnsToHTMLBRs(Input: Text) ResultText: Text
     var
         LineFeed: Char;
@@ -323,6 +328,11 @@ codeunit 20416 "Qlty. Expression Mgmt."
         end;
     end;
 
+    /// <summary>
+    /// Converts supported HTML line break elements to carriage return and line feed pairs.
+    /// </summary>
+    /// <param name="Input">The text containing HTML break elements.</param>
+    /// <returns>The text with HTML break elements replaced by line breaks.</returns>
     internal procedure ConvertHTMLBRsToCarriageReturns(Input: Text) ResultText: Text
     var
         LineFeed: Char;
@@ -349,7 +359,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// </summary>
     /// <param name="Input">The text expression containing special functions to validate</param>
     /// <returns>The text with validated function syntax (not fully evaluated)</returns>
-    procedure TestEvaluateSpecialStringFunctions(Input: Text): Text
+    internal procedure TestEvaluateSpecialStringFunctions(Input: Text): Text
     var
         TempCurrentQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
         TempDummyCurrentQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
@@ -360,9 +370,10 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// <summary>
     /// Only used for testing expressions.
     /// </summary>
-    /// <param name="Input"></param>
-    /// <param name="CurrentQltyInspectionHeader"></param>
-    /// <returns></returns>
+    /// <param name="Input">The expression to test.</param>
+    /// <param name="CurrentQltyInspectionHeader">The inspection header context for table lookups.</param>
+    /// <param name="CurrentQltyInspectionLine">The inspection line context for table lookups.</param>
+    /// <returns>The expression after table lookups and string-only functions are evaluated.</returns>
     local procedure TestEvaluateSpecialStringFunctions(Input: Text; var CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"; var CurrentQltyInspectionLine: Record "Qlty. Inspection Line") Result: Text
     begin
         Result := Input;
@@ -370,23 +381,42 @@ codeunit 20416 "Qlty. Expression Mgmt."
         Result := EvaluateStringOnlyFunctions(Result);
     end;
 
+    /// <summary>
+    /// Evaluates supported string-only functions until the result stabilizes or the safety limit is reached.
+    /// </summary>
+    /// <param name="Input">The expression containing string-only functions.</param>
+    /// <returns>The evaluated expression.</returns>
     local procedure EvaluateStringOnlyFunctions(Input: Text) Result: Text
     var
         Continue: Boolean;
         Previous: Text;
-        Safety: Integer;
+        SafetyLimit: Integer;
     begin
         Result := Input;
         Previous := Result;
-        Safety := 100;
+        SafetyLimit := DefaultMaxRowsFieldLookup();
         repeat
-            Safety -= 1;
+            SafetyLimit -= 1;
             Result := EvaluateFirstStringOnlyFunctions(Result);
-            Continue := (Safety > 0) and (Result <> Previous);
+            Continue := (SafetyLimit > 0) and (Result <> Previous);
             Previous := Result;
         until not Continue;
     end;
 
+    /// <summary>
+    /// Gets the iteration safety limit for expression evaluation.
+    /// </summary>
+    /// <returns>The maximum number of evaluation iterations.</returns>
+    local procedure DefaultMaxRowsFieldLookup(): Integer
+    begin
+        exit(100);
+    end;
+
+    /// <summary>
+    /// Evaluates the supported three-parameter string functions found in one expression pass.
+    /// </summary>
+    /// <param name="Input">The expression to evaluate.</param>
+    /// <returns>The expression after one string-function evaluation pass.</returns>
     local procedure EvaluateFirstStringOnlyFunctions(Input: Text) Result: Text
     var
         TempRegexMatches: Record Matches temporary;
@@ -402,7 +432,7 @@ codeunit 20416 "Qlty. Expression Mgmt."
         ConvertedAsIntParameter2: Integer;
         ConvertedAsIntParameter3: Integer;
         ConvertedAsDecParameter1: Decimal;
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
         Result := Input;
         Clear(TempRegexMatches);
@@ -423,9 +453,9 @@ codeunit 20416 "Qlty. Expression Mgmt."
                     RawParameter2 := TempRegexGroups.ReadValue();
                     TempRegexGroups.Next();
                     RawParameter3 := TempRegexGroups.ReadValue();
-                    Handled := false;
-                    OnBeforeEvaluateStringOnlyFunctionThreeParamExpression(Result, StringFunctionName, RawParameter1, RawParameter2, RawParameter3, EntireFindText, ValueToReplaceWith, Handled);
-                    if not Handled then begin
+                    IsHandled := false;
+                    OnBeforeEvaluateStringOnlyFunctionThreeParamExpression(Result, StringFunctionName, RawParameter1, RawParameter2, RawParameter3, EntireFindText, ValueToReplaceWith, IsHandled);
+                    if not IsHandled then begin
                         case StringFunctionName.ToUpper() of
                             SpecialStringFunctionReplaceTok, SpecialStringFunctionReplaceStrTok:
                                 ValueToReplaceWith := RawParameter1.Replace(RawParameter2, RawParameter3);
@@ -463,6 +493,13 @@ codeunit 20416 "Qlty. Expression Mgmt."
             until TempRegexMatches.Next() = 0;
     end;
 
+    /// <summary>
+    /// Gets a formatted field value from the first record matching an expression filter.
+    /// </summary>
+    /// <param name="TableName">The table name, caption, or number to query.</param>
+    /// <param name="NumberOrNameOfFieldToLookup">The field name or number to read.</param>
+    /// <param name="ConditionalFilter">The expression filter to apply to the table.</param>
+    /// <returns>The formatted field value, or an empty value when no record matches.</returns>
     local procedure LookupFieldValueBasedOn(TableName: Text; NumberOrNameOfFieldToLookup: Text; ConditionalFilter: Text) Result: Text
     var
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
@@ -490,6 +527,13 @@ codeunit 20416 "Qlty. Expression Mgmt."
             Result := QltyMiscHelpers.ReadFieldAsText(RecordRefToRead, NumberOrNameOfFieldToLookup, 1);
     end;
 
+    /// <summary>
+    /// Evaluates built-in item, item attribute, and extensible table-field references in an expression.
+    /// </summary>
+    /// <param name="Input">The expression containing table-field references.</param>
+    /// <param name="CurrentQltyInspectionHeader">The inspection header used as lookup context.</param>
+    /// <param name="CurrentQltyInspectionLine">The inspection line used as lookup context.</param>
+    /// <returns>The expression with recognized table-field references replaced.</returns>
     local procedure EvaluateBuiltInTableLookups(Input: Text; var CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"; var CurrentQltyInspectionLine: Record "Qlty. Inspection Line") Result: Text
     var
         Item: Record Item;
@@ -501,11 +545,11 @@ codeunit 20416 "Qlty. Expression Mgmt."
         FieldName: Text;
         ValueToReplaceWith: Text;
         EntireFindText: Text;
-        Handled: Boolean;
+        IsHandled: Boolean;
         FormatKind: Integer;
     begin
-        OnBeforeEvaluateBuiltInTableLookups(Input, CurrentQltyInspectionHeader, CurrentQltyInspectionLine, Result, Handled);
-        if Handled then
+        OnBeforeEvaluateBuiltInTableLookups(Input, CurrentQltyInspectionHeader, CurrentQltyInspectionLine, Result, IsHandled);
+        if IsHandled then
             exit;
 
         Result := Input;
@@ -523,9 +567,9 @@ codeunit 20416 "Qlty. Expression Mgmt."
                     TableName := TempRegexGroups.ReadValue();
                     TempRegexGroups.Next();
                     FieldName := TempRegexGroups.ReadValue();
-                    Handled := false;
-                    OnBeforeEvaluateTableFieldInExpression(Result, TableName, FieldName, EntireFindText, ValueToReplaceWith, Handled);
-                    if not Handled then begin
+                    IsHandled := false;
+                    OnBeforeEvaluateTableFieldInExpression(Result, TableName, FieldName, EntireFindText, ValueToReplaceWith, IsHandled);
+                    if not IsHandled then begin
                         FormatKind := 1;
                         case true of
                             TableName.EndsWith(SpecialTableFormattedSuffixTok) and (StrLen(TableName) > 1):
@@ -593,11 +637,11 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// <summary>
     /// Occurs before a text expression is evaluated on an inspection line.
     /// </summary>
-    /// <param name="QltyInspectionLine"></param>
-    /// <param name="CurrentQltyInspectionHeader"></param>
-    /// <param name="QltyInspectionTemplateLine"></param>
-    /// <param name="ExpressionInput"></param>
-    /// <param name="ExpressionResultOutput"></param>
+    /// <param name="QltyInspectionLine">The inspection line being evaluated.</param>
+    /// <param name="CurrentQltyInspectionHeader">The inspection header that provides evaluation context.</param>
+    /// <param name="QltyInspectionTemplateLine">The inspection template line associated with the expression.</param>
+    /// <param name="ExpressionInput">The expression to evaluate.</param>
+    /// <param name="ExpressionResultOutput">The expression result supplied by a subscriber.</param>
     [IntegrationEvent(false, false)]
     local procedure OnEvaluateTextExpressionOnInspectionLine(var QltyInspectionLine: Record "Qlty. Inspection Line"; CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"; var QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line"; ExpressionInput: Text; var ExpressionResultOutput: Text)
     begin
@@ -606,27 +650,27 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// <summary>
     /// Allows system replacement before evaluation of built-in table lookups.
     /// </summary>
-    /// <param name="Input"></param>
-    /// <param name="CurrentQltyInspectionHeader"></param>
-    /// <param name="CurrentQltyInspectionLine"></param>
-    /// <param name="Result"></param>
-    /// <param name="Handled"></param>
+    /// <param name="Input">The expression to evaluate.</param>
+    /// <param name="CurrentQltyInspectionHeader">The inspection header used as lookup context.</param>
+    /// <param name="CurrentQltyInspectionLine">The inspection line used as lookup context.</param>
+    /// <param name="Result">The replacement result supplied by a subscriber.</param>
+    /// <param name="IsHandled">Set to true to skip the built-in table lookup evaluation.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeEvaluateBuiltInTableLookups(var Input: Text; var CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"; var CurrentQltyInspectionLine: Record "Qlty. Inspection Line"; var Result: Text; var Handled: Boolean)
+    local procedure OnBeforeEvaluateBuiltInTableLookups(var Input: Text; var CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"; var CurrentQltyInspectionLine: Record "Qlty. Inspection Line"; var Result: Text; var IsHandled: Boolean)
     begin
     end;
 
     /// <summary>
     /// Integration event for evaluating custom table field references in expressions.
     /// </summary>
-    /// <param name="Input"></param>
-    /// <param name="CurrentQltyInspectionHeader"></param>
-    /// <param name="CurrentQltyInspectionLine"></param>
-    /// <param name="EntireTextBeingEvaluated"></param>
-    /// <param name="TableName"></param>
-    /// <param name="NumberOrNameOfFieldName"></param>
-    /// <param name="EntireFindText"></param>
-    /// <param name="EntireReplaceText"></param>
+    /// <param name="Input">The original expression input.</param>
+    /// <param name="CurrentQltyInspectionHeader">The inspection header used as lookup context.</param>
+    /// <param name="CurrentQltyInspectionLine">The inspection line used as lookup context.</param>
+    /// <param name="EntireTextBeingEvaluated">The current expression text.</param>
+    /// <param name="TableName">The custom table identifier from the reference.</param>
+    /// <param name="NumberOrNameOfFieldName">The custom field identifier from the reference.</param>
+    /// <param name="EntireFindText">The complete reference text to replace.</param>
+    /// <param name="EntireReplaceText">The replacement text supplied by a subscriber.</param>
     [IntegrationEvent(false, false)]
     procedure OnEvaluateCustomTableFieldInExpression(var Input: Text; var CurrentQltyInspectionHeader: Record "Qlty. Inspection Header"; var CurrentQltyInspectionLine: Record "Qlty. Inspection Line"; var EntireTextBeingEvaluated: Text; var TableName: Text; var NumberOrNameOfFieldName: Text; var EntireFindText: Text; var EntireReplaceText: Text)
     begin
@@ -643,9 +687,9 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// <param name="NumberOrNameOfFieldName">fieldname in [specialtable:fieldname]</param>
     /// <param name="EntireFindText">[specialtable:fieldname] in [specialtable:fieldname]</param>
     /// <param name="EntireReplaceText">your replacement</param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled">Set to true to skip the default table-field evaluation.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeEvaluateTableFieldInExpression(var EntireTextBeingEvaluated: Text; var TableName: Text; var NumberOrNameOfFieldName: Text; var EntireFindText: Text; var EntireReplaceText: Text; var Handled: Boolean)
+    local procedure OnBeforeEvaluateTableFieldInExpression(var EntireTextBeingEvaluated: Text; var TableName: Text; var NumberOrNameOfFieldName: Text; var EntireFindText: Text; var EntireReplaceText: Text; var IsHandled: Boolean)
     begin
     end;
 
@@ -655,16 +699,16 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// Set Handled to true to completely replace the default behavior in the loop.
     /// Set Handled to false to just extend it.
     /// </summary>
-    /// <param name="EntireTextBeingEvaluated"></param>
-    /// <param name="StringFunction"></param>
-    /// <param name="Param1"></param>
-    /// <param name="Param2"></param>
-    /// <param name="Param3"></param>
-    /// <param name="EntireFindText"></param>
-    /// <param name="EntireReplaceText"></param>
-    /// <param name="Handled"></param>
+    /// <param name="EntireTextBeingEvaluated">The current expression text.</param>
+    /// <param name="StringFunction">The function name to evaluate.</param>
+    /// <param name="Param1">The first function parameter.</param>
+    /// <param name="Param2">The second function parameter.</param>
+    /// <param name="Param3">The third function parameter.</param>
+    /// <param name="EntireFindText">The complete function text to replace.</param>
+    /// <param name="EntireReplaceText">The replacement text supplied by a subscriber.</param>
+    /// <param name="IsHandled">Set to true to skip the built-in function evaluation.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeEvaluateStringOnlyFunctionThreeParamExpression(var EntireTextBeingEvaluated: Text; var StringFunction: Text; var Param1: Text; var Param2: Text; var Param3: Text; var EntireFindText: Text; var EntireReplaceText: Text; var Handled: Boolean)
+    local procedure OnBeforeEvaluateStringOnlyFunctionThreeParamExpression(var EntireTextBeingEvaluated: Text; var StringFunction: Text; var Param1: Text; var Param2: Text; var Param3: Text; var EntireFindText: Text; var EntireReplaceText: Text; var IsHandled: Boolean)
     begin
     end;
 
@@ -672,13 +716,13 @@ codeunit 20416 "Qlty. Expression Mgmt."
     /// Use this to add your own string only functions [stringfunction(param1;param2;param3)] nomenclature
     /// when using text expressions.
     /// </summary>
-    /// <param name="EntireTextBeingEvaluated"></param>
-    /// <param name="StringFunction"></param>
-    /// <param name="Param1"></param>
-    /// <param name="Param2"></param>
-    /// <param name="Param3"></param>
-    /// <param name="EntireFindText"></param>
-    /// <param name="EntireReplaceText"></param>
+    /// <param name="EntireTextBeingEvaluated">The current expression text.</param>
+    /// <param name="StringFunction">The custom function name to evaluate.</param>
+    /// <param name="Param1">The first function parameter.</param>
+    /// <param name="Param2">The second function parameter.</param>
+    /// <param name="Param3">The third function parameter.</param>
+    /// <param name="EntireFindText">The complete function text to replace.</param>
+    /// <param name="EntireReplaceText">The replacement text supplied by a subscriber.</param>
     [IntegrationEvent(false, false)]
     local procedure OnEvaluateCustomStringOnlyFunctionThreeParamExpression(var EntireTextBeingEvaluated: Text; var StringFunction: Text; var Param1: Text; var Param2: Text; var Param3: Text; var EntireFindText: Text; var EntireReplaceText: Text)
     begin

@@ -43,7 +43,6 @@ page 4581 "Ext. SharePoint Account Wizard"
                 Caption = 'Account Name';
                 NotBlank = true;
                 ShowMandatory = true;
-                ToolTip = 'Specifies a descriptive name for this SharePoint storage account connection.';
 
                 trigger OnValidate()
                 begin
@@ -54,7 +53,6 @@ page 4581 "Ext. SharePoint Account Wizard"
             field("Tenant Id"; Rec."Tenant Id")
             {
                 ShowMandatory = true;
-                ToolTip = 'Specifies the Microsoft Entra ID Tenant ID (Directory ID) where your SharePoint site and app registration are located.';
 
                 trigger OnValidate()
                 begin
@@ -65,7 +63,6 @@ page 4581 "Ext. SharePoint Account Wizard"
             field("Client Id"; Rec."Client Id")
             {
                 ShowMandatory = true;
-                ToolTip = 'Specifies the Client ID (Application ID) of the App Registration in Microsoft Entra ID.';
 
                 trigger OnValidate()
                 begin
@@ -75,7 +72,6 @@ page 4581 "Ext. SharePoint Account Wizard"
 
             field("Authentication Type"; Rec."Authentication Type")
             {
-                ToolTip = 'Specifies the authentication flow used for this SharePoint account. Client Secret uses User grant flow, which means that the user must sign in when using this account. Certificate uses Client credentials flow, which means that the user does not need to sign in when using this account.';
                 trigger OnValidate()
                 begin
                     UpdateAuthTypeVisibility();
@@ -134,6 +130,9 @@ page 4581 "Ext. SharePoint Account Wizard"
                     IsNextEnabled := SharePointConnectorImpl.IsAccountValid(Rec);
                 end;
             }
+            field("Use legacy REST API"; Rec."Use legacy REST API")
+            {
+            }
 
             field("Base Relative Folder Path"; Rec."Base Relative Folder Path")
             {
@@ -182,7 +181,7 @@ page 4581 "Ext. SharePoint Account Wizard"
                             SecretToPass := Certificate;
                     end;
 
-                    SharePointConnectorImpl.CreateAccount(Rec, SecretToPass, CertificatePassword, SharePointAccount);
+                    SharePointConnectorImpl.CreateAccount(Rec, SecretToPass, CertificatePassword, TempSharePointAccount);
                     CurrPage.Close();
                 end;
             }
@@ -190,7 +189,7 @@ page 4581 "Ext. SharePoint Account Wizard"
     }
 
     var
-        SharePointAccount: Record "File Account";
+        TempSharePointAccount: Record "File Account";
         MediaResources: Record "Media Resources";
         SharePointConnectorImpl: Codeunit "Ext. SharePoint Connector Impl";
         [NonDebuggable]
@@ -220,10 +219,10 @@ page 4581 "Ext. SharePoint Account Wizard"
 
     internal procedure GetAccount(var FileAccount: Record "File Account"): Boolean
     begin
-        if IsNullGuid(SharePointAccount."Account Id") then
+        if IsNullGuid(TempSharePointAccount."Account Id") then
             exit(false);
 
-        FileAccount := SharePointAccount;
+        FileAccount := TempSharePointAccount;
 
         exit(true);
     end;

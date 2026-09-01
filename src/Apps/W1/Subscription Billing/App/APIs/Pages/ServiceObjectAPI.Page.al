@@ -186,6 +186,36 @@ page 8020 "Service Object API"
                 field(unitOfMeasure; Rec."Unit of Measure")
                 {
                 }
+                field(vendorNo; Rec."Vendor No.")
+                {
+                }
+                field(vendorName; Rec."Vendor Name")
+                {
+                }
+                field(vendorName2; Rec."Vendor Name 2")
+                {
+                }
+                field(vendorItemNo; Rec."Vendor Item No.")
+                {
+                }
+                field(manufacturerCode; Rec."Manufacturer Code")
+                {
+                }
+                field(manufacturerName; Rec."Manufacturer Name")
+                {
+                }
+                field(salespersonCode; Rec."Salesperson Code")
+                {
+                }
+                field(salesOrderNo; Rec."Sales Order No.")
+                {
+                }
+                field(itemLedgerEntryNo; Rec."Item Ledger Entry No.")
+                {
+                }
+                field(lastSalesInvoiceNo; Rec."Last Sales Invoice No.")
+                {
+                }
             }
             field(systemCreatedAt; Rec.SystemCreatedAt)
             {

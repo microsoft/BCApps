@@ -10,6 +10,7 @@ query 37003 "Sales Line - Item Outstanding"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to outstanding sales order lines for items including quantities not yet shipped and outstanding amounts. Enables Power BI reports to analyze sales order backlog, pending shipments, and customer demand fulfillment.';
     Caption = 'Power BI Outstanding SO';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

@@ -149,7 +149,7 @@ page 1990 "Checklist Banner"
             action(ShowEarlyAccessPreviewFeatures)
             {
                 ApplicationArea = All;
-                Caption = 'Show new Features and provide Feedback';
+                Caption = 'Show new features and provide feedback';
                 ToolTip = 'Show a list of new features in the early access preview and provide feedback.';
                 Visible = IsEarlyAccessPreview;
                 Image = AssessFinanceCharges;
@@ -343,7 +343,7 @@ page 1990 "Checklist Banner"
     }
 
     var
-        ChecklistItemBuffer: Record "Checklist Item Buffer";
+        TempChecklistItemBuffer: Record "Checklist Item Buffer";
         ChecklistBannerImpl: Codeunit "Checklist Banner Impl.";
         ChecklistImplementation: Codeunit "Checklist Implementation";
         ChecklistStatus: Enum "Checklist Status";
@@ -394,7 +394,7 @@ page 1990 "Checklist Banner"
 
         SetChecklistRecord();
 
-        ChecklistItemBuffer.Copy(Rec, true);
+        TempChecklistItemBuffer.Copy(Rec, true);
 
         CurrPage.Update(false);
     end;
@@ -553,8 +553,8 @@ page 1990 "Checklist Banner"
     begin
         UpdateChecklistCountsAfterStatusUpdate(Rec.Status);
 
-        if ChecklistItemBuffer.FindLast() then
-            if ChecklistItemBuffer.Code = Rec.Code then
+        if TempChecklistItemBuffer.FindLast() then
+            if TempChecklistItemBuffer.Code = Rec.Code then
                 IsLastChecklistItem := true;
 
         if ChecklistBannerImpl.ExecuteChecklistItem(Rec, Tour, IsLastChecklistItem) then

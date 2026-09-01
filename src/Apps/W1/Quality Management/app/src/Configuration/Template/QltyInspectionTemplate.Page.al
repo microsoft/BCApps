@@ -5,10 +5,9 @@
 namespace Microsoft.QualityManagement.Configuration.Template;
 
 using Microsoft.Foundation.Attachment;
-using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Document;
-using System.Telemetry;
+using Microsoft.QualityManagement.Telemetry;
 
 /// <summary>
 /// A Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.
@@ -21,8 +20,8 @@ page 20402 "Qlty. Inspection Template"
     PageType = Card;
     RefreshOnActivate = true;
     SourceTable = "Qlty. Inspection Template Hdr.";
-    AboutTitle = 'Quality Inspection Template';
-    AboutText = 'A Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.';
+    AboutTitle = 'About Quality Inspection Template details';
+    AboutText = 'A Quality Inspection Template is an inspection plan containing a tests to perform, rules defining how the template impacts processes like purchase or production.';
     PromotedActionCategories = 'New,Process,Report';
     ApplicationArea = QualityManagement;
 
@@ -64,7 +63,7 @@ page 20402 "Qlty. Inspection Template"
                         UpdateControls();
                     end;
                 }
-                group(SettingsForSampleFixedAmountVisibilityWrapper)
+                group(SampleFixedAmountVisibilityWrapper)
                 {
                     ShowCaption = false;
                     Caption = '';
@@ -73,11 +72,9 @@ page 20402 "Qlty. Inspection Template"
                     field("Sample Fixed Amount"; Rec."Sample Fixed Amount")
                     {
                         ShowCaption = true;
-                        AboutTitle = 'Sample Fixed Amount';
-                        AboutText = 'When Sample Source is set to a fixed quantity then this represents a discrete fixed sample size. Samples can only be discrete units. If the quantity here exceeds the Source Quantity then the Source Quantity will be used instead.';
                     }
                 }
-                group(SettingsForSamplePercentVisibilityWrapper)
+                group(SamplePercentVisibilityWrapper)
                 {
                     ShowCaption = false;
                     Caption = '';
@@ -86,8 +83,6 @@ page 20402 "Qlty. Inspection Template"
                     field("Sample Percentage"; Rec."Sample Percentage")
                     {
                         ShowCaption = true;
-                        AboutTitle = 'Sample Percentage';
-                        AboutText = 'When Sample Source is set to a percentage then this represents the percent of the source quantity to use. Values will be rounded to the highest discrete amount.';
                     }
                 }
             }
@@ -132,49 +127,16 @@ page 20402 "Qlty. Inspection Template"
     {
         area(Processing)
         {
-            action(NewTest)
-            {
-                Image = Default;
-                Caption = 'Add Test(s) To This Template';
-                ToolTip = 'Add a new Test or existing Test(s) to this template';
-                Scope = Repeater;
-                Promoted = true;
-                PromotedCategory = Process;
-                PromotedIsBig = true;
-                AboutTitle = 'Add test(s)';
-                AboutText = 'Add a new test or add existing tests to this template.';
-
-                trigger OnAction()
-                begin
-                    CurrPage.LinesPart.Page.AddTestWizard();
-                end;
-            }
-            action(ViewRules)
-            {
-                Caption = 'Inspection Generation Rules';
-                ToolTip = 'View existing Quality Inspection Generation Rules related to this template. A Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template.';
-                AboutTitle = 'Inspection Generation Rules';
-                AboutText = 'View existing Quality Inspection Generation Rules related to this template. A Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template.';
-                Image = TaskList;
-                Promoted = true;
-                PromotedCategory = Process;
-                PromotedIsBig = true;
-                RunObject = Page "Qlty. Inspection Gen. Rules";
-                RunPageLink = "Template Code" = field(Code);
-                RunPageMode = Edit;
-                PromotedOnly = true;
-            }
             action(CreateInspection)
             {
+                AccessByPermission = tabledata "Qlty. Inspection Header" = I;
                 Caption = 'Create Inspection';
-                ToolTip = 'Specifies to create a new Quality Inspection using this template.';
-
-                Image = CreateForm;
+                ToolTip = 'Create a new quality inspection from this template.';
+                Image = BulletList;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
                 PromotedOnly = true;
-                Enabled = CanCreateInspection;
 
                 trigger OnAction()
                 var
@@ -188,7 +150,7 @@ page 20402 "Qlty. Inspection Template"
             {
                 Image = Copy;
                 Caption = 'Copy Template';
-                ToolTip = 'Copy an existing template.';
+                ToolTip = 'Copy an existing quality inspection template.';
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
@@ -202,12 +164,29 @@ page 20402 "Qlty. Inspection Template"
                     Report.Run(Report::"Qlty. Inspection Copy Template", true, true, ExistingQltyInspectionTemplateHdr);
                 end;
             }
+        }
+        area(Navigation)
+        {
+            action(ViewRules)
+            {
+                Caption = 'Inspection Generation Rules';
+                ToolTip = 'View existing quality inspection generation rules related to this template.';
+                AboutTitle = 'Inspection Generation Rules';
+                AboutText = 'View inspection generation rules for this template. Quality inspection generation rules specify when quality inspections are automatically generated and which template is used, such as during receiving, production, or warehouse activities. You link a template to a source table and define filter criteria that determine when an inspection is created. When the criteria are met, the system generates a quality inspection based on the linked template. If multiple rules match, the system uses the first rule according to the sort order.';
+                Image = CopyFromTask;
+                Promoted = true;
+                PromotedCategory = Process;
+                PromotedIsBig = true;
+                RunObject = Page "Qlty. Inspection Gen. Rules";
+                RunPageLink = "Template Code" = field(Code);
+                RunPageMode = Edit;
+                PromotedOnly = true;
+            }
             action(ExistingInspection)
             {
                 Caption = 'Existing Inspections';
-                ToolTip = 'Review existing inspections created using this template.';
-
-                Image = Report;
+                ToolTip = 'Review existing quality inspections created using this template.';
+                Image = CheckList;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
@@ -220,26 +199,33 @@ page 20402 "Qlty. Inspection Template"
     }
 
     var
-        QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
-        CanCreateInspection: Boolean;
         ShowSampleSizeFixedQuantity: Boolean;
         ShowSampleSizePercentage: Boolean;
-        QualityManagementTok: Label 'Quality Management', Locked = true;
 
+    /// <summary>
+    /// Builds the template caption from its code and description.
+    /// </summary>
+    /// <returns>The template page caption.</returns>
     local procedure GetDataCaptionExpression(): Text
     begin
         exit(Rec.Code + ' - ' + Rec.Description);
     end;
 
     trigger OnAfterGetRecord()
-    var
-        FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
-        FeatureTelemetry.LogUptake('0000QIA', QualityManagementTok, Enum::"Feature Uptake Status"::Used);
-        CanCreateInspection := QltyPermissionMgmt.CanCreateManualInspection();
         UpdateControls();
     end;
 
+    trigger OnInsertRecord(BelowxRec: Boolean): Boolean
+    var
+        QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
+    begin
+        QltyMgmtFeatureTelemetry.LogFeatureUptakeSetup(ObjectType::Page, Page::"Qlty. Inspection Template");
+    end;
+
+    /// <summary>
+    /// Updates sample-size control visibility from the configured sample source.
+    /// </summary>
     local procedure UpdateControls()
     begin
         ShowSampleSizeFixedQuantity := Rec."Sample Source" = Rec."Sample Source"::"Fixed Quantity";

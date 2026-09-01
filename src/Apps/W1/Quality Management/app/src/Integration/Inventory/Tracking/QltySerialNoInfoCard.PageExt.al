@@ -12,9 +12,9 @@ pageextension 20414 "Qlty. Serial No. Info. Card" extends "Serial No. Informatio
 {
     layout
     {
-        addafter(General)
+        addafter(Inventory)
         {
-            group(Qlty_Management)
+            group(Qlty_QualityManagement)
             {
                 Caption = 'Quality Management';
 

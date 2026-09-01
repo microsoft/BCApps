@@ -21,7 +21,7 @@ report 4410 "EXR Consolidated Trial Balance"
         dataitem(GLAccounts; "G/L Account")
         {
             DataItemTableView = sorting("No.");
-            RequestFilterFields = "No.";
+            RequestFilterFields = "No.", "Global Dimension 1 Filter", "Global Dimension 2 Filter";
             column(AccountNumber; "No.") { IncludeCaption = true; }
             column(AccountName; Name) { IncludeCaption = true; }
             column(IncomeBalance; "Income/Balance") { IncludeCaption = true; }
@@ -145,7 +145,7 @@ report 4410 "EXR Consolidated Trial Balance"
         ExcelReportsTelemetry.LogReportUsage(Report::"EXR Consolidated Trial Balance");
         GLAccounts.SetRange("Date Filter", StartingDate, EndingDate);
 
-        TrialBalance.ConfigureTrialBalance(true, true);
+        TrialBalance.ConfigureTrialBalance(true, false);
         TrialBalance.InsertTrialBalanceReportData(GLAccounts, Dimension1, Dimension2, TrialBalanceData);
     end;
 

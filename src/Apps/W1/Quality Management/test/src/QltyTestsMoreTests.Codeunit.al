@@ -29,7 +29,6 @@ using Microsoft.Sales.Document;
 using Microsoft.Test.QualityManagement.TestLibraries;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.Ledger;
-using System.Environment.Configuration;
 using System.Reflection;
 using System.TestLibraries.Utilities;
 using System.Threading;
@@ -59,10 +58,9 @@ codeunit 139965 "Qlty. Tests - More Tests"
         OptionsTok: Label 'Option1,Option2,Option3', Locked = true;
         ConditionProductionFilterTok: Label 'WHERE(Order Type=FILTER(Production))', Locked = true;
         DefaultScheduleGroupTok: Label 'QM', Locked = true;
-        InterestingDetectionErr: Label 'It looks like you are trying to do something interesting, or are trying to do something with a specific expectation that needs extra discussion, or are trying to configure something that might require a customization.';
         ExpressionFormulaTok: Label '[No.]';
-        TestTypeErrInfoMsg: Label '%1Consider replacing this test in the template with a new one, or deleting existing inspections (if allowed). The test was last used on inspection %2.', Comment = '%1 = Error Title, %2 = Quality Inspection No.';
-        OnlyFieldExpressionErr: Label 'The Expression Formula can only be used with fields that are a type of Expression';
+        TestValueTypeChangeErrInfoMsg: Label 'Consider replacing this test in the template with a new one, or deleting existing inspections (if allowed). The test was last used on Inspection %1, Re-inspection %2.', Comment = '%1 = Quality Inspection No., %2 = Re-inspection No.';
+        ExpressionFormulaOnlyForTextExpressionErr: Label 'The Expression Formula can only be used with tests that are a type of Text Expression';
         VendorFilterCountryTok: Label 'WHERE(Country/Region Code=FILTER(CA))', Locked = true;
         VendorFilterNoTok: Label 'WHERE(No.=FILTER(%1))', Comment = '%1 = Vendor No.', Locked = true;
         ThereIsNoResultErr: Label 'There is no result called "%1". Please add the result, or change the existing result conditions.', Comment = '%1=the result';
@@ -79,47 +77,12 @@ codeunit 139965 "Qlty. Tests - More Tests"
         ExpressionFormulaTestCodeTok: Label '[%1]', Comment = '%1=The first test code', Locked = true;
         TargetErr: Label 'When the target of the source configuration is an inspection, then all target fields must also refer to the inspection. Note that you can chain tables in another source configuration and still target inspection values. For example if you would like to ensure that a field from the Customer is included for a source configuration that is not directly related to a Customer then create another source configuration that links Customer to your record.';
         CanOnlyBeSetWhenToTypeIsInspectionErr: Label 'This is only used when the To Type is an inspection';
+        ILEConditionFilterItemNoTok: Label 'WHERE(Item No.=FILTER(%1))', Comment = '%1 = Item No.', Locked = true;
         OrderTypeProductionConditionFilterTok: Label 'WHERE(Order Type=FILTER(Production))', Locked = true;
         EntryTypeOutputConditionFilterTok: Label 'WHERE(Entry Type=FILTER(Output))', Locked = true;
         PassFailQuantityInvalidErr: Label 'The %1 and %2 cannot exceed the %3. The %3 is currently exceeded by %4.', Comment = '%1=the passed quantity caption, %2=the failed quantity caption, %3=the source quantity caption, %4=the quantity exceeded';
-
-    [Test]
-    [HandlerFunctions('LookupTableModalPageHandler_FirstRecord')]
-    procedure TestCardPage_AssistEditLookupTable()
-    var
-        AllObjWithCaption: Record AllObjWithCaption;
-        ToLoadQltyTest: Record "Qlty. Test";
-        QltyTestCard: TestPage "Qlty. Test Card";
-        TestCode: Text;
-    begin
-        // [SCENARIO] User can use AssistEdit to select a lookup table for a Table Lookup test value type
-        Initialize();
-
-        // [GIVEN] A random test code is generated
-        QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
-
-        // [GIVEN] A new quality test with Test Value Type "Table Lookup" is created
-        ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
-        ToLoadQltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ToLoadQltyTest.Description)));
-        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Table Lookup");
-        ToLoadQltyTest.Insert();
-
-        // [GIVEN] The Quality Test Card page is opened and navigated to the test
-        QltyTestCard.OpenEdit();
-        QltyTestCard.GoToRecord(ToLoadQltyTest);
-
-        // [WHEN] AssistEdit is invoked on the "Lookup Table No." field
-        QltyTestCard."Lookup Table No.".AssistEdit();
-        QltyTestCard.Close();
-
-        // [THEN] The first table from AllObjWithCaption is selected via modal handler
-        AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
-        AllObjWithCaption.FindFirst();
-
-        // [THEN] The test's Lookup Table No. is updated with the selected table ID
-        ToLoadQltyTest.Get(ToLoadQltyTest.Code);
-        LibraryAssert.AreEqual(AllObjWithCaption."Object ID", ToLoadQltyTest."Lookup Table No.", 'Should be same table no.')
-    end;
+        ShippedDefaultCodeTok: Label 'TRACKINGSPEC', Locked = true;
+        ModifiedDescriptionTok: Label 'MODIFIED DEFAULT DESCRIPTION', Locked = true;
 
     [Test]
     procedure TestTable_ValidateExpressionFormula()
@@ -143,7 +106,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         asserterror ToLoadQltyTest.Validate("Expression Formula", ExpressionFormulaTok);
 
         // [THEN] An error is raised indicating Expression Formula is only for Expression test value types
-        LibraryAssert.ExpectedError(OnlyFieldExpressionErr);
+        LibraryAssert.ExpectedError(ExpressionFormulaOnlyForTextExpressionErr);
     end;
 
     [Test]
@@ -220,36 +183,6 @@ codeunit 139965 "Qlty. Tests - More Tests"
     end;
 
     [Test]
-    procedure TestTable_AssistEditExpressionFormula_ShouldError()
-    var
-        ToLoadQltyTest: Record "Qlty. Test";
-        QltyTestExprCardPart: TestPage "Qlty. Test Expr. Card Part";
-        TestCode: Text;
-    begin
-        // [SCENARIO] AssistEdit on Expression Formula should error when field type is Boolean
-        Initialize();
-
-        // [GIVEN] A random test code is generated
-        QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
-
-        // [GIVEN] A new quality test with Test Value Type "Boolean" is created
-        ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
-        ToLoadQltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ToLoadQltyTest.Description)));
-        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Boolean");
-        ToLoadQltyTest.Insert();
-
-        // [GIVEN] The Quality Test Expression Card Part page is opened and navigated to the test
-        QltyTestExprCardPart.OpenEdit();
-        QltyTestExprCardPart.GoToRecord(ToLoadQltyTest);
-
-        // [WHEN] AssistEdit is invoked on the "Expression Formula" field for a Boolean type
-        asserterror QltyTestExprCardPart."Expression Formula".AssistEdit();
-
-        // [THEN] An error is raised indicating Expression Formula is only for Expression field types
-        LibraryAssert.ExpectedError(OnlyFieldExpressionErr);
-    end;
-
-    [Test]
     [HandlerFunctions('ModalPageHandleChooseFromLookup_VendorNo')]
     procedure TestTable_AssistEditDefaultValue_TypeTableLookup()
     var
@@ -297,42 +230,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
     end;
 
     [Test]
-    [HandlerFunctions('AssistEditTemplatePageHandler')]
-    procedure TestTable_AssistEditExpressionFormula()
-    var
-        ToLoadQltyTest: Record "Qlty. Test";
-        QltyTestExprCardPart: TestPage "Qlty. Test Expr. Card Part";
-        TestCode: Text;
-    begin
-        // [SCENARIO] User can use AssistEdit to define an expression formula for a Text Expression field type
-        Initialize();
-
-        // [GIVEN] A random test code is generated
-        QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
-
-        // [GIVEN] A new quality test with Test Value Type "Text Expression" is created
-        ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
-        ToLoadQltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ToLoadQltyTest.Description)));
-        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Text Expression");
-        ToLoadQltyTest.Insert();
-
-        // [GIVEN] The Quality Test Expression Card Part page is opened and navigated to the test
-        QltyTestExprCardPart.OpenEdit();
-        QltyTestExprCardPart.GoToRecord(ToLoadQltyTest);
-
-        // [GIVEN] An expression formula value is prepared for the handler
-        AssistEditTemplateValue := ExpressionFormulaTok;
-
-        // [WHEN] AssistEdit is invoked on the "Expression Formula" field
-        QltyTestExprCardPart."Expression Formula".AssistEdit();
-
-        // [THEN] The test's Expression Formula is updated with the prepared value
-        ToLoadQltyTest.Get(ToLoadQltyTest.Code);
-        LibraryAssert.AreEqual(ExpressionFormulaTok, ToLoadQltyTest."Expression Formula", 'Should be same expression formula.')
-    end;
-
-    [Test]
-    procedure TestTable_ValidateTestValueType_ShouldError()
+    procedure TestTable_ValidateTestValueTypeChange_ShouldError()
     var
         ToLoadQltyTest: Record "Qlty. Test";
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -355,7 +253,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         asserterror ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Boolean");
 
         // [THEN] An error is raised indicating the test value type cannot be changed because it's used in inspection
-        LibraryAssert.ExpectedError(StrSubstNo(TestTypeErrInfoMsg, '', QltyInspectionHeader."No."));
+        LibraryAssert.ExpectedError(StrSubstNo(TestValueTypeChangeErrInfoMsg, QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No."));
     end;
 
     [Test]
@@ -492,44 +390,6 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [WHEN] Lookup is invoked on the "Lookup Field No." field
         QltyTestCard."Lookup Field No.".Lookup();
-        QltyTestCard.Close();
-
-        // [THEN] The test's Lookup Field No. is updated with the Vendor "No." field number
-        ToLoadQltyTest.Get(ToLoadQltyTest.Code);
-        LibraryAssert.AreEqual(Vendor.FieldNo("No."), ToLoadQltyTest."Lookup Field No.", 'Should be same lookup field no.');
-    end;
-
-    [Test]
-    [HandlerFunctions('FieldsLookupModalPageHandler')]
-    procedure TestTable_AssistEditLookupField()
-    var
-        ToLoadQltyTest: Record "Qlty. Test";
-        Vendor: Record Vendor;
-        QltyTestCard: TestPage "Qlty. Test Card";
-        TestCode: Text;
-    begin
-        // [SCENARIO] User can use AssistEdit to select a field from the lookup table (e.g., select Vendor "No." field)
-        Initialize();
-
-        // [GIVEN] A random test code is generated
-        QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
-
-        // [GIVEN] A new quality test with Test Value Type "Table Lookup" targeting Vendor table is created
-        ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
-        ToLoadQltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ToLoadQltyTest.Description)));
-        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Table Lookup");
-        ToLoadQltyTest.Validate("Lookup Table No.", Database::Vendor);
-        ToLoadQltyTest.Insert();
-
-        // [GIVEN] The Quality Test Card page is opened and navigated to the test
-        QltyTestCard.OpenEdit();
-        QltyTestCard.GoToRecord(ToLoadQltyTest);
-
-        // [GIVEN] The Vendor "No." field name is prepared for selection via modal handler
-        ChooseFromLookupValue := Vendor.FieldName("No.");
-
-        // [WHEN] AssistEdit is invoked on the "Lookup Field No." field
-        QltyTestCard."Lookup Field No.".AssistEdit();
         QltyTestCard.Close();
 
         // [THEN] The test's Lookup Field No. is updated with the Vendor "No." field number
@@ -753,7 +613,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         asserterror ConfigurationToLoadQltyInspectionTemplateLine.Validate("Expression Formula", ExpressionFormulaTok);
 
         // [THEN] An error is raised indicating Expression Formula is only for Expression field types
-        LibraryAssert.ExpectedError(OnlyFieldExpressionErr);
+        LibraryAssert.ExpectedError(ExpressionFormulaOnlyForTextExpressionErr);
     end;
 
     [Test]
@@ -1804,6 +1664,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
     begin
         // [SCENARIO] User can use AssistEdit to select from allowable values list for Test Value
         Initialize();
+        LibraryERMCountryData.CreateVATData();
 
         // [GIVEN] Setup exists, a full WMS location is created, and an item is created
         QltyInspectionUtility.EnsureSetupExists();
@@ -2160,56 +2021,6 @@ codeunit 139965 "Qlty. Tests - More Tests"
     end;
 
     [Test]
-    procedure SourceConfigTable_DetectInterestingConfig_FromTable()
-    var
-        SpecificQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
-        SourceConfigCode: Text;
-    begin
-        // [SCENARIO] DetectInterestingConfiguration throws error when From Table is Reservation Entry
-        Initialize();
-
-        // [GIVEN] Setup exists
-        QltyInspectionUtility.EnsureSetupExists();
-
-        // [GIVEN] A new source configuration is initialized with Reservation Entry as From Table
-        SpecificQltyInspectSourceConfig.Init();
-        QltyInspectionUtility.GenerateRandomCharacters(20, SourceConfigCode);
-        SpecificQltyInspectSourceConfig.Code := CopyStr(SourceConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
-        SpecificQltyInspectSourceConfig."From Table No." := Database::"Reservation Entry";
-
-        // [WHEN] DetectInterestingConfiguration is called
-        asserterror QltyInspectionUtility.DetectInterestingConfiguration(SpecificQltyInspectSourceConfig);
-
-        // [THEN] An error is thrown indicating interesting configuration detected
-        LibraryAssert.ExpectedError(InterestingDetectionErr);
-    end;
-
-    [Test]
-    procedure SourceConfigTable_DetectInterestingConfig_ToTable()
-    var
-        SpecificQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
-        SourceConfigCode: Text;
-    begin
-        // [SCENARIO] DetectInterestingConfiguration throws error when To Table is Reservation Entry
-        Initialize();
-
-        // [GIVEN] Setup exists
-        QltyInspectionUtility.EnsureSetupExists();
-
-        // [GIVEN] A new source configuration is initialized with Reservation Entry as To Table
-        SpecificQltyInspectSourceConfig.Init();
-        QltyInspectionUtility.GenerateRandomCharacters(20, SourceConfigCode);
-        SpecificQltyInspectSourceConfig.Code := CopyStr(SourceConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
-        SpecificQltyInspectSourceConfig."To Table No." := Database::"Reservation Entry";
-
-        // [WHEN] DetectInterestingConfiguration is called
-        asserterror QltyInspectionUtility.DetectInterestingConfiguration(SpecificQltyInspectSourceConfig);
-
-        // [THEN] An error is thrown indicating interesting configuration detected
-        LibraryAssert.ExpectedError(InterestingDetectionErr);
-    end;
-
-    [Test]
     [HandlerFunctions('ConfirmHandler')]
     procedure SourceConfigLineTable_ValidateToField_Custom()
     var
@@ -2303,32 +2114,447 @@ codeunit 139965 "Qlty. Tests - More Tests"
         LibraryAssert.ExpectedError(CanOnlyBeSetWhenToTypeIsInspectionErr);
     end;
 
-    // Test disabled due to inconsistent behavior across environments
-    // Bug 613059 to address the test stability issue
     [Test]
     procedure ApplicationAreaMgmt_IsQualityManagementApplicationAreaEnabled()
     var
-        AllProfile: Record "All Profile";
-        ApplicationAreaSetup: Record "Application Area Setup";
-        ConfPersonalizationMgt: Codeunit "Conf./Personalization Mgt.";
-        ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
+        LibraryApplicationArea: Codeunit "Library - Application Area";
     begin
         // [SCENARIO] Quality Management application area is enabled by default on Essential experience
         Initialize();
 
-        // [GIVEN] Application Area Setup exists or is created for current company and user
-        if not ApplicationAreaMgmtFacade.GetApplicationAreaSetupRecFromCompany(ApplicationAreaSetup, CompanyName()) then begin
-            ApplicationAreaSetup.Init();
-            ApplicationAreaSetup."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(ApplicationAreaSetup."Company Name"));
-            ApplicationAreaSetup."User ID" := CopyStr(UserId(), 1, MaxStrLen(ApplicationAreaSetup."User ID"));
-            ConfPersonalizationMgt.GetCurrentProfileNoError(AllProfile);
-            ApplicationAreaSetup."Profile ID" := CopyStr(AllProfile."Profile ID", 1, MaxStrLen(ApplicationAreaSetup."Profile ID"));
-            ApplicationAreaSetup.Insert();
-        end;
+        // [GIVEN] Essential experience is active for the current company
+        LibraryApplicationArea.EnableEssentialSetup();
 
         // [WHEN] Checking if Quality Management application area is enabled
         // [THEN] The application area is enabled
         LibraryAssert.AreEqual(true, QltyInspectionUtility.IsQualityManagementApplicationAreaEnabled(), 'Should be enabled.');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ScheduleInspection_ClosedILE_ShouldNotCreateInspection()
+    var
+        Item: Record Item;
+        PosAdjItemJournalLine, NegAdjItemJournalLine : Record "Item Journal Line";
+        ReservationEntry: Record "Reservation Entry";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyScheduleInspection: Report "Qlty. Schedule Inspection";
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
+        LotNo: Code[50];
+        ConditionFilter: Text;
+    begin
+        // [SCENARIO] Schedule Inspection should not create inspections for Item Ledger Entries with 0 remaining quantity (Open=false)
+        Initialize();
+
+        // [GIVEN] Quality Management setup exists
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] A lot-tracked item
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
+
+        // [GIVEN] Item journal batch for posting
+        // QltyInspectionUtility.CreateItemJournalTemplateAndBatch(PosAdjItemJournalLine."Entry Type"::"Positive Adjmt.", ItemJournalBatch);
+
+        // [GIVEN] A positive adjustment of 10 units with lot tracking
+        LotNo := LibraryUtility.GenerateGUID();
+        LibraryInventory.CreateItemJournalLineInItemTemplate(PosAdjItemJournalLine, Item."No.", '', '', 10);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, PosAdjItemJournalLine, '', LotNo, PosAdjItemJournalLine.Quantity);
+        LibraryInventory.PostItemJournalLine(PosAdjItemJournalLine."Journal Template Name", PosAdjItemJournalLine."Journal Batch Name");
+
+        // [GIVEN] A negative adjustment of 10 units for the same lot (fully consuming inventory)
+        LibraryInventory.CreateItemJournalLineInItemTemplate(NegAdjItemJournalLine, Item."No.", '', '', -10);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, NegAdjItemJournalLine, '', LotNo, NegAdjItemJournalLine.Quantity);
+        LibraryInventory.PostItemJournalLine(NegAdjItemJournalLine."Journal Template Name", NegAdjItemJournalLine."Journal Batch Name");
+
+        // [GIVEN] A template with a test line
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+
+        // [GIVEN] A generation rule for Item Ledger Entry filtered to this specific item
+        ConditionFilter := StrSubstNo(ILEConditionFilterItemNoTok, Item."No.");
+        QltyInspectionGenRule.Init();
+        QltyInspectionGenRule."Template Code" := QltyInspectionTemplateHdr.Code;
+        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectionGenRule."Condition Filter" := CopyStr(ConditionFilter, 1, MaxStrLen(QltyInspectionGenRule."Condition Filter"));
+        QltyInspectionGenRule."Activation Trigger" := QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic";
+        QltyInspectionGenRule.Insert(true);
+
+        // [GIVEN] No inspections exist for this item before running
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        LibraryAssert.AreEqual(0, QltyInspectionHeader.Count(), 'No inspections should exist before running the report.');
+
+        // [WHEN] Schedule Inspection report is run for the generation rule
+        QltyInspectionGenRule.SetRecFilter();
+        QltyScheduleInspection.SetTableView(QltyInspectionGenRule);
+        QltyScheduleInspection.UseRequestPage(false);
+        QltyScheduleInspection.Run();
+
+        // [THEN] No inspections should be created since all ILEs for this item are closed
+        QltyInspectionHeader.Reset();
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        LibraryAssert.AreEqual(0, QltyInspectionHeader.Count(), 'No inspections should be created for items with 0 remaining quantity.');
+    end;
+
+    [Test]
+    procedure ScheduleInspection_OpenILE_ShouldCreateInspection()
+    var
+        Item: Record Item;
+        PosAdjItemJournalLine, NegAdjItemJournalLine : Record "Item Journal Line";
+        ReservationEntry: Record "Reservation Entry";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
+        QltyScheduleInspection: Report "Qlty. Schedule Inspection";
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
+        LotNo: Code[50];
+        ConditionFilter: Text;
+    begin
+        // [SCENARIO] Schedule Inspection should create an inspection for Item Ledger Entries with remaining quantity > 0 (Open=true)
+        Initialize();
+
+        // [GIVEN] Quality Management setup exists
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] A lot-tracked item
+        QltyInspectionUtility.CreateLotTrackedItem(Item);
+
+        // [GIVEN] A positive adjustment of 10 units with lot tracking
+        LotNo := LibraryUtility.GenerateGUID();
+        LibraryInventory.CreateItemJournalLineInItemTemplate(PosAdjItemJournalLine, Item."No.", '', '', 10);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, PosAdjItemJournalLine, '', LotNo, PosAdjItemJournalLine.Quantity);
+        LibraryInventory.PostItemJournalLine(PosAdjItemJournalLine."Journal Template Name", PosAdjItemJournalLine."Journal Batch Name");
+
+        // [GIVEN] A negative adjustment of 9 units for the same lot (leaving 1 remaining)
+        LibraryInventory.CreateItemJournalLineInItemTemplate(NegAdjItemJournalLine, Item."No.", '', '', -9);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, NegAdjItemJournalLine, '', LotNo, NegAdjItemJournalLine.Quantity);
+        LibraryInventory.PostItemJournalLine(NegAdjItemJournalLine."Journal Template Name", NegAdjItemJournalLine."Journal Batch Name");
+
+        // [GIVEN] A template with a test line
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 1);
+
+        // [GIVEN] A generation rule for Item Ledger Entry filtered to this specific item
+        ConditionFilter := StrSubstNo(ILEConditionFilterItemNoTok, Item."No.");
+        QltyInspectionGenRule.Init();
+        QltyInspectionGenRule."Template Code" := QltyInspectionTemplateHdr.Code;
+        QltyInspectionGenRule."Source Table No." := Database::"Item Ledger Entry";
+        QltyInspectionGenRule."Condition Filter" := CopyStr(ConditionFilter, 1, MaxStrLen(QltyInspectionGenRule."Condition Filter"));
+        QltyInspectionGenRule."Activation Trigger" := QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic";
+        QltyInspectionGenRule.Insert(true);
+
+        // [GIVEN] Verify the source config for ILE→Inspection exists
+        QltyInspectSourceConfig.SetRange("From Table No.", Database::"Item Ledger Entry");
+        QltyInspectSourceConfig.SetRange("To Type", QltyInspectSourceConfig."To Type"::Inspection);
+        QltyInspectSourceConfig.SetRange(Enabled, true);
+        LibraryAssert.RecordIsNotEmpty(QltyInspectSourceConfig);
+
+        // [WHEN] Schedule Inspection report calls CreateInspectionsThatMatchRule directly
+        QltyScheduleInspection.CreateInspectionsThatMatchRule(QltyInspectionGenRule);
+
+        // [THEN] Exactly one inspection should be created for the open ILE with remaining quantity 1
+        QltyInspectionHeader.SetRange("Source Item No.", Item."No.");
+        LibraryAssert.AreEqual(1, QltyInspectionHeader.Count(), 'Exactly one inspection should be created for the item with remaining quantity.');
+        QltyInspectionHeader.FindFirst();
+        LibraryAssert.AreEqual(1, QltyInspectionHeader."Source Quantity (Base)", 'Inspection should have source quantity of 1 (remaining quantity).');
+        LibraryAssert.AreEqual(LotNo, QltyInspectionHeader."Source Lot No.", 'Inspection should have the correct lot number.');
+    end;
+
+    [Test]
+    procedure TestTable_DefaultValueNotAllowedForTextExpression()
+    var
+        QltyTest: Record "Qlty. Test";
+        TestCode: Text;
+    begin
+        // [SCENARIO] Default Value cannot be set on tests that are a type of Text Expression
+        Initialize();
+
+        // [GIVEN] A random test code is generated
+        QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
+
+        // [GIVEN] A new quality test with Test Value Type "Value Type Text Expression" is created
+        QltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(QltyTest.Code)));
+        QltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(QltyTest.Description)));
+        QltyTest.Validate("Test Value Type", QltyTest."Test Value Type"::"Value Type Text Expression");
+        QltyTest.Insert();
+
+        // [WHEN] Attempting to set Default Value on a Text Expression test
+        asserterror QltyTest.Validate("Default Value", 'some text');
+
+        // [THEN] An error is raised indicating Default Value is not allowed for Text Expression tests
+        LibraryAssert.ExpectedError('The Default Value cannot be set on tests that are a type of Text Expression.');
+    end;
+
+    [Test]
+    procedure TemplateLine_ExpressionFormulaCopiedFromTest()
+    var
+        QltyTest: Record "Qlty. Test";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
+        TestCode: Text;
+    begin
+        // [SCENARIO] Expression Formula is copied from the test to the template line when the test is added
+        Initialize();
+
+        // [GIVEN] A random test code is generated
+        QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
+
+        // [GIVEN] A quality test with Test Value Type "Value Type Text Expression" and an Expression Formula is created
+        QltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(QltyTest.Code)));
+        QltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(QltyTest.Description)));
+        QltyTest.Validate("Test Value Type", QltyTest."Test Value Type"::"Value Type Text Expression");
+        QltyTest.Insert();
+        QltyTest.Validate("Expression Formula", ExpressionFormulaTok);
+        QltyTest.Modify();
+
+        // [GIVEN] A template is created
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
+
+        // [WHEN] A template line is created with the test code
+        QltyInspectionTemplateLine.Init();
+        QltyInspectionTemplateLine."Template Code" := QltyInspectionTemplateHdr.Code;
+        QltyInspectionTemplateLine.InitLineNoIfNeeded();
+        QltyInspectionTemplateLine.Validate("Test Code", QltyTest.Code);
+        QltyInspectionTemplateLine.Insert(true);
+
+        // [THEN] The Expression Formula is copied from the test to the template line
+        LibraryAssert.AreEqual(ExpressionFormulaTok, QltyInspectionTemplateLine."Expression Formula", 'Expression Formula should be copied from the test to the template line.');
+    end;
+
+    [Test]
+    procedure TemplateLine_ExpressionFormulaEmptyWhenTestHasNoFormula()
+    var
+        QltyTest: Record "Qlty. Test";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
+        TestCode: Text;
+    begin
+        // [SCENARIO] Expression Formula on template line is empty when the test has no formula
+        Initialize();
+
+        // [GIVEN] A random test code is generated
+        QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
+
+        // [GIVEN] A quality test with Test Value Type "Value Type Text Expression" but no Expression Formula is created
+        QltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(QltyTest.Code)));
+        QltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(QltyTest.Description)));
+        QltyTest.Validate("Test Value Type", QltyTest."Test Value Type"::"Value Type Text Expression");
+        QltyTest.Insert();
+
+        // [GIVEN] A template is created
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
+
+        // [WHEN] A template line is created with the test code
+        QltyInspectionTemplateLine.Init();
+        QltyInspectionTemplateLine."Template Code" := QltyInspectionTemplateHdr.Code;
+        QltyInspectionTemplateLine.InitLineNoIfNeeded();
+        QltyInspectionTemplateLine.Validate("Test Code", QltyTest.Code);
+        QltyInspectionTemplateLine.Insert(true);
+
+        // [THEN] The Expression Formula on the template line is empty
+        LibraryAssert.AreEqual('', QltyInspectionTemplateLine."Expression Formula", 'Expression Formula should be empty when the test has no formula.');
+    end;
+
+    [Test]
+    procedure TemplateLine_ExpressionFormulaUpdatedWhenTestCodeChanges()
+    var
+        QltyTest1: Record "Qlty. Test";
+        QltyTest2: Record "Qlty. Test";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
+        ExpressionFormula2Tok: Label '[Source Item No.]', Locked = true;
+    begin
+        // [SCENARIO] Expression Formula is updated when the Test Code on a template line is changed to a different test
+        Initialize();
+
+        // [GIVEN] A first quality test with an Expression Formula is created
+        QltyInspectionUtility.CreateTest(QltyTest1, QltyTest1."Test Value Type"::"Value Type Text Expression");
+        QltyTest1.Validate("Expression Formula", ExpressionFormulaTok);
+        QltyTest1.Modify();
+
+        // [GIVEN] A second quality test with a different Expression Formula is created
+        QltyInspectionUtility.CreateTest(QltyTest2, QltyTest2."Test Value Type"::"Value Type Text Expression");
+        QltyTest2.Validate("Expression Formula", ExpressionFormula2Tok);
+        QltyTest2.Modify();
+
+        // [GIVEN] A template is created with the first test
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
+        QltyInspectionTemplateLine.Init();
+        QltyInspectionTemplateLine."Template Code" := QltyInspectionTemplateHdr.Code;
+        QltyInspectionTemplateLine.InitLineNoIfNeeded();
+        QltyInspectionTemplateLine.Validate("Test Code", QltyTest1.Code);
+        QltyInspectionTemplateLine.Insert(true);
+
+        // [WHEN] The Test Code on the template line is changed to the second test
+        QltyInspectionTemplateLine.Validate("Test Code", QltyTest2.Code);
+        QltyInspectionTemplateLine.Modify(true);
+
+        // [THEN] The Expression Formula is updated to the second test's formula
+        LibraryAssert.AreEqual(ExpressionFormula2Tok, QltyInspectionTemplateLine."Expression Formula", 'Expression Formula should be updated when the test code is changed.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
+    procedure QltyInsSourceConfigList_RecreateMissingDefaults()
+    var
+        QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
+        QltyInsSourceConfigList: TestPage "Qlty. Ins. Source Config. List";
+        CustomCode: Code[20];
+    begin
+        // [SCENARIO] Invoking the Recreate missing default configurations action restores deleted shipped defaults only when the user confirms, and preserves custom configurations.
+        Initialize();
+
+        // [GIVEN] All shipped default source configurations exist
+        QltyInspectionUtility.EnsureAtLeastOneSourceConfigurationExist(true);
+
+        // [WHEN] A shipped default source configuration is deleted
+        LibraryAssert.IsTrue(QltyInspectSourceConfig.Get(ShippedDefaultCodeTok), 'Shipped default should exist before deletion.');
+        QltyInspectSourceConfig.Delete(true);
+
+        // [THEN] The previously deleted shipped default is deleted
+        LibraryAssert.IsFalse(QltyInspectSourceConfig.Get(ShippedDefaultCodeTok), 'Shipped default should be deleted after the action.');
+
+        // [GIVEN] A custom source configuration is created
+        CustomCode := CreateCustomSourceConfiguration();
+
+        // [GIVEN] The list page is opened
+        QltyInsSourceConfigList.OpenView();
+
+        // [WHEN] Recreate missing default configurations action is invoked and the user confirms (ConfirmHandler)
+        QltyInsSourceConfigList.RecreateMissingDefaultConfigurations.Invoke();
+        QltyInsSourceConfigList.Close();
+
+        // [THEN] The previously deleted shipped default is recreated
+        LibraryAssert.IsTrue(QltyInspectSourceConfig.Get(ShippedDefaultCodeTok), 'Shipped default should be recreated after the action.');
+
+        // [THEN] The custom source configuration is preserved
+        LibraryAssert.IsTrue(QltyInspectSourceConfig.Get(CustomCode), 'Custom source configuration should be preserved.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
+    procedure QltyInsSourceConfigList_ResetOnlyDefaults()
+    var
+        QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
+        QltyInsSourceConfigList: TestPage "Qlty. Ins. Source Config. List";
+        OriginalDescription: Text[100];
+        ModifiedDescription: Text[100];
+        CustomCode: Code[20];
+    begin
+        // [SCENARIO] Invoking the Reset only default configurations action restores shipped defaults only when the user confirms, and preserves custom configurations.
+        Initialize();
+
+        // [GIVEN] All shipped default source configurations exist
+        QltyInspectionUtility.EnsureAtLeastOneSourceConfigurationExist(true);
+
+        // [GIVEN] The description of a shipped default source configuration is modified
+        QltyInspectSourceConfig.Get(ShippedDefaultCodeTok);
+        OriginalDescription := QltyInspectSourceConfig.Description;
+        ModifiedDescription := CopyStr(ModifiedDescriptionTok, 1, MaxStrLen(QltyInspectSourceConfig.Description));
+        QltyInspectSourceConfig.Description := ModifiedDescription;
+        QltyInspectSourceConfig.Modify();
+
+        // [GIVEN] A custom source configuration is created
+        CustomCode := CreateCustomSourceConfiguration();
+
+        // [GIVEN] The list page is opened
+        QltyInsSourceConfigList.OpenView();
+
+        // [WHEN] Reset only default configurations action is invoked and the user confirms (ConfirmHandler)
+        QltyInsSourceConfigList.ResetOnlyDefaultConfigurations.Invoke();
+        QltyInsSourceConfigList.Close();
+
+        // [THEN] The shipped default's description is reset to its original value
+        QltyInspectSourceConfig.Get(ShippedDefaultCodeTok);
+        LibraryAssert.AreEqual(OriginalDescription, QltyInspectSourceConfig.Description, 'Shipped default description should be reset.');
+
+        // [THEN] The custom source configuration is preserved
+        LibraryAssert.IsTrue(QltyInspectSourceConfig.Get(CustomCode), 'Custom source configuration should be preserved.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
+    procedure QltyInsSourceConfigList_ResetAllConfigurations()
+    var
+        QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
+        QltyInsSourceConfigList: TestPage "Qlty. Ins. Source Config. List";
+        CustomCode: Code[20];
+    begin
+        // [SCENARIO] Invoking the Reset all configurations action deletes every source configuration only when the user confirms, and then recreates shipped defaults.
+        Initialize();
+
+        // [GIVEN] All shipped default source configurations exist
+        QltyInspectionUtility.EnsureAtLeastOneSourceConfigurationExist(true);
+
+        // [GIVEN] A custom source configuration is created
+        CustomCode := CreateCustomSourceConfiguration();
+        LibraryAssert.IsTrue(QltyInspectSourceConfig.Get(CustomCode), 'Custom source configuration should exist before the action is invoked.');
+
+        // [GIVEN] The list page is opened
+        QltyInsSourceConfigList.OpenView();
+
+
+        // [WHEN] Reset all configurations action is invoked and the user confirms (ConfirmHandler)
+        QltyInsSourceConfigList.ResetAllConfigurations.Invoke();
+        QltyInsSourceConfigList.Close();
+
+        // [THEN] The custom source configuration is deleted
+        LibraryAssert.IsFalse(QltyInspectSourceConfig.Get(CustomCode), 'Custom source configuration should be deleted.');
+
+        // [THEN] The shipped default source configurations are recreated
+        LibraryAssert.IsTrue(QltyInspectSourceConfig.Get(ShippedDefaultCodeTok), 'Shipped default should exist after reset all.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
+    procedure QltyInspectSourceConfig_ResetDefaultConfiguration()
+    var
+        QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
+        QltyInspectSourceConfigCard: TestPage "Qlty. Inspect. Source Config.";
+        OriginalDescription: Text[100];
+        ModifiedDescription: Text[100];
+    begin
+        // [SCENARIO] Invoking the Reset default configuration action on the card page resets the shipped default only when the user confirms.
+        Initialize();
+
+        // [GIVEN] All shipped default source configurations exist
+        QltyInspectionUtility.EnsureAtLeastOneSourceConfigurationExist(true);
+
+        // [GIVEN] The description of a shipped default source configuration is modified
+        QltyInspectSourceConfig.Get(ShippedDefaultCodeTok);
+        OriginalDescription := QltyInspectSourceConfig.Description;
+        ModifiedDescription := CopyStr(ModifiedDescriptionTok, 1, MaxStrLen(QltyInspectSourceConfig.Description));
+        QltyInspectSourceConfig.Description := ModifiedDescription;
+        QltyInspectSourceConfig.Modify();
+
+        // [GIVEN] The card page is opened on the shipped default configuration
+        QltyInspectSourceConfigCard.OpenView();
+        QltyInspectSourceConfigCard.GoToRecord(QltyInspectSourceConfig);
+
+
+        // [WHEN] Reset default configuration action is invoked and the user confirms (ConfirmHandler)
+        QltyInspectSourceConfigCard.ResetDefaultConfiguration.Invoke();
+        QltyInspectSourceConfigCard.Close();
+
+        // [THEN] The shipped default's description is reset to its original value
+        QltyInspectSourceConfig.Get(ShippedDefaultCodeTok);
+        LibraryAssert.AreEqual(OriginalDescription, QltyInspectSourceConfig.Description, 'Shipped default description should be reset.');
+    end;
+
+    local procedure CreateCustomSourceConfiguration() CustomCode: Code[20]
+    var
+        QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
+        RandomText: Text;
+    begin
+        QltyInspectionUtility.GenerateRandomCharacters(17, RandomText);
+        CustomCode := CopyStr('CUS' + RandomText, 1, MaxStrLen(QltyInspectSourceConfig.Code));
+        QltyInspectSourceConfig.Init();
+        QltyInspectSourceConfig.Code := CustomCode;
+        QltyInspectSourceConfig.Description := CopyStr('Custom Test Configuration', 1, MaxStrLen(QltyInspectSourceConfig.Description));
+        QltyInspectSourceConfig.Validate("To Type", QltyInspectSourceConfig."To Type"::Inspection);
+        QltyInspectSourceConfig.Insert(true);
     end;
 
     local procedure Initialize()

@@ -161,7 +161,7 @@ codeunit 132905 "User Settings Tests"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestDefaultSettings()
     var
-        UserSettingsRec: Record "User Settings";
+        TempUserSettingsRec: Record "User Settings";
         TenantProfileSettings: Record "Tenant Profile Setting";
         LibraryUserSettings: Codeunit "Library - User Settings";
         UserSettings: Codeunit "User Settings";
@@ -177,14 +177,14 @@ codeunit 132905 "User Settings Tests"
         PermissionsMock.Set('User Settings View');
 
         // [WHEN] GetUSerSettings is called
-        UserSettings.GetUserSettings(UserSecurityId(), UserSettingsRec);
+        UserSettings.GetUserSettings(UserSecurityId(), TempUserSettingsRec);
 
         // [THEN] The default user Settings are populated
-        Assert.AreEqual(UserSecurityId(), UserSettingsRec."User Security ID", 'The current user''s id was expected.');
-        Assert.IsTrue(UserSettingsRec.Initialized, 'The settings should have been initialized.');
-        Assert.AreEqual(CompanyName(), UserSettingsRec.Company, 'Company should match CompanyName (<Blank Company>).');
-        Assert.AreEqual(WorkDate(), UserSettingsRec."Work Date", 'A different work date was expected.');
-        Assert.IsTrue(UserSettingsRec."Teaching Tips", 'Teaching tips should be enabled.');
+        Assert.AreEqual(UserSecurityId(), TempUserSettingsRec."User Security ID", 'The current user''s id was expected.');
+        Assert.IsTrue(TempUserSettingsRec.Initialized, 'The settings should have been initialized.');
+        Assert.AreEqual(CompanyName(), TempUserSettingsRec.Company, 'Company should match CompanyName (<Blank Company>).');
+        Assert.AreEqual(WorkDate(), TempUserSettingsRec."Work Date", 'A different work date was expected.');
+        Assert.IsTrue(TempUserSettingsRec."Teaching Tips", 'Teaching tips should be enabled.');
     end;
 
     [Test]
@@ -192,7 +192,7 @@ codeunit 132905 "User Settings Tests"
     procedure TestDefaultProfileSettings()
     var
         TenantProfileSetting: Record "Tenant Profile Setting";
-        UserSettingsRec: Record "User Settings";
+        TempUserSettingsRec: Record "User Settings";
         LibraryUserSettings: Codeunit "Library - User Settings";
         UserSettings: Codeunit "User Settings";
         AppId: Guid;
@@ -211,41 +211,41 @@ codeunit 132905 "User Settings Tests"
         PermissionsMock.Set('User Settings View');
 
         // [WHEN] GetUSerSettings is called
-        UserSettings.GetUserSettings(UserSecurityId(), UserSettingsRec);
+        UserSettings.GetUserSettings(UserSecurityId(), TempUserSettingsRec);
 
         // [THEN] The blank profile shows
-        Assert.AreEqual('TESTROLECENTER', UserSettingsRec."Profile ID", 'A different profile was expected');
+        Assert.AreEqual('TESTROLECENTER', TempUserSettingsRec."Profile ID", 'A different profile was expected');
         AppId := '23de40a6-dfe8-4f80-80db-d70f83ce8caf';
-        Assert.AreEqual(AppId, UserSettingsRec."App ID", 'A different app id was expected');
-        Assert.AreEqual(UserSettingsRec.Scope::Tenant, UserSettingsRec.Scope, 'A different profile was expected');
+        Assert.AreEqual(AppId, TempUserSettingsRec."App ID", 'A different app id was expected');
+        Assert.AreEqual(TempUserSettingsRec.Scope::Tenant, TempUserSettingsRec.Scope, 'A different profile was expected');
     end;
 
     [Test]
     procedure TestEnableTeachingTips()
     var
-        UserSettingsRec: Record "User Settings";
+        TempUserSettingsRec: Record "User Settings";
         UserSettings: Codeunit "User Settings";
     begin
         // exercise
         UserSettings.EnableTeachingTips(UserSecurityId());
 
         // validate
-        UserSettings.GetUserSettings(UserSecurityId(), UserSettingsRec);
-        Assert.IsTrue(UserSettingsRec."Teaching Tips", 'Teaching Tips should have been enabled.');
+        UserSettings.GetUserSettings(UserSecurityId(), TempUserSettingsRec);
+        Assert.IsTrue(TempUserSettingsRec."Teaching Tips", 'Teaching Tips should have been enabled.');
     end;
 
     [Test]
     procedure TestDisableTeachingTips()
     var
-        UserSettingsRec: Record "User Settings";
+        TempUserSettingsRec: Record "User Settings";
         UserSettings: Codeunit "User Settings";
     begin
         // exercise
         UserSettings.DisableTeachingTips(UserSecurityId());
 
         // validate
-        UserSettings.GetUserSettings(UserSecurityId(), UserSettingsRec);
-        Assert.IsFalse(UserSettingsRec."Teaching Tips", 'Teaching Tips should have been disabled.');
+        UserSettings.GetUserSettings(UserSecurityId(), TempUserSettingsRec);
+        Assert.IsFalse(TempUserSettingsRec."Teaching Tips", 'Teaching Tips should have been disabled.');
     end;
 
     [Test]

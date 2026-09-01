@@ -1,0 +1,96 @@
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Finance.Currency;
+
+/// <summary>
+/// Provides a list interface for managing currency exchange rate records.
+/// Displays historical and current exchange rates for currencies with editing capabilities.
+/// </summary>
+/// <remarks>
+/// Source Table: Currency Exchange Rate. Supports date-effective exchange rate management
+/// and integration with currency setup. Used for maintaining accurate currency conversions
+/// across all business transactions and reporting.
+/// </remarks>
+page 483 "Currency Exchange Rates"
+{
+    Caption = 'Currency Exchange Rates';
+    DataCaptionFields = "Currency Code";
+    PageType = List;
+    SourceTable = "Currency Exchange Rate";
+
+    layout
+    {
+        area(content)
+        {
+            repeater(Control1)
+            {
+                ShowCaption = false;
+                field("Starting Date"; Rec."Starting Date")
+                {
+                    ApplicationArea = Suite;
+                }
+                field("Currency Code"; Rec."Currency Code")
+                {
+                    ApplicationArea = Suite;
+                }
+                field("Relational Currency Code"; Rec."Relational Currency Code")
+                {
+                    ApplicationArea = Suite;
+                }
+                field("Exchange Rate Amount"; Rec."Exchange Rate Amount")
+                {
+                    ApplicationArea = Suite;
+                }
+                field("Relational Exch. Rate Amount"; Rec."Relational Exch. Rate Amount")
+                {
+                    ApplicationArea = Suite;
+                }
+                field("Adjustment Exch. Rate Amount"; Rec."Adjustment Exch. Rate Amount")
+                {
+                    ApplicationArea = Suite;
+                }
+                field("Relational Adjmt Exch Rate Amt"; Rec."Relational Adjmt Exch Rate Amt")
+                {
+                    ApplicationArea = Suite;
+                }
+                field("Fix Exchange Rate Amount"; Rec."Fix Exchange Rate Amount")
+                {
+                    ApplicationArea = Suite;
+                }
+            }
+        }
+        area(factboxes)
+        {
+            systempart(Control1900383207; Links)
+            {
+                ApplicationArea = RecordLinks;
+                Visible = false;
+            }
+            systempart(Control1905767507; Notes)
+            {
+                ApplicationArea = Notes;
+                Visible = false;
+            }
+        }
+    }
+
+    actions
+    {
+    }
+
+    trigger OnInsertRecord(BelowxRec: Boolean): Boolean
+    var
+        CurrExchRate: Record "Currency Exchange Rate";
+    begin
+        CurrExchRate := xRec;
+        if not BelowxRec then begin
+            CurrExchRate.CopyFilters(Rec);
+            if CurrExchRate.Next(-1) <> 0 then
+                Rec.TransferFields(CurrExchRate, false)
+        end else
+            Rec.TransferFields(CurrExchRate, false)
+    end;
+}
+

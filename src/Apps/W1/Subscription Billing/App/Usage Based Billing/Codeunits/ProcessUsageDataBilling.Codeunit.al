@@ -11,6 +11,9 @@ codeunit 8026 "Process Usage Data Billing"
         UsageDataSupplier: Record "Usage Data Supplier";
         DateTimeManagement: Codeunit "Date Time Management";
         ContractItemMgt: Codeunit "Sub. Contracts Item Management";
+        ProgressTracker: Codeunit "Sub. Billing Progress Tracker";
+        ProcessBillingLbl: Label 'Processing usage based billing...';
+        ImportEntryDetailLbl: Label 'Import Entry No. %1', Comment = '%1 = Usage Data Import Entry No.';
         DoesNotExistErr: Label 'No data found for processing step %1.', Comment = '%1=Name of the processing step';
         ProcessServiceCommitmentProcedureNameLbl: Label 'ProcessServiceCommitment', Locked = true;
         UsageBasedPricingOptionNotImplementedErr: Label 'Unknown option %1 for %2.\\Object Type: %3 Object Name: %4, Procedure: %5', Comment = '%1=Format("Calculation Base Type"), %2 = Fieldcaption for "Calculation Base Type", %3 = Object Type, %4 = Object Name, %5 = Procedure Name';
@@ -30,6 +33,8 @@ codeunit 8026 "Process Usage Data Billing"
     var
         UsageDataBilling: Record "Usage Data Billing";
         SubscriptionLineEntryNoList: List of [Integer];
+        Counter: Integer;
+        DetailText: Text;
     begin
         OnBeforeProcessUsageDataBilling(UsageDataImport);
         if UsageDataImport."Processing Status" = Enum::"Processing Status"::Closed then
@@ -46,16 +51,18 @@ codeunit 8026 "Process Usage Data Billing"
                 until UsageDataBilling.Next() = 0;
 
             UsageDataBilling.SetRange(Partner);
+            this.ProgressTracker.StartActivity(ProcessBillingLbl, UsageDataBilling.Count());
+            DetailText := StrSubstNo(ImportEntryDetailLbl, UsageDataImport."Entry No.");
             if UsageDataBilling.FindSet() then
                 repeat
+                    Counter += 1;
+                    this.ProgressTracker.UpdateProgress(Counter, DetailText);
                     if SubscriptionLineEntryNoList.IndexOf(UsageDataBilling."Subscription Line Entry No.") = 0 then begin
                         SubscriptionLineEntryNoList.Add(UsageDataBilling."Subscription Line Entry No.");
                         ProcessServiceCommitment(UsageDataBilling);
                     end;
-
-                    if UsageDataBilling.Partner = "Service Partner"::Customer then
-                        HandleGracePeriod(UsageDataBilling);
                 until UsageDataBilling.Next() = 0;
+            this.ProgressTracker.Finish();
         end else begin
             UsageDataBilling.SetRange("Subscription Contract No.");
             if UsageDataBilling.FindFirst() then begin
@@ -123,9 +130,11 @@ codeunit 8026 "Process Usage Data Billing"
 
             end;
 
-        if UsageDataBilling.Amount <> Round(Amount, Currency."Unit-Amount Rounding Precision") then begin
+        if (UsageDataBilling.Amount <> Round(Amount, Currency."Amount Rounding Precision")) or
+           (UsageDataBilling."Unit Price" <> Round(UnitPrice, Currency."Unit-Amount Rounding Precision"))
+        then begin
             UsageDataBilling."Unit Price" := Round(UnitPrice, Currency."Unit-Amount Rounding Precision");
-            UsageDataBilling.Amount := Round(Amount, Currency."Unit-Amount Rounding Precision");
+            UsageDataBilling.Amount := Round(Amount, Currency."Amount Rounding Precision");
             if UsageDataBilling.Quantity < 0 then
                 UsageDataBilling.Amount *= -1;
             UsageDataBilling.Modify(true);
@@ -163,19 +172,27 @@ codeunit 8026 "Process Usage Data Billing"
             "Usage Based Pricing"::"Usage Quantity":
                 begin
                     NewServiceObjectQuantity := CalculateTotalUsageBillingQuantity(LastUsageDataBilling, UsageDataImport."Entry No.", ServiceCommitment);
-                    UnitCost := CalculateSumCostAmountFromUsageDataBilling(LastUsageDataBilling, UsageDataImport."Entry No.", ServiceCommitment) / NewServiceObjectQuantity;
-                    if ServiceCommitment.IsPartnerCustomer() then
-                        UnitPrice := CalculateSumAmountFromUsageDataBilling(LastUsageDataBilling, UsageDataImport."Entry No.", ServiceCommitment) / NewServiceObjectQuantity;
+                    if NewServiceObjectQuantity <> 0 then begin
+                        UnitCost := CalculateSumCostAmountFromUsageDataBilling(LastUsageDataBilling, UsageDataImport."Entry No.", ServiceCommitment) / NewServiceObjectQuantity;
+                        if ServiceCommitment.IsPartnerCustomer() then
+                            UnitPrice := CalculateSumAmountFromUsageDataBilling(LastUsageDataBilling, UsageDataImport."Entry No.", ServiceCommitment) / NewServiceObjectQuantity;
+                    end else begin
+                        UnitCost := 0;
+                        UnitPrice := 0;
+                    end;
                     if LastUsageDataBilling.Rebilling then
                         NewServiceObjectQuantity += ServiceObject."Quantity";
                 end;
             "Usage Based Pricing"::"Fixed Quantity":
                 ;
             "Usage Based Pricing"::"Unit Cost Surcharge":
-                begin
+                if NewServiceObjectQuantity <> 0 then begin
                     UnitCost := CalculateSumCostAmountFromUsageDataBilling(LastUsageDataBilling, UsageDataImport."Entry No.", ServiceCommitment) / NewServiceObjectQuantity;
                     if ServiceCommitment.IsPartnerCustomer() then
                         UnitPrice := CalculateSumAmountFromUsageDataBilling(LastUsageDataBilling, UsageDataImport."Entry No.", ServiceCommitment) / NewServiceObjectQuantity;
+                end else begin
+                    UnitCost := 0;
+                    UnitPrice := 0;
                 end;
             else begin
                 IsHandled := false;
@@ -272,32 +289,6 @@ codeunit 8026 "Process Usage Data Billing"
         ServiceCommitment.Modify(false);
     end;
 
-    local procedure HandleGracePeriod(var UsageDataBilling: Record "Usage Data Billing")
-    var
-        UsageDataBilling2: Record "Usage Data Billing";
-        ServiceObject: Record "Subscription Header";
-        ServiceCommitment: Record "Subscription Line";
-        CustomerContractLine: Record "Cust. Sub. Contract Line";
-    begin
-        CustomerContractLine.Get(UsageDataBilling."Subscription Contract No.", UsageDataBilling."Subscription Contract Line No.");
-        CustomerContractLine.GetServiceCommitment(ServiceCommitment);
-
-        if not ServiceObject.Get(ServiceCommitment."Subscription Header No.") then
-            exit;
-        if ServiceObject.Quantity <> 0 then
-            exit;
-
-        UsageDataBilling2.SetRange(Partner, UsageDataBilling2.Partner::Customer);
-        UsageDataBilling2.SetRange("Subscription Line Entry No.", UsageDataBilling."Subscription Line Entry No.");
-        UsageDataBilling2.SetRange("Document Type", UsageDataBilling2."Document Type"::"Posted Invoice");
-        if not UsageDataBilling2.IsEmpty then
-            exit;
-
-        UsageDataBilling."Unit Price" := 0;
-        UsageDataBilling.Amount := 0;
-        UsageDataBilling.Modify(false);
-    end;
-
     local procedure GetCustomerContractData(var CustomerContract: Record "Customer Subscription Contract"; var CustomerContractLine: Record "Cust. Sub. Contract Line"; var ServiceCommitment: Record "Subscription Line"; UsageDataBilling: Record "Usage Data Billing")
     begin
         CustomerContract.Get(UsageDataBilling."Subscription Contract No.");
@@ -332,7 +323,9 @@ codeunit 8026 "Process Usage Data Billing"
             Amount := 0;
             exit;
         end;
+        OnBeforeCalculateUsageDataUnitPriceForPeriod(UnitPrice, ServiceCommitment, UsageDataBilling);
         UnitPrice := ServiceCommitment.UnitPriceForPeriod(UsageDataBilling."Charge Start Date", UsageDataBilling."Charge End Date");
+        OnAfterCalculateUsageDataUnitPriceForPeriod(UnitPrice, ServiceCommitment, UsageDataBilling);
         Amount := UnitPrice * Quantity;
     end;
 
@@ -392,9 +385,34 @@ codeunit 8026 "Process Usage Data Billing"
     begin
     end;
 
-
     [IntegrationEvent(false, false)]
     local procedure OnAfterProcessSubscriptionLine(var SubscriptionLine: Record "Subscription Line")
+    begin
+    end;
+
+    /// <summary>
+    /// Raised before UnitPriceForPeriod is called in CalculateUsageDataPrices.
+    /// Passes the UnitPrice that was calculated prior to the period scaling (for example, a tier-calculated
+    /// per-unit price from GetSalesPriceForItem). Subscribers can observe this value and store it for later use.
+    /// No code is skipped - UnitPriceForPeriod always runs after this event.
+    /// </summary>
+    /// <param name="UnitPrice">The unit price before period scaling (read-only for subscribers).</param>
+    /// <param name="ServiceCommitment">The subscription line for the current billing.</param>
+    /// <param name="UsageDataBilling">The usage data billing record for the current period.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCalculateUsageDataUnitPriceForPeriod(UnitPrice: Decimal; var ServiceCommitment: Record "Subscription Line"; var UsageDataBilling: Record "Usage Data Billing")
+    begin
+    end;
+
+    /// <summary>
+    /// Raised after the unit price for the billing period has been calculated via UnitPriceForPeriod.
+    /// Subscribers can override UnitPrice with a custom value (for example, a price from a different source or price list).
+    /// </summary>
+    /// <param name="UnitPrice">The calculated unit price for the period. Subscribers can override this value.</param>
+    /// <param name="ServiceCommitment">The subscription line for the current billing.</param>
+    /// <param name="UsageDataBilling">The usage data billing record for the current period.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCalculateUsageDataUnitPriceForPeriod(var UnitPrice: Decimal; var ServiceCommitment: Record "Subscription Line"; var UsageDataBilling: Record "Usage Data Billing")
     begin
     end;
 }

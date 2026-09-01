@@ -11,8 +11,8 @@ page 37047 "Capacity Variance"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = Manufacturing;
     PageType = UserControlHost;
-    Caption = 'Capacity Variance';
-    AboutTitle = 'About Capacity Variance';
+    Caption = 'Capacity Variance (Power BI)';
+    AboutTitle = 'About Capacity Variance (Power BI)';
     AboutText = 'View your capacity cost variance % viewed over a timeline you can define to see trends. Analyze by each production order and filter by Work Centre to see the detail behind the overall percentages.';
 
     layout
@@ -48,11 +48,8 @@ page 37047 "Capacity Variance"
         ReportPageLbl: Label 'ReportSection6616bf98be16d1636d03', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Manufacturing Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Manufacturing App");
     end;
 }
 

@@ -16,14 +16,17 @@ codeunit 139647 "Shpfy Company Import Test"
     Subtype = Test;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
+    TestHttpRequestPolicy = BlockOutboundRequests;
 
     var
         Shop: Record "Shpfy Shop";
         LibraryAssert: Codeunit "Library Assert";
         LibraryERM: Codeunit "Library - ERM";
         Any: Codeunit Any;
+        OutboundHttpRequests: Codeunit "Library - Variable Storage";
         InitializeTest: Codeunit "Shpfy Initialize Test";
         IsInitialized: Boolean;
+        LocationValues: Dictionary of [Text, Text];
 
     [Test]
     procedure UnitTestFindMappingBetweenCompanyAndCustomer()
@@ -38,7 +41,6 @@ codeunit 139647 "Shpfy Company Import Test"
         // [SCENARIO] Importing a company record that is already mapped to a customer record via email.
         Initialize();
         ShopifyShop := InitializeTest.CreateShop();
-        ShopifyShop."B2B Enabled" := true;
 
         // [GIVEN] Shop, Shopify company and Shopify customer
         CompanyMapping.SetShop(ShopifyShop);
@@ -59,10 +61,10 @@ codeunit 139647 "Shpfy Company Import Test"
     end;
 
     [Test]
+    [HandlerFunctions('CompanyImportHttpHandler')]
     procedure UnitTestImportCompanyWithLocation()
     var
         ShopifyCompany: Record "Shpfy Company";
-        LocationValues: Dictionary of [Text, Text];
         EmptyGuid: Guid;
     begin
         // [SCENARIO] Importing a company with location with defined payment term.
@@ -74,7 +76,7 @@ codeunit 139647 "Shpfy Company Import Test"
         CreateLocationValues(LocationValues);
 
         // [WHEN] Invoke CompanyImport
-        InvokeCompanyImport(ShopifyCompany, LocationValues);
+        InvokeCompanyImport(ShopifyCompany);
 
         // [THEN] Location is created with the correct payment term and all other .
         VerifyShopifyCompanyLocationValues(ShopifyCompany, LocationValues);
@@ -223,13 +225,16 @@ codeunit 139647 "Shpfy Company Import Test"
     end;
 
     local procedure Initialize()
+    var
+        AccessToken: SecretText;
     begin
         Any.SetDefaultSeed();
         if IsInitialized then
             exit;
-        Shop := InitializeTest.CreateShop();
         IsInitialized := true;
-
+        Shop := InitializeTest.CreateShop();
+        AccessToken := Any.AlphanumericText(20);
+        InitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);
         Commit();
     end;
 
@@ -302,53 +307,86 @@ codeunit 139647 "Shpfy Company Import Test"
         TempShopifyCustomer.Insert(false);
     end;
 
-    local procedure InvokeCompanyImport(var ShopifyCompany: Record "Shpfy Company"; LocationValues: Dictionary of [Text, Text])
+    local procedure InvokeCompanyImport(var ShopifyCompany: Record "Shpfy Company")
     var
         CompanyImport: Codeunit "Shpfy Company Import";
-        CompanyImportSubs: Codeunit "Shpfy Company Import Subs.";
     begin
-        BindSubscription(CompanyImportSubs);
-        CompanyImportSubs.SetLocationValues(LocationValues);
+        OutboundHttpRequests.Clear();
+        OutboundHttpRequests.Enqueue('GetCompany');
+        OutboundHttpRequests.Enqueue('GetLocations');
         CompanyImport.SetShop(Shop);
         ShopifyCompany.SetRange("Id", ShopifyCompany.Id);
         CompanyImport.Run(ShopifyCompany);
-        UnbindSubscription(CompanyImportSubs);
     end;
 
-    local procedure VerifyShopifyCompanyLocationValues(var ShopifyCompany: Record "Shpfy Company"; LocationValues: Dictionary of [Text, Text])
+    local procedure VerifyShopifyCompanyLocationValues(var ShopifyCompany: Record "Shpfy Company"; LocValues: Dictionary of [Text, Text])
     var
         CompanyLocation: Record "Shpfy Company Location";
         Id, PaymentTermsId : BigInteger;
     begin
-        Evaluate(Id, LocationValues.Get('id'));
-        Evaluate(PaymentTermsId, LocationValues.Get('paymentTermsTemplateId'));
+        Evaluate(Id, LocValues.Get('id'));
+        Evaluate(PaymentTermsId, LocValues.Get('paymentTermsTemplateId'));
         CompanyLocation.SetRange("Company SystemId", ShopifyCompany.SystemId);
         LibraryAssert.IsTrue(CompanyLocation.FindFirst(), 'Company location does not exist');
         LibraryAssert.AreEqual(Id, CompanyLocation.Id, 'Id not imported');
-        LibraryAssert.AreEqual(LocationValues.Get('address1'), CompanyLocation.Address, 'Address not imported');
-        LibraryAssert.AreEqual(LocationValues.Get('address2'), CompanyLocation."Address 2", 'Address 2 not imported');
-        LibraryAssert.AreEqual(LocationValues.Get('phone'), CompanyLocation."Phone No.", 'Phone No. not imported');
-        LibraryAssert.AreEqual(LocationValues.Get('zip'), CompanyLocation.Zip, 'Zip not imported');
-        LibraryAssert.AreEqual(LocationValues.Get('city'), CompanyLocation.City, 'City not imported');
-        LibraryAssert.AreEqual(LocationValues.Get('countryCode').ToUpper(), CompanyLocation."Country/Region Code", 'Country/Region Code not imported');
-        LibraryAssert.AreEqual(LocationValues.Get('zoneCode').ToUpper(), CompanyLocation."Province Code", 'Province Code not imported');
-        LibraryAssert.AreEqual(LocationValues.Get('province'), CompanyLocation."Province Name", 'Province Name not imported');
+        LibraryAssert.AreEqual(LocValues.Get('address1'), CompanyLocation.Address, 'Address not imported');
+        LibraryAssert.AreEqual(LocValues.Get('address2'), CompanyLocation."Address 2", 'Address 2 not imported');
+        LibraryAssert.AreEqual(LocValues.Get('phone'), CompanyLocation."Phone No.", 'Phone No. not imported');
+        LibraryAssert.AreEqual(LocValues.Get('zip'), CompanyLocation.Zip, 'Zip not imported');
+        LibraryAssert.AreEqual(LocValues.Get('city'), CompanyLocation.City, 'City not imported');
+        LibraryAssert.AreEqual(LocValues.Get('countryCode').ToUpper(), CompanyLocation."Country/Region Code", 'Country/Region Code not imported');
+        LibraryAssert.AreEqual(LocValues.Get('zoneCode').ToUpper(), CompanyLocation."Province Code", 'Province Code not imported');
+        LibraryAssert.AreEqual(LocValues.Get('province'), CompanyLocation."Province Name", 'Province Name not imported');
         LibraryAssert.AreEqual(PaymentTermsId, CompanyLocation."Shpfy Payment Terms Id", 'Payment Terms Id not imported');
-        LibraryAssert.AreEqual(LocationValues.Get('taxRegistrationId'), CompanyLocation."Tax Registration Id", 'Tax Registration id not imported');
+        LibraryAssert.AreEqual(LocValues.Get('taxRegistrationId'), CompanyLocation."Tax Registration Id", 'Tax Registration id not imported');
     end;
 
-    local procedure CreateLocationValues(LocationValues: Dictionary of [Text, Text])
+    local procedure CreateLocationValues(var LocValues: Dictionary of [Text, Text])
     begin
-        LocationValues.Add('id', Format(Any.IntegerInRange(10000, 99999)));
-        LocationValues.Add('address1', Any.AlphanumericText(20));
-        LocationValues.Add('address2', Any.AlphanumericText(20));
-        LocationValues.Add('phone', Format(Any.IntegerInRange(1000, 9999)));
-        LocationValues.Add('zip', Format(Any.IntegerInRange(1000, 9999)));
-        LocationValues.Add('city', Any.AlphanumericText(20));
-        LocationValues.Add('countryCode', Any.AlphanumericText(2));
-        LocationValues.Add('zoneCode', Any.AlphanumericText(2));
-        LocationValues.Add('province', Any.AlphanumericText(20));
-        LocationValues.Add('paymentTermsTemplateId', Format(Any.IntegerInRange(10000, 99999)));
-        LocationValues.Add('taxRegistrationId', Any.AlphanumericText(50));
+        Clear(LocValues);
+        LocValues.Add('id', Format(Any.IntegerInRange(10000, 99999)));
+        LocValues.Add('address1', Any.AlphanumericText(20));
+        LocValues.Add('address2', Any.AlphanumericText(20));
+        LocValues.Add('phone', Format(Any.IntegerInRange(1000, 9999)));
+        LocValues.Add('zip', Format(Any.IntegerInRange(1000, 9999)));
+        LocValues.Add('city', Any.AlphanumericText(20));
+        LocValues.Add('countryCode', Any.AlphanumericText(2));
+        LocValues.Add('zoneCode', Any.AlphanumericText(2));
+        LocValues.Add('province', Any.AlphanumericText(20));
+        LocValues.Add('paymentTermsTemplateId', Format(Any.IntegerInRange(10000, 99999)));
+        LocValues.Add('taxRegistrationId', Any.AlphanumericText(50));
+    end;
+
+    [HttpClientHandler]
+    internal procedure CompanyImportHttpHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        CompanyInitialize: Codeunit "Shpfy Company Initialize";
+        RequestType: Text;
+        ResponseBody: Text;
+        CompanyResponseLbl: Label '{ "data": { "company" :{ "mainContact" : {}, "updatedAt" : "%1" } }}', Locked = true;
+    begin
+        if not InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
+            exit(true);
+
+        if OutboundHttpRequests.Length() = 0 then
+            exit(true);
+
+        RequestType := OutboundHttpRequests.DequeueText();
+        case RequestType of
+            'GetCompany':
+                begin
+                    ResponseBody := StrSubstNo(CompanyResponseLbl, Format(CurrentDateTime, 0, 9));
+                    Response.Content.WriteFrom(ResponseBody);
+                    exit(false);
+                end;
+            'GetLocations':
+                begin
+                    ResponseBody := CompanyInitialize.CreateLocationResponse(LocationValues);
+                    Response.Content.WriteFrom(ResponseBody);
+                    exit(false);
+                end;
+        end;
+
+        exit(true);
     end;
 }

@@ -11,8 +11,8 @@ page 37101 "Sales Decomposition"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Sales Decomposition';
-    AboutTitle = 'About Sales Decomposition';
+    Caption = 'Sales Decomposition (Power BI)';
+    AboutTitle = 'About Sales Decomposition (Power BI)';
     AboutText = 'The Sales Decomposition report breaks down sales metrics into its key contributing components to help users understand what is driving changes in sales and why.';
 
     layout
@@ -48,11 +48,8 @@ page 37101 "Sales Decomposition"
         ReportPageLbl: Label '3da0bb1d844d8c019741', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Sales Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Sales App");
     end;
 }
 

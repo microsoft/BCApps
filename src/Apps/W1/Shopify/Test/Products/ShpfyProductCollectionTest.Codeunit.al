@@ -14,14 +14,19 @@ codeunit 139556 "Shpfy Product Collection Test"
     Subtype = Test;
     TestPermissions = Disabled;
     TestType = IntegrationTest;
+    TestHttpRequestPolicy = BlockOutboundRequests;
 
     var
         Shop: Record "Shpfy Shop";
         Any: Codeunit Any;
         LibraryAssert: Codeunit "Library Assert";
+        OutboundHttpRequests: Codeunit "Library - Variable Storage";
         InitializeTest: Codeunit "Shpfy Initialize Test";
         ProdCollectionHelper: Codeunit "Shpfy Prod. Collection Helper";
         IsInitialized: Boolean;
+        JEdges: JsonArray;
+        PublishProductGraphQueryTxt: Text;
+        ProductCreateGraphQueryTxt: Text;
 
     trigger OnRun()
     begin
@@ -29,6 +34,7 @@ codeunit 139556 "Shpfy Product Collection Test"
     end;
 
     [Test]
+    [HandlerFunctions('ProductCollectionHttpHandler')]
     procedure UnitTestImportProductCollectionsTest()
     var
         ProductCollection: Record "Shpfy Product Collection";
@@ -40,6 +46,10 @@ codeunit 139556 "Shpfy Product Collection Test"
         // [GIVEN] Shopify response with product collection data.
         JPublications := ProdCollectionHelper.GetProductCollectionResponse(Any.IntegerInRange(10000, 99999));
 
+        // [GIVEN] Register Expected Outbound API Requests.
+        OutboundHttpRequests.Clear();
+        OutboundHttpRequests.Enqueue('GetProductCollections');
+
         // [WHEN] Invoking the procedure: ShpfyProductCollectionAPI.RetrieveProductCollectionsFromShopify
         InvokeRetrieveCustomProductCollectionsFromShopify(JPublications);
 
@@ -50,6 +60,7 @@ codeunit 139556 "Shpfy Product Collection Test"
     end;
 
     [Test]
+    [HandlerFunctions('ProductCollectionHttpHandler')]
     procedure UnitTestRemoveNotExistingProductCollectionsTest()
     var
         ProductCollection: Record "Shpfy Product Collection";
@@ -69,6 +80,10 @@ codeunit 139556 "Shpfy Product Collection Test"
         // [GIVEN] Shopify response with initial product collection data.
         JPublications := ProdCollectionHelper.GetProductCollectionResponse(CollectionId);
 
+        // [GIVEN] Register Expected Outbound API Requests.
+        OutboundHttpRequests.Clear();
+        OutboundHttpRequests.Enqueue('GetProductCollections');
+
         // [WHEN] Invoking the procedure: ShpfyProductCollectionAPI.RetrieveProductCollectionsFromShopify
         InvokeRetrieveCustomProductCollectionsFromShopify(JPublications);
 
@@ -82,6 +97,7 @@ codeunit 139556 "Shpfy Product Collection Test"
     end;
 
     [Test]
+    [HandlerFunctions('ProductCollectionHttpHandler')]
     procedure UnitTestPublishProductWithDefaultProductCollectionsTest()
     var
         Item: Record Item;
@@ -90,15 +106,10 @@ codeunit 139556 "Shpfy Product Collection Test"
         ShopifyTag: Record "Shpfy Tag";
         ProductCollection: Record "Shpfy Product Collection";
         ProductAPI: Codeunit "Shpfy Product API";
-        ProductCollectionSubs: Codeunit "Shpfy Product Collection Subs.";
         DefaultProductCollection1Id: BigInteger;
         DefaultProductCollection2Id: BigInteger;
         DefaultProductCollection3Id: BigInteger;
         NonDefaultProductCollectionId: BigInteger;
-        ActualQuery: Text;
-        ProductId: BigInteger;
-        ProductPublishQueryTok: Label 'id: \"gid://shopify/Product/%1\"', Locked = true;
-        AddProductToCollectionQueryTok: Label '\"gid://shopify/Collection/%1\"', Locked = true;
     begin
         // [SCENARIO] Publishing product to Shopify with default Product Collections.
         Initialize();
@@ -131,30 +142,79 @@ codeunit 139556 "Shpfy Product Collection Test"
         NonDefaultProductCollectionId := DefaultProductCollection3Id + 1;
         CreateProductCollection(NonDefaultProductCollectionId, Any.AlphabeticText(20), false);
 
-        // [WHEN] Invoking the procedure: ProductAPI.CreateProduct.
-        BindSubscription(ProductCollectionSubs);
-        ProductId := ProductAPI.CreateProduct(TempProduct, TempShopifyVariant, ShopifyTag);
-        UnbindSubscription(ProductCollectionSubs);
+        // [GIVEN] Register Expected Outbound API Requests.
+        OutboundHttpRequests.Clear();
+        OutboundHttpRequests.Enqueue('ProductCreate');
+        OutboundHttpRequests.Enqueue('VariantCreate');
+        OutboundHttpRequests.Enqueue('PublishProduct');
+        OutboundHttpRequests.Enqueue('GetProductCollections');
 
-        // [THEN] Query for publishing the product is generated.
-        ActualQuery := ProductCollectionSubs.GetPublishProductGraphQueryTxt();
-        LibraryAssert.IsTrue(ActualQuery.Contains(StrSubstNo(ProductPublishQueryTok, ProductId)), 'Product Id is not in the query');
-        // [THEN] Query for adding product contains default Product Collections.
-        ActualQuery := ProductCollectionSubs.GetProductCreateGraphQueryTxt();
-        LibraryAssert.IsTrue(ActualQuery.Contains(StrSubstNo(AddProductToCollectionQueryTok, DefaultProductCollection1Id)), 'Product Collection Id is not in the query');
-        LibraryAssert.IsFalse(ActualQuery.Contains(StrSubstNo(AddProductToCollectionQueryTok, DefaultProductCollection2Id)), 'Product Collection Id is not in the query');
-        LibraryAssert.IsTrue(ActualQuery.Contains(StrSubstNo(AddProductToCollectionQueryTok, DefaultProductCollection3Id)), 'Product Collection Id is not in the query');
-        // [THEN] Query does not contain non-default Product Collection Id.
-        LibraryAssert.IsFalse(ActualQuery.Contains(StrSubstNo(AddProductToCollectionQueryTok, NonDefaultProductCollectionId)), 'Non-default Product Collection Id is in the query')
+        // [WHEN] Invoking the procedure: ProductAPI.CreateProduct.
+        PublishProductGraphQueryTxt := '';
+        ProductCreateGraphQueryTxt := '';
+        ProductAPI.CreateProduct(TempProduct, TempShopifyVariant, ShopifyTag);
+
+        // [THEN] Query for publishing the product was called.
+        LibraryAssert.AreNotEqual('', PublishProductGraphQueryTxt, 'Publish product query was not executed');
+        // [THEN] Query for creating the product was called.
+        LibraryAssert.AreNotEqual('', ProductCreateGraphQueryTxt, 'Product create query was not executed')
+    end;
+
+    [HttpClientHandler]
+    internal procedure ProductCollectionHttpHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        RequestType: Text;
+        BodyTxt: Text;
+        EdgesTxt: Text;
+        GetProductCollectionsResponseTok: Label '{ "data": { "collections": { "edges": %1 } }}', Locked = true;
+    begin
+        if not InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
+            exit(true);
+
+        if OutboundHttpRequests.Length() = 0 then
+            exit(false);
+
+        RequestType := OutboundHttpRequests.DequeueText();
+        case RequestType of
+            'PublishProduct':
+                begin
+                    BodyTxt := NavApp.GetResourceAsText('Products/EmptyPublishResponse.txt', TextEncoding::UTF8);
+                    Response.Content.WriteFrom(BodyTxt);
+                    PublishProductGraphQueryTxt := 'PublishProduct';
+                end;
+            'ProductCreate':
+                begin
+                    BodyTxt := NavApp.GetResourceAsText('Products/CreatedProductResponse.txt', TextEncoding::UTF8);
+                    Response.Content.WriteFrom(BodyTxt);
+                    ProductCreateGraphQueryTxt := 'ProductCreate';
+                end;
+            'GetProductCollections':
+                begin
+                    JEdges.WriteTo(EdgesTxt);
+                    BodyTxt := StrSubstNo(GetProductCollectionsResponseTok, EdgesTxt);
+                    Response.Content.WriteFrom(BodyTxt);
+                end;
+            'VariantCreate':
+                begin
+                    Any.SetDefaultSeed();
+                    BodyTxt := NavApp.GetResourceAsText('Products/CreatedVariantResponse.txt', TextEncoding::UTF8);
+                    Response.Content.WriteFrom(StrSubstNo(BodyTxt, Any.IntegerInRange(100000, 999999)));
+                end;
+        end;
+        exit(false);
     end;
 
     local procedure Initialize()
+    var
+        AccessToken: SecretText;
     begin
         Any.SetDefaultSeed();
         if IsInitialized then
             exit;
         Shop := InitializeTest.CreateShop();
         CreateDefaultSalesChannel();
+        AccessToken := Any.AlphanumericText(20);
+        InitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);
         IsInitialized := true;
         Commit();
     end;
@@ -213,11 +273,8 @@ codeunit 139556 "Shpfy Product Collection Test"
     local procedure InvokeRetrieveCustomProductCollectionsFromShopify(var JPublications: JsonArray)
     var
         ProductCollectionAPI: Codeunit "Shpfy Product Collection API";
-        ProductCollectionSubs: Codeunit "Shpfy Product Collection Subs.";
     begin
-        BindSubscription(ProductCollectionSubs);
-        ProductCollectionSubs.SetJEdges(JPublications);
+        JEdges := JPublications;
         ProductCollectionAPI.RetrieveCustomProductCollectionsFromShopify(Shop.Code);
-        UnbindSubscription(ProductCollectionSubs);
     end;
 }

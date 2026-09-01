@@ -1,0 +1,72 @@
+[
+  {
+    "codeunitId": 148005,
+    "codeunitName": "C5 Item Migrator Test",
+    "method": "TestC5ItemMigration"
+  },
+  {
+    "codeunitId": 148005,
+    "codeunitName": "C5 Item Migrator Test",
+    "method": "TestC5ItemMigrationWithLocation"
+  },
+  {
+    "codeunitId": 148005,
+    "codeunitName": "C5 Item Migrator Test",
+    "method": "TestC5ItemMigrationWithoutMigratingVendors"
+  },
+  {
+    "codeunitId": 148006,
+    "codeunitName": "C5 Data Loader Tests",
+    "method": "TestOnFailToUnzipFile"
+  },
+  {
+    "codeunitId": 148006,
+    "codeunitName": "C5 Data Loader Tests",
+    "method": "TestStagingTablesLoadingForAccountsOnly"
+  },
+  {
+    "codeunitId": 148006,
+    "codeunitName": "C5 Data Loader Tests",
+    "method": "TestStagingTablesLoadingForAllMasterData"
+  },
+  {
+    "codeunitId": 148006,
+    "codeunitName": "C5 Data Loader Tests",
+    "method": "TestStagingTablesLoadingForCustomersOnly"
+  },
+  {
+    "codeunitId": 148006,
+    "codeunitName": "C5 Data Loader Tests",
+    "method": "TestStagingTablesLoadingForHistoryOnly"
+  },
+  {
+    "codeunitId": 148006,
+    "codeunitName": "C5 Data Loader Tests",
+    "method": "TestStagingTablesLoadingForItemsOnly"
+  },
+  {
+    "codeunitId": 148006,
+    "codeunitName": "C5 Data Loader Tests",
+    "method": "TestStagingTablesLoadingForVendorsOnly"
+  },
+  {
+    "codeunitId": 148007,
+    "codeunitName": "C5 Schema Reader Tests",
+    "method": "TestFilesAreIncludedInSubfolder"
+  },
+  {
+    "codeunitId": 148007,
+    "codeunitName": "C5 Schema Reader Tests",
+    "method": "TestFilesAreMissingFromTheZip"
+  },
+  {
+    "codeunitId": 148007,
+    "codeunitName": "C5 Schema Reader Tests",
+    "method": "TestProcessZipFile"
+  },
+  {
+    "codeunitId": 148007,
+    "codeunitName": "C5 Schema Reader Tests",
+    "method": "TestZipFileMissing"
+  }
+]

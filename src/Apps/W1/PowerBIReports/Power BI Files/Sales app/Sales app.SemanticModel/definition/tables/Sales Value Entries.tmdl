@@ -12,7 +12,7 @@ table 'Sales Value Entries'
 			CALCULATE
 			    (
 			        DISTINCTCOUNT('Sales Value Entries'[Document No.]),
-			        'Sales Value Entries'[Document Type] = "Sales Invoice"
+			        'Sales Value Entries'[Document Type] = "Posted Sales Invoice"
 			        )
 		formatString: #,0
 		displayFolder: _Sales Value Entry Measures\_Counters

@@ -23,6 +23,8 @@ page 8893 "Email Scenario Setup"
     ModifyAllowed = false;
     SourceTable = "Email Account Scenario";
     InstructionalText = 'Assign email scenarios';
+    AboutTitle = 'About Email Scenario Assignment';
+    AboutText = 'Email scenarios define which email account is used when Business Central sends documents or notifications, such as sales orders, purchase documents, or invitations. Assign scenarios to ensure the right sender is used for each process—any scenario not assigned uses the default email account. You can also define default attachments that are automatically added when emails are created for a scenario.';
 
     layout
     {
@@ -76,7 +78,7 @@ page 8893 "Email Scenario Setup"
 
                     trigger OnAction()
                     begin
-                        SelectedEmailAccountScenario := Rec;
+                        TempSelectedEmailAccountScenario := Rec;
                         EmailScenarioImpl.AddScenarios(Rec);
 
                         EmailScenarioImpl.GetScenariosByEmailAccount(Rec);
@@ -104,7 +106,7 @@ page 8893 "Email Scenario Setup"
                     trigger OnAction()
                     begin
                         CurrPage.SetSelectionFilter(Rec);
-                        SelectedEmailAccountScenario := Rec;
+                        TempSelectedEmailAccountScenario := Rec;
 
                         EmailScenarioImpl.ChangeAccount(Rec);
                         EmailScenarioImpl.GetScenariosByEmailAccount(Rec); // refresh the data on the page
@@ -129,7 +131,7 @@ page 8893 "Email Scenario Setup"
                     trigger OnAction()
                     begin
                         CurrPage.SetSelectionFilter(Rec);
-                        SelectedEmailAccountScenario := Rec;
+                        TempSelectedEmailAccountScenario := Rec;
 
                         EmailScenarioImpl.DeleteScenario(Rec);
                         EmailScenarioImpl.GetScenariosByEmailAccount(Rec); // refresh the data on the page
@@ -204,12 +206,12 @@ page 8893 "Email Scenario Setup"
 
     local procedure SetSelectedRecord()
     begin
-        if not Rec.Get(SelectedEmailAccountScenario.Scenario, SelectedEmailAccountScenario."Account Id", SelectedEmailAccountScenario.Connector) then
+        if not Rec.Get(TempSelectedEmailAccountScenario.Scenario, TempSelectedEmailAccountScenario."Account Id", TempSelectedEmailAccountScenario.Connector) then
             if Rec.FindFirst() then;
     end;
 
     var
-        SelectedEmailAccountScenario: Record "Email Account Scenario";
+        TempSelectedEmailAccountScenario: Record "Email Account Scenario";
         EmailScenarioImpl: Codeunit "Email Scenario Impl.";
         EmailAccountImpl: Codeunit "Email Account Impl.";
         EmailAccountId: Guid;

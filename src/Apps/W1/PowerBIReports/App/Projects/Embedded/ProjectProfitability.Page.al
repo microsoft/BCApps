@@ -11,8 +11,8 @@ page 37035 "Project Profitability"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Project Profitability';
-    AboutTitle = 'About Project Profitability';
+    Caption = 'Project Profitability (Power BI)';
+    AboutTitle = 'About Project Profitability (Power BI)';
     AboutText = 'The Project Profitability report displays key metrics such as Actuals and Budgeted KPIs, compares actual profit to the initial profit target, and includes a table view of project ledger entries by type.';
 
     layout
@@ -48,11 +48,8 @@ page 37035 "Project Profitability"
         ReportPageLbl: Label 'ReportSection16f4a9483133b8db3e12', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Projects Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Projects App");
     end;
 }
 

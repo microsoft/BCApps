@@ -104,15 +104,15 @@ page 8897 "Email Scenario Attach Setup"
                 trigger OnAction()
                 var
                     EmailScenarioAttachments: Record "Email Scenario Attachments";
-                    SelectedScenarios: Record "Email Account Scenario";
+                    TempSelectedScenarios: Record "Email Account Scenario";
                     FeatureTelemetry: Codeunit "Feature Telemetry";
                     ScenariosForAccount: Page "Email Scenarios for Account";
                 begin
                     ScenariosForAccount.SetIncludeDefaultEmailScenario(true);
                     ScenariosForAccount.LookupMode(true);
                     if ScenariosForAccount.RunModal() = Action::LookupOK then begin
-                        ScenariosForAccount.GetSelectedScenarios(SelectedScenarios);
-                        EmailScenarioAttachmentsImpl.AddAttachmentToScenarios(EmailScenarioAttachments, Rec, SelectedScenarios);
+                        ScenariosForAccount.GetSelectedScenarios(TempSelectedScenarios);
+                        EmailScenarioAttachmentsImpl.AddAttachmentToScenarios(EmailScenarioAttachments, Rec, TempSelectedScenarios);
                         Rec.SetCurrentKey(Scenario, "Attachment Name");
                         FeatureTelemetry.LogUptake('0000IQR', 'Email Default Attachments', Enum::"Feature Uptake Status"::"Set up");
                     end;

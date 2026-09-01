@@ -11,6 +11,9 @@ page 8041 "Usage Data Imports"
     LinksAllowed = false;
     RefreshOnActivate = true;
     DataCaptionFields = "Supplier No.";
+    AdditionalSearchTerms = 'Usage Data Import, Import Usage, Process Usage, Usage Billing, Usage Data Processing, Import Reconciliation';
+    AboutTitle = 'About Usage Data Imports';
+    AboutText = 'This page is the starting point for processing and subsequently billing of usage data. Each import belongs to a Usage Data Supplier. Start a new processing by importing a new reconciliation file, for example, and then process it before generating the invoices.';
     layout
     {
         area(content)
@@ -64,14 +67,28 @@ page 8041 "Usage Data Imports"
                 {
                     ToolTip = 'Specifies the number of files of the raw data.';
                 }
-                field("No. of Imported Lines"; Rec."No. of Imported Lines")
+                field("No. of Imported Lines"; ImportedLineCount)
                 {
+                    Caption = 'No. of Imported Lines';
                     ToolTip = 'Specifies the number of Imported Lines.';
+                    Editable = false;
+
+                    trigger OnDrillDown()
+                    begin
+                        DrillDownImportedLines(false);
+                    end;
                 }
-                field("No. of Imported Line Errors"; Rec."No. of Imported Line Errors")
+                field("No. of Imported Line Errors"; ImportedLineErrorCount)
                 {
+                    Caption = 'No. of Imported Line Errors';
                     ToolTip = 'Specifies the number of errors during the creation and processing of Imported Lines.';
                     StyleExpr = LineErrorNumberStyleExpr;
+                    Editable = false;
+
+                    trigger OnDrillDown()
+                    begin
+                        DrillDownImportedLines(true);
+                    end;
                 }
                 field("No. of Usage Data Billing"; Rec."No. of Usage Data Billing")
                 {
@@ -142,13 +159,10 @@ page 8041 "Usage Data Imports"
                 trigger OnAction()
                 var
                     UsageDataImport: Record "Usage Data Import";
-                    GenericImportSettings: Record "Generic Import Settings";
                 begin
                     CurrPage.SetSelectionFilter(UsageDataImport);
                     Rec.TestField("Supplier No.");
-                    GenericImportSettings.Get(Rec."Supplier No.");
-                    if not GenericImportSettings."Process without UsageDataBlobs" then
-                        Rec.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Create Imported Lines");
+                    Rec.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Create Imported Lines");
                     Rec.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Imported Lines");
                     Rec.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Create Usage Data Billing");
                     Rec.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
@@ -395,6 +409,7 @@ page 8041 "Usage Data Imports"
 
     trigger OnAfterGetRecord()
     begin
+        CalculateImportedLineCounts();
         SetStyleExprIfProcessingStatusIsError();
         SetRelatedDocumentsVisibility();
     end;
@@ -417,17 +432,44 @@ page 8041 "Usage Data Imports"
             ProcessingStatusStyleExpr := 'Attention';
             IsProcessingStatusError := true;
         end;
-        Rec.CalcFields("No. of Imported Line Errors", "No. of UD Billing Errors");
-        if Rec."No. of Imported Line Errors" <> 0 then
+        if ImportedLineErrorCount <> 0 then
             LineErrorNumberStyleExpr := 'Unfavorable';
+        Rec.CalcFields("No. of UD Billing Errors");
         if Rec."No. of UD Billing Errors" <> 0 then
             BillingErrorNumberStyleExpr := 'Unfavorable';
+    end;
+
+    local procedure CalculateImportedLineCounts()
+    var
+        UsageDataSupplier: Record "Usage Data Supplier";
+        UsageDataProcessing: Interface "Usage Data Processing";
+    begin
+        ImportedLineCount := 0;
+        ImportedLineErrorCount := 0;
+        if UsageDataSupplier.Get(Rec."Supplier No.") then begin
+            UsageDataProcessing := UsageDataSupplier.Type;
+            ImportedLineCount := UsageDataProcessing.GetImportedLineCount(Rec, false);
+            ImportedLineErrorCount := UsageDataProcessing.GetImportedLineCount(Rec, true);
+        end;
+    end;
+
+    local procedure DrillDownImportedLines(ShowOnlyErrors: Boolean)
+    var
+        UsageDataSupplier: Record "Usage Data Supplier";
+        UsageDataProcessing: Interface "Usage Data Processing";
+    begin
+        if UsageDataSupplier.Get(Rec."Supplier No.") then begin
+            UsageDataProcessing := UsageDataSupplier.Type;
+            UsageDataProcessing.ShowImportedLines(Rec, ShowOnlyErrors);
+        end;
     end;
 
     var
         DocumentType: Option Contract,"Contract Invoices","Posted Contract Invoices";
         UsageBasedBillingExists: Boolean;
         IsProcessingStatusError: Boolean;
+        ImportedLineCount: Integer;
+        ImportedLineErrorCount: Integer;
         ProcessingStatusStyleExpr: Text;
         LineErrorNumberStyleExpr: Text;
         BillingErrorNumberStyleExpr: Text;

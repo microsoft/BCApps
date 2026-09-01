@@ -16,7 +16,7 @@ page 6106 "Outbound E-Documents"
     PageType = List;
     RefreshOnActivate = true;
     Editable = false;
-    DeleteAllowed = false;
+    DeleteAllowed = true;
     InsertAllowed = false;
     SourceTableView = sorting("Entry No") order(descending) where(Direction = const(Direction::Outgoing));
 
@@ -98,13 +98,4 @@ page 6106 "Outbound E-Documents"
             actionref(Promoted_EDocumentServices; EDocumentServices) { }
         }
     }
-
-    trigger OnOpenPage()
-    var
-        EDocumentsSetup: Record "E-Documents Setup";
-    begin
-        if not EDocumentsSetup.IsNewEDocumentExperienceActive() then
-            Error('');
-    end;
-
 }

@@ -7,8 +7,8 @@ page 8112 "Customer Deferrals Power BI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Customer Deferrals';
-    AboutTitle = 'About Customer Deferrals';
+    Caption = 'Customer Deferrals (Power BI)';
+    AboutTitle = 'About Customer Deferrals (Power BI)';
     AboutText = 'The Customer Deferrals report provides an overview of deferred vs. released subscription sales amount.';
 
     layout
@@ -44,17 +44,8 @@ page 8112 "Customer Deferrals Power BI"
         ReportPageLbl: Label 'dcb80fad15d5002bc00d', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-#if not CLEAN28
-#pragma warning disable AL0801
-#endif
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Subscription Billing Report Id"));
-#if not CLEAN28
-#pragma warning restore AL0801
-#endif
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Subscription Billing App");
     end;
 }
 

@@ -1,0 +1,39 @@
+{
+	"value": [
+		{
+			"id": "a0a0a0a0-b1b1-c2c2-d3d3-e4e4e4e4e4e4",
+			"registrationType": "Full",
+			"registrationData": {
+				"jurisdiction": "GB",
+				"schemeId": "VAT",
+				"identifier": "GB777777771",
+				"fullAuthorityNetworkValue": "PEPPOL"
+			},
+			"status": {
+				"code": "Completed",
+				"message": "Activation completed successfully"
+			},
+			"company": {
+				"displayName": "Test Company",
+				"location": "GB",
+				"identifier": "comp-001"
+			},
+			"meta": {
+				"lastModified": "2024-08-16T12:00:00Z",
+				"location": "/activations/a0a0a0a0"
+			},
+			"mandates": [
+				{
+					"countryMandate": "GB-B2B-PEPPOL",
+					"countryCode": "GB",
+					"mandateType": "B2B"
+				},
+				{
+					"countryMandate": "GB-B2G-PEPPOL",
+					"countryCode": "GB",
+					"mandateType": "B2G"
+				}
+			]
+		}
+	]
+}

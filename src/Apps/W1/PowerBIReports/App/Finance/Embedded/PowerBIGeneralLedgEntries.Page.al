@@ -11,8 +11,8 @@ page 36995 "PowerBI General Ledg. Entries"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'General Ledger Entries';
-    AboutTitle = 'About General Ledger Entries';
+    Caption = 'General Ledger Entries (Power BI)';
+    AboutTitle = 'About General Ledger Entries (Power BI)';
     AboutText = 'The General Ledger Entries report provides granular detail about the entries posted to the general ledger. ';
 
     layout
@@ -48,11 +48,8 @@ page 36995 "PowerBI General Ledg. Entries"
         ReportPageLbl: Label 'ReportSectionfdc853c4230265e530cc', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Finance Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Finance App");
     end;
 }
 

@@ -17,7 +17,6 @@ using Microsoft.QualityManagement.Integration.Inventory;
 using Microsoft.QualityManagement.Integration.Manufacturing;
 using Microsoft.QualityManagement.Integration.Receiving;
 using Microsoft.QualityManagement.Integration.Warehouse;
-using Microsoft.QualityManagement.Setup.ApplicationAreas;
 using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Worksheet;
 using System.Apps;
@@ -28,6 +27,7 @@ table 20400 "Qlty. Management Setup"
     Caption = 'Quality Management Setup';
     DrillDownPageId = "Qlty. Management Setup";
     DataClassification = CustomerContent;
+    Permissions = tabledata "Qlty. Management Setup" = r;
 
     fields
     {
@@ -39,12 +39,13 @@ table 20400 "Qlty. Management Setup"
         {
             Caption = 'Quality Inspection Nos.';
             TableRelation = "No. Series";
-            ToolTip = 'Specifies the default number series for quality inspection documents used when there isn''t a number series defined on the quality inspection template.';
+            ToolTip = 'Specifies the default number series for quality inspection documents.';
         }
         field(4; "Inspection Creation Option"; Enum "Qlty. Inspect. Creation Option")
         {
             Caption = 'Inspection Creation Option';
-            ToolTip = 'Specifies whether and how a new quality inspection is created if existing inspections are found.';
+            ToolTip = 'Specifies handling of inspection creation when existing inspections are found.';
+            InitValue = "Use existing open inspection if available";
         }
         field(5; "Inspection Search Criteria"; Enum "Qlty. Inspect. Search Criteria")
         {
@@ -95,7 +96,7 @@ table 20400 "Qlty. Management Setup"
         field(27; "Additional Picture Handling"; Enum "Qlty. Add. Picture Handling")
         {
             Caption = 'Additional Picture Handling';
-            ToolTip = 'Specifies what to do with a picture after it has been taken.';
+            ToolTip = 'Specifies additional actions for pictures taken during inspections. By default, pictures are stored in the inspection, and only the most recent version is retained. Previous versions can be preserved with additional options.';
 
             trigger OnValidate()
             begin
@@ -106,6 +107,7 @@ table 20400 "Qlty. Management Setup"
         {
             Caption = 'Quality Inspection Selection Criteria';
             ToolTip = 'Specifies the checks the system uses to decide if a document-specific transaction should be blocked.';
+            InitValue = "Only the newest inspection/re-inspection";
         }
         field(29; "Warehouse Trigger"; Enum "Qlty. Warehouse Trigger")
         {
@@ -126,32 +128,6 @@ table 20400 "Qlty. Management Setup"
                     if (not QltyInspectionGenRule.IsEmpty()) and GuiAllowed() then
                         if Confirm(StrSubstNo(ConfirmExistingRulesQst, QltyInspectionGenRule.Count(), xRec."Warehouse Trigger", Rec."Warehouse Trigger")) then
                             QltyInspectionGenRule.ModifyAll("Warehouse Movement Trigger", Rec."Warehouse Trigger", false);
-                end;
-            end;
-        }
-        field(70; "Visibility"; Enum "Qlty. Management Visibility")
-        {
-            Caption = 'Visibility';
-            ToolTip = 'Specifies the application area setting that shows or hides the Quality Management.';
-            DataClassification = SystemMetadata;
-
-            trigger OnValidate()
-            var
-                QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-            begin
-                if Rec.Visibility <> Rec.Visibility::Hide then
-                    exit;
-
-                QltyInspectionGenRule.SetFilter("Activation Trigger", '<>%1', QltyInspectionGenRule."Activation Trigger"::Disabled);
-                if QltyInspectionGenRule.IsEmpty() then
-                    exit;
-
-                if not GuiAllowed() then
-                    exit;
-
-                if Confirm(ShouldDisableInspectionGenerationRulesQst) then begin
-                    QltyInspectionGenRule.ModifyAll("Activation Trigger", QltyInspectionGenRule."Activation Trigger"::Disabled);
-                    Message(InspectionGenerationRulesHaveBeenDisabledMsg);
                 end;
             end;
         }
@@ -328,8 +304,6 @@ table 20400 "Qlty. Management Setup"
             var
                 QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
             begin
-                SanityCheckReceiveSettings();
-
                 if (Rec."Warehouse Receipt Trigger" <> xRec."Warehouse Receipt Trigger") and (xRec."Warehouse Receipt Trigger" <> xRec."Warehouse Receipt Trigger"::NoTrigger) then begin
                     QltyInspectionGenRule.SetRange(Intent, QltyInspectionGenRule.Intent::"Warehouse Receipt");
                     QltyInspectionGenRule.SetRange("Warehouse Receipt Trigger", xRec."Warehouse Receipt Trigger");
@@ -410,6 +384,20 @@ table 20400 "Qlty. Management Setup"
                 end;
             end;
         }
+        field(102; "Checklist Items Registered"; Boolean)
+        {
+            Caption = 'Checklist Items Registered';
+            ToolTip = 'Specifies whether the guided experience checklist items have been registered. This is used internally to track setup completion.';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(103; "Guided Experience Registered"; Boolean)
+        {
+            Caption = 'Guided Experience Items Registered';
+            ToolTip = 'Specifies whether the guided experience items (tours, features, links) have been registered. This is used internally to track setup completion.';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
     }
 
     keys
@@ -422,22 +410,14 @@ table 20400 "Qlty. Management Setup"
 
     var
         RecordHasBeenRead: Boolean;
-        ShouldDisableInspectionGenerationRulesQst: Label 'Changing the visibility to be off should be accompanied by disabling the inspection generation rules. Do you want to disable your current enabled generation rules?';
-        InspectionGenerationRulesHaveBeenDisabledMsg: Label 'All inspection generation rules have been disabled.';
         ConfirmExistingRulesQst: Label 'You have %1 existing generation rules that used the "%2" setting. Do you want to change those to be "%3"?', Comment = '%1=the count, %2=the old setting, %3=the new setting.';
         BatchNotFoundErr: Label 'The batch name "%1" was not found. Confirm that the batch name is correct.', Comment = '%1=the batch name';
         WorksheetNameNotFoundErr: Label 'The worksheet name "%1" was not found. Confirm that the worksheet name is correct.', Comment = '%1=the worksheet name';
         OneDriveIntegrationNotConfiguredErr: Label 'The Quality Management Setup has been configured to upload pictures to OneDrive, however you have not yet configured Business Central to work with . Please configure OneDrive setup with Business Central first before using this feature.';
 
-    internal procedure SanityCheckReceiveSettings()
-    var
-        Handled: Boolean;
-    begin
-        OnBeforeValidateQualityManagementSettings(xRec, Rec, Handled);
-        if Handled then
-            exit;
-    end;
-
+    /// <summary>
+    /// Verifies that document service integration is configured when pictures are uploaded to OneDrive.
+    /// </summary>
     internal procedure SanityCheckPictureAndCameraSettings()
     var
         DocumentServiceManagement: Codeunit "Document Service Management";
@@ -449,11 +429,19 @@ table 20400 "Qlty. Management Setup"
             Error(OneDriveIntegrationNotConfiguredErr);
     end;
 
+    /// <summary>
+    /// Gets the application identifier for Quality Management.
+    /// </summary>
+    /// <returns>The Quality Management application identifier.</returns>
     internal procedure GetAppGuid(): Guid
     begin
         exit('bc7b3891-f61b-4883-bbb3-384cdef88bec');
     end;
 
+    /// <summary>
+    /// Gets the installed major and minor version of Quality Management.
+    /// </summary>
+    /// <returns>The installed version in major.minor format, or an empty value when the app is not found.</returns>
     internal procedure GetVersion() VersionText: Text
     var
         NAVAppInstalledApp: Record "NAV App Installed App";
@@ -463,6 +451,10 @@ table 20400 "Qlty. Management Setup"
             VersionText := Format(NAVAppInstalledApp."Version Major") + '.' + Format(NAVAppInstalledApp."Version Minor");
     end;
 
+    /// <summary>
+    /// Determines whether the premium experience is enabled for the company.
+    /// </summary>
+    /// <returns>True if the premium experience is enabled; otherwise, false.</returns>
     internal procedure GetIsCompanyPremiumEnabled(): Boolean
     var
         ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
@@ -470,11 +462,19 @@ table 20400 "Qlty. Management Setup"
         exit(ApplicationAreaMgmtFacade.IsPremiumExperienceEnabled());
     end;
 
+    /// <summary>
+    /// Gets the setup video link.
+    /// </summary>
+    /// <returns>The setup video link. Currently returns an empty value.</returns>
     internal procedure GetSetupVideoLink(): Text
     begin
         exit('');
     end;
 
+    /// <summary>
+    /// Opens item journal template selection for an inventory adjustment and gets the selected template name.
+    /// </summary>
+    /// <returns>The selected item journal template name.</returns>
     procedure GetInventoryAdjustmentJournalTemplate(): Code[10]
     var
         ItemJournalLine: Record "Item Journal Line";
@@ -489,6 +489,10 @@ table 20400 "Qlty. Management Setup"
         exit(ItemJournalLine.GetRangeMin("Journal Template Name"));
     end;
 
+    /// <summary>
+    /// Opens warehouse item journal template selection and gets the selected template name.
+    /// </summary>
+    /// <returns>The selected warehouse item journal template name.</returns>
     procedure GetWarehouseInventoryAdjustmentJournalTemplate(): Code[10]
     var
         WarehouseJournalLine: Record "Warehouse Journal Line";
@@ -502,6 +506,10 @@ table 20400 "Qlty. Management Setup"
         exit(WarehouseJournalLine.GetRangeMin("Journal Template Name"));
     end;
 
+    /// <summary>
+    /// Opens warehouse reclassification journal template selection and gets the selected template name.
+    /// </summary>
+    /// <returns>The selected warehouse reclassification journal template name.</returns>
     procedure GetWarehouseReclassificationJournalTemplate(): Code[10]
     var
         WarehouseJournalLine: Record "Warehouse Journal Line";
@@ -516,9 +524,9 @@ table 20400 "Qlty. Management Setup"
     end;
 
     /// <summary>
-    /// Gets the first page template for the supplied page.
+    /// Opens item reclassification journal template selection and gets the selected template name.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The selected item reclassification journal template name.</returns>
     procedure GetItemReclassJournalTemplate(): Code[10]
     var
         ItemJournalLine: Record "Item Journal Line";
@@ -534,9 +542,9 @@ table 20400 "Qlty. Management Setup"
     end;
 
     /// <summary>
-    /// Gets the first movement worksheet template name.
+    /// Opens movement worksheet template selection and gets the selected template name.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The selected movement worksheet template name.</returns>
     procedure GetMovementWorksheetTemplateName(): Code[10]
     var
         WhseWorksheetLine: Record "Whse. Worksheet Line";
@@ -547,11 +555,12 @@ table 20400 "Qlty. Management Setup"
         exit(WhseWorksheetLine.GetRangeMin("Worksheet Template Name"));
     end;
 
+    /// <summary>
+    /// Loads the Quality Management Setup record.
+    /// </summary>
+    /// <returns>True if the setup record exists; otherwise, false.</returns>
     internal procedure GetSetupRecord(): Boolean
     begin
-        if not Rec.ReadPermission() then
-            exit(false);
-
         exit(Rec.Get());
     end;
 
@@ -564,16 +573,5 @@ table 20400 "Qlty. Management Setup"
             exit;
         Get();
         RecordHasBeenRead := true;
-    end;
-
-    /// <summary>
-    /// Occurs when changing settings on the quality inspector setup page.
-    /// </summary>
-    /// <param name="XOldQltyManagementSetup"></param>
-    /// <param name="NewQltyManagementSetup"></param>
-    /// <param name="Handled">Set to true to replace the default behavior</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeValidateQualityManagementSettings(var XOldQltyManagementSetup: Record "Qlty. Management Setup"; var NewQltyManagementSetup: Record "Qlty. Management Setup"; var Handled: Boolean)
-    begin
     end;
 }

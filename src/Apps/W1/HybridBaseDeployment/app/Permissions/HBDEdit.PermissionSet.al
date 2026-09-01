@@ -1,0 +1,18 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace Microsoft.DataMigration;
+
+permissionset 4005 "HBD - Edit"
+{
+    Assignable = false;
+    Access = Public;
+    Caption = 'HybridBaseDeployment - Edit';
+
+    IncludedPermissionSets = "HBD - Read";
+
+    Permissions = tabledata "Hybrid Company Status" = IMD,
+                    tabledata "Hybrid DA Approval" = IMD;
+}

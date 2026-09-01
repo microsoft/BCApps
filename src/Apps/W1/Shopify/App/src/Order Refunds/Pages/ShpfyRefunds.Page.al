@@ -41,7 +41,7 @@ page 30147 "Shpfy Refunds"
                 field("Updated At"; Rec."Updated At")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the date and time when the refund was update in Shopify';
+                    ToolTip = 'Specifies the date and time when the refund was updated in Shopify.';
                     Visible = false;
                 }
                 field("Sell-to Customer No."; Rec."Sell-to Customer No.")
@@ -117,9 +117,9 @@ page 30147 "Shpfy Refunds"
         {
             action(CreateCreditMemo)
             {
-                Caption = 'Create Credit Memo';
-                Image = CreateCreditMemo;
-                ToolTip = 'Create a credit memo for this refund.';
+                Caption = 'Create Sales Document';
+                Image = CreateDocument;
+                ToolTip = 'Create a sales document for this refund. The document type (Credit Memo or Return Order) is determined by the shop setting.';
                 Enabled = CanCreateDocument and not MultipleSelected;
 
                 trigger OnAction()

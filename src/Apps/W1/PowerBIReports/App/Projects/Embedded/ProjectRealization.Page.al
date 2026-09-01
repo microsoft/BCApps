@@ -11,8 +11,8 @@ page 37036 "Project Realization"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Project Realization';
-    AboutTitle = 'About Project Realization';
+    Caption = 'Project Realization (Power BI)';
+    AboutTitle = 'About Project Realization (Power BI)';
     AboutText = 'The Project Realization report features key metrics like Billable Invoice Price and Actual Total Price to support Realization percent per project. Enabling organizations to measure actual performance and achievements against planned or budgeted expectations.';
 
     layout
@@ -48,11 +48,8 @@ page 37036 "Project Realization"
         ReportPageLbl: Label 'ReportSection1356fdbebe72ad7283d3', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Projects Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Projects App");
     end;
 }
 

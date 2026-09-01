@@ -6,6 +6,8 @@ namespace Microsoft.eServices.EDocument;
 
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.eServices.EDocument.Processing.Interfaces;
+using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Foundation.Reporting;
@@ -13,6 +15,7 @@ using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
+using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
@@ -139,6 +142,13 @@ codeunit 6108 "E-Document Processing"
             EDocExport.CheckEDocument(SourceDocumentHeader, EDocumentProcPhase);
     end;
 
+    /// <summary>
+    /// Creates a new E-Document for specified posted document if possible.
+    /// </summary>
+    /// <returns>
+    /// true if the E-Document has been created;
+    /// otherwise false.
+    /// </returns>
     procedure CreateEDocumentFromPostedDocumentPage(PostedRecord: Variant; DocumentType: Enum "E-Document Type"): Boolean
     var
         DocumentSendingProfile: Record "Document Sending Profile";
@@ -155,8 +165,8 @@ codeunit 6108 "E-Document Processing"
             Error(ElectronicDocumentErr, DocumentSendingProfile.Code);
 
         RunEDocumentCheck(PostedRecord, Enum::"E-Document Processing Phase"::Post);
-        EDocumentSubscribers.CreateEDocumentFromPostedDocument(PostedRecord, DocumentSendingProfile, DocumentType);
-        exit(true);
+
+        exit(EDocumentSubscribers.CreateEDocumentFromPostedDocument(PostedRecord, DocumentSendingProfile, DocumentType));
     end;
 
     procedure ProcessEDocumentAsEmail(DocumentSendingProfile: Record "Document Sending Profile"; ReportUsage: Enum "Report Selection Usage"; RecordVariant: Variant;
@@ -220,6 +230,9 @@ codeunit 6108 "E-Document Processing"
         PurchaseHeader: Record "Purchase Header";
         FinChargeMemoHeader: Record "Finance Charge Memo Header";
         TransferHeader: Record "Transfer Header";
+        GenJournalLine: Record "Gen. Journal Line";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        AccountType: Enum "Gen. Journal Account Type";
     begin
         case RecRef.Number of
             Database::"Sales Header", Database::"Sales Invoice Header", Database::"Sales Cr.Memo Header",
@@ -236,12 +249,30 @@ codeunit 6108 "E-Document Processing"
 
             Database::"Transfer Shipment Header":
                 exit(GetDocSendingProfileForTransferShipment(RecRef.Field(TransferHeader.FieldNo("Transfer-to Code")).Value));
+
+            Database::"Gen. Journal Line":
+                begin
+                    AccountType := RecRef.Field(GenJournalLine.FieldNo("Account Type")).Value;
+                    if AccountType = GenJournalLine."Account Type"::Vendor then
+                        exit(GetDocSendingProfileForCustVend('', RecRef.Field(GenJournalLine.FieldNo("Account No.")).Value));
+                end;
+
+            Database::"Vendor Ledger Entry":
+                exit(GetDocSendingProfileForCustVend('', RecRef.Field(VendorLedgerEntry.FieldNo("Vendor No.")).Value));
         end;
     end;
 
     procedure GetLines(EDocument: Record "E-Document"; var SourceDocumentLines: RecordRef)
+    var
+        PurchaseLine: Record "Purchase Line";
     begin
         case EDocument."Document Type" of
+            EDocument."Document Type"::"Sales Order":
+                begin
+                    SourceDocumentLines.Open(Database::"Sales Line");
+                    SourceDocumentLines.Field(1).SetFilter('%1|%2', "Sales Document Type"::Order, "Sales Document Type"::"Blanket Order");
+                    SourceDocumentLines.Field(2).SetRange(EDocument."Document No.");
+                end;
             EDocument."Document Type"::"Sales Invoice":
                 begin
                     SourceDocumentLines.Open(Database::"Sales Invoice Line");
@@ -272,6 +303,12 @@ codeunit 6108 "E-Document Processing"
                     SourceDocumentLines.Open(Database::"Purch. Cr. Memo Line");
                     SourceDocumentLines.Field(3).SetRange(EDocument."Document No.");
                 end;
+            EDocument."Document Type"::"Purchase Order":
+                begin
+                    SourceDocumentLines.Open(Database::"Purchase Line");
+                    SourceDocumentLines.Field(PurchaseLine.FieldNo("Document Type")).SetRange("Purchase Document Type"::Order);
+                    SourceDocumentLines.Field(PurchaseLine.FieldNo("Document No.")).SetRange(EDocument."Document No.");
+                end;
             EDocument."Document Type"::"Issued Finance Charge Memo":
                 begin
                     SourceDocumentLines.Open(Database::"Issued Fin. Charge Memo Line");
@@ -291,6 +328,14 @@ codeunit 6108 "E-Document Processing"
                 begin
                     SourceDocumentLines.Open(Database::"Transfer Shipment Line");
                     SourceDocumentLines.Field(1).SetRange(EDocument."Document No.");
+                end;
+            EDocument."Document Type"::"Remittance Advice":
+                begin
+                    // No separate line table for the remittance advice source document (Gen. Journal Line or Vendor Ledger Entry);
+                    // the anchor record itself is the single "line". SetRecFilter restricts the RecordRef to just
+                    // this record so a subsequent FindSet/Next loop yields exactly one row.
+                    SourceDocumentLines := EDocument."Document Record ID".GetRecord();
+                    SourceDocumentLines.SetRecFilter();
                 end;
         end;
     end;
@@ -331,6 +376,8 @@ codeunit 6108 "E-Document Processing"
                 exit(Type::"General Journal");
             Database::"G/L Entry":
                 exit(Type::"G/L Entry");
+            Database::"Vendor Ledger Entry":
+                exit(Type::"Remittance Advice");
             Database::"Sales Shipment Header":
                 exit(Type::"Sales Shipment");
             Database::"Transfer Shipment Header":
@@ -734,6 +781,24 @@ codeunit 6108 "E-Document Processing"
                 end;
         end;
         exit(false);
+    end;
+
+    procedure SendOrderRejection(EDocument: Record "E-Document")
+    var
+        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
+        ResponseBlob: Codeunit "Temp Blob";
+        IResponseProvider: Interface IEDocResponseProvider;
+        IMessageBuilder: Interface IEDocMessageBuilder;
+        MessageType: Enum "E-Document Message Type";
+    begin
+        EDocument.TestField(Direction, EDocument.Direction::Incoming);
+        IResponseProvider := EDocument.GetEDocumentService()."Document Format";
+        MessageType := IResponseProvider.GetResponseMessageType(EDocument);
+        if MessageType = "E-Document Message Type"::Unknown then
+            exit;
+        IMessageBuilder := MessageType;
+        IMessageBuilder.BuildMessage(EDocument, "E-Doc. Response Type"::Rejected, ResponseBlob);
+        EDocMessageMgt.CreateMessage(EDocument, MessageType, "E-Document Direction"::Outgoing, "E-Doc. Response Type"::Rejected, ResponseBlob);
     end;
 
     [IntegrationEvent(false, false)]

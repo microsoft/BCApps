@@ -11,8 +11,8 @@ page 36985 "Income Statement by Month"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Income Statement by Month';
-    AboutTitle = 'About Income Statement by Month';
+    Caption = 'Income Statement by Month (Power BI)';
+    AboutTitle = 'About Income Statement by Month (Power BI)';
     AboutText = 'The Income Statement by Month report provides a month-to-month comparative view of the net change for income statement accounts.';
 
     layout
@@ -48,11 +48,8 @@ page 36985 "Income Statement by Month"
         ReportPageLbl: Label 'ReportSectionf72eb4d7e5e35db3b283', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Finance Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Finance App");
     end;
 }
 

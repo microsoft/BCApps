@@ -11,8 +11,8 @@ page 36996 "Detailed Vendor Ledger Entries"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Detailed Vendor Ledger Entries';
-    AboutTitle = 'About Detailed Vendor Ledger Entries';
+    Caption = 'Detailed Vendor Ledger Entries (Power BI)';
+    AboutTitle = 'About Detailed Vendor Ledger Entries (Power BI)';
     AboutText = 'The Detailed Vendor Ledger Entries report provides granular detail about the entries posted to Vendor Ledger and Detailed Vendor Ledger.';
 
     layout
@@ -48,11 +48,8 @@ page 36996 "Detailed Vendor Ledger Entries"
         ReportPageLbl: Label 'ReportSectione72966404f743d39d212', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Finance Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Finance App");
     end;
 }
 

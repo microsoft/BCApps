@@ -6,7 +6,6 @@ namespace Microsoft.QualityManagement.Integration.Inventory;
 
 using Microsoft.Inventory.Tracking;
 using Microsoft.QualityManagement.Document;
-using Microsoft.QualityManagement.Setup;
 using Microsoft.QualityManagement.Utilities;
 
 /// <summary>
@@ -25,12 +24,11 @@ codeunit 20428 "Qlty. Item Tracking"
         PackageTypeLbl: Label 'Package';
 
     /// <summary>
-    /// Sets the lot block state.
-    /// If there is no lot no. information card then it will create a lot no information card.
+    /// Sets the blocked state of the inspection's lot information, creating the information record when necessary.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="Blocked"></param>
-    procedure SetLotBlockState(QltyInspectionHeader: Record "Qlty. Inspection Header"; Blocked: Boolean)
+    /// <param name="QltyInspectionHeader">The inspection that identifies the item, variant, and lot.</param>
+    /// <param name="Blocked">The blocked state to assign.</param>
+    internal procedure SetLotBlockState(QltyInspectionHeader: Record "Qlty. Inspection Header"; Blocked: Boolean)
     var
         LotNoInformation: Record "Lot No. Information";
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
@@ -41,6 +39,11 @@ codeunit 20428 "Qlty. Item Tracking"
         QltyNotificationMgmt.NotifyItemTrackingBlockStateChanged(QltyInspectionHeader, LotNoInformation.RecordId(), LotTypeLbl, LotNoInformation."Lot No.", LotNoInformation.Blocked);
     end;
 
+    /// <summary>
+    /// Gets the inspection's lot information record or creates it when it does not exist.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the item, variant, and lot.</param>
+    /// <param name="LotNoInformation">The existing or newly created lot information record.</param>
     local procedure GetOrCreateLotNoInformation(QltyInspectionHeader: Record "Qlty. Inspection Header"; var LotNoInformation: Record "Lot No. Information")
     begin
         LotNoInformation.Reset();
@@ -58,12 +61,11 @@ codeunit 20428 "Qlty. Item Tracking"
     end;
 
     /// <summary>
-    /// Sets the serial block state.
-    /// If there is no serial no. information card then it will create a serial no information card.
+    /// Sets the blocked state of the inspection's serial information, creating the information record when necessary.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="Blocked"></param>
-    procedure SetSerialBlockState(QltyInspectionHeader: Record "Qlty. Inspection Header"; Blocked: Boolean)
+    /// <param name="QltyInspectionHeader">The inspection that identifies the item, variant, and serial number.</param>
+    /// <param name="Blocked">The blocked state to assign.</param>
+    internal procedure SetSerialBlockState(QltyInspectionHeader: Record "Qlty. Inspection Header"; Blocked: Boolean)
     var
         SerialNoInformation: Record "Serial No. Information";
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
@@ -74,6 +76,11 @@ codeunit 20428 "Qlty. Item Tracking"
         QltyNotificationMgmt.NotifyItemTrackingBlockStateChanged(QltyInspectionHeader, SerialNoInformation.RecordId(), SerialTypeLbl, SerialNoInformation."Serial No.", SerialNoInformation.Blocked);
     end;
 
+    /// <summary>
+    /// Gets the inspection's serial information record or creates it when it does not exist.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the item, variant, and serial number.</param>
+    /// <param name="SerialNoInformation">The existing or newly created serial information record.</param>
     local procedure GetOrCreateSerialNoInformation(QltyInspectionHeader: Record "Qlty. Inspection Header"; var SerialNoInformation: Record "Serial No. Information")
     begin
         SerialNoInformation.Reset();
@@ -91,12 +98,11 @@ codeunit 20428 "Qlty. Item Tracking"
     end;
 
     /// <summary>
-    /// Sets the package block state.
-    /// If no package no information card exists then one will be created.
+    /// Sets the blocked state of the inspection's package information, creating the information record when necessary.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="Blocked"></param>
-    procedure SetPackageBlockState(QltyInspectionHeader: Record "Qlty. Inspection Header"; Blocked: Boolean)
+    /// <param name="QltyInspectionHeader">The inspection that identifies the item, variant, and package number.</param>
+    /// <param name="Blocked">The blocked state to assign.</param>
+    internal procedure SetPackageBlockState(QltyInspectionHeader: Record "Qlty. Inspection Header"; Blocked: Boolean)
     var
         PackageNoInformation: Record "Package No. Information";
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
@@ -107,6 +113,11 @@ codeunit 20428 "Qlty. Item Tracking"
         QltyNotificationMgmt.NotifyItemTrackingBlockStateChanged(QltyInspectionHeader, PackageNoInformation.RecordId(), PackageTypeLbl, PackageNoInformation."Package No.", PackageNoInformation.Blocked);
     end;
 
+    /// <summary>
+    /// Gets the inspection's package information record or creates it when it does not exist.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the item, variant, and package number.</param>
+    /// <param name="PackageNoInformation">The existing or newly created package information record.</param>
     local procedure GetOrCreatePackageNoInformation(QltyInspectionHeader: Record "Qlty. Inspection Header"; var PackageNoInformation: Record "Package No. Information")
     begin
         PackageNoInformation.Reset();
@@ -123,6 +134,16 @@ codeunit 20428 "Qlty. Item Tracking"
         PackageNoInformation.Insert(true);
     end;
 
+    /// <summary>
+    /// Gets the result code and description from the most recently modified inspection matching the item-tracking filters.
+    /// </summary>
+    /// <param name="ItemNo">The item number to filter by.</param>
+    /// <param name="VariantCodeFilter">The variant code filter to apply.</param>
+    /// <param name="LotNo">The lot number to filter by.</param>
+    /// <param name="SerialNo">The serial number to filter by.</param>
+    /// <param name="PackageNo">The package number to filter by.</param>
+    /// <param name="QualityResultCode">The result code from the matching inspection, or blank when none exists.</param>
+    /// <param name="QualityResultDescription">The result description from the matching inspection, or blank when none exists.</param>
     procedure GetMostRecentResultFor(ItemNo: Code[20]; VariantCodeFilter: Text; LotNo: Code[50]; SerialNo: Code[50]; PackageNo: Code[50]; var QualityResultCode: Code[20]; var QualityResultDescription: Text)
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -130,7 +151,7 @@ codeunit 20428 "Qlty. Item Tracking"
         Clear(QualityResultCode);
         Clear(QualityResultDescription);
 
-        if not CheckIfQualityManagementIsEnabled() then
+        if QltyInspectionHeader.IsEmpty() then
             exit;
 
         QltyInspectionHeader.SetCurrentKey(SystemModifiedAt);
@@ -155,21 +176,11 @@ codeunit 20428 "Qlty. Item Tracking"
         end;
     end;
 
-    local procedure CheckIfQualityManagementIsEnabled(): Boolean
-    var
-        QltyManagementSetup: Record "Qlty. Management Setup";
-    begin
-        if not QltyManagementSetup.GetSetupRecord() then
-            exit(false);
-
-        exit(QltyManagementSetup.Visibility <> QltyManagementSetup.Visibility::Hide);
-    end;
-
     /// <summary>
-    /// Returns true if the item is either lot, or serial, or package tracked.
+    /// Determines whether the item requires lot, serial, or package tracking for any supported transaction type.
     /// </summary>
-    /// <param name="ItemNo"></param>
-    /// <returns></returns>
+    /// <param name="ItemNo">The item number to inspect.</param>
+    /// <returns>True if the item uses lot, serial, or package tracking; otherwise, false.</returns>
     internal procedure IsItemTrackingUsed(ItemNo: Code[20]): Boolean
     var
         TempDummyItemTrackingSetup: Record "Item Tracking Setup" temporary;
@@ -180,6 +191,12 @@ codeunit 20428 "Qlty. Item Tracking"
         exit(IsItemTrackingUsed(ItemNo, TempDummyItemTrackingSetup));
     end;
 
+    /// <summary>
+    /// Updates the requested tracking flags with those used by the item and determines whether any remain enabled.
+    /// </summary>
+    /// <param name="ItemNo">The item number to inspect.</param>
+    /// <param name="TempItemTrackingSetup">The requested tracking types, updated to indicate which types the item uses.</param>
+    /// <returns>True if at least one requested tracking type is used; otherwise, false.</returns>
     internal procedure IsItemTrackingUsed(ItemNo: Code[20]; var TempItemTrackingSetup: Record "Item Tracking Setup" temporary): Boolean
     var
         ItemTrackingCode: Record "Item Tracking Code";
@@ -206,6 +223,11 @@ codeunit 20428 "Qlty. Item Tracking"
         exit(TempItemTrackingSetup."Lot No. Required" or TempItemTrackingSetup."Serial No. Required" or TempItemTrackingSetup."Package No. Required");
     end;
 
+    /// <summary>
+    /// Determines whether the item tracking code enables lot tracking for a supported transaction type.
+    /// </summary>
+    /// <param name="ItemTrackingCode">The item tracking code to inspect.</param>
+    /// <returns>True if lot tracking is enabled; otherwise, false.</returns>
     local procedure IsLotTrackedItemTrackingCode(ItemTrackingCode: Record "Item Tracking Code"): Boolean
     begin
         exit(ItemTrackingCode."Lot Manuf. Outbound Tracking" or
@@ -220,6 +242,11 @@ codeunit 20428 "Qlty. Item Tracking"
             ItemTrackingCode."Lot Specific Tracking");
     end;
 
+    /// <summary>
+    /// Determines whether the item tracking code enables serial-number tracking for a supported transaction type.
+    /// </summary>
+    /// <param name="ItemTrackingCode">The item tracking code to inspect.</param>
+    /// <returns>True if serial-number tracking is enabled; otherwise, false.</returns>
     local procedure IsSerialTrackedItemTrackingCode(ItemTrackingCode: Record "Item Tracking Code"): Boolean
     begin
         exit(ItemTrackingCode."SN Manuf. Outbound Tracking" or
@@ -234,6 +261,11 @@ codeunit 20428 "Qlty. Item Tracking"
             ItemTrackingCode."SN Specific Tracking");
     end;
 
+    /// <summary>
+    /// Determines whether the item tracking code enables package tracking for a supported transaction type.
+    /// </summary>
+    /// <param name="ItemTrackingCode">The item tracking code to inspect.</param>
+    /// <returns>True if package tracking is enabled; otherwise, false.</returns>
     local procedure IsPackageTrackedItemTrackingCode(ItemTrackingCode: Record "Item Tracking Code"): Boolean
     begin
         exit(ItemTrackingCode."Package Manuf. Outb. Tracking" or

@@ -8,25 +8,34 @@ using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Utilities;
+using System.Utilities;
 
 /// <summary>
 /// Used to copy result conditions from tests to templates, templates to inspections
 /// </summary>
 codeunit 20409 "Qlty. Result Condition Mgmt."
 {
+    Permissions =
+        tabledata "Qlty. Inspection Template Line" = r,
+        tabledata "Qlty. Inspection Result" = r,
+        tabledata "Qlty. Test" = r,
+        tabledata "Qlty. I. Result Condit. Conf." = rim,
+        tabledata "Qlty. Inspection Header" = r;
+
     var
+        ConfirmManagement: Codeunit "Confirm Management";
         ChangedTestConditionsUpdateTemplatesQst: Label 'You have changed default conditions on the test %2, there are %1 template lines with earlier conditions for this result. Do you want to update the templates?', Comment = '%1=the amount of template lines that have other conditions, %2=the test name';
         ChangedResultConditionsUpdateDefaultsOnTestsQst: Label 'You have changed default conditions on the result %1, there are %2 tests with earlier conditions for this result. Do you want to update these tests?', Comment = '%1=the amount of tests that have other conditions, %2=the result name';
+        UpdateResultsOnTestsTemplatesInspectionsQst: Label 'This will insert new results and adjust evaluation sequence on existing results on all templates, tests, and inspections. Do you want to continue?';
 
     /// <summary>
     /// Prompts if templates should be updated.
     /// </summary>
-    /// <param name="CopyFromQltyIResultConditConf"></param>
+    /// <param name="CopyFromQltyIResultConditConf">The changed test condition used to identify and update differing template conditions.</param>
     internal procedure PromptUpdateTemplatesFromTestsIfApplicable(CopyFromQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.")
     var
         CountsQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         CopyToQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
-        Continue: Boolean;
     begin
         CountsQltyInspectionTemplateLine.SetRange("Test Code", CopyFromQltyIResultConditConf."Test Code");
 
@@ -39,12 +48,10 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
             CopyToQltyIResultConditConf.SetRange(Condition);
             CopyToQltyIResultConditConf.SetFilter("Condition Description", '<>%1', CopyFromQltyIResultConditConf."Condition Description");
         end;
-        if not CopyToQltyIResultConditConf.IsEmpty() then begin
-            if not GuiAllowed() then
-                Continue := true
-            else
-                Continue := Confirm(StrSubstNo(ChangedTestConditionsUpdateTemplatesQst, CountsQltyInspectionTemplateLine.Count(), CopyFromQltyIResultConditConf."Test Code"));
-            if Continue then begin
+        if not CopyToQltyIResultConditConf.IsEmpty() then
+            if ConfirmManagement.GetResponseOrDefault(
+                StrSubstNo(ChangedTestConditionsUpdateTemplatesQst, CountsQltyInspectionTemplateLine.Count(), CopyFromQltyIResultConditConf."Test Code"))
+            then begin
                 CopyToQltyIResultConditConf.FindSet(true);
                 repeat
                     CopyResultConditionsFromTestToTemplateLine(
@@ -56,24 +63,23 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
                         CopyFromQltyIResultConditConf."Condition Description");
                 until CopyToQltyIResultConditConf.Next() = 0;
             end;
-        end;
     end;
 
+    /// <summary>
+    /// Prompts to overwrite existing test conditions after a result condition changes.
+    /// </summary>
+    /// <param name="ResultCode">The changed result code whose test conditions may be updated.</param>
     internal procedure PromptUpdateTestsFromResultIfApplicable(ResultCode: Code[20])
     var
         ExistingQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
-        Continue: Boolean;
     begin
         ExistingQltyIResultConditConf.SetRange("Result Code", ResultCode);
         ExistingQltyIResultConditConf.SetRange("Condition Type", ExistingQltyIResultConditConf."Condition Type"::Test);
-        if not ExistingQltyIResultConditConf.IsEmpty() then begin
-            if not GuiAllowed() then
-                Continue := true
-            else
-                Continue := Confirm(StrSubstNo(ChangedResultConditionsUpdateDefaultsOnTestsQst, ResultCode, ExistingQltyIResultConditConf.Count()));
-            if Continue then
+        if not ExistingQltyIResultConditConf.IsEmpty() then
+            if ConfirmManagement.GetResponseOrDefault(
+                StrSubstNo(ChangedResultConditionsUpdateDefaultsOnTestsQst, ResultCode, ExistingQltyIResultConditConf.Count()))
+            then
                 OverwriteExistingTestConditionsWithResultCondition(ResultCode);
-        end;
     end;
 
     /// <summary>
@@ -82,11 +88,21 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
     /// <param name="Template">The template</param>
     /// <param name="LineNo">The template line</param>
     /// <param name="OptionalSpecificResult">Leave empty to copy all applicable results</param>
+    /// <param name="OverwriteConditionIfExisting">Specifies whether existing template conditions are replaced.</param>
     internal procedure CopyResultConditionsFromTestToTemplateLine(Template: Code[20]; LineNo: Integer; OptionalSpecificResult: Code[20]; OverwriteConditionIfExisting: Boolean)
     begin
         CopyResultConditionsFromTestToTemplateLine(Template, LineNo, OptionalSpecificResult, OverwriteConditionIfExisting, '', '');
     end;
 
+    /// <summary>
+    /// Copies automatically copied test result conditions to a template line with optional condition overrides.
+    /// </summary>
+    /// <param name="Template">The target template code.</param>
+    /// <param name="LineNo">The target template line number.</param>
+    /// <param name="OptionalSpecificResult">The result code to copy, or blank to copy all applicable results.</param>
+    /// <param name="OverwriteConditionIfExisting">Specifies whether an existing template condition is replaced.</param>
+    /// <param name="OptionalSpecificCondition">The condition override, or blank to retain the source condition.</param>
+    /// <param name="OptionalSpecificConditionDescription">The condition description override, or blank to retain the source description.</param>
     local procedure CopyResultConditionsFromTestToTemplateLine(Template: Code[20]; LineNo: Integer; OptionalSpecificResult: Code[20]; OverwriteConditionIfExisting: Boolean; OptionalSpecificCondition: Text; OptionalSpecificConditionDescription: Text)
     var
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
@@ -152,9 +168,9 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
     /// <summary>
     /// Used for cloning templates.
     /// </summary>
-    /// <param name="FromQltyInspectionTemplateLine"></param>
-    /// <param name="TargetQltyInspectionTemplateLine"></param>
-    procedure CopyResultConditionsFromTemplateLineToTemplateLine(FromQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line"; TargetQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line")
+    /// <param name="FromQltyInspectionTemplateLine">The template line whose result conditions are copied.</param>
+    /// <param name="TargetQltyInspectionTemplateLine">The template line that receives the copied conditions.</param>
+    internal procedure CopyResultConditionsFromTemplateLineToTemplateLine(FromQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line"; TargetQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line")
     var
         FromQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         ToQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
@@ -191,9 +207,9 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
     /// <summary>
     /// Copy result conditions from a template to an inspection.
     /// </summary>
-    /// <param name="QltyInspectionTemplateLine"></param>
-    /// <param name="QltyInspectionLine"></param>
-    procedure CopyResultConditionsFromTemplateToInspection(QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line"; QltyInspectionLine: Record "Qlty. Inspection Line")
+    /// <param name="QltyInspectionTemplateLine">The template line that supplies result conditions.</param>
+    /// <param name="QltyInspectionLine">The inspection line that receives the conditions.</param>
+    internal procedure CopyResultConditionsFromTemplateToInspection(QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line"; QltyInspectionLine: Record "Qlty. Inspection Line")
     var
         FromTemplateQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         ToCheckQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
@@ -243,11 +259,14 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
     /// This leverages how CopyGradeConditionsFromFieldToTemplateLine will already update fields via CopyGradeConditionsFromDefaultToField 
     /// when a specific grade is supplied.
     /// </summary>
-    procedure CopyGradeConditionsFromDefaultToAllTemplates()
+    internal procedure CopyGradeConditionsFromDefaultToAllTemplates()
     var
         QltyInspectionResult: Record "Qlty. Inspection Result";
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
     begin
+        if not ConfirmManagement.GetResponseOrDefault(UpdateResultsOnTestsTemplatesInspectionsQst) then
+            exit;
+
         QltyInspectionResult.SetRange("Copy Behavior", QltyInspectionResult."Copy Behavior"::"Automatically copy the result");
         if QltyInspectionResult.FindSet() then
             repeat
@@ -263,8 +282,8 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
     /// <summary>
     /// Copies the default result conditions into the specified test.
     /// </summary>
-    /// <param name="TestCode"></param>
-    procedure CopyResultConditionsFromDefaultToTest(TestCode: Code[20])
+    /// <param name="TestCode">The test code that receives default result conditions.</param>
+    internal procedure CopyResultConditionsFromDefaultToTest(TestCode: Code[20])
     var
         QltyTest: Record "Qlty. Test";
     begin
@@ -277,6 +296,11 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
         CopyResultConditionsFromDefaultToTest(TestCode, QltyTest."Test Value Type");
     end;
 
+    /// <summary>
+    /// Copies default result conditions to a test using a specified test value type.
+    /// </summary>
+    /// <param name="TestCode">The test code that receives default result conditions.</param>
+    /// <param name="SpecificQltyTestValueType">The value type used to choose each result's default condition.</param>
     internal procedure CopyResultConditionsFromDefaultToTest(TestCode: Code[20]; SpecificQltyTestValueType: Enum "Qlty. Test Value Type")
     begin
         if TestCode = '' then
@@ -285,6 +309,10 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
         InternalCopyResultConditionsFromDefaultToTestSpecificType(TestCode, '', false, true, SpecificQltyTestValueType);
     end;
 
+    /// <summary>
+    /// Overwrites existing test conditions for a result with that result's default conditions.
+    /// </summary>
+    /// <param name="ResultCode">The result code whose default conditions are copied.</param>
     local procedure OverwriteExistingTestConditionsWithResultCondition(ResultCode: Code[20])
     var
         ExistingQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
@@ -297,6 +325,13 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
             until ExistingQltyIResultConditConf.Next() = 0;
     end;
 
+    /// <summary>
+    /// Copies default result conditions to a test using the test's configured value type.
+    /// </summary>
+    /// <param name="TestCode">The target test code.</param>
+    /// <param name="OptionalSpecificResultCode">The result code to copy, or blank to copy all automatic results.</param>
+    /// <param name="AlwaysUpdateExistingCondition">Specifies whether every existing condition is overwritten.</param>
+    /// <param name="OnlyOverwriteIfADefaultCondition">Specifies whether only blank or default-valued conditions may be overwritten.</param>
     local procedure InternalCopyResultConditionsFromDefaultToTest(TestCode: Code[20]; OptionalSpecificResultCode: Code[20]; AlwaysUpdateExistingCondition: Boolean; OnlyOverwriteIfADefaultCondition: Boolean)
     var
         QltyTest: Record "Qlty. Test";
@@ -307,6 +342,14 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
         InternalCopyResultConditionsFromDefaultToTestSpecificType(TestCode, OptionalSpecificResultCode, AlwaysUpdateExistingCondition, OnlyOverwriteIfADefaultCondition, QltyTest."Test Value Type");
     end;
 
+    /// <summary>
+    /// Inserts or updates test result conditions from automatic result defaults for a specified value type.
+    /// </summary>
+    /// <param name="TestCode">The target test code.</param>
+    /// <param name="OptionalSpecificResultCode">The result code to copy, or blank to copy all automatic results.</param>
+    /// <param name="AlwaysUpdateExistingCondition">Specifies whether every existing condition is overwritten.</param>
+    /// <param name="OnlyOverwriteIfADefaultCondition">Specifies whether only blank or default-valued conditions may be overwritten.</param>
+    /// <param name="SpecificQltyTestValueType">The value type used to select numeric, Boolean, text, or blank defaults.</param>
     local procedure InternalCopyResultConditionsFromDefaultToTestSpecificType(TestCode: Code[20]; OptionalSpecificResultCode: Code[20]; AlwaysUpdateExistingCondition: Boolean; OnlyOverwriteIfADefaultCondition: Boolean; SpecificQltyTestValueType: Enum "Qlty. Test Value Type")
     var
         QltyTest: Record "Qlty. Test";
@@ -349,7 +392,14 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
                     ToTestQltyIResultConditConf."Condition Description" := CopyStr(Condition, 1, MaxStrLen(ToTestQltyIResultConditConf."Condition Description"));
                     ToTestQltyIResultConditConf.Insert();
                 end else
-                    if AlwaysUpdateExistingCondition or (OnlyOverwriteIfADefaultCondition and (ToTestQltyIResultConditConf.Condition in [QltyInspectionResult."Default Boolean Condition", QltyInspectionResult."Default Number Condition", QltyInspectionResult."Default Text Condition"])) then begin
+                    if AlwaysUpdateExistingCondition or
+                       (OnlyOverwriteIfADefaultCondition and
+                            (ToTestQltyIResultConditConf.Condition in
+                                ['', // '' treated as uninitialized; safe to overwrite just like named defaults
+                                QltyInspectionResult."Default Boolean Condition",
+                                QltyInspectionResult."Default Number Condition",
+                                QltyInspectionResult."Default Text Condition"]))
+                    then begin
                         ToTestQltyIResultConditConf.Validate(Condition, CopyStr(Condition, 1, MaxStrLen(ToTestQltyIResultConditConf.Condition)));
                         ToTestQltyIResultConditConf."Condition Description" := CopyStr(Condition, 1, MaxStrLen(ToTestQltyIResultConditConf."Condition Description"));
                         ToTestQltyIResultConditConf.Priority := QltyInspectionResult."Evaluation Sequence";
@@ -362,11 +412,13 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
     /// <summary>
     /// Returns the promoted results for a test
     /// </summary>
-    /// <param name="QltyTest"></param>
-    /// <param name="MatrixArrayToSetConditionCellData"></param>
-    /// <param name="MatrixArrayToSetCaptionSet"></param>
-    /// <param name="MatrixVisibleStateToSet"></param>
-    procedure GetPromotedResultsForTest(QltyTest: Record "Qlty. Test";
+    /// <param name="QltyTest">The test whose promoted result conditions are loaded.</param>
+    /// <param name="MatrixSourceRecordId">The array that receives condition record IDs.</param>
+    /// <param name="MatrixArrayToSetConditionCellData">The array that receives condition values.</param>
+    /// <param name="MatrixArrayToSetConditionDescriptionCellData">The array that receives condition descriptions.</param>
+    /// <param name="MatrixArrayToSetCaptionSet">The array that receives result captions.</param>
+    /// <param name="MatrixVisibleStateToSet">The array that receives cell visibility states.</param>
+    internal procedure GetPromotedResultsForTest(QltyTest: Record "Qlty. Test";
         var MatrixSourceRecordId: array[10] of RecordId;
         var MatrixArrayToSetConditionCellData: array[10] of Text;
         var MatrixArrayToSetConditionDescriptionCellData: array[10] of Text;
@@ -388,13 +440,13 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
     /// Sets the promoted results for the template line. If the template line is being initialized then
     /// it will return the default promoted results with the default number condition for the results.
     /// </summary>
-    /// <param name="QltyInspectionTemplateLine"></param>
-    /// <param name="MatrixArraySourceRecordId"></param>
-    /// <param name="MatrixArrayToSetConditionCellData"></param>
-    /// <param name="MatrixArrayToSetConditionDescriptionCellData"></param>
-    /// <param name="MatrixArrayToSetCaptionSet"></param>
-    /// <param name="MatrixVisibleStateToSet"></param>
-    procedure GetPromotedResultsForTemplateLine(QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
+    /// <param name="QltyInspectionTemplateLine">The template line whose promoted result conditions are loaded.</param>
+    /// <param name="MatrixArraySourceRecordId">The array that receives condition record IDs.</param>
+    /// <param name="MatrixArrayToSetConditionCellData">The array that receives condition values.</param>
+    /// <param name="MatrixArrayToSetConditionDescriptionCellData">The array that receives condition descriptions.</param>
+    /// <param name="MatrixArrayToSetCaptionSet">The array that receives result captions.</param>
+    /// <param name="MatrixVisibleStateToSet">The array that receives cell visibility states.</param>
+    internal procedure GetPromotedResultsForTemplateLine(QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         var MatrixArraySourceRecordId: array[10] of RecordId;
         var MatrixArrayToSetConditionCellData: array[10] of Text;
         var MatrixArrayToSetConditionDescriptionCellData: array[10] of Text;
@@ -432,11 +484,11 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
     /// This can be used to help determine the overall promoted results in the system.
     /// </summary>
     /// <param name="AllPromoted">If true this will return all promoted tests. If false, only those with autocopy.</param>
-    /// <param name="MatrixArraySourceRecordId"></param>
-    /// <param name="MatrixArrayToSetConditionCellData"></param>
-    /// <param name="MatrixArrayToSetConditionDescriptionCellData"></param>
-    /// <param name="MatrixArrayToSetCaptionSet"></param>
-    /// <param name="MatrixVisibleStateToSet"></param>
+    /// <param name="MatrixArraySourceRecordId">The array that receives result record IDs.</param>
+    /// <param name="MatrixArrayToSetConditionCellData">The array that receives default numeric conditions.</param>
+    /// <param name="MatrixArrayToSetConditionDescriptionCellData">The array that receives condition descriptions.</param>
+    /// <param name="MatrixArrayToSetCaptionSet">The array that receives result captions.</param>
+    /// <param name="MatrixVisibleStateToSet">The array that receives cell visibility states.</param>
     internal procedure GetDefaultPromotedResults(
         AllPromoted: Boolean;
         var MatrixArraySourceRecordId: array[10] of RecordId;
@@ -447,17 +499,22 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
     var
         QltyInspectionResult: Record "Qlty. Inspection Result";
         Iterator: Integer;
+        MaxResultConditions: Integer;
     begin
         Clear(MatrixArraySourceRecordId);
         Clear(MatrixArrayToSetConditionCellData);
         Clear(MatrixArrayToSetConditionDescriptionCellData);
         Clear(MatrixArrayToSetCaptionSet);
         Clear(MatrixVisibleStateToSet);
+
+        MaxResultConditions := GetMaxResultConditions();
+
         QltyInspectionResult.SetRange("Result Visibility", QltyInspectionResult."Result Visibility"::Promoted);
         if not AllPromoted then
             QltyInspectionResult.SetRange("Copy Behavior", QltyInspectionResult."Copy Behavior"::"Automatically copy the result");
-        QltyInspectionResult.SetCurrentKey("Evaluation Sequence");
-        QltyInspectionResult.Ascending();
+        QltyInspectionResult.SetCurrentKey("Result Visibility", "Evaluation Sequence");
+        QltyInspectionResult.Ascending(false);
+        QltyInspectionResult.SetLoadFields(Code, Description, "Default Number Condition");
         if QltyInspectionResult.FindSet() then begin
             Iterator := 0;
             repeat
@@ -473,11 +530,20 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
                     MatrixArrayToSetConditionDescriptionCellData[Iterator] := MatrixArrayToSetConditionCellData[Iterator];
 
                 MatrixArraySourceRecordId[Iterator] := QltyInspectionResult.RecordId();
-            until (QltyInspectionResult.Next() = 0) or (Iterator >= 10);
+            until (QltyInspectionResult.Next() = 0) or (Iterator >= MaxResultConditions);
         end;
     end;
 
-    procedure GetPromotedResultsForInspectionLine(QltyInspectionLine: Record "Qlty. Inspection Line"; var MatrixSourceRecordId: array[10] of RecordId; var MatrixArrayToSetConditionCellData: array[10] of Text; var MatrixArrayToSetConditionDescriptionCellData: array[10] of Text; var MatrixArrayToSetCaptionSet: array[10] of Text; var MatrixVisibleStateToSet: array[10] of Boolean)
+    /// <summary>
+    /// Loads promoted result conditions for an inspection line, creating inspection conditions from its template when needed.
+    /// </summary>
+    /// <param name="QltyInspectionLine">The inspection line whose promoted result conditions are loaded.</param>
+    /// <param name="MatrixSourceRecordId">The array that receives condition record IDs.</param>
+    /// <param name="MatrixArrayToSetConditionCellData">The array that receives condition values.</param>
+    /// <param name="MatrixArrayToSetConditionDescriptionCellData">The array that receives evaluated condition descriptions.</param>
+    /// <param name="MatrixArrayToSetCaptionSet">The array that receives result captions.</param>
+    /// <param name="MatrixVisibleStateToSet">The array that receives cell visibility states.</param>
+    internal procedure GetPromotedResultsForInspectionLine(QltyInspectionLine: Record "Qlty. Inspection Line"; var MatrixSourceRecordId: array[10] of RecordId; var MatrixArrayToSetConditionCellData: array[10] of Text; var MatrixArrayToSetConditionDescriptionCellData: array[10] of Text; var MatrixArrayToSetCaptionSet: array[10] of Text; var MatrixVisibleStateToSet: array[10] of Boolean)
     var
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
         QltyTest: Record "Qlty. Test";
@@ -511,6 +577,15 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
         GetPromotedResults(QltyIResultConditConf, MatrixSourceRecordId, MatrixArrayToSetConditionCellData, MatrixArrayToSetConditionDescriptionCellData, MatrixArrayToSetCaptionSet, MatrixVisibleStateToSet, QltyInspectionHeader, QltyInspectionLine);
     end;
 
+    /// <summary>
+    /// Loads promoted result conditions into matrix arrays without inspection expression context.
+    /// </summary>
+    /// <param name="QltyIResultConditConf">The filtered result condition configurations to load.</param>
+    /// <param name="MatrixSourceRecordId">The array that receives condition record IDs.</param>
+    /// <param name="MatrixArrayToSetConditionCellData">The array that receives condition values.</param>
+    /// <param name="MatrixArrayToSetConditionDescriptionCellData">The array that receives condition descriptions.</param>
+    /// <param name="MatrixArrayToSetCaptionSet">The array that receives result captions.</param>
+    /// <param name="MatrixVisibleStateToSet">The array that receives cell visibility states.</param>
     local procedure GetPromotedResults(var QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf."; var MatrixSourceRecordId: array[10] of RecordId; var MatrixArrayToSetConditionCellData: array[10] of Text; var MatrixArrayToSetConditionDescriptionCellData: array[10] of Text; var MatrixArrayToSetCaptionSet: array[10] of Text; var MatrixVisibleStateToSet: array[10] of Boolean)
     var
         TempNotUsedOptionalQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
@@ -527,6 +602,17 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
             TempNotUsedOptionalQltyInspectionLine);
     end;
 
+    /// <summary>
+    /// Loads promoted result conditions into fixed result slots and evaluates descriptions in inspection context.
+    /// </summary>
+    /// <param name="QltyIResultConditConf">The filtered result condition configurations to load.</param>
+    /// <param name="MatrixSourceRecordId">The array that receives condition record IDs.</param>
+    /// <param name="MatrixArrayToSetConditionCellData">The array that receives condition values.</param>
+    /// <param name="MatrixArrayToSetConditionDescriptionCellData">The array that receives evaluated condition descriptions.</param>
+    /// <param name="MatrixArrayToSetCaptionSet">The array that receives result captions.</param>
+    /// <param name="MatrixVisibleStateToSet">The array that receives cell visibility states.</param>
+    /// <param name="OptionalQltyInspectionHeader">The optional inspection header used to evaluate expressions.</param>
+    /// <param name="OptionalQltyInspectionLine">The optional inspection line used to evaluate expressions.</param>
     local procedure GetPromotedResults(
         var QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         var MatrixSourceRecordId: array[10] of RecordId;
@@ -540,37 +626,56 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
         QltyInspectionResult: Record "Qlty. Inspection Result";
         QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";
         Iterator: Integer;
+        MaxResultConditions: Integer;
     begin
         Clear(MatrixArrayToSetConditionCellData);
         Clear(MatrixArrayToSetConditionDescriptionCellData);
         Clear(MatrixArrayToSetCaptionSet);
         Clear(MatrixVisibleStateToSet);
+
+        MaxResultConditions := GetMaxResultConditions();
+
         QltyIResultConditConf.SetRange("Result Visibility", QltyIResultConditConf."Result Visibility"::Promoted);
         QltyIResultConditConf.SetCurrentKey("Condition Type", "Result Visibility", Priority, "Target Code", "Target Re-inspection No.", "Target Line No.");
         QltyIResultConditConf.Ascending(false);
-        if QltyIResultConditConf.FindSet() then
+
+        // Drive iteration by Qlty. Inspection Result using the same ordering and filters as
+        // GetDefaultPromotedResults so that a given "Result Code" always maps to the same Iterator slot.
+        QltyInspectionResult.SetRange("Result Visibility", QltyInspectionResult."Result Visibility"::Promoted);
+        QltyInspectionResult.SetCurrentKey("Result Visibility", "Evaluation Sequence");
+        QltyInspectionResult.Ascending(false);
+        if QltyInspectionResult.FindSet() then begin
+            Iterator := 0;
             repeat
-                if QltyInspectionResult.Get(QltyIResultConditConf."Result Code") then begin
-                    Iterator += 1;
-                    if Iterator <= 10 then begin
-                        MatrixVisibleStateToSet[Iterator] := true;
-                        if QltyInspectionResult.Description <> '' then
-                            MatrixArrayToSetCaptionSet[Iterator] := QltyInspectionResult.Description
-                        else
-                            MatrixArrayToSetCaptionSet[Iterator] := QltyInspectionResult.Code;
-                        MatrixArrayToSetConditionCellData[Iterator] := QltyIResultConditConf.Condition;
-                        MatrixArrayToSetConditionDescriptionCellData[Iterator] := QltyIResultConditConf."Condition Description";
-                        if MatrixArrayToSetConditionDescriptionCellData[Iterator] = '' then
-                            MatrixArrayToSetConditionDescriptionCellData[Iterator] := MatrixArrayToSetConditionCellData[Iterator];
+                Iterator += 1;
+                QltyIResultConditConf.SetRange("Result Code", QltyInspectionResult.Code);
+                if QltyIResultConditConf.FindFirst() then begin
+                    MatrixVisibleStateToSet[Iterator] := true;
+                    if QltyInspectionResult.Description <> '' then
+                        MatrixArrayToSetCaptionSet[Iterator] := QltyInspectionResult.Description
+                    else
+                        MatrixArrayToSetCaptionSet[Iterator] := QltyInspectionResult.Code;
+                    MatrixArrayToSetConditionCellData[Iterator] := QltyIResultConditConf.Condition;
+                    MatrixArrayToSetConditionDescriptionCellData[Iterator] := QltyIResultConditConf."Condition Description";
+                    if MatrixArrayToSetConditionDescriptionCellData[Iterator] = '' then
+                        MatrixArrayToSetConditionDescriptionCellData[Iterator] := MatrixArrayToSetConditionCellData[Iterator];
 
-                        if (not OptionalQltyInspectionHeader.IsTemporary()) and (OptionalQltyInspectionHeader."No." <> '') then
-                            if MatrixArrayToSetConditionDescriptionCellData[Iterator].Contains('[') then
-                                MatrixArrayToSetConditionDescriptionCellData[Iterator] := QltyExpressionMgmt.EvaluateTextExpression(MatrixArrayToSetConditionDescriptionCellData[Iterator], OptionalQltyInspectionHeader, OptionalQltyInspectionLine);
+                    if (not OptionalQltyInspectionHeader.IsTemporary()) and (OptionalQltyInspectionHeader."No." <> '') then
+                        if MatrixArrayToSetConditionDescriptionCellData[Iterator].Contains('[') then
+                            MatrixArrayToSetConditionDescriptionCellData[Iterator] := QltyExpressionMgmt.EvaluateTextExpression(MatrixArrayToSetConditionDescriptionCellData[Iterator], OptionalQltyInspectionHeader, OptionalQltyInspectionLine);
 
-                        MatrixSourceRecordId[Iterator] := QltyIResultConditConf.RecordId();
-                    end else
-                        break;
+                    MatrixSourceRecordId[Iterator] := QltyIResultConditConf.RecordId();
                 end;
-            until (QltyIResultConditConf.Next() = 0) or (Iterator >= 10);
+            until (QltyInspectionResult.Next() = 0) or (Iterator >= MaxResultConditions);
+        end;
+    end;
+
+    /// <summary>
+    /// Gets the number of promoted result slots supported by the matrix arrays.
+    /// </summary>
+    /// <returns>The maximum number of result conditions.</returns>
+    local procedure GetMaxResultConditions(): Integer
+    begin
+        exit(10);
     end;
 }

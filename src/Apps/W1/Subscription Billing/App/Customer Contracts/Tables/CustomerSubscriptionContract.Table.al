@@ -72,7 +72,8 @@ table 8052 "Customer Subscription Contract"
                     SkipBillToContact := false;
                 end;
 
-                Validate("Ship-to Code", Cust."Ship-to Code");
+                if "Bill-to Customer No." = "Sell-to Customer No." then
+                    Validate("Ship-to Code", Cust."Ship-to Code");
                 if not SkipSellToContact then
                     UpdateSellToCont("Sell-to Customer No.");
 
@@ -429,6 +430,7 @@ table 8052 "Customer Subscription Contract"
 
             trigger OnValidate()
             begin
+                UpdateShipToAddressFromSellToAddress(FieldNo("Ship-to Address"));
                 ModifyCustomerAddress();
             end;
         }
@@ -439,6 +441,7 @@ table 8052 "Customer Subscription Contract"
 
             trigger OnValidate()
             begin
+                UpdateShipToAddressFromSellToAddress(FieldNo("Ship-to Address 2"));
                 ModifyCustomerAddress();
             end;
         }
@@ -467,6 +470,7 @@ table 8052 "Customer Subscription Contract"
             begin
                 PostCode.ValidateCity(
                   "Sell-to City", "Sell-to Post Code", "Sell-to County", "Sell-to Country/Region Code", (CurrFieldNo <> 0) and GuiAllowed);
+                UpdateShipToAddressFromSellToAddress(FieldNo("Ship-to City"));
                 ModifyCustomerAddress();
             end;
         }
@@ -491,6 +495,7 @@ table 8052 "Customer Subscription Contract"
 
             trigger OnValidate()
             begin
+                UpdateShipToAddressFromSellToAddress(FieldNo("Ship-to Contact"));
                 ModifyCustomerAddress();
             end;
         }
@@ -575,6 +580,7 @@ table 8052 "Customer Subscription Contract"
 
                 PostCode.ValidatePostCode(
                   "Sell-to City", "Sell-to Post Code", "Sell-to County", "Sell-to Country/Region Code", (CurrFieldNo <> 0) and GuiAllowed);
+                UpdateShipToAddressFromSellToAddress(FieldNo("Ship-to Post Code"));
                 ModifyCustomerAddress();
             end;
         }
@@ -586,6 +592,7 @@ table 8052 "Customer Subscription Contract"
 
             trigger OnValidate()
             begin
+                UpdateShipToAddressFromSellToAddress(FieldNo("Ship-to County"));
                 ModifyCustomerAddress();
             end;
         }
@@ -597,6 +604,7 @@ table 8052 "Customer Subscription Contract"
 
             trigger OnValidate()
             begin
+                UpdateShipToAddressFromSellToAddress(FieldNo("Ship-to Country/Region Code"));
                 ModifyCustomerAddress();
             end;
         }
@@ -1162,7 +1170,7 @@ table 8052 "Customer Subscription Contract"
         exit(not CustomerContractDeferral.IsEmpty());
     end;
 
-    internal procedure SetHideValidationDialog(NewHideValidationDialog: Boolean)
+    procedure SetHideValidationDialog(NewHideValidationDialog: Boolean)
     begin
         HideValidationDialog := NewHideValidationDialog;
     end;
@@ -1373,6 +1381,9 @@ table 8052 "Customer Subscription Contract"
                 "Sell-to Contact" := ''
             else
                 "Sell-to Contact" := Cont.Name;
+
+        "Sell-to Phone No." := Cont."Phone No.";
+        "Sell-to E-Mail" := Cont."E-Mail";
 
         if ("Sell-to Customer No." = "Bill-to Customer No.") or
            ("Bill-to Customer No." = '')
@@ -1699,6 +1710,35 @@ table 8052 "Customer Subscription Contract"
         exit(IsShipToAddressEqualToSellToAddress(xRec, Rec));
     end;
 
+    internal procedure ShipToAddressEqualsSellToAddress(): Boolean
+    begin
+        exit(IsShipToAddressEqualToSellToAddress(Rec, Rec));
+    end;
+
+    local procedure UpdateShipToAddressFromSellToAddress(FieldNumber: Integer)
+    begin
+        if ("Ship-to Code" = '') and ShipToAddressEqualsOldSellToAddress() then
+            case FieldNumber of
+                FieldNo("Ship-to Address"):
+                    "Ship-to Address" := "Sell-to Address";
+                FieldNo("Ship-to Address 2"):
+                    "Ship-to Address 2" := "Sell-to Address 2";
+                FieldNo("Ship-to City"), FieldNo("Ship-to Post Code"):
+                    begin
+                        "Ship-to City" := "Sell-to City";
+                        "Ship-to Post Code" := "Sell-to Post Code";
+                        "Ship-to County" := "Sell-to County";
+                        "Ship-to Country/Region Code" := "Sell-to Country/Region Code";
+                    end;
+                FieldNo("Ship-to County"):
+                    "Ship-to County" := "Sell-to County";
+                FieldNo("Ship-to Country/Region Code"):
+                    "Ship-to Country/Region Code" := "Sell-to Country/Region Code";
+                FieldNo("Ship-to Contact"):
+                    "Ship-to Contact" := "Sell-to Contact";
+            end;
+    end;
+
     local procedure IsShipToAddressEqualToSellToAddress(CustomerContractWithSellTo: Record "Customer Subscription Contract"; CustomerContractWithShipTo: Record "Customer Subscription Contract"): Boolean
     var
         Result: Boolean;
@@ -1894,7 +1934,7 @@ table 8052 "Customer Subscription Contract"
         ModifyCustomerAddressNotification.Recall();
     end;
 
-    local procedure GetModifyCustomerAddressNotificationId(): Guid
+    internal procedure GetModifyCustomerAddressNotificationId(): Guid
     begin
         exit('D2EAE122-76DB-4D6D-B6ED-7A6EF9DC7F3D');
     end;
@@ -2009,7 +2049,7 @@ table 8052 "Customer Subscription Contract"
     end;
 
     /// <summary>
-    /// Creates customer subscription contract line from subscription line which are not already assigned to a customer subscription contract line. 
+    /// Creates customer subscription contract line from subscription line which are not already assigned to a customer subscription contract line.
     /// </summary>
     /// <param name="TempServiceCommitment">Temporary VAR Record "Subscription Line".</param>
     procedure CreateCustomerContractLinesFromServiceCommitments(var TempServiceCommitment: Record "Subscription Line" temporary)
@@ -2053,6 +2093,7 @@ table 8052 "Customer Subscription Contract"
     var
         ServiceObject: Record "Subscription Header";
         CustomerContract: Record "Customer Subscription Contract";
+        SourceCodeSetup: Record "Source Code Setup";
         OldDimSetID: Integer;
         InitHarmonizedBillingFields: Boolean;
     begin
@@ -2072,7 +2113,8 @@ table 8052 "Customer Subscription Contract"
         ServiceCommitment."Subscription Contract No." := CustomerContractLine."Subscription Contract No.";
         ServiceCommitment."Subscription Contract Line No." := CustomerContractLine."Line No.";
 
-        ServiceCommitment.GetCombinedDimensionSetID(ServiceCommitment."Dimension Set ID", CustomerContract."Dimension Set ID");
+        SourceCodeSetup.Get();
+        ServiceCommitment.ApplyContractDimensions(CustomerContract."Dimension Set ID", SourceCodeSetup.Sales, Database::Customer);
         if "Currency Code" <> ServiceCommitment."Currency Code" then begin
             CalculateCurrencyFactor(ServiceCommitment."Subscription Line Start Date", CustomerContract."Currency Code");
             ServiceCommitment.SetCurrencyData(CurrencyFactor, CurrencyFactorDate, CustomerContract."Currency Code");

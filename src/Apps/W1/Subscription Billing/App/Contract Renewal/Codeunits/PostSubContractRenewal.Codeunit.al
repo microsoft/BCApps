@@ -107,9 +107,7 @@ codeunit 8004 "Post Sub. Contract Renewal"
             TempServiceCommitment."Subscription Line End Date" := CalcDate('<-1D>', TempServiceCommitment."Subscription Line End Date");
         end;
         TempServiceCommitment.CopyFromSalesServiceCommitment(SalesServiceCommitment);
-        TempServiceCommitment.CalculateInitialTermUntilDate();
-        TempServiceCommitment.CalculateInitialServiceEndDate();
-        TempServiceCommitment.CalculateInitialCancellationPossibleUntilDate();
+        TempServiceCommitment.CalculateSubscriptionDates();
         TempServiceCommitment.SetCurrencyData(SalesHeader."Currency Factor", SalesHeader."Posting Date", SalesHeader."Currency Code");
         TempServiceCommitment.SetLCYFields(true);
         TempServiceCommitment.SetDefaultDimensions(true);
@@ -274,7 +272,7 @@ codeunit 8004 "Post Sub. Contract Renewal"
     end;
 
     /// <summary>
-    /// Updates the existing subscription line from planned subscription line. It is used for subscription renewal.  
+    /// Updates the existing subscription line from planned subscription line. It is used for subscription renewal.
     /// </summary>
     /// <param name="PlannedServiceCommitment">Record "Planned Subscription Line".</param>
     procedure ProcessPlannedServiceCommitment(PlannedServiceCommitment: Record "Planned Subscription Line")

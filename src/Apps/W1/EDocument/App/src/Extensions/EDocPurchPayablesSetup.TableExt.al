@@ -21,5 +21,22 @@ tableextension 6162 "E-Doc. Purch. Payables Setup" extends "Purchases & Payables
             Caption = 'E-Document Learn Copilot Matchings';
             DataClassification = SystemMetadata;
         }
+        field(6102; "E-Doc. Def. Posting Date"; Enum "E-Doc. Purch.Def. Posting Date")
+        {
+            Caption = 'E-Document Default Posting Date';
+            DataClassification = CustomerContent;
+        }
+        field(6103; "Apply VAT Diff. For Purch EDoc"; Boolean)
+        {
+            Caption = 'Apply VAT Diff. For Purch. E-Doc.';
+            DataClassification = CustomerContent;
+            InitValue = true;
+        }
+        field(6104; "Resolve VAT Group Purch EDoc"; Boolean)
+        {
+            Caption = 'Resolve VAT Product Group for Purch. E-Doc.';
+            DataClassification = CustomerContent;
+            InitValue = true;
+        }
     }
 }

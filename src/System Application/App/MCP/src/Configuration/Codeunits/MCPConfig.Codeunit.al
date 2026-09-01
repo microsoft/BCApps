@@ -79,6 +79,25 @@ codeunit 8350 "MCP Config"
     end;
 
     /// <summary>
+    /// Sets the specified MCP configuration as the default configuration.
+    /// When no configuration is specified by a connection, the default configuration will be used.
+    /// Only active configurations can be set as default.
+    /// </summary>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration to set as default.</param>
+    procedure SetAsDefaultConfiguration(ConfigId: Guid)
+    begin
+        MCPConfigImplementation.SetAsDefaultConfiguration(ConfigId);
+    end;
+
+    /// <summary>
+    /// Clears the current default configuration designation and restores the system default.
+    /// </summary>
+    procedure ClearDefaultConfiguration()
+    begin
+        MCPConfigImplementation.ClearDefaultConfiguration();
+    end;
+
+    /// <summary>
     /// Enables dynamic tool mode for the specified configuration.
     /// </summary>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
@@ -96,6 +115,26 @@ codeunit 8350 "MCP Config"
     procedure EnableDiscoverReadOnlyObjects(ConfigId: Guid; Enable: Boolean)
     begin
         MCPConfigImplementation.EnableDiscoverReadOnlyObjects(ConfigId, Enable);
+    end;
+
+    /// <summary>
+    /// Enables or disables the Data Query Tools feature for the specified configuration.
+    /// </summary>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
+    /// <param name="Enable">True to enable, false to disable.</param>
+    procedure EnableDataQueryTools(ConfigId: Guid; Enable: Boolean)
+    begin
+        MCPConfigImplementation.EnableDataQueryTools(ConfigId, Enable);
+    end;
+
+    /// <summary>
+    /// Enables or disables the API Tools feature for the specified configuration.
+    /// </summary>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
+    /// <param name="Enable">True to enable, false to disable.</param>
+    procedure EnableAPITools(ConfigId: Guid; Enable: Boolean)
+    begin
+        MCPConfigImplementation.EnableAPITools(ConfigId, Enable);
     end;
 
     /// <summary>
@@ -126,7 +165,7 @@ codeunit 8350 "MCP Config"
     /// <returns>The SystemId (GUID) of the created tool.</returns>
     procedure CreateAPITool(ConfigId: Guid; APIPageId: Integer): Guid
     begin
-        exit(MCPConfigImplementation.CreateAPITool(ConfigId, APIPageId, true));
+        exit(MCPConfigImplementation.CreateAPIPageTool(ConfigId, APIPageId, true));
     end;
 
     /// <summary>
@@ -138,19 +177,58 @@ codeunit 8350 "MCP Config"
     /// <returns>The SystemId (GUID) of the created tool.</returns>
     procedure CreateAPITool(ConfigId: Guid; APIPageId: Integer; ValidateAPIPublisher: Boolean): Guid
     begin
-        exit(MCPConfigImplementation.CreateAPITool(ConfigId, APIPageId, ValidateAPIPublisher));
+        exit(MCPConfigImplementation.CreateAPIPageTool(ConfigId, APIPageId, ValidateAPIPublisher));
     end;
 
     /// <summary>
-    /// Retrieves the SystemId (GUID) of a tool by its configuration ID and API page
+    /// Creates a new API tool for the specified configuration and query.
+    /// </summary>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
+    /// <param name="QueryId">The ID of the query.</param>
+    /// <returns>The SystemId (GUID) of the created tool.</returns>
+    procedure CreateQueryAPITool(ConfigId: Guid; QueryId: Integer): Guid
+    begin
+        exit(MCPConfigImplementation.CreateAPIQueryTool(ConfigId, QueryId));
+    end;
+
+    /// <summary>
+    /// Creates a new API tool for the specified configuration and codeunit.
+    /// </summary>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
+    /// <param name="CodeunitId">The ID of the codeunit.</param>
+    /// <returns>The SystemId (GUID) of the created tool.</returns>
+    procedure CreateCodeunitAPITool(ConfigId: Guid; CodeunitId: Integer): Guid
+    begin
+        exit(MCPConfigImplementation.CreateAPICodeunitTool(ConfigId, CodeunitId));
+    end;
+
+    /// <summary>
+    /// Retrieves the SystemId (GUID) of a tool by its configuration ID, object ID and object type.
+    /// </summary>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
+    /// <param name="ObjectId">The ID of the API page or query.</param>
+    /// <param name="ObjectType">The object type (Page, Query or Codeunit).</param>
+    /// <returns>The SystemId (GUID) of the tool if found; otherwise, an empty GUID.</returns>
+    procedure GetAPIToolId(ConfigId: Guid; ObjectId: Integer; ObjectType: Option Page,Query,Codeunit): Guid
+    begin
+        exit(MCPConfigImplementation.GetAPIToolId(ConfigId, ObjectId, ObjectType));
+    end;
+
+#if not CLEAN29
+    /// <summary>
+    /// Retrieves the SystemId (GUID) of a tool by its configuration ID and API page.
     /// </summary>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
     /// <param name="APIPageId">The ID of the API page.</param>
     /// <returns>The SystemId (GUID) of the tool if found; otherwise, an empty GUID.</returns>
+    [Obsolete('Use GetAPIToolId with ObjectType parameter instead.', '29.0')]
     procedure GetAPIToolId(ConfigId: Guid; APIPageId: Integer): Guid
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
     begin
-        exit(MCPConfigImplementation.GetAPIToolId(ConfigId, APIPageId));
+        exit(MCPConfigImplementation.GetAPIToolId(ConfigId, APIPageId, MCPConfigurationTool."Object Type"::Page));
     end;
+#endif
 
     /// <summary>
     /// Deletes the specified tool from the configuration.
@@ -202,14 +280,28 @@ codeunit 8350 "MCP Config"
     end;
 
     /// <summary>
+    /// Sets the actions permission for the specified tool. For API pages this controls bound actions;
+    /// for codeunit tools this controls whether the codeunit action can be invoked.
+    /// </summary>
+    /// <param name="ToolSystemId">The SystemId (GUID) of the tool.</param>
+    /// <param name="Allow">True to allow actions, false to disallow.</param>
+    procedure AllowActions(ToolSystemId: Guid; Allow: Boolean)
+    begin
+        MCPConfigImplementation.AllowActions(ToolSystemId, Allow);
+    end;
+
+#if not CLEAN29
+    /// <summary>
     /// Sets the bound actions permission for the specified tool.
     /// </summary>
     /// <param name="ToolSystemId">The SystemId (GUID) of the tool.</param>
     /// <param name="Allow">True to allow bound actions, false to disallow.</param>
+    [Obsolete('Renamed to AllowActions.', '29.0')]
     procedure AllowBoundActions(ToolSystemId: Guid; Allow: Boolean)
     begin
-        MCPConfigImplementation.AllowBoundActions(ToolSystemId, Allow);
+        MCPConfigImplementation.AllowActions(ToolSystemId, Allow);
     end;
+#endif
 
     /// <summary>
     /// Creates a new MCP Entra Application with the specified name, description, and client ID.
@@ -229,5 +321,27 @@ codeunit 8350 "MCP Config"
     procedure DeleteEntraApplication(Name: Text[100])
     begin
         MCPConfigImplementation.DeleteEntraApplication(Name);
+    end;
+
+    /// <summary>
+    /// Exports the specified MCP configuration and its tools to a JSON stream.
+    /// </summary>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration to export.</param>
+    /// <param name="OutStream">The output stream to write the JSON to.</param>
+    procedure ExportConfiguration(ConfigId: Guid; var OutStream: OutStream)
+    begin
+        MCPConfigImplementation.ExportConfiguration(ConfigId, OutStream);
+    end;
+
+    /// <summary>
+    /// Imports an MCP configuration and its tools from a JSON stream.
+    /// </summary>
+    /// <param name="InStream">The input stream containing the JSON configuration.</param>
+    /// <param name="NewName">The name for the imported configuration.</param>
+    /// <param name="NewDescription">The description for the imported configuration.</param>
+    /// <returns>The SystemId (GUID) of the imported configuration.</returns>
+    procedure ImportConfiguration(var InStream: InStream; NewName: Text[100]; NewDescription: Text[250]): Guid
+    begin
+        exit(MCPConfigImplementation.ImportConfiguration(InStream, NewName, NewDescription));
     end;
 }

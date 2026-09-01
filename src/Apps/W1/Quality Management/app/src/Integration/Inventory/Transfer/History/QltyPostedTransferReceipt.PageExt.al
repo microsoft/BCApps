@@ -12,7 +12,7 @@ pageextension 20426 "Qlty. Posted Transfer Receipt" extends "Posted Transfer Rec
     {
         addlast(General)
         {
-            group(Qlty_Management)
+            group(Qlty_QualityManagement)
             {
                 ShowCaption = false;
                 Visible = (Rec."Qlty. Inspection No." <> '');

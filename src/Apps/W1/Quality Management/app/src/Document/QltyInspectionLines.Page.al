@@ -5,6 +5,7 @@
 namespace Microsoft.QualityManagement.Document;
 
 using Microsoft.QualityManagement.AccessControl;
+using System.Environment.Configuration;
 
 /// <summary>
 /// Introduced to make it easier to analyze inspection line values changes over time.
@@ -15,6 +16,7 @@ page 20413 "Qlty. Inspection Lines"
     PageType = List;
     SourceTable = "Qlty. Inspection Line";
     SourceTableView = sorting("Inspection No.", "Re-inspection No.", "Line No.") order(descending);
+    AccessByPermission = tabledata "Qlty. Inspection Line" = R;
     UsageCategory = Lists;
     ApplicationArea = QualityManagement;
 
@@ -85,13 +87,13 @@ page 20413 "Qlty. Inspection Lines"
                 {
                     Visible = false;
                 }
-                field("Numeric Value"; Rec."Numeric Value")
+                field("Derived Numeric Value"; Rec."Derived Numeric Value")
                 {
                 }
                 field(ChooseMeasurementNote; MeasurementNote)
                 {
+                    AccessByPermission = tabledata "Record Link" = R;
                     Caption = 'Note';
-                    Visible = CanSeeLineNotes;
                     Editable = CanEditLineNotes;
                     ToolTip = 'Specifies a free text note associated with the measurement.';
 
@@ -132,22 +134,20 @@ page 20413 "Qlty. Inspection Lines"
             systempart(RecordNotes; Notes)
             {
                 ApplicationArea = Notes;
-                Visible = CanSeeLineNotes;
+                AccessByPermission = tabledata "Record Link" = R;
                 Enabled = CanEditLineNotes;
             }
         }
     }
 
-    protected var
+    var
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
         CanEditLineNotes: Boolean;
-        CanSeeLineNotes: Boolean;
         MeasurementNote: Text;
 
     trigger OnOpenPage()
     begin
         CanEditLineNotes := QltyPermissionMgmt.CanEditLineComments();
-        CanSeeLineNotes := QltyPermissionMgmt.CanReadLineComments();
     end;
 
     trigger OnAfterGetRecord()

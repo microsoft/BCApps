@@ -1,0 +1,949 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<GroupingCategoryCode xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="Grouping_Category_Code.xsd">
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>010</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Fastlønn</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>020</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">lønn til vikarer</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>030</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">lønn til ekstrahjelp</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>040</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Overtidslønn</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>050</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Annen lønn og trekkpliktige godtgjørelser</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>070</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">lønn til vedlikehold, påkostning, nybygg og nyanlegg</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>075</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">lønn til renhold</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>080</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Godtgjørelser til folkevalgte</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>089</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Trekkpliktig, opplysningspliktig, ikke arbeidsgiveravgiftspliktig lønn</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>090</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Pensjonsinnskudd og trekkpliktige forsikringsordninger</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>099</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Arbeidsgiveravgift</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>100</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Kontormateriell</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>105</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Undervisningsmateriell</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>110</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Medisinsk forbruksmateriell</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>114</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Medikamenter</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>115</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Matvarer</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>120</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Samlepost for annet forbruksmateriell, varer og tjenester</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>130</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Post, bank, telefon, internett, bredbånd</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>140</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Annonser, reklame, informasjon</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>150</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Opplæring og kurs</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>160</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Utgifter og godtgjørelser for reiser, diett, bil mv. som er opplysningspliktige</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>165</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre opplysningspliktige godtgjørelser</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>170</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Transport og reise</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>180</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Strøm</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>181</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Fjernvarme og fjernkjøling</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>182</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Fyringsolje og fyringsparafin</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>183</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Naturgass og andre fossile gasser</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>184</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Bioenergi</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>185</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Forsikringer, vakthold og sikring
+    </CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>190</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Leie av lokaler og grunn</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>195</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Avgifter, gebyrer, lisenser o.l.</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>200</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">kjøp og finansiell leasing av driftsmidler</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>209</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Medisinsk utstyr</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>210</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">kjøp og leie av transportmidler</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>220</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Leie av driftsmidler</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>230</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Vedlikehold, påkostning, nybygg og nyanlegg</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>240</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Driftsavtaler, reparasjoner og vaktmestertjenester</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>250</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Materialer til vedlikehold, påkostning, nybygg og nyanlegg</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>260</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Renholds- og vaskeritjenester</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>270</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre tjenester</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>280</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Grunnerverv</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>285</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">kjøp av eksisterende bygninger og anlegg</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>300</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">kjøp fra staten</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>330</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">kjøp fra fylkeskommuner</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>350</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">kjøp fra kommuner</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>370</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">kjøp fra andre</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>375</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">kjøp fra interkommunalt selskap der kommunen eller fylkeskommunen selv er deltaker</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>380</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">kjøp fra kommunalt foretak i egen kommune eller fylkeskommunalt foretak i egen fylkeskommune</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>400</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Overføring til staten</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>429</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Merverdiavgift som gir rett til merverdiavgiftskompensasjon</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>430</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Overføring til fylkeskommuner</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>450</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Overføring til kommuner</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>470</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Overføring til andre</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>475</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Overføring til interkommunalt selskap der kommunen eller fylkeskommunen selv er deltaker</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>480</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Overføring til kommunalt foretak i egen kommune eller fylkeskommunalt foretak i egen fylkeskommune</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>500</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Renteutgifter, provisjoner og andre finansutgifter</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>501</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Konserninterne renteutgifter</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>509</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Tap på finansielle instrumenter
+    </CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>510</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Avdrag på lån</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>511</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Konserninterne avdrag</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>512</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Avdrag på lån til videreutlån</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>520</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Utlån</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>521</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Konserninterne utlån</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>522</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Videreutlån</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>529</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">kjøp av aksjer og andeler</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>530</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Dekning av tidligere års merforbruk og udekket beløp</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>540</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Avsetninger til ubundne fond</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>550</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Avsetninger til bundne fond
+    </CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>570</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Overføring til investering</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>589</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Rapportkontroll (positivt avvik)</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>590</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Avskrivninger</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>600</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Brukerbetalinger</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>620</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Annet salg av varer og tjenester, gebyrer o.l. som ikke er merverdiavgiftspliktig</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>629</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Billettinntekter</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>630</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Utleie av boliger og lokaler mv. og festeavgifter</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>640</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Merverdiavgiftspliktige gebyrer</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>650</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Annet merverdiavgiftspliktig salg av varer og tjenester</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>660</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Salg av driftsmidler</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>670</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Salg av fast eiendom</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>700</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Refusjon fra staten</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>710</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Sykelønnsrefusjon</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>729</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Kompensasjon for merverdiavgift
+    </CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>730</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Refusjon fra fylkeskommuner</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>750</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Refusjon fra kommuner</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>770</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Refusjon fra andre</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>775</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Salg til interkommunalt selskap der kommunen eller fylkeskommunen selv er deltaker</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>780</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Salg til kommunalt foretak i egen kommune eller fylkeskommunalt foretak i egen fylkeskommune</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>800</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Rammetilskudd</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>810</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre statlige overføringer</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>830</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Overføring fra fylkeskommuner</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>850</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Overføring fra kommuner</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>870</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Skatt på inntekt og formue</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>874</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Eiendomsskatt annen eiendom</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>875</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Eiendomsskatt boliger og fritidsboliger</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>877</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre direkte og indirekte skatter</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>880</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Overføringer fra kommunalt foretak i egen kommune eller fylkeskommunalt foretak i egen fylkeskommune</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>890</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Overføringer fra andre</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>895</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Overføringer fra interkommunalt selskap der kommunen eller fylkeskommunen selv er deltaker</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>900</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Renteinntekter</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>901</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Konserninterne renteinntekter</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>905</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Utbytte og eieruttak</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>909</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Gevinster på finansielle instrumenter</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>910</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Bruk av lån</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>911</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Bruk av konserninterne lån</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>912</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Bruk av lån til videreutlån</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>920</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Mottatte avdrag på utlån</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>921</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Mottatte avdrag på konserninterne utlån</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>922</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Mottatte avdrag på videreutlån</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>929</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Salg av aksjer og andeler</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>930</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Bruk av tidligere års regnskapsmessige mindreforbruk og udisponert beløp</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>940</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Bruk av ubundne fond</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>950</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Bruk av bundne fond</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>970</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Overføring fra drift</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>980</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Merforbruk og udekket beløp fremført til inndekning i senere år</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>989</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Rapportkontroll (negativt avvik)</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>990</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Motpost avskrivninger</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.10</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Bankinnskudd og kontanter</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.11</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Obligasjoner (omløpsmidler)</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.12</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Sertifikater</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.13</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Kundefordringer</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.14</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Konserninterne kortsiktige fordringer</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.15</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Derivater</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.16</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre kortsiktige fordringer</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.18</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Aksjer og andeler (omløpsmidler)</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.19</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Premieavvik</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.20</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Pensjonsmidler</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.21</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Aksjer og andeler (anleggsmidler)</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.22</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Utlån (anleggsmidler)</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.23</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Konserninterne langsiktige fordringer</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.24</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Utstyr, maskiner og transportmidler</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.27</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Faste eiendomer og anlegg</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.29</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Obligasjoner (anleggsmidler)</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.31</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Likviditetslån</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.32</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Annen kortsiktig gjeld</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.33</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Konsernintern kortsiktig gjeld</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.34</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Derivater</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.35</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Leverandørgjeld</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.39</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Premieavvik</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.40</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Pensjonsforpliktelse</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.41</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Obligasjonslån</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.42</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Obligasjonslån med forfall i neste regnskapsår</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.43</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Sertifikatlån</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.45</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Gjeld til kredittinstitusjoner</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.47</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Konsernintern langsiktig gjeld</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.51</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Bundne driftsfond</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.53</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Ubundet investeringsfond</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.55</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Bundne investeringsfond</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.56</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Disposisjonsfond</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.580</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Prinsippendringer som påvirker arbeidskapitalen investering</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.581</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Prinsippendringer som påvirker arbeidskapitalen drift</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.5900</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Merforbruk i driftsregnskapet</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.5970</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Udekket beløp i investeringsregnskapet</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.5990</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Kapitalkonto</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.9100</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Ubrukte lånemidler</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.9110</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Ubrukte konserninterne lånemidler</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.9200</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Andre memoriakonti</CodeDescription>
+  </Account>
+  <Account>
+    <GroupingCategory>KA_K</GroupingCategory>
+    <CategoryDescription ISOLanguageCode="NOB">KOSTRA Arts_K</CategoryDescription>
+    <GroupingCode>2.9999</GroupingCode>
+    <CodeDescription ISOLanguageCode="NOB">Motkonto for memoriakontiene</CodeDescription>
+  </Account>
+</GroupingCategoryCode>

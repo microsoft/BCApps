@@ -1,0 +1,2 @@
+# cost: 12
+{"query":"{products(first:200, query: \"updated_at:>'{{Time}}' gift_card:false\"){pageInfo{hasNextPage} edges{cursor node{id updatedAt}}}}"}

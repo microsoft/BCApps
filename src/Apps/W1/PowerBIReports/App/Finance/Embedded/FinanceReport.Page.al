@@ -11,8 +11,8 @@ page 37059 "Finance Report"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Finance Report';
-    AboutTitle = 'About Finance Report';
+    Caption = 'Finance Report (Power BI)';
+    AboutTitle = 'About Finance Report (Power BI)';
     AboutText = 'The Finance Report offers a consolidated view of all financial report pages, conveniently embedded into a single page for easy access.';
 
     layout
@@ -48,11 +48,8 @@ page 37059 "Finance Report"
         ReportPageLbl: Label '', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Finance Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Finance App");
     end;
 }
 

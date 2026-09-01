@@ -29,9 +29,9 @@ codeunit 9215 "IDAutomation 1D Provider" implements "Barcode Font Provider"
 
     procedure EncodeFont(InputText: Text; Encoder: Enum "Barcode Symbology"): Text;
     var
-        BarcodeEncodeSettings: Record "Barcode Encode Settings";
+        TempBarcodeEncodeSettings: Record "Barcode Encode Settings";
     begin
-        exit(EncodeFont(InputText, Encoder, BarcodeEncodeSettings));
+        exit(EncodeFont(InputText, Encoder, TempBarcodeEncodeSettings));
     end;
 
     procedure EncodeFont(InputText: Text; BarcodeSymbology: Enum "Barcode Symbology"; BarcodeEncodeSettings: Record "Barcode Encode Settings"): Text;
@@ -46,9 +46,9 @@ codeunit 9215 "IDAutomation 1D Provider" implements "Barcode Font Provider"
 
     procedure ValidateInput(InputText: Text; BarcodeSymbology: Enum "Barcode Symbology")
     var
-        BarcodeEncodeSettings: Record "Barcode Encode Settings";
+        TempBarcodeEncodeSettings: Record "Barcode Encode Settings";
     begin
-        ValidateInput(InputText, BarcodeSymbology, BarcodeEncodeSettings);
+        ValidateInput(InputText, BarcodeSymbology, TempBarcodeEncodeSettings);
     end;
 
     procedure ValidateInput(InputText: Text; BarcodeSymbology: Enum "Barcode Symbology"; BarcodeEncodeSettings: Record "Barcode Encode Settings")

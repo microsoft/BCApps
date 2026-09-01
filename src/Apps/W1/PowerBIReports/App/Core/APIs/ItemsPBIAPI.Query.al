@@ -14,6 +14,7 @@ query 36953 "Items - PBI API"
     Access = Internal;
     Caption = 'Power BI Items';
     QueryType = API;
+    AboutText = 'Provides access to item master data including descriptions, unit costs, posting groups, production BOMs, routings, and rolled-up cost components. Enables Power BI reports to analyze product catalogs, manufacturing costs, and inventory valuations for comprehensive item-based analytics and reporting.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

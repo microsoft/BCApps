@@ -28,28 +28,28 @@ codeunit 1926 "Profiling Chart Helper"
     /// <remarks>ProfilingDataProcessor must be initialized for this method to work.</remarks>
     procedure GetChartData(ProfilingAggregationType: Enum "Profiling Aggregation Type"; AggregateBySelfTime: Boolean; ChartLabels: List of [Text]; ChartValues: List of [Integer])
     var
-        AggregatedProfilingNode: Record "Profiling Node";
+        TempAggregatedProfilingNode: Record "Profiling Node";
         ProfilingDataProcessor: Codeunit "Profiling Data Processor";
         Identifier: Text;
     begin
         if AggregateBySelfTime then begin
-            ProfilingDataProcessor.GetSelfTimeAggregate(AggregatedProfilingNode, ProfilingAggregationType);
-            AggregatedProfilingNode.SetCurrentKey("Self Time");
+            ProfilingDataProcessor.GetSelfTimeAggregate(TempAggregatedProfilingNode, ProfilingAggregationType);
+            TempAggregatedProfilingNode.SetCurrentKey("Self Time");
         end else begin
-            ProfilingDataProcessor.GetFullTimeAggregate(AggregatedProfilingNode, ProfilingAggregationType);
-            AggregatedProfilingNode.SetCurrentKey("Full Time");
+            ProfilingDataProcessor.GetFullTimeAggregate(TempAggregatedProfilingNode, ProfilingAggregationType);
+            TempAggregatedProfilingNode.SetCurrentKey("Full Time");
         end;
-        AggregatedProfilingNode.Ascending(false);
+        TempAggregatedProfilingNode.Ascending(false);
 
-        if AggregatedProfilingNode.FindSet() then
+        if TempAggregatedProfilingNode.FindSet() then
             repeat
-                Identifier := ProfilingDataProcessor.GetUniqueIdentifierByAggregationType(AggregatedProfilingNode, ProfilingAggregationType);
+                Identifier := ProfilingDataProcessor.GetUniqueIdentifierByAggregationType(TempAggregatedProfilingNode, ProfilingAggregationType);
                 ChartLabels.Add(Identifier);
                 if AggregateBySelfTime then
-                    ChartValues.Add(AggregatedProfilingNode."Self Time")
+                    ChartValues.Add(TempAggregatedProfilingNode."Self Time")
                 else
-                    ChartValues.Add(AggregatedProfilingNode."Full Time")
-            until AggregatedProfilingNode.Next() = 0;
+                    ChartValues.Add(TempAggregatedProfilingNode."Full Time")
+            until TempAggregatedProfilingNode.Next() = 0;
     end;
 
     /// <summary>

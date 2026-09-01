@@ -7,6 +7,7 @@ namespace Microsoft.Peppol.Test;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Registration;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Attachment;
@@ -1344,6 +1345,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         Customer.Get(CreateCustomerWithAddressAndGLN());
         LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Invoice, Customer."No.");
         ServiceHeader.Validate("Due Date", LibraryRandom.RandDate(10));
+        ServiceHeader.Validate("E-Mail", 'sellto@example.com');
         ServiceHeader.Modify(true);
         CreateVATPostingSetupWithTATCalcType(
           VATPostingSetup, ServiceHeader."VAT Bus. Posting Group", GetTaxCategoryS(),
@@ -1546,6 +1548,40 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         VerifyTaxTotalAmounts(0, VatPer, 0, 0);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportXml_PEPPOL_BIS3_SalesInvoice_TaxCategoryEZeroValue()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        CompanyInformation: Record "Company Information";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [Invoice] [Tax Category]
+        // [SCENARIO 633222] PEPPOL BIS3. Export zero-value Sales Invoice with Tax Category 'E' - VAT Exempt still exports Seller VAT Identifier
+        Initialize();
+
+        // [GIVEN] Company has "VAT Registration No." = 'NO1234567890'
+        UpdateCompanyVATRegNo();
+
+        // [GIVEN] Posted Sales Invoice with Tax Category 'E' and a fully discounted (zero-value) line
+        SalesInvoiceHeader.Get(
+          CreatePostSalesDocWithTaxCategoryAndFullLineDiscount(
+            CreateCustomerWithAddressAndVATRegNo(), SalesHeader."Document Type"::Invoice, GetTaxCategoryE(), 0));
+
+        // [WHEN] Export Sales Invoice with PEPPOL BIS3
+        SalesInvoiceHeader.SetRecFilter();
+        PEPPOLXMLExportToBlob(SalesInvoiceHeader, CreateBISElectronicDocumentFormatSalesInvoice(), TempBlob);
+
+        // [THEN] <PartyTaxScheme> with Seller VAT Identifier <CompanyID> is exported even though the invoice total is zero
+        CompanyInformation.Get();
+        InitXPathXMLReaderForInvoice(TempBlob);
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+          '//cac:PartyTaxScheme/cbc:CompanyID', GetCompanyVATRegNo(CompanyInformation));
+        // [THEN] <TaxCategory> has <ID> 'E'
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:ID', GetTaxCategoryE());
+    end;
+
     local procedure Initialize()
     var
         CompanyInfo: Record "Company Information";
@@ -1555,6 +1591,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         ServiceCreditMemoHeader: Record "Service Cr.Memo Header";
         ServiceInvLine: Record "Service Invoice Line";
         ServiceCrMemoHeader: Record "Service Cr.Memo Line";
+        VATRegistrationNoFormat: Record "VAT Registration No. Format";
     begin
         LibrarySetupStorage.Restore();
         LibraryTestInitialize.OnTestInitialize(Codeunit::"PEPPOL BIS BillingTests");
@@ -1564,6 +1601,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         ServiceCreditMemoHeader.DeleteAll();
         ServiceInvLine.DeleteAll();
         ServiceCrMemoHeader.DeleteAll();
+        VATRegistrationNoFormat.DeleteAll();
 
         if not CompanyInfo.Get() then
             CompanyInfo.Insert();
@@ -1579,7 +1617,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
 
         if not IsInitialized then begin
             LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"PEPPOL BIS BillingTests");
-            
+
             if CompanyInfo."VAT Registration No." = '' then
                 CompanyInfo."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo(CompanyInfo."Country/Region Code");
             CompanyInfo.Validate("Use GLN in Electronic Document", true);
@@ -1601,11 +1639,11 @@ codeunit 139236 "PEPPOL BIS BillingTests"
             LibrarySetupStorage.Save(DATABASE::"Company Information");
             LibrarySetupStorage.Save(DATABASE::"General Ledger Setup");
 
-            ConfigureVATPostingSetup();
-
             IsInitialized := true;
             LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"PEPPOL BIS BillingTests");
         end;
+
+        ConfigureVATPostingSetup();
     end;
 
     local procedure AddCustPEPPOLIdentifier(CustNo: Code[20])
@@ -1715,6 +1753,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
           LibraryUtility.GenerateRandomCode(SalesHeader.FieldNo("Your Reference"), DATABASE::"Sales Header"));
         SalesHeader.Validate("Shipment Date", LibraryRandom.RandDate(10));
         SalesHeader.Validate("Currency Code", CurrencyCode);
+        SalesHeader.Validate("Sell-to E-Mail", 'sellto@example.com');
         SalesHeader.Modify(true);
     end;
 
@@ -1744,6 +1783,19 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         CreateSalesDoc(SalesHeader, SalesLine, CustomerNo, DocumentType, '');
         SalesLine.Validate(
           "VAT Prod. Posting Group", CreateVATPostingSetupWithTaxCategory(SalesHeader."VAT Bus. Posting Group", TaxCategory, VATPct));
+        SalesLine.Modify(true);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreatePostSalesDocWithTaxCategoryAndFullLineDiscount(CustomerNo: Code[20]; DocumentType: Enum "Sales Document Type"; TaxCategory: Code[10]; VATPct: Decimal): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        CreateSalesDoc(SalesHeader, SalesLine, CustomerNo, DocumentType, '');
+        SalesLine.Validate(
+          "VAT Prod. Posting Group", CreateVATPostingSetupWithTaxCategory(SalesHeader."VAT Bus. Posting Group", TaxCategory, VATPct));
+        SalesLine.Validate("Line Discount %", 100);
         SalesLine.Modify(true);
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
@@ -1790,6 +1842,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         Customer.Get(CreateCustomerWithAddressAndGLN());
         LibraryService.CreateServiceHeader(ServiceHeader, DocumentType, Customer."No.");
         ServiceHeader.Validate("Due Date", LibraryRandom.RandDate(10));
+        ServiceHeader.Validate("E-Mail", 'sellto@example.com');
         ServiceHeader.Validate("Currency Code", CurrencyCode);
         ServiceHeader.Modify(true);
         LibraryService.CreateServiceLineWithQuantity(

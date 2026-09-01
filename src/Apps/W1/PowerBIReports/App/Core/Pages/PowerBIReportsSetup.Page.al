@@ -5,6 +5,7 @@
 namespace Microsoft.PowerBIReports;
 
 using Microsoft.Finance.PowerBIReports;
+using Microsoft.Inventory.Analysis;
 using System.DateTime;
 using System.Environment;
 
@@ -580,6 +581,14 @@ page 36951 "PowerBI Reports Setup"
                 Image = CodesList;
                 RunObject = page "PBI Close Income Stmt. SC.";
             }
+            action(ABCAnalysisSetup)
+            {
+                ApplicationArea = All;
+                Caption = 'ABC Analysis Setup';
+                ToolTip = 'Set up your ABC analysis thresholds in the Power BI Inventory reports.';
+                Image = Percentage;
+                RunObject = page "ABC Analysis Setup";
+            }
         }
 
         area(Promoted)
@@ -598,6 +607,9 @@ page 36951 "PowerBI Reports Setup"
                 actionref(CloseIncomeStatementSourceCodes_Promoted; CloseIncomeStatementSourceCodes)
                 {
                 }
+                actionref(ABCAnalysisSetup_Promoted; ABCAnalysisSetup)
+                {
+                }
             }
         }
     }
@@ -605,9 +617,12 @@ page 36951 "PowerBI Reports Setup"
     trigger OnOpenPage()
     var
         PowerBIInitialization: Codeunit Initialization;
+        FinanceInstallationHandler: Codeunit "Finance Installation Handler";
     begin
         if not Rec.FindFirst() then
             PowerBIInitialization.SetupDefaultsForPowerBIReportsIfNotInitialized();
+
+        FinanceInstallationHandler.NotifyIfAccountCategoryMappingIncomplete();
     end;
 
     trigger OnAfterGetCurrRecord()

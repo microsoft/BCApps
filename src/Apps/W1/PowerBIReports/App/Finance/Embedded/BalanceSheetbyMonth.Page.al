@@ -11,8 +11,8 @@ page 36986 "Balance Sheet by Month"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Balance Sheet by Month';
-    AboutTitle = 'About Balance Sheet by Month';
+    Caption = 'Balance Sheet by Month (Power BI)';
+    AboutTitle = 'About Balance Sheet by Month (Power BI)';
     AboutText = 'The Balance Sheet by Month report provides a month-to-month comparative view of the balance at date for balance sheet accounts. ';
 
     layout
@@ -50,11 +50,8 @@ page 36986 "Balance Sheet by Month"
 #pragma warning restore AA0240
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Finance Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Finance App");
     end;
 }
 

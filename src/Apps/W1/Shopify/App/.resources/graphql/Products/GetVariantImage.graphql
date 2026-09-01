@@ -1,0 +1,2 @@
+# cost: 4
+{"query":"{ productVariant(id: \"gid://shopify/ProductVariant/{{VariantId}}\") { media(first:1) { edges {node { id }}}}}"}

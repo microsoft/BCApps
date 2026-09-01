@@ -138,7 +138,7 @@ codeunit 8055 "Sub. Contracts Item Management"
         if (SellToCustomerNo = '') or (ItemNo = '') then
             exit;
         CreateTempSalesHeader(TempSalesHeader, TempSalesHeader."Document Type"::Order, SellToCustomerNo, SellToCustomerNo, 0D, CurrencyCode);
-        CreateTempSalesLine(TempSalesLine, TempSalesHeader, "Service Object Type"::Item, ItemNo, Quantity, 0D);
+        CreateTempSalesLine(TempSalesLine, TempSalesHeader, "Service Object Type"::Item, ItemNo, Quantity, 0D, '');
         UnitPrice := CalculateUnitPrice(TempSalesHeader, TempSalesLine);
     end;
 
@@ -159,12 +159,7 @@ codeunit 8055 "Sub. Contracts Item Management"
 
     internal procedure CreateTempSalesLine(var TempSalesLine: Record "Sales Line" temporary; var TempSalesHeader: Record "Sales Header" temporary; ServiceObject: Record "Subscription Header"; OrderDate: Date)
     begin
-        CreateTempSalesLine(TempSalesLine, TempSalesHeader, ServiceObject.Type, ServiceObject."Source No.", ServiceObject.Quantity, OrderDate);
-    end;
-
-    local procedure CreateTempSalesLine(var TempSalesLine: Record "Sales Line" temporary; var TempSalesHeader: Record "Sales Header" temporary; ServiceObjectType: enum "Service Object Type"; SourceNo: Code[20]; Quantity: Decimal; OrderDate: Date)
-    begin
-        CreateTempSalesLine(TempSalesLine, TempSalesHeader, ServiceObjectType, SourceNo, Quantity, OrderDate, '');
+        CreateTempSalesLine(TempSalesLine, TempSalesHeader, ServiceObject.Type, ServiceObject."Source No.", ServiceObject.Quantity, OrderDate, ServiceObject."Variant Code");
     end;
 
     internal procedure CreateTempSalesLine(var TempSalesLine: Record "Sales Line" temporary; var TempSalesHeader: Record "Sales Header" temporary; ServiceObjectType: enum "Service Object Type"; SourceNo: Code[20]; Quantity: Decimal; OrderDate: Date; VariantCode: Code[10])
@@ -213,6 +208,61 @@ codeunit 8055 "Sub. Contracts Item Management"
         exit(Item."Unit Cost");
     end;
 
+    internal procedure CreateTempPurchaseHeader(var TempPurchaseHeader: Record "Purchase Header" temporary; DocumentType: Enum "Purchase Document Type"; PayToVendorNo: Code[20]; OrderDate: Date; CurrencyCode: Code[10])
+    begin
+        TempPurchaseHeader.SetHideValidationDialog(true);
+        TempPurchaseHeader.Init();
+        TempPurchaseHeader.Validate("Document Type", DocumentType);
+        TempPurchaseHeader.Validate(Status, TempPurchaseHeader.Status::Open);
+        TempPurchaseHeader.InitRecord();
+        if PayToVendorNo <> '' then
+            TempPurchaseHeader.Validate("Pay-to Vendor No.", PayToVendorNo);
+        TempPurchaseHeader.Validate("Currency Code", CurrencyCode);
+        TempPurchaseHeader."Order Date" := OrderDate;
+    end;
+
+    internal procedure CreateTempPurchaseLine(var TempPurchaseLine: Record "Purchase Line" temporary; var TempPurchaseHeader: Record "Purchase Header" temporary; ServiceObject: Record "Subscription Header"; OrderDate: Date)
+    begin
+        CreateTempPurchaseLine(TempPurchaseLine, TempPurchaseHeader, ServiceObject.Type, ServiceObject."Source No.", ServiceObject.Quantity, OrderDate, ServiceObject."Variant Code");
+    end;
+
+    internal procedure CreateTempPurchaseLine(var TempPurchaseLine: Record "Purchase Line" temporary; var TempPurchaseHeader: Record "Purchase Header" temporary; ServiceObjectType: enum "Service Object Type"; SourceNo: Code[20]; Quantity: Decimal; OrderDate: Date; VariantCode: Code[10])
+    begin
+        TempPurchaseLine.Init();
+        TempPurchaseLine.SuspendStatusCheck(true);
+        TempPurchaseLine.Validate("Document Type", TempPurchaseHeader."Document Type");
+        TempPurchaseLine."Document No." := TempPurchaseHeader."No.";
+        case ServiceObjectType of
+            ServiceObjectType::Item:
+                TempPurchaseLine.Type := TempPurchaseLine.Type::Item;
+            ServiceObjectType::"G/L Account":
+                TempPurchaseLine.Type := TempPurchaseLine.Type::"G/L Account";
+        end;
+        TempPurchaseLine."Pay-to Vendor No." := TempPurchaseHeader."Pay-to Vendor No.";
+        TempPurchaseLine."Buy-from Vendor No." := TempPurchaseHeader."Buy-from Vendor No.";
+        TempPurchaseLine."VAT Bus. Posting Group" := TempPurchaseHeader."VAT Bus. Posting Group";
+        TempPurchaseLine."No." := SourceNo;
+        TempPurchaseLine.Quantity := Quantity;
+        TempPurchaseLine."Currency Code" := TempPurchaseHeader."Currency Code";
+        TempPurchaseLine."Variant Code" := VariantCode;
+        if OrderDate <> 0D then
+            TempPurchaseLine."Expected Receipt Date" := OrderDate;
+    end;
+
+    procedure CalculateDirectUnitCost(var TempPurchaseHeader: Record "Purchase Header" temporary; var TempPurchaseLine: Record "Purchase Line" temporary): Decimal
+    var
+        PriceCalculation: Interface "Price Calculation";
+        Line: Variant;
+    begin
+        TempPurchaseLine.GetPriceCalculationHandler(TempPurchaseHeader, PriceCalculation);
+        PriceCalculation.ApplyDiscount();
+        PriceCalculation.ApplyPrice(TempPurchaseLine.FieldNo("No."));
+        PriceCalculation.GetLine(Line);
+        TempPurchaseLine := Line;
+
+        exit(TempPurchaseLine."Direct Unit Cost");
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"Price List Line", OnAfterValidateEvent, "Allow Invoice Disc.", false, false)]
     local procedure ErrorIfAllowInvoiceDiscountForPriceListLineForServiceCommitmentItem(var Rec: Record "Price List Line")
     var
@@ -244,6 +294,16 @@ codeunit 8055 "Sub. Contracts Item Management"
     local procedure CopyPrimaryFieldValueFromItemAttribute(var ItemAttributeValueSelection: Record "Item Attribute Value Selection"; TempItemAttributeValue: Record "Item Attribute Value" temporary)
     begin
         ItemAttributeValueSelection.Primary := TempItemAttributeValue.Primary;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Catalog Item Management", OnDelNonStockItemOnAfterCheckRelations, '', false, false)]
+    local procedure PreventDeletionOfSubscriptionItemOnDelNonStockItem(var Item: Record Item; var ShouldExit: Boolean)
+    begin
+        if Item."Subscription Option" in
+            ["Item Service Commitment Type"::"Service Commitment Item",
+             "Item Service Commitment Type"::"Invoicing Item"]
+        then
+            ShouldExit := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Catalog Item Management", OnAfterCreateNewItem, '', false, false)]

@@ -24,7 +24,7 @@ codeunit 20446 "Qlty. Disp. Neg. Adjust Inv." implements "Qlty. Disposition"
     var
         WarehouseJournalLineDescriptionTemplateLbl: Label 'Inspection [%1] negative adjusted quantity', Comment = '%1 = Quality Inspection';
         MissingBatchErr: Label 'There is missing setup on the Quality Management Setup Card defining the adjustment batch.';
-        WriteOffEntireLotErr: Label 'Reducing inventory using the item tracked quantity for inspection %1 was requested, however the item associated with this inspection does not require tracking.', Comment = '%1=the inspection';
+        WriteOffEntireItemTrackingErr: Label 'Reducing inventory using the item tracked quantity for inspection %1 was requested, however the item associated with this inspection does not require tracking.', Comment = '%1=the inspection';
         CannotGetJournalBatchErr: Label 'Could not get journal batch %1,%2%3. Check the adjustment batch on the Quality Management Setup page.', Comment = '%1=template,%2=batch name,%3=location';
         LocationLbl: Label ' Location: %1', Comment = '%1=location';
         DocumentTypeLbl: Label 'Negative Adjustment';
@@ -34,14 +34,14 @@ codeunit 20446 "Qlty. Disp. Neg. Adjust Inv." implements "Qlty. Disposition"
     /// <summary>
     /// Creates a negative adjustment using the information from a given Quality Inspection.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="OptionalSpecificQuantity"></param>
-    /// <param name="QltyQuantityBehavior"></param>
-    /// <param name="OptionalSourceLocationFilter"></param>
-    /// <param name="OptionalSourceBinFilter"></param>
-    /// <param name="PostingBehavior"></param>
-    /// <param name="Reason"></param>
-    /// <returns></returns>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the inventory to adjust.</param>
+    /// <param name="OptionalSpecificQuantity">The specific base quantity to adjust when required by the quantity behavior.</param>
+    /// <param name="QltyQuantityBehavior">The rule used to determine the adjustment quantity.</param>
+    /// <param name="OptionalSourceLocationFilter">An optional source location filter.</param>
+    /// <param name="OptionalSourceBinFilter">An optional source bin filter.</param>
+    /// <param name="PostingBehavior">Specifies whether to prepare or post the adjustment.</param>
+    /// <param name="Reason">The reason code assigned to the adjustment line.</param>
+    /// <returns>True if an adjustment line was created or posted; otherwise, false.</returns>
     internal procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; OptionalSpecificQuantity: Decimal; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"; OptionalSourceLocationFilter: Text; OptionalSourceBinFilter: Text; PostingBehavior: Enum "Qlty. Item Adj. Post Behavior"; Reason: Code[10]) DidSomething: Boolean
     var
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
@@ -59,10 +59,10 @@ codeunit 20446 "Qlty. Disp. Neg. Adjust Inv." implements "Qlty. Disposition"
     /// <summary>
     /// Creates a negative adjustment using the information from a given Quality Inspection.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="TempInstructionQltyDispositionBuffer"></param>
-    /// <returns></returns>
-    procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
+    /// <param name="QltyInspectionHeader">The inspection that identifies the inventory to adjust.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The disposition instructions that define the quantity, source filters, posting behavior, and reason code.</param>
+    /// <returns>True if an adjustment line was created or posted; otherwise, false.</returns>
+    internal procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         Location: Record Location;
@@ -78,24 +78,24 @@ codeunit 20446 "Qlty. Disp. Neg. Adjust Inv." implements "Qlty. Disposition"
         ItmItemJnlPostBatch: Codeunit "Item Jnl.-Post Batch";
         QltyInventoryAvailability: Codeunit "Qlty. Inventory Availability";
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
-        Handled: Boolean;
+        IsHandled: Boolean;
         CreatedLine: Boolean;
     begin
         TempInstructionQltyDispositionBuffer."Disposition Action" := TempInstructionQltyDispositionBuffer."Disposition Action"::"Dispose with Negative Inventory Adjustment";
 
-        OnBeforeProcessDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, DidSomething, Handled);
-        if Handled then
+        OnBeforeProcessDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, DidSomething, IsHandled);
+        if IsHandled then
             exit;
 
         if TempInstructionQltyDispositionBuffer."Quantity Behavior" = TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Item Tracked Quantity" then
             if not QltyInspectionHeader.IsItemTrackingUsed() then
-                Error(WriteOffEntireLotErr, QltyInspectionHeader.GetFriendlyIdentifier());
+                Error(WriteOffEntireItemTrackingErr, QltyInspectionHeader.GetFriendlyIdentifier());
 
         QltyInventoryAvailability.PopulateQuantityBuffer(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, TempQuantityToActQltyDispositionBuffer);
 
         QltyManagementSetup.Get();
 
-        if Handled then
+        if IsHandled then
             exit;
 
         if not TempQuantityToActQltyDispositionBuffer.FindSet() then begin
@@ -169,21 +169,24 @@ codeunit 20446 "Qlty. Disp. Neg. Adjust Inv." implements "Qlty. Disposition"
     end;
 
     /// <summary>
-    /// To create a negative adjustment make sure that pdQuantity is negative.
+    /// Creates a negative warehouse adjustment line and its warehouse item tracking line.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <returns></returns>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the item and tracking values.</param>
+    /// <param name="TempQuantityToActQltyDispositionBuffer">The source filters and quantity to adjust; the quantity is converted to a negative value.</param>
+    /// <param name="WarehouseNegativeAdjustmentBatch">The warehouse journal batch name.</param>
+    /// <param name="WarehouseJournalLine">The created warehouse journal line.</param>
+    /// <param name="WhseItemTrackingLine">The created warehouse item tracking line.</param>
     local procedure CreateNegativeWarehouseAdjustmentLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; WarehouseNegativeAdjustmentBatch: Code[10]; var WarehouseJournalLine: Record "Warehouse Journal Line"; var WhseItemTrackingLine: Record "Whse. Item Tracking Line")
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         WhseJnlWarehouseJournalBatch: Record "Warehouse Journal Batch";
         QltyItemJournalManagement: Codeunit "Qlty. Item Journal Management";
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
         Clear(WarehouseJournalLine);
         WarehouseJournalLine.Reset();
-        OnBeforeCreateNegativeWarehouseAdjustmentLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, WarehouseNegativeAdjustmentBatch, WarehouseJournalLine, WhseItemTrackingLine, Handled);
-        if Handled then
+        OnBeforeCreateNegativeWarehouseAdjustmentLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, WarehouseNegativeAdjustmentBatch, WarehouseJournalLine, WhseItemTrackingLine, IsHandled);
+        if IsHandled then
             exit;
 
         QltyManagementSetup.Get();
@@ -199,19 +202,24 @@ codeunit 20446 "Qlty. Disp. Neg. Adjust Inv." implements "Qlty. Disposition"
     end;
 
     /// <summary>
-    /// To do a negative adjustment, make sure to use a negative quantity here.
+    /// Creates a negative item journal adjustment line and its reservation entry.
     /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the item and tracking values.</param>
+    /// <param name="TempQuantityToActQltyDispositionBuffer">The source filters and quantity to adjust; the quantity is converted to a negative value.</param>
+    /// <param name="ItemJournalBatch">The item journal batch in which to create the line.</param>
+    /// <param name="ItemJournalLine">The created item journal line.</param>
+    /// <param name="ReservationEntry">The reservation entry created for item tracking.</param>
     local procedure CreateNegativeItemAdjustmentLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var ItemJournalBatch: Record "Item Journal Batch"; var ItemJournalLine: Record "Item Journal Line"; var ReservationEntry: Record "Reservation Entry")
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         QltyItemJournalManagement: Codeunit "Qlty. Item Journal Management";
         ItemJournalTemplate: Code[10];
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
         Clear(ItemJournalLine);
 
-        OnBeforeCreateNegativeItemAdjustmentLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, ItemJournalBatch.Name, ItemJournalLine, ReservationEntry, Handled);
-        if Handled then
+        OnBeforeCreateNegativeItemAdjustmentLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, ItemJournalBatch.Name, ItemJournalLine, ReservationEntry, IsHandled);
+        if IsHandled then
             exit;
 
         ItemJournalTemplate := QltyManagementSetup.GetInventoryAdjustmentJournalTemplate();
@@ -226,36 +234,54 @@ codeunit 20446 "Qlty. Disp. Neg. Adjust Inv." implements "Qlty. Disposition"
         ItemJournalLine.Modify();
     end;
 
+    /// <summary>
+    /// Occurs before a negative item adjustment line is created and can replace the default creation.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the inventory to adjust.</param>
+    /// <param name="TempQuantityToActQltyDispositionBuffer">The quantity and source filters for the adjustment.</param>
+    /// <param name="AdjustmentBatchName">The item journal batch name.</param>
+    /// <param name="ItemJournalLine">The item journal line being prepared.</param>
+    /// <param name="ReservationEntry">The reservation entry used for item tracking.</param>
+    /// <param name="IsHandled">Set to true to skip the default line creation.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateNegativeItemAdjustmentLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var AdjustmentBatchName: Code[10]; var ItemJournalLine: Record "Item Journal Line"; var ReservationEntry: Record "Reservation Entry"; var Handled: Boolean)
+    local procedure OnBeforeCreateNegativeItemAdjustmentLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var AdjustmentBatchName: Code[10]; var ItemJournalLine: Record "Item Journal Line"; var ReservationEntry: Record "Reservation Entry"; var IsHandled: Boolean)
     begin
     end;
 
+    /// <summary>
+    /// Occurs before a negative warehouse adjustment line is created and can replace the default creation.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the inventory to adjust.</param>
+    /// <param name="TempQuantityToActQltyDispositionBuffer">The quantity and source filters for the adjustment.</param>
+    /// <param name="WarehouseNegativeAdjustmentBatch">The warehouse journal batch name.</param>
+    /// <param name="WarehouseJournalLine">The warehouse journal line being prepared.</param>
+    /// <param name="WhseItemTrackingLine">The warehouse item tracking line being prepared.</param>
+    /// <param name="IsHandled">Set to true to skip the default line creation.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateNegativeWarehouseAdjustmentLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseNegativeAdjustmentBatch: Code[10]; var WarehouseJournalLine: Record "Warehouse Journal Line"; var WhseItemTrackingLine: Record "Whse. Item Tracking Line"; var Handled: Boolean)
+    local procedure OnBeforeCreateNegativeWarehouseAdjustmentLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseNegativeAdjustmentBatch: Code[10]; var WarehouseJournalLine: Record "Warehouse Journal Line"; var WhseItemTrackingLine: Record "Whse. Item Tracking Line"; var IsHandled: Boolean)
     begin
     end;
 
     /// <summary>
     /// Occurs before the disposition has taken place, allowing the opportunity to extend or replace the functionality.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="TempInstructionQltyDispositionBuffer"></param>
-    /// <param name="prbChanged"></param>
-    /// <param name="Handled"></param>
+    /// <param name="QltyInspectionHeader">The inspection being processed.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The disposition instructions.</param>
+    /// <param name="Changed">Indicates whether an adjustment was created or posted.</param>
+    /// <param name="IsHandled">Set to true to skip the default disposition processing.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var prbChanged: Boolean; var Handled: Boolean)
+    local procedure OnBeforeProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var Changed: Boolean; var IsHandled: Boolean)
     begin
     end;
 
     /// <summary>
     /// Occurs after the disposition has taken place.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="TempInstructionQltyDispositionBuffer"></param>
-    /// <param name="prbChanged"></param>
+    /// <param name="QltyInspectionHeader">The inspection that was processed.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The disposition instructions.</param>
+    /// <param name="Changed">Indicates whether an adjustment was created or posted.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var prbChanged: Boolean)
+    local procedure OnAfterProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var Changed: Boolean)
     begin
     end;
 }

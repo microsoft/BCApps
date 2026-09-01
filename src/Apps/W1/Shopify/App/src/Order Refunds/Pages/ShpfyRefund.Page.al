@@ -38,7 +38,7 @@ page 30145 "Shpfy Refund"
                 field("Updated At"; Rec."Updated At")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the date and time when the refund was update in Shopify.';
+                    ToolTip = 'Specifies the date and time when the refund was updated in Shopify.';
                     Visible = false;
                 }
                 field("Sell-to Customer No."; Rec."Sell-to Customer No.")
@@ -95,6 +95,29 @@ page 30145 "Shpfy Refund"
                 Caption = 'Lines';
                 SubPageLink = "Refund Id" = field("Refund Id");
             }
+            group(Tax)
+            {
+                Caption = 'Tax';
+
+                field("Tax Area Code"; Rec."Tax Area Code")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                    ToolTip = 'Specifies the tax area code from the parent order.';
+                }
+                field("Tax Liable"; Rec."Tax Liable")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                    ToolTip = 'Specifies whether the parent order is liable for sales tax.';
+                }
+                field("Tax Exempt"; Rec."Tax Exempt")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                    ToolTip = 'Specifies whether the parent order is exempt from tax.';
+                }
+            }
             group(NoteGroup)
             {
                 Caption = 'Note';
@@ -144,9 +167,9 @@ page 30145 "Shpfy Refund"
         {
             action(CreateCreditMemo)
             {
-                Caption = 'Create Credit Memo';
-                Image = CreateCreditMemo;
-                ToolTip = 'Create a credit memo for this refund.';
+                Caption = 'Create Sales Document';
+                Image = CreateDocument;
+                ToolTip = 'Create a sales document for this refund. The document type (Credit Memo or Return Order) is determined by the shop setting.';
                 Enabled = CanCreateDocument;
 
                 trigger OnAction()
@@ -192,10 +215,46 @@ page 30145 "Shpfy Refund"
                 RunObject = Page "Shpfy Refund Shipping Lines";
                 RunPageLink = "Refund Id" = field("Refund Id");
             }
+            action(TaxLines)
+            {
+                ApplicationArea = All;
+                Caption = 'Tax Lines';
+                Image = TaxDetail;
+                ToolTip = 'View the tax lines from the parent order.';
+
+                trigger OnAction()
+                var
+                    OrderLine: Record "Shpfy Order Line";
+                    OrderTaxLine: Record "Shpfy Order Tax Line";
+                    FilterBuilder: TextBuilder;
+                begin
+                    OrderLine.SetRange("Shopify Order Id", Rec."Order Id");
+                    if OrderLine.FindSet() then
+                        repeat
+                            if FilterBuilder.Length() > 0 then
+                                FilterBuilder.Append('|');
+                            FilterBuilder.Append(Format(OrderLine."Line Id"));
+                        until OrderLine.Next() = 0;
+                    OrderTaxLine.SetFilter("Parent Id", FilterBuilder.ToText());
+                    Page.Run(Page::"Shpfy Order Tax Lines", OrderTaxLine);
+                end;
+            }
+            action(Transactions)
+            {
+                ApplicationArea = All;
+                Caption = 'Transactions';
+                Image = Payment;
+                ToolTip = 'View the transactions created for this refund that results in exchange of money.';
+                RunObject = Page "Shpfy Order Transactions";
+                RunPageLink = "Refund Id" = field("Refund Id");
+                RunPageMode = View;
+            }
         }
         area(Promoted)
         {
             actionref(PromotedShippingLines; ShippingLines) { }
+            actionref(PromotedTaxLines; TaxLines) { }
+            actionref(PromotedTransactions; Transactions) { }
             actionref(PromotedCreateCreditNoted; CreateCreditMemo) { }
             actionref(PromotedRetrievedShopifyData; RetrievedShopifyData) { }
         }

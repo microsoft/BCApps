@@ -1,0 +1,2 @@
+# cost: 6
+{"query":"{ webhookSubscriptions( first: 10, topics:{{WebhookTopic}}, callbackUrl: \"{{NotificationUrl}}\" ) { edges { node { id } } } }"}

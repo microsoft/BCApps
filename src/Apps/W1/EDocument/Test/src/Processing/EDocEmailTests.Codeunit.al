@@ -26,7 +26,7 @@ codeunit 139746 "E-Doc. Email Tests"
     Access = Internal;
 
     var
-        Account: Record "Email Account";
+        TempAccount: Record "Email Account";
         Customer: Record Customer;
         Vendor: Record Vendor;
         EDocument: Record "E-Document";
@@ -76,8 +76,8 @@ codeunit 139746 "E-Doc. Email Tests"
         DocumentSendingProfile.Modify();
 
         EmailConnectorMock.Initialize();
-        EmailConnectorMock.AddAccount(Account);
-        EmailScenario.SetDefaultEmailAccount(Account);
+        EmailConnectorMock.AddAccount(TempAccount);
+        EmailScenario.SetDefaultEmailAccount(TempAccount);
 
         Customer."E-Mail" := 'Test123@example.com';
         Customer.Modify();
@@ -150,8 +150,8 @@ codeunit 139746 "E-Doc. Email Tests"
         DocumentSendingProfile.Modify();
 
         EmailConnectorMock.Initialize();
-        EmailConnectorMock.AddAccount(Account);
-        EmailScenario.SetDefaultEmailAccount(Account);
+        EmailConnectorMock.AddAccount(TempAccount);
+        EmailScenario.SetDefaultEmailAccount(TempAccount);
 
         Customer."E-Mail" := 'Test123@example.com';
         Customer.Modify();

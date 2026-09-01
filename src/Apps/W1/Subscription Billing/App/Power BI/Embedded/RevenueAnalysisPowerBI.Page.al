@@ -7,8 +7,8 @@ page 8103 "Revenue Analysis Power BI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Revenue Analysis';
-    AboutTitle = 'About Revenue Analysis';
+    Caption = 'Revenue Analysis (Power BI)';
+    AboutTitle = 'About Revenue Analysis (Power BI)';
     AboutText = 'The Revenue Analysis report breaks down Monthly Recurring Revenue by various dimension such as billing rhythm, contract type or customer.';
 
     layout
@@ -44,17 +44,8 @@ page 8103 "Revenue Analysis Power BI"
         ReportPageLbl: Label 'abe45c8964230489e801', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-#if not CLEAN28
-#pragma warning disable AL0801
-#endif
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Subscription Billing Report Id"));
-#if not CLEAN28
-#pragma warning restore AL0801
-#endif
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Subscription Billing App");
     end;
 }
 

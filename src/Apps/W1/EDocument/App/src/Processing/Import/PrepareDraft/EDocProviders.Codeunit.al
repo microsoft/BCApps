@@ -23,6 +23,9 @@ codeunit 6124 "E-Doc. Providers" implements IPurchaseLineProvider, IUnitOfMeasur
 
     var
         NoVendorInformationErr: Label 'There is no vendor information in the source document. Verify that the source document is an invoice, and if it''s not, consider deleting this E-Document.';
+        PurchaseOrderNoTruncatedMsg: Label 'Purchase Order No. was truncated because it exceeded the maximum length of 20 characters.', Locked = true;
+        ItemDescriptionReasonMsg: Label 'Item was found by an exact description match.';
+        ItemDescriptionSourceMsg: Label 'Item %1', Comment = '%1 - Item No.';
 
 
     procedure GetVendor(EDocument: Record "E-Document") Vendor: Record Vendor
@@ -31,18 +34,23 @@ codeunit 6124 "E-Doc. Providers" implements IPurchaseLineProvider, IUnitOfMeasur
         ServiceParticipant: Record "Service Participant";
         EDocErrorHelper: Codeunit "E-Document Error Helper";
         EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         EDocumentHasNoVendorInformation: Boolean;
     begin
         EDocumentPurchaseHeader.GetFromEDocument(EDocument);
         EDocumentHasNoVendorInformation := (EDocumentPurchaseHeader."Vendor GLN" = '') and (EDocumentPurchaseHeader."Vendor VAT Id" = '') and (EDocumentPurchaseHeader."Vendor External Id" = '') and (EDocumentPurchaseHeader."Vendor Company Name" = '') and (EDocumentPurchaseHeader."Vendor Address" = '');
-        if EDocumentHasNoVendorInformation then
+
+        EDocImpSessionTelemetry.SetBool('Vendor Info Present', not EDocumentHasNoVendorInformation);
+
+        if EDocumentHasNoVendorInformation then begin
             // We warn if there's no vendor information extracted from the E-Document, unless we are aware that it is a blank draft
             if EDocument."Read into Draft Impl." <> "E-Doc. Read into Draft"::"Blank Draft" then
                 EDocErrorHelper.LogWarningMessage(EDocument, EDocumentPurchaseHeader, EDocumentPurchaseHeader.FieldNo("[BC] Vendor No."), NoVendorInformationErr);
 
-        // If the E-Document has no vendor information, we can't find the vendor, so we exit early
-        if EDocumentHasNoVendorInformation then
+            // If the E-Document has no vendor information, we can't find the vendor, so we exit early
+            EDocImpSessionTelemetry.SetText('Vendor Match Method', 'None - No Vendor Info');
             exit;
+        end;
 
         if Vendor.Get(EDocumentImportHelper.FindVendor('', EDocumentPurchaseHeader."Vendor GLN", CopyStr(EDocumentPurchaseHeader."Vendor VAT Id", 1, 20))) then
             exit;
@@ -54,10 +62,17 @@ codeunit 6124 "E-Doc. Providers" implements IPurchaseLineProvider, IUnitOfMeasur
             ServiceParticipant.SetRange(Service);
             if ServiceParticipant.FindFirst() then;
         end;
-        if Vendor.Get(ServiceParticipant.Participant) then
+        if Vendor.Get(ServiceParticipant.Participant) then begin
+            EDocImpSessionTelemetry.SetText('Vendor Match Method', 'Service Participant');
             exit;
+        end;
 
-        if Vendor.Get(EDocumentImportHelper.FindVendorByNameAndAddress(EDocumentPurchaseHeader."Vendor Company Name", EDocumentPurchaseHeader."Vendor Address")) then;
+        if Vendor.Get(EDocumentImportHelper.FindVendorByNameAndAddress(EDocumentPurchaseHeader."Vendor Company Name", EDocumentPurchaseHeader."Vendor Address")) then begin
+            EDocImpSessionTelemetry.SetText('Vendor Match Method', 'Name and Address');
+            exit;
+        end;
+
+        EDocImpSessionTelemetry.SetText('Vendor Match Method', 'None - No Match');
     end;
 
     procedure GetUnitOfMeasure(EDocumentHeader: Record "E-Document"; EDocumentLineId: Integer; ExternalUnitOfMeasure: Text) UnitOfMeasure: Record "Unit of Measure"
@@ -88,6 +103,7 @@ codeunit 6124 "E-Doc. Providers" implements IPurchaseLineProvider, IUnitOfMeasur
     procedure GetPurchaseLine(var EDocumentPurchaseLine: Record "E-Document Purchase Line")
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        Item: Record Item;
         ItemReference: Record "Item Reference";
         EDocument: Record "E-Document";
         TextToAccountMapping: Record "Text-to-Account Mapping";
@@ -129,11 +145,26 @@ codeunit 6124 "E-Doc. Providers" implements IPurchaseLineProvider, IUnitOfMeasur
             EDocActivityLogSession.Set(EDocActivityLogSession.TextToAccountMappingTok(), ActivityLog);
             exit;
         end;
+
+        if GetPurchaseLineItemByDescription(EDocumentPurchaseLine, Item) then begin
+            EDocumentPurchaseLine."[BC] Purchase Line Type" := "Purchase Line Type"::Item;
+            EDocumentPurchaseLine.Validate("[BC] Purchase Type No.", Item."No.");
+            EDocImpSessionTelemetry.SetLineBool(EDocumentPurchaseLine.SystemId, 'ItemDescriptionMatch', true);
+
+            SetActivityLog(EDocumentPurchaseLine.SystemId, EDocumentPurchaseLine.FieldNo("[BC] Purchase Type No."), ItemDescriptionReasonMsg, Item, Page::"Item Card", StrSubstNo(ItemDescriptionSourceMsg, Item."No."), ActivityLog);
+            EDocActivityLogSession.Set(EDocActivityLogSession.ItemDescriptionTok(), ActivityLog);
+            exit;
+        end;
     end;
 
     procedure GetPurchaseOrder(EDocumentPurchaseHeader: Record "E-Document Purchase Header") PurchaseHeader: Record "Purchase Header"
+    var
+        PurchaseOrderNo: Code[20];
     begin
-        if PurchaseHeader.Get("Purchase Document Type"::Order, EDocumentPurchaseHeader."Purchase Order No.") then;
+        PurchaseOrderNo := CopyStr(EDocumentPurchaseHeader."Purchase Order No.", 1, MaxStrLen(PurchaseOrderNo));
+        if StrLen(EDocumentPurchaseHeader."Purchase Order No.") > MaxStrLen(PurchaseOrderNo) then
+            Session.LogMessage('0000RJ0', PurchaseOrderNoTruncatedMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'E-Document');
+        if PurchaseHeader.Get("Purchase Document Type"::Order, PurchaseOrderNo) then;
     end;
 
     local procedure GetPurchaseLineItemRef(EDocumentPurchaseLine: Record "E-Document Purchase Line"; var ItemReference: Record "Item Reference"): Boolean
@@ -169,6 +200,32 @@ codeunit 6124 "E-Doc. Providers" implements IPurchaseLineProvider, IUnitOfMeasur
         if ItemReference.FindFirst() then
             if Item.Get(ItemReference."Item No.") then
                 exit(true);
+    end;
+
+    local procedure GetPurchaseLineItemByDescription(EDocumentPurchaseLine: Record "E-Document Purchase Line"; var Item: Record Item): Boolean
+    var
+        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
+    begin
+        if EDocumentPurchaseLine.Description = '' then
+            exit(false);
+
+        Item.SetLoadFields("No.");
+        Item.SetRange(Description, EDocumentPurchaseLine.Description);
+        Item.SetRange(Blocked, false);
+        Item.SetRange("Purchasing Blocked", false);
+
+        if not Item.FindFirst() then begin
+            EDocImpSessionTelemetry.SetLineText(EDocumentPurchaseLine.SystemId, 'ItemDescriptionMatchResult', 'NoMatch');
+            exit(false);
+        end;
+
+        if Item.Count() = 1 then begin
+            EDocImpSessionTelemetry.SetLineText(EDocumentPurchaseLine.SystemId, 'ItemDescriptionMatchResult', 'Single');
+            exit(true);
+        end;
+
+        EDocImpSessionTelemetry.SetLineText(EDocumentPurchaseLine.SystemId, 'ItemDescriptionMatchResult', 'Multiple');
+        exit(false);
     end;
 
 }

@@ -30,8 +30,14 @@ codeunit 139629 "Library - E-Document"
 
     procedure SetupStandardVAT()
     begin
-        if (VATPostingSetup."VAT Bus. Posting Group" = '') and (VATPostingSetup."VAT Prod. Posting Group" = '') then
-            LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, Enum::"Tax Calculation Type"::"Normal VAT", 1);
+        // The cached setup is lost when a failing test rolls back the transaction, so recreate it
+        // whenever the record no longer exists. Otherwise callers validate posting groups that are gone.
+        if (VATPostingSetup."VAT Bus. Posting Group" <> '') or (VATPostingSetup."VAT Prod. Posting Group" <> '') then
+            if VATPostingSetup.Get(VATPostingSetup."VAT Bus. Posting Group", VATPostingSetup."VAT Prod. Posting Group") then
+                exit;
+
+        Clear(VATPostingSetup);
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, Enum::"Tax Calculation Type"::"Normal VAT", 1);
     end;
 
 #if not CLEAN26
@@ -69,6 +75,8 @@ codeunit 139629 "Library - E-Document"
         CountryRegion: Record "Country/Region";
         DocumentSendingProfile: Record "Document Sending Profile";
         SalesSetup: Record "Sales & Receivables Setup";
+        Contact: Record Contact;
+        ContactBusinessRelation: Record "Contact Business Relation";
         WorkflowSetup: Codeunit "Workflow Setup";
         WorkflowCode: Code[20];
     begin
@@ -92,16 +100,24 @@ codeunit 139629 "Library - E-Document"
         Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
         Customer."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo(CountryRegion.Code);
         Customer.Validate(GLN, '1234567890128');
+        Customer.Validate("E-Mail", 'edoc-test@contoso.com');
         Customer."Document Sending Profile" := DocumentSendingProfile.Code;
         Customer.Modify(true);
 
+        // Set the same e-mail on the customer's contact. Validating the sell-to customer on a sales
+        // document copies the customer e-mail to "Sell-to E-Mail"; if the linked contact has no
+        // e-mail (e.g. via the OIOUBL "Sell-to Customer No." validation on NAV_DK) base app raises
+        // the "contact has no e-mail address" confirm, which fails these tests as Unhandled UI.
+        ContactBusinessRelation.SetRange("Link to Table", ContactBusinessRelation."Link to Table"::Customer);
+        ContactBusinessRelation.SetRange("No.", Customer."No.");
+        if ContactBusinessRelation.FindFirst() then
+            if Contact.Get(ContactBusinessRelation."Contact No.") then begin
+                Contact."E-Mail" := 'edoc-test@contoso.com';
+                Contact.Modify();
+            end;
+
         // Create Item
-        if StandardItem."No." = '' then begin
-            VATPostingSetup.TestField("VAT Prod. Posting Group");
-            CreateGenericItem(StandardItem);
-            StandardItem."VAT Prod. Posting Group" := VATPostingSetup."VAT Prod. Posting Group";
-            StandardItem.Modify();
-        end;
+        EnsureStandardItemExists();
 
         SalesSetup.Get();
         SalesSetup."Invoice Rounding" := false;
@@ -110,9 +126,18 @@ codeunit 139629 "Library - E-Document"
 
     procedure GetGenericItem(var Item: Record Item)
     begin
-        if StandardItem."No." = '' then
-            CreateGenericItem(StandardItem);
+        EnsureStandardItemExists();
         Item.Get(StandardItem."No.");
+    end;
+
+    local procedure EnsureStandardItemExists()
+    var
+        Item: Record Item;
+    begin
+        if (StandardItem."No." <> '') and Item.Get(StandardItem."No.") then
+            exit;
+
+        CreateItemWithStandardVAT(StandardItem);
     end;
 
 #if not CLEAN26
@@ -161,6 +186,7 @@ codeunit 139629 "Library - E-Document"
     begin
         WorkflowSetup.InitWorkflow();
         SetupCompanyInfo();
+        CleanGeneralPostingSetup();
 
         // Create Customer for sales scenario
         LibraryPurchase.CreateVendor(Vendor);
@@ -177,10 +203,7 @@ codeunit 139629 "Library - E-Document"
         Vendor.Modify(true);
 
         // Create Item
-        if StandardItem."No." = '' then begin
-            VATPostingSetup.TestField("VAT Prod. Posting Group");
-            CreateGenericItem(StandardItem, VATPostingSetup."VAT Prod. Posting Group");
-        end;
+        EnsureStandardItemExists();
 
         UnitOfMeasure.Init();
         UnitOfMeasure."International Standard Code" := 'PCS';
@@ -193,6 +216,35 @@ codeunit 139629 "Library - E-Document"
         CreateGenericItem(ExtraItem, VATPostingSetup."VAT Prod. Posting Group");
         CreateItemUnitOfMeasure(ExtraItem."No.", UnitOfMeasure.Code);
         LibraryItemReference.CreateItemReference(ItemReference, ExtraItem."No.", '', 'PCS', Enum::"Item Reference Type"::Vendor, Vendor."No.", '2000');
+    end;
+
+    local procedure CleanGeneralPostingSetup()
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+        GeneralPostingSetupToDelete: Record "General Posting Setup";
+    begin
+        if GeneralPostingSetup.FindSet() then
+            repeat
+                if IsGeneralPostingSetupOrphaned(GeneralPostingSetup) then begin
+                    GeneralPostingSetupToDelete := GeneralPostingSetup;
+                    GeneralPostingSetupToDelete.Delete();
+                end;
+            until GeneralPostingSetup.Next() = 0;
+    end;
+
+    local procedure IsGeneralPostingSetupOrphaned(GeneralPostingSetup: Record "General Posting Setup"): Boolean
+    var
+        GenBusinessPostingGroup: Record "Gen. Business Posting Group";
+        GenProductPostingGroup: Record "Gen. Product Posting Group";
+    begin
+        if (GeneralPostingSetup."Gen. Bus. Posting Group" <> '') and
+           (not GenBusinessPostingGroup.Get(GeneralPostingSetup."Gen. Bus. Posting Group"))
+        then
+            exit(true);
+
+        exit(
+            (GeneralPostingSetup."Gen. Prod. Posting Group" <> '') and
+            (not GenProductPostingGroup.Get(GeneralPostingSetup."Gen. Prod. Posting Group")));
     end;
 
     procedure PostInvoice(var Customer: Record Customer) SalesInvHeader: Record "Sales Invoice Header";
@@ -289,14 +341,14 @@ codeunit 139629 "Library - E-Document"
         exit(EDocumentPurchaseLine);
     end;
 
-    procedure CreateInboundPEPPOLDocumentToState(var EDocument: Record "E-Document"; EDocumentService: Record "E-Document Service"; FileName: Text; EDocImportParams: Record "E-Doc. Import Parameters"): Boolean
+    procedure CreateInboundPEPPOLDocumentToState(var EDocument: Record "E-Document"; EDocumentService: Record "E-Document Service"; FileName: Text; TempEDocImportParams: Record "E-Doc. Import Parameters"): Boolean
     var
         EDocImport: Codeunit "E-Doc. Import";
         InStream: InStream;
     begin
         NavApp.GetResource(FileName, InStream, TextEncoding::UTF8);
         EDocImport.CreateFromType(EDocument, EDocumentService, Enum::"E-Doc. File Format"::XML, 'TestFile', InStream);
-        exit(EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParams));
+        exit(EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParams));
     end;
 
     /// <summary>
@@ -427,6 +479,13 @@ codeunit 139629 "Library - E-Document"
         Item.Modify();
     end;
 
+    procedure CreateItemWithStandardVAT(var Item: Record Item)
+    begin
+        SetupStandardVAT();
+        VATPostingSetup.TestField("VAT Prod. Posting Group");
+        CreateGenericItem(Item, VATPostingSetup."VAT Prod. Posting Group");
+    end;
+
     procedure CreateGenericItem(var Item: Record Item)
     begin
         CreateItemWithPrice(Item, LibraryRandom.RandInt(10));
@@ -469,8 +528,7 @@ codeunit 139629 "Library - E-Document"
     begin
         CreateGenericSalesHeader(Customer, SalesHeader, DocumentType);
 
-        if StandardItem."No." = '' then
-            CreateGenericItem(StandardItem);
+        EnsureStandardItemExists();
 
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, StandardItem."No.", 1);
     end;
@@ -478,8 +536,7 @@ codeunit 139629 "Library - E-Document"
     procedure CreatePurchaseOrderWithLine(var Vendor: Record Vendor; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; Quantity: Decimal)
     begin
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, Enum::"Purchase Document Type"::Order, Vendor."No.");
-        if StandardItem."No." = '' then
-            CreateGenericItem(StandardItem);
+        EnsureStandardItemExists();
         LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, StandardItem."No.", Quantity);
     end;
 
@@ -784,6 +841,7 @@ codeunit 139629 "Library - E-Document"
         EDocService.Code := LibraryUtility.GenerateRandomCode20(EDocService.FieldNo(Code), Database::"E-Document Service");
         EDocService."Document Format" := "E-Document Format"::Mock;
         EDocService."Service Integration" := Integration;
+        EDocService."Import Process" := Enum::"E-Document Import Process"::"Version 1.0";
         EDocService.Insert();
 
         CreateSupportedDocTypes(EDocService);
@@ -801,6 +859,7 @@ codeunit 139629 "Library - E-Document"
         EDocService.Code := LibraryUtility.GenerateRandomCode20(EDocService.FieldNo(Code), Database::"E-Document Service");
         EDocService."Document Format" := "E-Document Format"::Mock;
         EDocService."Service Integration V2" := Integration;
+        EDocService."Import Process" := Enum::"E-Document Import Process"::"Version 1.0";
         EDocService.Insert();
 
         CreateSupportedDocTypes(EDocService);
@@ -819,6 +878,7 @@ codeunit 139629 "Library - E-Document"
         EDocService.Code := LibraryUtility.GenerateRandomCode20(EDocService.FieldNo(Code), Database::"E-Document Service");
         EDocService."Document Format" := EDocDocumentFormat;
         EDocService."Service Integration" := EDocIntegration;
+        EDocService."Import Process" := Enum::"E-Document Import Process"::"Version 1.0";
         EDocService.Insert();
 
         CreateSupportedDocTypes(EDocService);
@@ -954,6 +1014,7 @@ codeunit 139629 "Library - E-Document"
             EDocService.Code := 'TESTRECEIVE';
             EDocService."Document Format" := "E-Document Format"::Mock;
             EDocService."Service Integration V2" := Integration;
+            EDocService."Import Process" := Enum::"E-Document Import Process"::"Version 1.0";
             EDocService.Insert();
         end;
     end;
@@ -968,6 +1029,7 @@ codeunit 139629 "Library - E-Document"
             EDocService.Code := 'TESTRECEIVE';
             EDocService."Document Format" := "E-Document Format"::Mock;
             EDocService."Service Integration" := Integration;
+            EDocService."Import Process" := Enum::"E-Document Import Process"::"Version 1.0";
             EDocService.Insert();
         end;
     end;
@@ -981,6 +1043,7 @@ codeunit 139629 "Library - E-Document"
             EDocService.Code := 'BIERRRECEIVE';
             EDocService."Document Format" := "E-Document Format"::Mock;
             EDocService."Service Integration V2" := Integration;
+            EDocService."Import Process" := Enum::"E-Document Import Process"::"Version 1.0";
             EDocService.Insert();
         end;
     end;
@@ -995,6 +1058,7 @@ codeunit 139629 "Library - E-Document"
             EDocService.Code := 'BIERRRECEIVE';
             EDocService."Document Format" := "E-Document Format"::Mock;
             EDocService."Service Integration" := Integration;
+            EDocService."Import Process" := Enum::"E-Document Import Process"::"Version 1.0";
             EDocService.Insert();
         end;
     end;
@@ -1008,6 +1072,7 @@ codeunit 139629 "Library - E-Document"
             EDocService.Code := 'CIERRRECEIVE';
             EDocService."Document Format" := "E-Document Format"::Mock;
             EDocService."Service Integration V2" := Integration;
+            EDocService."Import Process" := Enum::"E-Document Import Process"::"Version 1.0";
             EDocService.Insert();
         end;
     end;
@@ -1022,6 +1087,7 @@ codeunit 139629 "Library - E-Document"
             EDocService.Code := 'CIERRRECEIVE';
             EDocService."Document Format" := "E-Document Format"::Mock;
             EDocService."Service Integration" := Integration;
+            EDocService."Import Process" := Enum::"E-Document Import Process"::"Version 1.0";
             EDocService.Insert();
         end;
     end;

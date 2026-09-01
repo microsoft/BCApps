@@ -12,4 +12,8 @@ enumextension 6164 "E-Document Copilot Capability" extends "Copilot Capability"
     {
         Caption = 'E-Document analysis';
     }
+    value(6166; "E-Document MLLM Analysis")
+    {
+        Caption = 'E-Document MLLM analysis';
+    }
 }

@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ChartDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:schemas-microsoft-com:dynamics:NAV:MetaObjects" Type="Column">
+	<Title>
+		<Text ID="ENU">Insurance - Policy Coverage Vs. Value Insured</Text>
+	</Title>
+	<Table ID="5628">
+		<Filters>
+			<Filter>
+				<Field Name="No." />
+				<Value></Value>
+			</Filter>
+		</Filters>
+	</Table>
+	<XAxis ShowTitle="false">
+		<Field Name="No." />
+		<Caption>
+			<Text ID="ENU">Insurance No.</Text>
+		</Caption>
+	</XAxis>
+	<YAxis ShowTitle="true">
+		<Measures>
+			<Measure Operator="Sum">
+				<Field Name="Total Value Insured" />
+			</Measure>
+			<Measure Operator="Sum">
+				<Field Name="Policy Coverage" />
+			</Measure>
+		</Measures>
+	</YAxis>
+</ChartDefinition>

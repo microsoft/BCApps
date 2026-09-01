@@ -105,6 +105,24 @@ codeunit 6115 "E-Document Error Helper"
         ErrorMessage.LogSimpleMessage(ErrorMessage."Message Type"::Error, Message);
     end;
 
+    /// <summary>
+    /// Throws an error if there are error messages logged for the E-Document.
+    /// Commits pending error messages before throwing so they are persisted.
+    /// </summary>
+    /// <param name="EDocument">The E-Document record.</param>
+    procedure ThrowIfHasErrors(EDocument: Record "E-Document")
+    var
+        TempErrorMessage: Record "Error Message" temporary;
+        ErrorMessage: Record "Error Message";
+    begin
+        if not HasErrors(EDocument) then
+            exit;
+        ErrorMessage.SetRange("Context Record ID", EDocument.RecordId);
+        ErrorMessage.CopyToTemp(TempErrorMessage);
+        Commit();
+        TempErrorMessage.ThrowError();
+    end;
+
     internal procedure GetTelemetryImplErrLbl(): Text
     begin
         exit(EDocTelemetryImplErr);

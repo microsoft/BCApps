@@ -1,0 +1,873 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<OKATOCodes>
+  <OKATO>
+    <Code>45000000000</Code>
+    <Name>Город Москва столица РФ</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45260000000</Code>
+    <Name>Административные округа г. Москвы</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45263000000</Code>
+    <Name>Восточный</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45263550000</Code>
+    <Name>Районы Восточного округа</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45263552000</Code>
+    <Name>Богородское</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45263555000</Code>
+    <Name>Вешняки</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45263558000</Code>
+    <Name>Восточное Измайлово</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45263561000</Code>
+    <Name>Поселок Восточный</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45263564000</Code>
+    <Name>Гольяново</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45263567000</Code>
+    <Name>Ивановское</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45263570000</Code>
+    <Name>Измайлово</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45263573000</Code>
+    <Name>Косино-Ухтомский</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45263576000</Code>
+    <Name>Новогиреево</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45263579000</Code>
+    <Name>Новокосино</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45263581000</Code>
+    <Name>Метрогородок</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45263583000</Code>
+    <Name>Перово</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45263585000</Code>
+    <Name>Северное Измайлово</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45263588000</Code>
+    <Name>Соколиная Гора</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45263591000</Code>
+    <Name>Сокольники</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45263594000</Code>
+    <Name>Преображенское</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45268000000</Code>
+    <Name>Западный</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45268550000</Code>
+    <Name>Районы Западного округа</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45268552000</Code>
+    <Name>Поселок Внуково</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45268554000</Code>
+    <Name>Дорогомилово</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45268560000</Code>
+    <Name>Крылатское</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45268562000</Code>
+    <Name>Кунцево</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45268569000</Code>
+    <Name>Можайский</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45268577000</Code>
+    <Name>Ново-Переделкино</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45268579000</Code>
+    <Name>Очаково-Матвеевское</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45268581000</Code>
+    <Name>Проспект Вернадского</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45268584000</Code>
+    <Name>Раменки</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45268588000</Code>
+    <Name>Солнцево</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45268592000</Code>
+    <Name>Тропарево-Никулино</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45268595000</Code>
+    <Name>Филевский Парк</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45268597000</Code>
+    <Name>Фили-Давыдково</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45272000000</Code>
+    <Name>город Зеленоград</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45272550000</Code>
+    <Name>Районы г. Зеленограда</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45272580000</Code>
+    <Name>Крюково</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45272585000</Code>
+    <Name>Матушкино-Савелки</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45272591000</Code>
+    <Name>Панфиловский</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45277000000</Code>
+    <Name>Северный</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45277550000</Code>
+    <Name>Районы Северного округа</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45277553000</Code>
+    <Name>Аэропорт</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45277556000</Code>
+    <Name>Беговой</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45277559000</Code>
+    <Name>Бескудниковский</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45277565000</Code>
+    <Name>Войковский</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45277568000</Code>
+    <Name>Восточное Дегунино</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45277571000</Code>
+    <Name>Головинский</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45277574000</Code>
+    <Name>Дмитровский</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45277577000</Code>
+    <Name>Западное Дегунино </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45277580000</Code>
+    <Name>Коптево</Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45277583000</Code>
+    <Name>Левобережный </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45277584000</Code>
+    <Name>Молжаниновский </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45277586000</Code>
+    <Name>Савеловский </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45277589000</Code>
+    <Name>Сокол </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45277592000</Code>
+    <Name>Тимирязевский </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45277595000</Code>
+    <Name>Ховрино </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45277598000</Code>
+    <Name>Хорошевский </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45280000000</Code>
+    <Name>Северо-Восточный </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45280552000</Code>
+    <Name>Алексеевский </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45280554000</Code>
+    <Name>Алтуфьевский </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45280556000</Code>
+    <Name>Бабушкинский </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45280558000</Code>
+    <Name>Бибирево </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45280561000</Code>
+    <Name>Бутырский </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45280563000</Code>
+    <Name>Лианозово </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45280565000</Code>
+    <Name>Лосиноостровский </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45280567000</Code>
+    <Name>Марфино </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45280569000</Code>
+    <Name>Марьина Роща </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45280572000</Code>
+    <Name>Останкинский </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45280574000</Code>
+    <Name>Отрадное </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45280577000</Code>
+    <Name>Ростокино </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45280580000</Code>
+    <Name>Свиблово </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45280583000</Code>
+    <Name>Северное Медведково </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45280585000</Code>
+    <Name>Северный </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45280594000</Code>
+    <Name>Южное Медведково </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45280597000</Code>
+    <Name>Ярославский </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45283000000</Code>
+    <Name>Северо-Западный </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45283550000</Code>
+    <Name>Районы Северно-Западного округа </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45283555000</Code>
+    <Name>Куркино </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45283559000</Code>
+    <Name>Митино </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45283569000</Code>
+    <Name>Покровское-Стрешнево </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45283573000</Code>
+    <Name>Северное Тушино </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45283577000</Code>
+    <Name>Строгино </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45283582000</Code>
+    <Name>Хорошево-Мневники </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45283587000</Code>
+    <Name>Щукино </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45283593000</Code>
+    <Name>Южное Тушино </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45286000000</Code>
+    <Name>Центральный </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45286550000</Code>
+    <Name>Районы Центрального округа </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45286552000</Code>
+    <Name>Арбат </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45286555000</Code>
+    <Name>Басманный </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45286560000</Code>
+    <Name>Замоскворечье </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45286563000</Code>
+    <Name>Китай-Город </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45286565000</Code>
+    <Name>Красносельский </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45286570000</Code>
+    <Name>Мещанский </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45286575000</Code>
+    <Name>Пресненский </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45286580000</Code>
+    <Name>Таганский </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45286585000</Code>
+    <Name>Тверской </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45286590000</Code>
+    <Name>Хамовники </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45286596000</Code>
+    <Name>Якиманка </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45290000000</Code>
+    <Name>Юго-Восточный </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45290550000</Code>
+    <Name>Районы Юго-Восточного округа </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45290554000</Code>
+    <Name>Выхино-Жулебино </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45290558000</Code>
+    <Name>Капотня </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45290562000</Code>
+    <Name>Кузьминки </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45290564000</Code>
+    <Name>Лефортово </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45290568000</Code>
+    <Name>Люблино </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45290572000</Code>
+    <Name>Марьино </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45290574000</Code>
+    <Name>Поселок Некрасовка </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45290578000</Code>
+    <Name>Нижегородский </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45290582000</Code>
+    <Name>Печатники </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45290586000</Code>
+    <Name>Рязанский </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45290590000</Code>
+    <Name>Текстильщики </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45290594000</Code>
+    <Name>Южнопортовый </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45293000000</Code>
+    <Name>Юго-Западный </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45293550000</Code>
+    <Name>Районы Юго-Западного округа </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45293554000</Code>
+    <Name>Академический </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45293558000</Code>
+    <Name>Гагаринский </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45293562000</Code>
+    <Name>Зюзино </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45293566000</Code>
+    <Name>Коньково </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45293570000</Code>
+    <Name>Котловка </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45293574000</Code>
+    <Name>Ломоносовский </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45293578000</Code>
+    <Name>Обручевский </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45293582000</Code>
+    <Name>Северное Бутово </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45293586000</Code>
+    <Name>Теплый Стан </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45293590000</Code>
+    <Name>Черемушки </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45293594000</Code>
+    <Name>Южное Бутово </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45293598000</Code>
+    <Name>Ясенево </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45296000000</Code>
+    <Name>Южный </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45296550000</Code>
+    <Name>Районы Южного округа </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45296553000</Code>
+    <Name>Бирюлево Восточное </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45296555000</Code>
+    <Name>Бирюлево Западное </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45296557000</Code>
+    <Name>Братеево </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45296559000</Code>
+    <Name>Даниловский </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45296561000</Code>
+    <Name>Донской </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45296565000</Code>
+    <Name>Зябликово </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45296569000</Code>
+    <Name>Москворечье-Сабурово </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45296571000</Code>
+    <Name>Нагатино-Садовники </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45296573000</Code>
+    <Name>Нагатинский Затон </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45296575000</Code>
+    <Name>Нагорный </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45296577000</Code>
+    <Name>Орехово-Борисово Северное </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45296579000</Code>
+    <Name>Орехово-Борисово Южное </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45296590000</Code>
+    <Name>Царицыно </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45296593000</Code>
+    <Name>Чертаново Северное </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45296595000</Code>
+    <Name>Чертаново Центральное </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+  <OKATO>
+    <Code>45296597000</Code>
+    <Name>Чертаново Южное </Name>
+    <RegionCode />
+    <TaxAuthorityNo />
+  </OKATO>
+</OKATOCodes>

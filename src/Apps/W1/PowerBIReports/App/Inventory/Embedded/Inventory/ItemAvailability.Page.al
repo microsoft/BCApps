@@ -11,8 +11,8 @@ page 37026 "Item Availability"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Item Availability';
-    AboutTitle = 'About Item Availability';
+    Caption = 'Item Availability (Power BI)';
+    AboutTitle = 'About Item Availability (Power BI)';
     AboutText = 'The Item Availability report visualizes Quantity on Hand versus Projected Available Balance over time, helping track inventory trends. A table matrix breaks down this data by item, offering metrics such as Inventory, Projected Available Balance, Gross Requirements, Scheduled Receipts, Planned Order Receipts, and Planned Order Releases. Providing a comprehensive view of item availability, aiding in effective inventory management and planning.';
 
     layout
@@ -48,11 +48,8 @@ page 37026 "Item Availability"
         ReportPageLbl: Label 'ReportSection61c190709a57015b0e48', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Inventory Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Inventory App");
     end;
 }
 

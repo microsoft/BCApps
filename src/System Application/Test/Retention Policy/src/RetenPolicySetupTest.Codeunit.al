@@ -651,6 +651,64 @@ codeunit 138701 "Reten. Policy Setup Test"
         Assert.AreEqual('', GetLastErrorText(), 'No error was expected');
     end;
 
+    [Test]
+    procedure TestTruncateTableRecordsTruncateNotAllowed()
+    var
+        RetentionPolicySetup: Record "Retention Policy Setup";
+        RetenPolAllowedTables: Codeunit "Reten. Pol. Allowed Tables";
+        ApplyRetentionPolicy: Codeunit "Apply Retention Policy";
+    begin
+        PermissionsMock.Set('Retention Pol. Admin');
+        RetentionPolicySetup.DeleteAll(true);
+        // setup
+        RetentionPolicySetup.Validate("Table Id", Database::"Retention Policy Test Data");
+        RetentionPolicySetup.Insert(true);
+
+        // verify precondition: truncate is not allowed
+        Assert.IsFalse(RetenPolAllowedTables.IsTruncateAllowed(Database::"Retention Policy Test Data"), 'Truncate should not be allowed by default');
+
+        // execute
+        asserterror ApplyRetentionPolicy.TruncateTableRecords(RetentionPolicySetup);
+
+        // verify
+        Assert.ExpectedError('Truncate is not allowed for table');
+    end;
+
+    [HandlerFunctions('TruncateConfirmYesHandler,TruncateSuccessMessageHandler')]
+    [Test]
+    procedure TestTruncateTableRecordsSuccess()
+    var
+        RetentionPolicySetup: Record "Retention Policy Setup";
+        RetentionPolicyTestData: Record "Retention Policy Test Data";
+        ApplyRetentionPolicy: Codeunit "Apply Retention Policy";
+    begin
+        PermissionsMock.Set('Retention Pol. Admin');
+        RetentionPolicySetup.DeleteAll(true);
+        // setup
+        RetentionPolicySetup.Validate("Table Id", Database::"Retention Policy Test Data");
+        RetentionPolicySetup.Insert(true);
+
+        RetentionPolicyTestData.DeleteAll();
+        RetentionPolicyTestData."Entry No." := 1;
+        RetentionPolicyTestData.Insert();
+        RetentionPolicyTestData."Entry No." := 2;
+        RetentionPolicyTestData.Insert();
+        Assert.AreEqual(2, RetentionPolicyTestData.Count(), 'There should be 2 records before truncate');
+
+        // enable truncate for the table (call through test library which owns the table)
+        RetentionPolicyTestLibrary.SetTruncateAllowed(Database::"Retention Policy Test Data", true);
+
+        // execute
+        ApplyRetentionPolicy.TruncateTableRecords(RetentionPolicySetup);
+
+        // verify
+        RetentionPolicyTestData.Reset();
+        Assert.AreEqual(0, RetentionPolicyTestData.Count(), 'All records should be deleted after truncate');
+
+        // clean up: reset truncate allowed
+        RetentionPolicyTestLibrary.SetTruncateAllowed(Database::"Retention Policy Test Data", false);
+    end;
+
     [FilterPageHandler]
     procedure EmptyFilterPageHandler(var RecordRef: RecordRef): Boolean
     begin
@@ -666,5 +724,16 @@ codeunit 138701 "Reten. Policy Setup Test"
 
         RecordRef.SetView(FilterView);
         exit(true);
+    end;
+
+    [ConfirmHandler]
+    procedure TruncateConfirmYesHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := true;
+    end;
+
+    [MessageHandler]
+    procedure TruncateSuccessMessageHandler(Message: Text[1024])
+    begin
     end;
 }

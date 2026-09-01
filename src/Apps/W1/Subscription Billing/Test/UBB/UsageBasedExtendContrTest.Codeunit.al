@@ -189,9 +189,9 @@ codeunit 148159 "Usage Based Extend Contr. Test"
         SetupItemWithMultipleServiceCommitmentPackages(false);
 
         // [GIVEN] Setup Usage Data Supplier,Generic Import Settings, Usage Data Import, Usage Data Generic Import
-        MockUsageDataSupplier();
+        UsageBasedBTestLibrary.CreateUsageDataSupplier(UsageDataSupplier, Enum::"Usage Data Supplier Type"::Generic, false, Enum::"Vendor Invoice Per"::Import);
         MockGenericImportSettings();
-        MockUsageDataImport();
+        UsageBasedBTestLibrary.CreateUsageDataImport(UsageDataImport, UsageDataSupplier."No.");
         MockUsageDataGenericImport(UsageDataGenericImport);
 
         // [WHEN] Open the Usage Data Generic Import page and invoke Extend Contract
@@ -333,19 +333,6 @@ codeunit 148159 "Usage Based Extend Contr. Test"
         UsageDataGenericImport.Insert();
     end;
 
-    local procedure MockUsageDataImport()
-    begin
-        UsageDataImport.Init();
-        UsageDataImport."Supplier No." := UsageDataSupplier."No.";
-        UsageDataImport.Insert();
-    end;
-
-    local procedure MockUsageDataSupplier()
-    begin
-        UsageDataSupplier.Init();
-        UsageDataSupplier."No." := LibraryUtility.GenerateRandomCode20(UsageDataSupplier.FieldNo("No."), Database::"Usage Data Supplier");
-        UsageDataSupplier.Insert();
-    end;
 
     local procedure SetupCustomerContract()
     begin

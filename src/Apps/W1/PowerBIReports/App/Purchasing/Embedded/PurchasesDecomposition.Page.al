@@ -11,8 +11,8 @@ page 37010 "Purchases Decomposition"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Purchases Decomposition';
-    AboutTitle = 'About Purchases Decomposition';
+    Caption = 'Purchases Decomposition (Power BI)';
+    AboutTitle = 'About Purchases Decomposition (Power BI)';
     AboutText = 'The Purchases Decomposition report visually breaks down Purchase Amount into its contributing factors, allowing users to explore and analyze data hierarchies in detail.';
 
     layout
@@ -48,11 +48,8 @@ page 37010 "Purchases Decomposition"
         ReportPageLbl: Label 'ReportSectiond7fdf374ab65b2861937', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Purchases Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Purchases App");
     end;
 }
 

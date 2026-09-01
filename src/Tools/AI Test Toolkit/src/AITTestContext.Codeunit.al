@@ -39,7 +39,27 @@ codeunit 149044 "AIT Test Context"
     end;
 
     /// <summary>
-    /// Get the Test Setup from the input dataset for the current iteration.
+    /// Get the turn setup from the input dataset for the current iteration.
+    /// </summary>
+    /// <returns>A Test Input Json codeunit for the turn_setup element.</returns>
+    procedure GetTurnSetup(): Codeunit "Test Input Json"
+    begin
+        exit(AITTestContextImpl.GetTurnSetup());
+    end;
+
+    /// <summary>
+    /// Tries to get the turn setup from the input dataset for the current iteration.
+    /// </summary>
+    /// <param name="TurnSetup">Returns the turn_setup Test Input Json codeunit when the element exists.</param>
+    /// <returns>True if the turn_setup element exists for the current turn; false otherwise.</returns>
+    procedure GetTurnSetup(var TurnSetup: Codeunit "Test Input Json"): Boolean
+    begin
+        exit(AITTestContextImpl.GetTurnSetup(TurnSetup));
+    end;
+
+    /// <summary>
+    /// Get the Test Setup from the input dataset for the current iteration using the legacy 'test_setup' element.
+    /// Retained for backward compatibility with datasets that have not migrated to 'turn_setup' — new code should use <see cref="GetTurnSetup"/>.
     /// </summary>
     /// <returns>A Test Input Json codeunit for the test_setup element.</returns>
     procedure GetTestSetup(): Codeunit "Test Input Json"
@@ -57,13 +77,27 @@ codeunit 149044 "AIT Test Context"
     end;
 
     /// <summary>
+    /// Get the Query from the input dataset for the current iteration.
+    /// The query represents the input to the AI agent or evaluation.
+    /// The 'question' element is also supported for backward compatibility, the 'query' syntax is recommended.
+    /// </summary>
+    /// <returns>A Test Input Json codeunit for the query element.</returns>
+    procedure GetQuery(): Codeunit "Test Input Json"
+    begin
+        exit(AITTestContextImpl.GetQuery());
+    end;
+
+#if not CLEAN29
+    /// <summary>
     /// Get the Question from the input dataset for the current iteration.
     /// </summary>
-    /// <returns>A Test Input Json codeunit for the question element.</returns>
+    /// <returns>A Test Input Json codeunit for the question/query element.</returns>
+    [Obsolete('Use GetQuery() instead.', '29.0')]
     procedure GetQuestion(): Codeunit "Test Input Json"
     begin
-        exit(AITTestContextImpl.GetQuestion());
+        exit(AITTestContextImpl.GetQuery());
     end;
+#endif
 
     /// <summary>
     /// Get the Ground Truth from the input dataset for the current iteration.
@@ -82,6 +116,16 @@ codeunit 149044 "AIT Test Context"
     procedure GetExpectedData(): Codeunit "Test Input Json"
     begin
         exit(AITTestContextImpl.GetExpectedData());
+    end;
+
+    /// <summary>
+    /// Gets the continue on failure flag for the current turn.
+    /// If the flag is not set in the test input, it defaults to false.
+    /// </summary>
+    /// <returns>True if the eval should continue on failure, false otherwise.</returns>
+    procedure GetCanContinueOnFailure(): Boolean
+    begin
+        exit(AITTestContextImpl.GetCanContinueOnFailure());
     end;
 
     /// <summary>
@@ -202,6 +246,34 @@ codeunit 149044 "AIT Test Context"
     procedure SetTokenConsumption(TokensUsed: Integer)
     begin
         AITTestContextImpl.SetTokenConsumption(TokensUsed);
+    end;
+
+    /// <summary>
+    /// Gets the per-suite setup data as a Test Input Json.
+    /// The consuming test app must have imported a YAML file with the suite_setup token.
+    /// </summary>
+    /// <returns>Test Input Json containing the suite setup data.</returns>
+    procedure GetEvalSuiteSetupDataInput(): Codeunit "Test Input Json"
+    begin
+        exit(AITTestContextImpl.GetEvalSuiteSetupDataInput());
+    end;
+
+    /// <summary>
+    /// Marks the per-suite setup as completed on the test suite record.
+    /// Call this after your suite setup logic has finished successfully.
+    /// </summary>
+    procedure SetEvalSuiteSetupCompleted()
+    begin
+        AITTestContextImpl.SetEvalSuiteSetupCompleted();
+    end;
+
+    /// <summary>
+    /// Checks if the per-suite setup has been marked as done on the test suite record.
+    /// </summary>
+    /// <returns>True if suite setup has been executed.</returns>
+    procedure IsSuiteSetupDone(): Boolean
+    begin
+        exit(AITTestContextImpl.IsSuiteSetupDone());
     end;
 
     /// <summary>

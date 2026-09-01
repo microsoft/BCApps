@@ -5,9 +5,7 @@
 namespace Microsoft.eServices.EDocument;
 
 using Microsoft.Bank.Reconciliation;
-#if not CLEAN26
 using Microsoft.eServices.EDocument.Processing.Import;
-#endif
 using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Journal;
@@ -20,6 +18,7 @@ using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
 using System.IO;
 using System.Reflection;
@@ -136,6 +135,9 @@ codeunit 6109 "E-Document Import Helper"
 
         GTIN := NoFieldRef.Value;
         if GTIN = '' then
+            exit(false);
+
+        if StrLen(GTIN) > MaxStrLen(Item.GTIN) then
             exit(false);
 
         Item.SetRange(GTIN, GTIN);
@@ -258,6 +260,21 @@ codeunit 6109 "E-Document Import Helper"
 
     /// <summary>
     /// Use it to check if receiving company information is in line with Company Information.
+    /// Also checks if the Receiving Company Id matches a Company Service Participant.
+    /// </summary>
+    /// <param name="EDocument">The E-Document record.</param>
+    /// <param name="EDocService">The E-Document Service record to match against.</param>
+    procedure ValidateReceivingCompanyInfo(EDocument: Record "E-Document"; EDocService: Record "E-Document Service")
+    begin
+        // First, check if the Receiving Company Id matches a Company Service Participant
+        if MatchCompanyByServiceParticipant(EDocument, EDocService) then
+            exit;
+
+        ValidateReceivingCompanyInfo(EDocument);
+    end;
+
+    /// <summary>
+    /// Use it to check if receiving company information is in line with Company Information.
     /// </summary>
     /// <param name="EDocument">The E-Document record.</param>
     procedure ValidateReceivingCompanyInfo(EDocument: Record "E-Document")
@@ -265,6 +282,19 @@ codeunit 6109 "E-Document Import Helper"
         CompanyInformation: Record "Company Information";
     begin
         CompanyInformation.Get();
+
+        if (EDocument."Receiving Company Reg. No." <> '') and
+           CompanyInformation."Use Reg. No. in E-Document" and
+           (CompanyInformation.GLN = '') and
+           (CompanyInformation."VAT Registration No." = '') and
+           (EDocument."Receiving Company GLN" = '') and
+           (EDocument."Receiving Company VAT Reg. No." = '')
+        then begin
+            if CompanyInformation."Registration No." <> EDocument."Receiving Company Reg. No." then
+                EDocErrorHelper.LogErrorMessage(
+                    EDocument, CompanyInformation, CompanyInformation.FieldNo("Registration No."), InvalidCompanyInfoRegistrationNoErr);
+            exit;
+        end;
 
         if (EDocument."Receiving Company GLN" = '') and (EDocument."Receiving Company VAT Reg. No." = '') then begin
             ValidateReceivingCompanyInfoByNameAndAddress(EDocument);
@@ -279,6 +309,25 @@ codeunit 6109 "E-Document Import Helper"
 
         if not (ExtractVatRegNo(CompanyInformation."VAT Registration No.", '') in ['', ExtractVatRegNo(EDocument."Receiving Company VAT Reg. No.", '')]) then
             EDocErrorHelper.LogErrorMessage(EDocument, CompanyInformation, CompanyInformation.FieldNo("VAT Registration No."), StrSubstNo(InvalidCompanyInfoVATRegNoErr, EDocument."Receiving Company VAT Reg. No."));
+    end;
+
+    /// <summary>
+    /// Use it to check if receiving company information matches a Company Service Participant for a specific service.
+    /// </summary>
+    /// <param name="EDocument">The E-Document record.</param>
+    /// <param name="EDocService">The E-Document Service record to match against.</param>
+    /// <returns>True if a matching Company Service Participant is found.</returns>
+    local procedure MatchCompanyByServiceParticipant(EDocument: Record "E-Document"; EDocService: Record "E-Document Service"): Boolean
+    var
+        ServiceParticipant: Record "Service Participant";
+    begin
+        if EDocument."Receiving Company Id" = '' then
+            exit(false);
+
+        ServiceParticipant.SetRange("Participant Type", ServiceParticipant."Participant Type"::Company);
+        ServiceParticipant.SetRange("Participant Identifier", EDocument."Receiving Company Id");
+        ServiceParticipant.SetRange(Service, EDocService.Code);
+        exit(not ServiceParticipant.IsEmpty());
     end;
 
     /// <summary>
@@ -395,20 +444,46 @@ codeunit 6109 "E-Document Import Helper"
     /// <param name="VATRegistrationNo">Vendor's VAT registration number.</param>
     /// <returns>Vendor number if exists or empty string.</returns>
     procedure FindVendor(VendorNoText: Code[20]; GLN: Code[13]; VATRegistrationNo: Text[20]): Code[20]
+    begin
+        exit(FindVendor(VendorNoText, GLN, VATRegistrationNo, ''));
+    end;
+
+    /// <summary>
+    /// Use it to find a vendor by number, GLN, VAT registration number or registration number.
+    /// </summary>
+    /// <param name="VendorNoText">Vendor's number.</param>
+    /// <param name="GLN">Vendor's GLN.</param>
+    /// <param name="VATRegistrationNo">Vendor's VAT registration number.</param>
+    /// <param name="RegistrationNo">Vendor's registration number.</param>
+    /// <returns>Vendor number if exists or empty string.</returns>
+    procedure FindVendor(VendorNoText: Code[20]; GLN: Code[13]; VATRegistrationNo: Text[20]; RegistrationNo: Text[20]): Code[20]
     var
+        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         VendorNo: Code[20];
     begin
         VendorNo := FindVendorByNo(VendorNoText);
-        if VendorNo <> '' then
+        if VendorNo <> '' then begin
+            EDocImpSessionTelemetry.SetText('Vendor Match Method', 'No');
             exit(VendorNo);
+        end;
 
         VendorNo := FindVendorByGLN(GLN);
-        if VendorNo <> '' then
+        if VendorNo <> '' then begin
+            EDocImpSessionTelemetry.SetText('Vendor Match Method', 'GLN');
             exit(VendorNo);
+        end;
 
         VendorNo := FindVendorByVATRegistrationNo(VATRegistrationNo);
-        if VendorNo <> '' then
+        if VendorNo <> '' then begin
+            EDocImpSessionTelemetry.SetText('Vendor Match Method', 'VAT Id');
             exit(VendorNo);
+        end;
+
+        VendorNo := FindVendorByRegistrationNo(RegistrationNo);
+        if VendorNo <> '' then begin
+            EDocImpSessionTelemetry.SetText('Vendor Match Method', 'Registration No.');
+            exit(VendorNo);
+        end;
     end;
 
     /// <summary>
@@ -481,6 +556,34 @@ codeunit 6109 "E-Document Import Helper"
     end;
 
     /// <summary>
+    /// Use it to find a vendor by registration number.
+    /// </summary>
+    /// <param name="RegistrationNo">Vendor's registration number.</param>
+    /// <returns>Vendor number if exists or empty string.</returns>
+    procedure FindVendorByRegistrationNo(RegistrationNo: Text[20]): Code[20]
+    var
+        Vendor: Record Vendor;
+        VendorNo: Code[20];
+    begin
+        if RegistrationNo = '' then
+            exit('');
+
+        Vendor.SetCurrentKey("Registration Number");
+        Vendor.SetRange("Registration Number", RegistrationNo);
+        Vendor.SetRange("Use Reg. No. in E-Document", true);
+        Vendor.SetRange(GLN, '');
+        Vendor.SetRange("VAT Registration No.", '');
+        if not Vendor.FindSet() then
+            exit('');
+
+        VendorNo := Vendor."No.";
+        if Vendor.Next() <> 0 then
+            Error(MultipleVendorsWithRegistrationNoErr);
+
+        exit(VendorNo);
+    end;
+
+    /// <summary>
     /// Use it to find a vendor by phone number.
     /// </summary>
     /// <param name="PhoneNo">Vendor's Phone number.</param>
@@ -529,9 +632,11 @@ codeunit 6109 "E-Document Import Helper"
         Vendor: Record Vendor;
         RecordMatchMgt: Codeunit "Record Match Mgt.";
         EDocumentNotification: Codeunit "E-Document Notification";
+        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         NameNearness: Integer;
         AddressNearness: Integer;
         MatchedByAddress: Boolean;
+        NameOnlyCandidateFound: Boolean;
     begin
         Vendor.SetCurrentKey(Blocked);
         Vendor.SetLoadFields(Name, Address);
@@ -546,10 +651,41 @@ codeunit 6109 "E-Document Import Helper"
                     MatchedByAddress := AddressNearness >= RequiredNearness();
                     if MatchedByAddress then
                         exit(Vendor."No.");
+                    NameOnlyCandidateFound := true;
                     if EDocEntryNoForNotification <> 0 then
                         EDocumentNotification.AddVendorMatchedByNameNotAddressNotification(EDocEntryNoForNotification);
                 end;
             until Vendor.Next() = 0;
+
+        if NameOnlyCandidateFound then
+            EDocImpSessionTelemetry.SetBool('Vendor Matched By Name Not Address', true);
+    end;
+
+    /// <summary>
+    /// Use it to find a customer by name and address using fuzzy matching.
+    /// </summary>
+    /// <param name="CustomerName">Name of a customer.</param>
+    /// <param name="CustomerAddress">Address of a customer.</param>
+    /// <returns>Customer number if found or empty string.</returns>
+    procedure FindCustomerByNameAndAddress(CustomerName: Text; CustomerAddress: Text): Code[20]
+    var
+        Customer: Record Customer;
+        RecordMatchMgt: Codeunit "Record Match Mgt.";
+        NameNearness: Integer;
+        AddressNearness: Integer;
+    begin
+        Customer.SetCurrentKey(Blocked);
+        Customer.SetLoadFields(Name, Address);
+        if Customer.FindSet() then
+            repeat
+                NameNearness := RecordMatchMgt.CalculateStringNearness(CustomerName, Customer.Name, MatchThreshold(), NormalizingFactor());
+                if CustomerAddress = '' then
+                    AddressNearness := RequiredNearness()
+                else
+                    AddressNearness := RecordMatchMgt.CalculateStringNearness(CustomerAddress, Customer.Address, MatchThreshold(), NormalizingFactor());
+                if (NameNearness >= RequiredNearness()) and (AddressNearness >= RequiredNearness()) then
+                    exit(Customer."No.");
+            until Customer.Next() = 0;
     end;
 
     /// <summary>
@@ -589,6 +725,9 @@ codeunit 6109 "E-Document Import Helper"
     begin
         if not Vendor.Get(VendorNo) then
             EDocErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(VendorNotFoundErr, EDocument."Bill-to/Pay-to Name"));
+
+        if Vendor."Self-Billing Agreement" then
+            LogErrorIfVendorIsSelfBilling(EDocument, Vendor);
     end;
 
     /// <summary>
@@ -612,6 +751,12 @@ codeunit 6109 "E-Document Import Helper"
             exit(ServiceParticipant.Participant);
     end;
 
+    procedure LogErrorIfVendorIsSelfBilling(var EDocument: Record "E-Document"; Vendor: Record Vendor)
+    begin
+        if (EDocument."Direction" = Enum::"E-Document Direction"::"Incoming") then
+            EDocErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(SelfBillingVendorErr, Vendor."No."));
+    end;
+
 #if not CLEAN26
     /// <summary>
     /// Use it to process imported E-Document
@@ -621,10 +766,10 @@ codeunit 6109 "E-Document Import Helper"
     [Obsolete('Use codeunit 6140 "E-Doc. Import"''s method ProcessIncomingEDocument', '26.0')]
     procedure ProcessDocument(var EDocument: Record "E-Document"; CreateJnlLine: Boolean)
     var
-        EDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
     begin
-        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        EDocumentImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocumentImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
     end;
 #endif
 
@@ -995,10 +1140,13 @@ codeunit 6109 "E-Document Import Helper"
         MissingCompanyInfoSetupErr: Label 'You must fill either GLN or VAT Registration No. in the Company Information window.';
         InvalidCompanyInfoGLNErr: Label 'The customer''s GLN %1 on the electronic document does not match the GLN in the Company Information window.', Comment = '%1 = GLN (13 digit number)';
         InvalidCompanyInfoVATRegNoErr: Label 'The customer''s VAT registration number %1 on the electronic document does not match the VAT Registration No. in the Company Information window.', Comment = '%1 VAT Registration Number (format could be AB###### or ###### or AB##-##-###)';
+        InvalidCompanyInfoRegistrationNoErr: Label 'The receiving company registration number does not match Company Information.';
+        MultipleVendorsWithRegistrationNoErr: Label 'Multiple vendors match the registration number on the electronic document. Make the registration number unique for vendors that use it in electronic documents.';
         InvalidCompanyInfoNameErr: Label 'The customer name ''%1'' on the electronic document does not match the name in the Company Information window.', Comment = '%1 = customer name';
         InvalidCompanyInfoAddressErr: Label 'The customer''s address ''%1'' on the electronic document does not match the Address in the Company Information window.', Comment = '%1 = customer address, street name';
         UnableToApplyDiscountErr: Label 'The invoice discount of %1 cannot be applied. Invoice discount must be allowed on at least one invoice line and invoice total must not be 0.', Comment = '%1 - a decimal number';
         TotalsMismatchErr: Label 'The total amount %1 on the created document is different than the total amount %2 in the electronic document.', Comment = '%1 total amount, %2 expected total amount';
         VendorNotFoundErr: Label 'Cannot find vendor ''%1'' based on the vendor''s name, address or VAT registration number on the electronic document. Make sure that a card for the vendor exists with the corresponding name, address or VAT Registration No.', Comment = '%1 Vendor name (e.g. London Postmaster)';
+        SelfBillingVendorErr: Label 'Inbound E-Document blocked for vendor %1 due to Self-Billing Agreement. Supplier-issued invoices cannot be processed for this vendor.', Comment = '%1 Vendor name (e.g. London Postmaster)';
         NotSpecifiedUnitOfMeasureTxt: Label '<NONE>';
 }

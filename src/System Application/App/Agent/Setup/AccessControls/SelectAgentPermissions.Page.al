@@ -50,13 +50,13 @@ page 4336 "Select Agent Permissions"
         exit(true);
     end;
 
-    internal procedure Initialize(NewAgentUserSecurityID: Guid; var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
+    procedure Initialize(NewAgentUserSecurityID: Guid; var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
     begin
         AgentUserSecurityID := NewAgentUserSecurityID;
         Rec.Copy(TempAccessControlBuffer, true);
     end;
 
-    internal procedure GetTempAccessControlBuffer(var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
+    procedure GetTempAccessControlBuffer(var TempAccessControlBuffer: Record "Access Control Buffer" temporary)
     begin
         TempAccessControlBuffer.Copy(Rec, true);
     end;

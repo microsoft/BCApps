@@ -1,0 +1,2 @@
+# cost: 6
+{"query": "{ catalog (id: \"gid://shopify/Catalog/{{CatalogId}}\") { id title ... on MarketCatalog { markets(first: 5) { pageInfo { hasNextPage } edges { cursor node { id name }}}}}}"}

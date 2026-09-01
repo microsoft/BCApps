@@ -1,0 +1,14 @@
+11;Almindeligt køb og salg samt transaktioner som sidestilles hermed: varer i konsignation; levering af varer mellem moder- og datterselskaber; finansiel leasing.;
+16;EU-eksport af varer indført fra ikke EU-land (tredjeland) og ved indførslen fortoldet under procedurekode 42.xx.xxx. Det vil sige varer i fri omsætning, som er genstand for en afgiftsfri leverance. Det er typisk speditører og transportselskaber, der står for disse transaktioner.;
+21;Returforsendelse af varer.;
+22;Ombytning af returnerede varer.;
+23;Ombytning af ikke-returnerede varer.;
+31;Varetransaktioner som indebærer ejerskifte uden modydelse (fx nødhjælp eller anden støtte).;
+41;Varer der afsendes/modtages til lønforarbejdning2 og uden, at ejendomsretten overdrages til den forarbejdende virksomhed. Varen returnerer til det oprindelige forsendelsesland.;
+42;Varer der afsendes/modtages til lønforarbejdning og uden at ejendomsretten overdrages til den forarbejdende virksomhed. Varen returnerer ikke til det oprindelige forsendelsesland.;
+51;Varer der afsendes/modtages efter lønforarbejdning og uden at ejendomsretten har været overdraget til den forarbejdende virksomhed. Varen returnerer til det oprindelige forsendelsesland.;
+52;Varer der afsendes/modtages efter lønforarbejdning og uden at ejendomsretten har været overdraget til den forarbejdende virksomhed. Varen returnerer ikke til det oprindelige forsendelsesland.;
+60;Varer der afsendes fra et toldoplag i Danmark til et toldoplag i et andet EU-land, eller varer, som modtages fra et toldoplag i et andet EU-land, og som oplægges på toldoplag i Danmark. Bemærk, sådanne overførsler oplyses ikke på toldangivelsen og proceduren for toldoplag er derfor ikke afsluttet.;
+70;Varer der afsendes/modtages som led i fælles forsvarsprojekter eller andre mellemstatslige produktionsprogrammer.;
+80;Modtagelse/levering af byggematerialer og udstyr omfattet af en bygge-og anlægskontrakt.;
+99;Udlejning, operationel leasing, lån og anden midlertidig anvendelse med varighed over 2 år (levering af affald til destruktion, ligger i transaktionsarten 11).;

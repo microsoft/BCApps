@@ -14,6 +14,9 @@ page 8059 "Service Objects"
     QueryCategory = 'Subscriptions';
     RefreshOnActivate = true;
     CardPageId = "Service Object";
+    AdditionalSearchTerms = 'Subscriptions, Service Objects, Subscription List, Customer Subscriptions, Billing Subscriptions, Subscription Overview';
+    AboutTitle = 'About Subscriptions';
+    AboutText = 'Subscriptions primarily represent the products and services used by a customer. They contain information from master data, details of customers and suppliers, have a quantity and details for billing.';
     layout
     {
         area(content)

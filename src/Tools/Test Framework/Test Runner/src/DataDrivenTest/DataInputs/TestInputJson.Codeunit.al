@@ -77,9 +77,15 @@ codeunit 130464 "Test Input Json"
         exit(TestJson.AsValue());
     end;
 
+    /// <summary>
+    /// Returns the value as Text with all data tool placeholders resolved.
+    /// Supported: $DateFormula-...$, $DateTimeFormula-...$.
+    /// </summary>
     procedure ValueAsText(): Text
+    var
+        TestInputDataTools: Codeunit "Test Input Data Tools";
     begin
-        exit(TestJson.AsValue().AsText());
+        exit(TestInputDataTools.ResolveText(TestJson.AsValue().AsText()));
     end;
 
     procedure ValueAsInteger(): Integer
@@ -95,6 +101,33 @@ codeunit 130464 "Test Input Json"
     procedure ValueAsBoolean(): Boolean
     begin
         exit(TestJson.AsValue().AsBoolean());
+    end;
+
+    /// <summary>
+    /// Returns the value as a Date.
+    /// Resolves $DateFormula-&lt;formula&gt;$ placeholders via CalcDate relative to WorkDate.
+    /// If the value is not a date formula placeholder, evaluates the resolved text as a date.
+    /// </summary>
+    procedure ValueAsDate(): Date
+    var
+        TestInputDataTools: Codeunit "Test Input Data Tools";
+    begin
+        exit(TestInputDataTools.ResolveAsDate(TestJson.AsValue().AsText()));
+    end;
+
+    /// <summary>
+    /// Returns the value as a DateTime.
+    /// Resolves $DateTimeFormula-&lt;formula&gt;$ placeholders.
+    /// Supports optional time (colon format):
+    ///   $DateTimeFormula-&lt;formula&gt;$               → time defaults to 0T
+    ///   $DateTimeFormula-&lt;formula&gt;-12:30:11$       → explicit time
+    ///   $DateTimeFormula-&lt;formula&gt;-12:30:11.1301$  → time with milliseconds
+    /// </summary>
+    procedure ValueAsDateTime(): DateTime
+    var
+        TestInputDataTools: Codeunit "Test Input Data Tools";
+    begin
+        exit(TestInputDataTools.ResolveAsDateTime(TestJson.AsValue().AsText()));
     end;
 
     procedure ValueAsJsonObject(): JsonObject

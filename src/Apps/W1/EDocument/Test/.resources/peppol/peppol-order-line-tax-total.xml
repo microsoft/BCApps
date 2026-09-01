@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PEPPOL BIS Ordering 3.0 — Line-level VAT via TaxTotal/TaxSubtotal (no ClassifiedTaxCategory).
+     Line 1: VAT from cac:LineItem/cac:TaxTotal/cac:TaxSubtotal/cac:TaxCategory/cbc:Percent = 15
+     Line 2: VAT from cac:LineItem/cac:TaxTotal/cac:TaxSubtotal/cac:TaxCategory/cbc:Percent = 10
+     Tests the fallback VAT path when ClassifiedTaxCategory is absent. -->
+<Order xmlns="urn:oasis:names:specification:ubl:schema:xsd:Order-2"
+    xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+    xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+    <cbc:CustomizationID>urn:fdc:peppol.eu:poacc:trns:order:3</cbc:CustomizationID>
+    <cbc:ProfileID>urn:fdc:peppol.eu:2017:poacc:ordering:01:1.0</cbc:ProfileID>
+    <cbc:ID>ORD-1006</cbc:ID>
+    <cbc:IssueDate>2026-03-15</cbc:IssueDate>
+    <cbc:DocumentCurrencyCode>XYZ</cbc:DocumentCurrencyCode>
+    <cac:BuyerCustomerParty>
+        <cac:Party>
+            <cbc:EndpointID schemeID="0088">1234567890128</cbc:EndpointID>
+            <cac:PartyName>
+                <cbc:Name>Buyer Corp AS</cbc:Name>
+            </cac:PartyName>
+        </cac:Party>
+    </cac:BuyerCustomerParty>
+    <cac:SellerSupplierParty>
+        <cac:Party>
+            <cac:PartyName>
+                <cbc:Name>Seller Ltd.</cbc:Name>
+            </cac:PartyName>
+        </cac:Party>
+    </cac:SellerSupplierParty>
+    <cac:AnticipatedMonetaryTotal>
+        <cbc:LineExtensionAmount currencyID="XYZ">1500.00</cbc:LineExtensionAmount>
+        <cbc:PayableAmount currencyID="XYZ">1725.00</cbc:PayableAmount>
+    </cac:AnticipatedMonetaryTotal>
+    <cac:OrderLine>
+        <!-- Line 1: VAT via TaxTotal path — ClassifiedTaxCategory absent -->
+        <cac:LineItem>
+            <cbc:ID>1</cbc:ID>
+            <cbc:Quantity unitCode="EA">5</cbc:Quantity>
+            <cbc:LineExtensionAmount currencyID="XYZ">1000.00</cbc:LineExtensionAmount>
+            <cac:TaxTotal>
+                <cbc:TaxAmount currencyID="XYZ">150.00</cbc:TaxAmount>
+                <cac:TaxSubtotal>
+                    <cbc:TaxableAmount currencyID="XYZ">1000.00</cbc:TaxableAmount>
+                    <cbc:TaxAmount currencyID="XYZ">150.00</cbc:TaxAmount>
+                    <cac:TaxCategory>
+                        <cbc:ID>S</cbc:ID>
+                        <cbc:Percent>15</cbc:Percent>
+                        <cac:TaxScheme>
+                            <cbc:ID>VAT</cbc:ID>
+                        </cac:TaxScheme>
+                    </cac:TaxCategory>
+                </cac:TaxSubtotal>
+            </cac:TaxTotal>
+            <cac:Price>
+                <cbc:PriceAmount currencyID="XYZ">200.00</cbc:PriceAmount>
+            </cac:Price>
+            <cac:Item>
+                <cbc:Name>Service Alpha</cbc:Name>
+                <cac:SellersItemIdentification>
+                    <cbc:ID>SVC-A</cbc:ID>
+                </cac:SellersItemIdentification>
+                <!-- No ClassifiedTaxCategory — parser must fall back to TaxTotal path -->
+            </cac:Item>
+        </cac:LineItem>
+    </cac:OrderLine>
+    <cac:OrderLine>
+        <!-- Line 2: VAT via TaxTotal path — ClassifiedTaxCategory absent, different rate -->
+        <cac:LineItem>
+            <cbc:ID>2</cbc:ID>
+            <cbc:Quantity unitCode="EA">5</cbc:Quantity>
+            <cbc:LineExtensionAmount currencyID="XYZ">500.00</cbc:LineExtensionAmount>
+            <cac:TaxTotal>
+                <cbc:TaxAmount currencyID="XYZ">50.00</cbc:TaxAmount>
+                <cac:TaxSubtotal>
+                    <cbc:TaxableAmount currencyID="XYZ">500.00</cbc:TaxableAmount>
+                    <cbc:TaxAmount currencyID="XYZ">50.00</cbc:TaxAmount>
+                    <cac:TaxCategory>
+                        <cbc:ID>S</cbc:ID>
+                        <cbc:Percent>10</cbc:Percent>
+                        <cac:TaxScheme>
+                            <cbc:ID>VAT</cbc:ID>
+                        </cac:TaxScheme>
+                    </cac:TaxCategory>
+                </cac:TaxSubtotal>
+            </cac:TaxTotal>
+            <cac:Price>
+                <cbc:PriceAmount currencyID="XYZ">100.00</cbc:PriceAmount>
+            </cac:Price>
+            <cac:Item>
+                <cbc:Name>Service Beta</cbc:Name>
+                <cac:SellersItemIdentification>
+                    <cbc:ID>SVC-B</cbc:ID>
+                </cac:SellersItemIdentification>
+                <!-- No ClassifiedTaxCategory -->
+            </cac:Item>
+        </cac:LineItem>
+    </cac:OrderLine>
+</Order>

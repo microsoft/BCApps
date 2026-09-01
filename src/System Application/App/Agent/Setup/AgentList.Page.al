@@ -5,15 +5,13 @@
 
 namespace System.Agents;
 
-using System.Environment.Consumption;
-
 page 4316 "Agent List"
 {
     PageType = List;
     ApplicationArea = All;
     UsageCategory = Administration;
-    SourceTable = "Agent";
-    Caption = 'Agents';
+    SourceTable = Agent;
+    Caption = 'Agents', Comment = 'Agents in this page should be translated as AI agents. It is listing the AI agents that users have setup to help with automating tasks.';
     CardPageId = "Agent Card";
     AdditionalSearchTerms = 'Agent, Agents, Copilot, Automation, AI';
     Editable = false;
@@ -36,9 +34,28 @@ page 4316 "Agent List"
                 {
                     Caption = 'Display Name';
                 }
+                field(AgentType; Rec."Agent Metadata Provider")
+                {
+                    Caption = 'Agent type';
+                }
+                field(Availability; CopilotAvailabilityTxt)
+                {
+                    Caption = 'Availability';
+                    ToolTip = 'Specifies the availability of the agent.';
+                }
                 field(State; Rec.State)
                 {
                     Caption = 'State';
+                }
+                field(Substate; Rec.Substate)
+                {
+                    Caption = 'Substate';
+                    Editable = false;
+                }
+                field("Can Access Current Company"; Rec."Can Access Current Company")
+                {
+                    Caption = 'Can Access Current Company';
+                    Visible = ShouldShowAllCompanies;
                 }
             }
         }
@@ -50,8 +67,8 @@ page 4316 "Agent List"
             action(AgentSetup)
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Setup';
-                ToolTip = 'Set up the agent';
+                Caption = 'Configure';
+                ToolTip = 'Configure the agent';
                 Image = SetupLines;
                 Enabled = Rec."Can Curr. User Configure Agent";
 
@@ -63,6 +80,35 @@ page 4316 "Agent List"
                         Error(NoAgentSetupErr);
 
                     Agent.OpenSetupPageId(Rec."Agent Metadata Provider", Rec."User Security ID");
+                    CurrPage.Update(false);
+                end;
+            }
+            action(ArchiveAgent)
+            {
+                ApplicationArea = All;
+                Caption = 'Archive';
+                ToolTip = 'Archive the selected agent. You can only archive an inactive agent. The agent and its existing tasks and logs remain available as read-only. Archiving cannot be undone.';
+                Image = Archive;
+                Enabled = ArchiveActionEnabled;
+
+                trigger OnAction()
+                var
+                    Agent: Codeunit Agent;
+                    ArchiveConfirmation: Page "Agent Archive Confirmation";
+                begin
+                    if Rec.IsEmpty() then
+                        Error(NoAgentSetupErr);
+
+                    if Agent.IsActive(Rec."User Security ID") then
+                        Error(DeactivateBeforeArchivingErr);
+
+                    Rec.TestField("Display Name");
+                    ArchiveConfirmation.SetAgentDisplayName(Rec."Display Name");
+                    ArchiveConfirmation.RunModal();
+                    if not ArchiveConfirmation.IsConfirmed() then
+                        exit;
+
+                    Agent.Archive(Rec."User Security ID");
                     CurrPage.Update(false);
                 end;
             }
@@ -83,22 +129,97 @@ page 4316 "Agent List"
                     Page.Run(Page::"Agent Task List", AgentTask);
                 end;
             }
+            action(ShowCurrentCompany)
+            {
+                ApplicationArea = All;
+                Caption = 'Show agents for current company';
+                ToolTip = 'Show only agents that can access the current company.';
+                Image = FilterLines;
+                Visible = ShouldShowAllCompanies;
+
+                trigger OnAction()
+                begin
+                    ShouldShowAllCompanies := false;
+                    SetCompanyFilter();
+                end;
+            }
+            action(ShowAllCompanies)
+            {
+                ApplicationArea = All;
+                Caption = 'Show agents for all companies';
+                ToolTip = 'Show agents from all companies.';
+                Image = RemoveFilterLines;
+                Visible = not ShouldShowAllCompanies;
+
+                trigger OnAction()
+                begin
+                    ShouldShowAllCompanies := true;
+                    SetCompanyFilter();
+                end;
+            }
+            action(ShowAllAgents)
+            {
+                ApplicationArea = All;
+                Caption = 'Show all agents';
+                ToolTip = 'Show all agents, including archived ones.';
+                Image = RemoveFilterLines;
+                Visible = not ShouldShowAllAgents;
+
+                trigger OnAction()
+                begin
+                    ShouldShowAllAgents := true;
+                    SetAgentSubstateFilter();
+                end;
+            }
+            action(HideArchivedAgents)
+            {
+                ApplicationArea = All;
+                Caption = 'Hide archived agents';
+                ToolTip = 'Hide agents that have been archived.';
+                Image = FilterLines;
+                Visible = ShouldShowAllAgents;
+
+                trigger OnAction()
+                begin
+                    ShouldShowAllAgents := false;
+                    SetAgentSubstateFilter();
+                end;
+            }
+        }
+        area(Navigation)
+        {
+            action(AgentConfigurationRights)
+            {
+                ApplicationArea = All;
+                Caption = 'Agent configuration rights';
+                ToolTip = 'View who can create new agents';
+                Image = Permission;
+                RunObject = Page "Agent Creation Control";
+            }
             action(ShowConsumptionData)
             {
                 ApplicationArea = All;
-                Caption = 'View consumption data';
+                Caption = 'Consumption data';
                 ToolTip = 'View AI consumption data for this agent.';
                 Image = BankAccountLedger;
 
                 trigger OnAction()
                 var
-                    UserAIConsumptionData: Record "User AI Consumption Data";
+                    AgentConsumptionOverview: Codeunit "Agent Consumption Overview";
                 begin
                     if Rec.IsEmpty() then
                         Error(NoAgentSetupErr);
-                    UserAIConsumptionData.SetRange("User ID", Rec."User Security ID");
-                    Page.Run(Page::"Agent Consumption Overview", UserAIConsumptionData);
+
+                    AgentConsumptionOverview.OpenAgentConsumptionOverview(Rec."User Security ID");
                 end;
+            }
+            action(AgentModels)
+            {
+                ApplicationArea = All;
+                Caption = 'Agent models';
+                ToolTip = 'View all agent models.';
+                Image = ViewPage;
+                RunObject = Page "Agent Model List";
             }
         }
         area(Promoted)
@@ -125,8 +246,60 @@ page 4316 "Agent List"
         // Check if there are any agents available
         if AgentMetadataProvider.Names().Count() = 0 then
             AgentImpl.ShowNoAgentsAvailableNotification();
+
+        ShouldShowAllCompanies := false;
+        ShouldShowAllAgents := false;
+        SetAgentSubstateFilter();
+        SetCompanyFilter();
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        UpdateControls();
+    end;
+
+    trigger OnAfterGetRecord()
+    begin
+        UpdateControls();
+    end;
+
+    local procedure UpdateControls()
+    var
+        AgentImpl: Codeunit "Agent Impl.";
+    begin
+        CopilotAvailabilityTxt := AgentImpl.GetCopilotAvailabilityDisplayText(Rec);
+        AgentIsArchived := Rec.Substate = Rec.Substate::Archived;
+        ArchiveActionEnabled := (not AgentIsArchived) and Rec."Can Curr. User Configure Agent";
+    end;
+
+    local procedure SetCompanyFilter()
+    begin
+        Rec.FilterGroup(2);
+        if ShouldShowAllCompanies then
+            Rec.SetRange("Can Access Current Company")
+        else
+            Rec.SetRange("Can Access Current Company", true);
+        Rec.FilterGroup(0);
+        CurrPage.Update(false);
+    end;
+
+    local procedure SetAgentSubstateFilter()
+    begin
+        Rec.FilterGroup(2);
+        if ShouldShowAllAgents then
+            Rec.SetRange(Substate)
+        else
+            Rec.SetRange(Substate, Rec.Substate::None);
+        Rec.FilterGroup(0);
+        CurrPage.Update(false);
     end;
 
     var
+        CopilotAvailabilityTxt: Text;
+        ShouldShowAllCompanies: Boolean;
+        ShouldShowAllAgents: Boolean;
+        ArchiveActionEnabled: Boolean;
+        AgentIsArchived: Boolean;
         NoAgentSetupErr: Label 'No agents have been setup. You must set up an agent first.';
+        DeactivateBeforeArchivingErr: Label 'Deactivate the agent before archiving it.';
 }

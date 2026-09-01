@@ -1,0 +1,1764 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace System.Test.Agents;
+
+using System.Agents;
+using System.Agents.Troubleshooting;
+using System.Environment.Configuration;
+using System.Reflection;
+using System.Security.AccessControl;
+using System.TestLibraries.Utilities;
+
+codeunit 133961 "Agent Test"
+{
+    Subtype = Test;
+    TestPermissions = Disabled;
+
+    var
+        Assert: Codeunit "Library Assert";
+        Agent: Codeunit Agent;
+        LibraryTestAgent: Codeunit "Library Mock Agent";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        DeactivateBeforeArchivingErr: Label 'Deactivate the agent before archiving it.', Locked = true;
+        AgentArchivedCannotBeModifiedErr: Label 'The agent is archived and cannot be modified.', Locked = true;
+
+    local procedure Initialize()
+    begin
+        LibraryTestAgent.DeleteAllAgents();
+        LibraryVariableStorage.Clear();
+    end;
+
+    #region Create Agent Tests
+
+    [Test]
+    procedure CreateAgentWithValidParameters()
+    var
+        AgentRecord: Record Agent;
+        TempAgentAccessControl: Record "Agent Access Control" temporary;
+        Any: Codeunit Any;
+        UserName: Code[50];
+        DisplayName: Text[80];
+        AgentId: Guid;
+        NullGuid: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Create a new agent with valid parameters
+
+        // [GIVEN] Valid agent parameters
+        UserName := CopyStr(Any.AlphanumericText(50), 1, MaxStrLen(UserName));
+        DisplayName := CopyStr(Any.AlphanumericText(80), 1, MaxStrLen(DisplayName));
+
+        // [WHEN] Creating a new agent
+        AgentId := Agent.Create("Agent Metadata Provider"::"SDK Mock Agent", UserName, DisplayName, TempAgentAccessControl);
+
+        // [THEN] The agent should be created successfully
+        Assert.AreNotEqual(NullGuid, AgentId, 'Agent ID should not be null');
+
+        // [THEN] The agent should exist in the system
+        AgentRecord.SetRange("User Security ID", AgentId);
+        Assert.IsTrue(AgentRecord.FindFirst(), 'Agent should exist in the system');
+        Assert.AreEqual(UserName, AgentRecord."User Name", 'User name should match');
+    end;
+
+    [Test]
+    procedure CreateAgentWithAccessControl()
+    var
+        TempAgentAccessControl: Record "Agent Access Control" temporary;
+        Any: Codeunit Any;
+        UserName: Code[50];
+        DisplayName: Text[80];
+        AgentId: Guid;
+        NullGuid: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Create an agent with access control settings
+
+        // [GIVEN] Valid agent parameters with access control
+        UserName := CopyStr(Any.AlphanumericText(50), 1, MaxStrLen(UserName));
+        DisplayName := CopyStr(Any.AlphanumericText(80), 1, MaxStrLen(DisplayName));
+
+        TempAgentAccessControl."User Security ID" := UserSecurityId();
+        TempAgentAccessControl."Can Configure Agent" := true;
+        TempAgentAccessControl.Insert();
+
+        // [WHEN] Creating a new agent with access control
+        AgentId := Agent.Create("Agent Metadata Provider"::"SDK Mock Agent", UserName, DisplayName, TempAgentAccessControl);
+
+        // [THEN] The agent should be created successfully
+        Assert.AreNotEqual(NullGuid, AgentId, 'Agent ID should not be null');
+
+        // [THEN] Access control should be set
+        Clear(TempAgentAccessControl);
+        Agent.GetUserAccess(AgentId, TempAgentAccessControl);
+        Assert.AreEqual(1, TempAgentAccessControl.Count(), 'Should have one access control entry');
+        Assert.AreEqual(UserSecurityId(), TempAgentAccessControl."User Security ID", 'Access control user ID should match');
+        Assert.IsTrue(TempAgentAccessControl."Can Configure Agent", 'Access control "Can Configure Agent" should be true');
+    end;
+
+    #endregion
+
+    #region Activate/Deactivate Tests
+
+    [Test]
+    procedure ActivateAgent()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Activate an agent
+
+        // [GIVEN] A deactivated agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        Agent.Deactivate(AgentId);
+        Assert.IsFalse(Agent.IsActive(AgentId), 'Agent should be inactive');
+
+        // [WHEN] Activating the agent
+        Agent.Activate(AgentId);
+
+        // [THEN] The agent should be active
+        Assert.IsTrue(Agent.IsActive(AgentId), 'Agent should be active');
+    end;
+
+    [Test]
+    procedure DeactivateAgent()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Deactivate an agent
+
+        // [GIVEN] An active agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        Assert.IsTrue(Agent.IsActive(AgentId), 'Agent should be active initially');
+
+        // [WHEN] Deactivating the agent
+        Agent.Deactivate(AgentId);
+
+        // [THEN] The agent should be inactive
+        Assert.IsFalse(Agent.IsActive(AgentId), 'Agent should be inactive');
+    end;
+
+    #endregion
+
+    #region Display Name Tests
+
+    [Test]
+    procedure GetDisplayName()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+        DisplayName: Text[80];
+        ExpectedDisplayName: Text[80];
+    begin
+        Initialize();
+
+        // [SCENARIO] Get display name of an agent
+
+        // [GIVEN] An agent with a display name
+        ExpectedDisplayName := CopyStr(Any.AlphanumericText(MaxStrLen(ExpectedDisplayName)), 1, MaxStrLen(ExpectedDisplayName));
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            ExpectedDisplayName,
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        // [WHEN] Getting the display name
+        DisplayName := Agent.GetDisplayName(AgentId);
+
+        // [THEN] The display name should match
+        Assert.AreEqual(ExpectedDisplayName, DisplayName, 'Display name should match');
+    end;
+
+    [Test]
+    procedure SetDisplayName()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+        NewDisplayName: Text[80];
+        RetrievedDisplayName: Text[80];
+    begin
+        Initialize();
+
+        // [SCENARIO] Set display name of an agent
+
+        // [GIVEN] An agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        // [WHEN] Setting a new display name
+        NewDisplayName := CopyStr(Any.AlphanumericText(MaxStrLen(NewDisplayName)), 1, MaxStrLen(NewDisplayName));
+        Agent.SetDisplayName(AgentId, NewDisplayName);
+
+        // [THEN] The display name should be updated
+        RetrievedDisplayName := Agent.GetDisplayName(AgentId);
+        Assert.AreEqual(NewDisplayName, RetrievedDisplayName, 'Display name should be updated');
+    end;
+
+    #endregion
+
+    #region Model ID Tests
+
+    [Test]
+    procedure GetModelId()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+        ModelId: Code[30];
+    begin
+        Initialize();
+
+        // [SCENARIO] Get model ID of an agent
+
+        // [GIVEN] An agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        // [WHEN] Getting the model ID
+        ModelId := Agent.GetModelId(AgentId);
+
+        // [THEN] The model ID should be empty for a newly created agent
+        Assert.AreEqual('', ModelId, 'Model ID should be empty for a new agent');
+    end;
+
+    [Test]
+    procedure GetModelName()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+        ModelName: Text;
+    begin
+        Initialize();
+
+        // [SCENARIO] Get model name of an agent in auto mode
+
+        // [GIVEN] An agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        // [WHEN] Getting the model name
+        ModelName := Agent.GetModelName(AgentId);
+
+        // [THEN] The model name should be Auto for a newly created agent
+        Assert.AreEqual('Auto', ModelName, 'Model name should be Auto for a new agent');
+    end;
+
+    [Test]
+    procedure SetModelId()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+        NewModelId: Code[30];
+        AgentModelNotFoundErr: Label 'The agent model ''%1'' could not be found.', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] Setting an invalid model ID should fail
+
+        // [GIVEN] An agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        // [WHEN] Setting an invalid model ID
+        NewModelId := CopyStr(Any.AlphanumericText(MaxStrLen(NewModelId)), 1, MaxStrLen(NewModelId));
+        asserterror Agent.SetModelId(AgentId, NewModelId);
+
+        // [THEN] The agent should reject unknown model IDs
+        Assert.ExpectedError(StrSubstNo(AgentModelNotFoundErr, NewModelId));
+    end;
+
+    [Test]
+    procedure SetModelIdToAuto()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+        RetrievedModelId: Code[30];
+    begin
+        Initialize();
+
+        // [SCENARIO] Set model ID of an agent to auto mode
+
+        // [GIVEN] An agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        // [WHEN] Setting the model ID to auto (auto means empty model ID)
+        Agent.SetModelIdToAuto(AgentId);
+
+        // [THEN] The model ID should be empty
+        RetrievedModelId := Agent.GetModelId(AgentId);
+        Assert.AreEqual('', RetrievedModelId, 'Model ID should be empty in auto mode');
+    end;
+
+    [Test]
+    procedure SetModelIdToDefaultModel()
+    var
+        AgentRecord: Record Agent;
+        AgentModel: Record "Agent Model";
+        Any: Codeunit Any;
+        AgentId: Guid;
+        RetrievedModelId: Code[30];
+        RetrievedModelName: Text[70];
+    begin
+        Initialize();
+
+        // [SCENARIO] Setting the model ID to the default Agent Model should succeed and return the correct model name
+
+        // [GIVEN] An agent and the default agent model
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        if AgentModel.IsEmpty() then
+            // Copilot Service is not running and not populating the Agent Model table.
+            exit;
+
+        AgentModel.SetRange("Is Default", true);
+        Assert.IsTrue(AgentModel.FindFirst(), 'A default agent model should exist');
+
+        // [WHEN] Setting the model ID to the default model
+        Agent.SetModelId(AgentId, AgentModel."Model ID");
+
+        // [THEN] The model ID should match the default model
+        RetrievedModelId := Agent.GetModelId(AgentId);
+        Assert.AreEqual(AgentModel."Model ID", RetrievedModelId, 'Model ID should match the default model');
+
+        // [THEN] The model name should match the default model name
+        RetrievedModelName := Agent.GetModelName(AgentId);
+        Assert.AreEqual(AgentModel."Model Name", RetrievedModelName, 'Model name should match the default model name');
+    end;
+
+    #endregion
+
+    #region User Name Tests
+
+    [Test]
+    procedure GetUserName()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+        UserName: Code[50];
+        ExpectedUserName: Code[50];
+    begin
+        Initialize();
+
+        // [SCENARIO] Get user name of an agent
+
+        // [GIVEN] An agent with a user name
+        ExpectedUserName := CopyStr(Any.AlphanumericText(MaxStrLen(ExpectedUserName)), 1, MaxStrLen(ExpectedUserName));
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            ExpectedUserName,
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        // [WHEN] Getting the user name
+        UserName := Agent.GetUserName(AgentId);
+
+        // [THEN] The user name should match
+        Assert.AreEqual(ExpectedUserName, UserName, 'User name should match');
+    end;
+
+    #endregion
+
+    #region Instructions Tests
+
+    [Test]
+    [NonDebuggable]
+    procedure SetInstructions()
+    var
+        AgentRecord: Record Agent;
+        AgentUtilities: Codeunit "Agent Utilities";
+        Any: Codeunit Any;
+        AgentId: Guid;
+        NewInstructions: Text[2048];
+        InstructionsText: Text[2048];
+    begin
+        Initialize();
+
+        // [SCENARIO] Set instructions for an agent
+
+        // [GIVEN] An agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        // [WHEN] Setting new instructions
+        InstructionsText := CopyStr(Any.AlphanumericText(MaxStrLen(InstructionsText)), 1, MaxStrLen(InstructionsText));
+        Agent.SetInstructions(AgentId, InstructionsText);
+        NewInstructions := CopyStr(AgentUtilities.GetInstructions(AgentId).Unwrap(), 1, MaxStrLen(NewInstructions));
+
+        // [THEN] The instructions should be updated
+        Assert.AreEqual(InstructionsText, NewInstructions, 'Instructions should be updated');
+    end;
+
+    #endregion
+
+    #region Profile Tests
+
+    [Test]
+    procedure PopulateDefaultProfile()
+    var
+        TempAllProfile: Record "All Profile" temporary;
+        Any: Codeunit Any;
+        ProfileID: Code[30];
+        ProfileAppID: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Populate default profile information
+
+        // [GIVEN] Profile parameters
+        ProfileID := CopyStr(Any.AlphanumericText(30), 1, MaxStrLen(ProfileID));
+        ProfileAppID := Any.GuidValue();
+
+        // [WHEN] Populating the default profile
+        Agent.PopulateDefaultProfile(ProfileID, ProfileAppID, TempAllProfile);
+
+        // [THEN] The profile should be populated
+        Assert.AreEqual(ProfileID, TempAllProfile."Profile ID", 'Profile ID should match');
+        Assert.AreEqual(ProfileAppID, TempAllProfile."App ID", 'Profile App ID should match');
+    end;
+
+    [Test]
+    procedure SetProfileWithRecord()
+    var
+        AgentRecord: Record Agent;
+        AllProfile: Record "All Profile";
+        TempUserSettingsRec: Record "User Settings";
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Set profile for an agent using a profile record
+
+        // [GIVEN] An agent and a profile record
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        if AllProfile.FindFirst() then begin
+            // [WHEN] Setting the profile
+            Agent.SetProfile(AgentId, AllProfile);
+
+            // [THEN] The profile should be set correctly
+            Agent.GetUserSettings(AgentId, TempUserSettingsRec);
+            Assert.AreEqual(Text.UpperCase(AllProfile."Profile ID"), TempUserSettingsRec."Profile ID", 'Profile ID should be set');
+            Assert.AreEqual(AllProfile."App ID", TempUserSettingsRec."App ID", 'Profile App ID should be set');
+        end;
+    end;
+
+    [Test]
+    procedure SetProfileWithParameters()
+    var
+        AgentRecord: Record Agent;
+        TempUserSettingsRec: Record "User Settings";
+        Any: Codeunit Any;
+        AgentId: Guid;
+        ProfileID: Code[30];
+        ProfileAppID: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Set profile for an agent using profile ID and App ID
+
+        // [GIVEN] An agent and profile parameters
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        ProfileID := CopyStr(Any.AlphanumericText(MaxStrLen(ProfileID)), 1, MaxStrLen(ProfileID));
+        ProfileAppID := Any.GuidValue();
+
+        // [WHEN] Setting the profile with parameters
+        Agent.SetProfile(AgentId, ProfileID, ProfileAppID);
+
+        // [THEN] The profile should be set correctly
+        Agent.GetUserSettings(AgentId, TempUserSettingsRec);
+        Assert.AreEqual(ProfileID, TempUserSettingsRec."Profile ID", 'Profile ID should be set');
+        Assert.AreEqual(ProfileAppID, TempUserSettingsRec."App ID", 'Profile App ID should be set');
+    end;
+
+    #endregion
+
+    #region Localization Settings Tests
+
+    [Test]
+    procedure UpdateLocalizationSettings()
+    var
+        AgentRecord: Record Agent;
+        TempNewUserSettings: Record "User Settings";
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Update localization settings for an agent
+
+        // [GIVEN] An agent and new user settings
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        TempNewUserSettings."User Security ID" := AgentId;
+        TempNewUserSettings."Locale ID" := Any.IntegerInRange(1000, 9999);
+        TempNewUserSettings."Language ID" := Any.IntegerInRange(1000, 9999);
+        TempNewUserSettings."Time Zone" := CopyStr(Any.AlphanumericText(30), 1, 30);
+
+        // [WHEN] Updating localization settings
+        Agent.UpdateLocalizationSettings(AgentId, TempNewUserSettings);
+
+        // [THEN] The settings should be updated
+        Assert.AreNotEqual(0, TempNewUserSettings."Locale ID", 'Locale ID should be updated');
+    end;
+
+    [Test]
+    procedure GetUserSettings()
+    var
+        AgentRecord: Record Agent;
+        TempUserSettingsRec: Record "User Settings";
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Get user settings for an agent
+
+        // [GIVEN] An agent with user settings
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        // [WHEN] Getting the user settings
+        Agent.GetUserSettings(AgentId, TempUserSettingsRec);
+
+        // [THEN] User settings should be retrieved
+        Assert.AreEqual(AgentId, TempUserSettingsRec."User Security ID", 'User Security ID should match');
+        Assert.AreNotEqual(0, TempUserSettingsRec."Locale ID", 'Locale ID should be set');
+    end;
+
+    #endregion
+
+    #region Access Control / Permission Set Tests
+
+    [Test]
+    procedure AssignPermissionSet_ReplacePermissionSet()
+    var
+        AgentRecord: Record Agent;
+        TempAccessControlBuffer: Record "Access Control Buffer" temporary;
+        AccessControl: Record "Access Control";
+        Any: Codeunit Any;
+        AgentId: Guid;
+        EmptyGuid: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Assign a new permission set to an agent, replacing existing permissions
+
+        // [GIVEN] An agent with default permissions and a SUPER permission set to assign
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        TempAccessControlBuffer.Init();
+#pragma warning disable AA0139
+        TempAccessControlBuffer."Company Name" := CompanyName();
+#pragma warning restore AA0139
+        TempAccessControlBuffer.Scope := TempAccessControlBuffer.Scope::System;
+        TempAccessControlBuffer."App ID" := EmptyGuid;
+        TempAccessControlBuffer."Role ID" := 'SUPER';
+        TempAccessControlBuffer.Insert();
+
+        // [WHEN] Assigning the permission set
+        Agent.AssignPermissionSet(AgentId, TempAccessControlBuffer);
+
+        // [THEN] The SUPER permission set should be assigned to the agent
+        AccessControl.SetRange("User Security ID", AgentId);
+        AccessControl.SetRange("Role ID", 'SUPER');
+        AccessControl.SetRange("App ID", EmptyGuid);
+        AccessControl.SetRange(Scope, TempAccessControlBuffer.Scope::System);
+        AccessControl.SetRange("Company Name", CompanyName());
+        Assert.IsTrue(AccessControl.FindFirst(), 'SUPER permission set should be assigned to the agent');
+
+        // [THEN] The old default permissions should be replaced (only SUPER should exist)
+        AccessControl.Reset();
+        AccessControl.SetRange("User Security ID", AgentId);
+        Assert.AreEqual(1, AccessControl.Count(), 'Should only have the SUPER permission set (old permissions replaced)');
+    end;
+
+    [Test]
+    procedure AssignPermissionSet_AddPermissionSet()
+    var
+        AgentRecord: Record Agent;
+        TempAccessControlBuffer: Record "Access Control Buffer" temporary;
+        AccessControl: Record "Access Control";
+        MockAgentSetup: Codeunit "Mock Agent Setup";
+        Any: Codeunit Any;
+        AgentId: Guid;
+        EmptyGuid: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Add a SUPER permission set to an agent while keeping existing default permissions
+
+        // [GIVEN] An agent with default permissions and a SUPER permission set added to the buffer
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        TempAccessControlBuffer.Init();
+#pragma warning disable AA0139
+        TempAccessControlBuffer."Company Name" := CompanyName();
+#pragma warning restore AA0139
+        TempAccessControlBuffer.Scope := TempAccessControlBuffer.Scope::System;
+        TempAccessControlBuffer."App ID" := EmptyGuid;
+        TempAccessControlBuffer."Role ID" := 'SUPER';
+        TempAccessControlBuffer.Insert();
+
+        MockAgentSetup.GetDefaultAccessControls(TempAccessControlBuffer);
+
+        // [WHEN] Assigning the permission set
+        Agent.AssignPermissionSet(AgentId, TempAccessControlBuffer);
+
+        // [THEN] The SUPER permission set should be assigned to the agent
+        AccessControl.SetRange("User Security ID", AgentId);
+        AccessControl.SetRange("Role ID", 'SUPER');
+        AccessControl.SetRange("App ID", EmptyGuid);
+        AccessControl.SetRange(Scope, TempAccessControlBuffer.Scope::System);
+        AccessControl.SetRange("Company Name", CompanyName());
+        Assert.IsTrue(AccessControl.FindFirst(), 'SUPER permission set should be assigned to the agent');
+
+        // [THEN] The default permissions should still exist (both SUPER and default)
+        AccessControl.Reset();
+        AccessControl.SetRange("User Security ID", AgentId);
+        Assert.AreEqual(2, AccessControl.Count(), 'Should have both SUPER and default permission sets');
+    end;
+
+    [Test]
+    procedure AssignPermissionSet_NoChange()
+    var
+        AgentRecord: Record Agent;
+        TempAccessControlBuffer: Record "Access Control Buffer" temporary;
+        AccessControl: Record "Access Control";
+        MockAgentSetup: Codeunit "Mock Agent Setup";
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Assign the same permission set that an agent already has (no change)
+
+        // [GIVEN] An agent with default permissions and the same default permissions in the buffer
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        MockAgentSetup.GetDefaultAccessControls(TempAccessControlBuffer);
+
+        // [GIVEN] Record the initial permission count
+        AccessControl.SetRange("User Security ID", AgentId);
+        Assert.AreEqual(1, AccessControl.Count(), 'Should start with one default permission set');
+
+        // [WHEN] Assigning the same permission set
+        Agent.AssignPermissionSet(AgentId, TempAccessControlBuffer);
+
+        // [THEN] The permission count should remain unchanged
+        AccessControl.Reset();
+        AccessControl.SetRange("User Security ID", AgentId);
+        Assert.AreEqual(1, AccessControl.Count(), 'Permission count should remain 1 (no change)');
+
+        // [THEN] The exact same permission set should still exist
+        AccessControl.SetRange("Company Name", TempAccessControlBuffer."Company Name");
+        AccessControl.SetRange("Role ID", TempAccessControlBuffer."Role ID");
+        AccessControl.SetRange("App ID", TempAccessControlBuffer."App ID");
+        AccessControl.SetRange(Scope, TempAccessControlBuffer.Scope);
+        Assert.AreEqual(1, AccessControl.Count(), 'The same permission set should still exist');
+    end;
+
+    [Test]
+    procedure AssignPermissionSet_UpdatePermissionSet_ChangeCompany()
+    var
+        AgentRecord: Record Agent;
+        TempAccessControlBuffer: Record "Access Control Buffer" temporary;
+        AccessControl: Record "Access Control";
+        MockAgentSetup: Codeunit "Mock Agent Setup";
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Update an agent's permission set to change company from current company to all companies
+
+        // [GIVEN] An agent with default permissions for current company and a permission set with empty company name (all companies)
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        MockAgentSetup.GetDefaultAccessControls(TempAccessControlBuffer);
+        TempAccessControlBuffer.Rename('', TempAccessControlBuffer.Scope, TempAccessControlBuffer."App ID", TempAccessControlBuffer."Role ID");
+
+        // [WHEN] Assigning the permission set with empty company name
+        Agent.AssignPermissionSet(AgentId, TempAccessControlBuffer);
+
+        // [THEN] The permission set with empty company name (all companies) should exist
+        AccessControl.SetRange("User Security ID", AgentId);
+        AccessControl.SetRange("Role ID", TempAccessControlBuffer."Role ID");
+        AccessControl.SetRange("App ID", TempAccessControlBuffer."App ID");
+        AccessControl.SetRange(Scope, TempAccessControlBuffer.Scope);
+        AccessControl.SetRange("Company Name", '');
+        Assert.AreEqual(1, AccessControl.Count(), 'Permission set with empty company name should exist');
+
+        // [THEN] The old permission with specific company name should be gone
+        AccessControl.Reset();
+        AccessControl.SetRange("User Security ID", AgentId);
+        AccessControl.SetRange("Role ID", TempAccessControlBuffer."Role ID");
+        AccessControl.SetRange("App ID", TempAccessControlBuffer."App ID");
+        AccessControl.SetRange(Scope, TempAccessControlBuffer.Scope);
+        AccessControl.SetRange("Company Name", CompanyName());
+        Assert.AreEqual(0, AccessControl.Count(), 'Permission set with specific company name should be removed');
+    end;
+
+    #endregion
+
+    #region Agent Access Control Tests
+
+    [Test]
+    procedure GetUserAccess()
+    var
+        AgentRecord: Record Agent;
+        TempAgentAccessControl: Record "Agent Access Control" temporary;
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Get user access for an agent
+
+        // [GIVEN] An agent with access control
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        // [WHEN] Getting user access
+        Agent.GetUserAccess(AgentId, TempAgentAccessControl);
+
+        // [THEN] Access control entries should be retrieved
+        Assert.IsTrue(TempAgentAccessControl.Count() >= 0, 'Should retrieve access control entries');
+    end;
+
+    [Test]
+    procedure UpdateAccess()
+    var
+        AgentRecord: Record Agent;
+        TempAgentAccessControl: Record "Agent Access Control" temporary;
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Update access control for an agent
+
+        // [GIVEN] An agent and new access control settings
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        TempAgentAccessControl."Agent User Security ID" := AgentId;
+        TempAgentAccessControl."User Security ID" := UserSecurityId();
+        TempAgentAccessControl.Insert();
+
+        // [WHEN] Updating access control
+        Agent.UpdateAccess(AgentId, TempAgentAccessControl);
+
+        // [THEN] Access should be updated
+        Clear(TempAgentAccessControl);
+        Agent.GetUserAccess(AgentId, TempAgentAccessControl);
+        Assert.AreEqual(1, TempAgentAccessControl.Count(), 'Should have one access control entry');
+    end;
+
+    [Test]
+    procedure UpdateAccessWithMultipleUsers()
+    var
+        AgentRecord: Record Agent;
+        TempAgentAccessControl: Record "Agent Access Control" temporary;
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Update access control with multiple users
+
+        // [GIVEN] An agent and multiple access control entries
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        // Add first user
+        TempAgentAccessControl."Agent User Security ID" := AgentId;
+        TempAgentAccessControl."User Security ID" := UserSecurityId();
+        TempAgentAccessControl.Insert();
+
+        // Add second user
+        TempAgentAccessControl."User Security ID" := Any.GuidValue();
+        TempAgentAccessControl.Insert();
+
+        // [WHEN] Updating access control
+        Agent.UpdateAccess(AgentId, TempAgentAccessControl);
+
+        // [THEN] Access should be updated with multiple entries
+        Clear(TempAgentAccessControl);
+        Agent.GetUserAccess(AgentId, TempAgentAccessControl);
+        Assert.IsTrue(TempAgentAccessControl.Count() >= 1, 'Should have at least one access control entry');
+    end;
+
+    #endregion
+
+    #region Integration Tests
+
+    [Test]
+    procedure CreateAndConfigureCompleteAgent()
+    var
+        TempAgentAccessControl: Record "Agent Access Control" temporary;
+        TempNewUserSettings: Record "User Settings";
+        Any: Codeunit Any;
+        UserName: Code[50];
+        DisplayName: Text[80];
+        NewDisplayName: Text[80];
+        Instructions: SecretText;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Create and fully configure an agent
+
+        // [GIVEN] Complete agent configuration
+        UserName := CopyStr(Any.AlphanumericText(MaxStrLen(UserName)), 1, MaxStrLen(UserName));
+        DisplayName := CopyStr(Any.AlphanumericText(MaxStrLen(DisplayName)), 1, MaxStrLen(DisplayName));
+        NewDisplayName := CopyStr(Any.AlphanumericText(MaxStrLen(NewDisplayName)), 1, MaxStrLen(NewDisplayName));
+
+        // Create access control
+        TempAgentAccessControl."User Security ID" := UserSecurityId();
+        TempAgentAccessControl.Insert();
+
+        // [WHEN] Creating and configuring the agent
+        AgentId := Agent.Create("Agent Metadata Provider"::"SDK Mock Agent", UserName, DisplayName, TempAgentAccessControl);
+
+        Agent.SetDisplayName(AgentId, NewDisplayName);
+        Instructions := Format(Any.AlphanumericText(2048));
+        Agent.SetInstructions(AgentId, Instructions);
+
+        TempNewUserSettings."User Security ID" := AgentId;
+        TempNewUserSettings."Locale ID" := Any.IntegerInRange(1000, 9999);
+        TempNewUserSettings."Language ID" := Any.IntegerInRange(1000, 9999);
+        TempNewUserSettings."Time Zone" := CopyStr(Any.AlphanumericText(MaxStrLen(TempNewUserSettings."Time Zone")), 1, MaxStrLen(TempNewUserSettings."Time Zone"));
+        Agent.UpdateLocalizationSettings(AgentId, TempNewUserSettings);
+
+        Agent.Activate(AgentId);
+
+        // [THEN] All configurations should be set correctly
+        Assert.AreEqual(NewDisplayName, Agent.GetDisplayName(AgentId), 'Display name should be updated');
+        Assert.AreEqual(UserName, Agent.GetUserName(AgentId), 'User name should match');
+        Assert.IsTrue(Agent.IsActive(AgentId), 'Agent should be active');
+
+        Clear(TempNewUserSettings);
+        Agent.GetUserSettings(AgentId, TempNewUserSettings);
+        Assert.AreNotEqual(0, TempNewUserSettings."Locale ID", 'Locale should be set');
+    end;
+
+    [Test]
+    procedure ActivateDeactivateCycle()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Test multiple activate/deactivate cycles
+
+        // [GIVEN] An agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        // [WHEN] Performing multiple activate/deactivate cycles
+        Assert.IsTrue(Agent.IsActive(AgentId), 'Agent should start active');
+
+        Agent.Deactivate(AgentId);
+        Assert.IsFalse(Agent.IsActive(AgentId), 'Agent should be inactive after deactivate');
+
+        Agent.Activate(AgentId);
+        Assert.IsTrue(Agent.IsActive(AgentId), 'Agent should be active after reactivate');
+
+        Agent.Deactivate(AgentId);
+        Assert.IsFalse(Agent.IsActive(AgentId), 'Agent should be inactive again');
+
+        Agent.Activate(AgentId);
+        Assert.IsTrue(Agent.IsActive(AgentId), 'Agent should be active again');
+
+        // [THEN] All state transitions should work correctly as verified above
+    end;
+
+    #endregion
+
+    #region Archive Tests
+
+    [Test]
+    procedure ArchiveDisabledAgentSetsArchived()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Archiving an inactive agent sets its substate to Archived
+
+        // [GIVEN] An inactive (deactivated) agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        Agent.Deactivate(AgentId);
+        Assert.IsFalse(Agent.IsArchived(AgentId), 'Agent should not be archived initially');
+
+        // [WHEN] Archiving the agent
+        Agent.Archive(AgentId);
+
+        // [THEN] The agent should be reported as archived
+        Assert.IsTrue(Agent.IsArchived(AgentId), 'Agent should be archived');
+
+        // [THEN] The agent record substate should be Archived
+        AgentRecord.Get(AgentId);
+        Assert.AreEqual(AgentRecord.Substate::Archived, AgentRecord.Substate, 'Agent substate should be Archived');
+    end;
+
+    [Test]
+    procedure ArchiveActiveAgentErrors()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Archiving an active agent is rejected
+
+        // [GIVEN] An active agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        Assert.IsTrue(Agent.IsActive(AgentId), 'Agent should be active initially');
+
+        // [WHEN] Archiving the active agent
+        // [THEN] An error is raised asking to deactivate first
+        asserterror Agent.Archive(AgentId);
+        Assert.ExpectedError(DeactivateBeforeArchivingErr);
+    end;
+
+    [Test]
+    procedure IsArchivedFalseForNewAgent()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] A newly created and deactivated agent is not archived
+
+        // [GIVEN] A deactivated agent that has not been archived
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        Agent.Deactivate(AgentId);
+
+        // [WHEN] Checking the archived state
+        // [THEN] The agent is not archived
+        Assert.IsFalse(Agent.IsArchived(AgentId), 'Agent should not be archived');
+    end;
+
+    [Test]
+    procedure ReArchiveArchivedAgentIsNoOp()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Archiving an already-archived agent is an idempotent no-op (no error)
+
+        // [GIVEN] A deactivated, archived agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        Agent.Deactivate(AgentId);
+        Agent.Archive(AgentId);
+        Assert.IsTrue(Agent.IsArchived(AgentId), 'Agent should be archived after the first archive');
+
+        // [WHEN] Agent.Archive is called a second time
+        Agent.Archive(AgentId);
+
+        // [THEN] No error is raised and the agent remains archived
+        Assert.IsTrue(Agent.IsArchived(AgentId), 'Agent should remain archived after re-archive');
+    end;
+
+    [Test]
+    procedure ReactivateArchivedAgentErrors()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] An archived agent cannot be reactivated
+
+        // [GIVEN] A deactivated, archived agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+        Agent.Deactivate(AgentId);
+        Agent.Archive(AgentId);
+
+        // [WHEN] Activating the archived agent
+        // [THEN] The platform rejects the modification because the agent is archived
+        asserterror Agent.Activate(AgentId);
+        Assert.ExpectedError('An archived agent cannot be modified.');
+
+        // [THEN] The agent remains archived and disabled
+        Assert.IsTrue(Agent.IsArchived(AgentId), 'Agent should remain archived after a failed reactivation');
+        Assert.IsFalse(Agent.IsActive(AgentId), 'Agent should remain inactive after a failed reactivation');
+    end;
+
+    [Test]
+    procedure ArchivedAgentHiddenFromAgentList()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentListTestPage: TestPage "Agent List";
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] An archived agent is not shown in the Agent List page
+
+        // [GIVEN] A deactivated, archived agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        Agent.Deactivate(AgentId);
+        Agent.Archive(AgentId);
+
+        // [WHEN] Opening the Agent List page and showing agents for all companies
+        AgentListTestPage.OpenView();
+        AgentListTestPage.ShowAllCompanies.Invoke();
+
+        // [THEN] The archived agent is not reachable in the Agent List
+        Assert.IsFalse(AgentListTestPage.GoToKey(AgentId), 'Archived agent should not appear in the Agent List');
+        AgentListTestPage.Close();
+    end;
+
+    [Test]
+    procedure ArchivedAgentRevealedByShowAllAgentsToggle()
+    var
+        AgentRecord: Record Agent;
+        AgentListTestPage: TestPage "Agent List";
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] The Show all agents / Hide archived agents toggle controls archived-agent visibility on the Agent List
+
+        // [GIVEN] A deactivated, archived agent
+        AgentId := CreateActiveAgent(AgentRecord, 'Archived List Toggle Agent');
+        Agent.Deactivate(AgentId);
+        Agent.Archive(AgentId);
+
+        // [GIVEN] The Agent List showing agents for all companies
+        AgentListTestPage.OpenView();
+        AgentListTestPage.ShowAllCompanies.Invoke();
+
+        // [THEN] The archived agent is hidden by default
+        Assert.IsFalse(AgentListTestPage.GoToKey(AgentId), 'Archived agent should be hidden by default');
+
+        // [WHEN] Invoking Show all agents
+        AgentListTestPage.ShowAllAgents.Invoke();
+
+        // [THEN] The archived agent becomes visible
+        Assert.IsTrue(AgentListTestPage.GoToKey(AgentId), 'Archived agent should be visible after Show all agents');
+
+        // [WHEN] Invoking Hide archived agents
+        AgentListTestPage.HideArchivedAgents.Invoke();
+
+        // [THEN] The archived agent is hidden again
+        Assert.IsFalse(AgentListTestPage.GoToKey(AgentId), 'Archived agent should be hidden again after Hide archived agents');
+
+        AgentListTestPage.Close();
+    end;
+
+    [Test]
+    procedure ArchivedAgentRemainsRetrievable()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Archiving an agent is a soft-delete: the agent record is retained and reports the archived state
+
+        // [GIVEN] A deactivated, archived agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        Agent.Deactivate(AgentId);
+        Agent.Archive(AgentId);
+
+        // [THEN] The agent record still exists and is reported as archived
+        Assert.IsTrue(AgentRecord.Get(AgentId), 'Archived agent should remain retrievable after archiving');
+        Assert.IsTrue(Agent.IsArchived(AgentId), 'Agent should report as archived after archiving');
+    end;
+
+    [Test]
+    procedure NonArchivedAgentShownInAgentList()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentListTestPage: TestPage "Agent List";
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] A deactivated, non-archived agent is still shown in the Agent List page
+
+        // [GIVEN] A deactivated agent that has not been archived
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        Agent.Deactivate(AgentId);
+
+        // [WHEN] Opening the Agent List page and showing agents for all companies
+        AgentListTestPage.OpenView();
+        AgentListTestPage.ShowAllCompanies.Invoke();
+
+        // [THEN] The non-archived agent is reachable in the Agent List
+        Assert.IsTrue(AgentListTestPage.GoToKey(AgentId), 'Non-archived agent should appear in the Agent List');
+        AgentListTestPage.Close();
+    end;
+
+    [Test]
+    procedure SetProfileOnArchivedAgentErrors()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+        ProfileID: Code[30];
+        ProfileAppID: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Setting a profile on an archived agent is rejected
+
+        // [GIVEN] A deactivated, archived agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+        Agent.Deactivate(AgentId);
+        Agent.Archive(AgentId);
+
+        ProfileID := CopyStr(Any.AlphanumericText(MaxStrLen(ProfileID)), 1, MaxStrLen(ProfileID));
+        ProfileAppID := Any.GuidValue();
+
+        // [WHEN] Setting the profile on the archived agent
+        // [THEN] An error is raised that the archived agent cannot be modified
+        asserterror Agent.SetProfile(AgentId, ProfileID, ProfileAppID);
+        Assert.ExpectedError(AgentArchivedCannotBeModifiedErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('SendArchivedAgentNotificationHandler')]
+    procedure ArchivedAgentUserSettingsActionDisabledOnCard()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentCardPage: TestPage "Agent Card";
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] The Agent User Settings action is disabled on the card for an archived agent, so its settings cannot be edited
+
+        // [GIVEN] A deactivated, archived agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+        Agent.Deactivate(AgentId);
+        Agent.Archive(AgentId);
+
+        // [WHEN] Opening the agent card for the archived agent
+        AgentCardPage.OpenView();
+        AgentCardPage.GoToKey(AgentId);
+
+        // [THEN] The Agent User Settings action is disabled
+        Assert.IsFalse(AgentCardPage.UserSettingsAction.Enabled(), 'Agent User Settings action should be disabled for an archived agent');
+
+        AgentCardPage.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('SendArchivedAgentNotificationHandler')]
+    procedure ArchivedAgentConfigureActionEnabledOnCard()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentCardPage: TestPage "Agent Card";
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] The Configure action stays enabled on the card for an archived agent, so its configuration can still be reviewed
+
+        // [GIVEN] A deactivated, archived agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+        Agent.Deactivate(AgentId);
+        Agent.Archive(AgentId);
+
+        // [WHEN] Opening the agent card for the archived agent
+        AgentCardPage.OpenView();
+        AgentCardPage.GoToKey(AgentId);
+
+        // [THEN] The Configure action is enabled - the setup page opens for review; instructions stay frozen at the platform and providers make their own config read-only for archived agents
+        Assert.IsTrue(AgentCardPage.AgentSetup.Enabled(), 'Configure action should be enabled for an archived agent so its configuration can be reviewed');
+
+        AgentCardPage.Close();
+    end;
+
+    [Test]
+    procedure UpdateLocalizationSettingsOnArchivedAgentErrors()
+    var
+        AgentRecord: Record Agent;
+        TempNewUserSettings: Record "User Settings";
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Updating localization settings on an archived agent is rejected
+
+        // [GIVEN] A deactivated, archived agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+        Agent.Deactivate(AgentId);
+        Agent.Archive(AgentId);
+
+        TempNewUserSettings."User Security ID" := AgentId;
+        TempNewUserSettings."Locale ID" := Any.IntegerInRange(1000, 9999);
+        TempNewUserSettings."Language ID" := Any.IntegerInRange(1000, 9999);
+        TempNewUserSettings."Time Zone" := CopyStr(Any.AlphanumericText(30), 1, 30);
+
+        // [WHEN] Updating localization settings on the archived agent
+        // [THEN] An error is raised that the archived agent cannot be modified
+        asserterror Agent.UpdateLocalizationSettings(AgentId, TempNewUserSettings);
+        Assert.ExpectedError(AgentArchivedCannotBeModifiedErr);
+    end;
+
+    [Test]
+    procedure UpdateAccessControlOnArchivedAgentErrors()
+    var
+        AgentRecord: Record Agent;
+        TempAccessControlBuffer: Record "Access Control Buffer" temporary;
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Assigning permission sets on an archived agent is rejected
+
+        // [GIVEN] A deactivated, archived agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+        Agent.Deactivate(AgentId);
+        Agent.Archive(AgentId);
+
+        // [WHEN] Assigning permission sets on the archived agent
+        // [THEN] An error is raised that the archived agent cannot be modified
+        asserterror Agent.UpdateAccessControl(AgentId, TempAccessControlBuffer);
+        Assert.ExpectedError(AgentArchivedCannotBeModifiedErr);
+    end;
+
+    [Test]
+    procedure UpdateAgentAccessControlOnArchivedAgentSucceeds()
+    var
+        AgentRecord: Record Agent;
+        TempAgentAccessControl: Record "Agent Access Control" temporary;
+        Any: Codeunit Any;
+        AgentId: Guid;
+        SecondUserId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Access control is authorization metadata, not agent data, so it stays administrable on an archived agent
+
+        // [GIVEN] A deactivated, archived agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+        Agent.Deactivate(AgentId);
+        Agent.Archive(AgentId);
+
+        // [GIVEN] The current user plus a second user staged in the access-control buffer
+        TempAgentAccessControl."Agent User Security ID" := AgentId;
+        TempAgentAccessControl."User Security ID" := UserSecurityId();
+        TempAgentAccessControl.Insert();
+
+        SecondUserId := Any.GuidValue();
+        TempAgentAccessControl."User Security ID" := SecondUserId;
+        TempAgentAccessControl.Insert();
+
+        // [WHEN] Updating access control on the archived agent
+        Agent.UpdateAgentAccessControl(AgentId, TempAgentAccessControl);
+
+        // [THEN] The second user - which the create baseline does not include - was granted access, proving the
+        // update path actually applied on an archived agent instead of silently no-opping (archiving freezes agent
+        // data, not who may access it).
+        Clear(TempAgentAccessControl);
+        Agent.GetUserAccess(AgentId, TempAgentAccessControl);
+        TempAgentAccessControl.SetRange("User Security ID", SecondUserId);
+        Assert.IsFalse(TempAgentAccessControl.IsEmpty(), 'The newly granted user should be present after updating an archived agent''s access control');
+    end;
+
+    [Test]
+    [HandlerFunctions('AgentArchiveConfirmationModalHandler')]
+    procedure ArchiveConfirmationExactNameArchivesAgent()
+    var
+        AgentRecord: Record Agent;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Typing the agent's exact display name and choosing OK in the confirmation dialog archives the agent
+
+        // [GIVEN] A deactivated agent with a mixed-case display name
+        AgentId := CreateDeactivatedAgent(AgentRecord, 'Archive Confirm Agent');
+
+        // [GIVEN] The confirmation dialog will receive the exact display name and be accepted with OK
+        LibraryVariableStorage.Enqueue(AgentRecord."Display Name");
+        LibraryVariableStorage.Enqueue(true);
+
+        // [WHEN] Invoking the Archive action from the Agent List
+        InvokeArchiveActionFromList(AgentId);
+
+        // [THEN] The agent is archived
+        Assert.IsTrue(Agent.IsArchived(AgentId), 'Agent should be archived after confirming with the exact display name');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('AgentArchiveConfirmationModalHandler')]
+    procedure ArchiveConfirmationWrongCaseDoesNotArchive()
+    var
+        AgentRecord: Record Agent;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] The confirmation is case-sensitive: the same name typed in a different case is rejected
+
+        // [GIVEN] A deactivated agent with a mixed-case display name
+        AgentId := CreateDeactivatedAgent(AgentRecord, 'Archive Confirm Agent');
+
+        // [GIVEN] The user types the display name in upper case (the mixed-case original differs character-by-character)
+        LibraryVariableStorage.Enqueue(UpperCase(AgentRecord."Display Name"));
+        LibraryVariableStorage.Enqueue(true);
+
+        // [WHEN] Invoking the Archive action and confirming with OK
+        // [THEN] The name-mismatch error is raised and the agent is not archived
+        asserterror InvokeArchiveActionFromList(AgentId);
+        Assert.ExpectedError('The name you entered does not exactly match the agent''s display name.');
+        Assert.IsFalse(Agent.IsArchived(AgentId), 'Agent should not be archived when the typed name differs only in case');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('AgentArchiveConfirmationModalHandler')]
+    procedure ArchiveConfirmationExtraSpaceDoesNotArchive()
+    var
+        AgentRecord: Record Agent;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] A whitespace mistake (a space where a character should be) is rejected
+
+        // [GIVEN] A deactivated agent
+        AgentId := CreateDeactivatedAgent(AgentRecord, 'Archive Confirm Agent');
+
+        // [GIVEN] The user types the name with the final character replaced by a space (same length, char mismatch)
+        LibraryVariableStorage.Enqueue(
+            CopyStr(
+                CopyStr(AgentRecord."Display Name", 1, StrLen(AgentRecord."Display Name") - 1) + ' ',
+                1,
+                MaxStrLen(AgentRecord."Display Name")));
+        LibraryVariableStorage.Enqueue(true);
+
+        // [WHEN] Invoking the Archive action and confirming with OK
+        // [THEN] The name-mismatch error is raised and the agent is not archived
+        asserterror InvokeArchiveActionFromList(AgentId);
+        Assert.ExpectedError('The name you entered does not exactly match the agent''s display name.');
+        Assert.IsFalse(Agent.IsArchived(AgentId), 'Agent should not be archived when extra whitespace is typed');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('AgentArchiveConfirmationModalHandler')]
+    procedure ArchiveConfirmationLengthMismatchDoesNotArchive()
+    var
+        AgentRecord: Record Agent;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] A name of the wrong length (a missing character) is rejected
+
+        // [GIVEN] A deactivated agent
+        AgentId := CreateDeactivatedAgent(AgentRecord, 'Archive Confirm Agent');
+
+        // [GIVEN] The user types the name with the last character missing
+        LibraryVariableStorage.Enqueue(CopyStr(AgentRecord."Display Name", 1, StrLen(AgentRecord."Display Name") - 1));
+        LibraryVariableStorage.Enqueue(true);
+
+        // [WHEN] Invoking the Archive action and confirming with OK
+        // [THEN] The name-mismatch error is raised and the agent is not archived
+        asserterror InvokeArchiveActionFromList(AgentId);
+        Assert.ExpectedError('The name you entered does not exactly match the agent''s display name.');
+        Assert.IsFalse(Agent.IsArchived(AgentId), 'Agent should not be archived when the typed name has the wrong length');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('AgentArchiveConfirmationModalHandler')]
+    procedure ArchiveConfirmationEmptyInputDoesNotArchive()
+    var
+        AgentRecord: Record Agent;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Confirming with OK while the input is empty is rejected
+
+        // [GIVEN] A deactivated agent
+        AgentId := CreateDeactivatedAgent(AgentRecord, 'Archive Confirm Agent');
+
+        // [GIVEN] The user leaves the input empty and chooses OK
+        LibraryVariableStorage.Enqueue('');
+        LibraryVariableStorage.Enqueue(true);
+
+        // [WHEN] Invoking the Archive action and confirming with OK
+        // [THEN] The name-mismatch error is raised and the agent is not archived
+        asserterror InvokeArchiveActionFromList(AgentId);
+        Assert.ExpectedError('The name you entered does not exactly match the agent''s display name.');
+        Assert.IsFalse(Agent.IsArchived(AgentId), 'Agent should not be archived when no name is typed');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('AgentArchiveConfirmationModalHandler')]
+    procedure ArchiveConfirmationCancelDoesNotArchive()
+    var
+        AgentRecord: Record Agent;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Cancelling the confirmation dialog leaves the agent unarchived without raising an error
+
+        // [GIVEN] A deactivated agent
+        AgentId := CreateDeactivatedAgent(AgentRecord, 'Archive Confirm Agent');
+
+        // [GIVEN] The user dismisses the dialog with Cancel (even though the exact name was typed)
+        LibraryVariableStorage.Enqueue(AgentRecord."Display Name");
+        LibraryVariableStorage.Enqueue(false);
+
+        // [WHEN] Invoking the Archive action and cancelling the dialog
+        InvokeArchiveActionFromList(AgentId);
+
+        // [THEN] No error is raised and the agent is not archived
+        Assert.IsFalse(Agent.IsArchived(AgentId), 'Agent should not be archived when the confirmation is cancelled');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    procedure ArchiveActionOnActiveAgentRequiresDeactivationFirst()
+    var
+        AgentRecord: Record Agent;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Invoking Archive on an active agent explains it must be deactivated first, instead of silently disabling the action, and does not archive it
+
+        // [GIVEN] An active (enabled) agent
+        AgentId := CreateActiveAgent(AgentRecord, 'Active Archive Agent');
+
+        // [WHEN] Invoking the Archive action from the Agent List
+        // [THEN] The deactivate-first error is raised before any confirmation dialog, and the agent is not archived
+        asserterror InvokeArchiveActionFromList(AgentId);
+        Assert.ExpectedError(DeactivateBeforeArchivingErr);
+        Assert.IsFalse(Agent.IsArchived(AgentId), 'An active agent should not be archived; it must be deactivated first');
+    end;
+
+    [Test]
+    [HandlerFunctions('SendArchivedAgentNotificationHandler,AgentCardPageHandler')]
+    procedure ArchivedAgentLinkOpensAgentCard()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentImpl: Codeunit "Agent Impl.";
+        AgentId: Guid;
+        DisplayName: Text[80];
+    begin
+        Initialize();
+
+        // [SCENARIO] A reference link to an archived agent opens the agent card, because the client cannot
+        // resolve an archived agent and the task pane would fail to open
+
+        // [GIVEN] An archived agent
+        DisplayName := CopyStr(Any.AlphanumericText(80), 1, 80);
+        AgentId := CreateDeactivatedAgent(AgentRecord, DisplayName);
+        Agent.Archive(AgentId);
+
+        // [WHEN] The agent reference link is followed
+        AgentImpl.ShowAgent(AgentId);
+
+        // [THEN] The agent card is opened for that agent
+        Assert.AreEqual(DisplayName, LibraryVariableStorage.DequeueText(), 'The agent card should be opened for the archived agent.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('AgentTaskLogEntryListPageHandler')]
+    procedure ArchivedAgentTaskLinkOpensTaskLogEntries()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] A reference link to the task of an archived agent opens the task log entries, because the
+        // client cannot resolve the archived agent and the task pane would fail to open
+
+        // [GIVEN] An agent with a task, that is then archived
+        AgentId := CreateActiveAgent(AgentRecord, CopyStr(Any.AlphanumericText(80), 1, 80));
+        AgentTaskBuilder.Initialize(AgentId, 'Task of an agent that gets archived');
+        AgentTaskRecord := AgentTaskBuilder.Create(false, false); // Allow for tasks without message.
+
+        Agent.Deactivate(AgentId);
+        Agent.Archive(AgentId);
+
+        // [WHEN] The task reference link is followed
+        AgentTaskRecord.Get(AgentTaskRecord.ID);
+        AgentTaskImpl.ShowTask(AgentTaskRecord);
+
+        // [THEN] The log entries of that task are opened
+        Assert.AreEqual(Format(AgentTaskRecord.ID), LibraryVariableStorage.DequeueText(), 'The log entries should be opened for the task of the archived agent.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [ModalPageHandler]
+    procedure AgentArchiveConfirmationModalHandler(var AgentArchiveConfirmation: TestPage "Agent Archive Confirmation")
+    var
+        NameToType: Text;
+        CloseWithOK: Boolean;
+    begin
+        NameToType := LibraryVariableStorage.DequeueText();
+        CloseWithOK := LibraryVariableStorage.DequeueBoolean();
+        AgentArchiveConfirmation.DisplayNameConfirmation.SetValue(NameToType);
+        if CloseWithOK then
+            AgentArchiveConfirmation.OK().Invoke()
+        else
+            AgentArchiveConfirmation.Cancel().Invoke();
+    end;
+
+    [SendNotificationHandler]
+    procedure SendArchivedAgentNotificationHandler(var ArchivedNotification: Notification): Boolean
+    begin
+        Assert.AreEqual('This agent is archived and can no longer be modified. Its tasks and logs remain available for auditing.', ArchivedNotification.Message(), 'Unexpected notification was raised on the archived agent card.');
+        exit(true);
+    end;
+
+    [PageHandler]
+    procedure AgentCardPageHandler(var AgentCard: TestPage "Agent Card")
+    begin
+        LibraryVariableStorage.Enqueue(AgentCard.DisplayName.Value());
+        AgentCard.Close();
+    end;
+
+    [PageHandler]
+    procedure AgentTaskLogEntryListPageHandler(var AgentTaskLogEntryList: TestPage "Agent Task Log Entry List")
+    begin
+        // The page can be empty when the task has no log entries yet, so assert on the filter rather than a row.
+        LibraryVariableStorage.Enqueue(AgentTaskLogEntryList.Filter.GetFilter("Task ID"));
+        AgentTaskLogEntryList.Close();
+    end;
+
+    local procedure CreateDeactivatedAgent(var AgentRecord: Record Agent; DisplayName: Text[80]) AgentId: Guid
+    var
+        Any: Codeunit Any;
+    begin
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            DisplayName,
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        Agent.Deactivate(AgentId);
+
+        // GetOrCreateDefaultAgent does not reload the record on the create path; fetch it so callers
+        // read the actual stored display name back from the database.
+        AgentRecord.Get(AgentId);
+    end;
+
+    local procedure CreateActiveAgent(var AgentRecord: Record Agent; DisplayName: Text[80]) AgentId: Guid
+    var
+        Any: Codeunit Any;
+    begin
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            DisplayName,
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        // GetOrCreateDefaultAgent activates the agent but does not reload the record on the create path; fetch it
+        // so callers read the actual stored state and display name back from the database.
+        AgentRecord.Get(AgentId);
+    end;
+
+    local procedure InvokeArchiveActionFromList(AgentId: Guid)
+    var
+        AgentListTestPage: TestPage "Agent List";
+    begin
+        // Show agents for all companies so the company-access filter cannot hide the agent, then drive the
+        // production Archive action which opens the confirmation dialog handled by AgentArchiveConfirmationModalHandler.
+        AgentListTestPage.OpenView();
+        AgentListTestPage.ShowAllCompanies.Invoke();
+        Assert.IsTrue(AgentListTestPage.GoToKey(AgentId), 'Agent should be reachable in the Agent List');
+        AgentListTestPage.ArchiveAgent.Invoke();
+        AgentListTestPage.Close();
+    end;
+
+    #endregion
+}

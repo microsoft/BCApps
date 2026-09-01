@@ -90,5 +90,8 @@ table 30144 "Shpfy FulFillment Order Line"
         key(Key4; "Shopify Order Id", "Line Item Id")
         {
         }
+        key(Key5; "Shopify Location Id", "Shopify Fulfillment Order Id")
+        {
+        }
     }
 }

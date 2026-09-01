@@ -17,9 +17,16 @@ codeunit 20449 "Qlty. Disp. Move Whse.Reclass." implements "Qlty. Disposition"
     var
         WarehouseJournalLineDescriptionTemplateLbl: Label 'Inspection [%3] changed bin from [%1] to [%2]', Comment = '%1 = From Bin code; %2 = To Bin code; %3 = the inspection';
         MissingBinMoveBatchErr: Label 'There is missing setup on the Quality Management Setup Card defining the Reclass batch.';
+        OpenSetupActionLbl: Label 'Open Quality Management Setup';
         DocumentTypeLbl: Label 'Warehouse Reclassification';
 
-    procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
+    /// <summary>
+    /// Creates and optionally posts warehouse reclassification lines to move inspection inventory.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the inventory to move.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The disposition instructions containing source, destination, quantity, and posting behavior.</param>
+    /// <returns>True if a warehouse reclassification line was created or posted; otherwise, false.</returns>
+    internal procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         WarehouseJournalLine: Record "Warehouse Journal Line";
@@ -32,7 +39,7 @@ codeunit 20449 "Qlty. Disp. Move Whse.Reclass." implements "Qlty. Disposition"
         TempInstructionQltyDispositionBuffer."Disposition Action" := TempInstructionQltyDispositionBuffer."Disposition Action"::"Move with Warehouse Reclassification";
         QltyManagementSetup.Get();
         if QltyManagementSetup."Whse. Reclass. Batch Name" = '' then
-            Error(MissingBinMoveBatchErr);
+            ThrowMissingSetupError();
 
         QltyInventoryAvailability.PopulateQuantityBuffer(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, TempQuantityToActQltyDispositionBuffer);
 
@@ -67,14 +74,19 @@ codeunit 20449 "Qlty. Disp. Move Whse.Reclass." implements "Qlty. Disposition"
     end;
 
     /// <summary>
-    /// Adds a whse. reclass journal line for directed pick locations
+    /// Creates a warehouse reclassification journal line for a directed put-away and pick location.
     /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the item and tracking values.</param>
+    /// <param name="TempQuantityToActQltyDispositionBuffer">The movement source, destination, and quantity.</param>
+    /// <param name="WarehouseReclassBatchName">The warehouse reclassification journal batch name.</param>
+    /// <param name="WarehouseJournalLine">The created warehouse journal line.</param>
+    /// <param name="WhseItemTrackingLine">The created warehouse item tracking line.</param>
     local procedure CreateWarehouseReclassLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; WarehouseReclassBatchName: Code[10]; var WarehouseJournalLine: Record "Warehouse Journal Line"; var WhseItemTrackingLine: Record "Whse. Item Tracking Line")
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         WhseJnlWarehouseJournalBatch: Record "Warehouse Journal Batch";
         QltyItemJournalManagement: Codeunit "Qlty. Item Journal Management";
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
         Clear(WarehouseJournalLine);
         WarehouseJournalLine.Reset();
@@ -82,8 +94,8 @@ codeunit 20449 "Qlty. Disp. Move Whse.Reclass." implements "Qlty. Disposition"
         QltyManagementSetup.Get();
         WhseJnlWarehouseJournalBatch.Get(QltyManagementSetup.GetWarehouseReclassificationJournalTemplate(), WarehouseReclassBatchName, TempQuantityToActQltyDispositionBuffer.GetFromLocationCode());
 
-        OnBeforeCreateWarehouseReclassLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, WarehouseReclassBatchName, WarehouseJournalLine, WhseItemTrackingLine, Handled);
-        if Handled then
+        OnBeforeCreateWarehouseReclassLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, WarehouseReclassBatchName, WarehouseJournalLine, WhseItemTrackingLine, IsHandled);
+        if IsHandled then
             exit;
 
         QltyItemJournalManagement.CreateWarehouseJournalLine(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer, WhseJnlWarehouseJournalBatch, WarehouseJournalLine, WhseItemTrackingLine);
@@ -101,26 +113,52 @@ codeunit 20449 "Qlty. Disp. Move Whse.Reclass." implements "Qlty. Disposition"
     /// <summary>
     /// This allows extensions to override or replace the warehouse reclass journal line insertion.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="TempQuantityToActQltyDispositionBuffer"></param>
-    /// <param name="BatchName"></param>
-    /// <param name="WarehouseJournalLine"></param>
-    /// <param name="WhseItemTrackingLine"></param>
-    /// <param name="Handled"></param>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the inventory to move.</param>
+    /// <param name="TempQuantityToActQltyDispositionBuffer">The movement source, destination, and quantity.</param>
+    /// <param name="BatchName">The warehouse reclassification journal batch name.</param>
+    /// <param name="WarehouseJournalLine">The warehouse journal line being prepared.</param>
+    /// <param name="WhseItemTrackingLine">The warehouse item tracking line being prepared.</param>
+    /// <param name="IsHandled">Set to true to skip the default line creation.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateWarehouseReclassLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var BatchName: Code[10]; var WarehouseJournalLine: Record "Warehouse Journal Line"; var WhseItemTrackingLine: Record "Whse. Item Tracking Line"; var Handled: Boolean)
+    local procedure OnBeforeCreateWarehouseReclassLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var BatchName: Code[10]; var WarehouseJournalLine: Record "Warehouse Journal Line"; var WhseItemTrackingLine: Record "Whse. Item Tracking Line"; var IsHandled: Boolean)
     begin
     end;
 
     /// <summary>
     /// This allows extensions to alter data after the reclass line has been made.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="TempQuantityToActQltyDispositionBuffer"></param>
-    /// <param name="WarehouseJournalLine"></param>
-    /// <param name="WhseItemTrackingLine"></param>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the moved inventory.</param>
+    /// <param name="TempQuantityToActQltyDispositionBuffer">The movement source, destination, and quantity.</param>
+    /// <param name="WarehouseJournalLine">The created warehouse journal line.</param>
+    /// <param name="WhseItemTrackingLine">The created warehouse item tracking line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateWarehouseReclassLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var WarehouseJournalLine: Record "Warehouse Journal Line"; var WhseItemTrackingLine: Record "Whse. Item Tracking Line")
     begin
+    end;
+
+    /// <summary>
+    /// Raises an actionable error when the warehouse reclassification batch is not configured.
+    /// </summary>
+    local procedure ThrowMissingSetupError()
+    var
+        ErrorInfo: ErrorInfo;
+    begin
+        ErrorInfo.Message := MissingBinMoveBatchErr;
+        ErrorInfo.PageNo := Page::"Qlty. Management Setup";
+        ErrorInfo.AddAction(OpenSetupActionLbl, Codeunit::"Qlty. Disp. Move Whse.Reclass.", 'OpenQualityManagementSetup');
+        Error(ErrorInfo);
+    end;
+
+    /// <summary>
+    /// Opens Quality Management Setup from the missing-setup error action.
+    /// </summary>
+    /// <param name="ErrorInfo">The error context supplied to the action callback.</param>
+    procedure OpenQualityManagementSetup(ErrorInfo: ErrorInfo)
+    var
+        QltyManagementSetup: Record "Qlty. Management Setup";
+    begin
+        if not QltyManagementSetup.Get() then
+            QltyManagementSetup.Insert(true);
+        Page.Run(Page::"Qlty. Management Setup", QltyManagementSetup);
     end;
 }

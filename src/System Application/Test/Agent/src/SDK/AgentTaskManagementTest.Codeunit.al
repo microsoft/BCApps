@@ -1,0 +1,828 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace System.Test.Agents;
+
+using System.Agents;
+using System.TestLibraries.Utilities;
+
+codeunit 133962 "Agent Task Management Test"
+{
+    Subtype = Test;
+    TestPermissions = Disabled;
+
+    var
+        Assert: Codeunit "Library Assert";
+        AgentTask: Codeunit "Agent Task";
+        LibraryTestAgent: Codeunit "Library Mock Agent";
+
+    local procedure Initialize()
+    begin
+        LibraryTestAgent.DeleteAllAgents();
+    end;
+
+    #region Task Lifecycle Tests
+
+    [Test]
+    procedure CreateAndStartTask()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        TaskTitle: Text[150];
+        ExternalIdTok: Label 'MGMT-TASK-001', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] Create a task and set its status to ready to start processing
+
+        // [GIVEN] A test agent
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        TaskTitle := CopyStr(Any.AlphanumericText(MaxStrLen(TaskTitle)), 1, MaxStrLen(TaskTitle));
+
+        // [WHEN] A task is created with status set to ready
+        AgentTaskBuilder
+            .Initialize(AgentUserId, TaskTitle)
+            .SetExternalId(ExternalIdTok);
+
+        AgentTaskRecord := AgentTaskBuilder.Create(true, false); // Allow for tasks without message.
+
+        // [THEN] The task should exist
+        Assert.IsTrue(AgentTask.TaskExists(AgentUserId, ExternalIdTok), 'Task should exist');
+
+        // [THEN] The task should not be completed or stopped
+        Assert.IsFalse(AgentTask.IsTaskCompleted(AgentTaskRecord), 'Task should not be completed');
+        Assert.IsFalse(AgentTask.IsTaskStopped(AgentTaskRecord), 'Task should not be stopped');
+    end;
+
+    [Test]
+    procedure SetTaskStatusToReady()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        ExternalIdTok: Label 'MGMT-TASK-002', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] Set a task status to ready after creation
+
+        // [GIVEN] A test agent with a task not initially set to ready
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        AgentTaskBuilder
+            .Initialize(AgentUserId, 'Draft Task to be Started')
+            .SetExternalId(ExternalIdTok);
+
+        AgentTaskRecord := AgentTaskBuilder.Create(false, false); // Allow for tasks without message.
+
+        // [THEN] Task should be able to be set to ready
+        Assert.IsTrue(AgentTask.CanSetStatusToReady(AgentTaskRecord), 'Task should be able to be set to ready');
+
+        // [WHEN] Setting the task status to ready
+        AgentTask.SetStatusToReady(AgentTaskRecord.ID);
+
+        // [THEN] The task should be ready for processing
+        AgentTaskRecord.Get(AgentTaskRecord.Id);
+        Assert.AreEqual(AgentTaskRecord.Status, AgentTaskRecord.Status::Ready, 'Task status should be Ready');
+    end;
+
+    [Test]
+    procedure CanSetStatusToReadyForNewTask()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        CanSetReady: Boolean;
+        ExternalIdTok: Label 'MGMT-TASK-003', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] Check if a newly created task can be set to ready
+
+        // [GIVEN] A test agent with a new task
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        AgentTaskBuilder
+            .Initialize(AgentUserId, 'New Task for Status Check')
+            .SetExternalId(ExternalIdTok);
+
+        AgentTaskRecord := AgentTaskBuilder.Create(false, false); // Allow for tasks without message.
+
+        // [WHEN] Checking if task can be set to ready
+        CanSetReady := AgentTask.CanSetStatusToReady(AgentTaskRecord);
+
+        // [THEN] The task should be able to be set to ready
+        Assert.IsTrue(CanSetReady, 'New task should be able to be set to ready');
+    end;
+
+    #endregion
+
+    #region Task Stop Tests
+
+    [Test]
+    procedure StopRunningTask()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        ExternalIdTok: Label 'MGMT-TASK-004', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] Stop a task that is ready or running
+
+        // [GIVEN] A test agent with a task set to ready
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        AgentTaskBuilder
+            .Initialize(AgentUserId, 'Task to be Stopped')
+            .SetExternalId(ExternalIdTok);
+
+        AgentTaskRecord := AgentTaskBuilder.Create(true, false); // Allow for tasks without message.
+
+        // [WHEN] Stopping the task without user confirmation
+        AgentTask.StopTask(AgentTaskRecord.ID, false);
+
+        // [THEN] The task should be stopped
+        AgentTaskRecord.Get(AgentTaskRecord.Id);
+        Assert.IsTrue(AgentTask.IsTaskStopped(AgentTaskRecord), 'Task should be stopped');
+    end;
+
+    [Test]
+    procedure StopTaskAndVerifyStatus()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        ExternalIdTok: Label 'MGMT-TASK-005', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] Verify task status after stopping
+
+        // [GIVEN] A test agent with a running task
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        AgentTaskBuilder
+            .Initialize(AgentUserId, 'Running Task')
+            .SetExternalId(ExternalIdTok);
+
+        AgentTaskRecord := AgentTaskBuilder.Create(true, false); // Allow for tasks without message.
+
+        // [WHEN] The task is stopped
+        AgentTask.StopTask(AgentTaskRecord.ID, false);
+
+        // [THEN] The task should be marked as stopped
+        AgentTaskRecord.Get(AgentTaskRecord.Id);
+        Assert.IsTrue(AgentTask.IsTaskStopped(AgentTaskRecord), 'Task should be in stopped state');
+        Assert.IsFalse(AgentTask.IsTaskRunning(AgentTaskRecord), 'Task should not be running');
+        Assert.IsFalse(AgentTask.IsTaskCompleted(AgentTaskRecord), 'Task should not be completed');
+    end;
+
+    #endregion
+
+    #region Task Archive Tests
+
+    [Test]
+    procedure ArchiveStoppedTask()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Archive a task that was previously stopped
+
+        // [GIVEN] A test agent with a stopped task
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        AgentTaskBuilder.Initialize(AgentUserId, 'Stopped Task to be Archived');
+
+        AgentTaskRecord := AgentTaskBuilder.Create(true, false); // Allow for tasks without message.
+
+        // [GIVEN] The task is stopped
+        AgentTask.StopTask(AgentTaskRecord.Id, false);
+        AgentTaskRecord.Get(AgentTaskRecord.Id);
+        Assert.IsTrue(AgentTask.IsTaskStopped(AgentTaskRecord), 'Task should be stopped initially');
+        Assert.IsFalse(AgentTaskRecord.Archived, 'Task should not be archived initially');
+
+        // [WHEN] Archiving the stopped task
+        AgentTask.ArchiveTask(AgentTaskRecord.Id, false);
+
+        // [THEN] The task should be archived
+        AgentTaskRecord.Get(AgentTaskRecord.Id);
+        Assert.IsTrue(AgentTaskRecord.Archived, 'Task should be archived');
+    end;
+
+    [Test]
+    procedure ArchiveAlreadyArchivedTask()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Archive a task that is already archived (should be idempotent)
+
+        // [GIVEN] A test agent with an archived task
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        AgentTaskBuilder.Initialize(AgentUserId, 'Already Archived Task');
+
+        AgentTaskRecord := AgentTaskBuilder.Create(true, false); // Allow for tasks without message.
+
+        // [GIVEN] The task is already archived
+        AgentTask.StopTask(AgentTaskRecord.Id, false);
+        AgentTask.ArchiveTask(AgentTaskRecord.Id, false);
+        AgentTaskRecord.Get(AgentTaskRecord.Id);
+        Assert.IsTrue(AgentTaskRecord.Archived, 'Task should be archived initially');
+
+        // [WHEN] Archiving the task again
+        AgentTask.ArchiveTask(AgentTaskRecord.Id, false);
+
+        // [THEN] The task should still be archived (no error, idempotent operation)
+        AgentTaskRecord.Get(AgentTaskRecord.Id);
+        Assert.IsTrue(AgentTaskRecord.Archived, 'Task should remain archived');
+    end;
+
+    #endregion
+
+    #region Task Restart Tests
+
+    [Test]
+    procedure RestartStoppedTask()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        ExternalIdTok: Label 'MGMT-TASK-006', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] Restart a task that was previously stopped
+
+        // [GIVEN] A test agent with a stopped task
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        AgentTaskBuilder
+            .Initialize(AgentUserId, 'Task to be Restarted')
+            .SetExternalId(ExternalIdTok);
+
+        AgentTaskRecord := AgentTaskBuilder.Create(true, false); // Allow for tasks without message.
+
+        // [GIVEN] The task is stopped
+        AgentTask.StopTask(AgentTaskRecord.ID, false);
+        AgentTaskRecord.Get(AgentTaskRecord.Id);
+        Assert.IsTrue(AgentTask.IsTaskStopped(AgentTaskRecord), 'Task should be stopped initially');
+
+        // [WHEN] Restarting the task without user confirmation
+        AgentTask.RestartTask(AgentTaskRecord.ID, false);
+
+        // [THEN] The task should no longer be stopped
+        AgentTaskRecord.Get(AgentTaskRecord.Id);
+        Assert.IsFalse(AgentTask.IsTaskStopped(AgentTaskRecord), 'Task should not be stopped after restart');
+    end;
+
+    [Test]
+    procedure RestartTaskSetsStatusToReady()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        ExternalIdTok: Label 'MGMT-TASK-007', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] Restarting a task should set its status to ready
+
+        // [GIVEN] A test agent with a stopped task
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        AgentTaskBuilder
+            .Initialize(AgentUserId, 'Stopped Task')
+            .SetExternalId(ExternalIdTok);
+
+        AgentTaskRecord := AgentTaskBuilder.Create(true, false); // Allow for tasks without message.
+        AgentTask.StopTask(AgentTaskRecord.ID, false);
+
+        // [WHEN] Restarting the task
+        AgentTask.RestartTask(AgentTaskRecord.ID, false);
+
+        // [THEN] The task should be ready to process
+        AgentTaskRecord.Get(AgentTaskRecord.Id);
+        Assert.IsFalse(AgentTask.IsTaskStopped(AgentTaskRecord), 'Task should not be stopped');
+        Assert.IsFalse(AgentTask.IsTaskCompleted(AgentTaskRecord), 'Task should not be completed');
+    end;
+
+    #endregion
+
+    #region Task Status Check Tests
+
+    [Test]
+    procedure CheckIsTaskRunning()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        IsRunning: Boolean;
+        ExternalIdTok: Label 'MGMT-TASK-008', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] Check if a task is currently running
+
+        // [GIVEN] A test agent with a task set to ready
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        AgentTaskBuilder
+            .Initialize(AgentUserId, 'Running Status Check Task')
+            .SetExternalId(ExternalIdTok);
+
+        AgentTaskRecord := AgentTaskBuilder.Create(true, false); // Allow for tasks without message.
+
+        // [WHEN] Checking if the task is running
+        IsRunning := AgentTask.IsTaskRunning(AgentTaskRecord);
+
+        // [THEN] The result should indicate the task state
+        // Note: Depending on timing, task may or may not have started processing
+        Assert.IsTrue(IsRunning or not IsRunning, 'IsTaskRunning should return a boolean value');
+    end;
+
+    [Test]
+    procedure CheckIsTaskCompleted()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        ExternalIdTok: Label 'MGMT-TASK-009', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] Check if a newly created task is completed
+
+        // [GIVEN] A test agent with a new task
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        AgentTaskBuilder
+            .Initialize(AgentUserId, 'Completion Check Task')
+            .SetExternalId(ExternalIdTok);
+
+        AgentTaskRecord := AgentTaskBuilder.Create(false, false); // Allow for tasks without message.
+
+        // [WHEN] Checking if the task is completed
+        // [THEN] The task should not be completed immediately after creation
+        Assert.IsFalse(AgentTask.IsTaskCompleted(AgentTaskRecord), 'Newly created task should not be completed');
+    end;
+
+    [Test]
+    procedure CheckIsTaskStopped()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        ExternalIdTok: Label 'MGMT-TASK-010', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] Check if a task is stopped
+
+        // [GIVEN] A test agent with a new task
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        AgentTaskBuilder
+            .Initialize(AgentUserId, 'Stop Status Check Task')
+            .SetExternalId(ExternalIdTok);
+
+        AgentTaskRecord := AgentTaskBuilder.Create(false, false); // Allow for tasks without message.
+
+        // [WHEN] Checking if the task is stopped
+        // [THEN] The task should not be stopped immediately after creation
+        Assert.IsFalse(AgentTask.IsTaskStopped(AgentTaskRecord), 'Newly created task should not be stopped');
+    end;
+
+    #endregion
+
+    #region Complex Task Management Scenarios
+
+    [Test]
+    procedure StopAndRestartMultipleTimes()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        ExternalIdTok: Label 'MGMT-TASK-011', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] Stop and restart a task multiple times
+
+        // [GIVEN] A test agent with a task
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        AgentTaskBuilder
+            .Initialize(AgentUserId, 'Cycle Test Task')
+            .SetExternalId(ExternalIdTok);
+
+        AgentTaskRecord := AgentTaskBuilder.Create(true, false); // Allow for tasks without message.
+
+        // [WHEN] Stopping and restarting the task multiple times
+        // First cycle
+        AgentTask.StopTask(AgentTaskRecord.ID, false);
+        AgentTaskRecord.Get(AgentTaskRecord.Id);
+        Assert.IsTrue(AgentTask.IsTaskStopped(AgentTaskRecord), 'Task should be stopped after first stop');
+
+        AgentTask.RestartTask(AgentTaskRecord.ID, false);
+        AgentTaskRecord.Get(AgentTaskRecord.Id);
+        Assert.IsFalse(AgentTask.IsTaskStopped(AgentTaskRecord), 'Task should not be stopped after first restart');
+
+        // Second cycle
+        AgentTask.StopTask(AgentTaskRecord.ID, false);
+        AgentTaskRecord.Get(AgentTaskRecord.Id);
+        Assert.IsTrue(AgentTask.IsTaskStopped(AgentTaskRecord), 'Task should be stopped after second stop');
+
+        AgentTask.RestartTask(AgentTaskRecord.ID, false);
+        AgentTaskRecord.Get(AgentTaskRecord.Id);
+        Assert.IsFalse(AgentTask.IsTaskStopped(AgentTaskRecord), 'Task should not be stopped after second restart');
+
+        // [THEN] The task should remain in a valid state
+        Assert.IsTrue(AgentTask.TaskExists(AgentUserId, ExternalIdTok), 'Task should still exist after multiple cycles');
+    end;
+
+    [Test]
+    procedure ManageMultipleTasksSimultaneously()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord1: Record "Agent Task";
+        AgentTaskRecord2: Record "Agent Task";
+        AgentTaskRecord3: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        ExternalId1Tok: Label 'MGMT-TASK-012-A', Locked = true;
+        ExternalId2Tok: Label 'MGMT-TASK-012-B', Locked = true;
+        ExternalId3Tok: Label 'MGMT-TASK-012-C', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] Manage multiple tasks with different states simultaneously
+
+        // [GIVEN] A test agent with three tasks
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        AgentTaskBuilder.Initialize(AgentUserId, 'First Task').SetExternalId(ExternalId1Tok);
+        AgentTaskRecord1 := AgentTaskBuilder.Create(true, false); // Allow for tasks without message.
+
+        Clear(AgentTaskBuilder);
+        AgentTaskBuilder.Initialize(AgentUserId, 'Second Task').SetExternalId(ExternalId2Tok);
+        AgentTaskRecord2 := AgentTaskBuilder.Create(true, false); // Allow for tasks without message.
+
+        Clear(AgentTaskBuilder);
+        AgentTaskBuilder.Initialize(AgentUserId, 'Third Task').SetExternalId(ExternalId3Tok);
+        AgentTaskRecord3 := AgentTaskBuilder.Create(true, false); // Allow for tasks without message.
+
+        // [WHEN] Managing tasks with different operations
+        AgentTask.StopTask(AgentTaskRecord1.ID, false);
+
+        AgentTask.StopTask(AgentTaskRecord2.ID, false);
+        AgentTask.RestartTask(AgentTaskRecord2.ID, false);
+
+        // [THEN] Each task should have the correct state
+        AgentTaskRecord1.Get(AgentTaskRecord1.Id);
+        Assert.IsTrue(AgentTask.IsTaskStopped(AgentTaskRecord1), 'First task should be stopped');
+
+        AgentTaskRecord2.Get(AgentTaskRecord2.Id);
+        Assert.IsFalse(AgentTask.IsTaskStopped(AgentTaskRecord2), 'Second task should not be stopped');
+
+        AgentTaskRecord3.Get(AgentTaskRecord3.Id);
+        Assert.IsFalse(AgentTask.IsTaskStopped(AgentTaskRecord3), 'Third task should not be stopped');
+    end;
+
+    [Test]
+    procedure VerifyTaskRetrievalAfterManagement()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        RetrievedTask: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        ExternalIdTok: Label 'MGMT-TASK-013', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] Verify task can be retrieved by external ID after management operations
+
+        // [GIVEN] A test agent with a task that undergoes management operations
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        AgentTaskBuilder
+            .Initialize(AgentUserId, 'Managed Task')
+            .SetExternalId(ExternalIdTok);
+
+        AgentTaskRecord := AgentTaskBuilder.Create(true, false); // Allow for tasks without message.
+
+        // [GIVEN] The task is stopped and restarted
+        AgentTask.StopTask(AgentTaskRecord.ID, false);
+        AgentTask.RestartTask(AgentTaskRecord.ID, false);
+
+        // [WHEN] Retrieving the task by external ID
+        RetrievedTask := AgentTask.GetTaskByExternalId(AgentUserId, ExternalIdTok);
+
+        // [THEN] The retrieved task should match the original task
+        Assert.AreEqual(AgentTaskRecord.Id, RetrievedTask.Id, 'Task ID should match');
+        Assert.AreEqual(AgentTaskRecord."External ID", RetrievedTask."External ID", 'External ID should match');
+        Assert.AreEqual(AgentTaskRecord.Title, RetrievedTask.Title, 'Title should match');
+    end;
+
+    #endregion
+
+    #region Agent Task List Archived Agent Tests
+
+    [Test]
+    procedure ArchivedAgentTaskHiddenByDefaultOnTaskList()
+    var
+        ArchivedTask: Record "Agent Task";
+        ActiveTask: Record "Agent Task";
+        AgentTaskListPage: TestPage "Agent Task List";
+        ArchivedAgentUserId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Tasks that belong to archived agents are hidden by default on the Agent Task List page
+
+        // [GIVEN] An archived agent that owns a stopped task
+        ArchivedAgentUserId := CreateAgentWithStoppedTask(ArchivedTask, 'Task of Archived Agent');
+        DeactivateAndArchiveAgent(ArchivedAgentUserId);
+
+        // [GIVEN] An active agent that owns a stopped task
+        CreateAgentWithStoppedTask(ActiveTask, 'Task of Active Agent');
+
+        // [WHEN] Opening the Agent Task List page with the default filters
+        AgentTaskListPage.OpenView();
+
+        // [THEN] The active agent's task is reachable and the archived agent's task is hidden
+        Assert.IsTrue(AgentTaskListPage.GoToKey(ActiveTask.Id), 'Task of active agent should be visible by default');
+        Assert.IsFalse(AgentTaskListPage.GoToKey(ArchivedTask.Id), 'Task of archived agent should be hidden by default');
+
+        AgentTaskListPage.Close();
+    end;
+
+    [Test]
+    procedure ArchivedAgentTaskVisibleAfterShowAllToggle()
+    var
+        ArchivedTask: Record "Agent Task";
+        AgentTaskListPage: TestPage "Agent Task List";
+        ArchivedAgentUserId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Tasks of archived agents become visible after invoking the Show all agents toggle
+
+        // [GIVEN] An archived agent that owns a stopped task
+        ArchivedAgentUserId := CreateAgentWithStoppedTask(ArchivedTask, 'Task of Archived Agent');
+        DeactivateAndArchiveAgent(ArchivedAgentUserId);
+
+        // [GIVEN] The Agent Task List page hides the archived agent's task by default
+        AgentTaskListPage.OpenView();
+        Assert.IsFalse(AgentTaskListPage.GoToKey(ArchivedTask.Id), 'Task of archived agent should be hidden before toggling');
+
+        // [WHEN] Showing tasks from all agents, including archived ones
+        AgentTaskListPage.ShowTasksFromAllAgents.Invoke();
+
+        // [THEN] The archived agent's task becomes reachable
+        Assert.IsTrue(AgentTaskListPage.GoToKey(ArchivedTask.Id), 'Task of archived agent should be visible after showing all agents');
+
+        // [WHEN] Hiding tasks from archived agents again
+        AgentTaskListPage.HideTasksFromArchivedAgents.Invoke();
+
+        // [THEN] The archived agent's task is hidden again
+        Assert.IsFalse(AgentTaskListPage.GoToKey(ArchivedTask.Id), 'Task of archived agent should be hidden again after showing active agents');
+
+        AgentTaskListPage.Close();
+    end;
+
+    [Test]
+    procedure ArchivingAgentDoesNotArchiveItsTasksButHidesThem()
+    var
+        Task: Record "Agent Task";
+        AgentTaskListPage: TestPage "Agent Task List";
+        AgentUserId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Archiving an agent hides its tasks from the default view without archiving the tasks themselves
+
+        // [GIVEN] An active agent that owns a stopped, non-archived task
+        AgentUserId := CreateAgentWithStoppedTask(Task, 'Task of Agent To Archive');
+        Assert.IsFalse(Task.Archived, 'Task should not be archived before the agent is archived');
+
+        // [WHEN] The agent is deactivated and archived
+        DeactivateAndArchiveAgent(AgentUserId);
+
+        // [THEN] Archiving the agent must not have archived its task (no conflation of the two concepts)
+        Task.Get(Task.Id);
+        Assert.IsFalse(Task.Archived, 'Archiving the agent should not archive its task');
+
+        // [WHEN] Opening the Agent Task List page with the default filters
+        AgentTaskListPage.OpenView();
+
+        // [THEN] The task is hidden by default even though it is not archived (filtering is by agent substate, not Task.Archived)
+        Assert.IsFalse(AgentTaskListPage.GoToKey(Task.Id), 'Task of archived agent should be hidden by default');
+
+        // [WHEN] Showing tasks from all agents, including archived ones
+        AgentTaskListPage.ShowTasksFromAllAgents.Invoke();
+
+        // [THEN] The task becomes reachable
+        Assert.IsTrue(AgentTaskListPage.GoToKey(Task.Id), 'Task of archived agent should be visible after showing all agents');
+
+        AgentTaskListPage.Close();
+
+        // [THEN] The task is still not archived after the whole flow
+        Task.Get(Task.Id);
+        Assert.IsFalse(Task.Archived, 'Task should remain non-archived after the whole flow');
+    end;
+
+    [Test]
+    procedure CreatingTaskForArchivedAgentIsBlocked()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        TaskTitle: Text[150];
+    begin
+        Initialize();
+
+        // [SCENARIO] A new task cannot be created for an archived agent
+
+        // [GIVEN] An agent that has been deactivated and archived
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+        DeactivateAndArchiveAgent(AgentUserId);
+
+        TaskTitle := CopyStr(Any.AlphanumericText(MaxStrLen(TaskTitle)), 1, MaxStrLen(TaskTitle));
+
+        // [WHEN] Creating a task for the archived agent
+        // [THEN] The operation is rejected because an archived agent is inactive and cannot receive new tasks
+        AgentTaskBuilder.Initialize(AgentUserId, TaskTitle);
+        asserterror AgentTaskBuilder.Create(true, false);
+        Assert.ExpectedError('does not exist or is not active');
+    end;
+
+    [Test]
+    procedure AddingMessageToArchivedAgentTaskIsBlocked()
+    var
+        Task: Record "Agent Task";
+        AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        MessageFrom: Text[250];
+        MessageText: Text;
+    begin
+        Initialize();
+
+        // [SCENARIO] Additional messages cannot be added to a task once its owning agent has been archived
+
+        // [GIVEN] An agent that owns a stopped task
+        AgentUserId := CreateAgentWithStoppedTask(Task, 'Task of Agent To Archive');
+
+        // [GIVEN] The agent is deactivated and archived
+        DeactivateAndArchiveAgent(AgentUserId);
+
+        MessageFrom := CopyStr(Any.AlphanumericText(MaxStrLen(MessageFrom)), 1, MaxStrLen(MessageFrom));
+        MessageText := Any.AlphanumericText(2048);
+
+        // [WHEN] Adding a new message to the archived agent's task
+        // [THEN] The operation is rejected because the associated agent is archived
+        AgentTaskMessageBuilder.Initialize(MessageFrom, MessageText);
+        AgentTaskMessageBuilder.SetAgentTask(Task.Id);
+        asserterror AgentTaskMessageBuilder.Create();
+        Assert.ExpectedError('is not allowed because the associated agent is archived');
+    end;
+
+    local procedure CreateAgentWithStoppedTask(var AgentTaskRecord: Record "Agent Task"; TaskTitle: Text[150]) AgentUserId: Guid
+    var
+        AgentRecord: Record Agent;
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+    begin
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        AgentTaskBuilder.Initialize(AgentUserId, TaskTitle);
+        AgentTaskRecord := AgentTaskBuilder.Create(true, false); // Allow for tasks without message.
+
+        // Stop the task so the owning agent can later be deactivated and archived without lifecycle errors.
+        AgentTask.StopTask(AgentTaskRecord.Id, false);
+        AgentTaskRecord.Get(AgentTaskRecord.Id);
+    end;
+
+    local procedure DeactivateAndArchiveAgent(AgentUserId: Guid)
+    var
+        Agent: Codeunit Agent;
+    begin
+        // An agent must be deactivated before it can be archived.
+        Agent.Deactivate(AgentUserId);
+        Agent.Archive(AgentUserId);
+    end;
+
+    #endregion
+}

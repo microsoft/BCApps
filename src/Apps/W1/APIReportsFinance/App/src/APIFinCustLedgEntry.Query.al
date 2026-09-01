@@ -5,6 +5,7 @@ using Microsoft.Sales.Receivables;
 query 30302 "API Fin - Cust Ledg Entry"
 {
     QueryType = API;
+    AboutText = 'Provides access to customer ledger entries including document types, amounts in local and foreign currencies, posting dates, and balancing account information. Enables external systems to retrieve receivables data for aging analysis, payment tracking, and customer account reconciliation.';
     EntityCaption = 'Customer Ledger Entry';
     EntityName = 'customerLedgerEntry';
     EntitySetName = 'customerLedgerEntries';

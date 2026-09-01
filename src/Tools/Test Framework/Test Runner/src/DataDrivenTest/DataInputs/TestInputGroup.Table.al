@@ -113,6 +113,18 @@ table 130454 "Test Input Group"
             ToolTip = 'Specifies the AppId from which the test input group was imported.';
             DataClassification = SystemMetadata;
         }
+        field(80; "Suite Setup Done"; Boolean)
+        {
+            Caption = 'Suite Setup Done';
+            ToolTip = 'Specifies whether the per-suite setup has been executed for this test input group.';
+            DataClassification = SystemMetadata;
+        }
+        field(81; "Suite Setup Group Name"; Text[250])
+        {
+            Caption = 'Suite Setup Group Name';
+            ToolTip = 'Specifies the group name of the test input group that contains suite setup data for this dataset.';
+            DataClassification = CustomerContent;
+        }
     }
     keys
     {
@@ -216,6 +228,18 @@ table 130454 "Test Input Group"
 
         UpdateIndentation();
         ValidateGroups();
+    end;
+
+    procedure SetSuiteSetupDone()
+    begin
+        Rec."Suite Setup Done" := true;
+        Rec.Modify(true);
+    end;
+
+    procedure ResetSuiteSetup()
+    begin
+        Rec."Suite Setup Done" := false;
+        Rec.Modify(true);
     end;
 
     procedure GetTestInputGroupLanguages(TestInputCode: Code[100]; var LanguageVersions: Record "Test Input Group"): Boolean

@@ -1,0 +1,14 @@
+No.,Name,Account Type,Income/Balance,Debit/Credit,Blocked,Direct Posting,Account Category,Account Subcategory Entry No.
+09000,ASSETS,1,1,0,0,0,0,0
+10000,Cash,0,1,0,0,1,0,0
+11000,Petty Cash Blocked,0,1,0,1,1,0,0
+20000,Accounts Receivable,0,1,1,0,1,0,0
+25000,Inventory Asset,0,1,1,0,1,1,7
+30000,Accounts Payable,0,1,2,0,1,0,0
+40000,Sales Revenue,0,0,2,0,1,3,12
+45000,Service Revenue,0,0,2,0,1,3,13
+50000,Cost of Goods Sold,0,0,1,0,1,3,0
+60000,Operating Expenses,0,0,1,0,1,3,0
+70000,Other Income,0,0,2,0,1,3,0
+80000,Indirect Tax Expense,0,0,1,0,0,5,21
+99999,Blocked Suspense,0,1,0,1,0,0,0

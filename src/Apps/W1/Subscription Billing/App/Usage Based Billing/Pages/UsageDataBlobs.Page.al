@@ -63,6 +63,36 @@ page 8036 "Usage Data Blobs"
             }
         }
     }
+
+    actions
+    {
+        area(Processing)
+        {
+            action(ExportData)
+            {
+                ApplicationArea = All;
+                Caption = 'Export Data';
+                Image = Export;
+                ToolTip = 'Exports the blob data to a file.';
+
+                trigger OnAction()
+                begin
+                    Rec.ExportData();
+                end;
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Process)
+            {
+                Caption = 'Process';
+                actionref(ExportData_Promoted; ExportData)
+                {
+                }
+            }
+        }
+    }
+
     trigger OnAfterGetRecord()
     begin
         UsageDataImport.Get(Rec."Usage Data Import Entry No.");

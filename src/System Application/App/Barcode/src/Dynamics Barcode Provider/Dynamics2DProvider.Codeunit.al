@@ -30,10 +30,10 @@ codeunit 9223 "Dynamics 2D Provider" implements "Barcode Image Provider 2D"
 
     procedure EncodeImage(InputText: Text; BarcodeSymbology2D: Enum "Barcode Symbology 2D"): Codeunit "Temp Blob"
     var
-        BarcodeEncodeSettings2D: Record "Barcode Encode Settings 2D";
+        TempBarcodeEncodeSettings2D: Record "Barcode Encode Settings 2D";
     begin
-        BarcodeEncodeSettings2D.Init();
-        exit(EncodeImage(InputText, BarcodeSymbology2D, BarcodeEncodeSettings2D));
+        TempBarcodeEncodeSettings2D.Init();
+        exit(EncodeImage(InputText, BarcodeSymbology2D, TempBarcodeEncodeSettings2D));
     end;
 
     procedure EncodeImage(InputText: Text; BarcodeSymbology2D: Enum "Barcode Symbology 2D"; BarcodeEncodeSettings2D: Record "Barcode Encode Settings 2D"): Codeunit "Temp Blob";

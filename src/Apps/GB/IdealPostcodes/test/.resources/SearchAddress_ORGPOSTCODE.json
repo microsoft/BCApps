@@ -1,0 +1,15 @@
+{
+  "result": [
+    {
+      "id": "1",
+      "organisation_name": "ACME LTD",
+      "line_1": "ACME LTD",
+      "line_2": "10 DOWNING STREET",
+      "line_3": "WESTMINSTER",
+      "post_town": "CITY",
+      "postcode": "ORGPOSTCODE",
+      "county": "COUNTY",
+      "country_iso_2": "GB"
+    }
+  ]
+}

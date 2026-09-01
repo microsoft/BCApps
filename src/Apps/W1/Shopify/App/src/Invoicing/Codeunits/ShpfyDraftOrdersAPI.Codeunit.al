@@ -53,7 +53,7 @@ codeunit 30159 "Shpfy Draft Orders API"
         Parameters: Dictionary of [Text, Text];
         JResponse: JsonToken;
     begin
-        GraphQLType := "Shpfy GraphQL Type"::DraftOrderComplete;
+        GraphQLType := "Shpfy GraphQL Type"::Orders_DraftOrderComplete;
         Parameters.Add('DraftOrderId', Format(DraftOrderId));
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
         exit(JResponse);

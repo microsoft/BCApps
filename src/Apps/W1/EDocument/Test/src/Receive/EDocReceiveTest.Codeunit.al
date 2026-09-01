@@ -7,6 +7,7 @@ namespace Microsoft.eServices.EDocument.Test;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.IO.Peppol;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
@@ -55,6 +56,12 @@ codeunit 139628 "E-Doc. Receive Test"
         NullGuid: Guid;
         GetBasicInfoErr: Label 'Test Get Basic Info From Received Document Error.', Locked = true;
         GetCompleteInfoErr: Label 'Test Get Complete Info From Received Document Error.', Locked = true;
+        IncorrectValueErr: Label 'Incorrect number of E-Document returned.';
+        SelfBillingVendorErr: Label 'Inbound E-Document blocked for vendor %1 due to Self-Billing Agreement. Supplier-issued invoices cannot be processed for this vendor.', Comment = '%1 Vendor name (e.g. London Postmaster)';
+        VATRegistrationLbl: Label 'GB123456789';
+        ImportDataExchDefLbl: Label 'EDOCPEPPOLINVIMP';
+        EndpointPathLbl: label '/Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID';
+        SubTotalMismatchErr: Label 'Sub Total should be %1 from XML LineExtensionAmount, not %2 (Qty*Price)', Comment = '%1 = expected Sub Total, %2 = actual Qty*Price', Locked = true;
 
     [Test]
     procedure ReceiveSinglePurchaseInvoice()
@@ -251,6 +258,64 @@ codeunit 139628 "E-Doc. Receive Test"
         DocumentAttachment.SetRange("No.", CreatedPurchaseHeader."No.");
         DocumentAttachment.SetRange("Table ID", Database::"Purchase Header");
         Assert.RecordCount(DocumentAttachment, 2);
+    end;
+
+    [Test]
+    procedure ReceivePeppolInvoice_LineSubTotalFromXml()
+    var
+        EDocService: Record "E-Document Service";
+        EDocument: Record "E-Document";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        EDocServicePage: TestPage "E-Document Service";
+        ExpectedSubTotal: Decimal;
+    begin
+        // [SCENARIO] V1 PEPPOL import stores LineExtensionAmount as Sub Total, not recalculated Qty*Price
+        // Regression for: Qty=1.65, Price=6.79, LineExtensionAmount=11.20 -> was stored as 1.65*6.79=11.2035
+        Initialize();
+        BindSubscription(EDocImplState);
+
+        // [GIVEN] E-Document service with PEPPOL BIS 3.0 format and V1 import, all item lookups disabled
+        LibraryEDoc.CreateTestReceiveServiceForEDoc(EDocService, Enum::"Service Integration"::"Mock");
+        EDocService."Document Format" := "E-Document Format"::"PEPPOL BIS 3.0";
+        EDocService."Lookup Account Mapping" := false;
+        EDocService."Lookup Item GTIN" := false;
+        EDocService."Lookup Item Reference" := false;
+        EDocService."Resolve Unit Of Measure" := false;
+        EDocService."Validate Line Discount" := false;
+        EDocService."Verify Totals" := false;
+        EDocService."Validate Receiving Company" := false;
+        EDocService."Use Batch Processing" := false;
+        EDocService.Modify();
+
+        // [GIVEN] Vendor matching the XML supplier VAT registration
+        LibraryPurchase.CreateVendorWithVATRegNo(Vendor);
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, Enum::"Tax Calculation Type"::"Normal VAT", 1);
+        Vendor."VAT Bus. Posting Group" := VATPostingSetup."VAT Bus. Posting Group";
+        Vendor."VAT Registration No." := VATRegistrationLbl;
+        Vendor."Receive E-Document To" := Vendor."Receive E-Document To"::"Purchase Invoice";
+        Vendor."Country/Region Code" := CountryRegion.Code;
+        Vendor.Modify();
+
+        // [GIVEN] PEPPOL XML: Qty=1.65, PriceAmount=6.79, LineExtensionAmount=11.20 (vendor-rounded value)
+        LibraryVariableStorage.Clear();
+        LibraryVariableStorage.Enqueue(EDocReceiveFiles.GetLineRoundingDocument());
+        LibraryVariableStorage.Enqueue(1);
+        EDocImplState.SetVariableStorage(LibraryVariableStorage);
+
+        // [WHEN] Receive is invoked
+        EDocServicePage.OpenView();
+        EDocServicePage.Filter.SetFilter(Code, EDocService.Code);
+        EDocServicePage.Receive.Invoke();
+
+        // [THEN] EDocumentPurchaseLine."Sub Total" = 11.20 (from XML LineExtensionAmount), not 11.2035 (Qty*Price)
+        EDocument.FindLast();
+        EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+        Assert.IsTrue(EDocumentPurchaseLine.FindFirst(), 'Expected at least one E-Document purchase line');
+        ExpectedSubTotal := 11.20;
+        Assert.AreEqual(ExpectedSubTotal, EDocumentPurchaseLine."Sub Total",
+            StrSubstNo(SubTotalMismatchErr,
+                ExpectedSubTotal, EDocumentPurchaseLine.Quantity * EDocumentPurchaseLine."Unit Price"));
     end;
 
     [Test]
@@ -3043,4 +3108,94 @@ codeunit 139628 "E-Doc. Receive Test"
     end;
 #pragma warning restore AL0432
 #endif
+
+    [Test]
+    procedure PurchaseOrderMustNotBeCreatedForSelfBillingInvoice()
+    var
+        EDocService: Record "E-Document Service";
+        VATPostingSetup: Record "VAT Posting Setup";
+        EDocServiceDataExchDef: Record "E-Doc. Service Data Exch. Def.";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        TempBlob: Codeunit "Temp Blob";
+        EDocImport: Codeunit "E-Doc. Import";
+        EDocServicesPage: TestPage "E-Document Services";
+        EDocumentPage: TestPage "E-Document";
+        Document: Text;
+        XMLInstream: InStream;
+    begin
+        // [SCENARIO 580348] Verify that purchase order is not created for self-billing invoice.
+        Initialize();
+        BindSubscription(EDocImplState);
+
+        // [GIVEN] Create E-Document Service.
+        LibraryEDoc.CreateTestReceiveServiceForEDoc(EDocService, Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] Reset E-Document Service formats.
+        EDocServicesPage.OpenView();
+        EDocServicesPage.Filter.SetFilter(Code, EDocService.Code);
+        EDocServicesPage.ResetFormats.Invoke();
+
+        // [GIVEN] Create vendor with VAT Business Posting Group.
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, Enum::"Tax Calculation Type"::"Normal VAT", 1);
+        Vendor.Get(LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
+
+        // [GIVEN] Update vendor to be self-billing.
+        Vendor."VAT Registration No." := VATRegistrationLbl;
+        Vendor."Receive E-Document To" := Enum::"E-Document Type"::"Purchase Invoice";
+        Vendor."Country/Region Code" := CountryRegion.Code;
+        Vendor."Self-Billing Agreement" := true;
+        Vendor.Modify();
+
+        // [GIVEN] Create E-Document Service Data Exchange Definition.
+        EDocService."Document Format" := "E-Document Format"::"Data Exchange";
+        EDocService."Lookup Account Mapping" := false;
+        EDocService."Lookup Item GTIN" := false;
+        EDocService."Lookup Item Reference" := true;
+        EDocService."Resolve Unit Of Measure" := false;
+        EDocService."Validate Line Discount" := false;
+        EDocService."Verify Totals" := false;
+        EDocService."Use Batch Processing" := false;
+        EDocService."Validate Receiving Company" := false;
+        EDocService.Modify();
+
+        // [GIVEN] Create E-Document Service Data Exchange Definition.
+        EDocServiceDataExchDef."E-Document Format Code" := EDocService.Code;
+        EDocServiceDataExchDef."Document Type" := EDocServiceDataExchDef."Document Type"::"Purchase Invoice";
+        EDocServiceDataExchDef."Impt. Data Exchange Def. Code" := ImportDataExchDefLbl;
+        if not EDocServiceDataExchDef.Insert() then
+            EDocServiceDataExchDef.Modify();
+
+        // [GIVEN] Modify XML to have vendor VAT number as EndpointID.
+        TempXMLBuffer.LoadFromText(EDocReceiveFiles.GetDocument1());
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+#pragma warning disable AA0210
+        TempXMLBuffer.SetRange(Path, EndpointPathLbl);
+#pragma warning restore AA0210
+        TempXMLBuffer.FindFirst();
+        TempXMLBuffer.Value := Vendor."VAT Registration No.";
+        TempXMLBuffer.Modify();
+
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.FindFirst();
+        TempXMLBuffer.Save(TempBlob);
+
+        TempBlob.CreateInStream(XMLInstream, TextEncoding::UTF8);
+        XMLInstream.Read(Document);
+
+        // [GIVEN] Set document in variable storage.
+        LibraryVariableStorage.Clear();
+        LibraryVariableStorage.Enqueue(Document);
+        LibraryVariableStorage.Enqueue(1);
+        EDocImplState.SetVariableStorage(LibraryVariableStorage);
+
+        // [WHEN] Receiving the document.
+        EDocImport.ReceiveAndProcessAutomatically(EDocService);
+
+        // [THEN] Verify that no purchase order is created.
+        EDocumentPage.OpenView();
+        EDocumentPage.Last();
+        Assert.AreEqual(Format(Enum::"E-Document Service Status"::"Imported Document Processing Error"), EDocumentPage.InboundEDocFactbox.Status.Value(), IncorrectValueErr);
+        EDocumentPage.ErrorMessagesPart.Description.AssertEquals(StrSubstNo(SelfBillingVendorErr, Vendor."No."));
+    end;
 }
