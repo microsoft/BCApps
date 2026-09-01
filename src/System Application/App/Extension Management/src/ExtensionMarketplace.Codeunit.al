@@ -48,6 +48,8 @@ codeunit 2501 "Extension Marketplace"
         TelemetryTok: Label 'ExtensionManagementTelemetryCategoryTok', Locked = true;
         OperationResult: Option UserNotAuthorized,DeploymentFailedDueToPackage,DeploymentFailed,Successful,UserCancel,UserTimeOut;
         AppDoesntNeedSetupMsg: Label 'Your app is installed and ready to use.';
+        InstallationFailedMsg: Label 'The app could not be installed.\%1', Comment = '%1=the error that was reported by the installation';
+        InstallationFailedTelemetryTxt: Label 'AppSource app installation failed. App ID: %1. Error: %2', Comment = '%1=the app id of the extension, %2=the error that was reported by the installation';
 
     local procedure GetValue(JObject: DotNet JObject; Property: Text; ThrowError: Boolean): Text
     begin
@@ -260,20 +262,29 @@ codeunit 2501 "Extension Marketplace"
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         MySessionSettings: SessionSettings;
         AppId: Guid;
+        InstallErrorText: Text;
     begin
         ExtensionInstallationImpl.CheckPermissions();
 
-        if not InstallAppsourceExtension(MarketplaceApplicationID, TelemetryURL) then begin // successful installation returns false
-            AppId := MapMarketplaceIdToAppId(MarketplaceApplicationID);
-            if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then begin
-                SaveExtensionPendingSetup(AppId);
-                MySessionSettings.Init();
-                MySessionSettings.RequestSessionUpdate(false);
-            end else begin
-                ExtensionPendingSetup.SetRange("User Id", UserSecurityId());
-                ExtensionPendingSetup.DeleteAll();
-            end;
+        // InstallAppsourceExtension is a TryFunction, so it returns false when the installation raised an error.
+        if InstallAppsourceExtension(MarketplaceApplicationID, TelemetryURL) then
+            exit;
+
+        // Capture the error before any other statement resets it.
+        InstallErrorText := GetLastErrorText();
+
+        AppId := MapMarketplaceIdToAppId(MarketplaceApplicationID);
+        if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then begin
+            SaveExtensionPendingSetup(AppId);
+            MySessionSettings.Init();
+            MySessionSettings.RequestSessionUpdate(false);
+            exit;
         end;
+
+        ExtensionPendingSetup.SetRange("User Id", UserSecurityId());
+        ExtensionPendingSetup.DeleteAll();
+
+        NotifyInstallationFailed(AppId, InstallErrorText);
     end;
 
     procedure InstallAppsourceExtensionWithRefreshSession(AppId: Guid; TelemetryURL: Text);
@@ -281,18 +292,39 @@ codeunit 2501 "Extension Marketplace"
         ExtensionPendingSetup: Record "Extension Pending Setup";
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         MySessionSettings: SessionSettings;
+        InstallErrorText: Text;
     begin
         ExtensionInstallationImpl.CheckPermissions();
 
-        if not InstallAppsourceExtension(AppId, TelemetryURL) then // successful installation returns false
-            if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then begin
-                SaveExtensionPendingSetup(AppId);
-                MySessionSettings.Init();
-                MySessionSettings.RequestSessionUpdate(false);
-            end else begin
-                ExtensionPendingSetup.SetRange("User Id", UserSecurityId());
-                ExtensionPendingSetup.DeleteAll();
-            end;
+        // InstallAppsourceExtension is a TryFunction, so it returns false when the installation raised an error.
+        if InstallAppsourceExtension(AppId, TelemetryURL) then
+            exit;
+
+        // Capture the error before any other statement resets it.
+        InstallErrorText := GetLastErrorText();
+
+        if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then begin
+            SaveExtensionPendingSetup(AppId);
+            MySessionSettings.Init();
+            MySessionSettings.RequestSessionUpdate(false);
+            exit;
+        end;
+
+        ExtensionPendingSetup.SetRange("User Id", UserSecurityId());
+        ExtensionPendingSetup.DeleteAll();
+
+        NotifyInstallationFailed(AppId, InstallErrorText);
+    end;
+
+    local procedure NotifyInstallationFailed(AppId: Guid; InstallErrorText: Text)
+    begin
+        // An empty error text means the installation was stopped without raising an error,
+        // for example when the user declined the dependency confirmation. Nothing to report.
+        if InstallErrorText = '' then
+            exit;
+
+        Session.LogMessage('0000QAA', StrSubstNo(InstallationFailedTelemetryTxt, AppId, InstallErrorText), Verbosity::Warning, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', TelemetryTok);
+        Message(InstallationFailedMsg, InstallErrorText);
     end;
 
     [TryFunction]
