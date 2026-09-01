@@ -213,9 +213,11 @@ codeunit 7248 "MDM Source Response"
         end;
         if not MediaObject.Get('content', ContentToken) then
             exit; // no content and not flagged empty: leave the destination picture untouched
-        if MediaObject.Get('name', NameToken) then
+        if not ContentToken.IsValue() then // a non-scalar content payload is a broken record entry
+            Error(MalformedRecordEntry());
+        if MediaObject.Get('name', NameToken) and NameToken.IsValue() then
             FileName := NameToken.AsValue().AsText();
-        if MediaObject.Get('mimeType', MimeToken) then
+        if MediaObject.Get('mimeType', MimeToken) and MimeToken.IsValue() then
             MimeType := MimeToken.AsValue().AsText();
         InlineMedia.Put(SystemId, FieldNo, FileName, MimeType, ContentToken.AsValue().AsText());
     end;
@@ -244,27 +246,35 @@ codeunit 7248 "MDM Source Response"
         end;
         if not BlobObject.Get('content', ContentToken) then
             exit; // no content and not flagged empty: leave the destination untouched
+        if not ContentToken.IsValue() then // a non-scalar content payload is a broken record entry
+            Error(MalformedRecordEntry());
         TempBlob.CreateOutStream(ContentOutStream);
         Base64Convert.FromBase64(ContentToken.AsValue().AsText(), ContentOutStream);
         TempBlob.ToFieldRef(DestField);
     end;
 
     local procedure IsSkipped(FieldObject: JsonObject): Boolean
-    var
-        Token: JsonToken;
     begin
-        if FieldObject.Get('skipped', Token) then
-            exit(Token.AsValue().AsBoolean());
-        exit(false);
+        exit(ReadRecordBoolean(FieldObject, 'skipped'));
     end;
 
     local procedure IsEmptyField(FieldObject: JsonObject): Boolean
+    begin
+        exit(ReadRecordBoolean(FieldObject, 'empty'));
+    end;
+
+    // Per-record media/blob flags are booleans in the contract; a present-but-malformed token is a broken record
+    // entry, so route it through the same internal malformed-record path as the rest of record materialization.
+    local procedure ReadRecordBoolean(FieldObject: JsonObject; PropertyName: Text): Boolean
     var
         Token: JsonToken;
+        Value: Boolean;
     begin
-        if FieldObject.Get('empty', Token) then
-            exit(Token.AsValue().AsBoolean());
-        exit(false);
+        if not FieldObject.Get(PropertyName, Token) then
+            exit(false);
+        if not (Token.IsValue() and TryReadBoolean(Token, Value)) then
+            Error(MalformedRecordEntry());
+        exit(Value);
     end;
 
     // Over-cap media/blob is not synchronized (v1). We can't error (it would retry the record every run) and MDM
@@ -280,7 +290,7 @@ codeunit 7248 "MDM Source Response"
         Dimensions.Add('Category', MasterDataManagement.GetTelemetryCategory());
         Dimensions.Add('TableId', Format(TableId));
         Dimensions.Add('FieldNo', Format(FieldNo));
-        if FieldObject.Get('length', LengthToken) then
+        if FieldObject.Get('length', LengthToken) and LengthToken.IsValue() then
             Dimensions.Add('Length', Format(LengthToken.AsValue().AsBigInteger()));
         Session.LogMessage('0000VAW', SkippedFieldTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
     end;
@@ -372,6 +382,8 @@ codeunit 7248 "MDM Source Response"
     begin
         if not Container.Get(PropertyName, Token) then
             exit(false);
+        if not Token.IsValue() then
+            exit(false);
         exit(Evaluate(Value, Token.AsValue().AsText()));
     end;
 
@@ -380,6 +392,8 @@ codeunit 7248 "MDM Source Response"
         Token: JsonToken;
     begin
         if not Container.Get(PropertyName, Token) then
+            exit(false);
+        if not Token.IsValue() then
             exit(false);
         exit(Evaluate(Value, Token.AsValue().AsText(), 9));
     end;

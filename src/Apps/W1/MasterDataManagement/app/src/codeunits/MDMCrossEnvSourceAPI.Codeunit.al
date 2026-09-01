@@ -211,14 +211,13 @@ codeunit 7241 "MDM Cross-Env Source API"
     begin
         if not TryReadJsonArray(FieldIds, RequestedFields) then
             exit;
-        foreach Token in RequestedFields do begin
-            FieldNo := Token.AsValue().AsInteger();
-            if not RecRef.FieldExist(FieldNo) then
-                UnavailableFields.Add(FieldNo)
-            else
-                if IsProjectableField(RecRef.Field(FieldNo)) then
-                    ProjectedFields.Add(FieldNo);
-        end;
+        foreach Token in RequestedFields do
+            if Token.IsValue() and TryReadInteger(Token, FieldNo) then // a malformed field id is skipped, not served as an error
+                if not RecRef.FieldExist(FieldNo) then
+                    UnavailableFields.Add(FieldNo)
+                else
+                    if IsProjectableField(RecRef.Field(FieldNo)) then
+                        ProjectedFields.Add(FieldNo);
     end;
 
     local procedure IsProjectableField(FieldReference: FieldRef): Boolean
@@ -262,9 +261,11 @@ codeunit 7241 "MDM Cross-Env Source API"
             exit(false);
         if not SelectorObject.Get('modifiedAt', Token) then
             exit(false);
+        if not Token.IsValue() then
+            exit(false);
         if not Evaluate(CursorModifiedAt, Token.AsValue().AsText(), 9) then
             exit(false);
-        if SelectorObject.Get('systemId', Token) then
+        if SelectorObject.Get('systemId', Token) and Token.IsValue() then
             Evaluate(CursorSystemId, Token.AsValue().AsText());
         exit(true);
     end;
@@ -425,7 +426,7 @@ codeunit 7241 "MDM Cross-Env Source API"
         FilterText: Text;
     begin
         foreach Token in SystemIds do
-            if Evaluate(SystemIdValue, Token.AsValue().AsText()) then begin
+            if Token.IsValue() and Evaluate(SystemIdValue, Token.AsValue().AsText()) then begin
                 if FilterBuilder.Length() > 0 then
                     FilterBuilder.Append('|');
                 FilterBuilder.Append(Format(SystemIdValue));
@@ -585,6 +586,12 @@ codeunit 7241 "MDM Cross-Env Source API"
         exit(JsonObjectValue.ReadFrom(Value));
     end;
 
+    [TryFunction]
+    local procedure TryReadInteger(Token: JsonToken; var Value: Integer)
+    begin
+        Value := Token.AsValue().AsInteger();
+    end;
+
     local procedure ClampPageSize(PageSize: Integer): Integer
     begin
         if PageSize <= 0 then
@@ -617,12 +624,14 @@ codeunit 7241 "MDM Cross-Env Source API"
         Response: JsonObject;
         Token: JsonToken;
         ResultText: Text;
+        TableId: Integer;
     begin
         if not IsSourceConsented() then
             exit(ConsentRequiredResponse());
         if TryReadJsonArray(TableIds, RequestedTables) then
             foreach Token in RequestedTables do
-                Tables.Add(BuildTableModifiedAt(Token.AsValue().AsInteger()));
+                if Token.IsValue() and TryReadInteger(Token, TableId) then // a malformed table id is skipped, not served as an error
+                    Tables.Add(BuildTableModifiedAt(TableId));
         Response.Add('tables', Tables);
         Response.WriteTo(ResultText);
         exit(ResultText);

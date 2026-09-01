@@ -111,6 +111,7 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         TableIdsText: Text;
         LastModifiedAtText: Text;
         IntegrationTableId: Integer;
+        BoolValue: Boolean;
     begin
         IntegrationTableId := IntegrationTableMapping."Integration Table ID";
         // With a row filter the cheap per-table timestamp can't tell whether any MATCHING record exists (parity with
@@ -144,18 +145,23 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         end;
         Entry := Token.AsObject();
         if Entry.Get('tableAvailable', Token) then begin
-            if not Token.IsValue() then begin // malformed contract, not an empty source: keep it in the internal-error path
+            if not (Token.IsValue() and TryGetBoolean(Token, BoolValue)) then begin // malformed contract, not an empty source: keep it in the internal-error path
                 LogProbeFailure(IntegrationTableId);
                 Error(InternalError(StrSubstNo(InvalidResponseErr, TableCaption(IntegrationTableId))));
             end;
-            if not Token.AsValue().AsBoolean() then
+            if not BoolValue then
                 exit(false);
         end;
         // Unindexed source table: LastModifiedAtPerTable reports indexed:false and no timestamp, so we can't prove
         // emptiness cheaply - assume records may exist so the full-synch review isn't wrongly suppressed.
-        if Entry.Get('indexed', Token) then
-            if Token.IsValue() and (not Token.AsValue().AsBoolean()) then
+        if Entry.Get('indexed', Token) then begin
+            if not (Token.IsValue() and TryGetBoolean(Token, BoolValue)) then begin
+                LogProbeFailure(IntegrationTableId);
+                Error(InternalError(StrSubstNo(InvalidResponseErr, TableCaption(IntegrationTableId))));
+            end;
+            if not BoolValue then
                 exit(true);
+        end;
         if Entry.Get('lastModifiedAt', Token) then
             if Token.IsValue() then
                 LastModifiedAtText := Token.AsValue().AsText();
@@ -262,6 +268,12 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         ErrInfo.DataClassification := DataClassification::SystemMetadata; // Message is emitted to telemetry
         ErrInfo.ErrorType := ErrorType::Internal;
         exit(ErrInfo);
+    end;
+
+    [TryFunction]
+    local procedure TryGetBoolean(Token: JsonToken; var Value: Boolean)
+    begin
+        Value := Token.AsValue().AsBoolean();
     end;
 
     // The source declined to share (its cross-environment privacy notice isn't approved); actionable by the SOURCE
