@@ -3793,7 +3793,7 @@ codeunit 408 DimensionManagement
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterSetSourceCodeWithVar(TableID: BigInteger; RecordVar: Variant; var SourceCode: Code[10])
+    local procedure OnAfterSetSourceCodeWithVar(TableID: Integer; RecordVar: Variant; var SourceCode: Code[10])
     begin
     end;
 
@@ -4150,7 +4150,7 @@ codeunit 408 DimensionManagement
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterSetSourceCode(var SourceCodeSetup: Record "Source Code Setup"; TableID: BigInteger; var SourceCode: Code[10]);
+    local procedure OnAfterSetSourceCode(var SourceCodeSetup: Record "Source Code Setup"; TableID: Integer; var SourceCode: Code[10]);
     begin
     end;
 
