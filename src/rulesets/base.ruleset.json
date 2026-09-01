@@ -15,6 +15,11 @@
       "justification": "The application app shouldn't point at itself."
     },
     {
+      "id": "AL0108",
+      "action": "Warning",
+      "justification": "Needed for allowing co-existence of apps using Integer and BigInteger."
+    },
+    {
       "id": "AL0254",
       "action": "Warning"
     },
