@@ -2627,7 +2627,7 @@ codeunit 137055 "SCM Warehouse Pick"
         SecondSourceQuantityArray: array[3] of Decimal;
     begin
         // [FEATURE] [Item Tracking] [Bin] [AI Test]
-        // [SCENARIO 646677] Item tracking on a subsequent warehouse shipment is not limited to the bin copied to the sales line by the first partial shipment.
+        // [SCENARIO 648520] Item tracking on a subsequent warehouse shipment is not limited to the bin copied to the sales line by the first partial shipment.
         Initialize();
 
         // [GIVEN] A sales line has a non-blank bin code copied from a previously posted warehouse shipment.
