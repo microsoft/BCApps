@@ -8,6 +8,8 @@ codeunit 139926 "APIV2 - Transfer Orders E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         // [FEATURE] [Graph] [Inventory] [Transfer]
     end;
 

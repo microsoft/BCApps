@@ -3,11 +3,15 @@ codeunit 139729 "APIV1 - Purchase Invoices E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Purchase] [Invoice]
     end;
 
@@ -423,8 +427,9 @@ codeunit 139729 "APIV1 - Purchase Invoices E2E"
         Vendor.Validate("Payment Terms Code", PaymentTerms.Code);
         Vendor.Modify(true);
 
-        // [GIVEN] Create Invoice Json with Vendor No and Invoice Date
-        InvoiceJSON := CreateInvoiceJSON('vendorNumber', VendorNo, 'invoiceDate', WorkDate());
+        // [GIVEN] Create Invoice Json with dates before the vendor defaults are applied
+        InvoiceJSON := CreateInvoiceJSON('invoiceDate', WorkDate(), 'postingDate', WorkDate());
+        InvoiceJSON := LibraryGraphMgt.AddPropertytoJSON(InvoiceJSON, 'vendorNumber', VendorNo);
         COMMIT();
 
         // [WHEN] We POST the JSON to the Web Service
@@ -441,7 +446,30 @@ codeunit 139729 "APIV1 - Purchase Invoices E2E"
         PurchaseHeader.SETRANGE("No.", InvoiceNumber);
         PurchaseHeader.SETRANGE("Buy-from Vendor No.", VendorNo);
         Assert.IsTrue(PurchaseHeader.FINDFIRST(), UnpostedInvoiceExistErr);
-        Assert.IsTrue(PurchaseHeader."Payment Discount %" <> 0, PaymentDiscountErr);
+        if PurchaseHeader."Payment Discount %" = 0 then
+            Assert.IsTrue(HasLocalizedPaymentDiscount(PurchaseHeader."No."), PaymentDiscountErr);
+    end;
+
+    local procedure HasLocalizedPaymentDiscount(DocumentNo: Code[20]): Boolean
+    var
+        RecordField: Record Field;
+        PaymentLineRecordRef: RecordRef;
+        PaymentLineFieldRef: FieldRef;
+    begin
+        RecordField.SetRange(TableNo, 12170);
+        if RecordField.IsEmpty() then
+            exit(false);
+
+        PaymentLineRecordRef.Open(12170);
+        PaymentLineFieldRef := PaymentLineRecordRef.Field(10);
+        PaymentLineFieldRef.SetRange(2);
+        PaymentLineFieldRef := PaymentLineRecordRef.Field(1);
+        PaymentLineFieldRef.SetRange(2);
+        PaymentLineFieldRef := PaymentLineRecordRef.Field(2);
+        PaymentLineFieldRef.SetRange(DocumentNo);
+        PaymentLineFieldRef := PaymentLineRecordRef.Field(7);
+        PaymentLineFieldRef.SetFilter('>%1', 0);
+        exit(not PaymentLineRecordRef.IsEmpty());
     end;
 
     local procedure CreatePurchaseInvoices(var InvoiceID1: Text; var InvoiceID2: Text)
@@ -542,15 +570,7 @@ codeunit 139729 "APIV1 - Purchase Invoices E2E"
     end;
 
     local procedure CreatePaymentTermsWithDiscount(var PaymentTerms: Record "Payment Terms")
-    var
-        DateCalculation: DateFormula;
     begin
-        LibraryERM.CreatePaymentTerms(PaymentTerms);
-        Evaluate(DateCalculation, '1M');
-        PaymentTerms.Validate("Due Date Calculation", DateCalculation);
-        Evaluate(DateCalculation, '8D');
-        PaymentTerms.Validate("Discount Date Calculation", DateCalculation);
-        PaymentTerms.Validate("Discount %", 2);
-        PaymentTerms.Modify(true);
+        LibraryERM.CreatePaymentTermsDiscount(PaymentTerms, true);
     end;
 }

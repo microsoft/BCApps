@@ -14,6 +14,8 @@ codeunit 148185 "Sustainability API Tests"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         // [FEATURE] [Sustainability] [API] [UI]
     end;
 

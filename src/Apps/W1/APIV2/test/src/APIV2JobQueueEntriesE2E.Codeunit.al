@@ -6,6 +6,9 @@ codeunit 139862 "APIV2JobQueueEntriesE2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [JobQueue] [JobQueueEntry]
         // This API only supports GET request and it is not editable.
         // User can only view the Job Queue Entries or use the action to restart the Job Queue Entry.
@@ -114,7 +117,8 @@ codeunit 139862 "APIV2JobQueueEntriesE2E"
         // [WHEN] We trigger the JobQueueEntry reschedule action from the web service
         ClearLastError();
         TargetURL := LibraryGraphMgt.CreateTargetURL(JobQueueEntry.SystemId, Page::"APIV2 - Job Queue Entries", ServiceNameTxt);
-        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL + '/Microsoft.NAV.restart', '', ResponseText, 204);
+        TargetURL := LibraryGraphMgt.AppendPathToTargetURL(TargetURL, '/Microsoft.NAV.restart');
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, '', ResponseText, 204);
 
         // [WHEN] We GET the JobQueueEntry from the web service
         TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"APIV2 - Job Queue Entries", ServiceNameTxt);

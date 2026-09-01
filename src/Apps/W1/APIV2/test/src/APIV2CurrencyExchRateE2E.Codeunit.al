@@ -1,6 +1,14 @@
 codeunit 139858 "APIV2 Currency Exch. Rate E2E"
 {
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
+
+    trigger OnRun()
+    begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+    end;
 
     var
         LibraryERM: Codeunit "Library - ERM";

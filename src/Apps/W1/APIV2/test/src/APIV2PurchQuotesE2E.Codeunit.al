@@ -8,6 +8,8 @@ codeunit 139922 "APIV2 - Purch. Quotes E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         // [FEATURE] [Graph] [Purchase] [Quote]
     end;
 

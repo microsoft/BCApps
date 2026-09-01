@@ -3,11 +3,15 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Purchase] [Credit Memo]
     end;
 
@@ -73,6 +77,7 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
     begin
         // [SCENARIO] Create posted and unposted Purchase credit memos and use HTTP POST to delete them
         // [GIVEN] 2 credit memos, one posted and one unposted
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryPurchase.CreateVendorWithAddress(BuyFromVendor);
         LibraryPurchase.CreateVendorWithAddress(PayToVendor);
         VendorNo := BuyFromVendor."No.";
@@ -308,6 +313,7 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
         // [SCENARIO] Create an credit memo both through the client UI and through the API
         // [SCENARIO] and compare them. They should be the same and have the same fields autocompleted wherever needed.
         // [GIVEN] An unposted credit memo
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryGraphDocumentTools.InitializeUIPage();
 
         LibraryPurchase.CreateVendor(BuyFromVendor);
@@ -669,6 +675,8 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
 
         PurchaseHeader1RecordRef.GetTable(PurchaseHeader1);
         PurchaseHeader2RecordRef.GetTable(PurchaseHeader2);
+        LibraryGraphMgt.AddFieldToIgnoreIfExists(
+            TempIgnoredFieldsForComparison, Database::"Purchase Header", 'Operation Occurred Date');
 
         Assert.RecordsAreEqualExceptCertainFields(
           PurchaseHeader1RecordRef, PurchaseHeader2RecordRef, TempIgnoredFieldsForComparison, 'Credit Memos do not match');
@@ -715,4 +723,3 @@ codeunit 139865 "APIV2 - Purch. Cr. Memos E2E"
         Assert.AreEqual(Status, PurchCrMemoEntityBuffer.Status, CreditMemoStatusErr);
     end;
 }
-

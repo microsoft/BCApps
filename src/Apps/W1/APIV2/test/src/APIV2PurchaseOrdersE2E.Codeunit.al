@@ -3,11 +3,15 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Purchase] [Order]
     end;
 
@@ -31,7 +35,7 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
 
     local procedure Initialize()
     begin
-        WorkDate := Today();
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
     end;
 
     [Test]
@@ -92,8 +96,8 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
         ShipToVendor.Modify(true);
         Commit();
         VendorNo := BuyFromVendor."No.";
-        OrderDate := Today();
-        PostingDate := Today();
+        OrderDate := WorkDate();
+        PostingDate := WorkDate();
 
         // [GIVEN] a JSON text with an order that contains the vendor and an address
         OrderJSON := CreateOrderJSONWithAddress(BuyFromVendor, PayToVendor, ShipToVendor, OrderDate, PostingDate);
@@ -143,8 +147,8 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
         LibraryPurchase.CreateVendorWithAddress(BuyFromVendor);
         LibraryPurchase.CreateVendorWithAddress(PayToVendor);
         VendorNo := BuyFromVendor."No.";
-        OrderDate := Today();
-        PostingDate := Today();
+        OrderDate := WorkDate();
+        PostingDate := WorkDate();
 
         // [GIVEN] a JSON text with an order that contains the vendor and an address
         OrderJSON := CreateOrderJSONWithoutShipTo(BuyFromVendor, PayToVendor, OrderDate, PostingDate);
@@ -402,8 +406,8 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
         // [GIVEN] a customer
         LibraryPurchase.CreateVendor(Vendor);
         VendorNo := Vendor."No.";
-        OrderDate := Today();
-        PostingDate := Today();
+        OrderDate := WorkDate();
+        PostingDate := WorkDate();
 
         // [GIVEN] a json describing our new order
         OrderJSON := CreateOrderJSONWithAddress(Vendor, Vendor, Vendor, OrderDate, PostingDate);
@@ -427,6 +431,8 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
         LibraryUtility.AddTempField(TempIgnoredFieldsForComparison, ApiPurchaseHeader.FieldNo("No."), Database::"Purchase Header");
         LibraryUtility.AddTempField(
           TempIgnoredFieldsForComparison, ApiPurchaseHeader.FieldNo("Posting Description"), Database::"Purchase Header");
+        LibraryUtility.AddTempField(
+            TempIgnoredFieldsForComparison, ApiPurchaseHeader.FieldNo("Order Date"), Database::"Purchase Header");
         // Special ignore case for GB
         LibraryUtility.AddTempField(TempIgnoredFieldsForComparison, ApiPurchaseHeader.FieldNo("Invoice Received Date"), Database::"Purchase Header");
         // Special ignore case for ES
@@ -441,14 +447,14 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
             LibraryUtility.AddTempField(TempIgnoredFieldsForComparison, RecordField."No.", Database::"Purchase Header");
 
         // Time zone will impact how the date from the page vs WebService is saved. If removed this will fail in snap between 12:00 - 1 AM
-        if Time() < 020000T then begin
-            LibraryUtility.AddTempField(TempIgnoredFieldsForComparison, ApiPurchaseHeader.FieldNo("Order Date"), Database::"Purchase Header");
+        if Time() < 020000T then
             LibraryUtility.AddTempField(TempIgnoredFieldsForComparison, ApiPurchaseHeader.FieldNo("Posting Date"), Database::"Purchase Header");
-        end;
 
         PagePurchaseHeader.Get(PagePurchaseHeader."Document Type"::Order, PurchaseOrder."No.".Value());
         ApiRecordRef.GetTable(ApiPurchaseHeader);
         PageRecordRef.GetTable(PagePurchaseHeader);
+        LibraryGraphMgt.AddFieldToIgnoreIfExists(
+            TempIgnoredFieldsForComparison, Database::"Purchase Header", 'Operation Occurred Date');
 
         Assert.RecordsAreEqualExceptCertainFields(ApiRecordRef, PageRecordRef, TempIgnoredFieldsForComparison,
           'Page and API order do not match');
@@ -667,6 +673,7 @@ codeunit 139851 "APIV2 - Purchase Orders E2E"
         PurchaseOrder."Buy-from Vendor No.".SetValue(Vendor."No.");
         PurchaseOrder."Document Date".SetValue(DocumentDate);
         PurchaseOrder."Posting Date".SetValue(PostingDate);
+        PurchaseOrder."Order Date".SetValue(DocumentDate);
     end;
 
     local procedure CheckShippingDetailsNotEmpty(var PurchaseHeader: Record "Purchase Header")

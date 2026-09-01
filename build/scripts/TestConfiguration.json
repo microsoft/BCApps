@@ -1,4 +1,21 @@
 {
+  "CleanTenantRequiredDisabled": [
+    "_Exclude_APIV1_ Tests",
+    "_Exclude_APIV2_ Tests",
+    "_Exclude_Connectivity Apps Tests",
+    "_Exclude_Master_Data_Management_Tests",
+    "AMC Banking 365 Fundamentals Test Automations",
+    "Dynamics BC Excel Reports Tests",
+    "E-Document Connector - Continia Tests",
+    "E-Document Connector - Logiq Tests",
+    "Email - SMTP Connector Tests",
+    "Expense Agent Tests",
+    "GetAddress.io UK Postcodes Tests",
+    "Retention Policy Test",
+    "Shopify Connector Test",
+    "Sustainability Tests",
+    "VAT Group Management Tests"
+  ],
   "LegacyTests-Bucket1": [
     "Tests-Resource",
     "Tests-Workflow",

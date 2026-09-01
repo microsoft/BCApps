@@ -10,6 +10,13 @@ codeunit 148018 "IRS 1099 API Tests"
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
+    trigger OnRun()
+    begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+    end;
+
     var
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";

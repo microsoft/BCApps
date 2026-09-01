@@ -3,11 +3,15 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Purchase] [Invoice]
     end;
 
@@ -711,6 +715,7 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
         TargetURL: Text;
         ResponseText: Text;
         InvoiceLineJSON: Text;
+        LineDescription: Text;
     begin
         // [SCENARIO] Posting a line with description only will get a type item
         // [GIVEN] A post request with description only
@@ -719,7 +724,8 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
 
         COMMIT();
 
-        InvoiceLineJSON := '{"description":"test"}';
+        LineDescription := Format(CreateGuid());
+        InvoiceLineJSON := LibraryGraphMgt.AddPropertytoJSON('', 'description', LineDescription);
 
         // [WHEN] we just POST a blank line
         TargetURL := LibraryGraphMgt
@@ -731,8 +737,10 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
         LibraryGraphMgt.PostToWebService(TargetURL, InvoiceLineJSON, ResponseText);
 
         // [THEN] Line of type Item is created
-        FindFirstPurchaseLine(PurchaseHeader, PurchaseLine);
-        PurchaseLine.FINDLAST();
+        PurchaseLine.SETRANGE("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SETRANGE("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SETRANGE(Description, LineDescription);
+        Assert.IsTrue(PurchaseLine.FINDFIRST(), 'Could not find the created purchase invoice line');
         Assert.AreEqual('', PurchaseLine."No.", 'No should be blank');
         Assert.AreEqual(PurchaseLine.Type, PurchaseLine.Type::Item, 'Wrong type is set');
 
@@ -1080,12 +1088,6 @@ codeunit 139738 "APIV1 - Purchase Inv Lines E2E"
         NotificationLifecycleMgt.RecallAllNotifications();
     end;
 }
-
-
-
-
-
-
 
 
 

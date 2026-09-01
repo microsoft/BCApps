@@ -14,6 +14,8 @@ codeunit 135549 "Report Inbox API E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         // [FEATURE] [API] [Report Inbox]
     end;
 

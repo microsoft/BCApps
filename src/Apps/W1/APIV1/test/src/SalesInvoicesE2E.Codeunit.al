@@ -3,11 +3,15 @@ codeunit 139709 "Sales Invoices E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Sales] [Invoice]
     end;
 
@@ -577,6 +581,9 @@ codeunit 139709 "Sales Invoices E2E"
         PageSalesHeader.GET(PageSalesHeader."Document Type"::Invoice, SalesInvoice."No.".VALUE());
         ApiRecordRef.GETTABLE(ApiSalesHeader);
         PageRecordRef.GETTABLE(PageSalesHeader);
+        LibraryGraphMgt.AddFieldToIgnoreIfExists(
+            TempIgnoredFieldsForComparison, DATABASE::"Sales Header", 'Operation Occurred Date');
+
         Assert.RecordsAreEqualExceptCertainFields(ApiRecordRef, PageRecordRef, TempIgnoredFieldsForComparison,
           'Page and API Invoice do not match');
 
@@ -595,6 +602,7 @@ codeunit 139709 "Sales Invoices E2E"
         // [SCENARIO 184721] When an invoice is created,the GET Method should update the invoice and assign a total
 
         // [GIVEN] 2 invoices, one posted and one unposted without totals assigned
+        LibraryApplicationArea.EnableFoundationSetup();
         LibraryGraphDocumentTools.CreateDocumentWithDiscountPctPending(
           SalesHeader, DiscountPct, SalesHeader."Document Type"::Invoice);
         SalesHeader.CALCFIELDS("Recalculate Invoice Disc.");
@@ -883,6 +891,7 @@ codeunit 139709 "Sales Invoices E2E"
         DocumentId := SalesInvoiceHeader."Draft Invoice SystemId";
 
         // Special case for AU
+        EnsureReasonCode();
         LibrarySales.SetDefaultCancelReasonCodeForSalesAndReceivablesSetup();
 
         Commit();
@@ -920,6 +929,7 @@ codeunit 139709 "Sales Invoices E2E"
         DocumentId := SalesInvoiceHeader."Draft Invoice SystemId";
 
         // Special case for AU
+        EnsureReasonCode();
         LibrarySales.SetDefaultCancelReasonCodeForSalesAndReceivablesSetup();
 
         Commit();
@@ -1235,7 +1245,20 @@ codeunit 139709 "Sales Invoices E2E"
     local procedure CreateCancelledSalesInvoice(var SalesInvoiceHeader: Record "Sales Invoice Header")
     begin
         CreatePostedSalesInvoice(SalesInvoiceHeader);
+        EnsureReasonCode();
+        LibrarySales.SetDefaultCancelReasonCodeForSalesAndReceivablesSetup();
+        Commit();
         CODEUNIT.Run(CODEUNIT::"Correct Posted Sales Invoice", SalesInvoiceHeader);
+    end;
+
+    local procedure EnsureReasonCode()
+    var
+        ReasonCode: Record "Reason Code";
+    begin
+        if not ReasonCode.IsEmpty() then
+            exit;
+
+        LibraryERM.CreateReasonCode(ReasonCode);
     end;
 
     local procedure CreateSalesInvoices(var InvoiceID1: Text; var InvoiceID2: Text)

@@ -3,11 +3,15 @@ codeunit 139728 "APIV1 - Sales Credit Memos E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Sales] [Credit Memo]
     end;
 
@@ -769,18 +773,33 @@ codeunit 139728 "APIV1 - Sales Credit Memos E2E"
 
     local procedure CreateCorrectiveSalesCreditMemo(var SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     var
+        ReasonCode: Record "Reason Code";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesHeader: Record "Sales Header";
         InvoiceCode: Code[20];
     begin
         LibrarySales.CreateSalesInvoice(SalesHeader);
         ModifySalesHeaderPostingDate(SalesHeader, WORKDATE());
+        EnsureReasonCode();
+        ReasonCode.FindFirst();
+        SalesHeader.Validate("Reason Code", ReasonCode.Code);
+        SalesHeader.Modify(true);
         InvoiceCode := LibrarySales.PostSalesDocument(SalesHeader, false, true);
         SalesInvoiceHeader.Get(InvoiceCode);
         Commit();
         CODEUNIT.Run(CODEUNIT::"Correct Posted Sales Invoice", SalesInvoiceHeader);
         SalesCrMemoHeader.SetRange("Applies-to Doc. No.", SalesInvoiceHeader."No.");
         SalesCrMemoHeader.FindFirst();
+    end;
+
+    local procedure EnsureReasonCode()
+    var
+        ReasonCode: Record "Reason Code";
+    begin
+        if not ReasonCode.IsEmpty() then
+            exit;
+
+        LibraryERM.CreateReasonCode(ReasonCode);
     end;
 
     local procedure CreateDraftSalesCreditMemo(var SalesHeader: Record "Sales Header")
@@ -952,6 +971,8 @@ codeunit 139728 "APIV1 - Sales Credit Memos E2E"
 
         SalesHeader1RecordRef.GETTABLE(SalesHeader1);
         SalesHeader2RecordRef.GETTABLE(SalesHeader2);
+        LibraryGraphMgt.AddFieldToIgnoreIfExists(
+            TempIgnoredFieldsForComparison, DATABASE::"Sales Header", 'Operation Occurred Date');
 
         Assert.RecordsAreEqualExceptCertainFields(
           SalesHeader1RecordRef, SalesHeader2RecordRef, TempIgnoredFieldsForComparison, 'Credit Memos do not match');
@@ -1071,4 +1092,3 @@ codeunit 139728 "APIV1 - Sales Credit Memos E2E"
             JobQueueEntry.Cancel();
     end;
 }
-
