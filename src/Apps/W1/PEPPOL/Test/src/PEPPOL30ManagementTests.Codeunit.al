@@ -5,6 +5,7 @@
 namespace Microsoft.Peppol.Test;
 
 using Microsoft.CRM.Team;
+using Microsoft.Finance.AllocationAccount;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
@@ -61,6 +62,115 @@ codeunit 139235 "PEPPOL30 Management Tests"
         NoItemDescriptionErr: Label 'Description field is empty.';
         NoUnitOfMeasureErr: Label 'The Invoice %1 contains lines on which the Unit of Measure Code field is empty.', Comment = '%1 - Invoice Number';
         SalespersonTxt: Label 'Salesperson';
+
+    [Test]
+    procedure UnknownFormatValidationRaisesControlledError()
+    var
+        PEPPOL30Validation: Interface "PEPPOL30 Validation";
+        UnknownFormat: Enum "PEPPOL 3.0 Format";
+    begin
+        UnknownFormat := Enum::"PEPPOL 3.0 Format".FromInteger(10995);
+        PEPPOL30Validation := UnknownFormat;
+
+        asserterror PEPPOL30Validation.ValidateDocument('');
+
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError('no longer available');
+    end;
+
+    [Test]
+    procedure UnknownFormatDocumentLinesValidationRaisesControlledError()
+    var
+        PEPPOL30Validation: Interface "PEPPOL30 Validation";
+        UnknownFormat: Enum "PEPPOL 3.0 Format";
+    begin
+        UnknownFormat := Enum::"PEPPOL 3.0 Format".FromInteger(10995);
+        PEPPOL30Validation := UnknownFormat;
+
+        asserterror PEPPOL30Validation.ValidateDocumentLines('');
+
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError('no longer available');
+    end;
+
+    [Test]
+    procedure UnknownFormatDocumentLineValidationRaisesControlledError()
+    var
+        PEPPOL30Validation: Interface "PEPPOL30 Validation";
+        UnknownFormat: Enum "PEPPOL 3.0 Format";
+    begin
+        UnknownFormat := Enum::"PEPPOL 3.0 Format".FromInteger(10995);
+        PEPPOL30Validation := UnknownFormat;
+
+        asserterror PEPPOL30Validation.ValidateDocumentLine('');
+
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError('no longer available');
+    end;
+
+    [Test]
+    procedure UnknownFormatLineTypeValidationRaisesControlledError()
+    var
+        PEPPOL30Validation: Interface "PEPPOL30 Validation";
+        UnknownFormat: Enum "PEPPOL 3.0 Format";
+    begin
+        UnknownFormat := Enum::"PEPPOL 3.0 Format".FromInteger(10995);
+        PEPPOL30Validation := UnknownFormat;
+
+        asserterror PEPPOL30Validation.ValidateLineTypeAndDescription('');
+
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError('no longer available');
+    end;
+
+    [Test]
+    procedure UnknownFormatPostedDocumentValidationRaisesControlledError()
+    var
+        PEPPOL30Validation: Interface "PEPPOL30 Validation";
+        UnknownFormat: Enum "PEPPOL 3.0 Format";
+    begin
+        UnknownFormat := Enum::"PEPPOL 3.0 Format".FromInteger(10995);
+        PEPPOL30Validation := UnknownFormat;
+
+        asserterror PEPPOL30Validation.ValidatePostedDocument('');
+
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError('no longer available');
+    end;
+
+    [Test]
+    procedure UnknownFormatIteratorRaisesControlledError()
+    var
+        SalesHeader: Record "Sales Header";
+        PostedRecRef: RecordRef;
+        PEPPOLPostedDocumentIterator: Interface "PEPPOL Posted Document Iterator";
+        UnknownFormat: Enum "PEPPOL 3.0 Format";
+    begin
+        UnknownFormat := Enum::"PEPPOL 3.0 Format".FromInteger(10995);
+        PEPPOLPostedDocumentIterator := UnknownFormat;
+
+        asserterror PEPPOLPostedDocumentIterator.GetNextPostedHeaderAsSalesHeader(PostedRecRef, SalesHeader);
+
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError('no longer available');
+    end;
+
+    [Test]
+    procedure UnknownFormatLineIteratorRaisesControlledError()
+    var
+        SalesLine: Record "Sales Line";
+        PostedLineRecRef: RecordRef;
+        PEPPOLPostedDocumentIterator: Interface "PEPPOL Posted Document Iterator";
+        UnknownFormat: Enum "PEPPOL 3.0 Format";
+    begin
+        UnknownFormat := Enum::"PEPPOL 3.0 Format".FromInteger(10995);
+        PEPPOLPostedDocumentIterator := UnknownFormat;
+
+        asserterror PEPPOLPostedDocumentIterator.GetNextPostedLineAsSalesLine(PostedLineRecRef, SalesLine);
+
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.ExpectedError('no longer available');
+    end;
 
     [Test]
     procedure GeneralInfo()
@@ -2524,6 +2634,33 @@ codeunit 139235 "PEPPOL30 Management Tests"
     end;
 
     [Test]
+    procedure TestPeppolValidationSalesInvoiceAllocationAccountLineSkipped()
+    var
+        AllocationAccount: Record "Allocation Account";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        // [SCENARIO 632064] PEPPOL validation does not fail on sales lines of type Allocation Account.
+        // Allocation account lines are placeholder lines that are expanded into their underlying
+        // distribution lines during posting and are never exported in the electronic document.
+        Initialize();
+
+        // [GIVEN] An allocation account
+        AllocationAccount."No." := Format(LibraryRandom.RandText(5));
+        AllocationAccount."Account Type" := AllocationAccount."Account Type"::Fixed;
+        AllocationAccount.Name := Format(LibraryRandom.RandText(10));
+        AllocationAccount.Insert();
+
+        // [GIVEN] A sales invoice with a line of type Allocation Account and no Unit of Measure Code
+        CreateGenericSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"Allocation Account", AllocationAccount."No.", 1);
+
+        // [WHEN] PEPPOL validation runs on the document
+        // [THEN] No error is thrown for the allocation account line
+        CODEUNIT.Run(CODEUNIT::"PEPPOL30 Sales Validation", SalesHeader);
+    end;
+
+    [Test]
     procedure TestPeppolValidationSalesInvoiceLineNoItemDescription()
     var
         Item: Record Item;
@@ -3349,6 +3486,68 @@ codeunit 139235 "PEPPOL30 Management Tests"
         Assert.AreEqual('', CustTaxSchemeID, 'Tax Scheme ID should be empty for Tax Category O.');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure LineAmountsConsistentWhenPricesInclVATNoDiscount()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        Customer: Record Customer;
+        Item: Record Item;
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        PEPPOLLineInfoProvider: Interface "PEPPOL Line Info Provider";
+        InvoiceLineID: Text;
+        InvoiceLineNote: Text;
+        InvoicedQuantity: Text;
+        InvoiceLineExtensionAmount: Text;
+        LineExtensionAmountCurrencyID: Text;
+        InvoiceLineAccountingCost: Text;
+        InvoiceLinePriceAmount: Text;
+        InvLinePriceAmountCurrencyID: Text;
+        BaseQuantity: Text;
+        UnitCode: Text;
+        PriceAmount: Decimal;
+        LineExtensionAmt: Decimal;
+        SalesInvoiceNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 630795] PEPPOL LineExtensionAmount equals PriceAmount times Quantity when Prices Including VAT is used
+        Initialize();
+
+        // [GIVEN] Customer "C" with PEPPOL identifier
+        LibrarySales.CreateCustomer(Customer);
+        AddCustPEPPOLIdentifier(Customer."No.");
+
+        // [GIVEN] Sales Invoice for "C" with "Prices Including VAT" = TRUE and Quantity = 7
+        CreateItemWithPrice(Item, 139);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        SalesHeader.Validate("Prices Including VAT", true);
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 7);
+
+        // [WHEN] Post the Sales Invoice and retrieve PEPPOL line amounts
+        SalesInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        SalesInvoiceHeader.Get(SalesInvoiceNo);
+        SalesHeader.TransferFields(SalesInvoiceHeader);
+        FindSalesInvoiceLine(SalesInvoiceLine, SalesInvoiceNo);
+        SalesLine.TransferFields(SalesInvoiceLine);
+
+        PEPPOLLineInfoProvider := GetFormat();
+        PEPPOLLineInfoProvider.GetLineGeneralInfo(
+          SalesLine, SalesHeader, InvoiceLineID, InvoiceLineNote, InvoicedQuantity,
+          InvoiceLineExtensionAmount, LineExtensionAmountCurrencyID, InvoiceLineAccountingCost);
+        PEPPOLLineInfoProvider.GetLinePriceInfo(
+          SalesLine, SalesHeader, InvoiceLinePriceAmount, InvLinePriceAmountCurrencyID,
+          BaseQuantity, UnitCode);
+
+        // [THEN] LineExtensionAmount equals PriceAmount times Quantity per PEPPOL BIS 3.0
+        Evaluate(PriceAmount, InvoiceLinePriceAmount, 9);
+        Evaluate(LineExtensionAmt, InvoiceLineExtensionAmount, 9);
+        Assert.AreEqual(PriceAmount * SalesInvoiceLine.Quantity, LineExtensionAmt,
+          'LineExtensionAmount must equal PriceAmount * Quantity per PEPPOL BIS 3.0');
+    end;
+
     var
     local procedure Initialize()
     var
@@ -3483,6 +3682,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         if DocumentType = SalesHeader."Document Type"::"Credit Memo" then
             SalesHeader.Validate("Shipment Date", WorkDate());
 
+        SalesHeader.Validate("Sell-to E-Mail", 'sellto@example.com');
         SalesHeader.CopySellToAddressToShipToAddress();
         SalesHeader.Modify(true);
     end;
@@ -3619,6 +3819,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesHeader.Validate("Your Reference",
           LibraryUtility.GenerateRandomCode(SalesHeader.FieldNo("Your Reference"), DATABASE::"Sales Header"));
         SalesHeader.Validate("Shipment Date", LibraryRandom.RandDate(10));
+        SalesHeader.Validate("Sell-to E-Mail", 'sellto@example.com');
         SalesHeader.CopySellToAddressToShipToAddress();
         SalesHeader.Modify(true);
         LibrarySales.CreateSalesLine(
@@ -3641,6 +3842,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
           LibraryUtility.GenerateRandomCode(SalesHeader.FieldNo("Your Reference"), DATABASE::"Sales Header"));
         SalesHeader.Validate("Shipment Date", LibraryRandom.RandDate(10));
         SalesHeader.Validate("Ship-to Code", ShipToAddress.Code);
+        SalesHeader.Validate("Sell-to E-Mail", 'sellto@example.com');
         SalesHeader.CopySellToAddressToShipToAddress();
         SalesHeader.Modify(true);
         LibrarySales.CreateSalesLine(
@@ -3668,6 +3870,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         CreateItemWithPrice(Item, LibraryRandom.RandIntInRange(1000, 2000));
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
         SalesHeader.Validate("Prices Including VAT", PricesInclVAT);
+        SalesHeader.Validate("Sell-to E-Mail", 'sellto@example.com');
         SalesHeader.Modify(true);
 
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
@@ -3723,6 +3926,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         AddCustPEPPOLIdentifier(Customer."No.");
         LibraryService.CreateServiceHeader(ServiceHeader, DocumentType, Customer."No.");
         ServiceHeader.Validate("Due Date", LibraryRandom.RandDate(10));
+        ServiceHeader.Validate("E-Mail", 'sellto@example.com');
         ServiceHeader.SetShipToAddress(ServiceHeader.Name, '', ServiceHeader.Address, ServiceHeader."Address 2",
         ServiceHeader.City, ServiceHeader."Post Code", ServiceHeader.County, ServiceHeader."Country/Region Code");
         ServiceHeader.Modify(true);
@@ -3993,6 +4197,8 @@ codeunit 139235 "PEPPOL30 Management Tests"
         Assert.AreEqual(UnitOfMeasure."International Standard Code", unitCode, '');
         Assert.AreEqual('UNECERec20', unitCodeListID, '');
         SalesInvoiceLineLineAmount := SalesInvoiceLine."Line Amount";
+        if SalesHeader."Prices Including VAT" and (SalesLine."VAT %" <> 0) then
+            SalesInvoiceLineLineAmount := Round(SalesInvoiceLineLineAmount / (1 + SalesLine."VAT %" / 100), 0.01);
         Assert.AreEqual(Format(SalesInvoiceLineLineAmount, 0, 9), InvoiceLineExtensionAmount, '');
         Assert.AreEqual(SalesHeader."Currency Code", LineExtensionAmountCurrencyID, '');
         Assert.AreEqual('', InvoiceLineAccountingCost, '');

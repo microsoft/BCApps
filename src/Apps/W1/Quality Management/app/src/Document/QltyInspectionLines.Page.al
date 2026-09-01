@@ -16,6 +16,7 @@ page 20413 "Qlty. Inspection Lines"
     PageType = List;
     SourceTable = "Qlty. Inspection Line";
     SourceTableView = sorting("Inspection No.", "Re-inspection No.", "Line No.") order(descending);
+    AccessByPermission = tabledata "Qlty. Inspection Line" = R;
     UsageCategory = Lists;
     ApplicationArea = QualityManagement;
 

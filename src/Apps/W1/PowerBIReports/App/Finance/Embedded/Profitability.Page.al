@@ -11,8 +11,8 @@ page 36989 "Profitability"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Profitability';
-    AboutTitle = 'About Profitability';
+    Caption = 'Profitability (Power BI)';
+    AboutTitle = 'About Profitability (Power BI)';
     AboutText = 'The Profitability report highlights Gross Profit and Net Profit, visualizing these metrics over time. It also provides detailed insights into net margins, gross profit margins, and the underlying revenue, cost and expense figures that drive them.';
 
     layout
@@ -48,11 +48,8 @@ page 36989 "Profitability"
         ReportPageLbl: Label 'ReportSectionbb4917d9edb6d427282c', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Finance Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Finance App");
     end;
 }
 

@@ -21,7 +21,7 @@ pageextension 20405 "Qlty. Sales Order Subform" extends "Sales Order Subform"
                 {
                     ApplicationArea = QualityManagement;
                     AccessByPermission = tabledata "Qlty. Inspection Header" = I;
-                    Image = CreateForm;
+                    Image = BulletList;
                     Caption = 'Create Quality Inspection';
                     ToolTip = 'Creates a quality inspection for this sales order line.';
                     AboutTitle = 'Create Quality Inspection';
@@ -39,7 +39,7 @@ pageextension 20405 "Qlty. Sales Order Subform" extends "Sales Order Subform"
                 {
                     ApplicationArea = QualityManagement;
                     AccessByPermission = tabledata "Qlty. Inspection Header" = R;
-                    Image = TaskQualityMeasure;
+                    Image = CheckList;
                     Caption = 'Show Quality Inspections for Item and Document';
                     ToolTip = 'Shows quality inspections for this item and document.';
                     AboutTitle = 'Show Quality Inspections';
@@ -57,9 +57,9 @@ pageextension 20405 "Qlty. Sales Order Subform" extends "Sales Order Subform"
                 {
                     ApplicationArea = QualityManagement;
                     AccessByPermission = tabledata "Qlty. Inspection Header" = R;
-                    Image = TaskQualityMeasure;
+                    Image = CheckList;
                     Caption = 'Show Quality Inspections for Item';
-                    ToolTip = 'Shows Quality Inspections for Item';
+                    ToolTip = 'Shows quality inspections for this item.';
                     AboutTitle = 'Show Quality Inspections';
                     AboutText = 'Shows quality inspections for this item.';
 
@@ -75,6 +75,10 @@ pageextension 20405 "Qlty. Sales Order Subform" extends "Sales Order Subform"
         }
     }
 
+    /// <summary>
+    /// Determines whether the current sales order line identifies a persisted item.
+    /// </summary>
+    /// <returns>True if the line has a system ID, is an item line, and has a number; otherwise, false.</returns>
     local procedure CanBeProcessed(): Boolean
     begin
         if IsNullGuid(Rec.SystemId) then

@@ -7,10 +7,9 @@ page 8109 "Sub. Billing Report Power BI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Subscription Billing Report';
-    AboutTitle = 'About Subscription Billing Report';
+    Caption = 'Subscription Billing Report (Power BI)';
+    AboutTitle = 'About Subscription Billing Report (Power BI)';
     AboutText = 'The Subscription Billing Report offers a consolidated view of all subscription report pages, conveniently embedded into a single page for easy access.';
-
 
     layout
     {
@@ -45,17 +44,8 @@ page 8109 "Sub. Billing Report Power BI"
         ReportPageLbl: Label '', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-#if not CLEAN28
-#pragma warning disable AL0801
-#endif
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Subscription Billing Report Id"));
-#if not CLEAN28
-#pragma warning restore AL0801
-#endif
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Subscription Billing App");
     end;
 }
 

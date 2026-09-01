@@ -1,0 +1,74 @@
+[
+    {
+        "item": {
+            "name": "Consulting Services",
+            "sellers_item_identification": {
+                "id": "SVC-001"
+            },
+            "classified_tax_category": {
+                "percent": 15.0
+            }
+        },
+        "invoiced_quantity": {
+            "value": 5,
+            "unit_code": "HRS"
+        },
+        "price": {
+            "price_amount": 40.0
+        },
+        "line_extension_amount": 200.0,
+        "allowance_charge": {
+            "amount": {
+                "value": 5.0
+            }
+        }
+    },
+    {
+        "item": {
+            "name": "Office Supplies",
+            "sellers_item_identification": {
+                "id": "MAT-002"
+            },
+            "classified_tax_category": {
+                "percent": 10.0
+            }
+        },
+        "invoiced_quantity": {
+            "value": 10,
+            "unit_code": "PCS"
+        },
+        "price": {
+            "price_amount": 3.0
+        },
+        "line_extension_amount": 30.0,
+        "allowance_charge": {
+            "amount": {
+                "value": 0.0
+            }
+        }
+    },
+    {
+        "item": {
+            "name": "Express Delivery",
+            "sellers_item_identification": {
+                "id": "DLV-003"
+            },
+            "classified_tax_category": {
+                "percent": 15.0
+            }
+        },
+        "invoiced_quantity": {
+            "value": 1,
+            "unit_code": "EA"
+        },
+        "price": {
+            "price_amount": 20.0
+        },
+        "line_extension_amount": 20.0,
+        "allowance_charge": {
+            "amount": {
+                "value": 0.0
+            }
+        }
+    }
+]

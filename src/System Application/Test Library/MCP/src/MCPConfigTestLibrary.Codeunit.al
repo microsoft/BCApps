@@ -6,16 +6,18 @@
 namespace System.TestLibraries.MCP;
 
 using System.MCP;
-using System.Reflection;
 
 codeunit 130131 "MCP Config Test Library"
 {
     var
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
 
-    procedure LookupAPITools(var PageMetadata: Record "Page Metadata"): Boolean
+    procedure LookupAPIObjects(): Boolean
+    var
+        TempMCPAPIObjectBuffer: Record "MCP API Object Buffer";
+        ObjectType: Option;
     begin
-        exit(MCPConfigImplementation.LookupAPITools(PageMetadata));
+        exit(MCPConfigImplementation.LookupAPIObjects(TempMCPAPIObjectBuffer, ObjectType, false));
     end;
 
     procedure AddToolsByAPIGroup(ConfigId: Guid)
@@ -30,27 +32,32 @@ codeunit 130131 "MCP Config Test Library"
 
     procedure LookupAPIPublisher(var APIPublisher: Text; var APIGroup: Text)
     var
-        MCPAPIPublisherGroup: Record "MCP API Publisher Group";
+        TempMCPAPIPublisherGroup: Record "MCP API Publisher Group";
     begin
-        MCPConfigImplementation.GetAPIPublishers(MCPAPIPublisherGroup);
-        MCPConfigImplementation.LookupAPIPublisher(MCPAPIPublisherGroup, APIPublisher, APIGroup);
+        MCPConfigImplementation.GetAPIPublishers(TempMCPAPIPublisherGroup);
+        MCPConfigImplementation.LookupAPIPublisher(TempMCPAPIPublisherGroup, APIPublisher, APIGroup);
     end;
 
     procedure LookupAPIGroup(APIPublisher: Text; var APIGroup: Text)
     var
-        MCPAPIPublisherGroup: Record "MCP API Publisher Group";
+        TempMCPAPIPublisherGroup: Record "MCP API Publisher Group";
     begin
-        MCPConfigImplementation.GetAPIPublishers(MCPAPIPublisherGroup);
-        MCPConfigImplementation.LookupAPIGroup(MCPAPIPublisherGroup, APIPublisher, APIGroup);
+        MCPConfigImplementation.GetAPIPublishers(TempMCPAPIPublisherGroup);
+        MCPConfigImplementation.LookupAPIGroup(TempMCPAPIPublisherGroup, APIPublisher, APIGroup);
     end;
 
-    procedure GetHighestAPIVersion(PageMetadata: Record "Page Metadata"): Text[30]
+    procedure GetHighestAPIPageVersion(PageId: Integer): Text[30]
     begin
-        exit(MCPConfigImplementation.GetHighestAPIVersion(PageMetadata));
+        exit(MCPConfigImplementation.GetHighestAPIPageVersion(PageId));
     end;
 
     procedure GenerateConnectionString(ConfigurationName: Text[100]): Text
     begin
         exit(MCPConfigImplementation.GenerateConnectionString(ConfigurationName));
+    end;
+
+    procedure EncodeForMCPHeaderIfNonAscii(Value: Text): Text
+    begin
+        exit(MCPConfigImplementation.EncodeForMCPHeaderIfNonAscii(Value));
     end;
 }

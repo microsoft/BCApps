@@ -1,0 +1,2 @@
+# cost: 10
+{"query": "mutation { metafieldsSet(metafields: [{{Metafields}}]) { metafields {legacyResourceId namespace key} userErrors {field, message}}}"}

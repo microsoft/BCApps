@@ -7,8 +7,8 @@ page 8098 "Churn Analysis Power BI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Churn Analysis';
-    AboutTitle = 'About Churn Analysis';
+    Caption = 'Churn Analysis (Power BI)';
+    AboutTitle = 'About Churn Analysis (Power BI)';
     AboutText = 'The Churn Analysis report breaks down churn by various dimensions such as contract term, contract type or product.';
 
     layout
@@ -44,17 +44,8 @@ page 8098 "Churn Analysis Power BI"
         ReportPageLbl: Label 'ebdd708c02b5406dd277', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-#if not CLEAN28
-#pragma warning disable AL0801
-#endif
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Subscription Billing Report Id"));
-#if not CLEAN28
-#pragma warning restore AL0801
-#endif
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Subscription Billing App");
     end;
 }
 

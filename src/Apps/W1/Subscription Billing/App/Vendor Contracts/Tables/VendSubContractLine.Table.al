@@ -1,7 +1,9 @@
 namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Inventory.Item;
+using Microsoft.Sales.Customer;
 using System.Utilities;
 
 table 8065 "Vend. Sub. Contract Line"
@@ -269,7 +271,7 @@ table 8065 "Vend. Sub. Contract Line"
 
     internal procedure LoadServiceCommitmentForContractLine(var ServiceCommitment: Record "Subscription Line")
     var
-        LocalServiceCommitment: Record "Subscription Line"; //in case the parameter is passed as temporary table
+        LocalServiceCommitment: Record "Subscription Line";
     begin
         ServiceCommitment.Init();
         if "Subscription Contract No." = '' then
@@ -277,12 +279,15 @@ table 8065 "Vend. Sub. Contract Line"
         case "Contract Line Type" of
             Enum::"Contract Line Type"::Item,
             Enum::"Contract Line Type"::"G/L Account":
-                begin
-                    GetServiceCommitment(LocalServiceCommitment);
-                    LocalServiceCommitment.CalcFields(Quantity);
-                    ServiceCommitment.TransferFields(LocalServiceCommitment);
-                end;
-        end
+                if ServiceCommitment.IsTemporary then begin
+                    if GetServiceCommitment(LocalServiceCommitment) then begin
+                        LocalServiceCommitment.CalcFields(Quantity);
+                        ServiceCommitment.TransferFields(LocalServiceCommitment);
+                    end;
+                end else
+                    if GetServiceCommitment(ServiceCommitment) then
+                        ServiceCommitment.CalcFields(Quantity);
+        end;
     end;
 
     internal procedure GetServiceCommitment(var ServiceCommitment: Record "Subscription Line"): Boolean
@@ -303,6 +308,7 @@ table 8065 "Vend. Sub. Contract Line"
         ServiceCommitment: Record "Subscription Line";
         CustomerServiceCommitment: Record "Subscription Line";
         CustomerContract: Record "Customer Subscription Contract";
+        SourceCodeSetup: Record "Source Code Setup";
     begin
         if Rec."Subscription Header No." = '' then
             exit;
@@ -312,8 +318,10 @@ table 8065 "Vend. Sub. Contract Line"
         ServiceCommitment.SetDefaultDimensions(true);
         CustomerServiceCommitment.FilterOnServiceObjectAndPackage(Rec."Subscription Header No.", ServiceCommitment.Template, ServiceCommitment."Subscription Package Code", Enum::"Service Partner"::Customer);
         if CustomerServiceCommitment.FindFirst() then
-            if CustomerContract.Get(CustomerServiceCommitment."Subscription Contract No.") then
-                ServiceCommitment.GetCombinedDimensionSetID(ServiceCommitment."Dimension Set ID", CustomerContract."Dimension Set ID");
+            if CustomerContract.Get(CustomerServiceCommitment."Subscription Contract No.") then begin
+                SourceCodeSetup.Get();
+                ServiceCommitment.ApplyContractDimensions(CustomerContract."Dimension Set ID", SourceCodeSetup.Sales, Database::Customer);
+            end;
         ServiceCommitment.Modify(false);
     end;
 
@@ -516,6 +524,7 @@ table 8065 "Vend. Sub. Contract Line"
         Rec."Subscription Description" := ServiceObject.Description;
         Rec."Subscription Line Entry No." := ServiceCommitment."Entry No.";
         Rec."Subscription Line Description" := ServiceCommitment.Description;
+        OnAfterInitFromSubscriptionLine(Rec, ServiceCommitment, ServiceObject);
     end;
 
     internal procedure IsCommentLine(): Boolean
@@ -532,5 +541,10 @@ table 8065 "Vend. Sub. Contract Line"
         VendSubContractDeferral.SetRange(Released, false);
         if not VendSubContractDeferral.IsEmpty() then
             Error(UnreleasedVendSubContractDeferralExistsErr);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInitFromSubscriptionLine(var VendSubContractLine: Record "Vend. Sub. Contract Line"; SubscriptionLine: Record "Subscription Line"; SubscriptionHeader: Record "Subscription Header")
+    begin
     end;
 }

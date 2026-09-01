@@ -7,8 +7,8 @@ page 8102 "Rev. by Salesperson Power BI"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Revenue by Salesperson';
-    AboutTitle = 'About Revenue by Salesperson';
+    Caption = 'Revenue by Salesperson (Power BI)';
+    AboutTitle = 'About Revenue by Salesperson (Power BI)';
     AboutText = 'The Revenue by Salesperson report breaks down subscription performance by Salesperson, highlighting metrics such as Monthly Recurring Revenue, Monthly Recurring Cost, Monthly Net Profit Amount and Churn.';
 
     layout
@@ -44,17 +44,8 @@ page 8102 "Rev. by Salesperson Power BI"
         ReportPageLbl: Label '926fa2c13070086cb999', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-#if not CLEAN28
-#pragma warning disable AL0801
-#endif
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Subscription Billing Report Id"));
-#if not CLEAN28
-#pragma warning restore AL0801
-#endif
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Subscription Billing App");
     end;
 }
 

@@ -11,8 +11,8 @@ page 37029 "Inventory by Lot"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Inventory by Lot';
-    AboutTitle = 'About Inventory by Lot';
+    Caption = 'Inventory by Lot (Power BI)';
+    AboutTitle = 'About Inventory by Lot (Power BI)';
     AboutText = 'The Inventory by Lot Number report displays inventory quantities categorized by lot number, providing detailed insights into specific batches of stock. A decomposition tree enhances this by allowing users to drill down into inventory data, breaking down lot quantities by various dimensions such as location, item category, or vendor.';
 
     layout
@@ -48,11 +48,8 @@ page 37029 "Inventory by Lot"
         ReportPageLbl: Label 'ReportSectionec09da5413c3755982a4', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Inventory Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Inventory App");
     end;
 }
 

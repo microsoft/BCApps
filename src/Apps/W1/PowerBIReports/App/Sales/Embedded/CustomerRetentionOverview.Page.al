@@ -11,8 +11,8 @@ page 36983 "Customer Retention Overview"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Customer Retention Overview';
-    AboutTitle = 'About Customer Retention Overview';
+    Caption = 'Customer Retention Overview (Power BI)';
+    AboutTitle = 'About Customer Retention Overview (Power BI)';
     AboutText = 'The Customer Retention Overview page provides insights into customer retention metrics, helping to analyze customer loyalty and retention trends.';
 
     layout
@@ -50,11 +50,8 @@ page 36983 "Customer Retention Overview"
 #pragma warning restore AA0240
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Sales Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Sales App");
     end;
 }
 

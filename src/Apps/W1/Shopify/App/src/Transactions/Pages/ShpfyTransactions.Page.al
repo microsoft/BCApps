@@ -35,7 +35,7 @@ page 30134 "Shpfy Transactions"
                 field(CreatedAt; Rec."Created At")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the date and time at which the transaction is processed.';
+                    ToolTip = 'Specifies the date and time when the transaction was created in Shopify.';
                 }
                 field(Type; Rec.Type)
                 {
@@ -121,6 +121,11 @@ page 30134 "Shpfy Transactions"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the standardized error code, independent of the payment provider. Valid values are: incorrect_number, invalid_number, invalid_expiry_date, invalid_cvc, expired_card, incorrect_cvc, incorrect_zip, incorrect_address, card_declined, processing_error, call_issuer, pick_up_card.';
+                }
+                field(ShpfyOrderNo; Rec."Shpfy Order No.")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the order number from Shopify.';
                 }
                 field(ShopifyOrderId; Rec."Shopify Order Id")
                 {

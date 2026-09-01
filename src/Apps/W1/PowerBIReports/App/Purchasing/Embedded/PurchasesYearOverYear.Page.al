@@ -11,8 +11,8 @@ page 37015 "Purchases Year-Over-Year"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Purchases Year-Over-Year';
-    AboutTitle = 'About Purchases Year-Over-Year';
+    Caption = 'Purchases Year-Over-Year (Power BI)';
+    AboutTitle = 'About Purchases Year-Over-Year (Power BI)';
     AboutText = 'The Purchases Year-Over-Year report compares purchase amounts across multiple years. This report is essential for long-term planning and making informed decisions based on historical purchasing data.';
 
     layout
@@ -48,11 +48,8 @@ page 37015 "Purchases Year-Over-Year"
         ReportPageLbl: Label 'ReportSection884ee5483252d4c5e096', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Purchases Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Purchases App");
     end;
 }
 

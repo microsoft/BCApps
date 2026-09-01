@@ -1,0 +1,2 @@
+# cost: 10
+{"query": "mutation { productUpdate( product:{id: \"gid://shopify/Product/{{ProductId}}\"}, media: [ { originalSource: \"{{ResourceUrl}}\" mediaContentType: IMAGE } ]) { product { media(first: 1, reverse: true) { nodes{ id mediaErrors { code details message } } } } userErrors { field message } } }"}

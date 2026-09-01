@@ -28,18 +28,18 @@ codeunit 132931 "Plan Configuration Test"
     [CommitBehavior(CommitBehavior::Ignore)]
     procedure TestAddDefaultPermissionSetToPlan()
     var
-        PermissionSetInPlanBuffer: Record "Permission Set In Plan Buffer";
+        TempPermissionSetInPlanBuffer: Record "Permission Set In Plan Buffer";
     begin
         // [WHEN] A default permission set is added to a new plan
         PlanConfiguration.AddDefaultPermissionSetToPlan(TestPlanIdTxt, TestRoleIdTxt, NullGuid, Scope::Tenant);
 
         // [THEN] The permission set can be retrieved by calling GetDefaultPermissions
-        PlanConfiguration.GetDefaultPermissions(PermissionSetInPlanBuffer);
-        PermissionSetInPlanBuffer.SetRange("Plan ID", TestPlanIdTxt);
-        Assert.RecordCount(PermissionSetInPlanBuffer, 1);
+        PlanConfiguration.GetDefaultPermissions(TempPermissionSetInPlanBuffer);
+        TempPermissionSetInPlanBuffer.SetRange("Plan ID", TestPlanIdTxt);
+        Assert.RecordCount(TempPermissionSetInPlanBuffer, 1);
 
-        PermissionSetInPlanBuffer.FindFirst();
-        Assert.AreEqual(TestRoleIdTxt, PermissionSetInPlanBuffer."Role ID", 'Unexpected permission set name.');
+        TempPermissionSetInPlanBuffer.FindFirst();
+        Assert.AreEqual(TestRoleIdTxt, TempPermissionSetInPlanBuffer."Role ID", 'Unexpected permission set name.');
     end;
 
     [Test]
@@ -47,20 +47,20 @@ codeunit 132931 "Plan Configuration Test"
     [CommitBehavior(CommitBehavior::Ignore)]
     procedure TestAddCustomPermissionSetToPlan()
     var
-        PermissionSetInPlanBuffer: Record "Permission Set In Plan Buffer";
+        TempPermissionSetInPlanBuffer: Record "Permission Set In Plan Buffer";
     begin
         // [WHEN] A custom permission set is added to a new plan
         PlanConfiguration.AddCustomPermissionSetToPlan(TestPlanIdTxt, TestRoleIdTxt, NullGuid, Scope::Tenant, TestCompanyNameTxt);
 
         // [THEN] The permission set can be retrieved by calling GetDefaultPermissions
-        PlanConfiguration.GetCustomPermissions(PermissionSetInPlanBuffer);
-        PermissionSetInPlanBuffer.SetRange("Plan ID", TestPlanIdTxt);
-        Assert.RecordCount(PermissionSetInPlanBuffer, 1);
+        PlanConfiguration.GetCustomPermissions(TempPermissionSetInPlanBuffer);
+        TempPermissionSetInPlanBuffer.SetRange("Plan ID", TestPlanIdTxt);
+        Assert.RecordCount(TempPermissionSetInPlanBuffer, 1);
 
-        PermissionSetInPlanBuffer.FindFirst();
-        Assert.AreEqual(TestRoleIdTxt, PermissionSetInPlanBuffer."Role ID", 'Unexpected permission set name.');
+        TempPermissionSetInPlanBuffer.FindFirst();
+        Assert.AreEqual(TestRoleIdTxt, TempPermissionSetInPlanBuffer."Role ID", 'Unexpected permission set name.');
         // Custom configurations store the company name. Verify that it is as expected
-        Assert.AreEqual(TestCompanyNameTxt, PermissionSetInPlanBuffer."Company Name", 'Unexpected company name.');
+        Assert.AreEqual(TestCompanyNameTxt, TempPermissionSetInPlanBuffer."Company Name", 'Unexpected company name.');
     end;
 
     [Test]
@@ -68,7 +68,7 @@ codeunit 132931 "Plan Configuration Test"
     [CommitBehavior(CommitBehavior::Ignore)]
     procedure TestRemoveDefaultPermissionSetFromPlan()
     var
-        PermissionSetInPlanBuffer: Record "Permission Set In Plan Buffer";
+        TempPermissionSetInPlanBuffer: Record "Permission Set In Plan Buffer";
     begin
         // [GIVEN] A default permission set is added to a new plan
         PlanConfiguration.AddDefaultPermissionSetToPlan(TestPlanIdTxt, TestRoleIdTxt, NullGuid, Scope::Tenant);
@@ -77,9 +77,9 @@ codeunit 132931 "Plan Configuration Test"
         PlanConfiguration.RemoveDefaultPermissionSetFromPlan(TestPlanIdTxt, TestRoleIdTxt, NullGuid, Scope::Tenant);
 
         // [THEN] The permission set cannot be retrieved by getting default permissions
-        PlanConfiguration.GetDefaultPermissions(PermissionSetInPlanBuffer);
-        PermissionSetInPlanBuffer.SetRange("Plan ID", TestPlanIdTxt);
-        Assert.RecordIsEmpty(PermissionSetInPlanBuffer);
+        PlanConfiguration.GetDefaultPermissions(TempPermissionSetInPlanBuffer);
+        TempPermissionSetInPlanBuffer.SetRange("Plan ID", TestPlanIdTxt);
+        Assert.RecordIsEmpty(TempPermissionSetInPlanBuffer);
     end;
 
     [Test]
@@ -87,7 +87,7 @@ codeunit 132931 "Plan Configuration Test"
     [CommitBehavior(CommitBehavior::Ignore)]
     procedure TestRemoveCustomPermissionSetFromPlan()
     var
-        PermissionSetInPlanBuffer: Record "Permission Set In Plan Buffer";
+        TempPermissionSetInPlanBuffer: Record "Permission Set In Plan Buffer";
     begin
         // [GIVEN] A custom permission set is added to a new plan
         PlanConfiguration.AddCustomPermissionSetToPlan(TestPlanIdTxt, TestRoleIdTxt, NullGuid, Scope::Tenant, TestCompanyNameTxt);
@@ -96,9 +96,9 @@ codeunit 132931 "Plan Configuration Test"
         PlanConfiguration.RemoveCustomPermissionSetFromPlan(TestPlanIdTxt, TestRoleIdTxt, NullGuid, Scope::Tenant, TestCompanyNameTxt);
 
         // [THEN] The permission set cannot be retrieved by getting custom permissions
-        PlanConfiguration.GetCustomPermissions(PermissionSetInPlanBuffer);
-        PermissionSetInPlanBuffer.SetRange("Plan ID", TestPlanIdTxt);
-        Assert.RecordIsEmpty(PermissionSetInPlanBuffer);
+        PlanConfiguration.GetCustomPermissions(TempPermissionSetInPlanBuffer);
+        TempPermissionSetInPlanBuffer.SetRange("Plan ID", TestPlanIdTxt);
+        Assert.RecordIsEmpty(TempPermissionSetInPlanBuffer);
     end;
 
     [Test]

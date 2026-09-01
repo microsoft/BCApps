@@ -13,7 +13,7 @@ using System.Security.User;
 codeunit 132001 "User Details Test Library"
 {
     var
-        UserDetailsRec: Record "User Details";
+        TempUserDetailsRec: Record "User Details";
         UserDoesNotExistErr: Label 'The user with security ID %1 does not exist', Locked = true;
 
     /// <summary>
@@ -23,7 +23,7 @@ codeunit 132001 "User Details Test Library"
     var
         UserDetails: Codeunit "User Details";
     begin
-        UserDetails.Get(UserDetailsRec);
+        UserDetails.Get(TempUserDetailsRec);
     end;
 
     /// <summary>
@@ -32,11 +32,11 @@ codeunit 132001 "User Details Test Library"
     /// <param name="UserSID">The user security ID</param>
     procedure HasSuperPermissionSet(UserSID: Guid): Boolean
     begin
-        if not UserDetailsRec.Get(UserSID) then
+        if not TempUserDetailsRec.Get(UserSID) then
             Error(UserDoesNotExistErr, UserSID);
 
-        UserDetailsRec.CalcFields("Has SUPER permission set");
-        exit(UserDetailsRec."Has SUPER permission set");
+        TempUserDetailsRec.CalcFields("Has SUPER permission set");
+        exit(TempUserDetailsRec."Has SUPER permission set");
     end;
 
     /// <summary>
@@ -45,10 +45,10 @@ codeunit 132001 "User Details Test Library"
     /// <param name="UserSID">The user security ID</param>
     procedure UserPlans(UserSID: Guid): Text
     begin
-        if not UserDetailsRec.Get(UserSID) then
+        if not TempUserDetailsRec.Get(UserSID) then
             Error(UserDoesNotExistErr, UserSID);
 
-        exit(UserDetailsRec."User Plans");
+        exit(TempUserDetailsRec."User Plans");
     end;
 
     /// <summary>
@@ -57,10 +57,10 @@ codeunit 132001 "User Details Test Library"
     /// <param name="UserSID">The user security ID</param>
     procedure IsDelegated(UserSID: Guid): Boolean
     begin
-        if not UserDetailsRec.Get(UserSID) then
+        if not TempUserDetailsRec.Get(UserSID) then
             Error(UserDoesNotExistErr, UserSID);
 
-        exit(UserDetailsRec."Is Delegated");
+        exit(TempUserDetailsRec."Is Delegated");
     end;
 
     /// <summary>
@@ -69,10 +69,10 @@ codeunit 132001 "User Details Test Library"
     /// <param name="UserSID">The user security ID</param>
     procedure HasM365Plan(UserSID: Guid): Boolean
     begin
-        if not UserDetailsRec.Get(UserSID) then
+        if not TempUserDetailsRec.Get(UserSID) then
             Error(UserDoesNotExistErr, UserSID);
 
-        exit(UserDetailsRec."Has M365 Plan");
+        exit(TempUserDetailsRec."Has M365 Plan");
     end;
 
     /// <summary>
@@ -81,10 +81,10 @@ codeunit 132001 "User Details Test Library"
     /// <param name="UserSID">The user security ID</param>
     procedure HasEssentialPlan(UserSID: Guid): Boolean
     begin
-        if not UserDetailsRec.Get(UserSID) then
+        if not TempUserDetailsRec.Get(UserSID) then
             Error(UserDoesNotExistErr, UserSID);
 
-        exit(UserDetailsRec."Has Essential Plan");
+        exit(TempUserDetailsRec."Has Essential Plan");
     end;
 
     /// <summary>
@@ -93,10 +93,10 @@ codeunit 132001 "User Details Test Library"
     /// <param name="UserSID">The user security ID</param>
     procedure HasPremiumPlan(UserSID: Guid): Boolean
     begin
-        if not UserDetailsRec.Get(UserSID) then
+        if not TempUserDetailsRec.Get(UserSID) then
             Error(UserDoesNotExistErr, UserSID);
 
-        exit(UserDetailsRec."Has Premium Plan");
+        exit(TempUserDetailsRec."Has Premium Plan");
     end;
 
     /// <summary>
@@ -105,9 +105,9 @@ codeunit 132001 "User Details Test Library"
     /// <param name="UserSID">The user security ID</param>
     procedure HasEssentialOrPremiumPlan(UserSID: Guid): Boolean
     begin
-        if not UserDetailsRec.Get(UserSID) then
+        if not TempUserDetailsRec.Get(UserSID) then
             Error(UserDoesNotExistErr, UserSID);
 
-        exit(UserDetailsRec."Has Essential Or Premium Plan");
+        exit(TempUserDetailsRec."Has Essential Or Premium Plan");
     end;
 }

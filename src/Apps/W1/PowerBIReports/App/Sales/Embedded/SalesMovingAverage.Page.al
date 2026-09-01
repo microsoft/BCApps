@@ -11,8 +11,8 @@ page 37000 "Sales Moving Average"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Sales Moving Average';
-    AboutTitle = 'About Sales Moving Average';
+    Caption = 'Sales Moving Average (Power BI)';
+    AboutTitle = 'About Sales Moving Average (Power BI)';
     AboutText = 'The Sales Moving Average report visualizes the 30-day moving average of sales amounts over time. This helps identify trends by smoothing out fluctuations and highlighting overall patterns.';
 
     layout
@@ -50,11 +50,8 @@ page 37000 "Sales Moving Average"
 #pragma warning restore AA0240
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Sales Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Sales App");
     end;
 }
 

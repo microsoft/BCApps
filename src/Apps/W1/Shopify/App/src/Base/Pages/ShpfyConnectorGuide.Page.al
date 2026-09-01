@@ -822,7 +822,6 @@ page 30136 "Shpfy Connector Guide"
 
     local procedure SetShopProperties(var ShopifyShop: Record "Shpfy Shop")
     begin
-        ShopifyShop.Validate("Allow Background Syncs", true);
         ShopifyShop.Validate("Allow Outgoing Requests", false);
 
         // Item synchronization

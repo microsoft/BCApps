@@ -8,6 +8,7 @@ query 36954 "Account Categories"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to account category mappings linking category types to G/L account category entry numbers. Enables Power BI reports to classify accounts by category type and build hierarchical financial report structures for standardized financial statement presentation.';
     Caption = 'Power BI Account Categories';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

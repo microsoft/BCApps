@@ -23,7 +23,7 @@ codeunit 30251 "Shpfy Webhooks API"
         Parameters: Dictionary of [Text, Text];
     begin
         CommunicationMgt.SetShop(Shop);
-        GraphQLType := GraphQLType::CreateWebhookSubscription;
+        GraphQLType := GraphQLType::Base_CreateWebhookSubscription;
         Parameters.Add('WebhookTopic', WebhookTopic);
         Parameters.Add('NotificationUrl', GetNotificationUrl());
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters, false);
@@ -41,7 +41,7 @@ codeunit 30251 "Shpfy Webhooks API"
         Parameters: Dictionary of [Text, Text];
     begin
         CommunicationMgt.SetShop(Shop);
-        GraphQLType := GraphQLType::GetWebhookSubscriptions;
+        GraphQLType := GraphQLType::Base_GetWebhookSubscriptions;
         Parameters.Add('WebhookTopic', WebhookTopic);
         Parameters.Add('NotificationUrl', GetNotificationUrl());
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
@@ -71,7 +71,7 @@ codeunit 30251 "Shpfy Webhooks API"
         Parameters: Dictionary of [Text, Text];
     begin
         CommunicationMgt.SetShop(Shop);
-        GraphQLType := GraphQLType::DeleteWebhookSubscription;
+        GraphQLType := GraphQLType::Base_DeleteWebhookSubscription;
         Parameters.Add('SubscriptionId', SubscriptionId);
         CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters, false);
     end;

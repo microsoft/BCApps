@@ -47,4 +47,39 @@ page 30102 "Shpfy Shops"
             }
         }
     }
+
+    actions
+    {
+        area(Processing)
+        {
+            action(ProvideFeedback)
+            {
+                ApplicationArea = All;
+                Caption = 'Provide Feedback';
+                ToolTip = 'Provide feedback on Shopify Connector.';
+                Image = Comment;
+
+                trigger OnAction()
+                var
+                    ShopMgt: Codeunit "Shpfy Shop Mgt.";
+                begin
+                    ShopMgt.RequestFeedback();
+                end;
+            }
+        }
+        area(Promoted)
+        {
+            actionref(ProvideFeedback_Promoted; ProvideFeedback)
+            {
+            }
+        }
+    }
+
+    trigger OnOpenPage()
+    var
+        ShopMgt: Codeunit "Shpfy Shop Mgt.";
+    begin
+        ShopMgt.SendBelgianLocalizationNotification();
+        ShopMgt.SendNorthAmericaLocalizationNotification();
+    end;
 }

@@ -32,6 +32,7 @@ codeunit 139596 "Shpfy Item Attr As Option Test"
         InitializeTest: Codeunit "Shpfy Initialize Test";
         IsInitialized: Boolean;
         UnexpectedAPICallsErr: Label 'More than expected API calls to Shopify detected.';
+        ExpMaxOptionsErr: Label 'maximum of 3 product options';
 
     trigger OnRun()
     begin
@@ -366,10 +367,34 @@ codeunit 139596 "Shpfy Item Attr As Option Test"
     end;
     #endregion
 
+    #region Product facade
+    [Test]
+    procedure UnitTestCheckItemAttributesCompatibleForProductOptionsFromFacade()
+    var
+        Item: Record Item;
+        ShopifyProductMgt: Codeunit "Shpfy Product";
+        CompatibilityCheckResult: Boolean;
+    begin
+        // [SCENARIO] The "Shpfy Product" facade checks item attribute compatibility and primes the shop itself.
+
+        // [GIVEN] Shopify Shop is created
+        Initialize();
+
+        // [GIVEN] Item is created without Item variants but with 4 'As Option' Item Attributes (exceeds Shopify limit of 3)
+        Item := CreateItemWithAsOptionAttributes(4);
+
+        // [WHEN] Check item attributes compatible for product options through the facade (the facade sets the shop)
+        CompatibilityCheckResult := ShopifyProductMgt.CheckItemAttributesCompatibleForProductOptions(Item, Shop);
+
+        // [THEN] Returns false and skipped entry is logged about too many attributes
+        VerifyResultOfCompatibilityCheck(CompatibilityCheckResult);
+        VerifySkippedEntryExists(Item.RecordId, ExpMaxOptionsErr);
+    end;
+    #endregion
+
     #region Helper Procedures
     local procedure Initialize()
     var
-        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         LibraryRandom: Codeunit "Library - Random";
         AccessToken: SecretText;
     begin
@@ -382,8 +407,6 @@ codeunit 139596 "Shpfy Item Attr As Option Test"
 
         Shop := InitializeTest.CreateShop();
 
-        // Disable Event Mocking 
-        CommunicationMgt.SetTestInProgress(false);
         //Register Shopify Access Token
         AccessToken := LibraryRandom.RandText(20);
         InitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);

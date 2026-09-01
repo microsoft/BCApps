@@ -1,0 +1,2 @@
+# cost: 10
+{"query":"mutation inventoryBulkToggleActivation($inventoryItemId: ID!, $inventoryItemUpdates: [InventoryBulkToggleActivationInput!]!) { inventoryBulkToggleActivation(inventoryItemId: $inventoryItemId, inventoryItemUpdates: $inventoryItemUpdates) {userErrors { field message }}}","variables":{"inventoryItemId": "gid://shopify/InventoryItem/{{InventoryItemId}}","inventoryItemUpdates": []}}

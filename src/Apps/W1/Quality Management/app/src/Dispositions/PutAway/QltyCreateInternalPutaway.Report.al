@@ -13,8 +13,9 @@ report 20406 "Qlty. Create Internal Put-away"
 {
     Caption = 'Quality Management - Create Internal Put-away';
     ProcessingOnly = true;
-    ApplicationArea = Warehouse;
+    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
     UsageCategory = Tasks;
+    ApplicationArea = Warehouse;
     AllowScheduling = false;
 
     dataset

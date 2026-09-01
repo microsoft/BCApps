@@ -23,7 +23,8 @@ using System.Reflection;
 /// </summary>
 codeunit 20424 "Qlty. Workflow Response"
 {
-    Permissions = tabledata "Workflow Step Instance" = r;
+    Permissions = tabledata "Workflow Step Instance" = r,
+                  tabledata "Qlty. Workflow Config. Value" = im;
 
     var
         QltyWorkflowSetup: Codeunit "Qlty. Workflow Setup";
@@ -34,10 +35,10 @@ codeunit 20424 "Qlty. Workflow Response"
     /// Note: The method signature for OnExecuteWorkflowResponse has changed at some point between BC 16 and BC 18.
     /// If you get "Operation not supported" then the event method changed.
     /// </summary>
-    /// <param name="ResponseExecuted"></param>
-    /// <param name="Variant"></param>
-    /// <param name="xVariant"></param>
-    /// <param name="ResponseWorkflowStepInstance"></param>
+    /// <param name="ResponseExecuted">Set to true when a Quality Management response is executed.</param>
+    /// <param name="Variant">The current workflow record.</param>
+    /// <param name="xVariant">The previous workflow record.</param>
+    /// <param name="ResponseWorkflowStepInstance">The response workflow step being executed.</param>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Workflow Response Handling", 'OnExecuteWorkflowResponse', '', true, true)]
     local procedure HandleOnExecuteWorkflowResponse(var ResponseExecuted: Boolean; var Variant: Variant; xVariant: Variant; ResponseWorkflowStepInstance: Record "Workflow Step Instance")
     var
@@ -333,6 +334,11 @@ codeunit 20424 "Qlty. Workflow Response"
             end;
     end;
 
+    /// <summary>
+    /// Loads the most recent inspection for the workflow record when no inspection is already loaded.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection header to load.</param>
+    /// <param name="PrimaryRecordRefInWorkflow">The workflow record used to find the inspection.</param>
     local procedure EnsureInspectionHeaderIsLoaded(var QltyInspectionHeader: Record "Qlty. Inspection Header"; PrimaryRecordRefInWorkflow: RecordRef)
     begin
         if QltyInspectionHeader."No." = '' then
@@ -342,9 +348,9 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <summary>
     /// Gets the step configuration value as a decimal for the given key.
     /// </summary>
-    /// <param name="WorkflowStepArgument"></param>
-    /// <param name="CurrentKey"></param>
-    /// <returns></returns>
+    /// <param name="WorkflowStepArgument">The workflow step argument that owns the configuration.</param>
+    /// <param name="CurrentKey">The configuration key.</param>
+    /// <returns>The decimal value, or zero when the stored text cannot be evaluated.</returns>
     internal procedure GetStepConfigurationValueAsDecimal(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text) ResultDecimal: Decimal
     var
         StepConfigurationValue: Text;
@@ -356,9 +362,9 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <summary>
     /// Gets the step configuration value as a boolean for the given key.
     /// </summary>
-    /// <param name="WorkflowStepArgument"></param>
-    /// <param name="CurrentKey"></param>
-    /// <returns></returns>
+    /// <param name="WorkflowStepArgument">The workflow step argument that owns the configuration.</param>
+    /// <param name="CurrentKey">The configuration key.</param>
+    /// <returns>The Boolean value, or false when the stored text cannot be evaluated.</returns>
     internal procedure GetStepConfigurationValueAsBoolean(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text) ResultBoolean: Boolean
     var
         StepConfigurationValue: Text;
@@ -370,9 +376,9 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <summary>
     /// Gets the step configuration value as Code[10] for the given key.
     /// </summary>
-    /// <param name="WorkflowStepArgument"></param>
-    /// <param name="CurrentKey"></param>
-    /// <returns></returns>
+    /// <param name="WorkflowStepArgument">The workflow step argument that owns the configuration.</param>
+    /// <param name="CurrentKey">The configuration key.</param>
+    /// <returns>The configuration value truncated to Code[10].</returns>
     internal procedure GetStepConfigurationValueAsCode10(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text) ResultCode: Code[10]
     var
         StepConfigurationValue: Text;
@@ -384,9 +390,9 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <summary>
     /// Gets the step configuration value as Code[20] for the given key.
     /// </summary>
-    /// <param name="WorkflowStepArgument"></param>
-    /// <param name="CurrentKey"></param>
-    /// <returns></returns>
+    /// <param name="WorkflowStepArgument">The workflow step argument that owns the configuration.</param>
+    /// <param name="CurrentKey">The configuration key.</param>
+    /// <returns>The configuration value truncated to Code[20].</returns>
     internal procedure GetStepConfigurationValueAsCode20(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text) ResultCode: Code[20]
     var
         StepConfigurationValue: Text;
@@ -398,9 +404,9 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <summary>
     /// Returns the configuration value for a given key.
     /// </summary>
-    /// <param name="WorkflowStepArgument"></param>
-    /// <param name="CurrentKey"></param>
-    /// <returns></returns>
+    /// <param name="WorkflowStepArgument">The workflow step argument that owns the configuration.</param>
+    /// <param name="CurrentKey">The configuration key.</param>
+    /// <returns>The stored configuration value, or an empty value when unavailable.</returns>
     procedure GetStepConfigurationValue(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text): Text
     var
         QltyWorkflowConfigValue: Record "Qlty. Workflow Config. Value";
@@ -418,9 +424,9 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <summary>
     /// Sets a decimal step argument configuration value.
     /// </summary>
-    /// <param name="WorkflowStepArgument"></param>
-    /// <param name="CurrentKey"></param>
-    /// <param name="Value"></param>
+    /// <param name="WorkflowStepArgument">The workflow step argument that owns the configuration.</param>
+    /// <param name="CurrentKey">The configuration key.</param>
+    /// <param name="Value">The decimal value to store.</param>
     procedure SetStepConfigurationValueAsDecimal(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text; Value: Decimal)
     begin
         SetStepConfigurationValue(WorkflowStepArgument, CurrentKey, Format(Value, 0, 9));
@@ -429,9 +435,9 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <summary>
     /// Sets a boolean step argument configuration value.
     /// </summary>
-    /// <param name="WorkflowStepArgument"></param>
-    /// <param name="CurrentKey"></param>
-    /// <param name="Value"></param>
+    /// <param name="WorkflowStepArgument">The workflow step argument that owns the configuration.</param>
+    /// <param name="CurrentKey">The configuration key.</param>
+    /// <param name="Value">The Boolean value to store.</param>
     procedure SetStepConfigurationValueAsBoolean(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text; Value: Boolean)
     begin
         SetStepConfigurationValue(WorkflowStepArgument, CurrentKey, Format(Value, 0, 9));
@@ -440,9 +446,9 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <summary>
     /// Sets a step argument configuration value.
     /// </summary>
-    /// <param name="WorkflowStepArgument"></param>
-    /// <param name="CurrentKey"></param>
-    /// <param name="Value"></param>
+    /// <param name="WorkflowStepArgument">The workflow step argument that owns the configuration.</param>
+    /// <param name="CurrentKey">The configuration key.</param>
+    /// <param name="Value">The text value to store.</param>
     procedure SetStepConfigurationValue(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text; Value: Text)
     var
         QltyWorkflowConfigValue: Record "Qlty. Workflow Config. Value";
@@ -468,7 +474,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// </summary>
     /// <param name="WorkflowStepArgument">Workflow Step Argument</param>
     /// <param name="CurrentKey">Configuration Key</param>
-    /// <returns>Value as Date</returns>
+    /// <returns>The stored configuration value as a date.</returns>
     internal procedure GetStepConfigurationValueAsDate(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text) ResultDate: Date
     var
         StepConfigurationValue: Text;
@@ -482,7 +488,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// </summary>
     /// <param name="WorkflowStepArgument">Workflow Step Argument</param>
     /// <param name="CurrentKey">Configuration Key</param>
-    /// <returns>Value as Date</returns>
+    /// <param name="DateValue">The date value to store.</param>
     internal procedure SetStepConfigurationValueAsDate(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text; DateValue: Date)
     begin
         SetStepConfigurationValue(WorkflowStepArgument, CurrentKey, Format(DateValue, 0, 9));
@@ -492,7 +498,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// Returns the key for a location
     /// Typically used for target location/destination location/new location
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The location configuration key.</returns>
     procedure GetWellKnownKeyLocation(): Text
     begin
         exit('LOCATION');
@@ -502,7 +508,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// Returns the key for a bin
     /// Typically used for target bin/destination bin/new bin.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The bin configuration key.</returns>
     procedure GetWellKnownKeyBin(): Text
     begin
         exit('BIN');
@@ -511,7 +517,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <summary>
     /// Returns the key for a quantity.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The quantity configuration key.</returns>
     procedure GetWellKnownKeyQuantity(): Text
     begin
         exit('QUANTITY');
@@ -520,7 +526,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <summary>
     /// Returns the key for posting immediately or not.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The post-immediately configuration key.</returns>
     procedure GetWellKnownPostImmediately(): Text
     begin
         exit('POSTAFTER');
@@ -529,7 +535,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <summary>
     /// Returns the key for a flag to move the entire item tracking
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The move-all configuration key.</returns>
     procedure GetWellKnownMoveAll(): Text
     begin
         exit('MOVEALL');
@@ -538,7 +544,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <summary>
     /// Returns the key for a source location filter
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The source location filter configuration key.</returns>
     internal procedure GetWellKnownSourceLocationFilter(): Text
     begin
         exit('SRCLOCFILTER');
@@ -547,7 +553,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <summary>
     /// Returns the key for a source bin filter
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The source bin filter configuration key.</returns>
     internal procedure GetWellKnownSourceBinFilter(): Text
     begin
         exit('SRCBINFILTER');
@@ -556,7 +562,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <summary>
     /// Returns the key for a put-away choice.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The create-put-away configuration key.</returns>
     procedure GetWellKnownCreatePutAway(): Text
     begin
         exit('PUTAWAY');
@@ -565,7 +571,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <summary>
     /// Returns the key for a field
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The field configuration key.</returns>
     internal procedure GetWellKnownKeyField(): Text
     begin
         exit('FIELD');
@@ -574,7 +580,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <summary>
     /// Returns the key for a value expression
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The value expression configuration key.</returns>
     internal procedure GetWellKnownKeyValueExpression(): Text
     begin
         exit('VALUEEXPR');
@@ -583,7 +589,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <summary>
     /// Returns the key for a database table 
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The database table configuration key.</returns>
     internal procedure GetWellKnownKeyDatabaseTable(): Text
     begin
         exit('DBTBLNAME');
@@ -592,7 +598,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <summary>
     /// Returns the key for a database table filter.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The database table filter configuration key.</returns>
     internal procedure GetWellKnownKeyDatabaseTableFilter(): Text
     begin
         exit('DBTBLFLTREXPR');
@@ -601,7 +607,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <summary>
     /// Returns the key value for adjustment posting behavior.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The adjustment posting behavior configuration key.</returns>
     procedure GetWellKnownAdjPostingBehavior(): Text
     begin
         exit('ADJPOSTBEHAVIOR');
@@ -610,7 +616,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <summary>
     /// Returns the key value for whether or not to use the movement worksheet
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The movement worksheet configuration key.</returns>
     internal procedure GetWellKnownUseMoveSheet(): Text
     begin
         exit('USEMOVESHEET');
@@ -619,7 +625,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <summary>
     /// Returns the key value for new lot no.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The new lot number configuration key.</returns>
     internal procedure GetWellKnownNewLotNo(): Text
     begin
         exit('NEWLOTNO');
@@ -628,7 +634,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <summary>
     /// Returns the key value for new serial no.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The new serial number configuration key.</returns>
     internal procedure GetWellKnownNewSerialNo(): Text
     begin
         exit('NEWSERIALNO');
@@ -637,7 +643,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <summary>
     /// Returns the key value for new package no.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The new package number configuration key.</returns>
     internal procedure GetWellKnownNewPackageNo(): Text
     begin
         exit('NEWPACKAGENO');
@@ -646,7 +652,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <summary>
     /// Returns the key value for new expiration date.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The new expiration date configuration key.</returns>
     internal procedure GetWellKnownNewExpDate(): Text
     begin
         exit('NEWEXPDATE');
@@ -655,7 +661,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <summary>
     /// Returns the key value for reason code.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The reason code configuration key.</returns>
     procedure GetWellKnownReasonCode(): Text
     begin
         exit('REASONCODE');
@@ -664,7 +670,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <summary>
     /// Returns the key value for direct transfer.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The direct transfer configuration key.</returns>
     procedure GetWellKnownDirectTransfer(): Text
     begin
         exit('DIRECTTRANSFER');
@@ -673,7 +679,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <summary>
     /// Returns the key value for the in-transit code.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The in-transit location configuration key.</returns>
     internal procedure GetWellKnownInTransit(): Text
     begin
         exit('INTRANSIT');
@@ -682,7 +688,7 @@ codeunit 20424 "Qlty. Workflow Response"
     /// <summary>
     /// Returns the key value for the external doc. no.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The external document number configuration key.</returns>
     procedure GetWellKnownExternalDocNo(): Text
     begin
         exit('EXTERNALDOCNO');
@@ -715,6 +721,12 @@ codeunit 20424 "Qlty. Workflow Response"
         end;
     end;
 
+    /// <summary>
+    /// Stores a quantity behavior as its workflow configuration token.
+    /// </summary>
+    /// <param name="WorkflowStepArgument">The workflow step argument that owns the configuration.</param>
+    /// <param name="CurrentKey">The configuration key.</param>
+    /// <param name="QltyQuantityBehavior">The quantity behavior to store.</param>
     procedure SetStepConfigurationValueAsQuantityBehaviorEnum(WorkflowStepArgument: Record "Workflow Step Argument"; CurrentKey: Text; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior")
     begin
         case QltyQuantityBehavior of
@@ -766,6 +778,13 @@ codeunit 20424 "Qlty. Workflow Response"
         end;
     end;
 
+    /// <summary>
+    /// Populates a disposition buffer from workflow step configuration and evaluates tracking expressions.
+    /// </summary>
+    /// <param name="TempQltyDispositionBuffer">The temporary disposition buffer to populate.</param>
+    /// <param name="QltyInspectionHeader">The inspection header used to evaluate expressions.</param>
+    /// <param name="QltyInspectionLine">The inspection line used to evaluate expressions.</param>
+    /// <param name="WorkflowStepArgument">The workflow step argument containing configuration values.</param>
     local procedure InitDispositionBufferFromWorkflowStepArgument(var TempQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var QltyInspectionLine: Record "Qlty. Inspection Line"; var WorkflowStepArgument: Record "Workflow Step Argument")
     var
         QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";
@@ -815,6 +834,11 @@ codeunit 20424 "Qlty. Workflow Response"
         TempQltyDispositionBuffer."External Document No." := CopyStr(Temp, 1, MaxStrLen(TempQltyDispositionBuffer."External Document No."));
     end;
 
+    /// <summary>
+    /// Clears inspection status filters when the workflow starts from a finished or reopened event.
+    /// </summary>
+    /// <param name="ResponseWorkflowStepInstance">The response step used to locate the originating workflow event.</param>
+    /// <param name="RecordRef">The inspection record reference whose status filters may be cleared.</param>
     local procedure ClearInspectionStatusFilterIfRequired(ResponseWorkflowStepInstance: Record "Workflow Step Instance"; var RecordRef: RecordRef)
     var
         WorkflowStep: Record "Workflow Step";

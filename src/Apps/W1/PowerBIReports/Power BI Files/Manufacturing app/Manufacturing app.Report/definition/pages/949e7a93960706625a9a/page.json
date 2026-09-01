@@ -182,6 +182,22 @@
         },
         "type": "Categorical",
         "howCreated": "User"
+      },
+      {
+        "name": "b2216da3bee9a9c59014",
+        "ordinal": 11,
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Work Center"
+              }
+            },
+            "Property": "Subcontracting"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
       }
     ],
     "filterSortOrder": "Custom"

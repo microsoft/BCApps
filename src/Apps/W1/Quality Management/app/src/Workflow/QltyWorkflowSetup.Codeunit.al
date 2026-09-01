@@ -92,6 +92,10 @@ codeunit 20423 "Qlty. Workflow Setup"
         exit(QMWorkflowResponseReopenInspectionTok);
     end;
 
+    /// <summary>
+    /// Returns the token for a workflow response to create a reinspection.
+    /// </summary>
+    /// <returns>The create-reinspection workflow response token.</returns>
     internal procedure GetWorkflowResponseCreateReinspection(): Text
     begin
         exit(QMWorkflowResponseCreateReinspectionTok);
@@ -199,7 +203,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// <summary>
     ///Returns the token for a workflow response to create a inventory adjustment
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The inventory adjustment workflow response token.</returns>
     procedure GetWorkflowResponseInventoryAdjustment(): Text
     begin
         exit(QMWorkflowResponseAdjInventoryTok);
@@ -208,7 +212,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// <summary>
     ///Returns the token for a workflow response to change item tracking
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The change-item-tracking workflow response token.</returns>
     internal procedure GetWorkflowResponseChangeItemTracking(): Text
     begin
         exit(QMWorkflowResponseChangeItemTrackingTok);
@@ -217,7 +221,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// <summary>
     ///Returns the token for a workflow response to create a transfer
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The create-transfer workflow response token.</returns>
     procedure GetWorkflowResponseCreateTransfer(): Text
     begin
         exit(QMWorkflowResponseCreateTransferTok);
@@ -226,7 +230,7 @@ codeunit 20423 "Qlty. Workflow Setup"
     /// <summary>
     ///Returns the token for a workflow response to create a purchase return
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The create-purchase-return workflow response token.</returns>
     procedure GetWorkflowResponseCreatePurchaseReturn(): Text
     begin
         exit(QMWorkflowResponseCreatePurchaseReturnTok);
@@ -304,12 +308,18 @@ codeunit 20423 "Qlty. Workflow Setup"
         exit(QltyInspectionDelegateWorkflowEventTok);
     end;
 
+    /// <summary>
+    /// Adds Quality Management table relations to the workflow library.
+    /// </summary>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Workflow Event Handling", 'OnAddWorkflowTableRelationsToLibrary', '', true, true)]
     local procedure HandleOnAddWorkflowTableRelationsToLibrary()
     begin
         AddEmployeeUserRelationships();
     end;
 
+    /// <summary>
+    /// Adds user, inspection, and approval entry table relations used by workflows.
+    /// </summary>
     local procedure AddEmployeeUserRelationships()
     var
         User: Record User;
@@ -319,10 +329,13 @@ codeunit 20423 "Qlty. Workflow Setup"
         WorkflowSetup: Codeunit "Workflow Setup";
     begin
         WorkflowSetup.InsertTableRelation(Database::"User", User.FieldNo("User Name"), Database::"Qlty. Inspection Header", QltyInspectionHeader.FieldNo("Assigned User ID"));
-        WorkflowSetup.InsertTableRelation(Database::"Qlty. Inspection Header", QltyInspectionHeader.FieldNo("No."), database::"Approval Entry", ApprovalEntry.FieldNo("Document No."));
-        WorkflowSetup.InsertTableRelation(Database::"Qlty. Inspection Line", QltyInspectionLine.FieldNo("Inspection No."), database::"Approval Entry", ApprovalEntry.FieldNo("Document No."));
+        WorkflowSetup.InsertTableRelation(Database::"Qlty. Inspection Header", QltyInspectionHeader.FieldNo("No."), Database::"Approval Entry", ApprovalEntry.FieldNo("Document No."));
+        WorkflowSetup.InsertTableRelation(Database::"Qlty. Inspection Line", QltyInspectionLine.FieldNo("Inspection No."), Database::"Approval Entry", ApprovalEntry.FieldNo("Document No."));
     end;
 
+    /// <summary>
+    /// Rebuilds the Quality Management workflow events in the workflow library.
+    /// </summary>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Workflow Event Handling", 'OnAddWorkflowEventsToLibrary', '', true, true)]
     local procedure HandleOnAddWorkflowEventsToLibrary()
     var
@@ -344,6 +357,10 @@ codeunit 20423 "Qlty. Workflow Setup"
         WorkflowEventHandling.AddEventToLibrary(GetInspectionReopenedEvent(), Database::"Qlty. Inspection Header", QMWorkflowEventDescriptionAQltyInspectionHasBeenReopenedLbl + OptionalSuffix, 0, false);
     end;
 
+    /// <summary>
+    /// Adds Quality Management event predecessors for approval workflow events.
+    /// </summary>
+    /// <param name="EventFunctionName">The workflow event function receiving predecessor links.</param>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Workflow Event Handling", 'OnAddWorkflowEventPredecessorsToLibrary', '', true, true)]
     local procedure HandleOnAddWorkflowEventPredecessorsToLibrary(EventFunctionName: Code[128])
     var
@@ -365,6 +382,10 @@ codeunit 20423 "Qlty. Workflow Setup"
         end;
     end;
 
+    /// <summary>
+    /// Adds Quality Management event predecessors for a Quality Management workflow response.
+    /// </summary>
+    /// <param name="ResponseFunctionName">The workflow response function receiving predecessor links.</param>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Workflow Response Handling", 'OnAddWorkflowResponsePredecessorsToLibrary', '', true, true)]
     local procedure HandleOnAddWorkflowResponsePredecessorsToLibrary(ResponseFunctionName: Code[128])
     var
@@ -385,6 +406,9 @@ codeunit 20423 "Qlty. Workflow Setup"
                 WorkflowResponseHandling.AddResponsePredecessor(ResponseFunctionName, CopyStr(QualityEvent, 1, 128));
     end;
 
+    /// <summary>
+    /// Rebuilds Quality Management workflow responses and their supported event predecessors.
+    /// </summary>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Workflow Response Handling", 'OnAddWorkflowResponsesToLibrary', '', true, true)]
     local procedure HandleOnAddWorkflowResponsesToLibrary()
     var
@@ -397,12 +421,8 @@ codeunit 20423 "Qlty. Workflow Setup"
         OptionalSuffix: Text;
     begin
         WorkflowResponse.SetFilter("Function Name", QltyPrefixTok + '*');
-        if WorkflowResponse.FindSet() then
-            repeat
-                WorkflowResponse.MakeDependentOnAllEvents();
-            until WorkflowResponse.Next() = 0;
-
         WorkflowResponse.DeleteAll(false);
+
         WorkflowResponse.Reset();
         WorkflowResponse.SetRange(Description, QMWorkflowResponseDescriptionCreateAQltyInspectionLbl);
         if not WorkflowResponse.IsEmpty() then
@@ -413,43 +433,109 @@ codeunit 20423 "Qlty. Workflow Setup"
         QualityEventIds.Add(GetInspectionHasChangedEvent());
         QualityEventIds.Add(GetInspectionReopenedEvent());
 
-        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseCreateInspection(), 1, 128), 0, QMWorkflowResponseDescriptionCreateAQltyInspectionLbl + OptionalSuffix, CopyStr(GetWorkflowResponseCreateInspection(), 1, 20));
+        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseCreateInspection(), 1, 128),
+            0,
+            CopyStr(QMWorkflowResponseDescriptionCreateAQltyInspectionLbl + OptionalSuffix, 1, 250),
+            CopyStr(GetWorkflowResponseCreateInspection(), 1, 20));
         QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseCreateInspection(), 1, 128));
-        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseFinishInspection(), 1, 128), 0, QMWorkflowResponseDescriptionFinishTheQltyInspectionLbl + OptionalSuffix, CopyStr(GetWorkflowResponseFinishInspection(), 1, 20));
+
+        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseFinishInspection(), 1, 128),
+            0,
+            CopyStr(QMWorkflowResponseDescriptionFinishTheQltyInspectionLbl + OptionalSuffix, 1, 250),
+            CopyStr(GetWorkflowResponseFinishInspection(), 1, 20));
         QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseFinishInspection(), 1, 128));
 
-        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseReopenInspection(), 1, 128), 0, QMWorkflowResponseDescriptionReopenTheQltyInspectionLbl + OptionalSuffix, CopyStr(GetWorkflowResponseReopenInspection(), 1, 20));
+        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseReopenInspection(), 1, 128),
+            0,
+            CopyStr(QMWorkflowResponseDescriptionReopenTheQltyInspectionLbl + OptionalSuffix, 1, 250),
+            CopyStr(GetWorkflowResponseReopenInspection(), 1, 20));
         QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseReopenInspection(), 1, 128));
-        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseCreateReinspection(), 1, 128), 0, QMWorkflowResponseDescriptionCreateReinspectionLbl + OptionalSuffix, CopyStr(GetWorkflowResponseCreateReinspection(), 1, 20));
+
+        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseCreateReinspection(), 1, 128),
+            0,
+            CopyStr(QMWorkflowResponseDescriptionCreateReinspectionLbl + OptionalSuffix, 1, 250),
+            CopyStr(GetWorkflowResponseCreateReinspection(), 1, 20));
         QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseCreateReinspection(), 1, 128));
-        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseBlockLot(), 1, 128), 0, QMWorkflowResponseDescriptionBlockLotLbl + OptionalSuffix, CopyStr(GetWorkflowResponseBlockLot(), 1, 20));
+
+        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseBlockLot(), 1, 128),
+            0,
+            CopyStr(QMWorkflowResponseDescriptionBlockLotLbl + OptionalSuffix, 1, 250),
+            CopyStr(GetWorkflowResponseBlockLot(), 1, 20));
         QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseBlockLot(), 1, 128));
-        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseBlockSerial(), 1, 128), 0, QMWorkflowResponseDescriptionBlockSerialLbl + OptionalSuffix, CopyStr(GetWorkflowResponseBlockSerial(), 1, 20));
+
+        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseBlockSerial(), 1, 128),
+            0,
+            CopyStr(QMWorkflowResponseDescriptionBlockSerialLbl + OptionalSuffix, 1, 250),
+            CopyStr(GetWorkflowResponseBlockSerial(), 1, 20));
         QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseBlockSerial(), 1, 128));
-        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseUnblockLot(), 1, 128), 0, QMWorkflowResponseDescriptionUnblockLotLbl + OptionalSuffix, CopyStr(GetWorkflowResponseUnblockLot(), 1, 20));
+
+        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseUnblockLot(), 1, 128),
+            0,
+            CopyStr(QMWorkflowResponseDescriptionUnblockLotLbl + OptionalSuffix, 1, 250),
+            CopyStr(GetWorkflowResponseUnblockLot(), 1, 20));
         QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseUnblockLot(), 1, 128));
-        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseUnblockSerial(), 1, 128), 0, QMWorkflowResponseDescriptionUnblockSerialLbl + OptionalSuffix, CopyStr(GetWorkflowResponseUnblockSerial(), 1, 20));
+
+        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseUnblockSerial(), 1, 128),
+            0,
+            CopyStr(QMWorkflowResponseDescriptionUnblockSerialLbl + OptionalSuffix, 1, 250),
+            CopyStr(GetWorkflowResponseUnblockSerial(), 1, 20));
         QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseUnblockSerial(), 1, 128));
 
-        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseMoveInventory(), 1, 128), 0, QMWorkflowResponseDescriptionMoveInventoryLbl + OptionalSuffix, CopyStr(GetWorkflowResponseMoveInventory(), 1, 20));
+        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseMoveInventory(), 1, 128),
+            0,
+            CopyStr(QMWorkflowResponseDescriptionMoveInventoryLbl + OptionalSuffix, 1, 250),
+            CopyStr(GetWorkflowResponseMoveInventory(), 1, 20));
         QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseMoveInventory(), 1, 128));
         QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseUnQuarantineLicensePlate(), 1, 128));
-        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseInternalPutAway(), 1, 128), 0, QMWorkflowResponseDescriptionCreateInternalPutAwayLbl + OptionalSuffix, CopyStr(GetWorkflowResponseInternalPutAway(), 1, 20));
+
+        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseInternalPutAway(), 1, 128),
+            0,
+            CopyStr(QMWorkflowResponseDescriptionCreateInternalPutAwayLbl + OptionalSuffix, 1, 250),
+            CopyStr(GetWorkflowResponseInternalPutAway(), 1, 20));
         QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseInternalPutAway(), 1, 128));
-        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseSetDatabaseValue(), 1, 128), 0, QMWorkflowResponseDescriptionSetDatabaseValueLbl + OptionalSuffix, CopyStr(GetWorkflowResponseSetDatabaseValue(), 1, 20));
+
+        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseSetDatabaseValue(), 1, 128),
+            0,
+            CopyStr(QMWorkflowResponseDescriptionSetDatabaseValueLbl + OptionalSuffix, 1, 250),
+            CopyStr(GetWorkflowResponseSetDatabaseValue(), 1, 20));
         QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseSetDatabaseValue(), 1, 128));
-        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseInventoryAdjustment(), 1, 128), 0, QMWorkflowResponseDescriptionCreateNegativeAdjustmentLbl + OptionalSuffix, CopyStr(GetWorkflowResponseInventoryAdjustment(), 1, 20));
+
+        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseInventoryAdjustment(), 1, 128),
+            0,
+            CopyStr(QMWorkflowResponseDescriptionCreateNegativeAdjustmentLbl + OptionalSuffix, 1, 250),
+            CopyStr(GetWorkflowResponseInventoryAdjustment(), 1, 20));
         QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseInventoryAdjustment(), 1, 128));
-        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseChangeItemTracking(), 1, 128), 0, QMWorkflowResponseDescriptionChangeItemTrackingInformationLbl + OptionalSuffix, CopyStr(GetWorkflowResponseChangeItemTracking(), 1, 20));
+
+        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseChangeItemTracking(), 1, 128),
+            0,
+            CopyStr(QMWorkflowResponseDescriptionChangeItemTrackingInformationLbl + OptionalSuffix, 1, 250),
+            CopyStr(GetWorkflowResponseChangeItemTracking(), 1, 20));
         QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseChangeItemTracking(), 1, 128));
-        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseCreateTransfer(), 1, 128), 0, QMWorkflowResponseDescriptionCreateTransferOrderLbl + OptionalSuffix, CopyStr(GetWorkflowResponseCreateTransfer(), 1, 20));
+
+        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseCreateTransfer(), 1, 128),
+            0,
+            CopyStr(QMWorkflowResponseDescriptionCreateTransferOrderLbl + OptionalSuffix, 1, 250),
+            CopyStr(GetWorkflowResponseCreateTransfer(), 1, 20));
         QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseCreateTransfer(), 1, 128));
-        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseCreatePurchaseReturn(), 1, 128), 0, QMWorkflowResponseDescriptionCreatePurchaseReturnOrderLbl + OptionalSuffix, CopyStr(GetWorkflowResponseCreatePurchaseReturn(), 1, 20));
+
+        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseCreatePurchaseReturn(), 1, 128),
+            0,
+            CopyStr(QMWorkflowResponseDescriptionCreatePurchaseReturnOrderLbl + OptionalSuffix, 1, 250),
+            CopyStr(GetWorkflowResponseCreatePurchaseReturn(), 1, 20));
         QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseCreatePurchaseReturn(), 1, 128));
-        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseBlockPackage(), 1, 128), 0, QMWorkflowResponseDescriptionBlockPackageLbl + OptionalSuffix, CopyStr(GetWorkflowResponseBlockPackage(), 1, 20));
+
+        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseBlockPackage(), 1, 128),
+            0,
+            CopyStr(QMWorkflowResponseDescriptionBlockPackageLbl + OptionalSuffix, 1, 250),
+            CopyStr(GetWorkflowResponseBlockPackage(), 1, 20));
         QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseBlockPackage(), 1, 128));
-        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseUnblockPackage(), 1, 128), 0, QMWorkflowResponseDescriptionUnblockPackageLbl + OptionalSuffix, CopyStr(GetWorkflowResponseUnblockPackage(), 1, 20));
+
+        WorkflowResponseHandling.AddResponseToLibrary(CopyStr(GetWorkflowResponseUnblockPackage(), 1, 128),
+            0,
+            CopyStr(QMWorkflowResponseDescriptionUnblockPackageLbl + OptionalSuffix, 1, 250),
+            CopyStr(GetWorkflowResponseUnblockPackage(), 1, 20));
         QualityResponseIdsToAdd.Add(CopyStr(GetWorkflowResponseUnblockPackage(), 1, 128));
+
         foreach QualityResponse in QualityResponseIdsToAdd do
             foreach QualityEvent in QualityEventIds do
                 WorkflowResponseHandling.AddResponsePredecessor(CopyStr(QualityResponse, 1, 128), CopyStr(QualityEvent, 1, 128));

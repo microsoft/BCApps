@@ -132,14 +132,19 @@ codeunit 30114 "Shpfy Customer API"
         JResponse: JsonToken;
         GraphQLType: Enum "Shpfy GraphQL Type";
         Parameters: Dictionary of [Text, Text];
+        SearchEMail: Text;
     begin
         if EMail <> '' then begin
-            Parameters.Add('EMail', EMail.ToLower());
-            JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::FindCustomerIdByEMail, Parameters);
+            SearchEMail := EMail.ToLower();
+            Parameters.Add('EMail', SearchEMail);
+            JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::Customers_FindCustomerIdByEMail, Parameters);
             if JsonHelper.GetJsonArray(JResponse, JCustomers, 'data.customers.edges') then
                 foreach JItem in JCustomers do
                     if JsonHelper.GetJsonObject(JItem.AsObject(), JCustomer, 'node') then
-                        exit(CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JCustomer, 'id')));
+                        // Shopify's search syntax tokenizes the query, so it can return customers that do not match
+                        // the requested e-mail exactly. Only accept a result when the e-mail matches exactly.
+                        if JsonHelper.GetValueAsText(JCustomer, 'defaultEmailAddress.emailAddress').ToLower() = SearchEMail then
+                            exit(CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JCustomer, 'id')));
         end;
     end;
 
@@ -156,15 +161,34 @@ codeunit 30114 "Shpfy Customer API"
         JResponse: JsonToken;
         GraphQLType: Enum "Shpfy GraphQL Type";
         Parameters: Dictionary of [Text, Text];
+        SearchPhone: Text;
     begin
-        if Phone <> '' then begin
-            Parameters.Add('Phone', Phone);
-            JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::FindCustomerIdByPhone, Parameters);
+        // Reduce the phone number to '+' and digits. Shopify's search syntax treats whitespace as a term
+        // separator (implicit AND), so a formatted phone number such as '+45 4545 4545' would be parsed as
+        // 'phone:+45' plus two loose '4545' terms and match unrelated customers. Sending the normalized,
+        // whitespace-free value keeps the whole number scoped to the phone filter.
+        SearchPhone := FormatPhoneNo(Phone);
+        if SearchPhone <> '' then begin
+            Parameters.Add('Phone', SearchPhone);
+            JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::Customers_FindCustomerIdByPhone, Parameters);
             if JsonHelper.GetJsonArray(JResponse, JCustomers, 'data.customers.edges') then
                 foreach JItem in JCustomers do
                     if JsonHelper.GetJsonObject(JItem.AsObject(), JCustomer, 'node') then
-                        exit(CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JCustomer, 'id')));
+                        // Only accept a result when the returned phone number matches the requested one exactly,
+                        // so a tokenized or partial Shopify search result is not treated as an existing customer.
+                        if FormatPhoneNo(JsonHelper.GetValueAsText(JCustomer, 'defaultPhoneNumber.phoneNumber')) = SearchPhone then
+                            exit(CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JCustomer, 'id')));
         end;
+    end;
+
+    /// <summary>
+    /// Reduces a phone number to a comparable form containing only the leading '+' and digits.
+    /// </summary>
+    /// <param name="PhoneNo">Parameter of type Text.</param>
+    /// <returns>Return value of type Text.</returns>
+    internal procedure FormatPhoneNo(PhoneNo: Text): Text
+    begin
+        exit(DelChr(PhoneNo, '=', DelChr(PhoneNo, '=', '+0123456789')));
     end;
 
     /// <summary> 
@@ -183,7 +207,7 @@ codeunit 30114 "Shpfy Customer API"
             exit(false);
 
         Parameters.Add('CustomerId', Format(ShopifyCustomer.Id));
-        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::GetCustomer, Parameters);
+        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::Customers_GetCustomer, Parameters);
         if JsonHelper.GetJsonObject(JResponse, JCustomer, 'data.customer') then
             exit(UpdateShopifyCustomerFields(ShopifyCustomer, JCustomer));
     end;
@@ -205,7 +229,7 @@ codeunit 30114 "Shpfy Customer API"
         Parameters: Dictionary of [Text, Text];
         LastSync: DateTime;
     begin
-        GraphQLType := GraphQLType::GetCustomerIds;
+        GraphQLType := GraphQLType::Customers_GetCustomerIds;
         LastSync := Shop.GetLastSyncTime("Shpfy Synchronization Type"::Customers);
         Parameters.Add('LastSync', Format(LastSync, 0, 9));
         repeat
@@ -223,7 +247,7 @@ codeunit 30114 "Shpfy Customer API"
                     Parameters.Set('After', Cursor)
                 else
                     Parameters.Add('After', Cursor);
-                GraphQLType := GraphQLType::GetNextCustomerIds;
+                GraphQLType := GraphQLType::Customers_GetNextCustomerIds;
             end;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.customers.pageInfo.hasNextPage');
     end;
@@ -494,10 +518,10 @@ codeunit 30114 "Shpfy Customer API"
         if ShopCounter.Count = 1 then
             ShopifyCustomer.ModifyAll("Shop Id", Shop."Shop Id", false)
         else begin
-            GraphQLType := "Shpfy GraphQL Type"::GetAllCustomerIds;
+            GraphQLType := "Shpfy GraphQL Type"::Customers_GetAllCustomerIds;
             repeat
                 JResult := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
-                GraphQLType := "Shpfy GraphQL Type"::GetNextAllCustomerIds;
+                GraphQLType := "Shpfy GraphQL Type"::Customers_GetNextAllCustomerIds;
                 if JsonHelper.GetJsonArray(JResult, JArray, 'data.customers.nodes') then begin
                     FilterString := Format(JArray).TrimStart('[').TrimEnd(']').Replace('{"legacyResourceId":"', '').Replace('"}', '').Replace(',', '|');
                     ShopifyCustomer.SetFilter(Id, FilterString);

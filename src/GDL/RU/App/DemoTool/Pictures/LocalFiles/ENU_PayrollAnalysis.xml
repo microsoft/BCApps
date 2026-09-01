@@ -1,0 +1,2293 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<PayrollAnalysisReports>
+  <PayrollAnalysisReportName>
+    <Name>FSI-4 T10</Name>
+    <Description>ФСС-4, раздел 1 т. 10</Description>
+    <AnalysisLineTemplateName />
+    <AnalysisColumnTemplateName />
+  </PayrollAnalysisReportName>
+  <PayrollAnalysisReportName>
+    <Name>FSI-4 T2</Name>
+    <Description>ФСС-4, раздел 1 т. 2</Description>
+    <AnalysisLineTemplateName>FSI-4 T2</AnalysisLineTemplateName>
+    <AnalysisColumnTemplateName>FSI-4 T2</AnalysisColumnTemplateName>
+  </PayrollAnalysisReportName>
+  <PayrollAnalysisReportName>
+    <Name>FSI-4 T3</Name>
+    <Description>ФСС-4, раздел 1 т. 3</Description>
+    <AnalysisLineTemplateName>FSI-4 T3</AnalysisLineTemplateName>
+    <AnalysisColumnTemplateName>FSI-4 T3</AnalysisColumnTemplateName>
+  </PayrollAnalysisReportName>
+  <PayrollAnalysisReportName>
+    <Name>FSI-4 T9</Name>
+    <Description>ФСС-4, раздел 1 т. 9</Description>
+    <AnalysisLineTemplateName>FSI-4 T9</AnalysisLineTemplateName>
+    <AnalysisColumnTemplateName>FSI-4 T9</AnalysisColumnTemplateName>
+  </PayrollAnalysisReportName>
+  <PayrollAnalysisReportName>
+    <Name>IND CARD</Name>
+    <Description>Инд.карт. застрахов.лица(год)</Description>
+    <AnalysisLineTemplateName>IND CARD</AnalysisLineTemplateName>
+    <AnalysisColumnTemplateName>IND CARD</AnalysisColumnTemplateName>
+  </PayrollAnalysisReportName>
+  <PayrollAnalysisReportName>
+    <Name>RSV-1 R2</Name>
+    <Description>РСВ-1, Раздел 2</Description>
+    <AnalysisLineTemplateName>RSV-1 R2</AnalysisLineTemplateName>
+    <AnalysisColumnTemplateName>RSV-1 R2</AnalysisColumnTemplateName>
+  </PayrollAnalysisReportName>
+  <PayrollAnalysisLineTemplate>
+    <Name>FSI-4 T2</Name>
+    <Description>ФСС-4, раздел 1 т. 2</Description>
+    <DefaultColumnTemplateName>FSI-4 T2</DefaultColumnTemplateName>
+    <PayrollAnalysisViewCode />
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>FSI-4 T2</AnalysisLineTemplateName>
+      <LineNo>10000</LineNo>
+      <RowNo>L010</RowNo>
+      <Description>Выплата пособий по временной нетрудоспособности</Description>
+      <Type>Payroll Element Group</Type>
+      <Expression>SICK LEAVE PAY</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>Yes</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter>&lt;&gt;PAY SL PREG AMT&amp;&lt;&gt;PAY SL PREG DAYS</ElementFilter>
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter>3</PaymentSourceFilter>
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>FSI-4 T2</AnalysisLineTemplateName>
+      <LineNo>15000</LineNo>
+      <RowNo>L020</RowNo>
+      <Description>из них по внешнему совместительству</Description>
+      <Type>Payroll Element Group</Type>
+      <Expression>SICK LEAVE PAY</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter>&lt;&gt;PAY SL PREG AMT&amp;&lt;&gt;PAY SL PREG DAYS</ElementFilter>
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter>2</WorkModeFilter>
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter>3</PaymentSourceFilter>
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>FSI-4 T2</AnalysisLineTemplateName>
+      <LineNo>20000</LineNo>
+      <RowNo>L030</RowNo>
+      <Description>Выплата пособий по беременности и родам</Description>
+      <Type>Payroll Element</Type>
+      <Expression>PAY SL PREG DAYS</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>Yes</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter>3</PaymentSourceFilter>
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>FSI-4 T2</AnalysisLineTemplateName>
+      <LineNo>25000</LineNo>
+      <RowNo>L040</RowNo>
+      <Description>из них по внешнему совместительству</Description>
+      <Type>Payroll Element</Type>
+      <Expression>PAY SL PREG DAYS</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter>2</WorkModeFilter>
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter>3</PaymentSourceFilter>
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>FSI-4 T2</AnalysisLineTemplateName>
+      <LineNo>30000</LineNo>
+      <RowNo>L050</RowNo>
+      <Description>Единовр. пособ. женщ., вставшим на учет в мед. учереждении в ранние сроки бер</Description>
+      <Type>Payroll Element</Type>
+      <Expression>BENEFIT EARLY PREG</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>Yes</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>FSI-4 T2</AnalysisLineTemplateName>
+      <LineNo>40000</LineNo>
+      <RowNo>L060</RowNo>
+      <Description>Единовр. пособ. при рождении ребенка</Description>
+      <Type>Payroll Element</Type>
+      <Expression>BENEFIT CHILD BIRTH</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>Yes</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>FSI-4 T2</AnalysisLineTemplateName>
+      <LineNo>50000</LineNo>
+      <RowNo>L070</RowNo>
+      <Description>Ежемесячное пособ. по уходу за ребенком</Description>
+      <Type>Payroll Element</Type>
+      <Expression>L080+L110</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>Yes</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>FSI-4 T2</AnalysisLineTemplateName>
+      <LineNo>60000</LineNo>
+      <RowNo>L080</RowNo>
+      <Description>из них по основному месту работы</Description>
+      <Type>Payroll Element</Type>
+      <Expression>L090+L100</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>FSI-4 T2</AnalysisLineTemplateName>
+      <LineNo>70000</LineNo>
+      <RowNo>L090</RowNo>
+      <Description>в т.ч. по уходу за первым ребенком</Description>
+      <Type>Payroll Element</Type>
+      <Expression>VAC CHILD1 1.5 DAYS</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter>0</WorkModeFilter>
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>FSI-4 T2</AnalysisLineTemplateName>
+      <LineNo>80000</LineNo>
+      <RowNo>L100</RowNo>
+      <Description>в т.ч. по уходу за вторым и последующими детьми</Description>
+      <Type>Payroll Element</Type>
+      <Expression>VAC CHILD2 1.5 DAYS|VAC CHILD3 1.5 DAYS</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter>0</WorkModeFilter>
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>FSI-4 T2</AnalysisLineTemplateName>
+      <LineNo>90000</LineNo>
+      <RowNo>L110</RowNo>
+      <Description>по одному из мест работы</Description>
+      <Type>Payroll Element</Type>
+      <Expression>L120+L130</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>FSI-4 T2</AnalysisLineTemplateName>
+      <LineNo>100000</LineNo>
+      <RowNo>L120</RowNo>
+      <Description>в т. ч. по уходу за первым ребенком</Description>
+      <Type>Payroll Element</Type>
+      <Expression>VAC CHILD1 1.5 DAYS</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter>2</WorkModeFilter>
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>FSI-4 T2</AnalysisLineTemplateName>
+      <LineNo>110000</LineNo>
+      <RowNo>L130</RowNo>
+      <Description>в т. ч. по уходу за вторым и последющими детьми</Description>
+      <Type>Payroll Element</Type>
+      <Expression>VAC CHILD2 1.5 DAYS|VAC CHILD3 1.5 DAYS</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter>2</WorkModeFilter>
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>FSI-4 T2</AnalysisLineTemplateName>
+      <LineNo>120000</LineNo>
+      <RowNo>L140</RowNo>
+      <Description>Оплата 4-х дополн. выходных дней для ухода за детьми инвалидами</Description>
+      <Type>Payroll Element</Type>
+      <Expression />
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>Yes</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>FSI-4 T2</AnalysisLineTemplateName>
+      <LineNo>130000</LineNo>
+      <RowNo>L150</RowNo>
+      <Description>Социальное пособие на погребение</Description>
+      <Type>Payroll Element</Type>
+      <Expression>BENEFIT FUNERAL</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>Yes</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>FSI-4 T2</AnalysisLineTemplateName>
+      <LineNo>160000</LineNo>
+      <RowNo>L160</RowNo>
+      <Description>ИТОГО</Description>
+      <Type>Formula</Type>
+      <Expression>L010+L020+L030+L050+L060+L070+L140+L150</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>Yes</Bold>
+      <Italic>Yes</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+  </PayrollAnalysisLineTemplate>
+  <PayrollAnalysisLineTemplate>
+    <Name>FSI-4 T3</Name>
+    <Description>ФСС-4, раздел 1 т. 3</Description>
+    <DefaultColumnTemplateName>FSI-4 T3</DefaultColumnTemplateName>
+    <PayrollAnalysisViewCode />
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>FSI-4 T3</AnalysisLineTemplateName>
+      <LineNo>10000</LineNo>
+      <RowNo>L03</RowNo>
+      <Description>Сумма выплат и иных вознагражд.,начисл. в пользу физ. лиц</Description>
+      <Type>Formula</Type>
+      <Expression>L07+L06+L05+L04</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>FSI-4 T3</AnalysisLineTemplateName>
+      <LineNo>20000</LineNo>
+      <RowNo>L04</RowNo>
+      <Description>Суммы,неподлежащие облож. в соотв. со ст. 9 ФЗ-212</Description>
+      <Type>Payroll Element</Type>
+      <Expression>TAX REP FSI NO TAX</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>FSI-4 T3</AnalysisLineTemplateName>
+      <LineNo>30000</LineNo>
+      <RowNo>L05</RowNo>
+      <Description>Сумма выплат физ. лицам, явл. инвалидами</Description>
+      <Type>Payroll Element</Type>
+      <Expression>TAX REP FSI BASE</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter>1|2|3</DisabilityGroupFilter>
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>FSI-4 T3</AnalysisLineTemplateName>
+      <LineNo>40000</LineNo>
+      <RowNo>L06</RowNo>
+      <Description>Суммы, превышающие предел. величину базы для начисл. страх. взносов</Description>
+      <Type>Payroll Element</Type>
+      <Expression>TAX REP FSI OVER</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>FSI-4 T3</AnalysisLineTemplateName>
+      <LineNo>50000</LineNo>
+      <RowNo>L07</RowNo>
+      <Description>Итого база для начисления страх. взносов</Description>
+      <Type>Payroll Element</Type>
+      <Expression>TAX REP FSI BASE</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+  </PayrollAnalysisLineTemplate>
+  <PayrollAnalysisLineTemplate>
+    <Name>FSI-4 T9</Name>
+    <Description>ФСС-4, раздел 1 т. 9</Description>
+    <DefaultColumnTemplateName>FSI-4 T9</DefaultColumnTemplateName>
+    <PayrollAnalysisViewCode />
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>FSI-4 T9</AnalysisLineTemplateName>
+      <LineNo>10000</LineNo>
+      <RowNo>L01</RowNo>
+      <Description>Выплаты в пользу работников всего</Description>
+      <Type>Payroll Element</Type>
+      <Expression>TAX FSI INJ</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>FSI-4 T9</AnalysisLineTemplateName>
+      <LineNo>20000</LineNo>
+      <RowNo>L02</RowNo>
+      <Description>в. т. ч. в пользу инвалидов</Description>
+      <Type>Payroll Element</Type>
+      <Expression>TAX FSI INJ DIS</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter>1|2|3</DisabilityGroupFilter>
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+  </PayrollAnalysisLineTemplate>
+  <PayrollAnalysisLineTemplate>
+    <Name>IND CARD</Name>
+    <Description>Индивидуальная карточка учета сумм начисленных выплат и страх. взносов</Description>
+    <DefaultColumnTemplateName />
+    <PayrollAnalysisViewCode />
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>IND CARD</AnalysisLineTemplateName>
+      <LineNo>10000</LineNo>
+      <RowNo>L010</RowNo>
+      <Description>Выплаты в соотв.с ч. 1-2 ст. 7 212-ФЗ</Description>
+      <Type>Formula</Type>
+      <Expression>L080+L060+L020+L030+L040</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>IND CARD</AnalysisLineTemplateName>
+      <LineNo>20000</LineNo>
+      <RowNo>L020</RowNo>
+      <Description>из них не подлеж. обложению ч. 7 ст.8</Description>
+      <Type>Payroll Element</Type>
+      <Expression />
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>IND CARD</AnalysisLineTemplateName>
+      <LineNo>30000</LineNo>
+      <RowNo>L030</RowNo>
+      <Description>из них не подлеж. обложению ч. 1, 2 ст.9</Description>
+      <Type>Payroll Element</Type>
+      <Expression>TAX REP PF MI NO TAX</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>IND CARD</AnalysisLineTemplateName>
+      <LineNo>40000</LineNo>
+      <RowNo>L040</RowNo>
+      <Description>из них не подлеж. обложению п. 1 ч. 3 ст.9</Description>
+      <Type>Payroll Element</Type>
+      <Expression />
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>IND CARD</AnalysisLineTemplateName>
+      <LineNo>50000</LineNo>
+      <RowNo>L050</RowNo>
+      <Description>из них не подлеж. обложению п. 2 ч. 3 ст.9</Description>
+      <Type>Payroll Element</Type>
+      <Expression>TAX REP FSI NO TAX</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>IND CARD</AnalysisLineTemplateName>
+      <LineNo>60000</LineNo>
+      <RowNo>L060</RowNo>
+      <Description>Сумма выплат, превышающая предел на ОПС и ОМС (ч.2 ст. 8 212-ФЗ)</Description>
+      <Type>Payroll Element</Type>
+      <Expression>TAX REP PF MI OVER</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>IND CARD</AnalysisLineTemplateName>
+      <LineNo>70000</LineNo>
+      <RowNo>L070</RowNo>
+      <Description>Сумма выплат, превышающая предел на ФСС (ч.2 ст. 8 212-ФЗ)</Description>
+      <Type>Payroll Element</Type>
+      <Expression>TAX REP FSI OVER</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>IND CARD</AnalysisLineTemplateName>
+      <LineNo>80000</LineNo>
+      <RowNo>L080</RowNo>
+      <Description>База для начисления стаховых взносов на ОПС</Description>
+      <Type>Payroll Element</Type>
+      <Expression>TAX REP PF MI BASE</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>IND CARD</AnalysisLineTemplateName>
+      <LineNo>90000</LineNo>
+      <RowNo>L090</RowNo>
+      <Description>База для начисления стаховых взносов на ОМС</Description>
+      <Type>Payroll Element</Type>
+      <Expression>TAX REP PF MI BASE</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>IND CARD</AnalysisLineTemplateName>
+      <LineNo>100000</LineNo>
+      <RowNo>L100</RowNo>
+      <Description>База для начисления стаховых взносов на ФСС</Description>
+      <Type>Payroll Element</Type>
+      <Expression>TAX REP FSI BASE</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>IND CARD</AnalysisLineTemplateName>
+      <LineNo>110000</LineNo>
+      <RowNo>L110</RowNo>
+      <Description>Начислено страховых взносов на ОПС - страховая часть</Description>
+      <Type>Payroll Element</Type>
+      <Expression>TAX PF INS</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>Yes</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>IND CARD</AnalysisLineTemplateName>
+      <LineNo>120000</LineNo>
+      <RowNo>L115</RowNo>
+      <Description>Начислено страховых взносов на ОПС - накопительная часть</Description>
+      <Type>Payroll Element</Type>
+      <Expression>TAX PF SAV</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>Yes</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>IND CARD</AnalysisLineTemplateName>
+      <LineNo>130000</LineNo>
+      <RowNo>L119</RowNo>
+      <Description>Начислено страховых взносов на ОПС - дополнительный тариф</Description>
+      <Type>Payroll Element</Type>
+      <Expression />
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>Yes</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>IND CARD</AnalysisLineTemplateName>
+      <LineNo>140000</LineNo>
+      <RowNo>L120</RowNo>
+      <Description>Начислено страховых взносов на ОМС - ФФОМС</Description>
+      <Type>Payroll Element</Type>
+      <Expression>TAX FED FMI</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>Yes</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>IND CARD</AnalysisLineTemplateName>
+      <LineNo>150000</LineNo>
+      <RowNo>L125</RowNo>
+      <Description>Начислено страховых взносов на ОМС - ТФОМС</Description>
+      <Type>Payroll Element</Type>
+      <Expression>TAX TER FMI</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>Yes</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>IND CARD</AnalysisLineTemplateName>
+      <LineNo>160000</LineNo>
+      <RowNo>L130</RowNo>
+      <Description>Начислено страховых взносов на ОМС - ФСС</Description>
+      <Type>Payroll Element</Type>
+      <Expression>TAX FSI</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>Yes</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>IND CARD</AnalysisLineTemplateName>
+      <LineNo>190000</LineNo>
+      <RowNo>L150</RowNo>
+      <Description>Начислено пособий за счет средств - ФСС ВСЕГО</Description>
+      <Type>Formula</Type>
+      <Expression>L1501+L1502</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>IND CARD</AnalysisLineTemplateName>
+      <LineNo>200000</LineNo>
+      <RowNo />
+      <Description />
+      <Type>Payroll Element</Type>
+      <Expression />
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>IND CARD</AnalysisLineTemplateName>
+      <LineNo>210000</LineNo>
+      <RowNo />
+      <Description />
+      <Type>Payroll Element</Type>
+      <Expression />
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>IND CARD</AnalysisLineTemplateName>
+      <LineNo>220000</LineNo>
+      <RowNo />
+      <Description />
+      <Type>Payroll Element</Type>
+      <Expression />
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>IND CARD</AnalysisLineTemplateName>
+      <LineNo>230000</LineNo>
+      <RowNo>L1501</RowNo>
+      <Description>Начислено пособий за счет средств - ФСС (больничные)</Description>
+      <Type>Payroll Element Group</Type>
+      <Expression>SICK LEAVE PAY</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>Yes</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>IND CARD</AnalysisLineTemplateName>
+      <LineNo>240000</LineNo>
+      <RowNo>L1502</RowNo>
+      <Description>Начислено пособий за счет средств - ФСС (больничные)</Description>
+      <Type>Payroll Element</Type>
+      <Expression>BENEFIT CHILD BIRTH|BENEFIT EARLY PREG|BENEFIT FUNERAL</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+  </PayrollAnalysisLineTemplate>
+  <PayrollAnalysisLineTemplate>
+    <Name>RSV-1 R2</Name>
+    <Description>РСВ-1, Раздел 2</Description>
+    <DefaultColumnTemplateName>RSV-1 R2</DefaultColumnTemplateName>
+    <PayrollAnalysisViewCode />
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>RSV-1 R2</AnalysisLineTemplateName>
+      <LineNo>10000</LineNo>
+      <RowNo>L200</RowNo>
+      <Description>Сумма выплат ВСЕГО , начисленных в соответсвии со ст. 7 ФЗ-212</Description>
+      <Type>Formula</Type>
+      <Expression>L210+L216+L230</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>Yes</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>RSV-1 R2</AnalysisLineTemplateName>
+      <LineNo>15000</LineNo>
+      <RowNo>L201</RowNo>
+      <Description>Сумма выплат (1966 г.р и старше), начисленных в соответсвии со ст. 7 ФЗ-212</Description>
+      <Type>Formula</Type>
+      <Expression>L201+L211+L217+L220</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>RSV-1 R2</AnalysisLineTemplateName>
+      <LineNo>17500</LineNo>
+      <RowNo>L202</RowNo>
+      <Description>Сумма выплат (1966 г.р и моложе), начисленных в соответсвии со ст. 7 ФЗ-212</Description>
+      <Type>Formula</Type>
+      <Expression>L202+L212+L218+L221</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>RSV-1 R2</AnalysisLineTemplateName>
+      <LineNo>20000</LineNo>
+      <RowNo>L210</RowNo>
+      <Description>Суммы не подлежащие облож.страх. взносами ВСЕГО по ч. 1,2 ст.9 ФЗ-212</Description>
+      <Type>Payroll Element</Type>
+      <Expression>TAX REP PF MI NO TAX</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>Yes</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>RSV-1 R2</AnalysisLineTemplateName>
+      <LineNo>25000</LineNo>
+      <RowNo>L211</RowNo>
+      <Description>Суммы не подлежащие облож.страх. взносами (1966 и старше) по ч. 1,2 ст.9 ФЗ-212</Description>
+      <Type>Payroll Element</Type>
+      <Expression>TAX REP PF MI NO TAX</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter>No</UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>RSV-1 R2</AnalysisLineTemplateName>
+      <LineNo>27500</LineNo>
+      <RowNo>L212</RowNo>
+      <Description>Суммы не подлежащие облож.страх. взносами (1966 и моложе) по ч. 1,2 ст.9 ФЗ-212</Description>
+      <Type>Payroll Element</Type>
+      <Expression>TAX REP PF MI NO TAX</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter>Yes</UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>RSV-1 R2</AnalysisLineTemplateName>
+      <LineNo>28750</LineNo>
+      <RowNo>L214</RowNo>
+      <Description />
+      <Type>Payroll Element</Type>
+      <Expression />
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>RSV-1 R2</AnalysisLineTemplateName>
+      <LineNo>29375</LineNo>
+      <RowNo>L215</RowNo>
+      <Description />
+      <Type>Payroll Element</Type>
+      <Expression />
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>RSV-1 R2</AnalysisLineTemplateName>
+      <LineNo>30000</LineNo>
+      <RowNo>L216</RowNo>
+      <Description>Суммы, превыш.предел.величину базы ВСЕГО - ст.8 ФЗ-212</Description>
+      <Type>Payroll Element</Type>
+      <Expression>TAX REP PF MI OVER</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>Yes</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>RSV-1 R2</AnalysisLineTemplateName>
+      <LineNo>35000</LineNo>
+      <RowNo>L217</RowNo>
+      <Description>Суммы, превыш.предел.величину базы (1966 и старше) - ст.8 ФЗ-212</Description>
+      <Type>Payroll Element</Type>
+      <Expression>TAX REP PF MI OVER</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter>No</UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>RSV-1 R2</AnalysisLineTemplateName>
+      <LineNo>37500</LineNo>
+      <RowNo>L218</RowNo>
+      <Description>Суммы, превыш.предел.величину базы (1966 и моложе) - ст.8 ФЗ-212</Description>
+      <Type>Payroll Element</Type>
+      <Expression>TAX REP PF MI OVER</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter>Yes</UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>RSV-1 R2</AnalysisLineTemplateName>
+      <LineNo>40000</LineNo>
+      <RowNo>L220</RowNo>
+      <Description>База для начисления страх.взносов на ОПС (1966 и старше)</Description>
+      <Type>Payroll Element</Type>
+      <Expression>TAX REP PF MI BASE</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter>No</UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>RSV-1 R2</AnalysisLineTemplateName>
+      <LineNo>50000</LineNo>
+      <RowNo>L221</RowNo>
+      <Description>База для начисления страх.взносов на ОПС (1966 и моложе)</Description>
+      <Type>Payroll Element</Type>
+      <Expression>TAX REP PF MI BASE</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter>Yes</UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>RSV-1 R2</AnalysisLineTemplateName>
+      <LineNo>60000</LineNo>
+      <RowNo>L230</RowNo>
+      <Description>База для начисления страх.взносов на ОМС</Description>
+      <Type>Payroll Element</Type>
+      <Expression>TAX REP PF MI BASE</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>RSV-1 R2</AnalysisLineTemplateName>
+      <LineNo>70000</LineNo>
+      <RowNo>L241</RowNo>
+      <Description>Начислено страх.взносов на ОПС - страховая часть</Description>
+      <Type>Payroll Element</Type>
+      <Expression>TAX PF INS</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>Yes</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>RSV-1 R2</AnalysisLineTemplateName>
+      <LineNo>80000</LineNo>
+      <RowNo>L242</RowNo>
+      <Description>Начислено страх.взносов на ОПС - накопительная часть</Description>
+      <Type>Payroll Element</Type>
+      <Expression>TAX PF SAV</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>Yes</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>RSV-1 R2</AnalysisLineTemplateName>
+      <LineNo>90000</LineNo>
+      <RowNo>L243</RowNo>
+      <Description>Начислено страх.взносов на ОМС - ФФОМС</Description>
+      <Type>Payroll Element</Type>
+      <Expression>TAX FED FMI</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>Yes</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+    <PayrollAnalysisLine>
+      <AnalysisLineTemplateName>RSV-1 R2</AnalysisLineTemplateName>
+      <LineNo>100000</LineNo>
+      <RowNo>L244</RowNo>
+      <Description>Начислено страх.взносов на ОМС - ТФОМС</Description>
+      <Type>Payroll Element</Type>
+      <Expression>TAX TER FMI</Expression>
+      <NewPage>No</NewPage>
+      <Show>Yes</Show>
+      <Bold>No</Bold>
+      <Italic>No</Italic>
+      <Underline>No</Underline>
+      <ShowOppositeSign>Yes</ShowOppositeSign>
+      <Dimension1Totaling />
+      <Dimension2Totaling />
+      <Dimension3Totaling />
+      <Dimension4Totaling />
+      <Indentation>0</Indentation>
+      <ElementTypeFilter />
+      <ElementFilter />
+      <UsePFAccumSystemFilter> </UsePFAccumSystemFilter>
+      <IncomeTaxBaseFilter> </IncomeTaxBaseFilter>
+      <WorkModeFilter />
+      <DisabilityGroupFilter />
+      <PaymentSourceFilter />
+      <ContractTypeFilter />
+      <CalcGroupFilter />
+    </PayrollAnalysisLine>
+  </PayrollAnalysisLineTemplate>
+  <PayrollAnalysisColumnTmpl>
+    <Name>FSI-4 T2</Name>
+    <Description>ФСС-4, раздел 1 т. 2</Description>
+    <PayrollAnalysisColumn>
+      <AnalysisColumnTemplate>FSI-4 T2</AnalysisColumnTemplate>
+      <LineNo>10000</LineNo>
+      <ColumnNo>L31</ColumnNo>
+      <ColumnHeader>Кол-во выплат, Число случаев</ColumnHeader>
+      <ColumnType>Year to Date</ColumnType>
+      <AmountType>Quantity</AmountType>
+      <Formula />
+      <ComparisonDateFormula />
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Show>Always</Show>
+      <RoundingFactor>None</RoundingFactor>
+      <ComparisonPeriodFormula />
+    </PayrollAnalysisColumn>
+    <PayrollAnalysisColumn>
+      <AnalysisColumnTemplate>FSI-4 T2</AnalysisColumnTemplate>
+      <LineNo>15000</LineNo>
+      <ColumnNo>L32</ColumnNo>
+      <ColumnHeader>Кол-во дней</ColumnHeader>
+      <ColumnType>Year to Date</ColumnType>
+      <AmountType>Payment Days</AmountType>
+      <Formula />
+      <ComparisonDateFormula />
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Show>Always</Show>
+      <RoundingFactor>None</RoundingFactor>
+      <ComparisonPeriodFormula />
+    </PayrollAnalysisColumn>
+    <PayrollAnalysisColumn>
+      <AnalysisColumnTemplate>FSI-4 T2</AnalysisColumnTemplate>
+      <LineNo>20000</LineNo>
+      <ColumnNo>L4</ColumnNo>
+      <ColumnHeader>Расходы всего</ColumnHeader>
+      <ColumnType>Year to Date</ColumnType>
+      <AmountType>Payroll Amount</AmountType>
+      <Formula />
+      <ComparisonDateFormula />
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Show>Always</Show>
+      <RoundingFactor>None</RoundingFactor>
+      <ComparisonPeriodFormula />
+    </PayrollAnalysisColumn>
+  </PayrollAnalysisColumnTmpl>
+  <PayrollAnalysisColumnTmpl>
+    <Name>FSI-4 T3</Name>
+    <Description>ФСС-4, раздел 1 т. 3</Description>
+    <PayrollAnalysisColumn>
+      <AnalysisColumnTemplate>FSI-4 T3</AnalysisColumnTemplate>
+      <LineNo>10000</LineNo>
+      <ColumnNo>1</ColumnNo>
+      <ColumnHeader>Всего с начала расч. периода</ColumnHeader>
+      <ColumnType>Year to Date</ColumnType>
+      <AmountType>Payroll Amount</AmountType>
+      <Formula />
+      <ComparisonDateFormula />
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Show>Always</Show>
+      <RoundingFactor>None</RoundingFactor>
+      <ComparisonPeriodFormula />
+    </PayrollAnalysisColumn>
+    <PayrollAnalysisColumn>
+      <AnalysisColumnTemplate>FSI-4 T3</AnalysisColumnTemplate>
+      <LineNo>20000</LineNo>
+      <ColumnNo>2</ColumnNo>
+      <ColumnHeader>В т.ч. за посл. три месяца</ColumnHeader>
+      <ColumnType>Net Change</ColumnType>
+      <AmountType>Payroll Amount</AmountType>
+      <Formula>3+4+5</Formula>
+      <ComparisonDateFormula />
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Show>Always</Show>
+      <RoundingFactor>None</RoundingFactor>
+      <ComparisonPeriodFormula />
+    </PayrollAnalysisColumn>
+    <PayrollAnalysisColumn>
+      <AnalysisColumnTemplate>FSI-4 T3</AnalysisColumnTemplate>
+      <LineNo>30000</LineNo>
+      <ColumnNo>3</ColumnNo>
+      <ColumnHeader>в. т. ч. за 1 месяц</ColumnHeader>
+      <ColumnType>Net Change</ColumnType>
+      <AmountType>Payroll Amount</AmountType>
+      <Formula />
+      <ComparisonDateFormula />
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Show>Always</Show>
+      <RoundingFactor>None</RoundingFactor>
+      <ComparisonPeriodFormula />
+    </PayrollAnalysisColumn>
+    <PayrollAnalysisColumn>
+      <AnalysisColumnTemplate>FSI-4 T3</AnalysisColumnTemplate>
+      <LineNo>40000</LineNo>
+      <ColumnNo>4</ColumnNo>
+      <ColumnHeader>в. т. ч. за 2 месяц</ColumnHeader>
+      <ColumnType>Net Change</ColumnType>
+      <AmountType>Payroll Amount</AmountType>
+      <Formula />
+      <ComparisonDateFormula />
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Show>Always</Show>
+      <RoundingFactor>None</RoundingFactor>
+      <ComparisonPeriodFormula />
+    </PayrollAnalysisColumn>
+    <PayrollAnalysisColumn>
+      <AnalysisColumnTemplate>FSI-4 T3</AnalysisColumnTemplate>
+      <LineNo>50000</LineNo>
+      <ColumnNo>5</ColumnNo>
+      <ColumnHeader>в. т. ч. за 3 месяц</ColumnHeader>
+      <ColumnType>Net Change</ColumnType>
+      <AmountType>Payroll Amount</AmountType>
+      <Formula />
+      <ComparisonDateFormula />
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Show>Always</Show>
+      <RoundingFactor>None</RoundingFactor>
+      <ComparisonPeriodFormula />
+    </PayrollAnalysisColumn>
+  </PayrollAnalysisColumnTmpl>
+  <PayrollAnalysisColumnTmpl>
+    <Name>FSI-4 T9</Name>
+    <Description>ФСС-4, раздел 1 т. 9</Description>
+    <PayrollAnalysisColumn>
+      <AnalysisColumnTemplate>FSI-4 T9</AnalysisColumnTemplate>
+      <LineNo>10000</LineNo>
+      <ColumnNo />
+      <ColumnHeader>Сумма налогооблагаемых взносов</ColumnHeader>
+      <ColumnType>Year to Date</ColumnType>
+      <AmountType>Taxable Amount</AmountType>
+      <Formula />
+      <ComparisonDateFormula />
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Show>Always</Show>
+      <RoundingFactor>None</RoundingFactor>
+      <ComparisonPeriodFormula />
+    </PayrollAnalysisColumn>
+    <PayrollAnalysisColumn>
+      <AnalysisColumnTemplate>FSI-4 T9</AnalysisColumnTemplate>
+      <LineNo>40000</LineNo>
+      <ColumnNo />
+      <ColumnHeader>за3й месяц</ColumnHeader>
+      <ColumnType>Net Change</ColumnType>
+      <AmountType>Taxable Amount</AmountType>
+      <Formula />
+      <ComparisonDateFormula />
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Show>Always</Show>
+      <RoundingFactor>None</RoundingFactor>
+      <ComparisonPeriodFormula />
+    </PayrollAnalysisColumn>
+    <PayrollAnalysisColumn>
+      <AnalysisColumnTemplate>FSI-4 T9</AnalysisColumnTemplate>
+      <LineNo>50000</LineNo>
+      <ColumnNo />
+      <ColumnHeader>за2й месяц</ColumnHeader>
+      <ColumnType>Net Change</ColumnType>
+      <AmountType>Taxable Amount</AmountType>
+      <Formula />
+      <ComparisonDateFormula />
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Show>Always</Show>
+      <RoundingFactor>None</RoundingFactor>
+      <ComparisonPeriodFormula>-1P</ComparisonPeriodFormula>
+    </PayrollAnalysisColumn>
+    <PayrollAnalysisColumn>
+      <AnalysisColumnTemplate>FSI-4 T9</AnalysisColumnTemplate>
+      <LineNo>60000</LineNo>
+      <ColumnNo />
+      <ColumnHeader>за1й месяц</ColumnHeader>
+      <ColumnType>Net Change</ColumnType>
+      <AmountType>Taxable Amount</AmountType>
+      <Formula />
+      <ComparisonDateFormula />
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Show>Always</Show>
+      <RoundingFactor>None</RoundingFactor>
+      <ComparisonPeriodFormula>-2P</ComparisonPeriodFormula>
+    </PayrollAnalysisColumn>
+    <PayrollAnalysisColumn>
+      <AnalysisColumnTemplate>FSI-4 T9</AnalysisColumnTemplate>
+      <LineNo>70000</LineNo>
+      <ColumnNo />
+      <ColumnHeader>Сумма взносов</ColumnHeader>
+      <ColumnType>Net Change</ColumnType>
+      <AmountType>Payroll Amount</AmountType>
+      <Formula />
+      <ComparisonDateFormula />
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Show>Always</Show>
+      <RoundingFactor>None</RoundingFactor>
+      <ComparisonPeriodFormula />
+    </PayrollAnalysisColumn>
+  </PayrollAnalysisColumnTmpl>
+  <PayrollAnalysisColumnTmpl>
+    <Name>IND CARD</Name>
+    <Description />
+    <PayrollAnalysisColumn>
+      <AnalysisColumnTemplate>IND CARD</AnalysisColumnTemplate>
+      <LineNo>10000</LineNo>
+      <ColumnNo>L0</ColumnNo>
+      <ColumnHeader>Всего</ColumnHeader>
+      <ColumnType>Year to Date</ColumnType>
+      <AmountType>Payroll Amount</AmountType>
+      <Formula />
+      <ComparisonDateFormula />
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Show>Always</Show>
+      <RoundingFactor>None</RoundingFactor>
+      <ComparisonPeriodFormula />
+    </PayrollAnalysisColumn>
+    <PayrollAnalysisColumn>
+      <AnalysisColumnTemplate>IND CARD</AnalysisColumnTemplate>
+      <LineNo>20000</LineNo>
+      <ColumnNo>L1</ColumnNo>
+      <ColumnHeader>январь</ColumnHeader>
+      <ColumnType>Net Change</ColumnType>
+      <AmountType>Payroll Amount</AmountType>
+      <Formula />
+      <ComparisonDateFormula />
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Show>Always</Show>
+      <RoundingFactor>None</RoundingFactor>
+      <ComparisonPeriodFormula>-11P</ComparisonPeriodFormula>
+    </PayrollAnalysisColumn>
+    <PayrollAnalysisColumn>
+      <AnalysisColumnTemplate>IND CARD</AnalysisColumnTemplate>
+      <LineNo>30000</LineNo>
+      <ColumnNo>L2</ColumnNo>
+      <ColumnHeader>февраль</ColumnHeader>
+      <ColumnType>Net Change</ColumnType>
+      <AmountType>Payroll Amount</AmountType>
+      <Formula />
+      <ComparisonDateFormula />
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Show>Always</Show>
+      <RoundingFactor>None</RoundingFactor>
+      <ComparisonPeriodFormula>-10P</ComparisonPeriodFormula>
+    </PayrollAnalysisColumn>
+    <PayrollAnalysisColumn>
+      <AnalysisColumnTemplate>IND CARD</AnalysisColumnTemplate>
+      <LineNo>40000</LineNo>
+      <ColumnNo>L3</ColumnNo>
+      <ColumnHeader>март</ColumnHeader>
+      <ColumnType>Net Change</ColumnType>
+      <AmountType>Payroll Amount</AmountType>
+      <Formula />
+      <ComparisonDateFormula />
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Show>Always</Show>
+      <RoundingFactor>None</RoundingFactor>
+      <ComparisonPeriodFormula>-9P</ComparisonPeriodFormula>
+    </PayrollAnalysisColumn>
+    <PayrollAnalysisColumn>
+      <AnalysisColumnTemplate>IND CARD</AnalysisColumnTemplate>
+      <LineNo>50000</LineNo>
+      <ColumnNo>L4</ColumnNo>
+      <ColumnHeader>апрель</ColumnHeader>
+      <ColumnType>Net Change</ColumnType>
+      <AmountType>Payroll Amount</AmountType>
+      <Formula />
+      <ComparisonDateFormula />
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Show>Always</Show>
+      <RoundingFactor>None</RoundingFactor>
+      <ComparisonPeriodFormula>-8P</ComparisonPeriodFormula>
+    </PayrollAnalysisColumn>
+    <PayrollAnalysisColumn>
+      <AnalysisColumnTemplate>IND CARD</AnalysisColumnTemplate>
+      <LineNo>60000</LineNo>
+      <ColumnNo>L5</ColumnNo>
+      <ColumnHeader>май</ColumnHeader>
+      <ColumnType>Net Change</ColumnType>
+      <AmountType>Payroll Amount</AmountType>
+      <Formula />
+      <ComparisonDateFormula />
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Show>Always</Show>
+      <RoundingFactor>None</RoundingFactor>
+      <ComparisonPeriodFormula>-7P</ComparisonPeriodFormula>
+    </PayrollAnalysisColumn>
+    <PayrollAnalysisColumn>
+      <AnalysisColumnTemplate>IND CARD</AnalysisColumnTemplate>
+      <LineNo>70000</LineNo>
+      <ColumnNo>L6</ColumnNo>
+      <ColumnHeader>июнь</ColumnHeader>
+      <ColumnType>Net Change</ColumnType>
+      <AmountType>Payroll Amount</AmountType>
+      <Formula />
+      <ComparisonDateFormula />
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Show>Always</Show>
+      <RoundingFactor>None</RoundingFactor>
+      <ComparisonPeriodFormula>-6P</ComparisonPeriodFormula>
+    </PayrollAnalysisColumn>
+    <PayrollAnalysisColumn>
+      <AnalysisColumnTemplate>IND CARD</AnalysisColumnTemplate>
+      <LineNo>80000</LineNo>
+      <ColumnNo>L7</ColumnNo>
+      <ColumnHeader>июль</ColumnHeader>
+      <ColumnType>Net Change</ColumnType>
+      <AmountType>Payroll Amount</AmountType>
+      <Formula />
+      <ComparisonDateFormula />
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Show>Always</Show>
+      <RoundingFactor>None</RoundingFactor>
+      <ComparisonPeriodFormula>-5P</ComparisonPeriodFormula>
+    </PayrollAnalysisColumn>
+    <PayrollAnalysisColumn>
+      <AnalysisColumnTemplate>IND CARD</AnalysisColumnTemplate>
+      <LineNo>90000</LineNo>
+      <ColumnNo>L8</ColumnNo>
+      <ColumnHeader>август</ColumnHeader>
+      <ColumnType>Net Change</ColumnType>
+      <AmountType>Payroll Amount</AmountType>
+      <Formula />
+      <ComparisonDateFormula />
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Show>Always</Show>
+      <RoundingFactor>None</RoundingFactor>
+      <ComparisonPeriodFormula>-4P</ComparisonPeriodFormula>
+    </PayrollAnalysisColumn>
+    <PayrollAnalysisColumn>
+      <AnalysisColumnTemplate>IND CARD</AnalysisColumnTemplate>
+      <LineNo>100000</LineNo>
+      <ColumnNo>L9</ColumnNo>
+      <ColumnHeader>сентябрь</ColumnHeader>
+      <ColumnType>Net Change</ColumnType>
+      <AmountType>Payroll Amount</AmountType>
+      <Formula />
+      <ComparisonDateFormula />
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Show>Always</Show>
+      <RoundingFactor>None</RoundingFactor>
+      <ComparisonPeriodFormula>-3P</ComparisonPeriodFormula>
+    </PayrollAnalysisColumn>
+    <PayrollAnalysisColumn>
+      <AnalysisColumnTemplate>IND CARD</AnalysisColumnTemplate>
+      <LineNo>110000</LineNo>
+      <ColumnNo>L10</ColumnNo>
+      <ColumnHeader>октябрь</ColumnHeader>
+      <ColumnType>Net Change</ColumnType>
+      <AmountType>Payroll Amount</AmountType>
+      <Formula />
+      <ComparisonDateFormula />
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Show>Always</Show>
+      <RoundingFactor>None</RoundingFactor>
+      <ComparisonPeriodFormula>-2P</ComparisonPeriodFormula>
+    </PayrollAnalysisColumn>
+    <PayrollAnalysisColumn>
+      <AnalysisColumnTemplate>IND CARD</AnalysisColumnTemplate>
+      <LineNo>120000</LineNo>
+      <ColumnNo>L11</ColumnNo>
+      <ColumnHeader>ноябрь</ColumnHeader>
+      <ColumnType>Net Change</ColumnType>
+      <AmountType>Payroll Amount</AmountType>
+      <Formula />
+      <ComparisonDateFormula />
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Show>Always</Show>
+      <RoundingFactor>None</RoundingFactor>
+      <ComparisonPeriodFormula>-1P</ComparisonPeriodFormula>
+    </PayrollAnalysisColumn>
+    <PayrollAnalysisColumn>
+      <AnalysisColumnTemplate>IND CARD</AnalysisColumnTemplate>
+      <LineNo>130000</LineNo>
+      <ColumnNo>L12</ColumnNo>
+      <ColumnHeader>декабрь</ColumnHeader>
+      <ColumnType>Net Change</ColumnType>
+      <AmountType>Payroll Amount</AmountType>
+      <Formula />
+      <ComparisonDateFormula />
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Show>Always</Show>
+      <RoundingFactor>None</RoundingFactor>
+      <ComparisonPeriodFormula />
+    </PayrollAnalysisColumn>
+  </PayrollAnalysisColumnTmpl>
+  <PayrollAnalysisColumnTmpl>
+    <Name>RSV-1 R2</Name>
+    <Description>Расчет базы для начисления взносов</Description>
+    <PayrollAnalysisColumn>
+      <AnalysisColumnTemplate>RSV-1 R2</AnalysisColumnTemplate>
+      <LineNo>10000</LineNo>
+      <ColumnNo>1</ColumnNo>
+      <ColumnHeader>Всего с начала расч. периода</ColumnHeader>
+      <ColumnType>Year to Date</ColumnType>
+      <AmountType>Payroll Amount</AmountType>
+      <Formula />
+      <ComparisonDateFormula />
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Show>Always</Show>
+      <RoundingFactor>None</RoundingFactor>
+      <ComparisonPeriodFormula />
+    </PayrollAnalysisColumn>
+    <PayrollAnalysisColumn>
+      <AnalysisColumnTemplate>RSV-1 R2</AnalysisColumnTemplate>
+      <LineNo>20000</LineNo>
+      <ColumnNo>3</ColumnNo>
+      <ColumnHeader>в т.ч. за 1ый месяца периода</ColumnHeader>
+      <ColumnType>Net Change</ColumnType>
+      <AmountType>Payroll Amount</AmountType>
+      <Formula />
+      <ComparisonDateFormula />
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Show>Always</Show>
+      <RoundingFactor>None</RoundingFactor>
+      <ComparisonPeriodFormula />
+    </PayrollAnalysisColumn>
+    <PayrollAnalysisColumn>
+      <AnalysisColumnTemplate>RSV-1 R2</AnalysisColumnTemplate>
+      <LineNo>30000</LineNo>
+      <ColumnNo>4</ColumnNo>
+      <ColumnHeader>в т.ч. за 2ой месяца периода</ColumnHeader>
+      <ColumnType>Net Change</ColumnType>
+      <AmountType>Payroll Amount</AmountType>
+      <Formula />
+      <ComparisonDateFormula />
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Show>Always</Show>
+      <RoundingFactor>None</RoundingFactor>
+      <ComparisonPeriodFormula>-1P</ComparisonPeriodFormula>
+    </PayrollAnalysisColumn>
+    <PayrollAnalysisColumn>
+      <AnalysisColumnTemplate>RSV-1 R2</AnalysisColumnTemplate>
+      <LineNo>40000</LineNo>
+      <ColumnNo>5</ColumnNo>
+      <ColumnHeader>в т.ч. за 3ий месяца периода</ColumnHeader>
+      <ColumnType>Net Change</ColumnType>
+      <AmountType>Payroll Amount</AmountType>
+      <Formula />
+      <ComparisonDateFormula />
+      <ShowOppositeSign>No</ShowOppositeSign>
+      <Show>Always</Show>
+      <RoundingFactor>None</RoundingFactor>
+      <ComparisonPeriodFormula>-2P</ComparisonPeriodFormula>
+    </PayrollAnalysisColumn>
+  </PayrollAnalysisColumnTmpl>
+  <PayrollAnalysisView>
+    <Code />
+    <Name />
+    <UpdateOnPosting>No</UpdateOnPosting>
+    <Blocked>No</Blocked>
+    <PayrollElementFilter />
+    <EmployeeFilter />
+    <StartingDate />
+    <DateCompression>Day</DateCompression>
+    <Dimension1Code />
+    <Dimension2Code />
+    <Dimension3Code />
+    <Dimension4Code />
+    <RefreshWhenUnblocked>No</RefreshWhenUnblocked>
+    <PayrollAnalysisViewFilter>
+      <AnalysisViewCode />
+      <DimensionCode />
+      <DimensionValueFilter />
+    </PayrollAnalysisViewFilter>
+  </PayrollAnalysisView>
+</PayrollAnalysisReports>

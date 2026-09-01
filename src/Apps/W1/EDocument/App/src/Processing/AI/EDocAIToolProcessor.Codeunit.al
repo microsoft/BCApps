@@ -5,6 +5,7 @@
 namespace Microsoft.eServices.EDocument.Processing.AI;
 
 using System.AI;
+using System.Environment;
 using System.Environment.Configuration;
 using System.Globalization;
 using System.Telemetry;
@@ -39,6 +40,8 @@ codeunit 6195 "E-Doc. AI Tool Processor"
         CopilotCapability: Codeunit "Copilot Capability";
     begin
         Clear(TelemetryDimensions);
+
+        RegisterCapabilityIfNeeded();
 
         if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"E-Document Matching Assistance") then
             exit(false);
@@ -209,6 +212,18 @@ codeunit 6195 "E-Doc. AI Tool Processor"
     local procedure LogError(EventName: Text; ErrorMessage: Text)
     begin
         FeatureTelemetry.LogError('0000PUI', AISystem.GetFeatureName(), EventName, ErrorMessage, '', TelemetryDimensions);
+    end;
+
+    local procedure RegisterCapabilityIfNeeded()
+    var
+        CopilotCapability: Codeunit "Copilot Capability";
+        EnvironmentInformation: Codeunit "Environment Information";
+        LearnMoreUrlTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2262630', Locked = true;
+    begin
+        if not EnvironmentInformation.IsSaaSInfrastructure() then
+            exit;
+        if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"E-Document Matching Assistance") then
+            CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"E-Document Matching Assistance", LearnMoreUrlTxt);
     end;
 
     local procedure GetDefaultMaxInputTokens(): Integer

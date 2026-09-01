@@ -1,0 +1,2 @@
+# cost: 4
+{"query":"{customers(first: 1, query:\"email:{{EMail}}\") {edges {node {id defaultEmailAddress { emailAddress }}}}}"}

@@ -11,8 +11,8 @@ page 37007 "Sales Actual vs. Budget Qty."
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Sales Actual vs. Budget';
-    AboutTitle = 'About Sales Actual vs. Budget';
+    Caption = 'Sales Actual vs. Budget (Power BI)';
+    AboutTitle = 'About Sales Actual vs. Budget (Power BI)';
     AboutText = 'The Sales Actual vs. Budget report provides a comparative analysis of sales to budget amounts/quantities. Featuring variance and variance percentage metrics that provide a clear view of actual performance compared to budgeted targets.';
 
     layout
@@ -48,11 +48,8 @@ page 37007 "Sales Actual vs. Budget Qty."
         ReportPageLbl: Label 'ReportSection05f91a4884be2b5c94ed', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Sales Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Sales App");
     end;
 }
 

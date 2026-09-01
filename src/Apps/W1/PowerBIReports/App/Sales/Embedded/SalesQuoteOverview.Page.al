@@ -11,8 +11,8 @@ page 37104 "Sales Quote Overview"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Sales Quote Overview';
-    AboutTitle = 'About Sales Quote Overview';
+    Caption = 'Sales Quote Overview (Power BI)';
+    AboutTitle = 'About Sales Quote Overview (Power BI)';
     AboutText = 'The Sales Quote Overview provides detailed information on sales quotes, including the number of quotes, total value, profit rates, and sales quote amount over time.';
 
     layout
@@ -48,11 +48,8 @@ page 37104 "Sales Quote Overview"
         ReportPageLbl: Label '15a022da356609401ade', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Sales Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Sales App");
     end;
 }
 

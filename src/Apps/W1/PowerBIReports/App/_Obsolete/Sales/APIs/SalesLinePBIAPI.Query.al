@@ -11,6 +11,7 @@ query 37019 "Sales Line - PBI API"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to open sales document lines for items including quantities, amounts, and delivery dates. This API has been replaced by query 37024 Sales Line V2 - PBI API.';
     Caption = 'Power BI Sales Lines';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

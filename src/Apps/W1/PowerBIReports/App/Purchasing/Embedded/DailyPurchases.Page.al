@@ -11,8 +11,8 @@ page 37011 "Daily Purchases"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Daily Purchases';
-    AboutTitle = 'About Daily Purchases';
+    Caption = 'Daily Purchases (Power BI)';
+    AboutTitle = 'About Daily Purchases (Power BI)';
     AboutText = 'The Daily Purchases report offers a detailed analysis of purchase amounts by weekday. The tabular report highlights purchasing trends by using conditional formatting to display purchase figures in a gradient from low to high.';
 
     layout
@@ -48,11 +48,8 @@ page 37011 "Daily Purchases"
         ReportPageLbl: Label 'ReportSection02de1de9adad5ee196e0', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Purchases Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Purchases App");
     end;
 }
 

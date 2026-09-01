@@ -130,7 +130,7 @@ table 30147 "Shpfy Return Header"
         ReturnLine: Record "Shpfy Return Line";
         DataCapture: Record "Shpfy Data Capture";
     begin
-        ReturnLine.SetRange("Return Id");
+        ReturnLine.SetRange("Return Id", Rec."Return Id");
         if not ReturnLine.IsEmpty() then
             ReturnLine.DeleteAll(true);
 

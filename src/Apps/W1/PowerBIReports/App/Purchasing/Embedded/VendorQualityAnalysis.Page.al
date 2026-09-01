@@ -11,8 +11,8 @@ page 37115 "Vendor Quality Analysis"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Vendor Quality Analysis';
-    AboutTitle = 'About Vendor Quality Analysis';
+    Caption = 'Vendor Quality Analysis (Power BI)';
+    AboutTitle = 'About Vendor Quality Analysis (Power BI)';
     AboutText = 'The Vendor Quality Analysis report analyzes vendor performance, showcasing vendor quality, reliance, and purchase discount trends. Key measures include Purchase (LCY), No. of Single-Supplier Items, Discount % and Discount Amount.';
 
     layout
@@ -48,11 +48,8 @@ page 37115 "Vendor Quality Analysis"
         ReportPageLbl: Label '4507bee7aaf3d01db682', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Purchases Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Purchases App");
     end;
 }
 

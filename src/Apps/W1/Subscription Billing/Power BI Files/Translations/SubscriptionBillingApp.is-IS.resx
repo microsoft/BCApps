@@ -1,0 +1,1622 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=6.0.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=6.0.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="1617752a-65ec-4d0c-b652-07eb46ba12e3.caption" xml:space="preserve">
+    <value>Víddasamstæður</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="1617752a-65ec-4d0c-b652-07eb46ba12e3.column.509b5a55-d4c9-4990-86ff-4db4ddf6e70b.caption" xml:space="preserve">
+    <value>Altæk vídd 1</value>
+    <comment>table [Dimension Sets] column [Global Dimension 1]</comment>
+  </data>
+  <data name="1617752a-65ec-4d0c-b652-07eb46ba12e3.column.901124b7-d0cf-4a6b-a97d-03b01fcbbb7b.caption" xml:space="preserve">
+    <value>Altæk vídd 2</value>
+    <comment>table [Dimension Sets] column [Global Dimension 2]</comment>
+  </data>
+  <data name="1617752a-65ec-4d0c-b652-07eb46ba12e3.column.6da18d1b-4416-4962-9791-a99a2b1b16df.caption" xml:space="preserve">
+    <value>Flýtivídd 3</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 3]</comment>
+  </data>
+  <data name="1617752a-65ec-4d0c-b652-07eb46ba12e3.column.0a2ce674-7583-47bb-9152-2ed0202f39bd.caption" xml:space="preserve">
+    <value>Flýtivídd 4</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 4]</comment>
+  </data>
+  <data name="1617752a-65ec-4d0c-b652-07eb46ba12e3.column.6e6336a7-10eb-4cdf-a811-12394bcee5ca.caption" xml:space="preserve">
+    <value>Flýtivídd 5</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 5]</comment>
+  </data>
+  <data name="1617752a-65ec-4d0c-b652-07eb46ba12e3.column.19675f86-76bf-4a08-8d8f-782bfe6bc306.caption" xml:space="preserve">
+    <value>Flýtivídd 6</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 6]</comment>
+  </data>
+  <data name="1617752a-65ec-4d0c-b652-07eb46ba12e3.column.5a352164-bd57-476e-b9e1-1dad571ae15f.caption" xml:space="preserve">
+    <value>Flýtivídd 7</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 7]</comment>
+  </data>
+  <data name="1617752a-65ec-4d0c-b652-07eb46ba12e3.column.ae9c39e3-c860-475e-ad05-9ad0ee181ac9.caption" xml:space="preserve">
+    <value>Flýtivídd 8</value>
+    <comment>table [Dimension Sets] column [Shortcut Dimension 8]</comment>
+  </data>
+  <data name="408107af-c25d-4948-8717-8ea446127d2e.caption" xml:space="preserve">
+    <value>Lánardrottnar</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="408107af-c25d-4948-8717-8ea446127d2e.column.8a57adc5-712a-4f45-8885-12dd7f24f447.caption" xml:space="preserve">
+    <value>Nr. lánardrottins</value>
+    <comment>table [Vendors] column [Vendor No.]</comment>
+  </data>
+  <data name="408107af-c25d-4948-8717-8ea446127d2e.column.d536790e-32c7-456f-bc41-905d14d59418.caption" xml:space="preserve">
+    <value>Nafn lánardrottins</value>
+    <comment>table [Vendors] column [Vendor Name]</comment>
+  </data>
+  <data name="408107af-c25d-4948-8717-8ea446127d2e.column.5dd27886-e5f8-4054-9941-e69c3a7af04f.caption" xml:space="preserve">
+    <value>Netfang</value>
+    <comment>table [Vendors] column [Address]</comment>
+  </data>
+  <data name="408107af-c25d-4948-8717-8ea446127d2e.column.409e7da3-999a-4db0-8d4e-fcfaf3726339.caption" xml:space="preserve">
+    <value>Aðsetur 2</value>
+    <comment>table [Vendors] column [Address 2]</comment>
+  </data>
+  <data name="408107af-c25d-4948-8717-8ea446127d2e.column.f19709b6-128b-4010-855b-3cc2d28c9c7c.caption" xml:space="preserve">
+    <value>Borg</value>
+    <comment>table [Vendors] column [City]</comment>
+  </data>
+  <data name="408107af-c25d-4948-8717-8ea446127d2e.column.1be292f2-477d-4724-b01a-a86dd32e2c90.caption" xml:space="preserve">
+    <value>Póstnúmer</value>
+    <comment>table [Vendors] column [Post Code]</comment>
+  </data>
+  <data name="408107af-c25d-4948-8717-8ea446127d2e.column.9dcd3364-6145-4c4d-b7d7-9890f4559f9b.caption" xml:space="preserve">
+    <value>Fylki</value>
+    <comment>table [Vendors] column [State]</comment>
+  </data>
+  <data name="408107af-c25d-4948-8717-8ea446127d2e.column.0f16ebc0-f487-460e-9f2f-a46086915f2c.caption" xml:space="preserve">
+    <value>Lands-/svæðiskóði</value>
+    <comment>table [Vendors] column [Country/Region Code]</comment>
+  </data>
+  <data name="408107af-c25d-4948-8717-8ea446127d2e.column.8bfec60c-3142-46d4-a18f-e126baa9f4fb.caption" xml:space="preserve">
+    <value>Bókunarflokkur lánardrottins</value>
+    <comment>table [Vendors] column [Vendor Posting Group]</comment>
+  </data>
+  <data name="408107af-c25d-4948-8717-8ea446127d2e.column.bb6ca3bf-dc2b-4416-9d7a-e56997791a2c.caption" xml:space="preserve">
+    <value>Númer og nafn lánardrottins</value>
+    <comment>table [Vendors] column [Vendor No. &amp; Name]</comment>
+  </data>
+  <data name="d55409c9-b7e4-40a4-9297-5905ff1fb1d6.caption" xml:space="preserve">
+    <value>Viðskiptavinir</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="d55409c9-b7e4-40a4-9297-5905ff1fb1d6.column.885a8763-e16e-4cd6-bf80-97a1a3b238e5.caption" xml:space="preserve">
+    <value>Nr. viðskiptavinar</value>
+    <comment>table [Customers] column [Customer No.]</comment>
+  </data>
+  <data name="d55409c9-b7e4-40a4-9297-5905ff1fb1d6.column.765e0664-28ad-47e3-ab5a-3acfac3fe5ac.caption" xml:space="preserve">
+    <value>Nafn viðskiptavinar</value>
+    <comment>table [Customers] column [Customer Name]</comment>
+  </data>
+  <data name="d55409c9-b7e4-40a4-9297-5905ff1fb1d6.column.b1ce4028-11a7-499a-b882-d21202008c79.caption" xml:space="preserve">
+    <value>Netfang</value>
+    <comment>table [Customers] column [Address]</comment>
+  </data>
+  <data name="d55409c9-b7e4-40a4-9297-5905ff1fb1d6.column.c990380f-0bd9-456e-a73d-5b2d3d31c0ef.caption" xml:space="preserve">
+    <value>Aðsetur 2</value>
+    <comment>table [Customers] column [Address 2]</comment>
+  </data>
+  <data name="d55409c9-b7e4-40a4-9297-5905ff1fb1d6.column.507ad0ee-0bd2-4956-9150-ecf5afec66ae.caption" xml:space="preserve">
+    <value>Borg</value>
+    <comment>table [Customers] column [City]</comment>
+  </data>
+  <data name="d55409c9-b7e4-40a4-9297-5905ff1fb1d6.column.7ec4924a-cfaf-480a-8995-8907f85c1cc5.caption" xml:space="preserve">
+    <value>Póstnúmer</value>
+    <comment>table [Customers] column [Post Code]</comment>
+  </data>
+  <data name="d55409c9-b7e4-40a4-9297-5905ff1fb1d6.column.b92000a3-0df4-436d-8e63-712bd0812091.caption" xml:space="preserve">
+    <value>Fylki</value>
+    <comment>table [Customers] column [State]</comment>
+  </data>
+  <data name="d55409c9-b7e4-40a4-9297-5905ff1fb1d6.column.09becb91-bbb5-4a78-b570-7cb46a4e79fe.caption" xml:space="preserve">
+    <value>Lands-/svæðiskóði</value>
+    <comment>table [Customers] column [Country/Region Code]</comment>
+  </data>
+  <data name="d55409c9-b7e4-40a4-9297-5905ff1fb1d6.column.7d11d0b8-25e1-45be-96c1-5a7ae99fd36f.caption" xml:space="preserve">
+    <value>Bókunarflokkur viðskiptamanns</value>
+    <comment>table [Customers] column [Customer Posting Group]</comment>
+  </data>
+  <data name="d55409c9-b7e4-40a4-9297-5905ff1fb1d6.column.53e6ca0b-ea85-4edd-920f-152548126eac.caption" xml:space="preserve">
+    <value>Verðflokkur viðskiptavinar</value>
+    <comment>table [Customers] column [Customer Price Group]</comment>
+  </data>
+  <data name="d55409c9-b7e4-40a4-9297-5905ff1fb1d6.column.4eac39c3-f6fd-4e93-a4e9-a1208465d2bb.caption" xml:space="preserve">
+    <value>Afsláttarflokkur viðskiptavinar</value>
+    <comment>table [Customers] column [Customer Discount Group]</comment>
+  </data>
+  <data name="d55409c9-b7e4-40a4-9297-5905ff1fb1d6.column.37d951da-649d-47c2-803a-343fbdae9f5d.caption" xml:space="preserve">
+    <value>Númer og nafn viðskiptamanns</value>
+    <comment>table [Customers] column [Customer No. &amp; Name]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.caption" xml:space="preserve">
+    <value>Dagsetning</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.87d986f6-8d0a-4af1-bf9d-2748b7ba57dc.caption" xml:space="preserve">
+    <value>Vika Dagur</value>
+    <comment>table [Date] column [Week Day]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.a92edf57-7150-40d0-98b0-670245650ac0.caption" xml:space="preserve">
+    <value>Dagsgerð</value>
+    <comment>table [Date] column [Day Type]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.eafb2700-d9bf-40ef-b2a6-d97476b09f5e.caption" xml:space="preserve">
+    <value>Almanaksár</value>
+    <comment>table [Date] column [Calendar Year]</comment>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=6.0.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.906fcdf7-6285-4922-8968-362fc571dd84.caption" xml:space="preserve">
+    <value>Dagatal Ársfjórðungur</value>
+    <comment>table [Date] column [Calendar Quarter]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.2c5ea502-608c-4500-beb1-042ffb003d68.caption" xml:space="preserve">
+    <value>Dagatal Ársfjórðungur Ár</value>
+    <comment>table [Date] column [Calendar Quarter Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.6e1a2bd3-8529-433c-a4ea-a6a3d3611046.caption" xml:space="preserve">
+    <value>Almanaksmánuður</value>
+    <comment>table [Date] column [Calendar Month]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.46388357-c60d-4744-a628-f9ccff2c0687.caption" xml:space="preserve">
+    <value>Dagatal Mánuður Ár</value>
+    <comment>table [Date] column [Calendar Month Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.fa556103-ff03-4954-af2d-8e70b22bcfb7.caption" xml:space="preserve">
+    <value>Almanaksvika</value>
+    <comment>table [Date] column [Calendar Week]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.43f804c2-759c-4fe1-97d9-0dc74f83630c.caption" xml:space="preserve">
+    <value>Dagatal Vika Ár</value>
+    <comment>table [Date] column [Calendar Week Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.3c121010-847d-4661-86b0-d3306993d1fc.caption" xml:space="preserve">
+    <value>Dagatal Staða samsvarandi viku</value>
+    <comment>table [Date] column [Calendar RelativeWeekPos]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.72d7ff37-a6f6-45ac-9bd1-cb3050da78f3.caption" xml:space="preserve">
+    <value>Dagatal Staða samsvarandi mánaðar</value>
+    <comment>table [Date] column [Calendar RelativeMonthPos]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.b9bbb6c1-a863-42b0-9be0-4c067880aecf.caption" xml:space="preserve">
+    <value>Dagatal Staða samsvarandi ársfjórðungs</value>
+    <comment>table [Date] column [Calendar RelativeQuarterPos]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.0389f321-8c3e-4094-9937-a72690d006ce.caption" xml:space="preserve">
+    <value>Dagatal Staða samsvarandi árs</value>
+    <comment>table [Date] column [Calendar RelativeYearPos]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.86e6859f-ddf3-4905-b792-58c9b97c6e44.caption" xml:space="preserve">
+    <value>Dagatal Upphaf mánaðar</value>
+    <comment>table [Date] column [Calendar StartOfMonth]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.cacb2e9f-f673-4700-af72-7afbee746739.caption" xml:space="preserve">
+    <value>Dagatal Mánaðarlok</value>
+    <comment>table [Date] column [Calendar EndOfMonth]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.fe44207b-b823-4d13-a311-0c96e70b987c.caption" xml:space="preserve">
+    <value>Dagatal Upphaf ársfjórðungs</value>
+    <comment>table [Date] column [Calendar StartOfQuarter]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.3291fc3a-8587-4dca-b01d-2ab523ce7101.caption" xml:space="preserve">
+    <value>Dagatal Ársfjórðungslok</value>
+    <comment>table [Date] column [Calendar EndOfQuarter]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.c33c2def-e542-47d1-b431-11fa3ec39720.caption" xml:space="preserve">
+    <value>Dagatal Upphaf árs</value>
+    <comment>table [Date] column [Calendar StartOfYear]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.ef673c14-ae3c-4f69-bb8a-f63db9617875.caption" xml:space="preserve">
+    <value>Dagatal Árslok</value>
+    <comment>table [Date] column [Calendar EndOfYear]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.c7b6991d-1e93-4a53-b0bf-bb4d9728240b.caption" xml:space="preserve">
+    <value>Dagatal Dagar mánaðar</value>
+    <comment>table [Date] column [Calendar MonthDays]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.7e1c85c4-20ce-49a5-a788-b44eff618ef3.caption" xml:space="preserve">
+    <value>Dagatal Dagar ársfjórðungs</value>
+    <comment>table [Date] column [Calendar QuarterDays]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.4891dfee-1f75-4c3a-9bea-861d3612b2a5.caption" xml:space="preserve">
+    <value>Dagatal Dagar árs</value>
+    <comment>table [Date] column [Calendar YearDays]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.34806fca-07c1-4024-a936-9161e13a8c7b.caption" xml:space="preserve">
+    <value>Dagatal Númer mánaðardags</value>
+    <comment>table [Date] column [Calendar DayOfMonthNumber]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.9bddb3d9-8f84-44de-9e0c-30aacc4fe3db.caption" xml:space="preserve">
+    <value>Dagatal Númer dags innan ársfjórðungs</value>
+    <comment>table [Date] column [Calendar DayOfQuarterNumber]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.5e77a5c0-44bc-493f-9fd1-3c3c3845fc32.caption" xml:space="preserve">
+    <value>Dagatal Númer dags innan árs</value>
+    <comment>table [Date] column [Calendar DayOfYearNumber]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.9412edbb-aa3e-440a-b28b-b815200206c1.caption" xml:space="preserve">
+    <value>Dagatal Dagsetning fyrri viku</value>
+    <comment>table [Date] column [Calendar DatePreviousWeek]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.c0ff8f0c-5607-440d-beb7-be720f02c21c.caption" xml:space="preserve">
+    <value>Dagatal Dagsetning fyrri mánaðar</value>
+    <comment>table [Date] column [Calendar DatePreviousMonth]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.b1cd39c6-820f-4eec-b95b-eca9e4fb2f3f.caption" xml:space="preserve">
+    <value>Dagatal Dagsetning fyrri ársfjórðungs</value>
+    <comment>table [Date] column [Calendar DatePreviousQuarter]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.3836d147-36d2-4b0c-be3a-02013f871121.caption" xml:space="preserve">
+    <value>Dagatal Dagsetning fyrra árs</value>
+    <comment>table [Date] column [Calendar DatePreviousYear]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.4309f1b1-5303-4bbe-a033-3ae569481cb4.caption" xml:space="preserve">
+    <value>Fjárhagur Ár</value>
+    <comment>table [Date] column [Fiscal Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.a3fdb947-7ec9-4f75-a830-9e008027f5be.caption" xml:space="preserve">
+    <value>Fjórðungur Ársfjórðungur</value>
+    <comment>table [Date] column [Fiscal Quarter]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.55062367-69e1-4f9a-b4a6-ea8e527caec4.caption" xml:space="preserve">
+    <value>Fjárhagur Ársfjórðungur og ár</value>
+    <comment>table [Date] column [Fiscal Quarter Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.8a49071b-afae-41c5-b463-81bce1e24c65.caption" xml:space="preserve">
+    <value>Fjárhagur Mánuður</value>
+    <comment>table [Date] column [Fiscal Month]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.a6c93316-93e2-4fc2-aebb-21781fcbf7d5.caption" xml:space="preserve">
+    <value>Fjárhagur Mánuður og ár</value>
+    <comment>table [Date] column [Fiscal Month Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.3ee8444b-9959-446c-909b-67ccacc04ec1.caption" xml:space="preserve">
+    <value>Vika fjárhagsárs</value>
+    <comment>table [Date] column [Fiscal Week]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.b09e6e42-954d-401d-901e-73a4908a36eb.caption" xml:space="preserve">
+    <value>Fjárhagur Vika ár</value>
+    <comment>table [Date] column [Fiscal Week Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.a7092406-c70e-47ce-bb5c-8f8c9eb85e1f.caption" xml:space="preserve">
+    <value>Fjárhagur Staða samsvarandi viku</value>
+    <comment>table [Date] column [Fiscal RelativeWeekPos]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.e4c65d43-bc58-4c60-a2e6-ca42f109abab.caption" xml:space="preserve">
+    <value>Fjárhagur Staða samsvarandi mánaðar</value>
+    <comment>table [Date] column [Fiscal RelativeMonthPos]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.8db19a91-3741-4dfe-832d-0b08d51a578a.caption" xml:space="preserve">
+    <value>Fjárhagur Staða samsvarandi ársfjórðungs</value>
+    <comment>table [Date] column [Fiscal RelativeQuarterPos]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.405ce0df-cdba-447e-abb8-2f7fda806b0b.caption" xml:space="preserve">
+    <value>Fjárhagur Staða samsvarandi árs</value>
+    <comment>table [Date] column [Fiscal RelativeYearPos]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.96ec7ed1-cf0f-444d-86bc-2cf7fd378db1.caption" xml:space="preserve">
+    <value>Fjárhagur Upphaf mánaðar</value>
+    <comment>table [Date] column [Fiscal StartOfMonth]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.d4ee5d8b-8ac7-4319-a7a6-0ec65331f465.caption" xml:space="preserve">
+    <value>Fjárhagur Mánaðarlok</value>
+    <comment>table [Date] column [Fiscal EndOfMonth]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.268275df-62fb-49db-987d-5e4e1b08a39c.caption" xml:space="preserve">
+    <value>Fjárhagur Upphaf ársfjórðungs</value>
+    <comment>table [Date] column [Fiscal StartOfQuarter]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.bc4ac4d0-6d23-43e0-9c0f-bd2039e21980.caption" xml:space="preserve">
+    <value>Fjárhagur Ársfjórðungslok</value>
+    <comment>table [Date] column [Fiscal EndOfQuarter]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.cfa797dd-4fe9-4af8-9aaf-543956efd413.caption" xml:space="preserve">
+    <value>Fjárhagur Upphaf árs</value>
+    <comment>table [Date] column [Fiscal StartOfYear]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.3d9bdb34-e70a-44ec-b296-d13266432f70.caption" xml:space="preserve">
+    <value>Fjárhagur Árslok</value>
+    <comment>table [Date] column [Fiscal EndOfYear]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.5d912c0d-fcf0-4259-b2f2-1b8f21666e05.caption" xml:space="preserve">
+    <value>Fjárhagur Dagar mánaðar</value>
+    <comment>table [Date] column [Fiscal MonthDays]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.dce72481-e786-4ed9-9776-584f5732d133.caption" xml:space="preserve">
+    <value>Fjárhagur Dagar ársfjórðungs</value>
+    <comment>table [Date] column [Fiscal QuarterDays]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.b2e1d2c0-aa54-4100-a7f2-a4e018e0bce0.caption" xml:space="preserve">
+    <value>Fjárhagur Dagar árs</value>
+    <comment>table [Date] column [Fiscal YearDays]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.9005eda0-cd3d-40ac-800b-72f704c571f2.caption" xml:space="preserve">
+    <value>Fjárhagur Númer mánaðardags</value>
+    <comment>table [Date] column [Fiscal DayOfMonthNumber]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.90be3b35-e218-47e3-91fd-707bfc7c7a2a.caption" xml:space="preserve">
+    <value>Fjárhagur Númer dags innan ársfjórðungs</value>
+    <comment>table [Date] column [Fiscal DayOfQuarterNumber]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.51f8869a-eae7-44e0-aaa3-a8219657d14c.caption" xml:space="preserve">
+    <value>Fjárhagur Númer dags innan árs</value>
+    <comment>table [Date] column [Fiscal DayOfYearNumber]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.f3d6591f-f7e3-4909-a849-6ac956f6e4b5.caption" xml:space="preserve">
+    <value>Fjárhagur Dagsetning fyrri viku</value>
+    <comment>table [Date] column [Fiscal DatePreviousWeek]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.cca225dd-90da-4aa5-8907-aff394845eee.caption" xml:space="preserve">
+    <value>Fjárhagur Dagsetning fyrri mánaðar</value>
+    <comment>table [Date] column [Fiscal DatePreviousMonth]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.09daf6ef-268b-4d0d-b5c8-413ce37c6186.caption" xml:space="preserve">
+    <value>Fjárhagur Dagsetning fyrri ársfjórðungs</value>
+    <comment>table [Date] column [Fiscal DatePreviousQuarter]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.239ad661-3781-4f71-a474-045ee230e220.caption" xml:space="preserve">
+    <value>Fjárhagur Dagsetning fyrra árs</value>
+    <comment>table [Date] column [Fiscal DatePreviousYear]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.ac826f1e-e350-4f10-a088-7cdd9d921d22.caption" xml:space="preserve">
+    <value>Fjárhagsvika Ár</value>
+    <comment>table [Date] column [FW Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.ea488855-48b0-4a2d-a99c-cfeb1c841c00.caption" xml:space="preserve">
+    <value>Fjárhagsvika Ársfjórðungur</value>
+    <comment>table [Date] column [FW Quarter]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.61e1ae08-6194-4c3c-b8d6-b7b3a8548e3f.caption" xml:space="preserve">
+    <value>Fjárhagsvika Ársfjórðungur Ár</value>
+    <comment>table [Date] column [FW Quarter Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.3b27db1b-5184-48e7-a64f-8713263bbcde.caption" xml:space="preserve">
+    <value>Fjárhagsvika Mánuður</value>
+    <comment>table [Date] column [FW Month]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.b4fc566a-9fa1-4d4c-b593-b9e688465df8.caption" xml:space="preserve">
+    <value>Fjárhagsvika Mánuður Ár</value>
+    <comment>table [Date] column [FW Month Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.94ccf79f-75e4-4e53-85e5-d7ba2e318383.caption" xml:space="preserve">
+    <value>Fjárhagsvika Vika</value>
+    <comment>table [Date] column [FW Week]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.1ea40e86-d134-40b0-a117-957e0fcb5c94.caption" xml:space="preserve">
+    <value>Fjárhagsvika Tímabil</value>
+    <comment>table [Date] column [FW Period]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.e215dcb4-1cb2-40be-9dbe-972862b3baa2.caption" xml:space="preserve">
+    <value>Fjárhagsvika Vika Ár</value>
+    <comment>table [Date] column [FW Week Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.13c0c728-c94e-4602-a213-81fdf9318fdd.caption" xml:space="preserve">
+    <value>Fjárhagsvika Upphaf viku</value>
+    <comment>table [Date] column [FW StartOfWeek]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.ba4d5cae-592d-4aa1-bb4f-80d480ac0e32.caption" xml:space="preserve">
+    <value>Fjárhagsvika Vikulok</value>
+    <comment>table [Date] column [FW EndOfWeek]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.90865798-3ed2-48db-970d-407a69f604a1.caption" xml:space="preserve">
+    <value>Fjárhagsvika Staða samsvarandi viku</value>
+    <comment>table [Date] column [FW RelativeWeekPos]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.15cab468-7f86-4a20-81b2-ef7a1108ed10.caption" xml:space="preserve">
+    <value>Fjárhagsvika Staða samsvarandi mánaðar</value>
+    <comment>table [Date] column [FW RelativeMonthPos]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.7c457684-360a-4ede-a38a-41c46bc88d7c.caption" xml:space="preserve">
+    <value>Fjárhagsvika Staða samsvarandi ársfjórðungs</value>
+    <comment>table [Date] column [FW RelativeQuarterPos]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.9ba55f9b-2226-4985-a3a5-def688fc151c.caption" xml:space="preserve">
+    <value>Fjárhagsvika Staða samsvarandi árs</value>
+    <comment>table [Date] column [FW RelativeYearPos]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.a46d4152-42a0-44af-9ea8-16d4e9a15ecb.caption" xml:space="preserve">
+    <value>Fjárhagsvika Upphaf mánaðar</value>
+    <comment>table [Date] column [FW StartOfMonth]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.6293aed1-d7fa-41a1-a62d-fa2d8e89f045.caption" xml:space="preserve">
+    <value>Fjárhagsvika Mánaðarlok</value>
+    <comment>table [Date] column [FW EndOfMonth]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.8483ae63-3171-4889-8dcb-bb706a0cfc45.caption" xml:space="preserve">
+    <value>Fjárhagsvika Upphaf ársfjórðungs</value>
+    <comment>table [Date] column [FW StartOfQuarter]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.b249ccc8-36bd-4e18-b574-1fc55d8fc9a8.caption" xml:space="preserve">
+    <value>Fjárhagsvika Ársfjórðungslok</value>
+    <comment>table [Date] column [FW EndOfQuarter]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.4e147ce6-585a-4b5a-bf49-1e96a65022f6.caption" xml:space="preserve">
+    <value>Fjárhagsvika Upphaf árs</value>
+    <comment>table [Date] column [FW StartOfYear]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.60b08900-3f6c-4855-bc00-789ccb4ca8c2.caption" xml:space="preserve">
+    <value>Fjárhagsvika Árslok</value>
+    <comment>table [Date] column [FW EndOfYear]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.df984e82-e421-48fc-8a00-59826303e58f.caption" xml:space="preserve">
+    <value>Fjárhagsvika Dagar mánaðar</value>
+    <comment>table [Date] column [FW MonthDays]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.4b23d5be-1bef-4bee-be02-a48c680a91ed.caption" xml:space="preserve">
+    <value>Fjárhagsvika Dagar ársfjórðungs</value>
+    <comment>table [Date] column [FW QuarterDays]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.f94d98c8-b581-4c1d-be31-23d2e0f57fba.caption" xml:space="preserve">
+    <value>Fjárhagsvika Dagar árs</value>
+    <comment>table [Date] column [FW YearDays]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.8d833c34-a69f-487a-a198-52eb7ae8fa48.caption" xml:space="preserve">
+    <value>Fjárhagsvika Númer mánaðardags</value>
+    <comment>table [Date] column [FW DayOfMonthNumber]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.13d04d86-e5fa-48e4-a680-4ca569b43bfd.caption" xml:space="preserve">
+    <value>Fjárhagsvika Númer dags innan ársfjórðungs</value>
+    <comment>table [Date] column [FW DayOfQuarterNumber]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.17054897-fac4-4cab-89a0-88049f3b8b3b.caption" xml:space="preserve">
+    <value>Fjárhagsvika Númer dags innan árs</value>
+    <comment>table [Date] column [FW DayOfYearNumber]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.12add804-bcd9-449c-9034-623015558a9e.caption" xml:space="preserve">
+    <value>Fjárhagsvika Dagsetning fyrri viku</value>
+    <comment>table [Date] column [FW DatePreviousWeek]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.81345b13-f5f8-4a2e-a9fa-2aa7a0cded00.caption" xml:space="preserve">
+    <value>Fjárhagsvika Dagsetning fyrri mánaðar</value>
+    <comment>table [Date] column [FW DatePreviousMonth]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.326717ad-741d-4f97-86fa-864673193d21.caption" xml:space="preserve">
+    <value>Fjárhagsvika Dagsetning fyrri ársfjórðungs</value>
+    <comment>table [Date] column [FW DatePreviousQuarter]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.eccf8b73-0631-422c-a03b-44fdf591c2a4.caption" xml:space="preserve">
+    <value>Fjárhagsvika Dagsetning fyrra árs</value>
+    <comment>table [Date] column [FW DatePreviousYear]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.065c76e8-8ede-45f4-b15b-f30f6d127e3e.caption" xml:space="preserve">
+    <value>Samsvarandi dagur</value>
+    <comment>table [Date] column [Relative Day]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.bbd3cd48-1922-4293-8cd0-c69a7528ca56.caption" xml:space="preserve">
+    <value>365 daga raðnúmer</value>
+    <comment>table [Date] column [Sequential365DayNumber]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.column.70ca7cef-c41e-4165-995e-f0baa99a67d0.caption" xml:space="preserve">
+    <value>Frestun á gagnasviði</value>
+    <comment>table [Date] column [Data Range Deferrals]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.measure.1a4368d8-993e-48df-ba27-a8c23154722a.caption" xml:space="preserve">
+    <value>Fjöldi daga</value>
+    <comment>table [Date] measure [No. of Days]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.3d809386-699f-419e-b16d-f49c19b12b29.caption" xml:space="preserve">
+    <value>Fjárhagur Ár-Ársfjórðungur-Mánuður-Vika</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Quarter-Month-Week]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.3d809386-699f-419e-b16d-f49c19b12b29.level.40f0b909-9e82-4ba3-92df-a8b50b00a40b" xml:space="preserve">
+    <value>Fjárhagur Ár</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Quarter-Month-Week] level [Fiscal Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.3d809386-699f-419e-b16d-f49c19b12b29.level.b110c9b3-ebdb-4ed1-8427-abbb882e1d58" xml:space="preserve">
+    <value>Fjárhagur Ársfjórðungur og ár</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Quarter-Month-Week] level [Fiscal Quarter Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.3d809386-699f-419e-b16d-f49c19b12b29.level.9bd26d03-671d-4cea-9e25-5aafb1c7d21f" xml:space="preserve">
+    <value>Fjárhagur Mánuður og ár</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Quarter-Month-Week] level [Fiscal Month Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.3d809386-699f-419e-b16d-f49c19b12b29.level.50478d23-8e70-467a-8801-ce96d8e29c35" xml:space="preserve">
+    <value>Fjárhagur Vika ár</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Quarter-Month-Week] level [Fiscal Week Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.1e1ffcb8-b7cd-4858-91d0-5a8526a6a135.caption" xml:space="preserve">
+    <value>Dagatal Ár-Ársfjórðungur-Mánuður-Vika</value>
+    <comment>table [Date] hierarchy [Calendar Year-Quarter-Month-Week]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.1e1ffcb8-b7cd-4858-91d0-5a8526a6a135.level.d82e0fe4-49e2-4df6-a525-9a4f6108743b" xml:space="preserve">
+    <value>Almanaksár</value>
+    <comment>table [Date] hierarchy [Calendar Year-Quarter-Month-Week] level [Calendar Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.1e1ffcb8-b7cd-4858-91d0-5a8526a6a135.level.875d1c42-f9de-4373-9dec-a1409f1e179d" xml:space="preserve">
+    <value>Dagatal Ársfjórðungur Ár</value>
+    <comment>table [Date] hierarchy [Calendar Year-Quarter-Month-Week] level [Calendar Quarter Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.1e1ffcb8-b7cd-4858-91d0-5a8526a6a135.level.86bf3301-883d-4e52-be22-7585cc62296d" xml:space="preserve">
+    <value>Dagatal Mánuður Ár</value>
+    <comment>table [Date] hierarchy [Calendar Year-Quarter-Month-Week] level [Calendar Month Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.1e1ffcb8-b7cd-4858-91d0-5a8526a6a135.level.82ff4fc4-5640-43be-96e1-1ccb6533253e" xml:space="preserve">
+    <value>Dagatal Vika Ár</value>
+    <comment>table [Date] hierarchy [Calendar Year-Quarter-Month-Week] level [Calendar Week Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.d82a685d-84a6-48dc-9d56-aba3a6d35852.caption" xml:space="preserve">
+    <value>Fjárhagsvika Ár-Ársfjórðungur-Mánuður-Vika</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Month-Week]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.d82a685d-84a6-48dc-9d56-aba3a6d35852.level.e5cd94ed-0d1a-4e41-89ad-82cf77688b47" xml:space="preserve">
+    <value>Fjárhagsvika Ár</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Month-Week] level [FW Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.d82a685d-84a6-48dc-9d56-aba3a6d35852.level.9adb622b-d68e-41eb-92d3-f0d3ea6d363f" xml:space="preserve">
+    <value>Fjárhagsvika Ársfjórðungur Ár</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Month-Week] level [FW Quarter Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.d82a685d-84a6-48dc-9d56-aba3a6d35852.level.80aae42c-b9ec-42c5-ae09-13c65d700732" xml:space="preserve">
+    <value>Fjárhagsvika Mánuður Ár</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Month-Week] level [FW Month Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.d82a685d-84a6-48dc-9d56-aba3a6d35852.level.01c4eb82-c283-4300-8765-3e61e813fec9" xml:space="preserve">
+    <value>Fjárhagsvika Vika Ár</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Month-Week] level [FW Week Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.b91345f2-a64b-4476-bcdd-bc62e8eddf8c.caption" xml:space="preserve">
+    <value>Fjárhagur Ár-Mánuður</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Month]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.b91345f2-a64b-4476-bcdd-bc62e8eddf8c.level.54b6013d-cd41-43ea-adde-7461b8f56250" xml:space="preserve">
+    <value>Fjárhagur Ár</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Month] level [Fiscal Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.b91345f2-a64b-4476-bcdd-bc62e8eddf8c.level.0e94c815-23fc-4ac6-9863-dd02e6f69315" xml:space="preserve">
+    <value>Fjárhagur Mánuður og ár</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Month] level [Fiscal Month Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.298a8eb2-1115-42f8-9b24-319c1f464fce.caption" xml:space="preserve">
+    <value>Fjárhagur Ár-Mánuður-Vika</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Month-Week]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.298a8eb2-1115-42f8-9b24-319c1f464fce.level.e8fd0bf8-66c7-4df2-8526-1bb27177f912" xml:space="preserve">
+    <value>Fjárhagur Ár</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Month-Week] level [Fiscal Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.298a8eb2-1115-42f8-9b24-319c1f464fce.level.edd3142f-d60d-494b-85fc-dcadaaa5b8a4" xml:space="preserve">
+    <value>Fjárhagur Mánuður og ár</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Month-Week] level [Fiscal Month Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.298a8eb2-1115-42f8-9b24-319c1f464fce.level.c88b8774-fc79-4567-9b79-2849dedd4657" xml:space="preserve">
+    <value>Fjárhagur Vika ár</value>
+    <comment>table [Date] hierarchy [Fiscal Year-Month-Week] level [Fiscal Week Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.b1438c41-8116-4575-9e46-a0c98f675559.caption" xml:space="preserve">
+    <value>Dagatal Ár-Mánuður</value>
+    <comment>table [Date] hierarchy [Calendar Year-Month]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.b1438c41-8116-4575-9e46-a0c98f675559.level.7bfba93e-5d86-41fa-a428-152ab854a070" xml:space="preserve">
+    <value>Almanaksár</value>
+    <comment>table [Date] hierarchy [Calendar Year-Month] level [Calendar Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.b1438c41-8116-4575-9e46-a0c98f675559.level.a923bc3f-1bdd-4926-b538-a0bf17d0b2d5" xml:space="preserve">
+    <value>Dagatal Mánuður Ár</value>
+    <comment>table [Date] hierarchy [Calendar Year-Month] level [Calendar Month Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.14bbd8ca-3b08-45dd-a221-5fde94bf8dc6.caption" xml:space="preserve">
+    <value>Dagatal Ár-Mánuður-Vika</value>
+    <comment>table [Date] hierarchy [Calendar Year-Month-Week]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.14bbd8ca-3b08-45dd-a221-5fde94bf8dc6.level.b4693f04-e15f-42f1-afce-641aa9bd8386" xml:space="preserve">
+    <value>Almanaksár</value>
+    <comment>table [Date] hierarchy [Calendar Year-Month-Week] level [Calendar Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.14bbd8ca-3b08-45dd-a221-5fde94bf8dc6.level.ad1f4929-9815-47ae-ae38-e76760467433" xml:space="preserve">
+    <value>Dagatal Mánuður Ár</value>
+    <comment>table [Date] hierarchy [Calendar Year-Month-Week] level [Calendar Month Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.14bbd8ca-3b08-45dd-a221-5fde94bf8dc6.level.8c1e598f-68d9-4ec8-8e8b-94bc0f325e6d" xml:space="preserve">
+    <value>Dagatal Vika Ár</value>
+    <comment>table [Date] hierarchy [Calendar Year-Month-Week] level [Calendar Week Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.6aaeeccb-1242-43fb-9099-223d53bf7246.caption" xml:space="preserve">
+    <value>Fjárhagsvika Ár-Mánuður-Vika</value>
+    <comment>table [Date] hierarchy [FW Year-Month-Week]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.6aaeeccb-1242-43fb-9099-223d53bf7246.level.37704c7b-a221-40d3-a104-a5e5c16746f0" xml:space="preserve">
+    <value>Fjárhagsvika Ár</value>
+    <comment>table [Date] hierarchy [FW Year-Month-Week] level [FW Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.6aaeeccb-1242-43fb-9099-223d53bf7246.level.1d9a9430-6bed-465f-afbf-c367b9f5edf6" xml:space="preserve">
+    <value>Fjárhagsvika Mánuður Ár</value>
+    <comment>table [Date] hierarchy [FW Year-Month-Week] level [FW Month Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.6aaeeccb-1242-43fb-9099-223d53bf7246.level.da024fdc-e22a-4d6e-8355-fbe50de4695c" xml:space="preserve">
+    <value>Fjárhagsvika Vika Ár</value>
+    <comment>table [Date] hierarchy [FW Year-Month-Week] level [FW Week Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.5dc02715-2940-4e60-8501-f9850f5b89a0.caption" xml:space="preserve">
+    <value>Fjárhagsvika Ár-Ársfjórðungur-Vika</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Week]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.5dc02715-2940-4e60-8501-f9850f5b89a0.level.c4f66205-6c99-4eed-9ea9-0fd4bf9fa72b" xml:space="preserve">
+    <value>Fjárhagsvika Ár</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Week] level [FW Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.5dc02715-2940-4e60-8501-f9850f5b89a0.level.d9c3188f-b8fa-45bc-9e08-880f6c98db91" xml:space="preserve">
+    <value>Fjárhagsvika Ársfjórðungur Ár</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Week] level [FW Quarter Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.5dc02715-2940-4e60-8501-f9850f5b89a0.level.a100ef88-63c6-46b8-88c7-7d5d4ba25929" xml:space="preserve">
+    <value>Fjárhagsvika Vika Ár</value>
+    <comment>table [Date] hierarchy [FW Year-Quarter-Week] level [FW Week Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.41126b6f-8505-4d19-a3e8-7452ae3cefaa.caption" xml:space="preserve">
+    <value>Fjárhagsvika Ár-Vika</value>
+    <comment>table [Date] hierarchy [FW Year-Week]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.41126b6f-8505-4d19-a3e8-7452ae3cefaa.level.0e86a949-ac84-4345-a88e-352ea19afe07" xml:space="preserve">
+    <value>Fjárhagsvika Ár</value>
+    <comment>table [Date] hierarchy [FW Year-Week] level [FW Year]</comment>
+  </data>
+  <data name="43a65c75-84cf-4e19-b893-90aa5fbee72b.hierarchy.41126b6f-8505-4d19-a3e8-7452ae3cefaa.level.7fb1d3c0-186f-4de8-a7be-dec117b3c3fd" xml:space="preserve">
+    <value>Fjárhagsvika Vika Ár</value>
+    <comment>table [Date] hierarchy [FW Year-Week] level [FW Week Year]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.2e0d925d-a450-462e-b5aa-768960cbdb6f.caption" xml:space="preserve">
+    <value>TENGIÐ GÖGN</value>
+    <comment>table [Localized Labels] measure [CONNECT YOUR DATA]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.8aaa5c35-6d66-4f75-9ce0-4b7747ad09b0.caption" xml:space="preserve">
+    <value>1. Sækja Finance Connector for Power BI</value>
+    <comment>table [Localized Labels] measure [1. Download the Finance Connector for Power BI]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.fca6e0ca-f179-4be6-83ba-13954a9c6fb8.caption" xml:space="preserve">
+    <value>2. Grunnstillið Dynamics 365 Business Central</value>
+    <comment>table [Localized Labels] measure [2. Configure Dynamics 365 Business Central]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.30ccb8a8-14ea-40b0-b57e-7662a5d0351d.caption" xml:space="preserve">
+    <value>NOTIÐ, BREYTIÐ OG BÚIÐ TIL EIGIN SKÝRSLUR</value>
+    <comment>table [Localized Labels] measure [USE, EDIT AND BUILD YOUR OWN REPORTS]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.49af546a-c7f8-4d21-b054-1b9196a3e634.caption" xml:space="preserve">
+    <value>Fjármál bjóða upp á innbyggðar skýrslur til að skoða gögn samstundis. Hægt er að breyta skýrslunum eða búa til eigin skýrslur frá grunni.</value>
+    <comment>table [Localized Labels] measure [Finance includes a variety of pre-built reports to help you see your data immediately. You are able to edit these reports or build your own report from scratch.]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.a5955ac3-4cb2-47cd-ad4c-08c768bbc55c.caption" xml:space="preserve">
+    <value>HJÁLP OG STUÐNINGUR</value>
+    <comment>table [Localized Labels] measure [HELP AND SUPPORT]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.06dfcd33-477b-4ed5-b9bf-2428c57f4a33.caption" xml:space="preserve">
+    <value>Lesið fylgigögn greiningaryfirlitsins til að fá hjálp og aðstoð við nýju skýrsluna.</value>
+    <comment>table [Localized Labels] measure [For help and support with your new report please visit the Analytics overview documentation.]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.eca50d64-01d0-4c4c-9290-eccae33a5e97.caption" xml:space="preserve">
+    <value>fyrir Business Central</value>
+    <comment>table [Localized Labels] measure [for Business Central]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.3878a9f3-ddab-46db-99ad-12f24e36bbfa.caption" xml:space="preserve">
+    <value>Síðast uppfært</value>
+    <comment>table [Localized Labels] measure [Last Refreshed]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.92097977-f391-4f47-996c-775a3d895704.caption" xml:space="preserve">
+    <value>Heiti fyrirtækis</value>
+    <comment>table [Localized Labels] measure [Company Name]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.6b062a7a-3eb7-4a5d-a4ea-433fddecd35c.caption" xml:space="preserve">
+    <value>Greiningarfærslur frá og með</value>
+    <comment>table [Localized Labels] measure [Analysis Entries as of]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.844749de-04b7-4c58-ab13-5f3daaa60c0f.caption" xml:space="preserve">
+    <value>Reikningsspá eftir reikningstímabili, viðskiptavini og samningsnúmeri.</value>
+    <comment>table [Localized Labels] measure [Billing Forecast by Billing Period, Customer and Contract No.]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.c953823b-1413-4c30-a98f-87f08a507f5d.caption" xml:space="preserve">
+    <value>Reikningsspá eftir almanaksári og -mánuði</value>
+    <comment>table [Localized Labels] measure [Billing Forecast by Year and Month]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.9fa316a2-2600-4aca-8e34-1afef875b17e.caption" xml:space="preserve">
+    <value>Greiðsluáætlun</value>
+    <comment>table [Localized Labels] measure [Billing Schedule]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.bfa03046-886f-4ef2-9f4f-260ef45799c7.caption" xml:space="preserve">
+    <value>Breyting á mán. endurteknum tekjum eftir ári og mánuði</value>
+    <comment>table [Localized Labels] measure [Change of Mon. Recurring Revenue by Year and Month]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.bb1ea999-c865-44de-83c8-0303918d8209.caption" xml:space="preserve">
+    <value>Núverandi dagsetningabil:</value>
+    <comment>table [Localized Labels] measure [Current Date Range:]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.4041576c-02c2-43c7-a5a8-b2912ba6afea.caption" xml:space="preserve">
+    <value>Samningsfrestanir viðskiptavinar</value>
+    <comment>table [Localized Labels] measure [Customer Contract Deferrals]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.97234d24-14b3-4e55-98e1-64e15a249b8b.caption" xml:space="preserve">
+    <value>Samningslínur viðskiptavinar</value>
+    <comment>table [Localized Labels] measure [Customer Contract Lines]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.2d14594c-f95c-40b2-a16e-fcd14a43ea9e.caption" xml:space="preserve">
+    <value>Frestanir viðskiptamanns</value>
+    <comment>table [Localized Labels] measure [Customer Deferrals (Caption)]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.0ee39fdc-22f3-4a1f-8935-554dda29762f.caption" xml:space="preserve">
+    <value>Mán. endurtekin tekjugreining</value>
+    <comment>table [Localized Labels] measure [Mon. Recurring Revenue Analysis]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.83f53b50-5914-4de9-a9ba-7d7f0f0e7af5.caption" xml:space="preserve">
+    <value>Mán. endurteknar tekjur og mán. endurteknar tekjur fyrra árs eftir almanaksmánuði</value>
+    <comment>table [Localized Labels] measure [Mon. Recurring Revenue and Mon. Recurring Revenue PY by Month]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.63fd2d9e-64b1-4fa9-84ad-cb5606cc685a.caption" xml:space="preserve">
+    <value>Mán. endurteknar tekjur og vöxtur milli ára eftir almanaksári og -mánuði</value>
+    <comment>table [Localized Labels] measure [Mon. Recurring Revenue and Year-Over-Year Growth by Year and Month]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.1592b158-1a6e-4da3-8e3b-2f7654d7c26b.caption" xml:space="preserve">
+    <value>Mán. endurteknar tekjur eftir viðskiptavini</value>
+    <comment>table [Localized Labels] measure [Mon. Recurring Revenue by Customer]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.a45186ab-13c5-4bf1-8dfa-007fcb440551.caption" xml:space="preserve">
+    <value>Mán. endurteknar tekjur eftir sölumanni</value>
+    <comment>table [Localized Labels] measure [Mon. Recurring Revenue by Salesperson]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.0ec06452-e48a-44dc-ac9c-69eea9e9c90d.caption" xml:space="preserve">
+    <value>Mán. endurteknar tekjur eftir almanaksári og -mánuði</value>
+    <comment>table [Localized Labels] measure [Mon. Recurring Revenue by Year and Month]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.413d6827-df93-4af7-a6bc-2cf0b8c8b3b9.caption" xml:space="preserve">
+    <value>Mán. endurteknar tekjur eftir vöru</value>
+    <comment>table [Localized Labels] measure [Mon. Recurring Revenue by Item]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.8df0393a-f5c5-456a-a246-be1c02c5f655.caption" xml:space="preserve">
+    <value>Mán. endurteknar tekjur eftir vöruflokkum</value>
+    <comment>table [Localized Labels] measure [Mon. Recurring Revenue by Item Category]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.277e2367-9947-4d8f-998f-54a527f79b9e.caption" xml:space="preserve">
+    <value>Mán uppsögn endurtekinna tekna og niðurfærsla eftir samningi við viðskiptavin</value>
+    <comment>table [Localized Labels] measure [Mon. Recurring Revenue Churn and Downgrade by Customer Contract]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.6edfffb4-0fcd-4594-a05c-fc6be11af633.caption" xml:space="preserve">
+    <value>Mán. Endurteknar tekjur nýjar og uppfærðar eftir samningi við viðskiptavin</value>
+    <comment>table [Localized Labels] measure [Mon. Recurring Revenue New and Upgrade by Customer Contract]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.205d4014-4b70-4eb1-8846-cc92ec330e61.caption" xml:space="preserve">
+    <value>Mánaðarleg tekju- og kostnaðarspá eftir almanaksári og -mánuði</value>
+    <comment>table [Localized Labels] measure [Monthly Sales and Cost Forecast by Year and Month]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.d6da1e7b-f30f-449e-9a6b-a98254cddbbb.caption" xml:space="preserve">
+    <value>Mánaðarleg tekju- og kostnaðarspá sölumanns, viðskiptavinar og samnings nr.</value>
+    <comment>table [Localized Labels] measure [Monthly Sales and Cost Forecast by Salesperson, Customer and Contract No.]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.1548ea23-9cac-459e-a44f-59f85d5f6e2e.caption" xml:space="preserve">
+    <value>Losuð og frestuð upphæð eftir almanaksári og -mánuði</value>
+    <comment>table [Localized Labels] measure [Released and Deferred Amount by Year and Month]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.fff8e682-fd4c-4383-9b59-732cce93b54f.caption" xml:space="preserve">
+    <value>Greining tekja</value>
+    <comment>table [Localized Labels] measure [Revenue Analysis]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.74bf2c9b-8d69-41a2-83e7-caa5a5baea17.caption" xml:space="preserve">
+    <value>Tekjur eftir viðskiptamanni</value>
+    <comment>table [Localized Labels] measure [Revenue by Customer]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.4e5b62e7-1c5a-431f-826e-0fa5e0214775.caption" xml:space="preserve">
+    <value>Tekjur eftir vöru</value>
+    <comment>table [Localized Labels] measure [Revenue by Item]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.9ad2380b-28bc-4256-9641-c7eeb44e9332.caption" xml:space="preserve">
+    <value>Tekjur eftir sölumanni</value>
+    <comment>table [Localized Labels] measure [Revenue by Salesperson]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.56df1932-0d8e-4790-8d09-6c4a40980cf1.caption" xml:space="preserve">
+    <value>Tekjuþróun</value>
+    <comment>table [Localized Labels] measure [Revenue Development]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.e0c3256a-6dbd-43f6-b684-e5f55eb48f82.caption" xml:space="preserve">
+    <value>Tekjuspá</value>
+    <comment>table [Localized Labels] measure [Sales and Cost Forecast]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.6301f566-718e-4d41-a033-1c160569a383.caption" xml:space="preserve">
+    <value>Tekjuvöxtur milli ára</value>
+    <comment>table [Localized Labels] measure [Revenue Year-Over-Year Growth]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.90809706-227f-44a2-bda1-b8d5a3478e20.caption" xml:space="preserve">
+    <value>Subscription Billing greining</value>
+    <comment>table [Localized Labels] measure [Subscription Billing Analysis]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.d8b1ba69-e782-4019-b1e1-82631b2f3da8.caption" xml:space="preserve">
+    <value>Subscription Billing yfirlit</value>
+    <comment>table [Localized Labels] measure [Subscription Billing Overview]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.c335ebff-26bb-4dc2-a037-940621cca510.caption" xml:space="preserve">
+    <value>5 hæstu viðskiptavinirnir eftir mán. endurteknum tekjum</value>
+    <comment>table [Localized Labels] measure [Top 5 Customers by Mon. Recurring Revenue]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.50f239ca-7c1e-4517-8643-b292f9ac664e.caption" xml:space="preserve">
+    <value>5 hæstu lánardrottnar fyrir mán. endurtekinn kostnað</value>
+    <comment>table [Localized Labels] measure [Top 5 Vendors by Mon. Recurring Cost]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.d6592fcb-173b-4124-bf9b-e4f224d32a9e.caption" xml:space="preserve">
+    <value>Heildargreining samningsvirðis</value>
+    <comment>table [Localized Labels] measure [Total Contract Value Analysis]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.134c7194-8ef9-4d65-9e94-6165d77d7fb7.caption" xml:space="preserve">
+    <value>Heildarsamningsvirði og heildarsamningsvirði fyrra árs eftir almanaksmánuði</value>
+    <comment>table [Localized Labels] measure [Total Contract Value and Total Contract Value PY by Month]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.502cdb29-986f-495f-bab1-c2bb28d186aa.caption" xml:space="preserve">
+    <value>Heildarvirði samnings og vöxtur milli ára eftir almanaksári og -mánuði</value>
+    <comment>table [Localized Labels] measure [Total Contract Value and Year-Over-Year Growth by Year and Month]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.e53514e4-7fb5-411c-9760-ab7df69d20e4.caption" xml:space="preserve">
+    <value>Heildarverðmæti samnings eftir almanaksári og -mánuði</value>
+    <comment>table [Localized Labels] measure [Total Contract Value by Year and Month]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.1a56b4a4-97ab-4a95-984e-069a4cf354b8.caption" xml:space="preserve">
+    <value>Heildarvöxtur samningsvirðis á milli ára</value>
+    <comment>table [Localized Labels] measure [Total Contract Value Year-Over-Year Growth]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.36c90144-d3d9-4000-b48c-41e339f86860.caption" xml:space="preserve">
+    <value>Frestanir lánardrottnasamnings</value>
+    <comment>table [Localized Labels] measure [Vendor Contract Deferrals]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.d9ce6943-0cf7-4d3c-91bb-5158022168a5.caption" xml:space="preserve">
+    <value>Frestun lánardrottins</value>
+    <comment>table [Localized Labels] measure [Vendor Deferrals (Caption)]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.8a192dfe-ff11-4ade-afb9-acacc9cb7c64.caption" xml:space="preserve">
+    <value>Bakkhnappur</value>
+    <comment>table [Localized Labels] measure [Back button]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.673f244c-6171-47fd-88fe-8d25ff9fa65c.caption" xml:space="preserve">
+    <value>Mánaðarlegar endurteknar tekjur, mánaðarlegur endurtekinn kostnaður, mánaðarlegur hreinn hagnaður, virkir viðskiptavinir, heildarvirði samnings, breyting á mánaðarlegum endurteknum tekjum</value>
+    <comment>table [Localized Labels] measure [Monthly Recurring Revenue, Monthly Recurring Cost, Monthly Net Profit, Active Customers, Total Contract Value, Change in Monthly Recurring Revenue]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.970aed3a-a493-4dcf-81ce-67b05dbb580a.caption" xml:space="preserve">
+    <value>Greining á uppsögnum</value>
+    <comment>table [Localized Labels] measure [Churn Analysis]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.dbec714d-36ad-4e74-bc74-9691ee24a02e.caption" xml:space="preserve">
+    <value>Meðaltími mán. uppsagna % eftir ári og mánuði</value>
+    <comment>table [Localized Labels] measure [Avg. Mon. Churn Rate % by Year and Month]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.eb7ac507-a2f1-4ba2-92d4-e7eb91d456d9.caption" xml:space="preserve">
+    <value>Total Contract Value by Package</value>
+    <comment>table [Localized Labels] measure [Total Contract Value by Package]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.9c002ddd-002a-426e-a47d-d6351d291e93.caption" xml:space="preserve">
+    <value>Mon. Recurring Revenue by Package</value>
+    <comment>table [Localized Labels] measure [Mon. Recurring Revenue by Package]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.79e806b1-5fe4-461f-9e2d-8d23af4d33ac.caption" xml:space="preserve">
+    <value>Churn by Customer</value>
+    <comment>table [Localized Labels] measure [Churn by Customer]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.aef1f788-4dd3-4346-ba15-c7964929e203.caption" xml:space="preserve">
+    <value>Profitability by Item</value>
+    <comment>table [Localized Labels] measure [Profitability by Item]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.355d4e8c-e2b7-488d-8aae-610791396576.caption" xml:space="preserve">
+    <value>Mon. Recurring Revenue by Customer Location</value>
+    <comment>table [Localized Labels] measure [Mon. Recurring Revenue by Customer Location]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.10fb96a6-7639-4f61-b26c-4c8aeb15b721.caption" xml:space="preserve">
+    <value>Profitability by Salesperson</value>
+    <comment>table [Localized Labels] measure [Profitability by Salesperson]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.5ca0d80c-d7cc-4f84-9bf1-8cadb5777ad1.caption" xml:space="preserve">
+    <value>Total Contract Value by Salesperson</value>
+    <comment>table [Localized Labels] measure [Total Contract Value by Salesperson]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.dc49dcdf-4074-4dde-845c-dd35d6864bbc.caption" xml:space="preserve">
+    <value>Customer Deferrals by Released Status</value>
+    <comment>table [Localized Labels] measure [Customer Deferrals by Released Status]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.10e96e0c-8487-469d-97ea-94d49f78cdd5.caption" xml:space="preserve">
+    <value>Vendor Deferrals by Released Status</value>
+    <comment>table [Localized Labels] measure [Vendor Deferrals by Released Status]</comment>
+  </data>
+  <data name="bb491cc1-cc21-4024-930c-dd934ce72e6d.measure.601a43e9-3983-471f-8187-a5cc4ee23dff.caption" xml:space="preserve">
+    <value>Billing Forecast by Billing Period, Vendor and Contract No.</value>
+    <comment>table [Localized Labels] measure [Billing Forecast by Billing Period, Vendor and Contract No.]</comment>
+  </data>
+  <data name="2ed6d60b-8267-4f92-a751-3689f3be8a5e.caption" xml:space="preserve">
+    <value>Þjónustuhlutur</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="2ed6d60b-8267-4f92-a751-3689f3be8a5e.column.0c16a49c-64da-46b0-827c-577a26f0c6e5.caption" xml:space="preserve">
+    <value>Nr. þjónustuhlutar</value>
+    <comment>table [Subscription] column [Subscription No.]</comment>
+  </data>
+  <data name="2ed6d60b-8267-4f92-a751-3689f3be8a5e.column.e605a6bc-fa17-40f9-96d1-1586fa0c5331.caption" xml:space="preserve">
+    <value>Sendingarkóði</value>
+    <comment>table [Subscription] column [Package Code]</comment>
+  </data>
+  <data name="2ed6d60b-8267-4f92-a751-3689f3be8a5e.column.fe3468db-3f4b-493b-88b0-6f1f8deddc59.caption" xml:space="preserve">
+    <value>Afsláttur þjónustuhluta</value>
+    <comment>table [Subscription] column [Subscription Desc.]</comment>
+  </data>
+  <data name="2ed6d60b-8267-4f92-a751-3689f3be8a5e.column.cf83c839-2d39-45ad-85b5-73fe1475feb4.caption" xml:space="preserve">
+    <value>Greiningardagsetning</value>
+    <comment>table [Subscription] column [Analysis Date]</comment>
+  </data>
+  <data name="2ed6d60b-8267-4f92-a751-3689f3be8a5e.column.2280128a-2625-4941-9aa4-22a69182b035.caption" xml:space="preserve">
+    <value>Afsláttur áskriftarnr.</value>
+    <comment>table [Subscription] column [Subscription No. Desc.]</comment>
+  </data>
+  <data name="8c73f9a0-1ebd-4482-9add-657beddf981d.caption" xml:space="preserve">
+    <value>Frestanir lánardrottnasamnings</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="8c73f9a0-1ebd-4482-9add-657beddf981d.column.9759c5e8-c5d3-4116-bf44-5c0d8347748a.caption" xml:space="preserve">
+    <value>Gerð skjals</value>
+    <comment>table [Vendor Contract Deferrals] column [Document Type]</comment>
+  </data>
+  <data name="8c73f9a0-1ebd-4482-9add-657beddf981d.column.4b5cd17a-3699-44f7-8d01-e200ddc57c7b.caption" xml:space="preserve">
+    <value>Nr. skjals</value>
+    <comment>table [Vendor Contract Deferrals] column [Document No.]</comment>
+  </data>
+  <data name="8c73f9a0-1ebd-4482-9add-657beddf981d.column.26b50f2c-060a-4c86-9f3f-5e4664a9269b.caption" xml:space="preserve">
+    <value>Bókunardagsetning</value>
+    <comment>table [Vendor Contract Deferrals] column [Posting Date]</comment>
+  </data>
+  <data name="8c73f9a0-1ebd-4482-9add-657beddf981d.column.cc18dd01-6dff-4139-be98-3185ce5f2daf.caption" xml:space="preserve">
+    <value>Bókunardagur skjals</value>
+    <comment>table [Vendor Contract Deferrals] column [Document Posting Date]</comment>
+  </data>
+  <data name="8c73f9a0-1ebd-4482-9add-657beddf981d.column.bdfabe80-a9c1-4ab6-aa69-4e913815317d.caption" xml:space="preserve">
+    <value>Losa bókunardagsetningu</value>
+    <comment>table [Vendor Contract Deferrals] column [Release Posting Date]</comment>
+  </data>
+  <data name="8c73f9a0-1ebd-4482-9add-657beddf981d.column.29e69ab9-ffc0-4759-8213-ff8a3775b650.caption" xml:space="preserve">
+    <value>Fjárhagsbókarfærslunr.</value>
+    <comment>table [Vendor Contract Deferrals] column [G LEntry No.]</comment>
+  </data>
+  <data name="8c73f9a0-1ebd-4482-9add-657beddf981d.column.c9e48fa6-3640-4c64-9531-eea988cfa81e.caption" xml:space="preserve">
+    <value>Afsláttur</value>
+    <comment>table [Vendor Contract Deferrals] column [Discount]</comment>
+  </data>
+  <data name="8c73f9a0-1ebd-4482-9add-657beddf981d.column.22b53288-ad11-48a2-80b8-005ae86f3cad.caption" xml:space="preserve">
+    <value>Línunr. fylgiskjals</value>
+    <comment>table [Vendor Contract Deferrals] column [Document Line No.]</comment>
+  </data>
+  <data name="540f4568-d4e5-47d8-8c9c-1c4a21f3b091.caption" xml:space="preserve">
+    <value>Samningslína viðskiptavinar</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="540f4568-d4e5-47d8-8c9c-1c4a21f3b091.column.629ee0a1-242f-480c-8cad-1ee6b0564776.caption" xml:space="preserve">
+    <value>Ráðstöfunarlínunr.</value>
+    <comment>table [Customer Contract Line] column [Subscription Line No.]</comment>
+  </data>
+  <data name="540f4568-d4e5-47d8-8c9c-1c4a21f3b091.column.a74c0fa5-293b-43ca-b021-44b1fbec3e9e.caption" xml:space="preserve">
+    <value>Sniðmát</value>
+    <comment>table [Customer Contract Line] column [Template]</comment>
+  </data>
+  <data name="540f4568-d4e5-47d8-8c9c-1c4a21f3b091.column.94516e49-8be0-446e-b47a-a5a15a4ea74c.caption" xml:space="preserve">
+    <value>Afsláttur samningslýsingar viðskiptavinar</value>
+    <comment>table [Customer Contract Line] column [Customer Contract Line Desc.]</comment>
+  </data>
+  <data name="540f4568-d4e5-47d8-8c9c-1c4a21f3b091.column.437d1962-af85-4a9d-a8b9-98756140762d.caption" xml:space="preserve">
+    <value>Upphafsdagur þjónustu</value>
+    <comment>table [Customer Contract Line] column [Subscription Start Date]</comment>
+  </data>
+  <data name="540f4568-d4e5-47d8-8c9c-1c4a21f3b091.column.086f2e4d-7b22-46ff-a427-71eb4a65a0dd.caption" xml:space="preserve">
+    <value>Lokadagsetning þjónustu</value>
+    <comment>table [Customer Contract Line] column [Subscription End Date]</comment>
+  </data>
+  <data name="540f4568-d4e5-47d8-8c9c-1c4a21f3b091.column.138b795c-d660-4555-8bb2-2dd928aa1fda.caption" xml:space="preserve">
+    <value>Næsta greiðsludagsetning</value>
+    <comment>table [Customer Contract Line] column [Next Billing Date]</comment>
+  </data>
+  <data name="540f4568-d4e5-47d8-8c9c-1c4a21f3b091.column.be9102bd-a8f2-4fd7-9da1-dd5b21c8a239.caption" xml:space="preserve">
+    <value>Grunntímabil innheimtu</value>
+    <comment>table [Customer Contract Line] column [Billing Base Period]</comment>
+  </data>
+  <data name="540f4568-d4e5-47d8-8c9c-1c4a21f3b091.column.7a12c532-b0a2-42fb-ab5c-3d9acf805db6.caption" xml:space="preserve">
+    <value>Vörunr. reikningsfærslu</value>
+    <comment>table [Customer Contract Line] column [Invoicing Item No.]</comment>
+  </data>
+  <data name="540f4568-d4e5-47d8-8c9c-1c4a21f3b091.column.3b5bcb86-b76f-4168-bba6-a6c5884310e8.caption" xml:space="preserve">
+    <value>Samningslínunr. viðskiptavinar</value>
+    <comment>table [Customer Contract Line] column [Customer Contract Line No.]</comment>
+  </data>
+  <data name="540f4568-d4e5-47d8-8c9c-1c4a21f3b091.column.cb0e9a7e-5be0-4015-bdff-d7bcd0650ee2.caption" xml:space="preserve">
+    <value>Uppsagnarfrestur</value>
+    <comment>table [Customer Contract Line] column [Notice Period]</comment>
+  </data>
+  <data name="540f4568-d4e5-47d8-8c9c-1c4a21f3b091.column.e4bc9b8a-0c86-46da-9e95-8b0cf4a5c903.caption" xml:space="preserve">
+    <value>Fyrsta tímabil</value>
+    <comment>table [Customer Contract Line] column [Initial Term]</comment>
+  </data>
+  <data name="540f4568-d4e5-47d8-8c9c-1c4a21f3b091.column.67cb45bf-50df-491e-addb-baf97bbb3f51.caption" xml:space="preserve">
+    <value>Skilmálar viðbótar</value>
+    <comment>table [Customer Contract Line] column [Extension Term]</comment>
+  </data>
+  <data name="540f4568-d4e5-47d8-8c9c-1c4a21f3b091.column.bfefd601-679a-441f-878b-8a44febbd08f.caption" xml:space="preserve">
+    <value>Innheimtutíðni</value>
+    <comment>table [Customer Contract Line] column [Billing Rhythm]</comment>
+  </data>
+  <data name="540f4568-d4e5-47d8-8c9c-1c4a21f3b091.column.3853a6b4-f848-4ba4-83bc-41028ea51311.caption" xml:space="preserve">
+    <value>Afbókun möguleg til</value>
+    <comment>table [Customer Contract Line] column [Cancellation Possible Until]</comment>
+  </data>
+  <data name="540f4568-d4e5-47d8-8c9c-1c4a21f3b091.column.464c8bde-198f-47e2-904a-7006e5a092a7.caption" xml:space="preserve">
+    <value>Liður til</value>
+    <comment>table [Customer Contract Line] column [Term Until]</comment>
+  </data>
+  <data name="540f4568-d4e5-47d8-8c9c-1c4a21f3b091.column.182f5d6d-5552-4f96-a2f8-932aa81d7c7e.caption" xml:space="preserve">
+    <value>Endurnýjunartímabil</value>
+    <comment>table [Customer Contract Line] column [Renewal Term]</comment>
+  </data>
+  <data name="540f4568-d4e5-47d8-8c9c-1c4a21f3b091.column.d27f2e97-a9e3-48fb-8bd2-4a2b45f84862.caption" xml:space="preserve">
+    <value>Lína virk</value>
+    <comment>table [Customer Contract Line] column [Line Active]</comment>
+  </data>
+  <data name="540f4568-d4e5-47d8-8c9c-1c4a21f3b091.column.da552f9a-4ca2-48a8-80cc-c316b3ef6dc8.caption" xml:space="preserve">
+    <value>Eftirstandandi skilmálar</value>
+    <comment>table [Customer Contract Line] column [Remaining Term]</comment>
+  </data>
+  <data name="540f4568-d4e5-47d8-8c9c-1c4a21f3b091.column.ccfb9c91-33d0-431c-a603-74d29500478c.caption" xml:space="preserve">
+    <value>Mánuðir innheimtutíðni</value>
+    <comment>table [Customer Contract Line] column [Billing Rhythm Months]</comment>
+  </data>
+  <data name="540f4568-d4e5-47d8-8c9c-1c4a21f3b091.column.8780ef1b-a766-4410-a222-14b42bb69d45.caption" xml:space="preserve">
+    <value>Samningsnr. viðskiptavinar</value>
+    <comment>table [Customer Contract Line] column [Customer Contract No.]</comment>
+  </data>
+  <data name="540f4568-d4e5-47d8-8c9c-1c4a21f3b091.column.09ddd484-4371-4e38-8b41-a86d555c982f.caption" xml:space="preserve">
+    <value>Er greitt samkvæmt notkun</value>
+    <comment>table [Customer Contract Line] column [Is Usage Based Billing]</comment>
+  </data>
+  <data name="540f4568-d4e5-47d8-8c9c-1c4a21f3b091.column.53bbef46-039e-4881-8b85-6856cbbb3cba.caption" xml:space="preserve">
+    <value>Upprunagerð</value>
+    <comment>table [Customer Contract Line] column [Source Type]</comment>
+  </data>
+  <data name="540f4568-d4e5-47d8-8c9c-1c4a21f3b091.column.5106eee8-6b17-416b-93cf-b1cd300d9445.caption" xml:space="preserve">
+    <value>Upprunanúmer</value>
+    <comment>table [Customer Contract Line] column [Source No.]</comment>
+  </data>
+  <data name="99943954-cca4-451c-9f37-de72dc3ba6fe.caption" xml:space="preserve">
+    <value>Lánardrottnasamningslína</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="99943954-cca4-451c-9f37-de72dc3ba6fe.column.bce5266a-6ac8-4b71-9ffd-ef2b727e5670.caption" xml:space="preserve">
+    <value>Ráðstöfunarlínunr.</value>
+    <comment>table [Vendor Contract Line] column [Subscription Line No.]</comment>
+  </data>
+  <data name="99943954-cca4-451c-9f37-de72dc3ba6fe.column.e2f5fe66-7774-498d-88c2-665377895c76.caption" xml:space="preserve">
+    <value>Sniðmát</value>
+    <comment>table [Vendor Contract Line] column [Template]</comment>
+  </data>
+  <data name="99943954-cca4-451c-9f37-de72dc3ba6fe.column.db6874f8-6f6a-41b6-88fc-37e9e2cb2eb2.caption" xml:space="preserve">
+    <value>Afsláttur lánardrottnasamningslínu</value>
+    <comment>table [Vendor Contract Line] column [Vendor Contract Line Desc.]</comment>
+  </data>
+  <data name="99943954-cca4-451c-9f37-de72dc3ba6fe.column.df6619cb-3cae-4cb7-87dc-9c7590f02c40.caption" xml:space="preserve">
+    <value>Upphafsdagur þjónustu</value>
+    <comment>table [Vendor Contract Line] column [Subscription Start Date]</comment>
+  </data>
+  <data name="99943954-cca4-451c-9f37-de72dc3ba6fe.column.aa32d465-8d0d-4b69-99ed-359c9f70897e.caption" xml:space="preserve">
+    <value>Lokadagsetning þjónustu</value>
+    <comment>table [Vendor Contract Line] column [Subscription End Date]</comment>
+  </data>
+  <data name="99943954-cca4-451c-9f37-de72dc3ba6fe.column.fe144551-876b-4a54-985e-fef3ae3c102d.caption" xml:space="preserve">
+    <value>Næsta greiðsludagsetning</value>
+    <comment>table [Vendor Contract Line] column [Next Billing Date]</comment>
+  </data>
+  <data name="99943954-cca4-451c-9f37-de72dc3ba6fe.column.20e0ce7c-3a47-4d50-9c44-6dde84bccd7c.caption" xml:space="preserve">
+    <value>Nr. lánardrottnasamningslínu</value>
+    <comment>table [Vendor Contract Line] column [Vendor Contract Line No.]</comment>
+  </data>
+  <data name="99943954-cca4-451c-9f37-de72dc3ba6fe.column.b34c08ce-60d2-4942-aaa6-f15afe6fdb87.caption" xml:space="preserve">
+    <value>Uppsagnarfrestur</value>
+    <comment>table [Vendor Contract Line] column [Notice Period]</comment>
+  </data>
+  <data name="99943954-cca4-451c-9f37-de72dc3ba6fe.column.910e40de-7b02-404e-b8c7-78efa5323eeb.caption" xml:space="preserve">
+    <value>Fyrsta tímabil</value>
+    <comment>table [Vendor Contract Line] column [Initial Term]</comment>
+  </data>
+  <data name="99943954-cca4-451c-9f37-de72dc3ba6fe.column.307ebf12-ba57-455c-90e0-9d4351e3d9e3.caption" xml:space="preserve">
+    <value>Skilmálar viðbótar</value>
+    <comment>table [Vendor Contract Line] column [Extension Term]</comment>
+  </data>
+  <data name="99943954-cca4-451c-9f37-de72dc3ba6fe.column.08d6fbd5-0134-4225-a719-01fb6cdb5818.caption" xml:space="preserve">
+    <value>Innheimtutíðni</value>
+    <comment>table [Vendor Contract Line] column [Billing Rhythm]</comment>
+  </data>
+  <data name="99943954-cca4-451c-9f37-de72dc3ba6fe.column.befb9b2d-f918-4c33-8091-e278119995d3.caption" xml:space="preserve">
+    <value>Afbókun möguleg til</value>
+    <comment>table [Vendor Contract Line] column [Cancellation Possible Until]</comment>
+  </data>
+  <data name="99943954-cca4-451c-9f37-de72dc3ba6fe.column.74e63de3-e4d5-4647-8b24-a588e25efca6.caption" xml:space="preserve">
+    <value>Liður til</value>
+    <comment>table [Vendor Contract Line] column [Term Until]</comment>
+  </data>
+  <data name="99943954-cca4-451c-9f37-de72dc3ba6fe.column.1f070605-565a-4078-a7b1-7a1057da0ca9.caption" xml:space="preserve">
+    <value>Endurnýjunartímabil</value>
+    <comment>table [Vendor Contract Line] column [Renewal Term]</comment>
+  </data>
+  <data name="99943954-cca4-451c-9f37-de72dc3ba6fe.column.392a8bac-72e3-40c9-a631-826f4a3ce2cc.caption" xml:space="preserve">
+    <value>Lína virk</value>
+    <comment>table [Vendor Contract Line] column [Line Active]</comment>
+  </data>
+  <data name="99943954-cca4-451c-9f37-de72dc3ba6fe.column.85f404a5-0e10-41f8-8b0a-4a9d7285cb6d.caption" xml:space="preserve">
+    <value>Eftirstandandi skilmálar</value>
+    <comment>table [Vendor Contract Line] column [Remaining Term]</comment>
+  </data>
+  <data name="99943954-cca4-451c-9f37-de72dc3ba6fe.column.af022216-de6f-468a-b02a-c9d16607d6e4.caption" xml:space="preserve">
+    <value>Mánuðir innheimtutíðni</value>
+    <comment>table [Vendor Contract Line] column [Billing Rhythm Months]</comment>
+  </data>
+  <data name="99943954-cca4-451c-9f37-de72dc3ba6fe.column.128cdb6d-e716-4818-83af-fb1bf31b16cb.caption" xml:space="preserve">
+    <value>Nr. lánardrottinssamnings</value>
+    <comment>table [Vendor Contract Line] column [Vendor Contract No.]</comment>
+  </data>
+  <data name="99943954-cca4-451c-9f37-de72dc3ba6fe.column.2359e095-afdb-4b0c-906d-ec2f46080974.caption" xml:space="preserve">
+    <value>Er nýjasta útgáfa</value>
+    <comment>table [Vendor Contract Line] column [Is Latest Version]</comment>
+  </data>
+  <data name="99943954-cca4-451c-9f37-de72dc3ba6fe.column.9a6e3524-3d1e-4b65-9382-d50b77634a13.caption" xml:space="preserve">
+    <value>Er greitt samkvæmt notkun</value>
+    <comment>table [Vendor Contract Line] column [Is Usage Based Billing]</comment>
+  </data>
+  <data name="99943954-cca4-451c-9f37-de72dc3ba6fe.column.98183df7-9e61-4054-9b8c-5bca2533ce9c.caption" xml:space="preserve">
+    <value>Upprunagerð</value>
+    <comment>table [Vendor Contract Line] column [Source Type]</comment>
+  </data>
+  <data name="99943954-cca4-451c-9f37-de72dc3ba6fe.column.a7c0f8aa-6090-4851-b1e2-d1c140f6c1b8.caption" xml:space="preserve">
+    <value>Upprunanúmer</value>
+    <comment>table [Vendor Contract Line] column [Source No.]</comment>
+  </data>
+  <data name="fe6c8954-df24-4726-8ad2-a5866e1c40aa.caption" xml:space="preserve">
+    <value>Samningsfrestanir viðskiptavinar</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="fe6c8954-df24-4726-8ad2-a5866e1c40aa.column.e7a94cd6-62ae-4eeb-87d1-312c9e300d65.caption" xml:space="preserve">
+    <value>Gerð skjals</value>
+    <comment>table [Customer Contract Deferrals] column [Document Type]</comment>
+  </data>
+  <data name="fe6c8954-df24-4726-8ad2-a5866e1c40aa.column.e4c5ac4a-40a0-4a64-b3a9-54c2a3ab5dac.caption" xml:space="preserve">
+    <value>Nr. skjals</value>
+    <comment>table [Customer Contract Deferrals] column [Document No.]</comment>
+  </data>
+  <data name="fe6c8954-df24-4726-8ad2-a5866e1c40aa.column.0c4a760b-5c65-4f4a-91b6-63732fe941fd.caption" xml:space="preserve">
+    <value>Bókunardagsetning</value>
+    <comment>table [Customer Contract Deferrals] column [Posting Date]</comment>
+  </data>
+  <data name="fe6c8954-df24-4726-8ad2-a5866e1c40aa.column.76247cb4-78b4-4873-ac7c-d51dc12c0e60.caption" xml:space="preserve">
+    <value>Línunr. fylgiskjals</value>
+    <comment>table [Customer Contract Deferrals] column [Document Line No.]</comment>
+  </data>
+  <data name="fe6c8954-df24-4726-8ad2-a5866e1c40aa.column.01a68154-264b-4852-9d77-03cfd505e500.caption" xml:space="preserve">
+    <value>Bókunardagur skjals</value>
+    <comment>table [Customer Contract Deferrals] column [Document Posting Date]</comment>
+  </data>
+  <data name="fe6c8954-df24-4726-8ad2-a5866e1c40aa.column.26341214-5d76-46e2-a6f0-f1bc92011467.caption" xml:space="preserve">
+    <value>Losa bókunardagsetningu</value>
+    <comment>table [Customer Contract Deferrals] column [Release Posting Date]</comment>
+  </data>
+  <data name="fe6c8954-df24-4726-8ad2-a5866e1c40aa.column.cf1d949f-58b8-4478-a930-4669af0792ea.caption" xml:space="preserve">
+    <value>Fjárhagsbókarfærslunr.</value>
+    <comment>table [Customer Contract Deferrals] column [G LEntry No.]</comment>
+  </data>
+  <data name="b748c247-65fd-49d8-93a8-6221ddd88c2e.caption" xml:space="preserve">
+    <value>Samningur viðskiptamanns</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="b748c247-65fd-49d8-93a8-6221ddd88c2e.column.3e6ba627-9755-49e3-b41e-7b1a77dfdf37.caption" xml:space="preserve">
+    <value>Samningsnr. viðskiptavinar</value>
+    <comment>table [Customer Contract] column [Customer Contract No.]</comment>
+  </data>
+  <data name="b748c247-65fd-49d8-93a8-6221ddd88c2e.column.5e2f6832-7830-452f-b32e-95cb61f2821b.caption" xml:space="preserve">
+    <value>Gerð samnings viðskiptavinar</value>
+    <comment>table [Customer Contract] column [Customer Contract Type]</comment>
+  </data>
+  <data name="b748c247-65fd-49d8-93a8-6221ddd88c2e.column.386570cf-eb0c-418c-aa1e-692ae34c0489.caption" xml:space="preserve">
+    <value>Lýsing á samningi viðskiptavinar</value>
+    <comment>table [Customer Contract] column [Customer Contract Description]</comment>
+  </data>
+  <data name="b748c247-65fd-49d8-93a8-6221ddd88c2e.column.68f8dc9b-ac46-47bc-b60f-64e52a4fdf65.caption" xml:space="preserve">
+    <value>Afsláttarnr. samnings viðskiptavinar</value>
+    <comment>table [Customer Contract] column [Customer Contract No. Desc.]</comment>
+  </data>
+  <data name="b9c04fa3-148a-4302-9e95-8be447f97ba2.caption" xml:space="preserve">
+    <value>Lánardrottnasamningur</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="b9c04fa3-148a-4302-9e95-8be447f97ba2.column.c87b6b44-da26-4339-b91e-7d4611ea8ff5.caption" xml:space="preserve">
+    <value>Nr. lánardrottinssamnings</value>
+    <comment>table [Vendor Contract] column [Vendor Contract No.]</comment>
+  </data>
+  <data name="b9c04fa3-148a-4302-9e95-8be447f97ba2.column.7efc4d43-57f2-43cd-873b-4baa99465f8b.caption" xml:space="preserve">
+    <value>Gerð lánardrottnasamnings</value>
+    <comment>table [Vendor Contract] column [Vendor Contract Type]</comment>
+  </data>
+  <data name="b9c04fa3-148a-4302-9e95-8be447f97ba2.column.ee9a559f-6eac-4349-9384-e3d8339f56b9.caption" xml:space="preserve">
+    <value>Lýsing lánardrottnasamnings</value>
+    <comment>table [Vendor Contract] column [Vendor Contract Description]</comment>
+  </data>
+  <data name="b9c04fa3-148a-4302-9e95-8be447f97ba2.column.6f067e4a-7bf6-4fb8-bb6a-9695cb186bf8.caption" xml:space="preserve">
+    <value>Afsláttarnr. lánardrottinssamnings</value>
+    <comment>table [Vendor Contract] column [Vendor Contract No. Desc.]</comment>
+  </data>
+  <data name="37de7ae7-1930-41cc-980c-6505b3f128d8.caption" xml:space="preserve">
+    <value>Meðhöndlun innheimtu byggðri á notkun</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="37de7ae7-1930-41cc-980c-6505b3f128d8.column.0f4da653-1852-49cf-a232-9e265831323b.caption" xml:space="preserve">
+    <value>Meðhöndla innheimtu byggða á notkun sem fasta</value>
+    <comment>table [UBB handling] column [Treat Usage Based Billing as constant]</comment>
+  </data>
+  <data name="9728ed60-2d3f-45b2-bab6-f867ea81d7be.caption" xml:space="preserve">
+    <value>Er losað</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="9728ed60-2d3f-45b2-bab6-f867ea81d7be.column.924163c9-a51f-430e-89bf-b9cf3920703b.caption" xml:space="preserve">
+    <value>Is Released Value</value>
+    <comment>table [Is Released] column [Is Released Value]</comment>
+  </data>
+  <data name="e8181695-0d8d-46a4-a884-1119686c45c5.caption" xml:space="preserve">
+    <value>Vara</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="e8181695-0d8d-46a4-a884-1119686c45c5.column.ec838ba3-3308-496f-b02f-82d63f822c1a.caption" xml:space="preserve">
+    <value>Vörunr.</value>
+    <comment>table [Item] column [Item No.]</comment>
+  </data>
+  <data name="e8181695-0d8d-46a4-a884-1119686c45c5.column.554a518b-1a0e-4285-9fb7-ee9a8d627013.caption" xml:space="preserve">
+    <value>Vöruheiti</value>
+    <comment>table [Item] column [Item Name]</comment>
+  </data>
+  <data name="e8181695-0d8d-46a4-a884-1119686c45c5.column.a818434f-0f24-4fff-8ecc-68316bc3d528.caption" xml:space="preserve">
+    <value>Birgðabókunarflokkur</value>
+    <comment>table [Item] column [Inventory Posting Group]</comment>
+  </data>
+  <data name="e8181695-0d8d-46a4-a884-1119686c45c5.column.117b02ae-38a1-48ad-b9d4-366f428638a6.caption" xml:space="preserve">
+    <value>Grunnmælieining</value>
+    <comment>table [Item] column [Base Unit of Measure]</comment>
+  </data>
+  <data name="e8181695-0d8d-46a4-a884-1119686c45c5.column.7b4d7ec7-ac3f-468e-86d5-44a449616378.caption" xml:space="preserve">
+    <value>Vörunr. og lýsing</value>
+    <comment>table [Item] column [Item No. &amp; Description]</comment>
+  </data>
+  <data name="f142381c-cc7e-4ac9-bd00-1cdcb9e5fed4.caption" xml:space="preserve">
+    <value>Greiningardagsetning</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="f142381c-cc7e-4ac9-bd00-1cdcb9e5fed4.column.65db46d3-d4ad-4dc4-ba3d-189bffc60012.caption" xml:space="preserve">
+    <value>Er upprunaleg útgáfa</value>
+    <comment>table [Analysis Date] column [Is Initial Version]</comment>
+  </data>
+  <data name="f142381c-cc7e-4ac9-bd00-1cdcb9e5fed4.column.512f4ba6-6bce-4f7f-8980-e83f6e09f810.caption" xml:space="preserve">
+    <value>Er núverandi útgáfa</value>
+    <comment>table [Analysis Date] column [Is Current Version]</comment>
+  </data>
+  <data name="472eaab7-d1a5-4024-a758-94a911af9808.caption" xml:space="preserve">
+    <value>Útreikningshópur - Tímagreind dagatals (fjárhagur)</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="472eaab7-d1a5-4024-a758-94a911af9808.column.eef633e2-ed98-4dbc-b435-63b87327198e.caption" xml:space="preserve">
+    <value>Sjónarhorn</value>
+    <comment>table [Calc. Group - Time Intelligence for Calendar (Fiscal)] column [Perspective]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.caption" xml:space="preserve">
+    <value>Subscription Billing afkastavísar</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.efa16235-29ec-4359-b767-4a1a45c5f4e9.caption" xml:space="preserve">
+    <value>Mánaðarlegar endurteknar tekjur</value>
+    <comment>table [Subscription Billing KPIs] measure [Mon. Recurring Revenue]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.d67d9f11-460a-4c86-8b8a-f45107b68634.caption" xml:space="preserve">
+    <value>Mánaðarlegur endurtekinn kostnaður</value>
+    <comment>table [Subscription Billing KPIs] measure [Mon. Recurring Cost]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.8e3a6640-ba6c-4e85-bca9-1b3f173b953b.caption" xml:space="preserve">
+    <value>Frestanir viðskiptamanns</value>
+    <comment>table [Subscription Billing KPIs] measure [Customer Deferrals]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.ff5e3370-233c-4ce8-a15f-5f36821380bb.caption" xml:space="preserve">
+    <value>Frestun lánardrottins</value>
+    <comment>table [Subscription Billing KPIs] measure [Vendor Deferrals]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.95b4f787-d728-4f46-968c-e7650bacd0d5.caption" xml:space="preserve">
+    <value>ÁBMKR</value>
+    <comment>table [Subscription Billing KPIs] measure [Annual Recurring Revenue]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.d28aa5fe-b07c-437f-9674-b3e2e749092c.caption" xml:space="preserve">
+    <value>Heildarvirði samnings</value>
+    <comment>table [Subscription Billing KPIs] measure [Total Contract Value]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.fab3b270-bd2c-44ed-a3a6-ab77aa69f945.caption" xml:space="preserve">
+    <value>Spársala</value>
+    <comment>table [Subscription Billing KPIs] measure [Forecast Sales]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.d2cb18bd-0e6c-4489-a3cd-a4a5cbd6ba41.caption" xml:space="preserve">
+    <value>Mánaðarlegur endurtekinn kostnaður fyrra ár</value>
+    <comment>table [Subscription Billing KPIs] measure [Mon. Recurring Cost PY]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.d3037065-0a3b-4819-b021-e6a732ce8670.caption" xml:space="preserve">
+    <value>Mánaðarlegur endurtekinn kostnaður Δ samanborið við fyrra ár</value>
+    <comment>table [Subscription Billing KPIs] measure [Mon. Recurring Cost Δ vs. PY]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.72940ea8-c027-427e-8310-46864947d133.caption" xml:space="preserve">
+    <value>Mán. uppsagnir endurtekinna tekna</value>
+    <comment>table [Subscription Billing KPIs] measure [Mon. Recurring Revenue Churn]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.7d1bb0d4-ffd8-4611-b01b-acc089d04451.caption" xml:space="preserve">
+    <value>Mánaðarlegar endurteknar tekjur fyrra ár</value>
+    <comment>table [Subscription Billing KPIs] measure [Mon. Recurring Revenue PY]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.8b529b8b-89d2-41b2-8d69-f0cf8d59851c.caption" xml:space="preserve">
+    <value>Mán. endurteknar nýjar tekjur</value>
+    <comment>table [Subscription Billing KPIs] measure [Mon. Recurring Revenue New]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.47de3afc-2f67-49d2-84f9-988fef51d00b.caption" xml:space="preserve">
+    <value>Mán. endurteknar tekjur Δ sbr. fyrra ár</value>
+    <comment>table [Subscription Billing KPIs] measure [Mon. Recurring Revenue Δ vs. PY]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.1dd703f4-3a19-4c3a-8664-f08c9e914937.caption" xml:space="preserve">
+    <value>Nýjar mánaðarlega endurteknar tekjur</value>
+    <comment>table [Subscription Billing KPIs] measure [Mon. Net Profit Amount]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.a73a8e79-eaed-4806-8630-1b4b8a4d5bb5.caption" xml:space="preserve">
+    <value>Nýjar mánaðarlega endurteknar tekjur % af mánaðarlegum endurteknum tekjum</value>
+    <comment>table [Subscription Billing KPIs] measure [Mon. Net Profit %]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.9487fe20-d413-4a48-9d21-c7241abdaeac.caption" xml:space="preserve">
+    <value>Nýjar mánaðarlega endurteknar tekjur fyrra ár</value>
+    <comment>table [Subscription Billing KPIs] measure [Mon. Net Profit PY]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.ef21c24d-5a63-416e-8df1-b83d74fa8de6.caption" xml:space="preserve">
+    <value>Nýjar mánaðarlega endurteknar tekjur Δ samanborið við fyrra ár</value>
+    <comment>table [Subscription Billing KPIs] measure [Mon. Net Profit Δ vs. PY]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.374c5d52-f0dd-479d-a912-98f2c6db0b05.caption" xml:space="preserve">
+    <value>Mánaðarlegar endurteknar tekjur heildarbreyting</value>
+    <comment>table [Subscription Billing KPIs] measure [Change in Mon. Recurring Revenue]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.d1e4f767-4d2e-4701-bd7f-a33587ada0fe.caption" xml:space="preserve">
+    <value>Heildarvirði samnings fyrra ár</value>
+    <comment>table [Subscription Billing KPIs] measure [Total Contract Value PY]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.eeecc9d3-4aee-4cd7-80fa-af595bf90f04.caption" xml:space="preserve">
+    <value>Heildarvirði samnings Δ samanborið við fyrra ár</value>
+    <comment>table [Subscription Billing KPIs] measure [Total Contract Value Δ vs. PY]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.ab1f34d8-7a54-4395-9910-13b1db61857a.caption" xml:space="preserve">
+    <value>Síðast uppfærðu greiningarfærslur</value>
+    <comment>table [Subscription Billing KPIs] measure [Last Update Analysis Entries]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.4746be26-684e-418e-a5bb-26b345b3ff0f.caption" xml:space="preserve">
+    <value>Síðasta uppfærsla á merkingarlíkani</value>
+    <comment>table [Subscription Billing KPIs] measure [Last Update Semantic Model]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.61ee2d80-29c7-4831-87a5-ea6031175dc9.caption" xml:space="preserve">
+    <value>Umhverfisbreytur</value>
+    <comment>table [Subscription Billing KPIs] measure [Param Environment]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.f8228d8b-fb7e-4fe1-aeb0-8724079f0434.caption" xml:space="preserve">
+    <value>Param fyrirtæki</value>
+    <comment>table [Subscription Billing KPIs] measure [Param Company]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.dff3b741-89d6-4ce1-a52b-1e3903b4fea7.caption" xml:space="preserve">
+    <value>Mán. endurteknar uppfærslur tekna</value>
+    <comment>table [Subscription Billing KPIs] measure [Mon. Recurring Revenue Upgrade]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.47f61488-d665-4dc8-877d-40e8d5d3e3b3.caption" xml:space="preserve">
+    <value>Mán. endurteknar tekjubreytingar innheimtu byggðri á notkun</value>
+    <comment>table [Subscription Billing KPIs] measure [Mon. Recurring Revenue Change UBB]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.c3d6f1e4-281f-4a8b-b012-f3f376b759fb.caption" xml:space="preserve">
+    <value>Skýrslugjaldmiðill</value>
+    <comment>table [Subscription Billing KPIs] measure [Reporting Currency]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.fe66cb5b-96ae-4d9a-b313-c3bd58b9ff3b.caption" xml:space="preserve">
+    <value>Virkir viðskiptavinir</value>
+    <comment>table [Subscription Billing KPIs] measure [Active Customers]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.7dce4c20-b81e-4300-b18d-a08795754ee7.caption" xml:space="preserve">
+    <value>Virkir viðskiptavinir fyrra ár</value>
+    <comment>table [Subscription Billing KPIs] measure [Active Customers PY]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.c23d2ed4-2b55-4fbf-b861-c00111345b0c.caption" xml:space="preserve">
+    <value>Virkir viðskiptavinir Δ sbr. fyrra ár</value>
+    <comment>table [Subscription Billing KPIs] measure [Active Customers Δ vs. PY]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.5ce8bb92-74cf-496a-aa24-7f785e7434d3.caption" xml:space="preserve">
+    <value>Innheimtuspá viðskiptavinar</value>
+    <comment>table [Subscription Billing KPIs] measure [Customer Billing Forecast]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.f5b5dc10-de04-43b4-8c67-8f4d94424af7.caption" xml:space="preserve">
+    <value>Spá um greiðslur lánardrottins</value>
+    <comment>table [Subscription Billing KPIs] measure [Vendor Billing Forecast]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.c7bae864-f679-439c-af87-d78742926bc7.caption" xml:space="preserve">
+    <value>Kostnaðarspár</value>
+    <comment>table [Subscription Billing KPIs] measure [Forecast Costs]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.d6fb72a4-ec41-4faa-8abe-795abc243e22.caption" xml:space="preserve">
+    <value>Mán. endurtekin niðurfærsla tekna</value>
+    <comment>table [Subscription Billing KPIs] measure [Mon. Recurring Revenue Downgrade]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.97d97364-1e94-42dd-a0a1-50f8c741dab9.caption" xml:space="preserve">
+    <value>Churn</value>
+    <comment>table [Subscription Billing KPIs] measure [Churn (-)]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.682b0afe-72bd-417b-81b6-b62616a1f9c0.caption" xml:space="preserve">
+    <value>Downgrade</value>
+    <comment>table [Subscription Billing KPIs] measure [Downgrade (-)]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.1b353d3a-e1a9-4b93-ab99-0317060f1aab.caption" xml:space="preserve">
+    <value>Usage Based Billing Change</value>
+    <comment>table [Subscription Billing KPIs] measure [Usage Based Billing Change]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.04040d7e-b3a4-4069-92cb-e4fb9478ec9f.caption" xml:space="preserve">
+    <value>Upgrade</value>
+    <comment>table [Subscription Billing KPIs] measure [Upgrade]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.ca15d892-5102-4d5e-8467-41ef46bb0a4b.caption" xml:space="preserve">
+    <value>New</value>
+    <comment>table [Subscription Billing KPIs] measure [New]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.0fbe1130-cb6d-4208-93d3-8d15206728ab.caption" xml:space="preserve">
+    <value>Total Change</value>
+    <comment>table [Subscription Billing KPIs] measure [Total Change]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.1f3c3882-eb8b-45ff-9df5-a24d6d0bb80c.caption" xml:space="preserve">
+    <value>Valið dagabil</value>
+    <comment>table [Subscription Billing KPIs] measure [Selected Date Range]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.995319bd-3056-41a9-aca0-17142d85fb8d.caption" xml:space="preserve">
+    <value>Churn</value>
+    <comment>table [Subscription Billing KPIs] measure [Churn]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.fe462ca3-cb8f-4aa2-8444-acfdd1e4755a.caption" xml:space="preserve">
+    <value>Downgrade</value>
+    <comment>table [Subscription Billing KPIs] measure [Downgrade]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.ac440820-dbc1-4014-9753-dcafa6618075.caption" xml:space="preserve">
+    <value>MRR End of Period</value>
+    <comment>table [Subscription Billing KPIs] measure [MRR End of Period]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.3180f6bf-8dd2-4555-aee9-0423d81808c1.caption" xml:space="preserve">
+    <value>Meðaltími mán. uppsagna %</value>
+    <comment>table [Subscription Billing KPIs] measure [Avg. Mon. Churn Rate %]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.6fe53dcc-1f21-4ae4-bc6f-0a0339fd5264.caption" xml:space="preserve">
+    <value>Mán. meðalt. niðurfærsla %</value>
+    <comment>table [Subscription Billing KPIs] measure [Mon. Avg. Downgrade Rate %]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.71625eeb-a549-4225-80d0-592eb747e5f3.caption" xml:space="preserve">
+    <value>Mán. niðurfærslur og uppsagnir endurtekinna tekna</value>
+    <comment>table [Subscription Billing KPIs] measure [Mon. Recurring Revenue Downgrade &amp; Churn]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.b0e9cd9b-c824-482b-93b8-946fe797d20c.caption" xml:space="preserve">
+    <value>Customer Deferrals Back Link</value>
+    <comment>table [Subscription Billing KPIs] measure [Customer Deferrals Back Link]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.fb40ded3-6eb4-4595-a359-ef320241ce65.caption" xml:space="preserve">
+    <value>Vendor Deferrals Back Link</value>
+    <comment>table [Subscription Billing KPIs] measure [Vendor Deferrals Back Link]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.fe25274f-9ebf-477c-97a4-790b677123a4.caption" xml:space="preserve">
+    <value>Customer Contract Line Back Link</value>
+    <comment>table [Subscription Billing KPIs] measure [Customer Contract Line Back Link]</comment>
+  </data>
+  <data name="e346f0a9-0b2f-43c1-a6d1-92d16991e765.measure.39f6703a-1ae0-4b23-b3e6-88e885731623.caption" xml:space="preserve">
+    <value>Vendor Contract Line Back Link</value>
+    <comment>table [Subscription Billing KPIs] measure [Vendor Contract Line Back Link]</comment>
+  </data>
+  <data name="f229e1ee-eb72-4253-af81-91c9b5a4a709.caption" xml:space="preserve">
+    <value>Sölumaður</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="f229e1ee-eb72-4253-af81-91c9b5a4a709.column.98ede92e-d6e1-47a6-bf69-78f3137e0020.caption" xml:space="preserve">
+    <value>Kóði sölumanns</value>
+    <comment>table [Salesperson] column [Salesperson Code]</comment>
+  </data>
+  <data name="f229e1ee-eb72-4253-af81-91c9b5a4a709.column.f283a72e-3215-4975-b9c8-04dcf322becd.caption" xml:space="preserve">
+    <value>Nafn sölumanns</value>
+    <comment>table [Salesperson] column [Salesperson Name]</comment>
+  </data>
+  <data name="a52c7d2e-c3c5-4330-9695-131023bbf63e.caption" xml:space="preserve">
+    <value>Breytingar á samningi viðskiptavinar</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="a52c7d2e-c3c5-4330-9695-131023bbf63e.column.43a7ecaa-2e0d-4ca9-ae48-1eb7691f259b.caption" xml:space="preserve">
+    <value>Línulykill samnings viðskiptavinar</value>
+    <comment>table [Customer Contract Changes] column [Customer Contract Line Key]</comment>
+  </data>
+  <data name="a52c7d2e-c3c5-4330-9695-131023bbf63e.column.34d8f42d-2120-4d00-9756-07562cb6134a.caption" xml:space="preserve">
+    <value>Dagsetning</value>
+    <comment>table [Customer Contract Changes] column [Date]</comment>
+  </data>
+  <data name="a52c7d2e-c3c5-4330-9695-131023bbf63e.column.d78985d9-4abb-4c2c-8cef-a9df72b0c297.caption" xml:space="preserve">
+    <value>Breyta tegund</value>
+    <comment>table [Customer Contract Changes] column [Change Type]</comment>
+  </data>
+  <data name="a52c7d2e-c3c5-4330-9695-131023bbf63e.column.d5ed6ba1-e2b1-4a38-bc21-a8953119f31c.caption" xml:space="preserve">
+    <value>Mánaðarlegar endurteknar tekjur Delta</value>
+    <comment>table [Customer Contract Changes] column [MRR Delta]</comment>
+  </data>
+  <data name="edeb68a9-6c7e-4154-ab57-40a7c79635a6.caption" xml:space="preserve">
+    <value>Item Category</value>
+    <comment>table [table.Name]</comment>
+  </data>
+  <data name="edeb68a9-6c7e-4154-ab57-40a7c79635a6.column.112cfe30-01df-49e7-86d8-ba22a667e132.caption" xml:space="preserve">
+    <value>Item Category Code</value>
+    <comment>table [Item Category] column [Item Category Code]</comment>
+  </data>
+  <data name="edeb68a9-6c7e-4154-ab57-40a7c79635a6.column.aa593ef2-fa6a-466d-b754-4164fba6d2f7.caption" xml:space="preserve">
+    <value>Item Category Description</value>
+    <comment>table [Item Category] column [Item Category Description]</comment>
+  </data>
+  <data name="edeb68a9-6c7e-4154-ab57-40a7c79635a6.hierarchy.f72b3ccb-2f87-4307-ae90-a17aeb5af1b8.caption" xml:space="preserve">
+    <value>Item Category Code Hierarchy</value>
+    <comment>table [Item Category] hierarchy [Item Category Code Hierarchy]</comment>
+  </data>
+  <data name="edeb68a9-6c7e-4154-ab57-40a7c79635a6.hierarchy.f72b3ccb-2f87-4307-ae90-a17aeb5af1b8.level.54983986-fbad-431d-b1a9-1e300a5f1268" xml:space="preserve">
+    <value>Item Category Code Level 1</value>
+    <comment>table [Item Category] hierarchy [Item Category Code Hierarchy] level [Item Category Code Level 1]</comment>
+  </data>
+  <data name="edeb68a9-6c7e-4154-ab57-40a7c79635a6.hierarchy.f72b3ccb-2f87-4307-ae90-a17aeb5af1b8.level.57909489-5b68-44a1-9c28-6fc6cb12c0c2" xml:space="preserve">
+    <value>Item Category Code Level 2</value>
+    <comment>table [Item Category] hierarchy [Item Category Code Hierarchy] level [Item Category Code Level 2]</comment>
+  </data>
+  <data name="edeb68a9-6c7e-4154-ab57-40a7c79635a6.hierarchy.f72b3ccb-2f87-4307-ae90-a17aeb5af1b8.level.607f341e-c72e-4a1b-803e-3637de756fc4" xml:space="preserve">
+    <value>Item Category Code Level 3</value>
+    <comment>table [Item Category] hierarchy [Item Category Code Hierarchy] level [Item Category Code Level 3]</comment>
+  </data>
+</root>

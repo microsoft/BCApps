@@ -43,19 +43,22 @@ table 20401 "Qlty. Test"
         field(3; "Test Value Type"; Enum "Qlty. Test Value Type")
         {
             Caption = 'Test Value Type';
-            ToolTip = 'Specifies the data type of the values you can enter or select for this test. Use Decimal for numerical measurements. Use Choice to give a list of options to choose from. If you want to choose options from an existing table, use Table Lookup.';
+            ToolTip = 'Specifies the type of data that can be entered for this test. Options include: Decimal or Integer for numeric measurements, Date or Date and Time for date-based entries, Boolean for yes/no questions, Option for predefined options, Table Lookup to select from existing records,Text for free-form entries, Label for display-only text, or Text Expression for calculated values.';
 
             trigger OnValidate()
             begin
-                HandleOnValidateTestValueType(true);
+                HandleOnValidateTestValueType();
             end;
         }
         field(5; "Allowable Values"; Text[500])
         {
             Caption = 'Allowable Values';
             ToolTip = 'Specifies an expression for the range of values you can enter or select for the Test. Depending on the Test Value Type, the expression format varies. For example if you want a measurement such as a percentage that collects between 0 and 100 you would enter 0..100. This is not the pass or acceptable condition, these are just the technically possible values that the inspector can enter. You would then enter a passing condition in your result conditions. If you had a result of Pass being 80 to 100, you would then configure 80..100 for that result.';
+
             trigger OnValidate()
             begin
+                Rec.ValidateAllowableValuesFormat();
+
                 if Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Option", Rec."Test Value Type"::"Value Type Table Lookup"] then
                     Rec."Allowable Values" := CopyStr(Rec."Allowable Values".Replace(', ', ','), 1, MaxStrLen(Rec."Allowable Values"));
             end;
@@ -151,13 +154,16 @@ table 20401 "Qlty. Test"
 
             trigger OnValidate()
             begin
+                if (Rec."Default Value" <> '') and (Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Text Expression"]) then
+                    Error(DefaultValueNotAllowedForTextExpressionErr);
+
                 Rec.ValidateAllowableValuesOnDefault();
             end;
         }
         field(17; "Case Sensitive"; Enum "Qlty. Case Sensitivity")
         {
             Caption = 'Case Sensitivity';
-            ToolTip = 'Specifies if case sensitivity will be enabled for text-based fields.';
+            ToolTip = 'Specifies if case sensitivity will be enabled for text-based tests.';
         }
         field(18; "Expression Formula"; Text[500])
         {
@@ -167,7 +173,7 @@ table 20401 "Qlty. Test"
             trigger OnValidate()
             begin
                 if (Rec."Expression Formula" <> '') and not (Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Text Expression"]) then
-                    Error(OnlyFieldExpressionErr);
+                    Error(ExpressionFormulaOnlyForTextExpressionErr);
             end;
         }
         field(22; "Unit of Measure Code"; Code[10])
@@ -201,23 +207,26 @@ table 20401 "Qlty. Test"
         GenericTestTok: Label 'MYTEST', Locked = true;
         ThereIsNoResultErr: Label 'There is no result called "%1". Please add the result, or change the existing result conditions.', Comment = '%1=the result';
         ReviewResultsErr: Label 'Advanced configuration required. Please review the result configurations for test "%1", for result "%2".', Comment = '%1=the test, %2=the result';
-        OnlyFieldExpressionErr: Label 'The Expression Formula can only be used with fields that are a type of Expression';
+        ExpressionFormulaOnlyForTextExpressionErr: Label 'The Expression Formula can only be used with tests that are a type of Text Expression';
+        DefaultValueNotAllowedForTextExpressionErr: Label 'The Default Value cannot be set on tests that are a type of Text Expression. The value is computed from the Expression Formula.';
         BooleanChoiceListLbl: Label 'No,Yes';
-        ExistingInspectionErr: Label 'The test %1 exists on %2 inspections (such as %3 with template %4). The test can not be deleted if it is being used on a Quality Inspection.', Comment = '%1=the test, %2=count of inspections, %3=one example inspection, %4=example template.';
+        ExistingInspectionErr: Label 'The test %1 exists on %2 inspections (such as %3 with template %4). The test cannot be deleted if it is being used on a quality inspection.', Comment = '%1=the test, %2=count of inspections, %3=one example inspection, %4=example template.';
         DeleteQst: Label 'The test %3 exists on %1 Quality Inspection Template(s) (such as template %2) that will be deleted. Do you wish to proceed?', Comment = '%1 = the lines, %2= the Template Code, %3=the test';
-        DeleteErr: Label 'The test %3 exists on %1 Quality Inspection Template(s) (such as template %2) and can not be deleted until it is no longer used on templates.', Comment = '%1 = the lines, %2= the Template Code, %3=the test';
-        TestValueTypeErrTitleMsg: Label 'Test Value Type cannot be changed for a test that has been used in inspections.';
-        TestValueTypeErrInfoMsg: Label '%1Consider replacing this test in the template with a new one, or deleting existing inspections (if allowed). The test was last used on inspection %2.', Comment = '%1 = Error Title, %2 = Quality Inspection No.';
+        DeleteErr: Label 'The test %3 exists on %1 Quality Inspection Template(s) (such as template %2) and cannot be deleted until it is no longer used on templates.', Comment = '%1 = the lines, %2= the Template Code, %3=the test';
+        TestValueTypeChangeErrTitleMsg: Label 'Cannot change the test value type for a test that is already in use on inspections.';
+        TestValueTypeChangeErrInfoMsg: Label 'Consider replacing this test in the template with a new one, or deleting existing inspections (if allowed). The test was last used on Inspection %1, Re-inspection %2.', Comment = '%1 = Quality Inspection No., %2 = Re-inspection No.';
+        ShowInspectionActionLbl: Label 'Show Inspection %1 %2', Comment = '%1=Inspection No., %2=Re-inspection No.';
+        InspectionLineExistsButHeaderMissingErr: Label 'The test %1 exists on inspection line with Inspection No. %2, Re-inspection %3, but the inspection header record is missing. This indicates a data integrity issue.', Comment = '%1=Test Code, %2=Inspection No., %3=Re-inspection No.';
 
     /// <summary>
     /// Set a specific result for the test. If AllowError is set to true it will error
     /// when a problem occurs. If AllowError is set to false it will just return false
     /// when a problem occurs.
     /// </summary>
-    /// <param name="Result"></param>
-    /// <param name="Condition"></param>
-    /// <param name="AllowError"></param>
-    /// <returns></returns>
+    /// <param name="Result">The result code whose test condition is changed.</param>
+    /// <param name="Condition">The condition to assign.</param>
+    /// <param name="AllowError">Specifies whether missing or ambiguous configuration raises an error.</param>
+    /// <returns>True if exactly one result condition is found and updated.</returns>
     procedure SetResultCondition(Result: Text; Condition: Text; AllowError: Boolean): Boolean
     var
         ExistingQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
@@ -273,6 +282,10 @@ table 20401 "Qlty. Test"
         end;
     end;
 
+    /// <summary>
+    /// Lets the user select a default value from a comma-separated option list.
+    /// </summary>
+    /// <param name="Options">The comma-separated values presented for selection.</param>
     local procedure AssistEditChooseFromList(Options: Text)
     var
         Selection: Integer;
@@ -282,6 +295,9 @@ table 20401 "Qlty. Test"
             Rec.Validate("Default Value", SelectStr(Selection, Options));
     end;
 
+    /// <summary>
+    /// Lets the user select the default value from the test's table lookup values.
+    /// </summary>
     local procedure AssistEditChooseFromTableLookup()
     var
         TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary;
@@ -291,6 +307,9 @@ table 20401 "Qlty. Test"
             Rec.Validate("Default Value", CopyStr(TempBufferQltyTestLookupValue."Custom 1", 1, MaxStrLen(Rec."Default Value")));
     end;
 
+    /// <summary>
+    /// Opens the large-text editor and stores the accepted default value.
+    /// </summary>
     internal procedure AssistEditFreeText()
     var
         QltyEditLargeText: Page "Qlty. Edit Large Text";
@@ -302,6 +321,9 @@ table 20401 "Qlty. Test"
             Rec."Default Value" := CopyStr(ExistingValue, 1, MaxStrLen(Rec."Default Value"));
     end;
 
+    /// <summary>
+    /// Looks up and validates the table used by a table lookup test.
+    /// </summary>
     procedure AssistEditLookupTable()
     var
         ConfigValidateManagement: Codeunit "Config. Validate Management";
@@ -313,6 +335,9 @@ table 20401 "Qlty. Test"
         Rec.CalcFields("Lookup Table Caption");
     end;
 
+    /// <summary>
+    /// Looks up and validates the field used by a table lookup test.
+    /// </summary>
     procedure AssistEditLookupField()
     var
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
@@ -323,6 +348,9 @@ table 20401 "Qlty. Test"
             Rec.Validate("Lookup Field No.", CurrentField);
     end;
 
+    /// <summary>
+    /// Edits the lookup table filter and refreshes the display summary of allowed values.
+    /// </summary>
     procedure AssistEditLookupTableFilter()
     var
         QltyFilterHelpers: Codeunit "Qlty. Filter Helpers";
@@ -366,9 +394,13 @@ table 20401 "Qlty. Test"
 
     trigger OnDelete()
     begin
-        CheckDeleteConstraints(false);
+        CheckDeleteConstraints(true);
     end;
 
+    /// <summary>
+    /// Prevents deletion of tests used by inspections and confirms deletion of template lines that use the test.
+    /// </summary>
+    /// <param name="AskQuestion">Specifies whether the user may confirm deletion of dependent template lines.</param>
     procedure CheckDeleteConstraints(AskQuestion: Boolean)
     var
         QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line";
@@ -379,6 +411,7 @@ table 20401 "Qlty. Test"
         QltyInspectionLine.SetRange("Test Code", Rec.Code);
         LineCount := QltyInspectionLine.Count();
         if LineCount > 0 then begin
+            QltyInspectionLine.SetLoadFields("Test Code", "Template Code");
             QltyInspectionLine.FindFirst();
             Error(ExistingInspectionErr,
                 QltyInspectionLine."Test Code",
@@ -400,6 +433,11 @@ table 20401 "Qlty. Test"
         end;
     end;
 
+    /// <summary>
+    /// Generates an unused test code from a description.
+    /// </summary>
+    /// <param name="InputDescription">The description from which the code is generated.</param>
+    /// <param name="SuggestionCode">The generated unused test code.</param>
     internal procedure SuggestUnusedTestCodeFromDescription(InputDescription: Text; var SuggestionCode: Code[20])
     var
         DummyListOptionalAdditionalUsed: List of [Text];
@@ -407,12 +445,23 @@ table 20401 "Qlty. Test"
         SuggestUnusedTestCodeFromDescriptionAndList(InputDescription, DummyListOptionalAdditionalUsed, SuggestionCode);
     end;
 
+    /// <summary>
+    /// Generates a test code unused by both stored tests and a supplied list.
+    /// </summary>
+    /// <param name="InputDescription">The description from which the code is generated.</param>
+    /// <param name="IgnoredListOptionalAdditionalUsed">Additional codes that must be treated as already used.</param>
+    /// <param name="SuggestionCode">The generated unused test code.</param>
     internal procedure SuggestUnusedTestCodeFromDescriptionAndList(InputDescription: Text; IgnoredListOptionalAdditionalUsed: List of [Text]; var SuggestionCode: Code[20])
     begin
         GenerateShortTestCodeFromLongerText(InputDescription, SuggestionCode);
         EnsureTestCodeIsUnused(SuggestionCode, IgnoredListOptionalAdditionalUsed);
     end;
 
+    /// <summary>
+    /// Removes punctuation and, when needed, vowels to form a test code within the target length.
+    /// </summary>
+    /// <param name="Input">The text from which the code is generated.</param>
+    /// <param name="SuggestionCode">The generated shortened test code.</param>
     internal procedure GenerateShortTestCodeFromLongerText(Input: Text; var SuggestionCode: Code[20])
     var
         Temp: Text;
@@ -430,7 +479,8 @@ table 20401 "Qlty. Test"
     /// Takes the supplied test code, and ensures it's unique.
     /// If the supplied test code has already been used then it will suggest an alternative.
     /// </summary>
-    /// <param name="Suggestion"></param>
+    /// <param name="Suggestion">The proposed code, updated with a numeric suffix when needed.</param>
+    /// <param name="OptionalAdditionalUsed">Additional codes that must be treated as already used.</param>
     local procedure EnsureTestCodeIsUnused(var Suggestion: Code[20]; OptionalAdditionalUsed: List of [Text])
     var
         QltyTest: Record "Qlty. Test";
@@ -473,14 +523,23 @@ table 20401 "Qlty. Test"
     end;
 
     /// <summary>
+    /// Validates that the allowable values expression is a valid filter for the test value type.
+    /// </summary>
+    procedure ValidateAllowableValuesFormat()
+    var
+        QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
+    begin
+        QltyResultEvaluation.ValidateAllowableValuesFormat(Rec);
+    end;
+
+    /// <summary>
     /// Code = the unique code
     /// Description = raw description.
     /// Custom 1 = original value
     /// Custom 2 = lowercase value
     /// Custom 3 = uppercase value.
     /// </summary>
-    /// <param name="ContextQltyInspectionHeader">Supply if you want to give an inspection, this is useful for table lookups which can have additional values.</param>
-    /// <param name="TempBufferQltyTestLookupValue"></param>
+    /// <param name="TempBufferQltyTestLookupValue">The temporary buffer that receives allowable values.</param>
     /// <param name="OptionalSetToValue">Leave empty to ignore. Supply a value to have the record auto-filtered to the supplied record that matches</param>
     procedure CollectAllowableValues(var TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary; OptionalSetToValue: Text)
     var
@@ -490,6 +549,13 @@ table 20401 "Qlty. Test"
         CollectAllowableValues(TempDummyContextQltyInspectionHeader, TempDummyContextQltyInspectionLine, TempBufferQltyTestLookupValue, OptionalSetToValue);
     end;
 
+    /// <summary>
+    /// Collects table lookup or option values with optional inspection context and positions the buffer near a requested value.
+    /// </summary>
+    /// <param name="OptionalContextQltyInspectionHeader">The optional inspection header used to evaluate table lookup context.</param>
+    /// <param name="OptionalContextQltyInspectionLine">The optional inspection line used to evaluate table lookup context.</param>
+    /// <param name="TempBufferQltyTestLookupValue">The temporary buffer that receives allowable values.</param>
+    /// <param name="OptionalSetToValue">The optional value or description used to position the lookup buffer.</param>
     procedure CollectAllowableValues(var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalContextQltyInspectionLine: Record "Qlty. Inspection Line"; var TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary; OptionalSetToValue: Text)
     var
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";
@@ -533,20 +599,14 @@ table 20401 "Qlty. Test"
         end;
     end;
 
-    internal procedure HandleOnValidateTestValueType(AllowActionableError: Boolean)
+    /// <summary>
+    /// Prevents incompatible type changes, resets lookup settings, and refreshes default result conditions.
+    /// </summary>
+    local procedure HandleOnValidateTestValueType()
     var
-        QltyInspectionLine: Record "Qlty. Inspection Line";
-        QltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
     begin
-        QltyInspectionLine.SetRange("Test Code", Rec.Code);
-        if QltyInspectionLine.FindLast() then begin
-            if QltyInspectionHeader.Get(QltyInspectionLine."Inspection No.", QltyInspectionLine."Re-inspection No.") then;
-            if AllowActionableError then
-                Error(TestValueTypeErrInfoMsg, TestValueTypeErrTitleMsg, QltyInspectionHeader."No.")
-            else
-                Error(TestValueTypeErrInfoMsg, TestValueTypeErrTitleMsg, QltyInspectionHeader."No.");
-        end;
+        CheckTestNotUsedInInspections();
 
         if Rec."Test Value Type" <> xRec."Test Value Type" then begin
             Rec."Allowable Values" := '';
@@ -561,13 +621,50 @@ table 20401 "Qlty. Test"
         QltyResultConditionMgmt.CopyResultConditionsFromDefaultToTest(Rec.Code, Rec."Test Value Type");
     end;
 
+    /// <summary>
+    /// Raises a navigable error when the test is already used by an inspection line.
+    /// </summary>
+    local procedure CheckTestNotUsedInInspections()
+    var
+        QltyInspectionLine: Record "Qlty. Inspection Line";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+    begin
+        QltyInspectionLine.SetLoadFields("Inspection No.", "Re-inspection No.");
+        QltyInspectionLine.SetRange("Test Code", Rec.Code);
+        if QltyInspectionLine.FindLast() then begin
+            if not QltyInspectionHeader.Get(QltyInspectionLine."Inspection No.", QltyInspectionLine."Re-inspection No.") then
+                Error(InspectionLineExistsButHeaderMissingErr, Rec.Code, QltyInspectionLine."Inspection No.", QltyInspectionLine."Re-inspection No.");
+
+            ThrowTestUsedInInspectionsError(QltyInspectionHeader);
+        end;
+    end;
+
+    /// <summary>
+    /// Raises a navigable error identifying an inspection that uses the test.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection header linked from the error.</param>
+    local procedure ThrowTestUsedInInspectionsError(QltyInspectionHeader: Record "Qlty. Inspection Header")
+    var
+        ErrorInfo: ErrorInfo;
+    begin
+        ErrorInfo.Title := TestValueTypeChangeErrTitleMsg;
+        ErrorInfo.Message := StrSubstNo(TestValueTypeChangeErrInfoMsg, QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
+        ErrorInfo.PageNo := Page::"Qlty. Inspection";
+        ErrorInfo.RecordId := QltyInspectionHeader.RecordId();
+        ErrorInfo.AddNavigationAction(StrSubstNo(ShowInspectionActionLbl, QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No."));
+        Error(ErrorInfo);
+    end;
+
+    /// <summary>
+    /// Edits and persists the expression formula for a text-expression test.
+    /// </summary>
     procedure AssistEditExpressionFormula()
     var
         QltyInspectionTemplateEdit: Page "Qlty. Inspection Template Edit";
         Expression: Text;
     begin
         if not (Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Text Expression"]) then
-            Error(OnlyFieldExpressionErr);
+            Error(ExpressionFormulaOnlyForTextExpressionErr);
 
         Expression := Rec."Expression Formula";
 
@@ -577,6 +674,9 @@ table 20401 "Qlty. Test"
         end;
     end;
 
+    /// <summary>
+    /// Edits custom lookup values or the allowable-values expression according to the test type.
+    /// </summary>
     procedure AssistEditAllowableValues()
     var
         QltyTestLookupValue: Record "Qlty. Test Lookup Value";
@@ -606,7 +706,7 @@ table 20401 "Qlty. Test"
     /// <summary>
     /// Returns true if the field type is numeric in nature.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>True if the test value type is numeric or a subscriber classifies it as numeric.</returns>
     procedure IsNumericFieldType() IsNumeric: Boolean
     var
         IsHandled: Boolean;
@@ -615,18 +715,18 @@ table 20401 "Qlty. Test"
         if IsHandled then
             exit;
 
-        IsNumeric := Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Decimal",
-                        Rec."Test Value Type"::"Value Type Integer"
-                        ];
+        IsNumeric := Rec."Test Value Type" in
+                        [Rec."Test Value Type"::"Value Type Decimal",
+                        Rec."Test Value Type"::"Value Type Integer"];
     end;
 
     /// <summary>
     /// Provides an opportunity to allow determining if the field is intended to be numeric or not.
     /// Use this if you are extending the data type enumeration and adding your own numeric field.
     /// </summary>
-    /// <param name="QltyTest"></param>
-    /// <param name="IsNumeric"></param>
-    /// <param name="IsHandled"></param>
+    /// <param name="QltyTest">The test whose value type is classified.</param>
+    /// <param name="IsNumeric">The numeric classification supplied by a subscriber.</param>
+    /// <param name="IsHandled">Set to true to replace the default classification.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeIsNumericFieldType(var QltyTest: Record "Qlty. Test"; var IsNumeric: Boolean; var IsHandled: Boolean)
     begin
@@ -635,9 +735,9 @@ table 20401 "Qlty. Test"
     /// <summary>
     /// Provides an opportunity to extend or replace editing allowable values.
     /// </summary>
-    /// <param name="QltyTest"></param>
-    /// <param name="QltyInspectionTemplateEdit"></param>
-    /// <param name="IsHandled"></param>
+    /// <param name="QltyTest">The test whose allowable values are being edited.</param>
+    /// <param name="QltyInspectionTemplateEdit">The expression editor page available to the subscriber.</param>
+    /// <param name="IsHandled">Set to true to replace the default editing behavior.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeAssistAllowableValues(var QltyTest: Record "Qlty. Test"; QltyInspectionTemplateEdit: Page "Qlty. Inspection Template Edit"; var IsHandled: Boolean)
     begin
@@ -646,7 +746,7 @@ table 20401 "Qlty. Test"
     /// <summary>
     /// Provides an ability to extend or replace assist editing the default value.
     /// </summary>
-    /// <param name="QltyTest"></param>
+    /// <param name="QltyTest">The test whose default value is being edited.</param>
     /// <param name="IsHandled">Set to true to prevent base behavior from occurring.</param>
     [IntegrationEvent(false, false)]
     procedure OnBeforeAssistEditDefaultValue(var QltyTest: Record "Qlty. Test"; var IsHandled: Boolean)

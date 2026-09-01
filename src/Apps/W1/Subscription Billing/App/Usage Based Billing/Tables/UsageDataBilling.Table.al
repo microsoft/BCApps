@@ -1,5 +1,6 @@
 namespace Microsoft.SubscriptionBilling;
 
+using Microsoft.Finance.Currency;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Sales.Document;
@@ -113,7 +114,9 @@ table 8006 "Usage Data Billing"
             ObsoleteTag = '26.0';
 #else
             ObsoleteState = Removed;
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 #endif
             ObsoleteReason = 'No longer needed as the time component is not relevant for processing of usage data.';
         }
@@ -131,7 +134,9 @@ table 8006 "Usage Data Billing"
             ObsoleteTag = '26.0';
 #else
             ObsoleteState = Removed;
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 #endif
             ObsoleteReason = 'No longer needed as the time component is not relevant for processing of usage data.';
         }
@@ -151,7 +156,9 @@ table 8006 "Usage Data Billing"
             ObsoleteTag = '26.0';
 #else
             ObsoleteState = Removed;
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 #endif
             ObsoleteReason = 'No longer needed as the time component is not relevant for processing of usage data.';
         }
@@ -204,6 +211,9 @@ table 8006 "Usage Data Billing"
         {
             Caption = 'Billing Line Entry No.';
             TableRelation =
+            if (Partner = const(Customer), "Document Type" = filter(None)) "Billing Line"."Entry No."
+                                                                                     where(Partner = const(Customer))
+            else
             if (Partner = const(Customer), "Document Type" = filter(Invoice)) "Billing Line"."Entry No."
                                                                                      where(Partner = const(Customer), "Document Type" = const(Invoice), "Document No." = field("Document No."))
             else
@@ -215,6 +225,9 @@ table 8006 "Usage Data Billing"
             else
             if (Partner = const(Customer), "Document Type" = filter("Posted Credit Memo")) "Billing Line Archive"."Entry No."
                                                                                      where(Partner = const(Customer), "Document Type" = const("Credit Memo"), "Document No." = field("Document No."))
+            else
+            if (Partner = const(Vendor), "Document Type" = filter(None)) "Billing Line"."Entry No."
+                                                                                     where(Partner = const(Vendor))
             else
             if (Partner = const(Vendor), "Document Type" = filter(Invoice)) "Billing Line"."Entry No."
                                                                                      where(Partner = const(Vendor), "Document Type" = const(Invoice), "Document No." = field("Document No."))
@@ -299,6 +312,19 @@ table 8006 "Usage Data Billing"
             SumIndexFields = Quantity, Amount;
             MaintainSiftIndex = true;
         }
+        key(key2; "Subscription Contract No.", "Subscription Contract Line No.")
+        {
+        }
+        key(key3; "Subscription Line Entry No.", "Document Type", "Charge End Date")
+        {
+            SumIndexFields = Quantity, Amount, "Cost Amount";
+        }
+        key(key4; "Document No.", "Document Type")
+        {
+        }
+        key(key5; "Billing Line Entry No.")
+        {
+        }
 
     }
     trigger OnInsert()
@@ -315,10 +341,10 @@ table 8006 "Usage Data Billing"
 
     trigger OnDelete()
     begin
-        if not Rec.IsInvoiced() then begin
-            RevertServiceCommitmentNextBillingDateIfRebillingMetadataExist();
-            DeleteUsageDataBillingMetadata();
-        end;
+        if Rec.IsInvoiced() then
+            Error(CannotDeleteInvoicedErr);
+        RevertServiceCommitmentNextBillingDateIfRebillingMetadataExist();
+        DeleteUsageDataBillingMetadata();
     end;
 
     local procedure DeleteUsageDataBillingMetadata()
@@ -360,8 +386,7 @@ table 8006 "Usage Data Billing"
     end;
 
     internal procedure InitFrom(UsageDataImportEntryNo: Integer; SubscriptionHeaderNo: Code[20]; ProductID: Text[80]; ProductName: Text[100];
-        BillingPeriodStartDate: Date; BillingPeriodEndDate: Date; UnitCost: Decimal; NewQuantity: Decimal; CostAmount: Decimal;
-        UnitPrice: Decimal; NewAmount: Decimal; CurrencyCode: Code[10])
+        BillingPeriodStartDate: Date; BillingPeriodEndDate: Date; NewQuantity: Decimal)
     begin
         Rec.Init();
         Rec."Entry No." := 0;
@@ -371,16 +396,88 @@ table 8006 "Usage Data Billing"
         Rec."Product Name" := ProductName;
         Rec."Charge Start Date" := BillingPeriodStartDate;
         Rec."Charge End Date" := BillingPeriodEndDate;
-        Rec."Unit Cost" := UnitCost;
         Rec.Quantity := NewQuantity;
-        if CostAmount = 0 then
-            Rec."Cost Amount" := NewQuantity * UnitCost
-        else
-            Rec."Cost Amount" := CostAmount;
-        Rec."Unit Price" := UnitPrice;
-        Rec.Amount := NewAmount;
-        Rec."Currency Code" := CurrencyCode;
         Rec.UpdateChargedPeriod();
+    end;
+
+    internal procedure AlignContractCurrency(TempSubscriptionLine: Record "Subscription Line"; ImportCurrencyCode: Code[10])
+    var
+        AllowDiffCurrency: Boolean;
+        CurrencyMismatchErr: Text;
+    begin
+        if Rec.IsPartnerVendor() then
+            GetVendorContractCurrencyInfo(TempSubscriptionLine."Subscription Contract No.", AllowDiffCurrency, CurrencyMismatchErr, ImportCurrencyCode)
+        else
+            GetCustomerContractCurrencyInfo(TempSubscriptionLine."Subscription Contract No.", AllowDiffCurrency, CurrencyMismatchErr, ImportCurrencyCode);
+
+        if AllowDiffCurrency then
+            Rec."Currency Code" := TempSubscriptionLine."Currency Code"
+        else begin
+            Rec."Currency Code" := ImportCurrencyCode;
+            Rec."Processing Status" := Enum::"Processing Status"::Error;
+            Rec.SetReason(CurrencyMismatchErr);
+        end;
+    end;
+
+    local procedure GetVendorContractCurrencyInfo(ContractNo: Code[20]; var AllowDiffCurrency: Boolean; var CurrencyMismatchErr: Text; ImportCurrencyCode: Code[10])
+    var
+        VendorContract: Record "Vendor Subscription Contract";
+        ContractType: Record "Subscription Contract Type";
+    begin
+        VendorContract.Get(ContractNo);
+        if VendorContract."Contract Type" <> '' then
+            ContractType.Get(VendorContract."Contract Type");
+        AllowDiffCurrency := ContractType."Allow Diff. Curr. in Vend. UD";
+        CurrencyMismatchErr := StrSubstNo(VendorContractCurrencyMismatchErr, ContractNo, VendorContract."Currency Code", ImportCurrencyCode);
+    end;
+
+    local procedure GetCustomerContractCurrencyInfo(ContractNo: Code[20]; var AllowDiffCurrency: Boolean; var CurrencyMismatchErr: Text; ImportCurrencyCode: Code[10])
+    var
+        CustomerContract: Record "Customer Subscription Contract";
+        ContractType: Record "Subscription Contract Type";
+    begin
+        CustomerContract.Get(ContractNo);
+        if CustomerContract."Contract Type" <> '' then
+            ContractType.Get(CustomerContract."Contract Type");
+        AllowDiffCurrency := ContractType."Allow Diff. Curr. in Cust. UD";
+        CurrencyMismatchErr := StrSubstNo(CustomerContractCurrencyMismatchErr, ContractNo, CustomerContract."Currency Code", ImportCurrencyCode);
+    end;
+
+    internal procedure CalculateAmounts(UsageDataSupplier: Record "Usage Data Supplier"; ImportCurrencyCode: Code[10]; NewUnitCost: Decimal; NewCostAmount: Decimal; NewUnitPrice: Decimal; NewAmount: Decimal)
+    var
+        Currency: Record Currency;
+        NeedsCurrencyConversion: Boolean;
+    begin
+        if Rec."Currency Code" <> '' then
+            Currency.Get(Rec."Currency Code")
+        else
+            Currency.InitRoundingPrecision();
+
+        NeedsCurrencyConversion := Rec."Currency Code" <> ImportCurrencyCode;
+
+        DeriveAndConvertAmounts(NewUnitCost, NewCostAmount, NeedsCurrencyConversion, ImportCurrencyCode);
+        Rec."Unit Cost" := Round(NewUnitCost, Currency."Unit-Amount Rounding Precision");
+        Rec."Cost Amount" := Round(NewCostAmount, Currency."Amount Rounding Precision");
+
+        if Rec.IsPartnerCustomer() and UsageDataSupplier."Unit Price from Import" then begin
+            DeriveAndConvertAmounts(NewUnitPrice, NewAmount, NeedsCurrencyConversion, ImportCurrencyCode);
+            Rec."Unit Price" := Round(NewUnitPrice, Currency."Unit-Amount Rounding Precision");
+            Rec.Amount := Round(NewAmount, Currency."Amount Rounding Precision");
+        end;
+    end;
+
+    local procedure DeriveAndConvertAmounts(var NewUnitValue: Decimal; var NewTotalValue: Decimal; NeedsCurrencyConversion: Boolean; ImportCurrencyCode: Code[10])
+    var
+        CurrencyExchRate: Record "Currency Exchange Rate";
+    begin
+        if (NewUnitValue = 0) and (NewTotalValue <> 0) and (Rec.Quantity <> 0) then
+            NewUnitValue := NewTotalValue / Rec.Quantity;
+        if (NewTotalValue = 0) and (NewUnitValue <> 0) then
+            NewTotalValue := NewUnitValue * Rec.Quantity;
+        if NeedsCurrencyConversion then begin
+            NewUnitValue := CurrencyExchRate.ExchangeAmtFCYToFCY(Rec."Charge End Date", ImportCurrencyCode, Rec."Currency Code", NewUnitValue);
+            NewTotalValue := CurrencyExchRate.ExchangeAmtFCYToFCY(Rec."Charge End Date", ImportCurrencyCode, Rec."Currency Code", NewTotalValue);
+        end;
     end;
 
     internal procedure FilterOnUsageDataImportAndServiceCommitment(UsageDataImportEntryNo: Integer; ServiceCommitment: Record "Subscription Line")
@@ -407,6 +504,16 @@ table 8006 "Usage Data Billing"
         CalcFields(Reason);
         RRef.GetTable(Rec);
         TextManagement.ShowFieldText(RRef, FieldNo(Reason));
+    end;
+
+    internal procedure GetReason(): Text
+    var
+        TextManagement: Codeunit "Text Management";
+        RRef: RecordRef;
+    begin
+        CalcFields(Reason);
+        RRef.GetTable(Rec);
+        exit(TextManagement.ReadBlobText(RRef, FieldNo(Reason)));
     end;
 
     internal procedure ShowRelatedDocuments(var UsageBasedBilling: Record "Usage Data Billing"; DocumentType: Option Contract,"Contract Invoices","Posted Contract Invoices"; ServicePartner: Enum "Service Partner")
@@ -708,7 +815,7 @@ table 8006 "Usage Data Billing"
         exit((Rec."Document Type" <> "Usage Based Billing Doc. Type"::None) and (Rec."Document No." <> ''));
     end;
 
-    internal procedure GetPrintoutDescription() Description: Text[100]
+    procedure GetPrintoutDescription() Description: Text[100]
     begin
         if ShouldPrintProductName() then
             Description := "Product Name"
@@ -717,7 +824,7 @@ table 8006 "Usage Data Billing"
         OnAfterGetPrintoutDescription(Rec, Description);
     end;
 
-    internal procedure ShouldPrintProductName() Result: Boolean
+    procedure ShouldPrintProductName() Result: Boolean
     var
         ServiceContractSetup: Record "Subscription Contract Setup";
     begin
@@ -745,4 +852,7 @@ table 8006 "Usage Data Billing"
 
     var
         UsageBasedDocTypeConv: Codeunit "Usage Based Doc. Type Conv.";
+        CannotDeleteInvoicedErr: Label 'Usage Data Billing has already been invoiced and cannot be deleted.';
+        VendorContractCurrencyMismatchErr: Label 'Vendor Subscription Contract %1 uses Currency Code %2, while the usage data contains amounts in %3. Please update the currency in the contract or move the Subscription line to a contract with this currency before reprocessing the usage data import.', Comment = '%1=Vendor Contract No., %2=Contract Currency Code, %3=Usage Data Currency Code';
+        CustomerContractCurrencyMismatchErr: Label 'Customer Subscription Contract %1 uses Currency Code %2, while the usage data contains amounts in %3. Please update the currency in the contract or move the Subscription line to a contract with this currency before reprocessing the usage data import.', Comment = '%1=Customer Contract No., %2=Contract Currency Code, %3=Usage Data Currency Code';
 }

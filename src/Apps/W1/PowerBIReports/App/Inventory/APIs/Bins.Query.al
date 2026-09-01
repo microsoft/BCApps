@@ -11,6 +11,7 @@ query 36966 Bins
     Access = Internal;
     Caption = 'Power BI Bins';
     QueryType = API;
+    AboutText = 'Provides access to warehouse bin master data including codes, descriptions, locations, bin types, and zone assignments. Enables Power BI reports to analyze warehouse storage structure, bin utilization, and location layouts for warehouse management analytics.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

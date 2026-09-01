@@ -1,0 +1,2 @@
+# cost: 7
+{"query":"{ return(id: \"gid://shopify/Return/{{ReturnId}}\") { reverseFulfillmentOrders(first: 10) { pageInfo { endCursor hasNextPage } nodes { id } } } }"}

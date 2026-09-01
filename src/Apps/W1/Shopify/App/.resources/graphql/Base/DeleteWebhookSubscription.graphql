@@ -1,0 +1,2 @@
+# cost: 10
+{"query":"mutation { webhookSubscriptionDelete(id: \"gid://shopify/WebhookSubscription/{{SubscriptionId}}\") { userErrors { field message } } }"}

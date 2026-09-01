@@ -572,6 +572,10 @@ dotnet
         type("Microsoft.Dynamics.Nav.LicensingService.Model.UserInfo"; "UserInfo")
         {
         }
+
+        type("Microsoft.Dynamics.Nav.LicensingService.Model.VerifiedDomainInfo"; "VerifiedDomainInfo")
+        {
+        }
     }
 
     assembly("Microsoft.Dynamics.Nav.NavUserAccount")
@@ -1203,8 +1207,6 @@ dotnet
 
     assembly("MailKit")
     {
-        Version = '2.15.0.0';
-        Culture = 'neutral';
         PublicKeyToken = '4e064fe7c44a8f1b';
 
         type("MailKit.Net.Smtp.SmtpClient"; "SmtpClient")
@@ -1238,8 +1240,6 @@ dotnet
 
     assembly("MimeKit")
     {
-        Version = '2.15.0.0';
-        Culture = 'neutral';
         PublicKeyToken = 'bede1c8a46c66814';
 
         type("MimeKit.BodyBuilder"; "MimeBodyBuilder")
@@ -1278,7 +1278,7 @@ dotnet
         {
         }
 
-        type("MimeKit.ContentObject"; "MimeContentObject")
+        type("MimeKit.EncodingConstraint"; "EncodingConstraint")
         {
         }
     }
@@ -2159,6 +2159,10 @@ dotnet
         Culture = 'neutral';
 
         type("Microsoft.Dynamics.Nav.Service.CopilotApi.AL.ALCopilotAuthorization"; ALCopilotAuthorization)
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.Service.CopilotApi.AL.ALCopilotFastPromptResponse"; ALCopilotFastPromptResponse)
         {
         }
 

@@ -1,0 +1,2 @@
+# cost: 4
+{"query": "{ companyLocation(id: \"gid://shopify/CompanyLocation/{{LocationId}}\") { id name billingAddress { address1 address2 city countryCode phone province recipient zip zoneCode } buyerExperienceConfiguration { paymentTermsTemplate { id } } taxRegistrationId } }"}

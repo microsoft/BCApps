@@ -22,7 +22,7 @@ codeunit 135017 "Security Groups Upgrade Test"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestAddExistingSecurityGroups()
     var
-        SecurityGroupBuffer: Record "Security Group Buffer";
+        TempSecurityGroupBuffer: Record "Security Group Buffer";
         SecurityGroup: Codeunit "Security Group";
         SecurityGroupsTestLibrary: Codeunit "Security Groups Test Library";
     begin
@@ -35,17 +35,17 @@ codeunit 135017 "Security Groups Upgrade Test"
         SecurityGroupsTestLibrary.RunUpgrade();
 
         // Security Groups have been created as expected
-        SecurityGroup.GetGroups(SecurityGroupBuffer);
-        Assert.RecordCount(SecurityGroupBuffer, 3);
+        SecurityGroup.GetGroups(TempSecurityGroupBuffer);
+        Assert.RecordCount(TempSecurityGroupBuffer, 3);
 
-        SecurityGroupBuffer.FindSet();
-        Assert.AreEqual(SecurityGroupBuffer.Code, 'SECURITY GROUP', UnexpectedGroupCodeErr);
+        TempSecurityGroupBuffer.FindSet();
+        Assert.AreEqual(TempSecurityGroupBuffer.Code, 'SECURITY GROUP', UnexpectedGroupCodeErr);
 
-        SecurityGroupBuffer.Next();
-        Assert.AreEqual(SecurityGroupBuffer.Code, 'SECURITY GROUP_1', UnexpectedGroupCodeErr);
+        TempSecurityGroupBuffer.Next();
+        Assert.AreEqual(TempSecurityGroupBuffer.Code, 'SECURITY GROUP_1', UnexpectedGroupCodeErr);
 
-        SecurityGroupBuffer.Next();
-        Assert.AreEqual(SecurityGroupBuffer.Code, 'SECURITY GROUP_2', UnexpectedGroupCodeErr);
+        TempSecurityGroupBuffer.Next();
+        Assert.AreEqual(TempSecurityGroupBuffer.Code, 'SECURITY GROUP_2', UnexpectedGroupCodeErr);
     end;
 
     local procedure SetupWindowsGroupUsers()

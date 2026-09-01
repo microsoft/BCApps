@@ -11,8 +11,8 @@ page 37063 "Manufacturing Report"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = Manufacturing;
     PageType = UserControlHost;
-    Caption = 'Manufacturing Report';
-    AboutTitle = 'About Manufacturing Report';
+    Caption = 'Manufacturing Report (Power BI)';
+    AboutTitle = 'About Manufacturing Report (Power BI)';
     AboutText = 'The Manufacturing Report offers a consolidated view of all manufacturing report pages, conveniently embedded into a single page for easy access.';
 
     layout
@@ -48,11 +48,8 @@ page 37063 "Manufacturing Report"
         ReportPageLbl: Label '', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Manufacturing Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Manufacturing App");
     end;
 }
 

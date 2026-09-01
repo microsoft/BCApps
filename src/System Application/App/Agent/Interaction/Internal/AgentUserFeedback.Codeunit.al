@@ -9,7 +9,6 @@ using System.Feedback;
 
 codeunit 4329 "Agent User Feedback"
 {
-    Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
 

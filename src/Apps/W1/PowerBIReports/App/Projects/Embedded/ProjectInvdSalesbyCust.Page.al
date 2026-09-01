@@ -11,8 +11,8 @@ page 37039 "Project Invd. Sales by Cust."
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Project Invoiced Sales by Customer';
-    AboutTitle = 'About Project Invoiced Sales by Customer';
+    Caption = 'Project Invoiced Sales by Customer (Power BI)';
+    AboutTitle = 'About Project Invoiced Sales by Customer (Power BI)';
     AboutText = 'The Project Invoiced Sales by Customer report details invoiced sales for a project, broken down by customer. It includes key KPIs such as % Invoiced, Billable Invoiced Price, and Billable Total Price, offering a clear view of project invoicing by customer. ';
 
     layout
@@ -48,11 +48,8 @@ page 37039 "Project Invd. Sales by Cust."
         ReportPageLbl: Label 'ReportSectioncd82c6e10e816900e80b', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Projects Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Projects App");
     end;
 }
 

@@ -11,6 +11,7 @@ query 36965 "Assembly Lines - Item"
     Access = Internal;
     Caption = 'Power BI Assembly Lines';
     QueryType = API;
+    AboutText = 'Provides access to assembly order line data for item components including item numbers, remaining quantities, due dates, and locations. Enables Power BI reports to analyze component requirements, track assembly material consumption, and forecast component demand for inventory planning.';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
     ApiVersion = 'v0.5', 'v1.0';

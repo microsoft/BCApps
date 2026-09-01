@@ -1,7 +1,9 @@
 namespace Microsoft.SubscriptionBilling;
 
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Inventory.Item;
+using Microsoft.Purchases.Vendor;
 using System.Utilities;
 
 table 8062 "Cust. Sub. Contract Line"
@@ -284,7 +286,7 @@ table 8062 "Cust. Sub. Contract Line"
 
     procedure LoadServiceCommitmentForContractLine(var ServiceCommitment: Record "Subscription Line")
     var
-        LocalServiceCommitment: Record "Subscription Line"; //in case the parameter is passed as temporary table
+        LocalServiceCommitment: Record "Subscription Line";
     begin
         ServiceCommitment.Init();
         if "Subscription Contract No." = '' then
@@ -292,10 +294,14 @@ table 8062 "Cust. Sub. Contract Line"
         case "Contract Line Type" of
             Enum::"Contract Line Type"::Item,
             Enum::"Contract Line Type"::"G/L Account":
-                if GetServiceCommitment(LocalServiceCommitment) then begin
-                    LocalServiceCommitment.CalcFields(Quantity);
-                    ServiceCommitment.TransferFields(LocalServiceCommitment);
-                end;
+                if ServiceCommitment.IsTemporary then begin
+                    if GetServiceCommitment(LocalServiceCommitment) then begin
+                        LocalServiceCommitment.CalcFields(Quantity);
+                        ServiceCommitment.TransferFields(LocalServiceCommitment);
+                    end;
+                end else
+                    if GetServiceCommitment(ServiceCommitment) then
+                        ServiceCommitment.CalcFields(Quantity);
         end;
         OnAfterLoadAmountsForContractLine(Rec, ServiceCommitment);
     end;
@@ -334,13 +340,15 @@ table 8062 "Cust. Sub. Contract Line"
     var
         VendorServiceCommitment: Record "Subscription Line";
         VendorContract: Record "Vendor Subscription Contract";
+        SourceCodeSetup: Record "Source Code Setup";
     begin
+        SourceCodeSetup.Get();
         VendorServiceCommitment.FilterOnServiceObjectAndPackage(ServiceCommitment."Subscription Header No.", ServiceCommitment.Template, ServiceCommitment."Subscription Package Code", Enum::"Service Partner"::Vendor);
         if VendorServiceCommitment.FindSet() then
             repeat
                 VendorServiceCommitment.SetDefaultDimensions(true);
                 if VendorContract.Get(VendorServiceCommitment."Subscription Contract No.") then
-                    VendorServiceCommitment.GetCombinedDimensionSetID(VendorServiceCommitment."Dimension Set ID", VendorContract."Dimension Set ID");
+                    VendorServiceCommitment.ApplyContractDimensions(VendorContract."Dimension Set ID", SourceCodeSetup.Purchases, Database::Vendor);
                 VendorServiceCommitment.Modify(false);
             until VendorServiceCommitment.Next() = 0;
     end;

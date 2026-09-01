@@ -1,5 +1,6 @@
 namespace Microsoft.SubscriptionBilling;
 
+using Microsoft.CRM.Contact;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Foundation.Attachment;
@@ -26,6 +27,7 @@ codeunit 148155 "Contracts Test"
         CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
         LibraryERM: Codeunit "Library - ERM";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+        LibraryMarketing: Codeunit "Library - Marketing";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
@@ -36,6 +38,11 @@ codeunit 148155 "Contracts Test"
         CustShipToCodeErr: Label 'Ship-to Code should be the same as Sell-to Customer';
         CalcBaseAmountErr: Label 'Calculation Base Amount should be %1', Comment = '%1=Calculation Base Amount', Locked = true;
         SubscLineDescErr: Label 'Subscription Line Description should be %1', Comment = '%1=Subscription Line Description', Locked = true;
+        ContractEmailInitFromContactErr: Label 'Contract email should be initialized from Contact A.', Locked = true;
+        ContractEmailUpdatedToContactErr: Label 'Contract email should be updated to the newly selected Contact B email.', Locked = true;
+        ContractEmailNotPreviousContactErr: Label 'Contract email should not remain the previous Contact A email.', Locked = true;
+        ContractEmailTableValidationErr: Label 'Contract email should be updated through table validation logic.', Locked = true;
+        ContractEmailBlankOverrideErr: Label 'Contract email should be overridden to the blank email of the selected contact.', Locked = true;
 
     #region Tests
 
@@ -2049,6 +2056,186 @@ codeunit 148155 "Contracts Test"
         Assert.AreEqual(TestDesc, ServiceCommitment.Description, StrSubstNo(SubscLineDescErr, TestDesc));
     end;
 
+    [Test]
+    procedure ChangeSellToCustomerOnContractWithClosedSubscriptionLines()
+    var
+        Customer: Record Customer;
+        CustomerContract: Record "Customer Subscription Contract";
+        CustomerContractLine: Record "Cust. Sub. Contract Line";
+        NewCustomer: Record Customer;
+        ServiceCommitment: Record "Subscription Line";
+        ServiceObject: Record "Subscription Header";
+    begin
+        // [SCENARIO] Changing the Sell-to Customer on a contract that has closed subscription lines should succeed without error.
+        Initialize();
+
+        // [GIVEN] A customer contract with a service commitment linked to a contract line.
+        SetupServiceObjectForNewItemWithServiceCommitment(Customer, ServiceObject, false, false);
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, Customer."No.");
+
+        // [GIVEN] The contract line and its subscription line are both marked as closed (as done by UpdateServiceCommitmentAndCloseCustomerContractLine).
+        CustomerContractLine.SetRange("Subscription Contract No.", CustomerContract."No.");
+        CustomerContractLine.SetRange("Contract Line Type", Enum::"Contract Line Type"::Item);
+        CustomerContractLine.FindFirst();
+        CustomerContractLine.GetServiceCommitment(ServiceCommitment);
+        ServiceCommitment.Closed := true;
+        ServiceCommitment.Modify(false);
+        CustomerContractLine.Closed := true;
+        CustomerContractLine.Modify(false);
+
+        // [GIVEN] A second customer to change the contract to.
+        ContractTestLibrary.CreateCustomerInLCY(NewCustomer);
+
+        // [WHEN] Changing the Sell-to Customer - should not throw an error even though closed subscription lines exist.
+        CustomerContract.SetHideValidationDialog(true);
+        CustomerContract.Validate("Sell-to Customer No.", NewCustomer."No.");
+
+        // [THEN] The customer is changed successfully.
+        CustomerContract.TestField("Sell-to Customer No.", NewCustomer."No.");
+    end;
+
+    [Test]
+    procedure ShipToAddressIsUpdatedWhenSellToAddressIsChanged()
+    var
+        Customer: Record Customer;
+        CustomerContract: Record "Customer Subscription Contract";
+    begin
+        // [SCENARIO] Ship-To address fields are in sync with Sell-To address fields when Ship-to Code is blank
+        Initialize();
+
+        // [GIVEN] A customer contract where sell-to and ship-to addresses are equal
+        ContractTestLibrary.CreateCustomer(Customer);
+        ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
+        CustomerContract.DontNotifyCurrentUserAgain(CustomerContract.GetModifyBillToCustomerAddressNotificationId());
+        CustomerContract.DontNotifyCurrentUserAgain(CustomerContract.GetModifyCustomerAddressNotificationId());
+
+        Assert.AreEqual('', CustomerContract."Ship-to Code", 'Ship-to Code should be blank for default (sell-to) address.');
+        Assert.IsTrue(CustomerContract.ShipToAddressEqualsSellToAddress(), 'Setup: Ship-to and Sell-to address should be equal before the test.');
+
+        // [WHEN] Changing the sell-to address fields on the contract
+        CustomerContract.Validate("Sell-to Address", CopyStr(LibraryRandom.RandText(MaxStrLen(CustomerContract."Sell-to Address")), 1, MaxStrLen(CustomerContract."Sell-to Address")));
+        CustomerContract.Validate("Sell-to Address 2", CopyStr(LibraryRandom.RandText(MaxStrLen(CustomerContract."Sell-to Address 2")), 1, MaxStrLen(CustomerContract."Sell-to Address 2")));
+        CustomerContract.Validate("Sell-to Contact", CopyStr(LibraryRandom.RandText(MaxStrLen(CustomerContract."Sell-to Contact")), 1, MaxStrLen(CustomerContract."Sell-to Contact")));
+        CustomerContract.Modify(true);
+
+        // [THEN] Ship-To address fields are updated to match Sell-To address fields
+        Assert.IsTrue(CustomerContract.ShipToAddressEqualsSellToAddress(), 'Ship-to address fields should be in sync with Sell-to address fields.');
+    end;
+
+    [Test]
+    procedure ShipToAddressIsNotUpdatedWhenShipToCodeIsSet()
+    var
+        Customer: Record Customer;
+        CustomerContract: Record "Customer Subscription Contract";
+        ShipToAddress: Record "Ship-to Address";
+    begin
+        // [SCENARIO] Ship-To address fields are NOT updated when an alternate Ship-to Code is set
+        Initialize();
+
+        // [GIVEN] A customer contract with an alternate ship-to address
+        ContractTestLibrary.CreateCustomer(Customer);
+        ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
+        CustomerContract.DontNotifyCurrentUserAgain(CustomerContract.GetModifyBillToCustomerAddressNotificationId());
+        CustomerContract.DontNotifyCurrentUserAgain(CustomerContract.GetModifyCustomerAddressNotificationId());
+
+        ShipToAddress.SetRange("Customer No.", Customer."No.");
+        ShipToAddress.FindFirst();
+        CustomerContract.Validate("Ship-to Code", ShipToAddress.Code);
+        CustomerContract.Modify(true);
+
+        // [WHEN] Changing the sell-to address on the contract
+        CustomerContract.Validate("Sell-to Address", CopyStr(LibraryRandom.RandText(MaxStrLen(CustomerContract."Sell-to Address")), 1, MaxStrLen(CustomerContract."Sell-to Address")));
+        CustomerContract.Modify(true);
+
+        // [THEN] Ship-To address is NOT updated (it retains the alternate ship-to address)
+        Assert.AreNotEqual(CustomerContract."Sell-to Address", CustomerContract."Ship-to Address", 'Ship-to Address should not be changed when Ship-to Code is set.');
+    end;
+
+    [Test]
+    procedure ChangingSellToContactUpdatesContractEmail()
+    var
+        Customer: Record Customer;
+        ContactA: Record Contact;
+        ContactB: Record Contact;
+        CustomerContract: Record "Customer Subscription Contract";
+    begin
+        // [SCENARIO 642745] Changing the Sell-to Contact No. updates the Customer Subscription Contract email to the selected contact's email
+        Initialize();
+
+        // [GIVEN] A customer with two person contacts that have different email addresses
+        CreateCustomerWithTwoPersonContacts(Customer, ContactA, ContactB);
+
+        // [GIVEN] A customer subscription contract using Contact A
+        ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
+        CustomerContract.SetHideValidationDialog(true);
+        CustomerContract.Validate("Sell-to Contact No.", ContactA."No.");
+        CustomerContract.Modify(true);
+        Assert.AreEqual(ContactA."E-Mail", CustomerContract."Sell-to E-Mail", ContractEmailInitFromContactErr);
+
+        // [WHEN] Changing the Sell-to Contact No. to Contact B
+        CustomerContract.Validate("Sell-to Contact No.", ContactB."No.");
+        CustomerContract.Modify(true);
+
+        // [THEN] The contract email is updated to Contact B's email
+        Assert.AreEqual(ContactB."E-Mail", CustomerContract."Sell-to E-Mail", ContractEmailUpdatedToContactErr);
+        Assert.AreNotEqual(ContactA."E-Mail", CustomerContract."Sell-to E-Mail", ContractEmailNotPreviousContactErr);
+    end;
+
+    [Test]
+    procedure ChangingSellToContactUpdatesEmailViaTableValidate()
+    var
+        Customer: Record Customer;
+        ContactA: Record Contact;
+        ContactB: Record Contact;
+        CustomerContract: Record "Customer Subscription Contract";
+    begin
+        // [SCENARIO 642745] The email refresh happens in table validation logic, not only in the page UI
+        Initialize();
+
+        // [GIVEN] A customer with two person contacts with different emails and a contract using Contact A
+        CreateCustomerWithTwoPersonContacts(Customer, ContactA, ContactB);
+        ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
+        CustomerContract.SetHideValidationDialog(true);
+        CustomerContract.Validate("Sell-to Contact No.", ContactA."No.");
+        CustomerContract.Modify(true);
+
+        // [WHEN] Contact No. is changed through table Validate (simulating API/background/AL code)
+        CustomerContract.Validate("Sell-to Contact No.", ContactB."No.");
+
+        // [THEN] The email is updated without any page/UI involvement
+        Assert.AreEqual(ContactB."E-Mail", CustomerContract."Sell-to E-Mail", ContractEmailTableValidationErr);
+    end;
+
+    [Test]
+    procedure ChangingSellToContactToContactWithBlankEmailClearsContractEmail()
+    var
+        Customer: Record Customer;
+        ContactA: Record Contact;
+        ContactB: Record Contact;
+        CustomerContract: Record "Customer Subscription Contract";
+    begin
+        // [SCENARIO 642745] Changing to a contact with a blank email overrides the contract email (strict override)
+        Initialize();
+
+        // [GIVEN] A customer with Contact A (with email) and Contact B (blank email)
+        CreateCustomerWithTwoPersonContacts(Customer, ContactA, ContactB);
+        ContactB.Validate("E-Mail", '');
+        ContactB.Modify(false);
+
+        // [GIVEN] A contract using Contact A
+        ContractTestLibrary.CreateCustomerContract(CustomerContract, Customer."No.");
+        CustomerContract.SetHideValidationDialog(true);
+        CustomerContract.Validate("Sell-to Contact No.", ContactA."No.");
+        CustomerContract.Modify(true);
+        Assert.AreEqual(ContactA."E-Mail", CustomerContract."Sell-to E-Mail", ContractEmailInitFromContactErr);
+
+        // [WHEN] Changing the Sell-to Contact No. to Contact B (blank email)
+        CustomerContract.Validate("Sell-to Contact No.", ContactB."No.");
+
+        // [THEN] The contract email is overridden to blank, matching the selected contact
+        Assert.AreEqual('', CustomerContract."Sell-to E-Mail", ContractEmailBlankOverrideErr);
+    end;
+
     #endregion Tests
 
     #region Procedures
@@ -2471,6 +2658,24 @@ codeunit 148155 "Contracts Test"
                 if IsContractLineInvoiced then // Double check that contract line is invoiced
                     SourceServiceCommitment.TestField("Next Billing Date", CalcDate('<+1D>', SourceServiceCommitment."Subscription Line End Date"));
             until SourceServiceCommitment.Next() = 0;
+    end;
+
+    local procedure CreateCustomerWithTwoPersonContacts(var Customer: Record Customer; var PersonContactA: Record Contact; var PersonContactB: Record Contact)
+    var
+        CompanyContact: Record Contact;
+    begin
+        // Create a company contact that is related to the customer, then two person contacts belonging to that company
+        LibraryMarketing.CreateContactWithCustomer(CompanyContact, Customer);
+
+        LibraryMarketing.CreatePersonContact(PersonContactA);
+        PersonContactA.Validate("Company No.", CompanyContact."No.");
+        PersonContactA.Validate("E-Mail", 'contactA@example.com');
+        PersonContactA.Modify(false);
+
+        LibraryMarketing.CreatePersonContact(PersonContactB);
+        PersonContactB.Validate("Company No.", CompanyContact."No.");
+        PersonContactB.Validate("E-Mail", 'contactB@example.com');
+        PersonContactB.Modify(false);
     end;
 
     #endregion Procedures

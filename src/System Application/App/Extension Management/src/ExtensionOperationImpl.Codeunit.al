@@ -436,6 +436,25 @@ codeunit 2503 "Extension Operation Impl"
         end;
     end;
 
+    procedure HandleOrphanedDataNotification(Notif: Notification)
+    begin
+        Page.Run(Page::"Delete Orphaned Extension Data");
+    end;
+
+    procedure MarkOrphanedDataAsReviewed(Notif: Notification)
+    begin
+        MarkAllOrphanedExtensionDataAsReviewed();
+        Notif.Recall();
+    end;
+
+    internal procedure MarkAllOrphanedExtensionDataAsReviewed()
+    var
+        ExtensionDatabaseManagement: Codeunit "Extension Database Management";
+    begin
+        CheckPermissions();
+        ExtensionDatabaseManagement.MarkAllOrphanedExtensionDataAsReviewed();
+    end;
+
     internal procedure GetAppName(AppId: Guid; OperationId: Guid) AppName: Text
     begin
         AppName := GetAppName(AppId);
@@ -444,4 +463,3 @@ codeunit 2503 "Extension Operation Impl"
             AppName := GetDeployOperationAppName(OperationId);
     end;
 }
-

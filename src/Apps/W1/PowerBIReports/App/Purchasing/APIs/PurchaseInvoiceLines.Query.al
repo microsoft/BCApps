@@ -10,6 +10,7 @@ query 37107 "Purchase Invoice Lines"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to posted purchase invoice lines for G/L account and resource types including amounts, quantities, unit costs, and dimension data. Enables Power BI reports to analyze purchasing spend by G/L account and resource.';
     Caption = 'Power BI Purchase Invoice Lines';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

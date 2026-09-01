@@ -25,16 +25,16 @@ codeunit 20419 "Qlty. Guided Experience"
         QualityManagerRoleCenterTourDescriptionTxt: Label 'The Quality Manager home page offers metrics and activities that help run a business. We`ll also show you how to explore all Business Central features.';
         DemoDataShortTitleTxt: Label 'Demo data';
         DemoDataTitleTxt: Label 'Explore with demo data';
-        DemoDataDescriptionTxt: Label 'Use Contoso demo data to explore Quality Management with sample quality tests, templates, generation rules, and inspections. This lets you learn how quality checks work without setting up your own data.';
+        DemoDataDescriptionTxt: Label 'Install or explore Contoso demo data for Quality Management with sample quality tests, templates, generation rules, and inspections. This lets you learn how quality checks work without setting up your own data.';
         QualityResultsShortTitleTxt: Label 'Inspection results';
         QualityResultsTitleTxt: Label 'Set up quality inspection results';
-        QualityResultsDescriptionTxt: Label 'Define possible outcomes for quality inspections, like Pass, Fail, or In Progress. Create custom results and set priorities to match your organization''s standards. These results control how inspections are evaluated and how items are blocked or released.';
+        QualityResultsDescriptionTxt: Label 'Define custom grades for quality inspections, to match your organization''s standards. You can decide evaluation priorities and set conditions for allowed transactions.';
         QualityTestsShortTitleTxt: Label 'Quality tests';
         QualityTestsTitleTxt: Label 'Understand quality tests';
         QualityTestsDescriptionTxt: Label 'Quality tests define what is measured. Visit the Quality Tests list to see available tests, then open a test card to review parameters, limits, and expected values used during inspections.';
         QualityTemplatesShortTitleTxt: Label 'Quality templates';
         QualityTemplatesTitleTxt: Label 'Reuse inspection templates';
-        QualityTemplatesDescriptionTxt: Label 'With templates you can group and reuse quality tests so you can apply consistent inspection standards across items, processes, or scenarios. From the list you can create a new template card to understand its structure and purpose.';
+        QualityTemplatesDescriptionTxt: Label 'With templates you can group and reuse quality tests to ensure consistent inspection standards. Try creating a new template card to understand its structure and purpose.';
         GenerationRulesShortTitleTxt: Label 'Generation rules';
         GenerationRulesTitleTxt: Label 'Set up inspection generation rules';
         GenerationRulesDescriptionTxt: Label 'Inspection generation rules define when quality inspections are created automatically, such as during receiving, production, or assembly.';
@@ -55,12 +55,18 @@ codeunit 20419 "Qlty. Guided Experience"
         InProgressTitleTxt: Label 'Get started';
         InProgressDescriptionTxt: Label 'The Contoso demo data is for demonstration, evaluation, and training purposes only.';
 
+    /// <summary>
+    /// Registers the Quality Management guided experience items.
+    /// </summary>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Guided Experience", 'OnRegisterGuidedExperienceItem', '', false, false)]
     local procedure OnRegisterGuidedExperienceItem()
     begin
         RegisterGuidedExperienceItems();
     end;
 
+    /// <summary>
+    /// Registers guided experience and checklist items once after an eligible client login.
+    /// </summary>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Initialization", 'OnAfterLogin', '', false, false)]
     local procedure InitializeChecklistOnAfterLogIn()
     var
@@ -71,7 +77,7 @@ codeunit 20419 "Qlty. Guided Experience"
         if not (Session.CurrentClientType() in [ClientType::Web, ClientType::Windows, ClientType::Desktop]) then
             exit;
 
-        if not (QltyManagementSetup.ReadPermission and QltyManagementSetup.WritePermission) then
+        if not (QltyManagementSetup.ReadPermission() and QltyManagementSetup.WritePermission()) then
             exit;
 
         if not Company.Get(CompanyName()) then
@@ -90,12 +96,24 @@ codeunit 20419 "Qlty. Guided Experience"
 
         // Register checklist items only once
         if not QltyManagementSetup."Checklist Items Registered" then begin
-            InitializeChecklist(SetupExists);
+            InitializeChecklist();
             QltyManagementSetup."Checklist Items Registered" := true;
             QltyManagementSetup.Modify();
         end;
     end;
 
+    /// <summary>
+    /// Replaces checklist banner labels for the Quality Manager role center.
+    /// </summary>
+    /// <param name="IsHandled">Set to true when the banner labels are supplied by this subscriber.</param>
+    /// <param name="IsEvaluationCompany">Indicates whether the current company is an evaluation company.</param>
+    /// <param name="TitleTxt">The expanded banner title to update.</param>
+    /// <param name="TitleCollapsedTxt">The collapsed banner title to update.</param>
+    /// <param name="HeaderTxt">The expanded banner header to update.</param>
+    /// <param name="HeaderCollapsedTxt">The collapsed banner header to update.</param>
+    /// <param name="DescriptionTxt">The banner description to update.</param>
+    /// <param name="IsSetupStarted">Indicates whether checklist setup has started.</param>
+    /// <param name="AreAllItemsSkippedOrCompleted">Indicates whether all checklist items are skipped or completed.</param>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Checklist Banner", 'OnBeforeUpdateBannerLabels', '', false, false)]
     local procedure OnBeforeUpdateBannerLabels(var IsHandled: Boolean; IsEvaluationCompany: Boolean; var TitleTxt: Text; var TitleCollapsedTxt: Text; var HeaderTxt: Text; var HeaderCollapsedTxt: Text; var DescriptionTxt: Text; IsSetupStarted: Boolean; AreAllItemsSkippedOrCompleted: Boolean)
 
@@ -116,6 +134,10 @@ codeunit 20419 "Qlty. Guided Experience"
         end;
     end;
 
+    /// <summary>
+    /// Determines whether the current user has the Quality Manager role center.
+    /// </summary>
+    /// <returns>True if the current profile uses the Quality Manager role center; otherwise, false.</returns>
     local procedure IsQualityManagerRoleCenter(): Boolean
     var
         UserPersonalization: Record "User Personalization";
@@ -133,6 +155,9 @@ codeunit 20419 "Qlty. Guided Experience"
         exit(AllProfile."Role Center ID" = Page::"Qlty. Manager Role Center");
     end;
 
+    /// <summary>
+    /// Registers Quality Management tours, application features, and the learn link.
+    /// </summary>
     local procedure RegisterGuidedExperienceItems()
     var
         GuidedExperience: Codeunit "Guided Experience";
@@ -141,9 +166,8 @@ codeunit 20419 "Qlty. Guided Experience"
         GuidedExperience.InsertTour(QualityManagerRoleCenterTourTitleTxt, QualityManagerRoleCenterTourShortTitleTxt,
             QualityManagerRoleCenterTourDescriptionTxt, 2, Page::"Qlty. Manager Role Center");
 
-        // Always register demo data item - it will check if Contoso is installed when opened
-        GuidedExperience.InsertApplicationFeature(DemoDataTitleTxt, DemoDataShortTitleTxt, DemoDataDescriptionTxt, 3, ObjectType::Page,
-            Page::"Qlty. Demo Data Launcher");
+        GuidedExperience.InsertApplicationFeature(DemoDataTitleTxt, DemoDataShortTitleTxt, DemoDataDescriptionTxt, 3, ObjectType::Codeunit,
+            Codeunit::"Qlty. Demo Data Runner");
         GuidedExperience.InsertApplicationFeature(QualityResultsTitleTxt, QualityResultsShortTitleTxt, QualityResultsDescriptionTxt, 4, ObjectType::Page,
             Page::"Qlty. Inspection Result List");
         GuidedExperience.InsertApplicationFeature(QualityTestsTitleTxt, QualityTestsShortTitleTxt, QualityTestsDescriptionTxt, 3, ObjectType::Page,
@@ -160,15 +184,17 @@ codeunit 20419 "Qlty. Guided Experience"
         GuidedExperience.InsertLearnLink(MicrosoftLearnTitleTxt, MicrosoftLearnShortTitleTxt, MicrosoftLearnDescriptionTxt, 5, MicrosoftLearnLinkTxt);
     end;
 
-    local procedure InitializeChecklist(SetupExists: Boolean)
+    /// <summary>
+    /// Adds the Quality Management checklist entries for the Quality Manager profile.
+    /// </summary>
+    local procedure InitializeChecklist()
     var
         TempAllProfileQualityManager: Record "All Profile" temporary;
         Checklist: Codeunit Checklist;
     begin
         GetQualityManagerRole(TempAllProfileQualityManager);
 
-        if SetupExists then
-            Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Demo Data Launcher", 1000, TempAllProfileQualityManager, true);
+        Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Codeunit, Codeunit::"Qlty. Demo Data Runner", 1000, TempAllProfileQualityManager, true);
         Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Inspection Result List", 2000, TempAllProfileQualityManager, true);
         Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Tests", 3000, TempAllProfileQualityManager, true);
         Checklist.Insert("Guided Experience Type"::"Application Feature", ObjectType::Page, Page::"Qlty. Inspection Template List", 4000, TempAllProfileQualityManager, true);
@@ -180,11 +206,20 @@ codeunit 20419 "Qlty. Guided Experience"
         Checklist.MarkChecklistSetupAsDone();
     end;
 
+    /// <summary>
+    /// Adds the Quality Manager profile to a temporary profile collection.
+    /// </summary>
+    /// <param name="TempAllProfile">The temporary profile collection to populate.</param>
     local procedure GetQualityManagerRole(var TempAllProfile: Record "All Profile" temporary)
     begin
         AddRoleToList(TempAllProfile, Page::"Qlty. Manager Role Center");
     end;
 
+    /// <summary>
+    /// Finds a profile by role center and adds it to a temporary profile collection.
+    /// </summary>
+    /// <param name="TempAllProfile">The temporary profile collection to populate.</param>
+    /// <param name="RoleCenterID">The role center page identifier to find.</param>
     local procedure AddRoleToList(var TempAllProfile: Record "All Profile" temporary; RoleCenterID: Integer)
     var
         AllProfile: Record "All Profile";
@@ -193,6 +228,11 @@ codeunit 20419 "Qlty. Guided Experience"
         AddRoleToList(AllProfile, TempAllProfile);
     end;
 
+    /// <summary>
+    /// Adds the first filtered profile to a temporary profile collection.
+    /// </summary>
+    /// <param name="AllProfile">The filtered profile record to read.</param>
+    /// <param name="TempAllProfile">The temporary profile collection to populate.</param>
     local procedure AddRoleToList(var AllProfile: Record "All Profile"; var TempAllProfile: Record "All Profile" temporary)
     begin
         if AllProfile.FindFirst() then begin
@@ -200,4 +240,6 @@ codeunit 20419 "Qlty. Guided Experience"
             TempAllProfile.Insert();
         end;
     end;
+
+
 }

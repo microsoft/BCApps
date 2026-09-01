@@ -76,4 +76,11 @@ codeunit 3112 "Activity Log Builder Impl."
         LogEntry.Log();
     end;
 
+    procedure Query(TableNo: Integer; RecSystemId: Guid): Text
+    var
+        QueryEntry: DotNet ActivityLogEntry;
+    begin
+        exit(QueryEntry.Query(TableNo, RecSystemId));
+    end;
+
 }

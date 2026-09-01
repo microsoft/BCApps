@@ -59,7 +59,6 @@ permissionset 8001 "Sub. Billing Objects"
 #if not CLEAN26
         codeunit "Upgrade Subscription Billing" = X,
 #endif
-        codeunit "Usage Based Billing Inst." = X,
         codeunit "Usage Based Billing Mgmt." = X,
         codeunit "Usage Based Contr. Subscribers" = X,
         codeunit "Usage Based Doc. Type Conv." = X,

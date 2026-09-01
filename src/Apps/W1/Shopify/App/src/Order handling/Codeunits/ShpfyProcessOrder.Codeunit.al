@@ -27,7 +27,6 @@ codeunit 30166 "Shpfy Process Order"
     var
         ShopifyShop: Record "Shpfy Shop";
         OrderEvents: Codeunit "Shpfy Order Events";
-        OrderMgt: Codeunit "Shpfy Order Mgt.";
         LastCreatedDocumentId: Guid;
 
     trigger OnRun()
@@ -64,10 +63,11 @@ codeunit 30166 "Shpfy Process Order"
     /// <param name="ShopifyOrderHeader">Parameter of type Record "Shopify Order Header".</param>
     internal procedure CreateHeaderFromShopifyOrder(var SalesHeader: Record "Sales Header"; ShopifyOrderHeader: Record "Shpfy Order Header")
     var
-        ShopifyTaxArea: Record "Shpfy Tax Area";
         DocLinkToBCDoc: Record "Shpfy Doc. Link To Doc.";
+        ShopifyTaxArea: Record "Shpfy Tax Area";
         OrdersAPI: Codeunit "Shpfy Orders API";
         BCDocumentTypeConvert: Codeunit "Shpfy BC Document Type Convert";
+        OrderMgt: Codeunit "Shpfy Order Mgt.";
         InvalidCharTok: Label '@', Locked = true;
         InvalidShopifyOrderErr: Label '%1 cannot start with %2.', Comment = '%1 = Shopify Order No. field caption, %2 = Invalid Character';
         IsHandled: Boolean;
@@ -133,8 +133,15 @@ codeunit 30166 "Shpfy Process Order"
             SalesHeader.Validate("External Document No.", ShopifyOrderHeader."PO Number");
             if ShopifyOrderHeader."Due Date" <> 0D then
                 SalesHeader.Validate("Due Date", ShopifyOrderHeader."Due Date");
-            if OrderMgt.FindTaxArea(ShopifyOrderHeader, ShopifyTaxArea) and (ShopifyTaxArea."Tax Area Code" <> '') then
-                SalesHeader.Validate("Tax Area Code", ShopifyTaxArea."Tax Area Code");
+            if ShopifyOrderHeader."Tax Area Code" <> '' then begin
+                SalesHeader.Validate("Tax Area Code", ShopifyOrderHeader."Tax Area Code");
+                SalesHeader.Validate("Tax Liable", ShopifyOrderHeader."Tax Liable");
+            end else
+                if OrderMgt.FindTaxArea(ShopifyOrderHeader, ShopifyTaxArea) and (ShopifyTaxArea."Tax Area Code" <> '') then begin
+                    SalesHeader.Validate("Tax Area Code", ShopifyTaxArea."Tax Area Code");
+                    if not ShopifyOrderHeader."Tax Exempt" then
+                        SalesHeader.Validate("Tax Liable", ShopifyTaxArea."Tax Liable");
+                end;
             if ShopifyOrderHeader."Shipping Method Code" <> '' then
                 SalesHeader.Validate("Shipment Method Code", ShopifyOrderHeader."Shipping Method Code");
             if ShopifyOrderHeader."Shipping Agent Code" <> '' then begin
@@ -160,6 +167,7 @@ codeunit 30166 "Shpfy Process Order"
             if ShopifyOrderHeader."Work Description".HasValue then
                 SalesHeader.SetWorkDescription(ShopifyOrderHeader.GetWorkDescription());
         end;
+        SalesHeader.TestField("No.");
         if ShopifyShop."Order Attributes To Shopify" then
             OrdersAPI.AddOrderAttribute(ShopifyOrderHeader, 'BC Doc. No.', SalesHeader."No.", ShopifyShop);
         DocLinkToBCDoc.Init();
@@ -189,6 +197,9 @@ codeunit 30166 "Shpfy Process Order"
         SalesCalcDiscountByType: Codeunit "Sales - Calc Discount By Type";
         Discount: Decimal;
     begin
+        // Do not filter out exchange-item lines here: OrderHeader."Discount Amount" is Shopify's order-level
+        // total (which includes any discount on the exchange line), so the line-discount sum must cover every
+        // line that contributed to it. The exchange line is excluded from the document in CreateLinesFromShopifyOrder.
         OrderLine.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
         OrderLine.CalcSums("Discount Amount");
         OrderShippingCharges.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
@@ -230,6 +241,7 @@ codeunit 30166 "Shpfy Process Order"
             SalesLine.Insert(true);
         end;
         ShopifyOrderLine.SetRange("Shopify Order Id", ShopifyOrderHeader."Shopify Order Id");
+        ShopifyOrderLine.SetRange("Is Exchange Item", false);
         if ShopifyOrderLine.FindSet() then
             repeat
                 OrderEvents.OnBeforeCreateItemSalesLine(ShopifyOrderHeader, ShopifyOrderLine, SalesHeader, SalesLine, IsHandled);
@@ -329,8 +341,6 @@ codeunit 30166 "Shpfy Process Order"
                                 SalesLine.Validate("Line Discount Amount", OrderShippingCharges."Presentment Discount Amount");
                             end;
                     end;
-                    SalesLine.Validate("Unit Price", OrderShippingCharges.Amount);
-                    SalesLine.Validate("Line Discount Amount", OrderShippingCharges."Discount Amount");
                     SalesLine."Shpfy Order No." := ShopifyOrderHeader."Shopify Order No.";
                     SalesLine.Modify(true);
 
@@ -462,6 +472,7 @@ codeunit 30166 "Shpfy Process Order"
     var
         SalesLine: Record "Sales Line";
     begin
+        SalesLine.SetLoadFields("Document Type", "Document No.", "Line No.");
         SalesLine.SetRange("Document Type", SalesHeader."Document Type");
         SalesLine.SetRange("Document No.", SalesHeader."No.");
         if SalesLine.IsEmpty() then

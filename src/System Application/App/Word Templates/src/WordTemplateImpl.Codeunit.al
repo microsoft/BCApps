@@ -848,7 +848,7 @@ codeunit 9988 "Word Template Impl."
 
     internal procedure AddSelectedTable(var WordTemplatesRelatedBuffer: Record "Word Templates Related Buffer"; WordTemplateCode: Code[30]; var TempWordTemplateField: Record "Word Template Field" temporary): Boolean
     var
-        RecordSelectionBuffer: Record "Record Selection Buffer";
+        TempRecordSelectionBuffer: Record "Record Selection Buffer";
         AllObjWithCaption: Record AllObjWithCaption;
         RecordSelection: Codeunit "Record Selection";
         RelatedCode: Code[5];
@@ -858,11 +858,11 @@ codeunit 9988 "Word Template Impl."
 
         VerifyRelatedTableIdIsUnused(WordTemplatesRelatedBuffer.Code, AllObjWithCaption."Object ID", WordTemplatesRelatedBuffer);
 
-        if not RecordSelection.Open(AllObjWithCaption."Object ID", GetMaximumNumberOfRecords(), RecordSelectionBuffer) then
+        if not RecordSelection.Open(AllObjWithCaption."Object ID", GetMaximumNumberOfRecords(), TempRecordSelectionBuffer) then
             exit(false);
 
         RelatedCode := GenerateCode(AllObjWithCaption."Object Caption", GetExistingCodes(WordTemplatesRelatedBuffer));
-        exit(AddTable(WordTemplatesRelatedBuffer, WordTemplateCode, AllObjWithCaption."Object ID", RecordSelectionBuffer."Record System Id", RelatedCode, TempWordTemplateField));
+        exit(AddTable(WordTemplatesRelatedBuffer, WordTemplateCode, AllObjWithCaption."Object ID", TempRecordSelectionBuffer."Record System Id", RelatedCode, TempWordTemplateField));
     end;
 
     internal procedure AddTable(var WordTemplatesRelatedBuffer: Record "Word Templates Related Buffer"; WordTemplateCode: Code[30]; SourceTableId: Integer; RecordSystemId: Guid; RelatedCode: Code[5]; var TempWordTemplateField: Record "Word Template Field" temporary): Boolean;
@@ -1195,21 +1195,21 @@ codeunit 9988 "Word Template Impl."
 
     internal procedure GetCustomMergeFields(TableId: Integer; RelatedTableCode: Code[5]; var MailMergeFields: List of [Text]; var WordTemplateField: Record "Word Template Field")
     var
-        WordTemplateCustomFieldRecord: Record "Word Template Custom Field";
+        TempWordTemplateCustomFieldRecord: Record "Word Template Custom Field";
         WordTemplateCodeunit: Codeunit "Word Template";
         WordTemplateCustomField: Codeunit "Word Template Custom Field";
         WordTemplateFieldSelection: Codeunit "Word Template Field Selection";
     begin
         WordTemplateCustomField.SetCurrentTableId(TableId, RelatedTableCode);
         WordTemplateCodeunit.OnGetCustomFieldNames(WordTemplateCustomField);
-        WordTemplateCustomField.GetCustomFields(WordTemplateCustomFieldRecord);
-        WordTemplateCustomFieldRecord.Reset();
-        WordTemplateCustomFieldRecord.SetRange("Related Table Code", RelatedTableCode);
-        if WordTemplateCustomFieldRecord.FindSet() then
+        WordTemplateCustomField.GetCustomFields(TempWordTemplateCustomFieldRecord);
+        TempWordTemplateCustomFieldRecord.Reset();
+        TempWordTemplateCustomFieldRecord.SetRange("Related Table Code", RelatedTableCode);
+        if TempWordTemplateCustomFieldRecord.FindSet() then
             repeat
-                if WordTemplateFieldSelection.IsCustomFieldSelected(WordTemplate.Code, TableId, StrSubstNo(CustomMergeFieldTok, WordTemplateCustomFieldRecord.Name), WordTemplateField) then
-                    MailMergeFields.Add(GetCustomFieldName(WordTemplateCustomFieldRecord.Name, WordTemplateCustomFieldRecord."Related Table Code"));
-            until WordTemplateCustomFieldRecord.Next() = 0;
+                if WordTemplateFieldSelection.IsCustomFieldSelected(WordTemplate.Code, TableId, StrSubstNo(CustomMergeFieldTok, TempWordTemplateCustomFieldRecord.Name), WordTemplateField) then
+                    MailMergeFields.Add(GetCustomFieldName(TempWordTemplateCustomFieldRecord.Name, TempWordTemplateCustomFieldRecord."Related Table Code"));
+            until TempWordTemplateCustomFieldRecord.Next() = 0;
     end;
 
     local procedure CreateDataTable(var DataTable: DotNet DataTable)

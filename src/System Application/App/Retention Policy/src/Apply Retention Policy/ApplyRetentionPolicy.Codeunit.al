@@ -115,6 +115,17 @@ codeunit 3910 "Apply Retention Policy"
     end;
 
     /// <summary>
+    /// Truncates all records in the table specified by the retention policy setup.
+    /// </summary>
+    /// <param name="RetentionPolicySetup">The retention policy setup record that specifies the table to truncate.</param>
+    procedure TruncateTableRecords(RetentionPolicySetup: Record "Retention Policy Setup")
+    var
+        ApplyRetentionPolicyImpl: Codeunit "Apply Retention Policy Impl.";
+    begin
+        ApplyRetentionPolicyImpl.TruncateTableRecords(RetentionPolicySetup);
+    end;
+
+    /// <summary>
     /// This event is raised once the maximum number of records which can be deleted in a single run is reached. The limit is defined internally and cannot be changed. The event can be used to schedule a new run to delete the remaining records.
     /// </summary>
     /// <param name="CurrTableId">Specifies the Id of the table on which the limit was reached.</param>
@@ -135,6 +146,19 @@ codeunit 3910 "Apply Retention Policy"
 #pragma warning disable AA0072
     [IntegrationEvent(false, false)]
     internal procedure OnApplyRetentionPolicyIndirectPermissionRequired(var RecRef: RecordRef; var Handled: Boolean)
+    begin
+    end;
+#pragma warning restore
+
+    /// <summary>
+    /// This event is raised when the user truncating the table has indirect permissions to delete records in the table.
+    /// A subscriber to this event with indirect permissions can truncate the records on behalf of the user.
+    /// </summary>
+    /// <param name="RecRef">The record reference for the table to be truncated.</param>
+    /// <param name="Handled">Indicates whether the event has been handled.</param>
+#pragma warning disable AA0072
+    [IntegrationEvent(false, false)]
+    internal procedure OnTruncateRecordsIndirectPermissionRequired(var RecRef: RecordRef; var Handled: Boolean)
     begin
     end;
 #pragma warning restore

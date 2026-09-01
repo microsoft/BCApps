@@ -15,14 +15,19 @@ pageextension 149033 "Agent Test Method Lines" extends "AIT Test Method Lines"
             {
                 ApplicationArea = All;
                 AutoFormatType = 0;
-                Caption = 'Copilot credits';
+                Caption = 'Copilot Credits Consumed';
                 ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks for this eval line.';
                 Editable = false;
+
+                trigger OnDrillDown()
+                begin
+                    AgentTestContextImpl.OpenAgentConsumptionOverview(AgentTaskIDs);
+                end;
             }
             field("Agent Task Count"; AgentTaskCount)
             {
                 ApplicationArea = All;
-                Caption = 'Agent tasks';
+                Caption = 'Agent Tasks Executed';
                 ToolTip = 'Specifies the number of Agent Tasks related to this eval line.';
                 Editable = false;
 

@@ -194,6 +194,23 @@ table 8069 "Sales Sub. Line Archive"
             AutoFormatExpression = '';
             Caption = 'Unit Cost (LCY)';
         }
+        field(8000; "Usage Based Billing"; Boolean)
+        {
+            Caption = 'Usage Based Billing';
+            ToolTip = 'Specifies whether usage data is used as the basis for billing via contracts.';
+        }
+        field(8001; "Usage Based Pricing"; Enum "Usage Based Pricing")
+        {
+            Caption = 'Usage Based Pricing';
+            ToolTip = 'Specifies the method for customer based pricing.';
+        }
+        field(8002; "Pricing Unit Cost Surcharge %"; Decimal)
+        {
+            Caption = 'Pricing Unit Cost Surcharge %';
+            ToolTip = 'Specifies the surcharge in percent for the debit-side price calculation, if a unit cost surcharge is to be used.';
+            AutoFormatType = 0;
+            DecimalPlaces = 0 : 5;
+        }
     }
 
     keys

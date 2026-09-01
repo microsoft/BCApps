@@ -1,0 +1,9 @@
+{
+	"@nextLink": null,
+	"value": [
+		{
+			"id": "minimal-doc-001",
+			"companyId": "comp-001"
+		}
+	]
+}

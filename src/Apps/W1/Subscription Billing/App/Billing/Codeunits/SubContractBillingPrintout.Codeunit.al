@@ -17,6 +17,9 @@ codeunit 8064 "Sub. Contract Billing Printout"
         SalesDocuments: Codeunit "Sales Documents";
         EntryNo: Integer;
     begin
+        TempJobLedgerEntryBuffer.Reset();
+        TempJobLedgerEntryBuffer.DeleteAll();
+        Clear(ColumnHeaders);
         if not SalesInvoiceHeader."Recurring Billing" then
             exit;
 
@@ -56,6 +59,7 @@ codeunit 8064 "Sub. Contract Billing Printout"
                                 TempJobLedgerEntryBuffer."Currency Code" := SalesInvoiceHeader."Currency Code";
                                 TempJobLedgerEntryBuffer."Line Amount" := UsageDataBilling.Amount;
                             end;
+                            OnBeforeInsertUsageDataBilling(TempJobLedgerEntryBuffer, UsageDataBilling, SalesInvoiceHeader, SalesInvoiceLine);
                             TempJobLedgerEntryBuffer.Insert(false);
                         until UsageDataBilling.Next() = 0;
                 end else begin
@@ -88,6 +92,7 @@ codeunit 8064 "Sub. Contract Billing Printout"
                                 TempJobLedgerEntryBuffer."Line Discount Amount" := Round(BillingLineArchive.Amount * BillingLineArchive."Discount %" / 100, Currency."Amount Rounding Precision");
                                 TempJobLedgerEntryBuffer."Line Amount" := BillingLineArchive.Amount;
                             end;
+                            OnBeforeInsertBillingLineArchive(TempJobLedgerEntryBuffer, CustomerContract, BillingLineArchive, SalesInvoiceHeader, SalesInvoiceLine);
                             TempJobLedgerEntryBuffer.Insert(false);
                         until BillingLineArchive.Next() = 0;
                 end;
@@ -111,6 +116,17 @@ codeunit 8064 "Sub. Contract Billing Printout"
         if not SalesInvoiceLine.Get(TempContractBillingDetailsBuffer."Document No.", TempContractBillingDetailsBuffer."Ledger Entry No.") then
             SalesInvoiceLine.Init();
     end;
+
+    [IntegrationEvent(false, false)]
+    procedure OnBeforeInsertUsageDataBilling(var TempJobLedgerEntryBuffer: Record "Job Ledger Entry"; UsageDataBilling: Record "Usage Data Billing"; SalesInvoiceHeader: Record "Sales Invoice Header"; SalesInvoiceLine: Record "Sales Invoice Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    procedure onBeforeInsertBillingLineArchive(var TempJobLedgerEntryBuffer: Record "Job Ledger Entry"; CustomerContract: Record "Customer Subscription Contract"; BillingLineArchive: Record "Billing Line Archive"; SalesInvoiceHeader: Record "Sales Invoice Header"; SalesInvoiceLine: Record "Sales Invoice Line")
+    begin
+    end;
+
 
     var
         DiscountPercentLbl: Label 'Discount %';

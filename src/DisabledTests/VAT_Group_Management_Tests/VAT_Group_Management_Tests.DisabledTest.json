@@ -1,0 +1,62 @@
+[
+  {
+    "codeunitId": 139521,
+    "codeunitName": "VAT Group Representative Logic",
+    "method": "TestIncludeVATGroupAmounts"
+  },
+  {
+    "codeunitId": 139524,
+    "codeunitName": "VAT Group Setup Page Test",
+    "method": "TestVATReportSetupMemberOAUTHPageBehavior"
+  },
+  {
+    "codeunitId": 139740,
+    "codeunitName": "VAT Group Submit To Repr. Test",
+    "method": "TestFailureInSend"
+  },
+  {
+    "codeunitId": 139740,
+    "codeunitName": "VAT Group Submit To Repr. Test",
+    "method": "TestFailureInSendMissingApprovedMember"
+  },
+  {
+    "codeunitId": 139740,
+    "codeunitName": "VAT Group Submit To Repr. Test",
+    "method": "TestSuccessfulSend"
+  },
+  {
+    "codeunitId": 139741,
+    "codeunitName": "VAT Group Sub. Status Test",
+    "method": "TestButtonUpdateStatusVATReportPage"
+  },
+  {
+    "codeunitId": 139741,
+    "codeunitName": "VAT Group Sub. Status Test",
+    "method": "TestQueryAPIEndpoint"
+  },
+  {
+    "codeunitId": 139741,
+    "codeunitName": "VAT Group Sub. Status Test",
+    "method": "TestUpdateSingleVATReportStatus"
+  },
+  {
+    "codeunitId": 139741,
+    "codeunitName": "VAT Group Sub. Status Test",
+    "method": "TestUpdateSingleVATReportStatusError"
+  },
+  {
+    "codeunitId": 139741,
+    "codeunitName": "VAT Group Sub. Status Test",
+    "method": "TestVATGroupSubmissionStatusBatchRequest"
+  },
+  {
+    "codeunitId": 139741,
+    "codeunitName": "VAT Group Sub. Status Test",
+    "method": "TestVATGroupSubmissionStatusErrorSingleGETRequestInBatch"
+  },
+  {
+    "codeunitId": 139741,
+    "codeunitName": "VAT Group Sub. Status Test",
+    "method": "TestVATGroupSubmissionStatusWrongBatchEndpoint"
+  }
+]

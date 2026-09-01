@@ -11,8 +11,8 @@ page 37002 "Sales Period-Over-Period"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Sales Period-Over-Period';
-    AboutTitle = 'About Sales Period-Over-Period';
+    Caption = 'Sales Period-Over-Period (Power BI)';
+    AboutTitle = 'About Sales Period-Over-Period (Power BI)';
     AboutText = 'The Sales Period Over Period report compares sales performance across different periods, such as month-over-month or year-over-year.';
 
     layout
@@ -48,11 +48,8 @@ page 37002 "Sales Period-Over-Period"
         ReportPageLbl: Label 'ReportSection2480499c371d97221c09', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Sales Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Sales App");
     end;
 }
 

@@ -24,26 +24,26 @@ codeunit 8944 "Email Address Lookup Impl"
 
     procedure LookupEmailAddress(Entity: Enum "Email Address Entity"; var EmailAddressLookupRec: Record "Email Address Lookup"): Boolean
     var
-        EmailAddressLookupSuggestions: Record "Email Address Lookup";
+        TempEmailAddressLookupSuggestions: Record "Email Address Lookup";
         EmailAddressLookup: Codeunit "Email Address Lookup";
         IsHandled: Boolean;
     begin
-        EmailAddressLookup.OnLookupAddressFromEntity(Entity, EmailAddressLookupSuggestions, IsHandled);
-        if not EmailAddressLookupSuggestions.FindSet() then
+        EmailAddressLookup.OnLookupAddressFromEntity(Entity, TempEmailAddressLookupSuggestions, IsHandled);
+        if not TempEmailAddressLookupSuggestions.FindSet() then
             exit(false);
 
         if IsHandled then begin
             repeat
-                if StrLen(EmailAddressLookupSuggestions."E-Mail Address") = 0 then
-                    Message(StrSubstNo(NoEmailAddressMsg, EmailAddressLookupSuggestions.Name))
+                if StrLen(TempEmailAddressLookupSuggestions."E-Mail Address") = 0 then
+                    Message(StrSubstNo(NoEmailAddressMsg, TempEmailAddressLookupSuggestions.Name))
                 else
-                    if EmailAddressLookupRec.Get(EmailAddressLookupSuggestions."E-Mail Address", EmailAddressLookupSuggestions."Entity type") then
-                        Message(StrSubstNo(EmailAddressDuplicateMsg, EmailAddressLookupSuggestions."E-Mail Address"))
+                    if EmailAddressLookupRec.Get(TempEmailAddressLookupSuggestions."E-Mail Address", TempEmailAddressLookupSuggestions."Entity type") then
+                        Message(StrSubstNo(EmailAddressDuplicateMsg, TempEmailAddressLookupSuggestions."E-Mail Address"))
                     else begin
-                        EmailAddressLookupRec.TransferFields(EmailAddressLookupSuggestions);
+                        EmailAddressLookupRec.TransferFields(TempEmailAddressLookupSuggestions);
                         EmailAddressLookupRec.Insert();
                     end;
-            until EmailAddressLookupSuggestions.Next() = 0;
+            until TempEmailAddressLookupSuggestions.Next() = 0;
             exit(IsHandled);
         end;
     end;

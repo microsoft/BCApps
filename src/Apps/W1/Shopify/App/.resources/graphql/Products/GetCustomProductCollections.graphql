@@ -1,0 +1,2 @@
+# cost: 8
+{"query": "{collections(first:25, query:\"collection_type:custom\") { pageInfo{hasNextPage} edges{ cursor node{ id title } } } }"}

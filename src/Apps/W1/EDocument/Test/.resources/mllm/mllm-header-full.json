@@ -1,0 +1,81 @@
+{
+    "id": "MLLM-INV-001",
+    "issue_date": "2024-03-15",
+    "due_date": "2024-04-15",
+    "document_currency_code": "XYZ",
+    "order_reference": {
+        "id": "PO-5678"
+    },
+    "payment_terms": {
+        "note": "Net 30"
+    },
+    "accounting_supplier_party": {
+        "party": {
+            "party_name": {
+                "name": "Contoso Supplies Ltd."
+            },
+            "postal_address": {
+                "street_name": "123 Bill Ave",
+                "city_name": "Seattle",
+                "postal_zone": "98101",
+                "country": {
+                    "identification_code": "US"
+                }
+            },
+            "party_tax_scheme": {
+                "company_id": "US-VAT-12345"
+            },
+            "contact": {
+                "name": "John Doe"
+            }
+        }
+    },
+    "accounting_customer_party": {
+        "party": {
+            "party_name": {
+                "name": "Microsoft Corporation"
+            },
+            "postal_address": {
+                "street_name": "456 Main St",
+                "city_name": "Redmond",
+                "postal_zone": "98052",
+                "country": {
+                    "identification_code": "US"
+                }
+            },
+            "party_tax_scheme": {
+                "company_id": "US-VAT-67890"
+            }
+        }
+    },
+    "delivery": {
+        "delivery_location": {
+            "address": {
+                "street_name": "789 Ship Rd",
+                "city_name": "Bellevue",
+                "postal_zone": "98004",
+                "country": {
+                    "identification_code": "US"
+                }
+            }
+        },
+        "delivery_party": {
+            "party_name": {
+                "name": "Warehouse Team"
+            }
+        }
+    },
+    "payment_means": {
+        "payee_financial_account": {
+            "name": "Contoso Billing Dept"
+        }
+    },
+    "tax_total": {
+        "tax_amount": 37.5
+    },
+    "legal_monetary_total": {
+        "tax_exclusive_amount": 250.0,
+        "allowance_total_amount": 5.0,
+        "payable_amount": 287.5
+    }
+}

@@ -9,15 +9,18 @@ using Microsoft.QualityManagement.Integration.Manufacturing;
 using Microsoft.QualityManagement.Integration.Receiving;
 using Microsoft.QualityManagement.Integration.Warehouse;
 using Microsoft.QualityManagement.Setup;
+using Microsoft.QualityManagement.Telemetry;
 
 page 20405 "Qlty. Inspection Gen. Rules"
 {
     Caption = 'Quality Inspection Generation Rules';
     DataCaptionExpression = GetDataCaptionExpression();
+    DelayedInsert = true;
     PageType = List;
     SourceTable = "Qlty. Inspection Gen. Rule";
     PopulateAllFields = true;
     SourceTableView = sorting("Sort Order", Intent);
+    AccessByPermission = tabledata "Qlty. Inspection Gen. Rule" = R;
     UsageCategory = Lists;
     ApplicationArea = QualityManagement;
     AboutTitle = 'About Quality Inspection Generation Rules';
@@ -38,11 +41,6 @@ page 20405 "Qlty. Inspection Gen. Rules"
                 {
                     Visible = ShowSortAndTemplate;
                     ShowMandatory = true;
-
-                    trigger OnValidate()
-                    begin
-                        CurrPage.Update(true);
-                    end;
                 }
                 field(Description; Rec.Description)
                 {
@@ -53,27 +51,19 @@ page 20405 "Qlty. Inspection Gen. Rules"
                 field("Source Table No."; Rec."Source Table No.")
                 {
                     Visible = false;
-
-                    trigger OnAssistEdit()
-                    begin
-                        Rec.HandleOnAssistEditSourceTable();
-                        CurrPage.Update();
-                    end;
                 }
                 field("Table Caption"; Rec."Table Caption")
                 {
                     AssistEdit = true;
-                    ShowMandatory = true;
+                    ToolTip = 'Specifies the table for this rule. For example for receiving to a Purchase Line, you would use table 39. For production typically 5409 for Production Order Routing Line.';
                     AboutTitle = 'The table for this rule';
                     AboutText = 'Here you select a table for which you want to create an inspection. For example, for receiving to a purchase line, you would use table 39. You then set criteria using a table filter to control when the rule applies. When the filter criteria are met, the template is selected. If multiple templates match, the first one found by sort order is used.';
 
                     trigger OnAssistEdit()
                     begin
-                        if IsNullGuid(Rec.SystemId) then begin
-                            if Rec.Insert(true) then;
-                            Commit();
-                        end;
                         Rec.HandleOnAssistEditSourceTable();
+                        if Rec."Source Table No." <> 0 then
+                            CurrPage.SaveRecord();
                         if xRec."Entry No." = Rec."Entry No." then
                             CurrPage.Update(true);
                     end;
@@ -207,7 +197,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
             action(CreateNewGenerationRuleForAsmSGuide)
             {
                 Caption = 'Create Assembly Rule';
-                ToolTip = 'Specifies to create a rule for assembly.';
+                ToolTip = 'Create a generation rule for assembly.';
                 Image = AssemblyBOM;
                 ApplicationArea = Assembly;
 
@@ -225,7 +215,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
             {
                 ApplicationArea = Assembly;
                 Caption = 'Edit Assembly Rule';
-                ToolTip = 'Edit a Rule for assembly.';
+                ToolTip = 'Edit a generation rule for assembly.';
                 Image = EditLines;
                 Scope = Repeater;
                 Visible = ShowEditAssemblyRuleSetupGuide;
@@ -248,7 +238,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
             action(CreateNewGenerationRuleForProdSGuide)
             {
                 Caption = 'Create Production Rule';
-                ToolTip = 'Specifies to create a rule for production.';
+                ToolTip = 'Create a generation rule for production.';
                 Image = Production;
                 ApplicationArea = Manufacturing;
 
@@ -266,7 +256,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
             {
                 ApplicationArea = Manufacturing;
                 Caption = 'Edit Production Rule';
-                ToolTip = 'Edit a Rule for production.';
+                ToolTip = 'Edit a generation rule for production.';
                 Image = EditLines;
                 Scope = Repeater;
                 Visible = ShowEditProductionRuleSetupGuide;
@@ -289,7 +279,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
             action(CreateNewGenerationRuleForRecSetupGuide)
             {
                 Caption = 'Create Receiving Rule';
-                ToolTip = 'Specifies to create a rule for receiving.';
+                ToolTip = 'Create a generation rule for receiving.';
                 Image = Receipt;
                 ApplicationArea = All;
 
@@ -307,7 +297,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
             {
                 ApplicationArea = All;
                 Caption = 'Edit Receiving Rule';
-                ToolTip = 'Edit a Rule for receiving.';
+                ToolTip = 'Edit a generation rule for receiving.';
                 Image = EditLines;
                 Scope = Repeater;
                 Visible = ShowEditReceivingRuleSetupGuide;
@@ -330,7 +320,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
             action(CreateNewGenerationRuleForWhseSGuide)
             {
                 Caption = 'Create Bin Movement Rule';
-                ToolTip = 'Specifies to create a rule for a bin movement.';
+                ToolTip = 'Create a generation rule for warehouse bin movements.';
                 Image = CreateMovement;
                 ApplicationArea = Warehouse;
 
@@ -348,7 +338,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
             {
                 ApplicationArea = Warehouse;
                 Caption = 'Edit Bin Movement Rule';
-                ToolTip = 'Edit a rule for a bin movement.';
+                ToolTip = 'Edit a generation rule for a bin movement.';
                 Image = EditAdjustments;
                 Scope = Repeater;
                 Visible = ShowEditMovementRuleSetupGuide;
@@ -467,7 +457,10 @@ page 20405 "Qlty. Inspection Gen. Rules"
     trigger OnOpenPage()
     var
         QltyInspecGenRuleMgmt: Codeunit "Qlty. Inspec. Gen. Rule Mgmt.";
+        QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
     begin
+        QltyMgmtFeatureTelemetry.LogFeatureUptakeDiscovered(ObjectType::Page, Page::"Qlty. Inspection Gen. Rules");
+
         Rec.SetFilter("Table ID Filter", QltyInspecGenRuleMgmt.GetFilterForAvailableConfigurations());
         AttemptUpdateUnknownIntents();
         IdentifyIfPageStartedWithATemplate();
@@ -497,9 +490,13 @@ page 20405 "Qlty. Inspection Gen. Rules"
 
     trigger OnAfterGetRecord()
     begin
+        Rec.CalcFields("Table Caption");
         UpdateControls();
     end;
 
+    /// <summary>
+    /// Updates row-specific trigger visibility, editability, styles, and setup guide actions from the rule intent.
+    /// </summary>
     local procedure UpdateControls()
     var
         KnownOrInferredIntent: Enum "Qlty. Gen. Rule Intent";
@@ -582,6 +579,9 @@ page 20405 "Qlty. Inspection Gen. Rules"
         end;
     end;
 
+    /// <summary>
+    /// Resets row-specific setup guide, trigger edit, and style state to subordinate defaults.
+    /// </summary>
     local procedure ClearRowSpecificVisibleAndEditFlags()
     begin
         ShowEditReceivingRuleSetupGuide := false;
@@ -605,17 +605,27 @@ page 20405 "Qlty. Inspection Gen. Rules"
         TransferStyle := Format(RowStyle::Subordinate);
     end;
 
+    /// <summary>
+    /// Resolves the template filter and determines whether sort and template columns are shown.
+    /// </summary>
     local procedure IdentifyIfPageStartedWithATemplate()
     begin
         TemplateCode := Rec.GetTemplateCodeFromRecordOrFilter(true);
         ShowSortAndTemplate := (TemplateCode = '');
     end;
 
+    /// <summary>
+    /// Builds the page caption for all generation rules or the filtered template.
+    /// </summary>
+    /// <returns>The generation rules page caption.</returns>
     local procedure GetDataCaptionExpression(): Text
     begin
         exit((TemplateCode = '') ? GenerationRulesCaptionLbl : StrSubstNo(GenerationRulesCaptionForTemplateLbl, TemplateCode));
     end;
 
+    /// <summary>
+    /// Shows trigger columns required by visible rule intents or enabled setup triggers.
+    /// </summary>
     local procedure SetTriggerColumnVisibleState()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
@@ -688,6 +698,9 @@ page 20405 "Qlty. Inspection Gen. Rules"
             ShowWarehouseMovementTrigger := true;
     end;
 
+    /// <summary>
+    /// Infers and persists intent and default triggers for rules whose intent is unknown when write access is available.
+    /// </summary>
     local procedure AttemptUpdateUnknownIntents()
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";

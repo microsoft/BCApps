@@ -1,0 +1,2 @@
+# cost: 10
+{"query": "mutation { orderMarkAsPaid(input: { id: \"gid://shopify/Order/{{OrderId}}\" }) { order {fullyPaid} userErrors {field, message}}}"}

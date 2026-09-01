@@ -1,0 +1,3 @@
+Code,Description,DefVATBusPostingGroup,AutoInsertDefault
+TGBPG1,Test Gen Bus PG 1,,false
+TGBPG2,Test Gen Bus PG 2,,true

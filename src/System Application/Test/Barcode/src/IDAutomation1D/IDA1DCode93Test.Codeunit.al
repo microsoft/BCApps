@@ -45,14 +45,14 @@ codeunit 135045 "IDA 1D Code93 Test"
     [Test]
     procedure TestCode93ValidationWithNormalStringExtCharSet();
     var
-        BarcodeEncodeSettings: Record "Barcode Encode Settings";
+        TempBarcodeEncodeSettings: Record "Barcode Encode Settings";
         GenericBarcodeTestHelper: Codeunit "Generic Barcode Test Helper";
     begin
         // [Scenario] Validating a correctly formatted text using Code93 symbology with "Allow Extended Charset"  doesn't yield an error
 
-        BarcodeEncodeSettings."Allow Extended Charset" := true;
+        TempBarcodeEncodeSettings."Allow Extended Charset" := true;
 
-        GenericBarcodeTestHelper.ValidateFontSuccessTest(/* input */'1234abcd', Enum::"Barcode Symbology"::Code93, BarcodeEncodeSettings);
+        GenericBarcodeTestHelper.ValidateFontSuccessTest(/* input */'1234abcd', Enum::"Barcode Symbology"::Code93, TempBarcodeEncodeSettings);
     end;
 
     [Test]

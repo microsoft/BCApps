@@ -19,7 +19,7 @@ codeunit 149042 "AIT Test Run Iteration"
         GlobalAITTestSuite: Record "AIT Test Suite";
         ActiveAITTestSuite: Record "AIT Test Suite";
         GlobalTestMethodLine: Record "Test Method Line";
-        NoOfInsertedLogEntries: Integer;
+        NoOfExecutedLogEntries: Integer;
         UpdateTestSuite: Boolean;
         RunAllTests: Boolean;
         GlobalAITokenUsedByLastTestMethodLine: Integer;
@@ -35,7 +35,7 @@ codeunit 149042 "AIT Test Run Iteration"
             exit;
         SetAITTestMethodLine(Rec);
 
-        NoOfInsertedLogEntries := 0;
+        NoOfExecutedLogEntries := 0;
         GlobalAITokenUsedByLastTestMethodLine := 0;
         GlobalExternalAITokenUsedByLastTestMethodLine := 0;
         UpdateTestSuite := true;
@@ -60,9 +60,16 @@ codeunit 149042 "AIT Test Run Iteration"
     local procedure RunAITTestMethodLine(var AITTestMethodLine: Record "AIT Test Method Line"; var AITTestSuite: Record "AIT Test Suite")
     var
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
+        AITEvalLimitProvider: Interface "AIT Eval Limit Provider";
     begin
+        AITEvalLimitProvider := GlobalAITTestSuite."Test Type";
+
         OnBeforeRunIteration(AITTestSuite, AITTestMethodLine, RunAllTests, UpdateTestSuite);
         RunIteration(AITTestMethodLine);
+
+        if AITEvalLimitProvider.IsLimitReached() then
+            SetLineStatusToSkipped();
+
         Commit();
 
         AITTestSuiteMgt.DecreaseNoOfTestsRunningNow(AITTestSuite);
@@ -122,14 +129,14 @@ codeunit 149042 "AIT Test Run Iteration"
         CurrAITTestSuite := GlobalAITTestSuite;
     end;
 
-    procedure AddToNoOfLogEntriesInserted()
+    procedure AddToNoOfLogEntriesExecuted()
     begin
-        NoOfInsertedLogEntries += 1;
+        NoOfExecutedLogEntries += 1;
     end;
 
-    procedure GetNoOfLogEntriesInserted(): Integer
+    procedure GetNoOfLogEntriesExecuted(): Integer
     begin
-        exit(NoOfInsertedLogEntries);
+        exit(NoOfExecutedLogEntries);
     end;
 
     procedure GetCurrTestMethodLine(): Record "Test Method Line"
@@ -162,6 +169,19 @@ codeunit 149042 "AIT Test Run Iteration"
         GlobalExternalAITokenUsedByLastTestMethodLine += TokensUsed;
     end;
 
+    local procedure SetLineStatusToSkipped()
+    var
+        AITTestMethodLine: Record "AIT Test Method Line";
+    begin
+        if GlobalAITTestMethodLine."Test Suite Code" = '' then
+            exit;
+
+        if AITTestMethodLine.Get(GlobalAITTestMethodLine."Test Suite Code", GlobalAITTestMethodLine."Line No.") then begin
+            AITTestMethodLine.Validate(Status, AITTestMethodLine.Status::Skipped);
+            AITTestMethodLine.Modify(true);
+        end;
+    end;
+
     [InternalEvent(false)]
     procedure OnBeforeRunIteration(var AITTestSuite: Record "AIT Test Suite"; var AITTestMethodLine: Record "AIT Test Method Line"; var RunAllTests: Boolean; var UpdateTestSuite: Boolean)
     begin
@@ -173,15 +193,27 @@ codeunit 149042 "AIT Test Run Iteration"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", OnBeforeTestMethodRun, '', false, false)]
-    local procedure OnBeforeTestMethodRun(var CurrentTestMethodLine: Record "Test Method Line"; CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions)
+    local procedure OnBeforeTestMethodRun(var CurrentTestMethodLine: Record "Test Method Line"; CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions; var Skip: Boolean)
     var
+        AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
         AITContextCU: Codeunit "AIT Test Context Impl.";
         AOAIToken: Codeunit "AOAI Token";
+        AITEvalLimitProvider: Interface "AIT Eval Limit Provider";
     begin
         if ActiveAITTestSuite.Code = '' then
             exit;
+
         if FunctionName = '' then
             exit;
+
+        AITEvalLimitProvider := GlobalAITTestSuite."Test Type";
+
+        // Check if credit limit was reached - if so, skip this test and log it
+        if AITEvalLimitProvider.IsLimitReached() then begin
+            Skip := true;
+            AITTestSuiteMgt.LogSkippedEval(GlobalAITTestMethodLine, FunctionName);
+            exit;
+        end;
 
         GlobalTestMethodLine := CurrentTestMethodLine;
 
@@ -206,12 +238,19 @@ codeunit 149042 "AIT Test Run Iteration"
     var
         AITContextCU: Codeunit "AIT Test Context Impl.";
         AOAIToken: Codeunit "AOAI Token";
+        AITEvalLimitProvider: Interface "AIT Eval Limit Provider";
         Accuracy: Decimal;
     begin
         if ActiveAITTestSuite.Code = '' then
             exit;
 
         if FunctionName = '' then
+            exit;
+
+        AITEvalLimitProvider := GlobalAITTestSuite."Test Type";
+
+        // If credit limit was already reached, this test was skipped by the platform - don't log it
+        if AITEvalLimitProvider.IsLimitReached() then
             exit;
 
         GlobalTestMethodLine := CurrentTestMethodLine;

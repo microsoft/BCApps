@@ -1,0 +1,332 @@
+[
+  {
+    "codeunitId": 138300,
+    "codeunitName": "RS Pack Content - Standard",
+    "method": "CompanyIsDemoCompany"
+  },
+  {
+    "codeunitId": 138300,
+    "codeunitName": "RS Pack Content - Standard",
+    "method": "PostingAfterWDIsOn"
+  },
+  {
+    "codeunitId": 138300,
+    "codeunitName": "RS Pack Content - Standard",
+    "method": "CountSalesDocuments"
+  },
+  {
+    "codeunitId": 138300,
+    "codeunitName": "RS Pack Content - Standard",
+    "method": "CountPurchDocuments"
+  },
+  {
+    "codeunitId": 138300,
+    "codeunitName": "RS Pack Content - Standard",
+    "method": "CountContacts"
+  },
+  {
+    "codeunitId": 138300,
+    "codeunitName": "RS Pack Content - Standard",
+    "method": "ShippingAgentRelatedTablesAreNotEmpty"
+  },
+  {
+    "codeunitId": 138300,
+    "codeunitName": "RS Pack Content - Standard",
+    "method": "InteractionGroups"
+  },
+  {
+    "codeunitId": 138300,
+    "codeunitName": "RS Pack Content - Standard",
+    "method": "InteractionTemplates"
+  },
+  {
+    "codeunitId": 138300,
+    "codeunitName": "RS Pack Content - Standard",
+    "method": "InteractionTemplateOutgoingIgnoreCorrType"
+  },
+  {
+    "codeunitId": 138300,
+    "codeunitName": "RS Pack Content - Standard",
+    "method": "Locations"
+  },
+  {
+    "codeunitId": 138300,
+    "codeunitName": "RS Pack Content - Standard",
+    "method": "TransferRoutes"
+  },
+  {
+    "codeunitId": 138300,
+    "codeunitName": "RS Pack Content - Standard",
+    "method": "TransferOrders"
+  },
+  {
+    "codeunitId": 138300,
+    "codeunitName": "RS Pack Content - Standard",
+    "method": "TransferShipments"
+  },
+  {
+    "codeunitId": 138300,
+    "codeunitName": "RS Pack Content - Standard",
+    "method": "TransferReciepts"
+  },
+  {
+    "codeunitId": 138300,
+    "codeunitName": "RS Pack Content - Standard",
+    "method": "Employees"
+  },
+  {
+    "codeunitId": 138300,
+    "codeunitName": "RS Pack Content - Standard",
+    "method": "MarketingSetupDefaultFields"
+  },
+  {
+    "codeunitId": 138300,
+    "codeunitName": "RS Pack Content - Standard",
+    "method": "AutomaticCostPostingInInventorySetup"
+  },
+  {
+    "codeunitId": 138300,
+    "codeunitName": "RS Pack Content - Standard",
+    "method": "DefaultNoSeriesInInventorySetup"
+  },
+  {
+    "codeunitId": 138300,
+    "codeunitName": "RS Pack Content - Standard",
+    "method": "O365HTMLTemplates"
+  },
+  {
+    "codeunitId": 138300,
+    "codeunitName": "RS Pack Content - Standard",
+    "method": "O365BrandColors"
+  },
+  {
+    "codeunitId": 138300,
+    "codeunitName": "RS Pack Content - Standard",
+    "method": "O365PaymentServiceLogos"
+  },
+  {
+    "codeunitId": 138300,
+    "codeunitName": "RS Pack Content - Standard",
+    "method": "ReportLayoutSelections"
+  },
+  {
+    "codeunitId": 138300,
+    "codeunitName": "RS Pack Content - Standard",
+    "method": "VATStatementNotEmpty"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "CompanyIsDemoCompany"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "CompanyNameEqualsDisplayNameAndShipToName"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "PostingAfterWDIsOn"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "CountSalesDocuments"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "CountSalesDocumentsWithShippingAgentCode"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "VerifyNoReleasedSalesDocuments"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "VerifyAmountsAreCalculatedSalesDocuments"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "ValidateItemSalesXML"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "AnyCustomerHaveSalespersonCode"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "PostSalesInvoices"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "CountPurchDocuments"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "VerifyNoReleasedPurchaseDocuments"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "TestMonthlyPurchaseAmount"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "PostPurchInvoices"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "PostPurchOrders"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "CountContacts"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "ShippingAgentRelatedTablesAreNotEmpty"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "ItemRelatedTablesAreNotEmpty"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "InteractionGroups"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "InteractionTemplates"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "InteractionTemplateOutgoingIgnoreCorrType"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "InteractionTemplateIncom"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "Locations"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "TransferRoutes"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "TransferOrders"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "TransferShipments"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "TransferReciepts"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "Employees"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "MarketingSetupDefaultFields"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "Campaigns"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "GLAccounts"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "BOMs"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "AutomaticCostPostingInInventorySetup"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "DefaultNoSeriesInInventorySetup"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "ReportLayoutSelections"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "VATPostingGroupsCount"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "ItemsHaveImages"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "DefaultNoSeriesInPurchSetup"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "VerifySalesReturnReceiptNoSeriesPopulated"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "VerifyPurchasingCodes"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "DefaultDimensionAllowedValuesFilter"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "InteractionLogEntries"
+  },
+  {
+    "codeunitId": 138400,
+    "codeunitName": "RS Pack Content - Evaluation",
+    "method": "CausesOfAbsence"
+  }
+]

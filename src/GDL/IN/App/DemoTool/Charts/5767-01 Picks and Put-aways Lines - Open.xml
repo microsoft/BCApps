@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ChartDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:schemas-microsoft-com:dynamics:NAV:MetaObjects" Type="Column" >
+	<Title>
+    <Text ID="ENU">Open Pick and Put-away Lines</Text>
+  </Title>
+  <Table ID="5767">
+    <Filters>
+		<Filter>
+			<Field Name="Zone Code" />
+			<Value>RECEIVE|SHIP</Value>
+		</Filter>
+    </Filters>
+  </Table>
+  <XAxis ShowTitle="true">
+    <Title>
+      <Text ID="ENU">Open Put-away (from Receipt) and Pick (to Ship) Lines</Text>
+    </Title>
+    <Field Name="Zone Code" />
+  </XAxis>
+  <YAxis ShowTitle="false">
+    <Measures>
+      <Measure Operator="Count">
+	  </Measure>
+	</Measures>
+  </YAxis>
+</ChartDefinition>

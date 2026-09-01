@@ -90,6 +90,8 @@ report 30104 "Shpfy Sync Orders from Shopify"
 
             trigger OnAfterGetRecord()
             begin
+                Shop.GetShopSettings();
+                Shop.Modify();
                 Clear(OrdersAPI);
                 OrdersAPI.GetOrdersToImport(Shop);
             end;

@@ -32,7 +32,23 @@ query 4405 "EXR Trial Balance"
                 {
                     Method = sum;
                 }
+                column(DebitAmount; "Debit Amount")
+                {
+                    Method = sum;
+                }
+                column(CreditAmount; "Credit Amount")
+                {
+                    Method = sum;
+                }
                 column(ACYAmount; "Additional-Currency Amount")
+                {
+                    Method = sum;
+                }
+                column(ACYDebitAmount; "Add.-Currency Debit Amount")
+                {
+                    Method = sum;
+                }
+                column(ACYCreditAmount; "Add.-Currency Credit Amount")
                 {
                     Method = sum;
                 }

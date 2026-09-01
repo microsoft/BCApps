@@ -11,8 +11,8 @@ page 37114 "Customer Retention History"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Customer Retention History';
-    AboutTitle = 'About Customer Retention History';
+    Caption = 'Customer Retention History (Power BI)';
+    AboutTitle = 'About Customer Retention History (Power BI)';
     AboutText = 'The Customer Retention History page provides historical insights into customer retention metrics, allowing analysis of trends over time.';
 
     layout
@@ -50,11 +50,8 @@ page 37114 "Customer Retention History"
 #pragma warning restore AA0240
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Sales Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Sales App");
     end;
 }
 

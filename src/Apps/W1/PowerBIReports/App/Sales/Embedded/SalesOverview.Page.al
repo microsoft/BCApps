@@ -11,8 +11,8 @@ page 36998 "Sales Overview"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Sales Overview';
-    AboutTitle = 'About Sales Overview';
+    Caption = 'Sales Overview (Power BI)';
+    AboutTitle = 'About Sales Overview (Power BI)';
     AboutText = 'The Sales Overview provides a comprehensive view of sales performance, offering insights into metrics such as Total Sales, Gross Profit Margin, Number of New Customers, and top-performing customers and salespeople.';
 
     layout
@@ -48,11 +48,8 @@ page 36998 "Sales Overview"
         ReportPageLbl: Label 'ReportSection918285c1bd8f1b7ef96c', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Sales Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Sales App");
     end;
 }
 

@@ -50,6 +50,11 @@ codeunit 8105 "Contoso Subscription Billing"
     end;
 
     procedure InsertContractType(Code: Code[10]; Description: Text[50])
+    begin
+        InsertContractType(Code, Description, false, false);
+    end;
+
+    procedure InsertContractType(Code: Code[10]; Description: Text[50]; AllowDiffCurrInVendorUD: Boolean; AllowDiffCurrInCustomerUD: Boolean)
     var
         ContractType: Record "Subscription Contract Type";
         Exists: Boolean;
@@ -63,6 +68,8 @@ codeunit 8105 "Contoso Subscription Billing"
 
         ContractType.Validate(Code, Code);
         ContractType.Validate(Description, Description);
+        ContractType.Validate("Allow Diff. Curr. in Vend. UD", AllowDiffCurrInVendorUD);
+        ContractType.Validate("Allow Diff. Curr. in Cust. UD", AllowDiffCurrInCustomerUD);
 
         if Exists then
             ContractType.Modify(true)

@@ -161,7 +161,7 @@ codeunit 8028 "Usage Based Contr. Subscribers"
         else
             if UsageBasedBillingDocType = UsageBasedBillingDocType::"Credit Memo" then begin
                 UsageDataBilling.FilterOnDocumentTypeAndDocumentNo(Enum::"Service Partner"::Customer, UsageBasedBillingDocType, Rec."No.");
-                UsageDataBilling.DeleteAll();
+                UsageDataBilling.DeleteAll(false);
             end;
     end;
 
@@ -189,7 +189,7 @@ codeunit 8028 "Usage Based Contr. Subscribers"
         else
             if UsageBasedBillingDocType = UsageBasedBillingDocType::"Credit Memo" then begin
                 UsageDataBilling.FilterOnDocumentTypeAndDocumentNo(Enum::"Service Partner"::Vendor, UsageBasedBillingDocType, Rec."No.");
-                UsageDataBilling.DeleteAll();
+                UsageDataBilling.DeleteAll(false);
             end;
     end;
 
@@ -208,7 +208,8 @@ codeunit 8028 "Usage Based Contr. Subscribers"
                 if SalesCrMemoHdrNo <> '' then begin
                     UsageDataBilling.SaveDocumentValues(Enum::"Usage Based Billing Doc. Type"::"Posted Credit Memo", SalesCrMemoHdrNo, UsageDataBilling."Document Line No.", UsageDataBilling."Billing Line Entry No.");
                     UsageDataBilling.SetMetadataAsInvoiced();
-                    CreateAdditionalUsageDataBilling(UsageDataBilling);
+                    if SalesHeader."Applies-to Doc. No." <> '' then
+                        CreateAdditionalUsageDataBilling(UsageDataBilling);
                 end else begin
                     UsageDataBilling.SaveDocumentValues(Enum::"Usage Based Billing Doc. Type"::"Posted Invoice", SalesInvHdrNo, UsageDataBilling."Document Line No.", UsageDataBilling."Billing Line Entry No.");
                     UsageDataBilling.SetMetadataAsInvoiced();
@@ -230,40 +231,13 @@ codeunit 8028 "Usage Based Contr. Subscribers"
                 if PurchCrMemoHdrNo <> '' then begin
                     UsageDataBilling.SaveDocumentValues(Enum::"Usage Based Billing Doc. Type"::"Posted Credit Memo", PurchCrMemoHdrNo, UsageDataBilling."Document Line No.", UsageDataBilling."Billing Line Entry No.");
                     UsageDataBilling.SetMetadataAsInvoiced();
-                    CreateAdditionalUsageDataBilling(UsageDataBilling);
+                    if PurchaseHeader."Applies-to Doc. No." <> '' then
+                        CreateAdditionalUsageDataBilling(UsageDataBilling);
                 end else begin
                     UsageDataBilling.SaveDocumentValues(Enum::"Usage Based Billing Doc. Type"::"Posted Invoice", PurchInvHdrNo, UsageDataBilling."Document Line No.", UsageDataBilling."Billing Line Entry No.");
                     UsageDataBilling.SetMetadataAsInvoiced();
                 end;
             until UsageDataBilling.Next() = 0;
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales Documents", OnAfterInsertBillingLineArchiveOnMoveBillingLineToBillingLineArchive, '', false, false)]
-    local procedure UpdateUsageDataBillingWithBillingArchiveLineSalesDocuments(var BillingLineArchive: Record "Billing Line Archive"; BillingLine: Record "Billing Line")
-    var
-        UsageDataBilling: Record "Usage Data Billing";
-        ServiceCommitment: Record "Subscription Line";
-    begin
-        if not ServiceCommitment.Get(BillingLine."Subscription Line Entry No.") then
-            exit;
-        if not ServiceCommitment."Usage Based Billing" then
-            exit;
-        UsageDataBilling.SetRange("Billing Line Entry No.", BillingLine."Entry No.");
-        UsageDataBilling.ModifyAll("Billing Line Entry No.", BillingLineArchive."Entry No.", false);
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purchase Documents", OnAfterInsertBillingLineArchiveOnMoveBillingLineToBillingLineArchive, '', false, false)]
-    local procedure UpdateUsageDataBillingWithBillingArchiveLinePurchaseDocuments(var BillingLineArchive: Record "Billing Line Archive"; BillingLine: Record "Billing Line")
-    var
-        UsageDataBilling: Record "Usage Data Billing";
-        ServiceCommitment: Record "Subscription Line";
-    begin
-        if not ServiceCommitment.Get(BillingLine."Subscription Line Entry No.") then
-            exit;
-        if not ServiceCommitment."Usage Based Billing" then
-            exit;
-        UsageDataBilling.SetRange("Billing Line Entry No.", BillingLine."Entry No.");
-        UsageDataBilling.ModifyAll("Billing Line Entry No.", BillingLineArchive."Entry No.", false);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", OnAfterDeleteEvent, '', false, false)]
@@ -326,20 +300,6 @@ codeunit 8028 "Usage Based Contr. Subscribers"
             repeat
                 UsageDataBilling.SaveDocumentValues(UsageDataBilling."Document Type"::None, '', 0, 0);
             until UsageDataBilling.Next() = 0;
-    end;
-
-    [EventSubscriber(ObjectType::Table, Database::"Billing Line", OnAfterDeleteEvent, '', false, false)]
-    local procedure RemoveBillingLineNoFromRelatedUsageData(Rec: Record "Billing Line"; RunTrigger: Boolean)
-    var
-        UsageDataBilling: Record "Usage Data Billing";
-    begin
-        if not RunTrigger then
-            exit;
-        if Rec.IsTemporary then
-            exit;
-
-        UsageDataBilling.SetRange("Billing Line Entry No.", Rec."Entry No.");
-        UsageDataBilling.ModifyAll("Billing Line Entry No.", 0, false);
     end;
 
 }

@@ -12,54 +12,114 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
 {
     layout
     {
+        modify(TestType)
+        {
+            trigger OnBeforeValidate()
+            begin
+                UpdateIsAgentTestType();
+            end;
+        }
         addafter("Test Runner Id")
         {
-            field(TestSuiteAgent; AgentUserName)
+            group(AgentSetupGroup)
             {
-                ApplicationArea = All;
-                Caption = 'Agent';
-                ToolTip = 'Specifies the agent to be used by the tests. You can use this field to test different configurations without changing the code. If you manually configure the agent and set it on the suite, this instance will be used in the eval runs. If you leave it blank, the system will automatically create an agent for each run.';
+                ShowCaption = false;
+                Visible = IsAgentTestType;
 
-                trigger OnValidate()
-                begin
-                    ValidateAgentName();
-                end;
+                field(TestSuiteAgent; AgentUserName)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Agent';
+                    ToolTip = 'Specifies the agent to be used by the tests. You can use this field to test different configurations without changing the code. If you manually configure the agent and set it on the suite, this instance will be used in the eval runs. If you leave it blank, the system will automatically create an agent for each run.';
 
-                trigger OnAssistEdit()
-                begin
-                    LookupAgent();
-                end;
+                    trigger OnValidate()
+                    begin
+                        ValidateAgentName();
+                    end;
+
+                    trigger OnAssistEdit()
+                    begin
+                        LookupAgent();
+                    end;
+                }
             }
         }
         addlast("Latest Run")
         {
-            field("Copilot Credits"; CopilotCredits)
+            group(AgentMetricsGroup)
             {
-                ApplicationArea = All;
-                AutoFormatType = 0;
-                Editable = false;
-                Caption = 'Copilot credits';
-                ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks in the current version.';
-            }
-            field("Agent Task Count"; AgentTaskCount)
-            {
-                ApplicationArea = All;
-                Editable = false;
-                Caption = 'Agent tasks';
-                ToolTip = 'Specifies the number of Agent Tasks related to the current version.';
+                ShowCaption = false;
+                Visible = IsAgentTestType;
 
-                trigger OnDrillDown()
+                field("Copilot Credits"; CopilotCredits)
+                {
+                    ApplicationArea = All;
+                    AutoFormatType = 0;
+                    Editable = false;
+                    Caption = 'Copilot Credits Consumed';
+                    ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks in the current version.';
+
+                    trigger OnDrillDown()
+                    begin
+                        AgentTestContextImpl.OpenAgentConsumptionOverview(AgentTaskIDs);
+                    end;
+                }
+                field("Agent Task Count"; AgentTaskCount)
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                    Caption = 'Agent Tasks Executed';
+                    ToolTip = 'Specifies the number of Agent Tasks related to the current version.';
+
+                    trigger OnDrillDown()
+                    begin
+                        AgentTestContextImpl.OpenAgentTaskList(AgentTaskIDs);
+                    end;
+                }
+            }
+        }
+    }
+
+    actions
+    {
+        addlast(Navigation)
+        {
+            action(CreditLimits)
+            {
+                ApplicationArea = All;
+                Caption = 'View credit limits';
+                ToolTip = 'View and configure credit limits for agent test suites.';
+                Image = Cost;
+                Visible = IsAgentTestType;
+
+                trigger OnAction()
+                var
+                    AITEvalLimitProvider: Interface "AIT Eval Limit Provider";
                 begin
-                    AgentTestContextImpl.OpenAgentTaskList(AgentTaskIDs);
+                    AITEvalLimitProvider := Rec."Test Type";
+                    AITEvalLimitProvider.OpenConfigurationPage();
                 end;
+            }
+        }
+        addlast(Category_Process)
+        {
+            actionref(CreditLimits_Promoted; CreditLimits)
+            {
             }
         }
     }
 
     trigger OnAfterGetCurrRecord()
     begin
+        UpdateIsAgentTestType();
         UpdateAgentTaskMetrics();
         UpdateAgentUserName();
+        ShowNotifications();
+    end;
+
+    local procedure UpdateIsAgentTestType()
+    begin
+        IsAgentTestType := Rec."Test Type" = Rec."Test Type"::Agent;
     end;
 
     local procedure UpdateAgentTaskMetrics()
@@ -79,6 +139,14 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
             exit;
 
         AgentUserName := Agent.GetUserName(Rec."Agent User Security ID");
+    end;
+
+    local procedure ShowNotifications()
+    var
+        AITEvalLimitProvider: Interface "AIT Eval Limit Provider";
+    begin
+        AITEvalLimitProvider := Rec."Test Type";
+        AITEvalLimitProvider.ShowNotifications();
     end;
 
     local procedure LookupAgent()
@@ -118,5 +186,6 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
         AgentTaskIDs: Text;
         AgentTaskCount: Integer;
         AgentUserName: Code[50];
-        AgentWithNameNotFoundErr: Label 'An agent with the name %1 was not found.', Comment = '%1 - The name of the agent.';
+        IsAgentTestType: Boolean;
+        AgentWithNameNotFoundErr: Label 'An agent with the name %1 was not found.', Comment = '%1 - The name of the agent';
 }

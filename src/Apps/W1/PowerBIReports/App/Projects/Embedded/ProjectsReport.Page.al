@@ -11,8 +11,8 @@ page 37062 "Projects Report"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Projects Report';
-    AboutTitle = 'About Projects Report';
+    Caption = 'Projects Report (Power BI)';
+    AboutTitle = 'About Projects Report (Power BI)';
     AboutText = 'The Projects Report offers a consolidated view of all project report pages, conveniently embedded into a single page for easy access.';
 
     layout
@@ -48,11 +48,8 @@ page 37062 "Projects Report"
         ReportPageLbl: Label '', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Projects Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Projects App");
     end;
 }
 

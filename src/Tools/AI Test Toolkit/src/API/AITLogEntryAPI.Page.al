@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.TestTools.AITestToolkit;
+
 page 149038 "AIT Log Entry API"
 {
     PageType = API;
@@ -60,12 +61,12 @@ page 149038 "AIT Log Entry API"
                 }
                 field(copilotCredits; CopilotCredits)
                 {
-                    Caption = 'Copilot credits';
+                    Caption = 'Copilot Credits Consumed';
                     Editable = false;
                 }
                 field(agentTaskIDs; AgentTaskIDs)
                 {
-                    Caption = 'Agent tasks';
+                    Caption = 'Agent Tasks Executed';
                     Editable = false;
                 }
                 field("startTime"; Rec."Start Time")

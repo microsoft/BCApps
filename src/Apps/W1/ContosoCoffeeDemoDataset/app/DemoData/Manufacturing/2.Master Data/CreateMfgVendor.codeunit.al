@@ -1,0 +1,42 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace Microsoft.DemoData.Manufacturing;
+
+using Microsoft.DemoData.Common;
+using Microsoft.DemoTool;
+using Microsoft.DemoTool.Helpers;
+
+codeunit 4777 "Create Mfg Vendor"
+{
+    InherentEntitlements = X;
+    InherentPermissions = X;
+
+    trigger OnRun()
+    var
+        ContosoCoffeeDemoDataSetup: Record "Contoso Coffee Demo Data Setup";
+        ContosoCustomerVendor: Codeunit "Contoso Customer/Vendor";
+        CreateContosoPostingGroup: Codeunit "Create Common Posting Group";
+    begin
+        ContosoCoffeeDemoDataSetup.Get();
+
+        ContosoCustomerVendor.InsertVendor(SubcontractorVendor(), BulkAssemblyLbl, ContosoCoffeeDemoDataSetup."Country/Region Code", '', '', '', CreateContosoPostingGroup.Domestic(), CreateContosoPostingGroup.Domestic(), CreateContosoPostingGroup.Domestic(), '', '', false);
+        ContosoCustomerVendor.InsertVendor(LocalSubcontractorVendor(), LocalAssemblyLbl, ContosoCoffeeDemoDataSetup."Country/Region Code", '', '', '', CreateContosoPostingGroup.Domestic(), CreateContosoPostingGroup.Domestic(), CreateContosoPostingGroup.Domestic(), '', '', false);
+    end;
+
+    var
+        BulkAssemblyLbl: Label 'Bulk Assembly', MaxLength = 30;
+        LocalAssemblyLbl: Label 'Local Assembly', MaxLength = 30;
+
+    procedure SubcontractorVendor(): Code[20]
+    begin
+        exit('82000');
+    end;
+
+    procedure LocalSubcontractorVendor(): Code[20]
+    begin
+        exit('83000');
+    end;
+}

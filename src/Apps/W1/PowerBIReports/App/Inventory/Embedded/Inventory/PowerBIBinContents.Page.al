@@ -11,8 +11,8 @@ page 37031 "PowerBI Bin Contents"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Bin Contents';
-    AboutTitle = 'About Bin Contents';
+    Caption = 'Bin Contents (Power BI)';
+    AboutTitle = 'About Bin Contents (Power BI)';
     AboutText = 'The Bin Contents report provides a detailed view of item quantities by bin code and location. It includes additional information such as warehouse quantity, pick and put-away quantities, and both negative and positive adjustments, offering a comprehensive overview of bin movements and inventory management within the warehouse.';
 
     layout
@@ -48,11 +48,8 @@ page 37031 "PowerBI Bin Contents"
         ReportPageLbl: Label 'ReportSection12b3ff23621e20c1398d', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Inventory Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Inventory App");
     end;
 }
 

@@ -10,6 +10,7 @@ query 36999 "Item Budget Entries - Purch."
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to purchase item budget entries including budgeted quantities, costs, and dimension data. Enables Power BI reports to analyze planned purchasing volumes and costs for budget vs. actual comparisons and procurement planning.';
     Caption = 'Power BI Purch. Item Budget Entries';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

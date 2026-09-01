@@ -19,15 +19,15 @@ codeunit 133401 "Library Permission Set"
     /// <param name="Name">Name of the permission set to open</param>
     procedure OpenPermissionSetPageForPermissionSet(AppId: Guid; RoleId: Code[30]; Name: Text)
     var
-        PermissionSetBuffer: Record "PermissionSet Buffer";
+        TempPermissionSetBuffer: Record "PermissionSet Buffer";
         PermissionSetPage: Page "Permission Set";
     begin
-        PermissionSetBuffer.Init();
-        PermissionSetBuffer."App ID" := AppId;
-        PermissionSetBuffer."Role ID" := RoleId;
-        PermissionSetBuffer.Name := CopyStr(Name, 1, MaxStrLen(PermissionSetBuffer.Name));
-        PermissionSetBuffer.Scope := PermissionSetBuffer.Scope::Tenant;
-        PermissionSetPage.SetRecord(PermissionSetBuffer);
+        TempPermissionSetBuffer.Init();
+        TempPermissionSetBuffer."App ID" := AppId;
+        TempPermissionSetBuffer."Role ID" := RoleId;
+        TempPermissionSetBuffer.Name := CopyStr(Name, 1, MaxStrLen(TempPermissionSetBuffer.Name));
+        TempPermissionSetBuffer.Scope := TempPermissionSetBuffer.Scope::Tenant;
+        PermissionSetPage.SetRecord(TempPermissionSetBuffer);
         PermissionSetPage.Run();
     end;
 }

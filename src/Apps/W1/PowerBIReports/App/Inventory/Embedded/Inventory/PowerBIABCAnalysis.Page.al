@@ -11,8 +11,8 @@ page 37111 "PowerBI ABC Analysis"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'ABC Analysis';
-    AboutTitle = 'About ABC Analysis';
+    Caption = 'ABC Analysis (Power BI)';
+    AboutTitle = 'About ABC Analysis (Power BI)';
     AboutText = 'The ABC Analysis page provides insights into customer segmentation based on sales volume, helping to identify key customers and prioritize sales efforts.';
 
     layout
@@ -48,11 +48,8 @@ page 37111 "PowerBI ABC Analysis"
         ReportPageLbl: Label 'a476d6afc8d5d544193b', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Sales Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Inventory App");
     end;
 }
 

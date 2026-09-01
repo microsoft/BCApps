@@ -11,8 +11,8 @@ page 37049 "PowerBI Released Prod. Orders"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = Manufacturing;
     PageType = UserControlHost;
-    Caption = 'Released Production Orders';
-    AboutTitle = 'About Released Production Orders';
+    Caption = 'Released Production Orders (Power BI)';
+    AboutTitle = 'About Released Production Orders (Power BI)';
     AboutText = 'View how your released production orders are tracking by comparing Expected Quantity vs. Finished Quantity';
 
     layout
@@ -48,11 +48,8 @@ page 37049 "PowerBI Released Prod. Orders"
         ReportPageLbl: Label '85214b3ea7543b0500e5', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Manufacturing Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Manufacturing App");
     end;
 }
 

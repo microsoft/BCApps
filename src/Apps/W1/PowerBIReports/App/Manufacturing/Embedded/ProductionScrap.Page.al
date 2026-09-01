@@ -11,8 +11,8 @@ page 37055 "Production Scrap"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = Manufacturing;
     PageType = UserControlHost;
-    Caption = 'Production Scrap';
-    AboutTitle = 'About Production Scrap';
+    Caption = 'Production Scrap (Power BI)';
+    AboutTitle = 'About Production Scrap (Power BI)';
     AboutText = 'View your scrap quantities over a timeline you can define to see trends. Analyze further by Scrap Code, Location, Item Categories and by filtering for specific items.';
 
     layout
@@ -48,11 +48,8 @@ page 37055 "Production Scrap"
         ReportPageLbl: Label 'ReportSectionc790f50d90d7b6a6836a', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Manufacturing Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Manufacturing App");
     end;
 }
 

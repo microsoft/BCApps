@@ -11,8 +11,8 @@ page 36987 "Budget Comparison"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Budget Comparison';
-    AboutTitle = 'About Budget Comparison';
+    Caption = 'Budget Comparison (Power BI)';
+    AboutTitle = 'About Budget Comparison (Power BI)';
     AboutText = 'The Budget Comparison report presents a month-to-month analysis of Net Change against Budget Amounts for both Balance Sheet and Income Statement accounts. Featuring variance and variance percentage metrics, providing a clear view of how actual performance compares to budgeted targets.';
 
     layout
@@ -48,11 +48,8 @@ page 36987 "Budget Comparison"
         ReportPageLbl: Label 'ReportSection64d670dfa9da1a5b7033', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Finance Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Finance App");
     end;
 }
 

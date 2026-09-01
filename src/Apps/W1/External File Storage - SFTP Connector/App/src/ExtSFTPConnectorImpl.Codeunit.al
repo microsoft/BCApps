@@ -20,6 +20,8 @@ codeunit 4621 "Ext. SFTP Connector Impl" implements "External File Storage Conne
     var
         ConnectorDescriptionTxt: Label 'Use SFTP Server to store and retrieve files.', MaxLength = 250;
         NotRegisteredAccountErr: Label 'We could not find the account. Typically, this is because the account has been deleted.';
+        InvalidFingerprintErr: Label 'Fingerprint must start with "sha256:".';
+        MD5NotSupportedErr: Label 'MD5 host key fingerprints are no longer supported. Reconfigure this account with a SHA256 fingerprint.';
         PathSeparatorTok: Label '/', Locked = true;
 
     /// <summary>
@@ -31,7 +33,7 @@ codeunit 4621 "Ext. SFTP Connector Impl" implements "External File Storage Conne
     /// <param name="TempFileAccountContent">A list with all files stored in the path.</param>
     procedure ListFiles(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary)
     var
-        FolderContent: Record "SFTP Folder Content";
+        TempFolderContent: Record "SFTP Folder Content";
         SFTPClient: Codeunit "SFTP Client";
         Response: Codeunit "SFTP Operation Response";
         OrginalPath: Text;
@@ -39,7 +41,7 @@ codeunit 4621 "Ext. SFTP Connector Impl" implements "External File Storage Conne
         OrginalPath := Path;
         InitPath(AccountId, Path);
         InitSFTPClient(AccountId, SFTPClient);
-        Response := SFTPClient.ListFiles(Path, FolderContent);
+        Response := SFTPClient.ListFiles(Path, TempFolderContent);
         SFTPClient.Disconnect();
 
         if Response.IsError() then
@@ -47,17 +49,17 @@ codeunit 4621 "Ext. SFTP Connector Impl" implements "External File Storage Conne
 
         FilePaginationData.SetEndOfListing(true);
 
-        FolderContent.SetRange("Is Directory", false);
-        if not FolderContent.FindSet() then
+        TempFolderContent.SetRange("Is Directory", false);
+        if not TempFolderContent.FindSet() then
             exit;
 
         repeat
             TempFileAccountContent.Init();
-            TempFileAccountContent.Name := FolderContent.Name;
+            TempFileAccountContent.Name := TempFolderContent.Name;
             TempFileAccountContent.Type := TempFileAccountContent.Type::"File";
             TempFileAccountContent."Parent Directory" := CopyStr(OrginalPath, 1, MaxStrLen(TempFileAccountContent."Parent Directory"));
             TempFileAccountContent.Insert();
-        until FolderContent.Next() = 0;
+        until TempFolderContent.Next() = 0;
     end;
 
     /// <summary>
@@ -197,7 +199,7 @@ codeunit 4621 "Ext. SFTP Connector Impl" implements "External File Storage Conne
     /// <param name="Files">A list with all directories stored in the path.</param>
     procedure ListDirectories(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary)
     var
-        FolderContent: Record "SFTP Folder Content";
+        TempFolderContent: Record "SFTP Folder Content";
         SFTPClient: Codeunit "SFTP Client";
         Response: Codeunit "SFTP Operation Response";
         OrginalPath: Text;
@@ -205,7 +207,7 @@ codeunit 4621 "Ext. SFTP Connector Impl" implements "External File Storage Conne
         OrginalPath := Path;
         InitPath(AccountId, Path);
         InitSFTPClient(AccountId, SFTPClient);
-        Response := SFTPClient.ListFiles(Path, FolderContent);
+        Response := SFTPClient.ListFiles(Path, TempFolderContent);
         SFTPClient.Disconnect();
 
         if Response.IsError() then
@@ -213,18 +215,18 @@ codeunit 4621 "Ext. SFTP Connector Impl" implements "External File Storage Conne
 
         FilePaginationData.SetEndOfListing(true);
 
-        FolderContent.SetRange("Is Directory", true);
-        FolderContent.SetFilter(Name, '<>%1&<>%2', '.', '..'); // Exclude . and ..
-        if not FolderContent.FindSet() then
+        TempFolderContent.SetRange("Is Directory", true);
+        TempFolderContent.SetFilter(Name, '<>%1&<>%2', '.', '..'); // Exclude . and ..
+        if not TempFolderContent.FindSet() then
             exit;
 
         repeat
             TempFileAccountContent.Init();
-            TempFileAccountContent.Name := FolderContent.Name;
+            TempFileAccountContent.Name := TempFolderContent.Name;
             TempFileAccountContent.Type := TempFileAccountContent.Type::Directory;
             TempFileAccountContent."Parent Directory" := CopyStr(OrginalPath, 1, MaxStrLen(TempFileAccountContent."Parent Directory"));
             TempFileAccountContent.Insert();
-        until FolderContent.Next() = 0;
+        until TempFolderContent.Next() = 0;
     end;
 
     /// <summary>
@@ -467,7 +469,6 @@ codeunit 4621 "Ext. SFTP Connector Impl" implements "External File Storage Conne
     var
         SHA256PrefixTok: Label 'sha256:', Locked = true;
         MD5PrefixTok: Label 'md5:', Locked = true;
-        InvalidFingerprintErr: Label 'Fingerprint must start with "md5:" or "sha256:".';
     begin
         Fingerprint := Fingerprint.Trim();
         if Fingerprint = '' then
@@ -477,7 +478,7 @@ codeunit 4621 "Ext. SFTP Connector Impl" implements "External File Storage Conne
             Fingerprint.StartsWith(SHA256PrefixTok):
                 SFTPClient.AddFingerprintSHA256(Fingerprint.Substring(StrLen(SHA256PrefixTok) + 1));
             Fingerprint.StartsWith(MD5PrefixTok):
-                SFTPClient.AddFingerprintMD5(Fingerprint.Substring(StrLen(MD5PrefixTok) + 1));
+                Error(MD5NotSupportedErr);
             else
                 Error(InvalidFingerprintErr);
         end;

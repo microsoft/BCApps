@@ -10,6 +10,7 @@ query 37023 "Purch. Value Entries - PBI API"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to purchase value entries including cost amounts, invoiced quantities, return reasons, and linked item ledger entries. Enables Power BI reports to analyze purchase cost components, adjustments, and discount amounts at the transaction level.';
     Caption = 'Power BI Purchase Value Entries';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

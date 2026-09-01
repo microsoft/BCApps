@@ -13,12 +13,18 @@ using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Setup;
+using Microsoft.QualityManagement.Utilities;
 
 /// <summary>
 /// Used to integrate with manufacturing related events.
 /// </summary>
 codeunit 20407 "Qlty. Manufactur. Integration"
 {
+    Permissions =
+        tabledata "Qlty. Management Setup" = r,
+        tabledata "Qlty. Inspection Gen. Rule" = r,
+        tabledata "Qlty. Inspection Header" = r;
+
     var
         QltyTraversal: Codeunit "Qlty. Traversal";
 
@@ -28,9 +34,10 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// For example, if you have an item journal line that has 2 item tracking lines, this will get called twice, where the ItemLedgerEntry
     /// will change on each subsequent call.
     /// </summary>
-    /// <param name="ItemLedgerEntry"></param>
-    /// <param name="ProdOrderLine"></param>
-    /// <param name="ItemJournalLine"></param>
+    /// <param name="ItemLedgerEntry">The output item ledger entry created by posting.</param>
+    /// <param name="ProdOrderLine">The production order line being posted.</param>
+    /// <param name="ItemJournalLine">The output journal line being posted.</param>
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Management Setup", 'R', InherentPermissionsScope::Permissions)]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Mfg. Item Jnl.-Post Line", 'OnAfterPostOutput', '', true, true)]
     local procedure HandleOnAfterPostOutput(var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line")
     var
@@ -78,12 +85,23 @@ codeunit 20407 "Qlty. Manufactur. Integration"
             if ProdOrderRoutingLine."Next Operation No." <> '' then
                 Clear(VerifiedItemLedgerEntry);
 
-        QltyInspectionGenRule.SetRange("Production Order Trigger", QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost);
-        QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
-        if not QltyInspectionGenRule.IsEmpty() then
-            AttemptCreateInspectionPosting(ProdOrderRoutingLine, VerifiedItemLedgerEntry, ProdOrderLine, ItemJournalLine, QltyInspectionGenRule);
+        if not HasProductionOutputPostGenRule(QltyInspectionGenRule) then
+            exit;
+
+        AttemptCreateInspectionPosting(ProdOrderRoutingLine, VerifiedItemLedgerEntry, ProdOrderLine, ItemJournalLine, QltyInspectionGenRule);
     end;
 
+    /// <summary>
+    /// Updates inspection references after a production order status change and creates inspections when the order is released.
+    /// </summary>
+    /// <param name="ProdOrder">The production order before the status change.</param>
+    /// <param name="ToProdOrder">The production order after the status change.</param>
+    /// <param name="NewStatus">The requested production order status.</param>
+    /// <param name="NewPostingDate">The posting date supplied by status management.</param>
+    /// <param name="NewUpdateUnitCost">Indicates whether unit costs are updated.</param>
+    /// <param name="SuppressCommit">Indicates whether commits are suppressed.</param>
+    /// <param name="xProductionOrder">The production order state used to update existing inspection references.</param>
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Management Setup", 'R', InherentPermissionsScope::Permissions)]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", 'OnAfterChangeStatusOnProdOrder', '', true, true)]
     local procedure HandleOnAfterChangeStatusOnProdOrder(var ProdOrder: Record "Production Order"; var ToProdOrder: Record "Production Order"; NewStatus: Enum "Production Order Status"; NewPostingDate: Date; NewUpdateUnitCost: Boolean; var SuppressCommit: Boolean; xProductionOrder: Record "Production Order")
     var
@@ -104,12 +122,19 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         if ToProdOrder.Status <> ToProdOrder.Status::Released then
             exit;
 
-        QltyInspectionGenRule.SetRange("Production Order Trigger", QltyInspectionGenRule."Production Order Trigger"::OnProductionOrderRelease);
-        QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
-        if not QltyInspectionGenRule.IsEmpty() then
-            AttemptCreateInspectionReleased(ToProdOrder, QltyInspectionGenRule);
+        if not HasProductionOrderReleaseGenRule(QltyInspectionGenRule) then
+            exit;
+
+        AttemptCreateInspectionReleased(ToProdOrder, QltyInspectionGenRule);
     end;
 
+    /// <summary>
+    /// Updates inspection references after a production order line is copied to a new status.
+    /// </summary>
+    /// <param name="ToProdOrderLine">The production order line after the status change.</param>
+    /// <param name="FromProdOrderLine">The production order line before the status change.</param>
+    /// <param name="NewStatus">The new production order status.</param>
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Management Setup", 'R', InherentPermissionsScope::Permissions)]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", 'OnAfterToProdOrderLineModify', '', true, true)]
     local procedure HandleOnAfterToProdOrderLineModify(var ToProdOrderLine: Record "Prod. Order Line"; var FromProdOrderLine: Record "Prod. Order Line"; var NewStatus: Option Quote,Planned,"Firm Planned",Released,Finished)
     var
@@ -124,6 +149,12 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         UpdateReferencesForProductionOrderLine(FromProdOrderLine, ToProdOrderLine);
     end;
 
+    /// <summary>
+    /// Updates inspection references after a production routing line is copied to a new status.
+    /// </summary>
+    /// <param name="ToProdOrderRoutingLine">The production routing line after the status change.</param>
+    /// <param name="FromProdOrderRoutingLine">The production routing line before the status change.</param>
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Management Setup", 'R', InherentPermissionsScope::Permissions)]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Status Management", 'OnAfterToProdOrderRtngLineInsert', '', true, true)]
     local procedure HandleOnAfterToProdOrderRtngLineInsert(var ToProdOrderRoutingLine: Record "Prod. Order Routing Line"; var FromProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
@@ -138,6 +169,12 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         UpdateReferencesForProductionOrderRoutingLine(FromProdOrderRoutingLine, ToProdOrderRoutingLine);
     end;
 
+    /// <summary>
+    /// Creates inspections after a released production order is refreshed successfully.
+    /// </summary>
+    /// <param name="ProductionOrder">The refreshed production order.</param>
+    /// <param name="ErrorOccured">Indicates whether the refresh failed.</param>
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Management Setup", 'R', InherentPermissionsScope::Permissions)]
     [EventSubscriber(ObjectType::Report, Report::"Refresh Production Order", 'OnAfterRefreshProdOrder', '', true, true)]
     local procedure HandleOnAfterRefreshProdOrder(var ProductionOrder: Record "Production Order"; ErrorOccured: Boolean)
     var
@@ -153,18 +190,18 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
-        QltyInspectionGenRule.SetRange("Production Order Trigger", QltyInspectionGenRule."Production Order Trigger"::OnReleasedProductionOrderRefresh);
-        QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
-        if not QltyInspectionGenRule.IsEmpty() then
-            AttemptCreateInspectionReleased(ProductionOrder, QltyInspectionGenRule);
+        if not HasReleasedProductionOrderRefreshGenRule(QltyInspectionGenRule) then
+            exit;
+
+        AttemptCreateInspectionReleased(ProductionOrder, QltyInspectionGenRule);
     end;
 
     /// <summary>
-    /// Updates source records for inspections where the source is a production order
+    /// Updates inspection source record IDs and document fields after a production order changes identity or status.
     /// </summary>
-    /// <param name="OldProductionOrder"></param>
-    /// <param name="NewProductionOrder"></param>
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'rm')]
+    /// <param name="OldProductionOrder">The production order before the change.</param>
+    /// <param name="NewProductionOrder">The production order after the change.</param>
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'RM')]
     local procedure UpdateReferencesForProductionOrder(OldProductionOrder: Record "Production Order"; NewProductionOrder: Record "Production Order")
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -198,11 +235,11 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     end;
 
     /// <summary>
-    /// Updates inspections where the source is a production order line
+    /// Updates inspection source record IDs and document fields after a production order line changes identity or status.
     /// </summary>
-    /// <param name="OldProdOrderLine"></param>
-    /// <param name="NewProdOrderLine"></param>
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'rm')]
+    /// <param name="OldProdOrderLine">The production order line before the change.</param>
+    /// <param name="NewProdOrderLine">The production order line after the change.</param>
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'RM')]
     local procedure UpdateReferencesForProductionOrderLine(OldProdOrderLine: Record "Prod. Order Line"; NewProdOrderLine: Record "Prod. Order Line")
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -236,11 +273,11 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     end;
 
     /// <summary>
-    /// Updates inspections where the source is a production order routing line
+    /// Updates inspection source record IDs and document fields after a production routing line changes identity or status.
     /// </summary>
-    /// <param name="OldProdOrderRoutingLine"></param>
-    /// <param name="NewProdOrderRoutingLine"></param>
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'rm')]
+    /// <param name="OldProdOrderRoutingLine">The production routing line before the change.</param>
+    /// <param name="NewProdOrderRoutingLine">The production routing line after the change.</param>
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Header", 'RM')]
     local procedure UpdateReferencesForProductionOrderRoutingLine(OldProdOrderRoutingLine: Record "Prod. Order Routing Line"; NewProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -273,6 +310,13 @@ codeunit 20407 "Qlty. Manufactur. Integration"
             until QltyInspectionHeader.Next() = 0;
     end;
 
+    /// <summary>
+    /// Reapplies source fields or directly updates production order fields on a specific inspection.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection to update.</param>
+    /// <param name="TargetRecordRef">A reference to the new production order.</param>
+    /// <param name="OldProductionOrder">The production order before the change.</param>
+    /// <param name="NewProductionOrder">The production order after the change.</param>
     local procedure UpdateSourceDocumentForSpecificInspectionOnOrder(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TargetRecordRef: RecordRef; OldProductionOrder: Record "Production Order"; NewProductionOrder: Record "Production Order")
     var
         OldStatusValue: Integer;
@@ -291,6 +335,13 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         if QltyInspectionHeader.Modify(false) then;
     end;
 
+    /// <summary>
+    /// Reapplies source fields or directly updates production order line fields on a specific inspection.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection to update.</param>
+    /// <param name="TargetRecordRef">A reference to the new production order line.</param>
+    /// <param name="OldProdOrderLine">The production order line before the change.</param>
+    /// <param name="NewProdOrderLine">The production order line after the change.</param>
     local procedure UpdateSourceDocumentForSpecificInspectionOnLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TargetRecordRef: RecordRef; OldProdOrderLine: Record "Prod. Order Line"; NewProdOrderLine: Record "Prod. Order Line")
     var
         OldStatusValue: Integer;
@@ -311,6 +362,13 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         if QltyInspectionHeader.Modify(false) then;
     end;
 
+    /// <summary>
+    /// Reapplies source fields or directly updates production routing fields on a specific inspection.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection to update.</param>
+    /// <param name="TargetRecordRef">A reference to the new production routing line.</param>
+    /// <param name="OldProdOrderRoutingLine">The production routing line before the change.</param>
+    /// <param name="NewProdOrderRoutingLine">The production routing line after the change.</param>
     local procedure UpdateSourceDocumentForSpecificInspectionOnOperation(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TargetRecordRef: RecordRef; OldProdOrderRoutingLine: Record "Prod. Order Routing Line"; NewProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         OldStatusValue: Integer;
@@ -332,11 +390,9 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     end;
 
     /// <summary>
-    /// Intended to be used with production releasing.
-    /// For production releasing it will use either the prod order routing line, or prod order line, or prod order.
-    /// What we can do is automatically apply them.
+    /// Creates release-triggered inspections at routing-line, order-line, or production-order level.
     /// </summary>
-    /// <param name="ProductionOrder">The production order</param>
+    /// <param name="ProductionOrder">The released production order.</param>
     /// <param name="OptionalFiltersQltyInspectionGenRule">Optional generation rule filters.</param>
     local procedure AttemptCreateInspectionReleased(var ProductionOrder: Record "Production Order"; var OptionalFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
     var
@@ -347,6 +403,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         TempTrackingSpecification: Record "Tracking Specification" temporary;
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         ProdOrderLineReserve: Codeunit "Prod. Order Line-Reserve";
+        QltyBatchNotifHelper: Codeunit "Qlty. Batch Notif. Helper";
         ListOfInspectionIds: List of [RecordId];
         HasReservationEntries: Boolean;
         IsHandled: Boolean;
@@ -360,6 +417,8 @@ codeunit 20407 "Qlty. Manufactur. Integration"
         if IsHandled then
             exit;
 
+        QltyBatchNotifHelper.BeginBatch();
+        QltyBatchNotifHelper.ConfigureForBatch(QltyInspectionCreate);
         ProdOrderLine.SetRange(Status, ProductionOrder.Status);
         ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
         if ProdOrderLine.FindSet() then begin
@@ -386,6 +445,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                                 if MadeInspection then begin
                                     QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
                                     ListOfInspectionIds.Add(QltyInspectionHeader.RecordId());
+                                    QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.IsLastInspectionNewlyCreated());
                                     CreatedAtLeastOneInspectionForRoutingLine := true;
                                 end;
                             until ReservationEntry.Next() = 0;
@@ -395,6 +455,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                             if MadeInspection then begin
                                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
                                 ListOfInspectionIds.Add(QltyInspectionHeader.RecordId());
+                                QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.IsLastInspectionNewlyCreated());
                                 CreatedAtLeastOneInspectionForRoutingLine := true;
                             end;
                         end;
@@ -415,6 +476,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                             if MadeInspection then begin
                                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
                                 ListOfInspectionIds.Add(QltyInspectionHeader.RecordId());
+                                QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.IsLastInspectionNewlyCreated());
                                 CreatedAtLeastOneInspectionForOrderLine := true;
                             end;
 
@@ -424,6 +486,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
                         if MadeInspection then begin
                             QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
                             ListOfInspectionIds.Add(QltyInspectionHeader.RecordId());
+                            QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.IsLastInspectionNewlyCreated());
                             CreatedAtLeastOneInspectionForOrderLine := true;
                         end;
                     end;
@@ -434,21 +497,23 @@ codeunit 20407 "Qlty. Manufactur. Integration"
             if MadeInspection then begin
                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
                 ListOfInspectionIds.Add(QltyInspectionHeader.RecordId());
+                QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.IsLastInspectionNewlyCreated());
                 CreatedInspectionForProdOrder := MadeInspection;
             end;
         end;
+        QltyBatchNotifHelper.EndBatch();
 
         OnAfterProductionAttemptCreateReleaseAutomaticInspection(ProductionOrder, CreatedAtLeastOneInspectionForRoutingLine, CreatedAtLeastOneInspectionForOrderLine, CreatedInspectionForProdOrder, ListOfInspectionIds);
     end;
 
     /// <summary>
-    /// Intended to be used with production related posting.
-    /// For production posting we have three references, any of which could be used as a trigger depending on the scenario.
-    /// What we can do is automatically apply them.
+    /// Creates posting-triggered inspections using the available routing, ledger, journal, and production order line sources.
     /// </summary>
-    /// <param name="ItemLedgerEntry">The item ledger entry related to this sequence of events</param>
-    /// <param name="ProdOrderLine"></param>
-    /// <param name="ItemJournalLine"></param>
+    /// <param name="ProdOrderRoutingLine">The production routing line associated with the output.</param>
+    /// <param name="ItemLedgerEntry">The output item ledger entry, when available.</param>
+    /// <param name="ProdOrderLine">The production order line being posted.</param>
+    /// <param name="ItemJournalLine">The output journal line being posted.</param>
+    /// <param name="OptionalFiltersQltyInspectionGenRule">The filtered generation rules to apply.</param>
     local procedure AttemptCreateInspectionPosting(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line"; var OptionalFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -477,12 +542,54 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     end;
 
     /// <summary>
+    /// Filters generation rules for automatic production output posting.
+    /// </summary>
+    /// <param name="QltyInspectionGenRule">The generation rule record on which the applicable filters are set.</param>
+    /// <returns>True if at least one applicable generation rule exists; otherwise, false.</returns>
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Gen. Rule", 'R', InherentPermissionsScope::Permissions)]
+    local procedure HasProductionOutputPostGenRule(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"): Boolean
+    begin
+        QltyInspectionGenRule.Reset();
+        QltyInspectionGenRule.SetRange("Production Order Trigger", QltyInspectionGenRule."Production Order Trigger"::OnProductionOutputPost);
+        QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
+        exit(not QltyInspectionGenRule.IsEmpty());
+    end;
+
+    /// <summary>
+    /// Filters generation rules for automatic production order release.
+    /// </summary>
+    /// <param name="QltyInspectionGenRule">The generation rule record on which the applicable filters are set.</param>
+    /// <returns>True if at least one applicable generation rule exists; otherwise, false.</returns>
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Gen. Rule", 'R', InherentPermissionsScope::Permissions)]
+    local procedure HasProductionOrderReleaseGenRule(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"): Boolean
+    begin
+        QltyInspectionGenRule.Reset();
+        QltyInspectionGenRule.SetRange("Production Order Trigger", QltyInspectionGenRule."Production Order Trigger"::OnProductionOrderRelease);
+        QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
+        exit(not QltyInspectionGenRule.IsEmpty());
+    end;
+
+    /// <summary>
+    /// Filters generation rules for automatic refresh of released production orders.
+    /// </summary>
+    /// <param name="QltyInspectionGenRule">The generation rule record on which the applicable filters are set.</param>
+    /// <returns>True if at least one applicable generation rule exists; otherwise, false.</returns>
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Gen. Rule", 'R', InherentPermissionsScope::Permissions)]
+    local procedure HasReleasedProductionOrderRefreshGenRule(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"): Boolean
+    begin
+        QltyInspectionGenRule.Reset();
+        QltyInspectionGenRule.SetRange("Production Order Trigger", QltyInspectionGenRule."Production Order Trigger"::OnReleasedProductionOrderRefresh);
+        QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
+        exit(not QltyInspectionGenRule.IsEmpty());
+    end;
+
+    /// <summary>
     /// OnBeforeProductionAttemptCreatePostAutomaticInspection is called before attempting to automatically create an inspection for production related events prior to posting to posting.
     /// </summary>
     /// <param name="ProdOrderRoutingLine">Typically the 'main' record the inspections are associated against.</param>
     /// <param name="ItemLedgerEntry">The item ledger entry related to this sequence of events</param>
     /// <param name="ProdOrderLine">The production order line involved in this sequence of events</param>
-    /// <param name="ItemJournalLine">The item journal line record involved in this transaction.  Important: this record may no longer exist, and should not be altered.</param>
+    /// <param name="ItemJournalLine">The item journal line record involved in this transaction. Important: this record may no longer exist, and should not be altered.</param>
     /// <param name="IsHandled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeProductionAttemptCreatePostAutomaticInspection(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean)
@@ -495,7 +602,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// <param name="ProdOrderRoutingLine">Typically the 'main' record the inspections are associated against.</param>
     /// <param name="ItemLedgerEntry">The item ledger entry related to this sequence of events</param>
     /// <param name="ProdOrderLine">The production order line involved in this sequence of events</param>
-    /// <param name="ItemJournalLine">The item journal line record involved in this transaction.  Important: this record may no longer exist, and should not be altered.</param>
+    /// <param name="ItemJournalLine">The item journal line record involved in this transaction. Important: this record may no longer exist, and should not be altered.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterProductionAttemptCreateAutomaticInspection(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line")
     begin
@@ -512,8 +619,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     end;
 
     /// <summary>
-    /// OnAfterProductionAttemptCreateReleaseAutomaticInspection is called before attempting to automatically create an inspection for production related releasing.
-    /// Use this if you need to collect multiple inspections that could be created as part of a posting sequence.
+    /// Notifies subscribers after release-triggered inspection creation has completed.
     /// </summary>
     /// <param name="ProductionOrder">The production order</param>
     /// <param name="CreatedAtLeastOneInspectionForRoutingLine">A flag indicating if at least one inspection for the production order routing line was created</param>
@@ -531,7 +637,7 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// </summary>
     /// <param name="ItemLedgerEntry">The item ledger entry related to this sequence of events</param>
     /// <param name="ProdOrderLine">The production order line involved in this sequence of events</param>
-    /// <param name="ItemJournalLine">The item journal line record involved in this transaction.  Important: this record may no longer exist, and should not be altered.</param>
+    /// <param name="ItemJournalLine">The item journal line record involved in this transaction. Important: this record may no longer exist, and should not be altered.</param>
     /// <param name="IsHandled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeProductionHandleOnAfterPostOutput(var ItemLedgerEntry: Record "Item Ledger Entry"; var ProdOrderLine: Record "Prod. Order Line"; var ItemJournalLine: Record "Item Journal Line"; var IsHandled: Boolean)
@@ -541,8 +647,8 @@ codeunit 20407 "Qlty. Manufactur. Integration"
     /// <summary>
     /// Gives an opportunity to supplement or replace automatic inspection creation on finish, and validation of inspections on finish.
     /// </summary>
-    /// <param name="FromProductionOrder"></param>
-    /// <param name="ToProductionOrder"></param>
+    /// <param name="FromProductionOrder">The production order before the status change.</param>
+    /// <param name="ToProductionOrder">The production order after the status change.</param>
     /// <param name="IsHandled">Set to true to replace the default behavior</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeProductionHandleOnAfterChangeStatusOnProdOrder(var FromProductionOrder: Record "Production Order"; var ToProductionOrder: Record "Production Order"; var IsHandled: Boolean)

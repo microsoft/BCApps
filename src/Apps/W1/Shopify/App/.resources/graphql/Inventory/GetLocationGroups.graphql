@@ -1,0 +1,2 @@
+# cost: 3
+{"query":"{ deliveryProfile(id: \"gid://shopify/DeliveryProfile/{{DeliveryProfileId}}\") { profileLocationGroups { locationGroup { id } } } }"}

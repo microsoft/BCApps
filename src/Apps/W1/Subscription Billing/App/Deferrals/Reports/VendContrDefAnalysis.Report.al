@@ -11,6 +11,7 @@ report 8053 "Vend Contr. Def. Analysis"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     AdditionalSearchTerms = 'Vendor Deferrals, Deferral Analysis, Cost Deferrals, Contract Analysis, Deferral Report, Deferred Costs';
+    ToolTip = 'Analyze Vendor Subscription Contract deferrals.';
 
     dataset
     {

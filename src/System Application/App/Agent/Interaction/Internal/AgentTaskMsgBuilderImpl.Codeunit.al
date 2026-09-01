@@ -18,6 +18,7 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
         GlobalAgentTask: Record "Agent Task";
         GlobalAgentTaskMessage: Record "Agent Task Message";
         GlobalIgnoreAttachmentsList: Dictionary of [BigInteger, Boolean];
+        GlobalIgnoredReasonByFileId: Dictionary of [BigInteger, Text[250]];
         GlobalFrom: Text[250];
         GlobalMessageExternalID: Text[2048];
         GlobalMessageText: Text;
@@ -95,6 +96,7 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
         AgentTaskImpl: Codeunit "Agent Task Impl.";
         AgentMessageImpl: Codeunit "Agent Message Impl.";
         IgnoreAttachment: Boolean;
+        IgnoredReason: Text[250];
         MessageText: Text;
     begin
         VerifyMandatoryFieldsSet();
@@ -108,8 +110,11 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
                 IgnoreAttachment := false;
                 if GlobalIgnoreAttachmentsList.ContainsKey(TempAgentTaskFileToAttach.ID) then
                     IgnoreAttachment := GlobalIgnoreAttachmentsList.Get(TempAgentTaskFileToAttach.ID);
+                IgnoredReason := '';
+                if GlobalIgnoredReasonByFileId.ContainsKey(TempAgentTaskFileToAttach.ID) then
+                    IgnoredReason := GlobalIgnoredReasonByFileId.Get(TempAgentTaskFileToAttach.ID);
                 AgentMessageImpl.SetIgnoreAttachment(GlobalIgnoreAttachment or IgnoreAttachment);
-                AgentMessageImpl.AddAttachment(GlobalAgentTaskMessage, TempAgentTaskFileToAttach);
+                AgentMessageImpl.AddAttachment(GlobalAgentTaskMessage, TempAgentTaskFileToAttach, IgnoredReason);
             until TempAgentTaskFileToAttach.Next() = 0;
 
         if SetTaskStatusToReady then
@@ -127,12 +132,19 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
     [Scope('OnPrem')]
     procedure AddAttachment(FileName: Text[250]; FileMIMEType: Text[100]; InStream: InStream): codeunit "Agent Task Msg. Builder Impl."
     begin
-        AddAttachment(FileName, FileMIMEType, InStream, false);
+        AddAttachment(FileName, FileMIMEType, InStream, false, '');
         exit(this);
     end;
 
     [Scope('OnPrem')]
     procedure AddAttachment(FileName: Text[250]; FileMIMEType: Text[100]; InStream: InStream; Ignored: Boolean): codeunit "Agent Task Msg. Builder Impl."
+    begin
+        AddAttachment(FileName, FileMIMEType, InStream, Ignored, '');
+        exit(this);
+    end;
+
+    [Scope('OnPrem')]
+    procedure AddAttachment(FileName: Text[250]; FileMIMEType: Text[100]; InStream: InStream; Ignored: Boolean; IgnoredReason: Text[250]): codeunit "Agent Task Msg. Builder Impl."
     var
         FileOutStream: OutStream;
     begin
@@ -146,6 +158,8 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
         TempAgentTaskFileToAttach.Modify();
 
         GlobalIgnoreAttachmentsList.Add(TempAgentTaskFileToAttach.ID, Ignored);
+        if Ignored then
+            GlobalIgnoredReasonByFileId.Add(TempAgentTaskFileToAttach.ID, IgnoredReason);
         exit(this);
     end;
 
@@ -157,6 +171,45 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
         AgentTaskFile.CalcFields(Content);
         AgentTaskFile.Content.CreateInStream(FileInStream);
         AddAttachment(AgentTaskFile."File Name", AgentTaskFile."File MIME Type", FileInStream);
+        exit(this);
+    end;
+
+    [Scope('OnPrem')]
+    procedure AddAttachment(File: FileUpload): codeunit "Agent Task Msg. Builder Impl."
+    begin
+        AddAttachment(File, false, '');
+        exit(this);
+    end;
+
+    [Scope('OnPrem')]
+    procedure AddAttachment(File: FileUpload; Ignored: Boolean): codeunit "Agent Task Msg. Builder Impl."
+    begin
+        AddAttachment(File, Ignored, '');
+        exit(this);
+    end;
+
+    [Scope('OnPrem')]
+    procedure AddAttachment(File: FileUpload; Ignored: Boolean; IgnoredReason: Text[250]): codeunit "Agent Task Msg. Builder Impl."
+    var
+        FileInStream: InStream;
+        FileName: Text;
+        FileNameTooLongErr: Label 'File name ''%1'' exceeds the maximum allowed length of 250 characters.', Comment = '%1 = the uploaded file name';
+    begin
+        // Adapter for fileuploadaction triggers; callers loop over List of [FileUpload]
+        // to support multi-file selection from the browser file picker. MS-DOS encoding keeps
+        // binary attachments (PDF, PNG, XLSX, ...) byte-safe, matching the Email SDK precedent.
+        FileName := File.FileName;
+        if FileName = '' then
+            exit(this);
+        File.CreateInStream(FileInStream, TextEncoding::MSDos);
+        if StrLen(FileName) > 250 then
+            Error(FileNameTooLongErr, FileName);
+        AddAttachment(
+            CopyStr(FileName, 1, 250),
+            CopyStr(GetContentTypeFromFilename(FileName), 1, 100),
+            FileInStream,
+            Ignored,
+            IgnoredReason);
         exit(this);
     end;
 

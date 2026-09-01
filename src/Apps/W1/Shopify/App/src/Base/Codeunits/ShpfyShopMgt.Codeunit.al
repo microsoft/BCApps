@@ -5,12 +5,18 @@
 
 namespace Microsoft.Integration.Shopify;
 
+using System.Apps;
+using System.Environment;
 using System.Environment.Configuration;
+using System.Feedback;
 
 codeunit 30211 "Shpfy Shop Mgt."
 {
     var
-        DontShowThisAgainMsg: Label 'Don''t show this again.';
+        BelgianCountryCodeTok: Label 'BE', Locked = true;
+        BelgianLocalizationAppIdTok: Label 'c2d93c78-f87a-4b0e-b71f-570f578d78de', Locked = true;
+        InstallActionLbl: Label 'Install';
+        DontShowThisAgainLbl: Label 'Don''t show this again.';
         ExpirationNotificationMsg: Label 'The Shopify Admin API used by your current Shopify connector will go out of support on %1. Please upgrade your Business Central environment.', Comment = '%1 - expiry date';
         BlockedNotificationMsg: Label 'The Shopify Admin API used by your current Shopify connector is no longer supported. To continue using the Shopify connector, please upgrade your Business Central environment.';
         ExpirationNotificationNameTok: Label 'Notify user of Shopify connector going out of support.';
@@ -19,6 +25,14 @@ codeunit 30211 "Shpfy Shop Mgt."
         BlockedNotificationDescTok: Label 'Show a notification informing the user that Shopify connector is out of support.';
         NoItemNotificationNameTok: Label 'Notify user of Shopify connector has no items.';
         NoItemNotificationDescTok: Label 'Show a notification informing the user that Shopify connector has no items.';
+        BelgianLocalizationNotificationMsg: Label 'Belgian customers use the Enterprise No. as their tax registration identifier. Install the Shopify Connector BE extension to synchronize Belgian companies and customers.';
+        BelgianLocalizationNotificationNameTok: Label 'Notify user to install the Shopify Connector BE extension.';
+        BelgianLocalizationNotificationDescTok: Label 'Show a notification informing the user that the Shopify Connector BE extension is required for Belgian localizations.';
+        NorthAmericaLocalizationNotificationMsg: Label 'Install the Shopify Connector NA extension to enable North America-specific features, including AI-assisted matching of Shopify tax lines to Business Central tax jurisdictions.';
+        NorthAmericaLocalizationNotificationNameTok: Label 'Notify user to install the Shopify Connector NA extension.';
+        NorthAmericaLocalizationNotificationDescTok: Label 'Show a notification informing the user that the Shopify Connector NA extension provides North America-specific features.';
+        UnitedStatesCountryCodeTok: Label 'US', Locked = true;
+        NorthAmericaLocalizationAppIdTok: Label 'a1b2c3d4-e5f6-47a8-9b0c-1d2e3f4a5b6c', Locked = true;
 
     internal procedure IsEnabled(): Boolean
     var
@@ -40,7 +54,7 @@ codeunit 30211 "Shpfy Shop Mgt."
             ExpirationNotification.Id := GetExpirationNotificationId();
             ExpirationNotification.Message := StrSubstNo(ExpirationNotificationMsg, Format(ExpiryDate));
             ExpirationNotification.Scope := NotificationScope::LocalScope;
-            ExpirationNotification.AddAction(DontShowThisAgainMsg, Codeunit::"Shpfy Shop Mgt.", 'DisableExpirationNotification');
+            ExpirationNotification.AddAction(DontShowThisAgainLbl, Codeunit::"Shpfy Shop Mgt.", 'DisableExpirationNotification');
             ExpirationNotification.Send();
         end;
     end;
@@ -54,7 +68,7 @@ codeunit 30211 "Shpfy Shop Mgt."
             BlockedNotification.Id := GetBlockedNotificationId();
             BlockedNotification.Message := BlockedNotificationMsg;
             BlockedNotification.Scope := NotificationScope::LocalScope;
-            BlockedNotification.AddAction(DontShowThisAgainMsg, Codeunit::"Shpfy Shop Mgt.", 'DisableBlockedNotification');
+            BlockedNotification.AddAction(DontShowThisAgainLbl, Codeunit::"Shpfy Shop Mgt.", 'DisableBlockedNotification');
             BlockedNotification.Send();
         end;
     end;
@@ -92,6 +106,13 @@ codeunit 30211 "Shpfy Shop Mgt."
                 MyNotifications.InsertDefault(GetBlockedNotificationId(), BlockedNotificationNameTok, BlockedNotificationDescTok, false);
     end;
 
+    internal procedure RequestFeedback()
+    var
+        Feedback: Codeunit "Microsoft User Feedback";
+    begin
+        Feedback.RequestFeedback('Shopify Connector', 'ShopifyConnector', 'Shopify Connector');
+    end;
+
     procedure DisableNoItemNotification(Notification: Notification)
     var
         MyNotifications: Record "My Notifications";
@@ -99,5 +120,134 @@ codeunit 30211 "Shpfy Shop Mgt."
         if MyNotifications.WritePermission() then
             if not MyNotifications.Disable(GetNoItemNotificationId()) then
                 MyNotifications.InsertDefault(GetNoItemNotificationId(), NoItemNotificationNameTok, NoItemNotificationDescTok, false);
+    end;
+
+    internal procedure SendBelgianLocalizationNotification()
+    var
+        MyNotifications: Record "My Notifications";
+        EnvironmentInformation: Codeunit "Environment Information";
+        BelgianLocalizationNotification: Notification;
+        IsInstalled: Boolean;
+    begin
+        if EnvironmentInformation.GetApplicationFamily() <> BelgianCountryCodeTok then
+            exit;
+
+        if not TryIsBelgianLocalizationInstalled(IsInstalled) then
+            exit;
+
+        if IsInstalled then
+            exit;
+
+        if not MyNotifications.IsEnabled(GetBelgianLocalizationNotificationId()) then
+            exit;
+
+        BelgianLocalizationNotification.Id := GetBelgianLocalizationNotificationId();
+        BelgianLocalizationNotification.Message := BelgianLocalizationNotificationMsg;
+        BelgianLocalizationNotification.Scope := NotificationScope::LocalScope;
+        BelgianLocalizationNotification.AddAction(InstallActionLbl, Codeunit::"Shpfy Shop Mgt.", 'InstallBelgianLocalization');
+        BelgianLocalizationNotification.AddAction(DontShowThisAgainLbl, Codeunit::"Shpfy Shop Mgt.", 'DisableBelgianLocalizationNotification');
+        BelgianLocalizationNotification.Send();
+    end;
+
+    [TryFunction]
+    local procedure TryIsBelgianLocalizationInstalled(var IsInstalled: Boolean)
+    var
+        ExtensionManagement: Codeunit "Extension Management";
+    begin
+        IsInstalled := ExtensionManagement.IsInstalledByAppId(GetBelgianLocalizationAppId());
+    end;
+
+    procedure InstallBelgianLocalization(Notification: Notification)
+    var
+        ExtensionManagement: Codeunit "Extension Management";
+    begin
+        ExtensionManagement.InstallMarketplaceExtension(GetBelgianLocalizationAppId());
+    end;
+
+    procedure DisableBelgianLocalizationNotification(Notification: Notification)
+    var
+        MyNotifications: Record "My Notifications";
+    begin
+        if MyNotifications.WritePermission() then
+            if not MyNotifications.Disable(GetBelgianLocalizationNotificationId()) then
+                MyNotifications.InsertDefault(GetBelgianLocalizationNotificationId(), BelgianLocalizationNotificationNameTok, BelgianLocalizationNotificationDescTok, false);
+    end;
+
+    local procedure GetBelgianLocalizationNotificationId(): Guid
+    begin
+        exit('ca66423d-4607-4a81-8805-2f5e58e70373');
+    end;
+
+    local procedure GetBelgianLocalizationAppId(): Guid
+    begin
+        exit(BelgianLocalizationAppIdTok);
+    end;
+
+    internal procedure SendNorthAmericaLocalizationNotification()
+    var
+        MyNotifications: Record "My Notifications";
+        NorthAmericaLocalizationNotification: Notification;
+        IsInstalled: Boolean;
+    begin
+        if not IsNorthAmericaApplicationFamily() then
+            exit;
+
+        if not TryIsNorthAmericaLocalizationInstalled(IsInstalled) then
+            exit;
+
+        if IsInstalled then
+            exit;
+
+        if not MyNotifications.IsEnabled(GetNorthAmericaLocalizationNotificationId()) then
+            exit;
+
+        NorthAmericaLocalizationNotification.Id := GetNorthAmericaLocalizationNotificationId();
+        NorthAmericaLocalizationNotification.Message := NorthAmericaLocalizationNotificationMsg;
+        NorthAmericaLocalizationNotification.Scope := NotificationScope::LocalScope;
+        NorthAmericaLocalizationNotification.AddAction(InstallActionLbl, Codeunit::"Shpfy Shop Mgt.", 'InstallNorthAmericaLocalization');
+        NorthAmericaLocalizationNotification.AddAction(DontShowThisAgainLbl, Codeunit::"Shpfy Shop Mgt.", 'DisableNorthAmericaLocalizationNotification');
+        NorthAmericaLocalizationNotification.Send();
+    end;
+
+    [TryFunction]
+    local procedure TryIsNorthAmericaLocalizationInstalled(var IsInstalled: Boolean)
+    var
+        ExtensionManagement: Codeunit "Extension Management";
+    begin
+        IsInstalled := ExtensionManagement.IsInstalledByAppId(GetNorthAmericaLocalizationAppId());
+    end;
+
+    procedure InstallNorthAmericaLocalization(Notification: Notification)
+    var
+        ExtensionManagement: Codeunit "Extension Management";
+    begin
+        ExtensionManagement.InstallMarketplaceExtension(GetNorthAmericaLocalizationAppId());
+    end;
+
+    procedure DisableNorthAmericaLocalizationNotification(Notification: Notification)
+    var
+        MyNotifications: Record "My Notifications";
+    begin
+        if MyNotifications.WritePermission() then
+            if not MyNotifications.Disable(GetNorthAmericaLocalizationNotificationId()) then
+                MyNotifications.InsertDefault(GetNorthAmericaLocalizationNotificationId(), NorthAmericaLocalizationNotificationNameTok, NorthAmericaLocalizationNotificationDescTok, false);
+    end;
+
+    local procedure IsNorthAmericaApplicationFamily(): Boolean
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
+    begin
+        // Shopify Connector NA is published for US only for now; add CA/MX when it is supported there.
+        exit(EnvironmentInformation.GetApplicationFamily() = UnitedStatesCountryCodeTok);
+    end;
+
+    local procedure GetNorthAmericaLocalizationNotificationId(): Guid
+    begin
+        exit('97659f9d-bc4a-45ca-90b7-a61b4e9aa455');
+    end;
+
+    local procedure GetNorthAmericaLocalizationAppId(): Guid
+    begin
+        exit(NorthAmericaLocalizationAppIdTok);
     end;
 }

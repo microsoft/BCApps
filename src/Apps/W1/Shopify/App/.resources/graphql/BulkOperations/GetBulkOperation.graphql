@@ -1,0 +1,2 @@
+# cost: 1
+{"query": "query { node(id: \"gid://shopify/BulkOperation/{{BulkOperationId}}\") { ... on BulkOperation { status errorCode completedAt url partialDataUrl }}}"}

@@ -22,7 +22,7 @@ codeunit 139560 "Shpfy Filter Mgt. Test"
     [Test]
     procedure UnitTestCleanFilterValue()
     var
-        TestFields: Record "Shpfy Test Fields";
+        TempTestFields: Record "Shpfy Test Fields";
         FilterMgt: Codeunit "Shpfy Filter Mgt.";
         Index: Integer;
         InvalidCharsTxt: Label '()*.<>=', Locked = true;
@@ -30,9 +30,9 @@ codeunit 139560 "Shpfy Filter Mgt. Test"
     begin
         // Creating Test data.
         for Index := 1 to StrLen(Format(InvalidCharsTxt)) do begin
-            TestFields.BigIntegerField := Index;
-            TestFields.TextField := Any.AlphabeticText(5 + Index) + Format(InvalidCharsTxt) [Index] + Any.AlphabeticText(3);
-            TestFields.Insert();
+            TempTestFields.BigIntegerField := Index;
+            TempTestFields.TextField := Any.AlphabeticText(5 + Index) + Format(InvalidCharsTxt) [Index] + Any.AlphabeticText(3);
+            TempTestFields.Insert();
         end;
 
         // [SCENARIO] Create for every record a searchstring with the function CleanFilterValue
@@ -40,16 +40,16 @@ codeunit 139560 "Shpfy Filter Mgt. Test"
         //            the result must be that 1 record is found.
 
         // [GIVEN] Textfield to convert for creating a search string.
-        if TestFields.FindSet(false) then
+        if TempTestFields.FindSet(false) then
             repeat
-                SearchStrings.Add(FilterMgt.CleanFilterValue(TestFields.TextField));
-            until TestFields.Next() = 0;
+                SearchStrings.Add(FilterMgt.CleanFilterValue(TempTestFields.TextField));
+            until TempTestFields.Next() = 0;
 
         // [WHEN] filtering on a searchstring 
         // [THEN] this must give a result of 1 record back.
         for Index := 1 to SearchStrings.Count do begin
-            TestFields.SetFilter(TextField, SearchStrings.Get(Index));
-            LibraryAssert.RecordCount(TestFields, 1);
+            TempTestFields.SetFilter(TextField, SearchStrings.Get(Index));
+            LibraryAssert.RecordCount(TempTestFields, 1);
         end;
     end;
 }

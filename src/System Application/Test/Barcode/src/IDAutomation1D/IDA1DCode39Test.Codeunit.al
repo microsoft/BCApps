@@ -25,41 +25,41 @@ codeunit 135044 "IDA 1D Code39 Test"
     [Test]
     procedure TestCode39EncodingWithChecksum();
     var
-        BarcodeEncodeSettings: Record "Barcode Encode Settings";
+        TempBarcodeEncodeSettings: Record "Barcode Encode Settings";
         GenericBarcodeTestHelper: Codeunit "Generic Barcode Test Helper";
     begin
         // [Scenario] Encoding a valid text with checksum enabled using Code39 symbology yields the correct result
 
-        BarcodeEncodeSettings."Enable Checksum" := true;
+        TempBarcodeEncodeSettings."Enable Checksum" := true;
 
-        GenericBarcodeTestHelper.EncodeFontSuccessTest(/* input */'1234', Enum::"Barcode Symbology"::Code39, BarcodeEncodeSettings, /* expected result */'(1234A) ');
+        GenericBarcodeTestHelper.EncodeFontSuccessTest(/* input */'1234', Enum::"Barcode Symbology"::Code39, TempBarcodeEncodeSettings, /* expected result */'(1234A) ');
     end;
 
     [Test]
     procedure TestCode39EncodingWithExtCharSet();
     var
-        BarcodeEncodeSettings: Record "Barcode Encode Settings";
+        TempBarcodeEncodeSettings: Record "Barcode Encode Settings";
         GenericBarcodeTestHelper: Codeunit "Generic Barcode Test Helper";
     begin
         // [Scenario] Encoding a valid text using Code39 symbology with "Allow Extended Charset" yields the correct result
 
-        BarcodeEncodeSettings."Allow Extended Charset" := true;
+        TempBarcodeEncodeSettings."Allow Extended Charset" := true;
 
-        GenericBarcodeTestHelper.EncodeFontSuccessTest(/* input */'>abcd<', Enum::"Barcode Symbology"::Code39, BarcodeEncodeSettings, /* expected result */'(%I+A+B+C+D%G)');
+        GenericBarcodeTestHelper.EncodeFontSuccessTest(/* input */'>abcd<', Enum::"Barcode Symbology"::Code39, TempBarcodeEncodeSettings, /* expected result */'(%I+A+B+C+D%G)');
     end;
 
     [Test]
     procedure TestCode39EncodingWithChecksumAndExtCharSet();
     var
-        BarcodeEncodeSettings: Record "Barcode Encode Settings";
+        TempBarcodeEncodeSettings: Record "Barcode Encode Settings";
         GenericBarcodeTestHelper: Codeunit "Generic Barcode Test Helper";
     begin
         // [Scenario] Encoding a valid text with checksum enabled using Code39 symbology with "Allow Extended Charset" yields the correct result
 
-        BarcodeEncodeSettings."Allow Extended Charset" := true;
-        BarcodeEncodeSettings."Enable Checksum" := true;
+        TempBarcodeEncodeSettings."Allow Extended Charset" := true;
+        TempBarcodeEncodeSettings."Enable Checksum" := true;
 
-        GenericBarcodeTestHelper.EncodeFontSuccessTest(/* input */'>abcd<', Enum::"Barcode Symbology"::Code39, BarcodeEncodeSettings, /* expected result */'(%I+A+B+C+D%GR) ');
+        GenericBarcodeTestHelper.EncodeFontSuccessTest(/* input */'>abcd<', Enum::"Barcode Symbology"::Code39, TempBarcodeEncodeSettings, /* expected result */'(%I+A+B+C+D%GR) ');
     end;
 
     [Test]
@@ -85,14 +85,14 @@ codeunit 135044 "IDA 1D Code39 Test"
     [Test]
     procedure TestCode39ValidationWithNormalStringExtCharSet();
     var
-        BarcodeEncodeSettings: Record "Barcode Encode Settings";
+        TempBarcodeEncodeSettings: Record "Barcode Encode Settings";
         GenericBarcodeTestHelper: Codeunit "Generic Barcode Test Helper";
     begin
         // [Scenario] Validating a correctly formatted text using Code39 symbology with "Allow Extended Charset" doesn't yield an error
 
-        BarcodeEncodeSettings."Allow Extended Charset" := true;
+        TempBarcodeEncodeSettings."Allow Extended Charset" := true;
 
-        GenericBarcodeTestHelper.ValidateFontSuccessTest(/* input */'1234abcd', Enum::"Barcode Symbology"::Code39, BarcodeEncodeSettings);
+        GenericBarcodeTestHelper.ValidateFontSuccessTest(/* input */'1234abcd', Enum::"Barcode Symbology"::Code39, TempBarcodeEncodeSettings);
     end;
 
     [Test]

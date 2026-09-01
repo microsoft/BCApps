@@ -21,24 +21,37 @@ codeunit 7783 "AOAI User Message"
     /// Adds a text content part to the user message.
     /// </summary>
     /// <param name="TextContent">The text content to add.</param>
+    [Scope('OnPrem')]
+#pragma warning disable AS0022
     procedure AddTextPart(TextContent: Text)
+#pragma warning restore AS0022
+    var
+        CallerModuleInfo: ModuleInfo;
     begin
-        AOAIUserMessageImpl.AddTextPart(TextContent);
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        AOAIUserMessageImpl.AddTextPart(TextContent, CallerModuleInfo);
     end;
 
     /// <summary>
     /// Adds a file content part to the user message.
     /// </summary>
     /// <param name="FileData">The file data to add (e.g. base64-encoded content).</param>
+    [Scope('OnPrem')]
+#pragma warning disable AS0022
     procedure AddFilePart(FileData: Text)
+#pragma warning restore AS0022
+    var
+        CallerModuleInfo: ModuleInfo;
     begin
-        AOAIUserMessageImpl.AddFilePart(FileData);
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        AOAIUserMessageImpl.AddFilePart(FileData, CallerModuleInfo);
     end;
 
     /// <summary>
     /// Gets the assembled content parts as a JsonArray.
     /// </summary>
     /// <returns>The content parts JsonArray.</returns>
+    [NonDebuggable]
     internal procedure GetContentParts(): JsonArray
     begin
         exit(AOAIUserMessageImpl.GetContentParts());

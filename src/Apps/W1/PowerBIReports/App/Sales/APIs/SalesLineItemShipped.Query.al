@@ -10,6 +10,7 @@ query 37006 "Sales Line - Item Shipped"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to sales order lines for items shipped but not yet invoiced including quantities and amounts pending invoicing. Enables Power BI reports to analyze shipped-not-invoiced accruals and revenue recognition timing.';
     Caption = 'Power BI Shipped Not Invd. SO';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

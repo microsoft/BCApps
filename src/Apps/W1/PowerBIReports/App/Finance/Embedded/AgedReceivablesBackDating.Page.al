@@ -11,8 +11,8 @@ page 36993 "Aged Receivables (Back Dating)"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Aged Receivables (Back Dating)';
-    AboutTitle = 'About Aged Receivables (Back Dating)';
+    Caption = 'Aged Receivables (Back Dating) (Power BI)';
+    AboutTitle = 'About Aged Receivables (Back Dating) (Power BI)';
     AboutText = 'The Aged Receivable Back Dating report categorizes customer balances into aging buckets. It offers flexibility with filters for different payment terms, aging dates, and custom aging bucket sizes.';
 
     layout
@@ -48,11 +48,8 @@ page 36993 "Aged Receivables (Back Dating)"
         ReportPageLbl: Label 'ReportSectionfef66fa3cf79c6d85930', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Finance Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Finance App");
     end;
 }
 

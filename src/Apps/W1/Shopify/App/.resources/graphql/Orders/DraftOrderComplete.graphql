@@ -1,0 +1,2 @@
+# cost: 11
+{"query": "mutation {draftOrderComplete(id: \"gid://shopify/DraftOrder/{{DraftOrderId}}\") { draftOrder { order { legacyResourceId, name }} userErrors { field, message }}}"}

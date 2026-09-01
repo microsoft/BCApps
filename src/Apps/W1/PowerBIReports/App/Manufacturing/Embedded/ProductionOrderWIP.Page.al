@@ -11,8 +11,8 @@ page 37107 "Production Order WIP"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = Manufacturing;
     PageType = UserControlHost;
-    Caption = 'Production Order WIP';
-    AboutTitle = 'About Production Order WIP';
+    Caption = 'Production Order WIP (Power BI)';
+    AboutTitle = 'About Production Order WIP (Power BI)';
     AboutText = 'View inventory valuation for selected production orders in your WIP inventory. The report also shows information about the value of consumption, capacity usage and output in WIP.';
 
     layout
@@ -48,11 +48,8 @@ page 37107 "Production Order WIP"
         ReportPageLbl: Label '6acf7a1bcebe65700b22', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Manufacturing Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Manufacturing App");
     end;
 }
 

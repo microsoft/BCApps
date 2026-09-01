@@ -27,6 +27,7 @@ table 20400 "Qlty. Management Setup"
     Caption = 'Quality Management Setup';
     DrillDownPageId = "Qlty. Management Setup";
     DataClassification = CustomerContent;
+    Permissions = tabledata "Qlty. Management Setup" = r;
 
     fields
     {
@@ -43,7 +44,7 @@ table 20400 "Qlty. Management Setup"
         field(4; "Inspection Creation Option"; Enum "Qlty. Inspect. Creation Option")
         {
             Caption = 'Inspection Creation Option';
-            ToolTip = 'Specifies whether and how a new quality inspection is created if existing inspections are found.';
+            ToolTip = 'Specifies handling of inspection creation when existing inspections are found.';
             InitValue = "Use existing open inspection if available";
         }
         field(5; "Inspection Search Criteria"; Enum "Qlty. Inspect. Search Criteria")
@@ -95,7 +96,7 @@ table 20400 "Qlty. Management Setup"
         field(27; "Additional Picture Handling"; Enum "Qlty. Add. Picture Handling")
         {
             Caption = 'Additional Picture Handling';
-            ToolTip = 'Specifies what to do with a picture after it has been taken.';
+            ToolTip = 'Specifies additional actions for pictures taken during inspections. By default, pictures are stored in the inspection, and only the most recent version is retained. Previous versions can be preserved with additional options.';
 
             trigger OnValidate()
             begin
@@ -106,6 +107,7 @@ table 20400 "Qlty. Management Setup"
         {
             Caption = 'Quality Inspection Selection Criteria';
             ToolTip = 'Specifies the checks the system uses to decide if a document-specific transaction should be blocked.';
+            InitValue = "Only the newest inspection/re-inspection";
         }
         field(29; "Warehouse Trigger"; Enum "Qlty. Warehouse Trigger")
         {
@@ -413,6 +415,9 @@ table 20400 "Qlty. Management Setup"
         WorksheetNameNotFoundErr: Label 'The worksheet name "%1" was not found. Confirm that the worksheet name is correct.', Comment = '%1=the worksheet name';
         OneDriveIntegrationNotConfiguredErr: Label 'The Quality Management Setup has been configured to upload pictures to OneDrive, however you have not yet configured Business Central to work with . Please configure OneDrive setup with Business Central first before using this feature.';
 
+    /// <summary>
+    /// Verifies that document service integration is configured when pictures are uploaded to OneDrive.
+    /// </summary>
     internal procedure SanityCheckPictureAndCameraSettings()
     var
         DocumentServiceManagement: Codeunit "Document Service Management";
@@ -424,11 +429,19 @@ table 20400 "Qlty. Management Setup"
             Error(OneDriveIntegrationNotConfiguredErr);
     end;
 
+    /// <summary>
+    /// Gets the application identifier for Quality Management.
+    /// </summary>
+    /// <returns>The Quality Management application identifier.</returns>
     internal procedure GetAppGuid(): Guid
     begin
         exit('bc7b3891-f61b-4883-bbb3-384cdef88bec');
     end;
 
+    /// <summary>
+    /// Gets the installed major and minor version of Quality Management.
+    /// </summary>
+    /// <returns>The installed version in major.minor format, or an empty value when the app is not found.</returns>
     internal procedure GetVersion() VersionText: Text
     var
         NAVAppInstalledApp: Record "NAV App Installed App";
@@ -438,6 +451,10 @@ table 20400 "Qlty. Management Setup"
             VersionText := Format(NAVAppInstalledApp."Version Major") + '.' + Format(NAVAppInstalledApp."Version Minor");
     end;
 
+    /// <summary>
+    /// Determines whether the premium experience is enabled for the company.
+    /// </summary>
+    /// <returns>True if the premium experience is enabled; otherwise, false.</returns>
     internal procedure GetIsCompanyPremiumEnabled(): Boolean
     var
         ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
@@ -445,11 +462,19 @@ table 20400 "Qlty. Management Setup"
         exit(ApplicationAreaMgmtFacade.IsPremiumExperienceEnabled());
     end;
 
+    /// <summary>
+    /// Gets the setup video link.
+    /// </summary>
+    /// <returns>The setup video link. Currently returns an empty value.</returns>
     internal procedure GetSetupVideoLink(): Text
     begin
         exit('');
     end;
 
+    /// <summary>
+    /// Opens item journal template selection for an inventory adjustment and gets the selected template name.
+    /// </summary>
+    /// <returns>The selected item journal template name.</returns>
     procedure GetInventoryAdjustmentJournalTemplate(): Code[10]
     var
         ItemJournalLine: Record "Item Journal Line";
@@ -464,6 +489,10 @@ table 20400 "Qlty. Management Setup"
         exit(ItemJournalLine.GetRangeMin("Journal Template Name"));
     end;
 
+    /// <summary>
+    /// Opens warehouse item journal template selection and gets the selected template name.
+    /// </summary>
+    /// <returns>The selected warehouse item journal template name.</returns>
     procedure GetWarehouseInventoryAdjustmentJournalTemplate(): Code[10]
     var
         WarehouseJournalLine: Record "Warehouse Journal Line";
@@ -477,6 +506,10 @@ table 20400 "Qlty. Management Setup"
         exit(WarehouseJournalLine.GetRangeMin("Journal Template Name"));
     end;
 
+    /// <summary>
+    /// Opens warehouse reclassification journal template selection and gets the selected template name.
+    /// </summary>
+    /// <returns>The selected warehouse reclassification journal template name.</returns>
     procedure GetWarehouseReclassificationJournalTemplate(): Code[10]
     var
         WarehouseJournalLine: Record "Warehouse Journal Line";
@@ -491,9 +524,9 @@ table 20400 "Qlty. Management Setup"
     end;
 
     /// <summary>
-    /// Gets the first page template for the supplied page.
+    /// Opens item reclassification journal template selection and gets the selected template name.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The selected item reclassification journal template name.</returns>
     procedure GetItemReclassJournalTemplate(): Code[10]
     var
         ItemJournalLine: Record "Item Journal Line";
@@ -509,9 +542,9 @@ table 20400 "Qlty. Management Setup"
     end;
 
     /// <summary>
-    /// Gets the first movement worksheet template name.
+    /// Opens movement worksheet template selection and gets the selected template name.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The selected movement worksheet template name.</returns>
     procedure GetMovementWorksheetTemplateName(): Code[10]
     var
         WhseWorksheetLine: Record "Whse. Worksheet Line";
@@ -522,11 +555,12 @@ table 20400 "Qlty. Management Setup"
         exit(WhseWorksheetLine.GetRangeMin("Worksheet Template Name"));
     end;
 
+    /// <summary>
+    /// Loads the Quality Management Setup record.
+    /// </summary>
+    /// <returns>True if the setup record exists; otherwise, false.</returns>
     internal procedure GetSetupRecord(): Boolean
     begin
-        if not Rec.ReadPermission() then
-            exit(false);
-
         exit(Rec.Get());
     end;
 

@@ -11,8 +11,8 @@ page 37017 "Purchases by Purchaser"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Purchases by Purchaser';
-    AboutTitle = 'About Purchases by Purchaser';
+    Caption = 'Purchases by Purchaser (Power BI)';
+    AboutTitle = 'About Purchases by Purchaser (Power BI)';
     AboutText = 'The Purchases by Purchaser report breaks down purchase amounts by individual purchasers, using a Treemap to visually compare spending contributions by item. A bar chart complements this, displaying purchase amounts for each purchaser. Making it easy to identify top spenders and track procurement patterns.';
 
     layout
@@ -48,11 +48,8 @@ page 37017 "Purchases by Purchaser"
         ReportPageLbl: Label 'ReportSection2530548032dd85837d8c', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Purchases Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Purchases App");
     end;
 }
 

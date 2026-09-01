@@ -11,8 +11,8 @@ page 37060 "Sales Report"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Sales Report';
-    AboutTitle = 'About Sales Report';
+    Caption = 'Sales Report (Power BI)';
+    AboutTitle = 'About Sales Report (Power BI)';
     AboutText = 'The Sales Report offers a consolidated view of all sales report pages, conveniently embedded into a single page for easy access.';
 
     layout
@@ -48,11 +48,8 @@ page 37060 "Sales Report"
         ReportPageLbl: Label '', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Sales Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Sales App");
     end;
 }
 

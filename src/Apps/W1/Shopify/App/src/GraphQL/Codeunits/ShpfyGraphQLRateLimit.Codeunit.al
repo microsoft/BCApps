@@ -61,9 +61,8 @@ codeunit 30153 "Shpfy GraphQL Rate Limit"
         if LastRequestedOn = 0DT then
             LastRequestedOn := CurrentDateTime - 1000;
         if (ExpectedCost = 0) or (ExpectedCost > LastAvailable) then begin
-            NextRequestAfter := CurrentDateTime;
             WaitTime := CalcWaitTime(ExpectedCost);
-            NextRequestAfter := LastRequestedOn + WaitTime;
+            NextRequestAfter := CurrentDateTime + WaitTime;
             WaitForRequestAvailable();
         end;
     end;

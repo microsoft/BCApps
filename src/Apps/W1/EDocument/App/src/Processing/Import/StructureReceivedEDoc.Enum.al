@@ -26,4 +26,9 @@ enum 6103 "Structure Received E-Doc." implements IStructureReceivedEDocument
         Caption = 'Azure Document Intelligence';
         Implementation = IStructureReceivedEDocument = "E-Document ADI Handler";
     }
+    value(3; "MLLM")
+    {
+        Caption = 'MLLM Extraction';
+        Implementation = IStructureReceivedEDocument = "E-Document MLLM Handler";
+    }
 }

@@ -16,7 +16,7 @@ table ENVIRONMENT
 	partition ENVIRONMENT = m
 		mode: import
 		queryGroup: 'Connection Details'
-		source = "PRODUCTION" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+		source = "a48072_p48015_US_28-0" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
 
 	changedProperty = IsHidden
 

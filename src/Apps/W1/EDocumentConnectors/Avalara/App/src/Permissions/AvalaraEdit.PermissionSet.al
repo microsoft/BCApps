@@ -4,12 +4,22 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.Avalara;
 
+/// <summary>
+/// Grants insert, modify, and delete access to all Avalara E-Document connector tables.
+/// </summary>
 permissionset 6373 "Avalara Edit"
 {
     Access = Public;
     Assignable = true;
+    Caption = 'Avalara E-Doc. - Edit', MaxLength = 30;
     IncludedPermissionSets = "Avalara Read";
-    Caption = 'Avalara E-Document Connector - Edit';
 
-    Permissions = tabledata "Connection Setup" = imd;
+    Permissions =
+                tabledata "Activation Header" = imd,
+                tabledata "Activation Mandate" = imd,
+                tabledata "Avalara Input Field" = imd,
+                tabledata "Avl Message Event" = imd,
+                tabledata "Avl Message Response Header" = imd,
+                tabledata "Connection Setup" = imd,
+                tabledata "Media Types" = imd;
 }

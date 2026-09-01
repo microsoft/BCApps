@@ -1,0 +1,2 @@
+# cost: 47
+{"query":"{products(first:100){pageInfo{hasNextPage},edges{cursor node{legacyResourceId media(first:1) { edges { node { mediaContentType ... on MediaImage { id image { url(transform: {maxHeight: 360, maxWidth: 360})}}}}}}}}}"}

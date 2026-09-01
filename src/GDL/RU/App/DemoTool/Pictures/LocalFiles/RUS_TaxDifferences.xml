@@ -1,0 +1,1387 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<TaxDifferencesRegisters>
+	<TaxCalcSection>
+		<Code>СТАНДАРТ</Code>
+		<Description>Нал. разницы (раздел по умолчанию)</Description>
+		<FormID>17321</FormID>
+		<Type>Стандарт</Type>
+		<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+		<Dimension1Code/>
+		<Dimension2Code/>
+		<Dimension3Code/>
+		<Dimension4Code/>
+		<StartingDate>01.01.10</StartingDate>
+		<EndingDate>31.12.10</EndingDate>
+		<TaxCalcHeader>
+			<SectionCode>СТАНДАРТ</SectionCode>
+			<No>ПНА</No>
+			<Description>Прочие разницы, формирующие ПНА</Description>
+			<TableID>17315</TableID>
+			<FormID>17325</FormID>
+			<Check>Да</Check>
+			<Level>0</Level>
+			<RegisterID>ПНА</RegisterID>
+			<StoringMethod>Операции</StoringMethod>
+			<TaxDiffCode>НР15</TaxDiffCode>
+			<GLCorrAnalysisViewCode/>
+			<TaxCalcSelectionSetup>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<RegisterNo>ПНА</RegisterNo>
+				<LineNo>10000</LineNo>
+				<AccountNo/>
+				<BalAccountNo>91-1390</BalAccountNo>
+				<RegisterType> </RegisterType>
+				<LineCode>L001</LineCode>
+			</TaxCalcSelectionSetup>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>ПНА</Code>
+				<LineNo>10000</LineNo>
+				<ExpressionType>Поле Суммы</ExpressionType>
+				<Expression/>
+				<LineCode/>
+				<Description>Доходы, не учитываемые в налогооблагаемой базе</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Да</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+		</TaxCalcHeader>
+		<TaxCalcHeader>
+			<SectionCode>СТАНДАРТ</SectionCode>
+			<No>ПНО</No>
+			<Description>Прочие разницы, формирующие ПНО</Description>
+			<TableID>17315</TableID>
+			<FormID>17325</FormID>
+			<Check>Да</Check>
+			<Level>0</Level>
+			<RegisterID>ПНО</RegisterID>
+			<StoringMethod>Операции</StoringMethod>
+			<TaxDiffCode>НР16</TaxDiffCode>
+			<GLCorrAnalysisViewCode/>
+			<TaxCalcSelectionSetup>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<RegisterNo>ПНО</RegisterNo>
+				<LineNo>10000</LineNo>
+				<AccountNo>26-9995|44-2995|91-2104|91-2390</AccountNo>
+				<BalAccountNo/>
+				<RegisterType> </RegisterType>
+				<LineCode>L001</LineCode>
+			</TaxCalcSelectionSetup>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>ПНО</Code>
+				<LineNo>10000</LineNo>
+				<ExpressionType>Поле Суммы</ExpressionType>
+				<Expression/>
+				<LineCode/>
+				<Description>Расходы, не учитываемые в налогооблагаемой базе</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Да</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+		</TaxCalcHeader>
+		<TaxCalcHeader>
+			<SectionCode>СТАНДАРТ</SectionCode>
+			<No>ПРЕДСТАВ</No>
+			<Description>Представительские расходы</Description>
+			<TableID>17315</TableID>
+			<FormID>17325</FormID>
+			<Check>Да</Check>
+			<Level>0</Level>
+			<RegisterID>ПРЕДСТАВ</RegisterID>
+			<StoringMethod>Операции</StoringMethod>
+			<TaxDiffCode>НР07</TaxDiffCode>
+			<GLCorrAnalysisViewCode/>
+			<TaxCalcSelectionSetup>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<RegisterNo>ПРЕДСТАВ</RegisterNo>
+				<LineNo>10000</LineNo>
+				<AccountNo>20-2930|26-9300|44-2930</AccountNo>
+				<BalAccountNo/>
+				<RegisterType> </RegisterType>
+				<LineCode/>
+			</TaxCalcSelectionSetup>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>ПРЕДСТАВ</Code>
+				<LineNo>20000</LineNo>
+				<ExpressionType>Поле Суммы</ExpressionType>
+				<Expression/>
+				<LineCode>РАСХОДЫ</LineCode>
+				<Description>Представит. расходы с нач. года (БУ)</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Да</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period>CP..ED</Period>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>ПРЕДСТАВ</Code>
+				<LineNo>30000</LineNo>
+				<ExpressionType>Ссылка</ExpressionType>
+				<Expression>СПИСАТЬ</Expression>
+				<LineCode/>
+				<Description>Предcтавит.расходы в пределах нормы с нач. года</Description>
+				<Value>0</Value>
+				<LinkRegisterNo>ПРЕДСТНОРМ</LinkRegisterNo>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType>Расчетное Поле</LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Да</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+		</TaxCalcHeader>
+		<TaxCalcHeader>
+			<SectionCode>СТАНДАРТ</SectionCode>
+			<No>ПРЕДСТНОРМ</No>
+			<Description>Норма предcтавительских расходов</Description>
+			<TableID>17314</TableID>
+			<FormID>0</FormID>
+			<Check>Нет</Check>
+			<Level>1</Level>
+			<RegisterID>ПРЕДСТНОРМ</RegisterID>
+			<StoringMethod>Расчет</StoringMethod>
+			<TaxDiffCode/>
+			<GLCorrAnalysisViewCode/>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>ПРЕДСТНОРМ</Code>
+				<LineNo>10000</LineNo>
+				<ExpressionType>Норма</ExpressionType>
+				<Expression>ФОТ_П</Expression>
+				<LineCode>ФОТ</LineCode>
+				<Description>Общий ФОТ с начала года</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>ПРЕДСТНОРМ</Code>
+				<LineNo>20000</LineNo>
+				<ExpressionType>Норма</ExpressionType>
+				<Expression>НОРМПРЕДСТ</Expression>
+				<LineCode>НОРМПРЕДСТ</LineCode>
+				<Description>Норма представительских расходов</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>ПРЕДСТНОРМ</Code>
+				<LineNo>30000</LineNo>
+				<ExpressionType>Итог</ExpressionType>
+				<Expression>ФОТ * НОРМПРЕДСТ</Expression>
+				<LineCode>ЛИМИТ</LineCode>
+				<Description>Предельная сумма списания на расходы с нач. года</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>ПРЕДСТНОРМ</Code>
+				<LineNo>40000</LineNo>
+				<ExpressionType>Ссылка</ExpressionType>
+				<Expression>РАСХОДЫ</Expression>
+				<LineCode>ФАКТРАСХ</LineCode>
+				<Description>Представит. расходы с нач. года (БУ)</Description>
+				<Value>0</Value>
+				<LinkRegisterNo>ПРЕДСТАВ</LinkRegisterNo>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>ПРЕДСТНОРМ</Code>
+				<LineNo>50000</LineNo>
+				<ExpressionType>Итог</ExpressionType>
+				<Expression>ЛИМИТ ? ФАКТРАСХ</Expression>
+				<LineCode>СПИСАТЬ</LineCode>
+				<Description>Предcтавительские расходы в пределах нормы с нач. года</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+		</TaxCalcHeader>
+		<TaxCalcHeader>
+			<SectionCode>СТАНДАРТ</SectionCode>
+			<No>РАСХОДЫ</No>
+			<Description>Разные расходы в бухгалтерском и налоговом учете при наличии авансов в валюте</Description>
+			<TableID>17315</TableID>
+			<FormID>17325</FormID>
+			<Check>Да</Check>
+			<Level>0</Level>
+			<RegisterID>РАСХОДЫ</RegisterID>
+			<StoringMethod>Операции</StoringMethod>
+			<TaxDiffCode>НР14</TaxDiffCode>
+			<GLCorrAnalysisViewCode/>
+			<TaxCalcSelectionSetup>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<RegisterNo>РАСХОДЫ</RegisterNo>
+				<LineNo>10000</LineNo>
+				<AccountNo>20-0000..20-9999</AccountNo>
+				<BalAccountNo>60-1110</BalAccountNo>
+				<RegisterType> </RegisterType>
+				<LineCode>L20</LineCode>
+			</TaxCalcSelectionSetup>
+			<TaxCalcSelectionSetup>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<RegisterNo>РАСХОДЫ</RegisterNo>
+				<LineNo>20000</LineNo>
+				<AccountNo>26-0000..26-9999</AccountNo>
+				<BalAccountNo>60-1110</BalAccountNo>
+				<RegisterType> </RegisterType>
+				<LineCode>L26</LineCode>
+			</TaxCalcSelectionSetup>
+			<TaxCalcSelectionSetup>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<RegisterNo>РАСХОДЫ</RegisterNo>
+				<LineNo>30000</LineNo>
+				<AccountNo>44-0000..44-9999</AccountNo>
+				<BalAccountNo>60-1110</BalAccountNo>
+				<RegisterType> </RegisterType>
+				<LineCode>L44</LineCode>
+			</TaxCalcSelectionSetup>
+			<TaxCalcSelectionSetup>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<RegisterNo>РАСХОДЫ</RegisterNo>
+				<LineNo>40000</LineNo>
+				<AccountNo>91-2000..91-2999</AccountNo>
+				<BalAccountNo>60-1110</BalAccountNo>
+				<RegisterType> </RegisterType>
+				<LineCode>L91</LineCode>
+			</TaxCalcSelectionSetup>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>РАСХОДЫ</Code>
+				<LineNo>10000</LineNo>
+				<ExpressionType>Поле Суммы</ExpressionType>
+				<Expression/>
+				<LineCode>L20</LineCode>
+				<Description>Расходы по 20 счету при покупке в вал. в БУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period>CP..ED</Period>
+				<SelectionLineCode>L20</SelectionLineCode>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>РАСХОДЫ</Code>
+				<LineNo>20000</LineNo>
+				<ExpressionType>Поле Суммы</ExpressionType>
+				<Expression/>
+				<LineCode>L20D</LineCode>
+				<Description>Расходы по 20 счету при покупке в вал. в БУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period>CP..ED</Period>
+				<SelectionLineCode>L20</SelectionLineCode>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>РАСХОДЫ</Code>
+				<LineNo>30000</LineNo>
+				<ExpressionType>Поле Суммы</ExpressionType>
+				<Expression/>
+				<LineCode>L26</LineCode>
+				<Description>Расходы по 26 счету при покупке в вал. в БУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period>CP..ED</Period>
+				<SelectionLineCode>L26</SelectionLineCode>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>РАСХОДЫ</Code>
+				<LineNo>40000</LineNo>
+				<ExpressionType>Поле Суммы</ExpressionType>
+				<Expression/>
+				<LineCode>L26D</LineCode>
+				<Description>Расходы по 26 счету при покупке в вал. в БУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period>CP..ED</Period>
+				<SelectionLineCode>L26</SelectionLineCode>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>РАСХОДЫ</Code>
+				<LineNo>50000</LineNo>
+				<ExpressionType>Поле Суммы</ExpressionType>
+				<Expression/>
+				<LineCode>L44</LineCode>
+				<Description>Расходы по 44 счету при покупке в вал. в БУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period>CP..ED</Period>
+				<SelectionLineCode>L44</SelectionLineCode>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>РАСХОДЫ</Code>
+				<LineNo>60000</LineNo>
+				<ExpressionType>Поле Суммы</ExpressionType>
+				<Expression/>
+				<LineCode>L44D</LineCode>
+				<Description>Расходы по 44 счету при покупке в вал. в БУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period>CP..ED</Period>
+				<SelectionLineCode>L44</SelectionLineCode>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>РАСХОДЫ</Code>
+				<LineNo>70000</LineNo>
+				<ExpressionType>Поле Суммы</ExpressionType>
+				<Expression/>
+				<LineCode>L91</LineCode>
+				<Description>Расходы по 91 счету при покупке в вал. в БУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period>CP..ED</Period>
+				<SelectionLineCode>L91</SelectionLineCode>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>РАСХОДЫ</Code>
+				<LineNo>80000</LineNo>
+				<ExpressionType>Поле Суммы</ExpressionType>
+				<Expression/>
+				<LineCode>L91D</LineCode>
+				<Description>Расходы по 91 счету при покупке в вал. в БУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period>CP..ED</Period>
+				<SelectionLineCode>L91</SelectionLineCode>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>РАСХОДЫ</Code>
+				<LineNo>90000</LineNo>
+				<ExpressionType>Итог</ExpressionType>
+				<Expression>L20+L26+L44+L91</Expression>
+				<LineCode>A</LineCode>
+				<Description>Расходы при покупке в вал. в БУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType>Расчетное Поле</LineType>
+				<TaxDiffAmountBase>Да</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>РАСХОДЫ</Code>
+				<LineNo>100000</LineNo>
+				<ExpressionType>Итог</ExpressionType>
+				<Expression>L20D+L26D+L44D+L91D</Expression>
+				<LineCode>D</LineCode>
+				<Description>Разница при покупке в вал. между БУ и НУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType>Расчетное Поле</LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>РАСХОДЫ</Code>
+				<LineNo>110000</LineNo>
+				<ExpressionType>Итог</ExpressionType>
+				<Expression>A-D</Expression>
+				<LineCode>TA</LineCode>
+				<Description>Расходы при покупке в вал. в НУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType>Расчетное Поле</LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Да</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcDimFilter>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<RegisterNo>РАСХОДЫ</RegisterNo>
+				<Define>шаблон</Define>
+				<LineNo>20000</LineNo>
+				<DimensionCode>НУ-ОБЪЕКТ</DimensionCode>
+				<DimensionValueFilter>PREPDIF</DimensionValueFilter>
+				<EntryNo>0</EntryNo>
+				<IfNoValue>Игнорировать</IfNoValue>
+			</TaxCalcDimFilter>
+			<TaxCalcDimFilter>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<RegisterNo>РАСХОДЫ</RegisterNo>
+				<Define>шаблон</Define>
+				<LineNo>40000</LineNo>
+				<DimensionCode>НУ-ОБЪЕКТ</DimensionCode>
+				<DimensionValueFilter>PREPDIF</DimensionValueFilter>
+				<EntryNo>0</EntryNo>
+				<IfNoValue>Игнорировать</IfNoValue>
+			</TaxCalcDimFilter>
+			<TaxCalcDimFilter>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<RegisterNo>РАСХОДЫ</RegisterNo>
+				<Define>шаблон</Define>
+				<LineNo>60000</LineNo>
+				<DimensionCode>НУ-ОБЪЕКТ</DimensionCode>
+				<DimensionValueFilter>PREPDIF</DimensionValueFilter>
+				<EntryNo>0</EntryNo>
+				<IfNoValue>Игнорировать</IfNoValue>
+			</TaxCalcDimFilter>
+			<TaxCalcDimFilter>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<RegisterNo>РАСХОДЫ</RegisterNo>
+				<Define>шаблон</Define>
+				<LineNo>80000</LineNo>
+				<DimensionCode>НУ-ОБЪЕКТ</DimensionCode>
+				<DimensionValueFilter>PREPDIF</DimensionValueFilter>
+				<EntryNo>0</EntryNo>
+				<IfNoValue>Игнорировать</IfNoValue>
+			</TaxCalcDimFilter>
+		</TaxCalcHeader>
+		<TaxCalcHeader>
+			<SectionCode>СТАНДАРТ</SectionCode>
+			<No>РЕКЛАМА</No>
+			<Description>Расходы на рекламу</Description>
+			<TableID>17315</TableID>
+			<FormID>17325</FormID>
+			<Check>Да</Check>
+			<Level>0</Level>
+			<RegisterID>РЕКЛАМА</RegisterID>
+			<StoringMethod>Операции</StoringMethod>
+			<TaxDiffCode/>
+			<GLCorrAnalysisViewCode/>
+			<TaxCalcSelectionSetup>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<RegisterNo>РЕКЛАМА</RegisterNo>
+				<LineNo>10000</LineNo>
+				<AccountNo>44-2961</AccountNo>
+				<BalAccountNo/>
+				<RegisterType> </RegisterType>
+				<LineCode/>
+			</TaxCalcSelectionSetup>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>РЕКЛАМА</Code>
+				<LineNo>20000</LineNo>
+				<ExpressionType>Поле Суммы</ExpressionType>
+				<Expression/>
+				<LineCode>РАСХОДЫ</LineCode>
+				<Description>Расходы на рекламу с нач. года (БУ)</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>10</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Да</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period>CP..ED</Period>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>РЕКЛАМА</Code>
+				<LineNo>30000</LineNo>
+				<ExpressionType>Ссылка</ExpressionType>
+				<Expression>DEDUCT</Expression>
+				<LineCode/>
+				<Description>Расходы на рекламу в пределах нормы с нач. года (НУ)</Description>
+				<Value>0</Value>
+				<LinkRegisterNo>РЕКЛАМНОРМ</LinkRegisterNo>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType>Расчетное Поле</LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Да</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+		</TaxCalcHeader>
+		<TaxCalcHeader>
+			<SectionCode>СТАНДАРТ</SectionCode>
+			<No>РЕКЛАМНОРМ</No>
+			<Description>Нормa  расходов на рекламу</Description>
+			<TableID>17314</TableID>
+			<FormID>0</FormID>
+			<Check>Нет</Check>
+			<Level>1</Level>
+			<RegisterID>РЕКЛАМНОРМ</RegisterID>
+			<StoringMethod>Расчет</StoringMethod>
+			<TaxDiffCode>НР04</TaxDiffCode>
+			<GLCorrAnalysisViewCode/>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>РЕКЛАМНОРМ</Code>
+				<LineNo>10000</LineNo>
+				<ExpressionType>Норма</ExpressionType>
+				<Expression>ВЫРУЧКА</Expression>
+				<LineCode>ВЫРУЧКА</LineCode>
+				<Description>Выручка с начала года</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>РЕКЛАМНОРМ</Code>
+				<LineNo>20000</LineNo>
+				<ExpressionType>Норма</ExpressionType>
+				<Expression>НОРМРЕКЛАМ</Expression>
+				<LineCode>НОРМРЕКЛАМ</LineCode>
+				<Description>Нормa  расходов на рекламу</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode>НОРМЫ</NormJurisdictionCode>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>РЕКЛАМНОРМ</Code>
+				<LineNo>30000</LineNo>
+				<ExpressionType>Итог</ExpressionType>
+				<Expression>ВЫРУЧКА * НОРМРЕКЛАМ</Expression>
+				<LineCode>ЛИМИТ</LineCode>
+				<Description>Предельная сумма списания на расходы с начала года</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>РЕКЛАМНОРМ</Code>
+				<LineNo>40000</LineNo>
+				<ExpressionType>Ссылка</ExpressionType>
+				<Expression>РАСХОДЫ</Expression>
+				<LineCode>ФАКТРАСХ</LineCode>
+				<Description>Расходы на рекламу с нач. года (БУ)</Description>
+				<Value>0</Value>
+				<LinkRegisterNo>РЕКЛАМА</LinkRegisterNo>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>РЕКЛАМНОРМ</Code>
+				<LineNo>50000</LineNo>
+				<ExpressionType>Итог</ExpressionType>
+				<Expression>ФАКТРАСХ ? ЛИМИТ</Expression>
+				<LineCode>СПИСАТЬ</LineCode>
+				<Description>Расходы на рекламу в пределах нормы с начала года</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+		</TaxCalcHeader>
+		<TaxCalcHeader>
+			<SectionCode>СТАНДАРТ</SectionCode>
+			<No>СР_ПРИБЫЛЬ</No>
+			<Description>Разные доходы по курсовым (бух.учет) и суммовым (НУ) разницам</Description>
+			<TableID>17315</TableID>
+			<FormID>17325</FormID>
+			<Check>Да</Check>
+			<Level>0</Level>
+			<RegisterID>СР_ПРИБЫЛЬ</RegisterID>
+			<StoringMethod>Операции</StoringMethod>
+			<TaxDiffCode>НР09</TaxDiffCode>
+			<GLCorrAnalysisViewCode/>
+			<TaxCalcSelectionSetup>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<RegisterNo>СР_ПРИБЫЛЬ</RegisterNo>
+				<LineNo>10000</LineNo>
+				<AccountNo>60-1110|62-1110</AccountNo>
+				<BalAccountNo>91-1310|91-1311</BalAccountNo>
+				<RegisterType> </RegisterType>
+				<LineCode>КР</LineCode>
+			</TaxCalcSelectionSetup>
+			<TaxCalcSelectionSetup>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<RegisterNo>СР_ПРИБЫЛЬ</RegisterNo>
+				<LineNo>20000</LineNo>
+				<AccountNo>:НУ_БАЛ</AccountNo>
+				<BalAccountNo>:СР_П_КЛ|:СР_П_П</BalAccountNo>
+				<RegisterType> </RegisterType>
+				<LineCode>СР</LineCode>
+			</TaxCalcSelectionSetup>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>СР_ПРИБЫЛЬ</Code>
+				<LineNo>10000</LineNo>
+				<ExpressionType>Поле Суммы</ExpressionType>
+				<Expression/>
+				<LineCode>КР</LineCode>
+				<Description>Положительные курсовые разницы - БУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Да</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period/>
+				<SelectionLineCode>КР</SelectionLineCode>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>СР_ПРИБЫЛЬ</Code>
+				<LineNo>20000</LineNo>
+				<ExpressionType>Поле Суммы</ExpressionType>
+				<Expression/>
+				<LineCode>СР</LineCode>
+				<Description>Положительные курсовые разницы НУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Да</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period/>
+				<SelectionLineCode>СР</SelectionLineCode>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+		</TaxCalcHeader>
+		<TaxCalcHeader>
+			<SectionCode>СТАНДАРТ</SectionCode>
+			<No>СР_УБЫТКИ</No>
+			<Description>Разные расходы по курсовым (бух.учет) и суммовым (НУ) разницам</Description>
+			<TableID>17315</TableID>
+			<FormID>17325</FormID>
+			<Check>Да</Check>
+			<Level>0</Level>
+			<RegisterID>СР_УБЫТКИ</RegisterID>
+			<StoringMethod>Операции</StoringMethod>
+			<TaxDiffCode>НР10</TaxDiffCode>
+			<GLCorrAnalysisViewCode/>
+			<TaxCalcSelectionSetup>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<RegisterNo>СР_УБЫТКИ</RegisterNo>
+				<LineNo>10000</LineNo>
+				<AccountNo>91-2310|91-2311</AccountNo>
+				<BalAccountNo>60-1110|62-1110</BalAccountNo>
+				<RegisterType> </RegisterType>
+				<LineCode>КР</LineCode>
+			</TaxCalcSelectionSetup>
+			<TaxCalcSelectionSetup>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<RegisterNo>СР_УБЫТКИ</RegisterNo>
+				<LineNo>20000</LineNo>
+				<AccountNo>:СР_П_КЛ|:СР_П_П</AccountNo>
+				<BalAccountNo>:НУ_БАЛ</BalAccountNo>
+				<RegisterType> </RegisterType>
+				<LineCode>СР</LineCode>
+			</TaxCalcSelectionSetup>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>СР_УБЫТКИ</Code>
+				<LineNo>10000</LineNo>
+				<ExpressionType>Поле Суммы</ExpressionType>
+				<Expression/>
+				<LineCode>КР</LineCode>
+				<Description>Отрицательные курсовые разницы - БУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Да</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period/>
+				<SelectionLineCode>КР</SelectionLineCode>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>СР_УБЫТКИ</Code>
+				<LineNo>20000</LineNo>
+				<ExpressionType>Поле Суммы</ExpressionType>
+				<Expression/>
+				<LineCode>СР</LineCode>
+				<Description>Отрицательные курсовые разницы - НУ</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Да</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period/>
+				<SelectionLineCode>СР</SelectionLineCode>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+		</TaxCalcHeader>
+		<TaxCalcHeader>
+			<SectionCode>СТАНДАРТ</SectionCode>
+			<No>ТОВАРЫ</No>
+			<Description>Учет себестоимости товаров</Description>
+			<TableID>17317</TableID>
+			<FormID>17326</FormID>
+			<Check>Да</Check>
+			<Level>0</Level>
+			<RegisterID>ТОВАРЫ</RegisterID>
+			<StoringMethod>Операции</StoringMethod>
+			<TaxDiffCode>НР08</TaxDiffCode>
+			<GLCorrAnalysisViewCode/>
+			<TaxCalcSelectionSetup>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<RegisterNo>ТОВАРЫ</RegisterNo>
+				<LineNo>10000</LineNo>
+				<AccountNo>41-0000..41-9999|10-0000..10-9999</AccountNo>
+				<BalAccountNo/>
+				<RegisterType>Товар</RegisterType>
+				<LineCode/>
+			</TaxCalcSelectionSetup>
+			<TaxCalcSelectionSetup>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<RegisterNo>ТОВАРЫ</RegisterNo>
+				<LineNo>20000</LineNo>
+				<AccountNo/>
+				<BalAccountNo>41-0000..41-9999|10-0000..10-9999</BalAccountNo>
+				<RegisterType>Товар</RegisterType>
+				<LineCode/>
+			</TaxCalcSelectionSetup>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>ТОВАРЫ</Code>
+				<LineNo>10000</LineNo>
+				<ExpressionType>Заголовок</ExpressionType>
+				<Expression/>
+				<LineCode/>
+				<Description>В расчет включены только партии товаров,</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>ТОВАРЫ</Code>
+				<LineNo>20000</LineNo>
+				<ExpressionType>Заголовок</ExpressionType>
+				<Expression/>
+				<LineCode/>
+				<Description>у которых себестоимость в бухгалтерском учете</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>ТОВАРЫ</Code>
+				<LineNo>30000</LineNo>
+				<ExpressionType>Заголовок</ExpressionType>
+				<Expression/>
+				<LineCode/>
+				<Description>отличается от себестоимости в налоговом учете</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>ТОВАРЫ</Code>
+				<LineNo>35000</LineNo>
+				<ExpressionType>Поле Суммы</ExpressionType>
+				<Expression/>
+				<LineCode/>
+				<Description/>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>ТОВАРЫ</Code>
+				<LineNo>40000</LineNo>
+				<ExpressionType>Заголовок</ExpressionType>
+				<Expression/>
+				<LineCode/>
+				<Description>Изменение себестоимости товаров на складе в текущем месяце (БУ)</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>ТОВАРЫ</Code>
+				<LineNo>50000</LineNo>
+				<ExpressionType>Поле Суммы</ExpressionType>
+				<Expression/>
+				<LineCode/>
+				<Description>Приход</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>60</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>1</Indentation>
+				<Bold>Нет</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>ТОВАРЫ</Code>
+				<LineNo>60000</LineNo>
+				<ExpressionType>Поле Суммы</ExpressionType>
+				<Expression/>
+				<LineCode/>
+				<Description>Расход</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>61</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Да</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>1</Indentation>
+				<Bold>Нет</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>ТОВАРЫ</Code>
+				<LineNo>70000</LineNo>
+				<ExpressionType>Заголовок</ExpressionType>
+				<Expression/>
+				<LineCode/>
+				<Description>Изменение себестоимости товаров на складе в текущем месяце (НУ)</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>0</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>ТОВАРЫ</Code>
+				<LineNo>80000</LineNo>
+				<ExpressionType>Поле Суммы</ExpressionType>
+				<Expression/>
+				<LineCode/>
+				<Description>Приход</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>54</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>1</Indentation>
+				<Bold>Нет</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>ТОВАРЫ</Code>
+				<LineNo>90000</LineNo>
+				<ExpressionType>Поле Суммы</ExpressionType>
+				<Expression/>
+				<LineCode/>
+				<Description>Расход</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>56</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Да</TaxDiffAmountTax>
+				<Indentation>1</Indentation>
+				<Bold>Нет</Bold>
+				<Period/>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>ТОВАРЫ</Code>
+				<LineNo>100000</LineNo>
+				<ExpressionType>Поле Суммы</ExpressionType>
+				<Expression/>
+				<LineCode/>
+				<Description>Себестоимость товаров на складе на конец текущего месяца (БУ)</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>58</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period>..ED</Period>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+			<TaxCalcLine>
+				<SectionCode>СТАНДАРТ</SectionCode>
+				<Code>ТОВАРЫ</Code>
+				<LineNo>110000</LineNo>
+				<ExpressionType>Поле Суммы</ExpressionType>
+				<Expression/>
+				<LineCode/>
+				<Description>Себестоимость товаров на складе на конец текущего месяца (НУ)</Description>
+				<Value>0</Value>
+				<LinkRegisterNo/>
+				<SumFieldNo>52</SumFieldNo>
+				<RoundingPrecision>0</RoundingPrecision>
+				<NormJurisdictionCode/>
+				<LineType> </LineType>
+				<TaxDiffAmountBase>Нет</TaxDiffAmountBase>
+				<TaxDiffAmountTax>Нет</TaxDiffAmountTax>
+				<Indentation>0</Indentation>
+				<Bold>Нет</Bold>
+				<Period>..ED</Period>
+				<SelectionLineCode/>
+				<DepreciationGroup/>
+				<BelongingToManufacturing> </BelongingToManufacturing>
+				<FAType> </FAType>
+				<Disposed>Нет</Disposed>
+			</TaxCalcLine>
+		</TaxCalcHeader>
+	</TaxCalcSection>
+</TaxDifferencesRegisters>

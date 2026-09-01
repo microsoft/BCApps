@@ -35,7 +35,6 @@ codeunit 139538 "Shpfy Sync Variant Images Test"
     var
         Product: Record "Shpfy Product";
         Variant: Record "Shpfy Variant";
-        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         InitializeTest: Codeunit "Shpfy Initialize Test";
         AccessToken: SecretText;
     begin
@@ -49,8 +48,6 @@ codeunit 139538 "Shpfy Sync Variant Images Test"
         end;
         Shop := InitializeTest.CreateShop();
 
-        // Disable Event Mocking 
-        CommunicationMgt.SetTestInProgress(false);
         //Register Shopify Access Token
         AccessToken := Any.AlphanumericText(20);
         InitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);
@@ -100,7 +97,6 @@ codeunit 139538 "Shpfy Sync Variant Images Test"
         Variant: Record "Shpfy Variant";
         LibraryInventory: Codeunit "Library - Inventory";
         SyncProductImage: Codeunit "Shpfy Sync Product Image";
-        SyncVariantImgHelper: Codeunit "Shpfy Sync Variant Img Helper";
         ImageId, ProductId, VariantId : BigInteger;
     begin
         // [SCENARIO] Set variant image in shopify when there is no image in shopify
@@ -122,9 +118,7 @@ codeunit 139538 "Shpfy Sync Variant Images Test"
         VariantId := CreateVariant(Item, ItemVariant, ProductId);
 
         // [WHEN] Execute sync product image
-        BindSubscription(SyncVariantImgHelper);
         SyncProductImage.Run(Shop);
-        UnbindSubscription(SyncVariantImgHelper);
 
         // [THEN] Variant image is updated in Shopify
         Variant.Get(VariantId);
@@ -142,7 +136,6 @@ codeunit 139538 "Shpfy Sync Variant Images Test"
         Variant: Record "Shpfy Variant";
         LibraryInventory: Codeunit "Library - Inventory";
         SyncProductImage: Codeunit "Shpfy Sync Product Image";
-        SyncVariantImgHelper: Codeunit "Shpfy Sync Variant Img Helper";
         ImageId, ImageHash, ProductId : BigInteger;
     begin
         // [SCENARIO] Update variant picture in Shopify
@@ -165,9 +158,7 @@ codeunit 139538 "Shpfy Sync Variant Images Test"
         ImageHash := SetVariantImageFields(Variant);
 
         // [WHEN] Execute sync product image
-        BindSubscription(SyncVariantImgHelper);
         SyncProductImage.Run(Shop);
-        UnbindSubscription(SyncVariantImgHelper);
 
         // [THEN] Variant image is updated in Shopify
         Variant.GetBySystemId(Variant.SystemId);
@@ -202,8 +193,10 @@ codeunit 139538 "Shpfy Sync Variant Images Test"
         UploadVariantImageResponseTok: Label 'Products/UploadVariantImageResponse.txt', Locked = true;
     begin
         case OutboundHttpRequests.Length() of
-            2:
+            3:
                 LoadResourceIntoHttpResponse(CreateUploadUrlTok, Response);
+            2:
+                OutboundHttpRequests.DequeueText();
             1:
                 LoadResourceIntoHttpResponse(UploadVariantImageResponseTok, Response);
             0:
@@ -220,10 +213,12 @@ codeunit 139538 "Shpfy Sync Variant Images Test"
         UploadVariantImageResponseTok: Label 'Products/UploadVariantImageResponse.txt', Locked = true;
     begin
         case OutboundHttpRequests.Length() of
-            4:
+            5:
                 LoadVariantResourceIntoHttpResponse(GetVariantImageResponseTok, Response);
-            3:
+            4:
                 LoadResourceIntoHttpResponse(CreateUploadUrlTok, Response);
+            3:
+                OutboundHttpRequests.DequeueText();
             2:
                 LoadResourceIntoHttpResponse(UploadImageTok, Response);
             1:
@@ -243,6 +238,7 @@ codeunit 139538 "Shpfy Sync Variant Images Test"
     local procedure RegExpectedOutboundHttpRequestsForUploadVariantImage()
     begin
         OutboundHttpRequests.Enqueue('GQL Create Upload URL');
+        OutboundHttpRequests.Enqueue('PUT Upload Image');
         OutboundHttpRequests.Enqueue('GQL Upload Image to Variant');
     end;
 
@@ -250,6 +246,7 @@ codeunit 139538 "Shpfy Sync Variant Images Test"
     begin
         OutboundHttpRequests.Enqueue('GQL Get Variant Image');
         OutboundHttpRequests.Enqueue('GQL Create Upload URL');
+        OutboundHttpRequests.Enqueue('PUT Upload Image');
         OutboundHttpRequests.Enqueue('GQL Upload Product Image');
         OutboundHttpRequests.Enqueue('GQL Set Image to Variant');
     end;

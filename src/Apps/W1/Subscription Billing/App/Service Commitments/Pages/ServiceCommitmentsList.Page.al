@@ -148,12 +148,12 @@ page 8014 "Service Commitments List"
                 }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
-                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
+                    ApplicationArea = Dimensions;
                     Visible = false;
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
-                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
+                    ApplicationArea = Dimensions;
                     Visible = false;
                 }
                 field("Price (LCY)"; Rec."Price (LCY)")

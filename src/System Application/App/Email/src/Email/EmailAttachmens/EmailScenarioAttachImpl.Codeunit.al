@@ -90,15 +90,15 @@ codeunit 8902 "Email Scenario Attach Impl."
 
     procedure AddAttachmentToMessage(var Message: Codeunit "Email Message"; CurrentEmailScenario: Enum "Email Scenario")
     var
-        EmailAttachments: Record "Email Attachments";
+        TempEmailAttachments: Record "Email Attachments";
         AttachmentsCount: Integer;
     begin
         if CurrentEmailScenario.AsInteger() <> 0 then begin
-            GetEmailAttachmentsByEmailScenarios(EmailAttachments, CurrentEmailScenario.AsInteger());
-            EmailAttachments.SetRange(AttachmentDefaultStatus, true);
-            AttachmentsCount := EmailAttachments.Count();
+            GetEmailAttachmentsByEmailScenarios(TempEmailAttachments, CurrentEmailScenario.AsInteger());
+            TempEmailAttachments.SetRange(AttachmentDefaultStatus, true);
+            AttachmentsCount := TempEmailAttachments.Count();
             if AttachmentsCount > 0 then
-                Message.AddAttachmentFromScenario(EmailAttachments);
+                Message.AddAttachmentFromScenario(TempEmailAttachments);
         end;
 
     end;

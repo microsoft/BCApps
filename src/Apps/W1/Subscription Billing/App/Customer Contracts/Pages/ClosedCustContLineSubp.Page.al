@@ -1,5 +1,6 @@
 namespace Microsoft.SubscriptionBilling;
 
+using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Item;
 
 page 8080 "Closed Cust. Cont. Line Subp."
@@ -298,6 +299,24 @@ page 8080 "Closed Cust. Cont. Line Subp."
                     Visible = false;
                     Editable = false;
                 }
+                field("Shortcut Dimension 1 Code"; ServiceCommitment."Shortcut Dimension 1 Code")
+                {
+                    ApplicationArea = Dimensions;
+                    Caption = 'Shortcut Dimension 1 Code';
+                    CaptionClass = '1,2,1';
+                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
+                    Visible = false;
+                    Editable = false;
+                }
+                field("Shortcut Dimension 2 Code"; ServiceCommitment."Shortcut Dimension 2 Code")
+                {
+                    ApplicationArea = Dimensions;
+                    Caption = 'Shortcut Dimension 2 Code';
+                    CaptionClass = '1,2,2';
+                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup window.';
+                    Visible = false;
+                    Editable = false;
+                }
             }
         }
     }
@@ -309,6 +328,21 @@ page 8080 "Closed Cust. Cont. Line Subp."
             {
                 Caption = 'Contract Line';
                 Image = "Item";
+                action(Dimensions)
+                {
+                    AccessByPermission = tabledata Dimension = R;
+                    ApplicationArea = Dimensions;
+                    Caption = 'Dimensions';
+                    Image = Dimensions;
+                    Scope = Repeater;
+                    ShortcutKey = 'Shift+Ctrl+D';
+                    ToolTip = 'View or edit dimensions, such as area, project, or department, that you can assign to sales and purchase documents to distribute costs and analyze transaction history.';
+
+                    trigger OnAction()
+                    begin
+                        ServiceCommitment.EditDimensionSet();
+                    end;
+                }
                 action(ShowArchivedBillingLines)
                 {
                     Caption = 'Archived Billing Lines';
@@ -327,7 +361,7 @@ page 8080 "Closed Cust. Cont. Line Subp."
 
     trigger OnAfterGetRecord()
     begin
-        InitializePageVariables();
+        Rec.GetServiceObject(ServiceObject);
         Rec.LoadServiceCommitmentForContractLine(ServiceCommitment);
         LoadQuantityForContractLine();
         VariantCode := ServiceObject."Variant Code";
@@ -345,12 +379,6 @@ page 8080 "Closed Cust. Cont. Line Subp."
         ContractsGeneralMgt: Codeunit "Sub. Contracts General Mgt.";
         ContractLineQty: Decimal;
         VariantCode: Code[10];
-
-    local procedure InitializePageVariables()
-    begin
-        Rec.GetServiceCommitment(ServiceCommitment);
-        Rec.GetServiceObject(ServiceObject);
-    end;
 
     local procedure LoadQuantityForContractLine()
     begin

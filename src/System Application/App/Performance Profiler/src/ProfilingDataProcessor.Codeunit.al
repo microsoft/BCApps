@@ -19,8 +19,8 @@ codeunit 1923 "Profiling Data Processor"
     InherentPermissions = X;
 
     var
-        RawProfilingNodes: Record "Profiling Node";
-        CallTreeProfilingNodes: Record "Profiling Node";
+        TempRawProfilingNodes: Record "Profiling Node";
+        TempCallTreeProfilingNodes: Record "Profiling Node";
 
     /// <summary>
     /// Initializes the profiling data processor with the profiling data.
@@ -29,8 +29,8 @@ codeunit 1923 "Profiling Data Processor"
     /// <remarks>The data processor will reference the provided data, not copy it.</remarks>
     procedure Initialize(var RawProfilingNode: Record "Profiling Node"; var CallTreeProfilingNode: Record "Profiling Node")
     begin
-        RawProfilingNodes.Copy(RawProfilingNode, true);
-        CallTreeProfilingNodes.Copy(CallTreeProfilingNode, true);
+        TempRawProfilingNodes.Copy(RawProfilingNode, true);
+        TempCallTreeProfilingNodes.Copy(CallTreeProfilingNode, true);
     end;
 
     /// <summary>
@@ -38,8 +38,8 @@ codeunit 1923 "Profiling Data Processor"
     /// </summary>
     procedure ClearData();
     begin
-        RawProfilingNodes.DeleteAll();
-        CallTreeProfilingNodes.DeleteAll();
+        TempRawProfilingNodes.DeleteAll();
+        TempCallTreeProfilingNodes.DeleteAll();
     end;
 
     /// <summary>
@@ -48,14 +48,14 @@ codeunit 1923 "Profiling Data Processor"
     /// <returns>True, if the profiling data processor is initialized, false otherwise.</returns>
     procedure IsInitialized(): Boolean
     begin
-        if RawProfilingNodes.IsEmpty() then
+        if TempRawProfilingNodes.IsEmpty() then
             exit(false);
 
-        if CallTreeProfilingNodes.IsEmpty() then
+        if TempCallTreeProfilingNodes.IsEmpty() then
             exit(false);
 
-        RawProfilingNodes.CalcSums("Self Time");
-        if RawProfilingNodes."Self Time" = 0 then
+        TempRawProfilingNodes.CalcSums("Self Time");
+        if TempRawProfilingNodes."Self Time" = 0 then
             exit(false);
 
         exit(true);
@@ -79,21 +79,21 @@ codeunit 1923 "Profiling Data Processor"
     /// <param name="FilterText">The table view to indicate which profiling nodes should be included in aggregation.</param>
     procedure GetSelfTimeAggregate(var AggregatedProfilingNode: Record "Profiling Node"; ProfilingAggregationType: Enum "Profiling Aggregation Type"; FilterText: Text)
     begin
-        RawProfilingNodes.SetView(FilterText);
-        RawProfilingNodes.SetFilter("Self Time", '>%1', 0);
-        if RawProfilingNodes.FindSet() then
+        TempRawProfilingNodes.SetView(FilterText);
+        TempRawProfilingNodes.SetFilter("Self Time", '>%1', 0);
+        if TempRawProfilingNodes.FindSet() then
             repeat
-                SetAggregationFilter(AggregatedProfilingNode, RawProfilingNodes, ProfilingAggregationType);
+                SetAggregationFilter(AggregatedProfilingNode, TempRawProfilingNodes, ProfilingAggregationType);
                 if AggregatedProfilingNode.FindFirst() then begin
-                    AggregatedProfilingNode."Self Time" += RawProfilingNodes."Self Time";
-                    AggregatedProfilingNode."Hit Count" += RawProfilingNodes."Hit Count";
+                    AggregatedProfilingNode."Self Time" += TempRawProfilingNodes."Self Time";
+                    AggregatedProfilingNode."Hit Count" += TempRawProfilingNodes."Hit Count";
                     AggregatedProfilingNode.Modify();
                 end else begin
-                    AggregatedProfilingNode := RawProfilingNodes;
+                    AggregatedProfilingNode := TempRawProfilingNodes;
                     AggregatedProfilingNode.Insert();
                 end;
-            until RawProfilingNodes.Next() = 0;
-        RawProfilingNodes.Reset();
+            until TempRawProfilingNodes.Next() = 0;
+        TempRawProfilingNodes.Reset();
         AggregatedProfilingNode.Reset();
     end;
 
@@ -106,22 +106,22 @@ codeunit 1923 "Profiling Data Processor"
     begin
         if ProfilingAggregationType = ProfilingAggregationType::None then begin
             // just copy the contents of the call tree if no aggregation is needed
-            if CallTreeProfilingNodes.FindSet() then
+            if TempCallTreeProfilingNodes.FindSet() then
                 repeat
-                    AggregatedProfilingNode := CallTreeProfilingNodes;
+                    AggregatedProfilingNode := TempCallTreeProfilingNodes;
                     AggregatedProfilingNode.Insert();
-                until CallTreeProfilingNodes.Next() = 0;
+                until TempCallTreeProfilingNodes.Next() = 0;
             exit;
         end;
 
         // Run for all call stack top nodes
-        CallTreeProfilingNodes.SetRange(Indentation, 0);
-        CallTreeProfilingNodes.SetFilter("Full Time", '>%1', 0);
-        if CallTreeProfilingNodes.FindSet() then
+        TempCallTreeProfilingNodes.SetRange(Indentation, 0);
+        TempCallTreeProfilingNodes.SetFilter("Full Time", '>%1', 0);
+        if TempCallTreeProfilingNodes.FindSet() then
             repeat
-                ComputeFullTimeAggregate(CallTreeProfilingNodes, ProfilingAggregationType, AggregatedProfilingNode);
-            until CallTreeProfilingNodes.Next() = 0;
-        CallTreeProfilingNodes.Reset();
+                ComputeFullTimeAggregate(TempCallTreeProfilingNodes, ProfilingAggregationType, AggregatedProfilingNode);
+            until TempCallTreeProfilingNodes.Next() = 0;
+        TempCallTreeProfilingNodes.Reset();
         AggregatedProfilingNode.Reset();
     end;
 
@@ -147,26 +147,26 @@ codeunit 1923 "Profiling Data Processor"
 
     local procedure GetChildrenFilterView(var RootProfilingNode: Record "Profiling Node"): Text
     var
-        NextNonChildProfilingNode: Record "Profiling Node";
-        ChildrenProfilingNodes: Record "Profiling Node";
+        TempNextNonChildProfilingNode: Record "Profiling Node";
+        TempChildrenProfilingNodes: Record "Profiling Node";
     begin
-        ChildrenProfilingNodes.SetRange(Indentation, RootProfilingNode.Indentation + 1);
+        TempChildrenProfilingNodes.SetRange(Indentation, RootProfilingNode.Indentation + 1);
 
-        NextNonChildProfilingNode.Copy(RootProfilingNode, true);
-        NextNonChildProfilingNode.SetFilter(Indentation, '<=%1', RootProfilingNode.Indentation);
-        NextNonChildProfilingNode.SetFilter("No.", '>%1', RootProfilingNode."No.");
-        if NextNonChildProfilingNode.FindFirst() then
-            ChildrenProfilingNodes.SetFilter("No.", '>%1&<%2', RootProfilingNode."No.", NextNonChildProfilingNode."No.")
+        TempNextNonChildProfilingNode.Copy(RootProfilingNode, true);
+        TempNextNonChildProfilingNode.SetFilter(Indentation, '<=%1', RootProfilingNode.Indentation);
+        TempNextNonChildProfilingNode.SetFilter("No.", '>%1', RootProfilingNode."No.");
+        if TempNextNonChildProfilingNode.FindFirst() then
+            TempChildrenProfilingNodes.SetFilter("No.", '>%1&<%2', RootProfilingNode."No.", TempNextNonChildProfilingNode."No.")
         else
-            ChildrenProfilingNodes.SetFilter("No.", '>%1', RootProfilingNode."No.");
+            TempChildrenProfilingNodes.SetFilter("No.", '>%1', RootProfilingNode."No.");
 
-        exit(ChildrenProfilingNodes.GetView());
+        exit(TempChildrenProfilingNodes.GetView());
     end;
 
     local procedure ComputeFullTimeAggregate(var RootProfilingNode: Record "Profiling Node"; ProfilingAggregationType: Enum "Profiling Aggregation Type"; var AggregatedProfilingNode: Record "Profiling Node")
     var
-        ChildProfilingNodes: Record "Profiling Node";
-        CurrProfilingNode: Record "Profiling Node";
+        TempChildProfilingNodes: Record "Profiling Node";
+        TempCurrProfilingNode: Record "Profiling Node";
         ExclusionSet: DotNet GenericHashSet1;
         ChildExclusionSet: DotNet GenericHashSet1;
         NodeStack: DotNet Stack;
@@ -175,7 +175,7 @@ codeunit 1923 "Profiling Data Processor"
     begin
         // Depth-first traversal
         NodeStack := NodeStack.Stack();
-        CurrProfilingNode.Copy(RootProfilingNode, true);
+        TempCurrProfilingNode.Copy(RootProfilingNode, true);
 
         // push the root node on the stack
         ExclusionSet := ExclusionSet.HashSet();
@@ -187,20 +187,20 @@ codeunit 1923 "Profiling Data Processor"
             NodeNumberWithExclusionSet := NodeStack.Pop();
             CurrProfilingNodeNumber := NodeNumberWithExclusionSet."Key";
             ExclusionSet := NodeNumberWithExclusionSet.Value;
-            CurrProfilingNode.Get(SessionId(), CurrProfilingNodeNumber);
+            TempCurrProfilingNode.Get(SessionId(), CurrProfilingNodeNumber);
 
             // process the current node
-            AddNodeToAggregation(CurrProfilingNode, ProfilingAggregationType, ExclusionSet, AggregatedProfilingNode);
+            AddNodeToAggregation(TempCurrProfilingNode, ProfilingAggregationType, ExclusionSet, AggregatedProfilingNode);
 
             // push all the child nodes of the current node on the stack
-            ChildProfilingNodes.Copy(CurrProfilingNode, true);
-            ChildProfilingNodes.SetView(GetChildrenFilterView(CurrProfilingNode));
-            if ChildProfilingNodes.FindSet() then
+            TempChildProfilingNodes.Copy(TempCurrProfilingNode, true);
+            TempChildProfilingNodes.SetView(GetChildrenFilterView(TempCurrProfilingNode));
+            if TempChildProfilingNodes.FindSet() then
                 repeat
                     ChildExclusionSet := ChildExclusionSet.HashSet(ExclusionSet);
-                    NodeNumberWithExclusionSet := NodeNumberWithExclusionSet.KeyValuePair(ChildProfilingNodes."No.", ChildExclusionSet);
+                    NodeNumberWithExclusionSet := NodeNumberWithExclusionSet.KeyValuePair(TempChildProfilingNodes."No.", ChildExclusionSet);
                     NodeStack.Push(NodeNumberWithExclusionSet);
-                until ChildProfilingNodes.Next() = 0;
+                until TempChildProfilingNodes.Next() = 0;
         end;
     end;
 

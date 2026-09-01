@@ -5,7 +5,9 @@
 namespace System.AI;
 
 using System;
+#if not CLEAN29
 using System.Azure.KeyVault;
+#endif
 using System.Environment;
 using System.Privacy;
 using System.Telemetry;
@@ -27,27 +29,39 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         Telemetry: Codeunit Telemetry;
         InvalidModelTypeErr: Label 'Selected model type is not supported.';
         GenerateRequestFailedErr: Label 'The request did not return a success status code.';
+#if not CLEAN29
         CompletionsFailedWithCodeErr: Label 'Text completions failed to be generated';
+#endif
         EmbeddingsFailedWithCodeErr: Label 'Embeddings failed to be generated.';
         ChatCompletionsFailedWithCodeErr: Label 'Chat completions failed to be generated.';
         AuthenticationNotConfiguredErr: Label 'The authentication was not configured.';
         CapabilityBackgroundErr: Label 'Microsoft Copilot Capabilities are not allowed in the background.';
         CapabilityODataErr: Label 'Microsoft Copilot Capabilities are not allowed in API and OData Web Services sessions.';
         MessagesMustContainJsonWordWhenResponseFormatIsJsonErr: Label 'The messages must contain the word ''json'' in some form, to use ''response format'' of type ''json_object''.';
+#if not CLEAN29
         EmptyMetapromptErr: Label 'The metaprompt has not been set, please provide a metaprompt.';
         MetapromptLoadingErr: Label 'Metaprompt not found.';
+#endif
         FunctionCallingFunctionNotFoundErr: Label 'Function call not found, %1.', Comment = '%1 is the name of the function';
+#if not CLEAN29
         TelemetryGenerateTextCompletionLbl: Label 'Text completion generated.', Locked = true;
+#endif
         TelemetryGenerateEmbeddingLbl: Label 'Embedding generated.', Locked = true;
         TelemetryGenerateChatCompletionLbl: Label 'Chat Completion generated.', Locked = true;
         TelemetryChatCompletionToolCallLbl: Label 'Tools called by chat completion.', Locked = true;
         TelemetryChatCompletionToolUsedLbl: Label 'Tools added to chat completion.', Locked = true;
         TelemetryProhibitedCharactersTxt: Label 'Prohibited characters removed from the prompt.', Locked = true;
         TelemetryTokenCountLbl: Label 'Metaprompt token count: %1, Prompt token count: %2, Total token count: %3', Comment = '%1 is the number of tokens in the metaprompt, %2 is the number of tokens in the prompt, %3 is the total number of tokens', Locked = true;
+#if not CLEAN29
         TelemetryMetapromptRetrievalErr: Label 'Unable to retrieve metaprompt from Azure Key Vault.', Locked = true;
+#endif
         TelemetryFunctionCallingFailedErr: Label 'Function calling failed for function: %1', Comment = '%1 is the name of the function', Locked = true;
         AzureOpenAiTxt: Label 'Azure OpenAI', Locked = true;
         BillingTypeAuthorizationErr: Label 'Usage of AI resources not authorized with chosen billing type, Capability: %1, Billing Type: %2. Please contact your system administrator.', Comment = '%1 is the capability name, %2 is the billing type';
+        FastPromptUnsupportedAuthorizationErr: Label 'Fast prompt is only supported with First Party resource utilization.';
+        FastPromptResponseRetrievalErr: Label 'Unable to retrieve fast prompt response.';
+        TelemetryGetFastPromptLbl: Label 'Fast prompt', Locked = true;
+        FastPromptFailedErr: Label 'Fast prompt failed to be resolved.';
 
     procedure IsEnabled(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Boolean
     begin
@@ -81,6 +95,57 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
     procedure IsInitialized(Capability: Enum "Copilot Capability"; ModelType: Enum "AOAI Model Type"; CallerModuleInfo: ModuleInfo): Boolean
     begin
         exit(IsEnabled(Capability, CallerModuleInfo) and IsAuthorizationConfigured(ModelType, CallerModuleInfo));
+    end;
+
+    [NonDebuggable]
+    procedure GetFastPrompt(ConfigKey: Text; CallerModuleInfo: ModuleInfo; var FastPromptResponse: Codeunit "AOAI Fast Prompt Response"): Boolean
+    var
+        ALCopilotAuthorization: DotNet ALCopilotAuthorization;
+        ALCopilotCapability: DotNet ALCopilotCapability;
+        ALCopilotFunctions: DotNet ALCopilotFunctions;
+        ALCopilotFastPromptResponse: DotNet ALCopilotFastPromptResponse;
+        CustomDimensions: Dictionary of [Text, Text];
+        EmptySecretText: SecretText;
+        ErrorCode: Text;
+        ErrorText: Text;
+    begin
+        CopilotCapabilityImpl.CheckCapabilitySet();
+        CopilotCapabilityImpl.CheckEnabled(CallerModuleInfo);
+
+        CheckAuthorizationEnabled(ChatCompletionsAOAIAuthorization, CallerModuleInfo);
+        CopilotCapabilityImpl.AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
+
+        case ChatCompletionsAOAIAuthorization.GetResourceUtilization() of
+            Enum::"AOAI Resource Utilization"::"First Party":
+                ALCopilotAuthorization := ALCopilotAuthorization.Create(EmptySecretText, ChatCompletionsAOAIAuthorization.GetManagedResourceDeployment(), EmptySecretText);
+            else
+                Error(FastPromptUnsupportedAuthorizationErr);
+        end;
+
+
+        ALCopilotCapability := ALCopilotCapability.ALCopilotCapability(CallerModuleInfo.Publisher(), CallerModuleInfo.Id(), Format(CallerModuleInfo.AppVersion()), CopilotCapabilityImpl.GetCapabilityName());
+        ClearLastError();
+        ALCopilotFastPromptResponse := ALCopilotFunctions.GetFastPrompt(ConfigKey, ALCopilotAuthorization, ALCopilotCapability, CallerModuleInfo.Publisher());
+
+        if IsNull(ALCopilotFastPromptResponse) then begin
+            ErrorCode := GetLastErrorCode();
+            ErrorText := GetLastErrorText();
+            if ErrorText = '' then
+                ErrorText := FastPromptResponseRetrievalErr;
+            FastPromptResponse.Set(false, EmptySecretText, ErrorCode, ErrorText);
+            CustomDimensions.Add('ErrorCode', ErrorCode);
+            CustomDimensions.Add('ErrorText', ErrorText);
+            FeatureTelemetry.LogError('0000UZD', GetAzureOpenAICategory(), TelemetryGetFastPromptLbl, FastPromptFailedErr, '', Enum::"AL Telemetry Scope"::ExtensionPublisher, CustomDimensions);
+            exit(false);
+        end;
+
+        FastPromptResponse.Set(ALCopilotFastPromptResponse.IsFastPrompt(), ALCopilotFastPromptResponse.Template(), ALCopilotFastPromptResponse.ErrorCode(), ALCopilotFastPromptResponse.ErrorText());
+        CustomDimensions.Add('IsFastPrompt', Format(ALCopilotFastPromptResponse.IsFastPrompt()));
+        if (FastPromptResponse.IsFastPrompt() and (not FastPromptResponse.GetTemplate().IsEmpty())) then begin
+            FeatureTelemetry.LogUsage('0000MTD', GetAzureOpenAICategory(), TelemetryGetFastPromptLbl, Enum::"AL Telemetry Scope"::ExtensionPublisher, CustomDimensions);
+            exit(true);
+        end;
+        exit(false);
     end;
 
     [NonDebuggable]
@@ -155,6 +220,8 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         end;
     end;
 
+#if not CLEAN29
+#pragma warning disable AL0432
     [NonDebuggable]
     procedure GenerateTextCompletion(Prompt: SecretText; var AOAIOperationResponse: Codeunit "AOAI Operation Response"; CallerModuleInfo: ModuleInfo): Text
     var
@@ -211,6 +278,8 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         FeatureTelemetry.LogUsage('0000KVL', GetAzureOpenAICategory(), TelemetryGenerateTextCompletionLbl, Enum::"AL Telemetry Scope"::All, CustomDimensions);
         Result := AOAIOperationResponse.GetResult();
     end;
+#pragma warning restore AL0432
+#endif
 
     [NonDebuggable]
     procedure GenerateEmbeddings(Input: SecretText; var AOAIOperationResponse: Codeunit "AOAI Operation Response"; CallerModuleInfo: ModuleInfo): List of [Decimal]
@@ -263,6 +332,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         GenerateChatCompletion(ChatMessages, AOAIChatCompletionParams, AOAIOperationResponse, CallerModuleInfo);
     end;
 
+    [NonDebuggable]
     procedure GenerateChatCompletion(var ChatMessages: Codeunit "AOAI Chat Messages"; AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"; CallerModuleInfo: ModuleInfo)
     var
         AOAIPolicyParams: Codeunit "AOAI Policy Params";
@@ -562,6 +632,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         exit(Result);
     end;
 
+#if not CLEAN29
     [NonDebuggable]
     internal procedure GetTextMetaprompt() Metaprompt: SecretText;
     var
@@ -595,6 +666,7 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
                 Error(EmptyMetapromptErr);
         end;
     end;
+#endif
 
     procedure GetTokenCount(Input: SecretText; Encoding: Text) TokenCount: Integer
     var

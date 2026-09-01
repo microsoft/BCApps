@@ -26,7 +26,7 @@ codeunit 6140 "E-Doc. Import"
     procedure ReceiveAndProcessAutomatically(EDocumentService: Record "E-Document Service"): Boolean
     var
         EDocumentServiceStatus: Record "E-Document Service Status";
-        EDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
         EDocument: Record "E-Document";
         EDocIntegrationMgt: Codeunit "E-Doc. Integration Management";
         ReceiveContext: Codeunit ReceiveContext;
@@ -40,7 +40,7 @@ codeunit 6140 "E-Doc. Import"
 #endif
         EDocIntegrationMgt.ReceiveDocuments(EDocumentService, ReceiveContext);
 
-        EDocImportParameters := EDocumentService.GetDefaultImportParameters();
+        TempEDocImportParameters := EDocumentService.GetDefaultImportParameters();
 
         AllEDocumentsProcessed := true;
         EDocumentServiceStatus.SetRange("E-Document Service Code", EDocumentService.Code);
@@ -49,7 +49,7 @@ codeunit 6140 "E-Doc. Import"
         if EDocumentServiceStatus.FindSet() then
             repeat
                 EDocument.Get(EDocumentServiceStatus."E-Document Entry No");
-                AllEDocumentsProcessed := AllEDocumentsProcessed and ProcessIncomingEDocument(EDocument, EDocumentService, EDocImportParameters);
+                AllEDocumentsProcessed := AllEDocumentsProcessed and ProcessIncomingEDocument(EDocument, EDocumentService, TempEDocImportParameters);
             until EDocumentServiceStatus.Next() = 0;
         exit(AllEDocumentsProcessed);
     end;
@@ -87,7 +87,7 @@ codeunit 6140 "E-Doc. Import"
     var
         ImportEDocumentProcess: Codeunit "Import E-Document Process";
         EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
-        Status, CurrentStatus : Enum "Import E-Doc. Proc. Status";
+        Status, CurrentStatus, InitialStatus : Enum "Import E-Doc. Proc. Status";
         StepToDo, StepToUndo : Enum "Import E-Document Steps";
         StatusIndex: Integer;
     begin
@@ -97,6 +97,7 @@ codeunit 6140 "E-Doc. Import"
 
         EDocument.CalcFields("Import Processing Status");
         CurrentStatus := EDocument."Import Processing Status";
+        InitialStatus := CurrentStatus;
 
         EDocImpSessionTelemetry.SetSession(CurrentStatus, DesiredStatus);
         EDocImpSessionTelemetry.SetBool('Success', true);
@@ -126,9 +127,9 @@ codeunit 6140 "E-Doc. Import"
                     end;
                 end;
 
-        if CurrentStatus <> DesiredStatus then
+        if InitialStatus <> DesiredStatus then
             EDocImpSessionTelemetry.Emit(EDocument);
-        OnAfterProcessIncomingEDocument(EDocument, EDocImportParameters, CurrentStatus, DesiredStatus);
+        OnAfterProcessIncomingEDocument(EDocument, EDocImportParameters, InitialStatus, DesiredStatus);
         exit(true);
     end;
 
@@ -136,13 +137,16 @@ codeunit 6140 "E-Doc. Import"
     var
         EDocDraftSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         EDocumentErrorHelper: Codeunit "E-Document Error Helper";
+        EDocImportErrorContext: Codeunit "E-Doc. Import Error Context";
         LastErrorText: Text;
     begin
         EDocumentErrorHelper.ClearErrorMessages(EDocument);
         Commit();
+        BindSubscription(EDocImportErrorContext);
         if not ImportEDocumentProcess.Run() then begin
             LastErrorText := GetLastErrorText();
             if LastErrorText <> '' then begin // We don't insert an error when empty, following the convention of empty error meaning "operation cancelled by user"
+                LastErrorText := EDocImportErrorContext.WrapErrorMessage(LastErrorText);
                 EDocument.SetRecFilter();
                 EDocument.FindFirst();
 
@@ -154,8 +158,10 @@ codeunit 6140 "E-Doc. Import"
             end;
             EDocDraftSessionTelemetry.SetText('Step', Format(ImportEDocumentProcess.GetStep()));
             EDocDraftSessionTelemetry.SetBool('Success', false);
+            UnbindSubscription(EDocImportErrorContext);
             exit(false);
         end;
+        UnbindSubscription(EDocImportErrorContext);
         exit(true);
     end;
 
@@ -324,8 +330,10 @@ codeunit 6140 "E-Doc. Import"
         EDocumentDataStorage: Record "E-Doc. Data Storage";
         IStructuredFormatReader: Interface IStructuredFormatReader;
     begin
+        if (EDocument."Structured Data Entry No." = 0) or (not EDocumentDataStorage.Get(EDocument."Structured Data Entry No.")) then
+            Error(NoExtractedDataErr);
+
         IStructuredFormatReader := EDocument."Read into Draft Impl.";
-        EDocumentDataStorage.Get(EDocument."Structured Data Entry No.");
         IStructuredFormatReader.View(EDocument, EDocumentDataStorage.GetTempBlob());
     end;
 
@@ -835,7 +843,7 @@ codeunit 6140 "E-Doc. Import"
         EDocumentPurchaseLine.Quantity := PurchaseLine.Quantity;
         EDocumentPurchaseLine."Unit Price" := PurchaseLine."Direct Unit Cost";
         EDocumentPurchaseLine."Unit of Measure" := PurchaseLine."Unit of Measure Code";
-        EDocumentPurchaseLine."Sub Total" := PurchaseLine."Direct Unit Cost" * PurchaseLine.Quantity;
+        EDocumentPurchaseLine."Sub Total" := PurchaseLine.Amount;
         EDocumentPurchaseLine."Total Discount" := PurchaseLine."Line Discount Amount";
         EDocumentPurchaseLine."VAT Rate" := PurchaseLine."VAT %";
         EDocumentPurchaseLine."Currency Code" := PurchaseLine."Currency Code";
@@ -909,6 +917,7 @@ codeunit 6140 "E-Doc. Import"
         DocTypeIsNotSupportedErr: Label 'Document type %1 is not supported.', Comment = '%1 - Document Type';
         FailedToFindVendorErr: Label 'No vendor is set for Edocument';
         CannotProcessEDocumentMsg: Label 'Cannot process E-Document %1 with Purchase Order %2 before Purchase Order has been matched and posted for E-Document %3.', Comment = '%1 - E-Document entry no, %2 - Purchase Order number, %3 - EDocument entry no.';
+        NoExtractedDataErr: Label 'There is no extracted data to display for this e-document. Please check if it is a valid invoice or could not be read.';
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterProcessIncomingEDocument(EDocument: Record "E-Document"; EDocImportParameters: Record "E-Doc. Import Parameters"; StartState: Enum "Import E-Doc. Proc. Status"; DesiredEndState: Enum "Import E-Doc. Proc. Status")

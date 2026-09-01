@@ -1,0 +1,2 @@
+# cost: 10
+{"query": "mutation { catalogCreate(input: {title: \"{{Title}}\", status: ACTIVE, context: {companyLocationIds: \"gid://shopify/CompanyLocation/{{CompanyLocationId}}\"}}) { catalog {id}, userErrors {field, message}}}"}

@@ -11,8 +11,8 @@ page 37012 "Purchases Moving Averages"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Purchases Moving Averages';
-    AboutTitle = 'About Purchases Moving Averages';
+    Caption = 'Purchases Moving Averages (Power BI)';
+    AboutTitle = 'About Purchases Moving Averages (Power BI)';
     AboutText = 'The Purchases Moving Average report visualizes the 30-day moving average of purchase amounts over time. This helps identify trends by smoothing out fluctuations and highlighting overall patterns.';
 
     layout
@@ -48,11 +48,8 @@ page 37012 "Purchases Moving Averages"
         ReportPageLbl: Label 'ReportSectionc4bf0b0750800ca6b0c6', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Purchases Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Purchases App");
     end;
 }
 

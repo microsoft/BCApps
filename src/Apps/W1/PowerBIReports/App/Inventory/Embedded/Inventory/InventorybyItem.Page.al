@@ -11,8 +11,8 @@ page 37023 "Inventory by Item"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Inventory by Item';
-    AboutTitle = 'About Inventory by Item';
+    Caption = 'Inventory by Item (Power BI)';
+    AboutTitle = 'About Inventory by Item (Power BI)';
     AboutText = 'The Inventory by Item report provides inventory quantities by item, offering insights into the sources of supply and demand. Helping organizations understand item-level inventory status, manage stock effectively, and make informed decisions about the state of supply and demand.';
 
     layout
@@ -48,11 +48,8 @@ page 37023 "Inventory by Item"
         ReportPageLbl: Label 'ReportSection8c3ed3c2c96e298a0824', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Inventory Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Inventory App");
     end;
 }
 

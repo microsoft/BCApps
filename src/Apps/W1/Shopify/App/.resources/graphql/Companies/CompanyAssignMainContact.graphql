@@ -1,0 +1,2 @@
+# cost: 10
+{"query": "mutation { companyAssignMainContact(companyId: \"gid://shopify/Company/{{CompanyId}}\", companyContactId: \"gid://shopify/CompanyContact/{{CompanyContactId}}\") { company {id}, userErrors {field, message}}}"}

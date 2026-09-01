@@ -10,6 +10,7 @@ query 37108 "Purchase Credit Lines"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to posted purchase credit memo lines for G/L account and resource types including amounts, quantities, return reasons, and dimension data. Enables Power BI reports to analyze purchase returns, adjustments, and credit memo trends.';
     Caption = 'Power BI Purchase Credit Memo Lines';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';
