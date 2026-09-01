@@ -194,14 +194,6 @@ page 7230 "Master Data Management Setup"
         }
         area(Promoted)
         {
-            group(Category_CrossEnvironment)
-            {
-                Caption = 'Cross-Environment Setup';
-
-                actionref(ConnectionDetails_Promoted; ConnectionDetails)
-                {
-                }
-            }
             group(Category_Process)
             {
                 Caption = 'Synchronization', Comment = 'Generated from the PromotedActionCategories property index 5.';
@@ -210,6 +202,9 @@ page 7230 "Master Data Management Setup"
                 {
                 }
                 actionref(IntegrationTableMappings_Promoted; IntegrationTableMappings)
+                {
+                }
+                actionref(ConnectionDetails_Promoted; ConnectionDetails)
                 {
                 }
                 actionref("Synch. Job Queue Entries_Promoted"; "Synch. Job Queue Entries")

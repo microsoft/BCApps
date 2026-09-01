@@ -46,7 +46,7 @@ page 7232 "MDM Connection Details"
                             SetControls();
                         end;
                     }
-                    field(LearnMore; LearnMoreTok)
+                    field(LearnMore; LearnMoreLbl)
                     {
                         ApplicationArea = All;
                         Editable = false;
@@ -245,7 +245,7 @@ page 7232 "MDM Connection Details"
         OAuth2ClientId: Text[100];
         [NonDebuggable]
         OAuth2ClientSecret: Text;
-        LearnMoreTok: Label 'Privacy and Cookies';
+        LearnMoreLbl: Label 'Privacy and Cookies';
         PrivacyLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=521839', Locked = true;
         ConnectionOkMsg: Label 'Successfully connected to the source environment (contract version %1).', Comment = '%1 = wire contract version';
         ConnectionFailedErr: Label 'Could not connect to the source environment. Check the URL, company, and credentials, then try again.';
