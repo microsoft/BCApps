@@ -12045,8 +12045,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
     end;
 
-#if not CLEAN30
-    [Obsolete('This event is replaced by OnBeforeInsertDeferralNonDeductibleVATGLEntries2.', '30.0')]
+#if not CLEAN29
+    [Obsolete('This event is replaced by OnBeforeInsertDeferralNonDeductibleVATGLEntries2.', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertDeferralNonDeductibleVATGLEntries(var NonDeductibleVATPct: Decimal; DeferralPostingBuffer: Record "Deferral Posting Buffer"; VATPostingSetup: Record "VAT Posting Setup"; GenJournalLine: Record "Gen. Journal Line"; DeferralTemplate: Record "Deferral Template"; var VATAmountRounding: Decimal; var PositiveNDVATAmountRounding: Decimal; var NegativeNDVATAmountRounding: Decimal; var IsHandled: Boolean)
     begin
