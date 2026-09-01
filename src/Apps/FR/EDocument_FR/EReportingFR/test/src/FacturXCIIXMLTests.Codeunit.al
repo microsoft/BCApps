@@ -47,6 +47,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         LibraryUtility: Codeunit "Library - Utility";
         Assert: Codeunit Assert;
         CIIXMLBuilder: Codeunit "CII XML Builder";
+        EDocHelpers: Codeunit "EDoc. Helpers";
         FacturXFormat: Codeunit "Factur-X Format";
         IncorrectValueErr: Label 'Incorrect value for %1', Comment = '%1 = XML element path', Locked = true;
         FacturXProfileIdTok: Label 'urn:cen.eu:en16931:2017', Locked = true;
@@ -1461,7 +1462,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         asserterror CheckFacturX(SourceDocumentHeader);
 
         // [THEN] Error about buyer electronic address is raised
-        AssertExpectedDialogError(StrSubstNo(BuyerElectronicAddressRequiredErr, CustomerNo));
+        AssertExpectedDialogError(EDocHelpers.GetBuyerElectronicAddressRequiredError(CustomerNo));
     end;
 
     [Test]
@@ -1566,7 +1567,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         asserterror CheckFacturX(SourceDocumentHeader);
 
         // [THEN] Error about buyer electronic address is raised
-        AssertExpectedDialogError(StrSubstNo(BuyerElectronicAddressRequiredErr, CustomerNo));
+        AssertExpectedDialogError(EDocHelpers.GetBuyerElectronicAddressRequiredError(CustomerNo));
     end;
     #endregion
 
@@ -1836,6 +1837,13 @@ codeunit 148148 "Factur-X CII XML Tests"
     begin
         SalesHeader.Get("Sales Document Type"::Invoice, CreateSalesDocumentWithLine("Sales Document Type"::Invoice, ''));
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreateSalesDocument(var SalesHeader: Record "Sales Header"; CustomerNo: Code[20])
+    begin
+        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CustomerNo);
+        SalesHeader.Validate("Your Reference", 'FR-BUYER-REF');
+        SalesHeader.Modify(true);
     end;
 
     local procedure CreateAndPostSalesInvoiceForCustomer(CustomerNo: Code[20]): Code[20]
