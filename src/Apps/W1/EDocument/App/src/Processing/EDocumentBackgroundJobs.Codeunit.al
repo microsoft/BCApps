@@ -32,10 +32,9 @@ codeunit 6133 "E-Document Background Jobs"
         ScheduleEDocumentJob(Codeunit::"E-Doc. Payment Occurrence Mgt.", EDocPaymentOccurrence.RecordId(), 0);
     end;
 
-    [TryFunction]
-    procedure TrySchedulePaymentOccurrence(EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence")
+    procedure TrySchedulePaymentOccurrence(EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence"): Boolean
     begin
-        SchedulePaymentOccurrence(EDocPaymentOccurrence);
+        exit(TryScheduleEDocumentJob(Codeunit::"E-Doc. Payment Occurrence Mgt.", EDocPaymentOccurrence.RecordId(), 0));
     end;
 
     internal procedure EnsurePaymentOccurrenceDispatcher()
