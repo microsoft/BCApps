@@ -54,7 +54,7 @@ page 7230 "Master Data Management Setup"
             action(ConnectionDetails)
             {
                 ApplicationArea = Suite;
-                Caption = 'Connection Details';
+                Caption = 'Cross-environment Setup';
                 Image = LinkAccount;
                 ToolTip = 'Set up the connection to a company in a different Business Central environment for cross-environment synchronization.';
 
@@ -194,6 +194,14 @@ page 7230 "Master Data Management Setup"
         }
         area(Promoted)
         {
+            group(Category_CrossEnvironment)
+            {
+                Caption = 'Cross-Environment Setup';
+
+                actionref(ConnectionDetails_Promoted; ConnectionDetails)
+                {
+                }
+            }
             group(Category_Process)
             {
                 Caption = 'Synchronization', Comment = 'Generated from the PromotedActionCategories property index 5.';
