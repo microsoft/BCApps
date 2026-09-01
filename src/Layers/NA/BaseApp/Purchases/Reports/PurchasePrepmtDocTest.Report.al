@@ -949,7 +949,9 @@ report 412 "Purchase Prepmt. Doc. - Test"
                     {
                         ApplicationArea = Prepayments;
                         Caption = 'Prepayment Document Type';
+#pragma warning disable AA0224 // Accepted: Existing option captions intentionally preserve the current request-page choices.
                         OptionCaption = 'Invoice,Credit Memo';
+#pragma warning restore AA0224
                         ToolTip = 'Specifies the type of prepayment document: invoice or credit memo.';
                     }
                     field(ShowDimensions; ShowDim)

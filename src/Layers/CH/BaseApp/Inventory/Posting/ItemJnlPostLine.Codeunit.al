@@ -1664,7 +1664,9 @@ codeunit 22 "Item Jnl.-Post Line"
     begin
         ReservEntry2.SetLoadFields("Source Type", "Source Subtype");
         ReservEntry2.Get(ReservEntry."Entry No.", not ReservEntry.Positive);
+#pragma warning disable AA0242 // Accepted: Existing partial-record access is retained; changing load behavior is outside this focused hardening.
         if ItemRec.Get(ReservEntry2."Item No.") then
+#pragma warning restore AA0242
             if not (ItemRec."Assembly Policy" = ItemRec."Assembly Policy"::"Assemble-to-Stock") then
                 if (ReservEntry2."Source Type" = Database::"Assembly Header") and (ReservEntry2."Source Subtype" = 1)
                       and (not ItemJnlLine."Assemble to Order") then

@@ -154,7 +154,9 @@ codeunit 5708 "Release Transfer Document"
             repeat
                 Item.Get(TransLine."Item No.");
                 if Item.IsInventoriableType() then
+#pragma warning disable AA0242 // Accepted: Existing partial-record access is retained; changing load behavior is outside this focused hardening.
                     TransLine.TestField("Unit of Measure Code");
+#pragma warning restore AA0242
                 if Item.IsVariantMandatory() then
                     TransLine.TestField("Variant Code");
             until TransLine.Next() = 0;
