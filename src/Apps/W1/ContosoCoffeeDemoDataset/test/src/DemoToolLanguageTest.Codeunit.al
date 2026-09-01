@@ -1,7 +1,5 @@
 namespace Microsoft.Test.DemoTool;
 
-using Microsoft.DemoData.Common;
-using Microsoft.DemoData.Finance;
 using Microsoft.DemoData.Inventory;
 using Microsoft.DemoData.Manufacturing;
 using Microsoft.DemoData.Warehousing;
@@ -238,12 +236,12 @@ codeunit 148049 "Demo Tool Language Test"
 
     local procedure CreateManufacturingSetupData()
     var
-        CommonModule: Codeunit "Common Module";
-        FinanceModule: Codeunit "Finance Module";
-        ManufacturingModule: Codeunit "Manufacturing Module";
+        ContosoDemoDataModule: Record "Contoso Demo Data Module";
+        ContosoDemoTool: Codeunit "Contoso Demo Tool";
     begin
-        CommonModule.CreateSetupData();
-        FinanceModule.CreateSetupData();
-        ManufacturingModule.CreateSetupData();
+        ContosoDemoDataModule.DeleteAll();
+        ContosoDemoTool.RefreshModules();
+        ContosoDemoDataModule.SetRange(Module, Enum::"Contoso Demo Data Module"::"Manufacturing Module");
+        ContosoDemoTool.CreateDemoData(ContosoDemoDataModule, Enum::"Contoso Demo Data Level"::"Setup Data");
     end;
 }
