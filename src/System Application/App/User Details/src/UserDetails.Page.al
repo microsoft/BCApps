@@ -14,7 +14,7 @@ using System.Utilities;
 /// </summary>
 page 774 "User Details"
 {
-    AboutText = 'View detailed user information, such as unique identifiers, information about permission sets, login activity etc. in a list view, which allows for easy searching and filtering.';
+    AboutText = 'View detailed information about users, including unique identifiers, permission sets, and login activity. Search and filter the list to find specific users.';
     AboutTitle = 'About the users detailed view';
     ApplicationArea = Basic, Suite;
     Caption = 'Users (Detailed View)';
@@ -121,19 +121,19 @@ page 774 "User Details"
             Caption = 'Users with SUPER permission set';
             Filters = where("Has SUPER permission set" = const(true));
         }
-        view("7 Days")
+        view(Inactive7Days)
         {
-            Caption = 'Inactive 7 days';
+            Caption = 'Inactive 7+ days';
             Filters = where("Inactive Days Date Filter" = const("7 Days"));
         }
-        view("30 Days")
+        view(Inactive30Days)
         {
-            Caption = 'Inactive 30 days';
+            Caption = 'Inactive 30+ days';
             Filters = where("Inactive Days Date Filter" = const("30 Days"));
         }
-        view("90 Days")
+        view(Inactive90Days)
         {
-            Caption = 'Inactive 90 days';
+            Caption = 'Inactive 90+ days';
             Filters = where("Inactive Days Date Filter" = const("90 Days"));
         }
     }
