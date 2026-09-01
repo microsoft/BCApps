@@ -14,7 +14,6 @@ codeunit 148333 "Expense Agent Setup API Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
-    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     var
