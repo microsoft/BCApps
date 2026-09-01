@@ -63,6 +63,7 @@ codeunit 148333 "Expense Agent Setup API Test"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerNo')]
     procedure TestHandlerInitializeCreatesEnabledExpenseAgent()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
@@ -116,6 +117,7 @@ codeunit 148333 "Expense Agent Setup API Test"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerNo')]
     procedure TestHandlerInitializeCreatesDefaultMasterData()
     var
         ExpenseCategory: Record "Expense Category";
@@ -143,6 +145,7 @@ codeunit 148333 "Expense Agent Setup API Test"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerNo')]
     procedure TestHandlerInitializeIsIdempotent()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
@@ -338,5 +341,11 @@ codeunit 148333 "Expense Agent Setup API Test"
                 GLAccount.Get(ExpensePostingGroup."Credit Rounding Account"),
                 'The credit rounding account must exist.');
         until ExpensePostingGroup.Next() = 0;
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmHandlerNo(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := false;
     end;
 }
