@@ -315,6 +315,7 @@ codeunit 148333 "Expense Agent Setup API Test"
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Agent Setup API Test");
+        LibraryVariableStorage.Clear();
         if IsInitialized then
             exit;
 
