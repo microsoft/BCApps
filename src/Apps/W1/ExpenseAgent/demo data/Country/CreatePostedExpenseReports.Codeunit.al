@@ -27,7 +27,8 @@ codeunit 8232 "Create Posted Expense Reports"
 
         CreateExpenseReportToPost();
 
-        PostExpenseReport();
+        if not SkipPostingExpenseReport() then
+            PostExpenseReport();
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Posted Expense Report", OnDefineExpenseAccountNo, '', false, false)]
@@ -195,6 +196,13 @@ codeunit 8232 "Create Posted Expense Reports"
             repeat
                 Codeunit.Run(Codeunit::"Expense Report-Post", ExpenseReportHeader);
             until ExpenseReportHeader.Next() = 0;
+    end;
+
+    // Posting fails on localizations because the "Expense GL Account Names" labels are not translated yet, so no G/L account is found.
+    // Found during uptake; remove this skip once the translations are generated.
+    local procedure SkipPostingExpenseReport(): Boolean
+    begin
+        exit(true);
     end;
 
     local procedure UpdateExpensePerDiem(ExpenseNo: Code[20]; LineNo: Integer; Breakfast: Boolean; Lunch: Boolean; Dinner: Boolean)
