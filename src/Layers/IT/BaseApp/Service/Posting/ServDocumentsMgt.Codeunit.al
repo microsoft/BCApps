@@ -135,19 +135,13 @@ codeunit 5988 "Serv-Documents Mgt."
 #pragma warning restore AA0074
         TrackingSpecificationExists: Boolean;
         ServLineInvoicedConsumedQty: Decimal;
-<<<<<<< src/Layers/IT/BaseApp/Service/Posting/ServDocumentsMgt.Codeunit.al
-        ServLedgEntryNo: Integer;
+        ServLedgEntryNo: BigInteger;
         PaymentJournalLine: Record "Payment Lines";
         PaymentTermsLine: Record "Payment Lines";
         PostedPayments: Record "Posted Payment Lines";
         Text1130003: Label 'Please enter at least one Payment Line for %1 %2.';
         Text1130000: Label 'must not be prior to %1';
         Text12100: Label 'It is not possible to post document with a customer with VAT exemption if an active VAT exemption doesn''t exist.';
-||||||| Base: src/Layers/W1/BaseApp/Service/Posting/ServDocumentsMgt.Codeunit.al
-        ServLedgEntryNo: Integer;
-=======
-        ServLedgEntryNo: BigInteger;
->>>>>>> src/Layers/W1/BaseApp/Service/Posting/ServDocumentsMgt.Codeunit.al
 
     procedure Initialize(var PassedServiceHeader: Record "Service Header"; var PassedServiceLine: Record "Service Line")
     var

@@ -7792,13 +7792,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     /// </remarks>
     /// <param name="GLEntryNo">Existing value for g/l entry no.</param>
     /// <param name="SavedEntryNo">New value for g/l entry no.</param>
-<<<<<<< src/Layers/BE/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
-    procedure UpdateGLEntryNo(var GLEntryNo: Integer; var SavedEntryNo: Integer)
-||||||| Base: src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
-    procedure UpdateGLEntryNo(var ExistingGLEntryNo: Integer; var SavedEntryNo: Integer)
-=======
     procedure UpdateGLEntryNo(var ExistingGLEntryNo: BigInteger; var SavedEntryNo: BigInteger)
->>>>>>> src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
     begin
         if SavedEntryNo <> 0 then begin
             GLEntryNo := SavedEntryNo;

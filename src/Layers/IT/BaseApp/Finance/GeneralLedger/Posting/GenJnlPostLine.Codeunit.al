@@ -4710,14 +4710,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         SalesVATAccount: Code[20];
         SalesVATUnrealAccount: Code[20];
         LastConnectionNo: Integer;
-<<<<<<< src/Layers/IT/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
         TotalOriginalAmtLCY: Decimal;
-        GLEntryNo: Integer;
-||||||| Base: src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
-        GLEntryNo: Integer;
-=======
         GLEntryNo: BigInteger;
->>>>>>> src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -6082,14 +6076,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         PurchReverseAccount: Code[20];
         PurchReverseUnrealAccount: Code[20];
         LastConnectionNo: Integer;
-<<<<<<< src/Layers/IT/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
         TotalOriginalAmtLCY: Decimal;
-        GLEntryNo: Integer;
-||||||| Base: src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
-        GLEntryNo: Integer;
-=======
         GLEntryNo: BigInteger;
->>>>>>> src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -8190,60 +8178,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
                            DtldCVLedgEntryBuf."Entry Type"::"Payment Discount Tolerance (VAT Excl.)"]);
     end;
 
-<<<<<<< src/Layers/IT/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
     [Scope('OnPrem')]
     procedure IncrNextTransactionNo()
-||||||| Base: src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
-    local procedure UpdateVATEntryTaxDetails(GenJnlLine: Record "Gen. Journal Line"; var VATEntry: Record "VAT Entry"; TaxDetail: Record "Tax Detail"; var TaxJurisdiction: Record "Tax Jurisdiction")
-    begin
-        if TaxDetail."Tax Jurisdiction Code" <> '' then
-            TaxJurisdiction.Get(TaxDetail."Tax Jurisdiction Code");
-        if GenJnlLine."Gen. Posting Type" <> GenJnlLine."Gen. Posting Type"::Settlement then begin
-            VATEntry."Tax Group Used" := TaxDetail."Tax Group Code";
-            VATEntry."Tax Type" := TaxDetail."Tax Type";
-            VATEntry."Tax on Tax" := TaxDetail."Calculate Tax on Tax";
-        end;
-        VATEntry."Tax Jurisdiction Code" := TaxDetail."Tax Jurisdiction Code";
-
-        OnAfterUpdateVATEntryTaxDetails(VATEntry, TaxDetail);
-    end;
-
-    /// <summary>
-    /// Parameter GLEntryNo is updated with value of parameter SavedEntryNo.
-    /// Global variable NextEntryNo is decreased by 1 (one).
-    /// </summary>
-    /// <remarks>
-    /// Variable NextEntryNo is used as entry no. when creating ledger entries
-    /// </remarks>
-    /// <param name="ExistingGLEntryNo">Existing value for g/l entry no.</param>
-    /// <param name="SavedEntryNo">New value for g/l entry no.</param>
-    procedure UpdateGLEntryNo(var ExistingGLEntryNo: Integer; var SavedEntryNo: Integer)
-=======
-    local procedure UpdateVATEntryTaxDetails(GenJnlLine: Record "Gen. Journal Line"; var VATEntry: Record "VAT Entry"; TaxDetail: Record "Tax Detail"; var TaxJurisdiction: Record "Tax Jurisdiction")
-    begin
-        if TaxDetail."Tax Jurisdiction Code" <> '' then
-            TaxJurisdiction.Get(TaxDetail."Tax Jurisdiction Code");
-        if GenJnlLine."Gen. Posting Type" <> GenJnlLine."Gen. Posting Type"::Settlement then begin
-            VATEntry."Tax Group Used" := TaxDetail."Tax Group Code";
-            VATEntry."Tax Type" := TaxDetail."Tax Type";
-            VATEntry."Tax on Tax" := TaxDetail."Calculate Tax on Tax";
-        end;
-        VATEntry."Tax Jurisdiction Code" := TaxDetail."Tax Jurisdiction Code";
-
-        OnAfterUpdateVATEntryTaxDetails(VATEntry, TaxDetail);
-    end;
-
-    /// <summary>
-    /// Parameter GLEntryNo is updated with value of parameter SavedEntryNo.
-    /// Global variable NextEntryNo is decreased by 1 (one).
-    /// </summary>
-    /// <remarks>
-    /// Variable NextEntryNo is used as entry no. when creating ledger entries
-    /// </remarks>
-    /// <param name="ExistingGLEntryNo">Existing value for g/l entry no.</param>
-    /// <param name="SavedEntryNo">New value for g/l entry no.</param>
-    procedure UpdateGLEntryNo(var ExistingGLEntryNo: BigInteger; var SavedEntryNo: BigInteger)
->>>>>>> src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
     begin
         NextTransactionNo := NextTransactionNo + 1;
     end;
@@ -10159,13 +10095,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-<<<<<<< src/Layers/IT/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
-    local procedure OnBeforeCustLedgEntryInsert(var CustLedgerEntry: Record "Cust. Ledger Entry"; var GenJournalLine: Record "Gen. Journal Line"; GLRegister: Record "G/L Register"; var TempDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; var NextEntryNo: Integer; PaymentTermsLine: Record "Payment Lines")
-||||||| Base: src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
-    local procedure OnBeforeCustLedgEntryInsert(var CustLedgerEntry: Record "Cust. Ledger Entry"; var GenJournalLine: Record "Gen. Journal Line"; GLRegister: Record "G/L Register"; var TempDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; var NextEntryNo: Integer)
-=======
-    local procedure OnBeforeCustLedgEntryInsert(var CustLedgerEntry: Record "Cust. Ledger Entry"; var GenJournalLine: Record "Gen. Journal Line"; GLRegister: Record "G/L Register"; var TempDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; var NextEntryNo: BigInteger)
->>>>>>> src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
+    local procedure OnBeforeCustLedgEntryInsert(var CustLedgerEntry: Record "Cust. Ledger Entry"; var GenJournalLine: Record "Gen. Journal Line"; GLRegister: Record "G/L Register"; var TempDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; var NextEntryNo: BigInteger; PaymentTermsLine: Record "Payment Lines")
     begin
     end;
 
@@ -11982,7 +11912,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-<<<<<<< src/Layers/IT/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
     local procedure OnBeforeCheckWithholdTax(DocType: Option " ",,Invoice,"Credit Memo"; DocNo: Code[20]; GenJournalLine: Record "Gen. Journal Line"; ApplyInGenJnlLine: Boolean; var IsHandled: Boolean)
     begin
     end;
@@ -12028,12 +11957,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnPostUnrealVATEntryOnBeforeInsertLinkSelf(var TempGLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link" temporary; var VATEntry: record "VAT Entry"; var GLEntryNo: Integer; var NextVATEntryNo: Integer)
-||||||| Base: src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
-    local procedure OnPostUnrealVATEntryOnBeforeInsertLinkSelf(var TempGLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link" temporary; var VATEntry: record "VAT Entry"; var GLEntryNo: Integer; var NextVATEntryNo: Integer)
-=======
     local procedure OnPostUnrealVATEntryOnBeforeInsertLinkSelf(var TempGLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link" temporary; var VATEntry: record "VAT Entry"; var GLEntryNo: BigInteger; var NextVATEntryNo: BigInteger)
->>>>>>> src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
     begin
     end;
 
@@ -12413,13 +12337,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-<<<<<<< src/Layers/IT/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
-    local procedure OnBeforePostingDeferral(GenJnlLine: Record "Gen. Journal Line"; VendLedgEntry: Record "Vendor Ledger Entry"; NextTransactionNo: Integer; var NextTaxEntryNo: Integer; var IsHandled: Boolean);
-||||||| Base: src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
-    local procedure OnBeforePostingDeferral(GenJnlLine: Record "Gen. Journal Line"; VendLedgEntry: Record "Vendor Ledger Entry"; TaxAmount: Decimal; TaxAmountLCY: Decimal; NextTransactionNo: Integer; var NextTaxEntryNo: Integer; var IsHandled: Boolean);
-=======
     local procedure OnBeforePostingDeferral(GenJnlLine: Record "Gen. Journal Line"; VendLedgEntry: Record "Vendor Ledger Entry"; TaxAmount: Decimal; TaxAmountLCY: Decimal; NextTransactionNo: BigInteger; var NextTaxEntryNo: Integer; var IsHandled: Boolean);
->>>>>>> src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
     begin
     end;
 

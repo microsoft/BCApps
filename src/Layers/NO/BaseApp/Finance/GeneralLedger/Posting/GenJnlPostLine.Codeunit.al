@@ -1748,14 +1748,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         Correction2: Boolean;
         NetDisposalNo: Integer;
         DimensionSetID: Integer;
-<<<<<<< src/Layers/NO/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
-        VATEntryGLEntryNo: Integer;
         OrigGLEntryAmount: Decimal;
-||||||| Base: src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
-        VATEntryGLEntryNo: Integer;
-=======
         VATEntryGLEntryNo: BigInteger;
->>>>>>> src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
         IsHandled: Boolean;
     begin
         IsHandled := false;

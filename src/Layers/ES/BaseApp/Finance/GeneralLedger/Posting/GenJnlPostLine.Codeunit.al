@@ -4367,20 +4367,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
         GLEntry: Record "G/L Entry";
         DtldCustLedgEntry2: Record "Detailed Cust. Ledg. Entry";
         AdjAmount: array[4] of Decimal;
-<<<<<<< src/Layers/ES/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
-        DtldCustLedgEntryNoOffset: Integer;
-        SaveEntryNo: Integer;
+        DtldCustLedgEntryNoOffset: BigInteger;
+        SaveEntryNo: BigInteger;
         ReceivableAccAmtLCY: Decimal;
         ReceivableAccAmtAddCurr: Decimal;
         ExistDtldCVLedgEntryBuf: Boolean;
         FindBill: Boolean;
-||||||| Base: src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
-        DtldCustLedgEntryNoOffset: Integer;
-        SaveEntryNo: Integer;
-=======
-        DtldCustLedgEntryNoOffset: BigInteger;
-        SaveEntryNo: BigInteger;
->>>>>>> src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
         IsHandled: Boolean;
     begin
         OnBeforePostDtldCustLedgEntries(GenJnlLine, DtldCVLedgEntryBuf, CustPostingGr, LedgEntryInserted);
@@ -4661,7 +4653,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         SalesVATAccount: Code[20];
         SalesVATUnrealAccount: Code[20];
         LastConnectionNo: Integer;
-<<<<<<< src/Layers/ES/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
         Doc: Record "Cartera Doc.";
         ClosedDoc: Record "Closed Cartera Doc.";
         PostedDoc: Record "Posted Cartera Doc.";
@@ -4669,12 +4660,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         FromDoc: Boolean;
         CustLedgEntry3: Record "Cust. Ledger Entry";
         CustLedgEntry4: Record "Cust. Ledger Entry";
-        GLEntryNo: Integer;
-||||||| Base: src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
-        GLEntryNo: Integer;
-=======
         GLEntryNo: BigInteger;
->>>>>>> src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
         IsHandled: Boolean;
     begin
         IsHandled := false;

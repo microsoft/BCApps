@@ -865,19 +865,13 @@ table 21 "Cust. Ledger Entry"
             Caption = 'Prepayment';
             ToolTip = 'Specifies if the related payment is a prepayment.';
         }
-<<<<<<< src/Layers/ES/BaseApp/Sales/Receivables/CustLedgerEntry.Table.al
         field(91; "Payment Terms Code"; Code[10])
         {
             Caption = 'Payment Terms Code';
             Editable = false;
             TableRelation = "Payment Terms";
         }
-        field(95; "G/L Register No."; Integer)
-||||||| Base: src/Layers/W1/BaseApp/Sales/Receivables/CustLedgerEntry.Table.al
-        field(95; "G/L Register No."; Integer)
-=======
         field(95; "G/L Register No."; BigInteger)
->>>>>>> src/Layers/W1/BaseApp/Sales/Receivables/CustLedgerEntry.Table.al
         {
             Caption = 'G/L Register No.';
             Editable = false;

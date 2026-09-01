@@ -393,7 +393,6 @@ codeunit 224 "EmplEntry-Apply Posted Entries"
                 Error(CannotUnapplyExchRateErr, NewPostingDate);
     end;
 
-<<<<<<< src/Layers/IT/BaseApp/HumanResources/Payables/EmplEntryApplyPostedEntries.Codeunit.al
     procedure CheckVATSettlement(EmplLedgEntryNo: Integer; PostingDate: Date): Boolean
     var
         VATEntry: Record "VAT Entry";
@@ -419,12 +418,7 @@ codeunit 224 "EmplEntry-Apply Posted Entries"
         exit(VATPostingSetup."Unrealized VAT Type" <> VATPostingSetup."Unrealized VAT Type"::" ");
     end;
 
-    local procedure CheckReversal(EmplLedgEntryNo: Integer)
-||||||| Base: src/Layers/W1/BaseApp/HumanResources/Payables/EmplEntryApplyPostedEntries.Codeunit.al
-    local procedure CheckReversal(EmplLedgEntryNo: Integer)
-=======
     local procedure CheckReversal(EmplLedgEntryNo: BigInteger)
->>>>>>> src/Layers/W1/BaseApp/HumanResources/Payables/EmplEntryApplyPostedEntries.Codeunit.al
     var
         VendLedgEntry: Record "Employee Ledger Entry";
     begin

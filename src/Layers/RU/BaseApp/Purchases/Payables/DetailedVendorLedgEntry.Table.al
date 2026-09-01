@@ -254,7 +254,13 @@ table 380 "Detailed Vendor Ledg. Entry"
             Editable = false;
             TableRelation = "Exch. Rate Adjmt. Reg.";
         }
-<<<<<<< src/Layers/RU/BaseApp/Purchases/Payables/DetailedVendorLedgEntry.Table.al
+        field(95; "G/L Register No."; BigInteger)
+        {
+            Caption = 'G/L Register No.';
+            Editable = false;
+            TableRelation = "G/L Register";
+            ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
+        }
         field(12401; Prepayment; Boolean)
         {
             Caption = 'Prepayment';
@@ -290,18 +296,6 @@ table 380 "Detailed Vendor Ledg. Entry"
         field(17201; "Tax Diff. Transaction No."; Integer)
         {
             Caption = 'Tax Diff. Transaction No.';
-        }
-        field(95; "G/L Register No."; Integer)
-||||||| Base: src/Layers/W1/BaseApp/Purchases/Payables/DetailedVendorLedgEntry.Table.al
-        field(95; "G/L Register No."; Integer)
-=======
-        field(95; "G/L Register No."; BigInteger)
->>>>>>> src/Layers/W1/BaseApp/Purchases/Payables/DetailedVendorLedgEntry.Table.al
-        {
-            Caption = 'G/L Register No.';
-            Editable = false;
-            TableRelation = "G/L Register";
-            ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
         }
         field(7000004; "Excluded from calculation"; Boolean)
         {

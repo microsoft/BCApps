@@ -1,10 +1,4 @@
-<<<<<<< src/Layers/APAC/BaseApp/Purchases/History/PurchCrMemoHdr.Table.al
-// ------------------------------------------------------------------------------------------------
-||||||| Base: src/Layers/W1/BaseApp/Purchases/History/PurchCrMemoHdr.Table.al
-∩╗┐// ------------------------------------------------------------------------------------------------
-=======
 ﻿// ------------------------------------------------------------------------------------------------
->>>>>>> src/Layers/W1/BaseApp/Purchases/History/PurchCrMemoHdr.Table.al
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------

@@ -1,10 +1,4 @@
-<<<<<<< src/Layers/ES/BaseApp/Purchases/Payables/VendorLedgerEntry.Table.al
-// ------------------------------------------------------------------------------------------------
-||||||| Base: src/Layers/W1/BaseApp/Purchases/Payables/VendorLedgerEntry.Table.al
-∩╗┐// ------------------------------------------------------------------------------------------------
-=======
 ﻿// ------------------------------------------------------------------------------------------------
->>>>>>> src/Layers/W1/BaseApp/Purchases/Payables/VendorLedgerEntry.Table.al
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -598,19 +592,13 @@ table 25 "Vendor Ledger Entry"
         {
             Caption = 'Prepayment';
         }
-<<<<<<< src/Layers/ES/BaseApp/Purchases/Payables/VendorLedgerEntry.Table.al
         field(91; "Payment Terms Code"; Code[10])
         {
             Caption = 'Payment Terms Code';
             Editable = false;
             TableRelation = "Payment Terms";
         }
-        field(95; "G/L Register No."; Integer)
-||||||| Base: src/Layers/W1/BaseApp/Purchases/Payables/VendorLedgerEntry.Table.al
-        field(95; "G/L Register No."; Integer)
-=======
         field(95; "G/L Register No."; BigInteger)
->>>>>>> src/Layers/W1/BaseApp/Purchases/Payables/VendorLedgerEntry.Table.al
         {
             Caption = 'G/L Register No.';
             Editable = false;

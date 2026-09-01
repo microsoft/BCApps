@@ -154,23 +154,13 @@ codeunit 12 "Gen. Jnl.-Post Line"
         AmountRoundingPrecision: Decimal;
         AddCurrGLEntryVATAmt: Decimal;
         CurrencyFactor: Decimal;
-<<<<<<< src/Layers/NA/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
         ExpenseAmount: Decimal;
-        FirstEntryNo: Integer;
-        NextEntryNo: Integer;
-        NextVATEntryNo: Integer;
-||||||| Base: src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
-        FirstEntryNo: Integer;
-        NextEntryNo: Integer;
-        NextVATEntryNo: Integer;
-=======
         FirstEntryNo: BigInteger;
         NextEntryNo: BigInteger;
         NextVATEntryNo: BigInteger;
->>>>>>> src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
         NextTaxEntryNo: Integer;
         FirstNewVATEntryNo: BigInteger;
-        FirstTransactionNo: Integer;
+        FirstTransactionNo: BigInteger;
         NextTransactionNo: BigInteger;
         NextConnectionNo: Integer;
         NextCheckEntryNo: BigInteger;
@@ -6240,13 +6230,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     /// <param name="VATAmountAddCurr">VAT amount in additional currency</param>
     /// <param name="VATBaseAddCurr">VAT base amount in additional currency</param>
     /// <param name="GLEntryNo">Associated G/L entry number for cross-reference</param>
-<<<<<<< src/Layers/NA/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
-    procedure PostUnrealVATEntry(GenJnlLine: Record "Gen. Journal Line"; var VATEntry2: Record "VAT Entry"; VATAmount: Decimal; VATBase: Decimal; VATAmountAddCurr: Decimal; VATBaseAddCurr: Decimal; GLEntryNo: Integer; RealizedVATAmount: Decimal; RealizedVATBase: Decimal; RealizedVATAmountAddCurr: Decimal; RealizedVATBaseAddCurr: Decimal)
-||||||| Base: src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
-    procedure PostUnrealVATEntry(GenJnlLine: Record "Gen. Journal Line"; var VATEntry2: Record "VAT Entry"; VATAmount: Decimal; VATBase: Decimal; VATAmountAddCurr: Decimal; VATBaseAddCurr: Decimal; GLEntryNo: Integer)
-=======
-    procedure PostUnrealVATEntry(GenJnlLine: Record "Gen. Journal Line"; var VATEntry2: Record "VAT Entry"; VATAmount: Decimal; VATBase: Decimal; VATAmountAddCurr: Decimal; VATBaseAddCurr: Decimal; GLEntryNo: BigInteger)
->>>>>>> src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
+    procedure PostUnrealVATEntry(GenJnlLine: Record "Gen. Journal Line"; var VATEntry2: Record "VAT Entry"; VATAmount: Decimal; VATBase: Decimal; VATAmountAddCurr: Decimal; VATBaseAddCurr: Decimal; GLEntryNo: BigInteger; RealizedVATAmount: Decimal; RealizedVATBase: Decimal; RealizedVATAmountAddCurr: Decimal; 
     begin
         OnBeforePostUnrealVATEntry(GenJnlLine, VATEntry);
         VATEntry.LockTable();

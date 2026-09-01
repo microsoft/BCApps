@@ -14813,15 +14813,9 @@ table 36 "Sales Header"
     local procedure OnBeforeResponsibilityCenterValidate(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
-<<<<<<< src/Layers/IT/BaseApp/Sales/Document/SalesHeader.Table.al
 
     [IntegrationEvent(false, false)]
     local procedure OnDeleteOnBeforeCheckPostingNo(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
 }
-||||||| Base: src/Layers/W1/BaseApp/Sales/Document/SalesHeader.Table.al
-}
-=======
-}
->>>>>>> src/Layers/W1/BaseApp/Sales/Document/SalesHeader.Table.al
