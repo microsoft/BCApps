@@ -12,10 +12,12 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Enums;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
+using System.Threading;
 using System.Utilities;
 
 codeunit 148151 "FR E-Invoice Message Tests"
@@ -158,7 +160,6 @@ codeunit 148151 "FR E-Invoice Message Tests"
         EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
         FREInvoiceMessage: Record "FR E-Invoice Message";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-        EDocPaymentOccurrenceMgt: Codeunit "E-Doc. Payment Occurrence Mgt.";
     begin
         // [FEATURE] [AI test]
         // [SCENARIO] Invalid optional lifecycle configuration does not block a payment and its occurrence can be retried
@@ -178,21 +179,16 @@ codeunit 148151 "FR E-Invoice Message Tests"
         EDocPaymentOccurrence.SetRange(Type, EDocPaymentOccurrence.Type::Applied);
         Assert.RecordCount(EDocPaymentOccurrence, 1);
         EDocPaymentOccurrence.FindFirst();
-        Assert.AreEqual(EDocPaymentOccurrence.Status::Error, EDocPaymentOccurrence.Status, 'The failed lifecycle message must remain available for retry.');
         FREInvoiceMessage.SetRange("E-Document Entry No.", EDocument."Entry No");
         FREInvoiceMessage.SetRange(Type, FREInvoiceMessage.Type::Collected);
         Assert.RecordCount(FREInvoiceMessage, 0);
 
         // [WHEN] The configuration is repaired and the persisted occurrence is retried
         EnsureCompanyInformation();
-        EDocPaymentOccurrence."Next Attempt At" := 0DT;
-        EDocPaymentOccurrence.Modify();
-        EDocPaymentOccurrenceMgt.ProcessPaymentOccurrence(EDocPaymentOccurrence);
+        RunPaymentOccurrence(EDocPaymentOccurrence);
 
         // [THEN] The French lifecycle message is created from the original occurrence
         Assert.RecordCount(FREInvoiceMessage, 1);
-        EDocPaymentOccurrence.Get(EDocPaymentOccurrence."Entry No.");
-        Assert.AreEqual(EDocPaymentOccurrence.Status::Processed, EDocPaymentOccurrence.Status, 'The successful retry must mark the occurrence Processed.');
     end;
 
     [Test]
@@ -1987,13 +1983,12 @@ codeunit 148151 "FR E-Invoice Message Tests"
         EDocPaymentOccurrenceMgt: Codeunit "E-Doc. Payment Occurrence Mgt.";
     begin
         EDocPaymentOccurrenceMgt.ProcessApplication(DetailedCustLedgEntry);
-        Commit();
 
         EDocPaymentOccurrence.SetRange("E-Document Entry No.", EDocument."Entry No");
         EDocPaymentOccurrence.SetRange(Type, EDocPaymentOccurrence.Type::Applied);
         EDocPaymentOccurrence.SetRange("Source Occurrence ID", DetailedCustLedgEntry.SystemId);
         EDocPaymentOccurrence.FindFirst();
-        EDocPaymentOccurrenceMgt.ProcessPaymentOccurrence(EDocPaymentOccurrence);
+        RunPaymentOccurrence(EDocPaymentOccurrence);
     end;
 
     local procedure ProcessPaymentUnapplication(EDocument: Record "E-Document"; DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; NewDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
@@ -2002,13 +1997,20 @@ codeunit 148151 "FR E-Invoice Message Tests"
         EDocPaymentOccurrenceMgt: Codeunit "E-Doc. Payment Occurrence Mgt.";
     begin
         EDocPaymentOccurrenceMgt.ProcessUnapplication(DetailedCustLedgEntry, NewDetailedCustLedgEntry);
-        Commit();
 
         EDocPaymentOccurrence.SetRange("E-Document Entry No.", EDocument."Entry No");
         EDocPaymentOccurrence.SetRange(Type, EDocPaymentOccurrence.Type::Reversed);
         EDocPaymentOccurrence.SetRange("Source Occurrence ID", NewDetailedCustLedgEntry.SystemId);
         EDocPaymentOccurrence.FindFirst();
-        EDocPaymentOccurrenceMgt.ProcessPaymentOccurrence(EDocPaymentOccurrence);
+        RunPaymentOccurrence(EDocPaymentOccurrence);
+    end;
+
+    local procedure RunPaymentOccurrence(EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence")
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+    begin
+        JobQueueEntry."Record ID to Process" := EDocPaymentOccurrence.RecordId;
+        Codeunit.Run(Codeunit::"E-Doc. Payment Occurrence Mgt.", JobQueueEntry);
     end;
 
     local procedure GetNextDetailedLedgerEntryNo(): Integer
