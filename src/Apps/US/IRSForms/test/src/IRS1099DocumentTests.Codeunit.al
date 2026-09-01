@@ -1380,6 +1380,91 @@ codeunit 148010 "IRS 1099 Document Tests"
         Assert.AreEqual(FormBoxNo[2], PurchCrMemoHdr."IRS 1099 Form Box No.", 'IRS 1099 Form Box No. in Purch. Cr. Memo Hdr. should be updated');
     end;
 
+    [Test]
+    procedure InvoiceLineScheduledForPostingSyncsIRSDataWithoutModifyError()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        VendNo: Code[20];
+        FormNo: Code[20];
+        FormBoxNo: Code[20];
+        PeriodDate: Date;
+    begin
+        // [FEATURE] [Recurring Journal] [Background Posting]
+        // [SCENARIO 626641] Validating an IRS-relevant field on a Vendor Invoice journal line whose Job Queue Status
+        //                   is "Scheduled for Posting" must not fail. Background posting re-validates the Posting Date
+        //                   of recurring lines while the status is set; the IRS 1099 sync subscriber must persist its
+        //                   derived fields without re-entering the line's OnModify posting guard.
+        Initialize();
+        // [GIVEN] An IRS Reporting Period and a vendor with a 1099 form box setup in that period
+        PeriodDate := WorkDate();
+        LibraryIRSReportingPeriod.CreateOneDayReportingPeriod(PeriodDate);
+        FormNo := LibraryIRS1099FormBox.CreateSingleFormInReportingPeriod(PeriodDate);
+        FormBoxNo := LibraryIRS1099FormBox.CreateSingleFormBoxInReportingPeriod(PeriodDate, FormNo);
+        VendNo := LibraryIRS1099FormBox.CreateVendorNoWithFormBox(PeriodDate, FormNo, FormBoxNo);
+        // [GIVEN] A Vendor Invoice recurring journal line with Posting Date outside the IRS period, so validation will sync IRS data
+        CreateRecurringGenJnlLineForVendor(GenJournalLine, VendNo, GenJournalLine."Document Type"::Invoice, CalcDate('<-1D>', PeriodDate));
+        // [GIVEN] The line has been scheduled for background posting (status written without triggers)
+        GenJournalLine."Job Queue Status" := GenJournalLine."Job Queue Status"::"Scheduled for Posting";
+        GenJournalLine.Modify(false);
+
+        // [WHEN] The posting engine re-validates the Posting Date to a date inside the IRS period
+        GenJournalLine.Validate("Posting Date", PeriodDate);
+
+        // [THEN] No "scheduled for posting" error is raised and the IRS data is synced and persisted
+        GenJournalLine.TestField("Posting Date", PeriodDate);
+        VerifyIRS1099DataInGenJnlLine(GenJournalLine, PeriodDate, FormNo, FormBoxNo);
+        GenJournalLine.Find();
+        VerifyIRS1099DataInGenJnlLine(GenJournalLine, PeriodDate, FormNo, FormBoxNo);
+    end;
+
+    [Test]
+    procedure BlankDocTypeLineScheduledForPostingIsUnaffected()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        VendNo: Code[20];
+        FormNo: Code[20];
+        FormBoxNo: Code[20];
+        PeriodDate: Date;
+    begin
+        // [FEATURE] [Recurring Journal] [Background Posting]
+        // [SCENARIO 626641] A journal line with blank Document Type is skipped by the IRS 1099 sync, so validating it
+        //                   while scheduled for posting also succeeds.
+        Initialize();
+        // [GIVEN] An IRS Reporting Period and a vendor with a 1099 form box setup in that period
+        PeriodDate := WorkDate();
+        LibraryIRSReportingPeriod.CreateOneDayReportingPeriod(PeriodDate);
+        FormNo := LibraryIRS1099FormBox.CreateSingleFormInReportingPeriod(PeriodDate);
+        FormBoxNo := LibraryIRS1099FormBox.CreateSingleFormBoxInReportingPeriod(PeriodDate, FormNo);
+        VendNo := LibraryIRS1099FormBox.CreateVendorNoWithFormBox(PeriodDate, FormNo, FormBoxNo);
+        // [GIVEN] A Vendor recurring journal line with blank Document Type scheduled for background posting
+        CreateRecurringGenJnlLineForVendor(GenJournalLine, VendNo, GenJournalLine."Document Type"::" ", CalcDate('<-1D>', PeriodDate));
+        GenJournalLine."Job Queue Status" := GenJournalLine."Job Queue Status"::"Scheduled for Posting";
+        GenJournalLine.Modify(false);
+
+        // [WHEN] The posting engine re-validates the Posting Date
+        GenJournalLine.Validate("Posting Date", PeriodDate);
+
+        // [THEN] No error is raised
+        GenJournalLine.TestField("Posting Date", PeriodDate);
+    end;
+
+    local procedure CreateRecurringGenJnlLineForVendor(var GenJournalLine: Record "Gen. Journal Line"; VendorNo: Code[20]; DocumentType: Enum "Gen. Journal Document Type"; PostingDate: Date)
+    var
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+    begin
+        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
+        GenJournalTemplate.Validate(Recurring, true);
+        GenJournalTemplate.Modify(true);
+        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
+        LibraryERM.CreateGeneralJnlLineWithBalAcc(
+            GenJournalLine, GenJournalTemplate.Name, GenJournalBatch.Name, DocumentType,
+            GenJournalLine."Account Type"::Vendor, VendorNo,
+            GenJournalLine."Bal. Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), -LibraryRandom.RandDec(1000, 2));
+        GenJournalLine.Validate("Posting Date", PostingDate);
+        GenJournalLine.Modify(true);
+    end;
+
     local procedure Initialize()
     var
         IRSReportingPeriod: Record "IRS Reporting Period";
