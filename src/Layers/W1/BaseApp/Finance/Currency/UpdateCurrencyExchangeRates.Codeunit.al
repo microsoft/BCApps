@@ -40,6 +40,9 @@ codeunit 1281 "Update Currency Exchange Rates"
 #pragma warning restore AA0470
         ExchRatesUpdatedTxt: Label 'The user updated currency exchange rates via a currency exchange rate service.', Locked = true;
         TelemetryCategoryTok: Label 'AL Exchange Rate Service', Locked = true;
+        WebRequestTxt: Label 'Web service request sent to URL: %1', Locked = true, Comment = '%1 = URL';
+        WebResponseTxt: Label 'Web service response status: %1', Locked = true, Comment = '%1 = HTTP status code';
+        WebServiceCallFailedErr: Label 'A web service call to the currency exchange rate service failed. See the Activity Log for details.';
 
     local procedure SyncCurrencyExchangeRates()
     var
@@ -124,14 +127,21 @@ codeunit 1281 "Update Currency Exchange Rates"
         HttpRequestMessage.SetRequestUri(URL);
         HttpRequestMessage.GetHeaders(HttpHeaders);
         HttpHeaders.Add('Accept', 'application/xml,text/xml');
+
+        if CurrExchRateUpdateSetup."Log Web Requests" then
+            Session.LogMessage('000089V', StrSubstNo(WebRequestTxt, URL), Verbosity::Normal, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
+
         if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
             ShowHttpError(CurrExchRateUpdateSetup, GetLastErrorText());
             exit;
         end;
 
+        if CurrExchRateUpdateSetup."Log Web Requests" then
+            Session.LogMessage('000089W', StrSubstNo(WebResponseTxt, HttpResponseMessage.HttpStatusCode()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
+
         if not HttpResponseMessage.IsSuccessStatusCode() then begin
             HttpResponseMessage.Content.ReadAs(ResponseErrorText);
-            ShowHttpError(CurrExchRateUpdateSetup, ResponseErrorText);
+            ShowHttpError(CurrExchRateUpdateSetup, ResponseErrorText, true);
             exit;
         end;
 
@@ -155,14 +165,22 @@ codeunit 1281 "Update Currency Exchange Rates"
     end;
 
     local procedure ShowHttpError(CurrExchRateUpdateSetup: Record "Curr. Exch. Rate Update Setup"; ErrorText: Text)
+    begin
+        ShowHttpError(CurrExchRateUpdateSetup, ErrorText, false);
+    end;
+
+    local procedure ShowHttpError(CurrExchRateUpdateSetup: Record "Curr. Exch. Rate Update Setup"; LogDetailText: Text; UseStableErrorMessage: Boolean)
     var
         ActivityLog: Record "Activity Log";
     begin
         ActivityLog.LogActivity(
           CurrExchRateUpdateSetup, ActivityLog.Status::Failed, CurrExchRateUpdateSetup."Service Provider",
-          CurrExchRateUpdateSetup.Description, ErrorText);
+          CurrExchRateUpdateSetup.Description, LogDetailText);
 
-        Error(ErrorText);
+        if UseStableErrorMessage then
+            Error(WebServiceCallFailedErr)
+        else
+            Error(LogDetailText);
     end;
 
     /// <summary>

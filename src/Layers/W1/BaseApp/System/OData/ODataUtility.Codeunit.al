@@ -661,8 +661,11 @@ codeunit 6710 ODataUtility
         DownloadFromStream(ResponseInStream, SaveFileDialogTitleMsg, '', SaveFileDialogFilterMsg, FileName);
     end;
 
+    /// <summary>
+    /// Builds a native HttpRequestMessage for the OData $metadata endpoint, including bearer-token authorization.
+    /// </summary>
     [Scope('OnPrem')]
-    procedure CreateMetadataRequest(var HttpRequestMessage: HttpRequestMessage): Boolean
+    internal procedure CreateMetadataRequest(var HttpRequestMessage: HttpRequestMessage): Boolean
     var
         AzureAdMgt: Codeunit "Azure AD Mgt.";
         UrlHelper: Codeunit "Url Helper";
@@ -677,7 +680,7 @@ codeunit 6710 ODataUtility
         Endpoint := GetUrl(CLIENTTYPE::ODataV4) + '/$metadata';
         Token := AzureAdMgt.GetAccessTokenAsSecretText(UrlHelper.GetFixedEndpointWebServiceUrl(), '', false);
         if Token.IsEmpty() then begin
-            Session.LogMessage('0000E51', NoTokenForMetadataTelemetryErr, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ODataUtilityTelemetryCategoryTxt);
+            Session.LogMessage('0000E51', NoTokenForMetadataTelemetryErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ODataUtilityTelemetryCategoryTxt);
             exit(false);
         end;
 

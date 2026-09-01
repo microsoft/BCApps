@@ -39,8 +39,10 @@ codeunit 9033 "Invite External Accountant"
         InviteExternalAccountantTelemetryCreateNewUserSuccessTxt: Label 'Invite External Accountant wizard successfully created a new user.', Locked = true;
         InviteExternalAccountantTelemetryCreateNewUserFailedTxt: Label 'Invite External Accountant wizard was unable to create a new user.', Locked = true;
         InviteExternalAccountantWizardFailedTxt: Label 'Invite External Accountant wizard has failed on step %1, ErrorMessage %2.', Locked = true;
-        InvokeWebRequestFailedTxt: Label 'Invoking web request has failed. Status %1, Message %2', Locked = true;
+        InvokeWebRequestFailedTxt: Label 'Invoking web request has failed. Status %1.', Locked = true;
         InvokeWebRequestFailedDetailedTxt: Label 'Invoking web request has failed. Status %1, Message %2, Response Details %3', Locked = true;
+        InvokeWebRequestSendFailedTxt: Label 'Invoking web request has failed. The HTTP request could not be sent.', Locked = true;
+        InvokeWebRequestSendFailedDetailedTxt: Label 'Invoking web request has failed. The HTTP request could not be sent. Error: %1', Locked = true;
         InsufficientDataReturnedFromInvitationsApiTxt: Label 'Insufficient information was returned when inviting the user. Please contact your administrator.';
         WidsClaimNameTok: Label 'WIDS', Locked = true;
         ExternalAccountantLicenseAvailabilityErr: Label 'Failed to determine if an External Accountant license is available. Please try again later.';
@@ -286,15 +288,13 @@ codeunit 9033 "Invite External Accountant"
         HttpResponseMessage: HttpResponseMessage;
         HttpContent: HttpContent;
         HttpHeaders: HttpHeaders;
-        AccessToken: Text;
         AccessTokenSecret: SecretText;
     begin
-        AccessToken := AzureADMgt.GetGuestAccessToken(AuthResourceUrl, AzureADTenant.GetAadTenantId());
+        AccessTokenSecret := AzureADMgt.GetGuestAccessToken(AuthResourceUrl, AzureADTenant.GetAadTenantId());
 
-        if AccessToken = '' then
+        if AccessTokenSecret.IsEmpty() then
             Error(ErrorAcquiringTokenErr);
 
-        AccessTokenSecret := AccessToken;
         HttpRequestMessage.Method(Verb);
         HttpRequestMessage.SetRequestUri(Url);
         HttpRequestMessage.GetHeaders(HttpHeaders);
@@ -309,7 +309,7 @@ codeunit 9033 "Invite External Accountant"
         end;
 
         if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
-            LogInvokeRequestFailure(0, GetLastErrorText(), '');
+            LogInvokeRequestSendFailure(GetLastErrorText());
             exit(false);
         end;
 
@@ -322,9 +322,15 @@ codeunit 9033 "Invite External Accountant"
         end;
     end;
 
+    local procedure LogInvokeRequestSendFailure(ErrorText: Text)
+    begin
+        Session.LogMessage('0000B3Q', InvokeWebRequestSendFailedTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', InviteExternalAccountantTelemetryCategoryTxt);
+        Session.LogMessage('0000B3R', StrSubstNo(InvokeWebRequestSendFailedDetailedTxt, ErrorText), Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', InviteExternalAccountantTelemetryCategoryTxt);
+    end;
+
     local procedure LogInvokeRequestFailure(HttpStatusCode: Integer; ResponseErrorMessage: Text; ResponseErrorDetails: Text)
     begin
-        Session.LogMessage('0000B3O', StrSubstNo(InvokeWebRequestFailedTxt, HttpStatusCode, ResponseErrorMessage), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', InviteExternalAccountantTelemetryCategoryTxt);
+        Session.LogMessage('0000B3O', StrSubstNo(InvokeWebRequestFailedTxt, HttpStatusCode), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', InviteExternalAccountantTelemetryCategoryTxt);
         Session.LogMessage('0000B3P', StrSubstNo(InvokeWebRequestFailedDetailedTxt, HttpStatusCode, ResponseErrorMessage, ResponseErrorDetails), Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', InviteExternalAccountantTelemetryCategoryTxt);
     end;
 

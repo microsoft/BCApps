@@ -53,12 +53,12 @@ codeunit 6384 "Graph Client"
         InitializeWebRequest(FolderUrl, 'GET', 'application/json', HttpRequestMessage);
 
         if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then
-            Error(GetLastErrorText());
+            Error(RequestFailedErr, GetLastErrorText());
 
         HttpResponseMessage.Content.ReadAs(ResponseBody);
         if not HttpResponseMessage.IsSuccessStatusCode() then begin
             ErrorDetails := ResponseBody;
-            Session.LogMessage('0000OB5', StrSubstNo(GraphStatusCodeTelemetryMsg, HttpResponseMessage.HttpStatusCode()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryLbl);
+            Session.LogMessage('0000OB5', StrSubstNo(GraphStatusCodeTelemetryMsg, HttpResponseMessage.HttpStatusCode()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryLbl);
 
             CheckNoAccessError(HttpResponseMessage.HttpStatusCode(), ErrorDetails);
             Error(UnexpectedStatusCodeErr, HttpResponseMessage.HttpStatusCode());
@@ -86,11 +86,11 @@ codeunit 6384 "Graph Client"
         InitializeWebRequest(FileUrl, 'GET', '', HttpRequestMessage);
 
         if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then
-            Error(GetLastErrorText());
+            Error(RequestFailedErr, GetLastErrorText());
 
         if not HttpResponseMessage.IsSuccessStatusCode() then begin
             HttpResponseMessage.Content.ReadAs(ErrorDetails);
-            Session.LogMessage('0000OB6', StrSubstNo(GraphStatusCodeTelemetryMsg, HttpResponseMessage.HttpStatusCode()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryLbl);
+            Session.LogMessage('0000OB6', StrSubstNo(GraphStatusCodeTelemetryMsg, HttpResponseMessage.HttpStatusCode()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryLbl);
 
             CheckNoAccessError(HttpResponseMessage.HttpStatusCode(), ErrorDetails);
             Error(UnexpectedStatusCodeErr, HttpResponseMessage.HttpStatusCode());
@@ -131,11 +131,11 @@ codeunit 6384 "Graph Client"
         HttpContentHeaders.Add('Content-Type', 'application/json');
         HttpRequestMessage.Content(HttpContent);
         if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then
-            Error(GetLastErrorText());
+            Error(RequestFailedErr, GetLastErrorText());
 
         HttpResponseMessage.Content.ReadAs(ResponseBody);
         if not HttpResponseMessage.IsSuccessStatusCode() then begin
-            Session.LogMessage('0000N7U', StrSubstNo(GraphStatusCodeTelemetryMsg, HttpResponseMessage.HttpStatusCode()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryLbl);
+            Session.LogMessage('0000N7U', StrSubstNo(GraphStatusCodeTelemetryMsg, HttpResponseMessage.HttpStatusCode()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryLbl);
 
             CheckNoAccessError(HttpResponseMessage.HttpStatusCode(), ResponseBody);
             Error(UnexpectedStatusCodeErr, HttpResponseMessage.HttpStatusCode());
@@ -165,6 +165,7 @@ codeunit 6384 "Graph Client"
         SignInAgainErr: Label 'No access token is available. You must sign in to the target resource with the correct credentials. If the problem persists, open a Business Central support request.';
         DocumentFolderNotAccessibleErr: Label 'Unable to access the folder specified on the setup page. Verify that the shared link points to an existing folder and that you have access to it.';
         GraphStatusCodeTelemetryMsg: Label 'Microsoft 365 returned an error code: %1.', Locked = true;
+        RequestFailedErr: Label 'The request to the remote service failed. Details: %1.', Comment = '%1 = The error text from the failed HTTP request';
         UnexpectedStatusCodeErr: Label 'Remote service returned an unexpected error code: %1.', Comment = '%1 = An error code from OneDrive or Sharepoint, for example 503';
         InvalidJsonErr: Label 'Remote service returned an invalid response. Details: %1.', Comment = '%1 = The response details from OneDrive or Sharepoint (e.g. "Your Drive is not available")';
         CategoryLbl: Label 'EDoc Connector M365', Locked = true;

@@ -29,7 +29,7 @@ codeunit 1738 "OData Initializer"
             HttpRequestMessage.GetHeaders(HttpHeaders);
             HttpHeaders.Remove('User-Agent');
             HttpHeaders.Add('User-Agent', 'BusinessCentral-Warmup');
-            if HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then
+            if HttpClient.Send(HttpRequestMessage, HttpResponseMessage) and HttpResponseMessage.IsSuccessStatusCode() then
                 exit;
         end;
 

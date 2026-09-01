@@ -43,7 +43,10 @@ codeunit 1237 "Get Json Structure"
             HttpHeaders.Remove('Content-Type');
             HttpHeaders.Add('Content-Type', 'application/x-www-form-urlencoded');
             HttpRequestMessage.Content(HttpContent);
-            HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
+            if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then
+                Error(InvalidResponseErr);
+            if not HttpResponseMessage.IsSuccessStatusCode() then
+                Error(InvalidResponseErr);
             HttpResponseMessage.Content.ReadAs(JsonInStream);
         end;
 
