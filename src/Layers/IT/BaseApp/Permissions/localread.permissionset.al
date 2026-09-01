@@ -19,6 +19,9 @@ using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Setup;
+#if not CLEAN28
+using Microsoft.Manufacturing.Document;
+#endif
 using Microsoft.Purchases.Vendor;
 using Microsoft.Utilities;
 permissionset 1002 "LOCAL READ"
@@ -78,6 +81,9 @@ permissionset 1002 "LOCAL READ"
                   tabledata "Reprint Info Fiscal Reports" = R,
                   tabledata "Service Tariff Number" = R,
                   tabledata "Spesometro Appointment" = R,
+#if not CLEAN28
+                  tabledata "Subcontractor Prices" = R,
+#endif
                   tabledata "Tmp Withholding Contribution" = R,
                   tabledata "Transport Reason Code" = R,
                   tabledata "VAT Book Entry" = R,

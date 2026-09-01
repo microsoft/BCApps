@@ -513,14 +513,18 @@ report 1401 Check
                                 Decimals := CheckLedgEntry.Amount - Round(CheckLedgEntry.Amount, 1, '<');
                                 if StrLen(Format(Decimals)) < StrLen(Format(Currency."Amount Rounding Precision")) then
                                     if Decimals = 0 then
-                                        CheckAmountText := Format(CheckLedgEntryAmount, 0, 0) +
-                                          CopyStr(Format(0.01), 2, 1) +
-                                          PadStr('', StrLen(Format(Currency."Amount Rounding Precision")) - 2, '0')
+                                        CheckAmountText := CopyStr(
+                                                Format(CheckLedgEntryAmount, 0, 0) +
+                                                CopyStr(Format(0.01), 2, 1) +
+                                                PadStr('', StrLen(Format(Currency."Amount Rounding Precision")) - 2, '0'),
+                                                1, MaxStrLen(CheckAmountText))
                                     else
-                                        CheckAmountText := Format(CheckLedgEntryAmount, 0, 0) +
-                                          PadStr('', StrLen(Format(Currency."Amount Rounding Precision")) - StrLen(Format(Decimals)), '0')
+                                        CheckAmountText := CopyStr(
+                                                Format(CheckLedgEntryAmount, 0, 0) +
+                                                PadStr('', StrLen(Format(Currency."Amount Rounding Precision")) - StrLen(Format(Decimals)), '0'),
+                                                1, MaxStrLen(CheckAmountText))
                                 else
-                                    CheckAmountText := Format(CheckLedgEntryAmount, 0, 0);
+                                    CheckAmountText := CopyStr(Format(CheckLedgEntryAmount, 0, 0), 1, MaxStrLen(CheckAmountText));
                                 FormatNoText(DescriptionLine, CheckLedgEntry.Amount, BankAcc2."Currency Code");
                                 VoidText := '';
                             end else begin
@@ -1381,15 +1385,15 @@ report 1401 Check
 
     local procedure GetAmtDecimalPosition(): Decimal
     var
-        Currency: Record Currency;
+        Currency2: Record Currency;
     begin
         if GenJnlLine."Currency Code" = '' then
-            Currency.InitRoundingPrecision()
+            Currency2.InitRoundingPrecision()
         else begin
-            Currency.Get(GenJnlLine."Currency Code");
-            Currency.TestField("Amount Rounding Precision");
+            Currency2.Get(GenJnlLine."Currency Code");
+            Currency2.TestField("Amount Rounding Precision");
         end;
-        exit(1 / Currency."Amount Rounding Precision");
+        exit(1 / Currency2."Amount Rounding Precision");
     end;
 
     local procedure CheckGenJournalBatchAndLineIsApproved(GenJournalLine: Record "Gen. Journal Line"): Boolean
