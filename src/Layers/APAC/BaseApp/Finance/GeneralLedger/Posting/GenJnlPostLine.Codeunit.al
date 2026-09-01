@@ -4671,7 +4671,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         SalesVATAccount: Code[20];
         SalesVATUnrealAccount: Code[20];
         LastConnectionNo: Integer;
-<<<<<<< src/Layers/APAC/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
         PrevVAT: Decimal;
         RemUnrealVAT: Decimal;
         LastVATEntryTranNo: Integer;
@@ -6126,7 +6125,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         PurchReverseAccount: Code[20];
         PurchReverseUnrealAccount: Code[20];
         LastConnectionNo: Integer;
-<<<<<<< src/Layers/APAC/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
         WHTAmount: Decimal;
         GLEntryNo: BigInteger;
         IsHandled: Boolean;
@@ -13340,7 +13338,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-<<<<<<< src/Layers/APAC/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
     local procedure OnPostCustWHTOnAfterPostCustWHTTaxInv(var GenJournalLine: Record "Gen. Journal Line"; var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
     end;

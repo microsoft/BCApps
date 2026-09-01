@@ -1,10 +1,4 @@
-<<<<<<< src/Layers/ES/BaseApp/Sales/History/SalesCrMemoHeader.Table.al
-// ------------------------------------------------------------------------------------------------
-||||||| Base: src/Layers/W1/BaseApp/Sales/History/SalesCrMemoHeader.Table.al
-∩╗┐// ------------------------------------------------------------------------------------------------
-=======
 ﻿// ------------------------------------------------------------------------------------------------
->>>>>>> src/Layers/W1/BaseApp/Sales/History/SalesCrMemoHeader.Table.al
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
