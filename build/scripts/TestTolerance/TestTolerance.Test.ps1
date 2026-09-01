@@ -350,6 +350,21 @@ Describe "TestTolerance" {
                 $env:_token = $savedToken
             }
         }
+
+        It "throws on a retrieval failure rather than reporting the artifact as absent" {
+            $savedGhToken = $env:GH_TOKEN
+            $savedRepo = $env:GITHUB_REPOSITORY
+            try {
+                $env:GH_TOKEN = 'fake-token'
+                $env:GITHUB_REPOSITORY = 'owner/repo'
+                Mock -ModuleName TestTolerance Invoke-RestMethod { throw 'simulated API failure' }
+                { Receive-UnstableTestsArtifact -Branch 'main' -OutputDirectory $script:tempRoot } | Should -Throw
+            }
+            finally {
+                $env:GH_TOKEN = $savedGhToken
+                $env:GITHUB_REPOSITORY = $savedRepo
+            }
+        }
     }
 
     Context "Update-UnstableTestsList" {
@@ -422,6 +437,18 @@ Describe "TestTolerance" {
             $existing = @(
                 [pscustomobject]@{ extensionId = 'ext-1'; codeunitId = 300; codeunitName = 'A'; testMethod = 'T1'; unstableSince = '2025-12-31T00:00:00.0000000Z' }
             )
+
+            $result = Update-UnstableTestsList -FailedTests $failed -ExistingTests $existing
+            $result['ext-1::300::t1'].UnstableSince | Should -Be '2025-12-31T00:00:00.0000000Z'
+        }
+
+        It "carries forward unstableSince as ISO 8601 UTC when JSON parsing hydrated it into a DateTime" {
+            $failed = @{
+                'ext-1::300::t1' = [pscustomobject]@{ ExtensionId = 'ext-1'; CodeunitId = 300; CodeunitName = 'A'; TestMethod = 'T1'; FailureMessage = 'm' }
+            }
+            # Round-trip through JSON so the timestamp arrives as whatever ConvertFrom-Json produces
+            # (a DateTime on PowerShell 7.5+ / Windows PowerShell), exercising the normalization path.
+            $existing = @((@{ tests = @(@{ extensionId = 'ext-1'; codeunitId = 300; codeunitName = 'A'; testMethod = 'T1'; unstableSince = '2025-12-31T00:00:00.0000000Z' }) } | ConvertTo-Json -Depth 5 | ConvertFrom-Json).tests)
 
             $result = Update-UnstableTestsList -FailedTests $failed -ExistingTests $existing
             $result['ext-1::300::t1'].UnstableSince | Should -Be '2025-12-31T00:00:00.0000000Z'

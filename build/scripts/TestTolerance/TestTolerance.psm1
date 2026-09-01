@@ -592,8 +592,13 @@ function Test-ShouldTolerateFailures {
 .Description
     Uses the GitHub REST API to find the most recent artifact named 'unstable-tests-<branch>'
     in the current repository, downloads it, and extracts the JSON file to a local directory.
-    Returns the path to the extracted unstable-tests.json, or $null if the artifact is not found
-    or any step fails.
+    Returns the path to the extracted unstable-tests.json when it is found.
+
+    Returns $null when the artifact is confirmed absent: an unsupported branch, no token, no matching
+    artifact, or an expired one. Throws when the artifact exists but cannot be retrieved (API/network
+    error, or a downloaded archive without the expected JSON). Callers that recompute and publish the
+    list rely on this distinction: a transient retrieval failure must abort the run rather than be
+    mistaken for "no prior list", which would restamp every surviving test's 'unstableSince'.
 
     Requires the GH_TOKEN, GITHUB_TOKEN, or _token environment variable and GITHUB_REPOSITORY to be set.
     If no token variable is available the function skips the download and returns $null.
@@ -677,11 +682,13 @@ function Receive-UnstableTestsArtifact {
         }
 
         Write-Host "Downloaded artifact but could not find unstable-tests.json inside."
-        return $null
+        throw "Downloaded unstable tests artifact '$artifactName' but it did not contain unstable-tests.json."
     }
     catch {
-        Write-Host "Failed to download unstable tests artifact: $($_.Exception.Message)"
-        return $null
+        # A genuine retrieval failure (network/API error, or a malformed archive) is not the same as the
+        # artifact being absent. Rethrow so a publishing caller aborts instead of recomputing from an
+        # empty list and overwriting every surviving test's 'unstableSince' with a fresh timestamp.
+        throw "Failed to retrieve unstable tests artifact '$artifactName': $($_.Exception.Message)"
     }
 }
 
@@ -728,10 +735,18 @@ function Update-UnstableTestsList {
     $existingSince = @{}
     foreach ($entry in $ExistingTests) {
         $props = $entry.PSObject.Properties
-        if ((-not $props['unstableSince']) -or [string]::IsNullOrWhiteSpace([string]$entry.unstableSince) -or (-not $props['testMethod'])) { continue }
+        if ((-not $props['unstableSince']) -or (-not $entry.unstableSince) -or (-not $props['testMethod'])) { continue }
+        # ConvertFrom-Json may parse the ISO timestamp into a DateTime/DateTimeOffset (PowerShell 7.5+),
+        # whose plain string cast is culture-specific. Re-format it to ISO 8601 UTC so the value carried
+        # forward keeps the documented schema.
+        $rawSince = $entry.unstableSince
+        $since = if ($rawSince -is [datetime]) { $rawSince.ToUniversalTime().ToString('o') }
+                 elseif ($rawSince -is [System.DateTimeOffset]) { $rawSince.ToUniversalTime().ToString('o') }
+                 else { [string]$rawSince }
+        if ([string]::IsNullOrWhiteSpace($since)) { continue }
         $extId = if ($props['extensionId']) { [string]$entry.extensionId } else { '' }
         $cuId = if ($props['codeunitId']) { [int]$entry.codeunitId } else { 0 }
-        $existingSince[(Get-UnstableTestKey -CodeunitId $cuId -TestMethod ([string]$entry.testMethod) -ExtensionId $extId)] = [string]$entry.unstableSince
+        $existingSince[(Get-UnstableTestKey -CodeunitId $cuId -TestMethod ([string]$entry.testMethod) -ExtensionId $extId)] = $since
     }
 
     $result = @{}
