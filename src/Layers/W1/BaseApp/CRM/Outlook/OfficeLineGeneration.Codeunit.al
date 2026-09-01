@@ -163,6 +163,7 @@ codeunit 1639 "Office Line Generation"
         DisableAggregateTableUpdate: Codeunit "Disable Aggregate Table Update";
         OfficeMgt: Codeunit "Office Management";
         AddedCount: Integer;
+        InsertFailureErrorText: Text;
         InsertFailed: Boolean;
     begin
         if PageCloseAction in [ACTION::OK, ACTION::LookupOK] then
@@ -173,8 +174,10 @@ codeunit 1639 "Office Line Generation"
                     if TempOfficeSuggestedLineItem.Add then
                         if TryInsertLineItemAndCommit(HeaderRecRef, TempOfficeSuggestedLineItem."Item No.", TempOfficeSuggestedLineItem.Quantity) then
                             AddedCount += 1
-                        else
+                        else begin
+                            InsertFailureErrorText := GetLastErrorText();
                             InsertFailed := true;
+                        end;
                 until InsertFailed or (TempOfficeSuggestedLineItem.Next() = 0);
                 if UnbindSubscription(DisableAggregateTableUpdate) then;
 
@@ -184,13 +187,13 @@ codeunit 1639 "Office Line Generation"
                 end;
             end;
 
+        if InsertFailed then
+            Error(InsertFailureErrorText);
+
         Session.LogMessage('00001KJ', StrSubstNo(TelemetryClosedPageTxt, NewLine(),
             PageCloseAction,
             TempOfficeSuggestedLineItem.Count,
             AddedCount), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', OfficeMgt.GetOfficeAddinTelemetryCategory());
-
-        if InsertFailed then
-            Error(GetLastErrorText());
     end;
 
     [TryFunction]
