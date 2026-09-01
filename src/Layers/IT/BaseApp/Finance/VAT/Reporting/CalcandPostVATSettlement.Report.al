@@ -638,7 +638,7 @@ report 20 "Calc. and Post VAT Settlement"
                     GenJnlLine.Description := Text004;
                     GenJnlLine.Validate(Amount, VATAmount);
                     GenJnlLine."Source Currency Code" := GLSetup."Additional Reporting Currency";
-                    GenJnlLine."Source Currency Amount" := VATAmountAddCurr;
+                    GenJnlLine."Source Currency Amount" := SourceCurrencyAmount(VATAmount, VATAmountAddCurr);
                     GenJnlLine."Source Code" := SourceCodeSetup."VAT Settlement";
                     GenJnlLine."VAT Posting" := GenJnlLine."VAT Posting"::"Manual VAT Entry";
                     GenJnlLine."Operation Occurred Date" := PostingDate;
@@ -1315,9 +1315,15 @@ report 20 "Calc. and Post VAT Settlement"
         GenJournalLine."VAT Amount" := -VATEntry.Amount;
         GenJournalLine."VAT Base Amount" := -VATEntry.Base;
         GenJournalLine."Source Currency Code" := GLSetup."Additional Reporting Currency";
-        GenJournalLine."Source Currency Amount" := -VATEntry."Additional-Currency Amount";
-        GenJournalLine."Source Curr. VAT Amount" := -VATEntry."Additional-Currency Amount";
-        GenJournalLine."Source Curr. VAT Base Amount" := -VATEntry."Additional-Currency Base";
+        if GLSetup."Additional Reporting Currency" = '' then begin
+            GenJournalLine."Source Currency Amount" := -VATEntry.Amount;
+            GenJournalLine."Source Curr. VAT Amount" := -VATEntry.Amount;
+            GenJournalLine."Source Curr. VAT Base Amount" := -VATEntry.Base;
+        end else begin
+            GenJournalLine."Source Currency Amount" := -VATEntry."Additional-Currency Amount";
+            GenJournalLine."Source Curr. VAT Amount" := -VATEntry."Additional-Currency Amount";
+            GenJournalLine."Source Curr. VAT Base Amount" := -VATEntry."Additional-Currency Base";
+        end;
         OnAfterCopyAmounts(GenJournalLine, VATEntry);
     end;
 
@@ -1335,7 +1341,7 @@ report 20 "Calc. and Post VAT Settlement"
         GenJnlLine2."Account No." := AccountNo;
         GenJnlLine2.Amount := VATEntry.Amount;
         GenJnlLine2."Source Currency Code" := GLSetup."Additional Reporting Currency";
-        GenJnlLine2."Source Currency Amount" := VATEntry."Additional-Currency Amount";
+        GenJnlLine2."Source Currency Amount" := SourceCurrencyAmount(VATEntry.Amount, VATEntry."Additional-Currency Amount");
     end;
 
     [Scope('OnPrem')]
@@ -1676,6 +1682,13 @@ report 20 "Calc. and Post VAT Settlement"
         if PeriodicVATSettlementEntry.Get(GetVATPeriodTextFromDate(EndDateReq), '') then
             if not PeriodicVATSettlement.ValidateSplit(GetVATPeriodTextFromDate(EndDateReq)) then
                 Error(SplitValidationErr);
+    end;
+
+    local procedure SourceCurrencyAmount(AmountLCY: Decimal; AmountACY: Decimal): Decimal
+    begin
+        if GLSetup."Additional Reporting Currency" = '' then
+            exit(AmountLCY);
+        exit(AmountACY);
     end;
 
     /// <summary>
