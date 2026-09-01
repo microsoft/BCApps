@@ -20,9 +20,11 @@ codeunit 148333 "Expense Agent Setup API Test"
         LibraryExpense: Codeunit "Library - Expense";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         IsInitialized: Boolean;
         ServiceNameTok: Label 'expenseAgentSetup', Locked = true;
         EmailAddressTok: Label 'emailAddress', Locked = true;
+        CopyEmployeesToExpenseUsersQst: Label 'Do you want to copy existing employees to expense users?';
 
     [Test]
     procedure EmailAddressFieldIsExposedThroughAPI()
@@ -80,9 +82,11 @@ codeunit 148333 "Expense Agent Setup API Test"
 
         // [GIVEN] No Expense Agent setup exists
         ClearExpenseAgentSetup();
+        EnqueueCopyEmployeesConfirmation();
 
         // [WHEN] The E2E test handler initializes the company
         ExpenseTestHandlerAPI.Configure();
+        VerifyCopyEmployeesConfirmation();
         ExpenseAgentSetup.Get();
         FirstAgentUserSecurityId := ExpenseAgentSetup."User Security ID";
 
@@ -130,9 +134,11 @@ codeunit 148333 "Expense Agent Setup API Test"
 
         // [GIVEN] Required Expense Agent setup data is absent
         ClearRequiredSetupData();
+        EnqueueCopyEmployeesConfirmation();
 
         // [WHEN] The E2E test handler initializes Expense Agent master data
         ExpenseTestHandlerAPI.Configure();
+        VerifyCopyEmployeesConfirmation();
 
         // [THEN] Default number series, payment methods, categories, and posting accounts exist
         VerifyDefaultNumberSeriesExist();
@@ -172,9 +178,11 @@ codeunit 148333 "Expense Agent Setup API Test"
 
         // [GIVEN] Required Expense Agent setup data is absent
         ClearRequiredSetupData();
+        EnqueueCopyEmployeesConfirmation();
 
         // [GIVEN] The E2E test handler initializes Expense Agent master data
         ExpenseTestHandlerAPI.Configure();
+        VerifyCopyEmployeesConfirmation();
         ExpenseAgentSetup.Get();
         CategoryCount := ExpenseCategory.Count();
         PaymentMethodCount := ExpensePaymentMethod.Count();
@@ -318,6 +326,23 @@ codeunit 148333 "Expense Agent Setup API Test"
         Assert.IsTrue(NoSeries.Get(ExpenseAgentSetup."Posted Expense Reports Nos."), 'The posted expense report number series must exist.');
     end;
 
+    local procedure EnqueueCopyEmployeesConfirmation()
+    begin
+        LibraryVariableStorage.Enqueue(false);
+    end;
+
+    local procedure VerifyCopyEmployeesConfirmation()
+    var
+        ActualQuestion: Text;
+    begin
+        LibraryVariableStorage.Dequeue(ActualQuestion);
+        Assert.AreEqual(
+            CopyEmployeesToExpenseUsersQst,
+            ActualQuestion,
+            'The default setup must ask whether to copy employees to Expense Users.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure VerifyDefaultPostingGroupAccountsExist()
     var
         ExpensePostingGroup: Record "Expense Posting Group";
@@ -346,6 +371,7 @@ codeunit 148333 "Expense Agent Setup API Test"
     [ConfirmHandler]
     procedure ConfirmHandlerNo(Question: Text[1024]; var Reply: Boolean)
     begin
-        Reply := false;
+        LibraryVariableStorage.Dequeue(Reply);
+        LibraryVariableStorage.Enqueue(Question);
     end;
 }
