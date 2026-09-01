@@ -79,7 +79,7 @@ page 774 "User Details"
                     Caption = 'Inactive (days)';
                     ToolTip = 'Specifies the number of days since the user last logged in.';
                 }
-                field(SystemCreatedAt; Rec.SystemCreatedAt)
+                field(SystemCreatedAt; Rec."User System Created At")
                 {
                     Caption = 'Created On';
                     ToolTip = 'Specifies the date and time when the user record was created.';
@@ -89,7 +89,7 @@ page 774 "User Details"
                     Caption = 'Created By';
                     ToolTip = 'Specifies the user who created the user record.';
                 }
-                field(SystemModifiedAt; Rec.SystemModifiedAt)
+                field(SystemModifiedAt; Rec."User System Modified At")
                 {
                     Caption = 'Modified On';
                     ToolTip = 'Specifies the date and time when the user record was last modified.';
@@ -151,19 +151,13 @@ page 774 "User Details"
     var
         UserDetails: Record "User Details";
     begin
-        Rec.SetRange("Last Login Date");
         if Rec.GetFilter("Inactive Days Date Filter") <> '' then
             if Evaluate(UserDetails."Inactive Days Date Filter", Rec.GetFilter("Inactive Days Date Filter")) then
-                case UserDetails."Inactive Days Date Filter" of
-                    Rec."Inactive Days Date Filter"::"7 Days":
-                        Rec.SetFilter("Last Login Date", '<=%1', CreateDateTime(CalcDate('<-7D>', Today()), 115900T));
-                    Rec."Inactive Days Date Filter"::"30 Days":
-                        Rec.SetFilter("Last Login Date", '<=%1', CreateDateTime(CalcDate('<-30D>', Today()), 115900T));
-                    Rec."Inactive Days Date Filter"::"90 Days":
-                        Rec.SetFilter("Last Login Date", '<=%1', CreateDateTime(CalcDate('<-90D>', Today()), 115900T));
-                    else
-                        OnInactiveDaysFilterCaseElse(UserDetails."Inactive Days Date Filter", Rec);
-                end;
+                ApplyInactiveDaysFilter(UserDetails."Inactive Days Date Filter")
+            else
+                ApplyInactiveDaysFilter(UserDetails."Inactive Days Date Filter"::Blank)
+        else
+            ApplyInactiveDaysFilter(UserDetails."Inactive Days Date Filter"::Blank);
 
         exit(Rec.Find(Which));
     end;
@@ -172,8 +166,11 @@ page 774 "User Details"
     var
         Math: Codeunit Math;
     begin
-        if CreatedByUser.Get(Rec.SystemCreatedBy) then;
-        if ModifiedByUser.Get(Rec.SystemModifiedBy) then;
+        Rec.CalcFields("User System Created By", "User System Modified By");
+        Clear(CreatedByUser);
+        Clear(ModifiedByUser);
+        if CreatedByUser.Get(Rec."User System Created By") then;
+        if ModifiedByUser.Get(Rec."User System Modified By") then;
         InactiveDays := 0;
         if Rec."Last Login Date".Date <> 0D then
             InactiveDays := Math.Floor(Today() - Rec."Last Login Date".Date);
@@ -186,6 +183,30 @@ page 774 "User Details"
 
     protected var
         IsSaaS: Boolean;
+
+    local procedure ApplyInactiveDaysFilter(DateFilter: Enum "User Detail Date Filter")
+    var
+        OriginalFilterGroup: Integer;
+    begin
+        OriginalFilterGroup := Rec.FilterGroup();
+        Rec.FilterGroup(100);
+        Rec.SetRange("Last Login Date");
+
+        case DateFilter of
+            DateFilter::"7 Days":
+                Rec.SetFilter("Last Login Date", '<=%1', CreateDateTime(CalcDate('<-7D>', Today()), 235959T));
+            DateFilter::"30 Days":
+                Rec.SetFilter("Last Login Date", '<=%1', CreateDateTime(CalcDate('<-30D>', Today()), 235959T));
+            DateFilter::"90 Days":
+                Rec.SetFilter("Last Login Date", '<=%1', CreateDateTime(CalcDate('<-90D>', Today()), 235959T));
+            DateFilter::Blank:
+                ;
+            else
+                OnInactiveDaysFilterCaseElse(DateFilter, Rec);
+        end;
+
+        Rec.FilterGroup(OriginalFilterGroup);
+    end;
 
     [IntegrationEvent(false, false)]
     local procedure OnInactiveDaysFilterCaseElse(DateFilter: Enum "User Detail Date Filter"; var Rec: Record "User Details")

@@ -137,6 +137,46 @@ table 774 "User Details"
             Editable = false;
             FieldClass = FlowFilter;
         }
+        /// <summary>
+        /// The date and time when the user record was created.
+        /// </summary>
+        field(26; "User System Created At"; DateTime)
+        {
+            Access = Internal;
+            CalcFormula = lookup(User.SystemCreatedAt where("User Security ID" = field("User Security ID")));
+            Editable = false;
+            FieldClass = FlowField;
+        }
+        /// <summary>
+        /// The user who created the user record.
+        /// </summary>
+        field(27; "User System Created By"; Guid)
+        {
+            Access = Internal;
+            CalcFormula = lookup(User.SystemCreatedBy where("User Security ID" = field("User Security ID")));
+            Editable = false;
+            FieldClass = FlowField;
+        }
+        /// <summary>
+        /// The date and time when the user record was last modified.
+        /// </summary>
+        field(28; "User System Modified At"; DateTime)
+        {
+            Access = Internal;
+            CalcFormula = lookup(User.SystemModifiedAt where("User Security ID" = field("User Security ID")));
+            Editable = false;
+            FieldClass = FlowField;
+        }
+        /// <summary>
+        /// The user who last modified the user record.
+        /// </summary>
+        field(29; "User System Modified By"; Guid)
+        {
+            Access = Internal;
+            CalcFormula = lookup(User.SystemModifiedBy where("User Security ID" = field("User Security ID")));
+            Editable = false;
+            FieldClass = FlowField;
+        }
     }
 
     keys
