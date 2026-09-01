@@ -72,13 +72,6 @@ codeunit 13607 "Elec. VAT Decl. Cryptography"
             Error(UploadClientCertificateErr);
         IsolatedCertificate.Get(VATReturnESubmissionSetup."Client Certificate Code");
         ClientCertificateBase64 := CertificateManagement.GetRawCertDataAsBase64String(IsolatedCertificate);
-        GetCertificatePrivateKeyForSigning(IsolatedCertificate, SignatureKey);
-    end;
-
-    internal procedure GetCertificatePrivateKeyForSigning(IsolatedCertificate: Record "Isolated Certificate"; var SignatureKey: Codeunit "Signature Key")
-    var
-        CertificateManagement: Codeunit "Certificate Management";
-    begin
         CertificateManagement.GetCertPrivateKey(IsolatedCertificate, SignatureKey);
     end;
 

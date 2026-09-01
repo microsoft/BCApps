@@ -105,22 +105,6 @@ codeunit 148083 "EET UT CZL"
     end;
 
     [Test]
-    procedure TrustedAppCanRequestCertificatePrivateKey()
-    var
-        IsolatedCertificate: Record "Isolated Certificate";
-        EETTextSignProviderCZL: Codeunit "EET Text Sign. Provider CZL";
-        TempBlob: Codeunit "Temp Blob";
-        SignatureOutStream: OutStream;
-    begin
-        Initialize();
-        TempBlob.CreateOutStream(SignatureOutStream);
-
-        asserterror EETTextSignProviderCZL.SignData('', IsolatedCertificate, SignatureOutStream);
-
-        Assert.ExpectedTestFieldError(IsolatedCertificate.FieldCaption("Has Private Key"), '');
-    end;
-
-    [Test]
     [HandlerFunctions('StrMenuHandler,ConfirmHandler')]
     procedure SetProductionServiceURLToEETServiceSetup()
     begin
@@ -253,3 +237,4 @@ codeunit 148083 "EET UT CZL"
         Choice := LibraryVariableStorage.DequeueInteger();
     end;
 }
+

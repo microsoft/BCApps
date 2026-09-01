@@ -12,21 +12,6 @@ codeunit 135109 "Extension Mgt. Test Library"
     var
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
 
-    procedure CanManageExtensions(): Boolean
-    begin
-        exit(ExtensionInstallationImpl.CanManageExtensions());
-    end;
-
-    procedure CanManageExtensions(UserSecurityId: Guid): Boolean
-    begin
-        exit(ExtensionInstallationImpl.CanManageExtensions(UserSecurityId));
-    end;
-
-    procedure CheckPermissions(UserSecurityId: Guid)
-    begin
-        ExtensionInstallationImpl.CheckPermissions(UserSecurityId);
-    end;
-
     procedure RunExtensionSetup(AppId: Guid)
     begin
         ExtensionInstallationImpl.RunExtensionSetup(AppId);

@@ -5,7 +5,6 @@
 namespace System.Security.Encryption;
 
 using System;
-using System.Apps;
 using System.IO;
 using System.Security.AccessControl;
 using System.Text;
@@ -13,7 +12,6 @@ using System.Utilities;
 
 codeunit 1259 "Certificate Management"
 {
-    Permissions = tabledata "Published Application" = r;
 
     trigger OnRun()
     begin
@@ -36,11 +34,6 @@ codeunit 1259 "Certificate Management"
         CertFileNotValidErr: Label 'This is not a valid certificate file.';
         CertFileFilterTxt: Label 'Certificate Files (*.pfx, *.p12,*.p7b,*.cer,*.crt,*.der)|*.pfx;*.p12;*.p7b;*.cer;*.crt;*.der', Locked = true;
         CertExtFilterTxt: Label '.pfx.p12.p7b.cer.crt.der', Locked = true;
-        PrivateKeyAccessDeniedErr: Label 'The calling extension is not allowed to access certificate private keys.';
-        PrivateKeyAccessDeniedTelemetryMsg: Label 'Certificate private key access was denied for app ID %1 and package ID %2.', Locked = true;
-        CertificateManagementTelemetryCategoryTok: Label 'Certificate Management', Locked = true;
-        CoreLocalizationPackCZAppIdTok: Label '267b59d3-7302-44c5-ba77-c87000380514', Locked = true;
-        ElectronicVATDeclarationDKAppIdTok: Label '64977288-facd-4b48-abaa-bb0e288edfb3', Locked = true;
 
     [Scope('OnPrem')]
     procedure UploadAndVerifyCert(var IsolatedCertificate: Record "Isolated Certificate"): Boolean
@@ -308,62 +301,18 @@ codeunit 1259 "Certificate Management"
         exit(X509Certificate2.GetNameInfo(X509NameType.SimpleName, false));
     end;
 
-    /// <remarks>Direct private key access is restricted to trusted Microsoft applications. Extensions should use purpose-specific signing APIs instead.</remarks>
     [NonDebuggable]
     procedure GetCertPrivateKey(IsolatedCertificate: Record "Isolated Certificate"; var SignatureKey: Codeunit "Signature Key")
     var
         DotNetX509Certificate2: Codeunit DotNet_X509Certificate2;
         DotNetAsymmetricAlgorithm: Codeunit DotNet_AsymmetricAlgorithm;
-        CallerModuleInfo: ModuleInfo;
         XmlStringSecureText: SecretText;
     begin
-        NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        VerifyPrivateKeyCaller(CallerModuleInfo);
         IsolatedCertificate.TestField("Has Private Key");
         GetCertAsDotNet(IsolatedCertificate, DotNetX509Certificate2);
         DotNetX509Certificate2.PrivateKey(DotNetAsymmetricAlgorithm);
         XmlStringSecureText := DotNetAsymmetricAlgorithm.ToXmlString(true);
         SignatureKey.FromXmlString(XmlStringSecureText);
-    end;
-
-    local procedure VerifyPrivateKeyCaller(CallerModuleInfo: ModuleInfo)
-    var
-        CurrentModuleInfo: ModuleInfo;
-    begin
-        NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
-
-        if CallerModuleInfo.Id() = CurrentModuleInfo.Id() then
-            exit;
-
-        if IsTrustedPrivateKeyConsumer(CallerModuleInfo) then
-            exit;
-
-        Session.LogMessage(
-            '0000R7T', StrSubstNo(PrivateKeyAccessDeniedTelemetryMsg, CallerModuleInfo.Id(), CallerModuleInfo.PackageId()),
-            Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher,
-            'Category', CertificateManagementTelemetryCategoryTok);
-        Error(PrivateKeyAccessDeniedErr);
-    end;
-
-    local procedure IsTrustedPrivateKeyConsumer(CallerModuleInfo: ModuleInfo): Boolean
-    var
-        TrustedAppId: Guid;
-    begin
-        Evaluate(TrustedAppId, CoreLocalizationPackCZAppIdTok);
-        if CallerModuleInfo.Id() = TrustedAppId then
-            exit(IsGlobalApplication(CallerModuleInfo.PackageId()));
-
-        Evaluate(TrustedAppId, ElectronicVATDeclarationDKAppIdTok);
-        exit((CallerModuleInfo.Id() = TrustedAppId) and IsGlobalApplication(CallerModuleInfo.PackageId()));
-    end;
-
-    local procedure IsGlobalApplication(PackageId: Guid): Boolean
-    var
-        PublishedApplication: Record "Published Application";
-    begin
-        PublishedApplication.SetRange("Package ID", PackageId);
-        PublishedApplication.SetRange("Published As", PublishedApplication."Published As"::Global);
-        exit(not PublishedApplication.IsEmpty());
     end;
 
 

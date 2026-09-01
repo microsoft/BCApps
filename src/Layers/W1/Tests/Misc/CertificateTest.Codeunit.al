@@ -31,7 +31,6 @@ codeunit 134666 "Certificate Test"
         CertUserIDErr: Label 'User ID is not set correctly.';
         CertListPageReadOnlyErr: Label 'Certificate page should be read only.';
         AssignUserScopeErr: Label 'This certificate is available to everyone in the company, so you cannot assign it to a specific user. To do that, you can add a new certificate with a different option chosen in the Available To field.';
-        PrivateKeyAccessDeniedErr: Label 'The calling extension is not allowed to access certificate private keys.';
 
     [Test]
     [Scope('OnPrem')]
@@ -147,21 +146,6 @@ codeunit 134666 "Certificate Test"
 
     [Test]
     [Scope('OnPrem')]
-    procedure UntrustedExtensionCannotGetCertificatePrivateKey()
-    var
-        IsolatedCertificate: Record "Isolated Certificate";
-        CertificateManagement: Codeunit "Certificate Management";
-        SignatureKey: Codeunit "Signature Key";
-    begin
-        InsertCertificateWithTestBlob(IsolatedCertificate, CertificateManagement);
-
-        asserterror CertificateManagement.GetCertPrivateKey(IsolatedCertificate, SignatureKey);
-
-        Assert.ExpectedError(PrivateKeyAccessDeniedErr);
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
     procedure TestChangeUserFunctionality()
     var
         IsolatedCertificate: Record "Isolated Certificate";
@@ -240,3 +224,4 @@ codeunit 134666 "Certificate Test"
         IsolatedCertificate.Modify();
     end;
 }
+

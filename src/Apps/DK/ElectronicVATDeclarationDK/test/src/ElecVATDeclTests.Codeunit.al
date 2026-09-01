@@ -52,18 +52,6 @@ codeunit 148015 "Elec. VAT Decl. Tests"
     end;
 
     [Test]
-    procedure TrustedAppCanRequestCertificatePrivateKey()
-    var
-        IsolatedCertificate: Record "Isolated Certificate";
-        ElecVATDeclCryptography: Codeunit "Elec. VAT Decl. Cryptography";
-        SignatureKey: Codeunit "Signature Key";
-    begin
-        asserterror ElecVATDeclCryptography.GetCertificatePrivateKeyForSigning(IsolatedCertificate, SignatureKey);
-
-        Assert.ExpectedTestFieldError(IsolatedCertificate.FieldCaption("Has Private Key"), '');
-    end;
-
-    [Test]
     [HandlerFunctions('MessageHandler')]
     procedure ResponsePeriodsKeepFrequencyAndDueDateAssociated()
     var
