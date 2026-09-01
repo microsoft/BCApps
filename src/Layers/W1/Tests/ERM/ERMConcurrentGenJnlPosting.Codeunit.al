@@ -7,6 +7,7 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -413,20 +414,22 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
     var
         GenJournalLine: Record "Gen. Journal Line";
         GenJournalBatch: Record "Gen. Journal Batch";
+        ERMConcurrentGenJnlPosting: Codeunit "ERM Concurrent Gen.Jnl.Posting";
     begin
         // [FEATURE] [VAT] [Concurrent Posting] [Event]
         // [SCENARIO] OnAfterInsertVATEntry exposes the inserted VAT entry number plus one when concurrent posting is enabled.
         Initialize();
         EnableConcurrentPosting(true);
         CreateVATJournalLine(GenJournalLine, GenJournalBatch);
-        CaptureNextVATEntryNo := true;
+        ERMConcurrentGenJnlPosting.StartCapturingNextVATEntryNo();
+        BindSubscription(ERMConcurrentGenJnlPosting);
 
         // [WHEN] A VAT entry is inserted
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        UnbindSubscription(ERMConcurrentGenJnlPosting);
 
         // [THEN] The event keeps its legacy NextEntryNo contract
-        Assert.IsFalse(CaptureNextVATEntryNo, 'OnAfterInsertVATEntry must be raised for the posted VAT entry');
-        Assert.AreEqual(InsertedVATEntryNo + 1, EventNextVATEntryNo, 'OnAfterInsertVATEntry must expose the inserted VAT entry number plus one');
+        ERMConcurrentGenJnlPosting.VerifyCapturedNextVATEntryNo();
     end;
 
     [Test]
@@ -575,6 +578,17 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
         ConcurrentSeqTestBuffer."Session No." := SessionNo;
         ConcurrentSeqTestBuffer."Allocation Index" := 0;
         ConcurrentSeqTestBuffer.Insert();
+    end;
+
+    internal procedure StartCapturingNextVATEntryNo()
+    begin
+        CaptureNextVATEntryNo := true;
+    end;
+
+    internal procedure VerifyCapturedNextVATEntryNo()
+    begin
+        Assert.IsFalse(CaptureNextVATEntryNo, 'OnAfterInsertVATEntry must be raised for the posted VAT entry');
+        Assert.AreEqual(InsertedVATEntryNo + 1, EventNextVATEntryNo, 'OnAfterInsertVATEntry must expose the inserted VAT entry number plus one');
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnAfterInsertVATEntry, '', false, false)]
