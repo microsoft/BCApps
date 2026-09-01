@@ -80,20 +80,10 @@ jobs:
         if: steps.telemetry-config.outputs.enabled == 'true' && steps.azure-login.outcome == 'failure'
         run: Write-Warning 'Azure login failed. The implementation will continue without telemetry.'
 
-      - name: Mint token for BCApps
-        id: app-token
-        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
-        with:
-          app-id: ${{ vars.TRIAGE_APP_ID }}
-          private-key: ${{ secrets.TRIAGE_APP_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
-          repositories: BCApps
-
       - name: Checkout repository
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
-          token: ${{ steps.app-token.outputs.token }}
 
       - name: Validate skill
         run: |
@@ -112,7 +102,7 @@ jobs:
       - name: Implement extensibility request
         env:
           COPILOT_GITHUB_TOKEN: ${{ github.token }}
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_TOKEN: ${{ github.token }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           ISSUE_URL: ${{ github.event.issue.html_url }}
           TELEMETRY_ENABLED: ${{ steps.telemetry-config.outputs.enabled == 'true' && steps.azure-login.outcome == 'success' }}
