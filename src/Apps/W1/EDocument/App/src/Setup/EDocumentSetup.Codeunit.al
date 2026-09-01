@@ -13,12 +13,9 @@ codeunit 6145 "E-Document Setup"
     Subtype = Install;
 
     trigger OnInstallAppPerCompany()
-    var
-        EDocumentBackgroundJobs: Codeunit "E-Document Background Jobs";
     begin
         InstallWorkFlowTableRelation();
         AddEDocumentLogToAllowedTables();
-        EDocumentBackgroundJobs.EnsurePaymentOccurrenceDispatcher();
     end;
 
     local procedure AddEDocumentLogToAllowedTables()
