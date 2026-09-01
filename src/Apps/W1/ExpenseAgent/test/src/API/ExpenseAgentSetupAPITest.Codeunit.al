@@ -20,8 +20,10 @@ codeunit 148333 "Expense Agent Setup API Test"
         LibraryExpense: Codeunit "Library - Expense";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         IsInitialized: Boolean;
+        ConfirmationHandled: Boolean;
+        ConfirmationReply: Boolean;
+        ActualConfirmationQuestion: Text;
         ServiceNameTok: Label 'expenseAgentSetup', Locked = true;
         EmailAddressTok: Label 'emailAddress', Locked = true;
         CopyEmployeesToExpenseUsersQst: Label 'Do you want to copy existing employees to expense users?';
@@ -328,19 +330,20 @@ codeunit 148333 "Expense Agent Setup API Test"
 
     local procedure EnqueueCopyEmployeesConfirmation()
     begin
-        LibraryVariableStorage.Enqueue(false);
+        Clear(ActualConfirmationQuestion);
+        ConfirmationHandled := false;
+        ConfirmationReply := false;
     end;
 
     local procedure VerifyCopyEmployeesConfirmation()
-    var
-        ActualQuestion: Text;
     begin
-        LibraryVariableStorage.Dequeue(ActualQuestion);
+        Assert.IsTrue(ConfirmationHandled, 'The default setup confirmation must be shown.');
         Assert.AreEqual(
             CopyEmployeesToExpenseUsersQst,
-            ActualQuestion,
+            ActualConfirmationQuestion,
             'The default setup must ask whether to copy employees to Expense Users.');
-        LibraryVariableStorage.AssertEmpty();
+        Clear(ActualConfirmationQuestion);
+        ConfirmationHandled := false;
     end;
 
     local procedure VerifyDefaultPostingGroupAccountsExist()
@@ -371,7 +374,8 @@ codeunit 148333 "Expense Agent Setup API Test"
     [ConfirmHandler]
     procedure ConfirmHandlerNo(Question: Text[1024]; var Reply: Boolean)
     begin
-        LibraryVariableStorage.Dequeue(Reply);
-        LibraryVariableStorage.Enqueue(Question);
+        ActualConfirmationQuestion := Question;
+        ConfirmationHandled := true;
+        Reply := ConfirmationReply;
     end;
 }
