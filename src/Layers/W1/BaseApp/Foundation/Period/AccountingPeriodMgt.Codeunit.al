@@ -272,8 +272,10 @@ codeunit 360 "Accounting Period Mgt."
             if Sign = '-' then
                 Numeral := -Numeral;
             AccountingPeriod."Starting Date" := WorkDate();
+#pragma warning disable AA0181, AA0233 // Positional Find() paired with Next(); suppression tracked for follow-up
             AccountingPeriod.Find('=<');
             AccountingPeriod.Next(Numeral);
+#pragma warning restore AA0181, AA0233
         end;
         Date1 := AccountingPeriod."Starting Date";
         if AccountingPeriod.Next() = 0 then
