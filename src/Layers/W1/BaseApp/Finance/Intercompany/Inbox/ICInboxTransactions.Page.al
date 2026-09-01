@@ -78,7 +78,9 @@ page 615 "IC Inbox Transactions"
                 {
                     ApplicationArea = Intercompany;
                     Caption = 'Show Line Action';
+#pragma warning disable AA0224 // Accepted: Existing option captions intentionally preserve the current request-page choices.
                     OptionCaption = 'All,No Action,Accept,Return to IC Partner';
+#pragma warning restore AA0224
                     ToolTip = 'Specifies how you want to filter the lines shown in the window. You can choose to see all lines, or only lines with a specific option in the Line Action field.';
 
                     trigger OnValidate()

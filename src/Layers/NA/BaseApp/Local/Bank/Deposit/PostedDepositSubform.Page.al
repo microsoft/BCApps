@@ -127,17 +127,23 @@ page 10144 "Posted Deposit Subform"
         }
     }
 
+#pragma warning disable AL0523 // Accepted: Page wrapper method is retained for compatibility with existing callers.
     procedure ShowDimensions()
+#pragma warning restore AL0523
     begin
         Rec.ShowDimensions();
     end;
 
+#pragma warning disable AL0523 // Accepted: Page wrapper method is retained for compatibility with existing callers.
     procedure ShowAccountCard()
+#pragma warning restore AL0523
     begin
         ShowAccountCard();
     end;
 
+#pragma warning disable AL0523 // Accepted: Page wrapper method is retained for compatibility with existing callers.
     procedure ShowAccountLedgerEntries()
+#pragma warning restore AL0523
     begin
         ShowAccountLedgerEntries();
     end;

@@ -46,7 +46,9 @@ report 6698 "Move Negative Purchase Lines"
                             ApplicationArea = Basic, Suite;
                             Caption = 'To Document Type';
                             Editable = DropDownForRetOrderAndCrMemoEd;
+#pragma warning disable AA0224 // Accepted: Existing option captions intentionally preserve the current request-page choices.
                             OptionCaption = ',,Order,Invoice';
+#pragma warning restore AA0224
                             ToolTip = 'Specifies which document type you want to move the negative purchase lines to.';
                         }
                     }

@@ -49,7 +49,9 @@ report 6699 "Move Negative Sales Lines"
                             ApplicationArea = ItemCharges;
                             Caption = 'To Document Type';
                             Editable = DropDownForRetOrderAndCrMemoEd;
+#pragma warning disable AA0224 // Accepted: Existing option captions intentionally preserve the current request-page choices.
                             OptionCaption = ',,Order,Invoice';
+#pragma warning restore AA0224
                             ToolTip = 'Specifies which document type you want to move the negative sales lines to.';
                         }
                     }
