@@ -511,6 +511,7 @@ codeunit 90 "Purch.-Post"
         ItemChargeZeroAmountErr: Label 'The amount for item charge %1 cannot be 0.', Comment = '%1 = Item Charge No.';
         ConfirmUsageWithBlankLineTypeQst: Label 'Usage will not be linked to the project planning line because the Line Type field is empty.\\Do you want to continue?';
         ConfirmUsageWithBlankJobPlanningLineNoQst: Label 'Usage will not be linked to the project planning line because the Project Planning Line No field is empty.\\Do you want to continue?';
+        SelfBillingNoSeriesMissingErr: Label 'Specify a number series for self-billing invoices in the %1 field on vendor %2, or in the %3 field in %4.', Comment = '%1 = Self-Billing Invoice Nos. field caption, %2 = Vendor No., %3 = Posted Self-Billing Inv. Nos. field caption, %4 = Purchases & Payables Setup table caption';
 
     /// <summary>
     /// Generates a record id for an 'empty' line
@@ -601,7 +602,7 @@ codeunit 90 "Purch.-Post"
         TempPurchLineLocal.Modify();
         PurchLine.Get(TempPurchLineLocal.RecordId);
         OnModifyTempLineOnBeforeTransferFields(PurchLine, TempPurchLineLocal);
-        PurchLine.TransferFields(TempPurchLineLocal, false);
+        PurchLine.TransferFields(TempPurchLineLocal, false, true);
         PurchLine.Modify();
         OnAfterModifyTempLine(PurchLine);
     end;
@@ -3041,10 +3042,7 @@ codeunit 90 "Purch.-Post"
                         ResetPostingNoSeriesFromSetup(PurchHeader."Posting No. Series", PurchSetup."Posted Credit Memo Nos.")
                     else
                         if (PurchHeader."Document Type" <> PurchHeader."Document Type"::"Credit Memo") then
-                            if PurchHeader."Self-Billing Invoice" then
-                                ResetPostingNoSeriesFromSetup(PurchHeader."Posting No. Series", PurchSetup."Posted Self-Billing Inv. Nos.")
-                            else
-                                ResetPostingNoSeriesFromSetup(PurchHeader."Posting No. Series", PurchSetup."Posted Invoice Nos.");
+                            ResetPostingNoSeriesFromSetup(PurchHeader."Posting No. Series", PurchSetup."Posted Invoice Nos.");
                     if PurchHeader."Document Type" = PurchHeader."Document Type"::"Credit Memo" then
                         if (PurchSetup."Posted Credit Memo Nos." <> '') and (PurchHeader."Posting No. Series" = '') then
                             CheckDefaultNoSeries(PurchSetup."Posted Credit Memo Nos.");
@@ -3803,7 +3801,7 @@ codeunit 90 "Purch.-Post"
                             PurchLineQty := PurchLine."Qty. to Receive"
                 end;
 
-                OnSumPurchLines2OnBeforeDivideAmount(PurchHeader, PurchLine, QtyType);
+                OnSumPurchLines2OnBeforeDivideAmount(PurchHeader, PurchLine, QtyType, PurchLineQty);
                 DivideAmount(PurchHeader, PurchLine, QtyType, PurchLineQty, TempVATAmountLine, TempVATAmountLineRemainder);
                 OnSumPurchLines2OnAfterDivideAmount(PurchHeader, PurchLine, QtyType, PurchLineQty, TempVATAmountLine, TempVATAmountLineRemainder);
                 PurchLine.Quantity := PurchLineQty;
@@ -6001,7 +5999,10 @@ codeunit 90 "Purch.-Post"
 
             if QtyToBeInvoiced <> 0 then begin
                 PurchLine."Qty. to Invoice" := QtyToBeInvoiced;
-                InvoicePostingInterface.PrepareJobLine(PurchHeader, PurchLine, PurchLineACY);
+                IsHandled := false;
+                OnPostItemJnlLineJobConsumptionOnBeforePrepareJobLine(PurchLine, QtyToBeInvoiced, PurchHeader, PurchLineACY, IsHandled);
+                if not IsHandled then
+                    InvoicePostingInterface.PrepareJobLine(PurchHeader, PurchLine, PurchLineACY);
             end;
         end;
     end;
@@ -6650,7 +6651,7 @@ codeunit 90 "Purch.-Post"
 
         if not IsHandled then begin
             PurchRcptHeader.Init();
-            PurchRcptHeader.TransferFields(PurchHeader);
+            PurchRcptHeader.TransferFields(PurchHeader, true, true);
             AssignPostedDocumentNo(PurchRcptHeader."No.", PurchHeader."Receiving No.");
             if PurchHeader."Document Type" = PurchHeader."Document Type"::Order then begin
                 PurchRcptHeader."Order No. Series" := PurchHeader."No. Series";
@@ -6775,7 +6776,7 @@ codeunit 90 "Purch.-Post"
         OnBeforeInsertReturnShipmentHeader(PurchHeader, ReturnShptHeader, IsHandled);
         if not IsHandled then begin
             ReturnShptHeader.Init();
-            ReturnShptHeader.TransferFields(PurchHeader);
+            ReturnShptHeader.TransferFields(PurchHeader, true, true);
             AssignPostedDocumentNo(ReturnShptHeader."No.", PurchHeader."Return Shipment No.");
             if PurchHeader."Document Type" = PurchHeader."Document Type"::"Return Order" then begin
                 ReturnShptHeader."Return Order No. Series" := PurchHeader."No. Series";
@@ -6914,7 +6915,7 @@ codeunit 90 "Purch.-Post"
             exit;
 
         PurchInvHeader.Init();
-        PurchInvHeader.TransferFields(PurchHeader);
+        PurchInvHeader.TransferFields(PurchHeader, true, true);
 
         AssignPostedDocumentNo(PurchInvHeader."No.", PurchHeader."Posting No.");
         if PurchHeader."Document Type" = PurchHeader."Document Type"::Order then begin
@@ -6971,7 +6972,7 @@ codeunit 90 "Purch.-Post"
             exit;
 
         PurchCrMemoHdr.Init();
-        PurchCrMemoHdr.TransferFields(PurchHeader);
+        PurchCrMemoHdr.TransferFields(PurchHeader, true, true);
         AssignPostedDocumentNo(PurchCrMemoHdr."No.", PurchHeader."No.");
         if PurchHeader."Document Type" = PurchHeader."Document Type"::"Return Order" then begin
             AssignPostedDocumentNo(PurchCrMemoHdr."No.", PurchHeader."Posting No.");
@@ -7012,7 +7013,7 @@ codeunit 90 "Purch.-Post"
     begin
         SalesShptHeader.Init();
         SalesOrderHeader.CalcFields("Work Description");
-        SalesShptHeader.TransferFields(SalesOrderHeader);
+        SalesShptHeader.TransferFields(SalesOrderHeader, true, true);
         AssignPostedDocumentNo(SalesShptHeader."No.", SalesOrderHeader."Shipping No.");
         SalesShptHeader."Order No." := SalesOrderHeader."No.";
         SalesShptHeader."Posting Date" := PurchHeader."Posting Date";
@@ -7028,7 +7029,7 @@ codeunit 90 "Purch.-Post"
         IsHandled: Boolean;
     begin
         SalesShptLine.Init();
-        SalesShptLine.TransferFields(SalesOrderLine);
+        SalesShptLine.TransferFields(SalesOrderLine, true, true);
         SalesShptLine."Posting Date" := SalesShptHeader."Posting Date";
         SalesShptLine."Document No." := SalesShptHeader."No.";
         SalesShptLine.Quantity := DropShptPostBuffer.Quantity;
@@ -7468,7 +7469,7 @@ codeunit 90 "Purch.-Post"
                         if SalesOrderLine.FindSet() then
                             repeat
                                 SalesShptLine.Init();
-                                SalesShptLine.TransferFields(SalesOrderLine);
+                                SalesShptLine.TransferFields(SalesOrderLine, true, true);
                                 SalesShptLine."Document No." := SalesShptHeader."No.";
                                 SalesShptLine."Order No." := SalesOrderLine."Document No.";
                                 SalesShptLine."Order Line No." := SalesOrderLine."Line No.";
@@ -8903,18 +8904,38 @@ codeunit 90 "Purch.-Post"
 
     local procedure UpdateVendorInvoiceNoForSelfBilling(var PurchHeader: Record "Purchase Header")
     var
+        Vendor: Record Vendor;
         NoSeries: Codeunit "No. Series";
+        SelfBillingNoSeriesCode: Code[20];
     begin
         if not (PurchHeader."Document Type" in [PurchHeader."Document Type"::Invoice, PurchHeader."Document Type"::Order]) then
             exit;
 
-        PurchSetup.GetRecordOnce();
-        PurchSetup.TestField("Posted Self-Billing Inv. Nos.");
+        SelfBillingNoSeriesCode := GetSelfBillingInvoiceNoSeries(PurchHeader);
+        if SelfBillingNoSeriesCode = '' then
+            Error(
+                SelfBillingNoSeriesMissingErr,
+                Vendor.FieldCaption("Self-Billing Invoice Nos."),
+                PurchHeader."Buy-from Vendor No.",
+                PurchSetup.FieldCaption("Posted Self-Billing Inv. Nos."),
+                PurchSetup.TableCaption());
 
         if PreviewMode then
             PurchHeader."Vendor Invoice No." := PostingPreviewNoTok
         else
-            PurchHeader."Vendor Invoice No." := NoSeries.GetNextNo(PurchSetup."Posted Self-Billing Inv. Nos.", PurchHeader."Posting Date");
+            PurchHeader."Vendor Invoice No." := NoSeries.GetNextNo(SelfBillingNoSeriesCode, PurchHeader."Posting Date");
+    end;
+
+    local procedure GetSelfBillingInvoiceNoSeries(PurchHeader: Record "Purchase Header"): Code[20]
+    var
+        Vendor: Record Vendor;
+    begin
+        Vendor.SetLoadFields("Self-Billing Invoice Nos.");
+        if Vendor.Get(PurchHeader."Buy-from Vendor No.") and (Vendor."Self-Billing Invoice Nos." <> '') then
+            exit(Vendor."Self-Billing Invoice Nos.");
+
+        PurchSetup.GetRecordOnce();
+        exit(PurchSetup."Posted Self-Billing Inv. Nos.");
     end;
 
     local procedure SelfBillingInvoiceDocument(PurchHeader: Record "Purchase Header"): Boolean
@@ -10403,6 +10424,11 @@ codeunit 90 "Purch.-Post"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnPostItemJnlLineJobConsumptionOnBeforePrepareJobLine(var PurchaseLine: Record "Purchase Line"; QuantityToBeInvoiced: Decimal; var PurchaseHeader: Record "Purchase Header"; var PurchaseLineACY: Record "Purchase Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineWhseLineOnAfterPostRevert(var TempWhseJnlLine: Record "Warehouse Journal Line" temporary; PurchaseLine: Record "Purchase Line")
     begin
     end;
@@ -10635,7 +10661,7 @@ codeunit 90 "Purch.-Post"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnSumPurchLines2OnBeforeDivideAmount(PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; QtyType: Option General,Invoicing,Shipping)
+    local procedure OnSumPurchLines2OnBeforeDivideAmount(PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; QtyType: Option General,Invoicing,Shipping; var PurchLineQty: Decimal)
     begin
     end;
 
@@ -11519,5 +11545,3 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 }
-
-

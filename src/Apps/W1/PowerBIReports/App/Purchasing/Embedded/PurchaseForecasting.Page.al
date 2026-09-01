@@ -11,8 +11,8 @@ page 37112 "Purchase Forecasting"
     UsageCategory = ReportsAndAnalysis;
     ApplicationArea = All;
     PageType = UserControlHost;
-    Caption = 'Purchase Forecasting';
-    AboutTitle = 'About Purchase Forecasting';
+    Caption = 'Purchase Forecasting (Power BI)';
+    AboutTitle = 'About Purchase Forecasting (Power BI)';
     AboutText = 'The Purchases Forecasting report predicts future purchasing trends based on historical data. It uses advanced forecasting techniques to project purchasing values, helping users anticipate supply chain requirements.';
 
     layout

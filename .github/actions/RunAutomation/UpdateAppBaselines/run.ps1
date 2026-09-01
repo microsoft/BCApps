@@ -9,7 +9,7 @@ Install-Module -Name BcContainerHelper -AllowPrerelease -Force
 Import-Module BcContainerHelper -DisableNameChecking
 . "$env:GITHUB_WORKSPACE/init.ps1"
 
-$newVersion = Update-PackageVersion -PackageName "AppBaselines-BCArtifacts"
+$newVersion = Update-PackageVersion -PackageName "AppBaselines-BCArtifacts" -Branch $runParameters.TargetBranch
 
 $result = @{
     'Files' = @()

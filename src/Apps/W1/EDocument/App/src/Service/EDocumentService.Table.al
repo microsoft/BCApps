@@ -42,7 +42,9 @@ table 6103 "E-Document Service"
             ObsoleteReason = 'Use Service Integration V2 integration enum instead';
 #if CLEAN26
             ObsoleteState = Removed;
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 #else
             ObsoleteState = Pending;
             ObsoleteTag = '26.0';
@@ -269,6 +271,7 @@ table 6103 "E-Document Service"
         {
             Caption = 'Import Process';
             DataClassification = SystemMetadata;
+            InitValue = "Version 2.0";
             ToolTip = 'Specifies the import process for the document.';
         }
         field(32; "Automatic Import Processing"; Enum "E-Doc. Automatic Processing")

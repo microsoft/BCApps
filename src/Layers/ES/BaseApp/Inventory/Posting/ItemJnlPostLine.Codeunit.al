@@ -103,6 +103,7 @@ codeunit 22 "Item Jnl.-Post Line"
         QtyPerUnitOfMeasure: Decimal;
         RoundingResidualAmount: Decimal;
         RoundingResidualAmountACY: Decimal;
+        RoundingResidualAmountInvdACY: Decimal;
         InvtSetupRead: Boolean;
         GLSetupRead: Boolean;
         SKUExists: Boolean;
@@ -306,9 +307,12 @@ codeunit 22 "Item Jnl.-Post Line"
 
         RoundingResidualAmount := 0;
         RoundingResidualAmountACY := 0;
+        RoundingResidualAmountInvdACY := 0;
         RoundingResidualAmount := ItemJnlLine.Quantity *
           (ItemJnlLine."Unit Cost" / QtyPerUnitOfMeasure - Round(ItemJnlLine."Unit Cost" / QtyPerUnitOfMeasure, GLSetup."Unit-Amount Rounding Precision"));
         RoundingResidualAmountACY := ItemJnlLine.Quantity *
+          (ItemJnlLine."Unit Cost (ACY)" / QtyPerUnitOfMeasure - Round(ItemJnlLine."Unit Cost (ACY)" / QtyPerUnitOfMeasure, Currency."Unit-Amount Rounding Precision"));
+        RoundingResidualAmountInvdACY := ItemJnlLine."Invoiced Quantity" *
           (ItemJnlLine."Unit Cost (ACY)" / QtyPerUnitOfMeasure - Round(ItemJnlLine."Unit Cost (ACY)" / QtyPerUnitOfMeasure, Currency."Unit-Amount Rounding Precision"));
 
         ItemJnlLine."Unit Amount" := Round(
@@ -1734,6 +1738,13 @@ codeunit 22 "Item Jnl.-Post Line"
         ItemTrackingSetup2.CopyTrackingFromItemTrackingCodeSpecificTracking(ItemTrackingCode);
         ItemTrackingSetup2.CopyTrackingFromItemLedgerEntry(FromItemLedgEntry);
 
+        if FromItemLedgEntry."Entry Type" = FromItemLedgEntry."Entry Type"::Transfer then begin
+            ItemTrackingSetup2."Serial No. Required" := GlobalItemTrackingSetup."Serial No. Required";
+            ItemTrackingSetup2."Lot No. Required" := GlobalItemTrackingSetup."Lot No. Required";
+
+            OnAfterSetTrackingSetupForTransfer(ItemTrackingSetup2, GlobalItemTrackingSetup);
+        end;
+
         if (FromItemLedgEntry."Serial No." <> '') and (ItemTrackingSetup2."Serial No. Required") then
             ToItemLedgEntry.SetCurrentKey("Serial No.", "Item No.", Open, "Variant Code", Positive, "Location Code", "Posting Date", "Entry No.")
         else
@@ -1842,6 +1853,8 @@ codeunit 22 "Item Jnl.-Post Line"
 
     local procedure TestFirstApplyItemLedgerEntryTracking(ItemLedgEntry: Record "Item Ledger Entry"; OldItemLedgEntry: Record "Item Ledger Entry"; ItemTrackingCode: Record "Item Tracking Code");
     begin
+        OnBeforeTestFirstApplyItemLedgerEntryTracking(ItemLedgEntry, OldItemLedgEntry, ItemTrackingCode);
+
         if ItemTrackingCode."SN Specific Tracking" then
             OldItemLedgEntry.TestField("Serial No.", ItemLedgEntry."Serial No.");
         if ItemLedgEntry."Drop Shipment" and (OldItemLedgEntry."Serial No." <> '') then
@@ -3680,21 +3693,40 @@ codeunit 22 "Item Jnl.-Post Line"
             end;
         end;
 
-        if GLSetup."Additional Reporting Currency" <> '' then begin
-            DirCostACY := ACYMgt.CalcACYAmt(DirCost, ItemJnlLine."Posting Date", false);
-            OvhdCostACY := ACYMgt.CalcACYAmt(OvhdCost, ItemJnlLine."Posting Date", false);
-            ItemJnlLine."Unit Cost (ACY)" :=
-              Round(
-                CurrExchRate.ExchangeAmtLCYToFCY(
-                  ItemJnlLine."Posting Date", GLSetup."Additional Reporting Currency", ItemJnlLine."Unit Cost",
-                  CurrExchRate.ExchangeRate(
-                    ItemJnlLine."Posting Date", GLSetup."Additional Reporting Currency")),
-                Currency."Unit-Amount Rounding Precision");
-            PurchVarACY := ItemJnlLine."Unit Cost (ACY)" * ItemJnlLine."Invoiced Quantity" - DirCostACY - OvhdCostACY;
-        end;
+        if GLSetup."Additional Reporting Currency" <> '' then
+            if ShouldUseDocumentAmountForACY() then begin
+                if Expected then
+                    DirCostACY := ItemJnlLine."Unit Cost (ACY)" * ItemJnlLine.Quantity + RoundingResidualAmountACY
+                else
+                    DirCostACY := ItemJnlLine."Unit Cost (ACY)" * ItemJnlLine."Invoiced Quantity" + RoundingResidualAmountInvdACY;
+                OvhdCostACY := 0;
+                PurchVarACY := 0;
+            end else begin
+                DirCostACY := ACYMgt.CalcACYAmt(DirCost, ItemJnlLine."Posting Date", false);
+                OvhdCostACY := ACYMgt.CalcACYAmt(OvhdCost, ItemJnlLine."Posting Date", false);
+                ItemJnlLine."Unit Cost (ACY)" :=
+                  Round(
+                    CurrExchRate.ExchangeAmtLCYToFCY(
+                      ItemJnlLine."Posting Date", GLSetup."Additional Reporting Currency", ItemJnlLine."Unit Cost",
+                      CurrExchRate.ExchangeRate(
+                        ItemJnlLine."Posting Date", GLSetup."Additional Reporting Currency")),
+                    Currency."Unit-Amount Rounding Precision");
+                PurchVarACY := ItemJnlLine."Unit Cost (ACY)" * ItemJnlLine."Invoiced Quantity" - DirCostACY - OvhdCostACY;
+            end;
         CalcUnitCost := (DirCost <> 0) and (ItemJnlLine."Unit Cost" = 0);
 
         OnAfterCalcPosShares(ItemJnlLine, DirCost, OvhdCost, PurchVar, DirCostACY, OvhdCostACY, PurchVarACY, CalcUnitCost, CalcPurchVar, Expected, GlobalItemLedgEntry);
+    end;
+
+    local procedure ShouldUseDocumentAmountForACY(): Boolean
+    begin
+        exit(
+          (ItemJnlLine."Source Currency Code" = GLSetup."Additional Reporting Currency") and
+          (Item."Costing Method" <> Item."Costing Method"::Standard) and
+          (ItemJnlLine."Item Charge No." = '') and
+          (ItemJnlLine."Discount Amount" = 0) and
+          (ItemJnlLine."Indirect Cost %" = 0) and
+          (ItemJnlLine."Overhead Rate" = 0));
     end;
 
     local procedure CalcPurchCorrShares(var OverheadAmount: Decimal; var OverheadAmountACY: Decimal; var VarianceAmount: Decimal; var VarianceAmountACY: Decimal)
@@ -4211,6 +4243,7 @@ codeunit 22 "Item Jnl.-Post Line"
         SumOfEntries: Decimal;
         SumLot: Decimal;
         IsHandled: Boolean;
+        SkipNewExpirationDateCheck: Boolean;
     begin
         IsHandled := false;
         OnBeforeCheckExpirationDate(
@@ -4291,8 +4324,9 @@ codeunit 22 "Item Jnl.-Post Line"
                         SumLot := SignFactor * ItemTrackingMgt.SumNewLotOnTrackingSpec(TempTrackingSpecification)
                     else
                         SumLot := SignFactor * TempTrackingSpecification."Quantity (Base)";
-                    OnCheckExpirationDateOnAfterCalcSumLot(SumLot, SignFactor, TempTrackingSpecification);
-                    if (SumOfEntries > 0) and
+                    SkipNewExpirationDateCheck := false;
+                    OnCheckExpirationDateOnAfterCalcSumLot(SumLot, SignFactor, TempTrackingSpecification, SkipNewExpirationDateCheck);
+                    if (not SkipNewExpirationDateCheck) and (SumOfEntries > 0) and
                        ((SumOfEntries <> SumLot) or (TempTrackingSpecification."New Lot No." <> TempTrackingSpecification."Lot No.")
                        or (TempTrackingSpecification."New Package No." <> TempTrackingSpecification."Package No."))
                     then
@@ -5293,7 +5327,7 @@ codeunit 22 "Item Jnl.-Post Line"
         exit((ItemJnlLine."Value Entry Type" = ItemJnlLine."Value Entry Type"::Revaluation) and (ItemJnlLine.Quantity <> 0));
     end;
 
-    local procedure InsertPostValueEntryToGL(ValueEntry: Record "Value Entry")
+    procedure InsertPostValueEntryToGL(ValueEntry: Record "Value Entry")
     var
         PostValueEntryToGL: Record "Post Value Entry to G/L";
     begin
@@ -7431,6 +7465,11 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnBeforeTestFirstApplyItemLedgerEntryTracking(ItemLedgerEntry: Record "Item Ledger Entry"; OldItemLedgerEntry: Record "Item Ledger Entry"; var ItemTrackingCode: Record "Item Tracking Code")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnAfterTestFirstApplyItemLedgerEntryTracking(ItemLedgEntry: Record "Item Ledger Entry"; OldItemLedgEntry: Record "Item Ledger Entry"; ItemTrackingCode: Record "Item Tracking Code")
     begin
     end;
@@ -7936,6 +7975,9 @@ codeunit 22 "Item Jnl.-Post Line"
         if ItemJnlLine."Entry Type" <> ItemJnlLine."Entry Type"::Purchase then
             exit(false);
 
+        if Item."Costing Method" = Item."Costing Method"::Standard then
+            exit(false);
+
         if not (InvtSetup."Automatic Cost Posting") or not (InvtSetup."Expected Cost Posting to G/L") then
             exit(false);
 
@@ -8181,7 +8223,7 @@ codeunit 22 "Item Jnl.-Post Line"
 #endif
 
     [IntegrationEvent(false, false)]
-    local procedure OnCheckExpirationDateOnAfterCalcSumLot(var SumLot: Decimal; SignFactor: Integer; var TempTrackingSpecification: Record "Tracking Specification" temporary)
+    local procedure OnCheckExpirationDateOnAfterCalcSumLot(var SumLot: Decimal; SignFactor: Integer; var TempTrackingSpecification: Record "Tracking Specification" temporary; var SkipNewExpirationDateCheck: Boolean)
     begin
     end;
 
@@ -8976,5 +9018,9 @@ codeunit 22 "Item Jnl.-Post Line"
     local procedure OnCalcCostPerUnitForPositiveValuedQtyOnBeforeCheckShouldCalculateCostPerUnit(ValueEntry: Record "Value Entry"; ItemJournalLine: Record "Item Journal Line"; var ShouldCalculateCostPerUnit: Boolean)
     begin
     end;
-}
 
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterSetTrackingSetupForTransfer(var ItemTrackingSetup: Record "Item Tracking Setup"; GlobalItemTrackingSetup: Record "Item Tracking Setup")
+    begin
+    end;
+}

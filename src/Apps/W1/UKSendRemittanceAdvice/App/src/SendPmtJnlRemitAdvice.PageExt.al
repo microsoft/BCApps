@@ -44,6 +44,7 @@ pageextension 4022 SendPmtJnlRemitAdvice extends "Payment Journal"
             }
         }
 #endif
+#if not CLEAN29
         addlast("&Payments")
         {
             // Add changes to page actions here
@@ -52,6 +53,9 @@ pageextension 4022 SendPmtJnlRemitAdvice extends "Payment Journal"
                 ApplicationArea = All;
                 Caption = 'Send Remittance Advice';
                 Image = SendToMultiple;
+                ObsoleteReason = 'The Send Remittance Advice action is now available natively on page "Payment Journal" (action SendVendorRemittanceAdvice) in Microsoft.Finance.GeneralLedger.Journal.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '29.0';
                 ToolTip = 'Send the remittance advice before posting a payment journal or after posting a payment. The advice contains vendor invoice numbers, which helps vendors to perform reconciliations.';
 
                 trigger OnAction()
@@ -64,7 +68,9 @@ pageextension 4022 SendPmtJnlRemitAdvice extends "Payment Journal"
                 end;
             }
         }
+#endif
     }
+#if not CLEAN29
     local procedure SendVendorRecords(var GenJournalLine: Record "Gen. Journal Line")
     var
         DocumentSendingProfile: Record "Document Sending Profile";
@@ -84,4 +90,5 @@ pageextension 4022 SendPmtJnlRemitAdvice extends "Payment Journal"
 
     var
         RemittanceAdviceTxt: Label 'Remittance Advice';
+#endif
 }

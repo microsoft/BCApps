@@ -85,6 +85,18 @@ table 30100 "Shpfy Cue"
             Caption = 'Unmapped Companies';
             FieldClass = FlowField;
         }
+        field(10; "Skipped Records"; Integer)
+        {
+            CalcFormula = count("Shpfy Skipped Record");
+            Caption = 'Skipped Records';
+            FieldClass = FlowField;
+        }
+        field(11; "API Errors"; Integer)
+        {
+            CalcFormula = count("Shpfy Log Entry" where("Has Error" = const(true)));
+            Caption = 'API Errors';
+            FieldClass = FlowField;
+        }
     }
 
     keys
