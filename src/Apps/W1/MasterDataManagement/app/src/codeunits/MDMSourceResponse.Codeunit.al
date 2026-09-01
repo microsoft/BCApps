@@ -154,8 +154,11 @@ codeunit 7248 "MDM Source Response"
                                 ApplyInlineMedia(SystemIdValue, FieldNo, TempSourceRecordRef.Number(), ValueToken);
                             FieldType::Blob:
                                 ApplyInlineBlob(DestField, FieldNo, TempSourceRecordRef.Number(), ValueToken);
-                            else
+                            else begin
+                                if not ValueToken.IsValue() then // an object/array for a scalar field is a broken contract
+                                    Error(MalformedRecordEntry());
                                 SetFieldFromText(DestField, ValueToken.AsValue().AsText());
+                            end;
                         end;
                     end;
         end;

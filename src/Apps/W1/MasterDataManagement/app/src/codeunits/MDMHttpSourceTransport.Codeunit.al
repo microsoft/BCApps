@@ -89,17 +89,25 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
             Error(NonSaaSErr);
         PrivacyNotice.CheckApproved();
 
-        for Attempt := 0 to MaxRetries() do begin
-            Send(MasterDataManagementSetup, ActionName, RequestBody, ResponseMessage);
-            ResponseMessage.Content().ReadAs(ResponseBodyText);
-            if ResponseMessage.IsSuccessStatusCode() then
-                exit(UnwrapODataValue(ResponseBodyText));
-            if not ShouldRetry(ResponseMessage, Attempt, RetryAfter) then begin
-                LogRequestFailure(MasterDataManagementSetup, ActionName, ResponseMessage);
-                Error(SetupNavigationError(StrSubstNo(HttpErr, ResponseMessage.HttpStatusCode())));
+        for Attempt := 0 to MaxRetries() do
+            if TrySend(MasterDataManagementSetup, ActionName, RequestBody, ResponseMessage) then begin
+                ResponseMessage.Content().ReadAs(ResponseBodyText);
+                if ResponseMessage.IsSuccessStatusCode() then
+                    exit(UnwrapODataValue(ResponseBodyText));
+                if not ShouldRetry(ResponseMessage, Attempt, RetryAfter) then begin
+                    LogRequestFailure(MasterDataManagementSetup, ActionName, ResponseMessage);
+                    Error(SetupNavigationError(StrSubstNo(HttpErr, ResponseMessage.HttpStatusCode())));
+                end;
+                Sleep(RetryAfter);
+            end else begin
+                // Transport-level failure (dropped connection, timeout): these reads are idempotent, so retry while
+                // attempts remain instead of aborting the sync run on a transient network blip.
+                if Attempt >= MaxRetries() then begin
+                    LogTransportFailure(ActionName);
+                    Error(SetupNavigationError(SendFailedErr));
+                end;
+                Sleep(TransportRetryBackoff());
             end;
-            Sleep(RetryAfter);
-        end;
     end;
 
     local procedure LogRequestFailure(var MasterDataManagementSetup: Record "Master Data Management Setup"; ActionName: Text; var ResponseMessage: HttpResponseMessage)
@@ -129,7 +137,7 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         Session.LogMessage('0000VAU', StrSubstNo(TransportFailedTelemetryTxt, ActionName), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
     end;
 
-    local procedure Send(var MasterDataManagementSetup: Record "Master Data Management Setup"; ActionName: Text; RequestBody: Text; var ResponseMessage: HttpResponseMessage)
+    local procedure TrySend(var MasterDataManagementSetup: Record "Master Data Management Setup"; ActionName: Text; RequestBody: Text; var ResponseMessage: HttpResponseMessage): Boolean
     var
         HttpClient: HttpClient;
         RequestMessage: HttpRequestMessage;
@@ -150,10 +158,8 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         ContentHeaders.Add('Content-Type', 'application/json');
         RequestMessage.Content(HttpContent);
 
-        if not HttpClient.Send(RequestMessage, ResponseMessage) then begin
-            LogTransportFailure(ActionName);
-            Error(SetupNavigationError(SendFailedErr));
-        end;
+        // A transport-level failure returns false so the caller can retry the read-only call.
+        exit(HttpClient.Send(RequestMessage, ResponseMessage));
     end;
 
     local procedure BuildActionUrl(var MasterDataManagementSetup: Record "Master Data Management Setup"; ActionName: Text): Text
@@ -315,7 +321,7 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
     begin
         if Attempt >= MaxRetries() then
             exit(false);
-        if not (ResponseMessage.HttpStatusCode() in [429, 503]) then
+        if not (ResponseMessage.HttpStatusCode() in [408, 429, 502, 503, 504]) then
             exit(false);
         RetryAfter := RetryAfterDuration(ResponseMessage);
         exit(true);
@@ -349,5 +355,10 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         if MaxRetriesValue = 0 then
             MaxRetriesValue := 2;
         exit(MaxRetriesValue);
+    end;
+
+    local procedure TransportRetryBackoff(): Duration
+    begin
+        exit(5000); // fixed backoff for transport failures, where no Retry-After header is available
     end;
 }

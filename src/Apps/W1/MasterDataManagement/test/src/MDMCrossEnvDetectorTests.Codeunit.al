@@ -129,6 +129,31 @@ codeunit 139933 "MDM Cross-Env Detector Tests"
         CleanUp();
     end;
 
+    [Test]
+    procedure DetectorNudgesAvailableTableWithoutTimestamp()
+    var
+        Mapping: Record "Integration Table Mapping";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        DetectorProbe: Codeunit "MDM Test Detector Probe";
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] A table the source reports available but WITHOUT a lastModifiedAt (keyless/unindexed) is nudged
+        //            so the sync job scans it, rather than being silently skipped.
+        Initialize();
+        CreateMapping(Mapping, Database::Customer, WatermarkDateTime(), true);
+        InsertSynchJob(Mapping, false);
+
+        InProcessTransport.Activate();
+        InProcessTransport.SetCannedResponse(CannedLastModified(Database::Customer, true, 0DT, false)); // available, no timestamp
+        DetectorProbe.Activate();
+
+        LibraryMasterDataMgt.RunChangeDetector();
+
+        Assert.IsTrue(DetectorProbe.WasNudged(Database::Customer), 'An available table without a timestamp should be nudged to scan');
+        CleanUp();
+    end;
+
     local procedure Initialize()
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
