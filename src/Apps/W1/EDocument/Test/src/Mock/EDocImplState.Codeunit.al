@@ -22,7 +22,7 @@ codeunit 139630 "E-Doc. Impl. State"
         PurchDocTestBuffer: Codeunit "E-Doc. Test Buffer";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         EnableOnCheck, DisableOnCreateOutput, DisableOnCreateBatch, IsAsync2, EnableHttpData, ThrowIntegrationRuntimeError, ThrowIntegrationLoggedError : Boolean;
-        ThrowPaymentOccurrenceProcessingError, ThrowPaymentOccurrenceSchedulingError : Boolean;
+        ThrowPaymentOccurrenceProcessingError: Boolean;
         EnableSourceDocumentHeaderCapture: Boolean;
         ThrowRuntimeError, ThrowLoggedError, ThrowBasicInfoError, ThrowCompleteInfoError, OnGetResponseSuccess, ActionHasUpdate : Boolean;
 #if not CLEAN26
@@ -35,13 +35,6 @@ codeunit 139630 "E-Doc. Impl. State"
     local procedure OnAfterCreateEDocument(var EDocument: Record "E-Document")
     begin
         LibraryVariableStorage.Enqueue(EDocument);
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Document Background Jobs", 'OnBeforeScheduleEDocumentJob', '', false, false)]
-    local procedure OnBeforeScheduleEDocumentJob(CodeunitId: Integer; JobRecordId: RecordId)
-    begin
-        if ThrowPaymentOccurrenceSchedulingError and (CodeunitId = Codeunit::"E-Doc. Payment Occurrence Mgt.") then
-            Error('TEST PAYMENT OCCURRENCE SCHEDULING');
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Payment Occurrence Mgt.", 'OnAfterCreatePaymentOccurrence', '', false, false)]
@@ -509,11 +502,6 @@ codeunit 139630 "E-Doc. Impl. State"
     internal procedure SetThrowPaymentOccurrenceProcessingError()
     begin
         ThrowPaymentOccurrenceProcessingError := true;
-    end;
-
-    internal procedure SetThrowPaymentOccurrenceSchedulingError()
-    begin
-        ThrowPaymentOccurrenceSchedulingError := true;
     end;
 
     internal procedure SetHttpResponse(HttpResponse: HttpResponseMessage)

@@ -108,7 +108,6 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
     local procedure CreateOccurrence(EDocumentEntryNo: Integer; OccurrenceType: Enum "E-Doc. Payment Occurrence Type"; SourceOccurrenceID: Guid; Amount: Decimal; CurrencyCode: Code[10]; EventDate: Date; DetailedLedgerEntryNo: Integer; OriginalOccurrenceEntryNo: Integer)
     var
         EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence";
-        EDocumentBackgroundJobs: Codeunit "E-Document Background Jobs";
     begin
         EDocPaymentOccurrence.LockTable();
         EDocPaymentOccurrence.SetRange("E-Document Entry No.", EDocumentEntryNo);
@@ -129,15 +128,6 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
         EDocPaymentOccurrence."Created At" := CurrentDateTime();
         EDocPaymentOccurrence.Status := EDocPaymentOccurrence.Status::Pending;
         EDocPaymentOccurrence.Insert();
-        if not EDocumentBackgroundJobs.TrySchedulePaymentOccurrence(EDocPaymentOccurrence) then begin
-            EDocPaymentOccurrence.Status := EDocPaymentOccurrence.Status::Error;
-            EDocPaymentOccurrence."Retry Count" := 1;
-            EDocPaymentOccurrence."Last Attempt At" := CurrentDateTime();
-            EDocPaymentOccurrence."Next Attempt At" := CurrentDateTime() + RetryDelay();
-            EDocPaymentOccurrence."Last Error" := CopyStr(GetLastErrorText(), 1, MaxStrLen(EDocPaymentOccurrence."Last Error"));
-            EDocPaymentOccurrence.Modify();
-            ClearLastError();
-        end;
     end;
 
     internal procedure ProcessPaymentOccurrence(var EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence")
@@ -210,7 +200,6 @@ codeunit 6536 "E-Doc. Payment Occurrence Mgt."
     /// Notifies localization and format apps after a payment occurrence has been persisted.
     /// </summary>
     /// <param name="EDocPaymentOccurrence">The persisted payment occurrence.</param>
-    [CommitBehavior(CommitBehavior::Ignore)]
     [IntegrationEvent(false, false)]
     procedure OnAfterCreatePaymentOccurrence(var EDocPaymentOccurrence: Record "E-Doc. Payment Occurrence")
     begin
