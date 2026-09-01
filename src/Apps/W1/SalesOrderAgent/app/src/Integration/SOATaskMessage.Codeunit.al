@@ -128,14 +128,17 @@ codeunit 4398 "SOA Task Message"
         SOAEmail: Record "SOA Email";
         EmailInbox: Record "Email Inbox";
         EmailMessage: Codeunit "Email Message";
+        SOASendReply: Codeunit "SOA Send Reply";
         CcRecipients: List of [Text];
-        CcRecipient: Text;
-        CcRecipientsTextBuilder: TextBuilder;
+        IsMappedReply: Boolean;
     begin
         SourceAgentTaskMessage := AgentTaskMessage;
-        if AgentTaskMessage.Type = AgentTaskMessage.Type::Output then
+        if AgentTaskMessage.Type = AgentTaskMessage.Type::Output then begin
             if not SourceAgentTaskMessage.Get(AgentTaskMessage."Task ID", AgentTaskMessage."Input Message ID") then
                 exit('');
+            if SOASendReply.TryGetMappedReplyCcRecipients(SourceAgentTaskMessage, CcRecipients, IsMappedReply) and IsMappedReply then
+                exit(RecipientsToText(CcRecipients));
+        end;
 
         SOAEmail.SetLoadFields("Email Inbox ID");
         SOAEmail.SetRange("Task ID", SourceAgentTaskMessage."Task ID");
@@ -150,13 +153,21 @@ codeunit 4398 "SOA Task Message"
             exit('');
 
         EmailMessage.GetRecipients(Enum::"Email Recipient Type"::Cc, CcRecipients);
-        foreach CcRecipient in CcRecipients do begin
-            if CcRecipientsTextBuilder.Length() > 0 then
-                CcRecipientsTextBuilder.Append(';');
-            CcRecipientsTextBuilder.Append(CcRecipient);
+        exit(RecipientsToText(CcRecipients));
+    end;
+
+    local procedure RecipientsToText(Recipients: List of [Text]): Text
+    var
+        Recipient: Text;
+        RecipientsTextBuilder: TextBuilder;
+    begin
+        foreach Recipient in Recipients do begin
+            if RecipientsTextBuilder.Length() > 0 then
+                RecipientsTextBuilder.Append(';');
+            RecipientsTextBuilder.Append(Recipient);
         end;
 
-        exit(CcRecipientsTextBuilder.ToText());
+        exit(RecipientsTextBuilder.ToText());
     end;
 
     internal procedure MessageRequiresReview(SOASetup: Record "SOA Setup"; SenderAddress: Text; IsFirstMessageInTask: Boolean): Boolean
