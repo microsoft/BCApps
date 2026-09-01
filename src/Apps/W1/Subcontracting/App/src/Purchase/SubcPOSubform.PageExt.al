@@ -22,6 +22,21 @@ pageextension 20524 "Subc. PO Subform" extends "Purchase Order Subform"
     }
     actions
     {
+        addlast("F&unctions")
+        {
+            action("Subc. CreateProdOrder")
+            {
+                ApplicationArea = Manufacturing;
+                Caption = 'Create Production Order';
+                Image = CreateSerialNo;
+                ToolTip = 'Create the production order for the current purchase order.';
+                trigger OnAction()
+                begin
+                    Rec.TestStatusOpen();
+                    Rec.CreateSubcontractingProductionOrder();
+                end;
+            }
+        }
         addafter("F&unctions")
         {
             group(Production)

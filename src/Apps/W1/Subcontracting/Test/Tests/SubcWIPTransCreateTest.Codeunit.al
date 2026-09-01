@@ -15,6 +15,7 @@ using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Subcontracting;
+using Microsoft.Manufacturing.Wizard;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
@@ -361,19 +362,19 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
     [HandlerFunctions('HandleMultipleTransferOrders')]
     procedure MultipleWIPTransferOrdersFromPurchaseOrderOpenTransferOrdersPage()
     var
-        Item: Record Item;
         Location: array[2] of Record Location;
         MachineCenter: array[2] of Record "Machine Center";
         ProductionOrder: array[2] of Record "Production Order";
+        WorkCenter: array[2] of Record "Work Center";
+        Item: Record Item;
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         ReqWkshTemplate: Record "Req. Wksh. Template";
         RequisitionLine: Record "Requisition Line";
         RequisitionWkshName: Record "Requisition Wksh. Name";
         TransferHeader: Record "Transfer Header";
-        WorkCenter: array[2] of Record "Work Center";
-        CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
         SubcCalculateSubContracts: Report "Subc. Calculate Subcontracts";
+        CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         PurchaseHeaderPage: TestPage "Purchase Order";
     begin
@@ -2031,15 +2032,18 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Subc. WIP Trans. Create Test");
 
         SubSetupLibrary.InitSetupFields();
-        // Next lines should be uncommented if the Wizard has been moved to the Base App
-        // SubSetupLibrary.ConfigureSubManagementForNothingPresentScenario("Subc. Show/Edit Type"::Hide, "Subc. Show/Edit Type"::Hide);
-        // SubSetupLibrary.ConfigureSubManagementForBothPresentScenario("Subc. Show/Edit Type"::Hide, "Subc. Show/Edit Type"::Hide);
+
+        SubSetupLibrary.ConfigureSubManagementForNothingPresentScenario("Prod. Definition Display"::Hide, "Prod. Definition Display"::Hide);
+        SubSetupLibrary.ConfigureSubManagementForBothPresentScenario("Prod. Definition Display"::Hide, "Prod. Definition Display"::Hide);
         LibraryERMCountryData.CreateVATData();
         SubSetupLibrary.InitialSetupForGenProdPostingGroup();
 
         SubcontractingMgmtLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
         SubcontractingMgmtLibrary.SetupInventorySetup();
         SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+
+        SubSetupLibrary.ConfigureSubManagementForNothingPresentScenario("Prod. Definition Display"::Hide, "Prod. Definition Display"::Hide);
+        SubSetupLibrary.ConfigureSubManagementForBothPresentScenario("Prod. Definition Display"::Hide, "Prod. Definition Display"::Hide);
 
         IsInitialized := true;
         Commit();

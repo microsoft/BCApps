@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
@@ -23,6 +24,7 @@ using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Subcontracting;
+using Microsoft.Manufacturing.Wizard;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Archive;
 using Microsoft.Purchases.Comment;
@@ -5310,6 +5312,48 @@ codeunit 139989 "Subc. Subcontracting Test"
         Assert.ExpectedError('has been undone');
     end;
 
+    [Test]
+    procedure TestPostItemChargeAssignedToSubcontractingLing_ValueEntryWithCapacityRelation()
+    var
+        ItemCharge: Record "Item Charge";
+        ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ValueEntry: Record "Value Entry";
+    begin
+        // [SCENARIO] When a Purchase Order is created and the item charge is assigned to a subcontracting line, the value entry should be created with the capacity relation, not with item ledger entry relation.
+        // The subcontracting purchase (service) line is created and posted. A new purchase line of type item charge is created, with assignment to subcontracting rcpt line. The the second purchase order is posted
+        // and the ledger entries were checked.
+
+        // [GIVEN] Complete Setup of Manufacturing, include Work- and Machine Centers, Item
+        Initialize();
+        SubcontractingMgmtLibrary.SetupInventorySetup();
+
+        // [GIVEN] Some Parameters for Creation
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        // [GIVEN] Create Subcontracting Purchase Order with Prod Order and Post
+        CreateSubcontractingPurchOrderPostAndGetPurchRcptLine(PurchRcptLine);
+
+        // [GIVEN] Create Item Charge Purchase Line and Item Charge Assignment
+        CreateItemChargeOrderLine(PurchaseHeader, PurchaseLine, ItemCharge);
+        LibraryPurchase.CreateItemChargeAssignment(ItemChargeAssignmentPurch, PurchaseLine, ItemCharge, "Purchase Applies-to Document Type"::Receipt, PurchRcptLine."Document No.", PurchRcptLine."Line No.", PurchRcptLine."No.", PurchaseLine.Quantity, PurchaseLine."Direct Unit Cost");
+
+        ItemChargeAssignmentPurch.Insert(true);
+
+        // [WHEN] Post Purchase Order with Item Charge
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        //[THEN] Check Value Entry
+        ValueEntry.FindLast();
+        Assert.AreEqual(0, ValueEntry."Item Ledger Entry No.", 'Item Ledger Entry No. must be zero on value entry.');
+        Assert.AreNotEqual(0, ValueEntry."Capacity Ledger Entry No.", 'Capacity Ledger Entry No. must be filled on value entry.');
+        Assert.AreEqual("Inventory Order Type"::Production, ValueEntry."Order Type", 'Order Type must be Production on value entry.');
+        Assert.AreEqual(0, ValueEntry."Invoiced Quantity", 'Invoiced Quantity must be zero on value entry.');
+    end;
+
     local procedure MockSubcontractingPurchRcptLine(var PurchRcptLine: Record "Purch. Rcpt. Line"; Undone: Boolean)
     var
         Item: Record Item;
@@ -5330,6 +5374,48 @@ codeunit 139989 "Subc. Subcontracting Test"
         PurchRcptLine.Insert();
     end;
 
+    local procedure CreateSubcontractingPurchOrderPostAndGetPurchRcptLine(var PurchRcptLine: Record "Purch. Rcpt. Line")
+    var
+        Item: Record Item;
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+    begin
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        WorkCenter2 := WorkCenter[2];
+        WorkCenter2."Subcontractor No." := Vendor."No.";
+        Vendor."Subc. Location Code" := Location.Code;
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        Vendor."Location Code" := Location.Code;
+        Vendor.Modify();
+
+        LibraryPurchase.CreatePurchaseOrderWithLocation(PurchaseHeader, Vendor."No.", Location.Code);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", LibraryRandom.RandInt(100));
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        PurchaseLine.Validate("Location Code", Location.Code);
+        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(1, 100, 2));
+        PurchaseLine.Modify(true);
+
+        PurchaseLine.CreateSubcontractingProductionOrder();
+
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
+        PurchRcptLine.SetRange("Order Line No.", PurchaseLine."Line No.");
+        PurchRcptLine.FindFirst();
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. Subcontracting Test");
@@ -5347,6 +5433,8 @@ codeunit 139989 "Subc. Subcontracting Test"
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Subc. Subcontracting Test");
 
         SubSetupLibrary.InitSetupFields();
+        SubSetupLibrary.ConfigureSubManagementForNothingPresentScenario("Prod. Definition Display"::Hide, "Prod. Definition Display"::Hide);
+        SubSetupLibrary.ConfigureSubManagementForBothPresentScenario("Prod. Definition Display"::Hide, "Prod. Definition Display"::Hide);
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
         SubSetupLibrary.InitialSetupForGenProdPostingGroup();
@@ -5455,6 +5543,15 @@ codeunit 139989 "Subc. Subcontracting Test"
     begin
         ProdOrderComp.SetRange("Prod. Order No.", ProductionOrder."No.");
         ProdOrderComp.ModifyAll("Component Supply Method", ComponentSupplyMethod);
+    end;
+
+    local procedure CreateItemChargeOrderLine(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var ItemCharge: Record "Item Charge")
+    begin
+        LibraryInventory.CreateItemCharge(ItemCharge);
+        LibraryPurchase.CreatePurchaseOrder(PurchaseHeader);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, "Purchase Line Type"::"Charge (Item)", ItemCharge."No.", LibraryRandom.RandInt(100));
+        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(1, 100, 2));
+        PurchaseLine.Modify(true);
     end;
 
     var

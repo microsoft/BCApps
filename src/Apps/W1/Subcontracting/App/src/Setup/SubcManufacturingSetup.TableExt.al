@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Requisition;
+using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 
 tableextension 20501 "Subc. Manufacturing Setup" extends "Manufacturing Setup"
@@ -84,6 +85,13 @@ tableextension 20501 "Subc. Manufacturing Setup" extends "Manufacturing Setup"
                         end;
                 end;
             end;
+        }
+        field(20510; "Subc. Rtng. Link Purch Prov"; Code[10])
+        {
+            Caption = 'Purchase Provision Routing Link Code';
+            DataClassification = CustomerContent;
+            TableRelation = "Routing Link";
+            ToolTip = 'Specifies the routing link code used to identify the purchase provision operation in subcontracting routing lines.';
         }
     }
 }

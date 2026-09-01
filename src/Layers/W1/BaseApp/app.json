@@ -240,6 +240,11 @@
       "id": "1f32a50d-0057-4b95-b5df-cc04d7e89470",
       "name": "Subcontracting",
       "publisher": "Microsoft"
+    },
+    {
+      "id": "32b0d4d1-eee6-4a42-9d76-86a026cd2a71",
+      "name": "Subcontracting Test",
+      "publisher": "Microsoft"
     }
   ],
   "platform": "29.0.0.0",
