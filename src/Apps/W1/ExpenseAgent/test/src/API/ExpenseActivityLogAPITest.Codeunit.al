@@ -25,6 +25,7 @@ codeunit 148343 "Expense Activity Log API Test"
         ExpenseReportsServiceNameTok: Label 'expenseReports', Locked = true;
         ExpenseUsersServiceNameTok: Label 'expenseUsers', Locked = true;
         TestDescriptionPrefixLbl: Label 'ACTIVITY API TEST ', Locked = true;
+        SubmitterCommentPropertyTxt: Label '"submitterComment":"%1"', Locked = true;
         MethodNotAllowedResponseErr: Label 'Response code is 405', Locked = true;
         BadRequestResponseErr: Label 'Response code is 400', Locked = true;
         SubmitWithCommentActionTok: Label 'Microsoft.NAV.releaseAndMarkPendingApprovalExpenseReportWithComment', Locked = true;
@@ -554,7 +555,6 @@ codeunit 148343 "Expense Activity Log API Test"
     local procedure VerifyReportSubmitterComment(ReportSystemID: Guid; ExpectedComment: Text)
     var
         ResponseText: Text;
-        SubmitterCommentPropertyTxt: Label '"submitterComment":"%1"', Locked = true;
         TargetURL: Text;
     begin
         TargetURL := LibraryGraphMgt.CreateTargetURL(
