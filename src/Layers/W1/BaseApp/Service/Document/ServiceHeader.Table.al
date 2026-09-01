@@ -5623,7 +5623,7 @@ table 5900 "Service Header"
         if ServiceLedgerEntry.FindSet() then
             repeat
                 ReversingServiceLedgerEntry.SetRange("Applies-to Entry No.", ServiceLedgerEntry."Entry No.");
-                InvoicedServiceLedgerEntryExists := InvoicedServiceLedgerEntryExists or ReversingServiceLedgerEntry.IsEmpty();
+                InvoicedServiceLedgerEntryExists := ReversingServiceLedgerEntry.IsEmpty();
             until (ServiceLedgerEntry.Next() = 0) or InvoicedServiceLedgerEntryExists;
         if not InvoicedServiceLedgerEntryExists then
             ServiceContractLine."Invoiced to Date" := 0D

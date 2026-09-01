@@ -63,6 +63,7 @@ codeunit 136145 "Service Contracts II"
         DescriptionMustMatchErr: Label 'Description must match.';
         WrongCountErr: Label 'Worong number of Service Line are created';
         ServiceLineStartDateErr: Label 'Service line for item C must start on its own starting date (03/01), not on the earliest new line date (02/01)';
+        ItemAInvoicedToDateErr: Label 'Item A "Invoiced to Date" must retain the posted invoice period end date after deleting the retrospective invoice.';
         ItemBInvoicedToDateErr: Label 'Item B "Invoiced to Date" must be 0D after deleting the retrospective invoice.';
         ItemCInvoicedToDateErr: Label 'Item C "Invoiced to Date" must be 0D after deleting the retrospective invoice.';
 
@@ -2341,7 +2342,7 @@ codeunit 136145 "Service Contracts II"
     end;
 
     [Test]
-    [HandlerFunctions('DequeueReplyConfirmHandler,MessageHandler')]
+    [HandlerFunctions('DequeueReplyConfirmHandler')]
     [Scope('OnPrem')]
     procedure RetrospectiveServiceLineStartDateIsPerLineNotEarliestForPrepaidContract()
     var
@@ -2371,19 +2372,20 @@ codeunit 136145 "Service Contracts II"
         MarEnd := CalcDate('<CM>', MarFirst);
         WorkDate(JanFirst);
         LibraryVariableStorage.Enqueue(false);  // "Create contract using template?" No (to allow Prepaid=true)
-        CreatePrepaidQuarterlyContractAndSignForBug629850(ServiceContractHeader, ServiceContractLineA);
+        CreatePrepaidQuarterlyContractAndSignForBug629850(ServiceContractHeader, ServiceContractLineA, false);
 
         // [GIVEN] Item B added at 02/01, user declines to create an invoice.
         WorkDate(FebFirst);
-        LibraryVariableStorage.Enqueue(true);   // "Do you want to open service contract...?" Yes
         LibraryVariableStorage.Enqueue(true);   // "New lines have been added..." Yes
         LibraryVariableStorage.Enqueue(true);   // "Next Planned Service Date is 0D" Yes
         LibraryVariableStorage.Enqueue(false);  // "Create invoice for period...?" No
         AddLineAndLockPrepaidContractForBug629850(ServiceContractHeader, ServiceContractLineB);
 
         // [GIVEN] Item C added at 03/01, user declines to create an invoice.
-        // Note: Contract remains Open after declining invoice, so no confirms fire for Item C
         WorkDate(MarFirst);
+        LibraryVariableStorage.Enqueue(true);   // "New lines have been added..." Yes
+        LibraryVariableStorage.Enqueue(true);   // "Next Planned Service Date is 0D" Yes
+        LibraryVariableStorage.Enqueue(false);  // "Create invoice for period...?" No
         AddLineAndLockPrepaidContractForBug629850(ServiceContractHeader, ServiceContractLineC);
 
         // [WHEN] At 04/01 the retrospective invoice is created covering 02/01..03/31.
@@ -2395,6 +2397,7 @@ codeunit 136145 "Service Contracts II"
             ServiceContractHeader.Modify();
         end;
         ServContractManagement.InitCodeUnit();
+        LibraryVariableStorage.Enqueue(true);  // "Create service invoice for period...?" Yes
         ServContractManagement.CreateInvoice(ServiceContractHeader);
 
         // [THEN] The service line for item C has description '03/01 - 03/31', not '02/01 - 03/31'.
@@ -2415,7 +2418,7 @@ codeunit 136145 "Service Contracts II"
     end;
 
     [Test]
-    [HandlerFunctions('DequeueReplyConfirmHandler,MessageHandler')]
+    [HandlerFunctions('DequeueReplyConfirmHandler')]
     [Scope('OnPrem')]
     procedure InvoicedToDateResetForNewPrepaidContractItemsAfterDeletingRetrospectiveInvoice()
     var
@@ -2444,19 +2447,20 @@ codeunit 136145 "Service Contracts II"
         MarEnd := CalcDate('<CM>', MarFirst);
         WorkDate(JanFirst);
         LibraryVariableStorage.Enqueue(false);  // "Create contract using template?" No (to allow Prepaid=true)
-        CreatePrepaidQuarterlyContractAndSignForBug629850(ServiceContractHeader, ServiceContractLineA);
+        CreatePrepaidQuarterlyContractAndSignForBug629850(ServiceContractHeader, ServiceContractLineA, false);
 
         // [GIVEN] Item B added at 02/01, user declines to create an invoice.
         WorkDate(FebFirst);
-        LibraryVariableStorage.Enqueue(true);   // "Do you want to open service contract...?" Yes
         LibraryVariableStorage.Enqueue(true);   // "New lines have been added..." Yes
         LibraryVariableStorage.Enqueue(true);   // "Next Planned Service Date is 0D" Yes
         LibraryVariableStorage.Enqueue(false);  // "Create invoice for period...?" No
         AddLineAndLockPrepaidContractForBug629850(ServiceContractHeader, ServiceContractLineB);
 
         // [GIVEN] Item C added at 03/01, user declines to create an invoice.
-        // Note: Contract remains Open after declining invoice, so no confirms fire for Item C
         WorkDate(MarFirst);
+        LibraryVariableStorage.Enqueue(true);   // "New lines have been added..." Yes
+        LibraryVariableStorage.Enqueue(true);   // "Next Planned Service Date is 0D" Yes
+        LibraryVariableStorage.Enqueue(false);  // "Create invoice for period...?" No
         AddLineAndLockPrepaidContractForBug629850(ServiceContractHeader, ServiceContractLineC);
 
         // [GIVEN] At 04/01 the retrospective invoice is created covering 02/01..03/31.
@@ -2468,6 +2472,7 @@ codeunit 136145 "Service Contracts II"
             ServiceContractHeader.Modify();
         end;
         ServContractManagement.InitCodeUnit();
+        LibraryVariableStorage.Enqueue(true);  // "Create service invoice for period...?" Yes
         ServContractManagement.CreateInvoice(ServiceContractHeader);
 
         // [WHEN] The retrospective invoice is deleted.
@@ -2492,7 +2497,7 @@ codeunit 136145 "Service Contracts II"
     end;
 
     [Test]
-    [HandlerFunctions('DequeueReplyConfirmHandler,MessageHandler')]
+    [HandlerFunctions('DequeueReplyConfirmHandler')]
     [Scope('OnPrem')]
     procedure InvoicedToDateResetAfterDeletingRecreatedRetrospectiveInvoiceSecondTime()
     var
@@ -2502,6 +2507,7 @@ codeunit 136145 "Service Contracts II"
         ServiceContractLineC: Record "Service Contract Line";
         ServiceHeader: Record "Service Header";
         ServContractManagement: Codeunit ServContractManagement;
+        RetrospectiveInvoiceNo: Code[20];
         Year: Integer;
         JanFirst: Date;
         FebFirst: Date;
@@ -2521,11 +2527,16 @@ codeunit 136145 "Service Contracts II"
         MarEnd := CalcDate('<CM>', MarFirst);
         WorkDate(JanFirst);
         LibraryVariableStorage.Enqueue(false);  // "Create contract using template?" No (to allow Prepaid=true)
-        CreatePrepaidQuarterlyContractAndSignForBug629850(ServiceContractHeader, ServiceContractLineA);
+        CreatePrepaidQuarterlyContractAndSignForBug629850(ServiceContractHeader, ServiceContractLineA, true);
+
+        // [GIVEN] The initial Q1 invoice for item A is posted.
+        ServiceHeader.SetRange("Document Type", ServiceHeader."Document Type"::Invoice);
+        ServiceHeader.SetRange("Contract No.", ServiceContractHeader."Contract No.");
+        ServiceHeader.FindFirst();
+        LibraryService.PostServiceOrder(ServiceHeader, true, false, true);
 
         // [GIVEN] Item B added at 02/01, user declines to create an invoice.
         WorkDate(FebFirst);
-        LibraryVariableStorage.Enqueue(true);   // "Do you want to open service contract...?" Yes
         LibraryVariableStorage.Enqueue(true);   // "New lines have been added..." Yes
         LibraryVariableStorage.Enqueue(true);   // "Next Planned Service Date is 0D" Yes
         LibraryVariableStorage.Enqueue(false);  // "Create invoice for period...?" No
@@ -2533,6 +2544,9 @@ codeunit 136145 "Service Contracts II"
 
         // [GIVEN] Item C added at 03/01, user declines to create an invoice.
         WorkDate(MarFirst);
+        LibraryVariableStorage.Enqueue(true);   // "New lines have been added..." Yes
+        LibraryVariableStorage.Enqueue(true);   // "Next Planned Service Date is 0D" Yes
+        LibraryVariableStorage.Enqueue(false);  // "Create invoice for period...?" No
         AddLineAndLockPrepaidContractForBug629850(ServiceContractHeader, ServiceContractLineC);
 
         // [GIVEN] At 04/01 the retrospective invoice covering 02/01..03/31 is created and then deleted (dates restored correctly the first time).
@@ -2543,29 +2557,27 @@ codeunit 136145 "Service Contracts II"
             ServiceContractHeader.Modify();
         end;
         ServContractManagement.InitCodeUnit();
-        ServContractManagement.CreateInvoice(ServiceContractHeader);
+        LibraryVariableStorage.Enqueue(true);  // "Create service invoice for period...?" Yes
+        RetrospectiveInvoiceNo := ServContractManagement.CreateInvoice(ServiceContractHeader);
 
-        ServiceHeader.SetRange("Document Type", ServiceHeader."Document Type"::Invoice);
-        ServiceHeader.SetRange("Contract No.", ServiceContractHeader."Contract No.");
-        ServiceHeader.FindSet();
-        repeat
-            LibraryVariableStorage.Enqueue(true);  // "Deleting will restore previous invoice dates..." Yes
-        until ServiceHeader.Next() = 0;
-        while ServiceHeader.FindLast() do
-            ServiceHeader.Delete(true);
+        ServiceHeader.Get(ServiceHeader."Document Type"::Invoice, RetrospectiveInvoiceNo);
+        LibraryVariableStorage.Enqueue(true);  // "Deleting will restore previous invoice dates..." Yes
+        ServiceHeader.Delete(true);
 
         // [GIVEN] The invoice is created a second time (Feb & Mar recalculated for items B and C).
         ServiceContractHeader.Find();
         ServContractManagement.InitCodeUnit();
-        ServContractManagement.CreateInvoice(ServiceContractHeader);
+        LibraryVariableStorage.Enqueue(true);  // "Create service invoice for period...?" Yes
+        RetrospectiveInvoiceNo := ServContractManagement.CreateInvoice(ServiceContractHeader);
 
         // [WHEN] This second, recreated retrospective invoice is also deleted.
-        ServiceHeader.FindSet();
-        repeat
-            LibraryVariableStorage.Enqueue(true);  // "Deleting will restore previous invoice dates..." Yes
-        until ServiceHeader.Next() = 0;
-        while ServiceHeader.FindLast() do
-            ServiceHeader.Delete(true);
+        ServiceHeader.Get(ServiceHeader."Document Type"::Invoice, RetrospectiveInvoiceNo);
+        LibraryVariableStorage.Enqueue(true);  // "Deleting will restore previous invoice dates..." Yes
+        ServiceHeader.Delete(true);
+
+        // [THEN] Item A retains its posted Q1 "Invoiced to Date".
+        ServiceContractLineA.Get(ServiceContractLineA."Contract Type", ServiceContractLineA."Contract No.", ServiceContractLineA."Line No.");
+        Assert.AreEqual(MarEnd, ServiceContractLineA."Invoiced to Date", ItemAInvoicedToDateErr);
 
         // [THEN] Items B and C have "Invoiced to Date" = 0D (previously stuck at 03/31).
         ServiceContractLineB.Get(ServiceContractLineB."Contract Type", ServiceContractLineB."Contract No.", ServiceContractLineB."Line No.");
@@ -3772,7 +3784,8 @@ codeunit 136145 "Service Contracts II"
 
     local procedure CreatePrepaidQuarterlyContractAndSignForBug629850(
         var ServiceContractHeader: Record "Service Contract Header";
-        var ServiceContractLine: Record "Service Contract Line")
+        var ServiceContractLine: Record "Service Contract Line";
+        CreateInitialInvoice: Boolean)
     var
         ServiceItem: Record "Service Item";
     begin
@@ -3798,6 +3811,8 @@ codeunit 136145 "Service Contracts II"
 
         UpdateAnnualAmountInServiceContract(ServiceContractHeader);
         ServiceContractHeader.Validate("Starting Date");
+        if CreateInitialInvoice then
+            ServiceContractHeader."Next Invoice Date" := CalcDate('<CQ+1D>', WorkDate());
         ServiceContractHeader.Modify(true);
 
         SignContractSilent(ServiceContractHeader);
