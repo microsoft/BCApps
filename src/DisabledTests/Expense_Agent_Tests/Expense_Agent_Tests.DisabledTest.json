@@ -65,6 +65,31 @@
     "method": "EmailAddressFieldIsExposedThroughAPI"
   },
   {
+    "codeunitId": 148333,
+    "codeunitName": "Expense Agent Setup API Test",
+    "method": "TestHandlerConfigureEnablesExistingDisabledExpenseAgent"
+  },
+  {
+    "codeunitId": 148333,
+    "codeunitName": "Expense Agent Setup API Test",
+    "method": "TestHandlerInitializeCreatesEnabledExpenseAgent"
+  },
+  {
+    "codeunitId": 148333,
+    "codeunitName": "Expense Agent Setup API Test",
+    "method": "TestHandlerInitializeCreatesDefaultMasterData"
+  },
+  {
+    "codeunitId": 148333,
+    "codeunitName": "Expense Agent Setup API Test",
+    "method": "TestHandlerInitializeIsIdempotent"
+  },
+  {
+    "codeunitId": 148333,
+    "codeunitName": "Expense Agent Setup API Test",
+    "method": "TestHandlerInitializeDeletesExpenseVendors"
+  },
+  {
     "codeunitId": 148349,
     "codeunitName": "Expense PerDiem Locations Test",
     "method": "PerDiemLocationsReturnsLinkedLocationViaAPI"
