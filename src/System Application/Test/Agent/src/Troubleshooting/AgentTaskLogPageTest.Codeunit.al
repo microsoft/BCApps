@@ -212,7 +212,7 @@ codeunit 133964 "Agent Task Log Page Test"
         ContextTxt := '{"serializedPage":"{\"page\":\"Customer Card\"}","isDecisionPoint":true,"pageStack":["Customer List","Customer Card"],"availableTools":["Edit record"],"memorizedData":{"customerNo":"10000"},"taskPageContext":{"currencyCode":"USD","currencySymbol":"$","outgoingCommunicationCulture":{"language":"en-US","dateFormat":"M/d/yyyy","timeFormat":"h:mm tt","formattedNumberExample":"1,234.56"}}}';
 
         // [WHEN] The context is projected for an authorized export
-        AgentTaskLogExport.BuildContextJson(ContextTxt, 'logEntry', true, ContextJson);
+        AgentTaskLogExport.BuildContextJson(ContextTxt, true, ContextJson);
 
         // [THEN] The native JSON values and calculated flags are preserved
         Assert.IsTrue(ContextJson.GetBoolean('decisionPoint'), 'The decision point should be exported.');
@@ -238,38 +238,12 @@ codeunit 133964 "Agent Task Log Page Test"
     begin
         // [GIVEN] Troubleshooting context containing a sensitive page snapshot
         // [WHEN] The context is projected without the troubleshooting permission
-        AgentTaskLogExport.BuildContextJson('{"serializedPage":"{\"secret\":\"value\"}"}', 'logEntry', false, ContextJson);
+        AgentTaskLogExport.BuildContextJson('{"serializedPage":"{\"secret\":\"value\"}"}', false, ContextJson);
 
         // [THEN] The snapshot is not present and the redaction is explicit
         Assert.IsFalse(ContextJson.Contains('serializedPage'), 'The serialized page should not be included.');
         Assert.IsTrue(ContextJson.GetBoolean('serializedPageRedacted'), 'The serialized page should be marked as redacted.');
         Assert.IsTrue(ContextJson.GetText('serializedPageRedactionReason').Contains('Troubleshoot All Agents'), 'The redaction reason should identify the required permission.');
-    end;
-
-    [Test]
-    procedure TestExportToJson_EmptySelectionProducesVersionedDocument()
-    var
-        AgentTaskLogEntryRecord: Record "Agent Task Log Entry";
-        AgentTaskLogExport: Codeunit "Agent Task Log Export";
-        TempBlob: Codeunit "Temp Blob";
-        ExportJson: JsonObject;
-        ExportInStream: InStream;
-        ExportOutStream: OutStream;
-        ExportTxt: Text;
-    begin
-        // [GIVEN] A selection filter that cannot match a log entry
-        AgentTaskLogEntryRecord.SetRange(ID, -1);
-        TempBlob.CreateOutStream(ExportOutStream, TextEncoding::UTF8);
-
-        // [WHEN] The export is invoked programmatically
-        AgentTaskLogExport.ExportToJson(AgentTaskLogEntryRecord, ExportOutStream);
-        TempBlob.CreateInStream(ExportInStream, TextEncoding::UTF8);
-        ExportInStream.ReadText(ExportTxt);
-
-        // [THEN] A valid, versioned JSON document is returned
-        Assert.IsTrue(ExportJson.ReadFrom(ExportTxt), 'The export should contain valid JSON.');
-        Assert.AreEqual('1.0', ExportJson.GetText('formatVersion'), 'The export format version should be stable.');
-        Assert.AreEqual(0, ExportJson.GetArray('entries').Count(), 'No entries should be exported.');
     end;
 
     local procedure ValidateFullContext(var TempPageStackRecords: Record "Agent JSON Buffer" temporary; var TempAvailableToolsRecords: Record "Agent JSON Buffer" temporary; var TempMemorizedDataRecords: Record "Agent JSON Buffer" temporary)

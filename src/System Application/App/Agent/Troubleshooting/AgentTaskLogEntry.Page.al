@@ -280,7 +280,7 @@ page 4312 "Agent Task Log Entry"
         MemoryEntry.Details.CreateInStream(ContentInStream, AgentTaskLogEntry.GetDefaultEncoding());
         ContentInStream.Read(MemoryEntryDetailsTxt);
 
-        SetAgentName();
+        AgentName := AgentTaskLogEntry.GetAgentName(Rec);
         ParseDetails();
         GetPageContext();
 
@@ -311,13 +311,6 @@ page 4312 "Agent Task Log Entry"
         IsSuccess := Format(Success, 0, 9);
     end;
 
-    local procedure SetAgentName()
-    var
-        AgentTaskLogEntry: Codeunit "Agent Task Log Entry";
-    begin
-        AgentName := AgentTaskLogEntry.GetAgentName(Rec);
-    end;
-
     local procedure SetIsAgentAction()
     var
         AgentTaskLogEntry: Codeunit "Agent Task Log Entry";
@@ -336,7 +329,9 @@ page 4312 "Agent Task Log Entry"
         TaskPageContextObj: JsonObject;
         RawSerializedPageJson: Text;
     begin
-        ContextTxt := AgentTaskLogEntry.ReadContextSafe(Rec, MemoryEntry, ContextSource);
+        ContextTxt := AgentTaskLogEntry.ReadContext(Rec);
+        if ContextTxt = '' then
+            ContextTxt := AgentTaskLogEntry.ReadContext(MemoryEntry);
 
         IsSerializedPageVisible := ContextTxt <> '';
 
@@ -408,7 +403,6 @@ page 4312 "Agent Task Log Entry"
         MemoryEntry: Record "Agent Task Memory Entry";
         AgentTroubleshooterMissingPermissionTxt: Label 'Only users who are assigned the ''Troubleshoot All Agents'' permission can view page snapshot data.';
         ContextTxt: Text;
-        ContextSource: Text;
         MemoryEntryDetailsTxt: Text;
         LogEntryDetailsTxt: Text;
         AgentName: text;

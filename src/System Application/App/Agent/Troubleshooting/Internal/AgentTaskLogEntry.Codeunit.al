@@ -95,6 +95,9 @@ codeunit 4314 "Agent Task Log Entry"
     var
         ContentInStream: InStream;
     begin
+        if Entry."Task ID" = 0 then
+            exit;
+
 #pragma warning disable AL0432
         Entry.CalcFields(Entry.Context);
         Entry.Context.CreateInStream(ContentInStream, GetDefaultEncoding());
@@ -106,29 +109,12 @@ codeunit 4314 "Agent Task Log Entry"
     var
         ContentInStream: InStream;
     begin
+        if Entry.ID = 0 then
+            exit;
+
         Entry.CalcFields(Entry."Troubleshooting Info");
         Entry."Troubleshooting Info".CreateInStream(ContentInStream, GetDefaultEncoding());
         ContentInStream.ReadText(ContextTxt);
-    end;
-
-    procedure ReadContextSafe(AgentTaskLogEntry: Record "Agent Task Log Entry"; AgentTaskMemoryEntry: Record "Agent Task Memory Entry"; var ContextSource: Text): Text
-    var
-        ContextTxt: Text;
-    begin
-        ContextTxt := ReadContext(AgentTaskLogEntry);
-        if ContextTxt <> '' then begin
-            ContextSource := LogEntryContextSourceTok;
-            exit(ContextTxt);
-        end;
-
-        if AgentTaskMemoryEntry."Task ID" = 0 then
-            exit('');
-
-        ContextTxt := ReadContext(AgentTaskMemoryEntry);
-        if ContextTxt <> '' then
-            ContextSource := MemoryEntryContextSourceTok;
-
-        exit(ContextTxt);
     end;
 
     procedure GetDefaultEncoding(): TextEncoding
@@ -264,6 +250,4 @@ codeunit 4314 "Agent Task Log Entry"
         ValueLbl: Label 'value', Locked = true;
         SuccessLbl: Label 'success', Locked = true;
         IsDecisionPointLbl: Label 'isDecisionPoint', Locked = true;
-        LogEntryContextSourceTok: Label 'logEntry', Locked = true;
-        MemoryEntryContextSourceTok: Label 'memoryEntry', Locked = true;
 }
