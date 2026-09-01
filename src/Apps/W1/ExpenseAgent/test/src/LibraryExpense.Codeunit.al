@@ -27,6 +27,10 @@ codeunit 148300 "Library - Expense"
         FirstNameTxt: Label 'First Name';
         NameTxt: Label 'Name';
 
+    /// <summary>
+    /// Creates an Expense Vendor through its normal number-series insertion path.
+    /// </summary>
+    /// <param name="ExpenseVendor">The created Expense Vendor record.</param>
     internal procedure CreateExpenseVendor(var ExpenseVendor: Record "Expense Vendor")
     begin
         ExpenseVendor.Init();

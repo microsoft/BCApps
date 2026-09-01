@@ -22,6 +22,7 @@ codeunit 148333 "Expense Agent Setup API Test"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         IsInitialized: Boolean;
         ConfirmationHandled: Boolean;
+        ConfirmationCount: Integer;
         ConfirmationReply: Boolean;
         ActualConfirmationQuestion: Text;
         ServiceNameTok: Label 'expenseAgentSetup', Locked = true;
@@ -47,6 +48,55 @@ codeunit 148333 "Expense Agent Setup API Test"
         if not ExpenseAgentSetup.Get() then begin
             ExpenseAgentSetup.Init();
             ExpenseAgentSetup.Insert();
+        end;
+
+        [Test]
+        [HandlerFunctions('ConfirmHandlerNo')]
+        procedure TestHandlerConfigureEnablesExistingDisabledExpenseAgent()
+        var
+            ExpenseAgentSetup: Record "Expense Agent Setup";
+            TempAgentSetupBuffer: Record "Agent Setup Buffer" temporary;
+            AgentSetup: Codeunit "Agent Setup";
+            ExpenseTestHandlerAPI: Codeunit "Expense Test Handler API";
+            AgentUserSecurityId: Guid;
+        begin
+            // [FEATURE] [AI test 1.0]
+            // [SCENARIO] Test handler configuration re-enables an existing disabled Expense Agent
+            Initialize();
+
+            // [GIVEN] A configured Expense Agent is disabled
+            ClearExpenseAgentSetup();
+            EnqueueCopyEmployeesConfirmation();
+            ExpenseTestHandlerAPI.Configure();
+            VerifyCopyEmployeesConfirmation();
+            ExpenseAgentSetup.Get();
+            AgentUserSecurityId := ExpenseAgentSetup."User Security ID";
+            AgentSetup.GetSetupRecord(
+                TempAgentSetupBuffer,
+                AgentUserSecurityId,
+                "Agent Metadata Provider"::"Expense Agent",
+                '',
+                '',
+                '');
+            TempAgentSetupBuffer.Validate(State, TempAgentSetupBuffer.State::Disabled);
+            AgentSetup.SaveChanges(TempAgentSetupBuffer);
+
+            // [WHEN] The E2E test handler configures the company again
+            ExpenseTestHandlerAPI.Configure();
+
+            // [THEN] The existing Expense Agent is enabled
+            Clear(TempAgentSetupBuffer);
+            AgentSetup.GetSetupRecord(
+                TempAgentSetupBuffer,
+                AgentUserSecurityId,
+                "Agent Metadata Provider"::"Expense Agent",
+                '',
+                '',
+                '');
+            Assert.AreEqual(
+                TempAgentSetupBuffer.State::Enabled,
+                TempAgentSetupBuffer.State,
+                'The existing Expense Agent must be enabled.');
         end;
 
         ExpenseAgentSetup."Email Address" := 'receipts@contoso.com';
@@ -332,18 +382,21 @@ codeunit 148333 "Expense Agent Setup API Test"
     begin
         Clear(ActualConfirmationQuestion);
         ConfirmationHandled := false;
+        ConfirmationCount := 0;
         ConfirmationReply := false;
     end;
 
     local procedure VerifyCopyEmployeesConfirmation()
     begin
         Assert.IsTrue(ConfirmationHandled, 'The default setup confirmation must be shown.');
+        Assert.AreEqual(1, ConfirmationCount, 'The default setup confirmation must be shown exactly once.');
         Assert.AreEqual(
             CopyEmployeesToExpenseUsersQst,
             ActualConfirmationQuestion,
             'The default setup must ask whether to copy employees to Expense Users.');
         Clear(ActualConfirmationQuestion);
         ConfirmationHandled := false;
+        ConfirmationCount := 0;
     end;
 
     local procedure VerifyDefaultPostingGroupAccountsExist()
@@ -376,6 +429,7 @@ codeunit 148333 "Expense Agent Setup API Test"
     begin
         ActualConfirmationQuestion := Question;
         ConfirmationHandled := true;
+        ConfirmationCount += 1;
         Reply := ConfirmationReply;
     end;
 }

@@ -35,7 +35,7 @@ codeunit 148307 "Expense Test Handler API"
                     '',
                     '');
                 if TempAgentSetupBuffer.State <> TempAgentSetupBuffer.State::Enabled then begin
-                    TempAgentSetupBuffer.State := TempAgentSetupBuffer.State::Enabled;
+                    TempAgentSetupBuffer.Validate(State, TempAgentSetupBuffer.State::Enabled);
                     AgentUserSecurityId := AgentSetup.SaveChanges(TempAgentSetupBuffer);
                 end;
                 EnableExpenseAgentSetup(ExpenseAgentSetup, AgentUserSecurityId);
@@ -50,7 +50,7 @@ codeunit 148307 "Expense Test Handler API"
             CopyStr('Expense Agent - ' + CompanyName(), 1, MaxStrLen(TempAgentSetupBuffer."User Name")),
             CopyStr('Expense Agent - ' + CompanyName(), 1, MaxStrLen(TempAgentSetupBuffer."Display Name")),
             'Processes employee expenses for the current company.');
-        TempAgentSetupBuffer.State := TempAgentSetupBuffer.State::Enabled;
+        TempAgentSetupBuffer.Validate(State, TempAgentSetupBuffer.State::Enabled);
         AgentUserSecurityId := AgentSetup.SaveChanges(TempAgentSetupBuffer);
 
         EnableExpenseAgentSetup(ExpenseAgentSetup, AgentUserSecurityId);
@@ -107,6 +107,8 @@ codeunit 148307 "Expense Test Handler API"
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
         Agent: Record Agent;
+        TempAgentSetupBuffer: Record "Agent Setup Buffer" temporary;
+        AgentSetup: Codeunit "Agent Setup";
     begin
         if not ExpenseAgentSetup.Get() then
             exit(false);
@@ -115,6 +117,15 @@ codeunit 148307 "Expense Test Handler API"
         if IsNullGuid(ExpenseAgentSetup."User Security ID") then
             exit(false);
         if not Agent.Get(ExpenseAgentSetup."User Security ID") then
+            exit(false);
+        AgentSetup.GetSetupRecord(
+            TempAgentSetupBuffer,
+            ExpenseAgentSetup."User Security ID",
+            "Agent Metadata Provider"::"Expense Agent",
+            '',
+            '',
+            '');
+        if TempAgentSetupBuffer.State <> TempAgentSetupBuffer.State::Enabled then
             exit(false);
 
         exit(
