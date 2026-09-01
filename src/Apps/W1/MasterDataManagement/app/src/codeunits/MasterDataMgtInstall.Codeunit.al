@@ -21,9 +21,12 @@ codeunit 7243 "Master Data Mgt. Install"
     trigger OnInstallAppPerCompany()
     var
         UpgradeTag: Codeunit "Upgrade Tag";
+        AppInfo: ModuleInfo;
     begin
-        // This trigger only fires on a fresh install (never on upgrade), and a fresh company carries no legacy data:
-        // mark the historical per-company migrations as done so a later app upgrade never re-runs them here.
-        UpgradeTag.SetAllUpgradeTags();
+        NavApp.GetCurrentModuleInfo(AppInfo);
+        // Only a genuine first install (no preserved data) may skip the historical per-company migrations. A reinstall
+        // over preserved data keeps DataVersion non-zero and must let those migrations run against the existing data.
+        if AppInfo.DataVersion() = Version.Create(0, 0, 0, 0) then
+            UpgradeTag.SetAllUpgradeTags();
     end;
 }
