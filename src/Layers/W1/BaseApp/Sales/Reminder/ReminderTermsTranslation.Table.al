@@ -12,8 +12,10 @@ using System.Globalization;
 table 1052 "Reminder Terms Translation"
 {
     Caption = 'Reminder Terms Translation';
+#if not CLEAN29
     DrillDownPageID = "Reminder Terms Translation";
     LookupPageID = "Reminder Terms Translation";
+#endif
     DataClassification = CustomerContent;
 
     fields
@@ -59,4 +61,3 @@ table 1052 "Reminder Terms Translation"
     {
     }
 }
-
