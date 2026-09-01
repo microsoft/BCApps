@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -399,9 +399,12 @@ table 39 "Purchase Line"
                 end;
                 "Bin Code" := '';
 
-                if Type = Type::Item then
-                    if "Location Code" <> xRec."Location Code" then
-                        PlanPriceCalcByField(FieldNo("Location Code"));
+                IsHandled := false;
+                OnValidateLocationCodeOnBeforePlanPriceCalcByField(Rec, IsHandled, CurrFieldNo, xRec);
+                if not IsHandled then
+                    if Type = Type::Item then
+                        if "Location Code" <> xRec."Location Code" then
+                            PlanPriceCalcByField(FieldNo("Location Code"));
 
                 IsHandled := false;
                 OnValidateLocationCodeOnBeforeSetInboundWhseHandlingTime(CurrFieldNo, Rec, xRec, IsHandled);
@@ -418,7 +421,8 @@ table 39 "Purchase Line"
 
                 GetDefaultBin();
                 CheckWMS();
-                MatchedOrderLineMgmt.CheckReceiptOnInvoiceAllowedForLocation("Location Code", GetPurchHeader());
+                if Rec."Receipt on Invoice" and not MatchedOrderLineMgmt.IsReceiptOnInvoiceAllowedForLocation("Location Code") then
+                    Rec.Validate("Receipt on Invoice", false);
 
                 if "Document Type" = "Document Type"::"Return Order" then
                     ValidateReturnReasonCode(FieldNo("Location Code"));
@@ -594,6 +598,8 @@ table 39 "Purchase Line"
                             FieldError("Quantity (Base)", StrSubstNo(Text004, FieldCaption("Qty. Received (Base)")));
                     end;
                 end;
+
+                CheckCorrectiveCreditMemoQtyIncrease(xRec);
 
                 if (Type = Type::"Charge (Item)") and (CurrFieldNo <> 0) then begin
                     if (Quantity = 0) and ("Qty. to Assign" <> 0) then
@@ -2146,7 +2152,7 @@ table 39 "Purchase Line"
         {
             Caption = 'Spend Request No.';
             ToolTip = 'Specifies the spend request that this purchase document relates to.';
-            TableRelation = "Spend Request" where(Status = const(Approved));
+            TableRelation = "Spend Request" where(Status = const(Approved), "Document Type" = const(" "));
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -3873,6 +3879,24 @@ table 39 "Purchase Line"
             Editable = false;
             FieldClass = FlowField;
         }
+        field(8513; "Receipt on Invoice"; Boolean)
+        {
+            Caption = 'Receipt on Invoice';
+            ToolTip = 'Specifies whether the receipt is posted automatically with the invoice.';
+
+            trigger OnValidate()
+            var
+                MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
+            begin
+                if "Receipt on Invoice" then
+                    MatchedOrderLineMgmt.CheckLineReceiptOnInvoiceAllowed(Rec);
+
+                if "Document Type" = "Document Type"::Order then
+                    InitQtyToReceive();
+
+                MatchedOrderLineMgmt.ApplyPurchaseLineReceiptSettingToMatches(Rec);
+            end;
+        }
 #if not CLEANSCHEMA26
         field(10604; "VAT Code"; Code[10])
         {
@@ -4131,8 +4155,7 @@ table 39 "Purchase Line"
     trigger OnInsert()
     begin
         TestStatusOpen();
-        if not HasPurchHeader then
-            Error(CannotInsertPurchLineWithoutHeaderErr);
+        VerifyPurchaseHeaderExists();
 
         if Quantity <> 0 then begin
             OnBeforeVerifyReservedQty(Rec, xRec, 0);
@@ -4219,7 +4242,7 @@ table 39 "Purchase Line"
         HasBeenShown: Boolean;
         PrePaymentLineAmountEntered: Boolean;
         PurchSetupRead: Boolean;
-        HasPurchHeader: Boolean;
+        SuppressPurchaseHeaderExistsVerification: Boolean;
 #pragma warning disable AA0074
 #pragma warning disable AA0470
         Text000: Label 'You cannot rename a %1.';
@@ -4243,6 +4266,7 @@ table 39 "Purchase Line"
 #pragma warning restore AA0470
         Text029: Label 'must be positive.';
         Text030: Label 'must be negative.';
+        CorrectiveCreditMemoQtyIncreaseErr: Label 'must not be greater than %1 because a corrective credit memo can only reverse the original posted invoice, not add quantity.', Comment = '%1 - the quantity copied from the posted purchase invoice';
 #pragma warning disable AA0470
         Text032: Label '%1 must not be greater than the sum of %2 and %3.';
 #pragma warning restore AA0470
@@ -4281,7 +4305,7 @@ table 39 "Purchase Line"
         QtyReceiveActionDescriptionLbl: Label 'Corrects %1 value to %2', Comment = '%1 - Qty. to Receive field caption, %2 - Quantity';
         ItemChargeAssignmentErr: Label 'You can only assign Item Charges for Line Types of Charge (Item).';
         CannotFindDescErr: Label 'Cannot find %1 with Description %2.\\Make sure to use the correct type.', Comment = '%1 = Type caption %2 = Description';
-        CommentLbl: Label 'Comment';
+        CommentLbl: Label 'Comment', MaxLength = 30;
         LineDiscountPctErr: Label 'The value in the Line Discount % field must be between 0 and 100.';
         PurchasingBlockedErr: Label 'You cannot purchase %1 %2 because the %3 check box is selected on the %1 card.', Comment = '%1 - Table Caption (Item), %2 - Item No., %3 - Field Caption';
         CannotChangePrepaidServiceChargeErr: Label 'You cannot change the line because it will affect service charges that are already invoiced as part of a prepayment.';
@@ -4518,6 +4542,7 @@ table 39 "Purchase Line"
         "Promised Receipt Date" := PurchHeader."Promised Receipt Date";
         "Inbound Whse. Handling Time" := PurchHeader."Inbound Whse. Handling Time";
         "Order Date" := PurchHeader."Order Date";
+        Rec."Receipt on Invoice" := PurchHeader."Receipt on Invoice";
 
         OnAfterInitHeaderDefaults(Rec, PurchHeader, TempPurchLine);
     end;
@@ -4800,7 +4825,8 @@ table 39 "Purchase Line"
                 Item.TestField("Inventory Posting Group");
                 "Posting Group" := Item."Inventory Posting Group";
             end;
-            MatchedOrderLineMgmt.CheckReceiptOnInvoiceAllowedForItem(Item, GetPurchHeader());
+            if Rec."Receipt on Invoice" and not MatchedOrderLineMgmt.IsReceiptOnInvoiceAllowedForItem(Item) then
+                Rec.Validate("Receipt on Invoice", false);
         end;
 
         OnCopyFromItemOnAfterCheck(Rec, Item, CurrFieldNo);
@@ -4842,8 +4868,11 @@ table 39 "Purchase Line"
                     GLSetup."Unit-Amount Rounding Precision");
         end;
 
-        if PurchHeader."Language Code" <> '' then
-            GetItemTranslation();
+        IsHandled := false;
+        OnCopyFromItemOnBeforeGetItemTranslation(Rec, Item, IsHandled);
+        if not IsHandled then
+            if PurchHeader."Language Code" <> '' then
+                GetItemTranslation();
 
         OnCopyFromItemOnAfterGetItemTranslation(Rec, Item);
 
@@ -4957,11 +4986,15 @@ table 39 "Purchase Line"
     /// <summary>
     /// Assigns given purchase header to the global variable and initializes the currency variable.
     /// </summary>
+    /// <remarks>
+    /// The global PurchHeader is used whenever data from the purchase header is used in other procedures on the object.
+    /// SuppressPurchaseHeaderExistsVerification is implicitly set to true; call SetSuppressPurchaseHeaderExistsVerification afterwards to override this behavior.
+    /// </remarks>
     /// <param name="NewPurchHeader">Purchase header to be set.</param>
     procedure SetPurchHeader(NewPurchHeader: Record "Purchase Header")
     begin
         PurchHeader := NewPurchHeader;
-        HasPurchHeader := true;
+        SetSuppressPurchaseHeaderExistsVerification(true);
 
         if PurchHeader."Currency Code" = '' then
             Currency.InitRoundingPrecision()
@@ -4970,6 +5003,15 @@ table 39 "Purchase Line"
             Currency.Get(PurchHeader."Currency Code");
             Currency.TestField("Amount Rounding Precision");
         end;
+    end;
+
+    /// <summary>
+    /// Sets the value of the SuppressPurchaseHeaderExistsVerification variable.
+    /// </summary>
+    /// <param name="NewSuppressPurchaseHeaderExistsVerification">Set to true to suppress the purchase header existence verification on insert.</param>
+    procedure SetSuppressPurchaseHeaderExistsVerification(NewSuppressPurchaseHeaderExistsVerification: Boolean)
+    begin
+        SuppressPurchaseHeaderExistsVerification := NewSuppressPurchaseHeaderExistsVerification;
     end;
 
     /// <summary>
@@ -4992,14 +5034,13 @@ table 39 "Purchase Line"
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeGetPurchHeader(Rec, PurchHeader, IsHandled, Currency, HasPurchHeader);
+        OnBeforeGetPurchHeader(Rec, PurchHeader, IsHandled, Currency, SuppressPurchaseHeaderExistsVerification);
         if IsHandled then
             exit;
 
         TestField("Document No.");
         if ("Document Type" <> PurchHeader."Document Type") or ("Document No." <> PurchHeader."No.") then
             if PurchHeader.Get(Rec."Document Type", Rec."Document No.") then begin
-                HasPurchHeader := true;
                 if PurchHeader."Currency Code" = '' then
                     Currency.InitRoundingPrecision()
                 else begin
@@ -5007,10 +5048,8 @@ table 39 "Purchase Line"
                     Currency.Get(PurchHeader."Currency Code");
                     Currency.TestField("Amount Rounding Precision");
                 end
-            end else begin
+            end else
                 Clear(PurchHeader);
-                HasPurchHeader := false;
-            end;
 
         OnAfterGetPurchHeader(Rec, PurchHeader, Currency);
         OutPurchHeader := PurchHeader;
@@ -6877,6 +6916,22 @@ table 39 "Purchase Line"
         TestField(Quantity);
     end;
 
+    local procedure VerifyPurchaseHeaderExists()
+    var
+        PurchaseHeaderToVerify: Record "Purchase Header";
+    begin
+        if Rec.IsTemporary() then
+            exit;
+
+        if SuppressPurchaseHeaderExistsVerification then
+            exit;
+
+        PurchaseHeaderToVerify.SetRange("Document Type", "Document Type");
+        PurchaseHeaderToVerify.SetRange("No.", "Document No.");
+        if PurchaseHeaderToVerify.IsEmpty() then
+            Error(CannotInsertPurchLineWithoutHeaderErr);
+    end;
+
     /// <summary>
     /// Returns the value of global SkipTaxCalculation flag.
     /// </summary>
@@ -7985,9 +8040,11 @@ table 39 "Purchase Line"
 
         if ("Qty. to Invoice" <> 0) and ("Prepmt. Amt. Inv." <> 0) then begin
             GetPurchHeader();
-            if ("Prepayment %" = 100) and not IsFinalInvoice() then
+            if ("Prepayment %" = 100) and not IsFinalInvoice() then begin
+                // Reset to non-zero so GetLineAmountToHandle uses the proration branch, matching the already-posted amount
+                "Prepmt Amt to Deduct" := "Prepmt. Amt. Inv.";
                 "Prepmt Amt to Deduct" := GetLineAmountToHandle("Qty. to Invoice") - "Inv. Disc. Amount to Invoice"
-            else
+            end else
                 "Prepmt Amt to Deduct" :=
                   Round(
                     ("Prepmt. Amt. Inv." - "Prepmt Amt Deducted") *
@@ -8733,9 +8790,14 @@ table 39 "Purchase Line"
     end;
 
     local procedure CheckWMS()
+    var
+        SkipCheckLocationOnWMS: Boolean;
     begin
-        if CurrFieldNo <> 0 then
-            CheckLocationOnWMS();
+        SkipCheckLocationOnWMS := false;
+        OnCheckWMSOnBeforeCheckLocationOnWMS(Rec, CurrFieldNo, SkipCheckLocationOnWMS);
+        if not SkipCheckLocationOnWMS then
+            if CurrFieldNo <> 0 then
+                CheckLocationOnWMS();
         if "Document Type" = "Document Type"::"Return Order" then
             if ("Job No." <> '') and (Type = Type::Item) then
                 if Location.Get("Location Code") then
@@ -9322,6 +9384,7 @@ table 39 "Purchase Line"
     procedure ClearPurchaseHeader()
     begin
         Clear(PurchHeader);
+        SetSuppressPurchaseHeaderExistsVerification(false);
     end;
 
     local procedure GetBlockedItemNotificationID(): Guid
@@ -9385,12 +9448,36 @@ table 39 "Purchase Line"
     /// If line type is blank, comment label is returned.
     /// </remarks>
     /// <returns>Formated text of the line type.</returns>
-    procedure FormatType() FormattedType: Text[20]
+#if not CLEAN29
+    [Obsolete('Use FormatTypeAsText() instead.', '29.0')]
+    procedure FormatType(): Text[20]
+    begin
+        exit(CopyStr(FormatTypeAsText(), 1, 20));
+    end;
+#endif
+
+    /// <summary>
+    /// Gets the text representation of the line type for the purchase line.
+    /// </summary>
+    /// <remarks>
+    /// Blank line type is represented by the comment label.
+    /// </remarks>
+    /// <returns>The text representation of the line type.</returns>
+    procedure FormatTypeAsText() FormattedType: Text[30]
     var
+#if not CLEAN29
+        LegacyFormattedType: Text[20];
+#endif
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeFormatType(Rec, FormattedType, IsHandled);
+#if not CLEAN29
+        OnBeforeFormatType(Rec, LegacyFormattedType, IsHandled);
+        FormattedType := LegacyFormattedType;
+        if IsHandled then
+            exit(FormattedType);
+#endif
+        OnBeforeFormatTypeAsText(Rec, FormattedType, IsHandled);
         if IsHandled then
             exit(FormattedType);
 
@@ -9463,7 +9550,9 @@ table 39 "Purchase Line"
     var
         OutstandingAmountExclTax: Decimal;
     begin
-        if (Rec.Quantity <> 0) and (Rec."Outstanding Quantity" = 0) and (Rec."Qty. Rcd. Not Invoiced" = 0) then
+        if (Rec.Quantity <> 0) and (Rec."Outstanding Quantity" = 0) and (Rec."Qty. Rcd. Not Invoiced" = 0) and
+           (Rec.Quantity = xRec.Quantity)
+        then
             if PurchHeader."Document Type" <> PurchHeader."Document Type"::Invoice then
                 exit;
 
@@ -10262,6 +10351,18 @@ table 39 "Purchase Line"
         exit("Matched Inv./Cr. Memo Lines" > 0);
     end;
 
+    local procedure CheckCorrectiveCreditMemoQtyIncrease(xPurchaseLine: Record "Purchase Line")
+    begin
+        if not ("Copied From Posted Doc." and IsCreditDocType()) then
+            exit;
+
+        if not IsNonInventoriableItem() then
+            exit;
+
+        if Abs("Quantity (Base)") > Abs(xPurchaseLine."Quantity (Base)") then
+            FieldError(Quantity, StrSubstNo(CorrectiveCreditMemoQtyIncreaseErr, xPurchaseLine.Quantity));
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitDefaultDimensionSources(var PurchaseLine: Record "Purchase Line"; var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; FieldNo: Integer)
     begin
@@ -10728,6 +10829,11 @@ table 39 "Purchase Line"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnCheckWMSOnBeforeCheckLocationOnWMS(var PurchaseLine: Record "Purchase Line"; CurrFieldNo: Integer; var SkipCheckLocationOnWMS: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckNoAndQuantityForItemChargeAssgnt(var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
     end;
@@ -10812,8 +10918,22 @@ table 39 "Purchase Line"
     begin
     end;
 
+#if not CLEAN29
+    [Obsolete('Use OnBeforeFormatTypeAsText instead.', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFormatType(PurchaseLine: Record "Purchase Line"; var FormattedType: Text[20]; var IsHandled: Boolean)
+    begin
+    end;
+#endif
+
+    /// <summary>
+    /// Raised before the purchase line type is formatted as text.
+    /// </summary>
+    /// <param name="PurchaseLine">The purchase line for which the type is being formatted.</param>
+    /// <param name="FormattedType">The formatted line type.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeFormatTypeAsText(PurchaseLine: Record "Purchase Line"; var FormattedType: Text[30]; var IsHandled: Boolean)
     begin
     end;
 
@@ -11388,6 +11508,11 @@ table 39 "Purchase Line"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnValidateLocationCodeOnBeforePlanPriceCalcByField(var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean; CurrFieldNo: Integer; xPurchaseLine: Record "Purchase Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnValidateTypeOnAfterCheckItem(var PurchaseLine: Record "Purchase Line"; xPurchaseLine: Record "Purchase Line")
     begin
     end;
@@ -11595,6 +11720,14 @@ table 39 "Purchase Line"
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the purchase header for the purchase line.
+    /// </summary>
+    /// <param name="PurchaseLine">The purchase line being processed.</param>
+    /// <param name="PurchaseHeader">The purchase header to get.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="Currency">The currency record.</param>
+    /// <param name="HasPurchHeader">Set to true to indicate whether the purchase header has been retrieved, which sets global variable SuppressPurchaseHeaderExistsVerification to skip the verification.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetPurchHeader(var PurchaseLine: Record "Purchase Line"; var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean; var Currency: Record Currency; var HasPurchHeader: Boolean)
     begin
@@ -11629,6 +11762,7 @@ table 39 "Purchase Line"
     local procedure OnAfterIsCreditDocType(PurchaseLine: Record "Purchase Line"; var Result: Boolean)
     begin
     end;
+
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterIsInvoiceDocType(var PurchaseLine: Record "Purchase Line"; var Result: Boolean)
@@ -12159,6 +12293,11 @@ table 39 "Purchase Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnShowDimensionsOnAfterEditDimensionSet(var PurchaseLine: Record "Purchase Line"; OldDimensionSetId: Integer)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCopyFromItemOnBeforeGetItemTranslation(var PurchaseLine: Record "Purchase Line"; var Item: Record Item; var IsHandled: Boolean)
     begin
     end;
 

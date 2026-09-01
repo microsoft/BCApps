@@ -204,7 +204,7 @@ codeunit 134242 "Spend Request Tests"
         asserterror SpendRequest.Delete(true);
 
         // [THEN] An error is raised because expenses are posted.
-        Assert.ExpectedError('cannot delete a spend request that has expenses posted against it');
+        Assert.ExpectedError('has expenses posted against it');
     end;
 
     [Test]
@@ -363,7 +363,7 @@ codeunit 134242 "Spend Request Tests"
         asserterror SpendRequestDetail.Insert(true);
 
         // [THEN] An error is raised because the request is not Open.
-        Assert.ExpectedTestFieldError(SpendRequest.FieldCaption(Status), Format(SpendRequest.Status::Open));
+        Assert.ExpectedError('must have the status ' + Format(SpendRequest.Status::Open));
     end;
 
     [Test]
@@ -386,7 +386,7 @@ codeunit 134242 "Spend Request Tests"
         asserterror SpendRequestDetail.Delete(true);
 
         // [THEN] An error is raised.
-        Assert.ExpectedTestFieldError(SpendRequest.FieldCaption(Status), Format(SpendRequest.Status::Open));
+        Assert.ExpectedError('must have the status ' + Format(SpendRequest.Status::Open));
     end;
 
     [Test]
@@ -434,22 +434,6 @@ codeunit 134242 "Spend Request Tests"
 
         // [THEN] An error is raised.
         Assert.ExpectedError('cannot specify an amount less than the total of the lines');
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure SpendRequestTypeDefaultIsExpense()
-    var
-        SpendRequest: Record "Spend Request";
-    begin
-        // [SCENARIO] A new spend request defaults to Expense type.
-        Initialize();
-
-        // [WHEN] A spend request is created.
-        CreateSpendRequest(SpendRequest);
-
-        // [THEN] Type is Expense.
-        Assert.AreEqual(SpendRequest.Type::Expense, SpendRequest.Type, 'Default type should be Expense.');
     end;
 
     [Test]
@@ -566,30 +550,6 @@ codeunit 134242 "Spend Request Tests"
 
     [Test]
     [Scope('OnPrem')]
-    procedure ReleaseActionSetsStatusToReleased()
-    var
-        SpendRequest: Record "Spend Request";
-        SpendRequestCard: TestPage "Spend Request Card";
-    begin
-        // [SCENARIO] The Release action on the card page sets the status to Released.
-        Initialize();
-
-        // [GIVEN] An open spend request.
-        CreateSpendRequestWithAmount(SpendRequest, LibraryRandom.RandDec(1000, 2));
-        SpendRequestCard.OpenEdit();
-        SpendRequestCard.GoToRecord(SpendRequest);
-
-        // [WHEN] The Release action is invoked.
-        SpendRequestCard.Release.Invoke();
-
-        // [THEN] The status is Released.
-        SpendRequest.Get(SpendRequest."No.");
-        Assert.AreEqual(SpendRequest.Status::Released, SpendRequest.Status, 'Status should be Released.');
-        SpendRequestCard.Close();
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
     procedure ApproveActionSetsStatusToApproved()
     var
         SpendRequest: Record "Spend Request";
@@ -632,7 +592,7 @@ codeunit 134242 "Spend Request Tests"
         asserterror SpendRequestCard.Reject.Invoke();
 
         // [THEN] An error is raised because Status is not Released.
-        Assert.ExpectedTestFieldError(SpendRequest.FieldCaption(Status), Format(SpendRequest.Status::Released));
+        Assert.ExpectedError('must have the status ' + Format(SpendRequest.Status::Released));
         SpendRequestCard.Close();
     end;
 
@@ -731,7 +691,7 @@ codeunit 134242 "Spend Request Tests"
         asserterror SpendRequestCard.ReOpen.Invoke();
 
         // [THEN] An error is raised.
-        Assert.ExpectedError('closed spend request cannot be reopened');
+        Assert.ExpectedError('closed ' + SpendRequest.TableCaption() + ' cannot be reopened');
         SpendRequestCard.Close();
     end;
 
@@ -788,7 +748,7 @@ codeunit 134242 "Spend Request Tests"
         asserterror SpendRequestDetail.Validate(Description, 'Updated');
 
         // [THEN] An error is raised.
-        Assert.ExpectedTestFieldError(SpendRequest.FieldCaption(Status), Format(SpendRequest.Status::Open));
+        Assert.ExpectedError('must have the status ' + Format(SpendRequest.Status::Open));
     end;
 
     [Test]
@@ -841,27 +801,6 @@ codeunit 134242 "Spend Request Tests"
 
     [Test]
     [Scope('OnPrem')]
-    procedure SpendRequestFieldTypeValidation()
-    var
-        SpendRequest: Record "Spend Request";
-    begin
-        // [SCENARIO] Validating the Type field checks that the request is Open.
-        Initialize();
-
-        // [GIVEN] A released spend request.
-        CreateSpendRequest(SpendRequest);
-        SpendRequest.Status := SpendRequest.Status::Released;
-        SpendRequest.Modify();
-
-        // [WHEN] Attempting to validate the Type field.
-        asserterror SpendRequest.Validate(Type, SpendRequest.Type::Expense);
-
-        // [THEN] An error is raised because the status is not Open.
-        Assert.ExpectedTestFieldError(SpendRequest.FieldCaption(Status), Format(SpendRequest.Status::Open));
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
     procedure SpendRequestRequestedByValidation()
     var
         SpendRequest: Record "Spend Request";
@@ -881,6 +820,6 @@ codeunit 134242 "Spend Request Tests"
         asserterror SpendRequest.Validate("Requested By", Employee."No.");
 
         // [THEN] An error is raised.
-        Assert.ExpectedTestFieldError(SpendRequest.FieldCaption(Status), Format(SpendRequest.Status::Open));
+        Assert.ExpectedError('must have the status ' + Format(SpendRequest.Status::Open));
     end;
 }
