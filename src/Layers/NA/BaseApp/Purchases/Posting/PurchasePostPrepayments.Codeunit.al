@@ -1192,10 +1192,16 @@ codeunit 444 "Purchase-Post Prepayments"
         exit(PrepmtAmount(PurchLine, DocumentType, PurchaseHeader."Prepmt. Include Tax"));
     end;
 
-    procedure PrepmtAmount(PurchLine: Record "Purchase Line"; DocumentType: Option Invoice,"Credit Memo",Statistic; IncludeTax: Boolean): Decimal
+    procedure PrepmtAmount(PurchLine: Record "Purchase Line"; DocumentType: Option Invoice,"Credit Memo",Statistic; IncludeTax: Boolean) Result: Decimal
     var
         PrepmtAmt: Decimal;
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforePrepmtAmount(PurchLine, DocumentType, Result, IsHandled);
+        if IsHandled then
+            exit(Result);
+
         case DocumentType of
             DocumentType::Statistic:
                 PrepmtAmt := PurchLine."Prepmt. Line Amount";
@@ -2113,6 +2119,11 @@ codeunit 444 "Purchase-Post Prepayments"
 
     [IntegrationEvent(false, false)]
     local procedure OnBuildInvLineBufferOnPrepmtAmountZero(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; var PrepaymentInvLineBuffer2: Record "Prepayment Inv. Line Buffer"; var PrepaymentInvLineBuffer: Record "Prepayment Inv. Line Buffer"; var TempPurchaseLineSource: Record "Purchase Line" temporary);
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforePrepmtAmount(var PurchaseLine: Record "Purchase Line"; DocumentType: Option Invoice,"Credit Memo",Statistic; var Result: Decimal; var IsHandled: Boolean)
     begin
     end;
 
