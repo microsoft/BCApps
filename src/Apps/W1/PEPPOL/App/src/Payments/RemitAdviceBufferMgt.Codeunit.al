@@ -303,7 +303,11 @@ codeunit 37207 "Remit. Advice Buffer Mgt."
                     TempBuffer."Vendor Ledger Entry No." := AppliedVendLedgEntry."Entry No.";
                     TempBuffer.Insert();
 
-                    TotalPaid += TempBuffer."Paid Amount";
+                    // A refund reduces the payment total, mirroring report 400's "Amount -= LineAmount"
+                    if AppliedVendLedgEntry."Document Type" = AppliedVendLedgEntry."Document Type"::Refund then
+                        TotalPaid -= TempBuffer."Paid Amount"
+                    else
+                        TotalPaid += TempBuffer."Paid Amount";
                     TotalDiscount += TempBuffer."Pmt. Discount Amount";
 
                     // Applied credit-memo cross-applications (report 400 lines 231-249)

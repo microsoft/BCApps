@@ -295,7 +295,7 @@ codeunit 37208 "Export Remit. Advice PEPPOL30"
             this.AddCacElement(this.RootNode, 'RemittanceAdviceLine', LineNode);
             this.AddCbcElement(LineNode, 'ID', Format(SeqNo), ChildNode);
 
-            if LineBuffer."Applied Doc. Type" = LineBuffer."Applied Doc. Type"::"Credit Memo" then
+            if LineBuffer."Applied Doc. Type" in [LineBuffer."Applied Doc. Type"::"Credit Memo", LineBuffer."Applied Doc. Type"::Refund] then
                 this.AddMoneyElement(LineNode, 'CreditLineAmount', LineBuffer."Paid Amount", LineCurrencyCode, ChildNode)
             else
                 this.AddMoneyElement(LineNode, 'DebitLineAmount', LineBuffer."Paid Amount", LineCurrencyCode, ChildNode);
