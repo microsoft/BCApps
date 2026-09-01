@@ -13,7 +13,7 @@ using System.TestLibraries.Utilities;
 codeunit 148333 "Expense Agent Setup API Test"
 {
     Subtype = Test;
-    TestType = IntegrationTest;
+    TestType = Uncategorized;
     TestPermissions = Disabled;
 
     var
