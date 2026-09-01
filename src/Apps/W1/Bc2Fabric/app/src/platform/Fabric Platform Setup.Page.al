@@ -149,22 +149,6 @@ page 150004 "Fabric Platform Setup"
                         CredMgt.ClearTokenCache();
                     end;
                 }
-#if BC2FABRIC_DEMO
-                field(TenantId; TenantIdValue)
-                {
-                    Caption = 'Tenant ID';
-                    ApplicationArea = All;
-                    ToolTip = 'Specifies the Microsoft Entra tenant ID that owns the demo app registration and Fabric workspace. Leave blank to use the Business Central tenant.';
-
-                    trigger OnValidate()
-                    var
-                        CredMgt: Codeunit "Fabric Platform Credential Mgt";
-                    begin
-                        CredMgt.SetTenantId(TenantIdValue);
-                        CredMgt.ClearTokenCache();
-                    end;
-                }
-#endif
                 field(ClientSecret; ClientSecretValue)
                 {
                     Caption = 'Client Secret';
@@ -362,9 +346,6 @@ page 150004 "Fabric Platform Setup"
     begin
         FabricPlatformMgt.EnsureSetup(Rec);
         ClientIdValue := CopyStr(CredMgt.GetClientId(), 1, MaxStrLen(ClientIdValue));
-#if BC2FABRIC_DEMO
-        TenantIdValue := CopyStr(CredMgt.GetTenantId(), 1, MaxStrLen(TenantIdValue));
-#endif
         PrincipalIdValue := CopyStr(CredMgt.GetPrincipalId(), 1, MaxStrLen(PrincipalIdValue));
         LakehouseNameValue := CopyStr(CredMgt.GetLakehouseName(), 1, MaxStrLen(LakehouseNameValue));
         if CredMgt.IsClientSecretSet() then
@@ -373,9 +354,6 @@ page 150004 "Fabric Platform Setup"
 
     var
         ClientIdValue: Text[250];
-#if BC2FABRIC_DEMO
-        TenantIdValue: Text[250];
-#endif
         PrincipalIdValue: Text[250];
         LakehouseNameValue: Text[250];
         [NonDebuggable]
