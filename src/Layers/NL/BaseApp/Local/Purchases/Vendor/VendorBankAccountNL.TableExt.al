@@ -93,5 +93,5 @@ tableextension 11302 VendorBankAccountNL extends "Vendor Bank Account"
 
     var
         PostCode: Record "Post Code";
-        BankAccNoMayBeIncorrectMsg: Label 'Bank Account No. %1 may be incorrect.';
+        BankAccNoMayBeIncorrectMsg: Label 'Bank Account No. %1 may be incorrect.', Comment = '%1 = Bank Account No.';
 }

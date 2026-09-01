@@ -21,9 +21,9 @@ tableextension 11362 "Employee Ledger Entry NL" extends "Employee Ledger Entry"
             AutoFormatType = 1;
             AutoFormatExpression = Rec."Currency Code";
             BlankZero = true;
-            CalcFormula = sum("Detail Line"."Amount (Entry)" where("Serial No. (Entry)" = field("Entry No."),
+            CalcFormula = sum("Detail Line"."Amount (Entry)" where("Account Type" = const(Employee),
+                            "Serial No. (Entry)" = field("Entry No."),
                             Status = const("In process"),
-                            "Account Type" = const(Employee),
                             "Connect Batches" = field("Connect Batches Filter"),
                             "Connect Lines" = field("Connect Lines Filter"),
                             "Our Bank" = field("Our Bank Filter")));

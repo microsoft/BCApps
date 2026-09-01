@@ -38,7 +38,7 @@ tableextension 11300 "Vendor NL" extends Vendor
         {
             trigger OnAfterValidate()
             begin
-                UpdateVendorBankAccounts(FieldCaption(Name));
+                UpdateVendorBankAccounts(CopyStr(FieldCaption(Name), 1, 250));
             end;
         }
 
@@ -46,7 +46,7 @@ tableextension 11300 "Vendor NL" extends Vendor
         {
             trigger OnAfterValidate()
             begin
-                UpdateVendorBankAccounts(FieldCaption(Address));
+                UpdateVendorBankAccounts(CopyStr(FieldCaption(Address), 1, 250));
             end;
         }
 
@@ -54,7 +54,7 @@ tableextension 11300 "Vendor NL" extends Vendor
         {
             trigger OnAfterValidate()
             begin
-                UpdateVendorBankAccounts(FieldCaption(City));
+                UpdateVendorBankAccounts(CopyStr(FieldCaption(City), 1, 250));
             end;
         }
 
@@ -62,7 +62,7 @@ tableextension 11300 "Vendor NL" extends Vendor
         {
             trigger OnAfterValidate()
             begin
-                UpdateVendorBankAccounts(FieldCaption("Country/Region Code"));
+                UpdateVendorBankAccounts(CopyStr(FieldCaption("Country/Region Code"), 1, 250));
             end;
         }
 
@@ -70,7 +70,7 @@ tableextension 11300 "Vendor NL" extends Vendor
         {
             trigger OnAfterValidate()
             begin
-                UpdateVendorBankAccounts(FieldCaption("Post Code"));
+                UpdateVendorBankAccounts(CopyStr(FieldCaption("Post Code"), 1, 250));
             end;
         }
 

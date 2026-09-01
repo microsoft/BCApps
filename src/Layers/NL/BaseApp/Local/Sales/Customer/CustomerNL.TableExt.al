@@ -44,35 +44,35 @@ tableextension 11462 "Customer NL" extends Customer
         {
             trigger OnAfterValidate()
             begin
-                UpdateCustomerBankAccounts(FieldCaption(Name));
+                UpdateCustomerBankAccounts(CopyStr(FieldCaption(Name), 1, 250));
             end;
         }
         modify(Address)
         {
             trigger OnAfterValidate()
             begin
-                UpdateCustomerBankAccounts(FieldCaption(Address));
+                UpdateCustomerBankAccounts(CopyStr(FieldCaption(Address), 1, 250));
             end;
         }
         modify(City)
         {
             trigger OnAfterValidate()
             begin
-                UpdateCustomerBankAccounts(FieldCaption(City));
+                UpdateCustomerBankAccounts(CopyStr(FieldCaption(City), 1, 250));
             end;
         }
         modify("Country/Region Code")
         {
             trigger OnAfterValidate()
             begin
-                UpdateCustomerBankAccounts(FieldCaption("Country/Region Code"));
+                UpdateCustomerBankAccounts(CopyStr(FieldCaption("Country/Region Code"), 1, 250));
             end;
         }
         modify("Post Code")
         {
             trigger OnAfterValidate()
             begin
-                UpdateCustomerBankAccounts(FieldCaption("Post Code"));
+                UpdateCustomerBankAccounts(CopyStr(FieldCaption("Post Code"), 1, 250));
             end;
         }
         modify("Partner Type")

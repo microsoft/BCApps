@@ -21,9 +21,9 @@ tableextension 11468 "Cust. Ledger Entry NL" extends "Cust. Ledger Entry"
             AutoFormatType = 1;
             AutoFormatExpression = Rec."Currency Code";
             BlankZero = true;
-            CalcFormula = sum("Detail Line"."Amount (Entry)" where("Serial No. (Entry)" = field("Entry No."),
+            CalcFormula = sum("Detail Line"."Amount (Entry)" where("Account Type" = const(Customer),
+                                                                    "Serial No. (Entry)" = field("Entry No."),
                                                                     Status = const("In process"),
-                                                                    "Account Type" = const(Customer),
                                                                     "Connect Batches" = field("Connect Batches Filter"),
                                                                     "Connect Lines" = field("Connect Lines Filter"),
                                                                     "Our Bank" = field("Our Bank Filter")));

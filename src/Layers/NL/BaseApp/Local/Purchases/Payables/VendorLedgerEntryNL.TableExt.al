@@ -15,9 +15,9 @@ tableextension 11317 "Vendor Ledger Entry NL" extends "Vendor Ledger Entry"
             AutoFormatExpression = "Currency Code";
             AutoFormatType = 1;
             BlankZero = true;
-            CalcFormula = sum("Detail Line"."Amount (Entry)" where("Serial No. (Entry)" = field("Entry No."),
+            CalcFormula = sum("Detail Line"."Amount (Entry)" where("Account Type" = const(Vendor),
+                                                                    "Serial No. (Entry)" = field("Entry No."),
                                                                     Status = const("In process"),
-                                                                    "Account Type" = const(Vendor),
                                                                     "Connect Batches" = field("Connect Batches Filter"),
                                                                     "Connect Lines" = field("Connect Lines Filter"),
                                                                     "Our Bank" = field("Our Bank Filter")));
