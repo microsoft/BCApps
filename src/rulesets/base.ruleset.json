@@ -52,10 +52,6 @@
       "justification": "The permissionset contains permissionsets or permission for objects from other module. Permissions on objects from other modules will be ignored."
     },
     {
-      "id": "AL0717",
-      "action": "Warning"
-    },
-    {
       "id": "AL0719",
       "action": "Warning"
     },
@@ -83,11 +79,6 @@
       "id": "AS0015",
       "action": "Warning",
       "justification": "The TranslationFile flag must be added to the features array in the app.json file."
-    },
-    {
-      "id": "AS0022",
-      "action": "Warning",
-      "justification": "The external scope cannot be removed or changed to 'internal' because it will break dependent extensions. Note that adding an access modifier ('local', 'protected', or 'internal') overrides the argument in 'Scope'."
     },
     {
       "id": "AS0051",
@@ -140,11 +131,6 @@
       "justification": "Variable must have a suffix from this list: Msg, Tok, Err, Qst, Lbl, Txt."
     },
     {
-      "id": "AA0087",
-      "action": "Warning",
-      "justification": "Do only lower permissions inside procedures of type test."
-    },
-    {
       "id": "AA0100",
       "action": "Warning",
       "justification": "Do not have identifiers with quotes in the name."
@@ -192,11 +178,6 @@
       "id": "AA0202",
       "action": "Warning",
       "justification": "The name of the local variable is identical to a field, method, or action in the same scope."
-    },
-    {
-      "id": "AA0203",
-      "action": "Warning",
-      "justification": "The name of the method is identical to a field or action in the same scope."
     },
     {
       "id": "AA0204",
@@ -321,11 +302,6 @@
       "id": "AW0002",
       "action": "Warning",
       "justification": "The Web client does not support displaying both Actions and Fields in the Cue Group. Only Fields will be displayed."
-    },
-    {
-      "id": "AW0003",
-      "action": "Warning",
-      "justification": "The Web client does not support displaying Repeater controls containing Parts."
     },
     {
       "id": "AW0005",
