@@ -17,15 +17,14 @@ codeunit 4313 "Agent Task Log Export"
 
     procedure ExportToJson(var SelectedAgentTaskLogEntry: Record "Agent Task Log Entry"; var ExportOutStream: OutStream)
     var
-        FeatureAccessManagement: Codeunit "Feature Access Management";
-        AgentSystemPermissionsImpl: Codeunit "Agent System Permissions Impl.";
         ExportRoot: JsonObject;
         Entries: JsonArray;
         IncludeSerializedPage: Boolean;
     begin
-        FeatureAccessManagement.AgentManagementAllowed(true);
-        IncludeSerializedPage := AgentSystemPermissionsImpl.CurrentUserHasTroubleshootAllAgents();
+        IncludeSerializedPage := GetIncludeSerializedPage();
 
+        SelectedAgentTaskLogEntry.SetCurrentKey("Task ID", ID);
+        SelectedAgentTaskLogEntry.Ascending(false);
         if SelectedAgentTaskLogEntry.FindSet() then
             repeat
                 Entries.Add(BuildEntryJson(SelectedAgentTaskLogEntry, IncludeSerializedPage));
@@ -36,18 +35,55 @@ codeunit 4313 "Agent Task Log Export"
         ExportRoot.WriteTo(ExportOutStream);
     end;
 
+    procedure ExportTaskToJson(AgentTaskID: BigInteger; var ExportOutStream: OutStream)
+    var
+        AgentTaskMemoryEntry: Record "Agent Task Memory Entry";
+    begin
+        AgentTaskMemoryEntry.SetRange("Task ID", AgentTaskID);
+        ExportMemoryEntriesToJson(AgentTaskMemoryEntry, AgentTaskID, ExportOutStream);
+    end;
+
+    procedure ExportMemoryEntriesToJson(var SelectedAgentTaskMemoryEntry: Record "Agent Task Memory Entry"; AgentTaskID: BigInteger; var ExportOutStream: OutStream)
+    var
+        ExportRoot: JsonObject;
+        Steps: JsonArray;
+        IncludeSerializedPage: Boolean;
+    begin
+        IncludeSerializedPage := GetIncludeSerializedPage();
+
+        SelectedAgentTaskMemoryEntry.SetRange("Task ID", AgentTaskID);
+        SelectedAgentTaskMemoryEntry.SetCurrentKey("Task ID", ID);
+        SelectedAgentTaskMemoryEntry.SetAutoCalcFields("User Full Name");
+        SelectedAgentTaskMemoryEntry.Ascending(false);
+        if SelectedAgentTaskMemoryEntry.FindSet() then
+            repeat
+                Steps.Add(BuildMemoryEntryJson(SelectedAgentTaskMemoryEntry, IncludeSerializedPage));
+            until SelectedAgentTaskMemoryEntry.Next() = 0;
+
+        ExportRoot.Add(FormatVersionLbl, FormatVersionTok);
+        ExportRoot.Add(TaskContextLbl, BuildTaskContextJson(AgentTaskID));
+        ExportRoot.Add(StepsLbl, Steps);
+        ExportRoot.WriteTo(ExportOutStream);
+    end;
+
     procedure ExportToJsonFile(var SelectedAgentTaskLogEntry: Record "Agent Task Log Entry"; AgentName: Text)
     var
         TempBlob: Codeunit "Temp Blob";
-        ExportInStream: InStream;
         ExportOutStream: OutStream;
-        FileName: Text;
     begin
         TempBlob.CreateOutStream(ExportOutStream, GetDefaultEncoding());
         ExportToJson(SelectedAgentTaskLogEntry, ExportOutStream);
-        TempBlob.CreateInStream(ExportInStream, GetDefaultEncoding());
-        FileName := StrSubstNo(ExportFileNameLbl, RemoveNonAlphanumericCharacters(AgentName), Format(Today(), 0, 9));
-        DownloadFromStream(ExportInStream, ExportDialogTitleLbl, '', JsonFileFilterLbl, FileName);
+        DownloadExport(TempBlob, AgentName);
+    end;
+
+    procedure ExportTaskToJsonFile(AgentTaskID: BigInteger; AgentName: Text)
+    var
+        TempBlob: Codeunit "Temp Blob";
+        ExportOutStream: OutStream;
+    begin
+        TempBlob.CreateOutStream(ExportOutStream, GetDefaultEncoding());
+        ExportTaskToJson(AgentTaskID, ExportOutStream);
+        DownloadExport(TempBlob, AgentName);
     end;
 
     local procedure BuildEntryJson(var AgentTaskLogEntryRecord: Record "Agent Task Log Entry"; IncludeSerializedPage: Boolean): JsonObject
@@ -119,6 +155,36 @@ codeunit 4313 "Agent Task Log Export"
             EntryJson.Add(SiblingActionsLbl, SiblingActions);
 
         exit(EntryJson);
+    end;
+
+    local procedure BuildMemoryEntryJson(var AgentTaskMemoryEntry: Record "Agent Task Memory Entry"; IncludeSerializedPage: Boolean): JsonObject
+    var
+        AgentTaskLogEntry: Codeunit "Agent Task Log Entry";
+        StepJson: JsonObject;
+        ContextJson: JsonObject;
+        DetailsTxt: Text;
+        ContextTxt: Text;
+    begin
+        StepJson.Add(TaskIdLbl, Format(AgentTaskMemoryEntry."Task ID", 0, 9));
+        StepJson.Add(IdLbl, AgentTaskMemoryEntry.ID);
+        StepJson.Add(TypeLbl, Format(AgentTaskMemoryEntry.Type, 0, 9));
+        StepJson.Add(UserSecurityIdLbl, Format(AgentTaskMemoryEntry."User Security ID", 0, 9));
+        if AgentTaskMemoryEntry.Description <> '' then
+            StepJson.Add(DescriptionLbl, AgentTaskMemoryEntry.Description);
+
+        if AgentTaskMemoryEntry."User Full Name" <> '' then
+            StepJson.Add(UserFullNameLbl, AgentTaskMemoryEntry."User Full Name");
+
+        DetailsTxt := ReadMemoryEntryDetails(AgentTaskMemoryEntry);
+        if DetailsTxt <> '' then
+            StepJson.Add(DetailsLbl, DetailsTxt);
+
+        ContextTxt := AgentTaskLogEntry.ReadContext(AgentTaskMemoryEntry);
+        BuildContextJson(ContextTxt, IncludeSerializedPage, ContextJson);
+        if ContextJson.Keys().Count() > 0 then
+            StepJson.Add(ContextLbl, ContextJson);
+
+        exit(StepJson);
     end;
 
     local procedure ReadMemoryEntryDetails(var AgentTaskMemoryEntry: Record "Agent Task Memory Entry") MemoryDetailsTxt: Text
@@ -254,12 +320,17 @@ codeunit 4313 "Agent Task Log Export"
     end;
 
     local procedure BuildTaskContextJson(var AgentTaskLogEntry: Record "Agent Task Log Entry"): JsonObject
+    begin
+        exit(BuildTaskContextJson(AgentTaskLogEntry."Task ID"));
+    end;
+
+    local procedure BuildTaskContextJson(AgentTaskID: BigInteger): JsonObject
     var
         AgentTask: Record "Agent Task";
         TaskContextJson: JsonObject;
     begin
-        TaskContextJson.Add(TaskIdLbl, Format(AgentTaskLogEntry."Task ID", 0, 9));
-        if not AgentTask.Get(AgentTaskLogEntry."Task ID") then
+        TaskContextJson.Add(TaskIdLbl, Format(AgentTaskID, 0, 9));
+        if not AgentTask.Get(AgentTaskID) then
             exit(TaskContextJson);
 
         AgentTask.CalcFields("Agent Display Name");
@@ -370,9 +441,29 @@ codeunit 4313 "Agent Task Log Export"
         exit(SiblingActionJson);
     end;
 
+    local procedure GetIncludeSerializedPage(): Boolean
+    var
+        FeatureAccessManagement: Codeunit "Feature Access Management";
+        AgentSystemPermissionsImpl: Codeunit "Agent System Permissions Impl.";
+    begin
+        FeatureAccessManagement.AgentManagementAllowed(true);
+        exit(AgentSystemPermissionsImpl.CurrentUserHasTroubleshootAllAgents());
+    end;
+
+    local procedure DownloadExport(var TempBlob: Codeunit "Temp Blob"; AgentName: Text)
+    var
+        ExportInStream: InStream;
+        FileName: Text;
+    begin
+        TempBlob.CreateInStream(ExportInStream, GetDefaultEncoding());
+        FileName := StrSubstNo(ExportFileNameLbl, RemoveNonAlphanumericCharacters(AgentName), Format(Today(), 0, 9));
+        DownloadFromStream(ExportInStream, ExportDialogTitleLbl, '', JsonFileFilterLbl, FileName);
+    end;
+
     local procedure RemoveNonAlphanumericCharacters(Value: Text) AlphanumericValue: Text
     begin
         AlphanumericValue := DelChr(Value, '=', DelChr(Value, '=', AllowedAlphanumericCharactersTok));
+        exit(AlphanumericValue);
     end;
 
     local procedure GetDefaultEncoding(): TextEncoding
@@ -385,6 +476,7 @@ codeunit 4313 "Agent Task Log Export"
         FormatVersionLbl: Label 'formatVersion', Locked = true;
         FormatVersionTok: Label '1.0', Locked = true;
         EntriesLbl: Label 'entries', Locked = true;
+        StepsLbl: Label 'steps', Locked = true;
         IdLbl: Label 'id', Locked = true;
         TaskIdLbl: Label 'taskId', Locked = true;
         MemoryEntryIdLbl: Label 'memoryEntryId', Locked = true;

@@ -259,7 +259,7 @@ codeunit 133964 "Agent Task Log Page Test"
     begin
         // [GIVEN] A log entry with a page snapshot and no Troubleshoot All Agents permission
         PermissionsMock.Set('Agent SDK Test');
-        CreateTempLogEntryWithContext(TempAgentTaskLogEntry, '{"serializedPage":"{\"secret\":\"value\"}"}');
+        CreateTempLogEntryWithContext(TempAgentTaskLogEntry, 1, '{"serializedPage":"{\"secret\":\"value\"}"}');
 
         // [WHEN] The log entry is exported
         ExportToJson(TempAgentTaskLogEntry, ExportJson);
@@ -283,7 +283,7 @@ codeunit 133964 "Agent Task Log Page Test"
     begin
         // [GIVEN] A log entry with a page snapshot and the Troubleshoot All Agents permission
         PermissionsMock.Set('SUPER');
-        CreateTempLogEntryWithContext(TempAgentTaskLogEntry, '{"serializedPage":"{\"secret\":\"value\"}"}');
+        CreateTempLogEntryWithContext(TempAgentTaskLogEntry, 1, '{"serializedPage":"{\"secret\":\"value\"}"}');
 
         // [WHEN] The log entry is exported
         ExportToJson(TempAgentTaskLogEntry, ExportJson);
@@ -295,18 +295,93 @@ codeunit 133964 "Agent Task Log Page Test"
         Assert.IsFalse(ContextJson.Contains('serializedPageRedacted'), 'The serialized page should not be redacted.');
     end;
 
-    local procedure CreateTempLogEntryWithContext(var TempAgentTaskLogEntry: Record "Agent Task Log Entry" temporary; ContextTxt: Text)
+    [Test]
+    [TestPermissions(TestPermissions::Restrictive)]
+    procedure TestExportToJson_UsesLogEntryListOrder()
+    var
+        TempAgentTaskLogEntry: Record "Agent Task Log Entry" temporary;
+        PermissionsMock: Codeunit "Permissions Mock";
+        ExportJson: JsonObject;
+        EntryToken: JsonToken;
+        Entries: JsonArray;
+    begin
+        // [GIVEN] Log entries inserted in ascending order
+        PermissionsMock.Set('Agent SDK Test');
+        CreateTempLogEntryWithContext(TempAgentTaskLogEntry, 1, '');
+        CreateTempLogEntryWithContext(TempAgentTaskLogEntry, 2, '');
+
+        // [WHEN] All selected log entries are exported
+        ExportToJson(TempAgentTaskLogEntry, ExportJson);
+
+        // [THEN] Entries use the descending order shown on the list page
+        Entries := ExportJson.GetArray('entries');
+        Assert.AreEqual(2, Entries.Count(), 'All selected log entries should be exported.');
+        Entries.Get(0, EntryToken);
+        Assert.AreEqual(2, EntryToken.AsObject().GetInteger('id'), 'The newest log entry should be exported first.');
+        Entries.Get(1, EntryToken);
+        Assert.AreEqual(1, EntryToken.AsObject().GetInteger('id'), 'The oldest log entry should be exported last.');
+    end;
+
+    [Test]
+    [TestPermissions(TestPermissions::Restrictive)]
+    procedure TestExportMemoryEntriesToJson_ExportsAllStepsInListOrder()
+    var
+        TempAgentTaskMemoryEntry: Record "Agent Task Memory Entry" temporary;
+        PermissionsMock: Codeunit "Permissions Mock";
+        AgentTaskLogEntry: Codeunit "Agent Task Log Entry";
+        AgentTaskLogExport: Codeunit "Agent Task Log Export";
+        ExportJson: JsonObject;
+        StepToken: JsonToken;
+        Steps: JsonArray;
+        TempBlob: Codeunit "Temp Blob";
+        ExportInStream: InStream;
+        ExportOutStream: OutStream;
+        ExportTxt: Text;
+    begin
+        // [GIVEN] Task memory entries representing every displayed step
+        PermissionsMock.Set('Agent SDK Test');
+        CreateTempMemoryEntry(TempAgentTaskMemoryEntry, 1, 'First step');
+        CreateTempMemoryEntry(TempAgentTaskMemoryEntry, 2, 'Second step');
+
+        // [WHEN] The task memory entries are exported
+        TempBlob.CreateOutStream(ExportOutStream, AgentTaskLogEntry.GetDefaultEncoding());
+        AgentTaskLogExport.ExportMemoryEntriesToJson(TempAgentTaskMemoryEntry, -1, ExportOutStream);
+        TempBlob.CreateInStream(ExportInStream, AgentTaskLogEntry.GetDefaultEncoding());
+        ExportInStream.ReadText(ExportTxt);
+        Assert.IsTrue(ExportJson.ReadFrom(ExportTxt), 'The export should contain valid JSON.');
+
+        // [THEN] Every step is exported in descending list order
+        Steps := ExportJson.GetArray('steps');
+        Assert.AreEqual(2, Steps.Count(), 'All task memory entries should be exported.');
+        Steps.Get(0, StepToken);
+        Assert.AreEqual(2, StepToken.AsObject().GetInteger('id'), 'The newest step should be exported first.');
+        Steps.Get(1, StepToken);
+        Assert.AreEqual(1, StepToken.AsObject().GetInteger('id'), 'The oldest step should be exported last.');
+    end;
+
+    local procedure CreateTempLogEntryWithContext(var TempAgentTaskLogEntry: Record "Agent Task Log Entry" temporary; EntryID: Integer; ContextTxt: Text)
     var
         AgentTaskLogEntry: Codeunit "Agent Task Log Entry";
         ContextOutStream: OutStream;
     begin
-        TempAgentTaskLogEntry.ID := 1;
+        TempAgentTaskLogEntry.Init();
+        TempAgentTaskLogEntry.ID := EntryID;
         TempAgentTaskLogEntry."Task ID" := -1;
         TempAgentTaskLogEntry."Memory Entry ID" := 1;
         TempAgentTaskLogEntry.Type := TempAgentTaskLogEntry.Type::"Input Message";
         TempAgentTaskLogEntry."Troubleshooting Info".CreateOutStream(ContextOutStream, AgentTaskLogEntry.GetDefaultEncoding());
         ContextOutStream.WriteText(ContextTxt);
         TempAgentTaskLogEntry.Insert();
+    end;
+
+    local procedure CreateTempMemoryEntry(var TempAgentTaskMemoryEntry: Record "Agent Task Memory Entry" temporary; EntryID: Integer; Description: Text)
+    begin
+        TempAgentTaskMemoryEntry.Init();
+        TempAgentTaskMemoryEntry."Task ID" := -1;
+        TempAgentTaskMemoryEntry.ID := EntryID;
+        TempAgentTaskMemoryEntry.Type := TempAgentTaskMemoryEntry.Type::Message;
+        TempAgentTaskMemoryEntry.Description := CopyStr(Description, 1, MaxStrLen(TempAgentTaskMemoryEntry.Description));
+        TempAgentTaskMemoryEntry.Insert();
     end;
 
     local procedure ExportToJson(var TempAgentTaskLogEntry: Record "Agent Task Log Entry" temporary; var ExportJson: JsonObject)

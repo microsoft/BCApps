@@ -5,6 +5,7 @@
 namespace System.Test.Agents;
 
 using System.Agents;
+using System.Security.AccessControl;
 
 permissionset 133964 "Agent SDK Test"
 {
@@ -17,5 +18,6 @@ permissionset 133964 "Agent SDK Test"
         tabledata "Agent Task" = R,
         tabledata "Agent Task Log Entry" = R,
         tabledata "Agent Task Memory Entry" = R,
-        tabledata "Agent Task Message" = R;
+        tabledata "Agent Task Message" = R,
+        tabledata User = R;
 }
