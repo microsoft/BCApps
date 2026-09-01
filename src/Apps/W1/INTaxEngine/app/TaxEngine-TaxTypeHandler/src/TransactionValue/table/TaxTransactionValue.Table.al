@@ -152,6 +152,9 @@ table 20261 "Tax Transaction Value"
         key(K1; "Tax Record ID", "Tax Type")
         {
         }
+        key(K2; "Tax Record ID", "Tax Type", "Value Type", "Value ID") // [My Fix 1]
+        {
+        }
     }
     procedure GetAttributeColumName(): Text
     var

@@ -174,23 +174,43 @@ codeunit 20291 "Tax Rate Computation"
         ValueLCY: Variant;
         TransactionValueType: Enum "Transaction Value Type")
     var
-        UseCase: Record "Tax Use Case";
         TaxTransactionValue: Record "Tax Transaction Value";
+        IsNewValue: Boolean; // [My Fix 1]
+        IsRecalculationActive: Boolean;
+        TaxTransactionValueID: Integer;
+        TaxType: Code[20];
     begin
-        UseCase.Get(CaseID);
+        TaxType := GetUseCaseTaxType(CaseID);
+        IsRecalculationActive := TaxTransactionValueCalcCache.IsRecalculationActive(SourceRecordRef.RecordId(), TaxType);
 
-        TaxTransactionValue.SetCurrentKey("Tax Record ID", "Tax Type");
-        TaxTransactionValue.SetRange("Tax Type", UseCase."Tax Type");
-        TaxTransactionValue.SetRange("Tax Record ID", SourceRecordRef.RecordId());
-        TaxTransactionValue.SetRange("Value Type", TransactionValueType);
-        TaxTransactionValue.SetRange("Value ID", ID);
-        if not TaxTransactionValue.FindFirst() then
-            InsertTaxTransactionValue(SourceRecordRef.RecordId(), CaseID, ID, UseCase."Tax Type", TransactionValueType, TaxTransactionValue);
+        if IsRecalculationActive then begin
+            if TaxTransactionValueCalcCache.GetTransactionValueID(SourceRecordRef.RecordId(), TaxType, TransactionValueType, ID, TaxTransactionValueID) then
+                IsNewValue := not TaxTransactionValue.Get(TaxTransactionValueID)
+            else
+                IsNewValue := true;
+        end else begin
+            TaxTransactionValue.SetCurrentKey("Tax Record ID", "Tax Type", "Value Type", "Value ID"); // [My Fix 1]
+            TaxTransactionValue.SetLoadFields("Tax Record ID", "Tax Type", "Value Type", "Value ID", "Case ID");
+            TaxTransactionValue.SetRange("Tax Type", TaxType);
+            TaxTransactionValue.SetRange("Tax Record ID", SourceRecordRef.RecordId());
+            TaxTransactionValue.SetRange("Value Type", TransactionValueType);
+            TaxTransactionValue.SetRange("Value ID", ID);
+            IsNewValue := not TaxTransactionValue.FindFirst(); // [My Fix 1]
+        end;
 
-        ModifyTaxTransactionValue(SymbolStore, ID, TaxTransactionValue, Value, ValueLCY);
+        if IsNewValue then // [My Fix 1] init skeleton in-memory only; DML deferred to a single write below
+            InitTaxTransactionValue(SourceRecordRef.RecordId(), CaseID, ID, TaxType, TransactionValueType, TaxTransactionValue);
+
+        SetTaxTransactionValueFields(SymbolStore, ID, TaxTransactionValue, Value, ValueLCY); // [My Fix 1] fill all fields, no DML
+
+        if IsNewValue then begin // [My Fix 1] one INSERT for new rows (was INSERT skeleton + UPDATE fill = 2 round-trips)
+            TaxTransactionValue.Insert();
+            TaxTransactionValueCalcCache.SetTransactionValueID(SourceRecordRef.RecordId(), TaxType, TransactionValueType, ID, TaxTransactionValue.ID);
+        end else
+            TaxTransactionValue.Modify();
     end;
 
-    local procedure InsertTaxTransactionValue(
+    local procedure InitTaxTransactionValue(
         SourceRecID: RecordId;
         CaseID: Guid;
         ID: Integer;
@@ -198,16 +218,30 @@ codeunit 20291 "Tax Rate Computation"
         TransactionValueType: Enum "Transaction Value Type";
         var TaxTransactionValue: Record "Tax Transaction Value")
     begin
-        TaxTransactionValue.Init();
+        TaxTransactionValue.Init(); // [My Fix 1] skeleton only; caller performs the single Insert
         TaxTransactionValue."Case ID" := CaseID;
         TaxTransactionValue."Tax Record ID" := SourceRecID;
         TaxTransactionValue."Value Type" := TransactionValueType;
         TaxTransactionValue."Tax Type" := TaxType;
         TaxTransactionValue."Value ID" := ID;
-        TaxTransactionValue.Insert();
     end;
 
-    local procedure ModifyTaxTransactionValue(
+    local procedure GetUseCaseTaxType(CaseID: Guid): Code[20]
+    var
+        UseCase: Record "Tax Use Case";
+        TaxType: Code[20];
+    begin
+        if CachedUseCaseTaxTypes.Get(CaseID, TaxType) then
+            exit(TaxType);
+
+        UseCase.Get(CaseID);
+        TaxType := UseCase."Tax Type";
+        CachedUseCaseTaxTypes.Add(CaseID, TaxType);
+
+        exit(TaxType);
+    end;
+
+    local procedure SetTaxTransactionValueFields(
         var SymbolStore: Codeunit "Script Symbol Store";
         ID: Integer;
         var TaxTransactionValue: Record "Tax Transaction Value";
@@ -226,8 +260,22 @@ codeunit 20291 "Tax Rate Computation"
         if TaxTransactionValue."Value Type" = TaxTransactionValue."Value Type"::ATTRIBUTE then
             ModifyAttributeTaxTransactionValue(Value, TaxTransactionValue);
 
-        TaxTransactionValue."Visible on Interface" := TaxTransactionValue.ShouldAttributeBeVisible();
-        TaxTransactionValue.Modify();
+        TaxTransactionValue."Visible on Interface" := GetTransactionValueVisibility(TaxTransactionValue); // [My Fix 1] DML moved to caller
+    end;
+
+    local procedure GetTransactionValueVisibility(var TaxTransactionValue: Record "Tax Transaction Value"): Boolean
+    var
+        CacheKey: Text;
+        IsVisible: Boolean;
+    begin
+        CacheKey := StrSubstNo('%1|%2|%3', TaxTransactionValue."Tax Type", TaxTransactionValue."Value Type".AsInteger(), TaxTransactionValue."Value ID");
+        if CachedTransactionValueVisibility.Get(CacheKey, IsVisible) then
+            exit(IsVisible);
+
+        IsVisible := TaxTransactionValue.ShouldAttributeBeVisible();
+        CachedTransactionValueVisibility.Add(CacheKey, IsVisible);
+
+        exit(IsVisible);
     end;
 
     local procedure ModifyComponentTaxTransactionValue(var TaxTransactionValue: Record "Tax Transaction Value"; ID: Integer; RelatedValue: Variant; Value: Variant; ValueLCY: Variant)
@@ -671,7 +719,10 @@ codeunit 20291 "Tax Rate Computation"
         TaxAttributeMgmt: Codeunit "Tax Attribute Management";
         UseCaseVariableMgmt: Codeunit "Use Case Variables Mgmt.";
         SwitchStatementExecution: Codeunit "Switch Statement Execution";
+        TaxTransactionValueCalcCache: Codeunit "Tax Trans. Value Calc. Cache";
         EmptyGUID: Guid;
+        CachedUseCaseTaxTypes: Dictionary of [Guid, Code[20]];
+        CachedTransactionValueVisibility: Dictionary of [Text, Boolean];
         BlankColumSwitchCaseErr: Label 'Switch Case not defiend for ColumnID: %1 in Use Case: %2.', Comment = '%1 Columnd ID,%2= Use Case Description';
         BlankAttributeSwitchCaseErr: Label 'Switch Case not defiend for Attribute : %1 in Use Case: %2.', Comment = '%1 Attribute Name,%2= Use Case Description';
 }

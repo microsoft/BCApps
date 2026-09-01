@@ -108,6 +108,7 @@ codeunit 20293 "Use Case Execution"
                 ClearTransactionValues(TaxType.Code, RecRef);
                 if TaxType.Enabled then
                     InternalExecuteUseCaseTree(UseCaseTreeNode, RecRef, CurrencyCode, CurrencyFactor);
+                TaxTransactionValueCalcCache.EndRecalculation(RecRef.RecordId(), TaxType.Code);
             until UseCaseTreeNode.Next() = 0;
     end;
 
@@ -115,10 +116,11 @@ codeunit 20293 "Use Case Execution"
     var
         TaxTransactionValue: Record "Tax Transaction Value";
     begin
+        TaxTransactionValue.SetCurrentKey("Tax Record ID", "Tax Type");
         TaxTransactionValue.SetRange("Tax Type", TaxType);
         TaxTransactionValue.SetRange("Tax Record ID", RecRef.RecordId());
-        if not TaxTransactionValue.IsEmpty() then
-            TaxTransactionValue.DeleteAll(true);
+        TaxTransactionValue.DeleteAll(false); // [My Fix 1] no OnDelete trigger/subscribers -> single DELETE, no per-row read
+        TaxTransactionValueCalcCache.BeginRecalculation(RecRef.RecordId(), TaxType);
     end;
 
     local procedure InternalExecuteUseCaseTree(
@@ -208,10 +210,6 @@ codeunit 20293 "Use Case Execution"
 
         if UseCaseTreeNode."Table ID" <> RecRef.Number then
             exit;
-
-        UseCaseTreeNode.CalcFields(Condition);
-        if not UseCaseTreeNode.Condition.HasValue() then
-            exit(true);
 
         Filers := GetRecordView(UseCaseTreeNode);
         if Filers = '' then
@@ -351,6 +349,7 @@ codeunit 20293 "Use Case Execution"
         ConditionMgmt: Codeunit "Condition Mgmt.";
         TaxRateComputation: Codeunit "Tax Rate Computation";
         TransactionValueHelper: Codeunit "Transaction Value Helper";
+        TaxTransactionValueCalcCache: Codeunit "Tax Trans. Value Calc. Cache";
         RecRefHelper: Codeunit "RecRef Handler";
         EmptyGUID: Guid;
         UseCaseExcutedTxt: Label 'Use Case executed on record.', Locked = true;

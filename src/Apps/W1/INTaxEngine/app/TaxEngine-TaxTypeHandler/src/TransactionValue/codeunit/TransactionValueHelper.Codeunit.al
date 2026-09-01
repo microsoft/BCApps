@@ -14,7 +14,6 @@ codeunit 20236 "Transaction Value Helper"
         TaxTransactionValue.SetRange("Tax Type", TaxType);
         TaxTransactionValue.SetRange("Tax Record ID", SourceRecordRef.RecordId());
         TaxTransactionValue.SetFilter("Case ID", '<>%1', CaseID);
-        if not TaxTransactionValue.IsEmpty() then
-            TaxTransactionValue.ModifyAll("Case ID", CaseID);
+        TaxTransactionValue.ModifyAll("Case ID", CaseID); // [My Fix 1]
     end;
 }

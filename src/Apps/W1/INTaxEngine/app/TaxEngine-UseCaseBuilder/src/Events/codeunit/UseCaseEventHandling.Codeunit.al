@@ -69,6 +69,9 @@ codeunit 20286 "Use Case Event Handling"
     var
         TaxEntity: Record "Tax Entity";
     begin
+        if TableId = Database::"Tax Transaction Value" then
+            exit;
+
         TaxEntity.SetRange("Table ID", TableId);
         if not TaxEntity.IsEmpty() then
             OnDatabaseDelete := true;
@@ -97,10 +100,12 @@ codeunit 20286 "Use Case Event Handling"
         if RecRef.IsTemporary() then
             exit;
 
+        if RecRef.Number() = Database::"Tax Transaction Value" then
+            exit;
+
         TaxTransactionValue.SetCurrentKey("Tax Record ID", "Tax Type");
         TaxTransactionValue.SetRange("Tax Record ID", RecRef.RecordId());
-        if not TaxTransactionValue.IsEmpty() then
-            TaxTransactionValue.DeleteAll(true);
+        TaxTransactionValue.DeleteAll(false); // [My Fix 1] no OnDelete trigger/subscribers -> single DELETE, no per-row read
     end;
 
     local procedure RenameTaxTransactionValue(RecRef: RecordRef; xRecRef: RecordRef);
@@ -111,8 +116,7 @@ codeunit 20286 "Use Case Event Handling"
             exit;
 
         TaxTransactionValue.SetRange("Tax Record ID", xRecRef.RecordId());
-        if not TaxTransactionValue.IsEmpty() then
-            TaxTransactionValue.ModifyAll("Tax Record ID", RecRef.RecordId());
+        TaxTransactionValue.ModifyAll("Tax Record ID", RecRef.RecordId()); // [My Fix 1]
     end;
 
     var
