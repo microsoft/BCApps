@@ -4670,7 +4670,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         RemUnrealVAT: Decimal;
         LastVATEntryTranNo: Integer;
         WHTAmount: Decimal;
-        GLEntryNo: Integer;
         GLEntryNo: BigInteger;
         IsHandled: Boolean;
     begin
@@ -6122,7 +6121,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         PurchReverseUnrealAccount: Code[20];
         LastConnectionNo: Integer;
         WHTAmount: Decimal;
-        GLEntryNo: Integer;
         GLEntryNo: BigInteger;
         IsHandled: Boolean;
     begin
