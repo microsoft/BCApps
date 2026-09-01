@@ -21,6 +21,7 @@
         LibraryRandom: Codeunit "Library - Random";
         IsInitialized: Boolean;
         AmountErr: Label '%1 must be %2 in %3.', Comment = '%1 = Amount FieldCaption, %2 = Amount Value, %3 = Record TableCaption';
+        ConfirmPostingAfterWorkingDateQst: Label 'The posting date of one or more journal lines is after the working date. Do you want to continue?';
 
     [Test]
     [Scope('OnPrem')]
@@ -666,6 +667,7 @@
         CustomerNo: Code[20];
         ItemNo: array[2] of Code[20];
         InvoiceNo: Code[20];
+        CreditMemoNo: Code[20];
         UnitPrice: array[2] of Decimal;
         PartialCrMemoPrice: Decimal;
         CrMemoAmountInclVAT: Decimal;
@@ -693,7 +695,7 @@
         CrMemoAmountInclVAT := PartialCrMemoPrice + PartialCrMemoPrice * 10 / 100; // 55
 
         // [WHEN] Post the Sales Credit Memo
-        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        CreditMemoNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
         // [THEN] Invoice Group1 Remaining Unrealized Amount is correctly reduced using group-specific invoice amount
         VATEntry.SetRange(Type, VATEntry.Type::Sale);
@@ -715,6 +717,9 @@
           VATEntry."Remaining Unrealized Amount",
           LibraryERM.GetAmountRoundingPrecision(),
           'Group2 remaining unrealized VAT should be unchanged');
+
+        // [THEN] Invoice-side unrealized VAT G/L transfer is not posted for the credited VAT group
+        VerifyInvoiceUnrealizedVATGLEntriesDoNotExist(CreditMemoNo, VATPostingSetup[1]);
     end;
 
     [Test]
@@ -831,6 +836,87 @@
         // [THEN] Invoice-side unrealized VAT G/L transfers are not posted for either VAT group
         VerifyInvoiceUnrealizedVATGLEntriesDoNotExist(CreditMemoNo, VATPostingSetup[1]);
         VerifyInvoiceUnrealizedVATGLEntriesDoNotExist(CreditMemoNo, VATPostingSetup[2]);
+    end;
+
+    [Test]
+    procedure PartiallySettledCrMemoMultipleVATGroupsCorrectRealization()
+    var
+        VATPostingSetup: array[2] of Record "VAT Posting Setup";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        GenJournalLine: Record "Gen. Journal Line";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        VATEntry: Record "VAT Entry";
+        CustomerNo: Code[20];
+        ItemNo: array[2] of Code[20];
+        InvoiceNo: Code[20];
+        CreditMemoNo: Code[20];
+        UnitPrice: array[2] of Decimal;
+        CreditMemoPrice: array[2] of Decimal;
+        PaymentAmount: Decimal;
+        CreditMemoSettledAmount: Decimal;
+        ExpectedRemainingVATAmount: Decimal;
+    begin
+        // [FEATURE] [Sales]
+        // [SCENARIO 625412] Partially settled credit memo with multiple VAT groups realizes VAT proportionally to the settled amount
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice "SI" with two lines: Item1 (VAT 10%, price 1000), Item2 (VAT 21%, price 2000)
+        UnitPrice[1] := 1000;
+        UnitPrice[2] := 2000;
+        InvoiceNo := CreateMultiVATGroupSalesInvoice(VATPostingSetup, CustomerNo, ItemNo, UnitPrice);
+
+        // [GIVEN] Payment leaves an invoice balance of 1155
+        PaymentAmount := 2365;
+        CreateAndPostPaymentGenJournalLine(
+          GenJournalLine, GenJournalLine."Account Type"::Customer, CustomerNo,
+          InvoiceNo, -PaymentAmount, WorkDate());
+
+        // [GIVEN] Sales Credit Memo for 2310 with different amounts per VAT group, applied to "SI"
+        CreditMemoPrice[1] := 1000;
+        CreditMemoPrice[2] := 1000;
+        CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::"Credit Memo", CustomerNo);
+        SalesHeader.Validate("Applies-to Doc. Type", SalesHeader."Applies-to Doc. Type"::Invoice);
+        SalesHeader.Validate("Applies-to Doc. No.", InvoiceNo);
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo[1], 1);
+        SalesLine.Validate("Unit Price", CreditMemoPrice[1]);
+        SalesLine.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo[2], 1);
+        SalesLine.Validate("Unit Price", CreditMemoPrice[2]);
+        SalesLine.Modify(true);
+
+        // [WHEN] Post the Sales Credit Memo, settling half of its total amount
+        CreditMemoNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        CreditMemoSettledAmount := 1155;
+
+        // [THEN] Invoice Group1 Unrealized VAT is fully realized
+        VerifyUnrealizedVATFullyRealized(InvoiceNo, VATPostingSetup[1]."VAT Prod. Posting Group");
+
+        // [THEN] Invoice Group2 Remaining Unrealized Amount reflects the partial credit memo settlement
+        ExpectedRemainingVATAmount :=
+          -Round(
+            UnitPrice[2] * 21 / 100 *
+            (1 - PaymentAmount / 3520 - (CreditMemoPrice[2] * 1.21 * CreditMemoSettledAmount / 2310) / 2420));
+        VATEntry.SetRange(Type, VATEntry.Type::Sale);
+        VATEntry.SetRange("Document Type", VATEntry."Document Type"::Invoice);
+        VATEntry.SetRange("Document No.", InvoiceNo);
+        VATEntry.SetRange("VAT Prod. Posting Group", VATPostingSetup[2]."VAT Prod. Posting Group");
+        VATEntry.FindFirst();
+        Assert.AreNearlyEqual(
+          ExpectedRemainingVATAmount,
+          VATEntry."Remaining Unrealized Amount",
+          LibraryERM.GetAmountRoundingPrecision(),
+          'Group2 remaining unrealized VAT should reflect the partially settled credit memo amount');
+
+        // [THEN] Half of the Credit Memo remains open
+        LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, CustLedgerEntry."Document Type"::"Credit Memo", CreditMemoNo);
+        CustLedgerEntry.CalcFields("Remaining Amount");
+        Assert.AreNearlyEqual(
+          -CreditMemoSettledAmount,
+          CustLedgerEntry."Remaining Amount",
+          LibraryERM.GetAmountRoundingPrecision(),
+          'Half of the credit memo should remain open');
     end;
 
     [Test]
@@ -1459,6 +1545,7 @@
     [Scope('OnPrem')]
     procedure ConfirmPostingAfterWorkingDateHandler(Question: Text[1024]; var Reply: Boolean)
     begin
+        Assert.ExpectedMessage(ConfirmPostingAfterWorkingDateQst, Question);
         Reply := true;
     end;
 

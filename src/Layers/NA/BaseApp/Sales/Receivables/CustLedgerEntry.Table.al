@@ -1790,12 +1790,13 @@ table 21 "Cust. Ledger Entry"
             InvoicePartAmount := BaseInvoicePartAmount;
     end;
 
-    procedure GetCreditMemoPartAmountByVAT(GenJnlLine: Record "Gen. Journal Line"; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; SettledAmount: Decimal) CreditMemoPartAmount: Decimal
+    internal procedure GetCreditMemoPartAmountByVAT(GenJnlLine: Record "Gen. Journal Line"; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; SettledAmount: Decimal) CreditMemoPartAmount: Decimal
     var
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
         CreditMemoAmount: Decimal;
     begin
         SalesCrMemoLine.SetRange("Document No.", GenJnlLine."Document No.");
+        SalesCrMemoLine.SetLoadFields("Amount Including VAT", "VAT Bus. Posting Group", "VAT Prod. Posting Group");
         if SalesCrMemoLine.FindSet() then
             repeat
                 CreditMemoAmount += SalesCrMemoLine."Amount Including VAT";

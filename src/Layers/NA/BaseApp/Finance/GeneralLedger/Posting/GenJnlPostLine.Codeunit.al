@@ -4554,6 +4554,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     CalculateFirstLastAmount(VATPostingSetup."Unrealized VAT Type", VATEntry2."Remaining Unrealized Amount", TotalUnrealVATAmountLast, TotalUnrealVATAmountFirst);
             until VATEntry2.Next() = 0;
         if VATEntry2.FindSet() then begin
+            if ShouldConsiderVATPostingGrouping then begin
+                InvoicePartAmountByVAT := CustLedgEntry2.GetInvoicePartAmountByVAT(CustLedgEntry2."Document Type", GenJnlLine, TempVATPostingSetup."VAT Bus. Posting Group", TempVATPostingSetup."VAT Prod. Posting Group");
+                SettledAmountByVAT := CustLedgEntry2.GetCreditMemoPartAmountByVAT(GenJnlLine, TempVATPostingSetup."VAT Bus. Posting Group", TempVATPostingSetup."VAT Prod. Posting Group", SettledAmount);
+            end;
             LastConnectionNo := 0;
             repeat
                 VATPostingSetup.Get(VATEntry2."VAT Bus. Posting Group", VATEntry2."VAT Prod. Posting Group");
@@ -4563,8 +4567,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 end;
 
                 if ShouldConsiderVATPostingGrouping then begin
-                    InvoicePartAmountByVAT := CustLedgEntry2.GetInvoicePartAmountByVAT(CustLedgEntry2."Document Type", GenJnlLine, TempVATPostingSetup."VAT Bus. Posting Group", TempVATPostingSetup."VAT Prod. Posting Group");
-                    SettledAmountByVAT := CustLedgEntry2.GetCreditMemoPartAmountByVAT(GenJnlLine, TempVATPostingSetup."VAT Bus. Posting Group", TempVATPostingSetup."VAT Prod. Posting Group", SettledAmount);
                     VATPart :=
                         VATEntry2.GetUnrealizedVATPart(
                         Round(SettledAmountByVAT / CustLedgEntry2.GetAdjustedCurrencyFactor()),
@@ -4669,10 +4671,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     end;
 
 
+                    IsHandled := false;
+                    OnCustUnrealizedVATOnBeforeInitGLEntryVAT(
+                        GenJnlLine, VATEntry2, VATAmount, VATBase, VATAmountAddCurr, VATBaseAddCurr, IsHandled, SalesVATUnrealAccount, CustLedgEntry2, SettledAmount);
                     if ShouldPostGLEntries then begin
-                        IsHandled := false;
-                        OnCustUnrealizedVATOnBeforeInitGLEntryVAT(
-                          GenJnlLine, VATEntry2, VATAmount, VATBase, VATAmountAddCurr, VATBaseAddCurr, IsHandled, SalesVATUnrealAccount, CustLedgEntry2, SettledAmount);
                         if not IsHandled then
                             InitGLEntryVAT(
                                 GenJnlLine, SalesVATUnrealAccount, SalesVATAccount, -VATAmount, -VATAmountAddCurr, false);
