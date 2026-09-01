@@ -17,14 +17,11 @@ codeunit 6168 "E-Document Upgrade"
     InherentEntitlements = X;
 
     trigger OnUpgradePerCompany()
-    var
-        EDocumentBackgroundJobs: Codeunit "E-Document Background Jobs";
     begin
         UpgradeLogURLMaxLength();
 #if not CLEAN29
         UpgradeProcessDraftEnum();
 #endif
-        EDocumentBackgroundJobs.EnsurePaymentOccurrenceDispatcher();
     end;
 
     local procedure UpgradeLogURLMaxLength()
