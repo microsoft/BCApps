@@ -210,15 +210,11 @@ table 5405 "Production Order"
                     exit;
 
                 if Rec."Variant Code" <> '' then begin
-                    ItemVariant.SetLoadFields(Blocked);
+                    ItemVariant.SetLoadFields(Blocked, Description, "Description 2");
                     ItemVariant.Get(Rec."Source No.", Rec."Variant Code");
                     ItemVariant.TestField(Blocked, false);
-#pragma warning disable AA0242 // Accepted: Existing partial-record access is retained; changing load behavior is outside this focused hardening.
                     Description := ItemVariant.Description;
-#pragma warning restore AA0242
-#pragma warning disable AA0242 // Accepted: Existing partial-record access is retained; changing load behavior is outside this focused hardening.
                     "Description 2" := ItemVariant."Description 2";
-#pragma warning restore AA0242
                 end;
 
                 TestField("Source Type", "Source Type"::Item);

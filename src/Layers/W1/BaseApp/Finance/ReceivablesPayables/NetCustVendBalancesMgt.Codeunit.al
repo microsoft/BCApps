@@ -275,7 +275,7 @@ codeunit 108 "Net Cust/Vend Balances Mgt."
 
     local procedure FailIfDuplicateLineExists(GenJournalLine: Record "Gen. Journal Line")
     begin
-        GenJournalLine.SetLoadFields("Document No.");
+        GenJournalLine.SetLoadFields("Document No.", "Applies-to Doc. Type", "Applies-to Doc. No.");
         GenJournalLine.SetRange("Account Type", GenJournalLine."Account Type");
         GenJournalLine.SetRange("Account No.", GenJournalLine."Account No.");
         GenJournalLine.SetRange("Applies-to Doc. Type", GenJournalLine."Applies-to Doc. Type");
@@ -285,9 +285,7 @@ codeunit 108 "Net Cust/Vend Balances Mgt."
                 DuplicateLineExistsErr,
                 GenJournalLine."Document No.",
                 GenJournalLine."Journal Template Name", GenJournalLine."Journal Batch Name",
-#pragma warning disable AA0242 // Accepted: Existing partial-record access is retained; changing load behavior is outside this focused hardening.
                 GenJournalLine."Applies-to Doc. Type", GenJournalLine."Applies-to Doc. No.");
-#pragma warning restore AA0242
     end;
 
     local procedure NetBalances(var VendLedgEntry: Record "Vendor Ledger Entry"; var CustLedgEntry: Record "Cust. Ledger Entry"; var VendorRemainingAmount: Decimal; var CustomerRemainingAmount: Decimal; var TempNetAmount: Decimal);
