@@ -204,7 +204,7 @@ codeunit 134242 "Spend Request Tests"
         asserterror SpendRequest.Delete(true);
 
         // [THEN] An error is raised because expenses are posted.
-        Assert.ExpectedError('cannot delete a spend request that has expenses posted against it');
+        Assert.ExpectedError('has expenses posted against it');
     end;
 
     [Test]
@@ -363,7 +363,7 @@ codeunit 134242 "Spend Request Tests"
         asserterror SpendRequestDetail.Insert(true);
 
         // [THEN] An error is raised because the request is not Open.
-        Assert.ExpectedTestFieldError(SpendRequest.FieldCaption(Status), Format(SpendRequest.Status::Open));
+        Assert.ExpectedError('must have the status ' + Format(SpendRequest.Status::Open));
     end;
 
     [Test]
@@ -386,7 +386,7 @@ codeunit 134242 "Spend Request Tests"
         asserterror SpendRequestDetail.Delete(true);
 
         // [THEN] An error is raised.
-        Assert.ExpectedTestFieldError(SpendRequest.FieldCaption(Status), Format(SpendRequest.Status::Open));
+        Assert.ExpectedError('must have the status ' + Format(SpendRequest.Status::Open));
     end;
 
     [Test]
@@ -592,7 +592,7 @@ codeunit 134242 "Spend Request Tests"
         asserterror SpendRequestCard.Reject.Invoke();
 
         // [THEN] An error is raised because Status is not Released.
-        Assert.ExpectedTestFieldError(SpendRequest.FieldCaption(Status), Format(SpendRequest.Status::Released));
+        Assert.ExpectedError('must have the status ' + Format(SpendRequest.Status::Released));
         SpendRequestCard.Close();
     end;
 
@@ -691,7 +691,7 @@ codeunit 134242 "Spend Request Tests"
         asserterror SpendRequestCard.ReOpen.Invoke();
 
         // [THEN] An error is raised.
-        Assert.ExpectedError('closed spend request cannot be reopened');
+        Assert.ExpectedError('closed ' + SpendRequest.TableCaption() + ' cannot be reopened');
         SpendRequestCard.Close();
     end;
 
@@ -748,7 +748,7 @@ codeunit 134242 "Spend Request Tests"
         asserterror SpendRequestDetail.Validate(Description, 'Updated');
 
         // [THEN] An error is raised.
-        Assert.ExpectedTestFieldError(SpendRequest.FieldCaption(Status), Format(SpendRequest.Status::Open));
+        Assert.ExpectedError('must have the status ' + Format(SpendRequest.Status::Open));
     end;
 
     [Test]
@@ -820,6 +820,6 @@ codeunit 134242 "Spend Request Tests"
         asserterror SpendRequest.Validate("Requested By", Employee."No.");
 
         // [THEN] An error is raised.
-        Assert.ExpectedTestFieldError(SpendRequest.FieldCaption(Status), Format(SpendRequest.Status::Open));
+        Assert.ExpectedError('must have the status ' + Format(SpendRequest.Status::Open));
     end;
 }
