@@ -287,11 +287,16 @@ page 4300 "Agent Task List"
                 actionref(ViewTaskMessage_Promoted; ViewTaskMessage)
                 {
                 }
-                actionref(ViewTaskLogEntries_Promoted; ViewTaskLogEntries)
+                group(TaskLogEntries)
                 {
-                }
-                actionref(ExportTaskLogEntries_Promoted; ExportTaskLogEntries)
-                {
+                    ShowAs = SplitButton;
+
+                    actionref(ViewTaskLogEntries_Promoted; ViewTaskLogEntries)
+                    {
+                    }
+                    actionref(ExportTaskLogEntries_Promoted; ExportTaskLogEntries)
+                    {
+                    }
                 }
             }
         }
