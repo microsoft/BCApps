@@ -1496,12 +1496,12 @@ codeunit 6973 "Create Expense Categories"
     end;
 
     [IntegrationEvent(false, false)]
-    internal procedure OnBeforeAddRuleSeed(var ExpenseRuleHeader: Record "Expense Rule Header"; var CategoryCode: Code[20]; var ExpenseLocationCode: Code[20]; var CurrencyCode: Code[10]; var JustificationRequired: Enum "Expense Justification"; var IsHandled: Boolean)
+    internal procedure OnBeforeAddRuleSeed(var TempRuleHeader: Record "Expense Rule Header"; var CategoryCode: Code[20]; var ExpenseLocationCode: Code[20]; var CurrencyCode: Code[10]; var JustificationRequired: Enum "Expense Justification"; var IsHandled: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    internal procedure OnBeforeAddRuleConditionSeed(var RuleCondition: Record "Expense Rule Condition"; var CategoryCode: Code[20]; var ExpenseLocationCode: Code[20]; var ConditionType: Enum "Expense Rule Condition Type"; var Value: Decimal; var IsHandled: Boolean)
+    internal procedure OnBeforeAddRuleConditionSeed(var TempRuleCondition: Record "Expense Rule Condition"; var CategoryCode: Code[20]; var ExpenseLocationCode: Code[20]; var ConditionType: Enum "Expense Rule Condition Type"; var Value: Decimal; var IsHandled: Boolean)
     begin
     end;
 }
