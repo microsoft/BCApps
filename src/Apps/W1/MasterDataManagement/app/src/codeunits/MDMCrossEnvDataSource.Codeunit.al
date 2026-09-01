@@ -180,6 +180,12 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
             Error(SourceProbeFailedErr, TableCaption(IntegrationTableId));
         end;
         // An unavailable table yields no records array; treat as no matching records for the review.
+        if not SourceResponse.TableAvailable(Response) then
+            exit(false);
+        // An unindexed source past the change cap returns indexed:false with an empty page; like the unfiltered probe
+        // we can't prove emptiness cheaply, so assume records may exist rather than under-reporting to the review.
+        if not SourceResponse.Indexed(Response) then
+            exit(true);
         if Response.Get('records', Token) and Token.IsArray() then
             exit(Token.AsArray().Count() > 0);
         exit(false);

@@ -24,8 +24,11 @@ interface "IMDM Data Source"
     procedure GetBySystemId(IntegrationTableId: Integer; SystemId: Guid; var SourceRecordRef: RecordRef): Boolean;
 
     /// <summary>
-    /// Fetches a single source integration-table record by its id (the integration UID field value,
-    /// a RecordId, or a business-key text) into SourceRecordRef. Returns true if found.
+    /// Fetches a single source integration-table record by its identifier into SourceRecordRef.
+    /// The identifier is the integration UID field value - for Master Data Management the SystemId -
+    /// passed as a Guid or its text form. A RecordId is environment-specific and only resolvable by the
+    /// local same-environment implementation; the cross-environment feed keys on SystemId, so it returns
+    /// false for a RecordId. Returns true if found.
     /// </summary>
     procedure GetById(IntegrationTableMapping: Record "Integration Table Mapping"; ID: Variant; var SourceRecordRef: RecordRef): Boolean;
 

@@ -10,6 +10,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         Assert: Codeunit Assert;
         LibrarySalesLib: Codeunit "Library - Sales";
         WizardPrivacyNoticeOpenCount: Integer;
+        InvalidSourceHostErr: Label 'not a valid Business Central endpoint', Locked = true;
 
     [Test]
     procedure CrossEnvGetBySystemIdRoundTripsSourceRecord()
@@ -61,15 +62,15 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
 
         // [GIVEN] a non-HTTPS scheme [THEN] validation is rejected
         asserterror LibraryMasterDataMgt.ValidateHttpTransportSourceHost('http://myenv.api.bc.dynamics.com');
-        Assert.ExpectedError('not a valid Business Central endpoint');
+        Assert.ExpectedError(InvalidSourceHostErr);
 
         // [GIVEN] a host outside the dynamics.com allow-list [THEN] validation is rejected
         asserterror LibraryMasterDataMgt.ValidateHttpTransportSourceHost('https://evil.example.com');
-        Assert.ExpectedError('not a valid Business Central endpoint');
+        Assert.ExpectedError(InvalidSourceHostErr);
 
         // [GIVEN] a look-alike host that only embeds dynamics.com as a non-final label [THEN] validation is rejected
         asserterror LibraryMasterDataMgt.ValidateHttpTransportSourceHost('https://myenv.dynamics.com.evil.example.com');
-        Assert.ExpectedError('not a valid Business Central endpoint');
+        Assert.ExpectedError(InvalidSourceHostErr);
 
         CleanUp();
     end;
@@ -340,6 +341,8 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         Assert.AreEqual('CRONUS', MasterDataManagementSetup."Source Company Name", 'Source company not saved');
         Assert.IsFalse(IsNullGuid(MasterDataManagementSetup."Source Client Secret Key"), 'Client secret should be stored');
 
+        // Restore privacy state so this configuration test doesn't leak consent into later privacy-notice scenarios.
+        LibraryMasterDataMgt.PrivacyNoticeResetApproval();
         CleanUp();
     end;
 
@@ -410,9 +413,11 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         SeededSystemId: Guid;
         SeededSystemIds: List of [Guid];
         CollectedSystemIds: List of [Guid];
+        PerRunCounts: List of [Integer];
         Watermark: DateTime;
         Cursor: Text;
         EndCursor: Text;
+        PreviousCursor: Text;
         Index: Integer;
         Runs: Integer;
         HasMore: Boolean;
@@ -440,14 +445,22 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         // [WHEN] the batch is drained one page per run, resuming from the returned cursor
         Cursor := '';
         repeat
+            PreviousCursor := Cursor;
             LibraryMasterDataMgt.DataSourceGetModifiedBatch(IntegrationTableMapping, '', Cursor, 1, SourceRecordRef, EndCursor, HasMore);
+            // Each resumed run must advance from the cursor it was given - never restart from the start or stall.
+            Assert.AreNotEqual(PreviousCursor, EndCursor, 'Each resumed run must advance the cursor');
+            PerRunCounts.Add(SourceRecordRef.Count());
             CollectSystemIds(SourceRecordRef, CollectedSystemIds);
             Cursor := EndCursor;
             Runs += 1;
         until not HasMore;
 
-        // [THEN] it took multiple runs and every seeded record was returned exactly once
-        Assert.IsTrue(Runs >= 3, 'A 5-record set at 2/page and 1 page/run should need at least three runs');
+        // [THEN] the set drained in a stable 2 + 2 + 1 sequence across exactly three resumed runs
+        Assert.AreEqual(3, Runs, 'A 5-record set at 2/page and 1 page/run must take exactly three runs');
+        Assert.AreEqual(2, PerRunCounts.Get(1), 'First run should return a full page of two records');
+        Assert.AreEqual(2, PerRunCounts.Get(2), 'Second run should return a full page of two records');
+        Assert.AreEqual(1, PerRunCounts.Get(3), 'Final run should return the remaining single record');
+        // [THEN] every seeded record was returned exactly once (no overlap, no gaps)
         Assert.AreEqual(5, CollectedSystemIds.Count(), 'Every seeded record should be returned exactly once across runs');
         foreach SeededSystemId in SeededSystemIds do
             Assert.IsTrue(CollectedSystemIds.Contains(SeededSystemId), 'Every seeded record should be covered by the resumed batches');

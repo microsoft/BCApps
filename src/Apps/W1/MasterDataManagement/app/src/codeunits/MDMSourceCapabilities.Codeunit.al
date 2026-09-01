@@ -78,19 +78,35 @@ codeunit 7246 "MDM Source Capabilities"
         Clear(SupportedFeatures);
         // Don't cache a failed parse as a successful (empty) negotiation - that would surface as a misleading
         // "capability unsupported / update the source app" error instead of the real bad-response problem.
-        if not Capabilities.ReadFrom(Transport.GetCapabilities()) then begin
-            Session.LogMessage('0000VAV', CapabilitiesParseTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
-            Error(InternalError(CapabilitiesParseErr));
-        end;
+        if not Capabilities.ReadFrom(Transport.GetCapabilities()) then
+            RaiseCapabilitiesParseError(MasterDataManagement);
+        // A present-but-malformed version/features (wrong token kind or non-integer version) is a contract failure,
+        // not a valid negotiation: keep it on the internal-diagnostic path instead of throwing a raw runtime error.
         if Capabilities.Get('version', VersionToken) then
-            if VersionToken.IsValue() then
-                ContractVersion := VersionToken.AsValue().AsInteger();
-        if Capabilities.Get('features', FeaturesToken) then
-            if FeaturesToken.IsArray() then
-                foreach FeatureToken in FeaturesToken.AsArray() do
-                    if FeatureToken.IsValue() then
-                        SupportedFeatures.Add(FeatureToken.AsValue().AsText());
+            if not (VersionToken.IsValue() and TryReadInteger(VersionToken, ContractVersion)) then
+                RaiseCapabilitiesParseError(MasterDataManagement);
+        if Capabilities.Get('features', FeaturesToken) then begin
+            if not FeaturesToken.IsArray() then
+                RaiseCapabilitiesParseError(MasterDataManagement);
+            foreach FeatureToken in FeaturesToken.AsArray() do begin
+                if not FeatureToken.IsValue() then
+                    RaiseCapabilitiesParseError(MasterDataManagement);
+                SupportedFeatures.Add(FeatureToken.AsValue().AsText());
+            end;
+        end;
         Negotiated := true;
         NegotiatedForUrl := CurrentSource;
+    end;
+
+    local procedure RaiseCapabilitiesParseError(MasterDataManagement: Codeunit "Master Data Management")
+    begin
+        Session.LogMessage('0000VAV', CapabilitiesParseTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
+        Error(InternalError(CapabilitiesParseErr));
+    end;
+
+    [TryFunction]
+    local procedure TryReadInteger(Token: JsonToken; var Value: Integer)
+    begin
+        Value := Token.AsValue().AsInteger();
     end;
 }
