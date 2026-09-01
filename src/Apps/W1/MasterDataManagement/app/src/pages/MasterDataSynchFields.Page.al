@@ -147,15 +147,15 @@ page 7236 "Master Data Synch. Fields"
                         until IntegrationFieldMapping.Next() = 0;
 
                     if FieldsAdded * FieldsRemoved > 0 then begin
-                        Message(StrSubstNo(FieldsAddedAndRemovedTxt, FieldsAdded, FieldsRemoved));
+                        Message(FieldsAddedAndRemovedTxt, FieldsAdded, FieldsRemoved);
                         exit;
                     end;
 
                     if FieldsAdded > 0 then
-                        Message(StrSubstNo(FieldsAddedTxt, FieldsAdded));
+                        Message(FieldsAddedTxt, FieldsAdded);
 
                     if FieldsRemoved > 0 then
-                        Message(StrSubstNo(FieldsRemovedTxt, FieldsRemoved));
+                        Message(FieldsRemovedTxt, FieldsRemoved);
                 end;
             }
             action(Enable)

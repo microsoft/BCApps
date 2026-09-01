@@ -30,7 +30,7 @@ page 7232 "MDM Connection Details"
                 group(TermsAndConditions)
                 {
                     Caption = 'Review the terms and conditions';
-                    InstructionalText = 'By enabling this, you consent that this environment will read data from the source environment that you configure. Your privacy is important to us. To learn more, follow the link below.';
+                    InstructionalText = 'By enabling this, you consent to sharing data between Business Central environments that may be in different geographies: this environment reads master data from the source environment you configure, and the filters it sends there may include your data. Your privacy is important to us. To learn more, follow the link below.';
 
                     field(Consent; ConsentState)
                     {
@@ -300,8 +300,11 @@ page 7232 "MDM Connection Details"
         Transport := SourceConnection.GetTransport();
         if not Capabilities.ReadFrom(Transport.GetCapabilities()) then
             Error(ConnectionFailedErr);
-        if Capabilities.Get('version', VersionToken) then
+        if Capabilities.Get('version', VersionToken) then begin
+            if not VersionToken.IsValue() then // a non-scalar version is a broken capabilities contract, not user-actionable
+                Error(ConnectionFailedErr);
             VersionText := Format(VersionToken.AsValue().AsInteger());
+        end;
         Message(ConnectionOkMsg, VersionText);
     end;
 

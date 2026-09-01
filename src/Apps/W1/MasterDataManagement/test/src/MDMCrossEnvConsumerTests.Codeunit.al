@@ -114,6 +114,29 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     end;
 
     [Test]
+    procedure CrossEnvSyncSurfacesSourceConsentRequired()
+    var
+        Customer: Record Customer;
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        SourceRecordRef: RecordRef;
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Privacy]
+        // [SCENARIO] When the source hasn't approved sharing, the subsidiary sync surfaces a clear, actionable error
+        //            (pointing at the source admin) rather than a raw transport failure.
+        Initialize();
+        LibrarySalesLib.CreateCustomer(Customer);
+        LibraryMasterDataMgt.SetSourceEnvironmentName('PROD');
+        InProcessTransport.Activate();
+        LibraryMasterDataMgt.PrivacyNoticeResetApproval(); // the (in-process) source has not consented
+
+        asserterror LibraryMasterDataMgt.DataSourceGetBySystemId(Database::Customer, Customer.SystemId, SourceRecordRef);
+        Assert.ExpectedError('has not approved sharing its master data');
+
+        CleanUp();
+    end;
+
+    [Test]
     [HandlerFunctions('PrivacyNoticeModalHandler')]
     procedure WizardConsentOpensPrivacyNotice()
     var
@@ -712,8 +735,10 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
         InProcessTransport: Codeunit "MDM In-Process Transport";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
     begin
         InProcessTransport.Deactivate();
+        LibraryMasterDataMgt.ApproveCrossEnvPrivacyNotice(); // the source API is consent-gated; approve for the gated paths
         // SetSourceEnvironmentName validates the setup, which schedules the detector job and commits, so a mapping
         // created earlier in a test survives AutoRollback; clear leftovers to keep tests independent.
         DeleteTestArtifacts();

@@ -21,6 +21,7 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         TableUnavailableErr: Label 'Table %1 is not available on the source environment. Expose it there or remove it from Synchronization Tables.', Comment = '%1 = table caption';
         NotIndexedErr: Label 'Table %1 on the source has too many same-timestamp changes to synchronize without an index. Add a key on SystemModifiedAt and SystemId to that table on the source environment.', Comment = '%1 = table caption';
         FieldsUnavailableErr: Label 'One or more fields set up for synchronization do not exist on table %1 on the source environment.', Comment = '%1 = table caption';
+        SourceConsentRequiredErr: Label 'The source environment has not approved sharing its master data with this environment. Ask an administrator of the source environment to approve the Master Data Management cross-environment privacy notice.';
         SourceProbeFailedErr: Label 'Could not read the change probe from the source environment for table %1.', Comment = '%1 = table caption';
         OpenSynchTablesActionTxt: Label 'Open Synchronization Tables';
         RecordsFeatureTok: Label 'records', Locked = true;
@@ -125,6 +126,8 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
             LogProbeFailure(IntegrationTableId);
             Error(SourceProbeFailedErr, TableCaption(IntegrationTableId));
         end;
+        if SourceResponse.ConsentRequired(Response) then
+            Error(SourceConsentError());
         if (not Response.Get('tables', Token)) or (not Token.IsArray()) then begin
             LogProbeFailure(IntegrationTableId);
             Error(InternalError(StrSubstNo(InvalidResponseErr, TableCaption(IntegrationTableId))));
@@ -179,6 +182,8 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
             LogProbeFailure(IntegrationTableId);
             Error(SourceProbeFailedErr, TableCaption(IntegrationTableId));
         end;
+        if SourceResponse.ConsentRequired(Response) then
+            Error(SourceConsentError());
         // An unavailable table yields no records array; treat as no matching records for the review.
         if not SourceResponse.TableAvailable(Response) then
             exit(false);
@@ -259,6 +264,17 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         exit(ErrInfo);
     end;
 
+    // The source declined to share (its cross-environment privacy notice isn't approved); actionable by the SOURCE
+    // environment's admin, so there is no local navigation action to add.
+    local procedure SourceConsentError(): ErrorInfo
+    var
+        ErrInfo: ErrorInfo;
+    begin
+        ErrInfo.Message := SourceConsentRequiredErr;
+        ErrInfo.DataClassification := DataClassification::SystemMetadata; // Message is emitted to telemetry
+        exit(ErrInfo);
+    end;
+
     // The table isn't exposed on the source: a recoverable setup issue, so point the user at Synchronization Tables.
     local procedure SynchTablesNavigationError(IntegrationTableId: Integer; MessageText: Text): ErrorInfo
     var
@@ -298,6 +314,8 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
             LogParseFailure(IntegrationTableId, InvalidResponseReasonTok);
             Error(InternalError(StrSubstNo(InvalidResponseErr, TableCaption(IntegrationTableId))));
         end;
+        if SourceResponse.ConsentRequired(Response) then
+            Error(SourceConsentError());
         if not SourceResponse.TableAvailable(Response) then begin
             LogParseFailure(IntegrationTableId, TableUnavailableReasonTok);
             Error(SynchTablesNavigationError(IntegrationTableId, StrSubstNo(TableUnavailableErr, TableCaption(IntegrationTableId))));

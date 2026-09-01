@@ -28,6 +28,40 @@ codeunit 139931 "MDM Cross-Env Source Tests"
     end;
 
     [Test]
+    procedure GetRecordsSignalsConsentRequiredWhenNotApproved()
+    var
+        Customer: Record Customer;
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        SourceApi: Codeunit "MDM Cross-Env Source API";
+        Response: JsonObject;
+        Token: JsonToken;
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Privacy]
+        // [SCENARIO] Without source consent the API returns a structured consentRequired signal (not data, not a raw
+        //            error), so the subsidiary can surface a clear message; after approval it serves data.
+        LibrarySales.CreateCustomer(Customer);
+
+        // [GIVEN] this environment has not approved sharing [THEN] the source signals consentRequired and no data
+        LibraryMasterDataMgt.PrivacyNoticeResetApproval();
+        Response.ReadFrom(SourceApi.GetRecords(Database::Customer, FieldIdsArray(Customer.FieldNo(Name)), SystemIdsSelector(Customer.SystemId), 100, ''));
+        Assert.IsTrue(Response.Get('consentRequired', Token) and Token.AsValue().AsBoolean(), 'Source should signal consentRequired when not approved');
+        Assert.IsFalse(Response.Contains('records'), 'No records should be served without consent');
+
+        // [WHEN] the environment approves sharing [THEN] the source serves data with no consent signal
+        Clear(Response);
+        LibraryMasterDataMgt.ApproveCrossEnvPrivacyNotice();
+        Response.ReadFrom(SourceApi.GetRecords(Database::Customer, FieldIdsArray(Customer.FieldNo(Name)), SystemIdsSelector(Customer.SystemId), 100, ''));
+        Assert.IsFalse(Response.Contains('consentRequired'), 'The consent signal should be absent once approved');
+    end;
+
+    local procedure ApproveSourceConsent()
+    var
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+    begin
+        LibraryMasterDataMgt.ApproveCrossEnvPrivacyNotice();
+    end;
+
+    [Test]
     procedure GetRecordsBySystemIdReturnsRequestedFields()
     var
         Customer: Record Customer;
@@ -40,6 +74,7 @@ codeunit 139931 "MDM Cross-Env Source Tests"
     begin
         // [FEATURE] [AI test 0.4]
         // [SCENARIO] GetRecords with a systemIds selector returns just that record with the requested fields.
+        ApproveSourceConsent();
         LibrarySales.CreateCustomer(Customer);
         Customer.Name := CopyStr(LibraryRandom.RandText(20), 1, MaxStrLen(Customer.Name));
         Customer.Modify();
@@ -74,6 +109,7 @@ codeunit 139931 "MDM Cross-Env Source Tests"
     begin
         // [FEATURE] [AI test 0.4]
         // [SCENARIO] Cursor mode pages ascending by (SystemModifiedAt, SystemId) and reports hasMore / nextCursor.
+        ApproveSourceConsent();
         Watermark := CurrentDateTime();
         Sleep(50); // ensure the seeded records sort strictly after the watermark
         for Index := 1 to 3 do begin
@@ -121,6 +157,7 @@ codeunit 139931 "MDM Cross-Env Source Tests"
     begin
         // [FEATURE] [AI test 0.4]
         // [SCENARIO] LastModifiedAtPerTable returns each table's latest modification timestamp.
+        ApproveSourceConsent();
         LibrarySales.CreateCustomer(Customer);
 
         Response.ReadFrom(SourceApi.LastModifiedAtPerTable(TableIdsArray(Database::Customer)));
@@ -144,6 +181,7 @@ codeunit 139931 "MDM Cross-Env Source Tests"
         // [FEATURE] [Master Data Management] [Cross-Environment] [Security]
         // [SCENARIO] The source API refuses to serve Tenant Media as a top-level table, so a caller holding the media
         // read grant cannot enumerate blobs directly; media stays reachable only inline via a record's media field.
+        ApproveSourceConsent();
         Response.ReadFrom(SourceApi.GetRecords(Database::"Tenant Media", FieldIdsArray(1), CursorSelector(CurrentDateTime()), 10, ''));
 
         // [THEN] the table is reported unavailable and no records are returned
@@ -165,6 +203,7 @@ codeunit 139931 "MDM Cross-Env Source Tests"
         // [FEATURE] [Master Data Management] [Cross-Environment]
         // [SCENARIO] The source applies the mapping row filter server-side even when it references a field outside the
         // projection (parity with same-env), so only matching records are returned rather than filtered post-hoc.
+        ApproveSourceConsent();
         Watermark := CurrentDateTime();
         Sleep(50); // ensure the seeded records sort strictly after the watermark
         LibrarySales.CreateCustomer(MatchCustomer);

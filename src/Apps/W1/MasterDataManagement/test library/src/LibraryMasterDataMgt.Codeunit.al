@@ -296,6 +296,15 @@ codeunit 139757 "Library - Master Data Mgt."
         PrivacyNoticeApproval.DeleteAll();
     end;
 
+    /// <summary>Records approval for the cross-env privacy notice (for tests exercising the consent-gated source API).</summary>
+    procedure ApproveCrossEnvPrivacyNotice()
+    var
+        PrivacyNotice: Codeunit "Privacy Notice";
+        MDMPrivacyNotice: Codeunit "MDM Privacy Notice";
+    begin
+        PrivacyNotice.SetApprovalState(MDMPrivacyNotice.GetPrivacyNoticeId(), "Privacy Notice Approval State"::Agreed);
+    end;
+
     var
         MasterDataMgtSubscribers: Codeunit "Master Data Mgt. Subscribers";
         MasterDataManagement: Codeunit "Master Data Management";

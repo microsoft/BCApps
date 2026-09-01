@@ -53,6 +53,12 @@ codeunit 7248 "MDM Source Response"
         exit(ReadControlBoolean(Response, 'hasMore', false));
     end;
 
+    // True when the source declined to share because its cross-environment privacy notice isn't approved.
+    procedure ConsentRequired(var Response: JsonObject): Boolean
+    begin
+        exit(ReadControlBoolean(Response, 'consentRequired', false));
+    end;
+
     // Control fields (tableAvailable/indexed/hasMore) are always booleans in the contract; a present-but-malformed
     // token is an internal contract failure, so surface it as an internal diagnostic instead of a raw runtime throw.
     local procedure ReadControlBoolean(var Response: JsonObject; PropertyName: Text; DefaultValue: Boolean): Boolean
@@ -143,6 +149,8 @@ codeunit 7248 "MDM Source Response"
         TempSourceRecordRef.Init();
         GetGuid(RecordObject, 'systemId', SystemIdValue);
         if RecordObject.Get('fields', FieldsToken) then begin
+            if not FieldsToken.IsObject() then // a non-object 'fields' is a broken contract, routed as an internal error
+                Error(MalformedRecordEntry());
             FieldsObject := FieldsToken.AsObject();
             foreach FieldName in FieldsObject.Keys() do
                 if Evaluate(FieldNo, FieldName) then

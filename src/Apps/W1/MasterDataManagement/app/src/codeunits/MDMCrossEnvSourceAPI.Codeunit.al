@@ -62,6 +62,8 @@ codeunit 7241 "MDM Cross-Env Source API"
         Count: Integer;
         ResultText: Text;
     begin
+        if not IsSourceConsented() then
+            exit(ConsentRequiredResponse());
         Response.Add('tableId', TableId);
 
         if IsBlockedSourceTable(TableId) then
@@ -154,6 +156,25 @@ codeunit 7241 "MDM Cross-Env Source API"
 
     // Media/infrastructure tables are only reachable inline (BuildMediaValue, tied to a record's media field). Never
     // serve them as a top-level read, or a caller holding the Tenant Media read grant could enumerate every blob.
+    // The environment serving its data must have consented. If not, return a structured signal (not an error) so the
+    // subsidiary surfaces a clear, actionable message instead of a raw HTTP failure.
+    local procedure IsSourceConsented(): Boolean
+    var
+        MDMPrivacyNotice: Codeunit "MDM Privacy Notice";
+    begin
+        exit(MDMPrivacyNotice.IsApproved());
+    end;
+
+    local procedure ConsentRequiredResponse(): Text
+    var
+        Response: JsonObject;
+        ResultText: Text;
+    begin
+        Response.Add('consentRequired', true);
+        Response.WriteTo(ResultText);
+        exit(ResultText);
+    end;
+
     local procedure IsBlockedSourceTable(TableId: Integer): Boolean
     begin
         exit(TableId in [Database::"Tenant Media", Database::"Tenant Media Set", Database::"Tenant Media Thumbnails"]);
@@ -597,6 +618,8 @@ codeunit 7241 "MDM Cross-Env Source API"
         Token: JsonToken;
         ResultText: Text;
     begin
+        if not IsSourceConsented() then
+            exit(ConsentRequiredResponse());
         if TryReadJsonArray(TableIds, RequestedTables) then
             foreach Token in RequestedTables do
                 Tables.Add(BuildTableModifiedAt(Token.AsValue().AsInteger()));

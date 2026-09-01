@@ -120,10 +120,13 @@ codeunit 7245 "MDM Cross-Env Change Detector"
     local procedure ProcessDetectionResponse(var Response: JsonObject)
     var
         MasterDataManagement: Codeunit "Master Data Management";
+        SourceResponse: Codeunit "MDM Source Response";
         Tables: JsonArray;
         TablesToken: JsonToken;
         EntryToken: JsonToken;
     begin
+        if SourceResponse.ConsentRequired(Response) then
+            exit; // source hasn't consented to sharing; the sync job surfaces the actionable error, the detector skips
         if (not Response.Get('tables', TablesToken)) or (not TablesToken.IsArray()) then begin
             Session.LogMessage('0000VAQ', DetectionContractFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
             exit;

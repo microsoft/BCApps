@@ -105,7 +105,7 @@ page 7233 "Master Data Synch. Tables"
                                             IntegrationTableMapping.Validate(Status, IntegrationTableMapping.Status::Disabled);
                                             IntegrationTableMapping.Modify();
                                         end;
-                                Message(StrSubstNo(RelatedTablesAddedMsg, AllObjWithCaption."Object Caption", RelatedTablesToAddText));
+                                Message(RelatedTablesAddedMsg, AllObjWithCaption."Object Caption", RelatedTablesToAddText);
                                 exit;
                             end;
 
