@@ -101,7 +101,10 @@ codeunit 4313 "Agent Task Log Export"
         ContextTxt := AgentTaskLogEntry.ReadContext(AgentTaskLogEntryRecord);
         BuildContextJson(ContextTxt, IncludeSerializedPage, ContextJson);
         if ContextJson.Contains(DecisionPointLbl) then
-            EntryJson.Add(DecisionPointLbl, ContextJson.GetBoolean(DecisionPointLbl));
+            EntryJson.Add(DecisionPointLbl, ContextJson.GetBoolean(DecisionPointLbl))
+        else
+            if MemoryContextJson.Contains(DecisionPointLbl) then
+                EntryJson.Add(DecisionPointLbl, MemoryContextJson.GetBoolean(DecisionPointLbl));
         if ContextJson.Keys().Count() > 0 then
             EntryJson.Add(ContextLbl, ContextJson);
 

@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.Test.Agents;
 
+using System.Agents;
+
 permissionset 133964 "Agent SDK Test"
 {
     Assignable = true;
@@ -11,5 +13,9 @@ permissionset 133964 "Agent SDK Test"
 
     Permissions =
         codeunit "Agent SDK Test Install" = X,
-        codeunit "Library Mock Agent" = X;
+        codeunit "Library Mock Agent" = X,
+        tabledata "Agent Task" = R,
+        tabledata "Agent Task Log Entry" = R,
+        tabledata "Agent Task Memory Entry" = R,
+        tabledata "Agent Task Message" = R;
 }

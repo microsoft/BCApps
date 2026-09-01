@@ -6,6 +6,7 @@
 namespace System.Test.Agents;
 
 using System.Agents.Troubleshooting;
+using System.TestLibraries.Security.AccessControl;
 using System.TestLibraries.Utilities;
 using System.Utilities;
 
@@ -244,6 +245,92 @@ codeunit 133964 "Agent Task Log Page Test"
         Assert.IsFalse(ContextJson.Contains('serializedPage'), 'The serialized page should not be included.');
         Assert.IsTrue(ContextJson.GetBoolean('serializedPageRedacted'), 'The serialized page should be marked as redacted.');
         Assert.IsTrue(ContextJson.GetText('serializedPageRedactionReason').Contains('Troubleshoot All Agents'), 'The redaction reason should identify the required permission.');
+    end;
+
+    [Test]
+    [TestPermissions(TestPermissions::Restrictive)]
+    procedure TestExportToJson_RedactsSerializedPageWithoutTroubleshootPermission()
+    var
+        TempAgentTaskLogEntry: Record "Agent Task Log Entry" temporary;
+        PermissionsMock: Codeunit "Permissions Mock";
+        ExportJson: JsonObject;
+        EntryJson: JsonObject;
+        ContextJson: JsonObject;
+    begin
+        // [GIVEN] A log entry with a page snapshot and no Troubleshoot All Agents permission
+        PermissionsMock.Set('Agent SDK Test');
+        CreateTempLogEntryWithContext(TempAgentTaskLogEntry, '{"serializedPage":"{\"secret\":\"value\"}"}');
+
+        // [WHEN] The log entry is exported
+        ExportToJson(TempAgentTaskLogEntry, ExportJson);
+
+        // [THEN] The page snapshot is redacted
+        EntryJson := GetFirstEntry(ExportJson);
+        ContextJson := EntryJson.GetObject('context');
+        Assert.IsFalse(ContextJson.Contains('serializedPage'), 'The serialized page should not be included.');
+        Assert.IsTrue(ContextJson.GetBoolean('serializedPageRedacted'), 'The serialized page should be marked as redacted.');
+    end;
+
+    [Test]
+    [TestPermissions(TestPermissions::Restrictive)]
+    procedure TestExportToJson_IncludesSerializedPageWithTroubleshootPermission()
+    var
+        TempAgentTaskLogEntry: Record "Agent Task Log Entry" temporary;
+        PermissionsMock: Codeunit "Permissions Mock";
+        ExportJson: JsonObject;
+        EntryJson: JsonObject;
+        ContextJson: JsonObject;
+    begin
+        // [GIVEN] A log entry with a page snapshot and the Troubleshoot All Agents permission
+        PermissionsMock.Set('SUPER');
+        CreateTempLogEntryWithContext(TempAgentTaskLogEntry, '{"serializedPage":"{\"secret\":\"value\"}"}');
+
+        // [WHEN] The log entry is exported
+        ExportToJson(TempAgentTaskLogEntry, ExportJson);
+
+        // [THEN] The page snapshot is included
+        EntryJson := GetFirstEntry(ExportJson);
+        ContextJson := EntryJson.GetObject('context');
+        Assert.IsTrue(ContextJson.Contains('serializedPage'), 'The serialized page should be included.');
+        Assert.IsFalse(ContextJson.Contains('serializedPageRedacted'), 'The serialized page should not be redacted.');
+    end;
+
+    local procedure CreateTempLogEntryWithContext(var TempAgentTaskLogEntry: Record "Agent Task Log Entry" temporary; ContextTxt: Text)
+    var
+        AgentTaskLogEntry: Codeunit "Agent Task Log Entry";
+        ContextOutStream: OutStream;
+    begin
+        TempAgentTaskLogEntry.ID := 1;
+        TempAgentTaskLogEntry."Task ID" := -1;
+        TempAgentTaskLogEntry."Memory Entry ID" := 1;
+        TempAgentTaskLogEntry.Type := TempAgentTaskLogEntry.Type::"Input Message";
+        TempAgentTaskLogEntry."Troubleshooting Info".CreateOutStream(ContextOutStream, AgentTaskLogEntry.GetDefaultEncoding());
+        ContextOutStream.WriteText(ContextTxt);
+        TempAgentTaskLogEntry.Insert();
+    end;
+
+    local procedure ExportToJson(var TempAgentTaskLogEntry: Record "Agent Task Log Entry" temporary; var ExportJson: JsonObject)
+    var
+        AgentTaskLogEntry: Codeunit "Agent Task Log Entry";
+        AgentTaskLogExport: Codeunit "Agent Task Log Export";
+        TempBlob: Codeunit "Temp Blob";
+        ExportInStream: InStream;
+        ExportOutStream: OutStream;
+        ExportTxt: Text;
+    begin
+        TempBlob.CreateOutStream(ExportOutStream, AgentTaskLogEntry.GetDefaultEncoding());
+        AgentTaskLogExport.ExportToJson(TempAgentTaskLogEntry, ExportOutStream);
+        TempBlob.CreateInStream(ExportInStream, AgentTaskLogEntry.GetDefaultEncoding());
+        ExportInStream.ReadText(ExportTxt);
+        Assert.IsTrue(ExportJson.ReadFrom(ExportTxt), 'The export should contain valid JSON.');
+    end;
+
+    local procedure GetFirstEntry(ExportJson: JsonObject): JsonObject
+    var
+        EntryToken: JsonToken;
+    begin
+        ExportJson.GetArray('entries').Get(0, EntryToken);
+        exit(EntryToken.AsObject());
     end;
 
     local procedure ValidateFullContext(var TempPageStackRecords: Record "Agent JSON Buffer" temporary; var TempAvailableToolsRecords: Record "Agent JSON Buffer" temporary; var TempMemorizedDataRecords: Record "Agent JSON Buffer" temporary)
