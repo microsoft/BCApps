@@ -127,6 +127,7 @@ report 20502 "Subc. Create SubCReturnOrder"
             TransferHeader."Trsf.-from Country/Region Code" := Vendor."Country/Region Code";
 
             TransferHeader.Modify();
+            OnAfterInsertTransferHeader(TransferHeader, Vendor);
             LineNo := 0;
         end else begin
             TransferLine.SetRange("Document No.", TransferHeader."No.");
@@ -262,7 +263,13 @@ report 20502 "Subc. Create SubCReturnOrder"
     local procedure ShowDocument()
     var
         SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeShowDocument(TransferHeader, IsHandled);
+        if IsHandled then
+            exit;
+
         Commit(); // Used for following call of Transfer Pages
 
         SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder("Purchase Line", true, true);
@@ -416,5 +423,15 @@ report 20502 "Subc. Create SubCReturnOrder"
         TransferLineToCheck.SetRange("Transfer WIP Item", true);
         TransferLineToCheck.SetRange("Subc. Return Order", true);
         exit(not TransferLineToCheck.IsEmpty());
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInsertTransferHeader(var TransferHeader: Record "Transfer Header"; Vendor: Record Vendor)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeShowDocument(var TransferHeader: Record "Transfer Header"; var IsHandled: Boolean)
+    begin
     end;
 }
