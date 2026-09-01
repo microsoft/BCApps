@@ -59,6 +59,12 @@ codeunit 6283 "Sust. FA Journal Subscriber"
             PostSustainabilityLine(FAJournalLine);
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"FA Insert Ledger Entry", 'OnInsertReverseEntryOnBeforeInsertFALedgEntry', '', false, false)]
+    local procedure OnInsertReverseEntryOnBeforeInsertFALedgEntry(var FALedgerEntry3: Record "FA Ledger Entry")
+    begin
+        FALedgerEntry3."Total CO2e" := -FALedgerEntry3."Total CO2e";
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"FA Check Consistency", 'OnCheckNormalPostingOnCalcValues', '', false, false)]
     local procedure OnCheckNormalPostingOnCalcValues(FANo: Code[20]; FAPostingDate: Date; var FALedgerEntry2: Record "FA Ledger Entry"; DepreciationBookCode: Code[10])
     begin
