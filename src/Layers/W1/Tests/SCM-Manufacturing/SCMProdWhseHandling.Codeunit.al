@@ -18,6 +18,7 @@ using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Warehouse.Activity;
+using Microsoft.Warehouse.InternalDocument;
 using Microsoft.Warehouse.Request;
 using Microsoft.Warehouse.Setup;
 using Microsoft.Warehouse.Structure;
@@ -1612,23 +1613,31 @@ codeunit 137298 "SCM Prod. Whse. Handling"
     procedure AlwaysCreatePickLineCreatesShortageWhenBinStockInsufficient()
     var
         Bin: Record Bin;
+        FromBin: Record Bin;
+        ToBin: Record Bin;
         CompItem: Record Item;
+        InternalMovementHeader: Record "Internal Movement Header";
+        InternalMovementLine: Record "Internal Movement Line";
         Location: Record Location;
         ParentItem: Record Item;
         ProductionBOMHeader: Record "Production BOM Header";
         ProductionOrder: Record "Production Order";
         WarehouseActivityLine: Record "Warehouse Activity Line";
+        CreateInvtPickMovement: Codeunit "Create Inventory Pick/Movement";
         BinStockQty: Decimal;
         ComponentQty: Decimal;
+        ExcessQty: Decimal;
     begin
         // [FEATURE] [AI test 0.4]
-        // [SCENARIO] Blank-bin shortage line is created for unfulfilled quantity when bin stock is less than component demand.
+        // [SCENARIO] Blank-bin shortage line is created for the unfulfilled quantity when the available inventory exceeds the
+        // component demand but the quantity that can actually be picked from the bin is short.
         Initialize();
         ComponentQty := LibraryRandom.RandIntInRange(5, 20);
         BinStockQty := LibraryRandom.RandInt(ComponentQty - 1);
+        ExcessQty := 2 * ComponentQty;
 
-        // [GIVEN] Create a Location with Bin Mandatory and "Always Create Pick Line" enabled.
-        CreateLocationSetupWithBins(Location, false, false, false, false, true, 1, false);
+        // [GIVEN] Create a Location with Bin Mandatory, two bins and "Always Create Pick Line" enabled.
+        CreateLocationSetupWithBins(Location, false, false, false, false, true, 2, false);
         Location.Validate("Always Create Pick Line", true);
         Location."Prod. Consump. Whse. Handling" := "Prod. Consump. Whse. Handling"::"Inventory Pick/Movement";
         Location.Modify(true);
@@ -1641,10 +1650,22 @@ codeunit 137298 "SCM Prod. Whse. Handling"
         ParentItem."Replenishment System" := ParentItem."Replenishment System"::"Prod. Order";
         ParentItem.Modify(true);
 
-        // [GIVEN] Post less than demanded quantity of the component to the bin.
+        // [GIVEN] Post more than the demanded quantity of the component to the first bin.
         Bin.SetRange("Location Code", Location.Code);
-        Bin.FindFirst();
-        CreateAndPostItemJournalLine(CompItem."No.", "Item Ledger Entry Type"::"Positive Adjmt.", BinStockQty, Location.Code, Bin.Code, '');
+        Bin.FindSet();
+        FromBin := Bin;
+        Bin.Next();
+        ToBin := Bin;
+        CreateAndPostItemJournalLine(
+            CompItem."No.", "Item Ledger Entry Type"::"Positive Adjmt.", BinStockQty + ExcessQty, Location.Code, FromBin.Code, '');
+
+        // [GIVEN] Tie up the excess in the bin with an open inventory movement, so the inventory stays available but only
+        // BinStockQty can be picked from the bin. This makes QtyAvailToPickBase exceed the component demand.
+        LibraryWarehouse.CreateInternalMovementHeader(InternalMovementHeader, Location.Code, ToBin.Code);
+        LibraryWarehouse.CreateInternalMovementLine(
+            InternalMovementHeader, InternalMovementLine, CompItem."No.", FromBin.Code, ToBin.Code, ExcessQty);
+        CreateInvtPickMovement.SetHideDialog(true);
+        CreateInvtPickMovement.CreateInvtMvntWithoutSource(InternalMovementHeader);
 
         // [GIVEN] Create Released Production Order.
         CreateAndRefreshProductionOrder(
@@ -1660,7 +1681,7 @@ codeunit 137298 "SCM Prod. Whse. Handling"
             WarehouseActivityLine, ProductionOrder."No.",
             WarehouseActivityLine."Activity Type"::"Invt. Pick", Location.Code,
             WarehouseActivityLine."Action Type"::Take);
-        WarehouseActivityLine.SetRange("Bin Code", Bin.Code);
+        WarehouseActivityLine.SetRange("Bin Code", FromBin.Code);
         Assert.RecordCount(WarehouseActivityLine, 1);
         WarehouseActivityLine.FindFirst();
         Assert.AreEqual(BinStockQty, WarehouseActivityLine."Qty. (Base)", BinPickQtyIsWrongErr);
@@ -1673,7 +1694,7 @@ codeunit 137298 "SCM Prod. Whse. Handling"
             ComponentQty - BinStockQty, WarehouseActivityLine."Qty. (Base)",
             ShortageLineQtyIsWrongErr);
 
-        LibraryVariableStorage.DequeueText();
+        Assert.ExpectedMessage(PickActivitiesCreatedMsg, LibraryVariableStorage.DequeueText());
         LibraryVariableStorage.AssertEmpty();
     end;
 
