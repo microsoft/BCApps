@@ -2,7 +2,11 @@ namespace Microsoft.Bc2Fabric;
 
 using System.Fabric;
 
+#if not PTE
 page 150002 "Fabric Platform Export Details"
+#else
+page 50102 "Fabric Platform Export Details"
+#endif
 {
     Caption = 'Fabric Platform Export Details';
     PageType = List;

@@ -4,7 +4,11 @@ using System.Environment;
 using System.Fabric;
 using System.Reflection;
 
+#if not PTE
 codeunit 150001 "Fabric Platform Mgt"
+#else
+codeunit 50101 "Fabric Platform Mgt"
+#endif
 {
     Access = Internal;
 

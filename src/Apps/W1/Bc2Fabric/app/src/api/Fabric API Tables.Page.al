@@ -2,7 +2,11 @@ namespace Microsoft.Bc2Fabric;
 
 using System.Fabric;
 
+#if not PTE
 page 150010 "Fabric API Tables"
+#else
+page 50110 "Fabric API Tables"
+#endif
 {
     PageType = API;
     Caption = 'Fabric API Tables', Locked = true;

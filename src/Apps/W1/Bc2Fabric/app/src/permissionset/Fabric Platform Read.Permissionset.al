@@ -2,7 +2,11 @@ namespace Microsoft.Bc2Fabric;
 
 using System.Fabric;
 
+#if not PTE
 permissionset 150002 "Fabric Plat Read"
+#else
+permissionset 50102 "Fabric Plat Read"
+#endif
 {
     Caption = 'BC2Fabric - Platform Read';
     Assignable = true;

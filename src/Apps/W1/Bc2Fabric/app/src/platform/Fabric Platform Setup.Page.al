@@ -3,7 +3,11 @@ namespace Microsoft.Bc2Fabric;
 using Microsoft.Utilities;
 using System.Fabric;
 
+#if not PTE
 page 150004 "Fabric Platform Setup"
+#else
+page 50104 "Fabric Platform Setup"
+#endif
 {
     Caption = 'Fabric Platform Export Setup';
     PageType = Card;

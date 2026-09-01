@@ -2,7 +2,11 @@ namespace Microsoft.Bc2Fabric;
 
 using System.Fabric;
 
+#if not PTE
 permissionset 150003 "Fabric Plat Activate"
+#else
+permissionset 50103 "Fabric Plat Activate"
+#endif
 {
     Caption = 'BC2Fabric - Platform Activate';
     Assignable = true;

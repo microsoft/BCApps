@@ -2,7 +2,11 @@ namespace Microsoft.Bc2Fabric;
 
 using System.Fabric;
 
+#if not PTE
 permissionset 150001 "Fabric Plat Admin"
+#else
+permissionset 50101 "Fabric Plat Admin"
+#endif
 {
     Caption = 'BC2Fabric - Platform Admin';
     Assignable = true;

@@ -1,6 +1,10 @@
 namespace Microsoft.Bc2Fabric;
 
+#if not PTE
 table 150002 "Fabric Config Package"
+#else
+table 50102 "Fabric Config Package"
+#endif
 {
     Caption = 'Fabric Config Package';
     Access = Internal;

@@ -2,7 +2,11 @@ namespace Microsoft.Bc2Fabric;
 
 using System.RestClient;
 
+#if not PTE
 codeunit 150006 "Fabric Platform Http Client"
+#else
+codeunit 50106 "Fabric Platform Http Client"
+#endif
 {
     Access = Internal;
 

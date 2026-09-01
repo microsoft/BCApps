@@ -3,7 +3,11 @@ namespace Microsoft.Bc2Fabric;
 using Microsoft.Utilities;
 using System.RestClient;
 
+#if not PTE
 codeunit 150007 "Fabric Platform Admin Client"
+#else
+codeunit 50107 "Fabric Platform Admin Client"
+#endif
 {
     Access = Internal;
 

@@ -1,6 +1,10 @@
 namespace Microsoft.Bc2Fabric;
 
+#if not PTE
 page 150012 "Fabric API Config Packages"
+#else
+page 50112 "Fabric API Config Packages"
+#endif
 {
     PageType = API;
     Caption = 'Fabric API Config Packages', Locked = true;

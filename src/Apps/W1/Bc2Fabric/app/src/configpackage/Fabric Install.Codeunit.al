@@ -1,6 +1,10 @@
 namespace Microsoft.Bc2Fabric;
 
+#if not PTE
 codeunit 150003 "Fabric Install"
+#else
+codeunit 50103 "Fabric Install"
+#endif
 {
     Subtype = Install;
     Access = Internal;

@@ -2,7 +2,11 @@ namespace Microsoft.Bc2Fabric;
 
 using System.Utilities;
 
+#if not PTE
 page 150008 "Fabric Config Packages"
+#else
+page 50108 "Fabric Config Packages"
+#endif
 {
     Caption = 'Fabric Config Packages';
     PageType = List;

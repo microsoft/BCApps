@@ -1,6 +1,10 @@
 namespace Microsoft.Bc2Fabric;
 
+#if not PTE
 codeunit 150008 "Fabric Platform Telemetry"
+#else
+codeunit 50108 "Fabric Platform Telemetry"
+#endif
 {
     Access = Internal;
 
