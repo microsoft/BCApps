@@ -19,7 +19,6 @@ codeunit 148222 "Sust. Reversal Tests"
         Assert: Codeunit Assert;
         LibraryERM: Codeunit "Library - ERM";
         LibrarySustainability: Codeunit "Library - Sustainability";
-        LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
         IsInitialized: Boolean;
 
@@ -487,25 +486,10 @@ codeunit 148222 "Sust. Reversal Tests"
     // --- Helper Procedures ---
 
     local procedure Initialize()
-    var
-        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
-        LibraryTestInitialize.OnTestInitialize(Codeunit::"Sust. Reversal Tests");
         if IsInitialized then
             exit;
-
-        LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Sust. Reversal Tests");
-
-        LibraryERMCountryData.CreateVATData();
-        LibraryERMCountryData.UpdateGeneralLedgerSetup();
-        LibraryERMCountryData.UpdateSalesReceivablesSetup();
-        LibraryERMCountryData.CreateGeneralPostingSetupData();
-        LibraryERMCountryData.UpdateVATPostingSetup();
-        LibraryERMCountryData.UpdateGeneralPostingSetup();
-        LibraryERMCountryData.UpdateLocalData();
         IsInitialized := true;
-
-        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Sust. Reversal Tests");
     end;
 
     local procedure GetReadyToPostAccountNo(): Code[20]
