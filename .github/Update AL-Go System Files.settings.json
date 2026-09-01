@@ -3,10 +3,11 @@
         "cron": "25 12 * * 3",
         "includeBranches": [
             "main",
-            "releases/24.x",
-            "releases/24.5",
             "releases/25.*",
-            "releases/26.*"
+            "releases/26.*",
+            "releases/27.*",
+            "releases/28.*"
         ]
     }
 }
+

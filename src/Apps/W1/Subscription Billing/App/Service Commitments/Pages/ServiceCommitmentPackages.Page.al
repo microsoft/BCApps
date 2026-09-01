@@ -9,6 +9,9 @@ page 8057 "Service Commitment Packages"
     UsageCategory = Administration;
     CardPageId = "Service Commitment Package";
     Editable = false;
+    AdditionalSearchTerms = 'Subscription Packages, Package List, Item Packages, Subscription Templates, Commitment Packages, Package Overview';
+    AboutTitle = 'About Subscription Packages';
+    AboutText = 'Here you can see all the subscription packages that are available to help you create your subscriptions. You can assign them directly to items or even provide them in Item Templates.';
     layout
     {
         area(content)

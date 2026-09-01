@@ -8,15 +8,14 @@ using Microsoft.QualityManagement.Document;
 
 /// <summary>
 /// Do not use this query outside of web services.
-/// Power automate friendly web service for quality inspections.
-/// This web service is used to help list test values.
+/// Power Automate friendly web service for quality inspections.
+/// This web service is used to help list inspection values.
 /// </summary>
 query 20401 "Qlty. Inspection Values"
 {
     QueryType = API;
-    Caption = 'Quality Inspection Values', Locked = true;
     APIPublisher = 'microsoft';
-    APIGroup = 'qualityInspection';
+    APIGroup = 'qualityManagement';
     APIVersion = 'v1.0';
     EntityName = 'qualityInspectionValue';
     EntityCaption = 'Quality Inspection Value';
@@ -91,7 +90,7 @@ query 20401 "Qlty. Inspection Values"
                     Caption = 'lineTestValueType', Locked = true;
                 }
                 column(lineResultCode; "Result Code") { }
-                column(lineNumericValue; "Numeric Value") { }
+                column(lineDerivedNumericValue; "Derived Numeric Value") { }
                 column(lineTestValue; "Test Value") { }
                 column(lineSystemModifiedBy; SystemModifiedBy) { }
                 column(lineSystemModifiedAt; SystemModifiedAt) { }

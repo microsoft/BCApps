@@ -12,9 +12,9 @@ pageextension 20412 "Qlty. Lot No. Info. Card" extends "Lot No. Information Card
 {
     layout
     {
-        addafter(General)
+        addafter(Inventory)
         {
-            group(Qlty_Management)
+            group(Qlty_QualityManagement)
             {
                 Caption = 'Quality Management';
 

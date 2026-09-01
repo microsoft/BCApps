@@ -78,7 +78,7 @@ page 8083 "Sales Serv. Comm. Archive List"
                 }
                 field("Extension Term"; Rec."Extension Term")
                 {
-                    ToolTip = 'Specifies a date formula for automatic renewal after initial term and the rhythm of the update of "Notice possible to" and "Term Until". If the field is empty and the initial term or notice period is filled, the end of Subscription Line is automatically set to the end of the initial term or notice period.';
+                    ToolTip = 'Specifies a date formula for automatic renewal after initial term and the rhythm of the update of "Notice possible to" and "Term Until".';
                 }
                 field("Billing Base Period"; Rec."Billing Base Period")
                 {

@@ -4,11 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument.Processing.Import.Purchase;
 
+using Microsoft.Finance.AllocationAccount;
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
-using Microsoft.Foundation.Period;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
@@ -35,12 +37,12 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
     /// </summary>
     procedure GetSampleInvoicePostingDate(): Date
     var
-        AccountingPeriod: Record "Accounting Period";
+        GLEntry: Record "G/L Entry";
     begin
-        AccountingPeriod.SetRange(Closed, false);
-        AccountingPeriod.SetRange("New Fiscal Year", true);
-        if AccountingPeriod.FindFirst() then
-            exit(AccountingPeriod."Starting Date");
+        GLEntry.SetLoadFields("Posting Date");
+        GLEntry.SetCurrentKey("Posting Date");
+        if GLEntry.FindLast() then
+            exit(GLEntry."Posting Date");
         exit(WorkDate());
     end;
 
@@ -187,7 +189,8 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
         OutStream: OutStream;
         GeneratedPdfIsEmptyErr: Label 'Generated PDF is empty';
     begin
-        TempEDocPurchHeader.TestField("[BC] Vendor No.");
+        UpdateTotalVATInEDocPurchaseHeader(TempEDocPurchHeader, TempEDocPurchLine);
+        TempEDocPurchHeader.Modify();
         SetLayout(SamplePurchInvPDF);
         TempBlob := SamplePurchInvPDF.GeneratePDF(TempEDocPurchHeader, TempEDocPurchLine);
         if TempBlob.Length() = 0 then
@@ -198,6 +201,63 @@ codeunit 6209 "E-Doc Sample Purchase Invoice"
         SamplePurchInvFile."File Content".CreateOutStream(OutStream);
         Copystream(OutStream, InStream);
         SamplePurchInvFile.Modify();
+    end;
+
+    /// <summary>
+    /// Update the total VAT on the e-document purchase header based on the lines added.
+    /// </summary>
+    internal procedure UpdateTotalVATInEDocPurchaseHeader(var EDocPurchaseHeader: Record "E-Document Purchase Header"; var EDocPurchaseLine: Record "E-Document Purchase Line")
+    var
+        Vendor: Record Vendor;
+        TotalVATAmount: Decimal;
+        NoLinesAddedLbl: Label 'No lines have been added to lines buffer to generate inbound e-document invoice.';
+    begin
+        EDocPurchaseHeader.TestField("[BC] Vendor No.");
+        Vendor.Get(EDocPurchaseHeader."[BC] Vendor No.");
+        EDocPurchaseLine.SetRange("E-Document Entry No.", 0);
+        if not EDocPurchaseLine.FindSet() then
+            Error(NoLinesAddedLbl);
+        repeat
+            TotalVATAmount += CalculateVATForEDocPurchaseLine(EDocPurchaseLine, Vendor);
+        until EDocPurchaseLine.Next() = 0;
+        EDocPurchaseHeader."Total VAT" := TotalVATAmount;
+    end;
+
+    local procedure CalculateVATForEDocPurchaseLine(EDocPurchaseLine: Record "E-Document Purchase Line"; Vendor: Record Vendor): Decimal
+    var
+        GLAccount: Record "G/L Account";
+        Item: Record Item;
+        AllocationAccount: Record "Allocation Account";
+        AllocAccountDistribution: Record "Alloc. Account Distribution";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        case EDocPurchaseLine."[BC] Purchase Line Type" of
+            EDocPurchaseLine."[BC] Purchase Line Type"::"G/L Account":
+                begin
+                    GLAccount.Get(EDocPurchaseLine."[BC] Purchase Type No.");
+                    if not VATPostingSetup.Get(Vendor."VAT Bus. Posting Group", GLAccount."VAT Prod. Posting Group") then
+                        VATPostingSetup.Init();
+                end;
+            EDocPurchaseLine."[BC] Purchase Line Type"::Item:
+                begin
+                    Item.Get(EDocPurchaseLine."[BC] Purchase Type No.");
+                    if not VATPostingSetup.Get(Vendor."VAT Bus. Posting Group", Item."VAT Prod. Posting Group") then
+                        VATPostingSetup.Init();
+                end;
+            EDocPurchaseLine."[BC] Purchase Line Type"::"Allocation Account":
+                begin
+                    AllocationAccount.Get(EDocPurchaseLine."[BC] Purchase Type No.");
+                    AllocAccountDistribution.SetRange("Allocation Account No.", AllocationAccount."No.");
+                    AllocAccountDistribution.FindFirst();
+                    AllocAccountDistribution.TestField("Destination Account Type", AllocAccountDistribution."Destination Account Type"::"G/L Account");
+                    GLAccount.Get(AllocAccountDistribution."Destination Account Number");
+                    if not VATPostingSetup.Get(Vendor."VAT Bus. Posting Group", GLAccount."VAT Prod. Posting Group") then
+                        VATPostingSetup.Init();
+                end;
+        end;
+        if VATPostingSetup."VAT Calculation Type" = VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT" then
+            VATPostingSetup."VAT %" := 0;
+        exit(Round(EDocPurchaseLine."Sub Total" * VATPostingSetup."VAT %" / 100));
     end;
 
     local procedure GetSamplePurchInvFileName(): Text[100]

@@ -58,5 +58,13 @@ codeunit 5597 "Create QM Insp. Template Line"
 
         ContosoQualityManagement.InsertQualityInspectionTemplateLine(CreateQMInspTemplateHdr.ScheduleChange(), 10000, CreateQualityTest.ReasonCode(), '');
         ContosoQualityManagement.InsertQualityInspectionTemplateLine(CreateQMInspTemplateHdr.ScheduleChange(), 20000, CreateQualityTest.Explanation(), '');
+
+        ContosoQualityManagement.InsertQualityInspectionTemplateLine(CreateQMInspTemplateHdr.Beans(), 10000, CreateQualityTest.BagWeight(), '');
+        ContosoQualityManagement.InsertQualityInspectionTemplateLine(CreateQMInspTemplateHdr.Beans(), 20000, CreateQualityTest.PackagingVisual(), '');
+        ContosoQualityManagement.InsertQualityInspectionTemplateLine(CreateQMInspTemplateHdr.Beans(), 30000, CreateQualityTest.Labeling(), '');
+        ContosoQualityManagement.InsertQualityInspectionTemplateLine(CreateQMInspTemplateHdr.Beans(), 40000, CreateQualityTest.CoffeeDefect(), '');
+        ContosoQualityManagement.InsertQualityInspectionTemplateLine(CreateQMInspTemplateHdr.Beans(), 50000, CreateQualityTest.CoffeeUniformity(), '');
+        ContosoQualityManagement.InsertQualityInspectionTemplateLine(CreateQMInspTemplateHdr.Beans(), 60000, CreateQualityTest.Moisture(), '');
+        ContosoQualityManagement.InsertQualityInspectionTemplateLine(CreateQMInspTemplateHdr.Beans(), 70000, CreateQualityTest.Comment(), '');
     end;
 }

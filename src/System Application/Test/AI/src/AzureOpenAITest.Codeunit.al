@@ -10,6 +10,7 @@ using System.Privacy;
 using System.TestLibraries.AI;
 using System.TestLibraries.Environment;
 using System.TestLibraries.Utilities;
+using System.Text;
 
 codeunit 132684 "Azure OpenAI Test"
 {
@@ -661,6 +662,188 @@ codeunit 132684 "Azure OpenAI Test"
         LibraryAssert.AreEqual('User 1', HistoryNames.Get(1), 'The user name should be "User 1"');
         LibraryAssert.AreEqual('User 2', HistoryNames.Get(2), 'The user name should be "User 2"');
     end;
+
+    [Test]
+    procedure TestAOAIChatMessagesAddUserMessageWithContentArray()
+    var
+        AOAIChatMessages: Codeunit "AOAI Chat Messages";
+        AOAIUserMessage: Codeunit "AOAI User Message";
+        AzureOpenAITestLibrary: Codeunit "Azure OpenAI Test Library";
+        HistoryJsonArray: JsonArray;
+        HistoryMessage: JsonToken;
+        ContentToken: JsonToken;
+        ContentArray: JsonArray;
+        ContentItem: JsonToken;
+        ItemObject: JsonObject;
+        TypeToken: JsonToken;
+    begin
+        // [SCENARIO] AddUserMessage with AOAI User Message builder correctly assembles array content in history
+
+        // [GIVEN] A user message with text and file parts
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
+        AOAIUserMessage.AddTextPart('What is in this image?');
+        AOAIUserMessage.AddFilePart('Test');
+
+        // [WHEN] Adding user message with content parts and calling PrepareHistory
+        AOAIChatMessages.AddUserMessage(AOAIUserMessage);
+        HistoryJsonArray := AzureOpenAITestLibrary.GetAOAIHistory(10, AOAIChatMessages);
+
+        // [THEN] The history contains one message
+        LibraryAssert.AreEqual(1, HistoryJsonArray.Count, 'The history length should be 1');
+
+        // [THEN] The message content is a JsonArray with 2 parts
+        HistoryJsonArray.Get(0, HistoryMessage);
+        HistoryMessage.AsObject().Get('content', ContentToken);
+        ContentArray := ContentToken.AsArray();
+        LibraryAssert.AreEqual(2, ContentArray.Count, 'The content array should have 2 parts');
+
+        // [THEN] The first content part is a text part
+        ContentArray.Get(0, ContentItem);
+        ItemObject := ContentItem.AsObject();
+        ItemObject.Get('type', TypeToken);
+        LibraryAssert.AreEqual('text', TypeToken.AsValue().AsText(), 'The first content part type should be "text"');
+
+        // [THEN] The second content part is a file part
+        ContentArray.Get(1, ContentItem);
+        ItemObject := ContentItem.AsObject();
+        ItemObject.Get('type', TypeToken);
+        LibraryAssert.AreEqual('file', TypeToken.AsValue().AsText(), 'The second content part type should be "file"');
+    end;
+
+    [Test]
+    procedure TestChatCompletionPrepareHistoryMixedContent()
+    var
+        AOAIChatMessages: Codeunit "AOAI Chat Messages";
+        AOAIUserMessage: Codeunit "AOAI User Message";
+        AzureOpenAITestLibrary: Codeunit "Azure OpenAI Test Library";
+        HistoryJsonArray: JsonArray;
+        HistoryMessage: JsonToken;
+        ContentToken: JsonToken;
+    begin
+        // [SCENARIO] Mixed string and array content messages assemble correctly in history
+
+        // [GIVEN] A string user message followed by an array content user message
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
+        AOAIChatMessages.AddUserMessage('Hello, this is a text message');
+
+        AOAIUserMessage.AddTextPart('Array content message');
+        AOAIChatMessages.AddUserMessage(AOAIUserMessage);
+
+        // [WHEN] Calling PrepareHistory
+        HistoryJsonArray := AzureOpenAITestLibrary.GetAOAIHistory(10, AOAIChatMessages);
+
+        // [THEN] The history contains two messages
+        LibraryAssert.AreEqual(2, HistoryJsonArray.Count, 'The history length should be 2');
+
+        // [THEN] The first message has string content
+        HistoryJsonArray.Get(0, HistoryMessage);
+        HistoryMessage.AsObject().Get('content', ContentToken);
+        LibraryAssert.AreEqual('Hello, this is a text message', ContentToken.AsValue().AsText(), 'The first message content should be the text string');
+
+        // [THEN] The second message has array content
+        HistoryJsonArray.Get(1, HistoryMessage);
+        HistoryMessage.AsObject().Get('content', ContentToken);
+        LibraryAssert.AreEqual(1, ContentToken.AsArray().Count, 'The second message content should be an array with 1 part');
+    end;
+
+
+    // [Test] Offline test to validate the flow of calling the Azure OpenAI service with chat messages containing file content.
+    procedure OfflineChatCompletionWithFileContent()
+    var
+        AOAIChatMessages: Codeunit "AOAI Chat Messages";
+        AOAIDeployments: Codeunit "AOAI Deployments";
+        AOAI: Codeunit "Azure OpenAI";
+        AOAIUserMessage: Codeunit "AOAI User Message";
+        CopilotCapability: Codeunit "Copilot Capability";
+        AOAIOperationResponse: Codeunit "AOAI Operation Response";
+        Base64Converter: Codeunit "Base64 Convert";
+        PdfInstream: InStream;
+        Result: Text;
+        FileDataLbl: Label 'data:application/pdf;base64,%1', Locked = true;
+    begin
+        NavApp.GetResource('test.pdf', PdfInstream, TextEncoding::UTF8);
+
+        AOAIUserMessage.AddTextPart('What is in the file?');
+        AOAIUserMessage.AddFilePart(StrSubstNo(FileDataLbl, Base64Converter.ToBase64(PdfInstream)));
+        AOAIChatMessages.AddUserMessage(AOAIUserMessage);
+
+        if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"Chat Capability") then
+            CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Chat Capability", Enum::"Copilot Availability"::"Preview", Enum::"Copilot Billing Type"::"Not Billed", '');
+
+        AOAI.SetCopilotCapability(Enum::"Copilot Capability"::"Chat Capability");
+        AOAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41MiniPreview());
+        AOAI.GenerateChatCompletion(AOAIChatMessages, AOAIOperationResponse);
+
+        Result := AOAIOperationResponse.GetResult();
+        Result := '';
+
+        AOAIChatMessages.AddUserMessage('What is the vendor name?');
+        AOAI.GenerateChatCompletion(AOAIChatMessages, AOAIOperationResponse);
+
+        Result := AOAIOperationResponse.GetResult();
+        Result := '';
+    end;
+
+    // [Test] Offline test to validate the flow of calling the Azure OpenAI service with chat messages containing text messages.
+    procedure OfflineChatCompletionWithTextMessages()
+    var
+        AOAIChatMessages: Codeunit "AOAI Chat Messages";
+        AOAIDeployments: Codeunit "AOAI Deployments";
+        AOAI: Codeunit "Azure OpenAI";
+        CopilotCapability: Codeunit "Copilot Capability";
+        AOAIOperationResponse: Codeunit "AOAI Operation Response";
+        Result: Text;
+    begin
+
+        AOAIChatMessages.AddUserMessage('Hello');
+
+        if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"Chat Capability") then
+            CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Chat Capability", Enum::"Copilot Availability"::"Preview", Enum::"Copilot Billing Type"::"Not Billed", '');
+
+        AOAI.SetCopilotCapability(Enum::"Copilot Capability"::"Chat Capability");
+        AOAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41MiniPreview());
+        AOAI.GenerateChatCompletion(AOAIChatMessages, AOAIOperationResponse);
+
+        Result := AOAIOperationResponse.GetResult();
+        Result := '';
+
+        AOAIChatMessages.AddUserMessage('What is your name?');
+        AOAI.GenerateChatCompletion(AOAIChatMessages, AOAIOperationResponse);
+
+        Result := AOAIOperationResponse.GetResult();
+        Result := '';
+    end;
+
+    // [Test] Offline test to validate the flow of calling the Azure OpenAI service with chat messages using GPT41MiniLatest.
+    procedure OfflineChatCompletionWithGPT41MiniLatest()
+    var
+        AOAIChatMessages: Codeunit "AOAI Chat Messages";
+        AOAIDeployments: Codeunit "AOAI Deployments";
+        AOAI: Codeunit "Azure OpenAI";
+        CopilotCapability: Codeunit "Copilot Capability";
+        AOAIOperationResponse: Codeunit "AOAI Operation Response";
+        Result: Text;
+    begin
+
+        AOAIChatMessages.AddUserMessage('Hello');
+
+        if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"Chat Capability") then
+            CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Chat Capability", Enum::"Copilot Availability"::"Preview", Enum::"Copilot Billing Type"::"Not Billed", '');
+
+        AOAI.SetCopilotCapability(Enum::"Copilot Capability"::"Chat Capability");
+        AOAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41MiniLatest());
+        AOAI.GenerateChatCompletion(AOAIChatMessages, AOAIOperationResponse);
+
+        Result := AOAIOperationResponse.GetResult();
+        Result := '';
+
+        AOAIChatMessages.AddUserMessage('What is your name?');
+        AOAI.GenerateChatCompletion(AOAIChatMessages, AOAIOperationResponse);
+
+        Result := AOAIOperationResponse.GetResult();
+        Result := '';
+    end;
+
 
     [PageHandler()]
     procedure HandleCopilotNotAvailable(var CurrPage: TestPage "Copilot Not Available")

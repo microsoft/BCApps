@@ -13,6 +13,9 @@ page 8005 "Contract Renewal"
     SourceTable = "Sub. Contract Renewal Line";
     SourceTableView = sorting("Linked to Sub. Contract No.", "Linked to Sub. Contr. Line No.");
     UsageCategory = Tasks;
+    AdditionalSearchTerms = 'Contract Renewal, Renew Subscription, Renewal Quote, Renewal Worksheet, Contract Extension, Subscription Renewal';
+    AboutTitle = 'About Subscription Contract Renewal';
+    AboutText = 'Use this worksheet to create a quote for the renewal of eligible contract lines.';
 
     layout
     {

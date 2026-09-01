@@ -54,6 +54,7 @@ permissionset 36951 "PowerBi Report Basic"
         query "Resources - PBI API" = X,
         query "Assembly Headers - Order" = X,
         query "Assembly Lines - Item" = X,
+        query "ABC Analysis Setup - PBI API" = X,
         query Bins = X,
         query "Calendar Entries" = X,
         query "Capacity Ledger Entries" = X,

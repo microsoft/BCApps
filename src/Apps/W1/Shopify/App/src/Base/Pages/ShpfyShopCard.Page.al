@@ -531,6 +531,10 @@ page 30101 "Shpfy Shop Card"
                 {
                     ApplicationArea = All;
                 }
+                field(UseShopifyOrderNo; Rec."Use Shopify Order No.")
+                {
+                    ApplicationArea = All;
+                }
                 field(ArchiveProcessOrders; Rec."Archive Processed Orders")
                 {
                     ApplicationArea = All;
@@ -960,7 +964,6 @@ page 30101 "Shpfy Shop Card"
                         ShopReview.OpenReviewLinkFromShop(Rec.GetStoreName());
                     end;
                 }
-
             }
             group(Sync)
             {

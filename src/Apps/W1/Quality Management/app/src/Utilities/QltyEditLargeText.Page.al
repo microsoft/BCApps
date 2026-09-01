@@ -18,7 +18,7 @@ page 20441 "Qlty. Edit Large Text"
     {
         area(Content)
         {
-            group(SettingsForRawHtml)
+            group(RawHtml)
             {
                 ShowCaption = false;
                 Caption = ' ';

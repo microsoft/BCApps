@@ -228,7 +228,7 @@ function Test-ApplicationManifests {
     param(
         [string] $Path,
         [string] $ExpectedAppVersion,
-        [string] $ExpectedPlatformVersion
+        [string[]] $ExpectedPlatformVersions
     )
     $appManifests = Get-ChildItem -Path $Path -File -Recurse -Filter 'app.json'
     $errors = @()
@@ -241,8 +241,8 @@ function Test-ApplicationManifests {
         }
 
         # Check Platform Version
-        if ($ExpectedPlatformVersion -and ($appManifest.platform -ne $ExpectedPlatformVersion)) {
-            $errors += "ERROR: Wrong platform version in manifest $appManifestFile. Expected: $ExpectedPlatformVersion. Actual: $($appManifest.platform)"
+        if ($ExpectedPlatformVersions -and ($appManifest.platform -notin $ExpectedPlatformVersions)) {
+            $errors += "ERROR: Wrong platform version in manifest $appManifestFile. Expected one of: $($ExpectedPlatformVersions -join ', '). Actual: $($appManifest.platform)"
         }
 
         # Check Dependency Versions

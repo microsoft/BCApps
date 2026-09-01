@@ -10,7 +10,7 @@ codeunit 139985 "Subc. Test Man. Subscription"
 {
     EventSubscriberInstance = Manual;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Subcontracting Management", OnBeforeShowCreatedPurchaseOrder, '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Subc. Purchase Order Creator", OnBeforeShowCreatedPurchaseOrder, '', false, false)]
     local procedure OnBeforeShowCreatedPurchaseOrder(var IsHandled: Boolean)
     begin
         IsHandled := true;

@@ -104,19 +104,7 @@ page 20442 "Qlty. Report Selection - QM"
                 Rec.SetRange(Usage, Rec."Usage"::"Quality Management - General Purpose Inspection");
         end;
 
-        OnSetUsageFilterOnAfterSetFiltersByReportUsage(Rec, QltyReportSelectionUsage);
         Rec.FilterGroup(0);
         CurrPage.Update();
-    end;
-
-    /// <summary>
-    /// OnSetUsageFilterOnAfterSetFiltersByReportUsage gives an opportunity to extend the report usage filtering.
-    /// </summary>
-    /// <param name="pRecReportSelections">var Record "Report Selections".</param>
-    /// <param name="ReportSelectionUsage">Enum "Qlty. Report Selection Usage".</param>
-
-    [IntegrationEvent(false, false)]
-    local procedure OnSetUsageFilterOnAfterSetFiltersByReportUsage(var pRecReportSelections: Record "Report Selections"; ReportSelectionUsage: Enum "Qlty. Report Selection Usage")
-    begin
     end;
 }

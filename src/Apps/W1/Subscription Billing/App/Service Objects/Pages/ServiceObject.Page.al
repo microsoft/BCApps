@@ -14,6 +14,9 @@ page 8060 "Service Object"
     RefreshOnActivate = true;
     UsageCategory = None;
     ApplicationArea = All;
+    AdditionalSearchTerms = 'Subscription, Service Object, Subscription Details, Subscription Lines, Customer Subscription, Billing Details';
+    AboutTitle = 'About Subscription details';
+    AboutText = 'Look at further details of a subscription. Create new and review existing lines and billing details.';
 
     layout
     {
@@ -89,6 +92,8 @@ page 8060 "Service Object"
                 field("Customer Reference"; Rec."Customer Reference")
                 {
                     ToolTip = 'Specifies the reference by which the customer identifies the Subscription.';
+                    AboutTitle = 'How does the customer call it?';
+                    AboutText = 'Enter a customer specific reference for this subscription.';
                 }
                 field(Version; Rec.Version)
                 {
@@ -193,6 +198,8 @@ page 8060 "Service Object"
                 field("End-User Customer Name"; Rec."End-User Customer Name")
                 {
                     ToolTip = 'Specifies the name of the customer to whom the Subscription Line was sold.';
+                    AboutTitle = 'To whom does the subscription belong?';
+                    AboutText = 'The end user to whom the subscription belongs.';
 
                     trigger OnValidate()
                     begin
@@ -553,6 +560,8 @@ page 8060 "Service Object"
                 ToolTip = 'Opens the page with assignable Subscription Packages.';
                 Image = ServiceLedger;
                 Enabled = Rec.Type = Rec.Type::Item;
+                AboutTitle = 'Add new lines to the subscription';
+                AboutText = 'New subscription lines can be added here.';
 
                 trigger OnAction()
                 var
@@ -584,6 +593,8 @@ page 8060 "Service Object"
                 Caption = 'Update Subscription Line Dates';
                 Image = ChangeDates;
                 ToolTip = 'The function updates the dates in the Subscription Lines.';
+                AboutTitle = 'Update dates';
+                AboutText = 'Run this action to manually update the dates for the current term and the cancellation period.';
 
                 trigger OnAction()
                 begin
@@ -612,6 +623,8 @@ page 8060 "Service Object"
                 Image = Category;
                 ToolTip = 'Displays the attributes of the Subscription that describe it in more detail.';
                 Enabled = Rec.Type = Rec.Type::Item;
+                AboutTitle = 'Assign specific attributes';
+                AboutText = 'Choose from the pool of attributes provided by the item.';
 
                 trigger OnAction()
                 begin

@@ -46,6 +46,7 @@ var WebPageViewerHelper = {
       iframe.setAttribute('width', width);
       iframe.setAttribute('frameBorder', '0');
       iframe.setAttribute('seamless', 'seamless');
+      iframe.setAttribute('role', 'presentation');
   
       return iframe;
     },

@@ -9,6 +9,7 @@ using System.MCP;
 using System.Reflection;
 using System.TestLibraries.MCP;
 using System.TestLibraries.Utilities;
+using System.Utilities;
 
 codeunit 130130 "MCP Config Test"
 {
@@ -244,6 +245,56 @@ codeunit 130130 "MCP Config Test"
 
         // [THEN] Error message is returned
         Assert.ExpectedError('Only API pages are supported.');
+    end;
+
+    [Test]
+    procedure TestCreateAPIToolSetsAPIVersion()
+    var
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        ConfigId: Guid;
+        ToolId: Guid;
+    begin
+        // [GIVEN] Configuration is created
+        ConfigId := CreateMCPConfig(false, true, true, false);
+
+        // [WHEN] Create API tool is called with a multi-version API page
+        ToolId := MCPConfig.CreateAPITool(ConfigId, Page::"Mock API Multi Version");
+
+        // [THEN] API tool is created with the highest API version
+        MCPConfigurationTool.GetBySystemId(ToolId);
+        Assert.AreEqual('v2.0', MCPConfigurationTool."API Version", 'API Version should be the highest version');
+    end;
+
+    [Test]
+    procedure TestGetHighestAPIVersionSingleVersion()
+    var
+        PageMetadata: Record "Page Metadata";
+        HighestVersion: Text[30];
+    begin
+        // [GIVEN] A page metadata with single API version
+        PageMetadata.Get(Page::"Mock API");
+
+        // [WHEN] GetHighestAPIVersion is called
+        HighestVersion := MCPConfigTestLibrary.GetHighestAPIVersion(PageMetadata);
+
+        // [THEN] The single version is returned
+        Assert.AreEqual('v0.1', HighestVersion, 'Should return the single version');
+    end;
+
+    [Test]
+    procedure TestGetHighestAPIVersionMultipleVersions()
+    var
+        PageMetadata: Record "Page Metadata";
+        HighestVersion: Text[30];
+    begin
+        // [GIVEN] A page metadata with multiple API versions (v1.0,v2.0,beta)
+        PageMetadata.Get(Page::"Mock API Multi Version");
+
+        // [WHEN] GetHighestAPIVersion is called
+        HighestVersion := MCPConfigTestLibrary.GetHighestAPIVersion(PageMetadata);
+
+        // [THEN] The highest version is returned
+        Assert.AreEqual('v2.0', HighestVersion, 'Should return v2.0 as highest version');
     end;
 
     [Test]
@@ -760,6 +811,252 @@ codeunit 130130 "MCP Config Test"
         Assert.RecordIsEmpty(MCPConfigWarning);
     end;
 
+    [Test]
+    procedure TestExportConfiguration()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        TempBlob: Codeunit "Temp Blob";
+        OutStream: OutStream;
+        InStream: InStream;
+        ConfigId: Guid;
+        JsonText: Text;
+        ConfigJson: JsonObject;
+        JsonToken: JsonToken;
+    begin
+        // [GIVEN] Configuration with two tools is created
+        ConfigId := CreateMCPConfig(false, true, true, true);
+        CreateMCPConfigTool(ConfigId);
+        CreateMCPConfigTool(ConfigId);
+        MCPConfiguration.GetBySystemId(ConfigId);
+
+        // [WHEN] Export configuration is called
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        MCPConfig.ExportConfiguration(ConfigId, OutStream);
+
+        // [THEN] JSON contains configuration data
+        TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
+        InStream.ReadText(JsonText);
+        Assert.IsTrue(ConfigJson.ReadFrom(JsonText), 'Invalid JSON exported');
+
+        ConfigJson.Get('name', JsonToken);
+        Assert.AreEqual(MCPConfiguration.Name, JsonToken.AsValue().AsText(), 'Name mismatch');
+
+        ConfigJson.Get('enableDynamicToolMode', JsonToken);
+        Assert.AreEqual(true, JsonToken.AsValue().AsBoolean(), 'EnableDynamicToolMode mismatch');
+
+        ConfigJson.Get('tools', JsonToken);
+        Assert.AreEqual(2, JsonToken.AsArray().Count(), 'Tools count mismatch');
+    end;
+
+    [Test]
+    procedure TestImportConfiguration()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        TempBlob: Codeunit "Temp Blob";
+        OutStream: OutStream;
+        InStream: InStream;
+        SourceConfigId: Guid;
+        ImportedConfigId: Guid;
+        NewName: Text[100];
+        NewDescription: Text[250];
+    begin
+        // [GIVEN] Configuration with two tools is created and exported
+        SourceConfigId := CreateMCPConfig(false, true, true, true);
+        CreateMCPConfigTool(SourceConfigId);
+        CreateMCPConfigTool(SourceConfigId);
+
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        MCPConfig.ExportConfiguration(SourceConfigId, OutStream);
+
+        // [WHEN] Import configuration is called with new name
+        NewName := CopyStr(Format(CreateGuid()), 1, 100);
+        NewDescription := 'Imported configuration';
+        TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
+        ImportedConfigId := MCPConfig.ImportConfiguration(InStream, NewName, NewDescription);
+
+        // [THEN] New configuration is created with imported settings
+        MCPConfiguration.GetBySystemId(ImportedConfigId);
+        Assert.AreEqual(NewName, MCPConfiguration.Name, 'Name mismatch');
+        Assert.AreEqual(NewDescription, MCPConfiguration.Description, 'Description mismatch');
+        Assert.IsFalse(MCPConfiguration.Active, 'Imported config should be inactive');
+        Assert.IsTrue(MCPConfiguration.EnableDynamicToolMode, 'EnableDynamicToolMode mismatch');
+        Assert.IsTrue(MCPConfiguration.DiscoverReadOnlyObjects, 'DiscoverReadOnlyObjects mismatch');
+
+        // [THEN] Tools are imported with correct API version
+        MCPConfigurationTool.SetRange(ID, ImportedConfigId);
+        Assert.RecordCount(MCPConfigurationTool, 2);
+        MCPConfigurationTool.FindFirst();
+        Assert.AreEqual('v2.0', MCPConfigurationTool."API Version", 'API Version mismatch');
+    end;
+
+    [Test]
+    procedure TestConnectionStringOnPremDoesNotContainTenantIdOrEnvironmentName()
+    var
+        ConfigName: Text[100];
+        ConnectionString: Text;
+    begin
+        // [GIVEN] A configuration name (test environment runs as on-prem)
+        ConfigName := CopyStr(Format(CreateGuid()), 1, 100);
+
+        // [WHEN] Connection string is generated
+        ConnectionString := MCPConfigTestLibrary.GenerateConnectionString(ConfigName);
+
+        // [THEN] Connection string contains the configuration name and company
+        Assert.IsTrue(ConnectionString.Contains('"ConfigurationName": "' + ConfigName + '"'), 'ConfigurationName not found in connection string');
+        Assert.IsTrue(ConnectionString.Contains('"Company": "' + CompanyName() + '"'), 'Company not found in connection string');
+
+        // [THEN] Connection string does not contain TenantId or EnvironmentName headers
+        Assert.IsFalse(ConnectionString.Contains('"TenantId"'), 'TenantId should not be present in on-prem connection string');
+        Assert.IsFalse(ConnectionString.Contains('"EnvironmentName"'), 'EnvironmentName should not be present in on-prem connection string');
+
+        // [THEN] Connection string URL contains /mcp suffix
+        Assert.IsTrue(ConnectionString.Contains('/mcp'), 'On-prem URL should contain /mcp suffix');
+    end;
+
+    [Test]
+    procedure TestSetAsDefaultConfiguration()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        SystemDefault: Record "MCP Configuration";
+        ConfigId: Guid;
+    begin
+        // [GIVEN] An active configuration
+        EnsureSystemDefaultExists();
+        ConfigId := CreateMCPConfig(true, false, false, false);
+
+        // [WHEN] Set as default is called
+        MCPConfig.SetAsDefaultConfiguration(ConfigId);
+
+        // [THEN] Configuration is marked as default
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsTrue(MCPConfiguration.Default, 'Configuration should be marked as default');
+
+        // [THEN] System default is no longer marked as default
+        SystemDefault.Get('');
+        Assert.IsFalse(SystemDefault.Default, 'System default should not be marked as default');
+    end;
+
+    [Test]
+    procedure TestClearDefaultConfiguration()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        SystemDefault: Record "MCP Configuration";
+        ConfigId: Guid;
+    begin
+        // [GIVEN] A configuration that has been set as default
+        EnsureSystemDefaultExists();
+        ConfigId := CreateMCPConfig(true, false, false, false);
+        MCPConfig.SetAsDefaultConfiguration(ConfigId);
+
+        // [WHEN] Clear default is called
+        MCPConfig.ClearDefaultConfiguration();
+
+        // [THEN] Configuration is no longer marked as default
+        MCPConfiguration.GetBySystemId(ConfigId);
+        Assert.IsFalse(MCPConfiguration.Default, 'Configuration should not be marked as default');
+
+        // [THEN] System default is re-marked as default
+        SystemDefault.Get('');
+        Assert.IsTrue(SystemDefault.Default, 'System default should be re-marked as default');
+    end;
+
+    [Test]
+    procedure TestOnlyOneDefaultConfiguration()
+    var
+        MCPConfiguration1: Record "MCP Configuration";
+        MCPConfiguration2: Record "MCP Configuration";
+        ConfigId1: Guid;
+        ConfigId2: Guid;
+    begin
+        // [GIVEN] Two active configurations
+        EnsureSystemDefaultExists();
+        ConfigId1 := CreateMCPConfig(true, true, true, true);
+        ConfigId2 := CreateMCPConfig(true, false, false, false);
+
+        // [WHEN] First is set as default, then second
+        MCPConfig.SetAsDefaultConfiguration(ConfigId1);
+        MCPConfig.SetAsDefaultConfiguration(ConfigId2);
+
+        // [THEN] Only the second configuration is marked as default
+        MCPConfiguration1.GetBySystemId(ConfigId1);
+        MCPConfiguration2.GetBySystemId(ConfigId2);
+        Assert.IsFalse(MCPConfiguration1.Default, 'First config should no longer be default');
+        Assert.IsTrue(MCPConfiguration2.Default, 'Second config should be default');
+    end;
+
+    [Test]
+    procedure TestCopyConfigurationDoesNotCopyDefault()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        ConfigId: Guid;
+        CopiedConfigId: Guid;
+    begin
+        // [GIVEN] A default configuration
+        EnsureSystemDefaultExists();
+        ConfigId := CreateMCPConfig(true, true, true, true);
+        MCPConfig.SetAsDefaultConfiguration(ConfigId);
+
+        // [WHEN] Configuration is copied
+        CopiedConfigId := MCPConfig.CopyConfiguration(ConfigId, CopyStr(Format(CreateGuid()), 1, 100), 'Copied');
+
+        // [THEN] Copied configuration is not marked as default
+        MCPConfiguration.GetBySystemId(CopiedConfigId);
+        Assert.IsFalse(MCPConfiguration.Default, 'Copied config should not be default');
+    end;
+
+    [Test]
+    procedure TestCannotSetInactiveConfigurationAsDefault()
+    var
+        ConfigId: Guid;
+    begin
+        // [GIVEN] An inactive configuration
+        EnsureSystemDefaultExists();
+        ConfigId := CreateMCPConfig(false, false, true, false);
+
+        // [WHEN] Set as default is called
+        asserterror MCPConfig.SetAsDefaultConfiguration(ConfigId);
+
+        // [THEN] Error is raised
+        Assert.ExpectedError('Only active configurations can be set as the default.');
+    end;
+
+    [Test]
+    procedure TestCannotDeactivateDesignatedDefault()
+    var
+        ConfigId: Guid;
+    begin
+        // [GIVEN] A configuration set as default
+        EnsureSystemDefaultExists();
+        ConfigId := CreateMCPConfig(true, true, true, true);
+        MCPConfig.SetAsDefaultConfiguration(ConfigId);
+
+        // [WHEN] Deactivate is called
+        asserterror MCPConfig.ActivateConfiguration(ConfigId, false);
+
+        // [THEN] Error is raised
+        Assert.ExpectedError('The designated default configuration cannot be deactivated.');
+    end;
+
+    [Test]
+    procedure TestDeleteDesignatedDefaultRestoresSystemDefault()
+    var
+        SystemDefault: Record "MCP Configuration";
+        ConfigId: Guid;
+    begin
+        // [GIVEN] A configuration set as default
+        EnsureSystemDefaultExists();
+        ConfigId := CreateMCPConfig(true, false, false, false);
+        MCPConfig.SetAsDefaultConfiguration(ConfigId);
+
+        // [WHEN] The designated default is deleted
+        MCPConfig.DeleteConfiguration(ConfigId);
+
+        // [THEN] System default is re-marked as default
+        SystemDefault.Get('');
+        Assert.IsTrue(SystemDefault.Default, 'System default should be re-marked as default');
+    end;
+
     local procedure CreateMCPConfig(Active: Boolean; DynamicToolMode: Boolean; AllowCreateUpdateDeleteTools: Boolean; DiscoverReadOnlyObjects: Boolean): Guid
     var
         MCPConfiguration: Record "MCP Configuration";
@@ -786,8 +1083,25 @@ codeunit 130130 "MCP Config Test"
         MCPConfigurationTool."Allow Modify" := false;
         MCPConfigurationTool."Allow Delete" := false;
         MCPConfigurationTool."Allow Bound Actions" := false;
+        MCPConfigurationTool."API Version" := 'v2.0';
         MCPConfigurationTool.Insert();
         exit(MCPConfigurationTool.SystemId);
+    end;
+
+    local procedure EnsureSystemDefaultExists()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+    begin
+        if MCPConfiguration.Get('') then
+            exit;
+        MCPConfiguration.Name := '';
+        MCPConfiguration.Description := 'Default MCP configuration';
+        MCPConfiguration.Active := true;
+        MCPConfiguration.EnableDynamicToolMode := true;
+        MCPConfiguration.DiscoverReadOnlyObjects := true;
+        MCPConfiguration.AllowProdChanges := true;
+        MCPConfiguration.Default := true;
+        MCPConfiguration.Insert();
     end;
 
     [ModalPageHandler]

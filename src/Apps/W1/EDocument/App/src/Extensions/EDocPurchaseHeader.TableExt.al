@@ -8,7 +8,6 @@ using Microsoft.eServices.EDocument;
 
 tableextension 6169 "E-Doc. Purchase Header" extends "Purchase Header"
 {
-
     fields
     {
         field(6100; "E-Document Link"; Guid)

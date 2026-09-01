@@ -57,6 +57,9 @@ codeunit 30174 "Shpfy Create Product"
         TempShopifyVariant: Record "Shpfy Variant" temporary;
         TempShopifyTag: Record "Shpfy Tag" temporary;
     begin
+        if not ProductExport.CheckItemAttributesCompatibleForProductOptions(Item) then
+            exit;
+
         CreateTempProduct(Item, TempShopifyProduct, TempShopifyVariant, TempShopifyTag);
         if not VariantApi.FindShopifyProductVariant(TempShopifyProduct, TempShopifyVariant) then
             ProductId := ProductApi.CreateProduct(TempShopifyProduct, TempShopifyVariant, TempShopifyTag)
@@ -161,6 +164,7 @@ codeunit 30174 "Shpfy Create Product"
             end else
                 CreateTempShopifyVariantFromItem(Item, TempShopifyVariant);
 
+        ProductExport.FillProductOptionsForShopifyVariants(Item, TempShopifyVariant, TempShopifyProduct);
         TempShopifyProduct.Insert(false);
         Events.OnAfterCreateTempShopifyProduct(Item, TempShopifyProduct, TempShopifyVariant, TempShopifyTag);
     end;

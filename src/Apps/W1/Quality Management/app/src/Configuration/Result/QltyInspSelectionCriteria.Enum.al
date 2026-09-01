@@ -5,7 +5,7 @@
 namespace Microsoft.QualityManagement.Configuration.Result;
 
 /// <summary>
-/// Used to help determine which inspection to use when conditional optional lot/serial item tracking based blocking.
+/// Used to help determine which inspection to use when conditional optional item tracking based blocking.
 /// When evaluating if a document specific transactions are blocked, this determines which inspection(s) are considered.
 /// </summary>
 enum 20437 "Qlty. Insp. Selection Criteria"

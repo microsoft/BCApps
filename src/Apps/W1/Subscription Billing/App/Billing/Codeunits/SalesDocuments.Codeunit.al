@@ -411,7 +411,7 @@ codeunit 8063 "Sales Documents"
         //The function makes sure that amounts are reset to previous values for Sales Lines with Subscription Items
         //The function makes sure that Qty. To Invoice for Subscription Items is properly set to 0 as it should never have the non-zero value
         //The Qty. To Invoice is normally being set to Qty. to Ship at this point
-        ShouldModifySalesLine := SalesLineShouldSkipInvoicing(TempSalesLine);
+        ShouldModifySalesLine := SalesLineShouldSkipInvoicing(TempSalesLine, true);
         OnSetQtyToInvoiceToZeroOnBeforePostUpdateOrderLineModifyTempLineOnAfterCalcShouldModifySalesLine(TempSalesLine, ShouldModifySalesLine);
         if not ShouldModifySalesLine then
             exit;
@@ -424,8 +424,42 @@ codeunit 8063 "Sales Documents"
             TempSalesLine.UpdateAmounts();
         end;
 
-        if TempSalesLine."Qty. to Ship" <> 0 then
-            TempSalesLine.Validate("Qty. to Invoice", 0);
+        TempSalesLine.Validate("Qty. to Invoice", 0);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnBeforeCheckHeaderPostingType, '', false, false)]
+    local procedure SkipInvoiceOrShipFlagCheckForSubscriptionBillingOnBeforeCheckHeaderPostingType(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
+    begin
+        // Allow posting without Invoice or Ship flags being set for subscription billing documents
+        if SalesHeader."Recurring Billing" then
+            IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Sales Document", OnBeforeSalesLineFind, '', false, false)]
+    local procedure SkipQuantityCheckForSubscriptionBillingOnBeforeSalesLineFind(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
+    begin
+        // Skip quantity check for subscription billing documents
+        if SalesHeader."Recurring Billing" then
+            IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnBeforeCalcInvoice, '', false, false)]
+    local procedure ForceInvoiceCreationForZeroQtyDocumentOnBeforeCalcInvoice(SalesHeader: Record "Sales Header"; var TempSalesLineGlobal: Record "Sales Line" temporary; var NewInvoice: Boolean; var IsHandled: Boolean)
+    begin
+        // For subscription billing documents with zero quantity lines, force invoice creation
+        // so that the posted invoice header is always generated
+        if SalesHeader."Recurring Billing" then begin
+            NewInvoice := true;
+            IsHandled := true;
+        end;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnPostSalesLineOnAfterSetEverythingInvoiced, '', false, false)]
+    local procedure SetEverythingInvoicedForZeroQtyDocumentOnAfterSetEverythingInvoiced(SalesHeader: Record "Sales Header"; var EverythingInvoiced: Boolean)
+    begin
+        // Treat zero-qty subscription billing lines as fully invoiced so BC cleans up the source document
+        if SalesHeader."Recurring Billing" then
+            EverythingInvoiced := true;
     end;
 
     local procedure CheckResetValueForServiceCommitmentItems(var TempSalesLine: Record "Sales Line") ResetValueForServiceCommitmentItems: Boolean
@@ -542,9 +576,7 @@ codeunit 8063 "Sales Documents"
                     SubscriptionLine.Validate("Calculation Base Amount", SubscriptionLine."Calculation Base Amount" * -1);
 
                 SubscriptionLine.UpdateNextPriceUpdate();
-                SubscriptionLine.CalculateInitialTermUntilDate();
-                SubscriptionLine.CalculateInitialServiceEndDate();
-                SubscriptionLine.CalculateInitialCancellationPossibleUntilDate();
+                SubscriptionLine.CalculateSubscriptionDates();
                 SubscriptionLine.SetCurrencyData(SalesHeader."Currency Factor", SalesHeader."Posting Date", SalesHeader."Currency Code");
                 SubscriptionLine.SetLCYFields(true);
                 if SalesLine."No." = SubscriptionLine."Invoicing Item No." then begin

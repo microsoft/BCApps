@@ -156,7 +156,7 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
         end;
     end;
 
-    local procedure CheckSalesInvoice(SalesInvoiceHeader: Record "Sales Invoice Header")
+    internal procedure CheckSalesInvoice(SalesInvoiceHeader: Record "Sales Invoice Header")
     var
         SalesHeader: Record "Sales Header";
         SalesInvoiceLine: Record "Sales Invoice Line";
@@ -174,7 +174,7 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
             until SalesInvoiceLine.Next() = 0;
     end;
 
-    local procedure CheckSalesCreditMemo(SalesCrMemoHeader: Record "Sales Cr.Memo Header")
+    internal procedure CheckSalesCreditMemo(SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     var
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
         SalesHeader: Record "Sales Header";
@@ -192,7 +192,7 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
             until SalesCrMemoLine.Next() = 0;
     end;
 
-    local procedure CheckCurrencyCode(CurrencyCode: Code[10])
+    internal procedure CheckCurrencyCode(CurrencyCode: Code[10])
     var
         Currency: Record Currency;
         GLSetup: Record "General Ledger Setup";
@@ -216,7 +216,7 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
             Currency.FieldError(Code, StrSubstNo(WrongLengthErr, MaxCurrencyCodeLength));
     end;
 
-    local procedure CheckCountryRegionCode(CountryRegionCode: Code[10])
+    internal procedure CheckCountryRegionCode(CountryRegionCode: Code[10])
     var
         CompanyInfo: Record "Company Information";
         CountryRegion: Record "Country/Region";
@@ -236,7 +236,7 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
             CountryRegion.FieldError("ISO Code", StrSubstNo(WrongLengthErr, MaxCountryCodeLength));
     end;
 
-    local procedure CheckShipToAddress(SalesHeader: Record "Sales Header")
+    internal procedure CheckShipToAddress(SalesHeader: Record "Sales Header")
     begin
         SalesHeader.TestField("Ship-to Address");
         SalesHeader.TestField("Ship-to City");
@@ -245,7 +245,7 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
         CheckCountryRegionCode(SalesHeader."Ship-to Country/Region Code");
     end;
 
-    local procedure CheckTaxCategory(SalesLine: Record "Sales Line")
+    internal procedure CheckTaxCategory(SalesLine: Record "Sales Line")
     var
         VATPostingSetup: Record "VAT Posting Setup";
         PEPPOL30Management: Codeunit "PEPPOL30";
@@ -266,19 +266,19 @@ codeunit 37203 "PEPPOL30 Sales Validation Impl"
         end
     end;
 
-    local procedure EnsureZeroRate(VatPercent: Decimal; TaxCategoryCode: Code[10])
+    internal procedure EnsureZeroRate(VatPercent: Decimal; TaxCategoryCode: Code[10])
     begin
         if VatPercent > 0 then
             Error(VatMustBeZeroForCategoryErr, TaxCategoryCode);
     end;
 
-    local procedure EnsurePositiveRate(VatPercent: Decimal; TaxCategoryCode: Code[10])
+    internal procedure EnsurePositiveRate(VatPercent: Decimal; TaxCategoryCode: Code[10])
     begin
         if VatPercent = 0 then
             Error(VATGreaterThanZeroErr, TaxCategoryCode);
     end;
 
-    local procedure EnsureSingleOutsideScopeVATBreakdown(SalesLine: Record "Sales Line")
+    internal procedure EnsureSingleOutsideScopeVATBreakdown(SalesLine: Record "Sales Line")
     var
         BreakdownKey: Text;
     begin

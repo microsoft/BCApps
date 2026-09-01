@@ -803,6 +803,24 @@ codeunit 139685 "Contract Test Library"
     begin
         CreateServiceObjectForItemWithServiceCommitments(ServiceObject, NewInvoicingVia, SNSpecificTracking, Item, NoOfNewCustomerServCommLines, NoOfNewVendorServCommLines, '<1Y>', '<1M>');
     end;
+
+    internal procedure CreateServiceObjectForItemWithTerms(var SubscriptionHeader: Record "Subscription Header"; StartDate: Date; InitialTerm: Text; ExtensionTerm: Text; NoticePeriod: Text)
+    var
+        Item: Record Item;
+        SubscriptionLine: Record "Subscription Line";
+    begin
+        CreateServiceObjectForItemWithServiceCommitments(SubscriptionHeader, Enum::"Invoicing Via"::Contract, false, Item, 1, 0, '<1Y>', '<1M>');
+        FilterSubscriptionLinesWithoutContractNo(SubscriptionLine, SubscriptionHeader."No.", Enum::"Service Partner"::Customer);
+        if SubscriptionLine.FindFirst() then begin
+            SubscriptionLine."Subscription Line Start Date" := StartDate;
+            Evaluate(SubscriptionLine."Initial Term", InitialTerm);
+            Evaluate(SubscriptionLine."Extension Term", ExtensionTerm);
+            Evaluate(SubscriptionLine."Notice Period", NoticePeriod);
+            SubscriptionLine.CalculateSubscriptionDates();
+            SubscriptionLine.Modify(false);
+        end;
+
+    end;
     #endregion Service Object
 
     procedure AppendRandomDimensionValueToDimensionSetID(var DimensionSetID: Integer)

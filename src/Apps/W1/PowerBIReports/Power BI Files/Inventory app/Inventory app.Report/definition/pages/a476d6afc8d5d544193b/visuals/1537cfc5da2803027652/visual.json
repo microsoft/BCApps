@@ -1,0 +1,242 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "1537cfc5da2803027652",
+  "position": {
+    "x": 332.22663220392138,
+    "y": 248.06255204559463,
+    "z": 3000,
+    "height": 197.56410395059856,
+    "width": 293.24537402532792,
+    "tabOrder": 2000
+  },
+  "visual": {
+    "visualType": "barChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Item Category"
+                        }
+                      },
+                      "Hierarchy": "Item Category Code Hierarchy"
+                    }
+                  },
+                  "Level": "Item Category Code Level 1"
+                }
+              },
+              "queryRef": "Item Category.Item Category Code Hierarchy.Item Category Code Level 1",
+              "nativeQueryRef": "Item Category Code Hierarchy Item Category Code Level 1",
+              "active": true
+            },
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Item Category"
+                        }
+                      },
+                      "Hierarchy": "Item Category Code Hierarchy"
+                    }
+                  },
+                  "Level": "Item Category Code Level 2"
+                }
+              },
+              "queryRef": "Item Category.Item Category Code Hierarchy.Item Category Code Level 2",
+              "nativeQueryRef": "Item Category Code Hierarchy Item Category Code Level 2",
+              "active": false
+            },
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Item Category"
+                        }
+                      },
+                      "Hierarchy": "Item Category Code Hierarchy"
+                    }
+                  },
+                  "Level": "Item Category Code Level 3"
+                }
+              },
+              "queryRef": "Item Category.Item Category Code Hierarchy.Item Category Code Level 3",
+              "nativeQueryRef": "Item Category Code Hierarchy Item Category Code Level 3",
+              "active": false
+            }
+          ]
+        },
+        "Series": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ABC Classification"
+                    }
+                  },
+                  "Property": "ABC Class"
+                }
+              },
+              "queryRef": "ABC Classification.ABC Class",
+              "nativeQueryRef": "ABC Class"
+            }
+          ]
+        },
+        "Tooltips": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ABC Classification"
+                    }
+                  },
+                  "Property": "Percent of Sales Amount"
+                }
+              },
+              "queryRef": "ABC Classification.ABC Percent of Sales",
+              "nativeQueryRef": "Percent of Sales Amount"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ABC Classification"
+                    }
+                  },
+                  "Property": "No. of Items in Class"
+                }
+              },
+              "queryRef": "ABC Classification.ABC No. of Products",
+              "nativeQueryRef": "No. of Items in Class"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "ABC Classification"
+                    }
+                  },
+                  "Property": "Sales Amount (ABC)"
+                }
+              },
+              "queryRef": "ABC Classification.ABC Sales Amount",
+              "nativeQueryRef": "Sales Amount (ABC)"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "ABC Classification"
+                  }
+                },
+                "Property": "Sales Amount (ABC)"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "objects": {
+      "general": [
+        {
+          "properties": {}
+        }
+      ],
+      "legend": [
+        {
+          "properties": {
+            "showGradientLegend": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "labels": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "totals": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Translated Localized Labels"
+                    }
+                  },
+                  "Property": "Sales Amount by Item Category Label"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

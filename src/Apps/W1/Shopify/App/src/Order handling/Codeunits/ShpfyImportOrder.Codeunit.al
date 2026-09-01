@@ -367,6 +367,7 @@ codeunit 30161 "Shpfy Import Order"
             exit(false);
         OrderHeader."Shopify Order Id" := OrderId;
         OrderHeader."Shop Code" := Shop.Code;
+        OrderHeader."Use Shopify Order No." := Shop."Use Shopify Order No.";
         ICountyFromJson := Shop."County Source";
 
         OrderHeaderRecordRef.GetTable(OrderHeader);

@@ -43,4 +43,14 @@ codeunit 130131 "MCP Config Test Library"
         MCPConfigImplementation.GetAPIPublishers(MCPAPIPublisherGroup);
         MCPConfigImplementation.LookupAPIGroup(MCPAPIPublisherGroup, APIPublisher, APIGroup);
     end;
+
+    procedure GetHighestAPIVersion(PageMetadata: Record "Page Metadata"): Text[30]
+    begin
+        exit(MCPConfigImplementation.GetHighestAPIVersion(PageMetadata));
+    end;
+
+    procedure GenerateConnectionString(ConfigurationName: Text[100]): Text
+    begin
+        exit(MCPConfigImplementation.GenerateConnectionString(ConfigurationName));
+    end;
 }

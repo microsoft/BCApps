@@ -144,10 +144,9 @@ page 6108 "Inbound E-Doc. Factbox"
     trigger OnOpenPage()
     var
         EDocument: Record "E-Document";
-        EDocumentsSetup: Record "E-Documents Setup";
     begin
         if EDocument.Get(Rec."E-Document Entry No") then;
-        ImportProcessingStatusVisible := EDocumentsSetup.IsNewEDocumentExperienceActive() and (EDocument.GetEDocumentService().GetImportProcessVersion() = Enum::"E-Document Import Process"::"Version 2.0");
+        ImportProcessingStatusVisible := EDocument.GetEDocumentService().GetImportProcessVersion() = Enum::"E-Document Import Process"::"Version 2.0";
     end;
 
     trigger OnAfterGetCurrRecord()

@@ -143,6 +143,16 @@ tableextension 8054 "Sales Line" extends "Sales Line"
                         Error(Item.GetDoNotAllowInvoiceDiscountForServiceCommitmentItemErrorText());
             end;
         }
+        modify("Deferral Code")
+        {
+            trigger OnAfterValidate()
+            begin
+                if Rec."Deferral Code" <> '' then
+                    if Rec.IsLineAttachedToBillingLine() then
+                        if Rec.CreateContractDeferrals() then
+                            Error(DeferralCodeCannotBeUsedWithContractDeferralsErr);
+            end;
+        }
     }
     var
         BillingLineExist, IsBillingLineCached : Boolean;
@@ -168,6 +178,7 @@ tableextension 8054 "Sales Line" extends "Sales Line"
     var
         DimMgt: Codeunit DimensionManagement;
         TypeCannotBeSelectedManuallyErr: Label 'Type "%1" cannot be selected manually.', Comment = '%1 = Sales Line Type';
+        DeferralCodeCannotBeUsedWithContractDeferralsErr: Label 'A Deferral Code cannot be used on a line where Subscription Contract Deferrals are active. Either remove the Deferral Code or disable Contract Deferrals on the subscription line or contract.';
 
     procedure InitFromSalesHeader(SourceSalesHeader: Record "Sales Header")
     begin

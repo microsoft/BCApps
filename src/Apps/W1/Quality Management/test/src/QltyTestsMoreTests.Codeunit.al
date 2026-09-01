@@ -11,7 +11,6 @@ using Microsoft.Inventory.Item.Attribute;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
-using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
@@ -59,7 +58,6 @@ codeunit 139965 "Qlty. Tests - More Tests"
         OptionsTok: Label 'Option1,Option2,Option3', Locked = true;
         ConditionProductionFilterTok: Label 'WHERE(Order Type=FILTER(Production))', Locked = true;
         DefaultScheduleGroupTok: Label 'QM', Locked = true;
-        InterestingDetectionErr: Label 'It looks like you are trying to do something interesting, or are trying to do something with a specific expectation that needs extra discussion, or are trying to configure something that might require a customization.';
         ExpressionFormulaTok: Label '[No.]';
         TestTypeErrInfoMsg: Label '%1Consider replacing this test in the template with a new one, or deleting existing inspections (if allowed). The test was last used on inspection %2.', Comment = '%1 = Error Title, %2 = Quality Inspection No.';
         OnlyFieldExpressionErr: Label 'The Expression Formula can only be used with fields that are a type of Expression';
@@ -82,44 +80,6 @@ codeunit 139965 "Qlty. Tests - More Tests"
         OrderTypeProductionConditionFilterTok: Label 'WHERE(Order Type=FILTER(Production))', Locked = true;
         EntryTypeOutputConditionFilterTok: Label 'WHERE(Entry Type=FILTER(Output))', Locked = true;
         PassFailQuantityInvalidErr: Label 'The %1 and %2 cannot exceed the %3. The %3 is currently exceeded by %4.', Comment = '%1=the passed quantity caption, %2=the failed quantity caption, %3=the source quantity caption, %4=the quantity exceeded';
-
-    [Test]
-    [HandlerFunctions('LookupTableModalPageHandler_FirstRecord')]
-    procedure TestCardPage_AssistEditLookupTable()
-    var
-        AllObjWithCaption: Record AllObjWithCaption;
-        ToLoadQltyTest: Record "Qlty. Test";
-        QltyTestCard: TestPage "Qlty. Test Card";
-        TestCode: Text;
-    begin
-        // [SCENARIO] User can use AssistEdit to select a lookup table for a Table Lookup test value type
-        Initialize();
-
-        // [GIVEN] A random test code is generated
-        QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
-
-        // [GIVEN] A new quality test with Test Value Type "Table Lookup" is created
-        ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
-        ToLoadQltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ToLoadQltyTest.Description)));
-        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Table Lookup");
-        ToLoadQltyTest.Insert();
-
-        // [GIVEN] The Quality Test Card page is opened and navigated to the test
-        QltyTestCard.OpenEdit();
-        QltyTestCard.GoToRecord(ToLoadQltyTest);
-
-        // [WHEN] AssistEdit is invoked on the "Lookup Table No." field
-        QltyTestCard."Lookup Table No.".AssistEdit();
-        QltyTestCard.Close();
-
-        // [THEN] The first table from AllObjWithCaption is selected via modal handler
-        AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
-        AllObjWithCaption.FindFirst();
-
-        // [THEN] The test's Lookup Table No. is updated with the selected table ID
-        ToLoadQltyTest.Get(ToLoadQltyTest.Code);
-        LibraryAssert.AreEqual(AllObjWithCaption."Object ID", ToLoadQltyTest."Lookup Table No.", 'Should be same table no.')
-    end;
 
     [Test]
     procedure TestTable_ValidateExpressionFormula()
@@ -220,36 +180,6 @@ codeunit 139965 "Qlty. Tests - More Tests"
     end;
 
     [Test]
-    procedure TestTable_AssistEditExpressionFormula_ShouldError()
-    var
-        ToLoadQltyTest: Record "Qlty. Test";
-        QltyTestExprCardPart: TestPage "Qlty. Test Expr. Card Part";
-        TestCode: Text;
-    begin
-        // [SCENARIO] AssistEdit on Expression Formula should error when field type is Boolean
-        Initialize();
-
-        // [GIVEN] A random test code is generated
-        QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
-
-        // [GIVEN] A new quality test with Test Value Type "Boolean" is created
-        ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
-        ToLoadQltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ToLoadQltyTest.Description)));
-        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Boolean");
-        ToLoadQltyTest.Insert();
-
-        // [GIVEN] The Quality Test Expression Card Part page is opened and navigated to the test
-        QltyTestExprCardPart.OpenEdit();
-        QltyTestExprCardPart.GoToRecord(ToLoadQltyTest);
-
-        // [WHEN] AssistEdit is invoked on the "Expression Formula" field for a Boolean type
-        asserterror QltyTestExprCardPart."Expression Formula".AssistEdit();
-
-        // [THEN] An error is raised indicating Expression Formula is only for Expression field types
-        LibraryAssert.ExpectedError(OnlyFieldExpressionErr);
-    end;
-
-    [Test]
     [HandlerFunctions('ModalPageHandleChooseFromLookup_VendorNo')]
     procedure TestTable_AssistEditDefaultValue_TypeTableLookup()
     var
@@ -294,41 +224,6 @@ codeunit 139965 "Qlty. Tests - More Tests"
         // [THEN] The test's Default Value is updated with the selected vendor number
         ToLoadQltyTest.Get(ToLoadQltyTest.Code);
         LibraryAssert.AreEqual(Vendor."No.", ToLoadQltyTest."Default Value", 'Should be same vendor no.')
-    end;
-
-    [Test]
-    [HandlerFunctions('AssistEditTemplatePageHandler')]
-    procedure TestTable_AssistEditExpressionFormula()
-    var
-        ToLoadQltyTest: Record "Qlty. Test";
-        QltyTestExprCardPart: TestPage "Qlty. Test Expr. Card Part";
-        TestCode: Text;
-    begin
-        // [SCENARIO] User can use AssistEdit to define an expression formula for a Text Expression field type
-        Initialize();
-
-        // [GIVEN] A random test code is generated
-        QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
-
-        // [GIVEN] A new quality test with Test Value Type "Text Expression" is created
-        ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
-        ToLoadQltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ToLoadQltyTest.Description)));
-        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Text Expression");
-        ToLoadQltyTest.Insert();
-
-        // [GIVEN] The Quality Test Expression Card Part page is opened and navigated to the test
-        QltyTestExprCardPart.OpenEdit();
-        QltyTestExprCardPart.GoToRecord(ToLoadQltyTest);
-
-        // [GIVEN] An expression formula value is prepared for the handler
-        AssistEditTemplateValue := ExpressionFormulaTok;
-
-        // [WHEN] AssistEdit is invoked on the "Expression Formula" field
-        QltyTestExprCardPart."Expression Formula".AssistEdit();
-
-        // [THEN] The test's Expression Formula is updated with the prepared value
-        ToLoadQltyTest.Get(ToLoadQltyTest.Code);
-        LibraryAssert.AreEqual(ExpressionFormulaTok, ToLoadQltyTest."Expression Formula", 'Should be same expression formula.')
     end;
 
     [Test]
@@ -492,44 +387,6 @@ codeunit 139965 "Qlty. Tests - More Tests"
 
         // [WHEN] Lookup is invoked on the "Lookup Field No." field
         QltyTestCard."Lookup Field No.".Lookup();
-        QltyTestCard.Close();
-
-        // [THEN] The test's Lookup Field No. is updated with the Vendor "No." field number
-        ToLoadQltyTest.Get(ToLoadQltyTest.Code);
-        LibraryAssert.AreEqual(Vendor.FieldNo("No."), ToLoadQltyTest."Lookup Field No.", 'Should be same lookup field no.');
-    end;
-
-    [Test]
-    [HandlerFunctions('FieldsLookupModalPageHandler')]
-    procedure TestTable_AssistEditLookupField()
-    var
-        ToLoadQltyTest: Record "Qlty. Test";
-        Vendor: Record Vendor;
-        QltyTestCard: TestPage "Qlty. Test Card";
-        TestCode: Text;
-    begin
-        // [SCENARIO] User can use AssistEdit to select a field from the lookup table (e.g., select Vendor "No." field)
-        Initialize();
-
-        // [GIVEN] A random test code is generated
-        QltyInspectionUtility.GenerateRandomCharacters(20, TestCode);
-
-        // [GIVEN] A new quality test with Test Value Type "Table Lookup" targeting Vendor table is created
-        ToLoadQltyTest.Validate(Code, CopyStr(TestCode, 1, MaxStrLen(ToLoadQltyTest.Code)));
-        ToLoadQltyTest.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(ToLoadQltyTest.Description)));
-        ToLoadQltyTest.Validate("Test Value Type", ToLoadQltyTest."Test Value Type"::"Value Type Table Lookup");
-        ToLoadQltyTest.Validate("Lookup Table No.", Database::Vendor);
-        ToLoadQltyTest.Insert();
-
-        // [GIVEN] The Quality Test Card page is opened and navigated to the test
-        QltyTestCard.OpenEdit();
-        QltyTestCard.GoToRecord(ToLoadQltyTest);
-
-        // [GIVEN] The Vendor "No." field name is prepared for selection via modal handler
-        ChooseFromLookupValue := Vendor.FieldName("No.");
-
-        // [WHEN] AssistEdit is invoked on the "Lookup Field No." field
-        QltyTestCard."Lookup Field No.".AssistEdit();
         QltyTestCard.Close();
 
         // [THEN] The test's Lookup Field No. is updated with the Vendor "No." field number
@@ -1804,6 +1661,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
     begin
         // [SCENARIO] User can use AssistEdit to select from allowable values list for Test Value
         Initialize();
+        LibraryERMCountryData.CreateVATData();
 
         // [GIVEN] Setup exists, a full WMS location is created, and an item is created
         QltyInspectionUtility.EnsureSetupExists();
@@ -2157,56 +2015,6 @@ codeunit 139965 "Qlty. Tests - More Tests"
         Clear(SpecificQltyInspectSrcFldConf);
         SpecificQltyInspectSrcFldConf.SetRange(Code, SpecificQltyInspectSourceConfig.Code);
         LibraryAssert.IsTrue(SpecificQltyInspectSrcFldConf.IsEmpty(), 'Should be no source config lines for the source config.');
-    end;
-
-    [Test]
-    procedure SourceConfigTable_DetectInterestingConfig_FromTable()
-    var
-        SpecificQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
-        SourceConfigCode: Text;
-    begin
-        // [SCENARIO] DetectInterestingConfiguration throws error when From Table is Reservation Entry
-        Initialize();
-
-        // [GIVEN] Setup exists
-        QltyInspectionUtility.EnsureSetupExists();
-
-        // [GIVEN] A new source configuration is initialized with Reservation Entry as From Table
-        SpecificQltyInspectSourceConfig.Init();
-        QltyInspectionUtility.GenerateRandomCharacters(20, SourceConfigCode);
-        SpecificQltyInspectSourceConfig.Code := CopyStr(SourceConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
-        SpecificQltyInspectSourceConfig."From Table No." := Database::"Reservation Entry";
-
-        // [WHEN] DetectInterestingConfiguration is called
-        asserterror QltyInspectionUtility.DetectInterestingConfiguration(SpecificQltyInspectSourceConfig);
-
-        // [THEN] An error is thrown indicating interesting configuration detected
-        LibraryAssert.ExpectedError(InterestingDetectionErr);
-    end;
-
-    [Test]
-    procedure SourceConfigTable_DetectInterestingConfig_ToTable()
-    var
-        SpecificQltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
-        SourceConfigCode: Text;
-    begin
-        // [SCENARIO] DetectInterestingConfiguration throws error when To Table is Reservation Entry
-        Initialize();
-
-        // [GIVEN] Setup exists
-        QltyInspectionUtility.EnsureSetupExists();
-
-        // [GIVEN] A new source configuration is initialized with Reservation Entry as To Table
-        SpecificQltyInspectSourceConfig.Init();
-        QltyInspectionUtility.GenerateRandomCharacters(20, SourceConfigCode);
-        SpecificQltyInspectSourceConfig.Code := CopyStr(SourceConfigCode, 1, MaxStrLen(SpecificQltyInspectSourceConfig.Code));
-        SpecificQltyInspectSourceConfig."To Table No." := Database::"Reservation Entry";
-
-        // [WHEN] DetectInterestingConfiguration is called
-        asserterror QltyInspectionUtility.DetectInterestingConfiguration(SpecificQltyInspectSourceConfig);
-
-        // [THEN] An error is thrown indicating interesting configuration detected
-        LibraryAssert.ExpectedError(InterestingDetectionErr);
     end;
 
     [Test]

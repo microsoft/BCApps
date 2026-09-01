@@ -7,6 +7,7 @@ namespace Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.AccessControl;
 using Microsoft.QualityManagement.Configuration.Result;
 using Microsoft.QualityManagement.Utilities;
+using System.Environment.Configuration;
 
 /// <summary>
 /// Subform Page for Quality Inspections.
@@ -57,6 +58,9 @@ page 20407 "Qlty. Inspection Subform"
 
                     trigger OnAssistEdit()
                     begin
+                        Rec.CalcFields("Test Value Type");
+                        if Rec."Test Value Type" = Rec."Test Value Type"::"Value Type Label" then
+                            exit;
                         UpdateRowData();
 
                         CurrPage.Update(true);
@@ -244,7 +248,7 @@ page 20407 "Qlty. Inspection Subform"
                 field(ChooseMeasurementNote; MeasurementNote)
                 {
                     Caption = 'Note';
-                    Visible = CanSeeLineNotes;
+                    AccessByPermission = tabledata "Record Link" = R;
                     Editable = CanEditLineNotes;
                     ToolTip = 'Specifies a free text note associated with the measurement.';
 
@@ -267,7 +271,7 @@ page 20407 "Qlty. Inspection Subform"
         }
     }
 
-    protected var
+    var
         CachedReadOnlyQltyInspectionHeader: Record "Qlty. Inspection Header";
         QltyResultConditionMgmt: Codeunit "Qlty. Result Condition Mgmt.";
         QltyPermissionMgmt: Codeunit "Qlty. Permission Mgmt.";
@@ -288,7 +292,6 @@ page 20407 "Qlty. Inspection Subform"
         Visible9: Boolean;
         Visible10: Boolean;
         CanEditLineNotes: Boolean;
-        CanSeeLineNotes: Boolean;
         ShowUnitOfMeasure: Boolean;
         ResultStyleExpr: Text;
         MeasurementNote: Text;
@@ -301,7 +304,6 @@ page 20407 "Qlty. Inspection Subform"
     trigger OnOpenPage()
     begin
         CanEditLineNotes := QltyPermissionMgmt.CanEditLineComments() and CurrPage.Editable();
-        CanSeeLineNotes := QltyPermissionMgmt.CanReadLineComments();
     end;
 
     trigger OnFindRecord(Which: Text): Boolean
@@ -365,10 +367,10 @@ page 20407 "Qlty. Inspection Subform"
 
     local procedure GetCanEditTestValue() Result: Boolean
     var
-        Handled: Boolean;
+        IsHandled: Boolean;
     begin
-        OnBeforeCanEditTestValue(Rec, Result, Handled);
-        if Handled then
+        OnBeforeCanEditTestValue(Rec, Result, IsHandled);
+        if IsHandled then
             exit;
 
         Rec.CalcFields("Test Value Type");
@@ -380,9 +382,9 @@ page 20407 "Qlty. Inspection Subform"
     /// </summary>
     /// <param name="QltyInspectionLine"></param>
     /// <param name="CanEditTestValue"></param>
-    /// <param name="Handled"></param>
+    /// <param name="IsHandled"></param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCanEditTestValue(var QltyInspectionLine: Record "Qlty. Inspection Line"; var CanEditTestValue: Boolean; var Handled: Boolean)
+    local procedure OnBeforeCanEditTestValue(var QltyInspectionLine: Record "Qlty. Inspection Line"; var CanEditTestValue: Boolean; var IsHandled: Boolean)
     begin
     end;
 }

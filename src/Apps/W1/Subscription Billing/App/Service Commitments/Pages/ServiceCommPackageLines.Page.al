@@ -51,24 +51,32 @@ page 8058 "Service Comm. Package Lines"
                     Style = Strong;
                     StyleExpr = Bold;
                     ToolTip = 'Specifies how the price for Subscription Line is calculated. "Item Price" uses the list price defined on the Item. "Document Price" uses the price from the sales document. "Document Price And Discount" uses the price and the discount from the sales document.';
+                    AboutTitle = 'How should the price for this subscription line be calculated?';
+                    AboutText = 'Specifies the method used to calculate the subscription line price, such as based on the item or the document.';
                 }
                 field("Calculation Base %"; Rec."Calculation Base %")
                 {
                     Style = Strong;
                     StyleExpr = Bold;
                     ToolTip = 'Specifies the percentage at which the price of the Subscription Line is calculated. 100% means that the the price is the same as the calculation base (item or document).';
+                    AboutTitle = 'What percentage should be applied to calculate the subscription line price?';
+                    AboutText = 'Defines the percentage used as the basis for calculating the price of the subscription line in conjuction with the Calculation Base Type.';
                 }
                 field("Billing Base Period"; Rec."Billing Base Period")
                 {
                     Style = Strong;
                     StyleExpr = Bold;
                     ToolTip = 'Specifies the period to which the Subscription Line amount relates. For example, enter 1M if the amount relates to one month or 12M if the amount relates to 1 year.';
+                    AboutTitle = 'Which period does the subscription amount relate to?';
+                    AboutText = 'Indicates the time span (e.g., month, quarter, year) that the subscription line amount covers.';
                 }
                 field("Billing Rhythm"; Rec."Billing Rhythm")
                 {
                     Style = Strong;
                     StyleExpr = Bold;
                     ToolTip = 'Specifies the rhythm in which the Subscription Line is calculated. Using a date formula, the rhythm can be defined as monthly, quarterly or annual calculation.';
+                    AboutTitle = 'How often should this subscription line be invoiced?';
+                    AboutText = 'Specifies the frequency of invoicing, such as monthly, quarterly, or annually.';
                 }
                 field("Service Comm. Start Formula"; Rec."Sub. Line Start Formula")
                 {
@@ -86,7 +94,7 @@ page 8058 "Service Comm. Package Lines"
                 {
                     Style = Strong;
                     StyleExpr = Bold;
-                    ToolTip = 'Specifies a date formula for automatic renewal after initial term and the rhythm of the update of "Notice possible to" and "Term Until". If the field is empty and the initial term or notice period is filled, the end of Subscription Line is automatically set to the end of the initial term or notice period.';
+                    ToolTip = 'Specifies a date formula for automatic renewal after initial term and the rhythm of the update of "Notice possible to" and "Term Until".';
                 }
                 field("Notice Period"; Rec."Notice Period")
                 {
@@ -124,6 +132,8 @@ page 8058 "Service Comm. Package Lines"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies whether usage data is used as the basis for billing via contracts.';
+                    AboutTitle = 'Should usage data be used as the basis for billing?';
+                    AboutText = 'Determines whether billing is based on actual usage data. Related fields allow you to define the details of usage-based billing.';
                 }
                 field(sageBasedPricing; Rec."Usage Based Pricing")
                 {

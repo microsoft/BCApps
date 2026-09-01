@@ -8,7 +8,7 @@ codeunit 99001527 "Subcontracting Management Ext."
 {
     EventSubscriberInstance = Manual;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Subcontracting Management", OnBeforeHandleProdOrderRtngWorkCenterWithSubcontractor, '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Subc. Purchase Order Creator", OnBeforeHandleProdOrderRtngWorkCenterWithSubcontractor, '', false, false)]
     local procedure OnBeforeHandleProdOrderRtngWorkCenterWithSubcontractor(var SubContractorWorkCenterNo: Code[20])
     var
         SingleInstanceDictionary: Codeunit "Single Instance Dictionary";

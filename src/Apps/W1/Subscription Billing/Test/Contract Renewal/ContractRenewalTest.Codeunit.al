@@ -674,6 +674,8 @@ codeunit 139692 "Contract Renewal Test"
         Initialize();
         // [GIVEN] We Create all the needed data
         CreateBaseData();
+        CustomerContract.Validate("Currency Code", '');
+        CustomerContract.Modify(false);
         BaseCalculationPercentage := LibraryRandom.RandDecInDecimalRange(80, 100, 2);
         CalculationBaseAmount := LibraryRandom.RandDecInDecimalRange(80, 100, 2);
         // [WHEN] We run the action Contract Renewal Quote and change the values on Subscription, values are tested in a ContractRenewalSelectionModalPageHandler

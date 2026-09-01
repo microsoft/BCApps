@@ -12,15 +12,14 @@ using Microsoft.QualityManagement.Configuration;
 page 20412 "Qlty. Ins. Source Config. List"
 {
     Caption = 'Quality Inspection Source Configurations';
-    CardPageId = "Qlty. Inspect. Source Config.";
-    DeleteAllowed = false;
-    Editable = false;
-    InsertAllowed = false;
-    ModifyAllowed = false;
     PageType = List;
     SourceTable = "Qlty. Inspect. Source Config.";
+    CardPageId = "Qlty. Inspect. Source Config.";
+    Editable = false;
     UsageCategory = None;
     ApplicationArea = QualityManagement;
+    AboutTitle = 'Populating data from tables in Business Central';
+    AboutText = 'This page defines how data is automatically populated into quality inspections from other tables, including how records are linked between source and target tables. It is read-only in most scenarios and intended for advanced configuration.';
 
     layout
     {

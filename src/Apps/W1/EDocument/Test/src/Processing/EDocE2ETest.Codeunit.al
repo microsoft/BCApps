@@ -2052,7 +2052,6 @@ codeunit 139624 "E-Doc E2E Test"
         TransformationRule: Record "Transformation Rule";
         EDocument: Record "E-Document";
         EDocumentServiceStatus: Record "E-Document Service Status";
-        EDocumentSetup: Record "E-Documents Setup";
         Vendor: Record Vendor;
         Currency: Record Currency;
         LibraryERM: Codeunit "Library - ERM";
@@ -2073,7 +2072,6 @@ codeunit 139624 "E-Doc E2E Test"
         LibraryEDoc.SetupStandardSalesScenario(Customer, EDocumentService, Enum::"E-Document Format"::Mock, Integration);
         LibraryEDoc.SetupStandardPurchaseScenario(Vendor, EDocumentService, Enum::"E-Document Format"::Mock, Integration);
         EDocumentService.Modify();
-        EDocumentSetup.InsertNewExperienceSetup();
 
         // Set a currency that can be used across all localizations
         Currency.Init();

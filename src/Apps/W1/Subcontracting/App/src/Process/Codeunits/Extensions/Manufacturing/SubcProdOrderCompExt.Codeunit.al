@@ -24,30 +24,40 @@ codeunit 99001524 "Subc. Prod. Order Comp. Ext."
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", OnAfterValidateEvent, "Bin Code", false, false)]
     local procedure OnAfterValidateBinCode(var Rec: Record "Prod. Order Component"; var xRec: Record "Prod. Order Component"; CurrFieldNo: Integer)
     begin
+        if Rec.IsTemporary then
+            exit;
         SetOriginalBinCode(Rec, xRec);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", OnAfterValidateEvent, "Location Code", false, false)]
     local procedure OnAfterValidateLocationCode(var Rec: Record "Prod. Order Component"; var xRec: Record "Prod. Order Component"; CurrFieldNo: Integer)
     begin
+        if Rec.IsTemporary then
+            exit;
         SetOriginalLocationCode(Rec, xRec);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", OnAfterValidateEvent, "Routing Link Code", false, false)]
     local procedure OnAfterValidateRoutingLinkCode(var Rec: Record "Prod. Order Component"; var xRec: Record "Prod. Order Component"; CurrFieldNo: Integer)
     begin
+        if Rec.IsTemporary then
+            exit;
         HandleRoutingLinkCodeValidation(Rec, xRec);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", OnBeforeValidateEvent, "Location Code", false, false)]
     local procedure OnBeforeValidateLocationCode(var Rec: Record "Prod. Order Component"; var xRec: Record "Prod. Order Component"; CurrFieldNo: Integer)
     begin
+        if Rec.IsTemporary then
+            exit;
         CheckExistingSubcontractingTransferOrder(Rec, xRec, CurrFieldNo);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", OnBeforeValidateEvent, "Quantity per", false, false)]
     local procedure OnBeforeValidateQuantityPer(var Rec: Record "Prod. Order Component"; var xRec: Record "Prod. Order Component"; CurrFieldNo: Integer)
     begin
+        if Rec.IsTemporary then
+            exit;
         CheckExistingDocumentsForSubcontracting(Rec, xRec, CurrFieldNo);
     end;
 
