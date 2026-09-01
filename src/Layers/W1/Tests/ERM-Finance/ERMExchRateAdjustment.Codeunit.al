@@ -19,6 +19,7 @@ codeunit 134883 "ERM Exch. Rate Adjustment"
         LibrarySales: Codeunit "Library - Sales";
         LibraryUtility: Codeunit "Library - Utility";
         IsInitialized: Boolean;
+        AdjustmentAmountMismatchErr: Label 'Adjustment Amount %1 must equal Amount (LCY) %2 for detailed vendor ledger entry %3.', Comment = '%1 = Adjustment Amount, %2 = Amount (LCY), %3 = Detailed Vendor Ledger Entry No.';
         ExpectNoAdjustmentErr: Label 'Expect no adjustment for entries before %1';
         ExchangeRateAdjmtTxt: Label 'Exchange Rate Adjmt. of %1 %2';
 
@@ -465,34 +466,18 @@ codeunit 134883 "ERM Exch. Rate Adjustment"
     var
         DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
         ExchRateAdjmtLedgEntry: Record "Exch. Rate Adjmt. Ledg. Entry";
-        TotalAdjustmentAmount: Decimal;
-        TotalUnrealizedAmount: Decimal;
-        EntryFound: Boolean;
-        AdjustmentAmountMismatchErr: Label 'Total Adjustment Amount %1 must equal total unrealized detailed entry Amount (LCY) %2.', Comment = '%1 = total Adjustment Amount, %2 = total detailed Amount (LCY)';
     begin
-        if ExchRateAdjmtLedgEntry.FindSet() then
-            repeat
-                if (ExchRateAdjmtLedgEntry."Account Type" = ExchRateAdjmtLedgEntry."Account Type"::Vendor) and
-                   (ExchRateAdjmtLedgEntry."Account No." = VendorNo)
-                then begin
-                    EntryFound := true;
-                    TotalAdjustmentAmount += ExchRateAdjmtLedgEntry."Adjustment Amount";
-                end;
-            until ExchRateAdjmtLedgEntry.Next() = 0;
-        Assert.IsTrue(EntryFound, 'Expected exch. rate adjmt. ledger entries for the vendor.');
-
-        DetailedVendorLedgEntry.SetRange("Vendor No.", VendorNo);
-        DetailedVendorLedgEntry.SetFilter(
-            "Entry Type", '%1|%2',
-            DetailedVendorLedgEntry."Entry Type"::"Unrealized Gain", DetailedVendorLedgEntry."Entry Type"::"Unrealized Loss");
-        if DetailedVendorLedgEntry.FindSet() then
-            repeat
-                TotalUnrealizedAmount += DetailedVendorLedgEntry."Amount (LCY)";
-            until DetailedVendorLedgEntry.Next() = 0;
-
-        Assert.AreEqual(
-            TotalUnrealizedAmount, TotalAdjustmentAmount,
-            StrSubstNo(AdjustmentAmountMismatchErr, TotalAdjustmentAmount, TotalUnrealizedAmount));
+        ExchRateAdjmtLedgEntry.SetRange("Account Type", ExchRateAdjmtLedgEntry."Account Type"::Vendor);
+        ExchRateAdjmtLedgEntry.SetRange("Account No.", VendorNo);
+        Assert.IsTrue(ExchRateAdjmtLedgEntry.FindSet(), 'Expected exch. rate adjmt. ledger entries for the vendor.');
+        repeat
+            DetailedVendorLedgEntry.Get(ExchRateAdjmtLedgEntry."Detailed Ledger Entry No.");
+            Assert.AreEqual(
+                DetailedVendorLedgEntry."Amount (LCY)", ExchRateAdjmtLedgEntry."Adjustment Amount",
+                StrSubstNo(
+                    AdjustmentAmountMismatchErr, ExchRateAdjmtLedgEntry."Adjustment Amount",
+                    DetailedVendorLedgEntry."Amount (LCY)", DetailedVendorLedgEntry."Entry No."));
+        until ExchRateAdjmtLedgEntry.Next() = 0;
     end;
 
 }
