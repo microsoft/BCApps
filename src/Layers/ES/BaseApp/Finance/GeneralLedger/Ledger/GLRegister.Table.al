@@ -160,17 +160,17 @@ table 45 "G/L Register"
         key(Key3; "Source Code", "Journal Batch Name", "Creation Date")
         {
         }
-        key(Key4; "Posting Date")
-        {
-        }
-        key(key6; "From Entry No.", "To Entry No.")
+        key(key4; "From Entry No.", "To Entry No.")
         {
             IncludedFields = "Creation Date", SystemCreatedAt;
         }
-        key(key7; "Source Code", "Journal Batch Name", SystemCreatedAt)
+        key(key5; "Source Code", "Journal Batch Name", SystemCreatedAt)
         {
         }
-        key(key8; SystemCreatedAt)
+        key(key6; SystemCreatedAt)
+        {
+        }
+        key(Key10700; "Posting Date")
         {
         }
     }
@@ -186,7 +186,7 @@ table 45 "G/L Register"
     procedure GetNextRegisterNo(UseLegacyPosting: Boolean): Integer
     begin
         if not UseLegacyPosting then
-            exit(GetNextRegisterNo());
+            exit(GetNextEntryNo());
         Rec.LockTable();
         exit(GetLastEntryNo() + 1);
     end;
@@ -196,7 +196,7 @@ table 45 "G/L Register"
     /// </summary>
     /// <returns>Integer: The next sequential register number.</returns>
     [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Register", 'r')]
-    procedure GetNextRegisterNo(): Integer
+    procedure GetNextEntryNo(): Integer
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin

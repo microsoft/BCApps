@@ -877,6 +877,9 @@ table 17 "G/L Entry"
         {
             SumIndexFields = Amount, "Debit Amount", "Credit Amount", "Additional-Currency Amount";
         }
+        key(Key20; "External Document No.", "Posting Date")
+        {
+        }
         key(Key12100; "G/L Account No.", "Posting Date", "Close Income Statement Dim. ID", "Entry No.") // For report 12113 UpdateCloseIncomeStmtDimID
         {
         }

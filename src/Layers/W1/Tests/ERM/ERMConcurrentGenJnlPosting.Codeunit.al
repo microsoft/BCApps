@@ -23,6 +23,9 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         Assert: Codeunit Assert;
         IsInitialized: Boolean;
+        CaptureNextVATEntryNo: Boolean;
+        InsertedVATEntryNo: Integer;
+        EventNextVATEntryNo: Integer;
 
     [Test]
     [Scope('OnPrem')]
@@ -308,6 +311,66 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
 
     [Test]
     [Scope('OnPrem')]
+    procedure GLRegisterGetNextRegisterNoIsUniqueAndGapFreeAcrossSessions()
+    var
+        ConcurrentSeqTestBuffer: Record "Concurrent Seq. Test Buffer";
+        RunId: Guid;
+        FirstSessionId: Integer;
+        SecondSessionId: Integer;
+        PreviousEntryNo: Integer;
+        ExpectedResultCount: Integer;
+        TimeoutAt: DateTime;
+        IsFirstEntry: Boolean;
+    begin
+        // [FEATURE] [G/L Register] [Sequence] [Concurrent Posting]
+        // [SCENARIO] Overlapping G/L Register number allocations from separate sessions are unique and gap-free.
+        Initialize();
+        EnableConcurrentPosting(true);
+
+        // [GIVEN] Two background sessions waiting at the same allocation barrier
+        RunId := CreateGuid();
+        CreateConcurrentSequenceSession(ConcurrentSeqTestBuffer, RunId, 1);
+        CreateConcurrentSequenceSession(ConcurrentSeqTestBuffer, RunId, 2);
+        Commit();
+
+        ConcurrentSeqTestBuffer.Get(RunId, 1, 0);
+        Assert.IsTrue(
+            StartSession(FirstSessionId, Codeunit::"Concurrent Seq. No. Runner", CompanyName(), ConcurrentSeqTestBuffer),
+            'The first concurrent sequence allocation session could not be started');
+        ConcurrentSeqTestBuffer.Get(RunId, 2, 0);
+        Assert.IsTrue(
+            StartSession(SecondSessionId, Codeunit::"Concurrent Seq. No. Runner", CompanyName(), ConcurrentSeqTestBuffer),
+            'The second concurrent sequence allocation session could not be started');
+
+        // [WHEN] Both sessions allocate G/L Register numbers concurrently
+        TimeoutAt := CurrentDateTime() + 30000;
+        while (IsSessionActive(FirstSessionId) or IsSessionActive(SecondSessionId)) and (CurrentDateTime() < TimeoutAt) do
+            Sleep(100);
+        Assert.IsFalse(IsSessionActive(FirstSessionId), 'The first concurrent sequence allocation session timed out');
+        Assert.IsFalse(IsSessionActive(SecondSessionId), 'The second concurrent sequence allocation session timed out');
+
+        // [THEN] All allocated numbers are present, unique, and gap-free
+        ExpectedResultCount := 2 * ConcurrentSeqTestBuffer.GetNoOfAllocationsPerSession();
+        ConcurrentSeqTestBuffer.SetRange("Run ID", RunId);
+        ConcurrentSeqTestBuffer.SetFilter("Allocation Index", '>0');
+        Assert.AreEqual(ExpectedResultCount, ConcurrentSeqTestBuffer.Count(), 'Both sessions must persist every allocated G/L Register number');
+        ConcurrentSeqTestBuffer.SetCurrentKey("Run ID", "Entry No.");
+        IsFirstEntry := true;
+        ConcurrentSeqTestBuffer.FindSet();
+        repeat
+            if IsFirstEntry then
+                IsFirstEntry := false
+            else
+                Assert.AreEqual(PreviousEntryNo + 1, ConcurrentSeqTestBuffer."Entry No.", 'Concurrent G/L Register numbers must be unique and gap-free');
+            PreviousEntryNo := ConcurrentSeqTestBuffer."Entry No.";
+        until ConcurrentSeqTestBuffer.Next() = 0;
+
+        ConcurrentSeqTestBuffer.DeleteAll();
+        Commit();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure PostGenJnlLineWithVATConcurrentPosting()
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -342,6 +405,28 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
         // [THEN] New VAT entries are created
         VATEntry.SetFilter("Entry No.", '>%1', LastVATEntryNo);
         Assert.IsTrue(not VATEntry.IsEmpty(), 'VAT entries should have been created');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure OnAfterInsertVATEntryPreservesNextEntryNoContractWithConcurrentPosting()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        GenJournalBatch: Record "Gen. Journal Batch";
+    begin
+        // [FEATURE] [VAT] [Concurrent Posting] [Event]
+        // [SCENARIO] OnAfterInsertVATEntry exposes the inserted VAT entry number plus one when concurrent posting is enabled.
+        Initialize();
+        EnableConcurrentPosting(true);
+        CreateVATJournalLine(GenJournalLine, GenJournalBatch);
+        CaptureNextVATEntryNo := true;
+
+        // [WHEN] A VAT entry is inserted
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] The event keeps its legacy NextEntryNo contract
+        Assert.IsFalse(CaptureNextVATEntryNo, 'OnAfterInsertVATEntry must be raised for the posted VAT entry');
+        Assert.AreEqual(InsertedVATEntryNo + 1, EventNextVATEntryNo, 'OnAfterInsertVATEntry must expose the inserted VAT entry number plus one');
     end;
 
     [Test]
@@ -481,5 +566,25 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
             GenJournalLine."Account Type"::"G/L Account",
             LibraryERM.CreateGLAccountNoWithDirectPosting(),
             LibraryRandom.RandDecInRange(1000, 10000, 2));
+    end;
+
+    local procedure CreateConcurrentSequenceSession(var ConcurrentSeqTestBuffer: Record "Concurrent Seq. Test Buffer"; RunId: Guid; SessionNo: Integer)
+    begin
+        ConcurrentSeqTestBuffer.Init();
+        ConcurrentSeqTestBuffer."Run ID" := RunId;
+        ConcurrentSeqTestBuffer."Session No." := SessionNo;
+        ConcurrentSeqTestBuffer."Allocation Index" := 0;
+        ConcurrentSeqTestBuffer.Insert();
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnAfterInsertVATEntry, '', false, false)]
+    local procedure CaptureNextEntryNoOnAfterInsertVATEntry(GenJnlLine: Record "Gen. Journal Line"; VATEntry: Record "VAT Entry"; GLEntryNo: Integer; var NextEntryNo: Integer; var TempGLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link" temporary)
+    begin
+        if not CaptureNextVATEntryNo then
+            exit;
+
+        InsertedVATEntryNo := VATEntry."Entry No.";
+        EventNextVATEntryNo := NextEntryNo;
+        CaptureNextVATEntryNo := false;
     end;
 }

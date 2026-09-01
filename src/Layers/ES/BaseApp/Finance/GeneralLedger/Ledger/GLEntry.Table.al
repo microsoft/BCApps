@@ -874,6 +874,9 @@ table 17 "G/L Entry"
         key(Key19; "Dimension Set ID")
         {
         }
+        key(Key20; "External Document No.", "Posting Date")
+        {
+        }
     }
 
     fieldgroups

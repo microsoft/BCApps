@@ -178,7 +178,7 @@ table 45 "G/L Register"
     procedure GetNextRegisterNo(UseLegacyPosting: Boolean): Integer
     begin
         if not UseLegacyPosting then
-            exit(GetNextRegisterNo());
+            exit(GetNextEntryNo());
         Rec.LockTable();
         exit(GetLastEntryNo() + 1);
     end;
@@ -188,7 +188,7 @@ table 45 "G/L Register"
     /// </summary>
     /// <returns>Integer: The next sequential register number.</returns>
     [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Register", 'r')]
-    procedure GetNextRegisterNo(): Integer
+    procedure GetNextEntryNo(): Integer
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -167,6 +167,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         NextCheckEntryNo: Integer;
         InsertedTempGLEntryVAT: Integer;
         GLEntryNo: Integer;
+        PreviousGLEntryNoForSequenceCheck: Integer;
+        PreviousVATEntryNoForSequenceCheck: Integer;
         UseCurrFactorOnly: Boolean;
         NonAddCurrCodeOccured: Boolean;
         FADimAlreadyChecked: Boolean;
@@ -932,8 +934,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
             OnBeforeInsertVATEntry(VATEntry, GenJnlLine, NextVATEntryNo, TempGLEntryVATEntryLink, TempGLEntryBuf, GLReg);
             VATEntry.Insert(true);
             TempGLEntryVATEntryLink.InsertLinkSelf(TempGLEntryBuf."Entry No.", VATEntry."Entry No.");
-            NextVATEntryNo := GetNextVATEntryNoForPosting(NextVATEntryNo);
+            NextVATEntryNo := VATEntry."Entry No." + 1;
             OnAfterInsertVATEntry(GenJnlLine, VATEntry, TempGLEntryBuf."Entry No.", NextVATEntryNo, TempGLEntryVATEntryLink);
+            if NextVATEntryNo = VATEntry."Entry No." + 1 then
+                NextVATEntryNo := GetNextVATEntryNoForPosting(VATEntry."Entry No.");
         end;
 
         // VAT for G/L entry/entries
@@ -2055,15 +2059,27 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Entry", 'r')]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Transaction", 'r')]
     [InherentPermissions(PermissionObjectType::TableData, Database::"VAT Entry", 'r')]
     local procedure ValidateSequenceNo(LedgEntryNo: Integer; xLedgEntryNo: Integer; TableNo: Integer)
+    var
+        PreviousLedgEntryNo: Integer;
     begin
-        if LedgEntryNo = xLedgEntryNo then
-            exit;
+        case TableNo of
+            Database::"G/L Entry": PreviousLedgEntryNo := PreviousGLEntryNoForSequenceCheck;
+            Database::"VAT Entry": PreviousLedgEntryNo := PreviousVATEntryNoForSequenceCheck;
+        end;
+        if LedgEntryNo = xLedgEntryNo then begin
+            if LedgEntryNo = PreviousLedgEntryNo then exit;
+            SequenceNoMgt.ClearSequenceNoCheck();
+        end;
         if not GLSetup.UseConcurrentPosting() then
             exit;
         SequenceNoMgt.ValidateSeqNo(TableNo);
+        if LedgEntryNo <> xLedgEntryNo then
+            case TableNo of
+                Database::"G/L Entry": PreviousGLEntryNoForSequenceCheck := LedgEntryNo;
+                Database::"VAT Entry": PreviousVATEntryNoForSequenceCheck := LedgEntryNo;
+            end;
     end;
 
     /// <summary>
@@ -2080,6 +2096,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         FirstEntryNo := 0;
         FirstNewVATEntryNo := 0;
         PreviousEntryNo := 0;
+        PreviousGLEntryNoForSequenceCheck := 0;
+        PreviousVATEntryNoForSequenceCheck := 0;
         IsGLRegInserted := false;
         TempGLEntryBuf.Reset();
         TempGLEntryBuf.DeleteAll();
