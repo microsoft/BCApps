@@ -11413,7 +11413,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
     end;
 
-
     [IntegrationEvent(false, false)]
     local procedure OnPostEmployeeOnAfterInitEmployeeLedgerEntry(var GenJnlLine: Record "Gen. Journal Line"; var EmployeeLedgerEntry: Record "Employee Ledger Entry"; Employee: Record Employee; var TaxAmount: Decimal; var TaxBaseAmount: Decimal)
     begin
