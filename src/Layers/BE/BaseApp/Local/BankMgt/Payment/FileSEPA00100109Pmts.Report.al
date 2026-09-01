@@ -32,7 +32,9 @@ report 2000007 "File SEPA 001.001.09 Pmts"
     {
         dataitem("Payment Journal Line"; "Payment Journal Line")
         {
+#pragma warning disable AL0254 // Accepted: Object-specific sorting; adding a shared-table key risks schema and performance changes.
             DataItemTableView = sorting("Bank Account", "Beneficiary Bank Account No.", "Beneficiary IBAN", Status, "Account Type", "Account No.", "Currency Code", "Posting Date");
+#pragma warning restore AL0254
 
             trigger OnAfterGetRecord()
             var

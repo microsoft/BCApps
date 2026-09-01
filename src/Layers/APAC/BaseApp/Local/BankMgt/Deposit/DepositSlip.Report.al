@@ -21,7 +21,9 @@ report 28023 "Deposit Slip"
     {
         dataitem("Gen. Journal Line"; "Gen. Journal Line")
         {
+#pragma warning disable AL0254 // Accepted: Object-specific sorting; adding a shared-table key risks schema and performance changes.
             DataItemTableView = sorting("Account Type", "Account No.", "Document Type", "Document No.");
+#pragma warning restore AL0254
             RequestFilterFields = "Journal Template Name", "Journal Batch Name";
             column(FORMAT_TODAY_0_4_; Format(Today, 0, 4))
             {

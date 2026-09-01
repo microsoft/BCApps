@@ -15,10 +15,6 @@
       "justification": "The application app shouldn't point at itself."
     },
     {
-      "id": "AL0254",
-      "action": "Warning"
-    },
-    {
       "id": "AL0424",
       "action": "Warning",
       "justification": "Bug 472148. The multilanguage syntax is being deprecated. Please update to the new syntax."

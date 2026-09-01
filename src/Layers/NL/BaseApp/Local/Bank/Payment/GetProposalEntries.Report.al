@@ -128,7 +128,9 @@ report 11000000 "Get Proposal Entries"
             dataitem("Employee Ledger Entry"; "Employee Ledger Entry")
             {
                 DataItemLink = "Transaction Mode Code" = field(Code);
+#pragma warning disable AL0254 // Accepted: Object-specific sorting; adding a shared-table key risks schema and performance changes.
                 DataItemTableView = sorting(Open, "Transaction Mode Code") where(Open = const(true));
+#pragma warning restore AL0254
                 RequestFilterFields = "Employee No.";
 
                 trigger OnAfterGetRecord()
