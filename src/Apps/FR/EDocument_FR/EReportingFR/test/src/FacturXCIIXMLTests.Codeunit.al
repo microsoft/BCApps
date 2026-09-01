@@ -1445,6 +1445,7 @@ codeunit 148148 "Factur-X CII XML Tests"
     procedure FacturXCheckRaisesErrorWhenBuyerElectronicAddressIsMissing()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
+        EDocHelpers: Codeunit "EDoc. Helpers";
         SourceDocumentHeader: RecordRef;
         CustomerNo: Code[20];
     begin
@@ -1461,7 +1462,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         asserterror CheckFacturX(SourceDocumentHeader);
 
         // [THEN] Error about buyer electronic address is raised
-        AssertExpectedDialogError(StrSubstNo(BuyerElectronicAddressRequiredErr, CustomerNo));
+        AssertExpectedDialogError(EDocHelpers.GetBuyerElectronicAddressRequiredError(CustomerNo));
     end;
 
     [Test]
@@ -1543,6 +1544,7 @@ codeunit 148148 "Factur-X CII XML Tests"
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         Customer: Record Customer;
+        EDocHelpers: Codeunit "EDoc. Helpers";
         SourceDocumentHeader: RecordRef;
         CustomerNo: Code[20];
     begin
@@ -1566,7 +1568,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         asserterror CheckFacturX(SourceDocumentHeader);
 
         // [THEN] Error about buyer electronic address is raised
-        AssertExpectedDialogError(StrSubstNo(BuyerElectronicAddressRequiredErr, CustomerNo));
+        AssertExpectedDialogError(EDocHelpers.GetBuyerElectronicAddressRequiredError(CustomerNo));
     end;
     #endregion
 
@@ -1836,6 +1838,13 @@ codeunit 148148 "Factur-X CII XML Tests"
     begin
         SalesHeader.Get("Sales Document Type"::Invoice, CreateSalesDocumentWithLine("Sales Document Type"::Invoice, ''));
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreateSalesDocument(var SalesHeader: Record "Sales Header"; CustomerNo: Code[20])
+    begin
+        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CustomerNo);
+        SalesHeader.Validate("Your Reference", 'FR-BUYER-REF');
+        SalesHeader.Modify(true);
     end;
 
     local procedure CreateAndPostSalesInvoiceForCustomer(CustomerNo: Code[20]): Code[20]
