@@ -95,7 +95,7 @@ page 7233 "Master Data Synch. Tables"
                         IntegrationFieldMapping.SetRange("Integration Table Mapping Name", IntegrationTableMapping.Name);
 
                         if RelatedTablesToAdd.Count() > 0 then
-                            if Confirm(StrSubstno(RelatedTablesQst, RelatedTablesToAddText)) then begin
+                            if Confirm(RelatedTablesQst, false, RelatedTablesToAddText) then begin
                                 IntegrationTableMapping.Validate(Status, IntegrationTableMapping.Status::Disabled);
                                 IntegrationTableMapping.Modify();
                                 foreach RelatedTableNo in RelatedTablesToAdd do

@@ -238,7 +238,7 @@ page 7230 "Master Data Management Setup"
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     begin
         if not Rec."Is Enabled" then
-            if not Confirm(StrSubstNo(EnableServiceQst, CurrPage.Caption()), true) then
+            if not Confirm(EnableServiceQst, true, CurrPage.Caption()) then
                 exit(false);
     end;
 

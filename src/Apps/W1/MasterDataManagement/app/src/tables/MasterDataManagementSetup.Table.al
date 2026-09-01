@@ -72,7 +72,7 @@ table 7230 "Master Data Management Setup"
 
                 if (xRec."Company Name" <> '') and (xRec."Company Name" <> Rec."Company Name") then
                     if not MasterDataMgtCoupling.IsEmpty() then
-                        if not Confirm(StrSubstNo(CouplingsWillBeDeletedQst, xRec."Company Name")) then
+                        if not Confirm(CouplingsWillBeDeletedQst, false, xRec."Company Name") then
                             Error('');
 
                 CurrentCompanyName := CopyStr(CompanyName(), 1, MaxStrLen(MasterDataMgtSubscriber."Company Name"));
@@ -311,7 +311,7 @@ table 7230 "Master Data Management Setup"
         UpdateDataSynchJobQueueEntriesStatus();
 
         if not MasterDataMgtCoupling.IsEmpty() then
-            if Confirm(StrSubstNo(KeepTheCouplingsQst, Rec."Company Name")) then
+            if Confirm(KeepTheCouplingsQst, false, Rec."Company Name") then
                 exit
             else begin
                 IntegrationTableMapping.SetRange(Type, IntegrationTableMapping.Type::"Master Data Management");
