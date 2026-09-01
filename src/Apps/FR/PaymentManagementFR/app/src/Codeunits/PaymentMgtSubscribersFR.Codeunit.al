@@ -364,37 +364,18 @@ codeunit 10838 "PaymentMgt Subscribers FR"
 
     local procedure GetNetTransferAmount(PaymentLine: Record "Payment Line FR") TransferAmount: Decimal
     var
-        CustomerPaymentLine: Record "Payment Line FR";
+        SharedInvoiceLine: Record "Payment Line FR";
         CreditMemoAmount: Decimal;
-        SharedInvoiceLineNo: Integer;
-        HasCreditMemo: Boolean;
     begin
         TransferAmount := PaymentLine."Credit Amount";
 
-        // Credit memo lines are excluded from the file, so their amount must be netted into the invoice line (Option B - net settlement).
         if PaymentLine."Applies-to Doc. Type" <> PaymentLine."Applies-to Doc. Type"::Invoice then
             exit;
 
-        CustomerPaymentLine.SetRange("No.", PaymentLine."No.");
-        CustomerPaymentLine.SetRange("Account Type", CustomerPaymentLine."Account Type"::Customer);
-        CustomerPaymentLine.SetRange("Account No.", PaymentLine."Account No.");
-        if not CustomerPaymentLine.FindSet() then
+        if not PaymentLine.TryGetCustomerNettingContext(SharedInvoiceLine, CreditMemoAmount) then
             exit;
-        repeat
-            case CustomerPaymentLine."Applies-to Doc. Type" of
-                CustomerPaymentLine."Applies-to Doc. Type"::"Credit Memo":
-                    begin
-                        HasCreditMemo := true;
-                        CreditMemoAmount += CustomerPaymentLine."Credit Amount" - CustomerPaymentLine."Debit Amount";
-                    end;
-                CustomerPaymentLine."Applies-to Doc. Type"::Invoice:
-                    if (SharedInvoiceLineNo = 0) and (CustomerPaymentLine."Applies-to ID" <> '') then
-                        SharedInvoiceLineNo := CustomerPaymentLine."Line No.";
-            end;
-        until CustomerPaymentLine.Next() = 0;
 
-        // Net the credit memos only into the first (shared) invoice line, matching the posting-side settlement.
-        if HasCreditMemo and (SharedInvoiceLineNo = PaymentLine."Line No.") then
+        if SharedInvoiceLine."Line No." = PaymentLine."Line No." then
             TransferAmount += CreditMemoAmount;
     end;
 

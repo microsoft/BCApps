@@ -454,6 +454,7 @@ codeunit 10837 "Payment Management FR"
     local procedure NetCustomerSettlement()
     var
         SharedInvoiceLine: Record "Payment Line FR";
+        CreditMemoAmount: Decimal;
     begin
         if InvPostingBuffer[1]."Account Type" <> InvPostingBuffer[1]."Account Type"::Customer then
             exit;
@@ -462,7 +463,7 @@ codeunit 10837 "Payment Management FR"
         then
             exit;
 
-        if not TryGetSharedInvoiceLine(SharedInvoiceLine) then begin
+        if not PaymentLine.TryGetCustomerNettingContext(SharedInvoiceLine, CreditMemoAmount) then begin
             if (PaymentLine."Applies-to Doc. Type" = PaymentLine."Applies-to Doc. Type"::"Credit Memo") and
                (InvPostingBuffer[1]."Document Type" = InvPostingBuffer[1]."Document Type"::Payment)
             then
@@ -482,35 +483,10 @@ codeunit 10837 "Payment Management FR"
            (PaymentLine."Line No." = SharedInvoiceLine."Line No.")
         then
             exit;
-        ApplyDocumentToID(PaymentLine."Applies-to Doc. Type", PaymentLine."Applies-to Doc. No.", SharedInvoiceLine."Applies-to ID");
+        ApplyCreditMemoToSharedInvoice(PaymentLine."Applies-to Doc. Type", PaymentLine."Applies-to Doc. No.", SharedInvoiceLine."Applies-to ID");
     end;
 
-    local procedure TryGetSharedInvoiceLine(var SharedInvoiceLine: Record "Payment Line FR"): Boolean
-    var
-        CustomerLine: Record "Payment Line FR";
-        HasCreditMemo: Boolean;
-        FoundInvoice: Boolean;
-    begin
-        CustomerLine.SetRange("No.", PaymentLine."No.");
-        CustomerLine.SetRange("Account Type", CustomerLine."Account Type"::Customer);
-        CustomerLine.SetRange("Account No.", PaymentLine."Account No.");
-        if not CustomerLine.FindSet() then
-            exit(false);
-        repeat
-            case CustomerLine."Applies-to Doc. Type" of
-                CustomerLine."Applies-to Doc. Type"::"Credit Memo":
-                    HasCreditMemo := true;
-                CustomerLine."Applies-to Doc. Type"::Invoice:
-                    if (not FoundInvoice) and (CustomerLine."Applies-to ID" <> '') then begin
-                        SharedInvoiceLine := CustomerLine;
-                        FoundInvoice := true;
-                    end;
-            end;
-        until CustomerLine.Next() = 0;
-        exit(HasCreditMemo and FoundInvoice);
-    end;
-
-    local procedure ApplyDocumentToID(DocumentType: Enum "Gen. Journal Document Type"; DocumentNo: Code[20]; AppliesToID: Code[50])
+    local procedure ApplyCreditMemoToSharedInvoice(DocumentType: Enum "Gen. Journal Document Type"; DocumentNo: Code[20]; AppliesToID: Code[50])
     var
         DocumentCustLedgEntry: Record "Cust. Ledger Entry";
     begin
