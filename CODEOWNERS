@@ -212,6 +212,9 @@
 # single owner. This line has no owner on purpose: it releases demo data
 # from the localization wildcard above without naming anyone.
 /src/Apps/*/*ContosoCoffeeDemoDataset*/
+/src/DemoTool/*/
+/src/Layers/*/DemoTool/*/
+
 
 # Expense Agent application family. These review routes intentionally differ
 # from the Finance functional ownership labels used by triage.
