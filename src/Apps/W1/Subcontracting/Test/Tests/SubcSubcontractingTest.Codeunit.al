@@ -4183,6 +4183,8 @@ codeunit 139989 "Subc. Subcontracting Test"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
+        SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
+        SubcManagementLibrary: Codeunit "Subc. Management Library";
         SubcWarehouseLibrary: Codeunit "Subc. Warehouse Library";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
