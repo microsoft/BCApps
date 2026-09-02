@@ -1670,7 +1670,7 @@ codeunit 137298 "SCM Prod. Whse. Handling"
         Assert.ExpectedErrorCode('Dialog');
 
         // [THEN] Production order and its components still exist.
-        Assert.IsTrue(ProductionOrder.Find(), ProdOrderShouldExistErr);
+        Assert.IsTrue(ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No."), ProdOrderShouldExistErr);
         ProdOrderComponent.Reset();
         ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
         ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
