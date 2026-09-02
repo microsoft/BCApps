@@ -77,6 +77,9 @@ codeunit 139997 "Subc SCM Prod. Order"
         ILEQtyEqualErr: Label '%1 must be equal to %2 in the %3.', Comment = '%1 - field caption, %2 - quantity, %3 - table caption';
         ProdJournalOutQtyErr: Label 'Output Quantity should be 0 in Production Journal Line linked to Subcontracted Workcenter', Locked = true;
         SubcItemJnlErr: Label '%1 must be zero', Comment = '%1 - "Subcontractor No."';
+        OutputUsedErr: Label 'Remaining Quantity must be equal to', Locked = true;
+        AlreadyInvoicedErr: Label 'This receipt has already been invoiced. Undo Receipt can be applied only to posted, but not invoiced receipts.', Locked = true;
+        MustNotBeEqualLbl: Label '%1 must be equal to %2 in the %3.', Comment = '%1 = Field, %2 = Expected Value, %3 = Table';
 
     [Test]
     [HandlerFunctions('ItemTrackingPageHandler')]
@@ -196,8 +199,6 @@ codeunit 139997 "Subc SCM Prod. Order"
     [Test]
     [HandlerFunctions('ConfirmHandler')]
     procedure UndoPurchReceiptWithProductionSubcontracting_ErrorOutputUsed()
-    var
-        OutputUsedErr: Label 'Remaining Quantity must be equal to', Locked = true;
     begin
         asserterror UndoPurchReceiptWithProductionSubcontracting(false, false, true);
         Assert.ExpectedError(OutputUsedErr);
@@ -206,8 +207,6 @@ codeunit 139997 "Subc SCM Prod. Order"
     [Test]
     [HandlerFunctions('ConfirmHandler')]
     procedure UndoPurchReceiptWithProductionSubcontracting_ErrorInvoiced()
-    var
-        AlreadyInvoicedErr: Label 'This receipt has already been invoiced. Undo Receipt can be applied only to posted, but not invoiced receipts.', Locked = true;
     begin
         asserterror UndoPurchReceiptWithProductionSubcontracting(false, true, false);
         Assert.ExpectedError(AlreadyInvoicedErr);
@@ -688,7 +687,6 @@ codeunit 139997 "Subc SCM Prod. Order"
         FirstReceiptQty: Decimal;
         SecondReceiptQty: Decimal;
         TotalQuantity: Decimal;
-        MustNotBeEqualLbl: Label '%1 must be equal to %2 in the %3.', Comment = '%1 = Field, %2 = Expected Value, %3 = Table';
     begin
         // [SCENARIO 615586] Undoing first receipt on a subcontracting purchase order with item tracking should only reverse that receipt
         Initialize();
@@ -794,7 +792,6 @@ codeunit 139997 "Subc SCM Prod. Order"
         FirstReceiptQty: Decimal;
         SecondReceiptQty: Decimal;
         TotalQuantity: Decimal;
-        MustNotBeEqualLbl: Label '%1 must be equal to %2 in the %3.', Comment = '%1 = Field, %2 = Expected Value, %3 = Table';
     begin
         // [SCENARIO 615586] Undoing first receipt on a subcontracting purchase order with item tracking should only reverse that receipt
         Initialize();

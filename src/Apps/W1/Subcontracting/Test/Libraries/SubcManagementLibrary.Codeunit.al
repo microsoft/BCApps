@@ -29,6 +29,8 @@ codeunit 139983 "Subc. Management Library"
     var
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryWarehouse: Codeunit "Library - Warehouse";
+        UseWithFilterOnlyErr: Label 'Prod. Order Routing Line must have filter to be used in this method.';
+        NoJournalSelectedErr: Label 'No Journal Batch is selected.';
 
     procedure CreateSubcontractingManagementSetup()
     var
@@ -342,7 +344,6 @@ codeunit 139983 "Subc. Management Library"
         RequisitionLine: Record "Requisition Line";
         TmpProdOrderRoutingLine: Record "Prod. Order Routing Line";
         SubcCalculateSubcontracts: Report "Subc. Calculate Subcontracts";
-        UseWithFilterOnlyErr: Label 'Prod. Order Routing Line must have filter to be used in this method.';
     begin
         ManufacturingSetup.Get();
         if ProdOrderRoutingLine.HasFilter then
@@ -363,7 +364,6 @@ codeunit 139983 "Subc. Management Library"
     var
         ReqJnlManagement: Codeunit ReqJnlManagement;
         JnlSelected: Boolean;
-        NoJournalSelectedErr: Label 'No Journal Batch is selected.';
         Handled: Boolean;
     begin
         ReqJnlManagement.WkshTemplateSelection(Page::"Subc. Subcontracting Worksheet", false, "Req. Worksheet Template Type"::Subcontracting, RequisitionLine, JnlSelected);

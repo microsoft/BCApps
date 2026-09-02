@@ -16,29 +16,5 @@
     "codeunitId": 139989,
     "codeunitName": "Subc. Subcontracting Test",
     "method": "CancelInvoiceWithSubcontractingItemChargeIsBlocked"
-  },
-  {
-    "bug": "620761",
-    "codeunitId": 149924,
-    "codeunitName": "Subc SCM Mfg. 70",
-    "method": "CalculateSubContractsShouldSkipThoseItemsIfProductionBlockedIsOutputOnItemVariant"
-  },
-  {
-    "bug": "620761",
-    "codeunitId": 149924,
-    "codeunitName": "Subc SCM Mfg. 70",
-    "method": "CalculateSubContractsShouldCreateOnlyThoseLinesIfProductionBlockedIsBlankOnItem"
-  },
-  {
-    "bug": "620761",
-    "codeunitId": 149924,
-    "codeunitName": "Subc SCM Mfg. 70",
-    "method": "CalculateSubContractsShouldSkipThoseItemsIfProductionBlockedIsOutputOnItem"
-  },
-  {
-    "bug": "620761",
-    "codeunitId": 149924,
-    "codeunitName": "Subc SCM Mfg. 70",
-    "method": "CalculateSubContractsShouldCreateOnlyThoseLinesIfProductionBlockedIsBlankOnItemVariant"
   }
 ]
