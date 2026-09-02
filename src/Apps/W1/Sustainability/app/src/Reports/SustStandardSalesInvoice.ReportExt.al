@@ -47,16 +47,19 @@ reportextension 6299 "Sust. Standard Sales Invoice" extends "Standard Sales - In
         {
             trigger OnBeforePreDataItem()
             begin
+                AddLoadFields("No.", "CO2e per Unit", "Total CO2e");
                 TotalCO2e := 0;
             end;
 
             trigger OnAfterAfterGetRecord()
             begin
-                if UseItemTrackingDetails(Line."No.") then
+                LineUsesItemTracking := UseItemTrackingDetails("No.");
+                if LineUsesItemTracking then
                     FormattedCO2ePerUnit := ''
-                else
+                else begin
                     FormattedCO2ePerUnit := Format("CO2e per Unit", 0, SustainabilitySetup.GetFormat(SustainabilitySetup.FieldNo("Emission Decimal Places")));
-                TotalCO2e += GetLineTotalCO2e(Line);
+                    TotalCO2e += "Total CO2e";
+                end;
             end;
         }
         addlast("Line")
@@ -91,12 +94,14 @@ reportextension 6299 "Sust. Standard Sales Invoice" extends "Standard Sales - In
                 begin
                     TempItemLedgerEntry.Reset();
                     TempItemLedgerEntry.DeleteAll();
-                    if not UseItemTrackingDetails(Line."No.") then
+                    if not LineUsesItemTracking then
                         CurrReport.Break();
 
                     Line.GetItemLedgEntries(TempItemLedgerEntry, false);
-                    if TempItemLedgerEntry.IsEmpty() then
+                    if TempItemLedgerEntry.IsEmpty() then begin
+                        TotalCO2e += Line."Total CO2e";
                         CurrReport.Break();
+                    end;
 
                     SetRange(Number, 1, TempItemLedgerEntry.Count());
                 end;
@@ -116,6 +121,7 @@ reportextension 6299 "Sust. Standard Sales Invoice" extends "Standard Sales - In
                         ItemTrackingEmissionCO2ePerUnit := ItemTrackingEmissionTotalCO2e / ItemTrackingEmissionQuantity
                     else
                         ItemTrackingEmissionCO2ePerUnit := 0;
+                    TotalCO2e += ItemTrackingEmissionTotalCO2e;
                 end;
             }
         }
@@ -174,6 +180,7 @@ reportextension 6299 "Sust. Standard Sales Invoice" extends "Standard Sales - In
         TotalCO2eTxt: Text;
         FormattedCO2ePerUnit: Text;
         ItemTrackingEmissionTracking: Text;
+        LineUsesItemTracking: Boolean;
         CO2ePerUnitLbl: Label 'CO2e [%1] per Unit', Comment = '%1 = Emission Unit of Measure';
         TotalCO2eLbl: Label '%1 [%2]', Comment = '%1 = Field Caption, %2 = Emission Unit of Measure';
 
@@ -204,28 +211,6 @@ reportextension 6299 "Sust. Standard Sales Invoice" extends "Standard Sales - In
             exit(ItemLedgerEntry."Lot No." + ' ' + ItemLedgerEntry."Serial No.");
 
         exit(ItemLedgerEntry."Lot No." + ItemLedgerEntry."Serial No.");
-    end;
-
-    local procedure GetLineTotalCO2e(SalesInvoiceLine: Record "Sales Invoice Line"): Decimal
-    var
-        TempTrackedItemLedgerEntry: Record "Item Ledger Entry" temporary;
-        LineTotalCO2e: Decimal;
-        EntryCO2e: Decimal;
-    begin
-        if not UseItemTrackingDetails(SalesInvoiceLine."No.") then
-            exit(SalesInvoiceLine."Total CO2e");
-
-        SalesInvoiceLine.GetItemLedgEntries(TempTrackedItemLedgerEntry, false);
-        if not TempTrackedItemLedgerEntry.FindSet() then
-            exit(SalesInvoiceLine."Total CO2e");
-
-        repeat
-            EntryCO2e := 0;
-            SustainabilityPostMgt.GetTotalCO2eAmount(TempTrackedItemLedgerEntry, CapacityTypeJournal::" ", EntryCO2e, 0);
-            LineTotalCO2e += EntryCO2e;
-        until TempTrackedItemLedgerEntry.Next() = 0;
-
-        exit(LineTotalCO2e);
     end;
 
     local procedure GetDisclaimer(): Text
