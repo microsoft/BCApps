@@ -57,8 +57,8 @@ codeunit 149924 "Subc SCM Mfg. 70"
         NumberOfLineErr: Label 'Number of line must be same.', Locked = true;
         StatusTxt: Label 'Status must be', Locked = true;
         CertifiedTxt: Label 'Certified', Locked = true;
-        ModifyRtngErr: Label 'You cannot modify Routing No. %1 because there is at least one %2 associated with it.', Locked = true;
-        DeleteRtngErr: Label 'You cannot delete Prod. Order Line %1 because there is at least one %2 associated with it.', Locked = true;
+        ModifyRtngErr: Label 'You cannot modify Routing No. %1 because there is at least one %2 associated with it.', Comment = '%1 = Routing No., %2 = Table Caption', Locked = true;
+        DeleteRtngErr: Label 'You cannot delete Prod. Order Line %1 because there is at least one %2 associated with it.', Comment = '%1 = Prod. Order Line No., %2 = Table Caption', Locked = true;
         SubcontractingDescriptionErr: Label 'The description in Subcontracting Worksheet must be from Work Center if available.', Locked = true;
         OperationNoErr: Label 'Operation No. must be equal to %1', Comment = '%1 = Operation No.', Locked = true;
 

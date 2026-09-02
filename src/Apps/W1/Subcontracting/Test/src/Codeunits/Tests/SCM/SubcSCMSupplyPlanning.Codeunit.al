@@ -70,6 +70,7 @@ codeunit 149922 "Subc SCM Supply Planning"
         AppliesToEntryMissingErr: Label 'Applies-to Entry must have a value', Locked = true;
         ItemNoErr: Label 'Item No. must be equal', Locked = true;
         DimSetIDErr: Label 'Dimension set id on Requisition Line does not match the updated dimension set id on production order line.', Locked = true;
+        GenProdPostingGroupMissingErr: Label 'The Gen. Product Posting Group does not exist.', Locked = true;
 
     [Test]
     [Scope('OnPrem')]
@@ -490,6 +491,7 @@ codeunit 149922 "Subc SCM Supply Planning"
 
         // [WHEN] Carry out subcontracting worksheet
         asserterror CarryOutActionMessageSubcontractWksh(Item."No.");
+        Assert.ExpectedError(GenProdPostingGroupMissingErr);
 
         // [THEN] Creation of a subcontracting purchase order fails, purchase header is not saved
         PurchaseHeader.Init();

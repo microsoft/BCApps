@@ -30,6 +30,8 @@ codeunit 139983 "Subc. Management Library"
     var
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryWarehouse: Codeunit "Library - Warehouse";
+        UseWithFilterOnlyErr: Label 'Prod. Order Routing Line must have filter to be used in this method.';
+        NoJournalSelectedErr: Label 'No Journal Batch is selected.';
 
     procedure CreateSubcontractingManagementSetup()
     var
@@ -320,6 +322,65 @@ codeunit 139983 "Subc. Management Library"
         WIPLedgerEntry.Insert();
     end;
 
+    procedure CalculateSubcontractOrder(var WorkCenter: Record "Work Center")
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        RequisitionLine: Record "Requisition Line";
+        SubcCalculateSubcontracts: Report "Subc. Calculate Subcontracts";
+    begin
+        ManufacturingSetup.Get();
+        RequisitionLine."Worksheet Template Name" := ManufacturingSetup."Subcontracting Template Name";
+        RequisitionLine."Journal Batch Name" := ManufacturingSetup."Subcontracting Batch Name";
+
+        RequisitionLineForSubcontractOrder(RequisitionLine);
+        SubcCalculateSubcontracts.SetWkShLine(RequisitionLine);
+        SubcCalculateSubcontracts.SetTableView(WorkCenter);
+        SubcCalculateSubcontracts.UseRequestPage(false);
+        SubcCalculateSubcontracts.RunModal();
+    end;
+
+    procedure CalculateSubcontractOrderWithProdOrderRoutingLine(var ProdOrderRoutingLine: Record "Prod. Order Routing Line")
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        RequisitionLine: Record "Requisition Line";
+        TmpProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        SubcCalculateSubcontracts: Report "Subc. Calculate Subcontracts";
+    begin
+        ManufacturingSetup.Get();
+        if ProdOrderRoutingLine.HasFilter then
+            TmpProdOrderRoutingLine.CopyFilters(ProdOrderRoutingLine)
+        else
+            Error(UseWithFilterOnlyErr);
+
+        RequisitionLine."Worksheet Template Name" := ManufacturingSetup."Subcontracting Template Name";
+        RequisitionLine."Journal Batch Name" := ManufacturingSetup."Subcontracting Batch Name";
+        RequisitionLineForSubcontractOrder(RequisitionLine);
+        SubcCalculateSubcontracts.SetWkShLine(RequisitionLine);
+        SubcCalculateSubcontracts.SetTableView(TmpProdOrderRoutingLine);
+        SubcCalculateSubcontracts.UseRequestPage(false);
+        SubcCalculateSubcontracts.RunModal();
+    end;
+
+    local procedure RequisitionLineForSubcontractOrder(var RequisitionLine: Record "Requisition Line")
+    var
+        ReqJnlManagement: Codeunit ReqJnlManagement;
+        JnlSelected: Boolean;
+        Handled: Boolean;
+    begin
+        ReqJnlManagement.WkshTemplateSelection(Page::"Subc. Subcontracting Worksheet", false, "Req. Worksheet Template Type"::Subcontracting, RequisitionLine, JnlSelected);
+        if not JnlSelected then
+            Error(NoJournalSelectedErr);
+        OnBeforeOpenJournal(RequisitionLine, Handled);
+        if Handled then
+            exit;
+        ReqJnlManagement.OpenJnl(RequisitionLine."Journal Batch Name", RequisitionLine);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeOpenJournal(var RequisitionLine: Record "Requisition Line"; var Handled: Boolean)
+    begin
+    end;
+
     /// <summary>
     /// Updates the component supply method on all components of a production order.
     /// </summary>
@@ -399,66 +460,5 @@ codeunit 139983 "Subc. Management Library"
         PurchaseLineComp.SetRange("Document No.", DocumentNo);
         PurchaseLineComp.SetRange(Type, "Purchase Line Type"::Item);
         PurchaseLineComp.SetRange("No.", ComponentItemNo);
-    end;
-    
-    procedure CalculateSubcontractOrder(var WorkCenter: Record "Work Center")
-    var
-        ManufacturingSetup: Record "Manufacturing Setup";
-        RequisitionLine: Record "Requisition Line";
-        SubcCalculateSubcontracts: Report "Subc. Calculate Subcontracts";
-    begin
-        ManufacturingSetup.Get();
-        RequisitionLine."Worksheet Template Name" := ManufacturingSetup."Subcontracting Template Name";
-        RequisitionLine."Journal Batch Name" := ManufacturingSetup."Subcontracting Batch Name";
-
-        RequisitionLineForSubcontractOrder(RequisitionLine);
-        SubcCalculateSubcontracts.SetWkShLine(RequisitionLine);
-        SubcCalculateSubcontracts.SetTableView(WorkCenter);
-        SubcCalculateSubcontracts.UseRequestPage(false);
-        SubcCalculateSubcontracts.RunModal();
-    end;
-
-    procedure CalculateSubcontractOrderWithProdOrderRoutingLine(var ProdOrderRoutingLine: Record "Prod. Order Routing Line")
-    var
-        ManufacturingSetup: Record "Manufacturing Setup";
-        RequisitionLine: Record "Requisition Line";
-        TmpProdOrderRoutingLine: Record "Prod. Order Routing Line";
-        SubcCalculateSubcontracts: Report "Subc. Calculate Subcontracts";
-        UseWithFilterOnlyErr: Label 'Prod. Order Routing Line must have filter to be used in this method.';
-    begin
-        ManufacturingSetup.Get();
-        if ProdOrderRoutingLine.HasFilter then
-            TmpProdOrderRoutingLine.CopyFilters(ProdOrderRoutingLine)
-        else
-            Error(UseWithFilterOnlyErr);
-
-        RequisitionLine."Worksheet Template Name" := ManufacturingSetup."Subcontracting Template Name";
-        RequisitionLine."Journal Batch Name" := ManufacturingSetup."Subcontracting Batch Name";
-        RequisitionLineForSubcontractOrder(RequisitionLine);
-        SubcCalculateSubcontracts.SetWkShLine(RequisitionLine);
-        SubcCalculateSubcontracts.SetTableView(TmpProdOrderRoutingLine);
-        SubcCalculateSubcontracts.UseRequestPage(false);
-        SubcCalculateSubcontracts.RunModal();
-    end;
-
-    local procedure RequisitionLineForSubcontractOrder(var RequisitionLine: Record "Requisition Line")
-    var
-        ReqJnlManagement: Codeunit ReqJnlManagement;
-        JnlSelected: Boolean;
-        NoJournalSelectedErr: Label 'No Journal Batch is selected.';
-        Handled: Boolean;
-    begin
-        ReqJnlManagement.WkshTemplateSelection(Page::"Subc. Subcontracting Worksheet", false, "Req. Worksheet Template Type"::Subcontracting, RequisitionLine, JnlSelected);
-        if not JnlSelected then
-            Error(NoJournalSelectedErr);
-        OnBeforeOpenJournal(RequisitionLine, Handled);
-        if Handled then
-            exit;
-        ReqJnlManagement.OpenJnl(RequisitionLine."Journal Batch Name", RequisitionLine);
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeOpenJournal(var RequisitionLine: Record "Requisition Line"; var Handled: Boolean)
-    begin
     end;
 }
