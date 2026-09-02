@@ -1942,6 +1942,7 @@ codeunit 137293 "SCM Inventory Miscellaneous"
         ShipmentNo: Code[20];
         PickBinCode: Code[20];
     begin
+        // [FEATURE] [Warehouse] [Pick Worksheet] [AI test 0.4]
         // [SCENARIO 647203] Pick worksheet availability excludes inventory in configured receipt and shipment bins.
         Initialize();
         WhseWorksheetLine.DeleteAll();
@@ -1984,6 +1985,7 @@ codeunit 137293 "SCM Inventory Miscellaneous"
         ShipmentNo: Code[20];
         PickBinCode: Code[20];
     begin
+        // [FEATURE] [Warehouse] [Pick Worksheet] [AI test 0.4]
         // [SCENARIO 647203] A configured receipt bin remains available when put-away is not required.
         Initialize();
         WhseWorksheetLine.DeleteAll();
@@ -2016,6 +2018,7 @@ codeunit 137293 "SCM Inventory Miscellaneous"
         QtyPerBin: Decimal;
         PickBinCode: Code[20];
     begin
+        // [FEATURE] [Warehouse] [Pick Worksheet] [AI test 0.4]
         // [SCENARIO 647203] A configured shipment bin remains available when pick is not required.
         Initialize();
         WhseWorksheetLine.DeleteAll();
@@ -2053,6 +2056,7 @@ codeunit 137293 "SCM Inventory Miscellaneous"
         ShipmentNo: Code[20];
         NewReceiptBinCode: Code[20];
     begin
+        // [FEATURE] [Warehouse] [Pick Worksheet] [AI test 0.4]
         // [SCENARIO 647203] Posted receipt inventory remains unavailable after the receipt bin code changes.
         Initialize();
         WhseWorksheetLine.DeleteAll();
@@ -2102,6 +2106,7 @@ codeunit 137293 "SCM Inventory Miscellaneous"
         ShipmentNo: Code[20];
         PickBinCode: Code[20];
     begin
+        // [FEATURE] [Warehouse] [Pick Worksheet] [AI test 0.4]
         // [SCENARIO 647203] Registered pick inventory in the shipment bin is excluded exactly once.
         Initialize();
         WhseWorksheetLine.DeleteAll();
@@ -2139,6 +2144,7 @@ codeunit 137293 "SCM Inventory Miscellaneous"
         ShipmentNo: Code[20];
         PickBinCode: Code[20];
     begin
+        // [FEATURE] [Warehouse] [Pick Worksheet] [AI test 0.4]
         // [SCENARIO 647203] Registered pick inventory stays unavailable when it sits in a bin that is no longer the configured shipment bin.
         Initialize();
         WhseWorksheetLine.DeleteAll();
@@ -2181,6 +2187,7 @@ codeunit 137293 "SCM Inventory Miscellaneous"
         PickBinCode: Code[20];
         NewShipmentBinCode: Code[20];
     begin
+        // [FEATURE] [Warehouse] [Pick Worksheet] [AI test 0.4]
         // [SCENARIO 647203] Inventory sitting in the new shipment bin does not offset a registered pick left in the former shipment bin.
         Initialize();
         WhseWorksheetLine.DeleteAll();
@@ -3199,7 +3206,7 @@ codeunit 137293 "SCM Inventory Miscellaneous"
 
                 if QtyToRegister <> 0 then
                     RegisterWhseActivity(
-                      WhseActivityLine."Activity Type"::Pick, 37, SalesHeader."No.", QtyToRegister, '', '');
+                      WhseActivityLine."Activity Type"::Pick, Database::"Sales Line", SalesHeader."No.", QtyToRegister, '', '');
             end;
         end;
 
