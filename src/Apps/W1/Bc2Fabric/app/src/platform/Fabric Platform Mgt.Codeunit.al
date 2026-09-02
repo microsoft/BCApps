@@ -22,6 +22,9 @@ codeunit 50101 "Fabric Platform Mgt"
         StartRequestedMsg: Label 'Start was requested. The platform runs asynchronously; open Export Summary to follow progress.';
         StopRequestedMsg: Label 'Stop was requested. The platform runs asynchronously; open Export Summary to follow progress.';
         DisableRequestedMsg: Label 'Disable was requested. The platform runs asynchronously; open Export Summary to follow progress.';
+        ClientIdRequiredErr: Label 'Client ID must be filled in on the Fabric Platform Setup page before enabling export.';
+        ClientIdInvalidErr: Label 'Client ID %1 is not a valid GUID.', Comment = '%1 = client ID';
+        ClientSecretRequiredErr: Label 'Client Secret must be filled in on the Fabric Platform Setup page before enabling export.';
 
     procedure MaxTableCount(): Integer
     begin
@@ -157,13 +160,24 @@ codeunit 50101 "Fabric Platform Mgt"
     procedure EnableExport()
     var
         FabricExportManager: Codeunit "Fabric Export Manager";
+        CredMgt: Codeunit "Fabric Platform Credential Mgt";
         Telemetry: Codeunit "Fabric Platform Telemetry";
+        ClientId: Guid;
+        ClientIdText: Text;
         IsHandled: Boolean;
     begin
-        // Parameterless overload = Microsoft first-party authentication.
+        // Delegated auth overload: Microsoft first-party authentication is not yet available.
         OnBeforeEnableExport(IsHandled);
-        if not IsHandled then
-            FabricExportManager.EnableFabricExport();
+        if not IsHandled then begin
+            ClientIdText := CredMgt.GetClientId();
+            if ClientIdText = '' then
+                Error(ClientIdRequiredErr);
+            if not Evaluate(ClientId, ClientIdText) then
+                Error(ClientIdInvalidErr, ClientIdText);
+            if not CredMgt.IsClientSecretSet() then
+                Error(ClientSecretRequiredErr);
+            FabricExportManager.EnableFabricExport(ClientId, CredMgt.GetClientSecret());
+        end;
         Telemetry.LogEvent('FAB-100', 'Fabric export enable requested.');
         Telemetry.LogAudit('FAB-100-AUD', 'Microsoft Fabric Open Mirroring - export enable requested.');
         if GuiAllowed() then

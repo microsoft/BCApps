@@ -54,8 +54,8 @@ page 50104 "Fabric Platform Setup"
                             Rec."Fabric Workspace Name" := CopyStr(TempBuffer.Name, 1, MaxStrLen(Rec."Fabric Workspace Name"));
                             Clear(Rec."Fabric Lakehouse ID");
                             Rec.Modify(true);
-                            LakehouseNameValue := '';
-                            CredMgt.SetLakehouseName(LakehouseNameValue);
+                            OpenMirroringNameValue := '';
+                            CredMgt.SetOpenMirroringDatabaseName(OpenMirroringNameValue);
                             CurrPage.Update(false);
                         end;
                     end;
@@ -67,12 +67,12 @@ page 50104 "Fabric Platform Setup"
                     Importance = Additional;
                     ToolTip = 'Specifies the Microsoft Fabric workspace that receives the exported data.';
                 }
-                field("Fabric Lakehouse Name"; LakehouseNameValue)
+                field("Fabric Open Mirroring Name"; OpenMirroringNameValue)
                 {
-                    Caption = 'Fabric Lakehouse Name';
+                    Caption = 'Fabric Open Mirroring Name';
                     ApplicationArea = All;
                     Editable = false;
-                    ToolTip = 'Specifies the display name of the selected Microsoft Fabric lakehouse. Use the assist button to browse lakehouses in the selected workspace.';
+                    ToolTip = 'Specifies the display name of the selected Microsoft Fabric Open Mirroring database. Use the assist button to browse Open Mirroring databases in the selected workspace.';
 
                     trigger OnAssistEdit()
                     var
@@ -81,32 +81,33 @@ page 50104 "Fabric Platform Setup"
                         LookupState: Codeunit "Fabric Platform Lookup State";
                         TempBuffer: Record "Name/Value Buffer" temporary;
                         LookupPage: Page "Fabric Platform Name Lookup";
-                        LakehouseId: Guid;
+                        MirroredDatabaseId: Guid;
                     begin
-                        AdminClient.GetLakehouses(Rec."Fabric Workspace ID", TempBuffer);
+                        AdminClient.GetMirroredDatabases(Rec."Fabric Workspace ID", TempBuffer);
                         if TempBuffer.IsEmpty() then
-                            Error(NoLakehousesFoundErr);
+                            Error(NoMirroredDatabasesFoundErr);
                         LookupState.ClearSelection();
                         LookupPage.SetSource(TempBuffer);
                         LookupPage.RunModal();
                         if LookupPage.IsRecordSelected() then begin
                             LookupPage.GetSelectedRecord(TempBuffer);
-                            if not Evaluate(LakehouseId, TempBuffer.Value) then
-                                Error(LakehouseIdInvalidErr, TempBuffer.Value);
-                            Rec."Fabric Lakehouse ID" := LakehouseId;
+                            if not Evaluate(MirroredDatabaseId, TempBuffer.Value) then
+                                Error(MirroredDatabaseIdInvalidErr, TempBuffer.Value);
+                            Rec."Fabric Lakehouse ID" := MirroredDatabaseId;
                             Rec.Modify(true);
-                            LakehouseNameValue := CopyStr(TempBuffer.Name, 1, MaxStrLen(LakehouseNameValue));
-                            CredMgt.SetLakehouseName(LakehouseNameValue);
+                            OpenMirroringNameValue := CopyStr(TempBuffer.Name, 1, MaxStrLen(OpenMirroringNameValue));
+                            CredMgt.SetOpenMirroringDatabaseName(OpenMirroringNameValue);
                             CurrPage.Update(false);
                         end;
                     end;
                 }
                 field("Fabric Lakehouse ID"; Rec."Fabric Lakehouse ID")
                 {
+                    Caption = 'Fabric Open Mirroring Database ID';
                     ApplicationArea = All;
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the Microsoft Fabric lakehouse that receives the exported data.';
+                    ToolTip = 'Specifies the Microsoft Fabric Open Mirroring database that receives the exported data.';
                 }
                 field("Fabric Data Namespace"; Rec."Fabric Data Namespace")
                 {
@@ -143,7 +144,7 @@ page 50104 "Fabric Platform Setup"
                 {
                     Caption = 'Client ID';
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the Azure AD application (client) ID used for delegated workspace and lakehouse browsing.';
+                    ToolTip = 'Specifies the Azure AD application (client) ID used for delegated workspace and Open Mirroring database browsing.';
 
                     trigger OnValidate()
                     var
@@ -351,7 +352,7 @@ page 50104 "Fabric Platform Setup"
         FabricPlatformMgt.EnsureSetup(Rec);
         ClientIdValue := CopyStr(CredMgt.GetClientId(), 1, MaxStrLen(ClientIdValue));
         PrincipalIdValue := CopyStr(CredMgt.GetPrincipalId(), 1, MaxStrLen(PrincipalIdValue));
-        LakehouseNameValue := CopyStr(CredMgt.GetLakehouseName(), 1, MaxStrLen(LakehouseNameValue));
+        OpenMirroringNameValue := CopyStr(CredMgt.GetOpenMirroringDatabaseName(), 1, MaxStrLen(OpenMirroringNameValue));
         if CredMgt.IsClientSecretSet() then
             ClientSecretValue := ClientSecretSetLbl;
     end;
@@ -359,13 +360,13 @@ page 50104 "Fabric Platform Setup"
     var
         ClientIdValue: Text[250];
         PrincipalIdValue: Text[250];
-        LakehouseNameValue: Text[250];
+        OpenMirroringNameValue: Text[250];
         [NonDebuggable]
         ClientSecretValue: Text[250];
         ClientSecretSetLbl: Label '*** secret stored ***', Locked = true;
         NoWorkspacesFoundErr: Label 'No workspaces found. Verify the Client ID and Client Secret.';
-        NoLakehousesFoundErr: Label 'No lakehouses found in the selected workspace.';
+        NoMirroredDatabasesFoundErr: Label 'No Open Mirroring databases found in the selected workspace.';
         WorkspaceIdInvalidErr: Label 'Fabric returned an invalid workspace ID: %1.', Comment = '%1 = workspace ID';
-        LakehouseIdInvalidErr: Label 'Fabric returned an invalid lakehouse ID: %1.', Comment = '%1 = lakehouse ID';
+        MirroredDatabaseIdInvalidErr: Label 'Fabric returned an invalid Open Mirroring database ID: %1.', Comment = '%1 = Open Mirroring database ID';
         SPAddedToWorkspaceMsg: Label 'Service principal added as Contributor to workspace ''%1''.', Comment = '%1 = workspace name';
 }

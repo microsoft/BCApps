@@ -14,9 +14,9 @@ codeunit 50107 "Fabric Platform Admin Client"
     var
         RetrieveWorkspacesTransportErr: Label 'Failed to retrieve workspaces: transport error.';
         RetrieveWorkspacesHttpErr: Label 'Failed to retrieve workspaces. HTTP %1.', Comment = '%1 = HTTP status code';
-        WorkspaceRequiredForLakehouseErr: Label 'Select a workspace before choosing a lakehouse.';
-        RetrieveLakehousesTransportErr: Label 'Failed to retrieve lakehouses: transport error.';
-        RetrieveLakehousesHttpErr: Label 'Failed to retrieve lakehouses. HTTP %1.\%2', Comment = '%1 = HTTP status code, %2 = response body';
+        WorkspaceRequiredForMirroredDbErr: Label 'Select a workspace before choosing an Open Mirroring database.';
+        RetrieveMirroredDbsTransportErr: Label 'Failed to retrieve Open Mirroring databases: transport error.';
+        RetrieveMirroredDbsHttpErr: Label 'Failed to retrieve Open Mirroring databases. HTTP %1.\%2', Comment = '%1 = HTTP status code, %2 = response body';
         WorkspaceRequiredForSPErr: Label 'Select a workspace before adding the service principal.';
         PrincipalIdRequiredErr: Label 'Principal ID must be filled in before adding to the workspace.';
         AddSPTransportErr: Label 'Failed to add service principal to workspace: transport error.';
@@ -69,8 +69,8 @@ codeunit 50107 "Fabric Platform Admin Client"
         end;
     end;
 
-    /// <summary>Fills TempBuffer with lakehouses in WorkspaceId (Name = display name, Value = lakehouse GUID).</summary>
-    procedure GetLakehouses(WorkspaceId: Text; var TempBuffer: Record "Name/Value Buffer" temporary)
+    /// <summary>Fills TempBuffer with Open Mirroring databases in WorkspaceId (Name = display name, Value = mirrored database GUID).</summary>
+    procedure GetMirroredDatabases(WorkspaceId: Text; var TempBuffer: Record "Name/Value Buffer" temporary)
     var
         CredMgt: Codeunit "Fabric Platform Credential Mgt";
         HttpClient: Codeunit "Fabric Platform Http Client";
@@ -90,11 +90,11 @@ codeunit 50107 "Fabric Platform Admin Client"
         i: Integer;
     begin
         if WorkspaceId = '' then
-            Error(WorkspaceRequiredForLakehouseErr);
+            Error(WorkspaceRequiredForMirroredDbErr);
 
         WorkspaceIdForUrl := FormatGuidForFabricUrl(WorkspaceId);
         if WorkspaceIdForUrl = '' then
-            Error(WorkspaceRequiredForLakehouseErr);
+            Error(WorkspaceRequiredForMirroredDbErr);
 
         TempBuffer.Reset();
         TempBuffer.DeleteAll();
@@ -103,13 +103,13 @@ codeunit 50107 "Fabric Platform Admin Client"
         RestClientResult := HttpClient.CreateClientWithBearer(AccessToken);
         Req := HttpClient.BuildJsonRequest(
             'GET',
-            StrSubstNo('https://api.fabric.microsoft.com/v1/workspaces/%1/lakehouses', WorkspaceIdForUrl),
+            StrSubstNo('https://api.fabric.microsoft.com/v1/workspaces/%1/mirroredDatabases', WorkspaceIdForUrl),
             '');
         if not HttpClient.TrySend(RestClientResult, Req, Resp) then
-            Error(RetrieveLakehousesTransportErr);
+            Error(RetrieveMirroredDbsTransportErr);
         if not Resp.GetIsSuccessStatusCode() then begin
             ResponseText := Resp.GetContent().AsText();
-            Error(RetrieveLakehousesHttpErr, Resp.GetHttpStatusCode(), ResponseText);
+            Error(RetrieveMirroredDbsHttpErr, Resp.GetHttpStatusCode(), ResponseText);
         end;
 
         RootObj.ReadFrom(Resp.GetContent().AsText());

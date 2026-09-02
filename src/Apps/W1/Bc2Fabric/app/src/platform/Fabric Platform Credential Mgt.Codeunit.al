@@ -46,16 +46,16 @@ codeunit 50105 "Fabric Platform Credential Mgt"
         exit('');
     end;
 
-    procedure SetLakehouseName(LakehouseName: Text)
+    procedure SetOpenMirroringDatabaseName(OpenMirroringDatabaseName: Text)
     begin
-        IsolatedStorage.Set('FabricPlat.LakehouseName', LakehouseName, DataScope::Module);
+        IsolatedStorage.Set('FabricPlat.OpenMirroringDatabaseName', OpenMirroringDatabaseName, DataScope::Module);
     end;
 
-    procedure GetLakehouseName(): Text
+    procedure GetOpenMirroringDatabaseName(): Text
     var
         Value: Text;
     begin
-        if IsolatedStorage.Get('FabricPlat.LakehouseName', DataScope::Module, Value) then
+        if IsolatedStorage.Get('FabricPlat.OpenMirroringDatabaseName', DataScope::Module, Value) then
             exit(Value);
         exit('');
     end;
@@ -80,6 +80,12 @@ codeunit 50105 "Fabric Platform Credential Mgt"
     procedure IsClientSecretSet(): Boolean
     begin
         exit(not GetClientSecretSecure().IsEmpty());
+    end;
+
+    [NonDebuggable]
+    procedure GetClientSecret(): SecretText
+    begin
+        exit(GetClientSecretSecure());
     end;
 
     procedure ClearTokenCache()
