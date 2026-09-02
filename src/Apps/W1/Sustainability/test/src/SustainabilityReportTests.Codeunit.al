@@ -12,10 +12,10 @@ using Microsoft.Inventory.Tracking;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sustainability.Account;
+using Microsoft.Sustainability.Reports;
 using Microsoft.Sustainability.Setup;
 using Microsoft.Test.Sustainability;
 using System.Reflection;
-using System.TestLibraries.Utilities;
 using System.Utilities;
 
 codeunit 148217 "Sustainability Report Tests"
@@ -25,6 +25,7 @@ codeunit 148217 "Sustainability Report Tests"
     TestPermissions = Disabled;
 
     var
+        Assert: Codeunit Assert;
         LibraryERM: Codeunit "Library - ERM";
         LibrarySales: Codeunit "Library - Sales";
         LibraryRandom: Codeunit "Library - Random";
@@ -53,6 +54,7 @@ codeunit 148217 "Sustainability Report Tests"
         ItemTrackingEmissionCO2ePerUnitLbl: Label 'ItemTrackingEmissionCO2ePerUnit', Locked = true;
         ItemTrackingEmissionTotalCO2eLbl: Label 'ItemTrackingEmissionTotalCO2e', Locked = true;
         ReportDisclaimerLbl: Label 'Disclaimer %1', Comment = '%1 = Random Value';
+        TotalCO2eNotFoundErr: Label 'The report footer must print a total CO2e of %1.', Comment = '%1 = Expected total CO2e';
         CO2ePerUnitCaptionLbl: Label 'CO2e [%1] per Unit', Comment = '%1 = Unit Of Measure Code';
         TotalCO2eCaptionLbl: Label 'Total CO2e [%1]', Comment = '%1 = Unit Of Measure Code';
 
@@ -290,9 +292,8 @@ codeunit 148217 "Sustainability Report Tests"
         SerialNo: array[2] of Code[50];
         ExpectedCO2e: array[2] of Decimal;
         ExpectedFormattedCO2ePerUnit: Text;
-        ExpectedFormattedTotalCO2e: Text;
     begin
-        // [SCENARIO] The Standard ESG Sales Invoice reports average emissions by default for a Specific carbon-tracked item.
+        // [SCENARIO 641299] The Standard ESG Sales Invoice reports average emissions by default for a Specific carbon-tracked item.
         Initialize();
 
         // [GIVEN] A posted sales invoice for item "I" with Specific Carbon Tracking Method and two lots carrying different emissions.
@@ -301,7 +302,6 @@ codeunit 148217 "Sustainability Report Tests"
         SalesInvoiceLine.SetRange(Type, SalesInvoiceLine.Type::Item);
         SalesInvoiceLine.FindFirst();
         ExpectedFormattedCO2ePerUnit := FormatEmission(SalesInvoiceLine."CO2e per Unit");
-        ExpectedFormattedTotalCO2e := FormatEmission(SalesInvoiceLine."Total CO2e");
         Commit();
 
         // [WHEN] The Standard Sales - Invoice report is run without changing the emission basis.
@@ -310,7 +310,7 @@ codeunit 148217 "Sustainability Report Tests"
         // [THEN] The invoice line prints the average CO2e per unit, the footer prints the average total and no lot or serial details are printed.
         LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.AssertElementTagWithValueExists(CO2ePerUnitLineLbl, ExpectedFormattedCO2ePerUnit);
-        LibraryReportDataset.AssertElementTagWithValueExists(TotalCO2eLbl, ExpectedFormattedTotalCO2e);
+        VerifyFooterTotalCO2e(SalesInvoiceLine."Total CO2e");
         LibraryReportDataset.AssertElementTagWithValueNotExist(ItemTrackingEmissionLotNoLbl, LotNo[1]);
         LibraryReportDataset.AssertElementTagWithValueNotExist(ItemTrackingEmissionLotNoLbl, LotNo[2]);
     end;
@@ -324,7 +324,7 @@ codeunit 148217 "Sustainability Report Tests"
         SerialNo: array[2] of Code[50];
         ExpectedCO2e: array[2] of Decimal;
     begin
-        // [SCENARIO] The Standard ESG Sales Invoice reports actual emissions for each lot when item tracking details are selected.
+        // [SCENARIO  641299] The Standard ESG Sales Invoice reports actual emissions for each lot when item tracking details are selected.
         Initialize();
 
         // [GIVEN] A posted sales invoice for item "I" with Specific Carbon Tracking Method and lots "L1" and "L2" carrying different emissions.
@@ -334,11 +334,12 @@ codeunit 148217 "Sustainability Report Tests"
         // [WHEN] The Standard Sales - Invoice report is run with Details by Item Tracking as the emission basis.
         RunStandardSalesInvoiceReport(SalesInvoiceHeader."No.");
 
-        // [THEN] Separate rows are printed for lots "L1" and "L2" with their actual emissions, and the footer prints their sum.
+        // [THEN] Separate rows are printed for lots "L1" and "L2" with their actual emissions, the average is not printed and the footer prints their sum.
         LibraryReportDataset.LoadDataSetFile();
+        VerifyAverageEmissionIsNotPrinted(SalesInvoiceHeader."No.");
         VerifyItemTrackingEmission(ItemTrackingEmissionLotNoLbl, LotNo[1], LotNo[1], ExpectedCO2e[1]);
         VerifyItemTrackingEmission(ItemTrackingEmissionLotNoLbl, LotNo[2], LotNo[2], ExpectedCO2e[2]);
-        LibraryReportDataset.AssertElementTagWithValueExists(TotalCO2eLbl, FormatEmission(ExpectedCO2e[1] + ExpectedCO2e[2]));
+        VerifyFooterTotalCO2e(ExpectedCO2e[1] + ExpectedCO2e[2]);
     end;
 
     [Test]
@@ -350,7 +351,7 @@ codeunit 148217 "Sustainability Report Tests"
         SerialNo: array[2] of Code[50];
         ExpectedCO2e: array[2] of Decimal;
     begin
-        // [SCENARIO] The Standard ESG Sales Invoice reports actual emissions for each serial number when item tracking details are selected.
+        // [SCENARIO 641299] The Standard ESG Sales Invoice reports actual emissions for each serial number when item tracking details are selected.
         Initialize();
 
         // [GIVEN] A posted sales invoice for item "I" with Specific Carbon Tracking Method and serial numbers "S1" and "S2" carrying different emissions.
@@ -360,11 +361,12 @@ codeunit 148217 "Sustainability Report Tests"
         // [WHEN] The Standard Sales - Invoice report is run with Details by Item Tracking as the emission basis.
         RunStandardSalesInvoiceReport(SalesInvoiceHeader."No.");
 
-        // [THEN] Separate rows are printed for serial numbers "S1" and "S2" with their actual emissions, and the footer prints their sum.
+        // [THEN] Separate rows are printed for serial numbers "S1" and "S2" with their actual emissions, the average is not printed and the footer prints their sum.
         LibraryReportDataset.LoadDataSetFile();
+        VerifyAverageEmissionIsNotPrinted(SalesInvoiceHeader."No.");
         VerifyItemTrackingEmission(ItemTrackingEmissionSerialNoLbl, SerialNo[1], SerialNo[1], ExpectedCO2e[1]);
         VerifyItemTrackingEmission(ItemTrackingEmissionSerialNoLbl, SerialNo[2], SerialNo[2], ExpectedCO2e[2]);
-        LibraryReportDataset.AssertElementTagWithValueExists(TotalCO2eLbl, FormatEmission(ExpectedCO2e[1] + ExpectedCO2e[2]));
+        VerifyFooterTotalCO2e(ExpectedCO2e[1] + ExpectedCO2e[2]);
     end;
 
     [Test]
@@ -376,7 +378,7 @@ codeunit 148217 "Sustainability Report Tests"
         SerialNo: array[2] of Code[50];
         ExpectedCO2e: array[2] of Decimal;
     begin
-        // [SCENARIO] The Standard ESG Sales Invoice separates the lot and the serial number with a space when an entry carries both.
+        // [SCENARIO 641299] The Standard ESG Sales Invoice separates the lot and the serial number with a space when an entry carries both.
         Initialize();
 
         // [GIVEN] A posted sales invoice for item "I" with Specific Carbon Tracking Method tracked by both lot "L" and serial "S".
@@ -386,11 +388,12 @@ codeunit 148217 "Sustainability Report Tests"
         // [WHEN] The Standard Sales - Invoice report is run with Details by Item Tracking as the emission basis.
         RunStandardSalesInvoiceReport(SalesInvoiceHeader."No.");
 
-        // [THEN] Each row prints the lot and the serial number separated by a space, and the footer prints their sum.
+        // [THEN] Each row prints the lot and the serial number separated by a space, the average is not printed and the footer prints their sum.
         LibraryReportDataset.LoadDataSetFile();
+        VerifyAverageEmissionIsNotPrinted(SalesInvoiceHeader."No.");
         VerifyItemTrackingEmission(ItemTrackingEmissionLotNoLbl, LotNo[1], LotNo[1] + ' ' + SerialNo[1], ExpectedCO2e[1]);
         VerifyItemTrackingEmission(ItemTrackingEmissionLotNoLbl, LotNo[2], LotNo[2] + ' ' + SerialNo[2], ExpectedCO2e[2]);
-        LibraryReportDataset.AssertElementTagWithValueExists(TotalCO2eLbl, FormatEmission(ExpectedCO2e[1] + ExpectedCO2e[2]));
+        VerifyFooterTotalCO2e(ExpectedCO2e[1] + ExpectedCO2e[2]);
     end;
 
     local procedure Initialize()
@@ -572,16 +575,34 @@ codeunit 148217 "Sustainability Report Tests"
 
     local procedure VerifyItemTrackingEmission(TrackingElementName: Text; TrackingNo: Code[50]; ExpectedTrackingText: Text; ExpectedCO2e: Decimal)
     var
-        ExpectedFormattedCO2e: Text;
         RowIndex: Integer;
     begin
-        ExpectedFormattedCO2e := FormatEmission(ExpectedCO2e);
+        LibraryReportDataset.Reset();
         RowIndex := LibraryReportDataset.FindRow(TrackingElementName, TrackingNo);
-        LibraryReportDataset.MoveToRow(RowIndex);
+        LibraryReportDataset.MoveToRow(RowIndex + 1);
         LibraryReportDataset.AssertCurrentRowValueEquals(ItemTrackingEmissionTrackingLbl, ExpectedTrackingText);
         LibraryReportDataset.AssertCurrentRowValueEquals(ItemTrackingEmissionQuantityLbl, 1);
-        LibraryReportDataset.AssertCurrentRowValueEquals(ItemTrackingEmissionCO2ePerUnitLbl, ExpectedFormattedCO2e);
-        LibraryReportDataset.AssertCurrentRowValueEquals(ItemTrackingEmissionTotalCO2eLbl, ExpectedFormattedCO2e);
+        LibraryReportDataset.AssertCurrentRowValueEquals(ItemTrackingEmissionCO2ePerUnitLbl, ExpectedCO2e);
+        LibraryReportDataset.AssertCurrentRowValueEquals(ItemTrackingEmissionTotalCO2eLbl, ExpectedCO2e);
+    end;
+
+    local procedure VerifyAverageEmissionIsNotPrinted(DocumentNo: Code[20])
+    var
+        SalesInvoiceLine: Record "Sales Invoice Line";
+    begin
+        SalesInvoiceLine.SetRange("Document No.", DocumentNo);
+        SalesInvoiceLine.SetRange(Type, SalesInvoiceLine.Type::Item);
+        SalesInvoiceLine.FindFirst();
+        LibraryReportDataset.AssertElementTagWithValueNotExist(CO2ePerUnitLineLbl, FormatEmission(SalesInvoiceLine."CO2e per Unit"));
+    end;
+
+    // Tag assertions compare raw text, so the decimal footer value is matched through a converting row lookup.
+    local procedure VerifyFooterTotalCO2e(ExpectedTotalCO2e: Decimal)
+    begin
+        LibraryReportDataset.Reset();
+        Assert.IsTrue(
+            LibraryReportDataset.SearchForElementByValue(TotalCO2eLbl, ExpectedTotalCO2e),
+            StrSubstNo(TotalCO2eNotFoundErr, ExpectedTotalCO2e));
     end;
 
     local procedure FormatEmission(Value: Decimal): Text
