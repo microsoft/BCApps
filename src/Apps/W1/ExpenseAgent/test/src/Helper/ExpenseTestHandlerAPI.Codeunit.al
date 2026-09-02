@@ -14,60 +14,6 @@ using System.Agents;
 
 codeunit 148307 "Expense Test Handler API"
 {
-    local procedure EnsureExpenseAgent(): Guid
-    var
-        ExpenseAgentSetup: Record "Expense Agent Setup";
-        Agent: Record Agent;
-        TempAgentSetupBuffer: Record "Agent Setup Buffer" temporary;
-        AgentSetup: Codeunit "Agent Setup";
-        AgentUserSecurityId: Guid;
-    begin
-        if ExpenseAgentSetup.Get() then
-            AgentUserSecurityId := ExpenseAgentSetup."User Security ID";
-
-        if not IsNullGuid(AgentUserSecurityId) then
-            if Agent.Get(AgentUserSecurityId) then begin
-                AgentSetup.GetSetupRecord(
-                    TempAgentSetupBuffer,
-                    AgentUserSecurityId,
-                    "Agent Metadata Provider"::"Expense Agent",
-                    '',
-                    '',
-                    '');
-                if TempAgentSetupBuffer.State <> TempAgentSetupBuffer.State::Enabled then begin
-                    TempAgentSetupBuffer.Validate(State, TempAgentSetupBuffer.State::Enabled);
-                    AgentUserSecurityId := AgentSetup.SaveChanges(TempAgentSetupBuffer);
-                end;
-                EnableExpenseAgentSetup(ExpenseAgentSetup, AgentUserSecurityId);
-                exit(AgentUserSecurityId);
-            end;
-
-        Clear(AgentUserSecurityId);
-        AgentSetup.GetSetupRecord(
-            TempAgentSetupBuffer,
-            AgentUserSecurityId,
-            "Agent Metadata Provider"::"Expense Agent",
-            CopyStr('Expense Agent - ' + CompanyName(), 1, MaxStrLen(TempAgentSetupBuffer."User Name")),
-            CopyStr('Expense Agent - ' + CompanyName(), 1, MaxStrLen(TempAgentSetupBuffer."Display Name")),
-            'Processes employee expenses for the current company.');
-        TempAgentSetupBuffer.Validate(State, TempAgentSetupBuffer.State::Enabled);
-        AgentUserSecurityId := AgentSetup.SaveChanges(TempAgentSetupBuffer);
-
-        EnableExpenseAgentSetup(ExpenseAgentSetup, AgentUserSecurityId);
-        exit(AgentUserSecurityId);
-    end;
-
-    local procedure EnableExpenseAgentSetup(
-        var ExpenseAgentSetup: Record "Expense Agent Setup";
-        AgentUserSecurityId: Guid)
-    begin
-        if not ExpenseAgentSetup.Get() then
-            ExpenseAgentSetup.InitRecord();
-        ExpenseAgentSetup."User Security ID" := AgentUserSecurityId;
-        ExpenseAgentSetup.Validate("Enable Agent", true);
-        ExpenseAgentSetup.Modify(false);
-    end;
-
     /// <summary>
     /// Resets expense transactional data so tests can start from a clean slate.
     /// Example: curl.exe -X POST "http://localhost:7047/Navision_NAV/ODataV4/ExpenseTestHandler_Initialize?company=4d77b30a-3dc5-f011-9c12-7ced8d9e45e7" -u username:password -H "Content-Type: application/json" -H "Accept: application/json" -d "{}"
@@ -91,6 +37,7 @@ codeunit 148307 "Expense Test Handler API"
         ExpenseAgentSetup: Record "Expense Agent Setup";
         CreateExpenseAgentSetup: Codeunit "Create Expense Agent Setup";
         CreateExpenseGLAccount: Codeunit "Create Expense GL Account";
+        LibraryExpense: Codeunit "Library - Expense";
     begin
         if ExpenseAgentSetupIsComplete() then
             exit('Configure completed');
@@ -99,7 +46,7 @@ codeunit 148307 "Expense Test Handler API"
         CreateExpenseGLAccount.Run();
         ExpenseAgentSetup.Get();
         ExpenseAgentSetup.CreateDefaultSettings();
-        EnsureExpenseAgent();
+        LibraryExpense.EnsureExpenseAgentEnabled();
         exit('Configure completed');
     end;
 
