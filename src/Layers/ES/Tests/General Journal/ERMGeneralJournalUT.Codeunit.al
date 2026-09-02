@@ -45,6 +45,8 @@ codeunit 134920 "ERM General Journal UT"
         RecurringFrequencyNotClearedErr: Label 'The recurring frequency should be cleared.';
         YearlyRecurringFrequencyTok: Label '1Y', Locked = true;
         RecurringFrequencyNotLocalizedErr: Label 'The recurring frequency should be displayed using the localized date formula tokens.';
+        WrongBatchTotalErr: Label 'Wrong Batch Total on the Payment Journal page.';
+        BatchTotalNotShownErr: Label 'Batch Total must be shown.';
         IsInitialized: Boolean;
 
     [Test]
@@ -6325,6 +6327,177 @@ codeunit 134920 "ERM General Journal UT"
           GenJournalLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), 0);
         GenJournalLine.Validate("Document No.", LibraryUtility.GenerateGUID());
         GenJournalLine.Modify(true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PaymentJournalBatchTotalShowsSumOfLineAmounts()
+    var
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GeneralJournalBatches: TestPage "General Journal Batches";
+        PaymentJournal: TestPage "Payment Journal";
+        ExpectedBatchTotal: Decimal;
+    begin
+        // [FEATURE] [Payment] [Batch Total]
+        // [SCENARIO 425446] Batch Total on the Payment Journal page shows the total amount that is selected for payment in the batch.
+        Initialize();
+
+        // [GIVEN] Payment journal batch with three payment lines
+        CreateGenJournalTemplateBatchPayment(GenJournalTemplate, GenJournalBatch);
+        ExpectedBatchTotal := CreatePaymentJournalLines(GenJournalTemplate, GenJournalBatch, 3);
+        PrepareGeneralJournalBatchesPage(GeneralJournalBatches, GenJournalBatch);
+
+        // [WHEN] Payment Journal page is opened on the batch
+        RunEditJournalActionOnPaymentJournalPage(PaymentJournal, GeneralJournalBatches);
+
+        // [THEN] Batch Total is the sum of "Amount (LCY)" of the three lines
+        Assert.AreEqual(ExpectedBatchTotal, PaymentJournal.BatchTotal.AsDecimal(), WrongBatchTotalErr);
+
+        PaymentJournal.Close();
+        GeneralJournalBatches.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PaymentJournalBatchTotalIsZeroForEmptyBatch()
+    var
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GeneralJournalBatches: TestPage "General Journal Batches";
+        PaymentJournal: TestPage "Payment Journal";
+    begin
+        // [FEATURE] [Payment] [Batch Total]
+        // [SCENARIO 425446] Batch Total on the Payment Journal page is zero when the batch has no lines.
+        Initialize();
+
+        // [GIVEN] Payment journal batch without lines
+        CreateGenJournalTemplateBatchPayment(GenJournalTemplate, GenJournalBatch);
+        PrepareGeneralJournalBatchesPage(GeneralJournalBatches, GenJournalBatch);
+
+        // [WHEN] Payment Journal page is opened on the batch
+        RunEditJournalActionOnPaymentJournalPage(PaymentJournal, GeneralJournalBatches);
+
+        // [THEN] Batch Total is 0
+        Assert.AreEqual(0, PaymentJournal.BatchTotal.AsDecimal(), WrongBatchTotalErr);
+
+        PaymentJournal.Close();
+        GeneralJournalBatches.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PaymentJournalBatchTotalUpdatedWhenLineAmountIsValidated()
+    var
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GeneralJournalBatches: TestPage "General Journal Batches";
+        PaymentJournal: TestPage "Payment Journal";
+        InitialBatchTotal: Decimal;
+        OldAmount: Decimal;
+        NewAmount: Decimal;
+    begin
+        // [FEATURE] [Payment] [Batch Total]
+        // [SCENARIO 425446] Batch Total on the Payment Journal page is recalculated when the Amount of a line is changed.
+        Initialize();
+
+        // [GIVEN] Payment Journal page opened on a batch with two payment lines
+        CreateGenJournalTemplateBatchPayment(GenJournalTemplate, GenJournalBatch);
+        InitialBatchTotal := CreatePaymentJournalLines(GenJournalTemplate, GenJournalBatch, 2);
+        PrepareGeneralJournalBatchesPage(GeneralJournalBatches, GenJournalBatch);
+        RunEditJournalActionOnPaymentJournalPage(PaymentJournal, GeneralJournalBatches);
+        PaymentJournal.First();
+        OldAmount := PaymentJournal.Amount.AsDecimal();
+        NewAmount := OldAmount - LibraryRandom.RandDecInRange(100, 1000, 2);
+
+        // [WHEN] Amount is changed on the first line
+        PaymentJournal.Amount.SetValue(NewAmount);
+
+        // [THEN] Batch Total is updated without leaving the line
+        Assert.AreEqual(
+          InitialBatchTotal - OldAmount + NewAmount, PaymentJournal.BatchTotal.AsDecimal(), WrongBatchTotalErr);
+
+        PaymentJournal.Close();
+        GeneralJournalBatches.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PaymentJournalBatchTotalUpdatedWhenBatchIsChanged()
+    var
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalBatch2: Record "Gen. Journal Batch";
+        GeneralJournalBatches: TestPage "General Journal Batches";
+        PaymentJournal: TestPage "Payment Journal";
+        SecondBatchTotal: Decimal;
+    begin
+        // [FEATURE] [Payment] [Batch Total]
+        // [SCENARIO 425446] Batch Total on the Payment Journal page only covers the lines of the selected batch.
+        Initialize();
+
+        // [GIVEN] Two payment journal batches with lines, in the same template
+        CreateGenJournalTemplateBatchPayment(GenJournalTemplate, GenJournalBatch);
+        CreatePaymentJournalLines(GenJournalTemplate, GenJournalBatch, 2);
+        LibraryERM.CreateGenJournalBatch(GenJournalBatch2, GenJournalTemplate.Name);
+        SecondBatchTotal := CreatePaymentJournalLines(GenJournalTemplate, GenJournalBatch2, 3);
+
+        // [GIVEN] Payment Journal page opened on the first batch
+        PrepareGeneralJournalBatchesPage(GeneralJournalBatches, GenJournalBatch);
+        RunEditJournalActionOnPaymentJournalPage(PaymentJournal, GeneralJournalBatches);
+
+        // [WHEN] Batch Name is changed to the second batch
+        PaymentJournal.CurrentJnlBatchName.SetValue(GenJournalBatch2.Name);
+
+        // [THEN] Batch Total is the total of the second batch only
+        Assert.AreEqual(SecondBatchTotal, PaymentJournal.BatchTotal.AsDecimal(), WrongBatchTotalErr);
+
+        PaymentJournal.Close();
+        GeneralJournalBatches.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CalcBatchTotalReturnsSumOfAmountLCYOfFilteredLines()
+    var
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        ExpectedBatchTotal: Decimal;
+        BatchTotal: Decimal;
+        ShowBatchTotal: Boolean;
+    begin
+        // [FEATURE] [Payment] [Batch Total] [UT]
+        // [SCENARIO 425446] CalcBatchTotal returns the sum of "Amount (LCY)" of the lines that the filters apply to.
+        Initialize();
+
+        // [GIVEN] Payment journal batch with three payment lines
+        CreateGenJournalTemplateBatchPayment(GenJournalTemplate, GenJournalBatch);
+        ExpectedBatchTotal := CreatePaymentJournalLines(GenJournalTemplate, GenJournalBatch, 3);
+        GenJournalLine.SetRange("Journal Template Name", GenJournalBatch."Journal Template Name");
+        GenJournalLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
+
+        // [WHEN] CalcBatchTotal is called for the filtered lines
+        GenJnlManagement.CalcBatchTotal(GenJournalLine, BatchTotal, ShowBatchTotal);
+
+        // [THEN] The total of the batch is returned and can be shown
+        Assert.IsTrue(ShowBatchTotal, BatchTotalNotShownErr);
+        Assert.AreEqual(ExpectedBatchTotal, BatchTotal, WrongBatchTotalErr);
+    end;
+
+    local procedure CreatePaymentJournalLines(GenJournalTemplate: Record "Gen. Journal Template"; GenJournalBatch: Record "Gen. Journal Batch"; NoOfLines: Integer) TotalAmountLCY: Decimal
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        VendorNo: Code[20];
+        i: Integer;
+    begin
+        VendorNo := LibraryPurchase.CreateVendorNo();
+        for i := 1 to NoOfLines do begin
+            LibraryERM.CreateGeneralJnlLine2(
+              GenJournalLine, GenJournalTemplate.Name, GenJournalBatch.Name, GenJournalLine."Document Type"::Payment,
+              GenJournalLine."Account Type"::Vendor, VendorNo, -LibraryRandom.RandDecInRange(100, 1000, 2));
+            TotalAmountLCY += GenJournalLine."Amount (LCY)";
+        end;
     end;
 
     local procedure Initialize()
