@@ -286,6 +286,20 @@ page 50104 "Fabric Platform Setup"
                     Message(SPAddedToWorkspaceMsg, Rec."Fabric Workspace Name");
                 end;
             }
+            action(Refresh)
+            {
+                Caption = 'Refresh';
+                ApplicationArea = All;
+                Image = Refresh;
+                ToolTip = 'Refreshes the page with the latest data.';
+
+                trigger OnAction()
+                begin
+                    SelectLatestVersion();
+                    Rec.Get(Rec."Setup ID");
+                    CurrPage.Update(false);
+                end;
+            }
         }
         area(Navigation)
         {
@@ -340,6 +354,7 @@ page 50104 "Fabric Platform Setup"
                 actionref(StartExport_Promoted; StartExport) { }
                 actionref(StopExport_Promoted; StopExport) { }
                 actionref(DisableExport_Promoted; DisableExport) { }
+                actionref(Refresh_Promoted; Refresh) { }
             }
         }
     }

@@ -57,4 +57,34 @@ page 50103 "Fabric Platform Export Summary"
             }
         }
     }
+
+    actions
+    {
+        area(Processing)
+        {
+            action(Refresh)
+            {
+                Caption = 'Refresh';
+                ApplicationArea = All;
+                Image = Refresh;
+                ToolTip = 'Refreshes the page with the latest data.';
+
+                trigger OnAction()
+                begin
+                    SelectLatestVersion();
+                    if not Rec.Find() then;
+                    CurrPage.Update(false);
+                end;
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Process)
+            {
+                Caption = 'Process';
+
+                actionref(Refresh_Promoted; Refresh) { }
+            }
+        }
+    }
 }
