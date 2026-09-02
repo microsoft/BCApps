@@ -15,13 +15,43 @@
       "justification": "The application app shouldn't point at itself."
     },
     {
+      "id": "AA0244",
+      "action": "None",
+      "justification": "Needed for allowing co-existence of apps using Integer and BigInteger. Triggered when changing type of function parameter"
+    },
+    {
+      "id": "AS0023",
+      "action": "None",
+      "justification": "Needed for allowing co-existence of apps using Integer and BigInteger."
+    },
+    {
       "id": "AS0108",
-      "action": "Warning",
+      "action": "None",
+      "justification": "Needed for allowing co-existence of apps using Integer and BigInteger."
+    },
+    {
+      "id": "AS0146",
+      "action": "None",
+      "justification": "Needed for allowing co-existence of apps using Integer and BigInteger."
+    },
+    {
+      "id": "AS0147",
+      "action": "None",
       "justification": "Needed for allowing co-existence of apps using Integer and BigInteger."
     },
     {
       "id": "AL0108",
-      "action": "Warning",
+      "action": "None",
+      "justification": "Needed for allowing co-existence of apps using Integer and BigInteger."
+    },
+    {
+      "id": "AL0603",
+      "action": "None",
+      "justification": "Needed for allowing co-existence of apps using Integer and BigInteger."
+    },
+    {
+      "id": "AL0662",
+      "action": "None",
       "justification": "Needed for allowing co-existence of apps using Integer and BigInteger."
     },
     {
