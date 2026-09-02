@@ -18,8 +18,6 @@ codeunit 104067 "Upgrade Composite Report Parts"
 {
     Subtype = Upgrade;
     Access = Internal;
-    InherentEntitlements = X;
-    InherentPermissions = X;
 
     trigger OnUpgradePerDatabase()
     begin
