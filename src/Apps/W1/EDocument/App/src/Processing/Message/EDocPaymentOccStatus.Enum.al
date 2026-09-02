@@ -5,38 +5,27 @@
 namespace Microsoft.eServices.EDocument.Processing.Message;
 
 /// <summary>
-/// Operational status of an E-Document message record.
+/// Operational status of an E-Document payment occurrence.
 /// </summary>
-enum 6429 "E-Doc. Message Status"
+enum 6539 "E-Doc. Payment Occ. Status"
 {
-    Extensible = true;
+    Access = Public;
+    Extensible = false;
 
-    value(0; Created)
+    value(0; Pending)
     {
-        Caption = 'Created';
+        Caption = 'Pending';
     }
-    value(1; Sent)
+    value(1; Processed)
     {
-        Caption = 'Sent';
+        Caption = 'Processed';
     }
-    value(2; Queued)
-    {
-        Caption = 'Queued';
-    }
-    value(3; Error)
+    value(2; Error)
     {
         Caption = 'Error';
     }
-    value(4; Received)
+    value(3; Processing)
     {
-        Caption = 'Received';
-    }
-    value(5; "Pending Response")
-    {
-        Caption = 'Pending response';
-    }
-    value(6; "Response Error")
-    {
-        Caption = 'Response error';
+        Caption = 'Processing';
     }
 }
