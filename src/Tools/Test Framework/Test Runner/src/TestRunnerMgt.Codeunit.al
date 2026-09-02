@@ -275,7 +275,7 @@ codeunit 130454 "Test Runner - Mgt"
         TestMethodLineFunction.Level := BaseTestMethodLine.Level;
         TestMethodLineFunction."Skip Logging Results" := BaseTestMethodLine."Skip Logging Results";
         TestMethodLineFunction."Data Input Group Code" := BaseTestMethodLine."Data Input Group Code";
-        TestMethodLineFunction."Data Input" := TestCaseName;
+        TestMethodLineFunction."Data Input" := CopyStr(TestCaseName, 1, MaxStrLen(TestMethodLineFunction."Data Input"));
         TestMethodLineFunction.Insert(true);
 
         exit(true);
