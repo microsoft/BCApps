@@ -5,11 +5,11 @@
 
 namespace System.TestTools.AITestToolkit;
 
+using System.AI;
 using System.Reflection;
 using System.Telemetry;
 using System.TestTools.TestRunner;
 using System.Utilities;
-using System.AI;
 
 codeunit 149034 "AIT Test Suite Mgt."
 {
@@ -372,12 +372,14 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITTestRunIteration: Codeunit "AIT Test Run Iteration"; // single instance
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
         AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
-        DDCurrentCase: Codeunit "AIT DD Current Case";
+        TestDataSourceContext: Codeunit "Test Data Source Context";
         ModifiedOperation: Text;
         ModifiedExecutionSuccess: Boolean;
         ModifiedMessage: Text;
         TestOutput: Text;
         EntryWasModified: Boolean;
+        CurrentDataSetIdentifier: Text;
+        CurrentTestCaseIdentifier: Text;
     begin
         ModifiedOperation := Operation;
         ModifiedExecutionSuccess := ExecutionSuccess;
@@ -422,10 +424,12 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITLogEntry."Test Input Group Code" := CurrentTestMethodLine."Data Input Group Code";
         AITLogEntry."Test Input Code" := CurrentTestMethodLine."Data Input";
 
-        // For language-first data-driven tests ([TestDataSource]) the platform drives the per-case fan-out and
-        // the Test Method Line Data Input fields are empty; fall back to the current data-driven case bridge.
-        if AITLogEntry."Test Input Code" = '' then
-            DDCurrentCase.TryGetCurrent(AITLogEntry."Test Input Group Code", AITLogEntry."Test Input Code");
+        if TestDataSourceContext.TryGetCurrent(CurrentDataSetIdentifier, CurrentTestCaseIdentifier) then begin
+            if AITLogEntry."Test Input Group Code" = '' then
+                AITLogEntry."Test Input Group Code" := CopyStr(CurrentDataSetIdentifier, 1, MaxStrLen(AITLogEntry."Test Input Group Code"));
+            if AITLogEntry."Test Input Code" = '' then
+                AITLogEntry."Test Input Code" := CopyStr(CurrentTestCaseIdentifier, 1, MaxStrLen(AITLogEntry."Test Input Code"));
+        end;
 
         EnrichLogEntryFromTestInput(AITLogEntry);
 
@@ -433,7 +437,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         if TestOutput <> '' then
             AITLogEntry.SetOutputBlob(TestOutput);
 
-        AITLogEntry."Procedure Name" := CurrentTestMethodLine.Function;
+        AITLogEntry."Procedure Name" := GetBaseProcedureName(CurrentTestMethodLine.Function);
         AITLogEntry."Tokens Consumed" := AITTestRunIteration.GetAITokenUsedByLastTestMethodLine();
         AITLogEntry."No. of Turns" := AITTestRunIteration.GetNumberOfTurnsForLastTestMethodLine();
         AITLogEntry."No. of Turns Passed" := AITTestRunIteration.GetNumberOfTurnsPassedForLastTestMethodLine();
@@ -445,17 +449,30 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITTestRunIteration.AddToNoOfLogEntriesExecuted();
     end;
 
+    local procedure GetBaseProcedureName(ProcedureName: Text): Text[128]
+    var
+        OpenBracketPosition: Integer;
+    begin
+        if ProcedureName.EndsWith(']') then begin
+            OpenBracketPosition := ProcedureName.IndexOf('[');
+            if OpenBracketPosition > 1 then
+                ProcedureName := ProcedureName.Substring(1, OpenBracketPosition - 1);
+        end;
+
+        exit(CopyStr(ProcedureName, 1, 128));
+    end;
+
     /// <summary>
     /// Writes one <see cref="AIT Log Entry"/> for a language-first data-driven case that ran on the platform test
     /// runner (no AIT test suite context). Invoked from <see cref="AIT Test Handler"/>.OnAfterTestCaseRun. The dataset
-    /// lineage of the case is taken from <see cref="AIT DD Current Case"/> (set by the per-case context) with the
+    /// lineage of the case is taken from <c>Test Data Source Context</c> (set by the per-case context) with the
     /// platform-provided <paramref name="TestCaseName"/> as the fallback input code. The run is stamped with a
     /// session-scoped Run ID so entries from the same session aggregate together.
     /// </summary>
     internal procedure AddDataDrivenLogEntry(CodeunitId: Integer; ProcedureName: Text; TestCaseName: Text; ExecutionSuccess: Boolean)
     var
         AITLogEntry: Record "AIT Log Entry";
-        DDCurrentCase: Codeunit "AIT DD Current Case";
+        AITTestCaseState: Codeunit "AIT Test Case State";
         AITTestContextImpl: Codeunit "AIT Test Context Impl.";
         AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
         AOAIToken: Codeunit "AOAI Token";
@@ -465,7 +482,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         TestOutput: Text;
     begin
         InitDataDrivenLogEntryHeader(AITLogEntry, CodeunitId, ProcedureName, TestCaseName);
-        DDCurrentCase.GetCaseStart(StartTime, StartTokens);
+        AITTestCaseState.GetCaseStart(StartTime, StartTokens);
 
         if ExecutionSuccess then begin
             AITLogEntry.Status := AITLogEntry.Status::Success;
@@ -480,6 +497,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         if AITLogEntry."Start Time" <> 0DT then
             AITLogEntry."Duration (ms)" := AITLogEntry."End Time" - AITLogEntry."Start Time";
 
+        // TODO: Agent tests need operation-scoped token accounting; a server-session delta cannot attribute agent usage.
         AITLogEntry."Tokens Consumed" := AOAIToken.GetTotalServerSessionTokensConsumed() - StartTokens;
 
         if AITTestContextImpl.GetAccuracy(Accuracy) then
@@ -522,27 +540,27 @@ codeunit 149034 "AIT Test Suite Mgt."
         Commit();
     end;
 
-    /// <summary>Populates the header fields shared by the language-first data-driven log writers (Run ID, codeunit/procedure, operation, dataset lineage), resolving the case from <see cref="AIT DD Current Case"/> with <paramref name="TestCaseName"/> as fallback.</summary>
+    /// <summary>Populates the header fields shared by the language-first data-driven log writers (Run ID, codeunit/procedure, operation, dataset lineage), resolving the case from <c>Test Data Source Context</c> with <paramref name="TestCaseName"/> as fallback.</summary>
     local procedure InitDataDrivenLogEntryHeader(var AITLogEntry: Record "AIT Log Entry"; CodeunitId: Integer; ProcedureName: Text; TestCaseName: Text)
     var
-        DDCurrentCase: Codeunit "AIT DD Current Case";
+        TestDataSourceContext: Codeunit "Test Data Source Context";
         AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
-        GroupCode: Code[100];
-        InputCode: Code[100];
+        DataSetIdentifier: Text;
+        TestCaseIdentifier: Text;
     begin
-        DDCurrentCase.TryGetCurrent(GroupCode, InputCode);
-        if InputCode = '' then
-            InputCode := CopyStr(TestCaseName, 1, MaxStrLen(InputCode));
+        TestDataSourceContext.TryGetCurrent(DataSetIdentifier, TestCaseIdentifier);
+        if TestCaseIdentifier = '' then
+            TestCaseIdentifier := TestCaseName;
 
-        AITLogEntry."Run ID" := DDCurrentCase.GetRunId();
+        AITLogEntry."Run ID" := TestDataSourceContext.GetRunId();
         AITLogEntry."Codeunit ID" := CodeunitId;
         AITLogEntry."Procedure Name" := CopyStr(ProcedureName, 1, MaxStrLen(AITLogEntry."Procedure Name"));
         AITLogEntry.Operation := CopyStr(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), 1, MaxStrLen(AITLogEntry.Operation));
         AITLogEntry."Original Operation" := CopyStr(AITLogEntry.Operation, 1, MaxStrLen(AITLogEntry."Original Operation"));
         // "Entry No." is the table's AutoIncrement clustered key; 0 lets the platform assign the next number on Insert.
         AITLogEntry."Entry No." := 0;
-        AITLogEntry."Test Input Group Code" := GroupCode;
-        AITLogEntry."Test Input Code" := InputCode;
+        AITLogEntry."Test Input Group Code" := CopyStr(DataSetIdentifier, 1, MaxStrLen(AITLogEntry."Test Input Group Code"));
+        AITLogEntry."Test Input Code" := CopyStr(TestCaseIdentifier, 1, MaxStrLen(AITLogEntry."Test Input Code"));
     end;
 
     /// <summary>Enriches a log entry with the current case's dataset row (input data, sensitivity, description) from the shared <c>Test Input</c> table. Shared by <see cref="AddLogEntry"/> and <see cref="AddDataDrivenLogEntry"/>.</summary>

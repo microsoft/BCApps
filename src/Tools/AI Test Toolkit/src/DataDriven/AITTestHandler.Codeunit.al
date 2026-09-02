@@ -7,6 +7,7 @@ namespace System.TestTools.AITestToolkit;
 
 using System.AI;
 using System.Testability;
+using System.TestTools.TestRunner;
 
 /// <summary>
 /// Platform test-handler for language-first (<c>[TestDataSource]</c>) AI evals. When a migrated eval runs on the
@@ -22,15 +23,35 @@ codeunit 149050 "AIT Test Handler" implements ITestHandler
 {
     Access = Public;
 
-    // Only the per-case hooks are implemented. The other four ITestHandler hooks use the interface's empty default
-    // implementations — the platform test-handler framework treats a hook a handler does not override as a no-op.
+    procedure OnBeforeTestCodeunitRun(Context: TestHandlerContext)
+    var
+        AITTestRunIteration: Codeunit "AIT Test Run Iteration";
+        TestDataSourceContext: Codeunit "Test Data Source Context";
+    begin
+        if not AITTestRunIteration.IsRunningUnderAITSuite() then
+            TestDataSourceContext.StartRunIfNeeded(Context.CodeunitId());
+    end;
+
+    procedure OnAfterTestCodeunitRun(Context: TestHandlerContext)
+    var
+        AITTestRunIteration: Codeunit "AIT Test Run Iteration";
+        AITTestCaseState: Codeunit "AIT Test Case State";
+        TestDataSourceContext: Codeunit "Test Data Source Context";
+    begin
+        if AITTestRunIteration.IsRunningUnderAITSuite() then
+            exit;
+
+        TestDataSourceContext.EndRunIfOwned(Context.CodeunitId());
+        AITTestCaseState.Reset();
+    end;
 
     procedure OnBeforeTestCaseRun(Context: TestHandlerContext)
     var
         AITTestRunIteration: Codeunit "AIT Test Run Iteration";
         AITTestContextImpl: Codeunit "AIT Test Context Impl.";
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
-        DDCurrentCase: Codeunit "AIT DD Current Case";
+        AITTestCaseState: Codeunit "AIT Test Case State";
+        TestDataSourceContext: Codeunit "Test Data Source Context";
         MonthlyCopilotCredLimit: Codeunit "AIT Eval Monthly Copilot Cred.";
         AOAIToken: Codeunit "AOAI Token";
     begin
@@ -46,25 +67,31 @@ codeunit 149050 "AIT Test Handler" implements ITestHandler
         if MonthlyCopilotCredLimit.IsLimitReached() then begin
             Context.Skip(CreditLimitReachedLbl);
             AITTestSuiteMgt.LogSkippedDataDrivenEval(Context.CodeunitId(), Context.ProcedureName(), Context.TestCaseName(), CreditLimitReachedLbl);
+            TestDataSourceContext.ClearCurrent();
+            AITTestCaseState.Reset();
             exit;
         end;
 
         // Reset per-case accuracy/turns and open the run-procedure output scope, mirroring the classic
         // OnBeforeTestMethodRun setup so the test body's context.Set* calls attribute to this case.
         AITTestContextImpl.StartRunProcedureScenario();
-        DDCurrentCase.SetCaseStart(CurrentDateTime(), AOAIToken.GetTotalServerSessionTokensConsumed());
+        AITTestCaseState.SetCaseStart(CurrentDateTime(), AOAIToken.GetTotalServerSessionTokensConsumed());
     end;
 
     procedure OnAfterTestCaseRun(Context: TestHandlerContext)
     var
         AITTestRunIteration: Codeunit "AIT Test Run Iteration";
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
+        AITTestCaseState: Codeunit "AIT Test Case State";
+        TestDataSourceContext: Codeunit "Test Data Source Context";
     begin
         if AITTestRunIteration.IsRunningUnderAITSuite() then
             exit;
 
         // This hook runs outside test isolation, so the log entry persists independently of the test body.
         AITTestSuiteMgt.AddDataDrivenLogEntry(Context.CodeunitId, Context.ProcedureName, Context.TestCaseName, Context.Success);
+        TestDataSourceContext.ClearCurrent();
+        AITTestCaseState.Reset();
     end;
 
     var

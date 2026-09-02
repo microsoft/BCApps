@@ -27,7 +27,7 @@ permissionset 149031 "AI Test Toolkit - Obj"
         codeunit "AIT Test Run Iteration" = X,
         codeunit "AIT Test Context" = X,
         codeunit "AIT Test Context Impl." = X,
-        codeunit "AIT DD Current Case" = X,
+        codeunit "AIT Test Case State" = X,
         codeunit "AIT DD Test Context" = X,
         codeunit "AIT Test Data Source" = X,
         codeunit "AIT Test Handler" = X,

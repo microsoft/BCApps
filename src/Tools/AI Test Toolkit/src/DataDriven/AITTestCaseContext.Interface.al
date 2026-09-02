@@ -22,11 +22,8 @@ interface "AIT Test Case Context" extends ITestContext
     /// <summary>Returns the full input for the current data row.</summary>
     procedure GetInput(): Codeunit "Test Input Json";
 
-    /// <summary>Returns the 'query' (or legacy 'question') element for the current data row.</summary>
+    /// <summary>Returns the 'query' element for the current data row.</summary>
     procedure GetQuery(): Codeunit "Test Input Json";
-
-    /// <summary>Returns the legacy 'question' element for the current data row. Parity alias of <see cref="GetQuery"/> so classic eval bodies migrate unchanged.</summary>
-    procedure GetQuestion(): Codeunit "Test Input Json";
 
     /// <summary>Returns the 'context' element for the current data row.</summary>
     procedure GetContext(): Codeunit "Test Input Json";

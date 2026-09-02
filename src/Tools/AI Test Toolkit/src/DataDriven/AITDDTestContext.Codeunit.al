@@ -35,10 +35,10 @@ codeunit 149040 "AIT DD Test Context" implements "AIT Test Case Context"
     local procedure Preload()
     var
         TestInput: Codeunit "Test Input";
-        DDCurrentCase: Codeunit "AIT DD Current Case";
+        TestDataSourceContext: Codeunit "Test Data Source Context";
     begin
         TestInput.PreloadTestInput(InputGroupCode, InputCode);
-        DDCurrentCase.SetCurrent(InputGroupCode, InputCode);
+        TestDataSourceContext.SetCurrent(InputGroupCode, InputCode);
     end;
 
     procedure Identifier(): Text
@@ -56,12 +56,6 @@ codeunit 149040 "AIT DD Test Context" implements "AIT Test Case Context"
     begin
         Preload();
         exit(AITTestContext.GetQuery());
-    end;
-
-    procedure GetQuestion(): Codeunit "Test Input Json"
-    begin
-        Preload();
-        exit(AITTestContext.GetQuestion());
     end;
 
     procedure GetContext(): Codeunit "Test Input Json"
@@ -156,16 +150,19 @@ codeunit 149040 "AIT DD Test Context" implements "AIT Test Case Context"
 
     procedure SetAccuracy(Accuracy: Decimal)
     begin
+        Preload();
         AITTestContext.SetAccuracy(Accuracy);
     end;
 
     procedure SetTokenConsumption(TokensUsed: Integer)
     begin
+        Preload();
         AITTestContext.SetTokenConsumption(TokensUsed);
     end;
 
     procedure GetAITTestSuite(var AITTestSuite: Record "AIT Test Suite")
     begin
+        Preload();
         AITTestContext.GetAITTestSuite(AITTestSuite);
     end;
 
@@ -177,6 +174,7 @@ codeunit 149040 "AIT DD Test Context" implements "AIT Test Case Context"
 
     procedure GetCurrentTurn(): Integer
     begin
+        Preload();
         exit(AITTestContext.GetCurrentTurn());
     end;
 }

@@ -212,6 +212,7 @@ codeunit 149042 "AIT Test Run Iteration"
     var
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
         AITContextCU: Codeunit "AIT Test Context Impl.";
+        AITTestCaseState: Codeunit "AIT Test Case State";
         AOAIToken: Codeunit "AOAI Token";
         AITEvalLimitProvider: Interface "AIT Eval Limit Provider";
     begin
@@ -227,6 +228,7 @@ codeunit 149042 "AIT Test Run Iteration"
         if AITEvalLimitProvider.IsLimitReached() then begin
             Skip := true;
             AITTestSuiteMgt.LogSkippedEval(GlobalAITTestMethodLine, FunctionName);
+            AITTestCaseState.Reset();
             exit;
         end;
 
@@ -252,6 +254,7 @@ codeunit 149042 "AIT Test Run Iteration"
     local procedure OnAfterTestMethodRun(var CurrentTestMethodLine: Record "Test Method Line"; CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions; IsSuccess: Boolean)
     var
         AITContextCU: Codeunit "AIT Test Context Impl.";
+        AITTestCaseState: Codeunit "AIT Test Case State";
         AOAIToken: Codeunit "AOAI Token";
         AITEvalLimitProvider: Interface "AIT Eval Limit Provider";
         Accuracy: Decimal;
@@ -288,5 +291,6 @@ codeunit 149042 "AIT Test Run Iteration"
 
         AITContextCU.EndRunProcedureScenario(CurrentTestMethodLine, IsSuccess);
         Commit();
+        AITTestCaseState.Reset();
     end;
 }

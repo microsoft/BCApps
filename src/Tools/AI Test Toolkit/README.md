@@ -110,8 +110,8 @@ codeunit 50100 "My Copilot Eval"
 ### Running under an Eval Suite (coexistence with classic evals)
 - The toolkit **auto-detects** language-first codeunits (via `CodeUnit Metadata."Has Test Data Source"`) and adds
   their methods once — no per-row expansion — so the platform drives the per-case fan-out and there is no double
-  execution. On a platform that does not expose that field yet, set **Language-First = true** on the eval line as
-  an explicit override.
+  execution. As each case starts, Test Runner materializes a `Method[caseName]` result line, so the individual
+  outcomes are visible in both the Test Tool and Eval Suite results.
 - A codeunit must be **either** classic data-driven **or** language-first; do not mix both styles in the same
   codeunit (plain `[Test]` methods may coexist with either).
 
@@ -120,15 +120,17 @@ codeunit 50100 "My Copilot Eval"
 Converting a classic AIT eval codeunit to the `[TestDataSource]` construct is a small, mechanical change per
 codeunit:
 
-1. **Attribute:** `[Test]` → `[TestDataSource(Codeunit::"AIT Test Data Source", '<default dataset>')]`. The
+1. **Attribute:** replace `[Test]` with `[TestDataSource(Codeunit::"AIT Test Data Source", '<default dataset>')]`.
+   AL treats these attributes as mutually exclusive, while a method marked with `[TestDataSource]` remains a test
+   method and is reported once per generated case. The
    `'<default dataset>'` (a `Test Input Group` code/name) is used when the test runs standalone; under an Eval
-   Suite the dataset configured on the suite line takes precedence, so one method still runs against multiple
-   datasets across lines.
+   Suite the dataset configured on the suite line takes precedence. Add another `[TestDataSource(...)]` attribute
+   for each additional standalone dataset.
 2. **Signature:** add a single parameter of the shared context interface —
    `procedure MyEval(context: interface "AIT Test Case Context")`.
 3. **Body:** remove the `AITestContext: Codeunit "AIT Test Context"` variable and call the same methods on the
    `context` parameter (`GetInput`, `GetQuery`, `GetExpectedData`, `SetTestOutput`, `SetAccuracy`, `NextTurn`, …) —
-   the names/signatures are identical.
+   the names/signatures are identical. Replace the obsolete `GetQuestion()` alias with `GetQuery()`.
 4. **Handler:** add `TestHandlers = "AIT Test Handler"` to the codeunit so per-case logging/metrics engage when the
    eval runs on the platform test runner (outside an Eval Suite).
 5. Leave everything else unchanged — `Subtype = Test`, `TestType = AITest`, `TestPermissions`, `SingleInstance`,
@@ -164,6 +166,8 @@ end;
   (BCEval) output are all unchanged; the shared `AIT Test Data Source` provider resolves the dataset and the
   platform drives the fan-out.
 - **Multi-turn** evals: `NextTurn()` / `GetCurrentTurn()` are on the interface — migrate the same way.
+- **Multiple datasets:** stacked `[TestDataSource]` attributes are supported, but case identifiers must be unique
+  across all datasets attached to the same method because platform result names use `Method[caseName]`.
 - **Harms / adversarial** evals (case content generated at run time, e.g. via `Adversarial Simulation`) need a
   data source that yields **stable, deterministic** case identifiers, so they require a small **custom
   `ITestDataSource` provider** rather than the plain shared one — not just the mechanical edit above.
@@ -171,7 +175,8 @@ end;
   custom `ITestDataSource` provider if a test needs extra per-case accessors.
 
 **Checklist (per codeunit)**
-- [ ] `[Test]` → `[TestDataSource(Codeunit::"AIT Test Data Source", '<dataset>')]`
+- [ ] replace `[Test]` with `[TestDataSource(Codeunit::"AIT Test Data Source", '<dataset>')]`
+- [ ] stack one `[TestDataSource(...)]` attribute per additional standalone dataset
 - [ ] add the `context: interface "AIT Test Case Context"` parameter
 - [ ] drop the `Codeunit "AIT Test Context"` variable; use `context`
 - [ ] add `TestHandlers = "AIT Test Handler"` to the codeunit

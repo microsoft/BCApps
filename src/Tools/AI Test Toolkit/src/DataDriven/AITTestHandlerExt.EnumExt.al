@@ -8,7 +8,7 @@ namespace System.TestTools.AITestToolkit;
 using System.Testability;
 
 /// <summary>
-/// Registers the AI Test Toolkit's <see cref="AIT Test Handler"/> under the platform <c>TestHandler</c> enum so that
+/// Registers the AI Test Toolkit's <see cref="AIT Test Handler"/> with the platform <c>TestHandler</c> enum so that
 /// migrated language-first eval codeunits can subscribe to it via <c>TestHandlers = "AIT Test Handler"</c>.
 /// </summary>
 enumextension 149035 "AIT Test Handler Ext" extends TestHandler
