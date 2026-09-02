@@ -19,6 +19,10 @@ codeunit 104067 "Upgrade Composite Report Parts"
     Subtype = Upgrade;
     Access = Internal;
 
+    var
+        SeedOnCompanyOpenFailedTxt: Label 'Seeding the shipped composite report parts on company open failed: %1', Locked = true;
+        CompositeReportPartsCategoryTxt: Label 'AL Composite Report Parts', Locked = true;
+
     trigger OnUpgradePerDatabase()
     begin
         RunUpgrade();
@@ -85,7 +89,17 @@ codeunit 104067 "Upgrade Composite Report Parts"
         if PartAlreadySeeded(CompositeLayoutLookupHelper.GetTenantReportDefaultsReportID(), CompositeReportPartsMgt.GetShippedPartAppId()) then
             exit;
 
-        // Seed the parts using the standard seeding procedure
+        // Seed the parts using the standard seeding procedure.
+        // A failure must not abort company initialization, so it is logged instead of raised.
+        if not TrySeedDefaultParts() then
+            Session.LogMessage('0000QVA', StrSubstNo(SeedOnCompanyOpenFailedTxt, GetLastErrorText(true)), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CompositeReportPartsCategoryTxt);
+    end;
+
+    [TryFunction]
+    local procedure TrySeedDefaultParts()
+    var
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
+    begin
         CompositeReportPartsMgt.SeedDefaultParts();
     end;
 
