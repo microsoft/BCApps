@@ -261,11 +261,13 @@ codeunit 2501 "Extension Marketplace"
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         MySessionSettings: SessionSettings;
         AppId: Guid;
+        InstallErrorText: Text;
     begin
         ExtensionInstallationImpl.CheckPermissions();
 
         // The page-level TryFunction can return false after a successful install, so verify the installed state.
         if not InstallAppsourceExtension(MarketplaceApplicationID, TelemetryURL) then begin
+            InstallErrorText := GetLastErrorText();
             AppId := MapMarketplaceIdToAppId(MarketplaceApplicationID);
             if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then begin
                 SaveExtensionPendingSetup(AppId);
@@ -274,6 +276,7 @@ codeunit 2501 "Extension Marketplace"
             end else begin
                 ExtensionPendingSetup.SetRange("User Id", UserSecurityId());
                 ExtensionPendingSetup.DeleteAll();
+                ShowAppInstallationError(InstallErrorText);
             end;
         end;
     end;
@@ -283,11 +286,13 @@ codeunit 2501 "Extension Marketplace"
         ExtensionPendingSetup: Record "Extension Pending Setup";
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         MySessionSettings: SessionSettings;
+        InstallErrorText: Text;
     begin
         ExtensionInstallationImpl.CheckPermissions();
 
         // The page-level TryFunction can return false after a successful install, so verify the installed state.
-        if not InstallAppsourceExtension(AppId, TelemetryURL) then
+        if not InstallAppsourceExtension(AppId, TelemetryURL) then begin
+            InstallErrorText := GetLastErrorText();
             if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then begin
                 SaveExtensionPendingSetup(AppId);
                 MySessionSettings.Init();
@@ -295,7 +300,9 @@ codeunit 2501 "Extension Marketplace"
             end else begin
                 ExtensionPendingSetup.SetRange("User Id", UserSecurityId());
                 ExtensionPendingSetup.DeleteAll();
+                ShowAppInstallationError(InstallErrorText);
             end;
+        end;
     end;
 
     [TryFunction]
@@ -377,10 +384,9 @@ codeunit 2501 "Extension Marketplace"
             InstallErrorText := GetLastErrorText();
             MakeMarketplaceTelemetryCallback(ResponseURL, OperationResult::DeploymentFailedDueToPackage);
             if InstallErrorText = '' then
-                Message(AppInstallationFailedMsg)
-            else
-                Message(InstallErrorText);
-            exit(false);
+                InstallErrorText := AppInstallationFailedMsg;
+            // Preserve the outer TryFunction failure result so its caller can clean up before showing the error.
+            Error(InstallErrorText);
         end;
 
         if HasSucceeded = true then
@@ -397,6 +403,14 @@ codeunit 2501 "Extension Marketplace"
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
     begin
         HasSucceeded := ExtensionInstallationImpl.InstallExtensionWithConfirmDialog(PackageId, lcid);
+    end;
+
+    local procedure ShowAppInstallationError(InstallErrorText: Text)
+    begin
+        if InstallErrorText = '' then
+            Message(AppInstallationFailedMsg)
+        else
+            Message(InstallErrorText);
     end;
 
     local procedure InstallApp(PackageId: Guid; AppId: Guid; ResponseURL: Text; lcid: Integer)
