@@ -5,7 +5,6 @@
 namespace Microsoft.Upgrade;
 
 using Microsoft.Foundation.Reporting;
-using System.Environment.Configuration;
 using System.Upgrade;
 
 /// <summary>
@@ -17,10 +16,6 @@ codeunit 104067 "Upgrade Composite Report Parts"
 {
     Subtype = Upgrade;
     Access = Internal;
-
-    var
-        SeedOnCompanyOpenFailedTxt: Label 'Seeding the shipped composite report parts on company open failed: %1', Locked = true;
-        CompositeReportPartsCategoryTxt: Label 'AL Composite Report Parts', Locked = true;
 
     trigger OnUpgradePerDatabase()
     begin
@@ -91,14 +86,6 @@ codeunit 104067 "Upgrade Composite Report Parts"
 
         // Route through SeedShippedParts so the full shipped set is seeded and the database upgrade tag is written,
         // keeping the seeding exactly-once across this path and OnUpgradePerDatabase.
-        // A failure must not abort company initialization, so it is logged instead of raised.
-        if not TrySeedShippedParts() then
-            Session.LogMessage('0000QVA', StrSubstNo(SeedOnCompanyOpenFailedTxt, GetLastErrorText(true)), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CompositeReportPartsCategoryTxt);
-    end;
-
-    [TryFunction]
-    local procedure TrySeedShippedParts()
-    begin
         SeedShippedParts();
     end;
 
