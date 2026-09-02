@@ -2095,12 +2095,18 @@ codeunit 7322 "Create Inventory Pick/Movement"
     end;
 
     local procedure UpdateHandledWhseActivityLineBuffer(WarehouseActivityLine: Record "Warehouse Activity Line"; TakeBinCode: Code[20])
+    var
+        BufferFromBinCode: Code[20];
     begin
+        BufferFromBinCode := TakeBinCode;
+        if IsBlankInvtMovement and CurrLocation."Pick According to FEFO" and (FromBinCode = '') then
+            BufferFromBinCode := '';
+
         TempInternalMovementLine.SetRange("Item No.", WarehouseActivityLine."Item No.");
         TempInternalMovementLine.SetRange("Variant Code", WarehouseActivityLine."Variant Code");
         TempInternalMovementLine.SetRange("Location Code", WarehouseActivityLine."Location Code");
         TempInternalMovementLine.SetRange("To Bin Code", WarehouseActivityLine."Bin Code");
-        TempInternalMovementLine.SetRange("From Bin Code", TakeBinCode);
+        TempInternalMovementLine.SetRange("From Bin Code", BufferFromBinCode);
         TempInternalMovementLine.SetRange("Unit of Measure Code", WarehouseActivityLine."Unit of Measure Code");
         if TempInternalMovementLine.FindFirst() then begin
             TempInternalMovementLine.Quantity += WarehouseActivityLine.Quantity;
@@ -2115,7 +2121,7 @@ codeunit 7322 "Create Inventory Pick/Movement"
             TempInternalMovementLine."Variant Code" := WarehouseActivityLine."Variant Code";
             TempInternalMovementLine."Location Code" := WarehouseActivityLine."Location Code";
             TempInternalMovementLine."To Bin Code" := WarehouseActivityLine."Bin Code";
-            TempInternalMovementLine."From Bin Code" := TakeBinCode;
+            TempInternalMovementLine."From Bin Code" := BufferFromBinCode;
             TempInternalMovementLine.Quantity := WarehouseActivityLine.Quantity;
             TempInternalMovementLine."Qty. (Base)" := WarehouseActivityLine."Qty. (Base)";
             TempInternalMovementLine."Unit of Measure Code" := WarehouseActivityLine."Unit of Measure Code";
@@ -2248,7 +2254,10 @@ codeunit 7322 "Create Inventory Pick/Movement"
 
         BinContent.SetRange("Location Code", WarehouseActivityLine."Location Code");
         if FromBinCode <> '' then
-            BinContent.SetRange("Bin Code", FromBinCode);
+            BinContent.SetRange("Bin Code", FromBinCode)
+        else
+            if IsInvtMovement and CurrLocation."Pick According to FEFO" and (WarehouseActivityLine."Bin Code" <> '') then
+                BinContent.SetFilter("Bin Code", '<>%1', WarehouseActivityLine."Bin Code");
         BinContent.SetRange("Item No.", WarehouseActivityLine."Item No.");
         BinContent.SetRange("Variant Code", WarehouseActivityLine."Variant Code");
         BinContent.SetTrackingFilterFromWhseItemTrackingSetup(WhseItemTrackingSetup);
