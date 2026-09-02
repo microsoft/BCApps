@@ -6,10 +6,13 @@ namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.NoSeries;
+using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
@@ -26,6 +29,8 @@ using Microsoft.Purchases.Comment;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
 using Microsoft.Utilities;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.Structure;
@@ -37,9 +42,6 @@ codeunit 139989 "Subc. Subcontracting Test"
     Subtype = Test;
     TestPermissions = Disabled;
     TestType = IntegrationTest;
-
-    var
-        SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
 
     trigger OnRun()
     begin
@@ -4087,6 +4089,12 @@ codeunit 139989 "Subc. Subcontracting Test"
             else
                 Reply := false;
         end;
+    end;
+
+    [ModalPageHandler]
+    procedure MakeSupplyOrdersPageHandler(var MakeSupplyOrders: Page "Make Supply Orders"; var Response: Action)
+    begin
+        Response := ACTION::LookupOK;
     end;
 
     [ModalPageHandler]
