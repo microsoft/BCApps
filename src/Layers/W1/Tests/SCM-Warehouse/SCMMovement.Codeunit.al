@@ -1897,8 +1897,8 @@ codeunit 137931 "SCM - Movement"
         WarehouseActivityLine.SetRange("Activity Type", ActivityType);
         WarehouseActivityLine.SetRange("Location Code", LocationCode);
         WarehouseActivityLine.SetRange("Source No.", SourceNo);
-        WarehouseActivityLine.SetRange("Source Document", SourceDocument);
         WarehouseActivityLine.FindFirst();
+        WarehouseActivityLine.TestField("Source Document", SourceDocument);
         WarehouseActivityHeader.Get(WarehouseActivityLine."Activity Type", WarehouseActivityLine."No.");
     end;
 
