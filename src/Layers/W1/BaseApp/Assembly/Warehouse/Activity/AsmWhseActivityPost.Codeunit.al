@@ -5,6 +5,7 @@
 namespace Microsoft.Warehouse.Activity;
 
 using Microsoft.Assembly.Document;
+using Microsoft.Sales.Document;
 
 codeunit 932 "Asm. Whse. Activity Post"
 {
@@ -17,5 +18,20 @@ codeunit 932 "Asm. Whse. Activity Post"
             ATOLink.UpdateQtyToAsmFromInvtPickLine(WarehouseActivityLine);
             ATOLink.UpdateAsmBinCodeFromInvtPickLine(WarehouseActivityLine);
         end;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Sales Line", 'OnBeforeUpdateQtyToAsmFromSalesLineQtyToShip', '', false, false)]
+    local procedure OnBeforeUpdateQtyToAsmFromSalesLineQtyToShip(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
+    var
+        AssemblyHeader: Record "Assembly Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+    begin
+        if not SalesLine.AsmToOrderExists(AssemblyHeader) then
+            exit;
+
+        WarehouseActivityLine.SetRange("Source Type", Database::"Assembly Line");
+        WarehouseActivityLine.SetRange("Source Subtype", AssemblyHeader."Document Type".AsInteger());
+        WarehouseActivityLine.SetRange("Source No.", AssemblyHeader."No.");
+        IsHandled := not WarehouseActivityLine.IsEmpty();
     end;
 }
