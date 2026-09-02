@@ -424,10 +424,90 @@ codeunit 139969 "Qlty. Tests - Workflows"
 
     [Test]
     procedure CreateTransfer_OnInspectionChange()
+    begin
+        CreateTransferOnInspectionChange(false);
+    end;
+
+    [Test]
+    procedure CreateTransferToDirectedLocation_OnInspectionChange()
+    begin
+        CreateTransferOnInspectionChange(true);
+    end;
+
+    [Test]
+    procedure ChangeTransferDestinationLocation_ClearsPersistedBin()
+    var
+        Location: Record Location;
+        NewLocation: Record Location;
+        Bin: Record Bin;
+        NewBin: Record Bin;
+        Workflow: Record Workflow;
+        ResponseWorkflowStep: Record "Workflow Step";
+        WorkflowStepArgument: Record "Workflow Step Argument";
+        LibraryUtility: Codeunit "Library - Utility";
+        WorkflowResponseOptions: TestPage "Workflow Response Options";
+    begin
+        // [SCENARIO] Changing a transfer destination clears a bin that does not exist at the new location
+        Initialize();
+
+        // [GIVEN] A workflow response configured with a destination location and bin
+        LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
+        LibraryWarehouse.CreateBin(Bin, Location.Code, LibraryUtility.GenerateGUID(), '', '');
+        LibraryWarehouse.CreateLocationWMS(NewLocation, true, false, false, false, false);
+        LibraryWarehouse.CreateBin(NewBin, NewLocation.Code, LibraryUtility.GenerateGUID(), '', '');
+        CreateWorkflowWithSingleResponse(Workflow, QltyInspectionUtility.GetInspectionHasChangedEvent(), QltyInspectionUtility.GetWorkflowResponseCreateTransfer(), false);
+        CreateWorkflowResponseArgument(Workflow, CopyStr(QltyInspectionUtility.GetWorkflowResponseCreateTransfer(), 1, 128), ResponseWorkflowStep, WorkflowStepArgument);
+        QltyInspectionUtility.SetStepConfigurationValue(WorkflowStepArgument, QltyInspectionUtility.GetWellKnownKeyLocation(), Location.Code);
+        QltyInspectionUtility.SetStepConfigurationValue(WorkflowStepArgument, QltyInspectionUtility.GetWellKnownKeyBin(), Bin.Code);
+
+        // [WHEN] The destination location is changed to one that does not contain the configured bin
+        WorkflowResponseOptions.OpenEdit();
+        WorkflowResponseOptions.GoToRecord(WorkflowStepArgument);
+        WorkflowResponseOptions.Qlty_LocationCode.SetValue(NewLocation.Code);
+
+        // [THEN] The bin is cleared from both the page and the persisted workflow configuration
+        LibraryAssert.AreEqual('', WorkflowResponseOptions.Qlty_BinCode.Value(), 'Should clear the destination bin on the page.');
+        WorkflowResponseOptions.Close();
+        LibraryAssert.AreEqual('', QltyInspectionUtility.GetStepConfigurationValue(WorkflowStepArgument, QltyInspectionUtility.GetWellKnownKeyBin()), 'Should clear the persisted destination bin.');
+
+        DeleteWorkflows();
+    end;
+
+    [Test]
+    procedure DirectedTransferDestination_DisablesBinSelection()
+    var
+        DestinationLocation: Record Location;
+        Workflow: Record Workflow;
+        ResponseWorkflowStep: Record "Workflow Step";
+        WorkflowStepArgument: Record "Workflow Step Argument";
+        WorkflowResponseOptions: TestPage "Workflow Response Options";
+    begin
+        // [SCENARIO] A directed put-away and pick transfer destination does not allow bin selection
+        Initialize();
+
+        // [GIVEN] A workflow response configured with a directed put-away and pick destination
+        LibraryWarehouse.CreateFullWMSLocation(DestinationLocation, 1);
+        CreateWorkflowWithSingleResponse(Workflow, QltyInspectionUtility.GetInspectionHasChangedEvent(), QltyInspectionUtility.GetWorkflowResponseCreateTransfer(), false);
+        CreateWorkflowResponseArgument(Workflow, CopyStr(QltyInspectionUtility.GetWorkflowResponseCreateTransfer(), 1, 128), ResponseWorkflowStep, WorkflowStepArgument);
+        QltyInspectionUtility.SetStepConfigurationValue(WorkflowStepArgument, QltyInspectionUtility.GetWellKnownKeyLocation(), DestinationLocation.Code);
+
+        // [WHEN] The workflow response options are opened
+        WorkflowResponseOptions.OpenEdit();
+        WorkflowResponseOptions.GoToRecord(WorkflowStepArgument);
+
+        // [THEN] Destination bin selection is disabled
+        LibraryAssert.IsFalse(WorkflowResponseOptions.Qlty_BinCode.Enabled(), 'Should disable bin selection for directed put-away and pick locations.');
+        WorkflowResponseOptions.Close();
+
+        DeleteWorkflows();
+    end;
+
+    local procedure CreateTransferOnInspectionChange(DirectedPutAwayAndPick: Boolean)
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         Location: Record Location;
         DestinationLocation: Record Location;
+        InTransitLocation: Record Location;
         ToLoadQltyInspectionResult: Record "Qlty. Inspection Result";
         Bin: Record Bin;
         DestinationBin: Record Bin;
@@ -462,8 +542,15 @@ codeunit 139969 "Qlty. Tests - Workflows"
 
         LibraryWarehouse.CreateNumberOfBins(Location.Code, '', '', 3, false);
 
-        LibraryWarehouse.CreateLocationWMS(DestinationLocation, true, false, false, false, false);
-        LibraryWarehouse.CreateBin(DestinationBin, DestinationLocation.Code, LibraryUtility.GenerateGUID(), '', '');
+        if DirectedPutAwayAndPick then begin
+            LibraryWarehouse.CreateFullWMSLocation(DestinationLocation, 1);
+            LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
+            DestinationBin.SetRange("Location Code", DestinationLocation.Code);
+            DestinationBin.FindFirst();
+        end else begin
+            LibraryWarehouse.CreateLocationWMS(DestinationLocation, true, false, false, false, false);
+            LibraryWarehouse.CreateBin(DestinationBin, DestinationLocation.Code, LibraryUtility.GenerateGUID(), '', '');
+        end;
 
         // [GIVEN] A purchase order received with inspection created
         LibraryInventory.CreateItem(Item);
@@ -485,7 +572,9 @@ codeunit 139969 "Qlty. Tests - Workflows"
         QltyInspectionUtility.SetStepConfigurationValueAsQuantityBehaviorEnum(WorkflowStepArgument, QltyInspectionUtility.GetWellKnownMoveAll(), MoveBehavior::"Failed Quantity");
         QltyInspectionUtility.SetStepConfigurationValue(WorkflowStepArgument, QltyInspectionUtility.GetWellKnownKeyLocation(), DestinationLocation.Code);
         QltyInspectionUtility.SetStepConfigurationValue(WorkflowStepArgument, QltyInspectionUtility.GetWellKnownKeyBin(), DestinationBin.Code);
-        QltyInspectionUtility.SetStepConfigurationValueAsBoolean(WorkflowStepArgument, QltyInspectionUtility.GetWellKnownDirectTransfer(), true);
+        QltyInspectionUtility.SetStepConfigurationValueAsBoolean(WorkflowStepArgument, QltyInspectionUtility.GetWellKnownDirectTransfer(), not DirectedPutAwayAndPick);
+        if DirectedPutAwayAndPick then
+            QltyInspectionUtility.SetStepConfigurationValue(WorkflowStepArgument, QltyInspectionUtility.GetWellKnownInTransit(), InTransitLocation.Code);
         Workflow.Enabled := true;
         Workflow.Modify();
 
@@ -497,10 +586,12 @@ codeunit 139969 "Qlty. Tests - Workflows"
         QltyInspectionHeader.Validate("Result Code", ToLoadQltyInspectionResult.Code);
         QltyInspectionHeader.Modify(true);
 
-        // [THEN] A direct transfer order is created with the failed quantity
+        // [THEN] A transfer order is created with the failed quantity
         TransferHeader.SetRange("Transfer-from Code", Location.Code);
         TransferHeader.SetRange("Transfer-to Code", DestinationLocation.Code);
-        TransferHeader.SetRange("Direct Transfer", true);
+        TransferHeader.SetRange("Direct Transfer", not DirectedPutAwayAndPick);
+        if DirectedPutAwayAndPick then
+            TransferHeader.SetRange("In-Transit Code", InTransitLocation.Code);
 
         LibraryAssert.AreEqual(1, TransferHeader.Count(), 'Should be one transfer header created.');
 
@@ -512,7 +603,10 @@ codeunit 139969 "Qlty. Tests - Workflows"
         TransferLine.FindFirst();
         LibraryAssert.AreEqual(QltyInspectionHeader."Fail Quantity", TransferLine.Quantity, 'Should have requested quantity.');
         LibraryAssert.AreEqual(Bin.Code, TransferLine."Transfer-from Bin Code", 'Should have transfer-from bin code.');
-        LibraryAssert.AreEqual(DestinationBin.Code, TransferLine."Transfer-To Bin Code", 'Should have transfer-to bin code.');
+        if DirectedPutAwayAndPick then
+            LibraryAssert.AreEqual('', TransferLine."Transfer-To Bin Code", 'Should not have a transfer-to bin code for a directed put-away and pick location.')
+        else
+            LibraryAssert.AreEqual(DestinationBin.Code, TransferLine."Transfer-To Bin Code", 'Should have transfer-to bin code.');
 
         QltyInspectionGenRule.Delete();
         DeleteWorkflows();

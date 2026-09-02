@@ -388,10 +388,12 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                             QltyWorkflowResponse.SetStepConfigurationValue(Rec, QltyWorkflowResponse.GetWellKnownKeyLocation(), QltyLocationCode);
                             QltyShowBinCode := true;
                             if DestinationLocation.Get(QltyLocationCode) then begin
-                                QltyShowBinCode := DestinationLocation."Bin Mandatory";
+                                QltyShowBinCode := DestinationLocation."Bin Mandatory" and not DestinationLocation."Directed Put-away and Pick";
                                 if QltyBinCode <> '' then
-                                    if not DestinationBin.Get(QltyLocationCode, QltyBinCode) then
+                                    if not QltyShowBinCode or not DestinationBin.Get(QltyLocationCode, QltyBinCode) then begin
                                         QltyBinCode := '';
+                                        QltyWorkflowResponse.SetStepConfigurationValue(Rec, QltyWorkflowResponse.GetWellKnownKeyBin(), QltyBinCode);
+                                    end;
                             end;
                         end;
                     }
@@ -1044,6 +1046,6 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
 
         QltyShowBinCode := true;
         if Location.Get(QltyLocationCode) then;
-        QltyShowBinCode := Location."Bin Mandatory";
+        QltyShowBinCode := Location."Bin Mandatory" and not Location."Directed Put-away and Pick";
     end;
 }
