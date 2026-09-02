@@ -56,6 +56,7 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
+using System.Agents;
 using System.Apps;
 using System.Automation;
 using System.Environment;
@@ -158,6 +159,7 @@ permissionset 6955 "Expense Agent - Data Depen."
                   tabledata "Sales Invoice Entity Aggregate" = rimd,
                   tabledata "Value Entry" = R,
                   tabledata "Post Value Entry to G/L" = I,
+                  tabledata Agent = r,
                   tabledata "Application User Settings" = r,
                   tabledata Company = R,
                   tabledata "Record Link" = R,
