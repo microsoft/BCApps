@@ -32,6 +32,7 @@ codeunit 932 "Asm. Whse. Activity Post"
         WarehouseActivityLine.SetRange("Source Type", Database::"Assembly Line");
         WarehouseActivityLine.SetRange("Source Subtype", AssemblyHeader."Document Type".AsInteger());
         WarehouseActivityLine.SetRange("Source No.", AssemblyHeader."No.");
-        IsHandled := not WarehouseActivityLine.IsEmpty();
+        if not WarehouseActivityLine.IsEmpty() then
+            IsHandled := true;
     end;
 }

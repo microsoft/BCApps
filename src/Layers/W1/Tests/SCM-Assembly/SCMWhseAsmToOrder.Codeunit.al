@@ -2324,7 +2324,7 @@ codeunit 137914 "SCM Whse.-Asm. To Order"
 
     [Test]
     [HandlerFunctions('MessageHandler')]
-    procedure PostingInvtPickForNonATOLineDoesNotBlockUnrelatedATOLine()
+    procedure UnrelatedATOLineDoesNotBlockPostingInvtPickForNonATOLine()
     var
         AssemblySetup: Record "Assembly Setup";
         AssemblyItem: Record Item;
