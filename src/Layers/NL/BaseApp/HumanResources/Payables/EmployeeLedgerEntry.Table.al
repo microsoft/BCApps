@@ -562,6 +562,9 @@ table 5222 "Employee Ledger Entry"
         key(ClosedByEntryNo; "Closed by Entry No.")
         {
         }
+        key(OpenTransactionModeCode; Open, "Transaction Mode Code")
+        {
+        }
     }
 
     fieldgroups
