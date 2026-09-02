@@ -72,10 +72,12 @@ page 7085 "Expense VAT Spec. API"
                 field(vatAmountLCY; Rec."VAT Amount (LCY)")
                 {
                     Caption = 'VAT Amount (LCY)';
+                    Editable = true;
                 }
                 field(vatBaseAmountLCY; Rec."VAT Base Amount (LCY)")
                 {
                     Caption = 'VAT Base Amount (LCY)';
+                    Editable = true;
                 }
                 field(amountLCY; Rec."Amount (LCY)")
                 {
