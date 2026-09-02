@@ -44,10 +44,10 @@ codeunit 104067 "Upgrade Composite Report Parts"
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
     begin
-        EnsureCanSeedShippedParts();
-
         if UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()) then
             exit;
+
+        EnsureCanSeedShippedParts();
 
         CompositeReportPartsMgt.SeedDefaultParts();
         UpgradeTag.SetDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag());
