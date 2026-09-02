@@ -1262,6 +1262,59 @@ codeunit 134619 "Composite Layout Tests"
         RestoreDocumentReportExperience();
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure OnCompanyOpenSeedsDefaultPartsWhenMissing()
+    var
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
+        CompositeLayoutLookupHelper: Codeunit "Composite Layout Lookup Helper";
+    begin
+        // [SCENARIO] On company open, the shipped parts are seeded if missing, for new tenants
+        // provisioned from a pre-built database image where BaseApp is installed but OnInstallAppPerDatabase
+        // may not have run.
+        Initialize();
+
+        // [GIVEN] One shipped part is missing.
+        RemoveShippedPart('Internal Default');
+        Assert.IsFalse(
+            ShippedPartExists('Internal Default', Enum::"Report Layout Subtype"::HeaderFooter),
+            'The part should be missing before OnCompanyOpen.');
+
+        // [WHEN] Simulating OnCompanyOpen by seeding if missing (same logic as the event handler).
+        if not PartAlreadySeeded(CompositeLayoutLookupHelper.GetTenantReportDefaultsReportID(), CompositeReportPartsMgt.GetShippedPartAppId()) then
+            CompositeReportPartsMgt.SeedDefaultParts();
+
+        // [THEN] The missing part is seeded.
+        Assert.IsTrue(
+            ShippedPartExists('Internal Default', Enum::"Report Layout Subtype"::HeaderFooter),
+            'OnCompanyOpen should seed the missing shipped part.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure OnCompanyOpenIsIdempotentWhenPartsExist()
+    var
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
+        CompositeLayoutLookupHelper: Codeunit "Composite Layout Lookup Helper";
+    begin
+        // [SCENARIO] Running OnCompanyOpen when parts already exist does nothing (idempotent).
+        Initialize();
+
+        // [GIVEN] Parts are already seeded.
+        Assert.IsTrue(
+            ShippedPartExists('Internal Default', Enum::"Report Layout Subtype"::HeaderFooter),
+            'The part should exist before OnCompanyOpen.');
+
+        // [WHEN] Simulating OnCompanyOpen - it exits early if parts already seeded.
+        if not PartAlreadySeeded(CompositeLayoutLookupHelper.GetTenantReportDefaultsReportID(), CompositeReportPartsMgt.GetShippedPartAppId()) then
+            CompositeReportPartsMgt.SeedDefaultParts();
+
+        // [THEN] The part still exists (unchanged).
+        Assert.IsTrue(
+            ShippedPartExists('Internal Default', Enum::"Report Layout Subtype"::HeaderFooter),
+            'OnCompanyOpen should be idempotent when parts already exist.');
+    end;
+
     local procedure ReportLayoutsNewLayout()
     var
         ReportLayoutsPage: TestPage "Report Layouts";

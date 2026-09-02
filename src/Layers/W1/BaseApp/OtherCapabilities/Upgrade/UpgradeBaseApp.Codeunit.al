@@ -4150,4 +4150,5 @@ codeunit 104000 "Upgrade - BaseApp"
     begin
         FinancialReportAutiting.AddRetentionPolicy();
     end;
+
 }

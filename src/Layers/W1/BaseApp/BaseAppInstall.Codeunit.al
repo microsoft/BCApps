@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft;
 
+using Microsoft.Foundation.Reporting;
 using Microsoft.Upgrade;
 
 codeunit 5000 "BaseApp Install"

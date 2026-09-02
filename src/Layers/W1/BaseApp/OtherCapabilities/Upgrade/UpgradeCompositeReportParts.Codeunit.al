@@ -1,21 +1,23 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Upgrade;
 
 using Microsoft.Foundation.Reporting;
+using System.Environment;
+using System.Environment.Configuration;
 using System.Upgrade;
 
 /// <summary>
-/// Seeds the shipped Composite Layout theme and header/footer parts and records the upgrade tag. SeedShippedParts is
-/// the single entry point that does both; RunUpgrade wraps it in the tag guard so an upgrade runs it once, while
-/// install calls it unguarded. Add a new dated tag whenever the shipped layout files change.
+/// Upgrade code to seed shipped Composite Report Layout themes and header/footer parts.
+/// Seeds during database upgrade and on company open for new tenants provisioned from a
+/// pre-built database image where BaseApp is installed but OnInstallAppPerDatabase may not have run.
 /// </summary>
-codeunit 104064 "Upgrade Composite Report Parts"
+codeunit 104066 "Upgrade Composite Report Parts"
 {
-    Access = Internal;
     Subtype = Upgrade;
+    Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
 
@@ -24,15 +26,27 @@ codeunit 104064 "Upgrade Composite Report Parts"
         RunUpgrade();
     end;
 
+    trigger OnRun()
+    begin
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Initialization", 'OnAfterInitialization', '', false, false)]
+    local procedure OnCompanyOpen()
+    begin
+        SeedDefaultReportPartsIfMissing();
+    end;
+
     internal procedure RunUpgrade()
     var
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
     begin
         if UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()) then
             exit;
 
-        SeedShippedParts();
+        CompositeReportPartsMgt.SeedDefaultParts();
+        UpgradeTag.SetDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag());
     end;
 
     internal procedure SeedShippedParts()
@@ -42,10 +56,33 @@ codeunit 104064 "Upgrade Composite Report Parts"
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
     begin
         CompositeReportPartsMgt.SeedDefaultParts();
+        UpgradeTag.SetDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag());
+    end;
 
-        if UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()) then
+    local procedure SeedDefaultReportPartsIfMissing()
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
+        CompositeLayoutLookupHelper: Codeunit "Composite Layout Lookup Helper";
+    begin
+        // Exit gracefully if no write permissions - OnCompanyOpen should not fail due to permissions
+        if not TenantReportLayout.WritePermission() then
             exit;
 
-        UpgradeTag.SetDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag());
+        // Exit if parts already exist
+        if PartAlreadySeeded(CompositeLayoutLookupHelper.GetTenantReportDefaultsReportID(), CompositeReportPartsMgt.GetShippedPartAppId()) then
+            exit;
+
+        // Seed the parts using the standard seeding procedure
+        CompositeReportPartsMgt.SeedDefaultParts();
+    end;
+
+    local procedure PartAlreadySeeded(ReportID: Integer; AppId: Guid): Boolean
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+    begin
+        TenantReportLayout.SetRange("Report ID", ReportID);
+        TenantReportLayout.SetRange("App ID", AppId);
+        exit(not TenantReportLayout.IsEmpty());
     end;
 }
