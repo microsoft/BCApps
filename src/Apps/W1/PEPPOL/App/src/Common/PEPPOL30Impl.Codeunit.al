@@ -1041,7 +1041,8 @@ codeunit 37201 "PEPPOL30 Impl."
         if VATAmtLine.InsertLine() then begin
             VATAmtLine."Line Amount" += SalesLine."Line Amount";
             VATAmtLine.Modify();
-        end;
+        end else
+            InsertZeroAmountVATAmtLine(VATAmtLine, SalesLine."Line Amount");
     end;
 
     procedure GetTaxCategories(SalesLine: Record "Sales Line"; var VATProductPostingGroupCategory: Record "VAT Product Posting Group")
@@ -1378,5 +1379,18 @@ codeunit 37201 "PEPPOL30 Impl."
         TaxCategorySchemeID := '';
         Percent := Format(VATAmtLine."VAT %", 0, 9);
         AllowanceChargeTaxSchemeID := VATTxt;
+    end;
+
+    local procedure InsertZeroAmountVATAmtLine(var VATAmtLine: Record "VAT Amount Line"; LineAmount: Decimal)
+    begin
+        VATAmtLine.Validate(Positive, LineAmount >= 0);
+        if VATAmtLine.Find() then begin
+            VATAmtLine."Line Amount" += LineAmount;
+            VATAmtLine.Modify();
+        end else begin
+            VATAmtLine."VAT Amount" := VATAmtLine."Amount Including VAT" - VATAmtLine."VAT Base";
+            VATAmtLine."Line Amount" += LineAmount;
+            VATAmtLine.Insert();
+        end;
     end;
 }
