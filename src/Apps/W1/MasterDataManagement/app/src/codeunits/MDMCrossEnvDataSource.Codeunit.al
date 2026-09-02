@@ -88,6 +88,10 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
             HasMore := SourceResponse.HasMore(Response);
             if HasMore then begin
                 EndCursor := SourceResponse.GetNextCursor(Response);
+                if EndCursor = '' then begin // hasMore without a resume cursor is malformed: don't restart from the watermark and persist a bad resume point
+                    LogParseFailure(IntegrationTableMapping."Integration Table ID", InvalidResponseReasonTok);
+                    Error(InternalError(StrSubstNo(InvalidResponseErr, TableCaption(IntegrationTableMapping."Integration Table ID"))));
+                end;
                 Selector := EndCursor;
             end;
         until (not HasMore) or ((MaxPages > 0) and (PagesFetched >= MaxPages));
