@@ -118,7 +118,7 @@ codeunit 30262 "Shpfy Document Link Mgt."
         end;
     end;
 
-    local procedure CreateNewDocumentLink(DocumentType: Enum "Shpfy Shop Document Type"; DocumentId: BigInteger; BCDocumentType: Enum "Shpfy Document Type"; DocumentNo: code[20])
+    internal procedure CreateNewDocumentLink(DocumentType: Enum "Shpfy Shop Document Type"; DocumentId: BigInteger; BCDocumentType: Enum "Shpfy Document Type"; DocumentNo: code[20])
     var
         NewDocLinkToBCDoc: Record "Shpfy Doc. Link To Doc.";
     begin

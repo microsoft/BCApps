@@ -5,6 +5,8 @@
 namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.Company;
 using Microsoft.HumanResources.Employee;
 
 codeunit 6973 "Create Expense Categories"
@@ -102,6 +104,11 @@ codeunit 6973 "Create Expense Categories"
         AddPostingGroupSeed(TempPostingGroup, XEXPENSEMEALSTxt, XExpenseMealsDescTxt, CreateExpenseGLAccount.ExpenseMealsRefundableDebitAccountNo());
         AddPostingGroupSeed(TempPostingGroup, XEXPENSEENTERTAINTxt, XExpenseEntertainDescTxt, CreateExpenseGLAccount.ExpenseEntertainRefundableDebitAccountNo());
 
+        if GetCountryCode() = 'AT' then begin
+            AddPostingGroupSeed(TempPostingGroup, XEXPENSEPERDIEMITxt, XExpensePerDiemInCountryDescTxt, CreateExpenseGLAccount.ExpensePerDiemIRefundableDebitAccountNo());
+            AddPostingGroupSeed(TempPostingGroup, XEXPENSEPERDIEMATxt, XExpensePerDiemAbroadDescTxt, CreateExpenseGLAccount.ExpensePerDiemARefundableDebitAccountNo());
+        end;
+
         OnAfterBuildPostingGroupSeeds(TempPostingGroup);
     end;
 
@@ -143,14 +150,27 @@ codeunit 6973 "Create Expense Categories"
         if IsHandled then
             exit;
 
+        if (GetCountryCode() = 'AT') and (Code = XEXPENSEPERDIEMTxt) then
+            exit;
+
         TempPostingGroup.Init();
         TempPostingGroup.Code := Code;
         TempPostingGroup.Description := Description;
         TempPostingGroup."Refundable Debit Account" := RefundableDebitAccount;
-        TempPostingGroup."Non-Refundable Debit Account" := CreateExpenseGLAccount.ExpenseNonRefundableDebitAccountNo();
+        if (Code <> XEXPENSEPERDIEMTxt) and (Code <> XEXPENSEMILEAGETxt) then
+            TempPostingGroup."Non-Refundable Debit Account" := CreateExpenseGLAccount.ExpenseNonRefundableDebitAccountNo();
         TempPostingGroup."Prepayment Credit Account" := CreateExpenseGLAccount.ExpensePrepaymentDebitAccountNo();
         TempPostingGroup."Debit Rounding Account" := CreateExpenseGLAccount.ExpenseDebitRoundingAccountNo();
         TempPostingGroup."Credit Rounding Account" := CreateExpenseGLAccount.ExpenseCreditRoundingAccountNo();
+        if GetCountryCode() = 'AT' then
+            case Code of
+                XEXPENSEMEALSTxt:
+                    TempPostingGroup."Non-Refundable Debit Account" := CreateExpenseGLAccount.ExpenseMealNonRefundableDebitAccountNo();
+                XEXPENSEENTERTAINTxt, XEXPENSEPERDIEMITxt, XEXPENSEPERDIEMATxt:
+                    TempPostingGroup."Non-Refundable Debit Account" := '';
+            end;
+        if (GetCountryCode() in ['DE', 'DK', 'ES', 'FR']) and (Code = XEXPENSEMEALSTxt) then
+            TempPostingGroup."Non-Refundable Debit Account" := CreateExpenseGLAccount.ExpenseMealNonRefundableDebitAccountNo();
         OnBeforeInsertPostingGroupSeed(TempPostingGroup);
         TempPostingGroup.Insert();
     end;
@@ -239,6 +259,11 @@ codeunit 6973 "Create Expense Categories"
         AddCategorySeed(TempCategory, XSUBSCRIPTIONTxt, XProfessionalSubscriptionsTxt, XSubscriptionsPostingTxt, XDAYEXPENSETxt, XEXPENSEOTHERTxt, XCARDTxt, true, false, "Expense Attachment Enforcement"::Warning, "Expense Detail Needed"::" ");
         AddCategorySeed(TempCategory, XTIPSTxt, XTipsDescTxt, XTipsPostingTxt, XFOODBEVERAGETxt, XEXPENSEOTHERTxt, XCASHTxt, false, false, "Expense Attachment Enforcement"::" ", "Expense Detail Needed"::" ");
         AddCategorySeed(TempCategory, XTOLLSTxt, XTollRoadUsageFeeTxt, XTollsPostingTxt, XDAYEXPENSETxt, XEXPENSEOTHERTxt, XCASHTxt, true, false, "Expense Attachment Enforcement"::Warning, "Expense Detail Needed"::" ");
+
+        if GetCountryCode() = 'AT' then begin
+            AddCategorySeed(TempCategory, XPERDIEMITxt, XPerDiemDescTxt, XPerDiemIByAssignedPolicyPostingTxt, XTRAVELTxt, XEXPENSEPERDIEMITxt, XCASHTxt, true, false, "Expense Attachment Enforcement"::" ", "Expense Detail Needed"::"Per Diem");
+            AddCategorySeed(TempCategory, XPERDIEMATxt, XPerDiemDescTxt, XPerDiemAByAssignedPolicyPostingTxt, XTRAVELTxt, XEXPENSEPERDIEMATxt, XCASHTxt, true, false, "Expense Attachment Enforcement"::" ", "Expense Detail Needed"::"Per Diem");
+        end;
 
         OnAfterBuildCategorySeeds(TempCategory);
     end;
@@ -355,6 +380,11 @@ codeunit 6973 "Create Expense Categories"
 
         // FINES
         AddSubcategorySeed(TempSubcategory, XFINESTxt, XFINESTxt, XFinesSubDescTxt, XFinesPostingTxt, true, false);
+
+        if GetCountryCode() = 'AT' then begin
+            AddSubcategorySeed(TempSubcategory, XCOUNTRYTxt, XPERDIEMATxt, XCountryPerDiemDescTxt, XSubCountryPerDiemPostingTxt, true, false);
+            AddSubcategorySeed(TempSubcategory, XINTLTxt, XPERDIEMITxt, XIntlPerDiemDescTxt, XSubIntlPerDiemPostingTxt, true, false);
+        end;
 
         OnAfterBuildSubcategorySeeds(TempSubcategory);
     end;
@@ -623,6 +653,9 @@ codeunit 6973 "Create Expense Categories"
         if IsHandled then
             exit;
 
+        if (GetCountryCode() = 'AT') and (Code = XPERDIEMTxt) then
+            exit;
+
         TempCategory.Init();
         TempCategory.Code := Code;
         TempCategory.Description := Description;
@@ -643,6 +676,9 @@ codeunit 6973 "Create Expense Categories"
     begin
         OnBeforeAddSubcategorySeed(SubcategoryCode, CategoryCode, Description, PostingDescription, Refundable, DescriptionMandatory, IsHandled);
         if IsHandled then
+            exit;
+
+        if (GetCountryCode() = 'AT') and (CategoryCode = XPERDIEMTxt) then
             exit;
 
         TempSubcategory.Init();
@@ -829,6 +865,16 @@ codeunit 6973 "Create Expense Categories"
         AddRuleSeed(TempRuleHeader, XPERDIEMTxt, XUKOTHERTxt, 'GBP', "Expense Justification"::" ");
         AddRuleSeed(TempRuleHeader, XPERDIEMTxt, XUSAOTHERTxt, 'USD', "Expense Justification"::" ");
 
+        if GetCountryCode() = 'AT' then begin
+            AddRuleSeed(TempRuleHeader, XPERDIEMITxt, XCANADAALLTxt, 'CAD', "Expense Justification"::" ");
+            AddRuleSeed(TempRuleHeader, XPERDIEMITxt, XDENMARKALLTxt, 'USD', "Expense Justification"::" ");
+            AddRuleSeed(TempRuleHeader, XPERDIEMATxt, XDOMESTICTxt, 'USD', "Expense Justification"::" ");
+            AddRuleSeed(TempRuleHeader, XPERDIEMITxt, XFRANCEALLTxt, 'USD', "Expense Justification"::" ");
+            AddRuleSeed(TempRuleHeader, XPERDIEMITxt, XGERMANYALLTxt, 'USD', "Expense Justification"::" ");
+            AddRuleSeed(TempRuleHeader, XPERDIEMITxt, XUKOTHERTxt, 'GBP', "Expense Justification"::" ");
+            AddRuleSeed(TempRuleHeader, XPERDIEMITxt, XUSAOTHERTxt, 'USD', "Expense Justification"::" ");
+        end;
+
         OnAfterBuildRuleSeeds(TempRuleHeader);
     end;
 
@@ -850,6 +896,16 @@ codeunit 6973 "Create Expense Categories"
         AddRuleConditionSeed(TempRuleCondition, XPERDIEMTxt, XGERMANYALLTxt, "Expense Rule Condition Type"::"Daily Rate", 105);
         AddRuleConditionSeed(TempRuleCondition, XPERDIEMTxt, XUKOTHERTxt, "Expense Rule Condition Type"::"Daily Rate", 115);
         AddRuleConditionSeed(TempRuleCondition, XPERDIEMTxt, XUSAOTHERTxt, "Expense Rule Condition Type"::"Daily Rate", 120);
+
+        if GetCountryCode() = 'AT' then begin
+            AddRuleConditionSeed(TempRuleCondition, XPERDIEMITxt, XCANADAALLTxt, "Expense Rule Condition Type"::"Daily Rate", 125);
+            AddRuleConditionSeed(TempRuleCondition, XPERDIEMITxt, XDENMARKALLTxt, "Expense Rule Condition Type"::"Daily Rate", 450);
+            AddRuleConditionSeed(TempRuleCondition, XPERDIEMATxt, XDOMESTICTxt, "Expense Rule Condition Type"::"Daily Rate", 50);
+            AddRuleConditionSeed(TempRuleCondition, XPERDIEMITxt, XFRANCEALLTxt, "Expense Rule Condition Type"::"Daily Rate", 110);
+            AddRuleConditionSeed(TempRuleCondition, XPERDIEMITxt, XGERMANYALLTxt, "Expense Rule Condition Type"::"Daily Rate", 105);
+            AddRuleConditionSeed(TempRuleCondition, XPERDIEMITxt, XUKOTHERTxt, "Expense Rule Condition Type"::"Daily Rate", 115);
+            AddRuleConditionSeed(TempRuleCondition, XPERDIEMITxt, XUSAOTHERTxt, "Expense Rule Condition Type"::"Daily Rate", 120);
+        end;
 
         OnAfterBuildRuleConditionSeeds(TempRuleCondition);
     end;
@@ -934,11 +990,23 @@ codeunit 6973 "Create Expense Categories"
 
     internal procedure AddRuleSeed(var TempRuleHeader: Record "Expense Rule Header" temporary; CategoryCode: Code[20]; ExpenseLocationCode: Code[20]; CurrencyCode: Code[10]; JustificationRequired: Enum "Expense Justification")
     var
+        EURCurrency: Record Currency;
+        GeneralLedgerSetup: Record "General Ledger Setup";
         IsHandled: Boolean;
     begin
         OnBeforeAddRuleSeed(TempRuleHeader, CategoryCode, ExpenseLocationCode, CurrencyCode, JustificationRequired, IsHandled);
         if IsHandled then
             exit;
+
+        if (GetCountryCode() = 'AT') and (CategoryCode = XPERDIEMTxt) then
+            exit;
+
+        if (CurrencyCode = 'EUR') and (not EURCurrency.Get('EUR')) then
+            CurrencyCode := 'USD';
+
+        if GeneralLedgerSetup.Get() then
+            if CurrencyCode = GeneralLedgerSetup."LCY Code" then
+                CurrencyCode := '';
 
         TempRuleHeader.Init();
         TempRuleHeader."Expense Category Code" := CategoryCode;
@@ -956,6 +1024,9 @@ codeunit 6973 "Create Expense Categories"
     begin
         OnBeforeAddRuleConditionSeed(TempRuleCondition, CategoryCode, ExpenseLocationCode, ConditionType, Value, IsHandled);
         if IsHandled then
+            exit;
+
+        if (GetCountryCode() = 'AT') and (CategoryCode = XPERDIEMTxt) then
             exit;
 
         TempRuleCondition.Reset();
@@ -983,6 +1054,14 @@ codeunit 6973 "Create Expense Categories"
         InsertExpenseGroup(XFOODBEVERAGETxt, 'Food & Beverage Expenses');
         InsertExpenseGroup(XPERSONALTxt, 'Personal Expenses');
         InsertExpenseGroup(XPREPAYMENTTxt, 'Prepayments - Cash Advance');
+    end;
+
+    local procedure GetCountryCode(): Code[10]
+    var
+        CompanyInformation: Record "Company Information";
+    begin
+        if CompanyInformation.Get() then
+            exit(CompanyInformation."Country/Region Code");
     end;
 
     var
@@ -1257,8 +1336,17 @@ codeunit 6973 "Create Expense Categories"
         XUKOTHERTxt: Label 'UK-OTHER', Locked = true;
         XUSAOTHERTxt: Label 'USA-OTHER', Locked = true;
         XEMPLEXPTxt: Label 'EMPLEXP', MaxLength = 20;
+        XEXPENSEPERDIEMITxt: Label 'EXPENSE-PERDIEM-I', Locked = true;
+        XEXPENSEPERDIEMATxt: Label 'EXPENSE-PERDIEM-A', Locked = true;
+        XPERDIEMITxt: Label 'PER-DIEM-I', Locked = true;
+        XPERDIEMATxt: Label 'PER-DIEM-A', Locked = true;
+        XINTLTxt: Label 'INTL', Locked = true;
+        XExpensePerDiemInCountryDescTxt: Label 'Expense - Per Diem in country', MaxLength = 100;
+        XExpensePerDiemAbroadDescTxt: Label 'Expense - Per Diem abroad', MaxLength = 100;
+        XPerDiemIByAssignedPolicyPostingTxt: Label 'Per-diem (international) by assigned policy', MaxLength = 100;
+        XPerDiemAByAssignedPolicyPostingTxt: Label 'Per-diem (local) by assigned policy', MaxLength = 100;
 
-    internal procedure InsertExpenseCategory(Code: Code[20]; Description: Text[250]; PostingDescription: Text[100]; ExpenseGroupCode: Code[20]; PostingGroupCode: Code[20]; PaymentMethod: Code[20]; IsRefundable: Boolean; IsPrepayment: Boolean; AttachmentEnforcement: Enum "Expense Attachment Enforcement"; DetailRequired: Enum "Expense Detail Needed")
+    internal procedure InsertExpenseCategory(Code: Code[20]; Description: Text[250]; PostingDescription: Text[100]; ExpenseGroupCode: Code[20]; PostingGroupCode: Code[20]; PaymentMethod: Code[10]; IsRefundable: Boolean; IsPrepayment: Boolean; AttachmentEnforcement: Enum "Expense Attachment Enforcement"; DetailRequired: Enum "Expense Detail Needed")
     begin
         if ExpenseCategory.Get(Code) then
             exit;
@@ -1310,7 +1398,7 @@ codeunit 6973 "Create Expense Categories"
         EmployeePostingGroup.Modify(true);
     end;
 
-    local procedure InsertExpenseGroup(Code: Code[20]; Description: Text[100])
+    local procedure InsertExpenseGroup(Code: Code[20]; Description: Text[50])
     begin
         if ExpenseGroup.Get(Code) then
             exit;
