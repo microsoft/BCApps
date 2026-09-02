@@ -13,6 +13,7 @@ using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Purchases.History;
 using Microsoft.Sales.Document;
+using Microsoft.Warehouse.Document;
 
 codeunit 99000834 "Purch. Line-Reserve"
 {
@@ -525,6 +526,8 @@ codeunit 99000834 "Purch. Line-Reserve"
         ItemTrackingLines: Page "Item Tracking Lines";
     begin
         InitFromPurchLine(TrackingSpecification, PurchaseLine);
+        if SecondSourceQuantityArray[1] = Database::"Warehouse Shipment Line" then
+            TrackingSpecification."Bin Code" := '';
         ItemTrackingLines.SetSourceSpec(TrackingSpecification, PurchaseLine."Expected Receipt Date");
         ItemTrackingLines.SetSecondSourceQuantity(SecondSourceQuantityArray);
         OnCallItemTrackingOnBeforeItemTrackingFormRunModal(PurchaseLine, ItemTrackingLines);
