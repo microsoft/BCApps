@@ -2406,6 +2406,33 @@ codeunit 131300 "Library - ERM"
         AdjustAddReportingCurrency.Run();
     end;
 
+    procedure RunCalcAndPostVATSettlement(VATPostingSetup: Record "VAT Posting Setup"; SettlementAccountNo: Code[20]; var DocumentNo: Code[20])
+    var
+        FilterVATPostingSetup: Record "VAT Posting Setup";
+        GenJnlBatch: Record "Gen. Journal Batch";
+        CalcandPostVATSettlement: Report "Calc. and Post VAT Settlement";
+        NoSeries: Codeunit "No. Series";
+        TemplateName: Code[10];
+        BatchName: Code[10];
+    begin
+        // The report posts through a general journal batch and takes the document number from its number series.
+        FindGenJnlTemplateAndBatch(TemplateName, BatchName);
+        GenJnlBatch.Get(TemplateName, BatchName);
+        if GenJnlBatch."Posting No. Series" <> '' then
+            DocumentNo := NoSeries.PeekNextNo(GenJnlBatch."Posting No. Series")
+        else begin
+            GenJnlBatch.TestField("No. Series");
+            DocumentNo := NoSeries.PeekNextNo(GenJnlBatch."No. Series");
+        end;
+        FilterVATPostingSetup.SetRange("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        FilterVATPostingSetup.SetRange("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        CalcandPostVATSettlement.InitializeRequest(WorkDate(), WorkDate(), WorkDate(), TemplateName, BatchName, SettlementAccountNo, true, true);
+        CalcandPostVATSettlement.SetTableView(FilterVATPostingSetup);
+        CalcandPostVATSettlement.UseRequestPage(false);
+        Commit();
+        CalcandPostVATSettlement.Run();
+    end;
+
     // New Exch. rate adjustment for v.20
     procedure RunExchRateAdjustmentForDocNo(CurrencyCode: Code[10]; DocumentNo: Code[20])
     begin

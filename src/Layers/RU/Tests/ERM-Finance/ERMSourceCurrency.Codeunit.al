@@ -1598,7 +1598,7 @@ codeunit 134897 "ERM Source Currency"
 
         // [WHEN] Running Calc. and Post VAT Settlement with the Post option set.
         SettlementDocNo := LibraryUtility.GenerateGUID();
-        RunCalcAndPostVATSettlement(VATPostingSetup, LibraryERM.CreateGLAccountNo(), SettlementDocNo);
+        LibraryERM.RunCalcAndPostVATSettlement(VATPostingSetup, LibraryERM.CreateGLAccountNo(), SettlementDocNo);
 
         GLEntry.SetRange("Document No.", SettlementDocNo);
         GLEntry.FindSet();
@@ -1622,21 +1622,6 @@ codeunit 134897 "ERM Source Currency"
 
         // [THEN] Source Currency Amount on the settlement G/L Entries balances to 0.
         Assert.AreNearlyEqual(0, SCYBalance, 0.01, TotalSCYAmountNotZeroErr);
-    end;
-
-    local procedure RunCalcAndPostVATSettlement(VATPostingSetup: Record "VAT Posting Setup"; SettlementAccountNo: Code[20]; DocumentNo: Code[20])
-    var
-        FilterVATPostingSetup: Record "VAT Posting Setup";
-        CalcandPostVATSettlement: Report "Calc. and Post VAT Settlement";
-    begin
-        CalcandPostVATSettlement.InitializeRequest(
-            WorkDate(), WorkDate(), WorkDate(), DocumentNo, SettlementAccountNo, true, true);
-        FilterVATPostingSetup.SetRange("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
-        FilterVATPostingSetup.SetRange("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
-        CalcandPostVATSettlement.SetTableView(FilterVATPostingSetup);
-        CalcandPostVATSettlement.UseRequestPage(false);
-        Commit();
-        CalcandPostVATSettlement.Run();
     end;
 
     local procedure CreatePurchaseInvoice(var PurchaseHeader: Record "Purchase Header"; VendorNo: Code[20]; GLAccountNo: Code[20]; WithForeignCurrency: Boolean)
