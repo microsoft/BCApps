@@ -1,9 +1,0 @@
-[
-  "src/Layers/BE/BaseApp/OtherCapabilities/Upgrade/UpgradeBaseApp.Codeunit.al",
-  "src/Layers/AT/BaseApp/OtherCapabilities/Upgrade/UpgradeBaseApp.Codeunit.al",
-  "src/Layers/CH/BaseApp/OtherCapabilities/Upgrade/UpgradeBaseApp.Codeunit.al",
-  "src/Layers/IT/BaseApp/OtherCapabilities/Upgrade/UpgradeBaseApp.Codeunit.al",
-  "src/Layers/NL/BaseApp/OtherCapabilities/Upgrade/UpgradeBaseApp.Codeunit.al",
-  "src/Layers/NO/BaseApp/OtherCapabilities/Upgrade/UpgradeBaseApp.Codeunit.al",
-  "src/Layers/RU/BaseApp/OtherCapabilities/Upgrade/UpgradeBaseApp.Codeunit.al"
-]
