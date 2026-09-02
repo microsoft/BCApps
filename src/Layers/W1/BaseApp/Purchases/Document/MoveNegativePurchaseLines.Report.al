@@ -46,7 +46,7 @@ report 6698 "Move Negative Purchase Lines"
                             ApplicationArea = Basic, Suite;
                             Caption = 'To Document Type';
                             Editable = DropDownForRetOrderAndCrMemoEd;
-                            OptionCaption = ',,Order,Invoice';
+                            OptionCaption = ',,Order,Invoice,,';
                             ToolTip = 'Specifies which document type you want to move the negative purchase lines to.';
                         }
                     }
@@ -127,7 +127,7 @@ report 6698 "Move Negative Purchase Lines"
         ToPurchHeader: Record "Purchase Header";
         CopyDocMgt: Codeunit "Copy Document Mgt.";
         ToDocType: Option ,,"Order",Invoice,"Return Order","Credit Memo";
-        ToDocType2: Option ,,"Order",Invoice;
+        ToDocType2: Option ,,"Order",Invoice,"Return Order","Credit Memo";
         FromDocType: Option Quote,"Blanket Order","Order",Invoice,"Return Order","Credit Memo";
 #pragma warning disable AA0074
 #pragma warning disable AA0470

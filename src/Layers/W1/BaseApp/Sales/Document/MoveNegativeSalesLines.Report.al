@@ -49,7 +49,7 @@ report 6699 "Move Negative Sales Lines"
                             ApplicationArea = ItemCharges;
                             Caption = 'To Document Type';
                             Editable = DropDownForRetOrderAndCrMemoEd;
-                            OptionCaption = ',,Order,Invoice';
+                            OptionCaption = ',,Order,Invoice,,';
                             ToolTip = 'Specifies which document type you want to move the negative sales lines to.';
                         }
                     }
@@ -142,7 +142,7 @@ report 6699 "Move Negative Sales Lines"
 
     protected var
         FromSalesHeader: Record "Sales Header";
-        ToDocType2: Option ,,"Order",Invoice;
+        ToDocType2: Option ,,"Order",Invoice,"Return Order","Credit Memo";
 
     /// <summary>
     /// Sets the source sales header from which to move negative lines.
