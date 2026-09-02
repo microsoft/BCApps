@@ -22,11 +22,11 @@ tableextension 11362 "Employee Ledger Entry NL" extends "Employee Ledger Entry"
             AutoFormatExpression = Rec."Currency Code";
             BlankZero = true;
             CalcFormula = sum("Detail Line"."Amount (Entry)" where("Account Type" = const(Employee),
-                            "Serial No. (Entry)" = field("Entry No."),
-                            Status = const("In process"),
-                            "Connect Batches" = field("Connect Batches Filter"),
-                            "Connect Lines" = field("Connect Lines Filter"),
-                            "Our Bank" = field("Our Bank Filter")));
+                                                                    "Serial No. (Entry)" = field("Entry No."),
+                                                                    Status = const("In process"),
+                                                                    "Connect Batches" = field("Connect Batches Filter"),
+                                                                    "Connect Lines" = field("Connect Lines Filter"),
+                                                                    "Our Bank" = field("Our Bank Filter")));
             Caption = 'Payments in Process';
             Editable = false;
             FieldClass = FlowField;
