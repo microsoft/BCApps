@@ -1651,7 +1651,7 @@ table 5405 "Production Order"
     var
         ProdOrderComponent: Record "Prod. Order Component";
     begin
-        ProdOrderComponent.SetRange(Status, Status);
+        ProdOrderComponent.SetRange(Status, Rec.Status);
         ProdOrderComponent.SetRange("Prod. Order No.", "No.");
         if ProdOrderComponent.FindSet() then
             repeat
