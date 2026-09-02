@@ -82,6 +82,7 @@ codeunit 50101 "Fabric Platform Mgt"
     var
         TenantFabricTables: Record "Tenant Fabric Tables";
         AllObjWithCaption: Record AllObjWithCaption;
+        TableMetadata: Record "Table Metadata";
     begin
         AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
         AllObjWithCaption.SetRange("Object ID", TableId);
@@ -97,6 +98,10 @@ codeunit 50101 "Fabric Platform Mgt"
         TenantFabricTables.Validate("Table ID", TableId);
         TenantFabricTables."Table Name" := CopyStr(AllObjWithCaption."Object Caption", 1, MaxStrLen(TenantFabricTables."Table Name"));
         TenantFabricTables."Fabric Entity Name" := CopyStr(AllObjWithCaption."Object Caption", 1, MaxStrLen(TenantFabricTables."Fabric Entity Name"));
+        if TableMetadata.Get(TableId) then
+            TenantFabricTables."Per Company" := TableMetadata.DataPerCompany
+        else
+            TenantFabricTables."Per Company" := true;
         TenantFabricTables.Insert(true);
     end;
 
