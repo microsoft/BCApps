@@ -137,6 +137,36 @@ codeunit 139982 "Subc. Pricing Test"
     end;
 
     [Test]
+    procedure PlannedReceiptDateChangeRepricesSubcPurchLine()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
+        NewPlannedReceiptDate: Date;
+        EarlierPrice: Decimal;
+        LaterPrice: Decimal;
+    begin
+        // [SCENARIO 648535] Changing Planned Receipt Date directly reapplies the price for the resulting order date
+        Initialize();
+
+        // [GIVEN] A backward-scheduled subcontracting purchase line using the price valid before WorkDate
+        CreateDateEffectiveSubcontractingScenario(Item, ProductionOrder, ProdOrderRoutingLine, EarlierPrice, LaterPrice);
+        CreateSubcontractingPurchaseLine(PurchaseLine, ProdOrderRoutingLine, Item."No.", ProductionOrder."No.");
+        SubcPriceManagement.GetSubcPriceForPurchLine(PurchaseLine);
+        Assert.AreEqual(EarlierPrice, PurchaseLine."Direct Unit Cost", 'The purchase line must initially use the earlier subcontractor price.');
+        NewPlannedReceiptDate := CalcDate('<20D>', WorkDate());
+
+        // [WHEN] Planned Receipt Date is changed directly
+        PurchaseLine.Validate("Planned Receipt Date", NewPlannedReceiptDate);
+
+        // [THEN] The purchase line uses the later price valid on the resulting order date
+        Assert.IsTrue(PurchaseLine."Order Date" >= WorkDate(), 'The resulting purchase line order date must be on or after WorkDate.');
+        Assert.AreEqual(LaterPrice, PurchaseLine."Direct Unit Cost", 'The purchase line must use the subcontractor price valid on the resulting order date.');
+    end;
+
+    [Test]
     procedure OrderDateChangeRepricesSubcPurchLine()
     var
         Item: Record Item;
