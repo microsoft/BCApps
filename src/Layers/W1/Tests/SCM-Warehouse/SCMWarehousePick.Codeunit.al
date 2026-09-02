@@ -52,6 +52,8 @@ codeunit 137055 "SCM Warehouse Pick"
         UnexpectedQtyOfLotInBinErr: Label 'Unexpected quantity of lot %1 in bin %2.', Comment = '%1 - Lot No.; %2 - Bin Code';
         VerifyWhseShptTrackingSpecification: Boolean;
         WhseShptTrackingSpecificationVerified: Boolean;
+        VerifyWhseShptPurchTrackingSpecification: Boolean;
+        WhseShptPurchTrackingSpecificationVerified: Boolean;
 
     [Test]
     [HandlerFunctions('ReservationPageHandler')]
@@ -2652,6 +2654,49 @@ codeunit 137055 "SCM Warehouse Pick"
         Assert.IsTrue(WhseShptTrackingSpecificationVerified, 'The warehouse shipment tracking specification was not verified.');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure WarehouseShipmentItemTrackingDoesNotInheritPurchaseLineBin()
+    var
+        Item: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchLineReserve: Codeunit "Purch. Line-Reserve";
+        SecondSourceQuantityArray: array[3] of Decimal;
+    begin
+        // [FEATURE] [Item Tracking] [Bin] [Purchase Return] [AI Test]
+        // [SCENARIO 648520] Item tracking on a purchase return warehouse shipment is not limited to the bin copied to the purchase line.
+        Initialize();
+
+        // [GIVEN] A purchase return line has a non-blank bin code from a previous warehouse shipment.
+        LocationWhite.TestField("Shipment Bin Code");
+        LibraryInventory.CreateItemTrackingCode(ItemTrackingCode);
+        ItemTrackingCode.Validate("Lot Specific Tracking", true);
+        ItemTrackingCode.Validate("Lot Warehouse Tracking", true);
+        ItemTrackingCode.Modify(true);
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
+        Item.Validate("Lot Nos.", LibraryUtility.GetGlobalNoSeriesCode());
+        Item.Modify(true);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::"Return Order", LibraryPurchase.CreateVendorNo());
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", LibraryRandom.RandInt(10));
+        PurchaseLine.Validate("Location Code", LocationWhite.Code);
+        PurchaseLine."Bin Code" := LocationWhite."Shipment Bin Code";
+        PurchaseLine.Modify(false);
+
+        // [WHEN] Item tracking is opened from a warehouse shipment for the return quantity.
+        SecondSourceQuantityArray[1] := Database::"Warehouse Shipment Line";
+        SecondSourceQuantityArray[2] := PurchaseLine."Quantity (Base)";
+        VerifyWhseShptPurchTrackingSpecification := true;
+        BindSubscription(this);
+        PurchLineReserve.CallItemTracking(PurchaseLine, SecondSourceQuantityArray);
+        UnbindSubscription(this);
+
+        // [THEN] The tracking specification has a blank bin code instead of inheriting the purchase line bin.
+        Assert.IsTrue(WhseShptPurchTrackingSpecificationVerified, 'The purchase warehouse shipment tracking specification was not verified.');
+    end;
+
     local procedure Initialize()
     var
         WarehouseActivityLine: Record "Warehouse Activity Line";
@@ -2662,6 +2707,8 @@ codeunit 137055 "SCM Warehouse Pick"
         Clear(GlobalItemNo);
         Clear(VerifyWhseShptTrackingSpecification);
         Clear(WhseShptTrackingSpecificationVerified);
+        Clear(VerifyWhseShptPurchTrackingSpecification);
+        Clear(WhseShptPurchTrackingSpecificationVerified);
         LibraryVariableStorage.Clear();
 
         // Lazy Setup.
@@ -2689,6 +2736,24 @@ codeunit 137055 "SCM Warehouse Pick"
         TrackingSpecification.TestField("Bin Code", '');
         WhseShptTrackingSpecificationVerified := true;
         IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Item Tracking Lines", 'OnBeforeSetSourceSpec', '', false, false)]
+    local procedure VerifyWarehouseShipmentPurchTrackingSpecification(var TrackingSpecification: Record "Tracking Specification"; var ReservationEntry: Record "Reservation Entry"; var ExcludePostedEntries: Boolean)
+    begin
+        if not VerifyWhseShptPurchTrackingSpecification then
+            exit;
+
+        TrackingSpecification.TestField("Source Type", Database::"Purchase Line");
+        TrackingSpecification.TestField("Bin Code", '');
+        WhseShptPurchTrackingSpecificationVerified := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch. Line-Reserve", 'OnBeforeRunItemTrackingLinesPage', '', false, false)]
+    local procedure SkipPurchaseItemTrackingLinesPage(var ItemTrackingLines: Page "Item Tracking Lines"; var IsHandled: Boolean)
+    begin
+        if VerifyWhseShptPurchTrackingSpecification then
+            IsHandled := true;
     end;
 
     local procedure CreateItemJournalLineWithLocationQtyAndUoM(var ItemJournalLine: Record "Item Journal Line"; ItemNo: Code[20]; LocationCode: Code[10]; Quantity: Decimal; UoM: Code[10])
