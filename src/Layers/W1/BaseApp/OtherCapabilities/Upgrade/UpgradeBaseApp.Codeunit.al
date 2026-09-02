@@ -4144,6 +4144,7 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetWarehouseActivitySourceTypeForJobPlanningLineUpgradeTag());
     end;
 
+
     local procedure SEPACAMT05300108(): Code[20]
     begin
         exit('SEPA CAMT 053-08');
