@@ -45,4 +45,4 @@ jobs:
             MinTotalJobs = $env:MIN_TOTAL_JOBS
             MaxAttempts = $env:MAX_ATTEMPTS
           }
-          build/scripts/RerunUnstableFailures.ps1 @params
+          eng/CI/RerunUnstableFailures.ps1 @params

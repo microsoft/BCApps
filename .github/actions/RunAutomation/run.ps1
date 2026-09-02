@@ -29,7 +29,8 @@ param(
 
 $ErrorActionPreference = "Stop"; $ProgressPreference = "SilentlyContinue"; Set-StrictMode -Version 2.0
 
-Import-Module $PSScriptRoot\..\..\..\build\scripts\EnlistmentHelperFunctions.psm1 -DisableNameChecking
+# Initialize enlistment (sets $repoRoot and loads shared modules)
+. "$env:GITHUB_WORKSPACE/init.ps1"
 
 # Do not run automations on branches that are out of support (branches with the "Branch is out of support" ruleset).
 # This is a safety net that also covers manual (workflow_dispatch) runs, which bypass the GetGitBranches filtering.
@@ -164,7 +165,7 @@ foreach ($automationName in $automationNames) {
 $availableUpdates = $automationRuns | Where-Object { $_.Status -eq "Update available" }
 if($availableUpdates) { # Only open PR if there are updates
     Write-Host "::group::Create PR for available updates"
-    Import-Module $PSScriptRoot\..\..\..\build\scripts\AutomatedSubmission.psm1 -DisableNameChecking
+    Import-Module $repoRoot/eng/CI/AutomatedSubmission.psm1 -DisableNameChecking
 
     $prLink = OpenPR -AvailableUpdates $availableUpdates -Category $($automationNames[0]) -Repository $Repository -TargetBranch $TargetBranch -Actor $Actor
 

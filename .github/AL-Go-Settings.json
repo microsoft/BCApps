@@ -138,7 +138,7 @@
   "rulesetFile": "../../../src/rulesets/base.ruleset.json",
   "skipUpgrade": true,
   "fullBuildPatterns": [
-    "build/*",
+    "eng/*",
     "src/rulesets/*",
     "src/Layers/*",
     "src/DisabledTests/*",
@@ -154,7 +154,7 @@
       "build_projects_Apps W1"
     ],
     "excludeProjects": [
-      "build_projects_System Application Modules"
+      "eng_AL-Go_System Application Modules"
     ]
   },
   "UpdateALGoSystemFilesEnvironment": "Official-Build",

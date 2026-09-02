@@ -4,7 +4,7 @@ param (
     $runParameters
 )
 
-Import-Module $PSScriptRoot\..\..\..\..\build\scripts\EnlistmentHelperFunctions.psm1
+. "$env:GITHUB_WORKSPACE/init.ps1"
 
 $result = @{
     'Files' = @()

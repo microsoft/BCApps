@@ -4,8 +4,8 @@ param (
 )
 
 # Current path is .github/actions/GetGitBranches
-# Import EnlistmentHelperFunctions module from build/scripts
-Import-Module "$PSScriptRoot\..\..\..\build\scripts\EnlistmentHelperFunctions.psm1" -DisableNameChecking
+# Import EnlistmentHelperFunctions module from eng/Shared
+Import-Module "$PSScriptRoot\..\..\..\eng\Shared\EnlistmentHelperFunctions.psm1" -DisableNameChecking
 
 $includeBranches = ConvertFrom-Json $include
 

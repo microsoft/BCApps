@@ -41,7 +41,7 @@ jobs:
       - name: Submit Stability Job
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        uses: microsoft/BCApps/.github/actions/RunAutomation@main
+        uses: ./.github/actions/RunAutomation
         with:
           automations: SubmitStabilityJob
           targetBranch: ${{ matrix.branch }}

@@ -32,7 +32,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          build/scripts/PullRequestValidation/ValidateIssuesForPullRequest.ps1 -PullRequestNumber ${{ github.event.pull_request.number }} -Repository ${{ github.repository }}
+          eng/CI/PullRequestValidation/ValidateIssuesForPullRequest.ps1 -PullRequestNumber ${{ github.event.pull_request.number }} -Repository ${{ github.repository }}
 
   WorkItemValidationForMicrosoft:
     if: github.repository_owner == 'microsoft' && github.event.pull_request.state == 'open' && github.event_name != 'merge_group'
@@ -52,13 +52,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          build/scripts/PullRequestValidation/LinkPullRequestToWorkItem.ps1 -PullRequestNumber ${{ github.event.pull_request.number }} -Repository ${{ github.repository }}
+          eng/CI/PullRequestValidation/LinkPullRequestToWorkItem.ps1 -PullRequestNumber ${{ github.event.pull_request.number }} -Repository ${{ github.repository }}
 
       - name: Validate internal work items for pull request
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          build/scripts/PullRequestValidation/ValidateInternalWorkItemForPullRequest.ps1 -PullRequestNumber ${{ github.event.pull_request.number }} -Repository ${{ github.repository }}
+          eng/CI/PullRequestValidation/ValidateInternalWorkItemForPullRequest.ps1 -PullRequestNumber ${{ github.event.pull_request.number }} -Repository ${{ github.repository }}
 
       - name: Add Linked label to PR
         if: github.event.pull_request.head.repo.full_name != github.repository
@@ -81,4 +81,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          build/scripts/PullRequestValidation/AddMilestoneToPullRequest.ps1 -PullRequestNumber ${{ github.event.pull_request.number }} -Repository ${{ github.repository }} -RepoVersion ${{ steps.get-repo-version.outputs.repoVersion }}
+          eng/CI/PullRequestValidation/AddMilestoneToPullRequest.ps1 -PullRequestNumber ${{ github.event.pull_request.number }} -Repository ${{ github.repository }} -RepoVersion ${{ steps.get-repo-version.outputs.repoVersion }}

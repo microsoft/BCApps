@@ -57,7 +57,7 @@ jobs:
       - name: Update BC Artifact Version
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        uses: microsoft/BCApps/.github/actions/RunAutomation@main
+        uses: ./.github/actions/RunAutomation
 
         with:
           automations: UpdateBCArtifact,UpdatePlatformVersion
