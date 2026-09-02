@@ -54,6 +54,8 @@ codeunit 137055 "SCM Warehouse Pick"
         WhseShptTrackingSpecificationVerified: Boolean;
         VerifyWhseShptPurchTrackingSpecification: Boolean;
         WhseShptPurchTrackingSpecificationVerified: Boolean;
+        WhseShptTrackingSpecificationNotVerifiedErr: Label 'The warehouse shipment tracking specification was not verified.';
+        WhseShptPurchTrackingSpecificationNotVerifiedErr: Label 'The purchase warehouse shipment tracking specification was not verified.';
 
     [Test]
     [HandlerFunctions('ReservationPageHandler')]
@@ -2651,7 +2653,7 @@ codeunit 137055 "SCM Warehouse Pick"
         UnbindSubscription(this);
 
         // [THEN] The tracking specification passed to item tracking has a blank bin code instead of inheriting the sales line bin.
-        Assert.IsTrue(WhseShptTrackingSpecificationVerified, 'The warehouse shipment tracking specification was not verified.');
+        Assert.IsTrue(WhseShptTrackingSpecificationVerified, WhseShptTrackingSpecificationNotVerifiedErr);
     end;
 
     [Test]
@@ -2694,7 +2696,7 @@ codeunit 137055 "SCM Warehouse Pick"
         UnbindSubscription(this);
 
         // [THEN] The tracking specification has a blank bin code instead of inheriting the purchase line bin.
-        Assert.IsTrue(WhseShptPurchTrackingSpecificationVerified, 'The purchase warehouse shipment tracking specification was not verified.');
+        Assert.IsTrue(WhseShptPurchTrackingSpecificationVerified, WhseShptPurchTrackingSpecificationNotVerifiedErr);
     end;
 
     local procedure Initialize()
