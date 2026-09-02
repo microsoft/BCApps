@@ -21,4 +21,31 @@ codeunit 135109 "Extension Mgt. Test Library"
     begin
         MarketplaceExtnDeployment.SetAppID(Id);
     end;
+
+    procedure CreatePendingExtensionSetup(AppId: Guid)
+    var
+        ExtensionPendingSetup: Record "Extension Pending Setup";
+    begin
+        ClearPendingExtensionSetup();
+        ExtensionPendingSetup."User Id" := UserSecurityId();
+        ExtensionPendingSetup."App Id" := AppId;
+        ExtensionPendingSetup."Created On" := CurrentDateTime();
+        ExtensionPendingSetup.Insert();
+    end;
+
+    procedure ClearPendingExtensionSetup()
+    var
+        ExtensionPendingSetup: Record "Extension Pending Setup";
+    begin
+        ExtensionPendingSetup.SetRange("User Id", UserSecurityId());
+        ExtensionPendingSetup.DeleteAll();
+    end;
+
+    procedure IsPendingExtensionSetupEmpty(): Boolean
+    var
+        ExtensionPendingSetup: Record "Extension Pending Setup";
+    begin
+        ExtensionPendingSetup.SetRange("User Id", UserSecurityId());
+        exit(ExtensionPendingSetup.IsEmpty());
+    end;
 }
