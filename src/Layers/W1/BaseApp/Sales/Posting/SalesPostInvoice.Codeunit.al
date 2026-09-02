@@ -825,10 +825,6 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
                     RemainAmtToDefer, RemainAmtToDeferACY, DeferralAccount, SalesAccount);
                 DeferralPostingBuffer.PrepareInitialAmounts(
                   AmountLCY, AmountACY, RemainAmtToDefer, RemainAmtToDeferACY, SalesAccount, DeferralAccount, DiscountAmount, DiscountAmountACY);
-                // if DiscountAmount <> 0 then begin
-                //     RemainAmtToDefer := 0;
-                //     RemainAmtToDeferACY := 0;
-                // end;
                 DeferralPostingBuffer.Update(DeferralPostingBuffer);
                 if (RemainAmtToDefer <> 0) or (RemainAmtToDeferACY <> 0) then begin
                     DeferralPostingBuffer.PrepareRemainderSales(

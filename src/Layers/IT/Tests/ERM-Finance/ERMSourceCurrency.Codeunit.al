@@ -2178,7 +2178,6 @@ codeunit 134897 "ERM Source Currency"
         VATPostingSetup: Record "VAT Posting Setup";
         SalesHeader: Record "Sales Header";
         Currency: Record Currency;
-        GLEntry: Record "G/L Entry";
         DeferralCode: Code[10];
         PostedInvoiceNo: Code[20];
         VATAmount: Decimal;
