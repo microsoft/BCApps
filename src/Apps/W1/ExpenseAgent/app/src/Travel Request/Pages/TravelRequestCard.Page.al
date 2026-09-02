@@ -2,14 +2,21 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.Finance.SpendRequest;
+namespace Microsoft.ExpenseAgent;
 
-page 6841 "Spend Request Card"
+using Microsoft.Finance.Dimension;
+using Microsoft.Finance.SpendRequest;
+
+page 7129 "Travel Request Card"
 {
-    Caption = 'Spend Request';
+    Caption = 'Travel Request';
     PageType = Document;
     ApplicationArea = Basic, Suite;
     SourceTable = "Spend Request";
+    SourceTableView = where("Document Type" = filter("Travel Request"));
+
+    AboutTitle = 'About the travel request';
+    AboutText = 'A travel request captures the intent to travel, its purpose, expected cost, schedule, and travelers, so it can be reviewed and approved before any expense is incurred.';
 
     layout
     {
@@ -21,47 +28,58 @@ page 6841 "Spend Request Card"
 
                 field("No."; Rec."No.")
                 {
+                    ToolTip = 'Specifies the number of the travel request.';
+
                     trigger OnAssistEdit()
                     begin
                         Rec.AssistEditNo();
                     end;
                 }
-                field("Requested By"; Rec."Requested By")
+                field("Requested For"; Rec."Requested For")
                 {
+                    ToolTip = 'Specifies the expense user for whom the travel request is being created.';
                 }
                 field(Purpose; Rec.Purpose)
                 {
                     MultiLine = true;
+                    ToolTip = 'Specifies the purpose of the travel request.';
                 }
                 field(Status; Rec.Status)
                 {
                     Importance = Promoted;
+                    ToolTip = 'Specifies the status of the travel request.';
                 }
                 field(ClosedAt; Rec."Closed At")
                 {
                     Importance = Additional;
+                    ToolTip = 'Specifies when the travel request was closed.';
                 }
                 field(ClosedByDoc; Rec."Closed By Document No.")
                 {
                     Importance = Additional;
+                    ToolTip = 'Specifies the document that closed the travel request.';
                 }
                 field("Currency Code"; Rec."Currency Code")
                 {
-                    Importance = Promoted;
+                    Importance = Additional;
                     Editable = Rec.Status = Rec.Status::Open;
+                    ToolTip = 'Specifies the currency of the travel request.';
                 }
                 field("Total Expected Amount"; Rec."Total Expected Amount")
                 {
                     Importance = Promoted;
                     Editable = Rec.Status = Rec.Status::Open;
+                    ToolTip = 'Specifies the total expected amount of the travel request.';
                 }
                 field("Total Expected Amount (LCY)"; Rec."Total Expected Amount (LCY)")
                 {
-                    Importance = Promoted;
+                    Importance = Additional;
+                    ToolTip = 'Specifies the total expected amount of the travel request in local currency.';
                 }
                 field(TotalSpentAmountLCY; Rec."Total Spent Amount (LCY)")
                 {
-                    Importance = Promoted;
+                    Importance = Additional;
+                    ToolTip = 'Specifies the total amount that has been spent against the travel request in local currency.';
                 }
                 field(RemainingAmountLCY; Rec.GetRemainingAmountLCY())
                 {
@@ -74,13 +92,15 @@ page 6841 "Spend Request Card"
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     Importance = Additional;
+                    ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up.';
                 }
                 field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
                 {
                     Importance = Additional;
+                    ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up.';
                 }
             }
-            part(Lines; "Spend Request Subform")
+            part(Lines; "Travel Request Subform")
             {
                 Caption = 'Lines';
                 Editable = Rec.Status = Rec.Status::Open;
@@ -94,10 +114,60 @@ page 6841 "Spend Request Card"
                 field("Expected Start Date"; Rec."Expected Start Date")
                 {
                     Importance = Promoted;
+                    ToolTip = 'Specifies the expected start date of the travel.';
                 }
                 field("Expected End Date"; Rec."Expected End Date")
                 {
                     Importance = Promoted;
+                    ToolTip = 'Specifies the expected end date of the travel.';
+                }
+                field("Actual Start Date and Time"; Rec."Actual Start Date and Time")
+                {
+                    Importance = Additional;
+                    ToolTip = 'Specifies the actual start date and time of the travel.';
+                }
+                field("Actual End Date and Time"; Rec."Actual End Date and Time")
+                {
+                    Importance = Additional;
+                    ToolTip = 'Specifies the actual end date and time of the travel.';
+                }
+            }
+            group("Travel Details")
+            {
+                Caption = 'Travel Details';
+
+                field("Business Justification"; Rec."Business Justification")
+                {
+                    MultiLine = true;
+                    Importance = Additional;
+                    ToolTip = 'Specifies the business justification for the travel.';
+                }
+                field("International Travel"; Rec."International Travel")
+                {
+                    Importance = Additional;
+                    ToolTip = 'Specifies whether the travel is international.';
+                }
+                field("Origin Country"; Rec."Origin Country/Region Code")
+                {
+                    ToolTip = 'Specifies the origin country for the travel.';
+                }
+                field("Destination Country"; Rec."Dest. Country/Region Code")
+                {
+                    ToolTip = 'Specifies the destination country for the travel.';
+                }
+                field(Restrictions; Rec.Restrictions)
+                {
+                    Importance = Additional;
+                    ToolTip = 'Specifies any travel restrictions that apply.';
+                }
+                field("Travel Policy Acknowledgment"; Rec."Travel Policy Acknowledgment")
+                {
+                    ToolTip = 'Specifies whether the travel policy has been acknowledged.';
+                }
+                field("Per Diem Included"; Rec."Per Diem Included")
+                {
+                    Importance = Additional;
+                    ToolTip = 'Specifies whether per diem is included in the travel request.';
                 }
             }
             group(Approval)
@@ -107,10 +177,13 @@ page 6841 "Spend Request Card"
                 field("Approved by User Name"; Rec."Approved/Rejected by User Name")
                 {
                     Importance = Promoted;
+                    Editable = false;
+                    ToolTip = 'Specifies the name of the user who approved or rejected the travel request.';
                 }
                 field("Approved At"; Rec."Approved/Rejected At")
                 {
                     Importance = Promoted;
+                    ToolTip = 'Specifies when the travel request was approved or rejected.';
                 }
             }
         }
@@ -170,69 +243,12 @@ page 6841 "Spend Request Card"
                     end;
                 }
             }
-            group(SpendRequestApproval)
-            {
-                Caption = 'Approval';
-                action(Approve)
-                {
-                    Caption = 'Approve';
-                    ToolTip = 'Manually set the status field to Approved';
-                    ApplicationArea = Basic, Suite;
-                    Enabled = Rec.Status <> Rec.Status::Approved;
-                    Image = Approve;
-
-                    trigger OnAction()
-                    begin
-                        if Rec.Status = Rec.Status::Approved then
-                            exit;
-                        Rec.Status := Rec.Status::Approved;
-                        Rec."Approved/Rejected At" := CurrentDateTime();
-                        Rec."Approved/Rejected by User ID" := UserSecurityId();
-                        Rec.Modify();
-                    end;
-                }
-                action(Reject)
-                {
-                    Caption = 'Reject';
-                    ToolTip = 'Manually set the status field to Rejected';
-                    ApplicationArea = Basic, Suite;
-                    Enabled = Rec.Status <> Rec.Status::Rejected;
-                    Image = Reject;
-
-                    trigger OnAction()
-                    begin
-                        if Rec.Status = Rec.Status::Rejected then
-                            exit;
-                        Rec.TestStatus(Rec.Status::Released);
-                        Rec.Status := Rec.Status::Rejected;
-                        Rec."Approved/Rejected At" := CurrentDateTime();
-                        Rec."Approved/Rejected by User ID" := UserSecurityId();
-                        Rec.Modify();
-                    end;
-                }
-            }
-            action(RefreshCurrency)
-            {
-                Caption = 'Refresh Currency Exchange rate';
-                ToolTip = 'Updates the currency exchange rate and Total Expected Amount (LCY).';
-                Enabled = (Rec."Currency Code" <> '') and (Rec.Status <> Rec.Status::Closed);
-                ApplicationArea = Basic, Suite;
-                Image = Recalculate;
-
-                trigger OnAction()
-                begin
-                    if Rec.Status = Rec.Status::Closed then
-                        Error(SpendRequestClosedErr, Rec.GetDocumentTypeDescription());
-                    Rec.UpdateCurrencyExchangeRate();
-                    Rec.Modify();
-                end;
-            }
         }
         area(Navigation)
         {
             action(Dimensions)
             {
-                AccessByPermission = TableData Microsoft.Finance.Dimension.Dimension = R;
+                AccessByPermission = TableData Dimension = R;
                 ApplicationArea = Dimensions;
                 Caption = 'Dimensions';
                 Enabled = Rec."No." <> '';
@@ -246,23 +262,14 @@ page 6841 "Spend Request Card"
                     CurrPage.SaveRecord();
                 end;
             }
-        }
-        area(Reporting)
-        {
-            group(Report)
+            action(Travelers)
             {
-                Caption = 'Report';
-                Image = Print;
-
-                action(Print)
-                {
-                    Caption = 'Print';
-                    ToolTip = 'Prints the spend request so it can be sent to the requester.';
-                    ApplicationArea = Basic, Suite;
-                    Image = Print;
-                    RunObject = Report "Spend Request Document";
-                    RunPageOnRec = true;
-                }
+                Image = Travel;
+                Caption = 'Travelers';
+                ToolTip = 'View the travelers associated with this travel request.';
+                ApplicationArea = Basic, Suite;
+                RunObject = page "Travelers";
+                RunPageLink = "Spend Request No." = field("No.");
             }
         }
         area(Promoted)
@@ -279,39 +286,30 @@ page 6841 "Spend Request Card"
                     actionref(Release_Promoted; Release)
                     {
                     }
-                    actionref(Reopen_Promoted; Reopen)
+                    actionref(Reopen_Promoted; ReOpen)
                     {
                     }
                     actionref(Close_Promoted; Close)
                     {
                     }
                 }
-                actionref(RefreshCurrency_Promoted; RefreshCurrency)
-                {
-                }
             }
-            group(Category_Approval)
+            group(Category_TravelRequest)
             {
-                Caption = 'Approval';
-
-                actionref(Approve_Promoted; Approve)
-                {
-                }
-                actionref(Reject_Promoted; Reject)
-                {
-                }
-            }
-            group(Category_SpendRequest)
-            {
-                Caption = 'Spend Request';
+                Caption = 'Travel Request';
 
                 actionref(Dimensions_Promoted; Dimensions)
+                {
+                }
+                actionref(Travelers_Promoted; Travelers)
                 {
                 }
             }
         }
     }
 
-    var
-        SpendRequestClosedErr: Label 'A closed %1 cannot be updated.', Comment = '%1 = document type description, e.g. spend request or Travel Request';
+    trigger OnNewRecord(BelowxRec: Boolean)
+    begin
+        Rec."Document Type" := Rec."Document Type"::"Travel Request";
+    end;
 }
