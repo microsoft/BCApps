@@ -1265,9 +1265,6 @@ codeunit 134619 "Composite Layout Tests"
     [Test]
     [Scope('OnPrem')]
     procedure OnCompanyOpenSeedsDefaultPartsWhenMissing()
-    var
-        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
-        CompositeLayoutLookupHelper: Codeunit "Composite Layout Lookup Helper";
     begin
         // [SCENARIO] On company open, the shipped parts are seeded if missing, for new tenants
         // provisioned from a pre-built database image where BaseApp is installed but OnInstallAppPerDatabase
@@ -1280,39 +1277,60 @@ codeunit 134619 "Composite Layout Tests"
             ShippedPartExists('Internal Default', Enum::"Report Layout Subtype"::HeaderFooter),
             'The part should be missing before OnCompanyOpen.');
 
-        // [WHEN] Simulating OnCompanyOpen by seeding if missing (same logic as the event handler).
-        if not PartAlreadySeeded(CompositeLayoutLookupHelper.GetTenantReportDefaultsReportID(), CompositeReportPartsMgt.GetShippedPartAppId()) then
-            CompositeReportPartsMgt.SeedDefaultParts();
+        // [WHEN] Simulating OnCompanyOpen (same logic as the event handler).
+        SimulateCompanyOpenSeeding();
 
         // [THEN] The missing part is seeded.
         Assert.IsTrue(
             ShippedPartExists('Internal Default', Enum::"Report Layout Subtype"::HeaderFooter),
             'OnCompanyOpen should seed the missing shipped part.');
+
+        // Cleared again so the suite does not hand the tag on to whatever runs next in this database.
+        ClearCompositeReportPartsUpgradeTag();
     end;
 
     [Test]
     [Scope('OnPrem')]
     procedure OnCompanyOpenIsIdempotentWhenPartsExist()
     var
-        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
-        CompositeLayoutLookupHelper: Codeunit "Composite Layout Lookup Helper";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
     begin
-        // [SCENARIO] Running OnCompanyOpen when parts already exist does nothing (idempotent).
+        // [SCENARIO] Running OnCompanyOpen when the database is already tagged as seeded does nothing (idempotent).
         Initialize();
 
-        // [GIVEN] Parts are already seeded.
+        // [GIVEN] Parts are already seeded and the database carries the seeding upgrade tag.
         Assert.IsTrue(
             ShippedPartExists('Internal Default', Enum::"Report Layout Subtype"::HeaderFooter),
             'The part should exist before OnCompanyOpen.');
+        UpgradeTag.SetDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag());
 
-        // [WHEN] Simulating OnCompanyOpen - it exits early if parts already seeded.
-        if not PartAlreadySeeded(CompositeLayoutLookupHelper.GetTenantReportDefaultsReportID(), CompositeReportPartsMgt.GetShippedPartAppId()) then
-            CompositeReportPartsMgt.SeedDefaultParts();
+        // [WHEN] Simulating OnCompanyOpen - it exits early because the database is already tagged.
+        SimulateCompanyOpenSeeding();
 
         // [THEN] The part still exists (unchanged).
         Assert.IsTrue(
             ShippedPartExists('Internal Default', Enum::"Report Layout Subtype"::HeaderFooter),
             'OnCompanyOpen should be idempotent when parts already exist.');
+
+        // Cleared again so the suite does not hand the tag on to whatever runs next in this database.
+        ClearCompositeReportPartsUpgradeTag();
+    end;
+
+    /// <summary>
+    /// Mirrors the company-open fallback in codeunit "Upgrade Composite Report Parts": the database upgrade tag is the
+    /// guard, and seeding goes through SeedShippedParts so the tag is recorded and the seeding stays exactly-once.
+    /// </summary>
+    local procedure SimulateCompanyOpenSeeding()
+    var
+        UpgradeCompositeReportParts: Codeunit "Upgrade Composite Report Parts";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+    begin
+        if UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()) then
+            exit;
+
+        UpgradeCompositeReportParts.SeedShippedParts();
     end;
 
     local procedure ReportLayoutsNewLayout()
@@ -1505,6 +1523,7 @@ codeunit 134619 "Composite Layout Tests"
         TenantReportLayoutCfg.SetRange("Report ID", BodyReportID);
         TenantReportLayoutCfg.DeleteAll(true);
         ClearTestReportLayouts();
+        ClearAdHocParts();
         ClearWildcardCfg('');                                                                     // global default: report 0, all companies
         ClearWildcardCfg(CopyStr(CompanyName(), 1, MaxStrLen(TenantReportLayoutCfg."Company Name"))); // company default: report 0, this company
 
@@ -1563,6 +1582,36 @@ codeunit 134619 "Composite Layout Tests"
                 if TenantReportLayout.Get(TempLayoutsToDelete."Report ID", TempLayoutsToDelete.Name, EmptyGuid) then
                     ReportLayoutsImpl.DeleteReportLayout(TenantReportLayout);
             until TempLayoutsToDelete.Next() = 0;
+    end;
+
+    /// <summary>
+    /// Takes out every tenant-owned part this suite can leave on the Tenant Report Defaults report. The tests create
+    /// ad-hoc parts on that report with no App ID and the bucket is not isolated, so the rows outlive the test method
+    /// that made them and would otherwise pollute the shared part pool for the rest of the run. Only the no-App-ID key
+    /// is touched: the shipped rows carry the app's App ID and RestoreShippedPartPool owns those.
+    /// </summary>
+    local procedure ClearAdHocParts()
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        TempPartsToDelete: Record "Tenant Report Layout" temporary;
+        ReportLayoutsImpl: Codeunit "Report Layouts Impl.";
+        EmptyAppId: Guid;
+    begin
+        TenantReportLayout.SetRange("Report ID", PartsReportID);
+        TenantReportLayout.SetRange("App ID", EmptyAppId);
+        if TenantReportLayout.FindSet() then
+            repeat
+                TempPartsToDelete.Init();
+                TempPartsToDelete."Report ID" := TenantReportLayout."Report ID";
+                TempPartsToDelete.Name := TenantReportLayout.Name;
+                TempPartsToDelete.Insert();
+            until TenantReportLayout.Next() = 0;
+
+        if TempPartsToDelete.FindSet() then
+            repeat
+                if TenantReportLayout.Get(TempPartsToDelete."Report ID", TempPartsToDelete.Name, EmptyAppId) then
+                    ReportLayoutsImpl.DeleteReportLayout(TenantReportLayout);
+            until TempPartsToDelete.Next() = 0;
     end;
 
     local procedure TenantLayoutExists(ReportID: Integer; LayoutName: Text): Boolean

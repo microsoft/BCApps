@@ -78,38 +78,29 @@ codeunit 104067 "Upgrade Composite Report Parts"
     local procedure SeedDefaultReportPartsIfMissing()
     var
         TenantReportLayout: Record "Tenant Report Layout";
-        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
-        CompositeLayoutLookupHelper: Codeunit "Composite Layout Lookup Helper";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
     begin
+        // Cheap persisted guard: a database that has been seeded carries the upgrade tag, so an already-seeded
+        // database exits here instead of querying Tenant Report Layout on every company open.
+        if UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()) then
+            exit;
+
         // Exit gracefully if no write permissions - OnCompanyOpen should not fail due to permissions
         if not TenantReportLayout.WritePermission() then
             exit;
 
-        // Exit if parts already exist
-        if PartAlreadySeeded(CompositeLayoutLookupHelper.GetTenantReportDefaultsReportID(), CompositeReportPartsMgt.GetShippedPartAppId()) then
-            exit;
-
-        // Seed the parts using the standard seeding procedure.
+        // Route through SeedShippedParts so the full shipped set is seeded and the database upgrade tag is written,
+        // keeping the seeding exactly-once across this path and OnUpgradePerDatabase.
         // A failure must not abort company initialization, so it is logged instead of raised.
-        if not TrySeedDefaultParts() then
+        if not TrySeedShippedParts() then
             Session.LogMessage('0000QVA', StrSubstNo(SeedOnCompanyOpenFailedTxt, GetLastErrorText(true)), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CompositeReportPartsCategoryTxt);
     end;
 
     [TryFunction]
-    local procedure TrySeedDefaultParts()
-    var
-        CompositeReportPartsMgt: Codeunit "Composite Report Parts Mgt.";
+    local procedure TrySeedShippedParts()
     begin
-        CompositeReportPartsMgt.SeedDefaultParts();
-    end;
-
-    local procedure PartAlreadySeeded(ReportID: Integer; AppId: Guid): Boolean
-    var
-        TenantReportLayout: Record "Tenant Report Layout";
-    begin
-        TenantReportLayout.SetRange("Report ID", ReportID);
-        TenantReportLayout.SetRange("App ID", AppId);
-        exit(not TenantReportLayout.IsEmpty());
+        SeedShippedParts();
     end;
 
     var
