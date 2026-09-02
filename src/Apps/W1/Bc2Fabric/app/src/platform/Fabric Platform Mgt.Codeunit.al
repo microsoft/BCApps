@@ -105,6 +105,26 @@ codeunit 50101 "Fabric Platform Mgt"
         TenantFabricTables.Insert(true);
     end;
 
+    procedure AddTables(var AllObjWithCaption: Record AllObjWithCaption)
+    var
+        TenantFabricTables: Record "Tenant Fabric Tables";
+        NewTableCount: Integer;
+    begin
+        if AllObjWithCaption.FindSet() then
+            repeat
+                if not TenantFabricTables.Get(AllObjWithCaption."Object ID") then
+                    NewTableCount += 1;
+            until AllObjWithCaption.Next() = 0;
+
+        EnsureCapacity(NewTableCount);
+
+        if AllObjWithCaption.FindSet() then
+            repeat
+                if not TenantFabricTables.Get(AllObjWithCaption."Object ID") then
+                    AddTable(AllObjWithCaption."Object ID");
+            until AllObjWithCaption.Next() = 0;
+    end;
+
     // -------------------------------------------------------------------------
     // Company selection
     // -------------------------------------------------------------------------

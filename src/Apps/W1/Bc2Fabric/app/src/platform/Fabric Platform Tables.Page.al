@@ -63,7 +63,7 @@ page 50105 "Fabric Platform Tables"
                 Caption = 'Add Table';
                 ApplicationArea = All;
                 Image = New;
-                ToolTip = 'Adds a Business Central table to the export selection. A maximum of 500 tables can be selected.';
+                ToolTip = 'Adds one or more Business Central tables to the export selection. A maximum of 500 tables can be selected.';
 
                 trigger OnAction()
                 var
@@ -79,8 +79,8 @@ page 50105 "Fabric Platform Tables"
                     if ObjectsPage.RunModal() <> Action::LookupOK then
                         exit;
 
-                    ObjectsPage.GetRecord(AllObjWithCaption);
-                    FabricPlatformMgt.AddTable(AllObjWithCaption."Object ID");
+                    ObjectsPage.SetSelectionFilter(AllObjWithCaption);
+                    FabricPlatformMgt.AddTables(AllObjWithCaption);
                     CurrPage.Update(false);
                 end;
             }
