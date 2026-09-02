@@ -5,8 +5,6 @@
     "appFolders":  [
                        "../../../src/Apps/CA/ContosoCoffeeDemoDatasetCA/app",
                        "../../../src/Apps/CA/EDocument_CA/demo data",
-                       "../../../src/Apps/CA/ExpenseAgent_CA/app",
-                       "../../../src/Apps/CA/ExpenseAgent_CA/demo data",
                        "../../../src/Apps/CA/HybridBCLast_CA/app",
                        "../../../src/Apps/NA/Ceridian/app",
                        "../../../src/Apps/NA/EnvestnetYodleeBankFeeds/app",

@@ -105,7 +105,7 @@ table 6906 "Expense Report Header"
                 UpdateCurrencyFactor();
 
                 if xRec."Posting Date" <> Rec."Posting Date" then
-                    UpdateReportLines(Rec.FieldName("Posting Date"));
+                    UpdateReportLines(Rec.FieldCaption("Posting Date"));
             end;
         }
         field(6; "Description"; Text[100])
@@ -359,7 +359,7 @@ table 6906 "Expense Report Header"
             begin
                 TestStatusOpen();
                 if xRec."VAT Bus. Posting Group" <> Rec."VAT Bus. Posting Group" then
-                    UpdateReportLines(Rec.FieldName("VAT Bus. Posting Group"));
+                    UpdateReportLines(Rec.FieldCaption("VAT Bus. Posting Group"));
             end;
         }
         field(42; "Submission DateTime"; DateTime)
@@ -440,7 +440,7 @@ table 6906 "Expense Report Header"
             begin
                 if "Reimbursement Currency Factor" <> xRec."Reimbursement Currency Factor" then begin
                     TestStatusOpen();
-                    UpdateReportLines(Rec.FieldName("Reimbursement Currency Factor"));
+                    UpdateReportLines(Rec.FieldCaption("Reimbursement Currency Factor"));
                 end;
             end;
         }
@@ -539,9 +539,9 @@ table 6906 "Expense Report Header"
         }
         field(100; "Spend Request No."; Code[20])
         {
-            Caption = 'Spend Request No.';
-            ToolTip = 'Specifies the spend request number that is associated with this expense report.';
-            TableRelation = "Spend Request" where(Status = const(Approved));
+            Caption = 'Travel Request No.';
+            ToolTip = 'Specifies the travel request number that is associated with this expense report.';
+            TableRelation = "Spend Request" where(Status = const(Approved), "Document Type" = const("Travel Request"));
 
             trigger OnValidate()
             var
@@ -561,13 +561,13 @@ table 6906 "Expense Report Header"
                     Rec."Spend Request Close" := false;
 
                 if xRec."Spend Request No." <> Rec."Spend Request No." then
-                    UpdateReportLines(Rec.FieldName("Spend Request No."));
+                    UpdateReportLines(Rec.FieldCaption("Spend Request No."));
             end;
         }
         field(101; "Spend Request Close"; Boolean)
         {
-            Caption = 'Spend Request Close';
-            ToolTip = 'Specifies that the spend request will be closed when the expense report is posted.';
+            Caption = 'Travel Request Close';
+            ToolTip = 'Specifies that the travel request will be closed when the expense report is posted.';
             DataClassification = CustomerContent;
         }
     }
@@ -650,7 +650,7 @@ table 6906 "Expense Report Header"
         CanModifyLinesQst: Label 'You have modified %1 which will also update the lines.\\Do you want to continue?', Comment = '%1 = Field Caption';
         CannotChangeExpenseUserErr: Label 'You cannot change %1 in Expense Report No. %2 as there are associated lines to it.', Comment = '%1 = Field Caption, %2 = Expense Report No.';
         ExpenseUserMustBeLinkedToAnEmployeeErr: Label 'Expense User %1 must be linked to an Employee No.', Comment = '%1 - Expense User No.';
-        ExpenseUserNotTravelerErr: Label 'Expense User %1 is not a traveler on Spend Request %2.', Comment = '%1 = Expense User No., %2 = Spend Request No.';
+        ExpenseUserNotTravelerErr: Label 'Expense User %1 is not a traveler on Travel Request %2.', Comment = '%1 = Expense User No., %2 = Travel Request No.';
 
     procedure AssistEdit() Result: Boolean
     begin
@@ -695,7 +695,7 @@ table 6906 "Expense Report Header"
         end;
     end;
 
-    local procedure UpdateReportLines(CalledFromFieldName: Text)
+    local procedure UpdateReportLines(CalledFromFieldCaption: Text)
     var
         ExpenseReportLine: Record "Expense Report Line";
         ConfirmManagement: Codeunit "Confirm Management";
@@ -703,7 +703,7 @@ table 6906 "Expense Report Header"
         if not ExpenseLinesExist() then
             exit;
 
-        if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(CanModifyLinesQst, CalledFromFieldName), true) then
+        if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(CanModifyLinesQst, CalledFromFieldCaption), true) then
             Error('');
 
         ExpenseReportLine.SetRange("Document No.", "No.");
@@ -711,17 +711,38 @@ table 6906 "Expense Report Header"
             repeat
                 ExpenseReportLine.Initialize(Rec);
 
-                case CalledFromFieldName of
-                    Rec.FieldName("Reimbursement Currency Code"), Rec.FieldName("Reimbursement Currency Factor"):
+                case CalledFromFieldCaption of
+                    Rec.FieldCaption("Reimbursement Currency Code"), Rec.FieldCaption("Reimbursement Currency Factor"):
                         UpdateCurrFactorOnReportLine(ExpenseReportLine);
-                    Rec.FieldName("VAT Bus. Posting Group"):
+                    Rec.FieldCaption("VAT Bus. Posting Group"):
                         UpdateVATBusPostingGroupOnReportLine(ExpenseReportLine);
-                    Rec.FieldName("Posting Date"):
+                    Rec.FieldCaption("Posting Date"):
                         UpdatePostingDateOnReportLine(ExpenseReportLine);
-                    Rec.FieldName("Spend Request No."):
+                    Rec.FieldCaption("Spend Request No."):
                         UpdateSpendRequestOnReportLine(ExpenseReportLine);
                 end;
             until ExpenseReportLine.Next() = 0;
+
+        if CalledFromFieldCaption in [Rec.FieldCaption("Reimbursement Currency Code"), Rec.FieldCaption("Reimbursement Currency Factor"), Rec.FieldCaption("Posting Date")] then
+            UpdateVATSpecReimbursementAmounts();
+    end;
+
+    local procedure UpdateVATSpecReimbursementAmounts()
+    var
+        ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.";
+    begin
+        ExpenseReportLineVATSpec.SetRange("Document No.", "No.");
+        ExpenseReportLineVATSpec.SetLoadFields(
+            "Currency Code", "VAT Base Amount (LCY)", "VAT Amount", "VAT Amount (LCY)", "Amount (LCY)", "Reclaim %",
+            "VAT Base Amount (RCY)", "VAT Amount (RCY)", "Amount (RCY)", "Reclaim VAT Amount",
+            "Reclaim VAT Amount (LCY)", "Reclaim VAT Amount (RCY)");
+        if ExpenseReportLineVATSpec.FindSet(true) then
+            repeat
+                ExpenseReportLineVATSpec.UpdateReimbursementAmounts(Rec);
+#pragma warning disable AA0214
+                ExpenseReportLineVATSpec.Modify();
+#pragma warning restore AA0214                
+            until ExpenseReportLineVATSpec.Next() = 0;
     end;
 
     local procedure UpdateCurrFactorOnReportLine(var ExpenseReportLine: Record "Expense Report Line")
@@ -1115,13 +1136,13 @@ table 6906 "Expense Report Header"
             if UpdateCurrencyExchangeRates.ExchangeRatesForCurrencyExist(CurrencyDate, Rec."Reimbursement Currency Code") then begin
                 Rec."Reimbursement Currency Factor" := CurrExchRate.ExchangeRate(CurrencyDate, Rec."Reimbursement Currency Code");
                 if (Rec."Reimbursement Currency Code" <> xRec."Reimbursement Currency Code") and (xRec."No." <> '') then
-                    UpdateReportLines(Rec.FieldName("Reimbursement Currency Code"));
+                    UpdateReportLines(Rec.FieldCaption("Reimbursement Currency Code"));
             end else
                 UpdateCurrencyExchangeRates.ShowMissingExchangeRatesNotification("Reimbursement Currency Code");
         end else begin
             Rec."Reimbursement Currency Factor" := 0;
             if "Reimbursement Currency Code" <> xRec."Reimbursement Currency Code" then
-                UpdateReportLines(Rec.FieldName("Reimbursement Currency Code"));
+                UpdateReportLines(Rec.FieldCaption("Reimbursement Currency Code"));
         end;
     end;
 
