@@ -345,7 +345,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     {
                         ApplicationArea = All;
                         Caption = 'Text-to-Account Mappings';
-                        ToolTip = 'Opens the Text-to-Account Mapping filtered for the current vendor.';
+                        ToolTip = 'Opens Text-to-Account Mappings showing only candidates whose Mapping Text is contained in the selected line description.';
                         Image = MapAccounts;
                         Scope = Repeater;
                         Visible = AgentDrivenLineMatchingEnabled;
@@ -353,10 +353,23 @@ page 6183 "E-Doc. Purchase Draft Subform"
                         trigger OnAction()
                         var
                             TextToAccountMapping: Record "Text-to-Account Mapping";
+                            TempMapping: Record "Text-to-Account Mapping" temporary;
+                            EDocTTACandidateFilter: Codeunit "E-Doc. TTA Candidate Filter";
+                            LineNoFilter: Text;
                         begin
                             EnsureEDocumentPurchaseHeader();
                             EDocumentPurchaseHeader.TestField("[BC] Vendor No.");
-                            TextToAccountMapping.SetFilter("Vendor No.", '%1|%2', '', EDocumentPurchaseHeader."[BC] Vendor No.");
+                            EDocTTACandidateFilter.GetCandidates(Rec.Description, EDocumentPurchaseHeader."[BC] Vendor No.", TempMapping);
+                            if TempMapping.FindSet() then
+                                repeat
+                                    if LineNoFilter <> '' then
+                                        LineNoFilter += '|';
+                                    LineNoFilter += Format(TempMapping."Line No.");
+                                until TempMapping.Next() = 0;
+                            if LineNoFilter <> '' then
+                                TextToAccountMapping.SetFilter("Line No.", LineNoFilter)
+                            else
+                                TextToAccountMapping.SetRange("Line No.", -1);
                             Page.Run(Page::"Text-to-Account Mapping", TextToAccountMapping);
                         end;
                     }
