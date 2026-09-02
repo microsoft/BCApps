@@ -26,7 +26,7 @@ tableextension 31045 "Customer CZZ" extends Customer
         if "Privacy Blocked" then
             CustPrivacyBlockedErrorMessage(Rec, Transaction);
 
-        if Blocked <> Blocked::" " then
+        if Blocked in [Blocked::All, Blocked::Invoice] then
             CustBlockedErrorMessage(Rec, Transaction);
     end;
 }
