@@ -3,10 +3,13 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.FixedAssets.Reports;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Journal;
-using Microsoft.FixedAssets.Setup;
+#if not CLEAN28
+using System.Environment.Configuration;
+#endif
 using System.TestLibraries.Utilities;
 
 codeunit 148001 "ERM Fixed Assets - Local"
@@ -26,6 +29,9 @@ codeunit 148001 "ERM Fixed Assets - Local"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
         LibraryRandom: Codeunit "Library - Random";
+#if not CLEAN28
+        FeatureManagementFacade: Codeunit "Feature Management Facade";
+#endif
         Assert: Codeunit Assert;
 #if not CLEAN28
 #pragma warning disable AL0432
@@ -271,7 +277,9 @@ codeunit 148001 "ERM Fixed Assets - Local"
     local procedure CreateFAPostingGroup(var FixedAsset: Record "Fixed Asset")
     var
         FAPostingGroup: Record "FA Posting Group";
+        GeneralPostingSetup: Record "General Posting Setup";
     begin
+        LibraryERM.CreateGeneralPostingSetupInvt(GeneralPostingSetup);
         CreateFixedAsset(FixedAsset);
         FAPostingGroup.Get(FixedAsset."FA Posting Group");
         UpdateFAPostingGroup(FAPostingGroup);
@@ -303,17 +311,25 @@ codeunit 148001 "ERM Fixed Assets - Local"
     end;
 
     local procedure CreateNormalAndTaxDeprBooks(var NormalDeprBookCode: Code[10]; var TaxDeprBookCode: Code[10])
+    var
+        FAJournalTemplate: Record "FA Journal Template";
+        FAJournalBatch: Record "FA Journal Batch";
     begin
-        NormalDeprBookCode := CreateDeprBookModifyDerogCalc('');
+        LibraryFixedAsset.CreateJournalTemplate(FAJournalTemplate);
+        LibraryFixedAsset.CreateFAJournalBatch(FAJournalBatch, FAJournalTemplate.Name);
+        FAJournalBatch.Validate("No. Series", LibraryUtility.GetGlobalNoSeriesCode());
+        FAJournalBatch.Modify(true);
+
+        NormalDeprBookCode := CreateDeprBookModifyDerogCalc('', FAJournalTemplate.Name, FAJournalBatch.Name);
         UpdateIntegrationInBook(NormalDeprBookCode, true);
-        TaxDeprBookCode := CreateDeprBookModifyDerogCalc(NormalDeprBookCode);
+        TaxDeprBookCode := CreateDeprBookModifyDerogCalc(NormalDeprBookCode, FAJournalTemplate.Name, FAJournalBatch.Name);
     end;
 
-    local procedure CreateDeprBookModifyDerogCalc(DerogDeprBookCode: Code[10]): Code[10]
+    local procedure CreateDeprBookModifyDerogCalc(DerogDeprBookCode: Code[10]; FAJournalTemplateName: Code[10]; FAJournalBatchName: Code[10]): Code[10]
     var
         DeprBook: Record "Depreciation Book";
     begin
-        CreateAndSetupDeprBook(DeprBook);
+        CreateAndSetupDeprBook(DeprBook, FAJournalTemplateName, FAJournalBatchName);
         DeprBook.Validate("Use Same FA+G/L Posting Dates", false);
 #if not CLEAN28
         if AcceleratedDeprFeature.IsEnabled() then
@@ -329,24 +345,14 @@ codeunit 148001 "ERM Fixed Assets - Local"
         exit(DeprBook.Code);
     end;
 
-    local procedure CreateAndSetupDeprBook(var DepreciationBook: Record "Depreciation Book")
+    local procedure CreateAndSetupDeprBook(var DepreciationBook: Record "Depreciation Book"; FAJournalTemplateName: Code[10]; FAJournalBatchName: Code[10])
     var
         FAJournalSetup: Record "FA Journal Setup";
     begin
         LibraryFixedAsset.CreateDepreciationBook(DepreciationBook);
         LibraryFixedAsset.CreateFAJournalSetup(FAJournalSetup, DepreciationBook.Code, '');
-        UpdateFAJournalSetup(FAJournalSetup);
-    end;
-
-    local procedure UpdateFAJournalSetup(var FAJournalSetup: Record "FA Journal Setup")
-    var
-        FAJournalSetup2: Record "FA Journal Setup";
-        FASetup: Record "FA Setup";
-    begin
-        FASetup.Get();
-        FAJournalSetup2.SetRange("Depreciation Book Code", FASetup."Default Depr. Book");
-        FAJournalSetup2.FindFirst();
-        FAJournalSetup.TransferFields(FAJournalSetup2, false);
+        FAJournalSetup.Validate("FA Jnl. Template Name", FAJournalTemplateName);
+        FAJournalSetup.Validate("FA Jnl. Batch Name", FAJournalBatchName);
         FAJournalSetup.Modify(true);
     end;
 
@@ -412,6 +418,9 @@ codeunit 148001 "ERM Fixed Assets - Local"
 
     local procedure RunFAProjValueDerogReport(DeprBookCode: Code[10]; StartingDate: Date; EndingDate: Date; PostedFrom: Date; PrintDetails: Boolean)
     begin
+#if not CLEAN28
+        FeatureManagementFacade.IsEnabled('FAReportsFR');
+#endif
         LibraryVariableStorage.Enqueue(DeprBookCode);
         LibraryVariableStorage.Enqueue(StartingDate);
         LibraryVariableStorage.Enqueue(EndingDate);
@@ -482,14 +491,11 @@ codeunit 148001 "ERM Fixed Assets - Local"
 
     local procedure CreateFAJournalLine(var FAJournalLine: Record "FA Journal Line"; FANo: Code[20]; DepreciationBookCode: Code[10]; FAPostingType: Enum "FA Journal Line FA Posting Type"; Amount: Decimal)
     var
-        FAJournalTemplate: Record "FA Journal Template";
-        FAJournalBatch: Record "FA Journal Batch";
+        FAJournalSetup: Record "FA Journal Setup";
     begin
-        FAJournalTemplate.SetRange(Recurring, false);
-        LibraryFixedAsset.FindFAJournalTemplate(FAJournalTemplate);
-        LibraryFixedAsset.FindFAJournalBatch(FAJournalBatch, FAJournalTemplate.Name);
+        FAJournalSetup.Get(DepreciationBookCode, '');
         LibraryERM.CreateFAJournalLine(
-          FAJournalLine, FAJournalBatch."Journal Template Name", FAJournalBatch.Name,
+          FAJournalLine, FAJournalSetup."FA Jnl. Template Name", FAJournalSetup."FA Jnl. Batch Name",
           FAJournalLine."Document Type"::" ", FAPostingType,
           FANo, Amount);
         FAJournalLine.Validate("Depreciation Book Code", DepreciationBookCode);

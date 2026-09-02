@@ -29,12 +29,12 @@ codeunit 5866 "Accelerated Depr. Feature" implements "Feature Data Update"
 
     procedure IsEnabled() Enabled: Boolean
     begin
-        Enabled := FeatureMgtFacade.IsEnabled(AcceleratedDepreciationLbl);
+        Enabled := FeatureMgtFacade.IsEnabled(AcceleratedDepreciationLbl, false);
     end;
 
     procedure IsDefaultsFeatureEnabled(): Boolean
     begin
-        exit(FeatureMgtFacade.IsEnabled(GetAcceleratedDepreciationFeatureKey()));
+        exit(FeatureMgtFacade.IsEnabled(GetAcceleratedDepreciationFeatureKey(), false));
     end;
 
     procedure GetAcceleratedDepreciationFeatureKey(): Text[50]

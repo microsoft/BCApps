@@ -42,7 +42,6 @@ codeunit 148002 "ERM FA Professional Tax"
         LibraryRandom: Codeunit "Library - Random";
         UnexpectedErr: Label 'Expected caption is not correct.';
 
-
     [Test]
     [HandlerFunctions('FixedAssetProfessionalTaxRequestPageHandler')]
     [Scope('OnPrem')]

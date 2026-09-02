@@ -42,8 +42,12 @@ table 5647 "FA Matrix Posting Type"
         FADepreciationBook: Record "FA Depreciation Book";
 #if not CLEAN29
         AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+        IsAcceleratedDeprFeatureEnabled: Boolean;
 #endif
     begin
+#if not CLEAN29
+        IsAcceleratedDeprFeatureEnabled := AcceleratedDeprFeature.IsEnabled();
+#endif
         if not FindSet() then begin
             InsertRec(1, FADepreciationBook.FieldCaption("Book Value"));
             InsertRec(2, FADepreciationBook.FieldCaption("Acquisition Cost"));
@@ -57,7 +61,7 @@ table 5647 "FA Matrix Posting Type"
             InsertRec(10, FADepreciationBook.FieldCaption("Depreciable Basis"));
             InsertRec(11, FADepreciationBook.FieldCaption("Salvage Value"));
 #if not CLEAN29
-            if AcceleratedDeprFeature.IsEnabled() then
+            if IsAcceleratedDeprFeatureEnabled then
                 InsertRec(12, FADepreciationBook.FieldCaption("Derogatory Amount"))
             else
                 InsertRec(12, FADepreciationBook.FieldCaption(Derogatory));
@@ -122,7 +126,7 @@ table 5647 "FA Matrix Posting Type"
                         InsertRec(11, FADepreciationBook.FieldCaption("Salvage Value"));
                     end;
 #if not CLEAN29
-                if AcceleratedDeprFeature.IsEnabled() then begin
+                if IsAcceleratedDeprFeatureEnabled then begin
                     if "Entry No." = 12 then
                         if "FA Posting Type Name" <> FADepreciationBook.FieldCaption("Derogatory Amount") then begin
                             Delete();

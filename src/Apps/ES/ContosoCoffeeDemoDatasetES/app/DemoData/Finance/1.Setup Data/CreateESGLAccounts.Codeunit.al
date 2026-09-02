@@ -126,13 +126,10 @@ codeunit 10780 "Create ES GL Accounts"
         ContosoGLAccount.AddAccountForLocalization(JobGLAccount.RecognizedCostsName(), '6230006');
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"G/L Account", 'OnBeforeInsertEvent', '', false, false)]
-    local procedure OnBeforeInsertGLAccount(var Rec: Record "G/L Account")
-    var
-        CreateGLAccount: Codeunit "Create G/L Account";
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create G/L Account", 'OnBeforeIndentGLAccounts', '', false, false)]
+    local procedure UpdateDerogatoryIncomeStmtBalAccBeforeIndent()
     begin
-        if Rec."No." in [CreateGLAccount.DerogExpenseAccForDebit(), CreateGLAccount.DerogExpenseAccForCredit()] then
-            Rec.Validate("Income Stmt. Bal. Acc.", ProfitOrLoss());
+        UpdateDerogatoryIncomeStmtBalAcc();
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create G/L Account", 'OnAfterAddGLAccountsForLocalization', '', false, false)]

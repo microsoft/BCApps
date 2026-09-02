@@ -415,6 +415,7 @@ codeunit 5208 "Create G/L Account"
         ContosoGLAccount.InsertGLAccount(CorporateTax(), CorporateTaxName(), Enum::"G/L Account Income/Balance"::"Income Statement", Enum::"G/L Account Category"::Expense, SubCategory, Enum::"G/L Account Type"::Posting, '', '', 1, '', Enum::"General Posting Type"::" ", '', '', true, false, false);
 
         ContosoGLAccount.InsertGLAccount(NetIncome(), NetIncomeName(), Enum::"G/L Account Income/Balance"::"Income Statement", Enum::"G/L Account Category"::" ", Enum::"G/L Account Type"::Total, '', '', 1, IncomeStatement() + '..' + NetIncome(), Enum::"General Posting Type"::" ", '', '', false, false, false);
+        OnBeforeIndentGLAccounts();
         GLAccountIndent.Indent();
     end;
 
@@ -3395,11 +3396,13 @@ codeunit 5208 "Create G/L Account"
         exit(ContosoGLAccount.GetAccountNo(DerogExpenseAccForDebitName()));
     end;
 
-
-
-
     [IntegrationEvent(false, false)]
     local procedure OnAfterAddGLAccountsForLocalization()
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeIndentGLAccounts()
     begin
     end;
 

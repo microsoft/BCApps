@@ -57,8 +57,12 @@ table 5644 "FA Posting Type"
         FADepreciationBook: Record "FA Depreciation Book";
 #if not CLEAN29
         AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+        IsAcceleratedDeprFeatureEnabled: Boolean;
 #endif
     begin
+#if not CLEAN29
+        IsAcceleratedDeprFeatureEnabled := AcceleratedDeprFeature.IsEnabled();
+#endif
         LockTable();
         if not Find('-') then begin
             "FA Entry" := true;
@@ -82,7 +86,7 @@ table 5644 "FA Posting Type"
 #if not CLEAN29
             "Entry No." := 13;
             "FA Entry" := true;
-            if AcceleratedDeprFeature.IsEnabled() then begin
+            if IsAcceleratedDeprFeatureEnabled then begin
                 "FA Posting Type No." := FADepreciationBook.FieldNo("Derogatory Amount");
                 "FA Posting Type Name" := FADepreciationBook.FieldCaption("Derogatory Amount");
             end
@@ -187,7 +191,7 @@ table 5644 "FA Posting Type"
                         InsertRec(12, FADepreciationBook.FieldNo("Book Value on Disposal"), FADepreciationBook.FieldCaption("Book Value on Disposal"));
                     end;
 #if not CLEAN29
-                if AcceleratedDeprFeature.IsEnabled() then begin
+                if IsAcceleratedDeprFeatureEnabled then begin
                     if "Entry No." = 13 then
                         if ("FA Posting Type No." <> FADepreciationBook.FieldNo("Derogatory Amount")) or
                            ("FA Posting Type Name" <> FADepreciationBook.FieldCaption("Derogatory Amount"))
