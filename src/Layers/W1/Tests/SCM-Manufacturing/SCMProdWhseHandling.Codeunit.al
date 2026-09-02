@@ -1634,7 +1634,7 @@ codeunit 137298 "SCM Prod. Whse. Handling"
 
         // [GIVEN] Warehouse pick is created and fully registered for "PO".
         ProductionOrder.SetHideValidationDialog(true);
-        ProductionOrder.CreatePick(UserId(), 0, false, false, false);
+        ProductionOrder.CreatePick(CopyStr(UserId(), 1, 50), 0, false, false, false);
         FindWarehouseActivityLine(
           WarehouseActivityLine, ProductionOrder."No.", WarehouseActivityLine."Activity Type"::Pick,
           Location.Code, WarehouseActivityLine."Action Type"::Take);
