@@ -1301,7 +1301,7 @@ codeunit 137931 "SCM - Movement"
         // [GIVEN] Move all 10 LOT-A from bulk to pick bin (only LOT-A available, so movement is deterministic)
         LibraryWarehouse.FindZone(Zone, LocationCode, LibraryWarehouse.SelectBinType(false, false, true, true), false);
         LibraryWarehouse.FindBin(PickBin, LocationCode, Zone.Code, 1);
-        CreateMovementFromMovementWorksheet(ItemNo, LocationCode, BulkBin.Code, PickBin.Code, 10, LotNo[1]);
+        CreateMovementFromMovementWorksheet(ItemNo, LocationCode, BulkBin.Code, PickBin.Code, 10);
 
         // [GIVEN] LOT-B (later expiry) seeded in bulk bin (10) as the replenishment source
         CreateInventoryInBinWithLotAndExpiration(Item, BulkBin, 10, LotNo[2], CalcDate('<+2Y>', WorkDate()));
@@ -1843,7 +1843,7 @@ codeunit 137931 "SCM - Movement"
         GeneralPostingSetup.Modify(true);
     end;
 
-    local procedure CreateMovementFromMovementWorksheet(ItemNo: Code[20]; LocationCode: Code[10]; FromBinCode: Code[20]; ToBinCode: Code[20]; Qty: Decimal; LotNo: Code[50])
+    local procedure CreateMovementFromMovementWorksheet(ItemNo: Code[20]; LocationCode: Code[10]; FromBinCode: Code[20]; ToBinCode: Code[20]; Qty: Decimal)
     var
         WhseWorksheetTemplate: Record "Whse. Worksheet Template";
         WhseWorksheetName: Record "Whse. Worksheet Name";
