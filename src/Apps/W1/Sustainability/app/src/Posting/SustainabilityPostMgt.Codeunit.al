@@ -64,7 +64,7 @@ codeunit 6212 "Sustainability Post Mgt"
         SustGLSustLedgerRel: Record "Sust. G/L - Sust. Ledger Rel.";
         SustainabilityCalcMgt: Codeunit "Sustainability Calc. Mgt.";
         GLEntryNos: List of [Integer];
-        GLEntryNo: Integer;
+        CollectedGLEntryNo: Integer;
     begin
         if not SustainabilityJnlLine."Collected from G/L Entries" then
             exit;
@@ -80,8 +80,8 @@ codeunit 6212 "Sustainability Post Mgt"
                 GLEntryNos.Add(CollectableGLEntry."Entry No.");
             until CollectableGLEntry.Next() = 0;
 
-        foreach GLEntryNo in GLEntryNos do
-            if GLEntry.Get(GLEntryNo) then
+        foreach CollectedGLEntryNo in GLEntryNos do
+            if GLEntry.Get(CollectedGLEntryNo) then
                 SustGLSustLedgerRel.CreateRelation(GLEntry, SustLedgerEntryNo, SustainabilityJnlLine."Account Category");
     end;
 
