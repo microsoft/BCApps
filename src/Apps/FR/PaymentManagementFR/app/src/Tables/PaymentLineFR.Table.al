@@ -663,7 +663,7 @@ table 10837 "Payment Line FR"
             end;
     end;
 
-    procedure TryGetCustomerNettingContext(var SharedInvoiceLine: Record "Payment Line FR"; var CreditMemoAmount: Decimal): Boolean
+    internal procedure TryGetCustomerNettingContext(var SharedInvoiceLine: Record "Payment Line FR"; var CreditMemoAmount: Decimal): Boolean
     var
         CustomerLine: Record "Payment Line FR";
         HasCreditMemo: Boolean;
@@ -671,9 +671,14 @@ table 10837 "Payment Line FR"
     begin
         Clear(SharedInvoiceLine);
         CreditMemoAmount := 0;
+        if Rec."Applies-to ID" = '' then
+            exit(false);
+
+        CustomerLine.SetLoadFields("Applies-to Doc. Type", "Applies-to ID", "Credit Amount", "Debit Amount");
         CustomerLine.SetRange("No.", Rec."No.");
         CustomerLine.SetRange("Account Type", CustomerLine."Account Type"::Customer);
         CustomerLine.SetRange("Account No.", Rec."Account No.");
+        CustomerLine.SetRange("Applies-to ID", Rec."Applies-to ID");
         if not CustomerLine.FindSet() then
             exit(false);
         repeat

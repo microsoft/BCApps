@@ -1974,6 +1974,7 @@ codeunit 144013 "ERM Payment Management"
         // [THEN] The bank G/L account is debited 1833.60 and the receivables G/L account is credited 1833.60.
         VerifyBankAccountLedgerEntry(PaymentHeader, 1);
         VerifyGenLedgerEntry(PaymentHeader, 1);
+        VerifyReceivablesGLCreditEntry(CustomerNo, PaymentHeader."No.", NetAmount);
     end;
 
     local procedure Initialize()
@@ -2963,6 +2964,22 @@ codeunit 144013 "ERM Payment Management"
         until GLEntry.Next() = 0;
         Assert.AreEqual(Abs(PaymentHeader."Amount (LCY)"), GLAmount, UnexpectedErr);
         Assert.AreEqual(GLEntry.Count, NoOfRecord, UnexpectedErr);
+    end;
+
+    local procedure VerifyReceivablesGLCreditEntry(CustomerNo: Code[20]; PaymentHeaderNo: Code[20]; ExpectedCreditAmount: Decimal)
+    var
+        Customer: Record Customer;
+        CustomerPostingGroup: Record "Customer Posting Group";
+        GLEntry: Record "G/L Entry";
+    begin
+        Customer.Get(CustomerNo);
+        CustomerPostingGroup.Get(Customer."Customer Posting Group");
+        GLEntry.SetRange("Document No.", PaymentHeaderNo);
+        GLEntry.SetRange("G/L Account No.", CustomerPostingGroup."Receivables Account");
+        Assert.RecordCount(GLEntry, 1);
+        GLEntry.FindFirst();
+        GLEntry.TestField("Credit Amount", ExpectedCreditAmount);
+        GLEntry.TestField("Debit Amount", 0);
     end;
 
     local procedure VerifyCustomerEntriesNettedAndClosed(CustomerNo: Code[20]; NetAmount: Decimal)
