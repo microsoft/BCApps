@@ -121,10 +121,10 @@ codeunit 7248 "MDM Source Response"
         RecordsArray: JsonArray;
         Count: Integer;
     begin
-        if not Response.Get('records', RecordsToken) then
-            exit(0);
+        if not Response.Get('records', RecordsToken) then // available+indexed responses always carry a records array; absence is a broken contract
+            Error(MalformedRecordEntry());
         if not RecordsToken.IsArray() then
-            exit(0);
+            Error(MalformedRecordEntry());
         RecordsArray := RecordsToken.AsArray();
         foreach RecordToken in RecordsArray do begin
             if not RecordToken.IsObject() then
@@ -147,7 +147,8 @@ codeunit 7248 "MDM Source Response"
         FieldNo: Integer;
     begin
         TempSourceRecordRef.Init();
-        GetGuid(RecordObject, 'systemId', SystemIdValue);
+        if not GetGuid(RecordObject, 'systemId', SystemIdValue) then // systemId is the record identity and dedup key; a missing/unparsable one is a broken record
+            Error(MalformedRecordEntry());
         if RecordObject.Get('fields', FieldsToken) then begin
             if not FieldsToken.IsObject() then // a non-object 'fields' is a broken contract, routed as an internal error
                 Error(MalformedRecordEntry());

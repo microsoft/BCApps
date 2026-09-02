@@ -25,16 +25,16 @@ codeunit 7240 "MDM Local Data Source" implements "IMDM Data Source"
 
     procedure GetById(IntegrationTableMapping: Record "Integration Table Mapping"; ID: Variant; var SourceRecordRef: RecordRef): Boolean
     var
-        IDFieldRef: FieldRef;
         RecId: RecordID;
+        SystemId: Guid;
         TextKey: Text;
     begin
         SourceRecordRef.Close();
+        // MDM always maps the integration UID to the SystemId field, so exact-key lookups seek by SystemId instead of a filtered find.
         if ID.IsGuid then begin
             OpenSourceRecordRef(IntegrationTableMapping."Integration Table ID", SourceRecordRef);
-            IDFieldRef := SourceRecordRef.Field(IntegrationTableMapping."Integration Table UID Fld. No.");
-            IDFieldRef.SetFilter(ID);
-            exit(SourceRecordRef.FindFirst());
+            SystemId := ID;
+            exit(SourceRecordRef.GetBySystemId(SystemId));
         end;
 
         if ID.IsRecordId then begin
@@ -45,11 +45,11 @@ codeunit 7240 "MDM Local Data Source" implements "IMDM Data Source"
         end;
 
         if ID.IsText then begin
-            OpenSourceRecordRef(IntegrationTableMapping."Integration Table ID", SourceRecordRef);
-            IDFieldRef := SourceRecordRef.Field(IntegrationTableMapping."Integration Table UID Fld. No.");
             TextKey := ID;
-            IDFieldRef.SetFilter('%1', TextKey);
-            exit(SourceRecordRef.FindFirst());
+            if not Evaluate(SystemId, TextKey) then
+                exit(false);
+            OpenSourceRecordRef(IntegrationTableMapping."Integration Table ID", SourceRecordRef);
+            exit(SourceRecordRef.GetBySystemId(SystemId));
         end;
     end;
 

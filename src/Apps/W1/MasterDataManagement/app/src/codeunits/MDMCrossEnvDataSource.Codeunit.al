@@ -197,9 +197,12 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         // we can't prove emptiness cheaply, so assume records may exist rather than under-reporting to the review.
         if not SourceResponse.Indexed(Response) then
             exit(true);
-        if Response.Get('records', Token) and Token.IsArray() then
-            exit(Token.AsArray().Count() > 0);
-        exit(false);
+        // Available and indexed, so a records array is contractually present; its absence is a malformed response, not "no records".
+        if not (Response.Get('records', Token) and Token.IsArray()) then begin
+            LogProbeFailure(IntegrationTableId);
+            Error(InternalError(StrSubstNo(InvalidResponseErr, TableCaption(IntegrationTableId))));
+        end;
+        exit(Token.AsArray().Count() > 0);
     end;
 
     procedure GetBySystemId(IntegrationTableId: Integer; SystemId: Guid; var SourceRecordRef: RecordRef): Boolean
