@@ -19,6 +19,7 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Posting;
 using Microsoft.Sales.Receivables;
+using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 using System.Environment.Configuration;
 using System.TestLibraries.Utilities;
@@ -690,6 +691,8 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
         EnablePaymentMethodMappingAutoPost(true);
         CreateSalesOrder(SalesHeader, OrderId);
 
+        ResetSalesPostingNoSeriesDateUsage();
+
         // [WHEN] The sales invoice is posted with commit suppressed (the caller owns the transaction)
         SalesHeader.Ship := true;
         SalesHeader.Invoice := true;
@@ -768,6 +771,7 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
         EnablePaymentMethodMappingAutoPost(false);
         CreateSalesOrder(SalesHeaderOpen, OrderId);
         CreateSalesOrder(SalesHeaderToPost, OrderId);
+        ResetSalesPostingNoSeriesDateUsage();
         LibrarySales.PostSalesDocument(SalesHeaderToPost, true, true);
         EnablePaymentMethodMappingAutoPost(true);
         OrderTransaction.SetAutoCalcFields(Used);
@@ -777,10 +781,11 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
             AutoPostEligibility.IsReadyToPost(OrderTransaction, PaymentMethodMappingForEligibility),
             'A transaction must not be shown as postable while another sales document for its order is open');
 
-        SalesHeaderOpen.Delete(true);
+        SalesHeaderOpen."Shpfy Order Id" := 0;
+        SalesHeaderOpen.Modify();
         LibraryAssert.IsTrue(
             AutoPostEligibility.IsReadyToPost(OrderTransaction, PaymentMethodMappingForEligibility),
-            'A transaction should be postable after its invoice is posted and no related sales document remains open');
+            'A transaction should be postable once no related open sales document remains for the order');
     end;
 
     local procedure Initialize()
@@ -1001,6 +1006,18 @@ codeunit 139415 "Shpfy Auto Post Trans. Test"
     begin
         if MyNotifications.Get(UserId(), InstructionMgt.GetPostingAfterWorkingDateNotificationId()) then
             MyNotifications.Delete();
+    end;
+
+    local procedure ResetSalesPostingNoSeriesDateUsage()
+    var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        NoSeriesLine: Record "No. Series Line";
+    begin
+        SalesReceivablesSetup.Get();
+        NoSeriesLine.SetFilter(
+            "Series Code", '%1|%2',
+            SalesReceivablesSetup."Posted Shipment Nos.", SalesReceivablesSetup."Posted Invoice Nos.");
+        NoSeriesLine.ModifyAll("Last Date Used", 0D);
     end;
 
     local procedure NoJournalLineExistsForTransaction(TransactionId: BigInteger): Boolean
