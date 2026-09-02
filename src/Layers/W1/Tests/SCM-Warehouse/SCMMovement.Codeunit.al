@@ -1849,7 +1849,9 @@ codeunit 137931 "SCM - Movement"
         WhseWorksheetName: Record "Whse. Worksheet Name";
         WhseWorksheetLine: Record "Whse. Worksheet Line";
         WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseEmployee: Record "Warehouse Employee";
     begin
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, LocationCode, false);
         LibraryWarehouse.SelectWhseWorksheetTemplate(WhseWorksheetTemplate, WhseWorksheetTemplate.Type::Movement);
         LibraryWarehouse.SelectWhseWorksheetName(WhseWorksheetName, WhseWorksheetTemplate.Name, LocationCode);
         LibraryWarehouse.CreateWhseWorksheetLine(
