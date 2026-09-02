@@ -26,15 +26,16 @@ codeunit 133689 "No. Series Copilot Accu. Tests"
     var
         TempNoSeriesGeneration: Record "No. Series Generation";
         TempNoSeriesGenerationDetail: Record "No. Series Generation Detail";
+        AITTestContext: Codeunit "AIT Test Context";
         TestInputJsonQuery: Codeunit "Test Input Json";
         TestInputJsonAnswer: Codeunit "Test Input Json";
         ExpectedNumberJson: Codeunit "Test Input Json";
         Found: Boolean;
     begin
-        TestInputJsonQuery := context.GetQuery();
+        TestInputJsonQuery := AITTestContext.GetQuery();
         NoSeriesCopilotTestLib.Generate(TempNoSeriesGeneration, TempNoSeriesGenerationDetail, TestInputJsonQuery.ValueAsText());
 
-        TestInputJsonAnswer := context.GetExpectedData();
+        TestInputJsonAnswer := AITTestContext.GetExpectedData();
 
         ExpectedNumberJson := TestInputJsonAnswer.ElementAt(0).ElementExists('expected_number', Found);
         if not Found then
@@ -43,6 +44,6 @@ codeunit 133689 "No. Series Copilot Accu. Tests"
         Assert.AreNearlyEqual(ExpectedNumberJson.ValueAsInteger(), TempNoSeriesGenerationDetail.Count, 1.0, 'No. Series Copilot failed to generate the expected number of No. Series.');
         Assert.IsTrue(TempNoSeriesGenerationDetail.Count > 0, 'No. Series Copilot did not generate any No. Series, but expected some.');
 
-        context.SetTestOutput('Test succeeded. ' + Format(TempNoSeriesGenerationDetail.Count) + ' new No. Series generated based on the input.');
+        AITTestContext.SetTestOutput('Test succeeded. ' + Format(TempNoSeriesGenerationDetail.Count) + ' new No. Series generated based on the input.');
     end;
 }

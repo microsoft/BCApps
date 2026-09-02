@@ -126,11 +126,12 @@ codeunit:
    `'<default dataset>'` (a `Test Input Group` code/name) is used when the test runs standalone; under an Eval
    Suite the dataset configured on the suite line takes precedence. Add another `[TestDataSource(...)]` attribute
    for each additional standalone dataset.
-2. **Signature:** add a single parameter of the shared context interface —
+2. **Signature:** add the platform-required context parameter —
    `procedure MyEval(context: interface "AIT Test Case Context")`.
-3. **Body:** remove the `AITestContext: Codeunit "AIT Test Context"` variable and call the same methods on the
-   `context` parameter (`GetInput`, `GetQuery`, `GetExpectedData`, `SetTestOutput`, `SetAccuracy`, `NextTurn`, …) —
-   the names/signatures are identical. Replace the obsolete `GetQuestion()` alias with `GetQuery()`.
+3. **Body and helpers:** existing calls through `Codeunit "AIT Test Context"` can remain unchanged, including calls
+   made from helper codeunits. The data-source provider preloads the current row before the test body runs, so the
+   existing app-level single-instance context resolves the platform-selected case. New code may use the injected
+   `context` parameter directly instead. Replace the obsolete `GetQuestion()` alias with `GetQuery()`.
 4. **Handler:** add `TestHandlers = "AIT Test Handler"` to the codeunit so per-case logging/metrics engage when the
    eval runs on the platform test runner (outside an Eval Suite).
 5. Leave everything else unchanged — `Subtype = Test`, `TestType = AITest`, `TestPermissions`, `SingleInstance`,
@@ -148,10 +149,12 @@ begin
     AITestContext.SetTestOutput(Context, Question, Answer);
 end;
 
-// After  (drop the "AIT Test Context" var; receive the context as a parameter;
-//          add TestHandlers = "AIT Test Handler" to the codeunit)
+// After (keep existing AIT Test Context/helper calls; receive the platform context parameter;
+//        add TestHandlers = "AIT Test Handler" to the codeunit)
 [TestDataSource(Codeunit::"AIT Test Data Source", 'AI-SDK-E2E-GPT41.YAML')]
-procedure GenerateChatCompletion(AITestContext: interface "AIT Test Case Context")
+procedure GenerateChatCompletion(context: interface "AIT Test Case Context")
+var
+    AITestContext: Codeunit "AIT Test Context";
 begin
     Question := AITestContext.GetInput().Element('query').Element('question').ValueAsText();
     // ...
@@ -178,7 +181,7 @@ end;
 - [ ] replace `[Test]` with `[TestDataSource(Codeunit::"AIT Test Data Source", '<dataset>')]`
 - [ ] stack one `[TestDataSource(...)]` attribute per additional standalone dataset
 - [ ] add the `context: interface "AIT Test Case Context"` parameter
-- [ ] drop the `Codeunit "AIT Test Context"` variable; use `context`
+- [ ] keep existing `AIT Test Context` and helper-library calls, or migrate them to `context` when useful
 - [ ] add `TestHandlers = "AIT Test Handler"` to the codeunit
 - [ ] whole-codeunit only (no mixed styles)
 - [ ] verify via the platform runner (AL Test Tool / `al runtests`) — cases appear as `Method[caseName]`

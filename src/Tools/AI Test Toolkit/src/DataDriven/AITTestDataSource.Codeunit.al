@@ -55,6 +55,7 @@ codeunit 149038 "AIT Test Data Source" implements ITestDataSource
     var
         DDTestContext: Codeunit "AIT DD Test Context";
         TestDataSourceContext: Codeunit "Test Data Source Context";
+        TestInput: Codeunit "Test Input";
         GroupCode: Code[100];
         RowCode: Code[100];
     begin
@@ -65,9 +66,10 @@ codeunit 149038 "AIT Test Data Source" implements ITestDataSource
         RowCode := CopyStr(TestCaseIdentifier, 1, MaxStrLen(RowCode));
         DDTestContext.Init(GroupCode, RowCode);
 
-        // Bind the current case eagerly at materialization so the per-case log lineage is correct even if the
-        // test body never reads its input (the context's own Preload is lazy). GetTestCase runs once per
-        // executing case, before the test body and the OnAfterTestCaseRun log write.
+        // Preload the Test Input single-instance cache before the body runs. Existing evals and helper libraries
+        // can therefore keep using the app-level AIT Test Context codeunit without threading the injected context
+        // parameter through every call.
+        TestInput.PreloadTestInput(GroupCode, RowCode);
         TestDataSourceContext.SetCurrent(GroupCode, RowCode);
 
         exit(DDTestContext);
