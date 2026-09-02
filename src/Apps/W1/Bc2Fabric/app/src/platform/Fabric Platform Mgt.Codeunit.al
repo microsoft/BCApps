@@ -42,6 +42,7 @@ codeunit 50101 "Fabric Platform Mgt"
             exit;
 
         TenantFabricSetup.Init();
+        TenantFabricSetup.Validate("Max Consecutive Failed Runs", 2);
         TenantFabricSetup.Insert(true);
     end;
 

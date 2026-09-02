@@ -36,7 +36,12 @@ page 50115 "Fabric API Setup"
                 field(fabricDataNamespace; Rec."Fabric Data Namespace") { Caption = 'fabricDataNamespace'; }
                 field(fabricLoggingNamespace; Rec."Fabric Logging Namespace") { Caption = 'fabricLoggingNamespace'; }
                 field(minutesBetweenExports; Rec."Minutes Between Exports") { Caption = 'minutesBetweenExports'; }
-                field(maxConsecutiveFailedRuns; Rec."Max Consecutive Failed Runs") { Caption = 'maxConsecutiveFailedRuns'; }
+                field(maxConsecutiveFailedRuns; Rec."Max Consecutive Failed Runs")
+                {
+                    Caption = 'maxConsecutiveFailedRuns';
+                    MinValue = 1;
+                    MaxValue = 5;
+                }
                 field(setupComplete; Rec."Setup Complete")
                 {
                     Caption = 'setupComplete';

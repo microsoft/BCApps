@@ -132,6 +132,8 @@ page 50104 "Fabric Platform Setup"
                 field("Max Consecutive Failed Runs"; Rec."Max Consecutive Failed Runs")
                 {
                     ApplicationArea = All;
+                    MinValue = 1;
+                    MaxValue = 5;
                     ToolTip = 'Specifies how many consecutive failed runs are allowed before the platform stops the export.';
                 }
             }
