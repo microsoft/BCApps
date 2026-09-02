@@ -48,6 +48,7 @@ codeunit 148304 "WF Demo Exp. Report Approvals"
         ApproveActionMustBeVisibleErr: Label 'Approve action must be visible for the assigned approver.';
         RejectActionMustBeVisibleErr: Label 'Reject action must be visible for the assigned approver.';
         ApproveActionMustNotBeVisibleErr: Label 'Approve action must not be visible when the user is not the assigned approver.';
+        MissingUserSetupErr: Label 'Please configure your user ''%1'' on the User Setup, as the approval workflow for expenses is enabled.', Comment = '%1 = current user ID';
 
     [Test]
     [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
@@ -965,6 +966,66 @@ codeunit 148304 "WF Demo Exp. Report Approvals"
         Assert.IsFalse(
             ExpenseAgentSetup."Enable Approval Workflow",
             StrSubstNo(ValueMustBeEqualErr, ExpenseAgentSetup.FieldCaption("Enable Approval Workflow"), false, ExpenseAgentSetup.TableCaption()));
+    end;
+
+    [Test]
+    procedure MissingUserSetupThrowsActionableErrorForApproval()
+    var
+        UserSetup: Record "User Setup";
+    begin
+        // [SCENARIO 645040] Resolving the current user's setup for approval raises an actionable error when the user is not on the User Setup page.
+        Initialize();
+
+        // [GIVEN] Approval workflow is enabled.
+        LibraryExpense.UpdateEnableApprovalWorkflowInAgentSetup(true);
+
+        // [WHEN] Resolving the current user's setup for approval.
+        asserterror ExpenseReportApprovalMgmt.GetCurrentUserSetupForApproval(UserSetup);
+
+        // [THEN] The actionable missing-User-Setup error is raised for the current user.
+        Assert.ExpectedError(StrSubstNo(MissingUserSetupErr, UserId()));
+    end;
+
+    [Test]
+    procedure CurrentUserSetupIsReturnedWhenPresentForApproval()
+    var
+        UserSetup: Record "User Setup";
+    begin
+        // [SCENARIO 645040] Resolving the current user's setup for approval returns the record when the user is on the User Setup page.
+        Initialize();
+
+        // [GIVEN] Approval workflow is enabled.
+        LibraryExpense.UpdateEnableApprovalWorkflowInAgentSetup(true);
+
+        // [GIVEN] The current user has a User Setup record.
+        UserSetup.Init();
+        UserSetup."User ID" := CopyStr(UserId(), 1, MaxStrLen(UserSetup."User ID"));
+        UserSetup.Insert();
+        Clear(UserSetup);
+
+        // [WHEN] Resolving the current user's setup for approval.
+        ExpenseReportApprovalMgmt.GetCurrentUserSetupForApproval(UserSetup);
+
+        // [THEN] The current user's User Setup record is returned without error.
+        UserSetup.TestField("User ID", CopyStr(UserId(), 1, MaxStrLen(UserSetup."User ID")));
+    end;
+
+    [Test]
+    procedure ManagerExpenseReportSurfacesMissingUserSetupError()
+    var
+        ManagerExpenseReportPage: TestPage "Manager Expense Report";
+    begin
+        // [SCENARIO 645040] Opening Manager Expense Report raises the actionable error when approval workflow is enabled and the current user is not on the User Setup page.
+        Initialize();
+
+        // [GIVEN] Approval workflow is enabled.
+        LibraryExpense.UpdateEnableApprovalWorkflowInAgentSetup(true);
+
+        // [WHEN] Opening the Manager Expense Report page.
+        asserterror ManagerExpenseReportPage.OpenView();
+
+        // [THEN] The actionable missing-User-Setup error is raised for the current user.
+        Assert.ExpectedError(StrSubstNo(MissingUserSetupErr, UserId()));
     end;
 
     // [Test] // Disabled - will be re-enabled in work item 629484

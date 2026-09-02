@@ -21,8 +21,8 @@ codeunit 6901 "Expense Report Approval Mgmt"
         NoExpenseReportLinesToProcessErr: Label 'There are no Expense Report Lines to process in %1 action.', Comment = '%1 = Action';
         NotAuthorizedToOpenExpReportErr: Label 'You are not authorized to open expense reports. Please configure your %1 in the %2.', Comment = '%1 = Field Caption,%2 = Table Caption';
         NotAuthorizedToRecallExpReportErr: Label 'Only the original submitter or a user with %1 can recall a submitted expense report.', Comment = '%1 = User Setup field caption';
-        MissingUserSetupErr: Label 'Please configure your user ''%1'' on the User Setup page, as the approval workflow for expenses is enabled.', Comment = '%1 = current user ID';
-        OpenApprovalUserSetupLbl: Label 'Open the Approval User Setup page';
+        MissingUserSetupErr: Label 'Please configure your user ''%1'' on the User Setup, as the approval workflow for expenses is enabled.', Comment = '%1 = current user ID';
+        OpenApprovalUserSetupLbl: Label 'Open the Approval User Setup';
         ApproverMustBeEnabledInExpenseUserErr: Label '%1 must be enabled to approve or reject expense reports in %2.', Comment = '%1 = Field Caption, %2 = Table Caption';
         UserIdForApprovalMustNotBeBlankInExpenseUserErr: Label '%1 must not be blank in %2.', Comment = '%1 = Field Caption, %2 = Table Caption';
         InterimApproverAgentRequiredErr: Label 'An interim approver can only be assigned when the agent is enabled in %1.', Comment = '%1 = Expense Agent Setup table caption';
