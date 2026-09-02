@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Upgrade;
 
-using Microsoft.Foundation.Reporting;
-using System.Environment;
 using System.Environment.Configuration;
 using System.Upgrade;
 
