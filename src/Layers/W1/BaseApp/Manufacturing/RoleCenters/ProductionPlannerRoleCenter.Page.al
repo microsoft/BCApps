@@ -188,6 +188,12 @@ page 9010 "Production Planner Role Center"
                     ObsoleteTag = '29.0';
                 }
 #endif
+                action("Production Cost Shares")
+                {
+                    ApplicationArea = Manufacturing, Assembly;
+                    Caption = 'Production Cost Shares';
+                    RunObject = report "Production Cost Shares";
+                }
 #if not CLEAN27
                 action("P&roduction Order - Calculation")
                 {

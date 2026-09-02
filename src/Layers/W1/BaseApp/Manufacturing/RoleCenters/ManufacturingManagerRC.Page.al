@@ -571,7 +571,7 @@ page 8903 "Manufacturing Manager RC"
                     Caption = 'Reports';
                     action("Production Cost Shares")
                     {
-                        ApplicationArea = Manufacturing;
+                        ApplicationArea = Manufacturing, Assembly;
                         Caption = 'Production Cost Shares';
                         RunObject = report "Production Cost Shares";
                     }

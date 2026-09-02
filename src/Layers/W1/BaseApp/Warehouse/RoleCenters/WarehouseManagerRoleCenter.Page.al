@@ -849,6 +849,12 @@ page 8909 "Warehouse Manager Role Center"
                         ObsoleteTag = '29.0';
                     }
 #endif
+                    action("Production Cost Shares")
+                    {
+                        ApplicationArea = Manufacturing, Assembly;
+                        Caption = 'Production Cost Shares';
+                        RunObject = report "Production Cost Shares";
+                    }
                     group("Group19")
                     {
                         Caption = 'Assembly BOM';

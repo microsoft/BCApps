@@ -162,6 +162,12 @@ pageextension 99000751 "Mfg. Item List" extends "Item List"
                     ObsoleteTag = '29.0';
                 }
 #endif
+                action("Production Cost Shares")
+                {
+                    ApplicationArea = Basic, Suite, Manufacturing, Assembly;
+                    Caption = 'Production Cost Shares';
+                    RunObject = report "Production Cost Shares";
+                }
             }
         }
         addafter("Invt. Valuation - Cost Spec.")

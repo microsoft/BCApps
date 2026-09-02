@@ -10,7 +10,7 @@ using Microsoft.Inventory.Item;
 
 report 99000793 "Production Cost Shares"
 {
-    ApplicationArea = Manufacturing;
+    ApplicationArea = Manufacturing, Assembly;
     Caption = 'Production Cost Shares';
     AdditionalSearchTerms = 'bom cost share distribution,cost breakdown,rolled-up cost,detailed calculation,quantity explosion of bom';
     UsageCategory = ReportsAndAnalysis;

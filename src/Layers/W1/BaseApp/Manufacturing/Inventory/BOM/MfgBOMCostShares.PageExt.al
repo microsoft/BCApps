@@ -32,7 +32,7 @@ pageextension 99000757 "Mfg. BOM Cost Shares" extends "BOM Cost Shares"
         {
             action("Production Cost Shares")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Manufacturing, Assembly;
                 Caption = 'Production Cost Shares';
                 Image = "Report";
                 ToolTip = 'This report contains data on how the costs of underlying items in the BOM roll up to the parent item. The information is organized according to the BOM structure to reflect at which levels the individual costs apply. Varying item levels are shown across several worksheets to obtain an overview or detailed view.';
