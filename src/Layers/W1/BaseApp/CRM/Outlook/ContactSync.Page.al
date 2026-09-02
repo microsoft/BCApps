@@ -126,12 +126,6 @@ page 7100 "Contact Sync"
                             end;
                         end;
                     }
-                    field(fullSyncField; FullSyncOption)
-                    {
-                        ApplicationArea = All;
-                        Caption = 'Force full sync';
-                        ToolTip = 'When this is enabled, Business Central will synchronize contacts no matter when they were last modified. This may take longer, but can overcome some synchronization issues.';
-                    }
                     field(PreviewText; PreviewTextLbl)
                     {
                         ApplicationArea = All;
@@ -149,6 +143,39 @@ page 7100 "Contact Sync"
                         MultiLine = false;
                         ShowCaption = false;
                         Style = Subordinate;
+                    }
+                    group(AdvancedGroup)
+                    {
+                        Caption = 'Advanced';
+
+                        group(ClearSyncDetailsGroup)
+                        {
+                            Caption = '';
+                            field(fullSyncField; FullSyncOption)
+                            {
+                                ApplicationArea = All;
+                                Caption = 'Force full sync';
+                                ToolTip = 'When this is enabled, Business Central will synchronize contacts no matter when they were last modified. This may take longer, but can overcome some synchronization issues.';
+                            }
+                            field(ClearSyncDetailsField; ClearSyncDetailsLbl)
+                            {
+                                ApplicationArea = All;
+                                Caption = '';
+                                Editable = false;
+                                ShowCaption = false;
+                                Style = StandardAccent;
+                                StyleExpr = true;
+
+                                trigger OnDrillDown()
+                                begin
+                                    if Confirm(ClearLastSyncConfirmMsg) then begin
+                                        ClearSyncRecordsForCurrentUser();
+                                        Message(LastSyncClearedMsg);
+                                        GoToStep(Step::Welcome);
+                                    end;
+                                end;
+                            }
+                        }
                     }
                 }
             }
@@ -521,10 +548,18 @@ page 7100 "Contact Sync"
         end
         else
             if not (NewDeltaLink = '') then begin
-                ContactSyncUserRec.SetDeltaUrl(CopyStr(NewDeltaLink, 1, 2048));
                 ContactSyncUserRec."Last Sync Date Time" := CurrentDateTime();
-                ContactSyncUserRec.Modify(false);
+                ContactSyncUserRec.SetDeltaUrl(CopyStr(NewDeltaLink, 1, 2048));
             end;
+    end;
+
+    local procedure ClearSyncRecordsForCurrentUser()
+    var
+        ContactSyncUserRec: Record "Contact Sync User";
+    begin
+        ContactSyncUserRec.SetRange("User ID", CopyStr(UserId(), 1, 50));
+        if not ContactSyncUserRec.IsEmpty() then
+            ContactSyncUserRec.DeleteAll();
     end;
 
     local procedure GoToStep(NewStep: Option)
@@ -651,6 +686,9 @@ page 7100 "Contact Sync"
         NewLineChar: Char;
         Deltalink: Text;
         SyncDirection: Enum "ContactSyncDirection";
+        ClearLastSyncConfirmMsg: Label 'This will delete the internal log of your last synchronization, but will not modify any contacts you have synchronized to date. Do you want to proceed?';
+        ClearSyncDetailsLbl: Label 'Clear last sync details';
+        LastSyncClearedMsg: Label 'Your last synchronization details were cleared. Choose ok to start over.';
         ContactsSentToM365Count: Integer;
         ContactsSentToBCCount: Integer;
         ContactsFailedCount: Integer;

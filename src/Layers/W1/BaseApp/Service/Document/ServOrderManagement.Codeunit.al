@@ -246,6 +246,7 @@ codeunit 5900 ServOrderManagement
         ServInvLine2: Record "Service Line";
         ServCost: Record "Service Cost";
         NextLine: Integer;
+        IsHandled: Boolean;
     begin
         ServHeader.Get(ServInvLine."Document Type", ServInvLine."Document No.");
 
@@ -261,15 +262,19 @@ codeunit 5900 ServOrderManagement
         case CostType of
             0: // Travel Fee
                 begin
-                    ServHeader.TestField("Service Zone Code");
-                    ServCost.Reset();
-                    ServCost.SetCurrentKey("Service Zone Code");
-                    ServCost.SetRange("Service Zone Code", ServHeader."Service Zone Code");
-                    ServCost.SetRange("Cost Type", ServCost."Cost Type"::Travel);
-                    if not ServCost.FindFirst() then
-                        Error(
-                          Text009,
-                          ServCost.TableCaption(), ServCost.FieldCaption("Service Zone Code"), ServHeader."Service Zone Code");
+                    IsHandled := false;
+                    OnInsertServCostOnCostTypeZeroOnBeforeTestServiceZoneCode(ServHeader, ServCost, IsHandled);
+                    if not IsHandled then begin
+                        ServHeader.TestField("Service Zone Code");
+                        ServCost.Reset();
+                        ServCost.SetCurrentKey("Service Zone Code");
+                        ServCost.SetRange("Service Zone Code", ServHeader."Service Zone Code");
+                        ServCost.SetRange("Cost Type", ServCost."Cost Type"::Travel);
+                        if not ServCost.FindFirst() then
+                            Error(
+                              Text009,
+                              ServCost.TableCaption(), ServCost.FieldCaption("Service Zone Code"), ServHeader."Service Zone Code");
+                    end;
 
                     ServInvLine2.Init();
                     if LinktoServItemLine then begin
@@ -902,6 +907,11 @@ codeunit 5900 ServOrderManagement
 
     [IntegrationEvent(false, false)]
     local procedure OnInsertServCostOnCostTypeOneOnAfterServCostGet(var ServHeader: Record "Service Header"; var ServCost: Record "Service Cost")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnInsertServCostOnCostTypeZeroOnBeforeTestServiceZoneCode(ServiceHeader: Record "Service Header"; var ServiceCost: Record "Service Cost"; var IsHandled: Boolean)
     begin
     end;
 

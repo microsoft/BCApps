@@ -1156,6 +1156,18 @@ codeunit 4400 "SOA Setup"
         exit(false);
     end;
 
+    internal procedure IsImageAttachmentContentType(FileMIMEType: Text): Boolean
+    begin
+        // The platform derives the content type from the file extension and maps image extensions to
+        // non-standard 'application/<extension>' values, so both those and the standard image types are recognized.
+        if LowerCase(FileMIMEType) in
+            ['image/jpeg', 'image/jpg', 'image/png', 'image/gif',
+             'application/jpeg', 'application/jpg', 'application/png', 'application/gif'] then
+            exit(true);
+
+        exit(false);
+    end;
+
     [TryFunction]
     internal procedure DocumentExceedsPageCountThreshold(DocInStream: Instream; var Exceeds: Boolean)
     var

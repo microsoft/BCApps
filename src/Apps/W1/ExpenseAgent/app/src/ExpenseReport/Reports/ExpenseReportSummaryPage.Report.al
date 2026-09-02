@@ -282,7 +282,7 @@ report 6952 "Expense Report Summary Page"
                 }
                 trigger OnAfterGetRecord()
                 begin
-                    AmountPerMileage := GetMileageRate();
+                    AmountPerMileage := GetMileageRate("Expense Date", "Expense Currency Code", "Expense Currency Factor", "Vehicle Type");
                     TotalMileage := ExpenseAutoPopulation.GetEffectiveDistance(Mileage, "Round Trip");
                 end;
             }
@@ -442,12 +442,12 @@ report 6952 "Expense Report Summary Page"
             exit(ExpenseReportLinePerDiem."Original Per Diem Amount");
     end;
 
-    local procedure GetMileageRate(): Decimal
+    local procedure GetMileageRate(ExpenseDate: Date; CurrencyCode: Code[10]; CurrencyFactor: Decimal; VehicleType: Code[20]): Decimal
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
     begin
         if ExpenseAgentSetup.Get() then
-            exit(ExpenseAgentSetup."Standard Rate of Mileage");
+            exit(ExpenseAutoPopulation.GetStandardRateOfMileage(ExpenseDate, CurrencyCode, CurrencyFactor, ExpenseAgentSetup."Standard Rate of Mileage", VehicleType));
     end;
 
     local procedure CalcPerDiemDaysHours(StartDateTime: DateTime; EndDateTime: DateTime; var Days: Integer; var Hours: Integer)

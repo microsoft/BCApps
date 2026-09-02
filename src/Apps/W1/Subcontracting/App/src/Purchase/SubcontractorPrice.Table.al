@@ -12,7 +12,6 @@ using Microsoft.Purchases.Vendor;
 
 table 20500 "Subcontractor Price"
 {
-    AllowInCustomizations = AsReadOnly;
     Caption = 'Subcontractor Price';
     DataClassification = CustomerContent;
     DrillDownPageId = "Subcontractor Prices";

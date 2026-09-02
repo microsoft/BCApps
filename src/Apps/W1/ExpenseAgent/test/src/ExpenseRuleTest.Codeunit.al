@@ -3073,8 +3073,8 @@ codeunit 148301 "Expense Rule Test"
         ExpenseReportPage.Close();
 
         // [WHEN] Update "Expense Ext. Doc. No.", "Merchant Name" in Expense Report Line.
-        ExpenseReportLine.Validate("Merchant Name", LibraryRandom.RandText(30));
-        ExpenseReportLine.Validate("Expense Ext. Doc. No.", LibraryRandom.RandText(30));
+        ExpenseReportLine.Validate("Merchant Name", CopyStr(LibraryRandom.RandText(30), 1, 100));
+        ExpenseReportLine.Validate("Expense Ext. Doc. No.", CopyStr(LibraryRandom.RandText(30), 1, 30));
         ExpenseReportLine.Modify();
 
         // [THEN] Verify that expense Rule Violation is true before adding Itemization.
@@ -3801,13 +3801,13 @@ codeunit 148301 "Expense Rule Test"
         Commit();
 
         // [WHEN] Update Participant Name.
-        asserterror ExpenseReportLineParticipant.validate("Participant Name", LibraryRandom.RandText(10));
+        asserterror ExpenseReportLineParticipant.validate("Participant Name", CopyStr(LibraryRandom.RandText(10), 1, 100));
 
         // [THEN] Verify that Expense "Participant Employee No." is required when some fields are updating.
         Assert.ExpectedTestFieldError(ExpenseReportLineParticipant.FieldCaption("Participant Employee No."), '');
 
         // [WHEN] Update Participant Organization.
-        asserterror ExpenseReportLineParticipant.validate("Participant Organization", LibraryRandom.RandText(10));
+        asserterror ExpenseReportLineParticipant.validate("Participant Organization", CopyStr(LibraryRandom.RandText(10), 1, 100));
 
         // [THEN] Verify that Expense "Participant Employee No." is required when some fields are updating.
         Assert.ExpectedTestFieldError(ExpenseReportLineParticipant.FieldCaption("Participant Employee No."), '');
@@ -3819,13 +3819,13 @@ codeunit 148301 "Expense Rule Test"
         Assert.ExpectedTestFieldError(ExpenseReportLineParticipant.FieldCaption("Participant Employee No."), '');
 
         // [WHEN] Update Participant Title.
-        asserterror ExpenseReportLineParticipant.validate("Participant Title", LibraryRandom.RandText(10));
+        asserterror ExpenseReportLineParticipant.validate("Participant Title", CopyStr(LibraryRandom.RandText(10), 1, 30));
 
         // [THEN] Verify that Expense "Participant Employee No." is required when some fields are updating.
         Assert.ExpectedTestFieldError(ExpenseReportLineParticipant.FieldCaption("Participant Employee No."), '');
 
         // [WHEN] Update Participant Email.
-        asserterror ExpenseReportLineParticipant.validate("Participant Email", LibraryRandom.RandText(10));
+        asserterror ExpenseReportLineParticipant.validate("Participant Email", CopyStr(LibraryRandom.RandText(10), 1, 80));
 
         // [THEN] Verify that Expense "Participant Employee No." is required when some fields are updating.
         Assert.ExpectedTestFieldError(ExpenseReportLineParticipant.FieldCaption("Participant Employee No."), '');
@@ -6991,8 +6991,8 @@ codeunit 148301 "Expense Rule Test"
         ExpenseReportPage.Close();
 
         // [WHEN] Update "Expense Ext. Doc. No.", "Merchant Name" in Expense Report Line.
-        ExpenseReportLine.Validate("Merchant Name", LibraryRandom.RandText(30));
-        ExpenseReportLine.Validate("Expense Ext. Doc. No.", LibraryRandom.RandText(30));
+        ExpenseReportLine.Validate("Merchant Name", CopyStr(LibraryRandom.RandText(30), 1, 100));
+        ExpenseReportLine.Validate("Expense Ext. Doc. No.", CopyStr(LibraryRandom.RandText(30), 1, 30));
         ExpenseReportLine.Modify();
 
         // [THEN] Verify that expense Rule Violation is true before adding Participant.
@@ -8442,11 +8442,16 @@ codeunit 148301 "Expense Rule Test"
 
     local procedure Initialize()
     var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
         Workflow: Record Workflow;
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Rule Test");
+        LibraryExpense.CleanTransactionalData();
         LibraryExpense.CleanUpBeforeTesting();
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup."Default VAT Bus. Posting Group" := '';
+        ExpenseAgentSetup.Modify();
         LibraryVariableStorage.Clear();
         if IsInitialized then
             exit;

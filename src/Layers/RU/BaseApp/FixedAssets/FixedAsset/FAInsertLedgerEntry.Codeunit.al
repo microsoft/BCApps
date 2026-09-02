@@ -660,6 +660,7 @@ codeunit 5600 "FA Insert Ledger Entry"
                 FALedgEntry3."No. Series" := '';
                 FALedgEntry3."Journal Batch Name" := '';
                 FALedgEntry3."FA No./Budgeted FA No." := '';
+                OnInsertReverseEntryOnBeforeInsertFALedgEntry(FALedgEntry3);
                 FALedgEntry3.Insert(true);
                 if FADeprBook.Get(FALedgEntry3."FA No.", FALedgEntry3."Depreciation Book Code") then
                     if FADeprBook."Initial Acquisition" and (FALedgEntry3.Quantity < 0) then begin
@@ -1271,6 +1272,11 @@ codeunit 5600 "FA Insert Ledger Entry"
 
     [IntegrationEvent(false, false)]
     local procedure OnInsertReverseEntryOnBeforeInsertTempFALedgEntry(var FALedgerEntry3: Record "FA Ledger Entry"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnInsertReverseEntryOnBeforeInsertFALedgEntry(var FALedgerEntry3: Record "FA Ledger Entry")
     begin
     end;
 

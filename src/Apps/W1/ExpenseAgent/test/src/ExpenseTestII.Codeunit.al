@@ -1067,7 +1067,7 @@ codeunit 148309 "Expense Test II"
 
         // [GIVEN] Create Expense with Expense Category.
         LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, '', '', true, '', Amount);
-        Expense.Validate("Merchant Name", LibraryRandom.RandText(10));
+        Expense.Validate("Merchant Name", CopyStr(LibraryRandom.RandText(10), 1, 100));
         Expense.Modify();
 
         // [WHEN] Update Amount Reduction in Expense to negative value.
@@ -1730,14 +1730,14 @@ codeunit 148309 "Expense Test II"
 
         // [GIVEN] Create Expense User.
         LibraryExpense.CreateExpenseUser(ExpenseUser[1]);
-        ExpenseUser[1].Validate("E-mail", EmailId);
+        ExpenseUser[1].Validate("E-mail", CopyStr(EmailId, 1, 80));
         ExpenseUser[1].Modify();
 
         // [GIVEN] Create another Expense User.
         LibraryExpense.CreateExpenseUser(ExpenseUser[2]);
 
         // [WHEN] Update the same Email ID in another Expense User.
-        asserterror ExpenseUser[2].Validate("E-mail", EmailId);
+        asserterror ExpenseUser[2].Validate("E-mail", CopyStr(EmailId, 1, 80));
 
         // [THEN] Verify that the error is thrown for duplicate Email ID in Expense User.
         Assert.ExpectedError(StrSubstNo(DuplicateEmailErr, ExpenseUser[2].FieldCaption("E-mail"), EmailId, ExpenseUser[2].TableCaption()));
@@ -1792,7 +1792,7 @@ codeunit 148309 "Expense Test II"
             StrSubstNo(ValueMustBeEqualErr, ExpenseUser.FieldCaption("E-mail"), Employee."Company E-Mail", ExpenseUser.TableCaption()));
 
         // [WHEN] Update Job Title in Employee.
-        Employee.Validate("Job Title", LibraryRandom.RandText(20));
+        Employee.Validate("Job Title", CopyStr(LibraryRandom.RandText(20), 1, 30));
 
         // [THEN] Verify that the Job Title is updated in Expense User.
         ExpenseUser.Get(ExpenseUser."No.");
@@ -1802,7 +1802,7 @@ codeunit 148309 "Expense Test II"
             StrSubstNo(ValueMustBeEqualErr, ExpenseUser.FieldCaption("Job Title"), Employee."Job Title", ExpenseUser.TableCaption()));
 
         // [WHEN] Update First Name in Employee.
-        Employee.Validate("First Name", LibraryRandom.RandText(20));
+        Employee.Validate("First Name", CopyStr(LibraryRandom.RandText(20), 1, 30));
 
         // [THEN] Verify that the Name is updated in Expense User.
         ExpenseUser.Get(ExpenseUser."No.");

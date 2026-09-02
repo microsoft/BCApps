@@ -26,6 +26,15 @@ pageextension 6294 "Sust. FA Reclass. Journal" extends "FA Reclass. Journal"
                 ToolTip = 'Specifies the value of the New Sustainability Account No. field.';
             }
         }
+        addafter("Reclassify Acq. Cost %")
+        {
+            field("Reclassify CO2e %"; Rec."Reclassify CO2e %")
+            {
+                Visible = SustainabilityVisible;
+                ApplicationArea = Basic, Suite;
+                ToolTip = 'Specifies the percentage of the fixed asset''s Acquisition Total CO2e to reclassify to the new fixed asset. It defaults to the acquisition cost reclassification percentage and can be changed to split emissions independently.';
+            }
+        }
     }
 
     trigger OnOpenPage()

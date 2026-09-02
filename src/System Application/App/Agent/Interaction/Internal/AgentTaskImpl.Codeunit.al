@@ -5,6 +5,7 @@
 
 namespace System.Agents;
 
+using System.Agents.TaskPane;
 using System.Agents.Troubleshooting;
 using System.Environment;
 using System.Integration;
@@ -57,6 +58,19 @@ codeunit 4300 "Agent Task Impl."
     begin
         AgentTaskLogEntry.SetRange("Task ID", AgentTask.ID);
         Page.Run(Page::"Agent Task Log Entry List", AgentTaskLogEntry);
+    end;
+
+    procedure ShowTask(var AgentTask: Record "Agent Task")
+    var
+        TaskPane: Codeunit "Task Pane";
+    begin
+        // Route archived agents' tasks to the task log entries card, which keeps it reachable for auditing.
+        if AgentTask."Agent Substate" = AgentTask."Agent Substate"::Archived then begin
+            ShowTaskLogEntries(AgentTask);
+            exit;
+        end;
+
+        TaskPane.ShowTask(AgentTask);
     end;
 
     procedure CreateTask(AgentUserSecurityID: Guid; TaskTitle: Text[150]; ExternalID: Text[2048]; BillingContext: Enum "Agent Task Billing Context"; ModelId: Code[30]; var NewAgentTask: Record "Agent Task")

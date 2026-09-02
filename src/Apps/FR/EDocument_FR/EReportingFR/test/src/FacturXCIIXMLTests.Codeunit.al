@@ -380,6 +380,36 @@ codeunit 148148 "Factur-X CII XML Tests"
     end;
 
     [Test]
+    procedure FacturXForeignCurrencyRoundingPrecisionIsUsedForInvoiceDiscountAllocation()
+    var
+        Currency: Record Currency;
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempBlob: Codeunit "Temp Blob";
+        AllowanceAmount: Decimal;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Factur-X allocates an invoice discount using the foreign currency rounding precision
+        Initialize();
+
+        // [GIVEN] Posted sales invoice "SI" with mixed VAT rates and a foreign currency whose rounding precision is 1
+        LibraryERM.CreateCurrency(Currency);
+        Currency.Validate("Amount Rounding Precision", 1);
+        Currency.Modify(true);
+        SalesInvoiceHeader.Get(CreateAndPostMultiVATInvoiceWithDiscount(false));
+        SalesInvoiceHeader."Currency Code" := Currency.Code;
+        SalesInvoiceHeader."Invoice Discount Amount" := 1.4;
+        SalesInvoiceHeader.Modify();
+
+        // [WHEN] Create CII XML
+        CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
+
+        // [THEN] The discount allocated to the 20% VAT breakdown is rounded from 0.56 to 1
+        AllowanceAmount := GetCIINodeDecimalValue(TempBlob,
+            '//ram:SpecifiedTradeAllowanceCharge[ram:CategoryTradeTax/ram:RateApplicablePercent="20"]/ram:ActualAmount');
+        Assert.AreEqual(1, AllowanceAmount, StrSubstNo(IncorrectValueErr, 'ActualAmount 20%'));
+    end;
+
+    [Test]
     procedure FacturXSalesInvoiceXMLHasIssueDateTimeFormat102()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -719,6 +749,37 @@ codeunit 148148 "Factur-X CII XML Tests"
     end;
 
     [Test]
+    procedure FacturXSalesInvoiceUsesCompanyBankAccountWhenCodeIsBlank()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] A blank company bank account code falls back to Company Information payment details
+        Initialize();
+
+        // [GIVEN] Company Information with payment details and posted sales invoice "SI" with a blank company bank account code
+        CompanyInformation.Get();
+        CompanyInformation.IBAN := 'FR7630006000011234567890189';
+        CompanyInformation."SWIFT Code" := 'AGRIFRPP';
+        CompanyInformation.Modify();
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice());
+        SalesInvoiceHeader."Company Bank Account Code" := '';
+        SalesInvoiceHeader.Modify();
+
+        // [WHEN] Create CII XML
+        CreateSalesInvoiceCIIXMLFromHeader(SalesInvoiceHeader, TempBlob);
+
+        // [THEN] Payment account uses Company Information IBAN and BIC
+        Assert.AreEqual(DelChr(CompanyInformation.IBAN, '=', ' '),
+            GetCIINodeValue(TempBlob, '//ram:PayeePartyCreditorFinancialAccount/ram:IBANID'),
+            StrSubstNo(IncorrectValueErr, '//ram:PayeePartyCreditorFinancialAccount/ram:IBANID'));
+        Assert.AreEqual(CompanyInformation."SWIFT Code",
+            GetCIINodeValue(TempBlob, '//ram:PayeeSpecifiedCreditorFinancialInstitution/ram:BICID'),
+            StrSubstNo(IncorrectValueErr, '//ram:PayeeSpecifiedCreditorFinancialInstitution/ram:BICID'));
+    end;
+
+    [Test]
     procedure FacturXSalesInvoiceXMLHasTaxBreakdown()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -805,7 +866,7 @@ codeunit 148148 "Factur-X CII XML Tests"
 
         // [THEN] The category 'E' header VAT breakdown contains fallback exemption reason text
         ExemptionReasonXPath := '//ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax[ram:CategoryCode="E"]/ram:ExemptionReason';
-        Assert.AreEqual('Exempt from VAT', GetCIINodeValue(TempBlob, ExemptionReasonXPath),
+        Assert.AreEqual('Exonéré de TVA', GetCIINodeValue(TempBlob, ExemptionReasonXPath),
             StrSubstNo(IncorrectValueErr, ExemptionReasonXPath));
         Assert.AreEqual(1, GetCIINodeCount(TempBlob, ExemptionReasonXPath + '/following-sibling::ram:BasisAmount'),
             StrSubstNo(IncorrectValueErr, 'ExemptionReason must precede BasisAmount'));
@@ -1313,7 +1374,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         SourceDocumentHeader: RecordRef;
         SourceDocumentLines: RecordRef;
     begin
-        // [FEATURE] [Reminder]
+        // [FEATURE] [AI test]
         // [SCENARIO] An issued reminder line (which has no Quantity field) emits BilledQuantity = 1
         Initialize();
 
@@ -1353,7 +1414,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         SourceDocumentHeader: RecordRef;
         SourceDocumentLines: RecordRef;
     begin
-        // [FEATURE] [Finance Charge Memo]
+        // [FEATURE] [AI test]
         // [SCENARIO] An issued finance charge memo line (which has no Quantity field) emits BilledQuantity = 1
         Initialize();
 
@@ -1798,8 +1859,10 @@ codeunit 148148 "Factur-X CII XML Tests"
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Factur-X CII XML Tests");
         EDocumentService.DeleteAll();
-        if IsInitialized then
+        if IsInitialized then begin
+            LibrarySetupStorage.Restore();
             exit;
+        end;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Factur-X CII XML Tests");
 
         CompanyInformation.Get();

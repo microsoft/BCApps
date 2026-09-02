@@ -260,6 +260,7 @@ codeunit 148300 "Library - Expense"
     internal procedure CreateSpendRequest(var SpendRequest: Record "Spend Request")
     begin
         SpendRequest.Init();
+        SpendRequest."Document Type" := SpendRequest."Document Type"::"Travel Request";
         SpendRequest.Insert(true);
     end;
 
@@ -638,6 +639,7 @@ codeunit 148300 "Library - Expense"
         ExpenseItemization: Record "Expense Itemization";
         ExpenseParticipant: Record "Expense Participant";
         ExpensePerDiem: Record "Expense Per Diem";
+        ExpenseVATSpecification: Record "Expense VAT Specification";
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
         ExpenseReportLineItem: Record "Expense Report Line Item";
@@ -663,6 +665,7 @@ codeunit 148300 "Library - Expense"
         ExpenseParticipant.DeleteAll();
         ExpenseItemization.DeleteAll();
         ExpensePerDiem.DeleteAll();
+        ExpenseVATSpecification.DeleteAll(false);
 
         Expense.DeleteAll();
         ExpenseRuleViolation.DeleteAll();

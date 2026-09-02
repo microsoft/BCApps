@@ -467,7 +467,7 @@ table 5900 "Service Header"
                     Validate("Service Zone Code");
 
                 IsHandled := false;
-                OnValidateShipToCodeOnBeforeDeleteLines(Rec, IsHandled);
+                OnValidateShipToCodeOnBeforeDeleteLines(Rec, IsHandled, xRec);
                 if not IsHandled then
                     if ("Ship-to Code" <> xRec."Ship-to Code") and
                        ("Customer No." = xRec."Customer No.") and
@@ -6059,7 +6059,7 @@ table 5900 "Service Header"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnValidateShipToCodeOnBeforeDeleteLines(var ServiceHeader: Record "Service Header"; var IsHandled: Boolean)
+    local procedure OnValidateShipToCodeOnBeforeDeleteLines(var ServiceHeader: Record "Service Header"; var IsHandled: Boolean; xServiceHeader: Record "Service Header")
     begin
     end;
 

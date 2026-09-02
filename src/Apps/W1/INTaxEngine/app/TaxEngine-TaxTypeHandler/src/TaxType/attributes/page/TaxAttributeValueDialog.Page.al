@@ -30,7 +30,9 @@ page 20259 "Tax Attribute Value Dialog"
     var
         DummySelectedGenericAttributeValue: Record "Tax Attribute Value";
 
+#pragma warning disable AL0749 // Accepted: widening the parameter type is a breaking change
     procedure GetSelectedValue(var GenericAttributeValue: Record "Tax Attribute Value");
+#pragma warning restore AL0749
     begin
         GenericAttributeValue.COPY(DummySelectedGenericAttributeValue);
     end;

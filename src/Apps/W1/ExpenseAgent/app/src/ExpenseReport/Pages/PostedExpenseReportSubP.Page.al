@@ -5,7 +5,6 @@
 namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.Dimension;
-using Microsoft.Finance.SpendRequest;
 using Microsoft.Sales.Document;
 
 page 6993 "Posted Expense Report SubP."
@@ -165,6 +164,10 @@ page 6993 "Posted Expense Report SubP."
                     Editable = false;
                 }
                 field("Round Trip"; Rec."Round Trip")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
+                field("Vehicle Type"; Rec."Vehicle Type")
                 {
                     ApplicationArea = Basic, Suite;
                 }
@@ -411,9 +414,9 @@ page 6993 "Posted Expense Report SubP."
                 {
                     ApplicationArea = Basic, Suite;
                     Image = ProjectExpense;
-                    Caption = 'Spend Request';
-                    ToolTip = 'View the details of the spend request associated with this posted expense report line.';
-                    RunObject = Page "Spend Request Card";
+                    Caption = 'Travel Request';
+                    ToolTip = 'View the details of the travel request associated with this posted expense report line.';
+                    RunObject = Page "Travel Request Card";
                     RunPageLink = "No." = field("Spend Request No.");
                     Visible = Rec."Spend Request No." <> '';
                 }

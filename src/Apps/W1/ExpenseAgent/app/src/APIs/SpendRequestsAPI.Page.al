@@ -1,3 +1,4 @@
+#if not CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -8,6 +9,9 @@ using Microsoft.Finance.SpendRequest;
 
 page 7099 "Spend Requests API"
 {
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Replaced by the Travel Requests API (page 7134). The Expense Agent exposes requests through the dedicated Travel Request API.';
+    ObsoleteTag = '30.0';
     APIGroup = 'expense';
     APIPublisher = 'microsoft';
     APIVersion = 'beta';
@@ -167,3 +171,4 @@ page 7099 "Spend Requests API"
         ExpenseAgentAPIValidation.VerifyAgentAccess();
     end;
 }
+#endif

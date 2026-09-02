@@ -7,7 +7,9 @@ namespace Microsoft.Bank.Payment;
 
 using Microsoft.Purchases.Payables;
 
+#pragma warning disable AL0520 // Accepted: the base table is obsolete but this extension must remain for upgrade compatibility.
 tableextension 13621 PaymentBuffer extends "Payment Buffer"
+#pragma warning restore AL0520
 {
     fields
     {

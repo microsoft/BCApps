@@ -6,6 +6,7 @@ namespace Microsoft.Bank.DirectDebit;
 
 using Microsoft.Bank.Payment;
 using Microsoft.Finance.GeneralLedger.Journal;
+using System.Environment.Configuration;
 
 /// <summary>
 /// Prepares general journal line data for SEPA credit transfer XML export by copying and organizing
@@ -58,6 +59,7 @@ codeunit 1222 "SEPA CT-Prepare Source"
         AppliedDocNoList: Text;
         DescriptionLen: Integer;
         IsHandled: Boolean;
+        RemittanceTruncated: Boolean;
     begin
         IsHandled := false;
         OnBeforeCreateTempJnlLines(FromGenJnlLine, TempGenJnlLine, IsHandled);
@@ -106,11 +108,16 @@ codeunit 1222 "SEPA CT-Prepare Source"
                     TempGenJnlLine.Description := CopyStr(AppliedDocNoList, 1, DescriptionLen);
                     if StrLen(AppliedDocNoList) > DescriptionLen then
                         TempGenJnlLine."Message to Recipient" :=
-                          CopyStr(AppliedDocNoList, DescriptionLen + 1, DescriptionLen + MaxStrLen(TempGenJnlLine."Message to Recipient"));
+                          CopyStr(AppliedDocNoList, DescriptionLen + 1, MaxStrLen(TempGenJnlLine."Message to Recipient"));
+                    if StrLen(AppliedDocNoList) > DescriptionLen + MaxStrLen(TempGenJnlLine."Message to Recipient") then
+                        RemittanceTruncated := true;
                 end;
 
                 TempGenJnlLine.Insert();
             until PaymentHistoryLine.Next() = 0;
+
+        if RemittanceTruncated then
+            NotifyRemittanceTruncated();
 
         OnAfterCreateTempJnlLines(FromGenJnlLine, TempGenJnlLine);
     end;
@@ -149,5 +156,53 @@ codeunit 1222 "SEPA CT-Prepare Source"
     local procedure OnCopyJnlLinesOnBeforeTempGenJnlLineInsert(var FromGenJournalLine: Record "Gen. Journal Line"; var TempGenJournalLine: Record "Gen. Journal Line" temporary; GenJournalBatch: Record "Gen. Journal Batch")
     begin
     end;
+
+    local procedure NotifyRemittanceTruncated()
+    var
+        MyNotifications: Record "My Notifications";
+        RemittanceNotification: Notification;
+    begin
+        if not GuiAllowed() then
+            exit;
+        if not MyNotifications.IsEnabled(GetRemittanceTruncationNotificationId()) then
+            exit;
+
+        RemittanceNotification.Id := GetRemittanceTruncationNotificationId();
+        RemittanceNotification.Message(RemittanceTruncatedMsg);
+        RemittanceNotification.Scope(NotificationScope::LocalScope);
+        RemittanceNotification.AddAction(DontShowAgainTxt, Codeunit::"SEPA CT-Prepare Source", 'DisableRemittanceTruncationNotification');
+        RemittanceNotification.Send();
+    end;
+
+    /// <summary>
+    /// Disables the remittance truncation notification for the current user.
+    /// </summary>
+    /// <param name="RemittanceNotification">The notification whose action was invoked.</param>
+    procedure DisableRemittanceTruncationNotification(RemittanceNotification: Notification)
+    var
+        MyNotifications: Record "My Notifications";
+    begin
+        MyNotifications.Disable(GetRemittanceTruncationNotificationId());
+    end;
+
+    local procedure GetRemittanceTruncationNotificationId(): Guid
+    begin
+        exit(RemittanceTruncationNotificationIdTok);
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"My Notifications", 'OnInitializingNotificationWithDefaultState', '', false, false)]
+    local procedure OnInitializingNotificationWithDefaultStateRegisterNotifications()
+    var
+        MyNotifications: Record "My Notifications";
+    begin
+        MyNotifications.InsertDefault(GetRemittanceTruncationNotificationId(), RemittanceTruncationNotificationNameTxt, RemittanceTruncationNotificationDescriptionTxt, true);
+    end;
+
+    var
+        RemittanceTruncatedMsg: Label 'The list of applied documents will be shortened in the exported payment file. To avoid this, split the payment or turn off combining entries on the transaction mode.';
+        DontShowAgainTxt: Label 'Don''t show this again';
+        RemittanceTruncationNotificationNameTxt: Label 'Remittance information shortened on payment export';
+        RemittanceTruncationNotificationDescriptionTxt: Label 'Notify me when the list of applied documents is too long for the remittance information and will be shortened in the exported payment file.';
+        RemittanceTruncationNotificationIdTok: Label 'd9f2b3a7-6c41-4e8b-9a2d-7f0c1e5b84a3', Locked = true;
 }
 

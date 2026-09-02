@@ -5,6 +5,7 @@
 
 namespace System.Agents;
 
+using System.Agents.TaskPane;
 using System.AI;
 using System.Environment;
 using System.Environment.Configuration;
@@ -80,6 +81,21 @@ codeunit 4301 "Agent Impl."
         GetAgent(Agent, AgentUserSecurityID);
 
         exit(Agent.Substate = Agent.Substate::Archived);
+    end;
+
+    procedure ShowAgent(AgentUserSecurityID: Guid)
+    var
+        Agent: Record Agent;
+        TaskPane: Codeunit "Task Pane";
+    begin
+        // Route archived agents to the agent card, which keeps the agent reachable for auditing.
+        if Agent.Get(AgentUserSecurityID) and (Agent.Substate = Agent.Substate::Archived) then begin
+            Agent.SetRecFilter();
+            Page.Run(Page::"Agent Card", Agent);
+            exit;
+        end;
+
+        TaskPane.ShowAgent(AgentUserSecurityID);
     end;
 
     // Agent-record changes are frozen by the platform VDP; this guards the other tables.

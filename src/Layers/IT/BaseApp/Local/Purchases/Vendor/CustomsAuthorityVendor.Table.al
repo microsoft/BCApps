@@ -19,7 +19,9 @@ table 12122 "Customs Authority Vendor"
             Caption = 'Vendor No.';
             TableRelation = Vendor;
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(2; Name; Text[30])
+#pragma warning restore AL0685
         {
             CalcFormula = lookup(Vendor.Name where("No." = field("Vendor No.")));
             Caption = 'Name';

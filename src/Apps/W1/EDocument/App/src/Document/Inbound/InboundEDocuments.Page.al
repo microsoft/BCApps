@@ -94,13 +94,18 @@ page 6105 "Inbound E-Documents"
 
                     trigger OnDrillDown()
                     var
-                        Task: Record "Agent Task";
+                        AgentTaskCU: Codeunit "Agent Task";
                         TaskPane: Codeunit "Task Pane";
                     begin
                         if AgentTask.ID = 0 then
                             exit;
-                        Task.Get(AgentTask.ID);
-                        TaskPane.ShowTask(Task);
+
+                        // An archived agent is not resolvable in the task pane, so its tasks are shown
+                        // as log entries instead, which keeps them reachable for auditing.
+                        if AgentTask."Agent Substate" = AgentTask."Agent Substate"::Archived then
+                            AgentTaskCU.OpenAgentTaskLogEntries(AgentTask.ID)
+                        else
+                            TaskPane.ShowTask(AgentTask.ID);
                     end;
                 }
 #if not CLEAN28

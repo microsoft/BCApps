@@ -15,10 +15,14 @@ codeunit 141070 "UT REP Stock Card"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryRandom: Codeunit "Library - Random";
         AmountCap: Label 'Amount';
+        BalanceQtyLbl: Label 'BalanceQty';
         CostingMethodCap: Label 'CostingMethod';
         DialogErr: Label 'Dialog';
         OpeningStockAmountCap: Label 'OpeningStockAmount';
         OpeningStockCap: Label 'OpeningStock';
+        ReceivedCostLbl: Label 'ReceivedCost';
+        ReceivedQtyLbl: Label 'ReceivedQty';
+        TotalBalanceAmountLbl: Label 'TotalBalanceAmount';
 
     [Test]
     [HandlerFunctions('StockCardRequestPageHandler')]
@@ -147,6 +151,91 @@ codeunit 141070 "UT REP Stock Card"
         RunAndVerifyStockCardReport(AmountCap, Quantity * CostPerUnit, -Quantity, -Quantity * CostPerUnit);
     end;
 
+    [Test]
+    [HandlerFunctions('StockCardRequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure ReceivedQtySumsMultipleValueEntriesForSameILE()
+    var
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        GroupTotals: Option Location,Item;
+        FirstInvoiceQty: Decimal;
+        SecondInvoiceQty: Decimal;
+        UnitCost: Decimal;
+        TotalInvoicedQty: Decimal;
+        TotalCostAmount: Decimal;
+    begin
+        // [AI Test]
+        // [SCENARIO] Stock Card report should sum ReceivedQty from all Value Entries for the same Item Ledger Entry
+        // when multiple partial invoices are posted against a single purchase receipt.
+
+        // [GIVEN] Random quantities for two partial invoices and a unit cost
+        Initialize();
+        FirstInvoiceQty := LibraryRandom.RandIntInRange(1, 10);
+        SecondInvoiceQty := LibraryRandom.RandIntInRange(1, 10);
+        UnitCost := LibraryRandom.RandDecInRange(10, 100, 2);
+        TotalInvoicedQty := FirstInvoiceQty + SecondInvoiceQty;
+        TotalCostAmount := TotalInvoicedQty * UnitCost;
+
+        // [GIVEN] An Item Ledger Entry (purchase receipt) with FIFO costing for the total quantity
+        CreatePurchaseReceiptItemLedgerEntry(ItemLedgerEntry, Item."Costing Method"::FIFO, TotalInvoicedQty);
+
+        // [GIVEN] Two Value Entries for the same Item Ledger Entry simulating partial invoices
+        CreateValueEntryWithInvoicedQty(ItemLedgerEntry."Entry No.", FirstInvoiceQty, FirstInvoiceQty * UnitCost);
+        CreateValueEntryWithInvoicedQty(ItemLedgerEntry."Entry No.", SecondInvoiceQty, SecondInvoiceQty * UnitCost);
+
+        EnqueueValuesForStockCardRequestPageHandler(ItemLedgerEntry."Item No.", GroupTotals::Location, WorkDate());
+
+        // [WHEN] The Stock Card report is run
+        REPORT.Run(REPORT::"Stock Card");
+
+        // [THEN] ReceivedQty, ReceivedCost, Amount and the balances are derived from all Value Entries, not just the first one
+        VerifyStockCardReceiptValues(TotalInvoicedQty, UnitCost, TotalCostAmount);
+    end;
+
+    [Test]
+    [HandlerFunctions('StockCardRequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure ReceivedQtySumsMultipleValueEntriesAverageCost()
+    var
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        GroupTotals: Option Location,Item;
+        FirstInvoiceQty: Decimal;
+        SecondInvoiceQty: Decimal;
+        UnitCost: Decimal;
+        TotalInvoicedQty: Decimal;
+        TotalCostAmount: Decimal;
+    begin
+        // [AI Test]
+        // [SCENARIO] Stock Card report should sum ReceivedQty from all Value Entries for Average costing method.
+
+        // [GIVEN] Random quantities for two partial invoices and a unit cost
+        Initialize();
+        FirstInvoiceQty := LibraryRandom.RandIntInRange(1, 10);
+        SecondInvoiceQty := LibraryRandom.RandIntInRange(1, 10);
+        UnitCost := LibraryRandom.RandDecInRange(10, 100, 2);
+        TotalInvoicedQty := FirstInvoiceQty + SecondInvoiceQty;
+        TotalCostAmount := TotalInvoicedQty * UnitCost;
+
+        // [GIVEN] An Item Ledger Entry (purchase receipt) with Average costing for the total quantity
+        CreatePurchaseReceiptItemLedgerEntry(ItemLedgerEntry, Item."Costing Method"::Average, TotalInvoicedQty);
+
+        // [GIVEN] Two Value Entries for the same Item Ledger Entry simulating partial invoices
+        CreateValueEntryWithInvoicedQty(ItemLedgerEntry."Entry No.", FirstInvoiceQty, FirstInvoiceQty * UnitCost);
+        CreateValueEntryWithInvoicedQty(ItemLedgerEntry."Entry No.", SecondInvoiceQty, SecondInvoiceQty * UnitCost);
+
+        EnqueueValuesForStockCardRequestPageHandler(ItemLedgerEntry."Item No.", GroupTotals::Location, WorkDate());
+
+        // [WHEN] The Stock Card report is run
+        REPORT.Run(REPORT::"Stock Card");
+
+        // [THEN] ReceivedQty, ReceivedCost, Amount and the balances are derived from all Value Entries
+        VerifyStockCardReceiptValues(TotalInvoicedQty, UnitCost, TotalCostAmount);
+    end;
+
     local procedure Initialize()
     begin
         LibraryVariableStorage.Clear();
@@ -235,6 +324,50 @@ codeunit 141070 "UT REP Stock Card"
         LibraryReportDataset.AssertElementWithValueExists(Caption, ExpectedValue);
         LibraryReportDataset.AssertElementWithValueExists(OpeningStockCap, ExpectedValue2);
         LibraryReportDataset.AssertElementWithValueExists(OpeningStockAmountCap, ExpectedValue3);
+    end;
+
+    local procedure CreatePurchaseReceiptItemLedgerEntry(var ItemLedgerEntry: Record "Item Ledger Entry"; CostingMethod: Enum "Costing Method"; Quantity: Decimal)
+    var
+        LastItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        if LastItemLedgerEntry.FindLast() then;
+        ItemLedgerEntry.Init();
+        ItemLedgerEntry."Entry No." := LastItemLedgerEntry."Entry No." + 1;
+        ItemLedgerEntry."Item No." := CreateItem(CostingMethod);
+        ItemLedgerEntry."Location Code" := CreateLocation();
+        ItemLedgerEntry.Quantity := Quantity;
+        ItemLedgerEntry."Entry Type" := ItemLedgerEntry."Entry Type"::Purchase;
+        ItemLedgerEntry."Posting Date" := WorkDate();
+        ItemLedgerEntry."Document No." := LibraryUTUtility.GetNewCode();
+        ItemLedgerEntry.Insert();
+    end;
+
+    local procedure CreateValueEntryWithInvoicedQty(ItemLedgerEntryNo: Integer; InvoicedQuantity: Decimal; CostAmountActual: Decimal)
+    var
+        ValueEntry: Record "Value Entry";
+        LastValueEntry: Record "Value Entry";
+    begin
+        if LastValueEntry.FindLast() then;
+        ValueEntry.Init();
+        ValueEntry."Entry No." := LastValueEntry."Entry No." + 1;
+        ValueEntry."Item Ledger Entry No." := ItemLedgerEntryNo;
+        ValueEntry."Invoiced Quantity" := InvoicedQuantity;
+        ValueEntry."Cost Amount (Actual)" := CostAmountActual;
+        if InvoicedQuantity <> 0 then
+            ValueEntry."Cost per Unit" := CostAmountActual / InvoicedQuantity;
+        ValueEntry."Entry Type" := ValueEntry."Entry Type"::"Direct Cost";
+        ValueEntry.Insert();
+    end;
+
+    local procedure VerifyStockCardReceiptValues(ExpectedReceivedQty: Decimal; ExpectedReceivedCost: Decimal; ExpectedAmount: Decimal)
+    begin
+        // The item and location are created by the test, so there is no opening stock and the balances equal the received values.
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.AssertElementWithValueExists(ReceivedQtyLbl, ExpectedReceivedQty);
+        LibraryReportDataset.AssertElementWithValueExists(ReceivedCostLbl, ExpectedReceivedCost);
+        LibraryReportDataset.AssertElementWithValueExists(AmountCap, ExpectedAmount);
+        LibraryReportDataset.AssertElementWithValueExists(BalanceQtyLbl, ExpectedReceivedQty);
+        LibraryReportDataset.AssertElementWithValueExists(TotalBalanceAmountLbl, ExpectedAmount);
     end;
 
     [RequestPageHandler]

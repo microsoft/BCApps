@@ -6,6 +6,7 @@
 namespace Microsoft.DataMigration.BC14Reimplementation;
 
 using Microsoft.Sales.Reminder;
+using System.Globalization;
 
 codeunit 46927 "BC14 Reminder Text Migrator" implements "BC14 Migrator"
 {
@@ -18,6 +19,7 @@ codeunit 46927 "BC14 Reminder Text Migrator" implements "BC14 Migrator"
 
     var
         MigratorNameLbl: Label 'Reminder Text Migrator';
+        ReminderAttachmentFileNameLbl: Label 'Reminder', MaxLength = 100;
 
     procedure GetDisplayName(): Text[250]
     begin
@@ -83,6 +85,7 @@ codeunit 46927 "BC14 Reminder Text Migrator" implements "BC14 Migrator"
         end;
 
         OnAfterMigrateReminderText(BC14ReminderText, ReminderText);
+        MigrateReminderAttachmentText(ReminderText);
     end;
 
     local procedure TransferFields(BC14ReminderText: Record "BC14 Reminder Text"; var ReminderText: Record "Reminder Text")
@@ -100,6 +103,70 @@ codeunit 46927 "BC14 Reminder Text Migrator" implements "BC14 Migrator"
         OnTransferReminderTextCustomFields(BC14ReminderText, ReminderText);
     end;
 
+    local procedure MigrateReminderAttachmentText(ReminderText: Record "Reminder Text")
+    var
+        ReminderLevel: Record "Reminder Level";
+        Language: Record Language;
+        LanguageCodeunit: Codeunit Language;
+        DefaultLanguageCode: Code[10];
+    begin
+        if not ReminderLevel.Get(ReminderText."Reminder Terms Code", ReminderText."Reminder Level") then
+            exit;
+
+        DefaultLanguageCode := LanguageCodeunit.GetLanguageCode(LanguageCodeunit.GetDefaultApplicationLanguageId());
+        if Language.FindSet() then
+            repeat
+                MigrateReminderAttachmentTextForLanguage(ReminderText, ReminderLevel, Language.Code);
+            until Language.Next() = 0;
+
+        if not Language.Get(DefaultLanguageCode) then
+            MigrateReminderAttachmentTextForLanguage(ReminderText, ReminderLevel, DefaultLanguageCode);
+    end;
+
+    local procedure MigrateReminderAttachmentTextForLanguage(ReminderText: Record "Reminder Text"; var ReminderLevel: Record "Reminder Level"; LanguageCode: Code[10])
+    var
+        ReminderAttachmentText: Record "Reminder Attachment Text";
+        ReminderAttachmentTextLine: Record "Reminder Attachment Text Line";
+        AttachmentTextId: Guid;
+        LinePosition: Option "Beginning Line","Ending Line";
+    begin
+        AttachmentTextId := ReminderLevel."Reminder Attachment Text";
+        if IsNullGuid(AttachmentTextId) then
+            AttachmentTextId := CreateGuid();
+
+        if not ReminderAttachmentText.Get(AttachmentTextId, LanguageCode) then begin
+            ReminderAttachmentText.Init();
+            ReminderAttachmentText.Validate(Id, AttachmentTextId);
+            ReminderAttachmentText.Validate("Language Code", LanguageCode);
+            ReminderAttachmentText.Validate("Source Type", Enum::"Reminder Text Source Type"::"Reminder Level");
+            ReminderAttachmentText.Validate("File Name", ReminderAttachmentFileNameLbl);
+            ReminderAttachmentText.Insert();
+        end;
+
+        if IsNullGuid(ReminderLevel."Reminder Attachment Text") then begin
+            ReminderLevel.Validate("Reminder Attachment Text", AttachmentTextId);
+            ReminderLevel.Modify();
+        end;
+
+        if ReminderText.Position = ReminderText.Position::Beginning then
+            LinePosition := ReminderAttachmentTextLine.Position::"Beginning Line"
+        else
+            LinePosition := ReminderAttachmentTextLine.Position::"Ending Line";
+
+        if ReminderAttachmentTextLine.Get(AttachmentTextId, LanguageCode, LinePosition, ReminderText."Line No.") then begin
+            ReminderAttachmentTextLine.Validate(Text, ReminderText.Text);
+            ReminderAttachmentTextLine.Modify();
+        end else begin
+            ReminderAttachmentTextLine.Init();
+            ReminderAttachmentTextLine.Validate(Id, AttachmentTextId);
+            ReminderAttachmentTextLine.Validate("Language Code", LanguageCode);
+            ReminderAttachmentTextLine.Validate(Position, LinePosition);
+            ReminderAttachmentTextLine.Validate("Line No.", ReminderText."Line No.");
+            ReminderAttachmentTextLine.Validate(Text, ReminderText.Text);
+            ReminderAttachmentTextLine.Insert();
+        end;
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnMigrateReminderText(BC14ReminderText: Record "BC14 Reminder Text"; var IsMigrated: Boolean)
     begin
@@ -115,4 +182,3 @@ codeunit 46927 "BC14 Reminder Text Migrator" implements "BC14 Migrator"
     begin
     end;
 }
-

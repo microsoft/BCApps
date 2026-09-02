@@ -50,7 +50,9 @@ table 18871 "TCS Journal Template"
         {
             DataClassification = CustomerContent;
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(5; "Form Name"; Text[80])
+#pragma warning restore AL0685
         {
             Editable = false;
             FieldClass = FlowField;

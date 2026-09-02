@@ -47,6 +47,7 @@ codeunit 5431 "Calc. Item Plan - Plan Wksh."
 #pragma warning restore AA0074
         ExcludeForecastBefore: Date;
         RespectPlanningParm: Boolean;
+        SimulationMode: Boolean;
 
     local procedure "Code"()
     var
@@ -70,7 +71,8 @@ codeunit 5431 "Calc. Item Plan - Plan Wksh."
 
         OnAfterReqLineExternDelete(Item);
 
-        Commit();
+        if not SimulationMode then
+            Commit();
 
         OnCodeOnBeforeInvtProfileOffsettingSetParm(Item);
 
@@ -87,7 +89,8 @@ codeunit 5431 "Calc. Item Plan - Plan Wksh."
 
         OnCodeOnAfterGetPlanningComponents(Item);
 
-        Commit();
+        if not SimulationMode then
+            Commit();
 
         TempItemList := Item;
 
@@ -116,6 +119,7 @@ codeunit 5431 "Calc. Item Plan - Plan Wksh."
         if IsHandled then
             exit;
 
+        InvtProfileOffsetting.SetSimulationMode(SimulationMode);
         InvtProfileOffsetting.SetParm(UseForecast, ExcludeForecastBefore, CurrWorksheetType::Planning);
         InvtProfileOffsetting.CalculatePlanFromWorksheet(Item, CurrTemplateName, CurrWorksheetName, FromDate, ToDate, MRP, RespectPlanningParm);
 
@@ -132,6 +136,11 @@ codeunit 5431 "Calc. Item Plan - Plan Wksh."
         RespectPlanningParm := NewRespectPlanningParm;
 
         CheckPreconditions();
+    end;
+
+    internal procedure SetSimulationMode(NewSimulationMode: Boolean)
+    begin
+        SimulationMode := NewSimulationMode;
     end;
 
     procedure Finalize()

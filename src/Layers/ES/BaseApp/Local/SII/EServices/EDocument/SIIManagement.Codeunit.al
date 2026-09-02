@@ -37,6 +37,7 @@ codeunit 10756 "SII Management"
         NoSIIStateErr: Label 'The document has not been transmitted and hence has no status.';
         MarkAsNotAcceptedErr: Label 'Marked as not accepted by %1 on %2.', Comment = '%1 = user id;%2 = date time of mark';
         MarkAsAcceptedErr: Label 'Marked as accepted by %1 on %2.', Comment = '%1 = user id;%2 = date time of mark';
+        AlreadyMarkedAcceptedMsg: Label 'This document is already marked as accepted in SII.';
 
     [EventSubscriber(ObjectType::Page, Page::"Sales Invoice", 'OnOpenPageEvent', '', true, false)]
     local procedure OnSalesInvoicePageOpen(var Rec: Record "Sales Header")
@@ -69,6 +70,15 @@ codeunit 10756 "SII Management"
         if not SIISetup.Get() then
             exit(false);
         exit(SIISetup.Enabled);
+    end;
+
+    internal procedure IsShowAdvancedActionsEnabled(): Boolean
+    var
+        SIISetup: Record "SII Setup";
+    begin
+        if not SIISetup.Get() then
+            exit(false);
+        exit(SIISetup."Show Advanced Actions");
     end;
 
     local procedure CreateSetupNotification()
@@ -938,6 +948,35 @@ codeunit 10756 "SII Management"
             SIIHistory."Error Message" := StrSubstNo(MarkAsAcceptedErr, UserId, CurrentDateTime);
             SIIHistory.Modify();
         until SIIHistory.Next() = 0;
+    end;
+
+    internal procedure MarkDocumentAsAccepted(DocumentSource: Enum "SII Doc. Upload State Document Source"; DocumentType: Enum "SII Doc. Upload State Document Type"; DocumentNo: Code[20]; var FeedbackMessage: Text): Boolean
+    var
+        SIIDocUploadState: Record "SII Doc. Upload State";
+        SIIHistory: Record "SII History";
+    begin
+        SIIDocUploadState.SetRange("Document Source", DocumentSource);
+        SIIDocUploadState.SetRange("Document Type", DocumentType);
+        SIIDocUploadState.SetRange("Document No.", DocumentNo);
+        if not SIIDocUploadState.FindFirst() then begin
+            FeedbackMessage := NoSIIStateErr;
+            exit(false);
+        end;
+
+        SIIHistory.SetRange("Document State Id", SIIDocUploadState.Id);
+        if not SIIHistory.FindLast() then begin
+            FeedbackMessage := NoSIIStateErr;
+            exit(false);
+        end;
+
+        if SIIHistory.Status in [SIIHistory.Status::Accepted, SIIHistory.Status::"Accepted With Errors"] then begin
+            FeedbackMessage := AlreadyMarkedAcceptedMsg;
+            exit(false);
+        end;
+
+        SIIHistory.SetRecFilter();
+        MarkAsAccepted(SIIHistory);
+        exit(true);
     end;
 
     procedure MarkAsNotAccepted(var SIIHistory: Record "SII History")

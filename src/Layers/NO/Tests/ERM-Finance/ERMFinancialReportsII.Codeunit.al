@@ -44,6 +44,7 @@
         LibraryJournals: Codeunit "Library - Journals";
         LibraryReportValidation: Codeunit "Library - Report Validation";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        Language: Codeunit Language;
         OriginalWorkdate: Date;
         ExchRateWasAdjustedTxt: Label 'One or more currency exchange rates have been adjusted.';
         GenJnlTemplateNameTok: Label 'JnlTemplateName_GenJnlBatch';
@@ -58,6 +59,7 @@
         TestReportDifferentCustomerSameDocumentErr: Label '%1 posted on %2, must be separated by an empty line';
         IsInitialized: Boolean;
         InvoiceOutOfBalanceErr: Label 'Invoice %1 is out of balance by %2.';
+        RemitPaymentTxt: Label 'Please remit your payment %7', Comment = '%7 = Amount due';
         DateOutOfBalanceErr: Label 'As of %1, the lines are out of balance by %2.';
         TotalOutOfBalanceErr: Label 'The total of the lines is out of balance by%1.';
         NotAllowedPostingDateErr: Label 'The Posting Date is not within your range of allowed posting dates.';
@@ -828,7 +830,7 @@
     begin
         // [SCENARIO 122513] Reminder Report doesn't print Not Due documents when run with "Show Not Due Amounts" = FALSE
         Initialize();
-        CustomerNo := CreateCustomer();
+        CustomerNo := CreateCustomerWithReminderAttachmentText();
 
         // [GIVEN] Posted invoice with "Posting Date" = WorkDate() + 2 Month
         CreateAndPostGenJournalLineWithDate(GenJournalLine, CalcDate('<2M>', WorkDate()), CustomerNo, LibraryRandom.RandDec(1000, 2));  // Using Random value for Amount.
@@ -1699,8 +1701,6 @@
     local procedure Initialize()
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
-        FeatureKey: Record "Feature Key";
-        FeatureKeyUpdateStatus: Record "Feature Data Update Status";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"ERM Financial Reports II");
@@ -1714,15 +1714,6 @@
         if OriginalWorkdate = 0D then
             OriginalWorkdate := WorkDate();
         WorkDate := OriginalWorkdate;
-
-        if FeatureKey.Get('ReminderTermsCommunicationTexts') then begin
-            FeatureKey.Enabled := FeatureKey.Enabled::None;
-            FeatureKey.Modify();
-        end;
-        if FeatureKeyUpdateStatus.Get('ReminderTermsCommunicationTexts', CompanyName()) then begin
-            FeatureKeyUpdateStatus."Feature Status" := FeatureKeyUpdateStatus."Feature Status"::Disabled;
-            FeatureKeyUpdateStatus.Modify();
-        end;
 
         if IsInitialized then
             exit;
@@ -1908,6 +1899,28 @@
         ReminderLevel.FindFirst();
         LibrarySales.CreateCustomer(Customer);
         Customer.Validate("Reminder Terms Code", ReminderLevel."Reminder Terms Code");
+        Customer.Validate("Fin. Charge Terms Code", CreateFinanceChargeTerms());
+        Customer.Modify(true);
+        exit(Customer."No.");
+    end;
+
+    local procedure CreateCustomerWithReminderAttachmentText(): Code[20]
+    var
+        Customer: Record Customer;
+        ReminderAttachmentText: Record "Reminder Attachment Text";
+        ReminderAttachmentTextLine: Record "Reminder Attachment Text Line";
+        ReminderLevel: Record "Reminder Level";
+        ReminderTerms: Record "Reminder Terms";
+    begin
+        LibraryERM.CreateReminderTermsAndLevel(ReminderTerms, ReminderLevel);
+        ReminderLevel.Validate("Additional Fee (LCY)", LibraryRandom.RandInt(10));
+        ReminderLevel.Modify(true);
+        LibraryERM.CreateReminderAttachmentText(ReminderAttachmentText, ReminderLevel, Language.GetUserLanguageCode());
+        LibraryERM.CreateReminderAttachmentTextLine(
+            ReminderAttachmentTextLine, ReminderAttachmentText, ReminderAttachmentTextLine.Position::"Ending Line", RemitPaymentTxt);
+
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Reminder Terms Code", ReminderTerms.Code);
         Customer.Validate("Fin. Charge Terms Code", CreateFinanceChargeTerms());
         Customer.Modify(true);
         exit(Customer."No.");
@@ -2306,16 +2319,18 @@
     local procedure GetRemitPaymentsMsg(IssuedReminderNo: Code[20]; Amount: Decimal): Text
     var
         IssuedReminderHeader: Record "Issued Reminder Header";
-        ReminderText: Record "Reminder Text";
+        ReminderAttachmentTextLine: Record "Reminder Attachment Text Line";
+        ReminderLevel: Record "Reminder Level";
         Text: Text;
     begin
         IssuedReminderHeader.Get(IssuedReminderNo);
-        ReminderText.SetRange("Reminder Terms Code", IssuedReminderHeader."Reminder Terms Code");
-        ReminderText.SetRange("Reminder Level", 1);
-        ReminderText.SetRange(Position, 1);
-        ReminderText.FindFirst();
+        ReminderLevel.Get(IssuedReminderHeader."Reminder Terms Code", IssuedReminderHeader."Reminder Level");
+        ReminderAttachmentTextLine.SetRange(Id, ReminderLevel."Reminder Attachment Text");
+        ReminderAttachmentTextLine.SetRange("Language Code", Language.GetUserLanguageCode());
+        ReminderAttachmentTextLine.SetRange(Position, ReminderAttachmentTextLine.Position::"Ending Line");
+        ReminderAttachmentTextLine.FindFirst();
         // Replace '%7' with '%1'
-        Text := ConvertStr(ReminderText.Text, '7', '1');
+        Text := ConvertStr(ReminderAttachmentTextLine.Text, '7', '1');
         exit(StrSubstNo(Text, Amount));
     end;
 

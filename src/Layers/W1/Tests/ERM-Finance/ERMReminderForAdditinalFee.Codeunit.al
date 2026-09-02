@@ -20,6 +20,7 @@ codeunit 134904 "ERM Reminder For Additinal Fee"
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        Language: Codeunit Language;
         AmountError: Label 'Additional Fee must be %1.';
         IsInitialized: Boolean;
         ErrMsg: Label 'Rounding in the end is not expected.';
@@ -27,20 +28,10 @@ codeunit 134904 "ERM Reminder For Additinal Fee"
 
     local procedure Initialize()
     var
-        FeatureKey: Record "Feature Key";
-        FeatureKeyUpdateStatus: Record "Feature Data Update Status";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"ERM Reminder For Additinal Fee");
         LibrarySetupStorage.Restore();
-        if FeatureKey.Get('ReminderTermsCommunicationTexts') then begin
-            FeatureKey.Enabled := FeatureKey.Enabled::None;
-            FeatureKey.Modify();
-        end;
-        if FeatureKeyUpdateStatus.Get('ReminderTermsCommunicationTexts', CompanyName()) then begin
-            FeatureKeyUpdateStatus."Feature Status" := FeatureKeyUpdateStatus."Feature Status"::Disabled;
-            FeatureKeyUpdateStatus.Modify();
-        end;
         // Lazy Setup.
         if IsInitialized then
             exit;
@@ -55,6 +46,37 @@ codeunit 134904 "ERM Reminder For Additinal Fee"
 
         LibrarySetupStorage.SaveGeneralLedgerSetup();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"ERM Reminder For Additinal Fee");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ArchivedEmailTextDoesNotRequireCurrentReminderSetup()
+    var
+        IssuedReminderHeader: Record "Issued Reminder Header";
+        CompanyInformation: Record "Company Information";
+        ReminderCommunication: Codeunit "Reminder Communication";
+        EmailTextOutStream: OutStream;
+        GreetingTxt: Text;
+        AmtDueTxt: Text;
+        BodyTxt: Text;
+        ClosingTxt: Text;
+        DescriptionTxt: Text;
+        ArchivedBody: Text;
+    begin
+        Initialize();
+        CreateIssuedReminderWithInterestAmount(IssuedReminderHeader);
+        ArchivedBody := LibraryUtility.GenerateGUID();
+
+        IssuedReminderHeader."Email Text".CreateOutStream(EmailTextOutStream, TextEncoding::UTF8);
+        EmailTextOutStream.WriteText(ArchivedBody);
+        IssuedReminderHeader."Reminder Terms Code" := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(IssuedReminderHeader."Reminder Terms Code"));
+        IssuedReminderHeader.Modify();
+        CompanyInformation.Get();
+
+        ReminderCommunication.PopulateEmailText(
+            IssuedReminderHeader, CompanyInformation, GreetingTxt, AmtDueTxt, BodyTxt, ClosingTxt, DescriptionTxt, 0);
+
+        Assert.AreEqual(ArchivedBody, AmtDueTxt, 'The archived email body must be used without reading the current reminder setup.');
     end;
 
     [Test]
@@ -150,9 +172,10 @@ codeunit 134904 "ERM Reminder For Additinal Fee"
     [Scope('OnPrem')]
     procedure ReminderWithRounding()
     var
+        ReminderAttachmentText: Record "Reminder Attachment Text";
+        ReminderAttachmentTextLine: Record "Reminder Attachment Text Line";
         SalesHeader: Record "Sales Header";
         ReminderLevel: Record "Reminder Level";
-        ReminderText: Record "Reminder Text";
         ReminderNo: Code[20];
         ReminderTermsCode: Code[10];
     begin
@@ -160,8 +183,9 @@ codeunit 134904 "ERM Reminder For Additinal Fee"
         Initialize();
         LibraryERM.SetInvRoundingPrecisionLCY(LibraryRandom.RandDec(1, 2));
         ReminderTermsCode := CreateReminderTerms(ReminderLevel, '');
-        LibraryERM.CreateReminderText(ReminderText, ReminderTermsCode, ReminderLevel."No.",
-          ReminderText.Position::Ending, 'Reminder Text');
+        LibraryERM.CreateReminderAttachmentText(ReminderAttachmentText, ReminderLevel, Language.GetUserLanguageCode());
+        LibraryERM.CreateReminderAttachmentTextLine(
+            ReminderAttachmentTextLine, ReminderAttachmentText, ReminderAttachmentTextLine.Position::"Ending Line", 'Reminder Text');
 
         // Setup: Create and Post Sales Invoice.
         CreateAndPostSalesInvoice(SalesHeader, CreateCustomer(ReminderTermsCode, ''));
@@ -564,17 +588,18 @@ codeunit 134904 "ERM Reminder For Additinal Fee"
 
     local procedure CreateReminderTerm(var ReminderTerms: Record "Reminder Terms")
     var
+        ReminderAttachmentText: Record "Reminder Attachment Text";
+        ReminderAttachmentTextLine: Record "Reminder Attachment Text Line";
         ReminderLevel: Record "Reminder Level";
-        ReminderText: Record "Reminder Text";
     begin
         LibraryERM.CreateReminderTerms(ReminderTerms);
         LibraryERM.CreateReminderLevel(ReminderLevel, ReminderTerms.Code);
         ReminderLevel.Validate("Calculate Interest", true);
         ReminderLevel.Modify(true);
 
-        LibraryERM.CreateReminderText(
-          ReminderText, ReminderTerms.Code, ReminderLevel."No.",
-          ReminderText.Position::Beginning, LibraryUtility.GenerateGUID());
+        LibraryERM.CreateReminderAttachmentText(ReminderAttachmentText, ReminderLevel, Language.GetUserLanguageCode());
+        LibraryERM.CreateReminderAttachmentTextLine(
+            ReminderAttachmentTextLine, ReminderAttachmentText, ReminderAttachmentTextLine.Position::"Beginning Line", LibraryUtility.GenerateGUID());
     end;
 
     local procedure CreateReminderTerms(var ReminderLevel: Record "Reminder Level"; CurrencyCode: Code[10]): Code[10]
@@ -733,4 +758,3 @@ codeunit 134904 "ERM Reminder For Additinal Fee"
         Assert.AreNotEqual(ReminderLine."Line Type"::Rounding, ReminderLine."Line Type", ErrMsg);
     end;
 }
-

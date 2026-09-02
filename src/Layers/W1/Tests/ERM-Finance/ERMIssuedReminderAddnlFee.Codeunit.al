@@ -19,6 +19,7 @@ codeunit 134905 "ERM Issued Reminder Addnl Fee"
         LibraryRandom: Codeunit "Library - Random";
         LibraryReportValidation: Codeunit "Library - Report Validation";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        Language: Codeunit Language;
         IsInitialized: Boolean;
         AmountError: Label 'Additional Fee Amount must be %1 for Issued Reminder No: %2.';
         ReminderEndingText: Label 'Balance %7';
@@ -75,9 +76,10 @@ codeunit 134905 "ERM Issued Reminder Addnl Fee"
     procedure CreateSalesInvoiceAndReminder()
     var
         Customer: Record Customer;
+        ReminderAttachmentText: Record "Reminder Attachment Text";
+        ReminderAttachmentTextLine: Record "Reminder Attachment Text Line";
         ReminderLine: Record "Reminder Line";
         ReminderLevel: Record "Reminder Level";
-        ReminderText: Record "Reminder Text";
         DueDate: Date;
         DocumentDate: Date;
     begin
@@ -87,8 +89,9 @@ codeunit 134905 "ERM Issued Reminder Addnl Fee"
         CreateCustomer(Customer, '');
         ReminderLevel.SetRange("Reminder Terms Code", Customer."Reminder Terms Code");
         ReminderLevel.FindFirst();
-        LibraryERM.CreateReminderText(
-          ReminderText, Customer."Reminder Terms Code", ReminderLevel."No.", ReminderText.Position::Ending, ReminderEndingText);
+        LibraryERM.CreateReminderAttachmentText(ReminderAttachmentText, ReminderLevel, Language.GetUserLanguageCode());
+        LibraryERM.CreateReminderAttachmentTextLine(
+            ReminderAttachmentTextLine, ReminderAttachmentText, ReminderAttachmentTextLine.Position::"Ending Line", ReminderEndingText);
 
         // Exercise: Post Sales Invoice and Create Reminder.
         DueDate := CreateAndPostSalesInvoice(Customer."No.", '');
@@ -172,9 +175,10 @@ codeunit 134905 "ERM Issued Reminder Addnl Fee"
     procedure UpdateReminderText()
     var
         Customer: Record Customer;
+        ReminderAttachmentText: Record "Reminder Attachment Text";
+        ReminderAttachmentTextLine: Record "Reminder Attachment Text Line";
         ReminderHeader: Record "Reminder Header";
         ReminderLevel: Record "Reminder Level";
-        ReminderText: Record "Reminder Text";
     begin
         // Check the functionality of Report Update Reminder Text.
 
@@ -182,8 +186,9 @@ codeunit 134905 "ERM Issued Reminder Addnl Fee"
         Initialize();
         CreateCustomer(Customer, '');
         GetReminderLevel(ReminderLevel, Customer."Reminder Terms Code");
-        LibraryERM.CreateReminderText(
-          ReminderText, Customer."Reminder Terms Code", ReminderLevel."No.", ReminderText.Position::Ending, ReminderEndingText);
+        LibraryERM.CreateReminderAttachmentText(ReminderAttachmentText, ReminderLevel, Language.GetUserLanguageCode());
+        LibraryERM.CreateReminderAttachmentTextLine(
+            ReminderAttachmentTextLine, ReminderAttachmentText, ReminderAttachmentTextLine.Position::"Ending Line", ReminderEndingText);
         ReminderLevelNo := ReminderLevel."No.";  // Assign global variable.
         CreateReminder(
           Customer."No.",
@@ -592,8 +597,9 @@ codeunit 134905 "ERM Issued Reminder Addnl Fee"
     procedure VerifyEmailOnReminderPageWhenCustomerHasNoContacts()
     var
         Customer: Record Customer;
+        ReminderAttachmentText: Record "Reminder Attachment Text";
+        ReminderAttachmentTextLine: Record "Reminder Attachment Text Line";
         ReminderLevel: Record "Reminder Level";
-        ReminderText: Record "Reminder Text";
         ReminderHeader: Record "Reminder Header";
         ReminderPage: TestPage Reminder;
         CustomerCard: TestPage "Customer Card";
@@ -618,9 +624,9 @@ codeunit 134905 "ERM Issued Reminder Addnl Fee"
         // [GIVEN] Create Reminder Level with Random Grace Period and Random Additional Fee.
         ReminderLevel.SetRange("Reminder Terms Code", Customer."Reminder Terms Code");
         ReminderLevel.FindFirst();
-        LibraryERM.CreateReminderText(
-            ReminderText, Customer."Reminder Terms Code",
-            ReminderLevel."No.", ReminderText.Position::Ending, ReminderEndingText);
+        LibraryERM.CreateReminderAttachmentText(ReminderAttachmentText, ReminderLevel, Language.GetUserLanguageCode());
+        LibraryERM.CreateReminderAttachmentTextLine(
+            ReminderAttachmentTextLine, ReminderAttachmentText, ReminderAttachmentTextLine.Position::"Ending Line", ReminderEndingText);
 
         // [WHEN] Post Sales Invoice and Create Reminder.
         DueDate := CreateAndPostSalesInvoice(Customer."No.", '');
@@ -702,23 +708,12 @@ codeunit 134905 "ERM Issued Reminder Addnl Fee"
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         DocumentNoVisibility: Codeunit DocumentNoVisibility;
-        FeatureKey: Record "Feature Key";
-        FeatureKeyUpdateStatus: Record "Feature Data Update Status";
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"ERM Issued Reminder Addnl Fee");
         // Clear global variable.
         Clear(ReminderLevelNo);
         DocumentNoVisibility.ClearState();
         LibraryVariableStorage.Clear();
-
-        if FeatureKey.Get('ReminderTermsCommunicationTexts') then begin
-            FeatureKey.Enabled := FeatureKey.Enabled::None;
-            FeatureKey.Modify();
-        end;
-        if FeatureKeyUpdateStatus.Get('ReminderTermsCommunicationTexts', CompanyName()) then begin
-            FeatureKeyUpdateStatus."Feature Status" := FeatureKeyUpdateStatus."Feature Status"::Disabled;
-            FeatureKeyUpdateStatus.Modify();
-        end;
 
         if IsInitialized then
             exit;
@@ -1151,4 +1146,3 @@ codeunit 134905 "ERM Issued Reminder Addnl Fee"
         BatchCancelIssuedReminders.OK().Invoke();
     end;
 }
-

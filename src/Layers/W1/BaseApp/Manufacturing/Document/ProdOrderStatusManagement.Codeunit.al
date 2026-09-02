@@ -1162,6 +1162,8 @@ codeunit 5407 "Prod. Order Status Management"
                   ItemJnlLine, ProdOrderRtngLine, OutputQtyBase,
                   GetOutputQtyForProdOrderRoutingLine(ProdOrderLine, ProdOrderRtngLine, IsLastOperation, OutputQty),
                   PutawayQtyBaseToCalc);
+                if ProdOrder.Reopened then
+                    ExcludePostedSetupTimeForReopenedProdOrder(ItemJnlLine, ProdOrderRtngLine);
                 ItemJnlLine."Concurrent Capacity" := ProdOrderRtngLine."Concurrent Capacities";
                 ItemJnlLine."Source Code" := SourceCodeSetup.Flushing;
                 if not (ItemJnlLine.TimeIsEmpty() and (ItemJnlLine."Output Quantity" = 0)) then begin
@@ -1516,6 +1518,21 @@ codeunit 5407 "Prod. Order Status Management"
             ItemJnlLine.Validate("Output Quantity", OutputQty);
             OnAfterSetTimeAndQuantityOmItemJnlLine(ItemJnlLine, ProdOrderRtngLine, OutputQtyBase, OutputQty);
         end;
+    end;
+
+    local procedure ExcludePostedSetupTimeForReopenedProdOrder(var ItemJnlLine: Record "Item Journal Line"; ProdOrderRtngLine: Record "Prod. Order Routing Line")
+    var
+        RemainingSetupTime: Decimal;
+    begin
+        if ItemJnlLine."Setup Time" = 0 then
+            exit;
+
+        ProdOrderRtngLine.CalcFields("Posted Setup Time");
+        RemainingSetupTime := ItemJnlLine."Setup Time" - ProdOrderRtngLine."Posted Setup Time";
+        if RemainingSetupTime < 0 then
+            RemainingSetupTime := 0;
+        if RemainingSetupTime <> ItemJnlLine."Setup Time" then
+            ItemJnlLine.Validate("Setup Time", RemainingSetupTime);
     end;
 
     local procedure GetOutputQtyForProdOrderRoutingLine(ProdOrderLine: Record "Prod. Order Line"; ProdOrderRtngLine: Record "Prod. Order Routing Line"; IsLastOperation: Boolean; LastOutputQty: Decimal): Decimal

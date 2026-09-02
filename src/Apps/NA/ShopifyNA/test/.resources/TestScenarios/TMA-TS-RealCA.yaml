@@ -1,0 +1,463 @@
+test_setup: TMA-Setup.yaml
+
+tests:
+  - name: CA-ON-real
+    description: "ON real Shopify tax lines (HST) match reworded BC jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: ONHST
+          Description: Ontario Harmonized Sales Tax
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: ON
+        city: Toronto
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "HST"
+              ratePct: 13.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "ONHST"
+
+  - name: CA-ON-french
+    description: "ON French Shopify tax lines (TVH) match reworded BC jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: ONHST
+          Description: Ontario Harmonized Sales Tax
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: ON
+        city: Toronto
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "TVH"
+              ratePct: 13.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "ONHST"
+
+  - name: CA-NS-real
+    description: "NS real Shopify tax lines (HST) match reworded BC jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NSHST
+          Description: Nova Scotia Harmonized Sales Tax
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: NS
+        city: Halifax
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "HST"
+              ratePct: 14.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NSHST"
+
+  - name: CA-NS-french
+    description: "NS French Shopify tax lines (TVH) match reworded BC jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NSHST
+          Description: Nova Scotia Harmonized Sales Tax
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: NS
+        city: Halifax
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "TVH"
+              ratePct: 14.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NSHST"
+
+  - name: CA-BC-real
+    description: "BC real Shopify tax lines (GST/PST) match reworded BC jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: CAGST
+          Description: Canada Goods and Services Tax
+          Country/Region Code: CA
+        - Code: BCPST
+          Description: BC Provincial Sales Tax
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: BC
+        city: Vancouver
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "GST"
+              ratePct: 5.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "PST"
+              ratePct: 7.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "CAGST"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "BCPST"
+
+  - name: CA-BC-french
+    description: "BC French Shopify tax lines (TPS) match reworded BC jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: CAGST
+          Description: Canada Goods and Services Tax
+          Country/Region Code: CA
+        - Code: BCPST
+          Description: BC Provincial Sales Tax
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: BC
+        city: Vancouver
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "TPS"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "CAGST"
+
+  - name: CA-MB-real
+    description: "MB real Shopify tax lines (GST/PST) match reworded BC jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: CAGST
+          Description: Canada Goods and Services Tax
+          Country/Region Code: CA
+        - Code: MBRST
+          Description: Manitoba Retail Sales Tax
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: MB
+        city: Winnipeg
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "GST"
+              ratePct: 5.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "PST"
+              ratePct: 7.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "CAGST"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "MBRST"
+
+  - name: CA-MB-french
+    description: "MB French Shopify tax lines (TPS) match reworded BC jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: CAGST
+          Description: Canada Goods and Services Tax
+          Country/Region Code: CA
+        - Code: MBRST
+          Description: Manitoba Retail Sales Tax
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: MB
+        city: Winnipeg
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "TPS"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "CAGST"
+
+  - name: CA-SK-real
+    description: "SK real Shopify tax lines (GST/PST) match reworded BC jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: CAGST
+          Description: Canada Goods and Services Tax
+          Country/Region Code: CA
+        - Code: SKPST
+          Description: Saskatchewan Provincial Sales Tax
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: SK
+        city: Regina
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "GST"
+              ratePct: 5.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "PST"
+              ratePct: 6.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "CAGST"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "SKPST"
+
+  - name: CA-SK-french
+    description: "SK French Shopify tax lines (TPS) match reworded BC jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: CAGST
+          Description: Canada Goods and Services Tax
+          Country/Region Code: CA
+        - Code: SKPST
+          Description: Saskatchewan Provincial Sales Tax
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: SK
+        city: Regina
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "TPS"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "CAGST"
+
+  - name: CA-QC-real
+    description: "QC real Shopify tax lines (GST/QST) match reworded BC jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: CAGST
+          Description: Canada Goods and Services Tax
+          Country/Region Code: CA
+        - Code: QCQST
+          Description: Quebec Sales Tax
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: QC
+        city: Montreal
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "GST"
+              ratePct: 5.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "QST"
+              ratePct: 9.975
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "CAGST"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "QCQST"
+
+  - name: CA-QC-french
+    description: "QC French Shopify tax lines (TPS/TVQ) match reworded BC jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: CAGST
+          Description: Canada Goods and Services Tax
+          Country/Region Code: CA
+        - Code: QCQST
+          Description: Quebec Sales Tax
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: QC
+        city: Montreal
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "TPS"
+              ratePct: 5.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "TVQ"
+              ratePct: 9.975
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "CAGST"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "QCQST"
+
+  - name: CA-AB-real
+    description: "AB real Shopify tax lines (GST) match reworded BC jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: CAGST
+          Description: Canada Goods and Services Tax
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: AB
+        city: Calgary
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "GST"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "CAGST"
+
+  - name: CA-AB-french
+    description: "AB French Shopify tax lines (TPS) match reworded BC jurisdictions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: CAGST
+          Description: Canada Goods and Services Tax
+          Country/Region Code: CA
+      orderAddress:
+        countryRegionCode: CA
+        county: AB
+        city: Calgary
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "TPS"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "CAGST"

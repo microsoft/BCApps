@@ -349,7 +349,7 @@ report 7305 "Whse.-Source - Create Document"
                     "Whse. Document Type", WhseWkshLine."Whse. Document Type"::"Internal Put-away");
                     WhseWkshLine.SetRange("Whse. Document No.", WhseInternalPutAwayHeader."No.");
 
-                    OnBeforeProcessWhseMovWkshLines("Whse. Put-away Worksheet Line");
+                    OnAfterWhseInternalPutAwayLineOnPreDataItem("Whse. Internal Put-away Line");
                 end;
             }
             dataitem("Assembly Line"; "Assembly Line")
@@ -1376,6 +1376,11 @@ report 7305 "Whse.-Source - Create Document"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterWhsePutAwayWorksheetLineOnPostDataItem(var WhseWorksheetLine: Record "Whse. Worksheet Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterWhseInternalPutAwayLineOnPreDataItem(var WhseInternalPutAwayLine: Record "Whse. Internal Put-away Line")
     begin
     end;
 

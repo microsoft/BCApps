@@ -573,13 +573,24 @@ codeunit 135549 "Report Inbox API E2E"
 
     local procedure OtherCompanyName(): Text
     var
-        Company: Record Company;
+        ExistingCompany: Record Company;
     begin
-        Company.SetFilter(Name, '<>%1', CompanyName());
-        Assert.IsTrue(
-            Company.FindFirst(),
-            'This scenario needs a second company; the database has only ' + CompanyName() + '.');
-        exit(Company.Name);
+        ExistingCompany.SetFilter(Name, '<>%1', CompanyName());
+        if ExistingCompany.FindFirst() then
+            exit(ExistingCompany.Name);
+
+        exit(CreateSecondaryCompany());
+    end;
+
+    local procedure CreateSecondaryCompany(): Text
+    var
+        NewCompany: Record Company;
+    begin
+        NewCompany.LockTable(true);
+        NewCompany.Name := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(NewCompany.Name));
+        NewCompany.Insert(true);
+        Commit();
+        exit(NewCompany.Name);
     end;
 
     local procedure SeedEntryForApiCallerIn(CompanyToSeed: Text; NewDescription: Text)

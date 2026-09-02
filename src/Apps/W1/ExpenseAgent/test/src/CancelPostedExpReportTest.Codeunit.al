@@ -50,7 +50,7 @@ codeunit 148319 "Cancel Posted Exp. Report Test"
 
         // [THEN] Every posted line is marked Canceled.
         PostedExpenseReportLine.SetRange("Document No.", PostedExpenseReportHeader."No.");
-        PostedExpenseReportLine.SetRange(Canceled, false);
+        PostedExpenseReportLine.SetRange("Is Canceled", false);
         Assert.RecordIsEmpty(PostedExpenseReportLine);
     end;
 
@@ -261,6 +261,27 @@ codeunit 148319 "Cancel Posted Exp. Report Test"
         VerifyRecordCountOfExpenseLedgerEntry(ReversalExpenseLedgerEntry, 6);
     end;
 
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
+    procedure PostingDoesNotCopyUserConfirmedIntoCanceled()
+    var
+        Expense: Record Expense;
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 647233] Posting must not copy User Confirmed into the posted line's Canceled field.
+        Initialize();
+
+        // [GIVEN] A posted expense report where the source line had User Confirmed = true.
+        PostExpenseReportWithUserConfirmed(Expense, PostedExpenseReportHeader);
+
+        // [THEN] The posted line must not be marked as Canceled.
+        PostedExpenseReportLine.SetRange("Document No.", PostedExpenseReportHeader."No.");
+        PostedExpenseReportLine.FindFirst();
+        Assert.IsFalse(PostedExpenseReportLine."Is Canceled", 'Is Canceled must not be set by TransferFields from User Confirmed.');
+    end;
+
     local procedure Initialize()
     var
         Workflow: Record Workflow;
@@ -342,6 +363,60 @@ codeunit 148319 "Cancel Posted Exp. Report Test"
         LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
         LibraryExpense.CreateExpenseSubCategory(ExpenseSubCategory, ExpenseCategory.Code, true);
         LibraryExpense.CreateExpenseWithZeroVATPostingSetup(Expense, ExpenseUser."No.", ExpenseCategory.Code, ExpenseSubCategory.Code, '', true, '', Amount);
+    end;
+
+    local procedure PostExpenseReportWithUserConfirmed(var Expense: Record Expense; var PostedExpenseReportHeader: Record "Posted Expense Report Header")
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        PostExpenseReportUpToRelease(Expense, ExpenseReportHeader);
+
+        ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
+        ExpenseReportLine.FindFirst();
+        ExpenseReportLine."User Confirmed" := true;
+        ExpenseReportLine.Modify();
+
+        ExpenseReportHeader.PerformManualRelease();
+
+        PostExpenseReportFromHeader(ExpenseReportHeader, PostedExpenseReportHeader, Expense."Expense User No.");
+    end;
+
+    local procedure PostExpenseReportUpToRelease(var Expense: Record Expense; var ExpenseReportHeader: Record "Expense Report Header")
+    var
+        Employee: Record Employee;
+        ExpensePaymentMethod: Record "Expense Payment Method";
+        ExpenseUser: Record "Expense User";
+        ExpenseCategory: Record "Expense Category";
+        ExpensePostingGroup: Record "Expense Posting Group";
+        ReleaseExpenseDocument: Codeunit "Release Expense Document";
+        CreateExpenseReport: Codeunit "Create Expense Report";
+    begin
+        CreateExpense(Expense, LibraryRandom.RandInt(100));
+        LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Employee Paid");
+        Expense.Validate("Payment Method Code", ExpensePaymentMethod.Code);
+        Expense.Modify();
+
+        ExpenseCategory.Get(Expense."Expense Category");
+        ExpenseUser.Get(Expense."Expense User No.");
+        Employee.Get(ExpenseUser."Employee No.");
+        LibraryExpense.UpdateExpenseAccountInEmployeePostingGroup(Employee."Employee Posting Group");
+        ExpensePostingGroup.Get(ExpenseCategory."Posting Group");
+        ExpensePostingGroup.Validate("Refundable Debit Account", LibraryERM.CreateGLAccountNo());
+        ExpensePostingGroup.Modify();
+        ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
+
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', Expense."VAT Bus. Posting Group");
+        CreateExpenseReport.AddExpensesToReport(ExpenseReportHeader);
+    end;
+
+    local procedure PostExpenseReportFromHeader(var ExpenseReportHeader: Record "Expense Report Header"; var PostedExpenseReportHeader: Record "Posted Expense Report Header"; ExpenseUserNo: Code[20])
+    var
+        ExpenseReportPost: Codeunit "Expense Report-Post";
+    begin
+        ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
+        PostedExpenseReportHeader.SetRange("Expense User No.", ExpenseUserNo);
+        PostedExpenseReportHeader.FindFirst();
     end;
 
     local procedure PostMultiLineExpenseReport(var PostedExpenseReportHeader: Record "Posted Expense Report Header")

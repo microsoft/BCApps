@@ -180,7 +180,9 @@ table 6923 "Expense User"
             ObsoleteState = Pending;
 #endif
             ObsoleteReason = 'Replaced by Welcome Email Status, which also tracks queued and failed sends.';
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
         }
 #endif
         field(55; "Welcome Email Sent At"; DateTime)

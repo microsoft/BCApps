@@ -16,9 +16,9 @@ codeunit 6840 "Release Spend Request"
     end;
 
     var
-        HasExpensesErr: Label 'A spend request with posted expenses cannot be reopened.';
-        ClosedRequestErr: Label 'A closed spend request cannot be reopened.';
-        CloseSpendRequestQst: Label 'Do you want to close spend request %1?', Comment = '%1 is the spend request no.';
+        HasExpensesErr: Label 'A %1 with posted expenses cannot be reopened.', Comment = '%1 = document type description, e.g. spend request or Travel Request';
+        ClosedRequestErr: Label 'A closed %1 cannot be reopened.', Comment = '%1 = document type description, e.g. spend request or Travel Request';
+        CloseSpendRequestQst: Label 'Do you want to close %1 %2?', Comment = '%1 = document type description, %2 = document no.';
 
     /// <summary>
     /// Sets the status of the spend request to Released.
@@ -59,11 +59,11 @@ codeunit 6840 "Release Spend Request"
             exit;
 
         if SpendRequest.Status = SpendRequest.Status::Closed then
-            Error(ClosedRequestErr);
+            Error(ClosedRequestErr, SpendRequest.GetDocumentTypeDescription());
 
         SpendRequest.CalcFields("Total Spent Amount (LCY)");
         if SpendRequest."Total Spent Amount (LCY)" <> 0 then
-            Error(HasExpensesErr);
+            Error(HasExpensesErr, SpendRequest.GetDocumentTypeDescription());
 
         SpendRequest.Status := SpendRequest.Status::Open;
         SpendRequest.Modify();
@@ -88,7 +88,7 @@ codeunit 6840 "Release Spend Request"
         if SpendRequest.Status = SpendRequest.Status::Closed then
             exit;
 
-        if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(CloseSpendRequestQst, SpendRequest."No."), true) then
+        if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(CloseSpendRequestQst, SpendRequest.GetDocumentTypeDescription(), SpendRequest."No."), true) then
             exit;
 
         SpendRequest.Status := SpendRequest.Status::Closed;

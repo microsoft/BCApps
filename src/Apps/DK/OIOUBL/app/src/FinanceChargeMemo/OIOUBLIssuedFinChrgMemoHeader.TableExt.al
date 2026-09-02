@@ -16,7 +16,9 @@ tableextension 13643 "OIOUBL-IssuedFinChrgMemoHeader" extends "Issued Fin. Charg
         {
             Caption = 'Account Code';
         }
+#pragma warning disable AL0468 // Accepted: renaming the table field would be a breaking change.
         field(13634; "OIOUBL-Elec. Fin. Charge Memo Created"; Boolean)
+#pragma warning restore AL0468
         {
             Caption = 'Elec. Fin. Charge Memo Created';
             Editable = false;

@@ -5,6 +5,7 @@
 namespace System.Test.Agents;
 
 using System.Agents;
+using System.Agents.Troubleshooting;
 using System.Environment.Configuration;
 using System.Reflection;
 using System.Security.AccessControl;
@@ -1616,6 +1617,67 @@ codeunit 133961 "Agent Test"
         Assert.IsFalse(Agent.IsArchived(AgentId), 'An active agent should not be archived; it must be deactivated first');
     end;
 
+    [Test]
+    [HandlerFunctions('SendArchivedAgentNotificationHandler,AgentCardPageHandler')]
+    procedure ArchivedAgentLinkOpensAgentCard()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentImpl: Codeunit "Agent Impl.";
+        AgentId: Guid;
+        DisplayName: Text[80];
+    begin
+        Initialize();
+
+        // [SCENARIO] A reference link to an archived agent opens the agent card, because the client cannot
+        // resolve an archived agent and the task pane would fail to open
+
+        // [GIVEN] An archived agent
+        DisplayName := CopyStr(Any.AlphanumericText(80), 1, 80);
+        AgentId := CreateDeactivatedAgent(AgentRecord, DisplayName);
+        Agent.Archive(AgentId);
+
+        // [WHEN] The agent reference link is followed
+        AgentImpl.ShowAgent(AgentId);
+
+        // [THEN] The agent card is opened for that agent
+        Assert.AreEqual(DisplayName, LibraryVariableStorage.DequeueText(), 'The agent card should be opened for the archived agent.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('AgentTaskLogEntryListPageHandler')]
+    procedure ArchivedAgentTaskLinkOpensTaskLogEntries()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] A reference link to the task of an archived agent opens the task log entries, because the
+        // client cannot resolve the archived agent and the task pane would fail to open
+
+        // [GIVEN] An agent with a task, that is then archived
+        AgentId := CreateActiveAgent(AgentRecord, CopyStr(Any.AlphanumericText(80), 1, 80));
+        AgentTaskBuilder.Initialize(AgentId, 'Task of an agent that gets archived');
+        AgentTaskRecord := AgentTaskBuilder.Create(false, false); // Allow for tasks without message.
+
+        Agent.Deactivate(AgentId);
+        Agent.Archive(AgentId);
+
+        // [WHEN] The task reference link is followed
+        AgentTaskRecord.Get(AgentTaskRecord.ID);
+        AgentTaskImpl.ShowTask(AgentTaskRecord);
+
+        // [THEN] The log entries of that task are opened
+        Assert.AreEqual(Format(AgentTaskRecord.ID), LibraryVariableStorage.DequeueText(), 'The log entries should be opened for the task of the archived agent.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     [ModalPageHandler]
     procedure AgentArchiveConfirmationModalHandler(var AgentArchiveConfirmation: TestPage "Agent Archive Confirmation")
     var
@@ -1636,6 +1698,21 @@ codeunit 133961 "Agent Test"
     begin
         Assert.AreEqual('This agent is archived and can no longer be modified. Its tasks and logs remain available for auditing.', ArchivedNotification.Message(), 'Unexpected notification was raised on the archived agent card.');
         exit(true);
+    end;
+
+    [PageHandler]
+    procedure AgentCardPageHandler(var AgentCard: TestPage "Agent Card")
+    begin
+        LibraryVariableStorage.Enqueue(AgentCard.DisplayName.Value());
+        AgentCard.Close();
+    end;
+
+    [PageHandler]
+    procedure AgentTaskLogEntryListPageHandler(var AgentTaskLogEntryList: TestPage "Agent Task Log Entry List")
+    begin
+        // The page can be empty when the task has no log entries yet, so assert on the filter rather than a row.
+        LibraryVariableStorage.Enqueue(AgentTaskLogEntryList.Filter.GetFilter("Task ID"));
+        AgentTaskLogEntryList.Close();
     end;
 
     local procedure CreateDeactivatedAgent(var AgentRecord: Record Agent; DisplayName: Text[80]) AgentId: Guid

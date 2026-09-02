@@ -395,6 +395,7 @@ codeunit 1751 "Data Classification Eval. Data"
         ClassifyOrderTakerAgent();
         ClassifySalesValidationAgent();
         ClassifySalesReturnAgent();
+        ClassifyBusinessIQ();
         ClasifyScheduledPerformanceProfiling();
         ClassifySpendRequests();
     end;
@@ -3847,6 +3848,35 @@ codeunit 1751 "Data Classification Eval. Data"
     local procedure ClassifySalesReturnAgent()
     begin
         SetTableFieldsToNormal(53701); // "Sales Ret. Agent KPI"
+    end;
+
+    local procedure ClassifyBusinessIQ()
+    begin
+        SetTableFieldsToNormal(40200); // "Business Skill Domain"
+        SetFieldToCompanyConfidential(40200, 3); // Description
+        SetFieldToPersonal(40200, 4); // Owner User Security ID
+
+        SetTableFieldsToNormal(40201); // "Business Skill"
+        SetFieldToCompanyConfidential(40201, 4); // Company Name
+        SetFieldToCompanyConfidential(40201, 6); // Entity System ID
+        SetFieldToCompanyConfidential(40201, 7); // Entity Display Name
+        SetFieldToCompanyConfidential(40201, 10); // Title
+        SetFieldToCompanyConfidential(40201, 11); // Skill Text
+
+        SetTableFieldsToNormal(40202); // "Business Skill Change Log"
+        SetFieldToPersonal(40202, 4); // Changed By
+        SetFieldToCompanyConfidential(40202, 6); // Previous Text
+        SetFieldToCompanyConfidential(40202, 7); // Skill Title
+
+        SetTableFieldsToNormal(40203); // "Business Skill Suggestion"
+        SetFieldToCompanyConfidential(40203, 5); // Title
+        SetFieldToCompanyConfidential(40203, 6); // Suggested Text
+        SetFieldToCompanyConfidential(40203, 7); // Reason
+        SetFieldToPersonal(40203, 10); // Suggested By
+        SetFieldToPersonal(40203, 12); // Reviewed By
+        SetFieldToCompanyConfidential(40203, 14); // Review Comment
+
+        SetTableFieldsToNormal(40204); // "BIQ Authorization Requirement"
     end;
 
     local procedure ClassifyAgents()

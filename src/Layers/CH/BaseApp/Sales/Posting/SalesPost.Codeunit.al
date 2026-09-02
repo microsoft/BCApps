@@ -634,7 +634,7 @@ codeunit 80 "Sales-Post"
         TempSalesLineLocal.Modify();
         SalesLine.Get(TempSalesLineLocal.RecordId);
         OnModifyTempLineOnBeforeTransferFields(SalesLine, TempSalesLineLocal);
-        SalesLine.TransferFields(TempSalesLineLocal, false);
+        SalesLine.TransferFields(TempSalesLineLocal, false, true);
         OnModifyTempLineOnBeforeSalesLineModify(SalesLine);
         SalesLine.Modify();
         OnModifyTempLineOnAfterSalesLineModify(SalesLine);
@@ -6574,7 +6574,7 @@ codeunit 80 "Sales-Post"
             repeat
                 if TempSalesLine.AsmToOrderExists(AsmHeader) then
                     if AsmHeader.Status = AsmHeader.Status::Open then begin
-                        TempAsmHeader.TransferFields(AsmHeader);
+                        TempAsmHeader.TransferFields(AsmHeader, true, true);
                         TempAsmHeader.Insert();
                     end;
             until TempSalesLine.Next() = 0;
@@ -7136,7 +7136,7 @@ codeunit 80 "Sales-Post"
         SalesShptHeader.Init();
         SalesHeader.CalcFields("Work Description");
         OnInsertShipmentHeaderOnBeforeTransferfieldsToSalesShptHeader(SalesHeader);
-        SalesShptHeader.TransferFields(SalesHeader);
+        SalesShptHeader.TransferFields(SalesHeader, true, true);
         OnInsertShipmentHeaderOnAfterTransferfieldsToSalesShptHeader(SalesHeader, SalesShptHeader);
 
         AssignPostedDocumentNo(SalesShptHeader."No.", SalesHeader."Shipping No.");
@@ -7198,7 +7198,7 @@ codeunit 80 "Sales-Post"
         if not IsHandled then begin
             ReturnRcptHeader.Init();
             OnInsertReturnReceiptHeaderOnBeforeReturnReceiptHeaderTransferFields(SalesHeader);
-            ReturnRcptHeader.TransferFields(SalesHeader);
+            ReturnRcptHeader.TransferFields(SalesHeader, true, true);
             AssignPostedDocumentNo(ReturnRcptHeader."No.", SalesHeader."Return Receipt No.");
             if SalesHeader."Document Type" = SalesHeader."Document Type"::"Return Order" then begin
                 ReturnRcptHeader."Return Order No. Series" := SalesHeader."No. Series";
@@ -7252,7 +7252,7 @@ codeunit 80 "Sales-Post"
         SalesInvHeader.Init();
         SalesHeader.CalcFields("Work Description");
         OnInsertInvoiceHeaderOnBeforeSalesInvHeaderTransferFields(SalesHeader);
-        SalesInvHeader.TransferFields(SalesHeader);
+        SalesInvHeader.TransferFields(SalesHeader, true, true);
         OnInsertInvoiceHeaderOnAfterSalesInvHeaderTransferFields(SalesHeader, SalesInvHeader);
 
         AssignPostedDocumentNo(SalesInvHeader."No.", SalesHeader."Posting No.");
@@ -7307,7 +7307,7 @@ codeunit 80 "Sales-Post"
         SalesCrMemoHeader.Init();
         SalesHeader.CalcFields("Work Description");
         OnInsertCrMemoHeaderOnBeforeSalesCrMemoHeaderTransferFields(SalesHeader);
-        SalesCrMemoHeader.TransferFields(SalesHeader);
+        SalesCrMemoHeader.TransferFields(SalesHeader, true, true);
         AssignPostedDocumentNo(SalesCrMemoHeader."No.", SalesHeader."No.");
         OnInsertCrMemoHeaderOnAfterSalesCrMemoHeaderTransferFields(SalesHeader, SalesCrMemoHeader);
 
@@ -7353,7 +7353,7 @@ codeunit 80 "Sales-Post"
         RunOnInsert: Boolean;
     begin
         PurchRcptHeader.Init();
-        PurchRcptHeader.TransferFields(PurchaseHeader);
+        PurchRcptHeader.TransferFields(PurchaseHeader, true, true);
         AssignPostedDocumentNo(PurchRcptHeader."No.", PurchaseHeader."Receiving No.");
         PurchRcptHeader."Order No." := PurchaseHeader."No.";
         PurchRcptHeader."Posting Date" := SalesHeader."Posting Date";
@@ -7370,7 +7370,7 @@ codeunit 80 "Sales-Post"
         PurchRcptLine: Record "Purch. Rcpt. Line";
     begin
         PurchRcptLine.Init();
-        PurchRcptLine.TransferFields(PurchOrderLine);
+        PurchRcptLine.TransferFields(PurchOrderLine, true, true);
         PurchRcptLine."Posting Date" := PurchRcptHeader."Posting Date";
         PurchRcptLine."Document No." := PurchRcptHeader."No.";
         PurchRcptLine.Quantity := DropShptPostBuffer.Quantity;

@@ -11,6 +11,7 @@ page 6840 "Spend Request List"
     ApplicationArea = Basic, Suite;
     UsageCategory = Lists;
     SourceTable = "Spend Request";
+    SourceTableView = where("Document Type" = const(" "));
     CardPageId = "Spend Request Card";
     Editable = false;
 
@@ -79,7 +80,7 @@ page 6840 "Spend Request List"
                 trigger OnAction()
                 begin
                     if Rec.Status = Rec.Status::Closed then
-                        Error(SpendRequestClosedErr);
+                        Error(SpendRequestClosedErr, Rec.GetDocumentTypeDescription());
                     Rec.UpdateCurrencyExchangeRate();
                     Rec.Modify();
                 end;
@@ -144,5 +145,5 @@ page 6840 "Spend Request List"
     }
 
     var
-        SpendRequestClosedErr: Label 'A closed spend request cannot be updated.';
+        SpendRequestClosedErr: Label 'A closed %1 cannot be updated.', Comment = '%1 = document type description, e.g. spend request or Travel Request';
 }

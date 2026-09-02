@@ -76,6 +76,52 @@ codeunit 148501 "E-Doc. DE Struct. Import Tests"
     end;
 
     [Test]
+    procedure ZUGFeRDRepeatedTaxRegistrationsAreImportedByScheme()
+    var
+        EDocument: Record "E-Document";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ImportZUGFeRDDocument: Codeunit "Import ZUGFeRD Document";
+        EmptyTempBlob: Codeunit "Temp Blob";
+        XMLTempBlob: Codeunit "Temp Blob";
+        EmptyOutStream: OutStream;
+        XMLOutStream: OutStream;
+        PdfInStream: InStream;
+        XMLInStream: InStream;
+        XmlContent: Text;
+        BuyerRegistrationNo: Text[20];
+        BuyerTradePartyEndTok: Label '</ram:BuyerTradeParty>', Locked = true;
+        BuyerLegalOrganizationTok: Label '<ram:SpecifiedLegalOrganization><ram:ID>%1</ram:ID></ram:SpecifiedLegalOrganization></ram:BuyerTradeParty>', Locked = true;
+    begin
+        // [FEATURE] [E-Document] [ZUGFeRD] [Import]
+        // [SCENARIO 646793] Repeated ZUGFeRD tax registrations are selected by their scheme
+        Initialize();
+
+        // [GIVEN] The seller is matched by the VA registration that follows its FC registration
+        Vendor."VAT Registration No." := 'DE123456789';
+        Vendor."Registration Number" := '';
+        Vendor.Modify(true);
+
+        // [GIVEN] The buyer has a VA registration and a legal registration
+        BuyerRegistrationNo := 'BUYER-LEGAL';
+        XmlContent := NavApp.GetResourceAsText(ZUGFeRDInvoiceTok);
+        XmlContent := XmlContent.Replace(BuyerTradePartyEndTok, StrSubstNo(BuyerLegalOrganizationTok, BuyerRegistrationNo));
+        XMLTempBlob.CreateOutStream(XMLOutStream, TextEncoding::UTF8);
+        XMLOutStream.WriteText(XmlContent);
+        XMLTempBlob.CreateInStream(XMLInStream, TextEncoding::UTF8);
+        TempXMLBuffer.LoadFromStream(XMLInStream);
+        EmptyTempBlob.CreateOutStream(EmptyOutStream);
+        EmptyTempBlob.CreateInStream(PdfInStream);
+
+        // [WHEN] The ZUGFeRD basic information is parsed
+        ImportZUGFeRDDocument.ParseInvoiceBasicInfo(EDocument, TempXMLBuffer, 'rsm:CrossIndustryInvoice', PdfInStream);
+
+        // [THEN] The seller VA and the buyer VAT and legal registrations are imported independently
+        Assert.AreEqual(Vendor."No.", EDocument."Bill-to/Pay-to No.", 'The vendor was not selected by the second VA tax registration.');
+        Assert.AreEqual('DE987654321', EDocument."Receiving Company VAT Reg. No.", 'The buyer VAT Registration No. was not imported.');
+        Assert.AreEqual(BuyerRegistrationNo, EDocument."Receiving Company Reg. No.", 'The buyer Registration No. was not imported.');
+    end;
+
+    [Test]
     procedure ZUGFeRDCreditMemoIsReadIntoDraft()
     var
         EDocument: Record "E-Document";

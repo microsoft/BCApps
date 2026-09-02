@@ -37,6 +37,26 @@ codeunit 148338 "Expense Permissions Test"
     end;
 
     [Test]
+    procedure D365BasicCanGetExpensePolicyStatus()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        PolicyStatus: Enum "Expense Policy Status";
+    begin
+        Initialize();
+
+        ExpenseReportLine.Init();
+        ExpenseReportLine."Document No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(ExpenseReportLine."Document No."));
+        ExpenseReportLine."Line No." := 10000;
+        ExpenseReportLine.Insert(false);
+
+        LibraryLowerPermissions.SetExactPermissionSet(D365BasicPermissionSetTok);
+        PolicyStatus := ExpenseReportLine.GetPolicyStatus();
+        RestoreFullPermissions();
+
+        Assert.AreEqual("Expense Policy Status"::"No Policies", PolicyStatus, 'A D365 BASIC user must be able to get the expense policy status.');
+    end;
+
+    [Test]
     procedure ExpenseAgentCanInsertActivityIndirectly()
     begin
         VerifyPermissionSetCanInsertActivity(ExpenseAgentPermissionSetTok);

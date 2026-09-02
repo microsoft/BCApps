@@ -25,7 +25,8 @@ codeunit 8217 "Create Posted Expense Report"
 
         CreateExpenseReportToPost();
 
-        PostExpenseReport();
+        if not SkipPostingExpenseReport() then
+            PostExpenseReport();
     end;
 
     local procedure CreateExpenseReportToPost()
@@ -153,6 +154,13 @@ codeunit 8217 "Create Posted Expense Report"
             repeat
                 Codeunit.Run(Codeunit::"Expense Report-Post", ExpenseReportHeader);
             until ExpenseReportHeader.Next() = 0;
+    end;
+
+    // Posting fails on localizations because the "Expense GL Account Names" labels are not translated yet, so no G/L account is found.
+    // Found during uptake; remove this skip once the translations are generated.
+    local procedure SkipPostingExpenseReport(): Boolean
+    begin
+        exit(true);
     end;
 
     local procedure UpdateExpenseReportLine(ExpenseReportNo: Code[20]; LineNo: Integer; AccountType: Enum "Expense Line Type"; AccountNo: Code[20])

@@ -18,7 +18,9 @@ tableextension 13657 "OIOUBL-Service Cr.Memo Header" extends "Service Cr.Memo He
         {
             Caption = 'Account Code';
         }
+#pragma warning disable AL0468 // Accepted: renaming the table field would be a breaking change.
         field(13634; "OIOUBL-Electronic Credit Memo Created"; Boolean)
+#pragma warning restore AL0468
         {
             Caption = 'Electronic Credit Memo Created';
             Editable = false;

@@ -170,7 +170,7 @@ codeunit 3307 "Payables Agent Setup"
         PayablesAgentSetup.TransferFields(TempPayablesAgentSetup, false);
 
         if not PASetupConfiguration.GetSkipAgentConfiguration() then // Skipping the agent's configuration is valid in tests
-            PayablesAgentSetup."User Security Id" := ApplyAgentSetup(PASetupConfiguration);
+            PayablesAgentSetup."User Security Id" := ApplyAgentSetup(PASetupConfiguration, PayablesAgentSetup."Applied Instr. Config Hash");
 
         // We apply the changes to the E-Document Service related records
         PayablesAgentSetup."E-Document Service Code" := ApplyEDocumentServiceSetup(PASetupConfiguration, EmailAccountChanged);
@@ -235,16 +235,33 @@ codeunit 3307 "Payables Agent Setup"
     internal procedure SetAgentInstructions(AgentUserSecurityId: Guid)
     var
         PayablesAgentSetup: Record "Payables Agent Setup";
+        NewConfigHash: Text[64];
+    begin
+        if IsNullGuid(AgentUserSecurityId) then
+            exit;
+
+        NewConfigHash := ApplyAgentInstructions(AgentUserSecurityId);
+
+        PayablesAgentSetup.GetSetup();
+        if PayablesAgentSetup."Applied Instr. Config Hash" <> NewConfigHash then begin
+            PayablesAgentSetup."Applied Instr. Config Hash" := NewConfigHash;
+            PayablesAgentSetup.Modify();
+        end;
+    end;
+
+    /// <summary>
+    /// Applies the agent instructions for the given user and returns the configuration hash that was used.
+    /// This helper does NOT modify the Payables Agent Setup record, allowing callers that already hold
+    /// a loaded record (such as ApplyPayablesAgentSetup) to persist the hash themselves in a single Modify().
+    /// </summary>
+    local procedure ApplyAgentInstructions(AgentUserSecurityId: Guid) ConfigHash: Text[64]
+    var
         AzureKeyVault: Codeunit "Azure Key Vault";
         Agent: Codeunit Agent;
         SecurityPromptSecretText, CompletePromptSecretText : SecretText;
         PayablesAgentPromptText: Text;
         AgentDriven: Boolean;
-        NewConfigHash: Text;
     begin
-        if IsNullGuid(AgentUserSecurityId) then
-            exit;
-
         AgentDriven := IsAgentDrivenLineMatchingEnabled();
         if AgentDriven then
             PayablesAgentPromptText := NavApp.GetResourceAsText(PayablesAgentAgentDrivenPromptTok, TextEncoding::UTF8)
@@ -258,13 +275,7 @@ codeunit 3307 "Payables Agent Setup"
         end;
         Agent.SetInstructions(AgentUserSecurityId, CompletePromptSecretText);
 
-        // Record the experiment configuration that produced these instructions so drift can be detected on future tasks.
-        NewConfigHash := GetInstructionsConfigHash();
-        PayablesAgentSetup.GetSetup();
-        if PayablesAgentSetup."Applied Instr. Config Hash" <> NewConfigHash then begin
-            PayablesAgentSetup."Applied Instr. Config Hash" := CopyStr(NewConfigHash, 1, MaxStrLen(PayablesAgentSetup."Applied Instr. Config Hash"));
-            PayablesAgentSetup.Modify();
-        end;
+        ConfigHash := CopyStr(GetInstructionsConfigHash(), 1, MaxStrLen(ConfigHash));
     end;
 
     /// <summary>
@@ -430,7 +441,7 @@ codeunit 3307 "Payables Agent Setup"
         exit(AgentSummaryLbl);
     end;
 
-    local procedure ApplyAgentSetup(var PASetupConfiguration: Codeunit "PA Setup Configuration"): Guid
+    local procedure ApplyAgentSetup(var PASetupConfiguration: Codeunit "PA Setup Configuration"; var AppliedInstrConfigHash: Text[64]): Guid
     var
         AgentAdminPS: Record "Aggregate Permission Set";
         AccessControl: Record "Access Control";
@@ -459,7 +470,10 @@ codeunit 3307 "Payables Agent Setup"
                         UserPermissions.AssignPermissionSets(TempModifiedAgentAccessControl."User Security ID", CompanyName(), AgentAdminPS);
             until TempModifiedAgentAccessControl.Next() = 0;
 
-        SetAgentInstructions(AgentUserId);
+        // Apply agent instructions and capture the hash; the outer ApplyPayablesAgentSetup persists it
+        // in the single final Modify() so there is no nested row modification of Payables Agent Setup.
+        if not IsNullGuid(AgentUserId) then
+            AppliedInstrConfigHash := ApplyAgentInstructions(AgentUserId);
         exit(AgentUserId);
     end;
 

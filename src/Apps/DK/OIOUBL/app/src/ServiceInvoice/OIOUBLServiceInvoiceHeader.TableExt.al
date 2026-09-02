@@ -23,7 +23,9 @@ tableextension 13655 "OIOUBL-Service Invoice Header" extends "Service Invoice He
             Caption = 'Profile Code';
             TableRelation = "OIOUBL-Profile";
         }
+#pragma warning disable AL0468 // Accepted: renaming the table field would be a breaking change.
         field(13634; "OIOUBL-Electronic Invoice Created"; Boolean)
+#pragma warning restore AL0468
         {
             Caption = 'Electronic Invoice Created';
             Editable = false;

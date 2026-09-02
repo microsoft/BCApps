@@ -605,7 +605,7 @@ codeunit 90 "Purch.-Post"
         TempPurchLineLocal.Modify();
         PurchLine.Get(TempPurchLineLocal.RecordId);
         OnModifyTempLineOnBeforeTransferFields(PurchLine, TempPurchLineLocal);
-        PurchLine.TransferFields(TempPurchLineLocal, false);
+        PurchLine.TransferFields(TempPurchLineLocal, false, true);
         PurchLine.Modify();
         OnAfterModifyTempLine(PurchLine);
     end;
@@ -6699,7 +6699,7 @@ codeunit 90 "Purch.-Post"
 
         if not IsHandled then begin
             PurchRcptHeader.Init();
-            PurchRcptHeader.TransferFields(PurchHeader);
+            PurchRcptHeader.TransferFields(PurchHeader, true, true);
             AssignPostedDocumentNo(PurchRcptHeader."No.", PurchHeader."Receiving No.");
             if PurchHeader."Document Type" = PurchHeader."Document Type"::Order then begin
                 PurchRcptHeader."Order No. Series" := PurchHeader."No. Series";
@@ -6824,7 +6824,7 @@ codeunit 90 "Purch.-Post"
         OnBeforeInsertReturnShipmentHeader(PurchHeader, ReturnShptHeader, IsHandled);
         if not IsHandled then begin
             ReturnShptHeader.Init();
-            ReturnShptHeader.TransferFields(PurchHeader);
+            ReturnShptHeader.TransferFields(PurchHeader, true, true);
             AssignPostedDocumentNo(ReturnShptHeader."No.", PurchHeader."Return Shipment No.");
             if PurchHeader."Document Type" = PurchHeader."Document Type"::"Return Order" then begin
                 ReturnShptHeader."Return Order No. Series" := PurchHeader."No. Series";
@@ -6963,7 +6963,7 @@ codeunit 90 "Purch.-Post"
             exit;
 
         PurchInvHeader.Init();
-        PurchInvHeader.TransferFields(PurchHeader);
+        PurchInvHeader.TransferFields(PurchHeader, true, true);
 
         AssignPostedDocumentNo(PurchInvHeader."No.", PurchHeader."Posting No.");
         if PurchHeader."Document Type" = PurchHeader."Document Type"::Order then begin
@@ -7020,7 +7020,7 @@ codeunit 90 "Purch.-Post"
             exit;
 
         PurchCrMemoHdr.Init();
-        PurchCrMemoHdr.TransferFields(PurchHeader);
+        PurchCrMemoHdr.TransferFields(PurchHeader, true, true);
         AssignPostedDocumentNo(PurchCrMemoHdr."No.", PurchHeader."No.");
         if PurchHeader."Document Type" = PurchHeader."Document Type"::"Return Order" then begin
             AssignPostedDocumentNo(PurchCrMemoHdr."No.", PurchHeader."Posting No.");
@@ -7061,7 +7061,7 @@ codeunit 90 "Purch.-Post"
     begin
         SalesShptHeader.Init();
         SalesOrderHeader.CalcFields("Work Description");
-        SalesShptHeader.TransferFields(SalesOrderHeader);
+        SalesShptHeader.TransferFields(SalesOrderHeader, true, true);
         AssignPostedDocumentNo(SalesShptHeader."No.", SalesOrderHeader."Shipping No.");
         SalesShptHeader."Order No." := SalesOrderHeader."No.";
         SalesShptHeader."Posting Date" := PurchHeader."Posting Date";
@@ -7077,7 +7077,7 @@ codeunit 90 "Purch.-Post"
         IsHandled: Boolean;
     begin
         SalesShptLine.Init();
-        SalesShptLine.TransferFields(SalesOrderLine);
+        SalesShptLine.TransferFields(SalesOrderLine, true, true);
         SalesShptLine."Posting Date" := SalesShptHeader."Posting Date";
         SalesShptLine."Document No." := SalesShptHeader."No.";
         SalesShptLine.Quantity := DropShptPostBuffer.Quantity;
@@ -7517,7 +7517,7 @@ codeunit 90 "Purch.-Post"
                         if SalesOrderLine.FindSet() then
                             repeat
                                 SalesShptLine.Init();
-                                SalesShptLine.TransferFields(SalesOrderLine);
+                                SalesShptLine.TransferFields(SalesOrderLine, true, true);
                                 SalesShptLine."Document No." := SalesShptHeader."No.";
                                 SalesShptLine."Order No." := SalesOrderLine."Document No.";
                                 SalesShptLine."Order Line No." := SalesOrderLine."Line No.";

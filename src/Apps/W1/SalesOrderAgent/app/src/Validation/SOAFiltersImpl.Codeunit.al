@@ -538,7 +538,7 @@ codeunit 4305 "SOA Filters Impl."
         SelectContactLbl: Label 'Select contact';
         SelectContactOrCreateLbl: Label 'Select an existing contact, or create a new one';
         ContactAlreadyHasAlternateEmailQst: Label 'Contact %1 has %2 set to %3. Choosing Yes will replace it with %4. Do you want to continue?', Comment = '%1 = Contact No., %2 = Alternate email field caption, %3 = Existing alternate email, %4 = New email';
-        ContactActionsMenuQst: Label 'Create a new contact,Use an existing contact and their email for this task,Select an existing contact and update their alternate email with this sender''s email', Comment = 'Comma-separated StrMenu options - do not add spaces around commas';
+        ContactActionsMenuQst: Label 'Create a new contact,Use an existing contact and their email for this task,Select an existing contact and update their Email 2 with this sender''s email.', Comment = 'Comma-separated StrMenu options - do not add spaces around commas';
         ContactActionsInstructionQst: Label 'No contact has <%1> as their email or alternate email. Choose how to proceed:', Comment = '%1 = Sender email address';
         SecurityFilteringDocumentationURLTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2298901', Locked = true;
         MissingContactNotificationLbl: Label 'No contact has <%1> as their email or alternate email address. The agent matches contacts by the E-Mail and E-Mail 2 fields on contact cards. To proceed, select an existing contact or create a new one.', Comment = '%1 = Sender email address';

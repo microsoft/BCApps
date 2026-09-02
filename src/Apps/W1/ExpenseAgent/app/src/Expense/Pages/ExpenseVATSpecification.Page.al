@@ -66,4 +66,5 @@ page 7084 "Expense VAT Specification"
             }
         }
     }
+
 }

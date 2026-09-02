@@ -2,7 +2,7 @@
   "id": "b299c435-af71-4b42-b15b-f1cdddd1a561",
   "name": "Expense Agent (Preview) (GB)",
   "publisher": "Microsoft",
-  "version": "29.0.0.0",
+  "version": "30.0.0.0",
   "brief": "The Expense Agent module will enable users to capture and report on business expenses. The solution provides a foundation for enforcing expense policies, improving financial transparency, and supporting compliance with internal controls and audit requirements.",
   "description": "The Expense Agent module will enable users to capture and report on business expenses. The solution provides a foundation for enforcing expense policies, improving financial transparency, and supporting compliance with internal controls and audit requirements.",
   "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
@@ -16,12 +16,12 @@
       "id": "66efe10c-8033-403b-a86d-77c0887178ba",
       "name": "Expense Agent (Preview)",
       "publisher": "Microsoft",
-      "version": "29.0.0.0"
+      "version": "30.0.0.0"
     }
   ],
   "screenshots": [],
   "platform": "29.0.0.0",
-  "application": "29.0.0.0",
+  "application": "30.0.0.0",
   "idRanges": [
     {
       "from": 6900,
