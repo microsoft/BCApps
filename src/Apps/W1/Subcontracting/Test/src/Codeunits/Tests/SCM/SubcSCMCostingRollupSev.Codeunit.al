@@ -24,7 +24,7 @@ using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 
-codeunit 139996 "Subc SCM Costing Rollup Sev"
+codeunit 149926 "Subc SCM Costing Rollup Sev"
 {
     Subtype = Test;
     TestPermissions = Disabled;
