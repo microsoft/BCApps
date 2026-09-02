@@ -132,6 +132,7 @@ codeunit 9667 "Composite Report Parts Mgt."
         ReportLayoutList.SetRange("Report ID", CompositeLayoutLookupHelper.GetTenantReportDefaultsReportID());
         ReportLayoutList.SetRange(Name, CopyStr(PartName, 1, MaxStrLen(ReportLayoutList.Name)));
         ReportLayoutList.SetRange("Layout Subtype", Subtype);
+        ReportLayoutList.SetLoadFields("Application ID", Name, "Layout Subtype");
         if ReportLayoutList.FindFirst() then
             CompositeLayoutLookupHelper.ClearPartAssignments(ReportLayoutList);
     end;
