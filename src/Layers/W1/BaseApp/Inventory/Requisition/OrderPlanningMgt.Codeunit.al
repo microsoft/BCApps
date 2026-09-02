@@ -200,6 +200,8 @@ codeunit 5522 "Order Planning Mgt."
             OnInsertDemandLinesOnCopyItemTracking(ReqLine, TempUnplannedDemand);
         if ReqLine.Quantity > 0 then
             PlanningLineMgt.Calculate(ReqLine, 1, true, true, 0);
+        if Item."Item Tracking Code" <> '' then
+            OnInsertDemandLinesOnCopyItemTracking(ReqLine, TempUnplannedDemand);
         ReqLine.Find('+');
     end;
 
