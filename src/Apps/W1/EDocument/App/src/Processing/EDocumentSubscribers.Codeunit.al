@@ -328,7 +328,7 @@ codeunit 6103 "E-Document Subscribers"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Copy Document Mgt.", 'OnAfterCopyPurchaseDocument', '', false, false)]
     local procedure OnAfterCopyPurchaseDocumentClearEDocumentTraces(FromDocumentType: Option; FromDocumentNo: Code[20]; var ToPurchaseHeader: Record "Purchase Header"; FromDocOccurenceNo: Integer; FromDocVersionNo: Integer; IncludeHeader: Boolean)
     var
-        PurchaseLine: Record "Purchase Line";
+        EDocPurchaseDocumentHelper: Codeunit "E-Doc. Purch. Doc. Helper";
     begin
         // Without the header, the target document keeps its own identity and any flags on it are still valid.
         if not IncludeHeader then
@@ -336,15 +336,7 @@ codeunit 6103 "E-Document Subscribers"
         if IsNullGuid(ToPurchaseHeader."E-Document Link") and (not ToPurchaseHeader."Created From Draft E-Doc") then
             exit;
 
-        Clear(ToPurchaseHeader."E-Document Link");
-        ToPurchaseHeader."Created From Draft E-Doc" := false;
-        ToPurchaseHeader.Modify();
-
-        PurchaseLine.SetRange("Document Type", ToPurchaseHeader."Document Type");
-        PurchaseLine.SetRange("Document No.", ToPurchaseHeader."No.");
-        PurchaseLine.SetRange("Created From Draft E-Doc", true);
-        if not PurchaseLine.IsEmpty() then
-            PurchaseLine.ModifyAll("Created From Draft E-Doc", false);
+        EDocPurchaseDocumentHelper.ClearDraftEDocTraces(ToPurchaseHeader);
     end;
 
     local procedure LogPurchaseHeaderAfterValidate(PurchaseHeader: Record "Purchase Header"; FieldName: Text)

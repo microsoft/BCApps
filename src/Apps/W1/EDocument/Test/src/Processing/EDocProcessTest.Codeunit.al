@@ -554,7 +554,11 @@ codeunit 139883 "E-Doc Process Test"
             EDocRecordLink.SetRange("Target Table No.", Database::"Purchase Line");
             EDocRecordLink.SetRange("Target SystemId", PurchaseLine.SystemId);
             Assert.RecordCount(EDocRecordLink, 1);
+            Assert.IsTrue(PurchaseLine."Created From Draft E-Doc", 'The purchase line should be marked as created from a draft e-document.');
         until PurchaseLine.Next() = 0;
+
+        // [THEN] The purchase header is marked as created from a draft e-document
+        Assert.IsTrue(PurchaseHeader."Created From Draft E-Doc", 'The purchase header should be marked as created from a draft e-document.');
     end;
 
     [Test]
@@ -1264,6 +1268,7 @@ codeunit 139883 "E-Doc Process Test"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         EDocRecordLink: Record "E-Doc. Record Link";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
     begin
         // [SCENARIO] A PEPPOL CreditNote processed through the full pipeline creates a Purchase Credit Memo with correct content
         Initialize(Enum::"Service Integration"::"Mock");
@@ -1289,10 +1294,24 @@ codeunit 139883 "E-Doc Process Test"
         Assert.AreEqual(2500, PurchaseHeader."Doc. Amount Incl. VAT", 'The document amount incl. VAT should match the CreditNote total.');
         Assert.AreEqual('5', PurchaseHeader."Vendor Order No.", 'The Vendor Order No. should match the OrderReference from the CreditNote.');
 
+        // [THEN] The document date and due date from the draft survive the insert trigger defaults
+        EDocumentPurchaseHeader.GetFromEDocument(EDocument);
+        Assert.AreNotEqual(0D, EDocumentPurchaseHeader."Document Date", 'The draft should carry a document date for this scenario to be meaningful.');
+        Assert.AreNotEqual(0D, EDocumentPurchaseHeader."Due Date", 'The draft should carry a due date for this scenario to be meaningful.');
+        Assert.AreEqual(EDocumentPurchaseHeader."Document Date", PurchaseHeader."Document Date", 'The document date should be taken from the draft.');
+        Assert.AreEqual(EDocumentPurchaseHeader."Due Date", PurchaseHeader."Due Date", 'The due date should be taken from the draft.');
+
         // [THEN] The purchase credit memo has the correct number of lines
         PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
         PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
         Assert.RecordCount(PurchaseLine, 1);
+
+        // [THEN] The purchase credit memo header and lines are marked as created from a draft e-document
+        Assert.IsTrue(PurchaseHeader."Created From Draft E-Doc", 'The purchase header should be marked as created from a draft e-document.');
+        PurchaseLine.FindSet();
+        repeat
+            Assert.IsTrue(PurchaseLine."Created From Draft E-Doc", 'The purchase line should be marked as created from a draft e-document.');
+        until PurchaseLine.Next() = 0;
 
         // [THEN] Links are created between e-document and purchase records
         EDocRecordLink.SetRange("Target Table No.", Database::"Purchase Header");

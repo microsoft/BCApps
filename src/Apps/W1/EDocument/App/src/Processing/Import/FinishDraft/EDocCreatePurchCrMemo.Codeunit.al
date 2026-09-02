@@ -92,10 +92,12 @@ codeunit 6404 "E-Doc. Create Purch. Cr. Memo" implements IEDocumentFinishDraft, 
             Error(DraftLineDoesNotContainTypeAndNumberErr);
         end;
         EDocumentPurchaseHeader.TestField("E-Document Entry No.");
-        PurchaseHeader.SetRange("Buy-from Vendor No.", EDocumentPurchaseHeader."[BC] Vendor No.");
+        PurchaseHeader.SetRange("Buy-from Vendor No.", EDocumentPurchaseHeader."[BC] Vendor No."); // Setting the filter, so that the insert trigger assigns the right vendor to the purchase header
         PurchaseHeader."Document Type" := "Purchase Document Type"::"Credit Memo";
         PurchaseHeader."Pay-to Vendor No." := EDocumentPurchaseHeader."[BC] Vendor No.";
-        PurchaseHeader."Posting Description" := EDocumentPurchaseHeader."Posting Description";
+        PurchaseHeader.Insert(true);
+
+        // The insert trigger initializes the document date and the posting description, so the draft values have to be applied after it.
         if EDocumentPurchaseHeader."Document Date" <> 0D then
             EDocPurchaseDocumentHelper.ValidateFieldWithContext(PurchaseHeader, PurchaseHeader.FieldNo("Document Date"), EDocumentPurchaseHeader."Document Date");
         if EDocumentPurchaseHeader."Due Date" <> 0D then
@@ -113,8 +115,10 @@ codeunit 6404 "E-Doc. Create Purch. Cr. Memo" implements IEDocumentFinishDraft, 
         EDocPurchaseDocumentHelper.ValidateFieldWithContext(PurchaseHeader, PurchaseHeader.FieldNo("Vendor Cr. Memo No."), VendorCrMemoNo);
         if EDocumentPurchaseHeader."Purchase Order No." <> '' then
             PurchaseHeader."Vendor Order No." := CopyStr(EDocumentPurchaseHeader."Purchase Order No.", 1, MaxStrLen(PurchaseHeader."Vendor Order No."));
-        PurchaseHeader.Insert(true);
+
         EDocPurchaseDocumentHelper.ApplyDefaultPostingDateFromSetup(PurchaseHeader, EDocumentPurchaseHeader);
+        if EDocumentPurchaseHeader."Posting Description" <> '' then
+            PurchaseHeader."Posting Description" := EDocumentPurchaseHeader."Posting Description";
         PurchaseHeader.Modify();
 
         GLSetup.GetRecordOnce();
@@ -127,6 +131,7 @@ codeunit 6404 "E-Doc. Create Purch. Cr. Memo" implements IEDocumentFinishDraft, 
             if EDocumentPurchaseHeader."Applies-to Ext. Invoice No." <> '' then
                 ResolveAppliesToFromExtInvoiceNo(EDocumentPurchaseHeader."Applies-to Ext. Invoice No.", PurchaseHeader);
 
+        PurchaseHeader."Created From Draft E-Doc" := true;
         PurchaseHeader.Modify();
 
         EDocRecordLink.InsertEDocumentHeaderLink(EDocumentPurchaseHeader, PurchaseHeader);

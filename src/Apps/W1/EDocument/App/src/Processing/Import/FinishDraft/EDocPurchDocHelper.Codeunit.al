@@ -202,7 +202,6 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
     procedure RevertCreatedDocument(EDocument: Record "E-Document")
     var
         PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
         DocumentAttachmentMgt: Codeunit "Document Attachment Mgmt";
     begin
         PurchaseHeader.SetRange("E-Document Link", EDocument.SystemId);
@@ -212,6 +211,16 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
         DocumentAttachmentMgt.CopyAttachments(PurchaseHeader, EDocument);
         DocumentAttachmentMgt.DeleteAttachedDocuments(PurchaseHeader);
 
+        ClearDraftEDocTraces(PurchaseHeader);
+    end;
+
+    /// <summary>
+    /// Detaches a purchase document from the e-document draft it originated from, on both the header and its lines.
+    /// </summary>
+    procedure ClearDraftEDocTraces(var PurchaseHeader: Record "Purchase Header")
+    var
+        PurchaseLine: Record "Purchase Line";
+    begin
         Clear(PurchaseHeader."E-Document Link");
         PurchaseHeader."Created From Draft E-Doc" := false;
         PurchaseHeader.Modify();
