@@ -238,7 +238,7 @@ tableextension 11713 "General Ledger Setup CZL" extends "General Ledger Setup"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterUpdateOriginalDocumentVATDateCZL(NewDate: Date; DefaultOrigDocVATDate: Enum "Default Orig.Doc. VAT Date CZL"; var OriginalDocumentVATDate: Date)
+    local procedure OnAfterUpdateOriginalDocumentVATDateCZL(NewDate: Date; DefaultOriginalDocumentVATDate: Enum "Default Orig.Doc. VAT Date CZL"; var OriginalDocumentVATDate: Date)
     begin
     end;
 }
