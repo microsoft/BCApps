@@ -2432,7 +2432,7 @@ codeunit 131300 "Library - ERM"
         AdjustAddReportingCurrency.Run();
     end;
 
-    procedure RunCalcAndPostVATSettlement(VATPostingSetup: Record "VAT Posting Setup"; SettlementAccountNo: Code[20]; var DocumentNo: Code[20])
+    procedure RunCalcAndPostVATSettlement(VATPostingSetup: Record "VAT Posting Setup"; SettlementAccountNo: Code[20]; DocumentNo: Code[20])
     var
         FilterVATPostingSetup: Record "VAT Posting Setup";
         CalcandPostVATSettlement: Report "Calc. and Post VAT Settlement";
