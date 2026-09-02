@@ -168,6 +168,7 @@ codeunit 40032 "Migration Validation"
             HybridCompanyStatus.Validate(Validated, false);
             HybridCompanyStatus.Modify(true);
         end;
+        Commit(); // Commit after deleting prior tests
     end;
 
     procedure PrepareValidation()
@@ -280,7 +281,6 @@ codeunit 40032 "Migration Validation"
     local procedure BeforeMigrationStarted(var DataMigrationStatus: Record "Data Migration Status"; Retry: Boolean)
     begin
         DeleteMigrationValidationEntriesForCompany();
-        Commit(); // Commit after deleting prior tests
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Company", OnAfterDeleteEvent, '', false, false)]
@@ -290,7 +290,6 @@ codeunit 40032 "Migration Validation"
             exit;
 
         DeleteMigrationValidationEntriesForCompany(Rec.Name);
-        Commit(); // Commit after deleting prior tests
     end;
 
     [IntegrationEvent(false, false)]
