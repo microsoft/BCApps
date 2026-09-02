@@ -31,6 +31,8 @@ permissionset 6952 "Expense Agent - Objects"
                   page "Expense Payment Method API" = X,
                   page "Expense Per Diem API" = X,
                   page "Expense Posting Groups API" = X,
+                  page "Expense Vehicle Type API" = X,
+                  page "Mileage Rate Setup API" = X,
                   page "Expense Report Line Item API" = X,
                   page "Expense Report Lines API" = X,
                   page "Expense Reports API" = X,
@@ -47,16 +49,26 @@ permissionset 6952 "Expense Agent - Objects"
                   page "Exp. Report Line Particip. API" = X,
                   page "Exp. Report Line Per Diem API" = X,
                   page "Exp. Rep. Rule Violations API" = X,
+                  page "Expense Policies API" = X,
+                  page "Expense Policy Evaluations API" = X,
+                  page "Posted Policy Evaluations API" = X,
                   page "Posted Exp.Rep.Line VAT Spec" = X,
                   page "Posted Expense Reports API" = X,
                   page "Posted Exp. Rep. Line Att. API" = X,
                   page "Posted Exp. Rep. Line Item API" = X,
                   page "Posted Exp. Report Lines API" = X,
+#if not CLEAN30
+#pragma warning disable AL0432 // Object is obsoleted
                   page "Spend Requests API" = X,
                   page "Spend Request Details API" = X,
+#pragma warning restore AL0432
+#endif
+                  page "Travel Requests API" = X,
+                  page "Travel Request Details API" = X,
                   page "Travelers API" = X,
                   page "Tenant Feedback Setting API" = X,
                   page "Expense Projects API" = X,
+                  page "Exp. Policies To Eval API" = X,
                   query "Expense Project Tasks Qry" = X,
 #if not CLEAN29
 #pragma warning disable AL0432 // Object is obsoleted
@@ -77,6 +89,7 @@ permissionset 6952 "Expense Agent - Objects"
                   table "Expense Capabilities Buffer" = X,
                   table "Expense Activity Log Entry" = X,
                   table "Expense Project Buf" = X,
+                  table "Exp. Policy To Eval Buffer" = X,
 #if not CLEAN29
 #pragma warning disable AL0432 // Object is obsoleted
                   table "Expense Agent Consumption" = X,
@@ -88,6 +101,8 @@ permissionset 6952 "Expense Agent - Objects"
                   table "Expense Itemization" = X,
                   table "Expense Ledger Entry" = X,
                   table "Expense Location" = X,
+                  table "Expense Vehicle Type" = X,
+                  table "Mileage Rate Setup" = X,
                   table "Expense Participant" = X,
                   table "Expense Payment Method" = X,
                   table "Expense Per Diem" = X,
@@ -102,6 +117,9 @@ permissionset 6952 "Expense Agent - Objects"
                   table "Expense Rule Condition" = X,
                   table "Expense Rule Header" = X,
                   table "Expense Rule Violation" = X,
+                  table "Expense Policy" = X,
+                  table "Expense Policy Evaluation" = X,
+                  table "Posted Exp. Policy Evaluation" = X,
                   table "Expense Subcategory" = X,
                   table "Expense Team" = X,
                   table "Expense User" = X,
@@ -126,6 +144,7 @@ permissionset 6952 "Expense Agent - Objects"
                   codeunit "Expense Capabilities Provider" = X,
                   codeunit "Expense Activity Log Mgt." = X,
                   codeunit "Expense Projects Builder" = X,
+                  codeunit "Exp. Policies To Eval Builder" = X,
                   codeunit "Expense Consumption Handler" = X,
                   codeunit "Expense Currency" = X,
                   codeunit "Expense Doc No Visibility" = X,

@@ -370,7 +370,7 @@ codeunit 148311 "Expense No Rule Test"
         FindExpenseReportLine(ExpenseReportLine, CopyStr(ExpenseReportPage."No.".Value(), 1, 20));
 
         // [GIVEN] Update "Merchant Name" in Expense Report Line.
-        ExpenseReportLine.Validate("Merchant Name", LibraryRandom.RandText(20));
+        ExpenseReportLine.Validate("Merchant Name", CopyStr(LibraryRandom.RandText(20), 1, 100));
         ExpenseReportLine.Modify();
 
         // [WHEN] Release Expense Report.

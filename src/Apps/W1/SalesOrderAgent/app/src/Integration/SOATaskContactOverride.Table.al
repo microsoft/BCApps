@@ -14,7 +14,7 @@ table 4588 "SOA Task Contact Override"
     Access = Internal;
     DataClassification = SystemMetadata;
     InherentEntitlements = RIMDX;
-    InherentPermissions = RIMDX;
+    InherentPermissions = RIMX;
     ReplicateData = false;
 
     fields
