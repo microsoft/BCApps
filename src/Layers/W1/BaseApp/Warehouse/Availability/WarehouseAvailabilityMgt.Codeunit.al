@@ -921,11 +921,11 @@ codeunit 7314 "Warehouse Availability Mgt."
 
         case true of
             ExcludeShipmentBin and ExcludeReceiptBin:
-                BinContent.SetFilter("Bin Code", '<>%1&<>%2', Location."Shipment Bin Code", Location."Receipt Bin Code");
+                BinContent.SetFilter("Bin Code", '<>''%1''&<>''%2''', Location."Shipment Bin Code", Location."Receipt Bin Code");
             ExcludeShipmentBin:
-                BinContent.SetFilter("Bin Code", '<>%1', Location."Shipment Bin Code");
+                BinContent.SetFilter("Bin Code", '<>''%1''', Location."Shipment Bin Code");
             ExcludeReceiptBin:
-                BinContent.SetFilter("Bin Code", '<>%1', Location."Receipt Bin Code");
+                BinContent.SetFilter("Bin Code", '<>''%1''', Location."Receipt Bin Code");
         end;
     end;
 
