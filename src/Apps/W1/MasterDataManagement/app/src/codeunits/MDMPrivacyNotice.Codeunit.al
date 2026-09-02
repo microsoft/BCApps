@@ -60,11 +60,11 @@ codeunit 7242 "MDM Privacy Notice"
             exit;
         ErrInfo.Message := NotApprovedErr;
         ErrInfo.DataClassification := DataClassification::SystemMetadata; // Message is emitted to telemetry
-        if MasterDataManagementSetup.Get() then begin
+        // The remedy is always the setup page, even before the record exists; only RecordId needs an existing record.
+        ErrInfo.PageNo := Page::"Master Data Management Setup";
+        ErrInfo.AddNavigationAction(OpenSetupActionTxt);
+        if MasterDataManagementSetup.Get() then
             ErrInfo.RecordId := MasterDataManagementSetup.RecordId();
-            ErrInfo.PageNo := Page::"Master Data Management Setup";
-            ErrInfo.AddNavigationAction(OpenSetupActionTxt);
-        end;
         Error(ErrInfo);
     end;
 }
