@@ -66,7 +66,9 @@ page 8629 "Config. Wizard"
                         ToolTip = 'Specifies the type of industry that the company that you are configuring is.';
                     }
                 }
+#pragma warning disable AW0009 // Accepted: Migrating the underlying Blob field to Media or MediaSet requires a data-schema migration outside this low-risk ruleset change.
                 field(Picture; Rec.Picture)
+#pragma warning restore AW0009
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the picture that has been set up for the company, for example, a company logo.';

@@ -17,7 +17,9 @@ page 2123 "O365 Incoming Doc. Att. Pict."
     {
         area(content)
         {
+#pragma warning disable AW0009 // Accepted: Migrating the underlying Blob field to Media or MediaSet requires a data-schema migration outside this low-risk ruleset change.
             field(AttachmentContent; Rec.Content)
+#pragma warning restore AW0009
             {
                 ApplicationArea = Basic, Suite;
                 ShowCaption = false;

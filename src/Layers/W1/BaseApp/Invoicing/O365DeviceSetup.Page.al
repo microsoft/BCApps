@@ -29,7 +29,9 @@ page 1308 "O365 Device Setup"
                         Editable = false;
                         ExtendedDatatype = URL;
                     }
+#pragma warning disable AW0009 // Accepted: Migrating the underlying Blob field to Media or MediaSet requires a data-schema migration outside this low-risk ruleset change.
                     field(QR; Rec."QR Code")
+#pragma warning restore AW0009
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'or QR Code';

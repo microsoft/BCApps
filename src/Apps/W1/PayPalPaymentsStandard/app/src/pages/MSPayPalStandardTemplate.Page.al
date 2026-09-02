@@ -24,7 +24,9 @@ page 1071 "MS - PayPal Standard Template"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the default description for the PayPal payment service.';
                 }
+#pragma warning disable AW0009 // Accepted: Migrating the underlying Blob field to Media or MediaSet requires a data-schema migration outside this low-risk ruleset change.
                 field(Logo; Rec.Logo)
+#pragma warning restore AW0009
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the default logo for the PayPal payment service.';

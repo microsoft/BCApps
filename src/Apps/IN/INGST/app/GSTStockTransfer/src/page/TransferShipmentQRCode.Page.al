@@ -30,7 +30,9 @@ page 18013 "Transfer Shipment QR Code"
                     Page.Run(Page::"Transfer Shipment Dialog", TransferShipmentHeader);
                 end;
             }
+#pragma warning disable AW0009 // Accepted: Migrating the underlying Blob field to Media or MediaSet requires a data-schema migration outside this low-risk ruleset change.
             field("QR Code"; Rec."QR Code")
+#pragma warning restore AW0009
             {
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Specifies the QR Code assigned by e-invoice portal for sales document.';

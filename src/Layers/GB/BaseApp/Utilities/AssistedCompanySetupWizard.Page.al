@@ -145,7 +145,9 @@ page 1803 "Assisted Company Setup Wizard"
                         ShowMandatory = true;
                         Visible = false;
                     }
+#pragma warning disable AW0009 // Accepted: Migrating the underlying Blob field to Media or MediaSet requires a data-schema migration outside this low-risk ruleset change.
                     field(Picture; Rec.Picture)
+#pragma warning restore AW0009
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Company Logo';

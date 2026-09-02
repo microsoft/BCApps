@@ -14,6 +14,7 @@ page 3010543 "DTA EZAG Pictures"
     {
         area(content)
         {
+#pragma warning disable AW0009 // Accepted: Migrating the underlying Blob fields to Media or MediaSet requires a data-schema migration outside this low-risk ruleset change.
             field("EZAG Bar Code"; Rec."EZAG Bar Code")
             {
                 ApplicationArea = Basic, Suite;
@@ -24,6 +25,7 @@ page 3010543 "DTA EZAG Pictures"
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Specifies the Elektronischer Zahlungsauftrag (EZAG) post logo that is associated with the bank code for DTA processing.';
             }
+#pragma warning restore AW0009
         }
     }
 
