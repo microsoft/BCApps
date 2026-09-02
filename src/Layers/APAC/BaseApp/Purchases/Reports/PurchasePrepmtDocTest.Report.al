@@ -969,6 +969,7 @@ report 412 "Purchase Prepmt. Doc. - Test"
                         Caption = 'Prepayment Document Type';
                         OptionCaption = 'Invoice,Credit Memo';
                         ToolTip = 'Specifies whether to test a prepayment invoice or credit memo.';
+                        Visible = not StatisticDocumentType;
 
                         trigger OnValidate()
                         begin
@@ -1006,6 +1007,8 @@ report 412 "Purchase Prepmt. Doc. - Test"
 
     trigger OnPreReport()
     begin
+        if not StatisticDocumentType then
+            DocumentType := RequestDocumentType;
         PurchHeaderFilter := "Purchase Header".GetFilters();
 
         if DocumentType = DocumentType::Invoice then
@@ -1033,6 +1036,7 @@ report 412 "Purchase Prepmt. Doc. - Test"
         DimMgt: Codeunit DimensionManagement;
         DocumentType: Option Invoice,"Credit Memo",Statistic;
         RequestDocumentType: Option Invoice,"Credit Memo";
+        StatisticDocumentType: Boolean;
         VATAmount: Decimal;
         VATBaseAmount: Decimal;
         ErrorCounter: Integer;
@@ -1179,8 +1183,15 @@ report 412 "Purchase Prepmt. Doc. - Test"
     procedure InitializeRequest(NewDocumentType: Option; NewShowDim: Boolean)
     begin
         DocumentType := NewDocumentType;
-        if NewDocumentType in [DocumentType::Invoice, DocumentType::"Credit Memo"] then
-            RequestDocumentType := NewDocumentType;
+        case NewDocumentType of
+            DocumentType::Invoice, DocumentType::"Credit Memo":
+                begin
+                    RequestDocumentType := NewDocumentType;
+                    StatisticDocumentType := false;
+                end;
+            DocumentType::Statistic:
+                StatisticDocumentType := true;
+        end;
         ShowDim := NewShowDim;
     end;
 

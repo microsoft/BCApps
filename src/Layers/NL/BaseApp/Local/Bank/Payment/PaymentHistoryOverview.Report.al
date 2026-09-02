@@ -545,9 +545,7 @@ report 11000002 "Payment History Overview"
                             {
                                 CalcFields = Amount, "Remaining Amount";
                                 DataItemLink = "Closed by Entry No." = field("Entry No.");
-#pragma warning disable AL0254 // Accepted: Object-specific sorting; adding a shared-table key risks schema and performance changes.
                                 DataItemTableView = sorting("Closed by Entry No.");
-#pragma warning restore AL0254
                                 column(DescHist_EmplLedgEntry; Description)
                                 {
                                 }

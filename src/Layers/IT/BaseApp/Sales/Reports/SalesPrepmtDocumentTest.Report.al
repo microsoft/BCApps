@@ -906,6 +906,7 @@ report 212 "Sales Prepmt. Document Test"
                         Caption = 'Prepayment Document Type';
                         OptionCaption = 'Invoice,Credit Memo';
                         ToolTip = 'Specifies whether to test a prepayment invoice or credit memo.';
+                        Visible = not StatisticDocumentType;
 
                         trigger OnValidate()
                         begin
@@ -943,6 +944,8 @@ report 212 "Sales Prepmt. Document Test"
 
     trigger OnPreReport()
     begin
+        if not StatisticDocumentType then
+            DocumentType := RequestDocumentType;
         SalesHeaderFilter := "Sales Header".GetFilters();
 
         GLSetup.Get();
@@ -994,6 +997,7 @@ report 212 "Sales Prepmt. Document Test"
         ErrorText: array[99] of Text[250];
         DocumentType: Option Invoice,"Credit Memo",Statistic;
         RequestDocumentType: Option Invoice,"Credit Memo";
+        StatisticDocumentType: Boolean;
         VATAmount: Decimal;
         VATBaseAmount: Decimal;
         ErrorCounter: Integer;
