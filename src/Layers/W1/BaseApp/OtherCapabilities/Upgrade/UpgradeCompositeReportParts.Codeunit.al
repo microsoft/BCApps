@@ -40,6 +40,8 @@ codeunit 104067 "Upgrade Composite Report Parts"
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
     begin
+        EnsureCanSeedShippedParts();
+
         if UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()) then
             exit;
 
@@ -53,8 +55,20 @@ codeunit 104067 "Upgrade Composite Report Parts"
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
     begin
+        EnsureCanSeedShippedParts();
+
         CompositeReportPartsMgt.SeedDefaultParts();
         UpgradeTag.SetDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag());
+    end;
+
+    local procedure EnsureCanSeedShippedParts()
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+    begin
+        if TenantReportLayout.WritePermission() then
+            exit;
+
+        Error(MissingTenantReportLayoutWritePermissionErr);
     end;
 
     local procedure SeedDefaultReportPartsIfMissing()
@@ -83,4 +97,7 @@ codeunit 104067 "Upgrade Composite Report Parts"
         TenantReportLayout.SetRange("App ID", AppId);
         exit(not TenantReportLayout.IsEmpty());
     end;
+
+    var
+        MissingTenantReportLayoutWritePermissionErr: Label 'You do not have permission to seed report parts.';
 }
