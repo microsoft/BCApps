@@ -19,7 +19,6 @@ codeunit 1237 "Get Json Structure"
     procedure GenerateStructure(Path: Text; var XMLBuffer: Record "XML Buffer")
     var
         TempBlob: Codeunit "Temp Blob";
-        TempBlobResponse: Codeunit "Temp Blob";
         XMLBufferWriter: Codeunit "XML Buffer Writer";
         JsonInStream: InStream;
         XMLOutStream: OutStream;
@@ -33,7 +32,6 @@ codeunit 1237 "Get Json Structure"
         if File.Open(Path) then
             File.CreateInStream(JsonInStream)
         else begin
-            TempBlobResponse.CreateInStream(JsonInStream);
             HttpRequestMessage.Method('POST');
             HttpRequestMessage.SetRequestUri(Path);
             HttpRequestMessage.GetHeaders(HttpHeaders);

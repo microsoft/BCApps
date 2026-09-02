@@ -52,8 +52,10 @@ codeunit 6384 "Graph Client"
     begin
         InitializeWebRequest(FolderUrl, 'GET', 'application/json', HttpRequestMessage);
 
-        if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then
+        if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
+            Session.LogMessage('0000OB9', GraphSendFailedTelemetryMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryLbl);
             Error(RequestFailedErr, GetLastErrorText());
+        end;
 
         HttpResponseMessage.Content.ReadAs(ResponseBody);
         if not HttpResponseMessage.IsSuccessStatusCode() then begin
@@ -85,8 +87,10 @@ codeunit 6384 "Graph Client"
 
         InitializeWebRequest(FileUrl, 'GET', '', HttpRequestMessage);
 
-        if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then
+        if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
+            Session.LogMessage('0000OC0', GraphSendFailedTelemetryMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryLbl);
             Error(RequestFailedErr, GetLastErrorText());
+        end;
 
         if not HttpResponseMessage.IsSuccessStatusCode() then begin
             HttpResponseMessage.Content.ReadAs(ErrorDetails);
@@ -130,8 +134,10 @@ codeunit 6384 "Graph Client"
         HttpContentHeaders.Remove('Content-Type');
         HttpContentHeaders.Add('Content-Type', 'application/json');
         HttpRequestMessage.Content(HttpContent);
-        if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then
+        if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
+            Session.LogMessage('0000OC1', GraphSendFailedTelemetryMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryLbl);
             Error(RequestFailedErr, GetLastErrorText());
+        end;
 
         HttpResponseMessage.Content.ReadAs(ResponseBody);
         if not HttpResponseMessage.IsSuccessStatusCode() then begin
@@ -164,6 +170,7 @@ codeunit 6384 "Graph Client"
         AvailableOnlyOnSaaSErr: Label 'This functionality is available only when running on Business Central Online environment.';
         SignInAgainErr: Label 'No access token is available. You must sign in to the target resource with the correct credentials. If the problem persists, open a Business Central support request.';
         DocumentFolderNotAccessibleErr: Label 'Unable to access the folder specified on the setup page. Verify that the shared link points to an existing folder and that you have access to it.';
+        GraphSendFailedTelemetryMsg: Label 'The HTTP request to Microsoft 365 failed to send.', Locked = true;
         GraphStatusCodeTelemetryMsg: Label 'Microsoft 365 returned an error code: %1.', Locked = true;
         RequestFailedErr: Label 'The request to the remote service failed. Details: %1.', Comment = '%1 = The error text from the failed HTTP request';
         UnexpectedStatusCodeErr: Label 'Remote service returned an unexpected error code: %1.', Comment = '%1 = An error code from OneDrive or Sharepoint, for example 503';

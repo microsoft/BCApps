@@ -40,9 +40,12 @@ codeunit 1281 "Update Currency Exchange Rates"
 #pragma warning restore AA0470
         ExchRatesUpdatedTxt: Label 'The user updated currency exchange rates via a currency exchange rate service.', Locked = true;
         TelemetryCategoryTok: Label 'AL Exchange Rate Service', Locked = true;
-        WebRequestTxt: Label 'Web service request sent to URL: %1', Locked = true, Comment = '%1 = URL';
+        WebRequestTxt: Label 'Web service request sent.', Locked = true;
         WebResponseTxt: Label 'Web service response status: %1', Locked = true, Comment = '%1 = HTTP status code';
         WebServiceCallFailedErr: Label 'A web service call to the currency exchange rate service failed. See the Activity Log for details.';
+#pragma warning disable AA0470
+        ActivityLogDetailTxt: Label '%1 %2: %3', Locked = true, Comment = '%1 = HTTP status code, %2 = reason phrase, %3 = response body';
+#pragma warning restore AA0470
 
     local procedure SyncCurrencyExchangeRates()
     var
@@ -119,6 +122,7 @@ codeunit 1281 "Update Currency Exchange Rates"
         HttpRequestMessage: HttpRequestMessage;
         HttpResponseMessage: HttpResponseMessage;
         HttpHeaders: HttpHeaders;
+        CustomDimensions: Dictionary of [Text, Text];
         ResponseErrorText: Text;
         URL: Text;
     begin
@@ -128,8 +132,11 @@ codeunit 1281 "Update Currency Exchange Rates"
         HttpRequestMessage.GetHeaders(HttpHeaders);
         HttpHeaders.Add('Accept', 'application/xml,text/xml');
 
-        if CurrExchRateUpdateSetup."Log Web Requests" then
-            Session.LogMessage('000089V', StrSubstNo(WebRequestTxt, URL), Verbosity::Normal, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
+        if CurrExchRateUpdateSetup."Log Web Requests" then begin
+            CustomDimensions.Add('Category', TelemetryCategoryTok);
+            CustomDimensions.Add('Url', URL);
+            Session.LogMessage('000089V', WebRequestTxt, Verbosity::Normal, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, CustomDimensions);
+        end;
 
         if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
             ShowHttpError(CurrExchRateUpdateSetup, GetLastErrorText());
@@ -141,7 +148,8 @@ codeunit 1281 "Update Currency Exchange Rates"
 
         if not HttpResponseMessage.IsSuccessStatusCode() then begin
             HttpResponseMessage.Content.ReadAs(ResponseErrorText);
-            ShowHttpError(CurrExchRateUpdateSetup, ResponseErrorText, true);
+            ShowHttpError(CurrExchRateUpdateSetup,
+              StrSubstNo(ActivityLogDetailTxt, HttpResponseMessage.HttpStatusCode(), HttpResponseMessage.ReasonPhrase(), ResponseErrorText), true);
             exit;
         end;
 

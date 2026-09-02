@@ -680,7 +680,7 @@ codeunit 6710 ODataUtility
         Endpoint := GetUrl(CLIENTTYPE::ODataV4) + '/$metadata';
         Token := AzureAdMgt.GetAccessTokenAsSecretText(UrlHelper.GetFixedEndpointWebServiceUrl(), '', false);
         if Token.IsEmpty() then begin
-            Session.LogMessage('0000E51', NoTokenForMetadataTelemetryErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ODataUtilityTelemetryCategoryTxt);
+            Session.LogMessage('0000E54', NoTokenForMetadataTelemetryErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ODataUtilityTelemetryCategoryTxt);
             exit(false);
         end;
 
