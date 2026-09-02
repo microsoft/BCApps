@@ -140,14 +140,8 @@ page 99000888 "Work Center Load Lines"
         CapacityTimeFactor: Decimal;
 
     procedure SetLines(var NewWorkCenter: Record "Work Center"; NewPeriodType: Enum "Analysis Period Type"; NewAmountType: Enum "Analysis Amount Type")
-    var
-        MfgSetup: Record "Manufacturing Setup";
     begin
-        MfgSetup.SetLoadFields("Show Capacity In");
-        MfgSetup.Get();
-        MfgSetup.TestField("Show Capacity In");
-        CapacityUoM := MfgSetup."Show Capacity In";
-        SetLines(NewWorkCenter, NewPeriodType, NewAmountType, CapacityUoM);
+        SetLines(NewWorkCenter, NewPeriodType, NewAmountType, '');
     end;
 
     procedure SetLines(var NewWorkCenter: Record "Work Center"; NewPeriodType: Enum "Analysis Period Type"; NewAmountType: Enum "Analysis Amount Type"; NewCapUoM: Code[10])

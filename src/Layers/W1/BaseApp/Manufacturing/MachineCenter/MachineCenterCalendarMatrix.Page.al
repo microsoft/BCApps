@@ -593,14 +593,8 @@ page 9293 "Machine Center Calendar Matrix"
     end;
 
     procedure Load(MatrixColumns1: array[32] of Text[1024]; var MatrixRecords1: array[32] of Record Date; CurrentNoOfMatrixColumns: Integer)
-    var
-        MfgSetup: Record "Manufacturing Setup";
     begin
-        MfgSetup.SetLoadFields("Show Capacity In");
-        MfgSetup.Get();
-        MfgSetup.TestField("Show Capacity In");
-        CapacityUoM := MfgSetup."Show Capacity In";
-        Load(MatrixColumns1, MatrixRecords1, CurrentNoOfMatrixColumns, CapacityUoM);
+        Load(MatrixColumns1, MatrixRecords1, CurrentNoOfMatrixColumns, '');
     end;
 
     procedure Load(MatrixColumns1: array[32] of Text[1024]; var MatrixRecords1: array[32] of Record Date; CurrentNoOfMatrixColumns: Integer; SetCapacityUoM: Code[10])

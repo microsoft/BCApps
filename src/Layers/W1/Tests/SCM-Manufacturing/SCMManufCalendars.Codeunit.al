@@ -107,6 +107,19 @@ codeunit 137076 "SCM Manuf Calendars"
         WorkCenterCalendarWithPeriodType("Analysis Period Type"::"Accounting Period", GetYear(2, -1), GetYear(2, 1));  // Calendar Year range required: -2Y to 2Y.
     end;
 
+    [Test]
+    [HandlerFunctions('WorkCenterCalendarMatrixPageHandler')]
+    [Scope('OnPrem')]
+    procedure WorkCenterCalendarWithPeriodTypeDayAndCapacityUOMHours()
+    var
+        CapacityUnitOfMeasure: Record "Capacity Unit of Measure";
+    begin
+        // Setup.
+        Initialize();
+        WorkCenterCalendarWithPeriodTypeAndCapacityUOM(
+          "Analysis Period Type"::Day, CapacityUnitOfMeasure.Type::Hours, GetMonth(1, -1), GetMonth(1, 1));  // Calendar Month range required: -1M to 1M.
+    end;
+
     local procedure WorkCenterCalendarWithPeriodType(PeriodType: Enum "Analysis Period Type"; StartingDate: Date; EndingDate: Date)
     var
         WorkCenter: Record "Work Center";
@@ -141,6 +154,48 @@ codeunit 137076 "SCM Manuf Calendars"
         LibraryVariableStorage.Enqueue(WorkCenter."Capacity (Effective)");
 
         // Exercise and Verify: Open Show Matrix and Verify Column Captions and Matrix value on Work Center Calendar Matrix Page on Page Handler WorkCenterCalendarMatrixPage.
+        WorkCenterCalendar.ShowMatrix.Invoke();
+
+        // Tear Down.
+        CleanupCalendarEntry(WorkCenter."No.");
+    end;
+
+    local procedure WorkCenterCalendarWithPeriodTypeAndCapacityUOM(PeriodType: Enum "Analysis Period Type"; Type: Enum "Capacity Unit of Measure"; StartingDate: Date; EndingDate: Date)
+    var
+        WorkCenter: Record "Work Center";
+        MatrixRecords: array[32] of Record Date;
+        CapacityUnitOfMeasure: Record "Capacity Unit of Measure";
+        MatrixManagement: Codeunit "Matrix Management";
+        WorkCenterCalendar: TestPage "Work Center Calendar";
+        CaptionSet: array[32] of Text[80];
+        CaptionRange: Text;
+        SetPosition: Option Initial,Previous,Same,Next,PreviousColumn,NextColumn;
+        PrimaryKeyFirstRecordInCurrentSet: Text;
+        CurrentSetLength: Integer;
+    begin
+        // Create Work Center.
+        CreateWorkCenter(WorkCenter);
+        SetWorkCenterCapacityUoM(WorkCenter, CapacityUnitOfMeasure.Type::Minutes);
+        LibraryManufacturing.CalculateWorkCenterCalendar(WorkCenter, StartingDate, EndingDate);
+
+        // Open Work Center Calendar. Update Period Type and Capacity Unit of Measure.
+        FindCapacityUnitOfMeasure(CapacityUnitOfMeasure, Type);
+        OpenWorkCenterCalendarPage(WorkCenterCalendar, WorkCenter."No.", PeriodType);
+        WorkCenterCalendar.CapacityUoM.SetValue(CapacityUnitOfMeasure.Code);
+
+        // Using Matrix Management to Generate Period Matrix Data.
+        MatrixManagement.GeneratePeriodMatrixData(
+          SetPosition, ArrayLen(MatrixRecords), false, PeriodType, '', PrimaryKeyFirstRecordInCurrentSet, CaptionSet, CaptionRange,
+          CurrentSetLength, MatrixRecords);
+
+        // Enqueue Values for Page Handler - WorkCenterCalendarMatrixPageHandler.
+        LibraryVariableStorage.Enqueue(WorkCenter."No.");
+        LibraryVariableStorage.Enqueue(CaptionSet[1]);
+        LibraryVariableStorage.Enqueue(CaptionSet[2]);
+        LibraryVariableStorage.Enqueue(CalculateWorkCenterCapacityEffective(WorkCenter, MatrixRecords[1], CapacityUnitOfMeasure.Code));
+        LibraryVariableStorage.Enqueue(CalculateWorkCenterCapacityEffective(WorkCenter, MatrixRecords[2], CapacityUnitOfMeasure.Code));
+
+        // Exercise and Verify: Open Show Matrix and verify converted values on Work Center Calendar Matrix page.
         WorkCenterCalendar.ShowMatrix.Invoke();
 
         // Tear Down.
@@ -340,6 +395,19 @@ codeunit 137076 "SCM Manuf Calendars"
         MachineCenterCalendarWithPeriodType("Analysis Period Type"::"Accounting Period", GetYear(2, -1), GetYear(2, 1));  // Calendar Year range required: -2Y to 2Y.
     end;
 
+    [Test]
+    [HandlerFunctions('MachineCenterCalendarMatrixPageHandler')]
+    [Scope('OnPrem')]
+    procedure MachineCenterCalendarWithPeriodTypeDayAndCapacityUOMHours()
+    var
+        CapacityUnitOfMeasure: Record "Capacity Unit of Measure";
+    begin
+        // Setup.
+        Initialize();
+        MachineCenterCalendarWithPeriodTypeAndCapacityUOM(
+          "Analysis Period Type"::Day, CapacityUnitOfMeasure.Type::Hours, GetMonth(1, -1), GetMonth(1, 1));  // Calendar Month range required: -1M to 1M.
+    end;
+
     local procedure MachineCenterCalendarWithPeriodType(PeriodType: Enum "Analysis Period Type"; StartingDate: Date; EndingDate: Date)
     var
         MachineCenter: Record "Machine Center";
@@ -378,6 +446,50 @@ codeunit 137076 "SCM Manuf Calendars"
         // Tear Down.
         CleanupCalendarEntry(MachineCenter."Work Center No.");
     end;
+
+        local procedure MachineCenterCalendarWithPeriodTypeAndCapacityUOM(PeriodType: Enum "Analysis Period Type"; Type: Enum "Capacity Unit of Measure"; StartingDate: Date; EndingDate: Date)
+        var
+                WorkCenter: Record "Work Center";
+                MachineCenter: Record "Machine Center";
+                MatrixRecords: array[32] of Record Date;
+                CapacityUnitOfMeasure: Record "Capacity Unit of Measure";
+                MatrixManagement: Codeunit "Matrix Management";
+                MachineCenterCalendar: TestPage "Machine Center Calendar";
+                MatrixColumnCaptions: array[32] of Text[80];
+                ColumnSet: Text;
+                SetPosition: Option Initial,Previous,Same,Next,PreviousColumn,NextColumn;
+                PrimaryKeyFirstRecordInCurrentSet: Text;
+                CurrentSetLength: Integer;
+        begin
+                // Create Work Center and Machine Center.
+                CreateWorkCenter(WorkCenter);
+                SetWorkCenterCapacityUoM(WorkCenter, CapacityUnitOfMeasure.Type::Minutes);
+                CreateMachineCenterCalculateCalendar(
+                    MachineCenter, WorkCenter."No.", LibraryRandom.RandDec(10, 1), 100, StartingDate, EndingDate);
+
+                // Open Machine Center Calendar. Update Period Type and Capacity Unit of Measure.
+                FindCapacityUnitOfMeasure(CapacityUnitOfMeasure, Type);
+                OpenMachineCenterCalendarPage(MachineCenterCalendar, MachineCenter."No.", PeriodType);
+                MachineCenterCalendar.CapacityUoM.SetValue(CapacityUnitOfMeasure.Code);
+
+                // Using Matrix Management to Generate Period Matrix Data.
+                MatrixManagement.GeneratePeriodMatrixData(
+                    SetPosition, ArrayLen(MatrixRecords), false, PeriodType, '', PrimaryKeyFirstRecordInCurrentSet, MatrixColumnCaptions, ColumnSet,
+                    CurrentSetLength, MatrixRecords);
+
+                // Enqueue Values for Page Handler - MachineCenterCalendarMatrixPageHandler.
+                LibraryVariableStorage.Enqueue(MachineCenter."No.");
+                LibraryVariableStorage.Enqueue(MatrixColumnCaptions[1]);
+                LibraryVariableStorage.Enqueue(MatrixColumnCaptions[2]);
+                LibraryVariableStorage.Enqueue(CalculateMachineCenterCapacityEffective(MachineCenter, MatrixRecords[1], CapacityUnitOfMeasure.Code));
+                LibraryVariableStorage.Enqueue(CalculateMachineCenterCapacityEffective(MachineCenter, MatrixRecords[2], CapacityUnitOfMeasure.Code));
+
+                // Exercise and Verify: Open Show Matrix and verify converted values on Machine Center Calendar Matrix page.
+                MachineCenterCalendar.ShowMatrix.Invoke();
+
+                // Tear Down.
+                CleanupCalendarEntry(MachineCenter."Work Center No.");
+        end;
 
     [Test]
     [Scope('OnPrem')]
@@ -803,6 +915,31 @@ codeunit 137076 "SCM Manuf Calendars"
         until WorkCenter.Next() = 0;
     end;
 
+    local procedure CalculateWorkCenterCapacityEffective(var WorkCenter: Record "Work Center"; MatrixRecords: Record Date; CapacityUnitOfMeasureCode: Code[10]) CapacityEffective: Decimal
+    var
+        CalendarManagement: Codeunit "Shop Calendar Management";
+    begin
+        DateFilterOnWorkCenter(WorkCenter, MatrixRecords);
+        CapacityEffective := WorkCenter."Capacity (Effective)";
+        if (CapacityUnitOfMeasureCode <> '') and (WorkCenter."Unit of Measure Code" <> '') then
+            CapacityEffective :=
+              CapacityEffective *
+              CalendarManagement.TimeFactor(WorkCenter."Unit of Measure Code") / CalendarManagement.TimeFactor(CapacityUnitOfMeasureCode);
+    end;
+
+    local procedure CalculateMachineCenterCapacityEffective(var MachineCenter: Record "Machine Center"; MatrixRecords: Record Date; CapacityUnitOfMeasureCode: Code[10]) CapacityEffective: Decimal
+    var
+        WorkCenter: Record "Work Center";
+        CalendarManagement: Codeunit "Shop Calendar Management";
+    begin
+        DateFilterOnMachineCenter(MachineCenter, MatrixRecords);
+        CapacityEffective := MachineCenter."Capacity (Effective)";
+        if (CapacityUnitOfMeasureCode <> '') and (MachineCenter."Work Center No." <> '') and WorkCenter.Get(MachineCenter."Work Center No.") and (WorkCenter."Unit of Measure Code" <> '') then
+            CapacityEffective :=
+              CapacityEffective *
+              CalendarManagement.TimeFactor(WorkCenter."Unit of Measure Code") / CalendarManagement.TimeFactor(CapacityUnitOfMeasureCode);
+    end;
+
     local procedure EnqueueAbsenceEntry(CalendarAbsenceEntry: Record "Calendar Absence Entry")
     begin
         LibraryVariableStorage.Enqueue(CalendarAbsenceEntry."No.");
@@ -824,6 +961,15 @@ codeunit 137076 "SCM Manuf Calendars"
     begin
         CapacityUnitOfMeasure.SetRange(Type, Type);
         CapacityUnitOfMeasure.FindFirst();
+    end;
+
+    local procedure SetWorkCenterCapacityUoM(var WorkCenter: Record "Work Center"; Type: Enum "Capacity Unit of Measure")
+    var
+        CapacityUnitOfMeasure: Record "Capacity Unit of Measure";
+    begin
+        FindCapacityUnitOfMeasure(CapacityUnitOfMeasure, Type);
+        WorkCenter.Validate("Unit of Measure Code", CapacityUnitOfMeasure.Code);
+        WorkCenter.Modify(true);
     end;
 
     local procedure FindFirstWorkDay(var ShopCalendarWorkingDays: Record "Shop Calendar Working Days"; MachineCenterNo: Code[20])
