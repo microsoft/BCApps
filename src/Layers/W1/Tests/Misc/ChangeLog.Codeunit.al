@@ -551,10 +551,12 @@ codeunit 139031 "Change Log"
         CVLedgerEntryBufferToModify.Modify();
 
         // Verify
+#pragma warning disable AA0210
         ChangeLogEntry.SetRange("Table No.", DATABASE::"CV Ledger Entry Buffer");
         ChangeLogEntry.SetRange("Field No.", CVLedgerEntryBuffer.FieldNo(Description));
         ChangeLogEntry.SetRange("Type of Change", ChangeLogEntry."Type of Change"::Modification);
         ChangeLogEntry.SetRange("Record ID", CVLedgerEntryBufferToModify.RecordId);
+#pragma warning restore AA0210
         ChangeLogEntry.FindFirst();
         ChangeLogEntry.TestField("Changed Record SystemId", CVLedgerEntryBuffer.SystemId);
 
