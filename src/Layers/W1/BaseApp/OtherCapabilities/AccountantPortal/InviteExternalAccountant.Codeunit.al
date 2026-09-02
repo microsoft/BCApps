@@ -324,8 +324,8 @@ codeunit 9033 "Invite External Accountant"
 
     local procedure LogInvokeRequestSendFailure(ErrorText: Text)
     begin
-        Session.LogMessage('0000B3Q', InvokeWebRequestSendFailedTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', InviteExternalAccountantTelemetryCategoryTxt);
-        Session.LogMessage('0000B3R', StrSubstNo(InvokeWebRequestSendFailedDetailedTxt, ErrorText), Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', InviteExternalAccountantTelemetryCategoryTxt);
+        Session.LogMessage('', InvokeWebRequestSendFailedTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', InviteExternalAccountantTelemetryCategoryTxt);
+        Session.LogMessage('', StrSubstNo(InvokeWebRequestSendFailedDetailedTxt, ErrorText), Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', InviteExternalAccountantTelemetryCategoryTxt);
     end;
 
     local procedure LogInvokeRequestFailure(HttpStatusCode: Integer; ResponseErrorMessage: Text; ResponseErrorDetails: Text)

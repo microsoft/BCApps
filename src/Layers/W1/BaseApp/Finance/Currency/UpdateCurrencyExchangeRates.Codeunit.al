@@ -135,7 +135,7 @@ codeunit 1281 "Update Currency Exchange Rates"
         if CurrExchRateUpdateSetup."Log Web Requests" then begin
             CustomDimensions.Add('Category', TelemetryCategoryTok);
             CustomDimensions.Add('Url', URL);
-            Session.LogMessage('000089V', WebRequestTxt, Verbosity::Normal, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, CustomDimensions);
+            Session.LogMessage('', WebRequestTxt, Verbosity::Normal, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, CustomDimensions);
         end;
 
         if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
@@ -144,7 +144,7 @@ codeunit 1281 "Update Currency Exchange Rates"
         end;
 
         if CurrExchRateUpdateSetup."Log Web Requests" then
-            Session.LogMessage('000089W', StrSubstNo(WebResponseTxt, HttpResponseMessage.HttpStatusCode()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
+            Session.LogMessage('', StrSubstNo(WebResponseTxt, HttpResponseMessage.HttpStatusCode()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
 
         if not HttpResponseMessage.IsSuccessStatusCode() then begin
             HttpResponseMessage.Content.ReadAs(ResponseErrorText);

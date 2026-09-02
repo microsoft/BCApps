@@ -53,7 +53,7 @@ codeunit 6384 "Graph Client"
         InitializeWebRequest(FolderUrl, 'GET', 'application/json', HttpRequestMessage);
 
         if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
-            Session.LogMessage('0000OB9', GraphSendFailedTelemetryMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryLbl);
+            Session.LogMessage('', GraphSendFailedTelemetryMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryLbl);
             Error(RequestFailedErr, GetLastErrorText());
         end;
 
@@ -88,7 +88,7 @@ codeunit 6384 "Graph Client"
         InitializeWebRequest(FileUrl, 'GET', '', HttpRequestMessage);
 
         if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
-            Session.LogMessage('0000OC0', GraphSendFailedTelemetryMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryLbl);
+            Session.LogMessage('', GraphSendFailedTelemetryMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryLbl);
             Error(RequestFailedErr, GetLastErrorText());
         end;
 
@@ -135,7 +135,7 @@ codeunit 6384 "Graph Client"
         HttpContentHeaders.Add('Content-Type', 'application/json');
         HttpRequestMessage.Content(HttpContent);
         if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
-            Session.LogMessage('0000OC1', GraphSendFailedTelemetryMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryLbl);
+            Session.LogMessage('', GraphSendFailedTelemetryMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryLbl);
             Error(RequestFailedErr, GetLastErrorText());
         end;
 
