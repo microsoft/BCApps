@@ -334,6 +334,11 @@ tableextension 8054 "Sales Line" extends "Sales Line"
         exit(SalesServiceCommitment."Linked to No.");
     end;
 
+    /// <summary>
+    /// Checks whether this sales line is linked to a Subscription Billing Line.
+    /// The result is cached per line, so repeated calls on the same line do not re-query the database.
+    /// </summary>
+    /// <returns>True if a Billing Line exists for this line's document type, document number and line number; otherwise false.</returns>
     procedure IsLineAttachedToBillingLine(): Boolean
     var
         BillingLine: Record "Billing Line";

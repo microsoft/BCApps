@@ -63,6 +63,10 @@ tableextension 8065 "Purchase Line" extends "Purchase Line"
         exit(1);
     end;
 
+    /// <summary>
+    /// Checks whether this purchase line is linked to a Subscription Billing Line.
+    /// </summary>
+    /// <returns>True if a Billing Line exists for this line's document type, document number and line number; otherwise false.</returns>
     procedure IsLineAttachedToBillingLine(): Boolean
     var
         BillingLine: Record "Billing Line";
