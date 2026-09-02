@@ -702,9 +702,7 @@ report 11000004 Docket
                         {
                             CalcFields = Amount, "Remaining Amount";
                             DataItemLink = "Closed by Entry No." = field("Entry No.");
-#pragma warning disable AL0254 // Accepted: NL-local report sorting. "Employee Ledger Entry" has no key on "Closed by Entry No." (unlike Cust./Vendor Ledger Entry); adding one is a schema change tracked separately.
                             DataItemTableView = sorting("Closed by Entry No.");
-#pragma warning restore AL0254
                             column(DescHist_EmplLedgEntry; Description)
                             {
                             }

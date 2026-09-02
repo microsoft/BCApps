@@ -223,9 +223,7 @@ report 110 "Customer - Labels"
                     {
                         ApplicationArea = Suite;
                         Caption = 'Format';
-#pragma warning disable AA0224 // Accepted: Existing option captions intentionally preserve the current request-page choices.
-                        OptionCaption = '36 x 70 mm (3 columns),37 x 70 mm (3 columns),36 x 105 mm (2 columns),37 x 105 mm (2 columns)';
-#pragma warning restore AA0224
+                        OptionCaption = '36 x 70 mm (3 columns),37 x 70 mm (3 columns),36 x 105 mm (2 columns),37 x 105 mm (2 columns),48 x 105 mm (2 columns - Bar Code)';
                         ToolTip = 'Specifies the format of the label.';
                     }
                 }

@@ -800,10 +800,8 @@ report 212 "Sales Prepmt. Document Test"
                     {
                         ApplicationArea = Prepayments;
                         Caption = 'Prepayment Document Type';
-#pragma warning disable AA0224 // Accepted: Existing option captions intentionally preserve the current request-page choices.
-                        OptionCaption = 'Invoice,Credit Memo';
-#pragma warning restore AA0224
-                        ToolTip = 'Specifies whether you want to see test documents for prepayment credit memos or prepayment invoices.';
+                        OptionCaption = 'Invoice,Credit Memo,Statistic';
+                        ToolTip = 'Specifies whether to test a prepayment invoice, credit memo, or statistic calculation.';
                     }
                     field(ShowDimensions; ShowDim)
                     {

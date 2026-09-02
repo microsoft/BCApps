@@ -523,6 +523,9 @@ table 5222 "Employee Ledger Entry"
         key(PmtReconCandidates; "Document Type", Open, "Posting Date")
         {
         }
+        key(Key3; "Closed by Entry No.")
+        {
+        }
     }
 
     fieldgroups
