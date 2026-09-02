@@ -296,6 +296,7 @@ codeunit 6400 "Flow Service Management"
             EnvironmentId := GetFlowEnvironmentID()
         else begin
             // if not, use the linked environment if exists
+            Handled := false;
             OnBeforeGetLinkedPowerPlatformEnvironmentId(LinkedEnvironmentId, Handled);
             if not Handled then
                 LinkedEnvironmentId := EnvironmentInformation.GetLinkedPowerPlatformEnvironmentId();
