@@ -963,12 +963,17 @@ report 412 "Purchase Prepmt. Doc. - Test"
                 group(Options)
                 {
                     Caption = 'Options';
-                    field(PrepaymentDocumentType; DocumentType)
+                    field(PrepaymentDocumentType; RequestDocumentType)
                     {
                         ApplicationArea = Prepayments;
                         Caption = 'Prepayment Document Type';
-                        OptionCaption = 'Invoice,Credit Memo,Statistic';
-                        ToolTip = 'Specifies whether to test a prepayment invoice, credit memo, or statistic calculation.';
+                        OptionCaption = 'Invoice,Credit Memo';
+                        ToolTip = 'Specifies whether to test a prepayment invoice or credit memo.';
+
+                        trigger OnValidate()
+                        begin
+                            DocumentType := RequestDocumentType;
+                        end;
                     }
                     field(ShowDimensions; ShowDim)
                     {
@@ -1027,6 +1032,7 @@ report 412 "Purchase Prepmt. Doc. - Test"
         DocumentErrorsMgt: Codeunit "Document Errors Mgt.";
         DimMgt: Codeunit DimensionManagement;
         DocumentType: Option Invoice,"Credit Memo",Statistic;
+        RequestDocumentType: Option Invoice,"Credit Memo";
         VATAmount: Decimal;
         VATBaseAmount: Decimal;
         ErrorCounter: Integer;
@@ -1173,6 +1179,8 @@ report 412 "Purchase Prepmt. Doc. - Test"
     procedure InitializeRequest(NewDocumentType: Option; NewShowDim: Boolean)
     begin
         DocumentType := NewDocumentType;
+        if NewDocumentType in [DocumentType::Invoice, DocumentType::"Credit Memo"] then
+            RequestDocumentType := NewDocumentType;
         ShowDim := NewShowDim;
     end;
 

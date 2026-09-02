@@ -918,12 +918,17 @@ report 212 "Sales Prepmt. Document Test"
                 group(Options)
                 {
                     Caption = 'Options';
-                    field(PrepaymentDocumentType; DocumentType)
+                    field(PrepaymentDocumentType; RequestDocumentType)
                     {
                         ApplicationArea = Prepayments;
                         Caption = 'Prepayment Document Type';
-                        OptionCaption = 'Invoice,Credit Memo,Statistic';
-                        ToolTip = 'Specifies whether to test a prepayment invoice, credit memo, or statistic calculation.';
+                        OptionCaption = 'Invoice,Credit Memo';
+                        ToolTip = 'Specifies whether to test a prepayment invoice or credit memo.';
+
+                        trigger OnValidate()
+                        begin
+                            DocumentType := RequestDocumentType;
+                        end;
                     }
                     field(ShowDimensions; ShowDim)
                     {
@@ -1007,6 +1012,7 @@ report 212 "Sales Prepmt. Document Test"
         DimText: Text[120];
         ErrorText: array[99] of Text[250];
         DocumentType: Option Invoice,"Credit Memo",Statistic;
+        RequestDocumentType: Option Invoice,"Credit Memo";
         VATAmount: Decimal;
         VATBaseAmount: Decimal;
         ErrorCounter: Integer;
