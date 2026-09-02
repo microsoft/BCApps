@@ -14,7 +14,7 @@ using System.Upgrade;
 /// Seeds during database upgrade and on company open for new tenants provisioned from a
 /// pre-built database image where BaseApp is installed but OnInstallAppPerDatabase may not have run.
 /// </summary>
-codeunit 104066 "Upgrade Composite Report Parts"
+codeunit 104067 "Upgrade Composite Report Parts"
 {
     Subtype = Upgrade;
     Access = Internal;
