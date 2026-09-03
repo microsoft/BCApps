@@ -40,7 +40,6 @@ page 7134 "Travel Requests API"
                 field(requestedBy; Rec."Requested By")
                 {
                     Caption = 'Requested By';
-                    Editable = false;
                 }
                 field(status; Rec.Status)
                 {

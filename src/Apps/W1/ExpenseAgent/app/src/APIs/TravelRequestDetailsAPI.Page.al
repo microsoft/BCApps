@@ -36,6 +36,7 @@ page 7135 "Travel Request Details API"
                 field(travelRequestNo; Rec."Spend Request No.")
                 {
                     Caption = 'Travel Request No.';
+                    ToolTip = 'Specifies the travel request for the detail line.';
                     Editable = false;
                 }
                 field(lineNo; Rec."Line No.")

@@ -235,6 +235,11 @@ page 6928 "Expense Reports API"
                 {
                     Caption = 'Travel Request No.';
                 }
+                field(travelRequestId; Rec."Travel Request SystemId")
+                {
+                    Caption = 'Travel Request Id';
+                    Editable = false;
+                }
                 field(spendRequestClose; Rec."Spend Request Close")
                 {
                     Caption = 'Travel Request Close';
@@ -245,7 +250,7 @@ page 6928 "Expense Reports API"
                     EntityName = 'travelRequest';
                     EntitySetName = 'travelRequests';
                     Multiplicity = ZeroOrOne;
-                    SubPageLink = "No." = field("Spend Request No.");
+                    SubPageLink = SystemId = field("Travel Request SystemId");
                 }
                 part(expenseReportLines; "Expense Report Lines API")
                 {

@@ -577,6 +577,14 @@ table 6906 "Expense Report Header"
             ToolTip = 'Specifies that the travel request will be closed when the expense report is posted.';
             DataClassification = CustomerContent;
         }
+        field(102; "Travel Request SystemId"; Guid)
+        {
+            Caption = 'Travel Request SystemId';
+            ToolTip = 'Specifies the immutable SystemId of the travel request that is associated with this expense report.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = lookup("Spend Request".SystemId where("No." = field("Spend Request No.")));
+        }
     }
 
     keys

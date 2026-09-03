@@ -18,6 +18,7 @@ codeunit 7133 "Travel Request Approval"
     begin
         CheckTravelRequest(SpendRequest);
         SpendRequest.TestStatus(SpendRequest.Status::Open);
+        Submitter.SetLoadFields("Employee No.");
         Submitter.Get(SubmitterExpenseUserNo);
         Submitter.TestField("Employee No.");
         if Submitter."Employee No." <> SpendRequest."Requested By" then
@@ -93,6 +94,7 @@ codeunit 7133 "Travel Request Approval"
         RequestedForFilter := GetRequestedForFilter(ApproverExpenseUserNo);
 
         SpendRequest.SetRange("Approver Expense User Filter");
+        SpendRequest.SetRange(SystemId);
         if RequestedForFilter = '' then
             SpendRequest.SetRange(SystemId, CreateGuid())
         else
@@ -116,6 +118,7 @@ codeunit 7133 "Travel Request Approval"
 
     local procedure CheckApproverPermissions(ApproverExpenseUserNo: Code[20]; var Approver: Record "Expense User")
     begin
+        Approver.SetLoadFields("Can Approve", "User Id For Approvals");
         Approver.Get(ApproverExpenseUserNo);
         Approver.TestField("Can Approve", true);
         Approver.TestField("User Id For Approvals");
