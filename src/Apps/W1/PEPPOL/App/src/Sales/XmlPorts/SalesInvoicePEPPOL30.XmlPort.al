@@ -1308,6 +1308,12 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                 {
                     XmlName = 'AllowanceChargeReasonCode';
                     NamespacePrefix = 'cbc';
+
+                    trigger OnBeforePassVariable()
+                    begin
+                        if AllowanceChargeReasonCodePaymentDiscount = '' then
+                            currXMLport.Skip();
+                    end;
                 }
                 textelement(AllowanceChargeReasonPaymentDiscount)
                 {
