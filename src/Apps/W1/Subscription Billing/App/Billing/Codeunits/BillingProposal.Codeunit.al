@@ -641,8 +641,10 @@ codeunit 8062 "Billing Proposal"
             NextBillingToDate := SupplierChargeEndDate;
 
         CrossingChargeEndDate := ServiceCommitment.GetUsageDataChargeEndDateCrossingPeriodEnd(BillingFromDate, NextBillingToDate);
-        if CrossingChargeEndDate <> 0D then
+        while (CrossingChargeEndDate <> 0D) and (CrossingChargeEndDate > NextBillingToDate) do begin
             NextBillingToDate := CrossingChargeEndDate;
+            CrossingChargeEndDate := ServiceCommitment.GetUsageDataChargeEndDateCrossingPeriodEnd(BillingFromDate, NextBillingToDate);
+        end;
 
         if ServiceCommitment.IsPartnerCustomer() then begin
             CustomerContract.Get(ServiceCommitment."Subscription Contract No.");

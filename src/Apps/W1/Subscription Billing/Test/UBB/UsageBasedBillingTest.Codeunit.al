@@ -2566,6 +2566,49 @@ codeunit 148153 "Usage Based Billing Test"
         Assert.AreEqual(CrossingChargeEndDate + 1, CustomerSubscriptionLine."Next Billing Date", NextBillingDateLbl);
     end;
 
+    [Test]
+    [HandlerFunctions('MessageHandler,CreateCustomerBillingDocumentPageHandler')]
+    procedure ChainedCrossingUsageEntriesAreBilledInOneBillingLine()
+    var
+        CustomerBillingLine: Record "Billing Line";
+        UsageDataBilling: Record "Usage Data Billing";
+        PeriodStartDate: Date;
+        FirstCrossingChargeEndDate: Date;
+        SecondCrossingChargeEndDate: Date;
+        SupplierSubscriptionID: Text;
+    begin
+        // [AI Test]
+        // [SCENARIO 648576] Multiple chained crossing usage entries extend the billing line to cover all chained entries in a single billing line
+
+        // [GIVEN] Three usage entries where each subsequent entry starts before the previous one ends but extends past its end date
+        Initialize();
+        SetupUsageBasedCustomerContractForMonthlyRhythm(PeriodStartDate, SupplierSubscriptionID);
+        FirstCrossingChargeEndDate := CalcDate('<1M>', PeriodStartDate) + 10;
+        SecondCrossingChargeEndDate := CalcDate('<2M>', PeriodStartDate) + 10;
+        AddUsageDataGenericImportForChargePeriod(SupplierSubscriptionID, PeriodStartDate, PeriodStartDate + 17);
+        AddUsageDataGenericImportForChargePeriod(SupplierSubscriptionID, PeriodStartDate + 18, FirstCrossingChargeEndDate);
+        AddUsageDataGenericImportForChargePeriod(SupplierSubscriptionID, FirstCrossingChargeEndDate - 5, SecondCrossingChargeEndDate);
+
+        // [WHEN] The usage data is processed and the customer invoice is created
+        ProcessUsageDataAndCreateCustomerInvoice();
+
+        // [THEN] One billing line covers the whole chained usage period, stretched to the second crossing entry's charge end date
+        FilterCustomerBillingLinesOnSubscription(CustomerBillingLine);
+        Assert.RecordCount(CustomerBillingLine, 1);
+        CustomerBillingLine.FindFirst();
+        Assert.AreEqual(PeriodStartDate, CustomerBillingLine."Billing from", BillingLineStartDateLbl);
+        Assert.AreEqual(SecondCrossingChargeEndDate, CustomerBillingLine."Billing to", BillingLineStretchedEndDateLbl);
+
+        // [THEN] Total amount matches
+        FilterUsageDataBillingOnUsageDataImport(UsageDataBilling, UsageDataImport."Entry No.", "Service Partner"::Customer);
+        UsageDataBilling.CalcSums(Amount);
+        CustomerBillingLine.CalcSums(Amount);
+        Assert.AreEqual(
+            Round(UsageDataBilling.Amount, Currency."Amount Rounding Precision"),
+            Round(CustomerBillingLine.Amount, Currency."Amount Rounding Precision"),
+            BillingLineAmountMismatchLbl);
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Usage Based Billing Test");
