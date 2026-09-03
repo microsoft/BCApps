@@ -127,7 +127,6 @@ page 9660 "Report Layouts"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                    Visible = DocumentReportExperienceEnabled;
                     Caption = 'Subtype';
                     ToolTip = 'Specifies the role of the layout in the Composite Layout Merge: full body (Default), header/footer part, or theme part.';
                 }
@@ -190,7 +189,7 @@ page 9660 "Report Layouts"
                 SubPageLink = "Report ID" = field("Report ID"),
                               Name = field(Name),
                               "Application ID" = field("Application ID");
-                Visible = DocumentReportExperienceEnabled and BodyLayoutSelected;
+                Visible = BodyLayoutSelected;
             }
             systempart(Control11; Notes)
             {
@@ -412,7 +411,6 @@ page 9660 "Report Layouts"
             {
                 Caption = 'Composite layout';
                 Image = Document;
-                Visible = DocumentReportExperienceEnabled;
                 // The assignment page and lookup helper declare RIMD on Tenant Report Layout Cfg (indirect
                 // permission) so the tenant-wide write can happen there. Each action below is gated with
                 // AccessByPermission so only a user who actually holds Modify on that configuration can reach it;
@@ -636,7 +634,6 @@ page 9660 "Report Layouts"
             group(CompositeLayout)
             {
                 Caption = 'Composite layout';
-                Visible = DocumentReportExperienceEnabled;
 
                 actionref(AssignReportDefaults_Promoted; AssignReportDefaults)
                 {
@@ -692,14 +689,11 @@ page 9660 "Report Layouts"
     }
 
     trigger OnOpenPage()
-    var
-        FeatureKeyManagement: Codeunit "Feature Key Management";
     begin
         ReportLayoutsImpl.SetSelectedCompany(CompanyName());
         if CurrPage.LookupMode and (not IncludeUnapproved) then
             Rec.SetRange("Layout Status", Enum::"Report Layout Status"::Approved);
-        DocumentReportExperienceEnabled := FeatureKeyManagement.IsDocumentReportExperienceEnabled();
-        if DocumentReportExperienceEnabled and (not CurrPage.LookupMode) and (ImpliedSubtype = Enum::"Report Layout Subtype"::Default) then begin
+        if (not CurrPage.LookupMode) and (ImpliedSubtype = Enum::"Report Layout Subtype"::Default) then begin
             Rec.FilterGroup(2);
             Rec.SetFilter("Layout Subtype", '<>%1&<>%2', Rec."Layout Subtype"::HeaderFooter, Rec."Layout Subtype"::Theme);
             Rec.FilterGroup(0);
@@ -791,7 +785,6 @@ page 9660 "Report Layouts"
         ShareOptionsVisible: Boolean;
         ShareOptionsEnabled: Boolean;
         CanModifyStatus: Boolean;
-        DocumentReportExperienceEnabled: Boolean;
         WordLayoutSelected: Boolean;
         BodyLayoutSelected: Boolean;
         IncludeUnapproved: Boolean;

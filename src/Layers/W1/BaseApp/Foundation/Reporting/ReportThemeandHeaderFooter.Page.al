@@ -248,12 +248,7 @@ page 9666 "Report Theme and Header/Footer"
     }
 
     trigger OnOpenPage()
-    var
-        FeatureKeyManagement: Codeunit "Feature Key Management";
     begin
-        if not FeatureKeyManagement.IsDocumentReportExperienceEnabled() then
-            Error(FeatureNotEnabledErr);
-
         NewThemeVisible := (not LookupSubtypeSet) or (LookupSubtype = LookupSubtype::Theme);
         NewHeaderFooterVisible := (not LookupSubtypeSet) or (LookupSubtype = LookupSubtype::HeaderFooter);
 
@@ -492,7 +487,6 @@ page 9666 "Report Theme and Header/Footer"
         LookupSubtypeSet: Boolean;
         NewThemeVisible: Boolean;
         NewHeaderFooterVisible: Boolean;
-        FeatureNotEnabledErr: Label 'The Composite Layout feature is gated by the Document Report Experience preview. Enable it in Feature Management before opening this page.';
         CannotDeleteOobErr: Label 'Out-of-box themes and header/footer parts cannot be deleted.';
         CannotReplaceOobErr: Label 'Out-of-box themes and header/footer parts cannot be replaced.';
         CannotEditOobErr: Label 'Out-of-box themes and header/footer parts cannot be edited.';

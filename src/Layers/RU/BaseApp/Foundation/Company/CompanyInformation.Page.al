@@ -603,7 +603,6 @@ page 1 "Company Information"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Default Theme';
-                    Visible = DocumentReportExperienceEnabled;
                     ToolTip = 'Specifies the default theme applied to this company''s Word report layouts when no more specific configuration applies. Use the assist-edit to pick a theme; clear the value to remove it.';
 
                     trigger OnAssistEdit()
@@ -622,7 +621,6 @@ page 1 "Company Information"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Default Header/Footer';
-                    Visible = DocumentReportExperienceEnabled;
                     ToolTip = 'Specifies the default header/footer applied to this company''s Word report layouts when no more specific configuration applies. Use the assist-edit to pick a part; clear the value to remove it.';
 
                     trigger OnAssistEdit()
@@ -947,7 +945,6 @@ page 1 "Company Information"
     var
         ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
         MonitorSensitiveField: Codeunit "Monitor Sensitive Field";
-        FeatureKeyManagement: Codeunit "Feature Key Management";
     begin
         Rec.Reset();
         if not Rec.Get() then begin
@@ -961,9 +958,7 @@ page 1 "Company Information"
 
         BankAcctPostingGroup := CompanyInformationMgt.GetCompanyBankAccountPostingGroup();
 
-        DocumentReportExperienceEnabled := FeatureKeyManagement.IsDocumentReportExperienceEnabled();
-        if DocumentReportExperienceEnabled then
-            LookupHelper.GetCompanyDefaultDisplays(HeaderPartDisplay, ThemePartDisplay);
+        LookupHelper.GetCompanyDefaultDisplays(HeaderPartDisplay, ThemePartDisplay);
     end;
 
     var
@@ -981,7 +976,6 @@ page 1 "Company Information"
         IsShipToCountyVisible: Boolean;
         CompanyBadgeRefreshPageTxt: Label 'The Company Badge settings have changed. Refresh the browser (Ctrl+F5) to update the badge.';
         CompanyBadgeChangedLbl: Label 'The Company badge settings have changed by UserSecurityId %1.', Locked = true;
-        DocumentReportExperienceEnabled: Boolean;
         HeaderPartDisplay: Text;
         ThemePartDisplay: Text;
 

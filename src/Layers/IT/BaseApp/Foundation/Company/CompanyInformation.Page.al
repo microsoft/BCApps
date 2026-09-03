@@ -526,7 +526,6 @@ page 1 "Company Information"
             group(Reporting)
             {
                 Caption = 'Reporting';
-                Visible = DocumentReportExperienceEnabled;
 
                 field(DefaultThemePart; ThemePartDisplay)
                 {
@@ -866,7 +865,6 @@ page 1 "Company Information"
     var
         ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
         MonitorSensitiveField: Codeunit "Monitor Sensitive Field";
-        FeatureKeyManagement: Codeunit "Feature Key Management";
     begin
         Rec.Reset();
         if not Rec.Get() then begin
@@ -880,9 +878,7 @@ page 1 "Company Information"
 
         BankAcctPostingGroup := CompanyInformationMgt.GetCompanyBankAccountPostingGroup();
 
-        DocumentReportExperienceEnabled := FeatureKeyManagement.IsDocumentReportExperienceEnabled();
-        if DocumentReportExperienceEnabled then
-            LookupHelper.GetCompanyDefaultDisplays(HeaderPartDisplay, ThemePartDisplay);
+        LookupHelper.GetCompanyDefaultDisplays(HeaderPartDisplay, ThemePartDisplay);
     end;
 
     var
@@ -900,7 +896,6 @@ page 1 "Company Information"
         IsShipToCountyVisible: Boolean;
         CompanyBadgeRefreshPageTxt: Label 'The Company Badge settings have changed. Refresh the browser (Ctrl+F5) to update the badge.';
         CompanyBadgeChangedLbl: Label 'The Company badge settings have changed by UserSecurityId %1.', Locked = true;
-        DocumentReportExperienceEnabled: Boolean;
         HeaderPartDisplay: Text;
         ThemePartDisplay: Text;
 

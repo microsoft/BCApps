@@ -58,14 +58,12 @@ page 9664 "Tenant Report Layout Selection"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Header/Footer Part';
-                    Visible = DocumentReportExperienceEnabled;
                     ToolTip = 'Specifies the header/footer layout part composed on top of the body layout when this report is rendered. Configured via the Tenant Report Layout Configuration page.';
                 }
                 field(ThemePartDisplay; ThemePartDisplay)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Theme Part';
-                    Visible = DocumentReportExperienceEnabled;
                     ToolTip = 'Specifies the theme layout part whose styles override the merged result when this report is rendered. Configured via the Tenant Report Layout Configuration page.';
                 }
             }
@@ -81,7 +79,6 @@ page 9664 "Tenant Report Layout Selection"
                 ApplicationArea = Basic, Suite;
                 Caption = 'Test composite render';
                 Image = TestReport;
-                Visible = DocumentReportExperienceEnabled;
                 ToolTip = 'Runs the selected report so the Composite Layout Merge can be verified end-to-end against the configured Header/Footer and Theme parts.';
 
                 trigger OnAction()
@@ -109,16 +106,8 @@ page 9664 "Tenant Report Layout Selection"
         ThemePartDisplay := LookupHelper.DecodeLayoutName(Rec."Theme Part Name");
     end;
 
-    trigger OnOpenPage()
-    var
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-    begin
-        DocumentReportExperienceEnabled := FeatureKeyManagement.IsDocumentReportExperienceEnabled();
-    end;
-
     var
         LookupHelper: Codeunit "Composite Layout Lookup Helper";
-        DocumentReportExperienceEnabled: Boolean;
         HeaderPartDisplay: Text;
         ThemePartDisplay: Text;
         SelectReportFirstErr: Label 'Select a row with a Report ID before running a test render.';
