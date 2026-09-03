@@ -2193,7 +2193,8 @@ codeunit 134897 "ERM Source Currency"
         GeneralLedgerSetup.Get();
         if GeneralLedgerSetup."Additional Reporting Currency" <> '' then
             GeneralLedgerSetup."Additional Reporting Currency" := '';
-        GeneralLedgerSetup.Modify();
+            GeneralLedgerSetup.Modify();
+        end;
 
         // [GIVEN] A dedicated VAT Posting Setup, so only this test's VAT Entries are settled.
         LibraryERM.CreateVATPostingSetupWithAccounts(
