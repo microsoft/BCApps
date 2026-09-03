@@ -19,6 +19,8 @@ permissionset 30470 "Shpfy TMA"
         tabledata "Tax Area Line" = rimd,
         tabledata "Tax Detail" = rimd,
         tabledata "Tax Jurisdiction" = rimd,
+        page "Shpfy TMA Review" = X,
+        page "Shpfy TMA Order Tax Lines Part" = X,
         codeunit "Shpfy TMA Register" = X,
         codeunit "Shpfy TMA Matcher" = X,
         codeunit "Shpfy Tax Area Builder" = X,
@@ -26,5 +28,6 @@ permissionset 30470 "Shpfy TMA"
         codeunit "Shpfy Tax Match Function" = X,
         codeunit "Shpfy TMA Install" = X,
         codeunit "Shpfy TMA Upgrade" = X,
-        codeunit "Shpfy TMA Activity Log" = X;
+        codeunit "Shpfy TMA Activity Log" = X,
+        codeunit "Shpfy TMA Notify" = X;
 }

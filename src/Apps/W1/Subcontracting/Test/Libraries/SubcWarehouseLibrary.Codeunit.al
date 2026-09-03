@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
@@ -37,6 +39,7 @@ codeunit 149908 "Subc. Warehouse Library"
 
     var
         LibraryInventory: Codeunit "Library - Inventory";
+        LibraryERM: Codeunit "Library - ERM";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryPurchase: Codeunit "Library - Purchase";
@@ -1474,5 +1477,152 @@ codeunit 149908 "Subc. Warehouse Library"
         ReturnTransferLine."Subc. Operation No." := PurchaseLine."Operation No.";
         ReturnTransferLine."Subc. Return Order" := true;
         ReturnTransferLine.Modify();
+    end;
+
+    /// <summary>
+    /// Creates work and machine centers with detailed cost setup (Direct Unit Cost, Indirect Cost %,
+    /// Overhead Rate, Unit Cost Calculation). Preserves the original SubcSubcontractingTest behaviour
+    /// where the first work center is never a subcontractor.
+    /// </summary>
+    procedure CreateAndCalculateNeededWorkAndMachineCenter(var WorkCenter: array[2] of Record "Work Center"; var MachineCenter: array[2] of Record "Machine Center"; IsSubcontracting: Boolean; UnitCostCalc: Option Time,Units)
+    var
+        CapacityUnitOfMeasure: Record "Capacity Unit of Measure";
+        ShopCalendarCode: Code[10];
+        MachineCenterNo: Code[20];
+        MachineCenterNo2: Code[20];
+        WorkCenterNo: Code[20];
+        WorkCenterNo2: Code[20];
+    begin
+        LibraryManufacturing.CreateCapacityUnitOfMeasure(CapacityUnitOfMeasure, "Capacity Unit of Measure"::Minutes);
+        ShopCalendarCode := LibraryManufacturing.UpdateShopCalendarWorkingDays();
+
+        CreateWorkCenterForTest(WorkCenterNo, ShopCalendarCode, "Flushing Method"::"Pick + Manual", not IsSubcontracting, UnitCostCalc, '');
+        WorkCenter[1].Get(WorkCenterNo);
+        LibraryManufacturing.CalculateWorkCenterCalendar(WorkCenter[1], CalcDate('<-CY-1Y>', WorkDate()), CalcDate('<CM>', WorkDate()));
+
+        SubcLibraryMfgManagement.CreateMachineCenter(MachineCenterNo, WorkCenterNo, "Flushing Method"::"Pick + Manual".AsInteger());
+        MachineCenter[1].Get(MachineCenterNo);
+        LibraryManufacturing.CalculateMachCenterCalendar(MachineCenter[1], CalcDate('<-CY-1Y>', WorkDate()), CalcDate('<CM>', WorkDate()));
+
+        SubcLibraryMfgManagement.CreateMachineCenter(MachineCenterNo2, WorkCenterNo, "Flushing Method"::"Pick + Manual".AsInteger());
+        MachineCenter[2].Get(MachineCenterNo2);
+        LibraryManufacturing.CalculateMachCenterCalendar(MachineCenter[2], CalcDate('<-CY-1Y>', WorkDate()), CalcDate('<CM>', WorkDate()));
+
+        if IsSubcontracting then
+            CreateWorkCenterForTest(WorkCenterNo2, ShopCalendarCode, "Flushing Method"::"Pick + Manual", IsSubcontracting, UnitCostCalc, '')
+        else
+            CreateWorkCenterForTest(WorkCenterNo2, ShopCalendarCode, "Flushing Method"::"Pick + Manual", not IsSubcontracting, UnitCostCalc, '');
+        WorkCenter[2].Get(WorkCenterNo2);
+        LibraryManufacturing.CalculateWorkCenterCalendar(WorkCenter[2], CalcDate('<-CY-1Y>', WorkDate()), CalcDate('<CM>', WorkDate()));
+    end;
+
+    /// <summary>
+    /// Creates a production item with routing and BOM using detailed cost fields on both
+    /// the item and its components (Overhead Rate, Indirect Cost %, Lot-for-Lot reorder policy,
+    /// Pick + Manual flushing). Preserves original SubcSubcontractingTest behaviour.
+    /// </summary>
+    procedure CreateItemForProductionWithCostOverrides(var Item: Record Item; var WorkCenter: array[2] of Record "Work Center"; var MachineCenter: array[2] of Record "Machine Center")
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ProductionBOMHeader: Record "Production BOM Header";
+        NoSeries: Codeunit "No. Series";
+        ItemNo: Code[20];
+        ItemNo2: Code[20];
+        ProductionBOMNo: Code[20];
+        RoutingNo: Code[20];
+    begin
+        ManufacturingSetup.SetLoadFields("Routing Nos.");
+        ManufacturingSetup.Get();
+        RoutingNo := NoSeries.GetNextNo(ManufacturingSetup."Routing Nos.", WorkDate(), true);
+
+        SubcLibraryMfgManagement.CreateRouting(RoutingNo, MachineCenter[1]."No.", MachineCenter[2]."No.", WorkCenter[1]."No.", WorkCenter[2]."No.");
+
+        CreateItemForTest(Item, "Costing Method"::FIFO, "Reordering Policy"::"Lot-for-Lot", "Flushing Method"::"Pick + Manual", '', '');
+        ItemNo := Item."No.";
+        Clear(Item);
+        CreateItemForTest(Item, "Costing Method"::FIFO, "Reordering Policy"::"Lot-for-Lot", "Flushing Method"::"Pick + Manual", '', '');
+        ItemNo2 := Item."No.";
+        Clear(Item);
+
+        ProductionBOMNo := LibraryManufacturing.CreateCertifProdBOMWithTwoComp(ProductionBOMHeader, ItemNo, ItemNo2, 1);
+
+        CreateItemForTest(Item, "Costing Method"::FIFO, "Reordering Policy"::"Lot-for-Lot", "Flushing Method"::"Pick + Manual", RoutingNo, ProductionBOMNo);
+    end;
+
+    /// <summary>
+    /// Links a routing line and a production BOM line through a routing link whose code
+    /// is derived from the production BOM number. Preserves original SubcSubcontractingTest behaviour.
+    /// </summary>
+    procedure UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item: Record Item; WorkCenterNo: Code[20])
+    var
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionBOMLine: Record "Production BOM Line";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        RoutingLink: Record "Routing Link";
+    begin
+        RoutingLink.Init();
+        RoutingLink.Validate(Code, CopyStr(Item."Production BOM No.", 1, 10));
+        RoutingLink.Insert(true);
+
+        RoutingHeader.Get(Item."Routing No.");
+        RoutingHeader.Validate(Status, RoutingHeader.Status::New);
+        RoutingHeader.Modify(true);
+
+        RoutingLine.SetRange("Routing No.", RoutingHeader."No.");
+        RoutingLine.SetRange(Type, RoutingLine.Type::"Work Center");
+        RoutingLine.SetRange("No.", WorkCenterNo);
+        RoutingLine.FindFirst();
+        RoutingLine.Validate("Routing Link Code", RoutingLink.Code);
+        RoutingLine.Modify(true);
+
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+
+        ProductionBOMHeader.Get(Item."Production BOM No.");
+        ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::New);
+        ProductionBOMHeader.Modify(true);
+
+        ProductionBOMLine.SetRange("Production BOM No.", ProductionBOMHeader."No.");
+        ProductionBOMLine.FindLast();
+        ProductionBOMLine.Validate("Routing Link Code", RoutingLink.Code);
+        ProductionBOMLine.Modify(true);
+
+        ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::Certified);
+        ProductionBOMHeader.Modify(true);
+    end;
+
+    local procedure CreateWorkCenterForTest(var WorkCenterNo: Code[20]; ShopCalendarCode: Code[10]; FlushingMethod: Enum "Flushing Method"; Subcontract: Boolean; UnitCostCalc: Option; CurrencyCode: Code[10])
+    var
+        GenProductPostingGroup: Record "Gen. Product Posting Group";
+        VATPostingSetup: Record "VAT Posting Setup";
+        WorkCenter: Record "Work Center";
+    begin
+        SubcLibraryMfgManagement.CreateWorkCenterWithFixedCost(WorkCenter, ShopCalendarCode, 0);
+
+        WorkCenter.Validate("Flushing Method", FlushingMethod);
+        WorkCenter.Validate("Direct Unit Cost", LibraryRandom.RandDec(10, 2));
+        WorkCenter.Validate("Indirect Cost %", LibraryRandom.RandDec(5, 1));
+        WorkCenter.Validate("Overhead Rate", LibraryRandom.RandDec(5, 1));
+        WorkCenter.Validate("Unit Cost Calculation", UnitCostCalc);
+
+        if Subcontract then begin
+            LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+            GenProductPostingGroup.FindFirst();
+            GenProductPostingGroup.Validate("Def. VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+            GenProductPostingGroup.Modify(true);
+            WorkCenter.Validate("Subcontractor No.", SubcLibraryMfgManagement.CreateSubcontractorWithCurrency(CurrencyCode));
+        end;
+        WorkCenter.Modify(true);
+        WorkCenterNo := WorkCenter."No.";
+    end;
+
+    local procedure CreateItemForTest(var Item: Record Item; ItemCostingMethod: Enum "Costing Method"; ItemReorderPolicy: Enum "Reordering Policy"; FlushingMethod: Enum "Flushing Method"; RoutingNo: Code[20]; ProductionBOMNo: Code[20])
+    begin
+        LibraryManufacturing.CreateItemManufacturing(
+          Item, ItemCostingMethod, LibraryRandom.RandInt(10), ItemReorderPolicy, FlushingMethod, RoutingNo, ProductionBOMNo);
+        Item.Validate("Overhead Rate", LibraryRandom.RandDec(5, 2));
+        Item.Validate("Indirect Cost %", LibraryRandom.RandDec(5, 2));
+        Item.Modify(true);
     end;
 }
