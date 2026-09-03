@@ -2190,6 +2190,7 @@ codeunit 134897 "ERM Source Currency"
         GeneralLedgerSetup.Get();
         if GeneralLedgerSetup."Additional Reporting Currency" <> '' then begin
             GeneralLedgerSetup."Additional Reporting Currency" := '';
+            GeneralLedgerSetup."Last Settlement Date" := WorkDate() - 30;
             GeneralLedgerSetup.Modify();
         end;
 
