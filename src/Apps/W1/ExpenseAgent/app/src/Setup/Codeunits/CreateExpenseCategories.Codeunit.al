@@ -1213,7 +1213,7 @@ codeunit 6973 "Create Expense Categories"
         XHotelIncidentsDescTxt: Label 'Expenses charged by the hotel for damages, penalties, or incident-related costs incurred during the stay, such as broken items or cleaning charges.', MaxLength = 250;
         XLAUNDRYTxt: Label 'LAUNDRY', Locked = true;
         XHotelLaundryDescTxt: Label 'Expenses for laundry, dry-cleaning, or pressing services provided by the hotel during a business trip.', MaxLength = 250;
-        XROOMSERVICETxt: Label 'ROOM-SERVICE', Locked = true;
+        XROOMSERVICETxt: Label 'ROOM-SER', Locked = true;
         XHotelRoomServiceDescTxt: Label 'Expenses for meals, minibar items, and beverages provided via hotel room service during a business stay.', MaxLength = 250;
         XHotelParkingDescTxt: Label 'Expenses for valet or self-parking services provided by the hotel during a business stay.', MaxLength = 250;
         XHotelOtherDescTxt: Label 'Hotel-related expenses incurred during a business stay that do not fall into defined hotel subcategories.', MaxLength = 250;
