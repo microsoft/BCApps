@@ -17,6 +17,10 @@ codeunit 104067 "Upgrade Composite Report Parts"
 {
     Subtype = Upgrade;
     Access = Internal;
+    // The OnAfterInitialization subscriber runs for every user at company open, so the codeunit must be executable
+    // without an assigned permission set carrying it. The seeding itself stays gated by the write-permission check.
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     trigger OnUpgradePerDatabase()
     begin

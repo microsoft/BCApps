@@ -461,14 +461,15 @@ codeunit 134619 "Composite Layout Tests"
 
     [Test]
     [Scope('OnPrem')]
-    procedure SeedingShippedPartsRecordsTheTagWithoutTheGuard()
+    procedure SeedingShippedPartsRecordsTheTagAndExitsOnRerun()
     var
         UpgradeCompositeReportParts: Codeunit "Upgrade Composite Report Parts";
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
     begin
-        // [SCENARIO] SeedShippedParts is the entry point the per-database install uses: it seeds and records the tag
-        // without the guard RunUpgrade applies, so a fresh database ends up with a complete pool and a recorded tag.
+        // [SCENARIO] SeedShippedParts is the entry point the per-database install uses: it seeds and records the tag,
+        // and a rerun exits on the tag guard so install cannot insert the tag twice when the company-open
+        // subscriber already seeded in the same install.
         Initialize();
 
         // [GIVEN] One shipped part missing. Initialize already cleared the tag.
@@ -492,6 +493,18 @@ codeunit 134619 "Composite Layout Tests"
         Assert.IsTrue(
             UpgradeTag.HasDatabaseUpgradeTag(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()),
             'Seeding should record the composite report parts upgrade tag.');
+
+        // [GIVEN] The part is removed again while the tag stays in place.
+        RemoveShippedPart(InternalDefaultTok);
+
+        // [WHEN] The install entry point runs a second time, as it does when the company-open subscriber
+        // already seeded earlier in the same install.
+        UpgradeCompositeReportParts.SeedShippedParts();
+
+        // [THEN] The tag guard exits before seeding, so the removed part stays absent and no second tag insert happens.
+        Assert.IsFalse(
+            ShippedPartExists(InternalDefaultTok, Enum::"Report Layout Subtype"::HeaderFooter),
+            'A rerun of SeedShippedParts should exit on the tag guard instead of seeding again.');
 
         // Cleared again so the suite does not hand the tag on to whatever runs next in this database.
         ClearCompositeReportPartsUpgradeTag();

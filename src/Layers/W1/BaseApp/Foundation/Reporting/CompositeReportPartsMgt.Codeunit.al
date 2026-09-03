@@ -129,13 +129,17 @@ codeunit 9667 "Composite Report Parts Mgt."
         ReportLayoutList: Record "Report Layout List";
         CompositeLayoutLookupHelper: Codeunit "Composite Layout Lookup Helper";
     begin
-ReportLayoutList.SetRange("Report ID", CompositeLayoutLookupHelper.GetTenantReportDefaultsReportID());
-ReportLayoutList.SetRange(Name, CopyStr(PartName, 1, MaxStrLen(ReportLayoutList.Name)));
-ReportLayoutList.SetRange("Layout Subtype", Subtype);
-ReportLayoutList.SetRange("Application ID", GetShippedPartAppId());
-ReportLayoutList.SetLoadFields("Application ID", Name, "Layout Subtype");
-        if ReportLayoutList.FindFirst() then
-            CompositeLayoutLookupHelper.ClearPartAssignments(ReportLayoutList);
+        // No Application ID filter: Report Layout List surfaces tenant layouts with a blank Application ID, and
+        // assignments are encoded from that view, so filtering on the shipped App ID would miss the rows that
+        // actually reference the part. Clear the assignments of every matching row instead.
+        ReportLayoutList.SetRange("Report ID", CompositeLayoutLookupHelper.GetTenantReportDefaultsReportID());
+        ReportLayoutList.SetRange(Name, CopyStr(PartName, 1, MaxStrLen(ReportLayoutList.Name)));
+        ReportLayoutList.SetRange("Layout Subtype", Subtype);
+        ReportLayoutList.SetLoadFields("Application ID", Name, "Layout Subtype");
+        if ReportLayoutList.FindSet() then
+            repeat
+                CompositeLayoutLookupHelper.ClearPartAssignments(ReportLayoutList);
+            until ReportLayoutList.Next() = 0;
     end;
 
     internal procedure GetShippedPartAppId() AppId: Guid
