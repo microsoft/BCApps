@@ -1862,6 +1862,9 @@ codeunit 137931 "SCM - Movement"
         WhseWorksheetLine.Validate("To Bin Code", ToBinCode);
         WhseWorksheetLine.Validate(Quantity, Qty);
         WhseWorksheetLine.Modify(true);
+        // Filter so the report only picks up this line, not stray lines left behind for other locations.
+        WhseWorksheetLine.SetRange("Location Code", LocationCode);
+        WhseWorksheetLine.SetRange("Item No.", ItemNo);
         LibraryWarehouse.WhseSourceCreateDocument(WhseWorksheetLine, "Whse. Activity Sorting Method"::None, false, false, false);
         WarehouseActivityHeader.SetRange(Type, WarehouseActivityHeader.Type::Movement);
         WarehouseActivityHeader.SetRange("Location Code", LocationCode);
