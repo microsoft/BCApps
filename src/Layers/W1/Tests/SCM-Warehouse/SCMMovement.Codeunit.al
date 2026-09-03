@@ -1271,8 +1271,8 @@ codeunit 137931 "SCM - Movement"
         Index: Integer;
     begin
         // [FEATURE] [Movement Worksheet] [FEFO] [Item Tracking] [Pick]
-        // [SCENARIO 648223] Create Movement from Movement Worksheet for a FEFO lot-tracked item does not over-allocate the earliest lot
-        // [SCENARIO 648223] when its remaining quantity is picked-not-shipped and reserved by a pending pick.
+        // [SCENARIO 648630] Create Movement from Movement Worksheet for a FEFO lot-tracked item does not over-allocate the earliest lot
+        // [SCENARIO 648630] when its remaining quantity is picked-not-shipped and reserved by a pending pick.
         Initialize();
         for Index := 1 to ArrayLen(LotNo) do begin
             LotNo[Index] := LibraryUtility.GenerateGUID();
