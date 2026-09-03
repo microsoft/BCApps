@@ -938,6 +938,19 @@ codeunit 6140 "E-Doc. Import"
     local procedure OnAfterPrepareReceivedDoc(var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob"; SourceDocumentHeader: RecordRef; SourceDocumentLine: RecordRef; TempEDocMapping: Record "E-Doc. Mapping" temporary);
     begin
     end;
+#if not CLEAN27
+    [Obsolete('This event is not raised.', '27.0')]
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeUpdateDocument(var EDocument: Record "E-Document"; var TempDocumentHeader: RecordRef; var TempDocumentLine: RecordRef; var DocumentHeader: RecordRef)
+    begin
+    end;
+
+    [Obsolete('This event is not raised.', '27.0')]
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterUpdateDocument(var EDocument: Record "E-Document"; var TempDocumentHeader: RecordRef; var TempDocumentLine: RecordRef; var DocumentHeader: RecordRef)
+    begin
+    end;
+#endif
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateDocument(var EDocument: Record "E-Document"; var TempDocumentHeader: RecordRef; var TempDocumentLine: RecordRef; var DocumentHeader: RecordRef)
     begin

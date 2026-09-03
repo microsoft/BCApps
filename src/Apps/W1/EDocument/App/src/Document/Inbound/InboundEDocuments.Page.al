@@ -257,6 +257,27 @@ page 6105 "Inbound E-Documents"
                     NewFromFile(Files);
                 end;
             }
+#if not CLEAN27
+#pragma warning disable AA0194, AL0432
+            action(ViewMailMessage)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'View e-mail message';
+                ToolTip = 'View the source e-mail message.';
+                Image = Email;
+                Visible = EmailVisibilityFlag;
+                ObsoleteReason = 'Will be removed in future versions';
+                ObsoleteState = Pending;
+                ObsoleteTag = '27.0';
+
+                trigger OnAction()
+                var
+                begin
+                    // Temporary solution to keep page not extensible.
+                end;
+            }
+#pragma warning restore AA0194
+#endif
             action(AnalyzeDocument)
             {
                 ApplicationArea = Basic, Suite;
@@ -380,6 +401,14 @@ page 6105 "Inbound E-Documents"
                 }
             }
             actionref(Promoted_ViewFile; ViewFile) { }
+#if not CLEAN27
+            actionref(Promoted_ViewMailMessage; ViewMailMessage)
+            {
+                ObsoleteReason = 'Will be removed in future versions';
+                ObsoleteState = Pending;
+                ObsoleteTag = '27.0';
+            }
+#endif
             actionref(Promoted_EDocumentServices; EDocumentServices) { }
         }
     }
@@ -421,6 +450,9 @@ page 6105 "Inbound E-Documents"
         HasPdf := false;
         if EDocDataStorage.Get(Rec."Unstructured Data Entry No.") then
             HasPdf := EDocDataStorage."File Format" = Enum::"E-Doc. File Format"::PDF;
+#if not CLEAN27
+        SetEmailActionsVisibility();
+#endif
     end;
 
     local procedure PopulateSenderName()
@@ -587,6 +619,12 @@ page 6105 "Inbound E-Documents"
             DocumentTypeStyleTxt := 'Ambiguous';
     end;
 
+#if not CLEAN27
+    local procedure SetEmailActionsVisibility()
+    begin
+        EmailVisibilityFlag := Rec.GetEDocumentService()."Service Integration V2".AsInteger() = 6383; // Outlook Integration
+    end;
+#endif
 
     var
         EDocDataStorage: Record "E-Doc. Data Storage";
@@ -597,4 +635,7 @@ page 6105 "Inbound E-Documents"
         RecordLinkTxt, DocumentNameTxt, DocumentTypeStyleTxt, ConfirmedVendorTxt, AgentTaskStatus : Text;
         SenderNameTxt: Text;
         HasPdf: Boolean;
+#if not CLEAN27
+        EmailVisibilityFlag: Boolean;
+#endif
 }
