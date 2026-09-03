@@ -97,6 +97,9 @@ codeunit 20534 "Subc. Purchase Line Ext"
         if Rec.IsTemporary() then
             exit;
 
+        if GetExecutionContext() = ExecutionContext::Upgrade then
+            exit;
+
         if Rec."Planned Receipt Date" = xRec."Planned Receipt Date" then
             exit;
 
@@ -113,6 +116,9 @@ codeunit 20534 "Subc. Purchase Line Ext"
             exit;
 #endif
         if Rec.IsTemporary() then
+            exit;
+
+        if GetExecutionContext() = ExecutionContext::Upgrade then
             exit;
 
         if Rec."Order Date" = xRec."Order Date" then
