@@ -10,9 +10,6 @@ using Microsoft.Foundation.Reporting;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using System;
-#if not CLEAN27
-using System.IO;
-#endif
 using System.Threading;
 using System.Utilities;
 
@@ -60,19 +57,6 @@ codeunit 260 "Document-Mailing"
     end;
 
 
-#if not CLEAN27
-    [Obsolete('Use procedure EmailFile that accepts a "Temp Blob" for the html body instead.', '27.0')]
-    procedure EmailFile(AttachmentStream: Instream; AttachmentName: Text; HtmlBodyFilePath: Text; EmailSubject: Text; ToEmailAddress: Text; HideDialog: Boolean; EmailScenario: Enum "Email Scenario"): Boolean
-    var
-        FileManagement: Codeunit "File Management";
-        HtmlBody: Codeunit "Temp Blob";
-    begin
-        if HtmlBodyFilePath <> '' then
-            FileManagement.BLOBImportFromServerFile(HtmlBody, HtmlBodyFilePath);
-
-        exit(EmailFile(AttachmentStream, AttachmentName, HtmlBody, EmailSubject, ToEmailAddress, HideDialog, EmailScenario));
-    end;
-#endif
     procedure EmailFile(AttachmentStream: Instream; AttachmentName: Text; var HtmlBody: Codeunit "Temp Blob"; EmailSubject: Text; ToEmailAddress: Text; HideDialog: Boolean; EmailScenario: Enum "Email Scenario"): Boolean
     var
         TempEmailItem: Record "Email Item" temporary;
@@ -95,18 +79,6 @@ codeunit 260 "Document-Mailing"
             false));
     end;
 
-#if not CLEAN27
-    [Obsolete('Use procedure EmailFile that accepts a "Temp Blob" for the html body instead.', '27.0')]
-    procedure EmailFile(AttachmentStream: Instream; AttachmentName: Text; HtmlBodyFilePath: Text[250]; PostedDocNo: Code[20]; ToEmailAddress: Text[250]; EmailDocName: Text[250]; HideDialog: Boolean; ReportUsage: Integer): Boolean
-    var
-        FileManagement: Codeunit "File Management";
-        HtmlBody: Codeunit "Temp Blob";
-    begin
-        if HtmlBodyFilePath <> '' then
-            FileManagement.BLOBImportFromServerFile(HtmlBody, HtmlBodyFilePath);
-        exit(EmailFile(AttachmentStream, AttachmentName, HtmlBody, PostedDocNo, ToEmailAddress, EmailDocName, HideDialog, ReportUsage));
-    end;
-#endif
 
     procedure EmailFile(AttachmentStream: Instream; AttachmentName: Text; var HtmlBody: Codeunit "Temp Blob"; PostedDocNo: Code[20]; ToEmailAddress: Text[250]; EmailDocName: Text[250]; HideDialog: Boolean; ReportUsage: Integer): Boolean
     var
@@ -129,18 +101,6 @@ codeunit 260 "Document-Mailing"
             false));
     end;
 
-#if not CLEAN27
-    [Obsolete('Use procedure EmailFile that accepts a "Temp Blob" for the html body instead.', '27.0')]
-    procedure EmailFile(AttachmentStream: Instream; AttachmentName: Text; HtmlBodyFilePath: Text; EmailSubject: Text; ToEmailAddress: Text; HideDialog: Boolean; EmailScenario: Enum "Email Scenario"; SourceReference: RecordRef): Boolean
-    var
-        FileManagement: Codeunit "File Management";
-        HtmlBody: Codeunit "Temp Blob";
-    begin
-        if HtmlBodyFilePath <> '' then
-            FileManagement.BLOBImportFromServerFile(HtmlBody, HtmlBodyFilePath);
-        exit(EmailFile(AttachmentStream, AttachmentName, HtmlBody, EmailSubject, ToEmailAddress, HideDialog, EmailScenario, SourceReference));
-    end;
-#endif
 
     procedure EmailFile(AttachmentStream: Instream; AttachmentName: Text; var HtmlBody: Codeunit "Temp Blob"; EmailSubject: Text; ToEmailAddress: Text; HideDialog: Boolean; EmailScenario: Enum "Email Scenario"; SourceReference: RecordRef): Boolean
     var
@@ -166,18 +126,6 @@ codeunit 260 "Document-Mailing"
             false));
     end;
 
-#if not CLEAN27
-    [Obsolete('Use procedure EmailFile that accepts a "Temp Blob" for the html body instead.', '27.0')]
-    procedure EmailFile(AttachmentStream: Instream; AttachmentName: Text; HtmlBodyFilePath: Text; EmailSubject: Text; ToEmailAddress: Text; HideDialog: Boolean; EmailScenario: Enum "Email Scenario"; SourceTables: List of [Integer]; SourceIDs: List of [Guid]; SourceRelationTypes: List of [Integer]): Boolean
-    var
-        FileManagement: Codeunit "File Management";
-        HtmlBody: Codeunit "Temp Blob";
-    begin
-        if HtmlBodyFilePath <> '' then
-            FileManagement.BLOBImportFromServerFile(HtmlBody, HtmlBodyFilePath);
-        exit(EmailFile(AttachmentStream, AttachmentName, HtmlBody, EmailSubject, ToEmailAddress, HideDialog, EmailScenario, SourceTables, SourceIDs, SourceRelationTypes));
-    end;
-#endif
 
     procedure EmailFile(AttachmentStream: Instream; AttachmentName: Text; var HtmlBody: Codeunit "Temp Blob"; EmailSubject: Text; ToEmailAddress: Text; HideDialog: Boolean; EmailScenario: Enum "Email Scenario"; SourceTables: List of [Integer]; SourceIDs: List of [Guid]; SourceRelationTypes: List of [Integer]): Boolean
     var
@@ -201,18 +149,6 @@ codeunit 260 "Document-Mailing"
             false));
     end;
 
-#if not CLEAN27
-    [Obsolete('Use procedure EmailFile that accepts a "Temp Blob" for the html body instead.', '27.0')]
-    procedure EmailFile(AttachmentStream: Instream; AttachmentName: Text; HtmlBodyFilePath: Text[250]; PostedDocNo: Code[20]; ToEmailAddress: Text[250]; EmailDocName: Text[250]; HideDialog: Boolean; ReportUsage: Integer; SourceReference: RecordRef): Boolean
-    var
-        FileManagement: Codeunit "File Management";
-        HtmlBody: Codeunit "Temp Blob";
-    begin
-        if HtmlBodyFilePath <> '' then
-            FileManagement.BLOBImportFromServerFile(HtmlBody, HtmlBodyFilePath);
-        exit(EmailFile(AttachmentStream, AttachmentName, HtmlBody, PostedDocNo, ToEmailAddress, EmailDocName, HideDialog, ReportUsage, SourceReference));
-    end;
-#endif
 
     procedure EmailFile(AttachmentStream: Instream; AttachmentName: Text; var HtmlBody: Codeunit "Temp Blob"; PostedDocNo: Code[20]; ToEmailAddress: Text[250]; EmailDocName: Text[250]; HideDialog: Boolean; ReportUsage: Integer; SourceReference: RecordRef): Boolean
     var
@@ -265,18 +201,6 @@ codeunit 260 "Document-Mailing"
             false));
     end;
 
-#if not CLEAN27
-    [Obsolete('Use procedure EmailFile that accepts a "Temp Blob" for the html body instead.', '27.0')]
-    procedure EmailFile(AttachmentStream: Instream; AttachmentName: Text; HtmlBodyFilePath: Text[250]; PostedDocNo: Code[20]; ToEmailAddress: Text[250]; EmailDocName: Text[250]; HideDialog: Boolean; ReportUsage: Integer; SourceTables: List of [Integer]; SourceIDs: List of [Guid]; SourceRelationTypes: List of [Integer]): Boolean
-    var
-        FileManagement: Codeunit "File Management";
-        HtmlBody: Codeunit "Temp Blob";
-    begin
-        if HtmlBodyFilePath <> '' then
-            FileManagement.BLOBImportFromServerFile(HtmlBody, HtmlBodyFilePath);
-        exit(EmailFile(AttachmentStream, AttachmentName, HtmlBody, PostedDocNo, ToEmailAddress, EmailDocName, HideDialog, ReportUsage, SourceTables, SourceIDs, SourceRelationTypes));
-    end;
-#endif
 
     procedure EmailFile(AttachmentStream: Instream; AttachmentName: Text; var EmailBody: Codeunit "Temp Blob"; PostedDocNo: Code[20]; ToEmailAddress: Text[250]; EmailDocName: Text[250]; HideDialog: Boolean; ReportUsage: Integer; SourceTables: List of [Integer]; SourceIDs: List of [Guid]; SourceRelationTypes: List of [Integer]): Boolean
     var
@@ -350,18 +274,6 @@ codeunit 260 "Document-Mailing"
             false));
     end;
 
-#if not CLEAN27
-    [Obsolete('Use procedure EmailFileWithSubjectAndReportUsage that accepts a "Temp Blob" for the html body instead.', '27.0')]
-    procedure EmailFileWithSubjectAndReportUsage(AttachmentStream: InStream; AttachmentName: Text; HtmlBodyFilePath: Text[250]; EmailSubject: Text[250]; PostedDocNo: Code[20]; ToEmailAddress: Text[250]; EmailDocName: Text[250]; HideDialog: Boolean; ReportUsage: Integer): Boolean
-    var
-        FileManagement: Codeunit "File Management";
-        HtmlBody: Codeunit "Temp Blob";
-    begin
-        if HtmlBodyFilePath <> '' then
-            FileManagement.BLOBImportFromServerFile(HtmlBody, HtmlBodyFilePath);
-        exit(EmailFileWithSubjectAndReportUsage(AttachmentStream, AttachmentName, HtmlBody, EmailSubject, PostedDocNo, ToEmailAddress, EmailDocName, HideDialog, ReportUsage));
-    end;
-#endif
 
     procedure EmailFileWithSubjectAndReportUsage(AttachmentStream: InStream; AttachmentName: Text; var HtmlBody: Codeunit "Temp Blob"; EmailSubject: Text[250]; PostedDocNo: Code[20]; ToEmailAddress: Text[250]; EmailDocName: Text[250]; HideDialog: Boolean; ReportUsage: Integer): Boolean
     var
@@ -383,18 +295,6 @@ codeunit 260 "Document-Mailing"
             false));
     end;
 
-#if not CLEAN27
-    [Obsolete('Use procedure EmailFileWithSubjectAndReportUsage that accepts a "Temp Blob" for the html body instead.', '27.0')]
-    procedure EmailFileWithSubjectAndReportUsage(AttachmentStream: InStream; AttachmentName: Text; HtmlBodyFilePath: Text[250]; EmailSubject: Text[250]; PostedDocNo: Code[20]; ToEmailAddress: Text[250]; EmailDocName: Text[250]; HideDialog: Boolean; ReportUsage: Integer; SourceReference: RecordRef): Boolean
-    var
-        FileManagement: Codeunit "File Management";
-        HtmlBody: Codeunit "Temp Blob";
-    begin
-        if HtmlBodyFilePath <> '' then
-            FileManagement.BLOBImportFromServerFile(HtmlBody, HtmlBodyFilePath);
-        exit(EmailFileWithSubjectAndReportUsage(AttachmentStream, AttachmentName, HtmlBody, EmailSubject, PostedDocNo, ToEmailAddress, EmailDocName, HideDialog, ReportUsage, SourceReference));
-    end;
-#endif
 
     procedure EmailFileWithSubjectAndReportUsage(AttachmentStream: InStream; AttachmentName: Text; var HtmlBody: Codeunit "Temp Blob"; EmailSubject: Text[250]; PostedDocNo: Code[20]; ToEmailAddress: Text[250]; EmailDocName: Text[250]; HideDialog: Boolean; ReportUsage: Integer; SourceReference: RecordRef): Boolean
     var
@@ -421,18 +321,6 @@ codeunit 260 "Document-Mailing"
             false));
     end;
 
-#if not CLEAN27
-    [Obsolete('Use procedure EmailFileWithSubjectAndReportUsage that accepts a "Temp Blob" for the html body instead.', '27.0')]
-    procedure EmailFileWithSubjectAndReportUsage(AttachmentStream: InStream; AttachmentName: Text; HtmlBodyFilePath: Text[250]; EmailSubject: Text[250]; PostedDocNo: Code[20]; ToEmailAddress: Text[250]; EmailDocName: Text[250]; HideDialog: Boolean; ReportUsage: Integer; SourceTables: List of [Integer]; SourceIDs: List of [Guid]; SourceRelationTypes: List of [Integer]): Boolean
-    var
-        FileManagement: Codeunit "File Management";
-        HtmlBody: Codeunit "Temp Blob";
-    begin
-        if HtmlBodyFilePath <> '' then
-            FileManagement.BLOBImportFromServerFile(HtmlBody, HtmlBodyFilePath);
-        exit(EmailFileWithSubjectAndReportUsage(AttachmentStream, AttachmentName, HtmlBody, EmailSubject, PostedDocNo, ToEmailAddress, EmailDocName, HideDialog, ReportUsage, SourceTables, SourceIDs, SourceRelationTypes));
-    end;
-#endif
     procedure EmailFileWithSubjectAndReportUsage(AttachmentStream: InStream; AttachmentName: Text; var HtmlBody: Codeunit "Temp Blob"; EmailSubject: Text[250]; PostedDocNo: Code[20]; ToEmailAddress: Text[250]; EmailDocName: Text[250]; HideDialog: Boolean; ReportUsage: Integer; SourceTables: List of [Integer]; SourceIDs: List of [Guid]; SourceRelationTypes: List of [Integer]): Boolean
     var
         TempEmailItem: Record "Email Item" temporary;
@@ -625,32 +513,14 @@ codeunit 260 "Document-Mailing"
         EmailScenarioMapping: Codeunit "Email Scenario Mapping";
         Attachments: Codeunit "Temp Blob List";
         Attachment: Codeunit "Temp Blob";
-#if not CLEAN27
-        FileManagement: Codeunit "File Management";
-#endif
         EmailSentSuccesfully: Boolean;
         IsHandled: Boolean;
         AttachmentStream: Instream;
         AttachmentNames: List of [Text];
-#if not CLEAN27
-        HtmlBodyFilePath: Text[250];
-#endif
         Name: Text[250];
     begin
         IsHandled := false;
 
-#if not CLEAN27
-        if HtmlBody.HasValue() then
-            HtmlBodyFilePath := FileManagement.TempBlobToServerFile(HtmlBody, 'html');
-        OnBeforeEmailFileInternal(TempEmailItem, HtmlBodyFilePath, EmailSubject, ToEmailAddress, PostedDocNo, EmailDocName, HideDialog, ReportUsage, IsFromPostedDoc, SenderUserID, EmailScenario, EmailSentSuccesfully, IsHandled);
-        if IsHandled then
-            exit(EmailSentSuccesfully);
-        if HtmlBodyFilePath <> '' then begin
-            Clear(HtmlBody);
-            FileManagement.BLOBImportFromServerFile(HtmlBody, HtmlBodyFilePath);
-            FileManagement.DeleteServerFile(HtmlBodyFilePath);
-        end;
-#endif
 
         OnBeforeEmailItemPreparation(TempEmailItem, HtmlBody, EmailSubject, ToEmailAddress, PostedDocNo, EmailDocName, HideDialog, ReportUsage, IsFromPostedDoc, SenderUserID, EmailScenario, EmailSentSuccesfully, IsHandled);
         if IsHandled then
@@ -816,13 +686,6 @@ codeunit 260 "Document-Mailing"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('Use new Event OnBeforeEmailItemPreparation instead.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeEmailFileInternal(var TempEmailItem: Record "Email Item" temporary; var HtmlBodyFilePath: Text[250]; var EmailSubject: Text[250]; var ToEmailAddress: Text[250]; var PostedDocNo: Code[20]; var EmailDocName: Text[250]; var HideDialog: Boolean; var ReportUsage: Integer; var IsFromPostedDoc: Boolean; var SenderUserID: Code[50]; var EmailScenario: Enum "Email Scenario"; var EmailSentSuccessfully: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnBeforeEmailItemPreparation(var TempEmailItem: Record "Email Item" temporary; var HtmlBody: Codeunit "Temp Blob"; var EmailSubject: Text[250]; var ToEmailAddress: Text[250]; var PostedDocNo: Code[20]; var EmailDocName: Text[250]; var HideDialog: Boolean; var ReportUsage: Integer; var IsFromPostedDoc: Boolean; var SenderUserID: Code[50]; var EmailScenario: Enum "Email Scenario"; var EmailSentSuccessfully: Boolean; var IsHandled: Boolean)
     begin

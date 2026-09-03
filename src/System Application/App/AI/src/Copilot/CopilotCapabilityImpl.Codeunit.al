@@ -53,12 +53,6 @@ codeunit 7774 "Copilot Capability Impl"
         RegisterCapability(CopilotCapability, Enum::"Copilot Availability"::Preview, Enum::"Copilot Billing Type"::"Not Billed", LearnMoreUrl, CallerModuleInfo);
     end;
 
-#if not CLEAN27
-    procedure RegisterCapability(CopilotCapability: Enum "Copilot Capability"; CopilotAvailability: Enum "Copilot Availability"; LearnMoreUrl: Text[2048]; CallerModuleInfo: ModuleInfo)
-    begin
-        RegisterCapability(CopilotCapability, CopilotAvailability, Enum::"Copilot Billing Type"::"Undefined", Enum::"Azure AI Service Type"::"Azure OpenAI", LearnMoreUrl, CallerModuleInfo);
-    end;
-#endif
 
     procedure RegisterCapability(CopilotCapability: Enum "Copilot Capability"; CopilotAvailability: Enum "Copilot Availability"; CopilotBillingType: Enum "Copilot Billing Type"; LearnMoreUrl: Text[2048]; CallerModuleInfo: ModuleInfo)
     var
@@ -133,12 +127,6 @@ codeunit 7774 "Copilot Capability Impl"
         CopilotTelemetry.SetCopilotCapability(Capability, CallerModuleInfo.Id());
     end;
 
-#if not CLEAN27
-    procedure ModifyCapability(CopilotCapability: Enum "Copilot Capability"; CopilotAvailability: Enum "Copilot Availability"; LearnMoreUrl: Text[2048]; CallerModuleInfo: ModuleInfo)
-    begin
-        ModifyCapability(CopilotCapability, CopilotAvailability, Enum::"Copilot Billing Type"::"Undefined", LearnMoreUrl, CallerModuleInfo);
-    end;
-#endif
 
     procedure ModifyCapability(CopilotCapability: Enum "Copilot Capability"; CopilotAvailability: Enum "Copilot Availability"; CopilotBillingType: Enum "Copilot Billing Type"; LearnMoreUrl: Text[2048]; CallerModuleInfo: ModuleInfo)
     var

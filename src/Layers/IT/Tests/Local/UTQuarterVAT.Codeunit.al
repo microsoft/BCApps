@@ -124,13 +124,8 @@ codeunit 144174 "UT Quarter VAT"
     procedure OnInsertPeriodicVATSettlementEntry()
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
-#if not CLEAN27
-        PeriodicSettlementVATEntry: Record "Periodic Settlement VAT Entry";
-        PeriodicSettlementVATEntryNext: Record "Periodic Settlement VAT Entry";
-#else
         PeriodicSettlementVATEntry: Record "Periodic VAT Settlement Entry";
         PeriodicSettlementVATEntryNext: Record "Periodic VAT Settlement Entry";
-#endif
         PeriodStartDate: Date;
     begin
         // [FEATURE] [UT]
@@ -143,22 +138,13 @@ codeunit 144174 "UT Quarter VAT"
         PeriodStartDate := CalcDate('<1M + CM>', GeneralLedgerSetup."Last Settlement Date") + 1;
 
         // [GIVEN] Periodic Settlement VAT Entry with "Prior Period Input VAT" = "X", "Prior Period Output VAT" = "Y"
-#if not CLEAN27
-        LibraryITLocalization.CreatePeriodicVATSettlementEntry(PeriodicSettlementVATEntry, PeriodStartDate);
-#else
         LibraryITLocalization.CreatePeriodicSettlementVATEntry(PeriodicSettlementVATEntry, PeriodStartDate);
-#endif
         UpdatePriorPeriodIOVAT(
           PeriodicSettlementVATEntry, LibraryRandom.RandDecInRange(100, 200, 2), LibraryRandom.RandDecInRange(100, 200, 2));
 
         // [WHEN] Create new Periodic Settlement VAT Entry
-#if not CLEAN27
-        LibraryITLocalization.CreatePeriodicVATSettlementEntry(
-          PeriodicSettlementVATEntryNext, CalcDate('<+1M + CM>', PeriodStartDate));
-#else
         LibraryITLocalization.CreatePeriodicSettlementVATEntry(
           PeriodicSettlementVATEntryNext, CalcDate('<+1M + CM>', PeriodStartDate));
-#endif
         // [THEN] Next Periodic Settlement VAT Entry gets "Prior Period Input VAT" = "X", "Prior Period Output VAT" = "Y"
         PeriodicSettlementVATEntryNext.TestField("Prior Period Input VAT", PeriodicSettlementVATEntry."Prior Period Input VAT");
         PeriodicSettlementVATEntryNext.TestField("Prior Period Output VAT", PeriodicSettlementVATEntry."Prior Period Output VAT");
@@ -171,11 +157,7 @@ codeunit 144174 "UT Quarter VAT"
     procedure CalcPostVATSettlementAfterEmptyVATPeriodInputVAT()
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
-#if not CLEAN27
-        PeriodicSettlementVATEntry: Record "Periodic Settlement VAT Entry";
-#else
         PeriodicSettlementVATEntry: Record "Periodic VAT Settlement Entry";
-#endif
         PeriodStartDate: Date;
     begin
         // [SCENARIO 372230] Prior Period Input VAT moved to the next period after "Calc. and Post VAT Settlement" is running
@@ -190,11 +172,7 @@ codeunit 144174 "UT Quarter VAT"
         PeriodStartDate := UpdateLastSettlementDateOnGLSetup();
 
         // [GIVEN] New empty Periodic Settlement VAT Entry with "Prior Period Input VAT" = "X", "Prior Period Output VAT" = 0
-#if not CLEAN27
-        LibraryITLocalization.CreatePeriodicVATSettlementEntry(PeriodicSettlementVATEntry, PeriodStartDate);
-#else
         LibraryITLocalization.CreatePeriodicSettlementVATEntry(PeriodicSettlementVATEntry, PeriodStartDate);
-#endif
         PeriodicSettlementVATEntry.FindLast();
         UpdatePriorPeriodIOVAT(PeriodicSettlementVATEntry, LibraryRandom.RandDecInRange(100, 200, 2), 0);
 
@@ -214,11 +192,7 @@ codeunit 144174 "UT Quarter VAT"
     procedure CalcPostVATSettlementAfterEmptyVATPeriodOutputVAT()
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
-#if not CLEAN27
-        PeriodicSettlementVATEntry: Record "Periodic Settlement VAT Entry";
-#else
         PeriodicSettlementVATEntry: Record "Periodic VAT Settlement Entry";
-#endif
         PeriodStartDate: Date;
     begin
         // [SCENARIO 372230] Prior Period Output VAT moved to the next period after "Calc. and Post VAT Settlement" is running
@@ -233,11 +207,7 @@ codeunit 144174 "UT Quarter VAT"
         PeriodStartDate := UpdateLastSettlementDateOnGLSetup();
 
         // [GIVEN] New empty Periodic Settlement VAT Entry with "Prior Period Input VAT" = 0, "Prior Period Output VAT" = "Y"
-#if not CLEAN27
-        LibraryITLocalization.CreatePeriodicVATSettlementEntry(PeriodicSettlementVATEntry, PeriodStartDate);
-#else
         LibraryITLocalization.CreatePeriodicSettlementVATEntry(PeriodicSettlementVATEntry, PeriodStartDate);
-#endif
         PeriodicSettlementVATEntry.FindLast();
         UpdatePriorPeriodIOVAT(PeriodicSettlementVATEntry, 0, LibraryRandom.RandDecInRange(100, 200, 2));
 
@@ -257,11 +227,7 @@ codeunit 144174 "UT Quarter VAT"
     procedure CalcPostVATSettlementAfterEmptyVATPeriodOutputVATLessThanInputVAT()
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
-#if not CLEAN27
-        PeriodicSettlementVATEntry: Record "Periodic Settlement VAT Entry";
-#else
         PeriodicSettlementVATEntry: Record "Periodic VAT Settlement Entry";
-#endif
         VATPostingSetup: Record "VAT Posting Setup";
         PeriodStartDate: Date;
         InputVATAmount: Decimal;
@@ -279,11 +245,7 @@ codeunit 144174 "UT Quarter VAT"
         PeriodStartDate := UpdateLastSettlementDateOnGLSetup();
 
         // [GIVEN] New empty Periodic Settlement VAT Entry with "Prior Period Input VAT" = "X"
-#if not CLEAN27
-        LibraryITLocalization.CreatePeriodicVATSettlementEntry(PeriodicSettlementVATEntry, PeriodStartDate);
-#else
         LibraryITLocalization.CreatePeriodicSettlementVATEntry(PeriodicSettlementVATEntry, PeriodStartDate);
-#endif
         InputVATAmount := LibraryRandom.RandDecInRange(1000, 2000, 2);
         UpdatePriorPeriodIOVAT(PeriodicSettlementVATEntry, InputVATAmount, 0);
 
@@ -311,11 +273,7 @@ codeunit 144174 "UT Quarter VAT"
     procedure CalcPostVATSettlementAfterEmptyVATPeriodOutputVATGreaterOrEqualThanInputVAT()
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
-#if not CLEAN27
-        PeriodicSettlementVATEntry: Record "Periodic Settlement VAT Entry";
-#else
         PeriodicSettlementVATEntry: Record "Periodic VAT Settlement Entry";
-#endif
         VATPostingSetup: Record "VAT Posting Setup";
         PeriodStartDate: Date;
         InputVATAmount: Decimal;
@@ -333,11 +291,7 @@ codeunit 144174 "UT Quarter VAT"
         PeriodStartDate := UpdateLastSettlementDateOnGLSetup();
 
         // [GIVEN] New empty Periodic Settlement VAT Entry with "Prior Period Input VAT" = "X"
-#if not CLEAN27
-        LibraryITLocalization.CreatePeriodicVATSettlementEntry(PeriodicSettlementVATEntry, PeriodStartDate);
-#else
         LibraryITLocalization.CreatePeriodicSettlementVATEntry(PeriodicSettlementVATEntry, PeriodStartDate);
-#endif
         InputVATAmount := LibraryRandom.RandDecInRange(1000, 2000, 2);
         UpdatePriorPeriodIOVAT(PeriodicSettlementVATEntry, InputVATAmount, 0);
 
@@ -366,11 +320,7 @@ codeunit 144174 "UT Quarter VAT"
     procedure CalcPostVATSettlementWithNextYearPeriodSales()
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
-#if not CLEAN27
-        PeriodicSettlementVATEntry: Record "Periodic Settlement VAT Entry";
-#else
         PeriodicSettlementVATEntry: Record "Periodic VAT Settlement Entry";
-#endif
         VATPostingSetup: Record "VAT Posting Setup";
         DateFormula: DateFormula;
         DateFormulaText: Text;
@@ -394,11 +344,7 @@ codeunit 144174 "UT Quarter VAT"
         UpdateVATSettlementPeriodGeneralLedgerSetup(GeneralLedgerSetup."VAT Settlement Period"::Month);
         PeriodStartDate := SetLastSettlementDateOnGLSetup(CalcDate('<CY+1Y-2M>', GeneralLedgerSetup."Last Settlement Date"));
 
-#if not CLEAN27
-        LibraryITLocalization.CreatePeriodicVATSettlementEntry(PeriodicSettlementVATEntry, PeriodStartDate);
-#else
         LibraryITLocalization.CreatePeriodicSettlementVATEntry(PeriodicSettlementVATEntry, PeriodStartDate);
-#endif
         InputVATAmount := LibraryRandom.RandDecInRange(1000, 2000, 2);
         SalesVATAmount := LibraryRandom.RandDecInRange(100, 200, 2);
         UpdatePriorPeriodIOVAT(PeriodicSettlementVATEntry, InputVATAmount, 0);
@@ -455,11 +401,7 @@ codeunit 144174 "UT Quarter VAT"
     procedure CalcPostVATSettlementAfterEmptyVATPeriodInputVATTestReport()
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
-#if not CLEAN27
-        PeriodicSettlementVATEntry: Record "Periodic Settlement VAT Entry";
-#else
         PeriodicSettlementVATEntry: Record "Periodic VAT Settlement Entry";
-#endif
         PeriodStartDate: Date;
     begin
         // [SCENARIO 279074] Prior Period Input VAT moved to the next period after "Calc. and Post VAT Settlement" is running with Posting disabled
@@ -474,11 +416,7 @@ codeunit 144174 "UT Quarter VAT"
         PeriodStartDate := UpdateLastSettlementDateOnGLSetup();
 
         // [GIVEN] New empty Periodic Settlement VAT Entry with "Prior Period Input VAT" = "X", "Prior Period Output VAT" = 0
-#if not CLEAN27
-        LibraryITLocalization.CreatePeriodicVATSettlementEntry(PeriodicSettlementVATEntry, PeriodStartDate);
-#else
         LibraryITLocalization.CreatePeriodicSettlementVATEntry(PeriodicSettlementVATEntry, PeriodStartDate);
-#endif
         PeriodicSettlementVATEntry.FindLast();
         UpdatePriorPeriodIOVAT(PeriodicSettlementVATEntry, LibraryRandom.RandDecInRange(100, 200, 2), 0);
 
@@ -529,11 +467,7 @@ codeunit 144174 "UT Quarter VAT"
 
     local procedure UpdatePeriodicSettlementVATEntry(Closed: Boolean; Closed2: Boolean)
     var
-#if not CLEAN27
-        PeriodicSettlementVATEntry: Record "Periodic Settlement VAT Entry";
-#else
         PeriodicSettlementVATEntry: Record "Periodic VAT Settlement Entry";
-#endif
     begin
         PeriodicSettlementVATEntry.Reset();
         PeriodicSettlementVATEntry.SetRange("VAT Period Closed", Closed);
@@ -567,21 +501,12 @@ codeunit 144174 "UT Quarter VAT"
         exit(GeneralLedgerSetup."Last Settlement Date" + 1);
     end;
 
-#if not CLEAN27
-    local procedure UpdatePriorPeriodIOVAT(var PeriodicSettlementVATEntry: Record "Periodic Settlement VAT Entry"; InputVAT: Decimal; OutputVAT: Decimal)
-    begin
-        PeriodicSettlementVATEntry."Prior Period Input VAT" := InputVAT;
-        PeriodicSettlementVATEntry."Prior Period Output VAT" := OutputVAT;
-        PeriodicSettlementVATEntry.Modify();
-    end;
-#else
     local procedure UpdatePriorPeriodIOVAT(var PeriodicSettlementVATEntry: Record "Periodic VAT Settlement Entry"; InputVAT: Decimal; OutputVAT: Decimal)
     begin
         PeriodicSettlementVATEntry."Prior Period Input VAT" := InputVAT;
         PeriodicSettlementVATEntry."Prior Period Output VAT" := OutputVAT;
         PeriodicSettlementVATEntry.Modify();
     end;
-#endif
 
     local procedure MockVATEntry(PostingDate: Date; Amount: Decimal; VATEntryType: Enum "General Posting Type"; var VATPostingSetup: Record "VAT Posting Setup")
     var
@@ -632,11 +557,7 @@ codeunit 144174 "UT Quarter VAT"
 
     local procedure VerifyNextPeriodValues(ExpectedNextInputVAT: Decimal; ExpectedNextOuputVAT: Decimal)
     var
-#if not CLEAN27
-        PeriodicSettlementVATEntryNext: Record "Periodic Settlement VAT Entry";
-#else
         PeriodicSettlementVATEntryNext: Record "Periodic VAT Settlement Entry";
-#endif
     begin
         PeriodicSettlementVATEntryNext.FindLast();
         PeriodicSettlementVATEntryNext.TestField("Prior Period Input VAT", ExpectedNextInputVAT);

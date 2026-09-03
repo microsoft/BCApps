@@ -690,10 +690,6 @@ table 39 "Purchase Line"
                     UpdateJobPrices();
                 end;
 
-#if not CLEAN27
-                if IsProdOrder() and (Type = Type::Item) and ("No." <> '') then
-                    "Pricelist UM Qty/Base UM Qty" := GetQtyBase() / "Base UM Qty/Pricelist UM Qty";
-#endif
                 ValidateIncludeInDT();
 
                 IsHandled := false;
@@ -823,10 +819,6 @@ table 39 "Purchase Line"
                 if not IsHandled then
                     Validate("Line Discount %");
 
-#if not CLEAN27
-                if IsProdOrder() and (Type = Type::Item) and ("No." <> '') then
-                    "Pricelist Cost" := "Direct Unit Cost" / GetQtyPerUOM() * "Base UM Qty/Pricelist UM Qty";
-#endif
                 ValidateIncludeInDT();
             end;
         }
@@ -4064,55 +4056,17 @@ table 39 "Purchase Line"
             Caption = 'WIP Item';
             Editable = false;
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#endif
         }
-#if not CLEAN27
-        field(12182; "WIP Qty at Subc.Loc. (Base)"; Decimal)
-        {
-            AutoFormatType = 0;
-            CalcFormula = sum(Microsoft.Manufacturing.Capacity."Capacity Ledger Entry"."WIP Item Qty." where("Subcontr. Purch. Order No." = field("Document No."),
-                                                                             "Subcontr. Purch. Order Line" = field("Line No.")));
-            Caption = 'WIP Qty at Subc.Loc. (Base)';
-            DecimalPlaces = 0 : 5;
-            Editable = false;
-            FieldClass = FlowField;
-            ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-        }
-#endif
         field(12183; "Not Proc. WIP Qty to Receive"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Not Proc. WIP Qty to Receive';
             DecimalPlaces = 0 : 5;
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#endif
-#if not CLEAN27
-            trigger OnValidate()
-            var
-                LegacySubcFeatureHandler: codeunit "Legacy Subc. Feature Handler";
-            begin
-                if not LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then
-                    exit;
-                CalcFields("WIP Qty at Subc.Loc. (Base)");
-                TestField("WIP Item");
-                if "Not Proc. WIP Qty to Receive" > "WIP Qty at Subc.Loc. (Base)" then
-                    Error(Text1130000);
-            end;
-#endif
         }
         field(12184; "Base UM Qty/Pricelist UM Qty"; Decimal)
         {
@@ -4122,13 +4076,8 @@ table 39 "Purchase Line"
             Editable = false;
             InitValue = 1;
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#endif
         }
         field(12185; "UoM for Pricelist"; Code[10])
         {
@@ -4136,13 +4085,8 @@ table 39 "Purchase Line"
             Editable = false;
             TableRelation = "Unit of Measure";
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#endif
         }
         field(12186; "Pricelist UM Qty/Base UM Qty"; Decimal)
         {
@@ -4151,13 +4095,8 @@ table 39 "Purchase Line"
             DecimalPlaces = 0 : 5;
             Editable = false;
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#endif
         }
         field(12187; "Pricelist Cost"; Decimal)
         {
@@ -4166,13 +4105,8 @@ table 39 "Purchase Line"
             Caption = 'Pricelist Cost';
             Editable = false;
             ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#endif
         }
 #endif
         field(99000755; "Overhead Rate"; Decimal)

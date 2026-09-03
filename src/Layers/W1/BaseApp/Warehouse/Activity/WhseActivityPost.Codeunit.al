@@ -7,9 +7,6 @@ namespace Microsoft.Warehouse.Activity;
 using Microsoft.Finance.GeneralLedger.Preview;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Inventory.Item;
-#if not CLEAN27
-using Microsoft.Inventory.Journal;
-#endif
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
@@ -1771,18 +1768,6 @@ codeunit 7324 "Whse.-Activity-Post"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnPostConsumptionLineOnAfterCreateItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; WarehouseActivityLine: Record "Warehouse Activity Line"; SourceCodeSetup: Record "Source Code Setup")
-    begin
-        OnPostConsumptionLineOnAfterCreateItemJnlLine(ItemJournalLine, ProdOrderLine, WarehouseActivityLine, SourceCodeSetup);
-    end;
-
-    [Obsolete('Moved to codeunit MfgWhseActivityPost', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostConsumptionLineOnAfterCreateItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; WarehouseActivityLine: Record "Warehouse Activity Line"; SourceCodeSetup: Record "Source Code Setup")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnPostSourceDocumentOnBeforeTransferPostReceiptRun(var TransferHeader: Record "Transfer Header"; WarehouseActivityHeader: Record "Warehouse Activity Header")
@@ -1799,31 +1784,7 @@ codeunit 7324 "Whse.-Activity-Post"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnPostConsumptionLineOnAfterInitItemJournalLine(var ItemJournalLine: Record "Item Journal Line"; SourceCodeSetup: Record "Source Code Setup")
-    begin
-        OnPostConsumptionLineOnAfterInitItemJournalLine(ItemJournalLine, SourceCodeSetup);
-    end;
 
-    [Obsolete('Moved to codeunit MfgWhseActivityPost', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostConsumptionLineOnAfterInitItemJournalLine(var ItemJournalLine: Record "Item Journal Line"; SourceCodeSetup: Record "Source Code Setup")
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnPostOutputLineOnAfterCreateItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; WarehouseActivityLine: Record "Warehouse Activity Line"; SourceCodeSetup: Record "Source Code Setup")
-    begin
-        OnPostOutputLineOnAfterCreateItemJnlLine(ItemJournalLine, ProdOrderLine, WarehouseActivityLine, SourceCodeSetup);
-    end;
-
-    [Obsolete('Moved to codeunit MfgWhseActivityPost', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostOutputLineOnAfterCreateItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; WarehouseActivityLine: Record "Warehouse Activity Line"; SourceCodeSetup: Record "Source Code Setup")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnPostSourceDocumentOnBeforePurchPostRun(WarehouseActivityHeader: Record "Warehouse Activity Header"; var PurchaseHeader: Record "Purchase Header")
@@ -1905,18 +1866,6 @@ codeunit 7324 "Whse.-Activity-Post"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnPostOutputLineOnAfterItemJournalLineInit(var ItemJournalLine: Record "Item Journal Line"; SourceCodeSetup2: Record "Source Code Setup")
-    begin
-        OnPostOutputLineOnAfterItemJournalLineInit(ItemJournalLine, SourceCodeSetup2);
-    end;
-
-    [Obsolete('Moved to codeunit MfgWhseActivityPost', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnPostOutputLineOnAfterItemJournalLineInit(var ItemJournalLine: Record "Item Journal Line"; SourceCodeSetup: Record "Source Code Setup")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnUpdateQtyToHandleOnPurchaseLineOnBeforePurchLineModify(var PurchaseLine: Record "Purchase Line"; var ModifyLine: Boolean)
@@ -1953,18 +1902,6 @@ codeunit 7324 "Whse.-Activity-Post"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeCheckProdOrderLine(var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var IsHandled: Boolean)
-    begin
-        OnBeforeCheckProdOrderLine(ProdOrderLine, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit MfgWhseActivityPost', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckProdOrderLine(var ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(true, false)]
     local procedure OnPostWhseActivityLineOnBeforeCreatePostedActivHeader(var WarehouseActivityHeader: Record "Warehouse Activity Header")

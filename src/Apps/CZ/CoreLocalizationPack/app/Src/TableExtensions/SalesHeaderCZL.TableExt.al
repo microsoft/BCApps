@@ -231,13 +231,8 @@ tableextension 11703 "Sales Header CZL" extends "Sales Header"
         {
             Caption = 'Registration No. (Obsolete)';
             DataClassification = CustomerContent;
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#endif
             ObsoleteReason = 'Replaced by standard "Registration Number" field.';
         }
 #endif

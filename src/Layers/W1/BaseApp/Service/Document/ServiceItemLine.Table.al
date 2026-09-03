@@ -2393,13 +2393,6 @@ table 5901 "Service Item Line"
         exit(true);
     end;
 
-#if not CLEAN27
-    [Obsolete('Replaced by namesake procedure with Enum parameter', '27.0')]
-    procedure ShowComments(Type: Option General,Fault,Resolution,Accessory,Internal,"Service Item Loaner")
-    begin
-        ShowComments("Service Comment Line Type".FromInteger(Type));
-    end;
-#endif
 
     procedure ShowComments(ServiceCommentLineType: Enum "Service Comment Line Type")
     begin

@@ -933,17 +933,6 @@ table 17 "G/L Entry"
         LastTransactionNo := FieldNoValues.Get(2);
     end;
 
-#if not CLEAN27
-    /// <summary>
-    /// Gets the additional reporting currency code from General Ledger Setup.
-    /// </summary>
-    /// <returns>Additional reporting currency code</returns>
-    [Obsolete('use GetAdditionalReportingCurrencyCode instead', '27.0')]
-    procedure GetCurrencyCode(): Code[10]
-    begin
-        exit(GetAdditionalReportingCurrencyCode())
-    end;
-#endif
     /// <summary>
     /// Opens the Value Entries page showing item ledger entries related to this G/L entry.
     /// </summary>

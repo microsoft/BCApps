@@ -9,11 +9,6 @@ codeunit 22200 "Review G/L Entry" implements "G/L Entry Reviewer"
 {
     Permissions = TableData "G/L Entry" = rm,
                   TableData "G/L Entry Review Setup" = ri,
-#if not CLEAN27
-#pragma warning disable AL0432
-                  TableData "G/L Entry Review Entry" = rid,
-#pragma warning restore AL0432
-#endif
                   TableData "G/L Entry Review Log" = rid;
 
     var
@@ -28,11 +23,6 @@ codeunit 22200 "Review G/L Entry" implements "G/L Entry Reviewer"
         GLEntrySnapshot: Record "G/L Entry";
         TempGLEntry: Record "G/L Entry" temporary;
         GLEntryReviewLog: Record "G/L Entry Review Log";
-#if not CLEAN27
-#pragma warning disable AL0432
-        GLEntryReviewEntry: Record "G/L Entry Review Entry";
-#pragma warning restore AL0432
-#endif
         FeatureTelemetry: Codeunit "Feature Telemetry";
         UserName: Code[50];
         Identifier: Integer;
@@ -82,11 +72,6 @@ codeunit 22200 "Review G/L Entry" implements "G/L Entry Reviewer"
                 GLEntryToProcess.Modify(true);
             end;
         until TempGLEntry.Next() = 0;
-#if not CLEAN27
-#pragma warning disable AL0432
-        OnAfterReviewEntries(GLEntry, GLEntryReviewEntry);
-#pragma warning restore AL0432
-#endif
 
         OnAfterReviewEntriesLog(GLEntry, GLEntryReviewLog);
 
@@ -232,15 +217,6 @@ codeunit 22200 "Review G/L Entry" implements "G/L Entry Reviewer"
             end;
     end;
 
-#if not CLEAN27
-#pragma warning disable AL0432
-    [Obsolete('Use the event OnAfterReviewEntriesLog instead.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterReviewEntries(var GLEntry: Record "G/L Entry"; var GLEntryReviewEntry: Record "G/L Entry Review Entry")
-    begin
-    end;
-#pragma warning restore AL0432
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterReviewEntriesLog(var GLEntry: Record "G/L Entry"; var GLEntryReviewLog: Record "G/L Entry Review Log")

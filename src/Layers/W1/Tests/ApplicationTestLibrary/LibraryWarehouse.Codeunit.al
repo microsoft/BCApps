@@ -341,17 +341,6 @@ codeunit 132204 "Library - Warehouse"
         BinType.Insert(true);
     end;
 
-#if not CLEAN27
-#pragma warning disable AL0801
-    [Obsolete('Moved to codeunit LibraryManufacturing', '27.0')]
-    procedure CreateInboundWhseReqFromProdO(ProductionOrder: Record "Production Order")
-    var
-        LibraryManufacturing: Codeunit "Library - Manufacturing";
-    begin
-        LibraryManufacturing.CreateInboundWhseReqFromProdOrder(ProductionOrder);
-    end;
-#pragma warning restore AL0801
-#endif
 
     procedure CreateInternalMovementHeader(var InternalMovementHeader: Record "Internal Movement Header"; LocationCode: Code[10]; ToBinCode: Code[20])
     begin
@@ -986,17 +975,6 @@ codeunit 132204 "Library - Warehouse"
         WarehouseShipmentLineRec.CreatePickDoc(WhseShptLine, WhseShptHeader);
     end;
 
-#if not CLEAN27
-#pragma warning disable AL0801
-    [Obsolete('Moved to codeunit LibraryManufacturing', '27.0')]
-    procedure CreateWhsePickFromProduction(ProductionOrder: Record "Production Order")
-    var
-        LibraryManufacturing: Codeunit "Library - Manufacturing";
-    begin
-        LibraryManufacturing.CreateWhsePickFromProduction(ProductionOrder);
-    end;
-#pragma warning restore AL0801
-#endif
 
     procedure CreateWhseReceiptFromPO(var PurchaseHeader: Record "Purchase Header")
     var

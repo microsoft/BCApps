@@ -699,13 +699,8 @@ table 8063 "Vendor Subscription Contract"
         {
             Caption = 'Without Contract Deferrals';
             ObsoleteReason = 'Removed in favor of Create Contract Deferrals.';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#endif
         }
 #endif
         field(8053; "Billing Rhythm Filter"; DateFormula)

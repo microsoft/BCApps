@@ -50,52 +50,6 @@ page 1932 "Perf. Profiler Schedule Card"
                     ToolTip = 'Specifies the ID of the schedule.';
                     Editable = false;
                 }
-#if not CLEAN27
-                field(Enabled; Rec.Enabled)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Enabled';
-                    ToolTip = 'Specifies whether the schedule is enabled.';
-                    AboutText = 'Specifies whether the schedule is enabled.';
-                    Visible = false;
-                    ObsoleteReason = 'This field is moved to StatusGroup.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
-                field("Start Time"; Rec."Starting Date-Time")
-                {
-                    ApplicationArea = All;
-                    Caption = 'Start Time';
-                    ToolTip = 'Specifies the start time of the schedule.';
-                    AboutText = 'The start time of the schedule.';
-                    Visible = false;
-                    ObsoleteReason = 'This field is moved to StatusGroup.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-
-                    trigger OnValidate()
-                    begin
-                        ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDatesRelation(Rec);
-                    end;
-                }
-                field("End Time"; Rec."Ending Date-Time")
-                {
-                    ApplicationArea = All;
-                    Caption = 'End Time';
-                    ToolTip = 'Specifies the end time of the schedule.';
-                    AboutText = 'The end time of the schedule.';
-                    Visible = false;
-                    ObsoleteReason = 'This field is moved to StatusGroup.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-
-                    trigger OnValidate()
-                    begin
-                        ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDatesRelation(Rec);
-                        ScheduledPerfProfiler.ValidatePerformanceProfileEndTime(Rec);
-                    end;
-                }
-#endif
             }
             group(StatusGroup)
             {
@@ -152,25 +106,6 @@ page 1932 "Perf. Profiler Schedule Card"
             {
                 Caption = 'Filtering Criteria';
                 AboutText = 'Determines which activities will be profiled.';
-#if not CLEAN27
-                field("User ID"; Rec."User ID")
-                {
-                    ApplicationArea = All;
-                    Caption = 'User ID';
-                    ToolTip = 'Specifies the ID of the user associated with the schedule.';
-                    TableRelation = User."User Security ID";
-                    Lookup = true;
-                    Visible = false;
-                    ObsoleteReason = 'This field is obsolete. Use "User Name" instead.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-
-                    trigger OnValidate()
-                    begin
-                        ScheduledPerfProfiler.ValidateScheduleCreationPermissions(UserSecurityId(), Rec."User ID");
-                    end;
-                }
-#endif
                 field("User Name"; UserName)
                 {
                     ApplicationArea = All;

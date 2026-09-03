@@ -295,17 +295,6 @@ codeunit 132200 "Library - Costing"
         end;
     end;
 
-#if not CLEAN27
-#pragma warning disable AL0801
-    [Obsolete('Moved to codeunit LibraryManufacturing', '27.0')]
-    procedure CheckProductionOrderCost(ProdOrder: Record "Production Order"; VerifyVarianceinOutput: Boolean)
-    var
-        LibraryManufacturing: Codeunit "Library - Manufacturing";
-    begin
-        LibraryManufacturing.CheckProductionOrderCost(ProdOrder, VerifyVarianceinOutput);
-    end;
-#pragma warning restore AL0801
-#endif
 
     procedure CreatePurchasePrice(var PurchasePrice: Record "Purchase Price"; VendorNo: Code[20]; ItemNo: Code[20]; StartingDate: Date; CurrencyCode: Code[10]; VariantCode: Code[10]; UnitOfMeasureCode: Code[10]; MinimumQuantity: Decimal)
     begin
@@ -444,17 +433,6 @@ codeunit 132200 "Library - Costing"
         exit(Round(Amount, LibraryERM.GetAmountRoundingPrecision(), '='));
     end;
 
-#if not CLEAN27
-#pragma warning disable AL0801
-    [Obsolete('Moved to codeunit LibraryManufacturing', '27.0')]
-    procedure SuggestCapacityStandardCost(var WorkCenter: Record "Work Center"; var MachineCenter: Record "Machine Center"; StandardCostWorksheetName: Code[10]; StandardCostAdjustmentFactor: Integer; StandardCostRoundingMethod: Code[10])
-    var
-        LibraryManufacturing: Codeunit "Library - Manufacturing";
-    begin
-        LibraryManufacturing.SuggestCapacityStandardCost(WorkCenter, MachineCenter, StandardCostWorksheetName, StandardCostAdjustmentFactor, StandardCostRoundingMethod);
-    end;
-#pragma warning restore AL0801
-#endif
 
     procedure SuggestSalesPriceWorksheet(Item: Record Item; SalesCode: Code[20]; SalesType: Enum "Sales Price Type"; PriceLowerLimit: Decimal; UnitPriceFactor: Decimal)
     var
@@ -520,17 +498,6 @@ codeunit 132200 "Library - Costing"
         SuggestItemStandardCostReport.Run();
     end;
 
-#if not CLEAN27
-#pragma warning disable AL0801
-    [Obsolete('Moved to codeunit LibraryManufacturing', '27.0')]
-    procedure UpdateUnitCost(var ProductionOrder: Record "Production Order"; CalcMethod: Option; UpdateReservations: Boolean)
-    var
-        LibraryManufacturing: Codeunit "Library - Manufacturing";
-    begin
-        LibraryManufacturing.UpdateUnitCost(ProductionOrder, CalcMethod, UpdateReservations);
-    end;
-#pragma warning restore AL0801
-#endif
 
     local procedure UpdateBufferforRoundingCheck(var TempItemJournalBuffer: Record "Item Journal Buffer" temporary; EntryNo: Integer; Quantity: Decimal; CostAmount: Decimal)
     begin

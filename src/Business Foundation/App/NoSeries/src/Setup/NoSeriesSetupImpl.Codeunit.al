@@ -176,23 +176,6 @@ codeunit 305 "No. Series - Setup Impl."
                 NoSeries.Validate("Default Nos.", true);
     end;
 
-#if not CLEAN27
-    procedure IncrementNoText(No: Code[20]; Increment: Integer): Code[20]
-    var
-        BigIntNo: BigInteger;
-        BigIntIncByNo: BigInteger;
-        StartPos: Integer;
-        EndPos: Integer;
-        NewNo: Code[20];
-    begin
-        GetIntegerPos(No, StartPos, EndPos);
-        Evaluate(BigIntNo, CopyStr(No, StartPos, EndPos - StartPos + 1));
-        BigIntIncByNo := Increment;
-        NewNo := CopyStr(Format(BigIntNo + BigIntIncByNo, 0, 1), 1, MaxStrLen(NewNo));
-        ReplaceNoText(No, NewNo, 0, StartPos, EndPos);
-        exit(No);
-    end;
-#endif
 
     procedure UpdateNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NewNo: Code[20]; NewFieldCaption: Text[100])
     var

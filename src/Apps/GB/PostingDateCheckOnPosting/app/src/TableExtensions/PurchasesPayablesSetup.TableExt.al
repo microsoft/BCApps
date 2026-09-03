@@ -8,16 +8,9 @@ using Microsoft.Purchases.Setup;
 
 tableextension 10510 "Purchases & Payables Setup" extends "Purchases & Payables Setup"
 {
-#if not CLEAN27
-    var
-        PostingDateCheck: Codeunit "Posting Date Check";
-#endif
 
     trigger OnInsert()
     begin
-#if not CLEAN27
-        if PostingDateCheck.IsEnabled() then
-#endif
             "Posting Date Check on Posting" := true;
     end;
 }

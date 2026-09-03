@@ -14,9 +14,6 @@ codeunit 99000878 "Mfg. Create Inventory Put-Away"
 {
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
-#if not CLEAN27
-        CreateInventoryPutaway: Codeunit "Create Inventory Put-away";
-#endif
         ProdAsmJobWhseHandlingTelemetryCategoryTok: Label 'Prod/Asm/Job Whse. Handling', Locked = true;
         ProdAsmJobWhseHandlingTelemetryTok: Label 'Prod/Asm/Job Whse. Handling in used for creating put-away lines.', Locked = true;
 
@@ -130,9 +127,6 @@ codeunit 99000878 "Mfg. Create Inventory Put-Away"
         repeat
             IsHandled := false;
             OnBeforeCreatePutAwayLinesFromProdLoop(WarehouseActivityHeader, ProductionOrder, IsHandled, ProdOrderLine);
-#if not CLEAN27
-            CreateInventoryPutaway.RunOnBeforeCreatePutAwayLinesFromProdLoop(WarehouseActivityHeader, ProductionOrder, IsHandled, ProdOrderLine);
-#endif
             if not IsHandled then
                 if not NewWarehouseActivityLine.ActivityExists(Database::"Prod. Order Line", ProdOrderLine.Status.AsInteger(), ProdOrderLine."Prod. Order No.", ProdOrderLine."Line No.", 0, 0) then begin
                     GetLocation(Location, ProdOrderLine."Location Code");
@@ -149,15 +143,8 @@ codeunit 99000878 "Mfg. Create Inventory Put-Away"
                                     CreatePutawayWithDefaultBinPolicy(ProdOrderLine, RemQtyToPutAway, sender);
                                 Location."Put-away Bin Policy"::"Put-away Template":
                                     CreatePutawayWithPutawayTemplateBinPolicy(ProdOrderLine, sender);
-#if not CLEAN27
-                                else begin
-                                    OnCreatePutawayForProdOrderLine(ProdOrderLine, RemQtyToPutAway);
-                                    CreateInventoryPutaway.RunOnCreatePutawayForProdOrderLine(ProdOrderLine, RemQtyToPutAway);
-                                end;
-#else
                                 else
                                     OnCreatePutawayForProdOrderLine(ProdOrderLine, RemQtyToPutAway);
-#endif
                             end;
 
                         if (Location."Always Create Put-away Line" or not Location."Bin Mandatory") and (RemQtyToPutAway > 0) then
@@ -218,9 +205,6 @@ codeunit 99000878 "Mfg. Create Inventory Put-Away"
     begin
         IsHandled := false;
         OnBeforeFindReservationFromProdOrderLine(ProdOrderLine, WhseItemTrackingSetup, ItemTrackingManagement, ReservationFound, IsHandled);
-#if not CLEAN27
-        CreateInventoryPutaway.RunOnBeforeFindReservationFromProdOrderLine(ProdOrderLine, WhseItemTrackingSetup, ItemTrackingManagement, ReservationFound, IsHandled);
-#endif
         if IsHandled then begin
             sender.SetReservationFound(ReservationFound);
             exit;
@@ -251,9 +235,6 @@ codeunit 99000878 "Mfg. Create Inventory Put-Away"
         end;
 
         OnBeforeFindProdOrderLine(ProdOrderLine, WarehouseActivityHeader);
-#if not CLEAN27
-        CreateInventoryPutaway.RunOnBeforeFindProdOrderLine(ProdOrderLine, WarehouseActivityHeader);
-#endif
         exit(ProdOrderLine.Find('-'));
     end;
 
@@ -278,9 +259,6 @@ codeunit 99000878 "Mfg. Create Inventory Put-Away"
         repeat
             IsHandled := false;
             OnBeforeCreatePutAwayLinesFromCompLoop(WarehouseActivityHeader, ProductionOrder, IsHandled, ProdOrderComponent);
-#if not CLEAN27
-            CreateInventoryPutaway.RunOnBeforeCreatePutAwayLinesFromCompLoop(WarehouseActivityHeader, ProductionOrder, IsHandled, ProdOrderComponent);
-#endif
             if not IsHandled then
                 if not
                    NewWarehouseActivityLine.ActivityExists(
@@ -297,15 +275,8 @@ codeunit 99000878 "Mfg. Create Inventory Put-Away"
                                 CreatePutawayWithDefaultBinPolicy(ProdOrderComponent, RemQtyToPutaway, sender);
                             Location."Put-away Bin Policy"::"Put-away Template":
                                 CreatePutawayWithPutawayTemplateBinPolicy(ProdOrderComponent, sender);
-#if not CLEAN27
-                            else begin
-                                OnCreatePutawayForProdOrderComponent(ProdOrderComponent, RemQtyToPutAway);
-                                CreateInventoryPutaway.RunOnCreatePutawayForProdOrderComponent(ProdOrderComponent, RemQtyToPutAway);
-                            end;
-#else
                             else
                                 OnCreatePutawayForProdOrderComponent(ProdOrderComponent, RemQtyToPutAway);
-#endif
                         end;
 
                     if (Location."Always Create Put-away Line" or not Location."Bin Mandatory") and (RemQtyToPutAway > 0) then
@@ -365,9 +336,6 @@ codeunit 99000878 "Mfg. Create Inventory Put-Away"
     begin
         IsHandled := false;
         OnBeforeFindReservationFromProdOrderComponent(ProdOrderComponent, WhseItemTrackingSetup, ItemTrackingManagement, ReservationFound, IsHandled);
-#if not CLEAN27
-        CreateInventoryPutaway.RunOnBeforeFindReservationFromProdOrderComponent(ProdOrderComponent, WhseItemTrackingSetup, ItemTrackingManagement, ReservationFound, IsHandled);
-#endif
         if IsHandled then begin
             sender.SetReservationFound(ReservationFound);
             exit;
@@ -397,9 +365,6 @@ codeunit 99000878 "Mfg. Create Inventory Put-Away"
         end;
 
         OnBeforeFindProdOrderComp(ProdOrderComponent, WarehouseActivityHeader);
-#if not CLEAN27
-        CreateInventoryPutaway.RunOnBeforeFindProdOrderComp(ProdOrderComponent, WarehouseActivityHeader);
-#endif
         exit(ProdOrderComponent.Find('-'));
     end;
 

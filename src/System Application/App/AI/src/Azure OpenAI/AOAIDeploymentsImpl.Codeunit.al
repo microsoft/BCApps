@@ -14,12 +14,6 @@ codeunit 7769 "AOAI Deployments Impl"
 
     var
         Telemetry: Codeunit Telemetry;
-#if not CLEAN27
-        GPT4oLatestLbl: Label 'gpt-4o-latest', Locked = true;
-        GPT4oPreviewLbl: Label 'gpt-4o-preview', Locked = true;
-        GPT4oMiniLatestLbl: Label 'gpt-4o-mini-latest', Locked = true;
-        GPT4oMiniPreviewLbl: Label 'gpt-4o-mini-preview', Locked = true;
-#endif
         GPT41LatestLbl: Label 'gpt-41-latest', Locked = true;
         GPT41PreviewLbl: Label 'gpt-41-preview', Locked = true;
         GPT41MiniLatestLbl: Label 'gpt-41-mini-latest', Locked = true;
@@ -31,27 +25,6 @@ codeunit 7769 "AOAI Deployments Impl"
         DeprecatedDeployments: Dictionary of [Text, Date];
         DeprecationDatesInitialized: Boolean;
         DeprecationMessageLbl: Label 'We detected usage of the Azure OpenAI deployment "%1". This model is obsoleted starting %2 and the quality of your results might vary after that date. Check out codeunit 7768 AOAI Deployments to find the supported deployments.', Comment = 'Telemetry message where %1 is the name of the deployment and %2 is the date of deprecation';
-#if not CLEAN27
-    procedure GetGPT4oPreview(CallerModuleInfo: ModuleInfo): Text
-    begin
-        exit(GetDeploymentName(GPT4oPreviewLbl));
-    end;
-
-    procedure GetGPT4oLatest(CallerModuleInfo: ModuleInfo): Text
-    begin
-        exit(GetDeploymentName(GPT4oLatestLbl));
-    end;
-
-    procedure GetGPT4oMiniPreview(CallerModuleInfo: ModuleInfo): Text
-    begin
-        exit(GetDeploymentName(GPT4oMiniPreviewLbl));
-    end;
-
-    procedure GetGPT4oMiniLatest(CallerModuleInfo: ModuleInfo): Text
-    begin
-        exit(GetDeploymentName(GPT4oMiniLatestLbl));
-    end;
-#endif
 
     procedure GetGPT41Preview(CallerModuleInfo: ModuleInfo): Text
     begin
@@ -100,12 +73,6 @@ codeunit 7769 "AOAI Deployments Impl"
             exit;
 
         // Add deprecated deployments with their deprecation dates here:
-#if not CLEAN27
-        DeprecatedDeployments.Add(GPT4oLatestLbl, DMY2Date(15, 7, 2025));
-        DeprecatedDeployments.Add(GPT4oPreviewLbl, DMY2Date(15, 7, 2025));
-        DeprecatedDeployments.Add(GPT4oMiniLatestLbl, DMY2Date(15, 7, 2025));
-        DeprecatedDeployments.Add(GPT4oMiniPreviewLbl, DMY2Date(15, 7, 2025));
-#endif
         DeprecationDatesInitialized := true;
     end;
 

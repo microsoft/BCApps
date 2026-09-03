@@ -205,19 +205,6 @@ page 8052 "Customer Contract"
                     Importance = Additional;
                     ToolTip = 'Specifies the ID of the user who is responsible for the document.';
                 }
-#if not CLEAN27
-                field("Without Contract Deferrals"; Rec."Without Contract Deferrals")
-                {
-                    ObsoleteReason = 'Removed in favor of Create Contract Deferrals.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                    ApplicationArea = Suite;
-                    Importance = Additional;
-                    QuickEntry = false;
-                    Visible = false;
-                    ToolTip = 'Specifies whether deferrals should be generated for the contract. If the field is activated, no deferrals are generated and the invoices are posted directly to profit or loss.';
-                }
-#endif
                 field("Create Contract Deferrals"; Rec."Create Contract Deferrals")
                 {
                     ApplicationArea = Suite;

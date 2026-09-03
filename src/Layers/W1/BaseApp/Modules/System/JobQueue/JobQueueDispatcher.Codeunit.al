@@ -287,9 +287,6 @@ codeunit 448 "Job Queue Dispatcher"
     local procedure RescheduleAsWaiting(var JobQueueEntry: Record "Job Queue Entry")
     begin
         Clear(JobQueueEntry."System Task ID"); // to avoid canceling this task, which has already been executed
-#if not CLEAN27
-        OnRescheduleOnBeforeJobQueueEnqueue(JobQueueEntry);
-#endif
         OnRescheduleOnBeforeJobQueueEnqueueAsWaiting(JobQueueEntry);
         JobQueueEntry."System Task ID" := TASKSCHEDULER.CreateTask(CODEUNIT::"Job Queue Dispatcher", CODEUNIT::"Job Queue Error Handler", false, JobQueueEntry.CurrentCompany(), JobQueueEntry."Earliest Start Date/Time", JobQueueEntry.RecordId());
         JobQueueEntry.Status := JobQueueEntry.Status::Waiting;

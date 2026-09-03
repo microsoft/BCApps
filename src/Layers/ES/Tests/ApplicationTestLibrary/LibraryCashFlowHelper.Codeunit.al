@@ -500,33 +500,8 @@ codeunit 131332 "Library - Cash Flow Helper"
         OnAfterCreatePurchaseLine(PurchaseHeader, GLAccount);
     end;
 
-#if not CLEAN27
-    [Obsolete('Moved to codeunit Library Service', '27.0')]
-    procedure CreateSpecificServiceOrder(var ServiceHeader: Record "Service Header"; PaymentTermsCode: Code[10]; CFPaymentTermsCode: Code[10])
-    var
-        LibraryService: Codeunit "Library - Service";
-    begin
-        LibraryService.CreateSpecificServiceOrder(ServiceHeader, PaymentTermsCode, CFPaymentTermsCode);
-    end;
-#endif
 
-#if not CLEAN27
-    [Obsolete('Moved to codeunit Library Service', '27.0')]
-    procedure CreateDefaultServiceOrder(var ServiceHeader: Record "Service Header")
-    begin
-        CreateSpecificServiceOrder(ServiceHeader, '', '');
-    end;
-#endif
 
-#if not CLEAN27
-    [Obsolete('Moved to codeunit Library Service', '27.0')]
-    procedure CreateServiceLines(ServiceHeader: Record "Service Header")
-    var
-        LibraryService: Codeunit "Library - Service";
-    begin
-        LibraryService.CreateServiceLines(ServiceHeader);
-    end;
-#endif
 
     procedure CreatePrepaymentAccount(GeneralPostingSetup: Record "General Posting Setup"; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]): Code[20]
     var

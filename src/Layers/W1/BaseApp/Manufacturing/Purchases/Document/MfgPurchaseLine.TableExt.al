@@ -154,16 +154,10 @@ tableextension 99000751 "Mfg. Purchase Line" extends "Purchase Line"
         Item: Record Item;
         ProdOrder: Record Microsoft.Manufacturing.Document."Production Order";
         ProdOrderLine: Record Microsoft.Manufacturing.Document."Prod. Order Line";
-#if not CLEAN27
-        AddonIntegrManagement: Codeunit Microsoft.Inventory.AddOnIntegrManagement;
-#endif
         IsHandled: Boolean;
     begin
         IsHandled := false;
         OnBeforeValidateProdOrderOnPurchLine(Rec, IsHandled);
-#if not CLEAN27
-        AddonIntegrManagement.RunOnBeforeValidateProdOrderOnPurchLine(Rec, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -198,17 +192,11 @@ tableextension 99000751 "Mfg. Purchase Line" extends "Purchase Line"
         ManufacturingSetup: Record "Manufacturing Setup";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         CostCalculationManagement: Codeunit "Cost Calculation Management";
-#if not CLEAN27
-        AddonIntegrManagement: Codeunit Microsoft.Inventory.AddOnIntegrManagement;
-#endif
         RndgSetupRead: Boolean;
         IsHandled: Boolean;
     begin
         IsHandled := false;
         OnBeforeTransferFromReqLineToPurchLine(PurchOrderLine, ReqLine, IsHandled);
-#if not CLEAN27
-        AddonIntegrManagement.RunOnBeforeTransferFromReqLineToPurchLine(PurchOrderLine, ReqLine, IsHandled);
-#endif
         if not IsHandled then begin
             PurchOrderLine."Routing No." := ReqLine."Routing No.";
             PurchOrderLine."Routing Reference No." := ReqLine."Routing Reference No.";
@@ -217,9 +205,6 @@ tableextension 99000751 "Mfg. Purchase Line" extends "Purchase Line"
             if ReqLine."Prod. Order No." <> '' then
                 if ReqLine."Work Center No." <> '' then begin
                     OnTransferFromReqLineToPurchLineOnBeforeBeforeAssignOverheadRate(WorkCenter, ReqLine."Order Date");
-#if not CLEAN27
-                    AddonIntegrManagement.RunOnTransferFromReqLineToPurchLineOnBeforeBeforeAssignOverheadRate(WorkCenter, ReqLine."Order Date");
-#endif
                     WorkCenter.Get(PurchOrderLine."Work Center No.");
                     if WorkCenter."Unit Cost Calculation" = WorkCenter."Unit Cost Calculation"::Time then begin
                         ProdOrderRoutingLine.Get(
@@ -248,9 +233,6 @@ tableextension 99000751 "Mfg. Purchase Line" extends "Purchase Line"
         end;
 
         OnAfterTransferFromReqLineToPurchLine(PurchOrderLine, ReqLine);
-#if not CLEAN27
-        AddonIntegrManagement.RunOnAfterTransferFromReqLineToPurchLine(PurchOrderLine, ReqLine);
-#endif
     end;
 
     [IntegrationEvent(false, false)]

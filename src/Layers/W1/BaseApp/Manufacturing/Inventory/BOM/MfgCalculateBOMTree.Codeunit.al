@@ -72,9 +72,6 @@ codeunit 99000781 "Mfg. Calculate BOM Tree"
         ProdBOMLine.SetFilter("Ending Date", '%1|%2..', 0D, ParentBOMBuffer."Needed by Date");
         IsHandled := false;
         OnBeforeFilterByQuantityPer(ProdBOMLine, IsHandled, ParentBOMBuffer);
-#if not CLEAN27
-        sender.RunOnBeforeFilterByQuantityPer(ProdBOMLine, IsHandled, ParentBOMBuffer);
-#endif
         if not IsHandled then
             if TreeType = "BOM Tree Type"::Availability then
                 ProdBOMLine.SetFilter("Quantity per", '>%1', 0);
@@ -82,17 +79,11 @@ codeunit 99000781 "Mfg. Calculate BOM Tree"
             if not ParentItem.IsMfgItem() then begin
                 FoundSubTree := true;
                 OnGenerateProdCompSubTreeOnBeforeExitForNonProdOrder(ParentItem, BOMBuffer, FoundSubTree);
-#if not CLEAN27
-                sender.RunOnGenerateProdCompSubTreeOnBeforeExitForNonProdOrder(ParentItem, BOMBuffer, FoundSubTree);
-#endif
                 exit(FoundSubTree);
             end;
             repeat
                 IsHandled := false;
                 OnBeforeTransferProdBOMLine(BOMBuffer, ProdBOMLine, ParentItem, ParentBOMBuffer, EntryNo, TreeType.AsInteger(), IsHandled);
-#if not CLEAN27
-                sender.RunOnBeforeTransferProdBOMLine(BOMBuffer, ProdBOMLine, ParentItem, ParentBOMBuffer, EntryNo, TreeType.AsInteger(), IsHandled);
-#endif
                 if not IsHandled then
                     if ProdBOMLine."No." <> '' then
                         case ProdBOMLine.Type of
@@ -122,21 +113,12 @@ codeunit 99000781 "Mfg. Calculate BOM Tree"
                                         BOMBuffer."Qty. per BOM Line" := BOMBuffer."Qty. per BOM Line" * ParentBOMBuffer."Qty. per Parent";
                                     end;
                                     OnAfterTransferFromProdItem(BOMBuffer, ProdBOMLine, EntryNo);
-#if not CLEAN27
-                                    sender.RunOnAfterTransferFromProdItem(BOMBuffer, ProdBOMLine, EntryNo);
-#endif
                                     sender.GenerateItemSubTree(ProdBOMLine."No.", BOMBuffer);
                                     OnGenerateProdCompSubTreeOnAfterGenerateItemSubTree(ParentBOMBuffer, BOMBuffer);
-#if not CLEAN27
-                                    sender.RunOnGenerateProdCompSubTreeOnAfterGenerateItemSubTree(ParentBOMBuffer, BOMBuffer);
-#endif
                                 end;
                             ProdBOMLine.Type::"Production BOM":
                                 begin
                                     OnBeforeTransferFromProdBOM(BOMBuffer, ProdBOMLine, ParentItem, ParentBOMBuffer, EntryNo, TreeType);
-#if not CLEAN27
-                                    sender.RunOnBeforeTransferFromProdBOM(BOMBuffer, ProdBOMLine, ParentItem, ParentBOMBuffer, EntryNo, TreeType.AsInteger());
-#endif
                                     BOMBuffer := ParentBOMBuffer;
                                     BOMBuffer."Qty. per Top Item" := Round(BOMBuffer."Qty. per Top Item" * ProdBOMLine."Quantity per", UOMMgt.QtyRndPrecision());
                                     if ParentItem."Production BOM No." <> ParentBOMBuffer."Production BOM No." then
@@ -148,9 +130,6 @@ codeunit 99000781 "Mfg. Calculate BOM Tree"
                                     BOMBuffer."Scrap %" := Round(BOMBuffer."Scrap %", 0.00001);
 
                                     OnAfterTransferFromProdBOM(BOMBuffer, ProdBOMLine);
-#if not CLEAN27
-                                    sender.RunOnAfterTransferFromProdBOM(BOMBuffer, ProdBOMLine);
-#endif
 
                                     CopyOfParentItem := ParentItem;
                                     ParentItem."Routing No." := '';
@@ -159,15 +138,9 @@ codeunit 99000781 "Mfg. Calculate BOM Tree"
                                     ParentItem := CopyOfParentItem;
 
                                     OnAfterGenerateProdCompSubTree(ParentItem, BOMBuffer, ParentBOMBuffer);
-#if not CLEAN27
-                                    sender.RunOnAfterGenerateProdCompSubTree(ParentItem, BOMBuffer, ParentBOMBuffer);
-#endif
                                 end;
                         end;
                 OnGenerateProdCompSubTreeOnAfterProdBOMLineLoop(ParentBOMBuffer, BOMBuffer);
-#if not CLEAN27
-                sender.RunOnGenerateProdCompSubTreeOnAfterProdBOMLineLoop(ParentBOMBuffer, BOMBuffer);
-#endif
             until ProdBOMLine.Next() = 0;
             FoundSubTree := true;
         end;
@@ -179,9 +152,6 @@ codeunit 99000781 "Mfg. Calculate BOM Tree"
                 repeat
                     RunIteration := RoutingLine."No." <> '';
                     OnGenerateProdCompSubTreeOnBeforeRoutingLineLoop(RoutingLine, BOMBuffer, RunIteration, ItemFilter);
-#if not CLEAN27
-                    sender.RunOnGenerateProdCompSubTreeOnBeforeRoutingLineLoop(RoutingLine, BOMBuffer, RunIteration);
-#endif
                     if RunIteration then begin
                         BOMBuffer.SetLocationVariantFiltersFrom(ItemFilter);
                         BOMBuffer.TransferFromProdRouting(
@@ -191,9 +161,6 @@ codeunit 99000781 "Mfg. Calculate BOM Tree"
                           ParentBOMBuffer."Needed by Date",
                           ParentBOMBuffer."Location Code");
                         OnAfterTransferFromProdRouting(BOMBuffer, RoutingLine);
-#if not CLEAN27
-                        sender.RunOnAfterTransferFromProdRouting(BOMBuffer, RoutingLine);
-#endif
                         if TreeType = "BOM Tree Type"::Cost then begin
                             LotSize := ParentBOMBuffer."Lot Size";
                             if LotSize = 0 then
@@ -201,24 +168,14 @@ codeunit 99000781 "Mfg. Calculate BOM Tree"
                                     LotSize := ParentBOMBuffer."Qty. per Top Item"
                                 else
                                     LotSize := 1;
-#if not CLEAN27
-                            CalcRoutingLineCosts(RoutingLine, LotSize, ParentBOMBuffer."Scrap %", BOMBuffer, ParentItem, sender);
-#else
                             CalcRoutingLineCosts(RoutingLine, LotSize, ParentBOMBuffer."Scrap %", BOMBuffer, ParentItem);
-#endif
                             BOMBuffer.RoundCosts(
                               ParentBOMBuffer."Qty. per Top Item" *
                               UOMMgt.GetQtyPerUnitOfMeasure(ParentItem, ParentBOMBuffer."Unit of Measure Code") / LotSize);
                             OnGenerateProdCompSubTreeOnBeforeBOMBufferModify(BOMBuffer, ParentBOMBuffer, ParentItem);
-#if not CLEAN27
-                            sender.RunOnGenerateProdCompSubTreeOnBeforeBOMBufferModify(BOMBuffer, ParentBOMBuffer, ParentItem);
-#endif
                             BOMBuffer.Modify();
                         end;
                         OnGenerateProdCompSubTreeOnAfterBOMBufferModify(BOMBuffer, RoutingLine, LotSize, ParentItem, ParentBOMBuffer, TreeType);
-#if not CLEAN27
-                        sender.RunOnGenerateProdCompSubTreeOnAfterBOMBufferModify(BOMBuffer, RoutingLine, LotSize, ParentItem, ParentBOMBuffer, TreeType.AsInteger());
-#endif
                     end;
                 until RoutingLine.Next() = 0;
                 FoundSubTree := true;
@@ -235,9 +192,6 @@ codeunit 99000781 "Mfg. Calculate BOM Tree"
         IsHandled: Boolean;
     begin
         OnBeforeGenerateProdOrderLineSubTree(ProdOrderLine, BOMBuffer, ParentBOMBuffer, Result, IsHandled);
-#if not CLEAN27
-        sender.RunOnBeforeGenerateProdOrderLineSubTree(ProdOrderLine, BOMBuffer, ParentBOMBuffer, Result, IsHandled);
-#endif
         if IsHandled then
             exit(Result);
 
@@ -263,11 +217,7 @@ codeunit 99000781 "Mfg. Calculate BOM Tree"
         end;
     end;
 
-#if not CLEAN27
-    local procedure CalcRoutingLineCosts(RoutingLine: Record "Routing Line"; LotSize: Decimal; ScrapPct: Decimal; var BOMBuffer: Record "BOM Buffer"; var ParentItem: Record Item; var sender: Codeunit "Calculate BOM Tree")
-#else
     local procedure CalcRoutingLineCosts(RoutingLine: Record "Routing Line"; LotSize: Decimal; ScrapPct: Decimal; var BOMBuffer: Record "BOM Buffer"; var ParentItem: Record Item)
-#endif
     var
         CalcStdCost: Codeunit "Calculate Standard Cost";
         CapCost: Decimal;
@@ -275,18 +225,12 @@ codeunit 99000781 "Mfg. Calculate BOM Tree"
         CapOverhead: Decimal;
     begin
         OnBeforeCalcRoutingLineCosts(RoutingLine, LotSize, ScrapPct, ParentItem);
-#if not CLEAN27
-        sender.RunOnBeforeCalcRoutingLineCosts(RoutingLine, LotSize, ScrapPct, ParentItem);
-#endif
 
         CalcStdCost.SetProperties(WorkDate(), false, false, false, '', false);
         CalcStdCost.CalcRtngLineCost(
           RoutingLine, MfgCostCalcMgt.CalcQtyAdjdForBOMScrap(LotSize, ScrapPct), CapCost, SubcontractedCapCost, CapOverhead, ParentItem);
 
         OnCalcRoutingLineCostsOnBeforeBOMBufferAdd(RoutingLine, LotSize, ScrapPct, CapCost, SubcontractedCapCost, CapOverhead, BOMBuffer);
-#if not CLEAN27
-        sender.RunOnCalcRoutingLineCostsOnBeforeBOMBufferAdd(RoutingLine, LotSize, ScrapPct, CapCost, SubcontractedCapCost, CapOverhead, BOMBuffer);
-#endif
 
         BOMBuffer.AddCapacityCost(CapCost, CapCost);
         BOMBuffer.AddSubcontrdCost(SubcontractedCapCost, SubcontractedCapCost);

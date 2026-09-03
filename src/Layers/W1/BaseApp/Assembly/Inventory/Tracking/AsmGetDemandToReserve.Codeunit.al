@@ -214,11 +214,4 @@ codeunit 929 "Asm. Get Demand To Reserve"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('This event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnGetDemandOnBeforeSetTempAssemblyLine(var AssemblyLine: Record "Assembly Line"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 }

@@ -181,13 +181,7 @@ table 8627 "Config. Setup"
         {
             Caption = 'Email';
         }
-#if not CLEAN27
-#pragma warning disable AS0086
-#endif
         field(35; "Home Page"; Text[255])
-#if not CLEAN27
-#pragma warning restore AS0086
-#endif
         {
             Caption = 'Home Page';
             ExtendedDatatype = URL;

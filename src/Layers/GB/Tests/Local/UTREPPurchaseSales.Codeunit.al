@@ -14,9 +14,6 @@ codeunit 144052 "UT REP Purchase & Sales"
 #if not CLEAN28
         Assert: Codeunit Assert;
 #endif
-#if not CLEAN27
-        LibraryApplicationArea: Codeunit "Library - Application Area";
-#endif        
         LibraryUTUtility: Codeunit "Library UT Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
@@ -30,53 +27,6 @@ codeunit 144052 "UT REP Purchase & Sales"
         IssuedReminderHeaderCap: Label 'No_IssuedReminderHeader';
         CurrentSaveValuesId: Integer;
 
-#if not CLEAN27
-    [Test]
-    [HandlerFunctions('PurchaseCreditMemoGBRequestPageHandler')]
-    [Scope('OnPrem')]
-    procedure OnAfterGetRecordPurchaseCreditMemoGB()
-    var
-        PurchCrMemoLine: Record "Purch. Cr. Memo Line";
-    begin
-        // Purpose of the test is to validate OnAfterGetRecord Trigger of Report 10578 Purchase - Credit Memo GB.
-
-        // Setup: Create Posted Purchase Credit Memo.
-        Initialize();
-        CreatePostedPurchaseCreditMemoMultipleLine(PurchCrMemoLine);
-        Commit();  // Commit required as it is called explicitly from OnRun Trigger of Codeunit 320 PurchCrMemo-Printed.
-
-        // Exercise.
-        REPORT.Run(REPORT::"Purchase - Credit Memo GB");  // Open PurchaseCreditMemoGBRequestPageHandler.
-
-        // Verify: Verify Number and Description on Report Purchase - Credit Memo GB.
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementWithValueExists('No_PurchCrMemoLine', PurchCrMemoLine."No.");
-        LibraryReportDataset.AssertElementWithValueExists('Desc_PurchCrMemoLine', PurchCrMemoLine.Description);
-    end;
-
-    [Test]
-    [HandlerFunctions('PurchaseInvoiceGBRequestPageHandler')]
-    [Scope('OnPrem')]
-    procedure OnAfterGetRecordPurchaseInvoiceGB()
-    var
-        PurchInvLine: Record "Purch. Inv. Line";
-    begin
-        // Purpose of the test is to validate OnAfterGetRecord Trigger of Report 10577 Purchase - Invoice GB.
-
-        // Setup: Create Posted Purchase Invoice.
-        Initialize();
-        CreatePostedPurchaseInvoiceWithMultipleLine(PurchInvLine);
-        Commit();  // Commit required as it is called explicitly from OnRun Trigger of Codeunit 319 Purch. Inv.-Printed.
-
-        // Exercise.
-        REPORT.Run(REPORT::"Purchase - Invoice GB");  // Open PurchaseInvoiceGBRequestPageHandler.
-
-        // Verify: Verify Number and Description on Report Purchase - Invoice GB.
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementWithValueExists('No_PurchInvLine', PurchInvLine."No.");
-        LibraryReportDataset.AssertElementWithValueExists('Description_PurchInvLine', PurchInvLine.Description);
-    end;
-#endif
 
     [Test]
     [HandlerFunctions('FinanceChargeMemoLogInteractionRequestPageHandler')]
@@ -284,45 +234,6 @@ codeunit 144052 "UT REP Purchase & Sales"
         OnAfterGetRecordCreateReminders(true);  // Using True for Use Header Level.
     end;
 
-#if not CLEAN27
-    [Test]
-    [HandlerFunctions('ECSalesListReportRPH')]
-    [Scope('OnPrem')]
-    procedure ECSalesListRequestPageFieldsBasicApplicationArea()
-    begin
-        // [FEATURE] [ECSL] [Application Area] [UI] [UT]
-        // [SCENARIO 331168] ReportLayout and "Create XML File" fields are enabled on EC Sales List Request page when Application Area = #basic
-        Initialize();
-
-        // [GIVEN] Enabled Application Area = #basic setup
-        LibraryApplicationArea.EnableBasicSetup();
-        Commit();
-
-        // [WHEN] Run "EC Sales List" report
-        // [THEN] ReportLayout and "Create XML File" fields are enabled (check in RPH)
-        REPORT.Run(REPORT::"EC Sales List");
-        LibraryApplicationArea.DisableApplicationAreaSetup();
-    end;
-
-    [Test]
-    [HandlerFunctions('ECSalesListReportRPH')]
-    [Scope('OnPrem')]
-    procedure ECSalesListRequestPageFieldsSuiteApplicationArea()
-    begin
-        // [FEATURE] [ECSL] [Application Area] [UI] [UT]
-        // [SCENARIO 331168] ReportLayout and "Create XML File" fields are enabled on EC Sales List Request page when Application Area = #suite
-        Initialize();
-
-        // [GIVEN] Enabled Application Area = #suite setup
-        LibraryApplicationArea.EnableFoundationSetup();
-        Commit();
-
-        // [WHEN] Run "EC Sales List" report
-        // [THEN] ReportLayout and "Create XML File" fields are enabled (check in RPH)
-        REPORT.Run(REPORT::"EC Sales List");
-        LibraryApplicationArea.DisableApplicationAreaSetup();
-    end;
-#endif
 
 #if not CLEAN28
     [Test]
@@ -501,50 +412,6 @@ codeunit 144052 "UT REP Purchase & Sales"
         GLEntry.Insert();
     end;
 
-#if not CLEAN27
-    local procedure CreatePostedPurchaseInvoiceWithMultipleLine(var PurchInvLine: Record "Purch. Inv. Line")
-    var
-        PurchInvHeader: Record "Purch. Inv. Header";
-    begin
-        PurchInvHeader."No." := LibraryUTUtility.GetNewCode();
-        PurchInvHeader.Insert();
-        CreatePostedPurchaseInvoiceLine(PurchInvLine, PurchInvLine.Type::Item, PurchInvHeader."No.", LibraryUTUtility.GetNewCode());
-        CreatePostedPurchaseInvoiceLine(PurchInvLine, PurchInvLine.Type::Item, PurchInvHeader."No.", '');  // Blank value for Number.
-        LibraryVariableStorage.Enqueue(PurchInvHeader."No.");  // Enqueue required for PurchaseCreditMemoGBRequestPageHandler.
-    end;
-
-    local procedure CreatePostedPurchaseInvoiceLine(var PurchInvLine: Record "Purch. Inv. Line"; Type: Enum "Purchase Line Type"; DocumentNo: Code[20]; No: Code[20])
-    begin
-        PurchInvLine."Line No." := SelectPurchaseInvoiceLineNo(DocumentNo);
-        PurchInvLine."Document No." := DocumentNo;
-        PurchInvLine.Type := Type;
-        PurchInvLine."No." := No;
-        PurchInvLine.Description := LibraryUTUtility.GetNewCode();
-        PurchInvLine.Insert();
-    end;
-
-    local procedure CreatePostedPurchaseCreditMemoMultipleLine(var PurchCrMemoLine: Record "Purch. Cr. Memo Line")
-    var
-        PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
-    begin
-        PurchCrMemoHeader."No." := LibraryUTUtility.GetNewCode();
-        PurchCrMemoHeader.Insert();
-        CreatePostedPurchaseCreditMemoLine(
-          PurchCrMemoLine, PurchCrMemoLine.Type::Item, PurchCrMemoHeader."No.", LibraryUTUtility.GetNewCode());
-        CreatePostedPurchaseCreditMemoLine(PurchCrMemoLine, PurchCrMemoLine.Type::Item, PurchCrMemoHeader."No.", '');  // Blank value for - Number.
-        LibraryVariableStorage.Enqueue(PurchCrMemoHeader."No.");  // Enqueue required for PurchaseCreditMemoGBRequestPageHandler.
-    end;
-
-    local procedure CreatePostedPurchaseCreditMemoLine(var PurchCrMemoLine: Record "Purch. Cr. Memo Line"; Type: Enum "Purchase Line Type"; DocumentNo: Code[20]; No: Code[20])
-    begin
-        PurchCrMemoLine."Line No." := SelectPurchaseCreditMemoLineNo(DocumentNo);
-        PurchCrMemoLine."Document No." := DocumentNo;
-        PurchCrMemoLine.Type := Type;
-        PurchCrMemoLine."No." := No;
-        PurchCrMemoLine.Description := LibraryUTUtility.GetNewCode();
-        PurchCrMemoLine.Insert();
-    end;
-#endif
 
     local procedure CreatePurchaseDocument(var PurchaseHeader: Record "Purchase Header"; DocumentType: Enum "Purchase Document Type"; ResponsibilityCenter: Code[10])
     var
@@ -888,27 +755,6 @@ codeunit 144052 "UT REP Purchase & Sales"
         exit(GLEntry."Transaction No." + 1);
     end;
 
-#if not CLEAN27
-    local procedure SelectPurchaseInvoiceLineNo(DocumentNo: Code[20]): Integer
-    var
-        PurchInvLine: Record "Purch. Inv. Line";
-    begin
-        PurchInvLine.SetRange("Document No.", DocumentNo);
-        if PurchInvLine.FindLast() then
-            exit(PurchInvLine."Line No." + 1);
-        exit(1);
-    end;
-
-    local procedure SelectPurchaseCreditMemoLineNo(DocumentNo: Code[20]): Integer
-    var
-        PurchCrMemoLine: Record "Purch. Cr. Memo Line";
-    begin
-        PurchCrMemoLine.SetRange("Document No.", DocumentNo);
-        if PurchCrMemoLine.FindLast() then
-            exit(PurchCrMemoLine."Line No." + 1);
-        exit(1);
-    end;
-#endif
 
     local procedure SelectReminderLine(var ReminderLine: Record "Reminder Line"; EntryNo: Integer)
     begin
@@ -929,31 +775,6 @@ codeunit 144052 "UT REP Purchase & Sales"
         FinanceChargeMemo.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
-#if not CLEAN27
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure PurchaseCreditMemoGBRequestPageHandler(var PurchaseCreditMemoGB: TestRequestPage "Purchase - Credit Memo GB")
-    var
-        No: Variant;
-    begin
-        CurrentSaveValuesId := REPORT::"Purchase - Credit Memo GB";
-        LibraryVariableStorage.Dequeue(No);
-        PurchaseCreditMemoGB."Purch. Cr. Memo Hdr.".SetFilter("No.", No);
-        PurchaseCreditMemoGB.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure PurchaseInvoiceGBRequestPageHandler(var PurchaseInvoiceGB: TestRequestPage "Purchase - Invoice GB")
-    var
-        No: Variant;
-    begin
-        CurrentSaveValuesId := REPORT::"Purchase - Invoice GB";
-        LibraryVariableStorage.Dequeue(No);
-        PurchaseInvoiceGB."Purch. Inv. Header".SetFilter("No.", No);
-        PurchaseInvoiceGB.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-#endif
 
     [RequestPageHandler]
     [Scope('OnPrem')]
@@ -1029,15 +850,6 @@ codeunit 144052 "UT REP Purchase & Sales"
         LibraryReportValidation.DeleteObjectOptions(CurrentSaveValuesId);
     end;
 
-#if not CLEAN27
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure ECSalesListReportRPH(var ECSalesList: TestRequestPage "EC Sales List")
-    begin
-        Assert.IsTrue(ECSalesList."Create XML File".Visible(), '');
-        Assert.IsTrue(ECSalesList."Create XML File".Enabled(), '');
-    end;
-#endif
 
     [RequestPageHandler]
     procedure GeneralJournalTestRequestPageHandler(var GeneralJournalTest: TestRequestPage "General Journal - Test");

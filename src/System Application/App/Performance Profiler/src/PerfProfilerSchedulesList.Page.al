@@ -31,34 +31,6 @@ page 1933 "Perf. Profiler Schedules List"
             {
                 Caption = 'Profiling Status';
 
-#if not CLEAN27
-                field("Active Schedule ID"; ActiveScheduleIdDisplayText)
-                {
-                    Caption = 'Active Schedule ID';
-                    Editable = false;
-                    DrillDown = true;
-                    ToolTip = 'Specifies the ID of the active schedule for the current session.';
-                    Visible = false;
-                    ObsoleteReason = 'This field is obsolete. Use the "Active Schedule" field instead.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-
-                    trigger OnDrillDown()
-                    var
-                        PerformanceProfileScheduler: Record "Performance Profile Scheduler";
-                        ScheduleCardPage: Page "Perf. Profiler Schedule Card";
-                    begin
-                        if IsNullGuid(ActiveScheduleId) then
-                            exit;
-
-                        if not PerformanceProfileScheduler.Get(ActiveScheduleId) then
-                            exit;
-
-                        ScheduleCardPage.SetRecord(PerformanceProfileScheduler);
-                        ScheduleCardPage.Run();
-                    end;
-                }
-#endif
                 field("Active Schedule"; ActiveScheduleDisplayNameText)
                 {
                     ApplicationArea = All;
@@ -114,58 +86,6 @@ page 1933 "Perf. Profiler Schedules List"
                     Editable = false;
                     Visible = false;
                 }
-#if not CLEAN27
-                field(Enabled; Rec.Enabled)
-                {
-                    Caption = 'Enabled';
-                    ToolTip = 'Specifies if the schedule is enabled.';
-                    AboutText = 'Specifies if the schedule is enabled.';
-                    Visible = false;
-                    ObsoleteReason = 'This field is obsolete.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
-                field("Start Time"; Rec."Starting Date-Time")
-                {
-                    Caption = 'Start Time';
-                    ToolTip = 'Specifies the time the schedule will start.';
-                    AboutText = 'The time the schedule will start.';
-                    Visible = false;
-                    ObsoleteReason = 'This field is obsolete.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
-                field("End Time"; Rec."Ending Date-Time")
-                {
-                    Caption = 'End Time';
-                    ToolTip = 'Specifies the time the schedule will end.';
-                    AboutText = 'The time the schedule will end.';
-                    Visible = false;
-                    ObsoleteReason = 'This field is obsolete.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
-                field(Frequency; Rec.Frequency)
-                {
-                    Caption = 'Sampling Frequency';
-                    ToolTip = 'Specifies the frequency at which the profiler will sample data.';
-                    AboutText = 'The frequency at which the profiler will sample data.';
-                    Visible = false;
-                    ObsoleteReason = 'This field is obsolete.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
-                field("Profile Creation Threshold"; Rec."Profile Creation Threshold")
-                {
-                    Caption = 'Profile Creation Threshold (ms)';
-                    ToolTip = 'Specifies to create only profiles that are greater then the profile creation threshold';
-                    AboutText = 'Limit the amount of sampling profiles that are created by setting a millisecond threshold. Only profiles larger then the threshold will be created.';
-                    Visible = false;
-                    ObsoleteReason = 'This field is obsolete.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
-#endif
             }
         }
     }
@@ -224,9 +144,6 @@ page 1933 "Perf. Profiler Schedules List"
         ScheduledPerfProfilerImpl: Codeunit "Scheduled Perf. Profiler Impl.";
         UserName: Text;
         Activity: Enum "Perf. Profile Activity Type";
-#if not CLEAN27
-        ActiveScheduleIdDisplayText: Text;
-#endif
         ActiveScheduleDisplayNameText: Text;
         ActiveScheduleId: Guid;
         Status: Text;

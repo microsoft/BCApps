@@ -193,9 +193,6 @@ table 339 "Item Application Entry"
     var
         TempVisitedItemApplicationEntry: Record "Item Application Entry" temporary;
         TempItemLedgerEntryInChainNo: Record "Integer" temporary;
-#if not CLEAN27
-        SearchedItemLedgerEntry: Record "Item Ledger Entry";
-#endif
         TrackChain: Boolean;
         MaxValuationDate: Date;
         CheckCyclicalLoopDepth: Integer;
@@ -1043,13 +1040,6 @@ table 339 "Item Application Entry"
         exit(ValueEntry.IsEmpty());
     end;
 
-#if not CLEAN27
-    [Obsolete('The optimization that used this function was obsoleted.', '27.0')]
-    procedure SetSearchedItemLedgerEntry(var ItemLedgerEntry: Record "Item Ledger Entry")
-    begin
-        SearchedItemLedgerEntry.Copy(ItemLedgerEntry);
-    end;
-#endif
 
     procedure SetCostApplication(NewCostApplication: Boolean)
     begin

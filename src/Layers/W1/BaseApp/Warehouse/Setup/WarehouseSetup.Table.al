@@ -278,13 +278,6 @@ table 5769 "Warehouse Setup"
         exit(2147483647);
     end;
 
-#if not CLEAN27
-    [Obsolete('This function is deprecated. Concurrent warehouse posting is always on.', '27.0')]
-    procedure UseLegacyPosting(): Boolean
-    begin
-        exit(false);
-    end;
-#endif
 
     internal procedure GetRecordOnce()
     begin

@@ -1283,9 +1283,6 @@ page 5914 "Service Order Statistics"
     begin
         SalesSetup.Get();
 
-#if not CLEAN27
-        if not Rec.SkipStatisticsPreparation() then
-#endif
             if SalesSetup."Calc. Inv. Discount" then begin
                 ServiceLine.SetRange("Document Type", Rec."Document Type");
                 ServiceLine.SetRange("Document No.", Rec."No.");
@@ -1294,9 +1291,6 @@ page 5914 "Service Order Statistics"
                     Commit();
                 end;
             end;
-#if not CLEAN27
-        Rec.ResetSkipStatisticsPreparationFlag();
-#endif
         AllowInvDisc := not (SalesSetup."Calc. Inv. Discount" and CustInvDiscRecExists(Rec."Invoice Disc. Code"));
         AllowVATDifference := SalesSetup."Allow VAT Difference" and (Rec."Document Type" <> Rec."Document Type"::Quote);
         VATLinesFormIsEditable := AllowVATDifference or AllowInvDisc;
