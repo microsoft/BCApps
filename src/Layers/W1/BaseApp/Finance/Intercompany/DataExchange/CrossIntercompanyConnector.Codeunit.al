@@ -36,8 +36,8 @@ codeunit 560 "CrossIntercompany Connector"
         BCResourceURLScopeTok: Label 'https://api.businesscentral.dynamics.com/.default', Locked = true;
         BCProductionHostTok: Label 'api.businesscentral.dynamics.com', Locked = true;
         BCPPEHostTok: Label 'api.businesscentral.dynamics-tie.com', Locked = true;
-        EntraTokenEndpointTok: Label 'https://login.microsoftonline.com/%1/oauth2/v2.0/token', Locked = true;
-        EntraPPETokenEndpointTok: Label 'https://login.windows-ppe.net/%1/oauth2/v2.0/token', Locked = true;
+        EntraAuthorityPrefixTok: Label 'https://login.microsoftonline.com/', Locked = true;
+        EntraPPEAuthorityPrefixTok: Label 'https://login.windows-ppe.net/', Locked = true;
         OAuthTokenEndpointSuffixTok: Label '/oauth2/v2.0/token', Locked = true;
         ExpandedTok: Label 'bufferIntercompanyInboxTransactions,bufferIntercompanyInboxJournalLines,bufferIntercompanyInboxPurchaseHeaders,bufferIntercompanyInboxPurchaseLines,bufferIntercompanyInboxSalesHeaders,bufferIntercompanyInboxSalesLines,bufferIntercompanyInOutJournalLineDimensions,bufferIntercompanyDocumentDimensions,bufferIntercompanyCommentLines', Locked = true;
 
@@ -57,7 +57,10 @@ codeunit 560 "CrossIntercompany Connector"
         PartnerMissingICSetupErr: Label 'Partner %1 has not completed the information required to use intercompany.', Comment = '%1 = IC Partner Code';
         MissalignmentBetweenNamesErr: Label 'The partner''s company name %1 does not match the name you are introducing for partner %2.', Comment = '%1 = Partner''s Company Name, %2 = IC Partner Name';
         InvalidDestinationUrlErr: Label 'The intercompany connection URL must use the trusted Business Central API host.';
+        InvalidDestinationUrlSecurityAuditTxt: Label 'An invalid destination URL was rejected for a cross-environment intercompany connection.', Locked = true;
         InvalidTokenEndpointErr: Label 'The token endpoint must identify a Microsoft Entra tenant on the trusted authority.';
+        InvalidTokenEndpointSecurityAuditTxt: Label 'An invalid OAuth token endpoint was rejected for a cross-environment intercompany connection.', Locked = true;
+        CrossIntercompanyServiceNameTxt: Label 'Cross-environment Intercompany', Locked = true;
 
     internal procedure TestICPartnerSetup(var TempICPartner: Record "IC Partner" temporary): Boolean
     var
@@ -394,7 +397,7 @@ codeunit 560 "CrossIntercompany Connector"
         ExpectedHost: Text;
     begin
         if not Uri.IsValidUri(DestinationUrl) or not DestinationUrl.StartsWith('https://') then
-            Error(InvalidDestinationUrlErr);
+            RejectInvalidDestinationUrl();
 
         if UrlHelper.IsPPE() then
             ExpectedHost := BCPPEHostTok
@@ -402,44 +405,54 @@ codeunit 560 "CrossIntercompany Connector"
             if UrlHelper.IsPROD() then
                 ExpectedHost := BCProductionHostTok
             else
-                Error(InvalidDestinationUrlErr);
+                RejectInvalidDestinationUrl();
 
         if LowerCase(Uri.GetHost()) <> ExpectedHost then
-            Error(InvalidDestinationUrlErr);
+            RejectInvalidDestinationUrl();
 
         exit(true);
+    end;
+
+    local procedure RejectInvalidDestinationUrl()
+    begin
+        Session.LogSecurityAudit(
+            CrossIntercompanyServiceNameTxt, SecurityOperationResult::Failure,
+            InvalidDestinationUrlSecurityAuditTxt, AuditCategory::ApplicationManagement);
+        Error(InvalidDestinationUrlErr);
     end;
 
     internal procedure GetValidatedTokenEndpoint(ConfiguredTokenEndpoint: Text): Text
     var
         UrlHelper: Codeunit "Url Helper";
         TenantId: Guid;
-        AuthorityPrefix, ExpectedTokenEndpoint, TenantIdText : Text;
+        AuthorityPrefix, TenantIdText : Text;
     begin
-        if UrlHelper.IsPPE() then begin
-            AuthorityPrefix := 'https://login.windows-ppe.net/';
-            ExpectedTokenEndpoint := EntraPPETokenEndpointTok;
-        end else
-            if UrlHelper.IsPROD() then begin
-                AuthorityPrefix := 'https://login.microsoftonline.com/';
-                ExpectedTokenEndpoint := EntraTokenEndpointTok;
-            end else
-                Error(InvalidTokenEndpointErr);
+        if UrlHelper.IsPPE() then
+            AuthorityPrefix := EntraPPEAuthorityPrefixTok
+        else
+            if UrlHelper.IsPROD() then
+                AuthorityPrefix := EntraAuthorityPrefixTok
+            else
+                RejectInvalidTokenEndpoint();
 
         if not LowerCase(ConfiguredTokenEndpoint).StartsWith(AuthorityPrefix) or
            not LowerCase(ConfiguredTokenEndpoint).EndsWith(OAuthTokenEndpointSuffixTok)
         then
-            Error(InvalidTokenEndpointErr);
+            RejectInvalidTokenEndpoint();
 
         TenantIdText := CopyStr(ConfiguredTokenEndpoint, StrLen(AuthorityPrefix) + 1, StrLen(ConfiguredTokenEndpoint) - StrLen(AuthorityPrefix) - StrLen(OAuthTokenEndpointSuffixTok));
         if not Evaluate(TenantId, TenantIdText) then
-            Error(InvalidTokenEndpointErr);
+            RejectInvalidTokenEndpoint();
 
-        ExpectedTokenEndpoint := StrSubstNo(ExpectedTokenEndpoint, LowerCase(DelChr(Format(TenantId), '=', '{}')));
-        if LowerCase(ConfiguredTokenEndpoint) <> ExpectedTokenEndpoint then
-            Error(InvalidTokenEndpointErr);
+        exit(ConfiguredTokenEndpoint);
+    end;
 
-        exit(ExpectedTokenEndpoint);
+    local procedure RejectInvalidTokenEndpoint()
+    begin
+        Session.LogSecurityAudit(
+            CrossIntercompanyServiceNameTxt, SecurityOperationResult::Failure,
+            InvalidTokenEndpointSecurityAuditTxt, AuditCategory::ApplicationManagement);
+        Error(InvalidTokenEndpointErr);
     end;
 
     #region Auxiliar methods
