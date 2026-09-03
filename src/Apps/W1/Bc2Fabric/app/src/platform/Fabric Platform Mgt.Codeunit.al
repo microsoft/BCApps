@@ -43,6 +43,8 @@ codeunit 50101 "Fabric Platform Mgt"
 
         TenantFabricSetup.Init();
         TenantFabricSetup.Validate("Max Consecutive Failed Runs", 2);
+        TenantFabricSetup.Validate("Fabric Data Namespace", 'BusinessCentral');
+        TenantFabricSetup.Validate("Fabric Logging Namespace", 'BusinessCentral_log');
         TenantFabricSetup.Insert(true);
     end;
 

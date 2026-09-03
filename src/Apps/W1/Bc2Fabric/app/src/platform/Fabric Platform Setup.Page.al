@@ -112,11 +112,13 @@ page 50104 "Fabric Platform Setup"
                 field("Fabric Data Namespace"; Rec."Fabric Data Namespace")
                 {
                     ApplicationArea = All;
+                    Editable = NamespaceEditable;
                     ToolTip = 'Specifies the Fabric schema name used for the exported data tables.';
                 }
                 field("Fabric Logging Namespace"; Rec."Fabric Logging Namespace")
                 {
                     ApplicationArea = All;
+                    Editable = NamespaceEditable;
                     ToolTip = 'Specifies the Fabric schema name used for the exported logging tables.';
                 }
             }
@@ -372,9 +374,21 @@ page 50104 "Fabric Platform Setup"
         OpenMirroringNameValue := CopyStr(CredMgt.GetOpenMirroringDatabaseName(), 1, MaxStrLen(OpenMirroringNameValue));
         if CredMgt.IsClientSecretSet() then
             ClientSecretValue := ClientSecretSetLbl;
+        SetEditable();
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        SetEditable();
+    end;
+
+    local procedure SetEditable()
+    begin
+        NamespaceEditable := not Rec."Setup Complete";
     end;
 
     var
+        NamespaceEditable: Boolean;
         ClientIdValue: Text[250];
         PrincipalIdValue: Text[250];
         OpenMirroringNameValue: Text[250];
