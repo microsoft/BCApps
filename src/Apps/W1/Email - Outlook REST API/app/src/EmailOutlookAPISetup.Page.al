@@ -233,13 +233,12 @@ page 4509 "Email - Outlook API Setup"
 
     local procedure ValidateUri(UriString: Text)
     var
-        Uri: Codeunit Uri;
+        EmailOAuthClient: Codeunit "Email - OAuth Client";
     begin
         if UriString = '' then
             exit;
 
-        if not Uri.IsValidUri(UriString) then
-            Error(UriIsNotValidErr, UriString);
+        EmailOAuthClient.ValidateRedirectUrl(UriString);
     end;
 
     local procedure SetTestSetupEnabled()
@@ -280,7 +279,6 @@ page 4509 "Email - Outlook API Setup"
         AppRegistrationsLbl: Label 'Learn more about app registration';
         AppPermissionsLbl: Label 'Learn more about the permissions';
         ThisWillClearTheFieldsTxt: Label 'If you clear the app registration on this page, users will not be able to send email messages from their Exchange accounts. Do you want to continue?';
-        UriIsNotValidErr: Label '%1 is not a valid URI.', Comment = '%1 = a string';
         UnsuccessfulTestMsg: Label 'We could not get access token with the current setup. Error: "%1".\\Please verify the values on the page as well as settings of your app registration and try again.', Comment = '%1 = error message';
         SuccessfulTestMsg: Label 'Success! Your authentication was verified.';
         HiddenValueTxt: Label '******', Locked = true;

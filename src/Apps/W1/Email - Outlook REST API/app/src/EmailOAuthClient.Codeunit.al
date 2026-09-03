@@ -106,9 +106,19 @@ codeunit 4507 "Email - OAuth Client" implements "Email - OAuth Client v2"
             RedirectURL := EmailOutlookAPIHelper.GetRedirectURL();
             if RedirectURL = '' then
                 OAuth2.GetDefaultRedirectUrl(RedirectURL);
+            ValidateRedirectUrl(RedirectURL);
         end;
 
         IsInitialized := true;
+    end;
+
+    internal procedure ValidateRedirectUrl(RedirectUrlToValidate: Text)
+    var
+        DefaultRedirectUrl: Text;
+    begin
+        OAuth2.GetDefaultRedirectUrl(DefaultRedirectUrl);
+        if RedirectUrlToValidate <> DefaultRedirectUrl then
+            Error(InvalidRedirectUrlErr, DefaultRedirectUrl);
     end;
 
     internal procedure AuthorizationCodeTokenCacheExists(): Boolean
@@ -156,4 +166,5 @@ codeunit 4507 "Email - OAuth Client" implements "Email - OAuth Client v2"
         EmailCategoryLbl: Label 'EmailOAuth', Locked = true;
         CouldNotAcquireAccessTokenErr: Label 'Failed to acquire access token.', Locked = true;
         ThirdPartyExtensionsNotAllowedErr: Label 'Third-party extensions are restricted from obtaining access tokens. Please contact your system administrator.';
+        InvalidRedirectUrlErr: Label 'The redirect URL must be %1.', Comment = '%1 = the allowed redirect URL';
 }

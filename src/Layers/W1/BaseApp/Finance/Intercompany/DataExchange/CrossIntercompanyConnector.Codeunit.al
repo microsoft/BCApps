@@ -8,6 +8,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Intercompany.Partner;
 using System.Environment;
 using System.Security.Authentication;
+using System.Utilities;
 
 /// <summary>
 /// Manages secure API connections and data exchange between intercompany partners across different environments.
@@ -33,6 +34,11 @@ codeunit 560 "CrossIntercompany Connector"
         V1VersionTok: Label 'v1.0', Locked = true;
         GeneralAPIsPathTok: Label 'v2.0/companies', Locked = true;
         BCResourceURLScopeTok: Label 'https://api.businesscentral.dynamics.com/.default', Locked = true;
+        BCProductionHostTok: Label 'api.businesscentral.dynamics.com', Locked = true;
+        BCPPEHostTok: Label 'api.businesscentral.dynamics-tie.com', Locked = true;
+        EntraTokenEndpointTok: Label 'https://login.microsoftonline.com/%1/oauth2/v2.0/token', Locked = true;
+        EntraPPETokenEndpointTok: Label 'https://login.windows-ppe.net/%1/oauth2/v2.0/token', Locked = true;
+        OAuthTokenEndpointSuffixTok: Label '/oauth2/v2.0/token', Locked = true;
         ExpandedTok: Label 'bufferIntercompanyInboxTransactions,bufferIntercompanyInboxJournalLines,bufferIntercompanyInboxPurchaseHeaders,bufferIntercompanyInboxPurchaseLines,bufferIntercompanyInboxSalesHeaders,bufferIntercompanyInboxSalesLines,bufferIntercompanyInOutJournalLineDimensions,bufferIntercompanyDocumentDimensions,bufferIntercompanyCommentLines', Locked = true;
 
         NonSaaSEnvironmentErr: Label 'This functionality is only available in online environments.';
@@ -50,6 +56,8 @@ codeunit 560 "CrossIntercompany Connector"
         SuccessConnectingToPartnerMsg: Label 'Successfully connected, the partner %1 is available to be used with intercompany.', Comment = '%1 = IC Partner Code';
         PartnerMissingICSetupErr: Label 'Partner %1 has not completed the information required to use intercompany.', Comment = '%1 = IC Partner Code';
         MissalignmentBetweenNamesErr: Label 'The partner''s company name %1 does not match the name you are introducing for partner %2.', Comment = '%1 = Partner''s Company Name, %2 = IC Partner Name';
+        InvalidDestinationUrlErr: Label 'The intercompany connection URL must use the trusted Business Central API host.';
+        InvalidTokenEndpointErr: Label 'The token endpoint must identify a Microsoft Entra tenant on the trusted authority.';
 
     internal procedure TestICPartnerSetup(var TempICPartner: Record "IC Partner" temporary): Boolean
     var
@@ -258,6 +266,7 @@ codeunit 560 "CrossIntercompany Connector"
         HttpRequestMessage: HttpRequestMessage;
         HttpResponseMessage: HttpResponseMessage;
     begin
+        ValidateDestinationUrl(Uri);
         HttpRequestMessage.Method(Method);
         HttpRequestMessage.SetRequestUri(Uri);
         PrepareHeaders(HttpRequestMessage, ICPartner);
@@ -369,13 +378,68 @@ codeunit 560 "CrossIntercompany Connector"
 
         ClientId := ICPartner.GetSecret(ICPartner."Client Id Key").Unwrap();
         ClientSecret := ICPartner.GetSecret(ICPartner."Client Secret Key");
-        TokenEndpoint := ICPartner.GetSecret(ICPartner."Token Endpoint Key").Unwrap();
-        RedirectURL := ICPartner.GetSecret(ICPartner."Redirect URL Key").Unwrap();
+        TokenEndpoint := GetValidatedTokenEndpoint(ICPartner.GetSecret(ICPartner."Token Endpoint Key").Unwrap());
+        OAuth2.GetDefaultRedirectUrl(RedirectURL);
         Scopes.Add(BCResourceURLScopeTok);
 
         OAuth2.AcquireTokenWithClientCredentials(ClientId, ClientSecret, TokenEndpoint, RedirectURL, Scopes, BearerAccessToken);
 
         exit(BearerAccessToken);
+    end;
+
+    internal procedure ValidateDestinationUrl(DestinationUrl: Text): Boolean
+    var
+        UrlHelper: Codeunit "Url Helper";
+        Uri: Codeunit Uri;
+        ExpectedHost: Text;
+    begin
+        if not Uri.IsValidUri(DestinationUrl) or not DestinationUrl.StartsWith('https://') then
+            Error(InvalidDestinationUrlErr);
+
+        if UrlHelper.IsPPE() then
+            ExpectedHost := BCPPEHostTok
+        else
+            if UrlHelper.IsPROD() then
+                ExpectedHost := BCProductionHostTok
+            else
+                Error(InvalidDestinationUrlErr);
+
+        if LowerCase(Uri.GetHost()) <> ExpectedHost then
+            Error(InvalidDestinationUrlErr);
+
+        exit(true);
+    end;
+
+    internal procedure GetValidatedTokenEndpoint(ConfiguredTokenEndpoint: Text): Text
+    var
+        UrlHelper: Codeunit "Url Helper";
+        TenantId: Guid;
+        AuthorityPrefix, ExpectedTokenEndpoint, TenantIdText : Text;
+    begin
+        if UrlHelper.IsPPE() then begin
+            AuthorityPrefix := 'https://login.windows-ppe.net/';
+            ExpectedTokenEndpoint := EntraPPETokenEndpointTok;
+        end else
+            if UrlHelper.IsPROD() then begin
+                AuthorityPrefix := 'https://login.microsoftonline.com/';
+                ExpectedTokenEndpoint := EntraTokenEndpointTok;
+            end else
+                Error(InvalidTokenEndpointErr);
+
+        if not LowerCase(ConfiguredTokenEndpoint).StartsWith(AuthorityPrefix) or
+           not LowerCase(ConfiguredTokenEndpoint).EndsWith(OAuthTokenEndpointSuffixTok)
+        then
+            Error(InvalidTokenEndpointErr);
+
+        TenantIdText := CopyStr(ConfiguredTokenEndpoint, StrLen(AuthorityPrefix) + 1, StrLen(ConfiguredTokenEndpoint) - StrLen(AuthorityPrefix) - StrLen(OAuthTokenEndpointSuffixTok));
+        if not Evaluate(TenantId, TenantIdText) then
+            Error(InvalidTokenEndpointErr);
+
+        ExpectedTokenEndpoint := StrSubstNo(ExpectedTokenEndpoint, LowerCase(DelChr(Format(TenantId), '=', '{}')));
+        if LowerCase(ConfiguredTokenEndpoint) <> ExpectedTokenEndpoint then
+            Error(InvalidTokenEndpointErr);
+
+        exit(ExpectedTokenEndpoint);
     end;
 
     #region Auxiliar methods

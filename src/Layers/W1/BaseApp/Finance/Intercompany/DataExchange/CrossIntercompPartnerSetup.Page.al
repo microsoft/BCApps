@@ -348,7 +348,6 @@ page 561 "CrossIntercomp. Partner Setup"
         NotSetUpQst: Label 'The setup for the connection to the intercompany partner''s environment isn''t complete. If you leave this guide, your settings will be deleted.\\Are you sure you want to exit?';
         LearnMoreTok: Label 'Privacy and Cookies';
         PrivacyLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=521839';
-        UrlNotDynamicsErr: Label 'The URL provided is not in the dynamics.com domain.';
 
 
     local procedure LoadSaaSDataForCurrentCompany()
@@ -485,24 +484,12 @@ page 561 "CrossIntercomp. Partner Setup"
 
     internal procedure ValidateDynamicsUrl(Url: Text): Boolean
     var
-        UrlHelper: Codeunit "URL Helper";
-        UnexpectedDomain: Boolean;
+        CrossIntercompanyConnector: Codeunit "CrossIntercompany Connector";
     begin
         if Url = '' then
             exit(true);
 
-        if not Url.StartsWith('https://') then
-            exit(false);
-
-        if UrlHelper.IsPPE() then
-            UnexpectedDomain := StrPos(LowerCase(Url), '.dynamics-tie.com') = 0;
-
-        if UrlHelper.IsPROD() then
-            UnexpectedDomain := StrPos(LowerCase(Url), '.dynamics.com') = 0;
-
-        if not UnexpectedDomain then
-            exit(true);
-        Error(UrlNotDynamicsErr);
+        exit(CrossIntercompanyConnector.ValidateDestinationUrl(Url));
     end;
     #endregion
 }
