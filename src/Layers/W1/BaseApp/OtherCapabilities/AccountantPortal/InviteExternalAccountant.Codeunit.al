@@ -46,6 +46,8 @@ codeunit 9033 "Invite External Accountant"
         InsufficientDataReturnedFromInvitationsApiTxt: Label 'Insufficient information was returned when inviting the user. Please contact your administrator.';
         WidsClaimNameTok: Label 'WIDS', Locked = true;
         ExternalAccountantLicenseAvailabilityErr: Label 'Failed to determine if an External Accountant license is available. Please try again later.';
+        BearerTokenTemplateTxt: Label 'Bearer %1', Locked = true;
+        RequestFailedNoDetailsErr: Label 'The request to the remote service failed and no further details were returned. Please try again later or contact your administrator.';
 
     [Scope('OnPrem')]
     procedure InvokeInvitationsRequest(DisplayName: Text; EmailAddress: Text; WebClientUrl: Text; var InvitedUserId: Guid; var InviteReedemUrl: Text; var ErrorMessage: Text): Boolean
@@ -298,7 +300,7 @@ codeunit 9033 "Invite External Accountant"
         HttpRequestMessage.Method(Verb);
         HttpRequestMessage.SetRequestUri(Url);
         HttpRequestMessage.GetHeaders(HttpHeaders);
-        HttpHeaders.Add('Authorization', SecretStrSubstNo('Bearer %1', AccessTokenSecret));
+        HttpHeaders.Add('Authorization', SecretStrSubstNo(BearerTokenTemplateTxt, AccessTokenSecret));
         HttpHeaders.Add('Accept', 'application/json');
         if Verb <> 'GET' then begin
             HttpContent.WriteFrom(Body);
@@ -349,7 +351,10 @@ codeunit 9033 "Invite External Accountant"
             JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, MessageTxt, MessageValue);
         end;
 
-        exit(MessageValue);
+        if MessageValue <> '' then
+            exit(MessageValue);
+
+        exit(RequestFailedNoDetailsErr);
     end;
 
     local procedure GetGraphInvitationsUrl(): Text

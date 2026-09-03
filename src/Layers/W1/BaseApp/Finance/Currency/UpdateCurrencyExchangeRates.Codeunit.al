@@ -138,19 +138,19 @@ codeunit 1281 "Update Currency Exchange Rates"
             Session.LogMessage('', WebRequestTxt, Verbosity::Normal, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, CustomDimensions);
         end;
 
-        if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
+        if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then
             ShowHttpError(CurrExchRateUpdateSetup, GetLastErrorText());
-            exit;
-        end;
 
         if CurrExchRateUpdateSetup."Log Web Requests" then
-            Session.LogMessage('', StrSubstNo(WebResponseTxt, HttpResponseMessage.HttpStatusCode()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
+            if HttpResponseMessage.IsSuccessStatusCode() then
+                Session.LogMessage('', StrSubstNo(WebResponseTxt, HttpResponseMessage.HttpStatusCode()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok)
+            else
+                Session.LogMessage('', StrSubstNo(WebResponseTxt, HttpResponseMessage.HttpStatusCode()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
 
         if not HttpResponseMessage.IsSuccessStatusCode() then begin
             HttpResponseMessage.Content.ReadAs(ResponseErrorText);
             ShowHttpError(CurrExchRateUpdateSetup,
-              StrSubstNo(ActivityLogDetailTxt, HttpResponseMessage.HttpStatusCode(), HttpResponseMessage.ReasonPhrase(), ResponseErrorText), true);
-            exit;
+              StrSubstNo(ActivityLogDetailTxt, HttpResponseMessage.HttpStatusCode(), HttpResponseMessage.ReasonPhrase(), ResponseErrorText));
         end;
 
         HttpResponseMessage.Content.ReadAs(ResponseInStream);
@@ -172,12 +172,7 @@ codeunit 1281 "Update Currency Exchange Rates"
         DataExch.Delete(true);
     end;
 
-    local procedure ShowHttpError(CurrExchRateUpdateSetup: Record "Curr. Exch. Rate Update Setup"; ErrorText: Text)
-    begin
-        ShowHttpError(CurrExchRateUpdateSetup, ErrorText, false);
-    end;
-
-    local procedure ShowHttpError(CurrExchRateUpdateSetup: Record "Curr. Exch. Rate Update Setup"; LogDetailText: Text; UseStableErrorMessage: Boolean)
+    local procedure ShowHttpError(CurrExchRateUpdateSetup: Record "Curr. Exch. Rate Update Setup"; LogDetailText: Text)
     var
         ActivityLog: Record "Activity Log";
     begin
@@ -185,10 +180,7 @@ codeunit 1281 "Update Currency Exchange Rates"
           CurrExchRateUpdateSetup, ActivityLog.Status::Failed, CurrExchRateUpdateSetup."Service Provider",
           CurrExchRateUpdateSetup.Description, LogDetailText);
 
-        if UseStableErrorMessage then
-            Error(WebServiceCallFailedErr)
-        else
-            Error(LogDetailText);
+        Error(WebServiceCallFailedErr);
     end;
 
     /// <summary>
