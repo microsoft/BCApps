@@ -329,11 +329,6 @@
       "justification": "Field is not selected for loading and accessing it may cause a JIT load."
     },
     {
-      "id": "AA0244",
-      "action": "Warning",
-      "justification": "The name of the parameter is identical to a global variable."
-    },
-    {
       "id": "AA0245",
       "action": "Warning",
       "justification": "The name of the parameter is identical to a field, method, or action in the same scope."
