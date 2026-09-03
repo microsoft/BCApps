@@ -21,6 +21,7 @@ codeunit 7232 "MDM Inline Media"
         NameByKey: Dictionary of [Text, Text];
         MimeByKey: Dictionary of [Text, Text];
         ClearedByKey: Dictionary of [Text, Boolean];
+        MalformedMediaErr: Label 'The source returned media content that could not be decoded.', Locked = true;
 
     procedure Reset()
     begin
@@ -59,19 +60,37 @@ codeunit 7232 "MDM Inline Media"
 
     procedure TryGet(SystemId: Guid; FieldNo: Integer; var FileName: Text; var MimeType: Text; var TempBlob: Codeunit "Temp Blob"): Boolean
     var
-        Base64Convert: Codeunit "Base64 Convert";
         MediaKey: Text;
         ContentBase64: Text;
-        ContentOutStream: OutStream;
     begin
         MediaKey := MakeKey(SystemId, FieldNo);
         if not ContentByKey.Get(MediaKey, ContentBase64) then
             exit(false);
         NameByKey.Get(MediaKey, FileName);
         MimeByKey.Get(MediaKey, MimeType);
+        if not TryDecodeContent(ContentBase64, TempBlob) then // undecodable media content is a broken record entry from the source
+            Error(MalformedMediaContent());
+        exit(true);
+    end;
+
+    [TryFunction]
+    local procedure TryDecodeContent(ContentBase64: Text; var TempBlob: Codeunit "Temp Blob")
+    var
+        Base64Convert: Codeunit "Base64 Convert";
+        ContentOutStream: OutStream;
+    begin
         TempBlob.CreateOutStream(ContentOutStream);
         Base64Convert.FromBase64(ContentBase64, ContentOutStream);
-        exit(true);
+    end;
+
+    local procedure MalformedMediaContent(): ErrorInfo
+    var
+        ErrInfo: ErrorInfo;
+    begin
+        ErrInfo.Message := MalformedMediaErr;
+        ErrInfo.DataClassification := DataClassification::SystemMetadata; // Message is emitted to telemetry
+        ErrInfo.ErrorType := ErrorType::Internal;
+        exit(ErrInfo);
     end;
 
     local procedure MakeKey(SystemId: Guid; FieldNo: Integer): Text

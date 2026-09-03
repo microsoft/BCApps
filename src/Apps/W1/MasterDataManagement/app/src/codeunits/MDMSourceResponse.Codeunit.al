@@ -79,6 +79,14 @@ codeunit 7248 "MDM Source Response"
         Value := Token.AsValue().AsBoolean();
     end;
 
+    [TryFunction]
+    local procedure TryFromBase64(ContentBase64: Text; ContentOutStream: OutStream)
+    var
+        Base64Convert: Codeunit "Base64 Convert";
+    begin
+        Base64Convert.FromBase64(ContentBase64, ContentOutStream);
+    end;
+
     local procedure MalformedControlField(PropertyName: Text): ErrorInfo
     var
         ErrInfo: ErrorInfo;
@@ -227,7 +235,6 @@ codeunit 7248 "MDM Source Response"
     // the destination (the same path same-env uses for mapped blobs), so no destination-side apply is needed.
     local procedure ApplyInlineBlob(var DestField: FieldRef; FieldNo: Integer; TableId: Integer; ValueToken: JsonToken)
     var
-        Base64Convert: Codeunit "Base64 Convert";
         TempBlob: Codeunit "Temp Blob";
         BlobObject: JsonObject;
         ContentToken: JsonToken;
@@ -250,7 +257,8 @@ codeunit 7248 "MDM Source Response"
         if not ContentToken.IsValue() then // a non-scalar content payload is a broken record entry
             Error(MalformedRecordEntry());
         TempBlob.CreateOutStream(ContentOutStream);
-        Base64Convert.FromBase64(ContentToken.AsValue().AsText(), ContentOutStream);
+        if not TryFromBase64(ContentToken.AsValue().AsText(), ContentOutStream) then // undecodable content is a broken record entry
+            Error(MalformedRecordEntry());
         TempBlob.ToFieldRef(DestField);
     end;
 

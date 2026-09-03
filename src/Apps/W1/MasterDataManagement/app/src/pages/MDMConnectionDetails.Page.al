@@ -170,7 +170,7 @@ page 7232 "MDM Connection Details"
             action(TestConnection)
             {
                 ApplicationArea = Suite;
-                Caption = 'Test Connection';
+                Caption = 'Test connection';
                 ToolTip = 'Test that the source environment can be reached with the current URL and credentials.';
                 Visible = TestConnectionEnabled;
                 Image = InteractionTemplateSetup;

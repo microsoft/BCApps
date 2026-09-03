@@ -69,7 +69,7 @@ page 7230 "Master Data Management Setup"
             action(ConnectionDetails)
             {
                 ApplicationArea = Suite;
-                Caption = 'Cross-Environment Setup';
+                Caption = 'Cross-environment setup';
                 Image = LinkAccount;
                 ToolTip = 'Set up the connection to a company in a different Business Central environment for cross-environment synchronization.';
 
@@ -84,7 +84,7 @@ page 7230 "Master Data Management Setup"
             action(ClearCrossEnvSetup)
             {
                 ApplicationArea = Suite;
-                Caption = 'Clear Cross-Environment Setup';
+                Caption = 'Clear cross-environment setup';
                 Image = RemoveLine;
                 Enabled = IsEditable;
                 Visible = CrossEnvConfigured;
@@ -105,7 +105,7 @@ page 7230 "Master Data Management Setup"
             action(ResetConfiguration)
             {
                 ApplicationArea = Suite;
-                Caption = 'Use Default Synchronization Setup';
+                Caption = 'Use default synchronization setup';
                 Image = ResetStatus;
                 ToolTip = 'Resets the synchronization tables, fields, and job queue entries to the default values for the connection with the source company. All current synchronization tables are deleted and recreated.';
 
@@ -124,7 +124,7 @@ page 7230 "Master Data Management Setup"
             action(ExportSetup)
             {
                 ApplicationArea = Suite;
-                Caption = 'Export Setup';
+                Caption = 'Export setup';
                 Image = ExportFile;
                 ToolTip = 'Export the setup tables.';
 
@@ -141,7 +141,7 @@ page 7230 "Master Data Management Setup"
             action(ImportSetup)
             {
                 ApplicationArea = Suite;
-                Caption = 'Import Setup';
+                Caption = 'Import setup';
                 Image = Import;
                 ToolTip = 'Import the setup tables.';
 
@@ -165,7 +165,7 @@ page 7230 "Master Data Management Setup"
             action(StartInitialSynchAction)
             {
                 ApplicationArea = Suite;
-                Caption = 'Start Initial Synchronization';
+                Caption = 'Start initial synchronization';
                 Enabled = Rec."Is Enabled";
                 Image = RefreshLines;
                 ToolTip = 'Start all the default synchronization jobs for synchronizing data from the source company. Data is synchronized according to the mappings defined on the Synchronization Tables page.';
@@ -174,7 +174,7 @@ page 7230 "Master Data Management Setup"
             action(SynchronizeNow)
             {
                 ApplicationArea = Suite;
-                Caption = 'Synchronize Modified Records';
+                Caption = 'Synchronize modified records';
                 Enabled = Rec."Is Enabled";
                 Image = Refresh;
                 ToolTip = 'Synchronize records that have been modified since the last time they were synchronized.';
@@ -202,7 +202,7 @@ page 7230 "Master Data Management Setup"
             action("Synch. Job Queue Entries")
             {
                 ApplicationArea = Suite;
-                Caption = 'Synch. Job Queue Entries';
+                Caption = 'Synch. job queue entries';
                 Image = JobListSetup;
                 ToolTip = 'View the job queue entries that manage the scheduled data synchronization.';
 
@@ -221,7 +221,7 @@ page 7230 "Master Data Management Setup"
             action(IntegrationTableMappings)
             {
                 ApplicationArea = Suite;
-                Caption = 'Synchronization Tables';
+                Caption = 'Synchronization tables';
                 Image = MapAccounts;
                 ToolTip = 'View the list of tables to synchronize.';
 
