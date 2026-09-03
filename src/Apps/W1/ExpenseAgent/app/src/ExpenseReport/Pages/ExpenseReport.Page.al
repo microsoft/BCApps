@@ -138,16 +138,37 @@ page 6910 "Expense Report"
                 }
                 group("Approver Comment")
                 {
-                    Caption = 'Approver Comment';
-                    Visible = Rec.Status = Rec.Status::Rejected;
+                    Caption = 'Approval Comments';
+
                     field(ApproverComment; ApproverComment)
                     {
                         ApplicationArea = Basic, Suite;
-                        Importance = Additional;
-                        MultiLine = true;
-                        ShowCaption = false;
+                        Caption = 'Approver Comment';
+                        DrillDown = true;
                         Editable = false;
-                        ToolTip = 'Specifies the approver comment for the expense report.';
+                        Importance = Additional;
+                        ToolTip = 'Specifies the latest comment from the approver. Drill down to view the full comment.';
+
+                        trigger OnDrillDown()
+                        begin
+                            if ApproverComment <> '' then
+                                Message(ApproverComment);
+                        end;
+                    }
+                    field(SubmitterComment; SubmitterComment)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Submitter Comment';
+                        DrillDown = true;
+                        Editable = false;
+                        Importance = Additional;
+                        ToolTip = 'Specifies the latest comment from the submitter. Drill down to view the full comment.';
+
+                        trigger OnDrillDown()
+                        begin
+                            if SubmitterComment <> '' then
+                                Message(SubmitterComment);
+                        end;
                     }
                 }
             }
@@ -722,6 +743,7 @@ page 6910 "Expense Report"
     begin
         SetControlVisibility();
         ApproverComment := Rec.GetApproverComment();
+        SubmitterComment := Rec.GetSubmitterComment();
     end;
 
     var
@@ -733,6 +755,7 @@ page 6910 "Expense Report"
         DocNoVisible: Boolean;
         ExpenseUserNo: Code[20];
         ApproverComment: Text;
+        SubmitterComment: Text;
         ApprovalActionsEnabled: Boolean;
         AgentEnabled: Boolean;
 
