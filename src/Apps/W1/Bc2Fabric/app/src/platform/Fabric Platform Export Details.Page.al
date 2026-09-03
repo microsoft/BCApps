@@ -24,6 +24,16 @@ page 50102 "Fabric Platform Export Details"
         {
             repeater(Lines)
             {
+                field("Start Time"; Rec."Start Time")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the date and time when the export run started.';
+                }
+                field("End Time"; Rec."End Time")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the date and time when the export run ended.';
+                }
                 field("Company Name"; Rec."Company Name")
                 {
                     ApplicationArea = All;
