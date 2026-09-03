@@ -72,10 +72,12 @@ page 7085 "Expense VAT Spec. API"
                 field(vatAmountLCY; Rec."VAT Amount (LCY)")
                 {
                     Caption = 'VAT Amount (LCY)';
+                    Editable = true;
                 }
                 field(vatBaseAmountLCY; Rec."VAT Base Amount (LCY)")
                 {
                     Caption = 'VAT Base Amount (LCY)';
+                    Editable = true;
                 }
                 field(amountLCY; Rec."Amount (LCY)")
                 {
@@ -107,17 +109,5 @@ page 7085 "Expense VAT Spec. API"
         ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
     begin
         ExpenseAgentAPIValidation.VerifyAgentAccess();
-    end;
-
-    trigger OnInsertRecord(BelowxRec: Boolean): Boolean
-    begin
-        InsertVATSpecification(Rec);
-        exit(false);
-    end;
-
-    internal procedure InsertVATSpecification(var ExpenseVATSpecification: Record "Expense VAT Specification")
-    begin
-        ExpenseVATSpecification.Source := ExpenseVATSpecification.Source::Agent;
-        ExpenseVATSpecification.Insert(true);
     end;
 }
