@@ -9,6 +9,8 @@ using System.Text;
 
 codeunit 7133 "Travel Request Approval"
 {
+    Permissions = tabledata "Spend Request" = m;
+
     internal procedure Submit(var SpendRequest: Record "Spend Request"; SubmitterExpenseUserNo: Code[20])
     var
         Submitter: Record "Expense User";
@@ -40,13 +42,22 @@ codeunit 7133 "Travel Request Approval"
     end;
 
     internal procedure ApproveAutomatically(var SpendRequest: Record "Spend Request")
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
     begin
         CheckTravelRequest(SpendRequest);
         SpendRequest.TestStatus(SpendRequest.Status::Released);
+
+        ExpenseAgentSetup.GetRecordOnce();
+        if ExpenseAgentSetup."Enable Agent" then
+            Error(AutomaticApprovalNotAllowedErr);
+
         ApproveInternal(SpendRequest, '');
     end;
 
     local procedure ApproveInternal(var SpendRequest: Record "Spend Request"; ApproverExpenseUserNo: Code[20])
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
     begin
         SpendRequest.TestField("Requested For");
         SpendRequest.Status := SpendRequest.Status::Approved;
@@ -55,7 +66,7 @@ codeunit 7133 "Travel Request Approval"
         SpendRequest."Approval Expense User No." := ApproverExpenseUserNo;
         Clear(SpendRequest."Rejection Reason");
         SpendRequest.Modify();
-        CreateExpenseReport(SpendRequest);
+        ExpenseReportHeader.CreateFromApprovedTravelRequest(SpendRequest);
     end;
 
     internal procedure Reject(var SpendRequest: Record "Spend Request"; ApproverExpenseUserNo: Code[20]; RejectReason: Text)
@@ -164,25 +175,8 @@ codeunit 7133 "Travel Request Approval"
         RequestedForFilter := DefaultFilter.ToText();
     end;
 
-    local procedure CreateExpenseReport(SpendRequest: Record "Spend Request")
     var
-        ExpenseReportHeader: Record "Expense Report Header";
-    begin
-        ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
-        if not ExpenseReportHeader.IsEmpty() then
-            exit;
-
-        ExpenseReportHeader.Init();
-        ExpenseReportHeader.Validate(Description, CopyStr(SpendRequest.Purpose, 1, MaxStrLen(ExpenseReportHeader.Description)));
-        ExpenseReportHeader.SetSkipExpenseUserApprovalCheck(true);
-        ExpenseReportHeader.Validate("Expense User No.", SpendRequest."Requested For");
-        ExpenseReportHeader.Validate("Reimbursement Currency Code", SpendRequest."Currency Code");
-        ExpenseReportHeader.SetHideValidationDialog(true);
-        ExpenseReportHeader.Validate("Spend Request No.", SpendRequest."No.");
-        ExpenseReportHeader.Insert(true);
-    end;
-
-    var
+        AutomaticApprovalNotAllowedErr: Label 'Automatic travel request approval can be used only when the Expense Agent is disabled.';
         NotTravelRequestOwnerErr: Label 'Expense user %1 cannot submit travel request %2 because the user did not create it.', Comment = '%1 = Expense user number, %2 = Travel request number';
         NotTravelRequestApproverErr: Label 'Expense user %1 is not authorized to approve or reject travel request %2.', Comment = '%1 = Expense user number, %2 = Travel request number';
         TooManyTravelRequestSubmittersErr: Label 'Expense user %1 is configured to approve too many travel request submitters. Refine the approval setup before listing pending travel requests.', Comment = '%1 = Expense user number';

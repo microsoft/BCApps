@@ -147,21 +147,25 @@ page 7134 "Travel Requests API"
                 field(submittedByExpenseUserNo; Rec."Submitted By Expense User No.")
                 {
                     Caption = 'Submitted By Expense User No.';
+                    ToolTip = 'Specifies the expense user who submitted the travel request.';
                     Editable = false;
                 }
                 field(submittedAt; Rec."Submitted At")
                 {
                     Caption = 'Submitted At';
+                    ToolTip = 'Specifies the date and time when the travel request was submitted.';
                     Editable = false;
                 }
                 field(approvalExpenseUserNo; Rec."Approval Expense User No.")
                 {
                     Caption = 'Approval Expense User No.';
+                    ToolTip = 'Specifies the expense user who approved or rejected the travel request.';
                     Editable = false;
                 }
                 field(rejectionReason; Rec."Rejection Reason")
                 {
                     Caption = 'Rejection Reason';
+                    ToolTip = 'Specifies the reason the travel request was rejected.';
                     Editable = false;
                 }
                 part(travelRequestDetails; "Travel Request Details API")

@@ -379,6 +379,23 @@ codeunit 148339 "Spend Request Test"
     end;
 
     [Test]
+    procedure AutomaticTravelRequestApprovalRequiresDisabledAgent()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+    begin
+        Initialize();
+        LibraryExpense.UpdateEnableAgentInAgentSetup(true);
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Released);
+
+        asserterror TravelRequestApproval.ApproveAutomatically(SpendRequest);
+
+        Assert.ExpectedError('Automatic travel request approval can be used only when the Expense Agent is disabled.');
+    end;
+
+    [Test]
     procedure ApproveTravelRequestCreatesExpenseReport()
     var
         ExpenseReportHeader: Record "Expense Report Header";

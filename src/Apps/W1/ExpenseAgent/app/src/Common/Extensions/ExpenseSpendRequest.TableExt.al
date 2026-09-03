@@ -259,6 +259,7 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
         if Rec."No." = '' then
             exit(false);
 
+        SpendRequest.SetLoadFields("No.");
         exit(SpendRequest.Get(Rec."No."));
     end;
 }
