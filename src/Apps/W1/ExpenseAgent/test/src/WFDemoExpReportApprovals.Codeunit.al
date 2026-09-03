@@ -1196,6 +1196,7 @@ codeunit 148304 "WF Demo Exp. Report Approvals"
         LibraryExpense.SetupNumberSeriesInExpenseMgmt();
         LibraryExpense.InitializeExpenseSourceCode();
         LibraryExpense.UpdateUseRulesInAgentSetup(true);
+        ResetApprovalAndAgentSetup();
         LibraryExpense.CleanUpBeforeTesting();
         LibraryExpense.CleanTransactionalData();
         LibraryWorkflow.DisableAllWorkflows();
@@ -1363,6 +1364,16 @@ codeunit 148304 "WF Demo Exp. Report Approvals"
         ExpenseAgentSetup.GetRecordOnce();
         ExpenseAgentSetup."Enable Agent" := Enable;
         ExpenseAgentSetup.Modify(true);
+    end;
+
+    local procedure ResetApprovalAndAgentSetup()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        ExpenseAgentSetup.GetRecordOnce();
+        ExpenseAgentSetup."Enable Approval Workflow" := false;
+        ExpenseAgentSetup."Enable Agent" := false;
+        ExpenseAgentSetup.Modify();
     end;
 
     local procedure CreateAndUpdateUserWithEmail(UserName: Code[50]; UserEmail: Text[80])
