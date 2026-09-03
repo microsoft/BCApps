@@ -246,6 +246,112 @@ codeunit 20404 "Qlty. Inspection - Create"
     end;
 
     /// <summary>
+    /// Creates or reuses an inspection for the supplied records through the generation rule engine, with the same
+    /// automatic semantics as the app's own triggered creation paths. Intended for extensions that need to create
+    /// inspections at a moment the app does not trigger itself, for example from an event subscriber on a document
+    /// or posting routine.
+    ///
+    /// Automatic semantics:
+    /// - Only generation rules with an activation trigger of "Manual or Automatic" or "Automatic only" are considered.
+    /// - The filters on TempFiltersQltyInspectionGenRule are applied to the rule search, in the same way the app's own
+    ///   triggers filter on their trigger field (for example "Warehouse Receipt Trigger"). Pass an unfiltered temporary
+    ///   record to consider every automatic rule for the source table.
+    /// - No inspection page is opened and no inspection-created notification is raised. The caller receives the
+    ///   resolved inspection and decides whether to surface it. Workflow and integration events raised by inspection
+    ///   creation fire as for any automatic creation.
+    /// - No error is raised when no generation rule matches. The procedure returns false when no rule matches, when
+    ///   Quality Management Setup is missing, or when a subscriber to OnBeforeCreateInspection handles the creation.
+    ///
+    /// Up to four records can be supplied. The engine promotes each supplied record to primary in turn until an
+    /// inspection is resolved, and applies the source configuration of every supplied record to the inspection, so the
+    /// inspection may be created from a record other than the first. Unused slots can be left as unassigned variants.
+    /// A temporary "Tracking Specification" record positioned on one tracking line can be passed in any slot to supply
+    /// lot, serial and package information.
+    ///
+    /// Whether an existing inspection is reused or a new one is created follows the "Inspection Creation Option" and
+    /// "Inspection Search Criteria" in Quality Management Setup.
+    /// </summary>
+    /// <param name="PrimaryRecordVariant">The record to create the inspection for (Record, RecordRef, or RecordId).</param>
+    /// <param name="OptionalRelated2Variant">An optional related record used for rule matching and source field mapping, or an unassigned variant.</param>
+    /// <param name="OptionalRelated3Variant">An optional related record used for rule matching and source field mapping, or an unassigned variant.</param>
+    /// <param name="OptionalRelated4Variant">An optional related record used for rule matching and source field mapping, or an unassigned variant.</param>
+    /// <param name="TempFiltersQltyInspectionGenRule">A temporary record whose filters restrict which generation rules are considered; leave unfiltered to consider every automatic rule.</param>
+    /// <param name="QltyInspectionHeader">The created or reused inspection with a record filter applied, or a cleared record when nothing was resolved.</param>
+    /// <param name="IsNewlyCreated">True when the inspection was inserted by this call; false when an existing inspection was reused or nothing was resolved.</param>
+    /// <returns>True if an inspection was created or reused; otherwise, false.</returns>
+    procedure CreateInspectionFromRuleEngine(PrimaryRecordVariant: Variant; OptionalRelated2Variant: Variant; OptionalRelated3Variant: Variant; OptionalRelated4Variant: Variant; var TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var IsNewlyCreated: Boolean): Boolean
+    var
+        PreviousPreventShowingState: Boolean;
+        HasInspection: Boolean;
+    begin
+        Clear(QltyInspectionHeader);
+        IsNewlyCreated := false;
+
+        // The flag is assigned directly rather than through SetPreventDisplayingInspectionEvenIfConfigured so the
+        // previous value can be restored, leaving the instance unchanged for the caller after this call.
+        PreviousPreventShowingState := PreventShowingGeneratedInspectionEvenIfConfigured;
+        PreventShowingGeneratedInspectionEvenIfConfigured := true;
+        HasInspection := CreateInspectionWithMultiVariants(PrimaryRecordVariant, OptionalRelated2Variant, OptionalRelated3Variant, OptionalRelated4Variant, false, TempFiltersQltyInspectionGenRule);
+        PreventShowingGeneratedInspectionEvenIfConfigured := PreviousPreventShowingState;
+
+        if not HasInspection then
+            exit(false);
+
+        if not GetCreatedInspection(QltyInspectionHeader) then begin
+            Clear(QltyInspectionHeader);
+            exit(false);
+        end;
+
+        IsNewlyCreated := IsLastInspectionNewlyCreated();
+        exit(true);
+    end;
+
+    /// <summary>
+    /// Creates or reuses inspections for the supplied records and each line of a temporary tracking specification
+    /// buffer, through the generation rule engine with the same automatic semantics as CreateInspectionFromRuleEngine.
+    /// One creation call is issued per tracking line, with the tracking line supplied as the fourth record, which is
+    /// the same shape the app's own receiving triggers use for tracked sources. The buffer is iterated
+    /// within its current filters, so the caller can restrict the lines to process, and is left positioned on the last
+    /// processed line. When the buffer holds no lines, a single creation call is issued without tracking information.
+    /// The caller supplies the tracking lines, so any source can be served, including sources for which the app has no
+    /// tracking collector of its own.
+    ///
+    /// Several tracking lines can resolve to the same inspection depending on the "Inspection Creation Option" and
+    /// "Inspection Search Criteria" in Quality Management Setup, so the resolved inspections are returned as
+    /// deduplicated lists of inspection numbers rather than assumed to be one per tracking line. The inspection
+    /// resolved for a number is its latest re-inspection, which is the record found by filtering on "No." and
+    /// calling FindLast on the "No.", "Re-inspection No." key.
+    /// </summary>
+    /// <param name="PrimaryRecordVariant">The record to create the inspections for (Record, RecordRef, or RecordId).</param>
+    /// <param name="OptionalRelated2Variant">An optional related record used for rule matching and source field mapping, or an unassigned variant.</param>
+    /// <param name="OptionalRelated3Variant">An optional related record used for rule matching and source field mapping, or an unassigned variant.</param>
+    /// <param name="TempTrackingSpecification">The temporary tracking specification lines to create inspections for, iterated within their current filters.</param>
+    /// <param name="TempFiltersQltyInspectionGenRule">A temporary record whose filters restrict which generation rules are considered; leave unfiltered to consider every automatic rule.</param>
+    /// <param name="NewlyCreatedQltyInspectionIds">The numbers of the inspections inserted by this call, without duplicates.</param>
+    /// <param name="AllResolvedQltyInspectionIds">The numbers of every inspection created or reused by this call, without duplicates.</param>
+    /// <returns>True if at least one inspection was created or reused; otherwise, false.</returns>
+    procedure CreateInspectionsFromRuleEngine(PrimaryRecordVariant: Variant; OptionalRelated2Variant: Variant; OptionalRelated3Variant: Variant; var TempTrackingSpecification: Record "Tracking Specification" temporary; var TempFiltersQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary; var NewlyCreatedQltyInspectionIds: List of [Code[20]]; var AllResolvedQltyInspectionIds: List of [Code[20]]): Boolean
+    var
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        DummyVariant: Variant;
+        IsNewlyCreated: Boolean;
+    begin
+        Clear(NewlyCreatedQltyInspectionIds);
+        Clear(AllResolvedQltyInspectionIds);
+
+        if TempTrackingSpecification.FindSet() then
+            repeat
+                if CreateInspectionFromRuleEngine(PrimaryRecordVariant, OptionalRelated2Variant, OptionalRelated3Variant, TempTrackingSpecification, TempFiltersQltyInspectionGenRule, QltyInspectionHeader, IsNewlyCreated) then
+                    TrackResolvedInspectionNo(QltyInspectionHeader."No.", IsNewlyCreated, NewlyCreatedQltyInspectionIds, AllResolvedQltyInspectionIds);
+            until TempTrackingSpecification.Next() = 0
+        else
+            if CreateInspectionFromRuleEngine(PrimaryRecordVariant, OptionalRelated2Variant, OptionalRelated3Variant, DummyVariant, TempFiltersQltyInspectionGenRule, QltyInspectionHeader, IsNewlyCreated) then
+                TrackResolvedInspectionNo(QltyInspectionHeader."No.", IsNewlyCreated, NewlyCreatedQltyInspectionIds, AllResolvedQltyInspectionIds);
+
+        exit(AllResolvedQltyInspectionIds.Count() > 0);
+    end;
+
+    /// <summary>
     /// Creates an inspection for a record reference using matching generation-rule configuration.
     /// Use this to create a quality inspection for any given record.
     /// The generation rule configuration will be used to find the most appropriate
@@ -1188,12 +1294,24 @@ codeunit 20404 "Qlty. Inspection - Create"
         if not QltyInspectionCreate.GetCreatedInspection(LastResolvedQltyInspectionHeader) then
             exit;
 
-        if not AllResolvedQltyInspectionIds.Contains(LastResolvedQltyInspectionHeader."No.") then
-            AllResolvedQltyInspectionIds.Add(LastResolvedQltyInspectionHeader."No.");
+        TrackResolvedInspectionNo(LastResolvedQltyInspectionHeader."No.", QltyInspectionCreate.IsLastInspectionNewlyCreated(), NewlyCreatedQltyInspectionIds, AllResolvedQltyInspectionIds);
+    end;
 
-        if QltyInspectionCreate.IsLastInspectionNewlyCreated() then
-            if not NewlyCreatedQltyInspectionIds.Contains(LastResolvedQltyInspectionHeader."No.") then
-                NewlyCreatedQltyInspectionIds.Add(LastResolvedQltyInspectionHeader."No.");
+    /// <summary>
+    /// Adds an inspection number to the deduplicated all-resolved list, and to the newly-created list when it was inserted rather than reused.
+    /// </summary>
+    /// <param name="InspectionNo">The inspection number to record.</param>
+    /// <param name="IsNewlyCreated">True when the inspection was inserted rather than reused.</param>
+    /// <param name="NewlyCreatedQltyInspectionIds">The list of newly inserted inspection numbers.</param>
+    /// <param name="AllResolvedQltyInspectionIds">The list of all resolved inspection numbers.</param>
+    local procedure TrackResolvedInspectionNo(InspectionNo: Code[20]; IsNewlyCreated: Boolean; var NewlyCreatedQltyInspectionIds: List of [Code[20]]; var AllResolvedQltyInspectionIds: List of [Code[20]])
+    begin
+        if not AllResolvedQltyInspectionIds.Contains(InspectionNo) then
+            AllResolvedQltyInspectionIds.Add(InspectionNo);
+
+        if IsNewlyCreated then
+            if not NewlyCreatedQltyInspectionIds.Contains(InspectionNo) then
+                NewlyCreatedQltyInspectionIds.Add(InspectionNo);
     end;
 
     /// <summary>
