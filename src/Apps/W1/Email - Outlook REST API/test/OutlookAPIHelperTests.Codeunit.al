@@ -21,6 +21,7 @@ codeunit 139752 "Outlook API Helper Tests"
         OAuth2: Codeunit OAuth2;
         DefaultRedirectUrl: Text;
     begin
+        // [FEATURE] [AI test 0.4]
         OAuth2.GetDefaultRedirectUrl(DefaultRedirectUrl);
 
         EmailOAuthClient.ValidateRedirectUrl(DefaultRedirectUrl);
@@ -31,6 +32,7 @@ codeunit 139752 "Outlook API Helper Tests"
     var
         EmailOAuthClient: Codeunit "Email - OAuth Client";
     begin
+        // [FEATURE] [AI test 0.4]
         asserterror EmailOAuthClient.ValidateRedirectUrl('https://contoso.example/oauth/callback');
 
         LibraryAssert.ExpectedError('The redirect URL must be');

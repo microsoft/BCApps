@@ -1126,6 +1126,89 @@ codeunit 134151 "ERM Intercompany"
 
     [Test]
     [Scope('OnPrem')]
+    procedure TrustedCrossIntercompanyDestinationUrlIsAllowed()
+    var
+        CrossIntercompanyConnector: Codeunit "CrossIntercompany Connector";
+        DestinationUrl: Text;
+    begin
+        // [FEATURE] [AI test 0.4]
+        DestinationUrl := GetTrustedBusinessCentralApiUrl() + '/v2.0/tenant/environment/api/v2.0/companies';
+
+        Assert.IsTrue(CrossIntercompanyConnector.ValidateDestinationUrl(DestinationUrl), 'The trusted Business Central API URL must be allowed.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure UntrustedCrossIntercompanyDestinationUrlsAreBlocked()
+    var
+        CrossIntercompanyConnector: Codeunit "CrossIntercompany Connector";
+        DestinationUrl: Text;
+    begin
+        // [FEATURE] [AI test 0.4]
+        DestinationUrl := GetTrustedBusinessCentralApiUrl() + '/v2.0/tenant/environment/api/v2.0/companies';
+
+        asserterror CrossIntercompanyConnector.ValidateDestinationUrl(DestinationUrl.Replace('https://', 'http://'));
+        Assert.ExpectedError('The intercompany connection URL must use the trusted Business Central API host.');
+
+        asserterror CrossIntercompanyConnector.ValidateDestinationUrl(GetTrustedBusinessCentralApiUrl() + '.example.com/v2.0/companies');
+        Assert.ExpectedError('The intercompany connection URL must use the trusted Business Central API host.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TrustedCrossIntercompanyTokenEndpointIsAllowed()
+    var
+        CrossIntercompanyConnector: Codeunit "CrossIntercompany Connector";
+        TokenEndpoint: Text;
+    begin
+        // [FEATURE] [AI test 0.4]
+        TokenEndpoint := GetTrustedEntraAuthorityPrefix() + Format(CreateGuid(), 0, 4) + '/oauth2/v2.0/token';
+
+        Assert.AreEqual(TokenEndpoint, CrossIntercompanyConnector.GetValidatedTokenEndpoint(TokenEndpoint), 'The trusted Microsoft Entra token endpoint must be returned unchanged.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure UntrustedCrossIntercompanyTokenEndpointsAreBlocked()
+    var
+        CrossIntercompanyConnector: Codeunit "CrossIntercompany Connector";
+        TokenEndpoint: Text;
+    begin
+        // [FEATURE] [AI test 0.4]
+        TokenEndpoint := GetTrustedEntraAuthorityPrefix() + 'common/oauth2/v2.0/token';
+
+        asserterror CrossIntercompanyConnector.GetValidatedTokenEndpoint(TokenEndpoint);
+        Assert.ExpectedError('The token endpoint must identify a Microsoft Entra tenant on the trusted authority.');
+
+        TokenEndpoint := 'https://login.microsoftonline.com.example.com/' + Format(CreateGuid(), 0, 4) + '/oauth2/v2.0/token';
+        asserterror CrossIntercompanyConnector.GetValidatedTokenEndpoint(TokenEndpoint);
+        Assert.ExpectedError('The token endpoint must identify a Microsoft Entra tenant on the trusted authority.');
+    end;
+
+    local procedure GetTrustedBusinessCentralApiUrl(): Text
+    var
+        UrlHelper: Codeunit "Url Helper";
+    begin
+        if UrlHelper.IsPPE() then
+            exit('https://api.businesscentral.dynamics-tie.com');
+
+        Assert.IsTrue(UrlHelper.IsPROD(), 'The test requires a PROD or PPE environment.');
+        exit('https://api.businesscentral.dynamics.com');
+    end;
+
+    local procedure GetTrustedEntraAuthorityPrefix(): Text
+    var
+        UrlHelper: Codeunit "Url Helper";
+    begin
+        if UrlHelper.IsPPE() then
+            exit('https://login.windows-ppe.net/');
+
+        Assert.IsTrue(UrlHelper.IsPROD(), 'The test requires a PROD or PPE environment.');
+        exit('https://login.microsoftonline.com/');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure PostICJournalLineWithInboxTypeFileLocation()
     var
         ICPartner: Record "IC Partner";
