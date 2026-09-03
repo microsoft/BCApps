@@ -6,8 +6,8 @@ namespace Microsoft.Manufacturing.ProductionBOM;
 
 using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Item;
-using Microsoft.Manufacturing.Setup;
 using Microsoft.Inventory.Location;
+using Microsoft.Manufacturing.Setup;
 
 codeunit 99000793 "Calculate Low-Level Code"
 {
