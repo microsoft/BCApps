@@ -4566,7 +4566,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     LastConnectionNo := VATEntry2."Sales Tax Connection No.";
                 end;
 
-                if ShouldConsiderVATPostingGrouping then begin
+                if ShouldConsiderVATPostingGrouping then
                     VATPart :=
                         VATEntry2.GetUnrealizedVATPart(
                         Round(SettledAmountByVAT / CustLedgEntry2.GetAdjustedCurrencyFactor()),
@@ -4575,7 +4575,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                         TotalUnrealVATAmountFirst,
                         TotalUnrealVATAmountLast,
                         InvoicePartAmountByVAT)
-                end else
+                else
                     VATPart :=
                         VATEntry2.GetUnrealizedVATPart(
                             Round(SettledAmount / CustLedgEntry2.GetAdjustedCurrencyFactor()),
