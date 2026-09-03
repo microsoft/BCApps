@@ -246,7 +246,7 @@ codeunit 10986 "E-Document Factur-X Handler" implements IStructuredFormatReader,
     begin
         Header."Sales Invoice No." := CopyStr(GetNodeValue(CIIXml, XmlNamespaces, '//rsm:ExchangedDocument/ram:ID'), 1, MaxStrLen(Header."Sales Invoice No."));
         Header."Purchase Order No." := CopyStr(GetNodeValue(CIIXml, XmlNamespaces, AgreementPathTok + '/ram:BuyerOrderReferencedDocument/ram:IssuerAssignedID'), 1, MaxStrLen(Header."Purchase Order No."));
-        Header."Applies-to Ext. Invoice No." := CopyStr(GetNodeValue(CIIXml, XmlNamespaces, SettlementPathTok + '/ram:InvoiceReferencedDocument/ram:IssuerAssignedID'), 1, MaxStrLen(Header."Applies-to Ext. Invoice No."));
+        Header."Vendor Invoice No." := CopyStr(GetNodeValue(CIIXml, XmlNamespaces, SettlementPathTok + '/ram:InvoiceReferencedDocument/ram:IssuerAssignedID'), 1, MaxStrLen(Header."Vendor Invoice No."));
     end;
 
     local procedure PopulateSupplierInfo(CIIXml: XmlDocument; XmlNamespaces: XmlNamespaceManager; var Header: Record "E-Document Purchase Header")

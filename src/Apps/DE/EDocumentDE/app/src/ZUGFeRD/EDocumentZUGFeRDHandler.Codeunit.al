@@ -246,7 +246,7 @@ codeunit 11041 "E-Document ZUGFeRD Handler" implements IStructuredFormatReader, 
     begin
         Header."Sales Invoice No." := CopyStr(GetNodeValue(CIIXml, XmlNamespaces, '//rsm:ExchangedDocument/ram:ID'), 1, MaxStrLen(Header."Sales Invoice No."));
         Header."Purchase Order No." := CopyStr(GetNodeValue(CIIXml, XmlNamespaces, AgreementPathTok + '/ram:BuyerOrderReferencedDocument/ram:IssuerAssignedID'), 1, MaxStrLen(Header."Purchase Order No."));
-        Header."Applies-to Ext. Invoice No." := CopyStr(GetNodeValue(CIIXml, XmlNamespaces, SettlementPathTok + '/ram:InvoiceReferencedDocument/ram:IssuerAssignedID'), 1, MaxStrLen(Header."Applies-to Ext. Invoice No."));
+        Header."Vendor Invoice No." := CopyStr(GetNodeValue(CIIXml, XmlNamespaces, SettlementPathTok + '/ram:InvoiceReferencedDocument/ram:IssuerAssignedID'), 1, MaxStrLen(Header."Vendor Invoice No."));
         // BT-10 Buyer reference, which carries the Leitweg-ID for German public sector buyers
         Header."Buyer Reference DE" := CopyStr(GetNodeValue(CIIXml, XmlNamespaces, AgreementPathTok + '/ram:BuyerReference'), 1, MaxStrLen(Header."Buyer Reference DE"));
     end;

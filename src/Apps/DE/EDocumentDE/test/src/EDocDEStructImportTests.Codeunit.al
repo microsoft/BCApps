@@ -144,7 +144,7 @@ codeunit 148501 "E-Doc. DE Struct. Import Tests"
         Assert.AreEqual(Format("E-Doc. Process Draft"::"Purchase Credit Memo"), Format(EDocument."Process Draft Impl."), 'The draft should be processed as a purchase credit memo.');
         EDocumentPurchaseHeader.GetFromEDocument(EDocument);
         Assert.AreEqual('ZF-CRM-2001', EDocumentPurchaseHeader."Sales Invoice No.", 'Wrong document number.');
-        Assert.AreEqual('ZF-INV-1001', EDocumentPurchaseHeader."Applies-to Ext. Invoice No.", 'Wrong applies-to external invoice number.');
+        Assert.AreEqual('ZF-INV-1001', EDocumentPurchaseHeader."Vendor Invoice No.", 'Wrong applies-to external invoice number.');
     end;
 
     [Test]
