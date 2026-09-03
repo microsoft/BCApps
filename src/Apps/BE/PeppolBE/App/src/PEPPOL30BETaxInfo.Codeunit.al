@@ -10,9 +10,10 @@ using Microsoft.Peppol;
 using Microsoft.Sales.Document;
 
 /// <summary>
-/// Belgian PEPPOL tax info provider. Delegates every method to the default PEPPOL30 implementation,
-/// except that it excludes the payment discount from the tax totals so that the PEPPOL document totals
-/// (TaxableAmount, TaxExclusiveAmount, TaxInclusiveAmount, PayableAmount) match the invoice printout.
+/// Belgian PEPPOL tax info provider. Delegates every method to the default PEPPOL30 implementation and,
+/// via FinalizeTaxTotals, appends a compensating Exempt (category E) VAT breakdown line for the
+/// conditional payment discount (escompte). This keeps VAT on the discounted base (as required in
+/// Belgium) while the amount payable stays whole.
 /// </summary>
 codeunit 37315 "PEPPOL30 BE Tax Info" implements "PEPPOL Tax Info Provider"
 {
@@ -22,6 +23,7 @@ codeunit 37315 "PEPPOL30 BE Tax Info" implements "PEPPOL Tax Info Provider"
 
     var
         PEPPOL30: Codeunit "PEPPOL30";
+        Escompte: Codeunit "PEPPOL30 BE Escompte";
 
     procedure GetAllowanceChargeInfo(VATAmtLine: Record "VAT Amount Line"; SalesHeader: Record "Sales Header"; var ChargeIndicator: Text; var AllowanceChargeReasonCode: Text; var AllowanceChargeListID: Text; var AllowanceChargeReason: Text; var Amount: Text; var AllowanceChargeCurrencyID: Text; var TaxCategoryID: Text; var TaxCategorySchemeID: Text; var Percent: Text; var AllowanceChargeTaxSchemeID: Text)
     begin
@@ -55,12 +57,31 @@ codeunit 37315 "PEPPOL30 BE Tax Info" implements "PEPPOL Tax Info Provider"
 
     procedure GetTaxTotals(SalesLine: Record "Sales Line"; var VATAmtLine: Record "VAT Amount Line")
     begin
-        // In Belgium the payment discount must not reduce the PEPPOL document totals. Zeroing the payment
-        // discount on the by-value sales line before accumulation keeps TaxableAmount, TaxExclusiveAmount,
-        // TaxInclusiveAmount and PayableAmount aligned with the invoice printout, and the payment discount
-        // AllowanceCharge is skipped by its existing zero-amount guard.
-        SalesLine."Pmt. Discount Amount" := 0;
         PEPPOL30.GetTaxTotals(SalesLine, VATAmtLine);
+    end;
+
+    procedure FinalizeTaxTotals(var VATAmtLine: Record "VAT Amount Line")
+    var
+        TotalPmtDiscount: Decimal;
+    begin
+        VATAmtLine.Reset();
+        VATAmtLine.CalcSums("Pmt. Discount Amount");
+        TotalPmtDiscount := VATAmtLine."Pmt. Discount Amount";
+        if TotalPmtDiscount = 0 then
+            exit;
+
+        VATAmtLine.Init();
+        VATAmtLine."VAT Identifier" := Escompte.GetCompensationVATIdentifier();
+        VATAmtLine."VAT Calculation Type" := VATAmtLine."VAT Calculation Type"::"Normal VAT";
+        VATAmtLine.Positive := true;
+        VATAmtLine."Tax Category" := Escompte.GetExemptTaxCategory();
+        VATAmtLine."VAT %" := 0;
+        VATAmtLine."VAT Base" := TotalPmtDiscount;
+        VATAmtLine."Amount Including VAT" := TotalPmtDiscount;
+        VATAmtLine."VAT Amount" := 0;
+        VATAmtLine."Pmt. Discount Amount" := 0;
+        VATAmtLine."Invoice Discount Amount" := 0;
+        VATAmtLine.Insert();
     end;
 
     procedure GetTaxCategories(SalesLine: Record "Sales Line"; var VATProductPostingGroupCategory: Record "VAT Product Posting Group")
@@ -71,6 +92,8 @@ codeunit 37315 "PEPPOL30 BE Tax Info" implements "PEPPOL Tax Info Provider"
     procedure GetTaxExemptionReason(var VATProductPostingGroupCategory: Record "VAT Product Posting Group"; var TaxExemptionReasonTxt: Text; TaxCategoryID: Text)
     begin
         PEPPOL30.GetTaxExemptionReason(VATProductPostingGroupCategory, TaxExemptionReasonTxt, TaxCategoryID);
+        if (TaxExemptionReasonTxt = '') and (TaxCategoryID = Escompte.GetExemptTaxCategory()) then
+            TaxExemptionReasonTxt := Escompte.GetCompensationExemptionReason();
     end;
 
     procedure IsZeroVatCategory(TaxCategory: Code[10]): Boolean
