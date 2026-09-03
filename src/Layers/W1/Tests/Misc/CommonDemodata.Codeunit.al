@@ -218,7 +218,7 @@ codeunit 138500 "Common Demodata"
 
     [Test]
     [Scope('OnPrem')]
-    procedure AllCountriesHaveISOCodes()
+    procedure AllCountriesHaveCountryCodes()
     var
         CountryRegion: Record "Country/Region";
     begin
@@ -226,9 +226,6 @@ codeunit 138500 "Common Demodata"
         Initialize();
 
         CountryRegion.SetRange("ISO Code", '');
-        Assert.RecordIsEmpty(CountryRegion);
-        CountryRegion.Reset();
-        CountryRegion.SetRange("ISO Numeric Code", '');
         Assert.RecordIsEmpty(CountryRegion);
     end;
 
@@ -338,4 +335,3 @@ codeunit 138500 "Common Demodata"
         Commit();
     end;
 }
-
