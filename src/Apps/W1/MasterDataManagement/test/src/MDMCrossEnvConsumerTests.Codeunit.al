@@ -370,7 +370,9 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         // [THEN] the setup holds the connection and a stored client secret
         MasterDataManagementSetup.Get();
         Assert.AreEqual('CONTOSO-PROD', MasterDataManagementSetup."Source Environment Name", 'Source environment not saved');
+        Assert.AreEqual('https://api.businesscentral.dynamics.com/v2.0/contoso-prod', MasterDataManagementSetup."Source Environment URL", 'Source URL not saved');
         Assert.AreEqual('CRONUS', MasterDataManagementSetup."Source Company Name", 'Source company not saved');
+        Assert.AreEqual('11111111-2222-3333-4444-555555555555', MasterDataManagementSetup."Source OAuth Client Id", 'Source client id not saved');
         Assert.IsFalse(IsNullGuid(MasterDataManagementSetup."Source Client Secret Key"), 'Client secret should be stored');
 
         // Restore privacy state so this configuration test doesn't leak consent into later privacy-notice scenarios.
