@@ -2211,7 +2211,7 @@ codeunit 134897 "ERM Source Currency"
 
         // [WHEN] Running Calc. and Post VAT Settlement with the Post option set.
         SettlementDocNo := LibraryUtility.GenerateGUID();
-        LibraryERM.RunCalcAndPostVATSettlement(VATPostingSetup, LibraryERM.CreateGLAccountNo(), SettlementDocNo);
+        RunCalcAndPostVATSettlement(VATPostingSetup, LibraryERM.CreateGLAccountNo(), SettlementDocNo);
 
         GLEntry.SetRange("Document No.", SettlementDocNo);
         GLEntry.FindSet();
