@@ -56,7 +56,13 @@
     },
     {
       "id": "AL0254",
-      "action": "Warning"
+      "action": "None",
+      "justification": "Rule is wrong."
+    },
+    {
+      "id": "AL0284",
+      "action": "None",
+      "justification": "Needed for allowing co-existence of apps using Integer and BigInteger."
     },
     {
       "id": "AL0424",
