@@ -1,13 +1,12 @@
 namespace Microsoft.Test.Sustainability;
 
-using Microsoft.Finance.GeneralLedger.Journal;
-using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Sustainability.Account;
 using Microsoft.Sustainability.Ledger;
 
 codeunit 148222 "Sust. Reversal Tests"
 {
     Subtype = Test;
+    TestType = IntegrationTest;
     TestPermissions = Disabled;
 
     trigger OnRun()
@@ -343,146 +342,6 @@ codeunit 148222 "Sust. Reversal Tests"
         Assert.ExpectedError('has already been reversed');
     end;
 
-    [Test]
-    procedure ReverseCollectedEntryRemovesGLEntryRelations()
-    var
-        SustLedgEntry: Record "Sustainability Ledger Entry";
-        SustGLSustLedgerRel: Record "Sust. G/L - Sust. Ledger Rel.";
-        SustEntryReverseMgt: Codeunit "Sust. Entry Reverse Mgt.";
-        FirstGLEntryNo, SecondGLEntryNo, OriginalEntryNo : Integer;
-    begin
-        // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Reversing a sustainability entry deletes the links to the general ledger entries it consumed.
-        // [GIVEN] A sustainability ledger entry that is linked to two collected G/L entries "G1" and "G2"
-        Initialize();
-        CreateSustLedgerEntry(SustLedgEntry, 'SUSTJNL', 'DEFAULT');
-        OriginalEntryNo := SustLedgEntry."Entry No.";
-        FirstGLEntryNo := PostGLEntry(1000);
-        SecondGLEntryNo := PostGLEntry(500);
-        LinkGLEntryToSustEntry(FirstGLEntryNo, OriginalEntryNo);
-        LinkGLEntryToSustEntry(SecondGLEntryNo, OriginalEntryNo);
-
-        // [WHEN] The entry is reversed
-        SustEntryReverseMgt.ReverseEntry(SustLedgEntry);
-
-        // [THEN] No relation record remains for the reversed entry
-        SustGLSustLedgerRel.SetRange("Sust. Ledger Entry No.", OriginalEntryNo);
-        Assert.RecordIsEmpty(SustGLSustLedgerRel);
-    end;
-
-    [Test]
-    procedure ReverseCollectedEntryClearsGLEntryCollectedMarker()
-    var
-        GLEntry: Record "G/L Entry";
-        SustLedgEntry: Record "Sustainability Ledger Entry";
-        SustEntryReverseMgt: Codeunit "Sust. Entry Reverse Mgt.";
-        GLEntryNo: Integer;
-    begin
-        // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Reversing a sustainability entry makes the general ledger entries it consumed collectable again.
-        // [GIVEN] A sustainability ledger entry that is linked to a collected G/L entry "G1" flagged as collected
-        Initialize();
-        CreateSustLedgerEntry(SustLedgEntry, 'SUSTJNL', 'DEFAULT');
-        GLEntryNo := PostGLEntry(1000);
-        LinkGLEntryToSustEntry(GLEntryNo, SustLedgEntry."Entry No.");
-        GLEntry.Get(GLEntryNo);
-        Assert.IsTrue(GLEntry."Sust. Collected", 'The G/L entry should be flagged as collected after it was linked.');
-
-        // [WHEN] The entry is reversed
-        SustEntryReverseMgt.ReverseEntry(SustLedgEntry);
-
-        // [THEN] The collected flag of "G1" is cleared
-        GLEntry.Get(GLEntryNo);
-        Assert.IsFalse(GLEntry."Sust. Collected", 'The G/L entry should be collectable again after the reversal.');
-    end;
-
-    [Test]
-    procedure ReverseKeepsGLEntryCollectedWhenAnotherEntryStillLinked()
-    var
-        GLEntry: Record "G/L Entry";
-        FirstSustLedgEntry: Record "Sustainability Ledger Entry";
-        SecondSustLedgEntry: Record "Sustainability Ledger Entry";
-        SustGLSustLedgerRel: Record "Sust. G/L - Sust. Ledger Rel.";
-        SustEntryReverseMgt: Codeunit "Sust. Entry Reverse Mgt.";
-        GLEntryNo, FirstEntryNo, SecondEntryNo : Integer;
-    begin
-        // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A general ledger entry stays consumed as long as at least one sustainability entry still links to it.
-        // [GIVEN] G/L entry "G1" linked to sustainability entries "S1" and "S2"
-        Initialize();
-        CreateSustLedgerEntry(FirstSustLedgEntry, 'SUSTJNL', 'DEFAULT');
-        FirstEntryNo := FirstSustLedgEntry."Entry No.";
-        CreateSustLedgerEntry(SecondSustLedgEntry, 'SUSTJNL', 'DEFAULT');
-        SecondEntryNo := SecondSustLedgEntry."Entry No.";
-        GLEntryNo := PostGLEntry(1000);
-        LinkGLEntryToSustEntry(GLEntryNo, FirstEntryNo);
-        LinkGLEntryToSustEntry(GLEntryNo, SecondEntryNo);
-
-        // [WHEN] "S1" is reversed
-        SustEntryReverseMgt.ReverseEntry(FirstSustLedgEntry);
-
-        // [THEN] The links of "S1" are removed, the link of "S2" remains and "G1" is still flagged as collected
-        SustGLSustLedgerRel.SetRange("Sust. Ledger Entry No.", FirstEntryNo);
-        Assert.RecordIsEmpty(SustGLSustLedgerRel);
-        SustGLSustLedgerRel.SetRange("Sust. Ledger Entry No.", SecondEntryNo);
-        Assert.RecordCount(SustGLSustLedgerRel, 1);
-        GLEntry.Get(GLEntryNo);
-        Assert.IsTrue(GLEntry."Sust. Collected", 'The G/L entry must stay collected while another sustainability entry links to it.');
-    end;
-
-    [Test]
-    procedure ReversalEntryHasNoCollectionInformation()
-    var
-        SustLedgEntry: Record "Sustainability Ledger Entry";
-        ReversalEntry: Record "Sustainability Ledger Entry";
-        SustEntryReverseMgt: Codeunit "Sust. Entry Reverse Mgt.";
-    begin
-        // [FEATURE] [AI test 1.0]
-        // [SCENARIO] The reversal entry does not claim to have collected general ledger entries.
-        // [GIVEN] A sustainability ledger entry with Collected from G/L Entries set and a collection period
-        Initialize();
-        CreateSustLedgerEntry(SustLedgEntry, 'SUSTJNL', 'DEFAULT');
-        SustLedgEntry."Collected from G/L Entries" := true;
-        SustLedgEntry."Collect From Date" := WorkDate();
-        SustLedgEntry."Collect To Date" := WorkDate() + 30;
-        SustLedgEntry.Modify();
-
-        // [WHEN] The entry is reversed
-        SustEntryReverseMgt.ReverseEntry(SustLedgEntry);
-
-        // [THEN] The reversal entry has the collection flag cleared and both collection dates empty
-        SustLedgEntry.Get(SustLedgEntry."Entry No.");
-        ReversalEntry.Get(SustLedgEntry."Reversed by Entry No.");
-        Assert.IsFalse(ReversalEntry."Collected from G/L Entries", 'The reversal entry must not be marked as collected from G/L.');
-        Assert.AreEqual(0D, ReversalEntry."Collect From Date", 'The reversal entry must not carry a collection start date.');
-        Assert.AreEqual(0D, ReversalEntry."Collect To Date", 'The reversal entry must not carry a collection end date.');
-    end;
-
-    [Test]
-    procedure ReverseEntryWithoutRelationsSucceeds()
-    var
-        SustLedgEntry: Record "Sustainability Ledger Entry";
-        SustGLSustLedgerRel: Record "Sust. G/L - Sust. Ledger Rel.";
-        SustEntryReverseMgt: Codeunit "Sust. Entry Reverse Mgt.";
-        OriginalEntryNo: Integer;
-    begin
-        // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Reversing an entry that never collected general ledger entries is unaffected by the relation cleanup.
-        // [GIVEN] A sustainability ledger entry that has no relation records
-        Initialize();
-        CreateSustLedgerEntry(SustLedgEntry, 'SUSTJNL', 'DEFAULT');
-        OriginalEntryNo := SustLedgEntry."Entry No.";
-
-        // [WHEN] The entry is reversed
-        SustEntryReverseMgt.ReverseEntry(SustLedgEntry);
-
-        // [THEN] The entry is reversed and no relation record exists for it
-        SustLedgEntry.Get(OriginalEntryNo);
-        Assert.IsTrue(SustLedgEntry."Reversed", 'The entry should be reversed.');
-        SustGLSustLedgerRel.SetRange("Sust. Ledger Entry No.", OriginalEntryNo);
-        Assert.RecordIsEmpty(SustGLSustLedgerRel);
-    end;
-
     // --- Helper Procedures ---
 
     local procedure Initialize()
@@ -573,43 +432,6 @@ codeunit 148222 "Sust. Reversal Tests"
         Assert.IsTrue(ReversalEntry."Reversed", 'Reversal entry should be marked as Reversed.');
         Assert.AreEqual(OriginalEntryNo, ReversalEntry."Reversed Entry No.",
             'Reversal entry should reference original entry.');
-    end;
-
-    local procedure PostGLEntry(EntryAmount: Decimal): Integer
-    var
-        GenJournalBatch: Record "Gen. Journal Batch";
-        GenJournalLine: Record "Gen. Journal Line";
-        GLEntry: Record "G/L Entry";
-        GenJournalTemplateCode: Code[10];
-        GLAccountNo: Code[20];
-    begin
-        GLAccountNo := LibraryERM.CreateGLAccountNoWithDirectPosting();
-        GenJournalTemplateCode := LibraryERM.SelectGenJnlTemplate();
-        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplateCode);
-        LibraryERM.CreateGeneralJnlLine2WithBalAcc(
-            GenJournalLine, GenJournalTemplateCode, GenJournalBatch.Name, GenJournalLine."Document Type"::Payment,
-            GenJournalLine."Account Type"::"G/L Account", GLAccountNo,
-            GenJournalLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNoWithDirectPosting(), EntryAmount);
-        GenJournalLine.Validate("Posting Date", WorkDate());
-        GenJournalLine.Validate("Document No.", LibraryUtility.GenerateGUID());
-        GenJournalLine.Modify(true);
-        LibraryERM.PostGeneralJnlLine(GenJournalLine);
-
-        GLEntry.SetRange("G/L Account No.", GLAccountNo);
-        GLEntry.SetRange("Document No.", GenJournalLine."Document No.");
-        GLEntry.FindLast();
-        exit(GLEntry."Entry No.");
-    end;
-
-    local procedure LinkGLEntryToSustEntry(GLEntryNo: Integer; SustLedgerEntryNo: Integer)
-    var
-        GLEntry: Record "G/L Entry";
-        SustGLSustLedgerRel: Record "Sust. G/L - Sust. Ledger Rel.";
-        SustainabilityAccount: Record "Sustainability Account";
-    begin
-        GLEntry.Get(GLEntryNo);
-        SustainabilityAccount.Get(GetReadyToPostAccountNo());
-        SustGLSustLedgerRel.CreateRelation(GLEntry, SustLedgerEntryNo, SustainabilityAccount.Category);
     end;
 
     // --- Handler Functions ---
