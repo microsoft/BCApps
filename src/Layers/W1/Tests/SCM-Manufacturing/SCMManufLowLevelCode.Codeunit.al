@@ -5,9 +5,9 @@
 namespace Microsoft.Manufacturing.Test;
 
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Location;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Setup;
-using Microsoft.Inventory.Location;
 
 codeunit 137039 "SCM Manuf Low Level Code"
 {
