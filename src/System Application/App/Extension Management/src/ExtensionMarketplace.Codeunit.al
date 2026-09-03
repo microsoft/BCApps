@@ -48,6 +48,7 @@ codeunit 2501 "Extension Marketplace"
         TelemetryTok: Label 'ExtensionManagementTelemetryCategoryTok', Locked = true;
         OperationResult: Option UserNotAuthorized,DeploymentFailedDueToPackage,DeploymentFailed,Successful,UserCancel,UserTimeOut;
         AppDoesntNeedSetupMsg: Label 'Your app is installed and ready to use.';
+        AppInstallationFailedMsg: Label 'The app could not be installed. Contact your administrator for more information.';
 
     local procedure GetValue(JObject: DotNet JObject; Property: Text; ThrowError: Boolean): Text
     begin
@@ -281,10 +282,14 @@ codeunit 2501 "Extension Marketplace"
         ExtensionPendingSetup: Record "Extension Pending Setup";
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         MySessionSettings: SessionSettings;
+        InstallErrorText: Text;
     begin
         ExtensionInstallationImpl.CheckPermissions();
 
-        if not InstallAppsourceExtension(AppId, TelemetryURL) then // successful installation returns false
+        ClearLastError();
+        // The page-level TryFunction can return false after a successful install, so verify the installed state.
+        if not InstallAppsourceExtension(AppId, TelemetryURL) then begin
+            InstallErrorText := GetLastErrorText();
             if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then begin
                 SaveExtensionPendingSetup(AppId);
                 MySessionSettings.Init();
@@ -292,7 +297,9 @@ codeunit 2501 "Extension Marketplace"
             end else begin
                 ExtensionPendingSetup.SetRange("User Id", UserSecurityId());
                 ExtensionPendingSetup.DeleteAll();
+                ShowAppInstallationError(InstallErrorText);
             end;
+        end;
     end;
 
     [TryFunction]
@@ -377,6 +384,14 @@ codeunit 2501 "Extension Marketplace"
             MakeMarketplaceTelemetryCallback(ResponseURL, OperationResult::DeploymentFailedDueToPackage);
 
         exit(HasSucceeded);
+    end;
+
+    local procedure ShowAppInstallationError(InstallErrorText: Text)
+    begin
+        if InstallErrorText = '' then
+            Message(AppInstallationFailedMsg)
+        else
+            Message(InstallErrorText);
     end;
 
     local procedure InstallApp(PackageId: Guid; AppId: Guid; ResponseURL: Text; lcid: Integer)
