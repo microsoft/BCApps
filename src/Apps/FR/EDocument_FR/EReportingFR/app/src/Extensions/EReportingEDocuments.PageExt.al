@@ -6,7 +6,7 @@ namespace Microsoft.eServices.EDocument.Formats;
 
 using Microsoft.eServices.EDocument;
 
-pageextension 10974 "E-Reporting E-Documents" extends "E-Documents"
+pageextension 10976 "E-Reporting E-Documents" extends "E-Documents"
 {
     actions
     {
