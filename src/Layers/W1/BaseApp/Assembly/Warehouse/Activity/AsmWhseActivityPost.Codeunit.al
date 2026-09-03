@@ -6,6 +6,7 @@ namespace Microsoft.Warehouse.Activity;
 
 using Microsoft.Assembly.Document;
 using Microsoft.Sales.Document;
+using Microsoft.Warehouse.Journal;
 
 codeunit 932 "Asm. Whse. Activity Post"
 {
@@ -20,19 +21,20 @@ codeunit 932 "Asm. Whse. Activity Post"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Sales Line", 'OnBeforeUpdateQtyToAsmFromSalesLineQtyToShip', '', false, false)]
-    local procedure OnBeforeUpdateQtyToAsmFromSalesLineQtyToShip(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Post", 'OnInitSourceDocumentOnBeforeSalesLineLoopIteration', '', false, false)]
+    local procedure OnInitSourceDocumentOnBeforeSalesLineLoopIteration(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; WarehouseActivityHeader: Record "Warehouse Activity Header"; var IsHandled: Boolean)
     var
-        AssemblyHeader: Record "Assembly Header";
-        WarehouseActivityLine: Record "Warehouse Activity Line";
+        WMSManagement: Codeunit "WMS Management";
     begin
-        if not SalesLine.AsmToOrderExists(AssemblyHeader) then
-            exit;
+        if (WarehouseActivityHeader.Type = WarehouseActivityHeader.Type::"Invt. Pick") and
+           WMSManagement.ATOInvtPickExists(SalesLine)
+        then
+            SalesLine.SetSkipUpdateQtyToAsm(true);
+    end;
 
-        WarehouseActivityLine.SetRange("Source Type", Database::"Assembly Line");
-        WarehouseActivityLine.SetRange("Source Subtype", AssemblyHeader."Document Type".AsInteger());
-        WarehouseActivityLine.SetRange("Source No.", AssemblyHeader."No.");
-        if not WarehouseActivityLine.IsEmpty() then
-            IsHandled := true;
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Post", 'OnBeforeModifySalesLine', '', false, false)]
+    local procedure OnBeforeModifySalesLine(var SalesLine: Record "Sales Line")
+    begin
+        SalesLine.SetSkipUpdateQtyToAsm(false);
     end;
 }
