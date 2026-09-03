@@ -166,6 +166,8 @@ page 50104 "Fabric Platform Setup"
                     begin
                         CredMgt.SetClientId(ClientIdValue);
                         CredMgt.ClearTokenCache();
+                        EnableActionEnabled := true;
+                        CurrPage.Update(false);
                     end;
                 }
                 field(ClientSecret; ClientSecretValue)
@@ -183,6 +185,8 @@ page 50104 "Fabric Platform Setup"
                             CredMgt.SetClientSecret(ClientSecretValue);
                             CredMgt.ClearTokenCache();
                             ClientSecretValue := ClientSecretSetLbl;
+                            EnableActionEnabled := true;
+                            CurrPage.Update(false);
                         end;
                     end;
                 }
@@ -228,6 +232,7 @@ page 50104 "Fabric Platform Setup"
             {
                 Caption = 'Enable';
                 ApplicationArea = All;
+                Enabled = EnableActionEnabled;
                 Image = Setup;
                 ToolTip = 'Runs the platform setup pipeline using Microsoft first-party authentication. This is asynchronous; follow progress on Export Summary.';
 
@@ -395,6 +400,7 @@ page 50104 "Fabric Platform Setup"
     local procedure SetEditable()
     begin
         NamespaceEditable := not Rec."Setup Complete";
+        EnableActionEnabled := not Rec."Setup Complete";
     end;
 
     local procedure NotifyValueUsedOnNextRun()
@@ -405,6 +411,7 @@ page 50104 "Fabric Platform Setup"
 
     var
         NamespaceEditable: Boolean;
+        EnableActionEnabled: Boolean;
         ClientIdValue: Text[250];
         PrincipalIdValue: Text[250];
         OpenMirroringNameValue: Text[250];
