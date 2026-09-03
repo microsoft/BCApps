@@ -40,6 +40,7 @@ page 7134 "Travel Requests API"
                 field(requestedBy; Rec."Requested By")
                 {
                     Caption = 'Requested By';
+                    Editable = false;
                 }
                 field(status; Rec.Status)
                 {
@@ -143,6 +144,26 @@ page 7134 "Travel Requests API"
                 {
                     Caption = 'Actual End Date and Time';
                 }
+                field(submittedByExpenseUserNo; Rec."Submitted By Expense User No.")
+                {
+                    Caption = 'Submitted By Expense User No.';
+                    Editable = false;
+                }
+                field(submittedAt; Rec."Submitted At")
+                {
+                    Caption = 'Submitted At';
+                    Editable = false;
+                }
+                field(approvalExpenseUserNo; Rec."Approval Expense User No.")
+                {
+                    Caption = 'Approval Expense User No.';
+                    Editable = false;
+                }
+                field(rejectionReason; Rec."Rejection Reason")
+                {
+                    Caption = 'Rejection Reason';
+                    Editable = false;
+                }
                 part(travelRequestDetails; "Travel Request Details API")
                 {
                     Caption = 'Travel Request Details';
@@ -167,4 +188,79 @@ page 7134 "Travel Requests API"
     begin
         ExpenseAgentAPIValidation.VerifyAgentAccess();
     end;
+
+    [ServiceEnabled]
+    procedure SubmitTravelRequest(var ActionContext: WebServiceActionContext; SubmitterExpenseUserNo: Code[20])
+    var
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+    begin
+        TravelRequestApproval.Submit(Rec, SubmitterExpenseUserNo);
+        SetActionResponse(ActionContext);
+    end;
+
+    [ServiceEnabled]
+    procedure ApproveTravelRequest(var ActionContext: WebServiceActionContext; ApproverExpenseUserNo: Code[20])
+    var
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+    begin
+        TravelRequestApproval.Approve(Rec, ApproverExpenseUserNo);
+        SetActionResponse(ActionContext);
+    end;
+
+    [ServiceEnabled]
+    procedure RejectTravelRequest(var ActionContext: WebServiceActionContext; ApproverExpenseUserNo: Code[20]; RejectReason: Text)
+    var
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+    begin
+        TravelRequestApproval.Reject(Rec, ApproverExpenseUserNo, RejectReason);
+        SetActionResponse(ActionContext);
+    end;
+
+    trigger OnFindRecord(Which: Text): Boolean
+    begin
+        ProcessApproverFilter();
+        exit(Rec.Find(Which));
+    end;
+
+    trigger OnInsertRecord(BelowxRec: Boolean): Boolean
+    begin
+        Rec."Document Type" := Rec."Document Type"::"Travel Request";
+        Rec.TestField("Requested By");
+        exit(true);
+    end;
+
+    trigger OnModifyRecord(): Boolean
+    begin
+        if Rec.Status <> xRec.Status then
+            Error(StatusCannotBeChangedErr);
+        if Rec."Requested By" <> xRec."Requested By" then
+            Error(RequestedByCannotBeChangedErr);
+
+        exit(true);
+    end;
+
+    local procedure ProcessApproverFilter()
+    var
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+        ApproverExpenseUserNo: Code[20];
+        OriginalFilterGroup: Integer;
+    begin
+        OriginalFilterGroup := Rec.FilterGroup(4);
+        ApproverExpenseUserNo := CopyStr(Rec.GetFilter("Approver Expense User Filter"), 1, MaxStrLen(ApproverExpenseUserNo));
+        if ApproverExpenseUserNo <> '' then
+            TravelRequestApproval.ApplyApproverFilter(Rec, ApproverExpenseUserNo);
+        Rec.FilterGroup(OriginalFilterGroup);
+    end;
+
+    local procedure SetActionResponse(var ActionContext: WebServiceActionContext)
+    begin
+        ActionContext.SetObjectType(ObjectType::Page);
+        ActionContext.SetObjectId(Page::"Travel Requests API");
+        ActionContext.AddEntityKey(Rec.FieldNo(SystemId), Rec.SystemId);
+        ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
+    end;
+
+    var
+        StatusCannotBeChangedErr: Label 'The travel request status can be changed only by using a lifecycle action.';
+        RequestedByCannotBeChangedErr: Label 'The owner of a travel request cannot be changed.';
 }

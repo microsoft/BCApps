@@ -556,6 +556,7 @@ table 6906 "Expense Report Header"
             begin
                 if Rec."Spend Request No." <> '' then begin
                     CheckTraveler();
+                    SpendRequest.SetSkipSpendRequestClose(GetHideValidationDialog());
                     SpendRequest.ValidateSpendRequest(Rec."Spend Request No.", Rec."Spend Request Close");
 
                     if SpendRequest."Dimension Set ID" <> 0 then begin
@@ -644,6 +645,7 @@ table 6906 "Expense Report Header"
         ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
         CurrencyDate: Date;
         HideValidationDialog: Boolean;
+        SkipExpenseUserApprovalCheck: Boolean;
         CalledFromExpenseAgent: Boolean;
         EmptyGuid: Guid;
         DimChangeQst: Label 'You may have changed a dimension.\\Do you want to update the lines?';
@@ -1308,6 +1310,9 @@ table 6906 "Expense Report Header"
         UserSetup: Record "User Setup";
         ExpenseUser: Record "Expense User";
     begin
+        if SkipExpenseUserApprovalCheck then
+            exit;
+
         ExpenseAgentSetup.GetRecordOnce();
         if not ExpenseAgentSetup."Enable Approval Workflow" then
             exit;
@@ -1325,6 +1330,11 @@ table 6906 "Expense Report Header"
     internal procedure SetCalledFromExpenseAgent(NewCalledFromExpenseAgent: Boolean)
     begin
         CalledFromExpenseAgent := NewCalledFromExpenseAgent;
+    end;
+
+    internal procedure SetSkipExpenseUserApprovalCheck(NewSkipExpenseUserApprovalCheck: Boolean)
+    begin
+        SkipExpenseUserApprovalCheck := NewSkipExpenseUserApprovalCheck;
     end;
 
     local procedure CheckTraveler()

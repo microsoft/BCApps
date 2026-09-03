@@ -36,10 +36,19 @@ page 7135 "Travel Request Details API"
                 field(travelRequestNo; Rec."Spend Request No.")
                 {
                     Caption = 'Travel Request No.';
+                    Editable = false;
                 }
                 field(lineNo; Rec."Line No.")
                 {
                     Caption = 'Line No.';
+                }
+                field(type; Rec.Type)
+                {
+                    Caption = 'Type';
+                }
+                field(expenseCategoryCode; Rec."Expense Category Code")
+                {
+                    Caption = 'Expense Category Code';
                 }
                 field(description; Rec.Description)
                 {

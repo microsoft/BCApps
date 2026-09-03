@@ -239,6 +239,14 @@ page 6928 "Expense Reports API"
                 {
                     Caption = 'Travel Request Close';
                 }
+                part(travelRequest; "Travel Requests API")
+                {
+                    Caption = 'Travel Request';
+                    EntityName = 'travelRequest';
+                    EntitySetName = 'travelRequests';
+                    Multiplicity = ZeroOrOne;
+                    SubPageLink = "No." = field("Spend Request No.");
+                }
                 part(expenseReportLines; "Expense Report Lines API")
                 {
                     Caption = 'Expense Report Lines';
