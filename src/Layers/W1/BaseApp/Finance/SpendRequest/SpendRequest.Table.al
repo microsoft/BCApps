@@ -170,6 +170,7 @@ table 6840 "Spend Request"
             Caption = 'Approved/Rejected by User ID';
             DataClassification = EndUserIdentifiableInformation;
             ToolTip = 'Specifies the user ID who approved or rejected the spend request.';
+            Editable = false;
             TableRelation = User."User Security ID";
 
             trigger OnValidate()
@@ -180,14 +181,8 @@ table 6840 "Spend Request"
         field(16; "Approved/Rejected by User Name"; Code[50])
         {
             Caption = 'Approved/Rejected by User Name';
-            DataClassification = EndUserIdentifiableInformation;
             ToolTip = 'Specifies the user name who approved or rejected the spend request.';
-            TableRelation = User."User Name";
-
-            trigger OnValidate()
-            begin
-                TestStatusOpen();
-            end;
+            Editable = false;
         }
         field(17; "Approved/Rejected At"; DateTime)
         {
@@ -239,6 +234,7 @@ table 6840 "Spend Request"
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
             ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup page.';
+            Editable = false;
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
 
@@ -255,6 +251,7 @@ table 6840 "Spend Request"
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
             ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup page.';
+            Editable = false;
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
 
@@ -336,6 +333,8 @@ table 6840 "Spend Request"
                         if Employee.FindFirst() then
                             Rec."Requested By" := Employee."No.";
                     end;
+        Rec."Expected Start Date" := WorkDate();
+        Rec."Expected End Date" := WorkDate();
     end;
 
     trigger OnDelete()
@@ -432,10 +431,37 @@ table 6840 "Spend Request"
         OldDimSetID: Integer;
     begin
         OldDimSetID := "Dimension Set ID";
-        "Dimension Set ID" := DimMgt.EditDimensionSet(Rec, "Dimension Set ID", StrSubstNo('%1 %2', Rec.TableCaption, "No."),
-            "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
+        "Dimension Set ID" := DimMgt.EditDimensionSet(Rec, "Dimension Set ID", CopyStr(StrSubstNo('%1 %2', Rec.TableCaption, "No."), 1, 250), "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
         if OldDimSetID <> "Dimension Set ID" then
             Modify();
+    end;
+
+    /// <summary>
+    /// Sets status to Approved and updates when and who approved.
+    /// </summary>
+    internal procedure Approve()
+    begin
+        if Rec.Status = Rec.Status::Approved then
+            exit;
+        Rec.TestField(Status, Rec.Status::Released);
+        Rec.Status := Rec.Status::Approved;
+        Rec."Approved/Rejected At" := CurrentDateTime();
+        Rec."Approved/Rejected by User ID" := UserSecurityId();
+        Rec.Modify();
+    end;
+
+    /// <summary>
+    /// Sets status to Rejected and updates when and who rejected.
+    /// </summary>
+    internal procedure Reject()
+    begin
+        if Rec.Status in [Rec.Status::Rejected, Rec.Status::Closed] then
+            exit;
+        Rec.TestField(Status, Rec.Status::Released);
+        Rec.Status := Rec.Status::Rejected;
+        Rec."Approved/Rejected At" := CurrentDateTime();
+        Rec."Approved/Rejected by User ID" := UserSecurityId();
+        Rec.Modify();
     end;
 
     /// <summary>

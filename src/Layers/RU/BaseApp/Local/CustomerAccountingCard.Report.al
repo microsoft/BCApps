@@ -111,7 +111,9 @@ report 12441 "Customer Accounting Card"
                     CalcFields = "Debit Amount (LCY)", "Credit Amount (LCY)";
                     DataItemLink = "Customer No." = field("No."), "Global Dimension 1 Code" = field("Global Dimension 1 Filter"), "Global Dimension 2 Code" = field("Global Dimension 2 Filter"), "Agreement No." = field("Agreement Filter"), "Posting Date" = field("Date Filter");
                     DataItemLinkReference = Customer;
+#pragma warning disable AL0254 // Accepted: Object-specific sorting; adding a shared-table key risks schema and performance changes.
                     DataItemTableView = sorting("Customer No.", "Posting Date", "Currency Code", "Agreement No.");
+#pragma warning restore AL0254
                     column(Posting_DateCaption; Posting_DateCaptionLbl)
                     {
                     }
