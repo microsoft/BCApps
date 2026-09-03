@@ -2172,6 +2172,7 @@ codeunit 134897 "ERM Source Currency"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandler')]
     procedure CalcAndPostVATSettlementSourceCurrencyAmounts()
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
@@ -2179,6 +2180,8 @@ codeunit 134897 "ERM Source Currency"
         GenJournalLine: Record "Gen. Journal Line";
         GLEntry: Record "G/L Entry";
         SettlementDocNo: Code[20];
+        StartDate: Date;
+        EndDate: Date;
         SCYBalance: Decimal;
         VATAccountEntryFound: Boolean;
     begin
@@ -2188,18 +2191,21 @@ codeunit 134897 "ERM Source Currency"
 
         // [GIVEN] No Additional Reporting Currency, so the source currency of the settlement entries is LCY.
         GeneralLedgerSetup.Get();
-        if GeneralLedgerSetup."Additional Reporting Currency" <> '' then begin
+        if GeneralLedgerSetup."Additional Reporting Currency" <> '' then
             GeneralLedgerSetup."Additional Reporting Currency" := '';
-            GeneralLedgerSetup."Last Settlement Date" := WorkDate() - 30;
-            GeneralLedgerSetup.Modify();
-        end;
+        GeneralLedgerSetup.Modify();
 
         // [GIVEN] A dedicated VAT Posting Setup, so only this test's VAT Entries are settled.
         LibraryERM.CreateVATPostingSetupWithAccounts(
             VATPostingSetup, Enum::"Tax Calculation Type"::"Normal VAT", LibraryRandom.RandDecInDecimalRange(10, 25, 0));
         UpdateAdjustForPaymentDiscount(VATPostingSetup);
 
-        // [GIVEN] A posted purchase VAT General Journal Line in LCY.
+        // [GIVEN] A settlement period that starts after the last VAT entry and the last existing settlement,
+        // so the periodic settlement entry this test inserts is for an unused period.
+        StartDate := CalcDate('<CM + 1D>', LibraryERM.MaxDate(GetLastVATEntryOpOccrDate(), GetLastVATSettlementEndDate()));
+        EndDate := CalcDate('<CM>', StartDate);
+
+        // [GIVEN] A posted purchase VAT General Journal Line in LCY inside the settlement period.
         CreateGeneralJournalLine(
             GenJournalLine,
             LibraryERM.CreateGLAccountNoWithDirectPosting(),
@@ -2207,11 +2213,13 @@ codeunit 134897 "ERM Source Currency"
             Enum::"General Posting Type"::Purchase,
             VATPostingSetup,
             false);
+        GenJournalLine.Validate("Posting Date", StartDate);
+        GenJournalLine.Modify(true);
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
 
-        // [WHEN] Running Calc. and Post VAT Settlement with the Post option set.
+        // [WHEN] Running Calc. and Post VAT Settlement for the period with the Post option set.
         SettlementDocNo := LibraryUtility.GenerateGUID();
-        LibraryERM.RunCalcAndPostVATSettlement(VATPostingSetup, LibraryERM.CreateGLAccountNo(), SettlementDocNo);
+        RunCalcAndPostVATSettlement(VATPostingSetup, LibraryERM.CreateGLAccountNo(), SettlementDocNo, StartDate, EndDate);
 
         GLEntry.SetRange("Document No.", SettlementDocNo);
         GLEntry.FindSet();
@@ -2235,6 +2243,58 @@ codeunit 134897 "ERM Source Currency"
 
         // [THEN] Source Currency Amount on the settlement G/L Entries balances to 0.
         Assert.AreNearlyEqual(0, SCYBalance, 0.01, TotalSCYAmountNotZeroErr);
+    end;
+
+    procedure RunCalcAndPostVATSettlement(VATPostingSetup: Record "VAT Posting Setup"; SettlementAccountNo: Code[20]; DocumentNo: Code[20]; StartDate: Date; EndDate: Date)
+    var
+        FilterVATPostingSetup: Record "VAT Posting Setup";
+        CalcandPostVATSettlement: Report "Calc. and Post VAT Settlement";
+    begin
+        FilterVATPostingSetup.SetRange("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        FilterVATPostingSetup.SetRange("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        CalcandPostVATSettlement.SetTableView(FilterVATPostingSetup);
+        CalcandPostVATSettlement.InitializeRequest(
+            StartDate, EndDate, EndDate, DocumentNo, SettlementAccountNo,
+            LibraryERM.CreateGLAccountNo(), LibraryERM.CreateGLAccountNo(), false, true);
+        CalcandPostVATSettlement.UseRequestPage(false);
+        Commit();
+        CalcandPostVATSettlement.Run();
+    end;
+
+    local procedure GetLastVATEntryOpOccrDate(): Date
+    var
+        VATEntry: Record "VAT Entry";
+    begin
+        if VATEntry.IsEmpty() then
+            exit(WorkDate());
+        VATEntry.SetCurrentKey("Operation Occurred Date");
+        VATEntry.FindLast();
+        exit(VATEntry."Operation Occurred Date");
+    end;
+
+    local procedure GetLastVATSettlementEndDate(): Date
+    var
+#if not CLEAN27
+        PeriodicSettlementVATEntry: Record "Periodic Settlement VAT Entry";
+#else
+    PeriodicSettlementVATEntry: Record "Periodic VAT Settlement Entry";
+#endif
+    begin
+        if PeriodicSettlementVATEntry.IsEmpty() then
+            exit(WorkDate());
+        PeriodicSettlementVATEntry.FindLast();
+        exit(GetEndDateFromVATPeriod(PeriodicSettlementVATEntry."VAT Period"));
+    end;
+
+    local procedure GetEndDateFromVATPeriod(VATPeriod: Code[10]) EndDate: Date
+    var
+        Year: Integer;
+        Month: Integer;
+    begin
+        Evaluate(Year, CopyStr(VATPeriod, 1, 4));
+        Evaluate(Month, CopyStr(VATPeriod, 6, 2));
+        EndDate := DMY2Date(1, Month, Year);
+        EndDate := CalcDate('<CM>', EndDate);
     end;
 
     local procedure CreatePurchaseInvoice(var PurchaseHeader: Record "Purchase Header"; VendorNo: Code[20]; GLAccountNo: Code[20]; WithForeignCurrency: Boolean)
