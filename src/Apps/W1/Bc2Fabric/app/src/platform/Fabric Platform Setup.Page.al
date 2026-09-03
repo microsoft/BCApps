@@ -130,6 +130,11 @@ page 50104 "Fabric Platform Setup"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the interval, in minutes, between continuous export runs.';
+
+                    trigger OnValidate()
+                    begin
+                        NotifyValueUsedOnNextRun();
+                    end;
                 }
                 field("Max Consecutive Failed Runs"; Rec."Max Consecutive Failed Runs")
                 {
@@ -137,6 +142,11 @@ page 50104 "Fabric Platform Setup"
                     MinValue = 1;
                     MaxValue = 5;
                     ToolTip = 'Specifies how many consecutive failed runs are allowed before the platform stops the export.';
+
+                    trigger OnValidate()
+                    begin
+                        NotifyValueUsedOnNextRun();
+                    end;
                 }
             }
             group(Credentials)
@@ -387,6 +397,12 @@ page 50104 "Fabric Platform Setup"
         NamespaceEditable := not Rec."Setup Complete";
     end;
 
+    local procedure NotifyValueUsedOnNextRun()
+    begin
+        if Rec."Export Enabled" then
+            Message(ValuePickedUpOnNextRunMsg);
+    end;
+
     var
         NamespaceEditable: Boolean;
         ClientIdValue: Text[250];
@@ -400,4 +416,6 @@ page 50104 "Fabric Platform Setup"
         WorkspaceIdInvalidErr: Label 'Fabric returned an invalid workspace ID: %1.', Comment = '%1 = workspace ID';
         MirroredDatabaseIdInvalidErr: Label 'Fabric returned an invalid Open Mirroring database ID: %1.', Comment = '%1 = Open Mirroring database ID';
         SPAddedToWorkspaceMsg: Label 'Service principal added as Contributor to workspace ''%1''.', Comment = '%1 = workspace name';
+        ValuePickedUpOnNextRunMsg: Label 'This change will take effect starting with the next export run.';
+
 }
