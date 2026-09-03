@@ -1250,6 +1250,86 @@ codeunit 137931 "SCM - Movement"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [HandlerFunctions('ItemTrackingLinesModalPageHandlerMultipleEntries')]
+    [Scope('OnPrem')]
+    procedure CreateMovementFromWkshtFEFOWhenPickedNotShippedAndPendingPickExist()
+    var
+        SourcePickBin: Record Bin;
+        PutAwayBin: Record Bin;
+        PickBin: Record Bin;
+        BinContent: Record "Bin Content";
+        PurchaseHeader: Record "Purchase Header";
+        SalesHeader: Record "Sales Header";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        LocationCode: Code[10];
+        ItemNo: Code[20];
+        LotNo: array[2] of Code[50];
+        ExpirationDate: array[2] of Date;
+        Qty: array[2] of Integer;
+        Index: Integer;
+    begin
+        // [FEATURE] [Movement Worksheet] [FEFO] [Item Tracking] [Pick]
+        // [SCENARIO 648223] Create Movement from Movement Worksheet for a FEFO lot-tracked item does not over-allocate the earliest lot
+        // [SCENARIO 648223] when its remaining quantity is picked-not-shipped and reserved by a pending pick.
+        Initialize();
+        for Index := 1 to ArrayLen(LotNo) do begin
+            LotNo[Index] := LibraryUtility.GenerateGUID();
+            ExpirationDate[Index] := CalcDate(StrSubstNo('<%1M>', Index), WorkDate());
+            Qty[Index] := 10;
+        end;
+
+        // [GIVEN] Lot-tracked item "I" with warehouse tracking and mandatory expiration date
+        ItemNo := CreateItemWithItemTrackingCode(true, true, false, false, true);
+
+        // [GIVEN] Directed put-away and pick location with "Pick According to FEFO", source pick bin "SPB" and put-away bin "PAB"
+        // [GIVEN] Empty fixed pick bin "PB" with higher ranking, Min. Qty = 10 and Max. Qty = 30
+        LocationCode := CreateFullWMSLocation(2, true);
+        LibraryWarehouse.FindBin(PickBin, LocationCode, FindZone(LocationCode, FindBinType(true, true, false, false)), 1);
+        LibraryWarehouse.FindBin(SourcePickBin, LocationCode, FindZone(LocationCode, FindBinType(true, true, false, false)), 2);
+        LibraryWarehouse.FindBin(PutAwayBin, LocationCode, FindZone(LocationCode, FindBinType(false, true, false, false)), 1);
+        SetBinRanking(PickBin, SourcePickBin."Bin Ranking" + PutAwayBin."Bin Ranking" + LibraryRandom.RandInt(10));
+        LibraryWarehouse.CreateBinContent(
+          BinContent, LocationCode, PickBin."Zone Code", PickBin.Code, ItemNo, '', GetItemBaseUoM(ItemNo));
+        UpdateBinContentForReplenishment(BinContent, Qty[1], 3 * Qty[1], PickBin."Bin Ranking", PickBin."Bin Type Code");
+
+        // [GIVEN] Received lot "L1" (earliest expiration) 10 PCS and lot "L2" (later expiration) 10 PCS
+        CreatePurchaseOrderWithLocationAndItem(PurchaseHeader, LocationCode, ItemNo, Qty[1] + Qty[2]);
+        PrepareItemTrackingLinesPurchaseTwoLots(PurchaseHeader, LotNo, ExpirationDate, Qty);
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        PostWhseReceipt(PurchaseHeader);
+
+        // [GIVEN] Put away lot "L1" into pick bin "SPB" and lot "L2" into put-away bin "PAB", registered Put-away
+        FindPutAway(WarehouseActivityHeader, ItemNo);
+        UpdatePlaceLineBin(WarehouseActivityHeader, LotNo[1], SourcePickBin);
+        UpdatePlaceLineBin(WarehouseActivityHeader, LotNo[2], PutAwayBin);
+        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+
+        // [GIVEN] Released Sales Order for 6 PCS of lot "L1" with created Shipment and registered Pick, so 6 PCS of "L1" are picked-not-shipped
+        CreateSalesOrderWithLocationAndItem(SalesHeader, LocationCode, ItemNo, 6);
+        PrepareItemTrackingLineSales(SalesHeader, LotNo[1], 6);
+        LibrarySales.ReleaseSalesDocument(SalesHeader);
+        RegisterPick(SalesHeader);
+
+        // [GIVEN] Released Sales Order for 4 PCS of lot "L1" with a created but unregistered Pick, so the remaining 4 PCS of "L1" are reserved by a pending Pick
+        CreateSalesOrderWithLocationAndItem(SalesHeader, LocationCode, ItemNo, 4);
+        PrepareItemTrackingLineSales(SalesHeader, LotNo[1], 4);
+        LibrarySales.ReleaseSalesDocument(SalesHeader);
+        CreatePickWithoutRegister(SalesHeader);
+
+        // [GIVEN] Calculated Bin Replenishment for pick bin "PB" (Movement Worksheet Line for 10 PCS)
+        CalculateBinReplenishment(BinContent, LocationCode);
+
+        // [WHEN] Create Movement from the Movement Worksheet
+        CreateMovementFromMovementWorksheet();
+
+        // [THEN] The Movement takes 10 PCS of lot "L2" from bin "PAB" and no quantity of the fully committed lot "L1"
+        VerifyMovementTakesSingleLotFromBin(ItemNo, LotNo[1], LotNo[2], PutAwayBin.Code, Qty[2]);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1294,6 +1374,35 @@ codeunit 137931 "SCM - Movement"
     end;
 
     local procedure PrepareItemTrackingLinesPurchase(var PurchaseHeader: Record "Purchase Header"; LotNo: array[4] of Code[50]; ExpirationDate: array[4] of Date; Qty: array[4] of Integer)
+    var
+        PurchaseLine: Record "Purchase Line";
+        ReservationEntry: Record "Reservation Entry";
+        Index: Integer;
+    begin
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.FindFirst();
+
+        LibraryVariableStorage.Enqueue(ArrayLen(LotNo));
+        for Index := 1 to ArrayLen(LotNo) do begin
+            LibraryVariableStorage.Enqueue(LotNo[Index]);
+            LibraryVariableStorage.Enqueue(Qty[Index]);
+        end;
+        PurchaseLine.OpenItemTrackingLines();
+        LibraryVariableStorage.AssertEmpty();
+
+        for Index := 1 to ArrayLen(LotNo) do begin
+            ReservationEntry.SetRange("Source Type", DATABASE::"Purchase Line");
+            ReservationEntry.SetRange("Source ID", PurchaseLine."Document No.");
+            ReservationEntry.SetRange("Item No.", PurchaseLine."No.");
+            ReservationEntry.SetRange("Lot No.", LotNo[Index]);
+            ReservationEntry.FindFirst();
+            ReservationEntry."Expiration Date" := ExpirationDate[Index];
+            ReservationEntry.Modify();
+        end;
+    end;
+
+    local procedure PrepareItemTrackingLinesPurchaseTwoLots(var PurchaseHeader: Record "Purchase Header"; LotNo: array[2] of Code[50]; ExpirationDate: array[2] of Date; Qty: array[2] of Integer)
     var
         PurchaseLine: Record "Purchase Line";
         ReservationEntry: Record "Reservation Entry";
@@ -1435,6 +1544,17 @@ codeunit 137931 "SCM - Movement"
         LibraryWarehouse.FindWhseActivityBySourceDoc(
           WarehouseActivityHeader, DATABASE::"Sales Line", SalesHeader."Document Type".AsInteger(), SalesHeader."No.", SalesLine."Line No.");
         LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+    end;
+
+    local procedure CreatePickWithoutRegister(SalesHeader: Record "Sales Header")
+    var
+        WarehouseShipmentHeader: Record "Warehouse Shipment Header";
+    begin
+        LibraryWarehouse.CreateWhseShipmentFromSO(SalesHeader);
+        WarehouseShipmentHeader.Get(
+          LibraryWarehouse.FindWhseShipmentNoBySourceDoc(
+              DATABASE::"Sales Line", SalesHeader."Document Type".AsInteger(), SalesHeader."No."));
+        LibraryWarehouse.CreatePick(WarehouseShipmentHeader);
     end;
 
     local procedure CalculateBinReplenishment(BinContent: Record "Bin Content"; LocationCode: Code[10])
@@ -1613,6 +1733,34 @@ codeunit 137931 "SCM - Movement"
         WarehouseActivityLine.SetRange("Item No.", ItemNo);
         WarehouseActivityLine.FindFirst();
         WarehouseActivityHeader.Get(WarehouseActivityLine."Activity Type", WarehouseActivityLine."No.");
+    end;
+
+    local procedure UpdatePlaceLineBin(WarehouseActivityHeader: Record "Warehouse Activity Header"; LotNo: Code[50]; Bin: Record Bin)
+    var
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+    begin
+        FilterWhseActivityLines(WarehouseActivityLine, WarehouseActivityHeader, WarehouseActivityLine."Action Type"::Place);
+        WarehouseActivityLine.SetRange("Lot No.", LotNo);
+        WarehouseActivityLine.FindFirst();
+        WarehouseActivityLine.Validate("Zone Code", Bin."Zone Code");
+        WarehouseActivityLine.Validate("Bin Code", Bin.Code);
+        WarehouseActivityLine.Modify(true);
+    end;
+
+    local procedure VerifyMovementTakesSingleLotFromBin(ItemNo: Code[20]; ExcludedLotNo: Code[50]; ExpectedLotNo: Code[50]; ExpectedBinCode: Code[20]; ExpectedQtyBase: Decimal)
+    var
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+    begin
+        FindMovement(WarehouseActivityHeader, ItemNo);
+        FilterWhseActivityLines(WarehouseActivityLine, WarehouseActivityHeader, WarehouseActivityLine."Action Type"::Take);
+        WarehouseActivityLine.SetRange("Lot No.", ExcludedLotNo);
+        Assert.RecordIsEmpty(WarehouseActivityLine);
+        WarehouseActivityLine.SetRange("Lot No.", ExpectedLotNo);
+        Assert.RecordCount(WarehouseActivityLine, 1);
+        WarehouseActivityLine.FindFirst();
+        WarehouseActivityLine.TestField("Bin Code", ExpectedBinCode);
+        WarehouseActivityLine.TestField("Qty. (Base)", ExpectedQtyBase);
     end;
 
     local procedure FindBinType(IsPick: Boolean; IsPutAway: Boolean; IsShip: Boolean; IsReceive: Boolean): Code[10]
