@@ -17,11 +17,11 @@ codeunit 134194 "UT Derogatory Linkage Upg." implements "Telemetry Logger"
         DerogatoryDepreciationBookCode: Code[10];
         TestBodyCompleted: Boolean;
         TestBodyCompletedErr: Label 'The test body ran to completion.';
-#if not CLEAN29
+#if not CLEAN30
         SimulatedBodyFailureErr: Label 'Simulated failure after the test body toggled the French feature state.';
 #endif
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
     procedure DisabledFeatureFAJournalUsesOnlyLegacyRelationship()
@@ -114,19 +114,19 @@ codeunit 134194 "UT Derogatory Linkage Upg." implements "Telemetry Logger"
 #else
     [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
-    procedure Clean29FAJournalUsesCentralRelationship()
+    procedure Clean30FAJournalUsesCentralRelationship()
     var
         PreviousFeatureStatus: Integer;
     begin
         PreviousFeatureStatus := CaptureFeatureStateIfRequired();
         asserterror begin
-            Clean29FAJournalBody();
+            Clean30FAJournalBody();
             CompleteTestBody();
         end;
         RestoreFeatureStateAfterTestBody(PreviousFeatureStatus);
     end;
 
-    local procedure Clean29FAJournalBody()
+    local procedure Clean30FAJournalBody()
     var
         DepreciationBook: Record "Depreciation Book";
         TaxDepreciationBook: Record "Depreciation Book";
@@ -143,11 +143,11 @@ codeunit 134194 "UT Derogatory Linkage Upg." implements "Telemetry Logger"
         LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
 
         FALedgerEntry.SetRange("FA No.", FixedAsset."No.");
-        Assert.AreEqual(2, FALedgerEntry.Count(), 'CLEAN29 must post the source and one central counterpart.');
+        Assert.AreEqual(2, FALedgerEntry.Count(), 'CLEAN30 must post the source and one central counterpart.');
         FALedgerEntry.SetRange("Depreciation Book Code", TaxDepreciationBook.Code);
-        Assert.AreEqual(1, FALedgerEntry.Count(), 'CLEAN29 must use the central relationship.');
+        Assert.AreEqual(1, FALedgerEntry.Count(), 'CLEAN30 must use the central relationship.');
         FALedgerEntry.FindFirst();
-        Assert.AreNotEqual(0, FALedgerEntry."Derogatory Source Entry No.", 'The CLEAN29 counterpart must be linked.');
+        Assert.AreNotEqual(0, FALedgerEntry."Derogatory Source Entry No.", 'The CLEAN30 counterpart must be linked.');
     end;
 #endif
 
@@ -330,7 +330,7 @@ codeunit 134194 "UT Derogatory Linkage Upg." implements "Telemetry Logger"
         Assert.ExpectedError('More than one derogatory depreciation book is configured for depreciation book');
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
     procedure DisabledFeatureReversalTracksTemporaryConsistencyEntry()
@@ -423,7 +423,7 @@ codeunit 134194 "UT Derogatory Linkage Upg." implements "Telemetry Logger"
         FALedgerEntry.SetRange("FA Posting Type", FALedgerEntry."FA Posting Type"::Derogatory);
         FALedgerEntry.FindFirst();
         FALedgerEntry.TestField("Derogatory Excluded", true);
-#if not CLEAN29
+#if not CLEAN30
         FALedgerEntry.TestField("Exclude Derogatory", true);
 #endif
     end;
@@ -484,7 +484,7 @@ codeunit 134194 "UT Derogatory Linkage Upg." implements "Telemetry Logger"
         until ReversalFALedgerEntry.Next() = 0;
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
     procedure FailedTestBodyRestoresFeatureState()
@@ -1344,7 +1344,7 @@ codeunit 134194 "UT Derogatory Linkage Upg." implements "Telemetry Logger"
         DerogatoryDepreciationBookCode := DerogatoryDepreciationBook.Code;
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure DisableAcceleratedDepreciationFeature()
     var
         FeatureDataUpdateStatus: Record "Feature Data Update Status";
@@ -1416,7 +1416,7 @@ codeunit 134194 "UT Derogatory Linkage Upg." implements "Telemetry Logger"
     // "FA Jnl.-Post Batch" commits, and the test framework rejects Commit under TransactionModel::AutoRollback
     // ("Tests cannot call the Commit function if TransactionModel property is set to AutoRollback."). The posting
     // tests therefore run with AutoCommit and restore the shared French feature state deterministically instead.
-#if not CLEAN29
+#if not CLEAN30
     local procedure CaptureFeatureStateIfRequired() PreviousFeatureStatus: Integer
     var
         FeatureDataUpdateStatus: Record "Feature Data Update Status";
@@ -1444,13 +1444,13 @@ codeunit 134194 "UT Derogatory Linkage Upg." implements "Telemetry Logger"
 
     local procedure RestoreFeatureStateIfRequired(PreviousFeatureStatus: Integer)
     begin
-        Assert.AreEqual(0, PreviousFeatureStatus, 'CLEAN29 has no French feature state to capture.');
+        Assert.AreEqual(0, PreviousFeatureStatus, 'CLEAN30 has no French feature state to capture.');
     end;
 #endif
 
     local procedure EnableCentralRoutingIfRequired()
     begin
-#if not CLEAN29
+#if not CLEAN30
         EnableAcceleratedDepreciationFeature();
 #endif
     end;

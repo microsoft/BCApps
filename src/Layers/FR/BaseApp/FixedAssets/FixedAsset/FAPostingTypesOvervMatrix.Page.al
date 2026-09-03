@@ -942,7 +942,7 @@ page 9277 "FA Posting Types Overv. Matrix"
                             FADeprBook.CalcFields("Salvage Value");
                     MATRIX_CellData[MATRIX_ColumnOrdinal] := MatrixMgt.RoundAmount(FADeprBook."Salvage Value", RoundingFactor);
                 end;
-#if not CLEAN29
+#if not CLEAN30
             12:// 'Derogatory'
                 begin
                     if FADeprBook.FindFirst() then

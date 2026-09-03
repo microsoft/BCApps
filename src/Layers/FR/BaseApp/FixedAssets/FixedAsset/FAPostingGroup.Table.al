@@ -6,7 +6,7 @@ namespace Microsoft.FixedAssets.FixedAsset;
 
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.ReceivablesPayables;
-#if not CLEAN29
+#if not CLEAN30
 using Microsoft.FixedAssets.Depreciation;
 #endif
 
@@ -549,13 +549,13 @@ table 5606 "FA Posting Group"
         {
             Caption = 'Derogatory Account';
             TableRelation = "G/L Account";
-#if CLEAN29
+#if CLEAN30
             ObsoleteState = Removed;
             ObsoleteTag = '31.0';
             ObsoleteReason = 'Moved to W1 Base Application';
 #else
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
             ObsoleteReason = 'Moved to W1 Base Application';
 
             trigger OnValidate()
@@ -568,13 +568,13 @@ table 5606 "FA Posting Group"
         {
             Caption = 'Derogatory Acc. (Decrease)';
             TableRelation = "G/L Account";
-#if CLEAN29
+#if CLEAN30
             ObsoleteState = Removed;
             ObsoleteTag = '31.0';
             ObsoleteReason = 'Moved to W1 Base Application';
 #else
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
             ObsoleteReason = 'Moved to W1 Base Application';
 
             trigger OnValidate()
@@ -587,13 +587,13 @@ table 5606 "FA Posting Group"
         {
             Caption = 'Derog. Bal. Acc. (Decrease)';
             TableRelation = "G/L Account";
-#if CLEAN29
+#if CLEAN30
             ObsoleteState = Removed;
             ObsoleteTag = '31.0';
             ObsoleteReason = 'Moved to W1 Base Application';
 #else
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
             ObsoleteReason = 'Moved to W1 Base Application';
 
             trigger OnValidate()
@@ -606,13 +606,13 @@ table 5606 "FA Posting Group"
         {
             Caption = 'Derogatory Expense Account';
             TableRelation = "G/L Account";
-#if CLEAN29
+#if CLEAN30
             ObsoleteState = Removed;
             ObsoleteTag = '31.0';
             ObsoleteReason = 'Moved to W1 Base Application';
 #else
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
             ObsoleteReason = 'Moved to W1 Base Application';
 
             trigger OnValidate()
@@ -622,7 +622,7 @@ table 5606 "FA Posting Group"
 #endif
         }
 #endif
-#if not CLEAN29
+#if not CLEAN30
         field(10804; "Allocated Derogatory %"; Decimal)
         {
             AutoFormatType = 0;
@@ -633,7 +633,7 @@ table 5606 "FA Posting Group"
             Editable = false;
             FieldClass = FlowField;
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
             ObsoleteReason = 'Moved to W1 Base Application';
         }
 #endif
@@ -664,7 +664,7 @@ table 5606 "FA Posting Group"
         FAAlloc: Record "FA Allocation";
         GLAcc: Record "G/L Account";
         PostingSetupMgt: Codeunit PostingSetupManagement;
-#if not CLEAN29
+#if not CLEAN30
         AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
 #endif
 
@@ -943,7 +943,7 @@ table 5606 "FA Posting Group"
 
     procedure GetDerogatoryAccount(): Code[20]
     begin
-#if not CLEAN29
+#if not CLEAN30
         if AcceleratedDeprFeature.IsEnabled() then begin
             TestField("Derogatory Acc.");
             exit("Derogatory Acc.");
@@ -960,7 +960,7 @@ table 5606 "FA Posting Group"
 
     procedure GetDerogatoryAccountDecrease(): Code[20]
     begin
-#if not CLEAN29
+#if not CLEAN30
         if AcceleratedDeprFeature.IsEnabled() then begin
             TestField("Derogatory Account (Decrease)");
             exit("Derogatory Account (Decrease)")
@@ -977,7 +977,7 @@ table 5606 "FA Posting Group"
 
     procedure GetDerogatoryBalAccountDecrease(): Code[20]
     begin
-#if not CLEAN29
+#if not CLEAN30
         if AcceleratedDeprFeature.IsEnabled() then begin
             TestField("Derog. Bal. Account (Decrease)");
             exit("Derog. Bal. Account (Decrease)");
@@ -994,7 +994,7 @@ table 5606 "FA Posting Group"
 
     procedure GetDerogatoryExpenseAccount(): Code[20]
     begin
-#if not CLEAN29
+#if not CLEAN30
         if AcceleratedDeprFeature.IsEnabled() then begin
             TestField("Derogatory Expense Acc.");
             exit("Derogatory Expense Acc.");

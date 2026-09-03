@@ -25,7 +25,7 @@ using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
-#if not CLEAN29
+#if not CLEAN30
 using Microsoft.FixedAssets.Depreciation;
 #endif
 using Microsoft.FixedAssets.Journal;
@@ -201,7 +201,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         DescriptionMustNotBeBlankErr: Label 'When %1 is selected for %2, %3 must have a value.', Comment = '%1: Field Omit Default Descr. in Jnl., %2 G/L Account No, %3 Description';
         NoDeferralScheduleErr: Label 'You must create a deferral schedule if a deferral template is selected. Line: %1, Deferral Template: %2.', Comment = '%1=The line number of the general ledger transaction, %2=The Deferral Template Code';
         ZeroDeferralAmtErr: Label 'Deferral amounts cannot be 0. Line: %1, Deferral Template: %2.', Comment = '%1=The line number of the general ledger transaction, %2=The Deferral Template Code';
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AA0074
         Text10800: Label 'Not a derogatory line.';
 #pragma warning restore AA0074
@@ -1739,7 +1739,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         FAGLPostBuf: Record "FA G/L Posting Buffer";
         VATPostingSetup: Record "VAT Posting Setup";
         FAAutomaticEntry: Codeunit "FA Automatic Entry";
-#if not CLEAN29
+#if not CLEAN30
         FAJnlLine: Record "FA Journal Line";
         AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
 #endif
@@ -1768,7 +1768,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
             if not IsHandled then
                 FAJnlPostLine.GenJnlPostLine(
                     GenJnlLine, GLEntry2.Amount, GLEntry2."VAT Amount", NextTransactionNo, NextEntryNo, GLReg."No.");
-#if not CLEAN29
+#if not CLEAN30
             if not AcceleratedDeprFeature.IsEnabled() then
                 if GenJnlLine."Derogatory Line" then begin
                     MakeDerogFAJnlLine(FAJnlLine, GenJnlLine);
@@ -7808,7 +7808,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                            DtldCVLedgEntryBuf."Entry Type"::"Payment Discount Tolerance (VAT Excl.)"]);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure RealizeDelayedUnrealizedVAT(GenJnlLine: Record "Gen. Journal Line")
     begin
         if GenJnlLine."Delayed Unrealized VAT" and GenJnlLine."Realize VAT" then
@@ -8206,7 +8206,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         InsertGLEntry(GenJnlLine, GLEntry, true);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Obsolete('Moved to W1 Base Application', '28.0')]
     local procedure CreateAndPostDerogatoryEntry(SourceGenJournalLine: Record "Gen. Journal Line")
     var

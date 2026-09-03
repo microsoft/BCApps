@@ -16,9 +16,9 @@ using System.Upgrade;
 /// Only mutually unique historical pairs are linked; sources with more than one remaining candidate, or whose only
 /// remaining candidate is itself contested by another source, are marked ambiguous so the deterministic reversal
 /// logic can fall back to the legacy heuristic for them only. No link is fabricated for missing counterparts.
-/// This upgrade shim survives CLEAN29. The superseded French legacy posting implementation is removed by CLEAN29, but
+/// This upgrade shim survives CLEAN30. The superseded French legacy posting implementation is removed by CLEAN30, but
 /// sources that stay marked as ambiguous can still require the legacy reversal fallback, so the shim MUST be retained
-/// beyond CLEAN29 until a separately approved cleanup version removes the need for that fallback.
+/// beyond CLEAN30 until a separately approved cleanup version removes the need for that fallback.
 /// </summary>
 codeunit 104103 "Upgrade Derogatory Linkage"
 {
@@ -38,9 +38,9 @@ codeunit 104103 "Upgrade Derogatory Linkage"
     /// <summary>
     /// Links pre-existing French derogatory FA/maintenance ledger entries using the complete mutually-unique
     /// matching graph. MUST be called with ForceCorrective = false immediately after the feature-enable data copy
-    /// ("Accelerated Depr. Feature".UpdateData) and after the CLEAN29 relationship copy ("Upgrade Accelerated Depr."),
+    /// ("Accelerated Depr. Feature".UpdateData) and after the CLEAN30 relationship copy ("Upgrade Accelerated Depr."),
     /// in the same upgrade transaction as those relationship-field copies, so the relationship is guaranteed to be
-    /// visible before matching runs regardless of per-company upgrade codeunit ordering. This shim survives CLEAN29.
+    /// visible before matching runs regardless of per-company upgrade codeunit ordering. This shim survives CLEAN30.
     /// Skips all work (without setting the original tag) when no relationship pair is configured yet, so a later
     /// upgrade run can still process it once the relationship exists. Sets the original linkage tag only after all
     /// writes and telemetry succeed, and only for the non-corrective, tag-gated run.

@@ -65,7 +65,7 @@ codeunit 5626 "FA General Report"
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::Appreciation);
             FADeprBook.FieldNo("Last Custom 1 Date"):
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::"Custom 1");
-#if not CLEAN29
+#if not CLEAN30
             FADeprBook.FieldNo("Last Derogatory Date"):
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::Derogatory);
 #else
@@ -148,7 +148,7 @@ codeunit 5626 "FA General Report"
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::Appreciation);
             FADeprBook.FieldNo("Custom 1"):
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::"Custom 1");
-#if not CLEAN29
+#if not CLEAN30
             FADeprBook.FieldNo(Derogatory):
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::Derogatory);
 #else
@@ -177,7 +177,7 @@ codeunit 5626 "FA General Report"
             Period::"at Ending Date":
                 FALedgEntry.SetRange("FA Posting Date", 0D, EndingDate);
         end;
-#if not CLEAN29
+#if not CLEAN30
         if (PostingType = FADeprBook.FieldNo(Derogatory)) then
 #else
         if (PostingType = FADeprBook.FieldNo("Derogatory Amount")) then
@@ -197,7 +197,7 @@ codeunit 5626 "FA General Report"
                 Period::"at Ending Date":
                     FALedgEntry.Amount := FALedgEntry.Amount + UntilAmount;
             end;
-#if not CLEAN29
+#if not CLEAN30
         if (PostingType = FADeprBook.FieldNo(Derogatory)) then begin
 #else
         if (PostingType = FADeprBook.FieldNo("Derogatory Amount")) then begin
@@ -239,7 +239,7 @@ codeunit 5626 "FA General Report"
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::Appreciation);
             FADeprBook.FieldNo("Custom 1"):
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::"Custom 1");
-#if not CLEAN29
+#if not CLEAN30
             FADeprBook.FieldNo(Derogatory):
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::Derogatory);
 #else

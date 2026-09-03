@@ -26,7 +26,7 @@ Replace derogatory depreciation mirroring based on mutable journal state and heu
 - deterministic linked reversal and reversal-of-reversal;
 - a French historical linkage upgrade;
 - removal of the unshipped W1 `Is Derogatory` journal fields;
-- guarded retention of pre-CLEAN29 French legacy behavior for companies where the feature is still disabled.
+- guarded retention of pre-CLEAN30 French legacy behavior for companies where the feature is still disabled.
 
 ## Implemented W1 changes
 
@@ -123,15 +123,15 @@ FR localized copies were updated for:
 - centralized forward posting;
 - deterministic reversal;
 - removal of the unshipped `Is Derogatory` W1 field;
-- feature-enabled/CLEAN29 use of the W1 workflow.
+- feature-enabled/CLEAN30 use of the W1 workflow.
 
-### Feature-disabled and CLEAN29 policy
+### Feature-disabled and CLEAN30 policy
 
 Decision: do **not** remove all French legacy paths immediately.
 
-- Before CLEAN29, feature-disabled companies retain legacy fields/producers under `#if not CLEAN29`.
+- Before CLEAN30, feature-disabled companies retain legacy fields/producers under `#if not CLEAN30`.
 - Feature-enabled companies use the centralized W1 workflow.
-- CLEAN29 builds exclude the guarded legacy implementation.
+- CLEAN30 builds exclude the guarded legacy implementation.
 - The historical upgrade shim remains until its separate cleanup version because ambiguous upgraded entries can still need the legacy reversal fallback.
 
 This is documented in the OpenSpec design and task 7.7.

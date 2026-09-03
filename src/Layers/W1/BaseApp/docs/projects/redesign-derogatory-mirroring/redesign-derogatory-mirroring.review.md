@@ -101,7 +101,7 @@ The PRD contains FR/NFR identifiers rather than `REQ-*`; no `REQ-*` or `SEC-*` i
 | FR-017 | ❌ FAIL | Candidate graph exists in `UpgradeDerogatoryLinkage.Codeunit.al` | `SetFAReversalShapeFilters:323-334` and maintenance equivalent `:458-469` compare only zero/nonzero shape, not actual counterpart chains. |
 | FR-018 | ✅ PASS | Existing-link skip `UpgradeDerogatoryLinkage.Codeunit.al:267-273,416-422`; retry tests exist | Partial/repeated pass behavior is covered in source. |
 | FR-019 | ✅ PASS | Marker-gated fallback `FAInsertLedgerEntry.Codeunit.al:789-900` | New W1 entries do not use heuristic fallback. |
-| FR-020 | ⚠️ PARTIAL | FR guards/routing in `FR/.../FAJnlPostBatch.Codeunit.al:273-345,405-424` and `FAJnlPostLine.Codeunit.al:299-343` | No current-SHA CLEAN29 package/run evidence. |
+| FR-020 | ⚠️ PARTIAL | FR guards/routing in `FR/.../FAJnlPostBatch.Codeunit.al:273-345,405-424` and `FAJnlPostLine.Codeunit.al:299-343` | No current-SHA CLEAN30 package/run evidence. |
 | FR-021 | ⚠️ PARTIAL | W1 builder and FR reversal overloads restored | Full current dependent-app compilation is unverified. |
 | FR-022 | ✅ PASS | Six telemetry dimensions at `UpgradeDerogatoryLinkage.Codeunit.al:178-191`; direct test `UTDerogatoryLinkageUpg.Codeunit.al:1633-1642` | Aggregate-only telemetry; no counter table. |
 
@@ -115,7 +115,7 @@ The PRD contains FR/NFR identifiers rather than `REQ-*`; no `REQ-*` or `SEC-*` i
 | NFR-002 | ⚠️ PARTIAL | Reversal selects the dedicated key at `FAInsertLedgerEntry.Codeunit.al:799,843`; no representative timing evidence and insertion validation does not explicitly select it. |
 | NFR-003 | ⚠️ PARTIAL | Amount/idempotency tests exist, but corrective tag assignment occurs after the atomic wrapper transaction. |
 | NFR-004 | ⚠️ PARTIAL | Strong total-row verifier at `ERMDerogatoryDeprPosting.Codeunit.al:2867-2890`; localization/event matrix execution remains incomplete. |
-| NFR-005 | ⚠️ PARTIAL | The PRD records current W1 compile/build and earlier successful W1/FR/CLEAN29/localization builds; exact-SHA CI run `32131321496` is not complete/green and therefore does not establish every required build. |
+| NFR-005 | ⚠️ PARTIAL | The PRD records current W1 compile/build and earlier successful W1/FR/CLEAN30/localization builds; exact-SHA CI run `32131321496` is not complete/green and therefore does not establish every required build. |
 | NFR-006 | ⚠️ PARTIAL | Current-SHA local W1 88/88 is recorded, but no complete current-SHA localization run plus durable representative ledger/G/L inspection exists. |
 | NFR-007 | ⚠️ PARTIAL | Manager exposes no mutable event and validation is immediately before insert; only one of five named event surfaces has focused subscriber regression coverage. |
 | NFR-008 | ⚠️ PARTIAL | Static localization sweep is positive; required current runtime evidence is incomplete. |
@@ -161,16 +161,16 @@ No numbered `SEC-*` requirements exist.
 | AC-013 | ⚠️ PARTIAL | Outer producers are statically neutralized; full localization runtime matrix is missing. |
 | AC-014 | ✅ PASS | Link-first FA/maintenance reversal and setup-change behavior are covered. |
 | AC-015 | ✅ PASS | Missing/multiple/reversal-of-reversal consistency paths exist. |
-| AC-016 | ⚠️ PARTIAL | Sequencing code/tests exist; current CLEAN29 transition run is absent. |
+| AC-016 | ⚠️ PARTIAL | Sequencing code/tests exist; current CLEAN30 transition run is absent. |
 | AC-017 | ❌ FAIL | Historical matching does not enforce actual reversal-chain counterpart identity. |
 | AC-018 | ✅ PASS | Retry/idempotency behavior is covered. |
 | AC-019 | ✅ PASS | Marker-gated legacy fallback is implemented. |
-| AC-020 | ⚠️ PARTIAL | FR routing/shim docs are present; current CLEAN29 package gate is absent. |
+| AC-020 | ⚠️ PARTIAL | FR routing/shim docs are present; current CLEAN30 package gate is absent. |
 | AC-021 | ⚠️ PARTIAL | APIs are restored; complete current consumer compilation is absent. |
 | AC-022 | ✅ PASS | All six telemetry dimensions are directly asserted. |
 | AC-023 | ⚠️ PARTIAL | Keyed reversal is visible; timing and explicit insertion-key evidence are absent. |
 | AC-024 | ⚠️ PARTIAL | W1/FR matrices are strong; localization/event execution is incomplete. |
-| AC-025 | ⚠️ PARTIAL | Current W1 and prior build evidence exists, but exact-SHA CI run `32131321496` is not complete/green for all required projects and CLEAN29. |
+| AC-025 | ⚠️ PARTIAL | Current W1 and prior build evidence exists, but exact-SHA CI run `32131321496` is not complete/green for all required projects and CLEAN30. |
 | AC-026 | ⚠️ PARTIAL | Current-SHA local W1 88/88 is recorded; the complete localization suite and durable manual ledger/G/L evidence remain absent. |
 | AC-027 | ⚠️ PARTIAL | Static event ordering is safe; only one of five named event surfaces has a focused regression. |
 
@@ -186,13 +186,13 @@ The referenced requirements document defines AC-001 through AC-037, while the PR
 |---|---|---|
 | EPIC-001: W1 posting/linkage invariants | ⚠️ PARTIAL | ITEM-002 sole-policy rule fails; ITEM-001 corrective RU change is sound. |
 | EPIC-002: Link-authoritative reversal | ✅ COMPLETE FOR CURRENT W1 EVIDENCE | Scoped reversal assertion is correct and the PRD records a current-SHA local W1 pass; country runtime remains part of EPIC-009. |
-| EPIC-003: French routing/API compatibility | ⚠️ PARTIAL | CLEAN29/current consumer compile gate remains open. |
+| EPIC-003: French routing/API compatibility | ⚠️ PARTIAL | CLEAN30/current consumer compile gate remains open. |
 | EPIC-004: Standard localization outer producers | ⚠️ PARTIAL | Source neutralization is convincing; complete runtime is absent. |
 | EPIC-005: Divergent/declaration-only localizations | ⚠️ PARTIAL | IT/RU source exists; current runtime absent and IS equivalent setup defect remains. |
 | EPIC-006: Declaration-only localization verification | ✅ COMPLETE STATICALLY | NL regression and semantic evidence exist. |
 | EPIC-007: French historical migration | ❌ NON_COMPLIANT | Reversal-chain identity and corrective-tag atomicity gaps. |
 | EPIC-008: Deterministic automated coverage | ⚠️ PARTIAL | Strong tests; localization/event/current-run gaps remain. |
-| EPIC-009: Release gates | ⚠️ PARTIAL/NON-GREEN | Static sweep and local W1 gate are positive; exact-SHA CI `32131321496` is in progress with at least two failed jobs, so all-country/CLEAN29 release gates remain open. |
+| EPIC-009: Release gates | ⚠️ PARTIAL/NON-GREEN | Static sweep and local W1 gate are positive; exact-SHA CI `32131321496` is in progress with at least two failed jobs, so all-country/CLEAN30 release gates remain open. |
 
 ### All ITEM Statuses
 
@@ -207,7 +207,7 @@ The referenced requirements document defines AC-001 through AC-037, while the PR
 | ITEM-007 | ✅ COMPLETE | Acquisition policy/preparation is centralized with thin adapters. |
 | ITEM-008 | ✅ COMPLETE | Scoped test restores the second independent reversal and verifies automatic linked reversal; current local W1 pass is recorded. |
 | ITEM-009 | ✅ COMPLETE | Maintenance/link/reversal/salvage behavior exists. |
-| ITEM-010 | ⚠️ PARTIAL | FR routing exists; current CLEAN29 execution absent. |
+| ITEM-010 | ⚠️ PARTIAL | FR routing exists; current CLEAN30 execution absent. |
 | ITEM-011 | ⚠️ PARTIAL | APIs restored; full current consumer compile absent. |
 | ITEM-012 | ⚠️ PARTIAL | Standard producers removed; complete country runtime absent. |
 | ITEM-013 | ⚠️ PARTIAL | IT implementation exists; current country runtime absent. |
@@ -220,7 +220,7 @@ The referenced requirements document defines AC-001 through AC-037, while the PR
 | ITEM-020 | ⚠️ PARTIAL | Most edge cases exist; event-order regression coverage is incomplete. |
 | ITEM-021 | ⚠️ PARTIAL | Upgrade matrix exists but reversal-chain tests accept unrelated chain numbers. |
 | ITEM-022 | ⚠️ PARTIAL | Producer/heuristic sweep exists; strict policy bypasses remain and evidence is narrative rather than durable. |
-| ITEM-023 | ⚠️ PARTIAL/NON-GREEN | Current W1 and prior build evidence exists; exact-SHA CI `32131321496` is active with failed jobs and no final green FR CLEAN29 gate. |
+| ITEM-023 | ⚠️ PARTIAL/NON-GREEN | Current W1 and prior build evidence exists; exact-SHA CI `32131321496` is active with failed jobs and no final green FR CLEAN30 gate. |
 | ITEM-024 | ⚠️ PARTIAL | Current-SHA local W1 88/88 is recorded; localization runtime and durable representative ledger/G/L inspection are incomplete. |
 | ITEM-025 | ❌ NONCOMPLIANT | Corrective tag is outside the atomic clear/rebuild `Codeunit.Run`. |
 | ITEM-026 | ⚠️ PARTIAL | RU correction is sound; current RU runtime absent. |
@@ -273,8 +273,8 @@ The AL test file is explicitly FILE-020. No production or generated-view file ch
 | FILE-009 | ✅ PASS | Maintenance fields and link key exist. |
 | FILE-010 | ❌ FAIL | Historical graph exists but full reversal-chain identity and corrective-tag atomicity fail. |
 | FILE-011 | ✅ PASS | Feature-enable sequencing exists. |
-| FILE-012 | ✅ PASS | CLEAN29 transfer sequencing exists. |
-| FILE-013 | ⚠️ PARTIAL | FR feature gating exists; current runtime/CLEAN29 evidence absent. |
+| FILE-012 | ✅ PASS | CLEAN30 transfer sequencing exists. |
+| FILE-013 | ⚠️ PARTIAL | FR feature gating exists; current runtime/CLEAN30 evidence absent. |
 | FILE-014 | ⚠️ PARTIAL | FR legacy/central routing exists; current runtime gate absent. |
 | FILE-015 | ⚠️ PARTIAL | Compatibility/link-first code exists; consumer compile incomplete. |
 | FILE-016 | ✅ PASS | FR schema parity present. |
@@ -304,7 +304,7 @@ The AL test file is explicitly FILE-020. No production or generated-view file ch
 | Goal 2: contain/capture/link/reverse companions | ✅ PASS IN SOURCE | Generated mirrors and automatic companions are explicitly handled. |
 | Goal 3: persisted-link-first reversal | ✅ PASS | W1/FR/RU implementations follow link first. |
 | Goal 4: safe observable French historical linkage | ❌ FAIL | Reversal-chain identity and corrective-tag atomicity gaps remain. |
-| Goal 5: W1/FR/localization/CLEAN29 compile and tests | ⚠️ PARTIAL | Current W1 evidence and prior builds exist; current-SHA CI is not complete/green. |
+| Goal 5: W1/FR/localization/CLEAN30 compile and tests | ⚠️ PARTIAL | Current W1 evidence and prior builds exist; current-SHA CI is not complete/green. |
 | Non-Goal 1: no one-to-many relationship | ✅ PRESERVED | Setup/runtime model remains one-to-one. |
 | Non-Goal 2: no formula/account/report behavior change | ⚠️ PARTIAL | No product source changed in scope; full runtime proof remains absent. |
 | Non-Goal 3: no duplication-feature redesign | ✅ PRESERVED | Only generated-mirror suppression is implemented. |
@@ -322,8 +322,8 @@ The AL test file is explicitly FILE-020. No production or generated-view file ch
 | RD-006 | ✅ PASS | Compatibility delegates/overloads restored. |
 | RD-007 | ⚠️ PARTIAL | IT/RU treated independently; current runtime absent. |
 | RD-008 | ✅ PASS | Telemetry only, no table. |
-| RD-009 | ✅ PASS | Shim survives CLEAN29 in code comments/design. |
-| RD-010 | ✅ PASS STATICALLY | Clean settings inject CLEAN29. |
+| RD-009 | ✅ PASS | Shim survives CLEAN30 in code comments/design. |
+| RD-010 | ✅ PASS STATICALLY | Clean settings inject CLEAN30. |
 | RD-011 | ✅ PASS | Original/corrective tags and force API exist. |
 
 Architecture steps 1-5 are implemented in current W1 source. Step 6 is partial because the French candidate graph does not validate actual reversal-chain pairing. Step 7 is statically implemented, but runtime proof is incomplete.
@@ -367,9 +367,9 @@ Architecture steps 1-5 are implemented in current W1 source. Step 6 is partial b
 
 4. **Current-SHA release gates are not closed**
    - PRD Reference: NFR-005/006, ITEM-023/024/027/028, AC-025/026
-   - Evidence: exact-SHA run `32131321496` targets `0b1f8578b7` but was still in progress with failed ES IntegrationTests and NZ LegacyTestsBucket2 jobs at final capture. PRD-cited parent-SHA run `32129755257` completed cancelled. Current local W1 88/88 is recorded but does not satisfy all-country/CLEAN29/manual-inspection gates.
+   - Evidence: exact-SHA run `32131321496` targets `0b1f8578b7` but was still in progress with failed ES IntegrationTests and NZ LegacyTestsBucket2 jobs at final capture. PRD-cited parent-SHA run `32129755257` completed cancelled. Current local W1 88/88 is recorded but does not satisfy all-country/CLEAN30/manual-inspection gates.
    - Impact: HIGH — accounting/localization readiness is not dynamically established.
-   - Recommendation: run actual country projects plus W1, FR, and FR Clean/CLEAN29 at current SHA; publish and execute focused suites; retain ledger/G/L evidence.
+   - Recommendation: run actual country projects plus W1, FR, and FR Clean/CLEAN30 at current SHA; publish and execute focused suites; retain ledger/G/L evidence.
 
 ### Important Gaps
 
@@ -396,7 +396,7 @@ Architecture steps 1-5 are implemented in current W1 source. Step 6 is partial b
 2. Correct the pre-existing PRD line 467 wording from “current HEAD `81a5ff1e23`” to the historical SHA it describes.
 3. Reconcile the requirements document's AC-001..037 namespace with the PRD's different AC-001..027 definitions.
 4. Define FILE-028 or renumber FILE-029/030.
-5. Keep EPIC-009 partial until exact-SHA localization runtime and CLEAN29 gates finish green.
+5. Keep EPIC-009 partial until exact-SHA localization runtime and CLEAN30 gates finish green.
 
 ## Quality Assessment
 
@@ -413,7 +413,7 @@ Architecture steps 1-5 are implemented in current W1 source. Step 6 is partial b
 | TEST-003 | ✅ PASS IN SOURCE | Extensive FA/maintenance reversal cases exist. |
 | TEST-004 | ⚠️ PARTIAL | 33 FR test methods, but reversal-chain identity is not correctly asserted. |
 | TEST-005 | ⚠️ PARTIAL | ES/IT/RU/NL regressions exist; inherited country executions are incomplete. |
-| TEST-006 | ⚠️ PARTIAL | Current W1 and prior build evidence exists; complete exact-SHA localization/CLEAN29 CI evidence is absent. |
+| TEST-006 | ⚠️ PARTIAL | Current W1 and prior build evidence exists; complete exact-SHA localization/CLEAN30 CI evidence is absent. |
 | TEST-007 | ⚠️ PARTIAL | Current local W1 runs are recorded; complete localization execution/manual inspection is absent. |
 
 Positive test-quality findings:
@@ -425,7 +425,7 @@ Positive test-quality findings:
 
 ### Documentation
 
-**Required updates**: PRD, compatibility statement, CLEAN29 shim lifetime, OpenSpec proposal/design/tasks, release evidence.
+**Required updates**: PRD, compatibility statement, CLEAN30 shim lifetime, OpenSpec proposal/design/tasks, release evidence.
 
 **Completed**: PRD remediation narrative; compatibility/shim statements; prior report evidence.
 
@@ -449,7 +449,7 @@ Positive test-quality findings:
 | Monitor six dimensions | ✅ IMPLEMENTED; operations unverified |
 | Inspect representative ledgers/G/L | ⚠️ W1 scenarios recorded; no durable complete cross-country artifact |
 | Forward-only corrective rebuild | ⚠️ PARTIAL due tag atomicity |
-| Retain French shim beyond CLEAN29 | ✅ VERIFIED |
+| Retain French shim beyond CLEAN30 | ✅ VERIFIED |
 
 ## Risk Assessment
 
@@ -469,7 +469,7 @@ Positive test-quality findings:
 | ID | Status | Assessment |
 |---|---|---|
 | ASSUMPTION-001 | ✅ VERIFIED | Field numbers and keys match current W1/FR schema and known overrides. |
-| ASSUMPTION-002 | ✅ VERIFIED STATICALLY | Disabled FR vs enabled/CLEAN29 routing guards exist; runtime unverified. |
+| ASSUMPTION-002 | ✅ VERIFIED STATICALLY | Disabled FR vs enabled/CLEAN30 routing guards exist; runtime unverified. |
 | ASSUMPTION-003 | ✅ VERIFIED | Clean symbols come from AL-Go settings; the scoped commit did not modify product `app.json`. |
 | DEP-001 | ✅ VERIFIED | Manager and role enum exist. |
 | DEP-002 | ✅ VERIFIED | FA Key13/Maintenance Key10 and fields exist. |
@@ -486,7 +486,7 @@ Positive test-quality findings:
 1. Implement true reversal-chain counterpart consistency in `FR/.../UpgradeDerogatoryLinkage.Codeunit.al:323-334,458-469` and add adversarial tests.
 2. Put the ITEM-025 corrective tag inside the atomic clear/rebuild transaction.
 3. Resolve the FR-004/RD-001 policy-authority contradiction for every direct relationship filter (at least 20 active calculation/report occurrences).
-4. Complete current-SHA run `32131321496`, resolve/rerun every failed relevant job, and retain green W1, FR, CLEAN29, and actual-country build/runtime evidence.
+4. Complete current-SHA run `32131321496`, resolve/rerun every failed relevant job, and retain green W1, FR, CLEAN30, and actual-country build/runtime evidence.
 
 ### Priority 2 - Important (Should Fix)
 
@@ -528,7 +528,7 @@ The scoped test/documentation commit is **correct, minimal, fully traced, and sc
 
 The current repository is **PARTIALLY_COMPLIANT (73%)** with the full PRD because FR-004/ITEM-002, FR-017/ITEM-016, and NFR-003/ITEM-025 remain noncompliant and exact-SHA release gates are not green.
 
-**Ready to merge as the completed PRD implementation: NO.** Merge/release approval requires the Priority 1 fixes and successful current-SHA localization/CLEAN29/runtime evidence. The scoped commit alone is low risk and mergeable as an incremental correction, but it cannot justify closing the feature.
+**Ready to merge as the completed PRD implementation: NO.** Merge/release approval requires the Priority 1 fixes and successful current-SHA localization/CLEAN30/runtime evidence. The scoped commit alone is low risk and mergeable as an incremental correction, but it cannot justify closing the feature.
 
 ## Appendix
 

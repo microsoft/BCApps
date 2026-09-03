@@ -348,7 +348,7 @@ table 5612 "FA Depreciation Book"
             CalcFormula = sum("FA Ledger Entry".Amount where("FA No." = field("FA No."),
                                                               "Depreciation Book Code" = field("Depreciation Book Code"),
                                                               "Part of Book Value" = const(true),
-#if not CLEAN29
+#if not CLEAN30
                                                               "FA Posting Date" = field("FA Posting Date Filter"),
                                                               "Exclude Derogatory" = const(false)));
 #else
@@ -905,7 +905,7 @@ table 5612 "FA Depreciation Book"
         {
             Caption = 'Last Derogatory Date';
         }
-#if not CLEAN29
+#if not CLEAN30
         field(10800; Derogatory; Decimal)
         {
             AutoFormatType = 1;
@@ -920,7 +920,7 @@ table 5612 "FA Depreciation Book"
             Editable = false;
             FieldClass = FlowField;
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
             ObsoleteReason = 'Moved to W1 Base Application';
         }
 #endif
@@ -928,13 +928,13 @@ table 5612 "FA Depreciation Book"
         field(10801; "Last Derogatory Date"; Date)
         {
             Caption = 'Last Derogatory Date';
-#if CLEAN29
+#if CLEAN30
             ObsoleteState = Removed;
             ObsoleteTag = '31.0';
             ObsoleteReason = 'Moved to W1 Base Application';
 #else
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
             ObsoleteReason = 'Moved to W1 Base Application';
 #endif
         }
@@ -1382,7 +1382,7 @@ table 5612 "FA Depreciation Book"
     end;
 
     procedure SetBookValueFiltersOnFALedgerEntry(var FALedgerEntry: Record "FA Ledger Entry")
-#if not CLEAN29
+#if not CLEAN30
     var
         AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
 #endif
@@ -1391,7 +1391,7 @@ table 5612 "FA Depreciation Book"
         FALedgerEntry.SetRange("FA No.", "FA No.");
         FALedgerEntry.SetRange("Depreciation Book Code", "Depreciation Book Code");
         FALedgerEntry.SetRange("Part of Book Value", true);
-#if not CLEAN29
+#if not CLEAN30
         if AcceleratedDeprFeature.IsEnabled() then
             FALedgerEntry.SetRange("Derogatory Excluded", false)
         else

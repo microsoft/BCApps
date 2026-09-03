@@ -168,13 +168,13 @@ table 5624 "FA Reclass. Journal Line"
         field(10800; "Reclassify Derogatory"; Boolean)
         {
             Caption = 'Reclassify Derogatory';
-#if CLEAN29
+#if CLEAN30
             ObsoleteState = Removed;
             ObsoleteTag = '31.0';
             ObsoleteReason = 'Moved to W1 Base Application';
 #else
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
             ObsoleteReason = 'Moved to W1 Base Application';
 #endif
         }

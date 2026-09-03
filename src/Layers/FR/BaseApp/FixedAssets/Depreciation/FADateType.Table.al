@@ -53,12 +53,12 @@ table 5645 "FA Date Type"
     procedure CreateTypes()
     var
         FADepreciationBook: Record "FA Depreciation Book";
-#if not CLEAN29
+#if not CLEAN30
         AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
         IsAcceleratedDeprFeatureEnabled: Boolean;
 #endif
     begin
-#if not CLEAN29
+#if not CLEAN30
         IsAcceleratedDeprFeatureEnabled := AcceleratedDeprFeature.IsEnabled();
 #endif
         LockTable();
@@ -78,7 +78,7 @@ table 5645 "FA Date Type"
             "FA Entry" := false;
             "G/L Entry" := true;
             InsertRec(10, FADepreciationBook.FieldNo("G/L Acquisition Date"), FADepreciationBook.FieldCaption("G/L Acquisition Date"));
-#if not CLEAN29
+#if not CLEAN30
             if IsAcceleratedDeprFeatureEnabled then begin
                 "FA Entry" := true;
                 InsertRec(11, FADepreciationBook.FieldNo("Last Derogatory"), FADepreciationBook.FieldCaption("Last Derogatory"));
@@ -164,7 +164,7 @@ table 5645 "FA Date Type"
                         Delete();
                         InsertRec(10, FADepreciationBook.FieldNo("G/L Acquisition Date"), FADepreciationBook.FieldCaption("G/L Acquisition Date"));
                     end;
-#if not CLEAN29
+#if not CLEAN30
                 if IsAcceleratedDeprFeatureEnabled then begin
                     if "Entry No." = 11 then
                         if ("FA Date Type No." <> FADepreciationBook.FieldNo("Last Derogatory")) or

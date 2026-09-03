@@ -3909,13 +3909,13 @@ table 81 "Gen. Journal Line"
         {
             Caption = 'Derogatory Line';
             Editable = false;
-#if CLEAN29
+#if CLEAN30
             ObsoleteState = Removed;
             ObsoleteTag = '31.0';
             ObsoleteReason = 'Moved to W1 Base Application';
 #else
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
             ObsoleteReason = 'Moved to W1 Base Application';
 #endif
         }
@@ -4089,7 +4089,7 @@ table 81 "Gen. Journal Line"
     end;
 
     var
-#if not CLEAN29
+#if not CLEAN30
         AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
 #endif
 #pragma warning disable AA0074
@@ -4174,7 +4174,7 @@ table 81 "Gen. Journal Line"
         GLSetupRead: Boolean;
         CustBankAcc: Record "Customer Bank Account";
         VendBankAcc: Record "Vendor Bank Account";
-#if not CLEAN29
+#if not CLEAN30
         DerogDeprBook: Record "Depreciation Book";
         DerogFADeprBook: Record "FA Depreciation Book";
 #endif
@@ -6028,12 +6028,12 @@ table 81 "Gen. Journal Line"
     [Scope('OnPrem')]
     procedure GetDerogatorySetup()
     begin
-#if not CLEAN29
+#if not CLEAN30
         if AcceleratedDeprFeature.IsEnabled() then
             exit;
 
         // Retained legacy heuristic for companies still using the pre-move "Derogatory Calculation" setup field;
-        // once the feature is enabled (or after CLEAN29), eligibility is resolved centrally at posting time instead.
+        // once the feature is enabled (or after CLEAN30), eligibility is resolved centrally at posting time instead.
         "Derogatory Line" := false;
         if ("Account Type" = "Account Type"::"Fixed Asset") and
            ("Account No." <> '') and

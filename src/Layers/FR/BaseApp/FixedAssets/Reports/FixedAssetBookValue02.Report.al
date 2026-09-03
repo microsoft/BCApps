@@ -876,7 +876,7 @@ report 5606 "Fixed Asset - Book Value 02"
                             PostingType := FADeprBook.FieldNo("Custom 1");
                         6:
                             PostingType := FADeprBook.FieldNo("Custom 2");
-#if not CLEAN29
+#if not CLEAN30
                         7:
                             PostingType := FADeprBook.FieldNo(Derogatory);
 #else
@@ -1089,7 +1089,7 @@ report 5606 "Fixed Asset - Book Value 02"
         Clear(DerogDeprBook);
         FAGenReport.ValidateDates(StartingDate, EndingDate);
         DeprBook.Get(DeprBookCode);
-#if not CLEAN29
+#if not CLEAN30
         if AcceleratedDeprFeature.IsEnabled() then begin
             if DerogatoryPostingMgt.GetDerogatoryBook(DeprBookCode, DerogDeprBook) then;
         end
@@ -1126,7 +1126,7 @@ report 5606 "Fixed Asset - Book Value 02"
         DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
         FAGenReport: Codeunit "FA General Report";
         BudgetDepreciation: Codeunit "Budget Depreciation";
-#if not CLEAN29
+#if not CLEAN30
         AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
 #endif
         DeprBookCode: Code[10];
@@ -1260,7 +1260,7 @@ report 5606 "Fixed Asset - Book Value 02"
         HeadLineText[7] := StrSubstNo('%1  %2', '', Text005);
         HeadLineText[8] := FADeprBook.FieldCaption("Custom 1");
         HeadLineText[9] := FADeprBook.FieldCaption("Custom 2");
-#if not CLEAN29
+#if not CLEAN30
         if AcceleratedDeprFeature.IsEnabled() then
             HeadLineText[10] := FADeprBook.FieldCaption("Derogatory Amount")
         else

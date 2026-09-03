@@ -146,14 +146,14 @@ report 5684 "Copy FA Entries to G/L Budget"
                             Caption = 'Derogatory';
                             ToolTip = 'Specifies whether derogatory depreciation entries posted to this depreciation book are posted both to the general ledger and the FA ledger.';
                         }
-#if not CLEAN29
+#if not CLEAN30
                         field(Derogatory; TransferType[7])
                         {
                             ApplicationArea = FixedAssets;
                             Caption = 'Derogatory';
                             ToolTip = 'Specifies whether derogatory depreciation entries posted to this depreciation book are posted both to the general ledger and the FA ledger.';
                             ObsoleteState = Pending;
-                            ObsoleteTag = '29.0';
+                            ObsoleteTag = '30.0';
                             ObsoleteReason = 'Moved to W1 Base Application';
                         }
 #endif

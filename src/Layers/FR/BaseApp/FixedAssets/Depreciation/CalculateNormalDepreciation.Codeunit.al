@@ -558,7 +558,7 @@ codeunit 5611 "Calculate Normal Depreciation"
 
     local procedure TransferValues()
     var
-#if not CLEAN29
+#if not CLEAN30
         AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
 #endif
         IsHandled: Boolean;
@@ -599,7 +599,7 @@ codeunit 5611 "Calculate Normal Depreciation"
         end else
             BookValue := EntryAmounts[1];
         if DateFromProjection = 0D then begin
-#if not CLEAN29
+#if not CLEAN30
             if AcceleratedDeprFeature.IsEnabled() then
                 HasDerogatoryBook := DerogatoryPostingMgt.GetDerogatoryBook(DeprBookCode, DerogDeprBook)
             else begin

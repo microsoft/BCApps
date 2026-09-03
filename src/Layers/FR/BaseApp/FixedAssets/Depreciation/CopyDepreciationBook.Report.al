@@ -171,7 +171,7 @@ report 5687 "Copy Depreciation Book"
                             Caption = 'Disposal';
                             ToolTip = 'Specifies if related disposal entries are included in the batch job .';
                         }
-#if not CLEAN29
+#if not CLEAN30
                         field(Derogatory; CopyChoices[13])
                         {
                             ApplicationArea = FixedAssets;
@@ -179,7 +179,7 @@ report 5687 "Copy Depreciation Book"
                             ToolTip = 'Specifies whether to include derogatory depreciation.';
                             Visible = not AcceleratedDeprFeatureEnabled;
                             ObsoleteState = Pending;
-                            ObsoleteTag = '29.0';
+                            ObsoleteTag = '30.0';
                             ObsoleteReason = 'Moved to W1 Base Application';
                         }
 #endif
@@ -188,7 +188,7 @@ report 5687 "Copy Depreciation Book"
                             ApplicationArea = FixedAssets;
                             Caption = 'Derogatory';
                             ToolTip = 'Specifies whether to include derogatory depreciation.';
-#if not CLEAN29
+#if not CLEAN30
                             Visible = AcceleratedDeprFeatureEnabled;
 #endif
                         }
@@ -203,7 +203,7 @@ report 5687 "Copy Depreciation Book"
 
         trigger OnOpenPage()
         begin
-#if not CLEAN29
+#if not CLEAN30
             AcceleratedDeprFeatureEnabled := AcceleratedDeprFeature.IsEnabled();
 #endif
 
@@ -246,7 +246,7 @@ report 5687 "Copy Depreciation Book"
         FALedgEntry: Record "FA Ledger Entry";
         FAJnlSetup: Record "FA Journal Setup";
         DepreciationCalc: Codeunit "Depreciation Calculation";
-#if not CLEAN29
+#if not CLEAN30
         AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
         AcceleratedDeprFeatureEnabled: Boolean;
 #endif

@@ -105,11 +105,11 @@ page 5602 "Fixed Asset Statistics"
                             ApplicationArea = FixedAssets;
                             Caption = 'Derogatory';
                             ToolTip = 'Specifies the FA posting date of the last posted derogatory depreciation.';
-#if not CLEAN29
+#if not CLEAN30
                             Visible = AcceleratedDeprFeatureEnabled;
 #endif
                         }
-#if not CLEAN29
+#if not CLEAN30
                         field("Last Derogatory Date"; Rec."Last Derogatory Date")
                         {
                             ApplicationArea = FixedAssets;
@@ -117,7 +117,7 @@ page 5602 "Fixed Asset Statistics"
                             ToolTip = 'Specifies the FA posting date of the last posted derogatory depreciation.';
                             Visible = not AcceleratedDeprFeatureEnabled;
                             ObsoleteState = Pending;
-                            ObsoleteTag = '29.0';
+                            ObsoleteTag = '30.0';
                             ObsoleteReason = 'Moved to W1 Base Application';
                         }
 #endif
@@ -161,18 +161,18 @@ page 5602 "Fixed Asset Statistics"
                             AutoFormatExpression = '';
                             ApplicationArea = FixedAssets;
                             ToolTip = 'Specifies the total derogatory depreciation for the fixed asset.';
-#if not CLEAN29
+#if not CLEAN30
                             Visible = AcceleratedDeprFeatureEnabled;
 #endif
                         }
-#if not CLEAN29
+#if not CLEAN30
                         field(Derogatory; Rec.Derogatory)
                         {
                             ApplicationArea = FixedAssets;
                             ToolTip = 'Specifies the total derogatory depreciation for the fixed asset.';
                             Visible = not AcceleratedDeprFeatureEnabled;
                             ObsoleteState = Pending;
-                            ObsoleteTag = '29.0';
+                            ObsoleteTag = '30.0';
                             ObsoleteReason = 'Moved to W1 Base Application';
                         }
 #endif
@@ -232,7 +232,7 @@ page 5602 "Fixed Asset Statistics"
         DisposalValueVisible := true;
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     trigger OnOpenPage()
     begin
         AcceleratedDeprFeatureEnabled := AcceleratedDeprFeature.IsEnabled();
@@ -240,7 +240,7 @@ page 5602 "Fixed Asset Statistics"
 #endif
 
     var
-#if not CLEAN29
+#if not CLEAN30
         AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
         AcceleratedDeprFeatureEnabled: Boolean;
 #endif

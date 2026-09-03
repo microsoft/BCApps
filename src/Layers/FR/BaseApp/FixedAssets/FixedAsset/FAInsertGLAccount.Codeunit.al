@@ -70,7 +70,7 @@ codeunit 5601 "FA Insert G/L Account"
         FAPostingGr: Record "FA Posting Group";
         FAPostingGr2: Record "FA Posting Group";
         FADeprBook: Record "FA Depreciation Book";
-#if not CLEAN29
+#if not CLEAN30
         AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
 #endif
         FAGetGLAccNo: Codeunit "FA Get G/L Account No.";
@@ -462,7 +462,7 @@ codeunit 5601 "FA Insert G/L Account"
                     if FAPostingGr."Allocated Book Value % (Loss)" > 100 then
                         FAPostingGr.FieldError("Allocated Book Value % (Loss)", FieldErrorText);
                 end;
-#if not CLEAN29
+#if not CLEAN30
             FAPostingType::Derogatory:
                 if AcceleratedDeprFeature.IsEnabled() then begin
                     if AllocAmount > 0 then begin

@@ -47,7 +47,7 @@ codeunit 5600 "FA Insert Ledger Entry"
         FAJnlLine: Record "FA Journal Line";
         FAInsertGLAcc: Codeunit "FA Insert G/L Account";
         FAAutomaticEntry: Codeunit "FA Automatic Entry";
-#if not CLEAN29
+#if not CLEAN30
         AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
 #endif
         DeprBookCode: Code[10];
@@ -128,8 +128,8 @@ codeunit 5600 "FA Insert Ledger Entry"
            (LastEntryNo > 0)
         then
             CheckFADocNo(FALedgEntry);
-#if not CLEAN29
-        // Both exclusion fields exist until CLEAN29, and the "Book Value" FlowField can only filter one of them,
+#if not CLEAN30
+        // Both exclusion fields exist until CLEAN30, and the "Book Value" FlowField can only filter one of them,
         // so keep them aligned while the legacy field is still part of the schema.
         FALedgEntry."Derogatory Excluded" := CalcExcludeDerogatory(FALedgEntry);
         FALedgEntry."Exclude Derogatory" := FALedgEntry."Derogatory Excluded";
@@ -562,7 +562,7 @@ codeunit 5600 "FA Insert Ledger Entry"
                 NewFAEntryNo := NextEntryNo;
                 IsHandled := false;
                 OnInsertReverseEntryOnBeforeInsertTempFALedgEntry(FALedgEntry3, IsHandled);
-#if not CLEAN29
+#if not CLEAN30
                 if not IsHandled then begin
                     DeprBook.Get(FALedgEntry3."Depreciation Book Code");
                     if AcceleratedDeprFeature.IsEnabled() then begin
@@ -633,7 +633,7 @@ codeunit 5600 "FA Insert Ledger Entry"
 
             OnInsertReverseEntryOnBeforeInsertMaintenanceLedgerEntryBuffer(MaintenanceLedgEntry3, SkipInsertOfMaintenanceLedgerEntry);
             DeprBook.Get(MaintenanceLedgEntry3."Depreciation Book Code");
-#if not CLEAN29
+#if not CLEAN30
             if AcceleratedDeprFeature.IsEnabled() then
                 SkipInsertOfMaintenanceLedgerEntry := SkipInsertOfMaintenanceLedgerEntry or (DeprBook."Derogatory Calc." <> '')
             else
@@ -878,7 +878,7 @@ codeunit 5600 "FA Insert Ledger Entry"
         DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
         DerogatoryDepreciationBookCode: Code[10];
     begin
-#if not CLEAN29
+#if not CLEAN30
         if not AcceleratedDeprFeature.IsEnabled() then begin
             // Retained legacy heuristic for companies still using the pre-move "Derogatory Calculation" setup field.
             DeprBook.SetRange("Derogatory Calculation", ReversingFALedgerEntry."Depreciation Book Code");
@@ -965,7 +965,7 @@ codeunit 5600 "FA Insert Ledger Entry"
         DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
         DerogatoryDepreciationBookCode: Code[10];
     begin
-#if not CLEAN29
+#if not CLEAN30
         if not AcceleratedDeprFeature.IsEnabled() then begin
             // Retained legacy heuristic for companies still using the pre-move "Derogatory Calculation" setup field.
             DeprBook.SetRange("Derogatory Calculation", ReversingMaintenanceLedgerEntry."Depreciation Book Code");

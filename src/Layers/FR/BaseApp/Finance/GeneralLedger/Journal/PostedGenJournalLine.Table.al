@@ -1821,13 +1821,13 @@ table 181 "Posted Gen. Journal Line"
         {
             Caption = 'Derogatory Line';
             Editable = false;
-#if CLEAN29
+#if CLEAN30
             ObsoleteState = Removed;
             ObsoleteTag = '31.0';
             ObsoleteReason = 'Moved to W1 Base Application';
 #else
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
             ObsoleteReason = 'Moved to W1 Base Application';
 #endif
         }

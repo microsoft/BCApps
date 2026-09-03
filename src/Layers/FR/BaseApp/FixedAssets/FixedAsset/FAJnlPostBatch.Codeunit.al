@@ -6,7 +6,7 @@ namespace Microsoft.FixedAssets.Posting;
 
 using Microsoft.Finance.Analysis;
 using Microsoft.Finance.GeneralLedger.Preview;
-#if not CLEAN29
+#if not CLEAN30
 using Microsoft.FixedAssets.Depreciation;
 #endif
 using Microsoft.FixedAssets.Journal;
@@ -48,7 +48,7 @@ codeunit 5633 "FA Jnl.-Post Batch"
         LastPostedDocNo: Code[20];
         PreviewMode: Boolean;
         SuppressCommit: Boolean;
-#if not CLEAN29
+#if not CLEAN30
         SetupCombErr: Label 'must not be specified when %1 = %2 in %3', Comment = 'must not be specified when G/L Integration - Derogatory = TRUE in Depreciation Book';
 #endif
 #pragma warning disable AA0074
@@ -268,7 +268,7 @@ codeunit 5633 "FA Jnl.-Post Batch"
         FAJnlLine."Salvage Value" := 0;
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Scope('OnPrem')]
     procedure MakeDerogFAJnlLine(var NewFAJnlLine: Record "FA Journal Line"; FAJnlLine: Record "FA Journal Line"): Boolean
     var
@@ -362,7 +362,7 @@ codeunit 5633 "FA Jnl.-Post Batch"
 
     local procedure PostLines()
     var
-#if not CLEAN29
+#if not CLEAN30
         DerogFAJnlLine: Record "FA Journal Line";
         AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
 #endif
@@ -402,7 +402,7 @@ codeunit 5633 "FA Jnl.-Post Batch"
                     end;
             OnPostLinesOnBeforeFAJnlPostLine(FAJnlLine, FAJnlPostLine);
             FAJnlPostLine.FAJnlPostLine(FAJnlLine, false);
-#if not CLEAN29
+#if not CLEAN30
             if not AcceleratedDeprFeature.IsEnabled() then
                 if MakeDerogFAJnlLine(DerogFAJnlLine, FAJnlLine) then begin
                     if FAJnlLine."FA Error Entry No." <> 0 then

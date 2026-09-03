@@ -149,14 +149,14 @@ report 5688 "Cancel FA Ledger Entries"
                             Caption = 'Derogatory';
                             ToolTip = 'Specifies whether to include derogatory depreciation.';
                         }
-#if not CLEAN29
+#if not CLEAN30
                         field("CancelChoices[13]"; CancelChoices[13])
                         {
                             ApplicationArea = FixedAssets;
                             Caption = 'Derogatory';
                             ToolTip = 'Specifies whether to include derogatory depreciation.';
                             ObsoleteState = Pending;
-                            ObsoleteTag = '29.0';
+                            ObsoleteTag = '30.0';
                             ObsoleteReason = 'Moved to W1 Base Application';
                         }
 #endif
@@ -208,7 +208,7 @@ report 5688 "Cancel FA Ledger Entries"
 
     trigger OnPreReport()
     begin
-#if not CLEAN29
+#if not CLEAN30
         if AcceleratedDeprFeature.IsEnabled() then begin
             DerogDeprBook.SetRange(Code, DeprBookCode);
             if DerogDeprBook.Find('-') then
@@ -261,7 +261,7 @@ report 5688 "Cancel FA Ledger Entries"
         FAJnlSetup: Record "FA Journal Setup";
         DerogDeprBook: Record "Depreciation Book";
         DepreciationCalc: Codeunit "Depreciation Calculation";
-#if not CLEAN29
+#if not CLEAN30
         AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
 #endif
         Window: Dialog;

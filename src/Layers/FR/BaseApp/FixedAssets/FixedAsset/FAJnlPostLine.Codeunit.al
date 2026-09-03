@@ -41,7 +41,7 @@ codeunit 5632 "FA Jnl.-Post Line"
         MakeMaintenanceLedgEntry: Codeunit "Make Maintenance Ledger Entry";
         DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
         NonDeductibleVAT: Codeunit "Non-Deductible VAT";
-#if not CLEAN29
+#if not CLEAN30
         AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
 #endif
         InsertedFALedgEntry: Record "FA Ledger Entry";
@@ -296,7 +296,7 @@ codeunit 5632 "FA Jnl.-Post Line"
         DerogatoryFAJournalLine: Record "FA Journal Line";
         SourceEntryNo: Integer;
     begin
-#if not CLEAN29
+#if not CLEAN30
         // The centralized policy relies on the new "Derogatory Calc." book relationship; only apply it once the
         // French accelerated-depreciation feature is enabled. Disabled companies keep using the legacy outer mirror producers.
         if not AcceleratedDeprFeature.IsEnabled() then
@@ -322,7 +322,7 @@ codeunit 5632 "FA Jnl.-Post Line"
         DerogatoryFAJournalLine: Record "FA Journal Line";
         SourceEntryNo: Integer;
     begin
-#if not CLEAN29
+#if not CLEAN30
         if not AcceleratedDeprFeature.IsEnabled() then
             exit;
 #endif

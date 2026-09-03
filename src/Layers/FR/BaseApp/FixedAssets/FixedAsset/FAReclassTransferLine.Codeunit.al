@@ -27,7 +27,7 @@ codeunit 5642 "FA Reclass. Transfer Line"
         FAJnlLine: Record "FA Journal Line";
         DepreciationCalc: Codeunit "Depreciation Calculation";
         FAGetJnl: Codeunit "FA Get Journal";
-#if not CLEAN29        
+#if not CLEAN30
         AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
 #endif        
         FAPostingType: Enum "FA Journal Line FA Posting Type";
@@ -160,7 +160,7 @@ codeunit 5642 "FA Reclass. Transfer Line"
             FADeprBook.CalcFields("Custom 1");
         if TransferType[6] then
             FADeprBook.CalcFields("Custom 2");
-#if not CLEAN29
+#if not CLEAN30
         if AcceleratedDeprFeature.IsEnabled() then begin
             if TransferType[7] then
                 FADeprBook.CalcFields("Derogatory Amount")
@@ -180,7 +180,7 @@ codeunit 5642 "FA Reclass. Transfer Line"
         Amounts[4] := FADeprBook.Appreciation;
         Amounts[5] := FADeprBook."Custom 1";
         Amounts[6] := FADeprBook."Custom 2";
-#if not CLEAN29
+#if not CLEAN30
         if AcceleratedDeprFeature.IsEnabled() then
             Amounts[7] := FADeprBook."Derogatory Amount"
         else
@@ -218,7 +218,7 @@ codeunit 5642 "FA Reclass. Transfer Line"
         TransferType[4] := FAReclassJnlLine."Reclassify Appreciation";
         TransferType[5] := FAReclassJnlLine."Reclassify Custom 1";
         TransferType[6] := FAReclassJnlLine."Reclassify Custom 2";
-#if not CLEAN29
+#if not CLEAN30
         if AcceleratedDeprFeature.IsEnabled() then
             TransferType[7] := FAReclassJnlLine."Reclass. Derogatory"
         else
@@ -521,4 +521,3 @@ codeunit 5642 "FA Reclass. Transfer Line"
     begin
     end;
 }
-

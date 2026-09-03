@@ -17,7 +17,7 @@ codeunit 5639 "FA Get Journal"
 
     var
         DeprBook: Record "Depreciation Book";
-#if not CLEAN29
+#if not CLEAN30
         AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
 #endif
         FAJnlSetup: Record "FA Journal Setup";
@@ -138,7 +138,7 @@ codeunit 5639 "FA Get Journal"
                 exit(DeprBook."G/L Integration - Maintenance");
             FAPostingType::"Salvage Value":
                 exit(false);
-#if not CLEAN29
+#if not CLEAN30
             FAPostingType::Derogatory:
                 if AcceleratedDeprFeature.IsEnabled() then
                     exit(DeprBook."Integration G/L - Derogatory")

@@ -34,7 +34,7 @@ report 5692 "Calculate Depreciation"
 
                 trigger OnAfterGetRecord()
                 begin
-#if not CLEAN29
+#if not CLEAN30
                     if AcceleratedDeprFeature.IsEnabled() then begin
                         if not HasDerogatorySetup then
                             CurrReport.Skip();
@@ -468,7 +468,7 @@ report 5692 "Calculate Depreciation"
         Clear(DeprBook2);
         DeprBook.Get(DeprBookCode);
 
-#if not CLEAN29
+#if not CLEAN30
         if AcceleratedDeprFeature.IsEnabled() then begin
             if DeprBook."Derogatory Calc." <> '' then
                 Error(Text10800, DeprBook.Code);
@@ -524,7 +524,7 @@ report 5692 "Calculate Depreciation"
         ErrorMessageMgt: Codeunit "Error Message Management";
         ErrorContextElement: Codeunit "Error Context Element";
         ErrorMessageHandler: Codeunit "Error Message Handler";
-#if not CLEAN29
+#if not CLEAN30
         AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
 #endif
         Window: Dialog;

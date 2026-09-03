@@ -51,12 +51,12 @@ report 5686 "Cancel FA Entries"
     }
 
     trigger OnPreReport()
-#if not CLEAN29
+#if not CLEAN30
     var
         AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
 #endif
     begin
-#if not CLEAN29
+#if not CLEAN30
         if AcceleratedDeprFeature.IsEnabled() then begin
             DerogDeprBook.SetRange(Code, FALedgEntry."Depreciation Book Code");
             if DerogDeprBook.Find('-') then

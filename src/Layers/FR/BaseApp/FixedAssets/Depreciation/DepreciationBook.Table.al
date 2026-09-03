@@ -450,13 +450,13 @@ table 5611 "Depreciation Book"
         {
             Caption = 'Derogatory Calculation';
             TableRelation = "Depreciation Book";
-#if CLEAN29
+#if CLEAN30
             ObsoleteState = Removed;
             ObsoleteTag = '31.0';
             ObsoleteReason = 'Moved to W1 Base Application';
 #else
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
             ObsoleteReason = 'Moved to W1 Base Application';
 
             trigger OnValidate()
@@ -498,7 +498,7 @@ table 5611 "Depreciation Book"
 #endif            
         }
 #endif
-#if not CLEAN29
+#if not CLEAN30
         field(10801; "Used with Derogatory Book"; Code[10])
         {
             CalcFormula = lookup("Depreciation Book".Code where("Derogatory Calculation" = field(Code)));
@@ -506,7 +506,7 @@ table 5611 "Depreciation Book"
             Editable = false;
             FieldClass = FlowField;
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
             ObsoleteReason = 'Moved to W1 Base Application';
         }
 #endif
@@ -514,13 +514,13 @@ table 5611 "Depreciation Book"
         field(10802; "G/L Integration - Derogatory"; Boolean)
         {
             Caption = 'G/L Integration - Derogatory';
-#if CLEAN29
+#if CLEAN30
             ObsoleteState = Removed;
             ObsoleteTag = '31.0';
             ObsoleteReason = 'Moved to W1 Base Application';
 #else
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
             ObsoleteReason = 'Moved to W1 Base Application';
 
             trigger OnValidate()
@@ -605,7 +605,7 @@ table 5611 "Depreciation Book"
     var
         FASetup: Record "FA Setup";
         FAJnlSetup: Record "FA Journal Setup";
-#if not CLEAN29
+#if not CLEAN30
         AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
 #endif
         GLIntegration: array[13] of Boolean;
@@ -641,7 +641,7 @@ table 5611 "Depreciation Book"
         GLIntegration[7] := "G/L Integration - Disposal";
         GLIntegration[8] := "G/L Integration - Maintenance";
         GLIntegration[9] := false; // Salvage Value
-#if not CLEAN29
+#if not CLEAN30
         if AcceleratedDeprFeature.IsEnabled() then
             GLIntegration[13] := "Integration G/L - Derogatory"
         else
@@ -656,7 +656,7 @@ table 5611 "Depreciation Book"
     var
         i: Integer;
     begin
-#if not CLEAN29
+#if not CLEAN30
         if AcceleratedDeprFeature.IsEnabled() then begin
             if "Derogatory Calc." <> '' then begin
                 IndexGLIntegration(GLIntegration);
@@ -685,7 +685,7 @@ table 5611 "Depreciation Book"
     [Scope('OnPrem')]
     procedure IsDerogatoryBook(): Boolean
     begin
-#if not CLEAN29
+#if not CLEAN30
         if AcceleratedDeprFeature.IsEnabled() then
             exit("Derogatory Calc." <> '')
         else

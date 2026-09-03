@@ -528,13 +528,13 @@ table 5601 "FA Ledger Entry"
         {
             Caption = 'Exclude Derogatory';
             Editable = false;
-#if CLEAN29
+#if CLEAN30
             ObsoleteState = Removed;
             ObsoleteTag = '31.0';
             ObsoleteReason = 'Moved to W1 Base Application';
 #else
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
             ObsoleteReason = 'Moved to W1 Base Application';
 #endif
         }
@@ -556,7 +556,7 @@ table 5601 "FA Ledger Entry"
         {
             SumIndexFields = Amount, "Debit Amount", "Credit Amount";
         }
-#if not CLEAN29
+#if not CLEAN30
         key(Key4; "FA No.", "Depreciation Book Code", "Part of Book Value", "FA Posting Date", "Exclude Derogatory")
         {
             SumIndexFields = Amount;
@@ -571,7 +571,7 @@ table 5601 "FA Ledger Entry"
         {
             SumIndexFields = Amount;
         }
-#if not CLEAN29
+#if not CLEAN30
         key(Key6; "FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "Posting Date", "Exclude Derogatory")
         {
             SumIndexFields = Amount;
