@@ -110,16 +110,4 @@ page 7085 "Expense VAT Spec. API"
     begin
         ExpenseAgentAPIValidation.VerifyAgentAccess();
     end;
-
-    trigger OnInsertRecord(BelowxRec: Boolean): Boolean
-    begin
-        InsertVATSpecification(Rec);
-        exit(false);
-    end;
-
-    internal procedure InsertVATSpecification(var ExpenseVATSpecification: Record "Expense VAT Specification")
-    begin
-        ExpenseVATSpecification.Source := ExpenseVATSpecification.Source::Agent;
-        ExpenseVATSpecification.Insert(true);
-    end;
 }
