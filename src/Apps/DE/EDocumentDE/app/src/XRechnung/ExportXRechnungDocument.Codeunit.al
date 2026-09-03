@@ -284,7 +284,7 @@ codeunit 13916 "Export XRechnung Document"
         InsertAccountingSupplierParty(SalesInvoiceHeader."Responsibility Center", SalesInvoiceHeader."Salesperson Code", RootXMLNode, SalesInvoiceHeader."Payment Method Code", SalesInvoiceHeader."Company Bank Account Code");
         InsertAccountingCustomerParty(RootXMLNode, SalesInvoiceHeader);
         InsertDelivery(RootXMLNode, SalesInvoiceHeader);
-        InsertPaymentMeans(RootXMLNode, SalesInvoiceHeader."Payment Method Code", SalesInvoiceHeader."Company Bank Account Code", '', SalesInvoiceHeader);
+        InsertPaymentMeans(RootXMLNode, SalesInvoiceHeader."Payment Method Code", SalesInvoiceHeader."Company Bank Account Code", SalesInvoiceHeader."Direct Debit Mandate ID", SalesInvoiceHeader);
         InsertPaymentTerms(RootXMLNode, SalesInvoiceHeader."Payment Terms Code");
         InsertVATAmounts(TempSalesInvLine, LineVATAmount, LineAmount, LineDiscAmount, SalesInvoiceHeader."Prices Including VAT", Currency);
         InsertInvDiscountAllowanceCharge(LineAmounts, TempSalesInvLine, CurrencyCode, RootXMLNode, LineDiscAmount, LineAmount, Currency."Amount Rounding Precision");

@@ -1561,6 +1561,27 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     end;
 
     [Test]
+    procedure ExportPostedServiceInvoiceInZUGFeRDFormatVerifyDirectDebitPaymentMeans();
+    var
+        SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
+        CustomerBankAccount: Record "Customer Bank Account";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO] Export posted service invoice with SEPA direct debit payment means uses the company account as payee and the customer's mandate account as payer
+        Initialize();
+
+        // [GIVEN] Create and Post Service Invoice with a Payment Method for SEPA direct debit (59) and a Direct Debit Mandate
+        ServiceInvoiceHeader.Get(CreateAndPostServiceInvoiceWithDirectDebit(SEPADirectDebitMandate, CustomerBankAccount));
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportServiceInvoice(ServiceInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] ZUGFeRD Electronic Document uses the company account as payee and the customer's mandate account as payer
+        VerifyDirectDebitPaymentMeans(TempXMLBuffer, '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement', CustomerBankAccount.IBAN);
+    end;
+
+    [Test]
     procedure ExportPostedServiceInvoiceInZUGFeRDFormatVerifyPaymentTerms();
     var
         ServiceInvoiceHeader: Record "Service Invoice Header";
@@ -2148,6 +2169,22 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         SalesHeader.Modify(true);
         CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreateAndPostServiceInvoiceWithDirectDebit(var SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate"; var CustomerBankAccount: Record "Customer Bank Account"): Code[20]
+    var
+        ServiceHeader: Record "Service Header";
+        PaymentMethodCode: Code[10];
+        CustomerNo: Code[20];
+    begin
+        PaymentMethodCode := CreateDirectDebitPaymentMethod();
+        CustomerNo := CreateCustomerWithDirectDebitMandate(SEPADirectDebitMandate, CustomerBankAccount, PaymentMethodCode);
+        CreateServiceHeader(ServiceHeader, CustomerNo);
+        ServiceHeader.Validate("Payment Method Code", PaymentMethodCode);
+        ServiceHeader.Validate("Direct Debit Mandate ID", SEPADirectDebitMandate.ID);
+        ServiceHeader.Modify(true);
+        CreateServiceLine(ServiceHeader);
+        exit(PostServiceDocument(ServiceHeader));
     end;
 
     local procedure CreateAndPostSalesDocumentForCustomer(DocumentType: Enum "Sales Document Type"; LineType: Enum "Sales Line Type"; CustomerNo: Code[20]): Code[20];
