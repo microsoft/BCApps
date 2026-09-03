@@ -360,6 +360,12 @@ table 6216 "Sustainability Ledger Entry"
             Editable = false;
             TableRelation = "Sustainability Ledger Entry"."Entry No.";
         }
+        field(5821; "G/L Entry No."; Integer)
+        {
+            Caption = 'G/L Entry No.';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
     }
 
     keys
@@ -376,6 +382,9 @@ table 6216 "Sustainability Ledger Entry"
         {
         }
         key(Key3; "Journal Template Name", "Journal Batch Name")
+        {
+        }
+        key(Key4; "G/L Entry No.")
         {
         }
     }

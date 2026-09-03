@@ -54,10 +54,32 @@ page 4409 "SOA Create Task"
 
                             trigger OnValidate()
                             var
+                                Contact: Record Contact;
+                                Customer: Record Customer;
+                                SOAFiltersImpl: Codeunit "SOA Filters Impl.";
                                 MailManagement: Codeunit "Mail Management";
+                                ContactCount: Integer;
                             begin
-                                if SenderEmail <> '' then
-                                    MailManagement.CheckValidEmailAddresses(SenderEmail);
+                                SOACreateTaskImpl.ClearSelectedSender();
+                                if SenderEmail = '' then
+                                    exit;
+
+                                MailManagement.CheckValidEmailAddresses(SenderEmail);
+
+                                case Sender of
+                                    Sender::Contact:
+                                        if SOAFiltersImpl.FindContactByEmail(Contact, SenderEmail, ContactCount) then
+                                            SOACreateTaskImpl.SetSelectedContact(Contact);
+                                    Sender::Customer:
+                                        begin
+                                            Customer.SetLoadFields(
+                                                "No.", Name, "E-Mail", Address, "Post Code", City,
+                                                "Phone No.", "Language Code", "Location Code", "Ship-to Code", "Responsibility Center");
+                                            Customer.SetFilter("E-Mail", SOAFiltersImpl.GetSafeFromEmailFilter(SenderEmail));
+                                            if Customer.FindFirst() then
+                                                SOACreateTaskImpl.SetSelectedCustomer(Customer);
+                                        end;
+                                end;
                             end;
 
                             trigger OnAssistEdit()

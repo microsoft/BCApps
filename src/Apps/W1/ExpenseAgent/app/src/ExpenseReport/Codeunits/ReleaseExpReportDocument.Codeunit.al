@@ -142,7 +142,7 @@ codeunit 6984 "Release Exp. Report Document"
 
     local procedure CheckReopenStatus(ExpReportHeader: Record "Expense Report Header")
     begin
-        if ExpReportHeader.Status = ExpReportHeader.Status::"Pending Approval" then
+        if ExpReportHeader.Status in [ExpReportHeader.Status::"Pending Approval", ExpReportHeader.Status::"Interim Approved"] then
             Error(ApprovalProcessMustBeCancelledErr);
     end;
 
@@ -156,6 +156,11 @@ codeunit 6984 "Release Exp. Report Document"
     end;
 
     procedure PerformManualReleaseAndPendingApproval(var ExpReportHeader: Record "Expense Report Header"; SubmitterExpenseUserNo: Code[20])
+    begin
+        PerformManualReleaseAndPendingApproval(ExpReportHeader, SubmitterExpenseUserNo, '');
+    end;
+
+    procedure PerformManualReleaseAndPendingApproval(var ExpReportHeader: Record "Expense Report Header"; SubmitterExpenseUserNo: Code[20]; SubmissionComment: Text)
     var
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
@@ -164,7 +169,7 @@ codeunit 6984 "Release Exp. Report Document"
         ExpReportHeader.Get(ExpReportHeader."No.");
 
         CheckPendingApprovalStatus(ExpReportHeader);
-        ExpenseReportApprovalMgmt.Submit(ExpReportHeader, SubmitterExpenseUserNo);
+        ExpenseReportApprovalMgmt.Submit(ExpReportHeader, SubmitterExpenseUserNo, SubmissionComment);
     end;
 
     local procedure CheckPendingApprovalStatus(var ExpReportHeader: Record "Expense Report Header")
@@ -222,7 +227,7 @@ codeunit 6984 "Release Exp. Report Document"
     var
         ExpenseReportLine: Record "Expense Report Line";
     begin
-        ExpReportHeader.TestField(Status, ExpReportHeader.Status::"Pending Approval");
+        ExpReportHeader.TestApprovalPending();
         ExpReportHeader.TestField("Expense User No.");
 
         CheckExpenseReportLines(ExpenseReportLine, ExpReportHeader);
@@ -253,7 +258,7 @@ codeunit 6984 "Release Exp. Report Document"
 
     local procedure CheckRejectedStatus(var ExpReportHeader: Record "Expense Report Header")
     begin
-        ExpReportHeader.TestField(Status, ExpReportHeader.Status::"Pending Approval");
+        ExpReportHeader.TestApprovalPending();
         ExpReportHeader.TestField("Expense User No.");
     end;
 
