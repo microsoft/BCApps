@@ -280,39 +280,39 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
         NextNo: Integer;
     begin
         // [FEATURE] [G/L Register] [Sequence]
-        // [SCENARIO] GLRegister.GetNextRegisterNo() returns a value greater than zero.
+        // [SCENARIO] GLRegister.GetNextEntryNo() returns a value greater than zero.
         Initialize();
 
-        // [WHEN] GetNextRegisterNo is called
-        NextNo := GLRegister.GetNextRegisterNo();
+        // [WHEN] GetNextEntryNo is called
+        NextNo := GLRegister.GetNextEntryNo();
 
         // [THEN] The returned value is positive
-        Assert.IsTrue(NextNo > 0, 'GLRegister.GetNextRegisterNo() must return a positive value');
+        Assert.IsTrue(NextNo > 0, 'GLRegister.GetNextEntryNo() must return a positive value');
     end;
 
     [Test]
     [Scope('OnPrem')]
-    procedure GLRegisterGetNextRegisterNoIsMonotonicallyIncreasing()
+    procedure GLRegisterGetNextEntryNoIsMonotonicallyIncreasing()
     var
         GLRegister: Record "G/L Register";
         FirstNo: Integer;
         SecondNo: Integer;
     begin
         // [FEATURE] [G/L Register] [Sequence]
-        // [SCENARIO] Successive calls to GLRegister.GetNextRegisterNo() return strictly increasing values.
+        // [SCENARIO] Successive calls to GLRegister.GetNextEntryNo() return strictly increasing values.
         Initialize();
 
-        // [WHEN] GetNextRegisterNo is called twice
-        FirstNo := GLRegister.GetNextRegisterNo();
-        SecondNo := GLRegister.GetNextRegisterNo();
+        // [WHEN] GetNextEntryNo is called twice
+        FirstNo := GLRegister.GetNextEntryNo();
+        SecondNo := GLRegister.GetNextEntryNo();
 
         // [THEN] The second value is strictly greater than the first
-        Assert.IsTrue(SecondNo > FirstNo, 'Successive calls to GLRegister.GetNextRegisterNo() must return increasing values');
+        Assert.IsTrue(SecondNo > FirstNo, 'Successive calls to GLRegister.GetNextEntryNo() must return increasing values');
     end;
 
     [Test]
     [Scope('OnPrem')]
-    procedure GLRegisterGetNextRegisterNoIsUniqueAndGapFreeAcrossSessions()
+    procedure GLRegisterGetNextEntryNoIsUniqueAndGapFreeAcrossSessions()
     var
         ConcurrentSeqTestBuffer: Record "Concurrent Seq. Test Buffer";
         RunId: Guid;
@@ -324,7 +324,7 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
         IsFirstEntry: Boolean;
     begin
         // [FEATURE] [G/L Register] [Sequence] [Concurrent Posting]
-        // [SCENARIO] Overlapping G/L Register number allocations from separate sessions are unique and gap-free.
+        // [SCENARIO] Overlapping G/L Register entry number allocations from separate sessions are unique and gap-free.
         Initialize();
         EnableConcurrentPosting(true);
 
