@@ -2417,16 +2417,31 @@ codeunit 137914 "SCM Whse.-Asm. To Order"
         AssemblyItem: Record Item;
         ComponentItem: Record Item;
         Location: Record Location;
+        ComponentBin: Record Bin;
+        NormalItemBin: Record Bin;
+        OutputBin: Record Bin;
+        AssemblyBin: Record Bin;
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         AssemblyHeader: Record "Assembly Header";
         QtyToAssemble: Decimal;
-        OutputBin: Record Bin;
+        WarehouseEmployee: Record "Warehouse Employee";
     begin
         // [SCENARIO 647991] Posting an inventory pick for a non-ATO sales line does not fail because of an unrelated Assemble-to-Order line whose component still has an outstanding warehouse movement.
 
         // [GIVEN] A sales order with an Assemble-to-Order item and its component item.
         MockATOItem(AssemblyItem, ComponentItem);
+        // [GIVEN] A location with Bin Mandatory, Require Pick and Asm. Consump. Whse. Handling = Inventory Movement
+        LibraryWarehouse.CreateLocationWMS(Location, true, true, true, true, false);
+        MockBin(ComponentBin, Location.Code);
+        MockBin(NormalItemBin, Location.Code);
+        MockBin(OutputBin, Location.Code);
+        MockBin(AssemblyBin, Location.Code);
+        Location."Asm. Consump. Whse. Handling" := Location."Asm. Consump. Whse. Handling"::"Inventory Movement";
+        Location."To-Assembly Bin Code" := AssemblyBin.Code;
+        Location.Modify(true);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, true);
+
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
         PostponeShptDateforAssemblyLeadTime(SalesHeader);
         SalesHeader.Validate("Location Code", Location.Code);
