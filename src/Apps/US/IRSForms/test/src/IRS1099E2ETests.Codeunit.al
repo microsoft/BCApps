@@ -11,7 +11,7 @@ codeunit 148015 "IRS 1099 E2E Tests"
 {
     Subtype = Test;
     TestType = IntegrationTest;
-    TestPermissions = Disabled;
+    TestPermissions = Disabled; 
     EventSubscriberInstance = Manual;
 
     var
