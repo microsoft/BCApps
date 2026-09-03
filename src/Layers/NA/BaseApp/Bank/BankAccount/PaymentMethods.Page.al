@@ -57,6 +57,10 @@ page 427 "Payment Methods"
                 {
                     ApplicationArea = Basic, Suite;
                 }
+                field("Payment Means Code"; Rec."Payment Means Code")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
                 field("SAT Method of Payment"; Rec."SAT Method of Payment")
                 {
                     ApplicationArea = BasicMX;
