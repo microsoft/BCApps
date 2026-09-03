@@ -47,15 +47,15 @@ table 7412 "Excise Tax Type"
     trigger OnDelete()
     var
         ExciseTaxEntryPermission: Record "Excise Tax Entry Permission";
-        ExciseTaxItemFARate: Record "Excise Tax Item/FA Rate";
+        ExciseTaxRate: Record "Excise Tax Rate";
     begin
         ExciseTaxEntryPermission.SetRange("Excise Tax Type Code", Code);
         if not ExciseTaxEntryPermission.IsEmpty() then
             Error(CannotDeleteTaxTypeWithRateConfigurationsErr, Code, ExciseTaxEntryPermission.TableCaption());
 
-        ExciseTaxItemFARate.SetRange("Excise Tax Type Code", Code);
-        if not ExciseTaxItemFARate.IsEmpty() then
-            Error(CannotDeleteTaxTypeWithRateConfigurationsErr, Code, ExciseTaxItemFARate.TableCaption());
+        ExciseTaxRate.SetRange("Excise Tax Type Code", Code);
+        if not ExciseTaxRate.IsEmpty() then
+            Error(CannotDeleteTaxTypeWithRateConfigurationsErr, Code, ExciseTaxRate.TableCaption());
     end;
 
     var
