@@ -124,8 +124,8 @@ codeunit 6404 "E-Doc. Create Purch. Cr. Memo" implements IEDocumentFinishDraft, 
         if EDocumentPurchaseHeader."Applies-to Doc. No." <> '' then
             PurchaseHeader."Applies-to Doc. No." := CopyStr(EDocumentPurchaseHeader."Applies-to Doc. No.", 1, MaxStrLen(PurchaseHeader."Applies-to Doc. No."))
         else
-            if EDocumentPurchaseHeader."Applies-to Ext. Invoice No." <> '' then
-                ResolveAppliesToFromExtInvoiceNo(EDocumentPurchaseHeader."Applies-to Ext. Invoice No.", PurchaseHeader);
+            if EDocumentPurchaseHeader."Vendor Invoice No." <> '' then
+                ResolveAppliesToFromExtInvoiceNo(EDocumentPurchaseHeader."Vendor Invoice No.", PurchaseHeader);
 
         PurchaseHeader.Modify();
 
