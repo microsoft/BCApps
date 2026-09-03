@@ -486,10 +486,12 @@ codeunit 11029 IntrastatReportManagementDE
     var
         IntrastatReportHeader: Record "Intrastat Report Header";
         IntrastatReportLine: Record "Intrastat Report Line";
+#pragma warning disable AL0424 // Deprecated multilanguage syntax; migration to Label deferred, see PR #10517
         DefPrivatePersonVATNoLbl: TextConst ENU = 'QN999999999999';
         Def3DPartyTradeVATNoLbl: TextConst ENU = 'QV999999999999';
         DefUnknowVATNoLbl: TextConst ENU = 'QV999999999999';
         UnknownCountryVATNoLbl: TextConst ENU = '999999999999';
+#pragma warning restore AL0424
         FileNameLbl: Label '%1.xml', Locked = true;
         ZipFileNameLbl: Label 'Intrastat-%1.zip', Comment = '%1 - Statistics Period';
         IDEVRequiresMaterialNoErr: Label 'To export without a Material No., set the Submission Channel to eSTATISTIK.CORE. The IDEV format requires the Material No. (Company No.) in the Company Information.';
