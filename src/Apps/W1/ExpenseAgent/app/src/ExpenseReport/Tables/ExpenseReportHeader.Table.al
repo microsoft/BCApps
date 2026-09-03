@@ -585,6 +585,9 @@ table 6906 "Expense Report Header"
         {
             Clustered = true;
         }
+        key(SpendRequestNo; "Spend Request No.")
+        {
+        }
     }
 
     fieldgroups
