@@ -1,0 +1,23 @@
+{
+  "id": "858fafc0-9ef8-4430-88a3-869469587eea",
+  "name": "Extension Management Failure Test App",
+  "publisher": "Microsoft",
+  "brief": "Test fixture for a failing first-party extension installation.",
+  "description": "Installs successfully once and raises a deterministic error when reinstalled.",
+  "version": "30.0.0.0",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "",
+  "url": "https://go.microsoft.com/fwlink/?linkid=724011",
+  "logo": "",
+  "dependencies": [],
+  "screenshots": [],
+  "platform": "29.0.0.0",
+  "idRanges": [
+    {
+      "from": 135110,
+      "to": 135111
+    }
+  ],
+  "target": "OnPrem"
+}

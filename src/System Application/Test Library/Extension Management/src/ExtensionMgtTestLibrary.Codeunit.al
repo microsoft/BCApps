@@ -10,6 +10,7 @@ using System.Apps;
 codeunit 135109 "Extension Mgt. Test Library"
 {
     var
+        ExtensionManagement: Codeunit "Extension Management";
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
 
     procedure RunExtensionSetup(AppId: Guid)
@@ -47,5 +48,23 @@ codeunit 135109 "Extension Mgt. Test Library"
     begin
         ExtensionPendingSetup.SetRange("User Id", UserSecurityId());
         exit(ExtensionPendingSetup.IsEmpty());
+    end;
+
+    procedure UninstallExtensionIfInstalled(AppId: Guid)
+    var
+        PackageId: Guid;
+    begin
+        if not ExtensionManagement.IsInstalledByAppId(AppId) then
+            exit;
+
+        PackageId := ExtensionManagement.GetCurrentlyInstalledVersionPackageIdByAppId(AppId);
+        ExtensionManagement.UninstallExtension(PackageId, false);
+    end;
+
+    procedure InstallMarketplaceExtension(MarketplaceApplicationId: Text)
+    var
+        ExtensionMarketplace: Codeunit "Extension Marketplace";
+    begin
+        ExtensionMarketplace.InstallAppsourceExtensionWithRefreshSession(MarketplaceApplicationId, '');
     end;
 }

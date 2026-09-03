@@ -6,5 +6,3 @@ Before you can run the tests in this extension, you must first publish two exten
 The extensions we've provided are in the testArtifacts folder of the test library. To publish them, open PowerShell and run the following command: 
 
 Publish-NAVApp
-
-The AppSource installation failure tests also require `Microsoft_FailingInstallWithError_1.0.0.0.app` (`858fafc0-9ef8-4430-88a3-869469587eea`). Publish this fixture without installing it.

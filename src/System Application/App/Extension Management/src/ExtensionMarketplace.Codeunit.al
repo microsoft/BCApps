@@ -49,6 +49,8 @@ codeunit 2501 "Extension Marketplace"
         OperationResult: Option UserNotAuthorized,DeploymentFailedDueToPackage,DeploymentFailed,Successful,UserCancel,UserTimeOut;
         AppDoesntNeedSetupMsg: Label 'Your app is installed and ready to use.';
         AppInstallationFailedMsg: Label 'The app could not be installed. Contact your administrator for more information.';
+        AppInstallationFailedErr: Label 'The app could not be installed. Contact your administrator for more information.';
+        AppInstallationErrorErr: Label 'The app could not be installed. Error message: %1', Comment = '%1 = original app installation error';
 
     local procedure GetValue(JObject: DotNet JObject; Property: Text; ThrowError: Boolean): Text
     begin
@@ -384,9 +386,9 @@ codeunit 2501 "Extension Marketplace"
             InstallErrorText := GetLastErrorText();
             MakeMarketplaceTelemetryCallback(ResponseURL, OperationResult::DeploymentFailedDueToPackage);
             if InstallErrorText = '' then
-                InstallErrorText := AppInstallationFailedMsg;
+                Error(AppInstallationFailedErr);
             // Preserve the outer TryFunction failure result so its caller can clean up before showing the error.
-            Error(InstallErrorText);
+            Error(AppInstallationErrorErr, InstallErrorText);
         end;
 
         if HasSucceeded = true then
