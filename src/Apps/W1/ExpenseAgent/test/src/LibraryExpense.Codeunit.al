@@ -15,6 +15,7 @@ using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.UOM;
 using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Setup;
+using System.Agents;
 using System.Security.User;
 
 codeunit 148300 "Library - Expense"
@@ -26,6 +27,53 @@ codeunit 148300 "Library - Expense"
         LibraryHumanResource: Codeunit "Library - Human Resource";
         FirstNameTxt: Label 'First Name';
         NameTxt: Label 'Name';
+
+    /// <summary>
+    /// Creates or reuses the Expense Agent and ensures that it is enabled for the current company.
+    /// </summary>
+    /// <returns>The user security ID of the enabled Expense Agent.</returns>
+    internal procedure EnsureExpenseAgentEnabled(): Guid
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        Agent: Record Agent;
+        TempAgentSetupBuffer: Record "Agent Setup Buffer" temporary;
+        AgentSetup: Codeunit "Agent Setup";
+        AgentUserSecurityId: Guid;
+    begin
+        if ExpenseAgentSetup.Get() then
+            AgentUserSecurityId := ExpenseAgentSetup."User Security ID";
+
+        if not IsNullGuid(AgentUserSecurityId) then
+            if Agent.Get(AgentUserSecurityId) then begin
+                AgentSetup.GetSetupRecord(
+                    TempAgentSetupBuffer,
+                    AgentUserSecurityId,
+                    "Agent Metadata Provider"::"Expense Agent",
+                    '',
+                    '',
+                    '');
+                if TempAgentSetupBuffer.State <> TempAgentSetupBuffer.State::Enabled then begin
+                    TempAgentSetupBuffer.Validate(State, TempAgentSetupBuffer.State::Enabled);
+                    AgentUserSecurityId := AgentSetup.SaveChanges(TempAgentSetupBuffer);
+                end;
+                EnableExpenseAgentSetup(ExpenseAgentSetup, AgentUserSecurityId);
+                exit(AgentUserSecurityId);
+            end;
+
+        Clear(AgentUserSecurityId);
+        AgentSetup.GetSetupRecord(
+            TempAgentSetupBuffer,
+            AgentUserSecurityId,
+            "Agent Metadata Provider"::"Expense Agent",
+            CopyStr('Expense Agent - ' + CompanyName(), 1, MaxStrLen(TempAgentSetupBuffer."User Name")),
+            CopyStr('Expense Agent - ' + CompanyName(), 1, MaxStrLen(TempAgentSetupBuffer."Display Name")),
+            'Processes employee expenses for the current company.');
+        TempAgentSetupBuffer.Validate(State, TempAgentSetupBuffer.State::Enabled);
+        AgentUserSecurityId := AgentSetup.SaveChanges(TempAgentSetupBuffer);
+
+        EnableExpenseAgentSetup(ExpenseAgentSetup, AgentUserSecurityId);
+        exit(AgentUserSecurityId);
+    end;
 
     internal procedure CreateExpenseUser(var ExpenseUser: Record "Expense User")
     begin
@@ -640,6 +688,7 @@ codeunit 148300 "Library - Expense"
         ExpenseParticipant: Record "Expense Participant";
         ExpensePerDiem: Record "Expense Per Diem";
         ExpenseVATSpecification: Record "Expense VAT Specification";
+        ExpenseVendor: Record "Expense Vendor";
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
         ExpenseReportLineItem: Record "Expense Report Line Item";
@@ -669,6 +718,18 @@ codeunit 148300 "Library - Expense"
 
         Expense.DeleteAll();
         ExpenseRuleViolation.DeleteAll();
+        ExpenseVendor.DeleteAll();
+    end;
+
+    local procedure EnableExpenseAgentSetup(
+        var ExpenseAgentSetup: Record "Expense Agent Setup";
+        AgentUserSecurityId: Guid)
+    begin
+        if not ExpenseAgentSetup.Get() then
+            ExpenseAgentSetup.InitRecord();
+        ExpenseAgentSetup."User Security ID" := AgentUserSecurityId;
+        ExpenseAgentSetup.Validate("Enable Agent", true);
+        ExpenseAgentSetup.Modify(false);
     end;
 
     local procedure DeleteExpenseAttachments()
