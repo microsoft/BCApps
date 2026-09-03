@@ -32,6 +32,12 @@ pageextension 7414 "Excise Journal Line Ext" extends "Sustainability Excise Jour
                 Visible = EnableExciseTax;
                 ToolTip = 'Specifies which entry type was used to calculate the quantity from Item Ledger Entries for this journal line.';
             }
+            field("Excise Calculation Type"; Rec."Excise Calculation Type")
+            {
+                ApplicationArea = All;
+                Visible = EnableExciseTax;
+                ToolTip = 'Specifies whether the excise duty is calculated per unit, as a percentage of the taxable amount, or as a combination of both.';
+            }
         }
         addafter("Source Unit of Measure Code")
         {
@@ -41,6 +47,12 @@ pageextension 7414 "Excise Journal Line Ext" extends "Sustainability Excise Jour
                 Visible = EnableExciseTax;
                 Editable = false;
                 ToolTip = 'Specifies the unit of measure for the excise tax quantity.';
+            }
+            field("Item Category Code"; Rec."Item Category Code")
+            {
+                ApplicationArea = All;
+                Visible = EnableExciseTax;
+                ToolTip = 'Specifies the item category copied from the item ledger entry.';
             }
         }
         addafter("Source Qty.")
@@ -59,6 +71,18 @@ pageextension 7414 "Excise Journal Line Ext" extends "Sustainability Excise Jour
                 Visible = EnableExciseTax;
                 CaptionClass = GetCaptionClass(Rec.FieldNo("Excise Duty"));
                 ToolTip = 'Specifies the excise duty applied to this journal line.';
+            }
+            field("Excise Duty %"; Rec."Excise Duty %")
+            {
+                ApplicationArea = All;
+                Visible = EnableExciseTax;
+                ToolTip = 'Specifies the percentage of the taxable amount that is charged as excise duty on this journal line.';
+            }
+            field("Excise Taxable Amount"; Rec."Excise Taxable Amount")
+            {
+                ApplicationArea = All;
+                Visible = EnableExciseTax;
+                ToolTip = 'Specifies the amount that the ad valorem part of the excise duty is calculated from.';
             }
             field("Tax Amount"; Rec."Tax Amount")
             {

@@ -285,7 +285,11 @@ codeunit 7412 "Excise Tax Calculation"
         ExciseJnlLine.Validate("Country/Region Code", ItemLedgerEntry."Country/Region Code");
         ExciseJnlLine.Validate("Source Type", ExciseJnlLine."Source Type"::Item);
         ExciseJnlLine.Validate("Source No.", ItemLedgerEntry."Item No.");
+        ExciseJnlLine.Validate("Item Category Code", ItemLedgerEntry."Item Category Code");
         ExciseJnlLine.Validate("Source Qty.", Abs(ItemLedgerEntry.Quantity));
+        if RequiresTaxableAmount(ExciseJnlLine) then
+            ExciseJnlLine.Validate("Excise Taxable Amount", GetTaxableAmountFromItemLedgerEntry(ItemLedgerEntry));
+        OnAfterUpdateExciseJournalLineFromItemLedgerEntry(ExciseJnlLine, ItemLedgerEntry);
         ExciseJnlLine."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
     end;
 
@@ -316,7 +320,40 @@ codeunit 7412 "Excise Tax Calculation"
         ExciseJnlLine.Validate("Source Type", ExciseJnlLine."Source Type"::"Fixed Asset");
         ExciseJnlLine.Validate("Source No.", FALedgerEntry."FA No.");
         ExciseJnlLine.Validate("Source Qty.", 1);
+        if RequiresTaxableAmount(ExciseJnlLine) then
+            ExciseJnlLine.Validate("Excise Taxable Amount", Abs(FALedgerEntry.Amount));
         ExciseJnlLine."FA Ledger Entry No." := FALedgerEntry."Entry No.";
+    end;
+
+    local procedure RequiresTaxableAmount(ExciseJnlLine: Record "Sust. Excise Jnl. Line"): Boolean
+    begin
+        exit(ExciseJnlLine."Excise Calculation Type" in ["Excise Calculation Type"::"Ad valorem", "Excise Calculation Type"::Hybrid]);
+    end;
+
+    // The taxable value of an item ledger entry is taken from its value entries: the invoiced sales or purchase
+    // amount when the entry has one, otherwise the inventory cost.
+    local procedure GetTaxableAmountFromItemLedgerEntry(var ItemLedgerEntry: Record "Item Ledger Entry"): Decimal
+    begin
+        case ItemLedgerEntry."Entry Type" of
+            ItemLedgerEntry."Entry Type"::Sale:
+                begin
+                    ItemLedgerEntry.CalcFields("Sales Amount (Actual)");
+                    if ItemLedgerEntry."Sales Amount (Actual)" <> 0 then
+                        exit(Abs(ItemLedgerEntry."Sales Amount (Actual)"));
+                end;
+            ItemLedgerEntry."Entry Type"::Purchase:
+                begin
+                    ItemLedgerEntry.CalcFields("Purchase Amount (Actual)");
+                    if ItemLedgerEntry."Purchase Amount (Actual)" <> 0 then
+                        exit(Abs(ItemLedgerEntry."Purchase Amount (Actual)"));
+                end;
+        end;
+
+        ItemLedgerEntry.CalcFields("Cost Amount (Actual)", "Cost Amount (Expected)");
+        if ItemLedgerEntry."Cost Amount (Actual)" <> 0 then
+            exit(Abs(ItemLedgerEntry."Cost Amount (Actual)"));
+
+        exit(Abs(ItemLedgerEntry."Cost Amount (Expected)"));
     end;
 
     local procedure UpdateExciseJournalFromPurchaseInvoice(var SustExciseJournalLine: Record "Sust. Excise Jnl. Line"; DocumentNo: Code[20])
@@ -444,6 +481,11 @@ codeunit 7412 "Excise Tax Calculation"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertExciseJournalLineForItem(var ExciseJournalLine: Record "Sust. Excise Jnl. Line"; ItemLedgerEntry: Record "Item Ledger Entry")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterUpdateExciseJournalLineFromItemLedgerEntry(var ExciseJournalLine: Record "Sust. Excise Jnl. Line"; ItemLedgerEntry: Record "Item Ledger Entry")
     begin
     end;
 
