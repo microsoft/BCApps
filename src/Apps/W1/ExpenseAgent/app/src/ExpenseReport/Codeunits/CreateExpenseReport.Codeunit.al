@@ -56,7 +56,7 @@ codeunit 6983 "Create Expense Report"
         else
             Error('');
 
-        ExpenseReportHeader := GetExpenseReportHeader(ExpenseReportNo, Expense."Expense User No.", Expense."Currency Code", Expense."VAT Bus. Posting Group");
+        ExpenseReportHeader := GetExpenseReportHeader(ExpenseReportNo, Expense."Expense User No.", Expense."VAT Bus. Posting Group");
         LoopThruExpenseToAddInReport(Expense, ExpenseReportHeader);
         ShowExpenseReport(ExpenseReportHeader, ExpenseReportNo <> '');
     end;
@@ -81,7 +81,7 @@ codeunit 6983 "Create Expense Report"
         Page.Run(Page::"Expense Report", ExpenseReportHeader);
     end;
 
-    local procedure GetExpenseReportHeader(ExpenseReportNo: Code[20]; ExpenseUserNo: Code[20]; CurrencyCode: Code[10]; VATBusPostingGroup: Code[20]): Record "Expense Report Header"
+    local procedure GetExpenseReportHeader(ExpenseReportNo: Code[20]; ExpenseUserNo: Code[20]; VATBusPostingGroup: Code[20]): Record "Expense Report Header"
     var
         ExpenseReportHeader: Record "Expense Report Header";
     begin
@@ -90,7 +90,6 @@ codeunit 6983 "Create Expense Report"
 
         ExpenseReportHeader.Init();
         ExpenseReportHeader.Validate("Expense User No.", ExpenseUserNo);
-        ExpenseReportHeader.Validate("Reimbursement Currency Code", CurrencyCode);
         ExpenseReportHeader.Validate("VAT Bus. Posting Group", VATBusPostingGroup);
         ExpenseReportHeader.Insert(true);
 
