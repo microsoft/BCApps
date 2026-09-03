@@ -42,4 +42,17 @@ page 7128 "Mileage Rate Setup"
             }
         }
     }
+
+    trigger OnQueryClosePage(CloseAction: Action): Boolean
+    var
+        MileageRateSetup: Record "Mileage Rate Setup";
+    begin
+        if not MileageRateSetup.IsEmpty() then
+            exit(true);
+
+        exit(Confirm(MissingMileageRateSetupQst, true));
+    end;
+
+    var
+        MissingMileageRateSetupQst: Label 'No mileage rates have been configured. The standard mileage rate will be used. Do you want to continue?';
 }
