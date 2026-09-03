@@ -445,14 +445,14 @@ table 5611 "Depreciation Book"
                 end;
             end;
         }
-#if not CLEANSCHEMA31
+#if not CLEANSCHEMA33
         field(10800; "Derogatory Calculation"; Code[10])
         {
             Caption = 'Derogatory Calculation';
             TableRelation = "Depreciation Book";
 #if CLEAN30
             ObsoleteState = Removed;
-            ObsoleteTag = '31.0';
+            ObsoleteTag = '33.0';
             ObsoleteReason = 'Moved to W1 Base Application';
 #else
             ObsoleteState = Pending;
@@ -498,25 +498,31 @@ table 5611 "Depreciation Book"
 #endif            
         }
 #endif
-#if not CLEAN30
+#if not CLEANSCHEMA33
         field(10801; "Used with Derogatory Book"; Code[10])
         {
             CalcFormula = lookup("Depreciation Book".Code where("Derogatory Calculation" = field(Code)));
             Caption = 'Used with Derogatory Book';
             Editable = false;
             FieldClass = FlowField;
+#if CLEAN30
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#else
             ObsoleteState = Pending;
             ObsoleteTag = '30.0';
             ObsoleteReason = 'Moved to W1 Base Application';
+#endif
         }
 #endif
-#if not CLEANSCHEMA31
+#if not CLEANSCHEMA33
         field(10802; "G/L Integration - Derogatory"; Boolean)
         {
             Caption = 'G/L Integration - Derogatory';
 #if CLEAN30
             ObsoleteState = Removed;
-            ObsoleteTag = '31.0';
+            ObsoleteTag = '33.0';
             ObsoleteReason = 'Moved to W1 Base Application';
 #else
             ObsoleteState = Pending;
@@ -700,4 +706,3 @@ table 5611 "Depreciation Book"
         exit('');
     end;
 }
-

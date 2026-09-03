@@ -7816,7 +7816,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 PostDelayedUnrealizedVAT(GenJnlLine);
     end;
     
-    [Obsolete('Moved to W1 Base Application', '28.0')]
+    [Obsolete('Moved to W1 Base Application', '30.0')]
     local procedure MakeDerogFAJnlLine(var FAJnlLine: Record "FA Journal Line"; GenJnlLine: Record "Gen. Journal Line")
     var
         DeprBook: Record "Depreciation Book";
@@ -8207,7 +8207,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
 #if not CLEAN30
-    [Obsolete('Moved to W1 Base Application', '28.0')]
+    [Obsolete('Moved to W1 Base Application', '30.0')]
     local procedure CreateAndPostDerogatoryEntry(SourceGenJournalLine: Record "Gen. Journal Line")
     var
         DepreciationBook: Record "Depreciation Book";
@@ -8258,7 +8258,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         FAJnlPostLine.FAJnlPostLine(FAJnlLine, true);
     end;
 
-    [Obsolete('Moved to W1 Base Application', '28.0')]
+    [Obsolete('Moved to W1 Base Application', '30.0')]
     local procedure MakeGenJnlLineOfTypeDerogatory(var DerogGenJnlLine: Record "Gen. Journal Line"; GenJnlLine: Record "Gen. Journal Line"; DerogAmount: Decimal)
     begin
         DerogGenJnlLine.TransferFields(GenJnlLine);

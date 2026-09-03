@@ -164,13 +164,13 @@ table 5624 "FA Reclass. Journal Line"
         {
             Caption = 'Reclassify Derogatory';
         }
-#if not CLEANSCHEMA31
+#if not CLEANSCHEMA33
         field(10800; "Reclassify Derogatory"; Boolean)
         {
             Caption = 'Reclassify Derogatory';
 #if CLEAN30
             ObsoleteState = Removed;
-            ObsoleteTag = '31.0';
+            ObsoleteTag = '33.0';
             ObsoleteReason = 'Moved to W1 Base Application';
 #else
             ObsoleteState = Pending;
@@ -267,4 +267,3 @@ table 5624 "FA Reclass. Journal Line"
     begin
     end;
 }
-

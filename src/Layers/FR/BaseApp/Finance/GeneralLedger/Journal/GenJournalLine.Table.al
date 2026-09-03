@@ -3904,14 +3904,14 @@ table 81 "Gen. Journal Line"
             Caption = 'Entry No.';
             Editable = false;
         }
-#if not CLEANSCHEMA31
+#if not CLEANSCHEMA33
         field(10861; "Derogatory Line"; Boolean)
         {
             Caption = 'Derogatory Line';
             Editable = false;
 #if CLEAN30
             ObsoleteState = Removed;
-            ObsoleteTag = '31.0';
+            ObsoleteTag = '33.0';
             ObsoleteReason = 'Moved to W1 Base Application';
 #else
             ObsoleteState = Pending;

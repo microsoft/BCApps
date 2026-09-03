@@ -523,14 +523,14 @@ table 5601 "FA Ledger Entry"
         {
             Caption = 'Non-Deductible VAT FA Cost';
         }
-#if not CLEANSCHEMA31
+#if not CLEANSCHEMA33
         field(10800; "Exclude Derogatory"; Boolean)
         {
             Caption = 'Exclude Derogatory';
             Editable = false;
 #if CLEAN30
             ObsoleteState = Removed;
-            ObsoleteTag = '31.0';
+            ObsoleteTag = '33.0';
             ObsoleteReason = 'Moved to W1 Base Application';
 #else
             ObsoleteState = Pending;
@@ -780,4 +780,3 @@ table 5601 "FA Ledger Entry"
     begin
     end;
 }
-

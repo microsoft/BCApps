@@ -905,7 +905,7 @@ table 5612 "FA Depreciation Book"
         {
             Caption = 'Last Derogatory Date';
         }
-#if not CLEAN30
+#if not CLEANSCHEMA33
         field(10800; Derogatory; Decimal)
         {
             AutoFormatType = 1;
@@ -919,18 +919,24 @@ table 5612 "FA Depreciation Book"
             Caption = 'Derogatory';
             Editable = false;
             FieldClass = FlowField;
+#if CLEAN30
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#else
             ObsoleteState = Pending;
             ObsoleteTag = '30.0';
             ObsoleteReason = 'Moved to W1 Base Application';
+#endif
         }
 #endif
-#if not CLEANSCHEMA31
+#if not CLEANSCHEMA33
         field(10801; "Last Derogatory Date"; Date)
         {
             Caption = 'Last Derogatory Date';
 #if CLEAN30
             ObsoleteState = Removed;
-            ObsoleteTag = '31.0';
+            ObsoleteTag = '33.0';
             ObsoleteReason = 'Moved to W1 Base Application';
 #else
             ObsoleteState = Pending;

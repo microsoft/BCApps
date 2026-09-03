@@ -544,14 +544,14 @@ table 5606 "FA Posting Group"
             FieldClass = FlowField;
 
         }
-#if not CLEANSCHEMA31
+#if not CLEANSCHEMA33
         field(10800; "Derogatory Account"; Code[20])
         {
             Caption = 'Derogatory Account';
             TableRelation = "G/L Account";
 #if CLEAN30
             ObsoleteState = Removed;
-            ObsoleteTag = '31.0';
+            ObsoleteTag = '33.0';
             ObsoleteReason = 'Moved to W1 Base Application';
 #else
             ObsoleteState = Pending;
@@ -570,7 +570,7 @@ table 5606 "FA Posting Group"
             TableRelation = "G/L Account";
 #if CLEAN30
             ObsoleteState = Removed;
-            ObsoleteTag = '31.0';
+            ObsoleteTag = '33.0';
             ObsoleteReason = 'Moved to W1 Base Application';
 #else
             ObsoleteState = Pending;
@@ -589,7 +589,7 @@ table 5606 "FA Posting Group"
             TableRelation = "G/L Account";
 #if CLEAN30
             ObsoleteState = Removed;
-            ObsoleteTag = '31.0';
+            ObsoleteTag = '33.0';
             ObsoleteReason = 'Moved to W1 Base Application';
 #else
             ObsoleteState = Pending;
@@ -608,7 +608,7 @@ table 5606 "FA Posting Group"
             TableRelation = "G/L Account";
 #if CLEAN30
             ObsoleteState = Removed;
-            ObsoleteTag = '31.0';
+            ObsoleteTag = '33.0';
             ObsoleteReason = 'Moved to W1 Base Application';
 #else
             ObsoleteState = Pending;
@@ -622,7 +622,7 @@ table 5606 "FA Posting Group"
 #endif
         }
 #endif
-#if not CLEAN30
+#if not CLEANSCHEMA33
         field(10804; "Allocated Derogatory %"; Decimal)
         {
             AutoFormatType = 0;
@@ -632,9 +632,15 @@ table 5606 "FA Posting Group"
             DecimalPlaces = 1 : 1;
             Editable = false;
             FieldClass = FlowField;
+#if CLEAN30
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#else
             ObsoleteState = Pending;
             ObsoleteTag = '30.0';
             ObsoleteReason = 'Moved to W1 Base Application';
+#endif
         }
 #endif
     }
@@ -1024,4 +1030,3 @@ table 5606 "FA Posting Group"
     begin
     end;
 }
-

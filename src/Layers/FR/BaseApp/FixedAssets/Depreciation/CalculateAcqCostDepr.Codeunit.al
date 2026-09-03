@@ -64,7 +64,7 @@ codeunit 5613 "Calculate Acq. Cost Depr."
     end;
 
 #if not CLEAN30
-    [Obsolete('Moved to W1 Base Application', '28.0')]
+    [Obsolete('Moved to W1 Base Application', '30.0')]
     [Scope('OnPrem')]
     procedure DerogatoryCalc(var DeprAmount: Decimal; FANo: Code[20]; DeprBookCode: Code[10]; LocalDerogatoryBasis: Decimal)
     var
@@ -128,4 +128,3 @@ codeunit 5613 "Calculate Acq. Cost Depr."
     begin
     end;
 }
-
