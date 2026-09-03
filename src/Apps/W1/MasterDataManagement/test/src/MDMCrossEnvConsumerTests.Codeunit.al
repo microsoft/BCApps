@@ -379,6 +379,71 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
+    procedure ClearCrossEnvSetupRevertsToSameEnvironment()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        SetupPage: TestPage "Master Data Management Setup";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Clear Cross-Environment Setup removes the source environment, company, client id, and the stored
+        //            secret, reverting the setup to same-environment synchronization.
+        Initialize();
+        // [GIVEN] a configured cross-environment connection with a stored secret
+        MasterDataManagementSetup.Get();
+        MasterDataManagementSetup.Validate("Source Environment Name", 'CONTOSO-PROD');
+        MasterDataManagementSetup."Source Environment URL" := 'https://api.businesscentral.dynamics.com/v2.0/contoso-prod';
+        MasterDataManagementSetup."Source Company Name" := 'CRONUS';
+        MasterDataManagementSetup."Source OAuth Client Id" := '11111111-2222-3333-4444-555555555555';
+        MasterDataManagementSetup."Source Client Secret Key" := CreateGuid(); // simulate a stored secret key
+        MasterDataManagementSetup.Modify(true);
+        Assert.AreNotEqual('', MasterDataManagementSetup."Source Environment Name", 'Precondition: setup should be cross-environment');
+
+        // [WHEN] the user runs Clear Cross-Environment Setup and confirms
+        SetupPage.OpenEdit();
+        SetupPage.ClearCrossEnvSetup.Invoke();
+        SetupPage.Close();
+
+        // [THEN] every cross-environment field and the stored secret are cleared
+        MasterDataManagementSetup.Get();
+        Assert.AreEqual('', MasterDataManagementSetup."Source Environment Name", 'Source environment should be cleared');
+        Assert.AreEqual('', MasterDataManagementSetup."Source Environment URL", 'Source URL should be cleared');
+        Assert.AreEqual('', MasterDataManagementSetup."Source Company Name", 'Source company should be cleared');
+        Assert.AreEqual('', MasterDataManagementSetup."Source OAuth Client Id", 'Source client id should be cleared');
+        Assert.IsTrue(IsNullGuid(MasterDataManagementSetup."Source Client Secret Key"), 'Secret key should be cleared'); // empty Source Environment Name (asserted above) means same-environment again
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure ClearCrossEnvSetupDisabledWhileSynchronizationEnabled()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        SetupPage: TestPage "Master Data Management Setup";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Clear Cross-Environment Setup is disabled while synchronization is enabled, so the user must
+        //            disable synchronization before the connection can be cleared.
+        Initialize();
+        // [GIVEN] a cross-environment setup with synchronization enabled
+        MasterDataManagementSetup.Get();
+        MasterDataManagementSetup.Validate("Source Environment Name", 'CONTOSO-PROD');
+        MasterDataManagementSetup."Is Enabled" := true; // set directly to skip the enable side effects; the action's Enabled binding is what we assert
+        MasterDataManagementSetup.Modify(false);
+
+        // [THEN] the Clear Cross-Environment Setup action is disabled on the setup page
+        SetupPage.OpenEdit();
+        Assert.IsFalse(SetupPage.ClearCrossEnvSetup.Enabled(), 'Clear action should be disabled while synchronization is enabled');
+        SetupPage.Close();
+
+        // reset the enabled flag so it does not leak into later tests
+        MasterDataManagementSetup.Get();
+        MasterDataManagementSetup."Is Enabled" := false;
+        MasterDataManagementSetup.Modify(false);
+        CleanUp();
+    end;
+
+    [Test]
     procedure CrossEnvGetByFilterReturnsRecordsPastTheWatermark()
     var
         Customer: Record Customer;
@@ -750,6 +815,12 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         end;
         MasterDataManagementSetup."Source Environment Name" := '';
         MasterDataManagementSetup.Modify(false);
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmHandlerYes(Question: Text; var Reply: Boolean)
+    begin
+        Reply := true;
     end;
 
     local procedure CleanUp()

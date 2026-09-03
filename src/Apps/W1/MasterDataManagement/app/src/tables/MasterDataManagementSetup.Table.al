@@ -195,6 +195,17 @@ table 7230 "Master Data Management Setup"
         exit("Source Environment Name" <> '');
     end;
 
+    // Reverting to same-environment: drop the source connection details and the stored secret.
+    internal procedure ClearCrossEnvConnection()
+    begin
+        "Source Environment URL" := '';
+        "Source Company Name" := '';
+        "Source OAuth Client Id" := '';
+        if not IsNullGuid("Source Client Secret Key") then
+            if not IsolatedStorage.Delete("Source Client Secret Key", DataScope::Company) then;
+        Clear("Source Client Secret Key");
+    end;
+
     [NonDebuggable]
     internal procedure SetSourceClientSecret(ClientSecret: SecretText)
     begin
