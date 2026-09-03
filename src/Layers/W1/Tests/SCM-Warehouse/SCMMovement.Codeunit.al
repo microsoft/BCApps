@@ -1262,7 +1262,6 @@ codeunit 137931 "SCM - Movement"
         PurchaseHeader: Record "Purchase Header";
         SalesHeader: Record "Sales Header";
         WarehouseActivityHeader: Record "Warehouse Activity Header";
-        WarehouseActivityLine: Record "Warehouse Activity Line";
         LocationCode: Code[10];
         ItemNo: Code[20];
         LotNo: array[2] of Code[50];
