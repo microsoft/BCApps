@@ -77,9 +77,7 @@ table 6241 "Sust. Excise Taxes Trans. Log"
             ObsoleteTag = '28.0';
 #else
             ObsoleteState = Removed;
-#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
-            ObsoleteTag = '29.0';
-#pragma warning restore AS0072
+            ObsoleteTag = '30.0';
 #endif
         }
         field(17; "Account Name"; Text[100])
@@ -92,9 +90,7 @@ table 6241 "Sust. Excise Taxes Trans. Log"
             ObsoleteTag = '28.0';
 #else
             ObsoleteState = Removed;
-#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
-            ObsoleteTag = '29.0';
-#pragma warning restore AS0072
+            ObsoleteTag = '30.0';
 #endif
         }
         field(18; "Account Category"; Code[20])
@@ -108,9 +104,7 @@ table 6241 "Sust. Excise Taxes Trans. Log"
             ObsoleteTag = '28.0';
 #else
             ObsoleteState = Removed;
-#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
-            ObsoleteTag = '29.0';
-#pragma warning restore AS0072
+            ObsoleteTag = '30.0';
 #endif
         }
         field(19; "Account Subcategory"; Code[20])
@@ -123,9 +117,7 @@ table 6241 "Sust. Excise Taxes Trans. Log"
             ObsoleteTag = '28.0';
 #else
             ObsoleteState = Removed;
-#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
-            ObsoleteTag = '29.0';
-#pragma warning restore AS0072
+            ObsoleteTag = '30.0';
 #endif
         }
 #endif
