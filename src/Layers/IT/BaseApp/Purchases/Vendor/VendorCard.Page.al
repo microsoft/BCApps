@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -747,6 +747,11 @@ page 26 "Vendor Card"
 #pragma warning restore AS0072
                 }
 #endif
+                field("Receipt on Invoice Policy"; Rec."Receipt on Invoice Policy")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Receipt on Invoice';
+                }
             }
         }
         area(factboxes)
@@ -2337,4 +2342,3 @@ page 26 "Vendor Card"
     begin
     end;
 }
-

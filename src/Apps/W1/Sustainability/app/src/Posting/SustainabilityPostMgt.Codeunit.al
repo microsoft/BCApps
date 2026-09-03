@@ -22,6 +22,7 @@ codeunit 6212 "Sustainability Post Mgt"
     var
         SustainabilityLedgerEntry: Record "Sustainability Ledger Entry";
         FeatureTelemetry: Codeunit "Feature Telemetry";
+        IsHandled: Boolean;
         SustainabilityLedgerEntryAddedLbl: Label 'Sustainability Ledger Entry Added', Locked = true;
     begin
         SustainabilityLedgerEntry.Init();
@@ -39,10 +40,15 @@ codeunit 6212 "Sustainability Post Mgt"
         CopyDateFromAccountSubCategory(SustainabilityLedgerEntry, SustainabilityJnlLine."Account Category", SustainabilityJnlLine."Account Subcategory");
 
         SustainabilityLedgerEntry.Validate("User ID", CopyStr(UserId(), 1, 50));
+        SustainabilityLedgerEntry."G/L Entry No." := GLEntryNo;
         UpdateCarbonFeeEmission(SustainabilityLedgerEntry);
 
         OnBeforeInsertSustainabilityLedgerEntry(SustainabilityLedgerEntry, SustainabilityJnlLine);
-        SustainabilityLedgerEntry.Insert(true);
+
+        IsHandled := false;
+        OnInsertLedgerEntryOnBeforeInsert(SustainabilityLedgerEntry, IsHandled);
+        if not IsHandled then
+            SustainabilityLedgerEntry.Insert(true);
     end;
 
     procedure InsertValueEntry(SustainabilityJnlLine: Record "Sustainability Jnl. Line"; ValueEntry: Record "Value Entry"; ItemLedgerEntry: Record "Item Ledger Entry")
@@ -330,9 +336,44 @@ codeunit 6212 "Sustainability Post Mgt"
     begin
         SustainabilityValueEntry.SetLoadFields("Item Ledger Entry No.", "CO2e Amount (Actual)", "Item Ledger Entry Quantity");
         SustainabilityValueEntry.SetRange("Item Ledger Entry No.", ItemLedgerEntryNo);
+        if SustainabilityValueEntry.IsEmpty() then begin
+            ResolveTransferInCO2e(ItemLedgerEntryNo, CO2eAmount, CO2eQuantity);
+            exit;
+        end;
+
         SustainabilityValueEntry.CalcSums("CO2e Amount (Actual)", "Item Ledger Entry Quantity");
         CO2eAmount += SustainabilityValueEntry."CO2e Amount (Actual)";
         CO2eQuantity += SustainabilityValueEntry."Item Ledger Entry Quantity";
+    end;
+
+    local procedure ResolveTransferInCO2e(ItemLedgerEntryNo: Integer; var CO2eAmount: Decimal; var CO2eQuantity: Decimal)
+    var
+        TransferInILE: Record "Item Ledger Entry";
+        TransferOutILE: Record "Item Ledger Entry";
+        SustainabilityValueEntry: Record "Sustainability Value Entry";
+    begin
+        TransferInILE.SetLoadFields("Entry Type", Quantity, "Item Register No.", "Item No.", "Lot No.", "Serial No.");
+        if not TransferInILE.Get(ItemLedgerEntryNo) then
+            exit;
+
+        if (TransferInILE."Entry Type" <> TransferInILE."Entry Type"::Transfer) or (TransferInILE.Quantity <= 0) then
+            exit;
+
+        // Reclassification transfer-in ILEs lack SVEs; resolve from the transfer-out counterpart.
+        TransferOutILE.SetRange("Item Register No.", TransferInILE."Item Register No.");
+        TransferOutILE.SetRange("Item No.", TransferInILE."Item No.");
+        TransferOutILE.SetRange("Entry Type", TransferOutILE."Entry Type"::Transfer);
+        TransferOutILE.SetFilter(Quantity, '<%1', 0);
+        TransferOutILE.SetRange("Lot No.", TransferInILE."Lot No.");
+        TransferOutILE.SetRange("Serial No.", TransferInILE."Serial No.");
+        if not TransferOutILE.FindFirst() then
+            exit;
+
+        SustainabilityValueEntry.SetLoadFields("Item Ledger Entry No.", "CO2e Amount (Actual)", "Item Ledger Entry Quantity");
+        SustainabilityValueEntry.SetRange("Item Ledger Entry No.", TransferOutILE."Entry No.");
+        SustainabilityValueEntry.CalcSums("CO2e Amount (Actual)", "Item Ledger Entry Quantity");
+        CO2eAmount += SustainabilityValueEntry."CO2e Amount (Actual)";
+        CO2eQuantity += Abs(SustainabilityValueEntry."Item Ledger Entry Quantity");
     end;
 
     procedure GetTotalCO2eAmountFromValueEntry(
@@ -441,6 +482,11 @@ codeunit 6212 "Sustainability Post Mgt"
         SkipUpdateCarbonEmissionValue := NewSkipUpdateCarbonEmissionValue;
     end;
 
+    internal procedure SetNextGLEntryNo(NewGLEntryNo: Integer)
+    begin
+        GLEntryNo := NewGLEntryNo;
+    end;
+
     local procedure CopyDataFromAccountCategory(var SustainabilityLedgerEntry: Record "Sustainability Ledger Entry"; CategoryCode: Code[20])
     var
         SustainAccountCategory: Record "Sustain. Account Category";
@@ -508,6 +554,7 @@ codeunit 6212 "Sustainability Post Mgt"
 
     var
         SkipUpdateCarbonEmissionValue: Boolean;
+        GLEntryNo: Integer;
         PostingSustainabilityJournalLbl: Label 'Posting Sustainability Journal Lines: \ #1', Comment = '#1 = sub-process progress message';
         CheckSustainabilityJournalLineLbl: Label 'Checking Sustainability Journal Line: %1', Comment = '%1 = Line No.';
         ProcessingLineLbl: Label 'Processing Line: %1', Comment = '%1 = Line No.';
@@ -518,6 +565,11 @@ codeunit 6212 "Sustainability Post Mgt"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertSustainabilityLedgerEntry(var SustainabilityLedgerEntry: Record "Sustainability Ledger Entry"; SustainabilityJnlLine: Record "Sustainability Jnl. Line")
+    begin
+    end;
+
+    [InternalEvent(false, false)]
+    local procedure OnInsertLedgerEntryOnBeforeInsert(var SustainabilityLedgerEntry: Record "Sustainability Ledger Entry"; var IsHandled: Boolean)
     begin
     end;
 }

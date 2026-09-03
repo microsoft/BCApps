@@ -180,8 +180,10 @@ codeunit 9998 "Upgrade Tag Definitions"
         PerCompanyUpgradeTags.Add(GetServiceShptLineFieldsUpgradeTag());
         PerCompanyUpgradeTags.Add(GetZeroClosedBankAccountLedgerEntriesUpgradeTag());
         PerCompanyUpgradeTags.Add(GetDepreciationBooksGLIntegrationUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetPurchLineReceiptOnInvoiceUpgradeTag());
         PerCompanyUpgradeTags.Add(GetWarehouseActivitySourceTypeForJobPlanningLineUpgradeTag());
         PerCompanyUpgradeTags.Add(GetRemittanceAdviceReportSelectionUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetProdDefinitionDisplaySetupUpgradeTag());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerDatabaseUpgradeTags', '', false, false)]
@@ -1269,6 +1271,11 @@ codeunit 9998 "Upgrade Tag Definitions"
         exit('MS-626097-DepreciationBooksGLIntegrationUpgradeTag-20260319');
     end;
 
+    internal procedure GetPurchLineReceiptOnInvoiceUpgradeTag(): Code[250]
+    begin
+        exit('MS-625392-PurchLineReceiptOnInvoiceUpgradeTag-20260703');
+    end;
+
     internal procedure GetRemittanceAdviceReportSelectionUpgradeTag(): Code[250]
     begin
         exit('MS-RemittanceAdviceReportSelection-20260723');
@@ -1278,5 +1285,10 @@ codeunit 9998 "Upgrade Tag Definitions"
     begin
         // Upgrade legacy Job-related warehouse records from (Database::Job, 0) to (Database::"Job Planning Line", Order)
         exit('MS-625654-WarehouseActivitySourceTypeForJobPlanningLineUpgradeTag-20260518');
+    end;
+
+    internal procedure GetProdDefinitionDisplaySetupUpgradeTag(): Code[250]
+    begin
+        exit('MS-629001-ProdDefinitionDisplaySetupUpgradeTag-20260723');
     end;
 }

@@ -17,6 +17,7 @@ permissionset 1680 "Email Logging - Obj."
                   codeunit "Email Logging API Client" = X,
                   codeunit "Email Logging API Helper" = X,
                   codeunit "Email Logging Message" = X,
+                  codeunit "Email Logging Install" = X,
                   codeunit "Email Logging Upgrade" = X,
                   page "Email Logging Setup" = X,
                   page "Email Logging Setup Wizard" = X,
