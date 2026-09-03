@@ -2188,11 +2188,10 @@ codeunit 134897 "ERM Source Currency"
 
         // [GIVEN] No Additional Reporting Currency, so the source currency of the settlement entries is LCY.
         GeneralLedgerSetup.Get();
-        if GeneralLedgerSetup."Additional Reporting Currency" <> '' then begin
+        if GeneralLedgerSetup."Additional Reporting Currency" <> '' then
             GeneralLedgerSetup."Additional Reporting Currency" := '';
-            GeneralLedgerSetup."Last Settlement Date" := WorkDate() - 30;
-            GeneralLedgerSetup.Modify();
-        end;
+        GeneralLedgerSetup."Last Settlement Date" := WorkDate() - 30;
+        GeneralLedgerSetup.Modify();
 
         // [GIVEN] A dedicated VAT Posting Setup, so only this test's VAT Entries are settled.
         LibraryERM.CreateVATPostingSetupWithAccounts(
