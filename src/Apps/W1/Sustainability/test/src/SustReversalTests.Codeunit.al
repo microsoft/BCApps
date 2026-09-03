@@ -6,7 +6,6 @@ using Microsoft.Sustainability.Ledger;
 codeunit 148222 "Sust. Reversal Tests"
 {
     Subtype = Test;
-    TestType = IntegrationTest;
     TestPermissions = Disabled;
 
     trigger OnRun()
@@ -16,9 +15,7 @@ codeunit 148222 "Sust. Reversal Tests"
 
     var
         Assert: Codeunit Assert;
-        LibraryERM: Codeunit "Library - ERM";
         LibrarySustainability: Codeunit "Library - Sustainability";
-        LibraryUtility: Codeunit "Library - Utility";
         IsInitialized: Boolean;
 
     [Test]
