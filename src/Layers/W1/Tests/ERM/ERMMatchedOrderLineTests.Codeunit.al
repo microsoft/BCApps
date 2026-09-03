@@ -1397,9 +1397,9 @@ codeunit 134468 "ERM Matched Order Line Tests"
         PurchaseHeaderOrder.Modify(true);
 
         // [WHEN] Add line with tracked item
-        // [THEN] Error: Item tracking not supported with Receipt on Invoice
-        asserterror LibraryPurchase.CreatePurchaseLine(PurchaseLineOrder, PurchaseHeaderOrder, PurchaseLineOrder.Type::Item, Item."No.", Quantity);
-        Assert.ExpectedError('specific tracking');
+        // [THEN] Line is created but Receipt on Invoice is silently disabled on the line
+        LibraryPurchase.CreatePurchaseLine(PurchaseLineOrder, PurchaseHeaderOrder, PurchaseLineOrder.Type::Item, Item."No.", Quantity);
+        Assert.IsFalse(PurchaseLineOrder."Receipt on Invoice", 'Receipt on Invoice should be disabled on a line with specific item tracking');
     end;
 
 
@@ -1480,9 +1480,9 @@ codeunit 134468 "ERM Matched Order Line Tests"
         PurchaseLineOrder.Modify(true);
 
         // [WHEN] Use WMS location
-        // [THEN] Error: Directed Put-away and Pick not supported
-        asserterror PurchaseLineOrder.Validate("Location Code", WMSLocation.Code);
-        Assert.ExpectedError('Directed Put-away and Pick');
+        // [THEN] Receipt on Invoice is silently disabled on the line
+        PurchaseLineOrder.Validate("Location Code", WMSLocation.Code);
+        Assert.IsFalse(PurchaseLineOrder."Receipt on Invoice", 'Receipt on Invoice should be disabled on a Directed Put-away and Pick location');
     end;
 
     [Test]
@@ -4552,6 +4552,134 @@ codeunit 134468 "ERM Matched Order Line Tests"
         MatchedOrderLine.Reset();
         MatchedOrderLine.SetRange("Document Line SystemId", PurchaseLineInvoice.SystemId);
         Assert.RecordIsEmpty(MatchedOrderLine);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure E2E_ReceiptOnInvoiceLineLevelDrivesAutoReceiveWithoutHeaderFlag()
+    var
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseLineOrder: Record "Purchase Line";
+        PurchaseHeaderInvoice: Record "Purchase Header";
+        PurchaseLineInvoice: Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        MatchedOrderLine: Record "Matched Order Line";
+        Item: Record Item;
+        Vendor: Record Vendor;
+        Quantity: Decimal;
+    begin
+        Initialize();
+        Quantity := LibraryRandom.RandIntInRange(10, 100);
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryInventory.CreateItem(Item);
+
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderOrder, PurchaseHeaderOrder."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLineOrder, PurchaseHeaderOrder, PurchaseLineOrder.Type::Item, Item."No.", Quantity);
+        PurchaseLineOrder.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 100, 2));
+        PurchaseLineOrder.Validate("Receipt on Invoice", true);
+        PurchaseLineOrder.Modify(true);
+        PurchaseHeaderOrder.Get(PurchaseHeaderOrder."Document Type", PurchaseHeaderOrder."No.");
+        Assert.IsFalse(PurchaseHeaderOrder."Receipt on Invoice", 'Header receipt on invoice should remain disabled');
+
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderInvoice, PurchaseHeaderInvoice."Document Type"::Invoice, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLineInvoice, PurchaseHeaderInvoice, PurchaseLineInvoice.Type::Item, Item."No.", Quantity);
+        PurchaseLineInvoice.Validate("Direct Unit Cost", PurchaseLineOrder."Direct Unit Cost");
+        PurchaseLineInvoice.Modify(true);
+        MatchedOrderLine."Document Line SystemId" := PurchaseLineInvoice.SystemId;
+        MatchedOrderLine."Matched Order Line SystemId" := PurchaseLineOrder.SystemId;
+        MatchedOrderLine."Qty. to Invoice" := Quantity;
+        MatchedOrderLine."Qty. to Invoice (Base)" := Quantity;
+        MatchedOrderLine."Receipt on Invoice" := true;
+        MatchedOrderLine.Insert();
+
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeaderInvoice, false, true);
+
+        PurchaseLineOrder.Get(PurchaseLineOrder."Document Type", PurchaseLineOrder."Document No.", PurchaseLineOrder."Line No.");
+        Assert.AreEqual(Quantity, PurchaseLineOrder."Quantity Received", 'Order line should be auto-received');
+        Assert.AreEqual(Quantity, PurchaseLineOrder."Quantity Invoiced", 'Order line should be fully invoiced');
+        PurchRcptLine.SetRange("Order No.", PurchaseLineOrder."Document No.");
+        PurchRcptLine.SetRange("Order Line No.", PurchaseLineOrder."Line No.");
+        PurchRcptLine.FindFirst();
+        Assert.AreEqual(Quantity, PurchRcptLine.Quantity, 'Auto-posted receipt should cover the full quantity');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure VendorAutomaticReceiptOnInvoicePolicyInitializesOrderAndLine()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Item: Record Item;
+        Vendor: Record Vendor;
+    begin
+        Initialize();
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Validate("Receipt on Invoice Policy", Vendor."Receipt on Invoice Policy"::Automatic);
+        Vendor.Modify(true);
+        LibraryInventory.CreateItem(Item);
+
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", LibraryRandom.RandInt(10));
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+
+        Assert.IsTrue(PurchaseHeader."Receipt on Invoice", 'Vendor policy should enable receipt on invoice on the order');
+        Assert.IsTrue(PurchaseLine."Receipt on Invoice", 'Order line should inherit receipt on invoice from the order');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ReceiptOnInvoiceLineRejectsExistingReceipts()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Item: Record Item;
+        Vendor: Record Vendor;
+    begin
+        Initialize();
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", LibraryRandom.RandInt(10));
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+
+        asserterror PurchaseLine.Validate("Receipt on Invoice", true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure POMatchingGroupUsesOrderLineReceiptOnInvoiceSetting()
+    var
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseLineOrder: Record "Purchase Line";
+        PurchaseHeaderInvoice: Record "Purchase Header";
+        PurchaseLineInvoice: Record "Purchase Line";
+        MatchedOrderLine: Record "Matched Order Line";
+        Item: Record Item;
+        Vendor: Record Vendor;
+        POMatching: Codeunit "PO Matching";
+        POMatchingGroup: Codeunit "PO Matching Group";
+        Quantity: Decimal;
+    begin
+        Initialize();
+        Quantity := LibraryRandom.RandInt(10);
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderOrder, PurchaseHeaderOrder."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLineOrder, PurchaseHeaderOrder, PurchaseLineOrder.Type::Item, Item."No.", Quantity);
+        PurchaseLineOrder.Validate("Receipt on Invoice", true);
+        PurchaseLineOrder.Modify(true);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderInvoice, PurchaseHeaderInvoice."Document Type"::Invoice, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLineInvoice, PurchaseHeaderInvoice, PurchaseLineInvoice.Type::Item, Item."No.", Quantity);
+
+        POMatchingGroup.AddMatch(POMatching.InvoiceOrderEdge(PurchaseLineInvoice.SystemId, PurchaseLineOrder.SystemId, Quantity));
+        POMatchingGroup.SaveMatchingGroups();
+
+        MatchedOrderLine.SetRange("Document Line SystemId", PurchaseLineInvoice.SystemId);
+        MatchedOrderLine.SetRange("Matched Order Line SystemId", PurchaseLineOrder.SystemId);
+        MatchedOrderLine.SetRange("Matched Rcpt./Shpt. Line SysId", EmptyGuid);
+        MatchedOrderLine.FindFirst();
+        Assert.IsTrue(MatchedOrderLine."Receipt on Invoice", 'Match should use the order line receipt-on-invoice setting');
     end;
 
     // ============================================================================
