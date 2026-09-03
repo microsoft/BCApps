@@ -584,6 +584,9 @@ codeunit 149951 "IT Subc. Migration"
         LegacySubcontractingLocations: Dictionary of [Code[10], Boolean];
         LocationCode: Code[10];
         UnsupportedWarehouseSettings: Text;
+        CollectedErrors: List of [ErrorInfo];
+        CollectedError: ErrorInfo;
+        BlockingErrorText: Text;
     begin
         SetVendorMigrationFilters(Vendor);
         Vendor.SetLoadFields("Subcontracting Location Code");
@@ -604,6 +607,13 @@ codeunit 149951 "IT Subc. Migration"
             UnsupportedWarehouseSettings := GetUnsupportedWarehouseSettings(Location);
             if UnsupportedWarehouseSettings <> '' then
                 Error(UnsupportedSubcontractingLocationErr, Location.Code, UnsupportedWarehouseSettings);
+        end;
+
+        if HasCollectedErrors() then begin
+            CollectedErrors := GetCollectedErrors(true);
+            foreach CollectedError in CollectedErrors do
+                BlockingErrorText += CollectedError.Message() + '\';
+            Error(ErrorInfo.Create(BlockingErrorText, false));
         end;
     end;
 

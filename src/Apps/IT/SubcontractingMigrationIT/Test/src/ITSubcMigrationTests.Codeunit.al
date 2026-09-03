@@ -830,7 +830,6 @@ codeunit 149956 "IT Subc. Migration Tests"
     end;
 
     [Test]
-    [ErrorBehavior(ErrorBehavior::Collect)]
     [Scope('OnPrem')]
     procedure CheckSubcontractingLocations_ReportsEveryLocationAndSetting()
     var
@@ -839,7 +838,7 @@ codeunit 149956 "IT Subc. Migration Tests"
         VendorLocation: Record Location;
         PurchaseLocation: Record Location;
         ITSubcMigration: Codeunit "IT Subc. Migration";
-        CollectedErrors: List of [ErrorInfo];
+        BlockingError: Text;
     begin
         // [SCENARIO] The migration precheck reports every incompatible location and its unsupported warehouse settings
         Initialize();
@@ -864,23 +863,24 @@ codeunit 149956 "IT Subc. Migration Tests"
         PurchaseHeader.Modify(false);
 
         // [WHEN] The subcontracting location precheck runs
-        ITSubcMigration.CheckSubcontractingLocations();
+        asserterror ITSubcMigration.CheckSubcontractingLocations();
 
-        // [THEN] One error per incompatible location identifies every unsupported setting
-        CollectedErrors := GetCollectedErrors(true);
-        Assert.AreEqual(2, CollectedErrors.Count, 'The precheck should report every incompatible subcontracting location.');
-        AssertCollectedError(
-            CollectedErrors,
-            StrSubstNo(
-                UnsupportedSubcontractingLocationErr,
-                VendorLocation.Code,
-                'Bin Mandatory, Require Pick'));
-        AssertCollectedError(
-            CollectedErrors,
-            StrSubstNo(
-                UnsupportedSubcontractingLocationErr,
-                PurchaseLocation.Code,
-                'Require Put-away, Require Receive, Require Shipment'));
+        // [THEN] The blocking error reports every incompatible location and its unsupported settings
+        BlockingError := GetLastErrorText();
+        Assert.IsTrue(
+            BlockingError.Contains(
+                StrSubstNo(
+                    UnsupportedSubcontractingLocationErr,
+                    VendorLocation.Code,
+                    'Bin Mandatory, Require Pick')),
+            'The precheck should report the vendor location and its unsupported settings.');
+        Assert.IsTrue(
+            BlockingError.Contains(
+                StrSubstNo(
+                    UnsupportedSubcontractingLocationErr,
+                    PurchaseLocation.Code,
+                    'Require Put-away, Require Receive, Require Shipment')),
+            'The precheck should report the purchase location and its unsupported settings.');
     end;
 
     [Test]
@@ -1096,17 +1096,6 @@ codeunit 149956 "IT Subc. Migration Tests"
             StrSubstNo('ManufacturingSetup."Legacy Subcontracting" should be %1.', ExpectedValue));
 #pragma warning restore AA0217
 #pragma warning restore AA0233
-    end;
-
-    local procedure AssertCollectedError(CollectedErrors: List of [ErrorInfo]; ExpectedMessage: Text)
-    var
-        CollectedError: ErrorInfo;
-    begin
-        foreach CollectedError in CollectedErrors do
-            if CollectedError.Message = ExpectedMessage then
-                exit;
-
-        Error('Expected collected error was not found: %1', ExpectedMessage);
     end;
 
     local procedure ActivateLegacySubcontracting()
