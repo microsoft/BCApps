@@ -1314,13 +1314,11 @@ codeunit 148339 "Spend Request Test"
         ExpenseApprovalSetup: Record "Expense Approval Setup";
     begin
         CreateApprover(ApproverExpenseUser);
-        if not ExpenseApprovalSetup.Get(ExpenseUser."No.") then begin
-            ExpenseApprovalSetup.Init();
-            ExpenseApprovalSetup.Validate("Expense User No.", ExpenseUser."No.");
-            ExpenseApprovalSetup.Insert(true);
-        end;
-        ExpenseApprovalSetup.Validate("Approver No.", ApproverExpenseUser."No.");
-        ExpenseApprovalSetup.Modify(true);
+        if ExpenseApprovalSetup.Get(ExpenseUser."No.") then begin
+            ExpenseApprovalSetup.Validate("Approver No.", ApproverExpenseUser."No.");
+            ExpenseApprovalSetup.Modify(true);
+        end else
+            LibraryExpense.CreateExpenseApprovalSetup(ExpenseApprovalSetup, ExpenseUser."No.", ApproverExpenseUser."No.");
     end;
 
     local procedure CreateApprover(var ApproverExpenseUser: Record "Expense User")
