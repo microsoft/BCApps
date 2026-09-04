@@ -577,26 +577,25 @@ codeunit 134619 "Composite Layout Tests"
 
     [Test]
     [Scope('OnPrem')]
-    procedure CompositeReportPartsUpgradeTagIsNotRegisteredPerDatabase()
+    procedure CompositeReportPartsUpgradeTagIsRegisteredPerDatabase()
     var
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
         UpgradeTag: Codeunit "Upgrade Tag";
         PerDatabaseTags: List of [Code[250]];
     begin
-        // [SCENARIO] The tag that gates the seeding pass must not be registered for OnGetPerDatabaseUpgradeTags.
-        // EnsurePerDatabaseUpgradeTagsExist stamps every registered tag that is missing, without knowing whether the
-        // pass succeeded, and SetAllUpgradeTags runs on every new company. Registering it would therefore mark the tag
-        // complete after a failed seed, and the pass would never retry the parts it could not write. Only a completed
-        // pass may record this tag, and it does so itself in SeedShippedParts.
+        // [SCENARIO] The tag that gates the seeding pass is registered for OnGetPerDatabaseUpgradeTags, so a new
+        // tenant gets it stamped at deployment (SetAllUpgradeTags at company initialization) instead of waiting for
+        // the first upgrade or company open. The data itself ships with the deployment: OnInstallAppPerDatabase seeds
+        // the parts and raises on failure, so the tag cannot be stamped for a database the install left unseeded.
         Initialize();
 
         // [WHEN] Collecting the registered per-database upgrade tags.
         UpgradeTag.GetPerDatabaseUpgradeTags(PerDatabaseTags);
 
-        // [THEN] The composite report parts tag is not among them.
-        Assert.IsFalse(
+        // [THEN] The composite report parts tag is among them.
+        Assert.IsTrue(
             PerDatabaseTags.Contains(UpgradeTagDefinitions.GetCompositeReportPartsUpgradeTag()),
-            'Registering the tag per database would stamp it after a failed seed and stop the pass from retrying.');
+            'The composite report parts tag should be registered per database so new tenants get it at deployment.');
     end;
 
     [Test]
