@@ -170,8 +170,8 @@ page 4300 "Agent Task List"
             action(ExportTaskLogEntries)
             {
                 ApplicationArea = All;
-                Caption = 'Export steps';
-                ToolTip = 'Download all steps for the selected task as a JSON file.';
+                Caption = 'Export log entries';
+                ToolTip = 'Download all log entries and related troubleshooting memory for the selected task as a JSON file.';
                 Enabled = TaskSelected;
                 Image = ExportFile;
                 Scope = Repeater;
