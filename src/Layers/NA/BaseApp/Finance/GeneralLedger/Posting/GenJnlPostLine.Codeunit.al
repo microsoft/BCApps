@@ -4480,7 +4480,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
             if not TempVATPostingSetup.IsEmpty() then begin
                 if (GenJnlLine."Document Type" = GenJnlLine."Document Type"::"Credit Memo") and (CustLedgEntry2."Document Type" = CustLedgEntry2."Document Type"::Invoice) then
                     ShouldConsiderVATPostingGrouping := true;
-                if (GenJnlLine."Document Type" = GenJnlLine."Document Type"::Invoice) and (CustLedgEntry2."Document Type" = CustLedgEntry2."Document Type"::Invoice) then
+                if (GenJnlLine."Document Type" = GenJnlLine."Document Type"::Invoice) and
+                    (CustLedgEntry2."Document Type" in [CustLedgEntry2."Document Type"::Invoice, CustLedgEntry2."Document Type"::"Credit Memo"])
+                then
                     ShouldConsiderVATPostingGrouping := true;
             end;
 
@@ -4527,6 +4529,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         VATAmountCash: Decimal;
         VATBaseCash: Decimal;
         ShouldPostGLEntries: Boolean;
+        CreditMemoDocumentNo: Code[20];
     begin
         ShouldPostGLEntries := not (
             (GenJnlLine."Document Type" = GenJnlLine."Document Type"::"Credit Memo") and
@@ -4556,7 +4559,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if VATEntry2.FindSet() then begin
             if ShouldConsiderVATPostingGrouping then begin
                 InvoicePartAmountByVAT := CustLedgEntry2.GetInvoicePartAmountByVAT(CustLedgEntry2."Document Type", GenJnlLine, TempVATPostingSetup."VAT Bus. Posting Group", TempVATPostingSetup."VAT Prod. Posting Group");
-                SettledAmountByVAT := CustLedgEntry2.GetCreditMemoPartAmountByVAT(GenJnlLine, TempVATPostingSetup."VAT Bus. Posting Group", TempVATPostingSetup."VAT Prod. Posting Group", SettledAmount);
+                CreditMemoDocumentNo := GenJnlLine."Document No.";
+                if CustLedgEntry2."Document Type" = CustLedgEntry2."Document Type"::"Credit Memo" then
+                    CreditMemoDocumentNo := CustLedgEntry2."Document No.";
+                SettledAmountByVAT := CustLedgEntry2.GetCreditMemoPartAmountByVAT(CreditMemoDocumentNo, TempVATPostingSetup."VAT Bus. Posting Group", TempVATPostingSetup."VAT Prod. Posting Group", SettledAmount);
             end;
             LastConnectionNo := 0;
             repeat
@@ -4636,6 +4642,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
                                 VATEntry2."Add.-Currency Unrealized Base" * VATPart,
                                 AddCurrency."Amount Rounding Precision");
                         end;
+
+                    VATAmount := ABSMin(VATAmount, VATEntry2."Remaining Unrealized Amount");
+                    VATBase := ABSMin(VATBase, VATEntry2."Remaining Unrealized Base");
+                    VATAmountAddCurr := ABSMin(VATAmountAddCurr, VATEntry2."Add.-Curr. Rem. Unreal. Amount");
+                    VATBaseAddCurr := ABSMin(VATBaseAddCurr, VATEntry2."Add.-Curr. Rem. Unreal. Base");
 
                     // what is LCY value of VAT and VAT Base at posting date (cash basis)
                     if (VATPostingSetup."Unrealized VAT Type" = VATPostingSetup."Unrealized VAT Type"::"Cash Basis") and

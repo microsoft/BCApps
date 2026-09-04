@@ -698,11 +698,9 @@
         CreditMemoNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
         // [THEN] Invoice Group1 Remaining Unrealized Amount is correctly reduced using group-specific invoice amount
-        VATEntry.SetRange(Type, VATEntry.Type::Sale);
-        VATEntry.SetRange("Document Type", VATEntry."Document Type"::Invoice);
-        VATEntry.SetRange("Document No.", InvoiceNo);
-        VATEntry.SetRange("VAT Prod. Posting Group", VATPostingSetup[1]."VAT Prod. Posting Group");
-        VATEntry.FindFirst();
+        FindVATEntryByDocumentAndPostingGroup(
+          VATEntry, VATEntry.Type::Sale, VATEntry."Document Type"::Invoice,
+          InvoiceNo, VATPostingSetup[1]."VAT Prod. Posting Group");
         Assert.AreNearlyEqual(
           -Round(UnitPrice[1] * 10 / 100 * (1 - CrMemoAmountInclVAT / InvoiceGroup1AmountInclVAT)),
           VATEntry."Remaining Unrealized Amount",
@@ -710,8 +708,9 @@
           'Group1 remaining unrealized VAT should be reduced by credit memo portion of Group1 invoice amount');
 
         // [THEN] Invoice Group2 Remaining Unrealized Amount is unchanged
-        VATEntry.SetRange("VAT Prod. Posting Group", VATPostingSetup[2]."VAT Prod. Posting Group");
-        VATEntry.FindFirst();
+        FindVATEntryByDocumentAndPostingGroup(
+          VATEntry, VATEntry.Type::Sale, VATEntry."Document Type"::Invoice,
+          InvoiceNo, VATPostingSetup[2]."VAT Prod. Posting Group");
         Assert.AreNearlyEqual(
           -Round(UnitPrice[2] * 21 / 100),
           VATEntry."Remaining Unrealized Amount",
@@ -760,11 +759,9 @@
         VerifyUnrealizedVATFullyRealized(InvoiceNo, VATPostingSetup[1]."VAT Prod. Posting Group");
 
         // [THEN] Invoice Group2 Remaining Unrealized Amount is unchanged
-        VATEntry.SetRange(Type, VATEntry.Type::Sale);
-        VATEntry.SetRange("Document Type", VATEntry."Document Type"::Invoice);
-        VATEntry.SetRange("Document No.", InvoiceNo);
-        VATEntry.SetRange("VAT Prod. Posting Group", VATPostingSetup[2]."VAT Prod. Posting Group");
-        VATEntry.FindFirst();
+        FindVATEntryByDocumentAndPostingGroup(
+          VATEntry, VATEntry.Type::Sale, VATEntry."Document Type"::Invoice,
+          InvoiceNo, VATPostingSetup[2]."VAT Prod. Posting Group");
         Assert.AreNearlyEqual(
           -Round(UnitPrice[2] * 21 / 100),
           VATEntry."Remaining Unrealized Amount",
@@ -961,10 +958,9 @@
         CreditMemoNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
         // [THEN] Invoice VAT Entry "Remaining Unrealized Amount" equals -(1000 - 500) * 10% = -50
-        VATEntry.SetRange(Type, VATEntry.Type::Sale);
-        VATEntry.SetRange("Document Type", VATEntry."Document Type"::Invoice);
-        VATEntry.SetRange("Document No.", InvoiceNo);
-        VATEntry.FindFirst();
+        FindVATEntryByDocumentAndPostingGroup(
+          VATEntry, VATEntry.Type::Sale, VATEntry."Document Type"::Invoice,
+          InvoiceNo, VATPostingSetup."VAT Prod. Posting Group");
         Assert.AreNearlyEqual(
           -Round((UnitPrice - CreditMemoPrice) * 10 / 100),
           VATEntry."Remaining Unrealized Amount",
@@ -1057,10 +1053,9 @@
         CreditMemoNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
         // [THEN] Credit Memo VAT Entry "Unrealized Amount" equals 500 * 10% = 50
-        VATEntry.SetRange(Type, VATEntry.Type::Sale);
-        VATEntry.SetRange("Document Type", VATEntry."Document Type"::"Credit Memo");
-        VATEntry.SetRange("Document No.", CreditMemoNo);
-        VATEntry.FindFirst();
+        FindVATEntryByDocumentAndPostingGroup(
+          VATEntry, VATEntry.Type::Sale, VATEntry."Document Type"::"Credit Memo",
+          CreditMemoNo, VATPostingSetup."VAT Prod. Posting Group");
         Assert.AreNearlyEqual(
           Round(CreditMemoPrice * 10 / 100),
           VATEntry."Unrealized Amount",
@@ -1130,6 +1125,7 @@
         Currency: Record Currency;
         SalesHeader: array[2] of Record "Sales Header";
         SalesLine: array[2] of Record "Sales Line";
+        VATEntry: Record "VAT Entry";
         VATPostingSetup: Record "VAT Posting Setup";
         VATPostingSetup2: Record "VAT Posting Setup";
         CustomerNo: Code[20];
@@ -1192,6 +1188,13 @@
 
         // [VERIFY] Verify VAT Realized Amount for customer.
         VerifyVATEntryForPostApplication(VATAmount);
+
+        // [THEN] Only the invoice VAT group represented by the credit memo is fully realized
+        VerifyUnrealizedVATFullyRealized(InvoiceNo, VATPostingSetup."VAT Prod. Posting Group");
+        FindVATEntryByDocumentAndPostingGroup(
+          VATEntry, VATEntry.Type::Sale, VATEntry."Document Type"::Invoice,
+          InvoiceNo, VATPostingSetup2."VAT Prod. Posting Group");
+        VATEntry.TestField("Remaining Unrealized Amount", VATEntry."Unrealized Amount");
     end;
 
     local procedure Initialize()
@@ -1452,6 +1455,21 @@
         VATEntry.FindFirst();
     end;
 
+    local procedure FindVATEntryByDocumentAndPostingGroup(var VATEntry: Record "VAT Entry"; VATType: Enum "General Posting Type"; DocumentType: Enum "Gen. Journal Document Type"; DocumentNo: Code[20]; VATProdPostingGroup: Code[20])
+    begin
+        VATEntry.SetCurrentKey("Document No.", "Posting Date");
+        VATEntry.SetRange("Document No.", DocumentNo);
+        VATEntry.FindSet();
+        repeat
+            if (VATEntry.Type = VATType) and
+               (VATEntry."Document Type" = DocumentType) and
+               (VATEntry."VAT Prod. Posting Group" = VATProdPostingGroup)
+            then
+                exit;
+        until VATEntry.Next() = 0;
+        VATEntry.FieldError("VAT Prod. Posting Group", VATProdPostingGroup);
+    end;
+
     local procedure CalcVendInvoiceAmount(InvoiceNo: Code[20]): Decimal
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
@@ -1563,11 +1581,8 @@
     var
         VATEntry: Record "VAT Entry";
     begin
-        VATEntry.SetRange(Type, VATEntry.Type::Sale);
-        VATEntry.SetRange("Document Type", VATEntry."Document Type"::Invoice);
-        VATEntry.SetRange("Document No.", InvoiceNo);
-        VATEntry.SetRange("VAT Prod. Posting Group", VATProdPostingGroup);
-        VATEntry.FindFirst();
+        FindVATEntryByDocumentAndPostingGroup(
+          VATEntry, VATEntry.Type::Sale, VATEntry."Document Type"::Invoice, InvoiceNo, VATProdPostingGroup);
         Assert.AreEqual(0, VATEntry."Remaining Unrealized Amount", 'Remaining Unrealized Amount should be zero');
         Assert.AreEqual(0, VATEntry."Remaining Unrealized Base", 'Remaining Unrealized Base should be zero');
     end;
