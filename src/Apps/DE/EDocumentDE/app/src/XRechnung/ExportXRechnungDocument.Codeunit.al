@@ -47,6 +47,8 @@ codeunit 13916 "Export XRechnung Document"
         ItemChargeStructures: Dictionary of [Integer, Integer];
         LineLevelItemChargeAmounts: Dictionary of [Integer, Decimal];
         LineLevelItemChargeLineNos: Dictionary of [Integer, List of [Integer]];
+        TempLineLevelChargeSalesInvLine: Record "Sales Invoice Line" temporary;
+        TempLineLevelChargeSalesCrMemoLine: Record "Sales Cr.Memo Line" temporary;
         FeatureNameTok: Label 'E-document XRechnung Format', Locked = true;
         StartEventNameTok: Label 'E-document XRechnung export started', Locked = true;
         EndEventNameTok: Label 'E-document XRechnung export completed', Locked = true;
@@ -510,8 +512,11 @@ codeunit 13916 "Export XRechnung Document"
             if (Structure = Structure::"Line Allowance/Charge") and not IsExportedLine(SalesInvLine, TargetSalesInvLine."Line No.") then
                 Structure := Structure::"Document Allowance/Charge";
             ItemChargeStructures.Add(ChargeSalesInvLine."Line No.", Structure.AsInteger());
-            if Structure = Structure::"Line Allowance/Charge" then
+            if Structure = Structure::"Line Allowance/Charge" then begin
                 AddLineLevelItemCharge(TargetSalesInvLine."Line No.", ChargeSalesInvLine."Line No.", ChargeSalesInvLine.Amount);
+                TempLineLevelChargeSalesInvLine := ChargeSalesInvLine;
+                TempLineLevelChargeSalesInvLine.Insert();
+            end;
         until ChargeSalesInvLine.Next() = 0;
     end;
 
@@ -542,8 +547,11 @@ codeunit 13916 "Export XRechnung Document"
             if (Structure = Structure::"Line Allowance/Charge") and not IsExportedLine(SalesCrMemoLine, TargetSalesCrMemoLine."Line No.") then
                 Structure := Structure::"Document Allowance/Charge";
             ItemChargeStructures.Add(ChargeSalesCrMemoLine."Line No.", Structure.AsInteger());
-            if Structure = Structure::"Line Allowance/Charge" then
+            if Structure = Structure::"Line Allowance/Charge" then begin
                 AddLineLevelItemCharge(TargetSalesCrMemoLine."Line No.", ChargeSalesCrMemoLine."Line No.", ChargeSalesCrMemoLine.Amount);
+                TempLineLevelChargeSalesCrMemoLine := ChargeSalesCrMemoLine;
+                TempLineLevelChargeSalesCrMemoLine.Insert();
+            end;
         until ChargeSalesCrMemoLine.Next() = 0;
     end;
 
@@ -552,6 +560,8 @@ codeunit 13916 "Export XRechnung Document"
         Clear(ItemChargeStructures);
         Clear(LineLevelItemChargeAmounts);
         Clear(LineLevelItemChargeLineNos);
+        TempLineLevelChargeSalesInvLine.DeleteAll();
+        TempLineLevelChargeSalesCrMemoLine.DeleteAll();
     end;
 
     local procedure AddLineLevelItemCharge(TargetLineNo: Integer; ChargeLineNo: Integer; ChargeAmount: Decimal)
@@ -633,7 +643,6 @@ codeunit 13916 "Export XRechnung Document"
 
     local procedure InsertLineLevelItemChargeAllowanceCharges(var InvoiceLineElement: XmlElement; var SalesInvLine: Record "Sales Invoice Line"; CurrencyCode: Code[10])
     var
-        ChargeSalesInvLine: Record "Sales Invoice Line";
         ChargeLineNos: List of [Integer];
         ChargeLineNo: Integer;
     begin
@@ -641,8 +650,8 @@ codeunit 13916 "Export XRechnung Document"
             exit;
 
         foreach ChargeLineNo in ChargeLineNos do begin
-            ChargeSalesInvLine.Get(SalesInvLine."Document No.", ChargeLineNo);
-            InsertItemChargeAllowanceCharge(InvoiceLineElement, ChargeSalesInvLine, CurrencyCode, false, '', '');
+            TempLineLevelChargeSalesInvLine.Get(SalesInvLine."Document No.", ChargeLineNo);
+            InsertItemChargeAllowanceCharge(InvoiceLineElement, TempLineLevelChargeSalesInvLine, CurrencyCode, false, '', '');
         end;
     end;
 
@@ -671,7 +680,6 @@ codeunit 13916 "Export XRechnung Document"
 
     local procedure InsertLineLevelItemChargeAllowanceCharges(var CrMemoLineElement: XmlElement; var SalesCrMemoLine: Record "Sales Cr.Memo Line"; CurrencyCode: Code[10])
     var
-        ChargeSalesCrMemoLine: Record "Sales Cr.Memo Line";
         ChargeLineNos: List of [Integer];
         ChargeLineNo: Integer;
     begin
@@ -679,8 +687,8 @@ codeunit 13916 "Export XRechnung Document"
             exit;
 
         foreach ChargeLineNo in ChargeLineNos do begin
-            ChargeSalesCrMemoLine.Get(SalesCrMemoLine."Document No.", ChargeLineNo);
-            InsertItemChargeAllowanceCharge(CrMemoLineElement, ChargeSalesCrMemoLine, CurrencyCode, false, '', '');
+            TempLineLevelChargeSalesCrMemoLine.Get(SalesCrMemoLine."Document No.", ChargeLineNo);
+            InsertItemChargeAllowanceCharge(CrMemoLineElement, TempLineLevelChargeSalesCrMemoLine, CurrencyCode, false, '', '');
         end;
     end;
 

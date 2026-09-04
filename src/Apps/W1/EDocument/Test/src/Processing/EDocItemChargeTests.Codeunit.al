@@ -7,6 +7,7 @@ namespace Microsoft.eServices.EDocument.Test;
 using Microsoft.eServices.EDocument;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Enums;
+using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Setup;
 using Microsoft.Sales.Customer;
@@ -725,6 +726,36 @@ codeunit 139786 "E-Doc. Item Charge Tests"
     end;
 
     [Test]
+    procedure EInvoiceUnitCodeMustBeConfiguredAsInternationalStandardCode()
+    var
+        ItemCharge: Record "Item Charge";
+        UnitOfMeasure: Record "Unit of Measure";
+    begin
+        // [SCENARIO] An item charge accepts only unit codes configured as UNECERec20 international standard codes.
+        Initialize();
+
+        // [GIVEN] HUR is configured as the international standard code of a unit of measure
+        if not UnitOfMeasure.Get('EDOCHOUR') then begin
+            UnitOfMeasure.Code := 'EDOCHOUR';
+            UnitOfMeasure."International Standard Code" := 'HUR';
+            UnitOfMeasure.Insert();
+        end;
+        ItemCharge.Get(LibraryInventory.CreateItemChargeNo());
+
+        // [WHEN] HUR is assigned to the item charge
+        ItemCharge.Validate("E-Invoice Unit Code", 'HUR');
+
+        // [THEN] The configured international standard code is accepted
+        Assert.AreEqual('HUR', ItemCharge."E-Invoice Unit Code", 'A configured international standard code must be accepted.');
+
+        // [WHEN] An unknown international standard code is assigned
+        asserterror ItemCharge.Validate("E-Invoice Unit Code", 'INVALID');
+
+        // [THEN] The value is rejected
+        Assert.ExpectedError(ItemCharge.FieldCaption("E-Invoice Unit Code"));
+    end;
+
+    [Test]
     procedure ReasonTextAndReasonCodeRoundTripThroughApi()
     var
         ItemCharge: Record "Item Charge";
@@ -834,6 +865,43 @@ codeunit 139786 "E-Doc. Item Charge Tests"
         // [THEN] The subscriber was called and its classification is returned
         Assert.IsTrue(EDocItemChargeSubscriber.WasInvoked(), 'The classification event must be raised.');
         Assert.AreEqual(Structure::"Document Allowance/Charge", Structure, 'The subscriber must be able to override the resolved classification.');
+    end;
+
+    [Test]
+    procedure SubscriberOverridesResolvedCrMemoStructure()
+    var
+        Customer: Record Customer;
+        Item: Record Item;
+        EDocumentService: Record "E-Document Service";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        ChargeSalesCrMemoLine: Record "Sales Cr.Memo Line";
+        ItemSalesCrMemoLine: Record "Sales Cr.Memo Line";
+        TargetSalesCrMemoLine: Record "Sales Cr.Memo Line";
+        EDocItemChargeMapping: Codeunit "E-Doc. Item Charge Mapping";
+        EDocItemChargeSubscriber: Codeunit "E-Doc. Item Chrg. Subscriber";
+        Structure: Enum "Item Charge E-Doc. Structure";
+        CrMemoNo: Code[20];
+    begin
+        // [SCENARIO] A subscriber can override the resolved credit memo classification before the e-document is generated.
+        Initialize();
+
+        // [GIVEN] A posted sales credit memo where the item charge would automatically be a line level allowance/charge
+        CreateCustomerAndItem(Customer, Item);
+        CrMemoNo := CreateAndPostCrMemoWithChargeAssignedToItemLines(Customer, Item, 1);
+        GetPostedCrMemoLines(CrMemoNo, SalesCrMemoHeader, ChargeSalesCrMemoLine, ItemSalesCrMemoLine);
+        InitService(EDocumentService, EDocumentService."Item Charge E-Invoice Mapping"::Automatic);
+
+        // [GIVEN] A subscriber that forces a document level allowance/charge
+        EDocItemChargeSubscriber.SetStructure(Structure::"Document Allowance/Charge");
+        BindSubscription(EDocItemChargeSubscriber);
+
+        // [WHEN] The item charge line is classified
+        Structure := EDocItemChargeMapping.GetItemChargeStructure(EDocumentService, SalesCrMemoHeader, ChargeSalesCrMemoLine, TargetSalesCrMemoLine);
+        UnbindSubscription(EDocItemChargeSubscriber);
+
+        // [THEN] The credit memo event was raised and the subscriber classification is returned
+        Assert.IsTrue(EDocItemChargeSubscriber.WasInvoked(), 'The credit memo classification event must be raised.');
+        Assert.AreEqual(Structure::"Document Allowance/Charge", Structure, 'The subscriber must be able to override the resolved credit memo classification.');
     end;
 
     [Test]
