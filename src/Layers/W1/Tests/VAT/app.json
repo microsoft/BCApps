@@ -3,7 +3,7 @@
   "name": "Tests-VAT",
   "publisher": "Microsoft",
   "version": "30.0.0.0",
-  "platform": "29.0.0.0",
+  "platform": "30.0.0.0",
   "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
   "dependencies": [
     {
