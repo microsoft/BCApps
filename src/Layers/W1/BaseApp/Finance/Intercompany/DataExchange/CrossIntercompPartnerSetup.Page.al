@@ -491,7 +491,7 @@ page 561 "CrossIntercomp. Partner Setup"
         if Url = '' then
             exit(true);
 
-        exit(CrossIntercompanyConnector.ValidateDestinationUrl(Url));
+        exit(CrossIntercompanyConnector.IsDestinationUrlTrusted(Url));
     end;
     #endregion
 }

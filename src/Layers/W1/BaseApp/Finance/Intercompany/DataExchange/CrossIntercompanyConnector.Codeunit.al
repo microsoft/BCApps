@@ -395,19 +395,22 @@ codeunit 560 "CrossIntercompany Connector"
     end;
 
     internal procedure ValidateDestinationUrl(DestinationUrl: Text): Boolean
+    begin
+        if not IsDestinationUrlTrusted(DestinationUrl) then
+            RejectInvalidDestinationUrl(GetHostFromUrl(DestinationUrl));
+
+        exit(true);
+    end;
+
+    internal procedure IsDestinationUrlTrusted(DestinationUrl: Text): Boolean
     var
         UrlHelper: Codeunit "Url Helper";
-        ExpectedHostSuffix: Text;
     begin
         if UrlHelper.IsPPE() then
-            ExpectedHostSuffix := DynamicsPPEHostSuffixTok
-        else
-            if UrlHelper.IsPROD() then
-                ExpectedHostSuffix := DynamicsProdHostSuffixTok
-            else
-                RejectInvalidDestinationUrl(GetHostFromUrl(DestinationUrl));
-
-        exit(IsDestinationUrlAllowed(DestinationUrl, ExpectedHostSuffix));
+            exit(IsDestinationUrlAllowed(DestinationUrl, DynamicsPPEHostSuffixTok));
+        if UrlHelper.IsPROD() then
+            exit(IsDestinationUrlAllowed(DestinationUrl, DynamicsProdHostSuffixTok));
+        exit(false);
     end;
 
     internal procedure IsDestinationUrlAllowed(DestinationUrl: Text; ExpectedHostSuffix: Text): Boolean
@@ -415,15 +418,12 @@ codeunit 560 "CrossIntercompany Connector"
         Uri: Codeunit Uri;
     begin
         if not Uri.IsValidUri(DestinationUrl) or not DestinationUrl.StartsWith('https://') then
-            RejectInvalidDestinationUrl(GetHostFromUrl(DestinationUrl));
+            exit(false);
 
         Uri.Init(DestinationUrl);
 
         // Allow any Dynamics host (including Embed ISV subdomains) under the environment's trusted domain.
-        if not LowerCase(Uri.GetHost()).EndsWith(ExpectedHostSuffix) then
-            RejectInvalidDestinationUrl(GetHostFromUrl(DestinationUrl));
-
-        exit(true);
+        exit(LowerCase(Uri.GetHost()).EndsWith(ExpectedHostSuffix));
     end;
 
     local procedure RejectInvalidDestinationUrl(Host: Text)

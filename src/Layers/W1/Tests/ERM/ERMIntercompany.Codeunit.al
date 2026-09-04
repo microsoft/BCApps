@@ -1143,11 +1143,8 @@ codeunit 134151 "ERM Intercompany"
         CrossIntercompanyConnector: Codeunit "CrossIntercompany Connector";
     begin
         // [FEATURE] [AI test 0.4]
-        asserterror CrossIntercompanyConnector.IsDestinationUrlAllowed('http://api.businesscentral.dynamics.com/v2.0/companies', '.dynamics.com');
-        Assert.ExpectedError('The intercompany connection URL must use the trusted Business Central API host.');
-
-        asserterror CrossIntercompanyConnector.IsDestinationUrlAllowed('https://api.businesscentral.dynamics.com.example.com/v2.0/companies', '.dynamics.com');
-        Assert.ExpectedError('The intercompany connection URL must use the trusted Business Central API host.');
+        Assert.IsFalse(CrossIntercompanyConnector.IsDestinationUrlAllowed('http://api.businesscentral.dynamics.com/v2.0/companies', '.dynamics.com'), 'A non-HTTPS URL must be rejected.');
+        Assert.IsFalse(CrossIntercompanyConnector.IsDestinationUrlAllowed('https://api.businesscentral.dynamics.com.example.com/v2.0/companies', '.dynamics.com'), 'A look-alike host must be rejected.');
     end;
 
     [Test]
