@@ -23,6 +23,7 @@ using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.Journal;
 using Microsoft.Warehouse.Ledger;
 using Microsoft.Warehouse.Structure;
+using System.Utilities;
 
 codeunit 6534 "Item Tracking Code Change Mgt."
 {
@@ -42,13 +43,15 @@ codeunit 6534 "Item Tracking Code Change Mgt."
                 exit(true);
     end;
 
+    [ErrorBehavior(ErrorBehavior::Collect)]
     internal procedure ValidateItemTrackingCodeChangeAdvanced(
         Item: Record Item;
         ItemTrackingCode: Record "Item Tracking Code";
         PreviousItemTrackingCode: Record "Item Tracking Code")
     begin
+        TestNoExpirationCalculation(Item);
         TestCostIsAdjustedAndPostedToGL(Item);
-        Item.TestNoOpenEntriesExist(Item.FieldCaption("Item Tracking Code"));
+        TestNoOpenItemLedgerEntries(Item);
         TestNoItemLedgerEntriesOnChangeDate(Item);
         TestNoReservationEntriesOrTrackingSpecifications(Item);
         TestNoDocumentLinesPreventingTrackingCodeChange(Item);
@@ -56,14 +59,50 @@ codeunit 6534 "Item Tracking Code Change Mgt."
         TestNoOutstandingWarehouseQuantity(Item);
         TestNoWarehouseDocumentsOrActivities(Item);
         TestNoServiceItems(Item);
+
+        if HasCollectedErrors() then begin
+            ShowCollectedErrors();
+            exit;
+        end;
+
         LogItemTrackingCodeChange(Item."No.", PreviousItemTrackingCode.Code, ItemTrackingCode.Code);
+    end;
+
+    local procedure ShowCollectedErrors()
+    var
+        TempErrorMessage: Record "Error Message" temporary;
+        ErrorMessageMgt: Codeunit "Error Message Management";
+    begin
+        ErrorMessageMgt.CollectErrors(TempErrorMessage);
+        TempErrorMessage.ShowErrorMessages(true);
+    end;
+
+    local procedure TestNoExpirationCalculation(Item: Record Item)
+    var
+        EmptyDateFormula: DateFormula;
+    begin
+        Item.TestField("Expiration Calculation", EmptyDateFormula, ErrorInfo.Create('', true));
     end;
 
     local procedure TestCostIsAdjustedAndPostedToGL(Item: Record Item)
     begin
-        Item.TestField("Cost is Adjusted", true);
+        Item.TestField("Cost is Adjusted", true, ErrorInfo.Create('', true));
         Item.CalcFields("Cost is Posted to G/L");
-        Item.TestField("Cost is Posted to G/L", true);
+        Item.TestField("Cost is Posted to G/L", true, ErrorInfo.Create('', true));
+    end;
+
+    local procedure TestNoOpenItemLedgerEntries(Item: Record Item)
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        ItemLedgerEntry.SetCurrentKey("Item No.", Open);
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange(Open, true);
+        if not ItemLedgerEntry.IsEmpty() then
+            CollectError(
+                StrSubstNo(
+                    OpenItemLedgerEntriesExistErr,
+                    Item.FieldCaption("Item Tracking Code"), Item."No."));
     end;
 
     local procedure TestNoItemLedgerEntriesOnChangeDate(Item: Record Item)
@@ -72,9 +111,9 @@ codeunit 6534 "Item Tracking Code Change Mgt."
     begin
         ItemLedgerEntry.SetCurrentKey("Item No.", "Posting Date");
         ItemLedgerEntry.SetRange("Item No.", Item."No.");
-        ItemLedgerEntry.SetRange("Posting Date", Today);
+        ItemLedgerEntry.SetRange("Posting Date", WorkDate());
         if not ItemLedgerEntry.IsEmpty() then
-            Error(ItemLedgerEntriesOnChangeDateErr, Item."No.", Today);
+            CollectError(StrSubstNo(ItemLedgerEntriesOnChangeDateErr, Item."No.", WorkDate()));
     end;
 
     local procedure TestNoReservationEntriesOrTrackingSpecifications(Item: Record Item)
@@ -85,11 +124,11 @@ codeunit 6534 "Item Tracking Code Change Mgt."
         ReservationEntry.SetCurrentKey("Item No.");
         ReservationEntry.SetRange("Item No.", Item."No.");
         if not ReservationEntry.IsEmpty() then
-            Error(RecordsExistErr, Item.FieldCaption("Item Tracking Code"), Item."No.", ReservationEntry.TableCaption());
+            CollectRecordsExistError(Item, ReservationEntry.TableCaption());
 
         TrackingSpecification.SetRange("Item No.", Item."No.");
         if not TrackingSpecification.IsEmpty() then
-            Error(RecordsExistErr, Item.FieldCaption("Item Tracking Code"), Item."No.", TrackingSpecification.TableCaption());
+            CollectRecordsExistError(Item, TrackingSpecification.TableCaption());
     end;
 
     local procedure TestNoDocumentLinesPreventingTrackingCodeChange(Item: Record Item)
@@ -112,12 +151,12 @@ codeunit 6534 "Item Tracking Code Change Mgt."
         SalesLine.SetRange("No.", Item."No.");
         SalesLine.SetFilter("Qty. Shipped Not Invoiced", '<>0');
         if not SalesLine.IsEmpty() then
-            Error(RecordsExistErr, Item.FieldCaption("Item Tracking Code"), Item."No.", SalesLine.TableCaption());
+            CollectRecordsExistError(Item, SalesLine.TableCaption());
 
         SalesLine.SetRange("Qty. Shipped Not Invoiced");
         SalesLine.SetFilter("Return Qty. Rcd. Not Invd.", '<>0');
         if not SalesLine.IsEmpty() then
-            Error(RecordsExistErr, Item.FieldCaption("Item Tracking Code"), Item."No.", SalesLine.TableCaption());
+            CollectRecordsExistError(Item, SalesLine.TableCaption());
     end;
 
     local procedure CheckPurchaseDocuments(Item: Record Item)
@@ -129,12 +168,12 @@ codeunit 6534 "Item Tracking Code Change Mgt."
         PurchaseLine.SetRange("No.", Item."No.");
         PurchaseLine.SetFilter("Qty. Rcd. Not Invoiced", '<>0');
         if not PurchaseLine.IsEmpty() then
-            Error(RecordsExistErr, Item.FieldCaption("Item Tracking Code"), Item."No.", PurchaseLine.TableCaption());
+            CollectRecordsExistError(Item, PurchaseLine.TableCaption());
 
         PurchaseLine.SetRange("Qty. Rcd. Not Invoiced");
         PurchaseLine.SetFilter("Return Qty. Shipped Not Invd.", '<>0');
         if not PurchaseLine.IsEmpty() then
-            Error(RecordsExistErr, Item.FieldCaption("Item Tracking Code"), Item."No.", PurchaseLine.TableCaption());
+            CollectRecordsExistError(Item, PurchaseLine.TableCaption());
     end;
 
     local procedure CheckTransferDocuments(Item: Record Item)
@@ -145,7 +184,7 @@ codeunit 6534 "Item Tracking Code Change Mgt."
         TransferLine.SetRange("Item No.", Item."No.");
         TransferLine.SetFilter("Outstanding Qty. (Base)", '<>0');
         if not TransferLine.IsEmpty() then
-            Error(RecordsExistErr, Item.FieldCaption("Item Tracking Code"), Item."No.", TransferLine.TableCaption());
+            CollectRecordsExistError(Item, TransferLine.TableCaption());
     end;
 
     local procedure CheckServiceDocuments(Item: Record Item)
@@ -158,11 +197,11 @@ codeunit 6534 "Item Tracking Code Change Mgt."
         ServiceLine.SetRange("No.", Item."No.");
         ServiceLine.SetFilter("Outstanding Qty. (Base)", '<>0');
         if not ServiceLine.IsEmpty() then
-            Error(RecordsExistErr, Item.FieldCaption("Item Tracking Code"), Item."No.", ServiceLine.TableCaption());
+            CollectRecordsExistError(Item, ServiceLine.TableCaption());
 
         ServiceItemLine.SetRange("Item No.", Item."No.");
         if not ServiceItemLine.IsEmpty() then
-            Error(RecordsExistErr, Item.FieldCaption("Item Tracking Code"), Item."No.", ServiceItemLine.TableCaption());
+            CollectRecordsExistError(Item, ServiceItemLine.TableCaption());
     end;
 
     local procedure CheckProjectDocuments(Item: Record Item)
@@ -174,7 +213,7 @@ codeunit 6534 "Item Tracking Code Change Mgt."
         JobPlanningLine.SetRange("No.", Item."No.");
         JobPlanningLine.SetFilter("Remaining Qty. (Base)", '<>0');
         if not JobPlanningLine.IsEmpty() then
-            Error(RecordsExistErr, Item.FieldCaption("Item Tracking Code"), Item."No.", JobPlanningLine.TableCaption());
+            CollectRecordsExistError(Item, JobPlanningLine.TableCaption());
     end;
 
     local procedure CheckProductionDocuments(Item: Record Item)
@@ -187,14 +226,14 @@ codeunit 6534 "Item Tracking Code Change Mgt."
         ProdOrderLine.SetRange("Item No.", Item."No.");
         ProdOrderLine.SetFilter("Remaining Qty. (Base)", '<>0');
         if not ProdOrderLine.IsEmpty() then
-            Error(RecordsExistErr, Item.FieldCaption("Item Tracking Code"), Item."No.", ProdOrderLine.TableCaption());
+            CollectRecordsExistError(Item, ProdOrderLine.TableCaption());
 
         ProdOrderComponent.SetCurrentKey(Status, "Item No.");
         ProdOrderComponent.SetFilter(Status, '..%1', ProdOrderComponent.Status::Released);
         ProdOrderComponent.SetRange("Item No.", Item."No.");
         ProdOrderComponent.SetFilter("Remaining Qty. (Base)", '<>0');
         if not ProdOrderComponent.IsEmpty() then
-            Error(RecordsExistErr, Item.FieldCaption("Item Tracking Code"), Item."No.", ProdOrderComponent.TableCaption());
+            CollectRecordsExistError(Item, ProdOrderComponent.TableCaption());
     end;
 
     local procedure CheckAssemblyDocuments(Item: Record Item)
@@ -206,14 +245,14 @@ codeunit 6534 "Item Tracking Code Change Mgt."
         AssemblyHeader.SetRange("Item No.", Item."No.");
         AssemblyHeader.SetFilter("Remaining Quantity (Base)", '<>0');
         if not AssemblyHeader.IsEmpty() then
-            Error(RecordsExistErr, Item.FieldCaption("Item Tracking Code"), Item."No.", AssemblyHeader.TableCaption());
+            CollectRecordsExistError(Item, AssemblyHeader.TableCaption());
 
         AssemblyLine.SetCurrentKey(Type, "No.");
         AssemblyLine.SetRange(Type, AssemblyLine.Type::Item);
         AssemblyLine.SetRange("No.", Item."No.");
         AssemblyLine.SetFilter("Remaining Quantity (Base)", '<>0');
         if not AssemblyLine.IsEmpty() then
-            Error(RecordsExistErr, Item.FieldCaption("Item Tracking Code"), Item."No.", AssemblyLine.TableCaption());
+            CollectRecordsExistError(Item, AssemblyLine.TableCaption());
     end;
 
     local procedure TestNoJournalOrPlanningLines(Item: Record Item)
@@ -232,7 +271,7 @@ codeunit 6534 "Item Tracking Code Change Mgt."
         ItemJournalLine.SetCurrentKey("Item No.");
         ItemJournalLine.SetRange("Item No.", Item."No.");
         if not ItemJournalLine.IsEmpty() then
-            Error(RecordsExistErr, Item.FieldCaption("Item Tracking Code"), Item."No.", ItemJournalLine.TableCaption());
+            CollectRecordsExistError(Item, ItemJournalLine.TableCaption());
     end;
 
     local procedure CheckWarehouseJournals(Item: Record Item)
@@ -242,7 +281,7 @@ codeunit 6534 "Item Tracking Code Change Mgt."
         WarehouseJournalLine.SetCurrentKey("Item No.");
         WarehouseJournalLine.SetRange("Item No.", Item."No.");
         if not WarehouseJournalLine.IsEmpty() then
-            Error(RecordsExistErr, Item.FieldCaption("Item Tracking Code"), Item."No.", WarehouseJournalLine.TableCaption());
+            CollectRecordsExistError(Item, WarehouseJournalLine.TableCaption());
     end;
 
     local procedure CheckProjectJournals(Item: Record Item)
@@ -253,7 +292,7 @@ codeunit 6534 "Item Tracking Code Change Mgt."
         JobJournalLine.SetRange(Type, JobJournalLine.Type::Item);
         JobJournalLine.SetRange("No.", Item."No.");
         if not JobJournalLine.IsEmpty() then
-            Error(RecordsExistErr, Item.FieldCaption("Item Tracking Code"), Item."No.", JobJournalLine.TableCaption());
+            CollectRecordsExistError(Item, JobJournalLine.TableCaption());
     end;
 
     local procedure CheckPhysicalInventory(Item: Record Item)
@@ -262,7 +301,7 @@ codeunit 6534 "Item Tracking Code Change Mgt."
     begin
         PhysInvtOrderLine.SetRange("Item No.", Item."No.");
         if not PhysInvtOrderLine.IsEmpty() then
-            Error(RecordsExistErr, Item.FieldCaption("Item Tracking Code"), Item."No.", PhysInvtOrderLine.TableCaption());
+            CollectRecordsExistError(Item, PhysInvtOrderLine.TableCaption());
     end;
 
     local procedure CheckRequisitionLines(Item: Record Item)
@@ -273,7 +312,7 @@ codeunit 6534 "Item Tracking Code Change Mgt."
         RequisitionLine.SetRange(Type, RequisitionLine.Type::Item);
         RequisitionLine.SetRange("No.", Item."No.");
         if not RequisitionLine.IsEmpty() then
-            Error(RecordsExistErr, Item.FieldCaption("Item Tracking Code"), Item."No.", RequisitionLine.TableCaption());
+            CollectRecordsExistError(Item, RequisitionLine.TableCaption());
     end;
 
     local procedure TestNoOutstandingWarehouseQuantity(Item: Record Item)
@@ -285,13 +324,13 @@ codeunit 6534 "Item Tracking Code Change Mgt."
         WarehouseEntry.SetRange("Item No.", Item."No.");
         WarehouseEntry.CalcSums("Qty. (Base)");
         if WarehouseEntry."Qty. (Base)" <> 0 then
-            Error(RecordsExistErr, Item.FieldCaption("Item Tracking Code"), Item."No.", WarehouseEntry.TableCaption());
+            CollectRecordsExistError(Item, WarehouseEntry.TableCaption());
 
         BinContent.SetCurrentKey("Item No.");
         BinContent.SetRange("Item No.", Item."No.");
         BinContent.SetFilter("Quantity (Base)", '<>0');
         if not BinContent.IsEmpty() then
-            Error(RecordsExistErr, Item.FieldCaption("Item Tracking Code"), Item."No.", BinContent.TableCaption());
+            CollectRecordsExistError(Item, BinContent.TableCaption());
     end;
 
     local procedure TestNoWarehouseDocumentsOrActivities(Item: Record Item)
@@ -304,19 +343,19 @@ codeunit 6534 "Item Tracking Code Change Mgt."
         WarehouseReceiptLine.SetRange("Item No.", Item."No.");
         WarehouseReceiptLine.SetFilter("Qty. Outstanding (Base)", '<>0');
         if not WarehouseReceiptLine.IsEmpty() then
-            Error(RecordsExistErr, Item.FieldCaption("Item Tracking Code"), Item."No.", WarehouseReceiptLine.TableCaption());
+            CollectRecordsExistError(Item, WarehouseReceiptLine.TableCaption());
 
         WarehouseShipmentLine.SetCurrentKey("Item No.");
         WarehouseShipmentLine.SetRange("Item No.", Item."No.");
         WarehouseShipmentLine.SetFilter("Qty. Outstanding (Base)", '<>0');
         if not WarehouseShipmentLine.IsEmpty() then
-            Error(RecordsExistErr, Item.FieldCaption("Item Tracking Code"), Item."No.", WarehouseShipmentLine.TableCaption());
+            CollectRecordsExistError(Item, WarehouseShipmentLine.TableCaption());
 
         WarehouseActivityLine.SetCurrentKey("Item No.");
         WarehouseActivityLine.SetRange("Item No.", Item."No.");
         WarehouseActivityLine.SetFilter("Qty. Outstanding (Base)", '<>0');
         if not WarehouseActivityLine.IsEmpty() then
-            Error(RecordsExistErr, Item.FieldCaption("Item Tracking Code"), Item."No.", WarehouseActivityLine.TableCaption());
+            CollectRecordsExistError(Item, WarehouseActivityLine.TableCaption());
     end;
 
     local procedure TestNoServiceItems(Item: Record Item)
@@ -326,7 +365,17 @@ codeunit 6534 "Item Tracking Code Change Mgt."
         ServiceItem.SetCurrentKey("Item No.");
         ServiceItem.SetRange("Item No.", Item."No.");
         if not ServiceItem.IsEmpty() then
-            Error(RecordsExistErr, Item.FieldCaption("Item Tracking Code"), Item."No.", ServiceItem.TableCaption());
+            CollectRecordsExistError(Item, ServiceItem.TableCaption());
+    end;
+
+    local procedure CollectRecordsExistError(Item: Record Item; RecordCaption: Text)
+    begin
+        CollectError(StrSubstNo(RecordsExistErr, Item.FieldCaption("Item Tracking Code"), Item."No.", RecordCaption));
+    end;
+
+    local procedure CollectError(ErrorMessage: Text)
+    begin
+        Error(ErrorInfo.Create(ErrorMessage, true));
     end;
 
     local procedure ItemLedgerEntriesExist(ItemNo: Code[20]): Boolean
@@ -355,13 +404,13 @@ codeunit 6534 "Item Tracking Code Change Mgt."
     begin
         ItemTrackingCodeChangeLog.Init();
         ItemTrackingCodeChangeLog.Validate("Item No.", ItemNo);
-        ItemTrackingCodeChangeLog.Validate("Change Date", Today);
+        ItemTrackingCodeChangeLog.Validate("Change Date", WorkDate());
         ItemTrackingCodeChangeLog.Validate("Previous Item Tracking Code", PreviousItemTrackingCode);
         ItemTrackingCodeChangeLog.Validate("New Item Tracking Code", NewItemTrackingCode);
         ItemTrackingCodeChangeLog.Insert(true);
     end;
 
-    internal procedure HasTrackingCodeChanges(ItemNo: Code[20]; PostingDate: Date): Boolean
+    local procedure HasTrackingCodeChanges(ItemNo: Code[20]; PostingDate: Date): Boolean
     var
         ItemTrackingCodeChangeLog: Record "Item Tracking Code Change Log";
     begin
@@ -370,9 +419,42 @@ codeunit 6534 "Item Tracking Code Change Mgt."
         exit(not ItemTrackingCodeChangeLog.IsEmpty());
     end;
 
+    internal procedure IsLinkedApplicationAcrossTrackingPeriods(ItemNo: Code[20]; ItemLedgerEntryNo: Integer): Boolean
+    var
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        if ItemLedgerEntryNo = 0 then
+            exit(false);
+        if not ItemLedgerEntry.Get(ItemLedgerEntryNo) then
+            exit(false);
+        if ItemLedgerEntry."Item No." <> ItemNo then
+            exit(false);
+        if not HasTrackingCodeChanges(ItemNo, ItemLedgerEntry."Posting Date") then
+            exit(false);
 
+        Item.Get(ItemNo);
+        exit(GetTrackingCodeAtPosting(ItemLedgerEntry) <> Item."Item Tracking Code");
+    end;
+
+    local procedure GetTrackingCodeAtPosting(ItemLedgerEntry: Record "Item Ledger Entry"): Code[10]
+    var
+        Item: Record Item;
+        ItemTrackingCodeChangeLog: Record "Item Tracking Code Change Log";
+    begin
+        Item.Get(ItemLedgerEntry."Item No.");
+        ItemTrackingCodeChangeLog.SetCurrentKey("Item No.", "Change Date");
+        ItemTrackingCodeChangeLog.SetRange("Item No.", ItemLedgerEntry."Item No.");
+        ItemTrackingCodeChangeLog.SetFilter("Change Date", '>%1', ItemLedgerEntry."Posting Date");
+
+        if ItemTrackingCodeChangeLog.FindFirst() then
+            exit(ItemTrackingCodeChangeLog."Previous Item Tracking Code");
+
+        exit(Item."Item Tracking Code");
+    end;
 
     var
         ItemLedgerEntriesOnChangeDateErr: Label 'You cannot change the Item Tracking Code for item %1 because item ledger entries exist with Posting Date %2.', Comment = '%1 = Item No., %2 = posting date';
+        OpenItemLedgerEntriesExistErr: Label 'You cannot change %1 for item %2 because one or more open item ledger entries exist.', Comment = '%1 = Item Tracking Code field caption, %2 = Item No.';
         RecordsExistErr: Label 'You cannot change %1 for item %2 because one or more %3 records exist.', Comment = '%1 = Item Tracking Code field caption, %2 = Item No., %3 = table caption';
 }
