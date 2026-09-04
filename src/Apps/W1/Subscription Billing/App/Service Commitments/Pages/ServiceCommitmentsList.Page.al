@@ -240,16 +240,6 @@ page 8014 "Service Commitments List"
                     ToolTip = 'Specifies whether the Subscription was created by creating a Contract line manually.';
                     Visible = false;
                 }
-#if not CLEAN26
-                field("Item No."; Rec."Item No.")
-                {
-                    ToolTip = 'Specifies the value of the Item No. field.';
-                    ObsoleteReason = 'Replaced by field Source No.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                    Visible = false;
-                }
-#endif
                 field("Service Object Description"; Rec."Subscription Description")
                 {
                     ToolTip = 'Specifies the value of the Subscription Description field.';

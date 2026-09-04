@@ -40,24 +40,8 @@ table 6103 "E-Document Service"
             Caption = 'Service Integration';
             DataClassification = SystemMetadata;
             ObsoleteReason = 'Use Service Integration V2 integration enum instead';
-#if CLEAN26
             ObsoleteState = Removed;
-#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
-            ObsoleteTag = '29.0';
-#pragma warning restore AS0072
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '26.0';
-
-            trigger OnValidate()
-            var
-                ConsentManagerDefaultImpl: Codeunit "Consent Manager Default Impl.";
-            begin
-                if (xRec."Service Integration" = xRec."Service Integration"::"No Integration") and (Rec."Service Integration" <> xRec."Service Integration") then
-                    if not ConsentManagerDefaultImpl.ObtainPrivacyConsent() then
-                        Rec."Service Integration" := xRec."Service Integration";
-            end;
-#endif
+            ObsoleteTag = '30.0';
         }
 #endif
         field(5; "Use Batch Processing"; Boolean)
@@ -389,13 +373,7 @@ table 6103 "E-Document Service"
 
     internal procedure ToString(): Text
     begin
-#if not CLEAN26
-#pragma warning disable AL0432
-        exit(StrSubstNo(EDocStringLbl, SystemId, "Document Format", "Service Integration", "Use Batch Processing", "Batch Mode"));
-#pragma warning restore AL0432
-#else
         exit(StrSubstNo(EDocStringLbl, SystemId, "Document Format", "Service Integration V2", "Use Batch Processing", "Batch Mode"));
-#endif
     end;
 
     /// <summary>

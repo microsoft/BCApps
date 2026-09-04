@@ -1,11 +1,5 @@
 namespace Microsoft.SubscriptionBilling;
 
-#pragma warning disable AS0072
-#if not CLEAN26
-using Microsoft.Foundation.Task;
-using Microsoft.Projects.Project.Job;
-#endif
-#pragma warning restore AS0072
 using Microsoft.Purchases.Document;
 using Microsoft.RoleCenters;
 using Microsoft.Sales.Document;
@@ -25,56 +19,6 @@ page 8085 "Sub. Billing Activities"
     {
         area(content)
         {
-#pragma warning disable AS0072
-#if not CLEAN26
-            cuegroup("My User Tasks")
-            {
-                ObsoleteReason = 'Removed as tasks are already a part of other role centers.';
-                ObsoleteState = Pending;
-                ObsoleteTag = '26.0';
-                Visible = false;
-                Caption = 'My User Tasks';
-                field("UserTaskManagement.GetMyPendingUserTasksCount"; UserTaskManagement.GetMyPendingUserTasksCount())
-                {
-                    ObsoleteReason = 'Removed as tasks are already a part of other role centers.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                    Visible = false;
-                    Caption = 'Pending User Tasks';
-                    Image = Checklist;
-                    ToolTip = 'Specifies the number of pending tasks that are assigned to you or to a group that you are a member of.';
-
-                    trigger OnDrillDown()
-                    var
-                        UserTaskList: Page "User Task List";
-                    begin
-                        UserTaskList.SetPageToShowMyPendingUserTasks();
-                        UserTaskList.Run();
-                    end;
-                }
-            }
-            cuegroup("Jobs to Budget")
-            {
-                ObsoleteReason = 'Removed as projects are not relevant in context of Subscription Billing';
-                ObsoleteState = Pending;
-                ObsoleteTag = '26.0';
-                Visible = false;
-                Caption = 'Projects to Budget';
-                field("Jobs Over Budget"; Rec."Jobs Over Budget")
-                {
-                    ObsoleteReason = 'Removed as projects are not relevant in context of Subscription Billing';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                    Visible = false;
-                    Caption = 'Over Budget';
-                    DrillDownPageId = "Job List";
-                    Editable = false;
-                    ToolTip = 'Specifies the number of projects where the usage cost exceeds the budgeted cost.';
-                }
-            }
-#endif
-#pragma warning restore AS0072
-
             cuegroup("Open Posted Documents Customer")
             {
                 Caption = 'Open Posting Documents Customer';
@@ -270,10 +214,5 @@ page 8085 "Sub. Billing Activities"
     var
         SubBillingActivitiesCue: Codeunit "Sub. Billing Activities Cue";
         CuesAndKpisCodeunit: Codeunit "Cues And KPIs";
-#pragma warning disable AS0072
-#if not CLEAN26
-        UserTaskManagement: Codeunit "User Task Management";
-#endif
-#pragma warning restore AS0072
         CalcTaskId: Integer;
 }

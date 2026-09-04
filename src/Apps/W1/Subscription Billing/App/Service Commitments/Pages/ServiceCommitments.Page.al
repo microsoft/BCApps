@@ -284,16 +284,6 @@ page 8064 "Service Commitments"
     {
         area(Processing)
         {
-#if not CLEAN26
-            group(ServiceCommitments)
-            {
-                Caption = 'Subscription Lines';
-                Image = "Item";
-                ObsoleteReason = 'This group control is removed';
-                ObsoleteState = Pending;
-                ObsoleteTag = '26.0';
-            }
-#endif
             action(NewLine)
             {
                 ApplicationArea = All;

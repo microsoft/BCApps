@@ -227,16 +227,6 @@ page 6133 "E-Document Service"
                 {
                     Caption = 'Obsoleted fields are visible through out the deprecation period. These should not be used in new implementations, and existing implementations should migrate to the new fields before the deprecation period ends.';
                 }
-#if not CLEAN26
-                field("Service Integration"; Rec."Service Integration")
-                {
-                    Caption = 'Service Integration (Obsoleted)';
-                    ToolTip = 'Specifies the integration used for sending and receiving e-documents. Integration is build on legacy implementation that will be deprecated in future releases.';
-                    ObsoleteTag = '26.0';
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'Replaced with field "Service Integration V2"';
-                }
-#endif
             }
         }
     }
@@ -342,38 +332,8 @@ page 6133 "E-Document Service"
         FeatureTelemetry.LogUptake('0000KZ6', EDocumentHelper.GetEDocTok(), Enum::"Feature Uptake Status"::Discovered);
         CurrPage.EDocumentExportFormatMapping.Page.SaveAsImport(false);
         CurrPage.EDocumentImportFormatMapping.Page.SaveAsImport(true);
-#if not CLEAN26
-#pragma warning disable AL0432
-        LegacyIntegrationVisible := (Rec."Service Integration" <> Rec."Service Integration"::"No Integration");
-#pragma warning restore AL0432
-#endif
     end;
 
-#if not CLEAN26
-    local procedure RunSetupServiceIntegration()
-    var
-#pragma warning disable AL0432
-        EDocumentIntegration: Interface "E-Document Integration";
-#pragma warning restore AL0432
-        SetupPage, SetupTable : Integer;
-        PageOpened: Boolean;
-    begin
-        OnBeforeOpenServiceIntegrationSetupPage(Rec, PageOpened);
-        if not PageOpened then begin
-#pragma warning disable AL0432
-            EDocumentIntegration := Rec."Service Integration";
-            EDocumentIntegration.GetIntegrationSetup(SetupPage, SetupTable);
-#pragma warning restore AL0432
-            if SetupPage <> 0 then begin
-                PageOpened := true;
-                Page.Run(SetupPage);
-            end;
-        end;
-
-        if not PageOpened then
-            Message(ServiceIntegrationSetupMsg);
-    end;
-#else
     local procedure RunSetupServiceIntegration()
     var
         PageOpened: Boolean;
@@ -382,7 +342,6 @@ page 6133 "E-Document Service"
         if not PageOpened then
             Message(ServiceIntegrationSetupMsg);
     end;
-#endif
 
     local procedure ReceiveDocs()
     var

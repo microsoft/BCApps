@@ -52,16 +52,8 @@ codeunit 6134 "E-Doc. Integration Management"
         BeforeSendEDocErrorCount: Dictionary of [Integer, Integer];
     begin
         Success := false;
-#if not CLEAN26
-#pragma warning disable AL0432 
-        if (EDocumentService."Service Integration" = EDocumentService."Service Integration"::"No Integration") and
-        (EDocumentService."Service Integration V2" = EDocumentService."Service Integration V2"::"No Integration") then
-            exit(false);
-#pragma warning restore AL0432 
-#else
          if (EDocumentService."Service Integration V2" = EDocumentService."Service Integration V2"::"No Integration") then
             exit(false);
-#endif
 
         EDocuments.FindSet();
         if not EDocumentLog.GetDocumentBlobFromLog(EDocuments, EDocumentService, TempBlob, Enum::"E-Document Service Status"::Exported) then begin
@@ -92,81 +84,6 @@ codeunit 6134 "E-Doc. Integration Management"
     #endregion
 
     #region Receive
-
-#if not CLEAN26
-#pragma warning disable AL0432 
-    internal procedure ReceiveDocument(EDocService: Record "E-Document Service"; EDocIntegration: Interface "E-Document Integration"): Boolean
-    var
-        EDocument, EDocument2 : Record "E-Document";
-        EDocLog: Record "E-Document Log";
-        LocalEDocumentLog: Codeunit "E-Document Log";
-        TempBlob: Codeunit "Temp Blob";
-        EDocImport: Codeunit "E-Doc. Import";
-        EDocErrorHelper: Codeunit "E-Document Error Helper";
-        EDocumentServiceStatus: Enum "E-Document Service Status";
-        HttpResponse: HttpResponseMessage;
-        HttpRequest: HttpRequestMessage;
-        I, EDocBatchDataStorageEntryNo, EDocCount : Integer;
-        HasErrors, IsCreated, IsProcessed : Boolean;
-    begin
-        EDocIntegration.ReceiveDocument(TempBlob, HttpRequest, HttpResponse);
-
-        if not TempBlob.HasValue() then
-            exit;
-
-        EDocCount := EDocIntegration.GetDocumentCountInBatch(TempBlob);
-        if EDocCount = 0 then
-            exit;
-
-        if EDocCount > 1 then
-            EDocumentServiceStatus := Enum::"E-Document Service Status"::"Batch Imported"
-        else
-            EDocumentServiceStatus := Enum::"E-Document Service Status"::Imported;
-
-        HasErrors := false;
-        for I := 1 to EDocCount do begin
-            IsCreated := false;
-            IsProcessed := false;
-            EDocument.Init();
-            EDocument."Index In Batch" := I;
-            EDocImport.V1_BeforeInsertImportedEdocument(EDocument, EDocService, TempBlob, EDocCount, HttpRequest, HttpResponse, IsCreated, IsProcessed);
-
-            if not IsCreated then begin
-                EDocument."Entry No" := 0;
-                EDocument.Status := EDocument.Status::"In Progress";
-                EDocument.Direction := EDocument.Direction::Incoming;
-                EDocument.Insert();
-
-                if I = 1 then begin
-                    EDocLog := LocalEDocumentLog.InsertLog(EDocument, EDocService, TempBlob, EDocumentServiceStatus);
-                    EDocBatchDataStorageEntryNo := EDocLog."E-Doc. Data Storage Entry No.";
-                end else begin
-                    EDocLog := LocalEDocumentLog.InsertLog(EDocument, EDocService, EDocumentServiceStatus);
-                    LocalEDocumentLog.ModifyDataStorageEntryNo(EDocLog, EDocBatchDataStorageEntryNo);
-                end;
-
-                LocalEDocumentLog.InsertIntegrationLog(EDocument, EDocService, HttpRequest, HttpResponse);
-                EDocumentProcessing.InsertServiceStatus(EDocument, EDocService, EDocumentServiceStatus);
-                EDocumentProcessing.ModifyEDocumentStatus(EDocument);
-
-                EDocImport.V1_AfterInsertImportedEdocument(EDocument, EDocService, TempBlob, EDocCount, HttpRequest, HttpResponse);
-            end;
-
-            if (not IsProcessed) then
-                EDocImport.V1_ProcessImportedDocument(EDocument, EDocService, TempBlob, EDocService."Create Journal Lines", EDocService.IsAutomaticProcessingEnabled());
-
-            if EDocErrorHelper.HasErrors(EDocument) then begin
-                LocalEDocumentLog.SetFields(EDocument, EDocService);
-                LocalEDocumentLog.InsertLog("E-Document Service Status"::"Imported Document Processing Error");
-                EDocument2 := EDocument;
-                HasErrors := true;
-            end;
-        end;
-
-        exit(not HasErrors);
-    end;
-#pragma warning restore AL0432 
-#endif
 
     procedure ReceiveDocuments(var EDocumentService: Record "E-Document Service"; ReceiveContext: Codeunit ReceiveContext)
     var
@@ -290,106 +207,19 @@ codeunit 6134 "E-Doc. Integration Management"
     end;
 
     internal procedure GetApprovalStatus(EDocument: Record "E-Document"; EDocumentService: Record "E-Document Service"; ActionContext: Codeunit ActionContext)
-#if not CLEAN26
-    var
-        EDocumentServiceStatus: Record "E-Document Service Status";
-#pragma warning disable AL0432 
-        EDocIntegration: Interface "E-Document Integration";
-#pragma warning restore AL0432
-        EDocServiceStatus: Enum "E-Document Service Status";
-        HttpResponse: HttpResponseMessage;
-        HttpRequest: HttpRequestMessage;
-        IsHandled: Boolean;
-#endif
     begin
-#if not CLEAN26
-#pragma warning disable AL0432
-        if (EDocumentService."Service Integration" = EDocumentService."Service Integration"::"No Integration") and
-        (EDocumentService."Service Integration V2" = EDocumentService."Service Integration V2"::"No Integration") then
-            exit;
-#pragma warning restore AL0432
-#endif
-
         if EDocumentService."Service Integration V2" <> EDocumentService."Service Integration V2"::"No Integration" then begin
             InvokeAction(EDocument, EDocumentService, Enum::"Integration Action Type"::"Sent Document Approval", ActionContext);
             exit;
         end;
-
-#if not CLEAN26
-#pragma warning disable AL0432 
-        EDocServiceStatus := Enum::"E-Document Service Status"::Rejected;
-        EDocumentServiceStatus.Get(EDocument."Entry No", EDocumentService.Code);
-        EDocIntegration := EDocumentService."Service Integration";
-
-        if EDocIntegration.GetApproval(EDocument, HttpRequest, HttpResponse) then
-            EDocServiceStatus := Enum::"E-Document Service Status"::Approved
-        else begin
-            OnGetEDocumentApprovalReturnsFalse(EDocument, EDocumentService, HttpRequest, HttpResponse, IsHandled);
-            if not IsHandled then
-                EDocServiceStatus := Enum::"E-Document Service Status"::Rejected
-        end;
-
-        // After interface call, reread the EDocument and EDocumentService for the latest values.
-        EDocument.Get(EDocument."Entry No");
-        EDocumentService.Get(EDocumentService.Code);
-
-        if not IsHandled then begin
-            AddLogAndUpdateEDocument(EDocument, EDocumentService, EDocServiceStatus);
-            EDocumentLog.InsertIntegrationLog(EDocument, EDocumentService, HttpRequest, HttpResponse);
-        end;
-#pragma warning restore AL0432 
-#endif
     end;
 
     internal procedure GetCancellationStatus(EDocument: Record "E-Document"; EDocumentService: Record "E-Document Service"; ActionContext: Codeunit ActionContext)
-#if not CLEAN26
-    var
-        EDocumentServiceStatus: Record "E-Document Service Status";
-#pragma warning disable AL0432 
-        EDocIntegration: Interface "E-Document Integration";
-#pragma warning restore AL0432 
-        EDocServiceStatus: Enum "E-Document Service Status";
-        HttpResponse: HttpResponseMessage;
-        HttpRequest: HttpRequestMessage;
-        IsHandled: Boolean;
-#endif
     begin
-#if not CLEAN26
-#pragma warning disable AL0432
-        if (EDocumentService."Service Integration" = EDocumentService."Service Integration"::"No Integration") and
-        (EDocumentService."Service Integration V2" = EDocumentService."Service Integration V2"::"No Integration") then
-            exit;
-#pragma warning restore AL0432
-#endif
-
         if EDocumentService."Service Integration V2" <> EDocumentService."Service Integration V2"::"No Integration" then begin
             InvokeAction(EDocument, EDocumentService, Enum::"Integration Action Type"::"Sent Document Cancellation", ActionContext);
             exit;
         end;
-
-#if not CLEAN26
-#pragma warning disable AL0432 
-        EDocumentServiceStatus.Get(EDocument."Entry No", EDocumentService.Code);
-        EDocIntegration := EDocumentService."Service Integration";
-
-        if EDocIntegration.Cancel(EDocument, HttpRequest, HttpResponse) then
-            EDocServiceStatus := Enum::"E-Document Service Status"::"Canceled"
-        else begin
-            OnCancelEDocumentReturnsFalse(EDocument, EDocumentService, HttpRequest, HttpResponse, IsHandled);
-            if not IsHandled then
-                EDocServiceStatus := Enum::"E-Document Service Status"::"Cancel Error";
-        end;
-
-        // After interface call, reread the EDocument and EDocumentService for the latest values.
-        EDocument.Get(EDocument."Entry No");
-        EDocumentService.Get(EDocumentService.Code);
-
-        if not IsHandled then begin
-            AddLogAndUpdateEDocument(EDocument, EDocumentService, EDocServiceStatus);
-            EDocumentLog.InsertIntegrationLog(EDocument, EDocumentService, HttpRequest, HttpResponse);
-        end;
-#pragma warning restore AL0432
-#endif
     end;
 
     #endregion
@@ -414,9 +244,6 @@ codeunit 6134 "E-Doc. Integration Management"
         EDocument.Get(EDocument."Entry No");
         EDocumentService.Get(EDocumentService.Code);
         IsAsync := SendRunner.GetIsAsync();
-#if not CLEAN26
-        SendRunner.GetSendContext(SendContext);
-#endif
         OnAfterSendDocument(EDocument, EDocumentService, SendContext.Http().GetHttpRequestMessage(), SendContext.Http().GetHttpResponseMessage());
         Telemetry.LogMessage('0000LBM', EDocTelemetrySendScopeEndLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::All);
     end;
@@ -453,9 +280,6 @@ codeunit 6134 "E-Doc. Integration Management"
         EDocuments.FindSet();
         EDocumentService.Get(EDocumentService.Code);
         IsAsync := SendRunner.GetIsAsync();
-#if not CLEAN26
-        SendRunner.GetSendContext(SendContext);
-#endif
 
         Telemetry.LogMessage('0000LBO', EDocTelemetrySendBatchScopeEndLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::All);
     end;
@@ -577,16 +401,8 @@ codeunit 6134 "E-Doc. Integration Management"
         OnBeforeIsEDocumentInStateToSend(EDocument, EDocumentService, IsInStateToSend, IsHandled);
         if IsHandled then
             exit(IsInStateToSend);
-#if not CLEAN26
-#pragma warning disable AL0432 
-        if (EDocumentService."Service Integration" = EDocumentService."Service Integration"::"No Integration") and
-        (EDocumentService."Service Integration V2" = EDocumentService."Service Integration V2"::"No Integration") then
-            exit(false);
-#pragma warning restore AL0432
-#else
          if (EDocumentService."Service Integration V2" = EDocumentService."Service Integration V2"::"No Integration") then
             exit(false);
-#endif
 
         if EDocumentServiceStatus.Get(EDocument."Entry No", EDocumentService.Code) then
             if not (EDocumentServiceStatus.Status in [Enum::"E-Document Service Status"::"Sending Error", Enum::"E-Document Service Status"::Exported]) then begin
@@ -624,20 +440,6 @@ codeunit 6134 "E-Doc. Integration Management"
         EDocTelemetryMarkFetchedScopeStartLbl: Label 'E-Document Mark Fetched: Start Scope', Locked = true;
         EDocTelemetryMarkFetchedScopeEndLbl: Label 'E-Document Mark Fetched: End Scope', Locked = true;
         EDocNoFilterOnBatchSendErr: Label 'No Entry No. filter is set on the E-Document for batch to sending';
-
-#if not CLEAN26
-    [IntegrationEvent(false, false)]
-    [Obsolete('This event is obsoleted for GetApprovalStatus in "Default Int. Actions" interface.', '26.0')]
-    local procedure OnCancelEDocumentReturnsFalse(EDocuments: Record "E-Document"; EDocumentService: Record "E-Document Service"; HttpRequest: HttpRequestMessage; HttpResponse: HttpResponseMessage; var IsHandled: Boolean)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    [Obsolete('This event is obsoleted for GetCancellationStatus in "Default Int. Actions" interface.', '26.0')]
-    local procedure OnGetEDocumentApprovalReturnsFalse(EDocuments: Record "E-Document"; EDocumentService: Record "E-Document Service"; HttpRequest: HttpRequestMessage; HttpResponse: HttpResponseMessage; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeIsEDocumentInStateToSend(EDocument: Record "E-Document"; EDocumentService: Record "E-Document Service"; var IsInStateToSend: Boolean; var IsHandled: Boolean)

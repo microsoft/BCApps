@@ -52,4 +52,3 @@ page 37007 "Sales Actual vs. Budget Qty."
         ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Sales App");
     end;
 }
-
