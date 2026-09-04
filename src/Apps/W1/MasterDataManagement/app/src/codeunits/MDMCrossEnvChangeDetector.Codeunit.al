@@ -58,7 +58,7 @@ codeunit 7245 "MDM Cross-Env Change Detector"
         // Still non-fatal to this recurring job: skip the poll, the next scheduled run retries.
         if not TryNegotiateDetectionSupport(Transport, Supported) then begin
             Dimensions.Add('Category', MasterDataManagement.GetTelemetryCategory());
-            Session.LogMessage('0000VAZ', DetectorCapabilitiesFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
+            Session.LogMessage('0000VAZ', DetectorCapabilitiesFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, Dimensions);
             exit;
         end;
         // Older source doesn't advertise the detection action: skip rather than error every run.
@@ -72,7 +72,7 @@ codeunit 7245 "MDM Cross-Env Change Detector"
             exit;
         end;
         if not SourceResponse.TryParse(ResponseText, Response) then begin
-            Session.LogMessage('0000VAP', DetectorParseFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
+            Session.LogMessage('0000VAP', DetectorParseFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
             exit;
         end;
 
@@ -128,7 +128,7 @@ codeunit 7245 "MDM Cross-Env Change Detector"
         if SourceResponse.ConsentRequired(Response) then
             exit; // source hasn't consented to sharing; the sync job surfaces the actionable error, the detector skips
         if (not Response.Get('tables', TablesToken)) or (not TablesToken.IsArray()) then begin
-            Session.LogMessage('0000VAQ', DetectionContractFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', MasterDataManagement.GetTelemetryCategory());
+            Session.LogMessage('0000VAQ', DetectionContractFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
             exit;
         end;
         Tables := TablesToken.AsArray();

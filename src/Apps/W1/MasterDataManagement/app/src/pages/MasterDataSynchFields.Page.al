@@ -94,7 +94,7 @@ page 7236 "Master Data Synch. Fields"
             action(FieldMapping)
             {
                 ApplicationArea = Suite;
-                Caption = 'Update Fields';
+                Caption = 'Update fields';
                 Image = Relationship;
                 ToolTip = 'Updates field mappings to match table schema. Use this action if you added fields to the table with an extension.';
 

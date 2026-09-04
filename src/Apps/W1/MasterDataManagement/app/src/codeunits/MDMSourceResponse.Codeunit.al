@@ -115,6 +115,8 @@ codeunit 7248 "MDM Source Response"
     begin
         if not Response.Get('nextCursor', Token) then
             exit('');
+        if not Token.IsObject() then // a non-object cursor is malformed; report "no cursor" so the caller fails the response instead of replaying from the start
+            exit('');
         Token.WriteTo(CursorText);
         exit(CursorText);
     end;

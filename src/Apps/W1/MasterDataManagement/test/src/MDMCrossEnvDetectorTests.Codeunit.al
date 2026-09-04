@@ -162,7 +162,8 @@ codeunit 139933 "MDM Cross-Env Detector Tests"
     begin
         InProcessTransport.Deactivate();
         DetectorProbe.Deactivate();
-        // RunChangeDetector goes through Codeunit.Run, which commits, so prior test data survives rollback.
+        // RunChangeDetector calls DetectChanges() directly (no Codeunit.Run) and the detector never commits, so it runs
+        // inside the test transaction; DeleteTestArtifacts() defensively clears any residue from an aborted prior run.
         DeleteTestArtifacts();
         if not MasterDataManagementSetup.Get() then begin
             MasterDataManagementSetup.Init();

@@ -231,7 +231,7 @@ page 7233 "Master Data Synch. Tables"
             action(ResetConfiguration)
             {
                 ApplicationArea = Suite;
-                Caption = 'Use Default Synchronization Setup';
+                Caption = 'Use default synchronization setup';
                 Image = ResetStatus;
                 ToolTip = 'Resets the tables, fields and synchronization jobs to the default values for the connection with the source company. All default synchronization table definitions are deleted and recreated.';
 
@@ -323,7 +323,7 @@ page 7233 "Master Data Synch. Tables"
             action(SynchronizeNow)
             {
                 ApplicationArea = Suite;
-                Caption = 'Synchronize Modified Records';
+                Caption = 'Synchronize modified records';
                 Enabled = HasRecords and (Rec."Parent Name" = '') and DataSynchEnabled;
                 Image = Refresh;
                 ToolTip = 'Synchronize records that have been modified since the last time they were synchronized.';
@@ -352,7 +352,7 @@ page 7233 "Master Data Synch. Tables"
             action(SynchronizeAll)
             {
                 ApplicationArea = Suite;
-                Caption = 'Run Full Synchronization';
+                Caption = 'Run full synchronization';
                 Enabled = HasRecords and (Rec."Parent Name" = '') and DataSynchEnabled;
                 Image = RefreshLines;
                 ToolTip = 'Start a job for full synchronization from records in the chosen source company for each of the selected tables.';
@@ -409,7 +409,7 @@ page 7233 "Master Data Synch. Tables"
             action(RemoveCoupling)
             {
                 ApplicationArea = Suite;
-                Caption = 'Delete Couplings';
+                Caption = 'Delete couplings';
                 Enabled = HasRecords and (Rec."Parent Name" = '') and DataSynchEnabled;
                 Image = UnLinkAccount;
                 ToolTip = 'Delete couplings for the selected tables.';
