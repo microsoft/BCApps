@@ -90,7 +90,7 @@
     {
       "id": "AL0667",
       "action": "Warning",
-      "justification": "'ObsoleteReason' is being deprecated in the versions: '1.0' or greater. This property is not allowed on areas. This warning will become an error in a future 
+      "justification": "'ObsoleteReason' is being deprecated in the versions: '1.0' or greater. This property is not allowed on areas. This warning will become an error in a future
     },
     {
       "id": "AL0684",
