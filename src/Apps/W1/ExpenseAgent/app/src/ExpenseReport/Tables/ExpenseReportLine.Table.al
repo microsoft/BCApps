@@ -1053,9 +1053,9 @@ table 6907 "Expense Report Line"
         }
         field(100; "Spend Request No."; Code[20])
         {
-            Caption = 'Spend Request No.';
-            ToolTip = 'Specifies the spend request number that is associated with this expense report line.The spend request must be approved and released before it can be selected.';
-            TableRelation = "Spend Request" where(Status = const(Approved));
+            Caption = 'Travel Request No.';
+            ToolTip = 'Specifies the travel request number that is associated with this expense report line. The travel request must be approved and released before it can be selected.';
+            TableRelation = "Spend Request" where(Status = const(Approved), "Document Type" = const("Travel Request"));
 
             trigger OnValidate()
             var
@@ -1079,8 +1079,8 @@ table 6907 "Expense Report Line"
         }
         field(101; "Spend Request Close"; Boolean)
         {
-            Caption = 'Spend Request Close';
-            ToolTip = 'Specifies that the spend request will be closed when the expense report is posted.';
+            Caption = 'Travel Request Close';
+            ToolTip = 'Specifies that the travel request will be closed when the expense report is posted.';
             DataClassification = CustomerContent;
         }
         field(102; "Policies Evaluated At"; DateTime)
@@ -1195,7 +1195,7 @@ table 6907 "Expense Report Line"
         CannotExceedErr: Label '%1 must not exceed %2 = %3.', Comment = '%1 = Field Name, %2 = Limit Field Name, %3 = Limit Value';
         ExpenseReportNotFoundErr: Label 'Expense Report %1 does not exist.', Comment = '%1 = Expense Report No.';
         OnlyRelinkToAnotherReportErr: Label 'You can only relink an expense report line to another expense report.';
-        ExpenseUserNotTravelerErr: Label 'Expense User %1 is not a traveler on Spend Request %2.', Comment = '%1 = Expense User No., %2 = Spend Request No.';
+        ExpenseUserNotTravelerErr: Label 'Expense User %1 is not a traveler on Travel Request %2.', Comment = '%1 = Expense User No., %2 = Travel Request No.';
         BillableCustomerAndProjectErr: Label 'You cannot use both %1 and %2 at the same time.', Comment = '%1 = Billable to Customer field caption, %2 = Project No. field caption';
 
     internal procedure CopyFromVATPostingSetup(var VATPostingSetupFrom: Record "VAT Posting Setup")

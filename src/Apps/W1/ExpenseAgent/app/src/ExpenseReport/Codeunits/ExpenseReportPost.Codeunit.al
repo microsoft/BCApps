@@ -94,6 +94,8 @@ codeunit 6987 "Expense Report-Post"
         SourceCodeSetup.TestField(Expense);
         ExpenseAgentSetup.GetRecordOnce();
 
+        GenJnlPostLine.SetIgnoreJournalTemplNameMandatoryCheck();
+
         if (ExpenseAgentSetup."Enable Approval Workflow") or ExpenseAgentSetup."Enable Agent" then begin
             if not PreviewMode then
                 if ExpenseReportHeader.Status <> ExpenseReportHeader.Status::Approved then
