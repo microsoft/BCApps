@@ -286,7 +286,6 @@ table 8019 "Sub. Contr. Analysis Entry"
             ObsoleteTag = '30.0';
 #endif
         }
-#endif
         field(8010; "Subscription Description"; Text[100])
         {
             Caption = 'Subscription Description';
