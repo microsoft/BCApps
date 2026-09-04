@@ -111,6 +111,20 @@ codeunit 4419 "SOA Send Reply"
         exit('');
     end;
 
+    [TryFunction]
+    internal procedure TryGetMappedReplyCcRecipients(InputAgentTaskMessage: Record "Agent Task Message"; var CCRecipients: List of [Text]; var IsMappedReply: Boolean)
+    var
+        ToRecipients: List of [Text];
+        MappedContactEmail: Text;
+    begin
+        Clear(CCRecipients);
+        Clear(IsMappedReply);
+        MappedContactEmail := GetMappedContactEmail(InputAgentTaskMessage);
+        IsMappedReply := MappedContactEmail <> '';
+        if IsMappedReply then
+            GetMappedReplyRecipients(InputAgentTaskMessage, MappedContactEmail, ToRecipients, CCRecipients);
+    end;
+
     /// <summary>
     /// Ensures that a mapped reply belongs to the selected SOA setup and is sent by its configured owner or agent.
     /// Mapped replies redirect the original thread, so this check is enforced independently of the codeunit's internal access.
