@@ -1056,6 +1056,7 @@ codeunit 99000854 "Inventory Profile Offsetting"
                            (SupplyInvtProfile."Due Date" <= DemandInvtProfile."Due Date")
                         then
                             IncreaseQtyToMeetDemand(SupplyInvtProfile, DemandInvtProfile, false, RespectPlanningParm, false);
+
                     if (TempSKU."Reordering Policy" = TempSKU."Reordering Policy"::"Maximum Qty.") and DemandForAdditionalProfile then
                         DecreaseQtyForMaxQty(SupplyInvtProfile, SupplyIleInvtProfile."Untracked Quantity");
                     if SupplyInvtProfile."Untracked Quantity" < DemandInvtProfile."Untracked Quantity" then
@@ -1109,7 +1110,14 @@ codeunit 99000854 "Inventory Profile Offsetting"
     end;
 
     local procedure DecreaseQtyForMaxQty(var SupplyInvtProfile: Record "Inventory Profile"; ReduceQty: Decimal)
+    var
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeDecreaseQtyForMaxQty(SupplyInvtProfile, TempSKU, ReduceQty, IsHandled);
+        if IsHandled then
+            exit;
+        
         if ReduceQty > 0 then begin
             SupplyInvtProfile."Remaining Quantity (Base)" -= ReduceQty;
             SupplyInvtProfile."Quantity (Base)" -= ReduceQty;
@@ -6136,6 +6144,11 @@ codeunit 99000854 "Inventory Profile Offsetting"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcInventoryProfileRemainingQty(var InventoryProfile: Record "Inventory Profile"; DocumentNo: Code[20]; LineNo: Integer; var RemQty: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeDecreaseQtyForMaxQty(var SupplyInventoryProfile: Record "Inventory Profile"; var TempStockkeepingUnit: Record "Stockkeeping Unit" temporary; ReduceQuantity: Decimal; var IsHandled: Boolean)
     begin
     end;
 }
