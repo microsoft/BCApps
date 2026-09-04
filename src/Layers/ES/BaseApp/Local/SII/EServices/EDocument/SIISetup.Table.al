@@ -269,7 +269,7 @@ table 10751 "SII Setup"
             SIIFeatureNameTok, SecurityOperationResult::Failure,
             StrSubstNo(EndpointUrlRejectedAuditTxt, GetHostFromUrl(Url)),
             AuditCategory::ApplicationManagement);
-        Session.LogMessage('', StrSubstNo(EndpointUrlRejectedTelemetryTxt, GetHostFromUrl(Url)), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SIIFeatureNameTok);
+        Session.LogMessage('0000VCA', StrSubstNo(EndpointUrlRejectedTelemetryTxt, GetHostFromUrl(Url)), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SIIFeatureNameTok);
         Error(InvalidEndpointUrlErr, Url);
     end;
 
