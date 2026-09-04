@@ -234,6 +234,8 @@ table 10751 "SII Setup"
         FeatureTelemetry: Codeunit "Feature Telemetry";
         CannotEnableWithoutCertificateErr: Label 'The setup cannot be enabled without a valid certificate.';
         InvalidEndpointUrlErr: Label 'The endpoint URL %1 is not on the allow-list for this feature.', Comment = '%1 = the URL entered by the user';
+        EndpointUrlRejectedAuditTxt: Label 'A SII endpoint URL was rejected during validation. Host: %1.', Locked = true, Comment = '%1 = the rejected host';
+        EndpointUrlRejectedTelemetryTxt: Label 'A SII endpoint URL was rejected during validation. Host: %1.', Locked = true, Comment = '%1 = the rejected host';
         EndpointFieldChangedTxt: Label 'SII endpoint field "%1" was changed.', Locked = true, Comment = '%1 - endpoint field caption';
         SecurityAuditCertificateCodeChangedTxt: Label 'SII Certificate Code was changed from %1 to %2.', Locked = true, Comment = '%1 - old certificate code, %2 - new certificate code';
         SiiTxt: Label 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/ssii/fact/ws/SuministroInformacion.xsd', Locked = true;
@@ -260,8 +262,15 @@ table 10751 "SII Setup"
 
     procedure ValidateEndpointUrl(Url: Text)
     begin
-        if not IsAllowedEndpointUrl(Url) then
-            Error(InvalidEndpointUrlErr, Url);
+        if IsAllowedEndpointUrl(Url) then
+            exit;
+
+        Session.LogSecurityAudit(
+            SIIFeatureNameTok, SecurityOperationResult::Failure,
+            StrSubstNo(EndpointUrlRejectedAuditTxt, GetHostFromUrl(Url)),
+            AuditCategory::ApplicationManagement);
+        Session.LogMessage('', StrSubstNo(EndpointUrlRejectedTelemetryTxt, GetHostFromUrl(Url)), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SIIFeatureNameTok);
+        Error(InvalidEndpointUrlErr, Url);
     end;
 
     procedure IsAllowedEndpointUrl(Url: Text): Boolean
@@ -289,6 +298,16 @@ table 10751 "SII Setup"
             if (Host = Suffix) or Host.EndsWith('.' + Suffix) then
                 exit(true);
         exit(false);
+    end;
+
+    local procedure GetHostFromUrl(Url: Text): Text
+    var
+        Uri: Codeunit Uri;
+    begin
+        if not Uri.IsWellFormedUriString(Url, Enum::UriKind::Absolute) then
+            exit(Url);
+        Uri.Init(Url);
+        exit(LowerCase(Uri.GetHost()));
     end;
 
     local procedure ValidateAndAuditEndpointUrlChange(EndpointFieldCaption: Text; OldUrl: Text; NewUrl: Text)
