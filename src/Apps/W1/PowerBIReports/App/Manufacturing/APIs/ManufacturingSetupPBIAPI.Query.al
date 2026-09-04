@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.PowerBIReports;
 
+using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Setup;
 
 #if not CLEAN28
@@ -27,6 +28,13 @@ query 37007 "Manufacturing Setup - PBI API"
         dataitem(manufacturingSetup; "Manufacturing Setup")
         {
             column(showCapacityIn; "Show Capacity In") { }
+
+            dataitem(capacityUnitOfMeasure; "Capacity Unit of Measure")
+            {
+                dataitemlink = code = manufacturingSetup."Show Capacity In";
+                column(code; Code) { }
+                column(type; Type) { }
+            }
         }
     }
 }

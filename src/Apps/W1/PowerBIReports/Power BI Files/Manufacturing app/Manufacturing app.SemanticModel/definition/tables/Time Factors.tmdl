@@ -29,10 +29,19 @@ table 'Time Factors'
 		mode: import
 		source =
 				let
-				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45WCnZ19vdzCVbSUTI0MDBQitWJVvL19AsNcQUJmRnAxICS+h75pUVAQWMzmKCHf2hQMEwEKubiGAkSsjAzgYrFAgA=", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [#"Cap Unit of Measure Type" = _t, #"Time Factor" = _t]),
-				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Cap Unit of Measure Type", type text}, {"Time Factor", Int64.Type}})
+					Source = #table(
+						type table [#"Cap Unit of Measure Type" = text, #"Time Factor" = Int64.Type],
+						{
+							{" ", 1},
+							{"Seconds", 1000},
+							{"Minutes", 60000},
+							{"100/Hour", 36000},
+							{"Hours", 3600000},
+							{"Days", 86400000}
+						}
+					)
 				in
-				    #"Changed Type"
+				    Source
 
 	changedProperty = IsHidden
 
