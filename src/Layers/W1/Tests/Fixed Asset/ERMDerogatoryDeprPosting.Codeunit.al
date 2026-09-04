@@ -830,13 +830,17 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         GenJournalLine: Record "Gen. Journal Line";
         FADepreciationBook: Record "FA Depreciation Book";
         FALedgerEntry: Record "FA Ledger Entry";
-        CounterpartFALedgerEntry: Record "FA Ledger Entry";
-        CounterpartReversal: Record "FA Ledger Entry";
+        DepreciationFALedgerEntry: Record "FA Ledger Entry";
+        DerogatoryFALedgerEntry: Record "FA Ledger Entry";
+        DepreciationCounterpartFALedgerEntry: Record "FA Ledger Entry";
+        DerogatoryCounterpartFALedgerEntry: Record "FA Ledger Entry";
+        SourceTransactions: Dictionary of [Integer, Integer];
         FANo: Code[20];
         NormalDeprBookCode: Code[10];
         TaxDeprBookCode: Code[10];
         ExpectedBookValue: Decimal;
         LastFALedgerEntryNo: Integer;
+        TransactionNo: Integer;
     begin
         // [SCENARIO] Reverse the depreciation+derogatory for the first depreciation of a fixed asset
         // [GIVEN] A Fixed asset with a normal and tax depreciation book with G/L integration
@@ -859,31 +863,33 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         RunCalculateDepreciationReport(FANo, NormalDeprBookCode, CalcDate('<CY>', WorkDate()), true);
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
 
-        // [WHEN] The depreciation is reversed from company book
-        FALedgerEntry.SetRange("FA No.", FANo);
-        FALedgerEntry.SetRange("FA Posting Type", FALedgerEntry."FA Posting Type"::Depreciation);
-        FALedgerEntry.SetRange("Depreciation Book Code", NormalDeprBookCode);
-        FALedgerEntry.FindLast();
-        FindLinkedFAEntry(CounterpartFALedgerEntry, FALedgerEntry."Entry No.", TaxDeprBookCode);
-        ReverseFALedgerEntries(FALedgerEntry);
+        // [GIVEN] The calculated depreciation and derogatory sources and their linked counterparts
+        FindFALedgerEntry(
+            DepreciationFALedgerEntry, FANo, NormalDeprBookCode,
+            DepreciationFALedgerEntry."FA Posting Type"::Depreciation);
+        FindLinkedFAEntry(
+            DepreciationCounterpartFALedgerEntry, DepreciationFALedgerEntry."Entry No.", TaxDeprBookCode);
+        FindFALedgerEntry(
+            DerogatoryFALedgerEntry, FANo, NormalDeprBookCode,
+            DerogatoryFALedgerEntry."FA Posting Type"::Derogatory);
+        FindLinkedFAEntry(
+            DerogatoryCounterpartFALedgerEntry, DerogatoryFALedgerEntry."Entry No.", TaxDeprBookCode);
+        SourceTransactions.Set(
+            DepreciationFALedgerEntry."Transaction No.", DepreciationFALedgerEntry."Entry No.");
+        SourceTransactions.Set(
+            DerogatoryFALedgerEntry."Transaction No.", DerogatoryFALedgerEntry."Entry No.");
 
-        // [THEN] The linked derogatory counterpart is automatically reversed
-        FALedgerEntry.Get(FALedgerEntry."Entry No.");
-        FindLinkedFAEntry(CounterpartReversal, FALedgerEntry."Reversed by Entry No.", TaxDeprBookCode);
-        CounterpartFALedgerEntry.Get(CounterpartFALedgerEntry."Entry No.");
-        CounterpartFALedgerEntry.TestField("Reversed by Entry No.", CounterpartReversal."Entry No.");
+        // [WHEN] Each distinct source transaction is reversed from the company book
+        foreach TransactionNo in SourceTransactions.Keys() do begin
+            FALedgerEntry.Get(SourceTransactions.Get(TransactionNo));
+            ReverseFALedgerEntries(FALedgerEntry);
+        end;
 
-        // [WHEN] The derogatory source is reversed from company book
-        FALedgerEntry.SetRange("FA Posting Type", FALedgerEntry."FA Posting Type"::Derogatory);
-        FALedgerEntry.FindLast();
-        FindLinkedFAEntry(CounterpartFALedgerEntry, FALedgerEntry."Entry No.", TaxDeprBookCode);
-        ReverseFALedgerEntries(FALedgerEntry);
-
-        // [THEN] The linked derogatory counterpart is automatically reversed
-        FALedgerEntry.Get(FALedgerEntry."Entry No.");
-        FindLinkedFAEntry(CounterpartReversal, FALedgerEntry."Reversed by Entry No.", TaxDeprBookCode);
-        CounterpartFALedgerEntry.Get(CounterpartFALedgerEntry."Entry No.");
-        CounterpartFALedgerEntry.TestField("Reversed by Entry No.", CounterpartReversal."Entry No.");
+        // [THEN] Both linked counterparts are automatically reversed exactly once
+        VerifyCalculatedSourceReversal(
+            DepreciationFALedgerEntry, DepreciationCounterpartFALedgerEntry, TaxDeprBookCode);
+        VerifyCalculatedSourceReversal(
+            DerogatoryFALedgerEntry, DerogatoryCounterpartFALedgerEntry, TaxDeprBookCode);
 
         // [THEN] The FA ledger entries created by the report are all reversed
         VerifyAllFALedgEntriesReversed(LastFALedgerEntryNo);
@@ -2259,6 +2265,23 @@ codeunit 134149 "ERM Derogatory Depr. Posting"
         FindLinkedFAEntry(CounterpartReversal, ReversingFALedgerEntry."Entry No.", TaxDeprBookCode);
         CounterpartFALedgerEntry.TestField("Reversed by Entry No.", CounterpartReversal."Entry No.");
         VerifyTaxBookFALedgerEntryCount(SourceFALedgerEntry."FA No.", TaxDeprBookCode, 2);
+    end;
+
+    local procedure VerifyCalculatedSourceReversal(SourceFALedgerEntry: Record "FA Ledger Entry"; CounterpartFALedgerEntry: Record "FA Ledger Entry"; TaxDeprBookCode: Code[10])
+    var
+        ReversingFALedgerEntry: Record "FA Ledger Entry";
+        CounterpartReversal: Record "FA Ledger Entry";
+    begin
+        SourceFALedgerEntry.Get(SourceFALedgerEntry."Entry No.");
+        SourceFALedgerEntry.TestField(Reversed, true);
+        SourceFALedgerEntry.TestField("Reversed by Entry No.");
+        ReversingFALedgerEntry.Get(SourceFALedgerEntry."Reversed by Entry No.");
+        ReversingFALedgerEntry.TestField("Reversed Entry No.", SourceFALedgerEntry."Entry No.");
+        FindLinkedFAEntry(CounterpartReversal, ReversingFALedgerEntry."Entry No.", TaxDeprBookCode);
+        CounterpartFALedgerEntry.Get(CounterpartFALedgerEntry."Entry No.");
+        CounterpartFALedgerEntry.TestField(Reversed, true);
+        CounterpartFALedgerEntry.TestField("Reversed by Entry No.", CounterpartReversal."Entry No.");
+        CounterpartReversal.TestField("Reversed Entry No.", CounterpartFALedgerEntry."Entry No.");
     end;
 
     local procedure VerifyLinkedMaintenanceReversal(SourceMaintenanceLedgerEntry: Record "Maintenance Ledger Entry"; CounterpartMaintenanceLedgerEntry: Record "Maintenance Ledger Entry"; ReversingMaintenanceLedgerEntry: Record "Maintenance Ledger Entry"; TaxDeprBookCode: Code[10])

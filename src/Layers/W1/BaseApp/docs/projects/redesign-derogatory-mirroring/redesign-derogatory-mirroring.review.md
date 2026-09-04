@@ -1,13 +1,45 @@
 ---
 prd: C:\Enlist\navagent2\App\BCApps\src\Layers\W1\BaseApp\docs\projects\redesign-derogatory-mirroring\redesign-derogatory-mirroring.prd.md
-scope: 0b1f8578b7^..0b1f8578b7 (9192474e01643a6efdf858d2c82d91b7eb5dbc01..0b1f8578b7398dc2925c3124b4506b08879f49db)
-date_reviewed: 2026-08-18
+scope: current branch through 7e3baa491bc492d0babd9b772d9f4e6a49fca57e plus working-tree requirement and PRD updates
+baseline_review_scope: 0b1f8578b7^..0b1f8578b7 (9192474e01643a6efdf858d2c82d91b7eb5dbc01..0b1f8578b7398dc2925c3124b4506b08879f49db)
+date_reviewed: 2026-09-04
 reviewer: GitHub Copilot
 compliance_status: PARTIALLY_COMPLIANT
-completion_percentage: 73%
+completion_percentage: 82%
 ---
 
-# PRD Implementation Review Report
+# Current Revalidation
+
+**Verdict: PARTIALLY_COMPLIANT (82% weighted requirements completion).** The three implementation failures from the 2026-08-18 review are resolved in current source. No functional requirement remains at `FAIL`, but release readiness remains partial because the transaction-topology-neutral reversal regression and exact-current-SHA localization/CLEAN30/runtime gates are not complete.
+
+The current requirements result is 19 pass and 11 partial across 22 FRs and 8 NFRs. The current task result is 16 complete and 12 partial; the three previously noncompliant tasks are resolved. The acceptance-criteria result is 18 pass and 9 partial.
+
+## Revalidated FAIL and PARTIAL Findings
+
+| Previous finding | Current result | Current evidence | Remaining action |
+|---|---|---|---|
+| FR-004 / ITEM-002 / RD-001: calculation and report code bypassed `Derogatory Posting Mgt.` | **RESOLVED** | AL LSP resolves all four W1 active consumers to `GetDerogatoryBook`: `CalculateDepreciation.Report.al:414`, `CalculateNormalDepreciation.Codeunit.al:598`, `FixedAssetBookValue01.Report.al:519`, and `FixedAssetBookValue02.Report.al:1561`. FR enabled/CLEAN30 and the GB/IT/RU full copies use the same manager API. Remaining direct filters are setup validation, the FR upgrade, disabled-FR legacy routing, or dormant localization compatibility declarations rather than active centralized posting/calculation policy. | None for the old finding. Keep the semantic sweep as release evidence. |
+| FR-017 / ITEM-016 / AC-017 / RD-005: French upgrade compared reversal shape but not reversal-chain identity | **RESOLVED** | `UpgradeDerogatoryLinkage.Codeunit.al:293-298,336-388,491-495,534-586` validates reciprocal source/candidate reversal links and complete FA/maintenance identity. Adversarial tests `CrossedFAReversalChainsAreNotLinked` and `CrossedMaintenanceReversalChainsAreNotLinked` are present at `UTDerogatoryLinkageUpg.Codeunit.al:592-617,681-705`. | Execute the FR suite in the final exact-SHA gate; no source correction is indicated. |
+| NFR-003 / ITEM-025 / FILE-030: corrective tag was outside the atomic clear/rebuild transaction | **RESOLVED** | `UpgradeDerogatoryLinkage.Codeunit.al:111-117` now clears, validates, rebuilds, and sets the corrective tag inside `ClearAndRelinkConfiguredRelationshipPairs`, invoked within the `Codeunit.Run` boundary in `DerogLinkageCorrectiveRun.Codeunit.al:18-24`. Success and rollback assertions are at `UTDerogatoryLinkageUpg.Codeunit.al:1098-1108,1236-1243`. | Execute the FR upgrade suite in the final exact-SHA gate. |
+| Equivalent IS relationship validation defect | **RESOLVED** | `IS/.../DepreciationBook.Table.al:380-409` now contains the W1 uniqueness, chain, and reverse-use checks, including the blank-`Code` guard. | Include Apps IS/inherited codeunit 134166 in the final rerun. |
+| Reversal test assumes one transaction topology | **STILL ACTUAL** | `ReverseDerogEntryInitAcqCostBody` captures and reverses Depreciation, then unconditionally finds and reverses Derogatory at `ERMDerogatoryDeprPosting.Codeunit.al:853-887`. This passes when W1 assigns separate transactions but can re-reverse an entry when a localization such as ES groups both sources in one transaction. The 2026-09-04 requirement/PRD updates correctly describe this gap. | Capture both original source identities and transaction numbers before any reversal, deduplicate transaction numbers, invoke reversal once per distinct transaction, then verify the complete source/counterpart reversal graph. Do not condition the second call on post-reversal entry state. |
+| FR-013/020/021, NFR-001/004/005/006/008, ITEM-010/011/012/013/023/024/026/027/028: localization, CLEAN30, API-consumer, and runtime gates | **STILL PARTIAL** | Current HEAD is `7e3baa491b`. No GitHub CI run exists for this SHA. Run `32169810643` targeted older SHA `7e53d2c9c1` and completed `failure`; its W1 compile failed on AA0005 before later fixes. DME job 3623139 targeted older SHA `1f44d82357` and found further code and infrastructure failures; later commits address reported code causes, but no final rerun evidence is recorded. Representative cross-country ledger/G/L inspection is also not recorded. | Fix the topology-neutral test first, push the exact HEAD, rerun CI/CD including W1, FR, FR Clean/CLEAN30, and every concrete country project, then rerun the affected DME suites. Record exact SHA, run/job URLs, focused suite totals, and representative FA/maintenance/G/L ledger evidence. |
+| NFR-002 / AC-023: dedicated-key and timing evidence | **STILL PARTIAL** | Reversal explicitly selects the dedicated keys at `FAInsertLedgerEntry.Codeunit.al:801-802,845-846`. Duplicate validation filters both key fields at `DerogatoryPostingMgt.Codeunit.al:211-213,237-239` but does not explicitly call `SetCurrentKey`; no representative-volume timing evidence is recorded. | Add `SetCurrentKey("Derogatory Source Entry No.", "Depreciation Book Code")` in both validation overloads and capture one representative-volume timing/query-plan sanity result. |
+| NFR-007 / AC-027 / ITEM-020: five event surfaces need ordering regressions | **STILL PARTIAL** | The focused derogatory suite has a subscriber regression only for `OnPostFixedAssetOnBeforeInsertEntry` at `ERMDerogatoryDeprPosting.Codeunit.al:3002-3017`. No focused subscribers were found for `OnBeforeFAJnlPostLine`, `OnBeforeGenJnlPostLine`, `OnBeforePostDeprUntilDate`, or `OnPostMaintenanceOnBeforeInsertEntry`. | Add four focused tests that mutate or observe state at each missing event, proving posting role/link identity cannot be invalidated after final validation and that source/mirror event order remains stable. |
+| Documentation traceability: aggregate AL-Go aliases and missing FILE-028 | **RESOLVED** | PRD DEP-007 now lists concrete country projects and `FILE-028` is defined at `redesign-derogatory-mirroring.prd.md:279`. | None. |
+| Documentation traceability: AC namespace, RU file inventory, semantic evidence, and gate status | **STILL PARTIAL** | Requirements define AC-001..AC-037 while the PRD separately defines AC-001..AC-027. RU `DepreciationBook.Table.al` is still absent from FILE-007/FILE-018 and ITEM-001/026 relevant-file lists. ITEM-023 at `redesign-derogatory-mirroring.prd.md:447` still describes completed-failure run 32169810643 as pending. The localization semantic sweep remains narrative rather than a durable per-layer result table. | Give PRD-level criteria a distinct prefix or reuse the requirements IDs; add the RU full-copy table to the inventory; change run 32169810643 to completed/failed and reference the future exact-HEAD rerun; add a per-layer producer/fallback/API-resolution evidence table. |
+| Ignored OpenSpec FILE-024/025/026 artifacts | **ACCEPTED LIMITATION** | The PRD documents that `openspec/` is excluded in this clone and makes the tracked PRD compatibility statement authoritative. This is not a current implementation defect. | Track the artifacts from a workspace where `openspec/` is deliverable only if project governance still requires them. |
+
+## Current Priority Order
+
+1. Make `ReverseDerogEntryInitAcqCostBody` transaction-topology-neutral and run it in W1 and ES/composed localization shapes.
+2. Produce a green exact-HEAD W1/FR/CLEAN30/localization build and runtime rerun, including final ledger/G/L evidence.
+3. Complete the four missing event-order regressions and make insertion validation explicitly select the dedicated link key.
+4. Reconcile the remaining PRD traceability and stale gate-status text.
+
+The remainder of this document preserves the exact-scope 2026-08-18 review as historical evidence. Its FAIL/PARTIAL labels describe that older scope and are superseded by the revalidation table above.
+
+# Historical PRD Implementation Review Report (2026-08-18)
 
 ## Workflow Todos
 
