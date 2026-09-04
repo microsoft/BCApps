@@ -142,6 +142,11 @@ page 1 "Company Information"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                 }
+                field("Use Today as a Workdate"; Rec."Use Today as a Workdate")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Visible = Rec."Demo Company";
+                }
                 field(Picture; Rec.Picture)
                 {
                     ApplicationArea = Basic, Suite;
@@ -806,4 +811,3 @@ page 1 "Company Information"
         SessionSetting.RequestSessionUpdate(false);
     end;
 }
-
