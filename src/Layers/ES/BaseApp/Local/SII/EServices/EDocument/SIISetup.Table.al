@@ -276,7 +276,7 @@ table 10751 "SII Setup"
             AuditCategory::ApplicationManagement);
         TelemetryDimensions.Add('Category', SIIFeatureNameTok);
         TelemetryDimensions.Add('Host', Host);
-        Session.LogMessage('0000VCA', EndpointUrlRejectedTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDimensions);
+        Session.LogMessage('0000VCA', EndpointUrlRejectedTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDimensions);
         Error(InvalidEndpointUrlErr, Url);
     end;
 

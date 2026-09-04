@@ -397,14 +397,8 @@ codeunit 560 "CrossIntercompany Connector"
     internal procedure ValidateDestinationUrl(DestinationUrl: Text): Boolean
     var
         UrlHelper: Codeunit "Url Helper";
-        Uri: Codeunit Uri;
         ExpectedHostSuffix: Text;
     begin
-        if not Uri.IsValidUri(DestinationUrl) or not DestinationUrl.StartsWith('https://') then
-            RejectInvalidDestinationUrl(GetHostFromUrl(DestinationUrl));
-
-        Uri.Init(DestinationUrl);
-
         if UrlHelper.IsPPE() then
             ExpectedHostSuffix := DynamicsPPEHostSuffixTok
         else
@@ -412,6 +406,18 @@ codeunit 560 "CrossIntercompany Connector"
                 ExpectedHostSuffix := DynamicsProdHostSuffixTok
             else
                 RejectInvalidDestinationUrl(GetHostFromUrl(DestinationUrl));
+
+        exit(IsDestinationUrlAllowed(DestinationUrl, ExpectedHostSuffix));
+    end;
+
+    internal procedure IsDestinationUrlAllowed(DestinationUrl: Text; ExpectedHostSuffix: Text): Boolean
+    var
+        Uri: Codeunit Uri;
+    begin
+        if not Uri.IsValidUri(DestinationUrl) or not DestinationUrl.StartsWith('https://') then
+            RejectInvalidDestinationUrl(GetHostFromUrl(DestinationUrl));
+
+        Uri.Init(DestinationUrl);
 
         // Allow any Dynamics host (including Embed ISV subdomains) under the environment's trusted domain.
         if not LowerCase(Uri.GetHost()).EndsWith(ExpectedHostSuffix) then
@@ -436,7 +442,7 @@ codeunit 560 "CrossIntercompany Connector"
     internal procedure GetValidatedTokenEndpoint(ConfiguredTokenEndpoint: Text): Text
     var
         UrlHelper: Codeunit "Url Helper";
-        AuthorityPrefix, TenantIdText : Text;
+        AuthorityPrefix: Text;
     begin
         if UrlHelper.IsPPE() then
             AuthorityPrefix := EntraPPEAuthorityPrefixTok
@@ -446,6 +452,13 @@ codeunit 560 "CrossIntercompany Connector"
             else
                 RejectInvalidTokenEndpoint(GetHostFromUrl(ConfiguredTokenEndpoint));
 
+        exit(GetValidatedTokenEndpointForAuthority(ConfiguredTokenEndpoint, AuthorityPrefix));
+    end;
+
+    internal procedure GetValidatedTokenEndpointForAuthority(ConfiguredTokenEndpoint: Text; AuthorityPrefix: Text): Text
+    var
+        TenantIdText: Text;
+    begin
         if not LowerCase(ConfiguredTokenEndpoint).StartsWith(AuthorityPrefix) or
            not LowerCase(ConfiguredTokenEndpoint).EndsWith(OAuthTokenEndpointSuffixTok)
         then
