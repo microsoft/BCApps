@@ -2532,11 +2532,13 @@ codeunit 134897 "ERM Source Currency"
     local procedure SetSalesDiscountPosting(DiscountPostingOption: Integer): Integer
     var
         SalesSetup: Record "Sales & Receivables Setup";
+        OldDiscountPosting: Integer;
     begin
         SalesSetup.Get();
-        exit(SalesSetup."Discount Posting");
+        OldDiscountPosting := SalesSetup."Discount Posting";
         SalesSetup."Discount Posting" := DiscountPostingOption;
         SalesSetup.Modify();
+        exit(OldDiscountPosting);
     end;
 
     local procedure CreateDeferralCode(NoOfPeriods: Integer): Code[10]
@@ -2606,5 +2608,4 @@ codeunit 134897 "ERM Source Currency"
 
         Assert.AreEqual(0, SCYBalance, TotalSCYAmountNotZeroErr);
     end;
-
 }
