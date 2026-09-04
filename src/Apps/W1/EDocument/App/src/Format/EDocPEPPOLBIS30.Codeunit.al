@@ -121,24 +121,22 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
 
     local procedure GenerateInvoiceXMLFile(VariantRec: Variant; var OutStr: OutStream; GeneratePDF: Boolean)
     var
-        SalesInvoicePEPPOL30: XMLport "Sales Invoice - PEPPOL30";
-        PEPPOLFormat: Enum "PEPPOL 3.0 Format";
+        SalesInvoicePEPPOLBIS30: XMLport "Sales Invoice - PEPPOL BIS 3.0";
     begin
-        SalesInvoicePEPPOL30.Initialize(VariantRec, PEPPOLFormat::"PEPPOL 3.0 - Sales");
-        SalesInvoicePEPPOL30.SetGeneratePDF(GeneratePDF);
-        SalesInvoicePEPPOL30.SetDestination(OutStr);
-        SalesInvoicePEPPOL30.Export();
+        SalesInvoicePEPPOLBIS30.Initialize(VariantRec);
+        SalesInvoicePEPPOLBIS30.SetGeneratePDF(GeneratePDF);
+        SalesInvoicePEPPOLBIS30.SetDestination(OutStr);
+        SalesInvoicePEPPOLBIS30.Export();
     end;
 
     local procedure GenerateCrMemoXMLFile(VariantRec: Variant; var OutStr: OutStream; GeneratePDF: Boolean)
     var
-        SalesCrMemoPEPPOL30: XMLport "Sales Cr.Memo - PEPPOL30";
-        PEPPOLFormat: Enum "PEPPOL 3.0 Format";
+        SalesCrMemoPEPPOLBIS30: XMLport "Sales Cr.Memo - PEPPOL BIS 3.0";
     begin
-        SalesCrMemoPEPPOL30.Initialize(VariantRec, PEPPOLFormat::"PEPPOL 3.0 - Sales");
-        SalesCrMemoPEPPOL30.SetGeneratePDF(GeneratePDF);
-        SalesCrMemoPEPPOL30.SetDestination(OutStr);
-        SalesCrMemoPEPPOL30.Export();
+        SalesCrMemoPEPPOLBIS30.Initialize(VariantRec);
+        SalesCrMemoPEPPOLBIS30.SetGeneratePDF(GeneratePDF);
+        SalesCrMemoPEPPOLBIS30.SetDestination(OutStr);
+        SalesCrMemoPEPPOLBIS30.Export();
     end;
 
     local procedure GenerateFinancialResultsXMLFile(VariantRec: Variant; var OutStr: OutStream)
