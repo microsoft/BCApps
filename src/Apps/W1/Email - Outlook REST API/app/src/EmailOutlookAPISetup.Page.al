@@ -110,6 +110,14 @@ page 4509 "Email - Outlook API Setup"
                         ApplicationArea = All;
                         ToolTip = 'Specifies the Redirect URL.';
                         Caption = 'Redirect URL';
+
+                        trigger OnValidate()
+                        var
+                            EmailOAuthClient: Codeunit "Email - OAuth Client";
+                        begin
+                            if Rec.RedirectURL <> '' then
+                                EmailOAuthClient.ValidateRedirectUrl(Rec.RedirectURL);
+                        end;
                     }
                 }
             }

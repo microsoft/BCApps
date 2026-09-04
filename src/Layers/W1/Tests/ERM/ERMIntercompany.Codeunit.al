@@ -1145,6 +1145,8 @@ codeunit 134151 "ERM Intercompany"
         // [FEATURE] [AI test 0.4]
         Assert.IsFalse(CrossIntercompanyConnector.IsDestinationUrlAllowed('http://api.businesscentral.dynamics.com/v2.0/companies', '.dynamics.com'), 'A non-HTTPS URL must be rejected.');
         Assert.IsFalse(CrossIntercompanyConnector.IsDestinationUrlAllowed('https://api.businesscentral.dynamics.com.example.com/v2.0/companies', '.dynamics.com'), 'A look-alike host must be rejected.');
+        Assert.IsFalse(CrossIntercompanyConnector.IsDestinationUrlAllowed('', '.dynamics.com'), 'A blank URL must be rejected.');
+        Assert.IsFalse(CrossIntercompanyConnector.IsDestinationUrlAllowed('not-a-valid-uri', '.dynamics.com'), 'A malformed URL must be rejected.');
     end;
 
     [Test]
