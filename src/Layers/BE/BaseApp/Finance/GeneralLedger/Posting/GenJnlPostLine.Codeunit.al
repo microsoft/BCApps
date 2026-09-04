@@ -7790,12 +7790,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
     /// <remarks>
     /// Variable NextEntryNo is used as entry no. when creating ledger entries
     /// </remarks>
-    /// <param name="GLEntryNo">Existing value for g/l entry no.</param>
+    /// <param name="ExistingGLEntryNo">Existing value for g/l entry no.</param>
     /// <param name="SavedEntryNo">New value for g/l entry no.</param>
     procedure UpdateGLEntryNo(var ExistingGLEntryNo: BigInteger; var SavedEntryNo: BigInteger)
     begin
         if SavedEntryNo <> 0 then begin
-            GLEntryNo := SavedEntryNo;
+            ExistingGLEntryNo := SavedEntryNo;
             NextEntryNo := NextEntryNo - 1;
             SavedEntryNo := 0;
         end;

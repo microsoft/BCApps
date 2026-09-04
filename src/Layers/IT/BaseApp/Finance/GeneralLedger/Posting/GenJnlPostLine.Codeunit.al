@@ -1816,7 +1816,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     DtldVendLedgEntry.SetZeroTransNo(NextTransactionNo);
         until PaymentTermsLine.Next() = 0;
         PaymentTermsLine.DeleteAll();
-        OnBeforePostingDeferral(GenJournalLine, VendLedgEntry, TaxAmount, TaxAmountLCY, NextTransactionNo, NextTaxEntryNo, IsHandled)
+        OnBeforePostingDeferral(GenJournalLine, VendLedgEntry, TaxAmount, TaxAmountLCY, NextTransactionNo, NextTaxEntryNo, IsHandled);
         DeferralPosting(GenJournalLine."Deferral Code", GenJournalLine."Source Code", PayablesAccount, GenJournalLine, Balancing);
 
         // With transactions having FCY with Unrealized VAT, total balance amount was losing fractions with rounding amount.
