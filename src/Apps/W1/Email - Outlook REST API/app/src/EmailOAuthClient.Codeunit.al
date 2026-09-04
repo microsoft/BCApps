@@ -121,7 +121,8 @@ codeunit 4507 "Email - OAuth Client" implements "Email - OAuth Client v2"
         if RedirectUrlToValidate = DefaultRedirectUrl then
             exit;
 
-        // This guard only runs OnPrem; SaaS uses the platform OBO token and never configures a redirect URL.
+        Session.LogMessage('0000VC9', InvalidRedirectUrlTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', EmailCategoryLbl);
+
         RedirectUrlErrorInfo.Title := InvalidRedirectUrlTitleTxt;
         RedirectUrlErrorInfo.Message := StrSubstNo(InvalidRedirectUrlErr, DefaultRedirectUrl);
         RedirectUrlErrorInfo.DetailedMessage := StrSubstNo(InvalidRedirectUrlDetailTxt, DefaultRedirectUrl);
@@ -190,5 +191,6 @@ codeunit 4507 "Email - OAuth Client" implements "Email - OAuth Client v2"
         InvalidRedirectUrlErr: Label 'The redirect URL must be %1.', Comment = '%1 = the allowed redirect URL';
         InvalidRedirectUrlTitleTxt: Label 'Invalid redirect URL';
         InvalidRedirectUrlDetailTxt: Label 'The redirect URL for the Outlook email app registration must be %1. Choose ''Restore default redirect URL'' to reset it to the required value.', Comment = '%1 = the allowed redirect URL';
+        InvalidRedirectUrlTelemetryTxt: Label 'A non-default OAuth redirect URL was rejected during Outlook email setup.', Locked = true;
         RestoreDefaultRedirectUrlActionTxt: Label 'Restore default redirect URL';
 }
