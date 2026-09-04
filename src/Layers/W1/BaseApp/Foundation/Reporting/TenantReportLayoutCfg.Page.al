@@ -227,11 +227,15 @@ page 9663 "Tenant Report Layout Cfg"
     }
 
     trigger OnOpenPage()
+#if not CLEAN29
     var
         FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
     begin
+#if not CLEAN29
         if not FeatureKeyManagement.IsDocumentReportExperienceEnabled() then
             Error(FeatureNotEnabledErr);
+#endif
     end;
 
     trigger OnAfterGetCurrRecord()
@@ -408,7 +412,9 @@ page 9663 "Tenant Report Layout Cfg"
         LayoutNameDisplay: Text;
         LayoutScopeSet: Boolean;
         ReportNameDisplay: Text;
+#if not CLEAN29
         FeatureNotEnabledErr: Label 'The Composite Layout feature is gated by the Document Report Experience preview. Enable it in Feature Management before opening this page.';
+#endif
         GlobalWildcardCannotHaveLayoutNameErr: Label 'When Report ID is 0, the row applies to every report, so Layout Name must be empty.';
         ScopeExistsErr: Label 'A row for %1 already exists. Change that row instead of pointing this one at the same scope.', Comment = '%1 = scope description, for example All layouts of Sales Invoice';
         PickReportFirstErr: Label 'Choose a report first. A layout belongs to one report, so there is nothing to pick from until Report ID is set.';
