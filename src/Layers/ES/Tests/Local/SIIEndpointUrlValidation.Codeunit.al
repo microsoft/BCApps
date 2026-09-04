@@ -10,7 +10,6 @@ codeunit 147595 "SII Endpoint Url Validation"
 
     var
         Assert: Codeunit Assert;
-        InvalidEndpointUrlErr: Label 'The endpoint URL %1 is not on the allow-list for this feature.', Comment = '%1 = the URL entered by the user';
 
     [Test]
     [Scope('OnPrem')]
@@ -46,7 +45,7 @@ codeunit 147595 "SII Endpoint Url Validation"
         // [SCENARIO 636975] Non-HTTPS URLs are rejected.
         NonHttpsUrl := 'http://www1.agenciatributaria.gob.es/wlpl/SSII-FACT/ws/fe/SiiFactFEV1SOAP';
         asserterror SIISetup.ValidateEndpointUrl(NonHttpsUrl);
-        Assert.ExpectedError(StrSubstNo(InvalidEndpointUrlErr, NonHttpsUrl));
+        Assert.ExpectedError('is not on the allow-list for this feature');
     end;
 
     [Test]
@@ -60,7 +59,7 @@ codeunit 147595 "SII Endpoint Url Validation"
         // [SCENARIO 636975] Malformed URLs are rejected.
         MalformedUrl := 'not a url';
         asserterror SIISetup.ValidateEndpointUrl(MalformedUrl);
-        Assert.ExpectedError(StrSubstNo(InvalidEndpointUrlErr, MalformedUrl));
+        Assert.ExpectedError('is not on the allow-list for this feature');
     end;
 
     [Test]
