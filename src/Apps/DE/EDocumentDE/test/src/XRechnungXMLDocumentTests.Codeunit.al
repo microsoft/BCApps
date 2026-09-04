@@ -1035,7 +1035,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
 
         // [THEN] XRechnung Electronic Document is created with bank informarion as payment means
-        VerifyPaymentMeans(TempXMLBuffer, '/ns0:CreditNote/cac:PaymentMeans');
+        VerifyPaymentMeans(TempXMLBuffer, '/ns0:CreditNote/cac:PaymentMeans', CompanyInformation.IBAN, CompanyInformation."SWIFT Code");
     end;
 
     [Test]
@@ -1064,8 +1064,8 @@ codeunit 13918 "XRechnung XML Document Tests"
         // [WHEN] Export XRechnung Electronic Document.
         ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
 
-        // [THEN] XRechnung Electronic Document has payment means code
-        VerifyPaymentMeans(TempXMLBuffer, '/ns0:CreditNote/cac:PaymentMeans');
+        // [THEN] XRechnung Electronic Document uses Bank Account IBAN and SWIFT Code
+        VerifyPaymentMeans(TempXMLBuffer, '/ns0:CreditNote/cac:PaymentMeans', BankAccountIBAN, BankAccountSWIFT);
     end;
 
     [Test]
@@ -1367,7 +1367,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         ExportServiceCreditMemo(ServiceCrMemoHeader, TempXMLBuffer);
 
         // [THEN] XRechnung Electronic Document is created with bank information as payment means
-        VerifyPaymentMeans(TempXMLBuffer, '/ns0:CreditNote/cac:PaymentMeans');
+        VerifyPaymentMeans(TempXMLBuffer, '/ns0:CreditNote/cac:PaymentMeans', CompanyInformation.IBAN, CompanyInformation."SWIFT Code");
     end;
 
     [Test]
