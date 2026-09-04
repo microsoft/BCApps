@@ -1186,6 +1186,14 @@ codeunit 4400 "SOA Setup"
         exit(10)
     end;
 
+    internal procedure GetMaxAttachmentSizeInBytes(): Integer
+    var
+        MaxAttachmentSizeInMB: Integer;
+    begin
+        MaxAttachmentSizeInMB := 25;
+        exit(MaxAttachmentSizeInMB * 1024 * 1024);
+    end;
+
     internal procedure GetFeatureName(): Text
     begin
         exit('Sales Order Agent');
