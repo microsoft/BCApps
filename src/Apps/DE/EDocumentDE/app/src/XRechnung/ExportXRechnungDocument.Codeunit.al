@@ -223,7 +223,7 @@ codeunit 13916 "Export XRechnung Document"
         InsertAccountingSupplierParty(SalesCrMemoHeader."Responsibility Center", SalesCrMemoHeader."Salesperson Code", RootXMLNode);
         InsertAccountingCustomerParty(RootXMLNode, SalesCrMemoHeader);
         InsertDelivery(RootXMLNode, SalesCrMemoHeader);
-        InsertPaymentMeans(RootXMLNode, '58', '', SalesCrMemoHeader."Company Bank Account Code");
+        InsertPaymentMeans(RootXMLNode, '58', 'PayeeFinancialAccount', SalesCrMemoHeader."Company Bank Account Code");
         InsertPaymentTerms(RootXMLNode, SalesCrMemoHeader."Payment Terms Code");
         InsertVATAmounts(SalesCrMemoLine, LineVATAmount, LineAmount, LineDiscAmount, SalesCrMemoHeader."Prices Including VAT", Currency);
         InsertInvDiscountAllowanceCharge(LineAmounts, SalesCrMemoLine, CurrencyCode, RootXMLNode, LineDiscAmount, LineAmount, Currency."Amount Rounding Precision");
@@ -340,7 +340,7 @@ codeunit 13916 "Export XRechnung Document"
         InsertAccountingSupplierParty(SalesCrMemoHeader."Responsibility Center", SalesCrMemoHeader."Salesperson Code", RootXMLNode);
         InsertAccountingCustomerParty(RootXMLNode, SalesCrMemoHeader);
         InsertDelivery(RootXMLNode, SalesCrMemoHeader);
-        InsertPaymentMeans(RootXMLNode, '58', '', SalesCrMemoHeader."Company Bank Account Code");
+        InsertPaymentMeans(RootXMLNode, '58', 'PayeeFinancialAccount', SalesCrMemoHeader."Company Bank Account Code");
         InsertPaymentTerms(RootXMLNode, SalesCrMemoHeader."Payment Terms Code");
         InsertVATAmounts(TempSalesCrMemoLine, LineVATAmount, LineAmount, LineDiscAmount, SalesCrMemoHeader."Prices Including VAT", Currency);
         InsertInvDiscountAllowanceCharge(LineAmounts, TempSalesCrMemoLine, CurrencyCode, RootXMLNode, LineDiscAmount, LineAmount, Currency."Amount Rounding Precision");
