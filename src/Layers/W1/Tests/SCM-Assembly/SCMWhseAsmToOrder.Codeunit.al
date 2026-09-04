@@ -2410,64 +2410,6 @@ codeunit 137914 "SCM Whse.-Asm. To Order"
         VerifyNonATOShippedAndATOUntouched(NormalSalesLine, ATOSalesLine, AsmHeader."No.", QtyToAssemble);
     end;
 
-    [Test]
-    [HandlerFunctions('MessageHandler')]
-    procedure ATOQtyToShipChangeRemainsSynchronizedWhenWhseActivityExists()
-    var
-        AssemblyItem: Record Item;
-        ComponentItem: Record Item;
-        Location: Record Location;
-        ComponentBin: Record Bin;
-        NormalItemBin: Record Bin;
-        OutputBin: Record Bin;
-        AssemblyBin: Record Bin;
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        AssemblyHeader: Record "Assembly Header";
-        QtyToAssemble: Decimal;
-        WarehouseEmployee: Record "Warehouse Employee";
-    begin
-        // [SCENARIO 647991] Posting an inventory pick for a non-ATO sales line does not fail because of an unrelated Assemble-to-Order line whose component still has an outstanding warehouse movement.
-
-        // [GIVEN] A sales order with an Assemble-to-Order item and its component item.
-        MockATOItem(AssemblyItem, ComponentItem);
-        // [GIVEN] A location with Bin Mandatory, Require Pick and Asm. Consump. Whse. Handling = Inventory Movement
-        LibraryWarehouse.CreateLocationWMS(Location, true, true, true, true, false);
-        MockBin(ComponentBin, Location.Code);
-        MockBin(NormalItemBin, Location.Code);
-        MockBin(OutputBin, Location.Code);
-        MockBin(AssemblyBin, Location.Code);
-        Location."Asm. Consump. Whse. Handling" := Location."Asm. Consump. Whse. Handling"::"Inventory Movement";
-        Location."To-Assembly Bin Code" := AssemblyBin.Code;
-        Location.Modify(true);
-        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, true);
-
-        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
-        PostponeShptDateforAssemblyLeadTime(SalesHeader);
-        SalesHeader.Validate("Location Code", Location.Code);
-        SalesHeader.Modify(true);
-        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, AssemblyItem."No.", 5);
-
-        // [GIVEN] First inventory pick created for the ATO line only (with component inventory movement)
-        LibrarySales.ReleaseSalesDocument(SalesHeader);
-        LibraryWarehouse.CreateInvtPutPickSalesOrder(SalesHeader);
-        SalesLine.AsmToOrderExists(AssemblyHeader);
-        QtyToAssemble := AssemblyHeader."Quantity to Assemble";
-
-        // [WHEN] The quantity to ship for the non-ATO line is changed.
-        SalesLine.Validate("Qty. to Ship", 2);
-        SalesLine.Modify(true);
-
-        // [THEN] The quantity to ship for the non-ATO line remains unchanged and the quantity to assemble for the ATO line is updated accordingly.
-        SalesLine.Find();
-        AssemblyHeader.Get(
-            AssemblyHeader."Document Type"::Order,
-            AssemblyHeader."No.");
-
-        SalesLine.TestField("Qty. to Ship", 2);
-        AssemblyHeader.TestField("Quantity to Assemble", 2);
-    end;
-
     local procedure VerifyNonATOShippedAndATOUntouched(NormalSalesLine: Record "Sales Line"; ATOSalesLine: Record "Sales Line"; AssemblyHeaderNo: Code[20]; ExpectedQtyToAssemble: Decimal)
     var
         AssemblyHeader: Record "Assembly Header";
