@@ -138,7 +138,6 @@ codeunit 136314 "Job Quote Report Tests"
         TearDown();
     end;
 
-#if not CLEAN29
     [Test]
     [HandlerFunctions('ConfirmHandlerTrue,MessageHandler,PostandSendPageHandlerNo')]
     [Scope('OnPrem')]
@@ -149,7 +148,7 @@ codeunit 136314 "Job Quote Report Tests"
     begin
         // [GIVEN] A newly setup company, with a new job created
         Initialize();
-        SetReportLayoutForCustomWord();
+        SetReportLayoutForJobQuote();
         SetupForJobQuote(JobPlanningLine);
 
         // [WHEN] Job list is opened with the newly-created job
@@ -177,7 +176,7 @@ codeunit 136314 "Job Quote Report Tests"
         // [FEATURE] [UT] [UI]
         // [SCENARIO 416894] The Job List use Report selection for runs report "Preview Job Queue"
         Initialize();
-        SetReportLayoutForCustomWord();
+        SetReportLayoutForJobQuote();
         CreateJobQueueReportSelection();
         SetupForJobQuote(JobPlanningLine);
 
@@ -190,7 +189,6 @@ codeunit 136314 "Job Quote Report Tests"
         RemoveReportLayout();
         TearDown();
     end;
-#endif
 
     [Test]
     [HandlerFunctions('ConfirmHandlerTrue,MessageHandler,PostandSendPageHandlerYes,EmailEditorHandler,CloseEmailEditorHandler')]
@@ -329,7 +327,6 @@ codeunit 136314 "Job Quote Report Tests"
         LibraryReportValidation.DownloadFile();
     end;
 
-#if not CLEAN29
     local procedure CreateJobQueueReportSelection()
     var
         CustomReportSelection: Record "Custom Report Selection";
@@ -345,7 +342,6 @@ codeunit 136314 "Job Quote Report Tests"
 
         CustomReportSelection.Init();
     end;
-#endif
 
     local procedure VerifyJobQuoteReport(JobPlanningLine: Record "Job Planning Line"; Column: Text[250]; Column2: Text[250]; Column3: Text[250]; Column4: Text[250])
     begin
@@ -420,6 +416,18 @@ codeunit 136314 "Job Quote Report Tests"
     local procedure SetReportLayoutForRDLC()
     begin
         SetReportLayout(ReportLayoutSelection.Type::"RDLC (built-in)", '');
+    end;
+
+    // The Job List scenarios only need a layout to be selected for report "Job Quote"; they assert the
+    // report selection and the pages that follow, not the layout itself. Keep exercising the legacy
+    // custom-Word selection while it exists, and fall back to the built-in layout once it is gone.
+    local procedure SetReportLayoutForJobQuote()
+    begin
+#if not CLEAN29
+        SetReportLayoutForCustomWord();
+#else
+        SetReportLayoutForRDLC();
+#endif
     end;
 
 #if not CLEAN29
