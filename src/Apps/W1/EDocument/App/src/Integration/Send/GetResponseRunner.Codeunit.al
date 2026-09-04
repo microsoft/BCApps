@@ -24,13 +24,6 @@ codeunit 6149 "Get Response Runner"
             exit;
         end;
 
-#if not CLEAN26
-#pragma warning disable AL0432
-        IEDocIntegration := this.GlobalEDocumentService."Service Integration";
-        Result := IEDocIntegration.GetResponse(this.GlobalEDocument, this.HttpRequestMessage, this.HttpResponseMessage);
-#pragma warning restore AL0432
-        LegacyHttpMessagesFilled := true;
-#endif
     end;
 
     procedure SetDocumentAndService(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service")
@@ -49,33 +42,10 @@ codeunit 6149 "Get Response Runner"
         exit(Result);
     end;
 
-#if not CLEAN26
-    // Handles that http is set in case of failures
-    procedure GetContext(var SendContext: Codeunit SendContext);
-    begin
-        if not LegacyHttpMessagesFilled then
-            exit;
-        // Need to set this
-        this.GlobalSendContext.Http().SetHttpRequestMessage(this.HttpRequestMessage);
-        this.GlobalSendContext.Http().SetHttpResponseMessage(this.HttpResponseMessage);
-        SendContext := this.GlobalSendContext;
-    end;
-#endif
-
     var
         GlobalEDocument: Record "E-Document";
         GlobalEDocumentService: Record "E-Document Service";
         GlobalSendContext: Codeunit SendContext;
-#if not CLEAN26
-        HttpRequestMessage: HttpRequestMessage;
-        HttpResponseMessage: HttpResponseMessage;
-#pragma warning disable AL0432
-        IEDocIntegration: Interface "E-Document Integration";
-#pragma warning restore AL0432
-#endif
         IDocumentSender: Interface IDocumentSender;
         Result: Boolean;
-#if not CLEAN26
-        LegacyHttpMessagesFilled: Boolean;
-#endif
 }

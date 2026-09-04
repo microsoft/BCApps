@@ -23,9 +23,6 @@ codeunit 139630 "E-Doc. Impl. State"
         EnableOnCheck, DisableOnCreateOutput, DisableOnCreateBatch, IsAsync2, EnableHttpData, ThrowIntegrationRuntimeError, ThrowIntegrationLoggedError : Boolean;
         EnableSourceDocumentHeaderCapture: Boolean;
         ThrowRuntimeError, ThrowLoggedError, ThrowBasicInfoError, ThrowCompleteInfoError, OnGetResponseSuccess, ActionHasUpdate : Boolean;
-#if not CLEAN26
-        OnGetApprovalSuccess: Boolean;
-#endif
         LocalHttpResponse: HttpResponseMessage;
         ActionStatus: Enum "E-Document Service Status";
 
@@ -311,109 +308,6 @@ codeunit 139630 "E-Doc. Impl. State"
         if ThrowIntegrationLoggedError then
             EDocErrorHelper.LogSimpleErrorMessage(EDocument, 'TEST');
     end;
-
-
-#if not CLEAN26
-#pragma warning disable AL0432
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Integration Mock", 'OnSend', '', false, false)]
-    local procedure OnSend(var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob"; var IsAsync: Boolean; var HttpRequest: HttpRequestMessage; var HttpResponse: HttpResponseMessage)
-    var
-        EDocErrorHelper: Codeunit "E-Document Error Helper";
-    begin
-        IsAsync := IsAsync2;
-        HttpResponse := LocalHttpResponse;
-
-        if ThrowIntegrationRuntimeError then
-            Error('TEST');
-
-        if ThrowIntegrationLoggedError then
-            EDocErrorHelper.LogSimpleErrorMessage(EDocument, 'TEST');
-
-        if EnableHttpData then begin
-            HttpRequest.SetRequestUri('http://cronus.test');
-            HttpRequest.Method := 'POST';
-
-            HttpRequest.Content.WriteFrom('Test request');
-            HttpResponse.Content.WriteFrom('Test response');
-            HttpResponse.Headers.Add('Accept', '*');
-        end;
-
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Integration Mock", 'OnGetResponse', '', false, false)]
-    local procedure OnGetResponse(var EDocument: Record "E-Document"; var HttpRequest: HttpRequestMessage; var HttpResponse: HttpResponseMessage; var Success: Boolean)
-    var
-        EDocErrorHelper: Codeunit "E-Document Error Helper";
-    begin
-        Success := OnGetResponseSuccess;
-        HttpResponse := LocalHttpResponse;
-
-        if ThrowIntegrationRuntimeError then
-            Error('TEST');
-
-        if ThrowIntegrationLoggedError then
-            EDocErrorHelper.LogSimpleErrorMessage(EDocument, 'TEST');
-
-        if EnableHttpData then begin
-            HttpRequest.SetRequestUri('http://cronus.test');
-            HttpRequest.Method := 'POST';
-
-            HttpRequest.Content.WriteFrom('Test request');
-            HttpResponse.Content.WriteFrom('Test response');
-            HttpResponse.Headers.Add('Accept', '*');
-        end;
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Integration Mock", 'OnGetDocumentCountInBatch', '', false, false)]
-    local procedure OnGetDocumentCountInBatch(var Count: Integer)
-    var
-        TempPurchHeader2: Record "Purchase Header" temporary;
-        TempPurchLine2: Record "Purchase Line" temporary;
-        PurchDocTestBuffer2: Codeunit "E-Doc. Test Buffer";
-    begin
-        if LibraryVariableStorage.Length() > 0 then
-            Count := LibraryVariableStorage.DequeueInteger()
-        else begin
-            PurchDocTestBuffer2.GetPurchaseDocToTempVariables(TempPurchHeader2, TempPurchLine2);
-            Count := TempPurchHeader2.Count();
-        end;
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Integration Mock", 'OnReceiveDocument', '', false, false)]
-    local procedure OnReceiveDocument(var TempBlob: codeunit "Temp Blob"; var HttpRequest: HttpRequestMessage; var HttpResponse: HttpResponseMessage)
-    var
-        OutStr: OutStream;
-    begin
-        TempBlob.CreateOutStream(OutStr, TextEncoding::UTF8);
-        if LibraryVariableStorage.Length() > 0 then
-            OutStr.WriteText(LibraryVariableStorage.DequeueText())
-        else
-            OutStr.WriteText('Some Test Content');
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Integration Mock", 'OnGetApproval', '', false, false)]
-    local procedure OnGetApproval(var EDocument: Record "E-Document"; var HttpRequest: HttpRequestMessage; var HttpResponse: HttpResponseMessage; var Success: Boolean)
-    var
-        EDocErrorHelper: Codeunit "E-Document Error Helper";
-    begin
-        Success := OnGetApprovalSuccess;
-        HttpResponse := LocalHttpResponse;
-
-        if ThrowIntegrationRuntimeError then
-            Error('TEST');
-
-        if ThrowIntegrationLoggedError then
-            EDocErrorHelper.LogSimpleErrorMessage(EDocument, 'TEST');
-    end;
-#pragma warning restore AL0432
-#endif
-
-#if not CLEAN26
-    internal procedure SetOnGetApprovalSuccess()
-    begin
-        OnGetApprovalSuccess := true;
-    end;
-#endif
 
     internal procedure SetActionReturnStatus(Value: Enum "E-Document Service Status")
     begin

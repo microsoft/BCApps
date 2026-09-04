@@ -113,36 +113,6 @@ page 30120 "Shpfy Log Entry Card"
                     ToolTip = 'Specifies the data that was received in the response.';
                 }
             }
-#if not CLEAN26
-            group(JsonData)
-            {
-                Visible = false;
-                ObsoleteReason = 'This group is obsolete and will be removed in a future version. Use the RequestJsonData and ResponseJsonData groups instead.';
-                ObsoleteState = Pending;
-                ObsoleteTag = '26.0';
-
-                field(RequestData; Rec.GetRequest())
-                {
-                    ApplicationArea = All;
-                    Caption = 'Request Data';
-                    MultiLine = true;
-                    ToolTip = 'Specifies the data that was send in the request.';
-                    ObsoleteReason = 'This field is obsolete and will be removed in a future version. Use the RequestJson field instead.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                }
-                field(ResponseData; Rec.GetResponse())
-                {
-                    ApplicationArea = All;
-                    Caption = 'Response Data';
-                    MultiLine = true;
-                    ToolTip = 'Specifies the data that was received in the response.';
-                    ObsoleteReason = 'This field is obsolete and will be removed in a future version. Use the ResponseJson field instead.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                }
-            }
-#endif
         }
         area(factboxes)
         {

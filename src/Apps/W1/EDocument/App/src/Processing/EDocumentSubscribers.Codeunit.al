@@ -603,11 +603,6 @@ codeunit 6103 "E-Document Subscribers"
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc. Record Link");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Document Notification");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc. PO Matching Setup");
-#if not CLEAN26
-#pragma warning disable AL0432
-        DataClassificationEvalData.SetTableFieldsToNormal(Database::"EDoc. Purch. Line Field Setup");
-#pragma warning restore AL0432
-#endif
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc Sample Purch. Inv File");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Document Sales Header");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Document Sales Line");

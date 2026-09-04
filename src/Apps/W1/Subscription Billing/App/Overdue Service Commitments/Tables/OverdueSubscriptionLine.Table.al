@@ -58,16 +58,8 @@ table 8007 "Overdue Subscription Line"
         {
             Caption = 'Item No.';
             ObsoleteReason = 'Replaced by field Source No.';
-#if not CLEAN26
-            ObsoleteState = Pending;
-            ObsoleteTag = '26.0';
-#else
             ObsoleteState = Removed;
-#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
-            ObsoleteTag = '29.0';
-#pragma warning restore AS0072
-#endif
-            TableRelation = Item;
+            ObsoleteTag = '30.0';
         }
 #endif
         field(12; "Subscription Contract Type"; Code[10])

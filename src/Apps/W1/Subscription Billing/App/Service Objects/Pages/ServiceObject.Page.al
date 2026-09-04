@@ -35,21 +35,6 @@ page 8060 "Service Object"
                             CurrPage.Update();
                     end;
                 }
-#if not CLEAN26
-                field("Item No."; Rec."Item No.")
-                {
-                    ToolTip = 'Specifies the Item No. of the Subscription.';
-                    ObsoleteReason = 'Replaced by field Source No.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '26.0';
-                    Visible = false;
-
-                    trigger OnValidate()
-                    begin
-                        CurrPage.Update();
-                    end;
-                }
-#endif
                 field(Type; Rec.Type)
                 {
                     ToolTip = 'Specifies the type of the Subscription.';
