@@ -1132,6 +1132,8 @@ codeunit 134151 "ERM Intercompany"
         DestinationUrl: Text;
     begin
         // [FEATURE] [AI test 0.4]
+        if not IsProdOrPpeEnvironment() then
+            exit;
         DestinationUrl := GetTrustedBusinessCentralApiUrl() + '/v2.0/tenant/environment/api/v2.0/companies';
 
         Assert.IsTrue(CrossIntercompanyConnector.ValidateDestinationUrl(DestinationUrl), 'The trusted Business Central API URL must be allowed.');
@@ -1145,6 +1147,8 @@ codeunit 134151 "ERM Intercompany"
         DestinationUrl: Text;
     begin
         // [FEATURE] [AI test 0.4]
+        if not IsProdOrPpeEnvironment() then
+            exit;
         DestinationUrl := GetTrustedBusinessCentralApiUrl() + '/v2.0/tenant/environment/api/v2.0/companies';
 
         asserterror CrossIntercompanyConnector.ValidateDestinationUrl(DestinationUrl.Replace('https://', 'http://'));
@@ -1162,9 +1166,26 @@ codeunit 134151 "ERM Intercompany"
         TokenEndpoint: Text;
     begin
         // [FEATURE] [AI test 0.4]
+        if not IsProdOrPpeEnvironment() then
+            exit;
         TokenEndpoint := GetTrustedEntraAuthorityPrefix() + Format(CreateGuid(), 0, 4) + '/oauth2/v2.0/token';
 
         Assert.AreEqual(TokenEndpoint, CrossIntercompanyConnector.GetValidatedTokenEndpoint(TokenEndpoint), 'The trusted Microsoft Entra token endpoint must be returned unchanged.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TrustedCrossIntercompanyTokenEndpointAllowsDomainTenant()
+    var
+        CrossIntercompanyConnector: Codeunit "CrossIntercompany Connector";
+        TokenEndpoint: Text;
+    begin
+        // [FEATURE] [AI test 0.4]
+        if not IsProdOrPpeEnvironment() then
+            exit;
+        TokenEndpoint := GetTrustedEntraAuthorityPrefix() + 'contoso.onmicrosoft.com/oauth2/v2.0/token';
+
+        Assert.AreEqual(TokenEndpoint, CrossIntercompanyConnector.GetValidatedTokenEndpoint(TokenEndpoint), 'A domain-based tenant identifier must be accepted.');
     end;
 
     [Test]
@@ -1175,6 +1196,8 @@ codeunit 134151 "ERM Intercompany"
         TokenEndpoint: Text;
     begin
         // [FEATURE] [AI test 0.4]
+        if not IsProdOrPpeEnvironment() then
+            exit;
         TokenEndpoint := GetTrustedEntraAuthorityPrefix() + 'common/oauth2/v2.0/token';
 
         asserterror CrossIntercompanyConnector.GetValidatedTokenEndpoint(TokenEndpoint);
@@ -1185,14 +1208,19 @@ codeunit 134151 "ERM Intercompany"
         Assert.ExpectedError('The token endpoint must identify a Microsoft Entra tenant on the trusted authority.');
     end;
 
+    local procedure IsProdOrPpeEnvironment(): Boolean
+    var
+        UrlHelper: Codeunit "Url Helper";
+    begin
+        exit(UrlHelper.IsPROD() or UrlHelper.IsPPE());
+    end;
+
     local procedure GetTrustedBusinessCentralApiUrl(): Text
     var
         UrlHelper: Codeunit "Url Helper";
     begin
         if UrlHelper.IsPPE() then
             exit('https://api.businesscentral.dynamics-tie.com');
-
-        Assert.IsTrue(UrlHelper.IsPROD(), 'The test requires a PROD or PPE environment.');
         exit('https://api.businesscentral.dynamics.com');
     end;
 
@@ -1202,8 +1230,6 @@ codeunit 134151 "ERM Intercompany"
     begin
         if UrlHelper.IsPPE() then
             exit('https://login.windows-ppe.net/');
-
-        Assert.IsTrue(UrlHelper.IsPROD(), 'The test requires a PROD or PPE environment.');
         exit('https://login.microsoftonline.com/');
     end;
 

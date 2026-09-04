@@ -34,8 +34,8 @@ codeunit 560 "CrossIntercompany Connector"
         V1VersionTok: Label 'v1.0', Locked = true;
         GeneralAPIsPathTok: Label 'v2.0/companies', Locked = true;
         BCResourceURLScopeTok: Label 'https://api.businesscentral.dynamics.com/.default', Locked = true;
-        BCProductionHostTok: Label 'api.businesscentral.dynamics.com', Locked = true;
-        BCPPEHostTok: Label 'api.businesscentral.dynamics-tie.com', Locked = true;
+        DynamicsProdHostSuffixTok: Label '.dynamics.com', Locked = true;
+        DynamicsPPEHostSuffixTok: Label '.dynamics-tie.com', Locked = true;
         EntraAuthorityPrefixTok: Label 'https://login.microsoftonline.com/', Locked = true;
         EntraPPEAuthorityPrefixTok: Label 'https://login.windows-ppe.net/', Locked = true;
         OAuthTokenEndpointSuffixTok: Label '/oauth2/v2.0/token', Locked = true;
@@ -397,7 +397,7 @@ codeunit 560 "CrossIntercompany Connector"
     var
         UrlHelper: Codeunit "Url Helper";
         Uri: Codeunit Uri;
-        ExpectedHost: Text;
+        ExpectedHostSuffix: Text;
     begin
         if not Uri.IsValidUri(DestinationUrl) or not DestinationUrl.StartsWith('https://') then
             RejectInvalidDestinationUrl();
@@ -405,14 +405,15 @@ codeunit 560 "CrossIntercompany Connector"
         Uri.Init(DestinationUrl);
 
         if UrlHelper.IsPPE() then
-            ExpectedHost := BCPPEHostTok
+            ExpectedHostSuffix := DynamicsPPEHostSuffixTok
         else
             if UrlHelper.IsPROD() then
-                ExpectedHost := BCProductionHostTok
+                ExpectedHostSuffix := DynamicsProdHostSuffixTok
             else
                 RejectInvalidDestinationUrl();
 
-        if LowerCase(Uri.GetHost()) <> ExpectedHost then
+        // Allow any Dynamics host (including Embed ISV subdomains) under the environment's trusted domain.
+        if not LowerCase(Uri.GetHost()).EndsWith(ExpectedHostSuffix) then
             RejectInvalidDestinationUrl();
 
         exit(true);
@@ -420,7 +421,7 @@ codeunit 560 "CrossIntercompany Connector"
 
     local procedure RejectInvalidDestinationUrl()
     begin
-        Session.LogMessage('0000VC7', InvalidDestinationUrlTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CrossIntercompanyTok);
+        Session.LogMessage('0000VC7', InvalidDestinationUrlTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', CrossIntercompanyTok);
         Session.LogSecurityAudit(
             CrossIntercompanyServiceNameTxt, SecurityOperationResult::Failure,
             InvalidDestinationUrlSecurityAuditTxt, AuditCategory::ApplicationManagement);
@@ -469,7 +470,7 @@ codeunit 560 "CrossIntercompany Connector"
 
     local procedure RejectInvalidTokenEndpoint()
     begin
-        Session.LogMessage('0000VC8', InvalidTokenEndpointTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CrossIntercompanyTok);
+        Session.LogMessage('0000VC8', InvalidTokenEndpointTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', CrossIntercompanyTok);
         Session.LogSecurityAudit(
             CrossIntercompanyServiceNameTxt, SecurityOperationResult::Failure,
             InvalidTokenEndpointSecurityAuditTxt, AuditCategory::ApplicationManagement);

@@ -235,7 +235,7 @@ table 10751 "SII Setup"
         CannotEnableWithoutCertificateErr: Label 'The setup cannot be enabled without a valid certificate.';
         InvalidEndpointUrlErr: Label 'The endpoint URL %1 is not on the allow-list for this feature.', Comment = '%1 = the URL entered by the user';
         EndpointUrlRejectedAuditTxt: Label 'A SII endpoint URL was rejected during validation. Host: %1.', Locked = true, Comment = '%1 = the rejected host';
-        EndpointUrlRejectedTelemetryTxt: Label 'A SII endpoint URL was rejected during validation. Host: %1.', Locked = true, Comment = '%1 = the rejected host';
+        EndpointUrlRejectedTelemetryTxt: Label 'A SII endpoint URL was rejected during validation.', Locked = true;
         EndpointFieldChangedTxt: Label 'SII endpoint field "%1" was changed.', Locked = true, Comment = '%1 - endpoint field caption';
         SecurityAuditCertificateCodeChangedTxt: Label 'SII Certificate Code was changed from %1 to %2.', Locked = true, Comment = '%1 - old certificate code, %2 - new certificate code';
         SiiTxt: Label 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/ssii/fact/ws/SuministroInformacion.xsd', Locked = true;
@@ -261,15 +261,21 @@ table 10751 "SII Setup"
     end;
 
     procedure ValidateEndpointUrl(Url: Text)
+    var
+        TelemetryDimensions: Dictionary of [Text, Text];
+        Host: Text;
     begin
         if IsAllowedEndpointUrl(Url) then
             exit;
 
+        Host := GetHostFromUrl(Url);
         Session.LogSecurityAudit(
             SIIFeatureNameTok, SecurityOperationResult::Failure,
-            StrSubstNo(EndpointUrlRejectedAuditTxt, GetHostFromUrl(Url)),
+            StrSubstNo(EndpointUrlRejectedAuditTxt, Host),
             AuditCategory::ApplicationManagement);
-        Session.LogMessage('0000VCA', StrSubstNo(EndpointUrlRejectedTelemetryTxt, GetHostFromUrl(Url)), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SIIFeatureNameTok);
+        TelemetryDimensions.Add('Category', SIIFeatureNameTok);
+        TelemetryDimensions.Add('Host', Host);
+        Session.LogMessage('0000VCA', EndpointUrlRejectedTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDimensions);
         Error(InvalidEndpointUrlErr, Url);
     end;
 
