@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -410,7 +410,7 @@ table 99000772 "Production BOM Line"
         if IsHandled then
             exit;
 
-        if IsTemporary() then
+        if IsTemporary then
             exit;
 
         if "Version Code" = '' then begin
