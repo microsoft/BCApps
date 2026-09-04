@@ -5,6 +5,7 @@
 namespace Microsoft.eServices.EDocument.Formats;
 
 using Microsoft.Bank.BankAccount;
+using Microsoft.Bank.DirectDebit;
 using Microsoft.CRM.Team;
 using Microsoft.eServices.EDocument;
 using Microsoft.Finance.Currency;
@@ -38,6 +39,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         EDocumentService: Record "E-Document Service";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         PeppolVATHelper: Codeunit "PEPPOL VAT Helper";
+        DEPaymentMeansHelper: Codeunit "DE Payment Means Helper";
         FeatureNameTok: Label 'E-document ZUGFeRD Format', Locked = true;
         StartEventNameTok: Label 'E-document ZUGFeRD export started', Locked = true;
         EndEventNameTok: Label 'E-document ZUGFeRD export completed', Locked = true;
@@ -799,7 +801,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         SettlementElement := XmlElement.Create('ApplicableHeaderTradeSettlement', XmlNamespaceRAM);
 
         SettlementElement.Add(XmlElement.Create('InvoiceCurrencyCode', XmlNamespaceRAM, CurrencyCode));
-        InsertPaymentMethod(SettlementElement, SalesInvHeader."Company Bank Account Code");
+        InsertPaymentMethod(SettlementElement, SalesInvHeader."Payment Method Code", SalesInvHeader."Company Bank Account Code", SalesInvHeader."Direct Debit Mandate ID", SalesInvHeader);
         InsertTradeTax(SettlementElement, SalesInvLine, LineAmount, LineVATAmount);
         InsertInvDiscountAllowanceCharge(SettlementElement, SalesInvLine, LineDiscAmount, LineAmounts);
 
@@ -824,7 +826,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         SettlementElement := XmlElement.Create('ApplicableHeaderTradeSettlement', XmlNamespaceRAM);
 
         SettlementElement.Add(XmlElement.Create('InvoiceCurrencyCode', XmlNamespaceRAM, CurrencyCode));
-        InsertPaymentMethod(SettlementElement, SalesCrMemoHeader."Company Bank Account Code");
+        InsertPaymentMethod(SettlementElement, SalesCrMemoHeader."Payment Method Code", SalesCrMemoHeader."Company Bank Account Code", '', SalesCrMemoHeader);
         InsertTradeTax(SettlementElement, SalesCrMemoLine, LineAmount, LineVATAmount);
         InsertInvDiscountAllowanceCharge(SettlementElement, SalesCrMemoLine, LineDiscAmount, LineAmounts);
 
@@ -1175,29 +1177,92 @@ codeunit 13917 "Export ZUGFeRD Document"
         RootXMLNode.Add(PaymentTermsElement);
     end;
 
-    local procedure InsertPaymentMethod(var RootXMLNode: XmlElement; CompanyBankAccountCode: Code[20])
+    local procedure InsertPaymentMethod(var RootXMLNode: XmlElement; PaymentMethodCode: Code[10]; CompanyBankAccountCode: Code[20]; DirectDebitMandateID: Code[35]; RecordVariant: Variant)
     var
-        PaymentMethodElement, PaymentMethodTypeCodeElement, PaymentMethodIBANElement, PaymentMethodBICElement : XmlElement;
+        DataTypeManagement: Codeunit "Data Type Management";
+        HeaderRecordRef: RecordRef;
+        PaymentMethodElement, PaymentMethodTypeCodeElement : XmlElement;
+        PaymentMeansCode: Code[3];
+    begin
+        PaymentMeansCode := DEPaymentMeansHelper.GetPaymentMeansCode(PaymentMethodCode);
+        PaymentMethodElement := XmlElement.Create('SpecifiedTradeSettlementPaymentMeans', XmlNamespaceRAM);
+        PaymentMethodTypeCodeElement := XmlElement.Create('TypeCode', XmlNamespaceRAM, PaymentMeansCode);
+        PaymentMethodElement.Add(PaymentMethodTypeCodeElement);
+
+        case PaymentMeansCode of
+            '30', '58':
+                InsertCreditTransferPayment(PaymentMethodElement, CompanyBankAccountCode);
+            '49', '59':
+                InsertDirectDebitPayment(PaymentMethodElement, CompanyBankAccountCode, DirectDebitMandateID);
+        end;
+
+        if DataTypeManagement.GetRecordRef(RecordVariant, HeaderRecordRef) then
+            OnInsertPaymentMethodOnBeforeAddToRoot(PaymentMethodElement, HeaderRecordRef);
+        RootXMLNode.Add(PaymentMethodElement);
+    end;
+
+    local procedure InsertDirectDebitPayment(var PaymentMethodElement: XmlElement; CompanyBankAccountCode: Code[20]; DirectDebitMandateID: Code[35])
+    var
+        SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
+        CustomerBankAccount: Record "Customer Bank Account";
         IBAN: Text[50];
         SWIFTCode: Code[20];
     begin
+        // PayeePartyCreditorFinancialAccount = account receiving money (company account, SEPA direct debit creditor).
         GetBankAccountPaymentDetails(CompanyBankAccountCode, IBAN, SWIFTCode);
-        PaymentMethodElement := XmlElement.Create('SpecifiedTradeSettlementPaymentMeans', XmlNamespaceRAM);
-        PaymentMethodTypeCodeElement := XmlElement.Create('TypeCode', XmlNamespaceRAM, '58'); //generic for Credit transfer
-        PaymentMethodElement.Add(PaymentMethodTypeCodeElement);
+        AddCreditorAccount(PaymentMethodElement, IBAN);
+        AddCreditorFinancialInstitution(PaymentMethodElement, SWIFTCode);
 
-        if IBAN <> '' then begin
-            PaymentMethodIBANElement := XmlElement.Create('PayeePartyCreditorFinancialAccount', XmlNamespaceRAM);
-            PaymentMethodIBANElement.Add(XmlElement.Create('IBANID', XmlNamespaceRAM, GetIBAN(IBAN)));
-            PaymentMethodElement.Add(PaymentMethodIBANElement);
-        end;
+        // PayerPartyDebtorFinancialAccount = account being charged (customer, direct debit only), resolved via the mandate.
+        if DirectDebitMandateID <> '' then
+            if SEPADirectDebitMandate.Get(DirectDebitMandateID) then
+                if CustomerBankAccount.Get(SEPADirectDebitMandate."Customer No.", SEPADirectDebitMandate."Customer Bank Account Code") then
+                    AddDebtorAccount(PaymentMethodElement, CustomerBankAccount.IBAN);
+    end;
 
-        if SWIFTCode <> '' then begin
-            PaymentMethodBICElement := XmlElement.Create('PayeeSpecifiedCreditorFinancialInstitution', XmlNamespaceRAM);
-            PaymentMethodBICElement.Add(XmlElement.Create('BICID', XmlNamespaceRAM, GetIBAN(SWIFTCode)));
-            PaymentMethodElement.Add(PaymentMethodBICElement);
-        end;
-        RootXMLNode.Add(PaymentMethodElement);
+    local procedure InsertCreditTransferPayment(var PaymentMethodElement: XmlElement; CompanyBankAccountCode: Code[20])
+    var
+        IBAN: Text[50];
+        SWIFTCode: Code[20];
+    begin
+        // PayeePartyCreditorFinancialAccount = company bank account (payment recipient), for invoices and credit memos alike.
+        // Customer bank data is intentionally not used as payee here, even though a customer IBAN/BIC could technically be read
+        GetBankAccountPaymentDetails(CompanyBankAccountCode, IBAN, SWIFTCode);
+        AddCreditorAccount(PaymentMethodElement, IBAN);
+        AddCreditorFinancialInstitution(PaymentMethodElement, SWIFTCode);
+    end;
+
+    local procedure AddCreditorAccount(var PaymentMethodElement: XmlElement; IBAN: Text[50])
+    var
+        PaymentMethodIBANElement: XmlElement;
+    begin
+        if IBAN = '' then
+            exit;
+        PaymentMethodIBANElement := XmlElement.Create('PayeePartyCreditorFinancialAccount', XmlNamespaceRAM);
+        PaymentMethodIBANElement.Add(XmlElement.Create('IBANID', XmlNamespaceRAM, GetIBAN(IBAN)));
+        PaymentMethodElement.Add(PaymentMethodIBANElement);
+    end;
+
+    local procedure AddDebtorAccount(var PaymentMethodElement: XmlElement; IBAN: Text[50])
+    var
+        DebtorAccountElement: XmlElement;
+    begin
+        if IBAN = '' then
+            exit;
+        DebtorAccountElement := XmlElement.Create('PayerPartyDebtorFinancialAccount', XmlNamespaceRAM);
+        DebtorAccountElement.Add(XmlElement.Create('IBANID', XmlNamespaceRAM, GetIBAN(IBAN)));
+        PaymentMethodElement.Add(DebtorAccountElement);
+    end;
+
+    local procedure AddCreditorFinancialInstitution(var PaymentMethodElement: XmlElement; SWIFTCode: Code[20])
+    var
+        PaymentMethodBICElement: XmlElement;
+    begin
+        if SWIFTCode = '' then
+            exit;
+        PaymentMethodBICElement := XmlElement.Create('PayeeSpecifiedCreditorFinancialInstitution', XmlNamespaceRAM);
+        PaymentMethodBICElement.Add(XmlElement.Create('BICID', XmlNamespaceRAM, GetIBAN(SWIFTCode)));
+        PaymentMethodElement.Add(PaymentMethodBICElement);
     end;
 
     local procedure InsertInvDiscountAllowanceCharge(var RootXMLNode: XmlElement; var SalesInvLine: Record "Sales Invoice Line"; var LineDiscAmount: Dictionary of [Decimal, Decimal]; var LineAmounts: Dictionary of [Text, Decimal])
@@ -1650,6 +1715,15 @@ codeunit 13917 "Export ZUGFeRD Document"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertApplicableHeaderTradeAgreement(var HeaderTradeAgreementElement: XmlElement; HeaderRecordRef: RecordRef)
+    begin
+    end;
+
+    /// <summary>
+    /// Fires immediately before the generated payment means element is added to the document root.
+    /// Subscribe to inspect or extend the payment block, using HeaderRecRef to access any field of the source document.
+    /// </summary>
+    [IntegrationEvent(false, false)]
+    local procedure OnInsertPaymentMethodOnBeforeAddToRoot(var PaymentMethodElement: XmlElement; HeaderRecRef: RecordRef)
     begin
     end;
 
