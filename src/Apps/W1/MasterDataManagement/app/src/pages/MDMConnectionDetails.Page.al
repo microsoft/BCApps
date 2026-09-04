@@ -25,39 +25,7 @@ page 7232 "MDM Connection Details"
                 group(Introduction)
                 {
                     Caption = 'Welcome';
-                    InstructionalText = 'This guide helps you connect to a company in a different Business Central environment so you can synchronize master data from it. Before you continue, make sure the source environment has this extension installed and exposes its data, and that you have a Microsoft Entra application with a read-only permission set on the source.';
-                }
-                group(TermsAndConditions)
-                {
-                    Caption = 'Review the terms and conditions';
-                    InstructionalText = 'By enabling this, you consent to sharing data between Business Central environments that may be in different geographies: this environment reads master data from the source environment you configure, and the filters it sends there may include your data. Your privacy is important to us. To learn more, follow the link below.';
-
-                    field(Consent; ConsentState)
-                    {
-                        ApplicationArea = All;
-                        Caption = 'I accept';
-                        ToolTip = 'Accept the terms and conditions.';
-
-                        trigger OnValidate()
-                        begin
-                            // Ticking "I accept" records the durable platform privacy-notice approval.
-                            if ConsentState then
-                                ConsentState := MDMPrivacyNotice.ConfirmApproval();
-                            SetControls();
-                        end;
-                    }
-                    field(LearnMore; LearnMoreLbl)
-                    {
-                        ApplicationArea = All;
-                        Editable = false;
-                        ShowCaption = false;
-                        ToolTip = 'View information about privacy.';
-
-                        trigger OnDrillDown()
-                        begin
-                            Hyperlink(PrivacyLinkTxt);
-                        end;
-                    }
+                    InstructionalText = 'This guide helps you connect to a company in a different Business Central environment so you can synchronize master data from it. Before you continue, make sure the source environment has this extension installed and exposes its data, and that you have a Microsoft Entra application with a read-only permission set on the source. When you choose Next, you are asked to review and accept the privacy terms for sharing data between environments.';
                 }
             }
             group(ConnectionTab)
@@ -75,19 +43,6 @@ page 7232 "MDM Connection Details"
                         ApplicationArea = Suite;
                         ShowMandatory = true;
                         ToolTip = 'Specifies the name of the source Business Central environment.';
-
-                        trigger OnValidate()
-                        begin
-                            SetControls();
-                        end;
-                    }
-                    field(SourceEnvironmentUrl; SourceEnvironmentUrl)
-                    {
-                        Caption = 'Source Environment URL';
-                        ApplicationArea = Suite;
-                        ExtendedDatatype = URL;
-                        ShowMandatory = true;
-                        ToolTip = 'Specifies the base URL of the source environment''s web services, up to but not including /ODataV4.';
 
                         trigger OnValidate()
                         begin
@@ -238,17 +193,14 @@ page 7232 "MDM Connection Details"
         MDMPrivacyNotice: Codeunit "MDM Privacy Notice";
         Step: Option Welcome,Connection,TestConnection,Finish;
         NextEnabled, BackEnabled, FinishEnabled, TestConnectionEnabled : Boolean;
-        ConsentState, SecretAlreadyStored : Boolean;
+        SecretAlreadyStored: Boolean;
         SourceEnvironmentName: Text[100];
-        SourceEnvironmentUrl: Text[250];
         SourceCompanyName: Text[100];
         OAuth2ClientId: Text[100];
         [NonDebuggable]
         OAuth2ClientSecret: Text;
-        LearnMoreLbl: Label 'Privacy and Cookies';
-        PrivacyLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=521839', Locked = true;
         ConnectionOkMsg: Label 'Successfully connected to the source environment (contract version %1).', Comment = '%1 = wire contract version';
-        ConnectionFailedErr: Label 'Could not connect to the source environment. Check the URL, company, and credentials, then try again.';
+        ConnectionFailedErr: Label 'Could not connect to the source environment. Check the source environment, company, and credentials, then try again.';
 
     local procedure LoadConfiguration()
     var
@@ -257,7 +209,6 @@ page 7232 "MDM Connection Details"
         if not MasterDataManagementSetup.Get() then
             exit;
         SourceEnvironmentName := MasterDataManagementSetup."Source Environment Name";
-        SourceEnvironmentUrl := MasterDataManagementSetup."Source Environment URL";
         SourceCompanyName := MasterDataManagementSetup."Source Company Name";
         OAuth2ClientId := MasterDataManagementSetup."Source OAuth Client Id";
         SecretAlreadyStored := not IsNullGuid(MasterDataManagementSetup."Source Client Secret Key");
@@ -267,13 +218,15 @@ page 7232 "MDM Connection Details"
     local procedure SaveConfiguration()
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
+        HttpSourceTransport: Codeunit "MDM Http Source Transport";
     begin
         if not MasterDataManagementSetup.Get() then begin
             MasterDataManagementSetup.Init();
             MasterDataManagementSetup.Insert();
         end;
         MasterDataManagementSetup.Validate("Source Environment Name", SourceEnvironmentName);
-        MasterDataManagementSetup."Source Environment URL" := SourceEnvironmentUrl;
+        // Same-tenant, same-ring: derive the source web-service URL from the environment name instead of asking for it.
+        MasterDataManagementSetup."Source Environment URL" := CopyStr(HttpSourceTransport.BuildSourceApiBaseUrl(SourceEnvironmentName), 1, MaxStrLen(MasterDataManagementSetup."Source Environment URL"));
         MasterDataManagementSetup."Source Company Name" := SourceCompanyName;
         MasterDataManagementSetup."Source OAuth Client Id" := OAuth2ClientId;
         if OAuth2ClientSecret <> '' then begin
@@ -311,6 +264,9 @@ page 7232 "MDM Connection Details"
 
     local procedure NextStep()
     begin
+        // Leaving the Welcome step requires the durable platform privacy-notice approval; show it once if needed.
+        if (Step = Step::Welcome) and not (MDMPrivacyNotice.IsApproved() or MDMPrivacyNotice.ConfirmApproval()) then
+            exit;
         Step += 1;
         SetControls();
     end;
@@ -332,10 +288,8 @@ page 7232 "MDM Connection Details"
     local procedure StepIsComplete(): Boolean
     begin
         case Step of
-            Step::Welcome:
-                exit(ConsentState);
             Step::Connection:
-                exit((SourceEnvironmentName <> '') and (SourceEnvironmentUrl <> '') and (SourceCompanyName <> '') and
+                exit((SourceEnvironmentName <> '') and (SourceCompanyName <> '') and
                      (OAuth2ClientId <> '') and ((OAuth2ClientSecret <> '') or SecretAlreadyStored));
             else
                 exit(true);

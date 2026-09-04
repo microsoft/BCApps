@@ -38,6 +38,7 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         SourceHostProdTok: Label 'api.businesscentral.dynamics.com', Locked = true;
         SourceHostPPETok: Label 'api.businesscentral.dynamics-tie.com', Locked = true;
         ActionUrlTok: Label '%1/ODataV4/%2_%3?company=%4', Locked = true, Comment = '%1 = base url, %2 = service, %3 = action, %4 = company';
+        BaseUrlTok: Label 'https://%1/v2.0/%2/%3', Locked = true, Comment = '%1 = api host, %2 = Entra tenant id, %3 = source environment name';
         TelemetryCategoryTok: Label 'MDM Cross-Environment', Locked = true;
         TokenAcquiredAuditTxt: Label 'Acquired an application access token to read master data from source environment %1.', Comment = '%1 = source environment name';
         TokenFailedAuditTxt: Label 'Failed to acquire an application access token for source environment %1.', Comment = '%1 = source environment name';
@@ -292,6 +293,22 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         if IsPPE() then
             exit(TokenEndpointPPETok);
         exit(TokenEndpointTok);
+    end;
+
+    // Same-tenant, same-ring: the source web-service base URL is fully derivable from the source environment name,
+    // this environment's tenant, and the ring host, so the wizard constructs it instead of asking for a free-text URL.
+    internal procedure BuildSourceApiBaseUrl(EnvironmentName: Text): Text
+    var
+        AzureADTenant: Codeunit "Azure AD Tenant";
+    begin
+        exit(StrSubstNo(BaseUrlTok, GetSourceApiHost(), AzureADTenant.GetAadTenantId(), EnvironmentName));
+    end;
+
+    local procedure GetSourceApiHost(): Text
+    begin
+        if IsPPE() then
+            exit(SourceHostPPETok);
+        exit(SourceHostProdTok);
     end;
 
     local procedure GetConfiguredSetup(var MasterDataManagementSetup: Record "Master Data Management Setup")

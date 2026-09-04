@@ -144,21 +144,21 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         ConnectionWizard: TestPage "MDM Connection Details";
     begin
         // [FEATURE] [AI test 0.4] [Master Data Management] [Cross-Environment] [Privacy]
-        // [SCENARIO] Ticking consent in the wizard opens the platform privacy notice - a regression guard that the
+        // [SCENARIO] Choosing Next on the Welcome step opens the platform privacy notice - a regression guard that the
         // wizard actually calls ConfirmApproval (the handler below fires only if the notice dialog is shown).
         Initialize();
 
-        // [GIVEN] the privacy notice has no recorded decision, so accepting consent must prompt it
+        // [GIVEN] the privacy notice has no recorded decision, so continuing past Welcome must prompt it
         LibraryMasterDataMgt.PrivacyNoticeResetApproval();
         WizardPrivacyNoticeOpenCount := 0;
 
-        // [WHEN] the admin ticks consent in the connection wizard
+        // [WHEN] the admin chooses Next on the Welcome step
         ConnectionWizard.OpenEdit();
-        ConnectionWizard.Consent.SetValue(true);
+        ConnectionWizard.ActionNext.Invoke();
         ConnectionWizard.Close();
 
         // [THEN] the privacy-notice dialog was shown exactly once - proving the wizard invoked ConfirmApproval
-        Assert.AreEqual(1, WizardPrivacyNoticeOpenCount, 'Ticking consent should open the privacy notice exactly once (call ConfirmApproval)');
+        Assert.AreEqual(1, WizardPrivacyNoticeOpenCount, 'Choosing Next on the Welcome step should open the privacy notice exactly once (call ConfirmApproval)');
 
         LibraryMasterDataMgt.PrivacyNoticeResetApproval();
         CleanUp();
@@ -345,6 +345,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         MasterDataManagementSetup: Record "Master Data Management Setup";
         PrivacyNotice: Codeunit "Privacy Notice";
         LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        AzureADTenant: Codeunit "Azure AD Tenant";
         ConnectionDetails: TestPage "MDM Connection Details";
     begin
         // [FEATURE] [AI test 0.4]
@@ -354,12 +355,10 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         PrivacyNotice.SetApprovalState(LibraryMasterDataMgt.PrivacyNoticeId(), "Privacy Notice Approval State"::Agreed);
 
         ConnectionDetails.OpenEdit();
-        // Welcome step: accept the terms so Next is enabled.
-        ConnectionDetails.Consent.SetValue(true);
+        // Welcome step: consent is pre-approved above, so Next advances without prompting.
         ConnectionDetails.ActionNext.Invoke();
-        // Connection step: provide the source environment and credentials.
+        // Connection step: provide the source environment and credentials (the URL is derived from the environment name).
         ConnectionDetails.SourceEnvironmentName.SetValue('CONTOSO-PROD');
-        ConnectionDetails.SourceEnvironmentUrl.SetValue('https://api.businesscentral.dynamics.com/v2.0/contoso-prod');
         ConnectionDetails.SourceCompanyName.SetValue('CRONUS');
         ConnectionDetails.OAuth2ClientId.SetValue('11111111-2222-3333-4444-555555555555');
         ConnectionDetails.OAuth2ClientSecret.SetValue('super-secret');
@@ -370,7 +369,13 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         // [THEN] the setup holds the connection and a stored client secret
         MasterDataManagementSetup.Get();
         Assert.AreEqual('CONTOSO-PROD', MasterDataManagementSetup."Source Environment Name", 'Source environment not saved');
-        Assert.AreEqual('https://api.businesscentral.dynamics.com/v2.0/contoso-prod', MasterDataManagementSetup."Source Environment URL", 'Source URL not saved');
+        // The URL is constructed from the current tenant, ring host, and source environment name.
+        Assert.IsTrue(
+            StrPos(MasterDataManagementSetup."Source Environment URL", '/v2.0/' + AzureADTenant.GetAadTenantId() + '/CONTOSO-PROD') > 0,
+            'Source URL should embed the tenant id and source environment name');
+        Assert.IsTrue(
+            StrPos(LowerCase(MasterDataManagementSetup."Source Environment URL"), 'https://api.businesscentral.dynamics') = 1,
+            'Source URL should target the Business Central API host');
         Assert.AreEqual('CRONUS', MasterDataManagementSetup."Source Company Name", 'Source company not saved');
         Assert.AreEqual('11111111-2222-3333-4444-555555555555', MasterDataManagementSetup."Source OAuth Client Id", 'Source client id not saved');
         Assert.IsFalse(IsNullGuid(MasterDataManagementSetup."Source Client Secret Key"), 'Client secret should be stored');
