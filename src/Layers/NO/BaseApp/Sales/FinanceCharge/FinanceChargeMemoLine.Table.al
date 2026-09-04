@@ -85,7 +85,7 @@ table 303 "Finance Charge Memo Line"
         /// <summary>
         /// Specifies the customer ledger entry number for which interest is being charged.
         /// </summary>
-        field(5; "Entry No."; Integer)
+        field(5; "Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Entry No.';

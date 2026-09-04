@@ -208,7 +208,7 @@ codeunit 134 "Import Attachment - Inc. Doc."
 
     local procedure FindInIncomingDocAttachmentUsingIncomingDocNoFilter(var IncomingDocumentAttachment: Record "Incoming Document Attachment"; var IncomingDocument: Record "Incoming Document"): Boolean
     var
-        IncomingDocNo: Integer;
+        IncomingDocNo: BigInteger;
     begin
         if IncomingDocumentAttachment.GetFilter("Incoming Document Entry No.") <> '' then begin
             IncomingDocNo := IncomingDocumentAttachment.GetRangeMin("Incoming Document Entry No.");
@@ -220,7 +220,7 @@ codeunit 134 "Import Attachment - Inc. Doc."
 
     local procedure FindInGenJournalLineUsingIncomingDocNoFilter(var IncomingDocumentAttachment: Record "Incoming Document Attachment"; var IncomingDocument: Record "Incoming Document"): Boolean
     var
-        IncomingDocNo: Integer;
+        IncomingDocNo: BigInteger;
     begin
         if IncomingDocumentAttachment.GetFilter("Journal Batch Name Filter") <> '' then begin
             IncomingDocNo := CreateNewJournalLineIncomingDoc(IncomingDocumentAttachment);
@@ -232,7 +232,7 @@ codeunit 134 "Import Attachment - Inc. Doc."
 
     local procedure FindInSalesPurchUsingIncomingDocNoFilter(var IncomingDocumentAttachment: Record "Incoming Document Attachment"; var IncomingDocument: Record "Incoming Document"): Boolean
     var
-        IncomingDocNo: Integer;
+        IncomingDocNo: BigInteger;
     begin
         if IncomingDocumentAttachment.GetFilter("Document Table No. Filter") <> '' then begin
             IncomingDocNo := CreateNewSalesPurchIncomingDoc(IncomingDocumentAttachment);
@@ -296,7 +296,7 @@ codeunit 134 "Import Attachment - Inc. Doc."
         exit(IncomingDocument.FindFirst());
     end;
 
-    local procedure CreateNewSalesPurchIncomingDoc(var IncomingDocumentAttachment: Record "Incoming Document Attachment") IncomingDocEntryNo: Integer
+    local procedure CreateNewSalesPurchIncomingDoc(var IncomingDocumentAttachment: Record "Incoming Document Attachment") IncomingDocEntryNo: BigInteger
     var
         IncomingDocument: Record "Incoming Document";
         SalesHeader: Record "Sales Header";
@@ -340,7 +340,7 @@ codeunit 134 "Import Attachment - Inc. Doc."
         exit(IncomingDocument."Entry No.");
     end;
 
-    local procedure CreateNewJournalLineIncomingDoc(var IncomingDocumentAttachment: Record "Incoming Document Attachment"): Integer
+    local procedure CreateNewJournalLineIncomingDoc(var IncomingDocumentAttachment: Record "Incoming Document Attachment"): BigInteger
     var
         IncomingDocument: Record "Incoming Document";
         GenJournalLine: Record "Gen. Journal Line";
@@ -509,7 +509,7 @@ codeunit 134 "Import Attachment - Inc. Doc."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateNewSalesPurchIncomingDoc(var IncomingDocumentAttachment: Record "Incoming Document Attachment"; var IncomingDocEntryNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeCreateNewSalesPurchIncomingDoc(var IncomingDocumentAttachment: Record "Incoming Document Attachment"; var IncomingDocEntryNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 

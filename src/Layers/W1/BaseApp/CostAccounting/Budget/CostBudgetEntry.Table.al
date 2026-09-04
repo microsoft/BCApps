@@ -21,7 +21,7 @@ table 1109 "Cost Budget Entry"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             Editable = false;
@@ -160,7 +160,7 @@ table 1109 "Cost Budget Entry"
 
     var
         CostAccMgt: Codeunit "Cost Account Mgt";
-        CurrRegNo: Integer;
+        CurrRegNo: BigInteger;
 #pragma warning disable AA0074
         Text000: Label 'This function must be started with a budget name.';
 #pragma warning disable AA0470
@@ -172,7 +172,7 @@ table 1109 "Cost Budget Entry"
         Text005: Label 'You cannot define both cost center and cost object.';
 #pragma warning restore AA0074
 
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin
@@ -291,12 +291,12 @@ table 1109 "Cost Budget Entry"
             CostAccMgt.UpdateCostBudgetRegister(CurrRegNo, "Entry No.", Amount);
     end;
 
-    procedure SetCostBudgetRegNo(RegNo: Integer)
+    procedure SetCostBudgetRegNo(RegNo: BigInteger)
     begin
         CurrRegNo := RegNo;
     end;
 
-    procedure GetCostBudgetRegNo(): Integer
+    procedure GetCostBudgetRegNo(): BigInteger
     begin
         exit(CurrRegNo);
     end;
@@ -372,12 +372,12 @@ table 1109 "Cost Budget Entry"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeHandleCostBudgetRegister(var CostBudgetEntry: Record "Cost Budget Entry"; var CurrRegNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeHandleCostBudgetRegister(var CostBudgetEntry: Record "Cost Budget Entry"; var CurrRegNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterShouldUpdateCostRegister(var Rec: Record "Cost Budget Entry"; var CostBudgetEntry: Record "Cost Budget Entry"; CurrRegNo: Integer; var ShouldUpdate: Boolean)
+    local procedure OnAfterShouldUpdateCostRegister(var Rec: Record "Cost Budget Entry"; var CostBudgetEntry: Record "Cost Budget Entry"; CurrRegNo: BigInteger; var ShouldUpdate: Boolean)
     begin
     end;
 }

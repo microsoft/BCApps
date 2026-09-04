@@ -6009,7 +6009,7 @@ codeunit 90 "Purch.-Post"
 
     local procedure CopyJobConsumptionReservation(var TempReservEntryJobCons: Record "Reservation Entry" temporary; var TempReservEntryPurchase: Record "Reservation Entry" temporary; var ItemJournalLine: Record "Item Journal Line"; var TempTrackingSpecification: Record "Tracking Specification" temporary; PurchItemLedgEntryNo: Integer; NonInventoriableItem: Boolean)
     var
-        NextReservationEntryNo: Integer;
+        NextReservationEntryNo: BigInteger;
     begin
         // Item tracking for consumption
         NextReservationEntryNo := 1;

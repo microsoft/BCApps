@@ -246,7 +246,7 @@ page 624 "Unapply Vendor Entries"
         ApplyUnapplyParameters: Record "Apply Unapply Parameters";
         DocNo: Code[20];
         PostingDate: Date;
-        VendLedgEntryNo: Integer;
+        VendLedgEntryNo: BigInteger;
 
     procedure SetDtldVendLedgEntry(EntryNo: Integer)
     begin

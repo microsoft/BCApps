@@ -40,7 +40,7 @@ codeunit 386 "Reverse Payment Rec. Journal"
         PostedPaymentReconciliationNotSelectedErr: Label 'You must select a journal to reverse.';
         CantFindRelatedEntriesErr: Label 'Related entries not found. To unapply and reverse payments you must do it manually.';
         PaymentRecJournalAlreadyReversedErr: Label 'This payment reconciliation journal has already been reversed.';
-        GLRegisterNo: Integer;
+        GLRegisterNo: BigInteger;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnAfterInitGLRegister', '', false, false)]
     local procedure SetGLRegisterNoInPostedPaymentRecHeader(var GLRegister: Record "G/L Register"; var GenJournalLine: Record "Gen. Journal Line")

@@ -20,7 +20,7 @@ table 6670 "Returns-Related Document"
         /// <summary>
         /// Specifies the unique entry number for this related document record.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }

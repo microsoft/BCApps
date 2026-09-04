@@ -375,7 +375,7 @@ report 713 "Inventory - Customer Sales"
 #if not CLEAN28
         PostingDateFilter: Text;
 #endif
-        LastItemLedgEntryNo: Integer;
+        LastItemLedgEntryNo: BigInteger;
         ReportLineNo: Integer;
         ProfitPct: Decimal;
         SubtotalsInvQty: Decimal;
@@ -404,7 +404,7 @@ report 713 "Inventory - Customer Sales"
         exit(ValueEntry."Discount Amount");
     end;
 
-    local procedure GetLastItemLedgerEntryNo(var ItemLedgerEntry: Record "Item Ledger Entry"): Integer
+    local procedure GetLastItemLedgerEntryNo(var ItemLedgerEntry: Record "Item Ledger Entry"): BigInteger
     var
         LastItemLedgerEntry: Record "Item Ledger Entry";
     begin

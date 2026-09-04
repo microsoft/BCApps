@@ -867,7 +867,7 @@ codeunit 1100 "Cost Account Mgt"
         OnAfterCopyDimValueToCostObject(DimValue, CostObject);
     end;
 
-    procedure InsertCostBudgetRegister(CostBudgetEntryNo: Integer; CostBudgetName: Code[10]; CostBudgetAmount: Decimal): Integer
+    procedure InsertCostBudgetRegister(CostBudgetEntryNo: Integer; CostBudgetName: Code[10]; CostBudgetAmount: Decimal): BigInteger
     var
         CostBudgetReg: Record "Cost Budget Register";
     begin
@@ -890,7 +890,7 @@ codeunit 1100 "Cost Account Mgt"
         exit(CostBudgetReg."No.");
     end;
 
-    procedure UpdateCostBudgetRegister(CostBudgetRegNo: Integer; CostBudgetEntryNo: Integer; CostBudgetAmount: Decimal)
+    procedure UpdateCostBudgetRegister(CostBudgetRegNo: BigInteger; CostBudgetEntryNo: Integer; CostBudgetAmount: Decimal)
     var
         CostBudgetReg: Record "Cost Budget Register";
         CostBudgetEntry: Record "Cost Budget Entry";

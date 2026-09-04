@@ -287,8 +287,8 @@ report 81 "Import Budget from Excel"
         SheetName: Text[250];
         ToGLBudgetName: Code[10];
         DimCode: array[8] of Code[20];
-        EntryNo: Integer;
-        LastEntryNoBeforeImport: Integer;
+        EntryNo: BigInteger;
+        LastEntryNoBeforeImport: BigInteger;
         GlobalDim1Code: Code[20];
         GlobalDim2Code: Code[20];
         TotalRecNo: Integer;
@@ -904,7 +904,7 @@ report 81 "Import Budget from Excel"
     /// <param name="EntryNo">Next entry number to use for new records</param>
     /// <param name="IsHandled">Set to true to skip standard entry number processing</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeGetLastEntryNoBeforeImport(var GLBudgetEntry3: Record "G/L Budget Entry"; var LastEntryNoBeforeImport: Integer; var EntryNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeGetLastEntryNoBeforeImport(var GLBudgetEntry3: Record "G/L Budget Entry"; var LastEntryNoBeforeImport: BigInteger; var EntryNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 
@@ -1041,7 +1041,7 @@ report 81 "Import Budget from Excel"
     /// <param name="GLBudgetEntry">G/L Budget Entry record that was inserted</param>
     /// <param name="EntryNo">Current entry number counter that will be incremented for the next entry</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBudgetBufOnAfterGetRecordOnAfterGLBudgetEntryInsert(var GLBudgetEntry: Record "G/L Budget Entry"; var EntryNo: Integer)
+    local procedure OnBudgetBufOnAfterGetRecordOnAfterGLBudgetEntryInsert(var GLBudgetEntry: Record "G/L Budget Entry"; var EntryNo: BigInteger)
     begin
     end;
 }

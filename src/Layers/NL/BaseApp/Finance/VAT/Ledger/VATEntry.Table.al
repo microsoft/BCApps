@@ -58,7 +58,7 @@ table 254 "VAT Entry"
         /// <summary>
         /// Unique sequential identifier for the VAT entry used for referencing and linking with other records.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             Editable = false;
@@ -235,7 +235,7 @@ table 254 "VAT Entry"
         /// <summary>
         /// Entry number of the VAT settlement entry that closed this VAT entry during VAT return processing.
         /// </summary>
-        field(17; "Closed by Entry No."; Integer)
+        field(17; "Closed by Entry No."; BigInteger)
         {
             Caption = 'Closed by Entry No.';
             Editable = false;
@@ -278,7 +278,7 @@ table 254 "VAT Entry"
         /// <summary>
         /// Transaction number linking this VAT entry with related general ledger and other ledger entries.
         /// </summary>
-        field(21; "Transaction No."; Integer)
+        field(21; "Transaction No."; BigInteger)
         {
             Caption = 'Transaction No.';
             Editable = false;
@@ -427,7 +427,7 @@ table 254 "VAT Entry"
         /// <summary>
         /// Reference to the related unrealized VAT entry when using unrealized VAT functionality.
         /// </summary>
-        field(38; "Unrealized VAT Entry No."; Integer)
+        field(38; "Unrealized VAT Entry No."; BigInteger)
         {
             Caption = 'Unrealized VAT Entry No.';
             Editable = false;
@@ -598,7 +598,7 @@ table 254 "VAT Entry"
         /// <summary>
         /// Entry number of the VAT entry that reversed this entry for audit trail and correction tracking.
         /// </summary>
-        field(57; "Reversed by Entry No."; Integer)
+        field(57; "Reversed by Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Reversed by Entry No.';
@@ -608,7 +608,7 @@ table 254 "VAT Entry"
         /// <summary>
         /// Entry number of the original VAT entry that was reversed by this correction entry.
         /// </summary>
-        field(58; "Reversed Entry No."; Integer)
+        field(58; "Reversed Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Reversed Entry No.';
@@ -764,7 +764,7 @@ table 254 "VAT Entry"
                 VATDateReportingMgt.UpdateLinkedEntries(Rec);
             end;
         }
-        field(95; "G/L Register No."; Integer)
+        field(95; "G/L Register No."; BigInteger)
         {
             Caption = 'G/L Register No.';
             Editable = false;
@@ -940,7 +940,7 @@ table 254 "VAT Entry"
     /// Retrieves the highest entry number from the VAT Entry table.
     /// </summary>
     /// <returns>Last VAT entry number used in the system</returns>
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

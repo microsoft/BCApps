@@ -98,8 +98,8 @@ codeunit 5819 "Undo Service Consumption Line"
         ServLedgEntriesPost: Codeunit "ServLedgEntries-Post";
         Window: Dialog;
         ItemShptEntryNo: Integer;
-        ServLedgEntryNo: Integer;
-        WarrantyLedgEntryNo: Integer;
+        ServLedgEntryNo: BigInteger;
+        WarrantyLedgEntryNo: BigInteger;
     begin
         Clear(ItemJnlPostLine);
         ServShptLine.SetRange(Correction, false);
@@ -410,7 +410,7 @@ codeunit 5819 "Undo Service Consumption Line"
     var
         TrackingSpecification: Record "Tracking Specification";
         NewTrackingSpecification: Record "Tracking Specification";
-        NewEntryNo: Integer;
+        NewEntryNo: BigInteger;
     begin
         TrackingSpecification.Reset();
         TrackingSpecification.SetRange("Item Ledger Entry No.", OldItemShptEntryNo);

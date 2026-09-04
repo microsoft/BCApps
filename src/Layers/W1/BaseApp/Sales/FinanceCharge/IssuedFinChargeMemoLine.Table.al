@@ -60,7 +60,7 @@ table 305 "Issued Fin. Charge Memo Line"
         /// <summary>
         /// Specifies the customer ledger entry number for which interest was charged.
         /// </summary>
-        field(5; "Entry No."; Integer)
+        field(5; "Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Entry No.';

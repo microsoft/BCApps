@@ -21,7 +21,7 @@ table 184 "Payment Rec. Related Entry"
         /// <summary>
         /// Unique identifier for the related entry record.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the Entry No. that was created by the Posted Payment Reconciliation Journal.';
@@ -51,7 +51,7 @@ table 184 "Payment Rec. Related Entry"
         /// <summary>
         /// Line number within the reconciliation statement.
         /// </summary>
-        field(5; "Statement Line No."; Integer)
+        field(5; "Statement Line No."; BigInteger)
         {
             Caption = 'Statement Line No.';
         }

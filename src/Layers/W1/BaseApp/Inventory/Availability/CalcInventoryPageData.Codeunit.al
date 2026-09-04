@@ -121,7 +121,7 @@ codeunit 5531 "Calc. Inventory Page Data"
         SourceID: Code[20];
         SourceBatchName: Code[10];
         SourceProdOrderLine: Integer;
-        SourceRefNo: Integer;
+        SourceRefNo: BigInteger;
         IsHandled: Boolean;
     begin
         InventoryPageData.Init();
@@ -164,7 +164,7 @@ codeunit 5531 "Calc. Inventory Page Data"
         InventoryPageData."Reserved Receipt" := InventoryEventBuffer."Reserved Quantity (Base)";
     end;
 
-    local procedure TransferReqLine(InventoryEventBuffer: Record "Inventory Event Buffer"; var InventoryPageData: Record "Inventory Page Data"; SourceID: Code[20]; SourceBatchName: Code[10]; SourceRefNo: Integer)
+    local procedure TransferReqLine(InventoryEventBuffer: Record "Inventory Event Buffer"; var InventoryPageData: Record "Inventory Page Data"; SourceID: Code[20]; SourceBatchName: Code[10]; SourceRefNo: BigInteger)
     var
         ReqLine: Record "Requisition Line";
     begin
@@ -283,7 +283,7 @@ codeunit 5531 "Calc. Inventory Page Data"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnTransferToPeriodDetailsElseCase(var InventoryPageData: Record "Inventory Page Data"; InventoryEventBuffer: Record "Inventory Event Buffer"; var IsHandled: Boolean; SourceType: Integer; SourceSubType: Integer; SourceID: Code[20]; SourceRefNo: Integer; SourceBatchName: Code[10]; SourceProdOrderLine: Integer)
+    local procedure OnTransferToPeriodDetailsElseCase(var InventoryPageData: Record "Inventory Page Data"; InventoryEventBuffer: Record "Inventory Event Buffer"; var IsHandled: Boolean; SourceType: Integer; SourceSubType: Integer; SourceID: Code[20]; SourceRefNo: BigInteger; SourceBatchName: Code[10]; SourceProdOrderLine: Integer)
     begin
     end;
 

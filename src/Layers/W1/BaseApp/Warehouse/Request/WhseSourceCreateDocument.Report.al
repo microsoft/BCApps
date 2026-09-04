@@ -1102,7 +1102,7 @@ report 7305 "Whse.-Source - Create Document"
     local procedure UpdateWhseItemTrackingBuffer(SourceWhseWorksheetLine: Record "Whse. Worksheet Line"; BufferWhseWorksheetLine: Record "Whse. Worksheet Line")
     var
         WhseItemTrackingLine: Record "Whse. Item Tracking Line";
-        LastWhseItemTrkgLineNo: Integer;
+        LastWhseItemTrkgLineNo: BigInteger;
     begin
         TempWhseItemTrackingLine.Reset();
         if TempWhseItemTrackingLine.FindLast() then

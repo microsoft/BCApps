@@ -523,7 +523,7 @@ table 5080 "To-do"
                     GetEndDateTime();
             end;
         }
-        field(31; "Opportunity Entry No."; Integer)
+        field(31; "Opportunity Entry No."; BigInteger)
         {
             Caption = 'Opportunity Entry No.';
             TableRelation = "Opportunity Entry";

@@ -127,7 +127,7 @@ codeunit 2677 "Gen. Journal Alloc. Acc. Mgt."
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnBeforeCode', '', false, false)]
-    local procedure PostAllocationJournalLine(var GenJnlLine: Record "Gen. Journal Line"; CheckLine: Boolean; var IsPosted: Boolean; var GLReg: Record "G/L Register"; var GLEntryNo: Integer)
+    local procedure PostAllocationJournalLine(var GenJnlLine: Record "Gen. Journal Line"; CheckLine: Boolean; var IsPosted: Boolean; var GLReg: Record "G/L Register"; var GLEntryNo: BigInteger)
     begin
         if (GenJnlLine."Bal. Account Type" = GenJnlLine."Bal. Account Type"::"Allocation Account") or (GenJnlLine."Account Type" = GenJnlLine."Account Type"::"Allocation Account") then
             Error(PostFromBatchErr);
@@ -148,7 +148,7 @@ codeunit 2677 "Gen. Journal Alloc. Acc. Mgt."
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnBeforeInsertGLEntryBuffer', '', false, false)]
-    local procedure HandleBeforeInsertGLEntryBuffer(var TempGLEntryBuf: Record "G/L Entry" temporary; var GenJournalLine: Record "Gen. Journal Line"; var BalanceCheckAmount: Decimal; var BalanceCheckAmount2: Decimal; var BalanceCheckAddCurrAmount: Decimal; var BalanceCheckAddCurrAmount2: Decimal; var NextEntryNo: Integer; var TotalAmount: Decimal; var TotalAddCurrAmount: Decimal; var GLEntry: Record "G/L Entry")
+    local procedure HandleBeforeInsertGLEntryBuffer(var TempGLEntryBuf: Record "G/L Entry" temporary; var GenJournalLine: Record "Gen. Journal Line"; var BalanceCheckAmount: Decimal; var BalanceCheckAmount2: Decimal; var BalanceCheckAddCurrAmount: Decimal; var BalanceCheckAddCurrAmount2: Decimal; var NextEntryNo: BigInteger; var TotalAmount: Decimal; var TotalAddCurrAmount: Decimal; var GLEntry: Record "G/L Entry")
     begin
         TempGLEntryBuf."Allocation Account No." := GenJournalLine."Allocation Account No.";
         TempGLEntryBuf."Alloc. Journal Line SystemId" := GenJournalLine."Alloc. Journal Line SystemId";

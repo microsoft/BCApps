@@ -424,7 +424,7 @@ table 5077 "Segment Line"
             ToolTip = 'Specifies the contact company number of the contact to whom the segment line applies.';
             TableRelation = Contact where(Type = const(Company));
         }
-        field(28; "Campaign Entry No."; Integer)
+        field(28; "Campaign Entry No."; BigInteger)
         {
             Caption = 'Campaign Entry No.';
             ToolTip = 'Specifies the campaign entry number of the contact to whom the segment line applies.';

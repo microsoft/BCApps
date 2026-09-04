@@ -25,7 +25,7 @@ table 253 "G/L Entry - VAT Entry Link"
         /// <summary>
         /// General ledger entry number linking to the corresponding G/L transaction record.
         /// </summary>
-        field(1; "G/L Entry No."; Integer)
+        field(1; "G/L Entry No."; BigInteger)
         {
             Caption = 'G/L Entry No.';
             TableRelation = "G/L Entry"."Entry No.";
@@ -33,7 +33,7 @@ table 253 "G/L Entry - VAT Entry Link"
         /// <summary>
         /// VAT entry number linking to the corresponding VAT transaction record.
         /// </summary>
-        field(2; "VAT Entry No."; Integer)
+        field(2; "VAT Entry No."; BigInteger)
         {
             Caption = 'VAT Entry No.';
             TableRelation = "VAT Entry"."Entry No.";

@@ -44,7 +44,7 @@ codeunit 100 "Calc. G/L Acc. Where-Used"
 
     var
         TempGLAccWhereUsed: Record "G/L Account Where-Used" temporary;
-        NextEntryNo: Integer;
+        NextEntryNo: BigInteger;
 #pragma warning disable AA0074
         Text000: Label 'The update has been interrupted to respect the warning.';
 #pragma warning restore AA0074

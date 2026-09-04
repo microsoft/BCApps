@@ -36,7 +36,7 @@ table 5065 "Interaction Log Entry"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
@@ -121,7 +121,7 @@ table 5065 "Interaction Log Entry"
             ToolTip = 'Specifies the number of the campaign (if any) to which the interaction is linked. This field is not editable.';
             TableRelation = Campaign;
         }
-        field(15; "Campaign Entry No."; Integer)
+        field(15; "Campaign Entry No."; BigInteger)
         {
             Caption = 'Campaign Entry No.';
             ToolTip = 'Specifies the number of the campaign entry to which the interaction log entry is linked.';

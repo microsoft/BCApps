@@ -34,7 +34,7 @@ table 96 "G/L Budget Entry"
         /// <summary>
         /// Unique identifier for the budget entry record within the G/L Budget Entry table.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
@@ -403,7 +403,7 @@ table 96 "G/L Budget Entry"
     /// </summary>
     /// <returns>The last used entry number in the table.</returns>
     [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Budget Entry", 'r')]
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

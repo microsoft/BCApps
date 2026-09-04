@@ -18,14 +18,14 @@ table 143 "ECSL VAT Report Line Relation"
         /// <summary>
         /// VAT entry number that contributes to the ECSL report line totals.
         /// </summary>
-        field(1; "VAT Entry No."; Integer)
+        field(1; "VAT Entry No."; BigInteger)
         {
             Caption = 'VAT Entry No.';
         }
         /// <summary>
         /// ECSL report line number that includes this VAT entry in its calculations.
         /// </summary>
-        field(2; "ECSL Line No."; Integer)
+        field(2; "ECSL Line No."; BigInteger)
         {
             Caption = 'ECSL Line No.';
         }

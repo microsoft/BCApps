@@ -1773,7 +1773,7 @@ table 5900 "Service Header"
                     InitVATDate();
             end;
         }
-        field(165; "Incoming Document Entry No."; Integer)
+        field(165; "Incoming Document Entry No."; BigInteger)
         {
             Caption = 'Incoming Document Entry No.';
             TableRelation = "Incoming Document";

@@ -23,7 +23,7 @@ table 373 "Dimension Entry Buffer"
         /// <summary>
         /// Sequential number for ordering and iteration during batch processing.
         /// </summary>
-        field(1; "No."; Integer)
+        field(1; "No."; BigInteger)
         {
             Caption = 'No.';
             DataClassification = SystemMetadata;

@@ -235,7 +235,7 @@ page 625 "Unapply Employee Entries"
         Employee: Record Employee;
         DocNo: Code[20];
         PostingDate: Date;
-        EmplLedgEntryNo: Integer;
+        EmplLedgEntryNo: BigInteger;
         CaptionTxt: Label '%1 %2 %3 %4', Locked = true;
         EntriesUnappliedMsg: Label 'The entries were successfully unapplied.';
         NothingToApplyErr: Label 'There is nothing to unapply.';

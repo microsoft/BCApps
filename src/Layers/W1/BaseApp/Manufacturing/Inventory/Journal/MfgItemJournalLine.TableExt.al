@@ -385,7 +385,7 @@ tableextension 99000758 "Mfg. Item Journal Line" extends "Item Journal Line"
             DataClassification = CustomerContent;
             TableRelation = "Work Shift";
         }
-        field(5900; "Rev. Capacity Ledger Entry No."; Integer)
+        field(5900; "Rev. Capacity Ledger Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Reversed Capacity Ledger Entry No.';

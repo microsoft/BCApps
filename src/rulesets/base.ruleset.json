@@ -15,6 +15,56 @@
       "justification": "The application app shouldn't point at itself."
     },
     {
+      "id": "AA0244",
+      "action": "None",
+      "justification": "Needed for allowing co-existence of apps using Integer and BigInteger. Triggered when changing type of function parameter"
+    },
+    {
+      "id": "AS0023",
+      "action": "None",
+      "justification": "Needed for allowing co-existence of apps using Integer and BigInteger."
+    },
+    {
+      "id": "AS0108",
+      "action": "None",
+      "justification": "Needed for allowing co-existence of apps using Integer and BigInteger."
+    },
+    {
+      "id": "AS0146",
+      "action": "None",
+      "justification": "Needed for allowing co-existence of apps using Integer and BigInteger."
+    },
+    {
+      "id": "AS0147",
+      "action": "None",
+      "justification": "Needed for allowing co-existence of apps using Integer and BigInteger."
+    },
+    {
+      "id": "AL0108",
+      "action": "None",
+      "justification": "Needed for allowing co-existence of apps using Integer and BigInteger."
+    },
+    {
+      "id": "AL0603",
+      "action": "None",
+      "justification": "Needed for allowing co-existence of apps using Integer and BigInteger."
+    },
+    {
+      "id": "AL0662",
+      "action": "None",
+      "justification": "Needed for allowing co-existence of apps using Integer and BigInteger."
+    },
+    {
+      "id": "AL0254",
+      "action": "None",
+      "justification": "Rule is wrong."
+    },
+    {
+      "id": "AL0284",
+      "action": "None",
+      "justification": "Needed for allowing co-existence of apps using Integer and BigInteger."
+    },
+    {
       "id": "AL0424",
       "action": "Warning",
       "justification": "Bug 472148. The multilanguage syntax is being deprecated. Please update to the new syntax."
@@ -40,7 +90,7 @@
     {
       "id": "AL0667",
       "action": "Warning",
-      "justification": "'ObsoleteReason' is being deprecated in the versions: '1.0' or greater. This property is not allowed on areas. This warning will become an error in a future release."
+      "justification": "'ObsoleteReason' is being deprecated in the versions: '1.0' or greater. This property is not allowed on areas. This warning will become an error in a future"
     },
     {
       "id": "AL0684",
@@ -256,6 +306,11 @@
       "justification": "The Label must not contain email addresses or phone numbers."
     },
     {
+      "id": "AA0242",
+      "action": "Warning",
+      "justification": "Field is not selected for loading and accessing it may cause a JIT load."
+    },
+    {
       "id": "AA0244",
       "action": "Warning",
       "justification": "The name of the parameter is identical to a global variable."
@@ -324,7 +379,7 @@
       "action": "Warning"
     },
     {
-      "id": "AL0603",
+      "id": "AL0523",
       "action": "Warning"
     },
     {

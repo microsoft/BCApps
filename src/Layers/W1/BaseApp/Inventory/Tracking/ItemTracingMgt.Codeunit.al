@@ -783,7 +783,7 @@ codeunit 6520 "Item Tracing Mgt."
 
     local procedure UpdateHistory(SerialNoFilter: Text; LotNoFilter: Text; PackageNoFilter: Text; ItemNoFilter: Text; VariantFilter: Text; TraceMethod: Option "Origin->Usage","Usage->Origin"; ShowComponents: Option No,"Item-tracked only",All) OK: Boolean
     var
-        LevelCount: Integer;
+        LevelCount: BigInteger;
         ExtFilterExists: Boolean;
         IsHandled: Boolean;
     begin

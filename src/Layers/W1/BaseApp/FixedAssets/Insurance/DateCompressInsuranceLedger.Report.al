@@ -288,13 +288,13 @@ report 5697 "Date Compress Insurance Ledger"
         Retain: array[10] of Boolean;
         FieldNumber: array[10] of Integer;
         FieldNameArray: array[10] of Text[100];
-        LastEntryNo: Integer;
+        LastEntryNo: BigInteger;
         NoOfDeleted: Integer;
         InsuranceRegExists: Boolean;
         OnlyIndexEntries: Boolean;
         i: Integer;
-        ComprDimEntryNo: Integer;
-        DimEntryNo: Integer;
+        ComprDimEntryNo: BigInteger;
+        DimEntryNo: BigInteger;
         RetainDimText: Text[250];
         UseDataArchive: Boolean;
         DataArchiveProviderExists: Boolean;
@@ -350,7 +350,7 @@ report 5697 "Date Compress Insurance Ledger"
 
     local procedure InsertRegisters(var InsuranceReg: Record "Insurance Register"; var DateComprReg: Record "Date Compr. Register")
     var
-        CurrLastEntryNo: Integer;
+        CurrLastEntryNo: BigInteger;
     begin
         InsuranceReg."To Entry No." := NewInsCoverageLedgEntry."Entry No.";
 
@@ -408,9 +408,9 @@ report 5697 "Date Compress Insurance Ledger"
     local procedure ComprCollectedEntries()
     var
         InsCoverageLedgEntry: Record "Ins. Coverage Ledger Entry";
-        OldDimEntryNo: Integer;
+        OldDimEntryNo: BigInteger;
         Found: Boolean;
-        InsCoverageLedgEntryNo: Integer;
+        InsCoverageLedgEntryNo: BigInteger;
     begin
         OldDimEntryNo := 0;
         if DimBufMgt.FindFirstDimEntryNo(DimEntryNo, InsCoverageLedgEntryNo) then begin
@@ -460,7 +460,7 @@ report 5697 "Date Compress Insurance Ledger"
         Window.Update(3, DateComprReg."No. of New Records");
     end;
 
-    local procedure InsertNewEntry(var NewInsCoverageLedgEntry: Record "Ins. Coverage Ledger Entry"; DimEntryNo: Integer)
+    local procedure InsertNewEntry(var NewInsCoverageLedgEntry: Record "Ins. Coverage Ledger Entry"; DimEntryNo: BigInteger)
     var
         TempDimBuf: Record "Dimension Buffer" temporary;
         TempDimSetEntry: Record "Dimension Set Entry" temporary;

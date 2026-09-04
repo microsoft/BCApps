@@ -18,7 +18,7 @@ table 8460 "G/L Acc. Cat. Buffer"
         /// <summary>
         /// Unique identifier for buffer table entries.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
         }
     }

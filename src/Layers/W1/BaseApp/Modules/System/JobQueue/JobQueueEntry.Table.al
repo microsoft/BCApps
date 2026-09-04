@@ -514,7 +514,7 @@ table 472 "Job Queue Entry"
         RequestPagesOptionsDeletedMsg: Label 'You have cleared the report parameters. Select the check box in the field to show the report request page again.';
         ExpiresBeforeStartErr: Label '%1 must be later than %2.', Comment = '%1 = Expiration Date, %2=Start date';
         UserSessionJobsCannotBeRecurringErr: Label 'You cannot set up recurring user session job queue entries.';
-        LastJobQueueLogEntryNo: Integer;
+        LastJobQueueLogEntryNo: BigInteger;
         ObjNotFoundErr: Label 'There is no Object with ID %1.', Comment = '%1=Object Id.';
         NoPermissionsErr: Label 'You are not allowed to schedule background tasks. Ask your system administrator to give you permission to do so. Specifically, you need Insert, Modify and Delete Permissions for the %1 table.', Comment = '%1 Table Name';
 

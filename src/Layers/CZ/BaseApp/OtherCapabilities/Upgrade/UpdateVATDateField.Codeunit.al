@@ -9,6 +9,8 @@ using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.Reminder;
 using System.Upgrade;
 
+// Does not have the w1 implementation for blank entries
+
 codeunit 104051 "Update VAT Date Field"
 {
     Subtype = Upgrade;
