@@ -118,7 +118,7 @@ codeunit 4507 "Email - OAuth Client" implements "Email - OAuth Client v2"
     begin
         OAuth2.GetDefaultRedirectUrl(DefaultRedirectUrl);
         if RedirectUrlToValidate <> DefaultRedirectUrl then begin
-            Session.LogMessage('', InvalidRedirectUrlTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EmailCategoryLbl);
+            Session.LogMessage('0000VC9', InvalidRedirectUrlTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EmailCategoryLbl);
             Error(InvalidRedirectUrlErr, DefaultRedirectUrl);
         end;
     end;

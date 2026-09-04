@@ -420,7 +420,7 @@ codeunit 560 "CrossIntercompany Connector"
 
     local procedure RejectInvalidDestinationUrl()
     begin
-        Session.LogMessage('', InvalidDestinationUrlTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CrossIntercompanyTok);
+        Session.LogMessage('0000VC7', InvalidDestinationUrlTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CrossIntercompanyTok);
         Session.LogSecurityAudit(
             CrossIntercompanyServiceNameTxt, SecurityOperationResult::Failure,
             InvalidDestinationUrlSecurityAuditTxt, AuditCategory::ApplicationManagement);
@@ -469,7 +469,7 @@ codeunit 560 "CrossIntercompany Connector"
 
     local procedure RejectInvalidTokenEndpoint()
     begin
-        Session.LogMessage('', InvalidTokenEndpointTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CrossIntercompanyTok);
+        Session.LogMessage('0000VC8', InvalidTokenEndpointTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CrossIntercompanyTok);
         Session.LogSecurityAudit(
             CrossIntercompanyServiceNameTxt, SecurityOperationResult::Failure,
             InvalidTokenEndpointSecurityAuditTxt, AuditCategory::ApplicationManagement);
