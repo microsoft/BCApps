@@ -25,6 +25,9 @@ codeunit 135206 "Image Analysis Management Test"
         MissingImageAnalysisSecretErr: Label 'There is a missing configuration value on our end. Try again later.';
         GenericErrorErr: Label 'There was an error in contacting the Computer Vision API. Please try again or contact an administrator.';
         ChangingLimitAfterInitErr: Label 'You cannot change the limit setting after initialization.';
+        MediaTooLargeErr: Label 'The media file is too large. Only images up to 4 MB are supported.';
+        MediaTooSmallErr: Label 'The media file is too small. It must be at least 50x50 pixels.';
+        MediaWrongFormatErr: Label 'The media file is not supported. Only images of the following types are supported: JPEG, PNG, GIF, BMP.';
         LimitType: Option Year,Month,Day,Hour;
 
     [Test]
@@ -319,6 +322,144 @@ codeunit 135206 "Image Analysis Management Test"
         Result := ImageAnalysisManagement.GetLastError(ErrorValue, IsUsageLimitError);
         Assert.IsFalse(IsUsageLimitError, 'Did not expect a usage limit error.');
         Assert.AreEqual(UnauthorizedErr, ErrorValue, 'Expected the last error to be Unauthorized error.');
+    end;
+
+    [Test]
+    [TestPermissions(TestPermissions::Disabled)]
+    [Scope('OnPrem')]
+    procedure TestAnalyzeRejectsContentThatIsNotAnImage()
+    var
+        TempBlob: Codeunit "Temp Blob";
+        ImageAnalysisManagement: Codeunit "Image Analysis Management";
+        ImageAnalysisResult: Codeunit "Image Analysis Result";
+        ContentOutStream: OutStream;
+        Result: Boolean;
+        ErrorValue: Text;
+        IsUsageLimitError: Boolean;
+    begin
+        // [SCENARIO] Content that cannot be decoded as an image is never sent to the Computer Vision API
+
+        // [GIVEN] A blob that contains text instead of an image
+        TempBlob.CreateOutStream(ContentOutStream);
+        ContentOutStream.WriteText('This is not an image. It only claims to be one.');
+
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
+        InitializeMockKeyvault('fakekey', 'https://fakeuri', '1000', 'Hour');
+
+        ImageAnalysisManagement.Initialize();
+        ImageAnalysisManagement.SetBlob(TempBlob);
+        ImageAnalysisManagement.SetHttpMessageHandler(
+          HttpMessageHandler.MockHttpMessageHandler(GetImageAnalysisTagsResponsePath()));
+
+        // [WHEN] Analyze is invoked
+        Result := ImageAnalysisManagement.AnalyzeTags(ImageAnalysisResult);
+
+        // [THEN] The analysis fails with the unsupported format error
+        Assert.IsFalse(Result, 'Analysis should have failed for content that is not an image.');
+        ImageAnalysisManagement.GetLastError(ErrorValue, IsUsageLimitError);
+        Assert.AreEqual(MediaWrongFormatErr, ErrorValue, 'Expected the unsupported media format error.');
+    end;
+
+    [Test]
+    [TestPermissions(TestPermissions::Disabled)]
+    [Scope('OnPrem')]
+    procedure TestAnalyzeRejectsUnsupportedImageFormat()
+    var
+        TempBlob: Codeunit "Temp Blob";
+        ImageAnalysisManagement: Codeunit "Image Analysis Management";
+        ImageAnalysisResult: Codeunit "Image Analysis Result";
+        Result: Boolean;
+        ErrorValue: Text;
+        IsUsageLimitError: Boolean;
+    begin
+        // [SCENARIO] A valid image in a format that Computer Vision does not accept is never sent
+
+        // [GIVEN] A TIFF image
+        CreateImageBlob(TempBlob, 500, 600, Enum::"Image Format"::Tiff);
+
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
+        InitializeMockKeyvault('fakekey', 'https://fakeuri', '1000', 'Hour');
+
+        ImageAnalysisManagement.Initialize();
+        ImageAnalysisManagement.SetBlob(TempBlob);
+        ImageAnalysisManagement.SetHttpMessageHandler(
+          HttpMessageHandler.MockHttpMessageHandler(GetImageAnalysisTagsResponsePath()));
+
+        // [WHEN] Analyze is invoked
+        Result := ImageAnalysisManagement.AnalyzeTags(ImageAnalysisResult);
+
+        // [THEN] The analysis fails with the unsupported format error
+        Assert.IsFalse(Result, 'Analysis should have failed for an unsupported image format.');
+        ImageAnalysisManagement.GetLastError(ErrorValue, IsUsageLimitError);
+        Assert.AreEqual(MediaWrongFormatErr, ErrorValue, 'Expected the unsupported media format error.');
+    end;
+
+    [Test]
+    [TestPermissions(TestPermissions::Disabled)]
+    [Scope('OnPrem')]
+    procedure TestAnalyzeRejectsImageThatIsTooSmall()
+    var
+        TempBlob: Codeunit "Temp Blob";
+        ImageAnalysisManagement: Codeunit "Image Analysis Management";
+        ImageAnalysisResult: Codeunit "Image Analysis Result";
+        Result: Boolean;
+        ErrorValue: Text;
+        IsUsageLimitError: Boolean;
+    begin
+        // [SCENARIO] An image that is smaller than what Computer Vision accepts is never sent
+
+        // [GIVEN] A 10x10 pixel image
+        CreateImageBlob(TempBlob, 10, 10, Enum::"Image Format"::Jpeg);
+
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
+        InitializeMockKeyvault('fakekey', 'https://fakeuri', '1000', 'Hour');
+
+        ImageAnalysisManagement.Initialize();
+        ImageAnalysisManagement.SetBlob(TempBlob);
+        ImageAnalysisManagement.SetHttpMessageHandler(
+          HttpMessageHandler.MockHttpMessageHandler(GetImageAnalysisTagsResponsePath()));
+
+        // [WHEN] Analyze is invoked
+        Result := ImageAnalysisManagement.AnalyzeTags(ImageAnalysisResult);
+
+        // [THEN] The analysis fails with the too small error
+        Assert.IsFalse(Result, 'Analysis should have failed for an image that is too small.');
+        ImageAnalysisManagement.GetLastError(ErrorValue, IsUsageLimitError);
+        Assert.AreEqual(MediaTooSmallErr, ErrorValue, 'Expected the media too small error.');
+    end;
+
+    [Test]
+    [TestPermissions(TestPermissions::Disabled)]
+    [Scope('OnPrem')]
+    procedure TestAnalyzeRejectsImageThatIsTooLarge()
+    var
+        TempBlob: Codeunit "Temp Blob";
+        ImageAnalysisManagement: Codeunit "Image Analysis Management";
+        ImageAnalysisResult: Codeunit "Image Analysis Result";
+        Result: Boolean;
+        ErrorValue: Text;
+        IsUsageLimitError: Boolean;
+    begin
+        // [SCENARIO] Content that is larger than what Computer Vision accepts is never sent
+
+        // [GIVEN] An uncompressed image of more than 4 MB
+        CreateImageBlob(TempBlob, 1500, 1500, Enum::"Image Format"::Bmp);
+
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
+        InitializeMockKeyvault('fakekey', 'https://fakeuri', '1000', 'Hour');
+
+        ImageAnalysisManagement.Initialize();
+        ImageAnalysisManagement.SetBlob(TempBlob);
+        ImageAnalysisManagement.SetHttpMessageHandler(
+          HttpMessageHandler.MockHttpMessageHandler(GetImageAnalysisTagsResponsePath()));
+
+        // [WHEN] Analyze is invoked
+        Result := ImageAnalysisManagement.AnalyzeTags(ImageAnalysisResult);
+
+        // [THEN] The analysis fails with the too large error
+        Assert.IsFalse(Result, 'Analysis should have failed for an image that is too large.');
+        ImageAnalysisManagement.GetLastError(ErrorValue, IsUsageLimitError);
+        Assert.AreEqual(MediaTooLargeErr, ErrorValue, 'Expected the media too large error.');
     end;
 
     [Test]
@@ -662,6 +803,30 @@ codeunit 135206 "Image Analysis Management Test"
     local procedure GetImagePath(): Text
     begin
         exit(LibraryUtilityOnPrem.GetInetRoot() + '\App\Test\Files\ImageAnalysis\AllowedImage.jpg');
+    end;
+
+    [Normal]
+    local procedure CreateImageBlob(var TempBlob: Codeunit "Temp Blob"; Width: Integer; Height: Integer; ImageFormat: Enum "Image Format")
+    var
+        SourceTempBlob: Codeunit "Temp Blob";
+        FileManagement: Codeunit "File Management";
+        Image: Codeunit Image;
+        ImageInStream: InStream;
+        ImageOutStream: OutStream;
+    begin
+        // This import needs to happen before setting to saas
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
+        FileManagement.BLOBImportFromServerFile(SourceTempBlob, GetImagePath());
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
+
+        SourceTempBlob.CreateInStream(ImageInStream);
+        Image.FromStream(ImageInStream);
+        Image.Resize(Width, Height);
+        Image.SetFormat(ImageFormat);
+
+        Clear(TempBlob);
+        TempBlob.CreateOutStream(ImageOutStream);
+        Image.Save(ImageOutStream);
     end;
 
     [Normal]
