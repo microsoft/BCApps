@@ -135,6 +135,12 @@ page 4051 "GP Company Add. Settings List"
                     ToolTip = 'Specify whether to migrate inactive checkbooks.';
                     ApplicationArea = All;
                 }
+                field("Migrate Inactive Alloc. Accts."; Rec."Migrate Inactive Alloc. Accts.")
+                {
+                    Caption = 'Inactive Allocation Accounts';
+                    ToolTip = 'Specify whether to migrate inactive allocation accounts.';
+                    ApplicationArea = All;
+                }
                 field("Migrate Inactive Items"; Rec."Migrate Inactive Items")
                 {
                     Caption = 'Inactive Items';
@@ -224,6 +230,12 @@ page 4051 "GP Company Add. Settings List"
                 {
                     Caption = 'Snapshot Purch. Trx.';
                     ToolTip = 'Specify whether to migrate historical Purchase receivable transactions.';
+                    ApplicationArea = All;
+                }
+                field("Migrate Hist. Payroll Detail"; Rec."Migrate Hist. Payroll Detail")
+                {
+                    Caption = 'Snapshot Payroll Detail';
+                    ToolTip = 'Specify whether to migrate historical payroll details on transactions.';
                     ApplicationArea = All;
                 }
                 field("Skip Posting Account Batches"; Rec."Skip Posting Account Batches")

@@ -7,6 +7,10 @@ using System.Threading;
 
 codeunit 40032 "Migration Validation"
 {
+    Permissions = tabledata "Migration Validation Error" = RIMD,
+        tabledata "Validation Progress" = RIMD,
+        tabledata "Hybrid Company Status" = RM;
+
     trigger OnRun()
     begin
         RunTests(false);
@@ -160,8 +164,10 @@ codeunit 40032 "Migration Validation"
         if not HybridCompanyStatus.Get(Company) then
             exit;
 
-        HybridCompanyStatus.Validate(Validated, false);
-        HybridCompanyStatus.Modify(true);
+        if HybridCompanyStatus.Validated then begin
+            HybridCompanyStatus.Validate(Validated, false);
+            HybridCompanyStatus.Modify(true);
+        end;
     end;
 
     procedure PrepareValidation()
@@ -274,6 +280,7 @@ codeunit 40032 "Migration Validation"
     local procedure BeforeMigrationStarted(var DataMigrationStatus: Record "Data Migration Status"; Retry: Boolean)
     begin
         DeleteMigrationValidationEntriesForCompany();
+        Commit(); // Commit after deleting prior tests
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Company", OnAfterDeleteEvent, '', false, false)]
