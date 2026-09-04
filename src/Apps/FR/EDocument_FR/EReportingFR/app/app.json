@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "brief": "The E-Reporting extension makes it easy to export the transactions in the format that the tax authorities in France require.",
   "description": "The E-Reporting extension makes it easy to export the transactions in the format that the tax authorities in France require. This is currently mandated for: sales to individuals (B2C), cross-border business-to-business transactions, exports outside the EU, intra-community deliveries and acquisitions and transactions involving French overseas territories.",
-  "version": "29.0.0.0",
+  "version": "30.0.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "https://go.microsoft.com/fwlink/?linkid=2204541",
@@ -16,7 +16,13 @@
       "id": "e1d97edc-c239-46b4-8d84-6368bdf67c8b",
       "name": "E-Document Core",
       "publisher": "Microsoft",
-      "version": "29.0.0.0"
+      "version": "30.0.0.0"
+    },
+    {
+      "id": "e1966889-b5fb-4fda-a84c-ea71b590e1a9",
+      "name": "PEPPOL",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
     }
   ],
   "screenshots": [],
@@ -32,7 +38,7 @@
     "allowDownloadingSource": true,
     "includeSourceInSymbolFile": true
   },
-  "application": "29.0.0.0",
+  "application": "30.0.0.0",
   "internalsVisibleTo": [
     {
       "id": "9b8abc90-e306-4da0-9d3f-2b10111d3a04",

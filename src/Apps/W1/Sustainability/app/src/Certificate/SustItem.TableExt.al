@@ -274,7 +274,7 @@ tableextension 6220 "Sust. Item" extends Item
             trigger OnValidate()
             begin
                 if Rec."Carbon Tracking Method" = Rec."Carbon Tracking Method"::Specific then
-                    WarnIfSpecificCarbonTrackingLacksItemTracking();
+                    ErrorIfSpecificCarbonTrackingLacksItemTracking();
             end;
         }
         modify("Item Tracking Code")
@@ -282,7 +282,7 @@ tableextension 6220 "Sust. Item" extends Item
             trigger OnAfterValidate()
             begin
                 if Rec."Carbon Tracking Method" = Rec."Carbon Tracking Method"::Specific then
-                    WarnIfSpecificCarbonTrackingLacksItemTracking();
+                    ErrorIfSpecificCarbonTrackingLacksItemTracking();
             end;
         }
     }
@@ -290,7 +290,7 @@ tableextension 6220 "Sust. Item" extends Item
     var
         SustainabilitySetup: Record "Sustainability Setup";
         AtLeastOneNonZeroEmissionValueErr: Label '%1, %2, %3 cannot all be zero. Please provide at least one non-zero value.', Comment = '%1, %2 , %3 = Field Caption';
-        SpecificCarbonTrackingRequiresTrackingMsg: Label 'The %1 is set to %2, which requires serial or lot-specific tracking to calculate per-unit emissions. Set up an %3 with serial or lot-specific tracking for this item.', Comment = '%1 = Carbon Tracking Method field caption, %2 = Carbon Tracking Method value (Specific), %3 = Item Tracking Code field caption';
+        SpecificCarbonTrackingRequiresTrackingErr: Label 'The %1 is set to %2, which requires serial or lot-specific tracking to calculate per-unit emissions. Set up an %3 with serial or lot-specific tracking for this item.', Comment = '%1 = Carbon Tracking Method field caption, %2 = Carbon Tracking Method value (Specific), %3 = Item Tracking Code field caption';
 
     local procedure UpdateCertificateInformation()
     var
@@ -313,17 +313,14 @@ tableextension 6220 "Sust. Item" extends Item
                 Rec.FieldCaption("Default N2O Emission"));
     end;
 
-    local procedure WarnIfSpecificCarbonTrackingLacksItemTracking()
+    local procedure ErrorIfSpecificCarbonTrackingLacksItemTracking()
     var
         ItemTrackingCode: Record "Item Tracking Code";
     begin
-        if not GuiAllowed() then
-            exit;
-
         if ItemTrackingCode.Get(Rec."Item Tracking Code") and ItemTrackingCode.IsSpecific() then
             exit;
 
-        Message(SpecificCarbonTrackingRequiresTrackingMsg, Rec.FieldCaption("Carbon Tracking Method"), Rec."Carbon Tracking Method", Rec.FieldCaption("Item Tracking Code"));
+        Error(SpecificCarbonTrackingRequiresTrackingErr, Rec.FieldCaption("Carbon Tracking Method"), Rec."Carbon Tracking Method", Rec.FieldCaption("Item Tracking Code"));
     end;
 
     local procedure UpdateEPRFeeRateInItem()

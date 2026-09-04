@@ -70,13 +70,13 @@ codeunit 6974 "Cancel Posted Expense Report"
 
         PostedExpenseReportLine.LockTable();
         PostedExpenseReportLine.SetRange("Document No.", PostedExpenseReportHeader."No.");
-        PostedExpenseReportLine.SetRange(Canceled, false);
+        PostedExpenseReportLine.SetRange("Is Canceled", false);
         if PostedExpenseReportLine.FindSet() then
             repeat
                 ReverseExpenseLedgerEntries(PostedExpenseReportHeader, PostedExpenseReportLine, ReversalTransactionNo);
                 ReverseJobLedgerEntry(PostedExpenseReportHeader, PostedExpenseReportLine);
                 ReleaseRelatedExpense(PostedExpenseReportLine);
-                PostedExpenseReportLine.Canceled := true;
+                PostedExpenseReportLine."Is Canceled" := true;
                 PostedExpenseReportLine.Modify();
             until PostedExpenseReportLine.Next() = 0;
 

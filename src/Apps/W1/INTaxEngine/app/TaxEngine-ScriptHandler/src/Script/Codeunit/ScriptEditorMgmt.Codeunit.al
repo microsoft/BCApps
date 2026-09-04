@@ -48,7 +48,9 @@ codeunit 20165 "Script Editor Mgmt."
 
     procedure BuildEditorLines(
         var ScriptContext: Record "Script Context";
+#pragma warning disable AL0749 // Accepted: widening the scope of the parameter type would be a breaking change.
         var ScriptEditorLine: Record "Script Editor Line" Temporary);
+#pragma warning restore AL0749
     var
         NextLineNo: Integer;
     begin
@@ -96,7 +98,9 @@ codeunit 20165 "Script Editor Mgmt."
     end;
 
     procedure UpdateDraftRow(
+#pragma warning disable AL0749 // Accepted: widening the scope of the parameter type would be a breaking change.
         var ScriptEditorLine: Record "Script Editor Line" Temporary;
+#pragma warning restore AL0749
         var ActionText: Text): Text;
     var
         ScriptContext: Record "Script Context";
@@ -197,7 +201,9 @@ codeunit 20165 "Script Editor Mgmt."
             until TempActionContainer.Next() = 0;
     end;
 
+#pragma warning disable AL0749 // Accepted: widening the scope of the parameter type would be a breaking change.
     procedure DeleteItemFromContainer(var ScriptEditorLine: Record "Script Editor Line" Temporary);
+#pragma warning restore AL0749
     var
         ActionContainer: Record "Action Container";
     begin
@@ -211,7 +217,9 @@ codeunit 20165 "Script Editor Mgmt."
     end;
 
     procedure AddContainerItemsToEditorLines(
+#pragma warning disable AL0749 // Accepted: widening the scope of the parameter type would be a breaking change.
         var ScriptEditorLine: Record "Script Editor Line" Temporary;
+#pragma warning restore AL0749
         ContainerType: Enum "Container Action Type";
         ContainerActionID: Guid;
         var LineNo: Integer;
@@ -285,7 +293,9 @@ codeunit 20165 "Script Editor Mgmt."
     end;
 
     /// Lookup Functions
+#pragma warning disable AL0749 // Accepted: widening the scope of the parameter type would be a breaking change.
     procedure RefreshEditorLines(var ScriptEditorLine: Record "Script Editor Line" Temporary);
+#pragma warning restore AL0749
     var
         ScriptContext: Record "Script Context";
         TempScriptEditorLineLatest: Record "Script Editor Line" Temporary;

@@ -118,23 +118,36 @@ page 4400 "SOA Setup"
                         StyleExpr = true;
                         Style = StandardAccent;
                         Editable = false;
+                        Enabled = not AgentIsArchived;
                         ToolTip = 'Create a new task for the Sales Order Agent by entering the sender, message text, and any attachments.';
 
                         trigger OnDrillDown()
                         var
+                            TempAgentTaskFile: Record "Agent Task File" temporary;
                             SOACreateTaskImpl: Codeunit "SOA Create Task Impl";
+                            SenderEmail: Text[250];
+                            MessageText: Text;
                         begin
+                            if AgentIsArchived then begin
+                                Message(AgentArchivedNotificationMsg);
+                                exit;
+                            end;
+
+                            if not SOACreateTaskImpl.OpenCreateTaskPageForData(Rec."User Security ID", SenderEmail, MessageText, TempAgentTaskFile) then
+                                exit;
+
                             CurrPage.AgentSetupPart.Page.GetAgentSetupBuffer(TempAgentSetupBuffer);
-                            if (TempAgentSetupBuffer.State <> TempAgentSetupBuffer.State::Enabled) and (Rec."Email Monitoring" or (Rec."Email Address" <> '')) then begin
+                            if (TempAgentSetupBuffer.State <> TempAgentSetupBuffer.State::Enabled) then begin
                                 if not Confirm(EnableAgentForTaskQst) then
                                     exit;
                                 TempAgentSetupBuffer.Validate(State, TempAgentSetupBuffer.State::Enabled);
                                 TempAgentSetupBuffer.Modify();
                                 CurrPage.AgentSetupPart.Page.SetAgentSetupBuffer(TempAgentSetupBuffer);
                                 CurrPage.AgentSetupPart.Page.Update();
-                                Rec."Email Monitoring" := false;
-                                Rec."Incoming Monitoring" := false;
-                                Rec.Modify();
+                                if Rec."Email Monitoring" and (MailboxName = '') then begin
+                                    Rec."Email Monitoring" := false;
+                                    Rec.Modify();
+                                end
                             end;
 
                             if not ApplySetup(true) then
@@ -148,7 +161,8 @@ page 4400 "SOA Setup"
 
                             Commit();
 
-                            SOACreateTaskImpl.OpenCreateTaskPage(Rec."User Security ID");
+                            SOACreateTaskImpl.SetAgentUserSecurityID(Rec."User Security ID");
+                            SOACreateTaskImpl.CreateTask(SenderEmail, MessageText, TempAgentTaskFile);
                             CurrPage.Update(false);
                         end;
                     }
@@ -271,7 +285,7 @@ page 4400 "SOA Setup"
                     field(SendSalesQuote; Rec."Send Sales Quote")
                     {
                         Caption = 'Send quotes for confirmation';
-                        ToolTip = 'Specifies if the agent sends sales quotes for confirmation.';
+                        ToolTip = 'Specifies whether the agent sends the sales quote to the customer as a PDF attachment before proceeding. When this is off and Make orders from quotes is on, the agent skips the quote stage and sends only the sales order to the customer.';
 
                         trigger OnValidate()
                         begin
@@ -290,7 +304,7 @@ page 4400 "SOA Setup"
                         field(CreateOrderFromQuote; Rec."Create Order from Quote")
                         {
                             Caption = 'Make orders from quotes';
-                            ToolTip = 'Specifies if the agent makes orders from quotes.';
+                            ToolTip = 'Specifies whether the agent automatically converts sales quotes into sales orders. When Send quotes for confirmation is on, conversion happens after the customer confirms the quote by email. When Send quotes for confirmation is off, the agent converts the quote immediately without sending it to the customer.';
                             ShowCaption = false;
 
                             trigger OnValidate()
@@ -424,7 +438,7 @@ page 4400 "SOA Setup"
                             trigger OnValidate()
                             begin
                                 IsConfigUpdated := true;
-                                MailTemplateEditable := Rec."Configure Email Template";
+                                MailTemplateEditable := Rec."Configure Email Template" and not AgentIsArchived;
                             end;
                         }
                         field(EmailTemplate; EmailSignatureModifyLbl)
@@ -464,6 +478,7 @@ page 4400 "SOA Setup"
     var
         AgentRec: Record Agent;
         SOASetupRec: Record "SOA Setup";
+        AgentSystemPermissions: Codeunit "Agent System Permissions";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         SOASetupCU: Codeunit "SOA Setup";
         UserSecurityIDFilter: Text;
@@ -479,6 +494,9 @@ page 4400 "SOA Setup"
         UserSecurityIDFilter := Rec.GetFilter("User Security ID");
         if not Evaluate(UserSecurityID, UserSecurityIDFilter) then
             Clear(UserSecurityID);
+
+        if not AgentSystemPermissions.CurrentUserCanManageAgent(UserSecurityID) then
+            Error(NotAuthorizedToConfigureAgentErr);
 
         if not IsNullGuid(UserSecurityID) then
             if SOASetupRec.GetBasedOnAgentUserSecurityID(UserSecurityID, false) then begin
@@ -501,7 +519,14 @@ page 4400 "SOA Setup"
         UpdateAgentSetupBuffer();
 
         InitialState := TempAgentSetupBuffer.State;
+        AgentIsArchived := SOASetupCU.MustTreatAgentAsArchived(UserSecurityID);
         UpdateControls();
+
+        if AgentIsArchived then begin
+            CurrPage.Editable(false);
+            NotifyAgentArchived();
+        end;
+
         FeatureTelemetry.LogUptake('0000QIK', SOASetupCU.GetFeatureName(), Enum::"Feature Uptake Status"::Discovered);
     end;
 
@@ -530,6 +555,13 @@ page 4400 "SOA Setup"
         ActivateWithoutMonitoringLbl: Label 'The monitoring of email is not enabled. Are you sure you want to continue?';
         DeactivateWarningLbl: Label 'If you deactivate the agent, you won''t be able to reactivate it because you don''t have permission to the current mail account (activated by %1). Are you sure you want continue?', Comment = '%1=Username of user who activated the agent.';
     begin
+        if AgentIsArchived then begin
+            // The agent setup part stays editable, so a change made there is discarded here. Say so
+            // instead of closing as if the change had been applied.
+            Message(AgentArchivedNotificationMsg);
+            exit(true);
+        end;
+
         if EnabledAgentFirstConfig() then
             if Confirm(ReadyToActivateLbl) then
                 Rec.State := Rec.State::Enabled;
@@ -596,9 +628,22 @@ page 4400 "SOA Setup"
         SOASetupCU: Codeunit "SOA Setup";
     begin
         UpdateAgentSetupBuffer();
+        // The warning is only meaningful when the agent actually monitors a mailbox.
+        if (not Rec."Email Monitoring") or IsNullGuid(Rec."Email Account ID") then
+            exit(false);
+
         if (TempAgentSetupBuffer.State = TempAgentSetupBuffer.State::Disabled) and StateChanged() and not IsFirstConfig() then
             if not SOASetupCU.ValidateEmailConnectionStatus(Rec) then
                 exit(true);
+    end;
+
+    local procedure NotifyAgentArchived()
+    var
+        ArchivedNotification: Notification;
+    begin
+        ArchivedNotification.Message(AgentArchivedNotificationMsg);
+        ArchivedNotification.Scope(NotificationScope::LocalScope);
+        ArchivedNotification.Send();
     end;
 
     local procedure UpdateControls()
@@ -617,7 +662,7 @@ page 4400 "SOA Setup"
             LastSync := Format(Rec."Last Sync At");
         end;
 
-        MailTemplateEditable := Rec."Configure Email Template";
+        MailTemplateEditable := Rec."Configure Email Template" and not AgentIsArchived;
 
         CreateOrderFromQuoteActive := Rec."Create Order from Quote";
         OnlyAvailableItemsActive := Rec."Search Only Available Items";
@@ -712,6 +757,11 @@ page 4400 "SOA Setup"
         TempEmailFolder: Record "Email Folders" temporary;
         EmailFolders: Page "Email Account Folders";
     begin
+        if AgentIsArchived then begin
+            Message(AgentArchivedNotificationMsg);
+            exit;
+        end;
+
         if IsNullGuid(Rec."Email Account ID") then begin
             Message(SelectMailboxFirstMsg);
             exit;
@@ -734,6 +784,11 @@ page 4400 "SOA Setup"
         SOASetupCU: Codeunit "SOA Setup";
         EmailAccounts: Page "Email Accounts";
     begin
+        if AgentIsArchived then begin
+            Message(AgentArchivedNotificationMsg);
+            exit;
+        end;
+
         if not CheckMailboxExists() then
             Page.RunModal(Page::"Email Account Wizard");
 
@@ -766,6 +821,11 @@ page 4400 "SOA Setup"
     var
         EmailTemplatePage: Page "SOA Email Template";
     begin
+        if AgentIsArchived then begin
+            Message(AgentArchivedNotificationMsg);
+            exit;
+        end;
+
         if not Rec."Configure Email Template" then
             exit;
         EmailTemplatePage.SetCurrentSignatureAsTxt(Rec.GetEmailSignatureAsTxt());
@@ -791,6 +851,7 @@ page 4400 "SOA Setup"
         CreateOrderFromQuoteActive: Boolean;
         OnlyAvailableItemsActive: Boolean;
         MailboxChanged: Boolean;
+        AgentIsArchived: Boolean;
         DailyEmailLimit: Integer;
         NoFolderInboxWarningThreshold: Integer;
         LearnMoreTxt: Label 'Learn more';
@@ -798,11 +859,13 @@ page 4400 "SOA Setup"
         DailyEmailLimitErr: Label 'The daily email limit must be greater than zero.';
         EmailSignatureModifyLbl: Label 'Edit signature';
         SelectMailboxFirstMsg: Label 'Please select an email account first.';
+        NotAuthorizedToConfigureAgentErr: Label 'You do not have permission to configure the Sales Order Agent. Contact your system administrator to update your permissions or to mark you as one of the administrators for the agent.';
         ConfiguredBy: Text[80];
         SOACreateTaskLbl: Label 'Create task for the agent';
-        EnableAgentForTaskQst: Label 'Trying out the agent will activate it and turn off incoming email monitoring immediately.\\Do you want to continue?';
+        EnableAgentForTaskQst: Label 'Trying out the agent will activate it with the current settings.\\Do you want to continue?';
         IsConfigUpdated: Boolean;
         InboxFolderNameTok: Label 'Inbox', Locked = true;
         InboxFolderIdTok: Label 'inbox', Locked = true;
         NoFolderSelectedInboxWarningQst: Label 'There is no mail folder selected, so the agent will process emails from the inbox (%1 emails since %2). Do you want to continue?', Comment = '%1=email count, %2=start date';
+        AgentArchivedNotificationMsg: Label 'This agent is archived, so its settings are read-only. Its tasks and logs remain available for auditing.';
 }

@@ -59,7 +59,9 @@ table 18748 "TDS Journal Template"
             DataClassification = CustomerContent;
             TableRelation = "Reason Code";
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(7; "Form Name"; Text[80])
+#pragma warning restore AL0685
         {
             Caption = 'Form Name';
             Editable = false;

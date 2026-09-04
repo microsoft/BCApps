@@ -306,7 +306,6 @@ report 4402 "EXR Aged Accounts Rec Excel"
 
     local procedure InitReport()
     var
-        FirstStartDate: Date;
         WorkingEndDate: Date;
         WorkingStartDate: Date;
         i: Integer;
@@ -330,12 +329,15 @@ report 4402 "EXR Aged Accounts Rec Excel"
             WorkingStartDate := CalcDate(PeriodLength, WorkingStartDate);
             WorkingEndDate := CalcDate(PeriodLength, WorkingEndDate);
         until i >= PeriodCount;
-        FirstStartDate := WorkingStartDate;
 
-        CustomerAgingData.SetAutoCalcFields("Net Change (LCY)");
-        CustomerAgingData.SetRange("Date Filter", FirstStartDate, EndingDate);
-        if SkipZeroBalanceCustomers then
+        PeriodStarts.Add(0D);
+        PeriodEnds.Add(WorkingEndDate);
+
+        CustomerAgingData.SetRange("Date Filter", 0D, EndingDate);
+        if SkipZeroBalanceCustomers then begin
+            CustomerAgingData.SetAutoCalcFields("Net Change (LCY)");
             CustomerAgingData.SetFilter("Net Change (LCY)", '<>0');
+        end;
     end;
 
     local procedure InsertAgingData(var Customer: Record Customer)
@@ -350,8 +352,6 @@ report 4402 "EXR Aged Accounts Rec Excel"
         CustLedgerEntry.SetRange("Date Filter", 0D, EndingDate);
 
         case TempEXRAgingReportBuffer."Aged By" of
-            TempEXRAgingReportBuffer."Aged By"::"Due Date":
-                CustLedgerEntry.SetRange("Due Date", EarliestPeriodStart, EndingDate);
             TempEXRAgingReportBuffer."Aged By"::"Posting Date":
                 CustLedgerEntry.SetRange("Posting Date", EarliestPeriodStart, EndingDate);
             TempEXRAgingReportBuffer."Aged By"::"Document Date":

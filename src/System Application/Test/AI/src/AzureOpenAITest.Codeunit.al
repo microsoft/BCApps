@@ -177,6 +177,96 @@ codeunit 132684 "Azure OpenAI Test"
 #if not CLEAN29
 #pragma warning disable AL0432
     [Test]
+    procedure GetFastPromptCopilotCapabilityNotSet()
+    var
+        AzureOpenAI: Codeunit "Azure OpenAI";
+        AOAIFastPromptResponse: Codeunit "AOAI Fast Prompt Response";
+        PrivacyNotice: Codeunit "Privacy Notice";
+    begin
+        // [SCENARIO] GetFastPrompt returns an error when capability is not set
+
+        // [GIVEN] The privacy notice is agreed to
+        PrivacyNotice.SetApprovalState(AzureOpenAITxt, "Privacy Notice Approval State"::Agreed);
+
+        // [WHEN] GetFastPrompt is called
+        asserterror AzureOpenAI.GetFastPrompt(Any.AlphanumericText(10), AOAIFastPromptResponse);
+
+        // [THEN] GetFastPrompt returns an error
+        LibraryAssert.ExpectedError('Copilot capability has not been set.');
+    end;
+
+    [Test]
+    procedure GetFastPromptCapabilityInactive()
+    var
+        AzureOpenAI: Codeunit "Azure OpenAI";
+        AOAIFastPromptResponse: Codeunit "AOAI Fast Prompt Response";
+        PrivacyNotice: Codeunit "Privacy Notice";
+    begin
+        // [SCENARIO] GetFastPrompt returns an error when capability is inactive
+
+        // [GIVEN] The privacy notice is agreed to
+        PrivacyNotice.SetApprovalState(AzureOpenAITxt, "Privacy Notice Approval State"::Agreed);
+
+        // [GIVEN] Capability is set to inactive
+        RegisterCapability(Enum::"Copilot Capability"::"Chat Capability");
+        AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Chat Capability");
+        CopilotTestLibrary.SetCopilotStatus(Enum::"Copilot Capability"::"Chat Capability", GetModuleAppId(), Enum::"Copilot Status"::Inactive);
+
+        // [WHEN] GetFastPrompt is called
+        asserterror AzureOpenAI.GetFastPrompt(Any.AlphanumericText(10), AOAIFastPromptResponse);
+
+        // [THEN] GetFastPrompt returns an error
+        LibraryAssert.ExpectedError('Copilot is not enabled. Please contact your system administrator.');
+    end;
+
+    [Test]
+    procedure GetFastPromptAuthorizationNotSet()
+    var
+        AzureOpenAI: Codeunit "Azure OpenAI";
+        AOAIFastPromptResponse: Codeunit "AOAI Fast Prompt Response";
+        PrivacyNotice: Codeunit "Privacy Notice";
+    begin
+        // [SCENARIO] GetFastPrompt returns an error when authorization is not set
+
+        // [GIVEN] The privacy notice is agreed to
+        PrivacyNotice.SetApprovalState(AzureOpenAiTxt, "Privacy Notice Approval State"::Agreed);
+
+        // [GIVEN] Capability is set
+        RegisterCapability(Enum::"Copilot Capability"::"Chat Capability");
+        AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Chat Capability");
+
+        // [WHEN] GetFastPrompt is called
+        asserterror AzureOpenAI.GetFastPrompt(Any.AlphanumericText(10), AOAIFastPromptResponse);
+
+        // [THEN] GetFastPrompt returns an error
+        LibraryAssert.ExpectedError('The authentication was not configured.');
+    end;
+
+    [Test]
+    procedure GetFastPromptUnsupportedAuthorization()
+    var
+        AzureOpenAI: Codeunit "Azure OpenAI";
+        AOAIFastPromptResponse: Codeunit "AOAI Fast Prompt Response";
+        PrivacyNotice: Codeunit "Privacy Notice";
+    begin
+        // [SCENARIO] GetFastPrompt returns an error for non-first-party authorization
+
+        // [GIVEN] Self-managed authorization is configured
+        PrivacyNotice.SetApprovalState(AzureOpenAiTxt, "Privacy Notice Approval State"::Agreed);
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", EndpointTxt, DeploymentTxt, Any.AlphanumericText(10));
+
+        // [GIVEN] Capability is set
+        RegisterCapability(Enum::"Copilot Capability"::"Chat Capability");
+        AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Chat Capability");
+
+        // [WHEN] GetFastPrompt is called
+        asserterror AzureOpenAI.GetFastPrompt(Any.AlphanumericText(10), AOAIFastPromptResponse);
+
+        // [THEN] GetFastPrompt returns an error
+        LibraryAssert.ExpectedError('Fast prompt is only supported with First Party resource utilization.');
+    end;
+
+    [Test]
     procedure GenerateTextCompletionsCopilotCapabilityNotSet()
     var
         AzureOpenAI: Codeunit "Azure OpenAI";

@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@b09bb98e06d4d774595224525879c09bc6e98c40 # v2.20.1
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           egress-policy: audit
 
@@ -41,7 +41,7 @@ jobs:
     needs: GitHubIssueValidation
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@b09bb98e06d4d774595224525879c09bc6e98c40 # v2.20.1
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           egress-policy: audit
 
@@ -60,12 +60,12 @@ jobs:
         run: |
           build/scripts/PullRequestValidation/ValidateInternalWorkItemForPullRequest.ps1 -PullRequestNumber ${{ github.event.pull_request.number }} -Repository ${{ github.repository }}
 
-      - name: Add Linked label to PR
+      - name: Add sync label to PR
         if: github.event.pull_request.head.repo.full_name != github.repository
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh api /repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels  -f "labels[]=Linked" -H "Accept: application/vnd.github.v3+json" -H "X-GitHub-Api-Version: 2022-11-28"
+          gh api /repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/labels  -f "labels[]=ADO: Sync" -H "Accept: application/vnd.github.v3+json" -H "X-GitHub-Api-Version: 2022-11-28"
 
       - name: Get repo version from target branch
         id: get-repo-version

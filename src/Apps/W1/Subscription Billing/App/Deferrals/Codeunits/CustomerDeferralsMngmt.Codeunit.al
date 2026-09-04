@@ -34,6 +34,8 @@ codeunit 8067 "Customer Deferrals Mngmt."
             GeneralPostingSetup.TestField("Cust. Sub. Contr. Def Account");
             SalesAccount := GeneralPostingSetup."Cust. Sub. Contr. Def Account";
         end else begin
+            if SalesLine.Type = SalesLine.Type::"G/L Account" then
+                exit; // post directly to the G/L account selected on the contract line
             GeneralPostingSetup.TestField("Cust. Sub. Contract Account");
             SalesAccount := GeneralPostingSetup."Cust. Sub. Contract Account";
         end;

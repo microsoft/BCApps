@@ -7,7 +7,7 @@ namespace System.MCP;
 
 page 8365 "MCP System Tool List"
 {
-    Caption = 'System Tools';
+    Caption = 'Active System Tools';
     ApplicationArea = All;
     PageType = ListPart;
     SourceTable = "MCP System Tool";

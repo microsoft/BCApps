@@ -1667,11 +1667,6 @@
   {
     "codeunitId": 137079,
     "codeunitName": "SCM Production Order III",
-    "method": "UndoPurchReceiptWithProductionSubcontracting_LotTracking"
-  },
-  {
-    "codeunitId": 137079,
-    "codeunitName": "SCM Production Order III",
     "method": "UndoPurchReceiptWithProductionSubcontracting_NoTracking"
   },
   {

@@ -36,7 +36,9 @@ codeunit 139795 "Library Sustainability Copilot"
         CreateWasteTonneAccount('9905');
     end;
 
+#pragma warning disable AL0749 // Accepted: widening the scope of the parameter type would be a breaking change.
     procedure GetUserInputFromJson(var SustainEmissionSuggestion: Record "Sustain. Emission Suggestion"; JsonContent: JsonObject)
+#pragma warning restore AL0749
     var
         SustainabilityJournalLine: Record "Sustainability Jnl. Line";
         DataTypeManagement: Codeunit "Data Type Management";
@@ -60,7 +62,9 @@ codeunit 139795 "Library Sustainability Copilot"
         SustainabilityJournalLine.Delete(true);
     end;
 
+#pragma warning disable AL0749 // Accepted: widening the scope of the parameter type would be a breaking change.
     procedure VerifyFormulaJson(var SustainEmissionSuggestion: Record "Sustain. Emission Suggestion"; ExpectedResultsJObject: JsonObject)
+#pragma warning restore AL0749
     var
         ExpectedExpressionJToken, ActualExpressionJToken, ExpectedExpresionsToken, ActualExpressionsToken, ExpectedValueToken, ExpectedOptionToken, ActualValueToken, LinesToken : JsonToken;
         FormulaInStream: InStream;

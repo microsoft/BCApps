@@ -2162,6 +2162,10 @@ dotnet
         {
         }
 
+        type("Microsoft.Dynamics.Nav.Service.CopilotApi.AL.ALCopilotFastPromptResponse"; ALCopilotFastPromptResponse)
+        {
+        }
+
         type("Microsoft.Dynamics.Nav.Service.CopilotApi.AL.ALCopilotFunctions"; ALCopilotFunctions)
         {
         }

@@ -240,6 +240,52 @@ codeunit 139883 "E-Doc Process Test"
     end;
 
     [Test]
+    procedure PreparingPurchaseDraftFindsItemByExactDescription()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        Vendor2: Record Vendor;
+        Item: Record Item;
+        EDocumentProcessing: Codeunit "E-Document Processing";
+        EDocImport: Codeunit "E-Doc. Import";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A draft line whose description exactly matches a single item resolves to that item
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] An item "I" and a vendor "V" resolvable by VAT id
+        LibraryInventory.CreateItem(Item);
+        Item.Description := 'Exact description item';
+        Item.Modify();
+        CreateVendorWithTaxId(Vendor2, 'XXXXXXX001');
+
+        // [GIVEN] An inbound e-document from "V" with a line described exactly as "I"
+        LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
+        EDocumentPurchaseHeader."E-Document Entry No." := EDocument."Entry No";
+        EDocumentPurchaseHeader."Vendor VAT Id" := Vendor2."VAT Registration No.";
+        EDocumentPurchaseHeader.Insert();
+        EDocumentPurchaseLine."E-Document Entry No." := EDocument."Entry No";
+        EDocumentPurchaseLine.Description := Item.Description;
+        EDocumentPurchaseLine.Insert();
+
+        // [WHEN] The draft is prepared
+        EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::"Ready for draft");
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Prepare draft";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
+
+        // [THEN] The line resolves to item "I"
+        EDocumentPurchaseLine.SetRecFilter();
+        EDocumentPurchaseLine.FindFirst();
+        Assert.AreEqual("Purchase Line Type"::Item, EDocumentPurchaseLine."[BC] Purchase Line Type", 'The purchase line type should be set to Item.');
+        Assert.AreEqual(Item."No.", EDocumentPurchaseLine."[BC] Purchase Type No.", 'The item with the exact description should be found.');
+
+        Vendor2.Delete();
+        Item.Delete();
+    end;
+
+    [Test]
     procedure PreparingPurchaseDraftFindsAccountConfiguredWithTextToAccountMapping()
     var
         EDocument: Record "E-Document";
@@ -249,6 +295,7 @@ codeunit 139883 "E-Doc Process Test"
         Vendor2: Record Vendor;
         CompanyInformation: Record "Company Information";
         GLAccount: Record "G/L Account";
+        Item: Record Item;
         TextToAccountMapping: Record "Text-to-Account Mapping";
         EDocumentProcessing: Codeunit "E-Document Processing";
         EDocImport: Codeunit "E-Doc. Import";
@@ -257,6 +304,9 @@ codeunit 139883 "E-Doc Process Test"
         LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
         GLAccount."No." := 'EDOC001';
         GLAccount.Insert();
+        LibraryInventory.CreateItem(Item);
+        Item.Description := 'Test description';
+        Item.Modify();
 
         CompanyInformation.GetRecordOnce();
         Vendor2."Country/Region Code" := CompanyInformation."Country/Region Code";
@@ -287,14 +337,90 @@ codeunit 139883 "E-Doc Process Test"
         EDocumentPurchaseHeader.FindFirst();
         Assert.AreEqual(Vendor2."No.", EDocumentPurchaseHeader."[BC] Vendor No.", 'The vendor should be found when the tax id is specified and it matches the one in BC.');
         Assert.AreEqual("Purchase Line Type"::"G/L Account", EDocumentPurchaseLine."[BC] Purchase Line Type", 'The purchase line type should be set to G/L Account.');
-        Assert.AreEqual(GLAccount."No.", EDocumentPurchaseLine."[BC] Purchase Type No.", 'The G/L Account configured in the Text-to-Account Mapping should be found.');
+        Assert.AreEqual(GLAccount."No.", EDocumentPurchaseLine."[BC] Purchase Type No.", 'The configured Text-to-Account Mapping should take precedence over an item description match.');
 
         Vendor2.SetRecFilter();
         Vendor2.Delete();
         GLAccount.SetRecFilter();
         GLAccount.Delete();
+        Item.Delete();
         TextToAccountMapping.SetRecFilter();
         TextToAccountMapping.Delete();
+    end;
+
+    [Test]
+    procedure PurchaseLineProviderDoesNotMatchDuplicateItemDescriptions()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        Item: Record Item;
+        Item2: Record Item;
+        EDocProviders: Codeunit "E-Doc. Providers";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A draft line whose description matches more than one item is left unresolved
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] Two items "I1" and "I2" sharing the same description
+        LibraryInventory.CreateItem(Item);
+        Item.Description := 'Duplicate description';
+        Item.Modify();
+        LibraryInventory.CreateItem(Item2);
+        Item2.Description := Item.Description;
+        Item2.Modify();
+
+        // [GIVEN] An inbound e-document line described the same as "I1" and "I2"
+        LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
+        EDocumentPurchaseHeader.InsertForEDocument(EDocument);
+        EDocumentPurchaseLine."E-Document Entry No." := EDocument."Entry No";
+        EDocumentPurchaseLine.Description := Item.Description;
+        EDocumentPurchaseLine.Insert();
+
+        // [WHEN] The purchase line is resolved
+        EDocProviders.GetPurchaseLine(EDocumentPurchaseLine);
+
+        // [THEN] The line stays unresolved because the match is ambiguous
+        Assert.AreEqual("Purchase Line Type"::" ", EDocumentPurchaseLine."[BC] Purchase Line Type", 'An ambiguous item description should not resolve the purchase line.');
+        Assert.AreEqual('', EDocumentPurchaseLine."[BC] Purchase Type No.", 'An ambiguous item description should not assign an item number.');
+
+        Item.Delete();
+        Item2.Delete();
+    end;
+
+    [Test]
+    procedure PurchaseLineProviderDoesNotMatchPurchasingBlockedItem()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        Item: Record Item;
+        EDocProviders: Codeunit "E-Doc. Providers";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A draft line matching a purchasing-blocked item is left unresolved
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] A purchasing-blocked item "I"
+        LibraryInventory.CreateItem(Item);
+        Item.Description := 'Purchasing blocked item';
+        Item."Purchasing Blocked" := true;
+        Item.Modify();
+
+        // [GIVEN] An inbound e-document line described exactly as "I"
+        LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
+        EDocumentPurchaseHeader.InsertForEDocument(EDocument);
+        EDocumentPurchaseLine."E-Document Entry No." := EDocument."Entry No";
+        EDocumentPurchaseLine.Description := Item.Description;
+        EDocumentPurchaseLine.Insert();
+
+        // [WHEN] The purchase line is resolved
+        EDocProviders.GetPurchaseLine(EDocumentPurchaseLine);
+
+        // [THEN] The line stays unresolved because the item cannot be purchased
+        Assert.AreEqual("Purchase Line Type"::" ", EDocumentPurchaseLine."[BC] Purchase Line Type", 'A purchasing-blocked item should not resolve the purchase line.');
+
+        Item.Delete();
     end;
 
     [Test]
@@ -1306,7 +1432,7 @@ codeunit 139883 "E-Doc Process Test"
         TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
         EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
         EDocument.Get(EDocument."Entry No");
-        
+
         // [THEN] The e-document is Processed and the resulting Sales Header is a Sales Order (OrderTypeCode is ignored)
         EDocument.CalcFields("Import Processing Status");
         Assert.AreEqual(Enum::"Import E-Doc. Proc. Status"::Processed, EDocument."Import Processing Status", 'The status should be Processed after FinishDraft regardless of OrderTypeCode.');
@@ -1441,6 +1567,17 @@ codeunit 139883 "E-Doc Process Test"
         ItemReference."Reference Type No." := Vendor."No.";
         ItemReference."Reference No." := 'TESTITMREFNO';
         ItemReference.Insert();
+    end;
+
+    local procedure CreateVendorWithTaxId(var NewVendor: Record Vendor; VatRegistrationNo: Code[20])
+    var
+        CompanyInformation: Record "Company Information";
+    begin
+        LibraryPurchase.CreateVendor(NewVendor);
+        CompanyInformation.GetRecordOnce();
+        NewVendor."Country/Region Code" := CompanyInformation."Country/Region Code";
+        NewVendor."VAT Registration No." := VatRegistrationNo;
+        NewVendor.Modify();
     end;
 
     [Test]
