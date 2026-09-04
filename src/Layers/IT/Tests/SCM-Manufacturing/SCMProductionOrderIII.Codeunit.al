@@ -11586,4 +11586,3 @@ codeunit 137079 "SCM Production Order III"
         ProductionJournal.Post.Invoke();
     end;
 }
-
