@@ -121,7 +121,7 @@ page 8081 "Vendor Contract Deferrals"
                 ApplicationArea = All;
                 Caption = 'Dimensions';
                 Image = Dimensions;
-                ShortcutKey = 'Shift+Ctrl+D';
+                ShortcutKey = 'Alt+D';
                 ToolTip = 'View or edit dimensions, such as area, project, or department, that you can assign to sales and purchase documents to distribute costs and analyze transaction history.';
 
                 trigger OnAction()

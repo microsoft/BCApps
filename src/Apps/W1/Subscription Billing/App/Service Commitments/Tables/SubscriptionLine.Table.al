@@ -1110,11 +1110,20 @@ table 8059 "Subscription Line"
         OnAfterValidateShortcutDimCode(Rec, xRec, FieldNumber, ShortcutDimCode);
     end;
 
+    /// <summary>
+    /// Initializes the dimensions for the subscription line if default dimensions are defined for the specified field.
+    /// </summary>
+    /// <param name="UseSource">Specifies whether the subscription header will be taken into account.</param>
+    procedure CreateDimFromDefaultDim(UseSource: Boolean)
+    begin
+        SetDefaultDimensions(UseSource);
+    end;
+
     internal procedure SetDefaultDimensions(UseSource: Boolean)
     var
         DefaultDimSource: List of [Dictionary of [Integer, Code[20]]];
     begin
-        AddDefaultDimensionSources(DefaultDimSource, UseSource);
+        InitDefaultDimensionSources(DefaultDimSource, UseSource);
         "Dimension Set ID" := DimMgt.GetDefaultDimID(DefaultDimSource, '', "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code", 0, 0);
         DimMgt.UpdateGlobalDimFromDimSetID("Dimension Set ID", "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
     end;
@@ -1130,7 +1139,7 @@ table 8059 "Subscription Line"
         DimSetIDArr[1] := "Dimension Set ID";
         DimSetIDArr[2] := ContractDimSetID;
 
-        AddDefaultDimensionSources(DefaultDimSource, true);
+        InitDefaultDimensionSources(DefaultDimSource, true);
 
         if DimMgt.GetTableIDsForHigherPriorities(DefaultDimSource, HighPriorityDimSource, SourceCode, ContractPartnerTableID) then
             DimSetIDArr[3] :=
@@ -1143,7 +1152,7 @@ table 8059 "Subscription Line"
         OnAfterGetCombinedDimensionSetID(Rec);
     end;
 
-    local procedure AddDefaultDimensionSources(var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; UseSource: Boolean)
+    local procedure InitDefaultDimensionSources(var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; UseSource: Boolean)
     var
         ServiceObject: Record "Subscription Header";
     begin
@@ -1158,6 +1167,8 @@ table 8059 "Subscription Line"
                     ServiceObject.Type::"G/L Account":
                         DimMgt.AddDimSource(DefaultDimSource, Database::"G/L Account", ServiceObject."Source No.");
                 end;
+
+        OnAfterInitDefaultDimensionSources(Rec, DefaultDimSource, UseSource);
     end;
 
     internal procedure GetCombinedDimensionSetID(DimSetID1: Integer; DimSetID2: Integer)
@@ -2170,6 +2181,11 @@ table 8059 "Subscription Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetCombinedDimensionSetID(var SubscriptionLine: Record "Subscription Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInitDefaultDimensionSources(var SubscriptionLine: Record "Subscription Line"; var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; UseSource: Boolean)
     begin
     end;
 
