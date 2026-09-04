@@ -11,6 +11,7 @@ codeunit 135109 "Extension Mgt. Test Library"
 {
     var
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
+        ExtensionOperationImpl: Codeunit "Extension Operation Impl";
 
     procedure RunExtensionSetup(AppId: Guid)
     begin
@@ -20,5 +21,10 @@ codeunit 135109 "Extension Mgt. Test Library"
     procedure SetAppId(Id: Guid; var MarketplaceExtnDeployment: Page "Marketplace Extn Deployment")
     begin
         MarketplaceExtnDeployment.SetAppID(Id);
+    end;
+
+    procedure ShowInstallFailureStatus()
+    begin
+        ExtensionOperationImpl.ShowInstallFailureStatus();
     end;
 }
