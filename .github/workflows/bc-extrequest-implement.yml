@@ -40,7 +40,7 @@ jobs:
       pull-requests: write
       id-token: write
       copilot-requests: write
-    environment: triage
+    environment: extensibility-agent
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
@@ -84,16 +84,13 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
-          app-id: ${{ vars.TRIAGE_APP_ID }}
-          private-key: ${{ secrets.TRIAGE_APP_PRIVATE_KEY }}
-          owner: ${{ github.repository_owner }}
-          repositories: BCApps
+          client-id: ${{ vars.EXTENSIBILITY_CLIENT_ID }}
+          private-key: ${{ secrets.EXTENSIBILITY_TRIAGE_APP_PRIVATE_KEY }}
 
       - name: Checkout repository
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
-          token: ${{ steps.app-token.outputs.token }}
 
       - name: Validate skill
         run: |

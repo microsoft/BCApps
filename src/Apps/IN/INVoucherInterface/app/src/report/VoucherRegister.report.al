@@ -40,8 +40,10 @@ report 18933 "Voucher Register"
             }
             dataitem("G/L Entry"; "G/L Entry")
             {
+#pragma warning disable AL0254 // Accepted: Object-specific sorting; adding a shared-table key risks schema and performance changes.
                 DataItemTableView = sorting("Document No.", "Posting Date", Amount)
                                     order(descending);
+#pragma warning restore AL0254
 
                 column(VoucherSourceDesc; SourceDesc + VoucherLbl)
                 {

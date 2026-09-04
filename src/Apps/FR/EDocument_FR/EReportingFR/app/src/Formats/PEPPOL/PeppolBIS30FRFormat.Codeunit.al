@@ -22,11 +22,15 @@ using System.Utilities;
 
 codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
 {
-    Access = Internal;
-
     var
         ImportPeppol: Codeunit "EDoc Import PEPPOL BIS 3.0";
 
+    /// <summary>
+    /// Validates that the source document contains the information required for the Peppol BIS 3.0 FR format.
+    /// </summary>
+    /// <param name="SourceDocumentHeader">The source document header to validate.</param>
+    /// <param name="EDocumentService">The E-Document service used to process the document.</param>
+    /// <param name="EDocumentProcessingPhase">The phase in which the E-Document is being processed.</param>
     procedure Check(var SourceDocumentHeader: RecordRef; EDocumentService: Record "E-Document Service"; EDocumentProcessingPhase: Enum "E-Document Processing Phase")
     var
         SalesHeader: Record "Sales Header";
@@ -84,6 +88,14 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         end;
     end;
 
+    /// <summary>
+    /// Creates a Peppol BIS 3.0 FR document from a source document.
+    /// </summary>
+    /// <param name="EDocumentService">The E-Document service used to process the document.</param>
+    /// <param name="EDocument">The E-Document record for the document being created.</param>
+    /// <param name="SourceDocumentHeader">The source document header.</param>
+    /// <param name="SourceDocumentLines">The source document lines.</param>
+    /// <param name="TempBlob">The temporary blob in which to store the generated document.</param>
     procedure Create(EDocumentService: Record "E-Document Service"; var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var TempBlob: Codeunit "Temp Blob")
     var
         PeppolBIS30: Codeunit "EDoc PEPPOL BIS 3.0";
@@ -95,15 +107,35 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         InjectFrenchElements(TempBlob, SourceDocumentHeader, SourceDocumentLines, EDocumentService);
     end;
 
+    /// <summary>
+    /// Creates a Peppol BIS 3.0 FR document for a batch of source documents.
+    /// </summary>
+    /// <param name="EDocService">The E-Document service used to process the documents.</param>
+    /// <param name="EDocument">The E-Document records for the documents being created.</param>
+    /// <param name="SourceDocumentHeaders">The source document headers.</param>
+    /// <param name="SourceDocumentsLines">The source document lines.</param>
+    /// <param name="TempBlob">The temporary blob in which to store the generated document.</param>
     procedure CreateBatch(EDocService: Record "E-Document Service"; var EDocument: Record "E-Document"; var SourceDocumentHeaders: RecordRef; var SourceDocumentsLines: RecordRef; var TempBlob: Codeunit "Temp Blob")
     begin
     end;
 
+    /// <summary>
+    /// Reads basic E-Document information from a received Peppol BIS 3.0 FR document.
+    /// </summary>
+    /// <param name="EDocument">The E-Document record to populate with basic information.</param>
+    /// <param name="TempBlob">The temporary blob that contains the received document.</param>
     procedure GetBasicInfoFromReceivedDocument(var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob")
     begin
         ImportPeppol.ParseBasicInfo(EDocument, TempBlob);
     end;
 
+    /// <summary>
+    /// Reads complete document information from a received Peppol BIS 3.0 FR document.
+    /// </summary>
+    /// <param name="EDocument">The E-Document record associated with the received document.</param>
+    /// <param name="CreatedDocumentHeader">The document header populated from the received document.</param>
+    /// <param name="CreatedDocumentLines">The document lines populated from the received document.</param>
+    /// <param name="TempBlob">The temporary blob that contains the received document.</param>
     procedure GetCompleteInfoFromReceivedDocument(var EDocument: Record "E-Document"; var CreatedDocumentHeader: RecordRef; var CreatedDocumentLines: RecordRef; var TempBlob: Codeunit "Temp Blob")
     var
         TempPurchaseHeader: Record "Purchase Header" temporary;

@@ -538,8 +538,6 @@ codeunit 6201 "Non-Ded. VAT Impl."
         if IsHandled then
             exit;
 
-        if PurchaseLine."Non-Deductible VAT %" = 0 then
-            exit;
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type");
         PurchaseLine.SetRange("Document No.", PurchaseLine."Document No.");
         PurchaseLine.SetFilter("Line No.", '<>%1', PurchaseLine."Line No.");

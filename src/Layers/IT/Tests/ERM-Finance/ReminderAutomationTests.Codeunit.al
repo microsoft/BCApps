@@ -1071,7 +1071,7 @@ codeunit 134979 "Reminder Automation Tests"
         Assert.AreEqual(1, TempBlobList.Count(), NoOfAttachmentsSameErr);
     end;
 
-    [HandlerFunctions('NewReminderActionModalPageHandler,CreateRemindersSetupModalPageHandler,IssueRemindersSetupModalPageHandler,SendRemindersSetupLogInteractionModalPageHandler,SelectRemTermsAutomationHandler')]
+    [HandlerFunctions('ConfirmHandler,NewReminderActionModalPageHandler,CreateRemindersSetupModalPageHandler,IssueRemindersSetupModalPageHandler,SendRemindersSetupLogInteractionModalPageHandler,SelectRemTermsAutomationHandler')]
     [Test]
     procedure TestReminderAutomationLogsInteractionWithIssuedReminderNumber()
     var
