@@ -906,3 +906,4 @@ codeunit 1550 "Record Restriction Mgt."
     begin
     end;
 }
+
