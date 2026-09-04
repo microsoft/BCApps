@@ -58,12 +58,13 @@ codeunit 560 "CrossIntercompany Connector"
         PartnerMissingICSetupErr: Label 'Partner %1 has not completed the information required to use intercompany.', Comment = '%1 = IC Partner Code';
         MissalignmentBetweenNamesErr: Label 'The partner''s company name %1 does not match the name you are introducing for partner %2.', Comment = '%1 = Partner''s Company Name, %2 = IC Partner Name';
         InvalidDestinationUrlErr: Label 'The intercompany connection URL must use the trusted Business Central API host.';
-        InvalidDestinationUrlSecurityAuditTxt: Label 'An invalid destination URL was rejected for a cross-environment intercompany connection.', Locked = true;
+        InvalidDestinationUrlSecurityAuditTxt: Label 'An invalid destination URL was rejected for a cross-environment intercompany connection. Host: %1.', Locked = true, Comment = '%1 = the rejected host';
         InvalidDestinationUrlTelemetryTxt: Label 'A cross-environment intercompany destination URL failed trusted-host validation.', Locked = true;
         InvalidTokenEndpointErr: Label 'The token endpoint must identify a Microsoft Entra tenant on the trusted authority.';
-        InvalidTokenEndpointSecurityAuditTxt: Label 'An invalid OAuth token endpoint was rejected for a cross-environment intercompany connection.', Locked = true;
+        InvalidTokenEndpointSecurityAuditTxt: Label 'An invalid OAuth token endpoint was rejected for a cross-environment intercompany connection. Host: %1.', Locked = true, Comment = '%1 = the rejected host';
         InvalidTokenEndpointTelemetryTxt: Label 'A cross-environment intercompany OAuth token endpoint failed trusted-authority validation.', Locked = true;
         CrossIntercompanyServiceNameTxt: Label 'Cross-environment Intercompany', Locked = true;
+        UnparsableHostTok: Label '(unparsable host)', Locked = true;
 
     internal procedure TestICPartnerSetup(var TempICPartner: Record "IC Partner" temporary): Boolean
     var
@@ -400,7 +401,7 @@ codeunit 560 "CrossIntercompany Connector"
         ExpectedHostSuffix: Text;
     begin
         if not Uri.IsValidUri(DestinationUrl) or not DestinationUrl.StartsWith('https://') then
-            RejectInvalidDestinationUrl();
+            RejectInvalidDestinationUrl(GetHostFromUrl(DestinationUrl));
 
         Uri.Init(DestinationUrl);
 
@@ -410,21 +411,25 @@ codeunit 560 "CrossIntercompany Connector"
             if UrlHelper.IsPROD() then
                 ExpectedHostSuffix := DynamicsProdHostSuffixTok
             else
-                RejectInvalidDestinationUrl();
+                RejectInvalidDestinationUrl(GetHostFromUrl(DestinationUrl));
 
         // Allow any Dynamics host (including Embed ISV subdomains) under the environment's trusted domain.
         if not LowerCase(Uri.GetHost()).EndsWith(ExpectedHostSuffix) then
-            RejectInvalidDestinationUrl();
+            RejectInvalidDestinationUrl(GetHostFromUrl(DestinationUrl));
 
         exit(true);
     end;
 
-    local procedure RejectInvalidDestinationUrl()
+    local procedure RejectInvalidDestinationUrl(Host: Text)
+    var
+        TelemetryDimensions: Dictionary of [Text, Text];
     begin
-        Session.LogMessage('0000VC7', InvalidDestinationUrlTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', CrossIntercompanyTok);
+        TelemetryDimensions.Add('Category', CrossIntercompanyTok);
+        TelemetryDimensions.Add('Host', Host);
+        Session.LogMessage('0000VC7', InvalidDestinationUrlTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDimensions);
         Session.LogSecurityAudit(
             CrossIntercompanyServiceNameTxt, SecurityOperationResult::Failure,
-            InvalidDestinationUrlSecurityAuditTxt, AuditCategory::ApplicationManagement);
+            StrSubstNo(InvalidDestinationUrlSecurityAuditTxt, Host), AuditCategory::ApplicationManagement);
         Error(InvalidDestinationUrlErr);
     end;
 
@@ -439,16 +444,16 @@ codeunit 560 "CrossIntercompany Connector"
             if UrlHelper.IsPROD() then
                 AuthorityPrefix := EntraAuthorityPrefixTok
             else
-                RejectInvalidTokenEndpoint();
+                RejectInvalidTokenEndpoint(GetHostFromUrl(ConfiguredTokenEndpoint));
 
         if not LowerCase(ConfiguredTokenEndpoint).StartsWith(AuthorityPrefix) or
            not LowerCase(ConfiguredTokenEndpoint).EndsWith(OAuthTokenEndpointSuffixTok)
         then
-            RejectInvalidTokenEndpoint();
+            RejectInvalidTokenEndpoint(GetHostFromUrl(ConfiguredTokenEndpoint));
 
         TenantIdText := CopyStr(ConfiguredTokenEndpoint, StrLen(AuthorityPrefix) + 1, StrLen(ConfiguredTokenEndpoint) - StrLen(AuthorityPrefix) - StrLen(OAuthTokenEndpointSuffixTok));
         if not IsValidTenantIdentifier(TenantIdText) then
-            RejectInvalidTokenEndpoint();
+            RejectInvalidTokenEndpoint(GetHostFromUrl(ConfiguredTokenEndpoint));
 
         exit(ConfiguredTokenEndpoint);
     end;
@@ -468,13 +473,31 @@ codeunit 560 "CrossIntercompany Connector"
         exit(Regex.IsMatch(LowerCase(TenantIdentifier), TenantDomainPatternTok));
     end;
 
-    local procedure RejectInvalidTokenEndpoint()
+    local procedure RejectInvalidTokenEndpoint(Host: Text)
+    var
+        TelemetryDimensions: Dictionary of [Text, Text];
     begin
-        Session.LogMessage('0000VC8', InvalidTokenEndpointTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', CrossIntercompanyTok);
+        TelemetryDimensions.Add('Category', CrossIntercompanyTok);
+        TelemetryDimensions.Add('Host', Host);
+        Session.LogMessage('0000VC8', InvalidTokenEndpointTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDimensions);
         Session.LogSecurityAudit(
             CrossIntercompanyServiceNameTxt, SecurityOperationResult::Failure,
-            InvalidTokenEndpointSecurityAuditTxt, AuditCategory::ApplicationManagement);
+            StrSubstNo(InvalidTokenEndpointSecurityAuditTxt, Host), AuditCategory::ApplicationManagement);
         Error(InvalidTokenEndpointErr);
+    end;
+
+    local procedure GetHostFromUrl(Url: Text): Text
+    var
+        Uri: Codeunit Uri;
+        Host: Text;
+    begin
+        if not Uri.IsValidUri(Url) then
+            exit(UnparsableHostTok);
+        Uri.Init(Url);
+        Host := LowerCase(Uri.GetHost());
+        if Host = '' then
+            exit(UnparsableHostTok);
+        exit(Host);
     end;
 
     #region Auxiliar methods

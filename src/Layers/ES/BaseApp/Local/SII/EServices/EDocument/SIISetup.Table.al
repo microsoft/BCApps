@@ -236,6 +236,7 @@ table 10751 "SII Setup"
         InvalidEndpointUrlErr: Label 'The endpoint URL %1 is not on the allow-list for this feature.', Comment = '%1 = the URL entered by the user';
         EndpointUrlRejectedAuditTxt: Label 'A SII endpoint URL was rejected during validation. Host: %1.', Locked = true, Comment = '%1 = the rejected host';
         EndpointUrlRejectedTelemetryTxt: Label 'A SII endpoint URL was rejected during validation.', Locked = true;
+        UnparsableHostTok: Label '(unparsable host)', Locked = true;
         EndpointFieldChangedTxt: Label 'SII endpoint field "%1" was changed.', Locked = true, Comment = '%1 - endpoint field caption';
         SecurityAuditCertificateCodeChangedTxt: Label 'SII Certificate Code was changed from %1 to %2.', Locked = true, Comment = '%1 - old certificate code, %2 - new certificate code';
         SiiTxt: Label 'https://www2.agenciatributaria.gob.es/static_files/common/internet/dep/aplicaciones/es/aeat/ssii/fact/ws/SuministroInformacion.xsd', Locked = true;
@@ -309,11 +310,15 @@ table 10751 "SII Setup"
     local procedure GetHostFromUrl(Url: Text): Text
     var
         Uri: Codeunit Uri;
+        Host: Text;
     begin
         if not Uri.IsWellFormedUriString(Url, Enum::UriKind::Absolute) then
-            exit(Url);
+            exit(UnparsableHostTok);
         Uri.Init(Url);
-        exit(LowerCase(Uri.GetHost()));
+        Host := LowerCase(Uri.GetHost());
+        if Host = '' then
+            exit(UnparsableHostTok);
+        exit(Host);
     end;
 
     local procedure ValidateAndAuditEndpointUrlChange(EndpointFieldCaption: Text; OldUrl: Text; NewUrl: Text)
