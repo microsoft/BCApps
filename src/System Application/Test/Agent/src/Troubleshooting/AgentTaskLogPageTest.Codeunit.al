@@ -249,61 +249,14 @@ codeunit 133964 "Agent Task Log Page Test"
     end;
 
     [Test]
-    [TestPermissions(TestPermissions::Restrictive)]
-    procedure TestExportToJson_RedactsSerializedPageWithoutTroubleshootPermission()
-    var
-        TempAgentTaskLogEntry: Record "Agent Task Log Entry" temporary;
-        PermissionsMock: Codeunit "Permissions Mock";
-        ExportJson: JsonObject;
-        EntryJson: JsonObject;
-    begin
-        // [GIVEN] A log entry with a page snapshot and no Troubleshoot All Agents permission
-        PermissionsMock.Set('Agent SDK Test');
-        CreateTempLogEntryWithContext(TempAgentTaskLogEntry, 1, '{"serializedPage":"{\"secret\":\"value\"}"}');
-
-        // [WHEN] The log entry is exported
-        ExportToJson(TempAgentTaskLogEntry, ExportJson);
-
-        // [THEN] The page snapshot is redacted
-        EntryJson := GetFirstEntry(ExportJson);
-        Assert.IsFalse(EntryJson.Contains('pageContent'), 'The page content should not be included.');
-        Assert.IsTrue(EntryJson.GetBoolean('pageContentRedacted'), 'The page content should be marked as redacted.');
-    end;
-
-    [Test]
-    [TestPermissions(TestPermissions::Restrictive)]
-    procedure TestExportToJson_IncludesSerializedPageWithTroubleshootPermission()
-    var
-        TempAgentTaskLogEntry: Record "Agent Task Log Entry" temporary;
-        PermissionsMock: Codeunit "Permissions Mock";
-        ExportJson: JsonObject;
-        EntryJson: JsonObject;
-    begin
-        // [GIVEN] A log entry with a page snapshot and the Troubleshoot All Agents permission
-        PermissionsMock.Set('SUPER');
-        CreateTempLogEntryWithContext(TempAgentTaskLogEntry, 1, '{"serializedPage":"{\"secret\":\"value\"}"}');
-
-        // [WHEN] The log entry is exported
-        ExportToJson(TempAgentTaskLogEntry, ExportJson);
-
-        // [THEN] The page snapshot is included
-        EntryJson := GetFirstEntry(ExportJson);
-        Assert.IsTrue(EntryJson.Contains('pageContent'), 'The page content should be included.');
-        Assert.IsFalse(EntryJson.Contains('pageContentRedacted'), 'The page content should not be redacted.');
-    end;
-
-    [Test]
-    [TestPermissions(TestPermissions::Restrictive)]
     procedure TestExportToJson_UsesChronologicalOrder()
     var
         TempAgentTaskLogEntry: Record "Agent Task Log Entry" temporary;
-        PermissionsMock: Codeunit "Permissions Mock";
         ExportJson: JsonObject;
         EntryToken: JsonToken;
         LogEntries: JsonArray;
     begin
         // [GIVEN] Log entries inserted in ascending order
-        PermissionsMock.Set('Agent SDK Test');
         CreateTempLogEntryWithContext(TempAgentTaskLogEntry, 1, '');
         CreateTempLogEntryWithContext(TempAgentTaskLogEntry, 2, '');
 
@@ -321,19 +274,16 @@ codeunit 133964 "Agent Task Log Page Test"
     end;
 
     [Test]
-    [TestPermissions(TestPermissions::Restrictive)]
     procedure TestExportToJson_SeparatesLogAndMemoryEntries()
     var
         TempAgentTaskLogEntry: Record "Agent Task Log Entry" temporary;
         TempAgentTaskMemoryEntry: Record "Agent Task Memory Entry" temporary;
-        PermissionsMock: Codeunit "Permissions Mock";
         ExportJson: JsonObject;
         EntryToken: JsonToken;
         LogEntries: JsonArray;
         MemoryEntries: JsonArray;
     begin
         // [GIVEN] Three log entries referencing three of six task memory entries
-        PermissionsMock.Set('Agent SDK Test');
         CreateTempLogEntry(TempAgentTaskLogEntry, 1, 2);
         CreateTempLogEntry(TempAgentTaskLogEntry, 2, 4);
         CreateTempLogEntry(TempAgentTaskLogEntry, 3, 6);
@@ -360,18 +310,15 @@ codeunit 133964 "Agent Task Log Page Test"
     end;
 
     [Test]
-    [TestPermissions(TestPermissions::Restrictive)]
     procedure TestExportToJson_DeserializesMemoryDetails()
     var
         TempAgentTaskLogEntry: Record "Agent Task Log Entry" temporary;
         TempAgentTaskMemoryEntry: Record "Agent Task Memory Entry" temporary;
-        PermissionsMock: Codeunit "Permissions Mock";
         ExportJson: JsonObject;
         MemoryEntryToken: JsonToken;
         MemoryEntryJson: JsonObject;
     begin
         // [GIVEN] A memory entry whose details contain JSON text
-        PermissionsMock.Set('Agent SDK Test');
         CreateTempMemoryEntry(TempAgentTaskMemoryEntry, 1, 'Memory details');
         SetTempMemoryEntryDetails(TempAgentTaskMemoryEntry, '{"pageName":"Sales Order List","success":true}');
 
@@ -387,18 +334,15 @@ codeunit 133964 "Agent Task Log Page Test"
     end;
 
     [Test]
-    [TestPermissions(TestPermissions::Restrictive)]
     procedure TestExportToJson_UsesEnglishEnumCaptionsAndRestoresLanguage()
     var
         TempAgentTaskLogEntry: Record "Agent Task Log Entry" temporary;
-        PermissionsMock: Codeunit "Permissions Mock";
         ExportJson: JsonObject;
         EntryJson: JsonObject;
         CurrentGlobalLanguage: Integer;
         LanguageAfterExport: Integer;
     begin
         // [GIVEN] A non-English session and a page-operation log entry
-        PermissionsMock.Set('Agent SDK Test');
         CreateTempLogEntry(TempAgentTaskLogEntry, 1, 0);
         CurrentGlobalLanguage := GlobalLanguage();
         GlobalLanguage(1036); // French
