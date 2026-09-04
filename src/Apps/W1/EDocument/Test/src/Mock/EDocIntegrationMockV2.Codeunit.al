@@ -8,9 +8,10 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration.Interfaces;
 using Microsoft.eServices.EDocument.Integration.Receive;
 using Microsoft.eServices.EDocument.Integration.Send;
+using Microsoft.eServices.EDocument.Processing.Message;
 using System.Utilities;
 
-codeunit 139658 "E-Doc. Integration Mock V2" implements IDocumentSender, IDocumentReceiver, IDocumentResponseHandler, ISentDocumentActions, IConsentManager
+codeunit 139658 "E-Doc. Integration Mock V2" implements IDocumentSender, IDocumentReceiver, IDocumentResponseHandler, ISentDocumentActions, IConsentManager, IMessageSender, IMessageResponseHandler
 {
 
     Access = Internal;
@@ -35,6 +36,31 @@ codeunit 139658 "E-Doc. Integration Mock V2" implements IDocumentSender, IDocume
     begin
         OnGetResponse(EDocument, SendContext.Http().GetHttpRequestMessage(), SendContext.Http().GetHttpResponseMessage(), Success);
         exit(Success);
+    end;
+
+    procedure GetResponse(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; MessageContext: Codeunit "E-Doc. Message Context"): Boolean
+    var
+        ResponseReceived: Boolean;
+    begin
+        OnGetResponse(EDocument, MessageContext.Http().GetHttpRequestMessage(), MessageContext.Http().GetHttpResponseMessage(), ResponseReceived);
+        if ResponseReceived then
+            MessageContext.Status().SetStatus("E-Document Service Status"::Sent)
+        else
+            MessageContext.Status().SetStatus("E-Document Service Status"::"Pending Response");
+        exit(ResponseReceived);
+    end;
+
+    procedure SendMessage(var EDocument: Record "E-Document"; var EDocumentService: Record "E-Document Service"; MessageContext: Codeunit "E-Doc. Message Context")
+    var
+        TempBlob: Codeunit "Temp Blob";
+        IsAsync: Boolean;
+    begin
+        TempBlob := MessageContext.GetTempBlob();
+        OnSend(EDocument, EDocumentService, TempBlob, IsAsync, MessageContext.Http().GetHttpRequestMessage(), MessageContext.Http().GetHttpResponseMessage());
+        if IsAsync then
+            MessageContext.Status().SetStatus("E-Document Service Status"::"Pending Response")
+        else
+            MessageContext.Status().SetStatus("E-Document Service Status"::Sent);
     end;
 
     procedure ReceiveDocuments(var EDocumentService: Record "E-Document Service"; DocumentsMetadata: Codeunit "Temp Blob List"; ReceiveContext: Codeunit ReceiveContext)
