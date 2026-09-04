@@ -44,7 +44,7 @@ codeunit 6319 "Power BI Workspace Mgt."
         PowerBIServiceProvider.GetWorkspaces(ReturnedWorkspaceList, OperationResult);
 
         if not OperationResult.Successful then begin
-            Session.LogMessage('', CouldntGetWorkspacesTelemetryMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PowerBIServiceMgt.GetPowerBiTelemetryCategory());
+            Session.LogMessage('0000VCZ', CouldntGetWorkspacesTelemetryMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PowerBIServiceMgt.GetPowerBiTelemetryCategory());
             exit;
         end;
 
@@ -60,7 +60,7 @@ codeunit 6319 "Power BI Workspace Mgt."
                 TempPowerBISelectionElement.Type := TempPowerBISelectionElement.Type::Workspace;
 
                 if not TempPowerBISelectionElement.Insert() then
-                    Session.LogMessage('', FailedToInsertWorkspaceTelemetryMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PowerBIServiceMgt.GetPowerBiTelemetryCategory());
+                    Session.LogMessage('0000VD0', FailedToInsertWorkspaceTelemetryMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PowerBIServiceMgt.GetPowerBiTelemetryCategory());
             end;
     end;
 
