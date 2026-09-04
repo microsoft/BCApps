@@ -830,6 +830,7 @@ codeunit 137309 "SCM Reports"
         QuantityExplosionOfBOMWithVersions(Enum::"BOM Status"::Certified);
     end;
 
+#if not CLEAN29
     [Test]
     [HandlerFunctions('RolledUpCostSharesRequestPageHandler')]
     [Scope('OnPrem')]
@@ -943,7 +944,7 @@ codeunit 137309 "SCM Reports"
         // Verify: Verify Values on Rolled-up Cost Shares Test report values.
         VerifyRolledupCostSharesReport(SecondChildItem."No.", ParentItem."Production BOM No.");
     end;
-
+    
     [Test]
     [HandlerFunctions('DetailedCalculationRequestPageHandler')]
     [Scope('OnPrem')]
@@ -1158,7 +1159,7 @@ codeunit 137309 "SCM Reports"
         LibraryReportDataset.AssertCurrentRowValueEquals(
           'CostTotal', BOMChildItem."Unit Cost" * ProductionBOMLineChild.Quantity * ChildBOMQty);
     end;
-
+#endif
     [Test]
     [HandlerFunctions('ConfirmHandler,QuantityExplosionOfBOMRequestPageHandler')]
     [Scope('OnPrem')]
@@ -1217,6 +1218,7 @@ codeunit 137309 "SCM Reports"
           Item."Production BOM No.", Item."Production BOM No.", REPORT::"Quantity Explosion of BOM");
     end;
 
+#if not CLEAN29
     [Test]
     [HandlerFunctions('RolledUpCostSharesRequestPageHandler')]
     [Scope('OnPrem')]
@@ -1249,7 +1251,7 @@ codeunit 137309 "SCM Reports"
             Item, Enum::"Production BOM Line Type"::"Production BOM", Item."Production BOM No.", Item."Production BOM No.",
             Report::"Rolled-up Cost Shares");
     end;
-
+#endif
     [Test]
     [Scope('OnPrem')]
     procedure WhereUsedFromBomErrorOnProductionBomWithCycle()
@@ -1988,6 +1990,7 @@ codeunit 137309 "SCM Reports"
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, '');
     end;
 
+#if not CLEAN29
     local procedure DetailedCalculationWithTypeRoutingVersionAndCalcDate(Status: Enum "Routing Status"; Days: Integer)
     var
         Item: Record Item;
@@ -2020,7 +2023,7 @@ codeunit 137309 "SCM Reports"
             LibraryReportDataset.AssertElementWithValueExists('OperationNo_RtngLine', RoutingLine."Operation No.");
         until RoutingLine.Next() = 0;
     end;
-
+#endif
     local procedure CreateReportSelection(UsageOption: Enum "Report Selection Usage"; ReportID: Integer)
     var
         ReportSelections: Record "Report Selections";
@@ -2820,6 +2823,7 @@ codeunit 137309 "SCM Reports"
         Reply := true;
     end;
 
+#if not CLEAN29
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure DetailedCalculationRequestPageHandler(var DetailedCalculation: TestRequestPage "Detailed Calculation")
@@ -2837,7 +2841,7 @@ codeunit 137309 "SCM Reports"
     begin
         RolledUpCostShares.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
-
+#endif
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure QuantityExplosionOfBOMRequestPageHandler(var QuantityExplosionOfBOM: TestRequestPage "Quantity Explosion of BOM")

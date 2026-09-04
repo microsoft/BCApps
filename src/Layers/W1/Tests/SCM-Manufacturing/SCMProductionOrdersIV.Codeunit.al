@@ -61,17 +61,8 @@ codeunit 137083 "SCM Production Orders IV"
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibrarySales: Codeunit "Library - Sales";
-        ShowLevelAs: Option "First BOM Level","BOM Leaves";
         ShowCostShareAs: Option "Single-level","Rolled-up";
         IsInitialized: Boolean;
-        ItemNoLbl: Label 'ItemNo';
-        TotalCostLbl: Label 'TotalCost';
-        CapOvhdCostLbl: Label 'CapOvhdCost';
-        MfgOvhdCostLbl: Label 'MfgOvhdCost';
-        MaterialCostLbl: Label 'MaterialCost';
-        CapacityCostLbl: Label 'CapacityCost';
-        SubcontrdCostLbl: Label 'SubcontrdCost';
-        NonInventoryMaterialCostLbl: Label 'NonInventoryMaterialCost';
         MissingAccountTxt: Label '%1 is missing in %2.', Comment = '%1 = Field caption, %2 = Table Caption';
         FieldMustBeEditableErr: Label '%1 must be editable in %2', Comment = ' %1 = Field Name , %2 = Page Name';
         FieldMustNotBeEditableErr: Label '%1 must not be editable in %2', Comment = ' %1 = Field Name , %2 = Page Name';
@@ -1331,8 +1322,8 @@ codeunit 137083 "SCM Production Orders IV"
     end;
 
     [Test]
-    [HandlerFunctions('StrMenuHandler,BOMCostSharesDistributionReportHandler')]
-    procedure VerifyCostAmountInBOMCostSharesDistributionReportForProductionItem()
+    [HandlerFunctions('StrMenuHandler,ProductionCostSharesReportHandler')]
+    procedure VerifyCostAmountInProductionCostSharesReportForProductionItem()
     var
         OutputItem: Record Item;
         SemiOutputItem: Record Item;
@@ -1350,7 +1341,7 @@ codeunit 137083 "SCM Production Orders IV"
         ExpectedSLMatCost: Decimal;
         ExpectedTotalCost: Decimal;
     begin
-        // [SCENARIO 457878] Verify Cost Amount fields in "BOM Cost Share Distribution" report for production item.
+        // [SCENARIO 457878] Verify Cost Amount fields in "Production Cost Shares" report for production item.
         Initialize();
 
         // [GIVEN] Update "Inc. Non. Inv. Cost To Prod" in Manufacturing Setup.
@@ -1403,29 +1394,15 @@ codeunit 137083 "SCM Production Orders IV"
         // [GIVEN] Calculate Material Cost of Production Item.
         CalculateStdCost.CalcItem(OutputItem."No.", false);
 
-        // [WHEN] Run "BOM Cost Share Distribution" with ShowLevelAs "First BOM Level" and ShowCostShareAs "Single-level".
-        RunBOMCostSharesReport(OutputItem, ShowLevelAs::"First BOM Level", true, ShowCostShareAs::"Single-level");
+        // [WHEN] Run "Production Cost Shares"
+        RunProductionCostSharesReport(OutputItem);
+        LibraryReportDataset.LoadDataSetFile();
 
-        // [THEN] Verify Cost Amount in "BOM Cost Share Distribution" report.
-        VerifyBOMCostSharesReport(OutputItem."No.", ExpectedSLMatCost, 0, ExpectedOvhdCost, 0, 0, NonInvUnitCost2, ExpectedTotalCost);
+        // [THEN] Verify Cost Amount in "Production Cost Shares" report as "Single-level".
+        VerifyProductionCostSharesReport(OutputItem."No.", ExpectedSLMatCost, 0, ExpectedOvhdCost, 0, 0, NonInvUnitCost2, ExpectedTotalCost, ShowCostShareAs::"Single-level");
 
-        // [WHEN] Run "BOM Cost Share Distribution" with ShowLevelAs "BOM Leaves" and ShowCostShareAs "Single-level".
-        RunBOMCostSharesReport(OutputItem, ShowLevelAs::"BOM Leaves", true, ShowCostShareAs::"Single-level");
-
-        // [THEN] Verify Cost Amount in "BOM Cost Share Distribution" report.
-        VerifyBOMCostSharesReport(OutputItem."No.", ExpectedSLMatCost, 0, ExpectedOvhdCost, 0, 0, NonInvUnitCost2, ExpectedTotalCost);
-
-        // [WHEN] Run "BOM Cost Share Distribution" with ShowLevelAs "First BOM Level" and ShowCostShareAs "Rolled-up".
-        RunBOMCostSharesReport(OutputItem, ShowLevelAs::"First BOM Level", true, ShowCostShareAs::"Rolled-up");
-
-        // [THEN] Verify Cost Amount in "BOM Cost Share Distribution" report.
-        VerifyBOMCostSharesReport(OutputItem."No.", CompUnitCost1 + CompUnitCost2, 0, ExpectedOvhdCost, 0, 0, NonInvUnitCost1 + NonInvUnitCost2, ExpectedTotalCost);
-
-        // [WHEN] Run "BOM Cost Share Distribution" with ShowLevelAs "BOM Leaves" and ShowCostShareAs "Rolled-up".
-        RunBOMCostSharesReport(OutputItem, ShowLevelAs::"BOM Leaves", true, ShowCostShareAs::"Rolled-up");
-
-        // [THEN] Verify Cost Amount in "BOM Cost Share Distribution" report.
-        VerifyBOMCostSharesReport(OutputItem."No.", CompUnitCost1 + CompUnitCost2, 0, ExpectedOvhdCost, 0, 0, NonInvUnitCost1 + NonInvUnitCost2, ExpectedTotalCost);
+        // [THEN] Verify Cost Amount in "Production Cost Shares" report as "Rolled-up".
+        VerifyProductionCostSharesReport(OutputItem."No.", CompUnitCost1 + CompUnitCost2, 0, ExpectedOvhdCost, 0, 0, NonInvUnitCost1 + NonInvUnitCost2, ExpectedTotalCost, ShowCostShareAs::"Rolled-up");
     end;
 
     [Test]
@@ -5068,47 +5045,62 @@ codeunit 137083 "SCM Production Orders IV"
             StrSubstNo(ItemMustBeEqualErr, SKU.FieldCaption("Rolled-up Mfg. Ovhd Cost"), RUMfgOvhdCost, SKU."Item No.", SKU.TableCaption()));
     end;
 
-    local procedure RunBOMCostSharesReport(Item: Record Item; ShowLevel: Option; ShowDetails: Boolean; ShowCostShare: Option)
+    local procedure RunProductionCostSharesReport(Item: Record Item)
     var
         Item1: Record Item;
     begin
         Item1.SetRange("No.", Item."No.");
         Commit();
 
-        LibraryVariableStorage.Enqueue(ShowCostShare);
-        LibraryVariableStorage.Enqueue(ShowLevel);
-        LibraryVariableStorage.Enqueue(ShowDetails);
-        Report.Run(Report::"BOM Cost Share Distribution", true, false, Item1);
+        Report.Run(Report::"Production Cost Shares", true, false, Item1);
     end;
 
-    local procedure VerifyBOMCostSharesReport(ItemNo: Code[20]; ExpMaterialCost: Decimal; ExpCapacityCost: Decimal; ExpMfgOvhdCost: Decimal; ExpCapOvhdCost: Decimal; ExpSubcontractedCost: Decimal; ExpNonInvMaterialCost: Decimal; ExpTotalCost: Decimal)
+    local procedure VerifyProductionCostSharesReport(ItemNo: Code[20]; ExpMaterialCost: Decimal; ExpCapacityCost: Decimal; ExpMfgOvhdCost: Decimal; ExpCapOvhdCost: Decimal; ExpSubcontractedCost: Decimal; ExpNonInvMaterialCost: Decimal; ExpTotalCost: Decimal; ShowCostShareAs: Option "Single-level","Rolled-up")
     var
         CostAmount: Decimal;
         RoundingFactor: Decimal;
     begin
         RoundingFactor := 100 * LibraryERM.GetUnitAmountRoundingPrecision();
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.SetRange(ItemNoLbl, ItemNo);
+        LibraryReportDataset.Reset();
+        LibraryReportDataset.SetRange('No', ItemNo);
 
-        CostAmount := LibraryReportDataset.Sum(MaterialCostLbl);
+        if ShowCostShareAs = ShowCostShareAs::"Single-level" then
+            CostAmount := LibraryReportDataset.Sum('SingleLevelMaterialCost')
+        else
+            CostAmount := LibraryReportDataset.Sum('RolledUpMaterialCost');
         Assert.AreNearlyEqual(ExpMaterialCost, CostAmount, RoundingFactor, StrSubstNo(MaterialCostMustBeEqualErr, ExpMaterialCost, ItemNo));
 
-        CostAmount := LibraryReportDataset.Sum(CapacityCostLbl);
+        if ShowCostShareAs = ShowCostShareAs::"Single-level" then
+            CostAmount := LibraryReportDataset.Sum('SingleLevelCapacityCost')
+        else
+            CostAmount := LibraryReportDataset.Sum('RolledUpCapacityCost');
         Assert.AreNearlyEqual(ExpCapacityCost, CostAmount, RoundingFactor, StrSubstNo(CapacityCostMustBeEqualErr, ExpCapacityCost, ItemNo));
 
-        CostAmount := LibraryReportDataset.Sum(MfgOvhdCostLbl);
+        if ShowCostShareAs = ShowCostShareAs::"Single-level" then
+            CostAmount := LibraryReportDataset.Sum('SingleLevelMfgOvhdCost')
+        else
+            CostAmount := LibraryReportDataset.Sum('RolledUpMfgOvhdCost');
         Assert.AreNearlyEqual(ExpMfgOvhdCost, CostAmount, RoundingFactor, StrSubstNo(MfgOverheadCostMustBeEqualErr, ExpMfgOvhdCost, ItemNo));
 
-        CostAmount := LibraryReportDataset.Sum(CapOvhdCostLbl);
+        if ShowCostShareAs = ShowCostShareAs::"Single-level" then
+            CostAmount := LibraryReportDataset.Sum('SingleLevelCapOvhdCost')
+        else
+            CostAmount := LibraryReportDataset.Sum('RolledUpCapacityOvhdCost');
         Assert.AreNearlyEqual(ExpCapOvhdCost, CostAmount, RoundingFactor, StrSubstNo(CapacityOverheadCostMustBeEqualErr, ExpCapOvhdCost, ItemNo));
 
-        CostAmount := LibraryReportDataset.Sum(SubcontrdCostLbl);
+        if ShowCostShareAs = ShowCostShareAs::"Single-level" then
+            CostAmount := LibraryReportDataset.Sum('SingleLevelSubcontrdCost')
+        else
+            CostAmount := LibraryReportDataset.Sum('RolledUpSubcontractedCost');
         Assert.AreNearlyEqual(ExpSubcontractedCost, CostAmount, RoundingFactor, StrSubstNo(SubcontractedCostMustBeEqualErr, ExpSubcontractedCost, ItemNo));
 
-        CostAmount := LibraryReportDataset.Sum(NonInventoryMaterialCostLbl);
+        if ShowCostShareAs = ShowCostShareAs::"Single-level" then
+            CostAmount := LibraryReportDataset.Sum('SingleLvlMatNonInvtCost')
+        else
+            CostAmount := LibraryReportDataset.Sum('RolledUpMatNonInvtCost');
         Assert.AreNearlyEqual(ExpNonInvMaterialCost, CostAmount, RoundingFactor, StrSubstNo(NonInvMaterialCostMustBeEqualErr, ExpNonInvMaterialCost, ItemNo));
 
-        CostAmount := LibraryReportDataset.Sum(TotalCostLbl);
+        CostAmount := LibraryReportDataset.Sum('TotalCost');
         Assert.AreNearlyEqual(ExpTotalCost, CostAmount, RoundingFactor, StrSubstNo(TotalCostMustBeEqualErr, ExpTotalCost, ItemNo));
     end;
 
@@ -5445,20 +5437,9 @@ codeunit 137083 "SCM Production Orders IV"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-    procedure BOMCostSharesDistributionReportHandler(var BOMCostShareDistribution: TestRequestPage "BOM Cost Share Distribution")
-    var
-        ShowCostShareAsLcl: Variant;
-        ShowLevelAsLcl: Variant;
-        ShowDetails: Variant;
+    procedure ProductionCostSharesReportHandler(var ProductionCostShares: TestRequestPage "Production Cost Shares")
     begin
-        LibraryVariableStorage.Dequeue(ShowCostShareAsLcl);
-        LibraryVariableStorage.Dequeue(ShowLevelAsLcl);
-        LibraryVariableStorage.Dequeue(ShowDetails);
-
-        BOMCostShareDistribution.ShowCostShareAs.SetValue(ShowCostShareAsLcl);
-        BOMCostShareDistribution.ShowLevelAs.SetValue(ShowLevelAsLcl);
-        BOMCostShareDistribution.ShowDetails.SetValue(ShowDetails);
-        BOMCostShareDistribution.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
+        ProductionCostShares.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
     [PageHandler]

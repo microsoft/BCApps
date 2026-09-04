@@ -5,8 +5,10 @@ codeunit 144082 "UT Subcontracting"
     // 1. Purpose of the test is to validate Prod. Order Component - OnPreDataItem Trigger of Report - 12155 Subcontr. Dispatching List.
     // 2. Purpose of the test is to validate Transfer Shipment Header - OnPreDataItem Trigger of Report - 12154 Subcontract. Transfer Shipment.
     // 3. Purpose of the test is to validate Transfer Shipment Header - OnAfterGetRecord Trigger of Report - 12154 Subcontract. Transfer Shipment.
+#if not CLEAN29
     // 4. Purpose of the test is to validate Item - OnAfterGetRecord Trigger of Report - 99000756 Detailed Calculation.
     // 5. Purpose of the test is to validate Routing Line - OnAfterGetRecord Trigger of Report - 99000756 Detailed Calculation.
+#endif
     // 
     // Covers Test Cases for WI - 347118
     // ------------------------------------------------------------------------------
@@ -15,8 +17,10 @@ codeunit 144082 "UT Subcontracting"
     // OnPreDataItemProdOrderCompSubcontrDispatchingList                       155592
     // OnPreDataItemTransShptHdrSubcontractTransShpt                           155673
     // OnAfterGetRecordTransShptHdrSubcontractTransShpt                        238899
+#if not CLEAN29
     // OnAfterGetRecordItemDetailedCalculation                                 238922
     // OnAfterGetRecordRoutingLineDetailedCalculation                          154754
+#endif
 
     Subtype = Test;
     TestPermissions = Disabled;
@@ -135,6 +139,7 @@ codeunit 144082 "UT Subcontracting"
             CompanyInfoCap, CompanyInformation.FieldCaption("Register Company No."), CompanyInformation."Register Company No."));
     end;
 
+#if not CLEAN29
     [Test]
     [HandlerFunctions('DetailedCalculationRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
@@ -146,7 +151,7 @@ codeunit 144082 "UT Subcontracting"
         // Purpose of the test is to validate Item - OnAfterGetRecord Trigger of Report - 99000756 Detailed Calculation.
         DetailedCalculationWithProductionBOMLine(ProductionBOMLine.Type::Item);
     end;
-
+    
     [Test]
     [HandlerFunctions('DetailedCalculationRequestPageHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
@@ -176,7 +181,7 @@ codeunit 144082 "UT Subcontracting"
         VerifyXMLValuesOnMiscellaneousReports(
           NoItemCap, RoutingNoItemCap, ProductionBOMNoItemCap, Item."No.", Item."Routing No.", Item."Production BOM No.");
     end;
-
+#endif
     local procedure Initialize()
     begin
         LibraryVariableStorage.Clear();
@@ -341,6 +346,7 @@ codeunit 144082 "UT Subcontracting"
         LibraryReportDataset.AssertElementWithValueExists(Caption3, Value3);
     end;
 
+#if not CLEAN29
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure DetailedCalculationRequestPageHandler(var DetailedCalculation: TestRequestPage "Detailed Calculation")
@@ -351,7 +357,7 @@ codeunit 144082 "UT Subcontracting"
         DetailedCalculation.Item.SetFilter("No.", No);
         DetailedCalculation.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
-
+#endif
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure SubcontrDispatchingListRequestPageHandler(var SubcontrDispatchingList: TestRequestPage "Subcontr. Dispatching List")

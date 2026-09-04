@@ -1,3 +1,4 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -10,10 +11,13 @@ report 99000755 "Single-level Cost Shares"
 {
     AdditionalSearchTerms = 'rolled-up cost,cost breakdown';
     ApplicationArea = Manufacturing;
-    Caption = 'Single-level Cost Shares';
+    Caption = 'Single-level Cost Shares (Obsolete)';
+    DefaultRenderingLayout = RDLCLayout;
     ToolTip = 'View the cost shares of all items in the item''s product structure, their quantity and their cost shares specified in material, capacity, overhead, and total cost. Material cost is calculated as the cost of all items in the parent item''s product structure. Capacity and subcontractor costs are calculated as the costs related to produce all of the items in the parent item''s product structure.';
     UsageCategory = ReportsAndAnalysis;
-    DefaultRenderingLayout = RDLCLayout;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'This report has been replaced by the page BOM Cost Shares and report Production Cost Shares. This report will be removed in a future release.';
+    ObsoleteTag = '29.0';
 
     dataset
     {
@@ -114,8 +118,8 @@ report 99000755 "Single-level Cost Shares"
 
     requestpage
     {
-        AboutTitle = 'About Single-level Cost Shares';
-        AboutText = 'Get a detailed breakdown of the costs associated with manufactured items at each level of the bill of materials (BOM). The report shows the cost of materials, labor, and overhead for each component in the BOM.';
+        AboutTitle = 'About Single-level Cost Shares (Obsolete)';
+        AboutText = 'Get a detailed breakdown of the costs associated with manufactured items at each level of the bill of materials (BOM). The report shows the cost of materials, labor, and overhead for each component in the BOM. ** This report is obsolete and will be removed in a later release.** Please consult the report documentation for alternative ways to get to this data.';
 
         layout
         {
@@ -144,9 +148,13 @@ report 99000755 "Single-level Cost Shares"
     {
         layout(RDLCLayout)
         {
+            Caption = 'Single-level Cost Shares (Obsolete)';
             Type = RDLC;
             LayoutFile = './Manufacturing/Reports/SinglelevelCostShares.rdlc';
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This report is deprecated and will be removed in a future release.';
+            ObsoleteTag = '29.0';
         }
     }
 
@@ -162,3 +170,4 @@ report 99000755 "Single-level Cost Shares"
         ItemLastUnitCostCalcDateCaptLbl: Label 'Last Unit Cost Calc. Date';
 }
 
+#endif
