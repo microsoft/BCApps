@@ -142,8 +142,18 @@ codeunit 139096 "Power BI Mock Service Provider" implements "Power BI Service Pr
     end;
 
     procedure GetWorkspaces(var ReturnedWorkspaceList: DotNet ReturnedWorkspaceList; var OperationResult: DotNet OperationResult)
+    var
+        ReturnedWorkspace: DotNet ReturnedWorkspace;
+        Index: Integer;
     begin
-        Error('Not implemented yet');
+        ReturnedWorkspaceList := ReturnedWorkspaceList.ReturnedWorkspaceList();
+
+        for Index := 1 to WorkspaceIds.Count() do begin
+            ReturnedWorkspace := ReturnedWorkspace.ReturnedWorkspace(WorkspaceIds.Get(Index), WorkspaceNames.Get(Index));
+            ReturnedWorkspaceList.Add(ReturnedWorkspace);
+        end;
+
+        OperationSuccess(OperationResult);
     end;
 
     procedure SetFailAtStep(InputStep: Option)
@@ -190,6 +200,18 @@ codeunit 139096 "Power BI Mock Service Provider" implements "Power BI Service Pr
         exit(LastTargetWorkspaceId);
     end;
 
+    procedure AddWorkspace(WorkspaceId: Guid; WorkspaceName: Text)
+    begin
+        WorkspaceIds.Add(WorkspaceId);
+        WorkspaceNames.Add(WorkspaceName);
+    end;
+
+    procedure ClearWorkspaces()
+    begin
+        Clear(WorkspaceIds);
+        Clear(WorkspaceNames);
+    end;
+
     local procedure CheckFailStep()
     begin
         if FailStep = FailStep::NotSet then
@@ -207,6 +229,8 @@ codeunit 139096 "Power BI Mock Service Provider" implements "Power BI Service Pr
         GeneratedGatewayId: Guid;
         GeneratedDatasourceId: Guid;
         LastTargetWorkspaceId: Guid;
+        WorkspaceIds: List of [Guid];
+        WorkspaceNames: List of [Text];
         RetryAfter: DateTime;
 
 }
