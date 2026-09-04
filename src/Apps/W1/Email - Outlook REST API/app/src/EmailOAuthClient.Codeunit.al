@@ -114,13 +114,30 @@ codeunit 4507 "Email - OAuth Client" implements "Email - OAuth Client v2"
 
     internal procedure ValidateRedirectUrl(RedirectUrlToValidate: Text)
     var
+        RedirectUrlErrorInfo: ErrorInfo;
         DefaultRedirectUrl: Text;
     begin
         OAuth2.GetDefaultRedirectUrl(DefaultRedirectUrl);
-        if RedirectUrlToValidate <> DefaultRedirectUrl then begin
-            Session.LogMessage('0000VC9', InvalidRedirectUrlTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EmailCategoryLbl);
-            Error(InvalidRedirectUrlErr, DefaultRedirectUrl);
-        end;
+        if RedirectUrlToValidate = DefaultRedirectUrl then
+            exit;
+
+        Session.LogMessage('0000VC9', InvalidRedirectUrlTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EmailCategoryLbl);
+
+        RedirectUrlErrorInfo.Message := StrSubstNo(InvalidRedirectUrlErr, DefaultRedirectUrl);
+        RedirectUrlErrorInfo.AddAction(RestoreDefaultRedirectUrlActionTxt, Codeunit::"Email - OAuth Client", 'RestoreDefaultRedirectUrl');
+        Error(RedirectUrlErrorInfo);
+    end;
+
+    internal procedure RestoreDefaultRedirectUrl(RedirectUrlErrorInfo: ErrorInfo)
+    var
+        Setup: Record "Email - Outlook API Setup";
+        DefaultRedirectUrl: Text;
+    begin
+        OAuth2.GetDefaultRedirectUrl(DefaultRedirectUrl);
+        if not Setup.Get() then
+            Setup.Insert();
+        Setup.RedirectURL := CopyStr(DefaultRedirectUrl, 1, MaxStrLen(Setup.RedirectURL));
+        Setup.Modify();
     end;
 
     internal procedure AuthorizationCodeTokenCacheExists(): Boolean
@@ -170,4 +187,5 @@ codeunit 4507 "Email - OAuth Client" implements "Email - OAuth Client v2"
         ThirdPartyExtensionsNotAllowedErr: Label 'Third-party extensions are restricted from obtaining access tokens. Please contact your system administrator.';
         InvalidRedirectUrlErr: Label 'The redirect URL must be %1.', Comment = '%1 = the allowed redirect URL';
         InvalidRedirectUrlTelemetryTxt: Label 'A non-default OAuth redirect URL was rejected during Outlook email setup.', Locked = true;
+        RestoreDefaultRedirectUrlActionTxt: Label 'Restore default redirect URL';
 }
