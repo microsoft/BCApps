@@ -4073,4 +4073,60 @@ codeunit 136309 "Job Posting"
         CreateJobWithJobTask(JobTask);
         LibraryJob.CreateJobPlanningLine(LibraryJob.UsageLineTypeSchedule(), LibraryJob.ItemType(), JobTask, JobPlanningLine);
     end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostJobGLJournalLineACYTotalCostUsesOverriddenSourceCurrAmt()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        JobTask: Record "Job Task";
+        JobLedgerEntry: Record "Job Ledger Entry";
+        GLEntry: Record "G/L Entry";
+        ACYCode: Code[10];
+        SourceCurrAmt: Decimal;
+        LCYAmt: Decimal;
+    begin
+        // [FEATURE] [AI test 0.3] [Job] [Additional Reporting Currency] [Source Currency]
+        // [SCENARIO 643950] Additional-Currency Total Cost on Job Ledger Entry must equal the
+        //                   manually overridden Source Currency Amount on the Gen. Journal Line,
+        //                   not be re-derived from the default exchange rate.
+
+        // [GIVEN] Additional Reporting Currency set up with a 1:1 exchange rate.
+        Initialize();
+        ACYCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
+        LibraryERM.SetAddReportingCurrency(ACYCode);
+
+        // [GIVEN] Job with a Job Task.
+        CreateJobWithJobTask(JobTask);
+
+        // [GIVEN] Project G/L Journal line with Source Currency Code = ACY.
+        //         Source Currency Amount = 100 (overridden), LCY Amount = 60 (differs from default 1:1 rate).
+        SourceCurrAmt := 100;
+        LCYAmt := 60;
+        LibraryJob.CreateJobGLJournalLine(GenJournalLine."Job Line Type"::Billable, JobTask, GenJournalLine);
+        GenJournalLine.Validate(Amount, LCYAmt);
+        GenJournalLine."Source Currency Code" := ACYCode;
+        GenJournalLine."Source Currency Amount" := SourceCurrAmt;
+        GenJournalLine.Modify(true);
+
+        // [WHEN] Post the Gen. Journal Line.
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] Job Ledger Entry "Additional-Currency Total Cost" equals the overridden Source Currency Amount (100).
+        JobLedgerEntry.SetRange("Job No.", JobTask."Job No.");
+        JobLedgerEntry.FindFirst();
+        Assert.AreEqual(
+            SourceCurrAmt,
+            Abs(JobLedgerEntry."Additional-Currency Total Cost"),
+            'Job Ledger Entry "Additional-Currency Total Cost" must equal the overridden Source Currency Amount.');
+
+        // [THEN] G/L Entry "Additional-Currency Amount" also equals 100 (consistent with Gen. Journal Line posting).
+        GLEntry.SetRange("Job No.", JobTask."Job No.");
+        GLEntry.FindFirst();
+        Assert.AreEqual(
+            SourceCurrAmt,
+            Abs(GLEntry."Additional-Currency Amount"),
+            'G/L Entry "Additional-Currency Amount" must match the overridden Source Currency Amount.');
+    end;
+
 }
