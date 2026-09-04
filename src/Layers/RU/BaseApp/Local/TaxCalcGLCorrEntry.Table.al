@@ -52,14 +52,18 @@ table 17319 "Tax Calc. G/L Corr. Entry"
         {
             Caption = 'Where Used Register IDs';
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(21; "Debit Account Name"; Text[50])
+#pragma warning restore AL0685
         {
             CalcFormula = lookup("G/L Account".Name where("No." = field("Debit Account No.")));
             Caption = 'Debit Account Name';
             Editable = false;
             FieldClass = FlowField;
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(22; "Credit Account Name"; Text[50])
+#pragma warning restore AL0685
         {
             CalcFormula = lookup("G/L Account".Name where("No." = field("Credit Account No.")));
             Caption = 'Credit Account Name';

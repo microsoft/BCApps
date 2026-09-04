@@ -89,6 +89,12 @@ page 30145 "Shpfy Refund"
                     field("Presentment Currency Code"; Rec."Presentment Currency Code") { }
                 }
             }
+            part(Lines; "Shpfy Refund Lines")
+            {
+                ApplicationArea = All;
+                Caption = 'Lines';
+                SubPageLink = "Refund Id" = field("Refund Id");
+            }
             group(Tax)
             {
                 Caption = 'Tax';
@@ -111,12 +117,6 @@ page 30145 "Shpfy Refund"
                     Editable = false;
                     ToolTip = 'Specifies whether the parent order is exempt from tax.';
                 }
-            }
-            part(Lines; "Shpfy Refund Lines")
-            {
-                ApplicationArea = All;
-                Caption = 'Lines';
-                SubPageLink = "Refund Id" = field("Refund Id");
             }
             group(NoteGroup)
             {

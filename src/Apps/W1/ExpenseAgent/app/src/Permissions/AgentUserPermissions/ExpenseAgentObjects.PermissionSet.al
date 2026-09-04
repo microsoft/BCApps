@@ -31,6 +31,8 @@ permissionset 6952 "Expense Agent - Objects"
                   page "Expense Payment Method API" = X,
                   page "Expense Per Diem API" = X,
                   page "Expense Posting Groups API" = X,
+                  page "Expense Vehicle Type API" = X,
+                  page "Mileage Rate Setup API" = X,
                   page "Expense Report Line Item API" = X,
                   page "Expense Report Lines API" = X,
                   page "Expense Reports API" = X,
@@ -55,8 +57,14 @@ permissionset 6952 "Expense Agent - Objects"
                   page "Posted Exp. Rep. Line Att. API" = X,
                   page "Posted Exp. Rep. Line Item API" = X,
                   page "Posted Exp. Report Lines API" = X,
+#if not CLEAN30
+#pragma warning disable AL0432 // Object is obsoleted
                   page "Spend Requests API" = X,
                   page "Spend Request Details API" = X,
+#pragma warning restore AL0432
+#endif
+                  page "Travel Requests API" = X,
+                  page "Travel Request Details API" = X,
                   page "Travelers API" = X,
                   page "Tenant Feedback Setting API" = X,
                   page "Expense Projects API" = X,
@@ -93,6 +101,8 @@ permissionset 6952 "Expense Agent - Objects"
                   table "Expense Itemization" = X,
                   table "Expense Ledger Entry" = X,
                   table "Expense Location" = X,
+                  table "Expense Vehicle Type" = X,
+                  table "Mileage Rate Setup" = X,
                   table "Expense Participant" = X,
                   table "Expense Payment Method" = X,
                   table "Expense Per Diem" = X,

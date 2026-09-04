@@ -1172,6 +1172,84 @@ codeunit 137931 "SCM - Movement"
         Assert.ExpectedError(NothingToReplenishErr);
     end;
 
+    [Test]
+    [HandlerFunctions('ItemTrackingLinesModalPageHandlerMultipleEntries,ConfirmHandler,MessageHandler')]
+    [Scope('OnPrem')]
+    procedure CreateMovementFromWkshtFEFOWhenEarliestLotInDestinationBin()
+    var
+        Location: Record Location;
+        FromBin1: Record Bin;
+        FromBin2: Record Bin;
+        PickBin: Record Bin;
+        BinContent: Record "Bin Content";
+        WhseWorksheetLine: Record "Whse. Worksheet Line";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        ItemNo: Code[20];
+        LotNo: array[2] of Code[50];
+        ExpirationDate: array[2] of Date;
+    begin
+        // [FEATURE] [Movement Worksheet] [FEFO] [Item Tracking] [Bin]
+        // [SCENARIO 647499] When the earliest FEFO lot for a bin replenishment already sits in the destination bin,
+        // [SCENARIO 647499] the movement still moves the full quantity from the other bins and removes the worksheet lines.
+        Initialize();
+        LotNo[1] := LibraryUtility.GenerateGUID();
+        LotNo[2] := LibraryUtility.GenerateGUID();
+        ExpirationDate[1] := CalcDate('<1M>', WorkDate());
+        ExpirationDate[2] := CalcDate('<2M>', WorkDate());
+
+        // [GIVEN] Basic Warehouse location with Pick According to FEFO enabled
+        CreateBasicWarehouseLocationWithFEFO(Location);
+
+        // [GIVEN] Lot- and expiration-tracked item
+        ItemNo := CreateItemWithItemTrackingCode(true, true, false, false, true);
+
+        // [GIVEN] Two source bins "F1", "F2" and one fixed pick bin to be replenished
+        CreateBinForLocation(FromBin1, Location.Code);
+        CreateBinForLocation(FromBin2, Location.Code);
+        CreateBinForLocation(PickBin, Location.Code);
+
+        // [GIVEN] Earliest lot "L1" is split between source bin "F1" (50) and the pick bin itself (50); later lot "L2" has 100 in "F2"
+        PostItemJournalLotToBin(ItemNo, Location.Code, FromBin1.Code, LotNo[1], ExpirationDate[1], 50);
+        PostItemJournalLotToBin(ItemNo, Location.Code, PickBin.Code, LotNo[1], ExpirationDate[1], 50);
+        PostItemJournalLotToBin(ItemNo, Location.Code, FromBin2.Code, LotNo[2], ExpirationDate[2], 100);
+
+        // [GIVEN] Pick bin content is Fixed with Min = 100, Max = 150, so 100 units must be replenished
+        BinContent.Get(Location.Code, PickBin.Code, ItemNo, '', GetItemBaseUoM(ItemNo));
+        SetFixedBinContent(BinContent, 100, 150);
+
+        // [GIVEN] Movement Worksheet Line for replenishing 100 units with a blank From Bin because of FEFO
+        CreateMovementWorksheetLineWithBlankFromBin(WhseWorksheetLine, Location.Code, PickBin.Code, ItemNo, 100);
+
+        // [WHEN] Create Movement from the Movement Worksheet
+        WhseWorksheetLine.MovementCreate(WhseWorksheetLine);
+
+        // [THEN] The inventory movement takes the full 100 units: 50 of "L1" from "F1" and 50 of "L2" from "F2"
+        // [THEN] The 50 of "L1" residing in the destination pick bin is skipped instead of dropping the quantity
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::"Invt. Movement");
+        WarehouseActivityLine.SetRange("Action Type", WarehouseActivityLine."Action Type"::Take);
+        WarehouseActivityLine.SetRange("Item No.", ItemNo);
+        Assert.RecordCount(WarehouseActivityLine, 2);
+        WarehouseActivityLine.CalcSums(Quantity);
+        Assert.AreEqual(100, WarehouseActivityLine.Quantity, 'Movement should take the full replenishment quantity.');
+
+        WarehouseActivityLine.SetRange("Lot No.", LotNo[1]);
+        WarehouseActivityLine.FindFirst();
+        WarehouseActivityLine.TestField("Bin Code", FromBin1.Code);
+        WarehouseActivityLine.TestField(Quantity, 50);
+
+        WarehouseActivityLine.SetRange("Lot No.", LotNo[2]);
+        WarehouseActivityLine.FindFirst();
+        WarehouseActivityLine.TestField("Bin Code", FromBin2.Code);
+        WarehouseActivityLine.TestField(Quantity, 50);
+
+        // [THEN] The fully handled Movement Worksheet lines are removed
+        WhseWorksheetLine.SetRange("Location Code", Location.Code);
+        WhseWorksheetLine.SetRange("Item No.", ItemNo);
+        Assert.RecordIsEmpty(WhseWorksheetLine);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1435,6 +1513,78 @@ codeunit 137931 "SCM - Movement"
 
         LibraryWarehouse.RegisterWhseJournalLine(
           WarehouseJournalBatch."Journal Template Name", WarehouseJournalBatch.Name, Bin."Location Code", true);
+    end;
+
+    local procedure CreateBasicWarehouseLocationWithFEFO(var Location: Record Location)
+    begin
+        CreateLocationWithBinMandatory(Location, true);
+        Location.Validate("Pick According to FEFO", true);
+        Location.Modify(true);
+    end;
+
+    local procedure CreateBinForLocation(var Bin: Record Bin; LocationCode: Code[10])
+    begin
+        LibraryWarehouse.CreateBin(Bin, LocationCode, CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(Bin.Code)), '', '');
+    end;
+
+    local procedure CreateMovementWorksheetLineWithBlankFromBin(var WhseWorksheetLine: Record "Whse. Worksheet Line"; LocationCode: Code[10]; ToBinCode: Code[20]; ItemNo: Code[20]; Qty: Decimal)
+    var
+        WhseWorksheetTemplate: Record "Whse. Worksheet Template";
+        WhseWorksheetName: Record "Whse. Worksheet Name";
+        MovementWorksheet: TestPage "Movement Worksheet";
+    begin
+        LibraryWarehouse.SelectWhseWorksheetTemplate(WhseWorksheetTemplate, WhseWorksheetTemplate.Type::Movement);
+        LibraryWarehouse.SelectWhseWorksheetName(WhseWorksheetName, WhseWorksheetTemplate.Name, LocationCode);
+        LibraryWarehouse.CreateWhseWorksheetLine(
+          WhseWorksheetLine, WhseWorksheetName."Worksheet Template Name", WhseWorksheetName.Name, LocationCode,
+          "Warehouse Worksheet Template Type"::"Put-away");
+
+        MovementWorksheet.OpenEdit();
+        MovementWorksheet.GotoRecord(WhseWorksheetLine);
+        MovementWorksheet."Item No.".SetValue(ItemNo);
+        MovementWorksheet."Unit of Measure Code".SetValue(GetItemBaseUoM(ItemNo));
+        MovementWorksheet."To Bin Code".SetValue(ToBinCode);
+        MovementWorksheet.Quantity.SetValue(Qty);
+        MovementWorksheet."Qty. to Handle".SetValue(Qty);
+        MovementWorksheet.Close();
+    end;
+
+    local procedure SetFixedBinContent(var BinContent: Record "Bin Content"; MinQty: Decimal; MaxQty: Decimal)
+    begin
+        BinContent.Validate(Fixed, true);
+        BinContent.Validate("Min. Qty.", MinQty);
+        BinContent.Validate("Max. Qty.", MaxQty);
+        BinContent.Modify(true);
+    end;
+
+    local procedure PostItemJournalLotToBin(ItemNo: Code[20]; LocationCode: Code[10]; BinCode: Code[20]; LotNo: Code[50]; ExpirationDate: Date; Qty: Decimal)
+    var
+        ItemJournalTemplate: Record "Item Journal Template";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        FindItemJournal(ItemJournalTemplate, ItemJournalBatch);
+        LibraryInventory.CreateItemJournalLine(
+          ItemJournalLine, ItemJournalTemplate.Name, ItemJournalBatch.Name,
+          ItemJournalLine."Entry Type"::"Positive Adjmt.", ItemNo, Qty);
+        ItemJournalLine.Validate("Location Code", LocationCode);
+        ItemJournalLine.Validate("Bin Code", BinCode);
+        ItemJournalLine.Modify(true);
+
+        LibraryVariableStorage.Enqueue(1);
+        LibraryVariableStorage.Enqueue(LotNo);
+        LibraryVariableStorage.Enqueue(Qty);
+        ItemJournalLine.OpenItemTrackingLines(false);
+
+        ReservationEntry.SetRange("Source Type", Database::"Item Journal Line");
+        ReservationEntry.SetRange("Item No.", ItemNo);
+        ReservationEntry.SetRange("Lot No.", LotNo);
+        ReservationEntry.FindFirst();
+        ReservationEntry.Validate("Expiration Date", ExpirationDate);
+        ReservationEntry.Modify();
+
+        LibraryInventory.PostItemJournalLine(ItemJournalTemplate.Name, ItemJournalBatch.Name);
     end;
 
     local procedure FilterWhseActivityLines(var WarehouseActivityLine: Record "Warehouse Activity Line"; WarehouseActivityHeader: Record "Warehouse Activity Header"; ActionType: Enum "Warehouse Action Type")

@@ -382,9 +382,11 @@ codeunit 136606 "ERM RS Wizard & Worksheet"
         CheckPage(DATABASE::"Customer Posting Group", PAGE::"Customer Posting Groups");
         CheckPage(DATABASE::"Payment Terms", PAGE::"Payment Terms");
         CheckPage(DATABASE::"Payment Method", PAGE::"Payment Methods");
-        CheckPage(DATABASE::"Reminder Terms", PAGE::"Reminder Terms");
-        CheckPage(DATABASE::"Reminder Level", PAGE::"Reminder Levels");
+        CheckPage(DATABASE::"Reminder Terms", PAGE::"Reminder Terms List");
+        CheckPage(DATABASE::"Reminder Level", PAGE::"Reminder Level Setup");
+#if not CLEAN29
         CheckPage(DATABASE::"Reminder Text", PAGE::"Reminder Text");
+#endif
         CheckPage(DATABASE::"Finance Charge Terms", PAGE::"Finance Charge Terms");
         CheckPage(DATABASE::"Shipment Method", PAGE::"Shipment Methods");
         CheckPage(DATABASE::"Shipping Agent", PAGE::"Shipping Agents");
@@ -517,7 +519,7 @@ codeunit 136606 "ERM RS Wizard & Worksheet"
         CheckPage(DATABASE::"Cash Flow Manual Revenue", PAGE::"Cash Flow Manual Revenues");
         CheckPage(DATABASE::"IC Partner", PAGE::"IC Partner List");
         CheckPage(DATABASE::"Base Calendar", PAGE::"Base Calendar List");
-        CheckPage(DATABASE::"Finance Charge Text", PAGE::"Reminder Text");
+        CheckPage(DATABASE::"Finance Charge Text", PAGE::"Finance Charge Text");
         CheckPage(DATABASE::"Currency for Fin. Charge Terms", PAGE::"Currencies for Fin. Chrg Terms");
         CheckPage(DATABASE::"Currency for Reminder Level", PAGE::"Currencies for Reminder Level");
         CheckPage(DATABASE::"Currency Exchange Rate", PAGE::"Currency Exchange Rates");
@@ -3397,4 +3399,3 @@ codeunit 136606 "ERM RS Wizard & Worksheet"
         ConfigPackageRecords.Field3.AssertEquals(LibraryVariableStorage.DequeueText());
     end;
 }
-

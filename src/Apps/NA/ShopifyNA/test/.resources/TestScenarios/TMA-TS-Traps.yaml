@@ -1,0 +1,216 @@
+test_setup: TMA-Setup.yaml
+
+tests:
+  - name: TRAP-WrongState-TX-not-TN
+    description: "Texas tax line with only a Tennessee jurisdiction present must stay unmatched (no cross-state match)"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: TNSUT
+          Description: Tennessee State Sales Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: TX
+        city: Dallas
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Texas State Tax"
+              ratePct: 6.25
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: ""
+
+  - name: TRAP-NearDup-Springfield-IL
+    description: "Ship-to Springfield IL must match the IL jurisdiction, not the same-named MO one"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: ILSPR
+          Description: Springfield Illinois City Tax
+          Country/Region Code: US
+        - Code: MOSPR
+          Description: Springfield Missouri City Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: IL
+        city: Springfield
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Springfield City Tax"
+              ratePct: 2.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "ILSPR"
+
+  - name: TRAP-MissingLevel-County-empty
+    description: "County tax line with no county jurisdiction must stay unmatched (do not over-match to state or city)"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: CASUT
+          Description: California State Sales/Use Tax
+          Country/Region Code: US
+        - Code: LACITY
+          Description: City of Los Angeles
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: CA
+        city: Los Angeles
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "California State Tax"
+              ratePct: 6.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "Los Angeles County Tax"
+              ratePct: 0.25
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "CASUT"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: ""
+
+  - name: TRAP-SimilarName-Harris-not-Harrison
+    description: "Harris County line must match Harris County, not the similarly named Harrison County"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: HARRISCO
+          Description: Harris County Tax
+          Country/Region Code: US
+        - Code: HARRISON
+          Description: Harrison County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: TX
+        city: Houston
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Harris County Tax"
+              ratePct: 1.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "HARRISCO"
+
+  - name: TRAP-AbsentCity-Seattle-empty
+    description: "Seattle city tax line with only a King County jurisdiction present must stay unmatched"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: KINGCO
+          Description: King County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: WA
+        city: Seattle
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "Seattle City Tax"
+              ratePct: 3.65
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: ""
+
+  - name: TRAP-WrongType-Franchise-not-Sales
+    description: "A sales tax line must not match a same-state Franchise (business income) tax jurisdiction"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: CAFRAN
+          Description: California Franchise Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: CA
+        city: Sacramento
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "California State Tax"
+              ratePct: 6.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: ""
+
+  - name: TRAP-NoCandidates-empty
+    description: "With no candidate jurisdictions and auto-create off, a valid tax line must stay unmatched"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: ZZPLACE
+          Description: Placeholder Unrelated Jurisdiction
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NY
+        city: New York
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "New York State Tax"
+              ratePct: 4.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: ""

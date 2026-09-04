@@ -16,4 +16,5 @@ enum 6910 "Expense Report Status"
     value(4; Rejected) { Caption = 'Rejected'; }
     value(5; "Processed for Payment") { Caption = 'Processed for Payment'; }
     value(6; Completed) { Caption = 'Completed'; }
+    value(7; "Interim Approved") { Caption = 'Interim Approved'; }
 }

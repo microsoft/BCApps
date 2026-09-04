@@ -11,6 +11,7 @@ codeunit 8962 "AFS Handle Helper"
     InherentEntitlements = X;
     InherentPermissions = X;
 
+    [NonDebuggable]
     internal procedure AddNewEntryFromNode(var AFSHandle: Record "AFS Handle" temporary; Node: XmlNode)
     var
         AFSHelperLibrary: Codeunit "XML Utility Impl.";

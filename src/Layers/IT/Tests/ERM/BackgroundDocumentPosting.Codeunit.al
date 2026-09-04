@@ -469,16 +469,17 @@ codeunit 134893 "Background Document Posting"
 
     [Test]
     [Scope('OnPrem')]
-    procedure PostPurchCrMemoViaJobQueueUpdatesPurchOrderLine()
+    procedure PostPurchCrMemoViaJobQueueRetainsPurchOrderLineQty()
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         PurchInvHeader: Record "Purch. Inv. Header";
         CreditMemoHeader: Record "Purchase Header";
         ReturnReason: Record "Return Reason";
+        PostedQuantity: Decimal;
     begin
         // [FEATURE] [AI test 0.4]
-        // [SCENARIO 633198] Purchase order line quantities are updated when credit memo from order is posted via job queue
+        // [SCENARIO 633198] Purchase order line quantities are not reverted when a credit memo copied from a posted invoice for an inventory item is posted via job queue
         Initialize();
 
         // [GIVEN] Purchase Order "PO" with Item "I" and Quantity = 10
@@ -486,7 +487,8 @@ codeunit 134893 "Background Document Posting"
         PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
         PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
         PurchaseLine.FindFirst();
-        PurchaseLine.Validate("Qty. to Receive", Round(PurchaseLine.Quantity / 2, 1));
+        PostedQuantity := Round(PurchaseLine.Quantity / 2, 1);
+        PurchaseLine.Validate("Qty. to Receive", PostedQuantity);
         PurchaseLine.Modify(true);
 
         // [GIVEN] Purchase Order "PO" is partially posted with Receive and Invoice
@@ -505,12 +507,12 @@ codeunit 134893 "Background Document Posting"
         // [WHEN] Post Purchase Credit Memo "CM" via Job Queue
         PostPurchaseDocumentViaJobQueue(CreditMemoHeader);
 
-        // [THEN] Purchase Order Line "PO" has Quantity Invoiced = 0 and Quantity Received = 0
+        // [THEN] Purchase Order Line "PO" keeps its received and invoiced quantities (not reverted for the inventory item)
         PurchaseLine.Find();
-        Assert.AreEqual(0, PurchaseLine."Quantity Invoiced", 'Quantity Invoiced should be reverted to 0');
-        Assert.AreEqual(0, PurchaseLine."Qty. Invoiced (Base)", 'Qty. Invoiced (Base) should be reverted to 0');
-        Assert.AreEqual(0, PurchaseLine."Quantity Received", 'Quantity Received should be reverted to 0');
-        Assert.AreEqual(0, PurchaseLine."Qty. Received (Base)", 'Qty. Received (Base) should be reverted to 0');
+        Assert.AreEqual(PostedQuantity, PurchaseLine."Quantity Invoiced", 'Quantity Invoiced should not be reverted');
+        Assert.AreEqual(PostedQuantity, PurchaseLine."Qty. Invoiced (Base)", 'Qty. Invoiced (Base) should not be reverted');
+        Assert.AreEqual(PostedQuantity, PurchaseLine."Quantity Received", 'Quantity Received should not be reverted');
+        Assert.AreEqual(PostedQuantity, PurchaseLine."Qty. Received (Base)", 'Qty. Received (Base) should not be reverted');
     end;
 
     local procedure Initialize()

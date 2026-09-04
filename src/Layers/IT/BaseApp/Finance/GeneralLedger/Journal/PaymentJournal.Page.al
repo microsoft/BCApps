@@ -358,6 +358,7 @@ page 256 "Payment Journal"
                     trigger OnValidate()
                     begin
                         CheckAmountMatchedToAppliedLines();
+                        UpdateBatchTotalAfterAmountChange();
                     end;
                 }
                 field("Amount (LCY)"; Rec."Amount (LCY)")
@@ -369,6 +370,7 @@ page 256 "Payment Journal"
                     trigger OnValidate()
                     begin
                         CheckAmountMatchedToAppliedLines();
+                        UpdateBatchTotalAfterAmountChange();
                     end;
                 }
                 field("Debit Amount"; Rec."Debit Amount")
@@ -379,6 +381,7 @@ page 256 "Payment Journal"
                     trigger OnValidate()
                     begin
                         CheckAmountMatchedToAppliedLines();
+                        UpdateBatchTotalAfterAmountChange();
                     end;
                 }
                 field("Credit Amount"; Rec."Credit Amount")
@@ -389,6 +392,7 @@ page 256 "Payment Journal"
                     trigger OnValidate()
                     begin
                         CheckAmountMatchedToAppliedLines();
+                        UpdateBatchTotalAfterAmountChange();
                     end;
                 }
                 field("VAT Amount"; Rec."VAT Amount")
@@ -727,6 +731,20 @@ page 256 "Payment Journal"
                             Editable = false;
                             ToolTip = 'Specifies the total balance in the payment journal.';
                             Visible = TotalBalanceVisible;
+                        }
+                    }
+                    group("Batch Total")
+                    {
+                        Caption = 'Batch Total (LCY)';
+                        field(BatchTotal; BatchTotal)
+                        {
+                            ApplicationArea = All;
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
+                            Caption = 'Batch Total (LCY)';
+                            Editable = false;
+                            ToolTip = 'Specifies the total amount, in local currency, of the lines that are shown in the journal. Use this to see how much is selected for payment before you post the journal.';
+                            Visible = BatchTotalVisible;
                         }
                     }
                 }
@@ -1836,6 +1854,7 @@ page 256 "Payment Journal"
     begin
         TotalBalanceVisible := true;
         BalanceVisible := true;
+        BatchTotalVisible := true;
         AmountVisible := true;
         GeneralLedgerSetup.Get();
         IsPowerAutomatePrivacyNoticeApproved := PrivacyNotice.GetPrivacyNoticeApprovalState(FlowServiceManagement.GetPowerAutomatePrivacyNoticeId()) = "Privacy Notice Approval State"::Agreed;
@@ -1915,12 +1934,15 @@ page 256 "Payment Journal"
         GenJnlLineApprovalStatus: Text[20];
         Balance: Decimal;
         TotalBalance: Decimal;
+        BatchTotal: Decimal;
         NumberOfRecords: Integer;
         ShowBalance: Boolean;
         ShowTotalBalance: Boolean;
+        ShowBatchTotal: Boolean;
         HasPmtFileErr: Boolean;
         BalanceVisible: Boolean;
         TotalBalanceVisible: Boolean;
+        BatchTotalVisible: Boolean;
         IsPostingGroupEditable: Boolean;
         StyleTxt: Text;
         OverdueWarningText: Text;
@@ -2028,7 +2050,24 @@ page 256 "Payment Journal"
         if ShowTotalBalance then
             NumberOfRecords := Rec.Count();
 
+        UpdateBatchTotal();
+
         OnAfterUpdateBalance(TotalBalanceVisible);
+    end;
+
+    local procedure UpdateBatchTotal()
+    begin
+        GenJnlManagement.CalcBatchTotal(Rec, BatchTotal, ShowBatchTotal);
+        BatchTotalVisible := ShowBatchTotal;
+    end;
+
+    local procedure UpdateBatchTotalAfterAmountChange()
+    begin
+        if (Rec."Line No." = xRec."Line No.") and (Rec."Amount (LCY)" = xRec."Amount (LCY)") then
+            exit;
+
+        CurrPage.SaveRecord();
+        UpdateBatchTotal();
     end;
 
     local procedure EnableApplyEntriesAction()

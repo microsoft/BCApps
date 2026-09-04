@@ -147,7 +147,7 @@ codeunit 4591 "SOA Item Search"
         then
             exit;
 
-        if not SOASetup.FindFirst() or not SOASetup."Search Only Available Items" then
+        if not SOASetup.GetForCurrentAgentSession() or not SOASetup."Search Only Available Items" then
             exit;
 
         Item.Get(SalesLine."No.");
@@ -248,7 +248,7 @@ codeunit 4591 "SOA Item Search"
             else
                 AddVariantsToCandidateArray(ItemFilter, CandidateArray);
 
-        if SOASetup.FindFirst() then
+        if SOASetup.GetForCurrentAgentSession() then
             if ItemFilter <> '' then begin
                 CountBeforeAvailabilityCheck := ItemFilter.Split('|').Count();
                 ApplyAvailabilityFilter := CheckAvailability and (SOASetup."Search Only Available Items" and not SOASetup."Incl. Capable to Promise");
@@ -848,7 +848,7 @@ codeunit 4591 "SOA Item Search"
         TelemetryCustomDimension.Add('AgentUserSecurityId', Format(UserSecurityId()));
 
         // Search setup
-        if SOASetupRec.FindFirst() then begin
+        if SOASetupRec.GetForCurrentAgentSession() then begin
             TelemetryCustomDimension.Add('SearchOnlyAvailableItems', Format(SOASetupRec."Search Only Available Items"));
             TelemetryCustomDimension.Add('IncludeCapableToPromise', Format(SOASetupRec."Incl. Capable to Promise"));
         end;

@@ -10119,6 +10119,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
         CustLedgEntry.Get(DtldCustLedgEntry."Cust. Ledger Entry No.");
         IsRejected := CheckCarteraDocStatus(CustLedgEntry."Document No.", CustLedgEntry."Bill No.");
 
+        if IsRejected and (RejDocAmountLCY <> 0) then
+            exit;
+
         if CheckCarteraPostDtldCustLE(GenJnlLine, DtldCustLedgEntry, 0, 0, CreateBills) then begin
             GetCurrency(Currency, DtldCVLedgEntryBuf."Currency Code");
             CheckNonAddCurrCodeOccurred(Currency.Code);

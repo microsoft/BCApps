@@ -139,7 +139,9 @@ tableextension 12216 "Service Decl. Line IT" extends "Service Declaration Line"
                 end;
             end;
         }
+#pragma warning disable AL0468 // Accepted: renaming the table field would be a breaking change.
         field(12230; "Corrected Service Declaration No."; Code[20])
+#pragma warning restore AL0468
         {
             Caption = 'Corrected Service Declaration No.';
 

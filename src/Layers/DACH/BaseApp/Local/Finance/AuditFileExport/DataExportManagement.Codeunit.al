@@ -102,6 +102,7 @@ codeunit 11000 "Data Export Management"
                 end;
             else begin
                 RelDataExportRecordSource.Copy(DataExportRecordSource);
+#pragma warning disable AA0181, AA0233 // Positional Find() paired with Next(); suppression tracked for follow-up
                 if RelDataExportRecordSource.Find('<') then begin
                     if RelDataExportRecordSource.Indentation >= DataExportRecordSource.Indentation - 1 then
                         repeat
@@ -111,6 +112,7 @@ codeunit 11000 "Data Export Management"
                                 DataExportRecordSource."Relation To Line No." := RelDataExportRecordSource."Line No.";
                             end;
                         until (RelDataExportRecordSource.Next(-1) = 0) or FoundRelation
+#pragma warning restore AA0181, AA0233
                     else
                         DataExportRecordSource.Indentation := OldIndentation;
                 end else
