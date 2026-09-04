@@ -80,7 +80,7 @@ codeunit 148720 "PEPPOL30 BE Pmt Disc Tests"
         LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:AllowanceCharge[cbc:ChargeIndicator=''true'']/cbc:Amount', '3.34');
         LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:AllowanceCharge[cbc:ChargeIndicator=''true'']/cac:TaxCategory/cbc:ID', 'E');
         // [THEN] The compensating charge carries only a text reason - no (empty) reason code element is emitted
-        LibraryXPathXMLReader.VerifyXmlNodeAbsence('//cac:AllowanceCharge[cbc:ChargeIndicator=''true'']/cbc:AllowanceChargeReasonCode');
+        LibraryXPathXMLReader.VerifyNodeCountByXPath('//cac:AllowanceCharge[cbc:ChargeIndicator=''true'']/cbc:AllowanceChargeReasonCode', 0);
 
         // [THEN] The amount payable stays whole: LineExtension/TaxExclusive 111.20, Allowance & Charge 3.34, total 133.85
         LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:LegalMonetaryTotal/cbc:LineExtensionAmount', '111.2');
