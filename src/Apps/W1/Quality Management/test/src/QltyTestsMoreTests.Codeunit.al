@@ -1872,7 +1872,7 @@ codeunit 139965 "Qlty. Tests - More Tests"
         QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
     begin
         // [FEATURE] [AI test 0.3]
-        // [SCENARIO 301] Changing a line only re-evaluates text-expression lines that reference it, leaving unrelated text-expression lines untouched
+        // [SCENARIO 620380] Changing a line only re-evaluates text-expression lines that reference it, leaving unrelated text-expression lines untouched
         Initialize();
 
         // [GIVEN] Setup exists, a full WMS location is created, and an item is created
