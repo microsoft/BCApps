@@ -36,7 +36,7 @@ codeunit 148339 "Spend Request Test"
         SpendReqNotClosedMsg: Label 'The spend request should not be closed when the confirmation is declined.';
         HeaderSpendReqRemainsApprovedMsg: Label 'The header spend request should remain approved when a line overrides it.';
         ClosedByDocMsg: Label 'Closed By Document No. should be set on the closed spend request.';
-        SpendReqReleasedMsg: Label 'The spend request should be released.';
+        SpendReqReleasedMsg: Label 'The spend request should be Released.';
         SpendReqApprovedMsg: Label 'The spend request should be approved automatically when the agent is disabled.';
         SpendReqNoSetMsg: Label 'The Spend Request No. should be assigned to the expense report line.';
         HeaderSpendReqNoSetMsg: Label 'The Spend Request No. should be assigned to the expense report header.';
@@ -138,7 +138,7 @@ codeunit 148339 "Spend Request Test"
         // [GIVEN] A refundable expense report line for an expense user.
         CreateExpenseReportWithRefundableLine(ExpenseReportLine, ExpenseUser, true);
 
-        // [GIVEN] A released (not approved) spend request with the user as a traveler.
+        // [GIVEN] A Release (not approved) spend request with the user as a traveler.
         CreateSpendRequestWithTraveler(SpendRequest, ExpenseUser."No.", SpendRequest.Status::Released);
 
         // [WHEN] The spend request is selected on the line.
@@ -197,7 +197,7 @@ codeunit 148339 "Spend Request Test"
         SpendRequest.Validate("Travel Policy Acknowledgment", true);
         SpendRequest.Modify(true);
 
-        // [WHEN] The spend request is released.
+        // [WHEN] The spend request is Released.
         asserterror ReleaseSpendRequest.Release(SpendRequest);
 
         // [THEN] Release fails because Requested For is required.
@@ -221,7 +221,7 @@ codeunit 148339 "Spend Request Test"
         SpendRequest."Expected Start Date" := 0D;
         SpendRequest.Modify();
 
-        // [WHEN] The spend request is released.
+        // [WHEN] The spend request is Released.
         asserterror ReleaseSpendRequest.Release(SpendRequest);
 
         // [THEN] Release fails because Expected Start Date is required.
@@ -245,7 +245,7 @@ codeunit 148339 "Spend Request Test"
         SpendRequest."Expected End Date" := 0D;
         SpendRequest.Modify();
 
-        // [WHEN] The spend request is released.
+        // [WHEN] The spend request is Released.
         asserterror ReleaseSpendRequest.Release(SpendRequest);
 
         // [THEN] Release fails because Expected End Date is required.
@@ -269,7 +269,7 @@ codeunit 148339 "Spend Request Test"
         SpendRequest.Validate("Travel Policy Acknowledgment", false);
         SpendRequest.Modify(true);
 
-        // [WHEN] The spend request is released.
+        // [WHEN] The spend request is Released.
         asserterror ReleaseSpendRequest.Release(SpendRequest);
 
         // [THEN] Release fails because the travel policy must be acknowledged.
@@ -293,7 +293,7 @@ codeunit 148339 "Spend Request Test"
         SpendRequest.Validate("International Travel", true);
         SpendRequest.Modify(true);
 
-        // [WHEN] The spend request is released.
+        // [WHEN] The spend request is Released.
         asserterror ReleaseSpendRequest.Release(SpendRequest);
 
         // [THEN] Release fails because a destination country is required for international travel.
@@ -316,7 +316,7 @@ codeunit 148339 "Spend Request Test"
         // [GIVEN] Its travelers are removed.
         DeleteTravelers(SpendRequest."No.");
 
-        // [WHEN] The spend request is released.
+        // [WHEN] The spend request is Released.
         asserterror ReleaseSpendRequest.Release(SpendRequest);
 
         // [THEN] Release fails because at least one traveler is required.
@@ -336,7 +336,7 @@ codeunit 148339 "Spend Request Test"
         // [GIVEN] A releasable spend request with every prerequisite satisfied.
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
 
-        // [WHEN] The spend request is released.
+        // [WHEN] The spend request is Released.
         ReleaseSpendRequest.Release(SpendRequest);
 
         // [THEN] The spend request is approved automatically because there is no agent to approve it.
@@ -351,17 +351,17 @@ codeunit 148339 "Spend Request Test"
         ExpenseUser: Record "Expense User";
         ReleaseSpendRequest: Codeunit "Release Spend Request";
     begin
-        // [SCENARIO 616928] With the agent enabled, releasing an expense spend request leaves it released for the agent to approve.
+        // [SCENARIO 616928] With the agent enabled, releasing an expense spend request leaves it Released for the agent to approve.
         Initialize();
         LibraryExpense.UpdateEnableAgentInAgentSetup(true);
 
         // [GIVEN] A releasable spend request with every prerequisite satisfied.
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
 
-        // [WHEN] The spend request is released.
+        // [WHEN] The spend request is Released.
         ReleaseSpendRequest.Release(SpendRequest);
 
-        // [THEN] The spend request stays released.
+        // [THEN] The spend request stays Released.
         SpendRequest.Get(SpendRequest."No.");
         Assert.AreEqual(SpendRequest.Status::Released, SpendRequest.Status, SpendReqReleasedMsg);
     end;
@@ -404,7 +404,7 @@ codeunit 148339 "Spend Request Test"
         // [GIVEN] The close is confirmed when the spend request is selected on entry.
         CloseConfirmReply := true;
 
-        // [GIVEN] An expense report with a refundable line linked to a released spend request.
+        // [GIVEN] An expense report with a refundable line linked to a Released spend request.
         CreateAndPostExpenseReportWithSpendRequest(ExpenseReportHeader, SpendRequest, 1);
 
         // [GIVEN] The refundable amount that is expected to be spent against the spend request.
@@ -412,7 +412,7 @@ codeunit 148339 "Spend Request Test"
         ExpenseReportLine.FindFirst();
         ExpectedSpentLCY := ExpenseReportLine."Refundable Amount (LCY)";
 
-        // [WHEN] The report is released and posted.
+        // [WHEN] The report is Released and posted.
         ExpenseReportHeader.PerformManualRelease();
         ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
 
@@ -446,7 +446,7 @@ codeunit 148339 "Spend Request Test"
         // [GIVEN] An expense report with a refundable line linked to an approved spend request.
         CreateAndPostExpenseReportWithSpendRequest(ExpenseReportHeader, SpendRequest, 1);
 
-        // [WHEN] The report is released and posted.
+        // [WHEN] The report is Released and posted.
         ExpenseReportHeader.PerformManualRelease();
         ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
 
@@ -480,7 +480,7 @@ codeunit 148339 "Spend Request Test"
         ExpenseReportLine.CalcSums("Refundable Amount (LCY)");
         ExpectedSpentLCY := ExpenseReportLine."Refundable Amount (LCY)";
 
-        // [WHEN] The report is released and posted.
+        // [WHEN] The report is Released and posted.
         ExpenseReportHeader.PerformManualRelease();
         ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
 
@@ -588,7 +588,7 @@ codeunit 148339 "Spend Request Test"
         // [GIVEN] An expense user.
         LibraryExpense.CreateExpenseUser(ExpenseUser);
 
-        // [GIVEN] A released spend request.
+        // [GIVEN] A Released spend request.
         LibraryExpense.CreateSpendRequest(SpendRequest);
         LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Released);
 
@@ -723,7 +723,7 @@ codeunit 148339 "Spend Request Test"
         ExpenseReportLine.Validate("Spend Request No.", LineSpendRequest."No.");
         ExpenseReportLine.Modify(true);
 
-        // [WHEN] The report is released and posted.
+        // [WHEN] The report is Released and posted.
         ExpenseReportHeader.PerformManualRelease();
         ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
 
@@ -747,10 +747,10 @@ codeunit 148339 "Spend Request Test"
         Initialize();
         CloseConfirmReply := true;
 
-        // [GIVEN] A report with a refundable line linked to a released spend request and a non-refundable line.
+        // [GIVEN] A report with a refundable line linked to a Released spend request and a non-refundable line.
         ExpectedSpentLCY := CreateReportWithRefundableAndNonRefundableLines(ExpenseReportHeader, SpendRequest);
 
-        // [WHEN] The report is released and posted.
+        // [WHEN] The report is Released and posted.
         ExpenseReportHeader.PerformManualRelease();
         ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
 
@@ -771,10 +771,10 @@ codeunit 148339 "Spend Request Test"
         Initialize();
         CloseConfirmReply := true;
 
-        // [GIVEN] An expense report with a refundable line linked to a released spend request.
+        // [GIVEN] An expense report with a refundable line linked to a Released spend request.
         CreateAndPostExpenseReportWithSpendRequest(ExpenseReportHeader, SpendRequest, 1);
 
-        // [GIVEN] The report is released and the transaction is committed so it can be previewed.
+        // [GIVEN] The report is Released and the transaction is committed so it can be previewed.
         ExpenseReportHeader.PerformManualRelease();
         Commit();
 

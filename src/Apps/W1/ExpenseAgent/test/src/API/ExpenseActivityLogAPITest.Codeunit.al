@@ -25,9 +25,10 @@ codeunit 148343 "Expense Activity Log API Test"
         ExpenseReportsServiceNameTok: Label 'expenseReports', Locked = true;
         ExpenseUsersServiceNameTok: Label 'expenseUsers', Locked = true;
         TestDescriptionPrefixLbl: Label 'ACTIVITY API TEST ', Locked = true;
+        SubmitterCommentPropertyTxt: Label '"submitterComment":"%1"', Locked = true;
         MethodNotAllowedResponseErr: Label 'Response code is 405', Locked = true;
         BadRequestResponseErr: Label 'Response code is 400', Locked = true;
-        SubmitActionTok: Label 'Microsoft.NAV.releaseAndMarkPendingApprovalExpenseReport', Locked = true;
+        SubmitWithCommentActionTok: Label 'Microsoft.NAV.releaseAndMarkPendingApprovalExpenseReportWithComment', Locked = true;
         ApproveActionTok: Label 'Microsoft.NAV.approvedExpenseReport', Locked = true;
         RejectAndReopenActionTok: Label 'Microsoft.NAV.rejectAndReopenExpenseReport', Locked = true;
 
@@ -385,17 +386,21 @@ codeunit 148343 "Expense Activity Log API Test"
 
         // [WHEN] The report is submitted, rejected/reopened, resubmitted, and approved through API actions.
         InvokeReportAction(
-            ExpenseReportHeader.SystemId, SubmitActionTok,
-            CreateActorRequestBody('submitterExpenseUserNo', SubmitterExpenseUser."No."));
+            ExpenseReportHeader.SystemId, SubmitWithCommentActionTok,
+            CreateSubmitWithCommentRequestBody(SubmitterExpenseUser."No.", ''));
         ExpenseReportHeader.Get(ExpenseReportHeader."No.");
         InvokeReportAction(
             ExpenseReportHeader.SystemId, RejectAndReopenActionTok,
             CreateRejectRequestBody(ApproverExpenseUser."No.", 'E2E send back ' + RunToken));
         ExpenseReportHeader.Get(ExpenseReportHeader."No.");
         InvokeReportAction(
-            ExpenseReportHeader.SystemId, SubmitActionTok,
-            CreateActorRequestBody('submitterExpenseUserNo', SubmitterExpenseUser."No."));
+            ExpenseReportHeader.SystemId, SubmitWithCommentActionTok,
+            CreateSubmitWithCommentRequestBody(SubmitterExpenseUser."No.", 'E2E submitter response ' + RunToken));
         ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+
+        // [THEN] The report API exposes the latest submitter response.
+        VerifyReportSubmitterComment(ExpenseReportHeader.SystemId, 'E2E submitter response ' + RunToken);
+
         InvokeReportAction(
             ExpenseReportHeader.SystemId, ApproveActionTok,
             CreateActorRequestBody('approverExpenseUserNo', ApproverExpenseUser."No."));
@@ -490,6 +495,12 @@ codeunit 148343 "Expense Activity Log API Test"
         RequestBody.Add('rejectReason', RejectReason);
     end;
 
+    local procedure CreateSubmitWithCommentRequestBody(SubmitterExpenseUserNo: Code[20]; SubmissionComment: Text) RequestBody: JsonObject
+    begin
+        RequestBody.Add('submitterExpenseUserNo', SubmitterExpenseUserNo);
+        RequestBody.Add('submissionComment', SubmissionComment);
+    end;
+
     local procedure InvokeReportAction(ReportSystemID: Guid; ActionName: Text; RequestBody: JsonObject)
     var
         ResponseText: Text;
@@ -539,6 +550,20 @@ codeunit 148343 "Expense Activity Log API Test"
             0,
             StrPos(LowerCase(ResponseText), LowerCase(Format(ExpectedEventType))),
             'The report activity response does not contain the expected event type.');
+    end;
+
+    local procedure VerifyReportSubmitterComment(ReportSystemID: Guid; ExpectedComment: Text)
+    var
+        ResponseText: Text;
+        TargetURL: Text;
+    begin
+        TargetURL := LibraryGraphMgt.CreateTargetURL(
+            Format(ReportSystemID), Page::"Expense Reports API", ExpenseReportsServiceNameTok);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+        Assert.AreNotEqual(
+            0,
+            StrPos(ResponseText, StrSubstNo(SubmitterCommentPropertyTxt, ExpectedComment)),
+            'The expense report API response must contain the latest submitter comment.');
     end;
 
     local procedure VerifyUserHistory(ExpenseUserSystemID: Guid; HistoryRole: Text; SubjectSystemID: Guid)
