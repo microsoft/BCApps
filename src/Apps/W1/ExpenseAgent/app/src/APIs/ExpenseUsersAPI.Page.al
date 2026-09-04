@@ -87,7 +87,7 @@ page 6918 "Expense Users API"
                 {
                     EntityName = 'travelRequest';
                     EntitySetName = 'travelRequests';
-                    SubPageLink = "Requested By" = field("No.");
+                    SubPageLink = "Requested By" = field("Employee No.");
                 }
 
                 part(activityHistory; "Expense Activity Log API")

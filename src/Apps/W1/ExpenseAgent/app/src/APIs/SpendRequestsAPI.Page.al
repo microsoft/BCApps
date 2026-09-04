@@ -170,5 +170,18 @@ page 7099 "Spend Requests API"
     begin
         ExpenseAgentAPIValidation.VerifyAgentAccess();
     end;
+
+    trigger OnModifyRecord(): Boolean
+    begin
+        if (Rec."Document Type" = Rec."Document Type"::"Travel Request") and
+           (Rec."Requested By" <> xRec."Requested By")
+        then
+            Error(RequestedByCannotBeChangedErr);
+
+        exit(true);
+    end;
+
+    var
+        RequestedByCannotBeChangedErr: Label 'The owner of a travel request cannot be changed.';
 }
 #endif
