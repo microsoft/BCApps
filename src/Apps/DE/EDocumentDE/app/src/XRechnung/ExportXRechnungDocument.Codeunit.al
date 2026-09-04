@@ -47,6 +47,7 @@ codeunit 13916 "Export XRechnung Document"
         ItemChargeStructures: Dictionary of [Integer, Integer];
         LineLevelItemChargeAmounts: Dictionary of [Integer, Decimal];
         LineLevelItemChargeLineNos: Dictionary of [Integer, List of [Integer]];
+        ExportedLineNos: Dictionary of [Integer, Boolean];
         TempLineLevelChargeSalesInvLine: Record "Sales Invoice Line" temporary;
         TempLineLevelChargeSalesCrMemoLine: Record "Sales Cr.Memo Line" temporary;
         FeatureNameTok: Label 'E-document XRechnung Format', Locked = true;
@@ -499,7 +500,8 @@ codeunit 13916 "Export XRechnung Document"
         if not ChargeSalesInvLine.FindSet() then
             exit;
 
-        ExportedLineExists := ExportedNonChargeLineExists(SalesInvLine);
+        CollectExportedLineNos(SalesInvLine);
+        ExportedLineExists := ExportedLineNos.Count() > 0;
 
         repeat
             Structure := EDocItemChargeMapping.GetItemChargeStructure(EDocumentService, SalesInvoiceHeader, ChargeSalesInvLine, TargetSalesInvLine);
@@ -509,7 +511,7 @@ codeunit 13916 "Export XRechnung Document"
             if not ExportedLineExists then
                 Structure := Structure::"Line with Unit Code";
             // A line level allowance/charge needs an invoice line to live in. Without one it degrades to document level, so that the charge is never lost.
-            if (Structure = Structure::"Line Allowance/Charge") and not IsExportedLine(SalesInvLine, TargetSalesInvLine."Line No.") then
+            if (Structure = Structure::"Line Allowance/Charge") and not ExportedLineNos.ContainsKey(TargetSalesInvLine."Line No.") then
                 Structure := Structure::"Document Allowance/Charge";
             ItemChargeStructures.Add(ChargeSalesInvLine."Line No.", Structure.AsInteger());
             if Structure = Structure::"Line Allowance/Charge" then begin
@@ -534,7 +536,8 @@ codeunit 13916 "Export XRechnung Document"
         if not ChargeSalesCrMemoLine.FindSet() then
             exit;
 
-        ExportedLineExists := ExportedNonChargeLineExists(SalesCrMemoLine);
+        CollectExportedLineNos(SalesCrMemoLine);
+        ExportedLineExists := ExportedLineNos.Count() > 0;
 
         repeat
             Structure := EDocItemChargeMapping.GetItemChargeStructure(EDocumentService, SalesCrMemoHeader, ChargeSalesCrMemoLine, TargetSalesCrMemoLine);
@@ -544,7 +547,7 @@ codeunit 13916 "Export XRechnung Document"
             if not ExportedLineExists then
                 Structure := Structure::"Line with Unit Code";
             // A line level allowance/charge needs a credit memo line to live in. Without one it degrades to document level, so that the charge is never lost.
-            if (Structure = Structure::"Line Allowance/Charge") and not IsExportedLine(SalesCrMemoLine, TargetSalesCrMemoLine."Line No.") then
+            if (Structure = Structure::"Line Allowance/Charge") and not ExportedLineNos.ContainsKey(TargetSalesCrMemoLine."Line No.") then
                 Structure := Structure::"Document Allowance/Charge";
             ItemChargeStructures.Add(ChargeSalesCrMemoLine."Line No.", Structure.AsInteger());
             if Structure = Structure::"Line Allowance/Charge" then begin
@@ -560,6 +563,7 @@ codeunit 13916 "Export XRechnung Document"
         Clear(ItemChargeStructures);
         Clear(LineLevelItemChargeAmounts);
         Clear(LineLevelItemChargeLineNos);
+        Clear(ExportedLineNos);
         TempLineLevelChargeSalesInvLine.DeleteAll();
         TempLineLevelChargeSalesCrMemoLine.DeleteAll();
     end;
@@ -578,44 +582,28 @@ codeunit 13916 "Export XRechnung Document"
         ChargeLineNos.Add(ChargeLineNo);
     end;
 
-    local procedure ExportedNonChargeLineExists(var SalesInvLine: Record "Sales Invoice Line"): Boolean
+    local procedure CollectExportedLineNos(var SalesInvLine: Record "Sales Invoice Line")
     var
         ExportedSalesInvLine: Record "Sales Invoice Line";
     begin
         ExportedSalesInvLine.CopyFilters(SalesInvLine);
         ExportedSalesInvLine.SetFilter(Type, '<>%1', ExportedSalesInvLine.Type::"Charge (Item)");
-        exit(not ExportedSalesInvLine.IsEmpty());
+        if ExportedSalesInvLine.FindSet() then
+            repeat
+                ExportedLineNos.Add(ExportedSalesInvLine."Line No.", true);
+            until ExportedSalesInvLine.Next() = 0;
     end;
 
-    local procedure ExportedNonChargeLineExists(var SalesCrMemoLine: Record "Sales Cr.Memo Line"): Boolean
+    local procedure CollectExportedLineNos(var SalesCrMemoLine: Record "Sales Cr.Memo Line")
     var
         ExportedSalesCrMemoLine: Record "Sales Cr.Memo Line";
     begin
         ExportedSalesCrMemoLine.CopyFilters(SalesCrMemoLine);
         ExportedSalesCrMemoLine.SetFilter(Type, '<>%1', ExportedSalesCrMemoLine.Type::"Charge (Item)");
-        exit(not ExportedSalesCrMemoLine.IsEmpty());
-    end;
-
-    local procedure IsExportedLine(var SalesInvLine: Record "Sales Invoice Line"; LineNo: Integer): Boolean
-    var
-        ExportedSalesInvLine: Record "Sales Invoice Line";
-    begin
-        if LineNo = 0 then
-            exit(false);
-        ExportedSalesInvLine.CopyFilters(SalesInvLine);
-        ExportedSalesInvLine.SetRange("Line No.", LineNo);
-        exit(not ExportedSalesInvLine.IsEmpty());
-    end;
-
-    local procedure IsExportedLine(var SalesCrMemoLine: Record "Sales Cr.Memo Line"; LineNo: Integer): Boolean
-    var
-        ExportedSalesCrMemoLine: Record "Sales Cr.Memo Line";
-    begin
-        if LineNo = 0 then
-            exit(false);
-        ExportedSalesCrMemoLine.CopyFilters(SalesCrMemoLine);
-        ExportedSalesCrMemoLine.SetRange("Line No.", LineNo);
-        exit(not ExportedSalesCrMemoLine.IsEmpty());
+        if ExportedSalesCrMemoLine.FindSet() then
+            repeat
+                ExportedLineNos.Add(ExportedSalesCrMemoLine."Line No.", true);
+            until ExportedSalesCrMemoLine.Next() = 0;
     end;
 
     local procedure InsertItemChargeAllowanceCharges(var RootXMLNode: XmlElement; var SalesInvLine: Record "Sales Invoice Line"; CurrencyCode: Code[10])
