@@ -18,14 +18,30 @@ codeunit 5861 "Invt. Ledger Source Mgt."
         OnGetSourceDescription(SourceType, SourceNo, SourceDescription);
     end;
 
+#if not CLEAN29
+    [Obsolete('Replaced by GetSourceOrderNo(DocType, DocNo, DocLineNo)', '29.0')]
     procedure GetSourceOrderNo(DocType: Enum "Item Ledger Document Type"; DocNo: Code[20]) SourceOrderNo: Code[20]
+    begin
+        exit(GetSourceOrderNo(DocType, DocNo, 0));
+    end;
+#endif
+
+    procedure GetSourceOrderNo(DocType: Enum "Item Ledger Document Type"; DocNo: Code[20]; DocLineNo: Integer) SourceOrderNo: Code[20]
     var
         IsHandled: Boolean;
     begin
+#if not CLEAN29
         OnBeforeGetSourceOrderNo(DocType, DocNo, SourceOrderNo, IsHandled);
         if IsHandled then
             exit;
+#endif
+        OnBeforeGetSourceOrderNoWithLineNo(DocType, DocNo, DocLineNo, SourceOrderNo, IsHandled);
+        if IsHandled then
+            exit;
+#if not CLEAN29
         OnGetSourceOrderNo(DocType, DocNo, SourceOrderNo);
+#endif
+        OnGetSourceOrderNoWithLineNo(DocType, DocNo, DocLineNo, SourceOrderNo);
     end;
 
     [IntegrationEvent(false, false)]
@@ -38,13 +54,29 @@ codeunit 5861 "Invt. Ledger Source Mgt."
     begin
     end;
 
+#if not CLEAN29
+    [Obsolete('Replaced by OnBeforeGetSourceOrderNoWithLineNo(DocType, DocNo, DocLineNo, SourceOrderNo, IsHandled)', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetSourceOrderNo(DocType: Enum "Item Ledger Document Type"; DocNo: Code[20]; var SourceOrderNo: Code[20]; var IsHandled: Boolean)
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
+    local procedure OnBeforeGetSourceOrderNoWithLineNo(DocType: Enum "Item Ledger Document Type"; DocNo: Code[20]; DocLineNo: Integer; var SourceOrderNo: Code[20]; var IsHandled: Boolean)
+    begin
+    end;
+
+#if not CLEAN29
+    [Obsolete('Replaced by OnGetSourceOrderNoWithLineNo(DocType, DocNo, DocLineNo, SourceOrderNo)', '29.0')]
+    [IntegrationEvent(false, false)]
     local procedure OnGetSourceOrderNo(DocType: Enum "Item Ledger Document Type"; DocNo: Code[20]; var SourceOrderNo: Code[20])
+    begin
+    end;
+#endif
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetSourceOrderNoWithLineNo(DocType: Enum "Item Ledger Document Type"; DocNo: Code[20]; DocLineNo: Integer; var SourceOrderNo: Code[20])
     begin
     end;
 }

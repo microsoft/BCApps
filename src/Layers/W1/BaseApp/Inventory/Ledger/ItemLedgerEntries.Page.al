@@ -361,7 +361,7 @@ page 38 "Item Ledger Entries"
                     ToolTip = 'Specifies the name or description of the source. Analysis mode must be used for sorting and filtering on this field.';
                     Visible = false;
                 }
-                field("Source Order No."; InventoryLedgerSourceMgt.GetSourceOrderNo(Rec."Document Type", Rec."Document No."))
+                field("Source Order No."; InventoryLedgerSourceMgt.GetSourceOrderNo(Rec."Document Type", Rec."Document No.", Rec."Document Line No."))
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Source Order No.';
