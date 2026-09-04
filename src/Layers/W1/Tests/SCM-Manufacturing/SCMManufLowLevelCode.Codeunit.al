@@ -5,6 +5,7 @@
 namespace Microsoft.Manufacturing.Test;
 
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Location;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Setup;
 
@@ -22,6 +23,7 @@ codeunit 137039 "SCM Manuf Low Level Code"
         ManufacturingSetup: Record "Manufacturing Setup";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         isInitialized: Boolean;
 
@@ -190,6 +192,148 @@ codeunit 137039 "SCM Manuf Low Level Code"
         RestoreManufacturingSetup(TempManufacturingSetup);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure LowLevelCodeWithSKULevelProductionBOM()
+    var
+        CompItem: Record Item;
+        SemiItem: Record Item;
+        FinishedItem: Record Item;
+        TempManufacturingSetup: Record "Manufacturing Setup" temporary;
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionBOMLine: Record "Production BOM Line";
+        LocationCode: Code[10];
+    begin
+        // [SCENARIO 646101] [AI] 0.2 Multi-level BOMs assigned on Stockkeeping Units must get correct Low-Level Codes in a single pass.
+        // [GIVEN] Dynamic Low-Level Code enabled.
+        Initialize();
+        UpdateManufacturingSetup(TempManufacturingSetup, true);
+        LocationCode := CreateLocation();
+
+        // [GIVEN] Three items: Component, Semi-finished and Finished, none carrying an Item-card Production BOM.
+        LibraryInventory.CreateItem(CompItem);
+        LibraryInventory.CreateItem(SemiItem);
+        LibraryInventory.CreateItem(FinishedItem);
+
+        // [GIVEN] Semi-finished item has a certified BOM (with the Component) assigned on its SKU.
+        CreateProdBOM(ProductionBOMHeader, ProductionBOMLine.Type::Item, CompItem."No.", '', SemiItem."Base Unit of Measure", false);
+        CreateSKUWithProdBOM(SemiItem."No.", LocationCode, ProductionBOMHeader."No.");
+
+        // [GIVEN] Finished item has a certified BOM (with the Semi-finished item) assigned on its SKU.
+        CreateProdBOM(ProductionBOMHeader, ProductionBOMLine.Type::Item, SemiItem."No.", '', FinishedItem."Base Unit of Measure", false);
+        CreateSKUWithProdBOM(FinishedItem."No.", LocationCode, ProductionBOMHeader."No.");
+
+        // [THEN] Low-Level Codes reflect the full multi-level SKU BOM structure without a second calculation.
+        VerifyLowLevelCode(FinishedItem."No.", '', 0);
+        VerifyLowLevelCode(SemiItem."No.", '', 1);
+        VerifyLowLevelCode(CompItem."No.", '', 2);
+
+        // Tear Down: Dynamic Low-Level Code set to Default in Manufacturing setup.
+        RestoreManufacturingSetup(TempManufacturingSetup);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure RecalculateLowLevelCodeWithExistingSKULevelProductionBOM()
+    var
+        CompItem: Record Item;
+        SemiItem: Record Item;
+        FinishedItem: Record Item;
+        TempManufacturingSetup: Record "Manufacturing Setup" temporary;
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionBOMLine: Record "Production BOM Line";
+        LocationCode: Code[10];
+        SemiBOMNo: Code[20];
+        FinishedBOMNo: Code[20];
+    begin
+        // [SCENARIO 646101] [AI] 0.2 Recalculating an item through Calculate Low-Level Code must resolve the full multi-level chain when the BOMs already exist on Stockkeeping Units.
+        // [GIVEN] Dynamic Low-Level Code enabled and a 3-level SKU-only BOM structure (Finished -> Semi -> Component).
+        Initialize();
+        UpdateManufacturingSetup(TempManufacturingSetup, true);
+        LocationCode := CreateLocation();
+
+        LibraryInventory.CreateItem(CompItem);
+        LibraryInventory.CreateItem(SemiItem);
+        LibraryInventory.CreateItem(FinishedItem);
+
+        CreateProdBOM(ProductionBOMHeader, ProductionBOMLine.Type::Item, CompItem."No.", '', SemiItem."Base Unit of Measure", false);
+        SemiBOMNo := ProductionBOMHeader."No.";
+        CreateSKUWithProdBOM(SemiItem."No.", LocationCode, SemiBOMNo);
+
+        CreateProdBOM(ProductionBOMHeader, ProductionBOMLine.Type::Item, SemiItem."No.", '', FinishedItem."Base Unit of Measure", false);
+        FinishedBOMNo := ProductionBOMHeader."No.";
+        CreateSKUWithProdBOM(FinishedItem."No.", LocationCode, FinishedBOMNo);
+
+        // [GIVEN] All low-level codes are reset, simulating a recalculation over pre-existing data.
+        ResetItemLowLevelCode(CompItem."No.");
+        ResetItemLowLevelCode(SemiItem."No.");
+        ResetItemLowLevelCode(FinishedItem."No.");
+        ResetProdBOMLowLevelCode(SemiBOMNo);
+        ResetProdBOMLowLevelCode(FinishedBOMNo);
+
+        // [WHEN] Calculate Low-Level Code is run for the finished item (OnRun -> RecalcSKULowerLevels cascades down through SKU-level BOMs).
+        RunCalculateLowLevelCode(FinishedItem."No.");
+
+        // [THEN] The whole chain is recalculated through the SKU-level BOMs in a single pass.
+        VerifyLowLevelCode(FinishedItem."No.", '', 0);
+        VerifyLowLevelCode(SemiItem."No.", '', 1);
+        VerifyLowLevelCode(CompItem."No.", '', 2);
+
+        // [WHEN] Only the component is reset and recalculated (CalcLevels walks up through the SKU-level parents).
+        ResetItemLowLevelCode(CompItem."No.");
+        RunCalculateLowLevelCode(CompItem."No.");
+
+        // [THEN] The component still resolves to level 2 by traversing its SKU-level BOM parents.
+        VerifyLowLevelCode(CompItem."No.", '', 2);
+
+        // Tear Down: Dynamic Low-Level Code set to Default in Manufacturing setup.
+        RestoreManufacturingSetup(TempManufacturingSetup);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure LowLevelCodeWithMultipleSKUsForSameItemAndBOM()
+    var
+        CompItem: Record Item;
+        ParentItem: Record Item;
+        TempManufacturingSetup: Record "Manufacturing Setup" temporary;
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionBOMLine: Record "Production BOM Line";
+        FirstLocationCode: Code[10];
+        SecondLocationCode: Code[10];
+        ParentBOMNo: Code[20];
+    begin
+        // [SCENARIO 646101] [AI] 0.2 Calculate Low-Level Code must resolve correctly and process the item only once when several SKUs of the same item share the same production BOM.
+        // [GIVEN] Dynamic Low-Level Code enabled and two locations.
+        Initialize();
+        UpdateManufacturingSetup(TempManufacturingSetup, true);
+        FirstLocationCode := CreateLocation();
+        SecondLocationCode := CreateLocation();
+
+        // [GIVEN] A component item and a parent item, with the parent's certified BOM (containing the component) assigned to two SKUs of the same parent item.
+        LibraryInventory.CreateItem(CompItem);
+        LibraryInventory.CreateItem(ParentItem);
+        CreateProdBOM(ProductionBOMHeader, ProductionBOMLine.Type::Item, CompItem."No.", '', ParentItem."Base Unit of Measure", false);
+        ParentBOMNo := ProductionBOMHeader."No.";
+        CreateSKUWithProdBOM(ParentItem."No.", FirstLocationCode, ParentBOMNo);
+        CreateSKUWithProdBOM(ParentItem."No.", SecondLocationCode, ParentBOMNo);
+
+        // [GIVEN] All low-level codes are reset, simulating a recalculation over pre-existing data.
+        ResetItemLowLevelCode(CompItem."No.");
+        ResetItemLowLevelCode(ParentItem."No.");
+        ResetProdBOMLowLevelCode(ParentBOMNo);
+
+        // [WHEN] Calculate Low-Level Code is run for the component (CalcLevels walks up through both SKUs pointing to the same BOM).
+        RunCalculateLowLevelCode(CompItem."No.");
+
+        // [THEN] The codes resolve correctly regardless of the number of duplicate SKUs pointing to the same BOM.
+        VerifyLowLevelCode(ParentItem."No.", '', 0);
+        VerifyLowLevelCode(CompItem."No.", '', 1);
+
+        // Tear Down: Dynamic Low-Level Code set to Default in Manufacturing setup.
+        RestoreManufacturingSetup(TempManufacturingSetup);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -257,6 +401,49 @@ codeunit 137039 "SCM Manuf Low Level Code"
         Item.Get(ItemNo);
         Item.Validate("Production BOM No.", ProductionBOMNo);
         Item.Modify(true);
+    end;
+
+    local procedure CreateLocation(): Code[10]
+    var
+        Location: Record Location;
+    begin
+        exit(LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location));
+    end;
+
+    local procedure CreateSKUWithProdBOM(ItemNo: Code[20]; LocationCode: Code[10]; ProductionBOMNo: Code[20])
+    var
+        StockkeepingUnit: Record "Stockkeeping Unit";
+    begin
+        LibraryInventory.CreateStockkeepingUnitForLocationAndVariant(StockkeepingUnit, LocationCode, ItemNo, '');
+        StockkeepingUnit.Validate("Production BOM No.", ProductionBOMNo);
+        StockkeepingUnit.Modify(true);
+    end;
+
+    local procedure ResetItemLowLevelCode(ItemNo: Code[20])
+    var
+        Item: Record Item;
+    begin
+        Item.Get(ItemNo);
+        Item."Low-Level Code" := 0;
+        Item.Modify();
+    end;
+
+    local procedure ResetProdBOMLowLevelCode(ProductionBOMNo: Code[20])
+    var
+        ProductionBOMHeader: Record "Production BOM Header";
+    begin
+        ProductionBOMHeader.Get(ProductionBOMNo);
+        ProductionBOMHeader."Low-Level Code" := 0;
+        ProductionBOMHeader.Modify();
+    end;
+
+    local procedure RunCalculateLowLevelCode(ItemNo: Code[20])
+    var
+        Item: Record Item;
+        CalculateLowLevelCode: Codeunit "Calculate Low-Level Code";
+    begin
+        Item.Get(ItemNo);
+        CalculateLowLevelCode.Run(Item);
     end;
 
     local procedure UpdateProductionBom(var ProductionBOMHeader: Record "Production BOM Header"; ItemNo: Code[20])

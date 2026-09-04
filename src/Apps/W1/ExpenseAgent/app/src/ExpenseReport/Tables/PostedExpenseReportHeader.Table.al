@@ -287,14 +287,14 @@ table 6915 "Posted Expense Report Header"
         }
         field(100; "Spend Request No."; Code[20])
         {
-            Caption = 'Spend Request No.';
-            ToolTip = 'Specifies the spend request to which the posted expense report is linked.';
+            Caption = 'Travel Request No.';
+            ToolTip = 'Specifies the travel request to which the posted expense report is linked.';
             TableRelation = "Spend Request";
         }
         field(101; "Spend Request Close"; Boolean)
         {
-            Caption = 'Spend Request Close';
-            ToolTip = 'Specifies that the spend request will be closed when the expense report is posted.';
+            Caption = 'Travel Request Close';
+            ToolTip = 'Specifies that the travel request will be closed when the expense report is posted.';
         }
     }
 
@@ -303,6 +303,9 @@ table 6915 "Posted Expense Report Header"
         key(PK; "No.")
         {
             Clustered = true;
+        }
+        key(ExpenseUser; "Expense User No.", "No.")
+        {
         }
     }
 
@@ -323,7 +326,9 @@ table 6915 "Posted Expense Report Header"
     trigger OnDelete()
     var
         PostedExpenseReportLines: Record "Posted Expense Report Line";
+        ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
     begin
+        ExpenseActivityLogMgt.DeleteEntriesForSource(Database::"Posted Expense Report Header", Rec.SystemId);
         PostedExpenseReportLines.SetRange("Document No.", Rec."No.");
         PostedExpenseReportLines.DeleteAll();
     end;

@@ -90,12 +90,10 @@ table 315 "Jobs Setup"
             ToolTip = 'Specifies the code for the number series that will be used to assign numbers to project WIP documents. To see the number series that have been set up in the No. Series table, click the drop-down arrow in the field.';
             TableRelation = "No. Series";
         }
-        field(50; "Archive Jobs"; Option)
+        field(50; "Archive Jobs"; Enum "Job Archive Option")
         {
             Caption = 'Archive Projects';
             ToolTip = 'Specifies if you want to automatically archive projects when: deleted, status changed, when project or project task quote sent to customer or related sales invoice posted.';
-            OptionCaption = 'Never,Question,Always';
-            OptionMembers = Never,Question,Always;
             DataClassification = CustomerContent;
         }
         field(1001; "Automatic Update Job Item Cost"; Boolean)
@@ -193,4 +191,3 @@ table 315 "Jobs Setup"
     var
         RecordHasBeenRead: Boolean;
 }
-

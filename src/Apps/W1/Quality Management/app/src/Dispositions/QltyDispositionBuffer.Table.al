@@ -107,7 +107,7 @@ table 20424 "Qlty. Disposition Buffer"
     /// <summary>
     /// Gets the 'from' location code.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The location filter truncated to 10 characters.</returns>
     procedure GetFromLocationCode(): Code[10]
     begin
         exit(CopyStr(Rec."Location Filter", 1, 10));
@@ -116,7 +116,7 @@ table 20424 "Qlty. Disposition Buffer"
     /// <summary>
     /// Gets the 'from' bin code.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The bin filter truncated to 20 characters.</returns>
     procedure GetFromBinCode(): Code[20]
     begin
         exit(CopyStr(Rec."Bin Filter", 1, 20));

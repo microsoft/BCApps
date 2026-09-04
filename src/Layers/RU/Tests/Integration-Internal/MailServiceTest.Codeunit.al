@@ -366,8 +366,6 @@ codeunit 139111 "Mail Service Test"
     local procedure Initialize()
     var
         CompanyInformation: Record "Company Information";
-        FeatureKey: Record "Feature Key";
-        FeatureKeyUpdateStatus: Record "Feature Data Update Status";
         LibraryEmail: Codeunit "Library - Email";
         LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
     begin
@@ -375,14 +373,6 @@ codeunit 139111 "Mail Service Test"
         LibraryEmail.SetUpEmailAccount();
         BindActiveDirectoryMockEvents();
         LibraryVariableStorage.Clear();
-        if FeatureKey.Get('ReminderTermsCommunicationTexts') then begin
-            FeatureKey.Enabled := FeatureKey.Enabled::None;
-            FeatureKey.Modify();
-        end;
-        if FeatureKeyUpdateStatus.Get('ReminderTermsCommunicationTexts', CompanyName()) then begin
-            FeatureKeyUpdateStatus."Feature Status" := FeatureKeyUpdateStatus."Feature Status"::Disabled;
-            FeatureKeyUpdateStatus.Modify();
-        end;
 
         if not IsInitialized then begin
             IsInitialized := true;

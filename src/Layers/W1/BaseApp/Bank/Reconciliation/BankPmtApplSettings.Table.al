@@ -131,6 +131,18 @@ table 1253 "Bank Pmt. Appl. Settings"
         field(14; "Empl Ledg Hidden In Apply Man"; Boolean)
         {
         }
+        /// <summary>
+        /// Number of days back from the earliest bank statement transaction date in the journal to search for candidate ledger entries.
+        /// A single window is applied to the whole journal so that the earliest line keeps all its candidates.
+        /// A value of 0 searches all open entries; a positive value limits candidates to improve performance.
+        /// </summary>
+        field(15; "Candidate Lookback (Days)"; Integer)
+        {
+            Caption = 'Candidate Lookback (Days)';
+            DataClassification = CustomerContent;
+            MinValue = 0;
+            ToolTip = 'Specifies how many days back from the earliest bank statement transaction date in the journal the automatic matching searches for candidate ledger entries. A single window is applied to the whole journal. Limiting the range improves performance when there are many open entries. Set to 0 to search all open entries.';
+        }
 
     }
 
@@ -145,6 +157,9 @@ table 1253 "Bank Pmt. Appl. Settings"
     fieldgroups
     {
     }
+
+    var
+        LookbackFormulaLbl: Label '<-%1D>', Locked = true, Comment = '%1 = number of days to look back';
 
     /// <summary>
     /// Retrieves existing settings record or creates a new one with default values.
@@ -162,6 +177,24 @@ table 1253 "Bank Pmt. Appl. Settings"
         "Empl. Ledger Entries Matching" := true;
         "Bank Ledg Closing Doc No Match" := false;
         Insert(true);
+    end;
+
+    /// <summary>
+    /// Calculates the earliest posting date to include when searching for candidate ledger entries.
+    /// Returns 0D (no lower bound) when the lookback is not configured or no reference date is available.
+    /// </summary>
+    /// <param name="ReferenceDate">The earliest bank statement transaction date in the journal to count the lookback from.</param>
+    /// <returns>The earliest posting date to include, or 0D when candidates should not be date-limited.</returns>
+    procedure GetCandidateLookbackStartDate(ReferenceDate: Date): Date
+    var
+        LookbackFormula: DateFormula;
+    begin
+        if "Candidate Lookback (Days)" <= 0 then
+            exit(0D);
+        if ReferenceDate = 0D then
+            exit(0D);
+        Evaluate(LookbackFormula, StrSubstNo(LookbackFormulaLbl, "Candidate Lookback (Days)"));
+        exit(CalcDate(LookbackFormula, ReferenceDate));
     end;
 }
 

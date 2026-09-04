@@ -154,6 +154,13 @@ table 6909 "Expense Report Line Per Diem"
         TestField("Line No.");
 
         UpdateExpenseReportLineInformation("Expense Report No.", "Expense Report Line No.");
+
+        InvalidateParentPolicy();
+    end;
+
+    trigger OnModify()
+    begin
+        InvalidateParentPolicy();
     end;
 
     trigger OnDelete()
@@ -161,6 +168,8 @@ table 6909 "Expense Report Line Per Diem"
         TestStatusOpenOfExpenseReport();
 
         UpdateTotalOnExpense(Rec."Line No.");
+
+        InvalidateParentPolicy();
     end;
 
     var
@@ -169,6 +178,14 @@ table 6909 "Expense Report Line Per Diem"
         ExpenseReportHelper: Codeunit "Expense Report";
         ExpenseReportLocationMissingMsg: Label '%1 is missing in Expense Report No. %2, Line No. %3.', Comment = '%1 = Expense Location Caption, %2 = Expense Report No., %3 = Line No.';
         TotalReductionPercentExceededErr: Label 'Total Reduction Percent cannot exceed 100.';
+
+    local procedure InvalidateParentPolicy()
+    var
+        ParentExpenseReportLine: Record "Expense Report Line";
+    begin
+        if ParentExpenseReportLine.Get(Rec."Expense Report No.", Rec."Expense Report Line No.") then
+            ParentExpenseReportLine.InvalidatePolicyEvaluation();
+    end;
 
     local procedure UpdateExpenseReportLineInformation(ExpenseReportNo: Code[20]; ExpenseReportLineNo: Integer)
     begin

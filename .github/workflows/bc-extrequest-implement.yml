@@ -1,0 +1,178 @@
+name: 'Extensibility Request Implement'
+
+run-name: "${{ github.event_name == 'issues' && format('Implement extensibility request #{0}', github.event.issue.number) || format('Record extensibility request PR #{0}', github.event.pull_request.number) }}"
+
+on:
+  issues:
+    types: [labeled]
+  pull_request_target:
+    types: [closed]
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+  id-token: write
+
+defaults:
+  run:
+    shell: pwsh
+
+concurrency:
+  group: bc-extrequest-${{ github.repository }}-${{ github.event.issue.number || github.event.pull_request.number }}
+  cancel-in-progress: false
+
+env:
+  EXT_REQ_KUSTO_CLUSTER_URI: ${{ vars.EXT_REQ_KUSTO_CLUSTER_URI }}
+  EXT_REQ_KUSTO_DATABASE: ${{ vars.EXT_REQ_KUSTO_DATABASE }}
+  EXT_REQ_KUSTO_IMPLEMENT_TABLE: ${{ vars.EXT_REQ_KUSTO_IMPLEMENT_TABLE }}
+
+jobs:
+  implement:
+    if: >
+      github.event_name == 'issues' &&
+      github.event.label.name == 'ext-ready-to-implement' &&
+      github.event.issue.state == 'open' &&
+      github.event.issue.type.name == 'Task'
+    permissions:
+      contents: write
+      issues: read
+      pull-requests: write
+      id-token: write
+      copilot-requests: write
+    environment: extensibility-agent
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Check telemetry configuration
+        id: telemetry-config
+        env:
+          EXT_REQ_AZURE_CLIENT_ID: ${{ vars.EXT_REQ_AZURE_CLIENT_ID || secrets.EXT_REQ_AZURE_CLIENT_ID }}
+          EXT_REQ_AZURE_TENANT_ID: ${{ vars.EXT_REQ_AZURE_TENANT_ID || secrets.EXT_REQ_AZURE_TENANT_ID }}
+          EXT_REQ_AZURE_SUBSCRIPTION_ID: ${{ vars.EXT_REQ_AZURE_SUBSCRIPTION_ID || secrets.EXT_REQ_AZURE_SUBSCRIPTION_ID }}
+        run: |
+          $values = @(
+            $env:EXT_REQ_AZURE_CLIENT_ID,
+            $env:EXT_REQ_AZURE_TENANT_ID,
+            $env:EXT_REQ_AZURE_SUBSCRIPTION_ID,
+            $env:EXT_REQ_KUSTO_CLUSTER_URI,
+            $env:EXT_REQ_KUSTO_DATABASE,
+            $env:EXT_REQ_KUSTO_IMPLEMENT_TABLE
+          )
+          $enabled = -not ($values | Where-Object { [string]::IsNullOrWhiteSpace($_) })
+          "enabled=$($enabled.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          if (-not $enabled) {
+            Write-Warning 'Telemetry configuration is incomplete. The implementation will continue without telemetry.'
+          }
+
+      - name: Azure login for telemetry
+        id: azure-login
+        if: steps.telemetry-config.outputs.enabled == 'true'
+        continue-on-error: true
+        uses: azure/login@f5d393ae46f8fde4be8b75f32e3fc50e654ad0ca # v3.0.1
+        with:
+          client-id: ${{ vars.EXT_REQ_AZURE_CLIENT_ID || secrets.EXT_REQ_AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.EXT_REQ_AZURE_TENANT_ID || secrets.EXT_REQ_AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.EXT_REQ_AZURE_SUBSCRIPTION_ID || secrets.EXT_REQ_AZURE_SUBSCRIPTION_ID }}
+
+      - name: Report telemetry login failure
+        if: steps.telemetry-config.outputs.enabled == 'true' && steps.azure-login.outcome == 'failure'
+        run: Write-Warning 'Azure login failed. The implementation will continue without telemetry.'
+
+      - name: Mint token for BCApps
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.EXTENSIBILITY_CLIENT_ID }}
+          private-key: ${{ secrets.EXTENSIBILITY_TRIAGE_APP_PRIVATE_KEY }}
+
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate skill
+        run: |
+          if (-not (Test-Path '.github/skills/bc-extrequest-implement/SKILL.md')) {
+            throw 'Skill .github/skills/bc-extrequest-implement/SKILL.md was not found.'
+          }
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+
+      - name: Install Copilot CLI
+        run: npm install --global @github/copilot
+
+      - name: Implement extensibility request
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+          TELEMETRY_ENABLED: ${{ steps.telemetry-config.outputs.enabled == 'true' && steps.azure-login.outcome == 'success' }}
+        run: |
+          ./.github/scripts/bc-extrequest-implement/invoke-implementation.ps1 `
+            -IssueNumber ([long]$env:ISSUE_NUMBER) `
+            -IssueUrl $env:ISSUE_URL `
+            -Repository $env:GITHUB_REPOSITORY `
+            -Model 'gpt-5.6-sol' `
+            -TelemetryEnabled ($env:TELEMETRY_ENABLED -eq 'true')
+
+  record-pr-outcome:
+    if: github.event_name == 'pull_request_target' && startsWith(github.event.pull_request.head.ref, 'bc-extrequest-implement/ext_issue-')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check telemetry configuration
+        id: telemetry-config
+        env:
+          EXT_REQ_AZURE_CLIENT_ID: ${{ vars.EXT_REQ_AZURE_CLIENT_ID || secrets.EXT_REQ_AZURE_CLIENT_ID }}
+          EXT_REQ_AZURE_TENANT_ID: ${{ vars.EXT_REQ_AZURE_TENANT_ID || secrets.EXT_REQ_AZURE_TENANT_ID }}
+          EXT_REQ_AZURE_SUBSCRIPTION_ID: ${{ vars.EXT_REQ_AZURE_SUBSCRIPTION_ID || secrets.EXT_REQ_AZURE_SUBSCRIPTION_ID }}
+        run: |
+          $values = @(
+            $env:EXT_REQ_AZURE_CLIENT_ID,
+            $env:EXT_REQ_AZURE_TENANT_ID,
+            $env:EXT_REQ_AZURE_SUBSCRIPTION_ID,
+            $env:EXT_REQ_KUSTO_CLUSTER_URI,
+            $env:EXT_REQ_KUSTO_DATABASE,
+            $env:EXT_REQ_KUSTO_IMPLEMENT_TABLE
+          )
+          $enabled = -not ($values | Where-Object { [string]::IsNullOrWhiteSpace($_) })
+          "enabled=$($enabled.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          if (-not $enabled) {
+            Write-Warning 'Telemetry configuration is incomplete. No PR telemetry will be sent.'
+          }
+
+      - name: Azure login for telemetry
+        id: azure-login
+        if: steps.telemetry-config.outputs.enabled == 'true'
+        continue-on-error: true
+        uses: azure/login@f5d393ae46f8fde4be8b75f32e3fc50e654ad0ca # v3.0.1
+        with:
+          client-id: ${{ vars.EXT_REQ_AZURE_CLIENT_ID || secrets.EXT_REQ_AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.EXT_REQ_AZURE_TENANT_ID || secrets.EXT_REQ_AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.EXT_REQ_AZURE_SUBSCRIPTION_ID || secrets.EXT_REQ_AZURE_SUBSCRIPTION_ID }}
+
+      - name: Report telemetry login failure
+        if: steps.telemetry-config.outputs.enabled == 'true' && steps.azure-login.outcome == 'failure'
+        run: Write-Warning 'Azure login failed. No PR telemetry will be sent.'
+
+      - name: Checkout trusted workflow code
+        if: steps.telemetry-config.outputs.enabled == 'true' && steps.azure-login.outcome == 'success'
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Record pull request outcome
+        if: steps.telemetry-config.outputs.enabled == 'true' && steps.azure-login.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          ./.github/scripts/bc-extrequest-implement/send-pr-outcome-telemetry.ps1 `
+            -PullRequestNumber ([long]$env:PULL_REQUEST_NUMBER) `
+            -HeadBranch $env:HEAD_BRANCH `
+            -Repository $env:GITHUB_REPOSITORY

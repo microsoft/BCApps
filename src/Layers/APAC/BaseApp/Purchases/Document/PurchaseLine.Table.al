@@ -406,9 +406,12 @@ table 39 "Purchase Line"
                 end;
                 "Bin Code" := '';
 
-                if Type = Type::Item then
-                    if "Location Code" <> xRec."Location Code" then
-                        PlanPriceCalcByField(FieldNo("Location Code"));
+                IsHandled := false;
+                OnValidateLocationCodeOnBeforePlanPriceCalcByField(Rec, IsHandled, CurrFieldNo, xRec);
+                if not IsHandled then
+                    if Type = Type::Item then
+                        if "Location Code" <> xRec."Location Code" then
+                            PlanPriceCalcByField(FieldNo("Location Code"));
 
                 IsHandled := false;
                 OnValidateLocationCodeOnBeforeSetInboundWhseHandlingTime(CurrFieldNo, Rec, xRec, IsHandled);
@@ -425,7 +428,8 @@ table 39 "Purchase Line"
 
                 GetDefaultBin();
                 CheckWMS();
-                MatchedOrderLineMgmt.CheckReceiptOnInvoiceAllowedForLocation("Location Code", GetPurchHeader());
+                if Rec."Receipt on Invoice" and not MatchedOrderLineMgmt.IsReceiptOnInvoiceAllowedForLocation("Location Code") then
+                    Rec.Validate("Receipt on Invoice", false);
 
                 if "Document Type" = "Document Type"::"Return Order" then
                     ValidateReturnReasonCode(FieldNo("Location Code"));
@@ -2170,7 +2174,7 @@ table 39 "Purchase Line"
         {
             Caption = 'Spend Request No.';
             ToolTip = 'Specifies the spend request that this purchase document relates to.';
-            TableRelation = "Spend Request" where(Status = const(Approved));
+            TableRelation = "Spend Request" where(Status = const(Approved), "Document Type" = const(" "));
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -3897,6 +3901,24 @@ table 39 "Purchase Line"
             Editable = false;
             FieldClass = FlowField;
         }
+        field(8513; "Receipt on Invoice"; Boolean)
+        {
+            Caption = 'Receipt on Invoice';
+            ToolTip = 'Specifies whether the receipt is posted automatically with the invoice.';
+
+            trigger OnValidate()
+            var
+                MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
+            begin
+                if "Receipt on Invoice" then
+                    MatchedOrderLineMgmt.CheckLineReceiptOnInvoiceAllowed(Rec);
+
+                if "Document Type" = "Document Type"::Order then
+                    InitQtyToReceive();
+
+                MatchedOrderLineMgmt.ApplyPurchaseLineReceiptSettingToMatches(Rec);
+            end;
+        }
         field(12100; "No. of Fixed Asset Cards"; Integer)
         {
             BlankZero = true;
@@ -4601,6 +4623,7 @@ table 39 "Purchase Line"
         "Promised Receipt Date" := PurchHeader."Promised Receipt Date";
         "Inbound Whse. Handling Time" := PurchHeader."Inbound Whse. Handling Time";
         "Order Date" := PurchHeader."Order Date";
+        Rec."Receipt on Invoice" := PurchHeader."Receipt on Invoice";
 
         OnAfterInitHeaderDefaults(Rec, PurchHeader, TempPurchLine);
     end;
@@ -4886,7 +4909,8 @@ table 39 "Purchase Line"
                 Item.TestField("Inventory Posting Group");
                 "Posting Group" := Item."Inventory Posting Group";
             end;
-            MatchedOrderLineMgmt.CheckReceiptOnInvoiceAllowedForItem(Item, GetPurchHeader());
+            if Rec."Receipt on Invoice" and not MatchedOrderLineMgmt.IsReceiptOnInvoiceAllowedForItem(Item) then
+                Rec.Validate("Receipt on Invoice", false);
         end;
 
         OnCopyFromItemOnAfterCheck(Rec, Item, CurrFieldNo);
@@ -4929,8 +4953,11 @@ table 39 "Purchase Line"
                     GLSetup."Unit-Amount Rounding Precision");
         end;
 
-        if PurchHeader."Language Code" <> '' then
-            GetItemTranslation();
+        IsHandled := false;
+        OnCopyFromItemOnBeforeGetItemTranslation(Rec, Item, IsHandled);
+        if not IsHandled then
+            if PurchHeader."Language Code" <> '' then
+                GetItemTranslation();
 
         OnCopyFromItemOnAfterGetItemTranslation(Rec, Item);
 
@@ -7420,6 +7447,12 @@ table 39 "Purchase Line"
                                     NewAmountACY := 0;
                                     NewVATBaseAmount := 0;
                                     NewVATBaseAmountACY := 0;
+                                    if VATAmountLine.CalcLineAmount() = 0 then
+                                        NonDedVATAmount := 0
+                                    else
+                                        NonDedVATAmount :=
+                                            NonDeductibleVAT.GetNonDedVATAmountFromVATAmountLine(
+                                                TempVATAmountLineRemainder, VATAmountLine, Currency, PurchLine.CalcLineAmount(), VATAmountLine.CalcLineAmount());
                                 end else begin
                                     NewAmount := PurchLine.CalcLineAmount();
                                     NewAmountACY := PurchLine."Amount (ACY)";
@@ -9370,9 +9403,14 @@ table 39 "Purchase Line"
     end;
 
     local procedure CheckWMS()
+    var
+        SkipCheckLocationOnWMS: Boolean;
     begin
-        if CurrFieldNo <> 0 then
-            CheckLocationOnWMS();
+        SkipCheckLocationOnWMS := false;
+        OnCheckWMSOnBeforeCheckLocationOnWMS(Rec, CurrFieldNo, SkipCheckLocationOnWMS);
+        if not SkipCheckLocationOnWMS then
+            if CurrFieldNo <> 0 then
+                CheckLocationOnWMS();
         if "Document Type" = "Document Type"::"Return Order" then
             if ("Job No." <> '') and (Type = Type::Item) then
                 if Location.Get("Location Code") then
@@ -10120,7 +10158,9 @@ table 39 "Purchase Line"
         IsHandled: Boolean;
         OutstandingAmountExclTax: Decimal;
     begin
-        if (Rec.Quantity <> 0) and (Rec."Outstanding Quantity" = 0) and (Rec."Qty. Rcd. Not Invoiced" = 0) then
+        if (Rec.Quantity <> 0) and (Rec."Outstanding Quantity" = 0) and (Rec."Qty. Rcd. Not Invoiced" = 0) and
+           (Rec.Quantity = xRec.Quantity)
+        then
             if PurchHeader."Document Type" <> PurchHeader."Document Type"::Invoice then
                 exit;
 
@@ -11459,6 +11499,11 @@ table 39 "Purchase Line"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnCheckWMSOnBeforeCheckLocationOnWMS(var PurchaseLine: Record "Purchase Line"; CurrFieldNo: Integer; var SkipCheckLocationOnWMS: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckNoAndQuantityForItemChargeAssgnt(var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
     end;
@@ -12129,6 +12174,11 @@ table 39 "Purchase Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnValidateLocationCodeOnBeforeSpecialOrderError(var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean; CurrFieldNo: Integer; xPurchaseLine: Record "Purchase Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidateLocationCodeOnBeforePlanPriceCalcByField(var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean; CurrFieldNo: Integer; xPurchaseLine: Record "Purchase Line")
     begin
     end;
 
@@ -12913,6 +12963,11 @@ table 39 "Purchase Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnShowDimensionsOnAfterEditDimensionSet(var PurchaseLine: Record "Purchase Line"; OldDimensionSetId: Integer)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCopyFromItemOnBeforeGetItemTranslation(var PurchaseLine: Record "Purchase Line"; var Item: Record Item; var IsHandled: Boolean)
     begin
     end;
 

@@ -36,6 +36,18 @@ page 99000884 "Create Order From Sales"
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Order Type';
+
+                trigger OnValidate()
+                begin
+                    UpdateWizardEditable();
+                end;
+            }
+            field(UseProductDefinitionWizard; UseProductDefinitionWizard)
+            {
+                ApplicationArea = Manufacturing;
+                Caption = 'Use Production Definition Wizard';
+                Editable = UseWizardEditable;
+                ToolTip = 'Prepare to create a production order for the selected sales demand. Optionally use the Production Definition Wizard to customize the order for a single line.';
             }
         }
     }
@@ -51,9 +63,13 @@ page 99000884 "Create Order From Sales"
     end;
 
     var
+        OrderType: Enum "Create Production Order Type";
         OrderStatus: Enum "Production Order Status";
         CreateStatus: Enum "Create Production Order Status";
-        OrderType: Enum "Create Production Order Type";
+        UseProductDefinitionWizard: Boolean;
+        SingleLineSelected: Boolean;
+        UseWizardEditable: Boolean;
+
 
     procedure GetParameters(var NewStatus: Enum "Production Order Status"; var NewOrderType: Enum "Create Production Order Type")
     begin
@@ -67,5 +83,29 @@ page 99000884 "Create Order From Sales"
         CreateStatus := OrderStatus;
         OrderType := NewOrderType;
     end;
-}
 
+    /// <summary>
+    /// Returns whether the Production Definition Wizard should be used for order creation.
+    /// </summary>
+    internal procedure GetUseProductDefinitionWizard(): Boolean
+    begin
+        exit(UseProductDefinitionWizard and SingleLineSelected);
+    end;
+
+    /// <summary>
+    /// Sets whether exactly one sales planning line is selected on the parent page.
+    /// Controls editability of the UseProductDefinitionWizard toggle.
+    /// </summary>
+    internal procedure SetSingleLineSelected(IsSingleLine: Boolean)
+    begin
+        SingleLineSelected := IsSingleLine;
+        UpdateWizardEditable();
+    end;
+
+    local procedure UpdateWizardEditable()
+    begin
+        UseWizardEditable := SingleLineSelected and (OrderType = "Create Production Order Type"::ItemOrder);
+        if not UseWizardEditable then
+            UseProductDefinitionWizard := false;
+    end;
+}

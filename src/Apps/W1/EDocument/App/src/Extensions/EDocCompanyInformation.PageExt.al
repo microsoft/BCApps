@@ -16,6 +16,14 @@ pageextension 6165 "E-Doc. Company Information" extends "Company Information"
 {
     layout
     {
+        addafter("Use GLN in Electronic Document")
+        {
+            field("Use Reg. No. in E-Document"; Rec."Use Reg. No. in E-Document")
+            {
+                ApplicationArea = Basic, Suite;
+                ToolTip = 'Specifies whether the company registration number is used to identify the company in electronic documents when the GLN and VAT registration number are blank.';
+            }
+        }
         addafter(GLN)
         {
             group(ElectronicDocumentServiceGroup)

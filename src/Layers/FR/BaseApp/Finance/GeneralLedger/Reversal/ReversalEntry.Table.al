@@ -719,9 +719,13 @@ table 179 "Reversal Entry"
         BankAccount: Record "Bank Account";
         CheckLedgerEntry: Record "Check Ledger Entry";
         IsHandled: Boolean;
+        SkipBankAccLedgEntryOpenCheck: Boolean;
+        SkipBankAccLedgEntryStatementNoCheck: Boolean;
     begin
         IsHandled := false;
-        OnBeforeCheckBankAcc(BankAccountLedgerEntry, IsHandled);
+        SkipBankAccLedgEntryOpenCheck := false;
+        SkipBankAccLedgEntryStatementNoCheck := false;
+        OnBeforeCheckBankAcc(BankAccountLedgerEntry, IsHandled, SkipBankAccLedgEntryOpenCheck, SkipBankAccLedgEntryStatementNoCheck);
         if IsHandled then
             exit;
 
@@ -731,10 +735,10 @@ table 179 "Reversal Entry"
         BankAccount.TestField(Blocked, false);
         if BankAccountLedgerEntry.Reversed then
             AlreadyReversedEntry(BankAccountLedgerEntry.TableCaption(), BankAccountLedgerEntry."Entry No.");
-        if not BankAccountLedgerEntry.Open then
+        if (not SkipBankAccLedgEntryOpenCheck) and (not BankAccountLedgerEntry.Open) then
             Error(
               Text006, BankAccountLedgerEntry.TableCaption(), BankAccountLedgerEntry."Entry No.");
-        if BankAccountLedgerEntry."Statement No." <> '' then
+        if (not SkipBankAccLedgEntryStatementNoCheck) and (BankAccountLedgerEntry."Statement No." <> '') then
             Error(
               Text007, BankAccountLedgerEntry.TableCaption(), BankAccountLedgerEntry."Entry No.");
         CheckLedgerEntry.SetRange("Bank Account Ledger Entry No.", BankAccountLedgerEntry."Entry No.");
@@ -2335,8 +2339,10 @@ table 179 "Reversal Entry"
     /// </summary>
     /// <param name="BankAccLedgEntry">Bank account ledger entry being validated for reversal</param>
     /// <param name="IsHandled">Set to true to skip standard bank account validation</param>
+    /// <param name="SkipBankAccountLedgerEntryOpenCheck">Set to true to skip the check that the entry must be open</param>
+    /// <param name="SkipBankAccountLedgerEntryStatementNoCheck">Set to true to skip the check that the entry has no statement number</param>
     [IntegrationEvent(true, false)]
-    local procedure OnBeforeCheckBankAcc(var BankAccLedgEntry: Record "Bank Account Ledger Entry"; var IsHandled: Boolean)
+    local procedure OnBeforeCheckBankAcc(var BankAccLedgEntry: Record "Bank Account Ledger Entry"; var IsHandled: Boolean; var SkipBankAccountLedgerEntryOpenCheck: Boolean; var SkipBankAccountLedgerEntryStatementNoCheck: Boolean)
     begin
     end;
 

@@ -475,6 +475,7 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
             TempICPartnerICInboxSalesLine.FindSet();
             repeat
                 BufferICInboxSalesLine.TransferFields(TempICPartnerICInboxSalesLine);
+                OnPostICSalesLineToICPartnerInboxOnBeforeBufferICInboxSalesLineInsert(BufferICInboxSalesLine, TempICPartnerICInboxSalesLine, ICPartner);
                 BufferICInboxSalesLine.Insert();
             until TempICPartnerICInboxSalesLine.Next() = 0;
         end;
@@ -1469,6 +1470,11 @@ codeunit 561 "IC Data Exchange API" implements "IC Data Exchange"
     /// <param name="RegisteredPartner">Registered partner information</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostICSalesHeaderToICPartnerInboxOnBeforeBufferICInboxSalesHeaderInsert(var BufferICInboxSalesHeader: Record "Buffer IC Inbox Sales Header"; TempICPartnerICInboxSalesHeader: Record "IC Inbox Sales Header" temporary; ICPartner: Record "IC Partner"; RegisteredPartner: Record "IC Partner" temporary)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPostICSalesLineToICPartnerInboxOnBeforeBufferICInboxSalesLineInsert(var BufferICInboxSalesLine: Record "Buffer IC Inbox Sales Line"; TempICPartnerICInboxSalesLine: Record "IC Inbox Sales Line" temporary; ICPartner: Record "IC Partner")
     begin
     end;
 

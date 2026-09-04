@@ -52,6 +52,10 @@ pageextension 20400 "Qlty. Prod. Order Routing" extends "Prod. Order Routing"
         }
     }
 
+    /// <summary>
+    /// Determines whether the current production order routing line has been persisted.
+    /// </summary>
+    /// <returns>True if the current line has a system ID; otherwise, false.</returns>
     local procedure CanBeProcessed(): Boolean
     begin
         exit(not IsNullGuid(Rec.SystemId));

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -1684,6 +1684,11 @@ table 23 Vendor
             Caption = 'Over-Receipt Code';
             ToolTip = 'Specifies the policy that will be used for the vendor if more items than ordered are received.';
             TableRelation = "Over-Receipt Code";
+        }
+        field(8551; "Receipt on Invoice Policy"; Enum "Receipt on Invoice Policy")
+        {
+            Caption = 'Receipt on Invoice Policy';
+            ToolTip = 'Specifies whether receipt on invoice is enabled automatically for new purchase orders from this vendor.';
         }
 #if not CLEANSCHEMA26
         field(10501; "Exclude from Pmt. Pract. Rep."; Boolean)

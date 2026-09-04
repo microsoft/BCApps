@@ -11,7 +11,6 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Purchases.Document;
 using System.Apps;
-using System.Environment;
 using System.Environment.Configuration;
 
 codeunit 99008501 "Legacy Subc. Feature Handler"
@@ -26,7 +25,6 @@ codeunit 99008501 "Legacy Subc. Feature Handler"
         SubcontractingAppInstalledErr: Label 'Cannot activate legacy subcontracting while the Subcontracting app is installed. Use the Subcontracting app features instead.';
         OpenSubcontractingTransfersExistErr: Label 'There are still open transfer orders with WIP Items. All subcontracting transfer orders must be completed before disabling Legacy Subcontracting.';
         OpenWIPPurchaseOrdersExistErr: Label 'There are still open purchase orders with WIP Items. All purchase orders with WIP Items must be completed before disabling Legacy Subcontracting.';
-        MigrationNotAllowedInProductionErr: Label 'To help you migrate safely, disabling Legacy Subcontracting and moving to the Subcontracting app is currently limited to sandbox environments. Test the migration in a sandbox copy of this environment first to validate the transition. Production environments will be enabled in a future release.';
         InstallSubcontractingAppQst: Label 'The Subcontracting app is required to disable Legacy Subcontracting. Do you want to install it now?';
         InstallITMigrationAppQst: Label 'The IT Subcontracting Migration app is needed to migrate your data. Do you want to install it now?';
 
@@ -42,23 +40,24 @@ codeunit 99008501 "Legacy Subc. Feature Handler"
         exit(ManufacturingSetup."Legacy Subcontracting");
     end;
 
-    local procedure IsMigrationAllowedInCurrentEnvironment(): Boolean
-    var
-        EnvironmentInformation: Codeunit "Environment Information";
+    /// <summary>
+    /// Checks whether Legacy Subcontracting can be disabled and raises an error if the preconditions are not met.
+    /// When a required app is missing, it offers to install it inline.
+    /// </summary>
+    procedure CheckCanDisableLegacySubcontracting()
     begin
-        exit(EnvironmentInformation.IsSandbox());
+        CanDisableLegacySubcontracting();
     end;
 
     /// <summary>
     /// Checks whether Legacy Subcontracting can be disabled and raises an error if the preconditions are not met.
-    /// When a required app is missing, it offers to install it inline and stops - after the install completes and the
-    /// session reloads, the user runs the disable action again (installing one app per run until both are present and migration proceeds).
+    /// When a required app is missing, it offers to install it inline and returns false so the caller does not disable
+    /// Legacy Subcontracting - after the install completes and the session reloads, the user runs the disable action again
+    /// (installing one app per run until both are present and migration proceeds).
+    /// Returns true only when all prerequisites are met and disabling Legacy Subcontracting can proceed.
     /// </summary>
-    procedure CheckCanDisableLegacySubcontracting()
+    internal procedure CanDisableLegacySubcontracting(): Boolean
     begin
-        if not IsMigrationAllowedInCurrentEnvironment() then
-            Error(MigrationNotAllowedInProductionErr);
-
         if OpenWIPTransfersExist() then
             Error(OpenSubcontractingTransfersExistErr);
 
@@ -67,14 +66,16 @@ codeunit 99008501 "Legacy Subc. Feature Handler"
 
         if not IsSubcontractingAppInstalled() then begin
             OfferToInstallApp(SubcontractingAppIdTok, InstallSubcontractingAppQst);
-            exit;
+            exit(false);
         end;
 
         if DatabaseHasLegacySubcontractingData() then
             if not IsITMigrationAppInstalled() then begin
                 OfferToInstallApp(ITMigrationAppIdTok, InstallITMigrationAppQst);
-                exit;
+                exit(false);
             end;
+
+        exit(true);
     end;
 
     /// <summary>
@@ -140,7 +141,8 @@ codeunit 99008501 "Legacy Subc. Feature Handler"
             exit;
 
         if not Enabled then begin
-            CheckCanDisableLegacySubcontracting();
+            if not CanDisableLegacySubcontracting() then
+                exit;
             if DatabaseHasLegacySubcontractingData() then
                 MigrateData();
         end else

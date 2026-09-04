@@ -14,31 +14,31 @@ using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Warehouse.Document;
 
-tableextension 99001517 "Subc. Transfer Line" extends "Transfer Line"
+tableextension 20517 "Subc. Transfer Line" extends "Transfer Line"
 {
     AllowInCustomizations = AsReadOnly;
     fields
     {
-        field(99001530; "Subc. Purch. Order No."; Code[20])
+        field(20530; "Subc. Purch. Order No."; Code[20])
         {
             Caption = 'Subc. Purch. Order No.';
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the number of the related purchase order.';
         }
-        field(99001531; "Subc. Purch. Order Line No."; Integer)
+        field(20531; "Subc. Purch. Order Line No."; Integer)
         {
             Caption = 'Subc. Purch. Order Line No.';
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the number of the related purchase order line.';
         }
-        field(99001532; "Subc. Prod. Order No."; Code[20])
+        field(20532; "Subc. Prod. Order No."; Code[20])
         {
             Caption = 'Subc. Prod. Order No.';
             DataClassification = CustomerContent;
             TableRelation = "Production Order"."No." where(Status = const(Released));
             ToolTip = 'Specifies the number of the related production order.';
         }
-        field(99001533; "Subc. Prod. Order Line No."; Integer)
+        field(20533; "Subc. Prod. Order Line No."; Integer)
         {
             Caption = 'Subc. Prod. Order Line No.';
             DataClassification = CustomerContent;
@@ -46,7 +46,7 @@ tableextension 99001517 "Subc. Transfer Line" extends "Transfer Line"
                                                                  "Prod. Order No." = field("Subc. Prod. Order No."));
             ToolTip = 'Specifies the number of the related production order line.';
         }
-        field(99001534; "Subc. Prod. Ord. Comp Line No."; Integer)
+        field(20534; "Subc. Prod. Ord. Comp Line No."; Integer)
         {
             Caption = 'Subc. Prod. Order Comp. Line No.';
             DataClassification = CustomerContent;
@@ -55,27 +55,27 @@ tableextension 99001517 "Subc. Transfer Line" extends "Transfer Line"
                                                                       "Prod. Order Line No." = field("Subc. Prod. Order Line No."));
             ToolTip = 'Specifies the line number of the related production order component line.';
         }
-        field(99001535; "Subc. Routing No."; Code[20])
+        field(20535; "Subc. Routing No."; Code[20])
         {
             Caption = 'Subc. Routing No.';
             DataClassification = CustomerContent;
             TableRelation = "Routing Header";
             ToolTip = 'Specifies the number of the related production routing.';
         }
-        field(99001536; "Subc. Routing Reference No."; Integer)
+        field(20536; "Subc. Routing Reference No."; Integer)
         {
             Caption = 'Subc. Routing Reference No.';
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the number of the related production routing reference no.';
         }
-        field(99001537; "Subc. Work Center No."; Code[20])
+        field(20537; "Subc. Work Center No."; Code[20])
         {
             Caption = 'Subc. Work Center No.';
             DataClassification = CustomerContent;
             TableRelation = "Work Center";
             ToolTip = 'Specifies the number of the related production work center.';
         }
-        field(99001538; "Subc. Operation No."; Code[10])
+        field(20538; "Subc. Operation No."; Code[10])
         {
             Caption = 'Subc. Operation No.';
             DataClassification = CustomerContent;
@@ -84,14 +84,14 @@ tableextension 99001517 "Subc. Transfer Line" extends "Transfer Line"
                                                                               "Routing No." = field("Subc. Routing No."));
             ToolTip = 'Specifies the number of the related production operation no.';
         }
-        field(99001539; "Subc. Return Order"; Boolean)
+        field(20539; "Subc. Return Order"; Boolean)
         {
             Caption = 'Subc. Return Order';
             DataClassification = CustomerContent;
             Editable = false;
             ToolTip = 'Specifies whether the existing transfer order is a return of the subcontractor.';
         }
-        field(99001560; "Transfer WIP Item"; Boolean)
+        field(20560; "Transfer WIP Item"; Boolean)
         {
             Caption = 'Transfer WIP Item';
             DataClassification = CustomerContent;
@@ -121,7 +121,7 @@ tableextension 99001517 "Subc. Transfer Line" extends "Transfer Line"
                 Validate(Quantity);
             end;
         }
-        field(99001561; "Whse. Inbnd. Otsdg. Qty"; Decimal)
+        field(20561; "Whse. Inbnd. Otsdg. Qty"; Decimal)
         {
             AutoFormatType = 0;
             BlankZero = true;
@@ -135,7 +135,7 @@ tableextension 99001517 "Subc. Transfer Line" extends "Transfer Line"
             FieldClass = FlowField;
             ToolTip = 'Specifies the outstanding quantity on warehouse receipts for this transfer line.';
         }
-        field(99001562; "Whse Outbnd. Otsdg. Qty"; Decimal)
+        field(20562; "Whse Outbnd. Otsdg. Qty"; Decimal)
         {
             AutoFormatType = 0;
             BlankZero = true;
@@ -149,7 +149,7 @@ tableextension 99001517 "Subc. Transfer Line" extends "Transfer Line"
             FieldClass = FlowField;
             ToolTip = 'Specifies the outstanding quantity on warehouse shipments for this transfer line.';
         }
-        field(99001563; "Prev. Operation No."; Code[10])
+        field(20563; "Prev. Operation No."; Code[10])
         {
             AllowInCustomizations = AsReadOnly;
             Caption = 'Previous Operation No.';

@@ -497,7 +497,7 @@ codeunit 13916 "Export XRechnung Document"
         if SalesInvoiceHeader."Shipment Date" <> CalcDate('<0D>') then
             DeliveryElement.Add(XmlElement.Create('ActualDeliveryDate', XmlNamespaceCBC, FormatDate(SalesInvoiceHeader."Shipment Date")));
 
-        InsertDeliveryLocation(DeliveryElement, DeliveryAddress);
+        InsertDeliveryLocation(DeliveryElement, DeliveryAddress, GetDeliveryGLN(SalesInvoiceHeader."Sell-to Customer No.", SalesInvoiceHeader."Ship-to Code"));
 
         RootXMLNode.Add(DeliveryElement);
     end;
@@ -518,18 +518,37 @@ codeunit 13916 "Export XRechnung Document"
         if SalesCrMemoHeader."Shipment Date" <> CalcDate('<0D>') then
             DeliveryElement.Add(XmlElement.Create('ActualDeliveryDate', XmlNamespaceCBC, FormatDate(SalesCrMemoHeader."Shipment Date")));
 
-        InsertDeliveryLocation(DeliveryElement, DeliveryAddress);
+        InsertDeliveryLocation(DeliveryElement, DeliveryAddress, GetDeliveryGLN(SalesCrMemoHeader."Sell-to Customer No.", SalesCrMemoHeader."Ship-to Code"));
 
         RootXMLNode.Add(DeliveryElement);
     end;
 
-    local procedure InsertDeliveryLocation(var DeliveryElement: XmlElement; DeliveryAddress: Record "Standard Address");
+    local procedure InsertDeliveryLocation(var DeliveryElement: XmlElement; DeliveryAddress: Record "Standard Address"; DeliveryGLN: Code[13]);
     var
         DeliveryLocationElement: XmlElement;
     begin
         DeliveryLocationElement := XmlElement.Create('DeliveryLocation', XmlNamespaceCAC);
+        if DeliveryGLN <> '' then
+            DeliveryLocationElement.Add(XmlElement.Create('ID', XmlNamespaceCBC, XmlAttribute.Create('schemeID', GLNSchemeIDTok), DeliveryGLN));
         InsertAddress(DeliveryLocationElement, 'Address', DeliveryAddress);
         DeliveryElement.Add(DeliveryLocationElement);
+    end;
+
+    local procedure GetDeliveryGLN(CustomerNo: Code[20]; ShipToCode: Code[10]): Code[13]
+    var
+        Customer: Record Customer;
+        ShipToAddress: Record "Ship-to Address";
+    begin
+        Customer.SetLoadFields("Use GLN in Electronic Document", GLN);
+        if not Customer.Get(CustomerNo) then
+            exit('');
+        if not Customer."Use GLN in Electronic Document" then
+            exit('');
+        ShipToAddress.SetLoadFields(GLN);
+        if (ShipToCode <> '') and ShipToAddress.Get(CustomerNo, ShipToCode) then
+            if ShipToAddress.GLN <> '' then
+                exit(ShipToAddress.GLN);
+        exit(Customer.GLN);
     end;
 
     local procedure InsertAddress(var RootElement: XmlElement; ElementName: Text; Address: Record "Standard Address");
@@ -729,6 +748,19 @@ codeunit 13916 "Export XRechnung Document"
         PartyElement.Add(PartyTaxSchemeElement);
     end;
 
+    local procedure InsertPartyRegistrationNoTaxScheme(var PartyElement: XmlElement; RegistrationNo: Text[20])
+    var
+        PartyTaxSchemeElement: XmlElement;
+        TaxSchemeElement: XmlElement;
+    begin
+        PartyTaxSchemeElement := XmlElement.Create('PartyTaxScheme', XmlNamespaceCAC);
+        PartyTaxSchemeElement.Add(XmlElement.Create('CompanyID', XmlNamespaceCBC, RegistrationNo));
+        TaxSchemeElement := XmlElement.Create('TaxScheme', XmlNamespaceCAC);
+        TaxSchemeElement.Add(XmlElement.Create('ID', XmlNamespaceCBC, 'FC'));
+        PartyTaxSchemeElement.Add(TaxSchemeElement);
+        PartyElement.Add(PartyTaxSchemeElement);
+    end;
+
     local procedure InsertTaxScheme(var RootElement: XmlElement)
     var
         TaxSchemeElement: XmlElement;
@@ -745,18 +777,20 @@ codeunit 13916 "Export XRechnung Document"
         PartyLegalEntityElement := XmlElement.Create('PartyLegalEntity', XmlNamespaceCAC);
         PartyLegalEntityElement.Add(XmlElement.Create('RegistrationName', XmlNamespaceCBC, CompanyInformation.Name));
         if CompanyInformation."Use GLN in Electronic Document" and (CompanyInformation.GLN <> '') then
-            PartyLegalEntityElement.Add(XmlElement.Create('CompanyID', XmlNamespaceCBC, CompanyInformation.GLN))
+            PartyLegalEntityElement.Add(XmlElement.Create('CompanyID', XmlNamespaceCBC, XmlAttribute.Create('schemeID', GLNSchemeIDTok), CompanyInformation.GLN))
         else
             PartyLegalEntityElement.Add(XmlElement.Create('CompanyID', XmlNamespaceCBC, GetVATRegistrationNo(CompanyInformation."VAT Registration No.", CompanyInformation."Country/Region Code")));
         PartyElement.Add(PartyLegalEntityElement);
     end;
 
-    local procedure InsertCustomerPartyLegalEntity(var PartyElement: XmlElement; CustomerName: Text[100]);
+    local procedure InsertCustomerPartyLegalEntity(var PartyElement: XmlElement; CustomerName: Text[100]; CustomerGLN: Code[13]);
     var
         PartyLegalEntityElement: XmlElement;
     begin
         PartyLegalEntityElement := XmlElement.Create('PartyLegalEntity', XmlNamespaceCAC);
         PartyLegalEntityElement.Add(XmlElement.Create('RegistrationName', XmlNamespaceCBC, CustomerName));
+        if CustomerGLN <> '' then
+            PartyLegalEntityElement.Add(XmlElement.Create('CompanyID', XmlNamespaceCBC, XmlAttribute.Create('schemeID', GLNSchemeIDTok), CustomerGLN));
         PartyElement.Add(PartyLegalEntityElement);
     end;
 
@@ -826,8 +860,15 @@ codeunit 13916 "Export XRechnung Document"
         TempCompanyAddress.CopyFromCompanyInformation(CompanyInformation);
         UpdateSellerAddressFromResponsibilityCenter(RespCenterCode, TempCompanyAddress);
         InsertAddress(PartyElement, 'PostalAddress', TempCompanyAddress);
-        if not AllLinesNotSubjectToVAT then
-            InsertPartyTaxScheme(PartyElement, CompanyInformation."VAT Registration No.", CompanyInformation."Country/Region Code");
+        if CompanyInformation."VAT Registration No." = '' then begin
+            if CompanyInformation."Use Reg. No. in E-Document" and
+               (CompanyInformation.GLN = '') and
+               (CompanyInformation."Registration No." <> '')
+            then
+                InsertPartyRegistrationNoTaxScheme(PartyElement, CompanyInformation."Registration No.");
+        end else
+            if not AllLinesNotSubjectToVAT then
+                InsertPartyTaxScheme(PartyElement, CompanyInformation."VAT Registration No.", CompanyInformation."Country/Region Code");
         InsertPartyLegalEntity(PartyElement);
         InsertSupplierContact(SalespersonCode, PartyElement);
         AccountingSupplierPartyElement.Add(PartyElement);
@@ -907,7 +948,7 @@ codeunit 13916 "Export XRechnung Document"
         InsertAddress(PartyElement, 'PostalAddress', PostalAddress);
         if not AllLinesNotSubjectToVAT then
             InsertPartyTaxScheme(PartyElement, VATRegNo, PostalAddress."Country/Region Code");
-        InsertCustomerPartyLegalEntity(PartyElement, CustomerName);
+        InsertCustomerPartyLegalEntity(PartyElement, CustomerName, CustomerGLN);
         InsertContact(PartyElement, ContactName, ContactEMail);
         AccountingCustomerParty.Add(PartyElement);
     end;

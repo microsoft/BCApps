@@ -2,14 +2,15 @@
   "id": "d0e99b97-089b-449f-a0f5-a2ab994dbfd7",
   "name": "Tests-Upgrade",
   "publisher": "Microsoft",
-  "version": "29.0.0.0",
+  "version": "30.0.0.0",
   "platform": "29.0.0.0",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
   "dependencies": [
     {
       "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
       "name": "Library Assert",
       "publisher": "Microsoft",
-      "version": "29.0.0.0"
+      "version": "30.0.0.0"
     }
   ],
   "target": "OnPrem",
@@ -28,5 +29,5 @@
     "allowDownloadingSource": true,
     "includeSourceInSymbolFile": true
   },
-  "application": "29.0.0.0"
+  "application": "30.0.0.0"
 }

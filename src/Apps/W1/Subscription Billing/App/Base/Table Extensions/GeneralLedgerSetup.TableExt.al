@@ -16,7 +16,9 @@ tableextension 8051 "General Ledger Setup" extends "General Ledger Setup"
             ObsoleteTag = '26.0';
 #else
             ObsoleteState = Removed;
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 #endif
             DataClassification = CustomerContent;
             Caption = 'Dimension Code for Customer Subscription Contract';

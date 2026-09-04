@@ -289,7 +289,6 @@
     "Tests\\MOCKSERVICETESTS-Internal\\OCRWebServiceTests.Codeunit.al",
     "Tests\\MOCKSERVICETESTS-Internal\\OCRWebServiceTestswithWF.Codeunit.al",
     "Tests\\MOCKSERVICETESTS-Internal\\TestXMLSchema.Codeunit.al",
-    "Tests\\Performance-Internal\\CodeCoveragePerformanceTests.Codeunit.al",
     "Tests\\Permissions\\BudgetsAnalysisReportsE2E.Codeunit.al",
     "Tests\\Permissions\\CostAccountingPlanbasedE2E.Codeunit.al",
     "Tests\\Permissions\\MarketingLogInteractPerm.Codeunit.al",

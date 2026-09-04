@@ -210,7 +210,7 @@ table 5405 "Production Order"
                     exit;
 
                 if Rec."Variant Code" <> '' then begin
-                    ItemVariant.SetLoadFields(Blocked);
+                    ItemVariant.SetLoadFields(Blocked, Description, "Description 2");
                     ItemVariant.Get(Rec."Source No.", Rec."Variant Code");
                     ItemVariant.TestField(Blocked, false);
                     Description := ItemVariant.Description;
@@ -1606,6 +1606,9 @@ table 5405 "Production Order"
     var
         DefaultDimSource: List of [Dictionary of [Integer, Code[20]]];
     begin
+        if Rec.IsTemporary() then
+            exit;
+
         InitDefaultDimensionSources(DefaultDimSource);
         CreateDim(DefaultDimSource);
     end;

@@ -667,7 +667,10 @@ codeunit 5817 "Undo Posting Management"
 
             UndoValuePostingFromJob(ItemJnlLine, ItemApplicationEntry, TempApplyToItemLedgEntry);
 
-            TempItemEntryRelation."Item Entry No." := ItemJnlLine."Item Shpt. Entry No.";
+            if ItemJnlLine.Subcontracting and (ItemJnlPostLine.GetItemLedgerEntryNo() <> 0) then
+                TempItemEntryRelation."Item Entry No." := ItemJnlPostLine.GetItemLedgerEntryNo()
+            else
+                TempItemEntryRelation."Item Entry No." := ItemJnlLine."Item Shpt. Entry No.";
             TempItemEntryRelation.CopyTrackingFromItemJnlLine(ItemJnlLine);
             OnPostItemJnlLineAppliedToListOnBeforeTempItemEntryRelationInsert(TempItemEntryRelation, ItemJnlLine);
             TempItemEntryRelation.Insert();

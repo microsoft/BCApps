@@ -13,6 +13,7 @@ codeunit 4411 "SOA Contact Search Impl"
     EventSubscriberInstance = Manual;
     InherentEntitlements = X;
     InherentPermissions = X;
+    Permissions = tabledata "Agent Task Message" = r;
 
     var
         AgentTaskID: BigInteger;

@@ -14,7 +14,9 @@ page 46863 "BC14 Migration Error Overview"
     ApplicationArea = All;
     SourceTable = "Data Migration Error";
     SourceTableTemporary = true;
+#pragma warning disable AL0254 // Accepted: Object-specific sorting; adding a shared-table key risks schema and performance changes.
     SourceTableView = sorting("Created On") order(descending);
+#pragma warning restore AL0254
     Caption = 'Migration Errors';
     Editable = true;
     InsertAllowed = false;

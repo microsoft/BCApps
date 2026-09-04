@@ -33,7 +33,9 @@ table 26100 "DACH Report Selections"
             Caption = 'Report ID';
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Report));
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(4; "Report Name"; Text[80])
+#pragma warning restore AL0685
         {
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Report),
                                                                            "Object ID" = field("Report ID")));

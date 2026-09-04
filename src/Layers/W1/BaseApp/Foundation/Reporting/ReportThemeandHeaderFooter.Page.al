@@ -16,8 +16,8 @@ using System.Reflection;
 page 9666 "Report Theme and Header/Footer"
 {
     ApplicationArea = Basic, Suite;
-    Caption = 'Report themes and header-footer setup';
-    AdditionalSearchTerms = 'Composite Layout, Document Theme, Header Footer Part, Report Themes and Header/Footers';
+    Caption = 'Manage themes and header-footer layouts';
+    AdditionalSearchTerms = 'Composite Layout, Document Theme, Header Footer Part, Report Themes and Header/Footers, Report themes and header-footer setup';
     PageType = List;
     SourceTable = "Report Layout List";
     UsageCategory = Administration;
@@ -25,8 +25,8 @@ page 9666 "Report Theme and Header/Footer"
     InsertAllowed = false;
     ModifyAllowed = false;
     Extensible = true;
-    AboutTitle = 'About report themes and header/footer setup';
-    AboutText = 'Manage reusable theme and header/footer layout parts that can be assigned as defaults to your Word report layouts. Add, export, delete, and change the approval status of parts.';
+    AboutTitle = 'Manage themes and header-footer layouts';
+    AboutText = 'Add, export, and delete the themes and header/footer layouts that you can set on your body layouts. Only a body layout carries them: they are merged onto it when the report renders. Set a layout to **Approved** to make it available to choose.';
 
     layout
     {
@@ -34,11 +34,17 @@ page 9666 "Report Theme and Header/Footer"
         {
             repeater(Group)
             {
+                field(LayoutCaption; Rec."Caption")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Layout Name';
+                    ToolTip = 'Specifies the friendly, translated display name of the theme or header/footer part. For tenant-defined parts this matches the name.';
+                }
                 field(Name; Rec.Name)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Name';
-                    ToolTip = 'Specifies the name of the theme or header/footer part.';
+                    ToolTip = 'Specifies the name that identifies the theme or header/footer part. This is the value stored when the part is assigned to a report.';
                 }
                 field(Description; Rec.Description)
                 {
@@ -78,6 +84,7 @@ page 9666 "Report Theme and Header/Footer"
                 Caption = 'New theme';
                 Image = New;
                 AccessByPermission = tabledata "Tenant Report Layout" = M;
+                Visible = NewThemeVisible;
                 ToolTip = 'Upload a new theme part.';
 
                 trigger OnAction()
@@ -91,6 +98,7 @@ page 9666 "Report Theme and Header/Footer"
                 Caption = 'New header/footer';
                 Image = New;
                 AccessByPermission = tabledata "Tenant Report Layout" = M;
+                Visible = NewHeaderFooterVisible;
                 ToolTip = 'Upload a new header/footer part.';
 
                 trigger OnAction()
@@ -246,10 +254,22 @@ page 9666 "Report Theme and Header/Footer"
         if not FeatureKeyManagement.IsDocumentReportExperienceEnabled() then
             Error(FeatureNotEnabledErr);
 
-        // Show only the Composite Layout artifacts (themes and header/footer parts), not body layouts.
+        NewThemeVisible := (not LookupSubtypeSet) or (LookupSubtype = LookupSubtype::Theme);
+        NewHeaderFooterVisible := (not LookupSubtypeSet) or (LookupSubtype = LookupSubtype::HeaderFooter);
+
         Rec.FilterGroup(2);
-        Rec.SetFilter("Layout Subtype", '%1|%2', Rec."Layout Subtype"::HeaderFooter, Rec."Layout Subtype"::Theme);
+        if LookupSubtypeSet then begin
+            Rec.SetRange("Report ID", LookupHelper.GetTenantReportDefaultsReportID());
+            Rec.SetRange("Layout Subtype", LookupSubtype);
+        end else
+            Rec.SetFilter("Layout Subtype", '%1|%2', Rec."Layout Subtype"::HeaderFooter, Rec."Layout Subtype"::Theme);
         Rec.FilterGroup(0);
+    end;
+
+    internal procedure SetLookupSubtype(Subtype: Enum "Report Layout Subtype")
+    begin
+        LookupSubtype := Subtype;
+        LookupSubtypeSet := true;
     end;
 
     local procedure CreateArtifact(Subtype: Enum "Report Layout Subtype")
@@ -276,16 +296,29 @@ page 9666 "Report Theme and Header/Footer"
             Subtype,
             ReturnReportID,
             ReturnLayoutName);
+
+        SetFocusedRecord(ReturnReportID, ReturnLayoutName);
+    end;
+
+    local procedure SetFocusedRecord(ReportID: Integer; LayoutName: Text)
+    var
+        NewPart: Record "Report Layout List";
+    begin
+        if (ReportID <> 0) and (LayoutName <> '') and NewPart.Get(ReportID, LayoutName, EmptyGuid) then
+            CurrPage.SetRecord(NewPart);
         CurrPage.Update(false);
     end;
 
     local procedure SetStatus(NewStatus: Enum "Report Layout Status")
     var
         SelectedLayouts: Record "Report Layout List";
+        UpdatedName: Text;
         UpdateCount: Integer;
         AssignedCount: Integer;
     begin
         CurrPage.SetSelectionFilter(SelectedLayouts);
+
+        SelectedLayouts.SetRange("User Defined", true);
 
         // Moving an assigned part away from Approved does not unassign it — it will keep applying at print time
         // (status is not enforced at render). Warn so the change isn't made unknowingly.
@@ -297,20 +330,38 @@ page 9666 "Report Theme and Header/Footer"
         end;
 
         UpdateCount := ReportLayoutsImpl.SetLayoutStatusBatch(SelectedLayouts, NewStatus);
-        if UpdateCount > 0 then
-            Message(StatusChangedMsg, UpdateCount, NewStatus);
+        if UpdateCount > 0 then begin
+            UpdatedName := GetSingleUserDefinedName(SelectedLayouts);
+            if (UpdateCount = 1) and (UpdatedName <> '') then
+                Message(StatusChangedSingleMsg, UpdatedName, NewStatus)
+            else
+                Message(StatusChangedMsg, UpdateCount, NewStatus);
+        end;
         CurrPage.Update(false);
+    end;
+
+    local procedure GetSingleUserDefinedName(var SelectedLayouts: Record "Report Layout List"): Text
+    var
+        FoundName: Text;
+        FoundCount: Integer;
+    begin
+        if SelectedLayouts.FindSet() then
+            repeat
+                FoundName := SelectedLayouts.Name;
+                FoundCount += 1;
+            until (SelectedLayouts.Next() = 0) or (FoundCount > 1);
+
+        if FoundCount = 1 then
+            exit(FoundName);
     end;
 
     local procedure CountAssignedInSelection(var SelectedLayouts: Record "Report Layout List"): Integer
     var
         Total: Integer;
     begin
-        // Only user-defined parts can actually change status; count assignments for those.
         if SelectedLayouts.FindSet() then
             repeat
-                if SelectedLayouts."User Defined" then
-                    Total += LookupHelper.CountPartAssignments(SelectedLayouts);
+                Total += LookupHelper.CountPartAssignments(SelectedLayouts);
             until SelectedLayouts.Next() = 0;
         exit(Total);
     end;
@@ -379,32 +430,68 @@ page 9666 "Report Theme and Header/Footer"
 
     local procedure DeleteSelectedArtifact()
     var
+        SelectedLayouts: Record "Report Layout List";
+        TempPartsToDelete: Record "Tenant Report Layout" temporary;
         TenantReportLayout: Record "Tenant Report Layout";
+        SingleName: Text;
+        DeletableCount: Integer;
         AssignedCount: Integer;
     begin
-        if not Rec."User Defined" then
+        CurrPage.SetSelectionFilter(SelectedLayouts);
+
+        SelectedLayouts.SetRange("User Defined", true);
+
+        if SelectedLayouts.FindSet() then
+            repeat
+                DeletableCount += 1;
+                AssignedCount += LookupHelper.CountPartAssignments(SelectedLayouts);
+            until SelectedLayouts.Next() = 0;
+
+        if DeletableCount = 0 then
             Error(CannotDeleteOobErr);
 
-        AssignedCount := LookupHelper.CountPartAssignments(Rec);
-        if AssignedCount > 0 then begin
-            if not Confirm(DeletePartWithReferencesQst, false, Rec.Name, AssignedCount) then
-                exit;
+        if DeletableCount = 1 then begin
+            SingleName := GetSingleUserDefinedName(SelectedLayouts);
+            if AssignedCount > 0 then begin
+                if not Confirm(DeletePartWithReferencesQst, false, SingleName, AssignedCount) then
+                    exit;
+            end else
+                if not Confirm(DeleteArtifactQst, false, SingleName) then
+                    exit;
         end else
-            if not Confirm(DeleteArtifactQst, false, Rec.Name) then
-                exit;
+            if AssignedCount > 0 then begin
+                if not Confirm(DeletePartsWithReferencesQst, false, DeletableCount, AssignedCount) then
+                    exit;
+            end else
+                if not Confirm(DeleteArtifactsQst, false, DeletableCount) then
+                    exit;
 
-        // EmptyGuid is the App ID key part - empty for tenant-defined layouts.
-        if not TenantReportLayout.Get(Rec."Report ID", Rec.Name, EmptyGuid) then
-            exit;
-        LookupHelper.ClearPartAssignments(Rec);
-        ReportLayoutsImpl.DeleteReportLayout(TenantReportLayout);
+        SelectedLayouts.FindSet();
+        repeat
+            LookupHelper.ClearPartAssignments(SelectedLayouts);
+            TempPartsToDelete.Init();
+            TempPartsToDelete."Report ID" := SelectedLayouts."Report ID";
+            TempPartsToDelete.Name := SelectedLayouts.Name;
+            TempPartsToDelete.Insert();
+        until SelectedLayouts.Next() = 0;
+
+        if TempPartsToDelete.FindSet() then
+            repeat
+                if TenantReportLayout.Get(TempPartsToDelete."Report ID", TempPartsToDelete.Name, EmptyGuid) then
+                    ReportLayoutsImpl.DeleteReportLayout(TenantReportLayout);
+            until TempPartsToDelete.Next() = 0;
+
         CurrPage.Update(false);
     end;
 
     var
         ReportLayoutsImpl: Codeunit "Report Layouts Impl.";
         LookupHelper: Codeunit "Composite Layout Lookup Helper";
+        LookupSubtype: Enum "Report Layout Subtype";
         EmptyGuid: Guid;
+        LookupSubtypeSet: Boolean;
+        NewThemeVisible: Boolean;
+        NewHeaderFooterVisible: Boolean;
         FeatureNotEnabledErr: Label 'The Composite Layout feature is gated by the Document Report Experience preview. Enable it in Feature Management before opening this page.';
         CannotDeleteOobErr: Label 'Out-of-box themes and header/footer parts cannot be deleted.';
         CannotReplaceOobErr: Label 'Out-of-box themes and header/footer parts cannot be replaced.';
@@ -415,7 +502,10 @@ page 9666 "Report Theme and Header/Footer"
         TenantDefinedTxt: Label 'Tenant-defined';
         PartInfoLbl: Label 'Name: %1\Description: %2\Type: %3\Status: %4\Publisher: %5\Used in %6 report configuration(s).', Comment = '%1 = part name; %2 = description; %3 = type (Theme or Header/Footer); %4 = status; %5 = publisher; %6 = number of report configurations that reference the part';
         DeleteArtifactQst: Label 'Delete the artifact %1?', Comment = '%1 = artifact name';
+        DeleteArtifactsQst: Label 'Delete the %1 selected artifacts?', Comment = '%1 = number of artifacts';
+        DeletePartsWithReferencesQst: Label 'The %1 selected parts are assigned in %2 report configuration(s). Deleting them will clear those assignments and the affected reports will render without these parts. Do you want to continue?', Comment = '%1 = number of parts; %2 = number of configurations';
         DeletePartWithReferencesQst: Label 'The part "%1" is assigned in %2 report configuration(s). Deleting it will clear those assignments and the affected reports will render without this part. Do you want to continue?', Comment = '%1 = artifact name; %2 = number of configurations';
         StatusChangedMsg: Label 'The status of %1 part(s) was changed to %2.', Comment = '%1 = number of parts; %2 = new status';
+        StatusChangedSingleMsg: Label 'The status of "%1" was changed to %2.', Comment = '%1 = part name; %2 = new status';
         DemoteAssignedQst: Label 'The selected part(s) are currently assigned in %1 report configuration(s) and will keep applying when reports are printed, even after this status change. Change the status anyway?', Comment = '%1 = number of configurations';
 }

@@ -1114,4 +1114,3 @@ codeunit 20 "Posting Preview Event Handler"
     begin
     end;
 }
-

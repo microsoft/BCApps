@@ -49,6 +49,47 @@ codeunit 148912 "BC14 Migrator CSV Tests"
         RecordNotFoundLbl: Label 'Expected %1 %2 was not migrated.', Comment = '%1 = entity name, %2 = key';
         CountMismatchLbl: Label 'Number of migrated %1 does not match expected.', Comment = '%1 = entity name';
 
+    [Test]
+    procedure TestMigrateReminderText_CreatesDefaultLanguageWhenOtherLanguagesExist()
+    var
+        BC14ReminderText: Record "BC14 Reminder Text";
+        ReminderTerms: Record "Reminder Terms";
+        ReminderLevel: Record "Reminder Level";
+        ReminderAttachmentText: Record "Reminder Attachment Text";
+        ReminderAttachmentTextLine: Record "Reminder Attachment Text Line";
+        Language: Record Language;
+        BC14ReminderTextMigrator: Codeunit "BC14 Reminder Text Migrator";
+        LanguageCodeunit: Codeunit Language;
+        LibraryERM: Codeunit "Library - ERM";
+        DefaultLanguageCode: Code[10];
+    begin
+        // [GIVEN] A language exists, but the default application language does not.
+        Language.DeleteAll();
+        Language.Init();
+        Language.Validate(Code, 'OTHER');
+        Language.Insert(true);
+        DefaultLanguageCode := LanguageCodeunit.GetLanguageCode(LanguageCodeunit.GetDefaultApplicationLanguageId());
+        LibraryERM.CreateReminderTermsAndLevel(ReminderTerms, ReminderLevel);
+
+        BC14ReminderText."Reminder Terms Code" := ReminderTerms.Code;
+        BC14ReminderText."Reminder Level" := ReminderLevel."No.";
+        BC14ReminderText.Position := BC14ReminderText.Position::Ending;
+        BC14ReminderText."Line No." := 10000;
+        BC14ReminderText.Text := 'Migrated reminder text';
+
+        // [WHEN] The legacy reminder text is migrated.
+        BC14ReminderTextMigrator.MigrateReminderText(BC14ReminderText);
+
+        // [THEN] Communication text is created for the runtime fallback language.
+        ReminderLevel.Get(ReminderTerms.Code, ReminderLevel."No.");
+        Assert.IsTrue(
+            ReminderAttachmentText.Get(ReminderLevel."Reminder Attachment Text", DefaultLanguageCode),
+            'Reminder attachment text was not created for the default application language.');
+        ReminderAttachmentTextLine.Get(
+            ReminderAttachmentText.Id, DefaultLanguageCode, ReminderAttachmentTextLine.Position::"Ending Line", BC14ReminderText."Line No.");
+        Assert.AreEqual(BC14ReminderText.Text, ReminderAttachmentTextLine.Text, 'The migrated reminder text does not match.');
+    end;
+
     // ====================================================================
     // Customer
     // ====================================================================

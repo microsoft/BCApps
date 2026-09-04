@@ -1637,46 +1637,6 @@ codeunit 139967 "Qlty. Tests - Test Table"
     end;
 
     [Test]
-    procedure Table_InspectionAssignSelfOnModify()
-    var
-        Location: Record Location;
-        ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        QltyInspectionHeader: Record "Qlty. Inspection Header";
-        PurchaseHeader: Record "Purchase Header";
-        PurchaseLine: Record "Purchase Line";
-        QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
-    begin
-        // [SCENARIO] Inspection is automatically assigned to current user on modification
-
-        Initialize();
-
-        // [GIVEN] Quality management setup is configured
-        QltyInspectionUtility.EnsureSetupExists();
-
-        // [GIVEN] A generation rule is created for purchase lines
-        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
-
-        // [GIVEN] A location is created
-        LibraryWarehouse.CreateLocation(Location);
-
-        // [GIVEN] An inspection is created from purchase with no assigned user
-        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 100, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
-
-        // [GIVEN] Inspection has no assigned user initially
-        LibraryAssert.AreEqual('', QltyInspectionHeader."Assigned User ID", 'Should not have assigned user.');
-
-        // [WHEN] Inspection is modified by changing source quantity
-        QltyInspectionHeader."Source Quantity (Base)" := 99;
-        QltyInspectionHeader.Modify(true);
-
-        // [THEN] Inspection is automatically assigned to current user
-        QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
-        LibraryAssert.AreEqual(UserId(), QltyInspectionHeader."Assigned User ID", 'Should be assigned to current user.');
-    end;
-
-    [Test]
     procedure Table_GetReferenceRecordId_TriggeringRecord()
     var
         Location: Record Location;
@@ -2156,6 +2116,101 @@ codeunit 139967 "Qlty. Tests - Test Table"
 
         // [GIVEN] Cleanup generation rule
         QltyInspectionGenRule.Delete();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure ReopenInspectionHandledResetsStatusChangeGuard()
+    var
+        ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        Location: Record Location;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
+        QltyChangeStatusSubscr: Codeunit "Qlty. Change Status Subscr.";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+    begin
+        // [SCENARIO 620326] A handled Reopen must reset the status-change guard so a finished inspection stays protected.
+
+        Initialize();
+
+        // [GIVEN] Quality management setup is configured
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] A template and generation rule are created for purchase lines
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+
+        // [GIVEN] A location is created
+        LibraryWarehouse.CreateLocation(Location);
+
+        // [GIVEN] A finished inspection
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 10, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
+        QltyInspectionHeader.Status := QltyInspectionHeader.Status::Finished;
+        QltyInspectionHeader.Modify();
+
+        // [GIVEN] A subscriber marks the reopen as handled
+        BindSubscription(QltyChangeStatusSubscr);
+
+        // [WHEN] Reopen is requested but handled by the subscriber (early exit)
+        QltyInspectionHeader.ReopenInspection();
+        UnbindSubscription(QltyChangeStatusSubscr);
+
+        // [THEN] The inspection is still finished (reopen was handled)
+        LibraryAssert.AreEqual(QltyInspectionHeader.Status::Finished, QltyInspectionHeader.Status, 'Inspection should still be finished.');
+
+        // [THEN] The status-change guard was reset, so the finished inspection cannot be modified
+        asserterror QltyInspectionHeader.Modify(true);
+        LibraryAssert.ExpectedErrorCode('TestField');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure FinishInspectionHandledResetsStatusChangeGuard()
+    var
+        ConfigurationToLoadQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        Location: Record Location;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyPurOrderGenerator: Codeunit "Qlty. Pur. Order Generator";
+        QltyChangeStatusSubscr: Codeunit "Qlty. Change Status Subscr.";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+    begin
+        // [SCENARIO 620326] A handled Finish must reset the status-change guard so a later modify still honors TestStatusOpen.
+
+        Initialize();
+
+        // [GIVEN] Quality management setup is configured
+        QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] A template and generation rule are created for purchase lines
+        QltyInspectionUtility.CreateTemplate(ConfigurationToLoadQltyInspectionTemplateHdr, 1);
+        QltyInspectionUtility.CreatePrioritizedRule(ConfigurationToLoadQltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
+
+        // [GIVEN] A location is created
+        LibraryWarehouse.CreateLocation(Location);
+
+        // [GIVEN] An open inspection
+        QltyPurOrderGenerator.CreateInspectionFromPurchaseWithUntrackedItem(Location, 10, PurchaseHeader, PurchaseLine, QltyInspectionHeader);
+
+        // [GIVEN] A subscriber marks the finish as handled
+        BindSubscription(QltyChangeStatusSubscr);
+
+        // [WHEN] Finish is requested but handled by the subscriber (early exit)
+        QltyInspectionHeader.FinishInspection();
+        UnbindSubscription(QltyChangeStatusSubscr);
+
+        // [GIVEN] The inspection is set to finished directly (no trigger)
+        QltyInspectionHeader.Status := QltyInspectionHeader.Status::Finished;
+        QltyInspectionHeader.Modify();
+
+        // [THEN] The status-change guard was reset, so the finished inspection cannot be modified through the trigger
+        asserterror QltyInspectionHeader.Modify(true);
+        LibraryAssert.ExpectedErrorCode('TestField');
     end;
 
     [Test]

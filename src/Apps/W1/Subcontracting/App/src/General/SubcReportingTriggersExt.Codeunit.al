@@ -9,7 +9,7 @@ using Microsoft.Manufacturing.Reports;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
 
-codeunit 99001512 "Subc. Reporting Triggers Ext"
+codeunit 20512 "Subc. Reporting Triggers Ext"
 {
     [EventSubscriber(ObjectType::Report, Report::"Detailed Calculation", OnAfterGetRecordRoutingLineOnBeforeCalcRoutingCostPerUnit, '', false, false)]
     local procedure OnAfterGetRecordRoutingLineOnBeforeCalcCost(var RoutingLine: Record "Routing Line"; ItemNo: Code[20]; BaseUnitOfMeasure: Code[10]; StandardTaskCode: Code[10]; CalculationDate: Date; var DirectUnitCost: Decimal; var IndirectCostPct: Decimal; var OverheadRate: Decimal; var ProdUnitCost: Decimal; var UnitCostCalculation: Enum "Unit Cost Calculation Type"; var IsHandled: Boolean)
