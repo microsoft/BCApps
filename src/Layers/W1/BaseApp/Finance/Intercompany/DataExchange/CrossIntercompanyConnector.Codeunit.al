@@ -39,6 +39,7 @@ codeunit 560 "CrossIntercompany Connector"
         EntraAuthorityPrefixTok: Label 'https://login.microsoftonline.com/', Locked = true;
         EntraPPEAuthorityPrefixTok: Label 'https://login.windows-ppe.net/', Locked = true;
         OAuthTokenEndpointSuffixTok: Label '/oauth2/v2.0/token', Locked = true;
+        TenantDomainPatternTok: Label '^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$', Locked = true;
         ExpandedTok: Label 'bufferIntercompanyInboxTransactions,bufferIntercompanyInboxJournalLines,bufferIntercompanyInboxPurchaseHeaders,bufferIntercompanyInboxPurchaseLines,bufferIntercompanyInboxSalesHeaders,bufferIntercompanyInboxSalesLines,bufferIntercompanyInOutJournalLineDimensions,bufferIntercompanyDocumentDimensions,bufferIntercompanyCommentLines', Locked = true;
 
         NonSaaSEnvironmentErr: Label 'This functionality is only available in online environments.';
@@ -58,8 +59,10 @@ codeunit 560 "CrossIntercompany Connector"
         MissalignmentBetweenNamesErr: Label 'The partner''s company name %1 does not match the name you are introducing for partner %2.', Comment = '%1 = Partner''s Company Name, %2 = IC Partner Name';
         InvalidDestinationUrlErr: Label 'The intercompany connection URL must use the trusted Business Central API host.';
         InvalidDestinationUrlSecurityAuditTxt: Label 'An invalid destination URL was rejected for a cross-environment intercompany connection.', Locked = true;
+        InvalidDestinationUrlTelemetryTxt: Label 'A cross-environment intercompany destination URL failed trusted-host validation.', Locked = true;
         InvalidTokenEndpointErr: Label 'The token endpoint must identify a Microsoft Entra tenant on the trusted authority.';
         InvalidTokenEndpointSecurityAuditTxt: Label 'An invalid OAuth token endpoint was rejected for a cross-environment intercompany connection.', Locked = true;
+        InvalidTokenEndpointTelemetryTxt: Label 'A cross-environment intercompany OAuth token endpoint failed trusted-authority validation.', Locked = true;
         CrossIntercompanyServiceNameTxt: Label 'Cross-environment Intercompany', Locked = true;
 
     internal procedure TestICPartnerSetup(var TempICPartner: Record "IC Partner" temporary): Boolean
@@ -399,6 +402,8 @@ codeunit 560 "CrossIntercompany Connector"
         if not Uri.IsValidUri(DestinationUrl) or not DestinationUrl.StartsWith('https://') then
             RejectInvalidDestinationUrl();
 
+        Uri.Init(DestinationUrl);
+
         if UrlHelper.IsPPE() then
             ExpectedHost := BCPPEHostTok
         else
@@ -415,6 +420,7 @@ codeunit 560 "CrossIntercompany Connector"
 
     local procedure RejectInvalidDestinationUrl()
     begin
+        Session.LogMessage('', InvalidDestinationUrlTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CrossIntercompanyTok);
         Session.LogSecurityAudit(
             CrossIntercompanyServiceNameTxt, SecurityOperationResult::Failure,
             InvalidDestinationUrlSecurityAuditTxt, AuditCategory::ApplicationManagement);
@@ -424,7 +430,6 @@ codeunit 560 "CrossIntercompany Connector"
     internal procedure GetValidatedTokenEndpoint(ConfiguredTokenEndpoint: Text): Text
     var
         UrlHelper: Codeunit "Url Helper";
-        TenantId: Guid;
         AuthorityPrefix, TenantIdText : Text;
     begin
         if UrlHelper.IsPPE() then
@@ -441,14 +446,30 @@ codeunit 560 "CrossIntercompany Connector"
             RejectInvalidTokenEndpoint();
 
         TenantIdText := CopyStr(ConfiguredTokenEndpoint, StrLen(AuthorityPrefix) + 1, StrLen(ConfiguredTokenEndpoint) - StrLen(AuthorityPrefix) - StrLen(OAuthTokenEndpointSuffixTok));
-        if not Evaluate(TenantId, TenantIdText) then
+        if not IsValidTenantIdentifier(TenantIdText) then
             RejectInvalidTokenEndpoint();
 
         exit(ConfiguredTokenEndpoint);
     end;
 
+    local procedure IsValidTenantIdentifier(TenantIdentifier: Text): Boolean
+    var
+        Regex: Codeunit Regex;
+        TenantId: Guid;
+    begin
+        if TenantIdentifier = '' then
+            exit(false);
+
+        // A tenant is identified either by its GUID or by a verified Entra domain name (for example, contoso.onmicrosoft.com).
+        if Evaluate(TenantId, TenantIdentifier) then
+            exit(true);
+
+        exit(Regex.IsMatch(LowerCase(TenantIdentifier), TenantDomainPatternTok));
+    end;
+
     local procedure RejectInvalidTokenEndpoint()
     begin
+        Session.LogMessage('', InvalidTokenEndpointTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CrossIntercompanyTok);
         Session.LogSecurityAudit(
             CrossIntercompanyServiceNameTxt, SecurityOperationResult::Failure,
             InvalidTokenEndpointSecurityAuditTxt, AuditCategory::ApplicationManagement);

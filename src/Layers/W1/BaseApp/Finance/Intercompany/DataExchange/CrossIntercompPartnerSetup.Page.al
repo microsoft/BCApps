@@ -205,6 +205,8 @@ page 561 "CrossIntercomp. Partner Setup"
                         ExtendedDatatype = URL;
                         Caption = 'Redirect URL';
                         ToolTip = 'Specifies the OAuth 2.0 redirect URL of the Microsoft Entra authentication application. In most scenarios this will be: https://businesscentral.dynamics.com/OAuthLanding.htm .';
+                        // The connector always uses the environment's default redirect URL, so this field is hidden to avoid promising configurable behavior.
+                        Visible = false;
                         trigger OnValidate()
                         begin
                             NextEnabled := CheckIfSaaSConnectionDetailsAreFilled();

@@ -117,8 +117,10 @@ codeunit 4507 "Email - OAuth Client" implements "Email - OAuth Client v2"
         DefaultRedirectUrl: Text;
     begin
         OAuth2.GetDefaultRedirectUrl(DefaultRedirectUrl);
-        if RedirectUrlToValidate <> DefaultRedirectUrl then
+        if RedirectUrlToValidate <> DefaultRedirectUrl then begin
+            Session.LogMessage('', InvalidRedirectUrlTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EmailCategoryLbl);
             Error(InvalidRedirectUrlErr, DefaultRedirectUrl);
+        end;
     end;
 
     internal procedure AuthorizationCodeTokenCacheExists(): Boolean
@@ -167,4 +169,5 @@ codeunit 4507 "Email - OAuth Client" implements "Email - OAuth Client v2"
         CouldNotAcquireAccessTokenErr: Label 'Failed to acquire access token.', Locked = true;
         ThirdPartyExtensionsNotAllowedErr: Label 'Third-party extensions are restricted from obtaining access tokens. Please contact your system administrator.';
         InvalidRedirectUrlErr: Label 'The redirect URL must be %1.', Comment = '%1 = the allowed redirect URL';
+        InvalidRedirectUrlTelemetryTxt: Label 'A non-default OAuth redirect URL was rejected during Outlook email setup.', Locked = true;
 }
