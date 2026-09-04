@@ -134,7 +134,7 @@ codeunit 10985 "E-Doc. Peppol BIS 3.0 FR Hdlr" implements IStructuredFormatReade
 #pragma warning disable AA0139 // false positive: overflow handled by SetStringValueInField
         EDocumentXMLHelper.SetStringValueInField(PeppolXml, XmlNamespaces, DocumentPath + '/cbc:ID', MaxStrLen(Header."Sales Invoice No."), Header."Sales Invoice No.");
         EDocumentXMLHelper.SetStringValueInField(PeppolXml, XmlNamespaces, DocumentPath + '/cac:OrderReference/cbc:ID', MaxStrLen(Header."Purchase Order No."), Header."Purchase Order No.");
-        EDocumentXMLHelper.SetStringValueInField(PeppolXml, XmlNamespaces, DocumentPath + '/cac:BillingReference/cac:InvoiceDocumentReference/cbc:ID', MaxStrLen(Header."Applies-to Ext. Invoice No."), Header."Applies-to Ext. Invoice No.");
+        EDocumentXMLHelper.SetStringValueInField(PeppolXml, XmlNamespaces, DocumentPath + '/cac:BillingReference/cac:InvoiceDocumentReference/cbc:ID', MaxStrLen(Header."Vendor Invoice No."), Header."Vendor Invoice No.");
 #pragma warning restore AA0139
         EDocumentXMLHelper.SetDateValueInField(PeppolXml, XmlNamespaces, DocumentPath + '/cbc:IssueDate', Header."Document Date");
         EDocumentXMLHelper.SetDateValueInField(PeppolXml, XmlNamespaces, DocumentPath + '/cbc:DueDate', Header."Due Date");
