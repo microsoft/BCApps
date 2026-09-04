@@ -40,6 +40,9 @@ codeunit 8202 "Expense Agent Contoso Module" implements "Contoso Demo Data Modul
         CreateVATPostingGroups: Codeunit "Create VAT Posting Groups";
     begin
         CreateExpenseCountryData.CreateMasterData();
+        if not CreateExpenseCountryData.IsVATCountry() then
+            exit;
+
         ExpenseAgentSetup.Get();
         ExpenseAgentSetup.Validate("Default VAT Bus. Posting Group", CreateVATPostingGroups.Domestic());
         ExpenseAgentSetup.Modify(true);

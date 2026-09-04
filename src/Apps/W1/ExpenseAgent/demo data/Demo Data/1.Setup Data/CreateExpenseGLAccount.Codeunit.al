@@ -30,11 +30,14 @@ codeunit 8207 "Create Expense G/L Account"
     local procedure AddExpenseVATAccountsForLocalization()
     var
         ContosoCoffeeDemoDataSetup: Record "Contoso Coffee Demo Data Setup";
+        CreateExpenseCountryData: Codeunit "Create Expense Country Data";
         CreateExpenseVATRates: Codeunit "Create Expense VAT Rates";
         VATRates: List of [Decimal];
         VATRate: Decimal;
         AccountNo: Integer;
     begin
+        if not CreateExpenseCountryData.IsVATCountry() then
+            exit;
         if not ContosoCoffeeDemoDataSetup.Get() then
             exit;
 
@@ -52,11 +55,14 @@ codeunit 8207 "Create Expense G/L Account"
     var
         ContosoCoffeeDemoDataSetup: Record "Contoso Coffee Demo Data Setup";
         GLAccountCategoryMgt: Codeunit "G/L Account Category Mgt.";
+        CreateExpenseCountryData: Codeunit "Create Expense Country Data";
         CreateExpenseVATRates: Codeunit "Create Expense VAT Rates";
         VATRates: List of [Decimal];
         VATRate: Decimal;
         SubCategory: Text[80];
     begin
+        if not CreateExpenseCountryData.IsVATCountry() then
+            exit;
         if not ContosoCoffeeDemoDataSetup.Get() then
             exit;
 
