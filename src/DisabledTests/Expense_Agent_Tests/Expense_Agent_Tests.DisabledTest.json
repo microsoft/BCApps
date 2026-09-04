@@ -203,5 +203,10 @@
     "codeunitId": 148319,
     "codeunitName": "Cancel Posted Exp. Report Test",
     "method": "CancelMultiLineReportGeneratesNewTransactionNoForReversedLines"
+  },
+  {
+    "codeunitId": 148348,
+    "codeunitName": "Expense VAT Spec. API Test",
+    "method": "AgentVATSpecificationIsInsertedThroughAPI"
   }
 ]

@@ -2,7 +2,7 @@
   "id": "090f6a41-ff8d-4322-ac4b-2f9bcf297e8a",
   "name": "Expense Agent Tests",
   "publisher": "Microsoft",
-  "version": "29.0.0.0",
+  "version": "30.0.0.0",
   "brief": "Tests for Expense Agent app.",
   "description": "Tests for Expense Agent app.",
   "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
@@ -16,29 +16,29 @@
       "id": "66efe10c-8033-403b-a86d-77c0887178ba",
       "name": "Expense Agent (Preview)",
       "publisher": "Microsoft",
-      "version": "29.0.0.0"
+      "version": "30.0.0.0"
     },
     {
       "id": "5d86850b-0d76-4eca-bd7b-951ad998e997",
       "name": "Tests-TestLibraries",
       "publisher": "Microsoft",
-      "version": "29.0.0.0"
+      "version": "30.0.0.0"
     },
     {
       "id": "5095f467-0a01-4b99-99d1-9ff1237d286f",
       "name": "Library Variable Storage",
       "publisher": "Microsoft",
-      "version": "29.0.0.0"
+      "version": "30.0.0.0"
     },
     {
       "id": "bee8cf2f-494a-42f4-aabd-650e87934d39",
       "name": "Business Foundation Test Libraries",
       "publisher": "Microsoft",
-      "version": "29.0.0.0"
+      "version": "30.0.0.0"
     }
   ],
   "platform": "29.0.0.0",
-  "application": "29.0.0.0",
+  "application": "30.0.0.0",
   "idRanges": [
     {
       "from": 148300,

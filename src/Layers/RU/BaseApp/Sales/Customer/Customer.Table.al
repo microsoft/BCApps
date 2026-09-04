@@ -2394,7 +2394,9 @@ table 18 Customer
                 end;
             end;
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(12402; "Vendor Name"; Text[50])
+#pragma warning restore AL0685
         {
             CalcFormula = lookup(Vendor.Name where("No." = field("Vendor No.")));
             Caption = 'Vendor Name';

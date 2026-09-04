@@ -502,13 +502,6 @@ codeunit 148182 "Library - Sustainability"
         SustainabilityDisclaimer.DeleteAll();
     end;
 
-    procedure CreateItemWithSpecificCarbonTrackingMethod(var Item: Record Item)
-    begin
-        LibraryInventory.CreateItem(Item);
-        Item.Validate("Carbon Tracking Method", Item."Carbon Tracking Method"::Specific);
-        Item.Modify();
-    end;
-
     procedure UpdateCarbonTrackingMethod(var Item: Record Item; CarbonTrackingMethod: Enum "Sust. Carbon Tracking Method")
     begin
         if Item."No." = '' then

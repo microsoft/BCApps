@@ -2590,7 +2590,7 @@ table 81 "Gen. Journal Line"
         {
             Caption = 'Spend Request No.';
             ToolTip = 'Specifies the spend request that this journal line relates to.';
-            TableRelation = "Spend Request" where(Status = const(Approved));
+            TableRelation = "Spend Request" where(Status = const(Approved), "Document Type" = const(" "));
             DataClassification = CustomerContent;
 
             trigger OnValidate()

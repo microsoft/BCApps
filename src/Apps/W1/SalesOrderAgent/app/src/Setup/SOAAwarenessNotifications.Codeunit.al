@@ -32,8 +32,8 @@ codeunit 4323 "SOA Awareness Notifications"
     internal procedure IsBindingNeeded(): Boolean
     var
         MyNotifications: Record "My Notifications";
-        SOASetup: Record "SOA Setup";
         AgentSession: Codeunit "Agent Session";
+        SOASetupCU: Codeunit "SOA Setup";
         AgentMetadataProvider: Enum "Agent Metadata Provider";
     begin
         if MyNotifications.Get(UserId, GetSOAAwarenessNotificationId()) then
@@ -43,7 +43,9 @@ codeunit 4323 "SOA Awareness Notifications"
         if AgentSession.IsAgentSession(AgentMetadataProvider) then
             exit(false);
 
-        exit(SOASetup.IsEmpty());
+        // Archived agents cannot be brought back, so an environment left with only archived
+        // agents is treated the same as one that never had an agent.
+        exit(not SOASetupCU.ActiveSOAgentSetupExists());
     end;
 
     local procedure ProcessManualActionCounter()

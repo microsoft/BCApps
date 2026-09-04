@@ -1,12 +1,10 @@
 {
-    "$schema":  "https://raw.githubusercontent.com/microsoft/AL-Go/b97c03d40c6f3d32a1e12a54a316c9a0d68c6261/Actions/.Modules/settings.schema.json",
+    "$schema":  "https://raw.githubusercontent.com/microsoft/AL-Go/6958720b2e1ccfda94fab92c83143ee5e093afec/Actions/.Modules/settings.schema.json",
     "projectName":  "Apps AT",
     "country":  "AT",
     "appFolders":  [
                        "../../../src/Apps/AT/ContosoCoffeeDemoDatasetAT/app",
                        "../../../src/Apps/AT/EDocument_AT/demo data",
-                       "../../../src/Apps/AT/ExpenseAgent_AT/app",
-                       "../../../src/Apps/AT/ExpenseAgent_AT/demo data",
                        "../../../src/Apps/AT/HybridBCLast_AT/app",
                        "../../../src/Apps/AT/IntrastatAT/app",
                        "../../../src/Apps/DACH/Onprem Permissions DACH/app",

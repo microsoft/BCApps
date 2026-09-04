@@ -44,9 +44,10 @@ codeunit 6908 "Expense Event Subscriber"
         CannotDeleteEmployeeWithExpenseReportErr: Label 'You cannot delete Employee %1 because they have active expense report.', Comment = '%1 = Employee No.';
         CannotDeleteEmployeeWithExpenseErr: Label 'You cannot delete Employee %1 because they have active expense.', Comment = '%1 = Employee No.';
         EmailChangeWarningQst: Label 'Employee %1 has existing expenses. Changing the email address may make these expenses inaccessible to them in the expense app. Do you want to continue?', Comment = '%1 = Employee No.';
-        PolicyNotAcknowledgedErr: Label 'You must acknowledge the travel policy before releasing the spend request.';
-        NoTravelersErr: Label 'You must add at least one traveler before releasing the spend request.';
+        PolicyNotAcknowledgedErr: Label 'You must acknowledge the travel policy before releasing the %1.', Comment = '%1 = document type description';
+        NoTravelersErr: Label 'You must add at least one traveler before releasing the %1.', Comment = '%1 = document type description';
         DestinationRequiredErr: Label '%1 is required for international travel.', Comment = '%1 = Field Caption';
+        FieldRequiredBeforeReleaseErr: Label 'You must specify %1 before releasing the %2.', Comment = '%1 = Field Caption, %2 = document type description';
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Instruction Mgt.", OnShowPostedDocumentOnBeforePageRun, '', false, false)]
     local procedure OnShowPostedDocumentOnBeforePageRun(CalledFromPageId: Integer; RecVariant: Variant; var PageId: Integer)
@@ -288,32 +289,41 @@ codeunit 6908 "Expense Event Subscriber"
     var
         Traveler: Record Traveler;
     begin
+        if SpendRequest."Document Type" <> SpendRequest."Document Type"::"Travel Request" then
+            exit;
+
         if SpendRequest.Status = SpendRequest.Status::Released then
             exit;
 
-        SpendRequest.TestField("Requested For");
-        SpendRequest.TestField("Expected Start Date");
-        SpendRequest.TestField("Expected End Date");
+        if SpendRequest."Requested For" = '' then
+            Error(FieldRequiredBeforeReleaseErr, SpendRequest.FieldCaption("Requested For"), SpendRequest.GetDocumentTypeDescription());
+        if SpendRequest."Expected Start Date" = 0D then
+            Error(FieldRequiredBeforeReleaseErr, SpendRequest.FieldCaption("Expected Start Date"), SpendRequest.GetDocumentTypeDescription());
+        if SpendRequest."Expected End Date" = 0D then
+            Error(FieldRequiredBeforeReleaseErr, SpendRequest.FieldCaption("Expected End Date"), SpendRequest.GetDocumentTypeDescription());
 
         if not SpendRequest."Travel Policy Acknowledgment" then
-            Error(PolicyNotAcknowledgedErr);
+            Error(PolicyNotAcknowledgedErr, SpendRequest.GetDocumentTypeDescription());
 
         if SpendRequest."International Travel" and (SpendRequest."Dest. Country/Region Code" = '') then
             Error(DestinationRequiredErr, SpendRequest.FieldCaption("Dest. Country/Region Code"));
 
         Traveler.SetRange("Spend Request No.", SpendRequest."No.");
         if Traveler.IsEmpty() then
-            Error(NoTravelersErr);
+            Error(NoTravelersErr, SpendRequest.GetDocumentTypeDescription());
     end;
 
     local procedure AutoApproveSpendRequestWhenAgentDisabled(var SpendRequest: Record "Spend Request")
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
     begin
+        if SpendRequest."Document Type" <> SpendRequest."Document Type"::"Travel Request" then
+            exit;
+
         if SpendRequest.Status <> SpendRequest.Status::Released then
             exit;
 
-        // Without the agent there is no approver, so a released request is approved right away.
+        // Without the agent there is no approver, so a Releaseted request is approved right away.
         ExpenseAgentSetup.GetRecordOnce();
         if ExpenseAgentSetup."Enable Agent" then
             exit;

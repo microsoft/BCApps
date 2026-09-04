@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "description": "Germany-specific PEPPOL BIS 3.0 customizations for electronic invoicing, including buyer reference handling, supplier contact fallback, and German validation rules.",
   "brief": "PEPPOL BIS 3.0 DE localization.",
-  "version": "29.0.0.0",
+  "version": "30.0.0.0",
   "logo": "ExtensionLogo.png",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
@@ -14,10 +14,16 @@
   "propagateDependencies": true,
   "dependencies": [
     {
+      "id": "e1d97edc-c239-46b4-8d84-6368bdf67c8b",
+      "name": "E-Document Core",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
       "id": "e1966889-b5fb-4fda-a84c-ea71b590e1a9",
       "name": "PEPPOL",
       "publisher": "Microsoft",
-      "version": "29.0.0.0"
+      "version": "30.0.0.0"
     }
   ],
   "internalsVisibleTo": [],
@@ -28,7 +34,7 @@
       "to": 37449
     }
   ],
-  "application": "29.0.0.0",
+  "application": "30.0.0.0",
   "features": [
     "NoImplicitWith",
     "TranslationFile"

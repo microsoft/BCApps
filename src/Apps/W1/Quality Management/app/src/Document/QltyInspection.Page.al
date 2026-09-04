@@ -861,6 +861,10 @@ page 20406 "Qlty. Inspection"
         UpdateControlVisibilityStates(true);
     end;
 
+    /// <summary>
+    /// Updates action availability, source-field visibility, and status styles for the current inspection.
+    /// </summary>
+    /// <param name="UpdateCurrPageNoModify">Specifies whether to refresh the page without saving the record.</param>
     local procedure UpdateControlVisibilityStates(UpdateCurrPageNoModify: Boolean)
     var
         TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
@@ -918,6 +922,10 @@ page 20406 "Qlty. Inspection"
             CurrPage.Update(false);
     end;
 
+    /// <summary>
+    /// Builds the page caption from the inspection and its source information.
+    /// </summary>
+    /// <returns>The caption for the current inspection.</returns>
     local procedure GetDataCaptionExpression(): Text
     var
         QltyExpressionMgmt: Codeunit "Qlty. Expression Mgmt.";

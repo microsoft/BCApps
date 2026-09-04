@@ -8,16 +8,22 @@ pageextension 20631 "Purchase Agent Activities BF" extends "Purchase Agent Activ
 {
     actions
     {
+#pragma warning disable AL0611 // Accepted: the CueGroup action modification is intentional and works as designed.
         modify("New Purchase Order")
+#pragma warning restore AL0611
         {
             ApplicationArea = Advanced, BFOrders;
         }
+#pragma warning disable AL0611 // Accepted: the CueGroup action modification is intentional and works as designed.
         modify("New Purchase Quote")
+#pragma warning restore AL0611
         {
             ApplicationArea = Advanced, BFOrders;
         }
 
+#pragma warning disable AL0611 // Accepted: the CueGroup action modification is intentional and works as designed.
         modify("New Purchase Return Order")
+#pragma warning restore AL0611
         {
             ApplicationArea = Advanced, BFOrders;
         }

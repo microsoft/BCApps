@@ -91,7 +91,9 @@ table 6240 "Sust. Excise Jnl. Line"
             ObsoleteTag = '28.0';
 #else
             ObsoleteState = Removed;
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 #endif
         }
         field(9; "Account Name"; Text[100])
@@ -104,7 +106,9 @@ table 6240 "Sust. Excise Jnl. Line"
             ObsoleteTag = '28.0';
 #else
             ObsoleteState = Removed;
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 #endif
         }
         field(10; "Account Category"; Code[20])
@@ -118,7 +122,9 @@ table 6240 "Sust. Excise Jnl. Line"
             ObsoleteTag = '28.0';
 #else
             ObsoleteState = Removed;
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 #endif
         }
         field(11; "Account Subcategory"; Code[20])
@@ -131,7 +137,9 @@ table 6240 "Sust. Excise Jnl. Line"
             ObsoleteTag = '28.0';
 #else
             ObsoleteState = Removed;
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
 #endif
         }
 #endif
