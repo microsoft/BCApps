@@ -686,6 +686,29 @@ codeunit 139687 "Recurring Billing Docs Test"
     end;
 
     [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure CheckSingleContractSalesInvoiceHeaderExternalDocumentNo()
+    var
+        ExternalDocumentNo: Code[35];
+    begin
+        Initialize();
+        LibrarySetupStorage.Save(Database::"Subscription Contract Setup");
+        SetupBasicBillingProposal(Enum::"Service Partner"::Customer);
+        ExternalDocumentNo := CopyStr(LibraryRandom.RandText(MaxStrLen(CustomerContract."External Document No.")), 1, MaxStrLen(CustomerContract."External Document No."));
+        CustomerContract.Validate("External Document No.", ExternalDocumentNo);
+        CustomerContract.Modify(false);
+
+        CreateBillingDocuments();
+
+        BillingLine.FindLast();
+        SalesHeader.Get(Enum::"Sales Document Type"::Invoice, BillingLine."Document No.");
+        SalesHeader.TestField("External Document No.", ExternalDocumentNo);
+
+        PostAndGetSalesInvoiceHeaderFromRecurringBilling();
+        SalesInvoiceHeader.TestField("External Document No.", ExternalDocumentNo);
+    end;
+
+    [Test]
     [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,MessageHandler')]
     procedure PostRecurringBillingInvoiceWithZeroQuantity()
     var
