@@ -244,17 +244,25 @@ codeunit 7002 "Price Calculation - V16" implements "Price Calculation"
     local procedure PickBestLine(AmountType: Enum "Price Amount Type"; PriceListLine: Record "Price List Line"; var BestPriceListLine: Record "Price List Line"; var FoundBestLine: Boolean)
     var
         IsHandled: Boolean;
+        DiscountIsDeclared: Boolean;
     begin
         IsHandled := false;
         OnBeforePickBestLine(AmountType, PriceListLine, BestPriceListLine, FoundBestLine, IsHandled);
         if IsHandled then
             exit;
 
+        // On an "Any" line a zero discount cannot be told apart from an unset field, so only a Discount line declares it.
+        DiscountIsDeclared :=
+            (PriceListLine."Amount Type" = PriceListLine."Amount Type"::Discount) or
+            (PriceListLine."Line Discount %" > 0);
+
         if IsImprovedLine(PriceListLine, BestPriceListLine) or not IsDegradedLine(PriceListLine, BestPriceListLine) then begin
             if IsImprovedLine(PriceListLine, BestPriceListLine) and not IsDegradedLine(PriceListLine, BestPriceListLine) then
-                if (AmountType <> AmountType::Discount) or (PriceListLine."Line Discount %" > 0) then
+                if (AmountType <> AmountType::Discount) or DiscountIsDeclared then
                     Clear(BestPriceListLine);
-            if IsBetterLine(PriceListLine, AmountType, BestPriceListLine) then begin
+            if IsBetterLine(PriceListLine, AmountType, BestPriceListLine) or
+               ((AmountType = AmountType::Discount) and DiscountIsDeclared and not BestPriceListLine.IsRealLine())
+            then begin
                 BestPriceListLine := PriceListLine;
                 FoundBestLine := true;
             end;
