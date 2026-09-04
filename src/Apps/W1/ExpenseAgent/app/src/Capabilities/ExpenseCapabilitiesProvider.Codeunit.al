@@ -38,6 +38,8 @@ codeunit 6906 "Expense Capabilities Provider"
                 exit(IsAiAssistedPolicyEvaluationEnabled());
             Capability::MileageRateSetup:
                 exit(true);
+            Capability::ApprovalConversation:
+                exit(true);
         end;
         exit(false);
     end;

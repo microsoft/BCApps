@@ -15,10 +15,6 @@
       "justification": "The application app shouldn't point at itself."
     },
     {
-      "id": "AL0254",
-      "action": "Warning"
-    },
-    {
       "id": "AL0424",
       "action": "Warning",
       "justification": "Bug 472148. The multilanguage syntax is being deprecated. Please update to the new syntax."
@@ -230,11 +226,6 @@
       "justification": "The OptionCaption property for must be filled in."
     },
     {
-      "id": "AA0224",
-      "action": "Warning",
-      "justification": "The count of option captions specified in the OptionCaption property is wrong."
-    },
-    {
       "id": "AA0225",
       "action": "Warning",
       "justification": ": The Caption property for must be filled in."
@@ -263,11 +254,6 @@
       "id": "AA0240",
       "action": "Warning",
       "justification": "The Label must not contain email addresses or phone numbers."
-    },
-    {
-      "id": "AA0242",
-      "action": "Warning",
-      "justification": "Field is not selected for loading and accessing it may cause a JIT load."
     },
     {
       "id": "AA0244",
@@ -309,11 +295,6 @@
       "justification": "Action should have a value for the Image property."
     },
     {
-      "id": "AW0007",
-      "action": "Warning",
-      "justification": "The FlowFilter field in the Repeater control cannot be displayed by the Web client."
-    },
-    {
       "id": "AW0009",
       "action": "Warning",
       "justification": "Using a Blob with subtype Bitmap on a page field is deprecated. "
@@ -344,10 +325,6 @@
     },
     {
       "id": "AL0603",
-      "action": "Warning"
-    },
-    {
-      "id": "AL0523",
       "action": "Warning"
     },
     {

@@ -491,32 +491,6 @@ page 6991 "Expense Agent Setup Wizard"
                         end;
                     }
                 }
-
-                group(EvaluatePoliciesSection)
-                {
-                    Caption = 'Evaluate policies with AI';
-                    InstructionalText = 'Leverage AI to evaluate natural language policies defined for your organization.';
-                    field("Evaluate Policies"; Rec."Evaluate Policies")
-                    {
-                        ShowCaption = false;
-
-                        ToolTip = 'Specifies whether the agent evaluates expenses against the configured policies. Rules are evaluated by code, while policies are evaluated by AI, so enabling this consumes additional AI credits.';
-
-                        trigger OnValidate()
-                        var
-                            ExpensePoliciesPage: Page "Expense Policies";
-                        begin
-                            if Rec."Evaluate Policies" and (not xRec."Evaluate Policies") then begin
-                                if not Confirm(ActivatePolicyEvalQst, false) then
-                                    Error('');
-                                ExpensePoliciesPage.Editable(true);
-                                ExpensePoliciesPage.RunModal();
-                            end;
-                            ConfigUpdated();
-                        end;
-                    }
-                }
-
                 group(DetectOutdatedExpenseSection)
                 {
                     ShowCaption = false;
@@ -585,6 +559,60 @@ page 6991 "Expense Agent Setup Wizard"
                     }
                 }
 
+            }
+            group(EvaluatePoliciesTab)
+            {
+                Caption = 'Policy compliance';
+
+                group(EvaluatePoliciesSection)
+                {
+                    Caption = 'Evaluate compliance with AI';
+                    InstructionalText = 'Use AI to evaluate compliance according to organization guidelines.';
+                    field("Evaluate Policies"; Rec."Evaluate Policies")
+                    {
+                        ShowCaption = false;
+                        ToolTip = 'Specifies whether the agent evaluates expenses against the configured policies. Rules are evaluated by code, while policies are evaluated by AI, so enabling this consumes additional AI credits.';
+
+                        trigger OnValidate()
+                        begin
+                            if Rec."Evaluate Policies" and (not xRec."Evaluate Policies") then
+                                if not Confirm(ActivatePolicyEvalQst, false) then
+                                    Error('');
+                            ConfigUpdated();
+                        end;
+                    }
+                    field(ExpensePoliciesLink; ExpensePoliciesLinkTxt)
+                    {
+                        ShowCaption = false;
+                        Editable = false;
+                        ToolTip = 'Specifies a link that opens the expense policies.';
+
+                        trigger OnDrillDown()
+                        var
+                            ExpensePoliciesPage: Page "Expense Policies";
+                        begin
+                            ExpensePoliciesPage.Editable(true);
+                            ExpensePoliciesPage.RunModal();
+                        end;
+                    }
+                    group(SubmitterRunEvaluationSection)
+                    {
+                        Caption = 'Enable pre-submission evaluation';
+                        InstructionalText = 'Let submitters run a compliance evaluation of the expense reports.';
+                        Enabled = Rec."Evaluate Policies";
+
+                        field("Submitter-run Evaluation"; Rec."Submitter-run Evaluation")
+                        {
+                            ShowCaption = false;
+                            ToolTip = 'Specifies whether submitters can run an AI evaluation to check expense reports for compliance before submitting them.';
+
+                            trigger OnValidate()
+                            begin
+                                ConfigUpdated();
+                            end;
+                        }
+                    }
+                }
             }
             group(CommunicationGroup)
             {
@@ -942,6 +970,7 @@ page 6991 "Expense Agent Setup Wizard"
         LocationsAppliedLinkTxt: Label 'View expense locations including new defaults';
         RulesLinkTxt: Label 'Preview the default management rules that will be added';
         RulesAppliedLinkTxt: Label 'View management rules including new defaults';
+        ExpensePoliciesLinkTxt: Label 'View expense policies';
         NoSeriesLinkTxt: Label 'Preview the default number series that will be added';
         NoSeriesAppliedLinkTxt: Label 'View number series including new defaults';
         ExpenseDashboardLinkTxt: Label 'Go to Expense app (opens in new window)';
