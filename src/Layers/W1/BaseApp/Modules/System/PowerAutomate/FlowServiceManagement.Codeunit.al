@@ -32,6 +32,8 @@ codeunit 6400 "Flow Service Management"
         EmptyAccessTokenTelemetryMsg: Label 'Encountered an empty access token for Power Automate services.', Locked = true;
         EmptyPowerPlatformTenantTelemetryMsg: Label 'Encountered an empty Power Platform Tenant URL for Power Automate services.', Locked = true;
         LinkedEnvironmentLookupFailedMsg: Label 'Failed to retrieve the linked Power Platform environment ID. Scenario: %1. Error code: %2.', Locked = true, Comment = '%1: Power Platform scenario, %2: Error code';
+        EmptyEnvironmentResponseTelemetryMsg: Label 'Received an empty response when retrieving the list of Power Automate environments.', Locked = true;
+        PowerPlatformTenantLookupFailedMsg: Label 'Failed to determine the Power Platform tenant URL for Power Automate services.', Locked = true;
         PowerAutomateURLTelemetryMsg: Label 'Power Automate Environment URL: %1', Locked = true, Comment = '%1: URL used to access Power Automate environments';
         PowerAutomatePickerTelemetryCategoryLbl: Label 'AL Power Automate Environment Picker', Locked = true;
         MicrosoftPowerAutomatePrivacyIdTxt: Label 'Power Automate', Locked = true;
@@ -138,7 +140,14 @@ codeunit 6400 "Flow Service Management"
                 Session.LogMessage('0000MJX', EmptyAccessTokenTelemetryMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PowerAutomatePickerTelemetryCategoryLbl);
 
             // Gets a list of Flow user environments from the Flow API.
-            FlowEnvironmentsUrl := GetFlowEnvironmentsApi();
+            if not TryGetFlowEnvironmentsApi(FlowEnvironmentsUrl) then begin
+                // The tenant URL could not be resolved because of an unexpected failure, which is not the same as
+                // the tenant genuinely not being linked to Power Platform. Do not show the misleading setup message.
+                Session.LogMessage('0000Q7D', PowerPlatformTenantLookupFailedMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PowerAutomatePickerTelemetryCategoryLbl);
+                ClearLastError();
+                Error(GenericErr);
+            end;
+
             if FlowEnvironmentsUrl = '' then
                 Error(PowerPlatformTenantNotConfiguredErr);
 
@@ -148,7 +157,9 @@ codeunit 6400 "Flow Service Management"
         end;
 
         if ResponseText <> '' then
-            ParseResponseTextForEnvironments(ResponseText, TempFlowUserEnvironmentBuffer);
+            ParseResponseTextForEnvironments(ResponseText, TempFlowUserEnvironmentBuffer)
+        else
+            Session.LogMessage('0000Q7C', EmptyEnvironmentResponseTelemetryMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PowerAutomatePickerTelemetryCategoryLbl);
     end;
 
     procedure ParseResponseTextForEnvironments(ResponseText: Text; var TempFlowUserEnvironmentBuffer: Record "Flow User Environment Buffer" temporary)
