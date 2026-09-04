@@ -47,13 +47,16 @@ table 6534 "Item Tracking Code Change Log"
         {
             Clustered = true;
         }
+        key(PreviousItemTrackingCode; "Previous Item Tracking Code")
+        {
+        }
     }
 
     trigger OnInsert()
     begin
         TestField("Item No.");
         if "Change Date" = 0D then
-            "Change Date" := Today;
+            "Change Date" := WorkDate();
         if "Previous Item Tracking Code" = "New Item Tracking Code" then
             Error(TrackingCodesMustDifferErr);
     end;
