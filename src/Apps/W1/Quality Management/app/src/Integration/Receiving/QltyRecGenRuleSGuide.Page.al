@@ -707,13 +707,16 @@ page 20461 "Qlty. Rec. Gen. Rule S. Guide"
     end;
 
     /// <summary>
-    /// Intended to help initialize default values.
+    /// Initializes the default values used by the receiving generation rule setup guide.
     /// </summary>
     local procedure InitializeDefaultValues()
     begin
         InitializeDefaultTemplate();
     end;
 
+    /// <summary>
+    /// Selects the most recently modified inspection template when no template is selected.
+    /// </summary>
     local procedure InitializeDefaultTemplate()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -727,6 +730,10 @@ page 20461 "Qlty. Rec. Gen. Rule S. Guide"
             TemplateCode := QltyInspectionTemplateHdr.Code;
     end;
 
+    /// <summary>
+    /// Moves the setup guide to a bounded step and updates the navigation state.
+    /// </summary>
+    /// <param name="Step">The requested step number.</param>
     local procedure ChangeToStep(Step: Integer);
     begin
         if Step < 1 then
@@ -773,6 +780,11 @@ page 20461 "Qlty. Rec. Gen. Rule S. Guide"
         CurrPage.Update(true);
     end;
 
+    /// <summary>
+    /// Validates the template when moving forward and redirects to the template step when necessary.
+    /// </summary>
+    /// <param name="LeavingThisStep">The step being left.</param>
+    /// <param name="MovingToThisStep">The destination step, which may be changed by validation.</param>
     local procedure LeavingStepMovingForward(LeavingThisStep: Integer; var MovingToThisStep: Integer);
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
@@ -785,6 +797,9 @@ page 20461 "Qlty. Rec. Gen. Rule S. Guide"
                 end;
     end;
 
+    /// <summary>
+    /// Opens the purchase line filter editor and synchronizes the selected filters with the guide fields.
+    /// </summary>
     local procedure AssistEditFullPurchaseLineFilter()
     begin
         TempQltyInspectionGenRule."Source Table No." := Database::"Purchase Line";
@@ -799,6 +814,9 @@ page 20461 "Qlty. Rec. Gen. Rule S. Guide"
         end;
     end;
 
+    /// <summary>
+    /// Opens the sales return line filter editor and synchronizes the selected filters with the guide fields.
+    /// </summary>
     local procedure AssistEditFullSalesReturnLineFilter()
     begin
         TempQltyInspectionGenRule."Source Table No." := Database::"Sales Line";
@@ -813,6 +831,9 @@ page 20461 "Qlty. Rec. Gen. Rule S. Guide"
         end;
     end;
 
+    /// <summary>
+    /// Opens the transfer line filter editor and synchronizes the selected filters with the guide fields.
+    /// </summary>
     local procedure AssistEditFullTransferLineFilter()
     begin
         TempQltyInspectionGenRule."Source Table No." := Database::"Transfer Line";
@@ -827,6 +848,9 @@ page 20461 "Qlty. Rec. Gen. Rule S. Guide"
         end;
     end;
 
+    /// <summary>
+    /// Opens the warehouse journal line filter editor and synchronizes the selected filters with the guide fields.
+    /// </summary>
     local procedure AssistEditFullWarehouseJournalLineFilter()
     begin
         TempQltyInspectionGenRule."Source Table No." := Database::"Warehouse Journal Line";
@@ -841,6 +865,9 @@ page 20461 "Qlty. Rec. Gen. Rule S. Guide"
         end;
     end;
 
+    /// <summary>
+    /// Opens the item filter editor and synchronizes the selected filters with the guide fields.
+    /// </summary>
     local procedure AssistEditFullItemFilter()
     begin
         TempQltyInspectionGenRule."Item Filter" := ItemRule;
@@ -853,6 +880,9 @@ page 20461 "Qlty. Rec. Gen. Rule S. Guide"
         end;
     end;
 
+    /// <summary>
+    /// Removes redundant WHERE clauses from the active receiving source filter and item filter views.
+    /// </summary>
     local procedure CleanUpWhereClause()
     begin
         if IsPurchaseLine then
@@ -870,18 +900,27 @@ page 20461 "Qlty. Rec. Gen. Rule S. Guide"
         ItemRule := QltyFilterHelpers.CleanUpWhereClause2048(ItemRule);
     end;
 
+    /// <summary>
+    /// Moves the setup guide to the previous step.
+    /// </summary>
     local procedure BackAction();
     begin
         CurrPage.Update(true);
         ChangeToStep(CurrentStepCounter - 1);
     end;
 
+    /// <summary>
+    /// Moves the setup guide to the next step.
+    /// </summary>
     local procedure NextAction();
     begin
         CurrPage.Update(true);
         ChangeToStep(CurrentStepCounter + 1);
     end;
 
+    /// <summary>
+    /// Creates or updates the selected receiving generation rule and closes the setup guide.
+    /// </summary>
     local procedure FinishAction();
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -952,6 +991,10 @@ page 20461 "Qlty. Rec. Gen. Rule S. Guide"
         CurrPage.Close();
     end;
 
+    /// <summary>
+    /// Resolves the source table for the receiving intent selected in the guide.
+    /// </summary>
+    /// <returns>The database table ID for the selected receiving source.</returns>
     local procedure DetermineSourceTableNoForCurrentIntent(): Integer
     begin
         case true of
@@ -969,12 +1012,13 @@ page 20461 "Qlty. Rec. Gen. Rule S. Guide"
     end;
 
     /// <summary>
+    /// Runs the setup guide using the supplied generation rule as its initial state.
     /// Start the setup guide using this generation rule as a pre-requisite.
     /// Use this to edit an existing rule.
     /// You can also use it to start a new rule with a default template by supplying a template filter.
     /// </summary>
-    /// <param name="QltyInspectionGenRule"></param>
-    /// <returns></returns>
+    /// <param name="QltyInspectionGenRule">The generation rule to create or edit.</param>
+    /// <returns>The action used to close the setup guide.</returns>
     internal procedure RunModalWithGenerationRule(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"): Action
     begin
         TempQltyInspectionGenRule := QltyInspectionGenRule;
@@ -1018,6 +1062,9 @@ page 20461 "Qlty. Rec. Gen. Rule S. Guide"
         exit(CurrPage.RunModal());
     end;
 
+    /// <summary>
+    /// Builds the active receiving source and item filter views from the guide fields and validates their lengths.
+    /// </summary>
     [TryFunction]
     local procedure UpdateFullTextRuleStringsFromFilters()
     begin
@@ -1070,6 +1117,9 @@ page 20461 "Qlty. Rec. Gen. Rule S. Guide"
             Error(FilterLengthErr, MaxStrLen(TempQltyInspectionGenRule."Item Filter"));
     end;
 
+    /// <summary>
+    /// Copies the active receiving source and item record filters into the guide fields.
+    /// </summary>
     local procedure UpdateTableVariablesFromRecordFilters()
     begin
         if IsPurchaseLine then begin

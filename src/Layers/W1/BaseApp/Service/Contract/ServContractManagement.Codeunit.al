@@ -2620,7 +2620,13 @@ codeunit 5940 ServContractManagement
     procedure CheckServiceItemBlockedForAll(var ServiceContractLine: Record "Service Contract Line")
     var
         ServiceItem: Record "Service Item";
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeCheckServiceItemBlockedForAll(ServiceContractLine, IsHandled);
+        if IsHandled then
+            exit;
+
         if ServiceContractLine."Service Item No." = '' then
             exit;
 
@@ -2635,7 +2641,13 @@ codeunit 5940 ServContractManagement
     var
         Item: Record Item;
         ItemVariant: Record "Item Variant";
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeCheckItemServiceBlocked(ServiceContractLine, IsHandled);
+        if IsHandled then
+            exit;
+
         if ServiceContractLine."Item No." = '' then
             exit;
 
@@ -2652,6 +2664,16 @@ codeunit 5940 ServContractManagement
         end;
     end;
     # endregion Item Service Blocked checks
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckServiceItemBlockedForAll(var ServiceContractLine: Record "Service Contract Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckItemServiceBlocked(var ServiceContractLine: Record "Service Contract Line"; var IsHandled: Boolean)
+    begin
+    end;
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcContractLineAmount(AnnualAmount: Decimal; PeriodStarts: Date; PeriodEnds: Date; var AmountCalculated: Decimal)

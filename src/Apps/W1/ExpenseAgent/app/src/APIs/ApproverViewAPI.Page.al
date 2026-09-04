@@ -50,7 +50,7 @@ page 6969 "Approver View API"
                     EntityName = 'expenseReport';
                     EntitySetName = 'expenseReports';
                     SubPageLink = "Pending Approval By" = field("No."),
-                                    Status = const("Pending Approval");
+                                    Status = filter("Pending Approval" | "Interim Approved");
                 }
             }
         }

@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Inventory.Item;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.WorkCenter;
@@ -11,8 +12,37 @@ using Microsoft.Manufacturing.WorkCenter;
 codeunit 139988 "Subc. Setup Library"
 {
     var
+        LibraryERM: Codeunit "Library - ERM";
         LibraryInventory: Codeunit "Library - Inventory";
         SubCreateProdOrdWizLibrary: Codeunit "Subc. CreateProdOrdWizLibrary";
+
+    /// <summary>
+    /// Ensures that the specified general posting setup is unblocked and has a direct cost applied account.
+    /// </summary>
+    /// <param name="GenBusPostingGroup">The general business posting group.</param>
+    /// <param name="GenProdPostingGroup">The general product posting group.</param>
+    procedure EnsureGeneralPostingSetupIsValid(GenBusPostingGroup: Code[20]; GenProdPostingGroup: Code[20])
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+    begin
+        if GeneralPostingSetup.Get(GenBusPostingGroup, GenProdPostingGroup) then begin
+            if GeneralPostingSetup.Blocked then begin
+                GeneralPostingSetup.Blocked := false;
+                GeneralPostingSetup.Modify();
+            end;
+        end else begin
+            GeneralPostingSetup.Init();
+            GeneralPostingSetup."Gen. Bus. Posting Group" := GenBusPostingGroup;
+            GeneralPostingSetup."Gen. Prod. Posting Group" := GenProdPostingGroup;
+            GeneralPostingSetup.Insert();
+            GeneralPostingSetup.SuggestSetupAccounts();
+        end;
+
+        if GeneralPostingSetup."Direct Cost Applied Account" = '' then begin
+            GeneralPostingSetup."Direct Cost Applied Account" := LibraryERM.CreateGLAccountNo();
+            GeneralPostingSetup.Modify();
+        end;
+    end;
 
     procedure InitSetupFields()
     var

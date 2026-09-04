@@ -2,14 +2,15 @@
   "id": "ff3a51e8-948c-42f8-9ff6-65128effe9d0",
   "name": "Tests-SINGLESERVER-Internal",
   "publisher": "Microsoft",
-  "version": "29.0.0.0",
+  "version": "30.0.0.0",
   "platform": "29.0.0.0",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
   "dependencies": [
     {
       "id": "5d86850b-0d76-4eca-bd7b-951ad998e997",
       "name": "Tests-TestLibraries",
       "publisher": "Microsoft",
-      "version": "29.0.0.0"
+      "version": "30.0.0.0"
     }
   ],
   "target": "OnPrem",
@@ -18,5 +19,5 @@
     "allowDownloadingSource": true,
     "includeSourceInSymbolFile": true
   },
-  "application": "29.0.0.0"
+  "application": "30.0.0.0"
 }

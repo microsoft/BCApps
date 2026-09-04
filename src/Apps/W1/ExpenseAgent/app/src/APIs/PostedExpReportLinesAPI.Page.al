@@ -183,11 +183,11 @@ page 6913 "Posted Exp. Report Lines API"
                 }
                 field(spendRequestNo; Rec."Spend Request No.")
                 {
-                    Caption = 'Spend Request No.';
+                    Caption = 'Travel Request No.';
                 }
                 field(spendRequestClose; Rec."Spend Request Close")
                 {
-                    Caption = 'Spend Request Close';
+                    Caption = 'Travel Request Close';
                 }
                 field(purchaseInvoice; Rec."Purchase Invoice")
                 {
@@ -302,6 +302,12 @@ page 6913 "Posted Exp. Report Lines API"
                     EntityName = 'postedExpenseReportLineAttachment';
                     EntitySetName = 'postedExpenseReportLineAttachments';
                     SubPageLink = "Document Id" = field(SystemId);
+                }
+                part(expensePolicyEvaluations; "Posted Policy Evaluations API")
+                {
+                    EntityName = 'postedExpensePolicyEvaluation';
+                    EntitySetName = 'postedExpensePolicyEvaluations';
+                    SubPageLink = "Subject System Id" = field(SystemId), "Subject Type" = const("Expense Report Line");
                 }
             }
         }

@@ -1570,6 +1570,7 @@ UpdateDifferenceAmount(SalesHeader, TotalPrepmtInvLineBuffer, TempPrepmtInvLineB
         SalesLine.SetFilter(Type, '<>%1', SalesLine.Type::" ");
         SalesLine.SetFilter("Line Amount", '<>0');
         SalesLine.SetFilter("Prepayment %", '<>0');
+        OnUpdatePrepmtAmountOnSaleslinesOnAfterSetFilters(SalesLine, SalesHeader, NewTotalPrepmtAmount);
         SalesLine.LockTable();
         if SalesLine.Find('-') then
             repeat
@@ -1596,6 +1597,7 @@ UpdateDifferenceAmount(SalesHeader, TotalPrepmtInvLineBuffer, TempPrepmtInvLineB
                 else
                     SalesLine.Validate("Prepmt. Line Amount", NewTotalPrepmtAmount - TotalPrepmtAmount);
                 TotalPrepmtAmount := TotalPrepmtAmount + SalesLine."Prepmt. Line Amount";
+                OnUpdatePrepmtAmountOnSaleslinesOnBeforeModify(SalesLine, SalesHeader, NewTotalPrepmtAmount, TotalPrepmtAmount);
                 SalesLine.Modify();
             until SalesLine.Next() = 0;
     end;
@@ -1695,6 +1697,7 @@ UpdateDifferenceAmount(SalesHeader, TotalPrepmtInvLineBuffer, TempPrepmtInvLineB
             SalesHeader."Last Prepmt. Cr. Memo No." := GenJnlLineDocNo;
             SalesHeader."Prepmt. Cr. Memo No." := '';
             SalesLine.SetFilter("Prepmt. Amt. Inv.", '<>0');
+            OnUpdateSalesDocumentOnBeforeFindSetCreditMemoSalesLine(SalesHeader, SalesLine);
             if SalesLine.FindSet(true) then
                 repeat
                     SalesLine."Prepmt. Amt. Inv." := SalesLine."Prepmt Amt Deducted";
@@ -2644,6 +2647,16 @@ UpdateDifferenceAmount(SalesHeader, TotalPrepmtInvLineBuffer, TempPrepmtInvLineB
     end;
 
     /// <summary>
+    /// Raised before finding the credit memo sales lines during prepayment document update.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="SalesLine">The sales lines to be filtered.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdateSalesDocumentOnBeforeFindSetCreditMemoSalesLine(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line")
+    begin
+    end;
+
+    /// <summary>
     /// Raised before modifying the sales line during credit memo prepayment document update.
     /// </summary>
     /// <param name="SalesLine">The sales line to be modified.</param>
@@ -2733,6 +2746,29 @@ UpdateDifferenceAmount(SalesHeader, TotalPrepmtInvLineBuffer, TempPrepmtInvLineB
     /// <param name="IsHandled">Set to true to skip the default update logic.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdatePrepmtAmountOnSaleslines(SalesHeader: Record "Sales Header"; NewTotalPrepmtAmount: Decimal; var IsHandled: Boolean);
+    begin
+    end;
+
+    /// <summary>
+    /// Raised after setting filters on sales lines when updating prepayment amounts.
+    /// </summary>
+    /// <param name="SalesLine">The filtered sales lines.</param>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="NewTotalPrepmtAmount">The new total prepayment amount.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdatePrepmtAmountOnSaleslinesOnAfterSetFilters(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; var NewTotalPrepmtAmount: Decimal)
+    begin
+    end;
+
+    /// <summary>
+    /// Raised before modifying a sales line with its updated prepayment amount.
+    /// </summary>
+    /// <param name="SalesLine">The sales line to modify.</param>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="NewTotalPrepmtAmount">The new total prepayment amount.</param>
+    /// <param name="TotalPrepmtAmount">The accumulated prepayment amount.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdatePrepmtAmountOnSaleslinesOnBeforeModify(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; var NewTotalPrepmtAmount: Decimal; var TotalPrepmtAmount: Decimal)
     begin
     end;
 

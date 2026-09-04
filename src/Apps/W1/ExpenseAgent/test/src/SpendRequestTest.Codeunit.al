@@ -10,7 +10,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SpendRequest;
 using Microsoft.HumanResources.Employee;
 
-codeunit 148338 "Spend Request Test"
+codeunit 148339 "Spend Request Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
@@ -24,17 +24,19 @@ codeunit 148338 "Spend Request Test"
         IsInitialized: Boolean;
         CloseConfirmReply: Boolean;
         CloseConfirmCount: Integer;
-        NotTravelerErr: Label 'is not a traveler on Spend Request', Locked = true;
+        NotTravelerErr: Label 'is not a traveler on Travel Request', Locked = true;
         PolicyErr: Label 'acknowledge the travel policy', Locked = true;
         NoTravelersErr: Label 'add at least one traveler', Locked = true;
+        FieldRequiredErr: Label 'You must specify', Locked = true;
+        StatusNotOpenErr: Label 'must have the status', Locked = true;
         DestinationErr: Label 'is required for international travel', Locked = true;
-        CloseConfirmTok: Label 'close spend request', Locked = true;
+        CloseConfirmTok: Label 'want to close', Locked = true;
         ClosePromptOnceMsg: Label 'The close spend request confirmation should be shown exactly once.';
         SpendReqClosedMsg: Label 'The spend request should be closed after posting.';
         SpendReqNotClosedMsg: Label 'The spend request should not be closed when the confirmation is declined.';
         HeaderSpendReqRemainsApprovedMsg: Label 'The header spend request should remain approved when a line overrides it.';
         ClosedByDocMsg: Label 'Closed By Document No. should be set on the closed spend request.';
-        SpendReqReleasedMsg: Label 'The spend request should be released.';
+        SpendReqReleasedMsg: Label 'The spend request should be Released.';
         SpendReqApprovedMsg: Label 'The spend request should be approved automatically when the agent is disabled.';
         SpendReqNoSetMsg: Label 'The Spend Request No. should be assigned to the expense report line.';
         HeaderSpendReqNoSetMsg: Label 'The Spend Request No. should be assigned to the expense report header.';
@@ -44,6 +46,11 @@ codeunit 148338 "Spend Request Test"
         SpendReqClearedMsg: Label 'The Spend Request No. should be cleared when the line becomes non-refundable.';
         SpendReqCloseClearedMsg: Label 'The Spend Request Close flag should be cleared when the line becomes non-refundable.';
         SpendReqLinkPreviewMsg: Label 'The Spend Request To G/L Link entries should be shown in the expense report posting preview.';
+        BlankSpendReqReleasedMsg: Label 'A blank spend request should release without the travel prerequisites and without agent auto-approval.';
+        CategoryStoredMsg: Label 'The expense category should be stored on the Category line.';
+        CategoryClearedMsg: Label 'The expense category should be cleared when the line is not a Category line.';
+        MixedTypesMsg: Label 'Category and Lump Sum lines should coexist on the same travel request.';
+        CategoryLineOnlyErr: Label 'You can select an %1 only when %2 is %3.', Locked = true;
 
     [Test]
     [HandlerFunctions('SpendReqConfirmHandler')]
@@ -131,7 +138,7 @@ codeunit 148338 "Spend Request Test"
         // [GIVEN] A refundable expense report line for an expense user.
         CreateExpenseReportWithRefundableLine(ExpenseReportLine, ExpenseUser, true);
 
-        // [GIVEN] A released (not approved) spend request with the user as a traveler.
+        // [GIVEN] A Release (not approved) spend request with the user as a traveler.
         CreateSpendRequestWithTraveler(SpendRequest, ExpenseUser."No.", SpendRequest.Status::Released);
 
         // [WHEN] The spend request is selected on the line.
@@ -190,11 +197,11 @@ codeunit 148338 "Spend Request Test"
         SpendRequest.Validate("Travel Policy Acknowledgment", true);
         SpendRequest.Modify(true);
 
-        // [WHEN] The spend request is released.
+        // [WHEN] The spend request is Released.
         asserterror ReleaseSpendRequest.Release(SpendRequest);
 
         // [THEN] Release fails because Requested For is required.
-        Assert.ExpectedErrorCode('TestField');
+        Assert.ExpectedError(FieldRequiredErr);
     end;
 
     [Test]
@@ -214,11 +221,11 @@ codeunit 148338 "Spend Request Test"
         SpendRequest."Expected Start Date" := 0D;
         SpendRequest.Modify();
 
-        // [WHEN] The spend request is released.
+        // [WHEN] The spend request is Released.
         asserterror ReleaseSpendRequest.Release(SpendRequest);
 
         // [THEN] Release fails because Expected Start Date is required.
-        Assert.ExpectedErrorCode('TestField');
+        Assert.ExpectedError(FieldRequiredErr);
     end;
 
     [Test]
@@ -238,11 +245,11 @@ codeunit 148338 "Spend Request Test"
         SpendRequest."Expected End Date" := 0D;
         SpendRequest.Modify();
 
-        // [WHEN] The spend request is released.
+        // [WHEN] The spend request is Released.
         asserterror ReleaseSpendRequest.Release(SpendRequest);
 
         // [THEN] Release fails because Expected End Date is required.
-        Assert.ExpectedErrorCode('TestField');
+        Assert.ExpectedError(FieldRequiredErr);
     end;
 
     [Test]
@@ -262,7 +269,7 @@ codeunit 148338 "Spend Request Test"
         SpendRequest.Validate("Travel Policy Acknowledgment", false);
         SpendRequest.Modify(true);
 
-        // [WHEN] The spend request is released.
+        // [WHEN] The spend request is Released.
         asserterror ReleaseSpendRequest.Release(SpendRequest);
 
         // [THEN] Release fails because the travel policy must be acknowledged.
@@ -286,7 +293,7 @@ codeunit 148338 "Spend Request Test"
         SpendRequest.Validate("International Travel", true);
         SpendRequest.Modify(true);
 
-        // [WHEN] The spend request is released.
+        // [WHEN] The spend request is Released.
         asserterror ReleaseSpendRequest.Release(SpendRequest);
 
         // [THEN] Release fails because a destination country is required for international travel.
@@ -309,7 +316,7 @@ codeunit 148338 "Spend Request Test"
         // [GIVEN] Its travelers are removed.
         DeleteTravelers(SpendRequest."No.");
 
-        // [WHEN] The spend request is released.
+        // [WHEN] The spend request is Released.
         asserterror ReleaseSpendRequest.Release(SpendRequest);
 
         // [THEN] Release fails because at least one traveler is required.
@@ -329,7 +336,7 @@ codeunit 148338 "Spend Request Test"
         // [GIVEN] A releasable spend request with every prerequisite satisfied.
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
 
-        // [WHEN] The spend request is released.
+        // [WHEN] The spend request is Released.
         ReleaseSpendRequest.Release(SpendRequest);
 
         // [THEN] The spend request is approved automatically because there is no agent to approve it.
@@ -344,19 +351,40 @@ codeunit 148338 "Spend Request Test"
         ExpenseUser: Record "Expense User";
         ReleaseSpendRequest: Codeunit "Release Spend Request";
     begin
-        // [SCENARIO 616928] With the agent enabled, releasing an expense spend request leaves it released for the agent to approve.
+        // [SCENARIO 616928] With the agent enabled, releasing an expense spend request leaves it Released for the agent to approve.
         Initialize();
         LibraryExpense.UpdateEnableAgentInAgentSetup(true);
 
         // [GIVEN] A releasable spend request with every prerequisite satisfied.
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
 
+        // [WHEN] The spend request is Released.
+        ReleaseSpendRequest.Release(SpendRequest);
+
+        // [THEN] The spend request stays Released.
+        SpendRequest.Get(SpendRequest."No.");
+        Assert.AreEqual(SpendRequest.Status::Released, SpendRequest.Status, SpendReqReleasedMsg);
+    end;
+
+    [Test]
+    procedure ReleaseBlankSpendRequestSkipsTravelPrereqs()
+    var
+        SpendRequest: Record "Spend Request";
+        ReleaseSpendRequest: Codeunit "Release Spend Request";
+    begin
+        // [SCENARIO 647134] A blank (non-travel) spend request releases without the travel prerequisites the agent enforces on travel requests.
+        Initialize();
+
+        // [GIVEN] A blank spend request with no Requested For, dates, travel policy, or travelers.
+        SpendRequest.Init();
+        SpendRequest.Insert(true);
+
         // [WHEN] The spend request is released.
         ReleaseSpendRequest.Release(SpendRequest);
 
-        // [THEN] The spend request stays released.
+        // [THEN] It releases without the travel prerequisites, and stays released because the agent auto-approval is travel-only.
         SpendRequest.Get(SpendRequest."No.");
-        Assert.AreEqual(SpendRequest.Status::Released, SpendRequest.Status, SpendReqReleasedMsg);
+        Assert.AreEqual(SpendRequest.Status::Released, SpendRequest.Status, BlankSpendReqReleasedMsg);
     end;
 
     [Test]
@@ -376,7 +404,7 @@ codeunit 148338 "Spend Request Test"
         // [GIVEN] The close is confirmed when the spend request is selected on entry.
         CloseConfirmReply := true;
 
-        // [GIVEN] An expense report with a refundable line linked to a released spend request.
+        // [GIVEN] An expense report with a refundable line linked to a Released spend request.
         CreateAndPostExpenseReportWithSpendRequest(ExpenseReportHeader, SpendRequest, 1);
 
         // [GIVEN] The refundable amount that is expected to be spent against the spend request.
@@ -384,7 +412,7 @@ codeunit 148338 "Spend Request Test"
         ExpenseReportLine.FindFirst();
         ExpectedSpentLCY := ExpenseReportLine."Refundable Amount (LCY)";
 
-        // [WHEN] The report is released and posted.
+        // [WHEN] The report is Released and posted.
         ExpenseReportHeader.PerformManualRelease();
         ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
 
@@ -418,7 +446,7 @@ codeunit 148338 "Spend Request Test"
         // [GIVEN] An expense report with a refundable line linked to an approved spend request.
         CreateAndPostExpenseReportWithSpendRequest(ExpenseReportHeader, SpendRequest, 1);
 
-        // [WHEN] The report is released and posted.
+        // [WHEN] The report is Released and posted.
         ExpenseReportHeader.PerformManualRelease();
         ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
 
@@ -452,7 +480,7 @@ codeunit 148338 "Spend Request Test"
         ExpenseReportLine.CalcSums("Refundable Amount (LCY)");
         ExpectedSpentLCY := ExpenseReportLine."Refundable Amount (LCY)";
 
-        // [WHEN] The report is released and posted.
+        // [WHEN] The report is Released and posted.
         ExpenseReportHeader.PerformManualRelease();
         ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
 
@@ -560,7 +588,7 @@ codeunit 148338 "Spend Request Test"
         // [GIVEN] An expense user.
         LibraryExpense.CreateExpenseUser(ExpenseUser);
 
-        // [GIVEN] A released spend request.
+        // [GIVEN] A Released spend request.
         LibraryExpense.CreateSpendRequest(SpendRequest);
         LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Released);
 
@@ -568,7 +596,7 @@ codeunit 148338 "Spend Request Test"
         asserterror LibraryExpense.CreateTraveler(SpendRequest."No.", ExpenseUser."No.");
 
         // [THEN] It fails because the spend request is not open.
-        Assert.ExpectedErrorCode('TestField');
+        Assert.ExpectedError(StatusNotOpenErr);
     end;
 
     [Test]
@@ -695,7 +723,7 @@ codeunit 148338 "Spend Request Test"
         ExpenseReportLine.Validate("Spend Request No.", LineSpendRequest."No.");
         ExpenseReportLine.Modify(true);
 
-        // [WHEN] The report is released and posted.
+        // [WHEN] The report is Released and posted.
         ExpenseReportHeader.PerformManualRelease();
         ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
 
@@ -719,10 +747,10 @@ codeunit 148338 "Spend Request Test"
         Initialize();
         CloseConfirmReply := true;
 
-        // [GIVEN] A report with a refundable line linked to a released spend request and a non-refundable line.
+        // [GIVEN] A report with a refundable line linked to a Released spend request and a non-refundable line.
         ExpectedSpentLCY := CreateReportWithRefundableAndNonRefundableLines(ExpenseReportHeader, SpendRequest);
 
-        // [WHEN] The report is released and posted.
+        // [WHEN] The report is Released and posted.
         ExpenseReportHeader.PerformManualRelease();
         ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
 
@@ -743,10 +771,10 @@ codeunit 148338 "Spend Request Test"
         Initialize();
         CloseConfirmReply := true;
 
-        // [GIVEN] An expense report with a refundable line linked to a released spend request.
+        // [GIVEN] An expense report with a refundable line linked to a Released spend request.
         CreateAndPostExpenseReportWithSpendRequest(ExpenseReportHeader, SpendRequest, 1);
 
-        // [GIVEN] The report is released and the transaction is committed so it can be previewed.
+        // [GIVEN] The report is Released and the transaction is committed so it can be previewed.
         ExpenseReportHeader.PerformManualRelease();
         Commit();
 
@@ -755,6 +783,117 @@ codeunit 148338 "Spend Request Test"
 
         // [THEN] The preview lists the Spend Request To G/L Link entries (asserted in the page handler).
         Assert.ExpectedError('');
+    end;
+
+    [Test]
+    procedure TravelReqCategoryLineAcceptsExpenseCategory()
+    var
+        SpendRequest: Record "Spend Request";
+        SpendRequestDetail: Record "Spend Request Detail";
+        ExpenseCategory: Record "Expense Category";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 647188] A Category line accepts an expense category.
+        Initialize();
+
+        // [GIVEN] An open travel request and an active expense category.
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+
+        // [GIVEN] A line whose type is Category.
+        CreateTravelRequestLine(SpendRequestDetail, SpendRequest."No.");
+        SpendRequestDetail.Validate(Type, SpendRequestDetail.Type::Category);
+
+        // [WHEN] An expense category is assigned to the line.
+        SpendRequestDetail.Validate("Expense Category Code", ExpenseCategory.Code);
+        SpendRequestDetail.Modify(true);
+
+        // [THEN] The expense category is stored on the line.
+        Assert.AreEqual(ExpenseCategory.Code, SpendRequestDetail."Expense Category Code", CategoryStoredMsg);
+    end;
+
+    [Test]
+    procedure TravelReqLumpSumLineRejectsExpenseCategory()
+    var
+        SpendRequest: Record "Spend Request";
+        SpendRequestDetail: Record "Spend Request Detail";
+        ExpenseCategory: Record "Expense Category";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 647188] A Lump Sum line cannot carry an expense category.
+        Initialize();
+
+        // [GIVEN] An open travel request, an expense category, and a Lump Sum line.
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        CreateTravelRequestLine(SpendRequestDetail, SpendRequest."No.");
+        SpendRequestDetail.Validate(Type, SpendRequestDetail.Type::"Lump Sum");
+
+        // [WHEN] Assigning an expense category to the Lump Sum line.
+        asserterror SpendRequestDetail.Validate("Expense Category Code", ExpenseCategory.Code);
+
+        // [THEN] It fails because a category is only allowed on a Category line.
+        Assert.ExpectedError(StrSubstNo(CategoryLineOnlyErr, SpendRequestDetail.FieldCaption("Expense Category Code"), SpendRequestDetail.FieldCaption(Type), SpendRequestDetail.Type::Category));
+    end;
+
+    [Test]
+    procedure TravelReqLumpSumTypeClearsExpenseCategory()
+    var
+        SpendRequest: Record "Spend Request";
+        SpendRequestDetail: Record "Spend Request Detail";
+        ExpenseCategory: Record "Expense Category";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 647188] Switching a Category line to Lump Sum clears its expense category.
+        Initialize();
+
+        // [GIVEN] A Category line with an expense category assigned.
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        CreateTravelRequestLine(SpendRequestDetail, SpendRequest."No.");
+        SpendRequestDetail.Validate(Type, SpendRequestDetail.Type::Category);
+        SpendRequestDetail.Validate("Expense Category Code", ExpenseCategory.Code);
+        SpendRequestDetail.Modify(true);
+
+        // [WHEN] The line type is changed to Lump Sum.
+        SpendRequestDetail.Validate(Type, SpendRequestDetail.Type::"Lump Sum");
+
+        // [THEN] The expense category is cleared.
+        Assert.AreEqual('', SpendRequestDetail."Expense Category Code", CategoryClearedMsg);
+    end;
+
+    [Test]
+    procedure TravelReqSupportsMixedLineTypes()
+    var
+        SpendRequest: Record "Spend Request";
+        CategoryLine: Record "Spend Request Detail";
+        LumpSumLine: Record "Spend Request Detail";
+        ExpenseCategory: Record "Expense Category";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 647188] Category and Lump Sum lines coexist within the same travel request.
+        Initialize();
+
+        // [GIVEN] An open travel request and an expense category.
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+
+        // [GIVEN] A Category line with a category.
+        CreateTravelRequestLine(CategoryLine, SpendRequest."No.");
+        CategoryLine.Validate(Type, CategoryLine.Type::Category);
+        CategoryLine.Validate("Expense Category Code", ExpenseCategory.Code);
+        CategoryLine.Modify(true);
+
+        // [WHEN] A Lump Sum line is added to the same request.
+        CreateTravelRequestLine(LumpSumLine, SpendRequest."No.");
+        LumpSumLine.Validate(Type, LumpSumLine.Type::"Lump Sum");
+        LumpSumLine.Modify(true);
+
+        // [THEN] Both lines keep their own type and category rule.
+        Assert.AreEqual(CategoryLine.Type::Category, CategoryLine.Type, MixedTypesMsg);
+        Assert.AreEqual(LumpSumLine.Type::"Lump Sum", LumpSumLine.Type, MixedTypesMsg);
+        Assert.AreEqual(ExpenseCategory.Code, CategoryLine."Expense Category Code", CategoryStoredMsg);
+        Assert.AreEqual('', LumpSumLine."Expense Category Code", CategoryClearedMsg);
     end;
 
     local procedure Initialize()
@@ -812,6 +951,24 @@ codeunit 148338 "Spend Request Test"
         LibraryExpense.CreateSpendRequestDetail(SpendRequest."No.", LibraryRandom.RandIntInRange(100000, 100000));
         LibraryExpense.CreateTraveler(SpendRequest."No.", ExpenseUserNo);
         LibraryExpense.SetSpendRequestStatus(SpendRequest, NewStatus);
+    end;
+
+    local procedure CreateTravelRequestLine(var SpendRequestDetail: Record "Spend Request Detail"; SpendRequestNo: Code[20])
+    begin
+        SpendRequestDetail.Init();
+        SpendRequestDetail."Spend Request No." := SpendRequestNo;
+        SpendRequestDetail."Line No." := NextTravelRequestLineNo(SpendRequestNo);
+        SpendRequestDetail.Insert(true);
+    end;
+
+    local procedure NextTravelRequestLineNo(SpendRequestNo: Code[20]): Integer
+    var
+        SpendRequestDetail: Record "Spend Request Detail";
+    begin
+        SpendRequestDetail.SetRange("Spend Request No.", SpendRequestNo);
+        if SpendRequestDetail.FindLast() then
+            exit(SpendRequestDetail."Line No." + 10000);
+        exit(10000);
     end;
 
     local procedure CreateReleasableSpendRequest(var SpendRequest: Record "Spend Request"; var ExpenseUser: Record "Expense User")

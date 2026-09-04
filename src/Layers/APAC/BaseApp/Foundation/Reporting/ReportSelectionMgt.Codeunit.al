@@ -508,4 +508,3 @@ codeunit 1901 "Report Selection Mgt."
     begin
     end;
 }
-

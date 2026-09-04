@@ -16,7 +16,6 @@ using System.Security.AccessControl;
 table 6840 "Spend Request"
 {
     Caption = 'Spend Request';
-    ReplicateData = false;
     DataClassification = CustomerContent;
     DataCaptionFields = "No.", Purpose;
     Permissions = tabledata "Spend Request Detail" = rimd,
@@ -39,6 +38,16 @@ table 6840 "Spend Request"
                     if GLSetup."Spend Request No. Series" <> '' then
                         NoSeries.TestManual(GLSetup."Spend Request No. Series");
                 end;
+            end;
+        }
+        field(2; "Document Type"; Enum "Spend Request Document Type")
+        {
+            Caption = 'Document Type';
+            ToolTip = 'Specifies the document type of the spend request.';
+
+            trigger OnValidate()
+            begin
+                TestStatusOpen();
             end;
         }
         field(3; "Requested By"; Code[20])
@@ -161,6 +170,7 @@ table 6840 "Spend Request"
             Caption = 'Approved/Rejected by User ID';
             DataClassification = EndUserIdentifiableInformation;
             ToolTip = 'Specifies the user ID who approved or rejected the spend request.';
+            Editable = false;
             TableRelation = User."User Security ID";
 
             trigger OnValidate()
@@ -171,14 +181,8 @@ table 6840 "Spend Request"
         field(16; "Approved/Rejected by User Name"; Code[50])
         {
             Caption = 'Approved/Rejected by User Name';
-            DataClassification = EndUserIdentifiableInformation;
             ToolTip = 'Specifies the user name who approved or rejected the spend request.';
-            TableRelation = User."User Name";
-
-            trigger OnValidate()
-            begin
-                TestStatusOpen();
-            end;
+            Editable = false;
         }
         field(17; "Approved/Rejected At"; DateTime)
         {
@@ -230,6 +234,7 @@ table 6840 "Spend Request"
             CaptionClass = '1,2,1';
             Caption = 'Shortcut Dimension 1 Code';
             ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup page.';
+            Editable = false;
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
                                                           Blocked = const(false));
 
@@ -246,6 +251,7 @@ table 6840 "Spend Request"
             CaptionClass = '1,2,2';
             Caption = 'Shortcut Dimension 2 Code';
             ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup page.';
+            Editable = false;
             TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
                                                           Blocked = const(false));
 
@@ -327,6 +333,8 @@ table 6840 "Spend Request"
                         if Employee.FindFirst() then
                             Rec."Requested By" := Employee."No.";
                     end;
+        Rec."Expected Start Date" := WorkDate();
+        Rec."Expected End Date" := WorkDate();
     end;
 
     trigger OnDelete()
@@ -336,7 +344,7 @@ table 6840 "Spend Request"
     begin
         Rec.CalcFields("Total Spent Amount (LCY)");
         if Rec."Total Spent Amount (LCY)" <> 0 then
-            Error(CannotDeleteErr);
+            Error(CannotDeleteErr, Rec.GetDocumentTypeDescription());
         SpendRequestDetail.SetRange("Spend Request No.", Rec."No.");
         SpendRequestDetail.DeleteAll();
         SpendReqToGLLink.SetRange("Spend Request No.", Rec."No.");
@@ -345,11 +353,12 @@ table 6840 "Spend Request"
 
     var
         EndBeforeStartErr: Label 'Expected End Date cannot be before Expected Start Date.';
-        CannotDeleteErr: Label 'You cannot delete a spend request that has expenses posted against it.';
+        CannotDeleteErr: Label 'You cannot delete a %1 that has expenses posted against it.', Comment = '%1 = document type description, e.g. spend request or Travel Request';
         CannotBeLessThanSumOfLinesErr: Label 'You cannot specify an amount less than the total of the lines.';
         ChangeCurrCodeOnLineQst: Label 'You have changed the currency code on the expense request. Do you also want to update the lines that had the same currency code?';
-        SpendRequestIsUsedMsg: Label 'Spend request %1 was approved for %2 and current allocation is %3.', Comment = '%1 is a document no., %2 and %3 are amounts in local currency.';
-        SpendRequestCloseQst: Label 'Do you want to close spend request %1 after posting this entry?', Comment = '%1 is a document no.';
+        SpendRequestIsUsedMsg: Label 'The %1 %2 was approved for %3 and current allocation is %4.', Comment = '%1 = document type description, %2 is a document no., %3 and %4 are amounts in local currency.';
+        SpendRequestCloseQst: Label 'Do you want to close %1 %2 after posting this entry?', Comment = '%1 = document type description, %2 is a document no.';
+        StatusMustBeErr: Label 'The %1 %2 must have the status %3.', Comment = '%1 = document type description, %2 = document no., %3 = required status';
         SkipSpendRequestClose: Boolean;
 
     /// <summary>
@@ -359,6 +368,14 @@ table 6840 "Spend Request"
     procedure GetRemainingAmountLCY(): Decimal
     begin
         exit(Rec."Total Expected Amount (LCY)" - Rec."Total Spent Amount (LCY)");
+    end;
+
+    procedure GetDocumentTypeDescription(): Text
+    begin
+        if Rec."Document Type" = Rec."Document Type"::" " then
+            exit(Rec.TableCaption());
+
+        exit(Format(Rec."Document Type"));
     end;
 
     local procedure CheckStartAndEndDate()
@@ -371,7 +388,7 @@ table 6840 "Spend Request"
     /// <summary>
     /// Allows the user to select a number from another no. series.
     /// </summary>
-    internal procedure AssistEditNo() Result: Boolean
+    procedure AssistEditNo() Result: Boolean
     var
         GLSetup: Record "General Ledger Setup";
         NoSeries: Codeunit "No. Series";
@@ -391,7 +408,17 @@ table 6840 "Spend Request"
     /// </summary>
     procedure TestStatusOpen()
     begin
-        Rec.TestField(Status, Status::Open);
+        TestStatus(Status::Open);
+    end;
+
+    /// <summary>
+    /// Verifies the request has the expected status, using the document type in the error message.
+    /// </summary>
+    /// <param name="ExpectedStatus">The status the request must currently have.</param>
+    procedure TestStatus(ExpectedStatus: Enum "Spend Request Status")
+    begin
+        if Rec.Status <> ExpectedStatus then
+            Error(StatusMustBeErr, GetDocumentTypeDescription(), Rec."No.", ExpectedStatus);
     end;
 
     /// <summary>
@@ -404,10 +431,37 @@ table 6840 "Spend Request"
         OldDimSetID: Integer;
     begin
         OldDimSetID := "Dimension Set ID";
-        "Dimension Set ID" := DimMgt.EditDimensionSet(Rec, "Dimension Set ID", StrSubstNo('%1 %2', Rec.TableCaption, "No."),
-            "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
+        "Dimension Set ID" := DimMgt.EditDimensionSet(Rec, "Dimension Set ID", CopyStr(StrSubstNo('%1 %2', Rec.TableCaption, "No."), 1, 250), "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
         if OldDimSetID <> "Dimension Set ID" then
             Modify();
+    end;
+
+    /// <summary>
+    /// Sets status to Approved and updates when and who approved.
+    /// </summary>
+    internal procedure Approve()
+    begin
+        if Rec.Status = Rec.Status::Approved then
+            exit;
+        Rec.TestField(Status, Rec.Status::Released);
+        Rec.Status := Rec.Status::Approved;
+        Rec."Approved/Rejected At" := CurrentDateTime();
+        Rec."Approved/Rejected by User ID" := UserSecurityId();
+        Rec.Modify();
+    end;
+
+    /// <summary>
+    /// Sets status to Rejected and updates when and who rejected.
+    /// </summary>
+    internal procedure Reject()
+    begin
+        if Rec.Status in [Rec.Status::Rejected, Rec.Status::Closed] then
+            exit;
+        Rec.TestField(Status, Rec.Status::Released);
+        Rec.Status := Rec.Status::Rejected;
+        Rec."Approved/Rejected At" := CurrentDateTime();
+        Rec."Approved/Rejected by User ID" := UserSecurityId();
+        Rec.Modify();
     end;
 
     /// <summary>
@@ -567,10 +621,10 @@ table 6840 "Spend Request"
         end;
         Rec.SetAutoCalcFields("Total Spent Amount (LCY)");
         Rec.Get(SpendRequestNo);
-        Rec.TestField(Status, Rec.Status::Approved);
+        Rec.TestStatus(Rec.Status::Approved);
 
         if GuiAllowed() and not SkipSpendRequestClose then
-            SpendRequestclose := Confirm(SpendRequestCloseQst, true, Rec."No.");
+            SpendRequestclose := Confirm(SpendRequestCloseQst, true, Rec.GetDocumentTypeDescription(), Rec."No.");
     end;
 
     /// <summary>
@@ -598,11 +652,11 @@ table 6840 "Spend Request"
         NewAmountLCY := Abs(NewAmountLCY);
         Rec.SetAutoCalcFields("Total Spent Amount (LCY)");
         Rec.Get(SpendRequestNo);
-        Rec.TestField(Status, Rec.Status::Approved);
+        Rec.TestStatus(Rec.Status::Approved);
         if GuiAllowed() then
             if Rec."Total Spent Amount (LCY)" + NewAmountLCY > Rec."Total Expected Amount (LCY)" then begin
                 AlreadyAllocatedNotification.Scope := AlreadyAllocatedNotification.Scope::LocalScope;
-                AlreadyAllocatedNotification.Message := StrSubstNo(SpendRequestIsUsedMsg, Rec."No.", Rec."Total Expected Amount (LCY)", Rec."Total Spent Amount (LCY)");
+                AlreadyAllocatedNotification.Message := StrSubstNo(SpendRequestIsUsedMsg, Rec.GetDocumentTypeDescription(), Rec."No.", Rec."Total Expected Amount (LCY)", Rec."Total Spent Amount (LCY)");
                 NotificationLifecycleMgt.SendNotification(AlreadyAllocatedNotification, Rec.RecordId);
             end;
     end;

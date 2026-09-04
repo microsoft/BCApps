@@ -138,6 +138,9 @@ report 790 "Calculate Inventory"
 
                 trigger OnPreDataItem()
                 begin
+                    if WarehouseEntryTableIsCompletelyEmpty then
+                        CurrReport.Break(); // Skip if Warehouse Entry table has no records at all (checked once in Item.OnPreDataItem).
+
                     if not "Item Ledger Entry".IsEmpty() then
                         CurrReport.Break(); // Skip if item has any record in Item Ledger Entry.                    
                 end;
@@ -206,6 +209,7 @@ report 790 "Calculate Inventory"
             var
                 ItemJnlTemplate: Record "Item Journal Template";
                 ItemJnlBatch: Record "Item Journal Batch";
+                WarehouseEntryToCheck: Record "Warehouse Entry";
             begin
                 if PostingDate = 0D then
                     Error(Text000);
@@ -234,6 +238,8 @@ report 790 "Calculate Inventory"
 
                 if not SkipDim then
                     SelectedDim.GetSelectedDim(UserId, 3, REPORT::"Calculate Inventory", '', TempSelectedDim);
+
+                WarehouseEntryTableIsCompletelyEmpty := WarehouseEntryToCheck.IsEmpty();
 
                 TempQuantityOnHandBuffer.Reset();
                 TempQuantityOnHandBuffer.DeleteAll();
@@ -362,6 +368,7 @@ report 790 "Calculate Inventory"
         ZeroQtySave: Boolean;
         AdjustPosQty: Boolean;
         DocumentNoInputMandatory: Boolean;
+        WarehouseEntryTableIsCompletelyEmpty: Boolean;
         PosQty: Decimal;
         NegQty: Decimal;
         ItemNotOnInventoryErr: Label 'Items Not on Inventory.';

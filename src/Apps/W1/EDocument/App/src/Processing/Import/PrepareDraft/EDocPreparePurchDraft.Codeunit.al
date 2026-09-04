@@ -131,9 +131,21 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
     var
         EDocumentPurchaseDraft: Page "E-Document Purchase Draft";
     begin
+        EnsureDraftHeaderExistsForFailedExtraction(EDocument);
         EDocumentPurchaseDraft.Editable(true);
         EDocumentPurchaseDraft.SetRecord(EDocument);
         EDocumentPurchaseDraft.Run();
+    end;
+
+    internal procedure EnsureDraftHeaderExistsForFailedExtraction(EDocument: Record "E-Document")
+    var
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+    begin
+        EDocument.CalcFields("Import Processing Status");
+        if not ((EDocument."Import Processing Status" = Enum::"Import E-Document Steps"::"Structure received data") and (EDocument.Status = Enum::"E-Document Status"::Error)) then
+            exit;
+
+        EDocumentPurchaseHeader.InsertForEDocument(EDocument);
     end;
 
     procedure CleanUpDraft(EDocument: Record "E-Document")
@@ -156,6 +168,7 @@ codeunit 6406 "EDoc Prepare Purch. Draft"
         Log(EDocActivityLogSession, EDocActivityLogSession.DeferralTok());
         Log(EDocActivityLogSession, EDocActivityLogSession.ItemRefTok());
         Log(EDocActivityLogSession, EDocActivityLogSession.TextToAccountMappingTok());
+        Log(EDocActivityLogSession, EDocActivityLogSession.ItemDescriptionTok());
     end;
 
     local procedure Log(EDocActivityLogSession: Codeunit "E-Doc. Activity Log Session"; ActivityLogName: Text)

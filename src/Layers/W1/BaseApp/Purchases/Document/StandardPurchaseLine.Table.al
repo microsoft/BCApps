@@ -295,7 +295,7 @@ table 174 "Standard Purchase Line"
         Text002: Label '%1 must not be %2.';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
-        CommentLbl: Label 'Comment';
+        CommentLbl: Label 'Comment', MaxLength = 30;
 
     procedure EmptyLine(): Boolean
     begin
@@ -353,7 +353,19 @@ table 174 "Standard Purchase Line"
         DimMgt.GetShortcutDimensions(Rec."Dimension Set ID", ShortcutDimCode);
     end;
 
+#if not CLEAN29
+    [Obsolete('Use FormatTypeAsText() instead.', '29.0')]
     procedure FormatType(): Text[20]
+    begin
+        exit(CopyStr(FormatTypeAsText(), 1, 20));
+    end;
+#endif
+
+    /// <summary>
+    /// Formats the line type for display, returning 'Comment' for blank types.
+    /// </summary>
+    /// <returns>The formatted type text.</returns>
+    procedure FormatTypeAsText(): Text[30]
     begin
         if Type = Type::" " then
             exit(CommentLbl);

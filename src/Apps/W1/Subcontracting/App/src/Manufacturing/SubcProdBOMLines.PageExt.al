@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.ProductionBOM;
 
-pageextension 99001510 "Subc. Prod BOM Lines" extends "Production BOM Lines"
+pageextension 20510 "Subc. Prod BOM Lines" extends "Production BOM Lines"
 {
     layout
     {

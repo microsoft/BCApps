@@ -6,7 +6,9 @@ namespace Microsoft.eServices.EDocument.Formats;
 
 using Microsoft.Bank.BankAccount;
 using Microsoft.eServices.EDocument;
+using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Clause;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
@@ -36,19 +38,23 @@ codeunit 10978 "CII XML Builder"
     local procedure BuildCIIDocument(var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var TempBlob: Codeunit "Temp Blob"; TypeCode: Text)
     var
         CompanyInformation: Record "Company Information";
+        FREDocHelpers: Codeunit "EDoc. Helpers";
         XmlDoc: XmlDocument;
         RootElement: XmlElement;
         OutStr: OutStream;
     begin
+        FREDocHelpers.CheckBuyerElectronicAddress(SourceDocumentHeader);
         CompanyInformation.Get();
+        InitializeAmountRoundingPrecision(EDocument."Currency Code");
 
         XmlDoc := XmlDocument.Create();
 
         RootElement := XmlElement.Create('CrossIndustryInvoice', RsmNamespaceTok);
         RootElement.Add(XmlAttribute.CreateNamespaceDeclaration('ram', RamNamespaceTok));
+        RootElement.Add(XmlAttribute.CreateNamespaceDeclaration('qdt', QdtNamespaceTok));
         RootElement.Add(XmlAttribute.CreateNamespaceDeclaration('udt', UdtNamespaceTok));
 
-        AddExchangedDocumentContext(RootElement);
+        AddExchangedDocumentContext(RootElement, SourceDocumentLines);
         AddExchangedDocument(RootElement, EDocument, TypeCode);
         AddSupplyChainTradeTransaction(RootElement, EDocument, SourceDocumentHeader, SourceDocumentLines, CompanyInformation);
 
@@ -58,13 +64,25 @@ codeunit 10978 "CII XML Builder"
         XmlDoc.WriteTo(OutStr);
     end;
 
-    local procedure AddExchangedDocumentContext(var RootElement: XmlElement)
+    local procedure AddExchangedDocumentContext(var RootElement: XmlElement; var SourceDocumentLines: RecordRef)
     var
+        PeppolBIS30FRFormat: Codeunit "Peppol BIS 3.0 FR Format";
         ContextElement: XmlElement;
+        BusinessProcessElement: XmlElement;
         GuidelineElement: XmlElement;
         IdElement: XmlElement;
+        IsHandled: Boolean;
     begin
+        OnBeforeAddExchangedDocumentContext(RootElement, SourceDocumentLines, IsHandled);
+        if IsHandled then
+            exit;
+
         ContextElement := XmlElement.Create('ExchangedDocumentContext', RsmNamespaceTok);
+
+        BusinessProcessElement := XmlElement.Create('BusinessProcessSpecifiedDocumentContextParameter', RamNamespaceTok);
+        IdElement := XmlElement.Create('ID', RamNamespaceTok, PeppolBIS30FRFormat.GetFrenchBillingMode(SourceDocumentLines));
+        BusinessProcessElement.Add(IdElement);
+        ContextElement.Add(BusinessProcessElement);
 
         GuidelineElement := XmlElement.Create('GuidelineSpecifiedDocumentContextParameter', RamNamespaceTok);
         IdElement := XmlElement.Create('ID', RamNamespaceTok, FacturXProfileIdTok);
@@ -72,6 +90,7 @@ codeunit 10978 "CII XML Builder"
         ContextElement.Add(GuidelineElement);
 
         RootElement.Add(ContextElement);
+        OnAfterAddExchangedDocumentContext(RootElement, SourceDocumentLines);
     end;
 
     local procedure AddExchangedDocument(var RootElement: XmlElement; var EDocument: Record "E-Document"; TypeCode: Text)
@@ -208,12 +227,14 @@ codeunit 10978 "CII XML Builder"
     local procedure AddBuyerTradeParty(var AgreementElement: XmlElement; var SourceDocumentHeader: RecordRef)
     var
         Customer: Record Customer;
+        FREDocHelpers: Codeunit "EDoc. Helpers";
         CustomerNoFieldRef: FieldRef;
         BuyerElement: XmlElement;
         NameElement: XmlElement;
         CustomerNo: Code[20];
+        BuyerElectronicAddress: Text[250];
+        BuyerCountryCode: Text;
         VATRegistrationNo: Text;
-        BuyerElectronicAddressEmitted: Boolean;
     begin
         BuyerElement := XmlElement.Create('BuyerTradeParty', RamNamespaceTok);
 
@@ -235,25 +256,16 @@ codeunit 10978 "CII XML Builder"
 
         // BT-49 Buyer electronic routing address is held only on the live customer master record.
         // BR-FR-12: BT-49 is mandatory in French e-invoicing.
-        Customer.SetLoadFields("FR Electronic Address", "FR Elec. Address Scheme", "Registration Number");
+        Customer.SetLoadFields("FR Electronic Address", "Registration Number", "VAT Registration No.");
         if (CustomerNo <> '') and Customer.Get(CustomerNo) then
-            if Customer."FR Electronic Address" <> '' then begin
-                AddElectronicAddress(BuyerElement, Customer."FR Electronic Address", GetElecAddressSchemeCode(Customer."FR Elec. Address Scheme"));
-                BuyerElectronicAddressEmitted := true;
-            end else
-                if Customer."Registration Number" <> '' then begin
-                    AddElectronicAddress(BuyerElement, CopyStr(Customer."Registration Number", 1, 14), '0009');
-                    BuyerElectronicAddressEmitted := true;
-                end;
+            if FREDocHelpers.GetBuyerElectronicAddress(Customer, BuyerElectronicAddress) then
+                AddElectronicAddress(BuyerElement, BuyerElectronicAddress, '0225');
 
+        BuyerCountryCode := GetHeaderFieldText(SourceDocumentHeader, 'Sell-to Country/Region Code', 'Country/Region Code');
         VATRegistrationNo := GetHeaderFieldText(SourceDocumentHeader, 'VAT Registration No.', '');
 
-        // BR-FR-12 fallback: if no electronic address was emitted yet, use the VAT registration number
-        if (not BuyerElectronicAddressEmitted) and (VATRegistrationNo <> '') then
-            AddElectronicAddress(BuyerElement, VATRegistrationNo, '9957');
-
         if VATRegistrationNo <> '' then
-            AddVATRegistration(BuyerElement, VATRegistrationNo);
+            AddVATRegistration(BuyerElement, GetVATRegistrationNoWithCountryPrefix(VATRegistrationNo, BuyerCountryCode));
 
         AgreementElement.Add(BuyerElement);
     end;
@@ -295,20 +307,6 @@ codeunit 10978 "CII XML Builder"
         PartyElement.Add(ElecCommElement);
     end;
 
-    local procedure GetElecAddressSchemeCode(ElecAddressScheme: Enum "Electronic Address Scheme"): Text
-    begin
-        case ElecAddressScheme of
-            ElecAddressScheme::"EM":
-                exit('EM');
-            ElecAddressScheme::"0009":
-                exit('0009');
-            ElecAddressScheme::"0002":
-                exit('0002');
-            else
-                exit(Format(ElecAddressScheme));
-        end;
-    end;
-
     local procedure AddVATRegistration(var PartyElement: XmlElement; VATRegistrationNo: Text)
     var
         TaxRegElement: XmlElement;
@@ -319,6 +317,16 @@ codeunit 10978 "CII XML Builder"
         TaxRegIdElement.SetAttribute('schemeID', 'VA');
         TaxRegElement.Add(TaxRegIdElement);
         PartyElement.Add(TaxRegElement);
+    end;
+
+    local procedure GetVATRegistrationNoWithCountryPrefix(VATRegistrationNo: Text; CountryCode: Text): Text
+    var
+        Regex: Codeunit Regex;
+    begin
+        if Regex.IsMatch(VATRegistrationNo, '^[A-Za-z]{2}') then
+            exit(VATRegistrationNo);
+
+        exit(CountryCode.ToUpper() + VATRegistrationNo);
     end;
 
     procedure TryGetCustomerNoFieldRef(SourceDocumentHeader: RecordRef; var CustomerNoFieldRef: FieldRef): Boolean
@@ -387,8 +395,10 @@ codeunit 10978 "CII XML Builder"
         TaxTotalAmountElement: XmlElement;
         LineVATAmounts: Dictionary of [Text, Decimal];
         LineBaseAmounts: Dictionary of [Text, Decimal];
+        LineNetBaseAmounts: Dictionary of [Text, Decimal];
         VATRateByKey: Dictionary of [Text, Decimal];
         VATCategoryByKey: Dictionary of [Text, Text];
+        VATEXCodeByKey: Dictionary of [Text, Text];
         CompanyBankAccountCode: Code[20];
         PaymentTermsCode: Code[10];
         InvoiceDiscountAmount: Decimal;
@@ -410,16 +420,16 @@ codeunit 10978 "CII XML Builder"
 
         InvoiceDiscountAmount := GetInvoiceDiscountAmount(SourceDocumentHeader, SourceDocumentLines, TaxBasisTotalAmount, LineTotalAmount);
         if InvoiceDiscountAmount = 0 then
-            InvoiceDiscountAmount := Round(LineTotalAmount - TaxBasisTotalAmount, 0.01);
+            InvoiceDiscountAmount := Round(LineTotalAmount - TaxBasisTotalAmount, GetAmountRoundingPrecision());
 
         // BG-16 Payment means (BT-81 TypeCode + BT-84 IBAN + BT-86 BIC)
         if FREDocHelpers.FindFieldByName(SourceDocumentHeader, 'Company Bank Account Code', FieldRefVar) then
             CompanyBankAccountCode := FieldRefVar.Value();
         InsertPaymentMeans(SettlementElement, CompanyBankAccountCode);
 
-        BuildVATAggregationData(SourceDocumentLines, LineBaseAmounts, LineVATAmounts, VATRateByKey, VATCategoryByKey);
-        AddTaxBreakdown(SettlementElement, LineBaseAmounts, LineVATAmounts, VATRateByKey, VATCategoryByKey, InvoiceDiscountAmount);
-        AddDocumentLevelAllowances(SettlementElement, LineBaseAmounts, VATRateByKey, VATCategoryByKey, InvoiceDiscountAmount);
+        BuildVATAggregationData(SourceDocumentLines, LineBaseAmounts, LineNetBaseAmounts, LineVATAmounts, VATRateByKey, VATCategoryByKey, VATEXCodeByKey);
+        AddTaxBreakdown(SettlementElement, LineNetBaseAmounts, LineVATAmounts, VATRateByKey, VATCategoryByKey, VATEXCodeByKey);
+        AddDocumentLevelAllowances(SettlementElement, LineBaseAmounts, LineNetBaseAmounts, VATRateByKey, VATCategoryByKey, InvoiceDiscountAmount);
 
         // BG-20 Payment terms (BT-20 Description + BT-9 Due date)
         if FREDocHelpers.FindFieldByName(SourceDocumentHeader, 'Payment Terms Code', FieldRefVar) then
@@ -453,49 +463,95 @@ codeunit 10978 "CII XML Builder"
         AddAmountElement(MonetarySummationElement, 'DuePayableAmount', EDocument."Amount Incl. VAT");
         SettlementElement.Add(MonetarySummationElement);
 
+        AddInvoiceReference(SettlementElement, SourceDocumentHeader);
+
         TransactionElement.Add(SettlementElement);
     end;
 
-    local procedure AddTaxBreakdown(var SettlementElement: XmlElement; var LineBaseAmounts: Dictionary of [Text, Decimal]; var LineVATAmounts: Dictionary of [Text, Decimal]; var VATRateByKey: Dictionary of [Text, Decimal]; var VATCategoryByKey: Dictionary of [Text, Text]; InvoiceDiscountAmount: Decimal)
+    local procedure AddInvoiceReference(var SettlementElement: XmlElement; var SourceDocumentHeader: RecordRef)
     var
-        VATAggregationKeys: List of [Text];
-        AllocatedDiscountByKey: Dictionary of [Text, Decimal];
-        VATKey: Text;
-        DiscountedBaseAmount: Decimal;
-        DiscountedVATAmount: Decimal;
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        ReferenceElement: XmlElement;
+        IssueDateElement: XmlElement;
+        DateStringElement: XmlElement;
+        ReferencedDocumentNo: Code[20];
+        ReferencedDocumentDate: Date;
     begin
-        AllocateInvoiceDiscountByVATKey(InvoiceDiscountAmount, LineBaseAmounts, AllocatedDiscountByKey);
+        case SourceDocumentHeader.Number() of
+            Database::"Sales Cr.Memo Header":
+                begin
+                    SourceDocumentHeader.SetTable(SalesCrMemoHeader);
+                    ReferencedDocumentNo := SalesCrMemoHeader."Applies-to Doc. No.";
+                    if ReferencedDocumentNo = '' then
+                        exit;
+                    SalesInvoiceHeader.SetLoadFields("Document Date");
+                    if SalesInvoiceHeader.Get(ReferencedDocumentNo) then
+                        ReferencedDocumentDate := SalesInvoiceHeader."Document Date";
+                end;
+            Database::"Service Cr.Memo Header":
+                begin
+                    SourceDocumentHeader.SetTable(ServiceCrMemoHeader);
+                    ReferencedDocumentNo := ServiceCrMemoHeader."Applies-to Doc. No.";
+                    if ReferencedDocumentNo = '' then
+                        exit;
+                    ServiceInvoiceHeader.SetLoadFields("Document Date");
+                    if ServiceInvoiceHeader.Get(ReferencedDocumentNo) then
+                        ReferencedDocumentDate := ServiceInvoiceHeader."Document Date";
+                end;
+        end;
 
-        VATAggregationKeys := LineBaseAmounts.Keys();
+        if ReferencedDocumentDate = 0D then
+            exit;
 
-        foreach VATKey in VATAggregationKeys do
-            if AllocatedDiscountByKey.ContainsKey(VATKey) then begin
-                DiscountedBaseAmount := LineBaseAmounts.Get(VATKey) - AllocatedDiscountByKey.Get(VATKey);
-                DiscountedVATAmount := LineVATAmounts.Get(VATKey) - Round(AllocatedDiscountByKey.Get(VATKey) * VATRateByKey.Get(VATKey) / 100, 0.01);
-
-                InsertTaxElement(
-                  SettlementElement, FormatDecimalValue(DiscountedVATAmount),
-                  FormatDecimalValue(DiscountedBaseAmount), VATCategoryByKey.Get(VATKey), FormatVATRate(VATRateByKey.Get(VATKey)),
-                  VATRateByKey.Get(VATKey) = 0);
-            end else
-                InsertTaxElement(
-                  SettlementElement, FormatDecimalValue(LineVATAmounts.Get(VATKey)),
-                  FormatDecimalValue(LineBaseAmounts.Get(VATKey)), VATCategoryByKey.Get(VATKey), FormatVATRate(VATRateByKey.Get(VATKey)),
-                  VATRateByKey.Get(VATKey) = 0);
+        ReferenceElement := XmlElement.Create('InvoiceReferencedDocument', RamNamespaceTok);
+        ReferenceElement.Add(XmlElement.Create('IssuerAssignedID', RamNamespaceTok, ReferencedDocumentNo));
+        IssueDateElement := XmlElement.Create('FormattedIssueDateTime', RamNamespaceTok);
+        DateStringElement := XmlElement.Create('DateTimeString', QdtNamespaceTok, FormatDate(ReferencedDocumentDate));
+        DateStringElement.SetAttribute('format', '102');
+        IssueDateElement.Add(DateStringElement);
+        ReferenceElement.Add(IssueDateElement);
+        SettlementElement.Add(ReferenceElement);
     end;
 
-    local procedure AddDocumentLevelAllowances(var SettlementElement: XmlElement; var LineBaseAmounts: Dictionary of [Text, Decimal]; var VATRateByKey: Dictionary of [Text, Decimal]; var VATCategoryByKey: Dictionary of [Text, Text]; InvoiceDiscountAmount: Decimal)
+    local procedure AddTaxBreakdown(var SettlementElement: XmlElement; var LineNetBaseAmounts: Dictionary of [Text, Decimal]; var LineVATAmounts: Dictionary of [Text, Decimal]; var VATRateByKey: Dictionary of [Text, Decimal]; var VATCategoryByKey: Dictionary of [Text, Text]; var VATEXCodeByKey: Dictionary of [Text, Text])
+    var
+        VATAggregationKeys: List of [Text];
+        VATKey: Text;
+    begin
+        VATAggregationKeys := LineNetBaseAmounts.Keys();
+        foreach VATKey in VATAggregationKeys do
+            InsertTaxElement(
+              SettlementElement, FormatDecimalValue(LineVATAmounts.Get(VATKey)),
+                            FormatDecimalValue(LineNetBaseAmounts.Get(VATKey)), VATCategoryByKey.Get(VATKey), FormatVATRate(VATRateByKey.Get(VATKey)),
+                            VATEXCodeByKey.Get(VATKey));
+    end;
+
+    local procedure AddDocumentLevelAllowances(var SettlementElement: XmlElement; var LineBaseAmounts: Dictionary of [Text, Decimal]; var LineNetBaseAmounts: Dictionary of [Text, Decimal]; var VATRateByKey: Dictionary of [Text, Decimal]; var VATCategoryByKey: Dictionary of [Text, Text]; InvoiceDiscountAmount: Decimal)
     var
         AllocatedDiscountByKey: Dictionary of [Text, Decimal];
         VATAggregationKeys: List of [Text];
         VATKey: Text;
+        AllocatedDiscountTotal: Decimal;
+        DiscountAmount: Decimal;
     begin
         if InvoiceDiscountAmount = 0 then
             exit;
 
-        AllocateInvoiceDiscountByVATKey(InvoiceDiscountAmount, LineBaseAmounts, AllocatedDiscountByKey);
-
         VATAggregationKeys := LineBaseAmounts.Keys();
+        foreach VATKey in VATAggregationKeys do begin
+            DiscountAmount := LineBaseAmounts.Get(VATKey) - LineNetBaseAmounts.Get(VATKey);
+            AllocatedDiscountByKey.Add(VATKey, DiscountAmount);
+            AllocatedDiscountTotal += DiscountAmount;
+        end;
+
+        if Round(AllocatedDiscountTotal - InvoiceDiscountAmount, GetAmountRoundingPrecision()) <> 0 then begin
+            Clear(AllocatedDiscountByKey);
+            AllocateInvoiceDiscountByVATKey(InvoiceDiscountAmount, LineBaseAmounts, AllocatedDiscountByKey);
+        end;
+
         foreach VATKey in VATAggregationKeys do
             if AllocatedDiscountByKey.ContainsKey(VATKey) then
                 if AllocatedDiscountByKey.Get(VATKey) <> 0 then
@@ -506,56 +562,101 @@ codeunit 10978 "CII XML Builder"
                       FormatVATRate(VATRateByKey.Get(VATKey)));
     end;
 
-    local procedure BuildVATAggregationData(var SourceDocumentLines: RecordRef; var LineBaseAmounts: Dictionary of [Text, Decimal]; var LineVATAmounts: Dictionary of [Text, Decimal]; var VATRateByKey: Dictionary of [Text, Decimal]; var VATCategoryByKey: Dictionary of [Text, Text])
+    local procedure BuildVATAggregationData(var SourceDocumentLines: RecordRef; var LineBaseAmounts: Dictionary of [Text, Decimal]; var LineNetBaseAmounts: Dictionary of [Text, Decimal]; var LineVATAmounts: Dictionary of [Text, Decimal]; var VATRateByKey: Dictionary of [Text, Decimal]; var VATCategoryByKey: Dictionary of [Text, Text]; var VATEXCodeByKey: Dictionary of [Text, Text])
     var
         FREDocHelpers: Codeunit "EDoc. Helpers";
         VATPercentFieldRef: FieldRef;
+        AmountFieldRef: FieldRef;
+        AmountIncludingVATFieldRef: FieldRef;
         TaxCategoryFieldRef: FieldRef;
         VATBusPostingGroupFieldRef: FieldRef;
         VATProdPostingGroupFieldRef: FieldRef;
         VATAggregationKey: Text;
         VATCategoryCode: Text;
+        VATEXCode: Text;
         TaxCategory: Code[10];
         VATBusPostingGroup: Code[20];
         VATProdPostingGroup: Code[20];
         VATPercent: Decimal;
         VATAmount: Decimal;
         BaseAmount: Decimal;
+        NetBaseAmount: Decimal;
+        AmountIncludingVAT: Decimal;
+        HasVATPercentField: Boolean;
+        HasAmountField: Boolean;
+        HasAmountIncludingVATField: Boolean;
+        HasTaxCategoryField: Boolean;
+        HasVATBusPostingGroupField: Boolean;
+        HasVATProdPostingGroupField: Boolean;
     begin
+        HasVATPercentField := FREDocHelpers.FindFieldByName(SourceDocumentLines, 'VAT %', VATPercentFieldRef);
+        HasAmountField := FREDocHelpers.FindFieldByName(SourceDocumentLines, 'Amount', AmountFieldRef);
+        HasAmountIncludingVATField := FREDocHelpers.FindFieldByName(SourceDocumentLines, 'Amount Including VAT', AmountIncludingVATFieldRef);
+        HasTaxCategoryField := FREDocHelpers.FindFieldByName(SourceDocumentLines, 'Tax Category', TaxCategoryFieldRef);
+        HasVATBusPostingGroupField := FREDocHelpers.FindFieldByName(SourceDocumentLines, 'VAT Bus. Posting Group', VATBusPostingGroupFieldRef);
+        HasVATProdPostingGroupField := FREDocHelpers.FindFieldByName(SourceDocumentLines, 'VAT Prod. Posting Group', VATProdPostingGroupFieldRef);
+
         if SourceDocumentLines.FindSet() then
             repeat
-                if FREDocHelpers.FindFieldByName(SourceDocumentLines, 'VAT %', VATPercentFieldRef) then begin
-                    VATPercent := VATPercentFieldRef.Value();
+                if HasVATPercentField then begin
                     BaseAmount := GetLineAmountBeforeInvoiceDiscount(SourceDocumentLines);
+                    if not IsNonFinancialTextLine(SourceDocumentLines, BaseAmount) then begin
+                        VATPercent := VATPercentFieldRef.Value();
 
-                    if FREDocHelpers.FindFieldByName(SourceDocumentLines, 'Tax Category', TaxCategoryFieldRef) then
-                        TaxCategory := TaxCategoryFieldRef.Value()
-                    else
-                        Clear(TaxCategory);
+                        if HasTaxCategoryField then
+                            TaxCategory := TaxCategoryFieldRef.Value()
+                        else
+                            Clear(TaxCategory);
 
-                    if FREDocHelpers.FindFieldByName(SourceDocumentLines, 'VAT Bus. Posting Group', VATBusPostingGroupFieldRef) then
-                        VATBusPostingGroup := VATBusPostingGroupFieldRef.Value()
-                    else
-                        Clear(VATBusPostingGroup);
+                        if HasVATBusPostingGroupField then
+                            VATBusPostingGroup := VATBusPostingGroupFieldRef.Value()
+                        else
+                            Clear(VATBusPostingGroup);
 
-                    if FREDocHelpers.FindFieldByName(SourceDocumentLines, 'VAT Prod. Posting Group', VATProdPostingGroupFieldRef) then
-                        VATProdPostingGroup := VATProdPostingGroupFieldRef.Value()
-                    else
-                        Clear(VATProdPostingGroup);
+                        if HasVATProdPostingGroupField then
+                            VATProdPostingGroup := VATProdPostingGroupFieldRef.Value()
+                        else
+                            Clear(VATProdPostingGroup);
 
-                    VATCategoryCode := GetVATCategoryCode(TaxCategory, VATBusPostingGroup, VATProdPostingGroup);
-                    VATAggregationKey := GetVATAggregationKey(VATPercent, VATCategoryCode);
-                    VATAmount := Round(BaseAmount * VATPercent / 100, 0.01);
+                        VATCategoryCode := GetVATCategoryCode(TaxCategory, VATBusPostingGroup, VATProdPostingGroup);
+                        VATAggregationKey := GetVATAggregationKey(VATPercent, VATCategoryCode);
 
-                    AddAmountForVATKey(VATAggregationKey, BaseAmount, LineBaseAmounts);
-                    AddAmountForVATKey(VATAggregationKey, VATAmount, LineVATAmounts);
+                        NetBaseAmount := BaseAmount;
+                        if HasAmountField then
+                            NetBaseAmount := AmountFieldRef.Value();
 
-                    if not VATRateByKey.ContainsKey(VATAggregationKey) then
-                        VATRateByKey.Add(VATAggregationKey, VATPercent);
-                    if not VATCategoryByKey.ContainsKey(VATAggregationKey) then
-                        VATCategoryByKey.Add(VATAggregationKey, VATCategoryCode);
+                        if HasAmountIncludingVATField then begin
+                            AmountIncludingVAT := AmountIncludingVATFieldRef.Value();
+                            VATAmount := AmountIncludingVAT - NetBaseAmount;
+                        end
+                        else
+                            VATAmount := Round(NetBaseAmount * VATPercent / 100, GetAmountRoundingPrecision());
+
+                        AddAmountForVATKey(VATAggregationKey, BaseAmount, LineBaseAmounts);
+                        AddAmountForVATKey(VATAggregationKey, NetBaseAmount, LineNetBaseAmounts);
+                        AddAmountForVATKey(VATAggregationKey, VATAmount, LineVATAmounts);
+
+                        if not VATRateByKey.ContainsKey(VATAggregationKey) then
+                            VATRateByKey.Add(VATAggregationKey, VATPercent);
+                        if not VATCategoryByKey.ContainsKey(VATAggregationKey) then
+                            VATCategoryByKey.Add(VATAggregationKey, VATCategoryCode);
+                        if not VATEXCodeByKey.ContainsKey(VATAggregationKey) then begin
+                            VATEXCode := GetVATEXCode(VATBusPostingGroup, VATProdPostingGroup);
+                            VATEXCodeByKey.Add(VATAggregationKey, VATEXCode);
+                        end;
+                    end;
                 end;
             until SourceDocumentLines.Next() = 0;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeAddExchangedDocumentContext(var RootElement: XmlElement; var SourceDocumentLines: RecordRef; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterAddExchangedDocumentContext(var RootElement: XmlElement; var SourceDocumentLines: RecordRef)
+    begin
     end;
 
     local procedure AllocateInvoiceDiscountByVATKey(InvoiceDiscountAmount: Decimal; var LineBaseAmounts: Dictionary of [Text, Decimal]; var AllocatedDiscountByKey: Dictionary of [Text, Decimal])
@@ -590,7 +691,7 @@ codeunit 10978 "CII XML Builder"
             exit;
 
         foreach VATKey in VATAggregationKeys do begin
-            AllocatedDiscountAmount := Round(InvoiceDiscountAmount * LineBaseAmounts.Get(VATKey) / TotalBaseAmount, 0.01);
+            AllocatedDiscountAmount := Round(InvoiceDiscountAmount * LineBaseAmounts.Get(VATKey) / TotalBaseAmount, GetAmountRoundingPrecision());
             AllocatedDiscountByKey.Add(VATKey, AllocatedDiscountAmount);
             TotalAllocatedDiscountAmount += AllocatedDiscountAmount;
         end;
@@ -646,19 +747,37 @@ codeunit 10978 "CII XML Builder"
         LineSettlementElement.Add(AllowanceChargeElement);
     end;
 
-    local procedure InsertTaxElement(var SettlementElement: XmlElement; CalculatedAmount: Text; BasisAmount: Text; CategoryCode: Text; RateApplicablePercent: Text; ZeroVAT: Boolean)
+    local procedure InsertTaxElement(var SettlementElement: XmlElement; CalculatedAmount: Text; BasisAmount: Text; CategoryCode: Text; RateApplicablePercent: Text; VATEXCode: Text)
     var
         TradeTaxElement: XmlElement;
     begin
         TradeTaxElement := XmlElement.Create('ApplicableTradeTax', RamNamespaceTok);
         TradeTaxElement.Add(XmlElement.Create('CalculatedAmount', RamNamespaceTok, CalculatedAmount));
         TradeTaxElement.Add(XmlElement.Create('TypeCode', RamNamespaceTok, 'VAT'));
-        if ZeroVAT then
-            TradeTaxElement.Add(XmlElement.Create('ExemptionReason', RamNamespaceTok, 'VATEX-EU-O'));
+        if (VATEXCode = '') and (CategoryCode = 'E') then
+            TradeTaxElement.Add(XmlElement.Create('ExemptionReason', RamNamespaceTok, VATExemptionReasonLbl));
         TradeTaxElement.Add(XmlElement.Create('BasisAmount', RamNamespaceTok, BasisAmount));
         TradeTaxElement.Add(XmlElement.Create('CategoryCode', RamNamespaceTok, CategoryCode));
+        if VATEXCode <> '' then
+            TradeTaxElement.Add(XmlElement.Create('ExemptionReasonCode', RamNamespaceTok, VATEXCode));
         TradeTaxElement.Add(XmlElement.Create('RateApplicablePercent', RamNamespaceTok, RateApplicablePercent));
         SettlementElement.Add(TradeTaxElement);
+    end;
+
+    local procedure GetVATEXCode(VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]): Text
+    var
+        VATClause: Record "VAT Clause";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        VATPostingSetup.SetLoadFields("VAT Clause Code");
+        if not VATPostingSetup.Get(VATBusPostingGroup, VATProdPostingGroup) then
+            exit('');
+        if VATPostingSetup."VAT Clause Code" = '' then
+            exit('');
+
+        VATClause.SetLoadFields("VATEX Code");
+        if VATClause.Get(VATPostingSetup."VAT Clause Code") then
+            exit(VATClause."VATEX Code");
     end;
 
     local procedure AddLineItems(var TransactionElement: XmlElement; var SourceDocumentLines: RecordRef)
@@ -837,12 +956,13 @@ codeunit 10978 "CII XML Builder"
         BankAccount: Record "Bank Account";
         CompanyInformation: Record "Company Information";
     begin
-        if CompanyBankAccountCode <> '' then
+        if CompanyBankAccountCode <> '' then begin
             BankAccount.SetLoadFields(IBAN, "SWIFT Code");
-        if BankAccount.Get(CompanyBankAccountCode) then begin
-            IBAN := BankAccount.IBAN;
-            SWIFTCode := BankAccount."SWIFT Code";
-            exit;
+            if BankAccount.Get(CompanyBankAccountCode) then begin
+                IBAN := BankAccount.IBAN;
+                SWIFTCode := BankAccount."SWIFT Code";
+                exit;
+            end;
         end;
 
         CompanyInformation.Get();
@@ -938,7 +1058,7 @@ codeunit 10978 "CII XML Builder"
         end;
 
         if LineTotalAmount <> 0 then begin
-            InvoiceDiscountAmount := Round(LineTotalAmount - AmountExclVAT, 0.01);
+            InvoiceDiscountAmount := Round(LineTotalAmount - AmountExclVAT, GetAmountRoundingPrecision());
             if InvoiceDiscountAmount <> 0 then
                 exit(InvoiceDiscountAmount);
         end;
@@ -981,18 +1101,42 @@ codeunit 10978 "CII XML Builder"
         exit(Format(Round(VATPercent, 0.00001), 0, 9));
     end;
 
+    local procedure InitializeAmountRoundingPrecision(CurrencyCode: Code[10])
+    var
+        Currency: Record Currency;
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        GeneralLedgerSetup.Get();
+        if (CurrencyCode = '') or (CurrencyCode = GeneralLedgerSetup."LCY Code") then begin
+            AmountRoundingPrecision := GeneralLedgerSetup."Amount Rounding Precision";
+            exit;
+        end;
+
+        Currency.SetLoadFields("Amount Rounding Precision");
+        Currency.Get(CurrencyCode);
+        Currency.TestField("Amount Rounding Precision");
+        AmountRoundingPrecision := Currency."Amount Rounding Precision";
+    end;
+
+    local procedure GetAmountRoundingPrecision(): Decimal
+    begin
+        exit(AmountRoundingPrecision);
+    end;
+
     local procedure GetVATCategoryCode(TaxCategory: Code[10]; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]): Text
     var
         VATPostingSetup: Record "VAT Posting Setup";
+        VATCategoryCode: Code[10];
     begin
         if TaxCategory <> '' then
-            exit(TaxCategory);
+            VATCategoryCode := TaxCategory
+        else begin
+            VATPostingSetup.SetLoadFields("Tax Category");
+            if VATPostingSetup.Get(VATBusPostingGroup, VATProdPostingGroup) then
+                VATCategoryCode := VATPostingSetup."Tax Category";
+        end;
 
-        VATPostingSetup.SetLoadFields("Tax Category");
-        if not VATPostingSetup.Get(VATBusPostingGroup, VATProdPostingGroup) then
-            exit('');
-
-        exit(VATPostingSetup."Tax Category");
+        exit(VATCategoryCode);
     end;
 
     local procedure AddAmountElement(var ParentElement: XmlElement; ElementName: Text; Amount: Decimal)
@@ -1045,11 +1189,14 @@ codeunit 10978 "CII XML Builder"
     end;
 
     var
+        AmountRoundingPrecision: Decimal;
         RsmNamespaceTok: Label 'urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100', Locked = true;
         RamNamespaceTok: Label 'urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100', Locked = true;
+        QdtNamespaceTok: Label 'urn:un:unece:uncefact:data:standard:QualifiedDataType:100', Locked = true;
         UdtNamespaceTok: Label 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100', Locked = true;
         FacturXProfileIdTok: Label 'urn:cen.eu:en16931:2017', Locked = true;
         RecoveryCostNoteTok: Label 'Indemnité forfaitaire pour frais de recouvrement en cas de retard de paiement : 40 €', Locked = true;
         LatePaymentPenaltyNoteTok: Label 'Taux des pénalités de retard : taux directeur (BCE) majoré de 10 points', Locked = true;
         EarlyPaymentDiscountNoteTok: Label 'Pas d''escompte pour paiement anticipé', Locked = true;
+        VATExemptionReasonLbl: Label 'Exonéré de TVA', Locked = true;
 }

@@ -375,7 +375,7 @@ codeunit 130561 "Library - Agent Impl."
         if GlobalAgentTaskTimeout <> BlankDuration then
             exit(GlobalAgentTaskTimeout);
 
-        GlobalAgentTaskTimeout := 15 * 60 * 1000; // 15 minutes
+        GlobalAgentTaskTimeout := 30 * 60 * 1000; // 30 minutes
 
         exit(GlobalAgentTaskTimeout);
     end;

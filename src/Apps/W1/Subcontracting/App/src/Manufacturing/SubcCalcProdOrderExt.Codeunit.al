@@ -8,7 +8,7 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 
-codeunit 99001517 "Subc. Calc. Prod. Order Ext."
+codeunit 20517 "Subc. Calc. Prod. Order Ext."
 {
 #if not CLEAN29
     var
@@ -32,6 +32,8 @@ codeunit 99001517 "Subc. Calc. Prod. Order Ext."
         SubcontractingManagement.UpdateLinkedComponentsAfterRoutingTransfer(ProdOrderLine, RoutingLine, ProdOrderRoutingLine);
 
         SubcPriceManagement.ApplySubcontractorPricingToProdOrderRouting(ProdOrderLine, RoutingLine, ProdOrderRoutingLine);
+
+        ProdOrderRoutingLine.TransferRoutingComments(RoutingLine);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calculate Prod. Order", OnAfterTransferBOMComponent, '', false, false)]

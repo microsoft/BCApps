@@ -432,16 +432,31 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if not DocumentAttachment."Stored Externally" then
             exit(false);
 
-        // Delete from Tenant Media
-        if TenantMedia.Get(DocumentAttachment."Document Reference ID".MediaId()) then begin
+        if not TenantMedia.Get(DocumentAttachment."Document Reference ID".MediaId()) then
+            exit(false);
+
+        // Attachments copied onto other documents share this Tenant Media row, so it may only be
+        // deleted once this attachment is its last owner. Deleting it earlier destroys the content
+        // of every attachment copied from this one.
+        if not IsDocumentReferenceShared(DocumentAttachment) then
             TenantMedia.Delete();
 
-            // Mark Document Attachment as Not Stored Internally
-            DocumentAttachment.MarkAsDeletedInternally();
-            exit(true);
-        end;
+        // Mark Document Attachment as Not Stored Internally
+        DocumentAttachment.MarkAsDeletedInternally();
+        exit(true);
+    end;
 
-        exit(false);
+    /// <summary>
+    /// Checks whether more than one document attachment references the same media content.
+    /// </summary>
+    /// <param name="DocumentAttachment">The document attachment whose media reference is checked.</param>
+    /// <returns>True if another document attachment references the same media, false otherwise.</returns>
+    local procedure IsDocumentReferenceShared(var DocumentAttachment: Record "Document Attachment"): Boolean
+    var
+        OtherDocumentAttachment: Record "Document Attachment";
+    begin
+        OtherDocumentAttachment.SetRange("Document Reference ID", DocumentAttachment."Document Reference ID");
+        exit(OtherDocumentAttachment.Count() > 1);
     end;
 
     /// <summary>

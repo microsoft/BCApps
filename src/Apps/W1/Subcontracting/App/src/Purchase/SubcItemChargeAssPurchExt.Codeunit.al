@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -7,7 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 
-codeunit 99001536 "Subc. ItemChargeAssPurchExt"
+codeunit 20536 "Subc. ItemChargeAssPurchExt"
 {
     var
         AssignToUndoneRcptErr: Label 'You cannot assign the item charge to subcontracting receipt %1, line %2, because it has been undone.', Comment = '%1 = Posted Receipt No., %2 = Posted Receipt Line No.';

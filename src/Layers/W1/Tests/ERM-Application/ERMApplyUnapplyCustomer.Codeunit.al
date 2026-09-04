@@ -956,6 +956,379 @@
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    procedure ApplyToOldestInvoiceDoesNotApplyToOtherInvoices()
+    var
+        Customer: Record Customer;
+        GenJournalLine: Record "Gen. Journal Line";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        BalGLAccountNo: Code[20];
+        InvoiceAmount: Decimal;
+        Counter: Integer;
+    begin
+        // [SCENARIO 9529] Posting an invoice for a customer with "Apply to Oldest" while an open credit memo
+        // exceeds the new invoice applies the invoice to the credit memo only; older invoices are not consumed.
+        Initialize();
+
+        // [GIVEN] A customer with Application Method = "Apply to Oldest"
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Application Method", Customer."Application Method"::"Apply to Oldest");
+        Customer.Modify(true);
+        BalGLAccountNo := LibraryERM.CreateGLAccountNo();
+
+        // [GIVEN] 3 posted sales invoices of amount "A" on sequential dates
+        InvoiceAmount := 2 * LibraryRandom.RandIntInRange(100, 200);
+        SelectGenJournalBatch(GenJournalBatch, false);
+        for Counter := 1 to 3 do begin
+            LibraryERM.CreateGeneralJnlLine(
+                GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+                GenJournalLine."Document Type"::Invoice,
+                GenJournalLine."Account Type"::Customer, Customer."No.", InvoiceAmount);
+            GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
+            GenJournalLine.Validate("Bal. Account No.", BalGLAccountNo);
+            GenJournalLine.Validate("Posting Date", WorkDate() + 1 + Counter);
+            GenJournalLine.Modify(true);
+            LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        end;
+
+        // [GIVEN] A credit memo of 2.5 * "A", posted last but back-dated before all invoices, so it stays open
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::"Credit Memo",
+            GenJournalLine."Account Type"::Customer, Customer."No.", -InvoiceAmount * 5 / 2);
+        GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
+        GenJournalLine.Validate("Bal. Account No.", BalGLAccountNo);
+        GenJournalLine.Validate("Posting Date", WorkDate() + 1);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        CustLedgerEntry.SetRange("Customer No.", Customer."No.");
+        CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::"Credit Memo");
+        CustLedgerEntry.FindFirst();
+        CustLedgerEntry.CalcFields("Remaining Amount");
+        Assert.AreEqual(-InvoiceAmount * 5 / 2, CustLedgerEntry."Remaining Amount",
+            'Credit memo should be open at its full amount before the new invoice is posted.');
+
+        // [WHEN] An invoice of 2 * "A" is posted
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Invoice,
+            GenJournalLine."Account Type"::Customer, Customer."No.", InvoiceAmount * 2);
+        GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
+        GenJournalLine.Validate("Bal. Account No.", BalGLAccountNo);
+        GenJournalLine.Validate("Posting Date", WorkDate() + 5);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] The credit memo is fully applied and closed
+        CustLedgerEntry.FindFirst();
+        CustLedgerEntry.CalcFields("Remaining Amount");
+        Assert.AreEqual(0, CustLedgerEntry."Remaining Amount", 'Credit memo should be fully applied.');
+        Assert.IsFalse(CustLedgerEntry.Open, 'Credit memo should be closed.');
+
+        // [THEN] The credit memo excess reduces the oldest invoice only; the other invoices are not consumed
+        CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::Invoice);
+        CustLedgerEntry.SetCurrentKey("Posting Date");
+        CustLedgerEntry.SetAscending("Posting Date", true);
+        CustLedgerEntry.FindSet();
+        CustLedgerEntry.CalcFields("Remaining Amount");
+        Assert.AreEqual(InvoiceAmount / 2, CustLedgerEntry."Remaining Amount",
+            'Oldest invoice should absorb only the credit memo excess.');
+        CustLedgerEntry.Next();
+        CustLedgerEntry.CalcFields("Remaining Amount");
+        Assert.AreEqual(InvoiceAmount, CustLedgerEntry."Remaining Amount", 'Second invoice should remain open.');
+        CustLedgerEntry.Next();
+        CustLedgerEntry.CalcFields("Remaining Amount");
+        Assert.AreEqual(InvoiceAmount, CustLedgerEntry."Remaining Amount", 'Third invoice should remain open.');
+        CustLedgerEntry.Next();
+        CustLedgerEntry.CalcFields("Remaining Amount");
+        Assert.AreEqual(0, CustLedgerEntry."Remaining Amount", 'New invoice should be fully applied.');
+        Assert.IsFalse(CustLedgerEntry.Open, 'New invoice should be closed.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ApplyToOldestPaymentNettingAgainstMixedEntries()
+    var
+        Customer: Record Customer;
+        GenJournalLine: Record "Gen. Journal Line";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        BalGLAccountNo: Code[20];
+        InvoiceAmount: Decimal;
+        Counter: Integer;
+        OpenPaymentEntryNo: Integer;
+    begin
+        // [SCENARIO 9529] A payment posted for a customer with "Apply to Oldest" holding open entries of both
+        // signs nets against the open payment first and then the oldest invoices. The outcome must not change
+        // when the application weighing is reworked.
+        Initialize();
+
+        // [GIVEN] A customer with Application Method = "Apply to Oldest"
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Application Method", Customer."Application Method"::"Apply to Oldest");
+        Customer.Modify(true);
+        BalGLAccountNo := LibraryERM.CreateGLAccountNo();
+
+        // [GIVEN] 5 posted sales invoices of amount "A" on sequential dates
+        InvoiceAmount := 2 * LibraryRandom.RandIntInRange(100, 200);
+        SelectGenJournalBatch(GenJournalBatch, false);
+        for Counter := 1 to 5 do begin
+            LibraryERM.CreateGeneralJnlLine(
+                GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+                GenJournalLine."Document Type"::Invoice,
+                GenJournalLine."Account Type"::Customer, Customer."No.", InvoiceAmount);
+            GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
+            GenJournalLine.Validate("Bal. Account No.", BalGLAccountNo);
+            GenJournalLine.Validate("Posting Date", WorkDate() + 1 + Counter);
+            GenJournalLine.Modify(true);
+            LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        end;
+
+        // [GIVEN] A payment of 0.5 * "A", posted last but back-dated before all invoices, so it stays open
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Payment,
+            GenJournalLine."Account Type"::Customer, Customer."No.", -InvoiceAmount / 2);
+        GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
+        GenJournalLine.Validate("Bal. Account No.", BalGLAccountNo);
+        GenJournalLine.Validate("Posting Date", WorkDate() + 1);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        CustLedgerEntry.SetRange("Customer No.", Customer."No.");
+        CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::Payment);
+        CustLedgerEntry.FindFirst();
+        CustLedgerEntry.CalcFields("Remaining Amount");
+        Assert.AreEqual(-InvoiceAmount / 2, CustLedgerEntry."Remaining Amount",
+            'Back-dated payment should be open at its full amount before the new payment is posted.');
+        OpenPaymentEntryNo := CustLedgerEntry."Entry No.";
+
+        // [WHEN] A payment of 3 * "A" is posted
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Payment,
+            GenJournalLine."Account Type"::Customer, Customer."No.", -InvoiceAmount * 3);
+        GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
+        GenJournalLine.Validate("Bal. Account No.", BalGLAccountNo);
+        GenJournalLine.Validate("Posting Date", WorkDate() + 7);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] Both payments are fully applied
+        CustLedgerEntry.Get(OpenPaymentEntryNo);
+        CustLedgerEntry.CalcFields("Remaining Amount");
+        Assert.AreEqual(0, CustLedgerEntry."Remaining Amount", 'Back-dated payment should be fully applied.');
+        CustLedgerEntry.Reset();
+        CustLedgerEntry.SetRange("Customer No.", Customer."No.");
+        CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::Payment);
+        CustLedgerEntry.SetFilter("Entry No.", '<>%1', OpenPaymentEntryNo);
+        CustLedgerEntry.FindFirst();
+        CustLedgerEntry.CalcFields("Remaining Amount");
+        Assert.AreEqual(0, CustLedgerEntry."Remaining Amount", 'New payment should be fully applied.');
+
+        // [THEN] The three oldest invoices are closed, the fourth is partially applied, the newest stays open
+        CustLedgerEntry.Reset();
+        CustLedgerEntry.SetRange("Customer No.", Customer."No.");
+        CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::Invoice);
+        CustLedgerEntry.SetCurrentKey("Posting Date");
+        CustLedgerEntry.SetAscending("Posting Date", true);
+        CustLedgerEntry.FindSet();
+        for Counter := 1 to 3 do begin
+            CustLedgerEntry.CalcFields("Remaining Amount");
+#pragma warning disable AA0217
+            Assert.AreEqual(0, CustLedgerEntry."Remaining Amount",
+                StrSubstNo('Invoice %1 should be fully applied.', Counter));
+#pragma warning restore AA0217
+            CustLedgerEntry.Next();
+        end;
+        CustLedgerEntry.CalcFields("Remaining Amount");
+        Assert.AreEqual(InvoiceAmount / 2, CustLedgerEntry."Remaining Amount",
+            'Fourth invoice should be partially applied.');
+        CustLedgerEntry.Next();
+        CustLedgerEntry.CalcFields("Remaining Amount");
+        Assert.AreEqual(InvoiceAmount, CustLedgerEntry."Remaining Amount", 'Newest invoice should remain open.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ApplyToOldestInvoiceAppliesOnlyToSmallerCreditMemo()
+    var
+        Customer: Record Customer;
+        GenJournalLine: Record "Gen. Journal Line";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        BalGLAccountNo: Code[20];
+        InvoiceAmount: Decimal;
+        Counter: Integer;
+    begin
+        // [SCENARIO 9529] Posting an invoice for a customer with "Apply to Oldest" while an open credit memo
+        // smaller than the new invoice closes the credit memo and leaves the new invoice open for the balance;
+        // the older invoices are not consumed. This mirrors the exceeding-credit-memo case and confirms the
+        // same-sign-first early exit lands on the same decision as summing every open entry.
+        Initialize();
+
+        // [GIVEN] A customer with Application Method = "Apply to Oldest"
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Application Method", Customer."Application Method"::"Apply to Oldest");
+        Customer.Modify(true);
+        BalGLAccountNo := LibraryERM.CreateGLAccountNo();
+
+        // [GIVEN] 3 posted sales invoices of amount "A" on sequential dates
+        InvoiceAmount := 2 * LibraryRandom.RandIntInRange(100, 200);
+        SelectGenJournalBatch(GenJournalBatch, false);
+        for Counter := 1 to 3 do begin
+            LibraryERM.CreateGeneralJnlLine(
+                GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+                GenJournalLine."Document Type"::Invoice,
+                GenJournalLine."Account Type"::Customer, Customer."No.", InvoiceAmount);
+            GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
+            GenJournalLine.Validate("Bal. Account No.", BalGLAccountNo);
+            GenJournalLine.Validate("Posting Date", WorkDate() + 1 + Counter);
+            GenJournalLine.Modify(true);
+            LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        end;
+
+        // [GIVEN] A credit memo of 0.5 * "A", posted last but back-dated before all invoices, so it stays open
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::"Credit Memo",
+            GenJournalLine."Account Type"::Customer, Customer."No.", -InvoiceAmount / 2);
+        GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
+        GenJournalLine.Validate("Bal. Account No.", BalGLAccountNo);
+        GenJournalLine.Validate("Posting Date", WorkDate() + 1);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [WHEN] An invoice of 2 * "A" is posted
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Invoice,
+            GenJournalLine."Account Type"::Customer, Customer."No.", InvoiceAmount * 2);
+        GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
+        GenJournalLine.Validate("Bal. Account No.", BalGLAccountNo);
+        GenJournalLine.Validate("Posting Date", WorkDate() + 5);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] The credit memo is fully applied and closed
+        CustLedgerEntry.SetRange("Customer No.", Customer."No.");
+        CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::"Credit Memo");
+        CustLedgerEntry.FindFirst();
+        CustLedgerEntry.CalcFields("Remaining Amount");
+        Assert.AreEqual(0, CustLedgerEntry."Remaining Amount", 'Credit memo should be fully applied.');
+        Assert.IsFalse(CustLedgerEntry.Open, 'Credit memo should be closed.');
+
+        // [THEN] The new invoice stays open for the balance above the credit memo; the older invoices are untouched
+        CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::Invoice);
+        CustLedgerEntry.SetCurrentKey("Posting Date");
+        CustLedgerEntry.SetAscending("Posting Date", true);
+        CustLedgerEntry.FindSet();
+        for Counter := 1 to 3 do begin
+            CustLedgerEntry.CalcFields("Remaining Amount");
+#pragma warning disable AA0217
+            Assert.AreEqual(InvoiceAmount, CustLedgerEntry."Remaining Amount",
+                StrSubstNo('Invoice %1 should remain open.', Counter));
+#pragma warning restore AA0217
+            CustLedgerEntry.Next();
+        end;
+        CustLedgerEntry.CalcFields("Remaining Amount");
+        Assert.AreEqual(InvoiceAmount * 3 / 2, CustLedgerEntry."Remaining Amount",
+            'New invoice should stay open for the amount above the credit memo.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ApplyToOldestInvoiceExactOffsetSettlesNewDocument()
+    var
+        Customer: Record Customer;
+        GenJournalLine: Record "Gen. Journal Line";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        BalGLAccountNo: Code[20];
+        InvoiceAmount: Decimal;
+        CreditMemoRemaining: Decimal;
+    begin
+        // [SCENARIO 9529] Exact-offset boundary for the tightened "< 0" early exit. The open same-sign invoice plus
+        // the new invoice net to exactly zero against the newer credit memo, but the older credit memo must still
+        // flip the sign decision. In this net-balance-opposes-the-new-document edge the new invoice must be settled
+        // in full and the residual must land on the credit memos - exactly as summing every open entry would.
+        // Exiting at the exact zero (the former "<= 0" behaviour) would leave the new invoice open instead, so this
+        // locks in the "< 0" comparison.
+        Initialize();
+
+        // [GIVEN] A customer with Application Method = "Apply to Oldest"
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Application Method", Customer."Application Method"::"Apply to Oldest");
+        Customer.Modify(true);
+        BalGLAccountNo := LibraryERM.CreateGLAccountNo();
+        InvoiceAmount := 2 * LibraryRandom.RandIntInRange(100, 200);
+        SelectGenJournalBatch(GenJournalBatch, false);
+
+        // [GIVEN] An open invoice of "A" (same sign as the new invoice), dated after the credit memos
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Invoice,
+            GenJournalLine."Account Type"::Customer, Customer."No.", InvoiceAmount);
+        GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
+        GenJournalLine.Validate("Bal. Account No.", BalGLAccountNo);
+        GenJournalLine.Validate("Posting Date", WorkDate() + 3);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [GIVEN] An older credit memo of "A" and a newer credit memo of "3 * A", back-dated so they stay open
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::"Credit Memo",
+            GenJournalLine."Account Type"::Customer, Customer."No.", -InvoiceAmount);
+        GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
+        GenJournalLine.Validate("Bal. Account No.", BalGLAccountNo);
+        GenJournalLine.Validate("Posting Date", WorkDate() + 1);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::"Credit Memo",
+            GenJournalLine."Account Type"::Customer, Customer."No.", -InvoiceAmount * 3);
+        GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
+        GenJournalLine.Validate("Bal. Account No.", BalGLAccountNo);
+        GenJournalLine.Validate("Posting Date", WorkDate() + 2);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [WHEN] An invoice of "2 * A" is posted (weighing: +2A +A -3A = exactly 0, then -A after the older memo)
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Invoice,
+            GenJournalLine."Account Type"::Customer, Customer."No.", InvoiceAmount * 2);
+        GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
+        GenJournalLine.Validate("Bal. Account No.", BalGLAccountNo);
+        GenJournalLine.Validate("Posting Date", WorkDate() + 10);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] The new invoice is settled in full - not left open with a flipped remaining amount
+        CustLedgerEntry.SetRange("Customer No.", Customer."No.");
+        CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::Invoice);
+        CustLedgerEntry.SetRange("Posting Date", WorkDate() + 10);
+        CustLedgerEntry.FindFirst();
+        CustLedgerEntry.CalcFields("Remaining Amount");
+        Assert.AreEqual(0, CustLedgerEntry."Remaining Amount", 'New invoice should be fully applied.');
+        Assert.IsFalse(CustLedgerEntry.Open, 'New invoice should be closed.');
+
+        // [THEN] Only the net balance (-A) remains, and it stays on the credit memos - not on the new invoice
+        CustLedgerEntry.Reset();
+        CustLedgerEntry.SetRange("Customer No.", Customer."No.");
+        CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::"Credit Memo");
+        CustLedgerEntry.FindSet();
+        repeat
+            CustLedgerEntry.CalcFields("Remaining Amount");
+            CreditMemoRemaining += CustLedgerEntry."Remaining Amount";
+        until CustLedgerEntry.Next() = 0;
+        Assert.AreEqual(-InvoiceAmount, CreditMemoRemaining, 'Only the net balance should remain, on the credit memos.');
+    end;
+
+    [Test]
     [HandlerFunctions('CustomerLedgerEntriesPageHandler,ApplyCustomerEntriesPageHandler')]
     [Scope('OnPrem')]
     procedure AmountToApplyAfterApplyToEntryForInvoice()

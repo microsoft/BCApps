@@ -8,7 +8,7 @@ using Microsoft.Inventory.Ledger;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 
-pageextension 99001543 "Subc. Finished Prod. Orders" extends "Finished Production Orders"
+pageextension 20543 "Subc. Finished Prod. Orders" extends "Finished Production Orders"
 {
     actions
     {

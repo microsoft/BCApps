@@ -16,6 +16,7 @@ codeunit 134769 "Test User Tasks"
         UserTaskGroupMember: Record "User Task Group Member";
         Assert: Codeunit Assert;
         LibraryUtility: Codeunit "Library - Utility";
+        RecordsWithNewUsernameErr: Label 'Records with new username should exist in %1.', Comment = '%1 = table name';
 
     [Test]
     [Scope('OnPrem')]
@@ -164,6 +165,82 @@ codeunit 134769 "Test User Tasks"
 
         UserTask2.Get(UserTask.ID);
         Assert.AreEqual('Vytvorení úcetního období pro rok 2018', UserTask2.GetDescription(), 'Unexpected value in the Task Description');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure TestRenameUser()
+    var
+        User: Record User;
+        FieldRec: Record "Field";
+        Company: Record Company;
+        TableInformation: Record "Table Information";
+        TempTablesAlreadyInserted: Record Integer temporary;
+        UserCodeunit: Codeunit User;
+        RecRef: RecordRef;
+        FldRef: FieldRef;
+    begin
+        // [GIVEN] Create data for tables with fields having relation with User table
+        Company.FindFirst();
+        FieldRec.SetFilter(ObsoleteState, '<>%1', FieldRec.ObsoleteState::Removed);
+        FieldRec.SetRange(RelationTableNo, DATABASE::User);
+        FieldRec.SetRange(RelationFieldNo, User.FieldNo("User Name"));
+        FieldRec.SetFilter(Type, '%1|%2', FieldRec.Type::Code, FieldRec.Type::Text);
+        if FieldRec.FindSet() then
+            repeat
+                if not SkipTable(FieldRec.TableNo) then begin
+                    TableInformation.SetFilter("Company Name", '%1|%2', '', Company.Name);
+                    TableInformation.SetRange("Table No.", FieldRec.TableNo);
+                    if TableInformation.FindFirst() then begin
+                        RecRef.Open(FieldRec.TableNo, false, Company.Name);
+                        if TempTablesAlreadyInserted.Get(FieldRec.TableNo) then begin
+                            RecRef.FindFirst();
+                            FldRef := RecRef.Field(FieldRec."No.");
+                            FldRef.Value('OLD');
+                            RecRef.Modify();
+                        end else begin
+                            RecRef.DeleteAll();
+                            RecRef.Init();
+                            FldRef := RecRef.Field(FieldRec."No.");
+                            FldRef.Value('OLD');
+                            RecRef.Insert();
+
+                            TempTablesAlreadyInserted.Init();
+                            TempTablesAlreadyInserted.Number := FieldRec.TableNo;
+                            TempTablesAlreadyInserted.Insert();
+                        end;
+                        RecRef.Close();
+                    end;
+                end;
+            until FieldRec.Next() = 0;
+
+        // [WHEN] RenameUser is invoked
+        UserCodeunit.RenameUser('OLD', 'NEW');
+
+        // [THEN] The data in the table fields has been updated
+        if FieldRec.FindSet() then
+            repeat
+                TableInformation.SetFilter("Company Name", '%1|%2', '', Company.Name);
+                TableInformation.SetRange("Table No.", FieldRec.TableNo);
+                if TableInformation.FindFirst() then
+                    if not SkipTable(FieldRec.TableNo) then begin
+                        RecRef.Open(FieldRec.TableNo, false, Company.Name);
+                        FldRef := RecRef.Field(FieldRec."No.");
+                        FldRef.SetRange('NEW');
+                        Assert.AreEqual(1, RecRef.Count(), StrSubstNo(RecordsWithNewUsernameErr, TableInformation."Table Name"));
+                        RecRef.Close();
+                    end;
+            until FieldRec.Next() = 0;
+    end;
+
+    local procedure SkipTable(TableNo: Integer): Boolean
+    begin
+        if TableNo = DATABASE::"Fin. Report Package Recipient" then
+            exit(true);
+        if TableNo = DATABASE::"Contact Sync User" then
+            exit(true);
+        exit(false);
     end;
 
     [Test]

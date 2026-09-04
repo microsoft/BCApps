@@ -22,6 +22,11 @@ page 6901 "Expense Rule Card"
                 field("Expense Category Code"; Rec."Expense Category Code")
                 {
                     ToolTip = 'Specifies the expense category for this rule.';
+
+                    trigger OnValidate()
+                    begin
+                        CurrPage.Update();
+                    end;
                 }
                 field("Expense Location"; Rec."Expense Location")
                 {
@@ -53,6 +58,7 @@ page 6901 "Expense Rule Card"
             group(Merchant)
             {
                 Caption = 'Merchant Requirements';
+                Enabled = MerchantRequirementsEnabled;
 
                 field("Required Specific Merchant"; Rec."Required Specific Merchant")
                 {
@@ -75,4 +81,21 @@ page 6901 "Expense Rule Card"
             }
         }
     }
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        SetMerchantRequirementsEnabled();
+    end;
+
+    var
+        MerchantRequirementsEnabled: Boolean;
+
+    local procedure SetMerchantRequirementsEnabled()
+    var
+        ExpenseCategory: Record "Expense Category";
+    begin
+        MerchantRequirementsEnabled := true;
+        if ExpenseCategory.Get(Rec."Expense Category Code") then
+            MerchantRequirementsEnabled := ExpenseCategory."Expense Detail Required" <> ExpenseCategory."Expense Detail Required"::Mileage;
+    end;
 }

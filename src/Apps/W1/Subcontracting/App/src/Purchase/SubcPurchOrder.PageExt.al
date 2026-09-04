@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Purchases.Document;
 
-pageextension 99001523 "Subc. Purch. Order" extends "Purchase Order"
+pageextension 20523 "Subc. Purch. Order" extends "Purchase Order"
 {
     layout
     {

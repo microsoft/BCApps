@@ -10,7 +10,7 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Purchases.Vendor;
 
-codeunit 99001522 "Subc. Planning Comp. Ext."
+codeunit 20522 "Subc. Planning Comp. Ext."
 {
 #if not CLEAN29
     var

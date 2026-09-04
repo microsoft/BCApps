@@ -10,36 +10,37 @@ codeunit 137046 "SCM Order Planning - I"
     end;
 
     var
-        LocationRed: Record Location;
         LocationBlue: Record Location;
         LocationBlue2: Record Location;
         LocationIntransit: Record Location;
+        LocationRed: Record Location;
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
         Assert: Codeunit Assert;
-        LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryApplicationArea: Codeunit "Library - Application Area";
-        LibraryUtility: Codeunit "Library - Utility";
-        LibraryPlanning: Codeunit "Library - Planning";
-        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
-        LibrarySales: Codeunit "Library - Sales";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryPlanning: Codeunit "Library - Planning";
+        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
+        LibrarySales: Codeunit "Library - Sales";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
-        VerifyOnGlobal: Option RequisitionLine,Orders;
+        LibraryWarehouse: Codeunit "Library - Warehouse";
         DemandTypeGlobal: Option Sales,Production;
+        VerifyOnGlobal: Option RequisitionLine,Orders;
         IsInitialized: Boolean;
-        ValidationError: Label '%1  must be %2 in %3.';
-        FinishOrderMessage: Label 'Do you still want to finish the order?';
-        LineCountError: Label 'There should be '' %1 '' line(s) in the planning worksheet for item. ';
         CostIsAdjustedErr: Label '"Cost Is Adjusted" in Inventory Adjmt. Entry (Order) should be TRUE if Item was deleted';
-        UnitOfMeasureErr: Label 'Unit of Measure Code on Requisition Line doesn''t equal to the Purch. Unit of Measure of Item';
-        RequisitionLineQtyErr: Label 'Requisition quantity not qual to expected quantity of %1', Comment = '%1 - Requisition Line Expected Quantity';
-        SalesDemandSetupErr: Label 'Setup error: expected Sales demand requisition lines.';
-        ProductionDemandSetupErr: Label 'Setup error: expected Production demand requisition lines.';
+        FinishOrderMessage: Label 'Do you still want to finish the order?';
+        ItemNotAvailableErr: Label 'All items are available and no planning lines are created.';
+        LineCountError: Label 'There should be '' %1 '' line(s) in the planning worksheet for item. ';
         ProdDemandStillVisibleErr: Label 'Production Order %1 is still visible on Order Planning when "Show Demand as" = "Sales Demand". The Sales Line-Planning subscriber is not filtering by Demand Type = Sales Line.', Comment = '%1 = Production Order No.';
+        ProductionDemandSetupErr: Label 'Setup error: expected Production demand requisition lines.';
+        RequisitionLineQtyErr: Label 'Requisition quantity not qual to expected quantity of %1', Comment = '%1 - Requisition Line Expected Quantity';
         SalesDemandNotVisibleErr: Label 'Sales Order %1 must be visible on Order Planning when "Show Demand as" = "Sales Demand".', Comment = '%1 = Sales Order No.';
+        SalesDemandSetupErr: Label 'Setup error: expected Sales demand requisition lines.';
+        UnitOfMeasureErr: Label 'Unit of Measure Code on Requisition Line doesn''t equal to the Purch. Unit of Measure of Item';
+        ValidationError: Label '%1  must be %2 in %3.';
 
     [Test]
     [Scope('OnPrem')]
@@ -1215,6 +1216,71 @@ codeunit 137046 "SCM Order Planning - I"
         RestoreSalesReceivableSetup(TempSalesReceivablesSetup);
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
+    procedure JobDemandReceivedNotInvoicedAfterDateChangeNotReplanned()
+    var
+        Item: Record Item;
+        Vendor: Record Vendor;
+        Job: Record Job;
+        JobTask: Record "Job Task";
+        JobPlanningLine: Record "Job Planning Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        RequisitionLine: Record "Requisition Line";
+        LibraryJob: Codeunit "Library - Job";
+        NewDate: Date;
+    begin
+        // [SCENARIO 646661] Order Planning for Job Demand must not re-suggest supply that was received (not invoiced)
+        // on a Purchase Order after its Order Date and Posting Date were changed.
+        Initialize();
+
+        // [GIVEN] Item with Replenishment System = Purchase and a Vendor.
+        LibraryPurchase.CreateVendor(Vendor);
+        CreateItem(Item, Item."Replenishment System"::Purchase, '', '', Vendor."No.");
+
+        // [GIVEN] Job with Apply Usage Link = TRUE and a Job Task.
+        LibraryJob.CreateJob(Job);
+        Job.Validate("Apply Usage Link", true);
+        Job.Modify(true);
+        LibraryJob.CreateJobTask(Job, JobTask);
+
+        // [GIVEN] Budget Job Planning Line for the Item with Quantity = 2.
+        LibraryJob.CreateJobPlanningLine(JobPlanningLine."Line Type"::Budget, JobPlanningLine.Type::Item, JobTask, JobPlanningLine);
+        JobPlanningLine.Validate("No.", Item."No.");
+        JobPlanningLine.Validate(Quantity, 2);
+        JobPlanningLine.Modify(true);
+
+        // [GIVEN] Order Planning is run for Job Demand and a Purchase Order is created.
+        LibraryPlanning.CalculateOrderPlanJob(RequisitionLine);
+        LibraryPlanning.CarryOutActionMsgPlanWksh(RequisitionLine);
+
+        PurchaseLine.SetRange("Job No.", Job."No.");
+        PurchaseLine.SetRange("No.", Item."No.");
+        PurchaseLine.FindFirst();
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+
+        // [GIVEN] Order Date and Posting Date on the Purchase Order are changed to a later date.
+        NewDate := CalcDate('<+1W>', PurchaseHeader."Order Date");
+        PurchaseHeader.Validate("Order Date", NewDate);
+        PurchaseHeader.Validate("Posting Date", NewDate);
+        PurchaseHeader.Validate("Vendor Invoice No.", PurchaseHeader."No.");
+        PurchaseHeader.Modify(true);
+
+        // [GIVEN] The Receipt only is posted (not invoiced).
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [WHEN] Order Planning is run again for Job Demand.
+        RequisitionLine.DeleteAll();
+        asserterror LibraryPlanning.CalculateOrderPlanJob(RequisitionLine);
+        Assert.ExpectedError(ItemNotAvailableErr);
+
+        // [THEN] No supply is suggested for the received (not invoiced) Item.
+        RequisitionLine.SetRange("No.", Item."No.");
+        RequisitionLine.SetRange("Demand Order No.", Job."No.");
+        Assert.RecordIsEmpty(RequisitionLine);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -2165,6 +2231,12 @@ codeunit 137046 "SCM Order Planning - I"
     procedure ConfirmHandlerTrue(ConfirmMessage: Text[1024]; var Reply: Boolean)
     begin
         Assert.AreNotEqual(0, StrPos(ConfirmMessage, FinishOrderMessage), ConfirmMessage);
+        Reply := true;
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmHandlerYes(ConfirmMessage: Text[1024]; var Reply: Boolean)
+    begin
         Reply := true;
     end;
 }

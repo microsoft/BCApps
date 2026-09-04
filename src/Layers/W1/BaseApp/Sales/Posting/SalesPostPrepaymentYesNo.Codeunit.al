@@ -70,10 +70,14 @@ codeunit 443 "Sales-Post Prepayment (Yes/No)"
     procedure PostPrepmtCrMemoYN(var SalesHeader2: Record "Sales Header"; Print: Boolean)
     var
         SalesHeader: Record "Sales Header";
+        IsHandled: Boolean;
     begin
         SalesHeader.Copy(SalesHeader2);
-        if not ConfirmForDocument(SalesHeader, Text001) then
-            exit;
+        IsHandled := false;
+        OnPostPrepmtCrMemoYNOnBeforeConfirm(SalesHeader, IsHandled);
+        if not IsHandled then
+            if not ConfirmForDocument(SalesHeader, Text001) then
+                exit;
 
         PostPrepmtDocument(SalesHeader, SalesHeader."Document Type"::"Credit Memo");
 
@@ -254,6 +258,16 @@ codeunit 443 "Sales-Post Prepayment (Yes/No)"
     end;
 
     /// <summary>
+    /// Raised before confirming the posting of the prepayment credit memo.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header being processed.</param>
+    /// <param name="IsHandled">Set to true to skip the default confirmation dialog.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnPostPrepmtCrMemoYNOnBeforeConfirm(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean);
+    begin
+    end;
+
+    /// <summary>
     /// Raised before running the Sales-Post Prepayments codeunit.
     /// </summary>
     /// <param name="SalesHeader">The sales header to be posted.</param>
@@ -263,4 +277,3 @@ codeunit 443 "Sales-Post Prepayment (Yes/No)"
     begin
     end;
 }
-

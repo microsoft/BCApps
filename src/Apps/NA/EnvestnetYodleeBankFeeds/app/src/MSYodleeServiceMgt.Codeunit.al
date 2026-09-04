@@ -187,7 +187,9 @@ codeunit 1450 "MS - Yodlee Service Mgt."
         HttpRequestAllowedTelemetryMsg: Label 'Customer enabled http requests for Envestnet Yodlee Bank Feeds app via notification action.', Locked = true;
         EnableHttpRequestActionLbl: Label 'Allow HTTP requests';
 
+#pragma warning disable AL0749 // Accepted: widening the scope of the parameter type would be a breaking change.
     procedure SetValuesToDefault(var MSYodleeBankServiceSetup: Record "MS - Yodlee Bank Service Setup");
+#pragma warning restore AL0749
     var
         CompanyInformationMgt: Codeunit "Company Information Mgt.";
         EnvironmentInformation: Codeunit "Environment Information";

@@ -2,8 +2,224 @@
 # Order is important; the last matching pattern takes the most precedence.
 # CODEOWNERS paths are case sensitive, because GitHub uses a case sensitive file system
 
-# Default owners
-* @microsoft/dynamics-365-business-central
+# ---------------------------------------------------------------------------
+# Application team ownership (GENERATED - do not hand-edit)
+#
+# One line per thing a team owns: each app, each Base Application area, the
+# System Application and Business Foundation. Nothing else.
+#
+# There is deliberately no `* @microsoft/dynamics-365-business-central` default.
+# A catch-all default makes the 123-member org team a reviewer on every pull
+# request that touches any unclaimed file, which is the noise this file exists
+# to remove. A path no team claims simply has no code owner.
+#
+# Tests, demo data, the demo tool and the localization layers are deliberately
+# unclaimed. Every team writes tests and ships demo data, so naming one team
+# there requests a review nobody needs. The triage agent still labels those
+# issues and pull requests with a team, so the work stays visible on that team's
+# backlog - it just does not pull in a specific reviewer. In short: CODEOWNERS
+# decides who is asked to review, triage decides whose backlog it lands on.
+# Those two answers are allowed to differ.
+#
+# The rules are generated from the routing data the BCApps triage agent uses to
+# classify issues and pull requests:
+#   microsoft/BCAppsTriage
+#     plugins/triage/skills/triage/scripts/ownership/ownership-rules.js
+#     plugins/triage/skills/triage/scripts/ownership/ownership-resolver.js
+# which are themselves seeded from the Business Central Ownership Matrix.
+#
+# To change ownership, edit ownership-rules.js in BCAppsTriage and regenerate.
+# Do not hand-edit the block below; hand edits will be lost and will silently
+# diverge from issue and pull request triage.
+# Apps with dedicated reviewer teams are intentionally omitted from this block
+# and listed once in the dedicated application reviewers section below.
+#
+# The specialized cross-cutting rules at the bottom of this file (App Security,
+# App Permissions, app.json, AL-Go and build files, Developer Experience, Code
+# Review Tools) still take precedence over everything here.
+# ---------------------------------------------------------------------------
+
+# Platform. Integration owns these end to end; the sub-sections other
+# teams own are listed further down, after this block.
+/src/System\ Application/ @microsoft/d365-bc-integrations
+/src/Business\ Foundation/ @microsoft/d365-bc-integrations
+/src/Tools/ @microsoft/d365-bc-integrations
+/tools/ @microsoft/d365-bc-integrations
+
+# Base Application areas. The pattern covers W1 and every localization
+# layer, so src/Layers/W1/BaseApp/Sales and src/Layers/DE/BaseApp/Sales
+# resolve to the same team. Areas not listed here (Local, Upgrade,
+# Removed, loose files) have no single owner and fall to the default.
+/src/Layers/*/BaseApp/Assembly/ @microsoft/d365-bc-scm
+/src/Layers/*/BaseApp/Bank/ @microsoft/d365-bc-finance-1
+/src/Layers/*/BaseApp/CashFlow/ @microsoft/d365-bc-finance-1
+/src/Layers/*/BaseApp/CostAccounting/ @microsoft/d365-bc-finance-1
+/src/Layers/*/BaseApp/CRM/ @microsoft/d365-bc-scm
+/src/Layers/*/BaseApp/Entitlements/ @microsoft/d365-bc-integrations
+/src/Layers/*/BaseApp/eServices/ @microsoft/d365-bc-integrations
+/src/Layers/*/BaseApp/Finance/ @microsoft/d365-bc-finance-1
+/src/Layers/*/BaseApp/FinancialMgt/ @microsoft/d365-bc-finance-1
+/src/Layers/*/BaseApp/FixedAssets/ @microsoft/d365-bc-finance-1
+/src/Layers/*/BaseApp/Foundation/ @microsoft/d365-bc-integrations
+/src/Layers/*/BaseApp/HumanResources/ @microsoft/d365-bc-scm
+/src/Layers/*/BaseApp/Integration/ @microsoft/d365-bc-integrations
+/src/Layers/*/BaseApp/Inventory/ @microsoft/d365-bc-scm
+/src/Layers/*/BaseApp/Invoicing/ @microsoft/d365-bc-scm
+/src/Layers/*/BaseApp/Manufacturing/ @microsoft/d365-bc-scm
+/src/Layers/*/BaseApp/Modules/ @microsoft/d365-bc-integrations
+/src/Layers/*/BaseApp/OtherCapabilities/ @microsoft/d365-bc-integrations
+/src/Layers/*/BaseApp/Permissions/ @microsoft/d365-bc-integrations
+/src/Layers/*/BaseApp/Pricing/ @microsoft/d365-bc-scm
+/src/Layers/*/BaseApp/Projects/ @microsoft/d365-bc-scm
+/src/Layers/*/BaseApp/Purchases/ @microsoft/d365-bc-scm
+/src/Layers/*/BaseApp/RoleCenters/ @microsoft/d365-bc-integrations
+/src/Layers/*/BaseApp/Sales/ @microsoft/d365-bc-scm
+/src/Layers/*/BaseApp/Service/ @microsoft/d365-bc-scm
+/src/Layers/*/BaseApp/System/ @microsoft/d365-bc-integrations
+/src/Layers/*/BaseApp/Utilities/ @microsoft/d365-bc-integrations
+/src/Layers/*/BaseApp/Warehouse/ @microsoft/d365-bc-scm
+# Finance sub-ledgers that sit physically inside an SCM area folder.
+# These must stay after their parent area above.
+/src/Layers/*/BaseApp/Sales/Reminder/ @microsoft/d365-bc-finance-1
+/src/Layers/*/BaseApp/Sales/FinanceCharge/ @microsoft/d365-bc-finance-1
+/src/Layers/*/BaseApp/Purchases/Payables/ @microsoft/d365-bc-finance-1
+# Costing reference data lives outside BaseApp but belongs to SCM.
+/src/Layers/W1/AlCosting/ @microsoft/d365-bc-scm
+
+# Localization apps (130). Almost all are tax and regulatory work
+# (GST, TDS, Intrastat, IRS forms, e-invoicing), so Finance owns them by
+# default. Exceptions are listed at the end of this block.
+/src/Apps/*/ @microsoft/d365-bc-finance-1
+# W1 is a layer name, not a country code, so release it from that wildcard.
+# Its apps are listed individually below and override this line.
+/src/Apps/W1/
+
+# W1 apps - one line each (100). These also override the wildcard
+# above, since W1 is a layer name rather than a country code.
+/src/Apps/W1/AIDevelopmentToolkit/ @microsoft/d365-bc-integrations
+/src/Apps/W1/AIDevelopmentToolkitDesign/ @microsoft/d365-bc-integrations
+/src/Apps/W1/AIDevelopmentToolkitEvaluation/ @microsoft/d365-bc-integrations
+/src/Apps/W1/AMCBanking365Fundamentals/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/APIReportsFinance/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/APIV1/ @microsoft/d365-bc-integrations
+/src/Apps/W1/APIV2/ @microsoft/d365-bc-integrations
+/src/Apps/W1/AgentDesignExperience/ @microsoft/d365-bc-integrations
+/src/Apps/W1/AgentSamples/ @microsoft/d365-bc-integrations
+/src/Apps/W1/AuditFileExport/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/AutomaticAccountCodes/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/BankAccRecWithAI/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/BankDeposits/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/BasicExperience/ @microsoft/d365-bc-integrations
+/src/Apps/W1/ClientAddIns/ @microsoft/d365-bc-integrations
+/src/Apps/W1/CompanyHub/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/ConnectivityApps/ @microsoft/d365-bc-integrations
+/src/Apps/W1/CreateProductInformationWithCopilot/ @microsoft/d365-bc-scm
+/src/Apps/W1/CrossEnvironmentIntercompany/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/DataArchive/ @microsoft/d365-bc-integrations
+/src/Apps/W1/DataCorrectionFA/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/DataSearch/ @microsoft/d365-bc-integrations
+/src/Apps/W1/DynamicsGPHistoricalData/ @microsoft/d365-bc-integrations
+/src/Apps/W1/DynamicsGPHistorySmartLists/ @microsoft/d365-bc-integrations
+/src/Apps/W1/DynamicsSLHistoricalData/ @microsoft/d365-bc-integrations
+/src/Apps/W1/EDocument/ @microsoft/d365-bc-integrations
+/src/Apps/W1/EDocumentConnectors/ @microsoft/d365-bc-integrations
+/src/Apps/W1/ESGStatisticalAccountsDemoTool/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/EU3PartyTradePurchase/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/Email\ -\ Current\ User\ Connector/ @microsoft/d365-bc-integrations
+/src/Apps/W1/Email\ -\ Microsoft\ 365\ Connector/ @microsoft/d365-bc-integrations
+/src/Apps/W1/Email\ -\ Outlook\ REST\ API/ @microsoft/d365-bc-integrations
+/src/Apps/W1/Email\ -\ SMTP\ API/ @microsoft/d365-bc-integrations
+/src/Apps/W1/Email\ -\ SMTP\ Connector/ @microsoft/d365-bc-integrations
+/src/Apps/W1/EmailLogging/ @microsoft/d365-bc-integrations
+/src/Apps/W1/EnforcedDigitalVouchers/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/ErrorMessagesWithRecommendations/ @microsoft/d365-bc-integrations
+/src/Apps/W1/EssentialBusinessHeadlines/ @microsoft/d365-bc-integrations
+/src/Apps/W1/ExcelReports/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/ExciseTaxes/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/External\ File\ Storage\ -\ Azure\ Blob\ Service\ Connector/ @microsoft/d365-bc-integrations
+/src/Apps/W1/External\ File\ Storage\ -\ Azure\ File\ Service\ Connector/ @microsoft/d365-bc-integrations
+/src/Apps/W1/External\ File\ Storage\ -\ SFTP\ Connector/ @microsoft/d365-bc-integrations
+/src/Apps/W1/External\ File\ Storage\ -\ SharePoint\ Connector/ @microsoft/d365-bc-integrations
+/src/Apps/W1/External\ Storage\ -\ Document\ Attachments/ @microsoft/d365-bc-integrations
+/src/Apps/W1/ExternalEvents/ @microsoft/d365-bc-integrations
+/src/Apps/W1/FieldServiceIntegration/ @microsoft/d365-bc-scm
+/src/Apps/W1/HybridAPI/ @microsoft/d365-bc-integrations
+/src/Apps/W1/HybridBC/ @microsoft/d365-bc-integrations
+/src/Apps/W1/HybridBC14/ @microsoft/d365-bc-integrations
+/src/Apps/W1/HybridBC14HistoricalData/ @microsoft/d365-bc-integrations
+/src/Apps/W1/HybridBCLast/ @microsoft/d365-bc-integrations
+/src/Apps/W1/HybridBaseDeployment/ @microsoft/d365-bc-integrations
+/src/Apps/W1/HybridGP/ @microsoft/d365-bc-integrations
+/src/Apps/W1/HybridSL/ @microsoft/d365-bc-integrations
+/src/Apps/W1/INTaxEngine/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/ImageAnalysis/ @microsoft/d365-bc-scm
+/src/Apps/W1/Intrastat/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/LatePaymentPredictor/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/LibraryNoTransactions/ @microsoft/d365-bc-integrations
+/src/Apps/W1/MSWalletPayments/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/Manufacturing/ @microsoft/d365-bc-scm
+/src/Apps/W1/MasterDataManagement/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/MicrosoftUniversalPrint/ @microsoft/d365-bc-integrations
+/src/Apps/W1/OnPrem\ Permissions/ @microsoft/d365-bc-integrations
+/src/Apps/W1/OnboardingSignals/ @microsoft/d365-bc-integrations
+/src/Apps/W1/PEPPOL/ @microsoft/d365-bc-integrations
+/src/Apps/W1/PayPalPaymentsStandard/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/PayablesAgent/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/PaymentPractices/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/PlanConfiguration/ @microsoft/d365-bc-integrations
+/src/Apps/W1/PowerBIReports/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/QBMigration/ @microsoft/d365-bc-integrations
+/src/Apps/W1/Quality\ Management/ @microsoft/d365-bc-scm
+/src/Apps/W1/QuickbooksPayrollFileImport/ @microsoft/d365-bc-integrations
+/src/Apps/W1/RecommendedApps/ @microsoft/d365-bc-integrations
+/src/Apps/W1/ReviewGLEntries/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/SAF-T/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/SalesAndInventoryForecast/ @microsoft/d365-bc-scm
+/src/Apps/W1/SalesLinesSuggestions/ @microsoft/d365-bc-scm
+/src/Apps/W1/SalesOrderAgent/ @microsoft/d365-bc-scm
+/src/Apps/W1/SendToEmailPrinter/ @microsoft/d365-bc-integrations
+/src/Apps/W1/ServiceDeclaration/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/ServiceManagement/ @microsoft/d365-bc-scm
+/src/Apps/W1/Shopify/ @microsoft/d365-bc-integrations
+/src/Apps/W1/SimplifiedBankStatementImport/ @microsoft/d365-bc-scm
+/src/Apps/W1/SmartList/ @microsoft/d365-bc-integrations
+/src/Apps/W1/StatisticalAccounts/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/Subcontracting/ @microsoft/d365-bc-scm
+/src/Apps/W1/Subscription\ Billing/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/Sustainability/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/SustainabilityCopilotSuggestion/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/SyncBase/ @microsoft/d365-bc-integrations
+/src/Apps/W1/TransactionStorage/ @microsoft/d365-bc-integrations
+/src/Apps/W1/UKSendRemittanceAdvice/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/VATGroupManagement/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/WithholdingTax/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/WorldPayPaymentsStandard/ @microsoft/d365-bc-finance-1
+# PowerBIReports hosts per-area report folders, which split across teams.
+/src/Apps/W1/PowerBIReports/App/.resources/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/PowerBIReports/App/Core/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/PowerBIReports/App/Finance/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/PowerBIReports/App/Inventory/ @microsoft/d365-bc-scm
+/src/Apps/W1/PowerBIReports/App/Manufacturing/ @microsoft/d365-bc-scm
+/src/Apps/W1/PowerBIReports/App/Projects/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/PowerBIReports/App/Purchasing/ @microsoft/d365-bc-finance-1
+/src/Apps/W1/PowerBIReports/App/Sales/ @microsoft/d365-bc-scm
+/src/Apps/W1/PowerBIReports/App/_Obsolete/ @microsoft/d365-bc-finance-1
+
+# Localization apps that are not Finance.
+/src/Apps/BE/ShopifyBE/ @microsoft/d365-bc-integrations
+
+# Demo data. Every team contributes demo data for its own area, so it has no
+# single owner. This line has no owner on purpose: it releases demo data
+# from the localization wildcard above without naming anyone.
+/src/Apps/*/*ContosoCoffeeDemoDataset*/
+/src/DemoTool/*/
+/src/Layers/*/DemoTool/*/
+
+
+# Expense Agent application family. These review routes intentionally differ
+# from the Finance functional ownership labels used by triage.
+/src/Apps/*/ExpenseAgent*/ @microsoft/d365-bc-app-expense-agent
+/src/Apps/*/ExpenseWithholdingTax*/ @microsoft/d365-bc-app-expense-agent
 
 # App Rulesets
 /src/rulesets/ @microsoft/d365-bc-app-rulesets
@@ -17,64 +233,6 @@
 
 /src/System\ Application/App/Extension\ Management @microsoft/dynamics-smb-developertools
 /src/System\ Application/Test/Extension\ Management @microsoft/dynamics-smb-developertools
-
-# App Finance
-/src/Apps/W1/PowerBIReports @microsoft/d365-bc-finance-1
-/src/Apps/APAC/EDocumentFormats @microsoft/d365-bc-finance-1
-/src/Apps/CH/SwissQRBill @microsoft/d365-bc-finance-1
-/src/Apps/CZ/FixedAssetLocalization @microsoft/d365-bc-finance-1
-/src/Apps/DE/EDocumentDE @microsoft/d365-bc-finance-1
-/src/Apps/DE/Elster @microsoft/d365-bc-finance-1
-/src/Apps/DK/ElectronicVATDeclarationDK @microsoft/d365-bc-finance-1
-/src/Apps/DK/EnforcedDigitalVouchersDK @microsoft/d365-bc-finance-1
-/src/Apps/DK/FIK @microsoft/d365-bc-finance-1
-/src/Apps/DK/NemhandelNotification @microsoft/d365-bc-finance-1
-/src/Apps/DK/SAFTModificationDK @microsoft/d365-bc-finance-1
-/src/Apps/DK/VATReportsDK @microsoft/d365-bc-finance-1
-/src/Apps/ES/EDocumentFormats @microsoft/d365-bc-finance-1
-/src/Apps/FR/FAReportsFR @microsoft/d365-bc-finance-1
-/src/Apps/FR/FECAuditFile @microsoft/d365-bc-finance-1
-/src/Apps/FR/PaymentManagementFR @microsoft/d365-bc-finance-1
-/src/Apps/FR/ServiceDeclarationFR @microsoft/d365-bc-finance-1
-/src/Apps/GB/GovTalk @microsoft/d365-bc-finance-1
-/src/Apps/GB/IdealPostcodes @microsoft/d365-bc-finance-1
-/src/Apps/GB/PostingDateCheckOnPosting @microsoft/d365-bc-finance-1
-/src/Apps/GB/ReportsGB @microsoft/d365-bc-finance-1
-/src/Apps/GB/ReverseChargeVAT @microsoft/d365-bc-finance-1
-/src/Apps/GB/UKMakingTaxDigital @microsoft/d365-bc-finance-1
-/src/Apps/GB/UKPostcodeGetAddressIO @microsoft/d365-bc-finance-1
-/src/Apps/GB/VATReporting @microsoft/d365-bc-finance-1
-/src/Apps/NA/Ceridian @microsoft/d365-bc-finance-1
-/src/Apps/NA/EnvestnetYodleeBankFeeds @microsoft/d365-bc-finance-1
-/src/Apps/NA/ExtendedBankDepositNA @microsoft/d365-bc-finance-1
-/src/Apps/NA/MX_DIOT @microsoft/d365-bc-finance-1
-/src/Apps/NA/Onprem\ Permissions\ NA @microsoft/d365-bc-finance-1
-/src/Apps/NL/NLDigitalTaxDeclaration @microsoft/d365-bc-finance-1
-/src/Apps/NO/ElectronicVATSubmission @microsoft/d365-bc-finance-1
-/src/Apps/NO/NorwegianSAFT @microsoft/d365-bc-finance-1
-/src/Apps/SE/SIE @microsoft/d365-bc-finance-1
-/src/Apps/US/IRS1096 @microsoft/d365-bc-finance-1
-/src/Apps/US/IRSForms @microsoft/d365-bc-finance-1
-/src/Apps/W1/AMCBanking365Fundamentals @microsoft/d365-bc-finance-1
-/src/Apps/W1/AuditFileExport @microsoft/d365-bc-finance-1
-/src/Apps/W1/BankAccRecWithAI @microsoft/d365-bc-finance-1
-/src/Apps/W1/BankDeposits @microsoft/d365-bc-finance-1
-/src/Apps/W1/CompanyHub @microsoft/d365-bc-finance-1
-/src/Apps/W1/CrossEnvironmentIntercompany @microsoft/d365-bc-finance-1
-/src/Apps/W1/EnforcedDigitalVouchers @microsoft/d365-bc-finance-1
-/src/Apps/W1/ExciseTaxes @microsoft/d365-bc-finance-1
-/src/Apps/W1/MasterDataManagement @microsoft/d365-bc-finance-1
-/src/Apps/W1/PayPalPaymentsStandard @microsoft/d365-bc-finance-1
-/src/Apps/W1/ReviewGLEntries @microsoft/d365-bc-finance-1
-/src/Apps/W1/SAF-T @microsoft/d365-bc-finance-1
-/src/Apps/W1/ServiceDeclaration @microsoft/d365-bc-finance-1
-/src/Apps/W1/ServiceManagement @microsoft/d365-bc-finance-1
-/src/Apps/W1/StatisticalAccounts @microsoft/d365-bc-finance-1
-/src/Apps/W1/Subscription\ Billing @microsoft/d365-bc-finance-1
-/src/Apps/W1/Sustainability @microsoft/d365-bc-finance-1
-/src/Apps/W1/SustainabilityCopilotSuggestion @microsoft/d365-bc-finance-1
-/src/Apps/W1/VATGroupManagement @microsoft/d365-bc-finance-1
-/src/Apps/W1/WithholdingTax @microsoft/d365-bc-finance-1
 
 # App Security
 dotnet.al @microsoft/d365-bc-app-security

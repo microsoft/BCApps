@@ -19,6 +19,7 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.History;
+using Microsoft.Warehouse.Ledger;
 using Microsoft.Warehouse.Structure;
 
 codeunit 149900 "Subc. Whse Receipt Last Op."
@@ -64,6 +65,7 @@ codeunit 149900 "Subc. Whse Receipt Last Op."
         LibraryERMCountryData.CreateVATData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
         SubSetupLibrary.InitialSetupForGenProdPostingGroup();
+        SubcontractingMgmtLibrary.SetupInventorySetup();
         LibrarySetupStorage.Save(Database::"General Ledger Setup");
 
         IsInitialized := true;
@@ -175,6 +177,69 @@ codeunit 149900 "Subc. Whse Receipt Last Op."
         Assert.AreEqual("Subc. Purchase Line Type"::LastOperation,
             WarehouseReceiptLine."Subc. Purchase Line Type",
             'Warehouse Receipt Line should be marked as Last Operation');
+    end;
+
+    [Test]
+    procedure WarehouseReceiptPostsLastOperationBinContent()
+    var
+        BinContent: Record "Bin Content";
+        Item: Record Item;
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        PostedWhseReceiptHeader: Record "Posted Whse. Receipt Header";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReceiveBin: Record Bin;
+        PutAwayBin: Record Bin;
+        Vendor: Record Vendor;
+        WarehouseEntry: Record "Warehouse Entry";
+        WarehouseReceiptHeader: Record "Warehouse Receipt Header";
+        WorkCenter: array[2] of Record "Work Center";
+        Quantity: Decimal;
+    begin
+        // [SCENARIO TC-E2E-F01] Posting a two-step subcontracting warehouse receipt creates receive-bin stock.
+
+        // [GIVEN] Last-operation subcontracting purchase order at a two-step WMS location
+        Initialize();
+        Quantity := LibraryRandom.RandInt(10) + 5;
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcWarehouseLibrary.CreateLocationWithWarehouseHandlingAndBins(Location, ReceiveBin, PutAwayBin);
+
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        Vendor."Subc. Location Code" := Location.Code;
+        Vendor."Location Code" := Location.Code;
+        Vendor.Modify();
+
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", Quantity, Location.Code);
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        SubcWarehouseLibrary.CreateWarehouseReceiptFromPurchaseOrder(PurchaseHeader, WarehouseReceiptHeader);
+
+        // [WHEN] The warehouse receipt is posted
+        SubcWarehouseLibrary.PostWarehouseReceipt(WarehouseReceiptHeader, PostedWhseReceiptHeader);
+
+        // [THEN] A warehouse entry is created in the receipt bin for the posted quantity
+        WarehouseEntry.SetRange("Item No.", Item."No.");
+        WarehouseEntry.SetRange("Location Code", Location.Code);
+        WarehouseEntry.SetRange("Bin Code", ReceiveBin.Code);
+        Assert.RecordCount(WarehouseEntry, 1);
+        WarehouseEntry.FindFirst();
+        Assert.AreEqual(Quantity, WarehouseEntry.Quantity, 'Warehouse entry should contain the posted receipt quantity');
+
+        // [THEN] The corresponding bin content is created and contains the posted quantity
+        BinContent.SetRange("Location Code", Location.Code);
+        BinContent.SetRange("Bin Code", ReceiveBin.Code);
+        BinContent.SetRange("Item No.", Item."No.");
+        Assert.RecordCount(BinContent, 1);
+        BinContent.FindFirst();
+        BinContent.CalcFields(Quantity);
+        Assert.AreEqual(Quantity, BinContent.Quantity, 'Bin content should contain the posted receipt quantity');
     end;
 
     [Test]

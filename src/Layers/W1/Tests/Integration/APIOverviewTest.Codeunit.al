@@ -86,7 +86,7 @@ codeunit 139103 "API Overview Test"
         Assert.AreEqual('microsoft', APIOverview."API Publisher".Value(), 'Unexpected API publisher for Posted Sales Invoice API');
         Assert.AreEqual('automate', APIOverview."API Group".Value(), 'Unexpected API group for Posted Sales Invoice API');
         Assert.AreEqual('v1.0', APIOverview."API Version".Value(), 'Unexpected API version for Posted Sales Invoice API');
-        Assert.AreEqual('postedSalesInvoice', APIOverview."Entity Name".Value(), 'Unexpected entity name for Posted Sales Invoice API');
+        Assert.AreEqual('postedSalesInvoices', APIOverview."Entity Name".Value(), 'Unexpected entity name for Posted Sales Invoice API');
         Assert.IsTrue(APIOverview."API URL".Value().Contains('/api/microsoft/automate/v1.0/'), 'Unexpected API URL for Posted Sales Invoice API');
         APIOverview.Close();
     end;
@@ -121,12 +121,13 @@ codeunit 139103 "API Overview Test"
     [Scope('OnPrem')]
     procedure TestAPIOverviewListsEveryAPIPage()
     var
+        ApiWebService: Record "Api Web Service";
         APIOverview: TestPage "API Overview";
-        PageMetadata: Record "Page Metadata";
+        ObjectIds: List of [Integer];
         APIPageCount: Integer;
         DetailPageCount: Integer;
     begin
-        // [SCENARIO] Every API page in metadata appears as a row in the flat list (no APIs are lost)
+        // [SCENARIO] Every published API page appears as exactly one row in the flat list (no APIs are lost)
         // [GIVEN] The API Overview page is opened
         APIOverview.OpenView();
 
@@ -139,9 +140,16 @@ codeunit 139103 "API Overview Test"
 
         APIOverview.Close();
 
-        // [THEN] Count matches the underlying Page Metadata where PageType = API
-        PageMetadata.SetRange(PageType, PageMetadata.PageType::API);
-        APIPageCount := PageMetadata.Count();
-        Assert.AreEqual(APIPageCount, DetailPageCount, 'API Overview did not list every API page from Page Metadata');
+        // [THEN] Count matches the distinct published API pages in the Api Web Service table
+        // (a page published under several versions is a single row, so distinct object IDs are counted)
+        ApiWebService.SetRange("Object Type", ApiWebService."Object Type"::Page);
+        ApiWebService.SetRange(Published, true);
+        if ApiWebService.FindSet() then
+            repeat
+                if not ObjectIds.Contains(ApiWebService."Object ID") then
+                    ObjectIds.Add(ApiWebService."Object ID");
+            until ApiWebService.Next() = 0;
+        APIPageCount := ObjectIds.Count();
+        Assert.AreEqual(APIPageCount, DetailPageCount, 'API Overview did not list every published API page from Api Web Service');
     end;
 }

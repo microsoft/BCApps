@@ -194,19 +194,23 @@ codeunit 20406 "Qlty. Permission Mgmt."
     end;
 
     /// <summary>
-    /// Determines whether auto-assignment should occur based on user permissions.
+    /// Determines whether the current user can assign an inspection to themselves and whether to prompt before assignment.
     /// </summary>
-    /// <param name="ShouldPrompt">Set to true when GUI is available and prompting is enabled.</param>
-    /// <returns>True if auto-assignment should occur; otherwise, false.</returns>
+    /// <param name="ShouldPrompt">Set to true when a GUI is available and the user should be prompted; otherwise, false.</param>
+    /// <returns>True if the current user has write permission for inspection headers; otherwise, false.</returns>
     internal procedure GetShouldAutoAssign(var ShouldPrompt: Boolean) ShouldAssign: Boolean
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
     begin
+        ShouldPrompt := GuiAllowed();
         ShouldAssign := QltyInspectionHeader.WritePermission();
-        ShouldPrompt := false;
     end;
 
     #region Verify Permissions
+    /// <summary>
+    /// Determines whether the current user has the Quality Management administrator role or SUPER permissions.
+    /// </summary>
+    /// <returns>True if the user has administrator or SUPER permissions; otherwise, false.</returns>
     local procedure HasAdminSupervisorRole() IsAssigned: Boolean
     var
         UserPermissions: Codeunit "User Permissions";
@@ -237,6 +241,11 @@ codeunit 20406 "Qlty. Permission Mgmt."
         exit(not AccessControl.IsEmpty());
     end;
 
+    /// <summary>
+    /// Determines whether the current user has effective permission to insert data in a table.
+    /// </summary>
+    /// <param name="TableId">The ID of the table to check.</param>
+    /// <returns>True if the user has direct or indirect insert permission; otherwise, false.</returns>
     local procedure CanInsertTableData(TableId: Integer): Boolean
     var
         TempExpandedPermission: Record "Expanded Permission" temporary;
@@ -246,6 +255,11 @@ codeunit 20406 "Qlty. Permission Mgmt."
         exit(TempExpandedPermission."Insert Permission" in [TempExpandedPermission."Insert Permission"::Yes, TempExpandedPermission."Insert Permission"::Indirect]);
     end;
 
+    /// <summary>
+    /// Determines whether the current user has effective permission to modify data in a table.
+    /// </summary>
+    /// <param name="TableId">The ID of the table to check.</param>
+    /// <returns>True if the user has direct or indirect modify permission; otherwise, false.</returns>
     local procedure CanModifyTableData(TableId: Integer): Boolean
     var
         TempExpandedPermission: Record "Expanded Permission" temporary;
@@ -255,6 +269,11 @@ codeunit 20406 "Qlty. Permission Mgmt."
         exit(TempExpandedPermission."Modify Permission" in [TempExpandedPermission."Modify Permission"::Yes, TempExpandedPermission."Modify Permission"::Indirect]);
     end;
 
+    /// <summary>
+    /// Determines whether the current user has effective permission to delete data from a table.
+    /// </summary>
+    /// <param name="TableId">The ID of the table to check.</param>
+    /// <returns>True if the user has direct or indirect delete permission; otherwise, false.</returns>
     local procedure CanDeleteTableData(TableId: Integer): Boolean
     var
         TempExpandedPermission: Record "Expanded Permission" temporary;
