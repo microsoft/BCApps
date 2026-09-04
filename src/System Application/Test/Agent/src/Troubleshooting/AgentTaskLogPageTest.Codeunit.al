@@ -317,6 +317,7 @@ codeunit 133964 "Agent Task Log Page Test"
         Assert.AreEqual(1, EntryToken.AsObject().GetInteger('id'), 'The oldest log entry should be exported first.');
         LogEntries.Get(1, EntryToken);
         Assert.AreEqual(2, EntryToken.AsObject().GetInteger('id'), 'The newest log entry should be exported last.');
+        Assert.IsFalse(ExportJson.Contains('memoryEntries'), 'Selected log-entry export should not include task memory entries.');
     end;
 
     [Test]
@@ -356,6 +357,33 @@ codeunit 133964 "Agent Task Log Page Test"
         Assert.AreEqual(6, EntryToken.AsObject().GetInteger('id'), 'The newest memory entry should be exported last.');
         Assert.IsFalse(ExportJson.Contains('steps'), 'Memory entries must not be represented as task steps.');
         Assert.IsFalse(ExportJson.Contains('formatVersion'), 'The unshipped export does not need a format version.');
+    end;
+
+    [Test]
+    [TestPermissions(TestPermissions::Restrictive)]
+    procedure TestExportToJson_DeserializesMemoryDetails()
+    var
+        TempAgentTaskLogEntry: Record "Agent Task Log Entry" temporary;
+        TempAgentTaskMemoryEntry: Record "Agent Task Memory Entry" temporary;
+        PermissionsMock: Codeunit "Permissions Mock";
+        ExportJson: JsonObject;
+        MemoryEntryToken: JsonToken;
+        MemoryEntryJson: JsonObject;
+    begin
+        // [GIVEN] A memory entry whose details contain JSON text
+        PermissionsMock.Set('Agent SDK Test');
+        CreateTempMemoryEntry(TempAgentTaskMemoryEntry, 1, 'Memory details');
+        SetTempMemoryEntryDetails(TempAgentTaskMemoryEntry, '{"pageName":"Sales Order List","success":true}');
+
+        // [WHEN] Task data is exported
+        ExportToJson(TempAgentTaskLogEntry, TempAgentTaskMemoryEntry, ExportJson);
+
+        // [THEN] Memory details are a JSON object rather than escaped text
+        ExportJson.GetArray('memoryEntries').Get(0, MemoryEntryToken);
+        MemoryEntryJson := MemoryEntryToken.AsObject();
+        Assert.IsTrue(MemoryEntryJson.Get('details').IsObject(), 'Memory details should be exported as native JSON.');
+        Assert.AreEqual('Sales Order List', MemoryEntryJson.GetObject('details').GetText('pageName'), 'The memory details should preserve their JSON values.');
+        Assert.IsTrue(MemoryEntryJson.GetObject('details').GetBoolean('success'), 'The memory details should preserve Boolean values.');
     end;
 
     [Test]
@@ -464,6 +492,16 @@ codeunit 133964 "Agent Task Log Page Test"
                 TempAgentTaskMemoryEntry.Modify();
             end;
         end;
+    end;
+
+    local procedure SetTempMemoryEntryDetails(var TempAgentTaskMemoryEntry: Record "Agent Task Memory Entry" temporary; DetailsTxt: Text)
+    var
+        AgentTaskLogEntry: Codeunit "Agent Task Log Entry";
+        DetailsOutStream: OutStream;
+    begin
+        TempAgentTaskMemoryEntry.Details.CreateOutStream(DetailsOutStream, AgentTaskLogEntry.GetDefaultEncoding());
+        DetailsOutStream.WriteText(DetailsTxt);
+        TempAgentTaskMemoryEntry.Modify();
     end;
 
     local procedure ExportToJson(var TempAgentTaskLogEntry: Record "Agent Task Log Entry" temporary; var ExportJson: JsonObject)
