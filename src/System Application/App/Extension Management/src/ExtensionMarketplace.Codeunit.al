@@ -259,18 +259,24 @@ codeunit 2501 "Extension Marketplace"
     var
         ExtensionPendingSetup: Record "Extension Pending Setup";
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
+        ExtensionOperationImpl: Codeunit "Extension Operation Impl";
         MySessionSettings: SessionSettings;
         AppId: Guid;
+        InstallErrorText: Text;
     begin
         ExtensionInstallationImpl.CheckPermissions();
 
+        ClearLastError();
         if not InstallAppsourceExtension(MarketplaceApplicationID, TelemetryURL) then begin // successful installation returns false
+            InstallErrorText := GetLastErrorText();
             AppId := MapMarketplaceIdToAppId(MarketplaceApplicationID);
             if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then begin
                 SaveExtensionPendingSetup(AppId);
                 MySessionSettings.Init();
                 MySessionSettings.RequestSessionUpdate(false);
             end else begin
+                if not ExtensionOperationImpl.ShowInstallOperationFailure(AppId) then
+                    ShowAppInstallationError(InstallErrorText);
                 ExtensionPendingSetup.SetRange("User Id", UserSecurityId());
                 ExtensionPendingSetup.DeleteAll();
             end;
@@ -281,23 +287,24 @@ codeunit 2501 "Extension Marketplace"
     var
         ExtensionPendingSetup: Record "Extension Pending Setup";
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
+        ExtensionOperationImpl: Codeunit "Extension Operation Impl";
         MySessionSettings: SessionSettings;
         InstallErrorText: Text;
     begin
         ExtensionInstallationImpl.CheckPermissions();
 
         ClearLastError();
-        // The page-level TryFunction can return false after a successful install, so verify the installed state.
-        if not InstallAppsourceExtension(AppId, TelemetryURL) then begin
+        if not InstallAppsourceExtension(AppId, TelemetryURL) then begin // successful installation returns false
             InstallErrorText := GetLastErrorText();
             if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then begin
                 SaveExtensionPendingSetup(AppId);
                 MySessionSettings.Init();
                 MySessionSettings.RequestSessionUpdate(false);
             end else begin
+                if not ExtensionOperationImpl.ShowInstallOperationFailure(AppId) then
+                    ShowAppInstallationError(InstallErrorText);
                 ExtensionPendingSetup.SetRange("User Id", UserSecurityId());
                 ExtensionPendingSetup.DeleteAll();
-                ShowAppInstallationError(InstallErrorText);
             end;
         end;
     end;

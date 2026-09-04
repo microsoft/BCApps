@@ -52,7 +52,6 @@ codeunit 2503 "Extension Operation Impl"
         ExtensionOperationImpl: Codeunit "Extension Operation Impl";
         ExtensionMarketplace: Codeunit "Extension Marketplace";
         ExtnInstallationProgress: Page "Extn. Installation Progress";
-        ExtnDeploymentStatusDetail: Page "Extn Deployment Status Detail";
         OperationId: Guid;
     begin
         CheckPermissions();
@@ -69,18 +68,44 @@ codeunit 2503 "Extension Operation Impl"
             NAVAppTenantOperation.Get(OperationId);
 
             if NAVAppTenantOperation.Status = NAVAppTenantOperation.Status::Failed then begin
-                if Confirm(InstallationFailedOpenDetailsQst) then begin
-                    Session.LogMessage('0000I2M', InstallationFailedOpenDetailsTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Extensions');
-                    ExtnDeploymentStatusDetail.SetOperationRecord(NAVAppTenantOperation);
-                    ExtnDeploymentStatusDetail.RunModal();
-                end else
-                    Session.LogMessage('0000I2N', InstallationFailedDoNotOpenDetailsTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Extensions');
+                ShowDeploymentFailure(NAVAppTenantOperation);
                 exit;
             end;
 
             if NAVAppTenantOperation.Status = NAVAppTenantOperation.Status::Completed then
                 ExtensionMarketplace.RunSetupForExtension(AppId);
         end;
+    end;
+
+    internal procedure ShowInstallOperationFailure(AppId: Guid): Boolean
+    var
+        NAVAppTenantOperation: Record "NAV App Tenant Operation";
+        OperationId: Guid;
+    begin
+        InitializeOperationInvoker();
+        OperationId := DotNetALNavAppOperationInvoker.GetInstallOperationId(AppId);
+        if IsNullGuid(OperationId) then
+            exit;
+
+        if not NAVAppTenantOperation.Get(OperationId) then
+            exit;
+
+        if NAVAppTenantOperation.Status = NAVAppTenantOperation.Status::Failed then
+            ShowDeploymentFailure(NAVAppTenantOperation);
+
+        exit(NAVAppTenantOperation.Status = NAVAppTenantOperation.Status::Failed);
+    end;
+
+    local procedure ShowDeploymentFailure(NAVAppTenantOperation: Record "NAV App Tenant Operation")
+    var
+        ExtnDeploymentStatusDetail: Page "Extn Deployment Status Detail";
+    begin
+        if Confirm(InstallationFailedOpenDetailsQst) then begin
+            Session.LogMessage('0000I2M', InstallationFailedOpenDetailsTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Extensions');
+            ExtnDeploymentStatusDetail.SetOperationRecord(NAVAppTenantOperation);
+            ExtnDeploymentStatusDetail.RunModal();
+        end else
+            Session.LogMessage('0000I2N', InstallationFailedDoNotOpenDetailsTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Extensions');
     end;
 
     procedure UploadExtension(PackageInStream: InStream; lcid: Integer)
