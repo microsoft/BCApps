@@ -409,6 +409,8 @@ table 6103 "E-Document Service"
     /// </summary>
     /// <returns>The default file extension (e.g., '.xml'). Can be overridden via OnAfterGetDefaultFileExtension event.</returns>
     procedure GetDefaultFileExtension() FileExtension: Text
+    var
+        XMLFileTypeTok: Label '.xml', Locked = true;
     begin
         FileExtension := XMLFileTypeTok;
         OnAfterGetDefaultFileExtension(Rec, FileExtension);
@@ -429,7 +431,6 @@ table 6103 "E-Document Service"
         AzureDocumentIntelligenceTok: Label 'MSEOCADI', Locked = true;
         AzureDocumentIntelligenceServiceTxt: Label 'E-Document PDF Service - Process pdfs with Azure Document Intelligence';
         EDocStringLbl: Label '%1,%2,%3,%4,%5', Locked = true;
-        XMLFileTypeTok: Label '.xml', Locked = true;
         TemplateTypeErr: Label 'Only General Journal Templates of type %1, %2, %3, %4, or %5 are allowed.', Comment = '%1 - General, %2 - Purchases, %3 - Payments, %4 - Sales, %5 - Cash, %6 - Receipts';
         ServiceInActiveFlowErr: Label 'The service is used in an active workflow. You cannot delete it.';
 }

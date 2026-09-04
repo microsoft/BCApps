@@ -57,7 +57,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Assert: Codeunit Assert;
         ZUGFeRDFormat: Codeunit "ZUGFeRD Format";
         ExportZUGFeRDDocument: Codeunit "Export ZUGFeRD Document";
-        IncorrectValueErr: Label 'Incorrect value for %1', Comment = '%1 = field caption', Locked = true;
+        IncorrectValueErr: Label 'Incorrect value for %1', Locked = true;
         AttributeNotFoundErr: Label 'Attribute %1 not found for node: %2', Locked = true, Comment = '%1 = XML attribute name, %2 = XML element XPath';
         UnexpectedNodeErr: Label 'Node %1 must not exist.', Locked = true;
         DocumentAllowanceChargeTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradeAllowanceCharge', Locked = true;
@@ -76,9 +76,6 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         SellerTaxRegistrationTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:SpecifiedTaxRegistration/ram:ID', Locked = true;
         BuyerGlobalIdTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:GlobalID', Locked = true;
         ShipToGlobalIdTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeDelivery/ram:ShipToTradeParty/ram:GlobalID', Locked = true;
-        DocumentRootTok: Label '/rsm:CrossIndustryInvoice', Locked = true;
-        BuyerTradePartyTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty', Locked = true;
-        BuyerContactTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:DefinedTradeContact', Locked = true;
         IsInitialized: Boolean;
         OriginalCompanyGLN: Code[13];
         OriginalCompanyUsesGLN: Boolean;
@@ -732,6 +729,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesInvoiceLine: Record "Sales Invoice Line";
         TempXMLBuffer: Record "XML Buffer" temporary;
+        TradeTaxTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax', Locked = true;
         Path: Text;
     begin
         // [SCENARIO] Export posted sales invoice creates electronic document in ZUGFeRD format with VATEX code and exemption reason from VAT Clause
@@ -749,9 +747,9 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
 
         // [THEN] ExemptionReasonCode and ExemptionReason are exported with correct values
-        Path := HeaderTradeTaxTok + '/ram:ExemptionReasonCode';
+        Path := TradeTaxTok + '/ram:ExemptionReasonCode';
         Assert.AreEqual('VATEX-EU-O', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := HeaderTradeTaxTok + '/ram:ExemptionReason';
+        Path := TradeTaxTok + '/ram:ExemptionReason';
         Assert.AreEqual('Not subject to VAT', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
@@ -1271,6 +1269,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
         TempXMLBuffer: Record "XML Buffer" temporary;
+        TradeTaxTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax', Locked = true;
         Path: Text;
     begin
         // [SCENARIO] Export posted sales cr. memo creates electronic document in ZUGFeRD format with VATEX code and exemption reason from VAT Clause
@@ -1288,9 +1287,9 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
 
         // [THEN] ExemptionReasonCode and ExemptionReason are exported with correct values
-        Path := HeaderTradeTaxTok + '/ram:ExemptionReasonCode';
+        Path := TradeTaxTok + '/ram:ExemptionReasonCode';
         Assert.AreEqual('VATEX-EU-O', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := HeaderTradeTaxTok + '/ram:ExemptionReason';
+        Path := TradeTaxTok + '/ram:ExemptionReason';
         Assert.AreEqual('Not subject to VAT', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
@@ -3984,13 +3983,14 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
 
     local procedure VerifyHeaderData(SalesInvoiceHeader: Record "Sales Invoice Header"; var TempXMLBuffer: Record "XML Buffer" temporary);
     var
+        DocumentTok: Label '/rsm:CrossIndustryInvoice', Locked = true;
         Path: Text;
     begin
-        Path := DocumentRootTok + '/rsm:ExchangedDocument/ram:TypeCode';
+        Path := DocumentTok + '/rsm:ExchangedDocument/ram:TypeCode';
         Assert.AreEqual('380', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := DocumentRootTok + '/rsm:ExchangedDocument/ram:ID';
+        Path := DocumentTok + '/rsm:ExchangedDocument/ram:ID';
         Assert.AreEqual(SalesInvoiceHeader."No.", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := DocumentRootTok + '/rsm:ExchangedDocument/ram:IssueDateTime/udt:DateTimeString';
+        Path := DocumentTok + '/rsm:ExchangedDocument/ram:IssueDateTime/udt:DateTimeString';
         Assert.AreEqual(FormatDate(SalesInvoiceHeader."Posting Date"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         // Verify Seller Order Reference is not present when invoice is posted directly (without order)
         if SalesInvoiceHeader."Order No." = '' then
@@ -3999,13 +3999,14 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
 
     local procedure VerifyHeaderData(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var TempXMLBuffer: Record "XML Buffer" temporary);
     var
+        DocumentCreditNoteTok: Label '/rsm:CrossIndustryInvoice', Locked = true;
         Path: Text;
     begin
-        Path := DocumentRootTok + '/rsm:ExchangedDocument/ram:TypeCode';
+        Path := DocumentCreditNoteTok + '/rsm:ExchangedDocument/ram:TypeCode';
         Assert.AreEqual('381', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := DocumentRootTok + '/rsm:ExchangedDocument/ram:ID';
+        Path := DocumentCreditNoteTok + '/rsm:ExchangedDocument/ram:ID';
         Assert.AreEqual(SalesCrMemoHeader."No.", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := DocumentRootTok + '/rsm:ExchangedDocument/ram:IssueDateTime/udt:DateTimeString';
+        Path := DocumentCreditNoteTok + '/rsm:ExchangedDocument/ram:IssueDateTime/udt:DateTimeString';
         Assert.AreEqual(FormatDate(SalesCrMemoHeader."Posting Date"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         // Verify Seller Order Reference is not present when cr. memo is posted directly (without return order)
         if SalesCrMemoHeader."Return Order No." = '' then
@@ -4014,25 +4015,27 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
 
     local procedure VerifyHeaderData(ServiceInvoiceHeader: Record "Service Invoice Header"; var TempXMLBuffer: Record "XML Buffer" temporary)
     var
+        ServiceDocumentTok: Label '/rsm:CrossIndustryInvoice', Locked = true;
         Path: Text;
     begin
-        Path := DocumentRootTok + '/rsm:ExchangedDocument/ram:TypeCode';
+        Path := ServiceDocumentTok + '/rsm:ExchangedDocument/ram:TypeCode';
         Assert.AreEqual('380', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := DocumentRootTok + '/rsm:ExchangedDocument/ram:ID';
+        Path := ServiceDocumentTok + '/rsm:ExchangedDocument/ram:ID';
         Assert.AreEqual(ServiceInvoiceHeader."No.", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := DocumentRootTok + '/rsm:ExchangedDocument/ram:IssueDateTime/udt:DateTimeString';
+        Path := ServiceDocumentTok + '/rsm:ExchangedDocument/ram:IssueDateTime/udt:DateTimeString';
         Assert.AreEqual(FormatDate(ServiceInvoiceHeader."Posting Date"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
     local procedure VerifyHeaderData(ServiceCrMemoHeader: Record "Service Cr.Memo Header"; var TempXMLBuffer: Record "XML Buffer" temporary)
     var
+        ServiceDocumentCreditNoteTok: Label '/rsm:CrossIndustryInvoice', Locked = true;
         Path: Text;
     begin
-        Path := DocumentRootTok + '/rsm:ExchangedDocument/ram:TypeCode';
+        Path := ServiceDocumentCreditNoteTok + '/rsm:ExchangedDocument/ram:TypeCode';
         Assert.AreEqual('381', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := DocumentRootTok + '/rsm:ExchangedDocument/ram:ID';
+        Path := ServiceDocumentCreditNoteTok + '/rsm:ExchangedDocument/ram:ID';
         Assert.AreEqual(ServiceCrMemoHeader."No.", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := DocumentRootTok + '/rsm:ExchangedDocument/ram:IssueDateTime/udt:DateTimeString';
+        Path := ServiceDocumentCreditNoteTok + '/rsm:ExchangedDocument/ram:IssueDateTime/udt:DateTimeString';
         Assert.AreEqual(FormatDate(ServiceCrMemoHeader."Posting Date"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
@@ -4093,29 +4096,31 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
 
     local procedure VerifyBuyerData(SalesInvoiceHeader: Record "Sales Invoice Header"; var TempXMLBuffer: Record "XML Buffer" temporary);
     var
+        DocumentPartyTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty', Locked = true;
         Path: Text;
     begin
-        Path := BuyerTradePartyTok + '/ram:Name';
+        Path := DocumentPartyTok + '/ram:Name';
         Assert.AreEqual(SalesInvoiceHeader."Bill-to Name", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
 
-        Path := BuyerTradePartyTok + '/ram:URIUniversalCommunication/ram:URIID';
+        Path := DocumentPartyTok + '/ram:URIUniversalCommunication/ram:URIID';
         Assert.AreEqual(SalesInvoiceHeader."Sell-to E-Mail", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
 
-        Path := BuyerTradePartyTok + '/ram:SpecifiedTaxRegistration/ram:ID';
+        Path := DocumentPartyTok + '/ram:SpecifiedTaxRegistration/ram:ID';
         Assert.AreEqual(GetVATRegistrationNo(SalesInvoiceHeader."VAT Registration No.", CompanyInformation."Country/Region Code"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
     local procedure VerifyBuyerContactData(SalesInvoiceHeader: Record "Sales Invoice Header"; var TempXMLBuffer: Record "XML Buffer" temporary; ExpectContactName: Boolean; ExpectPhone: Boolean; ExpectEmail: Boolean);
     var
+        DocumentBuyerContactTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:DefinedTradeContact', Locked = true;
         Path: Text;
         NodeValue: Text;
     begin
         // Check if DefinedTradeContact element exists when any field is populated
         if ExpectContactName or ExpectPhone or ExpectEmail then
-            Assert.IsTrue(NodeExistsByPath(TempXMLBuffer, BuyerContactTok), 'DefinedTradeContact element should exist when contact fields are populated');
+            Assert.IsTrue(NodeExistsByPath(TempXMLBuffer, DocumentBuyerContactTok), 'DefinedTradeContact element should exist when contact fields are populated');
 
         // Verify PersonName
-        Path := BuyerContactTok + '/ram:PersonName';
+        Path := DocumentBuyerContactTok + '/ram:PersonName';
         if ExpectContactName then begin
             NodeValue := GetNodeByPathWithError(TempXMLBuffer, Path);
             Assert.AreEqual(SalesInvoiceHeader."Sell-to Contact", NodeValue, StrSubstNo(IncorrectValueErr, Path));
@@ -4123,7 +4128,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
             Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, Path), 'PersonName should not exist when contact name is empty');
 
         // Verify TelephoneUniversalCommunication/CompleteNumber
-        Path := BuyerContactTok + '/ram:TelephoneUniversalCommunication/ram:CompleteNumber';
+        Path := DocumentBuyerContactTok + '/ram:TelephoneUniversalCommunication/ram:CompleteNumber';
         if ExpectPhone then begin
             NodeValue := GetNodeByPathWithError(TempXMLBuffer, Path);
             Assert.AreEqual(SalesInvoiceHeader."Sell-to Phone No.", NodeValue, StrSubstNo(IncorrectValueErr, Path));
@@ -4131,7 +4136,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
             Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, Path), 'TelephoneUniversalCommunication/CompleteNumber should not exist when phone is empty');
 
         // Verify EmailURIUniversalCommunication/URIID
-        Path := BuyerContactTok + '/ram:EmailURIUniversalCommunication/ram:URIID';
+        Path := DocumentBuyerContactTok + '/ram:EmailURIUniversalCommunication/ram:URIID';
         if ExpectEmail then begin
             NodeValue := GetNodeByPathWithError(TempXMLBuffer, Path);
             Assert.AreEqual(SalesInvoiceHeader."Sell-to E-Mail", NodeValue, StrSubstNo(IncorrectValueErr, Path));
@@ -4141,35 +4146,38 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
 
     local procedure VerifyBuyerData(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var TempXMLBuffer: Record "XML Buffer" temporary);
     var
+        DocumentBuyerTradePartyTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty', Locked = true;
         Path: Text;
     begin
-        Path := BuyerTradePartyTok + '/ram:Name';
+        Path := DocumentBuyerTradePartyTok + '/ram:Name';
         Assert.AreEqual(SalesCrMemoHeader."Bill-to Name", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := BuyerTradePartyTok + '/ram:SpecifiedTaxRegistration/ram:ID';
+        Path := DocumentBuyerTradePartyTok + '/ram:SpecifiedTaxRegistration/ram:ID';
         Assert.AreEqual(GetVATRegistrationNo(SalesCrMemoHeader."VAT Registration No.", CompanyInformation."Country/Region Code"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
     local procedure VerifyBuyerData(ServiceInvoiceHeader: Record "Service Invoice Header"; var TempXMLBuffer: Record "XML Buffer" temporary)
     var
+        ServiceDocumentPartyTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty', Locked = true;
         Path: Text;
     begin
-        Path := BuyerTradePartyTok + '/ram:Name';
+        Path := ServiceDocumentPartyTok + '/ram:Name';
         Assert.AreEqual(ServiceInvoiceHeader."Bill-to Name", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
 
-        Path := BuyerTradePartyTok + '/ram:URIUniversalCommunication/ram:URIID';
+        Path := ServiceDocumentPartyTok + '/ram:URIUniversalCommunication/ram:URIID';
         Assert.AreEqual(ServiceInvoiceHeader."E-Mail", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
 
-        Path := BuyerTradePartyTok + '/ram:SpecifiedTaxRegistration/ram:ID';
+        Path := ServiceDocumentPartyTok + '/ram:SpecifiedTaxRegistration/ram:ID';
         Assert.AreEqual(GetVATRegistrationNo(ServiceInvoiceHeader."VAT Registration No.", CompanyInformation."Country/Region Code"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
     local procedure VerifyBuyerData(ServiceCrMemoHeader: Record "Service Cr.Memo Header"; var TempXMLBuffer: Record "XML Buffer" temporary)
     var
+        ServiceDocumentBuyerTradePartyTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty', Locked = true;
         Path: Text;
     begin
-        Path := BuyerTradePartyTok + '/ram:Name';
+        Path := ServiceDocumentBuyerTradePartyTok + '/ram:Name';
         Assert.AreEqual(ServiceCrMemoHeader."Bill-to Name", GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := BuyerTradePartyTok + '/ram:SpecifiedTaxRegistration/ram:ID';
+        Path := ServiceDocumentBuyerTradePartyTok + '/ram:SpecifiedTaxRegistration/ram:ID';
         Assert.AreEqual(GetVATRegistrationNo(ServiceCrMemoHeader."VAT Registration No.", CompanyInformation."Country/Region Code"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
@@ -4221,109 +4229,118 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
 
     local procedure VerifyTaxTotals(SalesInvoiceHeader: Record "Sales Invoice Header"; var TempXMLBuffer: Record "XML Buffer" temporary);
     var
+        DocumentTaxTotalTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax', Locked = true;
         Path: Text;
     begin
-        Path := HeaderTradeTaxTok + '/ram:CalculatedAmount';
+        Path := DocumentTaxTotalTok + '/ram:CalculatedAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(GetTotalTaxAmount(SalesInvoiceHeader)), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
     local procedure VerifyTaxTotals(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var TempXMLBuffer: Record "XML Buffer" temporary);
     var
+        DocumentTaxTotalsTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax', Locked = true;
         Path: Text;
     begin
-        Path := HeaderTradeTaxTok + '/ram:CalculatedAmount';
+        Path := DocumentTaxTotalsTok + '/ram:CalculatedAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(GetTotalTaxAmount(SalesCrMemoHeader)), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
     local procedure VerifyTaxTotals(ServiceInvoiceHeader: Record "Service Invoice Header"; var TempXMLBuffer: Record "XML Buffer" temporary)
     var
+        ServiceDocumentTaxTotalTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax', Locked = true;
         Path: Text;
     begin
-        Path := HeaderTradeTaxTok + '/ram:CalculatedAmount';
+        Path := ServiceDocumentTaxTotalTok + '/ram:CalculatedAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(GetTotalTaxAmount(ServiceInvoiceHeader)), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
     local procedure VerifyTaxTotals(ServiceCrMemoHeader: Record "Service Cr.Memo Header"; var TempXMLBuffer: Record "XML Buffer" temporary)
     var
+        ServiceDocumentTaxTotalsTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax', Locked = true;
         Path: Text;
     begin
-        Path := HeaderTradeTaxTok + '/ram:CalculatedAmount';
+        Path := ServiceDocumentTaxTotalsTok + '/ram:CalculatedAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(GetTotalTaxAmount(ServiceCrMemoHeader)), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
     local procedure VerifyLegalMonetaryTotal(SalesInvoiceHeader: Record "Sales Invoice Header"; var TempXMLBuffer: Record "XML Buffer" temporary);
     var
         LineAmounts: Dictionary of [Text, Decimal];
+        DocumentLegalMonetaryTotalTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradeSettlementHeaderMonetarySummation', Locked = true;
         Path: Text;
     begin
         CalculateLineAmounts(SalesInvoiceHeader, LineAmounts);
-        Path := MonetarySummationTok + '/ram:LineTotalAmount';
+        Path := DocumentLegalMonetaryTotalTok + '/ram:LineTotalAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(LineAmounts.Get(SalesInvoiceHeader.FieldName(Amount))), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := MonetarySummationTok + '/ram:TaxBasisTotalAmount';
+        Path := DocumentLegalMonetaryTotalTok + '/ram:TaxBasisTotalAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(LineAmounts.Get(SalesInvoiceHeader.FieldName(Amount))), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := MonetarySummationTok + '/ram:GrandTotalAmount';
+        Path := DocumentLegalMonetaryTotalTok + '/ram:GrandTotalAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(LineAmounts.Get(SalesInvoiceHeader.FieldName("Amount Including VAT"))), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := MonetarySummationTok + '/ram:DuePayableAmount';
+        Path := DocumentLegalMonetaryTotalTok + '/ram:DuePayableAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(LineAmounts.Get(SalesInvoiceHeader.FieldName("Amount Including VAT"))), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
     local procedure VerifyLegalMonetaryTotal(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var TempXMLBuffer: Record "XML Buffer" temporary);
     var
         LineAmounts: Dictionary of [Text, Decimal];
+        DocumentLegalMonetaryTotalsTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradeSettlementHeaderMonetarySummation', Locked = true;
         Path: Text;
     begin
         CalculateLineAmounts(SalesCrMemoHeader, LineAmounts);
-        Path := MonetarySummationTok + '/ram:LineTotalAmount';
+        Path := DocumentLegalMonetaryTotalsTok + '/ram:LineTotalAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(LineAmounts.Get(SalesCrMemoHeader.FieldName(Amount))), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := MonetarySummationTok + '/ram:TaxBasisTotalAmount';
+        Path := DocumentLegalMonetaryTotalsTok + '/ram:TaxBasisTotalAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(LineAmounts.Get(SalesCrMemoHeader.FieldName(Amount))), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := MonetarySummationTok + '/ram:GrandTotalAmount';
+        Path := DocumentLegalMonetaryTotalsTok + '/ram:GrandTotalAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(LineAmounts.Get(SalesCrMemoHeader.FieldName("Amount Including VAT"))), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := MonetarySummationTok + '/ram:DuePayableAmount';
+        Path := DocumentLegalMonetaryTotalsTok + '/ram:DuePayableAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(LineAmounts.Get(SalesCrMemoHeader.FieldName("Amount Including VAT"))), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
     local procedure VerifyLegalMonetaryTotal(ServiceInvoiceHeader: Record "Service Invoice Header"; var TempXMLBuffer: Record "XML Buffer" temporary)
     var
         LineAmounts: Dictionary of [Text, Decimal];
+        ServiceDocumentLegalMonetaryTotalTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradeSettlementHeaderMonetarySummation', Locked = true;
         Path: Text;
     begin
         CalculateLineAmounts(ServiceInvoiceHeader, LineAmounts);
-        Path := MonetarySummationTok + '/ram:LineTotalAmount';
+        Path := ServiceDocumentLegalMonetaryTotalTok + '/ram:LineTotalAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(LineAmounts.Get(ServiceInvoiceHeader.FieldName(Amount))), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := MonetarySummationTok + '/ram:TaxBasisTotalAmount';
+        Path := ServiceDocumentLegalMonetaryTotalTok + '/ram:TaxBasisTotalAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(LineAmounts.Get(ServiceInvoiceHeader.FieldName(Amount))), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := MonetarySummationTok + '/ram:GrandTotalAmount';
+        Path := ServiceDocumentLegalMonetaryTotalTok + '/ram:GrandTotalAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(LineAmounts.Get(ServiceInvoiceHeader.FieldName("Amount Including VAT"))), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := MonetarySummationTok + '/ram:DuePayableAmount';
+        Path := ServiceDocumentLegalMonetaryTotalTok + '/ram:DuePayableAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(LineAmounts.Get(ServiceInvoiceHeader.FieldName("Amount Including VAT"))), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
     local procedure VerifyLegalMonetaryTotal(ServiceCrMemoHeader: Record "Service Cr.Memo Header"; var TempXMLBuffer: Record "XML Buffer" temporary)
     var
         LineAmounts: Dictionary of [Text, Decimal];
+        ServiceDocumentLegalMonetaryTotalsTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradeSettlementHeaderMonetarySummation', Locked = true;
         Path: Text;
     begin
         CalculateLineAmounts(ServiceCrMemoHeader, LineAmounts);
-        Path := MonetarySummationTok + '/ram:LineTotalAmount';
+        Path := ServiceDocumentLegalMonetaryTotalsTok + '/ram:LineTotalAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(LineAmounts.Get(ServiceCrMemoHeader.FieldName(Amount))), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := MonetarySummationTok + '/ram:TaxBasisTotalAmount';
+        Path := ServiceDocumentLegalMonetaryTotalsTok + '/ram:TaxBasisTotalAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(LineAmounts.Get(ServiceCrMemoHeader.FieldName(Amount))), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := MonetarySummationTok + '/ram:GrandTotalAmount';
+        Path := ServiceDocumentLegalMonetaryTotalsTok + '/ram:GrandTotalAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(LineAmounts.Get(ServiceCrMemoHeader.FieldName("Amount Including VAT"))), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := MonetarySummationTok + '/ram:DuePayableAmount';
+        Path := ServiceDocumentLegalMonetaryTotalsTok + '/ram:DuePayableAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(LineAmounts.Get(ServiceCrMemoHeader.FieldName("Amount Including VAT"))), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
     local procedure VerifyInvoiceLine(SalesInvoiceHeader: Record "Sales Invoice Header"; var TempXMLBuffer: Record "XML Buffer" temporary);
     var
         SalesInvoiceLine: Record "Sales Invoice Line";
+        DocumentTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem', Locked = true;
     begin
         SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
         SalesInvoiceLine.FindSet();
-        VerifyFirstSalesInvoiceLine(SalesInvoiceLine, TempXMLBuffer, InvoiceLineTok);
+        VerifyFirstSalesInvoiceLine(SalesInvoiceLine, TempXMLBuffer, DocumentTok);
         SalesInvoiceLine.Next();
-        VerifySecondSalesInvoiceLine(SalesInvoiceLine, TempXMLBuffer, InvoiceLineTok);
+        VerifySecondSalesInvoiceLine(SalesInvoiceLine, TempXMLBuffer, DocumentTok);
     end;
 
     local procedure VerifyFirstSalesInvoiceLine(SalesInvoiceLine: Record "Sales Invoice Line"; var TempXMLBuffer: Record "XML Buffer" temporary; DocumentTok: Text);
@@ -4377,36 +4394,39 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     local procedure VerifyInvoiceLineWithDiscount(SalesInvoiceHeader: Record "Sales Invoice Header"; var TempXMLBuffer: Record "XML Buffer" temporary);
     var
         SalesInvoiceLine: Record "Sales Invoice Line";
+        DocumentTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem/ram:SpecifiedLineTradeSettlement/ram:SpecifiedTradeAllowanceCharge', Locked = true;
         Path: Text;
     begin
         SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
         SalesInvoiceLine.FindLast();
-        Path := InvoiceLineAllowanceChargeTok + '/ram:Reason';
+        Path := DocumentTok + '/ram:Reason';
         Assert.AreEqual('Line Discount', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := InvoiceLineAllowanceChargeTok + '/ram:ActualAmount';
+        Path := DocumentTok + '/ram:ActualAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesInvoiceLine."Line Discount Amount"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
     local procedure VerifyInvoiceWithInvDiscount(SalesInvoiceHeader: Record "Sales Invoice Header"; var TempXMLBuffer: Record "XML Buffer" temporary);
     var
+        DocumentTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradeAllowanceCharge', Locked = true;
         Path: Text;
     begin
         SalesInvoiceHeader.CalcFields("Invoice Discount Amount");
-        Path := DocumentAllowanceChargeTok + '/ram:Reason';
+        Path := DocumentTok + '/ram:Reason';
         Assert.AreEqual('Document discount', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := DocumentAllowanceChargeTok + '/ram:ActualAmount';
+        Path := DocumentTok + '/ram:ActualAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesInvoiceHeader."Invoice Discount Amount"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
     local procedure VerifyCrMemoLine(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var TempXMLBuffer: Record "XML Buffer" temporary);
     var
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
+        DocumentTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem', Locked = true;
     begin
         SalesCrMemoLine.SetRange("Document No.", SalesCrMemoHeader."No.");
         SalesCrMemoLine.FindSet();
-        VerifyFirstSalesICrMemoLine(SalesCrMemoLine, TempXMLBuffer, InvoiceLineTok);
+        VerifyFirstSalesICrMemoLine(SalesCrMemoLine, TempXMLBuffer, DocumentTok);
         SalesCrMemoLine.Next();
-        VerifySecondSalesCrMemoLine(SalesCrMemoLine, TempXMLBuffer, InvoiceLineTok);
+        VerifySecondSalesCrMemoLine(SalesCrMemoLine, TempXMLBuffer, DocumentTok);
     end;
 
     local procedure VerifyFirstSalesICrMemoLine(SalesCrMemoLine: Record "Sales Cr.Memo Line"; var TempXMLBuffer: Record "XML Buffer" temporary; DocumentTok: Text);
@@ -4460,36 +4480,39 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     local procedure VerifyCrMemoLineWithDiscounts(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var TempXMLBuffer: Record "XML Buffer" temporary);
     var
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
+        DocumentTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem/ram:SpecifiedLineTradeSettlement/ram:SpecifiedTradeAllowanceCharge', Locked = true;
         Path: Text;
     begin
         SalesCrMemoLine.SetRange("Document No.", SalesCrMemoHeader."No.");
         SalesCrMemoLine.FindLast();
-        Path := InvoiceLineAllowanceChargeTok + '/ram:Reason';
+        Path := DocumentTok + '/ram:Reason';
         Assert.AreEqual('Line Discount', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := InvoiceLineAllowanceChargeTok + '/ram:ActualAmount';
+        Path := DocumentTok + '/ram:ActualAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesCrMemoLine."Line Discount Amount"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
     local procedure VerifyCrMemoWithInvDiscount(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var TempXMLBuffer: Record "XML Buffer" temporary);
     var
+        DocumentTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradeAllowanceCharge', Locked = true;
         Path: Text;
     begin
         SalesCrMemoHeader.CalcFields("Invoice Discount Amount");
-        Path := DocumentAllowanceChargeTok + '/ram:Reason';
+        Path := DocumentTok + '/ram:Reason';
         Assert.AreEqual('Document discount', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := DocumentAllowanceChargeTok + '/ram:ActualAmount';
+        Path := DocumentTok + '/ram:ActualAmount';
         Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesCrMemoHeader."Invoice Discount Amount"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
     local procedure VerifyServiceInvoiceLine(ServiceInvoiceHeader: Record "Service Invoice Header"; var TempXMLBuffer: Record "XML Buffer" temporary)
     var
         ServiceInvoiceLine: Record "Service Invoice Line";
+        DocumentTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem', Locked = true;
     begin
         ServiceInvoiceLine.SetRange("Document No.", ServiceInvoiceHeader."No.");
         ServiceInvoiceLine.FindSet();
-        VerifyFirstServiceInvoiceLine(ServiceInvoiceLine, TempXMLBuffer, InvoiceLineTok);
+        VerifyFirstServiceInvoiceLine(ServiceInvoiceLine, TempXMLBuffer, DocumentTok);
         ServiceInvoiceLine.Next();
-        VerifySecondServiceInvoiceLine(ServiceInvoiceLine, TempXMLBuffer, InvoiceLineTok);
+        VerifySecondServiceInvoiceLine(ServiceInvoiceLine, TempXMLBuffer, DocumentTok);
     end;
 
     local procedure VerifyFirstServiceInvoiceLine(ServiceInvoiceLine: Record "Service Invoice Line"; var TempXMLBuffer: Record "XML Buffer" temporary; DocumentTok: Text)
@@ -4531,12 +4554,13 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     local procedure VerifyServiceCrMemoLine(ServiceCrMemoHeader: Record "Service Cr.Memo Header"; var TempXMLBuffer: Record "XML Buffer" temporary)
     var
         ServiceCrMemoLine: Record "Service Cr.Memo Line";
+        DocumentTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem', Locked = true;
     begin
         ServiceCrMemoLine.SetRange("Document No.", ServiceCrMemoHeader."No.");
         ServiceCrMemoLine.FindSet();
-        VerifyFirstServiceCrMemoLine(ServiceCrMemoLine, TempXMLBuffer, InvoiceLineTok);
+        VerifyFirstServiceCrMemoLine(ServiceCrMemoLine, TempXMLBuffer, DocumentTok);
         ServiceCrMemoLine.Next();
-        VerifySecondServiceCrMemoLine(ServiceCrMemoLine, TempXMLBuffer, InvoiceLineTok);
+        VerifySecondServiceCrMemoLine(ServiceCrMemoLine, TempXMLBuffer, DocumentTok);
     end;
 
     local procedure VerifyFirstServiceCrMemoLine(ServiceCrMemoLine: Record "Service Cr.Memo Line"; var TempXMLBuffer: Record "XML Buffer" temporary; DocumentTok: Text)

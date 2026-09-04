@@ -50,6 +50,8 @@ pageextension 13915 "E-Document Service DE" extends "E-Document Service"
         modify("Export Format")
         {
             trigger OnBeforeValidate()
+            var
+                PeppolFormatErr: Label 'For Germany, please use format %1, as the selected format isn''t applicable.', Comment = '%1 = "PEPPOL BIS 3.0 DE"';
             begin
                 if Rec."Document Format" = Rec."Document Format"::"PEPPOL BIS 3.0" then
                     Message(PeppolFormatErr, Format(Rec."Document Format"::"PEPPOL BIS 3.0 DE"));
@@ -74,5 +76,4 @@ pageextension 13915 "E-Document Service DE" extends "E-Document Service"
 
     var
         IsParameterVisible: Boolean;
-        PeppolFormatErr: Label 'For Germany, please use format %1, as the selected format isn''t applicable.', Comment = '%1 = "PEPPOL BIS 3.0 DE"';
 }

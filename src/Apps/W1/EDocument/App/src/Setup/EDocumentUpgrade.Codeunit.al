@@ -26,7 +26,6 @@ codeunit 6168 "E-Document Upgrade"
 #endif
         UpgradeDataExchV2Defs();
         UpgradeEnableVATOptionsForPurchEDoc();
-        UpgradeItemChargeMapping();
     end;
 
     local procedure UpgradeLogURLMaxLength()
@@ -67,7 +66,6 @@ codeunit 6168 "E-Document Upgrade"
         PerCompanyUpgradeTags.Add(GetUpgradeProcessDraftEnumTag());
         PerCompanyUpgradeTags.Add(GetUpgradeDataExchV2DefsTag());
         PerCompanyUpgradeTags.Add(GetEnableVATOptionsForPurchEDocTag());
-        PerCompanyUpgradeTags.Add(GetItemChargeMappingUpgradeTag());
     end;
 
     internal procedure GetUpgradeLogURLMaxLengthUpgradeTag(): Code[250]
@@ -121,24 +119,6 @@ codeunit 6168 "E-Document Upgrade"
     internal procedure GetEnableVATOptionsForPurchEDocTag(): Code[250]
     begin
         exit('MS-EDoc-EnableVATOptionsForPurchEDoc-20260520');
-    end;
-
-    local procedure UpgradeItemChargeMapping()
-    var
-        EDocumentService: Record "E-Document Service";
-        UpgradeTag: Codeunit "Upgrade Tag";
-    begin
-        if UpgradeTag.HasUpgradeTag(GetItemChargeMappingUpgradeTag()) then
-            exit;
-
-        EDocumentService.ModifyAll("Item Charge E-Invoice Mapping", Enum::"Item Charge E-Invoice Mapping"::"Line with Unit Code");
-
-        UpgradeTag.SetUpgradeTag(GetItemChargeMappingUpgradeTag());
-    end;
-
-    internal procedure GetItemChargeMappingUpgradeTag(): Code[250]
-    begin
-        exit('MS-EDoc-ItemChargeMapping-20260904');
     end;
 
 }

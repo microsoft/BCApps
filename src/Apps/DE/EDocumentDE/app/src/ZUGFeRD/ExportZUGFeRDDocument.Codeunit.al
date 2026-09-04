@@ -43,12 +43,9 @@ codeunit 13917 "Export ZUGFeRD Document"
         ItemChargeStructures: Dictionary of [Integer, Integer];
         LineLevelItemChargeAmounts: Dictionary of [Integer, Decimal];
         LineLevelItemChargeLineNos: Dictionary of [Integer, List of [Integer]];
-        TempLineLevelChargeSalesInvLine: Record "Sales Invoice Line" temporary;
-        TempLineLevelChargeSalesCrMemoLine: Record "Sales Cr.Memo Line" temporary;
         FeatureNameTok: Label 'E-document ZUGFeRD Format', Locked = true;
         StartEventNameTok: Label 'E-document ZUGFeRD export started', Locked = true;
         EndEventNameTok: Label 'E-document ZUGFeRD export completed', Locked = true;
-        DescriptionLbl: Label 'This is the e-invoicing xml document';
         GLNSchemeIDTok: Label '0088', Locked = true;
         XmlNamespaceRSM: Text;
         XmlNamespaceRAM: Text;
@@ -155,6 +152,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         Name: Text;
         MimeType: Text;
         Description: Text;
+        DescriptionLbl: Label 'This is the e-invoicing xml document';
     begin
         PDFDocument.Initialize();
         Name := 'xrechnung.xml';
@@ -1487,11 +1485,8 @@ codeunit 13917 "Export ZUGFeRD Document"
             if (Structure = Structure::"Line Allowance/Charge") and not IsExportedLine(SalesInvLine, TargetSalesInvLine."Line No.") then
                 Structure := Structure::"Document Allowance/Charge";
             ItemChargeStructures.Add(ChargeSalesInvLine."Line No.", Structure.AsInteger());
-            if Structure = Structure::"Line Allowance/Charge" then begin
+            if Structure = Structure::"Line Allowance/Charge" then
                 AddLineLevelItemCharge(TargetSalesInvLine."Line No.", ChargeSalesInvLine."Line No.", ChargeSalesInvLine.Amount);
-                TempLineLevelChargeSalesInvLine := ChargeSalesInvLine;
-                TempLineLevelChargeSalesInvLine.Insert();
-            end;
         until ChargeSalesInvLine.Next() = 0;
     end;
 
@@ -1522,11 +1517,8 @@ codeunit 13917 "Export ZUGFeRD Document"
             if (Structure = Structure::"Line Allowance/Charge") and not IsExportedLine(SalesCrMemoLine, TargetSalesCrMemoLine."Line No.") then
                 Structure := Structure::"Document Allowance/Charge";
             ItemChargeStructures.Add(ChargeSalesCrMemoLine."Line No.", Structure.AsInteger());
-            if Structure = Structure::"Line Allowance/Charge" then begin
+            if Structure = Structure::"Line Allowance/Charge" then
                 AddLineLevelItemCharge(TargetSalesCrMemoLine."Line No.", ChargeSalesCrMemoLine."Line No.", ChargeSalesCrMemoLine.Amount);
-                TempLineLevelChargeSalesCrMemoLine := ChargeSalesCrMemoLine;
-                TempLineLevelChargeSalesCrMemoLine.Insert();
-            end;
         until ChargeSalesCrMemoLine.Next() = 0;
     end;
 
@@ -1535,8 +1527,6 @@ codeunit 13917 "Export ZUGFeRD Document"
         Clear(ItemChargeStructures);
         Clear(LineLevelItemChargeAmounts);
         Clear(LineLevelItemChargeLineNos);
-        TempLineLevelChargeSalesInvLine.DeleteAll();
-        TempLineLevelChargeSalesCrMemoLine.DeleteAll();
     end;
 
     local procedure AddLineLevelItemCharge(TargetLineNo: Integer; ChargeLineNo: Integer; ChargeAmount: Decimal)
@@ -1631,6 +1621,7 @@ codeunit 13917 "Export ZUGFeRD Document"
 
     local procedure InsertLineLevelItemChargeAllowanceCharges(var LineTradeSettlementElement: XmlElement; var SalesInvLine: Record "Sales Invoice Line")
     var
+        ChargeSalesInvLine: Record "Sales Invoice Line";
         ChargeLineNos: List of [Integer];
         ChargeLineNo: Integer;
     begin
@@ -1638,13 +1629,14 @@ codeunit 13917 "Export ZUGFeRD Document"
             exit;
 
         foreach ChargeLineNo in ChargeLineNos do begin
-            TempLineLevelChargeSalesInvLine.Get(SalesInvLine."Document No.", ChargeLineNo);
-            InsertItemChargeAllowanceCharge(LineTradeSettlementElement, TempLineLevelChargeSalesInvLine, false);
+            ChargeSalesInvLine.Get(SalesInvLine."Document No.", ChargeLineNo);
+            InsertItemChargeAllowanceCharge(LineTradeSettlementElement, ChargeSalesInvLine, false);
         end;
     end;
 
     local procedure InsertLineLevelItemChargeAllowanceCharges(var LineTradeSettlementElement: XmlElement; var SalesCrMemoLine: Record "Sales Cr.Memo Line")
     var
+        ChargeSalesCrMemoLine: Record "Sales Cr.Memo Line";
         ChargeLineNos: List of [Integer];
         ChargeLineNo: Integer;
     begin
@@ -1652,8 +1644,8 @@ codeunit 13917 "Export ZUGFeRD Document"
             exit;
 
         foreach ChargeLineNo in ChargeLineNos do begin
-            TempLineLevelChargeSalesCrMemoLine.Get(SalesCrMemoLine."Document No.", ChargeLineNo);
-            InsertItemChargeAllowanceCharge(LineTradeSettlementElement, TempLineLevelChargeSalesCrMemoLine, false);
+            ChargeSalesCrMemoLine.Get(SalesCrMemoLine."Document No.", ChargeLineNo);
+            InsertItemChargeAllowanceCharge(LineTradeSettlementElement, ChargeSalesCrMemoLine, false);
         end;
     end;
 

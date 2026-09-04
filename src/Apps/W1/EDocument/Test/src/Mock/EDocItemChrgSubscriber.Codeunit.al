@@ -32,12 +32,4 @@ codeunit 139787 "E-Doc. Item Chrg. Subscriber"
         Structure := StructureToReturn;
         Clear(TargetSalesInvoiceLine);
     end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Item Charge Mapping", 'OnAfterGetSalesCrMemoItemChargeStructure', '', false, false)]
-    local procedure OverrideStructureOnAfterGetSalesCrMemoItemChargeStructure(var Structure: Enum "Item Charge E-Doc. Structure"; var TargetSalesCrMemoLine: Record "Sales Cr.Memo Line")
-    begin
-        Invoked := true;
-        Structure := StructureToReturn;
-        Clear(TargetSalesCrMemoLine);
-    end;
 }

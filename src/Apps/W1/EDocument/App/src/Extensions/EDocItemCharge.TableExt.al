@@ -5,7 +5,6 @@
 namespace Microsoft.Inventory.Item;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.Foundation.UOM;
 
 tableextension 6536 "E-Doc. Item Charge" extends "Item Charge"
 {
@@ -34,21 +33,6 @@ tableextension 6536 "E-Doc. Item Charge" extends "Item Charge"
             Caption = 'E-Invoice Unit Code';
             ToolTip = 'Specifies the unit code that is exported when this item charge is represented as an invoice line in e-documents. If empty, the unit code C62 is exported.';
             DataClassification = CustomerContent;
-
-            trigger OnValidate()
-            var
-                UnitOfMeasure: Record "Unit of Measure";
-            begin
-                if Rec."E-Invoice Unit Code" = '' then
-                    exit;
-
-                UnitOfMeasure.SetRange("International Standard Code", Rec."E-Invoice Unit Code");
-                if UnitOfMeasure.IsEmpty() then
-                    FieldError("E-Invoice Unit Code", InvalidUnitCodeErr);
-            end;
         }
     }
-
-    var
-        InvalidUnitCodeErr: Label 'The value must match the International Standard Code of a unit of measure.';
 }
