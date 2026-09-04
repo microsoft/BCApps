@@ -162,37 +162,15 @@ table 246 "Requisition Line"
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
+            var
+                IsHandled: Boolean;
             begin
-                Quantity := UOMMgt.RoundAndValidateQty(Quantity, "Qty. Rounding Precision", FieldCaption(Quantity));
+                IsHandled := false;
+                OnBeforeValidateQuantity(Rec, CurrFieldNo, CurrentFieldNo, IsHandled);
+                if not IsHandled then
+                    ValidateQuantity();
 
-                "Quantity (Base)" :=
-                    UOMMgt.CalcBaseQty(
-                        "No.", "Variant Code", "Unit of Measure Code", Quantity, "Qty. per Unit of Measure",
-                        "Qty. Rounding Precision (Base)", FieldCaption("Qty. Rounding Precision"), FieldCaption(Quantity),
-                        FieldCaption("Quantity (Base)"));
-
-                if Type = Type::Item then begin
-                    OnValidateQuantityOnBeforeGetDirectCost(Rec, xRec, CurrFieldNo);
-                    GetDirectCost(FieldNo(Quantity));
-                    SetRemaningQuantity();
-
-                    if (CurrFieldNo = FieldNo(Quantity)) or (CurrentFieldNo = FieldNo(Quantity)) then
-                        SetActionMessage();
-
-                    "Net Quantity (Base)" := (Quantity - "Original Quantity") * "Qty. per Unit of Measure";
-
-                    OnValidateQuantityOnBeforeUnitCost(Rec, CurrFieldNo, CurrentFieldNo);
-                    Validate("Unit Cost");
-                    if ValidateFields() then
-                        if "Ending Date" <> 0D then
-                            Validate("Ending Time")
-                        else begin
-                            if "Starting Date" = 0D then
-                                "Starting Date" := WorkDate();
-                            Validate("Starting Time");
-                        end;
-                    ReqLineReserve.VerifyQuantity(Rec, xRec);
-                end;
+                OnAfterValidateQuantity(Rec, CurrFieldNo, CurrentFieldNo);
             end;
         }
         field(9; "Vendor No."; Code[20])
@@ -2247,6 +2225,40 @@ table 246 "Requisition Line"
         OnAfterValidateFields(Rec, CurrFieldNo, CurrentFieldNo, Result);
     end;
 
+    local procedure ValidateQuantity()
+    begin
+        Quantity := UOMMgt.RoundAndValidateQty(Quantity, "Qty. Rounding Precision", FieldCaption(Quantity));
+
+        "Quantity (Base)" :=
+            UOMMgt.CalcBaseQty(
+                "No.", "Variant Code", "Unit of Measure Code", Quantity, "Qty. per Unit of Measure",
+                "Qty. Rounding Precision (Base)", FieldCaption("Qty. Rounding Precision"), FieldCaption(Quantity),
+                FieldCaption("Quantity (Base)"));
+
+        if Type = Type::Item then begin
+            OnValidateQuantityOnBeforeGetDirectCost(Rec, xRec, CurrFieldNo);
+            GetDirectCost(FieldNo(Quantity));
+            SetRemaningQuantity();
+
+            if (CurrFieldNo = FieldNo(Quantity)) or (CurrentFieldNo = FieldNo(Quantity)) then
+                SetActionMessage();
+
+            "Net Quantity (Base)" := (Quantity - "Original Quantity") * "Qty. per Unit of Measure";
+
+            OnValidateQuantityOnBeforeUnitCost(Rec, CurrFieldNo, CurrentFieldNo);
+            Validate("Unit Cost");
+            if ValidateFields() then
+                if "Ending Date" <> 0D then
+                    Validate("Ending Time")
+                else begin
+                    if "Starting Date" = 0D then
+                        "Starting Date" := WorkDate();
+                    Validate("Starting Time");
+                end;
+            ReqLineReserve.VerifyQuantity(Rec, xRec);
+        end;
+    end;
+
     /// <summary>
     /// Prepares and transfers relevant field values from provided purchase line to the current requisition line.
     /// </summary>
@@ -3670,6 +3682,11 @@ table 246 "Requisition Line"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnAfterValidateQuantity(var RequisitionLine: Record "Requisition Line"; CallingFieldNo: Integer; GlobalCurrentFieldNo: Integer)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnAfterValidateShortcutDimCode(var RequisitionLine: Record "Requisition Line"; xRequisitionLine: Record "Requisition Line"; FieldNumber: Integer; var ShortcutDimCode: Code[20])
     begin
     end;
@@ -3761,6 +3778,11 @@ table 246 "Requisition Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateOrderReceiptDate(var RequisitionLine: Record "Requisition Line"; LeadTimeCalc: DateFormula; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeValidateQuantity(var RequisitionLine: Record "Requisition Line"; CallingFieldNo: Integer; GlobalCurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
 
