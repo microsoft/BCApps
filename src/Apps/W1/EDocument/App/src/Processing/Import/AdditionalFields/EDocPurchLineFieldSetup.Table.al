@@ -11,7 +11,7 @@ table 6109 "EDoc. Purch. Line Field Setup"
     Access = Internal;
     ObsoleteReason = 'Replaced by "ED Purchase Line Field Setup"';
     ObsoleteState = Removed;
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '30.0';
     InherentEntitlements = RIMDX;
     InherentPermissions = RIMDX;
     ReplicateData = false;

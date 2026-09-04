@@ -1,7 +1,5 @@
 namespace Microsoft.SubscriptionBilling;
 
-using Microsoft.Inventory.Item;
-
 table 8007 "Overdue Subscription Line"
 {
     DataClassification = CustomerContent;
