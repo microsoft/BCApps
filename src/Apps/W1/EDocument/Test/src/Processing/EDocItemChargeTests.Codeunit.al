@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -1012,7 +1012,11 @@ codeunit 139786 "E-Doc. Item Charge Tests"
         ItemVATPostingSetup.Get(Customer."VAT Bus. Posting Group", Item."VAT Prod. Posting Group");
         LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
         LibraryERM.CreateVATPostingSetup(VATPostingSetup, Customer."VAT Bus. Posting Group", VATProductPostingGroup.Code);
-        VATPostingSetup.Validate("VAT Identifier", VATProductPostingGroup.Code);
+        // Assigned, not validated: "VAT %" - OnValidate rejects a setup whose identifier is already used for another
+        // rate, so the identifier must be unique - but in the IT localization the field has a TableRelation to the
+        // "VAT Identifier" table and an OnValidate that copies the rate of a setup sharing the identifier. A direct
+        // assignment keeps the identifier unique without tripping either.
+        VATPostingSetup."VAT Identifier" := VATProductPostingGroup.Code;
         VATPostingSetup.Validate("VAT Calculation Type", VATCalculationType);
         VATPostingSetup.Validate("VAT %", VATRate);
         VATPostingSetup.Validate("Sales VAT Account", ItemVATPostingSetup."Sales VAT Account");
