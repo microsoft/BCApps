@@ -2878,11 +2878,11 @@ codeunit 13918 "XRechnung XML Document Tests"
     begin
         Path := DocumentTok + '/cbc:PaymentMeansCode';
         Assert.AreEqual('59', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := DocumentTok + '/cbc:PaymentID';
+        Path := DocumentTok + '/cac:PaymentMandate/cbc:ID';
         Assert.AreEqual(ExpectedMandateID, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/cac:PayeeFinancialAccount/cbc:ID';
         Assert.AreEqual(ExpectedPayeeIBAN, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := DocumentTok + '/cac:PayerFinancialAccount/cbc:ID';
+        Path := DocumentTok + '/cac:PaymentMandate/cac:PayerFinancialAccount/cbc:ID';
         Assert.AreEqual(ExpectedPayerIBAN, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
@@ -2890,7 +2890,7 @@ codeunit 13918 "XRechnung XML Document Tests"
     var
         Path: Text;
     begin
-        Path := PartyTok + '/cac:PartyLegalEntity/cbc:CompanyID';
+        Path := PartyTok + '/cac:PartyIdentification/cbc:ID';
         Assert.AreEqual(ExpectedCreditorNo, GetLastNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Assert.AreEqual('SEPA', GetLastAttributeByPathWithError(TempXMLBuffer, Path, 'schemeID'), StrSubstNo(IncorrectValueErr, Path + '/@schemeID'));
     end;

@@ -49,6 +49,7 @@ codeunit 13916 "Export XRechnung Document"
         StartEventNameTok: Label 'E-document XRechnung export started', Locked = true;
         EndEventNameTok: Label 'E-document XRechnung export completed', Locked = true;
         GLNSchemeIDTok: Label '0088', Locked = true;
+        SEPASchemeIDTok: Label 'SEPA', Locked = true;
         XmlNamespaceCBC: Text;
         XmlNamespaceCAC: Text;
         ItemGTINCache: Dictionary of [Code[20], Code[14]];
@@ -628,22 +629,31 @@ codeunit 13916 "Export XRechnung Document"
     var
         SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate";
         CustomerBankAccount: Record "Customer Bank Account";
+        PaymentMandateElement: XmlElement;
         PayerFinancialAccountElement: XmlElement;
     begin
-        // BT-89 Mandate reference -> PaymentID
-        if DirectDebitMandateID <> '' then
-            PaymentMeansElement.Add(XmlElement.Create('PaymentID', XmlNamespaceCBC, DirectDebitMandateID));
-        // Company account (creditor) -> PayeeFinancialAccount
+        // BT-84 Payment account identifier: company account (creditor) -> PayeeFinancialAccount.
         InsertPayeeFinancialAccount(PaymentMeansElement, 'PayeeFinancialAccount', CompanyBankAccountCode);
-        // BT-91 Debited account identifier: customer account (debtor), from mandate -> PayerFinancialAccount
-        if DirectDebitMandateID <> '' then
-            if SEPADirectDebitMandate.Get(DirectDebitMandateID) then
-                if CustomerBankAccount.Get(SEPADirectDebitMandate."Customer No.", SEPADirectDebitMandate."Customer Bank Account Code") then
-                    if CustomerBankAccount.IBAN <> '' then begin
-                        PayerFinancialAccountElement := XmlElement.Create('PayerFinancialAccount', XmlNamespaceCAC);
-                        PayerFinancialAccountElement.Add(XmlElement.Create('ID', XmlNamespaceCBC, GetIBAN(CustomerBankAccount.IBAN)));
-                        PaymentMeansElement.Add(PayerFinancialAccountElement);
-                    end;
+        if DirectDebitMandateID = '' then
+            exit;
+
+        // BG-19 DIRECT DEBIT -> PaymentMandate. The UBL PaymentMeans sequence requires PaymentMandate
+        // after PayeeFinancialAccount, so this group is always added last.
+        PaymentMandateElement := XmlElement.Create('PaymentMandate', XmlNamespaceCAC);
+        // BT-89 Mandate reference identifier.
+        PaymentMandateElement.Add(XmlElement.Create('ID', XmlNamespaceCBC, DirectDebitMandateID));
+        // BT-91 Debited account identifier: customer account (debtor), resolved from the mandate.
+        SEPADirectDebitMandate.SetLoadFields(SEPADirectDebitMandate."Customer No.", SEPADirectDebitMandate."Customer Bank Account Code");
+        if SEPADirectDebitMandate.Get(DirectDebitMandateID) then begin
+            CustomerBankAccount.SetLoadFields(CustomerBankAccount.IBAN);
+            if CustomerBankAccount.Get(SEPADirectDebitMandate."Customer No.", SEPADirectDebitMandate."Customer Bank Account Code") then
+                if CustomerBankAccount.IBAN <> '' then begin
+                    PayerFinancialAccountElement := XmlElement.Create('PayerFinancialAccount', XmlNamespaceCAC);
+                    PayerFinancialAccountElement.Add(XmlElement.Create('ID', XmlNamespaceCBC, GetIBAN(CustomerBankAccount.IBAN)));
+                    PaymentMandateElement.Add(PayerFinancialAccountElement);
+                end;
+        end;
+        PaymentMeansElement.Add(PaymentMandateElement);
     end;
 
     local procedure InsertCreditTransferPaymentMeans(var PaymentMeansElement: XmlElement; CompanyBankAccountCode: Code[20])
@@ -848,21 +858,6 @@ codeunit 13916 "Export XRechnung Document"
         PartyElement.Add(PartyLegalEntityElement);
     end;
 
-    local procedure InsertPartyLegalEntity(var PartyElement: XmlElement; CreditorNo: Code[35]);
-    var
-        PartyLegalEntityElement: XmlElement;
-    begin
-        PartyLegalEntityElement := XmlElement.Create('PartyLegalEntity', XmlNamespaceCAC);
-        PartyLegalEntityElement.Add(XmlElement.Create('RegistrationName', XmlNamespaceCBC, CompanyInformation.Name));
-        if CompanyInformation."Use GLN in Electronic Document" and (CompanyInformation.GLN <> '') then
-            PartyLegalEntityElement.Add(XmlElement.Create('CompanyID', XmlNamespaceCBC, CompanyInformation.GLN))
-        else
-            PartyLegalEntityElement.Add(XmlElement.Create('CompanyID', XmlNamespaceCBC, GetVATRegistrationNo(CompanyInformation."VAT Registration No.", CompanyInformation."Country/Region Code")));
-        if CreditorNo <> '' then
-            PartyLegalEntityElement.Add(XmlElement.Create('CompanyID', XmlNamespaceCBC, XmlAttribute.Create('schemeID', 'SEPA'), CreditorNo));
-        PartyElement.Add(PartyLegalEntityElement);
-    end;
-
     local procedure InsertCustomerPartyLegalEntity(var PartyElement: XmlElement; CustomerName: Text[100]; CustomerGLN: Code[13]);
     var
         PartyLegalEntityElement: XmlElement;
@@ -966,13 +961,16 @@ codeunit 13916 "Export XRechnung Document"
             InsertPartyIdentification(PartyElement, CompanyInformation.GLN, GLNSchemeIDTok)
         else
             InsertPartyIdentification(PartyElement, GetVATRegistrationNo(CompanyInformation."VAT Registration No.", CompanyInformation."Country/Region Code"));
+        // BT-90 Bank assigned creditor identifier (BG-19), required for SEPA Direct Debit.
+        if CreditorNo <> '' then
+            InsertPartyIdentification(PartyElement, CreditorNo, SEPASchemeIDTok);
         InsertPartyName(PartyElement, CompanyInformation.Name);
         TempCompanyAddress.CopyFromCompanyInformation(CompanyInformation);
         UpdateSellerAddressFromResponsibilityCenter(RespCenterCode, TempCompanyAddress);
         InsertAddress(PartyElement, 'PostalAddress', TempCompanyAddress);
         if not AllLinesNotSubjectToVAT then
             InsertPartyTaxScheme(PartyElement, CompanyInformation."VAT Registration No.", CompanyInformation."Country/Region Code");
-        InsertPartyLegalEntity(PartyElement, CreditorNo);
+        InsertPartyLegalEntity(PartyElement);
         InsertSupplierContact(SalespersonCode, PartyElement);
         AccountingSupplierPartyElement.Add(PartyElement);
     end;

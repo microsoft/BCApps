@@ -799,13 +799,16 @@ codeunit 13917 "Export ZUGFeRD Document"
         SettlementElement, MonetarySummationElement : XmlElement;
     begin
         SettlementElement := XmlElement.Create('ApplicableHeaderTradeSettlement', XmlNamespaceRAM);
+        // BT-90 Bank assigned creditor identifier. The CII HeaderTradeSettlement sequence puts
+        // CreditorReferenceID before InvoiceCurrencyCode, so it is added first.
+        InsertCreditorReference(SettlementElement, SalesInvHeader."Payment Method Code", SalesInvHeader."Company Bank Account Code");
 
         SettlementElement.Add(XmlElement.Create('InvoiceCurrencyCode', XmlNamespaceRAM, CurrencyCode));
         InsertPaymentMethod(SettlementElement, SalesInvHeader."Payment Method Code", SalesInvHeader."Company Bank Account Code", SalesInvHeader."Direct Debit Mandate ID", SalesInvHeader);
         InsertTradeTax(SettlementElement, SalesInvLine, LineAmount, LineVATAmount);
         InsertInvDiscountAllowanceCharge(SettlementElement, SalesInvLine, LineDiscAmount, LineAmounts);
 
-        InsertPaymentTerms(SettlementElement, SalesInvHeader."Payment Terms Code", SalesInvHeader."Due Date");
+        InsertPaymentTerms(SettlementElement, SalesInvHeader."Payment Terms Code", SalesInvHeader."Due Date", GetDirectDebitMandateID(SalesInvHeader."Payment Method Code", SalesInvHeader."Direct Debit Mandate ID"));
         MonetarySummationElement := XmlElement.Create('SpecifiedTradeSettlementHeaderMonetarySummation', XmlNamespaceRAM);
         MonetarySummationElement.Add(XmlElement.Create('LineTotalAmount', XmlNamespaceRAM, FormatDecimal(LineAmounts.Get(SalesInvLine.FieldName(Amount)) + LineAmounts.Get(SalesInvLine.FieldName("Inv. Discount Amount")))));
         MonetarySummationElement.Add(XmlElement.Create('AllowanceTotalAmount', XmlNamespaceRAM, FormatDecimal(LineAmounts.Get(SalesInvLine.FieldName("Inv. Discount Amount")))));
@@ -830,7 +833,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         InsertTradeTax(SettlementElement, SalesCrMemoLine, LineAmount, LineVATAmount);
         InsertInvDiscountAllowanceCharge(SettlementElement, SalesCrMemoLine, LineDiscAmount, LineAmounts);
 
-        InsertPaymentTerms(SettlementElement, SalesCrMemoHeader."Payment Terms Code", SalesCrMemoHeader."Due Date");
+        InsertPaymentTerms(SettlementElement, SalesCrMemoHeader."Payment Terms Code", SalesCrMemoHeader."Due Date", '');
         MonetarySummationElement := XmlElement.Create('SpecifiedTradeSettlementHeaderMonetarySummation', XmlNamespaceRAM);
         MonetarySummationElement.Add(XmlElement.Create('LineTotalAmount', XmlNamespaceRAM, FormatDecimal(LineAmounts.Get(SalesCrMemoLine.FieldName(Amount)) + LineAmounts.Get(SalesCrMemoLine.FieldName("Inv. Discount Amount")))));
         MonetarySummationElement.Add(XmlElement.Create('AllowanceTotalAmount', XmlNamespaceRAM, FormatDecimal(LineAmounts.Get(SalesCrMemoLine.FieldName("Inv. Discount Amount")))));
@@ -1157,7 +1160,26 @@ codeunit 13917 "Export ZUGFeRD Document"
         end;
     end;
 
-    local procedure InsertPaymentTerms(var RootXMLNode: XmlElement; PaymentTermsCode: Code[10]; DueDate: Date)
+    local procedure InsertCreditorReference(var SettlementElement: XmlElement; PaymentMethodCode: Code[10]; CompanyBankAccountCode: Code[20])
+    var
+        CreditorNo: Code[35];
+    begin
+        if not DEPaymentMeansHelper.IsDirectDebit(DEPaymentMeansHelper.GetPaymentMeansCode(PaymentMethodCode)) then
+            exit;
+        CreditorNo := DEPaymentMeansHelper.GetCreditorNo(CompanyBankAccountCode);
+        if CreditorNo = '' then
+            exit;
+        SettlementElement.Add(XmlElement.Create('CreditorReferenceID', XmlNamespaceRAM, CreditorNo));
+    end;
+
+    local procedure GetDirectDebitMandateID(PaymentMethodCode: Code[10]; DirectDebitMandateID: Code[35]): Code[35]
+    begin
+        if DEPaymentMeansHelper.IsDirectDebit(DEPaymentMeansHelper.GetPaymentMeansCode(PaymentMethodCode)) then
+            exit(DirectDebitMandateID);
+        exit('');
+    end;
+
+    local procedure InsertPaymentTerms(var RootXMLNode: XmlElement; PaymentTermsCode: Code[10]; DueDate: Date; DirectDebitMandateID: Code[35])
     var
         PaymentTerms: Record "Payment Terms";
         PaymentTermsElement: XmlElement;
@@ -1174,6 +1196,10 @@ codeunit 13917 "Export ZUGFeRD Document"
         DueDateElement := XmlElement.Create('DueDateDateTime', XmlNamespaceRAM);
         DueDateElement.Add(XmlElement.Create('DateTimeString', XmlNamespaceUDT, XmlAttribute.Create('format', '102'), FormatDate(DueDate)));
         PaymentTermsElement.Add(DueDateElement);
+        // BT-89 Mandate reference identifier. The CII TradePaymentTerms sequence puts DirectDebitMandateID
+        // after DueDateDateTime, so it is added last.
+        if DirectDebitMandateID <> '' then
+            PaymentTermsElement.Add(XmlElement.Create('DirectDebitMandateID', XmlNamespaceRAM, DirectDebitMandateID));
         RootXMLNode.Add(PaymentTermsElement);
     end;
 
@@ -1208,16 +1234,23 @@ codeunit 13917 "Export ZUGFeRD Document"
         IBAN: Text[50];
         SWIFTCode: Code[20];
     begin
-        // PayeePartyCreditorFinancialAccount = account receiving money (company account, SEPA direct debit creditor).
+        // The CII TradeSettlementPaymentMeans sequence is PayerPartyDebtorFinancialAccount,
+        // PayeePartyCreditorFinancialAccount, PayeeSpecifiedCreditorFinancialInstitution - keep this order.
+
+        // BT-91 PayerPartyDebtorFinancialAccount = account being charged (customer, direct debit only), resolved via the mandate.
+        if DirectDebitMandateID <> '' then begin
+            SEPADirectDebitMandate.SetLoadFields(SEPADirectDebitMandate."Customer No.", SEPADirectDebitMandate."Customer Bank Account Code");
+            if SEPADirectDebitMandate.Get(DirectDebitMandateID) then begin
+                CustomerBankAccount.SetLoadFields(CustomerBankAccount.IBAN);
+                if CustomerBankAccount.Get(SEPADirectDebitMandate."Customer No.", SEPADirectDebitMandate."Customer Bank Account Code") then
+                    AddDebtorAccount(PaymentMethodElement, CustomerBankAccount.IBAN);
+            end;
+        end;
+
+        // BT-84 PayeePartyCreditorFinancialAccount = account receiving money (company account, SEPA direct debit creditor).
         GetBankAccountPaymentDetails(CompanyBankAccountCode, IBAN, SWIFTCode);
         AddCreditorAccount(PaymentMethodElement, IBAN);
         AddCreditorFinancialInstitution(PaymentMethodElement, SWIFTCode);
-
-        // PayerPartyDebtorFinancialAccount = account being charged (customer, direct debit only), resolved via the mandate.
-        if DirectDebitMandateID <> '' then
-            if SEPADirectDebitMandate.Get(DirectDebitMandateID) then
-                if CustomerBankAccount.Get(SEPADirectDebitMandate."Customer No.", SEPADirectDebitMandate."Customer Bank Account Code") then
-                    AddDebtorAccount(PaymentMethodElement, CustomerBankAccount.IBAN);
     end;
 
     local procedure InsertCreditTransferPayment(var PaymentMethodElement: XmlElement; CompanyBankAccountCode: Code[20])
