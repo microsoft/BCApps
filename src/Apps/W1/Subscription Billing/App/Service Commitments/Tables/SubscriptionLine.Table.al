@@ -1666,6 +1666,13 @@ table 8059 "Subscription Line"
         exit(Rec."Subscription Line End Date" = CalcDate('<-1D>', Rec."Next Billing Date"));
     end;
 
+    internal procedure IsBilledUntilEndOfTerm(): Boolean
+    begin
+        if Rec."Subscription Line End Date" = 0D then
+            exit(false);
+        exit(Rec."Next Billing Date" > Rec."Subscription Line End Date");
+    end;
+
     internal procedure SetSkipArchiving(NewSkipArchiving: Boolean)
     begin
         SkipArchiving := NewSkipArchiving;

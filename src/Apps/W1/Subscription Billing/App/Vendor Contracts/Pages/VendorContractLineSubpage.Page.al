@@ -652,7 +652,7 @@ page 8078 "Vendor Contract Line Subpage"
 
     local procedure SetNextBillingDateStyle()
     begin
-        if (Today() > ServiceCommitment."Subscription Line End Date") and (ServiceCommitment."Next Billing Date" > ServiceCommitment."Subscription Line End Date") and (ServiceCommitment."Subscription Line End Date" <> 0D) then
+        if (Today() > ServiceCommitment."Subscription Line End Date") and ServiceCommitment.IsBilledUntilEndOfTerm() then
             NextBillingDateStyleExpr := 'Ambiguous'
         else
             NextBillingDateStyleExpr := 'None';
