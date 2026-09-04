@@ -711,22 +711,149 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         Initialize();
 
         // [GIVEN] A document that is externally stored but not internally stored
-        DocumentAttachment.Init();
-        DocumentAttachment.ID := Any.IntegerInRange(10000, 99999);
-        DocumentAttachment."Table ID" := Database::"Document Attachment";
-        DocumentAttachment."No." := CopyStr(Any.AlphanumericText(20), 1, 20);
-        DocumentAttachment."File Name" := 'TestFile';
-        DocumentAttachment."File Extension" := 'txt';
-        DocumentAttachment."Stored Externally" := true;
-        DocumentAttachment."Stored Internally" := false;
-        DocumentAttachment."External File Path" := 'test/path/file.txt';
-        DocumentAttachment.Insert();
+        CreateExternallyStoredOnlyDocument(DocumentAttachment);
 
         // [WHEN] Checking if uploaded externally and deleted internally
         Result := DAExternalStorageImpl.IsFileUploadedToExternalStorageAndDeletedInternally(DocumentAttachment);
 
         // [THEN] Should return true
         Assert.IsTrue(Result, 'Should return true for externally stored and internally deleted file');
+    end;
+
+    [Test]
+    procedure HasContentUsesExternalStorageMetadataWithFileAccount()
+    var
+        DocumentAttachment: Record "Document Attachment";
+    begin
+        // [SCENARIO] Checking attachment content should not contact external storage
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+
+        // [GIVEN] An externally stored attachment with a configured file account
+        CreateExternallyStoredOnlyDocument(DocumentAttachment);
+
+        // [WHEN] Checking if the attachment has content
+        // [THEN] The external storage metadata indicates content is available
+        Assert.IsTrue(DocumentAttachment.HasContent(), 'Externally stored attachment should report content from its metadata');
+        Assert.AreEqual(0, FileConnectorMock.GetFileExistsCallCount(), 'Checking content should not call the external file connector');
+    end;
+
+    [Test]
+    procedure HasContentUsesExternalStorageMetadataWithoutFileAccount()
+    var
+        DocumentAttachment: Record "Document Attachment";
+    begin
+        // [SCENARIO] External attachment metadata remains available when the file account mapping is missing
+        Initialize();
+
+        // [GIVEN] An externally stored attachment without a configured file account
+        CreateExternallyStoredOnlyDocument(DocumentAttachment);
+
+        // [WHEN] Checking if the attachment has content
+        // [THEN] The external storage metadata indicates content is available
+        Assert.IsTrue(DocumentAttachment.HasContent(), 'Externally stored attachment should report content without a file account mapping');
+    end;
+
+    [Test]
+    procedure HasContentUsesInternalStorageWithoutExternalCall()
+    var
+        DocumentAttachment: Record "Document Attachment";
+    begin
+        // [SCENARIO] Internally stored attachments continue to use the document reference
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+
+        // [GIVEN] An internally stored attachment
+        CreateDocumentAttachmentWithContent(DocumentAttachment);
+
+        // [WHEN] Checking if the attachment has content
+        // [THEN] The internal content is available without calling external storage
+        Assert.IsTrue(DocumentAttachment.HasContent(), 'Internally stored attachment should report content from its document reference');
+        Assert.AreEqual(0, FileConnectorMock.GetFileExistsCallCount(), 'Internal content checks should not call the external file connector');
+    end;
+
+    [Test]
+    procedure ExportToStreamErrorsWhenExternalFileCannotBeRetrieved()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        TempBlob: Codeunit "Temp Blob";
+        AttachmentOutStream: OutStream;
+    begin
+        // [SCENARIO] Exporting an unavailable external attachment surfaces an error
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        FileConnectorMock.SetFailOnGetFile(true);
+
+        // [GIVEN] An externally stored attachment that the connector cannot retrieve
+        CreateExternallyStoredOnlyDocument(DocumentAttachment);
+        TempBlob.CreateOutStream(AttachmentOutStream);
+
+        // [WHEN] Exporting the attachment to a stream
+        asserterror DocumentAttachment.ExportToStream(AttachmentOutStream);
+
+        // [THEN] The retrieval failure is surfaced
+        Assert.ExpectedError('could not be retrieved from external storage');
+    end;
+
+    [Test]
+    procedure GetAsTempBlobErrorsWhenExternalFileCannotBeRetrieved()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [SCENARIO] Previewing an unavailable external attachment surfaces an error
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        FileConnectorMock.SetFailOnGetFile(true);
+
+        // [GIVEN] An externally stored attachment that the connector cannot retrieve
+        CreateExternallyStoredOnlyDocument(DocumentAttachment);
+
+        // [WHEN] Loading the attachment into a temporary blob
+        asserterror DocumentAttachment.GetAsTempBlob(TempBlob);
+
+        // [THEN] The retrieval failure is surfaced
+        Assert.ExpectedError('could not be retrieved from external storage');
+    end;
+
+    [Test]
+    procedure GetAsTempBlobErrorsWithoutFileAccount()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [SCENARIO] Previewing an external attachment without a file account mapping surfaces an error
+        Initialize();
+
+        // [GIVEN] An externally stored attachment without a configured file account
+        CreateExternallyStoredOnlyDocument(DocumentAttachment);
+
+        // [WHEN] Loading the attachment into a temporary blob
+        asserterror DocumentAttachment.GetAsTempBlob(TempBlob);
+
+        // [THEN] The missing configuration is surfaced
+        Assert.ExpectedError('could not be retrieved from external storage');
+    end;
+
+    [Test]
+    procedure ExportToStreamErrorsWithoutFileAccount()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        TempBlob: Codeunit "Temp Blob";
+        AttachmentOutStream: OutStream;
+    begin
+        // [SCENARIO] Exporting an external attachment without a file account mapping surfaces an error
+        Initialize();
+
+        // [GIVEN] An externally stored attachment without a configured file account
+        CreateExternallyStoredOnlyDocument(DocumentAttachment);
+        TempBlob.CreateOutStream(AttachmentOutStream);
+
+        // [WHEN] Exporting the attachment to a stream
+        asserterror DocumentAttachment.ExportToStream(AttachmentOutStream);
+
+        // [THEN] The missing configuration is surfaced
+        Assert.ExpectedError('could not be retrieved from external storage');
     end;
 
     [Test]
@@ -978,6 +1105,20 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         DocumentAttachment."External File Path" := 'test/environment/Document_Attachment/file-' + Format(CreateGuid()) + '.txt';
         DocumentAttachment."External Upload Date" := CurrentDateTime();
         DocumentAttachment.Modify();
+    end;
+
+    local procedure CreateExternallyStoredOnlyDocument(var DocumentAttachment: Record "Document Attachment")
+    begin
+        DocumentAttachment.Init();
+        DocumentAttachment.ID := Any.IntegerInRange(10000, 99999);
+        DocumentAttachment."Table ID" := Database::"Document Attachment";
+        DocumentAttachment."No." := CopyStr(Any.AlphanumericText(20), 1, 20);
+        DocumentAttachment."File Name" := 'TestFile';
+        DocumentAttachment."File Extension" := 'txt';
+        DocumentAttachment."Stored Externally" := true;
+        DocumentAttachment."Stored Internally" := false;
+        DocumentAttachment."External File Path" := 'test/path/file.txt';
+        DocumentAttachment.Insert();
     end;
 
     local procedure RefreshAttachment(var DocumentAttachment: Record "Document Attachment")
