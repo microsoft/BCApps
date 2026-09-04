@@ -233,7 +233,7 @@ table 10751 "SII Setup"
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
         CannotEnableWithoutCertificateErr: Label 'The setup cannot be enabled without a valid certificate.';
-        InvalidEndpointUrlErr: Label 'The endpoint URL %1 is not on the allow-list for this feature.', Comment = '%1 = the URL entered by the user';
+        InvalidEndpointUrlErr: Label 'The endpoint host %1 is not on the allow-list for this feature.', Comment = '%1 = the rejected host';
         EndpointUrlRejectedAuditTxt: Label 'A SII endpoint URL was rejected during validation. Host: %1.', Locked = true, Comment = '%1 = the rejected host';
         EndpointUrlRejectedTelemetryTxt: Label 'A SII endpoint URL was rejected during validation.', Locked = true;
         UnparsableHostTok: Label '(unparsable host)', Locked = true;
@@ -277,7 +277,7 @@ table 10751 "SII Setup"
         TelemetryDimensions.Add('Category', SIIFeatureNameTok);
         TelemetryDimensions.Add('Host', Host);
         Session.LogMessage('0000VCA', EndpointUrlRejectedTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDimensions);
-        Error(InvalidEndpointUrlErr, Url);
+        Error(InvalidEndpointUrlErr, Host);
     end;
 
     procedure IsAllowedEndpointUrl(Url: Text): Boolean

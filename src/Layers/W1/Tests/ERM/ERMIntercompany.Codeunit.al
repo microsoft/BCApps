@@ -1192,6 +1192,36 @@ codeunit 134151 "ERM Intercompany"
 
     [Test]
     [Scope('OnPrem')]
+    procedure CrossIntercompanyDestinationUrlPpeHostIsValidated()
+    var
+        CrossIntercompanyConnector: Codeunit "CrossIntercompany Connector";
+    begin
+        // [FEATURE] [AI test 0.4]
+        Assert.IsTrue(
+            CrossIntercompanyConnector.IsDestinationUrlAllowed('https://api.businesscentral.dynamics-tie.com/v2.0/tenant/environment/api/v2.0/companies', '.dynamics-tie.com'),
+            'The trusted PPE Business Central API URL must be allowed.');
+        Assert.IsFalse(
+            CrossIntercompanyConnector.IsDestinationUrlAllowed('https://api.businesscentral.dynamics-tie.com.example.com/v2.0/companies', '.dynamics-tie.com'),
+            'A look-alike PPE host must be rejected.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CrossIntercompanyTokenEndpointPpeAuthorityIsValidated()
+    var
+        CrossIntercompanyConnector: Codeunit "CrossIntercompany Connector";
+        TokenEndpoint: Text;
+    begin
+        // [FEATURE] [AI test 0.4]
+        TokenEndpoint := 'https://login.windows-ppe.net/' + Format(CreateGuid(), 0, 4) + '/oauth2/v2.0/token';
+        Assert.AreEqual(TokenEndpoint, CrossIntercompanyConnector.GetValidatedTokenEndpointForAuthority(TokenEndpoint, 'https://login.windows-ppe.net/'), 'The trusted PPE token endpoint must be returned unchanged.');
+
+        asserterror CrossIntercompanyConnector.GetValidatedTokenEndpointForAuthority('https://login.windows-ppe.net/common/oauth2/v2.0/token', 'https://login.windows-ppe.net/');
+        Assert.ExpectedError('The token endpoint must identify a Microsoft Entra tenant on the trusted authority.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure PostICJournalLineWithInboxTypeFileLocation()
     var
         ICPartner: Record "IC Partner";

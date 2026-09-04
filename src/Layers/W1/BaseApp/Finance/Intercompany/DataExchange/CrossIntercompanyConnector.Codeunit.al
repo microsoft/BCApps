@@ -417,10 +417,14 @@ codeunit 560 "CrossIntercompany Connector"
     var
         Uri: Codeunit Uri;
     begin
-        if not Uri.IsValidUri(DestinationUrl) or not DestinationUrl.StartsWith('https://') then
+        if not Uri.IsWellFormedUriString(DestinationUrl, Enum::UriKind::Absolute) then
             exit(false);
 
         Uri.Init(DestinationUrl);
+        if LowerCase(Uri.GetScheme()) <> 'https' then
+            exit(false);
+        if Uri.GetPort() <> 443 then
+            exit(false);
 
         // Allow any Dynamics host (including Embed ISV subdomains) under the environment's trusted domain.
         exit(LowerCase(Uri.GetHost()).EndsWith(ExpectedHostSuffix));

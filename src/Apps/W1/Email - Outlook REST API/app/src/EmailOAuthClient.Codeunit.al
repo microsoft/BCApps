@@ -126,7 +126,7 @@ codeunit 4507 "Email - OAuth Client" implements "Email - OAuth Client v2"
         RedirectUrlErrorInfo.Title := InvalidRedirectUrlTitleTxt;
         RedirectUrlErrorInfo.Message := StrSubstNo(InvalidRedirectUrlErr, DefaultRedirectUrl);
         RedirectUrlErrorInfo.DetailedMessage := StrSubstNo(InvalidRedirectUrlDetailTxt, DefaultRedirectUrl);
-        RedirectUrlErrorInfo.DataClassification := DataClassification::SystemMetadata;
+        RedirectUrlErrorInfo.DataClassification := DataClassification::CustomerContent;
         RedirectUrlErrorInfo.AddAction(RestoreDefaultRedirectUrlActionTxt, Codeunit::"Email - OAuth Client", 'RestoreDefaultRedirectUrl');
         Error(RedirectUrlErrorInfo);
     end;
