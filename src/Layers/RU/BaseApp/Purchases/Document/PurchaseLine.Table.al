@@ -1098,9 +1098,23 @@ table 39 "Purchase Line"
             end;
 
             trigger OnValidate()
+            var
+                ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
+                PurchLineReserve: Codeunit "Purch. Line-Reserve";
+                SynchronizeApplication: Boolean;
             begin
                 if "Appl.-to Item Entry" <> 0 then
                     "Location Code" := CheckApplToItemLedgEntry();
+                if "Appl.-to Item Entry" <> xRec."Appl.-to Item Entry" then
+                    if IsCreditDocType() then begin
+                        SynchronizeApplication :=
+                            ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods("No.", "Appl.-to Item Entry");
+                        if not SynchronizeApplication then
+                            SynchronizeApplication :=
+                                ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods("No.", xRec."Appl.-to Item Entry");
+                    end;
+                if SynchronizeApplication then
+                    PurchLineReserve.SynchronizeApplToItemEntry(Rec, xRec."Appl.-to Item Entry");
             end;
         }
         field(40; "Shortcut Dimension 1 Code"; Code[20])
@@ -8174,6 +8188,8 @@ table 39 "Purchase Line"
     var
         ItemLedgEntry: Record "Item Ledger Entry";
         ApplyRec: Record "Item Application Entry";
+        ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
+        CrossPeriodPurchaseReturn: Boolean;
         ReturnedQty: Decimal;
         RemainingtobeReturnedQty: Decimal;
         IsHandled: Boolean;
@@ -8201,7 +8217,11 @@ table 39 "Purchase Line"
                 FieldError(Quantity, Text030);
         ItemLedgEntry.Get("Appl.-to Item Entry");
         ItemLedgEntry.TestField(Positive, true);
-        ItemLedgEntry.CheckTrackingDoesNotExist(RecordId, FieldCaption("Appl.-to Item Entry"));
+        if IsCreditDocType() then
+            CrossPeriodPurchaseReturn :=
+                ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods("No.", ItemLedgEntry."Entry No.");
+        if not CrossPeriodPurchaseReturn then
+            ItemLedgEntry.CheckTrackingDoesNotExist(RecordId, FieldCaption("Appl.-to Item Entry"));
 
         ItemLedgEntry.TestField("Item No.", "No.");
         ItemLedgEntry.TestField("Variant Code", "Variant Code");

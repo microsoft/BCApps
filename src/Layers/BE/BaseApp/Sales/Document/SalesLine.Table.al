@@ -3963,11 +3963,25 @@ table 37 "Sales Line"
             trigger OnValidate()
             var
                 ItemLedgEntry: Record "Item Ledger Entry";
+                ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
+                SalesLineReserve: Codeunit "Sales Line-Reserve";
+                SynchronizeApplication: Boolean;
             begin
                 if "Appl.-from Item Entry" <> 0 then begin
                     CheckApplFromItemLedgEntry(ItemLedgEntry);
                     Validate("Unit Cost (LCY)", CalcUnitCost(ItemLedgEntry));
                 end;
+                if "Appl.-from Item Entry" <> xRec."Appl.-from Item Entry" then
+                    if IsCreditDocType() then begin
+                        SynchronizeApplication :=
+                            ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods("No.", "Appl.-from Item Entry");
+                        if not SynchronizeApplication then
+                            SynchronizeApplication :=
+                                ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods("No.", xRec."Appl.-from Item Entry");
+                    end;
+                if SynchronizeApplication then
+                    SalesLineReserve.SynchronizeApplFromItemEntry(
+                        Rec, xRec."Appl.-from Item Entry");
             end;
         }
         /// <summary>
@@ -8359,8 +8373,10 @@ table 37 "Sales Line"
 
     local procedure CheckApplFromItemLedgEntry(var ItemLedgEntry: Record "Item Ledger Entry")
     var
+        ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
         QtyNotReturned: Decimal;
         QtyReturned: Decimal;
+        CrossPeriodSalesReturn: Boolean;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -8383,7 +8399,11 @@ table 37 "Sales Line"
         ItemLedgEntry.TestField(Positive, false);
         ItemLedgEntry.TestField("Item No.", "No.");
         ItemLedgEntry.TestField("Variant Code", "Variant Code");
-        ItemLedgEntry.CheckTrackingDoesNotExist(RecordId, FieldCaption("Appl.-from Item Entry"));
+        if IsCreditDocType() then
+            CrossPeriodSalesReturn :=
+                ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods("No.", ItemLedgEntry."Entry No.");
+        if not CrossPeriodSalesReturn then
+            ItemLedgEntry.CheckTrackingDoesNotExist(RecordId, FieldCaption("Appl.-from Item Entry"));
 
         if Abs("Quantity (Base)") > -ItemLedgEntry.Quantity then
             Error(
