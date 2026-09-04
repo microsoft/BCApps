@@ -66,7 +66,7 @@ page 8629 "Config. Wizard"
                         ToolTip = 'Specifies the type of industry that the company that you are configuring is.';
                     }
                 }
-#pragma warning disable AW0009 // Accepted: Migrating the underlying Blob field to Media or MediaSet requires a data-schema migration outside this low-risk ruleset change.
+#pragma warning disable AW0009 // Accepted: The field remains Blob/Bitmap; migrating existing data to Media or MediaSet requires a breaking schema and data upgrade. Tracked by AB#640773.
                 field(Picture; Rec.Picture)
 #pragma warning restore AW0009
                 {

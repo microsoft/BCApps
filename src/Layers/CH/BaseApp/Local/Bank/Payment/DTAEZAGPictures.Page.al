@@ -14,7 +14,7 @@ page 3010543 "DTA EZAG Pictures"
     {
         area(content)
         {
-#pragma warning disable AW0009 // Accepted: Migrating the underlying Blob fields to Media or MediaSet requires a data-schema migration outside this low-risk ruleset change.
+#pragma warning disable AW0009 // Accepted: The fields remain Blob/Bitmap; migrating existing data to Media or MediaSet requires a breaking schema and data upgrade. Tracked by AB#640773.
             field("EZAG Bar Code"; Rec."EZAG Bar Code")
             {
                 ApplicationArea = Basic, Suite;

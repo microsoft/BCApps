@@ -30,7 +30,7 @@ page 18013 "Transfer Shipment QR Code"
                     Page.Run(Page::"Transfer Shipment Dialog", TransferShipmentHeader);
                 end;
             }
-#pragma warning disable AW0009 // Accepted: Migrating the underlying Blob field to Media or MediaSet requires a data-schema migration outside this low-risk ruleset change.
+#pragma warning disable AW0009 // Accepted: The field remains Blob/Bitmap; migrating existing data to Media or MediaSet requires a breaking schema and data upgrade. Tracked by AB#640773.
             field("QR Code"; Rec."QR Code")
 #pragma warning restore AW0009
             {
