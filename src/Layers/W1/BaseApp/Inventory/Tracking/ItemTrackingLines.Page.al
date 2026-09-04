@@ -2354,6 +2354,8 @@ page 6510 "Item Tracking Lines"
         CreateReservEntry: Codeunit "Create Reserv. Entry";
         ReservationMgt: Codeunit "Reservation Management";
         QtyToAdd: Decimal;
+        CrossPeriodApplFromItemEntry: Integer;
+        CrossPeriodApplToItemEntry: Integer;
         IdenticalArray: array[2] of Boolean;
         IsHandled: Boolean;
     begin
@@ -2375,6 +2377,17 @@ page 6510 "Item Tracking Lines"
                 NewTrackingSpecification."Expiration Date" := 0D;
                 OldTrackingSpecification."Expiration Date" := 0D;
             end;
+
+        if NewTrackingSpecification."Appl.-from Item Entry" = 0 then begin
+            CrossPeriodApplFromItemEntry := GetCrossPeriodSalesReturnApplFromItemEntry();
+            if CrossPeriodApplFromItemEntry <> 0 then
+                NewTrackingSpecification.Validate("Appl.-from Item Entry", CrossPeriodApplFromItemEntry);
+        end;
+        if NewTrackingSpecification."Appl.-to Item Entry" = 0 then begin
+            CrossPeriodApplToItemEntry := GetCrossPeriodPurchaseReturnApplToItemEntry();
+            if CrossPeriodApplToItemEntry <> 0 then
+                NewTrackingSpecification.Validate("Appl.-to Item Entry", CrossPeriodApplToItemEntry);
+        end;
 
         case ChangeType of
             ChangeType::Insert:
@@ -2551,6 +2564,72 @@ page 6510 "Item Tracking Lines"
         SetQtyToHandleAndInvoice(NewTrackingSpecification);
 
         OnAfterRegisterChange(Rec, OldTrackingSpecification, NewTrackingSpecification, CurrentSignFactor, CurrentRunMode.AsInteger(), CurrentPageIsOpen, ChangeType, ModifySharedFields, OK);
+    end;
+
+    local procedure GetCrossPeriodSalesReturnApplFromItemEntry(): Integer
+    var
+        SalesLine: Record "Sales Line";
+        ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
+        ApplFromItemEntry: Integer;
+    begin
+        if SourceTrackingSpecification."Source Type" <> Database::"Sales Line" then
+            exit(0);
+        if not (SourceTrackingSpecification."Source Subtype" in [
+            "Sales Document Type"::"Credit Memo".AsInteger(),
+            "Sales Document Type"::"Return Order".AsInteger()])
+        then
+            exit(0);
+
+        ApplFromItemEntry := SourceTrackingSpecification."Appl.-from Item Entry";
+        if ApplFromItemEntry = 0 then begin
+            if not SalesLine.Get(
+                SourceTrackingSpecification."Source Subtype",
+                SourceTrackingSpecification."Source ID",
+                SourceTrackingSpecification."Source Ref. No.")
+            then
+                exit(0);
+            ApplFromItemEntry := SalesLine."Appl.-from Item Entry";
+        end;
+
+        if ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods(
+            SourceTrackingSpecification."Item No.", ApplFromItemEntry)
+        then
+            exit(ApplFromItemEntry);
+
+        exit(0);
+    end;
+
+    local procedure GetCrossPeriodPurchaseReturnApplToItemEntry(): Integer
+    var
+        PurchaseLine: Record "Purchase Line";
+        ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
+        ApplToItemEntry: Integer;
+    begin
+        if SourceTrackingSpecification."Source Type" <> Database::"Purchase Line" then
+            exit(0);
+        if not (SourceTrackingSpecification."Source Subtype" in [
+            "Purchase Document Type"::"Credit Memo".AsInteger(),
+            "Purchase Document Type"::"Return Order".AsInteger()])
+        then
+            exit(0);
+
+        ApplToItemEntry := SourceTrackingSpecification."Appl.-to Item Entry";
+        if ApplToItemEntry = 0 then begin
+            if not PurchaseLine.Get(
+                SourceTrackingSpecification."Source Subtype",
+                SourceTrackingSpecification."Source ID",
+                SourceTrackingSpecification."Source Ref. No.")
+            then
+                exit(0);
+            ApplToItemEntry := PurchaseLine."Appl.-to Item Entry";
+        end;
+
+        if ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods(
+            SourceTrackingSpecification."Item No.", ApplToItemEntry)
+        then
+            exit(ApplToItemEntry);
+
+        exit(0);
     end;
 
     local procedure ProcessLateBinding(var NewTrackingSpecification: Record "Tracking Specification")
