@@ -38,4 +38,13 @@ interface "Power BI Uploadable Report"
     /// Returns the Power BI dataset parameters (name → value) that this report expects to be updated after import.
     /// </summary>
     procedure GetDatasetParameters() Parameters: Dictionary of [Text, Text];
+
+    /// <summary>
+    /// Returns the ID of the Power BI workspace this report should be deployed to.
+    /// An empty (null) GUID means the report is deployed to the user's "My Workspace".
+    /// </summary>
+    procedure GetTargetWorkspaceId() TargetWorkspaceId: Guid
+    begin
+        // Default implementation: deploy to "My Workspace" (null GUID).
+    end;
 }

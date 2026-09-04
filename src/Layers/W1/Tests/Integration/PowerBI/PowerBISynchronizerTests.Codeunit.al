@@ -437,6 +437,210 @@ codeunit 139098 "Power BI Synchronizer Tests"
 
     #endregion
 
+    #region WorkspaceTests
+
+    [Test]
+    procedure TestDeployableReportDeploysToConfiguredWorkspace()
+    var
+        PowerBIDeployment: Record "Power BI Deployment";
+        WorkspaceId: Guid;
+    begin
+        // [SCENARIO] A deployable report configured with a target workspace is uploaded to that workspace
+        SetupBase();
+
+        // [GIVEN] A writable shared workspace exists and a deployable report is configured to deploy to it
+        WorkspaceId := CreateGuid();
+        PowerBITestSubscriber.AddWorkspace(WorkspaceId, 'Shared Workspace');
+        SetupDeployableReportInWorkspace(WorkspaceId);
+        PowerBITestSubscriber.SetFailAtStep(FailStep::Never);
+
+        // [WHEN] The synchronizer runs
+        Assert.IsTrue(RunSynchronizer(), 'Synchronizer should succeed');
+
+        // [THEN] The report completes and the configured workspace id is the one passed to the Power BI service
+        PowerBIDeployment.Get(Enum::"Power BI Deployable Report"::"Test Report");
+        Assert.AreEqual(
+            Enum::"Power BI Upload Status"::Completed,
+            PowerBIDeployment.GetUploadStatus(),
+            'Unexpected upload status');
+        Assert.AreEqual(
+            WorkspaceId,
+            PowerBITestSubscriber.GetLastTargetWorkspaceId(),
+            'The report should be deployed to the configured workspace');
+    end;
+
+    [Test]
+    procedure TestDeployableReportDeploysToMyWorkspaceWhenNoWorkspaceConfigured()
+    var
+        PowerBIDeployment: Record "Power BI Deployment";
+    begin
+        // [SCENARIO] A deployable report with no configured workspace is uploaded to "My Workspace" (null workspace id)
+        SetupBase();
+
+        // [GIVEN] A deployable report with no target workspace configured
+        SetupDeployableReport();
+        PowerBITestSubscriber.SetFailAtStep(FailStep::Never);
+
+        // [WHEN] The synchronizer runs
+        Assert.IsTrue(RunSynchronizer(), 'Synchronizer should succeed');
+
+        // [THEN] The report completes and a null (My Workspace) id is passed to the Power BI service
+        PowerBIDeployment.Get(Enum::"Power BI Deployable Report"::"Test Report");
+        Assert.AreEqual(
+            Enum::"Power BI Upload Status"::Completed,
+            PowerBIDeployment.GetUploadStatus(),
+            'Unexpected upload status');
+        Assert.IsTrue(
+            IsNullGuid(PowerBITestSubscriber.GetLastTargetWorkspaceId()),
+            'The report should be deployed to My Workspace (null workspace id)');
+    end;
+
+    [Test]
+    procedure TestDeployableReportFailsWhenConfiguredWorkspaceMissing()
+    var
+        PowerBIDeployment: Record "Power BI Deployment";
+        MissingWorkspaceId: Guid;
+    begin
+        // [SCENARIO] A deployable report configured with a workspace the user can no longer access fails without uploading
+        SetupBase();
+
+        // [GIVEN] The configured workspace is NOT among the user's writable workspaces
+        MissingWorkspaceId := CreateGuid();
+        PowerBITestSubscriber.AddWorkspace(CreateGuid(), 'Some Other Workspace');
+        SetupDeployableReportInWorkspace(MissingWorkspaceId);
+        PowerBITestSubscriber.SetFailAtStep(FailStep::Never);
+
+        // [WHEN] The synchronizer runs
+        Assert.IsTrue(RunSynchronizer(), 'Synchronizer should succeed (report fails gracefully)');
+
+        // [THEN] The report is marked as failed and nothing was uploaded to the Power BI service
+        PowerBIDeployment.Get(Enum::"Power BI Deployable Report"::"Test Report");
+        Assert.AreEqual(
+            Enum::"Power BI Upload Status"::Failed,
+            PowerBIDeployment.GetUploadStatus(),
+            'The report should fail when its configured workspace is missing');
+        Assert.IsTrue(
+            IsNullGuid(PowerBITestSubscriber.GetLastTargetWorkspaceId()),
+            'No upload should be attempted when the configured workspace is invalid');
+    end;
+
+    [Test]
+    procedure TestWorkspaceExistsIsTrueForMyWorkspace()
+    var
+        PowerBIWorkspaceMgt: Codeunit "Power BI Workspace Mgt.";
+        EmptyWorkspaceId: Guid;
+    begin
+        // [SCENARIO] "My Workspace" (null id) is always considered a valid target
+        SetupBase();
+
+        // [THEN] WorkspaceExists returns true for a null workspace id
+        Assert.IsTrue(
+            PowerBIWorkspaceMgt.WorkspaceExists(EmptyWorkspaceId),
+            'My Workspace (null workspace id) should always be valid');
+    end;
+
+    [Test]
+    procedure TestWorkspaceExistsDistinguishesWritableWorkspaces()
+    var
+        PowerBIWorkspaceMgt: Codeunit "Power BI Workspace Mgt.";
+        WritableWorkspaceId: Guid;
+    begin
+        // [SCENARIO] WorkspaceExists reflects whether a workspace is in the user's writable set
+        SetupBase();
+
+        // [GIVEN] One writable workspace is available
+        WritableWorkspaceId := CreateGuid();
+        PowerBITestSubscriber.AddWorkspace(WritableWorkspaceId, 'HQ Workspace');
+
+        // [THEN] It exists for the writable workspace and not for an unknown one
+        Assert.IsTrue(
+            PowerBIWorkspaceMgt.WorkspaceExists(WritableWorkspaceId),
+            'A writable workspace should exist');
+        Assert.IsFalse(
+            PowerBIWorkspaceMgt.WorkspaceExists(CreateGuid()),
+            'An unknown workspace should not exist');
+    end;
+
+    [Test]
+    procedure TestGetWritableWorkspacesIncludesMyWorkspaceAndSharedWorkspaces()
+    var
+        TempPowerBISelectionElement: Record "Power BI Selection Element" temporary;
+        PowerBIWorkspaceMgt: Codeunit "Power BI Workspace Mgt.";
+        WritableWorkspaceId: Guid;
+    begin
+        // [SCENARIO] GetWritableWorkspaces returns the personal workspace plus every writable shared workspace
+        SetupBase();
+
+        // [GIVEN] One writable shared workspace is available
+        WritableWorkspaceId := CreateGuid();
+        PowerBITestSubscriber.AddWorkspace(WritableWorkspaceId, 'HQ Workspace');
+
+        // [WHEN] Retrieving the writable workspaces
+        PowerBIWorkspaceMgt.GetWritableWorkspaces(TempPowerBISelectionElement);
+
+        // [THEN] Both the personal ("My Workspace", null id) and the shared workspace are returned
+        Assert.AreEqual(2, TempPowerBISelectionElement.Count(), 'Expected My Workspace plus one shared workspace');
+
+        // [THEN] The shared workspace is listed with its id preserved
+        TempPowerBISelectionElement.SetRange(Name, 'HQ Workspace');
+        Assert.AreEqual(1, TempPowerBISelectionElement.Count(), 'The shared workspace should be listed by name');
+        TempPowerBISelectionElement.FindFirst();
+        Assert.AreEqual(WritableWorkspaceId, TempPowerBISelectionElement.ID, 'The shared workspace should keep its id');
+    end;
+
+    [Test]
+    procedure TestCompanyInformationClearsWorkspaceNameWhenIdCleared()
+    var
+        CompanyInformation: Record "Company Information";
+        WorkspaceId: Guid;
+        EmptyWorkspaceId: Guid;
+    begin
+        // [SCENARIO] Clearing the Power BI Workspace Id on Company Information clears the stored workspace name
+        WorkspaceId := CreateGuid();
+
+        // [GIVEN] Company Information with a configured Power BI workspace id and name
+        CompanyInformation.Init();
+        CompanyInformation."Power BI Workspace Id" := WorkspaceId;
+        CompanyInformation."Power BI Workspace Name" := 'HQ Workspace';
+
+        // [WHEN] The workspace id is validated back to an empty value
+        CompanyInformation.Validate("Power BI Workspace Id", EmptyWorkspaceId);
+
+        // [THEN] The workspace name is cleared as well
+        Assert.AreEqual('', CompanyInformation."Power BI Workspace Name", 'Workspace name should be cleared when the id is cleared');
+    end;
+
+    [Test]
+    procedure TestDeployActionCopiesWorkspaceFromCompanyInformation()
+    var
+        PowerBIDeployment: Record "Power BI Deployment";
+        WorkspaceId: Guid;
+        ReportDeployments: TestPage "Power BI Report Deployments";
+    begin
+        // [SCENARIO] Deploying from the Report Deployments page stamps the Company Information workspace onto the deployment
+        SetupBase();
+
+        // [GIVEN] A writable workspace configured on Company Information, and it is an evaluation company so the action is enabled
+        WorkspaceId := CreateGuid();
+        PowerBITestSubscriber.AddWorkspace(WorkspaceId, 'HQ Workspace');
+        SetCompanyInformationWorkspace(WorkspaceId, 'HQ Workspace');
+        SetEvaluationCompany(true);
+        PowerBITestSubscriber.SetFailAtStep(FailStep::Never);
+
+        // [WHEN] The user selects the test report and deploys it
+        ReportDeployments.OpenView();
+        ReportDeployments.GoToKey(Enum::"Power BI Deployable Report"::"Test Report");
+        ReportDeployments.Deploy.Invoke();
+        ReportDeployments.Close();
+
+        // [THEN] The created deployment carries the workspace configured on Company Information
+        PowerBIDeployment.Get(Enum::"Power BI Deployable Report"::"Test Report");
+        Assert.AreEqual(WorkspaceId, PowerBIDeployment."Power BI Workspace Id", 'Deployment should use the Company Information workspace id');
+        Assert.AreEqual('HQ Workspace', PowerBIDeployment."Power BI Workspace Name", 'Deployment should use the Company Information workspace name');
+    end;
+
+    #endregion
+
     #region Helpers
 
     local procedure SetupBase()
@@ -503,11 +707,41 @@ codeunit 139098 "Power BI Synchronizer Tests"
 
     local procedure SetupDeployableReport()
     var
+        EmptyWorkspaceId: Guid;
+    begin
+        SetupDeployableReportInWorkspace(EmptyWorkspaceId);
+    end;
+
+    local procedure SetupDeployableReportInWorkspace(WorkspaceId: Guid)
+    var
         PowerBIDeployment: Record "Power BI Deployment";
     begin
         PowerBIDeployment.Init();
         PowerBIDeployment."Report Id" := Enum::"Power BI Deployable Report"::"Test Report";
+        PowerBIDeployment."Power BI Workspace Id" := WorkspaceId;
         PowerBIDeployment.Insert();
+    end;
+
+    local procedure SetCompanyInformationWorkspace(WorkspaceId: Guid; WorkspaceName: Text[200])
+    var
+        CompanyInformation: Record "Company Information";
+    begin
+        if not CompanyInformation.Get() then begin
+            CompanyInformation.Init();
+            CompanyInformation.Insert();
+        end;
+        CompanyInformation."Power BI Workspace Id" := WorkspaceId;
+        CompanyInformation."Power BI Workspace Name" := WorkspaceName;
+        CompanyInformation.Modify();
+    end;
+
+    local procedure SetEvaluationCompany(IsEvaluation: Boolean)
+    var
+        Company: Record Company;
+    begin
+        Company.Get(CompanyName());
+        Company."Evaluation Company" := IsEvaluation;
+        Company.Modify();
     end;
 
     local procedure RunSynchronizer(): Boolean

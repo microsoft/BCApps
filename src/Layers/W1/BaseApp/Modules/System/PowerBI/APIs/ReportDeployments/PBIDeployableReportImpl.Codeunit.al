@@ -58,4 +58,12 @@ codeunit 6350 "PBI Deployable Report Impl." implements "Power BI Uploadable Repo
     begin
         Parameters := DeployableReport.GetDatasetParameters();
     end;
+
+    procedure GetTargetWorkspaceId(): Guid
+    var
+        PowerBIDeployment: Record "Power BI Deployment";
+    begin
+        if PowerBIDeployment.Get(CurrentReportId) then
+            exit(PowerBIDeployment."Power BI Workspace Id");
+    end;
 }
