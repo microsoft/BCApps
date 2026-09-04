@@ -765,7 +765,6 @@ page 6910 "Expense Report"
         ReopenApprovedEnabled := ExpenseReportApprovalMgt.CanPerformApprovalAction(Rec, RefActionType::"Reopen Approved");
 
         ExpenseAgentSetup.GetRecordOnce();
-        AllowVATReclaim := ExpenseAgentSetup."Allow VAT Reclaim";
         AgentEnabled := ExpenseAgentSetup."Enable Agent";
         ApprovalActionsEnabled := ExpenseAgentSetup."Enable Agent" and ApproveEnabled and (Rec."Approver Expense User ID" = UserId());
     end;
