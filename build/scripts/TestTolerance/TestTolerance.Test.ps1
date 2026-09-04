@@ -571,6 +571,65 @@ Describe "TestTolerance" {
             $merged.Count | Should -Be 1
             $merged[0].reason | Should -Be 'Auto-detected: failed on 3 distinct PRs'
         }
+
+        It "recovers unstableSince from PriorTests for a re-added test absent from the base list" {
+            # Combined driver shape: the base list is a CI/CD-only recompute that dropped a cross-PR-only
+            # test, but the previous artifact still had it with its original unstableSince.
+            $prior = @(
+                [pscustomobject]@{ extensionId = 'ext-1'; codeunitId = 300; codeunitName = 'A'; testMethod = 'T1'; reason = 'Auto-detected'; unstableSince = '2025-06-15T08:30:00.0000000Z' }
+            )
+            $failed = @{
+                'ext-1::300::t1' = [pscustomobject]@{ ExtensionId = 'ext-1'; CodeunitId = 300; CodeunitName = 'A'; TestMethod = 'T1'; FailureMessage = 'm1'; SourceRunId = '3001'; Reason = 'Auto-detected' }
+            }
+
+            $merged = @(Add-FailedTestsToUnstableTests -ExistingTests @() -FailedTests $failed -Repository 'owner/repo' -PriorTests $prior)
+            $merged.Count | Should -Be 1
+            $merged[0].unstableSince | Should -Be '2025-06-15T08:30:00.0000000Z'
+        }
+
+        It "recovers unstableSince from PriorTests even when the prior value is a hydrated DateTime" {
+            # ConvertFrom-Json hydrates ISO strings into DateTime; the recovered value must be normalized.
+            $prior = @(
+                [pscustomobject]@{ extensionId = 'ext-1'; codeunitId = 300; codeunitName = 'A'; testMethod = 'T1'; unstableSince = ([datetime]::SpecifyKind([datetime]'2025-06-15T08:30:00', [System.DateTimeKind]::Utc)) }
+            )
+            $failed = @{
+                'ext-1::300::t1' = [pscustomobject]@{ ExtensionId = 'ext-1'; CodeunitId = 300; CodeunitName = 'A'; TestMethod = 'T1'; FailureMessage = 'm1'; SourceRunId = '3002'; Reason = 'Auto-detected' }
+            }
+
+            $merged = @(Add-FailedTestsToUnstableTests -ExistingTests @() -FailedTests $failed -Repository 'owner/repo' -PriorTests $prior)
+            [datetimeoffset]::Parse($merged[0].unstableSince).UtcDateTime | Should -Be ([datetime]::SpecifyKind([datetime]'2025-06-15T08:30:00', [System.DateTimeKind]::Utc))
+        }
+
+        It "stamps the current time for a genuinely new test not present in PriorTests" {
+            $prior = @(
+                [pscustomobject]@{ extensionId = 'ext-1'; codeunitId = 300; codeunitName = 'A'; testMethod = 'T1'; unstableSince = '2025-06-15T08:30:00.0000000Z' }
+            )
+            $failed = @{
+                'ext-2::400::t2' = [pscustomobject]@{ ExtensionId = 'ext-2'; CodeunitId = 400; CodeunitName = 'B'; TestMethod = 'T2'; FailureMessage = 'm2'; SourceRunId = '3003' }
+            }
+            $before = (Get-Date).ToUniversalTime()
+
+            $merged = @(Add-FailedTestsToUnstableTests -ExistingTests @() -FailedTests $failed -Repository 'owner/repo' -PriorTests $prior)
+            $merged.Count | Should -Be 1
+            $parsed = [datetimeoffset]::Parse($merged[0].unstableSince).UtcDateTime
+            $parsed | Should -BeGreaterOrEqual $before.AddSeconds(-5)
+            $parsed | Should -BeLessOrEqual (Get-Date).ToUniversalTime().AddSeconds(5)
+        }
+
+        It "does not restore a prior test that is no longer detected" {
+            # Only currently detected failures are added; a prior entry absent from both the base list and
+            # the current failures must not reappear.
+            $prior = @(
+                [pscustomobject]@{ extensionId = 'ext-9'; codeunitId = 900; codeunitName = 'Z'; testMethod = 'Gone'; unstableSince = '2025-01-01T00:00:00.0000000Z' }
+            )
+            $failed = @{
+                'ext-2::400::t2' = [pscustomobject]@{ ExtensionId = 'ext-2'; CodeunitId = 400; CodeunitName = 'B'; TestMethod = 'T2'; FailureMessage = 'm2'; SourceRunId = '3004' }
+            }
+
+            $merged = @(Add-FailedTestsToUnstableTests -ExistingTests @() -FailedTests $failed -Repository 'owner/repo' -PriorTests $prior)
+            $merged.Count | Should -Be 1
+            $merged[0].testMethod | Should -Be 'T2'
+        }
     }
 
     Context "Select-CrossPrUnstableTests" {

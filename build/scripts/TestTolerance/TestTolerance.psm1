@@ -1060,6 +1060,13 @@ function Save-UnstableTestsArtifact {
     Hashtable of newly observed failures keyed by test key to merge in additively.
 .Parameter Repository
     Repository in '<owner>/<repo>' form, used to build sourceRunUrl for newly added entries.
+.Parameter PriorTests
+    Optional 'tests' array from the previous artifact, used only to recover 'unstableSince' for a failure
+    that is being newly added because it is absent from 'ExistingTests'. This matters for the combined
+    driver, whose base list (a fresh CI/CD recompute) drops cross-PR-only tests: without this, a still
+    cross-PR-unstable test would be restamped with the current time on every run. A failure that the prior
+    artifact never had is still stamped with the current time. Entries the caller no longer detects are
+    not restored.
 #>
 function Add-FailedTestsToUnstableTests {
     [CmdletBinding()]
@@ -1070,11 +1077,31 @@ function Add-FailedTestsToUnstableTests {
         [Parameter(Mandatory = $true)]
         [hashtable] $FailedTests,
 
-        [string] $Repository = ''
+        [string] $Repository = '',
+
+        [System.Collections.IList] $PriorTests = @()
     )
 
     $merged = New-Object System.Collections.Generic.List[object]
     $seenKeys = @{}
+
+    # Prior 'unstableSince' by test key, so a failure that has to be re-added (because it is not in the
+    # base list) keeps the timestamp it had in the previous artifact instead of being stamped anew.
+    $priorSince = @{}
+    foreach ($entry in $PriorTests) {
+        if ($null -eq $entry) { continue }
+        $props = $entry.PSObject.Properties
+        if ((-not $props['unstableSince']) -or (-not $entry.unstableSince) -or (-not $props['testMethod'])) { continue }
+        # ConvertFrom-Json may hydrate the ISO string into a DateTime; re-format to ISO 8601 UTC.
+        $rawSince = $entry.unstableSince
+        $since = if ($rawSince -is [datetime]) { $rawSince.ToUniversalTime().ToString('o') }
+                 elseif ($rawSince -is [System.DateTimeOffset]) { $rawSince.ToUniversalTime().ToString('o') }
+                 else { [string]$rawSince }
+        if ([string]::IsNullOrWhiteSpace($since)) { continue }
+        $pExtId = if ($props['extensionId']) { [string]$entry.extensionId } else { '' }
+        $pCuId = if ($props['codeunitId']) { [int]$entry.codeunitId } else { 0 }
+        $priorSince[(Get-UnstableTestKey -CodeunitId $pCuId -TestMethod ([string]$entry.testMethod) -ExtensionId $pExtId)] = $since
+    }
 
     # Preserve every existing entry verbatim. Track the key of each entry that has one so that newly
     # observed failures already present in the list are not appended again; entries with an
@@ -1100,6 +1127,16 @@ function Add-FailedTestsToUnstableTests {
             continue
         }
         $ft = $FailedTests[$k]
+        # Recover 'unstableSince' from the prior artifact when a still-failing test had to be re-added
+        # (it is not in the base list). Without this it would look brand new and be restamped every run.
+        # A failure the prior artifact never had stays unstamped here and is stamped now by ConvertTo.
+        if ($priorSince.ContainsKey($k)) {
+            $hasOwnSince = ($ft.PSObject.Properties['UnstableSince']) -and $ft.UnstableSince
+            if (-not $hasOwnSince) {
+                if ($ft.PSObject.Properties['UnstableSince']) { $ft.UnstableSince = $priorSince[$k] }
+                else { $ft | Add-Member -NotePropertyName UnstableSince -NotePropertyValue $priorSince[$k] -Force }
+            }
+        }
         $sourceRunId = if ($ft.PSObject.Properties['SourceRunId']) { [string]$ft.SourceRunId } else { '' }
         # Prefer a reason the test already carries (e.g. cross-PR detection sets its own). Passing an
         # empty reason lets ConvertTo-UnstableTestEntry fall back to the test's own Reason property.

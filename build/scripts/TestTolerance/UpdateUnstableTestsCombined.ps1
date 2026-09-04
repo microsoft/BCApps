@@ -140,9 +140,12 @@ try {
     }
 
     # --- Merge Path B additively on top of the Path A base and write once ---
-    # New cross-PR entries are stamped with the current time; existing entries keep their own
-    # 'unstableSince', and Path A recomputed entries kept theirs via Update-UnstableTestsList above.
-    $tests = @(Add-FailedTestsToUnstableTests -ExistingTests ([System.Collections.IList]$baseEntries) -FailedTests $crossPrFailed -Repository $repo)
+    # A genuinely new cross-PR entry is stamped with the current time. Existing entries keep their own
+    # 'unstableSince', and Path A recomputed entries kept theirs via Update-UnstableTestsList above. A test
+    # that stays unstable only through Path B is dropped from the Path A base (a CI/CD-only recompute), so
+    # -PriorTests lets it recover its original 'unstableSince' from the previous artifact instead of being
+    # restamped on every run.
+    $tests = @(Add-FailedTestsToUnstableTests -ExistingTests ([System.Collections.IList]$baseEntries) -FailedTests $crossPrFailed -Repository $repo -PriorTests ([System.Collections.IList]$existingTests))
 
     $allRunIds = @()
     $allRunIds += @($cicdRunIds)
