@@ -6245,6 +6245,231 @@ codeunit 134159 "Test Price Calculation - V16"
     end;
 
     [Test]
+    procedure PurchVariantZeroPctDiscountLineWinsOverGenericDiscount()
+    var
+        Vendor: Record Vendor;
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        PriceListHeader: Record "Price List Header";
+        PriceListLine: Record "Price List Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        OldHandler: Enum "Price Calculation Handler";
+        GenericDiscountPct: Decimal;
+    begin
+        // [FEATURE] [PurchPrice] [Item] [Variant] [Discount]
+        // [SCENARIO 649151] A variant-specific Discount line with 0% overrides the generic discount, generic line created first
+        Initialize();
+
+        // [GIVEN] Default price calculation is 'V16'
+        OldHandler := LibraryPriceCalculation.SetupDefaultHandler("Price Calculation Handler"::"Business Central (Version 16.0)");
+
+        // [GIVEN] Vendor 'V', Item 'I' with Variant 'VAR'
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
+        GenericDiscountPct := LibraryRandom.RandIntInRange(10, 40);
+
+        // [GIVEN] Purchase price list for 'V' with a generic discount line (no variant), added first
+        LibraryPriceCalculation.CreatePriceHeader(PriceListHeader, "Price Type"::Purchase, "Price Source Type"::Vendor, Vendor."No.");
+        CreateActiveItemDiscountLine(PriceListLine, PriceListHeader, Item."No.", '', '', GenericDiscountPct);
+
+        // [GIVEN] and a variant-specific discount line of 0%
+        CreateActiveItemDiscountLine(PriceListLine, PriceListHeader, Item."No.", ItemVariant.Code, '', 0);
+
+        // [GIVEN] Purchase order for 'V' with Item 'I' and no variant
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
+
+        // [THEN] Without variant, the generic discount applies
+        Assert.AreEqual(GenericDiscountPct, PurchaseLine."Line Discount %",
+            StrSubstNo(ValueMustBeEqualErr, PurchaseLine.FieldCaption("Line Discount %"), GenericDiscountPct, PurchaseLine.TableCaption()));
+
+        // [WHEN] Validate Variant Code 'VAR' on the purchase line
+        PurchaseLine.Validate("Variant Code", ItemVariant.Code);
+
+        // [THEN] The variant-specific 0% wins over the generic discount
+        Assert.AreEqual(0, PurchaseLine."Line Discount %",
+            StrSubstNo(ValueMustBeEqualErr, PurchaseLine.FieldCaption("Line Discount %"), 0, PurchaseLine.TableCaption()));
+
+        // Cleanup
+        LibraryPriceCalculation.SetupDefaultHandler(OldHandler);
+    end;
+
+    [Test]
+    procedure PurchVariantZeroPctDiscountLineWinsWhenAddedBeforeGenericDiscount()
+    var
+        Vendor: Record Vendor;
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        PriceListHeader: Record "Price List Header";
+        PriceListLine: Record "Price List Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        OldHandler: Enum "Price Calculation Handler";
+        GenericDiscountPct: Decimal;
+    begin
+        // [FEATURE] [PurchPrice] [Item] [Variant] [Discount]
+        // [SCENARIO 649151] Line selection is independent of the order the price list lines are stored in
+        Initialize();
+
+        // [GIVEN] Default price calculation is 'V16'
+        OldHandler := LibraryPriceCalculation.SetupDefaultHandler("Price Calculation Handler"::"Business Central (Version 16.0)");
+
+        // [GIVEN] Vendor 'V', Item 'I' with Variant 'VAR'
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
+        GenericDiscountPct := LibraryRandom.RandIntInRange(10, 40);
+
+        // [GIVEN] Purchase price list for 'V' with the variant-specific 0% discount line added FIRST
+        LibraryPriceCalculation.CreatePriceHeader(PriceListHeader, "Price Type"::Purchase, "Price Source Type"::Vendor, Vendor."No.");
+        CreateActiveItemDiscountLine(PriceListLine, PriceListHeader, Item."No.", ItemVariant.Code, '', 0);
+
+        // [GIVEN] and the generic discount line (no variant) added second
+        CreateActiveItemDiscountLine(PriceListLine, PriceListHeader, Item."No.", '', '', GenericDiscountPct);
+
+        // [GIVEN] Purchase order for 'V' with Item 'I' and no variant
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
+
+        // [THEN] Without variant, the generic discount applies
+        Assert.AreEqual(GenericDiscountPct, PurchaseLine."Line Discount %",
+            StrSubstNo(ValueMustBeEqualErr, PurchaseLine.FieldCaption("Line Discount %"), GenericDiscountPct, PurchaseLine.TableCaption()));
+
+        // [WHEN] Validate Variant Code 'VAR' on the purchase line
+        PurchaseLine.Validate("Variant Code", ItemVariant.Code);
+
+        // [THEN] The variant-specific 0% still wins
+        Assert.AreEqual(0, PurchaseLine."Line Discount %",
+            StrSubstNo(ValueMustBeEqualErr, PurchaseLine.FieldCaption("Line Discount %"), 0, PurchaseLine.TableCaption()));
+
+        // Cleanup
+        LibraryPriceCalculation.SetupDefaultHandler(OldHandler);
+    end;
+
+    [Test]
+    procedure SalesVariantZeroPctDiscountLineWinsOverGenericDiscount()
+    var
+        Customer: Record Customer;
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        PriceListHeader: Record "Price List Header";
+        PriceListLine: Record "Price List Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        OldHandler: Enum "Price Calculation Handler";
+        GenericDiscountPct: Decimal;
+    begin
+        // [FEATURE] [SalesPrice] [Item] [Variant] [Discount]
+        // [SCENARIO 649151] A variant-specific Discount line with 0% overrides the generic discount on sales as well
+        Initialize();
+
+        // [GIVEN] Default price calculation is 'V16'
+        OldHandler := LibraryPriceCalculation.SetupDefaultHandler("Price Calculation Handler"::"Business Central (Version 16.0)");
+
+        // [GIVEN] Customer 'C', Item 'I' with Variant 'VAR'
+        LibrarySales.CreateCustomer(Customer);
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
+        GenericDiscountPct := LibraryRandom.RandIntInRange(10, 40);
+
+        // [GIVEN] Sales price list for 'C' with a generic discount line and a variant-specific 0% line
+        LibraryPriceCalculation.CreatePriceHeader(PriceListHeader, "Price Type"::Sale, "Price Source Type"::Customer, Customer."No.");
+        CreateActiveItemDiscountLine(PriceListLine, PriceListHeader, Item."No.", '', '', GenericDiscountPct);
+        CreateActiveItemDiscountLine(PriceListLine, PriceListHeader, Item."No.", ItemVariant.Code, '', 0);
+
+        // [GIVEN] Sales quote for 'C' with Item 'I' and no variant
+        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Quote, Customer."No.");
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, "Sales Line Type"::Item, Item."No.", 1);
+
+        // [THEN] Without variant, the generic discount applies
+        Assert.AreEqual(GenericDiscountPct, SalesLine."Line Discount %",
+            StrSubstNo(ValueMustBeEqualErr, SalesLine.FieldCaption("Line Discount %"), GenericDiscountPct, SalesLine.TableCaption()));
+
+        // [WHEN] Validate Variant Code 'VAR' on the sales line
+        SalesLine.Validate("Variant Code", ItemVariant.Code);
+
+        // [THEN] The variant-specific 0% wins over the generic discount
+        Assert.AreEqual(0, SalesLine."Line Discount %",
+            StrSubstNo(ValueMustBeEqualErr, SalesLine.FieldCaption("Line Discount %"), 0, SalesLine.TableCaption()));
+
+        // Cleanup
+        LibraryPriceCalculation.SetupDefaultHandler(OldHandler);
+    end;
+
+    [Test]
+    procedure PurchCurrencyZeroPctDiscountLineWinsOverGenericDiscount()
+    var
+        Vendor: Record Vendor;
+        Item: Record Item;
+        PriceListHeader: Record "Price List Header";
+        PriceListLine: Record "Price List Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        OldHandler: Enum "Price Calculation Handler";
+        CurrencyCode: Code[10];
+        CurrencyFactor: Decimal;
+        GenericDiscountPct: Decimal;
+    begin
+        // [FEATURE] [PurchPrice] [Item] [Currency] [Discount]
+        // [SCENARIO 649151] A currency-specific Discount line with 0% overrides the generic discount
+        Initialize();
+
+        // [GIVEN] Default price calculation is 'V16'
+        OldHandler := LibraryPriceCalculation.SetupDefaultHandler("Price Calculation Handler"::"Business Central (Version 16.0)");
+
+        // [GIVEN] Vendor 'V', Item 'I' and Currency 'CUR'
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryInventory.CreateItem(Item);
+        CurrencyFactor := LibraryRandom.RandDecInRange(2, 5, 2);
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), CurrencyFactor, CurrencyFactor);
+        GenericDiscountPct := LibraryRandom.RandIntInRange(10, 40);
+
+        // [GIVEN] Purchase price list for 'V' with a generic discount line and a currency-specific 0% line
+        LibraryPriceCalculation.CreatePriceHeader(PriceListHeader, "Price Type"::Purchase, "Price Source Type"::Vendor, Vendor."No.");
+        PriceListHeader."Allow Updating Defaults" := true;
+        PriceListHeader.Modify();
+        CreateActiveItemDiscountLine(PriceListLine, PriceListHeader, Item."No.", '', '', GenericDiscountPct);
+        CreateActiveItemDiscountLine(PriceListLine, PriceListHeader, Item."No.", '', CurrencyCode, 0);
+
+        // [GIVEN] Purchase order for 'V' in local currency
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
+
+        // [THEN] The generic discount applies
+        Assert.AreEqual(GenericDiscountPct, PurchaseLine."Line Discount %",
+            StrSubstNo(ValueMustBeEqualErr, PurchaseLine.FieldCaption("Line Discount %"), GenericDiscountPct, PurchaseLine.TableCaption()));
+
+        // [WHEN] A purchase order for 'V' in currency 'CUR' is created
+        Clear(PurchaseHeader);
+        Clear(PurchaseLine);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        PurchaseHeader.Validate("Currency Code", CurrencyCode);
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
+
+        // [THEN] The currency-specific 0% wins over the generic discount
+        Assert.AreEqual(0, PurchaseLine."Line Discount %",
+            StrSubstNo(ValueMustBeEqualErr, PurchaseLine.FieldCaption("Line Discount %"), 0, PurchaseLine.TableCaption()));
+
+        // Cleanup
+        LibraryPriceCalculation.SetupDefaultHandler(OldHandler);
+    end;
+
+    local procedure CreateActiveItemDiscountLine(var PriceListLine: Record "Price List Line"; PriceListHeader: Record "Price List Header"; ItemNo: Code[20]; VariantCode: Code[10]; CurrencyCode: Code[10]; DiscountPct: Decimal)
+    begin
+        Clear(PriceListLine);
+        LibraryPriceCalculation.CreatePriceListLine(
+            PriceListLine, PriceListHeader, "Price Amount Type"::Discount, "Price Asset Type"::Item, ItemNo);
+        PriceListLine.Validate("Variant Code", VariantCode);
+        PriceListLine.Validate("Currency Code", CurrencyCode);
+        PriceListLine.Validate("Line Discount %", DiscountPct);
+        PriceListLine.Status := "Price Status"::Active;
+        PriceListLine.Modify(true);
+    end;
+
+    [Test]
     procedure SalesLineResourceUnitCostWhenWorkTypeBeforeQuantity()
     var
         Customer: Record Customer;
