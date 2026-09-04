@@ -17,9 +17,7 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.ExtendedText;
 using Microsoft.Foundation.NoSeries;
-#if not CLEAN29
 using Microsoft.Foundation.Reporting;
-#endif
 using Microsoft.Foundation.Shipping;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
@@ -54,6 +52,9 @@ using Microsoft.Utilities;
 using Microsoft.Warehouse.Structure;
 using System.Environment.Configuration;
 using System.IO;
+#if CLEAN29
+using System.Reflection;
+#endif
 using System.Security.User;
 using System.TestLibraries.Utilities;
 
@@ -5817,7 +5818,6 @@ codeunit 136101 "Service Orders"
         Assert.AreEqual(Customer[2]."Country/Region Code", ServiceHeader."VAT Country/Region Code", VATCountryRegionLbl);
     end;
 
-#if not CLEAN29
     [Test]
     [HandlerFunctions('ServiceOrderReportRequestPageHandler')]
     procedure PrintServiceOrderWithWorkDescription()
@@ -5850,7 +5850,6 @@ codeunit 136101 "Service Orders"
 
         // [THEN] Verify no transaction error should occur.
     end;
-#endif
 
     [Test]
     [Scope('OnPrem')]
@@ -8248,6 +8247,9 @@ codeunit 136101 "Service Orders"
             exit(ServiceInvoiceHeader."No.");
     end;
 
+    // The printing scenario only needs a customer document layout that carries an email body layout for the
+    // report; it asserts that printing does not error, not which layout was used. Before 29.0 that layout is
+    // a legacy "Custom Report Layout"; from 29.0 it is the report layout name that superseded it.
 #if not CLEAN29
     local procedure CreateCustomReportSelectionForCustomer(CustomerNo: Code[20]; ReportSelectionUsage: Enum "Report Selection Usage"; ReportID: Integer)
     var
@@ -8265,6 +8267,27 @@ codeunit 136101 "Service Orders"
         CustomReportSelection.Validate("Use for Email Body", true);
         CustomReportSelection.Validate(
             "Email Body Layout Code", CustomReportLayout.InitBuiltInLayout(CustomReportSelection."Report ID", CustomReportLayout.Type::Word.AsInteger()));
+        CustomReportSelection.Insert(true);
+    end;
+#else
+    local procedure CreateCustomReportSelectionForCustomer(CustomerNo: Code[20]; ReportSelectionUsage: Enum "Report Selection Usage"; ReportID: Integer)
+    var
+        CustomReportSelection: Record "Custom Report Selection";
+        ReportLayoutList: Record "Report Layout List";
+    begin
+        ReportLayoutList.SetRange("Report ID", ReportID);
+        ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::Word);
+        ReportLayoutList.FindFirst();
+
+        CustomReportSelection.Init();
+        CustomReportSelection.Validate("Source Type", Database::Customer);
+        CustomReportSelection.Validate("Source No.", CustomerNo);
+        CustomReportSelection.Validate(Usage, ReportSelectionUsage);
+        CustomReportSelection.Validate(Sequence, 1);
+        CustomReportSelection.Validate("Report ID", ReportID);
+        CustomReportSelection.Validate("Use for Email Body", true);
+        CustomReportSelection."Email Body Layout Name" := ReportLayoutList.Name;
+        CustomReportSelection."Email Body Layout AppID" := ReportLayoutList."Application ID";
         CustomReportSelection.Insert(true);
     end;
 #endif
