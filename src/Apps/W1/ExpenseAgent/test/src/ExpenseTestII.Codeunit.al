@@ -36,6 +36,7 @@ codeunit 148309 "Expense Test II"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryNotificationMgt: Codeunit "Library - Notification Mgt.";
         LibraryTemplates: Codeunit "Library - Templates";
+        LibraryHumanResource: Codeunit "Library - Human Resource";
         NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
         IsInitialized: Boolean;
         AddExpenseTo: Option "New Expense Report","Existing Expense Report";
@@ -59,6 +60,7 @@ codeunit 148309 "Expense Test II"
         CannotDeleteEmployeeWithExpenseReportErr: Label 'You cannot delete Employee %1 because they have active expense report.', Comment = '%1 = Employee No.';
         CannotDeleteEmployeeWithExpenseErr: Label 'You cannot delete Employee %1 because they have active expense.', Comment = '%1 = Employee No.';
         CannotDeletePaymentMethodInUseErr: Label 'You cannot delete %1 %2 because it is used as the %3 for %4 %5.', Comment = '%1 = Table Caption, %2 = Payment Method Code, %3 = Default Payment Method Field Caption, %4 = Expense Category Table Caption, %5 = Expense Category Code';
+        EmployeePostingGroupMissingErr: Label '%1 %2 cannot be linked to an %3 because %4 is not specified on the %1.', Comment = '%1 = Employee Table Caption, %2 = Employee No., %3 = Expense User Table Caption, %4 = Employee Posting Group Field Caption';
 
     [Test]
     procedure ExpenseDetailRequiredMustFlowToExpenseFromExpenseCategory()
@@ -3115,6 +3117,67 @@ codeunit 148309 "Expense Test II"
 
         // [THEN] Verify that an error is thrown because a billable customer and a project are mutually exclusive.
         Assert.ExpectedError(StrSubstNo(BillableCustomerAndProjectErr, Expense.FieldCaption("Billable to Customer"), Expense.FieldCaption("Job No.")));
+    end;
+
+    [Test]
+    procedure ExpenseUserCannotBeLinkedToEmployeeWithoutPostingGroup()
+    var
+        Employee: Record Employee;
+        ExpenseUser: Record "Expense User";
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO 645043] Verify that an Expense User cannot be linked to an Employee without an Employee Posting Group.
+        Initialize();
+
+        // [GIVEN] An Employee "E" without an Employee Posting Group.
+        LibraryHumanResource.CreateEmployee(Employee);
+        Employee.Validate("Employee Posting Group", '');
+        Employee.Modify(true);
+
+        // [WHEN] Link Employee "E" to a new Expense User "U".
+        ExpenseUser.Init();
+        ExpenseUser.Validate("No.", LibraryUtility.GenerateRandomCode(ExpenseUser.FieldNo("No."), Database::"Expense User"));
+        asserterror ExpenseUser.Validate("Employee No.", Employee."No.");
+
+        // [THEN] An error is thrown stating that the Employee Posting Group is not specified on the Employee.
+        Assert.ExpectedError(
+            StrSubstNo(
+                EmployeePostingGroupMissingErr, Employee.TableCaption(), Employee."No.",
+                ExpenseUser.TableCaption(), Employee.FieldCaption("Employee Posting Group")));
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    procedure ExpenseUserCanBeLinkedToEmployeeWithPostingGroup()
+    var
+        Employee: Record Employee;
+        ExpenseUser: Record "Expense User";
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO 645043] Verify that an Expense User can be linked to an Employee with an Employee Posting Group.
+        Initialize();
+
+        // [GIVEN] An Employee "E" with an Employee Posting Group.
+        LibraryHumanResource.CreateEmployee(Employee);
+
+        // [WHEN] Link Employee "E" to a new Expense User "U".
+        ExpenseUser.Init();
+        ExpenseUser.Validate("No.", LibraryUtility.GenerateRandomCode(ExpenseUser.FieldNo("No."), Database::"Expense User"));
+        ExpenseUser.Validate("Employee No.", Employee."No.");
+        ExpenseUser.Insert(true);
+
+        // [THEN] Expense User "U" is linked to Employee "E" and shows the Employee Posting Group of "E".
+        ExpenseUser.CalcFields("Employee Posting Group");
+        Assert.AreEqual(
+            Employee."No.",
+            ExpenseUser."Employee No.",
+            StrSubstNo(ValueMustBeEqualErr, ExpenseUser.FieldCaption("Employee No."), Employee."No.", ExpenseUser.TableCaption()));
+        Assert.AreEqual(
+            Employee."Employee Posting Group",
+            ExpenseUser."Employee Posting Group",
+            StrSubstNo(
+                ValueMustBeEqualErr, ExpenseUser.FieldCaption("Employee Posting Group"),
+                Employee."Employee Posting Group", ExpenseUser.TableCaption()));
     end;
 
     local procedure Initialize()

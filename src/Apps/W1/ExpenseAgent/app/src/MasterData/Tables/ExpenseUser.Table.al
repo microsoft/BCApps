@@ -38,6 +38,11 @@ table 6923 "Expense User"
                 if Rec."Employee No." <> '' then begin
                     Employee.Get("Employee No.");
 
+                    if Employee."Employee Posting Group" = '' then
+                        Error(
+                            EmployeePostingGroupMissingErr,
+                            Employee.TableCaption(), Employee."No.", Rec.TableCaption(), Employee.FieldCaption("Employee Posting Group"));
+
                     CheckDuplicateEmployeeNo();
 
                     if ConfirmOverwriteExpenseUserInformation(Employee) then begin
@@ -147,6 +152,14 @@ table 6923 "Expense User"
             CalcFormula = lookup(Employee.Status where("No." = field("Employee No.")));
             Editable = false;
         }
+        field(25; "Employee Posting Group"; Code[20])
+        {
+            Caption = 'Employee Posting Group';
+            ToolTip = 'Specifies the employee posting group of the related employee. Expenses cannot be posted without it.';
+            FieldClass = FlowField;
+            CalcFormula = lookup(Employee."Employee Posting Group" where("No." = field("Employee No.")));
+            Editable = false;
+        }
         field(23; "Approver No."; Code[20])
         {
             Caption = 'Approver No.';
@@ -225,6 +238,7 @@ table 6923 "Expense User"
         ExpenseApprovalSetupErr: Label 'You cannot remove approval rights from expense user %1. This expense user is currently configured as an approver in the %2.', Comment = '%1 - Expense User No., %2 - Table Caption';
         DuplicateEmailErr: Label '%1 %2 is already used by another %3. %1 must be unique.', Comment = '%1 = Email Caption, %2 = Email address, %3 = Expense User Table Caption';
         DuplicateEmployeeNoErr: Label '%1 %2 is already linked to another %3. Each employee can only be linked to one %3.', Comment = '%1 = Employee No. Caption, %2 = Employee No., %3 = Expense User Table Caption';
+        EmployeePostingGroupMissingErr: Label '%1 %2 cannot be linked to an %3 because %4 is not specified on the %1.', Comment = '%1 = Employee Table Caption, %2 = Employee No., %3 = Expense User Table Caption, %4 = Employee Posting Group Field Caption';
         OnlyBCUserCanApproveErr: Label 'In order to be an expense approver there must be a user in Business Central for email %1 for expense user %2.', Comment = '%1 - Email, %2 - Expense User No.';
         CannotDeleteExpenseUserWithExpenseErr: Label 'You cannot delete Expense User %1 because they have active expense.', Comment = '%1 = Expense User No.';
         CannotDeleteExpenseUserWithExpenseReportErr: Label 'You cannot delete Expense User %1 because they have active expense report.', Comment = '%1 = Expense User No.';
