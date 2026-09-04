@@ -42,7 +42,7 @@ codeunit 9033 "Invite External Accountant"
         InvokeWebRequestFailedTxt: Label 'Invoking web request has failed. Status %1.', Locked = true;
         InvokeWebRequestFailedDetailedTxt: Label 'Invoking web request has failed. Status %1, Message %2, Response Details %3', Locked = true;
         InvokeWebRequestSendFailedTxt: Label 'Invoking web request has failed. The HTTP request could not be sent.', Locked = true;
-        InvokeWebRequestSendFailedDetailedTxt: Label 'Invoking web request has failed. The HTTP request could not be sent. Error: %1', Locked = true;
+        InvokeWebRequestSendFailedDetailedTxt: Label 'Invoking web request has failed. The HTTP request could not be sent. See custom dimensions for error details.', Locked = true;
         InsufficientDataReturnedFromInvitationsApiTxt: Label 'Insufficient information was returned when inviting the user. Please contact your administrator.';
         WidsClaimNameTok: Label 'WIDS', Locked = true;
         ExternalAccountantLicenseAvailabilityErr: Label 'Failed to determine if an External Accountant license is available. Please try again later.';
@@ -325,9 +325,14 @@ codeunit 9033 "Invite External Accountant"
     end;
 
     local procedure LogInvokeRequestSendFailure(ErrorText: Text)
+    var
+        CustomDimensions: Dictionary of [Text, Text];
     begin
         Session.LogMessage('', InvokeWebRequestSendFailedTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', InviteExternalAccountantTelemetryCategoryTxt);
-        Session.LogMessage('', StrSubstNo(InvokeWebRequestSendFailedDetailedTxt, ErrorText), Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', InviteExternalAccountantTelemetryCategoryTxt);
+
+        CustomDimensions.Add('Category', InviteExternalAccountantTelemetryCategoryTxt);
+        CustomDimensions.Add('ErrorText', ErrorText);
+        Session.LogMessage('', InvokeWebRequestSendFailedDetailedTxt, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, CustomDimensions);
     end;
 
     local procedure LogInvokeRequestFailure(HttpStatusCode: Integer; ResponseErrorMessage: Text; ResponseErrorDetails: Text)
