@@ -7,7 +7,6 @@ namespace System.Test.Agents;
 
 using System.Agents;
 using System.Agents.Troubleshooting;
-using System.TestLibraries.Security.AccessControl;
 using System.TestLibraries.Utilities;
 using System.Utilities;
 
@@ -315,8 +314,9 @@ codeunit 133964 "Agent Task Log Page Test"
         TempAgentTaskLogEntry: Record "Agent Task Log Entry" temporary;
         TempAgentTaskMemoryEntry: Record "Agent Task Memory Entry" temporary;
         ExportJson: JsonObject;
-        MemoryEntryToken: JsonToken;
         MemoryEntryJson: JsonObject;
+        MemoryEntryToken: JsonToken;
+        DetailsJsonToken: JsonToken;
     begin
         // [GIVEN] A memory entry whose details contain JSON text
         CreateTempMemoryEntry(TempAgentTaskMemoryEntry, 1, 'Memory details');
@@ -328,7 +328,8 @@ codeunit 133964 "Agent Task Log Page Test"
         // [THEN] Memory details are a JSON object rather than escaped text
         ExportJson.GetArray('memoryEntries').Get(0, MemoryEntryToken);
         MemoryEntryJson := MemoryEntryToken.AsObject();
-        Assert.IsTrue(MemoryEntryJson.Get('details').IsObject(), 'Memory details should be exported as native JSON.');
+        MemoryEntryJson.Get('details', DetailsJsonToken);
+        Assert.IsTrue(DetailsJsonToken.IsObject(), 'Memory details should be exported as native JSON.');
         Assert.AreEqual('Sales Order List', MemoryEntryJson.GetObject('details').GetText('pageName'), 'The memory details should preserve their JSON values.');
         Assert.IsTrue(MemoryEntryJson.GetObject('details').GetBoolean('success'), 'The memory details should preserve Boolean values.');
     end;

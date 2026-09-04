@@ -364,6 +364,8 @@ codeunit 4313 "Agent Task Log Export"
         TaskContextJson: JsonObject;
     begin
         TaskContextJson.Add(TaskIdLbl, Format(AgentTaskID, 0, 9));
+        if AgentTaskID <= 0 then
+            exit(TaskContextJson);
         if not AgentTask.Get(AgentTaskID) then
             exit(TaskContextJson);
 
