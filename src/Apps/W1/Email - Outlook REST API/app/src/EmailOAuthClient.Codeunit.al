@@ -104,9 +104,11 @@ codeunit 4507 "Email - OAuth Client" implements "Email - OAuth Client v2"
         if not EnvironmentInformation.IsSaaSInfrastructure() then begin
             EmailOutlookAPIHelper.GetClientIDAndSecret(ClientId, ClientSecret);
             RedirectURL := EmailOutlookAPIHelper.GetRedirectURL();
-            if RedirectURL = '' then
+            // Only pin the default when no redirect URL is configured; an explicit custom value is honored so existing OnPrem setups keep working.
+            if RedirectURL = '' then begin
                 OAuth2.GetDefaultRedirectUrl(RedirectURL);
-            ValidateRedirectUrl(RedirectURL);
+                ValidateRedirectUrl(RedirectURL);
+            end;
         end;
 
         IsInitialized := true;

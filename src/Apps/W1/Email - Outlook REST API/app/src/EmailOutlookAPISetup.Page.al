@@ -110,11 +110,6 @@ page 4509 "Email - Outlook API Setup"
                         ApplicationArea = All;
                         ToolTip = 'Specifies the Redirect URL.';
                         Caption = 'Redirect URL';
-
-                        trigger OnValidate()
-                        begin
-                            ValidateUri(Rec.RedirectURL);
-                        end;
                     }
                 }
             }
@@ -229,16 +224,6 @@ page 4509 "Email - Outlook API Setup"
             IsUserLoggedIn := EmailOAuthClient.AuthorizationCodeTokenCacheExists();
 
         SetTestSetupEnabled();
-    end;
-
-    local procedure ValidateUri(UriString: Text)
-    var
-        EmailOAuthClient: Codeunit "Email - OAuth Client";
-    begin
-        if UriString = '' then
-            exit;
-
-        EmailOAuthClient.ValidateRedirectUrl(UriString);
     end;
 
     local procedure SetTestSetupEnabled()
