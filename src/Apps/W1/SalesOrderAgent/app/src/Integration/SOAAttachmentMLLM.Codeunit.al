@@ -44,6 +44,15 @@ codeunit 4421 "SOA Attachment MLLM"
         Clear(CanonicalContent);
         Clear(FailureReason);
         ExistingContent := GetTextContent(AgentTaskMessageAttachment);
+
+        // The extraction model rejects image attachments, so the call is skipped for them and the
+        // text content stored with the attachment is used as-is. Relevance is still evaluated on that content.
+        // This is a temporary measure until the extraction model can handle image attachments.
+        if IsImageAttachment(AgentTaskMessageAttachment) then begin
+            CanonicalContent := ExistingContent;
+            exit(true);
+        end;
+
         // Only content this codeunit produced for this exact attachment record is trusted. The system ID is assigned
         // by the platform after the attachment is stored, so a crafted attachment cannot embed a matching marker
         // in advance to skip the guarded extraction.
@@ -62,6 +71,17 @@ codeunit 4421 "SOA Attachment MLLM"
         StampProvenance(CanonicalContent, AgentTaskMessageAttachment.SystemId);
         ReplaceTextContent(AgentTaskMessageAttachment, CanonicalContent);
         exit(true);
+    end;
+
+    local procedure IsImageAttachment(var AgentTaskMessageAttachment: Record "Agent Task Message Attachment"): Boolean
+    var
+        AgentTaskFile: Record "Agent Task File";
+        SOASetup: Codeunit "SOA Setup";
+    begin
+        if not AgentTaskFile.Get(AgentTaskMessageAttachment."Task ID", AgentTaskMessageAttachment."File ID") then
+            exit(false);
+
+        exit(SOASetup.IsImageAttachmentContentType(AgentTaskFile."File MIME Type"));
     end;
 
     [TryFunction]
@@ -117,7 +137,7 @@ codeunit 4421 "SOA Attachment MLLM"
         end;
         Prompt := SecretText.SecretStrSubstNo(PromptTemplate, SecurityPrompt);
 
-        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41MiniPreview());
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT55ChatPreview());
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Sales Order Agent");
 
         AOAIChatCompletionParams.SetTemperature(0);

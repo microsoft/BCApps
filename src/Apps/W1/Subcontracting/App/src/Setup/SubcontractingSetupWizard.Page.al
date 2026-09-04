@@ -14,7 +14,7 @@ using System.Environment.Configuration;
 using System.Telemetry;
 using System.Utilities;
 
-page 99001505 "Subcontracting Setup Wizard"
+page 20505 "Subcontracting Setup Wizard"
 {
     ApplicationArea = All;
     Caption = 'Subcontracting Setup';

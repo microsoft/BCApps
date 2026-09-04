@@ -14,10 +14,16 @@ codeunit 10841 "Upg. Tag Payment Management FR"
     local procedure RegisterPerCompanyTags(var PerCompanyUpgradeTags: List of [Code[250]])
     begin
         PerCompanyUpgradeTags.Add(GetPaymentUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetPaymentStepObjectIDsUpgradeTag());
     end;
 
     internal procedure GetPaymentUpgradeTag(): Code[250]
     begin
         exit('MS-581204-PaymentManagementUpgradeTag-20250918');
+    end;
+
+    internal procedure GetPaymentStepObjectIDsUpgradeTag(): Code[250]
+    begin
+        exit('MS-645208-PaymentStepObjectIDsUpgradeTag-20260805');
     end;
 }

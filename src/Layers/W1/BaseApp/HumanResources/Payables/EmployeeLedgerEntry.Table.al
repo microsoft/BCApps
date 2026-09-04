@@ -519,6 +519,13 @@ table 5222 "Employee Ledger Entry"
         key(Key2; "Employee No.", "Applies-to ID", Open, Positive)
         {
         }
+        // Supports the Payment Reconciliation Journal candidate search (Document Type + Open + date range).
+        key(PmtReconCandidates; "Document Type", Open, "Posting Date")
+        {
+        }
+        key(ClosedByEntryNo; "Closed by Entry No.")
+        {
+        }
     }
 
     fieldgroups

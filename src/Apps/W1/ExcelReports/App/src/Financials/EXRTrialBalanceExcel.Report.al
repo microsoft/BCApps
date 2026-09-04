@@ -26,7 +26,7 @@ report 4405 "EXR Trial Balance Excel"
         dataitem(GLAccounts; "G/L Account")
         {
             DataItemTableView = sorting("No.");
-            RequestFilterFields = "No.", "Account Type", "Date Filter", "Budget Filter";
+            RequestFilterFields = "No.", "Account Type", "Date Filter", "Budget Filter", "Global Dimension 1 Filter", "Global Dimension 2 Filter";
             column(AccountNumber; "No.") { IncludeCaption = true; }
             column(AccountName; Name) { IncludeCaption = true; }
             column(IncomeBalance; "Income/Balance") { IncludeCaption = true; }

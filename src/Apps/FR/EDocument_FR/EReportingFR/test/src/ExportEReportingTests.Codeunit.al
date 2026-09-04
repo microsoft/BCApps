@@ -32,8 +32,6 @@ codeunit 148145 "Export E-Reporting Tests"
     end;
 
     var
-        LibrarySales: Codeunit "Library - Sales";
-        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryUtility: Codeunit "Library - Utility";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
@@ -854,9 +852,10 @@ codeunit 148145 "Export E-Reporting Tests"
     var
         Customer: Record Customer;
     begin
-        LibrarySales.CreateCustomer(Customer);
+        Customer.Init();
+        Customer."No." := LibraryUtility.GenerateGUID();
         Customer."FR E-Reporting Trans. Type" := TransType;
-        Customer.Modify();
+        Customer.Insert();
         exit(Customer."No.");
     end;
 
@@ -864,9 +863,10 @@ codeunit 148145 "Export E-Reporting Tests"
     var
         Vendor: Record Vendor;
     begin
-        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Init();
+        Vendor."No." := LibraryUtility.GenerateGUID();
         Vendor."FR E-Reporting Trans. Type" := TransType;
-        Vendor.Modify();
+        Vendor.Insert();
         exit(Vendor."No.");
     end;
 

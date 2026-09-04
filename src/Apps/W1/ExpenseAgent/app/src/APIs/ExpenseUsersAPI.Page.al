@@ -83,6 +83,14 @@ page 6918 "Expense Users API"
                     SubPageLink = "Expense User No." = field("No.");
                 }
 
+                part(activityHistory; "Expense Activity Log API")
+                {
+                    EntityName = 'expenseActivityLogEntry';
+                    EntitySetName = 'expenseActivityLogEntries';
+                    SubPageLink = "History Actor Table ID Filter" = const(Database::"Expense User"),
+                                  "History Actor System ID Filter" = field(SystemId);
+                }
+
                 part(approverView; "Approver View API")
                 {
                     EntityName = 'approverView';

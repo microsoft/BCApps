@@ -341,6 +341,9 @@ page 20407 "Qlty. Inspection Subform"
         QltySessionHelper.SetSessionValue(CurrentSelectedInspectionLineTok, Format(Rec.RecordId()));
     end;
 
+    /// <summary>
+    /// Updates the measurement note, editability, and promoted result data for the current line.
+    /// </summary>
     local procedure UpdateRowData()
     var
         DummyMatrixArrayCaptionSet: array[10] of Text;
@@ -365,6 +368,10 @@ page 20407 "Qlty. Inspection Subform"
         QltyResultConditionMgmt.GetPromotedResultsForInspectionLine(Rec, MatrixSourceRecordId, MatrixArrayConditionCellData, MatrixArrayConditionDescriptionCellData, DummyMatrixArrayCaptionSet, DummyMatrixVisibleState);
     end;
 
+    /// <summary>
+    /// Determines whether the test value on the current inspection line can be edited.
+    /// </summary>
+    /// <returns>True if the test value can be edited; otherwise, false.</returns>
     local procedure GetCanEditTestValue() Result: Boolean
     var
         IsHandled: Boolean;
@@ -378,11 +385,11 @@ page 20407 "Qlty. Inspection Subform"
     end;
 
     /// <summary>
-    /// Use this event to manipulate the decision if this inspection line can have it's test value edited or not.
+    /// Allows subscribers to override whether an inspection line's test value can be edited.
     /// </summary>
-    /// <param name="QltyInspectionLine"></param>
-    /// <param name="CanEditTestValue"></param>
-    /// <param name="IsHandled"></param>
+    /// <param name="QltyInspectionLine">The inspection line being evaluated.</param>
+    /// <param name="CanEditTestValue">The editable state to return.</param>
+    /// <param name="IsHandled">Set to true to use the supplied editable state.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCanEditTestValue(var QltyInspectionLine: Record "Qlty. Inspection Line"; var CanEditTestValue: Boolean; var IsHandled: Boolean)
     begin

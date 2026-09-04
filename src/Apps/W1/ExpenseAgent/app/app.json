@@ -2,7 +2,7 @@
   "id": "66efe10c-8033-403b-a86d-77c0887178ba",
   "name": "Expense Agent (Preview)",
   "publisher": "Microsoft",
-  "version": "29.0.0.0",
+  "version": "30.0.0.0",
   "brief": "The Expense Agent module will enable users to capture and report on business expenses. The solution provides a foundation for enforcing expense policies, improving financial transparency, and supporting compliance with internal controls and audit requirements.",
   "description": "The Expense Agent module will enable users to capture and report on business expenses. The solution provides a foundation for enforcing expense policies, improving financial transparency, and supporting compliance with internal controls and audit requirements.",
   "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
@@ -24,106 +24,6 @@
       "publisher": "Microsoft"
     },
     {
-      "id": "2019288b-f106-453d-9f34-be7b3c0726f0",
-      "name": "Expense Agent Demo Data (US)",
-      "publisher": "Microsoft"
-    },
-    {
-      "id": "8f6fdf88-d3fd-4e1b-884f-b40344769cef",
-      "name": "Expense Agent Demo Data (GB)",
-      "publisher": "Microsoft"
-    },
-    {
-      "id": "c6922fb3-8129-41d6-b1e9-049d4f6a665c",
-      "name": "Expense Agent Demo Data (CA)",
-      "publisher": "Microsoft"
-    },
-    {
-      "id": "f8711254-7971-48b9-8691-6583be001d92",
-      "name": "Expense Agent Demo Data (NZ)",
-      "publisher": "Microsoft"
-    },
-    {
-      "id": "cdb01fb9-a487-4ca2-b506-c711aea8621d",
-      "name": "Expense Agent Demo Data (AU)",
-      "publisher": "Microsoft"
-    },
-    {
-      "id": "19abefa5-f413-4fb6-97ca-2d2f08285275",
-      "name": "Expense Agent Demo Data (ES)",
-      "publisher": "Microsoft"
-    },
-    {
-      "id": "02547a44-5300-4fab-abb4-5053335ee983",
-      "name": "Expense Agent Demo Data (DK)",
-      "publisher": "Microsoft"
-    },
-    {
-      "id": "fbeb9e2d-0be8-4ecd-a1e9-4d3304cfb75c",
-      "name": "Expense Agent Demo Data (FR)",
-      "publisher": "Microsoft"
-    },
-    {
-      "id": "0105674e-b902-4e4c-9dc0-6c6341dcea11",
-      "name": "Expense Agent Demo Data (DE)",
-      "publisher": "Microsoft"
-    },
-    {
-      "id": "fd09e630-c536-4a0b-a7b2-88deb847544f",
-      "name": "Expense Agent Demo Data (AT)",
-      "publisher": "Microsoft"
-    },
-    {
-      "id": "d4f8bc4d-8a7e-4008-b8a3-93721589ce98",
-      "name": "Expense Agent (Preview) (NZ)",
-      "publisher": "Microsoft"
-    },
-    {
-      "id": "fa126935-93d3-4e4e-a006-4f7406625d2e",
-      "name": "Expense Agent (Preview) (US)",
-      "publisher": "Microsoft"
-    },
-    {
-      "id": "c60a4c19-38b7-4d2b-96bb-edfcea98cf1f",
-      "name": "Expense Agent (Preview) (AT)",
-      "publisher": "Microsoft"
-    },
-    {
-      "id": "646b8424-68af-4eb3-b325-97f695cdb19f",
-      "name": "Expense Agent (Preview) (AU)",
-      "publisher": "Microsoft"
-    },
-    {
-      "id": "9a6af095-afbf-449a-a516-8147c96060da",
-      "name": "Expense Agent (Preview) (CA)",
-      "publisher": "Microsoft"
-    },
-    {
-      "id": "cb71e33d-b543-4d2a-8098-b27b38649687",
-      "name": "Expense Agent (Preview) (DE)",
-      "publisher": "Microsoft"
-    },
-    {
-      "id": "f1c6dae4-c092-429f-845c-00657fa4d293",
-      "name": "Expense Agent (Preview) (DK)",
-      "publisher": "Microsoft"
-    },
-    {
-      "id": "c4b4a30a-16cd-4b0b-9a3f-9962d74d8cb9",
-      "name": "Expense Agent (Preview) (ES)",
-      "publisher": "Microsoft"
-    },
-    {
-      "id": "8b524ccf-12e4-4f6c-9325-71bdb18f7284",
-      "name": "Expense Agent (Preview) (FR)",
-      "publisher": "Microsoft"
-    },
-    {
-      "id": "b299c435-af71-4b42-b15b-f1cdddd1a561",
-      "name": "Expense Agent (Preview) (GB)",
-      "publisher": "Microsoft"
-    },
-    {
       "id": "4cb44e6c-9a37-4d4e-b45f-1b3054ddc59a",
       "name": "Expense Withholding Tax",
       "publisher": "Microsoft"
@@ -131,7 +31,7 @@
   ],
   "screenshots": [],
   "platform": "29.0.0.0",
-  "application": "29.0.0.0",
+  "application": "30.0.0.0",
   "idRanges": [
     {
       "from": 6900,
@@ -139,7 +39,7 @@
     },
     {
       "from": 7073,
-      "to": 7103
+      "to": 7137
     }
   ],
   "features": [

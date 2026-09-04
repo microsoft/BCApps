@@ -3,6 +3,14 @@ pageextension 6161 "E-Doc. Vendor Page" extends "Vendor Card"
 {
     layout
     {
+        addafter("Registration Number")
+        {
+            field("Use Reg. No. in E-Document"; Rec."Use Reg. No. in E-Document")
+            {
+                ApplicationArea = Basic, Suite;
+                ToolTip = 'Specifies whether the vendor registration number is used to identify the vendor in electronic documents when the GLN and VAT registration number are blank.';
+            }
+        }
         addlast(Receiving)
         {
             field("Receive E-Document To"; Rec."Receive E-Document To")

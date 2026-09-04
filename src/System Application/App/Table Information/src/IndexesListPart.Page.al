@@ -94,27 +94,27 @@ page 8704 "Indexes List Part"
                     Caption = 'Updates';
                     ToolTip = 'Specifies the number of user updates on this index since the database was last started.';
                 }
-                field("Last seek"; Rec."Last seek")
+                field("Last seek"; FormatDateTime(Rec."Last seek"))
                 {
                     Caption = 'Last Seek';
                     ToolTip = 'Specifies the timestamp of the last user seek on this index since the database was last started.';
                 }
-                field("Last scan"; Rec."Last scan")
+                field("Last scan"; FormatDateTime(Rec."Last scan"))
                 {
                     Caption = 'Last Scan';
                     ToolTip = 'Specifies the timestamp of the last user scan on this index since the database was last started.';
                 }
-                field("Last lookup"; Rec."Last lookup")
+                field("Last lookup"; FormatDateTime(Rec."Last lookup"))
                 {
                     Caption = 'Last Lookup';
                     ToolTip = 'Specifies the timestamp of the last user lookup on this index since the database was last started.';
                 }
-                field("Last Update"; Rec."Last update")
+                field("Last Update"; FormatDateTime(Rec."Last update"))
                 {
                     Caption = 'Last Update';
                     ToolTip = 'Specifies the timestamp of the last user update on this index since the database was last started.';
                 }
-                field("Stat updated at"; Rec."Statistics rebuild at")
+                field("Stat updated at"; FormatDateTime(Rec."Statistics rebuild at"))
                 {
                     Caption = 'Statistics updated at';
                     ToolTip = 'Specifies the last time the index''s corresponding statistics was rebuild. Statistics are updated automatically by the database engine based on certain thresholds of data changes, or when an index is re-enabled.';
@@ -355,6 +355,14 @@ page 8704 "Indexes List Part"
         exit(IndexManagement.GetKeyIndexName(KeyRec, IsSift));
     end;
 
+    local procedure FormatDateTime(DateTimeValue: DateTime): Text
+    begin
+        if (DateTimeValue = 0DT) or (DateTimeValue = CreateDateTime(00000101D, 0T)) then
+            exit(NoDateTimeValueLbl);
+
+        exit(Format(DateTimeValue));
+    end;
+
     local procedure EnableIndex(KeyRec: Record "Key"; CompanyName: Text; IsSift: Boolean)
     var
         IndexManagement: Codeunit "Index Management";
@@ -367,6 +375,7 @@ page 8704 "Indexes List Part"
 
     var
         SetCompanyName: Text;
+        NoDateTimeValueLbl: Label '-', Locked = true;
         TurnOffIndexWarningQst: Label 'Turning a non-AL defined index off cannot be undone. Please confirm.';
         TurnOnIndexQueueInfoMsg: Label 'The index has been enqueued to be turned on. It will be attempted during the subsequent maintenance window (overnight local time).';
 }

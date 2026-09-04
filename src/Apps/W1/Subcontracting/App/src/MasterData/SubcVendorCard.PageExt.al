@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Purchases.Vendor;
 
-pageextension 99001516 "Subc. Vendor Card" extends "Vendor Card"
+pageextension 20516 "Subc. Vendor Card" extends "Vendor Card"
 {
     layout
     {

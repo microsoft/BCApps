@@ -6,7 +6,7 @@
   "brief": "Subcontracting Migration for IT",
   "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "logo": "ExtensionLogo.png",
-  "version": "29.0.0.0",
+  "version": "30.0.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "https://go.microsoft.com/fwlink/?linkid=2104024",
@@ -17,7 +17,7 @@
       "id": "1f32a50d-0057-4b95-b5df-cc04d7e89470",
       "name": "Subcontracting",
       "publisher": "Microsoft",
-      "version": "29.0.0.0"
+      "version": "30.0.0.0"
     }
   ],
   "internalsVisibleTo": [
@@ -28,7 +28,7 @@
     }
   ],
   "platform": "29.0.0.0",
-  "application": "29.0.0.0",
+  "application": "30.0.0.0",
   "idRanges": [
     {
       "from": 149951,

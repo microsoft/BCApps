@@ -1,13 +1,11 @@
 {
-    "$schema":  "https://raw.githubusercontent.com/microsoft/AL-Go/b97c03d40c6f3d32a1e12a54a316c9a0d68c6261/Actions/.Modules/settings.schema.json",
+    "$schema":  "https://raw.githubusercontent.com/microsoft/AL-Go/6958720b2e1ccfda94fab92c83143ee5e093afec/Actions/.Modules/settings.schema.json",
     "projectName":  "Apps AU",
     "country":  "AU",
     "appFolders":  [
                        "../../../src/Apps/APAC/EDocumentFormats/PINT A-NZ/app",
                        "../../../src/Apps/AU/ContosoCoffeeDemoDatasetAU/app",
                        "../../../src/Apps/AU/EDocument_AU/demo data",
-                       "../../../src/Apps/AU/ExpenseAgent_AU/app",
-                       "../../../src/Apps/AU/ExpenseAgent_AU/demo data",
                        "../../../src/Apps/AU/HybridBCLast_AU/app",
                        "../../../src/Apps/AU/Onprem Permissions AU/app",
                        "../../../src/Apps/W1/AgentDesignExperience/app",
@@ -164,6 +162,7 @@
                         "../../../src/Apps/W1/ExcelReports/Test",
                         "../../../src/Apps/W1/ExciseTaxes/test",
                         "../../../src/Apps/W1/ExpenseAgent/test",
+                        "../../../src/Apps/W1/External Storage - Document Attachments/Test",
                         "../../../src/Apps/W1/ExternalEvents/test",
                         "../../../src/Apps/W1/FieldServiceIntegration/test",
                         "../../../src/Apps/W1/FieldServiceIntegration/test library",

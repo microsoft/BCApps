@@ -7,7 +7,9 @@ namespace Microsoft.Finance.VAT.Reporting;
 
 using Microsoft.Finance.VAT.Setup;
 
+#pragma warning disable AL0520 // Accepted: the base table is obsolete but this extension must remain for upgrade compatibility.
 tableextension 10687 "Elec. VAT Code" extends "VAT Code"
+#pragma warning restore AL0520
 {
     fields
     {

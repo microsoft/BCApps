@@ -10,7 +10,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Requisition;
 using System.Security.User;
 
-page 99001504 "Subc. Subcontracting Worksheet"
+page 20504 "Subc. Subcontracting Worksheet"
 {
     ApplicationArea = Subcontracting;
     AutoSplitKey = true;

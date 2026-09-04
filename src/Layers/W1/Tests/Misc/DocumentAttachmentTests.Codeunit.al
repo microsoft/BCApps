@@ -10,51 +10,53 @@ codeunit 134776 "Document Attachment Tests"
     end;
 
     var
+        Assert: Codeunit Assert;
         LibraryERM: Codeunit "Library - ERM";
-        LibrarySales: Codeunit "Library - Sales";
-        LibraryPurchase: Codeunit "Library - Purchase";
-        LibraryService: Codeunit "Library - Service";
-        LibraryInventory: Codeunit "Library - Inventory";
-        LibraryResource: Codeunit "Library - Resource";
-        LibrarySetupStorage: Codeunit "Library - Setup Storage";
-        LibraryVariableStorage: Codeunit "Library - Variable Storage";
-        LibraryRandom: Codeunit "Library - Random";
-        LibraryHumanResource: Codeunit "Library - Human Resource";
         LibraryFixedAsset: Codeunit "Library - Fixed Asset";
+        LibraryHumanResource: Codeunit "Library - Human Resource";
+        LibraryInventory: Codeunit "Library - Inventory";
         LibraryJob: Codeunit "Library - Job";
+        LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryMarketing: Codeunit "Library - Marketing";
         LibraryNotificationMgt: Codeunit "Library - Notification Mgt.";
-        Assert: Codeunit Assert;
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryRandom: Codeunit "Library - Random";
+        LibraryResource: Codeunit "Library - Resource";
+        LibrarySales: Codeunit "Library - Sales";
+        LibraryService: Codeunit "Library - Service";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        LibraryManufacturing: Codeunit "Library - Manufacturing";
-        ReportSelectionUsage: Enum "Report Selection Usage";
-        RecallNotifications: Boolean;
-        NoContentErr: Label 'The selected file ''%1'' has no content. Please choose another file.', Comment = '%1=FileName';
-        DuplicateErr: Label 'This file is already attached to the document. Please choose another file.';
-        PrintedToAttachmentTxt: Label 'The document has been printed to attachments.';
-        NoSaveToPDFReportTxt: Label 'There are no reports which could be saved to PDF for this document.';
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        ExpectedPurchaseDocumentFlow: Boolean;
         isInitialized: Boolean;
-        ConfirmConvertToOrderQst: Label 'Do you want to convert the quote to an order?';
-        DeleteAttachmentsConfirmQst: Label 'Do you want to delete the attachments for this document?';
-        ConfirmOpeningNewOrderAfterQuoteToOrderQst: Label 'Do you want to open the new order?';
+        RecallNotifications: Boolean;
+        ReportSelectionUsage: Enum "Report Selection Usage";
         AttachedDateInvalidErr: Label 'Attached date is invalid';
-        AttachmentNotDeletedErr: Label 'Attachment is not deleted';
-        OpenInDetailNotEnabledErr: Label 'OpenInDetail button must be enabled in FactBox %1 of page %2', Comment = '%1=FactBox PageName, %2= PageName';
-        ExpectedFieldNotVisibleErr: Label 'Expected field %1 is not visible in %2', Comment = '%1=FieldName, %2=PageName';
-        ExpectedFieldNotEditableErr: Label 'Expected field %1 is not editable in %2', Comment = '%1=FieldName, %2=PageName';
-        UnexpectedFieldVisibleErr: Label 'Unexpected field visible! %1', Comment = '%1=FieldName';
         AttachmentFileNameLbl: Label '%1.jpeg', Comment = '%1=File Name';
+        AttachmentNotDeletedErr: Label 'Attachment is not deleted';
+        ConfirmConvertToOrderQst: Label 'Do you want to convert the quote to an order?';
+        ConfirmOpeningNewOrderAfterQuoteToOrderQst: Label 'Do you want to open the new order?';
+        DeleteAttachmentsConfirmQst: Label 'Do you want to delete the attachments for this document?';
+        DuplicateErr: Label 'This file is already attached to the document. Please choose another file.';
+        ExpectedFieldNotEditableErr: Label 'Expected field %1 is not editable in %2', Comment = '%1=FieldName, %2=PageName';
+        ExpectedFieldNotVisibleErr: Label 'Expected field %1 is not visible in %2', Comment = '%1=FieldName, %2=PageName';
         FirstAttachmentFileNameMismatchErr: Label 'First file name not equal to saved attachment.';
         FlowPurchaseValueForFirstAttachmentMismatchErr: Label 'Flow purchase value not equal for first attachment.';
         FlowPurchaseValueForSecondAttachmentMismatchErr: Label 'Flow purchase value not equal for second attachment.';
         FlowSalesValueForFirstAttachmentMismatchErr: Label 'Flow sales value not equal for first attachment.';
         FlowSalesValueForSecondAttachmentMismatchErr: Label 'Flow sales value not equal for second attachment.';
         JpegFileNameTok: Label '%1.jpeg';
+        NoContentErr: Label 'The selected file ''%1'' has no content. Please choose another file.', Comment = '%1=FileName';
+        NoSaveToPDFReportTxt: Label 'There are no reports which could be saved to PDF for this document.';
+        OpenInDetailNotEnabledErr: Label 'OpenInDetail button must be enabled in FactBox %1 of page %2', Comment = '%1=FactBox PageName, %2= PageName';
         OpportunityOneLbl: Label 'Opportunity1';
         OpportunityTwoLbl: Label 'Opportunity2';
+        PrintedToAttachmentTxt: Label 'The document has been printed to attachments.';
         RenameCodeLbl: Label 'T';
         SecondAttachmentFileNameMismatchErr: Label 'Second file name not equal to saved attachment.';
         TwoAttachmentsExpectedErr: Label 'Two attachments were expected for this record.';
+        UnexpectedFieldVisibilityErr: Label 'Unexpected visibility for field %1', Comment = '%1=FieldCaption';
+        UnexpectedFieldVisibleErr: Label 'Unexpected field visible! %1', Comment = '%1=FieldName';
         ValueMustBeEqualErr: Label '%1 must be equal to %2 in the %3.', Comment = '%1 = Field Caption , %2 = Expected Value, %3 = Table Caption';
 
     [Test]
@@ -3731,7 +3733,7 @@ codeunit 134776 "Document Attachment Tests"
     end;
 
     [Test]
-    [HandlerFunctions('ListProductionFlow')]
+    [HandlerFunctions('ListProductionBOMFlow')]
     [Scope('OnPrem')]
     procedure TestDocAttachPageInProductionBOMHeader()
     var
@@ -3773,7 +3775,7 @@ codeunit 134776 "Document Attachment Tests"
         ProductionOrder: array[4] of Record "Production Order";
         ProdOrderLine: array[4] of Record "Prod. Order Line";
     begin
-        // [SENARIO 321915] Verify that only the "Flow to Production Trx" toggle field should be visible while accessing document attachment page from the action, subform's action and factbox of Production Orders (Planned, Firm-planned, Released and Finished).
+        // [SENARIO 321915] Verify that the "Flow to Production Trx" toggle field is visible while accessing the document attachment page from Production Orders. "Flow to Purchase" is visible for production-order lines when Subcontracting is installed.
         Initialize();
 
         // [GIVEN] Create an Item.
@@ -4909,11 +4911,14 @@ codeunit 134776 "Document Attachment Tests"
                     begin
                         PlannedProductionOrderPage.OpenView();
                         PlannedProductionOrderPage.GoToRecord(ProdOrder[i]);
+                        ExpectedPurchaseDocumentFlow := false;
                         PlannedProductionOrderPage.DocAttach.Invoke();
 
                         Assert.IsTrue(PlannedProductionOrderPage."Attached Documents List".OpenInDetail.Enabled(), StrSubstNo(OpenInDetailNotEnabledErr, PlannedProductionOrderPage."Attached Documents List".Caption, PlannedProductionOrderPage.Caption));
+                        ExpectedPurchaseDocumentFlow := false;
                         PlannedProductionOrderPage."Attached Documents List".OpenInDetail.Invoke();
 
+                        ExpectedPurchaseDocumentFlow := IsSubcontractingAppInstalled();
                         PlannedProductionOrderPage.ProdOrderLines.DocAttach.Invoke();
                         PlannedProductionOrderPage.Close();
                     end;
@@ -4921,11 +4926,14 @@ codeunit 134776 "Document Attachment Tests"
                     begin
                         FirmPlannedProductionOrderPage.OpenView();
                         FirmPlannedProductionOrderPage.GoToRecord(ProdOrder[i]);
+                        ExpectedPurchaseDocumentFlow := false;
                         FirmPlannedProductionOrderPage.DocAttach.Invoke();
 
                         Assert.IsTrue(FirmPlannedProductionOrderPage."Attached Documents List".OpenInDetail.Enabled(), StrSubstNo(OpenInDetailNotEnabledErr, FirmPlannedProductionOrderPage."Attached Documents List".Caption, FirmPlannedProductionOrderPage.Caption));
+                        ExpectedPurchaseDocumentFlow := false;
                         FirmPlannedProductionOrderPage."Attached Documents List".OpenInDetail.Invoke();
 
+                        ExpectedPurchaseDocumentFlow := IsSubcontractingAppInstalled();
                         FirmPlannedProductionOrderPage.ProdOrderLines.DocAttach.Invoke();
                         FirmPlannedProductionOrderPage.Close();
                     end;
@@ -4933,11 +4941,14 @@ codeunit 134776 "Document Attachment Tests"
                     begin
                         ReleasedProductionOrderPage.OpenView();
                         ReleasedProductionOrderPage.GoToRecord(ProdOrder[i]);
+                        ExpectedPurchaseDocumentFlow := false;
                         ReleasedProductionOrderPage.DocAttach.Invoke();
 
                         Assert.IsTrue(ReleasedProductionOrderPage."Attached Documents List".OpenInDetail.Enabled(), StrSubstNo(OpenInDetailNotEnabledErr, ReleasedProductionOrderPage."Attached Documents List".Caption, ReleasedProductionOrderPage.Caption));
+                        ExpectedPurchaseDocumentFlow := false;
                         ReleasedProductionOrderPage."Attached Documents List".OpenInDetail.Invoke();
 
+                        ExpectedPurchaseDocumentFlow := IsSubcontractingAppInstalled();
                         ReleasedProductionOrderPage.ProdOrderLines.DocAttach.Invoke();
                         ReleasedProductionOrderPage.Close();
                     end;
@@ -4945,11 +4956,14 @@ codeunit 134776 "Document Attachment Tests"
                     begin
                         FinishedProductionOrderPage.OpenView();
                         FinishedProductionOrderPage.GoToRecord(ProdOrder[i]);
+                        ExpectedPurchaseDocumentFlow := false;
                         FinishedProductionOrderPage.DocAttach.Invoke();
 
                         Assert.IsTrue(FinishedProductionOrderPage."Attached Documents List".OpenInDetail.Enabled(), StrSubstNo(OpenInDetailNotEnabledErr, FinishedProductionOrderPage."Attached Documents List".Caption, FinishedProductionOrderPage.Caption));
+                        ExpectedPurchaseDocumentFlow := false;
                         FinishedProductionOrderPage."Attached Documents List".OpenInDetail.Invoke();
 
+                        ExpectedPurchaseDocumentFlow := IsSubcontractingAppInstalled();
                         FinishedProductionOrderPage.ProdOrderLines.DocAttach.Invoke();
                         FinishedProductionOrderPage.Close();
                     end;
@@ -5409,6 +5423,17 @@ codeunit 134776 "Document Attachment Tests"
         Assert.IsTrue(DocumentAttachmentDetails."Document Flow Production".Visible(), StrSubstNo(ExpectedFieldNotVisibleErr, DocumentAttachmentDetails."Document Flow Production".Caption, DocumentAttachmentDetails.Caption));
         Assert.IsTrue(DocumentAttachmentDetails."Document Flow Production".Editable(), StrSubstNo(ExpectedFieldNotEditableErr, DocumentAttachmentDetails."Document Flow Production".Caption, DocumentAttachmentDetails.Caption));
         Assert.IsFalse(DocumentAttachmentDetails."Document Flow Sales".Visible(), StrSubstNo(UnexpectedFieldVisibleErr, DocumentAttachmentDetails."Document Flow Sales".Caption));
+        Assert.AreEqual(IsSubcontractingAppInstalled(), DocumentAttachmentDetails."Document Flow Purchase".Visible(), StrSubstNo(UnexpectedFieldVisibilityErr, DocumentAttachmentDetails."Document Flow Purchase".Caption));
+        Assert.IsFalse(DocumentAttachmentDetails."Document Flow Service".Visible(), StrSubstNo(UnexpectedFieldVisibleErr, DocumentAttachmentDetails."Document Flow Service".Caption));
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure ListProductionBOMFlow(var DocumentAttachmentDetails: TestPage "Document Attachment Details")
+    begin
+        Assert.IsTrue(DocumentAttachmentDetails."Document Flow Production".Visible(), StrSubstNo(ExpectedFieldNotVisibleErr, DocumentAttachmentDetails."Document Flow Production".Caption, DocumentAttachmentDetails.Caption));
+        Assert.IsTrue(DocumentAttachmentDetails."Document Flow Production".Editable(), StrSubstNo(ExpectedFieldNotEditableErr, DocumentAttachmentDetails."Document Flow Production".Caption, DocumentAttachmentDetails.Caption));
+        Assert.IsFalse(DocumentAttachmentDetails."Document Flow Sales".Visible(), StrSubstNo(UnexpectedFieldVisibleErr, DocumentAttachmentDetails."Document Flow Sales".Caption));
         Assert.IsFalse(DocumentAttachmentDetails."Document Flow Purchase".Visible(), StrSubstNo(UnexpectedFieldVisibleErr, DocumentAttachmentDetails."Document Flow Purchase".Caption));
         Assert.IsFalse(DocumentAttachmentDetails."Document Flow Service".Visible(), StrSubstNo(UnexpectedFieldVisibleErr, DocumentAttachmentDetails."Document Flow Service".Caption));
     end;
@@ -5420,8 +5445,16 @@ codeunit 134776 "Document Attachment Tests"
         Assert.IsTrue(DocumentAttachmentDetails."Document Flow Production".Visible(), StrSubstNo(ExpectedFieldNotVisibleErr, DocumentAttachmentDetails."Document Flow Production".Caption, DocumentAttachmentDetails.Caption));
         Assert.IsFalse(DocumentAttachmentDetails."Document Flow Production".Editable(), StrSubstNo(ExpectedFieldNotEditableErr, DocumentAttachmentDetails."Document Flow Production".Caption, DocumentAttachmentDetails.Caption));
         Assert.IsFalse(DocumentAttachmentDetails."Document Flow Sales".Visible(), StrSubstNo(UnexpectedFieldVisibleErr, DocumentAttachmentDetails."Document Flow Sales".Caption));
-        Assert.IsFalse(DocumentAttachmentDetails."Document Flow Purchase".Visible(), StrSubstNo(UnexpectedFieldVisibleErr, DocumentAttachmentDetails."Document Flow Purchase".Caption));
+        Assert.AreEqual(ExpectedPurchaseDocumentFlow, DocumentAttachmentDetails."Document Flow Purchase".Visible(), StrSubstNo(UnexpectedFieldVisibilityErr, DocumentAttachmentDetails."Document Flow Purchase".Caption));
         Assert.IsFalse(DocumentAttachmentDetails."Document Flow Service".Visible(), StrSubstNo(UnexpectedFieldVisibleErr, DocumentAttachmentDetails."Document Flow Service".Caption));
+    end;
+
+    local procedure IsSubcontractingAppInstalled(): Boolean
+    var
+        NAVAppInstalledApp: Record "NAV App Installed App";
+    begin
+        NAVAppInstalledApp.SetRange("App ID", '1f32a50d-0057-4b95-b5df-cc04d7e89470');
+        exit(not NAVAppInstalledApp.IsEmpty());
     end;
 
     [ModalPageHandler]

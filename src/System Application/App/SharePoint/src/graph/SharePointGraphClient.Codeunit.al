@@ -209,6 +209,47 @@ codeunit 9119 "SharePoint Graph Client"
         exit(SharePointGraphClientImpl.CreateListItem(ListId, Title, GraphListItem));
     end;
 
+    /// <summary>
+    /// Gets a single item from a SharePoint list.
+    /// </summary>
+    /// <param name="ListId">ID of the list.</param>
+    /// <param name="ItemId">ID of the item.</param>
+    /// <param name="GraphListItem">Record to store the result. If it already contains an item with the same ID from the same list, that item is refreshed; if that item belongs to a different list, the operation fails.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All</remarks>
+    procedure GetListItem(ListId: Text; ItemId: Text; var GraphListItem: Record "SharePoint Graph List Item" temporary): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.GetListItem(ListId, ItemId, GraphListItem));
+    end;
+
+    /// <summary>
+    /// Gets a single item from a SharePoint list.
+    /// </summary>
+    /// <param name="ListId">ID of the list.</param>
+    /// <param name="ItemId">ID of the item.</param>
+    /// <param name="GraphListItem">Record to store the result. If it already contains an item with the same ID from the same list, that item is refreshed; if that item belongs to a different list, the operation fails.</param>
+    /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.Read.All. The fields property is expanded by default so column values are included in the response; supplying an own $expand parameter overrides this.</remarks>
+    procedure GetListItem(ListId: Text; ItemId: Text; var GraphListItem: Record "SharePoint Graph List Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.GetListItem(ListId, ItemId, GraphListItem, GraphOptionalParameters));
+    end;
+
+    /// <summary>
+    /// Updates an existing list item's fields.
+    /// </summary>
+    /// <param name="ListId">ID of the list.</param>
+    /// <param name="ItemId">ID of the item to update.</param>
+    /// <param name="FieldsJsonObject">JSON object containing the fields to update.</param>
+    /// <param name="GraphListItem">Record to store the updated item details. If it already contains an item with the same ID from the same list, that item is refreshed; if that item belongs to a different list, the operation fails.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All. The record is populated from the PATCH response and contains Id, ListId, Title, and the field values; use GetListItem to also retrieve web URL, content type, and timestamps.</remarks>
+    procedure UpdateListItem(ListId: Text; ItemId: Text; FieldsJsonObject: JsonObject; var GraphListItem: Record "SharePoint Graph List Item" temporary): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.UpdateListItem(ListId, ItemId, FieldsJsonObject, GraphListItem));
+    end;
+
     #endregion
 
     #region Drive and Items
@@ -726,6 +767,62 @@ codeunit 9119 "SharePoint Graph Client"
     procedure MoveItemByPath(ItemPath: Text; TargetFolderPath: Text; NewName: Text): Codeunit "SharePoint Graph Response"
     begin
         exit(SharePointGraphClientImpl.MoveItemByPath(ItemPath, TargetFolderPath, NewName));
+    end;
+
+    #endregion
+
+    #region Update Item
+
+    /// <summary>
+    /// Updates a drive item's properties (name, description, etc.) by ID.
+    /// </summary>
+    /// <param name="ItemId">ID of the item to update.</param>
+    /// <param name="UpdatePropertiesJsonObject">JSON object containing the properties to update (e.g., name, description).</param>
+    /// <param name="GraphDriveItem">Record to store the updated item details. If it already contains an item with the same ID, that item is refreshed.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All.</remarks>
+    procedure UpdateDriveItem(ItemId: Text; UpdatePropertiesJsonObject: JsonObject; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.UpdateDriveItem(ItemId, UpdatePropertiesJsonObject, GraphDriveItem));
+    end;
+
+    /// <summary>
+    /// Updates a drive item's properties (name, description, etc.) by path.
+    /// </summary>
+    /// <param name="ItemPath">Path to the item (e.g., 'Documents/file.docx').</param>
+    /// <param name="UpdatePropertiesJsonObject">JSON object containing the properties to update (e.g., name, description).</param>
+    /// <param name="GraphDriveItem">Record to store the updated item details. If it already contains an item with the same ID, that item is refreshed.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All.</remarks>
+    procedure UpdateDriveItemByPath(ItemPath: Text; UpdatePropertiesJsonObject: JsonObject; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.UpdateDriveItemByPath(ItemPath, UpdatePropertiesJsonObject, GraphDriveItem));
+    end;
+
+    /// <summary>
+    /// Renames a drive item by ID.
+    /// </summary>
+    /// <param name="ItemId">ID of the item to rename.</param>
+    /// <param name="NewName">New name for the item.</param>
+    /// <param name="GraphDriveItem">Record to store the updated item details. If it already contains an item with the same ID, that item is refreshed.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All.</remarks>
+    procedure RenameDriveItem(ItemId: Text; NewName: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.RenameDriveItem(ItemId, NewName, GraphDriveItem));
+    end;
+
+    /// <summary>
+    /// Renames a drive item by path.
+    /// </summary>
+    /// <param name="ItemPath">Path to the item (e.g., 'Documents/file.docx').</param>
+    /// <param name="NewName">New name for the item.</param>
+    /// <param name="GraphDriveItem">Record to store the updated item details. If it already contains an item with the same ID, that item is refreshed.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>Required Microsoft Graph permission: Sites.ReadWrite.All.</remarks>
+    procedure RenameDriveItemByPath(ItemPath: Text; NewName: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
+    begin
+        exit(SharePointGraphClientImpl.RenameDriveItemByPath(ItemPath, NewName, GraphDriveItem));
     end;
 
     #endregion

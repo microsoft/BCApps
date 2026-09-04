@@ -8,7 +8,7 @@ using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
 
-tableextension 99001560 "Subc. Routing Line" extends "Routing Line"
+tableextension 20560 "Subc. Routing Line" extends "Routing Line"
 {
     AllowInCustomizations = AsReadWrite;
     fields
@@ -16,57 +16,25 @@ tableextension 99001560 "Subc. Routing Line" extends "Routing Line"
         modify(Type)
         {
             trigger OnAfterValidate()
-#if not CLEAN29
-            var
-#pragma warning disable AL0432
-                SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
-#pragma warning restore AL0432
-#endif
             begin
-#if not CLEAN29
-#pragma warning disable AL0432
-                if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
-#pragma warning restore AL0432
-                    exit;
-
-#endif
-                if Type = xRec.Type then
-                    exit;
-
-                if Type <> "Capacity Type"::"Work Center" then
-                    "Transfer WIP Item" := false;
+                ClearTransferWIPItemForNonWorkCenter();
             end;
         }
         modify("No.")
         {
             trigger OnAfterValidate()
-            var
-                WorkCenter: Record "Work Center";
-#if not CLEAN29
-#pragma warning disable AL0432
-                SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
-#pragma warning restore AL0432
-#endif
             begin
-#if not CLEAN29
-#pragma warning disable AL0432
-                if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
-#pragma warning restore AL0432
-                    exit;
-#endif
-                if "No." = xRec."No." then
-                    exit;
-                if Type <> "Capacity Type"::"Work Center" then begin
-                    "Transfer WIP Item" := false;
-                    exit;
-                end;
-                WorkCenter.SetLoadFields("Subcontractor No.");
-                WorkCenter.Get("No.");
-                if WorkCenter."Subcontractor No." = '' then
-                    "Transfer WIP Item" := false;
+                ClearTransferWIPItemForNonSubcontractingWorkCenter();
             end;
         }
-        field(99001551; Subcontracting; Boolean)
+        modify("Standard Task Code")
+        {
+            trigger OnAfterValidate()
+            begin
+                TransferStandardTaskCommentsForStandardTaskCode();
+            end;
+        }
+        field(20551; Subcontracting; Boolean)
         {
             AllowInCustomizations = AsReadOnly;
             CalcFormula = exist("Work Center" where("No." = field("Work Center No."),
@@ -76,43 +44,150 @@ tableextension 99001560 "Subc. Routing Line" extends "Routing Line"
             FieldClass = FlowField;
             ToolTip = 'Specifies whether the Work Center Group is set up with a Vendor for Subcontracting.';
         }
-        field(99001560; "Transfer WIP Item"; Boolean)
+        field(20560; "Transfer WIP Item"; Boolean)
         {
             Caption = 'Transfer WIP Item';
             DataClassification = CustomerContent;
             ToolTip = 'Specifies whether the production order parent item (WIP item) is transferred to the subcontractor for this operation.';
 
             trigger OnValidate()
-            var
-#if not CLEAN29
-#pragma warning disable AL0432
-                SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
-#pragma warning restore AL0432
-#endif
             begin
-#if not CLEAN29
-#pragma warning disable AL0432
-                if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
-#pragma warning restore AL0432
-                    exit;
-#endif
-                if "Transfer WIP Item" then begin
-                    CalcFields(Subcontracting);
-                    TestField(Subcontracting, true);
-                end;
+                ValidateTransferWIPItemForSubcontracting();
             end;
         }
-        field(99001561; "Transfer Description"; Text[100])
+        field(20561; "Transfer Description"; Text[100])
         {
             Caption = 'Transfer Description';
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the operation-specific description used on transfer orders for the semi-finished item as it is shipped to the subcontracting location. If empty, the standard description is used.';
         }
-        field(99001562; "Transfer Description 2"; Text[50])
+        field(20562; "Transfer Description 2"; Text[50])
         {
             Caption = 'Transfer Description 2';
             DataClassification = CustomerContent;
             ToolTip = 'Specifies an additional operation-specific description line used on transfer orders for the semi-finished item as it is shipped to the subcontracting location.';
         }
     }
+
+    local procedure ClearTransferWIPItemForNonWorkCenter()
+    var
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if Type = xRec.Type then
+            exit;
+
+        if Type <> "Capacity Type"::"Work Center" then
+            "Transfer WIP Item" := false;
+    end;
+
+    local procedure ClearTransferWIPItemForNonSubcontractingWorkCenter()
+    var
+        WorkCenter: Record "Work Center";
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if "No." = xRec."No." then
+            exit;
+        if Type <> "Capacity Type"::"Work Center" then begin
+            "Transfer WIP Item" := false;
+            exit;
+        end;
+        WorkCenter.SetLoadFields("Subcontractor No.");
+        WorkCenter.Get("No.");
+        if WorkCenter."Subcontractor No." = '' then
+            "Transfer WIP Item" := false;
+    end;
+
+    local procedure TransferStandardTaskCommentsForStandardTaskCode()
+    var
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if Rec.IsTemporary() then
+            exit;
+        if "Standard Task Code" = '' then
+            exit;
+
+        CalcFields(Subcontracting);
+        if not Subcontracting then
+            exit;
+
+        Rec.TransferStandardTaskComments("Standard Task Code");
+    end;
+
+    local procedure ValidateTransferWIPItemForSubcontracting()
+    var
+#if not CLEAN29
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if "Transfer WIP Item" then begin
+            CalcFields(Subcontracting);
+            TestField(Subcontracting, true);
+            TestField(Type, Type::"Work Center");
+        end;
+    end;
+
+    /// <summary>
+    /// Replaces the dedicated Routing Line comments for the operation with the comments defined for the specified Standard Task.
+    /// </summary>
+    /// <param name="StandardTaskCode">The Standard Task Code whose comments are transferred.</param>
+    internal procedure TransferStandardTaskComments(StandardTaskCode: Code[10])
+    var
+        StandardTaskComment: Record "Subc. Standard Task Comment";
+        RoutingComment: Record "Subc. Routing Comment Line";
+    begin
+        RoutingComment.SetRange("Routing No.", Rec."Routing No.");
+        RoutingComment.SetRange("Version Code", Rec."Version Code");
+        RoutingComment.SetRange("Operation No.", Rec."Operation No.");
+
+        StandardTaskComment.SetRange("Standard Task Code", StandardTaskCode);
+        if StandardTaskComment.FindSet() then
+            repeat
+                RoutingComment.Init();
+                RoutingComment."Routing No." := Rec."Routing No.";
+                RoutingComment."Version Code" := Rec."Version Code";
+                RoutingComment."Operation No." := Rec."Operation No.";
+                RoutingComment."Line No." := StandardTaskComment."Line No.";
+                RoutingComment.Description := StandardTaskComment.Description;
+                RoutingComment."Description 2" := StandardTaskComment."Description 2";
+                RoutingComment.Insert();
+            until StandardTaskComment.Next() = 0;
+    end;
 }

@@ -463,7 +463,7 @@ page 9631 "Page Inspection"
         CurrPage.Fields.PAGE.SetFieldListVisibility(PageHasSourceTable);
 
         if ShowExtensions then begin
-            CurrPage.Extensions.PAGE.FilterForExtAffectingPage(Rec."Page ID", Rec."Source Table No.", Rec."Current Form ID");
+            CurrPage.Extensions.PAGE.FilterForExtAffectingPage(Rec."Page ID", Rec."Source Table No.");
             CurrPage.Extensions.PAGE.SetExtensionListVisibility(not PageIsReportRequest and not PageIsReportViewer and not PageIsSystem and not ShowNoPermissionForExtensions);
         end;
 

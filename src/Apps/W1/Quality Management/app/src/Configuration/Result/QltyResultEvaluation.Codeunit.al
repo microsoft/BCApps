@@ -42,12 +42,12 @@ codeunit 20410 "Qlty. Result Evaluation"
     /// Evaluates a result with an optional test.
     /// The test is used to help with expression evaluation.
     /// </summary>
-    /// <param name="OptionalQltyInspectionHeader"></param>
-    /// <param name="QltyIResultConditConf"></param>
-    /// <param name="QltyTestValueType"></param>
-    /// <param name="TestValue"></param>
-    /// <param name="CaseOption"></param>
-    /// <returns></returns>
+    /// <param name="OptionalQltyInspectionHeader">The optional inspection header used to evaluate expressions.</param>
+    /// <param name="QltyIResultConditConf">The filtered result conditions to evaluate.</param>
+    /// <param name="QltyTestValueType">The data type used to interpret the test value and conditions.</param>
+    /// <param name="TestValue">The test value to evaluate.</param>
+    /// <param name="QltyCaseSensitivity">The case sensitivity used for text and predefined-list comparisons.</param>
+    /// <returns>The highest-priority result code whose condition matches, or blank when none match.</returns>
     internal procedure EvaluateResult(var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header"; var QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         QltyTestValueType: Enum "Qlty. Test Value Type"; TestValue: Text; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity"): Code[20]
     var
@@ -60,12 +60,13 @@ codeunit 20410 "Qlty. Result Evaluation"
     /// Evaluates a result with an optional test and inspection line.
     /// The test is used to help with expression evaluation.
     /// </summary>
-    /// <param name="OptionalQltyInspectionHeader"></param>
-    /// <param name="QltyIResultConditConf"></param>
-    /// <param name="QltyTestValueType"></param>
-    /// <param name="TestValue"></param>
-    /// <param name="CaseOption"></param>
-    /// <returns></returns>
+    /// <param name="OptionalQltyInspectionHeader">The optional inspection header used to evaluate expressions.</param>
+    /// <param name="OptionalQltyInspectionLine">The optional inspection line used to evaluate expressions.</param>
+    /// <param name="QltyIResultConditConf">The filtered result conditions to evaluate.</param>
+    /// <param name="QltyTestValueType">The data type used to interpret the test value and conditions.</param>
+    /// <param name="TestValue">The test value to evaluate.</param>
+    /// <param name="QltyCaseSensitivity">The case sensitivity used for text and predefined-list comparisons.</param>
+    /// <returns>The highest-priority result code whose condition matches, or blank when none match.</returns>
     internal procedure EvaluateResult(var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalQltyInspectionLine: Record "Qlty. Inspection Line"; var QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf."; QltyTestValueType: Enum "Qlty. Test Value Type"; TestValue: Text; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity") Result: Code[20]
     var
         QltyInspectionResult: Record "Qlty. Inspection Result";
@@ -145,7 +146,7 @@ codeunit 20410 "Qlty. Result Evaluation"
     /// <summary>
     /// Call this procedure to validate the inspection line.
     /// </summary>
-    /// <param name="QltyInspectionLine"></param>
+    /// <param name="QltyInspectionLine">The inspection line to validate and update.</param>
     internal procedure ValidateQltyInspectionLine(var QltyInspectionLine: Record "Qlty. Inspection Line")
     var
         OptionalQltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -159,9 +160,8 @@ codeunit 20410 "Qlty. Result Evaluation"
     /// This will *not* modify the inspection line.
     /// This will only try and validate the inspection line itself.
     /// </summary>
-    /// <param name="QltyInspectionLine"></param>
-    /// <param name="OptionalQltyInspectionHeader"></param>
-    /// <returns></returns>
+    /// <param name="QltyInspectionLine">The inspection line to validate without persisting changes.</param>
+    /// <param name="OptionalQltyInspectionHeader">The optional inspection header used for expression context.</param>
     [TryFunction]
     internal procedure TryValidateQltyInspectionLine(var QltyInspectionLine: Record "Qlty. Inspection Line"; var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header")
     begin
@@ -171,14 +171,21 @@ codeunit 20410 "Qlty. Result Evaluation"
     /// <summary>
     /// Call this procedure to validate the inspection line for the given test.
     /// </summary>
-    /// <param name="QltyInspectionLine"></param>
-    /// <param name="OptionalQltyInspectionHeader"></param>
+    /// <param name="QltyInspectionLine">The inspection line to validate.</param>
+    /// <param name="OptionalQltyInspectionHeader">The optional inspection header used for expression context and result updates.</param>
     /// <param name="Modify">Set to true to modify the result(default), false to avoid modifying.</param>
     procedure ValidateQltyInspectionLine(var QltyInspectionLine: Record "Qlty. Inspection Line"; var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header"; Modify: Boolean)
     begin
         ValidateInspectionLineWithAllowableValues(QltyInspectionLine, OptionalQltyInspectionHeader, true, Modify);
     end;
 
+    /// <summary>
+    /// Validates optional allowable values, evaluates the line result, sets its failure state, and optionally persists line and header updates.
+    /// </summary>
+    /// <param name="QltyInspectionLine">The inspection line to evaluate and update.</param>
+    /// <param name="OptionalQltyInspectionHeader">The optional header used for expressions and aggregate result updates.</param>
+    /// <param name="CheckForAllowableValues">Specifies whether the test value is validated against allowable values first.</param>
+    /// <param name="UpdateHeader">Specifies whether line and header changes are persisted.</param>
     internal procedure ValidateInspectionLineWithAllowableValues(var QltyInspectionLine: Record "Qlty. Inspection Line"; var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header"; CheckForAllowableValues: Boolean; UpdateHeader: Boolean)
     var
         QltyTest: Record "Qlty. Test";
@@ -220,6 +227,11 @@ codeunit 20410 "Qlty. Result Evaluation"
         end;
     end;
 
+    /// <summary>
+    /// Filters result conditions to the specified inspection line and test.
+    /// </summary>
+    /// <param name="QltyInspectionLine">The inspection line that supplies the condition key.</param>
+    /// <param name="TemplateLineQltyIResultConditConf">The condition record on which inspection filters are set.</param>
     internal procedure GetInspectionLineConfigFilters(var QltyInspectionLine: Record "Qlty. Inspection Line"; var TemplateLineQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.")
     begin
         TemplateLineQltyIResultConditConf.SetRange("Condition Type", TemplateLineQltyIResultConditConf."Condition Type"::Inspection);
@@ -229,6 +241,11 @@ codeunit 20410 "Qlty. Result Evaluation"
         TemplateLineQltyIResultConditConf.SetRange("Test Code", QltyInspectionLine."Test Code");
     end;
 
+    /// <summary>
+    /// Selects inspection, template, or test result conditions for an inspection line in precedence order.
+    /// </summary>
+    /// <param name="QltyInspectionLine">The inspection line whose conditions are selected.</param>
+    /// <param name="QltyIResultConditConf">The condition record that receives the selected filters.</param>
     local procedure GetTestResultConditionConfigFilters(var QltyInspectionLine: Record "Qlty. Inspection Line"; var QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.")
     begin
         QltyIResultConditConf.Reset();
@@ -254,6 +271,11 @@ codeunit 20410 "Qlty. Result Evaluation"
         end;
     end;
 
+    /// <summary>
+    /// Validates and normalizes an inspection line test value against its allowable values.
+    /// </summary>
+    /// <param name="QltyInspectionLine">The inspection line whose test value is validated.</param>
+    /// <param name="OptionalQltyInspectionHeader">The optional header used to resolve allowable-value expressions.</param>
     local procedure ValidateAllowableValuesOnInspectionLine(var QltyInspectionLine: Record "Qlty. Inspection Line"; var OptionalQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         QltyTest: Record "Qlty. Test";
@@ -295,6 +317,10 @@ codeunit 20410 "Qlty. Result Evaluation"
             QltyCaseSensitivity);
     end;
 
+    /// <summary>
+    /// Validates and normalizes a test default value against its allowable values without inspection context.
+    /// </summary>
+    /// <param name="QltyTest">The test whose default value is validated.</param>
     internal procedure ValidateAllowableValuesOnTest(var QltyTest: Record "Qlty. Test")
     var
         TempDummyQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
@@ -303,6 +329,11 @@ codeunit 20410 "Qlty. Result Evaluation"
         ValidateAllowableValuesOnTest(QltyTest, TempDummyQltyInspectionHeader, TempDummyQltyInspectionLine);
     end;
 
+    /// <summary>
+    /// Validates and normalizes a test default value with optional inspection header context.
+    /// </summary>
+    /// <param name="QltyTest">The test whose default value is validated.</param>
+    /// <param name="OptionalContextQltyInspectionHeader">The optional header used to collect or resolve allowable values.</param>
     internal procedure ValidateAllowableValuesOnTest(var QltyTest: Record "Qlty. Test"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header")
     var
         TempDummyQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
@@ -310,6 +341,12 @@ codeunit 20410 "Qlty. Result Evaluation"
         ValidateAllowableValuesOnTest(QltyTest, OptionalContextQltyInspectionHeader, TempDummyQltyInspectionLine);
     end;
 
+    /// <summary>
+    /// Validates and normalizes a test default value with optional inspection header and line context.
+    /// </summary>
+    /// <param name="QltyTest">The test whose default value is validated.</param>
+    /// <param name="OptionalContextQltyInspectionHeader">The optional header used to collect or resolve allowable values.</param>
+    /// <param name="OptionalContextQltyInspectionLine">The optional line used to collect or resolve allowable values.</param>
     internal procedure ValidateAllowableValuesOnTest(var QltyTest: Record "Qlty. Test"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var OptionalContextQltyInspectionLine: Record "Qlty. Inspection Line")
     var
         TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary;
@@ -390,6 +427,10 @@ codeunit 20410 "Qlty. Result Evaluation"
             Error(InvalidAllowableValuesFormatErr, AllowableValues, NumberOrNameOfTestNameForError, QltyTestValueType);
     end;
 
+    /// <summary>
+    /// Tests whether an expression can be applied as a decimal filter.
+    /// </summary>
+    /// <param name="FilterExpression">The decimal filter expression to test.</param>
     [TryFunction]
     local procedure TryApplyDecimalFilter(FilterExpression: Text)
     var
@@ -399,6 +440,10 @@ codeunit 20410 "Qlty. Result Evaluation"
         if TempQltyInspectionLine.IsEmpty() then;
     end;
 
+    /// <summary>
+    /// Tests whether an expression can be applied as an integer filter.
+    /// </summary>
+    /// <param name="FilterExpression">The integer filter expression to test.</param>
     [TryFunction]
     local procedure TryApplyIntegerFilter(FilterExpression: Text)
     var
@@ -408,6 +453,10 @@ codeunit 20410 "Qlty. Result Evaluation"
         if TempInteger.IsEmpty() then;
     end;
 
+    /// <summary>
+    /// Tests whether an expression represents a supported Boolean value.
+    /// </summary>
+    /// <param name="FilterExpression">The Boolean expression to test.</param>
     [TryFunction]
     local procedure TryApplyBooleanFilter(FilterExpression: Text)
     var
@@ -418,6 +467,10 @@ codeunit 20410 "Qlty. Result Evaluation"
             Error(InvalidAllowableValuesFormatErr, FilterExpression, '', 'Boolean');
     end;
 
+    /// <summary>
+    /// Tests whether an expression can be applied as a date filter.
+    /// </summary>
+    /// <param name="FilterExpression">The date filter expression to test.</param>
     [TryFunction]
     local procedure TryApplyDateFilter(FilterExpression: Text)
     var
@@ -427,6 +480,10 @@ codeunit 20410 "Qlty. Result Evaluation"
         if TempDateLookupBuffer.IsEmpty() then;
     end;
 
+    /// <summary>
+    /// Tests whether an expression can be applied as a date-time filter.
+    /// </summary>
+    /// <param name="FilterExpression">The date-time filter expression to test.</param>
     [TryFunction]
     local procedure TryApplyDateTimeFilter(FilterExpression: Text)
     var
@@ -436,6 +493,15 @@ codeunit 20410 "Qlty. Result Evaluation"
         if TempQltyInspectionHeader.IsEmpty() then;
     end;
 
+    /// <summary>
+    /// Validates and normalizes text according to a test value type, allowable expression, and lookup values.
+    /// </summary>
+    /// <param name="NumberOrNameOfTestNameForError">The test identifier used in validation errors.</param>
+    /// <param name="TextToValidate">The value to validate and normalize.</param>
+    /// <param name="AllowableValues">The allowable values expression.</param>
+    /// <param name="QltyTestValueType">The data type used to interpret the value.</param>
+    /// <param name="TempBufferQltyTestLookupValue">The allowable lookup values for option and table lookup tests.</param>
+    /// <param name="QltyCaseSensitivity">The case sensitivity used for text matching.</param>
     local procedure ValidateAllowableValuesOnText(NumberOrNameOfTestNameForError: Text; var TextToValidate: Text[250]; AllowableValues: Text; QltyTestValueType: Enum "Qlty. Test Value Type"; var TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity")
     var
         QltyBooleanParsing: Codeunit "Qlty. Boolean Parsing";
@@ -534,6 +600,12 @@ codeunit 20410 "Qlty. Result Evaluation"
         OnAfterValidateAllowableValuesOnText(NumberOrNameOfTestNameForError, TextToValidate, AllowableValues, QltyTestValueType, TempBufferQltyTestLookupValue, QltyCaseSensitivity);
     end;
 
+    /// <summary>
+    /// Checks whether a decimal text value satisfies an acceptable-value filter.
+    /// </summary>
+    /// <param name="ValueToCheck">The decimal text value to evaluate.</param>
+    /// <param name="AcceptableValue">The acceptable-value filter expression.</param>
+    /// <returns>True if the value satisfies the filter.</returns>
     internal procedure CheckIfValueIsDecimal(ValueToCheck: Text; AcceptableValue: Text): Boolean
     var
         TempNumericalQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
@@ -559,6 +631,12 @@ codeunit 20410 "Qlty. Result Evaluation"
         exit(not TempNumericalQltyInspectionLine.IsEmpty());
     end;
 
+    /// <summary>
+    /// Checks whether an integer text value satisfies an acceptable-value filter.
+    /// </summary>
+    /// <param name="ValueToCheck">The integer text value to evaluate.</param>
+    /// <param name="AcceptableValue">The acceptable-value filter expression.</param>
+    /// <returns>True if the value satisfies the filter.</returns>
     internal procedure CheckIfValueIsInteger(ValueToCheck: Text; AcceptableValue: Text): Boolean
     var
         TempInteger: Record "Integer" temporary;
@@ -584,16 +662,33 @@ codeunit 20410 "Qlty. Result Evaluation"
         exit(not TempInteger.IsEmpty());
     end;
 
+    /// <summary>
+    /// Checks whether a condition accepts blank or any value.
+    /// </summary>
+    /// <param name="AcceptableValue">The condition to inspect.</param>
+    /// <returns>True if the condition is blank or contains only the supported blank form.</returns>
     local procedure IsBlankOrEmptyCondition(AcceptableValue: Text) Result: Boolean
     begin
         Result := AcceptableValue in ['', '  '];
     end;
 
+    /// <summary>
+    /// Checks whether a condition represents any non-empty value.
+    /// </summary>
+    /// <param name="AcceptableValue">The condition to inspect.</param>
+    /// <returns>True if the condition is a default non-empty condition.</returns>
     local procedure IsAnythingExceptEmptyCondition(AcceptableValue: Text) Result: Boolean
     begin
         Result := AcceptableValue in [IsDefaultNumberTok, IsDefaultTextTok];
     end;
 
+    /// <summary>
+    /// Checks a date-time text value against a filter and optionally normalizes valid text.
+    /// </summary>
+    /// <param name="ValueToCheck">The date-time text to evaluate and optionally normalize.</param>
+    /// <param name="AcceptableValue">The acceptable-value filter expression.</param>
+    /// <param name="AdjustValueIfGood">Specifies whether valid text is converted to invariant format.</param>
+    /// <returns>True if the value satisfies the condition.</returns>
     internal procedure CheckIfValueIsDateTime(var ValueToCheck: Text[250]; AcceptableValue: Text; AdjustValueIfGood: Boolean) IsGood: Boolean
     var
         TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary;
@@ -638,6 +733,13 @@ codeunit 20410 "Qlty. Result Evaluation"
         exit(IsGood);
     end;
 
+    /// <summary>
+    /// Checks a date text value against a filter and optionally normalizes valid text.
+    /// </summary>
+    /// <param name="ValueToCheck">The date text to evaluate and optionally normalize.</param>
+    /// <param name="AcceptableValue">The acceptable-value filter expression.</param>
+    /// <param name="AdjustValueIfGood">Specifies whether valid text is converted to invariant format.</param>
+    /// <returns>True if the value satisfies the condition.</returns>
     internal procedure CheckIfValueIsDate(var ValueToCheck: Text[250]; AcceptableValue: Text; AdjustValueIfGood: Boolean) IsGood: Boolean
     var
         TempDateLookupBuffer: Record "Date Lookup Buffer" temporary;
@@ -682,6 +784,12 @@ codeunit 20410 "Qlty. Result Evaluation"
         exit(IsGood);
     end;
 
+    /// <summary>
+    /// Checks a string against a case-sensitive acceptable-value filter.
+    /// </summary>
+    /// <param name="ValueToCheck">The string to evaluate.</param>
+    /// <param name="AcceptableValue">The acceptable-value filter expression.</param>
+    /// <returns>True if the string satisfies the filter.</returns>
     internal procedure CheckIfValueIsString(ValueToCheck: Text; AcceptableValue: Text): Boolean
     var
         QltyCaseSensitivity: Enum "Qlty. Case Sensitivity";
@@ -689,6 +797,13 @@ codeunit 20410 "Qlty. Result Evaluation"
         exit(CheckIfValueIsString(ValueToCheck, AcceptableValue, QltyCaseSensitivity::Sensitive));
     end;
 
+    /// <summary>
+    /// Checks a string against an acceptable-value filter with specified case sensitivity.
+    /// </summary>
+    /// <param name="ValueToCheck">The string to evaluate.</param>
+    /// <param name="AcceptableValue">The acceptable-value filter expression.</param>
+    /// <param name="QltyCaseSensitivity">The case sensitivity used for comparison.</param>
+    /// <returns>True if the string satisfies the filter.</returns>
     internal procedure CheckIfValueIsString(ValueToCheck: Text; AcceptableValue: Text; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity"): Boolean
     var
         TempTestStringValueQltyTest: Record "Qlty. Test" temporary;
@@ -707,6 +822,13 @@ codeunit 20410 "Qlty. Result Evaluation"
         exit(not TempTestStringValueQltyTest.IsEmpty());
     end;
 
+    /// <summary>
+    /// Checks whether a value equals a literal entry in a comma- or pipe-separated list.
+    /// </summary>
+    /// <param name="ValueToCheck">The value to find.</param>
+    /// <param name="AcceptableValue">The predefined value list.</param>
+    /// <param name="QltyCaseSensitivity">The case sensitivity used for comparison.</param>
+    /// <returns>True if the value is accepted by the list condition.</returns>
     internal procedure CheckIfValueIsInPredefinedList(ValueToCheck: Text; AcceptableValue: Text; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity"): Boolean
     var
         SingleAcceptableValue: Text;
@@ -744,7 +866,7 @@ codeunit 20410 "Qlty. Result Evaluation"
     /// <param name="QltyIResultConditConf">var Record "Qlty. Result Condition Config".</param>
     /// <param name="QltyTestValueType">var Rnum "Qlty. Test Value Type".</param>
     /// <param name="TestValue">var Text.</param>
-    /// <param name="OutCode">The result.</param>
+    /// <param name="Result">The result code supplied by a subscriber.</param>
     /// <param name="IsHandled">Set to true to replace the default behavior.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeEvaluateResult(var QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf."; var QltyTestValueType: Enum "Qlty. Test Value Type"; var TestValue: Text; var Result: Code[20]; var IsHandled: Boolean)
@@ -767,13 +889,13 @@ codeunit 20410 "Qlty. Result Evaluation"
     /// <summary>
     /// Allows you to alter the behavior of validating allowable values on text.
     /// </summary>
-    /// <param name="TestNameForError"></param>
-    /// <param name="TextToValidate"></param>
-    /// <param name="AllowableValues"></param>
-    /// <param name="QltyTestValueType"></param>
-    /// <param name="TempBufferQltyTestLookupValue"></param>
-    /// <param name="CaseOption"></param>
-    /// <param name="IsHandled"></param>
+    /// <param name="TestNameForError">The test identifier used in validation errors.</param>
+    /// <param name="TextToValidate">The value to validate and normalize.</param>
+    /// <param name="AllowableValues">The allowable values expression.</param>
+    /// <param name="QltyTestValueType">The data type used to interpret the value.</param>
+    /// <param name="TempBufferQltyTestLookupValue">The allowable lookup values.</param>
+    /// <param name="QltyCaseSensitivity">The case sensitivity used for matching.</param>
+    /// <param name="IsHandled">Set to true to replace the default validation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateAllowableValuesOnText(var TestNameForError: Text; var TextToValidate: Text[250]; var AllowableValues: Text; var QltyTestValueType: Enum "Qlty. Test Value Type"; var TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary; var QltyCaseSensitivity: Enum "Qlty. Case Sensitivity"; var IsHandled: Boolean)
     begin
@@ -782,12 +904,12 @@ codeunit 20410 "Qlty. Result Evaluation"
     /// <summary>
     /// Provides the opportunity to extend and add additional validation after the allowable values has occurred.
     /// </summary>
-    /// <param name="TestNameForError"></param>
-    /// <param name="TextToValidate"></param>
-    /// <param name="AllowableValues"></param>
-    /// <param name="QltyTestValueType"></param>
-    /// <param name="TempBufferQltyTestLookupValue"></param>
-    /// <param name="CaseOption"></param>
+    /// <param name="TestNameForError">The test identifier used in validation errors.</param>
+    /// <param name="TextToValidate">The validated and normalized value.</param>
+    /// <param name="AllowableValues">The allowable values expression.</param>
+    /// <param name="QltyTestValueType">The data type used to interpret the value.</param>
+    /// <param name="TempBufferQltyTestLookupValue">The allowable lookup values.</param>
+    /// <param name="QltyCaseSensitivity">The case sensitivity used for matching.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateAllowableValuesOnText(var TestNameForError: Text; var TextToValidate: Text[250]; var AllowableValues: Text; var QltyTestValueType: Enum "Qlty. Test Value Type"; var TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary; var QltyCaseSensitivity: Enum "Qlty. Case Sensitivity")
     begin

@@ -747,6 +747,11 @@ page 26 "Vendor Card"
 #pragma warning restore AS0072
                 }
 #endif
+                field("Receipt on Invoice Policy"; Rec."Receipt on Invoice Policy")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Receipt on Invoice';
+                }
             }
         }
         area(factboxes)

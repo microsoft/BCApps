@@ -10,6 +10,7 @@ using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Planning;
 
 page 5741 "Transfer Order Subform"
 {
@@ -335,6 +336,20 @@ page 5741 "Transfer Order Subform"
                     trigger OnAction()
                     begin
                         ExplodeBOM();
+                    end;
+                }
+                action(SupplyWhatIfPlanningAnalysis)
+                {
+                    ApplicationArea = Planning;
+                    Caption = 'Supply Planning What-If Analysis';
+                    Image = CalculateRegenerativePlan;
+                    ToolTip = 'Analyze how changes to this transfer order would impact the overall supply planning suggestions.';
+
+                    trigger OnAction()
+                    var
+                        SupplyWhatIfPlanningEngine: Codeunit "Supply What-If Planning Engine";
+                    begin
+                        SupplyWhatIfPlanningEngine.OpenWhatIfPlanning(Rec);
                     end;
                 }
             }

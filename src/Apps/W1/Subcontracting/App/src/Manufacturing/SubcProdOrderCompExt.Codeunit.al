@@ -13,7 +13,7 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using System.Utilities;
 
-codeunit 99001524 "Subc. Prod. Order Comp. Ext."
+codeunit 20524 "Subc. Prod. Order Comp. Ext."
 {
     var
 #if not CLEAN29
