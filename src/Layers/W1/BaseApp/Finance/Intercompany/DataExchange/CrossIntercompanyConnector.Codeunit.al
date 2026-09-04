@@ -432,7 +432,7 @@ codeunit 560 "CrossIntercompany Connector"
     begin
         TelemetryDimensions.Add('Category', CrossIntercompanyTok);
         TelemetryDimensions.Add('Host', Host);
-        Session.LogMessage('0000VC7', InvalidDestinationUrlTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDimensions);
+        Session.LogMessage('0000VC7', InvalidDestinationUrlTelemetryTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDimensions);
         Session.LogSecurityAudit(
             CrossIntercompanyServiceNameTxt, SecurityOperationResult::Failure,
             StrSubstNo(InvalidDestinationUrlSecurityAuditTxt, Host), AuditCategory::ApplicationManagement);
@@ -492,7 +492,7 @@ codeunit 560 "CrossIntercompany Connector"
     begin
         TelemetryDimensions.Add('Category', CrossIntercompanyTok);
         TelemetryDimensions.Add('Host', Host);
-        Session.LogMessage('0000VC8', InvalidTokenEndpointTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDimensions);
+        Session.LogMessage('0000VC8', InvalidTokenEndpointTelemetryTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDimensions);
         Session.LogSecurityAudit(
             CrossIntercompanyServiceNameTxt, SecurityOperationResult::Failure,
             StrSubstNo(InvalidTokenEndpointSecurityAuditTxt, Host), AuditCategory::ApplicationManagement);
