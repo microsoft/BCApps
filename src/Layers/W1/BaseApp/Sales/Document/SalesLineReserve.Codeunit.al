@@ -224,6 +224,17 @@ codeunit 99000832 "Sales Line-Reserve"
         exit(ReservationEntry.FindLast());
     end;
 
+    procedure SynchronizeApplFromItemEntry(SalesLine: Record "Sales Line"; PreviousApplFromItemEntry: Integer)
+    var
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        SalesLine.SetReservationFilters(ReservationEntry);
+        ReservationEntry.SetRange(Positive, true);
+        ReservationEntry.SetFilter(
+            "Appl.-from Item Entry", '%1|%2', 0, PreviousApplFromItemEntry);
+        ReservationEntry.ModifyAll("Appl.-from Item Entry", SalesLine."Appl.-from Item Entry");
+    end;
+
     /// <summary>
     /// Calculates the quantity reserved from inventory for a sales line.
     /// </summary>
@@ -1944,6 +1955,8 @@ codeunit 99000832 "Sales Line-Reserve"
     /// <param name="TransactionSpecification">Returns the initialized tracking specification.</param>
     /// <param name="SalesLine">The sales line to initialize from.</param>
     procedure InitFromSalesLine(var TransactionSpecification: Record "Tracking Specification"; SalesLine: Record "Sales Line")
+    var
+        ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
     begin
         TransactionSpecification.Init();
         TransactionSpecification.SetItemData(
@@ -1951,6 +1964,10 @@ codeunit 99000832 "Sales Line-Reserve"
           SalesLine."Qty. per Unit of Measure", SalesLine."Qty. Rounding Precision (Base)");
         TransactionSpecification.SetSource(
           Database::"Sales Line", SalesLine."Document Type".AsInteger(), SalesLine."Document No.", SalesLine."Line No.", '', 0);
+        if ItemTrackingCodeChangeMgt.IsLinkedApplicationAcrossTrackingPeriods(
+            SalesLine."No.", SalesLine."Appl.-from Item Entry")
+        then
+            TransactionSpecification."Appl.-from Item Entry" := SalesLine."Appl.-from Item Entry";
         if SalesLine.IsCreditDocType() then
             TransactionSpecification.SetQuantities(
               SalesLine."Quantity (Base)", SalesLine."Return Qty. to Receive", SalesLine."Return Qty. to Receive (Base)",
