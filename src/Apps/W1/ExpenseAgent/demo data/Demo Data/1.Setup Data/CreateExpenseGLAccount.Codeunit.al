@@ -54,12 +54,10 @@ codeunit 8207 "Create Expense G/L Account"
     local procedure InsertExpenseVATAccounts()
     var
         ContosoCoffeeDemoDataSetup: Record "Contoso Coffee Demo Data Setup";
-        GLAccountCategoryMgt: Codeunit "G/L Account Category Mgt.";
         CreateExpenseCountryData: Codeunit "Create Expense Country Data";
         CreateExpenseVATRates: Codeunit "Create Expense VAT Rates";
         VATRates: List of [Decimal];
         VATRate: Decimal;
-        SubCategory: Text[80];
     begin
         if not CreateExpenseCountryData.IsVATCountry() then
             exit;
@@ -67,12 +65,11 @@ codeunit 8207 "Create Expense G/L Account"
             exit;
 
         VATRates := GetExpenseVATRates(ContosoCoffeeDemoDataSetup."Country/Region Code");
-        SubCategory := CopyStr(GLAccountCategoryMgt.GetAR(), 1, MaxStrLen(SubCategory));
         foreach VATRate in VATRates do
             ContosoGLAccount.InsertGLAccount(
                 ContosoGLAccount.GetAccountNo(CreateExpenseVATRates.GetExpenseVATAccountName(VATRate)),
                 CreateExpenseVATRates.GetExpenseVATAccountName(VATRate),
-                Enum::"G/L Account Income/Balance"::"Balance Sheet", Enum::"G/L Account Category"::Assets, SubCategory,
+                Enum::"G/L Account Income/Balance"::"Balance Sheet", Enum::"G/L Account Category"::Assets, '',
                 Enum::"G/L Account Type"::Posting, '', '', 0, '', Enum::"General Posting Type"::" ", '', '', false, false, false);
     end;
 
