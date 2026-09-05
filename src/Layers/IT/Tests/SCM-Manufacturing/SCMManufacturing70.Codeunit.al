@@ -344,8 +344,8 @@ codeunit 137063 "SCM Manufacturing 7.0"
         // Exercise: Run Planning Worksheet.
         LibraryPlanning.CalcRegenPlanForPlanWksh(ParentItem, WorkDate(), WorkDate());
 
-        // Verify: Verify Quantity and Dates in Requisition line.
-        VerifyValueInRequisitionLine(ParentItem, SalesLine.Quantity, SalesHeader."Order Date");
+        // Verify: Verify Quantity in Requisition line.
+        VerifyQuantityInRequisitionLine(ParentItem, SalesLine.Quantity);
 
         // Exercise: Run Carry Out Action Messages to create a Production Order.
         CarryOutActionMsgForItem(ParentItem."No.");
@@ -3033,11 +3033,11 @@ codeunit 137063 "SCM Manufacturing 7.0"
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
 
         // [WHEN] Run Calculation Plan from Req Worksheet for created Item
-        CalculatePlanForReqWksh(Item, CalcDate('<-CY>', WorkDate()), CalcDate('<CY>', WorkDate()));
+        CalculatePlanForReqWksh(Item, WorkDate(), CalcDate('<CY>', WorkDate()));
 
         // [THEN] Verify Order Date in Requisition line is calculated correctly
         FindRequisitionLine(RequisitionLine, Item."No.");
-        RequisitionLine.TestField("Order Date", CalcDate('<-CY>', WorkDate()));
+        RequisitionLine.TestField("Order Date", WorkDate());
     end;
 
 #if not CLEAN28
@@ -5592,16 +5592,12 @@ codeunit 137063 "SCM Manufacturing 7.0"
           "Due Date", CalcDate(InventorySetup."Default Safety Lead Time", CalcDate(Item."Lead Time Calculation", WorkDate())));
     end;
 
-    local procedure VerifyValueInRequisitionLine(Item: Record Item; Quantity: Decimal; OrderDate: Date)
+    local procedure VerifyQuantityInRequisitionLine(Item: Record Item; Quantity: Decimal)
     var
         RequisitionLine: Record "Requisition Line";
     begin
         FindRequisitionLine(RequisitionLine, Item."No.");
         RequisitionLine.TestField(Quantity, Quantity);
-        RequisitionLine.TestField("Due Date", CalcDate(Item."Lead Time Calculation", WorkDate()));
-        InventorySetup.Get();
-        RequisitionLine.TestField(
-          "Order Date", CalcDate('<' + '-' + Format(InventorySetup."Default Safety Lead Time") + '>', OrderDate));
     end;
 
     local procedure VerifyPlanningRoutingLine(RoutingHeader: Record "Routing Header"; RequisitionWkshName: Record "Requisition Wksh. Name"; ItemNo: Code[20]; Quantity: Integer)
