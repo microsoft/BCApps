@@ -95,9 +95,11 @@ table 322 "Tax Detail"
             Caption = 'Calculate Tax on Tax';
             Editable = false;
         }
+        // This field moved to W1
         field(10010; "Expense/Capitalize"; Boolean)
         {
             Caption = 'Expense/Capitalize';
+            DataClassification = SystemMetadata;
         }
     }
 
