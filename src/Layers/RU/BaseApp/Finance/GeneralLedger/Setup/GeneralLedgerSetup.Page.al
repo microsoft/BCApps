@@ -517,6 +517,16 @@ page 118 "General Ledger Setup"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Column Definition for Net Change';
                     }
+                    field("Fin. Rep. Preview Column Def."; Rec."Fin. Rep. Preview Column Def.")
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Column Definition for Preview';
+                    }
+                    field("Fin. Rep. Preview Row Def."; Rec."Fin. Rep. Preview Row Def.")
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Row Definition for Preview';
+                    }
                     field("Fin. Rep. Period Type"; Rec."Fin. Rep. Period Type")
                     {
                         ApplicationArea = Basic, Suite;
