@@ -2583,7 +2583,6 @@ codeunit 139197 DocumentSendingPostTests
         SalesInvoiceHeader: Record "Sales Invoice Header";
         Customer: Record Customer;
         ReportID: Integer;
-        CustomReportLayoutCode: Code[20];
         ReportUsage: Enum "Report Selection Usage";
         EmailAddress: array[2] of Text;
     begin
@@ -2598,18 +2597,16 @@ codeunit 139197 DocumentSendingPostTests
         EmailAddress[1] := GenerateRandomEmailAddress();
         EmailAddress[2] := GenerateRandomEmailAddress();
 
-        // [GIVEN] Custom report layout "X" with "Report ID" = 1306
-        CustomReportLayoutCode := FindCustomReportLayout(ReportID);
-        // [GIVEN] Customer with "E-Mail" = "sharik@microsoft.com" and four document layouts:
+        // [GIVEN] Customer with "E-Mail" = "sharik@microsoft.com" and four document layouts, all on layout "X" for "Report ID" = 1306:
         CreateCustomerWithEmail(Customer);
         // [GIVEN] Document layout 1: "Usage" = "Invoice", "Report ID" = 1306, "Custom Layout" = "X", "Send To Email" = ""
-        LibrarySales.CreateCustomerDocumentLayout(Customer."No.", ReportUsage, ReportID, CustomReportLayoutCode, '');
+        CreateCustomerDocumentLayoutForReport(Customer."No.", ReportUsage, ReportID, '');
         // [GIVEN] Document layout 2: "Usage" = "Invoice", "Report ID" = 1306, "Custom Layout" = "X", "Send To Email" = "cheburashka@microsoft.com"
-        LibrarySales.CreateCustomerDocumentLayout(Customer."No.", ReportUsage, ReportID, CustomReportLayoutCode, EmailAddress[1]);
+        CreateCustomerDocumentLayoutForReport(Customer."No.", ReportUsage, ReportID, EmailAddress[1]);
         // [GIVEN] Document layout 3: "Usage" = "Invoice", "Report ID" = 1306, "Custom Layout" = "X", "Send To Email" = ""
-        LibrarySales.CreateCustomerDocumentLayout(Customer."No.", ReportUsage, ReportID, CustomReportLayoutCode, '');
+        CreateCustomerDocumentLayoutForReport(Customer."No.", ReportUsage, ReportID, '');
         // [GIVEN] Document layout 4: "Usage" = "Invoice", "Report ID" = 1306, "Custom Layout" = "X", "Send To Email" = "krokodil@microsoft.com"
-        LibrarySales.CreateCustomerDocumentLayout(Customer."No.", ReportUsage, ReportID, CustomReportLayoutCode, EmailAddress[2]);
+        CreateCustomerDocumentLayoutForReport(Customer."No.", ReportUsage, ReportID, EmailAddress[2]);
 
         // [GIVEN] Posted sales invoice
         SalesInvoiceHeader.Get(CreatePostSalesDoc(DummySalesHeader."Document Type"::Invoice, true, true, Customer."No."));
@@ -4296,7 +4293,6 @@ codeunit 139197 DocumentSendingPostTests
         Customer: array[2] of Record Customer;
         NoSeriesBatch: Codeunit "No. Series - Batch";
         ReportSelectionUsage: Enum "Report Selection Usage";
-        CustomReportLayoutCode: Code[20];
         ReportID: Integer;
         Index: Integer;
     begin
@@ -4305,7 +4301,6 @@ codeunit 139197 DocumentSendingPostTests
 
         ReportID := REPORT::"Standard Sales - Invoice";
         ReportSelectionUsage := ReportSelectionUsage::"S.Invoice";
-        CustomReportLayoutCode := FindCustomReportLayout(ReportID);
 
         for Index := 1 to ArrayLen(Customer) do begin
             LibrarySales.CreateCustomer(Customer[Index]);
@@ -4313,10 +4308,8 @@ codeunit 139197 DocumentSendingPostTests
             Customer[Index].Modify(true);
         end;
 
-        LibrarySales.CreateCustomerDocumentLayout(
-            Customer[1]."No.", ReportSelectionUsage, ReportID, CustomReportLayoutCode, DocumentLayoutEmail[1]);
-        LibrarySales.CreateCustomerDocumentLayout(
-            Customer[2]."No.", ReportSelectionUsage, ReportID, CustomReportLayoutCode, DocumentLayoutEmail[2]);
+        CreateCustomerDocumentLayoutForReport(Customer[1]."No.", ReportSelectionUsage, ReportID, DocumentLayoutEmail[1]);
+        CreateCustomerDocumentLayoutForReport(Customer[2]."No.", ReportSelectionUsage, ReportID, DocumentLayoutEmail[2]);
 
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer[1]."No.");
         SalesHeader.Validate("Bill-to Customer No.", Customer[2]."No.");
@@ -4761,9 +4754,43 @@ codeunit 139197 DocumentSendingPostTests
         exit(LibraryUtility.GenerateGUID() + '@microsoft.com');
     end;
 
+    // Creates a customer document layout carrying a report layout for ReportID. The scenarios that use it
+    // assert one email per document layout row and the "Send To Email" fallback, which resolve from
+    // Usage + Sequence rather than from the layout - the layout only has to be present. Before 29.0 that
+    // is a legacy "Custom Report Layout"; from 29.0 it is the report layout name that superseded it.
+#if not CLEAN29
+    local procedure CreateCustomerDocumentLayoutForReport(CustomerNo: Code[20]; UsageValue: Enum "Report Selection Usage"; ReportID: Integer; EmailAddress: Text)
+    begin
+        LibrarySales.CreateCustomerDocumentLayout(CustomerNo, UsageValue, ReportID, FindCustomReportLayout(ReportID), EmailAddress);
+    end;
+#else
+    local procedure CreateCustomerDocumentLayoutForReport(CustomerNo: Code[20]; UsageValue: Enum "Report Selection Usage"; ReportID: Integer; EmailAddress: Text)
+    var
+        CustomReportSelection: Record "Custom Report Selection";
+        ReportLayoutList: Record "Report Layout List";
+    begin
+        ReportLayoutList.SetRange("Report ID", ReportID);
+        ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::Word);
+        ReportLayoutList.FindFirst();
+
+        CustomReportSelection.Init();
+        CustomReportSelection.Validate("Source Type", DATABASE::Customer);
+        CustomReportSelection.Validate("Source No.", CustomerNo);
+        CustomReportSelection.Validate(Usage, UsageValue);
+        CustomReportSelection.Validate("Report ID", ReportID);
+        CustomReportSelection."Email Attachment Layout Name" := ReportLayoutList.Name;
+        CustomReportSelection."Email Attachment Layout AppID" := ReportLayoutList."Application ID";
+        CustomReportSelection.Validate("Send To Email", CopyStr(EmailAddress, 1, MaxStrLen(CustomReportSelection."Send To Email")));
+        CustomReportSelection.Insert();
+    end;
+#endif
+
+#if not CLEAN29
     local procedure FindCustomReportLayout(ReportID: Integer): Code[20]
     var
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
         ReportLayoutList: Record "Report Layout List";
         TempBlob: Codeunit "Temp Blob";
         InStr: InStream;
@@ -4793,6 +4820,7 @@ codeunit 139197 DocumentSendingPostTests
         end;
         exit(CustomReportLayout.Code);
     end;
+#endif
 
     local procedure UnsupportedDocumentType(DocumentType: Enum "Sales Document Type")
     var

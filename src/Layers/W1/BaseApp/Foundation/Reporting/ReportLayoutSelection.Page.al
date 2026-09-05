@@ -69,7 +69,11 @@ page 9652 "Report Layout Selection"
                 field("Custom Report Layout Code"; Rec."Custom Report Layout Code")
                 {
                     ApplicationArea = Basic, Suite;
+#if not CLEAN29
+#pragma warning disable AL0432
                     TableRelation = "Custom Report Layout" where("Report ID" = field("Report ID"));
+#pragma warning restore AL0432
+#endif
                     Visible = false;
 
                     trigger OnValidate()
@@ -87,9 +91,14 @@ page 9652 "Report Layout Selection"
                     ToolTip = 'Specifies the description of the layout that is used by the report.';
 
                     trigger OnValidate()
+#if not CLEAN29
                     var
+#pragma warning disable AL0432
                         CustomReportLayout2: Record "Custom Report Layout";
+#pragma warning restore AL0432
+#endif
                     begin
+#if not CLEAN29
                         if Rec.Type = Rec.Type::"Custom Layout" then begin
                             CustomReportLayout2.SetCurrentKey("Report ID", "Company Name", Type);
                             CustomReportLayout2.SetRange("Report ID", ReportLayoutSelection."Report ID");
@@ -104,7 +113,9 @@ page 9652 "Report Layout Selection"
                             end;
                         end else
                             ValidateBuiltInReportLayoutDescription();
-
+#else
+                        ValidateBuiltInReportLayoutDescription();
+#endif
                         CurrPage.Update(false);
                     end;
                 }
@@ -112,14 +123,21 @@ page 9652 "Report Layout Selection"
         }
         area(factboxes)
         {
+#if not CLEAN29
+#pragma warning disable AL0432
             part("Custom Layouts"; "Report Layouts Part")
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Custom Layouts';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by the system "Report Layouts" page. This part will be removed in a future version.';
+                ObsoleteTag = '29.0';
                 ShowFilter = false;
                 SubPageLink = "Report ID" = field("Report ID");
                 UpdatePropagation = Both;
             }
+#pragma warning restore AL0432
+#endif
         }
     }
 
@@ -299,7 +317,9 @@ page 9652 "Report Layout Selection"
         CustomLayoutDescription: Text;
         IsInitialized: Boolean;
         DocumentReportExperienceEnabled: Boolean;
+#if not CLEAN29
         CouldNotFindCustomReportLayoutErr: Label 'There is no custom report layout with %1 in the description.', Comment = '%1 Description of custom report layout';
+#endif
         CouldNotFindBuiltInReportLayoutErr: Label 'There is no built-in report layout with %1 in the description.', Comment = '%1 Description of custom report layout';
         ShowLayoutPartsMsg: Label 'Header/Footer Part: %1\Theme Part: %2', Comment = '%1 = resolved header/footer part, %2 = resolved theme part';
         PartWithSourceTxt: Label '%1 (from %2)', Comment = '%1 = part name, %2 = where the part is resolved from';
@@ -348,6 +368,8 @@ page 9652 "Report Layout Selection"
 
         Rec.Type := ReportLayoutSelection.Type;
         Rec."Custom Report Layout Code" := ReportLayoutSelection."Custom Report Layout Code";
+#if not CLEAN29
+#pragma warning disable AL0432
         case Rec.Type of
             Rec.Type::"Custom Layout":
                 Rec.CalcFields("Report Layout Description");
@@ -362,6 +384,16 @@ page 9652 "Report Layout Selection"
         end;
 
         CustomLayoutDescription := Rec."Report Layout Description";
+#pragma warning restore AL0432
+#else
+        if TenantReportLayoutSelection.Get(Rec."Report ID", SelectedCompany) then
+            CustomLayoutDescription := TenantReportLayoutSelection."Layout Name"
+        else
+            if ReportMetadata.Get(Rec."Report ID") then
+                CustomLayoutDescription := ReportMetadata.DefaultLayoutName
+            else
+                CustomLayoutDescription := DefaultLbl;
+#endif
     end;
 
     local procedure LookupLayout()
@@ -440,7 +472,11 @@ page 9652 "Report Layout Selection"
     local procedure SetDefaultSelectionFromReportLayoutList(var ReportLayoutList: Record "Report Layout List"; LayoutName: Text[250])
     begin
         Rec.Validate(Type, LayoutFormatToType(ReportLayoutList."Layout Format"));
+#if not CLEAN29
+#pragma warning disable AL0432
         Rec."Report Layout Description" := LayoutName;
+#pragma warning restore AL0432
+#endif
         CustomLayoutDescription := LayoutName;
     end;
 
@@ -484,7 +520,9 @@ page 9652 "Report Layout Selection"
 #if not CLEAN28
     local procedure SelectReportLayout(): Boolean
     var
+#pragma warning disable AL0432
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432
         OK: Boolean;
     begin
         CustomReportLayout.FilterGroup(4);

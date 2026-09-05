@@ -26,7 +26,9 @@ page 9657 "Customer Report Selections"
         {
             repeater(Group)
             {
+#if not CLEAN29
                 FreezeColumn = "Custom Report Description";
+#endif
                 field(Usage2; Usage2)
                 {
                     ApplicationArea = Basic, Suite;
@@ -74,12 +76,17 @@ page 9657 "Customer Report Selections"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Report Name';
                 }
+#if not CLEAN29
+#pragma warning disable AL0432
                 field("Custom Report Description"; Rec."Custom Report Description")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Custom Layout Description';
                     DrillDown = true;
                     Lookup = true;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the system report layout system ("Tenant Report Layout"). This field will be removed in a future version.';
+                    ObsoleteTag = '29.0';
                     Visible = false;
                     trigger OnDrillDown()
                     begin
@@ -111,6 +118,8 @@ page 9657 "Customer Report Selections"
                         end;
                     end;
                 }
+#pragma warning restore AL0432
+#endif
                 field(SendToEmail; Rec."Send To Email")
                 {
                     ApplicationArea = Basic, Suite;
@@ -134,11 +143,16 @@ page 9657 "Customer Report Selections"
                     ApplicationArea = Basic, Suite;
                     Visible = false;
                 }
+#if not CLEAN29
+#pragma warning disable AL0432
                 field("Email Body Layout Description"; Rec."Email Body Layout Description")
                 {
                     ApplicationArea = Basic, Suite;
                     DrillDown = true;
                     Lookup = true;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the system report layout system ("Tenant Report Layout"). This field will be removed in a future version.';
+                    ObsoleteTag = '29.0';
                     Visible = false;
 
                     trigger OnDrillDown()
@@ -153,6 +167,8 @@ page 9657 "Customer Report Selections"
                         CurrPage.Update(true);
                     end;
                 }
+#pragma warning restore AL0432
+#endif
                 field("Email Body Layout"; ReportSelectionsImpl.GetReportLayoutCaption(Rec."Report ID", Rec."Email Body Layout Name", Rec."Email Body Layout AppID"))
                 {
                     ApplicationArea = Basic, Suite;
@@ -273,7 +289,9 @@ page 9657 "Customer Report Selections"
 
     var
         ReportSelectionsImpl: Codeunit "Report Selections Impl";
+#if not CLEAN29
         CouldNotFindCustomReportLayoutErr: Label 'There is no custom report layout with %1 in the description.', Comment = '%1 Description of custom report layout';
+#endif
 
     protected var
         Usage2: Enum "Custom Report Selection Sales";

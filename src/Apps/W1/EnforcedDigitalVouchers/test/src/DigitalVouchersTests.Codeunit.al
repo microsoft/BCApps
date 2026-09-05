@@ -31,6 +31,9 @@ using Microsoft.Service.Test;
 using Microsoft.Tests.EServices.EDocument;
 using System.Email;
 using System.Environment.Configuration;
+#if CLEAN29
+using System.Reflection;
+#endif
 using System.TestLibraries.Utilities;
 using System.Utilities;
 
@@ -1958,10 +1961,17 @@ codeunit 139515 "Digital Vouchers Tests"
         ReportSelections.ModifyAll("Use for Email Attachment", false);
     end;
 
+    // Scenario 537262 only needs a customer document layout that supplies an email body for the report; it
+    // asserts which attachments the email editor offers, not which layout rendered the body. Before 29.0
+    // that layout is a legacy "Custom Report Layout"; from 29.0 it is the report layout name that
+    // superseded it.
+#if not CLEAN29
     local procedure CreateCustomReportSelectionForCustomer(CustomerNo: Code[20]; ReportSelectionUsage: Enum "Report Selection Usage"; ReportID: Integer)
     var
         CustomReportSelection: Record "Custom Report Selection";
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
     begin
         CustomReportSelection.Init();
         CustomReportSelection.Validate("Source Type", Database::Customer);
@@ -1975,6 +1985,28 @@ codeunit 139515 "Digital Vouchers Tests"
             "Email Body Layout Code", CustomReportLayout.InitBuiltInLayout(CustomReportSelection."Report ID", CustomReportLayout.Type::Word.AsInteger()));
         CustomReportSelection.Insert(true);
     end;
+#else
+    local procedure CreateCustomReportSelectionForCustomer(CustomerNo: Code[20]; ReportSelectionUsage: Enum "Report Selection Usage"; ReportID: Integer)
+    var
+        CustomReportSelection: Record "Custom Report Selection";
+        ReportLayoutList: Record "Report Layout List";
+    begin
+        ReportLayoutList.SetRange("Report ID", ReportID);
+        ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::Word);
+        ReportLayoutList.FindFirst();
+
+        CustomReportSelection.Init();
+        CustomReportSelection.Validate("Source Type", Database::Customer);
+        CustomReportSelection.Validate("Source No.", CustomerNo);
+        CustomReportSelection.Validate(Usage, ReportSelectionUsage);
+        CustomReportSelection.Validate(Sequence, 1);
+        CustomReportSelection.Validate("Report ID", ReportID);
+        CustomReportSelection.Validate("Use for Email Body", true);
+        CustomReportSelection."Email Body Layout Name" := ReportLayoutList.Name;
+        CustomReportSelection."Email Body Layout AppID" := ReportLayoutList."Application ID";
+        CustomReportSelection.Insert(true);
+    end;
+#endif
 
     local procedure BindActiveDirectoryMockEvents()
     begin

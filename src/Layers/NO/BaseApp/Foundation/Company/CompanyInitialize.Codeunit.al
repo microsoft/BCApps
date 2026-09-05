@@ -781,7 +781,11 @@ codeunit 2 "Company-Initialize"
     var
         AssistedCompanySetupStatus: Record "Assisted Company Setup Status";
         ApplicationAreaSetup: Record "Application Area Setup";
+#if not CLEAN29
+#pragma warning disable AL0432
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432
+#endif
         ReportLayoutSelection: Record "Report Layout Selection";
         ExperienceTierSetup: Record "Experience Tier Setup";
     begin
@@ -792,8 +796,10 @@ codeunit 2 "Company-Initialize"
         AssistedCompanySetupStatus.DeleteAll();
         ApplicationAreaSetup.SetRange("Company Name", Rec.Name);
         ApplicationAreaSetup.DeleteAll();
+#if not CLEAN29
         CustomReportLayout.SetRange("Company Name", Rec.Name);
         CustomReportLayout.DeleteAll();
+#endif
         ReportLayoutSelection.SetRange("Company Name", Rec.Name);
         ReportLayoutSelection.DeleteAll();
 

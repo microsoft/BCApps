@@ -65,7 +65,11 @@ table 77 "Report Selections"
         {
             Caption = 'Custom Report Layout Code';
             Editable = false;
+#if not CLEAN29
+#pragma warning disable AL0432
             TableRelation = "Custom Report Layout".Code where(Code = field("Custom Report Layout Code"), "Built-In" = const(false));
+#pragma warning restore AL0432
+#endif
         }
         field(19; "Use for Email Attachment"; Boolean)
         {
@@ -99,9 +103,15 @@ table 77 "Report Selections"
         field(21; "Email Body Layout Code"; Code[20])
         {
             Caption = 'Email Body Custom Layout Code';
+#if not CLEAN29
+#pragma warning disable AL0432
             TableRelation = if ("Email Body Layout Type" = const("Custom Report Layout")) "Custom Report Layout".Code where(Code = field("Email Body Layout Code"), "Report ID" = field("Report ID"), "Built-In" = const(false))
             else
             if ("Email Body Layout Type" = const("HTML Layout")) "O365 HTML Template".Code;
+#pragma warning restore AL0432
+#else
+            TableRelation = if ("Email Body Layout Type" = const("HTML Layout")) "O365 HTML Template".Code;
+#endif
             ToolTip = 'Specifies the ID of the custom email body layout that is used.';
 
             trigger OnValidate()
@@ -110,15 +120,23 @@ table 77 "Report Selections"
                     Testfield("Use for Email Body", true);
                     "Email Body Layout Name" := '';
                 end;
+#if not CLEAN29
+#pragma warning disable AL0432
                 Calcfields("Email Body Layout Description");
+#pragma warning restore AL0432
+#endif
             end;
         }
+#if not CLEAN29
         field(22; "Email Body Layout Description"; Text[250])
         {
             CalcFormula = lookup("Custom Report Layout".Description where(Code = field("Email Body Layout Code")));
             Caption = 'Email Body Custom Layout Description';
             Editable = false;
             FieldClass = Flowfield;
+            ObsoleteState = Pending;
+            ObsoleteReason = 'Replaced by the system report layout system ("Tenant Report Layout"). This field will be removed in a future version.';
+            ObsoleteTag = '29.0';
             ToolTip = 'Specifies a description of the custom email body layout that is used.';
 
 #if not CLEAN28
@@ -134,6 +152,7 @@ table 77 "Report Selections"
             end;
 #endif
         }
+#endif
         field(25; "Email Body Layout Type"; Enum "Email Body Layout Type")
         {
             Caption = 'Email Body Layout Type';
@@ -166,7 +185,11 @@ table 77 "Report Selections"
                 if "Email Body Layout Name" <> '' then begin
                     "Use for Email Body" := true;
                     "Email Body Layout Code" := '';
+#if not CLEAN29
+#pragma warning disable AL0432
                     "Email Body Layout Description" := '';
+#pragma warning restore AL0432
+#endif
                     ReportLayoutList.SetRange(Name, "Email Body Layout Name");
                     ReportLayoutList.SetRange("Report ID", Rec."Report ID");
                     if not IsNullGuid("Email Body Layout AppID") then
@@ -2429,13 +2452,17 @@ table 77 "Report Selections"
         exit((ReportUsage = "Report Selection Usage"::"V.Remittance".AsInteger()) and (TableId = Database::"Gen. Journal Line"));
     end;
 
+#if not CLEAN29
     internal procedure DoesAnyCustomLayotExist(): Boolean
     var
+#pragma warning disable AL0432
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432
     begin
         CustomReportLayout.SetRange("Built-In", false);
         exit(not CustomReportLayout.IsEmpty());
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetCustomReportSelectionForTable(var CustomReportSelection: Record "Custom Report Selection"; TableNo: Integer)

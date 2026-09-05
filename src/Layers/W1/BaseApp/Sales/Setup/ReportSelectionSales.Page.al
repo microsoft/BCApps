@@ -120,9 +120,14 @@ page 306 "Report Selection - Sales"
                     ToolTip = 'Specifies the ID of the custom email body layout that is used.';
                     Visible = false;
                 }
+#if not CLEAN29
+#pragma warning disable AL0432
                 field("Email Body Layout Description"; Rec."Email Body Layout Description")
                 {
                     ApplicationArea = Basic, Suite;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the system report layout system ("Tenant Report Layout"). This field will be removed in a future version.';
+                    ObsoleteTag = '29.0';
                     ToolTip = 'Specifies a description of the custom email body layout that is used.';
                     Visible = false;
 
@@ -131,13 +136,13 @@ page 306 "Report Selection - Sales"
                     var
                         CustomReportLayout: Record "Custom Report Layout";
                     begin
-#pragma warning disable AL0432
                         if CustomReportLayout.LookupLayoutOK(Rec."Report ID") then
-#pragma warning restore AL0432
                             Rec.Validate("Email Body Layout Code", CustomReportLayout.Code);
                     end;
 #endif
                 }
+#pragma warning restore AL0432
+#endif
             }
         }
         area(factboxes)

@@ -278,7 +278,11 @@ permissionset 208 "D365 Basic - Edit"
                   tabledata "Currency Total Buffer" = imd,
                   tabledata "Custom Address Format" = IMD,
                   tabledata "Custom Address Format Line" = IMD,
+#if not CLEAN29
+#pragma warning disable AL0432
                   tabledata "Custom Report Layout" = IMD,
+#pragma warning restore AL0432
+#endif
                   tabledata "Custom Report Selection" = IMD,
                   tabledata Customer = im,
                   tabledata "Customer Amount" = IMD,

@@ -17,7 +17,9 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.ExtendedText;
 using Microsoft.Foundation.NoSeries;
+#if not CLEAN29
 using Microsoft.Foundation.Reporting;
+#endif
 using Microsoft.Foundation.Shipping;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
@@ -5767,6 +5769,7 @@ codeunit 136101 "Service Orders"
         Assert.AreEqual(Customer[2]."Country/Region Code", ServiceHeader."VAT Country/Region Code", VATCountryRegionLbl);
     end;
 
+#if not CLEAN29
     [Test]
     [HandlerFunctions('ServiceOrderReportRequestPageHandler')]
     procedure PrintServiceOrderWithWorkDescription()
@@ -5799,6 +5802,7 @@ codeunit 136101 "Service Orders"
 
         // [THEN] Verify no transaction error should occur.
     end;
+#endif
 
     [Test]
     [Scope('OnPrem')]
@@ -8172,10 +8176,13 @@ codeunit 136101 "Service Orders"
             exit(ServiceInvoiceHeader."No.");
     end;
 
+#if not CLEAN29
     local procedure CreateCustomReportSelectionForCustomer(CustomerNo: Code[20]; ReportSelectionUsage: Enum "Report Selection Usage"; ReportID: Integer)
     var
         CustomReportSelection: Record "Custom Report Selection";
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
     begin
         CustomReportSelection.Init();
         CustomReportSelection.Validate("Source Type", Database::Customer);
@@ -8188,6 +8195,7 @@ codeunit 136101 "Service Orders"
             "Email Body Layout Code", CustomReportLayout.InitBuiltInLayout(CustomReportSelection."Report ID", CustomReportLayout.Type::Word.AsInteger()));
         CustomReportSelection.Insert(true);
     end;
+#endif
 
     local procedure CreateShipmentMethod(var ShipmentMethod: Record "Shipment Method")
     begin

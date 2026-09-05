@@ -631,7 +631,11 @@ permissionset 7931 "D365 TEAM MEMBER"
                   tabledata "Cust. Ledger Entry" = RiMd,
                   tabledata "Custom Address Format" = RM,
                   tabledata "Custom Address Format Line" = RM,
+#if not CLEAN29
+#pragma warning disable AL0432
                   tabledata "Custom Report Layout" = RM,
+#pragma warning restore AL0432
+#endif
                   tabledata "Custom Report Selection" = RIMD,
                   tabledata Customer = RM,
                   tabledata "Customer Amount" = RM,

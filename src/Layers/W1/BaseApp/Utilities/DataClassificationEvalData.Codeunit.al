@@ -300,7 +300,9 @@ codeunit 1751 "Data Classification Eval. Data"
         ClassifyVATEntry();
         ClassifyVATRegistrationLog();
         ClassifyInsuranceRegister();
+#if not CLEAN29
         ClassifyCustomReportLayout();
+#endif
         ClassifyCostBudgetRegister();
         ClassifyCostBudgetEntry();
         ClassifyCostAllocationTarget();
@@ -2906,15 +2908,21 @@ codeunit 1751 "Data Classification Eval. Data"
         SetFieldToPersonal(TableNo, DummyInsuranceRegister.FieldNo("User ID"));
     end;
 
+#if not CLEAN29
     local procedure ClassifyCustomReportLayout()
     var
+#pragma warning disable AL0432
         DummyCustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432
         TableNo: Integer;
     begin
+#pragma warning disable AL0432
         TableNo := DATABASE::"Custom Report Layout";
+#pragma warning restore AL0432
         SetTableFieldsToNormal(TableNo);
         SetFieldToPersonal(TableNo, DummyCustomReportLayout.FieldNo("Last Modified by User"));
     end;
+#endif
 
     local procedure ClassifyCostBudgetRegister()
     var

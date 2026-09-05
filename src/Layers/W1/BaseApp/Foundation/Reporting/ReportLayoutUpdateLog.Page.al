@@ -74,9 +74,7 @@ page 9656 "Report Layout Update Log"
                     CustomReportLayout.SetFilter("Report ID", Format(Rec."Report ID"));
                     CustomReportLayout.SetFilter(Description, Rec."Layout Description");
                     if CustomReportLayout.FindFirst() then
-#pragma warning disable AL0432
                         PAGE.Run(PAGE::"Custom Report Layouts", CustomReportLayout);
-#pragma warning restore AL0432
                 end;
             }
 #endif

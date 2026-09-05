@@ -7,7 +7,6 @@ namespace Microsoft.CRM.Interaction;
 using Microsoft.CRM.Segment;
 using Microsoft.CRM.Setup;
 using Microsoft.Foundation.NoSeries;
-using Microsoft.Foundation.Reporting;
 using System.Environment;
 using System.IO;
 using System.Utilities;
@@ -774,9 +773,9 @@ table 5062 Attachment
 
     local procedure GetCustomLayoutCodeLength(): Integer
     var
-        DummyCustomReportLayout: Record "Custom Report Layout";
+        CustomLayoutCode: Code[20];
     begin
-        exit(MaxStrLen(DummyCustomReportLayout.Code));
+        exit(MaxStrLen(CustomLayoutCode));
     end;
 
     local procedure ProcessWebAttachment(FileName: Text)

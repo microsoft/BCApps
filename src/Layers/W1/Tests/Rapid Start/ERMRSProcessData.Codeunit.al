@@ -1,3 +1,4 @@
+#pragma warning disable AL0432, AS0105
 codeunit 136612 "ERM RS Process Data"
 {
     EventSubscriberInstance = Manual;
@@ -1522,6 +1523,7 @@ codeunit 136612 "ERM RS Process Data"
         Assert.AreEqual(1, Customer.Count, 'There is not one Customer in the Customer table. Deletion failed.');
     end;
 
+#if not CLEAN29
     [Test]
     [Scope('OnPrem')]
     procedure RunPostActionOnCustomReportLayout()
@@ -1568,13 +1570,16 @@ codeunit 136612 "ERM RS Process Data"
         Assert.IsTrue(
           ReportLayoutSelection."Custom Report Layout Code" = CustomLayoutCode, StrSubstNo('Expected report layout %1.', CustomLayoutCode));
     end;
+#endif
 
     local procedure Initialize()
     var
         ConfigPackageTable: Record "Config. Package Table";
         ConfigPackageFilter: Record "Config. Package Filter";
         ConfigTableProcessingRule: Record "Config. Table Processing Rule";
+#if not CLEAN29
         CustomReportLayout: Record "Custom Report Layout";
+#endif
         ReportLayoutSelection: Record "Report Layout Selection";
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"ERM RS Process Data");
@@ -1583,7 +1588,9 @@ codeunit 136612 "ERM RS Process Data"
         ConfigPackageTable.DeleteAll(true);
         ConfigPackageFilter.DeleteAll(true);
         ConfigTableProcessingRule.DeleteAll(true);
+#if not CLEAN29
         CustomReportLayout.DeleteAll();
+#endif
         ReportLayoutSelection.DeleteAll(true);
     end;
 
@@ -2087,6 +2094,7 @@ codeunit 136612 "ERM RS Process Data"
         Assert.IsFalse(ConfigTableProcessingRules.FilterInfo.Editable(), 'Filter info should not be editable');
     end;
 
+#if not CLEAN29
     local procedure CreateCustomReportLayouts(ReportQty: Integer; ReportID: Integer)
     var
         CustomReportLayout: Record "Custom Report Layout";
@@ -2097,6 +2105,7 @@ codeunit 136612 "ERM RS Process Data"
             CustomReportLayout.Description := StrSubstNo('Layout %1', i);
         end;
     end;
+#endif
 
     [EventSubscriber(ObjectType::Table, Database::"Config. Table Processing Rule", 'OnDoesTableHaveCustomRuleInRapidStart', '', false, false)]
     local procedure OnDoesTableHaveCustomHandler(TableID: Integer; var Result: Boolean)
@@ -2119,4 +2128,5 @@ codeunit 136612 "ERM RS Process Data"
         end
     end;
 }
+#pragma warning restore AL0432, AS0105
 

@@ -148,7 +148,7 @@ codeunit 136314 "Job Quote Report Tests"
     begin
         // [GIVEN] A newly setup company, with a new job created
         Initialize();
-        SetReportLayoutForCustomWord();
+        SetReportLayoutForJobQuote();
         SetupForJobQuote(JobPlanningLine);
 
         // [WHEN] Job list is opened with the newly-created job
@@ -176,7 +176,7 @@ codeunit 136314 "Job Quote Report Tests"
         // [FEATURE] [UT] [UI]
         // [SCENARIO 416894] The Job List use Report selection for runs report "Preview Job Queue"
         Initialize();
-        SetReportLayoutForCustomWord();
+        SetReportLayoutForJobQuote();
         CreateJobQueueReportSelection();
         SetupForJobQuote(JobPlanningLine);
 
@@ -418,9 +418,24 @@ codeunit 136314 "Job Quote Report Tests"
         SetReportLayout(ReportLayoutSelection.Type::"RDLC (built-in)", '');
     end;
 
+    // The Job List scenarios only need a layout to be selected for report "Job Quote"; they assert the
+    // report selection and the pages that follow, not the layout itself. Keep exercising the legacy
+    // custom-Word selection while it exists, and fall back to the built-in layout once it is gone.
+    local procedure SetReportLayoutForJobQuote()
+    begin
+#if not CLEAN29
+        SetReportLayoutForCustomWord();
+#else
+        SetReportLayoutForRDLC();
+#endif
+    end;
+
+#if not CLEAN29
     local procedure SetReportLayoutForCustomWord()
     var
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
         CustomReportLayoutCode: Code[20];
     begin
         Clear(CustomReportLayout);
@@ -432,6 +447,7 @@ codeunit 136314 "Job Quote Report Tests"
 
         SetReportLayout(ReportLayoutSelection.Type::"Custom Layout", CustomReportLayoutCode);
     end;
+#endif
 
     local procedure SetReportLayout(LayoutSelection: Integer; CustomReportLayoutCode: Code[20])
     begin

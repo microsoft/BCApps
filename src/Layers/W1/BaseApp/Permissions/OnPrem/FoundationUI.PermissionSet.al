@@ -119,7 +119,11 @@ permissionset 6946 "Foundation UI"
                   tabledata "Contact Business Relation" = R,
                   tabledata "Cost Accounting Setup" = Rim,
                   tabledata "CRM Connection Setup" = R,
+#if not CLEAN29
+#pragma warning disable AL0432
                   tabledata "Custom Report Layout" = RIMD,
+#pragma warning restore AL0432
+#endif
                   tabledata "Customer Discount Group" = R,
                   tabledata "Customized Calendar Change" = R,
                   tabledata "Customized Calendar Entry" = R,
