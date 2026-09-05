@@ -147,6 +147,9 @@ function Test-ApplicationTestTypes {
     - DuplicateObjects: An array of object signatures that are found to be duplicates across the scanned files.
     .PARAMETER SourceCodePaths
     An array of paths to the source code directories to be scanned for AL files.
+    .PARAMETER ObjectTypePattern
+    A regular expression alternation of the AL object types to recognize. Defaults to the primary six
+    ID-bearing types so that existing callers (the duplicate and test object checks) are unaffected.
     .OUTPUTS
     A custom object with the following properties:
     - ObjectSignatures: A hash map of unique object signatures and their names.
@@ -155,9 +158,11 @@ function Test-ApplicationTestTypes {
 #>
 function Get-FilesCollection
 (
-    [string[]] $SourceCodePaths
+    [string[]] $SourceCodePaths,
+    [string] $ObjectTypePattern = 'codeunit|page|table|query|report|xmlport'
 ) {
     $SourceFiles = @{}
+    $ObjectDetails = @{}
     $TestObjectSignatures = @()
     $DuplicateObjectSignatures = @()
 
@@ -168,7 +173,7 @@ function Get-FilesCollection
         }
         $filesInPath = Get-ChildItem -Path $Path -File -Recurse -Filter '*.al'
         foreach ($file in $filesInPath) {
-            $objectInfo = GetALObjectInformation -FilePath $file.FullName
+            $objectInfo = GetALObjectInformation -FilePath $file.FullName -ObjectTypePattern $ObjectTypePattern
             if ($null -eq $objectInfo) {
                 continue
             }
@@ -178,6 +183,13 @@ function Get-FilesCollection
                     $TestObjectSignatures += $objectInfo.Signature
                 }
                 $SourceFiles.Add($objectInfo.Signature, $objectInfo.ObjectName)
+                $ObjectDetails.Add($objectInfo.Signature, [PSCustomObject] @{
+                        ObjectType = $objectInfo.ObjectType
+                        ObjectId   = $objectInfo.ObjectId
+                        ObjectName = $objectInfo.ObjectName
+                        Signature  = $objectInfo.Signature
+                        Path       = $file.FullName
+                    })
             }
             else {
                 $DuplicateObjectSignatures += $objectInfo.Signature
@@ -188,6 +200,7 @@ function Get-FilesCollection
 
     return [PSCustomObject] @{
         ObjectSignatures = $SourceFiles
+        ObjectDetails    = $ObjectDetails
         TestObjects      = $TestObjectSignatures
         DuplicateObjects = $DuplicateObjectSignatures
     }
@@ -195,12 +208,13 @@ function Get-FilesCollection
 
 function GetALObjectInformation
 (
-    [string] $FilePath
+    [string] $FilePath,
+    [string] $ObjectTypePattern = 'codeunit|page|table|query|report|xmlport'
 ) {
     # (?<!\/\/.*) - negative lookbehind to exclude the comments on top of the file containing object signatures, for example:
     # // These tests rely on codeunit 138704 "Reten. Pol. Test Installer"
     #codeunit 138703 "Reten. Pol. Allowed Tbl. Test"
-    $RegexPattern = '(?<!\/\/.*)(codeunit|page|table|query|report|xmlport) (\d+) (.*)'
+    $RegexPattern = "(?<!\/\/.*)($ObjectTypePattern) (\d+) (.*)"
     $MatchedString = Select-String -Path $FilePath -List -Pattern $RegexPattern
 
     if ($null -eq $MatchedString) {
@@ -323,8 +337,277 @@ function GetObjectId
     return $ObjectId -as [int]
 }
 
+function Get-JsonPropertyValue {
+    param(
+        [object] $InputObject,
+        [string[]] $PropertyPath
+    )
+
+    $currentValue = $InputObject
+    foreach ($propertyName in $PropertyPath) {
+        if ($null -eq $currentValue) {
+            return $null
+        }
+        $property = $currentValue.PSObject.Properties[$propertyName]
+        if ($null -eq $property) {
+            return $null
+        }
+        $currentValue = $property.Value
+    }
+
+    return $currentValue
+}
+
+<#
+    .SYNOPSIS
+    Determines whether an object ID falls within any of the provided allowed ranges.
+    .DESCRIPTION
+    Returns $true if the given numeric object ID is contained (inclusively) in at least one of the
+    allowed ranges, otherwise $false.
+    .PARAMETER ObjectId
+    The numeric object ID to validate.
+    .PARAMETER AllowedRanges
+    An array of range objects, each exposing integer 'From' and 'To' properties (inclusive bounds).
+#>
+function Test-IsObjectIdInAllowedRange {
+    param(
+        [Parameter(Mandatory = $true)] [int64] $ObjectId,
+        [Parameter(Mandatory = $true)] [object[]] $AllowedRanges
+    )
+
+    foreach ($range in $AllowedRanges) {
+        if (($ObjectId -ge [int64]$range.From) -and ($ObjectId -le [int64]$range.To)) {
+            return $true
+        }
+    }
+
+    return $false
+}
+
+<#
+    .SYNOPSIS
+    Returns the objects that are newly introduced in the current source compared to a base object collection.
+    .DESCRIPTION
+    An object is considered "introduced" when its signature ("<object type> <object id>") is present in the
+    current collection but absent from the base collection. As a result, brand new objects and renumbered
+    objects (which yield a new signature) are returned, while unchanged objects, edited objects that keep the
+    same object type and ID, renamed or moved objects that keep the same signature, and deleted objects are
+    not returned.
+    .PARAMETER CurrentObjects
+    The object collection (as returned by Get-FilesCollection) for the current source code.
+    .PARAMETER BaseObjects
+    The object collection (as returned by Get-FilesCollection) for the base source code.
+    .PARAMETER ExcludeTestObjects
+    If specified, signatures identified as test objects in the current collection are excluded from the result.
+    .OUTPUTS
+    An array of object detail records (ObjectType, ObjectId, ObjectName, Signature, Path).
+#>
+function Get-IntroducedObjects {
+    param(
+        [Parameter(Mandatory = $true)] [object] $CurrentObjects,
+        [Parameter(Mandatory = $true)] [object] $BaseObjects,
+        [switch] $ExcludeTestObjects
+    )
+
+    $baseSignatures = $BaseObjects.ObjectSignatures
+    $testSignatures = @($CurrentObjects.TestObjects)
+
+    $introducedObjects = @()
+    foreach ($signature in $CurrentObjects.ObjectSignatures.Keys) {
+        if ($baseSignatures.ContainsKey($signature)) {
+            continue
+        }
+        if ($ExcludeTestObjects -and ($testSignatures -contains $signature)) {
+            continue
+        }
+        $introducedObjects += $CurrentObjects.ObjectDetails[$signature]
+    }
+
+    return @($introducedObjects)
+}
+
+<#
+    .SYNOPSIS
+    Tests that object IDs introduced by the current changes fall within the allowed object ID ranges.
+    .DESCRIPTION
+    This function compares the current object collection against a base object collection and validates that
+    every newly introduced object (present now but absent in the base) has a numeric ID within one of the
+    allowed ranges. Objects that already existed in the base are never flagged, even when their IDs are
+    outside the allowed ranges. Test objects are excluded, because their IDs are validated separately.
+    All offending introduced objects are reported (object type, ID, name and path) before an error is thrown.
+    .PARAMETER CurrentObjects
+    The object collection (as returned by Get-FilesCollection) for the current source code.
+    .PARAMETER BaseObjects
+    The object collection (as returned by Get-FilesCollection) for the base source code.
+    .PARAMETER AllowedRanges
+    An array of range objects, each exposing integer 'From' and 'To' properties (inclusive bounds).
+    .PARAMETER AllowedOutOfRangeObjects
+    An array of object signatures ("<object type> <object id>") that are explicitly allowed to be out of range.
+#>
+function Test-IntroducedObjectIDsAreInAllowedRange {
+    param(
+        [Parameter(Mandatory = $true)] [object] $CurrentObjects,
+        [Parameter(Mandatory = $true)] [object] $BaseObjects,
+        [Parameter(Mandatory = $true)] [object[]] $AllowedRanges,
+        [string[]] $AllowedOutOfRangeObjects = @()
+    )
+
+    $introducedObjects = Get-IntroducedObjects -CurrentObjects $CurrentObjects -BaseObjects $BaseObjects -ExcludeTestObjects
+
+    $offendingObjects = @()
+    foreach ($object in $introducedObjects) {
+        if ($AllowedOutOfRangeObjects -contains $object.Signature) {
+            continue
+        }
+
+        $objectId = $object.ObjectId -as [int64]
+        if ($null -eq $objectId) {
+            continue
+        }
+
+        if (-not (Test-IsObjectIdInAllowedRange -ObjectId $objectId -AllowedRanges $AllowedRanges)) {
+            $offendingObjects += $object
+        }
+    }
+
+    if ($offendingObjects.Count -gt 0) {
+        $rangeText = (($AllowedRanges | ForEach-Object { "$($_.From)..$($_.To)" }) -join ', ')
+        foreach ($offendingObject in ($offendingObjects | Sort-Object { [int64]$_.ObjectId })) {
+            Write-Host "##[error]Introduced object '$($offendingObject.ObjectType) $($offendingObject.ObjectId) $($offendingObject.ObjectName)' in file '$($offendingObject.Path)' has an ID outside the allowed range(s): $rangeText"
+        }
+        throw "Introduced object ID validation failed. $($offendingObjects.Count) newly introduced object(s) have IDs outside the allowed range(s) ($rangeText). Object ID ranges reserved for partners/ISVs must not be used by first-party apps. When adding new objects, ensure that their IDs are within the allowed ranges."
+    }
+}
+
+<#
+    .SYNOPSIS
+    Resolves the base commit SHA for the current GitHub Actions workflow run.
+    .DESCRIPTION
+    Determines the base commit that the current changes should be compared against. For 'pull_request' (and
+    'pull_request_target') events the base is read from '.pull_request.base.sha' in the event payload. For
+    'merge_group' events the base is read from '.merge_group.base_sha'. When the payload cannot be read or does
+    not contain the base SHA, the function falls back to 'origin/<GITHUB_BASE_REF>'. Returns $null when no base
+    can be determined.
+    .PARAMETER EventName
+    The GitHub event name. Defaults to the GITHUB_EVENT_NAME environment variable.
+    .PARAMETER EventPath
+    The path to the GitHub event payload JSON file. Defaults to the GITHUB_EVENT_PATH environment variable.
+    .PARAMETER BaseRef
+    The base ref (target branch) name. Defaults to the GITHUB_BASE_REF environment variable.
+#>
+function Get-PullRequestBaseSha {
+    param(
+        [string] $EventName = $env:GITHUB_EVENT_NAME,
+        [string] $EventPath = $env:GITHUB_EVENT_PATH,
+        [string] $BaseRef = $env:GITHUB_BASE_REF
+    )
+
+    $baseSha = $null
+
+    if (-not [string]::IsNullOrWhiteSpace($EventPath) -and (Test-Path -Path $EventPath)) {
+        $eventPayload = $null
+        try {
+            $eventPayload = Get-Content -Path $EventPath -Raw | ConvertFrom-Json
+        }
+        catch {
+            Write-Host "Unable to parse the GitHub event payload at '$EventPath': $($_.Exception.Message)"
+        }
+
+        if ($null -ne $eventPayload) {
+            switch ($EventName) {
+                'pull_request' { $baseSha = Get-JsonPropertyValue -InputObject $eventPayload -PropertyPath @('pull_request', 'base', 'sha') }
+                'pull_request_target' { $baseSha = Get-JsonPropertyValue -InputObject $eventPayload -PropertyPath @('pull_request', 'base', 'sha') }
+                'merge_group' { $baseSha = Get-JsonPropertyValue -InputObject $eventPayload -PropertyPath @('merge_group', 'base_sha') }
+                default { $baseSha = $null }
+            }
+        }
+    }
+
+    if ([string]::IsNullOrWhiteSpace($baseSha) -and -not [string]::IsNullOrWhiteSpace($BaseRef)) {
+        $baseSha = "origin/$BaseRef"
+    }
+
+    if ([string]::IsNullOrWhiteSpace($baseSha)) {
+        return $null
+    }
+
+    return $baseSha
+}
+
+<#
+    .SYNOPSIS
+    Returns the object collection (as returned by Get-FilesCollection) for the given commit.
+    .DESCRIPTION
+    Checks out the requested commit into a temporary, detached worktree, scans the specified source paths
+    (relative to the repository root) for AL objects, and returns the resulting object collection. The
+    temporary worktree is always removed afterwards. When the commit is not available locally an attempt is
+    made to fetch it from origin.
+    .PARAMETER Commitish
+    The commit SHA (or ref such as 'origin/main') to inspect.
+    .PARAMETER RepositoryRoot
+    The absolute path to the repository root.
+    .PARAMETER RelativeSourcePaths
+    The source paths to scan, relative to the repository root.
+    .PARAMETER ObjectTypePattern
+    A regular expression alternation of the AL object types to recognize (passed through to Get-FilesCollection).
+#>
+function Get-ObjectCollectionAtCommit {
+    param(
+        [Parameter(Mandatory = $true)] [string] $Commitish,
+        [Parameter(Mandatory = $true)] [string] $RepositoryRoot,
+        [Parameter(Mandatory = $true)] [string[]] $RelativeSourcePaths,
+        [string] $ObjectTypePattern = 'codeunit|page|table|query|report|xmlport'
+    )
+
+    Push-Location -Path $RepositoryRoot
+    try {
+        & git cat-file -e "$Commitish^{commit}" 2>$null
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "Base commit '$Commitish' is not available locally. Attempting to fetch it from origin."
+            $fetchRef = $Commitish
+            if ($Commitish -match '^origin/(?<BranchName>.+)$') {
+                $branchName = $Matches['BranchName']
+                $fetchRef = "+refs/heads/$branchName`:refs/remotes/origin/$branchName"
+            }
+
+            & git fetch --no-tags --quiet origin $fetchRef 2>$null
+        }
+
+        $resolvedCommit = (& git rev-parse --verify --quiet "$Commitish^{commit}")
+        if ([string]::IsNullOrWhiteSpace($resolvedCommit)) {
+            throw "Unable to resolve base commit '$Commitish'. Cannot determine introduced objects."
+        }
+
+        $worktreePath = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("BCApps-base-" + [System.Guid]::NewGuid().ToString('N'))
+        & git worktree add --quiet --detach --force $worktreePath $resolvedCommit 2>$null
+        if ($LASTEXITCODE -ne 0) {
+            throw "Unable to create a temporary worktree for base commit '$resolvedCommit'."
+        }
+
+        try {
+            $baseSourcePaths = @(
+                $RelativeSourcePaths |
+                    ForEach-Object { Join-Path -Path $worktreePath -ChildPath $_ } |
+                    Where-Object { Test-Path -Path $_ }
+            )
+            return Get-FilesCollection -SourceCodePaths $baseSourcePaths -ObjectTypePattern $ObjectTypePattern
+        }
+        finally {
+            & git worktree remove --force $worktreePath 2>$null
+        }
+    }
+    finally {
+        Pop-Location
+    }
+}
+
 Export-ModuleMember -Function Test-ObjectIDsAreValid
 Export-ModuleMember -Function Test-ApplicationIds
 Export-ModuleMember -Function Test-ApplicationTestTypes
 Export-ModuleMember -Function Test-ApplicationManifests
 Export-ModuleMember -Function Get-FilesCollection
+Export-ModuleMember -Function Get-IntroducedObjects
+Export-ModuleMember -Function Test-IntroducedObjectIDsAreInAllowedRange
+Export-ModuleMember -Function Test-IsObjectIdInAllowedRange
+Export-ModuleMember -Function Get-PullRequestBaseSha
+Export-ModuleMember -Function Get-ObjectCollectionAtCommit
