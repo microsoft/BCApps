@@ -800,6 +800,7 @@ table 6900 Expense
         NonRefundableAmountCannotBeNegativeErr: Label '%1 cannot be in negative on Expense No. %2.', Comment = '%1 = Field Caption, %2 = Expense No.';
         ExpenseUserMustBeLinkedToAnEmployeeErr: Label 'Expense User %1 must be linked to an Employee No.', Comment = '%1 = Expense User No.';
         BillableCustomerAndProjectErr: Label 'You cannot use both %1 and %2 at the same time.', Comment = '%1 = Billable to Customer field caption, %2 = Project No. field caption';
+        ModifyOrDeleteErr: Label 'Modifications and delete are not allowed for records created by the Expense Agent API.';
 
     procedure AssistEdit() Result: Boolean
     begin
@@ -1321,6 +1322,7 @@ table 6900 Expense
 
     internal procedure UpdateVATSpecification(ExpenseNo: Code[20])
     var
+        ExpenseCategory: Record "Expense Category";
         ExpenseItemization: Record "Expense Itemization";
         ExpenseVATSpec: Record "Expense VAT Specification";
         TempExpenseVATSpec: Record "Expense VAT Specification" temporary;
@@ -1330,33 +1332,61 @@ table 6900 Expense
         if ExpenseAgentSetup."Default VAT Bus. Posting Group" = '' then
             exit;
 
-        ExpenseItemization.SetRange("Expense No.", ExpenseNo);
-        if ExpenseItemization.IsEmpty() then
-            exit;
-
         ExpenseVATSpec.SetRange("Expense No.", ExpenseNo);
-        ExpenseVATSpec.DeleteAll();
+        ExpenseVATSpec.SetRange(Source, ExpenseVATSpec.Source::Agent);
+        if not ExpenseVATSpec.IsEmpty() then
+            error(ModifyOrDeleteErr);
 
-        LineNo := 0;
-        ExpenseItemization.FindSet();
-        repeat
-            TempExpenseVATSpec.SetRange("Expense Category", ExpenseItemization."Expense Category Code");
-            TempExpenseVATSpec.SetRange("Expense Subcategory", ExpenseItemization."Expense Subcategory Code");
-            if TempExpenseVATSpec.FindFirst() then begin
-                TempExpenseVATSpec."Amount" += ExpenseItemization."Amount";
-                TempExpenseVATSpec.Modify();
-            end else begin
-                TempExpenseVATSpec.Init();
-                TempExpenseVATSpec."Expense No." := ExpenseNo;
-                LineNo += 1;
-                TempExpenseVATSpec."Line No." := LineNo;
-                TempExpenseVATSpec.Validate("Expense Category", ExpenseItemization."Expense Category Code");
-                TempExpenseVATSpec.Validate("Expense Subcategory", ExpenseItemization."Expense Subcategory Code");
-                TempExpenseVATSpec.Validate("VAT Bus. Posting Group", ExpenseAgentSetup."Default VAT Bus. Posting Group");
-                TempExpenseVATSpec.Validate("Amount", ExpenseItemization.Amount);
-                TempExpenseVATSpec.Insert();
-            end;
-        until ExpenseItemization.Next() = 0;
+        ExpenseCategory.Get("Expense Category");
+        case ExpenseCategory."Expense Detail Required" of
+            ExpenseCategory."Expense Detail Required"::Itemize:
+                begin
+                    ExpenseItemization.SetRange("Expense No.", ExpenseNo);
+                    if not ExpenseItemization.IsEmpty() then begin
+                        ExpenseVATSpec.SetRange(Source);
+                        ExpenseVATSpec.DeleteAll();
+
+                        LineNo := 0;
+                        ExpenseItemization.FindSet();
+                        repeat
+                            TempExpenseVATSpec.SetRange("Expense Category", ExpenseItemization."Expense Category Code");
+                            TempExpenseVATSpec.SetRange("Expense Subcategory", ExpenseItemization."Expense Subcategory Code");
+                            if TempExpenseVATSpec.FindFirst() then begin
+                                TempExpenseVATSpec.Validate(Amount, TempExpenseVATSpec.Amount + ExpenseItemization.Amount);
+                                TempExpenseVATSpec.Modify();
+                            end else begin
+                                TempExpenseVATSpec.Init();
+                                TempExpenseVATSpec.Source := TempExpenseVATSpec.Source::Manual;
+                                TempExpenseVATSpec."Expense No." := ExpenseNo;
+                                LineNo += 1;
+                                TempExpenseVATSpec."Line No." := LineNo;
+                                TempExpenseVATSpec.Validate("Expense Category", ExpenseItemization."Expense Category Code");
+                                TempExpenseVATSpec.Validate("Expense Subcategory", ExpenseItemization."Expense Subcategory Code");
+                                TempExpenseVATSpec.Validate("VAT Bus. Posting Group", ExpenseAgentSetup."Default VAT Bus. Posting Group");
+                                TempExpenseVATSpec.Validate("Amount", ExpenseItemization.Amount);
+                                TempExpenseVATSpec.Insert();
+                            end;
+                        until ExpenseItemization.Next() = 0;
+                    end;
+                end;
+            else
+                if ExpenseCategory."VAT Prod. Posting Group" <> '' then begin
+                    ExpenseVATSpec.SetRange(Source);
+                    ExpenseVATSpec.DeleteAll();
+
+                    TempExpenseVATSpec.Init();
+                    TempExpenseVATSpec.Source := TempExpenseVATSpec.Source::Manual;
+                    TempExpenseVATSpec."Expense No." := ExpenseNo;
+                    LineNo += 1;
+                    TempExpenseVATSpec."Line No." := LineNo;
+                    TempExpenseVATSpec.Validate("Expense Category", "Expense Category");
+                    if "Expense Subcategory" <> '' then
+                        TempExpenseVATSpec.Validate("Expense Subcategory", "Expense Subcategory");
+                    TempExpenseVATSpec.Validate("VAT Bus. Posting Group", ExpenseAgentSetup."Default VAT Bus. Posting Group");
+                    TempExpenseVATSpec.Validate("Amount", Amount);
+                    TempExpenseVATSpec.Insert();
+                end;
+        end;
 
         TempExpenseVATSpec.Reset();
         if TempExpenseVATSpec.FindSet() then
