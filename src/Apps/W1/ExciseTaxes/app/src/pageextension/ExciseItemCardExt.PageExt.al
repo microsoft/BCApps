@@ -62,5 +62,11 @@ pageextension 7415 "Excise Item Card Ext" extends "Item Card"
                 RunPageLink = "Item No." = field("No.");
             }
         }
+        addlast(Category_Category4)
+        {
+            actionref("Excise Taxes_Promoted"; "Excise Taxes")
+            {
+            }
+        }
     }
 }
