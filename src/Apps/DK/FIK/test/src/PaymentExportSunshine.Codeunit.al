@@ -16,6 +16,7 @@ codeunit 148021 "Payment Export Sunshine"
         LibraryERM: Codeunit "Library - ERM";
         LibraryPaymentExportDK: Codeunit "Library - Payment Export DK";
         LibraryRandom: Codeunit "Library - Random";
+        LibraryUtility: Codeunit "Library - Utility";
         EmptyPaymentDetailsErr: Label '%1, %2 or %3 must be used for payments.', Comment = '%1=Field;%2=Field;%3=Field', Locked = true;
         HasErrorsErr: Label 'The file export has one or more errors. For each of the lines to be exported, resolve any errors that are displayed in the File Export Errors FactBox.', Locked = true;
         RecipientBankAccMissingErr: Label '%1 for one or more %2 is not specified.', Comment = '%1=Field;%2=Table', Locked = true;
@@ -737,9 +738,14 @@ codeunit 148021 "Payment Export Sunshine"
     end;
 
     local procedure PostVendorInvoice(Vendor: Record Vendor; var GenJournalLine: Record "Gen. Journal Line"; GenJournalBatch: Record "Gen. Journal Batch");
+    var
+        PurchInvHeader: Record "Purch. Inv. Header";
     begin
         LibraryERM.CreateGeneralJnlLine(GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
           GenJournalLine."Document Type"::Invoice, GenJournalLine."Account Type"::Vendor, Vendor."No.", -LibraryRandom.RandDec(100, 2));
+        GenJournalLine.Validate("Document No.", LibraryUtility.GenerateRandomCode(PurchInvHeader.FieldNo("No."), DATABASE::"Purch. Inv. Header"));
+        GenJournalLine.Validate("External Document No.", LibraryUtility.GenerateRandomCode(GenJournalLine.FieldNo("External Document No."), DATABASE::"Gen. Journal Line"));
+        GenJournalLine.Modify(true);
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
     end;
 
@@ -778,6 +784,4 @@ codeunit 148021 "Payment Export Sunshine"
         END;
     end;
 }
-
-
 
