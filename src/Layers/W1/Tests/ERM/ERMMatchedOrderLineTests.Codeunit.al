@@ -4683,6 +4683,80 @@ codeunit 134468 "ERM Matched Order Line Tests"
     end;
 
     // ============================================================================
+    // REGION: Bug 198 - Unrelated Order filtered from Get Order Lines (receipt-linked invoice)
+    // ============================================================================
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('MatchedOrderLinesCheckReceiptFilterHandler,PurchaseLinesCheckReceiptFilterHandler')]
+    procedure UI_E2E_GetOrderLines_DoesNotShowUnrelatedOrderForReceiptLinkedInvoice()
+    var
+        PurchaseHeaderOrder1: Record "Purchase Header";
+        PurchaseLineOrder1: Record "Purchase Line";
+        PurchaseHeaderOrder2: Record "Purchase Header";
+        PurchaseLineOrder2: Record "Purchase Line";
+        PurchaseHeaderInvoice: Record "Purchase Header";
+        PurchaseLineInvoice: Record "Purchase Line";
+        PurchRcptLine1: Record "Purch. Rcpt. Line";
+        Item: Record Item;
+        Vendor: Record Vendor;
+        PurchaseInvoice: TestPage "Purchase Invoice";
+        FoundVariant: Variant;
+        Found: Boolean;
+        Quantity: Decimal;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO Bug 198] Get Order Lines must not show an unrelated order when invoice line is linked to a receipt.
+        // [GIVEN] A Vendor and an Item.
+        Initialize();
+        Quantity := 10;
+
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryInventory.CreateItem(Item);
+
+        // [GIVEN] Purchase Order #1: received (receive-only). Receipt #1 is created.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderOrder1, PurchaseHeaderOrder1."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLineOrder1, PurchaseHeaderOrder1, PurchaseLineOrder1.Type::Item, Item."No.", Quantity);
+        PurchaseLineOrder1.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 100, 2));
+        PurchaseLineOrder1.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeaderOrder1, true, false);
+
+        PurchaseLineOrder1.Get(PurchaseLineOrder1."Document Type", PurchaseLineOrder1."Document No.", PurchaseLineOrder1."Line No.");
+        PurchRcptLine1.SetRange("Order No.", PurchaseLineOrder1."Document No.");
+        PurchRcptLine1.SetRange("Order Line No.", PurchaseLineOrder1."Line No.");
+        PurchRcptLine1.FindFirst();
+
+        // [GIVEN] Purchase Order #2: near-identical (same Vendor, Item, Qty), also received.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderOrder2, PurchaseHeaderOrder2."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLineOrder2, PurchaseHeaderOrder2, PurchaseLineOrder2.Type::Item, Item."No.", Quantity);
+        PurchaseLineOrder2.Validate("Direct Unit Cost", PurchaseLineOrder1."Direct Unit Cost");
+        PurchaseLineOrder2.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeaderOrder2, true, false);
+
+        // [GIVEN] Purchase Invoice for Vendor with one line linked explicitly to Receipt #1.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderInvoice, PurchaseHeaderInvoice."Document Type"::Invoice, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLineInvoice, PurchaseHeaderInvoice, PurchaseLineInvoice.Type::Item, Item."No.", Quantity);
+        PurchaseLineInvoice.Validate("Direct Unit Cost", PurchaseLineOrder1."Direct Unit Cost");
+        PurchaseLineInvoice."Receipt No." := PurchRcptLine1."Document No.";
+        PurchaseLineInvoice."Receipt Line No." := PurchRcptLine1."Line No.";
+        PurchaseLineInvoice.Modify(true);
+
+        // [WHEN] Open the Purchase Invoice, navigate to the line and invoke Matched Order Lines / Get Order Lines.
+        // PurchaseLinesCheckReceiptFilterHandler will check whether Order #2 appears in the lookup.
+        LibraryVariableStorage.Enqueue(PurchaseLineOrder2."Document No.");
+        PurchaseInvoice.OpenEdit();
+        PurchaseInvoice.GoToRecord(PurchaseHeaderInvoice);
+        PurchaseInvoice.PurchLines.First();
+        PurchaseInvoice.PurchLines.MatchedOrdLines.Invoke();
+        PurchaseInvoice.Close();
+
+        // [THEN] Order #2 must NOT appear in the lookup (the unrelated order must be filtered out).
+        LibraryVariableStorage.Dequeue(FoundVariant);
+        Found := FoundVariant;
+        Assert.IsFalse(Found, 'Unrelated Purchase Order must not be selectable in Get Order Lines for a receipt-linked invoice line');
+    end;
+
+    // ============================================================================
     // REGION: Local Helper Functions
     // ============================================================================
 
@@ -4748,5 +4822,31 @@ codeunit 134468 "ERM Matched Order Line Tests"
         PurchaseLines.Filter.SetFilter("Document No.", OrderNo);
         PurchaseLines.First();
         PurchaseLines.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure MatchedOrderLinesCheckReceiptFilterHandler(var MatchedOrderLines: TestPage "Matched Order Lines")
+    begin
+        // Invoke Get Order Lines to open the Purchase Lines lookup.
+        // PurchaseLinesCheckReceiptFilterHandler will handle that modal and enqueue its result.
+        // The Purchase Lines handler cancels so no matches are created; just close with OK.
+        MatchedOrderLines.GetOrderLines.Invoke();
+        MatchedOrderLines.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure PurchaseLinesCheckReceiptFilterHandler(var PurchaseLines: TestPage "Purchase Lines")
+    var
+        UnrelatedOrderNoVar: Variant;
+        Found: Boolean;
+    begin
+        // Check whether the unrelated Order #2 appears in the selectable purchase order lines.
+        LibraryVariableStorage.Dequeue(UnrelatedOrderNoVar);
+        PurchaseLines.Filter.SetFilter("Document No.", UnrelatedOrderNoVar);
+        Found := PurchaseLines.First();
+        LibraryVariableStorage.Enqueue(Found);
+        PurchaseLines.Cancel().Invoke();
     end;
 }
