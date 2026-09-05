@@ -10,6 +10,5 @@ permissionset 6414 "FORNAV E-Doc Admin"
     Assignable = true;
     Permissions =
         page "ForNAV Peppol Oauth API" = X,
-        tabledata "ForNAV Peppol Setup" = RIMD,
-        tabledata "ForNAV Peppol Role" = RIMD;
+        tabledata "ForNAV Peppol Setup" = RIMD;
 }
