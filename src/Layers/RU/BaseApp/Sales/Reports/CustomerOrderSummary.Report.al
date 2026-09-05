@@ -21,7 +21,7 @@ report 107 "Customer - Order Summary"
     ToolTip = 'View the order detail (the quantity not yet shipped) for each customer in three periods of 30 days each, starting from a selected date. There are also columns with orders to be shipped before and after the three periods and a column with the total order detail for each customer. The report can be used to analyze a company''s expected sales volume.';
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
-    DefaultRenderingLayout = Word;
+    DefaultRenderingLayout = Excel;
 
     dataset
     {
@@ -468,6 +468,9 @@ report 107 "Customer - Order Summary"
             LayoutFile = '.\Sales\Reports\CustomerOrderSummary.docx';
             Type = Word;
             Summary = 'Built in layout for the Customer Order Summary word report.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
         }
 #if not CLEAN27
         layout(RDLC)
@@ -481,6 +484,14 @@ report 107 "Customer - Order Summary"
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
+        layout(WordBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = '.\Sales\Reports\CustomerOrderSummaryBody.docx';
+            Caption = 'Body-only: Customer Order Summary Word';
+            Summary = 'Landscape orientated. Groups outstanding sales order amounts by customer and currency, split across the periods before, within, and after the date range. Shows a total for each line and overall totals, in LCY.';
+        }
     }
     labels
     {
