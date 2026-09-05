@@ -3571,7 +3571,7 @@ codeunit 148302 "Expense Report Posting Test"
         CreateUserSetupsAndChainOfApprovers(CurrentUserSetup, FinalApproverUserSetup, ExpenseUser);
 
         // [WHEN] The report is released and marked Pending Approval (submitted).
-        ExpenseReportHeader.PerformManualReleaseAndPendingApproval(ExpenseUser."No.");
+        ExpenseReportHeader.PerformManualReleaseAndPendingApproval(ExpenseUser."No.", '');
 
         // [THEN] The report is Pending Approval.
         ExpenseReportHeader.Get(ExpenseReportHeader."No.");
@@ -3610,7 +3610,7 @@ codeunit 148302 "Expense Report Posting Test"
         CreateUserSetupsAndChainOfApprovers(CurrentUserSetup, FinalApproverUserSetup, ExpenseUser);
 
         // [WHEN] The report is released and marked Pending Approval.
-        ExpenseReportHeader.PerformManualReleaseAndPendingApproval(ExpenseUser."No.");
+        ExpenseReportHeader.PerformManualReleaseAndPendingApproval(ExpenseUser."No.", '');
 
         // [THEN] Submission succeeds while the line remains Stale.
         ExpenseReportHeader.Get(ExpenseReportHeader."No.");
@@ -3637,7 +3637,7 @@ codeunit 148302 "Expense Report Posting Test"
         CreateUserSetupsAndChainOfApprovers(CurrentUserSetup, FinalApproverUserSetup, ExpenseUser);
 
         // [WHEN] The report is released and marked Pending Approval.
-        ExpenseReportHeader.PerformManualReleaseAndPendingApproval(ExpenseUser."No.");
+        ExpenseReportHeader.PerformManualReleaseAndPendingApproval(ExpenseUser."No.", '');
 
         // [THEN] Submission succeeds while the line remains Not Evaluated.
         ExpenseReportHeader.Get(ExpenseReportHeader."No.");
@@ -3663,7 +3663,7 @@ codeunit 148302 "Expense Report Posting Test"
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         Assert.AreEqual("Expense Policy Status"::"Not Evaluated", ExpenseReportLine.GetPolicyStatus(), 'Precondition: the line must be Not Evaluated.');
         CreateUserSetupsAndChainOfApprovers(CurrentUserSetup, FinalApproverUserSetup, ExpenseUser);
-        ExpenseReportHeader.PerformManualReleaseAndPendingApproval(ExpenseUser."No.");
+        ExpenseReportHeader.PerformManualReleaseAndPendingApproval(ExpenseUser."No.", '');
         ExpenseReportHeader.Get(ExpenseReportHeader."No.");
         ApproverExpenseUserNo := ExpenseReportHeader."Approver Expense User No.";
         Commit();
@@ -3716,7 +3716,7 @@ codeunit 148302 "Expense Report Posting Test"
         CreateUserSetupsAndChainOfApprovers(CurrentUserSetup, FinalApproverUserSetup, ExpenseUser);
 
         // [WHEN] The report is released and marked Pending Approval.
-        ExpenseReportHeader.PerformManualReleaseAndPendingApproval(ExpenseUser."No.");
+        ExpenseReportHeader.PerformManualReleaseAndPendingApproval(ExpenseUser."No.", '');
 
         // [THEN] Submit succeeds despite the stale line.
         ExpenseReportHeader.Get(ExpenseReportHeader."No.");

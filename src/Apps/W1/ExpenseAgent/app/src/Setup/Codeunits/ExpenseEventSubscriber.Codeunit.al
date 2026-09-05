@@ -323,7 +323,7 @@ codeunit 6908 "Expense Event Subscriber"
         if SpendRequest.Status <> SpendRequest.Status::Released then
             exit;
 
-        // Without the agent there is no approver, so a released request is approved right away.
+        // Without the agent there is no approver, so a Releaseted request is approved right away.
         ExpenseAgentSetup.GetRecordOnce();
         if ExpenseAgentSetup."Enable Agent" then
             exit;

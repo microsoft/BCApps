@@ -8958,11 +8958,27 @@ codeunit 80 "Sales-Post"
     var
         SalesCreditMemoHeader: Record "Sales Cr.Memo Header";
         CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeUpdateSalesOrderLineIfExist(DocumentNo, IsHandled);
+        if IsHandled then
+            exit;
+
         SalesCreditMemoHeader.SetLoadFields("Return Order No.", "No.");
         SalesCreditMemoHeader.SetRange("Return Order No.", DocumentNo);
         if SalesCreditMemoHeader.FindFirst() then
             CorrectPostedSalesInvoice.UpdateSalesOrderLineIfExist(SalesCreditMemoHeader."No.");
+    end;
+
+    /// <summary>
+    /// Raised before updating a sales order line from a posted sales return order.
+    /// </summary>
+    /// <param name="DocumentNo">The number of the sales return order.</param>
+    /// <param name="IsHandled">Set to true to skip the default sales order line update.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeUpdateSalesOrderLineIfExist(DocumentNo: Code[20]; var IsHandled: Boolean)
+    begin
     end;
 
     /// <summary>

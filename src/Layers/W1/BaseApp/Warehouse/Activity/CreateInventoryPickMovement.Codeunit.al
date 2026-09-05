@@ -934,7 +934,9 @@ codeunit 7322 "Create Inventory Pick/Movement"
         if HasExpiredItems then
             QtyRemToPickBase := RemQtyToPickBase
         else
-            QtyRemToPickBase := OriginalRemQtyToPickBase - QtyAvailToPickBase + RemQtyToPickBase;
+            // Cap availability at the originally requested quantity so surplus stock reserved for other demand
+            // does not cancel out the blank-bin shortage line when "Always Create Pick Line" is enabled.
+            QtyRemToPickBase := OriginalRemQtyToPickBase - Minimum(QtyAvailToPickBase, OriginalRemQtyToPickBase) + RemQtyToPickBase;
         if CurrLocation."Always Create Pick Line" and (QtyRemToPickBase > 0) then begin
             MakeWarehouseActivityHeader();
             MakeWarehouseActivityLine(NewWarehouseActivityLine, '', QtyRemToPickBase, QtyRemToPickBase);
