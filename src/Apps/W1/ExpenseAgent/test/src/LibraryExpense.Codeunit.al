@@ -793,4 +793,11 @@ codeunit 148300 "Library - Expense"
         ExpenseAgentSetup."Enable Agent" := EnableAgent;
         ExpenseAgentSetup.Modify(true);
     end;
+
+    internal procedure AppendExpandToURL(TargetURL: Text; ExpandClause: Text): Text
+    begin
+        if StrPos(TargetURL, '?') > 0 then
+            exit(TargetURL + '&$expand=' + ExpandClause);
+        exit(TargetURL + '?$expand=' + ExpandClause);
+    end;
 }
