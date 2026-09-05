@@ -204,6 +204,7 @@ codeunit 20291 "Tax Rate Computation"
         TaxTransactionValue."Value Type" := TransactionValueType;
         TaxTransactionValue."Tax Type" := TaxType;
         TaxTransactionValue."Value ID" := ID;
+        TaxTransactionValue.ID := TaxTransactionValue.GetNextID();
         TaxTransactionValue.Insert();
     end;
 
