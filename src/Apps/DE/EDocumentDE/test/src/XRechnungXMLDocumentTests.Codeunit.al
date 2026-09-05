@@ -470,6 +470,189 @@ codeunit 13918 "XRechnung XML Document Tests"
     end;
 
     [Test]
+    procedure ExportPostedSalesInvoiceUsesTriggeringServiceWithoutPDFEmbedding()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 8414] Export uses the E-Document Service that triggered the export, not the last matching service by format
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice.
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+
+        // [GIVEN] The triggering XRechnung service has PDF embedding disabled
+        SetEdocumentServiceEmbedPDFInExport(false);
+        // [GIVEN] A second XRechnung service that sorts last has PDF embedding enabled
+        CreateTrailingXRechnungService(true);
+
+        // [WHEN] Export XRechnung Electronic Document using the triggering service.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+        RemoveTrailingXRechnungServices();
+
+        // [THEN] PDF is not embedded in the XML because the triggering service disables it
+        VerifyInvoicePDFNotEmbeddedToXML(TempXMLBuffer);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceUsesTriggeringServiceWithPDFEmbedding()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 8414] Export uses the E-Document Service that triggered the export, not the last matching service by format
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice.
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+
+        // [GIVEN] The triggering XRechnung service has PDF embedding enabled
+        SetEdocumentServiceEmbedPDFInExport(true);
+        // [GIVEN] A second XRechnung service that sorts last has PDF embedding disabled
+        CreateTrailingXRechnungService(false);
+
+        // [WHEN] Export XRechnung Electronic Document using the triggering service.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+        RemoveTrailingXRechnungServices();
+
+        // [THEN] PDF is embedded in the XML because the triggering service enables it
+        VerifyInvoicePDFEmbeddedToXML(TempXMLBuffer);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceLegacyPathStillUsesFindLastLookup()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempRecordExportBuffer: Record "Record Export Buffer" temporary;
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        LegacyExportXRechnungDocument: Codeunit "Export XRechnung Document";
+        FileInStream: InStream;
+    begin
+        // [SCENARIO 8414] A legacy caller that does not provide a service through SetEDocumentService
+        // keeps the original behaviour: the service is still resolved with the FindLast lookup.
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice.
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+
+        // [GIVEN] The first service has PDF embedding disabled, a trailing service has it enabled
+        SetEdocumentServiceEmbedPDFInExport(false);
+        CreateTrailingXRechnungService(true);
+
+        // [WHEN] The export is invoked directly, without providing a service
+        TempRecordExportBuffer.RecordID := SalesInvoiceHeader.RecordId();
+        TempRecordExportBuffer."Electronic Document Format" := Format("E-Document Format"::XRechnung);
+        TempRecordExportBuffer.Insert();
+        LegacyExportXRechnungDocument.ExportSalesInvoice(TempRecordExportBuffer);
+        RemoveTrailingXRechnungServices();
+
+        // [THEN] The FindLast lookup selected the trailing service, so its PDF embedding applies
+        TempRecordExportBuffer."File Content".CreateInStream(FileInStream);
+        TempXMLBuffer.LoadFromStream(FileInStream);
+        VerifyInvoicePDFEmbeddedToXML(TempXMLBuffer);
+    end;
+
+    [Test]
+    procedure OnAfterFindEDocumentServiceFiresWithProvidedService()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 8414] The obsolete OnAfterFindEDocumentService event still fires during the
+        // deprecation window and carries the service provided through SetEDocumentService.
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice and a trailing XRechnung service
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        CreateTrailingXRechnungService(false);
+
+        // [WHEN] Export through the format, which provides the triggering service
+        LibraryEDocDE.ClearCapturedEDocumentService();
+        BindSubscription(LibraryEDocDE);
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+        UnbindSubscription(LibraryEDocDE);
+        RemoveTrailingXRechnungServices();
+
+        // [THEN] The event fired and carried the triggering service, not the trailing one
+        Assert.AreEqual(1, LibraryEDocDE.GetEDocumentServiceEventCount(), 'OnAfterFindEDocumentService should be raised once');
+        Assert.AreEqual(EDocumentService.Code, LibraryEDocDE.GetCapturedEDocumentServiceCode(), 'Event should carry the triggering service');
+    end;
+
+    [Test]
+    procedure OnAfterFindEDocumentServiceFiresOnLegacyPath()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempRecordExportBuffer: Record "Record Export Buffer" temporary;
+        LegacyExportXRechnungDocument: Codeunit "Export XRechnung Document";
+        TrailingServiceCode: Code[20];
+    begin
+        // [SCENARIO 8414] On the legacy path (no service provided) the event still fires and carries the
+        // service resolved by the FindLast lookup, exactly as before.
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice and a trailing XRechnung service
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        TrailingServiceCode := CreateTrailingXRechnungService(false);
+
+        // [WHEN] The export is invoked directly, without providing a service
+        LibraryEDocDE.ClearCapturedEDocumentService();
+        BindSubscription(LibraryEDocDE);
+        TempRecordExportBuffer.RecordID := SalesInvoiceHeader.RecordId();
+        TempRecordExportBuffer."Electronic Document Format" := Format("E-Document Format"::XRechnung);
+        TempRecordExportBuffer.Insert();
+        LegacyExportXRechnungDocument.ExportSalesInvoice(TempRecordExportBuffer);
+        UnbindSubscription(LibraryEDocDE);
+        RemoveTrailingXRechnungServices();
+
+        // [THEN] The event fired and carried the service found by FindLast
+        Assert.AreEqual(1, LibraryEDocDE.GetEDocumentServiceEventCount(), 'OnAfterFindEDocumentService should be raised once');
+        Assert.AreEqual(TrailingServiceCode, LibraryEDocDE.GetCapturedEDocumentServiceCode(), 'Event should carry the service resolved by FindLast');
+    end;
+
+    [Test]
+    procedure ReusedInstanceResetsProvidedServiceBetweenExports()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempFirstRunExportBuffer: Record "Record Export Buffer" temporary;
+        TempSecondRunExportBuffer: Record "Record Export Buffer" temporary;
+        ReusedExportXRechnungDocument: Codeunit "Export XRechnung Document";
+        TrailingServiceCode: Code[20];
+    begin
+        // [SCENARIO 8414] A reused Export XRechnung Document instance must not carry the service provided for
+        // an earlier export into a later export that provides none: the per-instance state is reset after each
+        // run, so a second export without a provided service falls back to the legacy FindLast lookup.
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice.
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+
+        // [GIVEN] A trailing XRechnung service that sorts after the triggering service, which FindLast would resolve
+        TrailingServiceCode := CreateTrailingXRechnungService(false);
+
+        // [GIVEN] A first export on this instance provides the triggering service through SetEDocumentService
+        TempFirstRunExportBuffer.RecordID := SalesInvoiceHeader.RecordId();
+        TempFirstRunExportBuffer."Electronic Document Format" := Format("E-Document Format"::XRechnung);
+        TempFirstRunExportBuffer.Insert();
+        ReusedExportXRechnungDocument.SetEDocumentService(EDocumentService);
+        ReusedExportXRechnungDocument.Run(TempFirstRunExportBuffer);
+
+        // [WHEN] The same instance runs a second export without providing a service
+        LibraryEDocDE.ClearCapturedEDocumentService();
+        BindSubscription(LibraryEDocDE);
+        TempSecondRunExportBuffer.RecordID := SalesInvoiceHeader.RecordId();
+        TempSecondRunExportBuffer."Electronic Document Format" := Format("E-Document Format"::XRechnung);
+        TempSecondRunExportBuffer.Insert();
+        ReusedExportXRechnungDocument.Run(TempSecondRunExportBuffer);
+        UnbindSubscription(LibraryEDocDE);
+        RemoveTrailingXRechnungServices();
+
+        // [THEN] The second run fell back to the FindLast lookup (trailing service), not the stale service
+        // provided for the first export
+        Assert.AreEqual(TrailingServiceCode, LibraryEDocDE.GetCapturedEDocumentServiceCode(), 'Reused instance must reset the provided service so the second export falls back to FindLast');
+        Assert.AreNotEqual(EDocumentService.Code, LibraryEDocDE.GetCapturedEDocumentServiceCode(), 'Reused instance must not carry the previous triggering service into a later export');
+    end;
+
+    [Test]
     procedure ExportPostedSalesInvoiceInXRechnungFormatVerifySellerAddressFromRespCenter();
     var
         ResponsibilityCenter: Record "Responsibility Center";
@@ -846,6 +1029,32 @@ codeunit 13918 "XRechnung XML Document Tests"
 
         // [THEN] XRechnung Electronic Document is created
         VerifyHeaderData(SalesCrMemoHeader, TempXMLBuffer);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoUsesTriggeringServiceWithPDFEmbedding()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 8414] On the non-invoice Sales Cr.Memo path the export also uses the E-Document Service
+        // that triggered the export, not the last matching service by format.
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Credit Memo.
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item, false));
+
+        // [GIVEN] The triggering XRechnung service has PDF embedding enabled
+        SetEdocumentServiceEmbedPDFInExport(true);
+        // [GIVEN] A second XRechnung service that sorts last has PDF embedding disabled
+        CreateTrailingXRechnungService(false);
+
+        // [WHEN] Export XRechnung Electronic Document using the triggering service.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+        RemoveTrailingXRechnungServices();
+
+        // [THEN] PDF is embedded in the XML because the triggering service enables it, not the trailing one
+        VerifyCrMemoPDFEmbeddedToXML(TempXMLBuffer);
     end;
 
     [Test]
@@ -3103,6 +3312,12 @@ codeunit 13918 "XRechnung XML Document Tests"
         Assert.RecordIsNotEmpty(TempXMLBuffer, '');
     end;
 
+    local procedure VerifyInvoicePDFNotEmbeddedToXML(var TempXMLBuffer: Record "XML Buffer" temporary)
+    begin
+        TempXMLBuffer.SetRange(Path, '/ubl:Invoice/cac:AdditionalDocumentReference/cac:Attachment/cbc:EmbeddedDocumentBinaryObject');
+        Assert.RecordIsEmpty(TempXMLBuffer);
+    end;
+
     local procedure VerifyCrMemoPDFEmbeddedToXML(var TempXMLBuffer: Record "XML Buffer" temporary)
     begin
         TempXMLBuffer.SetRange(Path, '/ns0:CreditNote/cac:AdditionalDocumentReference/cac:Attachment/cbc:EmbeddedDocumentBinaryObject');
@@ -3234,6 +3449,30 @@ codeunit 13918 "XRechnung XML Document Tests"
     begin
         EDocumentService."Embed PDF in export" := NewEmbedPDFInExport;
         EDocumentService.Modify();
+    end;
+
+    local procedure CreateTrailingXRechnungService(EmbedPDFInExport: Boolean): Code[20]
+    var
+        TrailingEDocumentService: Record "E-Document Service";
+    begin
+        // Insert a second XRechnung service whose Code sorts strictly after the triggering service,
+        // so that a FindLast() lookup by format would select this one instead of the triggering service.
+        RemoveTrailingXRechnungServices();
+        TrailingEDocumentService := EDocumentService;
+        TrailingEDocumentService.Code := CopyStr(CopyStr(EDocumentService.Code, 1, MaxStrLen(TrailingEDocumentService.Code) - 1) + 'Z', 1, MaxStrLen(TrailingEDocumentService.Code));
+        TrailingEDocumentService."Embed PDF in export" := EmbedPDFInExport;
+        TrailingEDocumentService.Insert();
+        exit(TrailingEDocumentService.Code);
+    end;
+
+    local procedure RemoveTrailingXRechnungServices()
+    var
+        TrailingEDocumentService: Record "E-Document Service";
+    begin
+        // The export path commits under codeunit-level test isolation, so remove the extra
+        // service explicitly to keep the single-service assumption for the rest of the suite.
+        TrailingEDocumentService.SetFilter(Code, '<>%1', EDocumentService.Code);
+        TrailingEDocumentService.DeleteAll();
     end;
 
     local procedure SetBuyerReferenceMandatory()
@@ -3545,6 +3784,10 @@ codeunit 13918 "XRechnung XML Document Tests"
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"XRechnung XML Document Tests");
         if IsInitialized then begin
+            // Self-heal: a prior test that asserted (and possibly failed) after inserting a trailing
+            // service leaves it behind under codeunit-level isolation. Remove it so every test starts
+            // from the single-service fixture regardless of a previous failure.
+            RemoveTrailingXRechnungServices();
             RestoreCompanyIdentifiers();
             exit;
         end;

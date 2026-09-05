@@ -52,6 +52,9 @@ codeunit 13916 "Export XRechnung Document"
         ItemGTINCache: Dictionary of [Code[20], Code[14]];
         AlwaysIncludeTwoDecimalPlacesForAmountFields: Boolean;
         AllLinesNotSubjectToVAT: Boolean;
+#if not CLEAN29
+        EDocumentServiceProvided: Boolean;
+#endif
         DocumentLanguageCode: Code[10];
 
     trigger OnRun();
@@ -66,6 +69,7 @@ codeunit 13916 "Export XRechnung Document"
             Database::"Service Cr.Memo Header":
                 ExportServiceCreditMemo(Rec);
         end;
+        ResetProvidedService();
     end;
 
     procedure ExportSalesInvoice(var RecordExportBuffer: Record "Record Export Buffer")
@@ -78,7 +82,11 @@ codeunit 13916 "Export XRechnung Document"
         RecordRef.Get(RecordExportBuffer.RecordID);
         RecordRef.SetTable(SalesInvoiceHeader);
 
+#if not CLEAN29
+#pragma warning disable AL0432
         FindEDocumentService(RecordExportBuffer."Electronic Document Format");
+#pragma warning restore AL0432
+#endif
         InitializeDecimalFormatFlags();
         RecordExportBuffer."File Content".CreateOutStream(FileOutStream, TextEncoding::UTF8);
         CreateXML(SalesInvoiceHeader, FileOutStream);
@@ -96,7 +104,11 @@ codeunit 13916 "Export XRechnung Document"
         RecordRef.Get(RecordExportBuffer.RecordID);
         RecordRef.SetTable(SalesCrMemoHeader);
 
+#if not CLEAN29
+#pragma warning disable AL0432
         FindEDocumentService(RecordExportBuffer."Electronic Document Format");
+#pragma warning restore AL0432
+#endif
         InitializeDecimalFormatFlags();
         RecordExportBuffer."File Content".CreateOutStream(FileOutStream, TextEncoding::UTF8);
         CreateXML(SalesCrMemoHeader, FileOutStream);
@@ -114,7 +126,11 @@ codeunit 13916 "Export XRechnung Document"
         RecordRef.Get(RecordExportBuffer.RecordID);
         RecordRef.SetTable(ServiceInvoiceHeader);
 
+#if not CLEAN29
+#pragma warning disable AL0432
         FindEDocumentService(RecordExportBuffer."Electronic Document Format");
+#pragma warning restore AL0432
+#endif
         InitializeDecimalFormatFlags();
         RecordExportBuffer."File Content".CreateOutStream(FileOutStream, TextEncoding::UTF8);
         CreateXML(ServiceInvoiceHeader, FileOutStream);
@@ -132,7 +148,11 @@ codeunit 13916 "Export XRechnung Document"
         RecordRef.Get(RecordExportBuffer.RecordID);
         RecordRef.SetTable(ServiceCrMemoHeader);
 
+#if not CLEAN29
+#pragma warning disable AL0432
         FindEDocumentService(RecordExportBuffer."Electronic Document Format");
+#pragma warning restore AL0432
+#endif
         InitializeDecimalFormatFlags();
         RecordExportBuffer."File Content".CreateOutStream(FileOutStream, TextEncoding::UTF8);
         CreateXML(ServiceCrMemoHeader, FileOutStream);
@@ -1528,8 +1548,36 @@ codeunit 13916 "Export XRechnung Document"
         TempCompanyAddress.Modify(false);
     end;
 
+    procedure SetEDocumentService(NewEDocumentService: Record "E-Document Service")
+    begin
+        EDocumentService := NewEDocumentService;
+#if not CLEAN29
+        EDocumentServiceProvided := true;
+#endif
+    end;
+
+    local procedure ResetProvidedService()
+    begin
+        // Clear the per-instance service state at the end of every run so a reused instance never carries
+        // the service provided for an earlier export into a later export that does not provide one.
+        Clear(EDocumentService);
+#if not CLEAN29
+        EDocumentServiceProvided := false;
+#endif
+    end;
+
+#if not CLEAN29
+#pragma warning disable AA0228, AL0432
+    [Obsolete('The triggering E-Document Service is now provided through SetEDocumentService. This function is still called on every export until CLEAN29: when a service was provided it only raises OnAfterFindEDocumentService without overwriting that service, otherwise it performs the legacy FindLast lookup. As of CLEAN29 this function and that fallback are removed, so any caller that does not provide a service through SetEDocumentService - for example a customized report - then exports with a blank E-Document Service.', '29.0')]
     local procedure FindEDocumentService(EDocumentFormat: Code[20])
     begin
+        // A service provided through SetEDocumentService is the service that triggered the export -
+        // never overwrite it with a lookup, but still raise the event so existing subscribers keep working.
+        if EDocumentServiceProvided then begin
+            OnAfterFindEDocumentService(EDocumentService, EDocumentFormat);
+            exit;
+        end;
+
         if EDocumentFormat = '' then
             exit;
 
@@ -1539,6 +1587,8 @@ codeunit 13916 "Export XRechnung Document"
         if EDocumentService.FindLast() then;
         OnAfterFindEDocumentService(EDocumentService, EDocumentFormat);
     end;
+#pragma warning restore AA0228, AL0432
+#endif
 
     local procedure InitializeDecimalFormatFlags()
     begin
@@ -1739,10 +1789,15 @@ codeunit 13916 "Export XRechnung Document"
     begin
     end;
 
+#if not CLEAN29
+#pragma warning disable AA0228
+    [Obsolete('The triggering E-Document Service is now provided through SetEDocumentService. This event is STILL raised on every export until CLEAN29 - both when a service was provided and on the legacy FindLast lookup path - so existing subscribers keep working during the deprecation window. It no longer exists as of CLEAN29; move any logic that depends on it to the service provided through SetEDocumentService.', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterFindEDocumentService(var EDocumentService: Record "E-Document Service"; EDocumentFormat: Code[20])
     begin
     end;
+#pragma warning restore AA0228
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertSalesInvHeaderData(var XMLCurrNode: XmlElement; SalesInvoiceHeader: Record "Sales Invoice Header")
