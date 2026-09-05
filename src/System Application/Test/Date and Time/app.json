@@ -44,6 +44,7 @@
     "includeSourceInSymbolFile": false
   },
   "features": [
-    "NoImplicitWith"
+    "NoImplicitWith",
+    "TranslationsWithNamespaces"
   ]
 }

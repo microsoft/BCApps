@@ -33,6 +33,7 @@
   "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
   "contextSensitiveHelpUrl": "https://amcbanking.com/kb/",
   "features": [
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ]
 }

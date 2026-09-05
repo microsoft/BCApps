@@ -50,5 +50,8 @@
       "publisher": "Microsoft"
     }
   ],
-  "target": "Cloud"
+  "target": "Cloud",
+  "features": [
+    "TranslationsWithNamespaces"
+  ]
 }

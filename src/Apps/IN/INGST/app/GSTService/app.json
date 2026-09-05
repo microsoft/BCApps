@@ -6,7 +6,8 @@
   "brief": "GST on Service lets you calculate GST on service transactions such as Service Quote, Service Contract, Service Order, Service Invoice and Service Credit Memo.",
   "description": "GST on services contains feature for calculating GST when creating transactions related to service.",
   "features": [
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ],
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=724013",

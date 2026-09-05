@@ -39,7 +39,8 @@
     }
   ],
   "features": [
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ],
   "idRanges": [
     {

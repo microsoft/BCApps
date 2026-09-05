@@ -46,6 +46,7 @@
     "includeSourceInSymbolFile": false
   },
   "features": [
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ]
 }

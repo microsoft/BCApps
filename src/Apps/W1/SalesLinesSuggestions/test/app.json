@@ -68,7 +68,8 @@
   "target": "OnPrem",
   "features": [
     "TranslationFile",
-    "GenerateCaptions"
+    "GenerateCaptions",
+    "TranslationsWithNamespaces"
   ],
   "resourceFolders": [
     ".resources"

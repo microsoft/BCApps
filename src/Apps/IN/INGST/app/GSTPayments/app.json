@@ -7,7 +7,8 @@
   "description": "GST on payments allows GST calculation on bank payments, bank receipts, bank charges, and cash payments and receipts. ",
   "features": [
     "TranslationFile",
-    "GenerateCaptions"
+    "GenerateCaptions",
+    "TranslationsWithNamespaces"
   ],
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=724013",

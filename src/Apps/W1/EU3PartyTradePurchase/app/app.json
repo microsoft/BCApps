@@ -32,5 +32,8 @@
     "includeSourceInSymbolFile": true
   },
   "application": "30.0.0.0",
-  "target": "Cloud"
+  "target": "Cloud",
+  "features": [
+    "TranslationsWithNamespaces"
+  ]
 }

@@ -28,7 +28,8 @@
   },
   "features": [
     "NoImplicitWith",
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ],
   "target": "Cloud"
 }

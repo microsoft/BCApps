@@ -46,7 +46,8 @@
   "target": "OnPrem",
   "features": [
     "NoImplicitWith",
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ],
   "resourceFolders": [
     ".resources"

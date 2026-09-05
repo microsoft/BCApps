@@ -6,7 +6,8 @@
   "brief": "Contains features for GST distribution for services.",
   "description": "GST Distribution enables you to distribute GST receivables to locations.",
   "features": [
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ],
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=724013",

@@ -40,7 +40,8 @@
   "screenshots": [],
   "platform": "29.0.0.0",
   "features": [
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ],
   "idRanges": [
     {
@@ -56,6 +57,7 @@
   "application": "30.0.0.0",
   "target": "OnPrem",
   "features": [
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ]
 }

@@ -36,5 +36,8 @@
     "allowDownloadingSource": false,
     "includeSourceInSymbolFile": false
   },
-  "target": "OnPrem"
+  "target": "OnPrem",
+  "features": [
+    "TranslationsWithNamespaces"
+  ]
 }

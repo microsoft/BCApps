@@ -21,7 +21,8 @@
     }
   ],
   "features": [
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ],
   "resourceExposurePolicy": {
     "allowDebugging": false,

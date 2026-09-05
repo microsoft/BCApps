@@ -57,7 +57,8 @@
   ],
   "features": [
     "NoImplicitWith",
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ],
   "target": "OnPrem",
   "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/"

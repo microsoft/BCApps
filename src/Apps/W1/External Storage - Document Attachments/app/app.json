@@ -33,7 +33,8 @@
     "includeSourceInSymbolFile": true
   },
   "features": [
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ],
   "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2134520",
   "target": "Cloud"

@@ -46,7 +46,8 @@
     "GenerateCaptions",
     "TranslationFile",
     "NoImplicitWith",
-    "NoPromotedActionProperties"
+    "NoPromotedActionProperties",
+    "TranslationsWithNamespaces"
   ],
   "resourceFolders": [
     ".resources"

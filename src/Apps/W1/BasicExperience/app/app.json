@@ -31,7 +31,8 @@
     "en-AU"
   ],
   "features": [
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ],
   "application": "30.0.0.0"
 }
