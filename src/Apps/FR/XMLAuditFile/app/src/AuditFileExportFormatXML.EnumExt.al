@@ -4,13 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.AuditFileExport;
 
-enumextension 10826 "Audit File Export Format FEC" extends "Audit File Export Format"
+enumextension 10803 "Audit File Export Format XML" extends "Audit File Export Format"
 {
-    value(10826; FEC)
+    value(10803; "GL Entries XML FR")
     {
-        Caption = 'FEC';
-        Implementation = "Audit File Export Data Handling" = "Data Handling FEC",
-                         "Audit File Export Data Check" = "Data Check FEC",
-                         "Audit File Export Page Visibility" = "Page Visibility FEC";
+        Caption = 'GL Entries XML FR';
+        Implementation = "Audit File Export Data Handling" = "Data Handling XML",
+                         "Audit File Export Data Check" = "Data Check XML",
+                         "Audit File Export Page Visibility" = "Page Visibility XML";
     }
 }
