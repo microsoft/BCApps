@@ -1357,6 +1357,12 @@ xmlport 37200 "Sales Cr.Memo - PEPPOL30"
                 {
                     XmlName = 'AllowanceChargeReasonCode';
                     NamespacePrefix = 'cbc';
+
+                    trigger OnBeforePassVariable()
+                    begin
+                        if AllowanceChargeReasonCodePaymentDiscount = '' then
+                            currXMLport.Skip();
+                    end;
                 }
                 textelement(AllowanceChargeReasonPaymentDiscount)
                 {
