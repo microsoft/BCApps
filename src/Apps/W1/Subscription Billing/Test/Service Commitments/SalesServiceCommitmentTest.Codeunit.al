@@ -1846,6 +1846,33 @@ codeunit 139915 "Sales Service Commitment Test"
     end;
 
     [Test]
+    [HandlerFunctions('StrMenuHandler')]
+    procedure TestTransferSalesServiceCommitmentsOnExplodeBOMInForeignCurrency()
+    var
+        Item2: Record Item;
+    begin
+        // [SCENARIO] Exploding a BOM on a sales line for a customer invoicing in a foreign currency must not
+        // fail with "'Sales Line' does not exist", because "Sales Subscription Line".GetDate() must reuse the
+        // cached sales line instead of a hard Get() on a sales line that has not been inserted yet.
+        Initialize();
+        LibraryAssembly.CreateItem(Item2, Item."Costing Method"::Standard, Item."Replenishment System"::Assembly, '', '');
+        CreateComponentItemWithSalesServiceCommitments(Item2."No.");
+
+        ContractTestLibrary.CreateCustomer(Customer, LibraryERM.CreateCurrencyWithRandomExchRates());
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, Customer."No.");
+        LibrarySales.CreateSalesLineWithShipmentDate(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item2."No.", WorkDate(), LibraryRandom.RandInt(100));
+        Codeunit.Run(Codeunit::"Sales-Explode BOM", SalesLine);
+
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Type, Enum::"Sales Line Type"::Item);
+        SalesLine.SetRange("No.", Item."No.");
+        SalesLine.FindLast();
+        SalesLine.CalcFields("Subscription Lines");
+        SalesLine.TestField("Subscription Lines");
+    end;
+
+    [Test]
     procedure UnitPriceOnSalesLineForServiceCommitmentItemShouldRemainAfterPosting()
     var
         SalesWithSubscription: Record Item;
