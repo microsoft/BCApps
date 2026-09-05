@@ -18,6 +18,7 @@ using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Setup;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
@@ -59,6 +60,18 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         IncorrectValueErr: Label 'Incorrect value for %1', Locked = true;
         AttributeNotFoundErr: Label 'Attribute %1 not found for node: %2', Locked = true, Comment = '%1 = XML attribute name, %2 = XML element XPath';
         UnexpectedNodeErr: Label 'Node %1 must not exist.', Locked = true;
+        DocumentAllowanceChargeTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradeAllowanceCharge', Locked = true;
+        InvoiceLineTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem', Locked = true;
+        InvoiceLineAllowanceChargeTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem/ram:SpecifiedLineTradeSettlement/ram:SpecifiedTradeAllowanceCharge', Locked = true;
+        MonetarySummationTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradeSettlementHeaderMonetarySummation', Locked = true;
+        HeaderTradeTaxTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:ApplicableTradeTax', Locked = true;
+        LineMonetarySummationTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem/ram:SpecifiedLineTradeSettlement/ram:SpecifiedTradeSettlementLineMonetarySummation', Locked = true;
+        BilledQuantityTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem/ram:SpecifiedLineTradeDelivery/ram:BilledQuantity', Locked = true;
+        TaxCategoryStandardTok: Label 'S', Locked = true;
+        ItemChargeReasonTextTok: Label 'Freight surcharge', Locked = true;
+        ItemChargeReasonCodeTok: Label 'FC', Locked = true;
+        UnitCodeOneTok: Label 'C62', Locked = true;
+        UnitCodeHourTok: Label 'HUR', Locked = true;
         DocumentLineTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem', Locked = true;
         SellerTaxRegistrationTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:SpecifiedTaxRegistration/ram:ID', Locked = true;
         BuyerGlobalIdTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:GlobalID', Locked = true;
@@ -1960,6 +1973,1344 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     end;
     #endregion
 
+    #region ItemCharge
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyDocumentLevelItemChargeAllowanceCharge()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ChargeSalesInvoiceLine: Record "Sales Invoice Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+        Path: Text;
+    begin
+        // [SCENARIO] An item charge classified as a document level allowance/charge is exported as ram:SpecifiedTradeAllowanceCharge in the header trade settlement instead of as an invoice line
+        Initialize();
+
+        // [GIVEN] A service that maps item charges automatically
+        SetServiceItemChargeMapping(EDocumentService."Item Charge E-Invoice Mapping"::Automatic);
+
+        // [GIVEN] A posted sales invoice with two item lines and one item charge assigned to both of them
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithItemCharge(2, 2, LibraryRandom.RandDecInRange(10, 50, 2), ItemChargeNo));
+        GetChargeInvoiceLine(SalesInvoiceHeader, ChargeSalesInvoiceLine);
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] A document level charge is exported with the amount and the VAT category of the item charge
+        Path := DocumentAllowanceChargeTok + '/ram:ChargeIndicator/udt:Indicator';
+        Assert.AreEqual('true', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentAllowanceChargeTok + '/ram:ActualAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(ChargeSalesInvoiceLine.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentAllowanceChargeTok + '/ram:CategoryTradeTax/ram:CategoryCode';
+        Assert.AreEqual(TaxCategoryStandardTok, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentAllowanceChargeTok + '/ram:CategoryTradeTax/ram:RateApplicablePercent';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatFiveDecimal(ChargeSalesInvoiceLine."VAT %"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] The item charge is no longer exported as an invoice line
+        Assert.AreEqual(2, GetNodeCountByPath(TempXMLBuffer, InvoiceLineTok), 'Only the item lines must be exported as invoice lines.');
+        Assert.IsFalse(NodeValueExists(TempXMLBuffer, InvoiceLineTok + '/ram:SpecifiedTradeProduct/ram:SellerAssignedID', ItemChargeNo), 'The item charge must not be exported as an invoice line.');
+
+        // [THEN] The charge is not repeated as a line level allowance/charge
+        Assert.AreEqual(0, GetNodeCountByPath(TempXMLBuffer, InvoiceLineAllowanceChargeTok), 'A document level charge must not be exported inside an invoice line.');
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyDocumentLevelItemChargeReason()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+        Path: Text;
+    begin
+        // [SCENARIO] The reason text and reason code of the item charge are exported on the document level allowance/charge
+        Initialize();
+
+        // [GIVEN] A service that maps item charges automatically
+        SetServiceItemChargeMapping(EDocumentService."Item Charge E-Invoice Mapping"::Automatic);
+
+        // [GIVEN] A posted sales invoice with an item charge that is a document level charge
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithItemCharge(2, 2, LibraryRandom.RandDecInRange(10, 50, 2), ItemChargeNo));
+
+        // [GIVEN] The item charge carries a reason text and a reason code
+        SetItemChargeReason(ItemChargeNo, ItemChargeReasonTextTok, ItemChargeReasonCodeTok);
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] The reason code and the reason text of the item charge are exported
+        Path := DocumentAllowanceChargeTok + '/ram:ReasonCode';
+        Assert.AreEqual(ItemChargeReasonCodeTok, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentAllowanceChargeTok + '/ram:Reason';
+        Assert.AreEqual(ItemChargeReasonTextTok, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyDocumentLevelItemChargeReasonFallsBackToDescription()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ChargeSalesInvoiceLine: Record "Sales Invoice Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+        Path: Text;
+    begin
+        // [SCENARIO] Without a reason text on the item charge the description of the item charge line is exported, so that the mandatory allowance/charge reason is never empty
+        Initialize();
+
+        // [GIVEN] A service that maps item charges automatically
+        SetServiceItemChargeMapping(EDocumentService."Item Charge E-Invoice Mapping"::Automatic);
+
+        // [GIVEN] A posted sales invoice with an item charge that is a document level charge and has no reason text
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithItemCharge(2, 2, LibraryRandom.RandDecInRange(10, 50, 2), ItemChargeNo));
+        GetChargeInvoiceLine(SalesInvoiceHeader, ChargeSalesInvoiceLine);
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] The description of the item charge line is exported as the reason
+        Path := DocumentAllowanceChargeTok + '/ram:Reason';
+        Assert.AreEqual(ChargeSalesInvoiceLine.Description, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] No empty reason code is exported
+        Assert.AreEqual(0, GetNodeCountByPath(TempXMLBuffer, DocumentAllowanceChargeTok + '/ram:ReasonCode'), 'An item charge without a reason code must not export an empty reason code.');
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyDocumentLevelItemChargeReasonFallsBackToItemChargeNo()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ChargeSalesInvoiceLine: Record "Sales Invoice Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+        Path: Text;
+    begin
+        // [SCENARIO] Without a reason text, a reason code and a line description the item charge code is exported as the reason, so that the allowance/charge always carries one of the two reason elements EN 16931 requires
+        Initialize();
+
+        // [GIVEN] A service that maps item charges automatically
+        SetServiceItemChargeMapping(EDocumentService."Item Charge E-Invoice Mapping"::Automatic);
+
+        // [GIVEN] A posted sales invoice with a document level item charge that has neither a reason text, nor a reason code, nor a line description
+        SalesInvoiceHeader.Get(
+            CreateAndPostSalesDocumentWithItemCharge("Sales Document Type"::Invoice, 2, 2, 2, LibraryRandom.RandDecInRange(10, 50, 2), true, ItemChargeNo));
+        GetChargeInvoiceLine(SalesInvoiceHeader, ChargeSalesInvoiceLine);
+        Assert.AreEqual('', ChargeSalesInvoiceLine.Description, 'The scenario requires an item charge line without a description.');
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] The code of the item charge is exported as the reason
+        Path := DocumentAllowanceChargeTok + '/ram:Reason';
+        Assert.AreEqual(ItemChargeNo, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyDocumentLevelItemChargeWithReasonCodeOnlyKeepsTheReasonCode()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+        Path: Text;
+    begin
+        // [SCENARIO] A reason code alone already satisfies the reason requirement of EN 16931, so the item charge code is not substituted as the reason text
+        Initialize();
+
+        // [GIVEN] A service that maps item charges automatically
+        SetServiceItemChargeMapping(EDocumentService."Item Charge E-Invoice Mapping"::Automatic);
+
+        // [GIVEN] A posted sales invoice with a document level item charge without a line description
+        SalesInvoiceHeader.Get(
+            CreateAndPostSalesDocumentWithItemCharge("Sales Document Type"::Invoice, 2, 2, 2, LibraryRandom.RandDecInRange(10, 50, 2), true, ItemChargeNo));
+
+        // [GIVEN] The item charge carries a reason code but no reason text
+        SetItemChargeReason(ItemChargeNo, '', ItemChargeReasonCodeTok);
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] The reason code of the item charge is exported
+        Path := DocumentAllowanceChargeTok + '/ram:ReasonCode';
+        Assert.AreEqual(ItemChargeReasonCodeTok, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] The code of the item charge is not exported as the reason
+        Path := DocumentAllowanceChargeTok + '/ram:Reason';
+        Assert.AreEqual('', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyLineLevelItemChargeAllowanceCharge()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ChargeSalesInvoiceLine: Record "Sales Invoice Line";
+        ItemSalesInvoiceLine: Record "Sales Invoice Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+        Path: Text;
+    begin
+        // [SCENARIO] An item charge classified as a line level allowance/charge is exported inside the line trade settlement of the invoice line it is assigned to
+        Initialize();
+
+        // [GIVEN] A service that maps item charges automatically
+        SetServiceItemChargeMapping(EDocumentService."Item Charge E-Invoice Mapping"::Automatic);
+
+        // [GIVEN] A posted sales invoice with one item line and an item charge with the same VAT assigned to that line
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithItemCharge(1, 1, LibraryRandom.RandDecInRange(10, 50, 2), ItemChargeNo));
+        GetChargeInvoiceLine(SalesInvoiceHeader, ChargeSalesInvoiceLine);
+        GetItemInvoiceLine(SalesInvoiceHeader, ItemSalesInvoiceLine);
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] The charge is exported inside the invoice line of the assigned line
+        Assert.AreEqual(1, GetNodeCountByPath(TempXMLBuffer, InvoiceLineTok), 'The item charge must not be exported as a separate invoice line.');
+        Path := InvoiceLineTok + '/ram:AssociatedDocumentLineDocument/ram:LineID';
+        Assert.AreEqual(Format(ItemSalesInvoiceLine."Line No."), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := InvoiceLineAllowanceChargeTok + '/ram:ChargeIndicator/udt:Indicator';
+        Assert.AreEqual('true', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := InvoiceLineAllowanceChargeTok + '/ram:ActualAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(ChargeSalesInvoiceLine.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] The line level allowance/charge carries no VAT category, because the VAT category of the invoice line applies
+        Assert.AreEqual(0, GetNodeCountByPath(TempXMLBuffer, InvoiceLineAllowanceChargeTok + '/ram:CategoryTradeTax/ram:CategoryCode'), 'A line level allowance/charge must not carry its own VAT category.');
+
+        // [THEN] The charge is not repeated as a document level allowance/charge
+        Assert.AreEqual(0, GetNodeCountByPath(TempXMLBuffer, DocumentAllowanceChargeTok), 'A line level charge must not be exported as a document level allowance/charge.');
+
+        // [THEN] The net amount of the invoice line includes the charge
+        Path := LineMonetarySummationTok + '/ram:LineTotalAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(ItemSalesInvoiceLine.Amount + ChargeSalesInvoiceLine.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyLineLevelItemChargeOnlyAffectsTheAssignedLine()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ChargeSalesInvoiceLine: Record "Sales Invoice Line";
+        ItemSalesInvoiceLine: Record "Sales Invoice Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+        AssignedLineAmount: Decimal;
+        UnassignedLineAmount: Decimal;
+        Path: Text;
+    begin
+        // [SCENARIO] A line level allowance/charge is exported only in the invoice line it is assigned to, and leaves the other invoice lines untouched
+        Initialize();
+
+        // [GIVEN] A service that maps item charges automatically
+        SetServiceItemChargeMapping(EDocumentService."Item Charge E-Invoice Mapping"::Automatic);
+
+        // [GIVEN] A posted sales invoice with two item lines and an item charge assigned to the first line only
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithItemCharge(2, 1, 1, LibraryRandom.RandDecInRange(10, 50, 2), ItemChargeNo));
+        GetChargeInvoiceLine(SalesInvoiceHeader, ChargeSalesInvoiceLine);
+        GetItemInvoiceLine(SalesInvoiceHeader, ItemSalesInvoiceLine);
+        AssignedLineAmount := ItemSalesInvoiceLine.Amount;
+        ItemSalesInvoiceLine.Next();
+        UnassignedLineAmount := ItemSalesInvoiceLine.Amount;
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Exactly one invoice line carries the allowance/charge
+        Assert.AreEqual(2, GetNodeCountByPath(TempXMLBuffer, InvoiceLineTok), 'The item charge must not be exported as a separate invoice line.');
+        Assert.AreEqual(1, GetNodeCountByPath(TempXMLBuffer, InvoiceLineAllowanceChargeTok), 'The charge must be exported in the assigned invoice line only.');
+
+        // [THEN] Only the assigned invoice line reports the charge in its net amount
+        Path := LineMonetarySummationTok + '/ram:LineTotalAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(AssignedLineAmount + ChargeSalesInvoiceLine.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(UnassignedLineAmount), GetLastNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyItemChargeInvoiceLineUsesFallbackQuantityAndUnitCode()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ChargeSalesInvoiceLine: Record "Sales Invoice Line";
+        ItemSalesInvoiceLine: Record "Sales Invoice Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+        Path: Text;
+    begin
+        // [SCENARIO] An item charge exported as a regular invoice line carries quantity 1 and the unit code C62, never an empty unit code
+        Initialize();
+
+        // [GIVEN] A service that forces item charges into an invoice line with a unit code
+        SetServiceItemChargeMapping(EDocumentService."Item Charge E-Invoice Mapping"::"Line with Unit Code");
+
+        // [GIVEN] A posted sales invoice with one item line and an item charge of quantity 2 assigned to that line
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithItemCharge(1, 2, LibraryRandom.RandDecInRange(10, 50, 2), ItemChargeNo));
+        GetChargeInvoiceLine(SalesInvoiceHeader, ChargeSalesInvoiceLine);
+        GetItemInvoiceLine(SalesInvoiceHeader, ItemSalesInvoiceLine);
+        Assert.AreEqual(2, ChargeSalesInvoiceLine.Quantity, 'The scenario requires an item charge quantity that differs from the fallback quantity.');
+        Assert.AreEqual('', ChargeSalesInvoiceLine."Unit of Measure Code", 'The scenario requires an item charge line without a unit of measure.');
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] The item charge is exported as an invoice line
+        Assert.AreEqual(2, GetNodeCountByPath(TempXMLBuffer, InvoiceLineTok), 'The item charge must be exported as an invoice line.');
+        Path := InvoiceLineTok + '/ram:AssociatedDocumentLineDocument/ram:LineID';
+        Assert.AreEqual(Format(ChargeSalesInvoiceLine."Line No."), GetLastNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] The invoice line of the item charge carries quantity 1 and the unit code C62
+        Path := BilledQuantityTok;
+        Assert.AreEqual('1', GetLastNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual(UnitCodeOneTok, GetLastAttributeByPathWithError(TempXMLBuffer, Path, 'unitCode'), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] The unit price of the invoice line matches the net amount, so that quantity times price stays the net amount of the line
+        Path := InvoiceLineTok + '/ram:SpecifiedLineTradeAgreement/ram:NetPriceProductTradePrice/ram:ChargeAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimalUnlimited(ChargeSalesInvoiceLine.Amount), GetLastNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] The item line keeps its own quantity and unit code
+        Path := BilledQuantityTok;
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimalUnlimited(ItemSalesInvoiceLine.Quantity), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual(ExportZUGFeRDDocument.GetUoMCode(ItemSalesInvoiceLine."Unit of Measure Code"), GetAttributeByPathWithError(TempXMLBuffer, Path, 'unitCode'), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyItemChargeInvoiceLineUsesUnitCodeOfItemCharge()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+        Path: Text;
+    begin
+        // [SCENARIO] A unit code configured on the item charge replaces C62 on the invoice line of the item charge
+        Initialize();
+
+        // [GIVEN] A service that forces item charges into an invoice line with a unit code
+        SetServiceItemChargeMapping(EDocumentService."Item Charge E-Invoice Mapping"::"Line with Unit Code");
+
+        // [GIVEN] A posted sales invoice with an item charge that carries the unit code HUR
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithItemCharge(1, 2, LibraryRandom.RandDecInRange(10, 50, 2), ItemChargeNo));
+        SetItemChargeUnitCode(ItemChargeNo, UnitCodeHourTok);
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] The invoice line of the item charge carries the unit code of the item charge
+        Path := BilledQuantityTok;
+        Assert.AreEqual(UnitCodeHourTok, GetLastAttributeByPathWithError(TempXMLBuffer, Path, 'unitCode'), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyNegativeItemChargeInvoiceLineUsesNegativeQuantity()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ChargeSalesInvoiceLine: Record "Sales Invoice Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+        Path: Text;
+    begin
+        // [SCENARIO] A negative item charge exported as a regular invoice line reports a negative quantity and a positive net price, so that the exported document satisfies BR-27
+        Initialize();
+
+        // [GIVEN] A service that forces item charges into an invoice line with a unit code
+        SetServiceItemChargeMapping(EDocumentService."Item Charge E-Invoice Mapping"::"Line with Unit Code");
+
+        // [GIVEN] A posted sales invoice with one item line and a negative item charge assigned to that line
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithItemCharge(1, 2, -LibraryRandom.RandDecInRange(10, 50, 2), ItemChargeNo));
+        GetChargeInvoiceLine(SalesInvoiceHeader, ChargeSalesInvoiceLine);
+        Assert.IsTrue(ChargeSalesInvoiceLine.Amount < 0, 'The scenario requires a negative item charge amount.');
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] The item charge is exported as an invoice line
+        Assert.AreEqual(2, GetNodeCountByPath(TempXMLBuffer, InvoiceLineTok), 'The item charge must be exported as an invoice line.');
+        Path := InvoiceLineTok + '/ram:AssociatedDocumentLineDocument/ram:LineID';
+        Assert.AreEqual(Format(ChargeSalesInvoiceLine."Line No."), GetLastNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] The invoice line of the item charge reports the negative fallback quantity with the fallback unit code
+        Path := BilledQuantityTok;
+        Assert.AreEqual('-1', GetLastNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual(UnitCodeOneTok, GetLastAttributeByPathWithError(TempXMLBuffer, Path, 'unitCode'), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] The net price of the invoice line is not negative, because the item net price must never be negative
+        Path := InvoiceLineTok + '/ram:SpecifiedLineTradeAgreement/ram:NetPriceProductTradePrice/ram:ChargeAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimalUnlimited(-ChargeSalesInvoiceLine.Amount), GetLastNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] The net amount of the invoice line stays negative
+        Path := LineMonetarySummationTok + '/ram:LineTotalAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(ChargeSalesInvoiceLine.Amount), GetLastNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] The quantity of the invoice line times its net price stays the net amount of the line
+        VerifyLastLineAmountMatchesQuantityTimesPrice(
+            TempXMLBuffer, BilledQuantityTok,
+            InvoiceLineTok + '/ram:SpecifiedLineTradeAgreement/ram:NetPriceProductTradePrice/ram:ChargeAmount',
+            LineMonetarySummationTok + '/ram:LineTotalAmount');
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyNegativeItemChargeIsExportedAsAllowance()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ChargeSalesInvoiceLine: Record "Sales Invoice Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+        Path: Text;
+    begin
+        // [SCENARIO] A negative item charge is exported as an allowance with a positive amount
+        Initialize();
+
+        // [GIVEN] A service that maps item charges automatically
+        SetServiceItemChargeMapping(EDocumentService."Item Charge E-Invoice Mapping"::Automatic);
+
+        // [GIVEN] A posted sales invoice with two item lines and a negative item charge assigned to both of them
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithItemCharge(2, 2, -LibraryRandom.RandDecInRange(10, 50, 2), ItemChargeNo));
+        GetChargeInvoiceLine(SalesInvoiceHeader, ChargeSalesInvoiceLine);
+        Assert.IsTrue(ChargeSalesInvoiceLine.Amount < 0, 'The scenario requires a negative item charge amount.');
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] The charge is exported as an allowance with a positive amount
+        Path := DocumentAllowanceChargeTok + '/ram:ChargeIndicator/udt:Indicator';
+        Assert.AreEqual('false', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentAllowanceChargeTok + '/ram:ActualAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(-ChargeSalesInvoiceLine.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] The allowance is reported in the allowance total and not in a charge total
+        SalesInvoiceHeader.CalcFields(Amount, "Amount Including VAT");
+        Path := MonetarySummationTok + '/ram:AllowanceTotalAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(-ChargeSalesInvoiceLine.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual(0, GetNodeCountByPath(TempXMLBuffer, MonetarySummationTok + '/ram:ChargeTotalAmount'), 'A negative item charge must not be reported as a charge total.');
+
+        // [THEN] The totals stay consistent
+        Path := MonetarySummationTok + '/ram:LineTotalAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesInvoiceHeader.Amount - ChargeSalesInvoiceLine.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := MonetarySummationTok + '/ram:TaxBasisTotalAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesInvoiceHeader.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyForcedLineLevelItemChargeWithoutTargetLineIsDocumentLevel()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ChargeSalesInvoiceLine: Record "Sales Invoice Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+        Path: Text;
+    begin
+        // [SCENARIO] A forced line level allowance/charge that cannot be resolved to a single invoice line degrades to a document level allowance/charge
+        Initialize();
+
+        // [GIVEN] A service that forces item charges into an invoice line allowance/charge
+        SetServiceItemChargeMapping(EDocumentService."Item Charge E-Invoice Mapping"::"Line Allowance/Charge");
+
+        // [GIVEN] A posted sales invoice with an item charge assigned to two item lines, so that no single target line can be resolved
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithItemCharge(2, 2, LibraryRandom.RandDecInRange(10, 50, 2), ItemChargeNo));
+        GetChargeInvoiceLine(SalesInvoiceHeader, ChargeSalesInvoiceLine);
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] The charge is exported at document level instead of inside an invoice line
+        Assert.AreEqual(0, GetNodeCountByPath(TempXMLBuffer, InvoiceLineAllowanceChargeTok), 'An unresolved line level charge must not be exported inside an invoice line.');
+        Path := DocumentAllowanceChargeTok + '/ram:ActualAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(ChargeSalesInvoiceLine.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] The charge is not exported as an invoice line either
+        Assert.AreEqual(2, GetNodeCountByPath(TempXMLBuffer, InvoiceLineTok), 'Only the item lines must be exported as invoice lines.');
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyTotalsWithDocumentLevelItemCharge()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ChargeSalesInvoiceLine: Record "Sales Invoice Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+        Path: Text;
+    begin
+        // [SCENARIO] Moving an item charge out of the invoice lines keeps the monetary summation and the tax subtotals consistent
+        Initialize();
+
+        // [GIVEN] A service that maps item charges automatically
+        SetServiceItemChargeMapping(EDocumentService."Item Charge E-Invoice Mapping"::Automatic);
+
+        // [GIVEN] A posted sales invoice with two item lines and one item charge assigned to both of them
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithItemCharge(2, 2, LibraryRandom.RandDecInRange(10, 50, 2), ItemChargeNo));
+        GetChargeInvoiceLine(SalesInvoiceHeader, ChargeSalesInvoiceLine);
+        SalesInvoiceHeader.CalcFields(Amount, "Amount Including VAT");
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] The sum of the invoice lines no longer contains the charge and the charge is reported as the charge total
+        Path := MonetarySummationTok + '/ram:LineTotalAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesInvoiceHeader.Amount - ChargeSalesInvoiceLine.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := MonetarySummationTok + '/ram:ChargeTotalAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(ChargeSalesInvoiceLine.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := MonetarySummationTok + '/ram:AllowanceTotalAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(0), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] The exported invoice lines add up to the reported line total amount
+        Assert.AreEqual(
+            SalesInvoiceHeader.Amount - ChargeSalesInvoiceLine.Amount, SumNodeValuesByPath(TempXMLBuffer, LineMonetarySummationTok + '/ram:LineTotalAmount'),
+            'The exported invoice lines must add up to the reported line total amount.');
+
+        // [THEN] The remaining document totals are unchanged
+        Path := MonetarySummationTok + '/ram:TaxBasisTotalAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesInvoiceHeader.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := MonetarySummationTok + '/ram:GrandTotalAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesInvoiceHeader."Amount Including VAT"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := MonetarySummationTok + '/ram:DuePayableAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesInvoiceHeader."Amount Including VAT"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := MonetarySummationTok + '/ram:TaxTotalAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesInvoiceHeader."Amount Including VAT" - SalesInvoiceHeader.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] The tax subtotal still covers the charge
+        Path := HeaderTradeTaxTok + '/ram:CalculatedAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesInvoiceHeader."Amount Including VAT" - SalesInvoiceHeader.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := HeaderTradeTaxTok + '/ram:BasisAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesInvoiceHeader.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyTotalsWithLineLevelItemCharge()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+        Path: Text;
+    begin
+        // [SCENARIO] A line level allowance/charge stays inside the sum of the invoice lines and leaves the document totals untouched
+        Initialize();
+
+        // [GIVEN] A service that maps item charges automatically
+        SetServiceItemChargeMapping(EDocumentService."Item Charge E-Invoice Mapping"::Automatic);
+
+        // [GIVEN] A posted sales invoice with one item line and an item charge with the same VAT assigned to that line
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithItemCharge(1, 1, LibraryRandom.RandDecInRange(10, 50, 2), ItemChargeNo));
+        SalesInvoiceHeader.CalcFields(Amount, "Amount Including VAT");
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] The charge is exported inside the invoice line it is assigned to
+        Assert.AreEqual(1, GetNodeCountByPath(TempXMLBuffer, InvoiceLineTok), 'The item charge must not be exported as a separate invoice line.');
+        Assert.AreEqual(1, GetNodeCountByPath(TempXMLBuffer, InvoiceLineAllowanceChargeTok), 'The item charge must be exported as a line level allowance/charge.');
+
+        // [THEN] The line total amount still contains the charge and no charge total is reported
+        Path := MonetarySummationTok + '/ram:LineTotalAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesInvoiceHeader.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual(0, GetNodeCountByPath(TempXMLBuffer, MonetarySummationTok + '/ram:ChargeTotalAmount'), 'A line level charge must not be reported as a charge total.');
+        Path := MonetarySummationTok + '/ram:AllowanceTotalAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(0), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] The exported invoice lines add up to the reported line total amount
+        Assert.AreEqual(
+            SalesInvoiceHeader.Amount, SumNodeValuesByPath(TempXMLBuffer, LineMonetarySummationTok + '/ram:LineTotalAmount'),
+            'The exported invoice lines must add up to the reported line total amount.');
+
+        // [THEN] The remaining document totals are unchanged
+        Path := MonetarySummationTok + '/ram:TaxBasisTotalAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesInvoiceHeader.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := MonetarySummationTok + '/ram:DuePayableAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesInvoiceHeader."Amount Including VAT"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] The tax subtotal still covers the charge
+        Path := HeaderTradeTaxTok + '/ram:BasisAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesInvoiceHeader.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDFormatVerifyDocumentLevelItemChargeAllowanceCharge()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        ChargeSalesCrMemoLine: Record "Sales Cr.Memo Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+        Path: Text;
+    begin
+        // [SCENARIO] An item charge of a posted sales credit memo classified as a document level allowance/charge is exported as ram:SpecifiedTradeAllowanceCharge in the header trade settlement instead of as a credit memo line
+        Initialize();
+
+        // [GIVEN] A service that maps item charges automatically
+        SetServiceItemChargeMapping(EDocumentService."Item Charge E-Invoice Mapping"::Automatic);
+
+        // [GIVEN] A posted sales credit memo with two item lines and one item charge assigned to both of them
+        SalesCrMemoHeader.Get(CreateAndPostSalesCrMemoWithItemCharge(2, 2, LibraryRandom.RandDecInRange(10, 50, 2), ItemChargeNo));
+        GetChargeCrMemoLine(SalesCrMemoHeader, ChargeSalesCrMemoLine);
+
+        // [THEN] The item charge line of the credit memo carries a positive amount, so that a charge on a credit note keeps the charge indicator of an invoice
+        Assert.IsTrue(ChargeSalesCrMemoLine.Amount > 0, 'The scenario requires a positive item charge amount on the credit memo.');
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] A document level charge is exported with the amount and the VAT category of the item charge
+        Path := DocumentAllowanceChargeTok + '/ram:ChargeIndicator/udt:Indicator';
+        Assert.AreEqual('true', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentAllowanceChargeTok + '/ram:ActualAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(ChargeSalesCrMemoLine.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentAllowanceChargeTok + '/ram:CategoryTradeTax/ram:CategoryCode';
+        Assert.AreEqual(TaxCategoryStandardTok, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentAllowanceChargeTok + '/ram:CategoryTradeTax/ram:RateApplicablePercent';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatFiveDecimal(ChargeSalesCrMemoLine."VAT %"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] The description of the item charge line is exported as the reason
+        Path := DocumentAllowanceChargeTok + '/ram:Reason';
+        Assert.AreEqual(ChargeSalesCrMemoLine.Description, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] The item charge is no longer exported as a credit memo line
+        Assert.AreEqual(2, GetNodeCountByPath(TempXMLBuffer, InvoiceLineTok), 'Only the item lines must be exported as credit memo lines.');
+        Assert.IsFalse(NodeValueExists(TempXMLBuffer, InvoiceLineTok + '/ram:SpecifiedTradeProduct/ram:SellerAssignedID', ItemChargeNo), 'The item charge must not be exported as a credit memo line.');
+
+        // [THEN] The charge is not repeated as a line level allowance/charge
+        Assert.AreEqual(0, GetNodeCountByPath(TempXMLBuffer, InvoiceLineAllowanceChargeTok), 'A document level charge must not be exported inside a credit memo line.');
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDFormatVerifyDocumentLevelItemChargeReasonFallsBackToItemChargeNo()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        ChargeSalesCrMemoLine: Record "Sales Cr.Memo Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+        Path: Text;
+    begin
+        // [SCENARIO] Without a reason text, a reason code and a line description the item charge code is exported as the reason, so that the allowance/charge always carries one of the two reason elements EN 16931 requires
+        Initialize();
+
+        // [GIVEN] A service that maps item charges automatically
+        SetServiceItemChargeMapping(EDocumentService."Item Charge E-Invoice Mapping"::Automatic);
+
+        // [GIVEN] A posted sales credit memo with a document level item charge that has neither a reason text, nor a reason code, nor a line description
+        SalesCrMemoHeader.Get(
+            CreateAndPostSalesDocumentWithItemCharge("Sales Document Type"::"Credit Memo", 2, 2, 2, LibraryRandom.RandDecInRange(10, 50, 2), true, ItemChargeNo));
+        GetChargeCrMemoLine(SalesCrMemoHeader, ChargeSalesCrMemoLine);
+        Assert.AreEqual('', ChargeSalesCrMemoLine.Description, 'The scenario requires an item charge line without a description.');
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] The code of the item charge is exported as the reason
+        Path := DocumentAllowanceChargeTok + '/ram:Reason';
+        Assert.AreEqual(ItemChargeNo, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDFormatVerifyDocumentLevelItemChargeWithReasonCodeOnlyKeepsTheReasonCode()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+        Path: Text;
+    begin
+        // [SCENARIO] A reason code alone already satisfies the reason requirement of EN 16931, so the item charge code is not substituted as the reason text
+        Initialize();
+
+        // [GIVEN] A service that maps item charges automatically
+        SetServiceItemChargeMapping(EDocumentService."Item Charge E-Invoice Mapping"::Automatic);
+
+        // [GIVEN] A posted sales credit memo with a document level item charge without a line description
+        SalesCrMemoHeader.Get(
+            CreateAndPostSalesDocumentWithItemCharge("Sales Document Type"::"Credit Memo", 2, 2, 2, LibraryRandom.RandDecInRange(10, 50, 2), true, ItemChargeNo));
+
+        // [GIVEN] The item charge carries a reason code but no reason text
+        SetItemChargeReason(ItemChargeNo, '', ItemChargeReasonCodeTok);
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] The reason code of the item charge is exported
+        Path := DocumentAllowanceChargeTok + '/ram:ReasonCode';
+        Assert.AreEqual(ItemChargeReasonCodeTok, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] The code of the item charge is not exported as the reason
+        Path := DocumentAllowanceChargeTok + '/ram:Reason';
+        Assert.AreEqual('', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDFormatVerifyLineLevelItemChargeAllowanceCharge()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        ChargeSalesCrMemoLine: Record "Sales Cr.Memo Line";
+        ItemSalesCrMemoLine: Record "Sales Cr.Memo Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+        Path: Text;
+    begin
+        // [SCENARIO] An item charge of a posted sales credit memo classified as a line level allowance/charge is exported inside the line trade settlement of the credit memo line it is assigned to
+        Initialize();
+
+        // [GIVEN] A service that maps item charges automatically
+        SetServiceItemChargeMapping(EDocumentService."Item Charge E-Invoice Mapping"::Automatic);
+
+        // [GIVEN] A posted sales credit memo with one item line and an item charge with the same VAT assigned to that line
+        SalesCrMemoHeader.Get(CreateAndPostSalesCrMemoWithItemCharge(1, 1, LibraryRandom.RandDecInRange(10, 50, 2), ItemChargeNo));
+        GetChargeCrMemoLine(SalesCrMemoHeader, ChargeSalesCrMemoLine);
+        GetItemCrMemoLine(SalesCrMemoHeader, ItemSalesCrMemoLine);
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] The charge is exported inside the credit memo line of the assigned line
+        Assert.AreEqual(1, GetNodeCountByPath(TempXMLBuffer, InvoiceLineTok), 'The item charge must not be exported as a separate credit memo line.');
+        Path := InvoiceLineTok + '/ram:AssociatedDocumentLineDocument/ram:LineID';
+        Assert.AreEqual(Format(ItemSalesCrMemoLine."Line No."), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := InvoiceLineAllowanceChargeTok + '/ram:ChargeIndicator/udt:Indicator';
+        Assert.AreEqual('true', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := InvoiceLineAllowanceChargeTok + '/ram:ActualAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(ChargeSalesCrMemoLine.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] The line level allowance/charge carries no VAT category, because the VAT category of the credit memo line applies
+        Assert.AreEqual(0, GetNodeCountByPath(TempXMLBuffer, InvoiceLineAllowanceChargeTok + '/ram:CategoryTradeTax/ram:CategoryCode'), 'A line level allowance/charge must not carry its own VAT category.');
+
+        // [THEN] The charge is not repeated as a document level allowance/charge
+        Assert.AreEqual(0, GetNodeCountByPath(TempXMLBuffer, DocumentAllowanceChargeTok), 'A line level charge must not be exported as a document level allowance/charge.');
+
+        // [THEN] The net amount of the credit memo line includes the charge
+        Path := LineMonetarySummationTok + '/ram:LineTotalAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(ItemSalesCrMemoLine.Amount + ChargeSalesCrMemoLine.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDFormatVerifyItemChargeCrMemoLineUsesFallbackQuantityAndUnitCode()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        ChargeSalesCrMemoLine: Record "Sales Cr.Memo Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+        Path: Text;
+    begin
+        // [SCENARIO] An item charge of a posted sales credit memo exported as a regular credit memo line carries quantity 1 and the unit code C62, never an empty unit code
+        Initialize();
+
+        // [GIVEN] A service that forces item charges into a document line with a unit code
+        SetServiceItemChargeMapping(EDocumentService."Item Charge E-Invoice Mapping"::"Line with Unit Code");
+
+        // [GIVEN] A posted sales credit memo with one item line and an item charge of quantity 2 assigned to that line
+        SalesCrMemoHeader.Get(CreateAndPostSalesCrMemoWithItemCharge(1, 2, LibraryRandom.RandDecInRange(10, 50, 2), ItemChargeNo));
+        GetChargeCrMemoLine(SalesCrMemoHeader, ChargeSalesCrMemoLine);
+        Assert.AreEqual(2, ChargeSalesCrMemoLine.Quantity, 'The scenario requires an item charge quantity that differs from the fallback quantity.');
+        Assert.AreEqual('', ChargeSalesCrMemoLine."Unit of Measure Code", 'The scenario requires an item charge line without a unit of measure.');
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] The item charge is exported as a credit memo line
+        Assert.AreEqual(2, GetNodeCountByPath(TempXMLBuffer, InvoiceLineTok), 'The item charge must be exported as a credit memo line.');
+        Path := InvoiceLineTok + '/ram:AssociatedDocumentLineDocument/ram:LineID';
+        Assert.AreEqual(Format(ChargeSalesCrMemoLine."Line No."), GetLastNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] The credit memo line of the item charge carries quantity 1 and the unit code C62
+        Assert.AreEqual('1', GetLastNodeByPathWithError(TempXMLBuffer, BilledQuantityTok), StrSubstNo(IncorrectValueErr, BilledQuantityTok));
+        Assert.AreEqual(UnitCodeOneTok, GetLastAttributeByPathWithError(TempXMLBuffer, BilledQuantityTok, 'unitCode'), StrSubstNo(IncorrectValueErr, BilledQuantityTok));
+
+        // [THEN] The unit price of the credit memo line matches the net amount, so that quantity times price stays the net amount of the line
+        Path := InvoiceLineTok + '/ram:SpecifiedLineTradeAgreement/ram:NetPriceProductTradePrice/ram:ChargeAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimalUnlimited(ChargeSalesCrMemoLine.Amount), GetLastNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] No allowance/charge is exported for the item charge
+        Assert.AreEqual(0, GetNodeCountByPath(TempXMLBuffer, DocumentAllowanceChargeTok), 'An item charge exported as a credit memo line must not be exported as an allowance/charge.');
+        Assert.AreEqual(0, GetNodeCountByPath(TempXMLBuffer, InvoiceLineAllowanceChargeTok), 'An item charge exported as a credit memo line must not be exported as an allowance/charge.');
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDFormatVerifyNegativeItemChargeCrMemoLineUsesNegativeQuantity()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        ChargeSalesCrMemoLine: Record "Sales Cr.Memo Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+        Path: Text;
+    begin
+        // [SCENARIO] A negative item charge of a posted sales credit memo exported as a regular credit memo line reports a negative quantity and a positive net price, so that the exported document satisfies BR-27
+        Initialize();
+
+        // [GIVEN] A service that forces item charges into a document line with a unit code
+        SetServiceItemChargeMapping(EDocumentService."Item Charge E-Invoice Mapping"::"Line with Unit Code");
+
+        // [GIVEN] A posted sales credit memo with one item line and a negative item charge assigned to that line
+        SalesCrMemoHeader.Get(CreateAndPostSalesCrMemoWithItemCharge(1, 2, -LibraryRandom.RandDecInRange(10, 50, 2), ItemChargeNo));
+        GetChargeCrMemoLine(SalesCrMemoHeader, ChargeSalesCrMemoLine);
+        Assert.IsTrue(ChargeSalesCrMemoLine.Amount < 0, 'The scenario requires a negative item charge amount.');
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] The credit memo line of the item charge reports the negative fallback quantity with the fallback unit code
+        Assert.AreEqual('-1', GetLastNodeByPathWithError(TempXMLBuffer, BilledQuantityTok), StrSubstNo(IncorrectValueErr, BilledQuantityTok));
+        Assert.AreEqual(UnitCodeOneTok, GetLastAttributeByPathWithError(TempXMLBuffer, BilledQuantityTok, 'unitCode'), StrSubstNo(IncorrectValueErr, BilledQuantityTok));
+
+        // [THEN] The net price of the credit memo line is not negative, because the item net price must never be negative
+        Path := InvoiceLineTok + '/ram:SpecifiedLineTradeAgreement/ram:NetPriceProductTradePrice/ram:ChargeAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimalUnlimited(-ChargeSalesCrMemoLine.Amount), GetLastNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] The quantity of the credit memo line times its net price stays the net amount of the line
+        VerifyLastLineAmountMatchesQuantityTimesPrice(
+            TempXMLBuffer, BilledQuantityTok,
+            InvoiceLineTok + '/ram:SpecifiedLineTradeAgreement/ram:NetPriceProductTradePrice/ram:ChargeAmount',
+            LineMonetarySummationTok + '/ram:LineTotalAmount');
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDFormatVerifyNegativeItemChargeIsExportedAsAllowance()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        ChargeSalesCrMemoLine: Record "Sales Cr.Memo Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+        Path: Text;
+    begin
+        // [SCENARIO] A negative item charge of a posted sales credit memo is exported as an allowance with a positive amount
+        Initialize();
+
+        // [GIVEN] A service that maps item charges automatically
+        SetServiceItemChargeMapping(EDocumentService."Item Charge E-Invoice Mapping"::Automatic);
+
+        // [GIVEN] A posted sales credit memo with two item lines and a negative item charge assigned to both of them
+        SalesCrMemoHeader.Get(CreateAndPostSalesCrMemoWithItemCharge(2, 2, -LibraryRandom.RandDecInRange(10, 50, 2), ItemChargeNo));
+        GetChargeCrMemoLine(SalesCrMemoHeader, ChargeSalesCrMemoLine);
+        Assert.IsTrue(ChargeSalesCrMemoLine.Amount < 0, 'The scenario requires a negative item charge amount.');
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] The charge is exported as an allowance with a positive amount
+        Path := DocumentAllowanceChargeTok + '/ram:ChargeIndicator/udt:Indicator';
+        Assert.AreEqual('false', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := DocumentAllowanceChargeTok + '/ram:ActualAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(-ChargeSalesCrMemoLine.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] The allowance is reported in the allowance total and not in a charge total
+        SalesCrMemoHeader.CalcFields(Amount, "Amount Including VAT");
+        Path := MonetarySummationTok + '/ram:AllowanceTotalAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(-ChargeSalesCrMemoLine.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual(0, GetNodeCountByPath(TempXMLBuffer, MonetarySummationTok + '/ram:ChargeTotalAmount'), 'A negative item charge must not be reported as a charge total.');
+
+        // [THEN] The totals stay consistent
+        Path := MonetarySummationTok + '/ram:LineTotalAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesCrMemoHeader.Amount - ChargeSalesCrMemoLine.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := MonetarySummationTok + '/ram:TaxBasisTotalAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesCrMemoHeader.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDFormatVerifyTotalsWithDocumentLevelItemCharge()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        ChargeSalesCrMemoLine: Record "Sales Cr.Memo Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+        Path: Text;
+    begin
+        // [SCENARIO] Moving an item charge out of the credit memo lines keeps the monetary summation and the tax subtotals consistent
+        Initialize();
+
+        // [GIVEN] A service that maps item charges automatically
+        SetServiceItemChargeMapping(EDocumentService."Item Charge E-Invoice Mapping"::Automatic);
+
+        // [GIVEN] A posted sales credit memo with two item lines and one item charge assigned to both of them
+        SalesCrMemoHeader.Get(CreateAndPostSalesCrMemoWithItemCharge(2, 2, LibraryRandom.RandDecInRange(10, 50, 2), ItemChargeNo));
+        GetChargeCrMemoLine(SalesCrMemoHeader, ChargeSalesCrMemoLine);
+        SalesCrMemoHeader.CalcFields(Amount, "Amount Including VAT");
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] The sum of the credit memo lines no longer contains the charge and the charge is reported as the charge total
+        Path := MonetarySummationTok + '/ram:LineTotalAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesCrMemoHeader.Amount - ChargeSalesCrMemoLine.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := MonetarySummationTok + '/ram:ChargeTotalAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(ChargeSalesCrMemoLine.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := MonetarySummationTok + '/ram:AllowanceTotalAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(0), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] The exported credit memo lines add up to the reported line total amount
+        Assert.AreEqual(
+            SalesCrMemoHeader.Amount - ChargeSalesCrMemoLine.Amount, SumNodeValuesByPath(TempXMLBuffer, LineMonetarySummationTok + '/ram:LineTotalAmount'),
+            'The exported credit memo lines must add up to the reported line total amount.');
+
+        // [THEN] The remaining document totals are unchanged
+        Path := MonetarySummationTok + '/ram:TaxBasisTotalAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesCrMemoHeader.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := MonetarySummationTok + '/ram:GrandTotalAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesCrMemoHeader."Amount Including VAT"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := MonetarySummationTok + '/ram:DuePayableAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesCrMemoHeader."Amount Including VAT"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] The tax subtotal still covers the charge
+        Path := HeaderTradeTaxTok + '/ram:CalculatedAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesCrMemoHeader."Amount Including VAT" - SalesCrMemoHeader.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := HeaderTradeTaxTok + '/ram:BasisAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesCrMemoHeader.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDFormatVerifyTotalsWithLineLevelItemCharge()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+        Path: Text;
+    begin
+        // [SCENARIO] A line level allowance/charge on a posted sales credit memo stays inside the sum of the credit memo lines and leaves the document totals untouched
+        Initialize();
+
+        // [GIVEN] A service that maps item charges automatically
+        SetServiceItemChargeMapping(EDocumentService."Item Charge E-Invoice Mapping"::Automatic);
+
+        // [GIVEN] A posted sales credit memo with one item line and an item charge with the same VAT assigned to that line
+        SalesCrMemoHeader.Get(CreateAndPostSalesCrMemoWithItemCharge(1, 1, LibraryRandom.RandDecInRange(10, 50, 2), ItemChargeNo));
+        SalesCrMemoHeader.CalcFields(Amount, "Amount Including VAT");
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] The charge is exported inside the credit memo line it is assigned to
+        Assert.AreEqual(1, GetNodeCountByPath(TempXMLBuffer, InvoiceLineTok), 'The item charge must not be exported as a separate credit memo line.');
+        Assert.AreEqual(1, GetNodeCountByPath(TempXMLBuffer, InvoiceLineAllowanceChargeTok), 'The item charge must be exported as a line level allowance/charge.');
+
+        // [THEN] The line total amount still contains the charge and no charge total is reported
+        Path := MonetarySummationTok + '/ram:LineTotalAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesCrMemoHeader.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual(0, GetNodeCountByPath(TempXMLBuffer, MonetarySummationTok + '/ram:ChargeTotalAmount'), 'A line level charge must not be reported as a charge total.');
+        Path := MonetarySummationTok + '/ram:AllowanceTotalAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(0), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] The exported credit memo lines add up to the reported line total amount
+        Assert.AreEqual(
+            SalesCrMemoHeader.Amount, SumNodeValuesByPath(TempXMLBuffer, LineMonetarySummationTok + '/ram:LineTotalAmount'),
+            'The exported credit memo lines must add up to the reported line total amount.');
+
+        // [THEN] The remaining document totals are unchanged
+        Path := MonetarySummationTok + '/ram:TaxBasisTotalAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesCrMemoHeader.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Path := MonetarySummationTok + '/ram:DuePayableAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesCrMemoHeader."Amount Including VAT"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] The tax subtotal still covers the charge
+        Path := HeaderTradeTaxTok + '/ram:BasisAmount';
+        Assert.AreEqual(ExportZUGFeRDDocument.FormatDecimal(SalesCrMemoHeader.Amount), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyChargeKeepsInvoiceLineWhenTheOnlyItemLineIsNotExported()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ItemSalesInvoiceLine: Record "Sales Invoice Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+        Path: Text;
+    begin
+        // [SCENARIO] A posted sales invoice whose only item line is skipped by the export keeps the item charge as an invoice line even when the service forces a document level allowance/charge, so that the exported document satisfies BR-16
+        Initialize();
+
+        // [GIVEN] A service that forces item charges into a document level allowance/charge
+        SetServiceItemChargeMapping(EDocumentService."Item Charge E-Invoice Mapping"::"Document Allowance/Charge");
+
+        // [GIVEN] A posted sales invoice with an item charge assigned to an earlier shipment and one item line without a quantity, which the export skips
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithChargeAndZeroQuantityLine(ItemChargeNo));
+        GetItemInvoiceLine(SalesInvoiceHeader, ItemSalesInvoiceLine);
+        Assert.AreEqual(0, ItemSalesInvoiceLine.Quantity, 'The scenario requires an item line without a quantity.');
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] The item charge is exported as the only invoice line
+        Assert.AreEqual(1, GetNodeCountByPath(TempXMLBuffer, InvoiceLineTok), 'The item charge must be exported as an invoice line, so that the document keeps at least one invoice line.');
+        Assert.IsTrue(NodeValueExists(TempXMLBuffer, InvoiceLineTok + '/ram:SpecifiedTradeProduct/ram:SellerAssignedID', ItemChargeNo), 'The exported invoice line must be the item charge.');
+
+        // [THEN] The invoice line of the item charge carries the fallback quantity and the unit code C62
+        Path := BilledQuantityTok;
+        Assert.AreEqual('1', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+        Assert.AreEqual(UnitCodeOneTok, GetAttributeByPathWithError(TempXMLBuffer, Path, 'unitCode'), StrSubstNo(IncorrectValueErr, Path));
+
+        // [THEN] The charge is not exported as a document level allowance/charge
+        Assert.AreEqual(0, GetNodeCountByPath(TempXMLBuffer, DocumentAllowanceChargeTok), 'The item charge must not be exported as a document level allowance/charge.');
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDFormatVerifyChargeKeepsCrMemoLineWhenTheOnlyItemLineIsNotExported()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        ItemSalesCrMemoLine: Record "Sales Cr.Memo Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+    begin
+        // [SCENARIO] A posted sales credit memo whose only item line is skipped by the export keeps the item charge as a credit memo line even when the service forces a document level allowance/charge, so that the exported document satisfies BR-16
+        Initialize();
+
+        // [GIVEN] A service that forces item charges into a document level allowance/charge
+        SetServiceItemChargeMapping(EDocumentService."Item Charge E-Invoice Mapping"::"Document Allowance/Charge");
+
+        // [GIVEN] A posted sales credit memo with an item charge assigned to an earlier return receipt and one item line without a quantity, which the export skips
+        SalesCrMemoHeader.Get(CreateAndPostSalesCrMemoWithChargeAndZeroQuantityLine(ItemChargeNo));
+        GetItemCrMemoLine(SalesCrMemoHeader, ItemSalesCrMemoLine);
+        Assert.AreEqual(0, ItemSalesCrMemoLine.Quantity, 'The scenario requires an item line without a quantity.');
+
+        // [WHEN] Export ZUGFeRD Electronic Document.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] The item charge is exported as the only credit memo line
+        Assert.AreEqual(1, GetNodeCountByPath(TempXMLBuffer, InvoiceLineTok), 'The item charge must be exported as a credit memo line, so that the document keeps at least one credit memo line.');
+        Assert.IsTrue(NodeValueExists(TempXMLBuffer, InvoiceLineTok + '/ram:SpecifiedTradeProduct/ram:SellerAssignedID', ItemChargeNo), 'The exported credit memo line must be the item charge.');
+
+        // [THEN] The credit memo line of the item charge carries the fallback quantity and the unit code C62
+        Assert.AreEqual('1', GetNodeByPathWithError(TempXMLBuffer, BilledQuantityTok), StrSubstNo(IncorrectValueErr, BilledQuantityTok));
+        Assert.AreEqual(UnitCodeOneTok, GetAttributeByPathWithError(TempXMLBuffer, BilledQuantityTok, 'unitCode'), StrSubstNo(IncorrectValueErr, BilledQuantityTok));
+
+        // [THEN] The charge is not exported as a document level allowance/charge
+        Assert.AreEqual(0, GetNodeCountByPath(TempXMLBuffer, DocumentAllowanceChargeTok), 'The item charge must not be exported as a document level allowance/charge.');
+    end;
+    #endregion
+
+    local procedure CreateAndPostSalesInvoiceWithChargeAndZeroQuantityLine(var ItemChargeNo: Code[20]): Code[20]
+    var
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        ZeroQuantitySalesLine: Record "Sales Line";
+        ChargeSalesLine: Record "Sales Line";
+        CustomerNo: Code[20];
+        ShipmentNo: Code[20];
+    begin
+        PrepareItemChargePosting();
+        LibraryInventory.CreateItem(Item);
+        CustomerNo := CreateCustomer();
+        ShipmentNo := CreateAndPostShipmentOnly(CustomerNo, Item);
+
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CustomerNo);
+        LibrarySales.CreateSalesLine(ZeroQuantitySalesLine, SalesHeader, ZeroQuantitySalesLine.Type::Item, Item."No.", 0);
+        ZeroQuantitySalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 2));
+        ZeroQuantitySalesLine.Validate("Tax Category", TaxCategoryStandardTok);
+        ZeroQuantitySalesLine.Modify(true);
+
+        ItemChargeNo := CreateItemChargeForItem(Item);
+        LibrarySales.CreateSalesLine(ChargeSalesLine, SalesHeader, ChargeSalesLine.Type::"Charge (Item)", ItemChargeNo, 1);
+        ChargeSalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(10, 50, 2));
+        ChargeSalesLine.Validate("Tax Category", TaxCategoryStandardTok);
+        ChargeSalesLine.Modify(true);
+        AssignItemChargeToShipment(ChargeSalesLine, ShipmentNo);
+
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreateAndPostSalesCrMemoWithChargeAndZeroQuantityLine(var ItemChargeNo: Code[20]): Code[20]
+    var
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        ZeroQuantitySalesLine: Record "Sales Line";
+        ChargeSalesLine: Record "Sales Line";
+        CustomerNo: Code[20];
+        ReturnReceiptNo: Code[20];
+    begin
+        PrepareItemChargePosting();
+        LibraryInventory.CreateItem(Item);
+        CustomerNo := CreateCustomer();
+        ReturnReceiptNo := CreateAndPostReturnReceiptOnly(CustomerNo, Item);
+
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::"Credit Memo", CustomerNo);
+        LibrarySales.CreateSalesLine(ZeroQuantitySalesLine, SalesHeader, ZeroQuantitySalesLine.Type::Item, Item."No.", 0);
+        ZeroQuantitySalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 2));
+        ZeroQuantitySalesLine.Validate("Tax Category", TaxCategoryStandardTok);
+        ZeroQuantitySalesLine.Modify(true);
+
+        ItemChargeNo := CreateItemChargeForItem(Item);
+        LibrarySales.CreateSalesLine(ChargeSalesLine, SalesHeader, ChargeSalesLine.Type::"Charge (Item)", ItemChargeNo, 1);
+        ChargeSalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(10, 50, 2));
+        ChargeSalesLine.Validate("Tax Category", TaxCategoryStandardTok);
+        ChargeSalesLine.Modify(true);
+        AssignItemChargeToReturnReceipt(ChargeSalesLine, ReturnReceiptNo);
+
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreateAndPostReturnReceiptOnly(CustomerNo: Code[20]; Item: Record Item): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+        ItemSalesLine: Record "Sales Line";
+        ReturnReceiptHeader: Record "Return Receipt Header";
+    begin
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::"Return Order", CustomerNo);
+        CreateItemSalesLine(ItemSalesLine, SalesHeader, Item);
+        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+
+        ReturnReceiptHeader.SetRange("Return Order No.", SalesHeader."No.");
+        ReturnReceiptHeader.FindFirst();
+        exit(ReturnReceiptHeader."No.");
+    end;
+
+    local procedure AssignItemChargeToReturnReceipt(ChargeSalesLine: Record "Sales Line"; ReturnReceiptNo: Code[20])
+    var
+        ItemChargeAssignmentSales: Record "Item Charge Assignment (Sales)";
+        ReturnReceiptLine: Record "Return Receipt Line";
+        ItemChargeAssgntSales: Codeunit "Item Charge Assgnt. (Sales)";
+    begin
+        ItemChargeAssignmentSales.Init();
+        ItemChargeAssignmentSales.Validate("Document Type", ChargeSalesLine."Document Type");
+        ItemChargeAssignmentSales.Validate("Document No.", ChargeSalesLine."Document No.");
+        ItemChargeAssignmentSales.Validate("Document Line No.", ChargeSalesLine."Line No.");
+        ItemChargeAssignmentSales.Validate("Item Charge No.", ChargeSalesLine."No.");
+        ItemChargeAssignmentSales.Validate("Unit Cost", ChargeSalesLine."Unit Price");
+        ReturnReceiptLine.SetRange("Document No.", ReturnReceiptNo);
+        ReturnReceiptLine.FindFirst();
+        ItemChargeAssgntSales.CreateRcptChargeAssgnt(ReturnReceiptLine, ItemChargeAssignmentSales);
+
+        ItemChargeAssignmentSales.SetRange("Document Type", ChargeSalesLine."Document Type");
+        ItemChargeAssignmentSales.SetRange("Document No.", ChargeSalesLine."Document No.");
+        ItemChargeAssignmentSales.SetRange("Document Line No.", ChargeSalesLine."Line No.");
+        ItemChargeAssignmentSales.FindFirst();
+        ItemChargeAssignmentSales.Validate("Qty. to Assign", ChargeSalesLine.Quantity);
+        ItemChargeAssignmentSales.Modify(true);
+    end;
+
+    local procedure CreateAndPostShipmentOnly(CustomerNo: Code[20]; Item: Record Item): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+        ItemSalesLine: Record "Sales Line";
+        SalesShipmentHeader: Record "Sales Shipment Header";
+    begin
+        CreateSalesHeader(SalesHeader, "Sales Document Type"::Order, CustomerNo);
+        CreateItemSalesLine(ItemSalesLine, SalesHeader, Item);
+        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+
+        SalesShipmentHeader.SetRange("Order No.", SalesHeader."No.");
+        SalesShipmentHeader.FindFirst();
+        exit(SalesShipmentHeader."No.");
+    end;
+
+    local procedure AssignItemChargeToShipment(ChargeSalesLine: Record "Sales Line"; ShipmentNo: Code[20])
+    var
+        ItemChargeAssignmentSales: Record "Item Charge Assignment (Sales)";
+        SalesShipmentLine: Record "Sales Shipment Line";
+        ItemChargeAssgntSales: Codeunit "Item Charge Assgnt. (Sales)";
+    begin
+        ItemChargeAssignmentSales.Init();
+        ItemChargeAssignmentSales.Validate("Document Type", ChargeSalesLine."Document Type");
+        ItemChargeAssignmentSales.Validate("Document No.", ChargeSalesLine."Document No.");
+        ItemChargeAssignmentSales.Validate("Document Line No.", ChargeSalesLine."Line No.");
+        ItemChargeAssignmentSales.Validate("Item Charge No.", ChargeSalesLine."No.");
+        ItemChargeAssignmentSales.Validate("Unit Cost", ChargeSalesLine."Unit Price");
+        SalesShipmentLine.SetRange("Document No.", ShipmentNo);
+        SalesShipmentLine.FindFirst();
+        ItemChargeAssgntSales.CreateShptChargeAssgnt(SalesShipmentLine, ItemChargeAssignmentSales);
+
+        ItemChargeAssignmentSales.SetRange("Document Type", ChargeSalesLine."Document Type");
+        ItemChargeAssignmentSales.SetRange("Document No.", ChargeSalesLine."Document No.");
+        ItemChargeAssignmentSales.SetRange("Document Line No.", ChargeSalesLine."Line No.");
+        ItemChargeAssignmentSales.FindFirst();
+        ItemChargeAssignmentSales.Validate("Qty. to Assign", ChargeSalesLine.Quantity);
+        ItemChargeAssignmentSales.Modify(true);
+    end;
+
+    local procedure CreateAndPostSalesInvoiceWithItemCharge(NoOfItemLines: Integer; ChargeQuantity: Decimal; ChargeUnitPrice: Decimal; var ItemChargeNo: Code[20]): Code[20]
+    begin
+        exit(CreateAndPostSalesInvoiceWithItemCharge(NoOfItemLines, NoOfItemLines, ChargeQuantity, ChargeUnitPrice, ItemChargeNo));
+    end;
+
+    local procedure CreateAndPostSalesCrMemoWithItemCharge(NoOfItemLines: Integer; ChargeQuantity: Decimal; ChargeUnitPrice: Decimal; var ItemChargeNo: Code[20]): Code[20]
+    begin
+        exit(CreateAndPostSalesDocumentWithItemCharge("Sales Document Type"::"Credit Memo", NoOfItemLines, NoOfItemLines, ChargeQuantity, ChargeUnitPrice, ItemChargeNo));
+    end;
+
+    local procedure CreateAndPostSalesInvoiceWithItemCharge(NoOfItemLines: Integer; NoOfAssignedLines: Integer; ChargeQuantity: Decimal; ChargeUnitPrice: Decimal; var ItemChargeNo: Code[20]): Code[20]
+    begin
+        exit(CreateAndPostSalesDocumentWithItemCharge("Sales Document Type"::Invoice, NoOfItemLines, NoOfAssignedLines, ChargeQuantity, ChargeUnitPrice, ItemChargeNo));
+    end;
+
+    local procedure CreateAndPostSalesDocumentWithItemCharge(DocumentType: Enum "Sales Document Type"; NoOfItemLines: Integer; NoOfAssignedLines: Integer; ChargeQuantity: Decimal; ChargeUnitPrice: Decimal; var ItemChargeNo: Code[20]): Code[20]
+    begin
+        exit(CreateAndPostSalesDocumentWithItemCharge(DocumentType, NoOfItemLines, NoOfAssignedLines, ChargeQuantity, ChargeUnitPrice, false, ItemChargeNo));
+    end;
+
+    local procedure CreateAndPostSalesDocumentWithItemCharge(DocumentType: Enum "Sales Document Type"; NoOfItemLines: Integer; NoOfAssignedLines: Integer; ChargeQuantity: Decimal; ChargeUnitPrice: Decimal; BlankChargeDescription: Boolean; var ItemChargeNo: Code[20]): Code[20]
+    var
+        ItemChargeAssignmentSales: Record "Item Charge Assignment (Sales)";
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        ChargeSalesLine: Record "Sales Line";
+        ItemSalesLine: Record "Sales Line";
+        ItemLineNo: array[2] of Integer;
+        Index: Integer;
+    begin
+        PrepareItemChargePosting();
+        LibraryInventory.CreateItem(Item);
+        CreateSalesHeader(SalesHeader, DocumentType);
+        for Index := 1 to NoOfItemLines do begin
+            CreateItemSalesLine(ItemSalesLine, SalesHeader, Item);
+            ItemLineNo[Index] := ItemSalesLine."Line No.";
+        end;
+
+        ItemChargeNo := CreateItemChargeForItem(Item);
+        LibrarySales.CreateSalesLine(ChargeSalesLine, SalesHeader, ChargeSalesLine.Type::"Charge (Item)", ItemChargeNo, ChargeQuantity);
+        ChargeSalesLine.Validate("Unit Price", ChargeUnitPrice);
+        ChargeSalesLine.Validate("Tax Category", TaxCategoryStandardTok);
+        if BlankChargeDescription then
+            ChargeSalesLine.Description := '';
+        ChargeSalesLine.Modify(true);
+
+        for Index := 1 to NoOfAssignedLines do begin
+            LibraryInventory.CreateItemChargeAssignment(
+                ItemChargeAssignmentSales, ChargeSalesLine, SalesHeader."Document Type", SalesHeader."No.", ItemLineNo[Index], Item."No.");
+            ItemChargeAssignmentSales.Validate("Qty. to Assign", ChargeQuantity / NoOfAssignedLines);
+            ItemChargeAssignmentSales.Modify(true);
+        end;
+
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure PrepareItemChargePosting()
+    var
+        InventorySetup: Record "Inventory Setup";
+    begin
+        LibrarySales.SetStockoutWarning(false);
+        LibrarySales.SetCreditWarningsToNoWarnings();
+        LibrarySales.SetCalcInvDiscount(false);
+        InventorySetup.Get();
+        InventorySetup.Validate("Prevent Negative Inventory", false);
+        InventorySetup.Modify(true);
+    end;
+
+    local procedure CreateItemSalesLine(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; Item: Record Item)
+    var
+        UnitOfMeasure: Record "Unit of Measure";
+    begin
+        LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
+        UnitOfMeasure."International Standard Code" := LibraryUtility.GenerateGUID();
+        UnitOfMeasure.Modify(true);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 2));
+        SalesLine.Validate("Unit of Measure", UnitOfMeasure.Code);
+        SalesLine.Validate("Tax Category", TaxCategoryStandardTok);
+        SalesLine.Modify(true);
+    end;
+
+    local procedure CreateItemChargeForItem(Item: Record Item): Code[20]
+    var
+        ItemCharge: Record "Item Charge";
+    begin
+        ItemCharge.Get(LibraryInventory.CreateItemChargeNo());
+        ItemCharge.Validate("Gen. Prod. Posting Group", Item."Gen. Prod. Posting Group");
+        ItemCharge.Validate("VAT Prod. Posting Group", Item."VAT Prod. Posting Group");
+        ItemCharge.Modify(true);
+        exit(ItemCharge."No.");
+    end;
+
+    local procedure SetServiceItemChargeMapping(ItemChargeMapping: Enum "Item Charge E-Invoice Mapping")
+    begin
+        EDocumentService."Item Charge E-Invoice Mapping" := ItemChargeMapping;
+        EDocumentService.Modify();
+    end;
+
+    local procedure SetItemChargeReason(ItemChargeNo: Code[20]; ReasonText: Text[100]; ReasonCode: Code[10])
+    var
+        ItemCharge: Record "Item Charge";
+    begin
+        ItemCharge.Get(ItemChargeNo);
+        ItemCharge."E-Invoice Reason Text" := ReasonText;
+        ItemCharge."E-Invoice Reason Code" := ReasonCode;
+        ItemCharge.Modify(false);
+    end;
+
+    local procedure SetItemChargeUnitCode(ItemChargeNo: Code[20]; UnitCode: Code[10])
+    var
+        ItemCharge: Record "Item Charge";
+    begin
+        ItemCharge.Get(ItemChargeNo);
+        ItemCharge."E-Invoice Unit Code" := UnitCode;
+        ItemCharge.Modify(false);
+    end;
+
+    local procedure GetChargeInvoiceLine(SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesInvoiceLine: Record "Sales Invoice Line")
+    begin
+        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
+        SalesInvoiceLine.SetRange(Type, SalesInvoiceLine.Type::"Charge (Item)");
+        SalesInvoiceLine.FindFirst();
+    end;
+
+    local procedure GetItemInvoiceLine(SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesInvoiceLine: Record "Sales Invoice Line")
+    begin
+        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
+        SalesInvoiceLine.SetRange(Type, SalesInvoiceLine.Type::Item);
+        SalesInvoiceLine.FindFirst();
+    end;
+
+    local procedure GetChargeCrMemoLine(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var SalesCrMemoLine: Record "Sales Cr.Memo Line")
+    begin
+        SalesCrMemoLine.SetRange("Document No.", SalesCrMemoHeader."No.");
+        SalesCrMemoLine.SetRange(Type, SalesCrMemoLine.Type::"Charge (Item)");
+        SalesCrMemoLine.FindFirst();
+    end;
+
+    local procedure GetItemCrMemoLine(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var SalesCrMemoLine: Record "Sales Cr.Memo Line")
+    begin
+        SalesCrMemoLine.SetRange("Document No.", SalesCrMemoHeader."No.");
+        SalesCrMemoLine.SetRange(Type, SalesCrMemoLine.Type::Item);
+        SalesCrMemoLine.FindFirst();
+    end;
+
+    local procedure GetNodeCountByPath(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text): Integer
+    begin
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+        TempXMLBuffer.SetRange(Path, XPath);
+        exit(TempXMLBuffer.Count());
+    end;
+
+    local procedure NodeValueExists(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text; NodeValue: Text): Boolean
+    begin
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+        TempXMLBuffer.SetRange(Path, XPath);
+        TempXMLBuffer.SetRange(Value, NodeValue);
+        exit(not TempXMLBuffer.IsEmpty());
+    end;
+
+    local procedure SumNodeValuesByPath(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text) Total: Decimal
+    var
+        NodeValue: Decimal;
+    begin
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+        TempXMLBuffer.SetRange(Path, XPath);
+        if TempXMLBuffer.FindSet() then
+            repeat
+                Evaluate(NodeValue, TempXMLBuffer.Value, 9);
+                Total += NodeValue;
+            until TempXMLBuffer.Next() = 0;
+    end;
+
+    local procedure GetAttributeByPathWithError(var TempXMLBuffer: Record "XML Buffer" temporary; ElementXPath: Text; AttributeName: Text): Text
+    var
+        TempXMLBufferAttribute: Record "XML Buffer" temporary;
+    begin
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+        TempXMLBuffer.SetRange(Path, ElementXPath);
+        if TempXMLBuffer.FindFirst() then begin
+            TempXMLBufferAttribute.Copy(TempXMLBuffer, true);
+            TempXMLBufferAttribute.Reset();
+            TempXMLBufferAttribute.SetRange("Parent Entry No.", TempXMLBuffer."Entry No.");
+            TempXMLBufferAttribute.SetRange(Type, TempXMLBufferAttribute.Type::Attribute);
+            TempXMLBufferAttribute.SetRange(Name, AttributeName);
+            if TempXMLBufferAttribute.FindFirst() then
+                exit(TempXMLBufferAttribute.Value);
+        end;
+        Error(AttributeNotFoundErr, AttributeName, ElementXPath);
+    end;
+
+    local procedure GetLastAttributeByPathWithError(var TempXMLBuffer: Record "XML Buffer" temporary; ElementXPath: Text; AttributeName: Text): Text
+    var
+        TempXMLBufferAttribute: Record "XML Buffer" temporary;
+    begin
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+        TempXMLBuffer.SetRange(Path, ElementXPath);
+        if TempXMLBuffer.FindLast() then begin
+            TempXMLBufferAttribute.Copy(TempXMLBuffer, true);
+            TempXMLBufferAttribute.Reset();
+            TempXMLBufferAttribute.SetRange("Parent Entry No.", TempXMLBuffer."Entry No.");
+            TempXMLBufferAttribute.SetRange(Type, TempXMLBufferAttribute.Type::Attribute);
+            TempXMLBufferAttribute.SetRange(Name, AttributeName);
+            if TempXMLBufferAttribute.FindFirst() then
+                exit(TempXMLBufferAttribute.Value);
+        end;
+        Error(AttributeNotFoundErr, AttributeName, ElementXPath);
+    end;
+
     local procedure CreateAndPostSalesDocument(DocumentType: Enum "Sales Document Type"; LineType: Enum "Sales Line Type"; InvoiceDiscount: Boolean): Code[20];
     var
         SalesHeader: Record "Sales Header";
@@ -3271,25 +4622,6 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Error('Node not found: %1', XPath);
     end;
 
-    local procedure GetAttributeByPathWithError(var TempXMLBuffer: Record "XML Buffer" temporary; ElementXPath: Text; AttributeName: Text): Text
-    var
-        TempXMLBufferAttribute: Record "XML Buffer" temporary;
-    begin
-        TempXMLBuffer.Reset();
-        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
-        TempXMLBuffer.SetRange(Path, ElementXPath);
-        if TempXMLBuffer.FindFirst() then begin
-            TempXMLBufferAttribute.Copy(TempXMLBuffer, true);
-            TempXMLBufferAttribute.Reset();
-            TempXMLBufferAttribute.SetRange("Parent Entry No.", TempXMLBuffer."Entry No.");
-            TempXMLBufferAttribute.SetRange(Type, TempXMLBufferAttribute.Type::Attribute);
-            TempXMLBufferAttribute.SetRange(Name, AttributeName);
-            if TempXMLBufferAttribute.FindFirst() then
-                exit(TempXMLBufferAttribute.Value);
-        end;
-        Error(AttributeNotFoundErr, AttributeName, ElementXPath);
-    end;
-
     local procedure NodeExistsByPath(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text): Boolean
     begin
         TempXMLBuffer.Reset();
@@ -3314,6 +4646,18 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         if TempXMLBuffer.FindLast() then
             exit(TempXMLBuffer.Value);
         Error('Node not found: %1', XPath);
+    end;
+
+    local procedure VerifyLastLineAmountMatchesQuantityTimesPrice(var TempXMLBuffer: Record "XML Buffer" temporary; QuantityXPath: Text; PriceXPath: Text; LineAmountXPath: Text)
+    var
+        LineAmount: Decimal;
+        Price: Decimal;
+        Quantity: Decimal;
+    begin
+        Evaluate(Quantity, GetLastNodeByPathWithError(TempXMLBuffer, QuantityXPath), 9);
+        Evaluate(Price, GetLastNodeByPathWithError(TempXMLBuffer, PriceXPath), 9);
+        Evaluate(LineAmount, GetLastNodeByPathWithError(TempXMLBuffer, LineAmountXPath), 9);
+        Assert.AreEqual(LineAmount, Round(Quantity * Price, 0.01), 'The quantity times the unit price must stay the net amount of the line.');
     end;
 
     local procedure GetVATRegistrationNo(VATRegistrationNo: Text[20]; CountryRegionCode: Code[10]): Text[30];

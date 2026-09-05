@@ -42,6 +42,11 @@ pageextension 13915 "E-Document Service DE" extends "E-Document Service"
             }
 #pragma warning restore AS0125
         }
+        modify("Item Charge E-Invoice Mapping")
+        {
+            Visible = true;
+        }
+
         modify("Export Format")
         {
             trigger OnBeforeValidate()
