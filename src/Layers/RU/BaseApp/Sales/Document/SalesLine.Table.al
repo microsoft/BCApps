@@ -4528,7 +4528,6 @@ table 37 "Sales Line"
         PlannedShipmentDateCalculated: Boolean;
         PlannedDeliveryDateCalculated: Boolean;
         SuppressSalesHeaderExistsVerification: Boolean;
-        SkipUpdateQtyToAsm: Boolean;
         SkipDefaultItemQuantity: Boolean;
 #pragma warning disable AA0074
 #pragma warning disable AA0470
@@ -8864,9 +8863,6 @@ table 37 "Sales Line"
     var
         IsHandled: Boolean;
     begin
-        if SkipUpdateQtyToAsm then
-            exit;
-
         IsHandled := false;
         OnBeforeUpdateQtyToAsmFromSalesLineQtyToShip(Rec, IsHandled);
         if IsHandled then
@@ -8875,10 +8871,6 @@ table 37 "Sales Line"
         ATOLink.UpdateQtyToAsmFromSalesLine(Rec);
     end;
 
-    internal procedure SetSkipUpdateQtyToAsm(NewSkipUpdateQtyToAsm: Boolean)
-    begin
-        SkipUpdateQtyToAsm := NewSkipUpdateQtyToAsm;
-    end;
     /// <summary>
     /// Opens a page to show comments for the sales line.
     /// </summary>

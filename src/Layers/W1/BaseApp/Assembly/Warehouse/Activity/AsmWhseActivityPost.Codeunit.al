@@ -26,15 +26,24 @@ codeunit 932 "Asm. Whse. Activity Post"
     var
         WMSManagement: Codeunit "WMS Management";
     begin
+        SuppressQtyToAsmUpdate := false;
         if (WarehouseActivityHeader.Type = WarehouseActivityHeader.Type::"Invt. Pick") and
+           (WarehouseActivityHeader."Source Document" = WarehouseActivityHeader."Source Document"::"Sales Order") and
            WMSManagement.ATOInvtPickExists(SalesLine)
         then
-            SalesLine.SetSkipUpdateQtyToAsm(true);
+            SuppressQtyToAsmUpdate := true;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Post", 'OnBeforeModifySalesLine', '', false, false)]
-    local procedure OnBeforeModifySalesLine(var SalesLine: Record "Sales Line")
+    [EventSubscriber(ObjectType::Table, Database::"Sales Line", 'OnBeforeUpdateQtyToAsmFromSalesLineQtyToShip', '', false, false)]
+    local procedure OnBeforeUpdateQtyToAsmFromSalesLineQtyToShip(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
-        SalesLine.SetSkipUpdateQtyToAsm(false);
+        if not SuppressQtyToAsmUpdate then
+            exit;
+
+        SuppressQtyToAsmUpdate := false;
+        IsHandled := true;
     end;
+
+    var
+        SuppressQtyToAsmUpdate: Boolean;
 }
