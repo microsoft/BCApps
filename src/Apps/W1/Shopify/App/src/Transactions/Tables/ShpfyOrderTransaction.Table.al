@@ -209,6 +209,17 @@ table 30133 "Shpfy Order Transaction"
             DataClassification = SystemMetadata;
             Editable = false;
         }
+        field(100; "Auto-Post Enabled"; Boolean)
+        {
+            Caption = 'Auto-Post Enabled';
+            FieldClass = FlowField;
+            CalcFormula = exist("Shpfy Payment Method Mapping" where("Shop Code" = field("Shop"),
+                                                                     Gateway = field(Gateway),
+                                                                     "Credit Card Company" = field("Credit Card Company"),
+                                                                     "Post Automatically" = const(true),
+                                                                     "Auto-Post Jnl. Template" = filter(<> ''),
+                                                                     "Auto-Post Jnl. Batch" = filter(<> '')));
+        }
         field(101; "Sales Document No."; code[20])
         {
             Caption = 'Sales Document No.';
