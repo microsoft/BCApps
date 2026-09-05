@@ -9,7 +9,7 @@
   "usePsSessionForBc28": true,
   "gitHubRunner": "windows-latest",
   "githubRunnerShell": "pwsh",
-  "artifact": "bcinsider/Sandbox/29.0.54011.54232//latest",
+  "artifact": "bcinsider/Sandbox/29.0.54011.54321//latest",
   "country": "base",
   "useProjectDependencies": true,
   "repoVersion": "29.0",
