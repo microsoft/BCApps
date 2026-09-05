@@ -50,9 +50,9 @@ table 377 "Object Translation"
         {
             Caption = 'Description';
         }
-        field(6; "Object Name"; Text[30])
+        field(6; "Object Name"; Text[100])
         {
-            CalcFormula = lookup(AllObj."Object Name" where("Object Type" = field("Object Type"),
+            CalcFormula = lookup(AllObj.Name where("Object Type" = field("Object Type"),
                                                     "Object ID" = field("Object ID")));
             Caption = 'Object Name';
             Editable = false;

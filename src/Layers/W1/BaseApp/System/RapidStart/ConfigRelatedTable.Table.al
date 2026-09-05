@@ -22,7 +22,7 @@ table 8625 "Config. Related Table"
         }
         field(3; "Relation Table Name"; Text[250])
         {
-            CalcFormula = lookup(AllObjWithCaption."Object Name" where("Object Type" = const(Table),
+            CalcFormula = lookup(AllObjWithCaption.Name where("Object Type" = const(Table),
                                                                         "Object ID" = field("Relation Table ID")));
             Caption = 'Relation Table Name';
             Editable = false;

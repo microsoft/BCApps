@@ -1,4 +1,4 @@
-codeunit 136810 "Library - Tax Type Tests"
+﻿codeunit 136810 "Library - Tax Type Tests"
 {
     procedure CreateTaxType(TaxTypeCode: Code[20]; Desc: Text[80])
     var
@@ -11,7 +11,7 @@ codeunit 136810 "Library - Tax Type Tests"
         TaxType.Insert(true);
     end;
 
-    procedure CreateTaxEntntiy(TaxTypeCode: Code[20]; TableID: Integer; TableName: Text[30]; IsTransactionTable: Boolean)
+    procedure CreateTaxEntntiy(TaxTypeCode: Code[20]; TableID: Integer; TableName: Text; IsTransactionTable: Boolean)
     var
         TaxEntity: Record "Tax Entity";
     begin

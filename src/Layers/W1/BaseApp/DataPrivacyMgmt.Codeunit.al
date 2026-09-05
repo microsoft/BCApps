@@ -180,7 +180,7 @@ codeunit 1180 "Data Privacy Mgmt"
         AllObjWithCaption: Record AllObjWithCaption;
     begin
         if AllObjWithCaption.Get(AllObjWithCaption."Object Type"::Table, TableNo) then
-            exit(AllObjWithCaption."Object Name");
+            exit(AllObjWithCaption.Name);
     end;
 
     procedure DeletePackage(PackageCode: Code[20])

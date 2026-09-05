@@ -80,18 +80,18 @@ page 7233 "Master Data Synch. Tables"
                             Error(TableMetadataNotFoundErr, AllObjWithCaption."Object ID");
 
                         if not TableMetadata.DataPerCompany then
-                            Error(TableNotPerCompanyErr, AllObjWithCaption."Object Name");
+                            Error(TableNotPerCompanyErr, AllObjWithCaption.Name);
 
                         if TableMetadata.TableType <> TableMetadata.TableType::Normal then
-                            Error(TableNotOfTypeNormalErr, AllObjWithCaption."Object Name");
+                            Error(TableNotOfTypeNormalErr, AllObjWithCaption.Name);
 
                         RecRef.Open(AllObjWithCaption."Object ID");
                         if not RecRef.WritePermission() then
-                            Error(TablePermissionMissingErr, AllObjWithCaption."Object Name");
+                            Error(TablePermissionMissingErr, AllObjWithCaption.Name);
                         RecRef.Close();
 
                         FindRelatedTables(ExistingSynchTableNos, RelatedTablesToAdd, RelatedTablesToAddText, AllObjWithCaption."Object ID");
-                        AddTable(IntegrationTableMapping, AllObjWithCaption."Object Name", AllObjWithCaption."Object ID");
+                        AddTable(IntegrationTableMapping, AllObjWithCaption.Name, AllObjWithCaption."Object ID");
                         IntegrationFieldMapping.SetRange("Integration Table Mapping Name", IntegrationTableMapping.Name);
 
                         if RelatedTablesToAdd.Count() > 0 then
@@ -105,7 +105,7 @@ page 7233 "Master Data Synch. Tables"
                                             IntegrationTableMapping.Validate(Status, IntegrationTableMapping.Status::Disabled);
                                             IntegrationTableMapping.Modify();
                                         end;
-                                Message(StrSubstNo(RelatedTablesAddedMsg, AllObjWithCaption."Object Name", RelatedTablesToAddText));
+                                Message(StrSubstNo(RelatedTablesAddedMsg, AllObjWithCaption.Name, RelatedTablesToAddText));
                                 exit;
                             end;
 

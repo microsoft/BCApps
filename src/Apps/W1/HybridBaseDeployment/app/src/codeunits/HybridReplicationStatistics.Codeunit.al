@@ -203,7 +203,7 @@ codeunit 40029 "Hybrid Replication Statistics"
             exit(false);
 
         AllObjects.GetRecord(AllObj);
-        TableNameFilter := AllObj."Object Name";
+        TableNameFilter := AllObj.Name;
 
         if AllObj."Object Type" = AllObj."Object Type"::Table then
             if TableMetadata.Get(AllObj."Object ID") then
@@ -228,7 +228,7 @@ codeunit 40029 "Hybrid Replication Statistics"
         HybridReplicationDetail.SetCurrentKey("End Time");
         if not HybridReplicationDetail.FindLast() then begin
             if GuiAllowed() then
-                Message(NoDataWasReplicatedFortableLbl, AllObj."Object Name");
+                Message(NoDataWasReplicatedFortableLbl, AllObj.Name);
             exit(false);
         end;
 

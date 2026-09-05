@@ -149,7 +149,7 @@ codeunit 103001 TestscriptManagement
                 Commit();
                 InitializeOutput(AllObj."Object ID");
                 TestBooleanValue(
-                  StrSubstNo('%1 %2 %3 has been executed.', AllObj."Object Type", AllObj."Object ID", AllObj."Object Name"), OK, true);
+                  StrSubstNo('%1 %2 %3 has been executed.', AllObj."Object Type", AllObj."Object ID", AllObj.Name), OK, true);
             until AllObj.Next() = 0;
         SetPostponeShowTestResult(false);
 

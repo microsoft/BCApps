@@ -86,7 +86,7 @@ page 130011 "Tainted Tables"
         AllObj: Record AllObj;
     begin
         AllObj.Get(AllObj."Object Type"::Table, "Table No.");
-        exit(AllObj."Object Name");
+        exit(AllObj.Name);
     end;
 
     [Scope('OnPrem')]

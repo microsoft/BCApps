@@ -220,6 +220,6 @@ page 20310 "Use Cases"
     var
         AppObjectHelper: Codeunit "App Object Helper";
         FilterTaxType: Code[20];
-        TaxEntityName: Text[30];
+        TaxEntityName: Text;
         DescriptionStyle: Text;
 }

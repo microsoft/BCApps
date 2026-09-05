@@ -168,7 +168,7 @@ table 8622 "Config. Line"
         }
         field(15; "Page Caption"; Text[250])
         {
-            CalcFormula = lookup(AllObjWithCaption."Object Name" where("Object Type" = const(Page),
+            CalcFormula = lookup(AllObjWithCaption.Name where("Object Type" = const(Page),
                                                                         "Object ID" = field("Page ID")));
             Caption = 'Page Caption';
             Editable = false;

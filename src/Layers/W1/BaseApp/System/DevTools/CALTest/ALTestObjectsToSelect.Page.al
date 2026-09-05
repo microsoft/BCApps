@@ -26,7 +26,7 @@ page 130409 "AL Test Objects To Select"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the ID that applies.';
                 }
-                field(Name; Rec."Object Name")
+                field(Name; Rec.Name)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the name of the test objects selected.';

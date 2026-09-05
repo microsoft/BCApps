@@ -43,7 +43,7 @@ table 11004 "Data Export Record Source"
                     Error(CannotModifyErr, FieldCaption("Table No."));
 
                 AllObjWithCaption.Get(AllObjWithCaption."Object Type"::Table, "Table No.");
-                Validate("Export Table Name", AllObjWithCaption."Object Name");
+                Validate("Export Table Name", AllObjWithCaption.Name);
                 FindDataFilterField();
             end;
         }

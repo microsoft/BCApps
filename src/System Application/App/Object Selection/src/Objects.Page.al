@@ -52,7 +52,7 @@ page 358 Objects
                     ToolTip = 'Specifies the caption of the object.';
                     Visible = not HiddenObjCaption;
                 }
-                field("Object Name"; Rec."Object Name")
+                field("Object Name"; Rec.Name)
                 {
                     ApplicationArea = All;
                     Caption = 'Object Name';

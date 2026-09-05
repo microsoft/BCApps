@@ -40,7 +40,7 @@ table 8618 "Config. Template Header"
         }
         field(4; "Table Name"; Text[250])
         {
-            CalcFormula = lookup(AllObjWithCaption."Object Name" where("Object Type" = const(Table),
+            CalcFormula = lookup(AllObjWithCaption.Name where("Object Type" = const(Table),
                                                                         "Object ID" = field("Table ID")));
             Caption = 'Table Name';
             Editable = false;

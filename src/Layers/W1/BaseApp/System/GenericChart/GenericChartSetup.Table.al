@@ -47,7 +47,7 @@ table 9180 "Generic Chart Setup"
         {
             Caption = 'Source ID';
         }
-        field(17; "Object Name"; Text[30])
+        field(17; "Object Name"; Text[100])
         {
             Caption = 'Object Name';
             Editable = false;

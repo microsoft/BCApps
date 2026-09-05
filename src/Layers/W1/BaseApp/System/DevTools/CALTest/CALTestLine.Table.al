@@ -60,7 +60,7 @@ table 130401 "CAL Test Line"
                 if "Line Type" = "Line Type"::Group then
                     TestField("Test Codeunit", 0);
                 if AllObjWithCaption.Get(AllObjWithCaption."Object Type"::Codeunit, "Test Codeunit") then
-                    Name := AllObjWithCaption."Object Name";
+                    Name := AllObjWithCaption.Name;
                 UpdateLevelNo();
             end;
         }

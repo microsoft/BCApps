@@ -141,7 +141,7 @@ report 103300 "Whse. Test Log"
                 column(FORMAT_Object_ID_; Format(AllObj."Object ID"))
                 {
                 }
-                column(Object_Name; AllObj."Object Name")
+                column(Object_Name; AllObj.Name)
                 {
                 }
                 column(FORMAT_Ratio_; Format(Ratio))
@@ -222,7 +222,7 @@ report 103300 "Whse. Test Log"
                 column(FORMAT_Value_; Format(Value))
                 {
                 }
-                column(Object_Name_Control36; AllObj."Object Name")
+                column(Object_Name_Control36; AllObj.Name)
                 {
                 }
                 column(FORMAT_Object_ID__Control37; Format(AllObj."Object ID"))

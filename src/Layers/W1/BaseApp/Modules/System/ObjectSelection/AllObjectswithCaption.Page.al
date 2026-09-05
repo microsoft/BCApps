@@ -31,7 +31,7 @@ page 9174 "All Objects with Caption"
                     Caption = 'Object ID';
                     ToolTip = 'Specifies the ID of the object.';
                 }
-                field("Object Name"; Rec."Object Name")
+                field("Object Name"; Rec.Name)
                 {
                     ApplicationArea = All;
                     Caption = 'Object Name';

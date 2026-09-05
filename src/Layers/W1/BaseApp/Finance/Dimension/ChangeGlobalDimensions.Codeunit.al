@@ -747,7 +747,7 @@ codeunit 483 "Change Global Dimensions"
             repeat
                 ChangeGlobalDimLogEntry.Init();
                 ChangeGlobalDimLogEntry."Table ID" := TempAllObjWithCaption."Object ID";
-                ChangeGlobalDimLogEntry."Table Name" := TempAllObjWithCaption."Object Name";
+                ChangeGlobalDimLogEntry."Table Name" := TempAllObjWithCaption.Name;
                 ChangeGlobalDimLogEntry."Change Type 1" := ChangeGlobalDimHeader."Change Type 1";
                 ChangeGlobalDimLogEntry."Change Type 2" := ChangeGlobalDimHeader."Change Type 2";
                 FillTableData(ChangeGlobalDimLogEntry);

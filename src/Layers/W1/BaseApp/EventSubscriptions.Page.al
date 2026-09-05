@@ -114,7 +114,7 @@ page 9510 "Event Subscriptions"
         AllObj.SetRange("Object Type", Rec."Publisher Object Type");
         AllObj.SetRange("Object ID", Rec."Publisher Object ID");
         if AllObj.FindFirst() then
-            PublisherName := AllObj."Object Name";
+            PublisherName := AllObj.Name;
     end;
 
     var

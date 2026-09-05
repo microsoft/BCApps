@@ -103,7 +103,7 @@ codeunit 20361 "Tax Json Deserialization"
             case property of
                 'TableName':
                     begin
-                        TableID := AppObjectHelper.GetObjectID(ObjectType::Table, JToken2Text30(JToken));
+                        TableID := AppObjectHelper.GetObjectID(ObjectType::Table, JToken2Text(JToken));
                         if not TaxEntity.Get(TableID, TaxType) then begin
                             TaxEntity.Init();
                             TaxEntity."Tax Type" := TaxType;
@@ -151,13 +151,13 @@ codeunit 20361 "Tax Json Deserialization"
                         TaxAttribute.FieldNo(Type),
                         JToken2Text(JToken));
                 'LookupTable':
-                    TaxAttribute."Refrence Table ID" := AppObjectHelper.GetObjectID(ObjectType::Table, JToken2Text30(JToken));
+                    TaxAttribute."Refrence Table ID" := AppObjectHelper.GetObjectID(ObjectType::Table, JToken2Text(JToken));
                 'LookupField':
                     TaxAttribute."Refrence Field ID" := AppObjectHelper.GetFieldID(
                         TaxAttribute."Refrence Table ID",
                         JToken2Text30(JToken));
                 'LookupPage':
-                    TaxAttribute."Lookup Page ID" := AppObjectHelper.GetObjectID(ObjectType::Page, JToken2Text30(JToken));
+                    TaxAttribute."Lookup Page ID" := AppObjectHelper.GetObjectID(ObjectType::Page, JToken2Text(JToken));
                 'VisibleOnInterface':
                     TaxAttribute."Visible on Interface" := JToken.AsValue().AsBoolean();
                 'GroupedInSubLedger':
@@ -253,7 +253,7 @@ codeunit 20361 "Tax Json Deserialization"
                     begin
                         EntityAttributeMapping."Entity ID" := AppObjectHelper.GetObjectID(
                             ObjectType::Table,
-                            JToken2Text30(JToken));
+                            JToken2Text(JToken));
                         EntityAttributeMapping."Entity Name" :=
                             AppObjectHelper.GetObjectName(ObjectType::Table, EntityAttributeMapping."Entity ID");
                     end;
@@ -625,13 +625,13 @@ codeunit 20361 "Tax Json Deserialization"
                     UseCase."Indentation Level" := JToken.AsValue().AsInteger();
                 'TaxEntity':
                     begin
-                        UseCase."Tax Table ID" := AppObjectHelper.GetObjectID(ObjectType::Table, JToken2Text30(JToken));
+                        UseCase."Tax Table ID" := AppObjectHelper.GetObjectID(ObjectType::Table, JToken2Text(JToken));
                         GlobalUseCase := UseCase;
                         UseCase.Modify();
                     end;
                 'PostingTableName':
                     begin
-                        UseCase."Posting Table ID" := AppObjectHelper.GetObjectID(ObjectType::Table, JToken2Text30(JToken));
+                        UseCase."Posting Table ID" := AppObjectHelper.GetObjectID(ObjectType::Table, JToken2Text(JToken));
                         GlobalUseCase := UseCase;
                         UseCase.Modify();
                     end;
@@ -812,7 +812,7 @@ codeunit 20361 "Tax Json Deserialization"
                     end;
                 'TableName':
                     begin
-                        TaxPostingSetup."Table ID" := AppObjectHelper.GetObjectID(ObjectType::Table, JToken2Text30(JToken));
+                        TaxPostingSetup."Table ID" := AppObjectHelper.GetObjectID(ObjectType::Table, JToken2Text(JToken));
                         TaxPostingSetup.Modify();
                     end;
                 'FieldName':
@@ -961,7 +961,7 @@ codeunit 20361 "Tax Json Deserialization"
             case property of
                 'TableName':
                     begin
-                        TaxInsertRecord."Table ID" := AppObjectHelper.GetObjectID(ObjectType::Table, JToken2Text30(JToken));
+                        TaxInsertRecord."Table ID" := AppObjectHelper.GetObjectID(ObjectType::Table, JToken2Text(JToken));
                         TaxInsertRecord.Modify();
                     end;
                 'RunTrigger':
@@ -1428,7 +1428,7 @@ codeunit 20361 "Tax Json Deserialization"
                 'SourceType':
                     Evaluate(ScriptSymbolLookup."Source Type", JToken2Text250(JToken));
                 'TableName', 'RecordTableName':
-                    ScriptSymbolLookup."Source ID" := AppObjectHelper.GetObjectID(ObjectType::Table, JToken2Text30(JToken));
+                    ScriptSymbolLookup."Source ID" := AppObjectHelper.GetObjectID(ObjectType::Table, JToken2Text(JToken));
                 'ComponentName':
                     begin
                         ScriptSymbolLookup."Source Field ID" := GetComponentID(GlobalUseCase."Tax Type", JToken2Text30(JToken));
@@ -1497,8 +1497,8 @@ codeunit 20361 "Tax Json Deserialization"
             case property of
                 'TableName':
                     begin
-                        TaxTableRelation."Source ID" := AppObjectHelper.GetObjectID(ObjectType::Table, JToken2Text30(JToken));
-                        TaxTableRelation."Source ID" := AppObjectHelper.GetObjectID(ObjectType::Table, JToken2Text30(JToken));
+                        TaxTableRelation."Source ID" := AppObjectHelper.GetObjectID(ObjectType::Table, JToken2Text(JToken));
+                        TaxTableRelation."Source ID" := AppObjectHelper.GetObjectID(ObjectType::Table, JToken2Text(JToken));
                     end;
                 'TableFilters':
                     begin
@@ -2276,7 +2276,7 @@ codeunit 20361 "Tax Json Deserialization"
                 'TableName':
                     ActionLoopThroughRecords."Table ID" := AppObjectHelper.GetObjectID(
                         ObjectType::Table,
-                        JToken2Text30(JToken));
+                        JToken2Text(JToken));
                 'RecordVariableName':
                     ;
                 'TableFilters':

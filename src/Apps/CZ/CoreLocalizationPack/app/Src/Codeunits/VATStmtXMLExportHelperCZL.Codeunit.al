@@ -122,7 +122,7 @@ codeunit 11787 "VAT Stmt XML Export Helper CZL"
             Report::"Export VAT Ctrl. Dialog CZL":
                 FieldsDeclaration := StrSubstNo(ExportVATCtrlDialogPKFieldsTxt, VATControlReportNoTok);
         end;
-        exit(StrSubstNo(ReportParametersTxt, ReportID, AllObjWithCaption."Object Name", FieldsDeclaration));
+        exit(StrSubstNo(ReportParametersTxt, ReportID, AllObjWithCaption.Name, FieldsDeclaration));
     end;
 
     procedure UpdateParamsVATStatementName(var XMLTxt: Text; VATStatementName: Record "VAT Statement Name")

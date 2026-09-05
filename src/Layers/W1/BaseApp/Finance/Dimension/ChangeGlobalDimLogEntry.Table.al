@@ -123,7 +123,7 @@ table 483 "Change Global Dim. Log Entry"
         /// <summary>
         /// Name of the table being processed for display purposes.
         /// </summary>
-        field(2; "Table Name"; Text[50])
+        field(2; "Table Name"; Text[100])
         {
             Caption = 'Table Name';
         }

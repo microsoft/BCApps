@@ -29,7 +29,7 @@ page 9993 "Code Coverage AL Object"
                     Caption = 'ID';
                     ToolTip = 'Specifies the object ID.';
                 }
-                field(Name; Rec."Object Name")
+                field(Name; Rec.Name)
                 {
                     ApplicationArea = All;
                     Caption = 'Name';
