@@ -119,6 +119,7 @@ page 31137 "EET Simple Registration CZL"
                 group(GroupVATRateBasic)
                 {
                     Caption = 'VAT Rate Basic';
+                    Visible = false;
                     field("SalesAmount[1]"; SalesAmount[1])
                     {
                         ApplicationArea = Basic, Suite;
@@ -191,6 +192,7 @@ page 31137 "EET Simple Registration CZL"
                 group(GroupVATRateReduced)
                 {
                     Caption = 'VAT Rate Reduced';
+                    Visible = false;
                     field("SalesAmount[2]"; SalesAmount[2])
                     {
                         ApplicationArea = Basic, Suite;
@@ -263,6 +265,7 @@ page 31137 "EET Simple Registration CZL"
                 group(GroupVATRateReduced2)
                 {
                     Caption = 'VAT Rate Reduced 2';
+                    Visible = false;
                     field("SalesAmount[3]"; SalesAmount[3])
                     {
                         ApplicationArea = Basic, Suite;
@@ -343,6 +346,7 @@ page 31137 "EET Simple Registration CZL"
                         Caption = 'Amount - Art.89';
                         Importance = Additional;
                         ToolTip = 'Specifies the amount under paragraph 89th.';
+                        Visible = false;
 
                         trigger OnValidate()
                         begin
@@ -357,6 +361,7 @@ page 31137 "EET Simple Registration CZL"
                         Caption = 'Amount Exempted From VAT';
                         Importance = Additional;
                         ToolTip = 'Specifies the amount of cash document VAT-exempt.';
+                        Visible = false;
 
                         trigger OnValidate()
                         begin

@@ -90,7 +90,7 @@ report 31121 "EET Confirmation CZL"
         CashRegisterLbl = 'Cash Register:';
         ReceiptSerialNoLbl = 'Receipt Serial No.:';
         BKPLbl = 'BKP:';
-        FIKLbl = 'FIK:';
+        FIKLbl = 'POK:';
         PKPLbl = 'PKP:';
         IssueDatetimeLbl = 'Issue Datetime:';
         TotalSalesAmountLbl = 'Total Sales Amount:';

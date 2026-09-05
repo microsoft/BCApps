@@ -103,56 +103,67 @@ page 31146 "EET Entry Card CZL"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the amount of cash document VAT-exempt.';
+                    Visible = false;
                 }
                 field("VAT Base (Basic)"; Rec."VAT Base (Basic)")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the VAT base amount.';
+                    Visible = false;
                 }
                 field("VAT Amount (Basic)"; Rec."VAT Amount (Basic)")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the base VAT amount.';
+                    Visible = false;
                 }
                 field("VAT Base (Reduced)"; Rec."VAT Base (Reduced)")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the reduced VAT base amount.';
+                    Visible = false;
                 }
                 field("VAT Amount (Reduced)"; Rec."VAT Amount (Reduced)")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the reduced VAT amount.';
+                    Visible = false;
                 }
                 field("VAT Base (Reduced 2)"; Rec."VAT Base (Reduced 2)")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the reduced VAT base amount.';
+                    Visible = false;
                 }
                 field("VAT Amount (Reduced 2)"; Rec."VAT Amount (Reduced 2)")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the reduced VAT amount 2.';
+                    Visible = false;
                 }
                 field("Amount - Art.89"; Rec."Amount - Art.89")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the amount under paragraph 89th.';
+                    Visible = false;
                 }
                 field("Amount (Basic) - Art.90"; Rec."Amount (Basic) - Art.90")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the base amount under paragraph 90th.';
+                    Visible = false;
                 }
                 field("Amount (Reduced) - Art.90"; Rec."Amount (Reduced) - Art.90")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the reduced amount under paragraph 90th.';
+                    Visible = false;
                 }
                 field("Amount (Reduced 2) - Art.90"; Rec."Amount (Reduced 2) - Art.90")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the reduced amount 2 under paragraph 90th.';
+                    Visible = false;
                 }
                 field("Amt. For Subseq. Draw/Settle"; Rec."Amt. For Subseq. Draw/Settle")
                 {
@@ -197,16 +208,24 @@ page 31146 "EET Entry Card CZL"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Taxpayer''s Signature Code';
                     ToolTip = 'Specifies the content of the field for the Signing code of the taxpayer.';
+                    Visible = false;
                 }
                 field("Taxpayer's Security Code"; Rec."Taxpayer's Security Code")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the content of the field for the Security code of the taxpayer.';
+                    Visible = false;
                 }
                 field("Fiscal Identification Code"; Rec."Fiscal Identification Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the content of the field for the Fiscal identification code of the receipt.';
+                    ToolTip = 'Specifies the content of the field for the Fiscal Identification code (FIK) of the receipt.';
+                    Visible = false;
+                }
+                field("Acknowledgement Code"; Rec."Acknowledgement Code")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the content of the field for the Acknowledgement Code (POK) of the receipt.';
                 }
             }
         }
