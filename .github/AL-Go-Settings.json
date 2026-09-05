@@ -160,7 +160,7 @@
   "UpdateALGoSystemFilesEnvironment": "Official-Build",
   "templateSha": "35d89f97b4a2065f65322dbc3bd7e78cf22f45b9",
   "commitOptions": {
-    "messageSuffix": "Related to AB#539394",
+    "messageSuffix": "Related to AB#640900",
     "pullRequestAutoMerge": true,
     "pullRequestLabels": [
       "Automation"
