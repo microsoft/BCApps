@@ -346,9 +346,9 @@ codeunit 20233 "Tax Setup Matrix Mgmt."
                         Evaluate(TaxRateValue."Date Value", Value);
                 TaxRateSetup.Type::Decimal:
                     if IsRange then
-                        Evaluate(TaxRateValue."Decimal Value To", Value)
+                        TaxRateValue."Decimal Value To" := ScriptDataTypeMgmt.Text2Number(Value)
                     else
-                        Evaluate(TaxRateValue."Decimal Value", Value);
+                        TaxRateValue."Decimal Value" := ScriptDataTypeMgmt.Text2Number(Value);
             end;
     end;
 
@@ -407,7 +407,7 @@ codeunit 20233 "Tax Setup Matrix Mgmt."
         case TaxRateSetup.Type of
             TaxRateSetup.Type::Decimal, TaxRateSetup.Type::Integer:
                 begin
-                    Evaluate(DecimalValue, TaxConfigurationValue.Value);
+                    DecimalValue := ScriptDataTypeMgmt.Text2Number(TaxConfigurationValue.Value);
                     if DecimalValue < 0 then
                         Error(ValueCannotBeLessThanZeroErr, TaxConfigurationValue."Column Name");
 
@@ -416,7 +416,8 @@ codeunit 20233 "Tax Setup Matrix Mgmt."
                         TaxRateSetup."Column Type"::"Range From and Range To",
                         TaxRateSetup."Column Type"::"Range To"]
                     then
-                        if Evaluate(DecimalValue2, TaxConfigurationValue."Value To") then begin
+                        if TaxConfigurationValue."Value To" <> '' then begin
+                            DecimalValue2 := ScriptDataTypeMgmt.Text2Number(TaxConfigurationValue."Value To");
                             if DecimalValue2 < 0 then
                                 Error(ValueCannotBeLessThanZeroErr, TaxConfigurationValue."Column Name");
 
