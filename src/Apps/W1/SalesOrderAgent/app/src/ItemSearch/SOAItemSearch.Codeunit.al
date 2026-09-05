@@ -226,6 +226,7 @@ codeunit 4591 "SOA Item Search"
             exit;
         CrossColumnSearchFilter := SearchFilter;
         Clear(ResolvedItemVariants);
+        Rec.SetRange(SystemId);
         if SearchFilter = '=''<>*''' then //If the search filter is empty, clear the previous search state without running a new search
             exit;
 

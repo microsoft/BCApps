@@ -100,13 +100,17 @@ codeunit 134619 "Composite Layout Tests"
     procedure LayoutLevelAssignmentResolvesAsThisLayout()
     var
         HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource : Text;
+        BodyKey: Text;
     begin
         // [SCENARIO] Parts assigned at the report+layout level resolve with source 'This layout'.
         Initialize();
-        InsertCfg(TestReportID, 'Body', '', CreatePart('MyHF', Enum::"Report Layout Subtype"::HeaderFooter), CreatePart('MyTheme', Enum::"Report Layout Subtype"::Theme));
+
+        // [GIVEN] Both parts assigned to one body layout of a report, keyed by the composite reference to that layout.
+        BodyKey := CreateLayoutOnReport(BodyReportID, 'ResolveBody', Enum::"Report Layout Subtype"::Body);
+        InsertCfg(BodyReportID, BodyKey, '', CreatePart('MyHF', Enum::"Report Layout Subtype"::HeaderFooter), CreatePart('MyTheme', Enum::"Report Layout Subtype"::Theme));
 
         // [WHEN] Resolving the parts for that layout.
-        LookupHelper.GetResolvedPartDisplays(TestReportID, 'Body', HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource);
+        LookupHelper.GetResolvedPartDisplays(BodyReportID, BodyKey, HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource);
 
         // [THEN] The decoded part names and the 'This layout' source are returned.
         Assert.AreEqual('MyHF', HeaderDisplay, 'Header part name.');
@@ -180,15 +184,18 @@ codeunit 134619 "Composite Layout Tests"
     procedure HeaderAndThemeResolveIndependently()
     var
         HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource : Text;
+        BodyKey: Text;
     begin
         // [SCENARIO] The header and theme are resolved independently, so each can come from a different level.
         Initialize();
-        // Header only at the layout level; theme only at the global level.
-        InsertCfg(TestReportID, 'Body', '', CreatePart('LayoutHF', Enum::"Report Layout Subtype"::HeaderFooter), '');
+
+        // [GIVEN] The header assigned only to one body layout of a report; the theme assigned only globally.
+        BodyKey := CreateLayoutOnReport(BodyReportID, 'IndependentBody', Enum::"Report Layout Subtype"::Body);
+        InsertCfg(BodyReportID, BodyKey, '', CreatePart('LayoutHF', Enum::"Report Layout Subtype"::HeaderFooter), '');
         InsertCfg(0, '', '', '', CreatePart('GlobalTheme', Enum::"Report Layout Subtype"::Theme));
 
         // [WHEN] Resolving the parts.
-        LookupHelper.GetResolvedPartDisplays(TestReportID, 'Body', HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource);
+        LookupHelper.GetResolvedPartDisplays(BodyReportID, BodyKey, HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource);
 
         // [THEN] The header resolves from the layout level and the theme from the global level.
         Assert.AreEqual('LayoutHF', HeaderDisplay, 'Header part name.');
@@ -202,14 +209,18 @@ codeunit 134619 "Composite Layout Tests"
     procedure MoreSpecificLevelWinsOverGlobal()
     var
         HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource : Text;
+        BodyKey: Text;
     begin
         // [SCENARIO] When a part is configured at both the layout level and globally, the layout level wins.
         Initialize();
+
+        // [GIVEN] One header/footer part assigned globally and another to one body layout of a report.
+        BodyKey := CreateLayoutOnReport(BodyReportID, 'SpecificBody', Enum::"Report Layout Subtype"::Body);
         InsertCfg(0, '', '', CreatePart('GlobalHF', Enum::"Report Layout Subtype"::HeaderFooter), '');
-        InsertCfg(TestReportID, 'Body', '', CreatePart('LayoutHF', Enum::"Report Layout Subtype"::HeaderFooter), '');
+        InsertCfg(BodyReportID, BodyKey, '', CreatePart('LayoutHF', Enum::"Report Layout Subtype"::HeaderFooter), '');
 
         // [WHEN] Resolving the parts.
-        LookupHelper.GetResolvedPartDisplays(TestReportID, 'Body', HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource);
+        LookupHelper.GetResolvedPartDisplays(BodyReportID, BodyKey, HeaderDisplay, HeaderSource, ThemeDisplay, ThemeSource);
 
         // [THEN] The more specific (layout) configuration is used.
         Assert.AreEqual('LayoutHF', HeaderDisplay, 'The layout-level part should win over the global default.');
@@ -222,19 +233,21 @@ codeunit 134619 "Composite Layout Tests"
     var
         TenantReportLayoutCfgPage: TestPage "Tenant Report Layout Cfg";
         HeaderComposite: Text;
+        BodyKey: Text;
     begin
         // [SCENARIO 645022] The Tenant Report Layout Configuration page displays the plain header/footer and theme part
         // names, not the raw <guid>::<name> composite reference stored in the Header/Theme Part Name columns.
         Initialize();
         EnableDocumentReportExperience();
 
-        // [GIVEN] A configuration row whose parts are stored as composite references (<guid>::<name>).
+        // [GIVEN] A layout-scoped configuration row whose parts are stored as composite references (<guid>::<name>).
+        BodyKey := CreateLayoutOnReport(BodyReportID, 'PageBody', Enum::"Report Layout Subtype"::Body);
         HeaderComposite := CreatePart('PageHF', Enum::"Report Layout Subtype"::HeaderFooter);
-        InsertCfg(TestReportID, 'Body', '', HeaderComposite, CreatePart('PageTheme', Enum::"Report Layout Subtype"::Theme));
+        InsertCfg(BodyReportID, BodyKey, '', HeaderComposite, CreatePart('PageTheme', Enum::"Report Layout Subtype"::Theme));
 
         // [WHEN] Opening the page on that row.
         TenantReportLayoutCfgPage.OpenView();
-        TenantReportLayoutCfgPage.Filter.SetFilter("Report ID", Format(TestReportID));
+        TenantReportLayoutCfgPage.Filter.SetFilter("Report ID", Format(BodyReportID));
         Assert.IsTrue(TenantReportLayoutCfgPage.First(), 'The configured row should be shown on the page.');
 
         // [THEN] The columns show the decoded part names, not the stored composite value.
@@ -284,14 +297,16 @@ codeunit 134619 "Composite Layout Tests"
         ReportThemePage: TestPage "Report Theme and Header/Footer";
         Composite: Text;
         ActualMessage: Text;
+        BodyKey: Text;
     begin
         // [SCENARIO 645022] Show info reports the part details and how many report configurations use it.
         Initialize();
         EnableDocumentReportExperience();
 
-        // [GIVEN] A tenant theme part assigned in exactly one report configuration.
+        // [GIVEN] A tenant theme part assigned in exactly one report configuration, scoped to one body layout.
         Composite := CreatePart('ThemeInfo', Enum::"Report Layout Subtype"::Theme);
-        InsertCfg(TestReportID, 'Body', '', '', Composite);
+        BodyKey := CreateLayoutOnReport(BodyReportID, 'InfoBody', Enum::"Report Layout Subtype"::Body);
+        InsertCfg(BodyReportID, BodyKey, '', '', Composite);
 
         // [WHEN] Invoking Show info on that part.
         ReportThemePage.OpenView();
@@ -1034,9 +1049,11 @@ codeunit 134619 "Composite Layout Tests"
 
         // These tests run in a non-isolated (Legacy) bucket against a shared company, so rows are not rolled back
         // between test methods. Clear every configuration row this suite can create before each test. Without this,
-        // the layout-level row left by LayoutLevelAssignmentResolvesAsThisLayout (report 50000, layout 'Body') leaks
-        // into the report/company/global-default tests and wins resolution ahead of the row they set up, and the
-        // report-0 wildcard rows leak out as global/company defaults that affect other tests sharing the company.
+        // the report-level rows the assignment tests leave on the body-layout report resolve as 'Report default' for
+        // the layout-scoped resolution tests on that same report - ApplyToAllLayoutsWidensTheRowAndKeepsItsParts
+        // widens its row to cover every layout, and ApplyToAllLayoutsIsRefusedWhenTheWiderRowAlreadyExists keeps the
+        // wider row it set up - and the report-0 wildcard rows leak out as global/company defaults that affect other
+        // tests sharing the company.
         TenantReportLayoutCfg.SetRange("Report ID", TestReportID);
         TenantReportLayoutCfg.DeleteAll(true);
         TenantReportLayoutCfg.SetRange("Report ID", BodyReportID);
