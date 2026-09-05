@@ -2568,6 +2568,39 @@
         PurchaseInvoice.Close();
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeferralCodeCannotBeChangedOnReleasedPurchaseInvoice()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        GLAccount: Record "G/L Account";
+        DeferralTemplateCode: Code[10];
+    begin
+        // [FEATURE] [Deferral Code]
+        // [SCENARIO 649204] Deferral Code cannot be changed on a released Purchase Invoice
+        Initialize();
+
+        // [GIVEN] A Purchase Invoice with a deferral code on a G/L Account line
+        CreateGLAccount(GLAccount);
+        CreatePurchDocWithLine(
+          PurchaseHeader, PurchaseLine, PurchaseHeader."Document Type"::Invoice,
+          PurchaseLine.Type::"G/L Account", GLAccount."No.", WorkDate());
+        DeferralTemplateCode := CreateDeferralCode(CalcMethod::"Straight-Line", StartDate::"Posting Date", 1);
+        PurchaseLine.Validate("Deferral Code", DeferralTemplateCode);
+        PurchaseLine.Modify(true);
+
+        // [GIVEN] The Purchase Invoice is released
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+
+        // [WHEN] Changing the Deferral Code on the Purchase Line
+        DeferralTemplateCode := CreateDeferralCode(CalcMethod::"Straight-Line", StartDate::"Posting Date", 3);
+        asserterror PurchaseLine.Validate("Deferral Code", DeferralTemplateCode);
+
+        // [THEN] The change is rejected because the Purchase Invoice is not open
+        Assert.ExpectedTestFieldError(PurchaseHeader.FieldCaption(Status), Format(PurchaseHeader.Status::Open));
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
