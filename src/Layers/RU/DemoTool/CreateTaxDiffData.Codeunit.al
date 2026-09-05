@@ -633,7 +633,7 @@ codeunit 163414 "Create Tax Diff. Data"
         InventorySetup."Automatic Posting Date Adjmt." := 2;
         InventorySetup.Modify();
 
-        if GenPostSetup.FindSet(true, false) then
+        if GenPostSetup.FindSet(true) then
             repeat
                 GenPostSetup."Direct Cost Applied Account" := GenPostSetup."Inventory Adjmt. Account";
                 GenPostSetup.Modify();

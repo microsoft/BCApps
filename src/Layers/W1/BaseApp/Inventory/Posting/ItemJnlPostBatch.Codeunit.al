@@ -1257,18 +1257,6 @@ codeunit 23 "Item Jnl.-Post Batch"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeSelfReservedQty(SKU: Record "Stockkeeping Unit"; ItemJnlLine2: Record "Item Journal Line"; var Result: Decimal; var IsHandled: Boolean)
-    begin
-        OnBeforeSelfReservedQty(SKU, ItemJnlLine2, Result, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit MfgItemJnlPostBatch', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeSelfReservedQty(SKU: Record "Stockkeeping Unit"; ItemJnlLine: Record "Item Journal Line"; var Result: Decimal; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnHandleNonRecurringLineOnBeforeSetItemJnlBatchName(ItemJnlTemplate: Record "Item Journal Template"; var IsHandled: Boolean)

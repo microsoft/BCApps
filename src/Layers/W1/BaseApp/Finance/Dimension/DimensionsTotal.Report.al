@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -68,38 +68,6 @@ report 27 "Dimensions - Total"
             column(DimFilterText; DimFilterText)
             {
             }
-#if not CLEAN27
-            column(Header_5_; Header30[5])
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The text length limit will be removed in a future release.';
-                ObsoleteTag = '27.0';
-            }
-            column(Header_4_; Header30[4])
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The text length limit will be removed in a future release.';
-                ObsoleteTag = '27.0';
-            }
-            column(Header_3_; Header30[3])
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The text length limit will be removed in a future release.';
-                ObsoleteTag = '27.0';
-            }
-            column(Header_2_; Header30[2])
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The text length limit will be removed in a future release.';
-                ObsoleteTag = '27.0';
-            }
-            column(Header_1_; Header30[1])
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'The text length limit will be removed in a future release.';
-                ObsoleteTag = '27.0';
-            }
-#else
             column(Header_5_; Header[5])
             {
             }
@@ -115,7 +83,6 @@ report 27 "Dimensions - Total"
             column(Header_1_; Header[1])
             {
             }
-#endif
             column(RoundingHeader_5_; RoundingHeader[5])
             {
                 AutoCalcField = false;
@@ -659,9 +626,6 @@ report 27 "Dimensions - Total"
                             i := i + 1;
                             if i <= MaxColumnsDisplayed then begin
                                 Header[i] := AccSchedManagement.CalcColumnHeader(AccSchedLine, TempColumnLayout);
-#if not CLEAN27
-                                Header30[i] := CopyStr(Header[i], 1, MaxStrLen(Header30[i]));
-#endif
                                 RoundingHeader[i] := '';
                                 if TempColumnLayout."Rounding Factor" in [TempColumnLayout."Rounding Factor"::"1000", TempColumnLayout."Rounding Factor"::"1000000"] then
                                     case TempColumnLayout."Rounding Factor" of
@@ -942,9 +906,6 @@ report 27 "Dimensions - Total"
         ColumnValuesDisplayed: array[5] of Decimal;
         ColumnValuesAsText: array[5, 4] of Text[30];
         Header: array[5] of Text;
-#if not CLEAN27
-        Header30: array[5] of Text[30];
-#endif
         RoundingHeader: array[5] of Text[30];
         MaxColumnsDisplayed: Integer;
         NoOfCols: Integer;

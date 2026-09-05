@@ -259,11 +259,7 @@ codeunit 144079 "ERM Payment Terms"
         ServiceHeader.Get(ServiceLine."Document Type", ServiceLine."Document No.");
         ServiceCreditMemo.OpenEdit();
         ServiceCreditMemo.FILTER.SetFilter("No.", ServiceHeader."No.");
-#if not CLEAN27
-        ServiceCreditMemo."Calculate Inv. and Pmt. Disc.".Invoke();
-#else
         ServiceCreditMemo."Calculate Invoice Discount".Invoke();
-#endif
         LibraryService.PostServiceOrder(ServiceHeader, true, false, true);  // True for ship and invoice, False for consume.
         LibraryVariableStorage.Enqueue(Customer."No.");  // Enqueue for ServiceCreditMemoRequestPageHandler.
         Commit();  // commit requires to run report.

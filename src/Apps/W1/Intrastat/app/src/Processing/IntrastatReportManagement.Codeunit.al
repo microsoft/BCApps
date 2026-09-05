@@ -610,57 +610,6 @@ codeunit 4810 IntrastatReportManagement
         IntrastatReportHeader.Modify();
     end;
 
-#if not CLEAN27
-    [Obsolete('Use ExportOneDataExchangeDef(IntrastatReportHeader: Record "Intrastat Report Header"; DataExchDefCode: Code[20]; ExportType: Integer; var DataExch: Record "Data Exch."; MaxNoOfLines: Integer)', '27.0')]
-    procedure ExportOneDataExchangeDef(IntrastatReportHeader: Record "Intrastat Report Header"; DataExchDefCode: Code[20]; ExportType: Integer; var DataExch: Record "Data Exch.")
-    var
-        DataExchFieldGrouping: Record "Data Exch. Field Grouping";
-        IntrastatReportLine: Record "Intrastat Report Line";
-        DataExchMapping: Record "Data Exch. Mapping";
-        DataExchDef: Record "Data Exch. Def";
-        RecordRefSrc: RecordRef;
-        OutStreamFilters: OutStream;
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeExportOneDataExchangeDef(IntrastatReportHeader, DataExchDefCode, ExportType, DataExch, IsHandled);
-        if not IsHandled then begin
-            DataExchMapping.SetRange("Data Exch. Def Code", DataExchDefCode);
-            DataExchMapping.SetRange("Table ID", Database::"Intrastat Report Line");
-            if not DataExchMapping.FindFirst() then
-                Error(NoDataExchMappingErr, DataExchMapping.TableCaption, DataExchDef.TableCaption, DataExchDefCode);
-
-            if DataExchMapping."Key Index" <> 0 then begin
-                RecordRefSrc.GetTable(IntrastatReportLine);
-                RecordRefSrc.CurrentKeyIndex(DataExchMapping."Key Index");
-                RecordRefSrc.SetTable(IntrastatReportLine);
-            end;
-
-            IntrastatReportLine.SetRange("Intrastat No.", IntrastatReportHeader."No.");
-            if ExportType = 1 then // Receipt
-                IntrastatReportLine.SetRange(Type, IntrastatReportLine.Type::Receipt);
-            if ExportType = 2 then // Shipment
-                IntrastatReportLine.SetRange(Type, IntrastatReportLine.Type::Shipment);
-            OnBeforeExportIntrastatReportLines(IntrastatReportLine, IntrastatReportHeader);
-
-            if not IntrastatReportLine.IsEmpty then begin
-                DataExchFieldGrouping.SetRange("Data Exch. Def Code", DataExchMapping."Data Exch. Def Code");
-                DataExchFieldGrouping.SetRange("Data Exch. Line Def Code", DataExchMapping."Data Exch. Line Def Code");
-                DataExchFieldGrouping.SetRange("Table ID", DataExchMapping."Table ID");
-                SetInternalRefNo(IntrastatReportLine, DataExchFieldGrouping, IntrastatReportHeader);
-
-                DataExch.Init();
-                DataExch."Data Exch. Def Code" := DataExchMapping."Data Exch. Def Code";
-                DataExch."Data Exch. Line Def Code" := DataExchMapping."Data Exch. Line Def Code";
-                DataExch."Table Filters".CreateOutStream(OutStreamFilters);
-                OutStreamFilters.WriteText(IntrastatReportLine.GetView(false));
-                if DataExch.Insert(true) then
-                    DataExch.ExportFromDataExch(DataExchMapping);
-                DataExch.Modify(true);
-            end;
-        end;
-    end;
-#endif    
 
     procedure ExportOneDataExchangeDef(IntrastatReportHeader: Record "Intrastat Report Header"; DataExchDefCode: Code[20]; ExportType: Integer; var DataExch: Record "Data Exch."; MaxNoOfLines: Integer)
     var

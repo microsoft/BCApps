@@ -1857,19 +1857,6 @@ codeunit 99000832 "Sales Line-Reserve"
         end;
     end;
 
-#if not CLEAN27
-    [Obsolete('This event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnSetSourceForReservationOnBeforeUpdateReservation(var ReservEntry: Record "Reservation Entry"; SalesLine: Record "Sales Line")
-    begin
-    end;
-
-    [Obsolete('This event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterSetSourceForReservation(var CalcReservEntry: Record "Reservation Entry"; SalesLine: Record "Sales Line")
-    begin
-    end;
-#endif
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnAutoReserveOnBeforeStopReservation', '', false, false)]
     local procedure OnAutoReserveOnBeforeStopReservation(var CalcReservEntry: Record "Reservation Entry"; var StopReservation: Boolean; SourceRecRef: RecordRef);
     var

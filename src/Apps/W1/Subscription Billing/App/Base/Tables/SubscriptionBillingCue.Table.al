@@ -120,13 +120,8 @@ table 8070 "Subscription Billing Cue"
             Editable = false;
             FieldClass = FlowFilter;
             ObsoleteReason = 'Removed as projects are not relevant in context of Subscription Billing';
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '28.0';
-#else
             ObsoleteState = Removed;
-            ObsoleteTag = '31.0';
-#endif
+            ObsoleteTag = '30.0';
         }
 #endif
         field(22; Overdue; Integer)

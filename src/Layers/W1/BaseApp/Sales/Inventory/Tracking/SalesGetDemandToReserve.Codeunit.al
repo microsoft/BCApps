@@ -218,13 +218,6 @@ codeunit 99000839 "Sales Get Demand To Reserve"
         until TempSalesLine.Next() = 0;
     end;
 
-#if not CLEAN27
-    [Obsolete('This event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnGetDemandOnBeforeSetTempSalesLine(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnSyncSalesOrderLinesOnBeforeInsertReservationWkshLine(var ReservationWkshLine: Record "Reservation Wksh. Line"; var TempSalesLine: Record "Sales Line" temporary; var DoInsertReservationWkshLine: Boolean)
     begin

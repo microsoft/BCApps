@@ -290,7 +290,7 @@ report 11000021 "Import Rabobank mut.asc"
     var
         BankAcct: Record "Bank Account";
     begin
-        if BankAcct.FindSet(false, false) then
+        if BankAcct.FindSet() then
             repeat
                 if TextFilter(BankAcct."Bank Account No.", '0123456789') = TextFilter(AcctNo, '0123456789') then
                     exit(BankAcct."No.");

@@ -747,28 +747,6 @@ page 134 "Posted Sales Credit Memo"
             {
                 Caption = '&Cr. Memo';
                 Image = CreditMemo;
-#if not CLEAN27
-                action(Statistics)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Statistics';
-                    Image = Statistics;
-                    ShortCutKey = 'F7';
-                    ToolTip = 'View statistical information, such as the value of posted entries, for the record.';
-                    ObsoleteReason = 'The statistics action will be replaced with the SalesCrMemoStatistics and SalesCrMemoStats actions. The new actions use RunObject and do not run the action trigger. Use a page extension to modify the behaviour.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-
-                    trigger OnAction()
-                    begin
-                        OnBeforeCalculateSalesTaxStatistics(Rec);
-                        if Rec."Tax Area Code" = '' then
-                            PAGE.RunModal(PAGE::"Sales Credit Memo Statistics", Rec, Rec."No.")
-                        else
-                            PAGE.RunModal(PAGE::"Sales Credit Memo Stats.", Rec, Rec."No.");
-                    end;
-                }
-#endif
                 action(SalesCrMemoStatistics)
                 {
                     ApplicationArea = Basic, Suite;
@@ -776,11 +754,7 @@ page 134 "Posted Sales Credit Memo"
                     Image = Statistics;
                     ShortCutKey = 'F7';
                     ToolTip = 'View statistical information, such as the value of posted entries, for the record.';
-#if CLEAN27
                     Visible = not SalesCrMemoStatsVisible;
-#else
-                    Visible = false;
-#endif
                     RunObject = PAGE "Sales Credit Memo Statistics";
                     RunPageOnRec = true;
                 }
@@ -791,11 +765,7 @@ page 134 "Posted Sales Credit Memo"
                     Image = Statistics;
                     ShortCutKey = 'F7';
                     ToolTip = 'View statistical information, such as the value of posted entries, for the record.';
-#if CLEAN27
                     Visible = SalesCrMemoStatsVisible;
-#else
-                    Visible = false;
-#endif
                     RunObject = PAGE "Sales Credit Memo Stats.";
                     RunPageOnRec = true;
                 }
@@ -1193,21 +1163,12 @@ page 134 "Posted Sales Credit Memo"
                 actionref(Dimensions_Promoted; Dimensions)
                 {
                 }
-#if not CLEAN27
-                actionref(Statistics_Promoted; Statistics)
-                {
-                    ObsoleteReason = 'The statistics action will be replaced with the SalesCrMemoStatistics and SalesCrMemoStats actions. The new actions use RunObject and do not run the action trigger. Use a page extension to modify the behaviour.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
-#else
                 actionref(SalesCrMemoStatistics_Promoted; SalesCrMemoStatistics)
                 {
                 }
                 actionref(SalesCrMemoStats_Promoted; SalesCrMemoStats)
                 {
                 }
-#endif
                 actionref(DocAttach_Promoted; DocAttach)
                 {
                 }
@@ -1354,11 +1315,4 @@ page 134 "Posted Sales Credit Memo"
         EInvoiceMgt.GetSATCertificateInfoForDocument(DocumentRecRef, SATCertificateCode, SATCertificateName, SATCertificateSource);
     end;
 
-#if not CLEAN27
-    [Obsolete('The statistics action will be replaced with the SalesCrMemoStatistics and SalesCrMemoStats actions. The new actions use RunObject and do not run the action trigger. Use a page extension to modify the behaviour.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCalculateSalesTaxStatistics(var SalesCrMemoHeader: Record "Sales Cr.Memo Header")
-    begin
-    end;
-#endif
 }

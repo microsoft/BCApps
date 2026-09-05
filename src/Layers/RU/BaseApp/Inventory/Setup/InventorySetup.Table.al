@@ -109,52 +109,16 @@ table 313 "Inventory Setup"
             Caption = 'Current Demand Forecast';
             ToolTip = 'Specifies the name of the relevant demand forecast to use to calculate a plan.';
             TableRelation = Microsoft.Manufacturing.Forecast."Production Forecast Name".Name;
-#if not CLEAN27
-            trigger OnValidate()
-            var
-                ManufacturingSetup: Record Microsoft.Manufacturing.Setup."Manufacturing Setup";
-            begin
-                if "Current Demand Forecast" <> xRec."Current Demand Forecast" then begin
-                    ManufacturingSetup.Get();
-                    ManufacturingSetup.Validate("Current Production Forecast", "Current Demand Forecast");
-                    ManufacturingSetup.Modify();
-                end;
-            end;
-#endif
         }
         field(36; "Use Forecast on Variants"; Boolean)
         {
             Caption = 'Use forecast on variants';
             ToolTip = 'Specifies that actual demand for the selected demand forecast is nettet for the specified item variant. If you leave the check box empty, the program regards the demand forecast as valid for all variants.';
-#if not CLEAN27
-            trigger OnValidate()
-            var
-                ManufacturingSetup: Record Microsoft.Manufacturing.Setup."Manufacturing Setup";
-            begin
-                if "Use Forecast on Variants" <> xRec."Use Forecast on Variants" then begin
-                    ManufacturingSetup.Get();
-                    ManufacturingSetup.Validate("Use Forecast on Variants", "Use Forecast on Variants");
-                    ManufacturingSetup.Modify();
-                end;
-            end;
-#endif
         }
         field(37; "Use Forecast on Locations"; Boolean)
         {
             Caption = 'Use forecast on locations';
             ToolTip = 'Specifies that actual demand for the selected demand forecast is nettet for the specified location only. If you leave the check box empty, the program regards the demand forecast as valid for all locations.';
-#if not CLEAN27
-            trigger OnValidate()
-            var
-                ManufacturingSetup: Record Microsoft.Manufacturing.Setup."Manufacturing Setup";
-            begin
-                if "Use Forecast on Locations" <> xRec."Use Forecast on Locations" then begin
-                    ManufacturingSetup.Get();
-                    ManufacturingSetup.Validate("Use Forecast on Locations", "Use Forecast on Locations");
-                    ManufacturingSetup.Modify();
-                end;
-            end;
-#endif
         }
         field(38; "Combined MPS/MRP Calculation"; Boolean)
         {
@@ -162,18 +126,6 @@ table 313 "Inventory Setup"
             Caption = 'Combined MPS/MRP Calculation';
             ToolTip = 'Specifies if both master production schedule and material requirements plan are run when you choose the Calc. Regenerative Plan action in the planning worksheet.';
             InitValue = true;
-#if not CLEAN27
-            trigger OnValidate()
-            var
-                ManufacturingSetup: Record Microsoft.Manufacturing.Setup."Manufacturing Setup";
-            begin
-                if "Combined MPS/MRP Calculation" <> xRec."Combined MPS/MRP Calculation" then begin
-                    ManufacturingSetup.Get();
-                    ManufacturingSetup.Validate("Combined MPS/MRP Calculation", "Combined MPS/MRP Calculation");
-                    ManufacturingSetup.Modify();
-                end;
-            end;
-#endif
         }
         field(40; "Prevent Negative Inventory"; Boolean)
         {
@@ -187,35 +139,11 @@ table 313 "Inventory Setup"
             ToolTip = 'Specifies a percentage of an item''s lot size by which an existing supply must change before a planning suggestion is made.';
             DecimalPlaces = 1 : 1;
             MinValue = 0;
-#if not CLEAN27
-            trigger OnValidate()
-            var
-                ManufacturingSetup: Record Microsoft.Manufacturing.Setup."Manufacturing Setup";
-            begin
-                if "Default Dampener %" <> xRec."Default Dampener %" then begin
-                    ManufacturingSetup.Get();
-                    ManufacturingSetup.Validate("Default Dampener %", "Default Dampener %");
-                    ManufacturingSetup.Modify();
-                end;
-            end;
-#endif
         }
         field(42; "Default Safety Lead Time"; DateFormula)
         {
             Caption = 'Default Safety Lead Time';
             ToolTip = 'Specifies a time period that is added to the lead time of all items that do not have another value specified in the Safety Lead Time field.';
-#if not CLEAN27
-            trigger OnValidate()
-            var
-                ManufacturingSetup: Record Microsoft.Manufacturing.Setup."Manufacturing Setup";
-            begin
-                if "Default Safety Lead Time" <> xRec."Default Safety Lead Time" then begin
-                    ManufacturingSetup.Get();
-                    ManufacturingSetup.Validate("Default Safety Lead Time", "Default Safety Lead Time");
-                    ManufacturingSetup.Modify();
-                end;
-            end;
-#endif
         }
         field(43; "Blank Overflow Level"; Option)
         {
@@ -223,18 +151,6 @@ table 313 "Inventory Setup"
             ToolTip = 'Specifies how the planning system should react if the Overflow Level field on the item or SKU card is empty.';
             OptionCaption = 'Allow Default Calculation,Use Item/SKU Values Only';
             OptionMembers = "Allow Default Calculation","Use Item/SKU Values Only";
-#if not CLEAN27
-            trigger OnValidate()
-            var
-                ManufacturingSetup: Record Microsoft.Manufacturing.Setup."Manufacturing Setup";
-            begin
-                if "Blank Overflow Level" <> xRec."Blank Overflow Level" then begin
-                    ManufacturingSetup.Get();
-                    ManufacturingSetup.Validate("Blank Overflow Level", "Blank Overflow Level");
-                    ManufacturingSetup.Modify();
-                end;
-            end;
-#endif
         }
         field(44; "Default Dampener Period"; DateFormula)
         {
@@ -243,19 +159,9 @@ table 313 "Inventory Setup"
 
             trigger OnValidate()
             var
-#if not CLEAN27
-                ManufacturingSetup: Record Microsoft.Manufacturing.Setup."Manufacturing Setup";
-#endif
                 CalendarMgt: Codeunit "Calendar Management";
             begin
                 CalendarMgt.CheckDateFormulaPositive("Default Dampener Period");
-#if not CLEAN27
-                if "Default Dampener Period" <> xRec."Default Dampener Period" then begin
-                    ManufacturingSetup.Get();
-                    ManufacturingSetup.Validate("Default Dampener Period", "Default Dampener Period");
-                    ManufacturingSetup.Modify();
-                end;
-#endif
             end;
         }
         field(45; "Variant Mandatory if Exists"; Boolean)

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -2032,30 +2032,14 @@ page 490 "Acc. Schedule Overview"
 
     protected procedure UpdateColumnCaptions()
     var
-#if not CLEAN27
-        ColumnCaptions80: array[15] of Text[80];
-#endif
         ColumnNo: Integer;
         i: Integer;
         IsHandled: Boolean;
     begin
-#if not CLEAN27
-#pragma warning disable AL0432
-        for i := 1 to ArrayLen(ColumnCaptions) do
-            ColumnCaptions80[i] := CopyStr(ColumnCaptions[i], 1, MaxStrLen(ColumnCaptions80[i]));
-        OnBeforeUpdateColumnCaptions(ColumnCaptions80, ColumnOffset, TempColumnLayout, NoOfColumns, IsHandled);
-        if IsHandled then begin
-            for i := 1 to ArrayLen(ColumnCaptions80) do
-                ColumnCaptions[i] := ColumnCaptions80[i];
-            exit;
-        end;
-#pragma warning restore AL0432
-#else
         IsHandled := false;
         OnBeforeUpdateColumnCaptions(ColumnCaptions, ColumnOffset, TempColumnLayout, NoOfColumns, IsHandled);
         if IsHandled then
             exit;
-#endif
 
         Clear(ColumnCaptions);
         if TempColumnLayout.FindSet() then
@@ -2543,12 +2527,7 @@ page 490 "Acc. Schedule Overview"
     /// <param name="NoOfColumns">Number of columns to process for caption update</param>
     /// <param name="IsHandled">Set to true to skip standard caption update processing</param>
     [IntegrationEvent(false, false)]
-#if not CLEAN27
-    [Obsolete('The ColumnCaptions parameter will be changed to array[15] of Text in a future release.', '27.0')]
-    local procedure OnBeforeUpdateColumnCaptions(var ColumnCaptions: array[15] of Text[80]; ColumnOffset: Integer; var TempColumnLayout: Record "Column Layout" temporary; NoOfColumns: Integer; var IsHandled: Boolean)
-#else
     local procedure OnBeforeUpdateColumnCaptions(var ColumnCaptions: array[15] of Text; ColumnOffset: Integer; var TempColumnLayout: Record "Column Layout" temporary; NoOfColumns: Integer; var IsHandled: Boolean)
-#endif
     begin
     end;
 

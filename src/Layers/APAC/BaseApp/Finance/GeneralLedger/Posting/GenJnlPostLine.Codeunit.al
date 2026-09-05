@@ -10103,7 +10103,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         WHTEntry.Reset();
         WHTEntry.SetCurrentKey("Document No.", "Posting Date");
         WHTEntry.SetRange("Document No.", DocNo);
-        if WHTEntry.FindSet(true, false) then
+        if WHTEntry.FindSet(true) then
             repeat
                 WHTPostingSetup.Get(WHTEntry."WHT Bus. Posting Group", WHTEntry."WHT Prod. Posting Group");
                 if (WHTPostingSetup."Realized WHT Type" = WHTPostingSetup."Realized WHT Type"::Invoice) or

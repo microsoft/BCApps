@@ -111,13 +111,8 @@ table 31003 "Advance Letter Template CZZ"
             Caption = 'Automatic Post Non-Deductible VAT (Obsolete)';
             DataClassification = CustomerContent;
             ToolTip = 'Specifies whether non-deductible VAT will be applied to the tax documents automatically. If you select NO, the system will ask you if you want to reduce input tax every time you post a tax document for non-deductible VAT. If you select YES, the reduction will be done automatically after the tax document is posted to the prepayment, if a combination of VAT posting groups with non-deductible VAT is set up in it.';
-#if not CLEAN27            
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#endif
             ObsoleteReason = 'The field is obsolete and will be removed in a future version. Non-deductible VAT must always be posted in advances so this field is useless.';
         }
 #endif

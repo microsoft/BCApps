@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -83,13 +83,6 @@ table 7313 "Warehouse Register"
     {
     }
 
- #if not CLEAN27
-   [Obsolete('This function is deprecated. Concurrent warehouse posting is always on.', '27.0')]
-   procedure InsertRecord(UseLegacyPosting: Boolean)
-    begin
-        InsertRecord();
-    end;
-#endif    
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Warehouse Register", 'r')]
     procedure InsertRecord()

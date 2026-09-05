@@ -8,9 +8,6 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Location;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Comment;
-#if not CLEAN27
-using Microsoft.Manufacturing.Document;
-#endif
 #if not CLEAN29
 using Microsoft.Manufacturing.Reports;
 #endif
@@ -342,22 +339,6 @@ page 99000754 "Work Center Card"
                     CalculateWorkCenterCalendar.RunModal();
                 end;
             }
-#if not CLEAN27
-            action("Subcontr. &Prices")
-            {
-                ApplicationArea = LegacySubcontracting;
-                Caption = 'Subcontr. &Prices';
-                Enabled = "Subcontr. &PricesEnable";
-                Image = Price;
-                RunObject = Page "Subcontracting Prices";
-                RunPageLink = "Work Center No." = field("No.");
-                RunPageView = sorting("Vendor No.", "Item No.", "Standard Task Code", "Work Center No.", "Variant Code", "Start Date", "Unit of Measure Code", "Minimum Quantity", "Currency Code");
-                ToolTip = 'View the subcontracting prices.';
-                ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-                ObsoleteState = Pending;
-                ObsoleteTag = '27.0';
-            }
-#endif
         }
 #if not CLEAN29
         area(reporting)
@@ -385,14 +366,6 @@ page 99000754 "Work Center Card"
                 actionref("Calculate Work Center Calendar_Promoted"; "Calculate Work Center Calendar")
                 {
                 }
-#if not CLEAN27
-                actionref("Subcontr. &Prices_Promoted"; "Subcontr. &Prices")
-                {
-                    ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
-#endif
                 actionref("Lo&ad_Promoted"; "Lo&ad")
                 {
                 }

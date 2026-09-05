@@ -46,156 +46,6 @@ report 115 "Salesperson - Commission"
             column(Salesperson_Purchaser__Commission___; "Commission %")
             {
             }
-#if not CLEAN27
-            column(COMPANYNAME; COMPANYPROPERTY.DisplayName())
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(SalespersonFilter; SalespersonFilter)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(CustLedgEntryFilter; CustLedgEntryFilter)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(PageGroupNo; PageGroupNo)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(Cust__Ledger_Entry___Sales__LCY__; "Cust. Ledger Entry"."Sales (LCY)")
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(Cust__Ledger_Entry___Profit__LCY__; "Cust. Ledger Entry"."Profit (LCY)")
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(SalesCommissionAmt; SalesCommissionAmt)
-            {
-                AutoFormatType = 1;
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(ProfitCommissionAmt; ProfitCommissionAmt)
-            {
-                AutoFormatType = 1;
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(AdjProfit; AdjProfit)
-            {
-                AutoFormatType = 1;
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(AdjProfitCommissionAmt; AdjProfitCommissionAmt)
-            {
-                AutoFormatType = 1;
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(Salesperson___CommissionCaption; Salesperson___CommissionCaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(CurrReport_PAGENOCaption; CurrReport_PAGENOCaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(All_amounts_are_in_LCYCaption; All_amounts_are_in_LCYCaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(Cust__Ledger_Entry__Posting_Date_Caption; Cust__Ledger_Entry__Posting_Date_CaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(Cust__Ledger_Entry__Document_No__Caption; "Cust. Ledger Entry".FieldCaption("Document No."))
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(Cust__Ledger_Entry__Customer_No__Caption; "Cust. Ledger Entry".FieldCaption("Customer No."))
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(Cust__Ledger_Entry__Sales__LCY__Caption; "Cust. Ledger Entry".FieldCaption("Sales (LCY)"))
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(Cust__Ledger_Entry__Profit__LCY__Caption; "Cust. Ledger Entry".FieldCaption("Profit (LCY)"))
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(SalesCommissionAmt_Control32Caption; SalesCommissionAmt_Control32CaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(ProfitCommissionAmt_Control33Caption; ProfitCommissionAmt_Control33CaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(AdjProfit_Control39Caption; AdjProfit_Control39CaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(AdjProfitCommissionAmt_Control45Caption; AdjProfitCommissionAmt_Control45CaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(Salesperson_Purchaser__Commission___Caption; FieldCaption("Commission %"))
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(TotalCaption; TotalCaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-#endif
             dataitem("Cust. Ledger Entry"; "Cust. Ledger Entry")
             {
                 DataItemLink = "Salesperson Code" = field(Code);
@@ -397,9 +247,7 @@ report 115 "Salesperson - Commission"
                         ObsoleteState = Pending;
                         ObsoleteReason = 'The New Page per Person option is only supported by the RDLC layout which has been deprecated.';
                         ObsoleteTag = '28.0';
-#if CLEAN27
                         Visible = false;
-#endif
                     }
 #endif
                     // Used to set the Period on the report header across multiple languages
@@ -457,18 +305,6 @@ report 115 "Salesperson - Commission"
             LayoutFile = './Sales/Reports/SalespersonCommission.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
         }
-#if not CLEAN27
-        layout(RDLC)
-        {
-            Caption = 'Salesperson Commission RDLC';
-            Type = RDLC;
-            LayoutFile = './Sales/Reports/SalespersonCommission.rdlc';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'The RDLC layout has been replaced by the Excel and Word layouts and will be removed in a future release.';
-            ObsoleteTag = '27.0';
-            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
-        }
-#endif
     }
 
     labels
@@ -537,17 +373,6 @@ report 115 "Salesperson - Commission"
         TotalsProfitCommission: Decimal;
         TotalsAdjProfitCommission: Decimal;
         ReportHasData: Boolean;
-#if not CLEAN27
-        All_amounts_are_in_LCYCaptionLbl: Label 'All amounts are in LCY';
-        TotalCaptionLbl: Label 'Total';
-        Salesperson___CommissionCaptionLbl: Label 'Salesperson - Commission';
-        CurrReport_PAGENOCaptionLbl: Label 'Page';
-        Cust__Ledger_Entry__Posting_Date_CaptionLbl: Label 'Posting Date';
-        SalesCommissionAmt_Control32CaptionLbl: Label 'Sales Commission (LCY)';
-        ProfitCommissionAmt_Control33CaptionLbl: Label 'Profit Commission (LCY)';
-        AdjProfit_Control39CaptionLbl: Label 'Adjusted Profit (LCY)';
-        AdjProfitCommissionAmt_Control45CaptionLbl: Label 'Adjusted Profit Commission (LCY)';
-#endif
 
     local procedure ClearAmounts()
     begin

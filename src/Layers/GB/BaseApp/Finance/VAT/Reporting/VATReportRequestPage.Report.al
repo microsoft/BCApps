@@ -34,9 +34,6 @@ report 742 "VAT Report Request Page"
                 VATStatement: Report "VAT Statement";
                 Base: Decimal;
                 Amount: Decimal;
-#if not CLEAN27
-                IsHandled: Boolean;
-#endif
             begin
                 Copy(Rec);
 
@@ -50,13 +47,6 @@ report 742 "VAT Report Request Page"
                 VATStatementLine.SetRange("Statement Name", "Statement Name");
                 VATStatementLine.SetFilter("Box No.", '<>%1', '');
                 OnBeforeVATStatementLineFindSet(VATStatementLine, "VAT Report Header");
-#if not CLEAN27
-                IsHandled := false;
-                OnBeforeVATStatementLineFindSet2(VATStatementLine, "VAT Report Header", IsHandled);
-                if not IsHandled then
-                    if VATStatementLine.Count() <> 9 then
-                        Error(WrongVATSatementSetupErr, "Statement Template Name", "Statement Name");
-#endif
                 VATStatementLine.FindSet();
 
                 VATStatement.InitializeRequest(
@@ -67,28 +57,18 @@ report 742 "VAT Report Request Page"
                 VATStatementReportLine.DeleteAll();
                 repeat
                     OnBeforeCalcLineTotalWithBase(VATStatementReportLine, VATStatementLine, "VAT Report Header");
-#if not CLEAN27
-                    VATStatementReportLine.Init();
-                    VATStatementReportLine.Validate("Box No.", VATStatementLine."Box No.");
-                    if not CheckBoxNo(VATStatementReportLine) then
-                        Error(WrongVATSatementSetupErr, "Statement Template Name", "Statement Name");
-#endif
                     VATStatement.CalcLineTotalWithBase(VATStatementLine, Amount, Base, 0);
                     if VATStatementLine."Print with" = VATStatementLine."Print with"::"Opposite Sign" then begin
                         Amount := -Amount;
                         Base := -Base;
                     end;
-#if CLEAN27
                     VATStatementReportLine.Init();
-#endif
                     VATStatementReportLine.Validate("VAT Report No.", "No.");
                     VATStatementReportLine.Validate("VAT Report Config. Code", "VAT Report Config. Code");
                     VATStatementReportLine.Validate("Line No.", VATStatementLine."Line No.");
                     VATStatementReportLine.Validate("Row No.", VATStatementLine."Row No.");
                     VATStatementReportLine.Validate(Description, VATStatementLine.Description);
-#if CLEAN27
                     VATStatementReportLine.Validate("Box No.", VATStatementLine."Box No.");
-#endif
                     VATStatementReportLine.Validate(Amount, Amount);
                     VATStatementReportLine.Validate(Base, Base);
                     VATStatementReportLine.Insert();
@@ -241,9 +221,6 @@ report 742 "VAT Report Request Page"
 
     var
         PeriodIsEditable: Boolean;
-#if not CLEAN27
-        WrongVATSatementSetupErr: Label 'VAT statement template %1 name %2 has a wrong setup. There must be nine rows, each with a value between 1 and 9 for the Box No. field.', Comment = '1 - statement template name, 2 - statement name';
-#endif
 
     protected var
         Selection: Enum "VAT Statement Report Selection";
@@ -269,44 +246,5 @@ report 742 "VAT Report Request Page"
     local procedure OnBeforeCalcLineTotalWithBase(var VATStatementReportLine: Record "VAT Statement Report Line"; VATStatementLine: Record "VAT Statement Line"; VATReportHeader: Record "VAT Report Header")
     begin
     end;
-
-#if not CLEAN27
-    [Obsolete('Moved to GovTalk app', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeVATStatementLineFindSet2(var VATStatementLine: Record "VAT Statement Line"; VATReportHeader: Record "VAT Report Header"; var IsHandled: Boolean)
-    begin
-    end;
-
-    [Obsolete('Moved to GovTalk app', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckBoxNo(var IsHandled: Boolean)
-    begin
-    end;
-
-    [Obsolete('Moved to GovTalk app', '27.0')]
-    local procedure CheckBoxNo(var VATStatementReportLine: Record "VAT Statement Report Line"): Boolean;
-    var
-        VATStatementReportLine2: Record "VAT Statement Report Line";
-        IntegerValue: Integer;
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeCheckBoxNo(IsHandled);
-        if IsHandled then
-            exit(true);
-        if not Evaluate(IntegerValue, VATStatementReportLine."Box No.") then
-            exit(false);
-        if (IntegerValue < 1) or (IntegerValue > 9) then
-            exit(false);
-
-        VATStatementReportLine2.Copy(VATStatementReportLine);
-        VATStatementReportLine2.SetRange("Box No.", FORMAT(IntegerValue));
-        if not VATStatementReportLine2.IsEmpty() then
-            exit(false);
-
-        VATStatementReportLine."Box No." := Format(IntegerValue);
-        exit(true);
-    end;
-#endif
 }
 

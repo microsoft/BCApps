@@ -9639,18 +9639,6 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnAfterPostItemJnlLineCopyProdOrder(var ItemJnlLine: Record "Item Journal Line"; PurchLine: Record "Purchase Line"; PurchRcptHeader2: Record "Purch. Rcpt. Header"; QtyToBeReceived: Decimal; CommitIsSupressed: Boolean; QtyToBeInvoiced: Decimal)
-    begin
-        OnAfterPostItemJnlLineCopyProdOrder(ItemJnlLine, PurchLine, PurchRcptHeader2, QtyToBeReceived, CommitIsSupressed, QtyToBeInvoiced);
-    end;
-
-    [Obsolete('Moved to codeunit MfgPurchPost', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterPostItemJnlLineCopyProdOrder(var ItemJnlLine: Record "Item Journal Line"; PurchLine: Record "Purchase Line"; PurchRcptHeader: Record "Purch. Rcpt. Header"; QtyToBeReceived: Decimal; CommitIsSupressed: Boolean; QtyToBeInvoiced: Decimal)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostItemJnlLineItemCharges(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line")
@@ -10182,18 +10170,6 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforePostItemJnlLineCopyProdOrder(PurchLine: Record "Purchase Line"; var ItemJnlLine: Record "Item Journal Line"; QtyToBeReceived: Decimal; QtyToBeInvoiced: Decimal; CommitIsSupressed: Boolean; var IsHandled: Boolean)
-    begin
-        OnBeforePostItemJnlLineCopyProdOrder(PurchLine, ItemJnlLine, QtyToBeReceived, QtyToBeInvoiced, CommitIsSupressed, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit MfgPurchPost', '27.0')]
-    [IntegrationEvent(true, false)]
-    local procedure OnBeforePostItemJnlLineCopyProdOrder(PurchLine: Record "Purchase Line"; var ItemJnlLine: Record "Item Journal Line"; QtyToBeReceived: Decimal; QtyToBeInvoiced: Decimal; CommitIsSupressed: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(true, false)]
     local procedure OnBeforePostPurchaseDoc(var PurchaseHeader: Record "Purchase Header"; PreviewMode: Boolean; CommitIsSupressed: Boolean; var HideProgressWindow: Boolean; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var IsHandled: Boolean)
@@ -11722,19 +11698,6 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-#if not CLEAN27
-    [IntegrationEvent(false, false)]
-    [Obsolete('This event is no longer used.', '27.0')]
-    local procedure OnSetPostingPreviewDocumentNo(var PreviewDocumentNo: Code[20])
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    [Obsolete('This event is no longer used.', '27.0')]
-    local procedure OnGetPostingPreviewDocumentNos(var PreviewDocumentNos: List of [Code[20]])
-    begin
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnInsertPostedHeadersOnAfterInvoice(var PurchaseHeader: Record "Purchase Header"; var GenJournalLine: Record "Gen. Journal Line"; var GenJnlLineDocType: Enum "Gen. Journal Document Type"; var GenJnlLineDocNo: Code[20]; var GenJnlLineExtDocNo: Code[35]; var IsHandled: Boolean)
     begin

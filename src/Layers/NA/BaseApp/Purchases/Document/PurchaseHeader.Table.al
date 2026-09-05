@@ -5892,23 +5892,6 @@ table 38 "Purchase Header"
     begin
         exit("Document Type" in ["Document Type"::Order, "Document Type"::"Blanket Order", "Document Type"::"Return Order"])
     end;
-#if not CLEAN27
-    [Obsolete('The statistics action will be replaced with the PurchaseOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '27.0')]
-    procedure GetStatisticsPageID(): Integer
-    begin
-        if IsOrderDocument() then begin
-            if "Tax Area Code" <> '' then
-                exit(Page::"Purchase Order Stats.");
-
-            exit(Page::"Purchase Order Statistics");
-        end;
-
-        if "Tax Area Code" <> '' then
-            exit(Page::"Purchase Stats.");
-
-        exit(Page::"Purchase Statistics");
-    end;
-#endif
 
     [IntegrationEvent(true, false)]
     procedure OnCheckPurchasePostRestrictions()

@@ -830,11 +830,7 @@ codeunit 144068 "UT REP Posting Routine"
     procedure VATFiscalRegisterPrintValidatesPeriodEndingDate()
     var
         GLSetup: Record "General Ledger Setup";
-#if not CLEAN27
-        PeriodicSettlementVATEntry: Record "Periodic Settlement VAT Entry";
-#else
         PeriodicSettlementVATEntry: Record "Periodic VAT Settlement Entry";
-#endif
         VatEntry: Record "VAT Entry";
     begin
         // [FEATURE] [VAT Report] [Date]
@@ -864,11 +860,7 @@ codeunit 144068 "UT REP Posting Routine"
     procedure VATFiscalRegisterPrintExqcutesForQuarterPeriod()
     var
         GLSetup: Record "General Ledger Setup";
-#if not CLEAN27
-        PeriodicSettlementVATEntry: Record "Periodic Settlement VAT Entry";
-#else
         PeriodicSettlementVATEntry: Record "Periodic VAT Settlement Entry";
-#endif
         VatEntry: Record "VAT Entry";
     begin
         // [FEATURE] [VAT Report] [Date]

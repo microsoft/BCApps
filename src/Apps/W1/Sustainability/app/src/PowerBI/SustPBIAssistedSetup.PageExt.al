@@ -7,9 +7,6 @@ pageextension 6264 "Sust. PBI Assisted Setup" extends "PowerBI Assisted Setup"
     {
         addlast(Step5)
         {
-#if not CLEAN27
-#pragma warning disable AL0801
-#endif
 
             group(SustainabilityReportSetup)
             {
@@ -98,9 +95,6 @@ pageextension 6264 "Sust. PBI Assisted Setup" extends "PowerBI Assisted Setup"
                     }
                 }
             }
-#if not CLEAN27
-#pragma warning restore AL0801
-#endif
         }
     }
 

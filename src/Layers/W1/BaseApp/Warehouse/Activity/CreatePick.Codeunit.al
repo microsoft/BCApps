@@ -2220,32 +2220,7 @@ codeunit 7312 "Create Pick"
         OnAfterSetWhseInternalPickLine(CurrWhseInternalPickLine);
     end;
 
-#if not CLEAN27
-    [Obsolete('Replaced by SetCustomWhseSourceLine', '27.0')]
-    procedure SetProdOrderCompLine(ProdOrderComponentLine2: Record Microsoft.Manufacturing.Document."Prod. Order Component"; TempNo2: Integer)
-    begin
-        SetCustomWhseSourceLine(
-            ProdOrderComponentLine2, TempNo2, Database::Microsoft.Manufacturing.Document."Prod. Order Component",
-            ProdOrderComponentLine2.Status.AsInteger(), ProdOrderComponentLine2."Prod. Order No.",
-            ProdOrderComponentLine2."Prod. Order Line No.", ProdOrderComponentLine2."Line No.");
 
-        OnAfterSetProdOrderCompLine(ProdOrderComponentLine2);
-        CustomWhseSourceLine := ProdOrderComponentLine2;
-    end;
-#endif
-
-#if not CLEAN27
-    [Obsolete('Replaced by SetCustomWhseSourceLine', '27.0')]
-    procedure SetAssemblyLine(AssemblyLine2: Record Microsoft.Assembly.Document."Assembly Line"; TempNo2: Integer)
-    begin
-        SetCustomWhseSourceLine(
-            AssemblyLine2, TempNo2, Database::Microsoft.Assembly.Document."Assembly Line",
-            AssemblyLine2."Document Type".AsInteger(), AssemblyLine2."Document No.", AssemblyLine2."Line No.", 0);
-
-        OnAfterSetAssemblyLine(AssemblyLine2);
-        CustomWhseSourceLine := AssemblyLine2;
-    end;
-#endif
 
     procedure SetJobPlanningLine(JobPlanningLine2: Record "Job Planning Line")
     begin
@@ -3518,78 +3493,6 @@ codeunit 7312 "Create Pick"
         TotalQtyToPickBase := TotalQtyToPickBase - ToQtyToPickBase;
     end;
 
-#if not CLEAN27
-    // Replaced by Query CalcOutstandQtyOnWhseActLine
-    internal procedure CalcTotalQtyAssgndOnWhse(LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]): Decimal
-    var
-        WhseShipmentLine: Record "Warehouse Shipment Line";
-        ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component";
-        AssemblyLine: Record Microsoft.Assembly.Document."Assembly Line";
-        QtyAssgndToWhseAct: Decimal;
-        QtyAssgndToShipment: Decimal;
-        QtyAssgndToProdComp: Decimal;
-        QtyAssgndToAsmLine: Decimal;
-    begin
-        QtyAssgndToWhseAct +=
-          CalcTotalQtyAssgndOnWhseAct("Warehouse Activity Type"::" ", LocationCode, ItemNo, VariantCode);
-        QtyAssgndToWhseAct +=
-          CalcTotalQtyAssgndOnWhseAct("Warehouse Activity Type"::"Put-away", LocationCode, ItemNo, VariantCode);
-        QtyAssgndToWhseAct +=
-          CalcTotalQtyAssgndOnWhseAct("Warehouse Activity Type"::Pick, LocationCode, ItemNo, VariantCode);
-        QtyAssgndToWhseAct +=
-          CalcTotalQtyAssgndOnWhseAct("Warehouse Activity Type"::Movement, LocationCode, ItemNo, VariantCode);
-        QtyAssgndToWhseAct +=
-          CalcTotalQtyAssgndOnWhseAct("Warehouse Activity Type"::"Invt. Put-away", LocationCode, ItemNo, VariantCode);
-        QtyAssgndToWhseAct +=
-          CalcTotalQtyAssgndOnWhseAct("Warehouse Activity Type"::"Invt. Pick", LocationCode, ItemNo, VariantCode);
-
-        WhseShipmentLine.SetCurrentKey("Item No.", "Location Code", "Variant Code", "Due Date");
-        WhseShipmentLine.SetRange("Location Code", LocationCode);
-        WhseShipmentLine.SetRange("Item No.", ItemNo);
-        WhseShipmentLine.SetRange("Variant Code", VariantCode);
-        WhseShipmentLine.CalcSums("Qty. Picked (Base)", "Qty. Shipped (Base)");
-        QtyAssgndToShipment := WhseShipmentLine."Qty. Picked (Base)" - WhseShipmentLine."Qty. Shipped (Base)";
-
-        ProdOrderComp.SetCurrentKey("Item No.", "Variant Code", "Location Code", Status, "Due Date");
-        ProdOrderComp.SetRange("Location Code", LocationCode);
-        ProdOrderComp.SetRange("Item No.", ItemNo);
-        ProdOrderComp.SetRange("Variant Code", VariantCode);
-        ProdOrderComp.SetRange(Status, ProdOrderComp.Status::Released);
-        ProdOrderComp.CalcSums("Qty. Picked (Base)", "Expected Qty. (Base)", "Remaining Qty. (Base)");
-        QtyAssgndToProdComp := ProdOrderComp."Qty. Picked (Base)" - (ProdOrderComp."Expected Qty. (Base)" - ProdOrderComp."Remaining Qty. (Base)");
-
-        AssemblyLine.SetCurrentKey("Document Type", Type, "No.", "Variant Code", "Location Code");
-        AssemblyLine.SetRange("Document Type", AssemblyLine."Document Type"::Order);
-        AssemblyLine.SetRange("Location Code", LocationCode);
-        AssemblyLine.SetRange(Type, AssemblyLine.Type::Item);
-        AssemblyLine.SetRange("No.", ItemNo);
-        AssemblyLine.SetRange("Variant Code", VariantCode);
-        AssemblyLine.CalcSums("Qty. Picked (Base)", "Consumed Quantity (Base)");
-        QtyAssgndToAsmLine := AssemblyLine.CalcQtyPickedNotConsumedBase();
-
-        OnAfterCalcTotalQtyAssgndOnWhse(
-            LocationCode, ItemNo, VariantCode, QtyAssgndToWhseAct, QtyAssgndToShipment, QtyAssgndToProdComp, QtyAssgndToAsmLine);
-
-        exit(QtyAssgndToWhseAct + QtyAssgndToShipment + QtyAssgndToProdComp + QtyAssgndToAsmLine);
-    end;
-
-    local procedure CalcTotalQtyAssgndOnWhseAct(ActivityType: Enum "Warehouse Activity Type"; LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]): Decimal
-    var
-        WarehouseActivityLine: Record "Warehouse Activity Line";
-    begin
-        WarehouseActivityLine.SetCurrentKey(
-            "Item No.", "Location Code", "Activity Type", "Bin Type Code",
-            "Unit of Measure Code", "Variant Code", "Breakbulk No.", "Action Type");
-        WarehouseActivityLine.SetRange("Location Code", LocationCode);
-        WarehouseActivityLine.SetRange("Item No.", ItemNo);
-        WarehouseActivityLine.SetRange("Variant Code", VariantCode);
-        WarehouseActivityLine.SetRange("Activity Type", ActivityType);
-        WarehouseActivityLine.SetRange("Breakbulk No.", 0);
-        WarehouseActivityLine.SetFilter("Action Type", '%1|%2', "Warehouse Action Type"::" ", "Warehouse Action Type"::Take);
-        WarehouseActivityLine.CalcSums("Qty. Outstanding (Base)");
-        exit(WarehouseActivityLine."Qty. Outstanding (Base)");
-    end;
-#endif
 
     procedure CalcTotalQtyOnBinType(BinTypeFilter: Text[1024]; LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]): Decimal
     var
@@ -4191,13 +4094,6 @@ codeunit 7312 "Create Pick"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('Not used anymore.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterCalcTotalQtyAssgndOnWhse(LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]; var QtyAssgndToWhseAct: Decimal; var QtyAssgndToShipment: Decimal; var QtyAssgndToProdComp: Decimal; var QtyAssgndToAsmLine: Decimal);
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckOutBound(SourceType: Integer; SourceSubType: Integer; SourceNo: Code[20]; SourceLineNo: Integer; var OutBoundQty: Decimal; SourceSubLineNo: Integer)
@@ -4254,19 +4150,6 @@ codeunit 7312 "Create Pick"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('Replaced by OnAfterSetCustomWhseSourceLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterSetAssemblyLine(var AssemblyLine: Record Microsoft.Assembly.Document."Assembly Line")
-    begin
-    end;
-
-    [Obsolete('Replaced by OnAfterSetCustomWhseSourceLine', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterSetProdOrderCompLine(var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetCustomWhseSourceLine(CustomSourceWhseSourceLine: Variant)

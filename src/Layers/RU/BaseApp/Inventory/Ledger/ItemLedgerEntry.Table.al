@@ -732,14 +732,6 @@ table 32 "Item Ledger Entry"
         exit(FindRecordManagement.GetLastEntryIntFieldValue(Rec, FieldNo("Entry No.")))
     end;
 
-#if not CLEAN27
-    [Obsolete('Please use GetAdditionalReportingCurrencyCode instead.', '27.0')]
-    procedure GetCurrencyCode(): Code[10]
-    begin
-        exit(GetAdditionalReportingCurrencyCode())
-    end;
-
-#endif
     procedure GetAdditionalReportingCurrencyCode(): Code[10]
     begin
         if not GLSetupRead then begin

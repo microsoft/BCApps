@@ -855,19 +855,6 @@ page 9004 "Bookkeeper Role Center"
                 RunObject = Report "Calc. and Post VAT Settlement";
                 ToolTip = 'Close open VAT entries and transfers purchase and sales VAT amounts to the VAT settlement account. For every VAT posting group, the batch job finds all the VAT entries in the VAT Entry table that are included in the filters in the definition window.';
             }
-#if not CLEAN27
-            action("Periodic VAT Settlement List")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Periodic VAT Settlement List';
-                Image = ListPage;
-                RunObject = Page "Periodic VAT Settlement List";
-                ToolTip = 'View the list of periodic VAT settlements.';
-                ObsoleteState = Pending;
-                ObsoleteReason = 'Replaced by VAT settlement per activity code.';
-                ObsoleteTag = '27.0';
-            }
-#else
             action("Periodic VAT Settlement List")
             {
                 ApplicationArea = Basic, Suite;
@@ -876,7 +863,6 @@ page 9004 "Bookkeeper Role Center"
                 RunObject = Page "Periodic VAT Settl. List";
                 ToolTip = 'View the list of periodic VAT settlements.';
             }
-#endif
             action("Withholding Tax Card")
             {
                 ApplicationArea = Basic, Suite;

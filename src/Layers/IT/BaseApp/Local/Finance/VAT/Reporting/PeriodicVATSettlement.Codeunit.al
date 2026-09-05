@@ -62,12 +62,4 @@ codeunit 12195 "Periodic VAT Settlement"
                  (PeriodicVATSettlementEntry."Prior Year Input VAT" = PriorYearInputVAT) and
                  (PeriodicVATSettlementEntry."Prior Year Output VAT" = PriorYearOutputVAT);
     end;
-
-#if not CLEAN28
-    [IntegrationEvent(false, false)]
-    [Obsolete('This event is used only during data upgrade of the VAT Settlement Account Code feature, which will become mandatory one major version earlier.', '28.0')]
-    internal procedure OnAfterTransferfieldsToPeriodicSettlVATEntry(PeriodicSettlementVATEntry: Record "Periodic Settlement VAT Entry"; var PeriodicVATSettlementEntry: Record "Periodic VAT Settlement Entry")
-    begin
-    end;
-#endif
 }

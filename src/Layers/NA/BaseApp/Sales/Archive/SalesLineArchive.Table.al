@@ -1524,13 +1524,7 @@ table 5108 "Sales Line Archive"
             Caption = 'Customer Disc. Group';
             TableRelation = "Customer Discount Group";
         }
-#if not CLEAN27
-#pragma warning disable AS0086
-#endif
         field(10000; "Package Tracking No."; Text[50])
-#if not CLEAN27
-#pragma warning restore AS0086
-#endif
         {
             Caption = 'Package Tracking No.';
         }

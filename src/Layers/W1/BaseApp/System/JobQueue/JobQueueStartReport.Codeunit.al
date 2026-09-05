@@ -143,39 +143,6 @@ codeunit 487 "Job Queue Start Report" implements "Job Queue Report Runner"
             REPORT.SaveAs(ReportID, JobQueueEntry.GetReportParameters(), RepFormat, OutStream);
     end;
 
-#if not CLEAN27
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Job Queue Start Report Base", OnBeforeRunReport, '', false, false)]
-    local procedure OnBeforeRunReportBase(ReportID: Integer; var JobQueueEntry: Record "Job Queue Entry"; var IsHandled: Boolean)
-    begin
-        OnBeforeRunReport(ReportID, JobQueueEntry, IsHandled);
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Job Queue Start Report Base", OnBeforeRunReportInterface, '', false, false)]
-    local procedure OnBeforeRunReportInterfaceBase(ReportID: Integer; var JobQueueEntry: Record "Job Queue Entry")
-    var
-        ReportInbox: Record "Report Inbox";
-    begin
-        ReportInbox.Init();
-        ReportInbox."User ID" := JobQueueEntry."User ID";
-        ReportInbox."Job Queue Log Entry ID" := JobQueueEntry.ID;
-        ReportInbox."Report ID" := ReportID;
-        ReportInbox.Description := JobQueueEntry.Description;
-        OnRunReportOnAfterAssignFields(ReportInbox, JobQueueEntry);
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Job Queue Start Report Runner", OnAfterRunReport, '', false, false)]
-    local procedure OnAfterRunReportInterface(ReportID: Integer; var JobQueueEntry: Record "Job Queue Entry")
-    var
-        ReportInbox: Record "Report Inbox";
-    begin
-        ReportInbox.Init();
-        ReportInbox."User ID" := JobQueueEntry."User ID";
-        ReportInbox."Job Queue Log Entry ID" := JobQueueEntry.ID;
-        ReportInbox."Report ID" := ReportID;
-        ReportInbox.Description := JobQueueEntry.Description;
-        OnRunReportOnBeforeCommit(ReportInbox, JobQueueEntry);
-    end;
-#endif
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Job Queue Start Report Runner", OnAfterExecuteReport, '', false, false)]
     local procedure OnAfterExecuteReportBaseRunner(ReportID: Integer; var JobQueueEntry: Record "Job Queue Entry"; var ShouldModifyNotifyOnSuccess: Boolean)
@@ -207,13 +174,6 @@ codeunit 487 "Job Queue Start Report" implements "Job Queue Report Runner"
     begin
     end;
 
-#if not CLEAN27
-    [IntegrationEvent(false, false)]
-    [Obsolete('This event has been moved to "Job Queue Start Report Base".', '27.0')]
-    local procedure OnBeforeRunReport(ReportID: Integer; var JobQueueEntry: Record "Job Queue Entry"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnRunReportOnAfterCalcShouldModifyNotifyOnSuccess(ReportID: Integer; var JobQueueEntry: Record "Job Queue Entry"; var ShouldModifyNotifyOnSuccess: Boolean)
@@ -221,9 +181,6 @@ codeunit 487 "Job Queue Start Report" implements "Job Queue Report Runner"
     end;
 
     [IntegrationEvent(false, false)]
-#if not CLEAN27 // Warn users about breaking change even though event still exists
-    [Obsolete('This event will continue existing but only called for Job Queue Entries with output type <> None with this obsoletion. To handle Job Queue Entries of type None, hook into "Job Queue Start Report Base".OnBeforeRunReportInterface.', '27.0')]
-#endif
     internal procedure OnRunReportOnAfterAssignFields(var ReportInbox: Record "Report Inbox"; var JobQueueEntry: Record "Job Queue Entry")
     begin
     end;
@@ -239,9 +196,6 @@ codeunit 487 "Job Queue Start Report" implements "Job Queue Report Runner"
     end;
 
     [IntegrationEvent(false, false)]
-#if not CLEAN27 // Warn users about breaking change even though event still exists
-    [Obsolete('This event will continue existing but only called for Job Queue Entries with output type <> None with this obsoletion. To handle Job Queue Entries of type None, hook into "Job Queue Start Report Runner".OnAfterRunReport.', '27.0')]
-#endif
     local procedure OnRunReportOnBeforeCommit(ReportInbox: Record "Report Inbox"; var JobQueueEntry: Record "Job Queue Entry")
     begin
     end;

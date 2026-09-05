@@ -25,9 +25,6 @@ codeunit 99000849 "Mfg. ReservCheckDateConfl"
 
         IsHandled := false;
         OnProdOrderLineCheckOnBeforeUpdateDate(ReservationEntry, ProdOrderLine, IsHandled);
-#if not CLEAN27
-        ReservationCheckDateConfl.RunOnProdOrderLineCheckOnBeforeUpdateDate(ReservationEntry, ProdOrderLine, IsHandled);
-#endif
         if not IsHandled then
             ReservationCheckDateConfl.UpdateDate(ReservationEntry, ProdOrderLine."Due Date");
 
@@ -63,9 +60,6 @@ codeunit 99000849 "Mfg. ReservCheckDateConfl"
 
         IsHandled := false;
         OnProdOrderComponentCheckOnBeforeIssueError(ReservationEntry, ProdOrderComponent, ForceRequest, IsHandled, IsCritical);
-#if not CLEAN27
-        ReservationCheckDateConfl.RunOnProdOrderComponentCheckOnBeforeIssueError(ReservationEntry, ProdOrderComponent, ForceRequest, IsHandled);
-#endif
         if not IsHandled then
             if ReservationCheckDateConfl.DateConflict(ProdOrderComponent."Due Date", ForceRequest, ReservationEntry) then
                 if ForceRequest then
@@ -76,9 +70,6 @@ codeunit 99000849 "Mfg. ReservCheckDateConfl"
 
         IsHandled := false;
         OnProdOrderComponentCheckOnBeforeUpdateDate(ReservationEntry, ProdOrderComponent, IsHandled);
-#if not CLEAN27
-        ReservationCheckDateConfl.RunOnProdOrderComponentCheckOnBeforeUpdateDate(ReservationEntry, ProdOrderComponent, IsHandled);
-#endif
         if not IsHandled then
             ReservationCheckDateConfl.UpdateDate(ReservationEntry, ProdOrderComponent."Due Date");
 

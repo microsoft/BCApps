@@ -1108,13 +1108,6 @@ codeunit 99000836 "Transfer Line-Reserve"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('This event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnSetSourceForReservationOnBeforeUpdateReservation(var ReservEntry: Record "Reservation Entry"; TransferLine: Record "Transfer Line")
-    begin
-    end;
-#endif
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnIssueActionMessageOnSetSourceTypeFromSKU', '', false, false)]
     local procedure OnIssueActionMessageOnSetSourceTypeFromSKU(var ActionMessageEntry: Record "Action Message Entry"; SKU: Record "Stockkeeping Unit")
     begin

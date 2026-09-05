@@ -76,15 +76,6 @@ codeunit 11207 "Create Vat Posting Groups SE"
         ContosoPostingSetup.SetOverwriteData(false);
     end;
 
-#if not CLEAN27
-    [Obsolete('This procedure is moved to codeunit 5473 "Create VAT Posting Groups".', '27.0')]
-    procedure NoVat(): Code[20]
-    var
-        CreateVATPostingGroups: Codeunit "Create VAT Posting Groups";
-    begin
-        exit(CreateVATPostingGroups.NoVAT());
-    end;
-#endif
 
     procedure Only(): Code[20]
     begin

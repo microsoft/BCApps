@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -104,18 +104,11 @@ codeunit 5431 "Calc. Item Plan - Plan Wksh."
 
     local procedure CalculateAndGetPlanningCompList()
     var
-#if not CLEAN27
-        MfgSetup: Record Microsoft.Manufacturing.Setup."Manufacturing Setup";
-#endif
         CurrWorksheetType: Option Requisition,Planning;
         IsHandled: Boolean;
     begin
         IsHandled := false;
         OnBeforeCalculateAndGetPlanningComponents(Item, CurrTemplateName, CurrWorksheetName, ToDate, FromDate, UseForecast, ExcludeForecastBefore, MRP, RespectPlanningParm, TempPlanningCompList, IsHandled, InvtProfileOffsetting);
-#if not CLEAN27
-        MfgSetup.Get();
-        OnBeforeCalculateAndGetPlanningCompList(Item, CurrTemplateName, CurrWorksheetName, ToDate, FromDate, UseForecast, ExcludeForecastBefore, MfgSetup, MRP, RespectPlanningParm, TempPlanningCompList, IsHandled, InvtProfileOffsetting);
-#endif
         if IsHandled then
             exit;
 
@@ -347,13 +340,6 @@ codeunit 5431 "Calc. Item Plan - Plan Wksh."
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('Replaced by event OnBeforeCalculateAndGetPlanningComponents()', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCalculateAndGetPlanningCompList(var Item: Record Item; CurrTemplateName: Code[10]; CurrWorksheetName: Code[10]; ToDate: Date; FromDate: Date; UseForecast: Code[10]; ExcludeForecastBefore: Date; MfgSetup: Record Microsoft.Manufacturing.Setup."Manufacturing Setup"; MRP: Boolean; RespectPlanningParm: Boolean; var TempPlanningCompList: Record "Planning Component" temporary; var IsHandled: Boolean; var InventoryProfileOffsetting: Codeunit "Inventory Profile Offsetting")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalculateAndGetPlanningComponents(var Item: Record Item; CurrTemplateName: Code[10]; CurrWorksheetName: Code[10]; ToDate: Date; FromDate: Date; UseForecast: Code[10]; ExcludeForecastBefore: Date; MRP: Boolean; RespectPlanningParm: Boolean; var TempPlanningCompList: Record "Planning Component" temporary; var IsHandled: Boolean; var InventoryProfileOffsetting: Codeunit "Inventory Profile Offsetting")

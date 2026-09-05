@@ -8140,4 +8140,6 @@ codeunit 134902 "ERM Account Schedule"
         AccountSchedule.ColumnLayoutNames.Activate();
         LibraryVariableStorage.Enqueue(AccountSchedule.StartDate.Enabled());
     end;
+
+    // Some tests skipped for ES
 }

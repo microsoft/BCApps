@@ -1808,15 +1808,6 @@ codeunit 130509 "Library - Sales"
         SalesReceivablesSetup.Modify(true);
     end;
 
-#if not CLEAN27
-    [Obsolete('Discontinued functionality', '27.0')]
-    procedure SetCreateItemFromItemNo(NewValue: Boolean)
-    begin
-        SalesReceivablesSetup.Get();
-        SalesReceivablesSetup.Validate("Create Item from Item No.", NewValue);
-        SalesReceivablesSetup.Modify(true);
-    end;
-#endif
     /// <summary>
     /// Sets the Create Item from Description option in Sales and Receivables Setup.
     /// </summary>

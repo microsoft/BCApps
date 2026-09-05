@@ -1360,7 +1360,7 @@ page 232 "Apply Customer Entries"
         if IsHandled then
             exit;
 
-        if not AppliedCustLedgEntry.FindSet(false, false) then
+        if not AppliedCustLedgEntry.FindSet() then
             exit;
 
         repeat

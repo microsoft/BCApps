@@ -2306,18 +2306,6 @@ codeunit 7307 "Whse.-Activity-Register"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnAfterAssemblyLineModify(var AssemblyLine: Record Microsoft.Assembly.Document."Assembly Line")
-    begin
-        OnAfterAssemblyLineModify(AssemblyLine);
-    end;
-
-    [Obsolete('Moved to codeunit AsmWhseActivityRegister', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterAssemblyLineModify(var AssemblyLine: Record Microsoft.Assembly.Document."Assembly Line")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterAvailabilityError(WhseActivLine: Record "Warehouse Activity Line")
@@ -2384,18 +2372,6 @@ codeunit 7307 "Whse.-Activity-Register"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnAfterProdCompLineModify(var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-        OnAfterProdCompLineModify(ProdOrderComponent);
-    end;
-
-    [Obsolete('Moved to codeunit MfgWhseActivityRegister', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterProdCompLineModify(var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterRegisterWhseActivity(var WarehouseActivityHeader: Record "Warehouse Activity Header"; SuppressCommit: Boolean)
@@ -2442,36 +2418,12 @@ codeunit 7307 "Whse.-Activity-Register"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeAssemblyLineModify(var AssemblyLine: Record Microsoft.Assembly.Document."Assembly Line"; WarehouseActivityLine: Record "Warehouse Activity Line")
-    begin
-        OnBeforeAssemblyLineModify(AssemblyLine, WarehouseActivityLine);
-    end;
-
-    [Obsolete('Moved to codeunit AsmWhseActivityRegister', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeAssemblyLineModify(var AssemblyLine: Record Microsoft.Assembly.Document."Assembly Line"; WarehouseActivityLine: Record "Warehouse Activity Line")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeAutoReserveForSalesLine(var TempWhseActivLineToReserve: Record "Warehouse Activity Line" temporary; var IsHandled: Boolean)
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeAutoReserveForAssemblyLine(var TempWhseActivLineToReserve: Record "Warehouse Activity Line" temporary; var IsHandled: Boolean)
-    begin
-        OnBeforeAutoReserveForAssemblyLine(TempWhseActivLineToReserve, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit AsmWhseActivityRegister', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeAutoReserveForAssemblyLine(var TempWhseActivLineToReserve: Record "Warehouse Activity Line" temporary; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckBinRelatedFields(WarehouseActivityLine: Record "Warehouse Activity Line"; var IsHandled: Boolean)
@@ -2488,18 +2440,6 @@ codeunit 7307 "Whse.-Activity-Register"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeProdCompLineModify(var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; WarehouseActivityLine: Record "Warehouse Activity Line")
-    begin
-        OnBeforeProdCompLineModify(ProdOrderComponent, WarehouseActivityLine);
-    end;
-
-    [Obsolete('Moved to codeunit MfgWhseActivityRegister', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeProdCompLineModify(var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; WarehouseActivityLine: Record "Warehouse Activity Line")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRegWhseItemTrkgLine(var WhseActivLine2: Record "Warehouse Activity Line"; var TempTrackingSpecification: Record "Tracking Specification" temporary)

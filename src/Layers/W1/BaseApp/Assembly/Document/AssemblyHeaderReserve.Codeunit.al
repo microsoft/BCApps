@@ -822,9 +822,6 @@ codeunit 925 "Assembly Header-Reserve"
         NewAssemblyHeader.TestField("Location Code", OldRequisitionLine."Location Code");
 
         OnTransferReqLineToAsmHdrOnBeforeTransfer(OldReservationEntry, OldRequisitionLine, NewAssemblyHeader);
-#if not CLEAN27
-        ReqLineReserve.RunOnTransferReqLineToAsmHdrOnBeforeTransfer(OldReservationEntry, OldRequisitionLine, NewAssemblyHeader);
-#endif
 
         OldReservationEntry.TransferReservations(
             OldReservationEntry, OldRequisitionLine."No.", OldRequisitionLine."Variant Code", OldRequisitionLine."Location Code",

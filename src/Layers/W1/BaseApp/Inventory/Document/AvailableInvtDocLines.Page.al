@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -284,22 +284,6 @@ page 6873 "Available - Invt. Doc. Lines"
             Direction := Direction::Outbound;
     end;
 
-#if not CLEAN27
-    [Obsolete('Replaced by procedure SetSource', '27.0')]
-    procedure SetAssemblyLine(var CurrentAssemblyLine: Record Microsoft.Assembly.Document."Assembly Line"; CurrentReservEntry: Record "Reservation Entry")
-    begin
-        SourceRecRef.GetTable(CurrentAssemblyLine);
-        SetSource(SourceRecRef, CurrentReservEntry);
-    end;
-#endif
 
-#if not CLEAN27
-    [Obsolete('Replaced by procedure SetSource', '27.0')]
-    procedure SetAssemblyHeader(var CurrentAssemblyHeader: Record Microsoft.Assembly.Document."Assembly Header"; CurrentReservEntry: Record "Reservation Entry")
-    begin
-        SourceRecRef.GetTable(CurrentAssemblyHeader);
-        SetSource(SourceRecRef, CurrentReservEntry);
-    end;
-#endif
 }
 

@@ -179,25 +179,6 @@ page 8903 "Manufacturing Manager RC"
                         RunObject = page "Recurring Capacity Journal";
                     }
                 }
-#if not CLEAN27
-                group("Group6")
-                {
-                    Caption = 'Reports';
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'This group will be removed in a future release.';
-                    ObsoleteTag = '27.0';
-                    action("Capacity Task List1")
-                    {
-                        ApplicationArea = Manufacturing;
-                        Caption = 'Capacity Task List';
-                        RunObject = report "Capacity Task List";
-                        Visible = false;
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'This action is a duplicate and will be removed in a future release.';
-                        ObsoleteTag = '27.0';
-                    }
-                }
-#endif
             }
             group("Group7")
             {
@@ -310,26 +291,6 @@ page 8903 "Manufacturing Manager RC"
                         Caption = 'Item - Able to Make (Timeline)';
                         RunObject = report "Item - Able to Make (Timeline)";
                     }
-#if not CLEAN27
-                    action("Planning Availability")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Planning Availability (Obsolete)';
-                        RunObject = report "Planning Availability";
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'This report has been deprecated and will be removed in a future release.';
-                        ObsoleteTag = '27.0';
-                    }
-                    action("Production Forecast")
-                    {
-                        ApplicationArea = Manufacturing;
-                        Caption = 'Demand Forecast (Obsolete)';
-                        RunObject = report "Demand Forecast";
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'This report has been deprecated and will be removed in a future release.';
-                        ObsoleteTag = '27.0';
-                    }
-#endif
                     action("Item Substitutions")
                     {
                         ApplicationArea = Suite;
@@ -435,44 +396,6 @@ page 8903 "Manufacturing Manager RC"
                         Caption = 'Subcontractor Dispatch List';
                         RunObject = report "Subcontractor - Dispatch List";
                     }
-#if not CLEAN27
-                    action("Machine Center Load/Bar")
-                    {
-                        ApplicationArea = Manufacturing;
-                        Caption = 'Machine Center Load/Bar';
-                        RunObject = report "Machine Center Load/Bar";
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'This report has been replaced by the "Work/Machine Center Load" report and will be removed in a future release.';
-                        ObsoleteTag = '27.0';
-                    }
-                    action("Work Center Load/Bar")
-                    {
-                        ApplicationArea = Manufacturing;
-                        Caption = 'Work Center Load/Bar';
-                        RunObject = report "Work Center Load/Bar";
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'This report has been replaced by the "Work/Machine Center Load" report and will be removed in a future release.';
-                        ObsoleteTag = '27.0';
-                    }
-                    action("Machine Center Load")
-                    {
-                        ApplicationArea = Manufacturing;
-                        Caption = 'Machine Center Load';
-                        RunObject = report "Machine Center Load";
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'This report has been replaced by the "Work/Machine Center Load" report and will be removed in a future release.';
-                        ObsoleteTag = '27.0';
-                    }
-                    action("Work Center Load")
-                    {
-                        ApplicationArea = Manufacturing;
-                        Caption = 'Work Center Load';
-                        RunObject = report "Work Center Load";
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'This report has been replaced by the "Work/Machine Center Load" report and will be removed in a future release.';
-                        ObsoleteTag = '27.0';
-                    }
-#endif
                     action("Work/Machine Center Load")
                     {
                         ApplicationArea = Manufacturing;
@@ -587,28 +510,6 @@ page 8903 "Manufacturing Manager RC"
                         Caption = 'Production Order Statistics';
                         RunObject = report "Production Order Statistics";
                     }
-#if not CLEAN27
-                    action("Prod. Order - Precalc. Time1")
-                    {
-                        ApplicationArea = Manufacturing;
-                        Caption = 'Prod. Order - Precalc. Time';
-                        RunObject = report "Prod. Order - Precalc. Time";
-                        Visible = false;
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'This action is a duplicate and will be removed in a future release.';
-                        ObsoleteTag = '27.0';
-                    }
-                    action("Compare List1")
-                    {
-                        ApplicationArea = Manufacturing;
-                        Caption = 'Compare List (Obsolete)';
-                        RunObject = report "Compare List";
-                        Visible = false;
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'This report has been replaced by the "Compare Production Cost Shares" report and will be removed in a future release.';
-                        ObsoleteTag = '27.0';
-                    }
-#endif
                 }
             }
             group("Group17")
@@ -681,157 +582,6 @@ page 8903 "Manufacturing Manager RC"
                     RunObject = page "Work Center Groups";
                 }
             }
-#if not CLEAN27
-            group("Group18")
-            {
-                Caption = 'Legacy Reports';
-                ObsoleteState = Pending;
-                ObsoleteReason = 'This group will be removed in a future release.';
-                ObsoleteTag = '27.0';
-                group("Group19")
-                {
-                    Caption = 'Reports';
-                    ObsoleteState = Pending;
-                    ObsoleteReason = 'This group will be removed in a future release.';
-                    ObsoleteTag = '27.0';
-                    action("BOM Cost Share Distribution")
-                    {
-                        ApplicationArea = Manufacturing;
-                        Caption = 'BOM Cost Share Distribution';
-                        RunObject = report "BOM Cost Share Distribution";
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'This report has been replaced by the page BOM Cost Shares and report Production Cost Shares. This report will be removed in a future release.';
-                        ObsoleteTag = '27.0';
-                    }
-                    action("Rolled-up Cost Shares")
-                    {
-                        ApplicationArea = Manufacturing;
-                        Caption = 'Rolled-up Cost Shares';
-                        RunObject = report "Rolled-up Cost Shares";
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'This report has been replaced by the page BOM Cost Shares and report Production Cost Shares. This report will be removed in a future release.';
-                        ObsoleteTag = '27.0';
-                    }
-                    action("Single-Level Cost Shares")
-                    {
-                        ApplicationArea = Manufacturing;
-                        Caption = 'Single-Level Cost Shares';
-                        RunObject = report "Single-level Cost Shares";
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'This report has been replaced by the page BOM Cost Shares and report Production Cost Shares. This report will be removed in a future release.';
-                        ObsoleteTag = '27.0';
-                    }
-                    action("Cost Shares Breakdown")
-                    {
-                        ApplicationArea = Manufacturing;
-                        Caption = 'Cost Shares Breakdown';
-                        RunObject = report "Cost Shares Breakdown";
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'This report has been replaced by the page BOM Cost Shares and report Production Cost Shares. This report will be removed in a future release.';
-                        ObsoleteTag = '27.0';
-                    }
-                    action("Detailed Calculation")
-                    {
-                        ApplicationArea = Manufacturing;
-                        Caption = 'Detailed Calculation';
-                        RunObject = report "Detailed Calculation";
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'This report has been replaced by the page BOM Cost Shares and report Production Cost Shares. This report will be removed in a future release.';
-                        ObsoleteTag = '27.0';
-                    }
-                    action("Prod. Order - Calculation")
-                    {
-                        ApplicationArea = Manufacturing;
-                        Caption = 'Prod. Order - Calculation';
-                        RunObject = report "Prod. Order - Calculation";
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'This report will be removed in a future release.';
-                        ObsoleteTag = '27.0';
-                    }
-                    action("Prod. Order - Detailed Calc.")
-                    {
-                        ApplicationArea = Manufacturing;
-                        Caption = 'Prod. Order - Detailed Calc.';
-                        RunObject = report "Prod. Order - Detailed Calc.";
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'This report will be removed in a future release.';
-                        ObsoleteTag = '27.0';
-                    }
-                    action("Work Center Load1")
-                    {
-                        ApplicationArea = Manufacturing;
-                        Caption = 'Work Center Load';
-                        RunObject = report "Work Center Load";
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'This report has been replaced by the "Work/Machine Center Load" report and will be removed in a future release.';
-                        ObsoleteTag = '27.0';
-                    }
-                    action("Machine Center Load1")
-                    {
-                        ApplicationArea = Manufacturing;
-                        Caption = 'Machine Center Load';
-                        RunObject = report "Machine Center Load";
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'This report has been replaced by the "Work/Machine Center Load" report and will be removed in a future release.';
-                        ObsoleteTag = '27.0';
-                    }
-                    action("Work Center Load/Bar1")
-                    {
-                        ApplicationArea = Manufacturing;
-                        Caption = 'Work Center Load/Bar';
-                        RunObject = report "Work Center Load/Bar";
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'This report has been replaced by the "Work/Machine Center Load" report and will be removed in a future release.';
-                        ObsoleteTag = '27.0';
-                    }
-                    action("Machine Center Load/Bar1")
-                    {
-                        ApplicationArea = Manufacturing;
-                        Caption = 'Machine Center Load/Bar';
-                        RunObject = report "Machine Center Load/Bar";
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'This report has been replaced by the "Work/Machine Center Load" report and will be removed in a future release.';
-                        ObsoleteTag = '27.0';
-                    }
-                    action("Compare List")
-                    {
-                        ApplicationArea = Manufacturing;
-                        Caption = 'Item BOM Compare List (Obsolete)';
-                        RunObject = report "Compare List";
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'This report has been replaced by the "Compare Production Cost Shares" report and will be removed in a future release.';
-                        ObsoleteTag = '27.0';
-                    }
-                    action("Inventory - Transaction Detail")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Inventory Transaction Detail';
-                        RunObject = report "Inventory - Transaction Detail";
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'This action is available on the Purchasing Manager Role Center. It will be removed from this Role Center in a future release.';
-                        ObsoleteTag = '27.0';
-                    }
-                    action("Status")
-                    {
-                        ApplicationArea = Manufacturing;
-                        Caption = 'Status';
-                        RunObject = report "Status";
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'This action is available on the Finance Manager Role Center. It will be removed from this Role Center in a future release.';
-                        ObsoleteTag = '27.0';
-                    }
-                    action("Item Register - Quantity")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Item Register - Quantity';
-                        RunObject = report "Item Register - Quantity";
-                        ObsoleteState = Pending;
-                        ObsoleteReason = 'This action is available on the Purchasing Manager and Finance Manager Role Centers. It will be removed from this Role Center in a future release.';
-                        ObsoleteTag = '27.0';
-                    }
-                }
-            }
-#endif
         }
     }
 }

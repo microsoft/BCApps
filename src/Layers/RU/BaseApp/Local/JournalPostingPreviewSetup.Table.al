@@ -54,7 +54,7 @@ table 14929 "Journal Posting Preview Setup"
     begin
         JnlPostPreviewSetup.Reset();
         JnlPostPreviewSetup.SetRange("User ID", UserID);
-        if JnlPostPreviewSetup.FindSet(true, false) then
+        if JnlPostPreviewSetup.FindSet(true) then
             repeat
                 case JnlPostPreviewSetup."Journal Type" of
                     JnlPostPreviewSetup."Journal Type"::"General Journal":

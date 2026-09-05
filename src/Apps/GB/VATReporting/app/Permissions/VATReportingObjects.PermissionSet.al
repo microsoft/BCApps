@@ -9,9 +9,6 @@ permissionset 10544 "VAT Reporting - Objects"
     Access = Internal;
     Assignable = false;
     Permissions =
-#if not CLEAN27
-    codeunit "VAT Audit GB" = X,
-#endif
         report "VAT Audit GB" = X,
         report "VAT Entry Exception Report GB" = X;
 }

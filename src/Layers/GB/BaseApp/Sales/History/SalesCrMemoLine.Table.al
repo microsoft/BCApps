@@ -911,26 +911,16 @@ table 115 "Sales Cr.Memo Line"
             Caption = 'Reverse Charge Item';
             Editable = false;
             ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-#if CLEAN27
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
         }
         field(10501; "Reverse Charge"; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Reverse Charge';
             ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-#if CLEAN27
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
         }
 #endif
     }

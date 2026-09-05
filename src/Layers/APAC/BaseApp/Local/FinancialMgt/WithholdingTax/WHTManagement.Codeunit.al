@@ -128,7 +128,7 @@ codeunit 28040 WHTManagement
         TempVendLedgEntry1.Reset();
         SetVendAppliesToFilter(TempVendLedgEntry1, GenJnlLine);
         TempVendLedgEntry1.SetFilter("Document Type", '<>%1', TempVendLedgEntry1."Document Type"::" ");
-        if TempVendLedgEntry1.FindSet(true, false) then
+        if TempVendLedgEntry1.FindSet(true) then
             repeat
                 TempVendLedgEntry1.CalcFields(
                   Amount, "Amount (LCY)", "Remaining Amount", "Remaining Amt. (LCY)",
@@ -271,7 +271,7 @@ codeunit 28040 WHTManagement
         TotAmt := Abs(GenJnlLine.Amount);
         TempCustLedgEntry1.Reset();
         SetCustAppliesToFilter(TempCustLedgEntry1, GenJnlLine);
-        if TempCustLedgEntry1.FindSet(true, false) then
+        if TempCustLedgEntry1.FindSet(true) then
             repeat
                 TempCustLedgEntry1.CalcFields(
                   Amount,
@@ -2463,7 +2463,7 @@ codeunit 28040 WHTManagement
                                             RemainingAmt := 0;
                                             TempVendLedgEntry1.Reset();
                                             TempVendLedgEntry1.SetRange("Applies-to ID", TempGenJnlLine."Applies-to ID");
-                                            if TempVendLedgEntry1.FindSet(true, false) then
+                                            if TempVendLedgEntry1.FindSet(true) then
                                                 repeat
                                                     TempVendLedgEntry1.CalcFields(
                                                       Amount, "Amount (LCY)", "Remaining Amount", "Remaining Amt. (LCY)",
@@ -5209,7 +5209,7 @@ codeunit 28040 WHTManagement
         if GenJnlLine."Applies-to Doc. No." = '' then begin
             TempVendLedgEntry1.SetRange("Applies-to ID", GenJnlLine."Document No.");
             TempVendLedgEntry1.SetRange(Open, true);
-            if TempVendLedgEntry1.FindSet(true, false) then
+            if TempVendLedgEntry1.FindSet(true) then
                 repeat
                     TempVendLedgEntry1.CalcFields(
                       Amount,
@@ -5403,7 +5403,7 @@ codeunit 28040 WHTManagement
             else
                 TempCustLedgEntry1.SetRange("Applies-to ID", GenJnlLine."Document No.");
             TempCustLedgEntry1.SetFilter("Document No.", '<>%1', GenJnlLine."Document No.");
-            if TempCustLedgEntry1.FindSet(true, false) then
+            if TempCustLedgEntry1.FindSet(true) then
                 repeat
                     TempCustLedgEntry1.CalcFields(
                       Amount,

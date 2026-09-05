@@ -781,8 +781,8 @@ table 32 "Item Ledger Entry"
     begin
         exit(GetAdditionalReportingCurrencyCode())
     end;
-
 #endif
+
     procedure GetAdditionalReportingCurrencyCode(): Code[10]
     begin
         if not GLSetupRead then begin

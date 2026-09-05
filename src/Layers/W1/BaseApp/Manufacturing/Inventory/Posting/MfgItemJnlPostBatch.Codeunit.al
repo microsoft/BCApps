@@ -16,9 +16,6 @@ codeunit 99000823 "Mfg. Item Jnl.-Post Batch"
 
     var
         MfgCreatePutaway: Codeunit "Mfg. Create Put-away";
-#if not CLEAN27
-        ItemJnlPostBatch: Codeunit "Item Jnl.-Post Batch";
-#endif
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Batch", 'OnBeforePostLines', '', true, false)]
     local procedure OnBeforePostLines()
@@ -70,9 +67,6 @@ codeunit 99000823 "Mfg. Item Jnl.-Post Batch"
     begin
         IsHandled := false;
         OnBeforeSelfReservedQty(SKU, ItemJnlLine, Result, IsHandled);
-#if not CLEAN27
-        ItemJnlPostBatch.RunOnBeforeSelfReservedQty(SKU, ItemJnlLine, Result, IsHandled);
-#endif
         if IsHandled then
             exit(Result);
 

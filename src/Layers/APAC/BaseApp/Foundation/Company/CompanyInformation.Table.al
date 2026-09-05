@@ -307,13 +307,7 @@ table 79 "Company Information"
                 MailManagement.ValidateEmailAddressField("E-Mail");
             end;
         }
-#if not CLEAN27
-#pragma warning disable AS0086
-#endif
         field(35; "Home Page"; Text[255])
-#if not CLEAN27
-#pragma warning restore AS0086
-#endif
         {
             Caption = 'Home Page';
             ToolTip = 'Specifies your company''s web site.';
@@ -503,13 +497,7 @@ table 79 "Company Information"
             ToolTip = 'Specifies how dates based on calendar and calendar-related documents are calculated.';
             InitValue = '1Y';
         }
-#if not CLEAN27
-#pragma warning disable AS0086
-#endif
         field(11620; ABN; Text[13])
-#if not CLEAN27
-#pragma warning restore AS0086
-#endif
         {
             Caption = 'ABN';
             Numeric = true;

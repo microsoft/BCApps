@@ -1451,7 +1451,7 @@ codeunit 13 "Gen. Jnl.-Post Batch"
             until GenJnlLine.Next() = 0;
         // Post lines
         LineCount := 0;
-        GenJnlLine.FindSet(true, false);
+        GenJnlLine.FindSet(true);
         repeat
             if not GenJnlLine.EmptyLine() then begin
                 GenJnlLine3 := GenJnlLine;
@@ -1492,7 +1492,7 @@ codeunit 13 "Gen. Jnl.-Post Batch"
         if GenJnlLine2.FindLast() then;
         // Remember the last line
         GenJnlLine3.Copy(GenJnlLine);
-        if GenJnlLine3.FindSet(true, false) then
+        if GenJnlLine3.FindSet(true) then
             repeat
                 GenJnlLine3.Delete();
             until GenJnlLine3.Next() = 0;
@@ -1581,7 +1581,7 @@ codeunit 13 "Gen. Jnl.-Post Batch"
         NoOfRecords := LineCount;
         // Post lines
         LineCount := 0;
-        GenJnlLine.FindSet(true, false);
+        GenJnlLine.FindSet(true);
         repeat
             if not GenJnlLine.EmptyLine() then begin
                 GenJnlLine3 := GenJnlLine;
@@ -1604,7 +1604,7 @@ codeunit 13 "Gen. Jnl.-Post Batch"
         if GenJnlLine2.FindLast() then;
         // Remember the last line
         GenJnlLine3.Copy(GenJnlLine);
-        if GenJnlLine3.FindSet(true, false) then
+        if GenJnlLine3.FindSet(true) then
             repeat
                 GenJnlLine3.Delete();
             until GenJnlLine3.Next() = 0;

@@ -1467,41 +1467,6 @@ codeunit 134027 "ERM Invoice Discount And VAT"
 
         // [THEN] No notification "G/L accounts for discounts are missing" (checked in VerifyNoNotificationsAreSend)
     end;
-#if not CLEAN27
-    [Test]
-    [HandlerFunctions('ServiceOrderStatisticsHandler,VerifyNoNotificationsAreSend')]
-    [Scope('OnPrem')]
-    procedure NoMissedGLAccountNotificationService()
-    var
-        ServHeader: Record "Service Header";
-        ServLine: Record "Service Line";
-        GeneralPostingSetup: Record "General Posting Setup";
-        VATPostingSetup: Record "VAT Posting Setup";
-        ServiceOrder: TestPage "Service Order";
-    begin
-        // [FEATURE] [Service] [Discount] [UT]
-        // [SCENARIO 421486] "G/L accounts for discounts are missing" notification is not shown for service document if there is at least one general posting setup with empty G/L account
-        Initialize();
-
-        // [GIVEN] New general posting setup "BUS" "PROD" with empty G/L accounts
-        CreateGeneralPostingSetup(GeneralPostingSetup);
-
-        // [GIVEN] Service order "SO" for customer "C" with some invoice discount and Gen. Bus. Posting Group = "BUS"
-        CreateVATPostingSetup(VATPostingSetup, LibraryRandom.RandInt(20));
-        LibraryService.CreateServiceHeader(
-          ServHeader, ServHeader."Document Type"::Order,
-          CreateCustomerWithInvoiceDiscountGenPostGroup(VATPostingSetup."VAT Bus. Posting Group", GeneralPostingSetup."Gen. Bus. Posting Group"));
-        LibraryService.CreateServiceLine(
-          ServLine, ServHeader, ServLine.Type::Item, CreateItem(true, VATPostingSetup."VAT Prod. Posting Group"));
-
-        // [WHEN] Open service order page for "SO" and run statistics to cause discount calculation
-        ServiceOrder.OpenEdit();
-        ServiceOrder.Filter.SetFilter("No.", ServHeader."No.");
-        ServiceOrder.Statistics.Invoke();
-
-        // [THEN] No notification "G/L accounts for discounts are missing" (checked in VerifyNoNotificationsAreSend)
-    end;
-#endif
     [Test]
     [HandlerFunctions('ServiceOrderStatisticsHandlerNM,VerifyNoNotificationsAreSend')]
     [Scope('OnPrem')]
@@ -3273,13 +3238,6 @@ codeunit 134027 "ERM Invoice Discount And VAT"
             Assert.Fail('No notification should be thrown.');
     end;
 
-#if not CLEAN27
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure ServiceOrderStatisticsHandler(var ServiceOrderStatistics: TestPage "Service Order Statistics")
-    begin
-    end;
-#endif
     [PageHandler]
     [Scope('OnPrem')]
     procedure ServiceOrderStatisticsHandlerNM(var ServiceOrderStatistics: TestPage "Service Order Statistics")

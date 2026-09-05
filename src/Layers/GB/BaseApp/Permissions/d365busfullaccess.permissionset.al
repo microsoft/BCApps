@@ -469,9 +469,6 @@ permissionset 959 "D365 BUS FULL ACCESS"
                   tabledata "Generic Chart Setup" = RIMD,
                   tabledata "Generic Chart Y-Axis" = RIMD,
                   tabledata Geolocation = RIMD,
-#if not CLEAN27
-                  tabledata "GovTalk Setup" = RIMD,
-#endif
                   tabledata "Grounds for Termination" = RIMD,
                   tabledata "HR Confidential Comment Line" = RIMD,
                   tabledata "Human Resource Comment Line" = IM,

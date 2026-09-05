@@ -10,20 +10,6 @@ pageextension 10548 "VAT Statement" extends "VAT Statement"
 {
     actions
     {
-#if not CLEAN27
-#pragma warning disable AL0432
-        modify("VAT Audit Report")
-#pragma warning restore AL0432
-        {
-            Visible = not IsNewFeatureEnabled;
-        }
-#pragma warning disable AL0432
-        modify("VAT Entry Exception Report")
-#pragma warning restore AL0432
-        {
-            Visible = not IsNewFeatureEnabled;
-        }
-#endif
         addfirst(reporting)
         {
             action("VAT Audit Report GB")
@@ -33,10 +19,6 @@ pageextension 10548 "VAT Statement" extends "VAT Statement"
                 Image = "Report";
                 RunObject = Report "VAT Audit GB";
                 ToolTip = 'Export the data required for auditing in a comma-separated value (CSV) file format.';
-#if not CLEAN27
-                Visible = IsNewFeatureEnabled;
-                Enabled = IsNewFeatureEnabled;
-#endif
             }
             action("VAT Entry Exception Report GB")
             {
@@ -45,10 +27,6 @@ pageextension 10548 "VAT Statement" extends "VAT Statement"
                 Image = "Report";
                 RunObject = Report "VAT Entry Exception Report GB";
                 ToolTip = 'Print the Exception report so that you can document and show differences in VAT amounts to tax authorities.';
-#if not CLEAN27
-                Visible = IsNewFeatureEnabled;
-                Enabled = IsNewFeatureEnabled;
-#endif
             }
         }
         addfirst(Category_Report)
@@ -62,17 +40,5 @@ pageextension 10548 "VAT Statement" extends "VAT Statement"
         }
     }
 
-#if not CLEAN27
-    var
-        IsNewFeatureEnabled: Boolean;
-#endif
 
-#if not CLEAN27
-    trigger OnOpenPage()
-    var
-        VATAuditReportsGBFeature: Codeunit "VAT Audit GB";
-    begin
-        IsNewFeatureEnabled := VATAuditReportsGBFeature.IsEnabled();
-    end;
-#endif
 }

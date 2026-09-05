@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -38,9 +38,6 @@ using Microsoft.Projects.Resources.Resource;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Pricing;
 using Microsoft.Sales.Receivables;
-#if not CLEAN27
-using Microsoft.Sales.Setup;
-#endif
 using Microsoft.Service.Archive;
 using Microsoft.Service.Comment;
 using Microsoft.Service.Contract;
@@ -3028,9 +3025,6 @@ table 5900 "Service Header"
         PostCode: Record "Post Code";
         CurrExchRate: Record "Currency Exchange Rate";
         GeneralLedgerSetup: Record "General Ledger Setup";
-#if not CLEAN27
-        SalesReceivablesSetup: Record "Sales & Receivables Setup";
-#endif
         ServShptHeader: Record "Service Shipment Header";
         ServInvHeader: Record "Service Invoice Header";
         ServCrMemoHeader: Record "Service Cr.Memo Header";
@@ -3115,9 +3109,6 @@ table 5900 "Service Header"
         CannotDeleteWhenNextInvExistsErr: Label 'The service invoice cannot be deleted because there are service invoices with a later posting date.';
         CannotRestoreInvoiceDatesErr: Label 'The service invoice cannot be deleted because the previous invoice dates cannot be restored in the service contract.';
         InvoicePeriodChangedErr: Label 'The invoice period in the service contract has been changed and cannot be updated.';
-#if not CLEAN27
-        SkipStatsPrep: Boolean;
-#endif
 
     protected var
         GlobalNoSeries: Record "No. Series";
@@ -4614,15 +4605,6 @@ table 5900 "Service Header"
             until ValueEntry.Next() = 0;
     end;
 
-#if not CLEAN27
-    [Obsolete('Call CalculateIncDiscForHeader on codeunit "Service-Calc. Discount" directly instead', '27.0')]
-    procedure CalcInvDiscForHeader()
-    var
-        ServiceInvDisc: Codeunit "Service-Calc. Discount";
-    begin
-        ServiceInvDisc.CalculateIncDiscForHeader(Rec);
-    end;
-#endif
     procedure SetSecurityFilterOnRespCenter()
     var
         IsHandled: Boolean;
@@ -4639,75 +4621,6 @@ table 5900 "Service Header"
         end;
     end;
 
-#if not CLEAN27
-    /// <summary>
-    /// Runs page service statistic for current service header record.
-    /// </summary>
-    /// <remarks>Commit will be triggered. </remarks>
-    [Obsolete('The new statistics actions use RunObject and do not run the action trigger. Use a page extension to modify the behaviour.', '27.0')]
-    procedure OpenStatistics()
-    var
-        StatPageID: Integer;
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeOpenStatistics(Rec, IsHandled);
-        if IsHandled then
-            exit;
-
-        CalcInvDiscForHeader();
-        Commit();
-        StatPageID := Page::"Service Statistics";
-        OnOpenStatisticsOnAfterSetStatPageID(Rec, StatPageID);
-        SkipStatsPrep := true;
-        Page.RunModal(StatPageID, Rec);
-        ResetSkipStatisticsPreparationFlag();
-    end;
-
-    [Obsolete('The new statistics actions use RunObject and do not run the action trigger. Use a page extension to modify the behaviour.', '27.0')]
-    procedure OpenOrderStatistics()
-    var
-        ServiceLine: Record "Service Line";
-        ServiceLines: Page "Service Lines";
-        StatPageID: Integer;
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeOpenOrderStatistics(Rec, IsHandled);
-        if IsHandled then
-            exit;
-
-        SalesReceivablesSetup.GetRecordOnce();
-        if SalesReceivablesSetup."Calc. Inv. Discount" then begin
-            ServiceLine.Reset();
-            ServiceLine.SetRange("Document Type", "Document Type");
-            ServiceLine.SetRange("Document No.", "No.");
-            if ServiceLine.FindFirst() then begin
-                ServiceLines.SetTableView(ServiceLine);
-                ServiceLines.CalcInvDisc(ServiceLine);
-                Commit();
-            end;
-        end;
-
-        StatPageID := Page::"Service Order Statistics";
-        OnOpenOrderStatisticsOnAfterSetStatPageID(Rec, StatPageID);
-        SkipStatsPrep := true;
-        Page.RunModal(StatPageID, Rec);
-        ResetSkipStatisticsPreparationFlag();
-    end;
-
-    [Obsolete('The statistics action will be replaced with the SOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '27.0')]
-    procedure SkipStatisticsPreparation(): Boolean
-    begin
-        exit(SkipStatsPrep)
-    end;
-
-    [Obsolete('The statistics action will be replaced with the ServiceOrderStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '27.0')]
-    procedure ResetSkipStatisticsPreparationFlag()
-    begin
-        SkipStatsPrep := false;
-    end;
-#endif
     local procedure CheckMandSalesPersonOrderData(ServiceMgtSetup: Record "Service Mgt. Setup")
     begin
         if ServiceMgtSetup."Salesperson Mandatory" then
@@ -5960,19 +5873,6 @@ table 5900 "Service Header"
     local procedure OnAfterOnInsert(var ServiceHeader: Record "Service Header")
     begin
     end;
-#if not CLEAN27
-    [Obsolete('The new statistics actions use RunObject and do not run the action trigger. Use a page extension to modify the behaviour.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeOpenOrderStatistics(var ServiceHeader: Record "Service Header"; var IsHandled: Boolean)
-    begin
-    end;
-
-    [Obsolete('The new statistics actions use RunObject and do not run the action trigger. Use a page extension to modify the behaviour.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeOpenStatistics(var ServiceHeader: Record "Service Header"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestMandatoryFields(var ServiceHeader: Record "Service Header"; var ServiceLine: Record "Service Line")
     begin
@@ -6438,19 +6338,6 @@ table 5900 "Service Header"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('The new statistics actions use RunObject and do not run the action trigger. Use a page extension to modify the behaviour.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnOpenStatisticsOnAfterSetStatPageID(var ServiceHeader: Record "Service Header"; var StatPageID: Integer)
-    begin
-    end;
-
-    [Obsolete('The new statistics actions use RunObject and do not run the action trigger. Use a page extension to modify the behaviour.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnOpenOrderStatisticsOnAfterSetStatPageID(var ServiceHeader: Record "Service Header"; var StatPageID: Integer)
-    begin
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnDeleteOnBeforeArchiveServiceDocument(var ServiceHeader: Record "Service Header"; xServiceHeader: Record "Service Header")
     begin

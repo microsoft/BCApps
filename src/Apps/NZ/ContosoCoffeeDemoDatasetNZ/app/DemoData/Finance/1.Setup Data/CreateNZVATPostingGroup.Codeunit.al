@@ -103,15 +103,6 @@ codeunit 17124 "Create NZ VAT Posting Group"
         exit(MiscTok);
     end;
 
-#if not CLEAN27
-    [Obsolete('This procedure is moved to codeunit 5473 "Create VAT Posting Groups".', '27.0')]
-    procedure NoVAT(): Code[20]
-    var
-        CreateVATPostingGroups: Codeunit "Create VAT Posting Groups";
-    begin
-        exit(CreateVATPostingGroups.NOVAT());
-    end;
-#endif
 
     procedure VAT15(): Code[20]
     begin

@@ -23,10 +23,6 @@ codeunit 5520 "Get Unplanned Demand"
     TableNo = "Unplanned Demand";
 
     trigger OnRun()
-#if not CLEAN27
-    var
-        ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component";
-#endif
     begin
         if IncludeMetDemandForSpecificSalesOrderNo <> '' then
             SetFilterToSpecificSalesOrder();
@@ -38,11 +34,6 @@ codeunit 5520 "Get Unplanned Demand"
         SalesLine.SetFilter("Document Type", '%1|%2', SalesLine."Document Type"::Order, SalesLine."Document Type"::"Return Order");
         JobPlanningLine.SetRange(Status, JobPlanningLine.Status::Order);
         RecordCounter := SalesLine.Count() + JobPlanningLine.Count();
-#if not CLEAN27
-        ProdOrderComp.SetFilter(
-            Status, '%1|%2|%3', ProdOrderComp.Status::Planned, ProdOrderComp.Status::"Firm Planned", ProdOrderComp.Status::Released);
-        OnBeforeOpenPlanningWindow(RecordCounter, ProdOrderComp);
-#endif
         OnBeforeOpenWindow(RecordCounter);
         OpenWindow(ProgressMsg, RecordCounter);
 
@@ -561,13 +552,6 @@ codeunit 5520 "Get Unplanned Demand"
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('Replaced by event OnBeforeOpenWindow', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeOpenPlanningWindow(var RecordCounter: Integer; var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOpenWindow(var RecordCounter: Integer)
@@ -584,31 +568,7 @@ codeunit 5520 "Get Unplanned Demand"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeGetUnplannedProdOrderComp(var UnplannedDemand: Record "Unplanned Demand"; var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component");
-    begin
-        OnBeforeGetUnplannedProdOrderComp(UnplannedDemand, ProdOrderComponent);
-    end;
 
-    [Obsolete('Moved to codeunit ProdOrderLinePlanning', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeGetUnplannedProdOrderComp(var UnplannedDemand: Record "Unplanned Demand"; var ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component");
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnBeforeGetUnplannedAsmLine(var UnplannedDemand: Record "Unplanned Demand"; var AssemblyLine: Record Microsoft.Assembly.Document."Assembly Line");
-    begin
-        OnBeforeGetUnplannedAsmLine(UnplannedDemand, AssemblyLine);
-    end;
-
-    [Obsolete('Moved to codeunit AssemblyLinePlanning', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeGetUnplannedAsmLine(var UnplannedDemand: Record "Unplanned Demand"; var AssemblyLine: Record Microsoft.Assembly.Document."Assembly Line");
-    begin
-    end;
-#endif
 
 
     [IntegrationEvent(false, false)]
@@ -621,36 +581,12 @@ codeunit 5520 "Get Unplanned Demand"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeGetProdOrderCompNeededQty(ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var NeededQty: Decimal; var IsHandled: Boolean);
-    begin
-        OnBeforeGetProdOrderCompNeededQty(ProdOrderComponent, NeededQty, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit ProdOrderLinePlanning', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeGetProdOrderCompNeededQty(ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var NeededQty: Decimal; var IsHandled: Boolean);
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnCalcNeededDemandsOnAfterCalcForceIncludeDemand(var UnplannedDemand: Record "Unplanned Demand"; var ForceIncludeDemand: Boolean)
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnGetUnplannedAsmLineOnAfterInsertUnplannedDemand(var UnplannedDemand: Record "Unplanned Demand")
-    begin
-        OnGetUnplannedAsmLineOnAfterInsertUnplannedDemand(UnplannedDemand);
-    end;
-
-    [Obsolete('Moved to codeunit AssemblyLinePlanning', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnGetUnplannedAsmLineOnAfterInsertUnplannedDemand(var UnplannedDemand: Record "Unplanned Demand")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnGetUnplannedSalesLineOnBeforeCheckDemandQtyBase(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
@@ -668,75 +604,15 @@ codeunit 5520 "Get Unplanned Demand"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnGetUnplannedProdOrderCompOnAfterCalcNeedInsertUnplannedDemand(var UnplannedDemand: Record "Unplanned Demand"; var ProdOrderComp2: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var NeedInsertUnplannedDemand: Boolean)
-    begin
-        OnGetUnplannedProdOrderCompOnAfterCalcNeedInsertUnplannedDemand(UnplannedDemand, ProdOrderComp2, NeedInsertUnplannedDemand);
-    end;
 
-    [Obsolete('Moved to codeunit ProdOrderLinePlanning', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnGetUnplannedProdOrderCompOnAfterCalcNeedInsertUnplannedDemand(var UnplannedDemand: Record "Unplanned Demand"; var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component"; var NeedInsertUnplannedDemand: Boolean)
-    begin
-    end;
-#endif
 
-#if not CLEAN27
-    internal procedure RunOnGetUnplannedProdOrderCompOnAfterInsertUnplannedDemand(var UnplannedDemand: Record "Unplanned Demand"; var ProdOrderComp2: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-        OnGetUnplannedProdOrderCompOnAfterInsertUnplannedDemand(UnplannedDemand, ProdOrderComp2);
-    end;
-
-    [Obsolete('Moved to codeunit ProdOrderLinePlanning', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnGetUnplannedProdOrderCompOnAfterInsertUnplannedDemand(var UnplannedDemand: Record "Unplanned Demand"; var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnGetUnplannedProdOrderCompOnAfterInsertProdOrderCompLine(var UnplannedDemand: Record "Unplanned Demand"; var ProdOrderComp2: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-        OnGetUnplannedProdOrderCompOnAfterInsertProdOrderCompLine(UnplannedDemand, ProdOrderComp2);
-    end;
-
-    [Obsolete('Moved to codeunit ProdOrderLinePlanning', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnGetUnplannedProdOrderCompOnAfterInsertProdOrderCompLine(var UnplannedDemand: Record "Unplanned Demand"; var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetFilterToSpecificSalesOrder(ItemFilter: Text)
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnInsertAsmLineOnBeforeInsert(var UnplannedDemand: Record "Unplanned Demand"; AssemblyLine: Record Microsoft.Assembly.Document."Assembly Line")
-    begin
-        OnInsertAsmLineOnBeforeInsert(UnplannedDemand, AssemblyLine);
-    end;
 
-    [Obsolete('Moved to codeunit AssemblyLinePlanning', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnInsertAsmLineOnBeforeInsert(var UnplannedDemand: Record "Unplanned Demand"; AssemblyLine: Record Microsoft.Assembly.Document."Assembly Line")
-    begin
-    end;
-#endif
-
-#if not CLEAN27
-    internal procedure RunOnInsertProdOrderCompLineOnBeforeInsert(var UnplannedDemand: Record "Unplanned Demand"; ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-        OnInsertProdOrderCompLineOnBeforeInsert(UnplannedDemand, ProdOrderComponent);
-    end;
-
-    [Obsolete('Moved to codeunit ProdOrderLinePlanning', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnInsertProdOrderCompLineOnBeforeInsert(var UnplannedDemand: Record "Unplanned Demand"; ProdOrderComponent: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnInsertSalesLineOnBeforeInsert(var UnplannedDemand: Record "Unplanned Demand"; SalesLine: Record "Sales Line")

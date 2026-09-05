@@ -1447,13 +1447,8 @@ table 98 "General Ledger Setup"
         {
             Caption = 'Threshold applies';
             ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-#if CLEAN27
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
         }
         field(10501; "Threshold Amount"; Decimal)
         {
@@ -1461,13 +1456,8 @@ table 98 "General Ledger Setup"
             Caption = 'Threshold Amount';
             MinValue = 0;
             ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-#if CLEAN27
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
         }
 #endif
     }

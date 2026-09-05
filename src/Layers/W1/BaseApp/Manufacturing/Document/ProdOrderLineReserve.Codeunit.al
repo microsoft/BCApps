@@ -841,13 +841,6 @@ codeunit 99000837 "Prod. Order Line-Reserve"
             StopReservation := CalcReservEntry."Source Subtype" < 2; // Not simulated or planned
     end;
 
-#if not CLEAN27
-    [Obsolete('This event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnSetSourceForReservationOnBeforeUpdateReservation(var ReservEntry: Record "Reservation Entry"; ProdOrderLine: Record "Prod. Order Line")
-    begin
-    end;
-#endif
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reservation Management", 'OnAutoTrackOnCheckSourceType', '', true, false)]
     local procedure OnAutoTrackOnCheckSourceType(var ReservationEntry: Record "Reservation Entry"; var ShouldExit: Boolean)
     begin
@@ -1184,9 +1177,6 @@ codeunit 99000837 "Prod. Order Line-Reserve"
     begin
         IsHandled := false;
         OnBeforeTransferPlanningLineToPOLine(OldRequisitionLine, NewProdOrderLine, TransferQty, TransferAll, IsHandled);
-#if not CLEAN27
-        ReqLineReserve.RunOnBeforeTransferPlanningLineToPOLine(OldRequisitionLine, NewProdOrderLine, TransferQty, TransferAll, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -1195,9 +1185,6 @@ codeunit 99000837 "Prod. Order Line-Reserve"
 
         IsHandled := false;
         OnTransferPlanningLineToPOLineOnBeforeCheckFields(OldRequisitionLine, NewProdOrderLine, TransferQty, TransferAll, IsHandled);
-#if not CLEAN27
-        ReqLineReserve.RunOnTransferPlanningLineToPOLineOnBeforeCheckFields(OldRequisitionLine, NewProdOrderLine, TransferQty, TransferAll, IsHandled);
-#endif
         if not IsHandled then begin
             NewProdOrderLine.TestField("Item No.", OldRequisitionLine."No.");
             NewProdOrderLine.TestField("Variant Code", OldRequisitionLine."Variant Code");
@@ -1205,9 +1192,6 @@ codeunit 99000837 "Prod. Order Line-Reserve"
         end;
 
         OnTransferReqLineToPOLineOnBeforeTransfer(OldReservationEntry, OldRequisitionLine, NewProdOrderLine);
-#if not CLEAN27
-        ReqLineReserve.RunOnTransferReqLineToPOLineOnBeforeTransfer(OldReservationEntry, OldRequisitionLine, NewProdOrderLine);
-#endif
 
         OldReservationEntry.TransferReservations(
             OldReservationEntry, OldRequisitionLine."No.", OldRequisitionLine."Variant Code", OldRequisitionLine."Location Code",

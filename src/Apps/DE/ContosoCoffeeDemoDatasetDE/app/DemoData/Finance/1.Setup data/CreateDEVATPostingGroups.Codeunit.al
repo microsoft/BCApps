@@ -159,15 +159,6 @@ codeunit 11379 "Create DE VAT Posting Groups"
         GLAccount.Modify(true);
     end;
 
-#if not CLEAN27
-    [Obsolete('Use the procedure NOVAT in codeunit 5473 "Create VAT Posting Groups"', '27.0')]
-    procedure NOVAT(): Code[20]
-    var
-        CreateVATPostingGroups: Codeunit "Create VAT Posting Groups";
-    begin
-        exit(CreateVATPostingGroups.NOVAT());
-    end;
-#endif
 
     procedure VAT19(): Code[20]
     begin
@@ -179,15 +170,6 @@ codeunit 11379 "Create DE VAT Posting Groups"
         exit(VAT7Tok);
     end;
 
-#if not CLEAN27
-    [Obsolete('Use the procedure NOVAT in codeunit 5473 "Create VAT Posting Groups"', '27.0')]
-    procedure Zero(): Code[20]
-    var
-        CreateVATPostingGroups: Codeunit "Create VAT Posting Groups";
-    begin
-        exit(CreateVATPostingGroups.NOVAT());
-    end;
-#endif
 
     procedure EUPostingGroupST(): Code[20]
     begin
@@ -204,31 +186,6 @@ codeunit 11379 "Create DE VAT Posting Groups"
         exit(Min7Tok);
     end;
 
-#if not CLEAN27
-    [Obsolete('Use the procedure in W1 instead', '27.0')]
-    procedure Reduced(): Code[20]
-    begin
-        exit(ReducedTok);
-    end;
-
-    [Obsolete('Use the procedure in W1 instead', '27.0')]
-    procedure ServRed(): Code[20]
-    begin
-        exit(ServRedTok);
-    end;
-
-    [Obsolete('Use the procedure in W1 instead', '27.0')]
-    procedure ServNormal(): Code[20]
-    begin
-        exit(ServNormTok);
-    end;
-
-    [Obsolete('Use the procedure in W1 instead', '27.0')]
-    procedure FullNormal(): Code[20]
-    begin
-        exit(FullNormalTok);
-    end;
-#endif
 
     var
         VAT19Tok: Label 'VAT19', MaxLength = 20;
@@ -236,12 +193,6 @@ codeunit 11379 "Create DE VAT Posting Groups"
         EUSTTok: Label 'EUST', MaxLength = 20, Locked = true;
         Min19Tok: Label 'MIN19', MaxLength = 20, Locked = true;
         Min7Tok: Label 'MIN7', MaxLength = 20, Locked = true;
-#if not CLEAN27
-        ReducedTok: Label 'REDUCED', MaxLength = 20, Locked = true;
-        ServRedTok: Label 'SERV RED', MaxLength = 20, Locked = true;
-        ServNormTok: Label 'SERV NORM', MaxLength = 20, Locked = true;
-        FullNormalTok: Label 'FULL NORMAL', MaxLength = 20, Locked = true;
-#endif
         MiscellaneousVATLbl: Label 'Miscellaneous %1 VAT', Comment = '%1=a number specifying the VAT percentage', MaxLength = 100;
         EUPostingGroupSTLbl: Label 'Einfuhrumsatzsteuer', Locked = true;
         MinderungDescriptionLbl: Label 'Minderung %1', Locked = true;

@@ -13,10 +13,6 @@ using Microsoft.Warehouse.Journal;
 
 codeunit 99000766 "Mfg. Whse. Activity Post"
 {
-#if not CLEAN27
-    var
-        WhseActivityPost: Codeunit "Whse.-Activity-Post";
-#endif
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Post", 'OnPostProdConsumption', '', true, false)]
     local procedure OnPostProdConsumption(var WarehouseActivityHeader: Record "Warehouse Activity Header"; var TempWhseActivLine: Record "Warehouse Activity Line" temporary; var PostedSourceType: Integer; var PostedSourceSubType: Integer; var PostedSourceNo: Code[20])
@@ -70,9 +66,6 @@ codeunit 99000766 "Mfg. Whse. Activity Post"
         ItemJnlLine.Init();
         SourceCodeSetup.Get();
         OnPostConsumptionLineOnAfterInitItemJournalLine(ItemJnlLine, SourceCodeSetup);
-#if not CLEAN27
-        WhseActivityPost.RunOnPostConsumptionLineOnAfterInitItemJournalLine(ItemJnlLine, SourceCodeSetup);
-#endif
         ItemJnlLine.Validate("Entry Type", ItemJnlLine."Entry Type"::Consumption);
         ItemJnlLine.Validate("Posting Date", WarehouseActivityHeader."Posting Date");
         ItemJnlLine."Source No." := ProdOrderLine."Item No.";
@@ -102,9 +95,6 @@ codeunit 99000766 "Mfg. Whse. Activity Post"
         Item.Get(WarehouseActivityLine."Item No.");
         ItemJnlLine."Gen. Prod. Posting Group" := Item."Gen. Prod. Posting Group";
         OnPostConsumptionLineOnAfterCreateItemJnlLine(ItemJnlLine, ProdOrderLine, WarehouseActivityLine, SourceCodeSetup);
-#if not CLEAN27
-        WhseActivityPost.RunOnPostConsumptionLineOnAfterCreateItemJnlLine(ItemJnlLine, ProdOrderLine, WarehouseActivityLine, SourceCodeSetup);
-#endif
         ProdOrderCompReserve.TransferPOCompToItemJnlLineCheckILE(ProdOrderComp, ItemJnlLine, ItemJnlLine."Quantity (Base)", true);
         ItemJnlPostLine.SetCalledFromInvtPutawayPick(true);
         ItemJnlPostLine.RunWithCheck(ItemJnlLine);
@@ -139,9 +129,6 @@ codeunit 99000766 "Mfg. Whse. Activity Post"
     begin
         ItemJnlLine.Init();
         OnPostOutputLineOnAfterItemJournalLineInit(ItemJnlLine, SourceCodeSetup);
-#if not CLEAN27
-        WhseActivityPost.RunOnPostOutputLineOnAfterItemJournalLineInit(ItemJnlLine, SourceCodeSetup);
-#endif
         ItemJnlLine.Validate("Entry Type", ItemJnlLine."Entry Type"::Output);
         ItemJnlLine.Validate("Posting Date", WarehouseActivityHeader."Posting Date");
         ItemJnlLine."Document No." := ProdOrder."No.";
@@ -166,9 +153,6 @@ codeunit 99000766 "Mfg. Whse. Activity Post"
         ItemJnlLine."Source Code" := SourceCodeSetup."Output Journal";
         ItemJnlLine."Dimension Set ID" := ProdOrderLine."Dimension Set ID";
         OnPostOutputLineOnAfterCreateItemJnlLine(ItemJnlLine, ProdOrderLine, WarehouseActivityLine, SourceCodeSetup);
-#if not CLEAN27
-        WhseActivityPost.RunOnPostOutputLineOnAfterCreateItemJnlLine(ItemJnlLine, ProdOrderLine, WarehouseActivityLine, SourceCodeSetup);
-#endif
         ReservProdOrderLine.TransferPOLineToItemJnlLine(
           ProdOrderLine, ItemJnlLine, ItemJnlLine."Quantity (Base)");
         ItemJnlPostLine.SetCalledFromInvtPutawayPick(true);
@@ -201,9 +185,6 @@ codeunit 99000766 "Mfg. Whse. Activity Post"
     begin
         IsHandled := false;
         OnBeforeCheckProdOrderLine(ProdOrderLine, IsHandled);
-#if not CLEAN27
-        WhseActivityPost.RunOnBeforeCheckProdOrderLine(ProdOrderLine, IsHandled);
-#endif
         if IsHandled then
             exit;
 

@@ -1019,19 +1019,6 @@ codeunit 5530 "Calc. Item Availability"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforeRunProductionOrderPage(var ProductionOrder: Record Microsoft.Manufacturing.Document."Production Order"; var IsHandled: Boolean)
-    begin
-        OnBeforeRunProductionOrderPage(ProductionOrder, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit ProdOrderAvailabilityMgt', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeRunProductionOrderPage(var ProductionOrder: Record Microsoft.Manufacturing.Document."Production Order"; var IsHandled: Boolean)
-    begin
-    end;
-#endif
-
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTryGetQtyOnInventory(var InvtEventBuf: Record "Inventory Event Buffer"; var Item: Record Item; var Result: Boolean; var IsHandled: Boolean);
     begin
@@ -1141,19 +1128,6 @@ codeunit 5530 "Calc. Item Availability"
     local procedure OnGetPlanningTransDemandOnAfterTransferReqLineSetFilters(var RequisitionLine: Record "Requisition Line"; var Item: Record Item)
     begin
     end;
-
-#if not CLEAN27
-    internal procedure RunOnParentIsInPlanningOnAfterReqLineSetFilters(var RequisitionLine: Record "Requisition Line"; var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-        OnParentIsInPlanningOnAfterReqLineSetFilters(RequisitionLine, ProdOrderComp);
-    end;
-
-    [Obsolete('Moved to codeunit ProdOrderAvailabilityMgt', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnParentIsInPlanningOnAfterReqLineSetFilters(var RequisitionLine: Record "Requisition Line"; var ProdOrderComp: Record Microsoft.Manufacturing.Document."Prod. Order Component")
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnParentIsInPlanning(InvtEventBuf: Record "Inventory Event Buffer"; var ParentActionMessage: Enum "Action Message Type"; var Result: Boolean)

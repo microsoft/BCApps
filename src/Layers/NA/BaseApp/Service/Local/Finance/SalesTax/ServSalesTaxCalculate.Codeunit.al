@@ -223,9 +223,6 @@ codeunit 5968 "Serv. Sales Tax Calculate"
     begin
         IsHandled := false;
         OnBeforeDistTaxOverServLines(ServLine, IsHandled);
-#if not CLEAN27
-        SalesTaxCalculate.RunOnBeforeDistTaxOverServLines(ServLine, IsHandled);
-#endif
         if IsHandled then
             exit;
 

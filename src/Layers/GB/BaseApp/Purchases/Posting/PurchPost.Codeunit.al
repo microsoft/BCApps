@@ -67,9 +67,6 @@ using Microsoft.Warehouse.Request;
 using Microsoft.Warehouse.Setup;
 using System.Automation;
 using System.Environment.Configuration;
-#if not CLEAN27
-using System.Telemetry;
-#endif
 using System.Utilities;
 
 
@@ -427,9 +424,6 @@ codeunit 90 "Purch.-Post"
         UOMMgt: Codeunit "Unit of Measure Management";
         ApplicationAreaMgmt: Codeunit "Application Area Mgmt.";
         NonDeductibleVAT: Codeunit "Non-Deductible VAT";
-#if not CLEAN27
-        FeatureTelemetry: Codeunit "Feature Telemetry";
-#endif
         MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
         InvoicePostingInterface: Interface "Invoice Posting";
         IsInterfaceInitialized: Boolean;
@@ -521,10 +515,6 @@ codeunit 90 "Purch.-Post"
         ItemChargeZeroAmountErr: Label 'The amount for item charge %1 cannot be 0.', Comment = '%1 = Item Charge No.';
         ConfirmUsageWithBlankLineTypeQst: Label 'Usage will not be linked to the project planning line because the Line Type field is empty.\\Do you want to continue?';
         ConfirmUsageWithBlankJobPlanningLineNoQst: Label 'Usage will not be linked to the project planning line because the Project Planning Line No field is empty.\\Do you want to continue?';
-#if not CLEAN27
-        ReverseChargeFeatureNameTok: Label 'Reverse Charge GB', Locked = true;
-        ReverseChargeEventNameTok: Label 'Reverse Charge GB has been used', Locked = true;
-#endif
         SelfBillingNoSeriesMissingErr: Label 'Specify a number series for self-billing invoices in the %1 field on vendor %2, or in the %3 field in %4.', Comment = '%1 = Self-Billing Invoice Nos. field caption, %2 = Vendor No., %3 = Posted Self-Billing Inv. Nos. field caption, %4 = Purchases & Payables Setup table caption';
 
     /// <summary>
@@ -1065,9 +1055,6 @@ codeunit 90 "Purch.-Post"
         SearchPurchInvLine: Record "Purch. Inv. Line";
         PurchCrMemoLine: Record "Purch. Cr. Memo Line";
         SearchPurchCrMemoLine: Record "Purch. Cr. Memo Line";
-#if not CLEAN27
-        TempPurchLine2: Record "Purchase Line" temporary;
-#endif
         CostBaseAmount: Decimal;
         IsHandled: Boolean;
         AmountsOnly: Boolean;
@@ -1172,22 +1159,6 @@ codeunit 90 "Purch.-Post"
                 if not IsHandled then begin
                     PurchInvLine.InitFromPurchLine(PurchInvHeader, xPurchLine);
                     ItemJnlPostLine.CollectValueEntryRelation(TempValueEntryRelation, CopyStr(PurchInvLine.RowID1(), 1, 100));
-#if not CLEAN27
-                    if (PurchSetup."Reverse Charge VAT Posting Gr." = PurchLine."VAT Bus. Posting Group") and
-                        PurchLine."Reverse Charge Item"
-                    then begin
-                        TempPurchLine2 := xPurchLine;
-                        TempPurchLine2.SuspendStatusCheck(true);
-                        TempPurchLine2.Validate("VAT Bus. Posting Group", PurchSetup."Domestic Vendors");
-                        TempPurchLine2.Validate(Amount);
-                        PurchInvLine."Reverse Charge" :=
-                          Round(
-                            (TempPurchLine2."Amount Including VAT" - TempPurchLine2.Amount) *
-                            TempPurchLine2."Qty. to Invoice" / TempPurchLine2.Quantity,
-                            Currency."Amount Rounding Precision");
-                        FeatureTelemetry.LogUsage('0000OJN', ReverseChargeFeatureNameTok, ReverseChargeEventNameTok);
-                    end;
-#endif
                     SetInvoiceOrderNo(PurchLine, PurchInvLine);
 
                     OnBeforePurchInvLineInsert(PurchInvLine, PurchInvHeader, PurchLine, SuppressCommit, xPurchLine);
@@ -9190,18 +9161,6 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnAfterPostItemJnlLineCopyProdOrder(var ItemJnlLine: Record "Item Journal Line"; PurchLine: Record "Purchase Line"; PurchRcptHeader2: Record "Purch. Rcpt. Header"; QtyToBeReceived: Decimal; CommitIsSupressed: Boolean; QtyToBeInvoiced: Decimal)
-    begin
-        OnAfterPostItemJnlLineCopyProdOrder(ItemJnlLine, PurchLine, PurchRcptHeader2, QtyToBeReceived, CommitIsSupressed, QtyToBeInvoiced);
-    end;
-
-    [Obsolete('Moved to codeunit MfgPurchPost', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterPostItemJnlLineCopyProdOrder(var ItemJnlLine: Record "Item Journal Line"; PurchLine: Record "Purchase Line"; PurchRcptHeader: Record "Purch. Rcpt. Header"; QtyToBeReceived: Decimal; CommitIsSupressed: Boolean; QtyToBeInvoiced: Decimal)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostItemJnlLineItemCharges(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line")
@@ -9733,18 +9692,6 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-#if not CLEAN27
-    internal procedure RunOnBeforePostItemJnlLineCopyProdOrder(PurchLine: Record "Purchase Line"; var ItemJnlLine: Record "Item Journal Line"; QtyToBeReceived: Decimal; QtyToBeInvoiced: Decimal; CommitIsSupressed: Boolean; var IsHandled: Boolean)
-    begin
-        OnBeforePostItemJnlLineCopyProdOrder(PurchLine, ItemJnlLine, QtyToBeReceived, QtyToBeInvoiced, CommitIsSupressed, IsHandled);
-    end;
-
-    [Obsolete('Moved to codeunit MfgPurchPost', '27.0')]
-    [IntegrationEvent(true, false)]
-    local procedure OnBeforePostItemJnlLineCopyProdOrder(PurchLine: Record "Purchase Line"; var ItemJnlLine: Record "Item Journal Line"; QtyToBeReceived: Decimal; QtyToBeInvoiced: Decimal; CommitIsSupressed: Boolean; var IsHandled: Boolean)
-    begin
-    end;
-#endif
 
     [IntegrationEvent(true, false)]
     local procedure OnBeforePostPurchaseDoc(var PurchaseHeader: Record "Purchase Header"; PreviewMode: Boolean; CommitIsSupressed: Boolean; var HideProgressWindow: Boolean; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var IsHandled: Boolean)
@@ -11273,19 +11220,6 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
-#if not CLEAN27
-    [IntegrationEvent(false, false)]
-    [Obsolete('This event is no longer used.', '27.0')]
-    local procedure OnSetPostingPreviewDocumentNo(var PreviewDocumentNo: Code[20])
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    [Obsolete('This event is no longer used.', '27.0')]
-    local procedure OnGetPostingPreviewDocumentNos(var PreviewDocumentNos: List of [Code[20]])
-    begin
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnInsertPostedHeadersOnAfterInvoice(var PurchaseHeader: Record "Purchase Header"; var GenJournalLine: Record "Gen. Journal Line"; var GenJnlLineDocType: Enum "Gen. Journal Document Type"; var GenJnlLineDocNo: Code[20]; var GenJnlLineExtDocNo: Code[35]; var IsHandled: Boolean)
     begin

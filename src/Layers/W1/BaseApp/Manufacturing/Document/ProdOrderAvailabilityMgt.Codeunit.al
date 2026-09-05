@@ -8,23 +8,14 @@ using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Item;
-#if not CLEAN27
-using Microsoft.Inventory.Planning;
-#endif
 using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Forecast;
-#if not CLEAN27
-using Microsoft.Manufacturing.Reports;
-#endif
 using Microsoft.Manufacturing.Setup;
 
 codeunit 99000875 "Prod. Order Availability Mgt."
 {
     var
-#if not CLEAN27
-        CalcItemAvailability: Codeunit "Calc. Item Availability";
-#endif
         ProductionTxt: Label 'Production';
         ProdCompTxt: Label 'Prod. Comp.';
         ProdDocumentTxt: Label 'Production %1', Comment = '%1 - status';
@@ -331,9 +322,6 @@ codeunit 99000875 "Prod. Order Availability Mgt."
     begin
         IsHandled := false;
         OnBeforeRunProductionOrderPage(ProductionOrder, IsHandled);
-#if not CLEAN27
-        CalcItemAvailability.RunOnBeforeRunProductionOrderPage(ProductionOrder, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -405,9 +393,6 @@ codeunit 99000875 "Prod. Order Availability Mgt."
         ReqLine.SetRange("Ref. Line No.", ProdOrderComp."Prod. Order Line No.");
         ReqLine.SetRange("Operation No.", '');
         OnParentIsInPlanningOnAfterReqLineSetFilters(ReqLine, ProdOrderComp);
-#if not CLEAN27
-        CalcItemAvailability.RunOnParentIsInPlanningOnAfterReqLineSetFilters(ReqLine, ProdOrderComp);
-#endif
         if ReqLine.FindFirst() then begin
             ParentActionMessage := ReqLine."Action Message";
             exit(true);
@@ -785,47 +770,7 @@ codeunit 99000875 "Prod. Order Availability Mgt."
         OnAfterTransferFromProdOrder(InventoryEventBuffer, ProdOrderLine);
     end;
 
-#if not CLEAN27
-    [Obsolete('Moved back to InventoryEventBuffer', '27.0')]
-    procedure TransferFromForecast(var InventoryEventBuffer: Record "Inventory Event Buffer"; ProdForecastEntry: Record "Production Forecast Entry"; UnconsumedQtyBase: Decimal; ForecastOnLocation: Boolean)
-    begin
-        TransferFromForecast(InventoryEventBuffer, ProdForecastEntry, UnconsumedQtyBase, ForecastOnLocation, false);
-    end;
-#endif
 
-#if not CLEAN27
-    [Obsolete('Moved back to InventoryEventBuffer', '27.0')]
-    procedure TransferFromForecast(var InventoryEventBuffer: Record "Inventory Event Buffer"; ProdForecastEntry: Record "Production Forecast Entry"; UnconsumedQtyBase: Decimal; ForecastOnLocation: Boolean; ForecastOnVariant: Boolean)
-    var
-        RecRef: RecordRef;
-    begin
-        InventoryEventBuffer.Init();
-        RecRef.GetTable(ProdForecastEntry);
-        InventoryEventBuffer."Source Line ID" := RecRef.RecordId;
-        InventoryEventBuffer."Item No." := ProdForecastEntry."Item No.";
-        InventoryEventBuffer."Variant Code" := '';
-        if ForecastOnLocation then
-            InventoryEventBuffer."Location Code" := ProdForecastEntry."Location Code"
-        else
-            InventoryEventBuffer."Location Code" := '';
-        if ForecastOnVariant then
-            InventoryEventBuffer."Variant Code" := ProdForecastEntry."Variant Code"
-        else
-            InventoryEventBuffer."Variant Code" := '';
-        InventoryEventBuffer."Availability Date" := ProdForecastEntry."Forecast Date";
-        InventoryEventBuffer.Type := InventoryEventBuffer.Type::Forecast;
-        if ProdForecastEntry."Component Forecast" then
-            InventoryEventBuffer."Forecast Type" := InventoryEventBuffer."Forecast Type"::Component
-        else
-            InventoryEventBuffer."Forecast Type" := InventoryEventBuffer."Forecast Type"::Sales;
-        InventoryEventBuffer."Remaining Quantity (Base)" := -UnconsumedQtyBase;
-        InventoryEventBuffer."Reserved Quantity (Base)" := 0;
-        InventoryEventBuffer."Orig. Quantity (Base)" := -ProdForecastEntry."Forecast Quantity (Base)";
-        InventoryEventBuffer.Positive := not (InventoryEventBuffer."Remaining Quantity (Base)" < 0);
-
-        OnAfterTransferFromForecast(InventoryEventBuffer, ProdForecastEntry);
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterTransferFromProdComp(var InventoryEventBuffer: Record "Inventory Event Buffer"; ProdOrderComponent: Record "Prod. Order Component")
@@ -837,13 +782,6 @@ codeunit 99000875 "Prod. Order Availability Mgt."
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('Moved back to InventoryEventBuffer', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterTransferFromForecast(var InventoryEventBuffer: Record "Inventory Event Buffer"; ProdForecastEntry: Record "Production Forecast Entry")
-    begin
-    end;
-#endif
 
     // Codeunit "Available to Promise"
 
@@ -911,18 +849,12 @@ codeunit 99000875 "Prod. Order Availability Mgt."
         MfgSetup: Record "Manufacturing Setup";
         RequisitionLine: Record "Requisition Line";
         NoSeries: Codeunit "No. Series";
-#if not CLEAN27
-        CapableToPromise: Codeunit "Capable to Promise";
-#endif
         NewRefOrderNo: Code[20];
         LastRefOrderNo: Code[20];
         IsHandled: Boolean;
     begin
         IsHandled := false;
         OnBeforeReassignRefOrderNos(OrderPromisingID, IsHandled);
-#if not CLEAN27
-        CapableToPromise.RunOnBeforeReassignRefOrderNos(OrderPromisingID, IsHandled);
-#endif
         if IsHandled then
             exit;
 
@@ -949,9 +881,6 @@ codeunit 99000875 "Prod. Order Availability Mgt."
             NewRefOrderNo := NoSeries.GetNextNo(RequisitionLine."No. Series", RequisitionLine."Due Date");
             RequisitionLine.ModifyAll("Ref. Order No.", NewRefOrderNo);
             OnReassignRefOrderNosOnAfterRequisitionLineModifyAll(RequisitionLine);
-#if not CLEAN27
-            CapableToPromise.RunOnReassignRefOrderNosOnAfterRequisitionLineModifyAll(RequisitionLine);
-#endif
             RequisitionLine.SetFilter("Ref. Order No.", '<>%1&<=%2', '', LastRefOrderNo);
         until RequisitionLine.Next() = 0;
     end;
@@ -1029,11 +958,4 @@ codeunit 99000875 "Prod. Order Availability Mgt."
         Item.CalcFields("Reserved Qty. on Prod. Order");
         Result := Item."Reserved Qty. on Prod. Order";
     end;
-#if not CLEAN27
-    [EventSubscriber(ObjectType::Report, Report::"Planning Availability", 'OnRequisitionLineOnBeforeTempPlanningBufferInsert', '', true, false)]
-    local procedure OnRequisitionLineOnBeforeTempPlanningBufferInsert(var TempPlanningBuffer: Record "Planning Buffer" temporary; RequisitionLine: Record "Requisition Line")
-    begin
-        TempPlanningBuffer."Document No." := RequisitionLine."Prod. Order No.";
-    end;
-#endif
 }

@@ -123,13 +123,8 @@ tableextension 11727 "Sales Cr.Memo Header CZL" extends "Sales Cr.Memo Header"
         {
             Caption = 'Registration No. (Obsolete)';
             DataClassification = CustomerContent;
-#if not CLEAN27
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#else
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#endif
             ObsoleteReason = 'Replaced by standard "Registration Number" field.';
         }
 #endif

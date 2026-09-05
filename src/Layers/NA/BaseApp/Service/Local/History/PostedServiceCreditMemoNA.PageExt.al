@@ -222,23 +222,17 @@ pageextension 10012 "Posted Service Credit Memo NA" extends "Posted Service Cred
                 Image = Statistics;
                 ShortCutKey = 'F7';
                 ToolTip = 'View statistical information, such as the value of posted entries, for the record.';
-#if CLEAN27
                     Visible = SalesTaxStatisticsVisible;
-#else
-                Visible = false;
-#endif
                 RunObject = Page "Service Credit Memo Stats.";
                 RunPageOnRec = true;
             }
         }
-#if CLEAN27
         addafter(ServiceStatistics_Promoted)
         {
             actionref(ServiceStats_Promoted; ServiceStats)
             {
             }
         }
-#endif
     }
 
     trigger OnOpenPage()

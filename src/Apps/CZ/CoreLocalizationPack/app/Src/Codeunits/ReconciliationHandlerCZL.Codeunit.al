@@ -41,27 +41,4 @@ codeunit 31431 "Reconciliation Handler CZL"
     begin
         IsHandled := true;
     end;
-#if not CLEAN27
-    internal procedure RaiseOnSetSaveNetChangeBeforeModifyGLAccountNetChange(var GLAccountNetChange: Record "G/L Account Net Change"; GenJournalLine: Record "Gen. Journal Line"; NetChangeLCY: Decimal; NetChange: Decimal)
-    begin
-        OnSetSaveNetChangeBeforeModifyGLAccountNetChange(GLAccountNetChange, GenJournalLine, NetChangeLCY, NetChange);
-    end;
-
-    internal procedure RaiseOnSetSaveNetChangeBeforeInsertGLAccountNetChange(var GLAccountNetChange: Record "G/L Account Net Change"; GenJournalLine: Record "Gen. Journal Line"; NetChangeLCY: Decimal; NetChange: Decimal)
-    begin
-        OnSetSaveNetChangeBeforeInsertGLAccountNetChange(GLAccountNetChange, GenJournalLine, NetChangeLCY, NetChange);
-    end;
-
-    [Obsolete('Replaced by OnSaveNetChangeCZLOnBeforeModify event in tableextension 31047 "G/L Account Net Change CZL"', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnSetSaveNetChangeBeforeModifyGLAccountNetChange(var GLAccountNetChange: Record "G/L Account Net Change"; GenJournalLine: Record "Gen. Journal Line"; NetChangeLCY: Decimal; NetChange: Decimal)
-    begin
-    end;
-
-    [Obsolete('Replaced by OnSaveNetChangeCZLOnBeforeInsert event in tableextension 31047 "G/L Account Net Change CZL"', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnSetSaveNetChangeBeforeInsertGLAccountNetChange(var GLAccountNetChange: Record "G/L Account Net Change"; GenJournalLine: Record "Gen. Journal Line"; NetChangeLCY: Decimal; NetChange: Decimal)
-    begin
-    end;
-#endif
 }

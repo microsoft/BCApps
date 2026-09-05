@@ -49,9 +49,6 @@ codeunit 140 "EC Sales List Suggest Lines"
 
         EUVATEntries.Open();
         while EUVATEntries.Read() do
-#if not CLEAN27
-            if IsApplicableEntry(EUVATEntries) then
-#endif
             AddOrUpdateECLLine(EUVATEntries);
         RowsTotalCorrection();
         DeleteZeroAmountLines();
@@ -155,41 +152,6 @@ codeunit 140 "EC Sales List Suggest Lines"
         ECSLVATReportLine.DeleteAll();
     end;
 
-#if not CLEAN27
-    [Obsolete('Moved to GovTalk app', '27.0')]
-    local procedure IsApplicableEntry(EUVATEntries: Query "EU VAT Entries"): Boolean
-    var
-        ECSLVATReportLine: Record "ECSL VAT Report Line";
-        ECSLVATReportLineRelation: Record "ECSL VAT Report Line Relation";
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeIsApplicableEntry(IsHandled);
-        if IsHandled then
-            exit(true);
-        if
-           (EUVATEntries.VAT_Entry_No = 0) and
-           (EUVATEntries.ECSL_Line_No = 0) and
-           (EUVATEntries.ECSL_Report_No = '')
-        then
-            exit(true);
-
-        ECSLVATReportLineRelation.SetRange("VAT Entry No.", EUVATEntries.VAT_Entry_No);
-        if not ECSLVATReportLineRelation.FindSet() then
-            exit(true);
-
-        repeat
-            if ECSLVATReportLine.Get(ECSLVATReportLineRelation."ECSL Report No.", ECSLVATReportLineRelation."ECSL Line No.") then begin
-                ECSLVATReportLine.CalcFields("Line Status");
-                if ECSLVATReportLine."Line Status" <> ECSLVATReportLine."Line Status"::Rejected then
-                    exit(false);
-            end;
-        until ECSLVATReportLineRelation.Next() = 0;
-
-        exit(true);
-    end;
-#endif
-
     /// <summary>
     /// Integration event raised before adding or updating an ECSL line during line suggestion.
     /// Allows customization of ECSL line creation logic and data population.
@@ -212,13 +174,5 @@ codeunit 140 "EC Sales List Suggest Lines"
     local procedure OnPopulateVatEntryLinesOnAfterEUVATEntriesSetFilters(var VATReportHeader: Record "VAT Report Header"; var EUVATEntries: Query "EU VAT Entries")
     begin
     end;
-
-#if not CLEAN27
-    [Obsolete('Event will be removed in a future release.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeIsApplicableEntry(var IsHandled: Boolean)
-    begin
-    end;
-#endif
 }
 

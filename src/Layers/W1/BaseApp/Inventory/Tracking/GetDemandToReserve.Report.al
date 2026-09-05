@@ -403,13 +403,6 @@ report 302 "Get Demand To Reserve"
         AutoAllocate := NewAutoAllocate;
     end;
 
-#if not CLEAN27
-    [Obsolete('This event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnGetDemand(var FilterItem: Record Item; var ReservationWkshBatch: Record "Reservation Wksh. Batch"; DemandType: Enum "Reservation Demand Type"; DateFilter: Text; VariantFilterFromBatch: Text; LocationFilterFromBatch: Text; ItemFilterFromBatch: Text; ReservedFromStock: Enum "Reservation From Stock");
-    begin
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnSalesOrderLineOnAfterGetRecordOnBeforeSetTempSalesLine(var OrderSalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -83,20 +83,6 @@ table 19 "Cust. Invoice Disc."
     {
     }
 
-#if not CLEAN27
-    [Obsolete('Replaced by W1 procedure GetRecord()', '27.0')]
-    /// <summary>
-    /// Gets the customer invoice discount record based on the specified criteria.
-    /// </summary>
-    /// <param name="NewCode">The customer invoice discount code.</param>
-    /// <param name="CurrencyCode">The currency code.</param>
-    /// <param name="CurrencyDate">The date for currency conversion.</param>
-    /// <param name="BaseAmount">The base amount to find the applicable discount.</param>
-    procedure GetRec(NewCode: Code[20]; CurrencyCode: Code[10]; CurrencyDate: Date; BaseAmount: Decimal)
-    begin
-        GetRecord(NewCode, CurrencyCode, CurrencyDate, BaseAmount);
-    end;
-#endif
 
     /// <summary>
     /// Gets the customer invoice discount record based on the specified criteria, handling currency conversion if needed.
