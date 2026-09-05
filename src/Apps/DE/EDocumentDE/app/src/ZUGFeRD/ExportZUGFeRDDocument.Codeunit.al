@@ -489,7 +489,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         ExchangedDocumentElement.Add(XmlElement.Create('TypeCode', XmlNamespaceRAM, '380')); // Invoice type code
 
         IssueDateTimeElement := XmlElement.Create('IssueDateTime', XmlNamespaceRAM);
-        IssueDateTimeElement.Add(XmlElement.Create('DateTimeString', XmlNamespaceUDT, XmlAttribute.Create('format', '102'), FormatDate(SalesInvoiceHeader."Posting Date")));
+        IssueDateTimeElement.Add(XmlElement.Create('DateTimeString', XmlNamespaceUDT, XmlAttribute.Create('format', '102'), FormatDate(SalesInvoiceHeader."Document Date")));
         ExchangedDocumentElement.Add(IssueDateTimeElement);
         RootXMLNode.Add(ExchangedDocumentElement);
         OnAfterInsertSalesInvHeaderData(RootXMLNode, SalesInvoiceHeader);
@@ -513,7 +513,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         ExchangedDocumentElement.Add(XmlElement.Create('TypeCode', XmlNamespaceRAM, '381')); // Credit memo type code
 
         IssueDateTimeElement := XmlElement.Create('IssueDateTime', XmlNamespaceRAM);
-        IssueDateTimeElement.Add(XmlElement.Create('DateTimeString', XmlNamespaceUDT, XmlAttribute.Create('format', '102'), FormatDate(SalesCrMemoHeader."Posting Date")));
+        IssueDateTimeElement.Add(XmlElement.Create('DateTimeString', XmlNamespaceUDT, XmlAttribute.Create('format', '102'), FormatDate(SalesCrMemoHeader."Document Date")));
         ExchangedDocumentElement.Add(IssueDateTimeElement);
         RootXMLNode.Add(ExchangedDocumentElement);
         OnAfterInsertSalesCrMemoHeaderData(RootXMLNode, SalesCrMemoHeader);
