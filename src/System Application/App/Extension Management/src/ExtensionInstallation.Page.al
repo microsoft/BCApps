@@ -32,6 +32,7 @@ page 2503 "Extension Installation"
 
         MarketplaceExtnDeployment.SetAppID(Rec.ID);
         MarketplaceExtnDeployment.SetPreviewKey(Rec.PreviewKey);
+        MarketplaceExtnDeployment.SetPublisherType(Rec.PublisherType);
         MarketplaceExtnDeployment.RunModal();
         if MarketplaceExtnDeployment.GetInstalledSelected() then
             if not IsNullGuid(Rec.ID) then begin
@@ -64,7 +65,7 @@ page 2503 "Extension Installation"
         "Filter": Text;
     begin
         Filter := FieldRef.GetFilter();
-        if (Filter = '') then
+        if Filter = '' then
             exit;
 
         FilterPrefixDotNet_Regex := FilterPrefixDotNet_Regex.Regex('^@\*([^\\]+)\*$');
@@ -79,5 +80,3 @@ page 2503 "Extension Installation"
             FieldRef.Value(Filter);
     end;
 }
-
-
