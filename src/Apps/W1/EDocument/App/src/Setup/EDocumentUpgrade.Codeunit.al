@@ -111,11 +111,12 @@ codeunit 6168 "E-Document Upgrade"
 
         UpgradeTag.SetUpgradeTag(GetEnableVATOptionsForPurchEDocTag());
     end;
+
     internal procedure GetUpgradeDataExchV2DefsTag(): Code[250]
     begin
         exit('MS-EDoc-DataExchV2Defs-20260521');
     end;
-    
+
     internal procedure GetEnableVATOptionsForPurchEDocTag(): Code[250]
     begin
         exit('MS-EDoc-EnableVATOptionsForPurchEDoc-20260520');
