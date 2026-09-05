@@ -9,6 +9,7 @@ using System.Text;
 
 codeunit 7133 "Travel Request Approval"
 {
+    Access = Internal;
     Permissions = tabledata "Spend Request" = m;
 
     internal procedure Submit(var SpendRequest: Record "Spend Request"; SubmitterExpenseUserNo: Code[20])

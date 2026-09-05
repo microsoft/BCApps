@@ -25,6 +25,7 @@ codeunit 148315 "Expense Users API Test"
         SpendRequestsServiceNameTok: Label 'spendRequests', Locked = true;
         BadRequestResponseErr: Label 'Response status code does not match expected', Locked = true;
         RequestedByCannotBeChangedErr: Label 'The owner of a travel request cannot be changed.', Locked = true;
+        RequestedByRequestBodyLbl: Label '{"requestedBy":"%1"}', Comment = '%1 = Employee number', Locked = true;
 
     [Test]
     procedure UnlinkedExpenseUserIsHiddenFromAPI()
@@ -147,7 +148,7 @@ codeunit 148315 "Expense Users API Test"
 
         TargetURL := LibraryGraphMgt.CreateTargetURL(
             Format(TravelRequest.SystemId), Page::"Spend Requests API", SpendRequestsServiceNameTok);
-        RequestBody := StrSubstNo('{"requestedBy":"%1"}', OtherExpenseUser."Employee No.");
+        RequestBody := StrSubstNo(RequestedByRequestBodyLbl, OtherExpenseUser."Employee No.");
         asserterror LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 400);
 
         Assert.ExpectedError(BadRequestResponseErr);
