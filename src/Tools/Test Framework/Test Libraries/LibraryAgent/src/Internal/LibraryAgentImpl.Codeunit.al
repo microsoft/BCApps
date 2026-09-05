@@ -36,6 +36,96 @@ codeunit 130561 "Library - Agent Impl."
             Agent.Activate(AgentUserSecurityID);
     end;
 
+    procedure EnsureBusinessIQDomain(DomainCode: Code[20]; DomainName: Text[100]; DomainDescription: Text[2048])
+    var
+        LibraryAgent: Codeunit "Library - Agent";
+        Request: JsonObject;
+        Response: JsonObject;
+    begin
+        EnsureIsTest();
+        VerifyBusinessIQTestDomainCode(DomainCode);
+
+        Request.Add(OperationJsonKeyTok, DomainMatchesOperationTok);
+        Request.Add(DomainCodeJsonKeyTok, DomainCode);
+        Request.Add(DomainNameJsonKeyTok, DomainName);
+        Request.Add(DomainDescriptionJsonKeyTok, DomainDescription);
+        LibraryAgent.GetIQ(Request, Response);
+        if GetBoolean(Response, MatchesJsonKeyTok) then
+            exit;
+
+        Clear(Request);
+        Clear(Response);
+        Request.Add(OperationJsonKeyTok, EnsureDomainOperationTok);
+        Request.Add(DomainCodeJsonKeyTok, DomainCode);
+        Request.Add(DomainNameJsonKeyTok, DomainName);
+        Request.Add(DomainDescriptionJsonKeyTok, DomainDescription);
+        LibraryAgent.SaveIQ(Request, Response);
+    end;
+
+    procedure CreateActiveBusinessIQSkill(DomainCode: Code[20]; SkillTitle: Text[250]; SkillText: Text; SkillType: Enum "Agent Test Business Skill Type"): BigInteger
+    var
+        LibraryAgent: Codeunit "Library - Agent";
+        Request: JsonObject;
+        Response: JsonObject;
+    begin
+        EnsureIsTest();
+        VerifyBusinessIQTestDomainCode(DomainCode);
+
+        Request.Add(OperationJsonKeyTok, CreateActiveSkillOperationTok);
+        Request.Add(DomainCodeJsonKeyTok, DomainCode);
+        Request.Add(SkillTitleJsonKeyTok, SkillTitle);
+        Request.Add(SkillTextJsonKeyTok, SkillText);
+        Request.Add(SkillTypeJsonKeyTok, SkillType.AsInteger());
+        LibraryAgent.SaveIQ(Request, Response);
+        exit(GetBigInteger(Response, SkillIdJsonKeyTok));
+    end;
+
+    procedure DeleteBusinessIQTestDomain(DomainCode: Code[20])
+    var
+        LibraryAgent: Codeunit "Library - Agent";
+        Request: JsonObject;
+        Response: JsonObject;
+    begin
+        EnsureIsTest();
+        VerifyBusinessIQTestDomainCode(DomainCode);
+
+        Request.Add(OperationJsonKeyTok, DomainExistsOperationTok);
+        Request.Add(DomainCodeJsonKeyTok, DomainCode);
+        LibraryAgent.GetIQ(Request, Response);
+        if not GetBoolean(Response, ExistsJsonKeyTok) then
+            exit;
+
+        Clear(Request);
+        Clear(Response);
+        Request.Add(OperationJsonKeyTok, DeleteDomainOperationTok);
+        Request.Add(DomainCodeJsonKeyTok, DomainCode);
+        LibraryAgent.SaveIQ(Request, Response);
+    end;
+
+    local procedure GetBoolean(Json: JsonObject; PropertyName: Text): Boolean
+    var
+        Token: JsonToken;
+    begin
+        if not Json.Get(PropertyName, Token) then
+            Error(MissingIQResponseValueErr, PropertyName);
+        exit(Token.AsValue().AsBoolean());
+    end;
+
+    local procedure GetBigInteger(Json: JsonObject; PropertyName: Text): BigInteger
+    var
+        Token: JsonToken;
+    begin
+        if not Json.Get(PropertyName, Token) then
+            Error(MissingIQResponseValueErr, PropertyName);
+        exit(Token.AsValue().AsBigInteger());
+    end;
+
+    local procedure VerifyBusinessIQTestDomainCode(DomainCode: Code[20])
+    begin
+        if CopyStr(DomainCode, 1, StrLen(BusinessIQTestDomainPrefixTok)) <> BusinessIQTestDomainPrefixTok then
+            Error(BusinessIQTestDomainRequiredErr, DomainCode, BusinessIQTestDomainPrefixTok);
+    end;
+
     procedure CreateTaskAndWait(var AgentTaskBuilder: Codeunit "Agent Task Builder"; var AgentTask: Record "Agent Task"): Boolean
     begin
         exit(CreateTaskAndWait(AgentTaskBuilder, AgentTask, 0));
@@ -753,4 +843,22 @@ codeunit 130561 "Library - Agent Impl."
         SuggestionCountMismatchErr: Label 'Expected %1 suggestions but found %2 actual suggestions.', Comment = '%1 = expected count, %2 = actual count';
         UnexpectedInterventionErr: Label 'Task paused for user intervention but no intervention_request found in expected_data for this turn.';
         ExpectedInterventionNotFoundErr: Label 'Expected intervention_request in expected_data but the task did not pause for user intervention.';
+        MissingIQResponseValueErr: Label 'The Business IQ test provider response is missing %1.', Comment = '%1 = JSON property name';
+        BusinessIQTestDomainRequiredErr: Label 'Business IQ test domain %1 must start with %2.', Comment = '%1 = domain code, %2 = required prefix';
+        BusinessIQTestDomainPrefixTok: Label 'TEST-', Locked = true;
+        OperationJsonKeyTok: Label 'operation', Locked = true;
+        DomainCodeJsonKeyTok: Label 'domainCode', Locked = true;
+        DomainNameJsonKeyTok: Label 'domainName', Locked = true;
+        DomainDescriptionJsonKeyTok: Label 'domainDescription', Locked = true;
+        SkillTitleJsonKeyTok: Label 'skillTitle', Locked = true;
+        SkillTextJsonKeyTok: Label 'skillText', Locked = true;
+        SkillTypeJsonKeyTok: Label 'skillType', Locked = true;
+        SkillIdJsonKeyTok: Label 'skillId', Locked = true;
+        ExistsJsonKeyTok: Label 'exists', Locked = true;
+        MatchesJsonKeyTok: Label 'matches', Locked = true;
+        DomainMatchesOperationTok: Label 'domainMatches', Locked = true;
+        DomainExistsOperationTok: Label 'domainExists', Locked = true;
+        EnsureDomainOperationTok: Label 'ensureDomain', Locked = true;
+        CreateActiveSkillOperationTok: Label 'createActiveSkill', Locked = true;
+        DeleteDomainOperationTok: Label 'deleteDomain', Locked = true;
 }

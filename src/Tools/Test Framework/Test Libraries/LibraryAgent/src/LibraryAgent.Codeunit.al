@@ -357,6 +357,63 @@ codeunit 130560 "Library - Agent"
 
     #endregion
 
+    #region Manage Business IQ
+
+    /// <summary>
+    /// Creates or updates a tenant-scoped Business IQ domain for an agent test.
+    /// </summary>
+    procedure EnsureBusinessIQDomain(DomainCode: Code[20]; DomainName: Text[100]; DomainDescription: Text[2048])
+    begin
+        LibraryAgentImpl.EnsureBusinessIQDomain(DomainCode, DomainName, DomainDescription);
+    end;
+
+    /// <summary>
+    /// Creates and activates a tenant-scoped Business IQ skill for an agent test.
+    /// </summary>
+    procedure CreateActiveBusinessIQSkill(DomainCode: Code[20]; SkillTitle: Text[250]; SkillText: Text; SkillType: Enum "Agent Test Business Skill Type"): BigInteger
+    begin
+        exit(LibraryAgentImpl.CreateActiveBusinessIQSkill(DomainCode, SkillTitle, SkillText, SkillType));
+    end;
+
+    /// <summary>
+    /// Deletes a dedicated Business IQ test domain and all of its related test records.
+    /// </summary>
+    procedure DeleteBusinessIQTestDomain(DomainCode: Code[20])
+    begin
+        LibraryAgentImpl.DeleteBusinessIQTestDomain(DomainCode);
+    end;
+
+    internal procedure GetIQ(Request: JsonObject; var Response: JsonObject)
+    var
+        IsHandled: Boolean;
+    begin
+        OnGetIQ(Request, Response, IsHandled);
+        if not IsHandled then
+            Error(BusinessIQProviderMissingErr);
+    end;
+
+    internal procedure SaveIQ(Request: JsonObject; var Response: JsonObject)
+    var
+        IsHandled: Boolean;
+    begin
+        OnSaveIQ(Request, Response, IsHandled);
+        if not IsHandled then
+            Error(BusinessIQProviderMissingErr);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetIQ(Request: JsonObject; var Response: JsonObject; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSaveIQ(Request: JsonObject; var Response: JsonObject; var IsHandled: Boolean)
+    begin
+    end;
+
+    #endregion
+
     var
         LibraryAgentImpl: Codeunit "Library - Agent Impl.";
+        BusinessIQProviderMissingErr: Label 'No Business IQ test provider is installed.';
 }

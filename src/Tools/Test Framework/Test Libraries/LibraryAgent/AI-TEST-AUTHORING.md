@@ -1,5 +1,26 @@
 # Authoring AI Agent Tests — YAML Reference
 
+## Business IQ test data
+
+Use dedicated tenant-wide domain codes for Business IQ agent tests:
+
+```al
+LibraryAgent.DeleteBusinessIQTestDomain('TEST-MY-AGENT');
+LibraryAgent.EnsureBusinessIQDomain(
+    'TEST-MY-AGENT',
+    'My Agent Test',
+    'Business guidance used by My Agent tests.');
+LibraryAgent.CreateActiveBusinessIQSkill(
+    'TEST-MY-AGENT',
+    'Approval policy',
+    'Obtain approval before posting.',
+    "Agent Test Business Skill Type"::Policy);
+```
+
+Call `DeleteBusinessIQTestDomain` before switching between grounded and ungrounded test modes. Business IQ test domain codes must start with `TEST-`; the cleanup affects the supplied tenant-wide domain code.
+
+The calls require a subscriber for the Library Agent `OnGetIQ` and `OnSaveIQ` events. Internal test apps can provide that subscriber directly. Other test apps can use the temporary provider in `Agent Test Internal Library`.
+
 AI agent tests evaluate Business Central agent behavior through declarative YAML scenarios. The **AI Test Suite** is the main driver:
 it runs each test as a per-turn loop — provide input, run the agent, assert state. **`Library - Agent`** is a helper that structures the YAML input into agent task operations in a reusable way, so individual tests do not have to wire up the agent task framework directly.
 
