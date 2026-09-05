@@ -1136,19 +1136,26 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     local procedure CreateReverseChargeVATGLEntries(GenJnlLine: Record "Gen. Journal Line"; VATPostingSetup: Record "VAT Posting Setup"; VATPostingParameters: Record "VAT Posting Parameters")
     var
+        FullVATAmountSrcCurr: Decimal;
         LastNextEntryNo: Integer;
     begin
         if VATPostingParameters."Unrealized VAT" or not (NonDeductibleVAT.IsNonDeductibleVATEnabled()) then begin
+            // Preserve the source-currency VAT amount from the document for system-created entries so the two
+            // offsetting reverse charge VAT entries balance to zero instead of being recalculated from rounded LCY.
+            if GenJnlLine."System-Created Entry" then
+                FullVATAmountSrcCurr := GenJnlLine."Source Curr. VAT Amount"
+            else
+                FullVATAmountSrcCurr := CalcAmountSrcCurr(GenJnlLine, VATPostingParameters."Full VAT Amount");
             OnInsertVATOnBeforeCreateGLEntryForReverseChargeVATToPurchAcc(
                 GenJnlLine, VATPostingSetup, VATPostingParameters."Unrealized VAT", VATPostingParameters."Full VAT Amount", VATPostingParameters."Full VAT Amount ACY", true);
             CreateGLEntry(
                 GenJnlLine, VATPostingSetup.GetPurchAccount(VATPostingParameters."Unrealized VAT"), VATPostingParameters."Full VAT Amount", VATPostingParameters."Full VAT Amount ACY", true,
-                CalcAmountSrcCurr(GenJnlLine, VATPostingParameters."Full VAT Amount"));
+                FullVATAmountSrcCurr);
             OnInsertVATOnBeforeCreateGLEntryForReverseChargeVATToRevChargeAcc(
                 GenJnlLine, VATPostingSetup, VATPostingParameters."Unrealized VAT", VATPostingParameters."Full VAT Amount", VATPostingParameters."Full VAT Amount ACY", true);
             CreateGLEntry(
                 GenJnlLine, VATPostingSetup.GetRevChargeAccount(VATPostingParameters."Unrealized VAT"), -VATPostingParameters."Full VAT Amount", -VATPostingParameters."Full VAT Amount ACY", true,
-                CalcAmountSrcCurr(GenJnlLine, -VATPostingParameters."Full VAT Amount"));
+                -FullVATAmountSrcCurr);
             exit;
         end;
         if VATPostingParameters."Non-Deductible VAT %" <> 100 then begin
