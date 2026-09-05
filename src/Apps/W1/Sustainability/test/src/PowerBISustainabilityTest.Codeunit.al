@@ -17,6 +17,12 @@ codeunit 148215 "PowerBI Sustainability Test"
     Access = Internal;
     Permissions = tabledata "Employee Ledger Entry" = RIMD, tabledata "Detailed Employee Ledger Entry" = RIMD;
 
+    trigger OnRun()
+    begin
+        LibGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+    end;
+
     var
 
         Assert: Codeunit Assert;

@@ -3,11 +3,15 @@ codeunit 139823 "APIV2 - Sales Quotes E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Sales] [Quote]
     end;
 
@@ -99,6 +103,8 @@ codeunit 139823 "APIV2 - Sales Quotes E2E"
         QuoteExists: Boolean;
     begin
         // [SCENARIO] Create sales quotes JSON and use HTTP POST to create them
+
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
 
         // [GIVEN] a customer
         LibrarySales.CreateCustomerWithAddress(SellToCustomer);
@@ -316,6 +322,7 @@ codeunit 139823 "APIV2 - Sales Quotes E2E"
         QuoteExists: Boolean;
     begin
         // [SCENARIO] Create a quote both through the client UI and through the API and compare them. They should be the same and have the same fields autocompleted wherever needed.
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryGraphDocumentTools.InitializeUIPage();
 
         // [GIVEN] a customer
@@ -357,6 +364,11 @@ codeunit 139823 "APIV2 - Sales Quotes E2E"
         PageSalesHeader.Get(PageSalesHeader."Document Type"::Quote, SalesQuote."No.".Value());
         ApiRecordRef.GetTable(ApiSalesHeader);
         PageRecordRef.GetTable(PageSalesHeader);
+        LibraryGraphMgt.AddFieldToIgnoreIfExists(
+            TempIgnoredFieldsForComparison, Database::"Sales Header", 'Operation Occurred Date');
+        LibraryGraphMgt.AddFieldToIgnoreIfExists(
+            TempIgnoredFieldsForComparison, Database::"Sales Header", 'VAT Reporting Date');
+
         Assert.RecordsAreEqualExceptCertainFields(ApiRecordRef, PageRecordRef, TempIgnoredFieldsForComparison,
           'Page and API quote do not match');
     end;
@@ -751,6 +763,9 @@ codeunit 139823 "APIV2 - Sales Quotes E2E"
         LibrarySmallBusiness.CreateCustomer(Customer);
         LibrarySmallBusiness.CreateItem(Item);
         LibrarySmallBusiness.CreateSalesQuoteHeaderWithLines(SalesHeader, Customer, Item, 1, 1);
+        SalesHeader.Validate("Posting Date", WorkDate());
+        SalesHeader.Validate("Document Date", WorkDate());
+        SalesHeader.Modify(true);
     end;
 
     local procedure FindSalesHeader(var SalesHeader: Record "Sales Header"; CustomerNo: Text; QuoteNumber: Text): Boolean

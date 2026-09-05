@@ -3,11 +3,15 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Sales] [Credit Memo]
     end;
 
@@ -698,6 +702,7 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
         TargetURL: Text;
         ResponseText: Text;
         CreditMemoLineJSON: Text;
+        LineDescription: Text;
     begin
         // [SCENARIO] Posting a line with description only will get a type item
         // [GIVEN] A post request with description only
@@ -706,7 +711,8 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
 
         COMMIT();
 
-        CreditMemoLineJSON := '{"description":"test"}';
+        LineDescription := Format(CreateGuid());
+        CreditMemoLineJSON := LibraryGraphMgt.AddPropertytoJSON('', 'description', LineDescription);
 
         // [WHEN] we just POST a blank line
         TargetURL := LibraryGraphMgt
@@ -718,8 +724,10 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
         LibraryGraphMgt.PostToWebService(TargetURL, CreditMemoLineJSON, ResponseText);
 
         // [THEN] Line of type Item is created
-        FindFirstSalesLine(SalesHeader, SalesLine);
-        SalesLine.FINDLAST();
+        SalesLine.SETRANGE("Document Type", SalesHeader."Document Type");
+        SalesLine.SETRANGE("Document No.", SalesHeader."No.");
+        SalesLine.SETRANGE(Description, LineDescription);
+        Assert.IsTrue(SalesLine.FINDFIRST(), 'Could not find the created credit memo line');
         Assert.AreEqual('', SalesLine."No.", 'No should be blank');
         Assert.AreEqual(SalesLine.Type, SalesLine.Type::Item, 'Wrong type is set');
 
@@ -1278,12 +1286,6 @@ codeunit 139737 "APIV1 - Sales CrMemo Lines E2E"
         NotificationLifecycleMgt.RecallAllNotifications();
     end;
 }
-
-
-
-
-
-
 
 
 
