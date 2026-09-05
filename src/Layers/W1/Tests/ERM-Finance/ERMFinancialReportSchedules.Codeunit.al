@@ -189,6 +189,8 @@ codeunit 135005 "ERM Financial Report Schedules"
 
         // [GIVEN] A financial report schedule with a recipient
         FinancialReportSchedule := CreateSchedule(AccScheduleName.Name, true, true, true);
+        FinancialReportSchedule."Email Subject" := 'Custom subject test!';
+        FinancialReportSchedule.Modify();
         CreateUserRecipient(NewUserId, AccScheduleName.Name, FinancialReportSchedule.Code);
 
         Commit();
@@ -205,6 +207,7 @@ codeunit 135005 "ERM Financial Report Schedules"
         EmailMessage.GetRecipients(Enum::"Email Recipient Type"::"To", Recipients);
         Assert.AreEqual(1, Recipients.Count(), 'There should be 1 recipient');
         Assert.AreEqual(UserEmail, Recipients.Get(1), 'Recipient email does not match');
+        Assert.AreEqual(FinancialReportSchedule."Email Subject", EmailMessage.GetSubject(), 'The custom email subject does not match');
 
         AttachmentTypes.Add(ExcelContentTypeTxt);
         AttachmentTypes.Add(PDFContentTypeTxt);
