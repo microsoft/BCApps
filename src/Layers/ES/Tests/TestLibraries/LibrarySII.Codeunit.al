@@ -840,6 +840,19 @@ codeunit 143006 "Library - SII"
         exit(ApplicationPath + '\..\..\..\');
     end;
 
+    [Scope('OnPrem')]
+    procedure ResolveTestAssetPath(RelativePath: Text): Text
+    var
+        FileManagement: Codeunit "File Management";
+        BCAppsAssetPath: Text;
+    begin
+        // Test assets moved under App\BCApps\src during the submodule migration; probe there first, fall back to the legacy layout.
+        BCAppsAssetPath := GetInetRoot() + '\App\BCApps\src' + RelativePath;
+        if FileManagement.ServerFileExists(BCAppsAssetPath) then
+            exit(BCAppsAssetPath);
+        exit(GetInetRoot() + RelativePath);
+    end;
+
     local procedure GetSignOfVATEntry(DocType: Enum "Gen. Journal Document Type"): Integer
     var
         VATEntry: Record "VAT Entry";
@@ -1067,7 +1080,7 @@ codeunit 143006 "Library - SII"
         XMLDoc.Save(XmlStream);
         XmlFile.Close();
 
-        XsdPath := GetInetRoot() + '\GDL\ES\App\Test\SIIxmlschema\SuministroLR.xsd';
+        XsdPath := ResolveTestAssetPath('\GDL\ES\App\Test\SIIxmlschema\SuministroLR.xsd');
         Assert.IsTrue(LibraryVerifyXMLSchema.VerifyXMLAgainstSchema(XmlPath, XsdPath, Message), Message);
     end;
 

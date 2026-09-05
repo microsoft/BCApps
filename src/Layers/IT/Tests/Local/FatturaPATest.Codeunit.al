@@ -63,6 +63,7 @@ codeunit 144200 "FatturaPA Test"
         SignatureXSDRelativePathTxt: Label '\GDL\IT\App\Test\XMLSchemas\xmldsig-core-schema.xsd', Locked = true;
         XSDRelativePathTxt: Label '\GDL\IT\App\Test\XMLSchemas\FatturaPA_1_2.xsd', Locked = true;
         InetRootRelativePathTxt: Label '..\', Locked = true;
+        BCAppsRelativePathTxt: Label '\App\BCApps\src', Locked = true;
         DescriptionTxt: Label 'Description Text';
 
     [Test]
@@ -2914,6 +2915,8 @@ codeunit 144200 "FatturaPA Test"
         InetRoot: Text;
     BEGIN
         InetRoot := LibraryUtilityOnPrem.GetInetRoot() + InetRootRelativePathTxt;
+        if FileManagement.ServerFileExists(InetRoot + BCAppsRelativePathTxt + XSDRelativePathTxt) then
+            InetRoot := InetRoot + BCAppsRelativePathTxt;
         SignatureXsdPath := InetRoot + SignatureXSDRelativePathTxt;
         XsdPath := InetRoot + XSDRelativePathTxt;
         LibraryVerifyXMLSchema.SetAdditionalSchemaPath(SignatureXsdPath);
