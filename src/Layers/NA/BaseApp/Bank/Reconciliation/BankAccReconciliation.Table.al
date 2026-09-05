@@ -413,8 +413,8 @@ table 273 "Bank Acc. Reconciliation"
         /// </summary>
         field(51; "Allow Duplicated Transactions"; Boolean)
         {
-            Caption = 'Allow Duplicated Transactions';
-            ToolTip = 'Specifies whether to allow bank account reconciliation lines to have the same transaction ID. Although itâ€™s rare, this is useful when your bank statement file contains transactions with duplicate IDs. Most businesses leave this toggle turned off.';
+            Caption = 'Import Duplicated Transactions';
+            ToolTip = 'Specifies whether to allow bank account reconciliation lines to have the same transaction ID.';
         }
         /// <summary>
         /// Dimension set identifier linking this reconciliation to its dimension values.

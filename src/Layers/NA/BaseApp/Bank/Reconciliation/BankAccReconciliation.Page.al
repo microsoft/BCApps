@@ -82,6 +82,12 @@ page 379 "Bank Acc. Reconciliation"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Statement Ending Balance';
                 }
+                field(AllowDuplicatedTransactions; Rec."Allow Duplicated Transactions")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Import Duplicated Transactions';
+                    Visible = false;
+                }
             }
             group(Control8)
             {
