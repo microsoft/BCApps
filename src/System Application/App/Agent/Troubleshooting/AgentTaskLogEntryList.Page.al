@@ -6,7 +6,6 @@
 namespace System.Agents.Troubleshooting;
 
 using System.Agents;
-
 page 4303 "Agent Task Log Entry List"
 {
     PageType = List;
@@ -150,6 +149,9 @@ page 4303 "Agent Task Log Entry List"
             actionref(Refresh_Promoted; Refresh)
             {
             }
+            actionref(Export_Promoted; Export)
+            {
+            }
             actionref(Feedback_Promoted; Feedback)
             {
             }
@@ -201,6 +203,23 @@ page 4303 "Agent Task Log Entry List"
                     Page.Run(Page::"Agent Task Log Entry", Rec);
                 end;
             }
+            action(Export)
+            {
+                ApplicationArea = All;
+                Caption = 'Export selected';
+                ToolTip = 'Download the selected log entries and their troubleshooting details as a JSON file.';
+                Image = ExportFile;
+                Scope = Repeater;
+
+                trigger OnAction()
+                var
+                    SelectedAgentTaskLogEntry: Record "Agent Task Log Entry";
+                    AgentTaskLogExport: Codeunit "Agent Task Log Export";
+                begin
+                    CurrPage.SetSelectionFilter(SelectedAgentTaskLogEntry);
+                    AgentTaskLogExport.ExportToJsonFile(SelectedAgentTaskLogEntry, GetExportAgentName(SelectedAgentTaskLogEntry));
+                end;
+            }
         }
     }
 
@@ -235,9 +254,32 @@ page 4303 "Agent Task Log Entry List"
             IsFeedbackActionEnabled := false
     end;
 
+    local procedure GetExportAgentName(var SelectedAgentTaskLogEntry: Record "Agent Task Log Entry"): Text
+    var
+        AgentTaskLogEntryRecord: Record "Agent Task Log Entry";
+        AgentTaskLogEntry: Codeunit "Agent Task Log Entry";
+        AgentName: Text;
+        CurrentAgentName: Text;
+    begin
+        AgentTaskLogEntryRecord.Copy(SelectedAgentTaskLogEntry);
+        if not AgentTaskLogEntryRecord.FindSet() then
+            exit(UnknownAgentTok);
+
+        AgentName := AgentTaskLogEntry.GetAgentName(AgentTaskLogEntryRecord);
+        repeat
+            CurrentAgentName := AgentTaskLogEntry.GetAgentName(AgentTaskLogEntryRecord);
+            if CurrentAgentName <> AgentName then
+                exit(MultipleAgentsTok);
+        until AgentTaskLogEntryRecord.Next() = 0;
+
+        exit(AgentName);
+    end;
+
     var
         AIGeneratedContentDisclaimerLbl: Label 'AI-generated content may be incorrect.';
         IsFeedbackActionEnabled: Boolean;
         DetailsTxt: Text;
         TypeStyle: Text;
+        UnknownAgentTok: Label 'UnknownAgent', Locked = true;
+        MultipleAgentsTok: Label 'MultipleAgents', Locked = true;
 }

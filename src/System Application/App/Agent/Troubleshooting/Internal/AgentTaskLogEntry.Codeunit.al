@@ -7,6 +7,7 @@ namespace System.Agents.Troubleshooting;
 
 using System.Agents;
 using System.Environment;
+using System.Security.AccessControl;
 using System.Text.Json;
 
 codeunit 4314 "Agent Task Log Entry"
@@ -42,7 +43,6 @@ codeunit 4314 "Agent Task Log Entry"
         for Index := 0 to Count - 1 do begin
             StackArray.Get(Count - index - 1, JsonText);
             if JsonText.AsValue().IsNull() then
-                // Skip null values, nothing to show
                 continue;
 
             PageStacksRecords.Id := index + 1;
@@ -95,6 +95,9 @@ codeunit 4314 "Agent Task Log Entry"
     var
         ContentInStream: InStream;
     begin
+        if Entry."Task ID" = 0 then
+            exit;
+
 #pragma warning disable AL0432
         Entry.CalcFields(Entry.Context);
         Entry.Context.CreateInStream(ContentInStream, GetDefaultEncoding());
@@ -106,6 +109,9 @@ codeunit 4314 "Agent Task Log Entry"
     var
         ContentInStream: InStream;
     begin
+        if Entry.ID = 0 then
+            exit;
+
         Entry.CalcFields(Entry."Troubleshooting Info");
         Entry."Troubleshooting Info".CreateInStream(ContentInStream, GetDefaultEncoding());
         ContentInStream.ReadText(ContextTxt);
@@ -114,6 +120,59 @@ codeunit 4314 "Agent Task Log Entry"
     procedure GetDefaultEncoding(): TextEncoding
     begin
         exit(TextEncoding::UTF8);
+    end;
+
+    procedure IsAgentAction(AgentTaskLogEntry: Record "Agent Task Log Entry"): Boolean
+    var
+        User: Record User;
+    begin
+        case AgentTaskLogEntry.Type of
+            AgentTaskLogEntry.Type::"Input Message",
+            AgentTaskLogEntry.Type::Resume,
+            AgentTaskLogEntry.Type::"User Intervention":
+                exit(false);
+            AgentTaskLogEntry.Type::"Page Operation",
+            AgentTaskLogEntry.Type::"Output Message",
+            AgentTaskLogEntry.Type::"Output Message Draft",
+            AgentTaskLogEntry.Type::"User Intervention Request":
+                exit(true);
+            AgentTaskLogEntry.Type::Stop:
+                exit(User.Get(AgentTaskLogEntry."User Security ID") and (User."License Type" = User."License Type"::Agent));
+        end;
+
+        exit(false);
+    end;
+
+    procedure GetAgentName(AgentTaskLogEntry: Record "Agent Task Log Entry"): Text
+    var
+        Agent: Record Agent;
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        if AgentTaskImpl.TryGetAgentRecordFromTaskId(AgentTaskLogEntry."Task ID", Agent) then
+            exit(Agent."Display Name");
+
+        exit('');
+    end;
+
+    procedure GetSuccess(MemoryEntryDetailsTxt: Text; var Success: Boolean): Boolean
+    var
+        Root: JsonObject;
+    begin
+        if not Root.ReadFrom(MemoryEntryDetailsTxt) then
+            exit(false);
+        if not Root.Contains(SuccessLbl) then
+            exit(false);
+
+        Success := Root.GetBoolean(SuccessLbl, true);
+        exit(true);
+    end;
+
+    procedure GetDecisionPoint(ContextRoot: JsonObject): Boolean
+    begin
+        if ContextRoot.Contains(IsDecisionPointLbl) then
+            exit(ContextRoot.GetBoolean(IsDecisionPointLbl, true));
+
+        exit(false);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", OnFeedbackEvent, '', false, false)]
@@ -135,7 +194,6 @@ codeunit 4314 "Agent Task Log Entry"
         if not AgentTaskLogEntryRecord.GetBySystemId(SystemIdGuid) then
             exit;
 
-        // Record is now initialized and can be used for enriching the context
         if not AgentTaskImpl.TryGetAgentRecordFromTaskId(AgentTaskLogEntryRecord."Task ID", AgentRecord) then
             exit;
 
@@ -190,4 +248,6 @@ codeunit 4314 "Agent Task Log Entry"
         MemorizedDataLbl: Label 'memorizedData', Locked = true;
         KeyLbl: Label 'key', Locked = true;
         ValueLbl: Label 'value', Locked = true;
+        SuccessLbl: Label 'success', Locked = true;
+        IsDecisionPointLbl: Label 'isDecisionPoint', Locked = true;
 }
