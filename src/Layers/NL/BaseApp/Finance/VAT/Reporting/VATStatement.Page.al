@@ -53,11 +53,6 @@ page 317 "VAT Statement"
                 {
                     ApplicationArea = Basic, Suite;
                 }
-                field("Elec. Tax Decl. Category Code"; Rec."Elec. Tax Decl. Category Code")
-                {
-                    ApplicationArea = VAT;
-                    ToolTip = 'Specifies the electronic tax declaration category that is used to map the VAT Statement Line data to an XML element in the electronic statement.';
-                }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;

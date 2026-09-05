@@ -18,11 +18,11 @@ codeunit 144032 "ERM Purchase Doc. Amounts"
         LibraryERM: Codeunit "Library - ERM";
         LibraryJournals: Codeunit "Library - Journals";
         LibraryRandom: Codeunit "Library - Random";
-        ValueMustNotEqualMsg: Label 'Value must not be equal';
-        ValueMustEqualMsg: Label 'Value must be equal';
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibrarySmallBusiness: Codeunit "Library - Small Business";
         LibraryCosting: Codeunit "Library - Costing";
+        ValueMustNotEqualMsg: Label 'Value must not be equal';
+        ValueMustEqualMsg: Label 'Value must be equal';
         IsInitialized: Boolean;
         RecipientBankErr: Label 'Recipant Bank Account must be %1 in %2.', Comment = '%1 = Recipant Bank %2=Table Name';
 
@@ -443,7 +443,7 @@ codeunit 144032 "ERM Purchase Doc. Amounts"
         Initialize();
 
         // [GIVEN] Unabled "Check Doc. Total Amounts" in Purchase & Payables Setup
-        UnableCheckDocTotalAmounts();
+        EnableCheckDocTotalAmounts();
 
         if GLEntry.FindLast() then;
 
@@ -479,7 +479,7 @@ codeunit 144032 "ERM Purchase Doc. Amounts"
         Initialize();
 
         // [GIVEN] Unabled "Check Doc. Total Amounts" in Purchase & Payables Setup
-        UnableCheckDocTotalAmounts();
+        EnableCheckDocTotalAmounts();
 
         if GLEntry.FindLast() then;
 
@@ -578,9 +578,15 @@ codeunit 144032 "ERM Purchase Doc. Amounts"
     begin
         LibrarySmallBusiness.CreatePurchaseInvoiceHeader(PurchaseHeader, Vendor);
         LibrarySmallBusiness.CreatePurchaseLine(PurchaseLine, PurchaseHeader, Item, Qty);
+
+        // [GIVEN] Set "Doc. Amount Incl. VAT" and "Doc. Amount VAT" in Purchase Header
+        PurchaseHeader.CalcFields("Amount Including VAT", Amount);
+        PurchaseHeader.Validate("Doc. Amount Incl. VAT", PurchaseHeader."Amount Including VAT");
+        PurchaseHeader.Validate("Doc. Amount VAT", PurchaseHeader."Amount Including VAT" - PurchaseHeader.Amount);
+        PurchaseHeader.Modify();
     end;
 
-    local procedure UnableCheckDocTotalAmounts()
+    local procedure EnableCheckDocTotalAmounts()
     var
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
     begin

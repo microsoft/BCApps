@@ -1927,6 +1927,7 @@ codeunit 426 "Payment Tolerance Management"
             (DocumentType = DocumentType::"Credit Memo"))
         then
             PositiveFilter := true;
+
         exit(PositiveFilter);
     end;
 
@@ -1937,6 +1938,7 @@ codeunit 426 "Payment Tolerance Management"
             (DocumentType = DocumentType::"Credit Memo"))
         then
             PositiveFilter := true;
+
         exit(PositiveFilter);
     end;
 
