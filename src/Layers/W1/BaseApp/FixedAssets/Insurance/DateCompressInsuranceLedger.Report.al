@@ -14,6 +14,7 @@ using System.Utilities;
 report 5697 "Date Compress Insurance Ledger"
 {
     Caption = 'Date Compress Insurance Ledger';
+    ToolTip = 'Save database space by combining related entries in one new entry. You can compress entries from closed fiscal years only.';
     Permissions = TableData "Date Compr. Register" = rimd,
                   TableData "Dimension Set ID Filter Line" = rimd,
                   TableData "Ins. Coverage Ledger Entry" = rimd,

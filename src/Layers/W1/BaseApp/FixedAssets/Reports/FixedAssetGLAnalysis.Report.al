@@ -13,6 +13,7 @@ report 5610 "Fixed Asset - G/L Analysis"
 {
     ApplicationArea = FixedAssets;
     Caption = 'Fixed Asset G/L Analysis';
+    ToolTip = 'View an analysis of your fixed assets with various types of data for individual fixed assets and/or groups of fixed assets.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

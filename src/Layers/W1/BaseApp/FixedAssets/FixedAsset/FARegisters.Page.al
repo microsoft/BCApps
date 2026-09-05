@@ -133,7 +133,6 @@ page 5627 "FA Registers"
                 Caption = 'Delete Empty Registers';
                 Image = Delete;
                 RunObject = Report "Delete Empty FA Registers";
-                ToolTip = 'Find and delete empty FA registers.';
             }
         }
         area(Promoted)
