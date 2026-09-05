@@ -11,36 +11,7 @@ param(
 # Set error action
 $ErrorActionPreference = "Stop"
 
-<#
-    .Synopsis
-    Validates that the pull request description contains a line that links the pull request to an ADO workitem.
-    .Parameter ADOWorkItems
-    The IDs of the ADO workitems linked to the pull request.
-    .Parameter PullRequest
-    The pull request to validate.
-#>
-function Test-ADOWorkItemIsLinked() {
-    param(
-        [Parameter(Mandatory = $false)]
-        [string[]] $ADOWorkItems,
-        [Parameter(Mandatory = $false)]
-        [object] $PullRequest
-    )
-
-    $Comment = "Could not find a linked ADO work item. Please link one by using the pattern 'AB#' followed by the relevant work item number. You may use the 'Fixes' keyword to automatically resolve the work item when the pull request is merged. E.g. 'Fixes AB#1234'"
-
-    if (-not $ADOWorkItems) {
-        # If the pull request is not from a fork, add a comment to the pull request
-        if (-not $PullRequest.IsFromFork()) {
-            $PullRequest.AddComment($Comment)
-        }
-
-        # Throw an error if there is no linked ADO workitem
-        throw $Comment
-    }
-
-    $PullRequest.RemoveComment($Comment)
-}
+Import-Module (Join-Path $PSScriptRoot "WorkItemValidation.psm1") -Force
 
 Write-Host "Validating PR $PullRequestNumber"
 
@@ -51,7 +22,19 @@ if (-not $pullRequest) {
 
 $adoWorkItems = $pullRequest.GetLinkedADOWorkItemIDs()
 
-# Validate that all pull requests links to an ADO workitem
-Test-ADOWorkItemIsLinked -ADOWorkItems $adoWorkItems -PullRequest $PullRequest
+# When there is no ADO work item, resolve the linked GitHub issues so the GitHub Task exemption can be evaluated.
+# A pull request linked to a GitHub issue of type 'Task' is sufficiently tracked and does not require an ADO work item.
+$linkedIssues = @()
+if (-not $adoWorkItems) {
+    foreach ($issueId in $pullRequest.GetLinkedIssueIDs()) {
+        $issue = [GitHubIssue]::Get($issueId, $Repository)
+        if ($issue) {
+            $linkedIssues += $issue
+        }
+    }
+}
+
+# Validate that the pull request is tracked by an ADO work item or an exempt GitHub Task issue.
+Test-PullRequestHasWorkItem -ADOWorkItems $adoWorkItems -PullRequest $pullRequest -LinkedIssues $linkedIssues
 
 Write-Host "PR $PullRequestNumber validated successfully" -ForegroundColor Green
