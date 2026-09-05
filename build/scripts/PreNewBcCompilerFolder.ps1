@@ -3,14 +3,10 @@ Param(
 )
 
 Import-Module (Join-Path $PSScriptRoot 'PlatformHelper.psm1') -Force
-Import-Module (Join-Path $PSScriptRoot 'EnlistmentHelperFunctions.psm1') -Force
 
-$platformVersion = (Get-ConfigValue -Key "BCPlatform" -ConfigType Packages).Version
-if ($platformVersion) {
-    Write-Host "Platform version specified: $platformVersion"
-    $platformVersion = Resolve-PlatformVersion -Version $platformVersion
-    $platformUrl = Get-PlatformVersionUrl -Version $platformVersion
-    $parameters.platformArtifactUrl = "$platformUrl/platform"
+$platformArtifactUrl = Get-BCPlatformArtifactUrl
+if ($platformArtifactUrl) {
+    $parameters.platformArtifactUrl = $platformArtifactUrl
 
     Write-Host "Platform artifact URL set to: $($parameters.platformArtifactUrl)"
 }
