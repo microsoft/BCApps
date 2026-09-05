@@ -3,7 +3,6 @@ namespace Microsoft.AccountantPortal;
 using System;
 using System.Azure.Identity;
 using System.Environment.Configuration;
-using System.Integration;
 using System.Text;
 using System.Utilities;
 
@@ -40,11 +39,15 @@ codeunit 9033 "Invite External Accountant"
         InviteExternalAccountantTelemetryCreateNewUserSuccessTxt: Label 'Invite External Accountant wizard successfully created a new user.', Locked = true;
         InviteExternalAccountantTelemetryCreateNewUserFailedTxt: Label 'Invite External Accountant wizard was unable to create a new user.', Locked = true;
         InviteExternalAccountantWizardFailedTxt: Label 'Invite External Accountant wizard has failed on step %1, ErrorMessage %2.', Locked = true;
-        InvokeWebRequestFailedTxt: Label 'Invoking web request has failed. Status %1, Message %2', Locked = true;
+        InvokeWebRequestFailedTxt: Label 'Invoking web request has failed. Status %1.', Locked = true;
         InvokeWebRequestFailedDetailedTxt: Label 'Invoking web request has failed. Status %1, Message %2, Response Details %3', Locked = true;
+        InvokeWebRequestSendFailedTxt: Label 'Invoking web request has failed. The HTTP request could not be sent.', Locked = true;
+        InvokeWebRequestSendFailedDetailedTxt: Label 'Invoking web request has failed. The HTTP request could not be sent. See custom dimensions for error details.', Locked = true;
         InsufficientDataReturnedFromInvitationsApiTxt: Label 'Insufficient information was returned when inviting the user. Please contact your administrator.';
         WidsClaimNameTok: Label 'WIDS', Locked = true;
         ExternalAccountantLicenseAvailabilityErr: Label 'Failed to determine if an External Accountant license is available. Please try again later.';
+        BearerTokenTemplateTxt: Label 'Bearer %1', Locked = true;
+        RequestFailedNoDetailsErr: Label 'The request to the remote service failed and no further details were returned. Please try again later or contact your administrator.';
 
     [Scope('OnPrem')]
     procedure InvokeInvitationsRequest(DisplayName: Text; EmailAddress: Text; WebClientUrl: Text; var InvitedUserId: Guid; var InviteReedemUrl: Text; var ErrorMessage: Text): Boolean
@@ -277,40 +280,65 @@ codeunit 9033 "Invite External Accountant"
         exit(InvokeRequest(Url, Verb, Body, UrlHelper.GetGraphUrl(), ResponseContent));
     end;
 
+    [NonDebuggable]
     local procedure InvokeRequest(Url: Text; Verb: Text; Body: Text; AuthResourceUrl: Text; var ResponseContent: Text): Boolean
     var
         AzureADMgt: Codeunit "Azure AD Mgt.";
         AzureADTenant: Codeunit "Azure AD Tenant";
-        HttpWebRequestMgt: Codeunit "Http Web Request Mgt.";
-        HttpStatusCode: DotNet HttpStatusCode;
-        ResponseHeaders: DotNet NameValueCollection;
-        ResponseErrorMessage: Text;
-        ResponseErrorDetails: Text;
-        AccessToken: Text;
+        HttpClient: HttpClient;
+        HttpRequestMessage: HttpRequestMessage;
+        HttpResponseMessage: HttpResponseMessage;
+        HttpContent: HttpContent;
+        HttpHeaders: HttpHeaders;
+        AccessTokenSecret: SecretText;
     begin
-        AccessToken := AzureADMgt.GetGuestAccessToken(AuthResourceUrl, AzureADTenant.GetAadTenantId());
+        AccessTokenSecret := AzureADMgt.GetGuestAccessToken(AuthResourceUrl, AzureADTenant.GetAadTenantId());
 
-        if AccessToken = '' then
+        if AccessTokenSecret.IsEmpty() then
             Error(ErrorAcquiringTokenErr);
 
-        HttpWebRequestMgt.Initialize(Url);
-        HttpWebRequestMgt.DisableUI();
-        HttpWebRequestMgt.SetReturnType('application/json');
-        HttpWebRequestMgt.SetContentType('application/json');
-        HttpWebRequestMgt.SetMethod(Verb);
-        HttpWebRequestMgt.AddHeader('Authorization', 'Bearer ' + AccessToken);
-        if Verb <> 'GET' then
-            HttpWebRequestMgt.AddBodyAsText(Body);
+        HttpRequestMessage.Method(Verb);
+        HttpRequestMessage.SetRequestUri(Url);
+        HttpRequestMessage.GetHeaders(HttpHeaders);
+        HttpHeaders.Add('Authorization', SecretStrSubstNo(BearerTokenTemplateTxt, AccessTokenSecret));
+        HttpHeaders.Add('Accept', 'application/json');
+        if Verb <> 'GET' then begin
+            HttpContent.WriteFrom(Body);
+            HttpContent.GetHeaders(HttpHeaders);
+            HttpHeaders.Remove('Content-Type');
+            HttpHeaders.Add('Content-Type', 'application/json');
+            HttpRequestMessage.Content(HttpContent);
+        end;
 
-        if HttpWebRequestMgt.SendRequestAndReadTextResponse(ResponseContent, ResponseErrorMessage, ResponseErrorDetails, HttpStatusCode, ResponseHeaders) then
-            exit(true)
-        else begin
-            Session.LogMessage('0000B3O', StrSubstNo(InvokeWebRequestFailedTxt, HttpStatusCode, ResponseErrorMessage), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', InviteExternalAccountantTelemetryCategoryTxt);
-
-            Session.LogMessage('0000B3P', StrSubstNo(InvokeWebRequestFailedDetailedTxt, HttpStatusCode, ResponseErrorMessage, ResponseErrorDetails), Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', InviteExternalAccountantTelemetryCategoryTxt);
-
+        if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
+            LogInvokeRequestSendFailure(GetLastErrorText());
             exit(false);
         end;
+
+        HttpResponseMessage.Content.ReadAs(ResponseContent);
+        if HttpResponseMessage.IsSuccessStatusCode() then
+            exit(true)
+        else begin
+            LogInvokeRequestFailure(HttpResponseMessage.HttpStatusCode(), HttpResponseMessage.ReasonPhrase(), ResponseContent);
+            exit(false);
+        end;
+    end;
+
+    local procedure LogInvokeRequestSendFailure(ErrorText: Text)
+    var
+        CustomDimensions: Dictionary of [Text, Text];
+    begin
+        Session.LogMessage('', InvokeWebRequestSendFailedTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', InviteExternalAccountantTelemetryCategoryTxt);
+
+        CustomDimensions.Add('Category', InviteExternalAccountantTelemetryCategoryTxt);
+        CustomDimensions.Add('ErrorText', ErrorText);
+        Session.LogMessage('', InvokeWebRequestSendFailedDetailedTxt, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, CustomDimensions);
+    end;
+
+    local procedure LogInvokeRequestFailure(HttpStatusCode: Integer; ResponseErrorMessage: Text; ResponseErrorDetails: Text)
+    begin
+        Session.LogMessage('0000B3O', StrSubstNo(InvokeWebRequestFailedTxt, HttpStatusCode), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', InviteExternalAccountantTelemetryCategoryTxt);
+        Session.LogMessage('0000B3P', StrSubstNo(InvokeWebRequestFailedDetailedTxt, HttpStatusCode, ResponseErrorMessage, ResponseErrorDetails), Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', InviteExternalAccountantTelemetryCategoryTxt);
     end;
 
     local procedure GetMessageFromErrorJSON(ResponseContent: Text): Text
@@ -328,7 +356,10 @@ codeunit 9033 "Invite External Accountant"
             JSONManagement.GetStringPropertyValueFromJObjectByName(JsonObject, MessageTxt, MessageValue);
         end;
 
-        exit(MessageValue);
+        if MessageValue <> '' then
+            exit(MessageValue);
+
+        exit(RequestFailedNoDetailsErr);
     end;
 
     local procedure GetGraphInvitationsUrl(): Text
@@ -399,4 +430,3 @@ codeunit 9033 "Invite External Accountant"
         // This event is called when the invitation process tries to create a user.
     end;
 }
-
