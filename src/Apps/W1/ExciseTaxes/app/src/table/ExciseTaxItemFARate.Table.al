@@ -67,6 +67,22 @@ table 7413 "Excise Tax Item/FA Rate"
         {
             Caption = 'Description';
         }
+        field(8; "Calculation Type"; Enum "Excise Duty Calculation Type")
+        {
+            Caption = 'Calculation Type';
+
+            trigger OnValidate()
+            begin
+                if "Calculation Type" = "Calculation Type"::Specific then
+                    "Ad Valorem %" := 0;
+            end;
+        }
+        field(9; "Ad Valorem %"; Decimal)
+        {
+            Caption = 'Ad Valorem %';
+            DecimalPlaces = 2 : 5;
+            MinValue = 0;
+        }
     }
 
     keys
