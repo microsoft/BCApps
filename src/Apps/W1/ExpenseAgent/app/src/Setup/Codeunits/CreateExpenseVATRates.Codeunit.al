@@ -118,8 +118,8 @@ codeunit 6975 "Create Expense VAT Rates"
     begin
         GLAccount.SetRange(Name, GetExpenseVATAccountName(VATPercent));
         GLAccount.SetRange("Account Type", GLAccount."Account Type"::Posting);
-        GLAccount.FindFirst();
-        exit(GLAccount."No.");
+        if GLAccount.FindFirst() then
+            exit(GLAccount."No.");
     end;
 
     internal procedure GetExpenseVATAccountName(VATPercent: Decimal): Text[100]
@@ -148,11 +148,12 @@ codeunit 6975 "Create Expense VAT Rates"
             VATPostingSetup.Init();
             VATPostingSetup.Validate("VAT Bus. Posting Group", ExpenseAgentSetup."Default VAT Bus. Posting Group");
             VATPostingSetup.Validate("VAT Prod. Posting Group", VATProdPostingGroup);
-            VATPostingSetup.Validate("Purchase VAT Account", PurchaseVATAccountNo);
+            if PurchaseVATAccountNo <> '' then
+                VATPostingSetup.Validate("Purchase VAT Account", PurchaseVATAccountNo);
             VATPostingSetup."VAT %" := VATPercent;
             VATPostingSetup.Insert();
         end else
-            if VATPostingSetup."Purchase VAT Account" <> PurchaseVATAccountNo then begin
+            if (PurchaseVATAccountNo <> '') and (VATPostingSetup."Purchase VAT Account" <> PurchaseVATAccountNo) then begin
                 VATPostingSetup.Validate("Purchase VAT Account", PurchaseVATAccountNo);
                 VATPostingSetup.Modify();
             end;
