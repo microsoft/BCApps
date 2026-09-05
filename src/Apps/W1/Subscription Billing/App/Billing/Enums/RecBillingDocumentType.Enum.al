@@ -2,7 +2,7 @@ namespace Microsoft.SubscriptionBilling;
 
 enum 8054 "Rec. Billing Document Type"
 {
-    Extensible = false;
+    Extensible = true;
     value(0; None)
     {
         Caption = ' ', Locked = true;
