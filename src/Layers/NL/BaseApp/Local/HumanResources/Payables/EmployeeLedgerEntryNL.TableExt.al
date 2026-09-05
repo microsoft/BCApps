@@ -52,7 +52,7 @@ tableextension 11362 "Employee Ledger Entry NL" extends "Employee Ledger Entry"
 
     keys
     {
-        key(TransactionMode; "Transaction Mode Code")
+        key(TransactionMode; Open, "Transaction Mode Code")
         {
         }
     }
