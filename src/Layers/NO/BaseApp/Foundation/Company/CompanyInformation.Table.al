@@ -443,6 +443,11 @@ table 79 "Company Information"
             Caption = 'Demo Company';
             Editable = false;
         }
+        field(101; "Use Today as a Workdate"; Boolean)
+        {
+            Caption = 'Use Today as a Workdate';
+            ToolTip = 'Specifies that today is used as the work date instead of the latest G/L entry posting date.';
+        }
         field(200; "Alternative Language Code"; Code[10])
         {
             Caption = 'Alternative Language Code';

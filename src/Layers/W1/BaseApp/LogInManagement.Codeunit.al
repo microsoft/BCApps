@@ -194,10 +194,15 @@ codeunit 40 LogInManagement
     [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Entry", 'r')]
     procedure GetDefaultWorkDate(): Date
     var
+        CompanyInformation: Record "Company Information";
         GLEntry: Record "G/L Entry";
         CompanyInformationMgt: Codeunit "Company Information Mgt.";
     begin
-        if CompanyInformationMgt.IsDemoCompany() then begin
+        CompanyInformation.SetLoadFields("Demo Company", "Use Today as a Workdate");
+        if CompanyInformationMgt.IsDemoCompany(CompanyInformation) then begin
+            if CompanyInformation."Use Today as a Workdate" then
+                exit(Today);
+
             GLEntry.SetCurrentKey("Posting Date");
             GLEntry.SecurityFiltering(SecurityFilter::Ignored);
             if GLEntry.FindLast() then begin
