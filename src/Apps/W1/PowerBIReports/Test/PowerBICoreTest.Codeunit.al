@@ -831,4 +831,30 @@ codeunit 139875 "PowerBI Core Test"
         Assert.AreEqual('', ActualFilterTxt, 'The expected & actual filter text did not match.');
     end;
 
+    [Test]
+    procedure OpenPageCreatesSingletonWhenOnlyNonBlankKeyRowExists()
+    var
+        PBISetup: Record "PowerBI Reports Setup";
+        PowerBIReportsSetup: TestPage "PowerBI Reports Setup";
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 646832] Opening the PowerBI Reports Setup page creates the blank-key singleton even when a non-blank-key row already exists.
+        // [GIVEN] All PowerBI Reports Setup rows are deleted and only a non-blank-key row exists
+        AssignAdminPermissionSet();
+        PBISetup.DeleteAll();
+        PBISetup.Init();
+        PBISetup."Entry No." := 'X';
+        PBISetup.Insert();
+
+        // [THEN] The blank-key singleton does not yet exist
+        Assert.IsFalse(PBISetup.Get(''), 'Blank-key singleton must not exist before page open.');
+
+        // [WHEN] The PowerBI Reports Setup page is opened (triggers OnOpenPage)
+        PowerBIReportsSetup.OpenEdit();
+        PowerBIReportsSetup.Close();
+
+        // [THEN] The blank-key singleton must now exist
+        Assert.IsTrue(PBISetup.Get(''), 'Blank-key singleton must exist after page open.');
+    end;
+
 }
