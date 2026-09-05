@@ -10,6 +10,7 @@ using Microsoft.Warehouse.Journal;
 
 codeunit 932 "Asm. Whse. Activity Post"
 {
+    SingleInstance = true;
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Post", 'OnUpdateSourceDocumentOnBeforeSalesLineModify', '', false, false)]
     local procedure OnUpdateSourceDocumentOnBeforeSalesLineModify(WarehouseActivityLine: Record "Warehouse Activity Line")
     var

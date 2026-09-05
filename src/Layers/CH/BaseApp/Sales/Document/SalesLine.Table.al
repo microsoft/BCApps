@@ -8749,7 +8749,6 @@ table 37 "Sales Line"
     var
         IsHandled: Boolean;
     begin
-
         IsHandled := false;
         OnBeforeUpdateQtyToAsmFromSalesLineQtyToShip(Rec, IsHandled);
         if IsHandled then
