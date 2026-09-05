@@ -617,12 +617,16 @@ codeunit 6610 "FS Int. Table Subscriber"
     end;
 
     internal procedure UpdateQuantities(var FSWorkOrderService: Record "FS Work Order Service"; var ServiceLine: Record "Service Line"; ToFieldService: Boolean)
+    var
+        UOMMgt: Codeunit "Unit of Measure Management";
+        RoundedMaxQuantity: Decimal;
+        RoundedDurationToBill: Decimal;
     begin
         if FSWorkOrderService.LineStatus = FSWorkOrderService.LineStatus::Estimated then begin
             if ToFieldService then
                 FSWorkOrderService.EstimateDuration := ServiceLine.Quantity * 60
             else
-                ServiceLine.Validate(Quantity, FSWorkOrderService.EstimateDuration / 60);
+                ServiceLine.Validate(Quantity, UOMMgt.RoundQty(FSWorkOrderService.EstimateDuration / 60, ServiceLine."Qty. Rounding Precision"));
 
             ServiceLine.Validate("Qty. to Ship", 0);
             ServiceLine.Validate("Qty. to Invoice", 0);
@@ -631,17 +635,21 @@ codeunit 6610 "FS Int. Table Subscriber"
             if ToFieldService then
                 ServiceLine.Modify(true);
         end else begin
-            ServiceLine.Validate(Quantity, GetMaxQuantity(FSWorkOrderService.Duration, FSWorkOrderService.DurationToBill) / 60);
-            ServiceLine.Validate("Qty. to Ship", GetMaxQuantity(FSWorkOrderService.Duration, FSWorkOrderService.DurationToBill) / 60 - ServiceLine."Quantity Shipped");
-            ServiceLine.Validate("Qty. to Invoice", FSWorkOrderService.DurationToBill / 60 - ServiceLine."Quantity Invoiced");
+            RoundedMaxQuantity := UOMMgt.RoundQty(GetMaxQuantity(FSWorkOrderService.Duration, FSWorkOrderService.DurationToBill) / 60, ServiceLine."Qty. Rounding Precision");
+            RoundedDurationToBill := UOMMgt.RoundQty(FSWorkOrderService.DurationToBill / 60, ServiceLine."Qty. Rounding Precision");
+            ServiceLine.Validate(Quantity, RoundedMaxQuantity);
+            ServiceLine.Validate("Qty. to Ship", RoundedMaxQuantity - ServiceLine."Quantity Shipped");
+            ServiceLine.Validate("Qty. to Invoice", RoundedDurationToBill - ServiceLine."Quantity Invoiced");
         end;
     end;
 
     internal procedure UpdateQuantities(FSBookableResourceBooking: Record "FS Bookable Resource Booking"; var ServiceLine: Record "Service Line")
+    var
+        UOMMgt: Codeunit "Unit of Measure Management";
     begin
         if ServiceLine."Qty. to Consume" <> 0 then
             ServiceLine.Validate("Qty. to Consume", 0);
-        ServiceLine.Validate(Quantity, FSBookableResourceBooking.Duration / 60);
+        ServiceLine.Validate(Quantity, UOMMgt.RoundQty(FSBookableResourceBooking.Duration / 60, ServiceLine."Qty. Rounding Precision"));
         ServiceLine.Validate("Qty. to Consume", ServiceLine.Quantity - ServiceLine."Quantity Consumed");
     end;
 
