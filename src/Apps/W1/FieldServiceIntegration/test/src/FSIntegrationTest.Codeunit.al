@@ -23,7 +23,6 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Service.Archive;
 using Microsoft.Service.Document;
-using Microsoft.Service.Item;
 using Microsoft.Service.Setup;
 using Microsoft.Service.Test;
 using Microsoft.TestLibraries.DynamicsFieldService;

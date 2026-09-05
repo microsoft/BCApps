@@ -2704,6 +2704,41 @@ codeunit 6610 "FS Int. Table Subscriber"
                 IgnoreRecord := true;
     end;
 
+    [Obsolete('Service items are always synchronized to Field Service customer assets. The Convert to Customer Asset flag is no longer used for filtering', '30.0')]
+    internal procedure IgnoreServiceItemsByConvertToCustomerAssetFlag(SourceRecordRef: RecordRef; var IgnoreRecord: Boolean)
+    var
+        FSConnectionSetup: Record "FS Connection Setup";
+        ServiceItem: Record "Service Item";
+        Item: Record Item;
+        CRMIntegrationRecord: Record "CRM Integration Record";
+        CRMProduct: Record "CRM Product";
+    begin
+        if not FSConnectionSetup.IsEnabled() then
+            exit;
+
+        if IgnoreRecord then
+            exit;
+
+        SourceRecordRef.SetTable(ServiceItem);
+        if ServiceItem."Item No." = '' then
+            exit;
+
+        if CRMIntegrationRecord.FindByRecordID(ServiceItem.RecordId) then
+            exit;
+
+        if not Item.Get(ServiceItem."Item No.") then
+            exit;
+
+        if not CRMIntegrationRecord.FindByRecordID(Item.RecordId) then
+            exit;
+
+        if not CRMProduct.Get(CRMIntegrationRecord."CRM ID") then
+            exit;
+
+        if not CRMProduct.ConvertToCustomerAsset then
+            IgnoreRecord := true;
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Integration Table Synch.", 'OnAfterInitSynchJob', '', true, true)]
     local procedure LogTelemetryOnAfterInitSynchJob(ConnectionType: TableConnectionType; IntegrationTableID: Integer)
     var
