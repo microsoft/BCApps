@@ -45,8 +45,8 @@ codeunit 5293 "Create Bank Acc. Posting Grp"
     end;
 
     var
-        CashTok: Label 'CASH', MaxLength = 20;
-        CheckingTok: Label 'CHECKING', MaxLength = 20;
-        OperatingTok: Label 'OPERATING', MaxLength = 20;
-        SavingsTok: Label 'SAVINGS', MaxLength = 20;
+        CashTok: Label 'CASH', MaxLength = 20, Locked = true;
+        CheckingTok: Label 'CHECKING', MaxLength = 20, Locked = true;
+        OperatingTok: Label 'OPERATING', MaxLength = 20, Locked = true;
+        SavingsTok: Label 'SAVINGS', MaxLength = 20, Locked = true;
 }

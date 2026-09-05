@@ -19,10 +19,12 @@ table 5169 "Contoso Module Dependency"
     {
         field(1; Name; Enum "Contoso Demo Data Module")
         {
+            DataClassification = SystemMetadata;
             TableRelation = "Contoso Demo Data Module";
         }
         field(2; DependsOn; Enum "Contoso Demo Data Module")
         {
+            DataClassification = SystemMetadata;
             TableRelation = "Contoso Demo Data Module";
         }
     }
