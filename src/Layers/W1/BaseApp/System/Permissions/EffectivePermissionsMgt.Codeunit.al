@@ -297,12 +297,13 @@ codeunit 9852 "Effective Permissions Mgt."
         ExpandedPermission: Record "Expanded Permission";
         PermissionSetBuffer: Record "Permission Set Buffer";
         AssignedRead, AssignedInsert, AssignedModify, AssignedDelete, AssignedExecute : Integer;
+        ExpandedPermissionFound: Boolean;
+        PermissionBufferFilledFromSpecificPermission: Boolean;
     begin
         PermissionBuffer.Reset();
         PermissionBuffer.DeleteAll();
 
         ExpandedPermission.SetRange("Object Type", PassedObjectType);
-        ExpandedPermission.SetFilter("Object ID", '%1|%2', 0, PassedObjectId);
 
         // find permissions from all permission sets for this user
         AccessControl.SetFilter("User Security ID", GetAccessControlFilterForUser(PassedUserID));
@@ -327,8 +328,25 @@ codeunit 9852 "Effective Permissions Mgt."
 
                     ExpandedPermission.SetRange("App ID", AccessControl."App ID");
                     ExpandedPermission.SetRange("Role ID", AccessControl."Role ID");
-                    if ExpandedPermission.FindFirst() then begin
-                        FillPermissionBufferFromExpandedPermission(PermissionBuffer, ExpandedPermission);
+
+                    // Specific object permissions override wildcard permissions, even when the wildcard has already
+                    // been expanded to the requested object in Expanded Permission.
+                    PermissionBufferFilledFromSpecificPermission := false;
+                    ExpandedPermissionFound := TryFillPermissionBufferFromSpecificPermission(
+                        PermissionBuffer, AccessControl, PassedObjectType, PassedObjectId);
+                    PermissionBufferFilledFromSpecificPermission := ExpandedPermissionFound;
+                    if not ExpandedPermissionFound then begin
+                        ExpandedPermission.SetRange("Object ID", PassedObjectId);
+                        ExpandedPermissionFound := ExpandedPermission.FindFirst();
+                    end;
+                    if not ExpandedPermissionFound then begin
+                        ExpandedPermission.SetRange("Object ID", 0);
+                        ExpandedPermissionFound := ExpandedPermission.FindFirst();
+                    end;
+
+                    if ExpandedPermissionFound then begin
+                        if not PermissionBufferFilledFromSpecificPermission then
+                            FillPermissionBufferFromExpandedPermission(PermissionBuffer, ExpandedPermission);
                         SetHighestAssignedPermission(PermissionBuffer, AssignedRead, AssignedInsert, AssignedModify, AssignedDelete, AssignedExecute);
                         PermissionBuffer.Order := PermissionBuffer.Source;
                         if PermissionBuffer.Insert() then; // avoid errors in case the user was assigned same role both a specific company and globally
@@ -527,6 +545,56 @@ codeunit 9852 "Effective Permissions Mgt."
         PermissionBuffer."Delete Permission" := ExpandedPermission."Delete Permission";
         PermissionBuffer."Execute Permission" := ExpandedPermission."Execute Permission";
         PermissionBuffer."Security Filter" := ExpandedPermission."Security Filter";
+    end;
+
+    local procedure TryFillPermissionBufferFromSpecificPermission(var PermissionBuffer: Record "Permission Buffer"; AccessControl: Record "Access Control"; ObjectType: Integer; ObjectID: Integer): Boolean
+    var
+        MetadataPermission: Record "Metadata Permission";
+        TenantPermission: Record "Tenant Permission";
+    begin
+        // Explicit blank permission lines (exclusions) are not stored in Expanded Permission, so read the source
+        // permission line directly to detect a specific exclusion that must override the wildcard entry.
+        if AccessControl.Scope = AccessControl.Scope::System then begin
+            MetadataPermission.SetRange("App ID", AccessControl."App ID");
+            MetadataPermission.SetRange("Role ID", AccessControl."Role ID");
+            MetadataPermission.SetRange("Object Type", ObjectType);
+            MetadataPermission.SetRange("Object ID", ObjectID);
+            if MetadataPermission.FindFirst() then begin
+                FillPermissionBufferFromMetadataPermission(PermissionBuffer, MetadataPermission);
+                exit(true);
+            end;
+            exit(false);
+        end;
+
+        TenantPermission.SetRange("App ID", AccessControl."App ID");
+        TenantPermission.SetRange("Role ID", AccessControl."Role ID");
+        TenantPermission.SetRange("Object Type", ObjectType);
+        TenantPermission.SetRange("Object ID", ObjectID);
+        if TenantPermission.FindFirst() then begin
+            FillPermissionBufferFromTenantPermission(PermissionBuffer, TenantPermission);
+            exit(true);
+        end;
+        exit(false);
+    end;
+
+    local procedure FillPermissionBufferFromMetadataPermission(var PermissionBuffer: Record "Permission Buffer"; MetadataPermission: Record "Metadata Permission")
+    begin
+        PermissionBuffer."Read Permission" := MetadataPermission."Read Permission";
+        PermissionBuffer."Insert Permission" := MetadataPermission."Insert Permission";
+        PermissionBuffer."Modify Permission" := MetadataPermission."Modify Permission";
+        PermissionBuffer."Delete Permission" := MetadataPermission."Delete Permission";
+        PermissionBuffer."Execute Permission" := MetadataPermission."Execute Permission";
+        PermissionBuffer."Security Filter" := MetadataPermission."Security Filter";
+    end;
+
+    local procedure FillPermissionBufferFromTenantPermission(var PermissionBuffer: Record "Permission Buffer"; TenantPermission: Record "Tenant Permission")
+    begin
+        PermissionBuffer."Read Permission" := TenantPermission."Read Permission";
+        PermissionBuffer."Insert Permission" := TenantPermission."Insert Permission";
+        PermissionBuffer."Modify Permission" := TenantPermission."Modify Permission";
+        PermissionBuffer."Delete Permission" := TenantPermission."Delete Permission";
+        PermissionBuffer."Execute Permission" := TenantPermission."Execute Permission";
+        PermissionBuffer."Security Filter" := TenantPermission."Security Filter";
     end;
 
     local procedure MarkAllObjFromPermissionSet(var AllObj: Record AllObj; PermissionSetID: Code[20]; AppID: Guid; ObjScope: Option)
