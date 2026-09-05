@@ -7,6 +7,7 @@ namespace Microsoft.Finance.GeneralLedger.Journal;
 enumextension 18548 "Voucher Enum" extends "Gen. Journal Template Type"
 {
 #pragma warning disable AS0013,PTE0023 // The IDs should have been in the range [18543..18597]
+#pragma warning disable AS0099 // Accepted: Renumbering these existing published IDs would be a breaking change.
     value(18000; "Cash Receipt Voucher")
     {
         Caption = 'Cash Receipt Voucher';
@@ -31,5 +32,6 @@ enumextension 18548 "Voucher Enum" extends "Gen. Journal Template Type"
     {
         Caption = 'Journal Voucher';
     }
+#pragma warning restore AS0099
 #pragma warning restore AS0013,PTE0023 // The IDs should have been in the range [18543..18597]
 }

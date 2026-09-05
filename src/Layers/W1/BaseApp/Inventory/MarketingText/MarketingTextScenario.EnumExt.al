@@ -9,7 +9,9 @@ using System.Text;
 enumextension 5825 "Marketing Text Scenario" extends "Entity Text Scenario"
 {
 #pragma warning disable PTE0023
+#pragma warning disable AS0099 // Accepted: Renumbering this existing published ID would be a breaking change.
     value(0; "Marketing Text")
+#pragma warning restore AS0099
     {
         Caption = 'Marketing Text';
     }

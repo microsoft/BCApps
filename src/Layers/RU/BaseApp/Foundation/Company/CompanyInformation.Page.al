@@ -152,7 +152,9 @@ page 1 "Company Information"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                 }
+#pragma warning disable AW0009 // Accepted: The field remains Blob/Bitmap; migrating existing data to Media or MediaSet requires a breaking schema and data upgrade. Tracked by AB#640773.
                 field(Picture; Rec.Picture)
+#pragma warning restore AW0009
                 {
                     ApplicationArea = Basic, Suite;
 

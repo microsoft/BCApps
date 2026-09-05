@@ -30,7 +30,9 @@ page 18162 "Service Invoice QR Code"
                     Page.Run(Page::"Service Invoice Dialog", ServiceInvoiceHeader);
                 end;
             }
+#pragma warning disable AW0009 // Accepted: The field remains Blob/Bitmap; migrating existing data to Media or MediaSet requires a breaking schema and data upgrade. Tracked by AB#640773.
             field("QR Code"; Rec."QR Code")
+#pragma warning restore AW0009
             {
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Specifies the QR Code assigned by e-invoice portal for sales document.';

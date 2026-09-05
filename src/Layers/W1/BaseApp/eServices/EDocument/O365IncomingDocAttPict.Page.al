@@ -17,7 +17,9 @@ page 2123 "O365 Incoming Doc. Att. Pict."
     {
         area(content)
         {
+#pragma warning disable AW0009 // Accepted: The field remains Blob/Bitmap; migrating existing data to Media or MediaSet requires a breaking schema and data upgrade. Tracked by AB#640773.
             field(AttachmentContent; Rec.Content)
+#pragma warning restore AW0009
             {
                 ApplicationArea = Basic, Suite;
                 ShowCaption = false;
