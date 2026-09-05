@@ -196,9 +196,10 @@ codeunit 40 LogInManagement
     var
         CompanyInformation: Record "Company Information";
         GLEntry: Record "G/L Entry";
+        CompanyInformationMgt: Codeunit "Company Information Mgt.";
     begin
         CompanyInformation.SetLoadFields("Demo Company", "Use Today as a Workdate");
-        if CompanyInformation.Get() and CompanyInformation."Demo Company" then begin
+        if CompanyInformationMgt.IsDemoCompany(CompanyInformation) then begin
             if CompanyInformation."Use Today as a Workdate" then
                 exit(Today);
 
