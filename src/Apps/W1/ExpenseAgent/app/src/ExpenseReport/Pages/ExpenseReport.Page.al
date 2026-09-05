@@ -712,7 +712,7 @@ page 6910 "Expense Report"
         ExpenseAgentSetup.GetRecordOnce();
 
         if ExpenseAgentSetup."Enable Approval Workflow" then begin
-            UserSetup.Get(UserId());
+            ExpenseReportApprovalMgmt.GetCurrentUserSetupForApproval(UserSetup);
             if not UserSetup."Unlimited Expense Approval" then begin
                 CheckSetDefaultOwnerFilter();
                 ExpenseUserNo := ExpenseReportApprovalMgmt.GetExpenseUserNo();

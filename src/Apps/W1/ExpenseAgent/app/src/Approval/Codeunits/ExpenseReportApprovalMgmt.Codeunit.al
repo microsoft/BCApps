@@ -3,6 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
+using System.Automation;
 using System.Security.User;
 
 codeunit 6901 "Expense Report Approval Mgmt"
@@ -20,6 +21,8 @@ codeunit 6901 "Expense Report Approval Mgmt"
         NoExpenseReportLinesToProcessErr: Label 'There are no Expense Report Lines to process in %1 action.', Comment = '%1 = Action';
         NotAuthorizedToOpenExpReportErr: Label 'You are not authorized to open expense reports. Please configure your %1 in the %2.', Comment = '%1 = Field Caption,%2 = Table Caption';
         NotAuthorizedToRecallExpReportErr: Label 'Only the original submitter or a user with %1 can recall a submitted expense report.', Comment = '%1 = User Setup field caption';
+        MissingUserSetupErr: Label 'Please configure your user ''%1'' on the User Setup, as the approval workflow for expenses is enabled.', Comment = '%1 = current user ID';
+        OpenApprovalUserSetupLbl: Label 'Open the Approval User Setup';
         ApproverMustBeEnabledInExpenseUserErr: Label '%1 must be enabled to approve or reject expense reports in %2.', Comment = '%1 = Field Caption, %2 = Table Caption';
         UserIdForApprovalMustNotBeBlankInExpenseUserErr: Label '%1 must not be blank in %2.', Comment = '%1 = Field Caption, %2 = Table Caption';
         InterimApproverAgentRequiredErr: Label 'An interim approver can only be assigned when the agent is enabled in %1.', Comment = '%1 = Expense Agent Setup table caption';
@@ -511,6 +514,27 @@ codeunit 6901 "Expense Report Approval Mgmt"
             exit(Enum::"Expense Activity Actor Role"::Administrator);
 
         Error(NotAuthorizedToRecallExpReportErr, UserSetup.FieldCaption("Unlimited Expense Approval"));
+    end;
+
+    internal procedure GetCurrentUserSetupForApproval(var UserSetup: Record "User Setup")
+    begin
+        if not UserSetup.Get(UserId()) then
+            Error(CreateMissingUserSetupErrorInfo());
+    end;
+
+    local procedure CreateMissingUserSetupErrorInfo(): ErrorInfo
+    var
+        UserSetup: Record "User Setup";
+        MissingUserSetupErrorInfo: ErrorInfo;
+    begin
+        MissingUserSetupErrorInfo.Message := StrSubstNo(MissingUserSetupErr, UserId());
+        MissingUserSetupErrorInfo.DataClassification := DataClassification::CustomerContent;
+        MissingUserSetupErrorInfo.ErrorType := ErrorType::Client;
+        if UserSetup.ReadPermission() then begin
+            MissingUserSetupErrorInfo.PageNo := Page::"Approval User Setup";
+            MissingUserSetupErrorInfo.AddNavigationAction(OpenApprovalUserSetupLbl);
+        end;
+        exit(MissingUserSetupErrorInfo);
     end;
 
     internal procedure NoExpenseLinesToProcess(ExpenseApprovalAction: Enum "Expense Approval Action")

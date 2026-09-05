@@ -1307,13 +1307,14 @@ table 6906 "Expense Report Header"
     var
         UserSetup: Record "User Setup";
         ExpenseUser: Record "Expense User";
+        ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
         ExpenseAgentSetup.GetRecordOnce();
         if not ExpenseAgentSetup."Enable Approval Workflow" then
             exit;
 
         UserSetup.SetLoadFields("Unlimited Expense Approval");
-        UserSetup.Get(UserId);
+        ExpenseReportApprovalMgmt.GetCurrentUserSetupForApproval(UserSetup);
         if UserSetup."Unlimited Expense Approval" then
             exit;
 
