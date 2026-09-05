@@ -14,8 +14,12 @@ permissionset 2148 "D365 Automation APIV1"
                   query * = X,
                   page "APIV1 - Aut. Companies" = X,
                   page "APIV1 - Aut. Config. Packages" = X,
+#pragma warning disable AL0432
+#if not CLEAN29
                   page "APIV1 - Aut. Extension Depl." = X,
                   page "APIV1 - Aut. Extension Upload" = X,
+#endif
+#pragma warning restore AL0432
                   page "APIV1 - Aut. Extensions" = X,
                   page "APIV1 - Aut. Permission Sets" = X,
                   page "APIV1 - Aut. Users" = X;

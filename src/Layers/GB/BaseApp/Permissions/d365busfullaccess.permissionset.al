@@ -251,7 +251,11 @@ permissionset 959 "D365 BUS FULL ACCESS"
                   tabledata "Analysis Selected Dimension" = RIMD,
                   tabledata "API Data Upgrade" = RIMD,
                   tabledata "API Entities Setup" = RIMD,
+#pragma warning disable AL0432
+#if not CLEAN29
                   tabledata "API Extension Upload" = rimd,
+#endif
+#pragma warning restore AL0432
                   tabledata "Application Area Buffer" = RIMD,
                   tabledata "Application Area Setup" = RIMD,
                   tabledata "Approval Comment Line" = RIMD,

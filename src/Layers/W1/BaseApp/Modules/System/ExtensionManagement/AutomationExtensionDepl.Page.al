@@ -1,7 +1,11 @@
+#if not CLEAN29
 namespace System.Apps;
 
 page 5448 "Automation Extension Depl."
 {
+    ObsoleteReason = 'Use the Business Central admin center API to monitor per-tenant extension operations.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
     APIGroup = 'automation';
     APIPublisher = 'microsoft';
     Caption = 'ExtensionDeploymentStatus', Locked = true;
@@ -105,4 +109,4 @@ page 5448 "Automation Extension Depl."
         AppName: Text;
         OperationType: Option Upload,Install;
 }
-
+#endif

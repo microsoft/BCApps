@@ -862,7 +862,11 @@ codeunit 135160 "Cloud Migration Property Test"
         ListOfTablesToMigrate.Add(Database::"Analysis View");
         ListOfTablesToMigrate.Add(Database::"API Data Upgrade");
         ListOfTablesToMigrate.Add(Database::"API Entities Setup");
+#pragma warning disable AL0432
+#if not CLEAN29
         ListOfTablesToMigrate.Add(Database::"API Extension Upload");
+#endif
+#pragma warning restore AL0432
         ListOfTablesToMigrate.Add(Database::"Applied Payment Entry");
         ListOfTablesToMigrate.Add(Database::"Approval Comment Line");
         ListOfTablesToMigrate.Add(Database::"Approval Entry");
