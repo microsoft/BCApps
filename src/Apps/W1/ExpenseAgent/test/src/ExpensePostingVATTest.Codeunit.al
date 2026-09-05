@@ -1019,7 +1019,6 @@ codeunit 148330 "Expense Posting VAT Test"
         Expense: Record Expense;
         ExpenseVATSpecification: Record "Expense VAT Specification";
         EnvironmentInfo: Codeunit "Environment Information";
-        ExpenseVATSpecAPI: Page "Expense VAT Spec. API";
     begin
         // [SCENARIO] The Expense VAT Specification API accepts callers outside SaaS for local agent development.
         if EnvironmentInfo.IsSaaSInfrastructure() then
@@ -1030,7 +1029,7 @@ codeunit 148330 "Expense Posting VAT Test"
         CreateAgentVATSpecificationFixture(ExpenseVATSpecification, Expense);
 
         // [WHEN] A caller attempts to insert an agent-authored VAT specification through the API.
-        ExpenseVATSpecAPI.InsertVATSpecification(ExpenseVATSpecification);
+        ExpenseVATSpecification.Insert(true);
 
         // [THEN] The agent-authored VAT specification is inserted.
         Assert.AreEqual(ExpenseVATSpecification.Source::Agent, ExpenseVATSpecification.Source, 'The VAT specification source must be Agent.');
@@ -1051,7 +1050,6 @@ codeunit 148330 "Expense Posting VAT Test"
         // [GIVEN] A VAT specification whose relational fields have been validated against a persisted expense.
         Initialize();
         CreateAgentVATSpecificationFixture(ExpenseVATSpecification, Expense);
-        ExpenseVATSpecification.Source := ExpenseVATSpecification.Source::Agent;
 
         // [WHEN] A caller attempts to insert an agent-authored VAT specification with table triggers.
         ExpenseVATSpecification.Insert(true);
