@@ -141,4 +141,13 @@ interface "PEPPOL Tax Info Provider"
     /// <param name="TaxCategory">The tax category code to check.</param>
     /// <returns>True if the tax category is outside VAT scope, false otherwise.</returns>
     procedure IsOutsideScopeVATCategory(TaxCategory: Code[10]): Boolean;
+
+    /// <summary>
+    /// Called once per document after all lines have been aggregated into the VAT amount line buffer,
+    /// letting a format append synthetic VAT breakdown lines if needed. Needed to add, for example, compensation lines.
+    /// </summary>
+    /// <param name="VATAmtLine">The accumulated VAT amount line buffer to post-process.</param>
+    procedure FinalizeTaxTotals(var VATAmtLine: Record "VAT Amount Line")
+    begin
+    end;
 }
