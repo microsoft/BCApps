@@ -67,6 +67,125 @@ In this example
 1. Alternatively, we could use `AITestContext.GetInput()` and get the line as `json` 
 
 
+## Writing language-first data-driven AI evals (recommended)
+
+AL supports data-driven testing as a first-class construct via the `[TestDataSource]` attribute, where the
+**platform** (not the toolkit) drives the per-case fan-out. The AI Test Toolkit ships a **shared** data source
+and context so any app can adopt this with no per-app framework code.
+
+### Defining the test codeunit
+- Annotate each eval method with `[TestDataSource(Codeunit::"AIT Test Data Source", '<dataset>')]`.
+- The method takes a single parameter of type `interface "AIT Test Case Context"` (which extends the platform
+  `ITestContext`) and exposes the same input/output surface as the classic `AIT Test Context` codeunit.
+- Register the toolkit's per-case handler with `TestHandlers = "AIT Test Handler"`. Under the **platform** test
+  runner (no Eval Suite) this handler brackets each case — resetting per-case accuracy/turns/token accounting and
+  writing one `AIT Log Entry` per case — the work the classic runner does through its event subscribers.
+
+```
+codeunit 50100 "My Copilot Eval"
+{
+    Subtype = Test;
+    TestHandlers = "AIT Test Handler";
+
+    [TestDataSource(Codeunit::"AIT Test Data Source", 'MY-DATASET')]
+    procedure TestCopilotFeature(context: interface "AIT Test Case Context")
+    var
+        Output: Integer;
+    begin
+        Output := CopilotFeature.CallLLM(context.GetQuery().ValueAsText());
+        context.SetTestOutput(Format(Output));
+        Assert.AreEqual(context.GetExpectedData().ValueAsInteger(), Output, '');
+    end;
+}
+```
+
+### Datasets and the shared data source
+- Datasets are authored as `.jsonl`/`.yaml` and imported into the shared `Test Input` tables (via the Eval Suite
+  / dataset import), exactly as for classic evals; each row's `name` becomes the case identifier.
+- The shared `"AIT Test Data Source"` provider resolves the dataset and returns one case per row:
+  - under an **Eval Suite**, it uses the dataset configured on the current suite line (so the same method can run
+    against multiple datasets across lines);
+  - **standalone**, it uses the `'<dataset>'` identifier from the attribute (a Test Input Group code or name).
+
+### Running under an Eval Suite (coexistence with classic evals)
+- The toolkit **auto-detects** language-first codeunits (via `CodeUnit Metadata."Has Test Data Source"`) and adds
+  their methods once — no per-row expansion — so the platform drives the per-case fan-out and there is no double
+  execution. As each case starts, Test Runner materializes a `Method[caseName]` result line, so the individual
+  outcomes are visible in both the Test Tool and Eval Suite results.
+- A codeunit must be **either** classic data-driven **or** language-first; do not mix both styles in the same
+  codeunit (plain `[Test]` methods may coexist with either).
+
+## Migrating a classic eval to language-first
+
+Converting a classic AIT eval codeunit to the `[TestDataSource]` construct is a small, mechanical change per
+codeunit:
+
+1. **Attribute:** replace `[Test]` with `[TestDataSource(Codeunit::"AIT Test Data Source", '<default dataset>')]`.
+   AL treats these attributes as mutually exclusive, while a method marked with `[TestDataSource]` remains a test
+   method and is reported once per generated case. The
+   `'<default dataset>'` (a `Test Input Group` code/name) is used when the test runs standalone; under an Eval
+   Suite the dataset configured on the suite line takes precedence. Add another `[TestDataSource(...)]` attribute
+   for each additional standalone dataset.
+2. **Signature:** add the platform-required context parameter —
+   `procedure MyEval(context: interface "AIT Test Case Context")`.
+3. **Body and helpers:** existing calls through `Codeunit "AIT Test Context"` can remain unchanged, including calls
+   made from helper codeunits. The data-source provider preloads the current row before the test body runs, so the
+   existing app-level single-instance context resolves the platform-selected case. New code may use the injected
+   `context` parameter directly instead. Replace the obsolete `GetQuestion()` alias with `GetQuery()`.
+4. **Handler:** add `TestHandlers = "AIT Test Handler"` to the codeunit so per-case logging/metrics engage when the
+   eval runs on the platform test runner (outside an Eval Suite).
+5. Leave everything else unchanged — `Subtype = Test`, `TestType = AITest`, `TestPermissions`, `SingleInstance`,
+   and the eval logic.
+
+```AL
+// Before
+[Test]
+procedure GenerateChatCompletion()
+var
+    AITestContext: Codeunit "AIT Test Context";
+begin
+    Question := AITestContext.GetInput().Element('query').Element('question').ValueAsText();
+    // ...
+    AITestContext.SetTestOutput(Context, Question, Answer);
+end;
+
+// After (keep existing AIT Test Context/helper calls; receive the platform context parameter;
+//        add TestHandlers = "AIT Test Handler" to the codeunit)
+[TestDataSource(Codeunit::"AIT Test Data Source", 'AI-SDK-E2E-GPT41.YAML')]
+procedure GenerateChatCompletion(context: interface "AIT Test Case Context")
+var
+    AITestContext: Codeunit "AIT Test Context";
+begin
+    Question := AITestContext.GetInput().Element('query').Element('question').ValueAsText();
+    // ...
+    AITestContext.SetTestOutput(Context, Question, Answer);
+end;
+```
+
+**Rules & notes**
+- **Migrate the whole codeunit** — a codeunit is either classic or language-first, never both (plain `[Test]`
+  methods may coexist).
+- **Nothing else changes** — datasets (`.jsonl`/`.yaml`), the Eval Suite, logging, run history and external
+  (BCEval) output are all unchanged; the shared `AIT Test Data Source` provider resolves the dataset and the
+  platform drives the fan-out.
+- **Multi-turn** evals: `NextTurn()` / `GetCurrentTurn()` are on the interface — migrate the same way.
+- **Multiple datasets:** stacked `[TestDataSource]` attributes are supported, but case identifiers must be unique
+  across all datasets attached to the same method because platform result names use `Method[caseName]`.
+- **Harms / adversarial** evals (case content generated at run time, e.g. via `Adversarial Simulation`) need a
+  data source that yields **stable, deterministic** case identifiers, so they require a small **custom
+  `ITestDataSource` provider** rather than the plain shared one — not just the mechanical edit above.
+- **Custom per-case data:** define your own interface `extends "AIT Test Case Context"` (or `ITestContext`) plus a
+  custom `ITestDataSource` provider if a test needs extra per-case accessors.
+
+**Checklist (per codeunit)**
+- [ ] replace `[Test]` with `[TestDataSource(Codeunit::"AIT Test Data Source", '<dataset>')]`
+- [ ] stack one `[TestDataSource(...)]` attribute per additional standalone dataset
+- [ ] add the `context: interface "AIT Test Case Context"` parameter
+- [ ] keep existing `AIT Test Context` and helper-library calls, or migrate them to `context` when useful
+- [ ] add `TestHandlers = "AIT Test Handler"` to the codeunit
+- [ ] whole-codeunit only (no mixed styles)
+- [ ] verify via the platform runner (AL Test Tool / `al runtests`) — cases appear as `Method[caseName]`
+
 ### Defining Datasets
 Datasets are provided as `.jsonl` or `.yaml` files where each line/entry represents an eval case.
 
