@@ -263,6 +263,59 @@ codeunit 139687 "Recurring Billing Docs Test"
     end;
 
     [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure IsLineAttachedToBillingLineReturnsPerLineResultWhenSalesLineVariableIsReused()
+    var
+        BillingLineForLine: Record "Billing Line";
+        AttachedLineFound: Boolean;
+        NotAttachedLineFound: Boolean;
+        ExpectedAttached: Boolean;
+        IsLineAttachedMismatchErr: Label 'IsLineAttachedToBillingLine returned the wrong value for line %1 when the Sales Line variable was reused across lines.', Comment = '%1 = Sales Line "Line No."';
+    begin
+        // [SCENARIO] The public IsLineAttachedToBillingLine() returns the correct value for each line when the same
+        // Sales Line record variable is reused across lines without calling InitCachedVar() in between. An external
+        // caller must never receive a cached result belonging to a previously read line.
+        Initialize();
+
+        // [GIVEN] A customer contract with subscription lines and a billing proposal
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, '');
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer);
+
+        // [GIVEN] Billing documents are created (a Sales Invoice holding both billing lines and non-attached description lines)
+        CreateBillingDocuments();
+
+        // [GIVEN] The created Sales Invoice
+        BillingLine.Reset();
+        BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
+        BillingLine.SetRange(Partner, BillingTemplate.Partner);
+        BillingLine.FindFirst();
+        BillingLine.TestField("Document Type", BillingLine."Document Type"::Invoice);
+
+        // [WHEN] Iterating over every line of the document reusing the same Sales Line variable, without calling InitCachedVar()
+        // [THEN] Each line reports its own attachment state (ground truth read directly from the Billing Line table)
+        SalesLine.Reset();
+        SalesLine.SetRange("Document Type", BillingLine.GetSalesDocumentTypeFromBillingDocumentType());
+        SalesLine.SetRange("Document No.", BillingLine."Document No.");
+        SalesLine.FindSet();
+        repeat
+            BillingLineForLine.Reset();
+            BillingLineForLine.FilterBillingLineOnDocumentLine(BillingLineForLine.GetBillingDocumentTypeFromSalesDocumentType(SalesLine."Document Type"), SalesLine."Document No.", SalesLine."Line No.");
+            ExpectedAttached := not BillingLineForLine.IsEmpty();
+
+            Assert.AreEqual(ExpectedAttached, SalesLine.IsLineAttachedToBillingLine(), StrSubstNo(IsLineAttachedMismatchErr, SalesLine."Line No."));
+
+            if ExpectedAttached then
+                AttachedLineFound := true
+            else
+                NotAttachedLineFound := true;
+        until SalesLine.Next() = 0;
+
+        // [THEN] The scenario actually exercised both an attached and a non-attached line with the reused variable
+        Assert.IsTrue(AttachedLineFound, 'Expected at least one line attached to a billing line.');
+        Assert.IsTrue(NotAttachedLineFound, 'Expected at least one line not attached to a billing line.');
+    end;
+
+    [Test]
     [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
     procedure CheckBillingPeriodDescriptionUsesDocumentFormatRegionForPurchaseDocuments()
     var
