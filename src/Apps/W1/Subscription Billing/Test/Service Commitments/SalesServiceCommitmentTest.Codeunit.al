@@ -63,12 +63,129 @@ codeunit 139915 "Sales Service Commitment Test"
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         SerialNo: array[10] of Code[50];
+        AssignSubscriptionLinesOpenedCount: Integer;
         NoOfServiceObjects: Integer;
+        AssignSubscriptionLinesNotOfferedErr: Label 'The Assign Subscription Lines page must be opened for a Sales Line that is created after Explode BOM.', Locked = true;
+        AssignSubscriptionLinesOpenedPerComponentErr: Label 'The Assign Subscription Lines page must be opened exactly once per exploded BOM component.', Locked = true;
+        AssignSubscriptionLinesTok: Label 'Assign Subscription Lines', Locked = true;
+        CaptionDoesNotContainErr: Label 'The caption ''%1'' of the Assign Subscription Lines page does not contain ''%2''.', Locked = true;
+        CaptionNotCorrectErr: Label 'The caption of the Assign Subscription Lines page is not correct.', Locked = true;
         NotCreatedProperlyErr: Label 'Subscription Lines are not created properly.', Locked = true;
+        SalesLineCaptionTok: Label '%1 · %2', Locked = true;
         SalesServiceCommitmentCannotBeDeletedErr: Label 'The Sales Subscription Line cannot be deleted, because it is the last line with Process Contract Renewal. Please delete the Sales line in order to delete the Sales Subscription Line.', Locked = true;
         NaturalNumberRatioErr: Label 'The ratio of ''%1'' and ''%2'' or vice versa must give a natural number.', Comment = '%1=Field Caption, %2=Field Caption', Locked = true;
 
     #region Tests
+
+    [Test]
+    [HandlerFunctions('AssignServiceCommitmentsCaptureCaptionModalPageHandler')]
+    procedure AssignSubscriptionLinesCaptionIdentifiesSalesLine()
+    var
+        SalesItem: Record Item;
+        SalesServiceCommMgmt: Codeunit "Sales Subscription Line Mgmt.";
+        ActualCaption: Text;
+    begin
+        // [SCENARIO] The Assign Subscription Lines page identifies the Sales Line it has been opened for
+
+        // [GIVEN] Sales Line for an Item with a Subscription Package assigned to it
+        Initialize();
+        ContractTestLibrary.CreateItemWithServiceCommitmentOption(SalesItem, Enum::"Item Service Commitment Type"::"Sales with Service Commitment");
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, SalesItem."No.", LibraryRandom.RandIntInRange(1, 100));
+        SalesLine.Description := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(SalesLine.Description));
+        SalesLine.Modify(false);
+        ContractTestLibrary.AssignItemToServiceCommitmentPackage(SalesItem, ServiceCommitmentPackage.Code, false);
+
+        // [WHEN] Assign Subscription Lines page is opened for the Sales Line
+        SalesServiceCommMgmt.AddAdditionalSalesServiceCommitmentsForSalesLine(SalesLine);
+
+        // [THEN] The caption of the page contains the page name, the No. and the Description of the Sales Line
+        ActualCaption := LibraryVariableStorage.DequeueText();
+        Assert.IsTrue(StrPos(ActualCaption, AssignSubscriptionLinesTok) > 0, StrSubstNo(CaptionDoesNotContainErr, ActualCaption, AssignSubscriptionLinesTok));
+        Assert.IsTrue(StrPos(ActualCaption, SalesLine."No.") > 0, StrSubstNo(CaptionDoesNotContainErr, ActualCaption, SalesLine."No."));
+        Assert.IsTrue(StrPos(ActualCaption, SalesLine.Description) > 0, StrSubstNo(CaptionDoesNotContainErr, ActualCaption, SalesLine.Description));
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    procedure AssignSubscriptionLinesCaptionIsEmptyWhenNotOpenedFromSalesLine()
+    var
+        SalesServiceCommMgmt: Codeunit "Sales Subscription Line Mgmt.";
+    begin
+        // [SCENARIO] No Sales Line caption is provided if the Assign Subscription Lines page has not been opened from a Sales Line
+
+        // [GIVEN] Sales Line with No. and Description
+        Initialize();
+        SalesLine.Init();
+        SalesLine.Type := SalesLine.Type::Item;
+        SalesLine."No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(SalesLine."No."));
+        SalesLine.Description := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(SalesLine.Description));
+
+        // [WHEN] The caption is fetched for a page that has not been opened from a Sales Line
+        // [THEN] The caption is empty
+        Assert.AreEqual('', SalesServiceCommMgmt.GetAssignSubscriptionLinesCaption(SalesLine, ServiceObject, false), CaptionNotCorrectErr);
+    end;
+
+    [Test]
+    procedure AssignSubscriptionLinesCaptionShowsSubscriptionPackageWhenNotOpenedFromSalesLine()
+    var
+        AssignServiceCommitments: TestPage "Assign Service Commitments";
+        ActualCaption: Text;
+    begin
+        // [SCENARIO] The caption of the Assign Subscription Lines page keeps identifying the Subscription Package if the page has not been opened from a Sales Line
+
+        // [GIVEN] Subscription Package
+        Initialize();
+
+        // [WHEN] Assign Subscription Lines page is opened without a Sales Line
+        AssignServiceCommitments.OpenView();
+        AssignServiceCommitments.GoToRecord(ServiceCommitmentPackage);
+
+        // [THEN] The caption of the page contains the page name and the Code of the Subscription Package
+        ActualCaption := AssignServiceCommitments.Caption();
+        AssignServiceCommitments.Close();
+        Assert.IsTrue(StrPos(ActualCaption, AssignSubscriptionLinesTok) > 0, StrSubstNo(CaptionDoesNotContainErr, ActualCaption, AssignSubscriptionLinesTok));
+        Assert.IsTrue(StrPos(ActualCaption, ServiceCommitmentPackage.Code) > 0, StrSubstNo(CaptionDoesNotContainErr, ActualCaption, ServiceCommitmentPackage.Code));
+    end;
+
+    [Test]
+    procedure AssignSubscriptionLinesCaptionSkipsEmptySalesLineDescription()
+    var
+        SalesServiceCommMgmt: Codeunit "Sales Subscription Line Mgmt.";
+    begin
+        // [SCENARIO] The caption of the Assign Subscription Lines page contains no separator if the Sales Line has no Description
+
+        // [GIVEN] Sales Line with No. but without Description
+        Initialize();
+        SalesLine.Init();
+        SalesLine.Type := SalesLine.Type::Item;
+        SalesLine."No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(SalesLine."No."));
+
+        // [WHEN] The caption is fetched for a page that has been opened from the Sales Line
+        // [THEN] The caption consists of the No. of the Sales Line only
+        Assert.AreEqual(SalesLine."No.", SalesServiceCommMgmt.GetAssignSubscriptionLinesCaption(SalesLine, ServiceObject, true), CaptionNotCorrectErr);
+    end;
+
+    [Test]
+    procedure AssignSubscriptionLinesCaptionUsesSalesLineNoAndDescription()
+    var
+        SalesServiceCommMgmt: Codeunit "Sales Subscription Line Mgmt.";
+    begin
+        // [SCENARIO] The caption of the Assign Subscription Lines page consists of the No. and the Description of the Sales Line
+
+        // [GIVEN] Sales Line with No. and Description
+        Initialize();
+        SalesLine.Init();
+        SalesLine.Type := SalesLine.Type::Item;
+        SalesLine."No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(SalesLine."No."));
+        SalesLine.Description := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(SalesLine.Description));
+
+        // [WHEN] The caption is fetched for a page that has been opened from the Sales Line
+        // [THEN] The caption consists of the No. and the Description of the Sales Line
+        Assert.AreEqual(
+            StrSubstNo(SalesLineCaptionTok, SalesLine."No.", SalesLine.Description),
+            SalesServiceCommMgmt.GetAssignSubscriptionLinesCaption(SalesLine, ServiceObject, true), CaptionNotCorrectErr);
+    end;
 
     [Test]
     procedure CheckCopySalesServiceCommitmentFromSalesDocument()
@@ -1475,6 +1592,45 @@ codeunit 139915 "Sales Service Commitment Test"
     end;
 
     [Test]
+    [HandlerFunctions('AssignServiceCommitmentsCountingModalPageHandler,StrMenuHandler')]
+    procedure ExplodeBOMOffersSubscriptionPackagesOncePerComponent()
+    var
+        BOMItem: Record Item;
+        ComponentItem1: Record Item;
+        ComponentItem2: Record Item;
+        ComponentSalesLine: Record "Sales Line";
+        StandardPackageCode1: Code[20];
+        StandardPackageCode2: Code[20];
+    begin
+        // [SCENARIO] Exploding the BOM of an Item offers the Subscription Packages exactly once per exploded component
+
+        // [GIVEN] Assembly Item with two components, each with a standard and an additional Subscription Package
+        Initialize();
+        LibraryAssembly.CreateItem(BOMItem, Item."Costing Method"::Standard, Item."Replenishment System"::Assembly, '', '');
+        CreateComponentItemWithAdditionalServiceCommPackage(BOMItem."No.", ComponentItem1, StandardPackageCode1);
+        CreateComponentItemWithAdditionalServiceCommPackage(BOMItem."No.", ComponentItem2, StandardPackageCode2);
+
+        // [GIVEN] Sales Order with a Sales Line for the Assembly Item
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+        LibrarySales.CreateSalesLineWithShipmentDate(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, BOMItem."No.", WorkDate(), LibraryRandom.RandIntInRange(1, 10));
+
+        // [WHEN] The BOM is exploded
+        Codeunit.Run(Codeunit::"Sales-Explode BOM", SalesLine);
+
+        // [THEN] The Assign Subscription Lines page has been opened exactly once per component
+        Assert.AreEqual(2, AssignSubscriptionLinesOpenedCount, AssignSubscriptionLinesOpenedPerComponentErr);
+
+        // [THEN] Every component Sales Line holds the Subscription Lines of its standard Subscription Package only
+        VerifySalesSubscriptionLinesFromStandardPackageOnly(ComponentItem1."No.", StandardPackageCode1);
+        VerifySalesSubscriptionLinesFromStandardPackageOnly(ComponentItem2."No.", StandardPackageCode2);
+        ComponentSalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        ComponentSalesLine.SetRange("Document No.", SalesHeader."No.");
+        ComponentSalesLine.SetRange(Type, Enum::"Sales Line Type"::Item);
+        ComponentSalesLine.SetFilter("No.", '%1|%2', ComponentItem1."No.", ComponentItem2."No.");
+        Assert.RecordCount(ComponentSalesLine, 2);
+    end;
+
+    [Test]
     procedure InsertSalesServiceCommitmentWithInvoiceViaSalesWithoutInvoicingItemNo()
     begin
         Initialize();
@@ -1789,6 +1945,38 @@ codeunit 139915 "Sales Service Commitment Test"
         Assert.AreEqual(SubscriptionPackage[2].Code, LibraryVariableStorage.DequeueText(), 'Service Commitment Package without PriceGroup should be available for selection');
 
         LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('AssignServiceCommitmentsCountingModalPageHandler,StrMenuHandler')]
+    procedure SubscriptionPackagesAreOfferedForSalesLineCreatedAfterExplodeBOM()
+    var
+        BOMItem: Record Item;
+        ComponentItem: Record Item;
+        SalesItem: Record Item;
+        ComponentStandardPackageCode: Code[20];
+        SalesItemStandardPackageCode: Code[20];
+    begin
+        // [SCENARIO] The Subscription Packages are offered again for a Sales Line that is created after a BOM has been exploded
+
+        // [GIVEN] Sales Order in which the BOM of an Assembly Item with one component has been exploded
+        Initialize();
+        LibraryAssembly.CreateItem(BOMItem, Item."Costing Method"::Standard, Item."Replenishment System"::Assembly, '', '');
+        CreateComponentItemWithAdditionalServiceCommPackage(BOMItem."No.", ComponentItem, ComponentStandardPackageCode);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+        LibrarySales.CreateSalesLineWithShipmentDate(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, BOMItem."No.", WorkDate(), LibraryRandom.RandIntInRange(1, 10));
+        Codeunit.Run(Codeunit::"Sales-Explode BOM", SalesLine);
+        Assert.AreEqual(1, AssignSubscriptionLinesOpenedCount, AssignSubscriptionLinesOpenedPerComponentErr);
+
+        // [WHEN] A Sales Line is created for another Item with Subscription Packages
+        CreateItemWithStandardAndAdditionalServiceCommPackage(SalesItem, SalesItemStandardPackageCode);
+        LibrarySales.CreateSalesLineWithShipmentDate(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, SalesItem."No.", WorkDate(), LibraryRandom.RandIntInRange(1, 10));
+
+        // [THEN] The Subscription Packages are offered for the new Sales Line
+        Assert.AreEqual(2, AssignSubscriptionLinesOpenedCount, AssignSubscriptionLinesNotOfferedErr);
+
+        // [THEN] The Subscription Lines of the standard Subscription Package are created for the new Sales Line
+        VerifySalesSubscriptionLinesFromStandardPackageOnly(SalesItem."No.", SalesItemStandardPackageCode);
     end;
 
     [Test]
@@ -2212,6 +2400,23 @@ codeunit 139915 "Sales Service Commitment Test"
         SalesHeader.Modify(false);
         LibrarySales.CreateSalesLineWithShipmentDate(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", WorkDate(), 1);
         LibrarySales.ReleaseSalesDocument(SalesHeader);
+    end;
+
+    local procedure CreateComponentItemWithAdditionalServiceCommPackage(BOMItemNo: Code[20]; var ComponentItem: Record Item; var StandardPackageCode: Code[20])
+    begin
+        CreateItemWithStandardAndAdditionalServiceCommPackage(ComponentItem, StandardPackageCode);
+        ContractTestLibrary.CreateBOMComponentForItem(BOMItemNo, ComponentItem."No.", 1, ComponentItem."Base Unit of Measure");
+    end;
+
+    local procedure CreateItemWithStandardAndAdditionalServiceCommPackage(var NewItem: Record Item; var StandardPackageCode: Code[20])
+    begin
+        ContractTestLibrary.CreateServiceCommitmentPackageWithLine(ServiceCommitmentTemplate.Code, ServiceCommitmentPackage, ServiceCommPackageLine);
+        ContractTestLibrary.InitServiceCommitmentPackageLineFields(ServiceCommPackageLine);
+        StandardPackageCode := ServiceCommitmentPackage.Code;
+        ContractTestLibrary.SetupSalesServiceCommitmentItemAndAssignToServiceCommitmentPackage(NewItem, Enum::"Item Service Commitment Type"::"Sales with Service Commitment", StandardPackageCode);
+        ContractTestLibrary.CreateServiceCommitmentPackageWithLine(ServiceCommitmentTemplate.Code, ServiceCommitmentPackage, ServiceCommPackageLine);
+        ContractTestLibrary.InitServiceCommitmentPackageLineFields(ServiceCommPackageLine);
+        ContractTestLibrary.AssignItemToServiceCommitmentPackage(NewItem, ServiceCommitmentPackage.Code, false);
     end;
 
     local procedure CreateComponentItemWithSalesServiceCommitments(Item2No: Code[20])
@@ -2694,6 +2899,26 @@ codeunit 139915 "Sales Service Commitment Test"
         SalesReceivablesSetup.Modify(true);
     end;
 
+    local procedure VerifySalesSubscriptionLinesFromStandardPackageOnly(ItemNo: Code[20]; StandardPackageCode: Code[20])
+    var
+        ItemSalesLine: Record "Sales Line";
+        SalesSubscriptionLine: Record "Sales Subscription Line";
+        SubscriptionPackageLine: Record "Subscription Package Line";
+    begin
+        ItemSalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        ItemSalesLine.SetRange("Document No.", SalesHeader."No.");
+        ItemSalesLine.SetRange(Type, Enum::"Sales Line Type"::Item);
+        ItemSalesLine.SetRange("No.", ItemNo);
+        ItemSalesLine.FindFirst();
+
+        SubscriptionPackageLine.SetRange("Subscription Package Code", StandardPackageCode);
+        SalesSubscriptionLine.FilterOnSalesLine(ItemSalesLine);
+        Assert.RecordCount(SalesSubscriptionLine, SubscriptionPackageLine.Count());
+
+        SalesSubscriptionLine.SetFilter("Subscription Package Code", '<>%1', StandardPackageCode);
+        Assert.RecordIsEmpty(SalesSubscriptionLine);
+    end;
+
     local procedure VerifyServiceCommitmentUnitCostFromSalesServiceCommitment(ServiceCommitmentParam: Record "Subscription Line"; var TempSalesServiceCommitment: Record "Sales Subscription Line" temporary)
     var
         ValueNotCorrectTok: Label '%1 value is not correct.', Locked = true;
@@ -2706,6 +2931,20 @@ codeunit 139915 "Sales Service Commitment Test"
     #endregion Procedures
 
     #region Handlers
+
+    [ModalPageHandler]
+    procedure AssignServiceCommitmentsCaptureCaptionModalPageHandler(var AssignServiceCommitments: TestPage "Assign Service Commitments")
+    begin
+        LibraryVariableStorage.Enqueue(AssignServiceCommitments.Caption());
+        AssignServiceCommitments.Cancel().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure AssignServiceCommitmentsCountingModalPageHandler(var AssignServiceCommitments: TestPage "Assign Service Commitments")
+    begin
+        AssignSubscriptionLinesOpenedCount += 1;
+        AssignServiceCommitments.Cancel().Invoke();
+    end;
 
     [ModalPageHandler]
     procedure AssignServiceCommitmentsModalPageHandler(var AssignServiceCommitments: TestPage "Assign Service Commitments")
