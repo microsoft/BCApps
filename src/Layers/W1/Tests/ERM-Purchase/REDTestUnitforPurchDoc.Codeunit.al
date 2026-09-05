@@ -2551,6 +2551,7 @@ codeunit 134804 "RED Test Unit for Purch Doc"
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
+        PurchaseLine2: Record "Purchase Line";
         GLAccount: Record "G/L Account";
         DeferralTemplateCode: Code[10];
     begin
@@ -2572,7 +2573,8 @@ codeunit 134804 "RED Test Unit for Purch Doc"
 
         // [WHEN] Changing the Deferral Code on the Purchase Line
         DeferralTemplateCode := CreateDeferralCode(CalcMethod::"Straight-Line", StartDate::"Posting Date", 3);
-        asserterror PurchaseLine.Validate("Deferral Code", DeferralTemplateCode);
+        PurchaseLine2.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        asserterror PurchaseLine2.Validate("Deferral Code", DeferralTemplateCode);
 
         // [THEN] The change is rejected because the Purchase Invoice is not open
         Assert.ExpectedTestFieldError(PurchaseHeader.FieldCaption(Status), Format(PurchaseHeader.Status::Open));
