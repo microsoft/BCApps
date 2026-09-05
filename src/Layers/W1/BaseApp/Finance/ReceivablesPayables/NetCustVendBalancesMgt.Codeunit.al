@@ -275,7 +275,7 @@ codeunit 108 "Net Cust/Vend Balances Mgt."
 
     local procedure FailIfDuplicateLineExists(GenJournalLine: Record "Gen. Journal Line")
     begin
-        GenJournalLine.SetLoadFields("Document No.");
+        GenJournalLine.SetLoadFields("Document No.", "Applies-to Doc. Type", "Applies-to Doc. No.");
         GenJournalLine.SetRange("Account Type", GenJournalLine."Account Type");
         GenJournalLine.SetRange("Account No.", GenJournalLine."Account No.");
         GenJournalLine.SetRange("Applies-to Doc. Type", GenJournalLine."Applies-to Doc. Type");
