@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.TestLibraries.DynamicsFieldService;
 
+using Microsoft.Integration.D365Sales;
 using Microsoft.Integration.DynamicsFieldService;
 using Microsoft.Service.Archive;
 using Microsoft.Service.Document;
@@ -79,11 +80,11 @@ codeunit 139205 "FS Integration Test Library"
         FSIntTableSubscriber.IgnoreArchievedCRMWorkOrdersOnQueryPostFilterIgnoreRecord(SourceRecordRef, IgnoreRecord);
     end;
 
-    procedure IgnoreServiceItemsByConvertToCustomerAssetFlag(SourceRecordRef: RecordRef; var IgnoreRecord: Boolean)
+    procedure DisableCustomerAssetConversion(var CRMProduct: Record "CRM Product"; var AdditionalFieldsWereModified: Boolean)
     var
         FSIntTableSubscriber: Codeunit "FS Int. Table Subscriber";
     begin
-        FSIntTableSubscriber.IgnoreServiceItemsByConvertToCustomerAssetFlag(SourceRecordRef, IgnoreRecord);
+        FSIntTableSubscriber.DisableCustomerAssetConversion(CRMProduct, AdditionalFieldsWereModified);
     end;
 
     procedure MarkArchivedServiceOrder(ServiceHeader: Record "Service Header")
