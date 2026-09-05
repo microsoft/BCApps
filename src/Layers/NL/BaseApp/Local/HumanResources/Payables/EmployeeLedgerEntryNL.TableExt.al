@@ -16,6 +16,7 @@ tableextension 11362 "Employee Ledger Entry NL" extends "Employee Ledger Entry"
             DataClassification = CustomerContent;
             TableRelation = "Transaction Mode".Code where("Account Type" = const(Employee));
         }
+#pragma warning disable AA0232
         field(11000002; "Payments in Process"; Decimal)
         {
             AutoFormatType = 1;
@@ -31,6 +32,7 @@ tableextension 11362 "Employee Ledger Entry NL" extends "Employee Ledger Entry"
             Editable = false;
             FieldClass = FlowField;
         }
+#pragma warning restore AA0232
         field(11000003; "Connect Batches Filter"; Code[20])
         {
             Caption = 'Connect Batches Filter';

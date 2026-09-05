@@ -10,6 +10,7 @@ tableextension 11317 "Vendor Ledger Entry NL" extends "Vendor Ledger Entry"
 {
     fields
     {
+#pragma warning disable AA0232
         field(11000002; "Payments in Process"; Decimal)
         {
             AutoFormatExpression = "Currency Code";
@@ -25,6 +26,7 @@ tableextension 11317 "Vendor Ledger Entry NL" extends "Vendor Ledger Entry"
             Editable = false;
             FieldClass = FlowField;
         }
+#pragma warning restore AA0232
         field(11000003; "Connect Batches Filter"; Code[20])
         {
             Caption = 'Connect Batches Filter';

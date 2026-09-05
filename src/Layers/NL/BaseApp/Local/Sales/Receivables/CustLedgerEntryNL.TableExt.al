@@ -16,6 +16,7 @@ tableextension 11468 "Cust. Ledger Entry NL" extends "Cust. Ledger Entry"
         /// <summary>
         /// Specifies the total amount of payments or collections in process for this entry.
         /// </summary>
+#pragma warning disable AA0232
         field(11000002; "Payments in Process"; Decimal)
         {
             AutoFormatType = 1;
@@ -31,6 +32,7 @@ tableextension 11468 "Cust. Ledger Entry NL" extends "Cust. Ledger Entry"
             Editable = false;
             FieldClass = FlowField;
         }
+#pragma warning restore AA0232
         /// <summary>
         /// Specifies the filter for connect batches used in telebanking payment processing.
         /// </summary>
