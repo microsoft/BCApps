@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Customer;
 
-using Microsoft.Bank.Payment;
 using Microsoft.Bank.Setup;
 using Microsoft.Finance.Currency;
 using Microsoft.Foundation.Address;
@@ -295,7 +294,6 @@ table 287 "Customer Bank Account"
                     exit;
 
                 CompanyInfo.CheckIBAN(IBAN);
-                UpdateIBAN();
             end;
         }
         /// <summary>
@@ -307,11 +305,6 @@ table 287 "Customer Bank Account"
             TableRelation = "SWIFT Code";
             ValidateTableRelation = false;
             ToolTip = 'Specifies the SWIFT code (international bank identifier code) of the bank where the customer has the account.';
-
-            trigger OnValidate()
-            begin
-                UpdateSWIFT();
-            end;
         }
         /// <summary>
         /// Specifies the bank clearing code required for payment processing.
@@ -370,30 +363,6 @@ table 287 "Customer Bank Account"
         PostCode: Record "Post Code";
         BankAccIdentifierIsEmptyErr: Label 'You must specify either a Bank Account No. or an IBAN.';
         BankAccDeleteErr: Label 'You cannot delete this bank account because it is associated with one or more open ledger entries.';
-
-    local procedure UpdateIBAN()
-    var
-        ProposalLine: Record "Proposal Line";
-    begin
-        if FindProposalLines(ProposalLine) then
-            ProposalLine.ModifyAll(IBAN, IBAN)
-    end;
-
-    local procedure UpdateSWIFT()
-    var
-        ProposalLine: Record "Proposal Line";
-    begin
-        if FindProposalLines(ProposalLine) then
-            ProposalLine.ModifyAll("SWIFT Code", "SWIFT Code")
-    end;
-
-    local procedure FindProposalLines(var ProposalLine: Record "Proposal Line"): Boolean
-    begin
-        ProposalLine.SetRange("Account Type", ProposalLine."Account Type"::Customer);
-        ProposalLine.SetRange("Account No.", "Customer No.");
-        ProposalLine.SetRange(Bank, "Code");
-        exit(not ProposalLine.IsEmpty());
-    end;
 
     /// <summary>
     /// Gets the bank account number or IBAN, raising an error if both are empty.
@@ -507,4 +476,5 @@ table 287 "Customer Bank Account"
     local procedure OnBeforeValidatePostCode(var CustomerBankAccount: Record "Customer Bank Account"; var PostCodeRec: Record "Post Code"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
+
 }

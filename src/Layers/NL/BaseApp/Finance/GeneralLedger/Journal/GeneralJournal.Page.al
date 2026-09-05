@@ -30,6 +30,7 @@ using System.Environment;
 using System.Environment.Configuration;
 using System.Integration;
 using System.Privacy;
+using System.Telemetry;
 using System.Threading;
 using System.Utilities;
 
@@ -1338,10 +1339,14 @@ page 39 "General Journal"
                     trigger OnAction()
                     var
                         ImportPayrollTransaction: Codeunit "Import Payroll Transaction";
+                        FeatureTelemetry: Codeunit "Feature Telemetry";
+                        PayrollTok: Label 'DK payroll service', Locked = true;
                     begin
+                        FeatureTelemetry.LogUptake('0000H8Z', PayRollTok, Enum::"Feature Uptake Status"::"Used");
                         GeneralLedgerSetup.TestField("Payroll Trans. Import Format");
                         if Rec.FindLast() then;
                         ImportPayrollTransaction.SelectAndImportPayrollDataToGL(Rec, GeneralLedgerSetup."Payroll Trans. Import Format");
+                        FeatureTelemetry.LogUsage('0000H90', PayrollTok, 'Payroll imported');
                     end;
                 }
                 action(ImportPayrollTransactions)

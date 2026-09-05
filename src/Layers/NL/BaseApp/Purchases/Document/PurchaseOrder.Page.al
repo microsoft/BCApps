@@ -281,7 +281,6 @@ page 50 "Purchase Order"
                 {
                     ApplicationArea = Suite;
                     Importance = Additional;
-                    ShowMandatory = true;
                     ToolTip = 'Specifies when the related purchase invoice must be paid.';
                 }
                 field("Vendor Invoice No."; Rec."Vendor Invoice No.")

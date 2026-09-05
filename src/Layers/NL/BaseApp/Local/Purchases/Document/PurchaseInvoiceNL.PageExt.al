@@ -8,6 +8,10 @@ pageextension 11308 PurchaseInvoiceNL extends "Purchase Invoice"
 {
     layout
     {
+        modify("Due Date")
+        {
+            ShowMandatory = true;
+        }
         addafter("Payment Method Code")
         {
             field("Transaction Mode Code"; Rec."Transaction Mode Code")

@@ -207,8 +207,6 @@ table 175 "Standard Vendor Purchase Code"
                 OnBeforeApplyStdCodesToPurchaseLines(PurchLine, StdPurchLine);
                 if StdPurchLine.InsertLine() then begin
                     PurchLine."Line No." := GetNextLineNo(PurchLine);
-                    if not StdPurchLine.EmptyLine() then
-                        PurchLine."Suggested Line" := true;
                     PurchLine.Insert(true);
                     OnApplyStdCodesToPurchaseLinesOnAfterPurchLineInsert(PurchLine, PurchHeader, StdPurchLine);
                     InsertExtendedText(PurchLine, PurchHeader);

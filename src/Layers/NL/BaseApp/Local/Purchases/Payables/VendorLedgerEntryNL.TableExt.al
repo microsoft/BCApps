@@ -10,6 +10,12 @@ tableextension 11317 "Vendor Ledger Entry NL" extends "Vendor Ledger Entry"
 {
     fields
     {
+        field(11000000; "Transaction Mode Code"; Code[20])
+        {
+            Caption = 'Transaction Mode Code';
+            DataClassification = CustomerContent;
+            TableRelation = "Transaction Mode".Code where("Account Type" = const(Vendor));
+        }
 #pragma warning disable AA0232
         field(11000002; "Payments in Process"; Decimal)
         {
@@ -41,6 +47,13 @@ tableextension 11317 "Vendor Ledger Entry NL" extends "Vendor Ledger Entry"
         {
             Caption = 'Our Bank Filter';
             FieldClass = FlowFilter;
+        }
+    }
+
+    keys
+    {
+        key(TransactionMode; Open, "On Hold", "Transaction Mode Code")
+        {
         }
     }
 }

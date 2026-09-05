@@ -879,25 +879,21 @@ table 254 "VAT Entry"
         {
             MaintainSQLIndex = false;
         }
-        key(Key9; Type, "Country/Region Code", "VAT Registration No.", "EU 3-Party Trade", "VAT Bus. Posting Group", "VAT Prod. Posting Group", "VAT Calculation Type", "Document Type", "Posting Date", "EU Service")
-        {
-            SumIndexFields = Base;
-        }
-        key(Key10; Type, Closed, "VAT Bus. Posting Group", "VAT Prod. Posting Group", "Tax Jurisdiction Code", "Use Tax", "Posting Date", "G/L Acc. No.")
+        key(Key9; Type, Closed, "VAT Bus. Posting Group", "VAT Prod. Posting Group", "Tax Jurisdiction Code", "Use Tax", "Posting Date", "G/L Acc. No.")
         {
             SumIndexFields = Base, Amount, "Unrealized Amount", "Unrealized Base", "Additional-Currency Base", "Additional-Currency Amount", "Add.-Currency Unrealized Amt.", "Add.-Currency Unrealized Base", "Remaining Unrealized Amount";
         }
-        key(Key11; "Posting Date", Type, Closed, "VAT Bus. Posting Group", "VAT Prod. Posting Group", Reversed, "G/L Acc. No.", "VAT Reporting Date")
+        key(Key10; "Posting Date", Type, Closed, "VAT Bus. Posting Group", "VAT Prod. Posting Group", Reversed, "G/L Acc. No.", "VAT Reporting Date")
         {
             SumIndexFields = Base, Amount, "Unrealized Amount", "Unrealized Base", "Additional-Currency Base", "Additional-Currency Amount", "Add.-Currency Unrealized Amt.", "Add.-Currency Unrealized Base", "Remaining Unrealized Amount";
         }
-        key(Key12; "Document Date")
+        key(Key11; "Document Date")
         {
         }
-        key(Key13; "G/L Acc. No.")
+        key(Key12; "G/L Acc. No.")
         {
         }
-        key(Key14; Type, Closed, "VAT Bus. Posting Group", "VAT Prod. Posting Group", Reversed, "Posting Date", "G/L Acc. No.", "VAT Reporting Date")
+        key(Key13; Type, Closed, "VAT Bus. Posting Group", "VAT Prod. Posting Group", Reversed, "Posting Date", "G/L Acc. No.", "VAT Reporting Date")
         {
         }
     }

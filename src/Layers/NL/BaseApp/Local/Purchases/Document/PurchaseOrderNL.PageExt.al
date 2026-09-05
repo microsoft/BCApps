@@ -8,6 +8,10 @@ pageextension 11309 PurchaseOrderNL extends "Purchase Order"
 {
     layout
     {
+        modify("Due Date")
+        {
+            ShowMandatory = true;
+        }
         addafter("Payment Method Code")
         {
             field("Transaction Mode Code"; Rec."Transaction Mode Code")

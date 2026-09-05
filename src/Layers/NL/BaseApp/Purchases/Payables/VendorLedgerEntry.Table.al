@@ -5,7 +5,6 @@
 namespace Microsoft.Purchases.Payables;
 
 using Microsoft.Bank.BankAccount;
-using Microsoft.Bank.Payment;
 using Microsoft.CRM.Team;
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Currency;
@@ -732,11 +731,6 @@ table 25 "Vendor Ledger Entry"
             DataClassification = CustomerContent;
             ToolTip = 'Specifies if there is an ongoing dispute for this document.';
         }
-        field(11000000; "Transaction Mode Code"; Code[20])
-        {
-            Caption = 'Transaction Mode Code';
-            TableRelation = "Transaction Mode".Code where("Account Type" = const(Vendor));
-        }
     }
 
     keys
@@ -797,9 +791,6 @@ table 25 "Vendor Ledger Entry"
         }
         // Supports the Payment Reconciliation Journal candidate search (Document Type + Open + date range).
         key(PmtReconCandidates; "Document Type", Open, "Posting Date")
-        {
-        }
-        key(TransactionMode; Open, "On Hold", "Transaction Mode Code")
         {
         }
     }

@@ -6,7 +6,6 @@ namespace Microsoft.Sales.Receivables;
 
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.DirectDebit;
-using Microsoft.Bank.Payment;
 using Microsoft.CRM.Team;
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Currency;
@@ -1060,11 +1059,6 @@ table 21 "Cust. Ledger Entry"
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the date on which the customer have promised to pay this invoice.';
         }
-        field(11000000; "Transaction Mode Code"; Code[20])
-        {
-            Caption = 'Transaction Mode Code';
-            TableRelation = "Transaction Mode".Code where("Account Type" = const(Customer));
-        }
     }
 
     keys
@@ -1135,9 +1129,6 @@ table 21 "Cust. Ledger Entry"
         key(Key37; "Applies-to ID")
         {
             IncludedFields = "Accepted Payment Tolerance";
-        }
-        key(TransactionMode; Open, "On Hold", "Transaction Mode Code")
-        {
         }
     }
 

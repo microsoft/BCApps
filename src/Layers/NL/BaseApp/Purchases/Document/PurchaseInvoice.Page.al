@@ -265,7 +265,6 @@ page 51 "Purchase Invoice"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
-                    ShowMandatory = true;
                     ToolTip = 'Specifies when the invoice is due. The program calculates the date using the Payment Terms Code and Document Date fields.';
                 }
                 field("Incoming Document Entry No."; Rec."Incoming Document Entry No.")

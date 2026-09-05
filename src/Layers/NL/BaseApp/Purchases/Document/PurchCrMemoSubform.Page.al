@@ -1338,8 +1338,6 @@ page 98 "Purch. Cr. Memo Subform"
            (xRec."No." <> '')
         then
             CurrPage.SaveRecord();
-        if Rec.Type = Rec.Type::"G/L Account" then
-            Rec.Validate(Quantity, 1);
 
         OnAfterNoOnAfterValidate(Rec, xRec);
     end;

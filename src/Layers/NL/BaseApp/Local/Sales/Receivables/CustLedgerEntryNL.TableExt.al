@@ -13,6 +13,12 @@ tableextension 11468 "Cust. Ledger Entry NL" extends "Cust. Ledger Entry"
 {
     fields
     {
+        field(11000000; "Transaction Mode Code"; Code[20])
+        {
+            Caption = 'Transaction Mode Code';
+            DataClassification = CustomerContent;
+            TableRelation = "Transaction Mode".Code where("Account Type" = const(Customer));
+        }
         /// <summary>
         /// Specifies the total amount of payments or collections in process for this entry.
         /// </summary>
@@ -56,6 +62,13 @@ tableextension 11468 "Cust. Ledger Entry NL" extends "Cust. Ledger Entry"
         {
             Caption = 'Our Bank Filter';
             FieldClass = FlowFilter;
+        }
+    }
+
+    keys
+    {
+        key(TransactionMode; Open, "On Hold", "Transaction Mode Code")
+        {
         }
     }
 }

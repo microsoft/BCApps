@@ -768,12 +768,9 @@ page 1 "Company Information"
     end;
 
     local procedure SystemIndicatorOnAfterValidate()
-    var
-        CompanyBadgeChangedLbl: Label 'Company badge changed.', Locked = true;
     begin
         SystemIndicatorChanged := true;
         UpdateSystemIndicator();
-        Session.LogAuditMessage(CompanyBadgeChangedLbl, SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
     end;
 
     local procedure ActivateFields()
