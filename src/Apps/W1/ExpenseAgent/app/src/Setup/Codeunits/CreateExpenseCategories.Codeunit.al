@@ -287,8 +287,8 @@ codeunit 6973 "Create Expense Categories"
         AddSubcategorySeed(TempSubcategory, XINCIDENTSTxt, XHOTELSTxt, XHotelIncidentsDescTxt, XSubHotelIncidentsPostingTxt, true, false);
         AddSubcategorySeed(TempSubcategory, XLAUNDRYTxt, XHOTELSTxt, XHotelLaundryDescTxt, XSubLaundryPostingTxt, true, false);
         AddSubcategorySeed(TempSubcategory, XROOMSERVICETxt, XHOTELSTxt, XHotelRoomServiceDescTxt, XSubRoomServicePostingTxt, true, false);
-        AddSubcategorySeed(TempSubcategory, XPARKINGTxt, XHOTELSTxt, XHotelParkingDescTxt, XSubHotelParkingPostingTxt, true, false);
-        AddSubcategorySeed(TempSubcategory, XOTHERTxt, XHOTELSTxt, XHotelOtherDescTxt, XSubOtherPostingTxt, true, false);
+        AddSubcategorySeed(TempSubcategory, XHOTELPARKTxt, XHOTELSTxt, XHotelParkingDescTxt, XSubHotelParkingPostingTxt, true, false);
+        AddSubcategorySeed(TempSubcategory, XHOTELOTHERTxt, XHOTELSTxt, XHotelOtherDescTxt, XSubOtherPostingTxt, true, false);
         AddSubcategorySeed(TempSubcategory, XTIPSTxt, XHOTELSTxt, XHotelTipsDescTxt, XTipsPostingTxt, true, false);
         AddSubcategorySeed(TempSubcategory, XTRANSPORTTxt, XHOTELSTxt, XHotelTransportDescTxt, XSubHotelTransportPostingTxt, true, false);
 
@@ -567,6 +567,16 @@ codeunit 6973 "Create Expense Categories"
     internal procedure GetROOMSERVICETxt(): Code[20]
     begin
         exit(XROOMSERVICETxt);
+    end;
+
+    internal procedure GetHOTELPARKTxt(): Code[20]
+    begin
+        exit(XHOTELPARKTxt);
+    end;
+
+    internal procedure GetHOTELOTHERTxt(): Code[20]
+    begin
+        exit(XHOTELOTHERTxt);
     end;
 
     internal procedure GetPARKINGTxt(): Code[20]
@@ -1215,7 +1225,9 @@ codeunit 6973 "Create Expense Categories"
         XHotelLaundryDescTxt: Label 'Expenses for laundry, dry-cleaning, or pressing services provided by the hotel during a business trip.', MaxLength = 250;
         XROOMSERVICETxt: Label 'ROOM-SERVICE', Locked = true;
         XHotelRoomServiceDescTxt: Label 'Expenses for meals, minibar items, and beverages provided via hotel room service during a business stay.', MaxLength = 250;
+        XHOTELPARKTxt: Label 'HOTEL-PARK', Locked = true;
         XHotelParkingDescTxt: Label 'Expenses for valet or self-parking services provided by the hotel during a business stay.', MaxLength = 250;
+        XHOTELOTHERTxt: Label 'HOTELOTHER', Locked = true;
         XHotelOtherDescTxt: Label 'Hotel-related expenses incurred during a business stay that do not fall into defined hotel subcategories.', MaxLength = 250;
         XHotelTipsDescTxt: Label 'Expenses for tips paid to hotel staff such as bell services, housekeeping, or concierge during a business stay.', MaxLength = 250;
         XHotelTransportDescTxt: Label 'Expenses for transportation services arranged or provided by the hotel, such as hotel shuttles, transfers, or arranged rides.', MaxLength = 250;
