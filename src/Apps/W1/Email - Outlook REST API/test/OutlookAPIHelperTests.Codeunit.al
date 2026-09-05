@@ -15,6 +15,30 @@ codeunit 139752 "Outlook API Helper Tests"
         SendEmailExternalUserErr: Label 'Could not send the email, because the user is delegated or external.';
 
     [Test]
+    procedure DefaultRedirectUrlIsAllowed()
+    var
+        EmailOAuthClient: Codeunit "Email - OAuth Client";
+        OAuth2: Codeunit OAuth2;
+        DefaultRedirectUrl: Text;
+    begin
+        // [FEATURE] [AI test 0.4]
+        OAuth2.GetDefaultRedirectUrl(DefaultRedirectUrl);
+
+        EmailOAuthClient.ValidateRedirectUrl(DefaultRedirectUrl);
+    end;
+
+    [Test]
+    procedure NonDefaultRedirectUrlIsBlocked()
+    var
+        EmailOAuthClient: Codeunit "Email - OAuth Client";
+    begin
+        // [FEATURE] [AI test 0.4]
+        asserterror EmailOAuthClient.ValidateRedirectUrl('https://contoso.example/oauth/callback');
+
+        LibraryAssert.ExpectedError('The redirect URL must be');
+    end;
+
+    [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestSendMailDelegatedAdmin()
     var

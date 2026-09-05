@@ -121,6 +121,7 @@ page 561 "CrossIntercomp. Partner Setup"
 
                         trigger OnValidate()
                         begin
+                            NotifyIfUntrustedConnectionUrl();
                             NextEnabled := CheckIfSaaSConnectionDetailsAreFilled();
                         end;
                     }
@@ -205,6 +206,8 @@ page 561 "CrossIntercomp. Partner Setup"
                         ExtendedDatatype = URL;
                         Caption = 'Redirect URL';
                         ToolTip = 'Specifies the OAuth 2.0 redirect URL of the Microsoft Entra authentication application. In most scenarios this will be: https://businesscentral.dynamics.com/OAuthLanding.htm .';
+                        // The connector always uses the environment's default redirect URL, so this field is hidden to avoid promising configurable behavior.
+                        Visible = false;
                         trigger OnValidate()
                         begin
                             NextEnabled := CheckIfSaaSConnectionDetailsAreFilled();
@@ -339,6 +342,7 @@ page 561 "CrossIntercomp. Partner Setup"
         CurrentCompanyConnectionUrl, CurrentCompanyCompanyId, CurrentCompanyIntercompanyId, CurrentCompanyName : Text;
         PartnerSaaSCompanyName: Text[100];
         ConsentState: Boolean;
+        UntrustedUrlNotificationActive: Boolean;
 
         [NonDebuggable]
         PartnerSaaSCompanyId, OAuth2ClientID : Guid;
@@ -348,7 +352,8 @@ page 561 "CrossIntercomp. Partner Setup"
         NotSetUpQst: Label 'The setup for the connection to the intercompany partner''s environment isn''t complete. If you leave this guide, your settings will be deleted.\\Are you sure you want to exit?';
         LearnMoreTok: Label 'Privacy and Cookies';
         PrivacyLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=521839';
-        UrlNotDynamicsErr: Label 'The URL provided is not in the dynamics.com domain.';
+        UntrustedConnectionUrlMsg: Label 'The connection URL must be a trusted Business Central API URL. You cannot continue until it is corrected.';
+        UntrustedUrlNotificationIdTok: Label '8f4b2c1e-9a3d-4e7f-b6c8-1d2e3f4a5b6c', Locked = true;
 
 
     local procedure LoadSaaSDataForCurrentCompany()
@@ -485,24 +490,45 @@ page 561 "CrossIntercomp. Partner Setup"
 
     internal procedure ValidateDynamicsUrl(Url: Text): Boolean
     var
-        UrlHelper: Codeunit "URL Helper";
-        UnexpectedDomain: Boolean;
+        CrossIntercompanyConnector: Codeunit "CrossIntercompany Connector";
     begin
         if Url = '' then
             exit(true);
 
-        if not Url.StartsWith('https://') then
-            exit(false);
+        exit(CrossIntercompanyConnector.IsDestinationUrlTrusted(Url));
+    end;
 
-        if UrlHelper.IsPPE() then
-            UnexpectedDomain := StrPos(LowerCase(Url), '.dynamics-tie.com') = 0;
+    local procedure NotifyIfUntrustedConnectionUrl()
+    var
+        UntrustedUrlNotification: Notification;
+    begin
+        if (PartnerSaaSConnectionUrl = '') or ValidateDynamicsUrl(PartnerSaaSConnectionUrl) then begin
+            RecallUntrustedUrlNotification();
+            exit;
+        end;
 
-        if UrlHelper.IsPROD() then
-            UnexpectedDomain := StrPos(LowerCase(Url), '.dynamics.com') = 0;
+        UntrustedUrlNotification.Id := GetUntrustedUrlNotificationId();
+        UntrustedUrlNotification.Message(UntrustedConnectionUrlMsg);
+        UntrustedUrlNotification.Scope(NotificationScope::LocalScope);
+        UntrustedUrlNotification.Send();
+        UntrustedUrlNotificationActive := true;
+    end;
 
-        if not UnexpectedDomain then
-            exit(true);
-        Error(UrlNotDynamicsErr);
+    local procedure RecallUntrustedUrlNotification()
+    var
+        UntrustedUrlNotification: Notification;
+    begin
+        if not UntrustedUrlNotificationActive then
+            exit;
+
+        UntrustedUrlNotification.Id := GetUntrustedUrlNotificationId();
+        UntrustedUrlNotification.Recall();
+        UntrustedUrlNotificationActive := false;
+    end;
+
+    local procedure GetUntrustedUrlNotificationId() NotificationId: Guid
+    begin
+        Evaluate(NotificationId, UntrustedUrlNotificationIdTok);
     end;
     #endregion
 }

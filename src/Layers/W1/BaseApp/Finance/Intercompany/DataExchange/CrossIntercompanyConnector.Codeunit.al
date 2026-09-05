@@ -8,6 +8,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Intercompany.Partner;
 using System.Environment;
 using System.Security.Authentication;
+using System.Utilities;
 
 /// <summary>
 /// Manages secure API connections and data exchange between intercompany partners across different environments.
@@ -33,6 +34,12 @@ codeunit 560 "CrossIntercompany Connector"
         V1VersionTok: Label 'v1.0', Locked = true;
         GeneralAPIsPathTok: Label 'v2.0/companies', Locked = true;
         BCResourceURLScopeTok: Label 'https://api.businesscentral.dynamics.com/.default', Locked = true;
+        DynamicsProdHostSuffixTok: Label '.dynamics.com', Locked = true;
+        DynamicsPPEHostSuffixTok: Label '.dynamics-tie.com', Locked = true;
+        EntraAuthorityPrefixTok: Label 'https://login.microsoftonline.com/', Locked = true;
+        EntraPPEAuthorityPrefixTok: Label 'https://login.windows-ppe.net/', Locked = true;
+        OAuthTokenEndpointSuffixTok: Label '/oauth2/v2.0/token', Locked = true;
+        TenantDomainPatternTok: Label '^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$', Locked = true;
         ExpandedTok: Label 'bufferIntercompanyInboxTransactions,bufferIntercompanyInboxJournalLines,bufferIntercompanyInboxPurchaseHeaders,bufferIntercompanyInboxPurchaseLines,bufferIntercompanyInboxSalesHeaders,bufferIntercompanyInboxSalesLines,bufferIntercompanyInOutJournalLineDimensions,bufferIntercompanyDocumentDimensions,bufferIntercompanyCommentLines', Locked = true;
 
         NonSaaSEnvironmentErr: Label 'This functionality is only available in online environments.';
@@ -50,6 +57,14 @@ codeunit 560 "CrossIntercompany Connector"
         SuccessConnectingToPartnerMsg: Label 'Successfully connected, the partner %1 is available to be used with intercompany.', Comment = '%1 = IC Partner Code';
         PartnerMissingICSetupErr: Label 'Partner %1 has not completed the information required to use intercompany.', Comment = '%1 = IC Partner Code';
         MissalignmentBetweenNamesErr: Label 'The partner''s company name %1 does not match the name you are introducing for partner %2.', Comment = '%1 = Partner''s Company Name, %2 = IC Partner Name';
+        InvalidDestinationUrlErr: Label 'The intercompany connection URL must use the trusted Business Central API host.';
+        InvalidDestinationUrlSecurityAuditTxt: Label 'An invalid destination URL was rejected for a cross-environment intercompany connection. Host: %1.', Locked = true, Comment = '%1 = the rejected host';
+        InvalidDestinationUrlTelemetryTxt: Label 'A cross-environment intercompany destination URL failed trusted-host validation.', Locked = true;
+        InvalidTokenEndpointErr: Label 'The token endpoint must identify a Microsoft Entra tenant on the trusted authority.';
+        InvalidTokenEndpointSecurityAuditTxt: Label 'An invalid OAuth token endpoint was rejected for a cross-environment intercompany connection. Host: %1.', Locked = true, Comment = '%1 = the rejected host';
+        InvalidTokenEndpointTelemetryTxt: Label 'A cross-environment intercompany OAuth token endpoint failed trusted-authority validation.', Locked = true;
+        CrossIntercompanyServiceNameTxt: Label 'Cross-environment Intercompany', Locked = true;
+        UnparsableHostTok: Label '(unparsable host)', Locked = true;
 
     internal procedure TestICPartnerSetup(var TempICPartner: Record "IC Partner" temporary): Boolean
     var
@@ -258,6 +273,7 @@ codeunit 560 "CrossIntercompany Connector"
         HttpRequestMessage: HttpRequestMessage;
         HttpResponseMessage: HttpResponseMessage;
     begin
+        ValidateDestinationUrl(Uri);
         HttpRequestMessage.Method(Method);
         HttpRequestMessage.SetRequestUri(Uri);
         PrepareHeaders(HttpRequestMessage, ICPartner);
@@ -369,13 +385,136 @@ codeunit 560 "CrossIntercompany Connector"
 
         ClientId := ICPartner.GetSecret(ICPartner."Client Id Key").Unwrap();
         ClientSecret := ICPartner.GetSecret(ICPartner."Client Secret Key");
-        TokenEndpoint := ICPartner.GetSecret(ICPartner."Token Endpoint Key").Unwrap();
-        RedirectURL := ICPartner.GetSecret(ICPartner."Redirect URL Key").Unwrap();
+        TokenEndpoint := GetValidatedTokenEndpoint(ICPartner.GetSecret(ICPartner."Token Endpoint Key").Unwrap());
+        OAuth2.GetDefaultRedirectUrl(RedirectURL);
         Scopes.Add(BCResourceURLScopeTok);
 
         OAuth2.AcquireTokenWithClientCredentials(ClientId, ClientSecret, TokenEndpoint, RedirectURL, Scopes, BearerAccessToken);
 
         exit(BearerAccessToken);
+    end;
+
+    internal procedure ValidateDestinationUrl(DestinationUrl: Text): Boolean
+    begin
+        if not IsDestinationUrlTrusted(DestinationUrl) then
+            RejectInvalidDestinationUrl(GetHostFromUrl(DestinationUrl));
+
+        exit(true);
+    end;
+
+    internal procedure IsDestinationUrlTrusted(DestinationUrl: Text): Boolean
+    var
+        UrlHelper: Codeunit "Url Helper";
+    begin
+        if UrlHelper.IsPPE() then
+            exit(IsDestinationUrlAllowed(DestinationUrl, DynamicsPPEHostSuffixTok));
+        if UrlHelper.IsPROD() then
+            exit(IsDestinationUrlAllowed(DestinationUrl, DynamicsProdHostSuffixTok));
+        exit(false);
+    end;
+
+    internal procedure IsDestinationUrlAllowed(DestinationUrl: Text; ExpectedHostSuffix: Text): Boolean
+    var
+        Uri: Codeunit Uri;
+    begin
+        if not Uri.IsWellFormedUriString(DestinationUrl, Enum::UriKind::Absolute) then
+            exit(false);
+
+        Uri.Init(DestinationUrl);
+        if LowerCase(Uri.GetScheme()) <> 'https' then
+            exit(false);
+        if Uri.GetPort() <> 443 then
+            exit(false);
+
+        // Allow any Dynamics host (including Embed ISV subdomains) under the environment's trusted domain.
+        exit(LowerCase(Uri.GetHost()).EndsWith(ExpectedHostSuffix));
+    end;
+
+    local procedure RejectInvalidDestinationUrl(Host: Text)
+    var
+        TelemetryDimensions: Dictionary of [Text, Text];
+    begin
+        TelemetryDimensions.Add('Category', CrossIntercompanyTok);
+        TelemetryDimensions.Add('Host', Host);
+        Session.LogMessage('0000VC7', InvalidDestinationUrlTelemetryTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDimensions);
+        Session.LogSecurityAudit(
+            CrossIntercompanyServiceNameTxt, SecurityOperationResult::Failure,
+            StrSubstNo(InvalidDestinationUrlSecurityAuditTxt, Host), AuditCategory::ApplicationManagement);
+        Error(InvalidDestinationUrlErr);
+    end;
+
+    internal procedure GetValidatedTokenEndpoint(ConfiguredTokenEndpoint: Text): Text
+    var
+        UrlHelper: Codeunit "Url Helper";
+        AuthorityPrefix: Text;
+    begin
+        if UrlHelper.IsPPE() then
+            AuthorityPrefix := EntraPPEAuthorityPrefixTok
+        else
+            if UrlHelper.IsPROD() then
+                AuthorityPrefix := EntraAuthorityPrefixTok
+            else
+                RejectInvalidTokenEndpoint(GetHostFromUrl(ConfiguredTokenEndpoint));
+
+        exit(GetValidatedTokenEndpointForAuthority(ConfiguredTokenEndpoint, AuthorityPrefix));
+    end;
+
+    internal procedure GetValidatedTokenEndpointForAuthority(ConfiguredTokenEndpoint: Text; AuthorityPrefix: Text): Text
+    var
+        TenantIdText: Text;
+    begin
+        if not LowerCase(ConfiguredTokenEndpoint).StartsWith(AuthorityPrefix) or
+           not LowerCase(ConfiguredTokenEndpoint).EndsWith(OAuthTokenEndpointSuffixTok)
+        then
+            RejectInvalidTokenEndpoint(GetHostFromUrl(ConfiguredTokenEndpoint));
+
+        TenantIdText := CopyStr(ConfiguredTokenEndpoint, StrLen(AuthorityPrefix) + 1, StrLen(ConfiguredTokenEndpoint) - StrLen(AuthorityPrefix) - StrLen(OAuthTokenEndpointSuffixTok));
+        if not IsValidTenantIdentifier(TenantIdText) then
+            RejectInvalidTokenEndpoint(GetHostFromUrl(ConfiguredTokenEndpoint));
+
+        exit(ConfiguredTokenEndpoint);
+    end;
+
+    local procedure IsValidTenantIdentifier(TenantIdentifier: Text): Boolean
+    var
+        Regex: Codeunit Regex;
+        TenantId: Guid;
+    begin
+        if TenantIdentifier = '' then
+            exit(false);
+
+        // A tenant is identified either by its GUID or by a verified Entra domain name (for example, contoso.onmicrosoft.com).
+        if Evaluate(TenantId, TenantIdentifier) then
+            exit(true);
+
+        exit(Regex.IsMatch(LowerCase(TenantIdentifier), TenantDomainPatternTok));
+    end;
+
+    local procedure RejectInvalidTokenEndpoint(Host: Text)
+    var
+        TelemetryDimensions: Dictionary of [Text, Text];
+    begin
+        TelemetryDimensions.Add('Category', CrossIntercompanyTok);
+        TelemetryDimensions.Add('Host', Host);
+        Session.LogMessage('0000VC8', InvalidTokenEndpointTelemetryTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDimensions);
+        Session.LogSecurityAudit(
+            CrossIntercompanyServiceNameTxt, SecurityOperationResult::Failure,
+            StrSubstNo(InvalidTokenEndpointSecurityAuditTxt, Host), AuditCategory::ApplicationManagement);
+        Error(InvalidTokenEndpointErr);
+    end;
+
+    local procedure GetHostFromUrl(Url: Text): Text
+    var
+        Uri: Codeunit Uri;
+        Host: Text;
+    begin
+        if not Uri.IsValidUri(Url) then
+            exit(UnparsableHostTok);
+        Uri.Init(Url);
+        Host := LowerCase(Uri.GetHost());
+        if Host = '' then
+            exit(UnparsableHostTok);
+        exit(Host);
     end;
 
     #region Auxiliar methods
