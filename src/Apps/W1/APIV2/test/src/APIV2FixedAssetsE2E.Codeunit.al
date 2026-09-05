@@ -8,6 +8,9 @@ codeunit 139907 "APIV2 - Fixed Assets E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Customer]
     end;
 

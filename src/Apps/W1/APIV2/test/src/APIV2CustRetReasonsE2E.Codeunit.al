@@ -8,6 +8,9 @@ codeunit 139869 "APIV2 - Cust. Ret. Reasons E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Sales] [Credit Memo]
     end;
 

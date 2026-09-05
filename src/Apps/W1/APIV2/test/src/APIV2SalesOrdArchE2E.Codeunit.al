@@ -8,6 +8,8 @@ codeunit 139927 "APIV2 - Sales Ord. Arch. E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         // [FEATURE] [Graph] [Sales] [Order] [Archive]
     end;
 

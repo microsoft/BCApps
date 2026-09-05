@@ -1,9 +1,14 @@
 codeunit 139917 "APIV2 - Approval Entries E2E"
 {
-
     Subtype = Test;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
+
+    trigger OnRun()
+    begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+    end;
 
     var
         Assert: Codeunit Assert;

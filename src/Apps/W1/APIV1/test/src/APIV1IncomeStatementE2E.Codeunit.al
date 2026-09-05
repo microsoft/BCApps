@@ -8,6 +8,9 @@ codeunit 139716 "APIV1 - Income Statement E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Income Statement]
     end;
 

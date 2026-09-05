@@ -2575,7 +2575,6 @@ codeunit 134101 "ERM Prepayment II"
         GenJournalLine.Modify(true);
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
     end;
-
     local procedure SelectGenJournalBatch(var GenJournalBatch: Record "Gen. Journal Batch")
     begin
         // Select General Journal Batch and clear General Journal Lines to make sure that no line exist before creating
@@ -3145,4 +3144,3 @@ codeunit 134101 "ERM Prepayment II"
         PurchaseHeader.TestField(Status, ExpectedStatus);
     end;
 }
-

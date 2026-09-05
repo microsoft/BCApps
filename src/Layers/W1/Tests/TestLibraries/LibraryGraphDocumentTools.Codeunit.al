@@ -582,17 +582,16 @@ codeunit 130619 "Library - Graph Document Tools"
         VATBusinessPostingGroup: Record "VAT Business Posting Group";
         FixedAsset: Record "Fixed Asset";
         GLAccount: Record "G/L Account";
-        VATPostingSetup: Record "VAT Posting Setup";
     begin
         LibraryInventory.CreateItemCharge(ItemCharge);
+        EnsureVATPostingSetupExists(
+            SalesHeader."VAT Bus. Posting Group", ItemCharge."VAT Prod. Posting Group");
         LibrarySales.CreateSalesLine(SalesLineCharge, SalesHeader, SalesLineCharge.Type::"Charge (Item)", ItemCharge."No.", 1);
 
         LibraryERM.FindVATBusinessPostingGroup(VATBusinessPostingGroup);
         LibraryResource.CreateResource(Resource, VATBusinessPostingGroup.Code);
-        VATPostingSetup.SetRange("VAT Bus. Posting Group", SalesHeader."VAT Bus. Posting Group");
-        VATPostingSetup.SetRange("VAT Prod. Posting Group", Resource."VAT Prod. Posting Group");
-        if not VATPostingSetup.FINDFIRST() then
-            LibraryERM.CreateVATPostingSetup(VATPostingSetup, SalesHeader."VAT Bus. Posting Group", Resource."VAT Prod. Posting Group");
+        EnsureVATPostingSetupExists(
+            SalesHeader."VAT Bus. Posting Group", Resource."VAT Prod. Posting Group");
         LibrarySales.CreateSalesLine(SalesLineResource, SalesHeader, SalesLineResource.Type::Resource, Resource."No.", 1);
 
         LibraryFixedAsset.CreateFixedAsset(FixedAsset);
@@ -619,6 +618,8 @@ codeunit 130619 "Library - Graph Document Tools"
         GLAccount: Record "G/L Account";
     begin
         LibraryInventory.CreateItemCharge(ItemCharge);
+        EnsureVATPostingSetupExists(
+            PurchaseHeader."VAT Bus. Posting Group", ItemCharge."VAT Prod. Posting Group");
         LibraryPurchase.CreatePurchaseLine(
           PurchaseLineCharge, PurchaseHeader, PurchaseLineCharge.Type::"Charge (Item)", ItemCharge."No.", 1);
 
@@ -636,8 +637,25 @@ codeunit 130619 "Library - Graph Document Tools"
         GLAccount.SetRange("Direct Posting", true);
 #pragma warning restore AA0210
         GLAccount.FindFirst();
+        EnsureVATPostingSetupExists(
+            PurchaseHeader."VAT Bus. Posting Group", GLAccount."VAT Prod. Posting Group");
         LibraryPurchase.CreatePurchaseLine(
           PurchaseLineGLAccount, PurchaseHeader, PurchaseLineGLAccount.Type::"G/L Account", GLAccount."No.", 1);
+    end;
+
+    /// <summary>Creates VAT posting setup when the specified posting-group combination does not exist.</summary>
+    /// <param name="VATBusPostingGroup">VAT business posting group.</param>
+    /// <param name="VATProdPostingGroup">VAT product posting group.</param>
+    procedure EnsureVATPostingSetupExists(VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20])
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        if (VATBusPostingGroup = '') and (VATProdPostingGroup = '') then
+            exit;
+        if VATPostingSetup.Get(VATBusPostingGroup, VATProdPostingGroup) then
+            exit;
+
+        LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATBusPostingGroup, VATProdPostingGroup);
     end;
 
     [Scope('OnPrem')]
@@ -895,4 +913,3 @@ codeunit 130619 "Library - Graph Document Tools"
         Assert.AreEqual(ExpectedDiscountAmount, ActualInvoiceDiscountAmount, 'Invoice discount amount was not set');
     end;
 }
-

@@ -8,6 +8,9 @@ codeunit 139925 "APIV2 - Assembly Orders E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Assembly] [Order]
     end;
 

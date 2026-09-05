@@ -1,11 +1,15 @@
 codeunit 139840 "APIV2 - Customer Payments E2E"
 {
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Customer Payments]
     end;
 
@@ -16,6 +20,7 @@ codeunit 139840 "APIV2 - Customer Payments E2E"
         Assert: Codeunit Assert;
         GraphMgtCustomerPayments: Codeunit "Graph Mgt - Customer Payments";
         LibraryGraphJournalLines: Codeunit "Library - Graph Journal Lines";
+        LibraryERM: Codeunit "Library - ERM";
         GraphMgtJournal: Codeunit "Graph Mgt - Journal";
         ServiceNameTxt: Label 'customerPaymentJournals';
         ServiceSubpageNameTxt: Label 'customerPayments';
@@ -34,7 +39,6 @@ codeunit 139840 "APIV2 - Customer Payments E2E"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         GenJournalLine: Record "Gen. Journal Line";
         GenJournalBatch: Record "Gen. Journal Batch";
-        LibraryERM: Codeunit "Library - ERM";
         SalesInvoiceAggregator: Codeunit "Sales Invoice Aggregator";
         JournalName: Code[10];
         Amount: Decimal;
@@ -769,6 +773,7 @@ codeunit 139840 "APIV2 - Customer Payments E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryTestInitialize.OnTestInitialize(Codeunit::"APIV2 - Customer Payments E2E");
 
         if not isInitialized then
