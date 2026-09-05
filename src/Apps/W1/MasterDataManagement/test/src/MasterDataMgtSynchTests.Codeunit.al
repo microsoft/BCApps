@@ -722,6 +722,162 @@ codeunit 139758 "Master Data Mgt. Synch. Tests"
         Assert.IsTrue(IntegrationSynchJobErrorsSecond.Get(IntegrationSynchJobErrorsSecond."No."), 'The newly inserted error row should exist');
     end;
 
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure LocalDataSourceFetchesSourceRecordByCouplingSystemId()
+    var
+        SourceCustomer: Record Customer;
+        MasterDataMgtCoupling: Record "Master Data Mgt. Coupling";
+        IntegrationRecordRef: RecordRef;
+        Found: Boolean;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] The local data source (IMDM Data Source.GetBySystemId) fetches the source record for a coupling.
+        Initialize();
+        LibraryMasterDataMgt.SetSourceCompanyToCurrent();
+
+        // [GIVEN] a source customer coupled by its SystemId
+        LibrarySales.CreateCustomer(SourceCustomer);
+        MasterDataMgtCoupling.Init();
+        MasterDataMgtCoupling."Integration System ID" := SourceCustomer.SystemId;
+        MasterDataMgtCoupling."Local System ID" := CreateGuid();
+        MasterDataMgtCoupling."Table ID" := Database::Customer;
+        MasterDataMgtCoupling.Insert();
+
+        // [WHEN] the coupling-based GetIntegrationRecordRef is invoked
+        Found := LibraryMasterDataMgt.GetIntegrationRecordRefByCoupling(Database::Customer, MasterDataMgtCoupling, IntegrationRecordRef);
+
+        // [THEN] the local data source returns the source customer
+        Assert.IsTrue(Found, 'GetBySystemId should find the source record');
+        Assert.AreEqual(SourceCustomer.SystemId, IntegrationRecordRef.Field(IntegrationRecordRef.SystemIdNo()).Value(), 'Wrong record fetched by GetBySystemId');
+    end;
+
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure LocalDataSourceFetchesSourceRecordById()
+    var
+        SourceCustomer: Record Customer;
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        IntegrationRecordRef: RecordRef;
+        Found: Boolean;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] The local data source (IMDM Data Source.GetById) fetches the source record by its SystemId.
+        Initialize();
+        LibraryMasterDataMgt.SetSourceCompanyToCurrent();
+
+        // [GIVEN] a source customer
+        LibrarySales.CreateCustomer(SourceCustomer);
+        GetCustomerMapping(IntegrationTableMapping);
+
+        // [WHEN] GetIntegrationRecordRef by id (GUID) is invoked
+        Found := LibraryMasterDataMgt.GetIntegrationRecordRefById(IntegrationTableMapping, SourceCustomer.SystemId, IntegrationRecordRef);
+
+        // [THEN] the local data source returns the source customer
+        Assert.IsTrue(Found, 'GetById should find the source record');
+        Assert.AreEqual(SourceCustomer.SystemId, IntegrationRecordRef.Field(IntegrationRecordRef.SystemIdNo()).Value(), 'Wrong record fetched by GetById');
+    end;
+
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure LocalDataSourceFetchesSourceRecordsByUidFilter()
+    var
+        SourceCustomer: Record Customer;
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        SourceRecordRef: RecordRef;
+        Found: Boolean;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] The local data source (IMDM Data Source.GetByUidFilter) returns records matching a UID (SystemId) filter.
+        Initialize();
+        LibraryMasterDataMgt.SetSourceCompanyToCurrent();
+
+        // [GIVEN] a source customer
+        LibrarySales.CreateCustomer(SourceCustomer);
+        GetCustomerMapping(IntegrationTableMapping);
+
+        // [WHEN] GetByUidFilter is invoked with the customer's SystemId as the filter
+        Found := LibraryMasterDataMgt.DataSourceGetByUidFilter(IntegrationTableMapping, Format(SourceCustomer.SystemId), SourceRecordRef);
+
+        // [THEN] the local data source returns the source customer
+        Assert.IsTrue(Found, 'GetByUidFilter should find the source record');
+        Assert.AreEqual(SourceCustomer.SystemId, SourceRecordRef.Field(SourceRecordRef.SystemIdNo()).Value(), 'Wrong record fetched by GetByUidFilter');
+    end;
+
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure LocalDataSourceReturnsModifiedSet()
+    var
+        SourceCustomer: Record Customer;
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        SourceRecordRef: RecordRef;
+        Found: Boolean;
+        FoundOurs: Boolean;
+        RecSystemId: Guid;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] The local data source (IMDM Data Source.GetModifiedSet) returns the source records for the mapping.
+        Initialize();
+        LibraryMasterDataMgt.SetSourceCompanyToCurrent();
+
+        // [GIVEN] a source customer
+        LibrarySales.CreateCustomer(SourceCustomer);
+        GetCustomerMapping(IntegrationTableMapping);
+
+        // [WHEN] GetModifiedSet is invoked
+        Found := LibraryMasterDataMgt.DataSourceGetModifiedSet(IntegrationTableMapping, '', SourceRecordRef);
+
+        // [THEN] the created source customer is in the returned set
+        Assert.IsTrue(Found, 'GetModifiedSet should return source records');
+        if SourceRecordRef.FindSet() then
+            repeat
+                RecSystemId := SourceRecordRef.Field(SourceRecordRef.SystemIdNo()).Value();
+                if RecSystemId = SourceCustomer.SystemId then
+                    FoundOurs := true;
+            until (SourceRecordRef.Next() = 0) or FoundOurs;
+        Assert.IsTrue(FoundOurs, 'The created source customer should be in the modified set');
+    end;
+
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure ReadFailsWhenSourceEnvironmentNameIsSet()
+    var
+        SourceCustomer: Record Customer;
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        MasterDataMgtCoupling: Record "Master Data Mgt. Coupling";
+        IntegrationRecordRef: RecordRef;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Setting Source Environment Name routes reads to the cross-environment source, which fails until a connection is configured.
+        Initialize();
+
+        // [GIVEN] a coupled source customer and a source environment name set on the setup
+        LibrarySales.CreateCustomer(SourceCustomer);
+        MasterDataManagementSetup.Get();
+        MasterDataManagementSetup."Source Environment Name" := 'CONTOSOENV';
+        MasterDataManagementSetup.Modify(false);
+        MasterDataMgtCoupling.Init();
+        MasterDataMgtCoupling."Integration System ID" := SourceCustomer.SystemId;
+        MasterDataMgtCoupling."Local System ID" := CreateGuid();
+        MasterDataMgtCoupling."Table ID" := Database::Customer;
+        MasterDataMgtCoupling.Insert();
+
+        // [WHEN] a read that resolves the data source is invoked
+        asserterror LibraryMasterDataMgt.GetIntegrationRecordRefByCoupling(Database::Customer, MasterDataMgtCoupling, IntegrationRecordRef);
+
+        // [THEN] it fails because the cross-environment connection to the source is not configured yet
+        Assert.ExpectedError('The cross-environment connection to the source is not configured yet');
+    end;
+
+    local procedure GetCustomerMapping(var IntegrationTableMapping: Record "Integration Table Mapping")
+    begin
+        IntegrationTableMapping.SetRange(Type, IntegrationTableMapping.Type::"Master Data Management");
+        IntegrationTableMapping.SetRange("Table ID", Database::Customer);
+        IntegrationTableMapping.SetRange("Integration Table ID", Database::Customer);
+        IntegrationTableMapping.SetRange("Delete After Synchronization", false);
+        IntegrationTableMapping.FindFirst();
+    end;
+
     local procedure CreateCoupledCustomers(var SourceCustomer: Record Customer; var DestinationCustomer: Record Customer; var MasterDataMgtCoupling: Record "Master Data Mgt. Coupling")
     begin
         LibrarySales.CreateCustomer(SourceCustomer);

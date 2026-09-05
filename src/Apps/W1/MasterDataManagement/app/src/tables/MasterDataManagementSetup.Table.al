@@ -27,10 +27,17 @@ table 7230 "Master Data Management Setup"
             DataClassification = SystemMetadata;
 
             trigger OnValidate()
+            var
+                MasterDataMgtSetupDefault: Codeunit "Master Data Mgt. Setup Default";
             begin
                 if "Is Enabled" then
-                    if "Company Name" = '' then
-                        Error(MustPickSourceCompanyErr);
+                    if IsCrossEnvironment() then begin
+                        if not IsCrossEnvConnectionConfigured() then
+                            Error(BuildConfigureConnectionError());
+                    end else
+                        if "Company Name" = '' then
+                            Error(MustPickSourceCompanyErr);
+                MasterDataMgtSetupDefault.UpdateChangeDetectorJob(Rec);
             end;
         }
         field(151; "Company Name"; Text[30])
@@ -65,7 +72,7 @@ table 7230 "Master Data Management Setup"
 
                 if (xRec."Company Name" <> '') and (xRec."Company Name" <> Rec."Company Name") then
                     if not MasterDataMgtCoupling.IsEmpty() then
-                        if not Confirm(StrSubstNo(CouplingsWillBeDeletedQst, xRec."Company Name")) then
+                        if not Confirm(CouplingsWillBeDeletedQst, false, xRec."Company Name") then
                             Error('');
 
                 CurrentCompanyName := CopyStr(CompanyName(), 1, MaxStrLen(MasterDataMgtSubscriber."Company Name"));
@@ -77,6 +84,43 @@ table 7230 "Master Data Management Setup"
         field(152; "Delay Job Scheduling"; Boolean)
         {
             Caption = 'Delay Synchronization Job Scheduling';
+            DataClassification = SystemMetadata;
+        }
+        field(155; "Source Environment Name"; Text[100])
+        {
+            Caption = 'Source Environment';
+            DataClassification = OrganizationIdentifiableInformation;
+
+            trigger OnValidate()
+            var
+                MasterDataMgtSetupDefault: Codeunit "Master Data Mgt. Setup Default";
+            begin
+                // Re-pointing an enabled setup would leave stale couplings/cursors against the old source; force a disable/rebuild.
+                if "Is Enabled" and ("Source Environment Name" <> xRec."Source Environment Name") then
+                    Error(CannotChangeSourceWhileEnabledErr);
+                MasterDataMgtSetupDefault.UpdateChangeDetectorJob(Rec);
+            end;
+        }
+        field(156; "Source Environment URL"; Text[250])
+        {
+            Caption = 'Source Environment URL';
+            DataClassification = OrganizationIdentifiableInformation;
+        }
+        field(157; "Source Company Name"; Text[100])
+        {
+            Caption = 'Source Company';
+            DataClassification = OrganizationIdentifiableInformation;
+        }
+        field(158; "Source OAuth Client Id"; Text[100])
+        {
+            Caption = 'Source Client ID';
+            ExtendedDatatype = Masked;
+            DataClassification = SystemMetadata;
+        }
+        field(159; "Source Client Secret Key"; Guid)
+        {
+            Caption = 'Source Client Secret Key';
+            ExtendedDatatype = Masked;
             DataClassification = SystemMetadata;
         }
     }
@@ -141,6 +185,69 @@ table 7230 "Master Data Management Setup"
         exit(Result);
     end;
 
+    internal procedure IsCrossEnvConnectionConfigured(): Boolean
+    begin
+        exit(("Source Environment URL" <> '') and ("Source Company Name" <> '') and ("Source OAuth Client Id" <> '') and (not IsNullGuid("Source Client Secret Key")));
+    end;
+
+    internal procedure IsCrossEnvironment(): Boolean
+    begin
+        exit("Source Environment Name" <> '');
+    end;
+
+    // Reverting to same-environment: drop the source connection details and the stored secret.
+    internal procedure ClearCrossEnvConnection()
+    begin
+        "Source Environment URL" := '';
+        "Source Company Name" := '';
+        "Source OAuth Client Id" := '';
+        if not IsNullGuid("Source Client Secret Key") then
+            if not IsolatedStorage.Delete("Source Client Secret Key", DataScope::Company) then;
+        Clear("Source Client Secret Key");
+    end;
+
+    [NonDebuggable]
+    internal procedure SetSourceClientSecret(ClientSecret: SecretText)
+    begin
+        "Source Client Secret Key" := SetSecret("Source Client Secret Key", ClientSecret);
+    end;
+
+    internal procedure GetSourceClientSecret(): SecretText
+    begin
+        exit(GetSecret("Source Client Secret Key"));
+    end;
+
+    // Mirrors the Intercompany connection pattern: secrets live in module-scoped Isolated Storage, keyed by a Guid.
+    [NonDebuggable]
+    local procedure SetSecret(SecretKey: Guid; SecretValue: SecretText): Guid
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
+        NewSecretKey: Guid;
+    begin
+        if not IsNullGuid(SecretKey) then
+            if not IsolatedStorage.Delete(SecretKey, DataScope::Company) then;
+
+        NewSecretKey := CreateGuid();
+        if EncryptionEnabled() then
+            IsolatedStorage.SetEncrypted(NewSecretKey, SecretValue, DataScope::Company)
+        else begin
+            // On SaaS (the only runtime for cross-env) encryption is always available, so refuse to store the
+            // secret unencrypted there; off-SaaS dev/test/on-prem may lack encryption, so fall back as Intercompany does.
+            if EnvironmentInformation.IsSaaSInfrastructure() then
+                Error(EncryptionRequiredErr);
+            IsolatedStorage.Set(NewSecretKey, SecretValue, DataScope::Company);
+        end;
+
+        exit(NewSecretKey);
+    end;
+
+    local procedure GetSecret(SecretKey: Guid) SecretValue: SecretText
+    begin
+        if IsNullGuid(SecretKey) then
+            exit;
+        if not IsolatedStorage.Get(SecretKey, DataScope::Company, SecretValue) then;
+    end;
+
     local procedure EnableConnection()
     var
         MasterDataMgtSubscriber: Record "Master Data Mgt. Subscriber";
@@ -159,11 +266,34 @@ table 7230 "Master Data Management Setup"
             ResetConfig := Confirm(ResetConfigQst);
         if ResetConfig then
             MasterDataMgtSetupDefault.ResetConfiguration(Rec);
+
+        if IsCrossEnvironment() then begin
+            // Cross-environment: the source is a different environment; never write to its subscriber table.
+            // Drop any stale local-company subscription left from a prior local-source setup.
+            if "Company Name" <> '' then begin
+                CurrentCompanyName := CopyStr(CompanyName(), 1, MaxStrLen(MasterDataMgtSubscriber."Company Name"));
+                MasterDataManagement.RemoveSubsidiarySubscriptionFromMasterCompany("Company Name", CurrentCompanyName);
+            end;
+            Message(SynchronizationEnabledMsg, "Source Company Name");
+            LogCrossEnvironmentEnabled(MasterDataManagement.GetTelemetryCategory());
+            exit;
+        end;
+
         CurrentCompanyName := CopyStr(CompanyName(), 1, MaxStrLen(MasterDataMgtSubscriber."Company Name"));
         MasterDataManagement.AddSubsidiarySubscriptionToMasterCompany(Rec."Company Name", CurrentCompanyName);
-        Message(StrSubstNo(SynchronizationEnabledMsg, Rec."Company Name"));
+        Message(SynchronizationEnabledMsg, Rec."Company Name");
         Session.LogMessage('0000JIM', Rec."Company Name", Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
         Session.LogMessage('0000JIN', CurrentCompanyName, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
+    end;
+
+    // Env name is organization-identifiable: keep it out of the free-text message and in a structured dimension.
+    local procedure LogCrossEnvironmentEnabled(TelemetryCategory: Text)
+    var
+        Dimensions: Dictionary of [Text, Text];
+    begin
+        Dimensions.Add('Category', TelemetryCategory);
+        Dimensions.Add('sourceEnvironment', "Source Environment Name");
+        Session.LogMessage('0000VAX', CrossEnvEnabledTelemetryTxt, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, Dimensions);
     end;
 
     local procedure GetConfigurationUpdates(var IsEnabledChanged: Boolean)
@@ -186,11 +316,13 @@ table 7230 "Master Data Management Setup"
     begin
         CurrentCompanyName := CopyStr(CompanyName(), 1, MaxStrLen(Rec."Company Name"));
 
-        MasterDataManagement.RemoveSubsidiarySubscriptionFromMasterCompany(Rec."Company Name", CurrentCompanyName);
+        // Cross-environment: the source is a different environment; never touch its subscriber table.
+        if not IsCrossEnvironment() then
+            MasterDataManagement.RemoveSubsidiarySubscriptionFromMasterCompany(Rec."Company Name", CurrentCompanyName);
         UpdateDataSynchJobQueueEntriesStatus();
 
         if not MasterDataMgtCoupling.IsEmpty() then
-            if Confirm(StrSubstNo(KeepTheCouplingsQst, Rec."Company Name")) then
+            if Confirm(KeepTheCouplingsQst, false, Rec."Company Name") then
                 exit
             else begin
                 IntegrationTableMapping.SetRange(Type, IntegrationTableMapping.Type::"Master Data Management");
@@ -245,11 +377,35 @@ table 7230 "Master Data Management Setup"
             until IntegrationTableMapping.Next() = 0;
     end;
 
+    internal procedure GetDataSource(): Interface "IMDM Data Source"
+    begin
+        if "Source Environment Name" <> '' then
+            exit(Enum::"MDM Data Source Type"::CrossEnvironment);
+        exit(Enum::"MDM Data Source Type"::LocalCompany);
+    end;
+
+    local procedure BuildConfigureConnectionError(): ErrorInfo
+    var
+        ErrInfo: ErrorInfo;
+    begin
+        ErrInfo.Message := MustConfigureConnectionErr;
+        ErrInfo.DataClassification := DataClassification::SystemMetadata; // Message is emitted to telemetry
+        ErrInfo.RecordId := Rec.RecordId();
+        ErrInfo.PageNo := Page::"Master Data Management Setup";
+        ErrInfo.AddNavigationAction(OpenSetupNavigationTxt);
+        exit(ErrInfo);
+    end;
+
     var
         SynchronizationEnabledMsg: label 'The synchronization of data from company %1 is enabled. \\To review the tables and fields that will be synchronized, choose action Synchronization Tables. \\To perform the initial synchronization of data from %1, choose Start Initial Synchronization. \\After the initial synchronization is done, job queue entries will continue to synchronize modifications.', Comment = '%1 - a company name';
         CouplingsWillBeDeletedQst: label 'All the couplings with records from previous source company %1 will be deleted. Do you want to continue?', Comment = '%1 - a company name';
         KeepTheCouplingsQst: label 'Data synchronization with company %1 is disabled. \\We recommend to keep the table setup and coupling information, especially if you intend to reenable the synchronization with the same company. \\Do you want to keep the table setup and coupling information?', Comment = '%1 - a company name';
         MustNotPickCurrentCompanyErr: label 'You are currently signed into this company. \\Choose a different company to synchronize data with.';
         MustPickSourceCompanyErr: label 'You must choose a source company to synchronize data from.';
+        MustConfigureConnectionErr: label 'Enter the cross-environment connection details before you enable synchronization.';
+        OpenSetupNavigationTxt: label 'Open Master Data Management Setup';
+        CannotChangeSourceWhileEnabledErr: label 'You cannot change the source environment while synchronization is enabled. Disable synchronization first, then change the source.';
+        EncryptionRequiredErr: label 'Enable data encryption before saving the source connection secret. Cross-environment credentials are never stored unencrypted.';
+        CrossEnvEnabledTelemetryTxt: label 'Cross-environment master data synchronization was enabled.', Locked = true;
         ResetConfigQst: label 'There are existing synchronization table definitions in this company. Do you want to reset them to the default configuration?';
 }

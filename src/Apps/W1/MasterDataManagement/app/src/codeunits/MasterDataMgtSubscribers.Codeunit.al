@@ -17,6 +17,7 @@ using System.IO;
 using System.Reflection;
 using System.Telemetry;
 using System.Threading;
+using System.Utilities;
 
 codeunit 7237 "Master Data Mgt. Subscribers"
 {
@@ -134,20 +135,24 @@ codeunit 7237 "Master Data Mgt. Subscribers"
 
         if IsJobQueueEntryDataSynchJob(Sender, IntegrationTableMapping) then begin
             MasterDataManagementSetup.Get();
-            if MasterDataManagementSetup."Is Enabled" then begin
-                MasterDataManagement.OnSetIntegrationTableFilter(IntegrationTableMapping, RecRef, IsHandled);
-                if not IsHandled then begin
-                    RecRef.Open(IntegrationTableMapping."Integration Table ID", false);
-                    MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, IntegrationTableMapping."Integration Table ID");
-                    if SourceCompanyName = '' then
-                        SourceCompanyName := MasterDataManagementSetup."Company Name";
-                    RecRef.ChangeCompany(SourceCompanyName);
-                    IntegrationTableMapping.SetIntRecordRefFilter(RecRef);
+            if MasterDataManagementSetup."Is Enabled" then
+                if MasterDataManagementSetup."Source Environment Name" <> '' then
+                    // Cross-environment: the change detector governs when this job is nudged; let it run and fetch the delta.
+                    Result := true
+                else begin
+                    MasterDataManagement.OnSetIntegrationTableFilter(IntegrationTableMapping, RecRef, IsHandled);
+                    if not IsHandled then begin
+                        RecRef.Open(IntegrationTableMapping."Integration Table ID", false);
+                        MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, IntegrationTableMapping."Integration Table ID");
+                        if SourceCompanyName = '' then
+                            SourceCompanyName := MasterDataManagementSetup."Company Name";
+                        RecRef.ChangeCompany(SourceCompanyName);
+                        IntegrationTableMapping.SetIntRecordRefFilter(RecRef);
+                    end;
+                    if not RecRef.IsEmpty() then
+                        Result := true;
+                    RecRef.Close();
                 end;
-                if not RecRef.IsEmpty() then
-                    Result := true;
-                RecRef.Close();
-            end;
         end;
     end;
 
@@ -316,6 +321,9 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         MediaUpdated: Boolean;
         SourceMediaName, DestinationMediaName : Text;
     begin
+        if IsCrossEnvironmentSync() then
+            exit(UpdateMediaCrossEnvironment(SourceFieldRef, DestinationFieldRef, NewValue));
+
         SourceTenantMedia.SetAutoCalcFields(Content);
         DestinationTenantMedia.SetAutoCalcFields(Content);
 
@@ -352,6 +360,70 @@ codeunit 7237 "Master Data Mgt. Subscribers"
             end;
 
         exit(MediaUpdated);
+    end;
+
+    local procedure IsCrossEnvironmentSync(): Boolean
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        if not MasterDataManagementSetup.Get() then
+            exit(false);
+        exit(MasterDataManagementSetup.IsCrossEnvironment());
+    end;
+
+    // Cross-env: the source Tenant Media lives in another environment, so the bytes arrive inline (per-batch
+    // cache) rather than via the source field's GUID. Build the destination Tenant Media from them, keeping the
+    // same length+name change check. Returns the new media id via NewValue during transfer -> single write.
+    local procedure UpdateMediaCrossEnvironment(var SourceFieldRef: FieldRef; var DestinationFieldRef: FieldRef; var NewValue: Variant): Boolean
+    var
+        DestinationTenantMedia: Record "Tenant Media";
+        InlineMedia: Codeunit "MDM Inline Media";
+        TempBlob: Codeunit "Temp Blob";
+        SourceRecordRef: RecordRef;
+        SourceSystemId, DestinationMediaId, EmptyGuid : Guid;
+        MediaInStream: InStream;
+        MediaOutStream: OutStream;
+        FileName, MimeType, DestinationName : Text;
+        SourceLength, DestinationLength : Integer;
+    begin
+        SourceRecordRef := SourceFieldRef.Record();
+        SourceSystemId := SourceRecordRef.Field(SourceRecordRef.SystemIdNo()).Value();
+        // Source cleared the picture: mirror it by deleting the destination media and emptying the field.
+        if InlineMedia.IsCleared(SourceSystemId, SourceFieldRef.Number()) then begin
+            DestinationMediaId := DestinationFieldRef.Value();
+            if (DestinationMediaId <> EmptyGuid) and DestinationTenantMedia.Get(DestinationMediaId) then
+                DestinationTenantMedia.Delete();
+            NewValue := EmptyGuid;
+            exit(true);
+        end;
+        if not InlineMedia.TryGet(SourceSystemId, SourceFieldRef.Number(), FileName, MimeType, TempBlob) then
+            exit(false); // no inline bytes (over-cap skip or field not projected): leave the destination untouched
+        SourceLength := TempBlob.Length();
+
+        DestinationMediaId := DestinationFieldRef.Value();
+        DestinationTenantMedia.SetAutoCalcFields(Content);
+        if DestinationTenantMedia.Get(DestinationMediaId) then begin
+            DestinationLength := DestinationTenantMedia.Content.Length();
+            DestinationName := DestinationTenantMedia."File Name";
+        end;
+        if (SourceLength = DestinationLength) and (FileName = DestinationName) then
+            exit(false); // unchanged
+
+        if DestinationMediaId <> EmptyGuid then
+            if DestinationTenantMedia.Get(DestinationMediaId) then
+                DestinationTenantMedia.Delete();
+
+        Clear(DestinationTenantMedia);
+        DestinationTenantMedia.ID := CreateGuid();
+        DestinationTenantMedia."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(DestinationTenantMedia."Company Name"));
+        DestinationTenantMedia."File Name" := CopyStr(FileName, 1, MaxStrLen(DestinationTenantMedia."File Name"));
+        DestinationTenantMedia."Mime Type" := CopyStr(MimeType, 1, MaxStrLen(DestinationTenantMedia."Mime Type"));
+        TempBlob.CreateInStream(MediaInStream);
+        DestinationTenantMedia.Content.CreateOutStream(MediaOutStream);
+        CopyStream(MediaOutStream, MediaInStream);
+        DestinationTenantMedia.Insert();
+        NewValue := DestinationTenantMedia.ID;
+        exit(true);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Integration Table Synch.", 'OnDetermineSynchDirection', '', false, false)]
@@ -501,7 +573,7 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         MasterDataManagement: Codeunit "Master Data Management";
         BeforeRenameDestinationRecordRef: RecordRef;
         IsHandled: Boolean;
-        SourceCompanyName: Text[30];
+        SourceSystemId: Guid;
     begin
         if not MasterDataManagement.IsEnabled() then
             exit;
@@ -512,11 +584,9 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         MasterDataManagementSetup.Get();
         MasterDataManagement.OnGetIntegrationRecordRef(IntegrationTableMapping, SourceRecordRef, IsHandled);
         if not IsHandled then begin
-            MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, IntegrationTableMapping."Table ID");
-            if SourceCompanyName = '' then
-                SourceCompanyName := MasterDataManagementSetup."Company Name";
-            SourceRecordRef.ChangeCompany(SourceCompanyName);
-            SourceRecordRef.GetBySystemId(SourceRecordRef.Field(SourceRecordRef.SystemIdNo()).Value());
+            // Route the source re-fetch: the record lives in the local company or another environment.
+            SourceSystemId := SourceRecordRef.Field(SourceRecordRef.SystemIdNo()).Value();
+            if MasterDataManagementSetup.GetDataSource().GetBySystemId(SourceRecordRef.Number(), SourceSystemId, SourceRecordRef) then;
         end;
         BeforeRenameDestinationRecordRef.Open(DestinationRecordRef.Number());
         BeforeRenameDestinationRecordRef.GetBySystemId(DestinationRecordRef.Field(DestinationRecordRef.SystemIdNo()).Value());
@@ -683,29 +753,41 @@ codeunit 7237 "Master Data Mgt. Subscribers"
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
         MasterDataManagement: Codeunit "Master Data Management";
+        SourceWatermark: Codeunit "MDM Source Watermark";
         IntegrationRecordRef: RecordRef;
-        ModifiedFieldRef: FieldRef;
         IsHandled: Boolean;
         IntRecSystemId: Guid;
-        SourceCompanyName: Text[30];
+        SourceSystemId: Guid;
+        SourceModifiedAt: DateTime;
     begin
         MasterDataManagementSetup.Get();
+        // Cross-environment: FromRecordRef is the source row materialized from the fetched batch. Its SystemModifiedAt
+        // can't be carried on a temp row (the platform ignores the write), so the real watermark rides a side cache;
+        // fall back to the row's own value on a cache miss.
+        if MasterDataManagementSetup."Source Environment Name" <> '' then begin
+            SourceSystemId := FromRecordRef.Field(FromRecordRef.SystemIdNo()).Value();
+            if SourceWatermark.TryGet(SourceSystemId, SourceModifiedAt) then
+                exit(SourceModifiedAt);
+            exit(ModifiedOnFromRecordRef(IntegrationTableMapping, FromRecordRef));
+        end;
+
         IntegrationRecordRef.Open(FromRecordRef.Number, false);
         IntRecSystemId := FromRecordRef.Field(FromRecordRef.SystemIdNo).Value();
         MasterDataManagement.OnGetIntegrationRecordRefBySystemId(IntegrationTableMapping, IntegrationRecordRef, IntRecSystemId, IsHandled);
-        if not IsHandled then begin
-            MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, IntegrationTableMapping."Table ID");
-            if SourceCompanyName = '' then
-                SourceCompanyName := MasterDataManagementSetup."Company Name";
-            IntegrationRecordRef.ChangeCompany(SourceCompanyName);
-            IntegrationRecordRef.GetBySystemId(IntRecSystemId);
-        end;
-        if FromRecordRef.Number() = IntegrationTableMapping."Integration Table ID" then begin
-            ModifiedFieldRef := IntegrationRecordRef.Field(IntegrationTableMapping."Int. Tbl. Modified On Fld. No.");
-            exit(ModifiedFieldRef.Value());
-        end;
+        if not IsHandled then
+            // Route the source re-fetch: the record lives in the local company or another environment.
+            if MasterDataManagementSetup.GetDataSource().GetBySystemId(FromRecordRef.Number, IntRecSystemId, IntegrationRecordRef) then;
+        exit(ModifiedOnFromRecordRef(IntegrationTableMapping, IntegrationRecordRef));
+    end;
 
-        ModifiedFieldRef := IntegrationRecordRef.Field(IntegrationRecordRef.SystemModifiedAtNo());
+    local procedure ModifiedOnFromRecordRef(IntegrationTableMapping: Record "Integration Table Mapping"; var SourceRecordRef: RecordRef): DateTime
+    var
+        ModifiedFieldRef: FieldRef;
+    begin
+        if SourceRecordRef.Number() = IntegrationTableMapping."Integration Table ID" then
+            ModifiedFieldRef := SourceRecordRef.Field(IntegrationTableMapping."Int. Tbl. Modified On Fld. No.")
+        else
+            ModifiedFieldRef := SourceRecordRef.Field(SourceRecordRef.SystemModifiedAtNo());
         exit(ModifiedFieldRef.Value());
     end;
 
@@ -913,6 +995,10 @@ codeunit 7237 "Master Data Mgt. Subscribers"
         if not MasterDataManagementSetup."Is Enabled" then
             exit;
 
+        // Media synchronization is not supported cross-environment (deferred); skip so pictures are not cleared.
+        if MasterDataManagementSetup."Source Environment Name" <> '' then
+            exit;
+
         IntegrationTableMapping.SetRange(Type, IntegrationTableMapping.Type::"Master Data Management");
         IntegrationTableMapping.SetRange(Status, IntegrationTableMapping.Status::Enabled);
         IntegrationTableMapping.SetRange("Delete After Synchronization", false);
@@ -1091,6 +1177,9 @@ codeunit 7237 "Master Data Mgt. Subscribers"
             exit(false);
 
         MasterDataManagementSetup.Get();
+        // Cross-environment: related contact/customer resolution reads the source company directly; deferred for now.
+        if MasterDataManagementSetup."Source Environment Name" <> '' then
+            exit(false);
         DestinationRecordRef.SetTable(Contact);
         IntegrationContact.ChangeCompany(MasterDataManagementSetup."Company Name");
         SourceRecordRef.SetTable(IntegrationContact);
@@ -1198,6 +1287,9 @@ codeunit 7237 "Master Data Mgt. Subscribers"
             exit; // all contacts have parent company set
 
         MasterDataManagementSetup.Get();
+        // Cross-environment: related contact resolution reads the source company directly; deferred for now.
+        if MasterDataManagementSetup."Source Environment Name" <> '' then
+            exit;
         IntegrationCustomer.ChangeCompany(MasterDataManagementSetup."Company Name");
         IntegrationVendor.ChangeCompany(MasterDataManagementSetup."Company Name");
         IntegrationContact.ChangeCompany(MasterDataManagementSetup."Company Name");

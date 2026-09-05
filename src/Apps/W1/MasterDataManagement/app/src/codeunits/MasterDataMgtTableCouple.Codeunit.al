@@ -89,7 +89,6 @@ codeunit 7235 "Master Data Mgt. Table Couple"
         FilterList: List of [Text];
         MatchPriorityList: List of [Integer];
         MatchPriority: Integer;
-        SourceCompanyName: Text[30];
     begin
         // collect the matching criteria fields in a temporary record
         IntegrationFieldMapping.SetRange("Integration Table Mapping Name", IntegrationTableMapping.Name);
@@ -117,16 +116,10 @@ codeunit 7235 "Master Data Mgt. Table Couple"
 
         // iterate through integration records and for each of them try to find a match in local system
         MasterDataManagementSetup.Get();
-        IntegrationRecordRef.Open(IntegrationTableMapping."Integration Table ID");
-        MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, IntegrationTableMapping."Table ID");
-        if SourceCompanyName = '' then
-            SourceCompanyName := MasterDataManagementSetup."Company Name";
-        IntegrationRecordRef.ChangeCompany(SourceCompanyName);
         IntegrationMasterDataSynch.SplitIntegrationTableFilter(IntegrationTableMapping, FilterList);
         foreach TableFilter in FilterList do begin
-            if TableFilter <> '' then
-                IntegrationRecordRef.SetView(TableFilter);
-            if IntegrationRecordRef.FindSet() then
+            // Route the source read so match-based coupling works against the local company or another environment.
+            if MasterDataManagementSetup.GetDataSource().GetByFilter(IntegrationTableMapping, TableFilter, IntegrationRecordRef) then
                 repeat
                     if GuiAllowed() then begin
                         RecordNumber += 1;
@@ -290,27 +283,27 @@ codeunit 7235 "Master Data Mgt. Table Couple"
         exit(StrSubstNo(NoMatchFoundErr, GetIntegrationOrgCompanyName(), ErrorCount));
     end;
 
-    local procedure GetNoMatchFoundTelemetryErrorMessage(var LocalRecordRef: RecordRef; var MatchIntegrationFieldMapping: Record "Integration Field Mapping" temporary): Text
+    local procedure GetNoMatchFoundTelemetryErrorMessage(var LocalRecordRef: RecordRef; var TempMatchIntegrationFieldMapping: Record "Integration Field Mapping" temporary): Text
     var
         MatchingFieldNameList: Text;
     begin
-        MatchingFieldNameList := GetMatchingFieldNameList(LocalRecordRef, MatchIntegrationFieldMapping);
+        MatchingFieldNameList := GetMatchingFieldNameList(LocalRecordRef, TempMatchIntegrationFieldMapping);
         exit(StrSubstNo(NoMatchFoundTelemetryErr, Format(LocalRecordRef.Field(LocalRecordRef.SystemIdNo).Value()), MatchingFieldNameList, GetIntegrationOrgCompanyName()));
     end;
 
-    local procedure GetMultipleMatchesFoundTelemetryErrorMessage(var LocalRecordRef: RecordRef; var MatchIntegrationFieldMapping: Record "Integration Field Mapping" temporary): Text
+    local procedure GetMultipleMatchesFoundTelemetryErrorMessage(var LocalRecordRef: RecordRef; var TempMatchIntegrationFieldMapping: Record "Integration Field Mapping" temporary): Text
     var
         MatchingFieldNameList: Text;
     begin
-        MatchingFieldNameList := GetMatchingFieldNameList(LocalRecordRef, MatchIntegrationFieldMapping);
+        MatchingFieldNameList := GetMatchingFieldNameList(LocalRecordRef, TempMatchIntegrationFieldMapping);
         exit(StrSubstNo(MultipleMatchesFoundTelemetryErr, Format(LocalRecordRef.Field(LocalRecordRef.SystemIdNo).Value()), MatchingFieldNameList, GetIntegrationOrgCompanyName()));
     end;
 
-    local procedure GetSingleMatchAlreadyCoupledTelemetryErrorMessage(var LocalRecordRef: RecordRef; var MatchIntegrationFieldMapping: Record "Integration Field Mapping" temporary): Text
+    local procedure GetSingleMatchAlreadyCoupledTelemetryErrorMessage(var LocalRecordRef: RecordRef; var TempMatchIntegrationFieldMapping: Record "Integration Field Mapping" temporary): Text
     var
         MatchingFieldNameList: Text;
     begin
-        MatchingFieldNameList := GetMatchingFieldNameList(LocalRecordRef, MatchIntegrationFieldMapping);
+        MatchingFieldNameList := GetMatchingFieldNameList(LocalRecordRef, TempMatchIntegrationFieldMapping);
         exit(StrSubstNo(SingleMatchAlreadyCoupledTelemetryErr, Format(LocalRecordRef.Field(LocalRecordRef.SystemIdNo).Value()), MatchingFieldNameList, GetIntegrationOrgCompanyName()));
     end;
 
@@ -321,15 +314,15 @@ codeunit 7235 "Master Data Mgt. Table Couple"
         exit(IntegrationTableMapping.Name);
     end;
 
-    local procedure GetMatchingFieldNameList(var LocalRecordRef: RecordRef; var MatchIntegrationFieldMapping: Record "Integration Field Mapping" temporary) MatchingFieldNameList: Text
+    local procedure GetMatchingFieldNameList(var LocalRecordRef: RecordRef; var TempMatchIntegrationFieldMapping: Record "Integration Field Mapping" temporary) MatchingFieldNameList: Text
     begin
-        MatchIntegrationFieldMapping.FindSet();
+        TempMatchIntegrationFieldMapping.FindSet();
         repeat
             if MatchingFieldNameList = '' then
-                MatchingFieldNameList := LocalRecordRef.Field(MatchIntegrationFieldMapping."Field No.").Name()
+                MatchingFieldNameList := LocalRecordRef.Field(TempMatchIntegrationFieldMapping."Field No.").Name()
             else
-                MatchingFieldNameList += ', ' + LocalRecordRef.Field(MatchIntegrationFieldMapping."Field No.").Name()
-        until MatchIntegrationFieldMapping.Next() = 0;
+                MatchingFieldNameList += ', ' + LocalRecordRef.Field(TempMatchIntegrationFieldMapping."Field No.").Name()
+        until TempMatchIntegrationFieldMapping.Next() = 0;
     end;
 
     local procedure GetIntegrationOrgCompanyName(): Text

@@ -2,6 +2,7 @@ namespace Microsoft.Integration.MDM;
 
 using Microsoft.Integration.SyncEngine;
 using System.Automation;
+using System.Integration;
 using System.Threading;
 using System.Upgrade;
 
@@ -13,11 +14,38 @@ codeunit 7238 "Master Data Mgt. Upgrade"
     Access = Internal;
     Subtype = Upgrade;
     Permissions = tabledata "Integration Field Mapping" = rimd,
-                  tabledata "Integration Table Mapping" = rimd;
+                  tabledata "Integration Table Mapping" = rimd,
+                  tabledata "Tenant Web Service" = rimd;
 
     trigger OnUpgradePerCompany()
     begin
         UpgradeJobQueueEntryFrequencies();
+    end;
+
+    trigger OnUpgradePerDatabase()
+    begin
+        RegisterCrossEnvSourceWebService();
+    end;
+
+    // Guaranteed provisioning path: install codeunits are skipped when BC is pre-baked into a package and mounted per tenant.
+    internal procedure RegisterCrossEnvSourceWebService()
+    var
+        TenantWebService: Record "Tenant Web Service";
+        WebServiceManagement: Codeunit "Web Service Management";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasDatabaseUpgradeTag(GetCrossEnvWebServiceUpgradeTag()) then
+            exit;
+
+        // Idempotent: creates or updates the service. Access stays gated by the dedicated "Cross Env" permission set, not by publishing.
+        WebServiceManagement.CreateTenantWebService(TenantWebService."Object Type"::Codeunit, Codeunit::"MDM Cross-Env Source API", CrossEnvSourceWebServiceName(), true);
+
+        UpgradeTag.SetDatabaseUpgradeTag(GetCrossEnvWebServiceUpgradeTag());
+    end;
+
+    internal procedure CrossEnvSourceWebServiceName(): Text[240]
+    begin
+        exit('MDMCrossEnvSource');
     end;
 
     internal procedure UpgradeJobQueueEntryFrequencies()
@@ -101,10 +129,21 @@ codeunit 7238 "Master Data Mgt. Upgrade"
         exit('MS-543635-MDMJobQueueFrequency-20240830');
     end;
 
+    local procedure GetCrossEnvWebServiceUpgradeTag(): Code[250]
+    begin
+        exit('MS-647660-MDMCrossEnvWebService-20260826');
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerCompanyUpgradeTags', '', false, false)]
     local procedure RegisterPerCompanyTags(var PerCompanyUpgradeTags: List of [Code[250]])
     begin
         PerCompanyUpgradeTags.Add(GetSynchTableCaptionUpgradeTag());
         PerCompanyUpgradeTags.Add(GetJobQueueFrequencyUpgradeTag());
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerDatabaseUpgradeTags', '', false, false)]
+    local procedure RegisterPerDatabaseTags(var PerDatabaseUpgradeTags: List of [Code[250]])
+    begin
+        PerDatabaseUpgradeTags.Add(GetCrossEnvWebServiceUpgradeTag());
     end;
 }

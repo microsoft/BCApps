@@ -29,7 +29,22 @@ page 7230 "Master Data Management Setup"
                 {
                     ApplicationArea = Suite;
                     Editable = IsEditable;
+                    Visible = not CrossEnvConfigured; // same-environment source company; hidden once a source environment is configured
                     ToolTip = 'Specifies the name of the source company that you synchronize data from.';
+                }
+                field("Source Environment Name"; Rec."Source Environment Name")
+                {
+                    ApplicationArea = Suite;
+                    Editable = false;
+                    Visible = CrossEnvConfigured;
+                    ToolTip = 'Specifies the source Business Central environment that master data is read from. Use the Cross-Environment Setup action to change it.';
+                }
+                field("Source Company Name"; Rec."Source Company Name")
+                {
+                    ApplicationArea = Suite;
+                    Editable = false;
+                    Visible = CrossEnvConfigured;
+                    ToolTip = 'Specifies the company in the source environment that master data is read from. Use the Cross-Environment Setup action to change it.';
                 }
                 field("Is Enabled"; Rec."Is Enabled")
                 {
@@ -51,10 +66,46 @@ page 7230 "Master Data Management Setup"
     {
         area(Processing)
         {
+            action(ConnectionDetails)
+            {
+                ApplicationArea = Suite;
+                Caption = 'Cross-environment setup';
+                Image = LinkAccount;
+                ToolTip = 'Set up the connection to a company in a different Business Central environment for cross-environment synchronization.';
+
+                trigger OnAction()
+                begin
+                    Page.RunModal(Page::"MDM Connection Details");
+                    if Rec.Get() then; // the wizard may have configured or cleared the cross-environment connection
+                    RefreshData();
+                    CurrPage.Update(false);
+                end;
+            }
+            action(ClearCrossEnvSetup)
+            {
+                ApplicationArea = Suite;
+                Caption = 'Clear cross-environment setup';
+                Image = RemoveLine;
+                Enabled = IsEditable;
+                Visible = CrossEnvConfigured;
+                ToolTip = 'Remove the cross-environment connection - the source environment, company, and stored credentials - and return to same-environment synchronization.';
+
+                trigger OnAction()
+                begin
+                    if not Confirm(ClearCrossEnvConfirmQst, false) then
+                        exit;
+                    Rec.Validate("Source Environment Name", ''); // clear the source env; runs the enabled guard and detector cleanup
+                    Rec.ClearCrossEnvConnection();
+                    Rec.Modify(true);
+                    if Rec.Get() then;
+                    RefreshData();
+                    CurrPage.Update(false);
+                end;
+            }
             action(ResetConfiguration)
             {
                 ApplicationArea = Suite;
-                Caption = 'Use Default Synchronization Setup';
+                Caption = 'Use default synchronization setup';
                 Image = ResetStatus;
                 ToolTip = 'Resets the synchronization tables, fields, and job queue entries to the default values for the connection with the source company. All current synchronization tables are deleted and recreated.';
 
@@ -73,7 +124,7 @@ page 7230 "Master Data Management Setup"
             action(ExportSetup)
             {
                 ApplicationArea = Suite;
-                Caption = 'Export Setup';
+                Caption = 'Export setup';
                 Image = ExportFile;
                 ToolTip = 'Export the setup tables.';
 
@@ -90,7 +141,7 @@ page 7230 "Master Data Management Setup"
             action(ImportSetup)
             {
                 ApplicationArea = Suite;
-                Caption = 'Import Setup';
+                Caption = 'Import setup';
                 Image = Import;
                 ToolTip = 'Import the setup tables.';
 
@@ -114,7 +165,7 @@ page 7230 "Master Data Management Setup"
             action(StartInitialSynchAction)
             {
                 ApplicationArea = Suite;
-                Caption = 'Start Initial Synchronization';
+                Caption = 'Start initial synchronization';
                 Enabled = Rec."Is Enabled";
                 Image = RefreshLines;
                 ToolTip = 'Start all the default synchronization jobs for synchronizing data from the source company. Data is synchronized according to the mappings defined on the Synchronization Tables page.';
@@ -123,7 +174,7 @@ page 7230 "Master Data Management Setup"
             action(SynchronizeNow)
             {
                 ApplicationArea = Suite;
-                Caption = 'Synchronize Modified Records';
+                Caption = 'Synchronize modified records';
                 Enabled = Rec."Is Enabled";
                 Image = Refresh;
                 ToolTip = 'Synchronize records that have been modified since the last time they were synchronized.';
@@ -151,7 +202,7 @@ page 7230 "Master Data Management Setup"
             action("Synch. Job Queue Entries")
             {
                 ApplicationArea = Suite;
-                Caption = 'Synch. Job Queue Entries';
+                Caption = 'Synch. job queue entries';
                 Image = JobListSetup;
                 ToolTip = 'View the job queue entries that manage the scheduled data synchronization.';
 
@@ -170,7 +221,7 @@ page 7230 "Master Data Management Setup"
             action(IntegrationTableMappings)
             {
                 ApplicationArea = Suite;
-                Caption = 'Synchronization Tables';
+                Caption = 'Synchronization tables';
                 Image = MapAccounts;
                 ToolTip = 'View the list of tables to synchronize.';
 
@@ -190,6 +241,9 @@ page 7230 "Master Data Management Setup"
                 {
                 }
                 actionref(IntegrationTableMappings_Promoted; IntegrationTableMappings)
+                {
+                }
+                actionref(ConnectionDetails_Promoted; ConnectionDetails)
                 {
                 }
                 actionref("Synch. Job Queue Entries_Promoted"; "Synch. Job Queue Entries")
@@ -226,7 +280,7 @@ page 7230 "Master Data Management Setup"
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     begin
         if not Rec."Is Enabled" then
-            if not Confirm(StrSubstNo(EnableServiceQst, CurrPage.Caption()), true) then
+            if not Confirm(EnableServiceQst, true, CurrPage.Caption()) then
                 exit(false);
     end;
 
@@ -258,7 +312,9 @@ page 7230 "Master Data Management Setup"
         SynchronizeModifiedQst: Label 'This will synchronize all modified records in all integration table mappings. \\The synchronization will run in the background so you can continue with other tasks. \\Do you want to continue?';
         SyncNowScheduledMsg: Label 'Synchronization of modified records is scheduled. \\You can view details on the %1 page.', Comment = '%1 = The localized caption of page Integration Synch. Job List';
         SetupSuccessfulMsg: Label 'The default setup for Business Central synchronization has completed successfully.';
+        ClearCrossEnvConfirmQst: Label 'This removes the cross-environment connection and its stored credentials, and returns to same-environment synchronization. Do you want to continue?';
         IsEditable: Boolean;
+        CrossEnvConfigured: Boolean;
         SynchronizationImportedMsg: label 'The synchronization setup is imported. \\To view or edit the synchronization table setup, choose action Synchronization Tables.\\To view or edit the synchronization field setup, select a synchronization table and choose action Synchronization Fields.';
         NoCoupledRecordsMsg: label 'No records are currently coupled to records from the source company. \\Choose the action Start Initial Synchronization.';
 
@@ -270,6 +326,7 @@ page 7230 "Master Data Management Setup"
     local procedure UpdateEnableFlags()
     begin
         IsEditable := (not Rec."Is Enabled");
+        CrossEnvConfigured := Rec.IsCrossEnvironment();
     end;
 
     local procedure GetJobQueueEntriesObjectIDToRunFilter(): Text

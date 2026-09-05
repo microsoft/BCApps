@@ -44,10 +44,13 @@ codeunit 7231 "Integration Master Data Synch."
         SupportedSourceType: Option ,RecordID,GUID;
         DateType: Option ,Integration,Local;
         OutOfMapFilter: Boolean;
+        CrossEnvBatchEndCursor: Text;
+        CrossEnvBatchHasMore: Boolean;
         RecordNotFoundErr: Label 'Cannot find %1 record %2.', Comment = '%1 = Source table caption, %2 = The lookup value when searching for the source record';
         SourceRecordIsNotInMappingErr: Label 'Cannot find the mapping %2 in table %1.', Comment = '%1 Integration Table Mapping caption, %2 Integration Table Mapping Name';
         CannotDetermineSourceOriginErr: Label 'Cannot determine the source origin: %1.', Comment = '%1 the value of the source id';
         CopyRecordRefFailedTxt: Label 'Copy record reference failed. Integration Record ID: %1', Locked = true, Comment = '%1 - Business Central record id';
+        CrossEnvCopyFailedTelemetryTxt: Label 'Cross-environment copy of a source record failed for table %1.', Locked = true, Comment = '%1 - integration table id';
         UnableToFindMappingErr: Label 'Unable to find Integration Table Mapping %1', Locked = true, Comment = '%1 - Mapping name';
         FieldKeyTxt: Label '%1-%2', Locked = true;
 
@@ -72,33 +75,53 @@ codeunit 7231 "Integration Master Data Synch."
         MasterDataManagementSetup: Record "Master Data Management Setup";
         MasterDataManagement: Codeunit "Master Data Management";
         IntegrationRecordRef: RecordRef;
+        DataSource: Interface "IMDM Data Source";
         IntegrationRecordID: Guid;
         TableFilter: Text;
         FilterList: List of [Text];
         IsHandled: Boolean;
-        SourceCompanyName: Text[30];
     begin
         OnFindModifiedIntegrationRecords(TempIntegrationRecordRef, IntegrationTableMapping, FailedNotSkippedIdDictionary, IsHandled);
         if IsHandled then
             exit;
 
         MasterDataManagementSetup.Get();
+        if MasterDataManagementSetup."Source Environment Name" <> '' then begin
+            FindModifiedCrossEnvironmentRecords(TempIntegrationRecordRef, IntegrationTableMapping, FailedNotSkippedIdDictionary);
+            exit;
+        end;
+        DataSource := MasterDataManagementSetup.GetDataSource();
         SplitIntegrationTableFilter(IntegrationTableMapping, FilterList);
-        IntegrationRecordRef.Open(IntegrationTableMapping."Integration Table ID");
-        MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, IntegrationTableMapping."Integration Table ID");
-        if SourceCompanyName = '' then
-            SourceCompanyName := MasterDataManagementSetup."Company Name";
-        IntegrationRecordRef.ChangeCompany(SourceCompanyName);
         foreach TableFilter in FilterList do begin
-            IntegrationTableMapping.SetIntRecordRefFilter(IntegrationRecordRef, TableFilter);
-            if IntegrationRecordRef.FindSet() then
+            if DataSource.GetModifiedSet(IntegrationTableMapping, TableFilter, IntegrationRecordRef) then
                 repeat
                     IntegrationRecordID := IntegrationRecordRef.Field(IntegrationTableMapping."Integration Table UID Fld. No.").Value();
                     if not FailedNotSkippedIdDictionary.ContainsKey(IntegrationRecordID) then
                         if not TryCopyRecordReference(IntegrationTableMapping, IntegrationRecordRef, TempIntegrationRecordRef, false) then
                             Session.LogMessage('0000J8Q', StrSubstNo(CopyRecordRefFailedTxt, IntegrationRecordID), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
                 until IntegrationRecordRef.Next() = 0;
+            IntegrationRecordRef.Close();
         end;
+    end;
+
+    // Cross-environment reads a BOUNDED batch (MaxPagesPerRun) from the persisted resume cursor, so a large
+    // initial load drains over several job runs instead of one unbounded, possibly-never-completing job.
+    local procedure FindModifiedCrossEnvironmentRecords(var TempIntegrationRecordRef: RecordRef; IntegrationTableMapping: Record "Integration Table Mapping"; var FailedNotSkippedIdDictionary: Dictionary of [Guid, Boolean])
+    var
+        CrossEnvDataSource: Codeunit "MDM Cross-Env Data Source";
+        MasterDataManagement: Codeunit "Master Data Management";
+        IntegrationRecordRef: RecordRef;
+        IntegrationRecordID: Guid;
+    begin
+        CrossEnvBatchEndCursor := '';
+        CrossEnvBatchHasMore := false;
+        if CrossEnvDataSource.GetModifiedBatch(IntegrationTableMapping, IntegrationTableMapping.GetIntegrationTableFilter(), IntegrationTableMapping."Source Change Cursor", MaxPagesPerRun(), IntegrationRecordRef, CrossEnvBatchEndCursor, CrossEnvBatchHasMore) then
+            repeat
+                IntegrationRecordID := IntegrationRecordRef.Field(IntegrationTableMapping."Integration Table UID Fld. No.").Value();
+                if not FailedNotSkippedIdDictionary.ContainsKey(IntegrationRecordID) then
+                    if not TryCopyRecordReference(IntegrationTableMapping, IntegrationRecordRef, TempIntegrationRecordRef, false) then
+                        Session.LogMessage('0000VAN', StrSubstNo(CrossEnvCopyFailedTelemetryTxt, IntegrationTableMapping."Integration Table ID"), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MasterDataManagement.GetTelemetryCategory());
+            until IntegrationRecordRef.Next() = 0;
         IntegrationRecordRef.Close();
     end;
 
@@ -207,31 +230,28 @@ codeunit 7231 "Integration Master Data Synch."
     local procedure CacheFilteredIntegrationRecords(var IntegrationSystemIDFilterList: List of [Text]; IntegrationTableMapping: Record "Integration Table Mapping"; var TempIntegrationRecordRef: RecordRef): Boolean
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
-        MasterDataManagement: Codeunit "Master Data Management";
         IntegrationRecordRef: RecordRef;
+        DataSource: Interface "IMDM Data Source";
         IntegrationSystemIDFilter: Text;
         Cached: Boolean;
         IsHandled: Boolean;
-        SourceCompanyName: Text[30];
     begin
         OnCacheFilteredIntegrationRecords(IntegrationSystemIDFilterList, IntegrationTableMapping, TempIntegrationRecordRef, Cached, IsHandled);
         if (IsHandled) then
             exit(Cached);
 
         MasterDataManagementSetup.Get();
+        DataSource := MasterDataManagementSetup.GetDataSource();
         foreach IntegrationSystemIDFilter in IntegrationSystemIDFilterList do
             if IntegrationSystemIDFilter <> '' then begin
-                IntegrationRecordRef.Open(IntegrationTableMapping."Integration Table ID");
-                MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, IntegrationTableMapping."Integration Table ID");
-                if SourceCompanyName = '' then
-                    SourceCompanyName := MasterDataManagementSetup."Company Name";
-                IntegrationRecordRef.ChangeCompany(SourceCompanyName);
-                IntegrationRecordRef.Field(IntegrationTableMapping."Integration Table UID Fld. No.").SetFilter(IntegrationSystemIDFilter);
-                if IntegrationRecordRef.FindSet() then
+                // GetByUidFilter returns the ref already positioned on the matching set; a separate FindSet would re-read it.
+#pragma warning disable AA0181
+                if DataSource.GetByUidFilter(IntegrationTableMapping, IntegrationSystemIDFilter, IntegrationRecordRef) then
                     repeat
                         CopyRecordReference(IntegrationTableMapping, IntegrationRecordRef, TempIntegrationRecordRef, false);
                         Cached := true;
                     until IntegrationRecordRef.Next() = 0;
+#pragma warning restore AA0181
                 IntegrationRecordRef.Close();
             end;
         exit(Cached);
@@ -260,7 +280,6 @@ codeunit 7231 "Integration Master Data Synch."
         RecordID: RecordID;
         IntegrationSystemID: Guid;
         IsHandled: Boolean;
-        SourceCompanyName: Text[30];
     begin
         case GetSourceType(SourceID) of
             SupportedSourceType::RecordID:
@@ -282,12 +301,7 @@ codeunit 7231 "Integration Master Data Synch."
                     MasterDataManagement.OnGetIntegrationRecordRefBySystemId(IntegrationTableMapping, RecordRef, IntegrationSystemID, IsHandled);
                     if not IsHandled then begin
                         MasterDataManagementSetup.Get();
-                        MasterDataManagement.OnSetSourceCompanyName(SourceCompanyName, IntegrationTableMapping."Integration Table ID");
-                        if SourceCompanyName = '' then
-                            SourceCompanyName := MasterDataManagementSetup."Company Name";
-                        RecordRef.Open(IntegrationTableMapping."Integration Table ID");
-                        RecordRef.ChangeCompany(SourceCompanyName);
-                        if not RecordRef.GetBySystemId(IntegrationSystemID) then
+                        if not MasterDataManagementSetup.GetDataSource().GetBySystemId(IntegrationTableMapping."Integration Table ID", IntegrationSystemID, RecordRef) then
                             exit(false);
                     end;
                     exit(IntegrationTableMapping.FindFilteredRec(RecordRef, OutOfMapFilter));
@@ -495,6 +509,7 @@ codeunit 7231 "Integration Master Data Synch."
         SourceRecordRef: RecordRef;
         JobId: Guid;
         JobStartDateTime: DateTime;
+        Drained: Boolean;
     begin
         JobStartDateTime := CurrentDateTime();
         JobId :=
@@ -503,11 +518,78 @@ codeunit 7231 "Integration Master Data Synch."
         if not IsNullGuid(JobId) then begin
             MasterDataFullSynchRLn.FullSynchStarted(IntegrationTableMapping, JobId, IntegrationTableMapping.Direction::FromIntegrationTable);
             LatestIntegrationModifiedOn := SynchIntegrationTableToLocalTable(IntegrationTableMapping, IntegrationTableSynch, SourceRecordRef);
+            Drained := PersistCrossEnvResumeState(IntegrationTableMapping, JobStartDateTime, LatestIntegrationModifiedOn);
+            IntegrationTableSynch.EndIntegrationSynchJob();
+            if Drained then
+                MasterDataFullSynchRLn.FullSynchFinished(IntegrationTableMapping, IntegrationTableMapping.Direction::FromIntegrationTable);
+        end;
+    end;
+
+    // After a cross-environment run, persist the resume cursor and cap the watermark to what was actually
+    // processed on a partial (page-capped) run, so the next run continues instead of skipping records. Returns
+    // whether the source was fully drained (same-env and fully-caught-up cross-env both count as drained).
+    local procedure PersistCrossEnvResumeState(var IntegrationTableMapping: Record "Integration Table Mapping"; JobStartDateTime: DateTime; var LatestIntegrationModifiedOn: DateTime): Boolean
+    begin
+        if not IsCrossEnvironmentSynch() then begin
             if JobStartDateTime > LatestIntegrationModifiedOn then
                 LatestIntegrationModifiedOn := JobStartDateTime;
-            IntegrationTableSynch.EndIntegrationSynchJob();
-            MasterDataFullSynchRLn.FullSynchFinished(IntegrationTableMapping, IntegrationTableMapping.Direction::FromIntegrationTable);
+            exit(true);
         end;
+
+        if CrossEnvBatchHasMore then begin
+            IntegrationTableMapping."Source Change Cursor" := CopyStr(CrossEnvBatchEndCursor, 1, MaxStrLen(IntegrationTableMapping."Source Change Cursor"));
+            // Advance the watermark only to the last processed page; the cursor is the authoritative resume point.
+            LatestIntegrationModifiedOn := CursorModifiedAt(CrossEnvBatchEndCursor);
+            IntegrationTableMapping.Modify();
+            Commit();
+            exit(false);
+        end;
+
+        IntegrationTableMapping."Source Change Cursor" := '';
+        IntegrationTableMapping.Modify();
+        Commit();
+        if JobStartDateTime > LatestIntegrationModifiedOn then
+            LatestIntegrationModifiedOn := JobStartDateTime;
+        exit(true);
+    end;
+
+    local procedure IsCrossEnvironmentSynch(): Boolean
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        if not MasterDataManagementSetup.Get() then
+            exit(false);
+        exit(MasterDataManagementSetup."Source Environment Name" <> '');
+    end;
+
+    local procedure CursorModifiedAt(CursorText: Text) ModifiedAt: DateTime
+    var
+        Cursor: JsonObject;
+        Token: JsonToken;
+    begin
+        if CursorText = '' then
+            exit(0DT);
+        if not Cursor.ReadFrom(CursorText) then
+            exit(0DT);
+        if Cursor.Get('modifiedAt', Token) then
+            if Token.IsValue() then
+                if not Evaluate(ModifiedAt, Token.AsValue().AsText(), 9) then
+                    exit(0DT);
+    end;
+
+    local procedure MaxPagesPerRun(): Integer
+    var
+        MaxPages: Integer;
+    begin
+        // Cap pages per run so a large initial load resumes across runs; 0 = unbounded (test override).
+        MaxPages := 50;
+        OnGetCrossEnvMaxPagesPerRun(MaxPages);
+        exit(MaxPages);
+    end;
+
+    [InternalEvent(false)]
+    local procedure OnGetCrossEnvMaxPagesPerRun(var MaxPages: Integer)
+    begin
     end;
 
     internal procedure CreateMasterDataMgtCouplingClone(ForTable: Integer; var TempMasterDataMgtCoupling: Record "Master Data Mgt. Coupling" temporary)
