@@ -41,6 +41,8 @@ codeunit 137074 "SCM Capacity Requirements"
         Description2Err: Label 'Description must not be blank in %1.', Comment = '%1 = Table Caption.';
         EndingTimeErr: Label 'Ending Time must be equal to %1', Comment = '%1 = Ending Time';
         UniCostCalculationErr: Label 'Unit Cost Calculation must be %1 in %2', Comment = '%1 = Field Value, %2 = Prod. Order Routing Line';
+        CapacityUoMConversionErr: Label 'Value was not converted proportionally to the selected Capacity UoM.';
+        LoadPercentUnchangedErr: Label 'Load %% must be unchanged when the Capacity UoM is converted.';
 
     [Test]
     [Scope('OnPrem')]
@@ -5011,6 +5013,159 @@ codeunit 137074 "SCM Capacity Requirements"
         ProdOrderRoutingLine.FindFirst();
         VerifyCapacityNeedTime(ProdOrderRoutingLine, ProdOrderCapacityNeed."Time Type"::"Setup Time", SetupTime, SetupTime);
         VerifyCapacityNeedTime(ProdOrderRoutingLine, ProdOrderCapacityNeed."Time Type"::"Run Time", RunTime * Qty, RunTime * Qty);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure WorkCenterLoadConvertsCapacityToSelectedCapacityUoM()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        CapacityUnitOfMeasure: Record "Capacity Unit of Measure";
+        HoursUoM: Record "Capacity Unit of Measure";
+        WorkCenter: Record "Work Center";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        ProductionOrder: Record "Production Order";
+        WorkCenterLoad: TestPage "Work Center Load";
+        NativeCapacity, NativeAllocatedQty, NativeAvailability, NativeLoad : Decimal;
+        ConvertedCapacity, ConvertedAllocatedQty, ConvertedAvailability, ConvertedLoad : Decimal;
+        RunTime: Decimal;
+    begin
+        // [SCENARIO] Work Center Load page converts Capacity, Allocated Qty. and Availability After Orders proportionally to the selected Capacity UoM, while Load % stays unchanged.
+        Initialize();
+        WorkDate(SetWorkingDayInWorkDate());
+
+        // [GIVEN] A Capacity UoM (Hours) different from the Work Center's native Unit of Measure (Minutes).
+        LibraryManufacturing.CreateCapacityUnitOfMeasure(HoursUoM, HoursUoM.Type::Hours);
+
+        // [GIVEN] Work Center with native Unit of Measure = Minutes and a calculated Shop Calendar.
+        WorkCenter.Get(
+          CreateWorkCenterWithShopCalendar(
+            CapacityUnitOfMeasure.Type::Minutes, CreateShopCalendar(080000T, 160000T),
+            LibraryRandom.RandIntInRange(100, 100), LibraryRandom.RandIntInRange(3, 3), WorkDate()));
+
+        // [GIVEN] Routing with a Work Center operation and Run Time, certified and assigned to an Item.
+        RunTime := LibraryRandom.RandIntInRange(60, 60);
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, '', Format(LibraryRandom.RandInt(0)), RoutingLine.Type::"Work Center", WorkCenter."No.");
+        RoutingLine.Validate("Run Time", RunTime);
+        RoutingLine.Modify(true);
+        LibraryManufacturing.UpdateRoutingStatus(RoutingHeader, RoutingHeader.Status::Certified);
+
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Routing No.", RoutingHeader."No.");
+        Item.Modify(true);
+
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+
+        // [GIVEN] Released Production Order for the Item, refreshed to create capacity need for the Work Center.
+        CreateReleasedProdOrderAndRefresh(ProductionOrder, Item, Location.Code, '', LibraryRandom.RandInt(0));
+
+        // [GIVEN] Open Work Center Load page and capture Capacity, Allocated Qty., Availability After Orders and Load shown in the native Unit of Measure.
+        OpenWorkCenterLoadPage(WorkCenterLoad, WorkCenter."No.");
+        WorkCenterLoad.PeriodType.SetValue("Analysis Period Type"::Day);
+        WorkCenterLoad.AmountType.SetValue("Analysis Amount Type"::"Net Change");
+        WorkCenterLoad.MachineCenterLoadLines.Filter.SetFilter("Period Start", Format(ProductionOrder."Starting Date"));
+
+        NativeCapacity := WorkCenterLoad.MachineCenterLoadLines.Capacity.AsDecimal();
+        NativeAllocatedQty := WorkCenterLoad.MachineCenterLoadLines.AllocatedQty.AsDecimal();
+        NativeAvailability := WorkCenterLoad.MachineCenterLoadLines.CapacityAvailable.AsDecimal();
+        NativeLoad := WorkCenterLoad.MachineCenterLoadLines.CapacityEfficiency.AsDecimal();
+
+        // [WHEN] Hours is selected as the Capacity UoM shown on the page.
+        WorkCenterLoad.CapacityUoM.SetValue(HoursUoM.Code);
+        WorkCenterLoad.MachineCenterLoadLines.Filter.SetFilter("Period Start", Format(ProductionOrder."Starting Date"));
+
+        ConvertedCapacity := WorkCenterLoad.MachineCenterLoadLines.Capacity.AsDecimal();
+        ConvertedAllocatedQty := WorkCenterLoad.MachineCenterLoadLines.AllocatedQty.AsDecimal();
+        ConvertedAvailability := WorkCenterLoad.MachineCenterLoadLines.CapacityAvailable.AsDecimal();
+        ConvertedLoad := WorkCenterLoad.MachineCenterLoadLines.CapacityEfficiency.AsDecimal();
+        WorkCenterLoad.Close();
+
+        // [THEN] Capacity, Allocated Qty. and Availability After Orders are converted from Minutes to Hours (divided by 60), while Load % is unchanged.
+        Assert.AreEqual(Round(NativeCapacity / 60, 0.01), Round(ConvertedCapacity, 0.01), CapacityUoMConversionErr);
+        Assert.AreEqual(Round(NativeAllocatedQty / 60, 0.01), Round(ConvertedAllocatedQty, 0.01), CapacityUoMConversionErr);
+        Assert.AreEqual(Round(NativeAvailability / 60, 0.01), Round(ConvertedAvailability, 0.01), CapacityUoMConversionErr);
+        Assert.AreEqual(NativeLoad, ConvertedLoad, LoadPercentUnchangedErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure MachineCenterLoadConvertsCapacityToSelectedCapacityUoM()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        CapacityUnitOfMeasure: Record "Capacity Unit of Measure";
+        HoursUoM: Record "Capacity Unit of Measure";
+        WorkCenter: Record "Work Center";
+        MachineCenter: Record "Machine Center";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        ProductionOrder: Record "Production Order";
+        MachineCenterLoad: TestPage "Machine Center Load";
+        NativeCapacity, NativeAllocatedQty, NativeAvailability, NativeLoad : Decimal;
+        ConvertedCapacity, ConvertedAllocatedQty, ConvertedAvailability, ConvertedLoad : Decimal;
+        RunTime: Decimal;
+    begin
+        // [SCENARIO] Machine Center Load page converts Capacity, Allocated Qty. and Availability After Orders proportionally to the selected Capacity UoM
+        // (resolved via the parent Work Center's Unit of Measure), while Load % stays unchanged.
+        Initialize();
+        WorkDate(SetWorkingDayInWorkDate());
+
+        // [GIVEN] A Capacity UoM (Hours) different from the parent Work Center's native Unit of Measure (Minutes).
+        LibraryManufacturing.CreateCapacityUnitOfMeasure(HoursUoM, HoursUoM.Type::Hours);
+
+        // [GIVEN] Work Center with native Unit of Measure = Minutes, and a Machine Center linked to it, both with calculated calendars.
+        WorkCenter.Get(
+          CreateWorkCenterWithShopCalendar(
+            CapacityUnitOfMeasure.Type::Minutes, CreateShopCalendar(080000T, 160000T),
+            LibraryRandom.RandIntInRange(100, 100), LibraryRandom.RandIntInRange(3, 3), WorkDate()));
+        CreateMachineCenter(MachineCenter, WorkCenter."No.");
+
+        // [GIVEN] Routing with a Machine Center operation and Run Time, certified and assigned to an Item.
+        RunTime := LibraryRandom.RandIntInRange(60, 60);
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, '', Format(LibraryRandom.RandInt(0)), RoutingLine.Type::"Machine Center", MachineCenter."No.");
+        RoutingLine.Validate("Run Time", RunTime);
+        RoutingLine.Modify(true);
+        LibraryManufacturing.UpdateRoutingStatus(RoutingHeader, RoutingHeader.Status::Certified);
+
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Routing No.", RoutingHeader."No.");
+        Item.Modify(true);
+
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+
+        // [GIVEN] Released Production Order for the Item, refreshed to create capacity need for the Machine Center.
+        CreateReleasedProdOrderAndRefresh(ProductionOrder, Item, Location.Code, '', LibraryRandom.RandInt(0));
+
+        // [GIVEN] Open Machine Center Load page and capture Capacity, Allocated Qty., Availability After Orders and Load shown in the native Unit of Measure.
+        OpenMachineCenterLoadPage(MachineCenterLoad, MachineCenter."No.");
+        MachineCenterLoad.PeriodType.SetValue("Analysis Period Type"::Day);
+        MachineCenterLoad.AmountType.SetValue("Analysis Amount Type"::"Net Change");
+        MachineCenterLoad.MachineCLoadLines.Filter.SetFilter("Period Start", Format(ProductionOrder."Starting Date"));
+
+        NativeCapacity := MachineCenterLoad.MachineCLoadLines.Capacity.AsDecimal();
+        NativeAllocatedQty := MachineCenterLoad.MachineCLoadLines.AllocatedQty.AsDecimal();
+        NativeAvailability := MachineCenterLoad.MachineCLoadLines.CapacityAvailable.AsDecimal();
+        NativeLoad := MachineCenterLoad.MachineCLoadLines.CapacityEfficiency.AsDecimal();
+
+        // [WHEN] Hours is selected as the Capacity UoM shown on the page.
+        MachineCenterLoad.CapacityUoM.SetValue(HoursUoM.Code);
+        MachineCenterLoad.MachineCLoadLines.Filter.SetFilter("Period Start", Format(ProductionOrder."Starting Date"));
+
+        ConvertedCapacity := MachineCenterLoad.MachineCLoadLines.Capacity.AsDecimal();
+        ConvertedAllocatedQty := MachineCenterLoad.MachineCLoadLines.AllocatedQty.AsDecimal();
+        ConvertedAvailability := MachineCenterLoad.MachineCLoadLines.CapacityAvailable.AsDecimal();
+        ConvertedLoad := MachineCenterLoad.MachineCLoadLines.CapacityEfficiency.AsDecimal();
+        MachineCenterLoad.Close();
+
+        // [THEN] Capacity, Allocated Qty. and Availability After Orders are converted from Minutes to Hours (divided by 60), while Load % is unchanged.
+        Assert.AreEqual(Round(NativeCapacity / 60, 0.01), Round(ConvertedCapacity, 0.01), CapacityUoMConversionErr);
+        Assert.AreEqual(Round(NativeAllocatedQty / 60, 0.01), Round(ConvertedAllocatedQty, 0.01), CapacityUoMConversionErr);
+        Assert.AreEqual(Round(NativeAvailability / 60, 0.01), Round(ConvertedAvailability, 0.01), CapacityUoMConversionErr);
+        Assert.AreEqual(NativeLoad, ConvertedLoad, LoadPercentUnchangedErr);
     end;
 
     local procedure Initialize()
