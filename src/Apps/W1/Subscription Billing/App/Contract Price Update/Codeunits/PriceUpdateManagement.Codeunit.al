@@ -142,6 +142,9 @@ codeunit 8009 "Price Update Management"
 
     local procedure ApplyDefaultFiltering(var ServiceCommitment: Record "Subscription Line"; PriceUpdateTemplate: Record "Price Update Template"; IncludeServiceCommitmentUpToDate: Date)
     begin
+        // The mandatory defaults are set in a separate filter group so that they intersect with the filters
+        // stored on the Price Update Template instead of replacing them field by field.
+        ServiceCommitment.FilterGroup(2);
         ServiceCommitment.SetRange(Partner, PriceUpdateTemplate.Partner);
         ServiceCommitment.SetRange("Exclude from Price Update", false);
         ServiceCommitment.SetRange("Invoicing via", Enum::"Invoicing Via"::Contract);
@@ -149,18 +152,21 @@ codeunit 8009 "Price Update Management"
         ServiceCommitment.SetRange("Planned Sub. Line exists", false);
         ServiceCommitment.SetRange("Usage Based Billing", false);
         ServiceCommitment.SetRange(Closed, false);
+        ServiceCommitment.FilterGroup(0);
     end;
 
-    local procedure InitTempServiceCommitmentTable(ServiceCommitment: Record "Subscription Line"; var TempServiceCommitment: Record "Subscription Line" temporary)
+    // ServiceCommitment must be passed by reference: an AL record parameter passed by value does not
+    // carry the caller's filters, so the temporary table would be seeded from the whole table instead of
+    // from the filtering ApplyDefaultFiltering applied. Proven by
+    // TestSubscriptionLineFilterCannotWidenDefaultFilteringOnNextPriceUpdate.
+    local procedure InitTempServiceCommitmentTable(var ServiceCommitment: Record "Subscription Line"; var TempServiceCommitment: Record "Subscription Line" temporary)
     begin
         TempServiceCommitment.Reset();
         TempServiceCommitment.DeleteAll(false);
         if ServiceCommitment.FindSet() then
             repeat
-                if not ServiceCommitment.Closed then begin
-                    TempServiceCommitment := ServiceCommitment;
-                    TempServiceCommitment.Insert(false);
-                end;
+                TempServiceCommitment := ServiceCommitment;
+                TempServiceCommitment.Insert(false);
             until ServiceCommitment.Next() = 0;
     end;
 
@@ -245,6 +251,9 @@ codeunit 8009 "Price Update Management"
 
     local procedure MarkServiceCommitmentsFromTempTable(var ServiceCommitment: Record "Subscription Line"; var TempServiceCommitment: Record "Subscription Line" temporary)
     begin
+        // Reset() also clears the mandatory defaults that ApplyDefaultFiltering sets in filter group 2.
+        // Keep it: the record is handed back to the callers and to the integration event below, and must
+        // not carry filters that GetFilters() does not show them.
         ServiceCommitment.Reset();
         if TempServiceCommitment.FindSet() then
             repeat
