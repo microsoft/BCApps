@@ -1,6 +1,7 @@
 #if not CLEAN28
 namespace Microsoft.Manufacturing.Subcontracting.Migration;
 
+using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Routing;
@@ -41,6 +42,7 @@ codeunit 149951 "IT Subc. Migration"
 #if not CLEAN28
         LegacySubcFeatureHandler.CheckCanDisableLegacySubcontracting();
 #endif
+        CheckSubcontractingLocations();
         UIAllowed := ShowDialog and GuiAllowed();
         if UIAllowed then begin
             ConfirmDisableLegacySubcontracting();
@@ -573,6 +575,76 @@ codeunit 149951 "IT Subc. Migration"
         PurchaseHeader.SetFilter("Subcontracting Location Code", '<>%1', '');
     end;
 
+    [ErrorBehavior(ErrorBehavior::Collect)]
+    internal procedure CheckSubcontractingLocations()
+    var
+        Vendor: Record Vendor;
+        PurchaseHeader: Record "Purchase Header";
+        Location: Record Location;
+        LegacySubcontractingLocations: Dictionary of [Code[10], Boolean];
+        LocationCode: Code[10];
+        UnsupportedWarehouseSettings: Text;
+        CollectedErrors: List of [ErrorInfo];
+        CollectedError: ErrorInfo;
+        BlockingErrorText: Text;
+    begin
+        SetVendorMigrationFilters(Vendor);
+        Vendor.SetLoadFields("Subcontracting Location Code");
+        if Vendor.FindSet() then
+            repeat
+                AddLegacySubcontractingLocation(LegacySubcontractingLocations, Vendor."Subcontracting Location Code");
+            until Vendor.Next() = 0;
+
+        SetPurchaseHeaderMigrationFilters(PurchaseHeader);
+        PurchaseHeader.SetLoadFields("Subcontracting Location Code");
+        if PurchaseHeader.FindSet() then
+            repeat
+                AddLegacySubcontractingLocation(LegacySubcontractingLocations, PurchaseHeader."Subcontracting Location Code");
+            until PurchaseHeader.Next() = 0;
+
+        foreach LocationCode in LegacySubcontractingLocations.Keys() do begin
+            Location.Get(LocationCode);
+            UnsupportedWarehouseSettings := GetUnsupportedWarehouseSettings(Location);
+            if UnsupportedWarehouseSettings <> '' then
+                Error(UnsupportedSubcontractingLocationErr, Location.Code, UnsupportedWarehouseSettings);
+        end;
+
+        if HasCollectedErrors() then begin
+            CollectedErrors := GetCollectedErrors(true);
+            foreach CollectedError in CollectedErrors do
+                BlockingErrorText += CollectedError.Message() + '\';
+            Error(ErrorInfo.Create(BlockingErrorText, false));
+        end;
+    end;
+
+    local procedure AddLegacySubcontractingLocation(var LegacySubcontractingLocations: Dictionary of [Code[10], Boolean]; LocationCode: Code[10])
+    begin
+        if not LegacySubcontractingLocations.ContainsKey(LocationCode) then
+            LegacySubcontractingLocations.Add(LocationCode, true);
+    end;
+
+    local procedure GetUnsupportedWarehouseSettings(Location: Record Location): Text
+    var
+        UnsupportedWarehouseSettings: Text;
+    begin
+        AddUnsupportedWarehouseSetting(UnsupportedWarehouseSettings, Location."Bin Mandatory", Location.FieldCaption("Bin Mandatory"));
+        AddUnsupportedWarehouseSetting(UnsupportedWarehouseSettings, Location."Require Pick", Location.FieldCaption("Require Pick"));
+        AddUnsupportedWarehouseSetting(UnsupportedWarehouseSettings, Location."Require Put-away", Location.FieldCaption("Require Put-away"));
+        AddUnsupportedWarehouseSetting(UnsupportedWarehouseSettings, Location."Require Receive", Location.FieldCaption("Require Receive"));
+        AddUnsupportedWarehouseSetting(UnsupportedWarehouseSettings, Location."Require Shipment", Location.FieldCaption("Require Shipment"));
+        exit(UnsupportedWarehouseSettings);
+    end;
+
+    local procedure AddUnsupportedWarehouseSetting(var UnsupportedWarehouseSettings: Text; IsEnabled: Boolean; WarehouseSettingCaption: Text)
+    begin
+        if not IsEnabled then
+            exit;
+
+        if UnsupportedWarehouseSettings <> '' then
+            UnsupportedWarehouseSettings += ', ';
+        UnsupportedWarehouseSettings += WarehouseSettingCaption;
+    end;
+
     local procedure VerifyMigration()
     var
         TransferLine: Record "Transfer Line";
@@ -658,6 +730,7 @@ codeunit 149951 "IT Subc. Migration"
         VerifyingPhaseLbl: Label 'Verifying migration...';
         VerifyingProgressEntityLbl: Label 'Verification step';
         MigrationVerificationFailedErr: Label 'Migration verification failed for %1: expected %2 record(s) but found %3 after migration.', Comment = '%1 = entity name, %2 = pre-migration count, %3 = post-migration count';
+        UnsupportedSubcontractingLocationErr: Label 'Migration can''t start because subcontracting location %1 uses unsupported warehouse settings: %2. Update the location or subcontracting setup, and then run the precheck again.', Comment = '%1 = location code, %2 = unsupported warehouse settings';
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Legacy Subc. Feature Handler", 'OnMigrationSubcontractingData', '', false, false)]
     local procedure MigrateSubconOnMigrationSubcontractingData()

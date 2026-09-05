@@ -33,6 +33,7 @@ codeunit 149956 "IT Subc. Migration Tests"
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryUtility: Codeunit "Library - Utility";
         Initialized: Boolean;
+        UnsupportedSubcontractingLocationErr: Label 'Migration can''t start because subcontracting location %1 uses unsupported warehouse settings: %2. Update the location or subcontracting setup, and then run the precheck again.', Comment = '%1 = location code, %2 = unsupported warehouse settings';
 
     [Test]
     [Scope('OnPrem')]
@@ -826,6 +827,108 @@ codeunit 149956 "IT Subc. Migration Tests"
         RoutingLine.Get(RoutingLine."Routing No.", RoutingLine."Version Code", RoutingLine."Operation No.");
         Assert.IsTrue(RoutingLine."Transfer WIP Item",
             'Routing line "Transfer WIP Item" should be migrated.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CheckSubcontractingLocations_ReportsEveryLocationAndSetting()
+    var
+        Vendor: Record Vendor;
+        PurchaseHeader: Record "Purchase Header";
+        VendorLocation: Record Location;
+        PurchaseLocation: Record Location;
+        ITSubcMigration: Codeunit "IT Subc. Migration";
+        BlockingError: Text;
+    begin
+        // [SCENARIO] The migration precheck reports every incompatible location and its unsupported warehouse settings
+        Initialize();
+
+        // [GIVEN] A vendor whose legacy subcontracting location requires bins and picks
+        LibraryWarehouse.CreateLocation(VendorLocation);
+        VendorLocation."Bin Mandatory" := true;
+        VendorLocation."Require Pick" := true;
+        VendorLocation.Modify(false);
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor."Subcontracting Location Code" := VendorLocation.Code;
+        Vendor.Modify(false);
+
+        // [GIVEN] A purchase header with a different legacy location that requires warehouse handling
+        LibraryWarehouse.CreateLocation(PurchaseLocation);
+        PurchaseLocation."Require Put-away" := true;
+        PurchaseLocation."Require Receive" := true;
+        PurchaseLocation."Require Shipment" := true;
+        PurchaseLocation.Modify(false);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        PurchaseHeader."Subcontracting Location Code" := PurchaseLocation.Code;
+        PurchaseHeader.Modify(false);
+
+        // [WHEN] The subcontracting location precheck runs
+        asserterror ITSubcMigration.CheckSubcontractingLocations();
+
+        // [THEN] The blocking error reports every incompatible location and its unsupported settings
+        BlockingError := GetLastErrorText();
+        Assert.IsTrue(
+            BlockingError.Contains(
+                StrSubstNo(
+                    UnsupportedSubcontractingLocationErr,
+                    VendorLocation.Code,
+                    'Bin Mandatory, Require Pick')),
+            'The precheck should report the vendor location and its unsupported settings.');
+        Assert.IsTrue(
+            BlockingError.Contains(
+                StrSubstNo(
+                    UnsupportedSubcontractingLocationErr,
+                    PurchaseLocation.Code,
+                    'Require Put-away, Require Receive, Require Shipment')),
+            'The precheck should report the purchase location and its unsupported settings.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure StartDisableLegacySubcontracting_BlocksUnsupportedLocationBeforeMigration()
+    var
+        Vendor: Record Vendor;
+        Location: Record Location;
+        TransferLine: Record "Transfer Line";
+        PurchaseLine: Record "Purchase Line";
+        ITSubcMigration: Codeunit "IT Subc. Migration";
+    begin
+        // [SCENARIO] Disabling legacy subcontracting stops before migration when a location has unsupported warehouse settings
+        Initialize();
+
+        // [GIVEN] No open WIP transfers or purchase orders
+        TransferLine.SetRange("WIP Item", true);
+        if not TransferLine.IsEmpty() then
+            TransferLine.DeleteAll();
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+#pragma warning disable AL0432
+        PurchaseLine.SetRange("WIP Item", true);
+#pragma warning restore AL0432
+        if not PurchaseLine.IsEmpty() then
+            PurchaseLine.DeleteAll();
+
+        // [GIVEN] A vendor with an unmigrated legacy subcontracting location that requires bins
+        LibraryWarehouse.CreateLocation(Location);
+        Location."Bin Mandatory" := true;
+        Location.Modify(false);
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor."Subcontracting Location Code" := Location.Code;
+        Vendor."Subc. Location Code" := '';
+        Vendor.Modify(false);
+
+        // [WHEN] Legacy subcontracting is disabled
+        asserterror ITSubcMigration.StartDisableLegacySubcontracting(false);
+
+        // [THEN] The precheck reports the incompatible location
+        Assert.ExpectedError(
+            StrSubstNo(
+                UnsupportedSubcontractingLocationErr,
+                Location.Code,
+                'Bin Mandatory'));
+
+        // [THEN] Migration has not changed the vendor
+        Vendor.Get(Vendor."No.");
+        Assert.AreEqual('', Vendor."Subc. Location Code", 'The vendor must not be migrated when the precheck fails.');
     end;
 
     [Test]
