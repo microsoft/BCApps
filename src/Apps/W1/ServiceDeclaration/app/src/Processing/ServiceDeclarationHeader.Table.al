@@ -11,6 +11,7 @@ table 5023 "Service Declaration Header"
 {
     LookupPageId = "Service Declarations";
     DrillDownPageId = "Service Declarations";
+    DataClassification = CustomerContent;
 
     fields
     {

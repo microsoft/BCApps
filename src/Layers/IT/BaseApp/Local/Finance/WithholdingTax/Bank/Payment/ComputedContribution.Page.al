@@ -92,8 +92,8 @@ page 12136 "Computed Contribution"
 
                 trigger OnAction()
                 begin
-                    Navigate.SetDoc(Rec."Posting Date", Rec."Document No.");
-                    Navigate.Run();
+                    NavigatePage.SetDoc(Rec."Posting Date", Rec."Document No.");
+                    NavigatePage.Run();
                 end;
             }
         }
@@ -111,6 +111,6 @@ page 12136 "Computed Contribution"
     }
 
     var
-        Navigate: Page Navigate;
+        NavigatePage: Page Navigate;
 }
 

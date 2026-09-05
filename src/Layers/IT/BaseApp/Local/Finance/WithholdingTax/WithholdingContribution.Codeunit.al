@@ -762,5 +762,16 @@ codeunit 12101 "Withholding - Contribution"
     local procedure OnPostPaymentsOnBeforeComputedWithholdingTaxModify(var TempWithholdingSocSec: Record "Tmp Withholding Contribution"; var ComputedWithholdingTax: Record "Computed Withholding Tax")
     begin
     end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Manual vendor Payment Line", 'OnInsertLineActionOnBeforeVendorBillLineInsert', '', true, false)]
+    local procedure OnInsertLineActionOnBeforeVendorBillLineInsert(var VendorBillLine: Record "Vendor Bill Line"; VendorBillNo: Code[20]; PostingDate: Date; VendorNo: Code[20]; TotalAmount: Decimal; DocumentType: Enum "Gen. Journal Document Type"; DocumentNo: Code[20]; DocumentDate: Date)
+    var
+        Vendor: Record Vendor;
+    begin
+        Vendor.Get(VendorNo);
+        VendorBillLine.SetWithholdCode(Vendor."Withholding Tax Code");
+        VendorBillLine.SetSocialSecurityCode(Vendor."Social Security Code");
+    end;
+
 }
 
