@@ -1,5 +1,7 @@
 Import-Module (Join-Path $PSScriptRoot "EnlistmentHelperFunctions.psm1" -Resolve)
 
+# API test timing experiment marker.
+
 # ALAppBuild.psm1 expects $env:INETROOT to point at the repo root and uses Write-Log
 # internally. Set both up before importing so its functions work in CI runners that don't
 # have the full NAV build environment configured.
