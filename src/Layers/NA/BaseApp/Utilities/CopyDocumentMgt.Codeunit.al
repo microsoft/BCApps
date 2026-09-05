@@ -449,6 +449,9 @@ codeunit 6620 "Copy Document Mgt."
           FromDocType.AsInteger(), FromDocNo, ToSalesHeader, FromDocOccurrenceNo, FromDocVersionNo, IncludeHeader, RecalculateLines, MoveNegLines);
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Header", 'R', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Line", 'R', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assemble-to-Order Link", 'R', InherentPermissionsScope::Both)]
     procedure CopySalesDocSalesLine(FromSalesHeader: Record "Sales Header"; var ToSalesHeader: Record "Sales Header"; var LinesNotCopied: Integer; NextLineNo: Integer)
     var
         AssemblyHeader: Record "Assembly Header";
@@ -603,6 +606,9 @@ codeunit 6620 "Copy Document Mgt."
         CopySalesReturnRcptLinesToDoc(ToSalesHeader, FromReturnRcptLine, LinesNotCopied, MissingExCostRevLink);
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Header", 'RIM', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Line", 'RIM', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assemble-to-Order Link", 'RIM', InherentPermissionsScope::Both)]
     procedure CopySalesDocSalesLineArchive(FromSalesHeaderArchive: Record "Sales Header Archive"; var ToSalesHeader: Record "Sales Header"; var LinesNotCopied: Integer; NextLineNo: Integer)
     var
         ToSalesLine: Record "Sales Line";
@@ -5729,6 +5735,9 @@ codeunit 6620 "Copy Document Mgt."
         exit(QtyNotShipped);
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Header", 'RIM', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Line", 'RIM', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assemble-to-Order Link", 'RI', InherentPermissionsScope::Both)]
     local procedure CopyAsmOrderToAsmOrder(var TempFromAsmHeader: Record "Assembly Header" temporary; var TempFromAsmLine: Record "Assembly Line" temporary; ToSalesLine: Record "Sales Line"; ToAsmHeaderDocType: Option; ToAsmHeaderDocNo: Code[20]; InclAsmHeader: Boolean)
     var
         FromAsmHeader: Record "Assembly Header";
