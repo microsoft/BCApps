@@ -2413,6 +2413,20 @@ codeunit 131300 "Library - ERM"
         AdjustAddReportingCurrency.Run();
     end;
 
+    procedure RunCalcAndPostVATSettlement(VATPostingSetup: Record "VAT Posting Setup"; SettlementAccountNo: Code[20]; DocumentNo: Code[20])
+    var
+        FilterVATPostingSetup: Record "VAT Posting Setup";
+        CalcandPostVATSettlement: Report "Calc. and Post VAT Settlement";
+    begin
+        FilterVATPostingSetup.SetRange("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        FilterVATPostingSetup.SetRange("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        CalcandPostVATSettlement.InitializeRequest(WorkDate(), WorkDate(), WorkDate(), DocumentNo, SettlementAccountNo, true, true);
+        CalcandPostVATSettlement.SetTableView(FilterVATPostingSetup);
+        CalcandPostVATSettlement.UseRequestPage(false);
+        Commit();
+        CalcandPostVATSettlement.Run();
+    end;
+
     // New Exch. rate adjustment for v.20
     procedure RunExchRateAdjustmentForDocNo(CurrencyCode: Code[10]; DocumentNo: Code[20])
     begin

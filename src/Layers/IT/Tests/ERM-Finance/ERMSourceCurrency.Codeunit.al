@@ -23,6 +23,9 @@ codeunit 134897 "ERM Source Currency"
         SourceCurrencyAmountShouldBeZeroErr: Label 'The Source Currency Amount should be 0', Locked = true;
         SourceCurrencyAmountShouldMatchEnteredAmountErr: Label 'Source Currency Amount should match manually entered amount', Locked = true;
         PayablesSCYAmountErr: Label 'Source Currency Amount on payables G/L entry should match the FCY invoice amount', Locked = true;
+        SettlementSCYAmountErr: Label 'Source Currency Amount on the VAT settlement G/L entry should mirror the LCY amount when no Additional Reporting Currency is set up', Locked = true;
+        SettlementSCYVATAmountErr: Label 'Source Currency VAT Amount on the VAT settlement G/L entry should mirror the LCY amount when no Additional Reporting Currency is set up', Locked = true;
+        SettlementVATEntryMissingErr: Label 'The VAT settlement did not post a G/L entry on the Purchase VAT Account', Locked = true;
 
     [Test]
     procedure GenJournalPurchaseNormalVATLCY()
@@ -2166,6 +2169,133 @@ codeunit 134897 "ERM Source Currency"
 
         // [THEN] Source Currency Amount on payables G/L entry equals the FCY invoice amount.
         Assert.AreEqual(-InvoiceAmount, GLEntry."Source Currency Amount", PayablesSCYAmountErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure CalcAndPostVATSettlementSourceCurrencyAmounts()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        VATPostingSetup: Record "VAT Posting Setup";
+        GenJournalLine: Record "Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
+        SettlementDocNo: Code[20];
+        StartDate: Date;
+        EndDate: Date;
+        SCYBalance: Decimal;
+        VATAccountEntryFound: Boolean;
+    begin
+        // [SCENARIO] G/L Entries created by Calc. and Post VAT Settlement carry Source Currency Amount and
+        // Source Currency VAT Amount when no Additional Reporting Currency is set up.
+        Initialize();
+
+        // [GIVEN] No Additional Reporting Currency, so the source currency of the settlement entries is LCY.
+        GeneralLedgerSetup.Get();
+        if GeneralLedgerSetup."Additional Reporting Currency" <> '' then
+            GeneralLedgerSetup."Additional Reporting Currency" := '';
+            GeneralLedgerSetup.Modify();
+        end;
+
+        // [GIVEN] A dedicated VAT Posting Setup, so only this test's VAT Entries are settled.
+        LibraryERM.CreateVATPostingSetupWithAccounts(
+            VATPostingSetup, Enum::"Tax Calculation Type"::"Normal VAT", LibraryRandom.RandDecInDecimalRange(10, 25, 0));
+        UpdateAdjustForPaymentDiscount(VATPostingSetup);
+
+        // [GIVEN] A settlement period that starts after the last VAT entry and the last existing settlement,
+        // so the periodic settlement entry this test inserts is for an unused period.
+        StartDate := CalcDate('<CM + 1D>', LibraryERM.MaxDate(GetLastVATEntryOpOccrDate(), GetLastVATSettlementEndDate()));
+        EndDate := CalcDate('<CM>', StartDate);
+
+        // [GIVEN] A posted purchase VAT General Journal Line in LCY inside the settlement period.
+        CreateGeneralJournalLine(
+            GenJournalLine,
+            LibraryERM.CreateGLAccountNoWithDirectPosting(),
+            LibraryERM.CreateGLAccountNoWithDirectPosting(),
+            Enum::"General Posting Type"::Purchase,
+            VATPostingSetup,
+            false);
+        GenJournalLine.Validate("Posting Date", StartDate);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [WHEN] Running Calc. and Post VAT Settlement for the period with the Post option set.
+        SettlementDocNo := LibraryUtility.GenerateGUID();
+        RunCalcAndPostVATSettlement(VATPostingSetup, LibraryERM.CreateGLAccountNo(), SettlementDocNo, StartDate, EndDate);
+
+        GLEntry.SetRange("Document No.", SettlementDocNo);
+        GLEntry.FindSet();
+        repeat
+            // [THEN] Source Currency Amount on every settlement G/L Entry mirrors the LCY amount.
+            Assert.AreEqual(GLEntry.Amount, GLEntry."Source Currency Amount", SettlementSCYAmountErr);
+
+            if GLEntry."G/L Account No." = VATPostingSetup."Purchase VAT Account" then begin
+                VATAccountEntryFound := true;
+
+                // [THEN] Source Currency VAT Amount on the Purchase VAT Account entry mirrors the LCY amount and is not 0.
+                Assert.AreEqual(GLEntry.Amount, GLEntry."Source Currency VAT Amount", SettlementSCYVATAmountErr);
+                Assert.AreNotEqual(0, GLEntry."Source Currency VAT Amount", SettlementSCYVATAmountErr);
+            end;
+
+            SCYBalance += GLEntry."Source Currency Amount";
+        until GLEntry.Next() = 0;
+
+        // [THEN] The settlement closed the VAT Entries on the Purchase VAT Account.
+        Assert.IsTrue(VATAccountEntryFound, SettlementVATEntryMissingErr);
+
+        // [THEN] Source Currency Amount on the settlement G/L Entries balances to 0.
+        Assert.AreNearlyEqual(0, SCYBalance, 0.01, TotalSCYAmountNotZeroErr);
+    end;
+
+    procedure RunCalcAndPostVATSettlement(VATPostingSetup: Record "VAT Posting Setup"; SettlementAccountNo: Code[20]; DocumentNo: Code[20]; StartDate: Date; EndDate: Date)
+    var
+        FilterVATPostingSetup: Record "VAT Posting Setup";
+        CalcandPostVATSettlement: Report "Calc. and Post VAT Settlement";
+    begin
+        FilterVATPostingSetup.SetRange("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        FilterVATPostingSetup.SetRange("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        CalcandPostVATSettlement.SetTableView(FilterVATPostingSetup);
+        CalcandPostVATSettlement.InitializeRequest(
+            StartDate, EndDate, EndDate, DocumentNo, SettlementAccountNo,
+            LibraryERM.CreateGLAccountNo(), LibraryERM.CreateGLAccountNo(), false, true);
+        CalcandPostVATSettlement.UseRequestPage(false);
+        Commit();
+        CalcandPostVATSettlement.Run();
+    end;
+
+    local procedure GetLastVATEntryOpOccrDate(): Date
+    var
+        VATEntry: Record "VAT Entry";
+    begin
+        if VATEntry.IsEmpty() then
+            exit(WorkDate());
+        VATEntry.SetCurrentKey("Operation Occurred Date");
+        VATEntry.FindLast();
+        exit(VATEntry."Operation Occurred Date");
+    end;
+
+    local procedure GetLastVATSettlementEndDate(): Date
+    var
+#if not CLEAN27
+        PeriodicSettlementVATEntry: Record "Periodic Settlement VAT Entry";
+#else
+    PeriodicSettlementVATEntry: Record "Periodic VAT Settlement Entry";
+#endif
+    begin
+        if PeriodicSettlementVATEntry.IsEmpty() then
+            exit(WorkDate());
+        PeriodicSettlementVATEntry.FindLast();
+        exit(GetEndDateFromVATPeriod(PeriodicSettlementVATEntry."VAT Period"));
+    end;
+
+    local procedure GetEndDateFromVATPeriod(VATPeriod: Code[10]) EndDate: Date
+    var
+        Year: Integer;
+        Month: Integer;
+    begin
+        Evaluate(Year, CopyStr(VATPeriod, 1, 4));
+        Evaluate(Month, CopyStr(VATPeriod, 6, 2));
+        EndDate := DMY2Date(1, Month, Year);
+        EndDate := CalcDate('<CM>', EndDate);
     end;
 
     local procedure CreatePurchaseInvoice(var PurchaseHeader: Record "Purchase Header"; VendorNo: Code[20]; GLAccountNo: Code[20]; WithForeignCurrency: Boolean)
