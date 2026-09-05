@@ -36,10 +36,22 @@ page 7135 "Travel Request Details API"
                 field(travelRequestNo; Rec."Spend Request No.")
                 {
                     Caption = 'Travel Request No.';
+                    ToolTip = 'Specifies the travel request for the detail line.';
+                    Editable = false;
                 }
                 field(lineNo; Rec."Line No.")
                 {
                     Caption = 'Line No.';
+                }
+                field(type; Rec.Type)
+                {
+                    Caption = 'Type';
+                    ToolTip = 'Specifies the type of the travel request detail.';
+                }
+                field(expenseCategoryCode; Rec."Expense Category Code")
+                {
+                    Caption = 'Expense Category Code';
+                    ToolTip = 'Specifies the expense category for the travel request detail.';
                 }
                 field(description; Rec.Description)
                 {

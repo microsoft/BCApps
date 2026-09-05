@@ -52,6 +52,14 @@ page 6969 "Approver View API"
                     SubPageLink = "Pending Approval By" = field("No."),
                                     Status = filter("Pending Approval" | "Interim Approved");
                 }
+
+                part(travelRequestsPendingApproval; "Travel Requests API")
+                {
+                    EntityName = 'travelRequest';
+                    EntitySetName = 'travelRequests';
+                    SubPageLink = "Approver Expense User Filter" = field("No."),
+                                  Status = const(Released);
+                }
             }
         }
     }

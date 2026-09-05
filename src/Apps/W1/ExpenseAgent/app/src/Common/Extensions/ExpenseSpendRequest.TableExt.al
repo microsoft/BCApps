@@ -23,7 +23,8 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
             trigger OnValidate()
             begin
                 TestStatusOpen();
-                UpdateRequestedForTraveler(xRec."Requested For");
+                if SpendRequestExists() then
+                    UpdateRequestedForTraveler(xRec."Requested For");
             end;
         }
         field(6901; "Business Justification"; Text[2048])
@@ -129,7 +130,45 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
                 TestStatusOpen();
             end;
         }
+        field(6913; "Approver Expense User Filter"; Code[20])
+        {
+            Caption = 'Approver Expense User Filter';
+            FieldClass = FlowFilter;
+            TableRelation = "Expense User"."No.";
+        }
+        field(6914; "Submitted By Expense User No."; Code[20])
+        {
+            Caption = 'Submitted By Expense User No.';
+            DataClassification = EndUserIdentifiableInformation;
+            Editable = false;
+            TableRelation = "Expense User"."No.";
+        }
+        field(6915; "Submitted At"; DateTime)
+        {
+            Caption = 'Submitted At';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(6916; "Approval Expense User No."; Code[20])
+        {
+            Caption = 'Approval Expense User No.';
+            DataClassification = EndUserIdentifiableInformation;
+            Editable = false;
+            TableRelation = "Expense User"."No.";
+        }
+        field(6917; "Rejection Reason"; Text[2048])
+        {
+            Caption = 'Rejection Reason';
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
     }
+    trigger OnAfterInsert()
+    begin
+        if Rec."Document Type" = Rec."Document Type"::"Travel Request" then
+            InsertRequestedForTraveler();
+    end;
+
     trigger OnDelete()
     var
         Traveler: Record Traveler;
@@ -211,5 +250,16 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
         end;
 
         Rec.Validate("International Travel", Rec."Origin Country/Region Code" <> Rec."Dest. Country/Region Code");
+    end;
+
+    local procedure SpendRequestExists(): Boolean
+    var
+        SpendRequest: Record "Spend Request";
+    begin
+        if Rec."No." = '' then
+            exit(false);
+
+        SpendRequest.SetLoadFields("No.");
+        exit(SpendRequest.Get(Rec."No."));
     end;
 }

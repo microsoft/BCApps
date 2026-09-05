@@ -40,6 +40,8 @@ codeunit 6906 "Expense Capabilities Provider"
                 exit(true);
             Capability::ApprovalConversation:
                 exit(true);
+            Capability::TravelRequest:
+                exit(true);
         end;
         exit(false);
     end;
