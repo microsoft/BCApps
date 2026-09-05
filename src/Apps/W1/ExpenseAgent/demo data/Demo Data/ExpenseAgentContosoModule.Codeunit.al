@@ -37,6 +37,7 @@ codeunit 8202 "Expense Agent Contoso Module" implements "Contoso Demo Data Modul
         CreateExpenseCountryData: Codeunit "Create Expense Country Data";
     begin
         CreateExpenseCountryData.CreateMasterData();
+        Codeunit.Run(Codeunit::"Create Expense VAT Rates");
     end;
 
     procedure CreateTransactionalData()
