@@ -446,7 +446,7 @@ codeunit 8060 "Create Billing Documents"
 
         Language.SetOverrideFormatRegion(Language.GetFormatRegionOrDefault(PurchaseHeader."Format Region"), false);
         InsertDescriptionPurchaseLine(
-             StrSubstNo(GetBillingPeriodDescriptionTxt(PurchaseHeader."Language Code"), PurchaseLine."Recurring Billing from", PurchaseLine."Recurring Billing to"), PurchaseLine."Line No.");
+             StrSubstNo(GetBillingPeriodDescriptionTxt(ServiceCommitment."Subscription Contract No.", Enum::"Service Partner"::Vendor, PurchaseHeader."Language Code"), PurchaseLine."Recurring Billing from", PurchaseLine."Recurring Billing to"), PurchaseLine."Line No.");
         Language.SetOverrideFormatRegion('', false);
 
         if CreateContractInvoice then
@@ -1204,10 +1204,36 @@ codeunit 8060 "Create Billing Documents"
     end;
 
     procedure GetBillingPeriodDescriptionTxt(LanguageCode: Code[10]) DescriptionText: Text
+    var
+        LocalTranslationHelper: Codeunit "Translation Helper";
     begin
-        TranslationHelper.SetGlobalLanguageByCode(LanguageCode);
+        // Use a local Translation Helper instance so the global-language save/restore is re-entrant.
+        // This method can be reached while an outer SetGlobalLanguageByCode block is still open
+        // (e.g. from GetAdditionalLineText), and the shared instance only stores a single saved language.
+        LocalTranslationHelper.SetGlobalLanguageByCode(LanguageCode);
         DescriptionText := GetBillingPeriodDescriptionTxt();
-        TranslationHelper.RestoreGlobalLanguage();
+        LocalTranslationHelper.RestoreGlobalLanguage();
+    end;
+
+    procedure GetBillingPeriodDescriptionTxt(ContractNo: Code[20]; Partner: Enum "Service Partner"; LanguageCode: Code[10]): Text
+    var
+        CustomerContract: Record "Customer Subscription Contract";
+        VendorContract: Record "Vendor Subscription Contract";
+        ContractType: Record "Subscription Contract Type";
+        FieldTranslation: Record "Field Translation";
+        ContractTypeCode: Code[10];
+    begin
+        case Partner of
+            Enum::"Service Partner"::Customer:
+                if CustomerContract.Get(ContractNo) then
+                    ContractTypeCode := CustomerContract."Contract Type";
+            Enum::"Service Partner"::Vendor:
+                if VendorContract.Get(ContractNo) then
+                    ContractTypeCode := VendorContract."Contract Type";
+        end;
+        if ContractType.Get(ContractTypeCode) and (ContractType."Billing Period Description" <> '') then
+            exit(FieldTranslation.FindTranslation(ContractType, ContractType.FieldNo("Billing Period Description"), LanguageCode));
+        exit(GetBillingPeriodDescriptionTxt(LanguageCode));
     end;
 
     local procedure CreateAdditionalInvoiceLine(ServiceContractSetupFieldNo: Integer; SalesHeader2: Record "Sales Header"; ParentSalesLine: Record "Sales Line"; ServiceObject: Record "Subscription Header"; ServiceCommitment: Record "Subscription Line")
@@ -1254,7 +1280,7 @@ codeunit 8060 "Create Billing Documents"
                 begin
                     Language.SetOverrideFormatRegion(Language.GetFormatRegionOrDefault(SalesHeader."Format Region"), false);
                     DescriptionText := StrSubstNo(
-                                                    GetBillingPeriodDescriptionTxt(),
+                                                    GetBillingPeriodDescriptionTxt(ServiceCommitment."Subscription Contract No.", Enum::"Service Partner"::Customer, SalesHeader."Language Code"),
                                                     ParentSalesLine."Recurring Billing from",
                                                     ParentSalesLine."Recurring Billing to");
                     Language.SetOverrideFormatRegion('', false);

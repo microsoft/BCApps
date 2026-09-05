@@ -47,6 +47,23 @@ page 8054 "Contract Types"
                 }
                 field(AllowDiffCurrInVendUD; Rec."Allow Diff. Curr. in Vend. UD") { }
                 field(AllowDiffCurrInCustUD; Rec."Allow Diff. Curr. in Cust. UD") { }
+                field(BillingPeriodDescription; Rec."Billing Period Description")
+                {
+                    ToolTip = 'Specifies the text used for the billing period line on generated sales and purchase documents for contracts of this type. Use the placeholder %1 for the billing period start date and %2 for the billing period end date. Leave empty to use the standard text.';
+                }
+                field(NoOfBillingPeriodTranslationsCtrl; FieldTranslation.GetNumberOfTranslations(Rec, Rec.FieldNo("Billing Period Description")))
+                {
+                    BlankZero = true;
+                    Caption = 'No. of Billing Period Translations';
+                    ToolTip = 'Specifies the number of billing period description translations.';
+                    Editable = false;
+
+                    trigger OnDrillDown()
+                    begin
+                        FieldTranslation.OpenTranslationsForField(Rec, Rec.FieldNo("Billing Period Description"));
+                        CurrPage.Update();
+                    end;
+                }
                 field(NoOfTranslationsCtrl; FieldTranslation.GetNumberOfTranslations(Rec, Rec.FieldNo(Description)))
                 {
                     BlankZero = true;
@@ -81,6 +98,19 @@ page 8054 "Contract Types"
                     CurrPage.Update();
                 end;
             }
+            action(OpenTranslationsForBillingPeriodDescription)
+            {
+                ApplicationArea = All;
+                Caption = 'Billing Period Translations';
+                Image = Translate;
+                ToolTip = 'Displays or edits translations for the billing period description. Translations are automatically considered and used according to the language code when printing.';
+
+                trigger OnAction()
+                begin
+                    FieldTranslation.OpenTranslationsForField(Rec, Rec.FieldNo("Billing Period Description"));
+                    CurrPage.Update();
+                end;
+            }
         }
         area(Promoted)
         {
@@ -88,6 +118,9 @@ page 8054 "Contract Types"
             {
                 Caption = 'Process';
                 actionref(OpenTranslation_Promoted; OpenTranslation)
+                {
+                }
+                actionref(OpenTranslationsForBillingPeriodDescription_Promoted; OpenTranslationsForBillingPeriodDescription)
                 {
                 }
             }

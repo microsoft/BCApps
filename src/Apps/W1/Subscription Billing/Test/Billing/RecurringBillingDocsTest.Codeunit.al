@@ -464,6 +464,119 @@ codeunit 139687 "Recurring Billing Docs Test"
     end;
 
     [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure CheckBillingPeriodDescriptionFromContractType()
+    var
+        ContractType: Record "Subscription Contract Type";
+        BillingPeriodTemplateTok: Label 'Rental period: %1 to %2', Locked = true;
+    begin
+        // [SCENARIO] The billing period description defined on the Subscription Contract Type is used on generated sales documents
+        Initialize();
+
+        // [GIVEN] A contract type with a custom billing period description
+        ContractTestLibrary.CreateContractType(ContractType);
+        ContractType."Billing Period Description" := BillingPeriodTemplateTok;
+        ContractType.Modify(false);
+
+        // [GIVEN] A customer contract of that type with subscription lines and a billing proposal
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, '');
+        CustomerContract.Validate("Contract Type", ContractType.Code);
+        CustomerContract.Modify(true);
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer);
+
+        // [WHEN] Creating billing documents
+        CreateBillingDocuments();
+
+        // [THEN] The billing period line uses the contract type text and not the standard text
+        BillingLine.Reset();
+        BillingLine.FindFirst();
+        SalesLine.Reset();
+        SalesLine.SetRange("Document Type", BillingLine.GetSalesDocumentTypeFromBillingDocumentType());
+        SalesLine.SetRange("Document No.", BillingLine."Document No.");
+        SalesLine.SetFilter(Description, '@*Rental period*');
+        Assert.RecordIsNotEmpty(SalesLine);
+        SalesLine.SetFilter(Description, '@*Billing period*');
+        Assert.RecordIsEmpty(SalesLine);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure CheckBillingPeriodDescriptionIsTranslated()
+    var
+        ContractType: Record "Subscription Contract Type";
+        Customer: Record Customer;
+        FieldTranslation: Record "Field Translation";
+        LanguageMgt: Codeunit Language;
+        BillingPeriodTemplateTok: Label 'Rental period: %1 to %2', Locked = true;
+    begin
+        // [SCENARIO] The translated billing period description is used according to the document language code
+        Initialize();
+
+        // [GIVEN] A contract type with a billing period description and a translation for it
+        ContractTestLibrary.CreateContractType(ContractType);
+        ContractType."Billing Period Description" := BillingPeriodTemplateTok;
+        ContractType.Modify(false);
+        ContractTestLibrary.CreateTranslationForField(FieldTranslation, ContractType, ContractType.FieldNo("Billing Period Description"), LanguageMgt.GetLanguageCode(GlobalLanguage));
+
+        // [GIVEN] A customer contract of that type whose customer uses the translated language
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, '');
+        CustomerContract.Validate("Contract Type", ContractType.Code);
+        CustomerContract.Modify(true);
+        Customer.Get(CustomerContract."Bill-to Customer No.");
+        Customer.Validate("Language Code", FieldTranslation."Language Code");
+        Customer.Modify(false);
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer);
+
+        // [WHEN] Creating billing documents
+        CreateBillingDocuments();
+
+        // [THEN] The billing period line uses the translated text
+        BillingLine.Reset();
+        BillingLine.FindFirst();
+        SalesLine.Reset();
+        SalesLine.SetRange("Document Type", BillingLine.GetSalesDocumentTypeFromBillingDocumentType());
+        SalesLine.SetRange("Document No.", BillingLine."Document No.");
+        SalesLine.SetRange(Description, FieldTranslation.Translation);
+        Assert.AreEqual(1, SalesLine.Count, 'Translated Billing Period Description not found');
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateVendorBillingDocsContractPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure CheckBillingPeriodDescriptionFromContractTypeForPurchase()
+    var
+        ContractType: Record "Subscription Contract Type";
+        BillingPeriodTemplateTok: Label 'Rental period: %1 to %2', Locked = true;
+    begin
+        // [SCENARIO] The billing period description defined on the Subscription Contract Type is used on generated purchase documents
+        Initialize();
+
+        // [GIVEN] A contract type with a custom billing period description
+        ContractTestLibrary.CreateContractType(ContractType);
+        ContractType."Billing Period Description" := BillingPeriodTemplateTok;
+        ContractType.Modify(false);
+
+        // [GIVEN] A vendor contract of that type with subscription lines and a billing proposal
+        ContractTestLibrary.CreateVendorContractAndCreateContractLinesForItems(VendorContract, ServiceObject, '');
+        VendorContract.Validate("Contract Type", ContractType.Code);
+        VendorContract.Modify(true);
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Vendor);
+
+        // [WHEN] Creating billing documents
+        CreateBillingDocuments();
+
+        // [THEN] The billing period line uses the contract type text and not the standard text
+        BillingLine.Reset();
+        BillingLine.FindFirst();
+        PurchaseLine.Reset();
+        PurchaseLine.SetRange("Document Type", BillingLine.GetPurchaseDocumentTypeFromBillingDocumentType());
+        PurchaseLine.SetRange("Document No.", BillingLine."Document No.");
+        PurchaseLine.SetFilter(Description, '@*Rental period*');
+        Assert.RecordIsNotEmpty(PurchaseLine);
+        PurchaseLine.SetFilter(Description, '@*Billing period*');
+        Assert.RecordIsEmpty(PurchaseLine);
+    end;
+
+    [Test]
     [HandlerFunctions('CreateCustomerBillingDocsBillToCustomerPageHandler,ExchangeRateSelectionModalPageHandler,MessageHandler')]
     procedure CheckContractZeroNamesAreTransferredToSalesDocumentOnBillingPerBillToContractOptionsOff()
     var
