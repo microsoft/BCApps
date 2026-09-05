@@ -34,6 +34,12 @@ tableextension 6220 "Sust. Item" extends Item
                     Rec.TestField("Sust. Cert. No.");
             end;
         }
+        field(6251; "EUDR Relevant"; Boolean)
+        {
+            DataClassification = CustomerContent;
+            Caption = 'EUDR Relevant';
+            ToolTip = 'Specifies that this item is subject to the EU Deforestation Regulation (EUDR) and requires EUDR certification information to be captured on its lot information.';
+        }
         field(6212; "GHG Credit"; Boolean)
         {
             DataClassification = CustomerContent;
