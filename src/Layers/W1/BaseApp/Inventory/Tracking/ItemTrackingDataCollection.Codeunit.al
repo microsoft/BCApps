@@ -11,6 +11,7 @@ using Microsoft.Projects.Project.Journal;
 using Microsoft.Projects.Project.Planning;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
+using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Ledger;
 
 codeunit 6501 "Item Tracking Data Collection"
@@ -455,6 +456,8 @@ codeunit 6501 "Item Tracking Data Collection"
                     end;
                 until TempTrackingSpecification.Next() = 0;
 
+        TransferUnregisteredPicksToTempRec(TempTrackingSpecification2);
+
         OnRetrieveLookupDataOnAfterTransferToTempRec(TempGlobalEntrySummary, TempTrackingSpecification, ItemLedgEntry, LastSummaryEntryNo);
 
         TempGlobalEntrySummary.Reset();
@@ -537,6 +540,141 @@ codeunit 6501 "Item Tracking Data Collection"
                     end;
                 end;
             until TempReservEntry.Next() = 0;
+    end;
+
+    local procedure TransferUnregisteredPicksToTempRec(var TrackingSpecification: Record "Tracking Specification" temporary)
+    var
+        WhseActivLine: Record "Warehouse Activity Line";
+        TempWhseActivLine: Record "Warehouse Activity Line" temporary;
+        IsHandled: Boolean;
+    begin
+        IsHandled := false;
+        OnBeforeTransferUnregisteredPicksToTempRec(TrackingSpecification, TempGlobalReservEntry, IsHandled);
+        if IsHandled then
+            exit;
+
+        if TrackingSpecification."Item No." = '' then
+            exit;
+
+        WhseActivLine.SetCurrentKey(
+          "Item No.", "Location Code", "Activity Type", "Bin Type Code",
+          "Unit of Measure Code", "Variant Code", "Breakbulk No.", "Action Type");
+        WhseActivLine.SetLoadFields(
+          "Item No.", "Variant Code", "Location Code", "Activity Type", "No.", "Line No.",
+          "Source Type", "Source Subtype", "Source No.", "Source Line No.",
+          "Lot No.", "Serial No.", "Package No.", "Qty. Outstanding (Base)");
+        WhseActivLine.SetRange("Item No.", TrackingSpecification."Item No.");
+        WhseActivLine.SetRange("Variant Code", TrackingSpecification."Variant Code");
+        WhseActivLine.SetRange("Location Code", TrackingSpecification."Location Code");
+        WhseActivLine.SetFilter("Activity Type", '%1|%2', WhseActivLine."Activity Type"::Pick, WhseActivLine."Activity Type"::"Invt. Pick");
+        // Blank Action Type covers Inventory Pick lines (single-step pick with no Take/Place split).
+        WhseActivLine.SetFilter("Action Type", '%1|%2', WhseActivLine."Action Type"::Take, WhseActivLine."Action Type"::" ");
+        WhseActivLine.SetRange("Breakbulk No.", 0);
+        WhseActivLine.SetFilter("Qty. Outstanding (Base)", '>%1', 0);
+        OnTransferUnregisteredPicksToTempRecOnAfterSetFilters(WhseActivLine, TrackingSpecification);
+
+        if WhseActivLine.FindSet() then
+            repeat
+                if (WhseActivLine."Lot No." <> '') or (WhseActivLine."Serial No." <> '') or (WhseActivLine."Package No." <> '') then
+                    if not PickBelongsToCurrentSource(WhseActivLine, TrackingSpecification) then
+                        AggregateUnregisteredPick(TempWhseActivLine, WhseActivLine);
+            until WhseActivLine.Next() = 0;
+
+        if TempWhseActivLine.FindSet() then
+            repeat
+                AddUnregisteredPickToTempRec(TempWhseActivLine, TrackingSpecification);
+            until TempWhseActivLine.Next() = 0;
+
+        OnAfterTransferUnregisteredPicksToTempRec(TrackingSpecification, TempGlobalReservEntry);
+    end;
+
+    local procedure AggregateUnregisteredPick(var TempWhseActivLine: Record "Warehouse Activity Line" temporary; var WhseActivLine: Record "Warehouse Activity Line")
+    begin
+        // Split Take lines (e.g. after SplitLine or when taken from multiple bins) can repeat the same source and
+        // tracking identity. Group their outstanding quantity so the source reservation is netted only once against
+        // the aggregate, instead of subtracting it from every line and overstating availability.
+        TempWhseActivLine.Reset();
+        TempWhseActivLine.SetRange("Source Type", WhseActivLine."Source Type");
+        TempWhseActivLine.SetRange("Source Subtype", WhseActivLine."Source Subtype");
+        TempWhseActivLine.SetRange("Source No.", WhseActivLine."Source No.");
+        TempWhseActivLine.SetRange("Source Line No.", WhseActivLine."Source Line No.");
+        TempWhseActivLine.SetRange("Item No.", WhseActivLine."Item No.");
+        TempWhseActivLine.SetRange("Variant Code", WhseActivLine."Variant Code");
+        TempWhseActivLine.SetRange("Location Code", WhseActivLine."Location Code");
+        TempWhseActivLine.SetRange("Serial No.", WhseActivLine."Serial No.");
+        TempWhseActivLine.SetRange("Lot No.", WhseActivLine."Lot No.");
+        TempWhseActivLine.SetRange("Package No.", WhseActivLine."Package No.");
+        if TempWhseActivLine.FindFirst() then begin
+            TempWhseActivLine."Qty. Outstanding (Base)" += WhseActivLine."Qty. Outstanding (Base)";
+            TempWhseActivLine.Modify();
+        end else begin
+            TempWhseActivLine.Reset();
+            TempWhseActivLine := WhseActivLine;
+            TempWhseActivLine.Insert();
+        end;
+        TempWhseActivLine.Reset();
+    end;
+
+    local procedure AddUnregisteredPickToTempRec(var WhseActivLine: Record "Warehouse Activity Line"; var TrackingSpecification: Record "Tracking Specification" temporary)
+    var
+        QtyToAddBase: Decimal;
+    begin
+        // A pick tied to another source line may already be represented by that line's transferred item-tracking
+        // reservation. Net it out so the same physical allocation is not counted twice.
+        QtyToAddBase := WhseActivLine."Qty. Outstanding (Base)" - ReservedQtyForPickSource(WhseActivLine);
+        if QtyToAddBase <= 0 then
+            exit;
+
+        LastReservEntryNo -= 1;
+        TempGlobalReservEntry.Init();
+        TempGlobalReservEntry."Entry No." := LastReservEntryNo;
+        TempGlobalReservEntry."Reservation Status" := TempGlobalReservEntry."Reservation Status"::Prospect;
+        TempGlobalReservEntry.Positive := false;
+        TempGlobalReservEntry."Item No." := WhseActivLine."Item No.";
+        TempGlobalReservEntry."Variant Code" := WhseActivLine."Variant Code";
+        TempGlobalReservEntry."Location Code" := WhseActivLine."Location Code";
+        TempGlobalReservEntry."Quantity (Base)" := -QtyToAddBase;
+        TempGlobalReservEntry."Qty. to Handle (Base)" := -QtyToAddBase;
+        TempGlobalReservEntry."Source Type" := Database::"Warehouse Activity Line";
+        TempGlobalReservEntry."Source Subtype" := WhseActivLine."Activity Type".AsInteger();
+        TempGlobalReservEntry."Source ID" := WhseActivLine."No.";
+        TempGlobalReservEntry."Source Ref. No." := WhseActivLine."Line No.";
+        TempGlobalReservEntry."Serial No." := WhseActivLine."Serial No.";
+        TempGlobalReservEntry."Lot No." := WhseActivLine."Lot No.";
+        TempGlobalReservEntry."Package No." := WhseActivLine."Package No.";
+        TempGlobalReservEntry."Shipment Date" := DMY2Date(31, 12, 9999);
+        TempGlobalReservEntry.Insert();
+        CreateEntrySummary(TrackingSpecification, TempGlobalReservEntry);
+    end;
+
+    local procedure ReservedQtyForPickSource(var WhseActivLine: Record "Warehouse Activity Line") ReservedQtyBase: Decimal
+    begin
+        // Sum the item-tracking reservation already transferred for the pick's own source line and tracking.
+        TempGlobalReservEntry.Reset();
+        TempGlobalReservEntry.SetRange("Source Type", WhseActivLine."Source Type");
+        TempGlobalReservEntry.SetRange("Source Subtype", WhseActivLine."Source Subtype");
+        TempGlobalReservEntry.SetRange("Source ID", WhseActivLine."Source No.");
+        TempGlobalReservEntry.SetRange("Source Ref. No.", WhseActivLine."Source Line No.");
+        TempGlobalReservEntry.SetRange("Item No.", WhseActivLine."Item No.");
+        TempGlobalReservEntry.SetRange("Variant Code", WhseActivLine."Variant Code");
+        TempGlobalReservEntry.SetRange("Location Code", WhseActivLine."Location Code");
+        TempGlobalReservEntry.SetRange("Serial No.", WhseActivLine."Serial No.");
+        TempGlobalReservEntry.SetRange("Lot No.", WhseActivLine."Lot No.");
+        TempGlobalReservEntry.SetRange("Package No.", WhseActivLine."Package No.");
+        if TempGlobalReservEntry.FindSet() then
+            repeat
+                ReservedQtyBase += Abs(TempGlobalReservEntry."Quantity (Base)");
+            until TempGlobalReservEntry.Next() = 0;
+        TempGlobalReservEntry.Reset();
+    end;
+
+    local procedure PickBelongsToCurrentSource(var WhseActivLine: Record "Warehouse Activity Line"; var TrackingSpecification: Record "Tracking Specification" temporary): Boolean
+    begin
+        exit(
+           (WhseActivLine."Source Type" = TrackingSpecification."Source Type") and
+           (WhseActivLine."Source Subtype" = TrackingSpecification."Source Subtype") and
+           (WhseActivLine."Source No." = TrackingSpecification."Source ID") and
+           (WhseActivLine."Source Line No." = TrackingSpecification."Source Ref. No."));
     end;
 
     local procedure CreateEntrySummary(TrackingSpecification: Record "Tracking Specification" temporary; TempReservEntry: Record "Reservation Entry" temporary)
@@ -1534,6 +1672,21 @@ codeunit 6501 "Item Tracking Data Collection"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterTransferReservEntryToTempRec(var GlobalReservEntry: Record "Reservation Entry"; ReservEntry: Record "Reservation Entry"; TrackingSpecification: Record "Tracking Specification"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeTransferUnregisteredPicksToTempRec(var TrackingSpecification: Record "Tracking Specification" temporary; var TempGlobalReservEntry: Record "Reservation Entry" temporary; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnTransferUnregisteredPicksToTempRecOnAfterSetFilters(var WhseActivLine: Record "Warehouse Activity Line"; TrackingSpecification: Record "Tracking Specification")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterTransferUnregisteredPicksToTempRec(var TrackingSpecification: Record "Tracking Specification" temporary; var TempGlobalReservEntry: Record "Reservation Entry" temporary)
     begin
     end;
 
