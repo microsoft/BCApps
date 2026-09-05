@@ -192,6 +192,7 @@ codeunit 9998 "Upgrade Tag Definitions"
         PerCompanyUpgradeTags.Add(GetInventoryPlanningSetupUpgradeTag());
         PerCompanyUpgradeTags.Add(GetICTransactionSourceTypeUpgradeTag());
         PerCompanyUpgradeTags.Add(GetFinancialReportDefaultsUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetShowCurrencySymbolPositionUpgradeTag());
         PerCompanyUpgradeTags.Add(GetInitializeABCAnalysisSetupUpgradeTag());
         PerCompanyUpgradeTags.Add(GetPurchRcptLineFieldsUpgradeTag());
         PerCompanyUpgradeTags.Add(GetSalesShptLineFieldsUpgradeTag());
@@ -1340,6 +1341,11 @@ codeunit 9998 "Upgrade Tag Definitions"
     internal procedure GetFinancialReportDefaultsUpgradeTag(): Code[250]
     begin
         exit('GIT-1494-FinancialReportDefaultsUpgradeTag-20250801');
+    end;
+
+    internal procedure GetShowCurrencySymbolPositionUpgradeTag(): Code[250]
+    begin
+        exit('MS-578641-SetShowCurrencySymbolUpgradeTag-20251014');
     end;
 
     internal procedure GetCreateExpenseAgentAADApplicationsTag(): Code[250]

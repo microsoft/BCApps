@@ -21,10 +21,10 @@ codeunit 347 "Amount Auto Format"
         GeneralLedgerSetup: Record "General Ledger Setup";
         Currency: Record Currency;
         GLSetupRead: Boolean;
-        CurrencyCodeFormatPrefixTxt: Label '<C,%1>', Locked = true;
-        CurrencySymbolPrefixTxt: Label '%1 ', Locked = true;
-        CurrencySymbolPostFixTxt: Label ' %1', Locked = true;
-        PrecisionFormatTxt: Label '<Precision,%1><Standard Format,0>', Locked = true;
+        CurrencyCodeFormatTok: Label '<C,%1>', Locked = true;
+        CurrencySymbolPrefixTok: Label '<S,%1 >', Locked = true;
+        CurrencySymbolPostFixTok: Label '<S, %1>', Locked = true;
+        PrecisionFormatTok: Label '<Precision,%1><Standard Format,0>', Locked = true;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Auto Format", 'OnResolveAutoFormat', '', false, false)]
     local procedure ResolveAutoFormatTypes(AutoFormatType: Enum "Auto Format"; AutoFormatExpr: Text[80]; var Result: Text[80]; var Resolved: Boolean)
@@ -52,49 +52,6 @@ codeunit 347 "Amount Auto Format"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Auto Format", 'OnReadRounding', '', false, false)]
-    local procedure ReadRounding(var AmountRoundingPrecision: Decimal)
-    begin
-        GetGLSetup();
-        AmountRoundingPrecision := GeneralLedgerSetup."Amount Rounding Precision";
-    end;
-
-    [EventSubscriber(ObjectType::Table, Database::"General Ledger Setup", 'OnAfterDeleteEvent', '', false, false)]
-    local procedure ResetGlobalsOnGLSetupDelete()
-    begin
-        ClearGlobals();
-    end;
-
-    [EventSubscriber(ObjectType::Table, Database::"General Ledger Setup", 'OnAfterInsertEvent', '', false, false)]
-    local procedure ResetGlobalsOnGLSetupInsert()
-    begin
-        ClearGlobals();
-    end;
-
-    [EventSubscriber(ObjectType::Table, Database::"General Ledger Setup", 'OnAfterModifyEvent', '', false, false)]
-    local procedure ResetGlobalsOnGLSetupModify()
-    begin
-        ClearGlobals();
-    end;
-
-    [EventSubscriber(ObjectType::Table, Database::Currency, 'OnAfterDeleteEvent', '', false, false)]
-    local procedure ResetGlobalsOnCurrencyDelete()
-    begin
-        ClearGlobals();
-    end;
-
-    [EventSubscriber(ObjectType::Table, Database::Currency, 'OnAfterInsertEvent', '', false, false)]
-    local procedure ResetGlobalsOnCurrencyInsert()
-    begin
-        ClearGlobals();
-    end;
-
-    [EventSubscriber(ObjectType::Table, Database::Currency, 'OnAfterModifyEvent', '', false, false)]
-    local procedure ResetGlobalsOnCurrencyModify()
-    begin
-        ClearGlobals();
-    end;
-
     local procedure GetGLSetup(): Boolean
     begin
         if not GLSetupRead then
@@ -109,7 +66,7 @@ codeunit 347 "Amount Auto Format"
         if GetCurrency(CopyStr(AutoFormatExpr, 1, 10)) then // FCY
             exit(GetFCYAmountFormat('', ShowCurrency));
         // Default
-        exit(StrSubstNo(PrecisionFormatTxt, GeneralLedgerSetup."Amount Decimal Places"));
+        exit(StrSubstNo(PrecisionFormatTok, GeneralLedgerSetup."Amount Decimal Places"));
     end;
 
     local procedure GetUnitAmountFormat(AutoFormatExpr: Text[80]; ShowCurrency: Enum "Show Currency"): Text[80]
@@ -119,7 +76,7 @@ codeunit 347 "Amount Auto Format"
         if GetCurrency(CopyStr(AutoFormatExpr, 1, 10)) then // FCY
             exit(GetFCYUnitAmountFormat('', ShowCurrency));
         // Default
-        exit(StrSubstNo(PrecisionFormatTxt, GeneralLedgerSetup."Unit-Amount Decimal Places"));
+        exit(StrSubstNo(PrecisionFormatTok, GeneralLedgerSetup."Unit-Amount Decimal Places"));
     end;
 
     local procedure GetLCYAmountFormat(AutoFormatPrefixedText: Text[80]; ShowCurrency: Enum "Show Currency"): Text[80]
@@ -134,15 +91,15 @@ codeunit 347 "Amount Auto Format"
 
     local procedure GetLCYFormat(DecimalPlaces: Text[5]; AutoFormatPrefixedText: Text[80]; ShowCurrency: Enum "Show Currency") AutoFormatExpression: Text[80]
     begin
-        AutoFormatExpression := StrSubstNo(PrecisionFormatTxt, DecimalPlaces);
+        AutoFormatExpression := StrSubstNo(PrecisionFormatTok, DecimalPlaces);
 
         case ShowCurrency of
             enum::"Show Currency"::Never, enum::"Show Currency"::"FCY Symbol Only", enum::"Show Currency"::"FCY Currency Code Only":
                 ;
             enum::"Show Currency"::"LCY and FCY Symbol":
-                AddCurrencySymbol(AutoFormatExpression, GeneralLedgerSetup.GetCurrencySymbol(), GeneralLedgerSetup."Currency Symbol Position");
+                AddCurrencySymbolFormatString(AutoFormatExpression, GeneralLedgerSetup.GetCurrencySymbol(), GeneralLedgerSetup."Currency Symbol Position");
             enum::"Show Currency"::"LCY and FCY Currency Code":
-                AddCurrencySymbol(AutoFormatExpression, GeneralLedgerSetup."LCY Code", GeneralLedgerSetup."Currency Symbol Position");
+                AddCurrencySymbolFormatString(AutoFormatExpression, GeneralLedgerSetup."LCY Code", GeneralLedgerSetup."Currency Symbol Position");
         end;
 
         PrefixCurrencyCodeFormatString(AutoFormatExpression, GeneralLedgerSetup."LCY Code", AutoFormatPrefixedText);
@@ -159,34 +116,41 @@ codeunit 347 "Amount Auto Format"
     end;
 
     local procedure GetFCYFormat(DecimalPlaces: Text[5]; AutoFormatPrefixedText: Text[80]; ShowCurrency: Enum "Show Currency") AutoFormatExpression: Text[80]
+    var
+        CurrencySymbolPosition: Enum "Currency Symbol Position";
     begin
-        AutoFormatExpression := StrSubstNo(PrecisionFormatTxt, DecimalPlaces);
+        if Currency."Currency Symbol Position" = Currency."Currency Symbol Position"::Default then
+            CurrencySymbolPosition := GeneralLedgerSetup."Currency Symbol Position"
+        else
+            CurrencySymbolPosition := Currency."Currency Symbol Position";
+
+        AutoFormatExpression := StrSubstNo(PrecisionFormatTok, DecimalPlaces);
 
         case ShowCurrency of
             enum::"Show Currency"::Never:
                 ;
             enum::"Show Currency"::"FCY Symbol Only", enum::"Show Currency"::"LCY and FCY Symbol":
-                AddCurrencySymbol(AutoFormatExpression, Currency.GetCurrencySymbol(), Currency."Currency Symbol Position");
+                AddCurrencySymbolFormatString(AutoFormatExpression, Currency.GetCurrencySymbol(), CurrencySymbolPosition);
             enum::"Show Currency"::"FCY Currency Code Only", enum::"Show Currency"::"LCY and FCY Currency Code":
-                AddCurrencySymbol(AutoFormatExpression, Currency."ISO Code", Currency."Currency Symbol Position");
+                AddCurrencySymbolFormatString(AutoFormatExpression, Currency."ISO Code", CurrencySymbolPosition);
         end;
 
         PrefixCurrencyCodeFormatString(AutoFormatExpression, Currency."ISO Code", AutoFormatPrefixedText);
     end;
 
-    local procedure AddCurrencySymbol(var AutoFormatExpression: Text[80]; CurrencySymbol: Text[10]; SymbolPosition: Enum "Currency Symbol Position")
+    local procedure AddCurrencySymbolFormatString(var AutoFormatExpression: Text[80]; CurrencySymbol: Text[10]; SymbolPosition: Enum "Currency Symbol Position")
     begin
         case SymbolPosition of
             enum::"Currency Symbol Position"::"Before Amount":
-                AutoFormatExpression := StrSubstNo(CurrencySymbolPrefixTxt, CurrencySymbol) + AutoFormatExpression;
+                AutoFormatExpression := CopyStr(StrSubstNo(CurrencySymbolPrefixTok, CurrencySymbol) + AutoFormatExpression, 1, 80);
             enum::"Currency Symbol Position"::"After Amount":
-                AutoFormatExpression := AutoFormatExpression + StrSubstNo(CurrencySymbolPostfixTxt, CurrencySymbol);
+                AutoFormatExpression := CopyStr(AutoFormatExpression + StrSubstNo(CurrencySymbolPostfixTok, CurrencySymbol), 1, 80);
         end;
     end;
 
     local procedure PrefixCurrencyCodeFormatString(var AutoFormatExpression: Text[80]; CurrencyCode: Code[10]; AutoFormatPrefixedText: Text[80])
     begin
-        AutoFormatExpression := CopyStr(StrSubstNo(CurrencyCodeFormatPrefixTxt, CurrencyCode) + AutoFormatPrefixedText + AutoFormatExpression, 1, 80);
+        AutoFormatExpression := CopyStr(StrSubstNo(CurrencyCodeFormatTok, CurrencyCode) + AutoFormatPrefixedText + AutoFormatExpression, 1, 80);
     end;
 
     local procedure GetCustomFormat(AutoFormatExpr: Text[80]; ShowCurrency: Enum "Show Currency"): Text[80]
@@ -276,5 +240,48 @@ codeunit 347 "Amount Auto Format"
         ClearAll();
         Clear(GeneralLedgerSetup);
         Clear(Currency);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Auto Format", 'OnReadRounding', '', false, false)]
+    local procedure ReadRounding(var AmountRoundingPrecision: Decimal)
+    begin
+        GetGLSetup();
+        AmountRoundingPrecision := GeneralLedgerSetup."Amount Rounding Precision";
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"General Ledger Setup", 'OnAfterDeleteEvent', '', false, false)]
+    local procedure ResetGlobalsOnGLSetupDelete()
+    begin
+        ClearGlobals();
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"General Ledger Setup", 'OnAfterInsertEvent', '', false, false)]
+    local procedure ResetGlobalsOnGLSetupInsert()
+    begin
+        ClearGlobals();
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"General Ledger Setup", 'OnAfterModifyEvent', '', false, false)]
+    local procedure ResetGlobalsOnGLSetupModify()
+    begin
+        ClearGlobals();
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::Currency, 'OnAfterDeleteEvent', '', false, false)]
+    local procedure ResetGlobalsOnCurrencyDelete()
+    begin
+        ClearGlobals();
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::Currency, 'OnAfterInsertEvent', '', false, false)]
+    local procedure ResetGlobalsOnCurrencyInsert()
+    begin
+        ClearGlobals();
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::Currency, 'OnAfterModifyEvent', '', false, false)]
+    local procedure ResetGlobalsOnCurrencyModify()
+    begin
+        ClearGlobals();
     end;
 }
