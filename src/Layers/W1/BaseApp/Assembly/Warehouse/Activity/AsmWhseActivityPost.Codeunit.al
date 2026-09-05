@@ -5,9 +5,12 @@
 namespace Microsoft.Warehouse.Activity;
 
 using Microsoft.Assembly.Document;
+using Microsoft.Sales.Document;
+using Microsoft.Warehouse.Journal;
 
 codeunit 932 "Asm. Whse. Activity Post"
 {
+    SingleInstance = true;
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Post", 'OnUpdateSourceDocumentOnBeforeSalesLineModify', '', false, false)]
     local procedure OnUpdateSourceDocumentOnBeforeSalesLineModify(WarehouseActivityLine: Record "Warehouse Activity Line")
     var
@@ -18,4 +21,30 @@ codeunit 932 "Asm. Whse. Activity Post"
             ATOLink.UpdateAsmBinCodeFromInvtPickLine(WarehouseActivityLine);
         end;
     end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Post", 'OnInitSourceDocumentOnBeforeSalesLineLoopIteration', '', false, false)]
+    local procedure OnInitSourceDocumentOnBeforeSalesLineLoopIteration(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; WarehouseActivityHeader: Record "Warehouse Activity Header"; var IsHandled: Boolean)
+    var
+        WMSManagement: Codeunit "WMS Management";
+    begin
+        SuppressQtyToAsmUpdate := false;
+        if (WarehouseActivityHeader.Type = WarehouseActivityHeader.Type::"Invt. Pick") and
+           (WarehouseActivityHeader."Source Document" = WarehouseActivityHeader."Source Document"::"Sales Order") and
+           WMSManagement.ATOInvtPickExists(SalesLine)
+        then
+            SuppressQtyToAsmUpdate := true;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Sales Line", 'OnBeforeUpdateQtyToAsmFromSalesLineQtyToShip', '', false, false)]
+    local procedure OnBeforeUpdateQtyToAsmFromSalesLineQtyToShip(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
+    begin
+        if not SuppressQtyToAsmUpdate then
+            exit;
+
+        SuppressQtyToAsmUpdate := false;
+        IsHandled := true;
+    end;
+
+    var
+        SuppressQtyToAsmUpdate: Boolean;
 }
