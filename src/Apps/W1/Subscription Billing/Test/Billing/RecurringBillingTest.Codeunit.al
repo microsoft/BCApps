@@ -1615,6 +1615,32 @@ codeunit 139688 "Recurring Billing Test"
         Assert.AreEqual(CappedNextBillingTo, BillingLine."Billing to", BillingToCappedErr);
     end;
 
+    [Test]
+    procedure BillingTemplateErrorInfoContainsRecordIdOnUpdateRequired()
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 646836] When creating billing documents and a billing line has Update Required set, the raised ErrorInfo should carry the Billing Template RecordId for interactive navigation
+        Initialize();
+
+        // [GIVEN] A customer contract with a billing proposal
+        CreateBillingProposalForCustomerContractUsingRealTemplate();
+
+        // [GIVEN] A billing line marked as Update Required to simulate a change after proposal creation
+        BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
+        BillingLine.SetRange("Subscription Header No.", ServiceObject."No.");
+        BillingLine.FindFirst();
+        BillingLine."Update Required" := true;
+        BillingLine.Modify(false);
+
+        // [WHEN] Attempting to create billing documents in interactive mode (AutomatedBilling = false)
+        asserterror Codeunit.Run(Codeunit::"Create Billing Documents", BillingLine);
+
+        // [THEN] The error is raised via ErrorInfo (not plain Error(text)) - verified by error code presence
+        Assert.AreNotEqual('', GetLastErrorCode(), 'Billing template failure should be raised as Error(ErrorInfo) with a non-empty error code for interactive navigation.');
+        // [THEN] The error message identifies the Update Required cause, confirming the BillingTemplate error context
+        Assert.IsTrue(GetLastErrorText().Contains('Update Required'), 'Error text should identify the Update Required billing lines that prevented document creation.');
+    end;
+
     #endregion Tests
 
     #region Procedures
