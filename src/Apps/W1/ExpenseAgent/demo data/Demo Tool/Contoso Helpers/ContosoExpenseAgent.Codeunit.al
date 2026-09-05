@@ -215,14 +215,14 @@ codeunit 8205 "Contoso Expense Agent"
                 exit;
         end;
 
-        ExpenseRuleHeader.Validate("Expense Category Code", ExpenseCategoryCode);
-        ExpenseRuleHeader.Validate("Expense Location", ExpenseLocationCode);
-        ExpenseRuleHeader.Validate("Effective Date", EffectiveDate);
-        ExpenseRuleHeader.Validate("Justification Required", JustificationRequired);
-        ExpenseRuleHeader.Validate("Required Specific Merchant", RequiredSpecificMerchant);
-        ExpenseRuleHeader.Validate("Specific Merchant Name", SpecificMerchantName);
-        ExpenseRuleHeader.Validate("Currency Code", CurrencyCode);
-        ExpenseRuleHeader.Validate("Unit of Measure Code", UnitOfMeasureCode);
+        ExpenseRuleHeader."Expense Category Code" := ExpenseCategoryCode;
+        ExpenseRuleHeader."Expense Location" := ExpenseLocationCode;
+        ExpenseRuleHeader."Effective Date" := EffectiveDate;
+        ExpenseRuleHeader."Justification Required" := JustificationRequired;
+        ExpenseRuleHeader."Required Specific Merchant" := RequiredSpecificMerchant;
+        ExpenseRuleHeader."Specific Merchant Name" := SpecificMerchantName;
+        ExpenseRuleHeader."Currency Code" := CurrencyCode;
+        ExpenseRuleHeader."Unit of Measure Code" := UnitOfMeasureCode;
 
         if Exists then
             ExpenseRuleHeader.Modify(true)
@@ -278,36 +278,42 @@ codeunit 8205 "Contoso Expense Agent"
             ExpenseUser.Insert(true);
     end;
 
-    internal procedure InsertExpense(ExpenseUserNo: Code[20]; ExpenseCategoryCode: Code[20]; ExpenseLocationCode: Code[30]; Description: Text[100]; Justification: Text[100]; ExpenseDate: Date; CurrencyCode: Code[10]; Amount: Decimal; MerchantName: Text[100]; PaymentMethodCode: Code[10]; Refundable: Boolean; Billable: Boolean; BillableToCustomer: Code[20]; StartingDateTime: DateTime; EndingDateTime: DateTime; NonRefundableAmount: Decimal; Mileage: Decimal; StartingPoint: Text[50]; EndingPoint: Text[50]; ExpenseExtDocNo: Text[30]; JobNo: Code[20]; JobTaskNo: Code[20]): Record Expense
+    internal procedure InsertExpense(ExpenseUserNo: Code[20]; ExpenseCategoryCode: Code[20]; ExpenseLocationCode: Code[20]; Description: Text[100]; Justification: Text[100]; ExpenseDate: Date; CurrencyCode: Code[10]; Amount: Decimal; MerchantName: Text[100]; PaymentMethodCode: Code[10]; Refundable: Boolean; Billable: Boolean; BillableToCustomer: Code[20]; StartingDateTime: DateTime; EndingDateTime: DateTime; NonRefundableAmount: Decimal; Mileage: Decimal; StartingPoint: Text[50]; EndingPoint: Text[50]; ExpenseExtDocNo: Text[30]; JobNo: Code[20]; JobTaskNo: Code[20]): Record Expense
     var
+        ExpenseCategory: Record "Expense Category";
         Expense: Record Expense;
     begin
-        Expense.Validate("Expense User No.", ExpenseUserNo);
-        Expense.Validate("Expense Category", ExpenseCategoryCode);
-        Expense.Validate("Expense Location", ExpenseLocationCode);
-        Expense.Validate("Description", Description);
-        Expense.Validate("Justification", Justification);
-        Expense.Validate("Expense Date", ExpenseDate);
+        // prevent inserting invalid data
+        if ExpenseCategoryCode <> '' then
+            if ExpenseCategory.Get(ExpenseCategoryCode) then;
+
+        Expense."Expense User No." := ExpenseUserNo;
+        Expense."Expense Category" := ExpenseCategoryCode;
+        Expense."Expense Detail Required" := ExpenseCategory."Expense Detail Required";
+        Expense."Expense Location" := ExpenseLocationCode;
+        Expense."Description" := Description;
+        Expense."Justification" := Justification;
+        Expense."Expense Date" := ExpenseDate;
 
         ValidateCurrencyCodeInExpense(Expense, CurrencyCode);
 
         if Amount <> 0 then
-            Expense.Validate("Amount", Amount);
-        Expense.Validate("Merchant Name", MerchantName);
-        Expense.Validate("Payment Method Code", PaymentMethodCode);
-        Expense.Validate(Refundable, Refundable);
-        Expense.Validate(Billable, Billable);
-        Expense.Validate("Billable to Customer", BillableToCustomer);
-        Expense.Validate("Starting Date and Time", StartingDateTime);
-        Expense.Validate("Ending Date and Time", EndingDateTime);
-        Expense.Validate("Non-Refundable Amount", NonRefundableAmount);
+            Expense."Amount" := Amount;
+        Expense."Merchant Name" := MerchantName;
+        Expense."Payment Method Code" := PaymentMethodCode;
+        Expense.Refundable := Refundable;
+        Expense.Billable := Billable;
+        Expense."Billable to Customer" := BillableToCustomer;
+        Expense."Starting Date and Time" := StartingDateTime;
+        Expense."Ending Date and Time" := EndingDateTime;
+        Expense."Non-Refundable Amount" := NonRefundableAmount;
         if Mileage <> 0 then
-            Expense.Validate("Mileage", Mileage);
-        Expense.Validate("Starting Point", StartingPoint);
-        Expense.Validate("Ending Point", EndingPoint);
-        Expense.Validate("Expense Ext. Doc. No.", ExpenseExtDocNo);
-        Expense.Validate("Job No.", JobNo);
-        Expense.Validate("Job Task No.", JobTaskNo);
+            Expense."Mileage" := Mileage;
+        Expense."Starting Point" := StartingPoint;
+        Expense."Ending Point" := EndingPoint;
+        Expense."Expense Ext. Doc. No." := ExpenseExtDocNo;
+        Expense."Job No." := JobNo;
+        Expense."Job Task No." := JobTaskNo;
         Expense.Insert(true);
 
         exit(Expense);

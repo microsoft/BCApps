@@ -8,8 +8,6 @@ table 6926 "Expense Rule Condition"
 {
     Access = Internal;
     Caption = 'Expense Rule Condition';
-    LookupPageId = "Expense Management Rules";
-    DrillDownPageId = "Expense Management Rules";
     DataClassification = CustomerContent;
     ReplicateData = false;
 

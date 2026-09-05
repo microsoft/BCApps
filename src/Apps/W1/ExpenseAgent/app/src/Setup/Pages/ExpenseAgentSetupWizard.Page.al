@@ -1541,7 +1541,7 @@ page 6991 "Expense Agent Setup Wizard"
         AccessControl.Validate("User Security ID", AadApplication."User ID");
         AccessControl.Validate("Role ID", ExpenseAgentPermissionSetLbl);
         AccessControl.Validate("App ID", AggregatePermissionSet."App ID");
-        AccessControl.Validate("Company Name", CompanyName());
+        AccessControl.Validate("Company Name", CopyStr(CompanyName(), 1, MaxStrLen(AccessControl."Company Name")));
         AccessControl.Insert(true);
     end;
 

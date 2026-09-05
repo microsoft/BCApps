@@ -227,6 +227,7 @@ codeunit 6987 "Expense Report-Post"
         ExpenseReportLine: Record "Expense Report Line";
     begin
         ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
+        ExpenseReportLine.SetFilter("Reimbursement Type", '<>%1', ExpenseReportLine."Reimbursement Type"::" "); // to omit invalid lines
         if ExpenseReportLine.FindSet() then
             repeat
                 ExpenseReportLine.TestField("Expense Category");
