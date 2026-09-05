@@ -1681,6 +1681,58 @@ codeunit 134897 "ERM Source Currency"
         SalesLine.Modify(true);
     end;
 
+    [Test]
+    procedure SalesInvoiceLCYWithPaymentMethodBalAccountPosting()
+    var
+        Customer: Record Customer;
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        ExistingGeneralLedgerSetup: Record "General Ledger Setup";
+        PaymentMethod: Record "Payment Method";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesPost: Codeunit "Sales-Post";
+    begin
+        // [SCENARIO] An LCY sales invoice with a payment method balancing account can be previewed when source currency consistency is enabled.
+
+        Initialize();
+
+        // [FEATURE] [AI test]
+        // [GIVEN] Source currency consistency and extended posting preview are enabled.
+        GeneralLedgerSetup.Get();
+        ExistingGeneralLedgerSetup := GeneralLedgerSetup;
+        GeneralLedgerSetup.Validate("Check Source Curr. Consistency", true);
+        GeneralLedgerSetup.Modify(true);
+
+        // [GIVEN] A payment method with a G/L balancing account and payment terms without a payment discount.
+        LibraryERM.CreatePaymentMethod(PaymentMethod);
+        PaymentMethod.Validate("Bal. Account Type", PaymentMethod."Bal. Account Type"::"G/L Account");
+        PaymentMethod.Validate("Bal. Account No.", LibraryERM.CreateGLAccountNoWithDirectPosting());
+        PaymentMethod.Modify(true);
+
+        // [GIVEN] A customer whose payment method and payment terms flow to a new LCY sales invoice.
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Payment Method Code", PaymentMethod.Code);
+        Customer.Modify(true);
+
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        SalesHeader.TestField("Currency Code", '');
+        SalesHeader.TestField("Payment Method Code", PaymentMethod.Code);
+
+        LibrarySales.CreateSalesLine(
+            SalesLine, SalesHeader, SalesLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithSalesSetup(), 1);
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 2));
+        SalesLine.Modify(true);
+
+        // [WHEN] Posting the salesinvoice.
+        SalesPost.Run(SalesHeader);
+        // [THEN] The posting completes without a source currency consistency error.
+
+        //reset General Ledger Setup to original values
+
+        GeneralLedgerSetup := ExistingGeneralLedgerSetup;
+        GeneralLedgerSetup.Modify();
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
