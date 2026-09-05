@@ -290,6 +290,7 @@ codeunit 6610 "FS Int. Table Subscriber"
         FSWorkOrderProduct: Record "FS Work Order Product";
         FSWorkOrderService: Record "FS Work Order Service";
         FSBookableResourceBooking: Record "FS Bookable Resource Booking";
+        CRMProduct: Record "CRM Product";
         ServiceLine: Record "Service Line";
         SourceDestCode: Text;
     begin
@@ -299,6 +300,12 @@ codeunit 6610 "FS Int. Table Subscriber"
         SourceDestCode := GetSourceDestCode(SourceRecordRef, DestinationRecordRef);
 
         case SourceDestCode of
+            'Item-CRM Product':
+                begin
+                    DestinationRecordRef.SetTable(CRMProduct);
+                    DisableCustomerAssetConversion(CRMProduct, AdditionalFieldsWereModified);
+                    DestinationRecordRef.GetTable(CRMProduct);
+                end;
             'FS Work Order Product-Service Line':
                 begin
                     SourceRecordRef.SetTable(FSWorkOrderProduct);
@@ -356,6 +363,12 @@ codeunit 6610 "FS Int. Table Subscriber"
                     DestinationRecordRef.GetTable(ServiceLine);
                 end;
         end;
+    end;
+
+    internal procedure DisableCustomerAssetConversion(var CRMProduct: Record "CRM Product"; var AdditionalFieldsWereModified: Boolean)
+    begin
+        CRMProduct.ConvertToCustomerAsset := false;
+        AdditionalFieldsWereModified := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Integration Record Synch.", 'OnTransferFieldData', '', true, false)]
@@ -1444,7 +1457,7 @@ codeunit 6610 "FS Int. Table Subscriber"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"CRM Setup Defaults", 'OnResetItemProductMappingOnAfterInsertFieldsMapping', '', false, false)]
-    local procedure AddFieldServiceProductTypeFieldMapping(var Sender: Codeunit "CRM Setup Defaults"; IntegrationTableMappingName: Code[20])
+    local procedure AddFieldServiceProductMappings(var Sender: Codeunit "CRM Setup Defaults"; IntegrationTableMappingName: Code[20])
     var
         FSConnectionSetup: Record "FS Connection Setup";
         Item: Record Item;
@@ -1461,6 +1474,14 @@ codeunit 6610 "FS Int. Table Subscriber"
           CRMProduct.FieldNo(FieldServiceProductType),
           IntegrationFieldMapping.Direction::ToIntegrationTable,
           '', false, false);
+
+        // Business Central service items are the source for Field Service customer assets.
+        Sender.InsertIntegrationFieldMapping(
+            IntegrationTableMappingName,
+            0,
+            CRMProduct.FieldNo(ConvertToCustomerAsset),
+            IntegrationFieldMapping.Direction::ToIntegrationTable,
+            'false', false, false);
     end;
 
     local procedure UpdateCorrelatedJobJournalLine(var SourceRecordRef: RecordRef; var DestinationRecordRef: RecordRef)
@@ -2518,8 +2539,6 @@ codeunit 6610 "FS Int. Table Subscriber"
                 IgnoreArchievedServiceOrdersOnQueryPostFilterIgnoreRecord(SourceRecordRef, IgnoreRecord);
             Database::"FS Work Order":
                 IgnoreArchievedCRMWorkOrdersOnQueryPostFilterIgnoreRecord(SourceRecordRef, IgnoreRecord);
-            Database::"Service Item":
-                IgnoreServiceItemsByConvertToCustomerAssetFlag(SourceRecordRef, IgnoreRecord);
         end;
 
         if FSConnectionSetup.IsEnabled() then
@@ -2685,6 +2704,7 @@ codeunit 6610 "FS Int. Table Subscriber"
                 IgnoreRecord := true;
     end;
 
+    [Obsolete('Service items are always synchronized to Field Service customer assets. The Convert to Customer Asset flag is no longer used for filtering', '30.0')]
     internal procedure IgnoreServiceItemsByConvertToCustomerAssetFlag(SourceRecordRef: RecordRef; var IgnoreRecord: Boolean)
     var
         FSConnectionSetup: Record "FS Connection Setup";

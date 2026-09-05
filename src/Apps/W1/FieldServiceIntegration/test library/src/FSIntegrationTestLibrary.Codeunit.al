@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.TestLibraries.DynamicsFieldService;
 
+using Microsoft.Integration.D365Sales;
 using Microsoft.Integration.DynamicsFieldService;
 using Microsoft.Service.Archive;
 using Microsoft.Service.Document;
@@ -79,11 +80,26 @@ codeunit 139205 "FS Integration Test Library"
         FSIntTableSubscriber.IgnoreArchievedCRMWorkOrdersOnQueryPostFilterIgnoreRecord(SourceRecordRef, IgnoreRecord);
     end;
 
+    [Obsolete('Service items are always synchronized to Field Service customer assets. The Convert to Customer Asset flag is no longer used for filtering', '30.0')]
     procedure IgnoreServiceItemsByConvertToCustomerAssetFlag(SourceRecordRef: RecordRef; var IgnoreRecord: Boolean)
     var
         FSIntTableSubscriber: Codeunit "FS Int. Table Subscriber";
     begin
+#pragma warning disable AL0432
         FSIntTableSubscriber.IgnoreServiceItemsByConvertToCustomerAssetFlag(SourceRecordRef, IgnoreRecord);
+#pragma warning restore AL0432
+    end;
+
+    /// <summary>
+    /// Disables native Field Service customer asset conversion for a CRM product during item synchronization.
+    /// </summary>
+    /// <param name="CRMProduct">The CRM product whose Convert to Customer Asset flag is disabled.</param>
+    /// <param name="AdditionalFieldsWereModified">Set to true to notify synchronization that an additional field was modified.</param>
+    procedure DisableCustomerAssetConversion(var CRMProduct: Record "CRM Product"; var AdditionalFieldsWereModified: Boolean)
+    var
+        FSIntTableSubscriber: Codeunit "FS Int. Table Subscriber";
+    begin
+        FSIntTableSubscriber.DisableCustomerAssetConversion(CRMProduct, AdditionalFieldsWereModified);
     end;
 
     procedure MarkArchivedServiceOrder(ServiceHeader: Record "Service Header")
