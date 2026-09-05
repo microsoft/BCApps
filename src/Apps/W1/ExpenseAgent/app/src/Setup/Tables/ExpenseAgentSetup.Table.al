@@ -437,8 +437,8 @@ table 6930 "Expense Agent Setup"
         }
         field(80; "Enable Approval Workflow"; Boolean)
         {
-            Caption = 'Enable approval workflow';
-            ToolTip = 'Specifies whether approval workflow is enabled for expense reports.';
+            Caption = 'Use traditional approval workflow';
+            ToolTip = 'Specifies whether expense reports use the traditional approval workflow instead of the Expense Agent approval experience.';
 
             trigger OnValidate()
             begin
