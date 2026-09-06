@@ -170,7 +170,7 @@ codeunit 20409 "Qlty. Result Condition Mgmt."
     /// </summary>
     /// <param name="FromQltyInspectionTemplateLine">The template line whose result conditions are copied.</param>
     /// <param name="TargetQltyInspectionTemplateLine">The template line that receives the copied conditions.</param>
-    internal procedure CopyResultConditionsFromTemplateLineToTemplateLine(FromQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line"; TargetQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line")
+    procedure CopyResultConditionsFromTemplateLineToTemplateLine(FromQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line"; TargetQltyInspectionTemplateLine: Record "Qlty. Inspection Template Line")
     var
         FromQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
         ToQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
