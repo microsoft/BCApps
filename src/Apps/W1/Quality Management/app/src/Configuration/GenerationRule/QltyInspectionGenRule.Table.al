@@ -431,7 +431,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
     /// <summary>
     /// Sets the default automatic inspection creation triggers for generation rules based on the values set in Quality Management Setup
     /// </summary>
-    internal procedure SetIntentAndDefaultTriggerValuesFromSetup()
+    procedure SetIntentAndDefaultTriggerValuesFromSetup()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         InferredIntent: Enum "Qlty. Gen. Rule Intent";
