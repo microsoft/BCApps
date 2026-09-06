@@ -107,6 +107,36 @@ codeunit 139982 "Subc. Pricing Test"
     end;
 
     [Test]
+    procedure ReqWkshCreatedSubcPurchLineUsesPriceForBackwardScheduledOrderDate()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        EarlierPrice: Decimal;
+        LaterPrice: Decimal;
+    begin
+        // [SCENARIO 648535] A worksheet-created subcontracting purchase line uses the price valid on its backward-scheduled order date
+        Initialize();
+
+        // [GIVEN] A subcontracting operation with adjacent prices before and from WorkDate
+        CreateDateEffectiveSubcontractingScenario(Item, ProductionOrder, ProdOrderRoutingLine, EarlierPrice, LaterPrice);
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+
+        // [WHEN] The worksheet action is carried out for the subcontracting operation
+        SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+
+        // [THEN] The purchase line uses the earlier price valid on its backward-scheduled order date
+        SubcontractingMgmtLibrary.FindSubcPurchLineForProdOrder(PurchaseLine, Item."No.", ProductionOrder."No.");
+        Assert.IsTrue(PurchaseLine."Order Date" < WorkDate(), 'The purchase line order date must be backward-scheduled before WorkDate.');
+        Assert.AreEqual(EarlierPrice, PurchaseLine."Direct Unit Cost", 'The purchase line must use the subcontractor price valid on its order date.');
+    end;
+
+    [Test]
     procedure ExpectedReceiptDateChangeRepricesBackwardScheduledSubcPurchLine()
     var
         Item: Record Item;
