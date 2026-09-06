@@ -25,7 +25,6 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
-using Microsoft.Sales.Setup;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.Service.Test;
@@ -1107,7 +1106,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
 
         // [THEN] XRechnung Electronic Document is created with bank informarion as payment means
-        VerifyPaymentMeans(TempXMLBuffer, '/ns0:CreditNote/cac:PaymentMeans');
+        VerifyPaymentMeans(TempXMLBuffer, '/ns0:CreditNote/cac:PaymentMeans', CompanyInformation.IBAN, CompanyInformation."SWIFT Code");
     end;
 
     [Test]
@@ -1136,8 +1135,8 @@ codeunit 13918 "XRechnung XML Document Tests"
         // [WHEN] Export XRechnung Electronic Document.
         ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
 
-        // [THEN] XRechnung Electronic Document has payment means code
-        VerifyPaymentMeans(TempXMLBuffer, '/ns0:CreditNote/cac:PaymentMeans');
+        // [THEN] XRechnung Electronic Document uses Bank Account IBAN and SWIFT Code
+        VerifyPaymentMeans(TempXMLBuffer, '/ns0:CreditNote/cac:PaymentMeans', BankAccountIBAN, BankAccountSWIFT);
     end;
 
     [Test]
@@ -1472,7 +1471,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         ExportServiceCreditMemo(ServiceCrMemoHeader, TempXMLBuffer);
 
         // [THEN] XRechnung Electronic Document is created with bank information as payment means
-        VerifyPaymentMeans(TempXMLBuffer, '/ns0:CreditNote/cac:PaymentMeans');
+        VerifyPaymentMeans(TempXMLBuffer, '/ns0:CreditNote/cac:PaymentMeans', CompanyInformation.IBAN, CompanyInformation."SWIFT Code");
     end;
 
     [Test]
@@ -3504,34 +3503,6 @@ codeunit 13918 "XRechnung XML Document Tests"
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
-    local procedure CreateDirectDebitPaymentMethod(): Code[10]
-    var
-        PaymentMethod: Record "Payment Method";
-    begin
-        LibraryERM.CreatePaymentMethod(PaymentMethod);
-        PaymentMethod.Validate("Payment Means Code", '59');
-        PaymentMethod.Modify(true);
-        exit(PaymentMethod.Code);
-    end;
-
-    local procedure CreateCustomerWithDirectDebitMandate(var SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate"; var CustomerBankAccount: Record "Customer Bank Account"; PaymentMethodCode: Code[10]): Code[20]
-    var
-        Customer: Record Customer;
-        SalesReceivablesSetup: Record "Sales & Receivables Setup";
-    begin
-        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Direct Debit Mandate Nos."));
-        Customer.Get(CreateCustomer());
-        Customer.Validate("Payment Method Code", PaymentMethodCode);
-        Customer.Modify(true);
-        LibrarySales.CreateCustomerBankAccount(CustomerBankAccount, Customer."No.");
-        CustomerBankAccount.IBAN := LibraryUtility.GenerateMOD97CompliantCode();
-        CustomerBankAccount.Modify(true);
-        LibrarySales.CreateCustomerMandate(SEPADirectDebitMandate, Customer."No.", CustomerBankAccount.Code, WorkDate(), CalcDate('<1Y>', WorkDate()));
-        Customer.Validate("Preferred Bank Account Code", CustomerBankAccount.Code);
-        Customer.Modify(true);
-        exit(Customer."No.");
-    end;
-
     local procedure CreateCreditorBankAccount(): Code[20]
     var
         BankAccount: Record "Bank Account";
@@ -3549,8 +3520,8 @@ codeunit 13918 "XRechnung XML Document Tests"
         PaymentMethodCode: Code[10];
         CustomerNo: Code[20];
     begin
-        PaymentMethodCode := CreateDirectDebitPaymentMethod();
-        CustomerNo := CreateCustomerWithDirectDebitMandate(SEPADirectDebitMandate, CustomerBankAccount, PaymentMethodCode);
+        PaymentMethodCode := LibraryEDocDE.CreateDirectDebitPaymentMethod();
+        CustomerNo := LibraryEDocDE.AddDirectDebitMandateToCustomer(SEPADirectDebitMandate, CustomerBankAccount, CreateCustomer(), PaymentMethodCode);
         CompanyBankAccountCode := CreateCreditorBankAccount();
         CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CustomerNo);
         SalesHeader.Validate("Payment Method Code", PaymentMethodCode);
@@ -3567,8 +3538,8 @@ codeunit 13918 "XRechnung XML Document Tests"
         PaymentMethodCode: Code[10];
         CustomerNo: Code[20];
     begin
-        PaymentMethodCode := CreateDirectDebitPaymentMethod();
-        CustomerNo := CreateCustomerWithDirectDebitMandate(SEPADirectDebitMandate, CustomerBankAccount, PaymentMethodCode);
+        PaymentMethodCode := LibraryEDocDE.CreateDirectDebitPaymentMethod();
+        CustomerNo := LibraryEDocDE.AddDirectDebitMandateToCustomer(SEPADirectDebitMandate, CustomerBankAccount, CreateCustomer(), PaymentMethodCode);
         CompanyBankAccountCode := CreateCreditorBankAccount();
         CreateServiceHeader(ServiceHeader, CustomerNo);
         ServiceHeader.Validate("Payment Method Code", PaymentMethodCode);

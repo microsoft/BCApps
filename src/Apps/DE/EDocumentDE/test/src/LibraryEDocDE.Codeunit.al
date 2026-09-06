@@ -39,10 +39,23 @@ codeunit 13925 "Library - E-Doc DE"
     procedure CreateCustomerWithDirectDebitMandate(var SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate"; var CustomerBankAccount: Record "Customer Bank Account"; PaymentMethodCode: Code[10]): Code[20]
     var
         Customer: Record Customer;
+    begin
+        LibrarySales.CreateCustomer(Customer);
+        exit(AddDirectDebitMandateToCustomer(SEPADirectDebitMandate, CustomerBankAccount, Customer."No.", PaymentMethodCode));
+    end;
+
+    /// <summary>
+    /// Gives an existing customer a bank account with an IBAN and a SEPA direct debit mandate for it.
+    /// Use this when the test needs a customer built by its own suite, for example one with the
+    /// address and VAT data a format requires.
+    /// </summary>
+    procedure AddDirectDebitMandateToCustomer(var SEPADirectDebitMandate: Record "SEPA Direct Debit Mandate"; var CustomerBankAccount: Record "Customer Bank Account"; CustomerNo: Code[20]; PaymentMethodCode: Code[10]): Code[20]
+    var
+        Customer: Record Customer;
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
     begin
         LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Direct Debit Mandate Nos."));
-        LibrarySales.CreateCustomer(Customer);
+        Customer.Get(CustomerNo);
         Customer.Validate("Payment Method Code", PaymentMethodCode);
         Customer.Modify(true);
         LibrarySales.CreateCustomerBankAccount(CustomerBankAccount, Customer."No.");
