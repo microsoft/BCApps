@@ -281,16 +281,26 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     [Test]
     procedure ExportSalesInvInjectsBuyerLegalEntitySIREN()
     var
+        Customer: Record Customer;
         SalesInvoiceHeader: Record "Sales Invoice Header";
         XmlDoc: XmlDocument;
+        CustomerNo: Code[20];
     begin
+        // [FEATURE] [AI test 0.4]
         // [SCENARIO] Export in PEPPOL BIS 3.0 FR injects the buyer SIREN as the legal registration identifier
         Initialize();
 
-        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer('123456789', "Electronic Address Scheme"::"0002")));
+        // [GIVEN] Customer "C" with blank Registration Number and FR electronic address in SIREN_suffix format
+        CustomerNo := CreateCustomer('123456789_001', "Electronic Address Scheme"::"0225");
+        Customer.Get(CustomerNo);
+        Customer.Validate("Registration Number", '');
+        Customer.Modify(true);
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CustomerNo));
 
+        // [WHEN] Posted sales invoice "SI" is exported in PEPPOL BIS 3.0 FR
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
+        // [THEN] Buyer PartyLegalEntity CompanyID contains the SIREN from the FR electronic address with scheme 0002
         Assert.AreEqual('123456789',
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID'),
             StrSubstNo(IncorrectValueErr, 'Buyer CompanyID'));
@@ -423,6 +433,9 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         Assert.AreEqual('',
             GetNodeByPath(XmlDoc, '/Invoice/cbc:Note[contains(., ''#PMD#'')][2]'),
             StrSubstNo(IncorrectValueErr, 'Second PMD regulatory note should be empty'));
+        Assert.AreEqual('',
+            GetNodeByPath(XmlDoc, '/Invoice/cbc:Note[contains(substring-after(., ''#PMD#''), ''#PMD#'')]'),
+            StrSubstNo(IncorrectValueErr, 'PMD regulatory note with repeated tag should be empty'));
     end;
 
     [Test]
