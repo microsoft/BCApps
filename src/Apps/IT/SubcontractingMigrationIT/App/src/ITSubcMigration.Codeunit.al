@@ -590,7 +590,7 @@ codeunit 149951 "IT Subc. Migration"
         CollectedErrors: List of [ErrorInfo];
         CollectedError: ErrorInfo;
         BlockingError: ErrorInfo;
-        BlockingErrorText: Text;
+        BlockingErrorTextBuilder: TextBuilder;
     begin
         SetVendorMigrationFilters(Vendor);
         Vendor.SetLoadFields("Subcontracting Location Code");
@@ -614,18 +614,18 @@ codeunit 149951 "IT Subc. Migration"
             "Require Shipment");
         foreach LocationCode in LegacySubcontractingLocations.Keys() do
             if not Location.Get(LocationCode) then
-                Error(MissingSubcontractingLocationErr, LocationCode)
+                Error(ErrorInfo.Create(StrSubstNo(MissingSubcontractingLocationErr, LocationCode), true))
             else begin
                 UnsupportedWarehouseSettings := GetUnsupportedWarehouseSettings(Location);
                 if UnsupportedWarehouseSettings <> '' then
-                    Error(UnsupportedSubcontractingLocationErr, Location.Code, UnsupportedWarehouseSettings);
+                    Error(ErrorInfo.Create(StrSubstNo(UnsupportedSubcontractingLocationErr, Location.Code, UnsupportedWarehouseSettings), true));
             end;
 
         if HasCollectedErrors() then begin
             CollectedErrors := GetCollectedErrors(true);
             foreach CollectedError in CollectedErrors do
-                BlockingErrorText += CollectedError.Message() + '\';
-            BlockingError.Message := BlockingErrorText;
+                BlockingErrorTextBuilder.AppendLine(CollectedError.Message());
+            BlockingError.Message := StrSubstNo(SubcontractingLocationsBlockedErr, BlockingErrorTextBuilder.ToText());
             BlockingError.DataClassification := DataClassification::CustomerContent;
             BlockingError.ErrorType := ErrorType::Client;
             BlockingError.Collectible := false;
@@ -746,6 +746,7 @@ codeunit 149951 "IT Subc. Migration"
         VerifyingPhaseLbl: Label 'Verifying migration...';
         VerifyingProgressEntityLbl: Label 'Verification step';
         MigrationVerificationFailedErr: Label 'Migration verification failed for %1: expected %2 record(s) but found %3 after migration.', Comment = '%1 = entity name, %2 = pre-migration count, %3 = post-migration count';
+        SubcontractingLocationsBlockedErr: Label 'Migration can''t start because one or more subcontracting locations are invalid. Resolve the following issues and run the precheck again:\%1', Comment = '%1 = detailed location validation errors';
         UnsupportedSubcontractingLocationErr: Label 'Migration can''t start because subcontracting location %1 uses unsupported warehouse settings: %2. Update the location or subcontracting setup, and then run the precheck again.', Comment = '%1 = location code, %2 = unsupported warehouse settings';
         MissingSubcontractingLocationErr: Label 'Migration can''t start because legacy subcontracting data references location %1, but that location doesn''t exist. Update the legacy vendor or purchase document, and then run the precheck again.', Comment = '%1 = location code';
 

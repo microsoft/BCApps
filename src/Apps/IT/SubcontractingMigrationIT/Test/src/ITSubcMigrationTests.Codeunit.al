@@ -33,6 +33,7 @@ codeunit 149956 "IT Subc. Migration Tests"
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryUtility: Codeunit "Library - Utility";
         Initialized: Boolean;
+        SubcontractingLocationsBlockedErr: Label 'Migration can''t start because one or more subcontracting locations are invalid.';
         UnsupportedSubcontractingLocationErr: Label 'Migration can''t start because subcontracting location %1 uses unsupported warehouse settings: %2. Update the location or subcontracting setup, and then run the precheck again.', Comment = '%1 = location code, %2 = unsupported warehouse settings';
         MissingSubcontractingLocationErr: Label 'Migration can''t start because legacy subcontracting data references location %1, but that location doesn''t exist. Update the legacy vendor or purchase document, and then run the precheck again.', Comment = '%1 = location code';
 
@@ -865,6 +866,7 @@ codeunit 149956 "IT Subc. Migration Tests"
 
         // [WHEN] The subcontracting location precheck runs
         asserterror ITSubcMigration.CheckSubcontractingLocations();
+        Assert.ExpectedError(SubcontractingLocationsBlockedErr);
 
         // [THEN] The blocking error reports every incompatible location and its unsupported settings
         BlockingError := GetLastErrorText();
@@ -916,6 +918,7 @@ codeunit 149956 "IT Subc. Migration Tests"
 
         // [WHEN] The subcontracting location precheck runs
         asserterror ITSubcMigration.CheckSubcontractingLocations();
+        Assert.ExpectedError(SubcontractingLocationsBlockedErr);
 
         // [THEN] The blocking error reports both legacy location problems
         BlockingError := GetLastErrorText();
