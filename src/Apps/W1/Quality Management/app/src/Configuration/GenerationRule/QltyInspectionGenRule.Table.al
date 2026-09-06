@@ -323,7 +323,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
     /// <summary>
     /// Assigns a sort order after the current highest value when the sort order is zero or one.
     /// </summary>
-    internal procedure UpdateSortOrder()
+    procedure UpdateSortOrder()
     var
         FindHighestQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
     begin
