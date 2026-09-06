@@ -28,8 +28,8 @@ codeunit 11039 "DE Payment Means Helper"
     begin
         if PaymentMethodCode <> '' then
             if PaymentMethod.Get(PaymentMethodCode) then
-                if PaymentMethod."PEPPOL Payment Means Code" <> '' then
-                    exit(PaymentMethod."PEPPOL Payment Means Code");
+                if PaymentMethod."Payment Means Code" <> '' then
+                    exit(PaymentMethod."Payment Means Code");
         exit('58');
     end;
 
@@ -78,7 +78,7 @@ codeunit 11039 "DE Payment Means Helper"
         PaymentMethodCode := PaymentMethodCodeFieldRef.Value();
         if PaymentMethodCode <> '' then
             if PaymentMethod.Get(PaymentMethodCode) then
-                PaymentMeansCode := PaymentMethod."PEPPOL Payment Means Code";
+                PaymentMeansCode := PaymentMethod."Payment Means Code";
 
         case true of
             PaymentMeansCode in ['49', '59']:
