@@ -766,32 +766,33 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     procedure ExportSalesInvUsesShipmentExternalDocumentNoAsBuyerReference()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        SalesShipmentHeader: Record "Sales Shipment Header";
         XmlDoc: XmlDocument;
         BuyerReference: Text[35];
         CustomerNo: Code[20];
         FirstShipmentNo: Code[20];
         SecondShipmentNo: Code[20];
     begin
+        // [FEATURE] [AI test 0.4]
         // [SCENARIO] An empty shipment buyer reference falls back to its external document number
         Initialize();
 
+        // [GIVEN] Customer "C" with two distinct posted shipments "S1" and "S2" using the same external document number
         CustomerNo := CreateCustomer('123456789', "Electronic Address Scheme"::"0002");
         FirstShipmentNo := CreateAndPostSalesOrderShipment(CustomerNo, 1, 1, 10);
         SecondShipmentNo := CreateAndPostSalesOrderShipment(CustomerNo, 1, 1, 10);
         BuyerReference := 'FR-EXTERNAL-REF';
-        SalesShipmentHeader.Get(FirstShipmentNo);
-        SalesShipmentHeader.Validate("Your Reference", '');
-        SalesShipmentHeader.Validate("External Document No.", BuyerReference);
-        SalesShipmentHeader.Modify(true);
-        SalesShipmentHeader.Get(SecondShipmentNo);
-        SalesShipmentHeader.Validate("Your Reference", '');
-        SalesShipmentHeader.Validate("External Document No.", BuyerReference);
-        SalesShipmentHeader.Modify(true);
-        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceFromShipments(CustomerNo, FirstShipmentNo + '|' + SecondShipmentNo));
+        SetSalesShipmentExternalDocumentNo(FirstShipmentNo, BuyerReference);
+        SetSalesShipmentExternalDocumentNo(SecondShipmentNo, BuyerReference);
 
+        // [WHEN] Combined invoice "I" is created from "S1" and "S2" and exported
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceFromShipments(CustomerNo, FirstShipmentNo + '|' + SecondShipmentNo));
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
+        // [THEN] Invoice "I" uses the Extended CTC France customization
+        Assert.AreEqual('urn:cen.eu:en16931:2017#conformant#urn.cpro.gouv.fr:1p0:extended-ctc-fr', GetNodeByPath(XmlDoc, '/Invoice/cbc:CustomizationID'),
+            StrSubstNo(IncorrectValueErr, 'CustomizationID'));
+
+        // [THEN] Invoice "I" uses the shipment external document number as buyer reference
         Assert.AreEqual(BuyerReference, GetNodeByPath(XmlDoc, '/Invoice/cac:InvoiceLine/cac:OrderLineReference/cac:OrderReference/cbc:ID'),
             StrSubstNo(IncorrectValueErr, 'OrderReference ID'));
     end;
@@ -1456,6 +1457,16 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
             SalesLine.Modify(true);
         until SalesLine.Next() = 0;
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, false));
+    end;
+
+    local procedure SetSalesShipmentExternalDocumentNo(ShipmentNo: Code[20]; ExternalDocumentNo: Code[35])
+    var
+        SalesShipmentHeader: Record "Sales Shipment Header";
+    begin
+        SalesShipmentHeader.Get(ShipmentNo);
+        SalesShipmentHeader.Validate("Your Reference", '');
+        SalesShipmentHeader.Validate("External Document No.", ExternalDocumentNo);
+        SalesShipmentHeader.Modify(true);
     end;
 
     local procedure CreateSalesOrderWithLines(var SalesHeader: Record "Sales Header"; CustomerNo: Code[20]; NumberOfLines: Integer; Quantity: Decimal)
