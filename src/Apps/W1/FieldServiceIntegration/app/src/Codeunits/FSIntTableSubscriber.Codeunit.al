@@ -2704,7 +2704,7 @@ codeunit 6610 "FS Int. Table Subscriber"
                 IgnoreRecord := true;
     end;
 
-    [Obsolete('Service items are always synchronized to Field Service customer assets. The Convert to Customer Asset flag is no longer used for filtering', '30.0')]
+    [Obsolete('Remove calls to this procedure. Service items are always synchronized to Field Service customer assets; item-product synchronization disables customer asset conversion.', '30.0')]
     internal procedure IgnoreServiceItemsByConvertToCustomerAssetFlag(SourceRecordRef: RecordRef; var IgnoreRecord: Boolean)
     var
         FSConnectionSetup: Record "FS Connection Setup";

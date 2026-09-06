@@ -1579,23 +1579,36 @@ codeunit 139204 "FS Integration Test"
     [Test]
     procedure ItemSynchronizationDisablesCustomerAssetConversion()
     var
+        Item: Record Item;
         CRMProduct: Record "CRM Product";
-        AdditionalFieldsWereModified: Boolean;
+        IntegrationFieldMapping: Record "Integration Field Mapping";
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        CRMIntegrationTableSynch: Codeunit "CRM Integration Table Synch.";
+        CRMSetupDefaults: Codeunit "CRM Setup Defaults";
     begin
         // [FEATURE] [Item-Product Mapping]
         // [SCENARIO] Synchronizing an item disables native Field Service customer asset creation.
         Initialize();
         InitSetup(true, '');
 
-        // [GIVEN] A Field Service product where Convert to Customer Asset is Yes.
+        // [GIVEN] A coupled item and product where Convert to Customer Asset is Yes.
+        CRMSetupDefaults.ResetItemProductMapping('ITEM-PRODUCT', false);
+        LibraryCRMIntegration.CreateCoupledItemAndProduct(Item, CRMProduct);
         CRMProduct.ConvertToCustomerAsset := true;
+        CRMProduct.Modify();
 
-        // [WHEN] The Field Service product is prepared for synchronization from an item.
-        FSIntegrationTestLibrary.DisableCustomerAssetConversion(CRMProduct, AdditionalFieldsWereModified);
+        // [GIVEN] The constant field mapping is removed to isolate the custom synchronization callback.
+        IntegrationFieldMapping.SetRange("Integration Table Mapping Name", 'ITEM-PRODUCT');
+        IntegrationFieldMapping.SetRange("Integration Table Field No.", CRMProduct.FieldNo(ConvertToCustomerAsset));
+        IntegrationFieldMapping.DeleteAll();
+        IntegrationTableMapping.Get('ITEM-PRODUCT');
+
+        // [WHEN] The item is synchronized to the Field Service product.
+        CRMIntegrationTableSynch.SynchRecord(IntegrationTableMapping, Item.RecordId(), true, false);
 
         // [THEN] Native Field Service customer asset creation is disabled.
+        CRMProduct.Get(CRMProduct.ProductId);
         Assert.IsFalse(CRMProduct.ConvertToCustomerAsset, 'Convert to Customer Asset should be disabled.');
-        Assert.IsTrue(AdditionalFieldsWereModified, 'The synchronization should recognize the modified field.');
     end;
 
     [Test]
