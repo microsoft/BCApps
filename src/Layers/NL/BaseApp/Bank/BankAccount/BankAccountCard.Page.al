@@ -378,42 +378,6 @@ page 370 "Bank Account Card"
                     Importance = Promoted;
                     MaskType = Concealed;
                 }
-                field("Creditor Identifier"; Rec."Creditor Identifier")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Creditor Identifier';
-                    ToolTip = 'Specifies the creditor identifier.';
-                }
-            }
-            group("Account Holder")
-            {
-                Caption = 'Account Holder';
-                field("Account Holder Name"; Rec."Account Holder Name")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the bank account owner''s name.';
-                }
-                field("Account Holder Address"; Rec."Account Holder Address")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the bank account owner''s address.';
-                }
-                field("Account Holder Post Code"; Rec."Account Holder Post Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Account Holder Post Code/City';
-                    ToolTip = 'Specifies the bank account owner''s postal code.';
-                }
-                field("Account Holder City"; Rec."Account Holder City")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the bank account owner''s city.';
-                }
-                field("Acc. Hold. Country/Region Code"; Rec."Acc. Hold. Country/Region Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the country/region of the bank account holder.';
-                }
                 field("Bank Statement Import Format"; Rec."Bank Statement Import Format")
                 {
                     ApplicationArea = Basic, Suite;
@@ -945,4 +909,3 @@ page 370 "Bank Account Card"
     begin
     end;
 }
-
