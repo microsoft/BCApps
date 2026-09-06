@@ -427,7 +427,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
         // [THEN] Both lines are concatenated into one PMD note without repeating the tag
-        Assert.AreEqual('#PMD#' + FirstCommentLine + ' ' + SecondCommentLine,
+        Assert.AreEqual('#PMD#' + FirstCommentLine + SecondCommentLine,
             GetNodeByPath(XmlDoc, '/Invoice/cbc:Note[contains(., ''#PMD#'')]'),
             StrSubstNo(IncorrectValueErr, 'PMD regulatory note'));
         Assert.AreEqual('',
@@ -436,6 +436,43 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         Assert.AreEqual('',
             GetNodeByPath(XmlDoc, '/Invoice/cbc:Note[contains(substring-after(., ''#PMD#''), ''#PMD#'')]'),
             StrSubstNo(IncorrectValueErr, 'PMD regulatory note with repeated tag should be empty'));
+    end;
+
+    [Test]
+    procedure ExportSalesInvTrimsRegulatoryCommentsBeforeConcatenating()
+    var
+        SalesCommentLine: Record "Sales Comment Line";
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        XmlDoc: XmlDocument;
+        CustomerNo: Code[20];
+        InvoiceNo: Code[20];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Regulatory comment lines are trimmed and concatenated without a separator
+        Initialize();
+
+        // [GIVEN] Sales invoice "SI" with two padded PMD comment lines
+        CustomerNo := CreateCustomer('', "Electronic Address Scheme"::"EM");
+        InvoiceNo := CreateSalesInvoiceWithLine(CustomerNo);
+        LibrarySales.CreateSalesCommentLine(SalesCommentLine, "Sales Document Type"::Invoice, InvoiceNo, 0);
+        SalesCommentLine.Validate("FR Regulatory Comment Type", SalesCommentLine."FR Regulatory Comment Type"::PMD);
+        SalesCommentLine.Validate(Comment, ' First comment ');
+        SalesCommentLine.Modify(true);
+        LibrarySales.CreateSalesCommentLine(SalesCommentLine, "Sales Document Type"::Invoice, InvoiceNo, 0);
+        SalesCommentLine.Validate("FR Regulatory Comment Type", SalesCommentLine."FR Regulatory Comment Type"::PMD);
+        SalesCommentLine.Validate(Comment, ' Second comment ');
+        SalesCommentLine.Modify(true);
+        SalesHeader.Get("Sales Document Type"::Invoice, InvoiceNo);
+        SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+
+        // [WHEN] Posted sales invoice "SI" is exported in PEPPOL BIS 3.0 FR
+        ExportInvoice(SalesInvoiceHeader, XmlDoc);
+
+        // [THEN] The trimmed lines are concatenated directly
+        Assert.AreEqual('#PMD#First commentSecond comment',
+            GetNodeByPath(XmlDoc, '/Invoice/cbc:Note[contains(., ''#PMD#'')]'),
+            StrSubstNo(IncorrectValueErr, 'PMD regulatory note'));
     end;
 
     [Test]

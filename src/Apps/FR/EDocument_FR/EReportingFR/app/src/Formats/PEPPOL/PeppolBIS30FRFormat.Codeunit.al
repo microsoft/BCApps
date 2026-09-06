@@ -466,11 +466,8 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
                         RegulatoryComments.Add(RegulatoryCommentTypeCode, RegulatoryCommentBuilder);
                         RegulatoryCommentTypeCodes.Add(RegulatoryCommentTypeCode);
                     end;
-                    if SalesCommentLine.Comment.Trim() <> '' then begin
-                        if RegulatoryCommentBuilder.Length() > 0 then
-                            RegulatoryCommentBuilder.Append(' ');
+                    if SalesCommentLine.Comment.Trim() <> '' then
                         RegulatoryCommentBuilder.Append(SalesCommentLine.Comment.Trim());
-                    end;
                 until SalesCommentLine.Next() = 0;
 
             foreach RegulatoryCommentTypeCode in RegulatoryCommentTypeCodes do begin
