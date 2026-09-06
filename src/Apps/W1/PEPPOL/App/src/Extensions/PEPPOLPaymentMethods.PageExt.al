@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Peppol;
 
-using Microsoft.Foundation.PaymentTerms;
+using Microsoft.Bank.BankAccount;
 
 pageextension 37222 "PEPPOL Payment Methods" extends "Payment Methods"
 {
