@@ -424,9 +424,9 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         AnchorNode: XmlNode;
         DocumentNo: Code[20];
         DocumentType: Enum "Sales Comment Document Type";
-        RegulatoryComments: Dictionary of [Text, Text];
+        RegulatoryComments: Dictionary of [Text, TextBuilder];
         RegulatoryCommentTypeCodes: List of [Text];
-        RegulatoryComment: Text;
+        RegulatoryCommentBuilder: TextBuilder;
         RegulatoryCommentTypeCode: Text;
     begin
         case SourceDocumentHeader.Number of
@@ -462,17 +462,21 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
             if SalesCommentLine.FindSet() then
                 repeat
                     RegulatoryCommentTypeCode := GetRegulatoryCommentTypeCode(SalesCommentLine."FR Regulatory Comment Type");
-                    if RegulatoryComments.Get(RegulatoryCommentTypeCode, RegulatoryComment) then
-                        RegulatoryComments.Set(RegulatoryCommentTypeCode, RegulatoryComment + SalesCommentLine.Comment)
-                    else begin
-                        RegulatoryComments.Add(RegulatoryCommentTypeCode, SalesCommentLine.Comment);
+                    if not RegulatoryComments.Get(RegulatoryCommentTypeCode, RegulatoryCommentBuilder) then begin
+                        Clear(RegulatoryCommentBuilder);
+                        RegulatoryComments.Add(RegulatoryCommentTypeCode, RegulatoryCommentBuilder);
                         RegulatoryCommentTypeCodes.Add(RegulatoryCommentTypeCode);
+                    end;
+                    if SalesCommentLine.Comment.Trim() <> '' then begin
+                        if RegulatoryCommentBuilder.Length() > 0 then
+                            RegulatoryCommentBuilder.Append(' ');
+                        RegulatoryCommentBuilder.Append(SalesCommentLine.Comment.Trim());
                     end;
                 until SalesCommentLine.Next() = 0;
 
             foreach RegulatoryCommentTypeCode in RegulatoryCommentTypeCodes do begin
-                RegulatoryComments.Get(RegulatoryCommentTypeCode, RegulatoryComment);
-                AddRegulatoryComment(AnchorNode, RegulatoryCommentTypeCode, RegulatoryComment);
+                RegulatoryComments.Get(RegulatoryCommentTypeCode, RegulatoryCommentBuilder);
+                AddRegulatoryComment(AnchorNode, RegulatoryCommentTypeCode, RegulatoryCommentBuilder.ToText());
             end;
         end;
     end;
@@ -586,6 +590,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         FRCIIXMLBuilder: Codeunit "CII XML Builder";
         CustomerNoFieldRef: FieldRef;
         BuyerPartyNode: XmlNode;
+        CustomerNo: Code[20];
         SIRENNo: Text;
         VATRegistrationNo: Text;
     begin
@@ -593,7 +598,9 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
             exit;
         if not FRCIIXMLBuilder.TryGetCustomerNoFieldRef(SourceDocumentHeader, CustomerNoFieldRef) then
             exit;
-        if not Customer.Get(CustomerNoFieldRef.Value()) then
+        CustomerNo := CustomerNoFieldRef.Value();
+        Customer.SetLoadFields("Registration Number", "FR Electronic Address", "VAT Registration No.");
+        if not Customer.Get(CustomerNo) then
             exit;
 
         SIRENNo := GetSIRENNo(Customer."Registration Number", Customer."Registration Number");

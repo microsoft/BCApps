@@ -400,7 +400,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         // [GIVEN] Sales invoice "SI" with the mandatory PMD text split across two comment lines
         CustomerNo := CreateCustomer('', "Electronic Address Scheme"::"EM");
         InvoiceNo := CreateSalesInvoiceWithLine(CustomerNo);
-        FirstCommentLine := 'Tout retard de paiement engendre une pénalité exigible à compter de la date ';
+        FirstCommentLine := 'Tout retard de paiement engendre une pénalité exigible à compter de la date';
         SecondCommentLine := 'd''échéance, calculée sur la base de trois fois le taux d''intérêt légal.';
         SalesCommentLine."Document Type" := SalesCommentLine."Document Type"::Invoice;
         SalesCommentLine."No." := InvoiceNo;
@@ -422,7 +422,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
         // [THEN] Both lines are concatenated into one PMD note without repeating the tag
-        Assert.AreEqual('#PMD#' + FirstCommentLine + SecondCommentLine,
+        Assert.AreEqual('#PMD#' + FirstCommentLine + ' ' + SecondCommentLine,
             GetNodeByPath(XmlDoc, '/Invoice/cbc:Note[contains(., ''#PMD#'')]'),
             StrSubstNo(IncorrectValueErr, 'PMD regulatory note'));
         Assert.AreEqual('',
