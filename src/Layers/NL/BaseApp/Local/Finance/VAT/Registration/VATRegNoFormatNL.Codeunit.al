@@ -13,10 +13,17 @@ using System.Reflection;
 /// </summary>
 codeunit 13381 "VAT Reg. No. Format NL"
 {
-    Access = Internal;
+    [EventSubscriber(ObjectType::Table, Database::"VAT Registration No. Format", OnTestTable, '', false, false)]
+    local procedure OnTestTable(VATRegNo: Text[20]; CountryCode: Code[10]; Number: Code[20]; TableID: Option)
+    begin
+        if TableID <> Database::"Company Information" then
+            exit;
 
-    [EventSubscriber(ObjectType::Table, Database::"VAT Registration No. Format", OnBeforeCheckCompanyInfo, '', false, false)]
-    local procedure OnBeforeCheckCompanyInfo(VATRegNo: Text[20]; var IsHandled: Boolean)
+        CheckCompanyInfo(VATRegNo);
+    end;
+
+    [Scope('OnPrem')]
+    procedure CheckCompanyInfo(VATRegNo: Text[20])
     var
         CompanyInformation: Record "Company Information";
         Mod11ErrorText: Text;
@@ -44,8 +51,6 @@ codeunit 13381 "VAT Reg. No. Format NL"
         Mod97ErrorText := ValidateVATMod97Algorithm(VATRegNo);
         if (Mod11ErrorText <> '') and (Mod97ErrorText <> '') then
             Error(SummaryThreeErr, VATRegNoFormatErr, Mod11ErrorText, Mod97ErrorText);
-
-        IsHandled := true;
     end;
 
     local procedure ValidateVATMod11Algorithm(VATRegNo: Text[20]): Text;

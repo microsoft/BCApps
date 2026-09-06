@@ -6,6 +6,7 @@ namespace Microsoft.Finance.GeneralLedger.Journal;
 
 using Microsoft.HumanResources.Employee;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
@@ -64,6 +65,26 @@ codeunit 11384 "Gen. Journal Line NL"
     begin
         GenJournalLine.Validate("Recipient Bank Account", Employee."No.");
         GenJournalLine."Transaction Mode Code" := Employee."Transaction Mode Code";
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", 'OnSetJournalLineFieldsFromApplicationOnAfterFindFirstVendLedgEntryWithAppliesToID', '', false, false)]
+    local procedure OnAfterFindFirstVendLedgEntryWithAppliesToID(var GenJournalLine: Record "Gen. Journal Line"; VendLedgEntry: Record "Vendor Ledger Entry")
+    begin
+        SetRecipientBankAccount(GenJournalLine, VendLedgEntry."Recipient Bank Account");
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", 'OnSetJournalLineFieldsFromApplicationOnAfterFindFirstVendLedgEntryWithAppliesToDocNo', '', false, false)]
+    local procedure OnAfterFindFirstVendLedgEntryWithAppliesToDocNo(var GenJournalLine: Record "Gen. Journal Line"; VendLedgEntry: Record "Vendor Ledger Entry")
+    begin
+        SetRecipientBankAccount(GenJournalLine, VendLedgEntry."Recipient Bank Account");
+    end;
+
+    local procedure SetRecipientBankAccount(var GenJournalLine: Record "Gen. Journal Line"; RecipientBankAccount: Code[20])
+    begin
+        if RecipientBankAccount = '' then
+            exit;
+
+        GenJournalLine.Validate("Recipient Bank Account", RecipientBankAccount);
     end;
 
 }

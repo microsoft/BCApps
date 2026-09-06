@@ -10,6 +10,10 @@ tableextension 11379 "Company Information NL" extends "Company Information"
 {
     fields
     {
+        modify("Giro No.")
+        {
+            MaskType = Concealed;
+        }
         field(11400; "Fiscal Entity No."; Text[20])
         {
             Caption = 'Fiscal Entity No.';

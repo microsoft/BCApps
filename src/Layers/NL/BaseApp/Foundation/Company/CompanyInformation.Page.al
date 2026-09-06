@@ -121,6 +121,7 @@ page 1 "Company Information"
                 field("EORI Number"; Rec."EORI Number")
                 {
                     ApplicationArea = Basic, Suite;
+                    Visible = false;
                 }
                 field("Industrial Classification"; Rec."Industrial Classification")
                 {
