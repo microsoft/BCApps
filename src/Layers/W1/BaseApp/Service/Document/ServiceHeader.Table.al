@@ -5609,13 +5609,33 @@ table 5900 "Service Header"
     var
         ServiceLedgerEntry: Record "Service Ledger Entry";
         ServContractMgt: Codeunit ServContractManagement;
+        OriginalServiceLedgerEntryNos: List of [Integer];
+        ReversedServiceLedgerEntryNos: Dictionary of [Integer, Boolean];
+        OriginalServiceLedgerEntryNo: Integer;
+        InvoicedServiceLedgerEntryExists: Boolean;
     begin
-        ServiceLedgerEntry.SetCurrentKey("Service Contract No.");
+        ServiceLedgerEntry.SetLoadFields("Entry No.", "Applies-to Entry No.");
+        ServiceLedgerEntry.SetCurrentKey("Service Contract No.", "Service Item No. (Serviced)", "Entry Type", "Applies-to Entry No.");
         ServiceLedgerEntry.SetRange("Service Contract No.", ServiceContractLine."Contract No.");
         ServiceLedgerEntry.SetRange("Service Item No. (Serviced)", ServiceContractLine."Service Item No.");
         ServiceLedgerEntry.SetRange("Entry Type", ServiceLedgerEntry."Entry Type"::Sale);
         ServiceLedgerEntry.SetFilter("Document No.", '<>%1', ExcludeDocNo);
-        if ServiceLedgerEntry.IsEmpty() then
+        if ServiceLedgerEntry.FindSet() then
+            repeat
+                if ServiceLedgerEntry."Applies-to Entry No." = 0 then
+                    OriginalServiceLedgerEntryNos.Add(ServiceLedgerEntry."Entry No.")
+                else
+                    if not ReversedServiceLedgerEntryNos.ContainsKey(ServiceLedgerEntry."Applies-to Entry No.") then
+                        ReversedServiceLedgerEntryNos.Add(ServiceLedgerEntry."Applies-to Entry No.", true);
+            until ServiceLedgerEntry.Next() = 0;
+
+        foreach OriginalServiceLedgerEntryNo in OriginalServiceLedgerEntryNos do
+            if not ReversedServiceLedgerEntryNos.ContainsKey(OriginalServiceLedgerEntryNo) then begin
+                InvoicedServiceLedgerEntryExists := true;
+                break;
+            end;
+
+        if not InvoicedServiceLedgerEntryExists then
             ServiceContractLine."Invoiced to Date" := 0D
         else
             ServContractMgt.CalcInvoicedToDate(ServiceContractLine, ServiceContractLine."Starting Date", ServiceContractHeader."Next Invoice Period Start" - 1);

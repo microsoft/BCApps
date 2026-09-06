@@ -1162,6 +1162,10 @@ codeunit 5407 "Prod. Order Status Management"
                   ItemJnlLine, ProdOrderRtngLine, OutputQtyBase,
                   GetOutputQtyForProdOrderRoutingLine(ProdOrderLine, ProdOrderRtngLine, IsLastOperation, OutputQty),
                   PutawayQtyBaseToCalc);
+                if ProdOrder.Reopened then begin
+                    ExcludePostedSetupTimeForReopenedProdOrder(ItemJnlLine, ProdOrderRtngLine);
+                    OnAfterExcludePostedSetupTimeForReopenedProdOrder(ItemJnlLine, ProdOrderRtngLine, OutputQtyBase, OutputQty);
+                end;
                 ItemJnlLine."Concurrent Capacity" := ProdOrderRtngLine."Concurrent Capacities";
                 ItemJnlLine."Source Code" := SourceCodeSetup.Flushing;
                 if not (ItemJnlLine.TimeIsEmpty() and (ItemJnlLine."Output Quantity" = 0)) then begin
@@ -1565,6 +1569,21 @@ codeunit 5407 "Prod. Order Status Management"
             until RecordLink.Next() = 0;
     end;
 
+    local procedure ExcludePostedSetupTimeForReopenedProdOrder(var ItemJnlLine: Record "Item Journal Line"; ProdOrderRtngLine: Record "Prod. Order Routing Line")
+    var
+        RemainingSetupTime: Decimal;
+    begin
+        if ItemJnlLine."Setup Time" = 0 then
+            exit;
+
+        ProdOrderRtngLine.CalcFields("Posted Setup Time");
+        RemainingSetupTime := ItemJnlLine."Setup Time" - ProdOrderRtngLine."Posted Setup Time";
+        if RemainingSetupTime < 0 then
+            RemainingSetupTime := 0;
+        if RemainingSetupTime <> ItemJnlLine."Setup Time" then
+            ItemJnlLine.Validate("Setup Time", RemainingSetupTime);
+    end;
+
     local procedure IsStatusSimulatedOrPlanned(Status: Enum "Production Order Status"): Boolean
     begin
         exit((Status = Status::Simulated) or (Status = Status::Planned) or (Status = Status::"Firm Planned"));
@@ -1666,6 +1685,11 @@ codeunit 5407 "Prod. Order Status Management"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetTimeAndQuantityOmItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"; OutputQtyBase: Decimal; OutputQty: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterExcludePostedSetupTimeForReopenedProdOrder(var ItemJournalLine: Record "Item Journal Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"; OutputQtyBase: Decimal; OutputQty: Decimal)
     begin
     end;
 
