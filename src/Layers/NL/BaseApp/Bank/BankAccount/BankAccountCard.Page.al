@@ -92,6 +92,7 @@ page 370 "Bank Account Card"
                 field("Min. Balance"; Rec."Min. Balance")
                 {
                     ApplicationArea = Basic, Suite;
+                    Visible = false;
                 }
                 field("Our Contact Code"; Rec."Our Contact Code")
                 {
