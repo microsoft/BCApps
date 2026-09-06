@@ -1,9 +1,13 @@
+#if not CLEAN29
 namespace Microsoft.API.V2;
 
 using System.Apps;
 
 page 30007 "APIV2 - Aut. Extension Depl."
 {
+    ObsoleteReason = 'Use the Business Central admin center API to monitor per-tenant extension operations.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
     APIGroup = 'automation';
     APIPublisher = 'microsoft';
     APIVersion = 'v2.0';
@@ -94,4 +98,4 @@ page 30007 "APIV2 - Aut. Extension Depl."
         AppName: Text;
         OperationTypeOption: Option Upload,Install;
 }
-
+#endif

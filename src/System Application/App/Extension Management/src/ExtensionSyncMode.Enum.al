@@ -1,3 +1,4 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -10,6 +11,9 @@ namespace System.Apps;
 /// </summary>
 enum 2505 "Extension Sync Mode"
 {
+    ObsoleteReason = 'Use the schemaSyncMode option in the Business Central admin center API.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
     Extensible = false;
     AssignmentCompatibility = true;
 
@@ -37,3 +41,4 @@ enum 2505 "Extension Sync Mode"
         Caption = 'Force';
     }
 }
+#endif

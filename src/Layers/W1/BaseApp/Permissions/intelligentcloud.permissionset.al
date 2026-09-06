@@ -372,7 +372,11 @@ permissionset 6121 "INTELLIGENT CLOUD"
                   tabledata "Analysis View Entry" = R,
                   tabledata "Analysis View Filter" = R,
                   tabledata "API Entities Setup" = R,
+#pragma warning disable AL0432
+#if not CLEAN29
                   tabledata "API Extension Upload" = r,
+#endif
+#pragma warning restore AL0432
                   tabledata "Application Area Buffer" = R,
                   tabledata "Application Area Setup" = R,
                   tabledata "Applied Payment Entry" = R,

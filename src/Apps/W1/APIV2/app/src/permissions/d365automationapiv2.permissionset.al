@@ -14,8 +14,12 @@ permissionset 2147 "D365 Automation APIV2"
                   query * = X,
                   page "APIV2 - Aut. Companies" = X,
                   page "APIV2 - Aut. Config. Packages" = X,
+#pragma warning disable AL0432
+#if not CLEAN29
                   page "APIV2 - Aut. Extension Depl." = X,
                   page "APIV2 - Aut. Extension Upload" = X,
+#endif
+#pragma warning restore AL0432
                   page "APIV2 - Aut. Extensions" = X,
                   page "APIV2 - Aut. Permission Sets" = X,
                   page "APIV2 - Aut. Profiles" = X,

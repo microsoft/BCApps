@@ -37,6 +37,7 @@ codeunit 2503 "Extension Operation Impl"
         InstallationFailedOpenDetailsTxt: Label 'App installation failed. User has chosen to see the details.';
         InstallationFailedDoNotOpenDetailsTxt: Label 'App installation failed. User has chosen not to check out the details.';
         PageCaptionTok: Label '%1 %2', Comment = '%1 = Page default caption %2 = App name';
+        AdminCenterExtensionManagementUrlLbl: Label 'https://go.microsoft.com/fwlink/?LinkId=2374621', Locked = true;
 
     local procedure AssertIsInitialized()
     begin
@@ -83,6 +84,8 @@ codeunit 2503 "Extension Operation Impl"
         end;
     end;
 
+#if not CLEAN29
+    [Obsolete('Use the Business Central admin center API to upload per-tenant extensions.', '29.0')]
     procedure UploadExtension(PackageInStream: InStream; lcid: Integer)
     var
         DotNetALPackageDeploymentSchedule: DotNet ALPackageDeploymentSchedule;
@@ -93,6 +96,7 @@ codeunit 2503 "Extension Operation Impl"
         DotNetALNavAppOperationInvoker.UploadPackage(PackageInStream, DotNetALPackageDeploymentSchedule, Format(lcid));
     end;
 
+    [Obsolete('Use the Business Central admin center API to upload per-tenant extensions.', '29.0')]
     procedure DeployAndUploadExtension(PackageInStream: InStream; lcid: Integer; DeployTo: Enum "Extension Deploy To"; SyncMode: Enum "Extension Sync Mode")
     var
         DotNetALPackageDeploymentSchedule: DotNet ALPackageDeploymentSchedule;
@@ -129,6 +133,7 @@ codeunit 2503 "Extension Operation Impl"
                 end;
         end;
     end;
+#endif
 
     procedure UnpublishExtension(PackageID: Guid): Boolean
     var
@@ -147,6 +152,11 @@ codeunit 2503 "Extension Operation Impl"
 
         UnpublishUninstalledPerTenantExtension(PackageID);
         exit(true);
+    end;
+
+    procedure OpenAdminCenterExtensionManagementDocumentation(Notification: Notification)
+    begin
+        Hyperlink(AdminCenterExtensionManagementUrlLbl);
     end;
 
     procedure UnpublishUninstalledPerTenantExtension(PackageID: Guid)
@@ -263,6 +273,8 @@ codeunit 2503 "Extension Operation Impl"
         ExtensionInstallationImpl.CheckPermissions();
     end;
 
+#if not CLEAN29
+    [Obsolete('Use the Business Central admin center API to monitor per-tenant extension operations.', '29.0')]
     procedure GetAllExtensionDeploymentStatusEntries(var TempExtensionDeploymentStatus: Record "Extension Deployment Status" temporary)
     var
         NavAppTenantOperation: Record "NAV App Tenant Operation";
@@ -274,6 +286,7 @@ codeunit 2503 "Extension Operation Impl"
             TempExtensionDeploymentStatus.Insert();
         until NavAppTenantOperation.Next() = 0;
     end;
+#endif
 
     procedure GetDeploymentDetailedStatusMessageAsStream(OperationId: Guid; OutStream: OutStream)
     begin

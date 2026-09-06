@@ -253,7 +253,11 @@ permissionset 732 "D365 BASIC ISV"
                   tabledata "Analysis Report Chart Setup" = R,
                   tabledata "API Data Upgrade" = RIMD,
                   tabledata "API Entities Setup" = RIMD,
+#pragma warning disable AL0432
+#if not CLEAN29
                   tabledata "API Extension Upload" = rimd,
+#endif
+#pragma warning restore AL0432
                   tabledata "Application Area Buffer" = RIMD,
                   tabledata "Application Area Setup" = RIMD,
                   tabledata "Applied Payment Entry" = RIMD,
