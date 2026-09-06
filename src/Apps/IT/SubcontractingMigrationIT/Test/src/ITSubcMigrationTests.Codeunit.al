@@ -875,14 +875,16 @@ codeunit 149956 "IT Subc. Migration Tests"
                 StrSubstNo(
                     UnsupportedSubcontractingLocationErr,
                     VendorLocation.Code,
-                    'Bin Mandatory, Require Pick')),
+                    VendorLocation.FieldCaption("Bin Mandatory") + ', ' + VendorLocation.FieldCaption("Require Pick"))),
             'The precheck should report the vendor location and its unsupported settings.');
         Assert.IsTrue(
             BlockingError.Contains(
                 StrSubstNo(
                     UnsupportedSubcontractingLocationErr,
                     PurchaseLocation.Code,
-                    'Require Put-away, Require Receive, Require Shipment')),
+                    PurchaseLocation.FieldCaption("Require Put-away") + ', ' +
+                    PurchaseLocation.FieldCaption("Require Receive") + ', ' +
+                    PurchaseLocation.FieldCaption("Require Shipment"))),
             'The precheck should report the purchase location and its unsupported settings.');
     end;
 
@@ -927,7 +929,10 @@ codeunit 149956 "IT Subc. Migration Tests"
             'The precheck should report the missing legacy location.');
         Assert.IsTrue(
             BlockingError.Contains(
-                StrSubstNo(UnsupportedSubcontractingLocationErr, UnsupportedLocation.Code, 'Bin Mandatory')),
+                StrSubstNo(
+                    UnsupportedSubcontractingLocationErr,
+                    UnsupportedLocation.Code,
+                    UnsupportedLocation.FieldCaption("Bin Mandatory"))),
             'The precheck should continue and report the unsupported legacy location.');
     end;
 
@@ -973,7 +978,7 @@ codeunit 149956 "IT Subc. Migration Tests"
             StrSubstNo(
                 UnsupportedSubcontractingLocationErr,
                 Location.Code,
-                'Bin Mandatory'));
+                Location.FieldCaption("Bin Mandatory")));
 
         // [THEN] Migration has not changed the vendor
         Vendor.Get(Vendor."No.");
