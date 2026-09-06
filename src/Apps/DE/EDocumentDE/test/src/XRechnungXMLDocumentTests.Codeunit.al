@@ -4257,11 +4257,11 @@ codeunit 13918 "XRechnung XML Document Tests"
     begin
         Path := DocumentTok + '/cbc:PaymentMeansCode';
         Assert.AreEqual('59', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := DocumentTok + '/cbc:PaymentID';
+        Path := DocumentTok + '/cac:PaymentMandate/cbc:ID';
         Assert.AreEqual(ExpectedMandateID, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Path := DocumentTok + '/cac:PayeeFinancialAccount/cbc:ID';
         Assert.AreEqual(ExpectedPayeeIBAN, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
-        Path := DocumentTok + '/cac:PayerFinancialAccount/cbc:ID';
+        Path := DocumentTok + '/cac:PaymentMandate/cac:PayerFinancialAccount/cbc:ID';
         Assert.AreEqual(ExpectedPayerIBAN, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
@@ -4269,7 +4269,7 @@ codeunit 13918 "XRechnung XML Document Tests"
     var
         Path: Text;
     begin
-        Path := PartyTok + '/cac:PartyLegalEntity/cbc:CompanyID';
+        Path := PartyTok + '/cac:PartyIdentification/cbc:ID';
         Assert.AreEqual(ExpectedCreditorNo, GetLastNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
         Assert.AreEqual('SEPA', GetLastAttributeByPathWithError(TempXMLBuffer, Path, 'schemeID'), StrSubstNo(IncorrectValueErr, Path + '/@schemeID'));
     end;
@@ -4865,25 +4865,6 @@ codeunit 13918 "XRechnung XML Document Tests"
         TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
         TempXMLBuffer.SetRange(Path, ElementXPath);
         if TempXMLBuffer.FindFirst() then begin
-            TempXMLBufferAttribute.Copy(TempXMLBuffer, true);
-            TempXMLBufferAttribute.Reset();
-            TempXMLBufferAttribute.SetRange("Parent Entry No.", TempXMLBuffer."Entry No.");
-            TempXMLBufferAttribute.SetRange(Type, TempXMLBufferAttribute.Type::Attribute);
-            TempXMLBufferAttribute.SetRange(Name, AttributeName);
-            if TempXMLBufferAttribute.FindFirst() then
-                exit(TempXMLBufferAttribute.Value);
-        end;
-        Error(AttributeNotFoundErr, AttributeName, ElementXPath);
-    end;
-
-    local procedure GetLastAttributeByPathWithError(var TempXMLBuffer: Record "XML Buffer" temporary; ElementXPath: Text; AttributeName: Text): Text
-    var
-        TempXMLBufferAttribute: Record "XML Buffer" temporary;
-    begin
-        TempXMLBuffer.Reset();
-        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
-        TempXMLBuffer.SetRange(Path, ElementXPath);
-        if TempXMLBuffer.FindLast() then begin
             TempXMLBufferAttribute.Copy(TempXMLBuffer, true);
             TempXMLBufferAttribute.Reset();
             TempXMLBufferAttribute.SetRange("Parent Entry No.", TempXMLBuffer."Entry No.");
