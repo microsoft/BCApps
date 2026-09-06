@@ -123,8 +123,29 @@ codeunit 6975 "Create Expense VAT Rates"
     end;
 
     internal procedure GetExpenseVATAccountName(VATPercent: Decimal): Text[100]
+    var
+        CompanyInfo: Record "Company Information";
     begin
+        CompanyInfo.Get();
+        if CompanyInfo."Country/Region Code" in ['AU', 'NZ'] then
+            exit(StrSubstNo(ExpenseGSTAccountNameLbl, Format(VATPercent)));
+
         exit(StrSubstNo(ExpenseVATAccountNameLbl, Format(VATPercent)));
+    end;
+
+    local procedure GetSalesVATAccount(VATPercent: Decimal): Code[20]
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        VATPostingSetup.SetRange("VAT Bus. Posting Group", ExpenseAgentSetup."Default VAT Bus. Posting Group");
+        VATPostingSetup.SetRange("VAT %", VATPercent);
+        VATPostingSetup.SetFilter("Sales VAT Account", '<>%1', '');
+        if VATPostingSetup.FindFirst() then
+            exit(VATPostingSetup."Sales VAT Account");
+
+        VATPostingSetup.SetRange("VAT %");
+        if VATPostingSetup.FindFirst() then
+            exit(VATPostingSetup."Sales VAT Account");
     end;
 
     local procedure InsertRate(CategoryCode: Code[20]; SubcategoryCode: Code[20]; VATProdPostingGroup: Code[20]; VATPercent: Decimal; NewDescription: Text[100])
@@ -134,6 +155,7 @@ codeunit 6975 "Create Expense VAT Rates"
         VATProductPostingGroup: Record "VAT Product Posting Group";
         VATPostingSetup: Record "VAT Posting Setup";
         PurchaseVATAccountNo: Code[20];
+        SalesVATAccountNo: Code[20];
     begin
         if not VATProductPostingGroup.Get(VATProdPostingGroup) then begin
             VATProductPostingGroup.Init();
@@ -144,19 +166,25 @@ codeunit 6975 "Create Expense VAT Rates"
 
         ExpenseAgentSetup.GetRecordOnce();
         PurchaseVATAccountNo := GetPurchaseVATAccount(VATPercent);
+        SalesVATAccountNo := GetSalesVATAccount(VATPercent);
         if not VATPostingSetup.Get(ExpenseAgentSetup."Default VAT Bus. Posting Group", VATProdPostingGroup) then begin
             VATPostingSetup.Init();
             VATPostingSetup.Validate("VAT Bus. Posting Group", ExpenseAgentSetup."Default VAT Bus. Posting Group");
             VATPostingSetup.Validate("VAT Prod. Posting Group", VATProdPostingGroup);
+            if SalesVATAccountNo <> '' then
+                VATPostingSetup.Validate("Sales VAT Account", SalesVATAccountNo);
             if PurchaseVATAccountNo <> '' then
                 VATPostingSetup.Validate("Purchase VAT Account", PurchaseVATAccountNo);
             VATPostingSetup."VAT %" := VATPercent;
             VATPostingSetup.Insert();
-        end else
-            if (PurchaseVATAccountNo <> '') and (VATPostingSetup."Purchase VAT Account" <> PurchaseVATAccountNo) then begin
+        end else begin
+            if (SalesVATAccountNo <> '') and (VATPostingSetup."Sales VAT Account" = '') then
+                VATPostingSetup.Validate("Sales VAT Account", SalesVATAccountNo);
+            if (PurchaseVATAccountNo <> '') and (VATPostingSetup."Purchase VAT Account" <> PurchaseVATAccountNo) then
                 VATPostingSetup.Validate("Purchase VAT Account", PurchaseVATAccountNo);
+            if VATPostingSetup.IsDirty() then
                 VATPostingSetup.Modify();
-            end;
+        end;
 
         if SubcategoryCode = '' then begin
             ExpenseCategory.Get(CategoryCode);
@@ -179,6 +207,7 @@ codeunit 6975 "Create Expense VAT Rates"
         CreateExpenseCategories: Codeunit "Create Expense Categories";
 
         ExpenseVATAccountNameLbl: Label 'Expense VAT %1 %', MaxLength = 100, Comment = '%1 = VAT percentage';
+        ExpenseGSTAccountNameLbl: Label 'Expense GST %1 %', MaxLength = 100, Comment = '%1 = GST percentage';
 
     local procedure CreateVATRatesAT()
     begin
