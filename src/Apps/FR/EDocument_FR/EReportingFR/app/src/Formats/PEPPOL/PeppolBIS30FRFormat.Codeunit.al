@@ -279,6 +279,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesInvoiceLine: Record "Sales Invoice Line";
         ShipmentPostingDates: Dictionary of [Code[20], Date];
+        ShipmentBuyerReferences: Dictionary of [Code[20], Text];
         CustomizationIdNode: XmlNode;
         NewCustomizationIdNode: XmlNode;
     begin
@@ -286,7 +287,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
             exit;
 
         SourceDocumentHeader.SetTable(SalesInvoiceHeader);
-        if not RequiresExtendedCTCFrance(SalesInvoiceHeader."No.", ShipmentPostingDates) then
+        if not RequiresExtendedCTCFrance(SalesInvoiceHeader."No.", ShipmentPostingDates, ShipmentBuyerReferences) then
             exit;
 
         if XmlDoc.SelectSingleNode('/*/cbc:CustomizationID', NamespaceMgr, CustomizationIdNode) then begin
@@ -298,11 +299,11 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         SalesInvoiceLine.SetLoadFields("Line No.", "Order Line No.", "Shipment No.");
         if SalesInvoiceLine.FindSet() then
             repeat
-                InjectExtendedLineReferences(XmlDoc, NamespaceMgr, SalesInvoiceLine, ShipmentPostingDates);
+                InjectExtendedLineReferences(XmlDoc, NamespaceMgr, SalesInvoiceLine, ShipmentPostingDates, ShipmentBuyerReferences);
             until SalesInvoiceLine.Next() = 0;
     end;
 
-    local procedure RequiresExtendedCTCFrance(DocumentNo: Code[20]; var ShipmentPostingDates: Dictionary of [Code[20], Date]): Boolean
+    local procedure RequiresExtendedCTCFrance(DocumentNo: Code[20]; var ShipmentPostingDates: Dictionary of [Code[20], Date]; var ShipmentBuyerReferences: Dictionary of [Code[20], Text]): Boolean
     var
         SalesInvoiceLine: Record "Sales Invoice Line";
         SalesShipmentHeader: Record "Sales Shipment Header";
@@ -310,6 +311,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         OrderNos: Dictionary of [Text, Boolean];
         DeliveryDates: Dictionary of [Text, Boolean];
         ShipmentNoFilterBuilder: TextBuilder;
+        BuyerReference: Text;
     begin
         SalesInvoiceLine.SetRange("Document No.", DocumentNo);
         SalesInvoiceLine.SetLoadFields("Shipment No.", "Order No.");
@@ -326,10 +328,15 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
 
         if ShipmentNoFilterBuilder.Length() > 0 then begin
             SalesShipmentHeader.SetFilter("No.", ShipmentNoFilterBuilder.ToText());
-            SalesShipmentHeader.SetLoadFields("Posting Date");
+            SalesShipmentHeader.SetLoadFields("Posting Date", "Your Reference", "External Document No.");
             if SalesShipmentHeader.FindSet() then
                 repeat
                     ShipmentPostingDates.Add(SalesShipmentHeader."No.", SalesShipmentHeader."Posting Date");
+                    BuyerReference := SalesShipmentHeader."Your Reference";
+                    if BuyerReference = '' then
+                        BuyerReference := SalesShipmentHeader."External Document No.";
+                    if BuyerReference <> '' then
+                        ShipmentBuyerReferences.Add(SalesShipmentHeader."No.", BuyerReference);
                     AddDistinctValue(DeliveryDates, Format(SalesShipmentHeader."Posting Date", 0, 9));
                 until SalesShipmentHeader.Next() = 0;
         end;
@@ -362,7 +369,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
             Values.Add(Value, true);
     end;
 
-    local procedure InjectExtendedLineReferences(var XmlDoc: XmlDocument; NamespaceMgr: XmlNamespaceManager; SalesInvoiceLine: Record "Sales Invoice Line"; ShipmentPostingDates: Dictionary of [Code[20], Date])
+    local procedure InjectExtendedLineReferences(var XmlDoc: XmlDocument; NamespaceMgr: XmlNamespaceManager; SalesInvoiceLine: Record "Sales Invoice Line"; ShipmentPostingDates: Dictionary of [Code[20], Date]; ShipmentBuyerReferences: Dictionary of [Code[20], Text])
     var
         InvoiceLineNode: XmlNode;
         LineContentAnchorNode: XmlNode;
@@ -379,7 +386,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         if not InvoiceLineNode.SelectSingleNode('cac:AllowanceCharge | cac:TaxTotal | cac:WithholdingTaxTotal | cac:Item', NamespaceMgr, LineContentAnchorNode) then
             exit;
 
-        BuyerReference := GetExtendedLineBuyerReference(SalesInvoiceLine);
+        BuyerReference := GetExtendedLineBuyerReference(SalesInvoiceLine, ShipmentBuyerReferences);
         if BuyerReference <> '' then begin
             OrderLineReferenceElement := XmlElement.Create('OrderLineReference', CacNamespaceTok);
             OrderLineReferenceElement.Add(XmlElement.Create('LineID', CbcNamespaceTok, Format(SalesInvoiceLine."Order Line No.", 0, 9)));
@@ -401,18 +408,10 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         LineContentAnchorNode.AddBeforeSelf(DeliveryElement);
     end;
 
-    local procedure GetExtendedLineBuyerReference(SalesInvoiceLine: Record "Sales Invoice Line") BuyerReference: Text
-    var
-        SalesShipmentHeader: Record "Sales Shipment Header";
+    local procedure GetExtendedLineBuyerReference(SalesInvoiceLine: Record "Sales Invoice Line"; ShipmentBuyerReferences: Dictionary of [Code[20], Text]) BuyerReference: Text
     begin
-        if SalesInvoiceLine."Shipment No." <> '' then begin
-            SalesShipmentHeader.SetLoadFields("Your Reference", "External Document No.");
-            if SalesShipmentHeader.Get(SalesInvoiceLine."Shipment No.") then begin
-                BuyerReference := SalesShipmentHeader."Your Reference";
-                if BuyerReference = '' then
-                    BuyerReference := SalesShipmentHeader."External Document No.";
-            end;
-        end;
+        if SalesInvoiceLine."Shipment No." <> '' then
+            ShipmentBuyerReferences.Get(SalesInvoiceLine."Shipment No.", BuyerReference);
 
         OnAfterGetExtendedLineBuyerReference(SalesInvoiceLine, BuyerReference);
         exit(BuyerReference);

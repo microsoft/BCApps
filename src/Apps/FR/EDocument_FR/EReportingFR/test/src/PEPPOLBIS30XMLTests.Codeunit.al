@@ -402,19 +402,14 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         InvoiceNo := CreateSalesInvoiceWithLine(CustomerNo);
         FirstCommentLine := 'Tout retard de paiement engendre une pénalité exigible à compter de la date';
         SecondCommentLine := 'd''échéance, calculée sur la base de trois fois le taux d''intérêt légal.';
-        SalesCommentLine."Document Type" := SalesCommentLine."Document Type"::Invoice;
-        SalesCommentLine."No." := InvoiceNo;
-        SalesCommentLine."Line No." := 10000;
-        SalesCommentLine."FR Regulatory Comment Type" := SalesCommentLine."FR Regulatory Comment Type"::PMD;
-        SalesCommentLine.Comment := FirstCommentLine;
-        SalesCommentLine.Insert();
-        SalesCommentLine.Init();
-        SalesCommentLine."Document Type" := SalesCommentLine."Document Type"::Invoice;
-        SalesCommentLine."No." := InvoiceNo;
-        SalesCommentLine."Line No." := 20000;
-        SalesCommentLine."FR Regulatory Comment Type" := SalesCommentLine."FR Regulatory Comment Type"::PMD;
-        SalesCommentLine.Comment := SecondCommentLine;
-        SalesCommentLine.Insert();
+        LibrarySales.CreateSalesCommentLine(SalesCommentLine, "Sales Document Type"::Invoice, InvoiceNo, 0);
+        SalesCommentLine.Validate("FR Regulatory Comment Type", SalesCommentLine."FR Regulatory Comment Type"::PMD);
+        SalesCommentLine.Validate(Comment, FirstCommentLine);
+        SalesCommentLine.Modify(true);
+        LibrarySales.CreateSalesCommentLine(SalesCommentLine, "Sales Document Type"::Invoice, InvoiceNo, 0);
+        SalesCommentLine.Validate("FR Regulatory Comment Type", SalesCommentLine."FR Regulatory Comment Type"::PMD);
+        SalesCommentLine.Validate(Comment, SecondCommentLine);
+        SalesCommentLine.Modify(true);
         SalesHeader.Get("Sales Document Type"::Invoice, InvoiceNo);
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
 
@@ -765,6 +760,40 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
             StrSubstNo(IncorrectValueErr, 'Delivery ID'));
         Assert.AreEqual(Format(SalesShipmentHeader."Posting Date", 0, 9), GetNodeByPath(XmlDoc, '/Invoice/cac:InvoiceLine/cac:Delivery/cbc:ActualDeliveryDate'),
             StrSubstNo(IncorrectValueErr, 'ActualDeliveryDate'));
+    end;
+
+    [Test]
+    procedure ExportSalesInvUsesShipmentExternalDocumentNoAsBuyerReference()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        XmlDoc: XmlDocument;
+        BuyerReference: Text[35];
+        CustomerNo: Code[20];
+        FirstShipmentNo: Code[20];
+        SecondShipmentNo: Code[20];
+    begin
+        // [SCENARIO] An empty shipment buyer reference falls back to its external document number
+        Initialize();
+
+        CustomerNo := CreateCustomer('123456789', "Electronic Address Scheme"::"0002");
+        FirstShipmentNo := CreateAndPostSalesOrderShipment(CustomerNo, 1, 1, 10);
+        SecondShipmentNo := CreateAndPostSalesOrderShipment(CustomerNo, 1, 1, 10);
+        BuyerReference := 'FR-EXTERNAL-REF';
+        SalesShipmentHeader.Get(FirstShipmentNo);
+        SalesShipmentHeader.Validate("Your Reference", '');
+        SalesShipmentHeader.Validate("External Document No.", BuyerReference);
+        SalesShipmentHeader.Modify(true);
+        SalesShipmentHeader.Get(SecondShipmentNo);
+        SalesShipmentHeader.Validate("Your Reference", '');
+        SalesShipmentHeader.Validate("External Document No.", BuyerReference);
+        SalesShipmentHeader.Modify(true);
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceFromShipments(CustomerNo, FirstShipmentNo + '|' + SecondShipmentNo));
+
+        ExportInvoice(SalesInvoiceHeader, XmlDoc);
+
+        Assert.AreEqual(BuyerReference, GetNodeByPath(XmlDoc, '/Invoice/cac:InvoiceLine/cac:OrderLineReference/cac:OrderReference/cbc:ID'),
+            StrSubstNo(IncorrectValueErr, 'OrderReference ID'));
     end;
 
     [Test]
