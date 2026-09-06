@@ -42,6 +42,7 @@ codeunit 149951 "IT Subc. Migration"
 #if not CLEAN28
         LegacySubcFeatureHandler.CheckCanDisableLegacySubcontracting();
 #endif
+        // Validate before confirmation for prompt feedback, then repeat under locks to prevent concurrent changes.
         CheckSubcontractingLocations();
         UIAllowed := ShowDialog and GuiAllowed();
         if UIAllowed then begin
@@ -51,6 +52,7 @@ codeunit 149951 "IT Subc. Migration"
 
         LockTables();
         Clear(PreMigrationCounts);
+        // This authoritative validation covers changes made by other sessions while confirmation was pending.
         CheckSubcontractingLocations();
         RunMigration();
 
