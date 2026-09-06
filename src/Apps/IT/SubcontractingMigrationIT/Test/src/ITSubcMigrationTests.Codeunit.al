@@ -34,6 +34,7 @@ codeunit 149956 "IT Subc. Migration Tests"
         LibraryUtility: Codeunit "Library - Utility";
         Initialized: Boolean;
         UnsupportedSubcontractingLocationErr: Label 'Migration can''t start because subcontracting location %1 uses unsupported warehouse settings: %2. Update the location or subcontracting setup, and then run the precheck again.', Comment = '%1 = location code, %2 = unsupported warehouse settings';
+        MissingSubcontractingLocationErr: Label 'Migration can''t start because legacy subcontracting data references location %1, but that location doesn''t exist. Update the legacy vendor or purchase document, and then run the precheck again.', Comment = '%1 = location code';
 
     [Test]
     [Scope('OnPrem')]
@@ -885,6 +886,50 @@ codeunit 149956 "IT Subc. Migration Tests"
 
     [Test]
     [Scope('OnPrem')]
+    procedure CheckSubcontractingLocations_ReportsMissingAndUnsupportedLegacyLocations()
+    var
+        Vendor: Record Vendor;
+        PurchaseHeader: Record "Purchase Header";
+        MissingLocation: Record Location;
+        UnsupportedLocation: Record Location;
+        ITSubcMigration: Codeunit "IT Subc. Migration";
+        BlockingError: Text;
+    begin
+        // [SCENARIO] The migration precheck aggregates missing and unsupported legacy subcontracting locations
+        Initialize();
+
+        // [GIVEN] A vendor whose legacy subcontracting location references a deleted location
+        LibraryWarehouse.CreateLocation(MissingLocation);
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor."Subcontracting Location Code" := MissingLocation.Code;
+        Vendor.Modify(false);
+        MissingLocation.Delete(false);
+
+        // [GIVEN] A purchase header whose legacy subcontracting location requires bins
+        LibraryWarehouse.CreateLocation(UnsupportedLocation);
+        UnsupportedLocation."Bin Mandatory" := true;
+        UnsupportedLocation.Modify(false);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        PurchaseHeader."Subcontracting Location Code" := UnsupportedLocation.Code;
+        PurchaseHeader.Modify(false);
+        Commit();
+
+        // [WHEN] The subcontracting location precheck runs
+        asserterror ITSubcMigration.CheckSubcontractingLocations();
+
+        // [THEN] The blocking error reports both legacy location problems
+        BlockingError := GetLastErrorText();
+        Assert.IsTrue(
+            BlockingError.Contains(StrSubstNo(MissingSubcontractingLocationErr, MissingLocation.Code)),
+            'The precheck should report the missing legacy location.');
+        Assert.IsTrue(
+            BlockingError.Contains(
+                StrSubstNo(UnsupportedSubcontractingLocationErr, UnsupportedLocation.Code, 'Bin Mandatory')),
+            'The precheck should continue and report the unsupported legacy location.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure StartDisableLegacySubcontracting_BlocksUnsupportedLocationBeforeMigration()
     var
         Vendor: Record Vendor;
@@ -915,6 +960,7 @@ codeunit 149956 "IT Subc. Migration Tests"
         Vendor."Subcontracting Location Code" := Location.Code;
         Vendor."Subc. Location Code" := '';
         Vendor.Modify(false);
+        Commit();
 
         // [WHEN] Legacy subcontracting is disabled
         asserterror ITSubcMigration.StartDisableLegacySubcontracting(false);

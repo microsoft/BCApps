@@ -51,6 +51,7 @@ codeunit 149951 "IT Subc. Migration"
 
         LockTables();
         Clear(PreMigrationCounts);
+        CheckSubcontractingLocations();
         RunMigration();
 
         if UIAllowed then
@@ -443,6 +444,7 @@ codeunit 149951 "IT Subc. Migration"
         RoutingLine: Record "Routing Line";
         Vendor: Record Vendor;
         PurchaseHeader: Record "Purchase Header";
+        Location: Record Location;
 #pragma warning disable AL0432
         LegacySubcontractorPrice: Record "Subcontractor Prices";
 #pragma warning restore AL0432
@@ -457,6 +459,7 @@ codeunit 149951 "IT Subc. Migration"
         RoutingLine.LockTable();
         Vendor.LockTable();
         PurchaseHeader.LockTable();
+        Location.LockTable();
         LegacySubcontractorPrice.LockTable();
         SubcontractorPrice.LockTable();
         ManufacturingSetup.LockTable();
@@ -586,6 +589,7 @@ codeunit 149951 "IT Subc. Migration"
         UnsupportedWarehouseSettings: Text;
         CollectedErrors: List of [ErrorInfo];
         CollectedError: ErrorInfo;
+        BlockingError: ErrorInfo;
         BlockingErrorText: Text;
     begin
         SetVendorMigrationFilters(Vendor);
@@ -602,18 +606,30 @@ codeunit 149951 "IT Subc. Migration"
                 AddLegacySubcontractingLocation(LegacySubcontractingLocations, PurchaseHeader."Subcontracting Location Code");
             until PurchaseHeader.Next() = 0;
 
-        foreach LocationCode in LegacySubcontractingLocations.Keys() do begin
-            Location.Get(LocationCode);
-            UnsupportedWarehouseSettings := GetUnsupportedWarehouseSettings(Location);
-            if UnsupportedWarehouseSettings <> '' then
-                Error(UnsupportedSubcontractingLocationErr, Location.Code, UnsupportedWarehouseSettings);
-        end;
+        Location.SetLoadFields(
+            "Bin Mandatory",
+            "Require Pick",
+            "Require Put-away",
+            "Require Receive",
+            "Require Shipment");
+        foreach LocationCode in LegacySubcontractingLocations.Keys() do
+            if not Location.Get(LocationCode) then
+                Error(MissingSubcontractingLocationErr, LocationCode)
+            else begin
+                UnsupportedWarehouseSettings := GetUnsupportedWarehouseSettings(Location);
+                if UnsupportedWarehouseSettings <> '' then
+                    Error(UnsupportedSubcontractingLocationErr, Location.Code, UnsupportedWarehouseSettings);
+            end;
 
         if HasCollectedErrors() then begin
             CollectedErrors := GetCollectedErrors(true);
             foreach CollectedError in CollectedErrors do
                 BlockingErrorText += CollectedError.Message() + '\';
-            Error(ErrorInfo.Create(BlockingErrorText, false));
+            BlockingError.Message := BlockingErrorText;
+            BlockingError.DataClassification := DataClassification::CustomerContent;
+            BlockingError.ErrorType := ErrorType::Client;
+            BlockingError.Collectible := false;
+            Error(BlockingError);
         end;
     end;
 
@@ -731,6 +747,7 @@ codeunit 149951 "IT Subc. Migration"
         VerifyingProgressEntityLbl: Label 'Verification step';
         MigrationVerificationFailedErr: Label 'Migration verification failed for %1: expected %2 record(s) but found %3 after migration.', Comment = '%1 = entity name, %2 = pre-migration count, %3 = post-migration count';
         UnsupportedSubcontractingLocationErr: Label 'Migration can''t start because subcontracting location %1 uses unsupported warehouse settings: %2. Update the location or subcontracting setup, and then run the precheck again.', Comment = '%1 = location code, %2 = unsupported warehouse settings';
+        MissingSubcontractingLocationErr: Label 'Migration can''t start because legacy subcontracting data references location %1, but that location doesn''t exist. Update the legacy vendor or purchase document, and then run the precheck again.', Comment = '%1 = location code';
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Legacy Subc. Feature Handler", 'OnMigrationSubcontractingData', '', false, false)]
     local procedure MigrateSubconOnMigrationSubcontractingData()
