@@ -250,7 +250,17 @@ codeunit 2504 "Extension Management"
     /// <param name="AppId">The ID of the extension package.</param>
     procedure InstallMarketplaceExtension(AppId: Guid)
     begin
-        ExtensionMarketplace.InstallAppsourceExtensionWithRefreshSession(AppId, '');
+        ExtensionMarketplace.InstallAppsourceExtensionWithRefreshSession(AppId, '', '');
+    end;
+
+    /// <summary>
+    /// Installs a marketplace extension with publisher type information.
+    /// </summary>
+    /// <param name="AppId">The App Id of the extension to install.</param>
+    /// <param name="PublisherType">The publisher type of the extension (e.g., 'Microsoft' or 'ThirdParty').</param>
+    procedure InstallMarketplaceExtensionWithPublisher(AppId: Guid; PublisherType: Text)
+    begin
+        ExtensionMarketplace.InstallAppsourceExtensionWithRefreshSession(AppId, '', PublisherType);
     end;
 
     /// <summary>
@@ -284,4 +294,3 @@ codeunit 2504 "Extension Management"
         ExtensionOperationImpl.GetDeploymentDetailedStatusMessageAsStream(OperationId, OutStream);
     end;
 }
-

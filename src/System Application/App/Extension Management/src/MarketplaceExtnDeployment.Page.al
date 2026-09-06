@@ -24,7 +24,7 @@ page 2510 "Marketplace Extn Deployment"
         {
             group(DisclaimerStep)
             {
-                Visible = Step = Step::Disclaimer;
+                Visible = (Step = Step::Disclaimer) and IsThirdPartyInstall;
                 ShowCaption = false;
 
                 group(DisclaimerHeader)
@@ -168,8 +168,8 @@ page 2510 "Marketplace Extn Deployment"
                 Caption = 'Back';
                 ToolTip = 'Go back to the previous step.';
                 InFooterBar = true;
-                Enabled = Step <> Step::Disclaimer;
-                Visible = Step <> Step::Disclaimer;
+                Enabled = (Step = Step::Installation) and IsThirdPartyInstall;
+                Visible = (Step = Step::Installation) and IsThirdPartyInstall;
 
                 trigger OnAction()
                 begin
@@ -186,7 +186,7 @@ page 2510 "Marketplace Extn Deployment"
                 Caption = 'Continue';
                 ToolTip = 'Continue to the next step.';
                 InFooterBar = true;
-                Visible = Step = Step::Disclaimer;
+                Visible = (Step = Step::Disclaimer) and IsThirdPartyInstall;
 
                 trigger OnAction()
                 begin
@@ -236,6 +236,16 @@ page 2510 "Marketplace Extn Deployment"
             InstallPreview := true;
     end;
 
+    internal procedure SetPublisherType(NewPublisherType: Text)
+    begin
+        PublisherType := NewPublisherType;
+        IsThirdPartyInstall := LowerCase(PublisherType) <> MicrosoftPublisherTypeTok;
+        if IsThirdPartyInstall then
+            Step := Step::Disclaimer
+        else
+            Step := Step::Installation;
+    end;
+
     trigger OnInit()
     var
         LanguageManagement: Codeunit Language;
@@ -243,6 +253,7 @@ page 2510 "Marketplace Extn Deployment"
         LanguageID := GlobalLanguage();
         LanguageName := LanguageManagement.GetWindowsLanguageName(LanguageID);
         Clear(InstallSelected);
+        IsThirdPartyInstall := true;
         Step := Step::Disclaimer;
     end;
 
@@ -258,7 +269,9 @@ page 2510 "Marketplace Extn Deployment"
         LanguageID: Integer;
         InstallSelected: Boolean;
         InstallPreview: Boolean;
+        IsThirdPartyInstall: Boolean;
         AppID: Guid;
+        PublisherType: Text;
         Step: Option Disclaimer,Installation;
         ActiveUsersLbl: Label 'Note: There might be other users working in the system.';
         WarningLbl: Label 'Installing extensions during business hours will disrupt other users.';
@@ -271,4 +284,5 @@ page 2510 "Marketplace Extn Deployment"
         LearnMoreComplianceURLLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2342556', Locked = true;
         LearnMoreInstallingLbl: Label 'Learn more about installing/uninstalling apps';
         InstallAppsURLLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2260926', Locked = true;
+        MicrosoftPublisherTypeTok: Label 'microsoft', Locked = true;
 }
