@@ -10,7 +10,6 @@
 
     var
         Assert: Codeunit Assert;
-        LibraryCFDI: Codeunit "Library - CFDI";
         LibraryERM: Codeunit "Library - ERM";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryInventory: Codeunit "Library - Inventory";
@@ -21,6 +20,7 @@
         LibraryRandom: Codeunit "Library - Random";
         IsInitialized: Boolean;
         AmountErr: Label '%1 must be %2 in %3.', Comment = '%1 = Amount FieldCaption, %2 = Amount Value, %3 = Record TableCaption';
+        VATPostingGroupMustBeErr: Label 'must be %1', Comment = '%1 = VAT product posting group code';
         ConfirmPostingAfterWorkingDateQst: Label 'The posting date of one or more journal lines is after the working date. Do you want to continue?';
 
     [Test]
@@ -810,11 +810,9 @@
         CreditMemoNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
         // [THEN] Invoice Group1 Remaining Unrealized Amount is reduced by the Group1 credit memo amount
-        VATEntry.SetRange(Type, VATEntry.Type::Sale);
-        VATEntry.SetRange("Document Type", VATEntry."Document Type"::Invoice);
-        VATEntry.SetRange("Document No.", InvoiceNo);
-        VATEntry.SetRange("VAT Prod. Posting Group", VATPostingSetup[1]."VAT Prod. Posting Group");
-        VATEntry.FindFirst();
+        FindVATEntryByDocumentAndPostingGroup(
+          VATEntry, VATEntry.Type::Sale, VATEntry."Document Type"::Invoice,
+          InvoiceNo, VATPostingSetup[1]."VAT Prod. Posting Group");
         Assert.AreNearlyEqual(
           -Round((UnitPrice[1] - CreditMemoPrice[1]) * 10 / 100),
           VATEntry."Remaining Unrealized Amount",
@@ -822,8 +820,9 @@
           'Group1 remaining unrealized VAT should be reduced by the Group1 credit memo amount');
 
         // [THEN] Invoice Group2 Remaining Unrealized Amount is reduced by the Group2 credit memo amount
-        VATEntry.SetRange("VAT Prod. Posting Group", VATPostingSetup[2]."VAT Prod. Posting Group");
-        VATEntry.FindFirst();
+        FindVATEntryByDocumentAndPostingGroup(
+          VATEntry, VATEntry.Type::Sale, VATEntry."Document Type"::Invoice,
+          InvoiceNo, VATPostingSetup[2]."VAT Prod. Posting Group");
         Assert.AreNearlyEqual(
           -Round((UnitPrice[2] - CreditMemoPrice[2]) * 21 / 100),
           VATEntry."Remaining Unrealized Amount",
@@ -895,11 +894,9 @@
           -Round(
             UnitPrice[2] * 21 / 100 *
             (1 - PaymentAmount / 3520 - (CreditMemoPrice[2] * 1.21 * CreditMemoSettledAmount / 2310) / 2420));
-        VATEntry.SetRange(Type, VATEntry.Type::Sale);
-        VATEntry.SetRange("Document Type", VATEntry."Document Type"::Invoice);
-        VATEntry.SetRange("Document No.", InvoiceNo);
-        VATEntry.SetRange("VAT Prod. Posting Group", VATPostingSetup[2]."VAT Prod. Posting Group");
-        VATEntry.FindFirst();
+        FindVATEntryByDocumentAndPostingGroup(
+          VATEntry, VATEntry.Type::Sale, VATEntry."Document Type"::Invoice,
+          InvoiceNo, VATPostingSetup[2]."VAT Prod. Posting Group");
         Assert.AreNearlyEqual(
           ExpectedRemainingVATAmount,
           VATEntry."Remaining Unrealized Amount",
@@ -1328,8 +1325,21 @@
     local procedure CreateSalesHeader(var SalesHeader: Record "Sales Header"; DocumentType: Enum "Sales Document Type"; CustomerNo: Code[20])
     begin
         LibrarySales.CreateSalesHeader(SalesHeader, DocumentType, CustomerNo);
-        SalesHeader.Validate("Payment Method Code", LibraryCFDI.CreatePaymentMethodForSAT());
+        SalesHeader.Validate("Payment Method Code", CreatePaymentMethodForSAT());
         SalesHeader.Modify(true);
+    end;
+
+    local procedure CreatePaymentMethodForSAT(): Code[10]
+    var
+        PaymentMethod: Record "Payment Method";
+        SATPaymentMethod: Record "SAT Payment Method";
+    begin
+        LibraryERM.CreatePaymentMethod(PaymentMethod);
+        PaymentMethod."SAT Method of Payment" := PaymentMethod.Code;
+        PaymentMethod.Modify();
+        SATPaymentMethod.Code := PaymentMethod."SAT Method of Payment";
+        SATPaymentMethod.Insert();
+        exit(PaymentMethod.Code);
     end;
 
     local procedure CreateCurrencyExchangeRate(CurrencyCode: Code[10]; StartingDate: Date; MultiplicationFactor: Decimal)
@@ -1361,7 +1371,7 @@
         LibrarySales.CreateCustomer(Customer);
         Customer.Validate("Currency Code", CurrencyCode);
         Customer.Validate("VAT Bus. Posting Group", VATBusPostingGroup);
-        Customer.Validate("Payment Method Code", LibraryCFDI.CreatePaymentMethodForSAT());
+        Customer.Validate("Payment Method Code", CreatePaymentMethodForSAT());
         Customer.Modify(true);
         exit(Customer."No.");
     end;
@@ -1467,7 +1477,7 @@
             then
                 exit;
         until VATEntry.Next() = 0;
-        VATEntry.FieldError("VAT Prod. Posting Group", VATProdPostingGroup);
+        VATEntry.FieldError("VAT Prod. Posting Group", StrSubstNo(VATPostingGroupMustBeErr, VATProdPostingGroup));
     end;
 
     local procedure CalcVendInvoiceAmount(InvoiceNo: Code[20]): Decimal
