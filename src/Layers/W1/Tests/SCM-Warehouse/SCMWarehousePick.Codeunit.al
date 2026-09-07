@@ -2614,7 +2614,7 @@ codeunit 137055 "SCM Warehouse Pick"
     end;
 
     [Test]
-    [HandlerFunctions('WhseItemTrackingLinesAssignLotAndExpirationPageHandler,ItemTrackingLinesSelectEntriesPageHandler')]
+    [HandlerFunctions('WhseItemTrackingLinesAssignLotAndExpirationPageHandler,ItemTrackingLinesSelectEntriesPageHandler,ItemTrackingSummaryPageHandler')]
     [Scope('OnPrem')]
     procedure LotTrackingFlowsToSecondPickAfterPartialWarehouseShipment()
     var
@@ -3910,6 +3910,13 @@ codeunit 137055 "SCM Warehouse Pick"
     begin
         ItemTrackingLines."Select Entries".Invoke();
         ItemTrackingLines.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure ItemTrackingSummaryPageHandler(var ItemTrackingSummary: TestPage "Item Tracking Summary")
+    begin
+        ItemTrackingSummary.OK().Invoke();
     end;
 
     [ConfirmHandler]
