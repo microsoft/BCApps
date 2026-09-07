@@ -366,9 +366,6 @@ table 20405 "Qlty. Inspection Header"
             begin
                 if (Rec.Status = Rec.Status::Finished) and (Rec."Source Serial No." <> xRec."Source Serial No.") then
                     Error(TrackingCannotChangeForFinishedInspectionErr, Rec."No.", Rec."Re-inspection No.");
-
-                if not Rec.GetIsCreating() then
-                    QltyPermissionMgmt.VerifyCanChangeItemTracking();
             end;
         }
         field(66; "Source Lot No."; Code[50])
@@ -381,9 +378,6 @@ table 20405 "Qlty. Inspection Header"
             begin
                 if (Rec.Status = Rec.Status::Finished) and (Rec."Source Lot No." <> xRec."Source Lot No.") then
                     Error(TrackingCannotChangeForFinishedInspectionErr, Rec."No.", Rec."Re-inspection No.");
-
-                if not Rec.GetIsCreating() then
-                    QltyPermissionMgmt.VerifyCanChangeItemTracking();
             end;
         }
         field(67; "Source Package No."; Code[50])
@@ -396,9 +390,6 @@ table 20405 "Qlty. Inspection Header"
             begin
                 if (Rec.Status = Rec.Status::Finished) and (Rec."Source Package No." <> xRec."Source Package No.") then
                     Error(TrackingCannotChangeForFinishedInspectionErr, Rec."No.", Rec."Re-inspection No.");
-
-                if not Rec.GetIsCreating() then
-                    QltyPermissionMgmt.VerifyCanChangeItemTracking();
             end;
         }
         field(71; "Trigger Record Table No."; Integer)
@@ -566,12 +557,8 @@ table 20405 "Qlty. Inspection Header"
         QltyInspectionLine: Record "Qlty. Inspection Line";
         QltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
     begin
-        case Rec.Status of
-            Rec.Status::Open:
-                QltyPermissionMgmt.VerifyCanDeleteOpenInspection();
-            Rec.Status::Finished:
-                QltyPermissionMgmt.VerifyCanDeleteFinishedInspection();
-        end;
+        if Rec.Status = Rec.Status::Finished then
+            QltyPermissionMgmt.VerifyCanDeleteFinishedInspection();
 
         QltyInspectionLine.SetRange("Inspection No.", Rec."No.");
         QltyInspectionLine.SetRange("Re-inspection No.", Rec."Re-inspection No.");
@@ -595,7 +582,6 @@ table 20405 "Qlty. Inspection Header"
     var
         QltyStartWorkflow: Codeunit "Qlty. Start Workflow";
         QltyNotificationMgmt: Codeunit "Qlty. Notification Mgmt.";
-        PromptToAssignIfPossible: Boolean;
         UserFieldWasChanged: Boolean;
         ShouldTryAndChangePrompt: Boolean;
         ShouldPreventAutoAssignment: Boolean;
@@ -618,11 +604,10 @@ table 20405 "Qlty. Inspection Header"
                     ShouldTryAndChangePrompt := false;
             end;
             if ShouldTryAndChangePrompt then
-                if QltyPermissionMgmt.GetShouldAutoAssign(PromptToAssignIfPossible) then
-                    if PromptToAssignIfPossible then
-                        QltyNotificationMgmt.NotifyDoYouWantToAssignToYourself(Rec)
-                    else
-                        Rec.AssignToSelf();
+                if GuiAllowed() then
+                    QltyNotificationMgmt.NotifyDoYouWantToAssignToYourself(Rec)
+                else
+                    Rec.AssignToSelf();
         end;
 
         Rec.UpdateResultFromLines();
@@ -654,7 +639,6 @@ table 20405 "Qlty. Inspection Header"
         ReopenInspectionQst: Label 'Are you sure you want to Reopen the inspection %1 on %2?', Comment = '%1=the inspection details, %2=the source details.';
         MoreRecentReinspectionErr: Label 'This inspection cannot be Reopened because there is a more recent Re-inspection. Please work with the most recent Re-inspection instead.';
         CreateReinspectionQst: Label 'Are you sure you want to create a Re-inspection?';
-        FinishBeforeReinspectionErr: Label 'An inspection must be finished before a Re-inspection can be made. This is done automatically, but you do not have permission to finish an inspection.';
         PictureNameTok: Label '%1_%2_%3', Locked = true;
         FileExtensionTok: Label 'jpeg', Locked = true;
         CameraNotAvailableErr: Label 'The camera is not available. Make sure to use this with a device that has a camera supported by Business Central.';
@@ -887,7 +871,6 @@ table 20405 "Qlty. Inspection Header"
         IsHandled: Boolean;
         SourceDetails: Text;
     begin
-        QltyPermissionMgmt.VerifyCanFinishInspection();
         SourceDetails := QltyNotificationMgmt.GetSourceSummaryText(Rec);
 
         VerifyTrackingBeforeFinish();
@@ -1047,13 +1030,8 @@ table 20405 "Qlty. Inspection Header"
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
         Proceed: Boolean;
     begin
-        QltyPermissionMgmt.VerifyCanCreateReinspection();
-
-        if Rec.Status = Rec.Status::Open then begin
-            if not QltyPermissionMgmt.CanFinishInspection() then
-                Error(FinishBeforeReinspectionErr);
+        if Rec.Status = Rec.Status::Open then
             FinishInspectionAndPrompt(false);
-        end;
 
         if GuiAllowed() then
             Proceed := Confirm(CreateReinspectionQst)
@@ -1148,8 +1126,6 @@ table 20405 "Qlty. Inspection Header"
         if not TempItemTrackingSetup."Lot No. Required" then
             Error(NotLotTrackedErr, Rec."Source Item No.");
 
-        QltyPermissionMgmt.VerifyCanChangeItemTracking();
-
         OnlyForTheDocument := true;
 
         repeat
@@ -1221,8 +1197,6 @@ table 20405 "Qlty. Inspection Header"
         if not TempItemTrackingSetup."Package No. Required" then
             Error(NotPackageTrackedErr, Rec."Source Item No.");
 
-        QltyPermissionMgmt.VerifyCanChangeItemTracking();
-
         OnlyForTheDocument := true;
 
         repeat
@@ -1291,8 +1265,6 @@ table 20405 "Qlty. Inspection Header"
         QltyItemTracking.IsItemTrackingUsed(Rec."Source Item No.", TempItemTrackingSetup);
         if not TempItemTrackingSetup."Serial No. Required" then
             Error(NotSerialTrackedErr, Rec."Source Item No.");
-
-        QltyPermissionMgmt.VerifyCanChangeItemTracking();
 
         OnlyForTheDocument := true;
 

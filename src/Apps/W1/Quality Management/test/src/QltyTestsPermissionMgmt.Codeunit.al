@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Test.QualityManagement;
 
-using Microsoft.QualityManagement.Document;
 using Microsoft.Test.QualityManagement.TestLibraries;
 using System.TestLibraries.Utilities;
 
@@ -20,103 +19,19 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         LibraryAssert: Codeunit "Library Assert";
         UserDoesNotHavePermissionToErr: Label 'The user [%1] does not have permission to [%2].', Comment = '%1=User id, %2=permission being attempted';
         AdminSupervisorRoleIDTok: Label 'QltyMgmt - Admin', Locked = true;
-
-    [Test]
-    procedure VerifyCanCreateManualInspection_ShouldError()
-    begin
-        // [SCENARIO] Verify that creating a manual inspection without proper permissions raises an error
-        // [GIVEN] The user does not have write permission on Quality Inspection Header
-        // [WHEN] VerifyCanCreateManualInspection is called
-        // [THEN] An error is raised indicating the user lacks permission to create a manual inspection
-
-        if not CheckQltyInspectionHeaderWritePermission() then begin
-            asserterror QltyInspectionUtility.VerifyCanCreateManualInspection();
-            LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'create inspection manually'));
-        end;
-    end;
-
-    [Test]
-    procedure VerifyCanCreateManualInspection()
-    begin
-        // [SCENARIO] Verify that creating a manual inspection succeeds with proper supervisor permissions
-
-        // [GIVEN] The supervisor role permission set is added
-        LibraryLowerPermissions.AddPermissionSet(AdminSupervisorRoleIDTok);
-
-        // [WHEN] VerifyCanCreateManualInspection is called
-        QltyInspectionUtility.VerifyCanCreateManualInspection();
-
-        // [THEN] No errors is raised
-    end;
-
-    [Test]
-    procedure VerifyCanCreateReinspection_ShouldError()
-    begin
-        // [SCENARIO] Verify that creating a re-inspection without proper permissions raises an error
-        // [GIVEN] The user does not have write permission on Quality Inspection Header
-        // [WHEN] VerifyCanCreateReinspection is called
-        // [THEN] An error is raised indicating the user lacks permission to create a re-inspection
-
-        if not CheckQltyInspectionHeaderWritePermission() then begin
-            asserterror QltyInspectionUtility.VerifyCanCreateReinspection();
-            LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'create re-inspection'));
-        end;
-    end;
-
-    [Test]
-    procedure VerifyCanCreateReinspection()
-    begin
-        // [SCENARIO] Verify that creating a re-inspection succeeds with proper supervisor permissions
-
-        // [GIVEN] The supervisor role permission set is added
-        LibraryLowerPermissions.AddPermissionSet(AdminSupervisorRoleIDTok);
-
-        // [WHEN] VerifyCanCreateReinspection is called
-        QltyInspectionUtility.VerifyCanCreateReinspection();
-
-        // [THEN] No errors is raised
-    end;
-
-    [Test]
-    procedure VerifyCanDeleteOpenInspection_ShouldError()
-    begin
-        // [SCENARIO] Verify that deleting an open inspection without proper permissions raises an error
-        // [GIVEN] The user does not have write permission on Quality Inspection Header
-        // [WHEN] VerifyCanDeleteOpenInspection is called
-        // [THEN] An error is raised indicating the user lacks permission to delete an open inspection
-
-        if not CheckQltyInspectionHeaderWritePermission() then begin
-            asserterror QltyInspectionUtility.VerifyCanDeleteOpenInspection();
-            LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'delete open inspection'));
-        end;
-    end;
-
-    [Test]
-    procedure VerifyCanDeleteOpenInspection()
-    begin
-        // [SCENARIO] Verify that deleting an open inspection succeeds with proper supervisor permissions
-
-        // [GIVEN] The supervisor role permission set is added
-        LibraryLowerPermissions.AddPermissionSet(AdminSupervisorRoleIDTok);
-
-        // [WHEN] VerifyCanDeleteOpenInspection is called
-        QltyInspectionUtility.VerifyCanDeleteOpenInspection();
-
-        // [THEN] No errors is raised
-    end;
+        InspectorRoleIDTok: Label 'QltyMgmt - Inspector', Locked = true;
 
     [Test]
     procedure VerifyCanDeleteFinishedInspection_ShouldError()
     begin
-        // [SCENARIO] Verify that deleting a finished inspection without proper permissions raises an error
-        // [GIVEN] The user does not have write permission on Quality Inspection Header
+        // [SCENARIO] Verify that deleting a finished inspection without the administrator role raises an error
+        // [GIVEN] The inspector role permission set is added
+        LibraryLowerPermissions.AddPermissionSet(InspectorRoleIDTok);
+
         // [WHEN] VerifyCanDeleteFinishedInspection is called
         // [THEN] An error is raised indicating the user lacks permission to delete a finished inspection
-
-        if not CheckQltyInspectionHeaderWritePermission() then begin
-            asserterror QltyInspectionUtility.VerifyCanDeleteFinishedInspection();
-            LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'delete finished inspection'));
-        end;
+        asserterror QltyInspectionUtility.VerifyCanDeleteFinishedInspection();
+        LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'delete finished inspection'));
     end;
 
     [Test]
@@ -150,17 +65,30 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
+    procedure VerifyCanChangeOtherInspections_ShouldError()
+    begin
+        // [SCENARIO] Verify that changing another user's inspection without the administrator role raises an error
+        // [GIVEN] The inspector role permission set is added
+        LibraryLowerPermissions.AddPermissionSet(InspectorRoleIDTok);
+
+        // [WHEN] VerifyCanChangeOtherInspections is called
+        // [THEN] An error is raised indicating the user lacks permission to change other inspections
+        asserterror QltyInspectionUtility.VerifyCanChangeOtherInspections();
+        LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'change others inspection'));
+        LibraryAssert.IsFalse(QltyInspectionUtility.CanChangeOtherInspections(), 'not allowed without administrator role');
+    end;
+
+    [Test]
     procedure VerifyCanReopenInspection_ShouldError()
     begin
-        // [SCENARIO] Verify that reopening an inspection without proper permissions raises an error
-        // [GIVEN] The user does not have write permission on Quality Inspection Header
+        // [SCENARIO] Verify that reopening an inspection without the administrator role raises an error
+        // [GIVEN] The inspector role permission set is added
+        LibraryLowerPermissions.AddPermissionSet(InspectorRoleIDTok);
+
         // [WHEN] VerifyCanReopenInspection is called
         // [THEN] An error is raised indicating the user lacks permission to reopen an inspection
-
-        if not CheckQltyInspectionHeaderWritePermission() then begin
-            asserterror QltyInspectionUtility.VerifyCanReopenInspection();
-            LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'reopen inspection'));
-        end;
+        asserterror QltyInspectionUtility.VerifyCanReopenInspection();
+        LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'reopen inspection'));
     end;
 
     [Test]
@@ -178,75 +106,17 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
     end;
 
     [Test]
-    procedure VerifyCanFinishInspection_ShouldError()
-    begin
-        // [SCENARIO] Verify that finishing an inspection without proper permissions raises an error
-        // [GIVEN] The user does not have write permission on Quality Inspection Header
-        // [WHEN] VerifyCanFinishInspection is called
-        // [THEN] An error is raised indicating the user lacks permission to finish an inspection
-
-        if not CheckQltyInspectionHeaderWritePermission() then begin
-            asserterror QltyInspectionUtility.VerifyCanFinishInspection();
-            LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'finish inspection'));
-        end;
-    end;
-
-    [Test]
-    procedure VerifyCanFinishInspection()
-    begin
-        // [SCENARIO] Verify that finishing an inspection succeeds with proper supervisor permissions
-
-        // [GIVEN] The supervisor role permission set is added
-        LibraryLowerPermissions.AddPermissionSet(AdminSupervisorRoleIDTok);
-
-        // [WHEN] VerifyCanFinishInspection is called
-        QltyInspectionUtility.VerifyCanFinishInspection();
-
-        // [THEN] The operation succeeds and CanFinishInspection returns true
-        LibraryAssert.IsTrue(QltyInspectionUtility.CanFinishInspection(), 'should be allowed with modify permission on order table data');
-    end;
-
-    [Test]
-    procedure VerifyCanChangeItemTracking_ShouldError()
-    begin
-        // [SCENARIO] Verify that changing item tracking without proper permissions raises an error
-        // [GIVEN] The user does not have write permission on Quality Inspection Header
-        // [WHEN] VerifyCanChangeItemTracking is called
-        // [THEN] An error is raised indicating the user lacks permission to change item tracking
-
-        if not CheckQltyInspectionHeaderWritePermission() then begin
-            asserterror QltyInspectionUtility.VerifyCanChangeItemTracking();
-            LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'change item tracking'));
-        end;
-    end;
-
-    [Test]
-    procedure VerifyCanChangeItemTracking()
-    begin
-        // [SCENARIO] Verify that changing item tracking succeeds with proper supervisor permissions
-
-        // [GIVEN] The supervisor role permission set is added
-        LibraryLowerPermissions.AddPermissionSet(AdminSupervisorRoleIDTok);
-
-        // [WHEN] VerifyCanChangeItemTracking is called
-        QltyInspectionUtility.VerifyCanChangeItemTracking();
-
-        // [THEN] The operation succeeds and CanChangeItemTracking returns true
-        LibraryAssert.IsTrue(QltyInspectionUtility.CanChangeItemTracking(), 'should be allowed with modify permission on order table data');
-    end;
-
-    [Test]
     procedure VerifyCanChangeSourceQuantity_ShouldError()
     begin
-        // [SCENARIO] Verify that changing source quantity without proper permissions raises an error
-        // [GIVEN] The user does not have write permission on Quality Inspection Header
+        // [SCENARIO] Verify that changing source quantity without the administrator role raises an error
+        // [GIVEN] The inspector role permission set is added
+        LibraryLowerPermissions.AddPermissionSet(InspectorRoleIDTok);
+
         // [WHEN] VerifyCanChangeSourceQuantity is called
         // [THEN] An error is raised indicating the user lacks permission to change source quantity
-
-        if not CheckQltyInspectionHeaderWritePermission() then begin
-            asserterror QltyInspectionUtility.VerifyCanChangeSourceQuantity();
-            LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'change source quantity'));
-        end;
+        asserterror QltyInspectionUtility.VerifyCanChangeSourceQuantity();
+        LibraryAssert.ExpectedError(StrSubstNo(UserDoesNotHavePermissionToErr, UserId(), 'change source quantity'));
+        LibraryAssert.IsFalse(QltyInspectionUtility.CanChangeSourceQuantity(), 'not allowed without administrator role');
     end;
 
     [Test]
@@ -261,24 +131,7 @@ codeunit 139957 "Qlty. Tests - Permission Mgmt."
         QltyInspectionUtility.VerifyCanChangeSourceQuantity();
 
         // [THEN] The operation succeeds and CanChangeSourceQuantity returns true
-        LibraryAssert.IsTrue(QltyInspectionUtility.CanChangeSourceQuantity(), 'should be allowed with modify permission on order table data');
+        LibraryAssert.IsTrue(QltyInspectionUtility.CanChangeSourceQuantity(), 'allowed with administrator role');
     end;
 
-    [Test]
-    procedure VerifyCanEditLineComments()
-    begin
-        // [SCENARIO] Verify that editing line comments is allowed for users with record link modification permissions
-        // [GIVEN] The user has permission to modify record links
-        // [WHEN] CanEditLineComments is called
-        // [THEN] The function returns true
-
-        LibraryAssert.IsTrue(QltyInspectionUtility.CanEditLineComments(), 'everyone with permission to modify record links is allowed');
-    end;
-
-    local procedure CheckQltyInspectionHeaderWritePermission(): Boolean
-    var
-        QltyInspectionHeader: Record "Qlty. Inspection Header";
-    begin
-        exit(QltyInspectionHeader.WritePermission());
-    end;
 }
