@@ -420,7 +420,7 @@ codeunit 148351 "Excise Tax Calculation Tests"
 
         LibraryExciseTax.CreateFixedAssetWithExciseTax(FixedAsset, TaxTypeCode);
         // [GIVEN] Create hierarchical rate for fixed asset source type
-        LibraryExciseTax.CreateExciseTaxItemFARate(TaxTypeCode, Enum::"Excise Source Type"::"Fixed Asset", FixedAsset."No.", TaxPercentage, CalcDate('<-CY>', WorkDate()), LibraryRandom.RandText(10));
+        LibraryExciseTax.CreateExciseTaxRate(TaxTypeCode, Enum::"Excise Source Type"::"Fixed Asset", FixedAsset."No.", '', "Excise Calculation Type"::"Specific per Unit", TaxPercentage, 0, CalcDate('<-CY>', WorkDate()));
 
         // [GIVEN] Setup fixed asset depreciation and post acquisition cost
         CreateFixedAssetWithSetup(FixedAsset, DepreciationBook);

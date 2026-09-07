@@ -287,9 +287,9 @@ codeunit 7412 "Excise Tax Calculation"
         ExciseJnlLine.Validate("Source No.", ItemLedgerEntry."Item No.");
         ExciseJnlLine.Validate("Item Category Code", ItemLedgerEntry."Item Category Code");
         ExciseJnlLine.Validate("Source Qty.", Abs(ItemLedgerEntry.Quantity));
+        OnAfterUpdateExciseJournalLineFromItemLedgerEntry(ExciseJnlLine, ItemLedgerEntry);
         if RequiresTaxableAmount(ExciseJnlLine) then
             ExciseJnlLine.Validate("Excise Taxable Amount", GetTaxableAmountFromItemLedgerEntry(ItemLedgerEntry));
-        OnAfterUpdateExciseJournalLineFromItemLedgerEntry(ExciseJnlLine, ItemLedgerEntry);
         ExciseJnlLine."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
     end;
 
