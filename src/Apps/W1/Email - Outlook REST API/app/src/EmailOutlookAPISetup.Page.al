@@ -7,7 +7,6 @@ namespace System.Email;
 
 using System.Environment;
 using System.Security.Authentication;
-using System.Utilities;
 
 page 4509 "Email - Outlook API Setup"
 {
