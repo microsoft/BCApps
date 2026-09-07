@@ -39,6 +39,14 @@ page 5209 "Employee Relatives"
                     ApplicationArea = BasicHR;
                     ToolTip = 'Specifies the middle name of the employee''s relative.';
                 }
+                field("Last Name"; Rec."Last Name")
+                {
+                    ApplicationArea = BasicHR;
+                }
+                field("Last Name"; Rec."Last Name")
+                {
+                    ApplicationArea = BasicHR;
+                }
                 field("Birth Date"; Rec."Birth Date")
                 {
                     ApplicationArea = BasicHR;
