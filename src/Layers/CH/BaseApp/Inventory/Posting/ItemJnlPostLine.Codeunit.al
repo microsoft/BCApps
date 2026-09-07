@@ -1662,7 +1662,7 @@ codeunit 22 "Item Jnl.-Post Line"
         ReservEntry2: Record "Reservation Entry";
         ItemRec: Record Item;
     begin
-        ReservEntry2.SetLoadFields("Source Type", "Source Subtype");
+        ReservEntry2.SetLoadFields("Source Type", "Source Subtype", "Item No.");
         ReservEntry2.Get(ReservEntry."Entry No.", not ReservEntry.Positive);
         if ItemRec.Get(ReservEntry2."Item No.") then
             if not (ItemRec."Assembly Policy" = ItemRec."Assembly Policy"::"Assemble-to-Stock") then
