@@ -7,6 +7,9 @@ namespace Microsoft.Test.ExpenseAgent;
 using Microsoft.ExpenseAgent;
 using Microsoft.Finance.SpendRequest;
 
+// These HTTP tests are excluded in Expense_Agent_Tests.DisabledTest.json per the PR review.
+// Re-enable them after BCApps CI provisions an authenticated OData endpoint and a dedicated
+// test company with committed fixtures and disabled test isolation, then remove the exclusions.
 codeunit 148347 "Travel Requests API Test"
 {
     Subtype = Test;
@@ -103,7 +106,6 @@ codeunit 148347 "Travel Requests API Test"
         CreateTravelRequest(TravelRequest, ExpenseUser."Employee No.");
         TravelRequest.Validate("Requested For", ExpenseUser."No.");
         TravelRequest.Modify(true);
-        LibraryExpense.CreateTraveler(TravelRequest."No.", ExpenseUser."No.");
         LibraryExpense.SetSpendRequestStatus(TravelRequest, TravelRequest.Status::Approved);
         ExpenseReportHeader.CreateFromApprovedTravelRequest(TravelRequest);
         ExpenseReportHeader.SetRange("Spend Request No.", TravelRequest."No.");

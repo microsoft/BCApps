@@ -92,7 +92,7 @@ permissionset 6955 "Expense Agent - Data Depen."
                   tabledata "Accounting Period" = r,
                   tabledata "Company Information" = R,
                   tabledata "Gen. Journal Line" = R,
-                  tabledata "Spend Request" = Rm,
+                  tabledata "Spend Request" = m,
                   tabledata "User Setup" = R,
                   tabledata "Customer Posting Group" = R,
                   tabledata "General Ledger Setup" = R,

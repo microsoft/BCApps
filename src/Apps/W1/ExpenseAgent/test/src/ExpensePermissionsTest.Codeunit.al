@@ -308,7 +308,6 @@ codeunit 148338 "Expense Permissions Test"
         SpendRequest.Validate("Requested By", ExpenseUser."Employee No.");
         SpendRequest.Validate("Requested For", ExpenseUser."No.");
         SpendRequest.Modify(true);
-        LibraryExpense.CreateTraveler(SpendRequest."No.", ExpenseUser."No.");
         LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Released);
     end;
 

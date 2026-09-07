@@ -24,6 +24,7 @@ codeunit 148339 "Spend Request Test"
         IsInitialized: Boolean;
         CloseConfirmReply: Boolean;
         CloseConfirmCount: Integer;
+        SpendReqPreviewShown: Boolean;
         NotTravelerErr: Label 'is not a traveler on Travel Request', Locked = true;
         PolicyErr: Label 'acknowledge the travel policy', Locked = true;
         NoTravelersErr: Label 'add at least one traveler', Locked = true;
@@ -68,6 +69,7 @@ codeunit 148339 "Spend Request Test"
         AutomaticApprovalNotAllowedErr: Label 'Automatic travel request approval can be used only when the Expense Agent is disabled.', Locked = true;
         NotTravelRequestOwnerErr: Label 'did not create it', Locked = true;
         NotTravelRequestApproverErr: Label 'is not authorized', Locked = true;
+        LinkedExpenseReportExistsErr: Label 'because it is linked to an expense report.', Locked = true;
 
     [Test]
     [HandlerFunctions('SpendReqConfirmHandler')]
@@ -390,6 +392,67 @@ codeunit 148339 "Spend Request Test"
         Assert.AreEqual(SpendRequest.Status::Released, SpendRequest.Status, SpendReqReleasedMsg);
         ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
         Assert.RecordIsEmpty(ExpenseReportHeader);
+    end;
+
+    [Test]
+    procedure DeleteTravelRequestWithReportIsBlocked()
+    var
+        SpendRequest: Record "Spend Request";
+        SpendRequestDetail: Record "Spend Request Detail";
+        ExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        Traveler: Record Traveler;
+        ReleaseSpendRequest: Codeunit "Release Spend Request";
+    begin
+        // [SCENARIO] A travel request cannot be deleted while an expense report references it.
+        Initialize();
+
+        // [GIVEN] An automatically approved travel request with a detail, traveler, and linked report.
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        LibraryExpense.CreateSpendRequestDetail(SpendRequestDetail, SpendRequest."No.", 0);
+        ReleaseSpendRequest.Release(SpendRequest);
+        ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
+        ExpenseReportHeader.FindFirst();
+
+        // [WHEN] The request is deleted.
+        asserterror SpendRequest.Delete(true);
+
+        // [THEN] The request, report, details, and travelers remain intact.
+        Assert.ExpectedError(LinkedExpenseReportExistsErr);
+        Assert.ExpectedError(SpendRequest."No.");
+        Assert.IsTrue(SpendRequest.Get(SpendRequest."No."), 'The linked travel request must not be deleted.');
+        Assert.RecordIsNotEmpty(ExpenseReportHeader);
+        Assert.IsTrue(SpendRequestDetail.Get(SpendRequest."No.", SpendRequestDetail."Line No."), 'The request detail must remain.');
+        Traveler.SetRange("Spend Request No.", SpendRequest."No.");
+        Assert.RecordIsNotEmpty(Traveler);
+    end;
+
+    [Test]
+    procedure DeleteTravelRequestWithoutReportRemovesDependents()
+    var
+        SpendRequest: Record "Spend Request";
+        SpendRequestDetail: Record "Spend Request Detail";
+        ExpenseUser: Record "Expense User";
+        Traveler: Record Traveler;
+        TravelRequestNo: Code[20];
+    begin
+        // [SCENARIO] A travel request without a linked report can still be deleted with its dependents.
+        Initialize();
+
+        // [GIVEN] An open travel request with a detail and an automatically created traveler.
+        CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
+        LibraryExpense.CreateSpendRequestDetail(SpendRequestDetail, SpendRequest."No.", 0);
+        TravelRequestNo := SpendRequest."No.";
+
+        // [WHEN] The request is deleted.
+        SpendRequest.Delete(true);
+
+        // [THEN] The request and its dependent details and travelers are removed.
+        Assert.IsFalse(SpendRequest.Get(TravelRequestNo), 'The unlinked travel request must be deleted.');
+        SpendRequestDetail.SetRange("Spend Request No.", TravelRequestNo);
+        Assert.RecordIsEmpty(SpendRequestDetail);
+        Traveler.SetRange("Spend Request No.", TravelRequestNo);
+        Assert.RecordIsEmpty(Traveler);
     end;
 
     [Test]
@@ -1164,7 +1227,9 @@ codeunit 148339 "Spend Request Test"
         asserterror ExpenseReportHeader.Preview(ExpenseReportHeader);
 
         // [THEN] The preview lists the Spend Request To G/L Link entries (asserted in the page handler).
+        // Posting preview intentionally exits with Error(''); the handler proves the expected entries were shown.
         Assert.ExpectedError('');
+        Assert.IsTrue(SpendReqPreviewShown, SpendReqLinkPreviewMsg);
     end;
 
     [Test]
@@ -1288,6 +1353,7 @@ codeunit 148339 "Spend Request Test"
         LibraryExpense.CleanTransactionalData();
         CloseConfirmCount := 0;
         CloseConfirmReply := false;
+        SpendReqPreviewShown := false;
 
         GeneralLedgerSetup.Get();
         GeneralLedgerSetup."Additional Reporting Currency" := '';
@@ -1495,6 +1561,7 @@ codeunit 148339 "Spend Request Test"
     begin
         GLPostingPreview.Filter.SetFilter("Table ID", Format(Database::"Spend Request To G/L Link"));
         Assert.IsTrue(GLPostingPreview.First(), SpendReqLinkPreviewMsg);
+        SpendReqPreviewShown := true;
         GLPostingPreview.OK().Invoke();
     end;
 

@@ -5,6 +5,7 @@
 namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.SpendRequest;
+using System.Telemetry;
 using System.Text;
 
 codeunit 7133 "Travel Request Approval"
@@ -31,6 +32,7 @@ codeunit 7133 "Travel Request Approval"
         Clear(SpendRequest."Rejection Reason");
         SpendRequest.Modify();
         ReleaseSpendRequest.Release(SpendRequest);
+        LogAction('EA-TR-SUBMIT', TravelRequestSubmittedLbl);
     end;
 
     internal procedure Approve(var SpendRequest: Record "Spend Request"; ApproverExpenseUserNo: Code[20])
@@ -41,6 +43,7 @@ codeunit 7133 "Travel Request Approval"
         SpendRequest.TestStatus(SpendRequest.Status::Released);
         CheckApprover(SpendRequest, ApproverExpenseUserNo, Approver);
         ApproveInternal(SpendRequest, ApproverExpenseUserNo);
+        LogAction('EA-TR-APPROVE', TravelRequestApprovedLbl);
     end;
 
     internal procedure ApproveAutomatically(var SpendRequest: Record "Spend Request")
@@ -55,6 +58,7 @@ codeunit 7133 "Travel Request Approval"
             Error(AutomaticApprovalNotAllowedErr);
 
         ApproveInternal(SpendRequest, '');
+        LogAction('EA-TR-AUTOAPPROVE', TravelRequestAutoApprovedLbl);
     end;
 
     local procedure ApproveInternal(var SpendRequest: Record "Spend Request"; ApproverExpenseUserNo: Code[20])
@@ -84,6 +88,15 @@ codeunit 7133 "Travel Request Approval"
         SpendRequest."Approval Expense User No." := ApproverExpenseUserNo;
         SpendRequest."Rejection Reason" := CopyStr(RejectReason, 1, MaxStrLen(SpendRequest."Rejection Reason"));
         SpendRequest.Modify();
+        LogAction('EA-TR-REJECT', TravelRequestRejectedLbl);
+    end;
+
+    local procedure LogAction(EventId: Text; ActionName: Text)
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+    begin
+        FeatureTelemetry.LogUsage(EventId, ExpenseAgentSetup.GetFeatureName(), ActionName);
     end;
 
     internal procedure ApplyApproverFilter(var SpendRequest: Record "Spend Request"; ApproverExpenseUserNo: Code[20])
@@ -181,6 +194,10 @@ codeunit 7133 "Travel Request Approval"
 
     var
         AutomaticApprovalNotAllowedErr: Label 'Automatic travel request approval can be used only when the Expense Agent is disabled.';
+        TravelRequestSubmittedLbl: Label 'Travel request submitted.', Locked = true;
+        TravelRequestApprovedLbl: Label 'Travel request approved.', Locked = true;
+        TravelRequestAutoApprovedLbl: Label 'Travel request automatically approved.', Locked = true;
+        TravelRequestRejectedLbl: Label 'Travel request rejected.', Locked = true;
         NotTravelRequestOwnerErr: Label 'Expense user %1 cannot submit travel request %2 because the user did not create it.', Comment = '%1 = Expense user number, %2 = Travel request number';
         NotTravelRequestApproverErr: Label 'Expense user %1 is not authorized to approve or reject travel request %2.', Comment = '%1 = Expense user number, %2 = Travel request number';
         TooManyTravelRequestSubmittersErr: Label 'Expense user %1 is configured to approve too many travel request submitters. Refine the approval setup before listing pending travel requests.', Comment = '%1 = Expense user number';

@@ -104,6 +104,8 @@ codeunit 148318 "Expense Capabilities API Test"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        // Excluded in BCApps CI until authenticated OData execution in a dedicated test company
+        // with disabled isolation is available; then remove this method's DisabledTest.json entry.
         // [SCENARIO] Travel requests are advertised when the supporting APIs are installed.
         Initialize();
 

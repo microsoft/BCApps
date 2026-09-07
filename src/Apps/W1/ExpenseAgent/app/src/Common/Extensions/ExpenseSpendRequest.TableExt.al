@@ -17,7 +17,7 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
         {
             Caption = 'Requested For';
             ToolTip = 'Specifies the expense user for whom the spend request is being created.';
-            DataClassification = CustomerContent;
+            DataClassification = EndUserIdentifiableInformation;
             TableRelation = "Expense User";
 
             trigger OnValidate()
@@ -167,6 +167,19 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
     begin
         if Rec."Document Type" = Rec."Document Type"::"Travel Request" then
             InsertRequestedForTraveler();
+    end;
+
+    trigger OnBeforeDelete()
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        LinkedExpenseReportExistsErr: Label 'You cannot delete travel request %1 because it is linked to an expense report.', Comment = '%1 = Travel request number';
+    begin
+        if Rec."Document Type" <> Rec."Document Type"::"Travel Request" then
+            exit;
+
+        ExpenseReportHeader.SetRange("Spend Request No.", Rec."No.");
+        if not ExpenseReportHeader.IsEmpty() then
+            Error(LinkedExpenseReportExistsErr, Rec."No.");
     end;
 
     trigger OnDelete()
