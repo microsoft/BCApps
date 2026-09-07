@@ -10,40 +10,8 @@ codeunit 50104 "Fabric Platform Lookup State"
     Access = Internal;
 
     var
-        SelectedName: Text[250];
-        SelectedValue: Text[250];
-        RecordSelected: Boolean;
         CachedFabricApiToken: SecretText;
         FabricApiTokenExpiry: DateTime;
-
-    procedure SetSelected(NewName: Text; NewValue: Text)
-    begin
-        SelectedName := CopyStr(NewName, 1, MaxStrLen(SelectedName));
-        SelectedValue := CopyStr(NewValue, 1, MaxStrLen(SelectedValue));
-        RecordSelected := true;
-    end;
-
-    procedure GetSelectedName(): Text
-    begin
-        exit(SelectedName);
-    end;
-
-    procedure GetSelectedValue(): Text
-    begin
-        exit(SelectedValue);
-    end;
-
-    procedure IsSelected(): Boolean
-    begin
-        exit(RecordSelected);
-    end;
-
-    procedure ClearSelection()
-    begin
-        SelectedName := '';
-        SelectedValue := '';
-        RecordSelected := false;
-    end;
 
     [NonDebuggable]
     procedure SetFabricApiToken(Token: SecretText; ExpiresInSeconds: Integer)

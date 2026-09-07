@@ -25,8 +25,9 @@ page 50104 "Fabric Platform Setup"
             {
                 Caption = 'Fabric Destination';
 
-                field("Fabric Workspace Name"; Rec."Fabric Workspace Name")
+                field("Fabric Workspace Name"; WorkspaceNameValue)
                 {
+                    Caption = 'Fabric Workspace Name';
                     ApplicationArea = All;
                     Editable = false;
                     ToolTip = 'Specifies the display name of the selected Microsoft Fabric workspace. Use the assist button to browse available workspaces.';
@@ -35,7 +36,6 @@ page 50104 "Fabric Platform Setup"
                     var
                         AdminClient: Codeunit "Fabric Platform Admin Client";
                         CredMgt: Codeunit "Fabric Platform Credential Mgt";
-                        LookupState: Codeunit "Fabric Platform Lookup State";
                         TempBuffer: Record "Name/Value Buffer" temporary;
                         LookupPage: Page "Fabric Platform Name Lookup";
                         WorkspaceId: Guid;
@@ -43,17 +43,17 @@ page 50104 "Fabric Platform Setup"
                         AdminClient.GetWorkspaces(TempBuffer);
                         if TempBuffer.IsEmpty() then
                             Error(NoWorkspacesFoundErr);
-                        LookupState.ClearSelection();
                         LookupPage.SetSource(TempBuffer);
-                        LookupPage.RunModal();
-                        if LookupPage.IsRecordSelected() then begin
-                            LookupPage.GetSelectedRecord(TempBuffer);
+                        LookupPage.LookupMode(true);
+                        if LookupPage.RunModal() = Action::LookupOK then begin
+                            LookupPage.GetRecord(TempBuffer);
                             if not Evaluate(WorkspaceId, TempBuffer.Value) then
                                 Error(WorkspaceIdInvalidErr, TempBuffer.Value);
                             Rec."Fabric Workspace ID" := WorkspaceId;
                             Rec."Fabric Workspace Name" := CopyStr(TempBuffer.Name, 1, MaxStrLen(Rec."Fabric Workspace Name"));
                             Clear(Rec."Fabric Lakehouse ID");
                             Rec.Modify(true);
+                            WorkspaceNameValue := CopyStr(Rec."Fabric Workspace Name", 1, MaxStrLen(WorkspaceNameValue));
                             OpenMirroringNameValue := '';
                             CredMgt.SetOpenMirroringDatabaseName(OpenMirroringNameValue);
                             CurrPage.Update(false);
@@ -78,7 +78,6 @@ page 50104 "Fabric Platform Setup"
                     var
                         AdminClient: Codeunit "Fabric Platform Admin Client";
                         CredMgt: Codeunit "Fabric Platform Credential Mgt";
-                        LookupState: Codeunit "Fabric Platform Lookup State";
                         TempBuffer: Record "Name/Value Buffer" temporary;
                         LookupPage: Page "Fabric Platform Name Lookup";
                         MirroredDatabaseId: Guid;
@@ -86,11 +85,10 @@ page 50104 "Fabric Platform Setup"
                         AdminClient.GetMirroredDatabases(Rec."Fabric Workspace ID", TempBuffer);
                         if TempBuffer.IsEmpty() then
                             Error(NoMirroredDatabasesFoundErr);
-                        LookupState.ClearSelection();
                         LookupPage.SetSource(TempBuffer);
-                        LookupPage.RunModal();
-                        if LookupPage.IsRecordSelected() then begin
-                            LookupPage.GetSelectedRecord(TempBuffer);
+                        LookupPage.LookupMode(true);
+                        if LookupPage.RunModal() = Action::LookupOK then begin
+                            LookupPage.GetRecord(TempBuffer);
                             if not Evaluate(MirroredDatabaseId, TempBuffer.Value) then
                                 Error(MirroredDatabaseIdInvalidErr, TempBuffer.Value);
                             Rec."Fabric Lakehouse ID" := MirroredDatabaseId;
@@ -387,6 +385,7 @@ page 50104 "Fabric Platform Setup"
         ClientIdValue := CopyStr(CredMgt.GetClientId(), 1, MaxStrLen(ClientIdValue));
         PrincipalIdValue := CopyStr(CredMgt.GetPrincipalId(), 1, MaxStrLen(PrincipalIdValue));
         OpenMirroringNameValue := CopyStr(CredMgt.GetOpenMirroringDatabaseName(), 1, MaxStrLen(OpenMirroringNameValue));
+        WorkspaceNameValue := CopyStr(Rec."Fabric Workspace Name", 1, MaxStrLen(WorkspaceNameValue));
         if CredMgt.IsClientSecretSet() then
             ClientSecretValue := ClientSecretSetLbl;
         SetEditable();
@@ -394,6 +393,7 @@ page 50104 "Fabric Platform Setup"
 
     trigger OnAfterGetCurrRecord()
     begin
+        WorkspaceNameValue := CopyStr(Rec."Fabric Workspace Name", 1, MaxStrLen(WorkspaceNameValue));
         SetEditable();
     end;
 
@@ -415,6 +415,7 @@ page 50104 "Fabric Platform Setup"
         ClientIdValue: Text[250];
         PrincipalIdValue: Text[250];
         OpenMirroringNameValue: Text[250];
+        WorkspaceNameValue: Text[250];
         [NonDebuggable]
         ClientSecretValue: Text[250];
         ClientSecretSetLbl: Label '*** secret stored ***', Locked = true;
