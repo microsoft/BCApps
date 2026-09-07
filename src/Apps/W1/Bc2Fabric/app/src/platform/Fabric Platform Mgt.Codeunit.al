@@ -102,8 +102,8 @@ codeunit 50101 "Fabric Platform Mgt"
 
         TenantFabricTables.Init();
         TenantFabricTables.Validate("Table ID", TableId);
-        TenantFabricTables."Table Name" := CopyStr(AllObjWithCaption."Object Caption", 1, MaxStrLen(TenantFabricTables."Table Name"));
-        TenantFabricTables."Fabric Entity Name" := CopyStr(AllObjWithCaption."Object Caption", 1, MaxStrLen(TenantFabricTables."Fabric Entity Name"));
+        TenantFabricTables."Table Name" := CopyStr(AllObjWithCaption."Object Name", 1, MaxStrLen(TenantFabricTables."Table Name"));
+        TenantFabricTables."Fabric Entity Name" := CopyStr(AllObjWithCaption."Object Name", 1, MaxStrLen(TenantFabricTables."Fabric Entity Name"));
         if TableMetadata.Get(TableId) then
             TenantFabricTables."Per Company" := TableMetadata.DataPerCompany
         else
