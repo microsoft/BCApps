@@ -41,6 +41,7 @@ codeunit 265 "Feature Key Management"
     end;
 
 #if not CLEAN29
+    [Obsolete('The Document Report Experience feature key is being retired. The composite layout feature is always on.', '29.0')]
     procedure IsDocumentReportExperienceEnabled(): Boolean
     begin
         exit(FeatureManagementFacade.IsEnabled(DocumentReportExperienceTxt));
