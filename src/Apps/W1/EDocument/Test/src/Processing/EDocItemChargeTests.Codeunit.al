@@ -959,6 +959,8 @@ codeunit 139786 "E-Doc. Item Charge Tests"
         if IsInitialized then
             exit;
 
+        // Item charge tests do not exercise VAT date behavior. Disable it to avoid localization-specific
+        // VAT period validation during posting, such as the CZ check for the current work date.
         GeneralLedgerSetup.Get();
         GeneralLedgerSetup."VAT Reporting Date Usage" := GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled;
         GeneralLedgerSetup.Modify();
