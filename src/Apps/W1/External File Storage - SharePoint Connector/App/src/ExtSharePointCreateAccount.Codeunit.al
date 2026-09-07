@@ -19,14 +19,14 @@ codeunit 4581 "Ext. SharePoint Create Account"
     begin
         if not IsolatedStorage.Get(GetSecretKeyToken(Rec.Id), DataScope::Module, SecretToPass) then
             exit;
-
-        ExtSharePointAccount.SetRange(Name, Rec.Name);
-        if ExtSharePointAccount.FindFirst() then
-            SharePointConnectorImpl.DeleteAccount(ExtSharePointAccount.Id);
-
         if IsolatedStorage.Get(GetCertPwdKeyToken(Rec.Id), DataScope::Module, CertificatePassword) then;
 
-        SharePointConnectorImpl.CreateAccount(Rec, SecretToPass, CertificatePassword, TempFileAccount);
+        ExtSharePointAccount.SetRange(Name, Rec.Name);
+        if not ExtSharePointAccount.FindFirst() then
+            SharePointConnectorImpl.CreateAccount(Rec, SecretToPass, CertificatePassword, TempFileAccount)
+        else
+            SharePointConnectorImpl.ModifyAccount(ExtSharePointAccount, Rec, SecretToPass, CertificatePassword, TempFileAccount);
+
         if IsolatedStorage.Get(GetSetAsDefaultKeyToken(Rec.Id), DataScope::Module, SetAsDefaultTxt) then
             if SetAsDefaultTxt = '1' then
                 MakeDefault(TempFileAccount);

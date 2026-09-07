@@ -235,7 +235,9 @@ page 4581 "Ext. SharePoint Account Wizard"
 
                 trigger OnAction()
                 var
+                    ExtSharePointAccount: Record "Ext. SharePoint Account";
                     SecretToPass: SecretText;
+                    AccountExistsLbl: Label 'An account with the same name already exists. Do you want to update it?', Locked = true;
                 begin
                     case Rec."Authentication Type" of
                         Enum::"Ext. SharePoint Auth Type"::"Client Secret":
@@ -244,7 +246,14 @@ page 4581 "Ext. SharePoint Account Wizard"
                             SecretToPass := Certificate;
                     end;
                     if (Step = Step::AccountDetails) and not MultipleCompanies then begin
-                        SharePointConnectorImpl.CreateAccount(Rec, SecretToPass, CertificatePassword, SharePointAccount);
+                        ExtSharePointAccount.SetRange(Name, Rec.Name);
+                        if not ExtSharePointAccount.FindFirst() then
+                            SharePointConnectorImpl.CreateAccount(Rec, SecretToPass, CertificatePassword, SharePointAccount)
+                        else
+                            if Confirm(AccountExistsLbl, false) then
+                                SharePointConnectorImpl.ModifyAccount(ExtSharePointAccount, Rec, SecretToPass, CertificatePassword, SharePointAccount)
+                            else
+                                exit;
                         CurrPage.Close();
                     end;
                     if Step = Step::CompanySelection then begin
@@ -358,7 +367,7 @@ page 4581 "Ext. SharePoint Account Wizard"
                         AccountCurrentCompanyCreated := true;
                     ExtSharePointAccount.ChangeCompany(Company.Name);
                     ExtSharePointAccount.SetRange(Name, AccountToCopy.Name);
-                    ExtSharePointAccount.SetFilter(SystemCreatedAt, '>%1', StartOfProcess);
+                    ExtSharePointAccount.SetFilter(SystemModifiedAt, '>%1', StartOfProcess);
                     if ExtSharePointAccount.IsEmpty() then
                         FailedCompanies.Add(Company.Name);
                 end;
