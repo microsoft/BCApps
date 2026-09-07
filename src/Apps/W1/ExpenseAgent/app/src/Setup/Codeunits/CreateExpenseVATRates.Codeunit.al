@@ -38,12 +38,6 @@ codeunit 6975 "Create Expense VAT Rates"
         CompanyInfo: Record "Company Information";
         GLAccount: Record "G/L Account";
     begin
-        ExpenseAgentSetup.GetRecordOnce();
-        if ExpenseAgentSetup."Default VAT Bus. Posting Group" = '' then begin
-            ExpenseAgentSetup."Default VAT Bus. Posting Group" := XDOMESTICTxt;
-            ExpenseAgentSetup.Modify();
-        end;
-
         if not GLAccount.Get(XEXPENSEVATTok) then begin
             GLAccount.Init();
             GLAccount."No." := XEXPENSEVATTok;
@@ -140,6 +134,7 @@ codeunit 6975 "Create Expense VAT Rates"
             VATProductPostingGroup.Insert();
         end;
 
+        ExpenseAgentSetup.GetRecordOnce();
         if not VATPostingSetup.Get(ExpenseAgentSetup."Default VAT Bus. Posting Group", VATProdPostingGroup) then begin
             VATPostingSetup.Init();
             VATPostingSetup.Validate("VAT Bus. Posting Group", ExpenseAgentSetup."Default VAT Bus. Posting Group");
@@ -170,7 +165,6 @@ codeunit 6975 "Create Expense VAT Rates"
         CreateExpenseCategories: Codeunit "Create Expense Categories";
 
         XEXPENSEVATTok: Label 'EXPENSE VAT', Locked = true; // Virtual G/L account used for VAT on expenses
-        XDOMESTICTxt: Label 'DOMESTIC'; // DOMESTIC VAT Business Posting Group used as default for all rates created by this codeunit
 
     local procedure CreateVATRatesAT()
     begin
