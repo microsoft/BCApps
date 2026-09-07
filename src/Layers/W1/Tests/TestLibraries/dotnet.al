@@ -35,13 +35,6 @@ dotnet
 
     assembly("netstandard")
     {
-        type("System.Reflection.BindingFlags"; "System.Reflection.BindingFlags")
-        {
-        }
-
-        type("System.UnauthorizedAccessException"; "System.UnauthorizedAccessException")
-        {
-        }
         type("System.Diagnostics.ProcessStartInfo"; "System.Diagnostics.ProcessStartInfo")
         {
         }
@@ -57,9 +50,6 @@ dotnet
         }
 
         type("System.Xml.Schema.ValidationEventHandler"; "System.Xml.Schema.ValidationEventHandler")
-        {
-        }
-        type("System.Collections.ObjectModel.Collection`1"; "Collection1")
         {
         }
     }
