@@ -16,5 +16,4 @@ enum 11704 "Report Address Source CZL"
     {
         Caption = 'Responsibility Center';
     }
-
 }
