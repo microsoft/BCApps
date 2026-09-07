@@ -50,6 +50,25 @@ codeunit 703 "Find Record Management"
         exit(IntFields.Get(1));
     end;
 
+
+    [Scope('OnPrem')]
+    procedure GetIntFieldValues(RecRef: RecordRef; var IntFields: list of [Integer])
+    var
+        BigIntFields: list of [BigInteger];
+        bi: BigInteger;
+        ni: Integer;
+        i: Integer;
+    begin
+        for i := 1 to IntFields.Count() do
+            BigIntFields.Add(IntFields.Get(i));
+        GetIntFieldValues(RecRef, BigIntFields);
+        for i := 1 to IntFields.Count() do begin
+            bi := BigIntFields.Get(i);
+            ni := bi; // will throw a runtime error if overflow
+            IntFields.Set(i, ni);
+        end;
+    end;
+
     [Scope('OnPrem')]
     procedure GetIntFieldValues(RecRef: RecordRef; var IntFields: list of [BigInteger])
     var
@@ -73,6 +92,23 @@ codeunit 703 "Find Record Management"
         IntFields.Add(FieldNo);
         GetLastEntryIntFieldValues(SourceRec, IntFields);
         exit(IntFields.Get(1));
+    end;
+
+    procedure GetLastEntryIntFieldValues(RecRef: RecordRef; var FieldNoValues: list of [Integer])
+    var
+        BigIntFields: list of [BigInteger];
+        bi: BigInteger;
+        ni: Integer;
+        i: Integer;
+    begin
+        for i := 1 to FieldNoValues.Count() do
+            BigIntFields.Add(FieldNoValues.Get(i));
+        GetIntFieldValues(RecRef, BigIntFields);
+        for i := 1 to FieldNoValues.Count() do begin
+            bi := BigIntFields.Get(i);
+            ni := bi; // will throw a runtime error if overflow
+            FieldNoValues.Set(i, ni);
+        end;
     end;
 
     procedure GetLastEntryIntFieldValues(SourceRec: Variant; var FieldNoValues: List of [BigInteger])
