@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -145,7 +145,7 @@ page 1 "Company Information"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the company registration number for submitting VAT-VIES tax reports electronically.';
                 }
-                field("Use Today as a Workdate"; Rec."Use Today as a Workdate")
+                field("Evaluation Work Date"; Rec."Evaluation Work Date")
                 {
                     ApplicationArea = Basic, Suite;
                     Visible = Rec."Demo Company";

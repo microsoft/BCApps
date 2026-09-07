@@ -198,9 +198,9 @@ codeunit 40 LogInManagement
         GLEntry: Record "G/L Entry";
         CompanyInformationMgt: Codeunit "Company Information Mgt.";
     begin
-        CompanyInformation.SetLoadFields("Demo Company", "Use Today as a Workdate");
+        CompanyInformation.SetLoadFields("Demo Company", "Evaluation Work Date");
         if CompanyInformationMgt.IsDemoCompany(CompanyInformation) then begin
-            if CompanyInformation."Use Today as a Workdate" then
+            if CompanyInformation."Evaluation Work Date" = CompanyInformation."Evaluation Work Date"::Today then
                 exit(Today);
 
             GLEntry.SetCurrentKey("Posting Date");

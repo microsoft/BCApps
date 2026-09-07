@@ -66,7 +66,7 @@ codeunit 139028 "Test Workdate"
 
         CompanyInformationPage.OpenEdit();
 
-        Assert.IsTrue(CompanyInformationPage."Use Today as a Workdate".Visible(), 'The field should be visible for an evaluation company.');
+        Assert.IsTrue(CompanyInformationPage."Evaluation Work Date".Visible(), 'The field should be visible for an evaluation company.');
         CompanyInformationPage.Close();
     end;
 
@@ -82,7 +82,7 @@ codeunit 139028 "Test Workdate"
 
         CompanyInformationPage.OpenEdit();
 
-        Assert.IsFalse(CompanyInformationPage."Use Today as a Workdate".Visible(), 'The field should be hidden for a regular company.');
+        Assert.IsFalse(CompanyInformationPage."Evaluation Work Date".Visible(), 'The field should be hidden for a regular company.');
         CompanyInformationPage.Close();
     end;
 
@@ -90,7 +90,10 @@ codeunit 139028 "Test Workdate"
     begin
         CompanyInformation.Get();
         CompanyInformation."Demo Company" := IsEvaluationCompany;
-        CompanyInformation."Use Today as a Workdate" := UseTodayAsWorkDate;
+        if UseTodayAsWorkDate then
+            CompanyInformation."Evaluation Work Date" := CompanyInformation."Evaluation Work Date"::Today
+        else
+            CompanyInformation."Evaluation Work Date" := CompanyInformation."Evaluation Work Date"::"Latest G/L Entry Posting Date";
         CompanyInformation.Modify();
     end;
 

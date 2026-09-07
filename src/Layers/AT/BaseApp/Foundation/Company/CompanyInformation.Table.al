@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -441,10 +441,12 @@ table 79 "Company Information"
             Caption = 'Demo Company';
             Editable = false;
         }
-        field(101; "Use Today as a Workdate"; Boolean)
+        field(101; "Evaluation Work Date"; Option)
         {
-            Caption = 'Use Today as a Workdate';
-            ToolTip = 'Specifies that today is used as the work date instead of the latest G/L entry posting date.';
+            Caption = 'Evaluation Work Date';
+            OptionCaption = 'Latest G/L Entry Posting Date,Today';
+            OptionMembers = "Latest G/L Entry Posting Date",Today;
+            ToolTip = 'Specifies whether the work date is based on the latest G/L entry posting date or today.';
         }
         field(200; "Alternative Language Code"; Code[10])
         {
