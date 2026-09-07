@@ -2060,7 +2060,6 @@ codeunit 134897 "ERM Source Currency"
     var
         Customer: Record Customer;
         GeneralLedgerSetup: Record "General Ledger Setup";
-        ExistingGeneralLedgerSetup: Record "General Ledger Setup";
         PaymentMethod: Record "Payment Method";
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
@@ -2073,7 +2072,6 @@ codeunit 134897 "ERM Source Currency"
         // [FEATURE] [AI test]
         // [GIVEN] Source currency consistency and extended posting preview are enabled.
         GeneralLedgerSetup.Get();
-        ExistingGeneralLedgerSetup := GeneralLedgerSetup;
         GeneralLedgerSetup.Validate("Check Source Curr. Consistency", true);
         GeneralLedgerSetup.Modify(true);
 
@@ -2100,14 +2098,8 @@ codeunit 134897 "ERM Source Currency"
         // [WHEN] Posting the salesinvoice.
         SalesPost.Run(SalesHeader);
         // [THEN] The posting completes without a source currency consistency error.
-
-        //reset General Ledger Setup to original values
-
-        GeneralLedgerSetup := ExistingGeneralLedgerSetup;
-        GeneralLedgerSetup.Modify();
     end;
-
-
+    
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
