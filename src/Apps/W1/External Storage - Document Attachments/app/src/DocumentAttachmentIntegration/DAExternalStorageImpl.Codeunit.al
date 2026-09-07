@@ -905,6 +905,7 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     /// <summary>
     /// Handles checking if attachment content is available for externally stored document attachments.
     /// Uses the persisted external storage metadata to avoid remote calls when pages evaluate attachment actions.
+    /// The external file and account are validated when the attachment is retrieved, and retrieval failures are surfaced then.
     /// </summary>
     /// <param name="DocumentAttachment">The document attachment record.</param>
     /// <param name="AttachmentIsAvailable">Indicates if the attachment is available.</param>

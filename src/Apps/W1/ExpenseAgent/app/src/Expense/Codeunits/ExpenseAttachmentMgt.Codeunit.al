@@ -426,6 +426,7 @@ codeunit 6989 "Expense Attachment Mgt."
             exit;
         end;
 
+        // Content hashing is best-effort bookkeeping and must not block attachment writes when external storage is unavailable.
         if not TryGetAsTempBlob(DocumentAttachment, TempBlob) then
             Clear(TempBlob);
         if not TempBlob.HasValue() then begin

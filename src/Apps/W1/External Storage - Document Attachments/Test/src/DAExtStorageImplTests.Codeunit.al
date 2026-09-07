@@ -26,6 +26,8 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         FileConnectorMock: Codeunit "File Connector Mock";
         FileScenarioMock: Codeunit "File Scenario Mock";
         Assert: Codeunit "Library Assert";
+        CannotRetrieveExternalFileErr: Label 'could not be retrieved from external storage', Locked = true;
+        DialogErrorCodeTok: Label 'Dialog', Locked = true;
 
     #region Successful Operations Tests
 
@@ -792,7 +794,8 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         asserterror DocumentAttachment.ExportToStream(AttachmentOutStream);
 
         // [THEN] The retrieval failure is surfaced
-        Assert.ExpectedError('could not be retrieved from external storage');
+        Assert.ExpectedErrorCode(DialogErrorCodeTok);
+        Assert.ExpectedError(CannotRetrieveExternalFileErr);
     end;
 
     [Test]
@@ -813,7 +816,8 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         asserterror DocumentAttachment.GetAsTempBlob(TempBlob);
 
         // [THEN] The retrieval failure is surfaced
-        Assert.ExpectedError('could not be retrieved from external storage');
+        Assert.ExpectedErrorCode(DialogErrorCodeTok);
+        Assert.ExpectedError(CannotRetrieveExternalFileErr);
     end;
 
     [Test]
@@ -832,7 +836,8 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         asserterror DocumentAttachment.GetAsTempBlob(TempBlob);
 
         // [THEN] The missing configuration is surfaced
-        Assert.ExpectedError('could not be retrieved from external storage');
+        Assert.ExpectedErrorCode(DialogErrorCodeTok);
+        Assert.ExpectedError(CannotRetrieveExternalFileErr);
     end;
 
     [Test]
@@ -853,7 +858,8 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         asserterror DocumentAttachment.ExportToStream(AttachmentOutStream);
 
         // [THEN] The missing configuration is surfaced
-        Assert.ExpectedError('could not be retrieved from external storage');
+        Assert.ExpectedErrorCode(DialogErrorCodeTok);
+        Assert.ExpectedError(CannotRetrieveExternalFileErr);
     end;
 
     [Test]
