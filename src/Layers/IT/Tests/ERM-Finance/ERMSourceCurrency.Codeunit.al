@@ -2191,7 +2191,7 @@ codeunit 134897 "ERM Source Currency"
 
         // [GIVEN] No Additional Reporting Currency, so the source currency of the settlement entries is LCY.
         GeneralLedgerSetup.Get();
-        if GeneralLedgerSetup."Additional Reporting Currency" <> '' then
+        if GeneralLedgerSetup."Additional Reporting Currency" <> '' then begin
             GeneralLedgerSetup."Additional Reporting Currency" := '';
             GeneralLedgerSetup.Modify();
         end;
