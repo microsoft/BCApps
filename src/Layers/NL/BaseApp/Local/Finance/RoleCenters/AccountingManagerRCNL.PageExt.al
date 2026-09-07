@@ -10,7 +10,7 @@ using Microsoft.Bank.Reconciliation;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.VAT.Reporting;
 
-pageextension 11355 "Accounting Manager RC NL" extends "Accounting Manager Role Center"
+pageextension 11427 "Accounting Manager RC NL" extends "Accounting Manager Role Center"
 {
     actions
     {

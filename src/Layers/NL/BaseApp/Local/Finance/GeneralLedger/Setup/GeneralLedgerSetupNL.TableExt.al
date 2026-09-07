@@ -6,7 +6,7 @@ namespace Microsoft.Finance.GeneralLedger.Setup;
 
 using Microsoft.Finance.Currency;
 
-tableextension 11385 "General Ledger Setup NL" extends "General Ledger Setup"
+tableextension 11420 "General Ledger Setup NL" extends "General Ledger Setup"
 {
     fields
     {

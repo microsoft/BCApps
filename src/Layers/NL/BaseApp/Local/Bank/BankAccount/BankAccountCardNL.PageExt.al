@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.BankAccount;
 
-pageextension 11340 "Bank Account Card NL" extends "Bank Account Card"
+pageextension 11420 "Bank Account Card NL" extends "Bank Account Card"
 {
     layout
     {

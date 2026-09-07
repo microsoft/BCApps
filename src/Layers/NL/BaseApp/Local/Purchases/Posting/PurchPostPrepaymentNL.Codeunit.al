@@ -7,7 +7,7 @@ namespace Microsoft.Purchases.Posting;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Purchases.Document;
 
-codeunit 11321 PurchPostPrepaymentNL
+codeunit 11410 PurchPostPrepaymentNL
 {
     Access = Internal;
 

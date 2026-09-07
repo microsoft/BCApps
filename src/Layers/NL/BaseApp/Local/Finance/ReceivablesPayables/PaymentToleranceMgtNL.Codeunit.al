@@ -10,7 +10,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 
-codeunit 11337 "Payment Tolerance Mgt. NL"
+codeunit 11426 "Payment Tolerance Mgt. NL"
 {
     Access = Internal;
 

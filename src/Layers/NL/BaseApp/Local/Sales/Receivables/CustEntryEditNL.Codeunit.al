@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Receivables;
 
-codeunit 11322 CustEntryEditNL
+codeunit 11413 CustEntryEditNL
 {
     Access = Internal;
 

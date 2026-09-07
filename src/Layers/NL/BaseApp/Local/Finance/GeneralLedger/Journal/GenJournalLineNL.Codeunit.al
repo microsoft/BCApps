@@ -11,7 +11,7 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 
-codeunit 11384 "Gen. Journal Line NL"
+codeunit 11442 "Gen. Journal Line NL"
 {
     Access = Internal;
 

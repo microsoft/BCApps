@@ -6,7 +6,7 @@ namespace Microsoft.Finance.Consolidation;
 
 using Microsoft.Finance.GeneralLedger.Ledger;
 
-codeunit 11336 "Consolidate NL"
+codeunit 11425 "Consolidate NL"
 {
     Access = Internal;
 

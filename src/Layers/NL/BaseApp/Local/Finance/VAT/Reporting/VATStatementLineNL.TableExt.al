@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
-tableextension 11388 "VAT Statement Line NL" extends "VAT Statement Line"
+tableextension 11422 "VAT Statement Line NL" extends "VAT Statement Line"
 {
     fields
     {

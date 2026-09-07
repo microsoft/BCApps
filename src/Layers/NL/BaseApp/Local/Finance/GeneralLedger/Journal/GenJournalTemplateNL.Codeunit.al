@@ -8,7 +8,7 @@ using Microsoft.Bank.Journal;
 using Microsoft.Bank.Statement;
 using Microsoft.Foundation.AuditCodes;
 
-codeunit 11340 "Gen. Journal Template NL"
+codeunit 11429 "Gen. Journal Template NL"
 {
     Access = Internal;
 

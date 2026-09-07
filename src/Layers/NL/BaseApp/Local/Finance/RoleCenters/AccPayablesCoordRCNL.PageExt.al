@@ -8,7 +8,7 @@ using Microsoft.Bank.Journal;
 using Microsoft.Bank.Payment;
 using Microsoft.Finance.GeneralLedger.Journal;
 
-pageextension 11356 "Acc. Payables Coord. RC NL" extends "Acc. Payables Coordinator RC"
+pageextension 11428 "Acc. Payables Coord. RC NL" extends "Acc. Payables Coordinator RC"
 {
     actions
     {

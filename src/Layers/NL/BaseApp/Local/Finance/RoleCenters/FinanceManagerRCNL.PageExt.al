@@ -11,7 +11,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Reports;
 using Microsoft.Finance.VAT.Reporting;
 
-pageextension 11359 "Finance Manager RC NL" extends "Finance Manager Role Center"
+pageextension 11431 "Finance Manager RC NL" extends "Finance Manager Role Center"
 {
     actions
     {

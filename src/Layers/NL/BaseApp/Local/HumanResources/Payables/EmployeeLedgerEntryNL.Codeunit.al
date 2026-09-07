@@ -6,7 +6,7 @@ namespace Microsoft.HumanResources.Payables;
 
 using Microsoft.Finance.GeneralLedger.Journal;
 
-codeunit 11362 "Employee Ledger Entry NL"
+codeunit 11438 "Employee Ledger Entry NL"
 {
     Access = Internal;
 

@@ -7,7 +7,7 @@ namespace Microsoft.Finance.RoleCenters;
 using Microsoft.Bank.Journal;
 using Microsoft.Finance.GeneralLedger.Journal;
 
-pageextension 11357 "Acc. Receivables Adm. RC NL" extends "Acc. Receivables Adm. RC"
+pageextension 11429 "Acc. Receivables Adm. RC NL" extends "Acc. Receivables Adm. RC"
 {
     actions
     {

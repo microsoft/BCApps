@@ -6,7 +6,7 @@ namespace Microsoft.Finance.GeneralLedger.Journal;
 
 using Microsoft.Bank.Statement;
 
-tableextension 11383 "Gen. Journal Template NL" extends "Gen. Journal Template"
+tableextension 11418 "Gen. Journal Template NL" extends "Gen. Journal Template"
 {
     fields
     {

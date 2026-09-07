@@ -7,7 +7,7 @@ namespace Microsoft.Purchases.Vendor;
 using Microsoft.Foundation.Address;
 using Microsoft.Utilities;
 
-tableextension 11302 VendorBankAccountNL extends "Vendor Bank Account"
+tableextension 11402 VendorBankAccountNL extends "Vendor Bank Account"
 {
     fields
     {

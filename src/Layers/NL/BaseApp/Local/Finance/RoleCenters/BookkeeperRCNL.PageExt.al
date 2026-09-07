@@ -10,7 +10,7 @@ using Microsoft.Bank.Reconciliation;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.VAT.Reporting;
 
-pageextension 11358 "Bookkeeper RC NL" extends "Bookkeeper Role Center"
+pageextension 11430 "Bookkeeper RC NL" extends "Bookkeeper Role Center"
 {
     actions
     {

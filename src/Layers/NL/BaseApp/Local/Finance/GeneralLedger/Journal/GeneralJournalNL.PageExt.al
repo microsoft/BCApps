@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Journal;
 
-pageextension 11360 "General Journal NL" extends "General Journal"
+pageextension 11432 "General Journal NL" extends "General Journal"
 {
     layout
     {

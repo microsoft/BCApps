@@ -6,7 +6,7 @@ namespace Microsoft.Bank.BankAccount;
 
 using Microsoft.Utilities;
 
-codeunit 11344 "Bank Account NL"
+codeunit 11430 "Bank Account NL"
 {
     Access = Internal;
 

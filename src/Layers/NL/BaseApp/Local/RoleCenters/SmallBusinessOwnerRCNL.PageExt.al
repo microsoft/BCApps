@@ -10,7 +10,7 @@ using Microsoft.Bank.Reconciliation;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.VAT.Reporting;
 
-pageextension 11362 "Small Business Owner RC NL" extends "Small Business Owner RC"
+pageextension 11434 "Small Business Owner RC NL" extends "Small Business Owner RC"
 {
     actions
     {

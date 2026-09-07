@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.History;
 
-pageextension 11316 PostedPurchaseCrMemoNL extends "Posted Purchase Credit Memo"
+pageextension 11410 PostedPurchaseCrMemoNL extends "Posted Purchase Credit Memo"
 {
     layout
     {

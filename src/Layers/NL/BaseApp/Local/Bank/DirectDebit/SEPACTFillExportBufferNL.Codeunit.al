@@ -5,7 +5,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.HumanResources.Employee;
 
-codeunit 11349 "SEPA CT-Fill Export Buffer NL"
+codeunit 11435 "SEPA CT-Fill Export Buffer NL"
 {
     Access = Internal;
 

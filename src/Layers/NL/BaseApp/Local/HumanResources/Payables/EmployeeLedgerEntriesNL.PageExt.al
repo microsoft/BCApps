@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.HumanResources.Payables;
 
-pageextension 11337 "Employee Ledger Entries NL" extends "Employee Ledger Entries"
+pageextension 11417 "Employee Ledger Entries NL" extends "Employee Ledger Entries"
 {
     layout
     {

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Ledger;
 
-reportextension 11334 "Date Compress G/L NL" extends "Date Compress General Ledger"
+reportextension 11400 "Date Compress G/L NL" extends "Date Compress General Ledger"
 {
     dataset
     {

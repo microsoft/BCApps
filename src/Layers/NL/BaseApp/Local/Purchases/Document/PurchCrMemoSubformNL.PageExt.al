@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Document;
 
-pageextension 11324 PurchCrMemoSubformNL extends "Purch. Cr. Memo Subform"
+pageextension 11414 PurchCrMemoSubformNL extends "Purch. Cr. Memo Subform"
 {
     layout
     {

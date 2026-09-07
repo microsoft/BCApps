@@ -2,7 +2,7 @@ namespace Microsoft.Bank.Payment;
 
 using Microsoft.Finance.GeneralLedger.Journal;
 
-tableextension 11349 "Payment Export Data NL" extends "Payment Export Data"
+tableextension 11412 "Payment Export Data NL" extends "Payment Export Data"
 {
     [Scope('OnPrem')]
     procedure CollectDataFromLocalSource(GenJnlLine: Record "Gen. Journal Line")

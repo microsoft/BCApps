@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
-codeunit 11366 "VAT Statement Line NL"
+codeunit 11440 "VAT Statement Line NL"
 {
     Access = Internal;
 

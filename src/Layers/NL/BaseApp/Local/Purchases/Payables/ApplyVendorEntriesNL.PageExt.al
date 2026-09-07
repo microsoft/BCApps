@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Payables;
 
-pageextension 11319 ApplyVendorEntriesNL extends "Apply Vendor Entries"
+pageextension 11412 ApplyVendorEntriesNL extends "Apply Vendor Entries"
 {
     layout
     {

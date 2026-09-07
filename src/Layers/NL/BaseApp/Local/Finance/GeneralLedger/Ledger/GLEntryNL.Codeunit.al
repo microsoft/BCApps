@@ -8,7 +8,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Reversal;
 
-codeunit 11382 "G/L Entry NL"
+codeunit 11441 "G/L Entry NL"
 {
     Access = Internal;
 

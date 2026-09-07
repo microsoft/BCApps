@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Setup;
 
-pageextension 11386 "General Ledger Setup NL" extends "General Ledger Setup"
+pageextension 11438 "General Ledger Setup NL" extends "General Ledger Setup"
 {
     layout
     {

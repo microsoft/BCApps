@@ -6,7 +6,7 @@ namespace Microsoft.Sales.Receivables;
 
 using Microsoft.Finance.GeneralLedger.Journal;
 
-codeunit 11329 CustLedgerEntryNL
+codeunit 11418 CustLedgerEntryNL
 {
     Access = Internal;
 

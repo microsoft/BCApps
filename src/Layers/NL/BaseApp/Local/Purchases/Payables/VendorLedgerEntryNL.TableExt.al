@@ -6,7 +6,7 @@ namespace Microsoft.Purchases.Payables;
 
 using Microsoft.Bank.Payment;
 
-tableextension 11317 "Vendor Ledger Entry NL" extends "Vendor Ledger Entry"
+tableextension 11408 "Vendor Ledger Entry NL" extends "Vendor Ledger Entry"
 {
     fields
     {

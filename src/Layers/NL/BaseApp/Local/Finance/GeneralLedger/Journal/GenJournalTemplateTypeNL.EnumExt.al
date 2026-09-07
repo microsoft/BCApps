@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Journal;
 
-enumextension 11389 "Gen. Journal Template Type NL" extends "Gen. Journal Template Type"
+enumextension 11400 "Gen. Journal Template Type NL" extends "Gen. Journal Template Type"
 {
     value(11; Cash)
     {

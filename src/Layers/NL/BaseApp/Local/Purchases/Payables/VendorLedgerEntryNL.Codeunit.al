@@ -6,7 +6,7 @@ namespace Microsoft.Purchases.Payables;
 
 using Microsoft.Finance.GeneralLedger.Journal;
 
-codeunit 11328 VendorLedgerEntryNL
+codeunit 11417 VendorLedgerEntryNL
 {
     Access = Internal;
 

@@ -6,7 +6,7 @@ namespace Microsoft.HumanResources.Payables;
 
 using Microsoft.Bank.Payment;
 
-tableextension 11362 "Employee Ledger Entry NL" extends "Employee Ledger Entry"
+tableextension 11414 "Employee Ledger Entry NL" extends "Employee Ledger Entry"
 {
     fields
     {

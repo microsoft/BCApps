@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.HumanResources.Employee;
 
-pageextension 11352 "Employee Card NL" extends "Employee Card"
+pageextension 11425 "Employee Card NL" extends "Employee Card"
 {
     layout
     {

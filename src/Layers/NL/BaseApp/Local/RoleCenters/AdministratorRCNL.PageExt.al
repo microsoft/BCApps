@@ -10,7 +10,7 @@ using Microsoft.Finance.Analysis;
 using Microsoft.Finance.VAT.Reporting;
 
 
-pageextension 11351 "Administrator RC NL" extends "Administrator Role Center"
+pageextension 11424 "Administrator RC NL" extends "Administrator Role Center"
 {
     actions
     {

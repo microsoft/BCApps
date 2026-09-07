@@ -6,7 +6,7 @@ namespace Microsoft.Foundation.Company;
 
 using Microsoft.Utilities;
 
-codeunit 11361 "Company Information NL"
+codeunit 11437 "Company Information NL"
 {
     Access = Internal;
 

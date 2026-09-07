@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.BankAccount;
 
-pageextension 11341 "Bank Acc. Posting Grps. NL" extends "Bank Account Posting Groups"
+pageextension 11421 "Bank Acc. Posting Grps. NL" extends "Bank Account Posting Groups"
 {
     layout
     {

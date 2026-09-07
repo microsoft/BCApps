@@ -6,7 +6,7 @@ namespace Microsoft.Foundation.Company;
 
 using Microsoft.Finance.VAT.Registration;
 
-tableextension 11379 "Company Information NL" extends "Company Information"
+tableextension 11415 "Company Information NL" extends "Company Information"
 {
     fields
     {

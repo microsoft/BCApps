@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Company;
 
-pageextension 11361 "Company Information NL" extends "Company Information"
+pageextension 11433 "Company Information NL" extends "Company Information"
 {
     layout
     {

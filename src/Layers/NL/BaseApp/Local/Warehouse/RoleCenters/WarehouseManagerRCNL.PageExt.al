@@ -6,7 +6,7 @@ namespace Microsoft.Warehouse.RoleCenters;
 
 using Microsoft.Inventory.Transfer;
 
-pageextension 11389 "Warehouse Manager RC NL" extends "Warehouse Manager Role Center"
+pageextension 11439 "Warehouse Manager RC NL" extends "Warehouse Manager Role Center"
 {
     actions
     {

@@ -6,7 +6,7 @@ namespace Microsoft.Bank.BankAccount;
 
 using Microsoft.Finance.GeneralLedger.Account;
 
-tableextension 11342 "Bank Acc. Posting Group NL" extends "Bank Account Posting Group"
+tableextension 11410 "Bank Acc. Posting Group NL" extends "Bank Account Posting Group"
 {
     fields
     {

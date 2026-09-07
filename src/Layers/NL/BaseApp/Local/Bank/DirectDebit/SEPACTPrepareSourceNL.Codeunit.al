@@ -8,7 +8,7 @@ using Microsoft.Bank.Payment;
 using Microsoft.Finance.GeneralLedger.Journal;
 using System.Environment.Configuration;
 
-codeunit 11346 "SEPA CT-Prepare Source NL"
+codeunit 11432 "SEPA CT-Prepare Source NL"
 {
     Access = Internal;
 

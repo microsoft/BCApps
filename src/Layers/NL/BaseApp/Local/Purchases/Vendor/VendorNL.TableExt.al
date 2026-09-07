@@ -7,7 +7,7 @@ namespace Microsoft.Purchases.Vendor;
 using Microsoft.Bank.Payment;
 using Microsoft.Foundation.Company;
 
-tableextension 11300 "Vendor NL" extends Vendor
+tableextension 11401 "Vendor NL" extends Vendor
 {
     fields
     {

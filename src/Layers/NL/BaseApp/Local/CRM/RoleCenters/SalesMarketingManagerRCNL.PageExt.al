@@ -6,7 +6,7 @@ namespace Microsoft.CRM.RoleCenters;
 
 using Microsoft.Sales.History;
 
-pageextension 11364 "Sales Marketing Manager RC NL" extends "Sales & Marketing Manager RC"
+pageextension 11436 "Sales Marketing Manager RC NL" extends "Sales & Marketing Manager RC"
 {
     actions
     {

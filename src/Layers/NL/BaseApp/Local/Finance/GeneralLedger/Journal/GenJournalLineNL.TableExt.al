@@ -6,7 +6,7 @@ namespace Microsoft.Finance.GeneralLedger.Journal;
 
 using Microsoft.Bank.Payment;
 
-tableextension 11384 "Gen. Journal Line NL" extends "Gen. Journal Line"
+tableextension 11419 "Gen. Journal Line NL" extends "Gen. Journal Line"
 {
     fields
     {

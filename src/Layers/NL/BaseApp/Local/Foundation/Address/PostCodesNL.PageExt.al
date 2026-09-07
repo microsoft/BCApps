@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Address;
 
-pageextension 11392 "Post Codes NL" extends "Post Codes"
+pageextension 11441 "Post Codes NL" extends "Post Codes"
 {
     actions
     {

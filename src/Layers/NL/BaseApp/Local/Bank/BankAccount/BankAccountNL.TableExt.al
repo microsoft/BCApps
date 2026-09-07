@@ -7,7 +7,7 @@ namespace Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Payment;
 using Microsoft.Foundation.Address;
 
-tableextension 11343 "Bank Account NL" extends "Bank Account"
+tableextension 11411 "Bank Account NL" extends "Bank Account"
 {
     fields
     {

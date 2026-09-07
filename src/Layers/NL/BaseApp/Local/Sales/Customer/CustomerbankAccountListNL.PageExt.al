@@ -6,7 +6,7 @@ namespace Microsoft.Sales.Customer;
 
 using Microsoft.Bank.DirectDebit;
 
-pageextension 11344 "Customer Bank Account List NL" extends "Customer Bank Account List"
+pageextension 11422 "Customer Bank Account List NL" extends "Customer Bank Account List"
 {
     layout
     {

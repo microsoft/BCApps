@@ -6,7 +6,7 @@ namespace Microsoft.RoleCenters;
 
 using Microsoft.Foundation.Address;
 
-pageextension 11350 "Administrator Main RC NL" extends "Administrator Main Role Center"
+pageextension 11423 "Administrator Main RC NL" extends "Administrator Main Role Center"
 {
     actions
     {

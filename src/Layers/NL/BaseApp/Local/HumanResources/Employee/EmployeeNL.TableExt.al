@@ -6,7 +6,7 @@ namespace Microsoft.HumanResources.Employee;
 
 using Microsoft.Bank.Payment;
 
-tableextension 11352 "Employee NL" extends "Employee"
+tableextension 11413 "Employee NL" extends "Employee"
 {
     fields
     {

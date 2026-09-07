@@ -8,7 +8,7 @@ using Microsoft.Bank.Journal;
 using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Foundation.AuditCodes;
 
-codeunit 11338 "Company-Initialize NL"
+codeunit 11427 "Company-Initialize NL"
 {
     Access = Internal;
 

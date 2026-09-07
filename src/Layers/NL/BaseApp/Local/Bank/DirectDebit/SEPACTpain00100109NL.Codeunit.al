@@ -7,7 +7,7 @@ namespace Microsoft.Bank.DirectDebit;
 using Microsoft.Bank.Payment;
 using System.Utilities;
 
-codeunit 11348 "SEPA CT pain.001.001.09 NL"
+codeunit 11434 "SEPA CT pain.001.001.09 NL"
 {
     Access = Internal;
 

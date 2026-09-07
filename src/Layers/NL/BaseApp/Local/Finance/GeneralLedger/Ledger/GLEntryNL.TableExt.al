@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.GeneralLedger.Ledger;
 
-tableextension 11382 "G/L Entry NL" extends "G/L Entry"
+tableextension 11417 "G/L Entry NL" extends "G/L Entry"
 {
     fields
     {

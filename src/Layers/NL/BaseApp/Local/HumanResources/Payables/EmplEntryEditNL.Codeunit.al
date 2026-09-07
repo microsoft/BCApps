@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.HumanResources.Payables;
 
-codeunit 11356 "Empl. Entry-Edit NL"
+codeunit 11436 "Empl. Entry-Edit NL"
 {
     Access = Internal;
 

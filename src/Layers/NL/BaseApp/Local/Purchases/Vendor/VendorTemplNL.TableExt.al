@@ -6,7 +6,7 @@ namespace Microsoft.Purchases.Vendor;
 
 using Microsoft.Bank.Payment;
 
-tableextension 11304 VendorTemplNL extends "Vendor Templ."
+tableextension 11403 VendorTemplNL extends "Vendor Templ."
 {
     fields
     {

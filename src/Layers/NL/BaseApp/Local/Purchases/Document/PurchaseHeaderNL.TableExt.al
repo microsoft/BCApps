@@ -8,7 +8,7 @@ using Microsoft.Bank.Payment;
 using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Vendor;
 
-tableextension 11306 PurchaseHeaderNL extends "Purchase Header"
+tableextension 11404 PurchaseHeaderNL extends "Purchase Header"
 {
     fields
     {

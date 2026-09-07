@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Address;
 
-tableextension 11380 "Country/Region NL" extends "Country/Region"
+tableextension 11416 "Country/Region NL" extends "Country/Region"
 {
     fields
     {

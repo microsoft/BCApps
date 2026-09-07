@@ -5,7 +5,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Intrastat;
 
-tableextension 11331 "Intrastat Jnl. Batch NL" extends "Intrastat Jnl. Batch"
+tableextension 11409 "Intrastat Jnl. Batch NL" extends "Intrastat Jnl. Batch"
 {
     fields
     {

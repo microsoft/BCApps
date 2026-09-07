@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.History;
 
-pageextension 11315 PostedPurchaseInvoiceNL extends "Posted Purchase Invoice"
+pageextension 11409 PostedPurchaseInvoiceNL extends "Posted Purchase Invoice"
 {
     layout
     {

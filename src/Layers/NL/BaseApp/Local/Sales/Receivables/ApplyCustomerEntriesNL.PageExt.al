@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Receivables;
 
-pageextension 11332 "Apply Customer Entries NL" extends "Apply Customer Entries"
+pageextension 11416 "Apply Customer Entries NL" extends "Apply Customer Entries"
 {
     layout
     {

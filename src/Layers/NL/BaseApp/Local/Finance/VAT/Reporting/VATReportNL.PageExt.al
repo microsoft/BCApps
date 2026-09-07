@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
-pageextension 11338 "VAT Report NL" extends "VAT Report"
+pageextension 11418 "VAT Report NL" extends "VAT Report"
 {
     layout
     {
