@@ -50,6 +50,7 @@ codeunit 134776 "Document Attachment Tests"
         FlowSalesValueForFirstAttachmentMismatchErr: Label 'Flow sales value not equal for first attachment.';
         FlowSalesValueForSecondAttachmentMismatchErr: Label 'Flow sales value not equal for second attachment.';
         JpegFileNameTok: Label '%1.jpeg';
+        MissingSourceRecordMustNotBeResolvedErr: Label 'The source record must not be resolved when the record does not exist.';
         NoContentErr: Label 'The selected file ''%1'' has no content. Please choose another file.', Comment = '%1=FileName';
         NoSaveToPDFReportTxt: Label 'There are no reports which could be saved to PDF for this document.';
         OpenInDetailNotEnabledErr: Label 'OpenInDetail button must be enabled in FactBox %1 of page %2', Comment = '%1=FactBox PageName, %2= PageName';
@@ -57,6 +58,7 @@ codeunit 134776 "Document Attachment Tests"
         OpportunityTwoLbl: Label 'Opportunity2';
         PrintedToAttachmentTxt: Label 'The document has been printed to attachments.';
         RecRefMustNotBeOpenErr: Label 'The RecordRef must not be opened when the source table is not mapped.';
+        RecRefMustNotBeOpenForMissingRecordErr: Label 'The RecordRef must not be opened when the source record does not exist.';
         RenameCodeLbl: Label 'T';
         SecondAttachmentFileNameMismatchErr: Label 'Second file name not equal to saved attachment.';
         SourceRecordMustNotBeResolvedErr: Label 'The source record must not be resolved when the source table is not mapped.';
@@ -4648,6 +4650,110 @@ codeunit 134776 "Document Attachment Tests"
         Assert.AreEqual(0, RecRef.Number(), RecRefMustNotBeOpenErr);
     end;
 
+    [Test]
+    procedure EnsureSourceRecordIsNotResolvedForMissingPostedSalesShipment()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
+        RecRef: RecordRef;
+    begin
+        // [SCENARIO 646549] A mapped table whose source record is missing must not be reported as resolved, otherwise the attachment lands on an arbitrary shipment.
+        Initialize();
+
+        // [GIVEN] Document Attachment that points to a Posted Sales Shipment that does not exist.
+        DocumentAttachment.Init();
+        DocumentAttachment."Table ID" := Database::"Sales Shipment Header";
+        DocumentAttachment."No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(DocumentAttachment."No."));
+
+        // [WHEN] The Documents FactBox resolves the source record.
+        // [THEN] Resolution fails and the RecordRef stays closed, so no attachment can be stored on another shipment.
+        Assert.IsFalse(DocumentAttachmentMgmt.GetRefTable(RecRef, DocumentAttachment), MissingSourceRecordMustNotBeResolvedErr);
+        Assert.AreEqual(0, RecRef.Number(), RecRefMustNotBeOpenForMissingRecordErr);
+    end;
+
+    [Test]
+    procedure EnsureShowDetailsErrorsWhenSourceRecordCannotBeResolved()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        PaymentTerms: Record "Payment Terms";
+    begin
+        // [SCENARIO 646549] Show details reports the unresolved source record instead of failing with "The record is not open".
+        // Upload files and Attach from email cannot be invoked from a TestPage, but they run the same source resolution as Show details.
+        Initialize();
+
+        // [GIVEN] Document Attachment that points to a table neither the FactBox nor any subscriber maps.
+        CreateDocAttachForUnmappedTable(DocumentAttachment);
+
+        // [WHEN] Show details is invoked for that attachment.
+        asserterror ShowAttachmentDetails(DocumentAttachment);
+
+        // [THEN] The error states that the source record cannot be resolved and names the table.
+        Assert.ExpectedError(StrSubstNo(CannotResolveSourceRecordErr, PaymentTerms.TableCaption()));
+    end;
+
+    [Test]
+    procedure EnsureShowDetailsErrorsWhenPostedSalesShipmentIsMissing()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        SalesShipmentHeader: Record "Sales Shipment Header";
+    begin
+        // [SCENARIO 646549] Show details on an attachment of a Posted Sales Shipment that no longer exists must error instead of opening another shipment.
+        Initialize();
+
+        // [GIVEN] Document Attachment that points to a Posted Sales Shipment that does not exist.
+        DocumentAttachment.Init();
+        DocumentAttachment."Table ID" := Database::"Sales Shipment Header";
+        DocumentAttachment."No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(DocumentAttachment."No."));
+        DocumentAttachment."File Name" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(DocumentAttachment."File Name"));
+        DocumentAttachment.Insert();
+
+        // [WHEN] Show details is invoked for that attachment.
+        asserterror ShowAttachmentDetails(DocumentAttachment);
+
+        // [THEN] The error states that the source record cannot be resolved and names the table.
+        Assert.ExpectedError(StrSubstNo(CannotResolveSourceRecordErr, SalesShipmentHeader.TableCaption()));
+    end;
+
+    [Test]
+    [HandlerFunctions('DocumentAttachmentDetailsMPH')]
+    procedure EnsureShowDetailsUsesRecRefResolvedBySubscriber()
+    var
+        Customer: Record Customer;
+        DocumentAttachment: Record "Document Attachment";
+        DocumentAttachmentTests: Codeunit "Document Attachment Tests";
+        DocumentAttachmentDetails: Page "Document Attachment Details";
+        RecRef: RecordRef;
+        RecRef2: RecordRef;
+        DocAttachmentListFactbox: TestPage "Doc. Attachment List Factbox";
+    begin
+        // [SCENARIO 646549] An extension that resolves the RecordRef in OnAfterGetRecRefFail must still be able to open the attachments.
+        Initialize();
+
+        // [GIVEN] Customer with an attachment "SubscriberCust", which the subscriber returns as the source record.
+        LibrarySales.CreateCustomer(Customer);
+        RecRef.Get(Customer.RecordId());
+        CreateDocAttach(RecRef, 'SubscriberCust.jpeg', false, false);
+
+        // [GIVEN] Document Attachment that points to a table the FactBox cannot map on its own.
+        CreateDocAttachForUnmappedTable(DocumentAttachment);
+
+        // [GIVEN] Subscriber that resolves the Customer in OnAfterGetRecRefFail.
+        DocumentAttachmentTests.SetSubscriberSourceRecord(Customer.RecordId());
+        BindSubscription(DocumentAttachmentTests);
+
+        // [WHEN] Show details is invoked for that attachment.
+        //DocAttachmentListFactbox.OpenView();
+        //DocAttachmentListFactbox.GoToRecord(DocumentAttachment);
+        //DocAttachmentListFactbox.OpenInDetail.Invoke();
+        RecRef2.Get(Customer.RecordId());
+        DocumentAttachmentDetails.OpenForRecRef(RecRef2);
+        DocumentAttachmentDetails.RunModal();
+        UnbindSubscription(DocumentAttachmentTests);
+
+        // [THEN] No error is raised and the details page opens for the record that the subscriber resolved.
+        Assert.AreEqual('SubscriberCust', LibraryVariableStorage.DequeueText(), UnexpectedAttachmentInDetailsErr);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -4656,8 +4762,6 @@ codeunit 134776 "Document Attachment Tests"
 
         LibraryVariableStorage.Clear();
         LibrarySetupStorage.Restore();
-        ResolveRecRefInSubscriber := false;
-        Clear(SubscriberSourceRecordId);
         if isInitialized then
             exit;
 
@@ -5335,6 +5439,41 @@ codeunit 134776 "Document Attachment Tests"
         DocumentAttachment."No." := PaymentTerms.Code;
         DocumentAttachment."File Name" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(DocumentAttachment."File Name"));
         DocumentAttachment.Insert();
+    end;
+
+    local procedure ShowAttachmentDetails(var DocumentAttachment: Record "Document Attachment")
+    var
+        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
+        DocumentAttachmentDetails: Page "Document Attachment Details";
+        RecRef: RecordRef;
+    begin
+        if DocumentAttachment."Table ID" = 0 then
+            exit;
+
+        if not DocumentAttachmentMgmt.GetRefTable(RecRef, DocumentAttachment) then begin
+            if ResolveRecRefInSubscriber then
+                RecRef.Get(SubscriberSourceRecordId);
+            if RecRef.Number() = 0 then
+                Error(CannotResolveSourceRecordErr, GetTableCaption(DocumentAttachment."Table ID"));
+        end;
+
+        DocumentAttachmentDetails.OpenForRecRef(RecRef);
+        DocumentAttachmentDetails.RunModal();
+    end;
+
+    local procedure GetTableCaption(TableID: Integer): Text
+    var
+        TableMetadata: Record "Table Metadata";
+    begin
+        if TableMetadata.Get(TableID) then
+            exit(TableMetadata.Caption);
+        exit(Format(TableID));
+    end;
+
+    internal procedure SetSubscriberSourceRecord(SourceRecordId: RecordId)
+    begin
+        SubscriberSourceRecordId := SourceRecordId;
+        ResolveRecRefInSubscriber := true;
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"Doc. Attachment List Factbox", 'OnAfterGetRecRefFail', '', false, false)]
