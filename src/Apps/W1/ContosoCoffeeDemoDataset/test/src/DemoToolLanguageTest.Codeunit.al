@@ -67,11 +67,14 @@ codeunit 148049 "Demo Tool Language Test"
 
         // [WHEN] Changing the current language
         NewLanguageID := 2057; // English (United Kingdom)
+        if NewLanguageID = CurrentLanguageID then
+            NewLanguageID := 1033; // English (United States)
         GlobalLanguage(NewLanguageID);
 
         // [THEN] When running of the Contoso Demo Tool again, there should be dialog pops up warning a language mismatch 
         // Checking for the dialog is done in the handler function
         ContosoDemoTool.CreateDemoData(ContosoDemoDataModule, Enum::"Contoso Demo Data Level"::All);
+        GlobalLanguage(CurrentLanguageID);
     end;
 
     [Test]
@@ -89,6 +92,7 @@ codeunit 148049 "Demo Tool Language Test"
     [Test]
     procedure ManufacturingVersionNoSeriesAreCreatedAndAssignedOnlyWhenBlank()
     var
+        ContosoCoffeeDemoDataSetup: Record "Contoso Coffee Demo Data Setup";
         ManufacturingSetup: Record "Manufacturing Setup";
         CreateMfgNoSeries: Codeunit "Create Mfg No Series";
     begin
@@ -97,8 +101,21 @@ codeunit 148049 "Demo Tool Language Test"
         // [GIVEN] Manufacturing Setup has no version number series
         SetManufacturingVersionNoSeries('', '');
 
+        // [GIVEN] Previous demo data was generated in a different language
+        ContosoCoffeeDemoDataSetup.InitRecord();
+        ContosoCoffeeDemoDataSetup.Get();
+        if GlobalLanguage() = 2057 then
+            ContosoCoffeeDemoDataSetup.Validate("Language ID", 1033)
+        else
+            ContosoCoffeeDemoDataSetup.Validate("Language ID", 2057);
+        ContosoCoffeeDemoDataSetup.Modify(true);
+
         // [WHEN] Manufacturing setup data is created
         CreateManufacturingSetupData();
+
+        // [THEN] The fixture uses the current language without a confirmation dialog
+        ContosoCoffeeDemoDataSetup.Get();
+        ContosoCoffeeDemoDataSetup.TestField("Language ID", GlobalLanguage());
 
         // [THEN] Both version number series have the expected definitions
         VerifyNoSeries(CreateMfgNoSeries.ProductionBOMVersion(), 'Production BOM Versions', 'PV10', 'PV99990', 10);
@@ -236,11 +253,18 @@ codeunit 148049 "Demo Tool Language Test"
 
     local procedure CreateManufacturingSetupData()
     var
+        ContosoCoffeeDemoDataSetup: Record "Contoso Coffee Demo Data Setup";
         ContosoDemoDataModule: Record "Contoso Demo Data Module";
         ContosoDemoTool: Codeunit "Contoso Demo Tool";
     begin
         ContosoDemoDataModule.DeleteAll();
         ContosoDemoTool.RefreshModules();
+
+        // Manufacturing tests must not depend on language state left by other tests.
+        ContosoCoffeeDemoDataSetup.Get();
+        ContosoCoffeeDemoDataSetup.Validate("Language ID", GlobalLanguage());
+        ContosoCoffeeDemoDataSetup.Modify(true);
+
         ContosoDemoDataModule.SetRange(Module, Enum::"Contoso Demo Data Module"::"Manufacturing Module");
         ContosoDemoTool.CreateDemoData(ContosoDemoDataModule, Enum::"Contoso Demo Data Level"::"Setup Data");
     end;
