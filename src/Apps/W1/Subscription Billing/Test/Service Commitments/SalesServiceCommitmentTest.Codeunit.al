@@ -245,9 +245,7 @@ codeunit 139915 "Sales Service Commitment Test"
         CreateAndReleaseSalesDocumentForDropShipment();
         ExpectedQuantity := SalesLine.Quantity;
 
-        LibraryPurchase.CreateVendor(Vendor);
-        Item."Vendor No." := Vendor."No.";
-        Item.Modify(false);
+        CreateVendorForDropShipmentItem(Vendor);
 
         // [WHEN] The linked purchase order is created from the sales order and received
         RunGetSalesOrders(RequisitionLine, SalesHeader);
@@ -278,9 +276,7 @@ codeunit 139915 "Sales Service Commitment Test"
         // [GIVEN] A released drop shipment sales order for a non-serialized Subscription Item
         CreateAndReleaseSalesDocumentForDropShipment();
 
-        LibraryPurchase.CreateVendor(Vendor);
-        Item."Vendor No." := Vendor."No.";
-        Item.Modify(false);
+        CreateVendorForDropShipmentItem(Vendor);
 
         // [WHEN] The linked purchase order is created from the sales order and received
         RunGetSalesOrders(RequisitionLine, SalesHeader);
@@ -2260,11 +2256,26 @@ codeunit 139915 "Sales Service Commitment Test"
     local procedure CreateAndReleaseSalesDocumentForDropShipment()
     var
         Purchasing: Record Purchasing;
+        VATPostingSetup: Record "VAT Posting Setup";
+        Quantity: Decimal;
     begin
         LibraryPurchase.CreateDropShipmentPurchasingCode(Purchasing);
         ContractTestLibrary.CreateItemWithServiceCommitmentOption(Item, Enum::"Item Service Commitment Type"::"Service Commitment Item");
         ContractTestLibrary.AssignItemToServiceCommitmentPackage(Item, ServiceCommitmentPackage.Code, true);
-        CreateSalesDocumentAndLineWithRandomQuantity("Sales Document Type"::Order);
+
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", LibraryRandom.RandIntInRange(10, 25));
+        Item.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        Item.Modify(true);
+
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Customer.Modify(true);
+
+        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Order, Customer."No.");
+        Quantity := LibraryRandom.RandInt(10);
+        NoOfServiceObjects := Quantity;
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", Quantity);
+
         SalesLine.Validate("Purchasing Code", Purchasing.Code);
         SalesLine.Modify(true);
         LibrarySales.ReleaseSalesDocument(SalesHeader);
@@ -2370,6 +2381,16 @@ codeunit 139915 "Sales Service Commitment Test"
         Item."Subscription Option" := Enum::"Item Service Commitment Type"::"Sales with Service Commitment";
         Item.Modify(false);
         ContractTestLibrary.AssignItemToServiceCommitmentPackage(Item, ServiceCommitmentPackage.Code, true);
+    end;
+
+    local procedure CreateVendorForDropShipmentItem(var Vendor: Record Vendor)
+    begin
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Validate("VAT Bus. Posting Group", Customer."VAT Bus. Posting Group");
+        Vendor.Modify(true);
+
+        Item."Vendor No." := Vendor."No.";
+        Item.Modify(false);
     end;
 
     local procedure FilterSalesServiceCommForLineDisc(ExpectedCalculationBaseAmount: Decimal)
