@@ -102,10 +102,10 @@ codeunit 2503 "Extension Operation Impl"
             exit;
 
         if Confirm(InstallationFailedOpenStatusQst) then begin
-            Session.LogMessage('', InstallationFailedOpenStatusTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Extensions');
+            Session.LogMessage('0000VD5', InstallationFailedOpenStatusTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Extensions');
             Page.Run(Page::"Extension Deployment Status");
         end else
-            Session.LogMessage('', InstallationFailedDoNotOpenStatusTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Extensions');
+            Session.LogMessage('0000VD6', InstallationFailedDoNotOpenStatusTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Extensions');
     end;
 
     procedure DeployAndUploadExtension(PackageInStream: InStream; lcid: Integer; DeployTo: Enum "Extension Deploy To"; SyncMode: Enum "Extension Sync Mode")
