@@ -268,10 +268,14 @@ report 10480 "Electronic Carta Porte MX"
                     Employee.Get("Operator Code");
                 end;
             }
+#pragma warning disable AL0589 // Accepted: renaming the data item or column would break the report layout.
             dataitem(QRCode; "Integer")
+#pragma warning restore AL0589
             {
                 DataItemTableView = sorting(Number) where(Number = const(1));
+#pragma warning disable AL0589 // Accepted: renaming the data item or column would break the report layout.
                 column(QRCode; TempSalesShipmentHeader."QR Code")
+#pragma warning restore AL0589
                 {
                 }
                 column(QRCode_Number; Number)

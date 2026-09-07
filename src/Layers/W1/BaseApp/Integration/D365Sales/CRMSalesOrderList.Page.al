@@ -96,7 +96,9 @@ page 5353 "CRM Sales Order List"
                     ApplicationArea = Suite;
                     Caption = 'Freight Terms';
                 }
+#pragma warning disable AW0004 // Accepted: pre-existing page field; changing the source expression would be a breaking change.
                 field(BillTo_Composite; Rec.BillTo_Composite)
+#pragma warning restore AW0004
                 {
                     ApplicationArea = Suite;
                     Caption = 'Bill To Address';
@@ -107,7 +109,9 @@ page 5353 "CRM Sales Order List"
                     Caption = 'Ship To';
                     ToolTip = 'Specifies information related to the Dynamics 365 Sales connection. ';
                 }
+#pragma warning disable AW0004 // Accepted: pre-existing page field; changing the source expression would be a breaking change.
                 field(ShipTo_Composite; Rec.ShipTo_Composite)
+#pragma warning restore AW0004
                 {
                     ApplicationArea = Suite;
                     Caption = 'Ship To Address';

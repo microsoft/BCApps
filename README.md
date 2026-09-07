@@ -64,7 +64,23 @@ The direction is for this agent framework to ship as part of AL-Go for GitHub, s
 
 ![image](https://user-images.githubusercontent.com/19796701/178490212-f14a11e4-8b06-437d-8444-ea28156f70c7.png)
 
-[Business Central](https://learn.microsoft.com/dynamics365/business-central/) is a business management solution for small and mid-sized organizations that automates and streamlines business processes and helps you manage your business. Highly adaptable and rich with features, Business Central enables companies to manage their business — including finance, manufacturing, sales, shipping, project management, services, and more. Companies can easily add functionality that is relevant to their region of operation and customized to support even highly specialized industries. Business Central is fast to implement, easy to configure, and simplicity guides innovations in product design, development, implementation, and usability.
+[Business Central](https://learn.microsoft.com/dynamics365/business-central/) is a business management solution for small and mid-sized organizations that automates and streamlines business processes and helps you manage your business. Highly adaptable and rich with features, Business Central enables companies to manage their business — including finance, manufacturing, sales, shipping, project management, services, and more. Companies can easily add functionality that is relevant to their region of operation and customized to support even highly specialized industries. Business Central is fast to implement, easy to configure, and simplicity guides innovations in product design, development, implementation, and usability. 
+
+## Extensibility requests
+All extensibility requests for Business Central apps are now handled in the BCApps repository.
+
+The following are the types of requests you can submit to unblock your app:  
+
+* Add new integration events – Get the event you need to hook-in to a process.  
+* Change function visibility – For example, make a public function external or a similar change so you can call it from your extension and reuse the business logic.  
+* Replace Option with Enum – Replace a specific option with an enum that supports your extension. The new type enum is extensible, but all code was written for non-extensible options.  
+* Extensibility enhancements – Request changes in the application code that will improve extensibility.  
+
+Before creating a request, search existing issues to avoid duplicates and read the guidance for [creating extensibility requests](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/create-extensibility-request).
+
+You may optionally provide an implementation pull request after the request is approved. We recommend this when you need multiple extensibility points (5+) related to the same functionality.
+
+We’ll have a look at your request, and if we can we’ll implement it asap. If we can’t we’ll let you know and briefly explain why not. When that happens, don’t be discouraged. Go back to the drawing board, see if you can work it out, and then come back and submit another request.
 
 ## More resources
 

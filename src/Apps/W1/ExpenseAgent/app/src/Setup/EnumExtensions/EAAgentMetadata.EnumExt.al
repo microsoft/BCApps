@@ -13,6 +13,6 @@ enumextension 6998 "EA Agent Metadata" extends "Agent Metadata Provider"
     value(6998; "Expense Agent")
     {
         Caption = 'Expense Agent', Locked = true;
-        Implementation = IAgentFactory = "EA Metadata Provider", IAgentMetadata = "EA Metadata Provider", IAgentTaskExecution = "EA Agent Task Execution";
+        Implementation = IAgentFactory = "EA Metadata Provider", IAgentMetadata = "EA Metadata Provider", IAgentTaskExecution = "EA Agent Task Execution", IAgentArchiving = "EA Agent Archiving";
     }
 }

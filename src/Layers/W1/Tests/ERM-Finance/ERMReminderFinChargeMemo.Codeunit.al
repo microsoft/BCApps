@@ -1492,7 +1492,6 @@ codeunit 134909 "ERM Reminder/Fin.Charge Memo"
 
     local procedure Initialize()
     var
-        FeatureKey: Record "Feature Key";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"ERM Reminder/Fin.Charge Memo");
@@ -1501,11 +1500,6 @@ codeunit 134909 "ERM Reminder/Fin.Charge Memo"
         Clear(LibraryReportDataset);
         Clear(LibraryVariableStorage);
         LibrarySetupStorage.Restore();
-
-        if FeatureKey.Get('ReminderTermsCommunicationTexts') then begin
-            FeatureKey.Enabled := FeatureKey.Enabled::None;
-            FeatureKey.Modify();
-        end;
 
         if IsInitialized then
             exit;
@@ -2583,4 +2577,3 @@ codeunit 134909 "ERM Reminder/Fin.Charge Memo"
         end;
     end;
 }
-

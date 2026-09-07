@@ -163,6 +163,31 @@ page 6928 "Expense Reports API"
                     Caption = 'Approver Comment';
                     Editable = false;
                 }
+                field(submitterComment; Rec.GetSubmitterComment())
+                {
+                    Caption = 'Submitter Comment';
+                    Editable = false;
+                }
+                field(finalApproverNo; Rec."Final Approver No.")
+                {
+                    Caption = 'Final Approver No.';
+                    Editable = false;
+                }
+                field(finalApproverName; Rec."Final Approver Name")
+                {
+                    Caption = 'Final Approver Name';
+                    Editable = false;
+                }
+                field(interimApproverNo; Rec."Interim Approver No.")
+                {
+                    Caption = 'Interim Approver No.';
+                    Editable = false;
+                }
+                field(interimApproverName; Rec."Interim Approver Name")
+                {
+                    Caption = 'Interim Approver Name';
+                    Editable = false;
+                }
                 field(reimbursementCurrencyCode; ReimbursementCurrencyCodeDisplay)
                 {
                     Caption = 'Reimbursement Currency Code';
@@ -208,11 +233,11 @@ page 6928 "Expense Reports API"
                 }
                 field(spendRequestNo; Rec."Spend Request No.")
                 {
-                    Caption = 'Spend Request No.';
+                    Caption = 'Travel Request No.';
                 }
                 field(spendRequestClose; Rec."Spend Request Close")
                 {
-                    Caption = 'Spend Request Close';
+                    Caption = 'Travel Request Close';
                 }
                 part(expenseReportLines; "Expense Report Lines API")
                 {
@@ -403,10 +428,24 @@ page 6928 "Expense Reports API"
         ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
     end;
 
+#if not CLEAN30
+    [Obsolete('Use ReleaseAndMarkPendingApprovalExpenseReportWithComment instead.', '30.0')]
     [ServiceEnabled]
     procedure ReleaseAndMarkPendingApprovalExpenseReport(var ActionContext: WebServiceActionContext; SubmitterExpenseUserNo: Code[20])
     begin
-        Rec.PerformManualReleaseAndPendingApproval(SubmitterExpenseUserNo);
+        Rec.PerformManualReleaseAndPendingApproval(SubmitterExpenseUserNo, '');
+
+        ActionContext.SetObjectType(ObjectType::Page);
+        ActionContext.SetObjectId(Page::"Expense Reports API");
+        ActionContext.AddEntityKey(Rec.FieldNo(SystemId), Rec.SystemId);
+        ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
+    end;
+
+#endif
+    [ServiceEnabled]
+    procedure ReleaseAndMarkPendingApprovalExpenseReportWithComment(var ActionContext: WebServiceActionContext; SubmitterExpenseUserNo: Code[20]; SubmissionComment: Text)
+    begin
+        Rec.PerformManualReleaseAndPendingApproval(SubmitterExpenseUserNo, SubmissionComment);
 
         ActionContext.SetObjectType(ObjectType::Page);
         ActionContext.SetObjectId(Page::"Expense Reports API");
@@ -472,6 +511,17 @@ page 6928 "Expense Reports API"
             EAKPITrack.UpdateExpenseReportLineEntry(ExpenseReportLine);
         end else
             Error(ExpenseNotFoundErr, ExpenseId);
+
+        ActionContext.SetObjectType(ObjectType::Page);
+        ActionContext.SetObjectId(Page::"Expense Reports API");
+        ActionContext.AddEntityKey(Rec.FieldNo(SystemId), Rec.SystemId);
+        ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
+    end;
+
+    [ServiceEnabled]
+    procedure AssignInterimApprover(var ActionContext: WebServiceActionContext; InterimApproverExpenseUserNo: Code[20]; ActorExpenseUserNo: Code[20])
+    begin
+        Rec.AssignInterimApprover(InterimApproverExpenseUserNo, ActorExpenseUserNo);
 
         ActionContext.SetObjectType(ObjectType::Page);
         ActionContext.SetObjectId(Page::"Expense Reports API");

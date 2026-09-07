@@ -17,6 +17,7 @@ codeunit 137293 "SCM Inventory Miscellaneous"
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryPlanning: Codeunit "Library - Planning";
+        LibraryPurchase: Codeunit "Library - Purchase";
         LibrarySales: Codeunit "Library - Sales";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryRandom: Codeunit "Library - Random";
@@ -43,6 +44,10 @@ codeunit 137293 "SCM Inventory Miscellaneous"
         GlobalMessageCounter: Integer;
         WrongNumberOfOrdersToPrintErr: Label 'Wrong number of transfer orders to print';
         CurrentSaveValuesId: Integer;
+        AvailableQtyToPickMsg: Label 'AvailableQtyToPick returned wrong value.';
+        ErrorDifferentQtyToHandleErr: Label 'Quantity to Handle on pick worksheet line different from expected.';
+        ErrorDifferentQtyErr: Label 'Quantity on pick worksheet line different from expected.';
+        ErrorDifferentAvailQtyErr: Label 'Quantity Available to Pick on pick worksheet line different from expected.';
 
     [Test]
     [Scope('OnPrem')]
@@ -1928,6 +1933,297 @@ codeunit 137293 "SCM Inventory Miscellaneous"
         LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
     end;
 
+
+    [Test]
+    procedure AvailableQtyToPickExcludesConfiguredReceiptAndShipmentBins()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        WarehouseEmployee: Record "Warehouse Employee";
+        WhseWorksheetLine: Record "Whse. Worksheet Line";
+        WhseWorksheetName: Record "Whse. Worksheet Name";
+        WhseWorksheetTemplate: Record "Whse. Worksheet Template";
+        ReceiptQty: Decimal;
+        PickQty: Decimal;
+        ShipmentQty: Decimal;
+        ShipmentNo: Code[20];
+        PickBinCode: Code[20];
+    begin
+        // [FEATURE] [Warehouse] [Pick Worksheet] [AI test 0.4]
+        // [SCENARIO 647203] Pick worksheet availability excludes inventory in configured receipt and shipment bins.
+        Initialize();
+        WhseWorksheetLine.DeleteAll();
+        ReceiptQty := LibraryRandom.RandInt(10);
+        PickQty := LibraryRandom.RandInt(10);
+        ShipmentQty := LibraryRandom.RandInt(10);
+
+        // [GIVEN] A non-directed location requiring warehouse put-away and pick, with receipt, pick, and shipment bins.
+        PickBinCode := CreateNonDirectedPickLocation(Location, true, true);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, true);
+        LibraryInventory.CreateItem(Item);
+
+        // [GIVEN] Inventory exists in all three bins.
+        CreateAndPostItemJournalLine(Item."No.", ReceiptQty, Location.Code, Location."Receipt Bin Code");
+        CreateAndPostItemJournalLine(Item."No.", PickQty, Location.Code, PickBinCode);
+        CreateAndPostItemJournalLine(Item."No.", ShipmentQty, Location.Code, Location."Shipment Bin Code");
+
+        // [GIVEN] A warehouse shipment requests all inventory.
+        ShipmentNo := CreateSales(Item."No.", Location.Code, ReceiptQty + PickQty + ShipmentQty, false, true, false, 0);
+
+        // [WHEN] The shipment is added to the pick worksheet.
+        GetPickWksheetTemplate(WhseWorksheetTemplate);
+        LibraryWarehouse.CreateWhseWorksheetName(WhseWorksheetName, WhseWorksheetTemplate.Name, Location.Code);
+        PickWorksheetGetSourceDocument(WhseWorksheetTemplate.Name, WhseWorksheetName.Name, Location.Code, 0, ShipmentNo);
+
+        // [THEN] Only inventory in the pick bin is available and assigned to handle.
+        PickWorkSheetValidateLine(WhseWorksheetLine, 10000, ReceiptQty + PickQty + ShipmentQty, PickQty, PickQty);
+    end;
+
+    [Test]
+    procedure AvailableQtyToPickIncludesReceiptBinWhenPutAwayIsNotRequired()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        WarehouseEmployee: Record "Warehouse Employee";
+        WhseWorksheetLine: Record "Whse. Worksheet Line";
+        WhseWorksheetName: Record "Whse. Worksheet Name";
+        WhseWorksheetTemplate: Record "Whse. Worksheet Template";
+        QtyPerBin: Decimal;
+        ShipmentNo: Code[20];
+        PickBinCode: Code[20];
+    begin
+        // [FEATURE] [Warehouse] [Pick Worksheet] [AI test 0.4]
+        // [SCENARIO 647203] A configured receipt bin remains available when put-away is not required.
+        Initialize();
+        WhseWorksheetLine.DeleteAll();
+        QtyPerBin := LibraryRandom.RandInt(10);
+
+        // [GIVEN] A non-directed pick location with a configured receipt bin, but without required put-away.
+        PickBinCode := CreateNonDirectedPickLocation(Location, false, true);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, true);
+        LibraryInventory.CreateItem(Item);
+        CreateAndPostItemJournalLine(Item."No.", QtyPerBin, Location.Code, Location."Receipt Bin Code");
+        CreateAndPostItemJournalLine(Item."No.", QtyPerBin, Location.Code, PickBinCode);
+        CreateAndPostItemJournalLine(Item."No.", QtyPerBin, Location.Code, Location."Shipment Bin Code");
+        ShipmentNo := CreateSales(Item."No.", Location.Code, 3 * QtyPerBin, false, true, false, 0);
+
+        // [WHEN] The shipment is added to the pick worksheet.
+        GetPickWksheetTemplate(WhseWorksheetTemplate);
+        LibraryWarehouse.CreateWhseWorksheetName(WhseWorksheetName, WhseWorksheetTemplate.Name, Location.Code);
+        PickWorksheetGetSourceDocument(WhseWorksheetTemplate.Name, WhseWorksheetName.Name, Location.Code, 0, ShipmentNo);
+
+        // [THEN] Receipt and pick bin inventory is available, while shipment bin inventory is excluded.
+        PickWorkSheetValidateLine(WhseWorksheetLine, 10000, 3 * QtyPerBin, 2 * QtyPerBin, 2 * QtyPerBin);
+    end;
+
+    [Test]
+    procedure AvailableQtyToPickIncludesShipmentBinWhenPickIsNotRequired()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        WhseWorksheetLine: Record "Whse. Worksheet Line";
+        QtyPerBin: Decimal;
+        PickBinCode: Code[20];
+    begin
+        // [FEATURE] [Warehouse] [Pick Worksheet] [AI test 0.4]
+        // [SCENARIO 647203] A configured shipment bin remains available when pick is not required.
+        Initialize();
+        WhseWorksheetLine.DeleteAll();
+        QtyPerBin := LibraryRandom.RandInt(10);
+
+        // [GIVEN] A non-directed location requiring put-away, but not pick, with inventory in all configured bins.
+        PickBinCode := CreateNonDirectedPickLocation(Location, true, false);
+        LibraryInventory.CreateItem(Item);
+        CreateAndPostItemJournalLine(Item."No.", QtyPerBin, Location.Code, Location."Receipt Bin Code");
+        CreateAndPostItemJournalLine(Item."No.", QtyPerBin, Location.Code, PickBinCode);
+        CreateAndPostItemJournalLine(Item."No.", QtyPerBin, Location.Code, Location."Shipment Bin Code");
+        WhseWorksheetLine.InitNewLineWithItem(
+            WhseWorksheetLine."Whse. Document Type"::Shipment, '', 0, Location.Code, Item."No.", '', 3 * QtyPerBin, 3 * QtyPerBin, 1);
+
+        // [WHEN] Available quantity is calculated for the worksheet line.
+        // [THEN] Pick and shipment bin inventory is available, while receipt bin inventory is excluded.
+        Assert.AreEqual(2 * QtyPerBin, WhseWorksheetLine.AvailableQtyToPick(), AvailableQtyToPickMsg);
+    end;
+
+    [Test]
+    procedure AvailableQtyToPickUsesPostedReceiptWhenReceiptBinCodeChanged()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        WarehouseEmployee: Record "Warehouse Employee";
+        WhseReceiptHeader: Record "Warehouse Receipt Header";
+        WhseWorksheetLine: Record "Whse. Worksheet Line";
+        WhseWorksheetName: Record "Whse. Worksheet Name";
+        WhseWorksheetTemplate: Record "Whse. Worksheet Template";
+        Qty: Decimal;
+        ShipmentNo: Code[20];
+        NewReceiptBinCode: Code[20];
+    begin
+        // [FEATURE] [Warehouse] [Pick Worksheet] [AI test 0.4]
+        // [SCENARIO 647203] Posted receipt inventory remains unavailable after the receipt bin code changes.
+        Initialize();
+        WhseWorksheetLine.DeleteAll();
+        Qty := LibraryRandom.RandInt(10);
+        CreateNonDirectedPickLocation(Location, true, true);
+        NewReceiptBinCode := CreateBin(Location.Code);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, true);
+        LibraryInventory.CreateItem(Item);
+
+        // [GIVEN] Inventory is received into the original receipt bin and its put-away is deleted.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, '');
+        CreatePurchaseLineWithLocation(PurchaseLine, PurchaseHeader, Item."No.", Qty, Location.Code);
+        CreateWarehouseReceiptFromPurchOrder(WhseReceiptHeader, PurchaseHeader);
+        LibraryWarehouse.PostWhseReceipt(WhseReceiptHeader);
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::"Put-away");
+        WarehouseActivityLine.SetRange("Source Type", Database::"Purchase Line");
+        WarehouseActivityLine.SetRange("Source No.", PurchaseHeader."No.");
+        WarehouseActivityLine.FindFirst();
+        WarehouseActivityHeader.Get(WarehouseActivityLine."Activity Type", WarehouseActivityLine."No.");
+        WarehouseActivityHeader.Delete(true);
+
+        // [GIVEN] The configured receipt bin is changed and a warehouse shipment is created.
+        Location.Validate("Receipt Bin Code", NewReceiptBinCode);
+        Location.Modify(true);
+        ShipmentNo := CreateSales(Item."No.", Location.Code, Qty, false, true, false, 0);
+
+        // [WHEN] The shipment is added to the pick worksheet.
+        GetPickWksheetTemplate(WhseWorksheetTemplate);
+        LibraryWarehouse.CreateWhseWorksheetName(WhseWorksheetName, WhseWorksheetTemplate.Name, Location.Code);
+        PickWorksheetGetSourceDocument(WhseWorksheetTemplate.Name, WhseWorksheetName.Name, Location.Code, 0, ShipmentNo);
+
+        // [THEN] The posted receipt lineage caps both availability and quantity to handle at zero.
+        PickWorkSheetValidateLine(WhseWorksheetLine, 10000, Qty, 0, 0);
+    end;
+
+    [Test]
+    procedure AvailableQtyToPickDoesNotDoubleRemoveRegisteredPickInShipmentBin()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        WarehouseEmployee: Record "Warehouse Employee";
+        WhseWorksheetLine: Record "Whse. Worksheet Line";
+        WhseWorksheetName: Record "Whse. Worksheet Name";
+        WhseWorksheetTemplate: Record "Whse. Worksheet Template";
+        InventoryQty: Decimal;
+        PickedQty: Decimal;
+        ShipmentNo: Code[20];
+        PickBinCode: Code[20];
+    begin
+        // [FEATURE] [Warehouse] [Pick Worksheet] [AI test 0.4]
+        // [SCENARIO 647203] Registered pick inventory in the shipment bin is excluded exactly once.
+        Initialize();
+        WhseWorksheetLine.DeleteAll();
+        InventoryQty := LibraryRandom.RandIntInRange(10, 20);
+        PickedQty := LibraryRandom.RandInt(InventoryQty - 1);
+        PickBinCode := CreateNonDirectedPickLocation(Location, true, true);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, true);
+        LibraryInventory.CreateItem(Item);
+        CreateAndPostItemJournalLine(Item."No.", InventoryQty, Location.Code, PickBinCode);
+
+        // [GIVEN] Part of the inventory is picked and registered into the configured shipment bin.
+        CreateSales(Item."No.", Location.Code, PickedQty, false, true, true, PickedQty);
+        ShipmentNo := CreateSales(Item."No.", Location.Code, InventoryQty, false, true, false, 0);
+
+        // [WHEN] A second shipment is added to the pick worksheet.
+        GetPickWksheetTemplate(WhseWorksheetTemplate);
+        LibraryWarehouse.CreateWhseWorksheetName(WhseWorksheetName, WhseWorksheetTemplate.Name, Location.Code);
+        PickWorksheetGetSourceDocument(WhseWorksheetTemplate.Name, WhseWorksheetName.Name, Location.Code, 0, ShipmentNo);
+
+        // [THEN] The quantity remaining in the pick bin is available without subtracting the registered pick again.
+        PickWorkSheetValidateLine(WhseWorksheetLine, 10000, InventoryQty, InventoryQty - PickedQty, InventoryQty - PickedQty);
+    end;
+
+    [Test]
+    procedure AvailableQtyToPickExcludesRegisteredPickAfterShipmentBinCodeChanged()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        WarehouseEmployee: Record "Warehouse Employee";
+        WhseWorksheetLine: Record "Whse. Worksheet Line";
+        WhseWorksheetName: Record "Whse. Worksheet Name";
+        WhseWorksheetTemplate: Record "Whse. Worksheet Template";
+        InventoryQty: Decimal;
+        PickedQty: Decimal;
+        ShipmentNo: Code[20];
+        PickBinCode: Code[20];
+    begin
+        // [FEATURE] [Warehouse] [Pick Worksheet] [AI test 0.4]
+        // [SCENARIO 647203] Registered pick inventory stays unavailable when it sits in a bin that is no longer the configured shipment bin.
+        Initialize();
+        WhseWorksheetLine.DeleteAll();
+        InventoryQty := LibraryRandom.RandIntInRange(10, 20);
+        PickedQty := LibraryRandom.RandInt(InventoryQty - 1);
+        PickBinCode := CreateNonDirectedPickLocation(Location, true, true);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, true);
+        LibraryInventory.CreateItem(Item);
+        CreateAndPostItemJournalLine(Item."No.", InventoryQty, Location.Code, PickBinCode);
+
+        // [GIVEN] Part of the inventory is picked and registered into the configured shipment bin.
+        CreateSales(Item."No.", Location.Code, PickedQty, false, true, true, PickedQty);
+
+        // [GIVEN] The location is pointed at another shipment bin, so the registered pick is no longer removed by the bin filter.
+        Location.Validate("Shipment Bin Code", CreateBin(Location.Code));
+        Location.Modify(true);
+        ShipmentNo := CreateSales(Item."No.", Location.Code, InventoryQty, false, true, false, 0);
+
+        // [WHEN] A second shipment is added to the pick worksheet.
+        GetPickWksheetTemplate(WhseWorksheetTemplate);
+        LibraryWarehouse.CreateWhseWorksheetName(WhseWorksheetName, WhseWorksheetTemplate.Name, Location.Code);
+        PickWorksheetGetSourceDocument(WhseWorksheetTemplate.Name, WhseWorksheetName.Name, Location.Code, 0, ShipmentNo);
+
+        // [THEN] Only the pick bin quantity is available; the picked quantity in the former shipment bin does not become available again.
+        PickWorkSheetValidateLine(WhseWorksheetLine, 10000, InventoryQty, InventoryQty - PickedQty, InventoryQty - PickedQty);
+    end;
+
+    [Test]
+    procedure AvailableQtyToPickExcludesRegisteredPickWhenNewShipmentBinHasOtherInventory()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        WarehouseEmployee: Record "Warehouse Employee";
+        WhseWorksheetLine: Record "Whse. Worksheet Line";
+        WhseWorksheetName: Record "Whse. Worksheet Name";
+        WhseWorksheetTemplate: Record "Whse. Worksheet Template";
+        InventoryQty: Decimal;
+        PickedQty: Decimal;
+        ShipmentNo: Code[20];
+        PickBinCode: Code[20];
+        NewShipmentBinCode: Code[20];
+    begin
+        // [FEATURE] [Warehouse] [Pick Worksheet] [AI test 0.4]
+        // [SCENARIO 647203] Inventory sitting in the new shipment bin does not offset a registered pick left in the former shipment bin.
+        Initialize();
+        WhseWorksheetLine.DeleteAll();
+        InventoryQty := LibraryRandom.RandIntInRange(10, 20);
+        PickedQty := LibraryRandom.RandInt(InventoryQty - 1);
+        PickBinCode := CreateNonDirectedPickLocation(Location, true, true);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, true);
+        LibraryInventory.CreateItem(Item);
+        CreateAndPostItemJournalLine(Item."No.", InventoryQty, Location.Code, PickBinCode);
+
+        // [GIVEN] Part of the inventory is picked and registered into the configured shipment bin.
+        CreateSales(Item."No.", Location.Code, PickedQty, false, true, true, PickedQty);
+
+        // [GIVEN] The location is pointed at another shipment bin, which already holds unrelated inventory of the same item.
+        NewShipmentBinCode := CreateBin(Location.Code);
+        Location.Validate("Shipment Bin Code", NewShipmentBinCode);
+        Location.Modify(true);
+        CreateAndPostItemJournalLine(Item."No.", InventoryQty, Location.Code, NewShipmentBinCode);
+        ShipmentNo := CreateSales(Item."No.", Location.Code, InventoryQty, false, true, false, 0);
+
+        // [WHEN] A second shipment is added to the pick worksheet.
+        GetPickWksheetTemplate(WhseWorksheetTemplate);
+        LibraryWarehouse.CreateWhseWorksheetName(WhseWorksheetName, WhseWorksheetTemplate.Name, Location.Code);
+        PickWorksheetGetSourceDocument(WhseWorksheetTemplate.Name, WhseWorksheetName.Name, Location.Code, 0, ShipmentNo);
+
+        // [THEN] The registered pick in the former shipment bin stays unavailable, even though the new shipment bin holds inventory.
+        PickWorkSheetValidateLine(WhseWorksheetLine, 10000, InventoryQty, InventoryQty - PickedQty, InventoryQty - PickedQty);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -2090,7 +2386,6 @@ codeunit 137293 "SCM Inventory Miscellaneous"
     var
         PurchaseHeader: Record "Purchase Header";
         Vendor: Record Vendor;
-        LibraryPurchase: Codeunit "Library - Purchase";
     begin
         LibraryPurchase.CreateVendor(Vendor);
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
@@ -2889,6 +3184,154 @@ codeunit 137293 "SCM Inventory Miscellaneous"
             until TransferReceiptLine.Next() = 0;
 
         exit(TotalReceived);
+    end;
+
+    local procedure CreateSales(ItemNo: Code[20]; Location: Code[10]; Quantity: Decimal; Reserve: Boolean; CreateShipment: Boolean; CreatePick: Boolean; QtyToRegister: Decimal): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        WhseShipmentHeader: Record "Warehouse Shipment Header";
+        WhseActivityLine: Record "Warehouse Activity Line";
+    begin
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+        CreateSalesLineWithLocation(SalesLine, SalesHeader, ItemNo, Quantity, Location);
+
+        if Reserve then
+            LibrarySales.AutoReserveSalesLine(SalesLine);
+
+        if CreateShipment then begin
+            CreateWarehouseShipmentFromSalesOrder(WhseShipmentHeader, SalesHeader);
+
+            if CreatePick then begin
+                LibraryWarehouse.CreatePick(WhseShipmentHeader);
+
+                if QtyToRegister <> 0 then
+                    RegisterWhseActivity(
+                      WhseActivityLine."Activity Type"::Pick, Database::"Sales Line", SalesHeader."No.", QtyToRegister, '', '');
+            end;
+        end;
+
+        exit(WhseShipmentHeader."No.");
+    end;
+
+    local procedure PickWorksheetGetSourceDocument(WkshTemplateName: Code[10]; Name: Code[10]; Location: Code[10]; DocType: Option; DocNo: Code[20])
+    var
+        WhsePickRqst: Record "Whse. Pick Request";
+        GetOutboundSourceDocuments: Report "Get Outbound Source Documents";
+    begin
+        GetOutboundSourceDocuments.SetPickWkshName(WkshTemplateName, Name, Location);
+        WhsePickRqst.SetRange("Document Type", DocType);
+        WhsePickRqst.SetRange("Document No.", DocNo);
+        WhsePickRqst.FindFirst();
+        GetOutboundSourceDocuments.SetHideDialog(true);
+        GetOutboundSourceDocuments.UseRequestPage(false);
+        GetOutboundSourceDocuments.SetTableView(WhsePickRqst);
+        GetOutboundSourceDocuments.RunModal();
+    end;
+
+    local procedure PickWorkSheetValidateLine(WhseWorksheetLine: Record "Whse. Worksheet Line"; LineNo: Integer; Qty: Decimal; QtyToHandle: Decimal; QtyAvailToPick: Decimal)
+    begin
+        WhseWorksheetLine.SetRange("Line No.", LineNo);
+        WhseWorksheetLine.FindFirst();
+        Assert.AreEqual(Qty, WhseWorksheetLine.Quantity, ErrorDifferentQtyErr);
+        Assert.AreEqual(QtyToHandle, WhseWorksheetLine."Qty. to Handle", ErrorDifferentQtyToHandleErr);
+        Assert.AreEqual(QtyAvailToPick, WhseWorksheetLine.AvailableQtyToPick(), ErrorDifferentAvailQtyErr);
+    end;
+
+    local procedure CreateAndPostItemJournalLine(ItemNo: Code[20]; Quantity: Decimal; LocationCode: Code[10]; BinCode: Code[20])
+    var
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, ItemNo, LocationCode, BinCode, Quantity);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+    end;
+
+    local procedure CreatePurchaseLineWithLocation(var PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header"; ItemNo: Code[20]; Qty: Decimal; LocationCode: Code[10])
+    begin
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, ItemNo, Qty);
+        PurchaseLine.Validate("Location Code", LocationCode);
+        PurchaseLine.Modify(true);
+    end;
+
+    local procedure CreateSalesLineWithLocation(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; ItemNo: Code[20]; Qty: Decimal; LocationCode: Code[10])
+    begin
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo, Qty);
+        SalesLine.Validate("Location Code", LocationCode);
+        SalesLine.Modify(true);
+    end;
+
+    local procedure CreateWarehouseReceiptFromPurchOrder(var WhseReceiptHeader: Record "Warehouse Receipt Header"; var PurchaseHeader: Record "Purchase Header")
+    var
+        WhseReceiptLine: Record "Warehouse Receipt Line";
+    begin
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        LibraryWarehouse.CreateWhseReceiptFromPO(PurchaseHeader);
+
+        WhseReceiptLine.SetRange("Source Document", WhseReceiptLine."Source Document"::"Purchase Order");
+        WhseReceiptLine.SetRange("Source No.", PurchaseHeader."No.");
+        WhseReceiptLine.FindFirst();
+
+        WhseReceiptHeader.Get(WhseReceiptLine."No.");
+    end;
+
+    local procedure CreateWarehouseShipmentFromSalesOrder(var WhseShipmentHeader: Record "Warehouse Shipment Header"; var SalesHeader: Record "Sales Header")
+    var
+        WhseShipmentLine: Record "Warehouse Shipment Line";
+    begin
+        LibrarySales.ReleaseSalesDocument(SalesHeader);
+        LibraryWarehouse.CreateWhseShipmentFromSO(SalesHeader);
+        WhseShipmentLine.SetRange("Source Document", WhseShipmentLine."Source Document"::"Sales Order");
+        WhseShipmentLine.SetRange("Source No.", SalesHeader."No.");
+        WhseShipmentLine.FindFirst();
+        WhseShipmentHeader.Get(WhseShipmentLine."No.");
+        LibraryWarehouse.ReleaseWarehouseShipment(WhseShipmentHeader);
+    end;
+
+    local procedure CreateNonDirectedPickLocation(var Location: Record Location; RequirePutAway: Boolean; RequirePick: Boolean) PickBinCode: Code[20]
+    begin
+        LibraryWarehouse.CreateLocationWMS(Location, true, RequirePutAway, RequirePick, true, true);
+        Location.Validate("Receipt Bin Code", CreateBin(Location.Code));
+        PickBinCode := CreateBin(Location.Code);
+        Location.Validate("Shipment Bin Code", CreateBin(Location.Code));
+        Location.Modify(true);
+    end;
+
+    local procedure RegisterWhseActivity(ActivityType: Enum "Warehouse Activity Type"; SourceType: Integer; SourceNo: Code[20]; QtyToHandle: Decimal; TakeBinCode: Code[10]; PlaceBinCode: Code[10])
+    var
+        WhseActivityLine: Record "Warehouse Activity Line";
+        WhseActivityHeader: Record "Warehouse Activity Header";
+    begin
+        Clear(WhseActivityLine);
+        WhseActivityLine.Reset();
+        WhseActivityLine.SetRange("Source Type", SourceType);
+        WhseActivityLine.SetRange("Source No.", SourceNo);
+        WhseActivityLine.FindSet();
+        repeat
+            if QtyToHandle <> 0 then
+                WhseActivityLine.Validate("Qty. to Handle", QtyToHandle);
+            if (WhseActivityLine."Action Type" = WhseActivityLine."Action Type"::Take) and (TakeBinCode <> '') then
+                WhseActivityLine."Bin Code" := TakeBinCode
+            else
+                if (WhseActivityLine."Action Type" = WhseActivityLine."Action Type"::Place) and (PlaceBinCode <> '') then
+                    WhseActivityLine."Bin Code" := PlaceBinCode;
+
+            WhseActivityLine.Modify();
+        until WhseActivityLine.Next() = 0;
+
+        Clear(WhseActivityHeader);
+        WhseActivityHeader.SetRange(Type, ActivityType);
+        WhseActivityHeader.SetRange("No.", WhseActivityLine."No.");
+        WhseActivityHeader.FindFirst();
+        if (ActivityType = ActivityType::"Put-away") or (ActivityType = ActivityType::Pick) then
+            LibraryWarehouse.RegisterWhseActivity(WhseActivityHeader)
+        else
+            LibraryWarehouse.PostInventoryActivity(WhseActivityHeader, false);
+    end;
+
+    local procedure GetPickWksheetTemplate(var WhseWorksheetTemplate: Record "Whse. Worksheet Template")
+    begin
+        WhseWorksheetTemplate.SetRange(Type, WhseWorksheetTemplate.Type::Pick);
+        WhseWorksheetTemplate.FindFirst();
     end;
 
     [ConfirmHandler]

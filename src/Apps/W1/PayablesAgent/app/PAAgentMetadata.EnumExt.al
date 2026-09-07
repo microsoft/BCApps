@@ -13,6 +13,6 @@ enumextension 3304 "PA Agent Metadata" extends "Agent Metadata Provider"
     value(3303; "Payables Agent")
     {
         Caption = 'Payables Agent', Locked = true;
-        Implementation = IAgentFactory = "Payables Agent", IAgentMetadata = "Payables Agent", IAgentTaskExecution = "PA Agent Task Execution";
+        Implementation = IAgentFactory = "Payables Agent", IAgentMetadata = "Payables Agent", IAgentTaskExecution = "PA Agent Task Execution", IAgentArchiving = "PA Agent Archiving";
     }
 }
