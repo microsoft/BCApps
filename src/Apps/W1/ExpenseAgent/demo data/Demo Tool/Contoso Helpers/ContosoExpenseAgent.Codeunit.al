@@ -300,7 +300,7 @@ codeunit 8205 "Contoso Expense Agent"
         if Amount <> 0 then
             Expense."Amount" := Amount;
         Expense."Merchant Name" := MerchantName;
-        Expense."Payment Method Code" := PaymentMethodCode;
+        Expense.Validate("Payment Method Code", PaymentMethodCode);
         Expense.Refundable := Refundable;
         Expense.Billable := Billable;
         Expense."Billable to Customer" := BillableToCustomer;
