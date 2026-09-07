@@ -539,18 +539,29 @@ Describe "ParallelTestExecution clean tenant scheduling" {
         }
     }
 
-    It "applies country-scoped disabled tests only in matching countries" {
+    It "loads all app exclusions without consulting country settings" {
         InModuleScope ParallelTestExecution {
-            Test-DisabledTestAppliesToCountry -DisabledTest ([PSCustomObject]@{ method = 'Global' }) -Country 'W1' |
-                Should -BeTrue
-            Test-DisabledTestAppliesToCountry -DisabledTest ([PSCustomObject]@{
-                method = 'IndiaOnly'
-                countries = @('IN')
-            }) -Country 'IN' | Should -BeTrue
-            Test-DisabledTestAppliesToCountry -DisabledTest ([PSCustomObject]@{
-                method = 'IndiaOnly'
-                countries = @('IN')
-            }) -Country 'W1' | Should -BeFalse
+            $script:disabledTestRoot = Join-Path ([System.IO.Path]::GetTempPath()) ([guid]::NewGuid().ToString('N'))
+            Mock Get-BaseFolder { $script:disabledTestRoot }
+            Mock Get-ALGoSetting { throw 'Exclusions must not depend on country settings' }
+            try {
+                $appFolder = Join-Path $script:disabledTestRoot 'DisabledTests\Example_Tests'
+                $null = New-Item -Path $appFolder -ItemType Directory -Force
+                '[{"codeunitId":500,"method":"First"}]' |
+                    Set-Content (Join-Path $appFolder 'first.json')
+                '[{"codeunitId":501,"method":"*"}]' |
+                    Set-Content (Join-Path $appFolder 'second.json')
+
+                $result = @(Get-DisabledTestsForApp -AppName 'Example Tests')
+
+                $result.Count | Should -Be 2
+                $result.codeunitId | Should -Contain 500
+                $result.codeunitId | Should -Contain 501
+                @(Get-DisabledTestsForApp -AppName 'Other Tests').Count | Should -Be 0
+                Should -Invoke Get-ALGoSetting -Times 0
+            } finally {
+                Remove-Item $script:disabledTestRoot -Recurse -Force
+            }
         }
     }
 

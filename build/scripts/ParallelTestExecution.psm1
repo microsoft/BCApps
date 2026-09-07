@@ -16,24 +16,7 @@ Import-Module (Join-Path $PSScriptRoot "ALAppBuild.psm1" -Resolve)
 
 <#
 .SYNOPSIS
-    Determines whether a disabled-test entry applies to the current country.
-#>
-function Test-DisabledTestAppliesToCountry {
-    param(
-        $DisabledTest,
-        [string]$Country
-    )
-
-    if (-not $DisabledTest.PSObject.Properties['countries']) {
-        return $true
-    }
-
-    return $Country -in @($DisabledTest.countries)
-}
-
-<#
-.SYNOPSIS
-    Gets disabled test entries for an app and filters country-scoped entries.
+    Gets disabled test entries for an app.
 .PARAMETER AppName
     Application name used to locate its DisabledTests folder.
 #>
@@ -45,7 +28,6 @@ function Get-DisabledTestsForApp {
 
     $appFolderName = $AppName -replace ' ', '_'
     $disabledTests = @()
-    $country = Get-ALGoSetting -Key "country"
 
     $disabledTestsFolders = Get-ChildItem -Path (Get-BaseFolder) -Filter "DisabledTests" -Recurse -Directory
     foreach ($disabledTestsFolder in $disabledTestsFolders) {
@@ -57,8 +39,7 @@ function Get-DisabledTestsForApp {
         foreach ($jsonFile in (Get-ChildItem -Path $appFolder -Filter "*.json")) {
             $disabledTests += @(
                 Get-Content -Raw -Path $jsonFile.FullName |
-                    ConvertFrom-Json |
-                    Where-Object { Test-DisabledTestAppliesToCountry -DisabledTest $_ -Country $country }
+                    ConvertFrom-Json
             )
         }
     }
