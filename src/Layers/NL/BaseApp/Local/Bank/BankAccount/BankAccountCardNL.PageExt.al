@@ -21,7 +21,7 @@ pageextension 11420 "Bank Account Card NL" extends "Bank Account Card"
                 ToolTip = 'Specifies the creditor identifier.';
             }
         }
-        addafter("Posting Details")
+        addafter(IBAN)
         {
             group("Account Holder")
             {

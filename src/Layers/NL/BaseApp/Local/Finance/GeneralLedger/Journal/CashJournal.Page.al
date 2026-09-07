@@ -270,7 +270,7 @@ page 11403 "Cash Journal"
         Text1000000: Label '%1 Account No.';
         Text1000001: Label 'Do you want to post the %1 Journal?';
         Text1000002: Label 'Do you want to post and print the %1 Journal?';
-        GenJnlManagementNL: Codeunit GenJnlManagementNL;
+        GenJnlManagementNL: Codeunit "Gen. Jnl. Management NL";
         "Account No.Visible": Boolean;
         CurrencyVisible: Boolean;
 }

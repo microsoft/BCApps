@@ -349,7 +349,7 @@ page 11400 "Bank/Giro Journal"
         Text1000002: Label 'Do you want to post the %1 Journal?';
         Text1000003: Label 'Do you want to post and print the %1 Journal?';
         "CGB Statement reconciliation": Codeunit "CBG Statement Reconciliation";
-        GenJnlManagementNL: Codeunit GenJnlManagementNL;
+        GenJnlManagementNL: Codeunit "Gen. Jnl. Management NL";
         "Account No.Visible": Boolean;
         CurrencyVisible: Boolean;
 }

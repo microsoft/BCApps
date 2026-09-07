@@ -5,6 +5,7 @@
 namespace Microsoft.Foundation.Company;
 
 using Microsoft.Bank.Journal;
+using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Foundation.AuditCodes;
 

@@ -5,6 +5,7 @@
 namespace Microsoft.Finance.GeneralLedger.Account;
 
 using Microsoft.Bank.Payment;
+using System.Utilities;
 
 codeunit 11424 "Calc. G/L Acc. Where-Used NL"
 {

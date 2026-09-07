@@ -7,8 +7,10 @@ namespace Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Bank.Statement;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.Receivables;
 
 codeunit 11426 "Payment Tolerance Mgt. NL"
 {
