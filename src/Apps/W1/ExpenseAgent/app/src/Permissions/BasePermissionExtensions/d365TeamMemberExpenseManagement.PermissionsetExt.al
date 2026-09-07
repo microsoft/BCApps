@@ -8,5 +8,5 @@ using System.Security.AccessControl;
 
 permissionsetextension 6903 "D365 TEAM MEMBER Expense Management" extends "D365 TEAM MEMBER"
 {
-    IncludedPermissionSets = "Expense Mgmt. Edit";
+    IncludedPermissionSets = "Expense Mgmt. Edit Data";
 }

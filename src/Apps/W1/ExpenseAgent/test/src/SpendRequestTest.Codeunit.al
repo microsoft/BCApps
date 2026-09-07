@@ -429,6 +429,7 @@ codeunit 148339 "Spend Request Test"
     end;
 
     [Test]
+    [HandlerFunctions('SpendReqConfirmHandler')]
     procedure DeleteTravelRequestWithPostedReportIsBlocked()
     var
         SpendRequest: Record "Spend Request";
@@ -437,11 +438,9 @@ codeunit 148339 "Spend Request Test"
         // [SCENARIO] Posted report references prevent deletion even when the net spent amount is zero.
         Initialize();
 
-        // [GIVEN] A posted report linked to a request with no nonzero spend ledger balance.
-        LibraryExpense.CreateSpendRequest(SpendRequest);
-        PostedExpenseReportHeader."No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(PostedExpenseReportHeader."No."));
-        PostedExpenseReportHeader."Spend Request No." := SpendRequest."No.";
-        PostedExpenseReportHeader.Insert(false);
+        // [GIVEN] A normally posted report with offsetting amounts and a header-level request link.
+        CreatePostedTravelRequestReport(SpendRequest, PostedExpenseReportHeader, true);
+        PostedExpenseReportHeader.TestField("Spend Request No.", SpendRequest."No.");
 
         // [WHEN] The request is deleted.
         asserterror SpendRequest.Delete(true);
@@ -453,6 +452,7 @@ codeunit 148339 "Spend Request Test"
     end;
 
     [Test]
+    [HandlerFunctions('SpendReqConfirmHandler')]
     procedure DeleteTravelRequestWithPostedLineIsBlocked()
     var
         SpendRequest: Record "Spend Request";
@@ -462,14 +462,12 @@ codeunit 148339 "Spend Request Test"
         // [SCENARIO] A posted line can link a request independently of its report header.
         Initialize();
 
-        // [GIVEN] Only the line, not its header, references the travel request.
-        LibraryExpense.CreateSpendRequest(SpendRequest);
-        PostedExpenseReportHeader."No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(PostedExpenseReportHeader."No."));
-        PostedExpenseReportHeader.Insert(false);
-        PostedExpenseReportLine."Document No." := PostedExpenseReportHeader."No.";
-        PostedExpenseReportLine."Line No." := 10000;
-        PostedExpenseReportLine."Spend Request No." := SpendRequest."No.";
-        PostedExpenseReportLine.Insert(false);
+        // [GIVEN] Normal posting produces line-only references and zero net spend.
+        CreatePostedTravelRequestReport(SpendRequest, PostedExpenseReportHeader, false);
+        PostedExpenseReportHeader.TestField("Spend Request No.", '');
+        PostedExpenseReportLine.SetRange("Document No.", PostedExpenseReportHeader."No.");
+        PostedExpenseReportLine.SetRange("Spend Request No.", SpendRequest."No.");
+        PostedExpenseReportLine.FindFirst();
 
         // [WHEN] The request is deleted.
         asserterror SpendRequest.Delete(true);
@@ -477,11 +475,12 @@ codeunit 148339 "Spend Request Test"
         // [THEN] Line-only references are protected without removing posted records.
         Assert.ExpectedError(LinkedExpenseReportExistsErr);
         Assert.IsTrue(SpendRequest.Get(SpendRequest."No."), 'The line-linked request must remain.');
-        Assert.IsTrue(PostedExpenseReportLine.Get(PostedExpenseReportHeader."No.", 10000), 'The posted line must remain.');
+        Assert.IsTrue(PostedExpenseReportLine.Get(PostedExpenseReportHeader."No.", PostedExpenseReportLine."Line No."), 'The posted line must remain.');
         Assert.IsTrue(PostedExpenseReportHeader.Get(PostedExpenseReportHeader."No."), 'The posted header must remain.');
     end;
 
     [Test]
+    [HandlerFunctions('SpendReqConfirmHandler')]
     procedure DeleteTravelRequestWithUnpostedLineIsBlocked()
     var
         SpendRequest: Record "Spend Request";
@@ -492,13 +491,11 @@ codeunit 148339 "Spend Request Test"
         Initialize();
 
         // [GIVEN] Only an expense report line references the travel request.
-        LibraryExpense.CreateSpendRequest(SpendRequest);
-        ExpenseReportHeader."No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(ExpenseReportHeader."No."));
-        ExpenseReportHeader.Insert(false);
-        ExpenseReportLine."Document No." := ExpenseReportHeader."No.";
-        ExpenseReportLine."Line No." := 10000;
-        ExpenseReportLine."Spend Request No." := SpendRequest."No.";
-        ExpenseReportLine.Insert(false);
+        CreateAndPostExpenseReportWithSpendRequest(ExpenseReportHeader, SpendRequest, 1);
+        ExpenseReportHeader.TestField("Spend Request No.", '');
+        ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
+        ExpenseReportLine.SetRange("Spend Request No.", SpendRequest."No.");
+        ExpenseReportLine.FindFirst();
 
         // [WHEN] The request is deleted.
         asserterror SpendRequest.Delete(true);
@@ -506,7 +503,7 @@ codeunit 148339 "Spend Request Test"
         // [THEN] The request and the referencing line remain intact.
         Assert.ExpectedError(LinkedExpenseReportExistsErr);
         Assert.IsTrue(SpendRequest.Get(SpendRequest."No."), 'The line-linked request must remain.');
-        Assert.IsTrue(ExpenseReportLine.Get(ExpenseReportHeader."No.", 10000), 'The report line must remain.');
+        Assert.IsTrue(ExpenseReportLine.Get(ExpenseReportHeader."No.", ExpenseReportLine."Line No."), 'The report line must remain.');
     end;
 
     [Test]
@@ -1739,6 +1736,37 @@ codeunit 148339 "Spend Request Test"
         ExpenseAgentSetup.Get();
         ExpenseAgentSetup.Validate("Default Approver No.", ApproverExpenseUserNo);
         ExpenseAgentSetup.Modify(true);
+    end;
+
+    local procedure CreatePostedTravelRequestReport(var SpendRequest: Record "Spend Request"; var PostedExpenseReportHeader: Record "Posted Expense Report Header"; AssignOnHeader: Boolean)
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        BalancingExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportPost: Codeunit "Expense Report-Post";
+    begin
+        if AssignOnHeader then
+            CreateAndPostExpenseReportWithSpendRequestAssignedOnHeader(ExpenseReportHeader, SpendRequest, 1)
+        else
+            CreateAndPostExpenseReportWithSpendRequest(ExpenseReportHeader, SpendRequest, 1);
+
+        ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
+        ExpenseReportLine.FindFirst();
+        LibraryExpense.CreateExpenseReportLine(
+            BalancingExpenseReportLine, ExpenseReportHeader, ExpenseReportHeader."Expense User No.",
+            ExpenseReportLine."Expense Category", ExpenseReportLine."Payment Method Code", true,
+            ExpenseReportLine."Expense Currency Code", -ExpenseReportLine.Amount);
+        if not AssignOnHeader then begin
+            BalancingExpenseReportLine.Validate("Spend Request No.", SpendRequest."No.");
+            BalancingExpenseReportLine.Modify(true);
+        end;
+
+        ExpenseReportHeader.PerformManualRelease();
+        ExpenseReportPost.PostExpenseReport(ExpenseReportHeader);
+        PostedExpenseReportHeader.Get(ExpenseReportHeader."Posting No.");
+        SpendRequest.Get(SpendRequest."No.");
+        SpendRequest.CalcFields("Total Spent Amount (LCY)");
+        Assert.AreEqual(0, SpendRequest."Total Spent Amount (LCY)", 'Offsetting posted amounts must leave zero net spend.');
     end;
 
     local procedure CreateAndPostExpenseReportWithSpendRequest(var ExpenseReportHeader: Record "Expense Report Header"; var SpendRequest: Record "Spend Request"; NumberOfLines: Integer)

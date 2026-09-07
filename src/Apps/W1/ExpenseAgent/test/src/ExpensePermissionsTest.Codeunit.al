@@ -293,6 +293,8 @@ codeunit 148338 "Expense Permissions Test"
         SpendRequest: Record "Spend Request";
         SpendRequestDetail: Record "Spend Request Detail";
         SpendRequestToGLLink: Record "Spend Request To G/L Link";
+        ExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
     begin
         Initialize();
 
@@ -307,6 +309,10 @@ codeunit 148338 "Expense Permissions Test"
         Assert.IsTrue(SpendRequestToGLLink.ReadPermission(), 'The role must be able to read travel-request spent amounts.');
         Assert.AreEqual(CanEdit, SpendRequest.WritePermission(), 'Request write access must follow the role level.');
         Assert.AreEqual(CanEdit, SpendRequestDetail.WritePermission(), 'Detail write access must follow the role level.');
+        Assert.IsTrue(ExpenseUser.ReadPermission(), 'The role must retain read access to app-owned expense users.');
+        Assert.IsTrue(ExpenseReportHeader.ReadPermission(), 'The role must retain read access to app-owned reports.');
+        Assert.AreEqual(CanEdit, ExpenseUser.WritePermission(), 'Expense user write access must survive permission composition.');
+        Assert.AreEqual(CanEdit, ExpenseReportHeader.WritePermission(), 'Expense report write access must survive permission composition.');
         RestoreFullPermissions();
         LibraryLowerPermissions.StopLoggingNAVPermissions();
     end;
