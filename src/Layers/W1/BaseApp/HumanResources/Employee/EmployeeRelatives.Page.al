@@ -37,6 +37,7 @@ page 5209 "Employee Relatives"
                 field("Last Name"; Rec."Last Name")
                 {
                     ApplicationArea = BasicHR;
+                    ToolTip = 'Specifies the last name of the employee''s relative.';
                 }
                 field("Birth Date"; Rec."Birth Date")
                 {
