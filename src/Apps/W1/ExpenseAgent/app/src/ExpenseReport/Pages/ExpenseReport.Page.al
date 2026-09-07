@@ -526,7 +526,7 @@ page 6910 "Expense Report"
                     RunObject = Page "Expense Report Line VAT Spec.";
                     RunPageLink = "Document No." = field("No."), "Document Line No." = const(0);
                     ToolTip = 'View the VAT details for the record.';
-                    Visible = (Rec."No." <> '') and AllowVATReclaim;
+                    Visible = false;
                 }
                 action("Spend Request")
                 {
@@ -746,7 +746,6 @@ page 6910 "Expense Report"
         ExpenseUserNo: Code[20];
         ApproverComment: Text;
         SubmitterComment: Text;
-        AllowVATReclaim: Boolean;
         ApprovalActionsEnabled: Boolean;
         AgentEnabled: Boolean;
 
@@ -766,7 +765,6 @@ page 6910 "Expense Report"
         ReopenApprovedEnabled := ExpenseReportApprovalMgt.CanPerformApprovalAction(Rec, RefActionType::"Reopen Approved");
 
         ExpenseAgentSetup.GetRecordOnce();
-        AllowVATReclaim := ExpenseAgentSetup."Allow VAT Reclaim";
         AgentEnabled := ExpenseAgentSetup."Enable Agent";
         ApprovalActionsEnabled := ExpenseAgentSetup."Enable Agent" and ApproveEnabled and (Rec."Approver Expense User ID" = UserId());
     end;
