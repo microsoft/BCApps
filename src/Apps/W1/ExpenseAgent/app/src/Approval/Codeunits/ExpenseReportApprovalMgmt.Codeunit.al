@@ -22,6 +22,9 @@ codeunit 6901 "Expense Report Approval Mgmt"
         NotAuthorizedToOpenExpReportErr: Label 'You are not authorized to open expense reports. Please configure your %1 in the %2.', Comment = '%1 = Field Caption,%2 = Table Caption';
         NotAuthorizedToRecallExpReportErr: Label 'Only the original submitter or a user with %1 can recall a submitted expense report.', Comment = '%1 = User Setup field caption';
         MissingUserSetupErr: Label 'Please configure your user ''%1'' on the User Setup, as the approval workflow for expenses is enabled.', Comment = '%1 = current user ID';
+        MissingUserSetupWithoutPermissionErr: Label 'Your user is not configured for expense approval. Please contact your administrator to configure your user on the User Setup page.';
+        MissingUserSetupTitleTxt: Label 'User Setup is missing';
+        MissingUserSetupDetailedMessageTxt: Label 'The approval workflow for expenses is enabled, but no User Setup record exists for the current user.';
         OpenApprovalUserSetupLbl: Label 'Open the Approval User Setup';
         ApproverMustBeEnabledInExpenseUserErr: Label '%1 must be enabled to approve or reject expense reports in %2.', Comment = '%1 = Field Caption, %2 = Table Caption';
         UserIdForApprovalMustNotBeBlankInExpenseUserErr: Label '%1 must not be blank in %2.', Comment = '%1 = Field Caption, %2 = Table Caption';
@@ -518,6 +521,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
 
     internal procedure GetCurrentUserSetupForApproval(var UserSetup: Record "User Setup")
     begin
+        UserSetup.SetLoadFields("Unlimited Expense Approval");
         if not UserSetup.Get(UserId()) then
             Error(CreateMissingUserSetupErrorInfo());
     end;
@@ -527,13 +531,16 @@ codeunit 6901 "Expense Report Approval Mgmt"
         UserSetup: Record "User Setup";
         MissingUserSetupErrorInfo: ErrorInfo;
     begin
-        MissingUserSetupErrorInfo.Message := StrSubstNo(MissingUserSetupErr, UserId());
-        MissingUserSetupErrorInfo.DataClassification := DataClassification::CustomerContent;
+        MissingUserSetupErrorInfo.Title := MissingUserSetupTitleTxt;
+        MissingUserSetupErrorInfo.DetailedMessage := MissingUserSetupDetailedMessageTxt;
         MissingUserSetupErrorInfo.ErrorType := ErrorType::Client;
         if UserSetup.ReadPermission() then begin
+            MissingUserSetupErrorInfo.Message := StrSubstNo(MissingUserSetupErr, UserId());
+            MissingUserSetupErrorInfo.DataClassification := DataClassification::EndUserIdentifiableInformation;
             MissingUserSetupErrorInfo.PageNo := Page::"Approval User Setup";
             MissingUserSetupErrorInfo.AddNavigationAction(OpenApprovalUserSetupLbl);
-        end;
+        end else
+            MissingUserSetupErrorInfo.Message := MissingUserSetupWithoutPermissionErr;
         exit(MissingUserSetupErrorInfo);
     end;
 
