@@ -1,0 +1,52 @@
+[
+  {
+    "codeunitId": 148305,
+    "codeunitName": "Expense Test",
+    "method": "DescriptionMustBeFlowFromExpenseToExpenseItemization"
+  },
+  {
+    "codeunitId": 148337,
+    "codeunitName": "Expense Vendor Matching Test",
+    "method": "FindOrCreateExpenseVendor_VATMatchesBCVendor_CreatesMatchedExpenseVendor"
+  },
+  {
+    "codeunitId": 148337,
+    "codeunitName": "Expense Vendor Matching Test",
+    "method": "Approve_UnmatchedVendor_CreatesBCVendorAndSetsApproved"
+  },
+  {
+    "codeunitId": 148319,
+    "codeunitName": "Cancel Posted Exp. Report Test",
+    "method": "CancelMarksPostedExpenseReportAsCanceled"
+  },
+  {
+    "codeunitId": 148319,
+    "codeunitName": "Cancel Posted Exp. Report Test",
+    "method": "CancelReversesExpenseLedgerEntries"
+  },
+  {
+    "codeunitId": 148319,
+    "codeunitName": "Cancel Posted Exp. Report Test",
+    "method": "CancelReversesGLEntriesAndSumsToZero"
+  },
+  {
+    "codeunitId": 148319,
+    "codeunitName": "Cancel Posted Exp. Report Test",
+    "method": "CancelReleasesRelatedExpense"
+  },
+  {
+    "codeunitId": 148319,
+    "codeunitName": "Cancel Posted Exp. Report Test",
+    "method": "CannotCancelAlreadyCanceledReport"
+  },
+  {
+    "codeunitId": 148319,
+    "codeunitName": "Cancel Posted Exp. Report Test",
+    "method": "CancelMultiLineReportGeneratesNewTransactionNoForReversedLines"
+  },
+  {
+    "codeunitId": 148348,
+    "codeunitName": "Expense VAT Spec. API Test",
+    "method": "AgentVATSpecificationIsInsertedThroughAPI"
+  }
+]
