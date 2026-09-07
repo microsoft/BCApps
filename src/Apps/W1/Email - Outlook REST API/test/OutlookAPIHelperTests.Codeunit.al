@@ -40,6 +40,7 @@ codeunit 139752 "Outlook API Helper Tests"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure RestoreDefaultRedirectUrlResetsSetupToDefault()
     var
         Setup: Record "Email - Outlook API Setup";
