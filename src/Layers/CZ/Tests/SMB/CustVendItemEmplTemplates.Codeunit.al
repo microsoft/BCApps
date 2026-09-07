@@ -1902,6 +1902,89 @@ codeunit 138008 "Cust/Vend/Item/Empl Templates"
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    procedure CustomerTemplCardControls()
+    var
+        CustomerCardPageControlField: Record "Page Control Field";
+        CustomerTemplCardPageControlField: Record "Page Control Field";
+        CustomerTemplField: Record Field;
+    begin
+        CustomerTemplCardPageControlField.SetRange(PageNo, Page::"Customer Templ. Card");
+
+        CustomerCardPageControlField.SetRange(PageNo, Page::"Customer Card");
+        CustomerCardPageControlField.SetFilter(FieldNo, '<>0');
+        if CustomerCardPageControlField.FindSet() then
+            repeat
+                if CustomerTemplField.Get(Database::"Customer Templ.", CustomerCardPageControlField.FieldNo) then begin
+                    CustomerTemplCardPageControlField.SetRange(FieldNo, CustomerCardPageControlField.FieldNo);
+                    if CustomerTemplCardPageControlField.IsEmpty() then
+                        Error('%1 should exist on the customer template card.', CustomerCardPageControlField.ControlName);
+                end;
+            until CustomerCardPageControlField.Next() = 0;
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure VendorTemplCardControls()
+    var
+        VendorCardPageControlField: Record "Page Control Field";
+        VendorTemplCardPageControlField: Record "Page Control Field";
+        VendorTemplField: Record Field;
+    begin
+        VendorTemplCardPageControlField.SetRange(PageNo, Page::"Vendor Templ. Card");
+
+        VendorCardPageControlField.SetRange(PageNo, Page::"Vendor Card");
+        VendorCardPageControlField.SetFilter(FieldNo, '<>0');
+        if VendorCardPageControlField.FindSet() then
+            repeat
+                if VendorTemplField.Get(Database::"Vendor Templ.", VendorCardPageControlField.FieldNo) then begin
+                    VendorTemplCardPageControlField.SetRange(FieldNo, VendorCardPageControlField.FieldNo);
+                    if VendorTemplCardPageControlField.IsEmpty() then
+                        Error('%1 should exist on the Vendor template card.', VendorCardPageControlField.ControlName);
+                end;
+            until VendorCardPageControlField.Next() = 0;
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ItemTemplCardControls()
+    var
+        ItemCardPageControlField: Record "Page Control Field";
+        ItemTemplCardPageControlField: Record "Page Control Field";
+        ItemField: Record Field;
+        ItemTemplField: Record Field;
+        FieldExclusionList: List of [Integer];
+    begin
+        FillItemFieldExclusionList(FieldExclusionList);
+
+        // Verify fields in "Item" and "Item Templ." tables, all fields should match or added in the exclusion list
+        ItemField.SetRange(TableNo, Database::Item);
+        ItemField.SetRange(Class, ItemField.Class::Normal);
+        ItemField.SetRange(ObsoleteState, ItemField.ObsoleteState::No);
+        ItemField.SetRange("No.", 1, 9999); // Only check w1 fields
+        if ItemField.FindSet() then
+            repeat
+                if not FieldExclusionList.Contains(ItemField."No.") then
+                    if not ItemTemplField.Get(Database::"Item Templ.", ItemField."No.") then
+                        Error('%1 field should exist in "Item Templ." table or added to exclusion list', ItemField."Field Caption");
+            until ItemField.Next() = 0;
+
+        // Verify controls on "Item Card" and "Item Templ. Card" pages, all controls should match or added in the exclusion list
+        ItemTemplCardPageControlField.SetRange(PageNo, Page::"Item Templ. Card");
+        ItemCardPageControlField.SetRange(PageNo, Page::"Item Card");
+        ItemCardPageControlField.SetFilter(FieldNo, '<>0');
+        if ItemCardPageControlField.FindSet() then
+            repeat
+                if not FieldExclusionList.Contains(ItemCardPageControlField.FieldNo) then
+                    if ItemTemplField.Get(Database::"Item Templ.", ItemCardPageControlField.FieldNo) then begin
+                        ItemTemplCardPageControlField.SetRange(FieldNo, ItemCardPageControlField.FieldNo);
+                        if ItemTemplCardPageControlField.IsEmpty() then
+                            Error('%1 control should exist on the item template card or added to exclusion list.', ItemCardPageControlField.ControlName);
+                    end;
+            until ItemCardPageControlField.Next() = 0;
+    end;
+
+    [Test]
     procedure CustomerRecordAfterApplyCustomerTemplate()
     var
         Customer: Record Customer;
