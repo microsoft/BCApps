@@ -46,6 +46,7 @@ codeunit 147595 "SII Endpoint Url Validation"
         NonHttpsUrl := 'http://www1.agenciatributaria.gob.es/wlpl/SSII-FACT/ws/fe/SiiFactFEV1SOAP';
         asserterror SIISetup.ValidateEndpointUrl(NonHttpsUrl);
         Assert.ExpectedError('is not on the allow-list for this feature');
+        Assert.ExpectedError('www1.agenciatributaria.gob.es');
     end;
 
     [Test]
@@ -60,6 +61,7 @@ codeunit 147595 "SII Endpoint Url Validation"
         MalformedUrl := 'not a url';
         asserterror SIISetup.ValidateEndpointUrl(MalformedUrl);
         Assert.ExpectedError('is not on the allow-list for this feature');
+        Assert.ExpectedError('(unparsable host)');
     end;
 
     [Test]
