@@ -40,6 +40,7 @@ page 7134 "Travel Requests API"
                 field(requestedBy; Rec."Requested By")
                 {
                     Caption = 'Requested By';
+                    ToolTip = 'Specifies the employee who created the request. This value can be set only when creating the request.';
                 }
                 field(status; Rec.Status)
                 {
@@ -236,6 +237,7 @@ page 7134 "Travel Requests API"
     begin
         if Rec.Status <> xRec.Status then
             Rec.FieldError(Status, StatusCannotBeChangedErr);
+        // Allow the owner on POST and unchanged in PATCH payloads, but reject reassignment.
         if Rec."Requested By" <> xRec."Requested By" then
             Rec.FieldError("Requested By", RequestedByCannotBeChangedErr);
 
@@ -269,6 +271,6 @@ page 7134 "Travel Requests API"
 
     var
         ApproverFilterApplied: Boolean;
-        StatusCannotBeChangedErr: Label 'can be changed only by using a lifecycle action';
+        StatusCannotBeChangedErr: Label 'can be changed only by submitting, approving, or rejecting the travel request';
         RequestedByCannotBeChangedErr: Label 'cannot be changed';
 }

@@ -42,12 +42,12 @@ codeunit 148339 "Spend Request Test"
         ExpenseReportUserMsg: Label 'The expense report should be created for the requested expense user.';
         ExpenseReportDescriptionMsg: Label 'The expense report description should match the travel request purpose.';
         TravelRequestSystemIdMsg: Label 'The expense report should reference the travel request by SystemId.';
-        TravelRequestActionResultMsg: Label 'The travel request API action should return an updated result.';
-        TravelRequestRejectedMsg: Label 'The travel request should be rejected through the API.';
-        TravelRequestRejectionUserMsg: Label 'The rejecting API user should be recorded.';
+        TravelRequestActionResultMsg: Label 'The travel request page action should return an updated result.';
+        TravelRequestRejectedMsg: Label 'The travel request should be rejected through the page action.';
+        TravelRequestRejectionUserMsg: Label 'The rejecting user should be recorded.';
         TravelRequestRejectionExpenseUserMsg: Label 'The rejecting expense user should be recorded.';
         TravelRequestRejectionReasonMsg: Label 'The rejection reason should be recorded.';
-        TravelRequestRejectionDateMsg: Label 'The API rejection date and time should be recorded.';
+        TravelRequestRejectionDateMsg: Label 'The page action rejection date and time should be recorded.';
         AssignedTravelRequestVisibleMsg: Label 'The assigned approver should see the travel request.';
         UnassignedTravelRequestHiddenMsg: Label 'The approver should not see a travel request assigned to another approver.';
         DefaultTravelRequestVisibleMsg: Label 'The default approver should see travel requests without an assigned approver.';
@@ -399,13 +399,18 @@ codeunit 148339 "Spend Request Test"
         ExpenseUser: Record "Expense User";
         TravelRequestApproval: Codeunit "Travel Request Approval";
     begin
+        // [SCENARIO] Automatic approval is rejected while the Expense Agent is enabled.
         Initialize();
+
+        // [GIVEN] A released travel request with the Expense Agent enabled.
         LibraryExpense.UpdateEnableAgentInAgentSetup(true);
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
         LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Released);
 
+        // [WHEN] Automatic approval is attempted.
         asserterror TravelRequestApproval.ApproveAutomatically(SpendRequest);
 
+        // [THEN] Approval fails because the agent must be disabled.
         Assert.ExpectedError(AutomaticApprovalNotAllowedErr);
     end;
 
@@ -421,7 +426,10 @@ codeunit 148339 "Spend Request Test"
         ExpectedDescription: Text[100];
         TravelRequestPurpose: Text[150];
     begin
+        // [SCENARIO] Approving a travel request creates a linked report for its requested user.
         Initialize();
+
+        // [GIVEN] A released travel request with a long purpose and an assigned approver.
         LibraryExpense.UpdateEnableAgentInAgentSetup(true);
 
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
@@ -432,8 +440,10 @@ codeunit 148339 "Spend Request Test"
         ReleaseSpendRequest.Release(SpendRequest);
         CreateApproverForExpenseUser(ApproverExpenseUser, ExpenseUser);
 
+        // [WHEN] The assigned approver approves the request.
         TravelRequestApproval.Approve(SpendRequest, ApproverExpenseUser."No.");
 
+        // [THEN] One linked report is created with the requested user and truncated purpose.
         ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
         Assert.AreEqual(1, ExpenseReportHeader.Count(), ExpenseReportCreatedMsg);
         ExpenseReportHeader.FindFirst();
@@ -444,7 +454,7 @@ codeunit 148339 "Spend Request Test"
     end;
 
     [Test]
-    procedure ApproveTravelRequestThroughAPI()
+    procedure ApproveTravelRequestPageAction()
     var
         ExpenseReportHeader: Record "Expense Report Header";
         SpendRequest: Record "Spend Request";
@@ -453,43 +463,55 @@ codeunit 148339 "Spend Request Test"
         TravelRequestsAPI: Page "Travel Requests API";
         ActionContext: WebServiceActionContext;
     begin
+        // [SCENARIO] The approval page procedure approves the request and records the approving user.
         Initialize();
+
+        // [GIVEN] A released travel request and its assigned approver.
         LibraryExpense.UpdateEnableAgentInAgentSetup(true);
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
         CreateApproverForExpenseUser(ApproverExpenseUser, ExpenseUser);
         LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Released);
         TravelRequestsAPI.SetRecord(SpendRequest);
 
+        // [WHEN] The page procedure is invoked directly, without an HTTP request.
         TravelRequestsAPI.ApproveTravelRequest(ActionContext, ApproverExpenseUser."No.");
 
+        // [THEN] The request is approved with its audit fields and a linked report.
+        Assert.AreEqual(WebServiceActionResultCode::Updated, ActionContext.GetResultCode(), TravelRequestActionResultMsg);
         SpendRequest.Get(SpendRequest."No.");
-        Assert.AreEqual(SpendRequest.Status::Approved, SpendRequest.Status, 'The travel request should be approved through the API.');
-        Assert.AreEqual(UserSecurityId(), SpendRequest."Approved/Rejected by User ID", 'The approving API user should be recorded.');
+        Assert.AreEqual(SpendRequest.Status::Approved, SpendRequest.Status, 'The travel request should be approved through the page action.');
+        Assert.AreEqual(UserSecurityId(), SpendRequest."Approved/Rejected by User ID", 'The approving user should be recorded.');
         Assert.AreEqual(ApproverExpenseUser."No.", SpendRequest."Approval Expense User No.", 'The approving expense user should be recorded.');
-        Assert.AreNotEqual(0DT, SpendRequest."Approved/Rejected At", 'The API approval date and time should be recorded.');
+        Assert.AreNotEqual(0DT, SpendRequest."Approved/Rejected At", 'The page action approval date and time should be recorded.');
         ExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
         Assert.RecordIsNotEmpty(ExpenseReportHeader);
     end;
 
     [Test]
-    procedure SubmitTravelRequestThroughAPI()
+    procedure SubmitTravelRequestPageAction()
     var
         SpendRequest: Record "Spend Request";
         ExpenseUser: Record "Expense User";
         TravelRequestsAPI: Page "Travel Requests API";
         ActionContext: WebServiceActionContext;
     begin
+        // [SCENARIO] The submission page procedure releases the request and records its submitter.
         Initialize();
+
+        // [GIVEN] A releasable travel request with the Expense Agent enabled.
         LibraryExpense.UpdateEnableAgentInAgentSetup(true);
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
         TravelRequestsAPI.SetRecord(SpendRequest);
 
+        // [WHEN] The page procedure is invoked directly, without an HTTP request.
         TravelRequestsAPI.SubmitTravelRequest(ActionContext, ExpenseUser."No.");
 
+        // [THEN] The request is released with its submission audit fields.
+        Assert.AreEqual(WebServiceActionResultCode::Updated, ActionContext.GetResultCode(), TravelRequestActionResultMsg);
         SpendRequest.Get(SpendRequest."No.");
-        Assert.AreEqual(SpendRequest.Status::Released, SpendRequest.Status, 'The travel request should be released through the API.');
+        Assert.AreEqual(SpendRequest.Status::Released, SpendRequest.Status, 'The travel request should be released through the page action.');
         Assert.AreEqual(ExpenseUser."No.", SpendRequest."Submitted By Expense User No.", 'The submitting expense user should be recorded.');
-        Assert.AreNotEqual(0DT, SpendRequest."Submitted At", 'The API submission date and time should be recorded.');
+        Assert.AreNotEqual(0DT, SpendRequest."Submitted At", 'The page action submission date and time should be recorded.');
     end;
 
     [Test]
@@ -500,12 +522,17 @@ codeunit 148339 "Spend Request Test"
         DifferentExpenseUser: Record "Expense User";
         TravelRequestApproval: Codeunit "Travel Request Approval";
     begin
+        // [SCENARIO] A different expense user cannot submit another employee's travel request.
         Initialize();
+
+        // [GIVEN] A releasable request and an expense user other than its owner.
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
         LibraryExpense.CreateExpenseUser(DifferentExpenseUser);
 
+        // [WHEN] The other expense user attempts to submit the request.
         asserterror TravelRequestApproval.Submit(SpendRequest, DifferentExpenseUser."No.");
 
+        // [THEN] Submission is rejected because the submitter is not the owner.
         Assert.ExpectedError(NotTravelRequestOwnerErr);
     end;
 
@@ -518,15 +545,20 @@ codeunit 148339 "Spend Request Test"
         DifferentApprover: Record "Expense User";
         TravelRequestApproval: Codeunit "Travel Request Approval";
     begin
+        // [SCENARIO] An approver cannot approve a travel request assigned to someone else.
         Initialize();
+
+        // [GIVEN] A released request with an assigned approver and another approver.
         LibraryExpense.UpdateEnableAgentInAgentSetup(true);
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
         CreateApproverForExpenseUser(AssignedApprover, ExpenseUser);
         CreateApprover(DifferentApprover);
         LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Released);
 
+        // [WHEN] The unassigned approver attempts to approve the request.
         asserterror TravelRequestApproval.Approve(SpendRequest, DifferentApprover."No.");
 
+        // [THEN] Approval is rejected because the approver is not authorized.
         Assert.ExpectedError(NotTravelRequestApproverErr);
     end;
 
@@ -539,15 +571,20 @@ codeunit 148339 "Spend Request Test"
         TravelRequestApproval: Codeunit "Travel Request Approval";
         RejectReason: Text;
     begin
+        // [SCENARIO] Rejecting a travel request records the approver and rejection reason.
         Initialize();
+
+        // [GIVEN] A released request, its assigned approver, and a rejection reason.
         LibraryExpense.UpdateEnableAgentInAgentSetup(true);
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
         CreateApproverForExpenseUser(ApproverExpenseUser, ExpenseUser);
         LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Released);
         RejectReason := 'The destination is outside the approved travel policy.';
 
+        // [WHEN] The approver rejects the request.
         TravelRequestApproval.Reject(SpendRequest, ApproverExpenseUser."No.", RejectReason);
 
+        // [THEN] The request is rejected and retains the approver and reason.
         SpendRequest.Get(SpendRequest."No.");
         Assert.AreEqual(SpendRequest.Status::Rejected, SpendRequest.Status, 'The travel request should be rejected.');
         Assert.AreEqual(ApproverExpenseUser."No.", SpendRequest."Approval Expense User No.", 'The rejecting expense user should be recorded.');
@@ -555,7 +592,7 @@ codeunit 148339 "Spend Request Test"
     end;
 
     [Test]
-    procedure RejectTravelRequestThroughAPI()
+    procedure RejectTravelRequestPageAction()
     var
         SpendRequest: Record "Spend Request";
         ExpenseUser: Record "Expense User";
@@ -564,7 +601,10 @@ codeunit 148339 "Spend Request Test"
         ActionContext: WebServiceActionContext;
         RejectReason: Text;
     begin
+        // [SCENARIO] The rejection page procedure records the rejecting user, reason, and timestamp.
         Initialize();
+
+        // [GIVEN] A released request, its assigned approver, and a rejection reason.
         LibraryExpense.UpdateEnableAgentInAgentSetup(true);
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
         CreateApproverForExpenseUser(ApproverExpenseUser, ExpenseUser);
@@ -572,8 +612,10 @@ codeunit 148339 "Spend Request Test"
         RejectReason := 'The destination is outside the approved travel policy.';
         TravelRequestsAPI.SetRecord(SpendRequest);
 
+        // [WHEN] The page procedure is invoked directly, without an HTTP request.
         TravelRequestsAPI.RejectTravelRequest(ActionContext, ApproverExpenseUser."No.", RejectReason);
 
+        // [THEN] The action returns Updated and the request records the rejection details.
         Assert.AreEqual(WebServiceActionResultCode::Updated, ActionContext.GetResultCode(), TravelRequestActionResultMsg);
         SpendRequest.Get(SpendRequest."No.");
         Assert.AreEqual(SpendRequest.Status::Rejected, SpendRequest.Status, TravelRequestRejectedMsg);
@@ -595,7 +637,10 @@ codeunit 148339 "Spend Request Test"
         OtherApprover: Record "Expense User";
         TravelRequestApproval: Codeunit "Travel Request Approval";
     begin
+        // [SCENARIO] The approver filter includes assigned requests and excludes other approvers' requests.
         Initialize();
+
+        // [GIVEN] Two released travel requests assigned to different approvers.
         LibraryExpense.UpdateEnableAgentInAgentSetup(true);
         CreateReleasableSpendRequest(AssignedTravelRequest, AssignedExpenseUser);
         CreateApproverForExpenseUser(AssignedApprover, AssignedExpenseUser);
@@ -604,10 +649,12 @@ codeunit 148339 "Spend Request Test"
         CreateApproverForExpenseUser(OtherApprover, OtherExpenseUser);
         LibraryExpense.SetSpendRequestStatus(OtherTravelRequest, OtherTravelRequest.Status::Released);
 
+        // [WHEN] The first approver's filter is applied to pending travel requests.
         FilteredTravelRequest.SetRange("Document Type", FilteredTravelRequest."Document Type"::"Travel Request");
         FilteredTravelRequest.SetRange(Status, FilteredTravelRequest.Status::Released);
         TravelRequestApproval.ApplyApproverFilter(FilteredTravelRequest, AssignedApprover."No.");
 
+        // [THEN] Only the request assigned to that approver is visible.
         FilteredTravelRequest.SetRange("No.", AssignedTravelRequest."No.");
         Assert.IsFalse(FilteredTravelRequest.IsEmpty(), AssignedTravelRequestVisibleMsg);
         FilteredTravelRequest.SetRange("No.", OtherTravelRequest."No.");
@@ -626,7 +673,10 @@ codeunit 148339 "Spend Request Test"
         OtherApprover: Record "Expense User";
         TravelRequestApproval: Codeunit "Travel Request Approval";
     begin
+        // [SCENARIO] The default approver sees requests without an explicit approval assignment.
         Initialize();
+
+        // [GIVEN] A default approver, an unassigned request, and a request assigned to another approver.
         LibraryExpense.UpdateEnableAgentInAgentSetup(true);
         CreateApprover(DefaultApprover);
         SetDefaultApprover(DefaultApprover."No.");
@@ -636,10 +686,12 @@ codeunit 148339 "Spend Request Test"
         CreateApproverForExpenseUser(OtherApprover, OtherExpenseUser);
         LibraryExpense.SetSpendRequestStatus(OtherTravelRequest, OtherTravelRequest.Status::Released);
 
+        // [WHEN] The default approver's filter is applied to pending travel requests.
         FilteredTravelRequest.SetRange("Document Type", FilteredTravelRequest."Document Type"::"Travel Request");
         FilteredTravelRequest.SetRange(Status, FilteredTravelRequest.Status::Released);
         TravelRequestApproval.ApplyApproverFilter(FilteredTravelRequest, DefaultApprover."No.");
 
+        // [THEN] The unassigned request is visible but the other approver's request is not.
         FilteredTravelRequest.SetRange("No.", DefaultTravelRequest."No.");
         Assert.IsFalse(FilteredTravelRequest.IsEmpty(), DefaultTravelRequestVisibleMsg);
         FilteredTravelRequest.SetRange("No.", OtherTravelRequest."No.");
@@ -656,7 +708,10 @@ codeunit 148339 "Spend Request Test"
         ApproverWithoutRequests: Record "Expense User";
         TravelRequestApproval: Codeunit "Travel Request Approval";
     begin
+        // [SCENARIO] An approver without assigned requests receives an empty filtered set.
         Initialize();
+
+        // [GIVEN] A released request assigned to someone else and no default approver.
         LibraryExpense.UpdateEnableAgentInAgentSetup(true);
         SetDefaultApprover('');
         CreateReleasableSpendRequest(SpendRequest, ExpenseUser);
@@ -664,10 +719,12 @@ codeunit 148339 "Spend Request Test"
         LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Released);
         CreateApprover(ApproverWithoutRequests);
 
+        // [WHEN] The unassigned approver's filter is applied to pending travel requests.
         FilteredTravelRequest.SetRange("Document Type", FilteredTravelRequest."Document Type"::"Travel Request");
         FilteredTravelRequest.SetRange(Status, FilteredTravelRequest.Status::Released);
         TravelRequestApproval.ApplyApproverFilter(FilteredTravelRequest, ApproverWithoutRequests."No.");
 
+        // [THEN] No requests are visible.
         Assert.IsTrue(FilteredTravelRequest.IsEmpty(), ApproverWithoutRequestsMsg);
     end;
 

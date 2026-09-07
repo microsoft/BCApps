@@ -43,6 +43,7 @@ page 7099 "Spend Requests API"
                 field(requestedBy; Rec."Requested By")
                 {
                     Caption = 'Requested By';
+                    ToolTip = 'Specifies the employee who created the request. For travel requests, this value can be set only when creating the request.';
                 }
                 field(status; Rec.Status)
                 {
@@ -173,6 +174,7 @@ page 7099 "Spend Requests API"
 
     trigger OnModifyRecord(): Boolean
     begin
+        // Protect travel request ownership while the legacy endpoint remains available before CLEAN30.
         if (Rec."Document Type" = Rec."Document Type"::"Travel Request") and
            (Rec."Requested By" <> xRec."Requested By")
         then
