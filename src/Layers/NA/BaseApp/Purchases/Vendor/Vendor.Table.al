@@ -1685,6 +1685,11 @@ table 23 Vendor
             ToolTip = 'Specifies the policy that will be used for the vendor if more items than ordered are received.';
             TableRelation = "Over-Receipt Code";
         }
+        field(8551; "Receipt on Invoice Policy"; Enum "Receipt on Invoice Policy")
+        {
+            Caption = 'Receipt on Invoice Policy';
+            ToolTip = 'Specifies whether receipt on invoice is enabled automatically for new purchase orders from this vendor.';
+        }
         field(10004; "UPS Zone"; Code[2])
         {
             Caption = 'UPS Zone';

@@ -101,6 +101,9 @@ page 8079 "Customer Contract Deferrals"
                 field("Gen. Prod. Posting Group"; Rec."Gen. Prod. Posting Group")
                 {
                 }
+                field("G/L Account No."; Rec."G/L Account No.")
+                {
+                }
                 field("G/L Entry No."; Rec."G/L Entry No.")
                 {
                     ToolTip = 'Specifies the number of the G/L item with which the deferral was released.';

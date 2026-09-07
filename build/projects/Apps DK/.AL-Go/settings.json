@@ -10,8 +10,6 @@
                        "../../../src/Apps/DK/EDocumentFormatOIOUBL/app",
                        "../../../src/Apps/DK/ElectronicVATDeclarationDK/app",
                        "../../../src/Apps/DK/EnforcedDigitalVouchersDK/app",
-                       "../../../src/Apps/DK/ExpenseAgent_DK/app",
-                       "../../../src/Apps/DK/ExpenseAgent_DK/demo data",
                        "../../../src/Apps/DK/FIK/app",
                        "../../../src/Apps/DK/ImportDKPayroll/app",
                        "../../../src/Apps/DK/NemhandelNotification/app",

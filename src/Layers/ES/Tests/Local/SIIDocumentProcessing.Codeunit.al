@@ -38,6 +38,8 @@ codeunit 147522 "SII Document Processing"
         FieldMustHaveValueInSIISetupErr: Label '%1 must have a value in SII VAT Setup', Comment = '%1 = field caption';
         StatusErr: Label 'Valor o tipo incorrecto del campo: IDType';
         DifferentValueErr: Label 'Expected Value are different than the actual value.';
+        NoSIIStateErr: Label 'The document has not been transmitted and hence has no status.';
+        AlreadyMarkedAcceptedMsg: Label 'This document is already marked as accepted in SII.';
 
     [Test]
     [Scope('OnPrem')]
@@ -1109,6 +1111,324 @@ codeunit 147522 "SII Document Processing"
 
     [Test]
     [Scope('OnPrem')]
+    procedure SIIMarkPostedDocumentAsAccepted()
+    var
+        SIIDocUploadState: Record "SII Doc. Upload State";
+    begin
+        // [FEATURE] [Advanced Mark]
+        // [SCENARIO 631381] "Mark As Accepted" from a posted document marks the related SII entry for every document source and type
+        LibrarySII.InitSetup(true, false);
+        LibrarySII.ShowAdvancedActions(true);
+
+        // [THEN] Every posted document source and type combination can be marked as accepted
+        VerifyMarkDocumentAsAcceptedCombo(SIIDocUploadState."Document Source"::"Customer Ledger", SIIDocUploadState."Document Type"::Invoice);
+        VerifyMarkDocumentAsAcceptedCombo(SIIDocUploadState."Document Source"::"Customer Ledger", SIIDocUploadState."Document Type"::"Credit Memo");
+        VerifyMarkDocumentAsAcceptedCombo(SIIDocUploadState."Document Source"::"Vendor Ledger", SIIDocUploadState."Document Type"::Invoice);
+        VerifyMarkDocumentAsAcceptedCombo(SIIDocUploadState."Document Source"::"Vendor Ledger", SIIDocUploadState."Document Type"::"Credit Memo");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SIIMarkPostedDocumentAsAcceptedAlreadyAccepted()
+    var
+        SIIHistory: Record "SII History";
+        SIIDocUploadState: Record "SII Doc. Upload State";
+        SIIManagement: Codeunit "SII Management";
+        FeedbackMessage: Text;
+        DocumentNo: Code[20];
+    begin
+        // [FEATURE] [Advanced Mark]
+        // [SCENARIO 631381] Marking an already accepted posted document returns the already accepted message and keeps the status
+        LibrarySII.InitSetup(true, false);
+        LibrarySII.ShowAdvancedActions(true);
+
+        // [GIVEN] Posted document with an "Accepted" SII entry
+        LibrarySII.MockHistoryEntry(SIIHistory, SIIHistory.Status::Accepted);
+        SIIDocUploadState.Get(SIIHistory."Document State Id");
+        DocumentNo := CopyStr(SIIDocUploadState."Document No.", 1, MaxStrLen(DocumentNo));
+
+        // [WHEN] Mark the document as accepted from the posted document
+        // [THEN] The call is rejected with the already accepted message
+        Assert.IsFalse(
+          SIIManagement.MarkDocumentAsAccepted(
+            SIIDocUploadState."Document Source", SIIDocUploadState."Document Type",
+            DocumentNo, FeedbackMessage),
+          DifferentValueErr);
+        Assert.AreEqual(AlreadyMarkedAcceptedMsg, FeedbackMessage, DifferentValueErr);
+
+        // [THEN] The SII entry keeps its "Accepted" status
+        SIIDocUploadState.Get(SIIHistory."Document State Id");
+        Assert.AreEqual(SIIDocUploadState.Status::Accepted, SIIDocUploadState.Status, DifferentValueErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SIIMarkPostedDocumentAsAcceptedNoState()
+    var
+        SIIDocUploadState: Record "SII Doc. Upload State";
+        SIIManagement: Codeunit "SII Management";
+        FeedbackMessage: Text;
+    begin
+        // [FEATURE] [Advanced Mark]
+        // [SCENARIO 631381] Marking a document without an SII entry returns the missing status message
+        LibrarySII.InitSetup(true, false);
+        LibrarySII.ShowAdvancedActions(true);
+
+        // [WHEN] Mark a document without SII entry as accepted
+        // [THEN] The call is rejected with the missing status message
+        Assert.IsFalse(
+          SIIManagement.MarkDocumentAsAccepted(
+            SIIDocUploadState."Document Source"::"Customer Ledger", SIIDocUploadState."Document Type"::Invoice,
+            LibraryUtility.GenerateGUID(), FeedbackMessage),
+          DifferentValueErr);
+        Assert.AreEqual(NoSIIStateErr, FeedbackMessage, DifferentValueErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SIIMarkPostedDocumentAsAcceptedNoHistory()
+    var
+        SIIManagement: Codeunit "SII Management";
+        FeedbackMessage: Text;
+        DocumentNo: Code[20];
+    begin
+        // [FEATURE] [Advanced Mark]
+        // [SCENARIO 631381] Marking a document whose SII entry has no history returns the missing status message
+        LibrarySII.InitSetup(true, false);
+        LibrarySII.ShowAdvancedActions(true);
+
+        // [GIVEN] Posted document with an SII upload state but no history
+        DocumentNo := LibraryUtility.GenerateGUID();
+        MockSIIDocUploadStateWithIncorrectStatus(
+          "SII Doc. Upload State Document Source"::"Customer Ledger", "SII Doc. Upload State Document Type"::Invoice, DocumentNo);
+
+        // [WHEN] Mark the document as accepted from the posted document
+        // [THEN] The call is rejected with the missing status message
+        Assert.IsFalse(
+          SIIManagement.MarkDocumentAsAccepted(
+            "SII Doc. Upload State Document Source"::"Customer Ledger", "SII Doc. Upload State Document Type"::Invoice,
+            DocumentNo, FeedbackMessage),
+          DifferentValueErr);
+        Assert.AreEqual(NoSIIStateErr, FeedbackMessage, DifferentValueErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure MarkAsAcceptedActionOnPostedSalesInvoice()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SIIHistory: Record "SII History";
+        PostedSalesInvoice: TestPage "Posted Sales Invoice";
+        DocumentNo: Code[20];
+        DocStateId: Integer;
+    begin
+        // [FEATURE] [Advanced Mark] [UI]
+        // [SCENARIO 631381] "Mark As Accepted" on Posted Sales Invoice follows the SII Setup flags and marks the document
+        LibrarySII.InitSetup(true, false);
+        LibrarySII.ShowAdvancedActions(false);
+
+        // [GIVEN] Posted sales invoice whose SII entry is "Incorrect"
+        DocumentNo := PostSalesInvoiceNo();
+        DocStateId := SetPostedDocSIIStateToIncorrect(
+          "SII Doc. Upload State Document Source"::"Customer Ledger", "SII Doc. Upload State Document Type"::Invoice, DocumentNo);
+        SalesInvoiceHeader.Get(DocumentNo);
+
+        // [WHEN] "Show Advanced Actions" = FALSE the action is hidden
+        LibrarySII.InitSetup(false, false);
+        PostedSalesInvoice.OpenView();
+        PostedSalesInvoice.GoToRecord(SalesInvoiceHeader);
+        Assert.IsFalse(PostedSalesInvoice."Mark As Accepted".Visible(), '');
+        PostedSalesInvoice.Close();
+
+        // [WHEN] "Show Advanced Actions" = TRUE but SII is disabled the action is visible but not enabled
+        LibrarySII.ShowAdvancedActions(true);
+        PostedSalesInvoice.OpenView();
+        PostedSalesInvoice.GoToRecord(SalesInvoiceHeader);
+        Assert.IsTrue(PostedSalesInvoice."Mark As Accepted".Visible(), '');
+        Assert.IsFalse(PostedSalesInvoice."Mark As Accepted".Enabled(), '');
+        PostedSalesInvoice.Close();
+
+        // [WHEN] SII is enabled the action is enabled and marks the document as accepted
+        LibrarySII.InitSetup(true, false);
+        PostedSalesInvoice.OpenView();
+        PostedSalesInvoice.GoToRecord(SalesInvoiceHeader);
+        Assert.IsTrue(PostedSalesInvoice."Mark As Accepted".Enabled(), '');
+        PostedSalesInvoice."Mark As Accepted".Invoke();
+        PostedSalesInvoice.Close();
+
+        // [THEN] The SII entry is marked as accepted
+        VerifyHistoryAndDocUploadValuesAfterMark(
+          DocStateId, SIIHistory.Status::"Accepted With Errors", MarkAsAcceptedErr,
+          SIIHistory."Upload Type"::Regular, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure MarkAsAcceptedActionOnPostedPurchaseInvoice()
+    var
+        PurchInvHeader: Record "Purch. Inv. Header";
+        SIIHistory: Record "SII History";
+        PostedPurchaseInvoice: TestPage "Posted Purchase Invoice";
+        DocumentNo: Code[20];
+        DocStateId: Integer;
+    begin
+        // [FEATURE] [Advanced Mark] [UI]
+        // [SCENARIO 631381] "Mark As Accepted" on Posted Purchase Invoice marks the vendor document as accepted
+        LibrarySII.InitSetup(true, false);
+        LibrarySII.ShowAdvancedActions(true);
+
+        // [GIVEN] Posted purchase invoice whose SII entry is "Incorrect"
+        DocumentNo := PostPurchaseInvoiceNo();
+        DocStateId := SetPostedDocSIIStateToIncorrect(
+          "SII Doc. Upload State Document Source"::"Vendor Ledger", "SII Doc. Upload State Document Type"::Invoice, DocumentNo);
+        PurchInvHeader.Get(DocumentNo);
+
+        // [WHEN] Mark As Accepted is invoked from the posted purchase invoice
+        PostedPurchaseInvoice.OpenView();
+        PostedPurchaseInvoice.GoToRecord(PurchInvHeader);
+        Assert.IsTrue(PostedPurchaseInvoice."Mark As Accepted".Enabled(), '');
+        PostedPurchaseInvoice."Mark As Accepted".Invoke();
+        PostedPurchaseInvoice.Close();
+
+        // [THEN] The SII entry is marked as accepted
+        VerifyHistoryAndDocUploadValuesAfterMark(
+          DocStateId, SIIHistory.Status::"Accepted With Errors", MarkAsAcceptedErr, SIIHistory."Upload Type"::Regular, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure MarkAsAcceptedActionOnPostedSalesCreditMemo()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        SIIHistory: Record "SII History";
+        PostedSalesCreditMemo: TestPage "Posted Sales Credit Memo";
+        DocumentNo: Code[20];
+        DocStateId: Integer;
+    begin
+        // [FEATURE] [Advanced Mark] [UI]
+        // [SCENARIO 631381] "Mark As Accepted" on Posted Sales Credit Memo marks the customer credit memo as accepted
+        LibrarySII.InitSetup(true, false);
+        LibrarySII.ShowAdvancedActions(true);
+
+        // [GIVEN] Posted sales credit memo whose SII entry is "Incorrect"
+        DocumentNo := PostSalesCreditMemoNo();
+        DocStateId := SetPostedDocSIIStateToIncorrect(
+          "SII Doc. Upload State Document Source"::"Customer Ledger", "SII Doc. Upload State Document Type"::"Credit Memo", DocumentNo);
+        SalesCrMemoHeader.Get(DocumentNo);
+
+        // [WHEN] Mark As Accepted is invoked from the posted sales credit memo
+        PostedSalesCreditMemo.OpenView();
+        PostedSalesCreditMemo.GoToRecord(SalesCrMemoHeader);
+        Assert.IsTrue(PostedSalesCreditMemo."Mark As Accepted".Enabled(), '');
+        PostedSalesCreditMemo."Mark As Accepted".Invoke();
+        PostedSalesCreditMemo.Close();
+
+        // [THEN] The SII entry is marked as accepted
+        VerifyHistoryAndDocUploadValuesAfterMark(
+          DocStateId, SIIHistory.Status::"Accepted With Errors", MarkAsAcceptedErr, SIIHistory."Upload Type"::Regular, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure MarkAsAcceptedActionOnPostedPurchaseCreditMemo()
+    var
+        PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.";
+        SIIHistory: Record "SII History";
+        PostedPurchaseCreditMemo: TestPage "Posted Purchase Credit Memo";
+        DocumentNo: Code[20];
+        DocStateId: Integer;
+    begin
+        // [FEATURE] [Advanced Mark] [UI]
+        // [SCENARIO 631381] "Mark As Accepted" on Posted Purchase Credit Memo marks the vendor credit memo as accepted
+        LibrarySII.InitSetup(true, false);
+        LibrarySII.ShowAdvancedActions(true);
+
+        // [GIVEN] Posted purchase credit memo whose SII entry is "Incorrect"
+        DocumentNo := PostPurchaseCreditMemoNo();
+        DocStateId := SetPostedDocSIIStateToIncorrect(
+          "SII Doc. Upload State Document Source"::"Vendor Ledger", "SII Doc. Upload State Document Type"::"Credit Memo", DocumentNo);
+        PurchCrMemoHdr.Get(DocumentNo);
+
+        // [WHEN] Mark As Accepted is invoked from the posted purchase credit memo
+        PostedPurchaseCreditMemo.OpenView();
+        PostedPurchaseCreditMemo.GoToRecord(PurchCrMemoHdr);
+        Assert.IsTrue(PostedPurchaseCreditMemo."Mark As Accepted".Enabled(), '');
+        PostedPurchaseCreditMemo."Mark As Accepted".Invoke();
+        PostedPurchaseCreditMemo.Close();
+
+        // [THEN] The SII entry is marked as accepted
+        VerifyHistoryAndDocUploadValuesAfterMark(
+          DocStateId, SIIHistory.Status::"Accepted With Errors", MarkAsAcceptedErr, SIIHistory."Upload Type"::Regular, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure MarkAsAcceptedActionOnPostedServiceInvoice()
+    var
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        SIIHistory: Record "SII History";
+        PostedServiceInvoice: TestPage "Posted Service Invoice";
+        DocumentNo: Code[20];
+        DocStateId: Integer;
+    begin
+        // [FEATURE] [Advanced Mark] [UI]
+        // [SCENARIO 631381] "Mark As Accepted" on Posted Service Invoice marks the service document as accepted
+        LibrarySII.InitSetup(true, false);
+        LibrarySII.ShowAdvancedActions(true);
+
+        // [GIVEN] Posted service invoice whose SII entry is "Incorrect"
+        DocumentNo := PostServiceInvoiceNo();
+        DocStateId := SetPostedDocSIIStateToIncorrect(
+          "SII Doc. Upload State Document Source"::"Customer Ledger", "SII Doc. Upload State Document Type"::Invoice, DocumentNo);
+        ServiceInvoiceHeader.Get(DocumentNo);
+
+        // [WHEN] Mark As Accepted is invoked from the posted service invoice
+        PostedServiceInvoice.OpenView();
+        PostedServiceInvoice.GoToRecord(ServiceInvoiceHeader);
+        Assert.IsTrue(PostedServiceInvoice."Mark As Accepted".Enabled(), '');
+        PostedServiceInvoice."Mark As Accepted".Invoke();
+        PostedServiceInvoice.Close();
+
+        // [THEN] The SII entry is marked as accepted
+        VerifyHistoryAndDocUploadValuesAfterMark(
+          DocStateId, SIIHistory.Status::"Accepted With Errors", MarkAsAcceptedErr, SIIHistory."Upload Type"::Regular, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure MarkAsAcceptedActionOnPostedServiceCreditMemo()
+    var
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        SIIHistory: Record "SII History";
+        PostedServiceCreditMemo: TestPage "Posted Service Credit Memo";
+        DocumentNo: Code[20];
+        DocStateId: Integer;
+    begin
+        // [FEATURE] [Advanced Mark] [UI]
+        // [SCENARIO 631381] "Mark As Accepted" on Posted Service Credit Memo marks the service credit memo as accepted
+        LibrarySII.InitSetup(true, false);
+        LibrarySII.ShowAdvancedActions(true);
+
+        // [GIVEN] Posted service credit memo whose SII entry is "Incorrect"
+        DocumentNo := PostServiceCreditMemoNo();
+        DocStateId := SetPostedDocSIIStateToIncorrect(
+          "SII Doc. Upload State Document Source"::"Customer Ledger", "SII Doc. Upload State Document Type"::"Credit Memo", DocumentNo);
+        ServiceCrMemoHeader.Get(DocumentNo);
+
+        // [WHEN] Mark As Accepted is invoked from the posted service credit memo
+        PostedServiceCreditMemo.OpenView();
+        PostedServiceCreditMemo.GoToRecord(ServiceCrMemoHeader);
+        Assert.IsTrue(PostedServiceCreditMemo."Mark As Accepted".Enabled(), '');
+        PostedServiceCreditMemo."Mark As Accepted".Invoke();
+        PostedServiceCreditMemo.Close();
+
+        // [THEN] The SII entry is marked as accepted
+        VerifyHistoryAndDocUploadValuesAfterMark(
+          DocStateId, SIIHistory.Status::"Accepted With Errors", MarkAsAcceptedErr, SIIHistory."Upload Type"::Regular, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure SIIHistoryMarkAsNotAccepted()
     var
         SIIHistory: Record "SII History";
@@ -1905,7 +2225,8 @@ codeunit 147522 "SII Document Processing"
         LibrarySetupStorage.Save(DATABASE::"SII Setup");
     end;
 
-    local procedure PostSalesDocument(DocType: Enum "Sales Document Type"; ShipReceive: Boolean; Invoice: Boolean)
+    local procedure PostSalesDocument(DocType: Enum "Sales Document Type"; ShipReceive: Boolean;
+                                                   Invoice: Boolean)
     var
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
@@ -1916,7 +2237,8 @@ codeunit 147522 "SII Document Processing"
         LibrarySales.PostSalesDocument(SalesHeader, ShipReceive, Invoice);
     end;
 
-    local procedure PostPurchaseDocument(DocType: Enum "Purchase Document Type"; ShipReceive: Boolean; Invoice: Boolean)
+    local procedure PostPurchaseDocument(DocType: Enum "Purchase Document Type"; ShipReceive: Boolean;
+                                                      Invoice: Boolean)
     var
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
@@ -1949,7 +2271,8 @@ codeunit 147522 "SII Document Processing"
         SalesHeader.Modify(true);
     end;
 
-    local procedure CreateSalesDocumentWithGLAccount(var SalesHeader: Record "Sales Header"; DocumentType: Enum "Sales Document Type"; CustomerNo: Code[20]; GLAccountNo: Code[20])
+    local procedure CreateSalesDocumentWithGLAccount(var SalesHeader: Record "Sales Header"; DocumentType: Enum "Sales Document Type"; CustomerNo: Code[20];
+                                                                                                               GLAccountNo: Code[20])
     var
         SalesLine: Record "Sales Line";
     begin
@@ -2049,7 +2372,8 @@ codeunit 147522 "SII Document Processing"
         CountryRegion.Modify(true);
     end;
 
-    local procedure FilterSIIHistory(var SIIHistory: Record "SII History"; DocType: Enum "SII Doc. Upload State Document Type"; DocNo: Code[20]; DocSource: Enum "SII Doc. Upload State Document Source")
+    local procedure FilterSIIHistory(var SIIHistory: Record "SII History"; DocType: Enum "SII Doc. Upload State Document Type"; DocNo: Code[20];
+                                                                                        DocSource: Enum "SII Doc. Upload State Document Source")
     var
         SIIDocUploadState: Record "SII Doc. Upload State";
     begin
@@ -2089,7 +2413,8 @@ codeunit 147522 "SII Document Processing"
         VendorLedgerEntry.Insert();
     end;
 
-    local procedure MockSIIDocUploadStateWithIncorrectStatus(DocSource: enum "SII Doc. Upload State Document Source"; DocType: Enum "SII Doc. Upload State Document Type"; DocNo: Code[20])
+    local procedure MockSIIDocUploadStateWithIncorrectStatus(DocSource: enum "SII Doc. Upload State Document Source"; DocType: Enum "SII Doc. Upload State Document Type";
+                                                                            DocNo: Code[20])
     var
         SIIDocUploadState: Record "SII Doc. Upload State";
     begin
@@ -2142,7 +2467,121 @@ codeunit 147522 "SII Document Processing"
         exit(PurchInvHeader."No.");
     end;
 
-    local procedure ValidateElementByName(XMLDoc: DotNet XmlDocument; ElementName: Text; ExpectedValue: Text)
+    local procedure VerifyMarkDocumentAsAcceptedCombo(DocSource: Enum "SII Doc. Upload State Document Source"; DocType: Enum "SII Doc. Upload State Document Type")
+    var
+        SIIHistory: Record "SII History";
+        SIIManagement: Codeunit "SII Management";
+        DocNo: Code[20];
+        PostingDate: Date;
+        DocStateId: Integer;
+        FeedbackMessage: Text;
+    begin
+        DocStateId := MockDocumentWithSIIEntry(DocSource, DocType, SIIHistory.Status::Failed, DocNo, PostingDate);
+
+        Assert.IsTrue(SIIManagement.MarkDocumentAsAccepted(DocSource, DocType, DocNo, FeedbackMessage), FeedbackMessage);
+
+        VerifyHistoryAndDocUploadValuesAfterMark(
+          DocStateId, SIIHistory.Status::"Accepted With Errors", MarkAsAcceptedErr, SIIHistory."Upload Type"::Regular, false);
+    end;
+
+    local procedure MockDocumentWithSIIEntry(DocSource: Enum "SII Doc. Upload State Document Source"; DocType: Enum "SII Doc. Upload State Document Type";
+                                                            NewStatus: Enum "SII Document Status"; var DocNo: Code[20]; var PostingDate: Date): Integer
+    begin
+        DocNo := LibraryUtility.GenerateGUID();
+        PostingDate := WorkDate();
+        exit(MockSIIEntryForDocument(DocSource, DocType, DocNo, PostingDate, NewStatus));
+    end;
+
+    local procedure MockSIIEntryForDocument(DocSource: Enum "SII Doc. Upload State Document Source"; DocType: Enum "SII Doc. Upload State Document Type";
+                                                           DocNo: Code[20];
+                                                           PostingDate: Date;
+                                                           NewStatus: Enum "SII Document Status"): Integer
+    var
+        SIIDocUploadState: Record "SII Doc. Upload State";
+        EntryNo: Integer;
+    begin
+        if DocSource = DocSource::"Customer Ledger" then
+            EntryNo := LibrarySII.MockCLE(DocNo)
+        else
+            EntryNo := LibrarySII.MockVLE(DocNo);
+        SIIDocUploadState.CreateNewRequest(EntryNo, DocSource.AsInteger(), DocType.AsInteger(), DocNo, '', PostingDate);
+        SIIDocUploadState.SetRange("Document No.", DocNo);
+        SIIDocUploadState.FindFirst();
+        SIIDocUploadState.Status := NewStatus;
+        SIIDocUploadState.Modify();
+        exit(SIIDocUploadState.Id);
+    end;
+
+    local procedure PostSalesInvoiceNo(): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        CreateSalesInvoiceWithType(SalesHeader, "SII Sales Invoice Type"::"F1 Invoice");
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure PostSalesCreditMemoNo(): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        CreateSalesCrMemoWithType(SalesHeader, "SII Sales Credit Memo Type"::"R2 Corrected Invoice (Art. 80.3)");
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure PostPurchaseInvoiceNo(): Code[20]
+    var
+        PurchaseHeader: Record "Purchase Header";
+    begin
+        CreatePurchInvoiceWithType(PurchaseHeader, "SII Purch. Invoice Type"::"F1 Invoice");
+        exit(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
+    end;
+
+    local procedure PostPurchaseCreditMemoNo(): Code[20]
+    var
+        PurchaseHeader: Record "Purchase Header";
+    begin
+        CreatePurchCrMemoWithType(PurchaseHeader, "SII Purch. Credit Memo Type"::"R2 Corrected Invoice (Art. 80.3)");
+        exit(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
+    end;
+
+    local procedure PostServiceInvoiceNo(): Code[20]
+    var
+        ServiceHeader: Record "Service Header";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+    begin
+        CreateServiceDoc(ServiceHeader, ServiceHeader."Document Type"::Invoice);
+        LibraryService.PostServiceOrder(ServiceHeader, true, false, true);
+        CustLedgerEntry.SetRange("Customer No.", ServiceHeader."Bill-to Customer No.");
+        CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::Invoice);
+        CustLedgerEntry.FindLast();
+        exit(CustLedgerEntry."Document No.");
+    end;
+
+    local procedure PostServiceCreditMemoNo(): Code[20]
+    var
+        ServiceHeader: Record "Service Header";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+    begin
+        CreateServiceDoc(ServiceHeader, ServiceHeader."Document Type"::"Credit Memo");
+        LibraryService.PostServiceOrder(ServiceHeader, true, false, true);
+        CustLedgerEntry.SetRange("Customer No.", ServiceHeader."Bill-to Customer No.");
+        CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::"Credit Memo");
+        CustLedgerEntry.FindLast();
+        exit(CustLedgerEntry."Document No.");
+    end;
+
+    local procedure SetPostedDocSIIStateToIncorrect(DocSource: Enum "SII Doc. Upload State Document Source"; DocType: Enum "SII Doc. Upload State Document Type"; DocNo: Code[20]): Integer
+    var
+        SIIDocUploadState: Record "SII Doc. Upload State";
+    begin
+        LibrarySII.FindSIIDocUploadState(SIIDocUploadState, DocSource, DocType, DocNo);
+        SIIDocUploadState.Status := SIIDocUploadState.Status::Incorrect;
+        SIIDocUploadState.Modify();
+        exit(SIIDocUploadState.Id);
+    end;
+
+    local procedure ValidateElementByName(XMLDoc: DotNet XmlDocument; ElementName: Text;
+                                                      ExpectedValue: Text)
     var
         XMLNodeList: DotNet XmlNodeList;
         XMLNode: DotNet XmlNode;
@@ -2165,7 +2604,8 @@ codeunit 147522 "SII Document Processing"
         LibraryXPathXMLReader.AddAdditionalNamespace('sii', SiiUrlTok);
     end;
 
-    local procedure VerifySIIHistoryByStateIdIsSupported(var SIIHistory: Record "SII History"; DocType: Enum "SII Doc. Upload State Document Type"; DocNo: Code[20]; DocSource: Enum "SII Doc. Upload State Document Source")
+    local procedure VerifySIIHistoryByStateIdIsSupported(var SIIHistory: Record "SII History"; DocType: Enum "SII Doc. Upload State Document Type"; DocNo: Code[20];
+                                                                                                            DocSource: Enum "SII Doc. Upload State Document Source")
     begin
         FilterSIIHistory(SIIHistory, DocType, DocNo, DocSource);
         SIIHistory.FindFirst();
@@ -2180,7 +2620,9 @@ codeunit 147522 "SII Document Processing"
         Assert.AreEqual(0, XMLNodeList.Count, StrSubstNo(TagMustNotExistErr, TagName));
     end;
 
-    local procedure VerifyHistoryAndDocUploadValuesAfterMark(DocumentStateId: Integer; ExpectedStatus: Enum "SII Document Status"; ExpectedErrorMessage: Text[250]; ExpectedUploadType: Option; ExpectedRetryAccepted: Boolean)
+    local procedure VerifyHistoryAndDocUploadValuesAfterMark(DocumentStateId: Integer; ExpectedStatus: Enum "SII Document Status"; ExpectedErrorMessage: Text[250];
+                                                                                                           ExpectedUploadType: Option;
+                                                                                                           ExpectedRetryAccepted: Boolean)
     var
         SIIHistory: Record "SII History";
         SIIDocUploadState: Record "SII Doc. Upload State";
@@ -2200,7 +2642,8 @@ codeunit 147522 "SII Document Processing"
         SIIDocUploadState.TestField("Retry Accepted", ExpectedRetryAccepted);
     end;
 
-    local procedure VerifyNoSIIDocUploadState(DocType: Enum "SII Doc. Upload State Document Type"; DocNo: Code[20]; DocSource: Enum "SII Doc. Upload State Document Source")
+    local procedure VerifyNoSIIDocUploadState(DocType: Enum "SII Doc. Upload State Document Type"; DocNo: Code[20];
+                                                           DocSource: Enum "SII Doc. Upload State Document Source")
     var
         SIIDocUploadState: Record "SII Doc. Upload State";
     begin

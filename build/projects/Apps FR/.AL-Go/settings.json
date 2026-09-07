@@ -6,8 +6,6 @@
                        "../../../src/Apps/FR/ContosoCoffeeDemoDatasetFR/app",
                        "../../../src/Apps/FR/EDocument_FR/demo data",
                        "../../../src/Apps/FR/EDocument_FR/EReportingFR/app",
-                       "../../../src/Apps/FR/ExpenseAgent_FR/app",
-                       "../../../src/Apps/FR/ExpenseAgent_FR/demo data",
                        "../../../src/Apps/FR/FAReportsFR/app",
                        "../../../src/Apps/FR/FECAuditFile/app",
                        "../../../src/Apps/FR/HybridBCLast_FR/app",

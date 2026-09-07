@@ -5,8 +5,6 @@
     "appFolders":  [
                        "../../../src/Apps/GB/ContosoCoffeeDemoDatasetGB/app",
                        "../../../src/Apps/GB/EDocument_GB/demo data",
-                       "../../../src/Apps/GB/ExpenseAgent_GB/app",
-                       "../../../src/Apps/GB/ExpenseAgent_GB/demo data",
                        "../../../src/Apps/GB/GovTalk/app",
                        "../../../src/Apps/GB/GovTalk/demo data",
                        "../../../src/Apps/GB/IdealPostcodes/app",

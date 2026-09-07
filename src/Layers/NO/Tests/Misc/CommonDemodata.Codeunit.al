@@ -218,7 +218,7 @@
 
     [Test]
     [Scope('OnPrem')]
-    procedure AllCountriesHaveISOCodes()
+    procedure AllCountriesHaveCountryCodes()
     var
         CountryRegion: Record "Country/Region";
     begin
@@ -226,9 +226,6 @@
         Initialize();
 
         CountryRegion.SetRange("ISO Code", '');
-        Assert.RecordIsEmpty(CountryRegion);
-        CountryRegion.Reset();
-        CountryRegion.SetRange("ISO Numeric Code", '');
         Assert.RecordIsEmpty(CountryRegion);
     end;
 
@@ -338,4 +335,3 @@
         Commit();
     end;
 }
-

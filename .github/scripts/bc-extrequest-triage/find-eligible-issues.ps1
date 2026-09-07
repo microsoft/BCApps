@@ -45,8 +45,9 @@ foreach ($issue in $issues) {
     }
 
     $commentsJson = gh api "repos/$($env:GITHUB_REPOSITORY)/issues/$($issue.number)/comments" `
-        --paginate --slurp --jq 'add // []'
-    $comments = @($commentsJson | ConvertFrom-Json)
+        --paginate --slurp
+    $commentPages = $commentsJson | ConvertFrom-Json
+    $comments = @($commentPages | ForEach-Object { $_ })
     $hasNotAccurateFeedback = $null -ne (
         $comments |
             Where-Object {

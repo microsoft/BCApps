@@ -313,7 +313,7 @@ table 6930 "Expense Agent Setup"
         {
             Caption = 'Evaluate policies';
             DataClassification = SystemMetadata;
-            ToolTip = 'Specifies whether the agent automatically evaluates expenses against the configured policies. Enabling this consumes additional AI credits.';
+            ToolTip = 'Specifies whether the agent automatically evaluates expenses against the configured policies. This feature consumes additional AI credits.';
 
             trigger OnValidate()
             var
@@ -322,6 +322,12 @@ table 6930 "Expense Agent Setup"
                 if "Evaluate Policies" and (not xRec."Evaluate Policies") then
                     FeatureTelemetry.LogUptake('0000V3F', GetFeatureName(), Enum::"Feature Uptake Status"::Used);
             end;
+        }
+        field(32; "Submitter-run Evaluation"; Boolean)
+        {
+            Caption = 'Allow submitters to evaluate policies';
+            DataClassification = SystemMetadata;
+            ToolTip = 'Specifies whether submitters can preventively run policy evaluation before submitting expense reports. This evaluation will consume additional AI credits.';
         }
         field(34; "Expense User Nos."; Code[20])
         {
@@ -666,14 +672,9 @@ table 6930 "Expense Agent Setup"
             ToolTip = 'Specifies whether VAT reclaim is allowed on expenses.';
 
             trigger OnValidate()
-            var
-                VATSetup: Record "VAT Setup";
             begin
-                if "Allow VAT Reclaim" then begin
+                if "Allow VAT Reclaim" then
                     TestField("Default VAT Bus. Posting Group");
-                    VATSetup.Get();
-                    VATSetup.TestField("Non-Deductible VAT Is Enabled");
-                end;
             end;
         }
         field(105; "VAT Rates Applied"; Boolean)
@@ -799,7 +800,7 @@ table 6930 "Expense Agent Setup"
         CreateEmployeesForExpenseUsersQst: Label 'Turning on this setting will enable automatic creation of records in the Employee table. This may impact your HR setup in Business Central.\\Are you sure you want to enable this feature?';
         UpdateDefaultsApproverQst: Label 'You have changed the default approver.\\Do you also want to change approver from %1 to %2 for all expense users who currently have %1 as approver?', Comment = '%1 and %2 are both person names.';
         UpdatingDefaultApproversLbl: Label 'Updating approvers...';
-
+        XDOMESTICTxt: Label 'DOMESTIC'; // DOMESTIC VAT Business Posting Group used as default for all rates created by this codeunit
 
 
     internal procedure AssistEditNoreplyMailbox()
@@ -1180,9 +1181,14 @@ table 6930 "Expense Agent Setup"
     var
         CreateExpenseCountryVATRates: Codeunit "Create Expense VAT Rates";
     begin
+        Rec.GetRecordOnce();
+        if Rec."Default VAT Bus. Posting Group" = '' then begin
+            Rec."Default VAT Bus. Posting Group" := XDOMESTICTxt;
+            Rec.Modify();
+        end;
+
         CreateExpenseCountryVATRates.InsertDefaultRates();
 
-        Rec.GetRecordOnce();
         if not Rec."VAT Rates Applied" then begin
             Rec."VAT Rates Applied" := true;
             Rec.Modify();
