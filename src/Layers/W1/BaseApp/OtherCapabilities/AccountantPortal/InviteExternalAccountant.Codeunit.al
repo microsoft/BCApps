@@ -317,11 +317,10 @@ codeunit 9033 "Invite External Accountant"
 
         HttpResponseMessage.Content.ReadAs(ResponseContent);
         if HttpResponseMessage.IsSuccessStatusCode() then
-            exit(true)
-        else begin
-            LogInvokeRequestFailure(HttpResponseMessage.HttpStatusCode(), HttpResponseMessage.ReasonPhrase(), ResponseContent);
-            exit(false);
-        end;
+            exit(true);
+
+        LogInvokeRequestFailure(HttpResponseMessage.HttpStatusCode(), HttpResponseMessage.ReasonPhrase(), ResponseContent);
+        exit(false);
     end;
 
     local procedure LogInvokeRequestSendFailure(ErrorText: Text)
