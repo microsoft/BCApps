@@ -450,6 +450,7 @@ report 115 "Salesperson - Commission"
             LayoutFile = './Sales/Reports/SalespersonCommission.xlsx';
             Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
+#if not CLEAN30
         layout(Word)
         {
             Caption = 'Salesperson Commission Word';
@@ -460,6 +461,7 @@ report 115 "Salesperson - Commission"
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
+#endif
 #if not CLEAN27
         layout(RDLC)
         {
