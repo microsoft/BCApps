@@ -568,7 +568,7 @@ page 1290 "Payment Reconciliation Journal"
                 action(AllowDuplicatedTransactions)
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Import Duplicated Transactions';
+                    Caption = 'Allow Duplicated Transactions';
                     Image = ChangeStatus;
                     ToolTip = 'Toggle whether transactions that have the same transaction ID can be imported into this journal.';
 
