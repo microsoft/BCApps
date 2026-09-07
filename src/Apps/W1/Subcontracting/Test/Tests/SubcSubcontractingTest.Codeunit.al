@@ -44,6 +44,231 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
+    [Scope('OnPrem')]
+    procedure CoveredComponentsExplainWhyNoTransferIsCreated()
+    var
+        Item: Record Item;
+        ProductionLocation: Record Location;
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        RoutingLine: Record "Routing Line";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        WorkCenter: array[2] of Record "Work Center";
+        SubcPurchaseHeaderExt: Codeunit "Subc. Purchase Header Ext";
+        TransferOrderErrorInfo: ErrorInfo;
+        TransferOrderNo: Code[20];
+        OriginalLineCount: Integer;
+        OriginalQuantity: Decimal;
+        PurchaseOrder: TestPage "Purchase Order";
+    begin
+        // [SCENARIO 648962] Fully covered eligible components produce an explanatory error without duplicate transfers.
+        Initialize();
+
+        // [GIVEN] Positive component demand covered by an existing outbound transfer, with WIP transfer disabled.
+        SetupSubcontractingForTransferOrderTests(Item, WorkCenter, ProductionLocation);
+        RoutingLine.SetRange("Routing No.", Item."Routing No.");
+        RoutingLine.ModifyAll("Transfer WIP Item", false);
+        TransferOrderNo := CreateProductionOrderWithSubcTransferOrder(
+            Item, WorkCenter, ProductionLocation.Code, true, ProductionOrder);
+        Assert.AreEqual(
+            'A purchase order was created.\\Do you want to view it?', LibraryVariableStorage.DequeueText(),
+            'Expected the subcontracting purchase order creation confirmation.');
+        TransferHeader.Get(TransferOrderNo);
+        PurchaseHeader.Get(PurchaseHeader."Document Type"::Order, TransferHeader."Subcontr. Purch. Order No.");
+        TransferLine.SetRange("Document No.", TransferOrderNo);
+        OriginalLineCount := TransferLine.Count();
+        TransferLine.CalcSums(Quantity);
+        OriginalQuantity := TransferLine.Quantity;
+        Assert.IsTrue(OriginalQuantity > 0, 'The existing transfer must cover positive component demand.');
+        PurchaseOrder.OpenView();
+        PurchaseOrder.GoToRecord(PurchaseHeader);
+
+        // [WHEN] Creating the transfer again for the same subcontracting order.
+        asserterror PurchaseOrder.CreateTransfOrdToSubcontractor.Invoke();
+
+        // [THEN] The error explains coverage and neither headers nor quantities are duplicated.
+        Assert.AreEqual(
+            'The components and WIP for this subcontracting order are already covered by open transfer orders, quantities in transit, or quantities transferred to the subcontractor.',
+            GetLastErrorText(), 'Covered component demand must not report missing transfer demand.');
+        TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
+        TransferHeader.SetRange("Subc. Return Order", false);
+        Assert.AreEqual(1, TransferHeader.Count(), 'No duplicate outbound transfer order should be created.');
+        Assert.AreEqual(OriginalLineCount, TransferLine.Count(), 'No duplicate transfer lines should be created.');
+        TransferLine.CalcSums(Quantity);
+        Assert.AreEqual(OriginalQuantity, TransferLine.Quantity, 'The covered transfer quantity must remain unchanged.');
+        PurchaseOrder.Close();
+        TransferOrderErrorInfo := SubcPurchaseHeaderExt.CreateCoveredTransferErrorInfo(PurchaseHeader);
+        Assert.AreEqual(
+            'There are no new subcontracting transfer lines to create', TransferOrderErrorInfo.Title,
+            'Covered demand must have the explanatory title.');
+        Assert.AreEqual(PurchaseHeader.RecordId(), TransferOrderErrorInfo.RecordId, 'Navigation must identify the purchase order.');
+        OpenedTransferOrderNo := '';
+        SubcPurchaseHeaderExt.ShowOutboundTransferOrdersForPurchHeader(TransferOrderErrorInfo);
+        Assert.AreEqual(TransferOrderNo, OpenedTransferOrderNo, 'The action must open the existing outbound transfer card.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('HandleTransferOrder')]
+    [Scope('OnPrem')]
+    procedure CoveredTransferActionOpensReleasedOutboundOnly()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        UnrelatedPurchaseHeader: Record "Purchase Header";
+        TransferHeader: Record "Transfer Header";
+        OtherTransferHeader: Record "Transfer Header";
+        SubcPurchaseHeaderExt: Codeunit "Subc. Purchase Header Ext";
+        TransferOrderErrorInfo: ErrorInfo;
+    begin
+        // [SCENARIO 648962] A released outbound order opens as a card, excluding returns and unrelated transfers.
+        Initialize();
+
+        // [GIVEN] One related released outbound document, a return, and an unrelated outbound document.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, '');
+        LibraryPurchase.CreatePurchHeader(UnrelatedPurchaseHeader, UnrelatedPurchaseHeader."Document Type"::Order, '');
+        CreateLinkedTransferHeader(TransferHeader, PurchaseHeader."No.", false);
+        TransferHeader.Status := TransferHeader.Status::Released;
+        TransferHeader.Modify();
+        CreateLinkedTransferHeader(OtherTransferHeader, PurchaseHeader."No.", true);
+        CreateLinkedTransferHeader(OtherTransferHeader, UnrelatedPurchaseHeader."No.", false);
+        TransferOrderErrorInfo := SubcPurchaseHeaderExt.CreateCoveredTransferErrorInfo(PurchaseHeader);
+        OpenedTransferOrderNo := '';
+
+        // [WHEN] Invoking the covered-demand error action.
+        SubcPurchaseHeaderExt.ShowOutboundTransferOrdersForPurchHeader(TransferOrderErrorInfo);
+
+        // [THEN] Only the related outbound document is opened.
+        Assert.AreEqual(TransferHeader."No.", OpenedTransferOrderNo, 'Released outbound transfers must remain navigable.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('HandleCoveredTransferOrdersList')]
+    [Scope('OnPrem')]
+    procedure CoveredTransferActionOpensFilteredOutboundList()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        UnrelatedPurchaseHeader: Record "Purchase Header";
+        TransferHeader: Record "Transfer Header";
+        SubcPurchaseHeaderExt: Codeunit "Subc. Purchase Header Ext";
+        TransferOrderErrorInfo: ErrorInfo;
+    begin
+        // [SCENARIO 648962] Multiple outbound documents open in a list excluding return and unrelated orders.
+        Initialize();
+
+        // [GIVEN] Two related outbound documents, a return, and an unrelated outbound document.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, '');
+        LibraryPurchase.CreatePurchHeader(UnrelatedPurchaseHeader, UnrelatedPurchaseHeader."Document Type"::Order, '');
+        CreateLinkedTransferHeader(TransferHeader, PurchaseHeader."No.", false);
+        LibraryVariableStorage.Enqueue(TransferHeader."No.");
+        CreateLinkedTransferHeader(TransferHeader, PurchaseHeader."No.", false);
+        TransferHeader.Status := TransferHeader.Status::Released;
+        TransferHeader.Modify();
+        LibraryVariableStorage.Enqueue(TransferHeader."No.");
+        CreateLinkedTransferHeader(TransferHeader, PurchaseHeader."No.", true);
+        CreateLinkedTransferHeader(TransferHeader, UnrelatedPurchaseHeader."No.", false);
+        TransferOrderErrorInfo := SubcPurchaseHeaderExt.CreateCoveredTransferErrorInfo(PurchaseHeader);
+
+        // [WHEN] Invoking the covered-demand error action.
+        SubcPurchaseHeaderExt.ShowOutboundTransferOrdersForPurchHeader(TransferOrderErrorInfo);
+
+        // [THEN] The handler verifies exactly the two related outbound documents.
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
+    [Scope('OnPrem')]
+    procedure ZeroComponentDemandRetainsGenericError()
+    var
+        Item: Record Item;
+        ProductionLocation: Record Location;
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        RoutingLine: Record "Routing Line";
+        TransferHeader: Record "Transfer Header";
+        WorkCenter: array[2] of Record "Work Center";
+        PurchaseOrder: TestPage "Purchase Order";
+    begin
+        // [SCENARIO 648962] Zero eligible demand keeps the generic error even when transfer documents exist.
+        Initialize();
+
+        // [GIVEN] Existing component transfers but no remaining purchase demand and no WIP eligibility.
+        SetupSubcontractingForTransferOrderTests(Item, WorkCenter, ProductionLocation);
+        RoutingLine.SetRange("Routing No.", Item."Routing No.");
+        RoutingLine.ModifyAll("Transfer WIP Item", false);
+        TransferHeader.Get(CreateProductionOrderWithSubcTransferOrder(
+            Item, WorkCenter, ProductionLocation.Code, true, ProductionOrder));
+        Assert.AreEqual(
+            'A purchase order was created.\\Do you want to view it?', LibraryVariableStorage.DequeueText(),
+            'Expected the subcontracting purchase order creation confirmation.');
+        PurchaseHeader.Get(PurchaseHeader."Document Type"::Order, TransferHeader."Subcontr. Purch. Order No.");
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.ModifyAll(Quantity, 0);
+        PurchaseOrder.OpenView();
+        PurchaseOrder.GoToRecord(PurchaseHeader);
+
+        // [WHEN] Attempting to create a transfer without positive demand.
+        asserterror PurchaseOrder.CreateTransfOrdToSubcontractor.Invoke();
+
+        // [THEN] Existing documents alone must not cause the covered-demand message.
+        Assert.AreEqual(
+            'Nothing to create. No components or WIP to transfer for the specified subcontracting order.',
+            GetLastErrorText(), 'Zero demand must retain the generic error.');
+        PurchaseOrder.Close();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
+    [Scope('OnPrem')]
+    procedure IneligibleComponentsRetainGenericError()
+    var
+        Item: Record Item;
+        ProductionLocation: Record Location;
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        RoutingLine: Record "Routing Line";
+        TransferHeader: Record "Transfer Header";
+        WorkCenter: array[2] of Record "Work Center";
+        PurchaseOrder: TestPage "Purchase Order";
+    begin
+        // [SCENARIO 648962] Ineligible supply methods keep the generic error even when transfer documents exist.
+        Initialize();
+
+        // [GIVEN] Components are vendor-supplied and WIP transfer is disabled.
+        SetupSubcontractingForTransferOrderTests(Item, WorkCenter, ProductionLocation);
+        RoutingLine.SetRange("Routing No.", Item."Routing No.");
+        RoutingLine.ModifyAll("Transfer WIP Item", false);
+        TransferHeader.Get(CreateProductionOrderWithSubcTransferOrder(
+            Item, WorkCenter, ProductionLocation.Code, true, ProductionOrder));
+        Assert.AreEqual(
+            'A purchase order was created.\\Do you want to view it?', LibraryVariableStorage.DequeueText(),
+            'Expected the subcontracting purchase order creation confirmation.');
+        PurchaseHeader.Get(PurchaseHeader."Document Type"::Order, TransferHeader."Subcontr. Purch. Order No.");
+        ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComponent.ModifyAll("Component Supply Method", ProdOrderComponent."Component Supply Method"::"Vendor-Supplied");
+        PurchaseOrder.OpenView();
+        PurchaseOrder.GoToRecord(PurchaseHeader);
+
+        // [WHEN] Attempting to create a transfer without eligible demand.
+        asserterror PurchaseOrder.CreateTransfOrdToSubcontractor.Invoke();
+
+        // [THEN] Existing documents alone must not cause the covered-demand message.
+        Assert.AreEqual(
+            'Nothing to create. No components or WIP to transfer for the specified subcontracting order.',
+            GetLastErrorText(), 'Ineligible demand must retain the generic error.');
+        PurchaseOrder.Close();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
     [HandlerFunctions('ConfirmHandler,HandleTransferOrder,HandleCreateTransferOrderMsg')]
     procedure DirectTransferPostingWithWIPItemDoesNotErrorOnQuantity()
     var
@@ -3340,6 +3565,26 @@ codeunit 139989 "Subc. Subcontracting Test"
         Assert.AreEqual(ExistingPurchaseOrderNo, ReopenedPurchaseOrderNo, 'Create Subcontracting Order should open the updated existing purchase order.');
 
         LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [PageHandler]
+    procedure HandleCoveredTransferOrdersList(var TransferOrders: TestPage "Transfer Orders")
+    begin
+        Assert.IsTrue(TransferOrders.First(), 'Expected the first related outbound transfer.');
+        Assert.AreEqual(LibraryVariableStorage.DequeueText(), TransferOrders."No.".Value(), 'Unexpected first transfer.');
+        Assert.IsTrue(TransferOrders.Next(), 'Expected the second related outbound transfer.');
+        Assert.AreEqual(LibraryVariableStorage.DequeueText(), TransferOrders."No.".Value(), 'Unexpected second transfer.');
+        Assert.IsFalse(TransferOrders.Next(), 'Return and unrelated orders must not appear.');
+        TransferOrders.OK().Invoke();
+    end;
+
+    local procedure CreateLinkedTransferHeader(var TransferHeader: Record "Transfer Header"; PurchaseOrderNo: Code[20]; IsReturn: Boolean)
+    begin
+        Clear(TransferHeader);
+        LibraryInventory.CreateTransferHeader(TransferHeader);
+        TransferHeader."Subcontr. Purch. Order No." := PurchaseOrderNo;
+        TransferHeader."Subc. Return Order" := IsReturn;
+        TransferHeader.Modify();
     end;
 
     [PageHandler]

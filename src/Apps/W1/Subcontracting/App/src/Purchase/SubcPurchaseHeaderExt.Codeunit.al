@@ -66,6 +66,32 @@ codeunit 20533 "Subc. Purchase Header Ext"
         SubcTransferManagement.CheckStockAtSubcLocationForPurchHeader(Rec);
     end;
 
+    internal procedure CreateCoveredTransferErrorInfo(PurchaseHeader: Record "Purchase Header") TransferOrderErrorInfo: ErrorInfo
+    var
+        TransferHeader: Record "Transfer Header";
+        NoNewTransferLinesTitleLbl: Label 'There are no new subcontracting transfer lines to create';
+        CoveredTransferDemandMsg: Label 'The components and WIP for this subcontracting order are already covered by open transfer orders, quantities in transit, or quantities transferred to the subcontractor.';
+        ShowOpenTransferOrdersLbl: Label 'Show open transfer orders';
+    begin
+        TransferOrderErrorInfo.Title := NoNewTransferLinesTitleLbl;
+        TransferOrderErrorInfo.Message := CoveredTransferDemandMsg;
+        TransferOrderErrorInfo.RecordId := PurchaseHeader.RecordId();
+        TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
+        TransferHeader.SetRange("Subc. Return Order", false);
+        if not TransferHeader.IsEmpty() then
+            TransferOrderErrorInfo.AddAction(
+                ShowOpenTransferOrdersLbl, Codeunit::"Subc. Purchase Header Ext", 'ShowOutboundTransferOrdersForPurchHeader');
+    end;
+
+    internal procedure ShowOutboundTransferOrdersForPurchHeader(TransferOrderErrorInfo: ErrorInfo)
+    var
+        PurchaseHeader: Record "Purchase Header";
+        SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
+    begin
+        PurchaseHeader.Get(TransferOrderErrorInfo.RecordId);
+        SubcPurchFactboxMgmt.ShowTransferOrdersFromPurchaseOrder(PurchaseHeader, false);
+    end;
+
     internal procedure ShowTransferOrdersForPurchHeader(TransferOrderErrorInfo: ErrorInfo)
     var
         PurchaseHeader: Record "Purchase Header";

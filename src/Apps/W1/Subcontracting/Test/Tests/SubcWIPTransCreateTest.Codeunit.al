@@ -32,6 +32,117 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
     end;
 
     [Test]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
+    [Scope('OnPrem')]
+    procedure CoveredWIPExplainsWhyNoTransferIsCreated()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        OriginalQuantity: Decimal;
+        PurchaseOrder: TestPage "Purchase Order";
+    begin
+        // [SCENARIO 648962] An existing WIP-only transfer fully covers positive eligible demand.
+        Initialize();
+
+        // [GIVEN] WIP demand with no eligible components is fully covered by an outbound transfer.
+        CreateWIPOnlyTransfer(PurchaseHeader, TransferHeader, TransferLine);
+        OriginalQuantity := TransferLine.Quantity;
+        Assert.IsTrue(OriginalQuantity > 0, 'The WIP transfer must cover positive demand.');
+        PurchaseOrder.OpenView();
+        PurchaseOrder.GoToRecord(PurchaseHeader);
+
+        // [WHEN] Attempting to create the same WIP transfer again.
+        asserterror PurchaseOrder.CreateTransfOrdToSubcontractor.Invoke();
+
+        // [THEN] Coverage is explained and no duplicate WIP quantity is created.
+        Assert.AreEqual(
+            'The components and WIP for this subcontracting order are already covered by open transfer orders, quantities in transit, or quantities transferred to the subcontractor.',
+            GetLastErrorText(), 'Covered WIP must not report missing demand.');
+        Assert.AreEqual(1, TransferLine.Count(), 'No duplicate WIP line should be created.');
+        TransferLine.FindFirst();
+        Assert.AreEqual(OriginalQuantity, TransferLine.Quantity, 'Covered WIP quantity must not change.');
+        PurchaseOrder.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
+    [Scope('OnPrem')]
+    procedure ShippedWIPCoverageExplainsAndNavigates()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+        SubcPurchaseHeaderExt: Codeunit "Subc. Purchase Header Ext";
+        PurchaseOrder: TestPage "Purchase Order";
+    begin
+        // [SCENARIO 648962] WIP in transit explains coverage and the released unposted document remains navigable.
+        Initialize();
+
+        // [GIVEN] A WIP-only outbound transfer has been shipped but not received.
+        CreateWIPOnlyTransfer(PurchaseHeader, TransferHeader, TransferLine);
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, false);
+        TransferHeader.Get(TransferHeader."No.");
+        TransferLine.FindFirst();
+        Assert.AreEqual(TransferLine.Quantity, TransferLine."Quantity Shipped", 'The WIP transfer must be shipped.');
+        Assert.AreEqual(TransferHeader.Status::Released, TransferHeader.Status, 'The in-transit document must be released.');
+        PurchaseOrder.OpenView();
+        PurchaseOrder.GoToRecord(PurchaseHeader);
+
+        // [WHEN] Attempting another transfer while WIP is in transit.
+        asserterror PurchaseOrder.CreateTransfOrdToSubcontractor.Invoke();
+
+        // [THEN] Coverage is explained and the action opens the existing shipped transfer.
+        Assert.AreEqual(
+            'The components and WIP for this subcontracting order are already covered by open transfer orders, quantities in transit, or quantities transferred to the subcontractor.',
+            GetLastErrorText(), 'Shipped WIP must explain existing coverage.');
+        PurchaseOrder.Close();
+        OpenedTransferOrderNo := '';
+        SubcPurchaseHeaderExt.ShowOutboundTransferOrdersForPurchHeader(
+            SubcPurchaseHeaderExt.CreateCoveredTransferErrorInfo(PurchaseHeader));
+        Assert.AreEqual(TransferHeader."No.", OpenedTransferOrderNo, 'The action must open the shipped outbound transfer.');
+    end;
+
+    local procedure CreateWIPOnlyTransfer(var PurchaseHeader: Record "Purchase Header"; var TransferHeader: Record "Transfer Header"; var TransferLine: Record "Transfer Line")
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        PurchaseOrder: TestPage "Purchase Order";
+    begin
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SetTransferWIPItemOnRoutingLine(Item."Routing No.", WorkCenter[2]."No.", true);
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        SetProdOrderLocationToCompSetupLocationAndRefresh(ProductionOrder);
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        CreateAndUpdateTransferRoute(ProductionOrder."Location Code", Vendor."Subc. Location Code");
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.FindFirst();
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        PurchaseOrder.OpenView();
+        PurchaseOrder.GoToRecord(PurchaseHeader);
+        PurchaseOrder.CreateTransfOrdToSubcontractor.Invoke();
+        PurchaseOrder.Close();
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Transfer WIP Item", true);
+        TransferLine.SetRange("Subc. Return Order", false);
+        TransferLine.SetRange("Derived From Line No.", 0);
+        Assert.AreEqual(1, TransferLine.Count(), 'Expected exactly one WIP transfer line.');
+        TransferLine.FindFirst();
+        TransferHeader.Get(TransferLine."Document No.");
+    end;
+
+    [Test]
     procedure TransferWIPItemFlagFromRoutingLineToPurchaseLine()
     var
         Item: Record Item;
@@ -509,11 +620,7 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         WorkCenter: array[2] of Record "Work Center";
         PurchaseHeaderPage: TestPage "Purchase Order";
     begin
-        // [SCENARIO] When the posted WIP quantity equals the expected quantity at the destination,
-        // the CheckCreateWIPTransfer procedure should return false, and no new WIP Transfer Order
-        // should be created when "Create Transfer Order to Subcontractor" is invoked again.
-
-        // [GIVEN] Complete setup
+        // [SCENARIO 648962] Posted WIP covering positive eligible demand produces an explanatory error without a new transfer.
         Initialize();
 
         // [GIVEN] Work centers, machine centers, item with routing + BOM
@@ -571,16 +678,16 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         // [GIVEN] Delete the first transfer order to allow re-creation attempt
         TransferHeader.Get(TransferLine."Document No.");
         TransferHeader.Delete(true);
+        Assert.AreEqual(0, TransferLine.Count(), 'The posted-only setup must have no open WIP transfer lines.');
 
         // [WHEN] Attempt to create Transfer Order to Subcontractor again
         PurchaseHeaderPage.GoToRecord(PurchaseHeader);
         asserterror PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
 
-        // [THEN] No WIP Transfer Line is created, and an error message indicates that there is no WIP or components to transfer
-        Assert.ExpectedError('Nothing to create. No components or WIP to transfer for the specified subcontracting order.');
-
-        // [TEARDOWN]
-        WIPLedgerEntry.DeleteAll();
+        // [THEN] The error explains that transfer activity already covers the demand, and no WIP transfer is created.
+        Assert.AreEqual(
+            'The components and WIP for this subcontracting order are already covered by open transfer orders, quantities in transit, or quantities transferred to the subcontractor.',
+            GetLastErrorText(), 'Posted WIP coverage must not report missing transfer demand.');
     end;
 
     [Test]
@@ -1984,6 +2091,7 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
     [PageHandler]
     procedure HandleTransferOrder(var TransfOrderPage: TestPage "Transfer Order")
     begin
+        OpenedTransferOrderNo := CopyStr(TransfOrderPage."No.".Value(), 1, MaxStrLen(OpenedTransferOrderNo));
         TransfOrderPage.OK().Invoke();
     end;
 
@@ -2126,5 +2234,6 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         SubcWarehouseLibrary: Codeunit "Subc. Warehouse Library";
         IsInitialized: Boolean;
+        OpenedTransferOrderNo: Code[20];
         ProdOrderRoutingTransferWIPEnabledErr: Label 'Transfer WIP Item should not be enabled for a Machine Center prod. order routing line.';
 }
