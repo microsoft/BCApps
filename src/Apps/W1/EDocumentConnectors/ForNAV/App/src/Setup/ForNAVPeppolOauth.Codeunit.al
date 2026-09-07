@@ -180,7 +180,11 @@ codeunit 6422 "ForNAV Peppol Oauth"
             exit(CreateDateTime(0D, 0T));
 
         Evaluate(Result, SecretValidFrom);
-        Result := ToLocalTime(Result);
+    end;
+
+    internal procedure GetSecretValidFromLocal() Result: DateTime
+    begin
+        Result := ToLocalTime(GetSecretValidFrom());
     end;
 
     internal procedure ValidateSecretValidTo(SecretValidTo: DateTime)
@@ -204,7 +208,11 @@ codeunit 6422 "ForNAV Peppol Oauth"
             exit(CreateDateTime(0D, 0T));
 
         Evaluate(Result, SecretValidTo);
-        Result := ToLocalTime(Result);
+    end;
+
+    internal procedure GetSecretValidToLocal() Result: DateTime
+    begin
+        Result := ToLocalTime(GetSecretValidTo());
     end;
 
     local procedure ToLocalTime(UtcDateTime: DateTime) Result: DateTime
@@ -384,7 +392,9 @@ codeunit 6422 "ForNAV Peppol Oauth"
         if GetSecretValidFrom().Date > CalcDate('<-1w>', Today) then
             exit(true);
 
-        Dlg.Open(DialogLbl);
+        if GuiAllowed then
+            Dlg.Open(DialogLbl);
+
         HttpRequestMessage.SetRequestUri(GetPeppolSetupURL(GetEndpoint()) + RotateSecretLbl);
 
         HttpRequestMessage.GetHeaders(HttpHeaders);
@@ -413,7 +423,9 @@ codeunit 6422 "ForNAV Peppol Oauth"
         ValidateSecret(Token.AsValue().AsText());
         ResponseObject.Get('expires', Token);
         ValidateSecretValidTo(Token.AsValue().AsDateTime());
-        Dlg.Close();
+        if GuiAllowed then
+            Dlg.Close();
+
         exit(true);
     end;
 

@@ -544,8 +544,8 @@ page 6413 "ForNAV Peppol Setup"
         ForNAVTenantId := PeppolOauth.GetForNAVTenantID();
         ClientSecret := GetSecret();
         Scope := GetSecret();
-        SecretValidFrom := PeppolOauth.GetSecretValidFrom();
-        SecretValidTo := PeppolOauth.GetSecretValidTo();
+        SecretValidFrom := PeppolOauth.GetSecretValidFromLocal();
+        SecretValidTo := PeppolOauth.GetSecretValidToLocal();
     end;
 
     local procedure GetSecret(): Text
