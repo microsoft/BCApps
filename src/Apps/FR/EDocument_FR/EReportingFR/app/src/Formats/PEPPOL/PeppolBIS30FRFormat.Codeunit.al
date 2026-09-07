@@ -411,7 +411,8 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
     local procedure GetExtendedLineBuyerReference(SalesInvoiceLine: Record "Sales Invoice Line"; ShipmentBuyerReferences: Dictionary of [Code[20], Text]) BuyerReference: Text
     begin
         if SalesInvoiceLine."Shipment No." <> '' then
-            ShipmentBuyerReferences.Get(SalesInvoiceLine."Shipment No.", BuyerReference);
+            if not ShipmentBuyerReferences.Get(SalesInvoiceLine."Shipment No.", BuyerReference) then
+                Clear(BuyerReference);
 
         OnAfterGetExtendedLineBuyerReference(SalesInvoiceLine, BuyerReference);
         exit(BuyerReference);

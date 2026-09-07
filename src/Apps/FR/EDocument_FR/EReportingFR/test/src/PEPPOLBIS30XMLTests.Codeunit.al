@@ -848,6 +848,38 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     end;
 
     [Test]
+    procedure ExportSalesInvAllowsShipmentWithoutBuyerReference()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        XmlDoc: XmlDocument;
+        BuyerReference: Text[35];
+        CustomerNo: Code[20];
+        FirstShipmentNo: Code[20];
+        SecondShipmentNo: Code[20];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] An Extended CTC invoice can include a shipment without a buyer reference
+        Initialize();
+
+        // [GIVEN] Customer "C" with two distinct shipments where only "S2" has a buyer reference
+        CustomerNo := CreateCustomer('123456789', "Electronic Address Scheme"::"0002");
+        FirstShipmentNo := CreateAndPostSalesOrderShipment(CustomerNo, 1, 1, 10);
+        SecondShipmentNo := CreateAndPostSalesOrderShipment(CustomerNo, 1, 1, 10);
+        BuyerReference := 'FR-EXTERNAL-REF';
+        SetSalesShipmentExternalDocumentNo(SecondShipmentNo, BuyerReference);
+
+        // [WHEN] Combined invoice "I" is created from "S1" and "S2" and exported
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceFromShipments(CustomerNo, FirstShipmentNo + '|' + SecondShipmentNo));
+        ExportInvoice(SalesInvoiceHeader, XmlDoc);
+
+        // [THEN] Invoice "I" uses Extended CTC France and exports the available buyer reference
+        Assert.AreEqual('urn:cen.eu:en16931:2017#conformant#urn.cpro.gouv.fr:1p0:extended-ctc-fr', GetNodeByPath(XmlDoc, '/Invoice/cbc:CustomizationID'),
+            StrSubstNo(IncorrectValueErr, 'CustomizationID'));
+        Assert.AreEqual(BuyerReference, GetNodeByPath(XmlDoc, '/Invoice/cac:InvoiceLine/cac:OrderLineReference/cac:OrderReference/cbc:ID'),
+            StrSubstNo(IncorrectValueErr, 'OrderReference ID'));
+    end;
+
+    [Test]
     procedure ExportSalesInvKeepsBasicCTCForRepeatedReferences()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
