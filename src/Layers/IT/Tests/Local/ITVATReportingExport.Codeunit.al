@@ -2626,27 +2626,61 @@ codeunit 144012 "IT - VAT Reporting - Export"
 
     local procedure VerifyDatiFatturaAttributes(FileName: Text)
     var
-        XMLDoc: DotNet XmlDocument;
+      XmlDocument: XmlDocument;
+      XmlRootElement: XmlElement;
     begin
-        XMLDoc := XMLDoc.XmlDocument();
-        XMLDoc.Load(FileName);
-        ValidateXmlAgainstXsdSchema(XMLDoc);
-        LibraryXMLRead.Initialize(FileName);
-        LibraryXMLRead.VerifyAttributeValue('ns2:DatiFattura', 'xmlns:xs', StandardDatifatturaXmlnsXsAttrTxt);
-        LibraryXMLRead.VerifyAttributeValue('ns2:DatiFattura', 'xmlns:ds', StandardDatifatturaXmlnsDsAttrTxt);
-        LibraryXMLRead.VerifyAttributeValue('ns2:DatiFattura', 'versione', 'DAT20');
-        LibraryXMLRead.VerifyAttributeValue('ns2:DatiFattura', 'xmlns:ns2', StandardDatifatturaXmlnsNs2AttrTxt);
+      LoadXmlDocument(FileName, XmlDocument);
+      XmlDocument.GetRoot(XmlRootElement);
+      VerifyXmlAttribute(XmlRootElement, 'xs', 'http://www.w3.org/2000/xmlns/', StandardDatifatturaXmlnsXsAttrTxt);
+      VerifyXmlAttribute(XmlRootElement, 'ds', 'http://www.w3.org/2000/xmlns/', StandardDatifatturaXmlnsDsAttrTxt);
+      VerifyXmlAttribute(XmlRootElement, 'versione', '', 'DAT20');
+      VerifyXmlAttribute(XmlRootElement, 'ns2', 'http://www.w3.org/2000/xmlns/', StandardDatifatturaXmlnsNs2AttrTxt);
     end;
 
     local procedure VerifyDatiFatturaInvoiceNoAndDate(FileName: Text; PostingDate: Date; Numero: Text)
+    var
+      XmlDocument: XmlDocument;
+      ActualNumero: Text;
     begin
-        LibraryXMLRead.Initialize(FileName);
-        Assert.AreEqual(1, LibraryXMLRead.GetNodesCount('Numero'), 'Incorrect Numero count');
-        Assert.AreEqual(GetAlphanumeric(Numero), LibraryXMLRead.GetNodeValueAtIndex('Numero', 0), 'Incorrect Numero value');
-        AssertIsAlphanumeric(LibraryXMLRead.GetNodeValueAtIndex('Numero', 0));
-        Assert.AreEqual(1, LibraryXMLRead.GetNodesCount('Data'), 'Incorrect Data count');
+      LoadXmlDocument(FileName, XmlDocument);
+      ActualNumero := GetSingleXmlNodeValue(XmlDocument, 'Numero');
+      Assert.AreEqual(GetAlphanumeric(Numero), ActualNumero, 'Incorrect Numero value');
+      AssertIsAlphanumeric(ActualNumero);
         Assert.AreEqual(
-          Format(PostingDate, 0, '<Year4>-<Month,2>-<Day,2>'), LibraryXMLRead.GetNodeValueAtIndex('Data', 0), 'Incorrect Data value');
+        Format(PostingDate, 0, '<Year4>-<Month,2>-<Day,2>'), GetSingleXmlNodeValue(XmlDocument, 'Data'), 'Incorrect Data value');
+    end;
+
+    local procedure LoadXmlDocument(FileName: Text; var LoadedXmlDocument: XmlDocument)
+    var
+      XmlFile: File;
+      XmlInStream: InStream;
+    begin
+      XmlFile.Open(FileName);
+      XmlFile.CreateInStream(XmlInStream);
+      XmlDocument.ReadFrom(XmlInStream, LoadedXmlDocument);
+      XmlFile.Close();
+    end;
+
+    local procedure GetSingleXmlNodeValue(XmlDocument: XmlDocument; NodeName: Text): Text
+    var
+      XmlNode: XmlNode;
+      XmlNodeList: XmlNodeList;
+    begin
+      XmlDocument.SelectNodes(StrSubstNo('//*[local-name()="%1"]', NodeName), XmlNodeList);
+      Assert.AreEqual(1, XmlNodeList.Count(), StrSubstNo('Incorrect %1 count', NodeName));
+      XmlNodeList.Get(1, XmlNode);
+      exit(XmlNode.AsXmlElement().InnerText());
+    end;
+
+    local procedure VerifyXmlAttribute(XmlElement: XmlElement; AttributeName: Text; NamespaceUri: Text; ExpectedValue: Text)
+    var
+      XmlAttribute: XmlAttribute;
+      XmlAttributes: XmlAttributeCollection;
+    begin
+      XmlAttributes := XmlElement.Attributes();
+      Assert.IsTrue(
+        XmlAttributes.Get(AttributeName, NamespaceUri, XmlAttribute), StrSubstNo('Attribute %1 is missing', AttributeName));
+      Assert.AreEqual(ExpectedValue, XmlAttribute.Value(), StrSubstNo('Incorrect %1 attribute value', AttributeName));
     end;
 
     local procedure VerifyDatiFatturaFileForScenarioWithOneFile(NodeName: Text; SuggestedFileName: Text)
@@ -3884,11 +3918,14 @@ codeunit 144012 "IT - VAT Reporting - Export"
 
     local procedure VerifyDetraibileAndDeducibileNonExistInXmlFile(FileName: Text)
     var
-        LibraryXPathXMLReader: Codeunit "Library - XPath XML Reader";
+      XmlDocument: XmlDocument;
+      XmlNodeList: XmlNodeList;
     begin
-        LibraryXPathXMLReader.Initialize(FileName, 'ns2:DatiFattura');
-        LibraryXPathXMLReader.VerifyNodeCountByXPath('/DTE/CessionarioCommittenteDTE/DatiFatturaBodyDTE/DatiRiepilogo/Detraibile', 0);
-        LibraryXPathXMLReader.VerifyNodeCountByXPath('/DTE/CessionarioCommittenteDTE/DatiFatturaBodyDTE/DatiRiepilogo/Deducibile', 0);
+      LoadXmlDocument(FileName, XmlDocument);
+      XmlDocument.SelectNodes('//*[local-name()="Detraibile"]', XmlNodeList);
+      Assert.AreEqual(0, XmlNodeList.Count(), 'Incorrect Detraibile count');
+      XmlDocument.SelectNodes('//*[local-name()="Deducibile"]', XmlNodeList);
+      Assert.AreEqual(0, XmlNodeList.Count(), 'Incorrect Deducibile count');
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Datifattura Export", 'OnBeforeSaveFileOnClient', '', false, false)]
