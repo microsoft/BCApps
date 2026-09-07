@@ -8,7 +8,8 @@ codeunit 139752 "Outlook API Helper Tests"
     Subtype = Test;
     TestHttpRequestPolicy = BlockOutboundRequests;
     Permissions = tabledata "Email - Outlook Account" = rimd,
-                    tabledata "Email Inbox" = rimd;
+                    tabledata "Email Inbox" = rimd,
+                    tabledata "Email - Outlook API Setup" = rimd;
 
     var
         LibraryAssert: Codeunit "Library Assert";
@@ -36,6 +37,31 @@ codeunit 139752 "Outlook API Helper Tests"
         asserterror EmailOAuthClient.ValidateRedirectUrl('https://contoso.example/oauth/callback');
 
         LibraryAssert.ExpectedError('The redirect URL must be');
+    end;
+
+    [Test]
+    procedure RestoreDefaultRedirectUrlResetsSetupToDefault()
+    var
+        Setup: Record "Email - Outlook API Setup";
+        EmailOAuthClient: Codeunit "Email - OAuth Client";
+        OAuth2: Codeunit OAuth2;
+        RedirectUrlErrorInfo: ErrorInfo;
+        DefaultRedirectUrl: Text;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [GIVEN] A setup record holding a non-default redirect URL
+        if not Setup.Get() then
+            Setup.Insert();
+        Setup.RedirectURL := 'https://contoso.example/oauth/callback';
+        Setup.Modify();
+
+        // [WHEN] The Restore default redirect URL recovery action runs
+        EmailOAuthClient.RestoreDefaultRedirectUrl(RedirectUrlErrorInfo);
+
+        // [THEN] The stored redirect URL is reset to the environment default
+        OAuth2.GetDefaultRedirectUrl(DefaultRedirectUrl);
+        Setup.Get();
+        LibraryAssert.AreEqual(CopyStr(DefaultRedirectUrl, 1, MaxStrLen(Setup.RedirectURL)), Setup.RedirectURL, 'Redirect URL should be reset to the environment default.');
     end;
 
     [Test]

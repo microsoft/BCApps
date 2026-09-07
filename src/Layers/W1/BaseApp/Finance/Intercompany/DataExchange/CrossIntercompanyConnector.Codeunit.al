@@ -394,7 +394,7 @@ codeunit 560 "CrossIntercompany Connector"
         exit(BearerAccessToken);
     end;
 
-    internal procedure ValidateDestinationUrl(DestinationUrl: Text): Boolean
+    local procedure ValidateDestinationUrl(DestinationUrl: Text): Boolean
     begin
         if not IsDestinationUrlTrusted(DestinationUrl) then
             RejectInvalidDestinationUrl(GetHostFromUrl(DestinationUrl));
@@ -443,7 +443,7 @@ codeunit 560 "CrossIntercompany Connector"
         Error(InvalidDestinationUrlErr);
     end;
 
-    internal procedure GetValidatedTokenEndpoint(ConfiguredTokenEndpoint: Text): Text
+    local procedure GetValidatedTokenEndpoint(ConfiguredTokenEndpoint: Text): Text
     var
         UrlHelper: Codeunit "Url Helper";
         AuthorityPrefix: Text;

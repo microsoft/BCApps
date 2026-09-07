@@ -7,7 +7,6 @@ namespace Microsoft.Intercompany.DataExchange;
 using Microsoft.Intercompany.Partner;
 using Microsoft.Intercompany.Setup;
 using System.Environment;
-using System.Utilities;
 
 /// <summary>
 /// Wizard page for setting up cross-environment intercompany partner connections.
