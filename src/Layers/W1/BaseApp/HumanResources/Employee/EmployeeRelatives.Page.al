@@ -34,6 +34,10 @@ page 5209 "Employee Relatives"
                     ApplicationArea = BasicHR;
                     Visible = false;
                 }
+                field("Last Name"; Rec."Last Name")
+                {
+                    ApplicationArea = BasicHR;
+                }
                 field("Birth Date"; Rec."Birth Date")
                 {
                     ApplicationArea = BasicHR;
