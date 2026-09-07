@@ -7,10 +7,10 @@ namespace Microsoft.eServices.EDocument.IO.Peppol;
 using Microsoft.eServices.EDocument;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Company;
-using Microsoft.Peppol;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
+using Microsoft.Sales.Peppol;
 using Microsoft.Service.History;
 using System.IO;
 using System.Reflection;
@@ -26,8 +26,8 @@ codeunit 6152 "E-Doc. Data Exchange Impl." implements "E-Document"
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         ServiceInvoiceHeader: Record "Service Invoice Header";
         ServiceCrMemoHeader: Record "Service Cr.Memo Header";
-        PEPPOLValidation: Codeunit "PEPPOL30 Sales Validation";
-        PEPPOLServiceValidation: Codeunit "PEPPOL30 Service Validation";
+        PEPPOLValidation: Codeunit "PEPPOL Validation";
+        PEPPOLServiceValidation: Codeunit "PEPPOL Service Validation";
     begin
         case SourceDocumentHeader.Number of
             Database::"Sales Header":
@@ -38,22 +38,22 @@ codeunit 6152 "E-Doc. Data Exchange Impl." implements "E-Document"
             Database::"Sales Invoice Header":
                 begin
                     SourceDocumentHeader.SetTable(SalesInvoiceHeader);
-                    PEPPOLValidation.ValidatePostedDocument(SalesInvoiceHeader);
+                    PEPPOLValidation.CheckSalesInvoice(SalesInvoiceHeader);
                 end;
             Database::"Sales Cr.Memo Header":
                 begin
                     SourceDocumentHeader.SetTable(SalesCrMemoHeader);
-                    PEPPOLValidation.ValidatePostedDocument(SalesCrMemoHeader);
+                    PEPPOLValidation.CheckSalesCreditMemo(SalesCrMemoHeader);
                 end;
             Database::"Service Invoice Header":
                 begin
                     SourceDocumentHeader.SetTable(ServiceInvoiceHeader);
-                    PEPPOLServiceValidation.ValidatePostedDocument(ServiceInvoiceHeader);
+                    PEPPOLServiceValidation.CheckServiceInvoice(ServiceInvoiceHeader);
                 end;
             Database::"Service Cr.Memo Header":
                 begin
                     SourceDocumentHeader.SetTable(ServiceCrMemoHeader);
-                    PEPPOLServiceValidation.ValidatePostedDocument(ServiceCrMemoHeader);
+                    PEPPOLServiceValidation.CheckServiceCreditMemo(ServiceCrMemoHeader);
                 end;
         end;
     end;
