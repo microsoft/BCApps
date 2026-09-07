@@ -680,6 +680,7 @@ codeunit 20404 "Qlty. Inspection - Create"
                 QltyInspectionLine.Description := QltyInspectionTemplateLine.Description;
                 QltyInspectionLine."Allowable Values" := QltyInspectionTemplateLine."Allowable Values";
                 QltyInspectionLine."Unit of Measure Code" := QltyInspectionTemplateLine."Unit of Measure Code";
+                OnCreateQualityInspectionResultLinesFromTemplateOnBeforeInsertQltyInspectionLine(QltyInspectionLine, QltyInspectionTemplateLine);
                 QltyInspectionLine.Insert();
                 QltyResultConditionMgmt.CopyResultConditionsFromTemplateToInspection(QltyInspectionTemplateLine, QltyInspectionLine);
                 QltyInspectionHeader.SetPreventAutoAssignment(true);
@@ -1263,6 +1264,16 @@ codeunit 20404 "Qlty. Inspection - Create"
     end;
 
     #endregion Event Subscribers
+
+    /// <summary>
+    /// Raised before a quality inspection line created from a template line is inserted.
+    /// </summary>
+    /// <param name="QltyInspectionLine">The quality inspection line to be inserted.</param>
+    /// <param name="QltyInspectionTemplateLine">The source quality inspection template line.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnCreateQualityInspectionResultLinesFromTemplateOnBeforeInsertQltyInspectionLine(var QltyInspectionLine: Record "Qlty. Inspection Line"; QltyInspectionTemplateLine: Record "Qlty. Inspection Template Line")
+    begin
+    end;
 
     /// <summary>
     /// OnBeforeCreateInspection is called before an inspection is created.
