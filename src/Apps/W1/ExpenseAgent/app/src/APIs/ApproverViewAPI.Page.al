@@ -57,7 +57,7 @@ page 6969 "Approver View API"
                 {
                     EntityName = 'travelRequest';
                     EntitySetName = 'travelRequests';
-                    SubPageLink = "Approver Expense User Filter" = field("No."),
+                    SubPageLink = "Approver User Id Filter" = field(SystemId),
                                   Status = const(Released);
                 }
             }

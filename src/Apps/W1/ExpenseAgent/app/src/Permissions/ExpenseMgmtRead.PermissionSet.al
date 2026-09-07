@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using Microsoft.Finance.SpendRequest;
+
 permissionset 6907 "Expense Mgmt. Read"
 {
     Caption = 'Expense Management - Read';
@@ -61,6 +63,9 @@ permissionset 6907 "Expense Mgmt. Read"
         tabledata "EA KPI" = R,
         tabledata "EA KPI Entry" = R,
         tabledata Traveler = R,
+        tabledata "Spend Request" = R,
+        tabledata "Spend Request Detail" = R,
+        tabledata "Spend Request To G/L Link" = R,
         tabledata "Expense VAT Specification" = R,
         tabledata "Expense Report Line VAT Spec." = R,
         tabledata "Expense Activity Log Entry" = R,

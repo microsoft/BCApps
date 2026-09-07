@@ -99,6 +99,26 @@ codeunit 7133 "Travel Request Approval"
         FeatureTelemetry.LogUsage(EventId, ExpenseAgentSetup.GetFeatureName(), ActionName);
     end;
 
+    internal procedure ApplyOwnerFilter(var SpendRequest: Record "Spend Request"; OwnerSystemId: Guid): Code[20]
+    var
+        ExpenseUser: Record "Expense User";
+    begin
+        ExpenseUser.SetLoadFields("Employee No.");
+        ExpenseUser.GetBySystemId(OwnerSystemId);
+        ExpenseUser.TestField("Employee No.");
+        // API ownership uses the expense user's GUID; the base table stores the linked employee number.
+        SpendRequest.SetRange("Requested By", ExpenseUser."Employee No.");
+        exit(ExpenseUser."Employee No.");
+    end;
+
+    internal procedure ApplyApproverFilter(var SpendRequest: Record "Spend Request"; ApproverSystemId: Guid)
+    var
+        ExpenseUser: Record "Expense User";
+    begin
+        ExpenseUser.GetBySystemId(ApproverSystemId);
+        ApplyApproverFilter(SpendRequest, ExpenseUser."No.");
+    end;
+
     internal procedure ApplyApproverFilter(var SpendRequest: Record "Spend Request"; ApproverExpenseUserNo: Code[20])
     var
         Approver: Record "Expense User";

@@ -33,6 +33,27 @@ codeunit 148338 "Expense Permissions Test"
         CannotDeleteEmployeeWithPostedExpenseReportErr: Label 'You cannot delete Employee %1 because they have posted expense report.', Comment = '%1 = Employee No.';
 
     [Test]
+    procedure ExpenseMgmtReadCanReadTravelRequests()
+    begin
+        // [SCENARIO] The read role can read travel data but cannot modify requests or details.
+        VerifyTravelRequestPermissions('Expense Mgmt. Read', false);
+    end;
+
+    [Test]
+    procedure ExpenseMgmtEditCanWriteTravelRequests()
+    begin
+        // [SCENARIO] The edit role includes the table access required by its travel-request pages.
+        VerifyTravelRequestPermissions('Expense Mgmt. Edit', true);
+    end;
+
+    [Test]
+    procedure ExpenseMgmtAdminInheritsTravelRequestPermissions()
+    begin
+        // [SCENARIO] The admin role inherits travel-request access from the edit and read roles.
+        VerifyTravelRequestPermissions('Expense Mgmt. Admin', true);
+    end;
+
+    [Test]
     procedure D365BasicCanInsertActivityIndirectly()
     begin
         VerifyPermissionSetCanInsertActivity(D365BasicPermissionSetTok);
@@ -265,6 +286,29 @@ codeunit 148338 "Expense Permissions Test"
         Assert.ExpectedError(StrSubstNo(CannotDeleteEmployeeWithPostedExpenseReportErr, Employee."No."));
 
         RestoreFullPermissions();
+    end;
+
+    local procedure VerifyTravelRequestPermissions(PermissionSetId: Code[20]; CanEdit: Boolean)
+    var
+        SpendRequest: Record "Spend Request";
+        SpendRequestDetail: Record "Spend Request Detail";
+        SpendRequestToGLLink: Record "Spend Request To G/L Link";
+    begin
+        Initialize();
+
+        // [GIVEN] Only the selected Expense Management role.
+        LibraryLowerPermissions.StartLoggingNAVPermissions();
+        LibraryLowerPermissions.SetExactPermissionSet(PermissionSetId);
+
+        // [WHEN] The effective table permissions are evaluated.
+        // [THEN] Reads are available and write access follows the role's intended level.
+        Assert.IsTrue(SpendRequest.ReadPermission(), 'The role must be able to read travel requests.');
+        Assert.IsTrue(SpendRequestDetail.ReadPermission(), 'The role must be able to read travel-request details.');
+        Assert.IsTrue(SpendRequestToGLLink.ReadPermission(), 'The role must be able to read travel-request spent amounts.');
+        Assert.AreEqual(CanEdit, SpendRequest.WritePermission(), 'Request write access must follow the role level.');
+        Assert.AreEqual(CanEdit, SpendRequestDetail.WritePermission(), 'Detail write access must follow the role level.');
+        RestoreFullPermissions();
+        LibraryLowerPermissions.StopLoggingNAVPermissions();
     end;
 
     local procedure VerifyCompanyEmailSynchronization(PermissionSetId: Code[20])

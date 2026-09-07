@@ -162,6 +162,18 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
             DataClassification = CustomerContent;
             Editable = false;
         }
+        field(6918; "Requested By User Id Filter"; Guid)
+        {
+            Caption = 'Requested By User Id Filter';
+            FieldClass = FlowFilter;
+            TableRelation = "Expense User".SystemId;
+        }
+        field(6919; "Approver User Id Filter"; Guid)
+        {
+            Caption = 'Approver User Id Filter';
+            FieldClass = FlowFilter;
+            TableRelation = "Expense User".SystemId;
+        }
     }
     trigger OnInsert()
     var
@@ -186,14 +198,28 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
     trigger OnBeforeDelete()
     var
         ExpenseReportHeader: Record "Expense Report Header";
-        LinkedExpenseReportExistsErr: Label 'You cannot delete travel request %1 because it is linked to an expense report.', Comment = '%1 = Travel request number';
+        ExpenseReportLine: Record "Expense Report Line";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
     begin
         if Rec."Document Type" <> Rec."Document Type"::"Travel Request" then
             exit;
 
         ExpenseReportHeader.SetRange("Spend Request No.", Rec."No.");
-        if not ExpenseReportHeader.IsEmpty() then
-            Error(LinkedExpenseReportExistsErr, Rec."No.");
+        if ExpenseReportHeader.FindFirst() then
+            Error(GetLinkedExpenseReportError(ExpenseReportHeader.RecordId, Page::"Expense Report"));
+
+        ExpenseReportLine.SetRange("Spend Request No.", Rec."No.");
+        if ExpenseReportLine.FindFirst() then
+            Error(GetLinkedExpenseReportError(ExpenseReportLine.RecordId, Page::"Expense Report Lines"));
+
+        PostedExpenseReportHeader.SetRange("Spend Request No.", Rec."No.");
+        if PostedExpenseReportHeader.FindFirst() then
+            Error(GetLinkedExpenseReportError(PostedExpenseReportHeader.RecordId, Page::"Posted Expense Report"));
+
+        PostedExpenseReportLine.SetRange("Spend Request No.", Rec."No.");
+        if PostedExpenseReportLine.FindFirst() then
+            Error(GetLinkedExpenseReportError(PostedExpenseReportLine.RecordId, Page::"Posted Expense Report Lines"));
     end;
 
     trigger OnDelete()
@@ -210,6 +236,25 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
         APIStartDateProvided: Boolean;
         APIEndDateProvided: Boolean;
         ReplaceRequestedForTravelerQst: Label 'The %1 was changed. A traveler was automatically added for the previous %1. Do you want to remove that traveler and add a new one for the current %1 instead?', Comment = '%1 = Requested For field caption';
+
+    local procedure GetLinkedExpenseReportError(ReportRecordId: RecordId; ReportPageNo: Integer): ErrorInfo
+    var
+        LinkedReportError: ErrorInfo;
+        LinkedExpenseReportExistsErr: Label 'You cannot delete travel request %1 because it is linked to an expense report.', Comment = '%1 = Travel request number';
+        LinkedExpenseReportTitleErr: Label 'Travel request is linked to an expense report';
+        LinkedExpenseReportDetailsErr: Label 'Open the related report to see where this travel request is used. Posted history cannot be removed by deleting the travel request.';
+        ShowItLbl: Label 'Show it';
+    begin
+        LinkedReportError.Message := StrSubstNo(LinkedExpenseReportExistsErr, Rec."No.");
+        LinkedReportError.Title := LinkedExpenseReportTitleErr;
+        LinkedReportError.DetailedMessage := LinkedExpenseReportDetailsErr;
+        LinkedReportError.DataClassification := DataClassification::CustomerContent;
+        LinkedReportError.ErrorType := ErrorType::Client;
+        LinkedReportError.RecordId := ReportRecordId;
+        LinkedReportError.PageNo := ReportPageNo;
+        LinkedReportError.AddNavigationAction(ShowItLbl);
+        exit(LinkedReportError);
+    end;
 
     internal procedure SetExpectedDatesForAPIInsert(StartDate: Date; EndDate: Date; StartDateProvided: Boolean; EndDateProvided: Boolean)
     begin

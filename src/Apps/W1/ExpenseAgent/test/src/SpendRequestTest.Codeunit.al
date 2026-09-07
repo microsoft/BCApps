@@ -429,6 +429,87 @@ codeunit 148339 "Spend Request Test"
     end;
 
     [Test]
+    procedure DeleteTravelRequestWithPostedReportIsBlocked()
+    var
+        SpendRequest: Record "Spend Request";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+    begin
+        // [SCENARIO] Posted report references prevent deletion even when the net spent amount is zero.
+        Initialize();
+
+        // [GIVEN] A posted report linked to a request with no nonzero spend ledger balance.
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+        PostedExpenseReportHeader."No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(PostedExpenseReportHeader."No."));
+        PostedExpenseReportHeader."Spend Request No." := SpendRequest."No.";
+        PostedExpenseReportHeader.Insert(false);
+
+        // [WHEN] The request is deleted.
+        asserterror SpendRequest.Delete(true);
+
+        // [THEN] Both the request and posted history remain intact.
+        Assert.ExpectedError(LinkedExpenseReportExistsErr);
+        Assert.IsTrue(SpendRequest.Get(SpendRequest."No."), 'A request referenced by posted history must remain.');
+        Assert.IsTrue(PostedExpenseReportHeader.Get(PostedExpenseReportHeader."No."), 'Posted history must never be cascade-deleted.');
+    end;
+
+    [Test]
+    procedure DeleteTravelRequestWithPostedLineIsBlocked()
+    var
+        SpendRequest: Record "Spend Request";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+    begin
+        // [SCENARIO] A posted line can link a request independently of its report header.
+        Initialize();
+
+        // [GIVEN] Only the line, not its header, references the travel request.
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+        PostedExpenseReportHeader."No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(PostedExpenseReportHeader."No."));
+        PostedExpenseReportHeader.Insert(false);
+        PostedExpenseReportLine."Document No." := PostedExpenseReportHeader."No.";
+        PostedExpenseReportLine."Line No." := 10000;
+        PostedExpenseReportLine."Spend Request No." := SpendRequest."No.";
+        PostedExpenseReportLine.Insert(false);
+
+        // [WHEN] The request is deleted.
+        asserterror SpendRequest.Delete(true);
+
+        // [THEN] Line-only references are protected without removing posted records.
+        Assert.ExpectedError(LinkedExpenseReportExistsErr);
+        Assert.IsTrue(SpendRequest.Get(SpendRequest."No."), 'The line-linked request must remain.');
+        Assert.IsTrue(PostedExpenseReportLine.Get(PostedExpenseReportHeader."No.", 10000), 'The posted line must remain.');
+        Assert.IsTrue(PostedExpenseReportHeader.Get(PostedExpenseReportHeader."No."), 'The posted header must remain.');
+    end;
+
+    [Test]
+    procedure DeleteTravelRequestWithUnpostedLineIsBlocked()
+    var
+        SpendRequest: Record "Spend Request";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        // [SCENARIO] An unposted line's independent travel-request reference prevents deletion.
+        Initialize();
+
+        // [GIVEN] Only an expense report line references the travel request.
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+        ExpenseReportHeader."No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(ExpenseReportHeader."No."));
+        ExpenseReportHeader.Insert(false);
+        ExpenseReportLine."Document No." := ExpenseReportHeader."No.";
+        ExpenseReportLine."Line No." := 10000;
+        ExpenseReportLine."Spend Request No." := SpendRequest."No.";
+        ExpenseReportLine.Insert(false);
+
+        // [WHEN] The request is deleted.
+        asserterror SpendRequest.Delete(true);
+
+        // [THEN] The request and the referencing line remain intact.
+        Assert.ExpectedError(LinkedExpenseReportExistsErr);
+        Assert.IsTrue(SpendRequest.Get(SpendRequest."No."), 'The line-linked request must remain.');
+        Assert.IsTrue(ExpenseReportLine.Get(ExpenseReportHeader."No.", 10000), 'The report line must remain.');
+    end;
+
+    [Test]
     procedure DeleteTravelRequestWithoutReportRemovesDependents()
     var
         SpendRequest: Record "Spend Request";
@@ -830,6 +911,63 @@ codeunit 148339 "Spend Request Test"
     end;
 
     [Test]
+    procedure OwnerFilterUsesExpenseUserSystemId()
+    var
+        SpendRequest: Record "Spend Request";
+        FilteredTravelRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
+        OtherExpenseUser: Record "Expense User";
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+        OwnerSystemId: Guid;
+        NewExpenseUserNo: Code[20];
+    begin
+        // [SCENARIO] A stable owner identity resolves to the employee number used by the base table.
+        Initialize();
+
+        // [GIVEN] A request owned by an expense user's employee, followed by renaming the expense user.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseUser(OtherExpenseUser);
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+        SpendRequest.Validate("Requested By", ExpenseUser."Employee No.");
+        SpendRequest.Modify(true);
+        OwnerSystemId := ExpenseUser.SystemId;
+        NewExpenseUserNo := CopyStr(Format(CreateGuid()), 1, MaxStrLen(NewExpenseUserNo));
+        ExpenseUser.Rename(NewExpenseUserNo);
+
+        // [WHEN] The original GUID is used to resolve the owner.
+        TravelRequestApproval.ApplyOwnerFilter(FilteredTravelRequest, OwnerSystemId);
+        FilteredTravelRequest.SetRange("No.", SpendRequest."No.");
+
+        // [THEN] The owned request remains visible despite the business-number change.
+        Assert.IsFalse(FilteredTravelRequest.IsEmpty(), 'Renaming the expense user must not break owner navigation.');
+        Assert.AreEqual(
+            ExpenseUser."Employee No.", FilteredTravelRequest.GetRangeMin("Requested By"),
+            'Owner scoping must still use the linked employee, not the Expense User number.');
+
+        // [WHEN] The same request is scoped to a different expense user.
+        TravelRequestApproval.ApplyOwnerFilter(FilteredTravelRequest, OtherExpenseUser.SystemId);
+
+        // [THEN] Another user cannot see the original owner's request.
+        Assert.IsTrue(FilteredTravelRequest.IsEmpty(), 'The GUID scope must not expose another employee''s request.');
+    end;
+
+    [Test]
+    procedure OwnerFilterRejectsUnknownExpenseUser()
+    var
+        FilteredTravelRequest: Record "Spend Request";
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+    begin
+        // [SCENARIO] An unknown owner GUID fails instead of falling back to an unscoped query.
+        Initialize();
+
+        // [WHEN] A nonexistent expense user is used as the owner scope.
+        asserterror TravelRequestApproval.ApplyOwnerFilter(FilteredTravelRequest, CreateGuid());
+
+        // [THEN] The missing-record error is propagated.
+        Assert.ExpectedErrorCode('DB:RecordNotFound');
+    end;
+
+    [Test]
     procedure ApproverFilterReturnsAssignedTravelRequests()
     var
         AssignedTravelRequest: Record "Spend Request";
@@ -840,6 +978,7 @@ codeunit 148339 "Spend Request Test"
         AssignedApprover: Record "Expense User";
         OtherApprover: Record "Expense User";
         TravelRequestApproval: Codeunit "Travel Request Approval";
+        ApproverSystemId: Guid;
     begin
         // [SCENARIO] The approver filter includes assigned requests and excludes other approvers' requests.
         Initialize();
@@ -853,10 +992,14 @@ codeunit 148339 "Spend Request Test"
         CreateApproverForExpenseUser(OtherApprover, OtherExpenseUser);
         LibraryExpense.SetSpendRequestStatus(OtherTravelRequest, OtherTravelRequest.Status::Released);
 
+        // [GIVEN] The assigned approver is renamed without changing its stable identity.
+        ApproverSystemId := AssignedApprover.SystemId;
+        AssignedApprover.Rename(CopyStr(Format(CreateGuid()), 1, MaxStrLen(AssignedApprover."No.")));
+
         // [WHEN] The first approver's filter is applied to pending travel requests.
         FilteredTravelRequest.SetRange("Document Type", FilteredTravelRequest."Document Type"::"Travel Request");
         FilteredTravelRequest.SetRange(Status, FilteredTravelRequest.Status::Released);
-        TravelRequestApproval.ApplyApproverFilter(FilteredTravelRequest, AssignedApprover."No.");
+        TravelRequestApproval.ApplyApproverFilter(FilteredTravelRequest, ApproverSystemId);
 
         // [THEN] Only the request assigned to that approver is visible.
         FilteredTravelRequest.SetRange("No.", AssignedTravelRequest."No.");
@@ -893,7 +1036,7 @@ codeunit 148339 "Spend Request Test"
         // [WHEN] The default approver's filter is applied to pending travel requests.
         FilteredTravelRequest.SetRange("Document Type", FilteredTravelRequest."Document Type"::"Travel Request");
         FilteredTravelRequest.SetRange(Status, FilteredTravelRequest.Status::Released);
-        TravelRequestApproval.ApplyApproverFilter(FilteredTravelRequest, DefaultApprover."No.");
+        TravelRequestApproval.ApplyApproverFilter(FilteredTravelRequest, DefaultApprover.SystemId);
 
         // [THEN] The unassigned request is visible but the other approver's request is not.
         FilteredTravelRequest.SetRange("No.", DefaultTravelRequest."No.");
@@ -926,7 +1069,7 @@ codeunit 148339 "Spend Request Test"
         // [WHEN] The unassigned approver's filter is applied to pending travel requests.
         FilteredTravelRequest.SetRange("Document Type", FilteredTravelRequest."Document Type"::"Travel Request");
         FilteredTravelRequest.SetRange(Status, FilteredTravelRequest.Status::Released);
-        TravelRequestApproval.ApplyApproverFilter(FilteredTravelRequest, ApproverWithoutRequests."No.");
+        TravelRequestApproval.ApplyApproverFilter(FilteredTravelRequest, ApproverWithoutRequests.SystemId);
 
         // [THEN] No requests are visible.
         Assert.IsTrue(FilteredTravelRequest.IsEmpty(), ApproverWithoutRequestsMsg);

@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using Microsoft.Finance.SpendRequest;
+
 permissionset 6906 "Expense Mgmt. Edit"
 {
     Assignable = true;
@@ -44,6 +46,10 @@ permissionset 6906 "Expense Mgmt. Edit"
         tabledata "EA KPI" = IMD,
         tabledata "EA KPI Entry" = IMD,
         tabledata Traveler = IMD,
+        tabledata "Spend Request" = IMD,
+        tabledata "Spend Request Detail" = IMD,
+        // The base request delete trigger removes ledger links after its spent-amount check.
+        tabledata "Spend Request To G/L Link" = D,
         tabledata "Expense VAT Specification" = IMD,
         tabledata "Expense Report Line VAT Spec." = IMD,
         tabledata "Expense Vendor" = RIMD;

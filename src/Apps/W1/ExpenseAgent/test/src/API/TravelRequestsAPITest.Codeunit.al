@@ -12,6 +12,8 @@ using Microsoft.Finance.SpendRequest;
 // These HTTP tests are excluded in Expense_Agent_Tests.DisabledTest.json per the PR review.
 // Re-enable them after BCApps CI provisions an authenticated OData endpoint and a dedicated
 // test company with committed fixtures and disabled test isolation, then remove the exclusions.
+// In-process lifecycle, date, and scope coverage in "Spend Request Test", and restrictive role
+// coverage in "Expense Permissions Test", remain enabled; only the HTTP scenarios are excluded.
 codeunit 148347 "Travel Requests API Test"
 {
     Subtype = Test;
@@ -231,6 +233,16 @@ codeunit 148347 "Travel Requests API Test"
         Assert.AreEqual(
             0, StrPos(ResponseText, OtherTravelRequestIdTxt),
             'The Expense User should not expose another employee''s Travel Request.');
+
+        // [WHEN] The owner is renamed and the same GUID-based URL is requested.
+        ExpenseUser.Rename(CopyStr(Format(CreateGuid()), 1, MaxStrLen(ExpenseUser."No.")));
+        Commit();
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+        ResponseText := LowerCase(ResponseText);
+
+        // [THEN] The stable URL still includes only the original owner's request.
+        Assert.AreNotEqual(0, StrPos(ResponseText, TravelRequestIdTxt), 'Owner navigation must survive a business-number rename.');
+        Assert.AreEqual(0, StrPos(ResponseText, OtherTravelRequestIdTxt), 'Renaming must not broaden the owner scope.');
     end;
 
     [Test]
@@ -377,9 +389,12 @@ codeunit 148347 "Travel Requests API Test"
     procedure TravelRequestsAPIAllowsOwnerOnInsertAndUnchangedPatch()
     var
         ExpenseUser: Record "Expense User";
+        OtherExpenseUser: Record "Expense User";
         TravelRequest: Record "Spend Request";
         Response: JsonObject;
         RequestId: JsonToken;
+        ErrorResponse: JsonToken;
+        ErrorMessage: JsonToken;
         TravelRequestSystemId: Guid;
         RequestBody: Text;
         ResponseText: Text;
@@ -390,10 +405,28 @@ codeunit 148347 "Travel Requests API Test"
 
         // [GIVEN] An expense user linked to an employee.
         LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseUser(OtherExpenseUser);
         Commit();
 
         // [WHEN] A travel request is created with that employee as its owner.
-        TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Travel Requests API", TravelRequestsServiceNameTok);
+        TargetURL := LibraryGraphMgt.CreateTargetURL(
+            Format(ExpenseUser.SystemId), Page::"Expense Users API", ExpenseUsersServiceNameTok);
+        TargetURL := AppendPathToAPIURL(TargetURL, '/' + TravelRequestsServiceNameTok);
+
+        // [WHEN] POST attempts to assign another employee under this user's GUID.
+        RequestBody := StrSubstNo(RequestedByRequestBodyLbl, OtherExpenseUser."Employee No.");
+        asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 400);
+
+        // [THEN] The owner mismatch is rejected before a request can be inserted.
+        Assert.ExpectedError(BadRequestResponseErr);
+        Response.ReadFrom(ResponseText);
+        Response.Get('error', ErrorResponse);
+        ErrorResponse.AsObject().Get('message', ErrorMessage);
+        Assert.AreNotEqual(
+            0, StrPos(ErrorMessage.AsValue().AsText(), TravelRequest.FieldCaption("Requested By")),
+            'The rejection must identify the owner mismatch.');
+
+        // [WHEN] POST supplies the employee matching this user's GUID.
         RequestBody := StrSubstNo(RequestedByRequestBodyLbl, ExpenseUser."Employee No.");
         LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 201);
 
@@ -407,8 +440,7 @@ codeunit 148347 "Travel Requests API Test"
 
         // [WHEN] The purpose is updated while resending the same owner.
         // [THEN] PATCH succeeds without changing the owner.
-        TargetURL := LibraryGraphMgt.CreateTargetURL(
-            Format(TravelRequest.SystemId), Page::"Travel Requests API", TravelRequestsServiceNameTok);
+        TargetURL := AppendPathToAPIURL(TargetURL, '(' + LibraryGraphMgt.StripBrackets(Format(TravelRequest.SystemId)) + ')');
         AssertOwnerPreservingPatch(TargetURL, TravelRequest);
     end;
 

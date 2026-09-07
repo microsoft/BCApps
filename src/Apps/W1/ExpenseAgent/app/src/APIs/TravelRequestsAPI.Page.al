@@ -58,6 +58,7 @@ page 7134 "Travel Requests API"
                 field(currencyCode; CurrencyCodeDisplay)
                 {
                     Caption = 'Currency Code';
+                    ToolTip = 'Specifies the currency used for estimation. The local currency is represented by its currency code in the API.';
 
                     trigger OnValidate()
                     begin
@@ -86,6 +87,7 @@ page 7134 "Travel Requests API"
                 field(expectedStartDate; ExpectedStartDate)
                 {
                     Caption = 'Expected Start Date';
+                    ToolTip = 'Specifies the expected start date of the travel request.';
 
                     trigger OnValidate()
                     begin
@@ -95,6 +97,7 @@ page 7134 "Travel Requests API"
                 field(expectedEndDate; ExpectedEndDate)
                 {
                     Caption = 'Expected End Date';
+                    ToolTip = 'Specifies the expected end date of the travel request.';
 
                     trigger OnValidate()
                     begin
@@ -223,7 +226,12 @@ page 7134 "Travel Requests API"
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
+    var
+        OwnerEmployeeNo: Code[20];
     begin
+        OwnerEmployeeNo := ProcessOwnerFilter();
+        if OwnerEmployeeNo <> '' then
+            Rec."Requested By" := OwnerEmployeeNo;
         Clear(CurrencyCodeDisplay);
         Clear(ExpectedStartDate);
         Clear(ExpectedEndDate);
@@ -260,6 +268,7 @@ page 7134 "Travel Requests API"
 
     trigger OnFindRecord(Which: Text): Boolean
     begin
+        ProcessOwnerFilter();
         ProcessApproverFilter();
         exit(Rec.Find(Which));
     end;
@@ -268,6 +277,7 @@ page 7134 "Travel Requests API"
     begin
         Rec."Document Type" := Rec."Document Type"::"Travel Request";
         Rec.TestField("Requested By");
+        CheckOwnerScope();
         Rec.SetExpectedDatesForAPIInsert(ExpectedStartDate, ExpectedEndDate, ExpectedStartDateProvided, ExpectedEndDateProvided);
         exit(true);
     end;
@@ -280,25 +290,51 @@ page 7134 "Travel Requests API"
         if Rec."Requested By" <> xRec."Requested By" then
             Rec.FieldError("Requested By", RequestedByCannotBeChangedErr);
 
+        CheckOwnerScope();
         Rec.ApplyExpectedDatesFromAPI(ExpectedStartDate, ExpectedEndDate, ExpectedStartDateProvided, ExpectedEndDateProvided);
         exit(true);
+    end;
+
+    local procedure ProcessOwnerFilter() OwnerEmployeeNo: Code[20]
+    var
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+        OwnerSystemId: Guid;
+        OriginalFilterGroup: Integer;
+    begin
+        OriginalFilterGroup := Rec.FilterGroup(4);
+        if Rec.GetFilter("Requested By User Id Filter") <> '' then begin
+            OwnerSystemId := Rec.GetRangeMin("Requested By User Id Filter");
+            OwnerEmployeeNo := TravelRequestApproval.ApplyOwnerFilter(Rec, OwnerSystemId);
+        end;
+        Rec.FilterGroup(OriginalFilterGroup);
+    end;
+
+    local procedure CheckOwnerScope()
+    var
+        OwnerEmployeeNo: Code[20];
+    begin
+        OwnerEmployeeNo := ProcessOwnerFilter();
+        if OwnerEmployeeNo <> '' then
+            Rec.TestField("Requested By", OwnerEmployeeNo);
     end;
 
     local procedure ProcessApproverFilter()
     var
         TravelRequestApproval: Codeunit "Travel Request Approval";
         ApproverExpenseUserNo: Code[20];
+        ApproverSystemId: Guid;
         OriginalFilterGroup: Integer;
     begin
-        if ApproverFilterApplied then
-            exit;
-
         OriginalFilterGroup := Rec.FilterGroup(4);
-        ApproverExpenseUserNo := CopyStr(Rec.GetFilter("Approver Expense User Filter"), 1, MaxStrLen(ApproverExpenseUserNo));
-        if ApproverExpenseUserNo <> '' then
-            TravelRequestApproval.ApplyApproverFilter(Rec, ApproverExpenseUserNo);
+        if Rec.GetFilter("Approver User Id Filter") <> '' then begin
+            ApproverSystemId := Rec.GetRangeMin("Approver User Id Filter");
+            TravelRequestApproval.ApplyApproverFilter(Rec, ApproverSystemId);
+        end else begin
+            ApproverExpenseUserNo := CopyStr(Rec.GetFilter("Approver Expense User Filter"), 1, MaxStrLen(ApproverExpenseUserNo));
+            if ApproverExpenseUserNo <> '' then
+                TravelRequestApproval.ApplyApproverFilter(Rec, ApproverExpenseUserNo);
+        end;
         Rec.FilterGroup(OriginalFilterGroup);
-        ApproverFilterApplied := true;
     end;
 
     local procedure SetActionResponse(var ActionContext: WebServiceActionContext)
@@ -316,7 +352,6 @@ page 7134 "Travel Requests API"
         ExpectedEndDate: Date;
         ExpectedStartDateProvided: Boolean;
         ExpectedEndDateProvided: Boolean;
-        ApproverFilterApplied: Boolean;
         StatusCannotBeChangedErr: Label 'can be changed only by submitting, approving, or rejecting the travel request';
         RequestedByCannotBeChangedErr: Label 'cannot be changed';
 }

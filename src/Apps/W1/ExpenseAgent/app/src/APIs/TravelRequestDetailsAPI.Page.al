@@ -60,6 +60,7 @@ page 7135 "Travel Request Details API"
                 field(currencyCode; CurrencyCodeDisplay)
                 {
                     Caption = 'Currency Code';
+                    ToolTip = 'Specifies the currency used for estimation. The local currency is represented by its currency code in the API.';
 
                     trigger OnValidate()
                     begin
