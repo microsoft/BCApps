@@ -162,7 +162,6 @@ Describe "ParallelTestExecution app-name resolution" {
             Mock Get-BcContainerAppInfo {
                 @([PSCustomObject]@{ IsInstalled = $true; Name = 'Tests'; AppId = 'tests-id' })
             }
-            Mock Get-CleanTenantTestAppNames { @('Tests') }
             Mock Get-RequiredDisabledWorkItems {
                 @([PSCustomObject]@{
                     Key = 'Tests::500'
@@ -236,7 +235,6 @@ Describe "ParallelTestExecution transient retry scheduling" {
                     [PSCustomObject]@{ IsInstalled = $true; Name = $_; AppId = "id-$_" }
                 }
             }
-            Mock Get-CleanTenantTestAppNames { @() }
             Mock Get-RequiredDisabledWorkItems { @() }
             Mock Wait-ForFreeTenant { 'default' }
             Mock Wait-ForSpecificTenant { 'default' }
@@ -289,7 +287,7 @@ Describe "ParallelTestExecution RequiredTestIsolation discovery" {
         }
     }
 
-    It "discovers enabled Disabled-isolation codeunits per app" {
+    It "discovers selected apps once each while preserving isolation, lane and exclusion filters" {
         InModuleScope ParallelTestExecution {
             Mock Get-ParametersForCommand { @{ containerName = 'c'; tenant = 'default' } }
             Mock Get-DisabledTestsForApp {
@@ -301,17 +299,27 @@ Describe "ParallelTestExecution RequiredTestIsolation discovery" {
 
             $result = @(
                 Get-RequiredDisabledWorkItems -Parameters @{ containerName = 'c'; tenant = 'default' } `
-                    -TestType 'IntegrationTest' -AppNamesToTest @('API Tests') `
-                    -AppIdByName @{ 'API Tests' = 'app-id' }
+                    -TestType 'IntegrationTest' -AppNamesToTest @('API Tests', 'New API Tests') `
+                    -AppIdByName @{ 'API Tests' = 'app-id'; 'New API Tests' = 'new-app-id'; 'Unselected Tests' = 'other-id' }
             )
 
-            $result.Count | Should -Be 1
+            $result.Count | Should -Be 2
             $result[0].CodeunitId | Should -Be '500'
+            $result[1].AppName | Should -Be 'New API Tests'
             Should -Invoke Get-TestsFromBcContainer -Times 1 -ParameterFilter {
                 $extensionId -eq 'app-id' -and
                 $requiredTestIsolation -eq 'Disabled' -and
                 $testType -eq 'IntegrationTest' -and
                 $disabledTests.Count -eq 1
+            }
+            Should -Invoke Get-TestsFromBcContainer -Times 1 -Exactly -ParameterFilter {
+                $extensionId -eq 'new-app-id' -and
+                $requiredTestIsolation -eq 'Disabled' -and
+                $testType -eq 'IntegrationTest' -and
+                $disabledTests.Count -eq 1
+            }
+            Should -Invoke Get-TestsFromBcContainer -Times 0 -ParameterFilter {
+                $extensionId -eq 'other-id'
             }
         }
     }
@@ -346,7 +354,6 @@ Describe "ParallelTestExecution clean tenant scheduling" {
             Mock Get-BcContainerAppInfo {
                 @([PSCustomObject]@{ IsInstalled = $true; Name = 'Tests'; AppId = 'tests-id' })
             }
-            Mock Get-CleanTenantTestAppNames { @() }
             Mock Get-RequiredDisabledWorkItems { @() }
             Mock New-BcTestTenantTemplate { throw 'Template must not be created' }
             Mock Wait-ForFreeTenant { 'default' }
@@ -361,6 +368,12 @@ Describe "ParallelTestExecution clean tenant scheduling" {
 
             $result | Should -BeTrue
             Should -Invoke New-BcTestTenantTemplate -Times 0
+            Should -Invoke Get-RequiredDisabledWorkItems -Times 1 -Exactly -ParameterFilter {
+                $AppNamesToTest.Count -eq 1 -and $AppNamesToTest[0] -eq 'Tests'
+            }
+            Should -Invoke Start-TestAppDispatch -Times 1 -Exactly -ParameterFilter {
+                $SkipAutomaticDisabledPass
+            }
         }
     }
 
@@ -684,7 +697,6 @@ Describe "ParallelTestExecution clean tenant scheduling" {
             Mock Get-BcContainerAppInfo {
                 @([PSCustomObject]@{ IsInstalled = $true; Name = 'Tests'; AppId = 'tests-id' })
             }
-            Mock Get-CleanTenantTestAppNames { @('Tests') }
             Mock Get-RequiredDisabledWorkItems {
                 @([PSCustomObject]@{
                     Key = 'Tests::500'
@@ -720,6 +732,9 @@ Describe "ParallelTestExecution clean tenant scheduling" {
             } -scriptPath 'unused.ps1' -testType 'IntegrationTest' -appNamesToTest @('Tests')
 
             $result | Should -BeTrue
+            Should -Invoke Get-RequiredDisabledWorkItems -Times 1 -Exactly -ParameterFilter {
+                $AppNamesToTest.Count -eq 1 -and $AppNamesToTest[0] -eq 'Tests'
+            }
             Should -Invoke New-BcTestTenantTemplate -Times 1 -ParameterFilter {
                 $SourceDatabaseName -eq 'default'
             }
@@ -786,6 +801,7 @@ Describe "ParallelTestExecution warmup dispatch" {
                 }
             }
             Mock Wait-ForFreeTenant { 'tenant2' }
+            Mock Get-RequiredDisabledWorkItems { @() }
             Mock Merge-TenantTestResults { }
             Mock Start-TestAppDispatch { $script:events.Add("dispatch:$AppName") }
             Mock Wait-ForAllTestJobs { $script:events.Add('wait'); $true }
@@ -817,6 +833,7 @@ Describe "ParallelTestExecution warmup dispatch" {
             }
             Mock Wait-ForFreeTenant { 'default' }
             Mock Merge-TenantTestResults { }
+            Mock Get-RequiredDisabledWorkItems { @() }
             Mock Start-TestAppDispatch { $script:events.Add("dispatch:$AppName") }
             Mock Wait-ForAllTestJobs { $script:events.Add('wait'); $true }
 
@@ -910,7 +927,6 @@ Describe "ParallelTestExecution failed-app rerun scheduling" {
                     [PSCustomObject]@{ IsInstalled = $true; Name = $_; AppId = "id-$_" }
                 }
             }
-            Mock Get-CleanTenantTestAppNames { @('Big') }
             Mock Get-RequiredDisabledWorkItems { @() }
             Mock Invoke-WarmupDispatch { @($Pending) }
             Mock Get-AppRerunBudget { 1 }
@@ -1184,6 +1200,7 @@ Describe "ParallelTestExecution rerun budget is limited to pull request builds" 
             }
             Mock Invoke-WarmupDispatch { @($Pending) }
             Mock Wait-ForAllTestJobs { $true }
+            Mock Get-RequiredDisabledWorkItems { @() }
             Mock Merge-TenantTestResults { }
             Mock Wait-ForFreeTenant { 'default' }
             Mock Start-TestAppDispatch {
