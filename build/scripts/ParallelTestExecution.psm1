@@ -338,16 +338,6 @@ function Get-AppNamesForBucket {
     return @($InstalledTestAppNames | Where-Object { $_ -notin $allLegacyTestApps })
 }
 
-function Get-CleanTenantTestAppNames {
-    $testConfigPath = Join-Path (Get-BaseFolder) "build\scripts\TestConfiguration.json"
-    if (-not (Test-Path $testConfigPath)) {
-        return @()
-    }
-
-    $testConfig = Get-Content $testConfigPath -Raw | ConvertFrom-Json
-    return @($testConfig.CleanTenantRequiredDisabled)
-}
-
 <#
 .SYNOPSIS
     Gets the list of operational tenants in a BC container.
@@ -1409,13 +1399,9 @@ function Invoke-ParallelTestExecution {
         Where-Object { $_.IsInstalled } |
         ForEach-Object { $appIdByName[$_.Name] = $_.AppId }
 
-    $cleanTenantAppNames = @(
-        Get-CleanTenantTestAppNames |
-            Where-Object { $_ -in $appNamesToTest }
-    )
     $requiredDisabledWorkItems = @(
         Get-RequiredDisabledWorkItems -Parameters $parameters -TestType $testType `
-            -AppNamesToTest $cleanTenantAppNames -AppIdByName $appIdByName
+            -AppNamesToTest $appNamesToTest -AppIdByName $appIdByName
     )
     $cleanTenantInfo = @(
         $tenantInfo |
@@ -1476,7 +1462,7 @@ function Invoke-ParallelTestExecution {
     # No-op for single-app/single-tenant.
     $pending = @(Invoke-WarmupDispatch -Parameters $parameters -Pending $pending -AppIdByName $appIdByName `
         -Tenants $tenants -ScriptPath $scriptPath -TestType $testType -State $state `
-        -CleanTenantAppNames $cleanTenantAppNames)
+        -CleanTenantAppNames $appNamesToTest)
 
     $rerunSuffixes = @()
 
@@ -1518,7 +1504,7 @@ function Invoke-ParallelTestExecution {
             Start-TestAppDispatch -Parameters $parameters -AppName $rerunItem.appName -AppId $appIdByName[$rerunItem.appName] `
                 -Tenant $tenant -ScriptPath $scriptPath -TestType $testType -State $state `
                 -Verb 'Re-running' -FileSuffix $rerunItem.suffix `
-                -SkipAutomaticDisabledPass:($rerunItem.appName -in $cleanTenantAppNames)
+                -SkipAutomaticDisabledPass
             continue
         }
 
@@ -1540,7 +1526,7 @@ function Invoke-ParallelTestExecution {
             }
             Start-TestAppDispatch -Parameters $parameters -AppName $appName -AppId $appId -Tenant $tenant `
                 -ScriptPath $scriptPath -TestType $testType -State $state `
-                -SkipAutomaticDisabledPass:($appName -in $cleanTenantAppNames) -Verb $verb
+                -SkipAutomaticDisabledPass -Verb $verb
         } else {
             # Nothing left to dispatch; drain any still-running jobs. New transient failures and
             # reruns discovered here are picked up at the top of the next loop iteration.
