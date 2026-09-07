@@ -849,23 +849,21 @@ report 1002 "Post Inventory Cost to G/L"
 
     local procedure GetDimText(var DimSetEntry: Record "Dimension Set Entry")
     var
-        OldDimText: Text[250];
+        OldDimText: Text;
     begin
         DimText := '';
 
         if DimSetEntry.FindSet() then
             repeat
-                OldDimText := DimText;
                 if DimText = '' then
-                    DimText := StrSubstNo('%1 - %2', DimSetEntry."Dimension Code", DimSetEntry."Dimension Value Code")
+                    OldDimText := StrSubstNo('%1 - %2', DimSetEntry."Dimension Code", DimSetEntry."Dimension Value Code")
                 else
-                    DimText :=
+                    OldDimText :=
                       StrSubstNo(
                         '%1; %2 - %3', DimText, DimSetEntry."Dimension Code", DimSetEntry."Dimension Value Code");
-                if StrLen(DimText) > MaxStrLen(OldDimText) then begin
-                    DimText := OldDimText;
+                if StrLen(OldDimText) > MaxStrLen(DimText) then
                     exit;
-                end;
+                DimText := OldDimText;
             until DimSetEntry.Next() = 0;
     end;
 
