@@ -4,7 +4,7 @@ namespace System.Integration.PowerBI;
 /// Lookup page used to pick the Power BI workspace that deployable reports are deployed to.
 /// It only lists workspaces the user can write to, plus the "My Workspace" option (represented by a null ID).
 /// </summary>
-page 6328 "Power BI Workspaces Lookup"
+page 6349 "Power BI Workspaces Lookup"
 {
     Caption = 'Power BI Workspaces';
     PageType = List;
