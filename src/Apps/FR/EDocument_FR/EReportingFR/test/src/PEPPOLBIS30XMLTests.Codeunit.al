@@ -851,10 +851,12 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     procedure ExportSalesInvAllowsShipmentWithoutBuyerReference()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesInvoiceLine: Record "Sales Invoice Line";
         XmlDoc: XmlDocument;
         BuyerReference: Text[35];
         CustomerNo: Code[20];
         FirstShipmentNo: Code[20];
+        InvoiceLineXPath: Text;
         SecondShipmentNo: Code[20];
     begin
         // [FEATURE] [AI test 0.4]
@@ -875,7 +877,11 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         // [THEN] Invoice "I" uses Extended CTC France and exports the available buyer reference
         Assert.AreEqual('urn:cen.eu:en16931:2017#conformant#urn.cpro.gouv.fr:1p0:extended-ctc-fr', GetNodeByPath(XmlDoc, '/Invoice/cbc:CustomizationID'),
             StrSubstNo(IncorrectValueErr, 'CustomizationID'));
-        Assert.AreEqual(BuyerReference, GetNodeByPath(XmlDoc, '/Invoice/cac:InvoiceLine/cac:OrderLineReference/cac:OrderReference/cbc:ID'),
+        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
+        SalesInvoiceLine.SetRange("Shipment No.", SecondShipmentNo);
+        SalesInvoiceLine.FindFirst();
+        InvoiceLineXPath := StrSubstNo('/Invoice/cac:InvoiceLine[cbc:ID=''%1'']/cac:OrderLineReference/cac:OrderReference/cbc:ID', Format(SalesInvoiceLine."Line No.", 0, 9));
+        Assert.AreEqual(BuyerReference, GetNodeByPath(XmlDoc, InvoiceLineXPath),
             StrSubstNo(IncorrectValueErr, 'OrderReference ID'));
     end;
 
