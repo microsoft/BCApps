@@ -47,7 +47,7 @@ codeunit 137054 "SCM Supply Planning"
         OrderDateErr: Label 'Order Date (%1) on Requisition Line is not equal to Order Date (%2) on Purchase Line.';
         ExceptionMsg: Label 'Exception: The projected available inventory is below Safety Stock Quantity %1 on %2.';
         RequisitionWorksheetErr: Label 'Requisition Worksheet cannot be used to create Prod. Order replenishment.';
-        ReqLineOrderDateErr: Label 'Order Date (%1) on Requisition Line is not equal to Starting Date on Planning Worksheet.';
+        ReqLineStartingDateErr: Label 'Starting Date (%1) on Requisition Line is not equal to Expected Receipt Date (%2).';
         ExpectedReceiptDateErr: Label 'Expected Receipt Date in Reservation Entry is not correct.';
         DemandTypeOption: Option "Sales Order","Transfer Order","Released Prod. Order",Assembly,"Purchase Return";
         SupplyTypeOption: array[5] of Option "None",Released,FirmPlanned,Purchase,"Sales Return",Transfer,Assembly,Planning;
@@ -4058,9 +4058,9 @@ codeunit 137054 "SCM Supply Planning"
         LibraryPlanning.CalcRegenPlanForPlanWksh(Item, WorkDate(), CalcDate('<CY>', WorkDate()));
         FindRequisitionLine(RequisitionLine, Item."No.");
 
-        // Verify: verify Order Date in created requisition line.
+        // Verify: verify Starting Date in created requisition line.
         ExpectedDate := FindClosestWorkingDay(ServiceMgtSetup, WorkDate());
-        Assert.AreEqual(ExpectedDate, RequisitionLine."Order Date", StrSubstNo(ReqLineOrderDateErr, ExpectedDate));
+        Assert.AreEqual(ExpectedDate, RequisitionLine."Starting Date", StrSubstNo(ReqLineStartingDateErr, RequisitionLine."Starting Date", ExpectedDate));
 
         // Tear Down.
         UpdateCompanyInformationBaseCalendarCode(OldBaseCalendarCode);
@@ -4081,8 +4081,8 @@ codeunit 137054 "SCM Supply Planning"
         LibraryPlanning.CalcRegenPlanForPlanWksh(Item, WorkDate(), CalcDate('<CY>', WorkDate()));
         FindRequisitionLine(RequisitionLine, Item."No.");
 
-        // Verify: verify Order Date in created requisition line.
-        Assert.AreEqual(WorkDate(), RequisitionLine."Order Date", StrSubstNo(ReqLineOrderDateErr, WorkDate()));
+        // Verify: verify Starting Date in created requisition line.
+        Assert.AreEqual(WorkDate(), RequisitionLine."Starting Date", StrSubstNo(ReqLineStartingDateErr, RequisitionLine."Starting Date", WorkDate()));
     end;
 
     [Test]
@@ -4110,9 +4110,9 @@ codeunit 137054 "SCM Supply Planning"
         LibraryPlanning.CalcRegenPlanForPlanWksh(Item, WorkDate(), CalcDate('<CY>', WorkDate()));
         FindRequisitionLine(RequisitionLine, Item."No.");
 
-        // Verify: verify Order Date in created requisition line.
+        // Verify: verify Starting Date in created requisition line.
         ExpectedDate := FindClosestWorkingDay(ServiceMgtSetup, WorkDate());
-        Assert.AreEqual(ExpectedDate, RequisitionLine."Order Date", StrSubstNo(ReqLineOrderDateErr, ExpectedDate));
+        Assert.AreEqual(ExpectedDate, RequisitionLine."Starting Date", StrSubstNo(ReqLineStartingDateErr, RequisitionLine."Starting Date", ExpectedDate));
 
         // Tear Down.
         UpdateCompanyInformationBaseCalendarCode(OldBaseCalendarCode);
