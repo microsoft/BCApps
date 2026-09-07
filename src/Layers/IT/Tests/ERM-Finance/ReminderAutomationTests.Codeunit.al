@@ -948,9 +948,6 @@ codeunit 134979 "Reminder Automation Tests"
         // [SCENARIO 609485] When using Transfer Texts from the old reminder term text to the new customer communications the used language is not considered
         Initialize();
 
-        // [GIVEN] Disable Feature Reminder Terms Communication Texts
-        this.CheckFeatureReminderTermsCommunicationTexts('ReminderTermsCommunicationTexts', false);
-
         // [GIVEN] Set Region and Global Language to Dutch (Netherlands)
         // Save old company region so we can restore it in tear down
         CompanyInfo.Get();
@@ -966,9 +963,6 @@ codeunit 134979 "Reminder Automation Tests"
 
         // [GIVEN] Create reminder term with levels
         CreateReminderTerm(ReminderTerms);
-
-        // [GIVEN] Enable Feature Reminder Terms Communication Texts
-        this.CheckFeatureReminderTermsCommunicationTexts('ReminderTermsCommunicationTexts', true);
 
         // [WHEN] Page Reminder Term Invoke Action Transfer Texts 
         ReminderTermList.OpenEdit();
@@ -1077,7 +1071,7 @@ codeunit 134979 "Reminder Automation Tests"
         Assert.AreEqual(1, TempBlobList.Count(), NoOfAttachmentsSameErr);
     end;
 
-    [HandlerFunctions('NewReminderActionModalPageHandler,CreateRemindersSetupModalPageHandler,IssueRemindersSetupModalPageHandler,SendRemindersSetupLogInteractionModalPageHandler,SelectRemTermsAutomationHandler')]
+    [HandlerFunctions('ConfirmHandler,NewReminderActionModalPageHandler,CreateRemindersSetupModalPageHandler,IssueRemindersSetupModalPageHandler,SendRemindersSetupLogInteractionModalPageHandler,SelectRemTermsAutomationHandler')]
     [Test]
     procedure TestReminderAutomationLogsInteractionWithIssuedReminderNumber()
     var
@@ -1307,15 +1301,11 @@ codeunit 134979 "Reminder Automation Tests"
         ReminderLevel: Record "Reminder Level";
         ReminderAttachmentText: Record "Reminder Attachment Text";
     begin
-        ReminderAttachmentText.Id := CreateGuid();
-        ReminderAttachmentText."Language Code" := LanguageCode;
-        ReminderAttachmentText."File Name" := CopyStr(LibraryRandom.RandText(20), 1, MaxStrLen(ReminderAttachmentText."File Name"));
-        ReminderAttachmentText.Insert();
-
         ReminderLevel.SetRange("Reminder Terms Code", ReminderTerms.Code);
         ReminderLevel.FindFirst();
-        ReminderLevel."Reminder Attachment Text" := ReminderAttachmentText.Id;
-        ReminderLevel.Modify();
+        LibraryERM.CreateReminderAttachmentText(ReminderAttachmentText, ReminderLevel, LanguageCode);
+        ReminderAttachmentText.Validate("File Name", CopyStr(LibraryRandom.RandText(20), 1, MaxStrLen(ReminderAttachmentText."File Name")));
+        ReminderAttachmentText.Modify(true);
 
         LibraryVariableStorage.Enqueue(ReminderAttachmentText."File Name" + '.pdf');
     end;
@@ -1669,19 +1659,6 @@ codeunit 134979 "Reminder Automation Tests"
         ReportSelections.SendEmailToCust(ReportUsage.AsInteger(), Document, '', '', true, CustomerNo);
     end;
 
-    local procedure CheckFeatureReminderTermsCommunicationTexts(FeatureKeyCode: Code[100]; Enable: Boolean)
-    var
-        FeatureKey: Record "Feature Key";
-    begin
-        FeatureKey.Get(FeatureKeyCode);
-        if Enable then
-            FeatureKey.Validate(Enabled, FeatureKey.Enabled::"All Users")
-        else
-            FeatureKey.Validate(Enabled, FeatureKey.Enabled::None);
-
-        FeatureKey.Modify(true);
-    end;
-
     local procedure CreateCustomerWithContactAndOverdueEntries(var Customer: Record Customer; var Contact: Record Contact; var ReminderTerms: Record "Reminder Terms"; NumberOfEntries: Integer)
     var
         Item: Record Item;
@@ -1704,6 +1681,7 @@ codeunit 134979 "Reminder Automation Tests"
 
         for I := 1 to NumberOfEntries do begin
             LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+            SalesHeader.SetHideValidationDialog(true);
             SalesHeader.Validate("Posting Date", PostingDate);
             SalesHeader.Validate("Due Date", PostingDate);
             SalesHeader.Validate("Document Date", PostingDate);

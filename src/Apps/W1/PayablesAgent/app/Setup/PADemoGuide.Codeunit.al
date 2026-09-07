@@ -55,20 +55,34 @@ codeunit 3309 "PA Demo Guide"
     /// <summary>
     /// Sends a demo email using the active PA setup configuration.
     /// </summary>
-    procedure SendDemoEmail()
+    /// <returns>True if the demo email was sent.</returns>
+    procedure SendDemoEmail(): Boolean
     var
         PayablesAgentSetup: Codeunit "Payables Agent Setup";
         PASetupConfiguration: Codeunit "PA Setup Configuration";
     begin
         PayablesAgentSetup.LoadSetupConfiguration(PASetupConfiguration);
-        SendDemoEmail(PASetupConfiguration);
+        exit(SendDemoEmail(PASetupConfiguration));
+    end;
+
+    /// <summary>
+    /// Sends the sample invoices by email if the agent is active, otherwise flags them to be sent at activation.
+    /// </summary>
+    /// <returns>True if the sample invoices were sent.</returns>
+    procedure SendDemoInvoicesByEmail(): Boolean
+    var
+        EDocSamplePurchInvFile: Record "E-Doc Sample Purch. Inv File";
+    begin
+        EDocSamplePurchInvFile.ModifyAll("Send By Email", true);
+        exit(SendDemoEmail());
     end;
 
     /// <summary>
     /// Sends a demo email using the provided PA setup configuration.
     /// </summary>
     /// <param name="PASetupConfiguration">An email account to send a demo email</param>
-    procedure SendDemoEmail(PASetupConfiguration: Codeunit "PA Setup Configuration");
+    /// <returns>True if the demo email was sent.</returns>
+    procedure SendDemoEmail(PASetupConfiguration: Codeunit "PA Setup Configuration"): Boolean
     var
         EDocSamplePurchInvFile: Record "E-Doc Sample Purch. Inv File";
         TempEmailAccount: Record "Email Account";
@@ -82,12 +96,12 @@ codeunit 3309 "PA Demo Guide"
         BodyTextTxt: Label 'This is a sample email from Payables Agent.', MaxLength = 255, Comment = 'Payables Agent is a term, and should not be translated.';
     begin
         if not DemoExperienceAvailable() then
-            exit;
+            exit(false);
         if not CanSendDemoEmail(PASetupConfiguration) then
-            exit;
+            exit(false);
         EDocSamplePurchInvFile.SetRange("Send By Email", true);
         if EDocSamplePurchInvFile.IsEmpty() then
-            exit;
+            exit(false);
         TempEmailAccount := PASetupConfiguration.GetEmailAccount();
 
         EmailMessage.Create(TempEmailAccount."Email Address", SubjectTxt, BodyTextTxt, true);
@@ -105,6 +119,7 @@ codeunit 3309 "PA Demo Guide"
         end;
         EDocSamplePurchInvFile.SetRange("Send By Email");
         EDocSamplePurchInvFile.ModifyAll("Send By Email", false);
+        exit(true);
     end;
 
     /// <summary>

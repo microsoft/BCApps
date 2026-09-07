@@ -159,11 +159,19 @@ report 10139 "Inventory Valuation"
             }
 
             trigger OnAfterGetRecord()
+            var
+                SkipItem: Boolean;
             begin
                 if not InvPostingGroup.Get("Inventory Posting Group") then
                     Clear(InvPostingGroup);
                 TempEntryBuffer.Reset();
                 TempEntryBuffer.DeleteAll();
+
+                SkipItem := false;
+                OnBeforeOnAfterItemGetRecord(Item, SkipItem);
+                if SkipItem then
+                    CurrReport.Skip();
+
                 Progress.Update(1, Format("No."));
             end;
 
@@ -341,6 +349,7 @@ report 10139 "Inventory Valuation"
         ValueEntry.SetLoadFields("Item Ledger Entry No.", "Posting Date", "Cost Amount (Expected)", "Cost Amount (Actual)", "Cost Amount (Expected) (ACY)", "Cost Amount (Actual) (ACY)");
         ValueEntry.SetRange("Item Ledger Entry No.", ItemLedgerEntry."Entry No.");
         ValueEntry.SetRange("Posting Date", 0D, EndDate);
+        OnAdjustItemLedgEntryToAsOfDateOnAfterValueEntrySetFilters(ValueEntry, Item);
 
         if ShowACY then begin
             ValueEntry.CalcSums("Cost Amount (Actual) (ACY)", "Cost Amount (Expected) (ACY)");
@@ -426,5 +435,15 @@ report 10139 "Inventory Valuation"
 
         IsCollecting := false;
         Clear(TempEntryBuffer);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeOnAfterItemGetRecord(var Item: Record Item; var SkipItem: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(true, false)]
+    local procedure OnAdjustItemLedgEntryToAsOfDateOnAfterValueEntrySetFilters(var ValueEntry: Record "Value Entry"; Item: Record Item)
+    begin
     end;
 }

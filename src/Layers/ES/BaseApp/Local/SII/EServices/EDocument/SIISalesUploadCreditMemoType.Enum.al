@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument;
 
+#pragma warning disable AL0659 // Accepted: renaming the enum is a breaking change
 enum 10714 "SII Sales Upload Credit Memo Type"
+#pragma warning restore AL0659
 {
     Extensible = true;
     AssignmentCompatibility = true;

@@ -276,9 +276,11 @@ codeunit 8616 "Config. Management"
             Database::Microsoft.Sales.Reminder."Reminder Terms":
                 exit(Page::Microsoft.Sales.Reminder."Reminder Terms List");
             Database::Microsoft.Sales.Reminder."Reminder Level":
-                exit(Page::Microsoft.Sales.Reminder."Reminder Levels");
+                exit(Page::Microsoft.Sales.Reminder."Reminder Level Setup");
+#if not CLEAN29
             Database::Microsoft.Sales.Reminder."Reminder Text":
                 exit(Page::Microsoft.Sales.Reminder."Reminder Text");
+#endif
             Database::Microsoft.Sales.FinanceCharge."Finance Charge Terms":
                 exit(Page::Microsoft.Sales.FinanceCharge."Finance Charge Terms");
             Database::Microsoft.Foundation.Shipping."Shipment Method":
@@ -462,7 +464,7 @@ codeunit 8616 "Config. Management"
             Database::Microsoft.Foundation.Calendar."Base Calendar":
                 exit(Page::Microsoft.Foundation.Calendar."Base Calendar List");
             Database::Microsoft.Sales.FinanceCharge."Finance Charge Text":
-                exit(Page::Microsoft.Sales.Reminder."Reminder Text");
+                exit(Page::Microsoft.Sales.FinanceCharge."Finance Charge Text");
             Database::Microsoft.Sales.FinanceCharge."Currency for Fin. Charge Terms":
                 exit(Page::Microsoft.Sales.FinanceCharge."Currencies for Fin. Chrg Terms");
             Database::Microsoft.Sales.Reminder."Currency for Reminder Level":
@@ -855,4 +857,3 @@ codeunit 8616 "Config. Management"
     end;
 }
 #pragma warning restore AS0018
-

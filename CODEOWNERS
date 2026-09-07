@@ -31,6 +31,8 @@
 # To change ownership, edit ownership-rules.js in BCAppsTriage and regenerate.
 # Do not hand-edit the block below; hand edits will be lost and will silently
 # diverge from issue and pull request triage.
+# Apps with dedicated reviewer teams are intentionally omitted from this block
+# and listed once in the dedicated application reviewers section below.
 #
 # The specialized cross-cutting rules at the bottom of this file (App Security,
 # App Permissions, app.json, AL-Go and build files, Developer Experience, Code
@@ -68,7 +70,7 @@
 /src/Layers/*/BaseApp/OtherCapabilities/ @microsoft/d365-bc-integrations
 /src/Layers/*/BaseApp/Permissions/ @microsoft/d365-bc-integrations
 /src/Layers/*/BaseApp/Pricing/ @microsoft/d365-bc-scm
-/src/Layers/*/BaseApp/Projects/ @microsoft/d365-bc-finance-1
+/src/Layers/*/BaseApp/Projects/ @microsoft/d365-bc-scm
 /src/Layers/*/BaseApp/Purchases/ @microsoft/d365-bc-scm
 /src/Layers/*/BaseApp/RoleCenters/ @microsoft/d365-bc-integrations
 /src/Layers/*/BaseApp/Sales/ @microsoft/d365-bc-scm
@@ -134,8 +136,6 @@
 /src/Apps/W1/EssentialBusinessHeadlines/ @microsoft/d365-bc-integrations
 /src/Apps/W1/ExcelReports/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/ExciseTaxes/ @microsoft/d365-bc-finance-1
-/src/Apps/W1/ExpenseAgent/ @microsoft/d365-bc-finance-1
-/src/Apps/W1/ExpenseWithholdingTax/ @microsoft/d365-bc-finance-1
 /src/Apps/W1/External\ File\ Storage\ -\ Azure\ Blob\ Service\ Connector/ @microsoft/d365-bc-integrations
 /src/Apps/W1/External\ File\ Storage\ -\ Azure\ File\ Service\ Connector/ @microsoft/d365-bc-integrations
 /src/Apps/W1/External\ File\ Storage\ -\ SFTP\ Connector/ @microsoft/d365-bc-integrations
@@ -212,6 +212,14 @@
 # single owner. This line has no owner on purpose: it releases demo data
 # from the localization wildcard above without naming anyone.
 /src/Apps/*/*ContosoCoffeeDemoDataset*/
+/src/DemoTool/*/
+/src/Layers/*/DemoTool/*/
+
+
+# Expense Agent application family. These review routes intentionally differ
+# from the Finance functional ownership labels used by triage.
+/src/Apps/*/ExpenseAgent*/ @microsoft/d365-bc-app-expense-agent
+/src/Apps/*/ExpenseWithholdingTax*/ @microsoft/d365-bc-app-expense-agent
 
 # App Rulesets
 /src/rulesets/ @microsoft/d365-bc-app-rulesets
