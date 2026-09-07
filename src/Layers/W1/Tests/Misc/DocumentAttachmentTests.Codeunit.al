@@ -53,6 +53,8 @@ codeunit 134776 "Document Attachment Tests"
         OpportunityTwoLbl: Label 'Opportunity2';
         PrintedToAttachmentTxt: Label 'The document has been printed to attachments.';
         RenameCodeLbl: Label 'T';
+        SalesInvoiceHeaderFileNameLbl: Label 'salesinvoiceheader', Locked = true;
+        SalesInvoiceLineFileNameLbl: Label 'salesinvoiceline', Locked = true;
         SecondAttachmentFileNameMismatchErr: Label 'Second file name not equal to saved attachment.';
         TwoAttachmentsExpectedErr: Label 'Two attachments were expected for this record.';
         UnexpectedFieldVisibilityErr: Label 'Unexpected visibility for field %1', Comment = '%1=FieldCaption';
@@ -4526,6 +4528,40 @@ codeunit 134776 "Document Attachment Tests"
 
         // [THEN] Verify Sales Credit Memo lines have two document attachments (one per each line inserted from Sales Return Order).
         CheckDocAttachments(Database::"Sales Line", 2, CreditMemoNo, SalesHeaderReturnOrder."Document Type"::"Credit Memo".AsInteger(), 'SalesReturnLine');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DocumentTypeIsInvoiceAfterPostingSalesInvoice()
+    var
+        Customer: Record Customer;
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        RecRef: RecordRef;
+        PostedInvoiceNo: Code[20];
+    begin
+        // [FEATURE] [Document Attachment] [AI Test]
+        // [SCENARIO] Document type is Invoice for attachments transferred to a posted sales invoice.
+        Initialize();
+
+        // [GIVEN] A sales invoice with attachments on the header and line.
+        LibrarySales.CreateCustomer(Customer);
+        LibraryInventory.CreateItem(Item);
+        CreateSalesDoc(SalesHeader, SalesLine, Customer, Item, SalesHeader."Document Type"::Invoice);
+        RecRef.GetTable(SalesHeader);
+        CreateDocAttach(RecRef, StrSubstNo(JpegFileNameTok, SalesInvoiceHeaderFileNameLbl), false, false);
+        RecRef.GetTable(SalesLine);
+        CreateDocAttach(RecRef, StrSubstNo(JpegFileNameTok, SalesInvoiceLineFileNameLbl), false, false);
+
+        // [WHEN] The sales invoice is posted.
+        PostedInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] The posted invoice header and line attachments have document type Invoice.
+        CheckDocAttachments(
+            Database::"Sales Invoice Header", 1, PostedInvoiceNo, Enum::"Attachment Document Type"::Invoice.AsInteger(), SalesInvoiceHeaderFileNameLbl);
+        CheckDocAttachments(
+            Database::"Sales Invoice Line", 1, PostedInvoiceNo, Enum::"Attachment Document Type"::Invoice.AsInteger(), SalesInvoiceLineFileNameLbl);
     end;
 
     local procedure Initialize()
