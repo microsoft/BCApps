@@ -1073,7 +1073,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 CreateGLEntry(
                     GenJnlLine, VATPostingSetup.GetPurchAccount(VATPostingParameters."Unrealized VAT"),
                     VATPostingParameters."Deductible VAT Amount", VATPostingParameters."Deductible VAT Amount ACY", true,
-                    GenJnlLine."Source Curr. VAT Amount")
+                   GenJnlLine."Source Curr. VAT Amount" - CalcAmountSrcCurr(GenJnlLine, VATPostingParameters."Non-Deductible VAT Amount"))
             else
                 CreateGLEntry(
                     GenJnlLine, VATPostingSetup.GetPurchAccount(VATPostingParameters."Unrealized VAT"),
@@ -5990,6 +5990,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         IsHandled: Boolean;
         PayableAccAmtLCY: Decimal;
         PayableAccAmtAddCurr: Decimal;
+        AmountSrcCurr: Decimal;
     begin
         if GenJnlLine."Account Type" <> GenJnlLine."Account Type"::Employee then
             exit;
@@ -6039,9 +6040,17 @@ codeunit 12 "Gen. Jnl.-Post Line"
             if (PayableAccAmtLCY <> 0) or
                ((PayableAccAmtAddCurr <> 0) and (AddCurrencyCode <> ''))
             then begin
+                if (GenJnlLine."Source Currency Code" <> '') and (GenJnlLine."Source Currency Code" = GenJnlLine."Currency Code") and
+                    (GenJnlLine.Amount <> 0) and (GenJnlLine."Amount (LCY)" <> 0) and (Abs(GenJnlLine."Amount (LCY)") = Abs(PayableAccAmtLCY))
+                then begin
+                    AmountSrcCurr := Abs(GenJnlLine.Amount);
+                    if PayableAccAmtLCY < 0 then
+                        AmountSrcCurr := -AmountSrcCurr;
+                end else
+                    AmountSrcCurr := CalcAmountSrcCurr(GenJnlLine, PayableAccAmtLCY);
                 InitGLEntry(
                     GenJnlLine, GLEntry, AccNo, PayableAccAmtLCY, PayableAccAmtAddCurr, true, true,
-                    CalcAmountSrcCurr(GenJnlLine, PayableAccAmtLCY));
+                    AmountSrcCurr);
                 GLEntry."Bal. Account Type" := GenJnlLine."Bal. Account Type";
                 GLEntry."Bal. Account No." := GenJnlLine."Bal. Account No.";
                 UpdateGLEntryNo(GLEntry."Entry No.", SaveEntryNo);
@@ -6073,7 +6082,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     var
         CustomerPostingGroup: Record "Customer Posting Group";
         EmployeePostingGroup: Record "Employee Posting Group";
-        VendorPostingGroup: Record "Vendor Posting Group";
         AccNo2: Code[20];
         AccNo3: Code[20];
         IsHandled: Boolean;
@@ -6115,12 +6123,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
                                     AccNo2 := GetCustDtldCVLedgEntryBufferAccNo(GenJournalLine, DetailedCVLedgEntryBuffer);
                                     AccNo3 := GetCustomerReceivablesAccount(GenJournalLine, CustomerPostingGroup);
                                 end;
-                            GenJournalLine."Account Type"::Vendor:
-                                begin
-                                    GetVendorPostingGroup(GenJournalLine, VendorPostingGroup);
-                                    AccNo2 := GetVendDtldCVLedgEntryBufferAccNo(GenJournalLine, DetailedCVLedgEntryBuffer);
-                                    AccNo3 := GetVendorPayablesAccount(GenJournalLine, VendorPostingGroup);
-                                end;
                             GenJournalLine."Account Type"::Employee:
                                 begin
                                     EmployeePostingGroup.Get(GenJournalLine."Posting Group");
@@ -6128,8 +6130,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
                                     AccNo3 := GetEmployeePayablesAccount(GenJournalLine, EmployeePostingGroup);
                                 end;
                         end;
-                        CreateGLEntryGainLoss(GenJournalLine, AccNo2, DetailedCVLedgEntryBuffer."Amount (LCY)", DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode);
-                        CreateGLEntryGainLoss(GenJournalLine, AccNo3, -DetailedCVLedgEntryBuffer."Amount (LCY)", DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode);
+                        if AccNo2 <> AccNo3 then begin
+                            CreateGLEntryGainLoss(GenJournalLine, AccNo2, DetailedCVLedgEntryBuffer."Amount (LCY)", DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode);
+                            CreateGLEntryGainLoss(GenJournalLine, AccNo3, -DetailedCVLedgEntryBuffer."Amount (LCY)", DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode);
+                        end;
                     end;
 
                     if not Unapply then
@@ -10114,6 +10118,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
         CustLedgEntry.Get(DtldCustLedgEntry."Cust. Ledger Entry No.");
         IsRejected := CheckCarteraDocStatus(CustLedgEntry."Document No.", CustLedgEntry."Bill No.");
+
+        if IsRejected and (RejDocAmountLCY <> 0) then
+            exit;
 
         if CheckCarteraPostDtldCustLE(GenJnlLine, DtldCustLedgEntry, 0, 0, CreateBills) then begin
             GetCurrency(Currency, DtldCVLedgEntryBuf."Currency Code");

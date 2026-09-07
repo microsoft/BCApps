@@ -46,9 +46,11 @@ env:
 
 jobs:
   triage:
-    # Run for a newly opened issue, or when `ai-triage` is added to an open issue.
+    # Extensibility requests (Task issues) are handled by the dedicated manual workflow.
+    # Run for any other newly opened issue, or when `ai-triage` is added to an open issue.
     if: >-
-      github.event.issue.state == 'open' && (
+      github.event.issue.state == 'open' &&
+      github.event.issue.type.name != 'Task' && (
         github.event.action == 'opened' ||
         github.event.label.name == 'ai-triage'
       )

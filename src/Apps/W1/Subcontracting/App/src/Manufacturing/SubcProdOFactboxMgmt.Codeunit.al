@@ -12,7 +12,7 @@ using Microsoft.Purchases.History;
 using Microsoft.Utilities;
 using System.Reflection;
 
-codeunit 99001559 "Subc. ProdO. Factbox Mgmt."
+codeunit 20559 "Subc. ProdO. Factbox Mgmt."
 {
 #if not CLEAN29
     var

@@ -9,12 +9,12 @@ using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Planning;
 using Microsoft.Warehouse.Structure;
 
-tableextension 99001503 "Subc. Planning Comp Ext." extends "Planning Component"
+tableextension 20503 "Subc. Planning Comp Ext." extends "Planning Component"
 {
     AllowInCustomizations = AsReadOnly;
     fields
     {
-        field(99001524; "Component Supply Method"; Enum "Component Supply Method")
+        field(20524; "Component Supply Method"; Enum "Component Supply Method")
         {
             Caption = 'Component Supply Method';
             DataClassification = CustomerContent;
@@ -43,13 +43,13 @@ tableextension 99001503 "Subc. Planning Comp Ext." extends "Planning Component"
                 SubcontractingManagement.UpdateComponentSupplyMethodForPlanningComponent(Rec);
             end;
         }
-        field(99001525; "Orig. Location Code"; Code[10])
+        field(20525; "Orig. Location Code"; Code[10])
         {
             Caption = 'Original Location Code';
             DataClassification = CustomerContent;
             TableRelation = Location;
         }
-        field(99001526; "Orig. Bin Code"; Code[20])
+        field(20526; "Orig. Bin Code"; Code[20])
         {
             Caption = 'Original Bin Code';
             DataClassification = CustomerContent;

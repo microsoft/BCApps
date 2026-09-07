@@ -280,7 +280,8 @@ page 8006 "Contract Renewal Selection"
     trigger OnAfterGetRecord()
     begin
         Rec.GetServiceObject(ServiceObject);
-        Rec.LoadServiceCommitmentForContractLine(TempServiceCommitment);
+        if not TempServiceCommitment.Get(Rec."Subscription Line Entry No.") then
+            Rec.LoadServiceCommitmentForContractLine(TempServiceCommitment);
         RenewalTerm := TempServiceCommitment."Renewal Term";
         RenewalTermEnabled := TempServiceCommitment."Subscription Header No." <> '';
 

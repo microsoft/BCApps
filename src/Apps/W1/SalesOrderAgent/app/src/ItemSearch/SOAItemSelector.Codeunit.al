@@ -83,7 +83,7 @@ codeunit 4417 "SOA Item Selector"
         end;
 
         // Configure Azure OpenAI
-        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT41Latest());
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT55ChatLatest());
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Sales Order Agent");
 
         // Set parameters

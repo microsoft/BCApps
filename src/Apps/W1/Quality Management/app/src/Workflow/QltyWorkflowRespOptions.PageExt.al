@@ -388,10 +388,12 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                             QltyWorkflowResponse.SetStepConfigurationValue(Rec, QltyWorkflowResponse.GetWellKnownKeyLocation(), QltyLocationCode);
                             QltyShowBinCode := true;
                             if DestinationLocation.Get(QltyLocationCode) then begin
-                                QltyShowBinCode := DestinationLocation."Bin Mandatory";
+                                QltyShowBinCode := DestinationLocation."Bin Mandatory" and not DestinationLocation."Directed Put-away and Pick";
                                 if QltyBinCode <> '' then
-                                    if not DestinationBin.Get(QltyLocationCode, QltyBinCode) then
+                                    if not QltyShowBinCode or not DestinationBin.Get(QltyLocationCode, QltyBinCode) then begin
                                         QltyBinCode := '';
+                                        QltyWorkflowResponse.SetStepConfigurationValue(Rec, QltyWorkflowResponse.GetWellKnownKeyBin(), QltyBinCode);
+                                    end;
                             end;
                         end;
                     }
@@ -843,6 +845,9 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
         Qlty_SetFields();
     end;
 
+    /// <summary>
+    /// Stores the database table, filter, field, and value expression configuration.
+    /// </summary>
     local procedure Qlty_SetCommonDatabaseVariables()
     var
         QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
@@ -855,6 +860,9 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
         QltyWorkflowResponse.SetStepConfigurationValue(Rec, QltyWorkflowResponse.GetWellKnownKeyValueExpression(), TestValueExpressionToSet);
     end;
 
+    /// <summary>
+    /// Sets the quantity behavior Boolean fields from the selected quantity behavior.
+    /// </summary>
     local procedure Qlty_SetMoveBehaviorBools()
     begin
         QltyMoveSpecific := false;
@@ -877,6 +885,9 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
         end;
     end;
 
+    /// <summary>
+    /// Sets response option group visibility for the current workflow response function.
+    /// </summary>
     local procedure Qlty_SetGroupVisibility()
     var
         QltyWorkflowSetup: Codeunit "Qlty. Workflow Setup";
@@ -951,6 +962,9 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
         end;
     end;
 
+    /// <summary>
+    /// Loads visible response option fields from workflow step configuration.
+    /// </summary>
     local procedure Qlty_SetFields()
     var
         QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
@@ -1032,6 +1046,9 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
         end;
     end;
 
+    /// <summary>
+    /// Loads the destination location and bin and sets bin visibility from the location setup.
+    /// </summary>
     local procedure SetLocationAndBinCode()
     var
         Location: Record Location;
@@ -1042,6 +1059,6 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
 
         QltyShowBinCode := true;
         if Location.Get(QltyLocationCode) then;
-        QltyShowBinCode := Location."Bin Mandatory";
+        QltyShowBinCode := Location."Bin Mandatory" and not Location."Directed Put-away and Pick";
     end;
 }

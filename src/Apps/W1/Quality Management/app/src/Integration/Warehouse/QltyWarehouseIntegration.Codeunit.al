@@ -22,6 +22,11 @@ codeunit 20438 "Qlty. Warehouse Integration"
         tabledata "Qlty. Inspection Gen. Rule" = r,
         tabledata "Qlty. Inspection Header" = r;
 
+    /// <summary>
+    /// Creates inspections for positive warehouse movement entries when an active automatic generation rule applies.
+    /// </summary>
+    /// <param name="WarehouseEntry">The registered warehouse entry.</param>
+    /// <param name="WarehouseJournalLine">The warehouse journal line that produced the entry.</param>
     [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Management Setup", 'R', InherentPermissionsScope::Permissions)]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse. Jnl.-Register Line", 'OnAfterInsertWhseEntry', '', true, true)]
     local procedure HandleOnAfterInsertWhseEntry(var WarehouseEntry: Record "Warehouse Entry"; var WarehouseJournalLine: Record "Warehouse Journal Line")
@@ -41,6 +46,11 @@ codeunit 20438 "Qlty. Warehouse Integration"
         AttemptCreateInspectionWithWhseJournalLine(WarehouseEntry, WarehouseJournalLine, QltyInspectionGenRule);
     end;
 
+    /// <summary>
+    /// Filters generation rules for automatic warehouse movement registration.
+    /// </summary>
+    /// <param name="QltyInspectionGenRule">The generation rule record on which the applicable filters are set.</param>
+    /// <returns>True if at least one applicable generation rule exists; otherwise, false.</returns>
     [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Gen. Rule", 'R', InherentPermissionsScope::Permissions)]
     local procedure HasWhseMovementRegisterGenRule(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"): Boolean
     begin
@@ -49,6 +59,12 @@ codeunit 20438 "Qlty. Warehouse Integration"
         exit(not QltyInspectionGenRule.IsEmpty());
     end;
 
+    /// <summary>
+    /// Attempts to create inspections for a warehouse movement entry and its tracking details.
+    /// </summary>
+    /// <param name="WarehouseEntry">The registered warehouse entry.</param>
+    /// <param name="WarehouseJournalLine">The warehouse journal line that produced the entry.</param>
+    /// <param name="QltyInspectionGenRule">The filtered generation rules to apply.</param>
     local procedure AttemptCreateInspectionWithWhseJournalLine(var WarehouseEntry: Record "Warehouse Entry"; var WarehouseJournalLine: Record "Warehouse Journal Line"; var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
     var
         QltyInspectionHeader: Record "Qlty. Inspection Header";
@@ -98,6 +114,12 @@ codeunit 20438 "Qlty. Warehouse Integration"
         OnAfterWarehouseAttemptCreateInspectionWithWhseJournalLine(HasInspection, QltyInspectionHeader, WarehouseEntry, WarehouseJournalLine, DoNotSendSourceVariant);
     end;
 
+    /// <summary>
+    /// Resolves the purchase, sales, or transfer line referenced by a warehouse journal line.
+    /// </summary>
+    /// <param name="WarehouseJournalLine">The warehouse journal line whose source is resolved.</param>
+    /// <param name="OptionalSourceRecordVariant">The resolved source line.</param>
+    /// <returns>True if a supported source line was found; otherwise, false.</returns>
     internal procedure GetOptionalSourceVariantForWarehouseJournalLine(var WarehouseJournalLine: Record "Warehouse Journal Line"; var OptionalSourceRecordVariant: Variant) Result: Boolean
     var
         PurchaseLine: Record "Purchase Line";
@@ -128,6 +150,11 @@ codeunit 20438 "Qlty. Warehouse Integration"
         end;
     end;
 
+    /// <summary>
+    /// Collects nonzero reservation tracking details for a supported source line.
+    /// </summary>
+    /// <param name="OptionalSourceLineVariant">The purchase, sales, or transfer line from which to collect reservations.</param>
+    /// <param name="TempTrackingSpecification">The temporary tracking specification populated from matching reservations.</param>
     internal procedure CollectSourceItemTracking(var OptionalSourceLineVariant: Variant; var TempTrackingSpecification: Record "Tracking Specification" temporary)
     var
         ReservationEntry: Record "Reservation Entry";
@@ -170,36 +197,36 @@ codeunit 20438 "Qlty. Warehouse Integration"
     end;
 
     /// <summary>
-    /// This occurs before an inspection is about to be created with a warehouse entry.
+    /// Notifies subscribers before inspections are created for a warehouse movement entry.
     /// </summary>
-    /// <param name="WarehouseEntry"></param>
-    /// <param name="WarehouseJournalLine"></param>
-    /// <param name="IsHandled"></param>
+    /// <param name="WarehouseEntry">The registered warehouse entry.</param>
+    /// <param name="WarehouseJournalLine">The warehouse journal line that produced the entry.</param>
+    /// <param name="IsHandled">Set to true to skip the default inspection creation.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeWarehouseAttemptCreateInspectionWithWhseJournalLine(var WarehouseEntry: Record "Warehouse Entry"; var WarehouseJournalLine: Record "Warehouse Journal Line"; var IsHandled: Boolean)
     begin
     end;
 
     /// <summary>
-    /// This occurs after an inspection has been created for a warehouse entry.
+    /// Notifies subscribers after inspection creation is attempted for a warehouse movement entry.
     /// </summary>
-    /// <param name="HasInspection"></param>
-    /// <param name="QltyInspectionHeader"></param>
-    /// <param name="WarehouseEntry"></param>
-    /// <param name="WarehouseJournalLine"></param>
-    /// <param name="OptionalSourceVariant"></param>
+    /// <param name="HasInspection">Indicates whether an inspection was created or resolved.</param>
+    /// <param name="QltyInspectionHeader">The last inspection created or resolved.</param>
+    /// <param name="WarehouseEntry">The registered warehouse entry.</param>
+    /// <param name="WarehouseJournalLine">The warehouse journal line that produced the entry.</param>
+    /// <param name="OptionalSourceVariant">The source line resolved from the warehouse journal line.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterWarehouseAttemptCreateInspectionWithWhseJournalLine(var HasInspection: Boolean; var QltyInspectionHeader: Record "Qlty. Inspection Header"; var WarehouseEntry: Record "Warehouse Entry"; var WarehouseJournalLine: Record "Warehouse Journal Line"; OptionalSourceVariant: Variant)
     begin
     end;
 
     /// <summary>
-    /// Use this to provide alternate source variants for a given warehouse journal line.
+    /// Notifies subscribers before resolving the source line for a warehouse journal line.
     /// </summary>
-    /// <param name="WarehouseJournalLine"></param>
-    /// <param name="OptionalSourceRecordVariant"></param>
-    /// <param name="Result"></param>
-    /// <param name="IsHandled"></param>
+    /// <param name="WarehouseJournalLine">The warehouse journal line whose source is resolved.</param>
+    /// <param name="OptionalSourceRecordVariant">The source line supplied by the subscriber.</param>
+    /// <param name="Result">Indicates whether a source line was resolved.</param>
+    /// <param name="IsHandled">Set to true to skip the default source resolution.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetOptionalSourceVariantForWarehouseJournalLine(var WarehouseJournalLine: Record "Warehouse Journal Line"; var OptionalSourceRecordVariant: Variant; var Result: Boolean; var IsHandled: Boolean)
     begin

@@ -56,7 +56,7 @@ codeunit 6983 "Create Expense Report"
         else
             Error('');
 
-        ExpenseReportHeader := GetExpenseReportHeader(ExpenseReportNo, Expense."Expense User No.", Expense."Currency Code", Expense."VAT Bus. Posting Group");
+        ExpenseReportHeader := GetExpenseReportHeader(ExpenseReportNo, Expense."Expense User No.", Expense."VAT Bus. Posting Group");
         LoopThruExpenseToAddInReport(Expense, ExpenseReportHeader);
         ShowExpenseReport(ExpenseReportHeader, ExpenseReportNo <> '');
     end;
@@ -81,7 +81,7 @@ codeunit 6983 "Create Expense Report"
         Page.Run(Page::"Expense Report", ExpenseReportHeader);
     end;
 
-    local procedure GetExpenseReportHeader(ExpenseReportNo: Code[20]; ExpenseUserNo: Code[20]; CurrencyCode: Code[10]; VATBusPostingGroup: Code[20]): Record "Expense Report Header"
+    local procedure GetExpenseReportHeader(ExpenseReportNo: Code[20]; ExpenseUserNo: Code[20]; VATBusPostingGroup: Code[20]): Record "Expense Report Header"
     var
         ExpenseReportHeader: Record "Expense Report Header";
     begin
@@ -90,7 +90,6 @@ codeunit 6983 "Create Expense Report"
 
         ExpenseReportHeader.Init();
         ExpenseReportHeader.Validate("Expense User No.", ExpenseUserNo);
-        ExpenseReportHeader.Validate("Reimbursement Currency Code", CurrencyCode);
         ExpenseReportHeader.Validate("VAT Bus. Posting Group", VATBusPostingGroup);
         ExpenseReportHeader.Insert(true);
 
@@ -177,7 +176,7 @@ codeunit 6983 "Create Expense Report"
         ExpenseReportLine.Validate("Expense User No.", Expense."Expense User No.");
         ExpenseReportLine.Validate("Expense Category", Expense."Expense Category");
         ExpenseReportLine.Validate("Expense Subcategory Code", Expense."Expense Subcategory");
-        ExpenseReportLine.Validate("Expense Location", Expense."Expense Location");
+        ExpenseReportLine.Validate("Expense Location", CopyStr(Expense."Expense Location", 1, 20));
         if Expense.Description <> '' then
             ExpenseReportLine.Validate(Description, Expense.Description);
         if ExpenseReportLine."Expense Subcategory Code" <> '' then
@@ -198,6 +197,7 @@ codeunit 6983 "Create Expense Report"
         ExpenseReportLine.Validate("Ending Date and Time", Expense."Ending Date and Time");
         ExpenseReportLine.Validate(Mileage, Expense.Mileage);
         ExpenseReportLine.Validate("Round Trip", Expense."Round Trip");
+        ExpenseReportLine.Validate("Vehicle Type", Expense."Vehicle Type");
         ExpenseReportLine."Starting Point" := Expense."Starting Point";
         ExpenseReportLine."Ending Point" := Expense."Ending Point";
         ExpenseReportLine."Credit Card Feed No." := Expense."Credit Card Feed No.";
@@ -327,6 +327,8 @@ codeunit 6983 "Create Expense Report"
             ExpenseReportLineVATSpec."VAT Amount" := ExpenseVATSpec."VAT Amount";
             ExpenseReportLineVATSpec.Amount := ExpenseVATSpec.Amount;
             ExpenseReportLineVATSpec."VAT Difference" := ExpenseVATSpec."VAT Difference";
+            ExpenseReportLineVATSpec."Currency Code" := Expense."Currency Code";
+            ExpenseReportLineVATSpec."Currency Factor" := Expense."Currency Factor";
             ExpenseReportLineVATSpec."VAT Bus. Posting Group" := ExpenseVATSpec."VAT Bus. Posting Group";
             ExpenseReportLineVATSpec."VAT Prod. Posting Group" := ExpenseVATSpec."VAT Prod. Posting Group";
             ExpenseReportLineVATSpec."VAT Amount (LCY)" := ExpenseVATSpec."VAT Amount (LCY)";
@@ -340,6 +342,7 @@ codeunit 6983 "Create Expense Report"
             else
                 if ExpenseCategory.Get(ExpenseVATSpec."Expense Category") then
                     ExpenseReportLineVATSpec.Validate("Reclaim %", ExpenseCategory."Default VAT Reclaim %");
+            ExpenseReportLineVATSpec.UpdateReimbursementAmounts();
             ExpenseReportLineVATSpec.Insert();
         until ExpenseVATSpec.Next() = 0;
 

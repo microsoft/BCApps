@@ -81,9 +81,9 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// Gets the available records for any given table field.
     /// This will evaluate expressions!
     /// </summary>
-    /// <param name="QltyTest"></param>
+    /// <param name="QltyTest">The quality test that defines the lookup table, field, and filter.</param>
     /// <param name="OptionalContextQltyInspectionHeader">Optional. Leave empty if you do not want search/replace fields. Supply an inspection context if you want the lookup table filter to have square bracket [FIELDNAME] replacements </param>
-    /// <param name="TempBufferQltyTestLookupValue"></param>
+    /// <param name="TempBufferQltyTestLookupValue">The temporary buffer to populate with available lookup values.</param>
     internal procedure GetRecordsForTableField(var QltyTest: Record "Qlty. Test"; var OptionalContextQltyInspectionHeader: Record "Qlty. Inspection Header"; var TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary)
     var
         TempDummyQltyInspectionLine: Record "Qlty. Inspection Line" temporary;
@@ -172,13 +172,13 @@ codeunit 20599 "Qlty. Misc Helpers"
     /// Populates Code with the code version of that key
     /// Populates Description with the visible portion of that key.
     /// </summary>
-    /// <param name="CurrentTable"></param>
-    /// <param name="ChoiceField"></param>
-    /// <param name="DescriptionField"></param>
-    /// <param name="TableFilter"></param>
-    /// <param name="MaxCountRecords"></param>
-    /// <param name="TempBufferQltyTestLookupValue"></param>
-    /// <param name="CSVSimpleText"></param>
+    /// <param name="CurrentTable">The number of the table from which to read values.</param>
+    /// <param name="ChoiceField">The field number containing the lookup value.</param>
+    /// <param name="DescriptionField">The field number containing the lookup description, or zero to use the choice field.</param>
+    /// <param name="TableFilter">The view to apply to the source table.</param>
+    /// <param name="MaxCountRecords">The maximum number of distinct values to add.</param>
+    /// <param name="TempBufferQltyTestLookupValue">The temporary buffer to populate with lookup values.</param>
+    /// <param name="CSVSimpleText">The comma-separated lookup values to populate.</param>
     local procedure GetRecordsForTableField(CurrentTable: Integer; ChoiceField: Integer; DescriptionField: Integer; TableFilter: Text; MaxCountRecords: Integer; var TempBufferQltyTestLookupValue: Record "Qlty. Test Lookup Value" temporary; var CSVSimpleText: Text)
     var
         QltyConfigurationHelpers: Codeunit "Qlty. Configuration Helpers";
@@ -240,11 +240,20 @@ codeunit 20599 "Qlty. Misc Helpers"
         RecordRefToFetch.Close();
     end;
 
+    /// <summary>
+    /// Gets the maximum number of records inspected while collecting lookup values.
+    /// </summary>
+    /// <returns>The record fetch limit.</returns>
     local procedure MaxRecordsFetchLimit(): Integer
     begin
         exit(1000);
     end;
 
+    /// <summary>
+    /// Determines whether text can be evaluated as a decimal value.
+    /// </summary>
+    /// <param name="Input">The text to evaluate.</param>
+    /// <returns>True if the text can be evaluated as a decimal; otherwise, false.</returns>
     internal procedure IsNumericText(Input: Text): Boolean
     var
         TestNumber: Decimal;
@@ -412,6 +421,11 @@ codeunit 20599 "Qlty. Misc Helpers"
         ResultText := Format(FieldRefToRead.Value(), 0, FormatNumber);
     end;
 
+    /// <summary>
+    /// Gets a user name from a user security identifier when user data is readable.
+    /// </summary>
+    /// <param name="UserSecurityID">The user security identifier to find.</param>
+    /// <returns>The user name, or an empty value when the user cannot be read or found.</returns>
     internal procedure GetUserNameByUserSecurityID(UserSecurityID: Guid): Code[50]
     var
         User: Record "User";
@@ -427,6 +441,12 @@ codeunit 20599 "Qlty. Misc Helpers"
         exit(User."User Name");
     end;
 
+    /// <summary>
+    /// Extracts a valid record reference from a variant.
+    /// </summary>
+    /// <param name="CurrentVariant">The variant containing the record value.</param>
+    /// <param name="RecordRef">The extracted record reference.</param>
+    /// <returns>True if a nonzero record reference was extracted; otherwise, false.</returns>
     internal procedure GetRecordRefFromVariant(CurrentVariant: Variant; var RecordRef: RecordRef): Boolean
     var
         DataTypeManagement: Codeunit "Data Type Management";

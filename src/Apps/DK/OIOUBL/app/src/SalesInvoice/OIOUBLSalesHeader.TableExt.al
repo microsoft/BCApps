@@ -44,7 +44,9 @@ tableextension 13646 "OIOUBL-Sales Header" extends "Sales Header"
             Caption = 'Profile Code';
             TableRelation = "OIOUBL-Profile";
         }
+#pragma warning disable AL0468 // Accepted: renaming the table field would be a breaking change.
         field(13635; "OIOUBL-Sell-to Contact Phone No."; Text[30])
+#pragma warning restore AL0468
         {
             Caption = 'Sell-to Contact Phone No.';
             ExtendedDatatype = PhoneNo;

@@ -9,7 +9,7 @@ using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 
-codeunit 99001540 "Subc. TransOrderPostRcpt Ext"
+codeunit 20540 "Subc. TransOrderPostRcpt Ext"
 {
 #if not CLEAN29
     var

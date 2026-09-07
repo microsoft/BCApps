@@ -103,6 +103,7 @@ permissionset 6100 "E-Doc. Core - Objects"
         codeunit "E-Doc. PO Copilot Matching" = X,
 #endif
         codeunit "E-Doc. Attachment Processor" = X,
+        codeunit "E-Doc. Hist. Line Data Loader" = X,
         codeunit "E-Doc. Message Mgt." = X,
         codeunit "Service Participant" = X,
         page "E-Doc. Changes Part" = X,
@@ -134,6 +135,7 @@ permissionset 6100 "E-Doc. Core - Objects"
         page "Service Participants" = X,
         page "E-Doc. Create Purch Order Line" = X,
         page "E-Doc. Purchase Draft Subform" = X,
+        page "E-Doc. Historical Lines List" = X,
         page "E-Doc. Read. Purch. Lines" = X,
         page "E-Doc. Readable Purchase Doc." = X,
         page "E-Document Purchase Draft" = X,
@@ -169,6 +171,7 @@ permissionset 6100 "E-Doc. Core - Objects"
         codeunit "E-Doc. Sales Providers" = X,
         codeunit "E-Doc. Create Sales Order" = X,
         codeunit "E-Doc. Sales Doc. Helper" = X,
+        codeunit "E-Doc. Item Charge Mapping" = X,
         codeunit "Receive Documents" = X,
         codeunit ReceiveContext = X,
         codeunit "Send Runner" = X,

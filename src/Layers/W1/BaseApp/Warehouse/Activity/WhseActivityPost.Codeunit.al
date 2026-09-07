@@ -282,7 +282,14 @@ codeunit 7324 "Whse.-Activity-Post"
     end;
 
     local procedure CheckWarehouseActivityLine(var WarehouseActivityLine: Record "Warehouse Activity Line"; WarehouseActivityHeader: Record "Warehouse Activity Header"; Location: Record Location)
+    var
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeCheckWarehouseActivityLine(WarehouseActivityLine, WarehouseActivityHeader, Location, IsHandled);
+        if IsHandled then
+            exit;
+
         WarehouseActivityLine.TestField("Item No.");
         if Location."Bin Mandatory" then begin
             WarehouseActivityLine.TestField("Unit of Measure Code");
@@ -1114,6 +1121,7 @@ codeunit 7324 "Whse.-Activity-Post"
     var
         PostedInvtPutAwayLine: Record "Posted Invt. Put-away Line";
         PostedInvtPickLine: Record "Posted Invt. Pick Line";
+        IsHandled: Boolean;
     begin
         if WhseActivHeader.Type = WhseActivHeader.Type::"Invt. Put-away" then begin
             PostedInvtPutAwayLine.Init();
@@ -1126,7 +1134,10 @@ codeunit 7324 "Whse.-Activity-Post"
             PostedInvtPickLine.Init();
             PostedInvtPickLine.TransferFields(WhseActivLine);
             PostedInvtPickLine."No." := PostedInvtPickHeader."No.";
-            PostedInvtPickLine.Validate(Quantity, WhseActivLine."Qty. to Handle");
+            IsHandled := false;
+            OnBeforePostedInvtPickLineValidateQuantity(PostedInvtPickLine, WhseActivLine, IsHandled);
+            if not IsHandled then
+                PostedInvtPickLine.Validate(Quantity, WhseActivLine."Qty. to Handle");
             OnBeforePostedInvtPickLineInsert(PostedInvtPickLine, WhseActivLine);
             PostedInvtPickLine.Insert();
         end;
@@ -1503,6 +1514,11 @@ codeunit 7324 "Whse.-Activity-Post"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckWarehouseActivityLine(var WarehouseActivityLine: Record "Warehouse Activity Line"; WarehouseActivityHeader: Record "Warehouse Activity Header"; Location: Record Location; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnAfterInitSourceDocument(var WhseActivityHeader: Record "Warehouse Activity Header")
     begin
     end;
@@ -1557,6 +1573,11 @@ codeunit 7324 "Whse.-Activity-Post"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostWhseActivityLine(WhseActivHeader: Record "Warehouse Activity Header"; var WhseActivLine: Record "Warehouse Activity Line"; PostedSourceNo: Code[20]; PostedSourceType: Integer; PostedSourceSubType: Integer)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforePostedInvtPickLineValidateQuantity(var PostedInvtPickLine: Record "Posted Invt. Pick Line"; WarehouseActivityLine: Record "Warehouse Activity Line"; var IsHandled: Boolean)
     begin
     end;
 

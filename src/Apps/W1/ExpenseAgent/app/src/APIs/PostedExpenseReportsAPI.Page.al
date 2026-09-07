@@ -149,11 +149,11 @@ page 6957 "Posted Expense Reports API"
                 }
                 field(spendRequestNo; Rec."Spend Request No.")
                 {
-                    Caption = 'Spend Request No.';
+                    Caption = 'Travel Request No.';
                 }
                 field(spendRequestClose; Rec."Spend Request Close")
                 {
-                    Caption = 'Spend Request Close';
+                    Caption = 'Travel Request Close';
                 }
                 part(postedExpenseReportLines; "Posted Exp. Report Lines API")
                 {
@@ -161,6 +161,14 @@ page 6957 "Posted Expense Reports API"
                     EntityName = 'postedExpenseReportLine';
                     EntitySetName = 'postedExpenseReportLines';
                     SubPageLink = "Document No." = field("No.");
+                }
+                part(activityLogEntries; "Expense Activity Log API")
+                {
+                    Caption = 'Activity Log Entries';
+                    EntityName = 'expenseActivityLogEntry';
+                    EntitySetName = 'expenseActivityLogEntries';
+                    SubPageLink = "Source Table ID" = const(Database::"Posted Expense Report Header"),
+                                  "Source Record System ID" = field(SystemId);
                 }
             }
         }

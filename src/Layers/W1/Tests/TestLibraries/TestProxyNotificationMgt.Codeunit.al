@@ -69,7 +69,9 @@ codeunit 130231 "Test Proxy Notification Mgt."
             RemoveIgnoringNotifications();
             IsSuccess := not HasNotificationContextEntries();
             if not IsSuccess then
+                #pragma warning disable AS0058, PTE0007 // Accepted violation: this is a test library helper that intentionally wraps asserterror for use by test codeunits.
                 asserterror Error(NotificationErr, GetFirstRecordIDText());
+                #pragma warning restore AS0058, PTE0007
         end;
     end;
 

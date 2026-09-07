@@ -494,6 +494,9 @@ page 20405 "Qlty. Inspection Gen. Rules"
         UpdateControls();
     end;
 
+    /// <summary>
+    /// Updates row-specific trigger visibility, editability, styles, and setup guide actions from the rule intent.
+    /// </summary>
     local procedure UpdateControls()
     var
         KnownOrInferredIntent: Enum "Qlty. Gen. Rule Intent";
@@ -576,6 +579,9 @@ page 20405 "Qlty. Inspection Gen. Rules"
         end;
     end;
 
+    /// <summary>
+    /// Resets row-specific setup guide, trigger edit, and style state to subordinate defaults.
+    /// </summary>
     local procedure ClearRowSpecificVisibleAndEditFlags()
     begin
         ShowEditReceivingRuleSetupGuide := false;
@@ -599,17 +605,27 @@ page 20405 "Qlty. Inspection Gen. Rules"
         TransferStyle := Format(RowStyle::Subordinate);
     end;
 
+    /// <summary>
+    /// Resolves the template filter and determines whether sort and template columns are shown.
+    /// </summary>
     local procedure IdentifyIfPageStartedWithATemplate()
     begin
         TemplateCode := Rec.GetTemplateCodeFromRecordOrFilter(true);
         ShowSortAndTemplate := (TemplateCode = '');
     end;
 
+    /// <summary>
+    /// Builds the page caption for all generation rules or the filtered template.
+    /// </summary>
+    /// <returns>The generation rules page caption.</returns>
     local procedure GetDataCaptionExpression(): Text
     begin
         exit((TemplateCode = '') ? GenerationRulesCaptionLbl : StrSubstNo(GenerationRulesCaptionForTemplateLbl, TemplateCode));
     end;
 
+    /// <summary>
+    /// Shows trigger columns required by visible rule intents or enabled setup triggers.
+    /// </summary>
     local procedure SetTriggerColumnVisibleState()
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
@@ -682,6 +698,9 @@ page 20405 "Qlty. Inspection Gen. Rules"
             ShowWarehouseMovementTrigger := true;
     end;
 
+    /// <summary>
+    /// Infers and persists intent and default triggers for rules whose intent is unknown when write access is available.
+    /// </summary>
     local procedure AttemptUpdateUnknownIntents()
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";

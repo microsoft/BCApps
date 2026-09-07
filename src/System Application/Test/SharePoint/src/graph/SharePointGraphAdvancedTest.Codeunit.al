@@ -611,23 +611,23 @@ codeunit 132985 "SharePoint Graph Advanced Test"
     [Test]
     procedure TestCopyItemByPath()
     var
-        HttpContent: Codeunit "Http Content";
-        MockHttpContent: Codeunit "Http Content";
-        MockHttpResponseMessage: Codeunit "Http Response Message";
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
     begin
-        // [GIVEN] Mock response for CopyItemByPath
-        Initialize();
-        MockHttpResponseMessage.SetHttpStatusCode(202);
-        MockHttpContent := HttpContent.Create('');
-        MockHttpResponseMessage.SetContent(MockHttpContent);
-        SharePointGraphTestLibrary.SetMockResponse(MockHttpResponseMessage);
+        // [GIVEN] Multi-response handler: GET (resolve target folder) + GET (resolve source item) + POST (copy)
+        InitializeMultiResponse();
+        SharePointGraphTestLibrary.AddMockResponse(200, GetDriveItemResponse());
+        SharePointGraphTestLibrary.AddMockResponse(200, GetDriveItemResponse());
+        SharePointGraphTestLibrary.AddMockResponse(202, '');
 
         // [WHEN] Calling CopyItemByPath
         SharePointGraphResponse := SharePointGraphClient.CopyItemByPath('Documents/Original.txt', 'Documents/Archive', 'CopiedFile.txt');
 
-        // [THEN] Operation should succeed
+        // [THEN] Operation should succeed with 3 HTTP requests (resolve target, resolve source, POST copy)
         LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'CopyItemByPath should succeed');
+        LibraryAssert.AreEqual(3, SharePointGraphTestLibrary.GetMockRequestCount(), 'Should have made 3 HTTP requests');
+        LibraryAssert.AreEqual('GET', SharePointGraphTestLibrary.GetMockHttpRequestMethod(1), 'First request should be GET (resolve target folder)');
+        LibraryAssert.AreEqual('GET', SharePointGraphTestLibrary.GetMockHttpRequestMethod(2), 'Second request should be GET (resolve source item)');
+        LibraryAssert.AreEqual('POST', SharePointGraphTestLibrary.GetMockHttpRequestMethod(3), 'Third request should be POST (copy action)');
     end;
 
     [Test]
@@ -672,6 +672,330 @@ codeunit 132985 "SharePoint Graph Advanced Test"
 
         // [THEN] Operation should succeed
         LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'MoveItemByPath should succeed');
+    end;
+
+    [Test]
+    procedure TestMoveItemByPath_MultiResponse()
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+    begin
+        // [GIVEN] Multi-response handler with queued responses for MoveItemByPath (resolve source item, resolve target folder, PATCH move)
+        InitializeMultiResponse();
+        SharePointGraphTestLibrary.AddMockResponse(200, GetDriveItemResponse());
+        SharePointGraphTestLibrary.AddMockResponse(200, GetDriveItemResponse());
+        SharePointGraphTestLibrary.AddMockResponse(200, GetDriveItemResponse());
+
+        // [WHEN] Calling MoveItemByPath
+        SharePointGraphResponse := SharePointGraphClient.MoveItemByPath('Documents/Original.txt', 'Documents/Archive', 'MovedFile.txt');
+
+        // [THEN] Operation should succeed with 3 HTTP requests; final should be PATCH
+        LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'MoveItemByPath should succeed');
+        LibraryAssert.AreEqual(3, SharePointGraphTestLibrary.GetMockRequestCount(), 'Should have made 3 HTTP requests');
+        LibraryAssert.AreEqual('PATCH', SharePointGraphTestLibrary.GetMockHttpRequestMethod(3), 'Third request should be PATCH (move action)');
+    end;
+
+    [Test]
+    procedure TestQueueExhausted()
+    var
+        TempDriveItem: Record "SharePoint Graph Drive Item" temporary;
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+    begin
+        // [GIVEN] Multi-response handler with one response queued
+        InitializeMultiResponse();
+        SharePointGraphTestLibrary.AddMockResponse(200, GetDriveItemResponse());
+
+        // [WHEN] First call consumes the only queued response, second call has no response
+        SharePointGraphResponse := SharePointGraphClient.GetDriveItem('01EZJNRYQYENJ6SXVPCNBYA3QZRHKJWLNZ', TempDriveItem);
+        LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'First call should succeed');
+
+        SharePointGraphResponse := SharePointGraphClient.GetDriveItem('01EZJNRYQYENJ6SXVPCNBYA3QZRHKJWLNZ', TempDriveItem);
+
+        // [THEN] Second call should fail gracefully with a diagnostic explaining the empty queue
+        LibraryAssert.IsFalse(SharePointGraphResponse.IsSuccessful(), 'Second call should fail when the queue is exhausted');
+        LibraryAssert.IsTrue(SharePointGraphResponse.GetError().Contains('No mock response queued'), 'Error should carry the mock diagnostic');
+    end;
+
+    [Test]
+    procedure TestQueuedResponsePreservesHeaders()
+    var
+        TempBlob: Codeunit "Temp Blob";
+        HttpContent: Codeunit "Http Content";
+        MockHttpContent: Codeunit "Http Content";
+        MockHttpResponseMessage: Codeunit "Http Response Message";
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        SharePointHttpDiagnostics: Interface "HTTP Diagnostics";
+        Headers: HttpHeaders;
+    begin
+        // [GIVEN] A queued 429 response with reason phrase and Retry-After header
+        InitializeMultiResponse();
+        MockHttpResponseMessage.SetHttpStatusCode(429);
+        MockHttpContent := HttpContent.Create(GetRateLimitResponse());
+        MockHttpResponseMessage.SetContent(MockHttpContent);
+        MockHttpResponseMessage.SetReasonPhrase('Too Many Requests');
+        Headers := MockHttpResponseMessage.GetHeaders();
+        Headers.Add('Retry-After', '5');
+        MockHttpResponseMessage.SetHeaders(Headers);
+        SharePointGraphTestLibrary.AddMockResponse(MockHttpResponseMessage);
+
+        // [WHEN] Calling API that is rate limited
+        SharePointGraphResponse := SharePointGraphClient.DownloadFile('01EZJNRYQYENJ6SXVPCNBYA3QZRHKJWLNZ', TempBlob);
+
+        // [THEN] Diagnostics should expose the queued response's reason phrase and Retry-After header
+        LibraryAssert.IsFalse(SharePointGraphResponse.IsSuccessful(), 'Operation should fail due to rate limiting');
+        SharePointHttpDiagnostics := SharePointGraphClient.GetDiagnostics();
+        LibraryAssert.AreEqual(429, SharePointHttpDiagnostics.GetHttpStatusCode(), 'Status code should be 429');
+        LibraryAssert.AreEqual('Too Many Requests', SharePointHttpDiagnostics.GetResponseReasonPhrase(), 'Reason phrase should match');
+        LibraryAssert.AreEqual(5, SharePointHttpDiagnostics.GetHttpRetryAfter(), 'Retry-After should be 5 seconds');
+    end;
+
+    [Test]
+    procedure TestStickyModeStillWorks()
+    var
+        TempDriveItem: Record "SharePoint Graph Drive Item" temporary;
+        HttpContent: Codeunit "Http Content";
+        MockHttpContent: Codeunit "Http Content";
+        MockHttpResponseMessage: Codeunit "Http Response Message";
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+    begin
+        // [GIVEN] Sticky (single) response set via SetMockResponse — original API with valid driveItem JSON
+        InitializeMultiResponse();
+        MockHttpResponseMessage.SetHttpStatusCode(200);
+        MockHttpContent := HttpContent.Create(GetDriveItemResponse());
+        MockHttpResponseMessage.SetContent(MockHttpContent);
+        SharePointGraphTestLibrary.SetMockResponse(MockHttpResponseMessage);
+
+        // [WHEN] Making two separate calls — sticky mode returns same response for both
+        SharePointGraphResponse := SharePointGraphClient.GetDriveItem('01EZJNRYQYENJ6SXVPCNBYA3QZRHKJWLNZ', TempDriveItem);
+        LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'First call should succeed in sticky mode');
+
+        TempDriveItem.DeleteAll();
+        SharePointGraphResponse := SharePointGraphClient.GetDriveItem('01EZJNRYQYENJ6SXVPCNBYA3QZRHKJWLNZ', TempDriveItem);
+
+        // [THEN] Both calls succeed — sticky mode returns the same response on every Send
+        LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'Second call should also succeed in sticky mode');
+        LibraryAssert.AreEqual(2, SharePointGraphTestLibrary.GetMockRequestCount(), 'Should have made 2 HTTP requests');
+    end;
+
+    [Test]
+    procedure TestUpdateDriveItem()
+    var
+        TempDriveItem: Record "SharePoint Graph Drive Item" temporary;
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        UpdateProperties: JsonObject;
+    begin
+        // [GIVEN] Mock response for UpdateDriveItem
+        InitializeMultiResponse();
+        SharePointGraphTestLibrary.AddMockResponse(200, GetUpdatedDriveItemResponse());
+
+        // [WHEN] Calling UpdateDriveItem with name and description
+        UpdateProperties.Add('name', 'RenamedReport.docx');
+        UpdateProperties.Add('description', 'Updated description');
+        SharePointGraphResponse := SharePointGraphClient.UpdateDriveItem('01EZJNRYQYENJ6SXVPCNBYA3QZRHKJWLNZ', UpdateProperties, TempDriveItem);
+
+        // [THEN] Operation should succeed and return updated item
+        LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'UpdateDriveItem should succeed');
+        LibraryAssert.AreEqual(1, SharePointGraphTestLibrary.GetMockRequestCount(), 'Should have made 1 HTTP request');
+        LibraryAssert.IsTrue(SharePointGraphTestLibrary.GetMockHttpRequestUri(1).Contains('/drive/items/01EZJNRYQYENJ6SXVPCNBYA3QZRHKJWLNZ'), 'Request URI should target the correct item');
+        LibraryAssert.AreEqual('PATCH', SharePointGraphTestLibrary.GetMockHttpRequestMethod(1), 'Request method should be PATCH');
+        LibraryAssert.AreEqual('RenamedReport.docx', TempDriveItem.Name, 'Item name should be updated');
+    end;
+
+    [Test]
+    procedure TestUpdateDriveItem_BufferReusedFromGet()
+    var
+        TempDriveItem: Record "SharePoint Graph Drive Item" temporary;
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        UpdateProperties: JsonObject;
+    begin
+        // [GIVEN] Mock responses for GetDriveItem followed by UpdateDriveItem
+        InitializeMultiResponse();
+        SharePointGraphTestLibrary.AddMockResponse(200, GetDriveItemResponse());
+        SharePointGraphTestLibrary.AddMockResponse(200, GetUpdatedDriveItemResponse());
+
+        // [WHEN] Getting an item and then updating it with the same record variable
+        SharePointGraphResponse := SharePointGraphClient.GetDriveItem('01EZJNRYQYENJ6SXVPCNBYA3QZRHKJWLNZ', TempDriveItem);
+        LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'GetDriveItem should succeed');
+
+        UpdateProperties.Add('name', 'RenamedReport.docx');
+        SharePointGraphResponse := SharePointGraphClient.UpdateDriveItem('01EZJNRYQYENJ6SXVPCNBYA3QZRHKJWLNZ', UpdateProperties, TempDriveItem);
+
+        // [THEN] Update should succeed and refresh the existing record instead of failing on a duplicate insert
+        LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'UpdateDriveItem should succeed when the record already contains the item');
+        LibraryAssert.AreEqual(1, TempDriveItem.Count(), 'Record should contain exactly one item');
+        LibraryAssert.AreEqual('RenamedReport.docx', TempDriveItem.Name, 'Item name should be updated');
+        LibraryAssert.AreEqual(2, SharePointGraphTestLibrary.GetMockRequestCount(), 'Should have made 2 requests (GET + PATCH)');
+    end;
+
+    [Test]
+    procedure TestRenameDriveItem()
+    var
+        TempDriveItem: Record "SharePoint Graph Drive Item" temporary;
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+    begin
+        // [GIVEN] Mock response for RenameDriveItem
+        InitializeMultiResponse();
+        SharePointGraphTestLibrary.AddMockResponse(200, GetUpdatedDriveItemResponse());
+
+        // [WHEN] Calling RenameDriveItem
+        SharePointGraphResponse := SharePointGraphClient.RenameDriveItem('01EZJNRYQYENJ6SXVPCNBYA3QZRHKJWLNZ', 'RenamedReport.docx', TempDriveItem);
+
+        // [THEN] Operation should succeed and request should be PATCH with name in body
+        LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'RenameDriveItem should succeed');
+        LibraryAssert.AreEqual(1, SharePointGraphTestLibrary.GetMockRequestCount(), 'Should have made 1 HTTP request');
+        LibraryAssert.IsTrue(SharePointGraphTestLibrary.GetMockHttpRequestUri(1).Contains('/drive/items/01EZJNRYQYENJ6SXVPCNBYA3QZRHKJWLNZ'), 'Request URI should target the correct item');
+        LibraryAssert.AreEqual('PATCH', SharePointGraphTestLibrary.GetMockHttpRequestMethod(1), 'Request method should be PATCH');
+        LibraryAssert.AreEqual('RenamedReport.docx', TempDriveItem.Name, 'Item name should be updated');
+    end;
+
+    [Test]
+    procedure TestRenameDriveItem_EmptyNewName()
+    var
+        TempDriveItem: Record "SharePoint Graph Drive Item" temporary;
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+    begin
+        // [GIVEN] Initialized client
+        InitializeMultiResponse();
+
+        // [WHEN] Calling RenameDriveItem with empty name
+        SharePointGraphResponse := SharePointGraphClient.RenameDriveItem('01EZJNRYQYENJ6SXVPCNBYA3QZRHKJWLNZ', '', TempDriveItem);
+
+        // [THEN] Operation should fail with validation error
+        LibraryAssert.IsFalse(SharePointGraphResponse.IsSuccessful(), 'RenameDriveItem should fail with empty name');
+    end;
+
+    [Test]
+    procedure TestUpdateDriveItemByPath()
+    var
+        TempDriveItem: Record "SharePoint Graph Drive Item" temporary;
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        UpdateProperties: JsonObject;
+    begin
+        // [GIVEN] Mock response for the path-addressed PATCH
+        InitializeMultiResponse();
+        SharePointGraphTestLibrary.AddMockResponse(200, GetUpdatedDriveItemResponse());
+
+        // [WHEN] Calling UpdateDriveItemByPath
+        UpdateProperties.Add('name', 'RenamedReport.docx');
+        SharePointGraphResponse := SharePointGraphClient.UpdateDriveItemByPath('Documents/Report.docx', UpdateProperties, TempDriveItem);
+
+        // [THEN] Operation should succeed with a single PATCH on the path-addressed endpoint
+        LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'UpdateDriveItemByPath should succeed');
+        LibraryAssert.AreEqual(1, SharePointGraphTestLibrary.GetMockRequestCount(), 'Should have made 1 HTTP request');
+        LibraryAssert.AreEqual('PATCH', SharePointGraphTestLibrary.GetMockHttpRequestMethod(1), 'Request method should be PATCH');
+        LibraryAssert.IsTrue(SharePointGraphTestLibrary.GetMockHttpRequestUri(1).Contains('/drive/root:/Documents/Report.docx'), 'Request URI should address the item by path');
+        LibraryAssert.AreEqual('RenamedReport.docx', TempDriveItem.Name, 'Item name should be updated');
+    end;
+
+    [Test]
+    procedure TestRenameDriveItemByPath()
+    var
+        TempDriveItem: Record "SharePoint Graph Drive Item" temporary;
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+    begin
+        // [GIVEN] Mock response for the path-addressed PATCH
+        InitializeMultiResponse();
+        SharePointGraphTestLibrary.AddMockResponse(200, GetUpdatedDriveItemResponse());
+
+        // [WHEN] Calling RenameDriveItemByPath
+        SharePointGraphResponse := SharePointGraphClient.RenameDriveItemByPath('Documents/Report.docx', 'RenamedReport.docx', TempDriveItem);
+
+        // [THEN] Operation should succeed with a single PATCH on the path-addressed endpoint
+        LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'RenameDriveItemByPath should succeed');
+        LibraryAssert.AreEqual(1, SharePointGraphTestLibrary.GetMockRequestCount(), 'Should have made 1 HTTP request');
+        LibraryAssert.AreEqual('PATCH', SharePointGraphTestLibrary.GetMockHttpRequestMethod(1), 'Request method should be PATCH');
+        LibraryAssert.IsTrue(SharePointGraphTestLibrary.GetMockHttpRequestUri(1).Contains('/drive/root:/Documents/Report.docx'), 'Request URI should address the item by path');
+        LibraryAssert.AreEqual('RenamedReport.docx', TempDriveItem.Name, 'Item name should be updated');
+    end;
+
+    [Test]
+    procedure TestUpdateDriveItem_EmptyItemId()
+    var
+        TempDriveItem: Record "SharePoint Graph Drive Item" temporary;
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        UpdateProperties: JsonObject;
+    begin
+        // [GIVEN] Initialized client
+        InitializeMultiResponse();
+
+        // [WHEN] Calling UpdateDriveItem with empty item ID
+        UpdateProperties.Add('name', 'NewName.docx');
+        SharePointGraphResponse := SharePointGraphClient.UpdateDriveItem('', UpdateProperties, TempDriveItem);
+
+        // [THEN] Operation should fail with validation error
+        LibraryAssert.IsFalse(SharePointGraphResponse.IsSuccessful(), 'UpdateDriveItem should fail with empty item ID');
+    end;
+
+    [Test]
+    procedure TestUpdateDriveItem_EmptyBody()
+    var
+        TempDriveItem: Record "SharePoint Graph Drive Item" temporary;
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        UpdateProperties: JsonObject;
+    begin
+        // [GIVEN] Initialized client
+        InitializeMultiResponse();
+
+        // [WHEN] Calling UpdateDriveItem with empty properties
+        SharePointGraphResponse := SharePointGraphClient.UpdateDriveItem('01EZJNRYQYENJ6SXVPCNBYA3QZRHKJWLNZ', UpdateProperties, TempDriveItem);
+
+        // [THEN] Operation should fail with validation error
+        LibraryAssert.IsFalse(SharePointGraphResponse.IsSuccessful(), 'UpdateDriveItem should fail with empty body');
+    end;
+
+    [Test]
+    procedure TestUpdateDriveItemByPath_EmptyPath()
+    var
+        TempDriveItem: Record "SharePoint Graph Drive Item" temporary;
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        UpdateProperties: JsonObject;
+    begin
+        // [GIVEN] Initialized client
+        InitializeMultiResponse();
+
+        // [WHEN] Calling UpdateDriveItemByPath with empty path
+        UpdateProperties.Add('name', 'NewName.docx');
+        SharePointGraphResponse := SharePointGraphClient.UpdateDriveItemByPath('', UpdateProperties, TempDriveItem);
+
+        // [THEN] Operation should fail with validation error
+        LibraryAssert.IsFalse(SharePointGraphResponse.IsSuccessful(), 'UpdateDriveItemByPath should fail with empty path');
+    end;
+
+    [Test]
+    procedure TestRenameDriveItemByPath_EmptyPath()
+    var
+        TempDriveItem: Record "SharePoint Graph Drive Item" temporary;
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+    begin
+        // [GIVEN] Initialized client
+        InitializeMultiResponse();
+
+        // [WHEN] Calling RenameDriveItemByPath with empty path
+        SharePointGraphResponse := SharePointGraphClient.RenameDriveItemByPath('', 'NewName.docx', TempDriveItem);
+
+        // [THEN] Operation should fail with validation error
+        LibraryAssert.IsFalse(SharePointGraphResponse.IsSuccessful(), 'RenameDriveItemByPath should fail with empty path');
+    end;
+
+    [Test]
+    procedure TestRenameDriveItemByPath_EmptyName()
+    var
+        TempDriveItem: Record "SharePoint Graph Drive Item" temporary;
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+    begin
+        // [GIVEN] Initialized client
+        InitializeMultiResponse();
+
+        // [WHEN] Calling RenameDriveItemByPath with empty name
+        SharePointGraphResponse := SharePointGraphClient.RenameDriveItemByPath('Documents/Report.docx', '', TempDriveItem);
+
+        // [THEN] Operation should fail with validation error
+        LibraryAssert.IsFalse(SharePointGraphResponse.IsSuccessful(), 'RenameDriveItemByPath should fail with empty name');
+    end;
+
+    local procedure InitializeMultiResponse()
+    begin
+        Initialize();
+        SharePointGraphTestLibrary.ResetMockHandler();
     end;
 
     local procedure Initialize()
@@ -961,6 +1285,29 @@ codeunit 132985 "SharePoint Graph Advanced Test"
         ResponseText.Append('      "client-request-id": "3b2d1e5f-fb1c-41a1-90e2-1fc8ae4ebede"');
         ResponseText.Append('    }');
         ResponseText.Append('  }');
+        ResponseText.Append('}');
+        exit(ResponseText.ToText());
+    end;
+
+    local procedure GetUpdatedDriveItemResponse(): Text
+    var
+        ResponseText: TextBuilder;
+    begin
+        ResponseText.Append('{');
+        ResponseText.Append('  "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#driveItems/$entity",');
+        ResponseText.Append('  "id": "01EZJNRYQYENJ6SXVPCNBYA3QZRHKJWLNZ",');
+        ResponseText.Append('  "name": "RenamedReport.docx",');
+        ResponseText.Append('  "description": "Updated description",');
+        ResponseText.Append('  "createdDateTime": "2023-05-10T14:25:37Z",');
+        ResponseText.Append('  "lastModifiedDateTime": "2023-08-01T11:15:42Z",');
+        ResponseText.Append('  "webUrl": "https://contoso.sharepoint.com/sites/test/Shared%20Documents/RenamedReport.docx",');
+        ResponseText.Append('  "file": {');
+        ResponseText.Append('    "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",');
+        ResponseText.Append('    "hashes": {');
+        ResponseText.Append('      "quickXorHash": "dF5GC7lcTJbHDrcPKJc8rJtEhCo="');
+        ResponseText.Append('    }');
+        ResponseText.Append('  },');
+        ResponseText.Append('  "size": 45321');
         ResponseText.Append('}');
         exit(ResponseText.ToText());
     end;

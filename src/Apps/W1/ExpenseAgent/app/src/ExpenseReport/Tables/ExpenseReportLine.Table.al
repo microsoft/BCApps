@@ -33,6 +33,7 @@ table 6907 "Expense Report Line"
     DataClassification = CustomerContent;
     DrillDownPageId = "Expense Report Lines";
     LookupPageId = "Expense Report Lines";
+    Permissions = TableData "Expense Policy Evaluation" = d;
     ReplicateData = false;
 
     fields
@@ -171,7 +172,7 @@ table 6907 "Expense Report Line"
 
                     if Rec."Vendor No." = '' then begin
                         if GuiAllowed then begin
-                            Rec.Modify();
+                            Rec.Modify(true);
                             Commit();
                             ExpenseBillingInformation.SetRecord(Rec);
                             ExpenseBillingInformation.RunModal();
@@ -837,6 +838,19 @@ table 6907 "Expense Report Line"
                 ApplyRule();
             end;
         }
+        field(68; "Vehicle Type"; Code[20])
+        {
+            Caption = 'Vehicle Type';
+            TableRelation = "Expense Vehicle Type";
+            ToolTip = 'Specifies the vehicle type used for this mileage expense. The mileage rate matching this vehicle type is applied, or the generic rate when no vehicle-specific rate exists.';
+
+            trigger OnValidate()
+            begin
+                TestStatusOpen();
+
+                ApplyRule();
+            end;
+        }
         field(51; "Credit Card Feed No."; Integer)
         {
             Caption = 'Credit Card Feed No.';
@@ -1039,9 +1053,9 @@ table 6907 "Expense Report Line"
         }
         field(100; "Spend Request No."; Code[20])
         {
-            Caption = 'Spend Request No.';
-            ToolTip = 'Specifies the spend request number that is associated with this expense report line.The spend request must be approved and released before it can be selected.';
-            TableRelation = "Spend Request" where(Status = const(Approved));
+            Caption = 'Travel Request No.';
+            ToolTip = 'Specifies the travel request number that is associated with this expense report line. The travel request must be approved and released before it can be selected.';
+            TableRelation = "Spend Request" where(Status = const(Approved), "Document Type" = const("Travel Request"));
 
             trigger OnValidate()
             var
@@ -1065,9 +1079,34 @@ table 6907 "Expense Report Line"
         }
         field(101; "Spend Request Close"; Boolean)
         {
-            Caption = 'Spend Request Close';
-            ToolTip = 'Specifies that the spend request will be closed when the expense report is posted.';
+            Caption = 'Travel Request Close';
+            ToolTip = 'Specifies that the travel request will be closed when the expense report is posted.';
             DataClassification = CustomerContent;
+        }
+        field(102; "Policies Evaluated At"; DateTime)
+        {
+            Caption = 'Policies Evaluated At';
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
+        field(103; "Policy Eval Version"; Integer)
+        {
+            Caption = 'Policy Eval Version';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(104; "Evaluated Policy Version"; Integer)
+        {
+            Caption = 'Evaluated Policy Version';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(105; "Has Policy Violation"; Boolean)
+        {
+            Caption = 'Has Policy Violation';
+            FieldClass = FlowField;
+            CalcFormula = exist("Expense Policy Evaluation" where("Subject System Id" = field(SystemId), "Subject Type" = const("Expense Report Line"), "Subject Version" = field("Evaluated Policy Version"), "Compliant" = const(false)));
+            Editable = false;
         }
     }
     keys
@@ -1088,18 +1127,35 @@ table 6907 "Expense Report Line"
     end;
 
     trigger OnModify()
+    var
+        StoredExpenseReportLine: Record "Expense Report Line";
+        RelevantFieldChanged: Boolean;
     begin
         UpdateExpenseUserOnModify();
+        RelevantFieldChanged := PolicyRelevantFieldChanged(StoredExpenseReportLine);
+        if not IsNullGuid(StoredExpenseReportLine.SystemId) then begin
+            "Policy Eval Version" := StoredExpenseReportLine."Policy Eval Version";
+            "Evaluated Policy Version" := StoredExpenseReportLine."Evaluated Policy Version";
+            "Policies Evaluated At" := StoredExpenseReportLine."Policies Evaluated At";
+        end;
+        if RelevantFieldChanged then
+            "Policy Eval Version" += 1;
     end;
 
     trigger OnDelete()
     var
         ExpenseReportCommentLine: Record "Expense Report Comment Line";
         ExpenseReportRuleViolation: Record "Expense Report Rule Violation";
+        ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
     begin
         DeleteAssociatedRecords();
 
         RemoveExpenseReportNoInExpense();
+
+        ExpensePolicyEvaluation.SetRange("Subject System Id", Rec.SystemId);
+        ExpensePolicyEvaluation.SetRange("Subject Type", ExpensePolicyEvaluation."Subject Type"::"Expense Report Line");
+        if not ExpensePolicyEvaluation.IsEmpty() then
+            ExpensePolicyEvaluation.DeleteAll();
 
         ExpenseReportRuleViolation.SetRange("Expense Report No.", Rec."Document No.");
         ExpenseReportRuleViolation.SetRange("Report Line No.", Rec."Line No.");
@@ -1132,12 +1188,14 @@ table 6907 "Expense Report Line"
         NonRefundableGreaterThanAmountErr: Label '%1 cannot be greater than Amount.', Comment = '%1 = Field Caption';
         NonRefundableCannotBeNegativeErr: Label '%1 cannot be in negative on Expense Report No. %2, Line No. %3.', Comment = '%1 = Field Caption, %2 = Expense Report No., %3 = Line No.';
         CannotUseVATCalcTypeErr: Label 'You cannot use VAT Calculation Type %1 in Expense Report Line Expense No. %2, Line No. %3', Comment = '%1 = VAT Calculation Type, %2 = Expense No., %3 = Line No.';
+        EvaluationSubjectVersionChangedErr: Label 'The expense report line changed after policy evaluation started. Refresh the line and evaluate it again.';
+        OutstandingPoliciesErr: Label 'Cannot mark policies evaluated: one or more applicable policies have not yet been evaluated for the current version of this expense report line. Retrieve the outstanding policies, submit a verdict for each, and try again.';
         CannotBeNegativeErr: Label '%1 must not be negative.', Comment = '%1 = Field Name';
         CannotExceedForErr: Label '%1 for %2 must not exceed %3 = %4.', Comment = '%1 = Field Name, %2 = Description, %3 = Limit Field Name, %4 = Limit Value';
         CannotExceedErr: Label '%1 must not exceed %2 = %3.', Comment = '%1 = Field Name, %2 = Limit Field Name, %3 = Limit Value';
         ExpenseReportNotFoundErr: Label 'Expense Report %1 does not exist.', Comment = '%1 = Expense Report No.';
         OnlyRelinkToAnotherReportErr: Label 'You can only relink an expense report line to another expense report.';
-        ExpenseUserNotTravelerErr: Label 'Expense User %1 is not a traveler on Spend Request %2.', Comment = '%1 = Expense User No., %2 = Spend Request No.';
+        ExpenseUserNotTravelerErr: Label 'Expense User %1 is not a traveler on Travel Request %2.', Comment = '%1 = Expense User No., %2 = Travel Request No.';
         BillableCustomerAndProjectErr: Label 'You cannot use both %1 and %2 at the same time.', Comment = '%1 = Billable to Customer field caption, %2 = Project No. field caption';
 
     internal procedure CopyFromVATPostingSetup(var VATPostingSetupFrom: Record "VAT Posting Setup")
@@ -1185,6 +1243,143 @@ table 6907 "Expense Report Line"
     procedure GetHideValidationDialog(): Boolean
     begin
         exit(HideValidationDialog);
+    end;
+
+    internal procedure GetPolicyStatus(): Enum "Expense Policy Status"
+    var
+        PoliciesToEvalBuilder: Codeunit "Exp. Policies To Eval Builder";
+        HasApplicablePoliciesResult: Boolean;
+        HasOutstandingPolicies: Boolean;
+    begin
+        // A change made after the line was evaluated always needs a recheck - even a change that
+        // removed the last applicable policy. Evaluate subject staleness before policy-set currency
+        // so that a changed line still requires evaluation against whatever policies apply now.
+        if (Rec."Policies Evaluated At" <> 0DT) and (Rec."Evaluated Policy Version" < Rec."Policy Eval Version") then
+            exit("Expense Policy Status"::Stale);
+
+        // Policy changes do not rewrite every affected line. Currency is derived lazily by comparing
+        // the currently applicable policy versions with the evaluations recorded for this subject version.
+        PoliciesToEvalBuilder.GetEvaluationState(Rec, HasApplicablePoliciesResult, HasOutstandingPolicies);
+
+        if not HasApplicablePoliciesResult then
+            exit("Expense Policy Status"::"No Policies");
+
+        if HasOutstandingPolicies then
+            if Rec."Policies Evaluated At" = 0DT then
+                exit("Expense Policy Status"::"Not Evaluated")
+            else
+                exit("Expense Policy Status"::Stale);
+
+        if Rec.HasCurrentPolicyViolation() then
+            exit("Expense Policy Status"::Flagged);
+
+        exit("Expense Policy Status"::Cleared);
+    end;
+
+    internal procedure HasCurrentPolicyViolation(): Boolean
+    var
+        ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
+    begin
+        // A line is only Flagged by a violation that still reflects the current policy set. Superseded
+        // non-compliant evaluations (policy since changed, disabled, or deleted) are kept as history but must
+        // not keep a line Flagged - any policy change bumps the policy Version, so the evaluation's captured
+        // Policy Version no longer matches and Is Current reads false. The raw "Has Policy Violation"
+        // FlowField is the cheap gate; this refines it to current non-compliant evaluations only.
+        Rec.CalcFields("Has Policy Violation");
+        if not Rec."Has Policy Violation" then
+            exit(false);
+
+        ExpensePolicyEvaluation.SetRange("Subject System Id", Rec.SystemId);
+        ExpensePolicyEvaluation.SetRange("Subject Type", ExpensePolicyEvaluation."Subject Type"::"Expense Report Line");
+        ExpensePolicyEvaluation.SetRange("Subject Version", Rec."Evaluated Policy Version");
+        ExpensePolicyEvaluation.SetRange(Compliant, false);
+        ExpensePolicyEvaluation.SetAutoCalcFields("Is Current");
+        if ExpensePolicyEvaluation.FindSet() then
+            repeat
+                if ExpensePolicyEvaluation."Is Current" then
+                    exit(true);
+            until ExpensePolicyEvaluation.Next() = 0;
+        exit(false);
+    end;
+
+    internal procedure MarkPoliciesEvaluated(EvaluatedSubjectVersion: Integer)
+    var
+        PoliciesToEvalBuilder: Codeunit "Exp. Policies To Eval Builder";
+        DocumentNo: Code[20];
+        LineNo: Integer;
+    begin
+        DocumentNo := Rec."Document No.";
+        LineNo := Rec."Line No.";
+        Rec.LockTable();
+        Rec.Get(DocumentNo, LineNo);
+        if EvaluatedSubjectVersion <> Rec."Policy Eval Version" then
+            Error(EvaluationSubjectVersionChangedErr);
+        if PoliciesToEvalBuilder.HasOutstandingPolicies(Rec) then
+            Error(OutstandingPoliciesErr);
+
+        Rec."Evaluated Policy Version" := Rec."Policy Eval Version";
+        Rec."Policies Evaluated At" := CurrentDateTime();
+        // Bypass OnModify because it restores policy fields from the stored row for normal, potentially stale callers.
+        Rec.Modify(false);
+    end;
+
+    internal procedure InvalidatePolicyEvaluation()
+    begin
+        // Every policy-relevant change gets a distinct version, including changes made before the
+        // first evaluation or while the line is already stale. Evaluators can therefore detect any
+        // change that happened after they captured their subject version.
+        Rec."Policy Eval Version" += 1;
+        // Bypass OnModify because it restores policy fields from the stored row for normal, potentially stale callers.
+        Rec.Modify(false);
+    end;
+
+    local procedure PolicyRelevantFieldChanged(var StoredExpenseReportLine: Record "Expense Report Line"): Boolean
+    var
+        RecRef: RecordRef;
+        xRecRef: RecordRef;
+        FieldRef: FieldRef;
+        xFieldRef: FieldRef;
+        Index: Integer;
+    begin
+        // Compare against the committed pre-modify image read straight from the database.
+        // xRec is unreliable here - even passed explicitly from the trigger it has been
+        // observed to compare equal to Rec at runtime - so the before-image is fetched by
+        // primary key instead (OnModify runs before the row is written, so this Get returns
+        // the old values). If no stored row is found, conservatively treat it as changed.
+        if not StoredExpenseReportLine.Get(Rec."Document No.", Rec."Line No.") then
+            exit(true);
+        RecRef.GetTable(Rec);
+        xRecRef.GetTable(StoredExpenseReportLine);
+        for Index := 1 to RecRef.FieldCount() do begin
+            FieldRef := RecRef.FieldIndex(Index);
+            if (FieldRef.Class = FieldClass::Normal) and (FieldRef.Number < 2000000000) then
+                if not IsPolicyNeutralField(FieldRef.Number) then begin
+                    xFieldRef := xRecRef.Field(FieldRef.Number);
+                    if FieldRef.Value() <> xFieldRef.Value() then
+                        exit(true);
+                end;
+        end;
+        exit(false);
+    end;
+
+    local procedure IsPolicyNeutralField(FieldNo: Integer): Boolean
+    begin
+        // Fields whose change must NOT invalidate a policy evaluation: workflow/linkage
+        // state, the audit stamp written on every modify, and the policy machinery itself.
+        case FieldNo of
+            Rec.FieldNo("Document No."),
+            Rec.FieldNo("Line No."),
+            Rec.FieldNo("Expense No."),
+            Rec.FieldNo("Applied Rule Id"),
+            Rec.FieldNo("Created By Exp. User Id"),
+            Rec.FieldNo("Modified By Exp. User Id"),
+            Rec.FieldNo("User Confirmed"),
+            Rec.FieldNo("Policies Evaluated At"),
+            Rec.FieldNo("Policy Eval Version"),
+            Rec.FieldNo("Evaluated Policy Version"):
+                exit(true);
+        end;
+        exit(false);
     end;
 
     local procedure ConfirmAndDeleteAssociatedRecords(FieldCaption: Text)
@@ -1389,14 +1584,44 @@ table 6907 "Expense Report Line"
     end;
 
     procedure UpdatePostingDescription(): Text[100]
+    begin
+        exit(UpdatePostingDescription("Expense Category", "Expense Subcategory Code"));
+    end;
+
+    internal procedure UpdatePostingDescription(ExpenseCategoryCode: Code[20]; ExpenseSubcategoryCode: Code[20]): Text[100]
     var
         ExpenseSubcategory: Record "Expense Subcategory";
+        BaseDescription: Text[100];
+        PostingDescriptionSuffix: Text;
+        StoredSuffixLength: Integer;
     begin
-        if "Expense Subcategory Code" <> '' then begin
-            ExpenseSubcategory.Get("Expense Category", "Expense Subcategory Code");
-            exit(CopyStr(Description + ' - ' + ExpenseSubcategory."Posting Description", 1, 100));
+        BaseDescription := Description;
+        if ("Expense Subcategory Code" <> '') and
+           ExpenseSubcategory.Get("Expense Category", "Expense Subcategory Code") and
+           (ExpenseSubcategory."Posting Description" <> '')
+        then begin
+            PostingDescriptionSuffix := ' / ' + ExpenseSubcategory."Posting Description";
+            StoredSuffixLength := StrLen(PostingDescriptionSuffix);
+            if StoredSuffixLength > MaxStrLen(BaseDescription) then
+                StoredSuffixLength := MaxStrLen(BaseDescription);
+            while (StoredSuffixLength >= StrLen(' / ')) and
+                  (not BaseDescription.EndsWith(CopyStr(PostingDescriptionSuffix, 1, StoredSuffixLength)))
+            do
+                StoredSuffixLength -= 1;
+            if (StoredSuffixLength = StrLen(PostingDescriptionSuffix)) or
+               ((StrLen(BaseDescription) = MaxStrLen(BaseDescription)) and (StoredSuffixLength >= StrLen(' / ')))
+            then
+                BaseDescription := CopyStr(
+                    DelStr(BaseDescription, StrLen(BaseDescription) - StoredSuffixLength + 1), 1, MaxStrLen(BaseDescription));
         end;
-        exit(CopyStr(Description, 1, 100));
+
+        if (ExpenseSubcategoryCode = '') or
+           (not ExpenseSubcategory.Get(ExpenseCategoryCode, ExpenseSubcategoryCode)) or
+           (ExpenseSubcategory."Posting Description" = '')
+        then
+            exit(BaseDescription);
+
+        exit(CopyStr(BaseDescription + ' / ' + ExpenseSubcategory."Posting Description", 1, 100));
     end;
 
     local procedure InitDefaultDimensionSources(var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; FieldNo: Integer)
@@ -2017,6 +2242,9 @@ table 6907 "Expense Report Line"
         SourceLineNo := Rec."Line No.";
 
         NewLine.TransferFields(Rec, false);
+        NewLine."Policies Evaluated At" := 0DT;
+        NewLine."Policy Eval Version" := 0;
+        NewLine."Evaluated Policy Version" := 0;
         NewLine."Document No." := TargetExpenseReportNo;
         NewLine."Line No." := GetNextExpenseReportLineNo(TargetExpenseReportNo);
         NewLine."Posted Date" := TargetExpenseReportHeader."Posting Date";
@@ -2029,11 +2257,11 @@ table 6907 "Expense Report Line"
         ExpenseReport.CopyReportLineComments(SourceDocNo, SourceLineNo, NewLine."Document No.", NewLine."Line No.");
         ExpenseReport.CopyReportLineAttachments(SourceDocNo, SourceLineNo, NewLine."Document No.", NewLine."Line No.");
 
+        Rec.Delete(true);
+
         NewLine.UpdateAmounts();
         NewLine.ApplyRule(false, true);
         NewLine.Modify();
-
-        Rec.Delete(true);
 
         if NewLine."Expense No." <> '' then
             if Expense.Get(NewLine."Expense No.") then begin

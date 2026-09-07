@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Document;
 
-page 99001503 "Subc. Prod. Order Components"
+page 20503 "Subc. Prod. Order Components"
 {
     ApplicationArea = Subcontracting;
     Caption = 'Prod. Order Comp. Line List';

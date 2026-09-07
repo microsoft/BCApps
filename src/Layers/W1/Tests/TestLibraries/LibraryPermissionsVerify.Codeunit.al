@@ -101,7 +101,9 @@ codeunit 132216 "Library - Permissions Verify"
         RecordRef: RecordRef;
     begin
         RecordRef.Open(TableNo);
+        #pragma warning disable AS0058, PTE0007 // Accepted violation: this is a test library helper that intentionally wraps asserterror for use by test codeunits.
         asserterror RecordRef.FindFirst();
+        #pragma warning restore AS0058, PTE0007
         Assert.ExpectedError(StrSubstNo(MissingPermissionErr, Format(RecordRef.Caption)))
     end;
 
@@ -116,10 +118,14 @@ codeunit 132216 "Library - Permissions Verify"
     begin
         RecordRef.Init();
 
+        #pragma warning disable AS0058, PTE0007 // Accepted violation: this is a test library helper that intentionally wraps asserterror for use by test codeunits.
         asserterror RecordRef.Insert(true);
+        #pragma warning restore AS0058, PTE0007
         Assert.IsFalse(RecordRef.WritePermission, StrSubstNo(SupplementalPermissionErr, 'Insert', Format(RecordRef.Caption)));
 
+        #pragma warning disable AS0058, PTE0007 // Accepted violation: this is a test library helper that intentionally wraps asserterror for use by test codeunits.
         asserterror RecordRef.Delete(true);
+        #pragma warning restore AS0058, PTE0007
         Assert.IsFalse(RecordRef.WritePermission, StrSubstNo(SupplementalPermissionErr, 'Delete', Format(RecordRef.Caption)));
     end;
 }

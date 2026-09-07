@@ -236,12 +236,9 @@ report 20400 "Qlty. Create Inspection"
     end;
 
     /// <summary>
-    /// InitializeReportParameters can be used to specify a specific desired quality inspection template code to create the inspection from.
-    /// Use this if you're using this report to let the user decide what kind of inspection they want, and just want 
-    /// to express a preference. This will not limit them to this template, it just sets the default.
-    /// This will also fire OnAfterInitializeCreateInspectionReportParameters
+    /// Initializes the preferred inspection template and infers a compatible source configuration for the request page.
     /// </summary>
-    /// <param name="QltyInspectionTemplateCode">Code[20]. The quality inspection template code to default to.</param>
+    /// <param name="QltyInspectionTemplateCode">The inspection template code to select by default.</param>
     procedure InitializeReportParameters(QltyInspectionTemplateCode: Code[20])
     var
         TempCompatibleQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
@@ -273,6 +270,9 @@ report 20400 "Qlty. Create Inspection"
         SetRequestPageControlVisibility();
     end;
 
+    /// <summary>
+    /// Clears the selected source record and its derived filter values.
+    /// </summary>
     local procedure ClearParameters()
     begin
         Clear(TempQltyInspectionHeader);
@@ -280,12 +280,18 @@ report 20400 "Qlty. Create Inspection"
         Clear(Target);
     end;
 
+    /// <summary>
+    /// Clears the record reference and its variant container.
+    /// </summary>
     local procedure ClearVariables()
     begin
         Clear(TargetRecordRef);
         Clear(VariantForRecordRef);
     end;
 
+    /// <summary>
+    /// Makes the item-tracking and source-record controls visible on the request page.
+    /// </summary>
     local procedure SetRequestPageControlVisibility()
     begin
         VisibleLotNo := true;
@@ -294,6 +300,9 @@ report 20400 "Qlty. Create Inspection"
         VisibleGetRecord := true;
     end;
 
+    /// <summary>
+    /// Creates an inspection for the selected source record with the entered tracking and quantity values.
+    /// </summary>
     local procedure CreateQltyInspection()
     var
         TempTrackingSpecification: Record "Tracking Specification" temporary;
@@ -326,6 +335,9 @@ report 20400 "Qlty. Create Inspection"
         QltyInspectionCreate.CreateInspectionWithMultiVariantsAndTemplate(TargetRecordRef, TempTrackingSpecification, Dummy3Variant, Dummy4Variant, true, QltInspectionTemplateToCreate);
     end;
 
+    /// <summary>
+    /// Opens the configured source table lookup and derives inspection source values from the selected record.
+    /// </summary>
     local procedure AssistEditChooseRecord()
     var
         TempItemTrackingSetup: Record "Item Tracking Setup" temporary;
@@ -375,14 +387,14 @@ report 20400 "Qlty. Create Inspection"
     end;
 
     /// <summary>
-    /// Provides an opportunity to create defaults in the Create Inspection report page.
+    /// Allows subscribers to change the initial values used by the Create Inspection report.
     /// </summary>
-    /// <param name="QltyInspectionTemplateCode">var Code[20].</param>
-    /// <param name="SourceTable">var Code[20].</param>
-    /// <param name="CustomFilter">var Text.</param>
-    /// <param name="Target">var RecordId.</param>
-    /// <param name="TargetRecordRef">var RecordRef.</param>
-    /// <param name="TempQltyInspectionHeader">var Record "Qlty. Inspection Header" temporary.</param>
+    /// <param name="QltyInspectionTemplateCode">The default inspection template code.</param>
+    /// <param name="SourceTable">The default source configuration code.</param>
+    /// <param name="CustomFilter">The default custom source filter.</param>
+    /// <param name="Target">The default source record identifier.</param>
+    /// <param name="TargetRecordRef">The default source record reference.</param>
+    /// <param name="TempQltyInspectionHeader">The temporary inspection header containing default source values.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitializeCreateInspectionReportParameters(var QltyInspectionTemplateCode: Code[20]; var SourceTable: Code[20]; var CustomFilter: Text; var Target: RecordId; var TargetRecordRef: RecordRef; var TempQltyInspectionHeader: Record "Qlty. Inspection Header" temporary)
     begin

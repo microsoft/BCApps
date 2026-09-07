@@ -11,7 +11,7 @@ using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.History;
 using Microsoft.Warehouse.Request;
 
-codeunit 99001563 "Subc. WhsePostShipment Ext"
+codeunit 20563 "Subc. WhsePostShipment Ext"
 {
 #if not CLEAN29
     var

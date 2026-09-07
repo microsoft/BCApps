@@ -70,6 +70,8 @@ table 6906 "Expense Report Header"
                     Rec.Validate("Approver Expense User No.", '');
                     Rec.Validate("Approver Expense User ID", '');
                     Rec.Validate("Spend Request No.", '');
+                    Rec."Final Approver No." := GetFinalApproverNo(Rec."Expense User No.");
+                    Rec."Interim Approver No." := '';
                 end;
 
                 Rec.CreateDimFromDefaultDim(Rec.FieldNo("Expense User No."));
@@ -103,7 +105,7 @@ table 6906 "Expense Report Header"
                 UpdateCurrencyFactor();
 
                 if xRec."Posting Date" <> Rec."Posting Date" then
-                    UpdateReportLines(Rec.FieldName("Posting Date"));
+                    UpdateReportLines(Rec.FieldCaption("Posting Date"));
             end;
         }
         field(6; "Description"; Text[100])
@@ -357,7 +359,7 @@ table 6906 "Expense Report Header"
             begin
                 TestStatusOpen();
                 if xRec."VAT Bus. Posting Group" <> Rec."VAT Bus. Posting Group" then
-                    UpdateReportLines(Rec.FieldName("VAT Bus. Posting Group"));
+                    UpdateReportLines(Rec.FieldCaption("VAT Bus. Posting Group"));
             end;
         }
         field(42; "Submission DateTime"; DateTime)
@@ -424,7 +426,13 @@ table 6906 "Expense Report Header"
         {
             Caption = 'Approver Comment';
             DataClassification = CustomerContent;
-            ToolTip = 'Specifies the comment from approver when approving or rejecting an expense report.';
+            ToolTip = 'Specifies the latest comment from the approver when approving or rejecting an expense report.';
+        }
+        field(49; "Submitter Comment"; Blob)
+        {
+            Caption = 'Submitter Comment';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the latest comment from the submitter when submitting an expense report or resubmitting a rejected expense report.';
         }
         field(50; "Reimbursement Currency Factor"; Decimal)
         {
@@ -438,7 +446,7 @@ table 6906 "Expense Report Header"
             begin
                 if "Reimbursement Currency Factor" <> xRec."Reimbursement Currency Factor" then begin
                     TestStatusOpen();
-                    UpdateReportLines(Rec.FieldName("Reimbursement Currency Factor"));
+                    UpdateReportLines(Rec.FieldCaption("Reimbursement Currency Factor"));
                 end;
             end;
         }
@@ -503,11 +511,43 @@ table 6906 "Expense Report Header"
             CalcFormula = sum("Expense Report Line VAT Spec."."Reclaim VAT Amount (LCY)" where("Document No." = field("No."), "Reclaim Status" = const(Approved)));
             ToolTip = 'Specifies the total VAT amount approved for reclaim across all VAT specification lines of this expense report, in local currency.';
         }
+        field(68; "Final Approver No."; Code[20])
+        {
+            Caption = 'Final Approver No.';
+            ToolTip = 'Specifies the expense user who gives final approval. Prepopulated from the expense user''s approver.';
+            DataClassification = EndUserIdentifiableInformation;
+            Editable = false;
+            TableRelation = "Expense User"."No." where("Can Approve" = const(true));
+        }
+        field(69; "Final Approver Name"; Text[100])
+        {
+            Caption = 'Final Approver Name';
+            ToolTip = 'Specifies the name of the final approver.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = lookup("Expense User".Name where("No." = field("Final Approver No.")));
+        }
+        field(70; "Interim Approver No."; Code[20])
+        {
+            Caption = 'Interim Approver No.';
+            ToolTip = 'Specifies an optional interim approver who must approve before the final approver.';
+            DataClassification = EndUserIdentifiableInformation;
+            Editable = false;
+            TableRelation = "Expense User"."No." where("Can Approve" = const(true));
+        }
+        field(71; "Interim Approver Name"; Text[100])
+        {
+            Caption = 'Interim Approver Name';
+            ToolTip = 'Specifies the name of the interim approver.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = lookup("Expense User".Name where("No." = field("Interim Approver No.")));
+        }
         field(100; "Spend Request No."; Code[20])
         {
-            Caption = 'Spend Request No.';
-            ToolTip = 'Specifies the spend request number that is associated with this expense report.';
-            TableRelation = "Spend Request" where(Status = const(Approved));
+            Caption = 'Travel Request No.';
+            ToolTip = 'Specifies the travel request number that is associated with this expense report.';
+            TableRelation = "Spend Request" where(Status = const(Approved), "Document Type" = const("Travel Request"));
 
             trigger OnValidate()
             var
@@ -527,13 +567,13 @@ table 6906 "Expense Report Header"
                     Rec."Spend Request Close" := false;
 
                 if xRec."Spend Request No." <> Rec."Spend Request No." then
-                    UpdateReportLines(Rec.FieldName("Spend Request No."));
+                    UpdateReportLines(Rec.FieldCaption("Spend Request No."));
             end;
         }
         field(101; "Spend Request Close"; Boolean)
         {
-            Caption = 'Spend Request Close';
-            ToolTip = 'Specifies that the spend request will be closed when the expense report is posted.';
+            Caption = 'Travel Request Close';
+            ToolTip = 'Specifies that the travel request will be closed when the expense report is posted.';
             DataClassification = CustomerContent;
         }
     }
@@ -587,7 +627,9 @@ table 6906 "Expense Report Header"
     var
         ExpenseReportLine: Record "Expense Report Line";
         ExpenseReportCommentLine: Record "Expense Report Comment Line";
+        ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
     begin
+        ExpenseActivityLogMgt.DeleteEntriesForSource(Database::"Expense Report Header", Rec.SystemId);
         ExpenseReportCommentLine.DeleteComments(ExpenseReportCommentLine."Document Type"::"Expense Report", Rec."No.");
 
         ExpenseReportLine.SetRange("Document No.", Rec."No.");
@@ -607,13 +649,14 @@ table 6906 "Expense Report Header"
         DimChangeQst: Label 'You may have changed a dimension.\\Do you want to update the lines?';
         DoYouWantToKeepExistingDimensionsQst: Label 'This will change the dimension specified on the document. Do you want to recalculate/update dimensions?';
         InvalidApprovalStatusErr: Label 'Status must be Released or Rejected for Expense Report No. %1.', Comment = '%1 - Expense Report No.';
+        NotPendingApprovalErr: Label 'Status must be Pending Approval or Interim Approved for Expense Report No. %1.', Comment = '%1 - Expense Report No.';
         ExpenseUserIsConfiguredForDifferentEmployeeWhenApprovalIsEnabledErr: Label '%1 must be %2 to select this %3 %4.', Comment = '%1 = Field Caption, %2 = User Id, %3 = Table Caption, %4 = Field Value';
         ExpenseApprovalSetupNotExistErr: Label '%1 does not exist for %2 %3.', Comment = '%1 = Table Caption, %2 = Field Caption, %3 = Field Value';
         ExpenseUserSetupNotExistErr: Label '%1 does not exist for %2.', Comment = '%1 = Table Caption, %2 = Field Value';
         CanModifyLinesQst: Label 'You have modified %1 which will also update the lines.\\Do you want to continue?', Comment = '%1 = Field Caption';
         CannotChangeExpenseUserErr: Label 'You cannot change %1 in Expense Report No. %2 as there are associated lines to it.', Comment = '%1 = Field Caption, %2 = Expense Report No.';
         ExpenseUserMustBeLinkedToAnEmployeeErr: Label 'Expense User %1 must be linked to an Employee No.', Comment = '%1 - Expense User No.';
-        ExpenseUserNotTravelerErr: Label 'Expense User %1 is not a traveler on Spend Request %2.', Comment = '%1 = Expense User No., %2 = Spend Request No.';
+        ExpenseUserNotTravelerErr: Label 'Expense User %1 is not a traveler on Travel Request %2.', Comment = '%1 = Expense User No., %2 = Travel Request No.';
 
     procedure AssistEdit() Result: Boolean
     begin
@@ -658,7 +701,7 @@ table 6906 "Expense Report Header"
         end;
     end;
 
-    local procedure UpdateReportLines(CalledFromFieldName: Text)
+    local procedure UpdateReportLines(CalledFromFieldCaption: Text)
     var
         ExpenseReportLine: Record "Expense Report Line";
         ConfirmManagement: Codeunit "Confirm Management";
@@ -666,7 +709,7 @@ table 6906 "Expense Report Header"
         if not ExpenseLinesExist() then
             exit;
 
-        if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(CanModifyLinesQst, CalledFromFieldName), true) then
+        if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(CanModifyLinesQst, CalledFromFieldCaption), true) then
             Error('');
 
         ExpenseReportLine.SetRange("Document No.", "No.");
@@ -674,23 +717,44 @@ table 6906 "Expense Report Header"
             repeat
                 ExpenseReportLine.Initialize(Rec);
 
-                case CalledFromFieldName of
-                    Rec.FieldName("Reimbursement Currency Code"), Rec.FieldName("Reimbursement Currency Factor"):
+                case CalledFromFieldCaption of
+                    Rec.FieldCaption("Reimbursement Currency Code"), Rec.FieldCaption("Reimbursement Currency Factor"):
                         UpdateCurrFactorOnReportLine(ExpenseReportLine);
-                    Rec.FieldName("VAT Bus. Posting Group"):
+                    Rec.FieldCaption("VAT Bus. Posting Group"):
                         UpdateVATBusPostingGroupOnReportLine(ExpenseReportLine);
-                    Rec.FieldName("Posting Date"):
+                    Rec.FieldCaption("Posting Date"):
                         UpdatePostingDateOnReportLine(ExpenseReportLine);
-                    Rec.FieldName("Spend Request No."):
+                    Rec.FieldCaption("Spend Request No."):
                         UpdateSpendRequestOnReportLine(ExpenseReportLine);
                 end;
             until ExpenseReportLine.Next() = 0;
+
+        if CalledFromFieldCaption in [Rec.FieldCaption("Reimbursement Currency Code"), Rec.FieldCaption("Reimbursement Currency Factor"), Rec.FieldCaption("Posting Date")] then
+            UpdateVATSpecReimbursementAmounts();
+    end;
+
+    local procedure UpdateVATSpecReimbursementAmounts()
+    var
+        ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.";
+    begin
+        ExpenseReportLineVATSpec.SetRange("Document No.", "No.");
+        ExpenseReportLineVATSpec.SetLoadFields(
+            "Currency Code", "VAT Base Amount (LCY)", "VAT Amount", "VAT Amount (LCY)", "Amount (LCY)", "Reclaim %",
+            "VAT Base Amount (RCY)", "VAT Amount (RCY)", "Amount (RCY)", "Reclaim VAT Amount",
+            "Reclaim VAT Amount (LCY)", "Reclaim VAT Amount (RCY)");
+        if ExpenseReportLineVATSpec.FindSet(true) then
+            repeat
+                ExpenseReportLineVATSpec.UpdateReimbursementAmounts(Rec);
+#pragma warning disable AA0214
+                ExpenseReportLineVATSpec.Modify();
+#pragma warning restore AA0214                
+            until ExpenseReportLineVATSpec.Next() = 0;
     end;
 
     local procedure UpdateCurrFactorOnReportLine(var ExpenseReportLine: Record "Expense Report Line")
     begin
         ExpenseReportLine.UpdateAmounts();
-        ExpenseReportLine.Modify();
+        ExpenseReportLine.Modify(true);
     end;
 
     local procedure UpdateVATBusPostingGroupOnReportLine(var ExpenseReportLine: Record "Expense Report Line")
@@ -699,14 +763,14 @@ table 6906 "Expense Report Header"
             ExpenseReportLine."VAT Bus. Posting Group" := Rec."VAT Bus. Posting Group";
             ExpenseReportLine.Validate("VAT Prod. Posting Group");
             ExpenseReportLine.UpdateAmounts();
-            ExpenseReportLine.Modify();
+            ExpenseReportLine.Modify(true);
         end;
     end;
 
     local procedure UpdatePostingDateOnReportLine(var ExpenseReportLine: Record "Expense Report Line")
     begin
         ExpenseReportLine.UpdateAmounts();
-        ExpenseReportLine.Modify();
+        ExpenseReportLine.Modify(true);
     end;
 
     local procedure UpdateSpendRequestOnReportLine(var ExpenseReportLine: Record "Expense Report Line")
@@ -716,7 +780,7 @@ table 6906 "Expense Report Header"
             ExpenseReportLine.Validate("Spend Request No.", Rec."Spend Request No.");
             ExpenseReportLine."Spend Request Close" := Rec."Spend Request Close";
             ExpenseReportLine.SetSkipSpendRequestClose(false);
-            ExpenseReportLine.Modify();
+            ExpenseReportLine.Modify(true);
         end;
     end;
 
@@ -754,7 +818,7 @@ table 6906 "Expense Report Header"
                     DimMgt.UpdateGlobalDimFromDimSetID(
                       ExpenseReportLine."Dimension Set ID", ExpenseReportLine."Shortcut Dimension 1 Code", ExpenseReportLine."Shortcut Dimension 2 Code");
 
-                    ExpenseReportLine.Modify();
+                    ExpenseReportLine.Modify(true);
                 end;
             until ExpenseReportLine.Next() = 0;
     end;
@@ -836,10 +900,20 @@ table 6906 "Expense Report Header"
     /// </summary>
     /// <param name="SubmitterExpenseUserNo">The expense user number of the submitter.</param>
     procedure PerformManualReleaseAndPendingApproval(SubmitterExpenseUserNo: Code[20])
+    begin
+        PerformManualReleaseAndPendingApproval(SubmitterExpenseUserNo, '');
+    end;
+
+    /// <summary>
+    /// Releases and submits an expense report with an optional submitter comment.
+    /// </summary>
+    /// <param name="SubmitterExpenseUserNo">The expense user number of the submitter.</param>
+    /// <param name="SubmissionComment">The optional comment supplied by the submitter.</param>
+    procedure PerformManualReleaseAndPendingApproval(SubmitterExpenseUserNo: Code[20]; SubmissionComment: Text)
     var
         ReleaseExpenseReportDoc: Codeunit "Release Exp. Report Document";
     begin
-        ReleaseExpenseReportDoc.PerformManualReleaseAndPendingApproval(Rec, SubmitterExpenseUserNo);
+        ReleaseExpenseReportDoc.PerformManualReleaseAndPendingApproval(Rec, SubmitterExpenseUserNo, SubmissionComment);
     end;
 
     /// <summary>
@@ -850,13 +924,23 @@ table 6906 "Expense Report Header"
     /// </remarks>
     /// <param name="ApproverExpenseUserNo">The expense user number of the approver.</param>
     procedure PerformManualApproved(ApproverExpenseUserNo: Code[20])
+    begin
+        PerformManualApproved(ApproverExpenseUserNo, false);
+    end;
+
+    /// <summary>
+    /// Approves the expense document, optionally skipping policy validation.
+    /// </summary>
+    /// <param name="ApproverExpenseUserNo">The expense user number of the approver.</param>
+    /// <param name="SkipPolicyValidation">Specifies whether approval can proceed with stale or unevaluated policies.</param>
+    procedure PerformManualApproved(ApproverExpenseUserNo: Code[20]; SkipPolicyValidation: Boolean)
     var
         ReleaseExpenseReportDoc: Codeunit "Release Exp. Report Document";
     begin
         if Rec.Status = Rec.Status::Approved then
             exit;
 
-        ReleaseExpenseReportDoc.PerformManualApproved(Rec, ApproverExpenseUserNo);
+        ReleaseExpenseReportDoc.PerformManualApproved(Rec, ApproverExpenseUserNo, SkipPolicyValidation);
         Commit();
     end;
 
@@ -942,6 +1026,20 @@ table 6906 "Expense Report Header"
         Rec.CalcFields("Approver Comment");
         Rec."Approver Comment".CreateInStream(InStream, TextEncoding::UTF8);
         exit(TypeHelper.TryReadAsTextWithSepAndFieldErrMsg(InStream, TypeHelper.LFSeparator(), FieldName(Rec."Approver Comment")));
+    end;
+
+    /// <summary>
+    /// Retrieves submitter comment from the expense report header.
+    /// </summary>
+    /// <returns>Submitter comment.</returns>
+    procedure GetSubmitterComment() SubmitterComment: Text
+    var
+        TypeHelper: Codeunit "Type Helper";
+        InStream: InStream;
+    begin
+        Rec.CalcFields("Submitter Comment");
+        Rec."Submitter Comment".CreateInStream(InStream, TextEncoding::UTF8);
+        exit(TypeHelper.TryReadAsTextWithSepAndFieldErrMsg(InStream, TypeHelper.LFSeparator(), FieldName(Rec."Submitter Comment")));
     end;
 
     local procedure ConfirmUpdateAllLineDim() Confirmed: Boolean;
@@ -1068,13 +1166,13 @@ table 6906 "Expense Report Header"
             if UpdateCurrencyExchangeRates.ExchangeRatesForCurrencyExist(CurrencyDate, Rec."Reimbursement Currency Code") then begin
                 Rec."Reimbursement Currency Factor" := CurrExchRate.ExchangeRate(CurrencyDate, Rec."Reimbursement Currency Code");
                 if (Rec."Reimbursement Currency Code" <> xRec."Reimbursement Currency Code") and (xRec."No." <> '') then
-                    UpdateReportLines(Rec.FieldName("Reimbursement Currency Code"));
+                    UpdateReportLines(Rec.FieldCaption("Reimbursement Currency Code"));
             end else
                 UpdateCurrencyExchangeRates.ShowMissingExchangeRatesNotification("Reimbursement Currency Code");
         end else begin
             Rec."Reimbursement Currency Factor" := 0;
             if "Reimbursement Currency Code" <> xRec."Reimbursement Currency Code" then
-                UpdateReportLines(Rec.FieldName("Reimbursement Currency Code"));
+                UpdateReportLines(Rec.FieldCaption("Reimbursement Currency Code"));
         end;
     end;
 
@@ -1149,6 +1247,41 @@ table 6906 "Expense Report Header"
     begin
         if not (Rec.Status in [Rec.Status::Released, Rec.Status::Rejected]) then
             Error(InvalidApprovalStatusErr, Rec."No.");
+    end;
+
+    internal procedure TestApprovalPending()
+    begin
+        if not (Rec.Status in [Rec.Status::"Pending Approval", Rec.Status::"Interim Approved"]) then
+            Error(NotPendingApprovalErr, Rec."No.");
+    end;
+
+    /// <summary>
+    /// Assigns an optional interim approver who must approve before the final approver.
+    /// </summary>
+    procedure AssignInterimApprover(NewApproverExpenseUserNo: Code[20])
+    begin
+        AssignInterimApprover(NewApproverExpenseUserNo, '');
+    end;
+
+    internal procedure AssignInterimApprover(NewApproverExpenseUserNo: Code[20]; ActorExpenseUserNo: Code[20])
+    var
+        ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
+    begin
+        ExpenseReportApprovalMgmt.AssignInterimApprover(Rec, NewApproverExpenseUserNo, ActorExpenseUserNo);
+    end;
+
+    local procedure GetFinalApproverNo(ExpenseUserNo: Code[20]): Code[20]
+    var
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+    begin
+        if ExpenseUserNo = '' then
+            exit('');
+
+        if ExpenseApprovalSetup.Get(ExpenseUserNo) and (ExpenseApprovalSetup."Approver No." <> '') then
+            exit(ExpenseApprovalSetup."Approver No.");
+
+        ExpenseAgentSetup.GetRecordOnce();
+        exit(ExpenseAgentSetup."Default Approver No.");
     end;
 
     local procedure GetExpenseApproverUser(var ExpenseUser: Record "Expense User")

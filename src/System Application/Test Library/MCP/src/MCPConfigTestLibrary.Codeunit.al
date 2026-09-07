@@ -6,7 +6,6 @@
 namespace System.TestLibraries.MCP;
 
 using System.MCP;
-using System.Reflection;
 
 codeunit 130131 "MCP Config Test Library"
 {
@@ -16,8 +15,9 @@ codeunit 130131 "MCP Config Test Library"
     procedure LookupAPIObjects(): Boolean
     var
         TempMCPAPIObjectBuffer: Record "MCP API Object Buffer";
+        ObjectType: Option;
     begin
-        exit(MCPConfigImplementation.LookupAPIObjects(TempMCPAPIObjectBuffer));
+        exit(MCPConfigImplementation.LookupAPIObjects(TempMCPAPIObjectBuffer, ObjectType, false));
     end;
 
     procedure AddToolsByAPIGroup(ConfigId: Guid)
@@ -46,9 +46,9 @@ codeunit 130131 "MCP Config Test Library"
         MCPConfigImplementation.LookupAPIGroup(TempMCPAPIPublisherGroup, APIPublisher, APIGroup);
     end;
 
-    procedure GetHighestAPIPageVersion(PageMetadata: Record "Page Metadata"): Text[30]
+    procedure GetHighestAPIPageVersion(PageId: Integer): Text[30]
     begin
-        exit(MCPConfigImplementation.GetHighestAPIPageVersion(PageMetadata));
+        exit(MCPConfigImplementation.GetHighestAPIPageVersion(PageId));
     end;
 
     procedure GenerateConnectionString(ConfigurationName: Text[100]): Text

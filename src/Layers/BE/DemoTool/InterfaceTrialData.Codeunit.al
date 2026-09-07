@@ -57,7 +57,6 @@ codeunit 122000 "Interface Trial Data"
         CreateFinanceChargeTerms.InsertMiniAppData();
         RunCodeunit(CODEUNIT::"Create Reminder Terms");
         RunCodeunit(CODEUNIT::"Create Reminder Level");
-        RunCodeunit(CODEUNIT::"Create Reminder Text");
         RunCodeunit(CODEUNIT::"Create Language");
         RunCodeunit(CODEUNIT::"Create Country/Region");
         RunCodeunit(CODEUNIT::"Create Post Code");
@@ -188,4 +187,3 @@ codeunit 122000 "Interface Trial Data"
         OnlineMapMgt.SetupDefault();
     end;
 }
-

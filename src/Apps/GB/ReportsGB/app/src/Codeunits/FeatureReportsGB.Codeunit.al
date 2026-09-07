@@ -10,7 +10,6 @@ using System.Upgrade;
 codeunit 10580 "Feature - Reports GB" implements "Feature Data Update"
 {
     Access = Internal;
-    Permissions = TableData "Feature Data Update Status" = rm;
     InherentEntitlements = X;
     InherentPermissions = X;
     ObsoleteReason = 'Feature Reports GB will be enabled by default in version 30.0.';
@@ -50,13 +49,9 @@ codeunit 10580 "Feature - Reports GB" implements "Feature Data Update"
     end;
 
     procedure AfterUpdate(FeatureDataUpdateStatus: Record "Feature Data Update Status")
-    var
-        UpdateFeatureDataUpdateStatus: Record "Feature Data Update Status";
     begin
-        UpdateFeatureDataUpdateStatus.SetRange("Feature Key", FeatureDataUpdateStatus."Feature Key");
-        UpdateFeatureDataUpdateStatus.SetFilter("Company Name", '<>%1', FeatureDataUpdateStatus."Company Name");
-        UpdateFeatureDataUpdateStatus.ModifyAll("Feature Status", FeatureDataUpdateStatus."Feature Status");
-
+        // The data update runs per company, and the framework has already set the status of the company that
+        // was updated. The status of the other companies must stay Pending until their own data is migrated.
         SetUpgradeTag(true);
     end;
 

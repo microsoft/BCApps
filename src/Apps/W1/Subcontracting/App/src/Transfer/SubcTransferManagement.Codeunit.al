@@ -13,7 +13,7 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Purchases.Document;
 
-codeunit 99001504 "Subc. Transfer Management"
+codeunit 20504 "Subc. Transfer Management"
 {
     var
         ManufacturingSetup: Record "Manufacturing Setup";
@@ -371,6 +371,7 @@ codeunit 99001504 "Subc. Transfer Management"
         TransferLine.SetRange("Subc. Purch. Order No.", PurchaseLine."Document No.");
         TransferLine.SetRange("Subc. Purch. Order Line No.", PurchaseLine."Line No.");
         TransferLine.SetRange("Subc. Prod. Order No.", PurchaseLine."Prod. Order No.");
+        TransferLine.SetRange("Derived From Line No.", 0);
         exit(not TransferLine.IsEmpty());
     end;
 

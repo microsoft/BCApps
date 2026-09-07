@@ -27,15 +27,16 @@ codeunit 20441 "Qlty. Disp. Purchase Return" implements "Qlty. Disposition"
         DocumentTypeLbl: Label 'Purchase Return';
 
     /// <summary>
-    /// Creates a Purchase Return Order from a Quality Inspection
+    /// Creates a purchase return order from a quality inspection and explicit disposition options.
     /// </summary>
-    /// <param name="QltyInspectionHeader">Quality Inspection</param>
-    /// <param name="QltyQuantityBehavior">Use a specific quantity, tracked quantity, sample size, or pass/fail quantity</param>
-    /// <param name="OptionalSpecificQuantity">The specific quantity(base) to use, if designated</param>
-    /// <param name="OptionalSourceLocationFilter">Optional additional location filter for item on inspection</param>
-    /// <param name="OptionalSourceBinFilter">Optional additional bin filter for item on inspection</param>
-    /// <param name="ReasonCode">Optional Return Reason code</param>
-    /// <param name="ExternalDocumentNo">Optional Vendor Credit Memo No.</param>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the inventory and purchase receipt.</param>
+    /// <param name="QltyQuantityBehavior">The rule used to determine the return quantity.</param>
+    /// <param name="OptionalSpecificQuantity">The specific base quantity to return when required by the quantity behavior.</param>
+    /// <param name="OptionalSourceLocationFilter">An optional source location filter.</param>
+    /// <param name="OptionalSourceBinFilter">An optional source bin filter.</param>
+    /// <param name="ReasonCode">The optional return reason code.</param>
+    /// <param name="ExternalDocumentNo">The optional vendor credit memo number.</param>
+    /// <returns>True if subscribers report that a purchase return was created; otherwise, false.</returns>
     internal procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; QltyQuantityBehavior: Enum "Qlty. Quantity Behavior"; OptionalSpecificQuantity: Decimal; OptionalSourceLocationFilter: Text; OptionalSourceBinFilter: Text; ReasonCode: Code[10]; ExternalDocumentNo: Code[35]): Boolean
     var
         TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
@@ -51,6 +52,12 @@ codeunit 20441 "Qlty. Disp. Purchase Return" implements "Qlty. Disposition"
         exit(PerformDisposition(QltyInspectionHeader, TempInstructionQltyDispositionBuffer));
     end;
 
+    /// <summary>
+    /// Creates a purchase return order and return lines for the inspection inventory.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the inventory and purchase receipt.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The disposition instructions containing quantity, source filters, reason code, and vendor credit memo number.</param>
+    /// <returns>True if subscribers report that a purchase return was created; otherwise, false.</returns>
     procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
     var
         CreatedReturnOrderPurchaseHeader: Record "Purchase Header";
@@ -91,6 +98,13 @@ codeunit 20441 "Qlty. Disp. Purchase Return" implements "Qlty. Disposition"
             QltyNotificationMgmt.NotifyDocumentCreationFailed(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, DocumentTypeLbl);
     end;
 
+    /// <summary>
+    /// Finds a purchase receipt line with enough remaining quantity for the requested return.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the source purchase order line and tracking values.</param>
+    /// <param name="TempQuantityToActQltyDispositionBuffer">The calculated quantities to return.</param>
+    /// <param name="PurchRcptLine">The matching purchase receipt line.</param>
+    /// <returns>True if a receipt line with sufficient remaining quantity was found; otherwise, false.</returns>
     local procedure FindPurchaseReceiptLineForInspection(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var PurchRcptLine: Record "Purch. Rcpt. Line"): Boolean
     var
         PurchRcptLine2: Record "Purch. Rcpt. Line";
@@ -146,6 +160,12 @@ codeunit 20441 "Qlty. Disp. Purchase Return" implements "Qlty. Disposition"
         end;
     end;
 
+    /// <summary>
+    /// Creates a purchase return order header for the vendor on a purchase receipt line.
+    /// </summary>
+    /// <param name="InPurchRcptLine">The purchase receipt line that supplies the vendor.</param>
+    /// <param name="ReturnOrderPurchaseHeader">The created purchase return order header.</param>
+    /// <param name="VendorCreditMemoNotMemo">The optional vendor credit memo number.</param>
     local procedure CreatePurchaseReturnOrderFromPurchaseReceiptLine(var InPurchRcptLine: Record "Purch. Rcpt. Line"; var ReturnOrderPurchaseHeader: Record "Purchase Header"; VendorCreditMemoNotMemo: Code[35])
     begin
         ReturnOrderPurchaseHeader.Init();
@@ -161,6 +181,13 @@ codeunit 20441 "Qlty. Disp. Purchase Return" implements "Qlty. Disposition"
         end;
     end;
 
+    /// <summary>
+    /// Creates or increases a purchase return order line and assigns inspection item tracking.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the item, variant, and tracking values.</param>
+    /// <param name="TempQuantityToActQltyDispositionBuffer">The return quantity and optional reason code.</param>
+    /// <param name="PurchRcptLine">The purchase receipt line copied to the return order.</param>
+    /// <param name="ReturnOrderPurchaseHeader">The purchase return order receiving the line.</param>
     local procedure CreatePurchaseReturnOrderLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var PurchRcptLine: Record "Purch. Rcpt. Line"; var ReturnOrderPurchaseHeader: Record "Purchase Header")
     var
         ReturnOrderPurchaseLine: Record "Purchase Line";
@@ -231,7 +258,7 @@ codeunit 20441 "Qlty. Disp. Purchase Return" implements "Qlty. Disposition"
     /// <summary>
     /// Gets the created purchase return headers that were created as buffer tables.
     /// </summary>
-    /// <param name="TempCreatedBufferPurchaseHeader2"></param>
+    /// <param name="TempCreatedBufferPurchaseHeader2">The temporary record populated with created purchase return headers.</param>
     internal procedure GetCreatedPurchaseReturnBuffer(var TempCreatedBufferPurchaseHeader2: Record "Purchase Header" temporary)
     begin
         TempCreatedBufferPurchaseHeader2.Copy(TempCreatedBufferPurchaseHeader, true);
@@ -240,51 +267,49 @@ codeunit 20441 "Qlty. Disp. Purchase Return" implements "Qlty. Disposition"
     /// <summary>
     /// Provides an opportunity to modify the create Purchase Return Order behavior or replace it completely.
     /// </summary>
-    /// <param name="QltyInspectionHeader">Quality Inspection</param>
-    /// <param name="TempInstructionQltyDispositionBuffer">The instruction</param>
-    /// <param name="DidSomething">Provides an opportunity to replace the default boolean success/fail of if it worked.</param>
-    /// <param name="IsHandled">Provides an opportunity to replace the default behavior</param>
+    /// <param name="QltyInspectionHeader">The inspection being processed.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The disposition instructions.</param>
+    /// <param name="DidSomething">Indicates whether a purchase return was created.</param>
+    /// <param name="IsHandled">Set to true to skip the default purchase return processing.</param>
     [IntegrationEvent(false, false)]
     procedure OnBeforeProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var DidSomething: Boolean; var IsHandled: Boolean)
     begin
     end;
 
     /// <summary>
-    /// Provides an opportunity to modify the create Purchase Return Order behavior or replace it completely.
+    /// Occurs after the purchase return order and its lines are processed.
     /// </summary>
-    /// <param name="QltyInspectionHeader">Quality Inspection</param>
-    /// <param name="TempInstructionQltyDispositionBuffer">The instruction</param>
-    /// <param name="CreatedReturnOrderPurchaseHeader">The created purchase return order</param>
-    /// <param name="DidSomething">Provides an opportunity to replace the default boolean success/fail of if it worked.</param>
+    /// <param name="QltyInspectionHeader">The inspection that was processed.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The disposition instructions.</param>
+    /// <param name="CreatedReturnOrderPurchaseHeader">The created purchase return order header.</param>
+    /// <param name="DidSomething">Indicates whether a purchase return was created.</param>
     [IntegrationEvent(false, false)]
     procedure OnAfterProcessDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var CreatedReturnOrderPurchaseHeader: Record "Purchase Header"; var DidSomething: Boolean)
     begin
     end;
 
     /// <summary>
-    /// Provies an ability to replace the handling of the creation or purchase return order lines.
+    /// Occurs before a purchase return order line is created or updated and can replace the default handling.
     /// </summary>
-    /// <param name="QltyInspectionHeader">Quality Inspection</param>
-    /// <param name="TempInstructionQltyDispositionBuffer">The instruction</param>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the returned inventory.</param>
+    /// <param name="TempQuantityToActQltyDispositionBuffer">The return quantity and optional reason code.</param>
     /// <param name="PurchRcptLine">The original purchase receipt line.</param>
-    /// <param name="ReturnOrderPurchaseHeader">The purchase return order</param>
+    /// <param name="ReturnOrderPurchaseHeader">The purchase return order header.</param>
     /// <param name="ReturnOrderPurchaseLine">The new or existing purchase return order line.</param>
-    /// <param name="IsHandled"></param>
+    /// <param name="IsHandled">Set to true to skip the default line creation or update.</param>
     [IntegrationEvent(false, false)]
     procedure OnBeforeCreateOrUpdatePurchaseReturnOrderLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var PurchRcptLine: Record "Purch. Rcpt. Line"; var ReturnOrderPurchaseHeader: Record "Purchase Header"; var ReturnOrderPurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
     end;
 
     /// <summary>
-    /// Provides an ability to extend the handling of the creation or purchase return order lines.
-    /// after the system has processed the update.
+    /// Occurs after a purchase return order line is created or updated.
     /// </summary>
-    /// <param name="QltyInspectionHeader">Quality Inspection</param>
-    /// <param name="TempInstructionQltyDispositionBuffer">The instruction</param>
+    /// <param name="QltyInspectionHeader">The inspection that identifies the returned inventory.</param>
+    /// <param name="TempQuantityToActQltyDispositionBuffer">The return quantity and optional reason code.</param>
     /// <param name="PurchRcptLine">The original purchase receipt line.</param>
-    /// <param name="ReturnOrderPurchaseHeader">The purchase return order</param>
+    /// <param name="ReturnOrderPurchaseHeader">The purchase return order header.</param>
     /// <param name="ReturnOrderPurchaseLine">The new or existing purchase return order line.</param>
-
     [IntegrationEvent(false, false)]
     procedure OnAfterCreateOrUpdatePurchaseReturnOrderLine(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary; var PurchRcptLine: Record "Purch. Rcpt. Line"; var ReturnOrderPurchaseHeader: Record "Purchase Header"; var ReturnOrderPurchaseLine: Record "Purchase Line")
     begin

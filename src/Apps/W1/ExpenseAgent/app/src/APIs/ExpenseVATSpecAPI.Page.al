@@ -18,6 +18,8 @@ page 7085 "Expense VAT Spec. API"
     ODataKeyFields = SystemId;
     SourceTable = "Expense VAT Specification";
     AboutText = 'Provides access to data from the Expense VAT Specification table';
+    ModifyAllowed = false;
+    DeleteAllowed = false;
     AutoSplitKey = true;
 
     layout
@@ -70,10 +72,12 @@ page 7085 "Expense VAT Spec. API"
                 field(vatAmountLCY; Rec."VAT Amount (LCY)")
                 {
                     Caption = 'VAT Amount (LCY)';
+                    Editable = true;
                 }
                 field(vatBaseAmountLCY; Rec."VAT Base Amount (LCY)")
                 {
                     Caption = 'VAT Base Amount (LCY)';
+                    Editable = true;
                 }
                 field(amountLCY; Rec."Amount (LCY)")
                 {
@@ -90,6 +94,7 @@ page 7085 "Expense VAT Spec. API"
                 field(source; Rec.Source)
                 {
                     Caption = 'Source';
+                    Editable = false;
                 }
                 field(confidence; Rec.Confidence)
                 {
