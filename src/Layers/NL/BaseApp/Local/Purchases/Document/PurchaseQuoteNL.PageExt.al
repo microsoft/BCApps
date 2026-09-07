@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Document;
 
-pageextension 11406 PurchaseQuoteNL extends "Purchase Quote"
+pageextension 11406 "Purchase Quote NL" extends "Purchase Quote"
 {
     layout
     {

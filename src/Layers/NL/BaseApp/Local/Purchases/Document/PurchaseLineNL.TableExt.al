@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Document;
 
-tableextension 11405 PurchaseLineNL extends "Purchase Line"
+tableextension 11405 "Purchase Line NL" extends "Purchase Line"
 {
     fields
     {

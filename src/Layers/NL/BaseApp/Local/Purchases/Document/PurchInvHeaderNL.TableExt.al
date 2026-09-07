@@ -7,7 +7,7 @@ namespace Microsoft.Purchases.History;
 using Microsoft.Bank.Payment;
 using Microsoft.Purchases.Vendor;
 
-tableextension 11406 PurchInvHeaderNL extends "Purch. Inv. Header"
+tableextension 11406 "Purch. Inv. Header NL" extends "Purch. Inv. Header"
 {
     fields
     {

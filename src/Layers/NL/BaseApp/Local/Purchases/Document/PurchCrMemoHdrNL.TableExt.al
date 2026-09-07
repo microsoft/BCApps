@@ -7,7 +7,7 @@ namespace Microsoft.Purchases.History;
 using Microsoft.Bank.Payment;
 using Microsoft.Purchases.Vendor;
 
-tableextension 11407 PurchCrMemoHdrNL extends "Purch. Cr. Memo Hdr."
+tableextension 11407 "Purch. Cr. Memo Hdr. NL" extends "Purch. Cr. Memo Hdr."
 {
     fields
     {

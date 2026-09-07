@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Document;
 
-pageextension 11408 PurchaseReturnOrderNL extends "Purchase Return Order"
+pageextension 11408 "Purchase Return Order NL" extends "Purchase Return Order"
 {
     layout
     {

@@ -7,7 +7,7 @@ namespace Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Bank.Journal;
 using Microsoft.Bank.Statement;
 
-codeunit 11421 GenJnlManagementNL
+codeunit 11421 "Gen. Jnl. Management NL"
 {
     Access = Internal;
 

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Document;
 
-pageextension 11404 PurchaseInvoiceNL extends "Purchase Invoice"
+pageextension 11404 "Purchase Invoice NL" extends "Purchase Invoice"
 {
     layout
     {

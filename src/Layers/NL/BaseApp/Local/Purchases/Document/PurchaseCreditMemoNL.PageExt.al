@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Document;
 
-pageextension 11407 PurchaseCreditMemoNL extends "Purchase Credit Memo"
+pageextension 11407 "Purchase Credit Memo NL" extends "Purchase Credit Memo"
 {
     layout
     {

@@ -6,7 +6,7 @@ namespace Microsoft.Purchases.Vendor;
 
 using Microsoft.Purchases.Document;
 
-codeunit 11419 StandardVendorPurchaseCodeNL
+codeunit 11419 "Std. Vendor Purchase Code NL"
 {
     Access = Internal;
 

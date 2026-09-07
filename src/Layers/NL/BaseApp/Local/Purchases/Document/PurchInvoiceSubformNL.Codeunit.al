@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Document;
 
-codeunit 11416 PurchInvoiceSubformNL
+codeunit 11416 "Purch. Invoice Subform NL"
 {
     Access = Internal;
 

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Payables;
 
-codeunit 11403 VendEntryEditNL
+codeunit 11403 "Vend. Entry-Edit NL"
 {
     Access = Internal;
 

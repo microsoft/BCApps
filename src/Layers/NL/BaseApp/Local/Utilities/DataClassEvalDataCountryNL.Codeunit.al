@@ -11,7 +11,7 @@ using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Foundation.Address;
 using System.Privacy;
 
-codeunit 11420 DataClassEvalDataCountryNL
+codeunit 11420 "Data Class. Eval. Data NL"
 {
     Access = Internal;
 

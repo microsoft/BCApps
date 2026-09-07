@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Vendor;
 
-pageextension 11401 VendorCardNL extends "Vendor Card"
+pageextension 11401 "Vendor Card NL" extends "Vendor Card"
 {
     layout
     {

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.HumanResources.Payables;
 
-pageextension 11419 "EmplLedgerEntriesPreview NL" extends "Empl. Ledger Entries Preview"
+pageextension 11419 "Empl. Ledger Entries Prev. NL" extends "Empl. Ledger Entries Preview"
 {
     layout
     {

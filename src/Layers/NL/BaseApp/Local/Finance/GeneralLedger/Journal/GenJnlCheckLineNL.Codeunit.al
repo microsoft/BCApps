@@ -6,7 +6,7 @@ namespace Microsoft.Finance.GeneralLedger.Journal;
 
 using System.Utilities;
 
-codeunit 11422 GenJnlCheckLineNL
+codeunit 11422 "Gen. Jnl.-Check Line NL"
 {
     Access = Internal;
 

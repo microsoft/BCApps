@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Document;
 
-codeunit 11415 PurchCrMemoSubformNL
+codeunit 11415 "Purch. Cr. Memo Subform NL"
 {
     Access = Internal;
 

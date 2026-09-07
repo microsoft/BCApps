@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Document;
 
-pageextension 11405 PurchaseOrderNL extends "Purchase Order"
+pageextension 11405 "Purchase Order NL" extends "Purchase Order"
 {
     layout
     {

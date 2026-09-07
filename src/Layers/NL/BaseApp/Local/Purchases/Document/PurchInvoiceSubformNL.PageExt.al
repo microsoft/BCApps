@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Document;
 
-pageextension 11415 PurchInvoiceSubformNL extends "Purch. Invoice Subform"
+pageextension 11415 "Purch. Invoice Subform NL" extends "Purch. Invoice Subform"
 {
     layout
     {
