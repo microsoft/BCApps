@@ -7,6 +7,16 @@
   {
     "codeunitId": 148347,
     "codeunitName": "Travel Requests API Test",
+    "method": "TravelRequestsAPINormalizesCurrency"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "TravelRequestDetailsAPINormalizesCurrency"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
     "method": "TravelRequestsAPIPreservesAndUpdatesDates"
   },
   {

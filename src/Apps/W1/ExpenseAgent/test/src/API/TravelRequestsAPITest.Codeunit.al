@@ -5,6 +5,8 @@
 namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
+using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SpendRequest;
 
 // These HTTP tests are excluded in Expense_Agent_Tests.DisabledTest.json per the PR review.
@@ -20,6 +22,7 @@ codeunit 148347 "Travel Requests API Test"
     var
         Assert: Codeunit Assert;
         LibraryExpense: Codeunit "Library - Expense";
+        LibraryERM: Codeunit "Library - ERM";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
@@ -38,6 +41,54 @@ codeunit 148347 "Travel Requests API Test"
         StatusRequestBodyLbl: Label '{"status":"Released"}', Locked = true;
         StatusReadOnlyErr: Label 'Control ''status'' is read-only.', Locked = true;
         InvalidTravelRequestDatesErr: Label 'Expected End Date cannot be before Expected Start Date.', Locked = true;
+        StatusNotOpenErr: Label 'must have the status', Locked = true;
+
+    [Test]
+    procedure TravelRequestsAPINormalizesCurrency()
+    var
+        ExpenseUser: Record "Expense User";
+        Request: JsonObject;
+        TargetURL: Text;
+    begin
+        // [SCENARIO] The user-scoped header API maps LCY without bypassing currency validation.
+        Initialize();
+
+        // [GIVEN] A linked expense user creating a travel request.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        Request.Add('requestedBy', ExpenseUser."Employee No.");
+        TargetURL := LibraryGraphMgt.CreateTargetURL(
+            Format(ExpenseUser.SystemId), Page::"Expense Users API", ExpenseUsersServiceNameTok);
+        TargetURL := AppendPathToAPIURL(TargetURL, '/' + TravelRequestsServiceNameTok);
+
+        // [WHEN] Currency is supplied, changed, cleared, and omitted over HTTP.
+        // [THEN] API and storage representations agree and table validation remains active.
+        VerifyTravelRequestCurrencyAPI(TargetURL, Request, false);
+    end;
+
+    [Test]
+    procedure TravelRequestDetailsAPINormalizesCurrency()
+    var
+        ExpenseUser: Record "Expense User";
+        TravelRequest: Record "Spend Request";
+        Request: JsonObject;
+        TargetURL: Text;
+    begin
+        // [SCENARIO] The user-scoped detail API accepts LCY ISO codes and retains foreign-currency rules.
+        Initialize();
+
+        // [GIVEN] An open travel request owned by a linked expense user.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        CreateTravelRequest(TravelRequest, ExpenseUser."Employee No.");
+        TargetURL := LibraryGraphMgt.CreateTargetURL(
+            Format(ExpenseUser.SystemId), Page::"Expense Users API", ExpenseUsersServiceNameTok);
+        TargetURL := AppendPathToAPIURL(
+            TargetURL, '/' + TravelRequestsServiceNameTok + '(' +
+            LibraryGraphMgt.StripBrackets(Format(TravelRequest.SystemId)) + ')/' + TravelRequestDetailsServiceNameTok);
+
+        // [WHEN] Currency is supplied, changed, cleared, and omitted over HTTP.
+        // [THEN] API and storage representations agree and table validation remains active.
+        VerifyTravelRequestCurrencyAPI(TargetURL, Request, true);
+    end;
 
     [Test]
     procedure TravelRequestsAPIPreservesAndUpdatesDates()
@@ -477,6 +528,155 @@ codeunit 148347 "Travel Requests API Test"
             'The legacy Spend Requests API must not change the Travel Request owner.');
     end;
 #endif
+
+    local procedure VerifyTravelRequestCurrencyAPI(TargetURL: Text; Request: JsonObject; IsDetail: Boolean)
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        Currency: Record Currency;
+        TravelRequest: Record "Spend Request";
+        TravelRequestDetail: Record "Spend Request Detail";
+        SystemId: Guid;
+        ForeignCurrencyCode: Code[10];
+        InvalidCurrencyCode: Code[10];
+        ForeignExchangeRate: Decimal;
+        AmountField: Text;
+        RecordURL: Text;
+        SelectedCurrencyURL: Text;
+        RequestBody: Text;
+        ResponseText: Text;
+    begin
+        // [GIVEN] Configured LCY and a foreign currency with a non-unit exchange rate.
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.TestField("LCY Code");
+        ForeignCurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(Today(), 1, 2);
+        Currency.Get(ForeignCurrencyCode);
+        ForeignExchangeRate := Currency.GetExchangeRate(Today());
+        Assert.AreNotEqual(GeneralLedgerSetup."LCY Code", ForeignCurrencyCode, 'The fixture must use a foreign currency.');
+        Assert.AreNotEqual(1, ForeignExchangeRate, 'The fixture must exercise exchange-rate validation.');
+        InvalidCurrencyCode := CopyStr(DelChr(Format(CreateGuid()), '=', '{}-'), 1, MaxStrLen(InvalidCurrencyCode));
+        Assert.AreNotEqual(GeneralLedgerSetup."LCY Code", InvalidCurrencyCode, 'The invalid code must not be LCY.');
+        Assert.IsFalse(Currency.Get(InvalidCurrencyCode), 'The invalid code must not exist in Currency.');
+        SystemId := CreateGuid();
+        if IsDetail then
+            AmountField := 'expectedAmount'
+        else
+            AmountField := 'totalExpectedAmount';
+        Request.Add('id', LibraryGraphMgt.StripBrackets(Format(SystemId)));
+        Request.Add('currencyCode', GeneralLedgerSetup."LCY Code");
+        Request.Add(AmountField, 100);
+        Request.WriteTo(RequestBody);
+        Commit();
+
+        // [WHEN] POST explicitly supplies the LCY ISO code.
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 201);
+
+        // [THEN] It is stored as blank and returned as the configured LCY code.
+        AssertTravelRequestCurrency(ResponseText, SystemId, IsDetail, GeneralLedgerSetup."LCY Code", '', 1);
+        RecordURL := AppendPathToAPIURL(TargetURL, '(' + LibraryGraphMgt.StripBrackets(Format(SystemId)) + ')');
+        if StrPos(RecordURL, '?') = 0 then
+            SelectedCurrencyURL := RecordURL + '?$select=currencyCode'
+        else
+            SelectedCurrencyURL := RecordURL + '&$select=currencyCode';
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, SelectedCurrencyURL, 200);
+        AssertTravelRequestCurrency(ResponseText, SystemId, IsDetail, GeneralLedgerSetup."LCY Code", '', 1);
+
+        // [WHEN] PATCH switches to a configured foreign currency.
+        PatchCurrency(RecordURL, ForeignCurrencyCode, ResponseText);
+
+        // [THEN] The foreign code is retained and the table computes its exchange rate.
+        AssertTravelRequestCurrency(ResponseText, SystemId, IsDetail, ForeignCurrencyCode, ForeignCurrencyCode, ForeignExchangeRate);
+
+        // [WHEN] An amount-only PATCH omits currency.
+        Clear(Request);
+        Request.Add(AmountField, 200);
+        Request.WriteTo(RequestBody);
+        LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(RecordURL, RequestBody, ResponseText, 200);
+
+        // [THEN] Neither the foreign currency nor its exchange rate is reset to LCY.
+        AssertTravelRequestCurrency(ResponseText, SystemId, IsDetail, ForeignCurrencyCode, ForeignCurrencyCode, ForeignExchangeRate);
+
+        // [WHEN] PATCH supplies LCY explicitly, then switches back to foreign currency and clears it.
+        PatchCurrency(RecordURL, GeneralLedgerSetup."LCY Code", ResponseText);
+        AssertTravelRequestCurrency(ResponseText, SystemId, IsDetail, GeneralLedgerSetup."LCY Code", '', 1);
+        PatchCurrency(RecordURL, ForeignCurrencyCode, ResponseText);
+        PatchCurrency(RecordURL, '', ResponseText);
+
+        // [THEN] Both explicit LCY and blank inputs return the canonical ISO code.
+        AssertTravelRequestCurrency(ResponseText, SystemId, IsDetail, GeneralLedgerSetup."LCY Code", '', 1);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, SelectedCurrencyURL, 200);
+        AssertTravelRequestCurrency(ResponseText, SystemId, IsDetail, GeneralLedgerSetup."LCY Code", '', 1);
+
+        // [WHEN] PATCH supplies an unknown non-LCY code.
+        // [THEN] Currency validation rejects it rather than treating it as local currency.
+        AssertCurrencyPatchError(RecordURL, InvalidCurrencyCode, InvalidCurrencyCode);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, RecordURL, 200);
+        AssertTravelRequestCurrency(ResponseText, SystemId, IsDetail, GeneralLedgerSetup."LCY Code", '', 1);
+
+        // [GIVEN] The request is no longer Open.
+        if IsDetail then begin
+            TravelRequestDetail.GetBySystemId(SystemId);
+            TravelRequest.Get(TravelRequestDetail."Spend Request No.");
+        end else
+            TravelRequest.GetBySystemId(SystemId);
+        LibraryExpense.SetSpendRequestStatus(TravelRequest, TravelRequest.Status::Released);
+        Commit();
+
+        // [WHEN] PATCH attempts a currency change.
+        // [THEN] The existing Open-status validation rejects it without changing currency.
+        AssertCurrencyPatchError(RecordURL, ForeignCurrencyCode, StatusNotOpenErr);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, RecordURL, 200);
+        AssertTravelRequestCurrency(ResponseText, SystemId, IsDetail, GeneralLedgerSetup."LCY Code", '', 1);
+    end;
+
+    local procedure PatchCurrency(TargetURL: Text; CurrencyCode: Code[10]; var ResponseText: Text)
+    var
+        Request: JsonObject;
+        RequestBody: Text;
+    begin
+        Request.Add('currencyCode', CurrencyCode);
+        Request.WriteTo(RequestBody);
+        LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 200);
+    end;
+
+    local procedure AssertCurrencyPatchError(TargetURL: Text; CurrencyCode: Code[10]; ExpectedError: Text)
+    var
+        Request: JsonObject;
+        Response: JsonObject;
+        ErrorResponse: JsonToken;
+        ErrorMessage: JsonToken;
+        RequestBody: Text;
+        ResponseText: Text;
+    begin
+        Request.Add('currencyCode', CurrencyCode);
+        Request.WriteTo(RequestBody);
+        asserterror LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 400);
+        Assert.ExpectedError(BadRequestResponseErr);
+        Response.ReadFrom(ResponseText);
+        Response.Get('error', ErrorResponse);
+        ErrorResponse.AsObject().Get('message', ErrorMessage);
+        Assert.AreNotEqual(0, StrPos(ErrorMessage.AsValue().AsText(), ExpectedError), 'The expected table validation must cause the rejection.');
+    end;
+
+    local procedure AssertTravelRequestCurrency(ResponseText: Text; SystemId: Guid; IsDetail: Boolean; APICurrencyCode: Code[10]; StoredCurrencyCode: Code[10]; ExchangeRate: Decimal)
+    var
+        TravelRequest: Record "Spend Request";
+        TravelRequestDetail: Record "Spend Request Detail";
+        Response: JsonObject;
+        CurrencyCode: JsonToken;
+    begin
+        Response.ReadFrom(ResponseText);
+        Response.Get('currencyCode', CurrencyCode);
+        Assert.AreEqual(APICurrencyCode, CurrencyCode.AsValue().AsText(), 'The API must expose the canonical currency code.');
+        if IsDetail then begin
+            TravelRequestDetail.GetBySystemId(SystemId);
+            Assert.AreEqual(StoredCurrencyCode, TravelRequestDetail."Currency Code", 'The detail must store the BC currency representation.');
+            Assert.AreEqual(ExchangeRate, TravelRequestDetail."Currency Exchange Rate", 'The detail currency trigger must maintain the exchange rate.');
+        end else begin
+            TravelRequest.GetBySystemId(SystemId);
+            Assert.AreEqual(StoredCurrencyCode, TravelRequest."Currency Code", 'The header must store the BC currency representation.');
+            Assert.AreEqual(ExchangeRate, TravelRequest."Currency Exchange Rate", 'The header currency trigger must maintain the exchange rate.');
+        end;
+    end;
 
     local procedure AppendPathToAPIURL(TargetURL: Text; PathSuffix: Text): Text
     var

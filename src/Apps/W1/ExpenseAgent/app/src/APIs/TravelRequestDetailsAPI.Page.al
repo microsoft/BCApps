@@ -57,9 +57,14 @@ page 7135 "Travel Request Details API"
                 {
                     Caption = 'Description';
                 }
-                field(currencyCode; Rec."Currency Code")
+                field(currencyCode; CurrencyCodeDisplay)
                 {
                     Caption = 'Currency Code';
+
+                    trigger OnValidate()
+                    begin
+                        Rec.Validate("Currency Code", CurrencyHelper.GetCurrencyCodeFromAPI(CurrencyCodeDisplay));
+                    end;
                 }
                 field(expectedAmount; Rec."Expected Amount")
                 {
@@ -89,4 +94,23 @@ page 7135 "Travel Request Details API"
     begin
         ExpenseAgentAPIValidation.VerifyAgentAccess();
     end;
+
+    trigger OnOpenPage()
+    begin
+        Rec.AddLoadFields("Currency Code");
+    end;
+
+    trigger OnAfterGetRecord()
+    begin
+        CurrencyCodeDisplay := CurrencyHelper.GetCurrencyCodeForAPI(Rec."Currency Code");
+    end;
+
+    trigger OnNewRecord(BelowxRec: Boolean)
+    begin
+        Clear(CurrencyCodeDisplay);
+    end;
+
+    var
+        CurrencyHelper: Codeunit "Expense API Currency Helper";
+        CurrencyCodeDisplay: Code[10];
 }

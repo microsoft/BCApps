@@ -55,9 +55,14 @@ page 7134 "Travel Requests API"
                 {
                     Caption = 'Purpose';
                 }
-                field(currencyCode; Rec."Currency Code")
+                field(currencyCode; CurrencyCodeDisplay)
                 {
                     Caption = 'Currency Code';
+
+                    trigger OnValidate()
+                    begin
+                        Rec.Validate("Currency Code", CurrencyHelper.GetCurrencyCodeFromAPI(CurrencyCodeDisplay));
+                    end;
                 }
                 field(totalExpectedAmount; Rec."Total Expected Amount")
                 {
@@ -205,11 +210,12 @@ page 7134 "Travel Requests API"
 
     trigger OnOpenPage()
     begin
-        Rec.AddLoadFields("Expected Start Date", "Expected End Date");
+        Rec.AddLoadFields("Currency Code", "Expected Start Date", "Expected End Date");
     end;
 
     trigger OnAfterGetRecord()
     begin
+        CurrencyCodeDisplay := CurrencyHelper.GetCurrencyCodeForAPI(Rec."Currency Code");
         ExpectedStartDate := Rec."Expected Start Date";
         ExpectedEndDate := Rec."Expected End Date";
         ExpectedStartDateProvided := false;
@@ -218,6 +224,7 @@ page 7134 "Travel Requests API"
 
     trigger OnNewRecord(BelowxRec: Boolean)
     begin
+        Clear(CurrencyCodeDisplay);
         Clear(ExpectedStartDate);
         Clear(ExpectedEndDate);
         ExpectedStartDateProvided := false;
@@ -303,6 +310,8 @@ page 7134 "Travel Requests API"
     end;
 
     var
+        CurrencyHelper: Codeunit "Expense API Currency Helper";
+        CurrencyCodeDisplay: Code[10];
         ExpectedStartDate: Date;
         ExpectedEndDate: Date;
         ExpectedStartDateProvided: Boolean;
