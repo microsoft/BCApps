@@ -19,12 +19,14 @@ codeunit 133102 "Extension Marketplace Test"
         InstallationFailedOpenStatusQst: Label 'Sorry, we couldn''t install the app. Do you want to open Extension Installation Status?';
 
     [Test]
-    [HandlerFunctions('OpenStatusConfirmHandler,ExtensionDeploymentStatusPageHandler')]
+    [HandlerFunctions('ConfirmHandler,ExtensionDeploymentStatusPageHandler')]
     procedure InstallFailurePromptOpensStatusPage()
     var
         ExtensionMgtTestLibrary: Codeunit "Extension Mgt. Test Library";
     begin
+        Initialize();
         LibraryVariableStorage.Enqueue(InstallationFailedOpenStatusQst);
+        LibraryVariableStorage.Enqueue(true);
 
         ExtensionMgtTestLibrary.ShowInstallFailureStatus();
 
@@ -33,30 +35,30 @@ codeunit 133102 "Extension Marketplace Test"
     end;
 
     [Test]
-    [HandlerFunctions('DeclineStatusConfirmHandler')]
+    [HandlerFunctions('ConfirmHandler')]
     procedure InstallFailurePromptCanBeDeclined()
     var
         ExtensionMgtTestLibrary: Codeunit "Extension Mgt. Test Library";
     begin
+        Initialize();
         LibraryVariableStorage.Enqueue(InstallationFailedOpenStatusQst);
+        LibraryVariableStorage.Enqueue(false);
 
         ExtensionMgtTestLibrary.ShowInstallFailureStatus();
 
         LibraryVariableStorage.AssertEmpty();
     end;
 
-    [ConfirmHandler]
-    procedure OpenStatusConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    local procedure Initialize()
     begin
-        Assert.AreEqual(LibraryVariableStorage.DequeueText(), Question, 'Unexpected confirmation question.');
-        Reply := true;
+        LibraryVariableStorage.Clear();
     end;
 
     [ConfirmHandler]
-    procedure DeclineStatusConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
     begin
-        Assert.AreEqual(LibraryVariableStorage.DequeueText(), Question, 'Unexpected confirmation question.');
-        Reply := false;
+        Assert.ExpectedConfirm(LibraryVariableStorage.DequeueText(), Question);
+        Reply := LibraryVariableStorage.DequeueBoolean();
     end;
 
     [PageHandler]

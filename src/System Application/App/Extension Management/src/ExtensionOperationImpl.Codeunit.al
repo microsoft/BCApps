@@ -37,8 +37,8 @@ codeunit 2503 "Extension Operation Impl"
         InstallationFailedOpenDetailsTxt: Label 'App installation failed. User has chosen to see the details.';
         InstallationFailedDoNotOpenDetailsTxt: Label 'App installation failed. User has chosen not to check out the details.';
         InstallationFailedOpenStatusQst: Label 'Sorry, we couldn''t install the app. Do you want to open Extension Installation Status?';
-        InstallationFailedOpenStatusTxt: Label 'App installation failed. User has chosen to open Extension Installation Status.';
-        InstallationFailedDoNotOpenStatusTxt: Label 'App installation failed. User has chosen not to open Extension Installation Status.';
+        InstallationFailedOpenStatusTxt: Label 'App installation failed. User has chosen to open Extension Installation Status.', Locked = true;
+        InstallationFailedDoNotOpenStatusTxt: Label 'App installation failed. User has chosen not to open Extension Installation Status.', Locked = true;
         PageCaptionTok: Label '%1 %2', Comment = '%1 = Page default caption %2 = App name';
 
     local procedure AssertIsInitialized()
@@ -98,6 +98,9 @@ codeunit 2503 "Extension Operation Impl"
 
     internal procedure ShowInstallFailureStatus()
     begin
+        if not GuiAllowed() then
+            exit;
+
         if Confirm(InstallationFailedOpenStatusQst) then begin
             Session.LogMessage('0000I2Q', InstallationFailedOpenStatusTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Extensions');
             Page.Run(Page::"Extension Deployment Status");

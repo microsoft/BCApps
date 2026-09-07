@@ -23,6 +23,9 @@ codeunit 135109 "Extension Mgt. Test Library"
         MarketplaceExtnDeployment.SetAppID(Id);
     end;
 
+    /// <summary>
+    /// Shows the installation failure prompt that opens Extension Installation Status.
+    /// </summary>
     procedure ShowInstallFailureStatus()
     begin
         ExtensionOperationImpl.ShowInstallFailureStatus();
