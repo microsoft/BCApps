@@ -40,6 +40,8 @@ page 50104 "Fabric Platform Setup"
                         LookupPage: Page "Fabric Platform Name Lookup";
                         WorkspaceId: Guid;
                     begin
+                        if Rec."Export Enabled" then
+                            Error(CannotChangeWhileExportEnabledErr);
                         AdminClient.GetWorkspaces(TempBuffer);
                         if TempBuffer.IsEmpty() then
                             Error(NoWorkspacesFoundErr);
@@ -82,6 +84,8 @@ page 50104 "Fabric Platform Setup"
                         LookupPage: Page "Fabric Platform Name Lookup";
                         MirroredDatabaseId: Guid;
                     begin
+                        if Rec."Export Enabled" then
+                            Error(CannotChangeWhileExportEnabledErr);
                         AdminClient.GetMirroredDatabases(Rec."Fabric Workspace ID", TempBuffer);
                         if TempBuffer.IsEmpty() then
                             Error(NoMirroredDatabasesFoundErr);
@@ -424,6 +428,7 @@ page 50104 "Fabric Platform Setup"
         NoMirroredDatabasesFoundErr: Label 'No Open Mirroring databases found in the selected workspace.';
         WorkspaceIdInvalidErr: Label 'Fabric returned an invalid workspace ID: %1.', Comment = '%1 = workspace ID';
         MirroredDatabaseIdInvalidErr: Label 'Fabric returned an invalid Open Mirroring database ID: %1.', Comment = '%1 = Open Mirroring database ID';
+        CannotChangeWhileExportEnabledErr: Label 'You cannot change the Fabric workspace or Open Mirroring database while export is enabled. Disable export first.';
         SPAddedToWorkspaceMsg: Label 'Service principal added as Contributor to workspace ''%1''.', Comment = '%1 = workspace name';
         ValuePickedUpOnNextRunMsg: Label 'This change will take effect starting with the next export run.';
 
