@@ -7,6 +7,7 @@ namespace Microsoft.eServices.EDocument.IO.Peppol;
 using Microsoft.eServices.EDocument;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Company;
+using Microsoft.Peppol;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
@@ -26,14 +27,22 @@ codeunit 6152 "E-Doc. Data Exchange Impl." implements "E-Document"
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         ServiceInvoiceHeader: Record "Service Invoice Header";
         ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        PeppolSetup: Record "PEPPOL 3.0 Setup";
         PEPPOLValidation: Codeunit "PEPPOL Validation";
         PEPPOLServiceValidation: Codeunit "PEPPOL Service Validation";
+        SalesValidation: Interface "PEPPOL30 Validation";
+        ServiceValidation: Interface "PEPPOL30 Validation";
     begin
+        PeppolSetup.GetSetup();
+        SalesValidation := PeppolSetup."PEPPOL 3.0 Sales Format";
+        ServiceValidation := PeppolSetup."PEPPOL 3.0 Service Format";
+
         case SourceDocumentHeader.Number of
             Database::"Sales Header":
                 begin
                     SourceDocumentHeader.SetTable(SalesHeader);
-                    PEPPOLValidation.Run(SalesHeader);
+                    SalesValidation.ValidateDocument(SalesHeader);
+                    SalesValidation.ValidateDocumentLines(SalesHeader);
                 end;
             Database::"Sales Invoice Header":
                 begin
