@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-codeunit 7104 "Create Expense Locations"
+codeunit 7124 "Create Expense Locations"
 {
     Access = Internal;
     InherentEntitlements = X;
