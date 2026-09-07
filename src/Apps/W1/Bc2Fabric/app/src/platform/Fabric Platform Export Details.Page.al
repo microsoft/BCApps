@@ -108,6 +108,37 @@ page 50102 "Fabric Platform Export Details"
                 begin
                     SelectLatestVersion();
                     if not Rec.Find() then;
+                    ApplyRowFilter();
+                    CurrPage.Update(false);
+                end;
+            }
+            action(ShowZeroChangeRows)
+            {
+                Caption = 'Show Rows with No Changes';
+                ApplicationArea = All;
+                Image = ShowList;
+                Visible = not ShowRowsWithNoChanges;
+                ToolTip = 'Shows rows where no records were updated, inserted, or deleted.';
+
+                trigger OnAction()
+                begin
+                    ShowRowsWithNoChanges := true;
+                    ApplyRowFilter();
+                    CurrPage.Update(false);
+                end;
+            }
+            action(HideZeroChangeRows)
+            {
+                Caption = 'Hide Rows with No Changes';
+                ApplicationArea = All;
+                Image = Filter;
+                Visible = ShowRowsWithNoChanges;
+                ToolTip = 'Hides rows where no records were updated, inserted, or deleted.';
+
+                trigger OnAction()
+                begin
+                    ShowRowsWithNoChanges := false;
+                    ApplyRowFilter();
                     CurrPage.Update(false);
                 end;
             }
@@ -119,7 +150,31 @@ page 50102 "Fabric Platform Export Details"
                 Caption = 'Process';
 
                 actionref(Refresh_Promoted; Refresh) { }
+                actionref(ShowZeroChangeRows_Promoted; ShowZeroChangeRows) { }
+                actionref(HideZeroChangeRows_Promoted; HideZeroChangeRows) { }
             }
         }
     }
+
+    trigger OnOpenPage()
+    begin
+        ApplyRowFilter();
+    end;
+
+    local procedure ApplyRowFilter()
+    begin
+        Rec.MarkedOnly(false);
+        if not ShowRowsWithNoChanges then begin
+            if Rec.FindSet() then
+                repeat
+                    if (Rec."Records Updated" <> 0) or (Rec."Records Inserted" <> 0) or (Rec."Records Deleted" <> 0) then
+                        Rec.Mark(true);
+                until Rec.Next() = 0;
+            Rec.MarkedOnly(true);
+        end;
+        if not Rec.FindFirst() then;
+    end;
+
+    var
+        ShowRowsWithNoChanges: Boolean;
 }
