@@ -5,6 +5,7 @@
 namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Enums;
 using Microsoft.Inventory.Item;
@@ -952,10 +953,15 @@ codeunit 139786 "E-Doc. Item Charge Tests"
 
     local procedure Initialize()
     var
+        GeneralLedgerSetup: Record "General Ledger Setup";
         InventorySetup: Record "Inventory Setup";
     begin
         if IsInitialized then
             exit;
+
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."VAT Reporting Date Usage" := GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled;
+        GeneralLedgerSetup.Modify();
 
         LibrarySales.SetStockoutWarning(false);
         LibrarySales.SetCreditWarningsToNoWarnings();
