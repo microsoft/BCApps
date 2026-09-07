@@ -165,6 +165,7 @@ codeunit 9989 "Word Template Field Selection"
         ExcludedFields: Integer;
     begin
         Field.SetRange(TableNo, TableId);
+        Field.SetRange(ObsoleteState, Field.ObsoleteState::No);
         TableFields := Field.Count();
 
         WordTemplateCustomField.SetCurrentTableId(TableId);
@@ -175,7 +176,13 @@ codeunit 9989 "Word Template Field Selection"
         TempWordTemplateField.Reset();
         TempWordTemplateField.SetRange("Table ID", TableId);
         TempWordTemplateField.SetRange(Exclude, true);
-        ExcludedFields := TempWordTemplateField.Count();
+        if TempWordTemplateField.FindSet() then
+            repeat
+                if (TempWordTemplateField."Field No." = 0) or
+                   (Field.Get(TableId, TempWordTemplateField."Field No.") and (Field.ObsoleteState = Field.ObsoleteState::No))
+                then
+                    ExcludedFields += 1;
+            until TempWordTemplateField.Next() = 0;
 
         exit(TableFields + CustomTableFields - ExcludedFields);
     end;
@@ -193,6 +200,7 @@ codeunit 9989 "Word Template Field Selection"
 
         // Add existing table fields
         Field.SetRange(TableNo, TableId);
+        Field.SetRange(ObsoleteState, Field.ObsoleteState::No);
         if Field.FindSet() then
             repeat
                 if IsFieldSupported(Field) then begin

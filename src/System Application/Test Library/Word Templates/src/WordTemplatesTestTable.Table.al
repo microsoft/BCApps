@@ -18,5 +18,17 @@ table 130443 "Word Templates Test Table"
         {
             AutoIncrement = true;
         }
+        field(2; "Pending Field"; Text[100])
+        {
+            ObsoleteReason = 'This field is obsolete.';
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+        }
+        field(3; "Removed Field"; Text[100])
+        {
+            ObsoleteReason = 'This field is obsolete.';
+            ObsoleteState = Removed;
+            ObsoleteTag = '30.0';
+        }
     }
 }

@@ -165,6 +165,50 @@ codeunit 130443 "Word Templates Test"
     end;
 
     [Test]
+    procedure GetAllTableFieldsExcludesObsoleteFields()
+    var
+        TempWordTemplateField: Record "Word Template Field" temporary;
+        WordTemplateFieldSelection: Codeunit "Word Template Field Selection";
+    begin
+        // [SCENARIO] Obsolete fields are not available for Word template field selection
+
+        // [WHEN] The fields available for selection are retrieved
+        WordTemplateFieldSelection.GetAllTableFields(Database::"Word Templates Test Table", TempWordTemplateField);
+
+        // [THEN] Current fields are available, while pending and removed fields are not
+        Assert.IsTrue(TempWordTemplateField.Get('', Database::"Word Templates Test Table", 'No.'), 'The current field should be available.');
+        Assert.IsFalse(TempWordTemplateField.Get('', Database::"Word Templates Test Table", 'Pending Field'), 'The pending field should not be available.');
+        Assert.IsFalse(TempWordTemplateField.Get('', Database::"Word Templates Test Table", 'Removed Field'), 'The removed field should not be available.');
+    end;
+
+    [Test]
+    procedure CalculateNoSelectedFieldsIgnoresObsoleteExcludedFields()
+    var
+        TempWordTemplateField: Record "Word Template Field" temporary;
+        WordTemplateFieldSelection: Codeunit "Word Template Field Selection";
+        ExpectedSelectedFields: Integer;
+    begin
+        // [SCENARIO] Saved exclusions for obsolete fields do not reduce the selected field count
+
+        // [GIVEN] The number of selectable fields
+        ExpectedSelectedFields := WordTemplateFieldSelection.CalculateNoSelectedFields(Database::"Word Templates Test Table", TempWordTemplateField);
+
+        // [GIVEN] Saved exclusions for pending and removed fields
+        TempWordTemplateField."Table ID" := Database::"Word Templates Test Table";
+        TempWordTemplateField."Field Name" := 'Pending Field';
+        TempWordTemplateField."Field No." := 2;
+        TempWordTemplateField.Exclude := true;
+        TempWordTemplateField.Insert();
+        TempWordTemplateField."Field Name" := 'Removed Field';
+        TempWordTemplateField."Field No." := 3;
+        TempWordTemplateField.Insert();
+
+        // [WHEN] The number of selected fields is recalculated
+        // [THEN] Obsolete exclusions do not affect the count
+        Assert.AreEqual(ExpectedSelectedFields, WordTemplateFieldSelection.CalculateNoSelectedFields(Database::"Word Templates Test Table", TempWordTemplateField), 'Obsolete fields should not affect the selected field count.');
+    end;
+
+    [Test]
     procedure TestCreateDocumentInternalsForRecord()
     var
         TempWordTemplateFields: Record "Word Template Field" temporary;
