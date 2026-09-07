@@ -1,4 +1,5 @@
 #if not CLEANSCHEMA25
+#pragma warning disable AL0520
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -23,4 +24,5 @@ tableextension 11409 "Intrastat Jnl. Batch NL" extends "Intrastat Jnl. Batch"
         }
     }
 }
+#pragma warning restore AL0520
 #endif
