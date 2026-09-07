@@ -22,15 +22,12 @@ codeunit 7414 "Excise Tax Upgrade"
             UpgradeTag.SetUpgradeTag(GetMultipleExciseTaxesPerItemUpgradeTag());
         end;
 
-#if not CLEANSCHEMA33
         if not UpgradeTag.HasUpgradeTag(GetExciseTaxRateTableUpgradeTag()) then begin
             MigrateExciseTaxRates();
             UpgradeTag.SetUpgradeTag(GetExciseTaxRateTableUpgradeTag());
         end;
-#endif
     end;
 
-#if not CLEANSCHEMA33
     local procedure MigrateExciseTaxRates()
     var
         ExciseTaxItemFARate: Record "Excise Tax Item/FA Rate";
@@ -52,7 +49,6 @@ codeunit 7414 "Excise Tax Upgrade"
         until ExciseTaxItemFARate.Next() = 0;
 #pragma warning restore AL0432
     end;
-#endif
 
     local procedure MigrateItemExciseTaxSetup()
     var
@@ -94,9 +90,7 @@ codeunit 7414 "Excise Tax Upgrade"
     local procedure RegisterPerCompanyUpgradeTags(var PerCompanyUpgradeTags: List of [Code[250]])
     begin
         PerCompanyUpgradeTags.Add(GetMultipleExciseTaxesPerItemUpgradeTag());
-#if not CLEANSCHEMA33
         PerCompanyUpgradeTags.Add(GetExciseTaxRateTableUpgradeTag());
-#endif
     end;
 
     local procedure GetMultipleExciseTaxesPerItemUpgradeTag(): Code[250]
@@ -104,10 +98,8 @@ codeunit 7414 "Excise Tax Upgrade"
         exit('MS-626127-MultipleExciseTaxesPerItem-20260727');
     end;
 
-#if not CLEANSCHEMA33
     local procedure GetExciseTaxRateTableUpgradeTag(): Code[250]
     begin
         exit('MS-626305-ExciseTaxRate-20260902');
     end;
-#endif
 }
