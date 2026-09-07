@@ -7,6 +7,11 @@
   {
     "codeunitId": 148347,
     "codeunitName": "Travel Requests API Test",
+    "method": "TravelRequestsAPIPreservesAndUpdatesDates"
+  },
+  {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
     "method": "TravelRequestsAreScopedByEmployeeNumber"
   },
   {

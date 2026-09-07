@@ -37,6 +37,104 @@ codeunit 148347 "Travel Requests API Test"
         RequestedByRequestBodyLbl: Label '{"requestedBy":"%1"}', Comment = '%1 = Employee number', Locked = true;
         StatusRequestBodyLbl: Label '{"status":"Released"}', Locked = true;
         StatusReadOnlyErr: Label 'Control ''status'' is read-only.', Locked = true;
+        InvalidTravelRequestDatesErr: Label 'Expected End Date cannot be before Expected Start Date.', Locked = true;
+
+    [Test]
+    procedure TravelRequestsAPIPreservesAndUpdatesDates()
+    var
+        ExpenseUser: Record "Expense User";
+        TravelRequest: Record "Spend Request";
+        Request: JsonObject;
+        Response: JsonObject;
+        ErrorResponse: JsonToken;
+        ErrorMessage: JsonToken;
+        RequestSystemId: Guid;
+        StartDate: Date;
+        EndDate: Date;
+        TargetURL: Text;
+        RecordURL: Text;
+        RequestBody: Text;
+        ResponseText: Text;
+    begin
+        // [SCENARIO] User-scoped POST and PATCH preserve and validate the final date pair.
+        Initialize();
+
+        // [GIVEN] A linked user and a future pair, with id first and end before start in the payload.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        RequestSystemId := CreateGuid();
+        StartDate := WorkDate() + 30;
+        EndDate := WorkDate() + 33;
+        Request.Add('id', LibraryGraphMgt.StripBrackets(Format(RequestSystemId)));
+        Request.Add('requestedBy', ExpenseUser."Employee No.");
+        Request.Add('expectedEndDate', Format(EndDate, 0, 9));
+        Request.Add('expectedStartDate', Format(StartDate, 0, 9));
+        Request.WriteTo(RequestBody);
+        Commit();
+
+        // [WHEN] The request is created through user-scoped navigation.
+        TargetURL := LibraryGraphMgt.CreateTargetURL(
+            Format(ExpenseUser.SystemId), Page::"Expense Users API", ExpenseUsersServiceNameTok);
+        TargetURL := AppendPathToAPIURL(TargetURL, '/' + TravelRequestsServiceNameTok);
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 201);
+
+        // [THEN] POST, GET, and storage retain the supplied dates and identity.
+        AssertAPIDates(ResponseText, StartDate, EndDate);
+        TravelRequest.GetBySystemId(RequestSystemId);
+        Assert.AreEqual(StartDate, TravelRequest."Expected Start Date", 'The API start date must be persisted.');
+        Assert.AreEqual(EndDate, TravelRequest."Expected End Date", 'The API end date must be persisted.');
+        RecordURL := AppendPathToAPIURL(TargetURL, '(' + LibraryGraphMgt.StripBrackets(Format(RequestSystemId)) + ')');
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, RecordURL, 200);
+        AssertAPIDates(ResponseText, StartDate, EndDate);
+
+        // [WHEN] A start-first PATCH moves the range beyond the old end.
+        StartDate += 30;
+        EndDate += 30;
+        Clear(Request);
+        Request.Add('expectedStartDate', Format(StartDate, 0, 9));
+        Request.Add('expectedEndDate', Format(EndDate, 0, 9));
+        Request.WriteTo(RequestBody);
+        LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(RecordURL, RequestBody, ResponseText, 200);
+
+        // [THEN] The complete later range is accepted.
+        AssertAPIDates(ResponseText, StartDate, EndDate);
+
+        // [WHEN] An end-first PATCH moves the range before the old start.
+        StartDate := WorkDate() - 33;
+        EndDate := WorkDate() - 30;
+        Clear(Request);
+        Request.Add('expectedEndDate', Format(EndDate, 0, 9));
+        Request.Add('expectedStartDate', Format(StartDate, 0, 9));
+        Request.WriteTo(RequestBody);
+        LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(RecordURL, RequestBody, ResponseText, 200);
+
+        // [THEN] The complete earlier range is accepted.
+        AssertAPIDates(ResponseText, StartDate, EndDate);
+
+        // [WHEN] Only the end date is changed.
+        EndDate += 1;
+        Clear(Request);
+        Request.Add('expectedEndDate', Format(EndDate, 0, 9));
+        Request.WriteTo(RequestBody);
+        LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(RecordURL, RequestBody, ResponseText, 200);
+
+        // [THEN] The omitted start remains unchanged.
+        AssertAPIDates(ResponseText, StartDate, EndDate);
+
+        // [WHEN] A start-only PATCH would exceed the stored end.
+        Clear(Request);
+        Request.Add('expectedStartDate', Format(EndDate + 1, 0, 9));
+        Request.WriteTo(RequestBody);
+        asserterror LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(RecordURL, RequestBody, ResponseText, 400);
+
+        // [THEN] The date-range error is returned and the previous valid pair remains stored.
+        Assert.ExpectedError(BadRequestResponseErr);
+        Response.ReadFrom(ResponseText);
+        Response.Get('error', ErrorResponse);
+        ErrorResponse.AsObject().Get('message', ErrorMessage);
+        Assert.AreNotEqual(0, StrPos(ErrorMessage.AsValue().AsText(), InvalidTravelRequestDatesErr), 'The invalid date range must cause the rejection.');
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, RecordURL, 200);
+        AssertAPIDates(ResponseText, StartDate, EndDate);
+    end;
 
     [Test]
     procedure TravelRequestsAreScopedByEmployeeNumber()
@@ -379,6 +477,30 @@ codeunit 148347 "Travel Requests API Test"
             'The legacy Spend Requests API must not change the Travel Request owner.');
     end;
 #endif
+
+    local procedure AppendPathToAPIURL(TargetURL: Text; PathSuffix: Text): Text
+    var
+        QueryPosition: Integer;
+    begin
+        QueryPosition := StrPos(TargetURL, '?');
+        if QueryPosition = 0 then
+            exit(TargetURL + PathSuffix);
+
+        exit(CopyStr(TargetURL, 1, QueryPosition - 1) + PathSuffix + CopyStr(TargetURL, QueryPosition));
+    end;
+
+    local procedure AssertAPIDates(ResponseText: Text; StartDate: Date; EndDate: Date)
+    var
+        Response: JsonObject;
+        StartDateToken: JsonToken;
+        EndDateToken: JsonToken;
+    begin
+        Response.ReadFrom(ResponseText);
+        Response.Get('expectedStartDate', StartDateToken);
+        Response.Get('expectedEndDate', EndDateToken);
+        Assert.AreEqual(StartDate, StartDateToken.AsValue().AsDate(), 'The API must return the effective start date.');
+        Assert.AreEqual(EndDate, EndDateToken.AsValue().AsDate(), 'The API must return the effective end date.');
+    end;
 
     local procedure AssertOwnerPreservingPatch(TargetURL: Text; TravelRequest: Record "Spend Request")
     var

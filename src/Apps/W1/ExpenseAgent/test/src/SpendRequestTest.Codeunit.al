@@ -70,6 +70,7 @@ codeunit 148339 "Spend Request Test"
         NotTravelRequestOwnerErr: Label 'did not create it', Locked = true;
         NotTravelRequestApproverErr: Label 'is not authorized', Locked = true;
         LinkedExpenseReportExistsErr: Label 'because it is linked to an expense report.', Locked = true;
+        InvalidTravelRequestDatesErr: Label 'Expected End Date cannot be before Expected Start Date.', Locked = true;
 
     [Test]
     [HandlerFunctions('SpendReqConfirmHandler')]
@@ -453,6 +454,146 @@ codeunit 148339 "Spend Request Test"
         Assert.RecordIsEmpty(SpendRequestDetail);
         Traveler.SetRange("Spend Request No.", TravelRequestNo);
         Assert.RecordIsEmpty(Traveler);
+    end;
+
+    [Test]
+    procedure TravelRequestInsertPreservesAPIDates()
+    var
+        SpendRequest: Record "Spend Request";
+    begin
+        // [SCENARIO] Explicit API dates survive insertion; only omitted dates receive defaults.
+        Initialize();
+
+        // [GIVEN] A request supplying a future date pair.
+        PrepareTravelRequestWithAPIDates(SpendRequest, WorkDate() + 30, WorkDate() + 33, true, true);
+
+        // [WHEN] The table's insert triggers run.
+        SpendRequest.Insert(true);
+
+        // [THEN] The supplied dates are persisted.
+        SpendRequest.Get(SpendRequest."No.");
+        AssertTravelRequestDates(SpendRequest, WorkDate() + 30, WorkDate() + 33);
+
+        // [WHEN] The same record variable inserts again without any date inputs.
+        SpendRequest.Init();
+        SpendRequest."No." := '';
+        SpendRequest."Document Type" := SpendRequest."Document Type"::"Travel Request";
+        SpendRequest.Insert(true);
+
+        // [THEN] The previous override was consumed and normal defaults apply.
+        AssertTravelRequestDates(SpendRequest, WorkDate(), WorkDate());
+
+        // [WHEN] Only an end date is supplied on another insertion.
+        PrepareTravelRequestWithAPIDates(SpendRequest, 0D, WorkDate() + 7, false, true);
+        SpendRequest.Insert(true);
+
+        // [THEN] The start defaults and the supplied end is preserved.
+        AssertTravelRequestDates(SpendRequest, WorkDate(), WorkDate() + 7);
+
+        // [WHEN] Only a start date is supplied on another insertion.
+        PrepareTravelRequestWithAPIDates(SpendRequest, WorkDate() - 7, 0D, true, false);
+        SpendRequest.Insert(true);
+
+        // [THEN] The end defaults and the supplied start is preserved.
+        AssertTravelRequestDates(SpendRequest, WorkDate() - 7, WorkDate());
+    end;
+
+    [Test]
+    procedure TravelRequestDatePairMovesLaterAndEarlier()
+    var
+        SpendRequest: Record "Spend Request";
+    begin
+        // [SCENARIO] Complete date ranges can move past the old end or before the old start.
+        Initialize();
+
+        // [GIVEN] An open request with its default date pair.
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+
+        // [WHEN] Both dates move past the old end.
+        SpendRequest.ApplyExpectedDatesFromAPI(WorkDate() + 30, WorkDate() + 33, true, true);
+        SpendRequest.Modify(true);
+
+        // [THEN] The complete later pair is accepted.
+        SpendRequest.Get(SpendRequest."No.");
+        AssertTravelRequestDates(SpendRequest, WorkDate() + 30, WorkDate() + 33);
+
+        // [WHEN] Both dates move before the old start.
+        SpendRequest.ApplyExpectedDatesFromAPI(WorkDate() - 33, WorkDate() - 30, true, true);
+        SpendRequest.Modify(true);
+
+        // [THEN] The complete earlier pair is accepted.
+        SpendRequest.Get(SpendRequest."No.");
+        AssertTravelRequestDates(SpendRequest, WorkDate() - 33, WorkDate() - 30);
+    end;
+
+    [Test]
+    procedure TravelRequestDateChangesPreserveOmittedFields()
+    var
+        SpendRequest: Record "Spend Request";
+    begin
+        // [SCENARIO] Partial date updates use stored values for omitted fields.
+        Initialize();
+
+        // [GIVEN] An open request with its default date pair.
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+
+        // [WHEN] Only the end date is changed.
+        SpendRequest.ApplyExpectedDatesFromAPI(0D, WorkDate() + 20, false, true);
+        SpendRequest.Modify(true);
+
+        // [THEN] The start remains unchanged.
+        AssertTravelRequestDates(SpendRequest, WorkDate(), WorkDate() + 20);
+
+        // [WHEN] Only the start is changed, followed by a request omitting both dates.
+        SpendRequest.ApplyExpectedDatesFromAPI(WorkDate() + 10, 0D, true, false);
+        SpendRequest.ApplyExpectedDatesFromAPI(0D, 0D, false, false);
+        SpendRequest.Modify(true);
+
+        // [THEN] The effective date pair is preserved.
+        SpendRequest.Get(SpendRequest."No.");
+        AssertTravelRequestDates(SpendRequest, WorkDate() + 10, WorkDate() + 20);
+    end;
+
+    [Test]
+    procedure TravelRequestAPIDatesKeepValidation()
+    var
+        SpendRequest: Record "Spend Request";
+        InvalidRequest: Record "Spend Request";
+    begin
+        // [SCENARIO] Deferred validation still rejects invalid ranges and edits to released requests.
+        Initialize();
+
+        // [GIVEN] An open request with its default date pair.
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+
+        // [WHEN] A start-only update exceeds the stored end.
+        asserterror SpendRequest.ApplyExpectedDatesFromAPI(WorkDate() + 1, 0D, true, false);
+
+        // [THEN] The range is rejected and stored dates are unchanged.
+        Assert.ExpectedError(InvalidTravelRequestDatesErr);
+        SpendRequest.Get(SpendRequest."No.");
+        AssertTravelRequestDates(SpendRequest, WorkDate(), WorkDate());
+
+        // [WHEN] An invalid complete pair is supplied.
+        asserterror SpendRequest.ApplyExpectedDatesFromAPI(WorkDate() + 10, WorkDate() + 5, true, true);
+
+        // [THEN] The final invalid pair is rejected.
+        Assert.ExpectedError(InvalidTravelRequestDatesErr);
+        SpendRequest.Get(SpendRequest."No.");
+
+        // [WHEN] A new request supplies an invalid pair.
+        PrepareTravelRequestWithAPIDates(InvalidRequest, WorkDate() + 10, WorkDate() + 5, true, true);
+        asserterror InvalidRequest.Insert(true);
+
+        // [THEN] Insertion fails rather than replacing the inputs with valid defaults.
+        Assert.ExpectedError(InvalidTravelRequestDatesErr);
+
+        // [WHEN] A released request receives a valid new pair.
+        LibraryExpense.SetSpendRequestStatus(SpendRequest, SpendRequest.Status::Released);
+        asserterror SpendRequest.ApplyExpectedDatesFromAPI(WorkDate() + 30, WorkDate() + 33, true, true);
+
+        // [THEN] The existing status guard still rejects the edit.
+        Assert.ExpectedError(StatusNotOpenErr);
     end;
 
     [Test]
@@ -1399,6 +1540,20 @@ codeunit 148339 "Spend Request Test"
         LibraryExpense.CreateSpendRequestDetail(SpendRequest."No.", LibraryRandom.RandIntInRange(100000, 100000));
         LibraryExpense.CreateTraveler(SpendRequest."No.", ExpenseUserNo);
         LibraryExpense.SetSpendRequestStatus(SpendRequest, NewStatus);
+    end;
+
+    local procedure PrepareTravelRequestWithAPIDates(var SpendRequest: Record "Spend Request"; StartDate: Date; EndDate: Date; StartDateProvided: Boolean; EndDateProvided: Boolean)
+    begin
+        Clear(SpendRequest);
+        SpendRequest.Init();
+        SpendRequest."Document Type" := SpendRequest."Document Type"::"Travel Request";
+        SpendRequest.SetExpectedDatesForAPIInsert(StartDate, EndDate, StartDateProvided, EndDateProvided);
+    end;
+
+    local procedure AssertTravelRequestDates(SpendRequest: Record "Spend Request"; StartDate: Date; EndDate: Date)
+    begin
+        Assert.AreEqual(StartDate, SpendRequest."Expected Start Date", 'The expected start date must match the effective input.');
+        Assert.AreEqual(EndDate, SpendRequest."Expected End Date", 'The expected end date must match the effective input.');
     end;
 
     local procedure CreateReleasableSpendRequest(var SpendRequest: Record "Spend Request"; var ExpenseUser: Record "Expense User")

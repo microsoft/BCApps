@@ -78,13 +78,23 @@ page 7134 "Travel Requests API"
                     Caption = 'Total Line Amount (LCY)';
                     Editable = false;
                 }
-                field(expectedStartDate; Rec."Expected Start Date")
+                field(expectedStartDate; ExpectedStartDate)
                 {
                     Caption = 'Expected Start Date';
+
+                    trigger OnValidate()
+                    begin
+                        ExpectedStartDateProvided := true;
+                    end;
                 }
-                field(expectedEndDate; Rec."Expected End Date")
+                field(expectedEndDate; ExpectedEndDate)
                 {
                     Caption = 'Expected End Date';
+
+                    trigger OnValidate()
+                    begin
+                        ExpectedEndDateProvided := true;
+                    end;
                 }
                 field(closedAt; Rec."Closed At")
                 {
@@ -193,6 +203,27 @@ page 7134 "Travel Requests API"
         ExpenseAgentAPIValidation.VerifyAgentAccess();
     end;
 
+    trigger OnOpenPage()
+    begin
+        Rec.AddLoadFields("Expected Start Date", "Expected End Date");
+    end;
+
+    trigger OnAfterGetRecord()
+    begin
+        ExpectedStartDate := Rec."Expected Start Date";
+        ExpectedEndDate := Rec."Expected End Date";
+        ExpectedStartDateProvided := false;
+        ExpectedEndDateProvided := false;
+    end;
+
+    trigger OnNewRecord(BelowxRec: Boolean)
+    begin
+        Clear(ExpectedStartDate);
+        Clear(ExpectedEndDate);
+        ExpectedStartDateProvided := false;
+        ExpectedEndDateProvided := false;
+    end;
+
     [ServiceEnabled]
     procedure SubmitTravelRequest(var ActionContext: WebServiceActionContext; SubmitterExpenseUserNo: Code[20])
     var
@@ -230,6 +261,7 @@ page 7134 "Travel Requests API"
     begin
         Rec."Document Type" := Rec."Document Type"::"Travel Request";
         Rec.TestField("Requested By");
+        Rec.SetExpectedDatesForAPIInsert(ExpectedStartDate, ExpectedEndDate, ExpectedStartDateProvided, ExpectedEndDateProvided);
         exit(true);
     end;
 
@@ -241,6 +273,7 @@ page 7134 "Travel Requests API"
         if Rec."Requested By" <> xRec."Requested By" then
             Rec.FieldError("Requested By", RequestedByCannotBeChangedErr);
 
+        Rec.ApplyExpectedDatesFromAPI(ExpectedStartDate, ExpectedEndDate, ExpectedStartDateProvided, ExpectedEndDateProvided);
         exit(true);
     end;
 
@@ -270,6 +303,10 @@ page 7134 "Travel Requests API"
     end;
 
     var
+        ExpectedStartDate: Date;
+        ExpectedEndDate: Date;
+        ExpectedStartDateProvided: Boolean;
+        ExpectedEndDateProvided: Boolean;
         ApproverFilterApplied: Boolean;
         StatusCannotBeChangedErr: Label 'can be changed only by submitting, approving, or rejecting the travel request';
         RequestedByCannotBeChangedErr: Label 'cannot be changed';
