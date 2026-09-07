@@ -1,3 +1,14 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Finance.Test;
+
+using Microsoft.Finance.Currency;
+using Microsoft.Finance.GeneralLedger.Setup;
+using System.Test.Text;
+using System.TestLibraries.Utilities;
+
 codeunit 134844 AmtAutoFormatCurrNeverShow
 {
     Subtype = Test;
@@ -5,7 +16,7 @@ codeunit 134844 AmtAutoFormatCurrNeverShow
 
     var
         Any: Codeunit "Any";
-        LibraryAssert: Codeunit "Library Assert";
+        Assert: Codeunit "Assert";
         LibraryERM: Codeunit "Library - ERM";
         IsInitialized: Boolean;
 
@@ -32,14 +43,14 @@ codeunit 134844 AmtAutoFormatCurrNeverShow
         AmountAutoFormatCurrencyTestPage.GoToRecord(AmountAutoFormatCurrency);
 
         // [Then] the values are formatted correctly
-        LibraryAssert.AreEqual(FormatValue(AmountAutoFormatCurrency.Case1LCY, GeneralLedgerSetup."Amount Decimal Places", '', GeneralLedgerSetup."Currency Symbol Position"), AmountAutoFormatCurrencyTestPage.Case1LCY.Value(), 'The return value for Amount LCY is not correctly formatted');
-        LibraryAssert.AreEqual(FormatValue(AmountAutoFormatCurrency.Case2LCY, GeneralLedgerSetup."Unit-Amount Decimal Places", '', GeneralLedgerSetup."Currency Symbol Position"), AmountAutoFormatCurrencyTestPage.Case2LCY.Value(), 'The return value for Unit-Amount LCY is not correctly formatted');
-        LibraryAssert.AreEqual(FormatValue(AmountAutoFormatCurrency.Case4LCY, GeneralLedgerSetup."Amount Decimal Places", '', GeneralLedgerSetup."Currency Symbol Position"), AmountAutoFormatCurrencyTestPage.Case4LCY.Value(), 'The return value for Amount LCY (No Currency) is not correctly formatted');
-        LibraryAssert.AreEqual(FormatValue(AmountAutoFormatCurrency.Case5LCY, GeneralLedgerSetup."Unit-Amount Decimal Places", '', GeneralLedgerSetup."Currency Symbol Position"), AmountAutoFormatCurrencyTestPage.Case5LCY.Value(), 'The return value for Unit-Amount LCY (No Currency) is not correctly formatted');
-        LibraryAssert.AreEqual(FormatValue(AmountAutoFormatCurrency.Case1FCY, Currency."Amount Decimal Places", '', Currency."Currency Symbol Position"), AmountAutoFormatCurrencyTestPage.Case1FCY.Value(), 'The return value for Amount FCY is not correctly formatted');
-        LibraryAssert.AreEqual(FormatValue(AmountAutoFormatCurrency.Case2FCY, Currency."Unit-Amount Decimal Places", '', Currency."Currency Symbol Position"), AmountAutoFormatCurrencyTestPage.Case2FCY.Value(), 'The return value for Unit-Amount FCY is not correctly formatted');
-        LibraryAssert.AreEqual(FormatValue(AmountAutoFormatCurrency.Case4FCY, Currency."Amount Decimal Places", '', Currency."Currency Symbol Position"), AmountAutoFormatCurrencyTestPage.Case4FCY.Value(), 'The return value for Amount FCY (No Currency) is not correctly formatted');
-        LibraryAssert.AreEqual(FormatValue(AmountAutoFormatCurrency.Case5FCY, Currency."Unit-Amount Decimal Places", '', Currency."Currency Symbol Position"), AmountAutoFormatCurrencyTestPage.Case5FCY.Value(), 'The return value for Unit-Amount FCY (No Currency) is not correctly formatted');
+        Assert.AreEqual(FormatValue(AmountAutoFormatCurrency.Case1LCY, GeneralLedgerSetup."Amount Decimal Places", '', GeneralLedgerSetup."Currency Symbol Position"), AmountAutoFormatCurrencyTestPage.Case1LCY.Value(), 'The return value for Amount LCY is not correctly formatted');
+        Assert.AreEqual(FormatValue(AmountAutoFormatCurrency.Case2LCY, GeneralLedgerSetup."Unit-Amount Decimal Places", '', GeneralLedgerSetup."Currency Symbol Position"), AmountAutoFormatCurrencyTestPage.Case2LCY.Value(), 'The return value for Unit-Amount LCY is not correctly formatted');
+        Assert.AreEqual(FormatValue(AmountAutoFormatCurrency.Case4LCY, GeneralLedgerSetup."Amount Decimal Places", '', GeneralLedgerSetup."Currency Symbol Position"), AmountAutoFormatCurrencyTestPage.Case4LCY.Value(), 'The return value for Amount LCY (No Currency) is not correctly formatted');
+        Assert.AreEqual(FormatValue(AmountAutoFormatCurrency.Case5LCY, GeneralLedgerSetup."Unit-Amount Decimal Places", '', GeneralLedgerSetup."Currency Symbol Position"), AmountAutoFormatCurrencyTestPage.Case5LCY.Value(), 'The return value for Unit-Amount LCY (No Currency) is not correctly formatted');
+        Assert.AreEqual(FormatValue(AmountAutoFormatCurrency.Case1FCY, Currency."Amount Decimal Places", '', Currency."Currency Symbol Position"), AmountAutoFormatCurrencyTestPage.Case1FCY.Value(), 'The return value for Amount FCY is not correctly formatted');
+        Assert.AreEqual(FormatValue(AmountAutoFormatCurrency.Case2FCY, Currency."Unit-Amount Decimal Places", '', Currency."Currency Symbol Position"), AmountAutoFormatCurrencyTestPage.Case2FCY.Value(), 'The return value for Unit-Amount FCY is not correctly formatted');
+        Assert.AreEqual(FormatValue(AmountAutoFormatCurrency.Case4FCY, Currency."Amount Decimal Places", '', Currency."Currency Symbol Position"), AmountAutoFormatCurrencyTestPage.Case4FCY.Value(), 'The return value for Amount FCY (No Currency) is not correctly formatted');
+        Assert.AreEqual(FormatValue(AmountAutoFormatCurrency.Case5FCY, Currency."Unit-Amount Decimal Places", '', Currency."Currency Symbol Position"), AmountAutoFormatCurrencyTestPage.Case5FCY.Value(), 'The return value for Unit-Amount FCY (No Currency) is not correctly formatted');
     end;
 
     [HandlerFunctions('SessionSettingsHandler')]
