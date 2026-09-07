@@ -1577,6 +1577,7 @@ codeunit 139204 "FS Integration Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure ItemSynchronizationDisablesCustomerAssetConversion()
     var
         Item: Record Item;
@@ -1589,6 +1590,7 @@ codeunit 139204 "FS Integration Test"
         // [FEATURE] [Item-Product Mapping]
         // [SCENARIO] Synchronizing an item disables native Field Service customer asset creation.
         Initialize();
+        LibraryCRMIntegration.CreateCRMConnectionSetup('', '@@test@@', true);
         InitSetup(true, '');
 
         // [GIVEN] A coupled item and product where Convert to Customer Asset is Yes.
@@ -1612,6 +1614,7 @@ codeunit 139204 "FS Integration Test"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure ItemProductMappingDisablesCustomerAssetConversion()
     var
         CRMProduct: Record "CRM Product";

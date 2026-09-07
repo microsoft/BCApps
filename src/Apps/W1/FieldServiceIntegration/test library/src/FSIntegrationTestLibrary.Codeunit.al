@@ -4,13 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.TestLibraries.DynamicsFieldService;
 
-using Microsoft.Integration.D365Sales;
-using Microsoft.Integration.Dataverse;
 using Microsoft.Integration.DynamicsFieldService;
-using Microsoft.Inventory.Item;
 using Microsoft.Service.Archive;
 using Microsoft.Service.Document;
-using Microsoft.Service.Item;
 
 codeunit 139205 "FS Integration Test Library"
 {
@@ -91,36 +87,11 @@ codeunit 139205 "FS Integration Test Library"
     [Obsolete('Remove calls to this procedure. Service items are always synchronized to Field Service customer assets; item-product synchronization disables customer asset conversion.', '30.0')]
     procedure IgnoreServiceItemsByConvertToCustomerAssetFlag(SourceRecordRef: RecordRef; var IgnoreRecord: Boolean)
     var
-        FSConnectionSetup: Record "FS Connection Setup";
-        ServiceItem: Record "Service Item";
-        Item: Record Item;
-        CRMIntegrationRecord: Record "CRM Integration Record";
-        CRMProduct: Record "CRM Product";
+        FSIntTableSubscriber: Codeunit "FS Int. Table Subscriber";
     begin
-        if not FSConnectionSetup.IsEnabled() then
-            exit;
-
-        if IgnoreRecord then
-            exit;
-
-        SourceRecordRef.SetTable(ServiceItem);
-        if ServiceItem."Item No." = '' then
-            exit;
-
-        if CRMIntegrationRecord.FindByRecordID(ServiceItem.RecordId) then
-            exit;
-
-        if not Item.Get(ServiceItem."Item No.") then
-            exit;
-
-        if not CRMIntegrationRecord.FindByRecordID(Item.RecordId) then
-            exit;
-
-        if not CRMProduct.Get(CRMIntegrationRecord."CRM ID") then
-            exit;
-
-        if not CRMProduct.ConvertToCustomerAsset then
-            IgnoreRecord := true;
+#pragma warning disable AL0432, AS0105
+        FSIntTableSubscriber.IgnoreServiceItemsByConvertToCustomerAssetFlag(SourceRecordRef, IgnoreRecord);
+#pragma warning restore AL0432, AS0105
     end;
 
     procedure MarkArchivedServiceOrder(ServiceHeader: Record "Service Header")
