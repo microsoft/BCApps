@@ -2635,7 +2635,6 @@ table 39 "Purchase Line"
                 DeferralPostDate: Date;
             begin
                 GetPurchHeader();
-                PurchHeader.TestField(Status, PurchHeader.Status::Open);
                 DeferralPostDate := GetDeferralPostDate(PurchHeader);
 
                 DeferralUtilities.DeferralCodeOnValidate(
@@ -12755,4 +12754,5 @@ table 39 "Purchase Line"
     local procedure OnAfterSetHideValidationDialog(var PurchaseLine: Record "Purchase Line"; NewHideValidationDialog: Boolean)
     begin
     end;
+
 }
