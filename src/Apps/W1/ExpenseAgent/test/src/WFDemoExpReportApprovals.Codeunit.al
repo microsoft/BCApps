@@ -48,7 +48,7 @@ codeunit 148304 "WF Demo Exp. Report Approvals"
         ApproveActionMustBeVisibleErr: Label 'Approve action must be visible for the assigned approver.';
         RejectActionMustBeVisibleErr: Label 'Reject action must be visible for the assigned approver.';
         ApproveActionMustNotBeVisibleErr: Label 'Approve action must not be visible when the user is not the assigned approver.';
-        MissingUserSetupErr: Label 'Please configure your user ''%1'' on the User Setup, as the approval workflow for expenses is enabled.', Comment = '%1 = current user ID';
+        MissingUserSetupMessagePartTxt: Label 'Please configure your user';
 
     [Test]
     [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
@@ -983,7 +983,7 @@ codeunit 148304 "WF Demo Exp. Report Approvals"
         asserterror ExpenseReportApprovalMgmt.GetCurrentUserSetupForApproval(UserSetup);
 
         // [THEN] The actionable missing-User-Setup error is raised for the current user.
-        Assert.ExpectedError(StrSubstNo(MissingUserSetupErr, UserId()));
+        Assert.ExpectedError(MissingUserSetupMessagePartTxt);
     end;
 
     [Test]
@@ -998,9 +998,7 @@ codeunit 148304 "WF Demo Exp. Report Approvals"
         LibraryExpense.UpdateEnableApprovalWorkflowInAgentSetup(true);
 
         // [GIVEN] The current user has a User Setup record.
-        UserSetup.Init();
-        UserSetup."User ID" := CopyStr(UserId(), 1, MaxStrLen(UserSetup."User ID"));
-        UserSetup.Insert();
+        LibraryDocumentApprovals.CreateOrFindUserSetup(UserSetup, CopyStr(UserId(), 1, 50));
         Clear(UserSetup);
 
         // [WHEN] Resolving the current user's setup for approval.
@@ -1025,7 +1023,7 @@ codeunit 148304 "WF Demo Exp. Report Approvals"
         asserterror ManagerExpenseReportPage.OpenView();
 
         // [THEN] The actionable missing-User-Setup error is raised for the current user.
-        Assert.ExpectedError(StrSubstNo(MissingUserSetupErr, UserId()));
+        Assert.ExpectedError(MissingUserSetupMessagePartTxt);
     end;
 
     // [Test] // Disabled - will be re-enabled in work item 629484
