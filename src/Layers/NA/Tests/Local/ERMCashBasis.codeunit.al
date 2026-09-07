@@ -418,7 +418,6 @@
 
     [Test]
     [Scope('OnPrem')]
-    [HandlerFunctions('ConfirmPostingAfterWorkingDateHandler')]
     procedure RealizedPercentageVATAdjustExchPaymentFCYtoPurchInvoiceFCY()
     var
         Currency: Record Currency;
