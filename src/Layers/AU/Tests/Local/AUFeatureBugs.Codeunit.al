@@ -23,7 +23,6 @@ codeunit 145403 "AU Feature Bugs"
         ACYAmountErr: Label 'Additional-Currency Amount is expected to be calculated from the Amount of the same VAT entry.';
         VATEntryCountErr: Label 'Two VAT entries (main line and discount line) are expected for the posted invoice.';
         DifferentBaseErr: Label 'The two VAT entries are expected to have different Base amounts.';
-        DifferentACYBaseErr: Label 'The two VAT entries are expected to have different Additional-Currency Base amounts.';
         UnexpectedVATEntryErr: label 'Unexpected VAT entry with Base %1.', comment = '%1 = VAT Entry Base';
 
     [Test]
