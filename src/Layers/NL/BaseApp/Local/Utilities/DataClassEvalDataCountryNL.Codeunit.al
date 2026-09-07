@@ -9,7 +9,6 @@ using Microsoft.Bank.Reconciliation;
 using Microsoft.Bank.Statement;
 using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Foundation.Address;
-using System.Privacy;
 
 codeunit 11420 "Data Class. Eval. Data NL"
 {
