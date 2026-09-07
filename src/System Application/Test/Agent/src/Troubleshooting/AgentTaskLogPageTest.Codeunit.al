@@ -396,7 +396,7 @@ codeunit 133964 "Agent Task Log Page Test"
 
     local procedure CreateTempMemoryEntries(var TempAgentTaskMemoryEntry: Record "Agent Task Memory Entry" temporary; EntryCount: Integer)
     var
-        MemoryEntryLbl: Label 'Memory entry %1';
+        MemoryEntryLbl: Label 'Memory entry %1', Comment = '%1 - Entry ID';
         EntryID: Integer;
     begin
         for EntryID := 1 to EntryCount do begin
