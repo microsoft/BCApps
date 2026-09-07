@@ -115,6 +115,7 @@ codeunit 7133 "Travel Request Approval"
     var
         ExpenseUser: Record "Expense User";
     begin
+        ExpenseUser.SetLoadFields("No.");
         ExpenseUser.GetBySystemId(ApproverSystemId);
         ApplyApproverFilter(SpendRequest, ExpenseUser."No.");
     end;

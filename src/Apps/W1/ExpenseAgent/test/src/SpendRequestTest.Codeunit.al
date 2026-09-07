@@ -952,6 +952,7 @@ codeunit 148339 "Spend Request Test"
     procedure OwnerFilterRejectsUnknownExpenseUser()
     var
         FilteredTravelRequest: Record "Spend Request";
+        ExpenseUser: Record "Expense User";
         TravelRequestApproval: Codeunit "Travel Request Approval";
     begin
         // [SCENARIO] An unknown owner GUID fails instead of falling back to an unscoped query.
@@ -962,6 +963,7 @@ codeunit 148339 "Spend Request Test"
 
         // [THEN] The missing-record error is propagated.
         Assert.ExpectedErrorCode('DB:RecordNotFound');
+        Assert.ExpectedError(ExpenseUser.TableCaption());
     end;
 
     [Test]
