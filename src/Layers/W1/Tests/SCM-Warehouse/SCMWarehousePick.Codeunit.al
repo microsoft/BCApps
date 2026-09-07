@@ -2630,10 +2630,13 @@ codeunit 137055 "SCM Warehouse Pick"
         WarehouseActivityLine: Record "Warehouse Activity Line";
         LotNo: array[2] of Code[50];
         LotQty: Decimal;
+        OriginalWorkDate: Date;
     begin
         // [FEATURE] [Item Tracking] [Bin]
         // [SCENARIO 648520] The remaining lot can be selected and flows to the second pick after a partial warehouse shipment.
         Initialize();
+        OriginalWorkDate := WorkDate();
+        WorkDate(20250101D);
 
         // [GIVEN] A FEFO warehouse location contains two lots of a lot-tracked item.
         LibraryWarehouse.CreateFullWMSLocation(Location, 2);
@@ -2644,8 +2647,8 @@ codeunit 137055 "SCM Warehouse Pick"
         LotQty := LibraryRandom.RandIntInRange(10, 20);
         LotNo[1] := LibraryUtility.GenerateGUID();
         LotNo[2] := LibraryUtility.GenerateGUID();
-        UpdateInventoryInPickBinWithLotAndExpiration(Item, Location.Code, LotQty, LotNo[1], WorkDate());
-        UpdateInventoryInPickBinWithLotAndExpiration(Item, Location.Code, LotQty, LotNo[2], CalcDate('<1M>', WorkDate()));
+        UpdateInventoryInPickBinWithLotAndExpiration(Item, Location.Code, LotQty, LotNo[1], 20250606D);
+        UpdateInventoryInPickBinWithLotAndExpiration(Item, Location.Code, LotQty, LotNo[2], 20250616D);
 
         // [GIVEN] The first lot is picked and posted as a partial warehouse shipment.
         CreateSalesOrder(SalesHeader, Location.Code, Item."No.", 2 * LotQty);
@@ -2707,6 +2710,7 @@ codeunit 137055 "SCM Warehouse Pick"
         WarehouseActivityLine.TestField("Lot No.", LotNo[2]);
         WarehouseActivityLine.TestField(Quantity, LotQty);
 
+        WorkDate(OriginalWorkDate);
         LibraryVariableStorage.AssertEmpty();
     end;
 
