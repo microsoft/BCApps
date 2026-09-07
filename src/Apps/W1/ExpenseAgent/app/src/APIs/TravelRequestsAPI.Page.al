@@ -248,11 +248,15 @@ page 7134 "Travel Requests API"
         ApproverExpenseUserNo: Code[20];
         OriginalFilterGroup: Integer;
     begin
+        if ApproverFilterApplied then
+            exit;
+
         OriginalFilterGroup := Rec.FilterGroup(4);
         ApproverExpenseUserNo := CopyStr(Rec.GetFilter("Approver Expense User Filter"), 1, MaxStrLen(ApproverExpenseUserNo));
         if ApproverExpenseUserNo <> '' then
             TravelRequestApproval.ApplyApproverFilter(Rec, ApproverExpenseUserNo);
         Rec.FilterGroup(OriginalFilterGroup);
+        ApproverFilterApplied := true;
     end;
 
     local procedure SetActionResponse(var ActionContext: WebServiceActionContext)
@@ -264,6 +268,7 @@ page 7134 "Travel Requests API"
     end;
 
     var
+        ApproverFilterApplied: Boolean;
         StatusCannotBeChangedErr: Label 'The travel request status can be changed only by using a lifecycle action.';
         RequestedByCannotBeChangedErr: Label 'The owner of a travel request cannot be changed.';
 }

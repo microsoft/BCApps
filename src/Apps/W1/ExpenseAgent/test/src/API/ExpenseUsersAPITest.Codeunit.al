@@ -22,10 +22,15 @@ codeunit 148315 "Expense Users API Test"
         APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
         IsInitialized: Boolean;
         ServiceNameTok: Label 'expenseUsers', Locked = true;
+#if not CLEAN30
         SpendRequestsServiceNameTok: Label 'spendRequests', Locked = true;
+#endif
+        ApproverViewsServiceNameTok: Label 'approverViews', Locked = true;
+        TravelRequestsServiceNameTok: Label 'travelRequests', Locked = true;
         BadRequestResponseErr: Label 'Response status code does not match expected', Locked = true;
         RequestedByCannotBeChangedErr: Label 'The owner of a travel request cannot be changed.', Locked = true;
         RequestedByRequestBodyLbl: Label '{"requestedBy":"%1"}', Comment = '%1 = Employee number', Locked = true;
+        StatusRequestBodyLbl: Label '{"status":"Released"}', Locked = true;
 
     [Test]
     procedure UnlinkedExpenseUserIsHiddenFromAPI()
@@ -126,6 +131,98 @@ codeunit 148315 "Expense Users API Test"
             'The Expense User should not expose another employee''s Travel Request.');
     end;
 
+    [Test]
+    procedure ApproverViewReturnsOnlyAssignedTravelRequests()
+    var
+        ApprovalSetup: Record "Expense Approval Setup";
+        OtherApprovalSetup: Record "Expense Approval Setup";
+        ApproverExpenseUser: Record "Expense User";
+        OtherApproverExpenseUser: Record "Expense User";
+        RequestedExpenseUser: Record "Expense User";
+        OtherRequestedExpenseUser: Record "Expense User";
+        AssignedTravelRequest: Record "Spend Request";
+        OtherTravelRequest: Record "Spend Request";
+        TargetURL: Text;
+        ResponseText: Text;
+        AssignedTravelRequestIdTxt: Text;
+        OtherTravelRequestIdTxt: Text;
+    begin
+        Initialize();
+
+        LibraryExpense.CreateExpenseUser(RequestedExpenseUser);
+        LibraryExpense.CreateExpenseUser(OtherRequestedExpenseUser);
+        CreateApprover(ApproverExpenseUser);
+        CreateApprover(OtherApproverExpenseUser);
+        LibraryExpense.CreateExpenseApprovalSetup(
+            ApprovalSetup, RequestedExpenseUser."No.", ApproverExpenseUser."No.");
+        LibraryExpense.CreateExpenseApprovalSetup(
+            OtherApprovalSetup, OtherRequestedExpenseUser."No.", OtherApproverExpenseUser."No.");
+        CreatePendingTravelRequest(AssignedTravelRequest, RequestedExpenseUser);
+        CreatePendingTravelRequest(OtherTravelRequest, OtherRequestedExpenseUser);
+        Commit();
+
+        TargetURL := LibraryGraphMgt.CreateTargetURL(
+            Format(ApproverExpenseUser.SystemId), Page::"Approver View API", ApproverViewsServiceNameTok);
+        if StrPos(TargetURL, '?') <> 0 then
+            TargetURL += '&$expand=travelRequests'
+        else
+            TargetURL += '?$expand=travelRequests';
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+        ResponseText := LowerCase(ResponseText);
+        AssignedTravelRequestIdTxt := LowerCase(LibraryGraphMgt.StripBrackets(Format(AssignedTravelRequest.SystemId)));
+        OtherTravelRequestIdTxt := LowerCase(LibraryGraphMgt.StripBrackets(Format(OtherTravelRequest.SystemId)));
+
+        Assert.AreNotEqual(
+            0, StrPos(ResponseText, AssignedTravelRequestIdTxt),
+            'The Approver View should expose the Travel Request assigned to the approver.');
+        Assert.AreEqual(
+            0, StrPos(ResponseText, OtherTravelRequestIdTxt),
+            'The Approver View should not expose a Travel Request assigned to another approver.');
+    end;
+
+    [Test]
+    procedure TravelRequestsAPIRejectsLifecycleFieldChanges()
+    var
+        ExpenseUser: Record "Expense User";
+        OtherExpenseUser: Record "Expense User";
+        TravelRequest: Record "Spend Request";
+        OriginalRequestedBy: Code[20];
+        RequestBody: Text;
+        ResponseText: Text;
+        TargetURL: Text;
+    begin
+        Initialize();
+
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseUser(OtherExpenseUser);
+        CreateTravelRequest(TravelRequest, ExpenseUser."Employee No.");
+        OriginalRequestedBy := TravelRequest."Requested By";
+        Commit();
+
+        TargetURL := LibraryGraphMgt.CreateTargetURL(
+            Format(TravelRequest.SystemId), Page::"Travel Requests API", TravelRequestsServiceNameTok);
+        RequestBody := StrSubstNo(RequestedByRequestBodyLbl, OtherExpenseUser."Employee No.");
+        asserterror LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 400);
+
+        Assert.ExpectedError(BadRequestResponseErr);
+        Assert.AreNotEqual(
+            0, StrPos(ResponseText, RequestedByCannotBeChangedErr),
+            'The Travel Requests API should explain that the owner is immutable.');
+
+        Clear(ResponseText);
+        asserterror LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(
+            TargetURL, StatusRequestBodyLbl, ResponseText, 400);
+
+        Assert.ExpectedError(BadRequestResponseErr);
+        TravelRequest.Get(TravelRequest."No.");
+        Assert.AreEqual(
+            OriginalRequestedBy, TravelRequest."Requested By",
+            'The Travel Requests API must not change the Travel Request owner.');
+        Assert.AreEqual(
+            TravelRequest.Status::Open, TravelRequest.Status,
+            'The Travel Requests API must not change the Travel Request status.');
+    end;
+
 #if not CLEAN30
     [Test]
     procedure LegacySpendRequestsAPIRejectsTravelRequestOwnerChange()
@@ -167,6 +264,22 @@ codeunit 148315 "Expense Users API Test"
         LibraryExpense.CreateSpendRequest(TravelRequest);
         TravelRequest.Validate("Requested By", EmployeeNo);
         TravelRequest.Modify(true);
+    end;
+
+    local procedure CreatePendingTravelRequest(var TravelRequest: Record "Spend Request"; ExpenseUser: Record "Expense User")
+    begin
+        CreateTravelRequest(TravelRequest, ExpenseUser."Employee No.");
+        TravelRequest.Validate("Requested For", ExpenseUser."No.");
+        TravelRequest.Modify(true);
+        LibraryExpense.SetSpendRequestStatus(TravelRequest, TravelRequest.Status::Released);
+    end;
+
+    local procedure CreateApprover(var ExpenseUser: Record "Expense User")
+    begin
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        ExpenseUser."Can Approve" := true;
+        ExpenseUser."User Id For Approvals" := CopyStr(UserId(), 1, MaxStrLen(ExpenseUser."User Id For Approvals"));
+        ExpenseUser.Modify(true);
     end;
 
     local procedure Initialize()
