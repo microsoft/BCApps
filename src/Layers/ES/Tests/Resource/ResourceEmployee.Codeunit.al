@@ -766,7 +766,7 @@ codeunit 136400 "Resource Employee"
         EmployeeRelative."Employee No." := Employee."No.";
         EmployeeRelative."Line No." := 10000;
         EmployeeRelative.Insert();
-        LastName := CopyStr(LibraryUtility.GenerateRandomText(MaxStrLen(EmployeeRelative."Last Name")), 1, MaxStrLen(EmployeeRelative."Last Name"));
+        LastName := CopyStr(LibraryUtility.GenerateRandomText(MaxStrLen(EmployeeRelative."First Family Name")), 1, MaxStrLen(EmployeeRelative."First Family Name"));
         Commit();
 
         // [WHEN] The relative's last name is edited on the Employee Relatives page.
@@ -778,7 +778,7 @@ codeunit 136400 "Resource Employee"
 
         // [THEN] The relative's last name is saved.
         EmployeeRelative.Get(EmployeeRelative."Employee No.", EmployeeRelative."Line No.");
-        EmployeeRelative.TestField("Last Name", LastName);
+        EmployeeRelative.TestField("First Family Name", LastName);
     end;
 
     [Normal]
