@@ -2172,7 +2172,6 @@ codeunit 134897 "ERM Source Currency"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler')]
     procedure CalcAndPostVATSettlementSourceCurrencyAmounts()
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
