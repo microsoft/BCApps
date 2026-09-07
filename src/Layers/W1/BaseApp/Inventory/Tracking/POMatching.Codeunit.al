@@ -143,6 +143,7 @@ codeunit 5831 "PO Matching"
         ItemTrackingDocMgmt.RetrieveEntriesFromShptRcpt(TempItemLedgerEntry, Database::"Purch. Rcpt. Line", 0, PurchRcptLine."Document No.", '', 0, PurchRcptLine."Line No.");
         TempItemLedgerEntry.SetFilter("Item Tracking", '<>%1', TempItemLedgerEntry."Item Tracking"::None);
         exit(not TempItemLedgerEntry.IsEmpty());
+
     end;
     #endregion
 }
