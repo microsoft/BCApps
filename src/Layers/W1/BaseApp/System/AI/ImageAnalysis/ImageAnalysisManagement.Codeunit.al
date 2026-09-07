@@ -17,12 +17,9 @@ codeunit 2020 "Image Analysis Management"
         LimitType: Option Year,Month,Day,Hour;
         LimitValue: Integer;
         ImagePath: Text;
-        PendingValidationError: Text;
         SetMediaErr: Label 'There was a problem uploading the image file. Please try again.';
         NoApiKeyUriErr: Label 'To analyze images, you must provide an API key and an API URI for Computer Vision.';
         NoImageErr: Label 'You haven''t uploaded an image to analyze.';
-        MediaTooLargeErr: Label 'The media file is too large. Only images up to 4 MB are supported.';
-        MediaTooSmallErr: Label 'The media file is too small. It must be at least 50x50 pixels.';
         MediaWrongFormatErr: Label 'The media file is not supported. Only images of the following types are supported: JPEG, PNG, GIF, BMP.';
         LastError: Text;
         IsLastErrorUsageLimitError: Boolean;
@@ -47,11 +44,8 @@ codeunit 2020 "Image Analysis Management"
         UsingCustomConfigTelemetryMsg: Label 'Using customer-configured API key and URI for Computer Vision.', Locked = true;
         ImageValidationFailedTelemetryMsg: Label 'Image content validation failed before sending to Computer Vision. Reason: %1.', Locked = true;
         MissingFileTelemetryTxt: Label 'MissingFile', Locked = true;
-        TooLargeTelemetryTxt: Label 'TooLarge', Locked = true;
-        TooSmallTelemetryTxt: Label 'TooSmall', Locked = true;
         NotAnImageTelemetryTxt: Label 'NotAnImage', Locked = true;
         UnsupportedFormatTelemetryTxt: Label 'UnsupportedFormat', Locked = true;
-        UnsupportedMediaMetadataTelemetryTxt: Label 'UnsupportedMediaMetadata', Locked = true;
 
     [NonDebuggable]
     procedure Initialize()
@@ -109,24 +103,10 @@ codeunit 2020 "Image Analysis Management"
         FileManagement: Codeunit "File Management";
     begin
         if TenantMedia.Get(MediaId) then begin
-            PendingValidationError := '';
-
-            if not ImageAnalysisProvider.IsMediaSupported(MediaId) then begin
-                LogImageValidationFailure(UnsupportedMediaMetadataTelemetryTxt);
-                PendingValidationError := ImageAnalysisProvider.GetLastError();
-                if PendingValidationError = '' then
-                    PendingValidationError := MediaWrongFormatErr;
-                exit;
-            end;
-
-            TenantMedia.CalcFields(Content);
-            if TenantMedia.Content.Length() > MaxImageSizeInBytes() then begin
-                LogImageValidationFailure(TooLargeTelemetryTxt);
-                PendingValidationError := MediaTooLargeErr;
-                exit;
-            end;
-
+            // Keep metadata checks advisory; Analyze validates the actual image content.
+            ImageAnalysisProvider.IsMediaSupported(MediaId);
             ImagePath := FileManagement.ServerTempFileName('');
+            TenantMedia.CalcFields(Content);
             TenantMedia.Content.Export(ImagePath);
         end else
             Error(SetMediaErr);
@@ -137,7 +117,6 @@ codeunit 2020 "Image Analysis Management"
         FileManagement: Codeunit "File Management";
     begin
         FileManagement.IsAllowedPath(Path, false);
-        PendingValidationError := '';
         ImagePath := Path;
     end;
 
@@ -145,14 +124,6 @@ codeunit 2020 "Image Analysis Management"
     var
         FileManagement: Codeunit "File Management";
     begin
-        PendingValidationError := '';
-
-        if TempBlob.Length() > MaxImageSizeInBytes() then begin
-            LogImageValidationFailure(TooLargeTelemetryTxt);
-            PendingValidationError := MediaTooLargeErr;
-            exit;
-        end;
-
         ImagePath := FileManagement.ServerTempFileName('');
         FileManagement.BLOBExportToServerFile(TempBlob, ImagePath);
     end;
@@ -245,27 +216,24 @@ codeunit 2020 "Image Analysis Management"
         if (Key.IsEmpty()) or (Uri = '') then
             SetLastError(NoApiKeyUriErr, false)
         else
-            if PendingValidationError <> '' then
-                SetLastError(PendingValidationError, false)
-            else
-                if ImagePath = '' then
-                    SetLastError(NoImageErr, false)
-                else begin
-                    ImageValidationError := GetImageValidationError(ImagePath);
-                    if ImageValidationError <> '' then
-                        SetLastError(ImageValidationError, false)
+            if ImagePath = '' then
+                SetLastError(NoImageErr, false)
+            else begin
+                ImageValidationError := GetImageValidationError(ImagePath);
+                if ImageValidationError <> '' then
+                    SetLastError(ImageValidationError, false)
+                else
+                    if ImageAnalysisSetup.IsUsageLimitReached(UsageLimitError, LimitValue, LimitType) then
+                        SetLastError(UsageLimitError, true)
                     else
-                        if ImageAnalysisSetup.IsUsageLimitReached(UsageLimitError, LimitValue, LimitType) then
-                            SetLastError(UsageLimitError, true)
+                        if InvokeAnalysisWithAuth(ResultJSONManagement, Uri, Key, ImagePath, AnalysisTypes, GlobalLanguage()) then
+                            ImageAnalysisSetup.Increment()
                         else
-                            if InvokeAnalysisWithAuth(ResultJSONManagement, Uri, Key, ImagePath, AnalysisTypes, GlobalLanguage()) then
-                                ImageAnalysisSetup.Increment()
+                            if ImageAnalysisProvider.GetLastError() <> '' then
+                                SetLastError(ImageAnalysisProvider.GetLastError(), false)
                             else
-                                if ImageAnalysisProvider.GetLastError() <> '' then
-                                    SetLastError(ImageAnalysisProvider.GetLastError(), false)
-                                else
-                                    SetLastError(GenericErrorErr, false);
-                end;
+                                SetLastError(GenericErrorErr, false);
+            end;
 
         ImageAnalysisResult.SetResult(ResultJSONManagement, AnalysisTypes);
         OnAfterImageAnalysis(ImageAnalysisResult);
@@ -274,10 +242,8 @@ codeunit 2020 "Image Analysis Management"
     end;
 
     /// <summary>
-    /// Validates that the file that is about to be sent to the Computer Vision API really is an image
-    /// of a supported format, and that it is within the size and dimension boundaries that the API accepts.
-    /// The validation is done on the decoded content, not on caller-supplied metadata, and it is done on the
-    /// exact bytes that are sent, so that no unvalidated content can leave Business Central.
+    /// Validates the image format from the file content rather than caller-supplied metadata.
+    /// API-specific size and dimension restrictions are left to the configured service.
     /// </summary>
     /// <param name="Path">The path of the file that is about to be sent.</param>
     /// <returns>An empty text if the content is valid, otherwise the error message to show to the user.</returns>
@@ -287,8 +253,6 @@ codeunit 2020 "Image Analysis Management"
         FileManagement: Codeunit "File Management";
         ImageFormat: Enum "Image Format";
         ImageInStream: InStream;
-        ImageHeight: Integer;
-        ImageWidth: Integer;
     begin
         if not FileManagement.ServerFileExists(Path) then begin
             LogImageValidationFailure(MissingFileTelemetryTxt);
@@ -297,13 +261,8 @@ codeunit 2020 "Image Analysis Management"
 
         FileManagement.BLOBImportFromServerFile(TempBlob, Path);
 
-        if TempBlob.Length() > MaxImageSizeInBytes() then begin
-            LogImageValidationFailure(TooLargeTelemetryTxt);
-            exit(MediaTooLargeErr);
-        end;
-
         TempBlob.CreateInStream(ImageInStream);
-        if not TryGetImageProperties(ImageInStream, ImageFormat, ImageWidth, ImageHeight) then begin
+        if not TryGetImageFormat(ImageInStream, ImageFormat) then begin
             LogImageValidationFailure(NotAnImageTelemetryTxt);
             exit(MediaWrongFormatErr);
         end;
@@ -312,22 +271,15 @@ codeunit 2020 "Image Analysis Management"
             LogImageValidationFailure(UnsupportedFormatTelemetryTxt);
             exit(MediaWrongFormatErr);
         end;
-
-        if (ImageWidth < MinImageDimensionInPixels()) or (ImageHeight < MinImageDimensionInPixels()) then begin
-            LogImageValidationFailure(TooSmallTelemetryTxt);
-            exit(MediaTooSmallErr);
-        end;
     end;
 
     [TryFunction]
-    local procedure TryGetImageProperties(ImageInStream: InStream; var ImageFormat: Enum "Image Format"; var ImageWidth: Integer; var ImageHeight: Integer)
+    local procedure TryGetImageFormat(ImageInStream: InStream; var ImageFormat: Enum "Image Format")
     var
         Image: Codeunit Image;
     begin
         Image.FromStream(ImageInStream);
         ImageFormat := Image.GetFormat();
-        ImageWidth := Image.GetWidth();
-        ImageHeight := Image.GetHeight();
     end;
 
     local procedure IsSupportedImageFormat(ImageFormat: Enum "Image Format"): Boolean
@@ -341,16 +293,6 @@ codeunit 2020 "Image Analysis Management"
         end;
 
         exit(false);
-    end;
-
-    local procedure MaxImageSizeInBytes(): Integer
-    begin
-        exit(4 * 1024 * 1024);
-    end;
-
-    local procedure MinImageDimensionInPixels(): Integer
-    begin
-        exit(50);
     end;
 
     local procedure LogImageValidationFailure(Reason: Text)
