@@ -761,7 +761,7 @@ codeunit 1410 "Doc. Exch. Service Mgt."
         end;
 
         GetServiceSetUp(DocExchServiceSetup);
-        AuthUrl := DocExchServiceSetup."Auth URL".ToLower();
+        AuthUrl := GetValidatedAuthUrl(DocExchServiceSetup).ToLower();
         Sandbox := IsSandbox(DocExchServiceSetup);
         ClientId := GetClientId(Sandbox);
 
@@ -918,13 +918,13 @@ codeunit 1410 "Doc. Exch. Service Mgt."
             Error(FieldNotSpecifiedTxt, DocExchServiceSetup.FieldCaption("Redirect URL"));
         end;
 
-        AuthUrl := DocExchServiceSetup."Auth URL";
+        AuthUrl := GetValidatedAuthUrl(DocExchServiceSetup);
         if AuthUrl = '' then begin
             Session.LogMessage('0000EYT', StrSubstNo(FieldNotSpecifiedTxt, DocExchServiceSetup.FieldCaption("Auth URL")), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
             Error(FieldNotSpecifiedTxt, DocExchServiceSetup.FieldCaption("Auth URL"));
         end;
 
-        TokenUrl := DocExchServiceSetup."Token URL";
+        TokenUrl := GetValidatedTokenUrl(DocExchServiceSetup);
         if TokenUrl = '' then begin
             Session.LogMessage('0000EYU', StrSubstNo(FieldNotSpecifiedTxt, DocExchServiceSetup.FieldCaption("Token URL")), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
             Error(FieldNotSpecifiedTxt, DocExchServiceSetup.FieldCaption("Token URL"));
@@ -1397,7 +1397,44 @@ codeunit 1410 "Doc. Exch. Service Mgt."
             Session.LogMessage('0000EZ1', StrSubstNo(FieldNotSpecifiedTxt, DocExchServiceSetup.FieldCaption("Service URL")), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTok);
             Error(FieldNotSpecifiedTxt, DocExchServiceSetup.FieldCaption("Service URL"));
         end;
-        exit(DocExchServiceSetup."Service URL" + PartialURL);
+        exit(GetValidatedServiceUrl(DocExchServiceSetup) + PartialURL);
+    end;
+
+    local procedure GetValidatedServiceUrl(var DocExchServiceSetup: Record "Doc. Exch. Service Setup"): Text
+    begin
+        exit(GetValidatedIntegrationUrl(DocExchServiceSetup, DocExchServiceSetup."Service URL", DefaultServiceUrlProdTxt, DefaultServiceUrlSandboxTxt));
+    end;
+
+    local procedure GetValidatedAuthUrl(var DocExchServiceSetup: Record "Doc. Exch. Service Setup"): Text
+    begin
+        exit(GetValidatedIntegrationUrl(DocExchServiceSetup, DocExchServiceSetup."Auth URL", DefaultAuthUrlProdTxt, DefaultAuthUrlSandboxTxt));
+    end;
+
+    local procedure GetValidatedTokenUrl(var DocExchServiceSetup: Record "Doc. Exch. Service Setup"): Text
+    begin
+        exit(GetValidatedIntegrationUrl(DocExchServiceSetup, DocExchServiceSetup."Token URL", DefaultTokenUrlProdTxt, DefaultTokenUrlSandboxTxt));
+    end;
+
+    local procedure GetValidatedIntegrationUrl(var DocExchServiceSetup: Record "Doc. Exch. Service Setup"; StoredUrl: Text; DefaultProdUrl: Text; DefaultSandboxUrl: Text): Text
+    var
+        URI: Codeunit Uri;
+        ExpectedUrl: Text;
+        IsHandled: Boolean;
+    begin
+        if StoredUrl = '' then
+            exit(StoredUrl);
+
+        // Allow partners that override the endpoint (OnBeforeSetURLsToDefault) to opt out of host pinning.
+        OnBeforeValidateIntegrationUrl(DocExchServiceSetup, StoredUrl, IsHandled);
+        if IsHandled then
+            exit(StoredUrl);
+
+        if IsSandbox(DocExchServiceSetup) then
+            ExpectedUrl := DefaultSandboxUrl
+        else
+            ExpectedUrl := DefaultProdUrl;
+
+        exit(URI.ValidateIntegrationURL(StoredUrl, ExpectedUrl));
     end;
 
     local procedure GetCheckConnectionURL(): Text
@@ -1722,6 +1759,11 @@ codeunit 1410 "Doc. Exch. Service Mgt."
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSendActivateAppNotification(var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeValidateIntegrationUrl(var DocExchServiceSetup: Record "Doc. Exch. Service Setup"; StoredUrl: Text; var IsHandled: Boolean)
     begin
     end;
 

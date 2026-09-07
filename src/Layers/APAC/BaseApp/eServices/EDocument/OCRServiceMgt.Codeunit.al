@@ -87,12 +87,34 @@ codeunit 1294 "OCR Service Mgt."
         FailedRequestResultTxt: Label 'Request to OCR service failed. Status code: %1. Message: %2. Details: %3.', Locked = true;
         FailedRequestBodyTxt: Label 'Request to OCR service failed. Method: %1. URL: %2. Body: %3', Locked = true;
         TelemetryCategoryTok: Label 'AL OCR Service', Locked = true;
+        DefaultServiceUrlRSOTok: Label 'https://services.readsoftonline.com', Locked = true;
 
     procedure SetURLsToDefaultRSO(var OCRServiceSetup: Record "OCR Service Setup")
     begin
         OCRServiceSetup."Sign-up URL" := 'https://store.readsoftonline.com/nav';
-        OCRServiceSetup."Service URL" := 'https://services.readsoftonline.com';
+        OCRServiceSetup."Service URL" := DefaultServiceUrlRSOTok;
         OCRServiceSetup."Sign-in URL" := 'https://nav.readsoftonline.com';
+    end;
+
+    local procedure GetValidatedServiceUrl(): Text
+    var
+        URI: Codeunit Uri;
+        IsHandled: Boolean;
+    begin
+        if OCRServiceSetup."Service URL" = '' then
+            exit(OCRServiceSetup."Service URL");
+
+        // Allow partners with an alternative OCR endpoint to opt out of host pinning.
+        OnBeforeValidateServiceUrl(OCRServiceSetup, IsHandled);
+        if IsHandled then
+            exit(OCRServiceSetup."Service URL");
+
+        exit(URI.ValidateIntegrationURL(OCRServiceSetup."Service URL", DefaultServiceUrlRSOTok));
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeValidateServiceUrl(var OCRServiceSetup: Record "OCR Service Setup"; var IsHandled: Boolean)
+    begin
     end;
 
     procedure CheckCredentials()
@@ -386,6 +408,7 @@ codeunit 1294 "OCR Service Mgt."
     local procedure GetOcrServiceSetup(VerifyEnable: Boolean)
     begin
         GetOcrServiceSetupExtended(OCRServiceSetup, VerifyEnable);
+        OCRServiceSetup."Service URL" := CopyStr(GetValidatedServiceUrl(), 1, MaxStrLen(OCRServiceSetup."Service URL"));
     end;
 
     procedure GetOcrServiceSetupExtended(var OCRServiceSetup: Record "OCR Service Setup"; VerifyEnable: Boolean)
