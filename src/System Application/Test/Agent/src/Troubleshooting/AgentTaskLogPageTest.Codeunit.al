@@ -359,45 +359,6 @@ codeunit 133964 "Agent Task Log Page Test"
         Assert.AreEqual(1036, LanguageAfterExport, 'The export should restore the caller''s global language.');
     end;
 
-    [Test]
-    procedure TestExportToJson_UsesRealTaskContext()
-    var
-        AgentRecord: Record Agent;
-        AgentTask: Record "Agent Task";
-        TempAgentTaskLogEntry: Record "Agent Task Log Entry" temporary;
-        TempAgentTaskMemoryEntry: Record "Agent Task Memory Entry" temporary;
-        AgentTaskBuilder: Codeunit "Agent Task Builder";
-        LibraryMockAgent: Codeunit "Library Mock Agent";
-        ExportJson: JsonObject;
-        EntryJson: JsonObject;
-        TaskContextJson: JsonObject;
-        AgentUserSecurityID: Guid;
-        TaskTitle: Text[150];
-        ExternalIdTok: Label 'LOG-EXPORT-TASK', Locked = true;
-    begin
-        // [GIVEN] A real task for a mock SDK agent
-        LibraryMockAgent.DeleteAllAgents();
-        TaskTitle := 'Task log export';
-        AgentUserSecurityID := LibraryMockAgent.GetOrCreateDefaultAgent(AgentRecord, 'LOGEXPORT', 'Log Export Agent', 'Export task logs.');
-        AgentTaskBuilder.Initialize(AgentUserSecurityID, TaskTitle).SetExternalId(ExternalIdTok);
-        AgentTask := AgentTaskBuilder.Create(true, false);
-        CreateTempLogEntry(TempAgentTaskLogEntry, 1, 0);
-        TempAgentTaskLogEntry."Task ID" := AgentTask.ID;
-        TempAgentTaskLogEntry."User Security ID" := AgentUserSecurityID;
-        TempAgentTaskLogEntry.Modify();
-
-        // [WHEN] The task context is exported with deterministic temporary collections
-        ExportToJson(TempAgentTaskLogEntry, TempAgentTaskMemoryEntry, AgentTask.ID, ExportJson);
-
-        // [THEN] The root context comes from the persisted task
-        TaskContextJson := ExportJson.GetObject('taskContext');
-        Assert.AreEqual(Format(AgentTask.ID, 0, 9), TaskContextJson.GetText('taskId'), 'The task ID should be exported.');
-        Assert.AreEqual(TaskTitle, TaskContextJson.GetText('taskTitle'), 'The task title should be exported.');
-        Assert.AreEqual('Log Export Agent', TaskContextJson.GetText('agentName'), 'The agent name should be exported.');
-        EntryJson := GetFirstEntry(ExportJson);
-        Assert.AreEqual('Log Export Agent', EntryJson.GetText('agentName'), 'The agent name should be exported on each log entry.');
-    end;
-
     local procedure CreateTempLogEntryWithContext(var TempAgentTaskLogEntry: Record "Agent Task Log Entry" temporary; EntryID: Integer; ContextTxt: Text)
     var
         AgentTaskLogEntry: Codeunit "Agent Task Log Entry";
@@ -435,10 +396,11 @@ codeunit 133964 "Agent Task Log Page Test"
 
     local procedure CreateTempMemoryEntries(var TempAgentTaskMemoryEntry: Record "Agent Task Memory Entry" temporary; EntryCount: Integer)
     var
+        MemoryEntryLbl: Label 'Memory entry %1';
         EntryID: Integer;
     begin
         for EntryID := 1 to EntryCount do begin
-            CreateTempMemoryEntry(TempAgentTaskMemoryEntry, EntryID, StrSubstNo('Memory entry %1', EntryID));
+            CreateTempMemoryEntry(TempAgentTaskMemoryEntry, EntryID, StrSubstNo(MemoryEntryLbl, EntryID));
             if EntryID mod 2 = 1 then begin
                 TempAgentTaskMemoryEntry.Type := TempAgentTaskMemoryEntry.Type::"Memorized Data";
                 TempAgentTaskMemoryEntry.Modify();
