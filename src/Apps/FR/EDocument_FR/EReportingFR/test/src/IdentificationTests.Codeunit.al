@@ -18,108 +18,109 @@ codeunit 148146 "Identification Tests"
     end;
 
     var
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
         Assert: Codeunit Assert;
         EDocHelpers: Codeunit "EDoc. Helpers";
+        DialogErrorCodeTok: Label 'Dialog', Locked = true;
+        IsInitialized: Boolean;
 
     [Test]
     procedure CheckSIRENNotEmptyRaisesErrorWhenEmpty()
     var
         CompanyInformation: Record "Company Information";
-        OriginalRegistrationNo: Text[20];
     begin
         // [FEATURE] [AI test]
         // [SCENARIO] CheckSIRENNotEmpty raises error when Registration No. is blank
+        Initialize();
 
         // [GIVEN] Company Information with blank Registration No.
         CompanyInformation.Get();
-        OriginalRegistrationNo := CompanyInformation."Registration No.";
         CompanyInformation."Registration No." := '';
         CompanyInformation.Modify();
 
         // [WHEN] CheckSIRENNotEmpty is called
-        // [THEN] Error is raised
         asserterror EDocHelpers.CheckSIRENNotEmpty();
-        Assert.ExpectedError('Registration No. must be specified in Company Information for French e-invoicing.');
 
-        // Cleanup
-        CompanyInformation.Get();
-        CompanyInformation."Registration No." := CopyStr(OriginalRegistrationNo, 1, MaxStrLen(CompanyInformation."Registration No."));
-        CompanyInformation.Modify();
+        // [THEN] Error is raised
+        AssertExpectedDialogError(EDocHelpers.GetSIRENRequiredError());
     end;
 
     [Test]
     procedure CheckSIRETNotEmptyRaisesErrorWhenEmpty()
     var
         CompanyInformation: Record "Company Information";
-        OriginalSIRETNo: Code[14];
     begin
         // [FEATURE] [AI test]
         // [SCENARIO] CheckSIRETNotEmpty raises error when SIRET is blank
+        Initialize();
 
         // [GIVEN] Company Information with blank SIRET No.
         CompanyInformation.Get();
-        OriginalSIRETNo := CompanyInformation."SIRET No.";
         CompanyInformation."SIRET No." := '';
         CompanyInformation.Modify();
 
         // [WHEN] CheckSIRETNotEmpty is called
-        // [THEN] Error is raised
         asserterror EDocHelpers.CheckSIRETNotEmpty();
-        Assert.ExpectedError('SIRET No. must be specified in Company Information for French e-invoicing.');
 
-        // Cleanup
-        CompanyInformation.Get();
-        CompanyInformation."SIRET No." := OriginalSIRETNo;
-        CompanyInformation.Modify();
+        // [THEN] Error is raised
+        AssertExpectedDialogError(EDocHelpers.GetSIRETRequiredError());
     end;
 
     [Test]
     procedure CheckSIRENNotEmptyDoesNotErrorWhenRegistrationNoPresent()
     var
         CompanyInformation: Record "Company Information";
-        OriginalRegistrationNo: Text[20];
     begin
         // [FEATURE] [AI test]
         // [SCENARIO] CheckSIRENNotEmpty succeeds when Registration No. is set
+        Initialize();
 
         // [GIVEN] Company Information with Registration No. set
         CompanyInformation.Get();
-        OriginalRegistrationNo := CompanyInformation."Registration No.";
         CompanyInformation."Registration No." := '123456789';
         CompanyInformation.Modify();
 
         // [WHEN] CheckSIRENNotEmpty is called
         // [THEN] No error is raised
         EDocHelpers.CheckSIRENNotEmpty();
-
-        // Cleanup
-        CompanyInformation.Get();
-        CompanyInformation."Registration No." := CopyStr(OriginalRegistrationNo, 1, MaxStrLen(CompanyInformation."Registration No."));
-        CompanyInformation.Modify();
     end;
 
     [Test]
     procedure CheckSIRETNotEmptyDoesNotErrorWhenSIRETPresent()
     var
         CompanyInformation: Record "Company Information";
-        OriginalSIRETNo: Code[14];
     begin
         // [FEATURE] [AI test]
         // [SCENARIO] CheckSIRETNotEmpty succeeds when SIRET No. is set
+        Initialize();
 
         // [GIVEN] Company Information with SIRET No. set
         CompanyInformation.Get();
-        OriginalSIRETNo := CompanyInformation."SIRET No.";
         CompanyInformation."SIRET No." := '12345678901234';
         CompanyInformation.Modify();
 
         // [WHEN] CheckSIRETNotEmpty is called
         // [THEN] No error is raised
         EDocHelpers.CheckSIRETNotEmpty();
+    end;
 
-        // Cleanup
-        CompanyInformation.Get();
-        CompanyInformation."SIRET No." := OriginalSIRETNo;
-        CompanyInformation.Modify();
+    local procedure AssertExpectedDialogError(ExpectedErrorText: Text)
+    begin
+        Assert.ExpectedError(ExpectedErrorText);
+        Assert.ExpectedErrorCode(DialogErrorCodeTok);
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryTestInitialize.OnTestInitialize(Codeunit::"Identification Tests");
+        LibrarySetupStorage.Restore();
+        if IsInitialized then
+            exit;
+
+        LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Identification Tests");
+        LibrarySetupStorage.SaveCompanyInformation();
+        IsInitialized := true;
+        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Identification Tests");
     end;
 }

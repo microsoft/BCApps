@@ -946,11 +946,11 @@ codeunit 144352 "Swiss SEPA CT Export"
         VendorNo: Code[20];
     begin
         // [FEATURE] [XML] [Export]
-        // [SCENARIO 220991] Swiss SEPA CT export for "Payment Type" = "3" in case of blanked "SWIFT Code"
+        // [SCENARIO 220991] Swiss SEPA CT export for "Payment Form" = "Bank Payment Domestic" with blanked "SWIFT Code" and "Clearing No." when no clearing member id can be derived from the IBAN
         Initialize();
 
-        // [GIVEN] Vendor with bank account having "Payment Form" = "Bank Payment Domestic" ("SWIFT Code" = "" and domestic IBAN)
-        VendorNo := CreateVendorWithBankAccount(PaymentFormGbl::"Bank Payment Domestic", '', '', '', GetIBAN(true));
+        // [GIVEN] Vendor with bank account having "Payment Form" = "Bank Payment Domestic", blank "SWIFT Code" and "Clearing No.", and a domestic IBAN whose clearing slice (positions 5-9) is all zeros, so no clearing member id can be derived from it
+        VendorNo := CreateVendorWithBankAccount(PaymentFormGbl::"Bank Payment Domestic", '', '', '', 'CH9300000123456789012');
         // [GIVEN] Vendor payment journal line with "Currency Code" = ""
         CreatePaymentJournalLine(GenJournalLine, VendorNo, '', '',
           GenJournalLine."Account Type"::Vendor, GenJournalLine."Document Type"::Payment);
@@ -958,7 +958,7 @@ codeunit 144352 "Swiss SEPA CT Export"
         // [WHEN] Export payments to file
         asserterror GenJournalLine_XMLExport(GenJournalLine);
 
-        // [THEN] The file export has one or more errors (Vendor Bank Account "X" must have a value in SWIFT Code.)
+        // [THEN] The file export has one or more errors (Vendor Bank Account "X" must have a value in SWIFT Code or in Clearing No.)
         VerifyPaymentJnlExportErrorForBlankedVendorBankField(GenJournalLine);
     end;
 

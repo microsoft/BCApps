@@ -27,6 +27,10 @@ pagecustomization "PA E-Doc. Purchase Draft" customizes "E-Document Purchase Dra
         {
             Visible = true;
         }
+        modify("Due Date")
+        {
+            Visible = true;
+        }
         modify(Record)
         {
             Visible = true;

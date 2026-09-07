@@ -34,10 +34,12 @@ table 6918 "Expense VAT Specification"
             trigger OnValidate()
             begin
                 GetExpense();
-                if Expense."Expense Category" <> '' then
-                    Validate("Expense Category", "Expense Category");
-                if Expense."Expense Subcategory" <> '' then
-                    Validate("Expense Subcategory", "Expense Subcategory");
+                if Source <> Source::Agent then begin
+                    if Expense."Expense Category" <> '' then
+                        Validate("Expense Category", "Expense Category");
+                    if Expense."Expense Subcategory" <> '' then
+                        Validate("Expense Subcategory", "Expense Subcategory");
+                end;
             end;
         }
         field(2; "Line No."; Integer)
@@ -57,12 +59,14 @@ table 6918 "Expense VAT Specification"
 
             trigger OnValidate()
             begin
-                InitializeCurrency();
-                "VAT Amount" := Round(Amount * "VAT %" / (100 + "VAT %"), Currency."Amount Rounding Precision", Currency.VATRoundingDirection());
-                "VAT Base Amount" := Round(Amount - "VAT Amount", Currency."Amount Rounding Precision");
-                "VAT Difference" := 0;
-                "VAT Amount (LCY)" := CalcVATAmountLCY();
-                "VAT Base Amount (LCY)" := "Amount (LCY)" - "VAT Amount (LCY)";
+                if Source <> Source::Agent then begin
+                    InitializeCurrency();
+                    "VAT Amount" := Round(Amount * "VAT %" / (100 + "VAT %"), Currency."Amount Rounding Precision", Currency.VATRoundingDirection());
+                    "VAT Base Amount" := Round(Amount - "VAT Amount", Currency."Amount Rounding Precision");
+                    "VAT Difference" := 0;
+                    "VAT Amount (LCY)" := CalcVATAmountLCY();
+                    "VAT Base Amount (LCY)" := "Amount (LCY)" - "VAT Amount (LCY)";
+                end;
             end;
         }
         field(11; "VAT Base Amount"; Decimal)
@@ -91,7 +95,8 @@ table 6918 "Expense VAT Specification"
 
             trigger OnValidate()
             begin
-                ValidateAmount();
+                if Source <> Source::Agent then
+                    ValidateAmount();
             end;
         }
         /// <summary>
@@ -151,17 +156,18 @@ table 6918 "Expense VAT Specification"
 
             trigger OnValidate()
             begin
-                GetExpense();
-                if Expense."Currency Code" = '' then begin
-                    Amount := "Amount (LCY)";
-                    Validate(Amount);
-                end else begin
-                    TestField("Amount (LCY)");
-                    TestField(Amount);
-                    Expense."Currency Factor" := Amount / "Amount (LCY)";
+                if Source <> Source::Agent then begin
+                    GetExpense();
+                    if Expense."Currency Code" = '' then begin
+                        Amount := "Amount (LCY)";
+                        Validate(Amount);
+                    end else begin
+                        TestField("Amount (LCY)");
+                        TestField(Amount);
+                        Expense."Currency Factor" := Amount / "Amount (LCY)";
+                    end;
+                    Validate("VAT %");
                 end;
-
-                Validate("VAT %");
             end;
         }
         field(27; "Expense Category"; Code[20])
@@ -174,14 +180,16 @@ table 6918 "Expense VAT Specification"
             var
                 ExpenseCategory: Record "Expense Category";
             begin
-                if "Expense Category" = '' then
-                    exit;
-                if "Expense Subcategory" <> '' then
-                    exit;
-                if ExpenseCategory.Get("Expense Category") then begin
-                    "VAT Prod. Posting Group" := ExpenseCategory."VAT Prod. Posting Group";
-                    "VAT %" := ExpenseCategory."Default VAT %";
-                    Validate("VAT %");
+                if Source <> Source::Agent then begin
+                    if "Expense Category" = '' then
+                        exit;
+                    if "Expense Subcategory" <> '' then
+                        exit;
+                    if ExpenseCategory.Get("Expense Category") then begin
+                        "VAT Prod. Posting Group" := ExpenseCategory."VAT Prod. Posting Group";
+                        "VAT %" := ExpenseCategory."Default VAT %";
+                        Validate("VAT %");
+                    end;
                 end;
             end;
         }
@@ -196,6 +204,9 @@ table 6918 "Expense VAT Specification"
                 ExpenseSubcategory: Record "Expense Subcategory";
                 ExpenseCategory: Record "Expense Category";
             begin
+                if Source = Source::Agent then
+                    exit;
+
                 if "Expense Subcategory" <> '' then begin
                     if ExpenseSubcategory.Get("Expense Category", "Expense Subcategory") then begin
                         "VAT Prod. Posting Group" := ExpenseSubcategory."VAT Prod. Posting Group";
@@ -214,6 +225,8 @@ table 6918 "Expense VAT Specification"
         field(40; Source; Enum "Expense VAT Spec Source")
         {
             Caption = 'Source';
+            Editable = false;
+            DataClassification = SystemMetadata;
             ToolTip = 'Specifies how this VAT specification line was created, for example whether it was entered manually or extracted automatically from a receipt.';
         }
         field(41; Confidence; Decimal)
@@ -249,11 +262,26 @@ table 6918 "Expense VAT Specification"
         end;
     end;
 
+    trigger OnModify()
+    begin
+        TestStatusOpenOfExpense();
+        if Source = Source::Agent then
+            error(ModifyOrDeleteErr);
+    end;
+
+    trigger OnDelete()
+    begin
+        TestStatusOpenOfExpense();
+        if Source = Source::Agent then
+            error(ModifyOrDeleteErr);
+    end;
+
     var
         Currency: Record Currency;
         CurrExchRate: Record "Currency Exchange Rate";
         Expense: Record Expense;
         ExpenseAgentSetup: Record "Expense Agent Setup";
+        ModifyOrDeleteErr: Label 'Modifications and delete are not allowed for records created by the Expense Agent API.';
 
     local procedure CalcVATAmountLCY(): Decimal
     var
@@ -355,5 +383,14 @@ table 6918 "Expense VAT Specification"
             exit('');
         Rec.Reasoning.CreateInStream(InStream, TextEncoding::UTF8);
         InStream.ReadText(Result);
+    end;
+
+    local procedure TestStatusOpenOfExpense()
+    var
+        ExpenseRecord: Record Expense;
+    begin
+        ExpenseRecord.SetLoadFields(Status);
+        ExpenseRecord.Get("Expense No.");
+        ExpenseRecord.TestStatusOpen();
     end;
 }
