@@ -27,10 +27,13 @@ codeunit 148315 "Expense Users API Test"
 #endif
         ApproverViewsServiceNameTok: Label 'approverViews', Locked = true;
         TravelRequestsServiceNameTok: Label 'travelRequests', Locked = true;
-        BadRequestResponseErr: Label 'Response status code does not match expected', Locked = true;
-        RequestedByCannotBeChangedErr: Label 'The owner of a travel request cannot be changed.', Locked = true;
+        ExpenseReportsServiceNameTok: Label 'expenseReports', Locked = true;
+        TravelRequestDetailsServiceNameTok: Label 'travelRequestDetails', Locked = true;
+        BadRequestResponseErr: Label 'Response code is 400 (BadRequest).', Locked = true;
+        RequestedByCannotBeChangedErr: Label 'cannot be changed', Locked = true;
         RequestedByRequestBodyLbl: Label '{"requestedBy":"%1"}', Comment = '%1 = Employee number', Locked = true;
         StatusRequestBodyLbl: Label '{"status":"Released"}', Locked = true;
+        StatusReadOnlyErr: Label 'Control ''status'' is read-only.', Locked = true;
 
     [Test]
     procedure UnlinkedExpenseUserIsHiddenFromAPI()
@@ -132,6 +135,86 @@ codeunit 148315 "Expense Users API Test"
     end;
 
     [Test]
+    procedure ExpenseReportAPIExposesLinkedTravelRequest()
+    var
+        ExpenseUser: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        TravelRequest: Record "Spend Request";
+        Response: JsonObject;
+        TravelRequestId: JsonToken;
+        LinkedTravelRequest: JsonToken;
+        LinkedTravelRequestId: JsonToken;
+        TargetURL: Text;
+        ResponseText: Text;
+        ExpectedId: Text;
+    begin
+        // [SCENARIO] The report's projected GUID and expanded navigation identify the same approved travel request.
+        Initialize();
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        CreateTravelRequest(TravelRequest, ExpenseUser."Employee No.");
+        TravelRequest.Validate("Requested For", ExpenseUser."No.");
+        TravelRequest.Modify(true);
+        LibraryExpense.CreateTraveler(TravelRequest."No.", ExpenseUser."No.");
+        LibraryExpense.SetSpendRequestStatus(TravelRequest, TravelRequest.Status::Approved);
+        ExpenseReportHeader.CreateFromApprovedTravelRequest(TravelRequest);
+        ExpenseReportHeader.SetRange("Spend Request No.", TravelRequest."No.");
+        ExpenseReportHeader.FindFirst();
+        Commit();
+
+        TargetURL := LibraryGraphMgt.CreateTargetURL(
+            Format(ExpenseReportHeader.SystemId), Page::"Expense Reports API", ExpenseReportsServiceNameTok);
+        if StrPos(TargetURL, '?') <> 0 then
+            TargetURL += '&$expand=travelRequest'
+        else
+            TargetURL += '?$expand=travelRequest';
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+
+        Response.ReadFrom(ResponseText);
+        Response.Get('travelRequestId', TravelRequestId);
+        Response.Get('travelRequest', LinkedTravelRequest);
+        LinkedTravelRequest.AsObject().Get('id', LinkedTravelRequestId);
+        ExpectedId := LowerCase(LibraryGraphMgt.StripBrackets(Format(TravelRequest.SystemId)));
+        Assert.AreEqual(ExpectedId, LowerCase(TravelRequestId.AsValue().AsText()), 'The report must expose the linked travel request GUID.');
+        Assert.AreEqual(ExpectedId, LowerCase(LinkedTravelRequestId.AsValue().AsText()), 'The expanded navigation must return the linked travel request.');
+    end;
+
+    [Test]
+    procedure TravelRequestDetailsAPIExposesTypeAndCategory()
+    var
+        ExpenseUser: Record "Expense User";
+        ExpenseCategory: Record "Expense Category";
+        TravelRequest: Record "Spend Request";
+        TravelRequestDetail: Record "Spend Request Detail";
+        Response: JsonObject;
+        DetailType: JsonToken;
+        CategoryCode: JsonToken;
+        TargetURL: Text;
+        ResponseText: Text;
+    begin
+        // [SCENARIO] The detail API projects its line type and expense category.
+        Initialize();
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        CreateTravelRequest(TravelRequest, ExpenseUser."Employee No.");
+        LibraryExpense.CreateExpenseCategory(
+            ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        LibraryExpense.CreateSpendRequestDetail(TravelRequestDetail, TravelRequest."No.", 0);
+        TravelRequestDetail.Validate(Type, TravelRequestDetail.Type::Category);
+        TravelRequestDetail.Validate("Expense Category Code", ExpenseCategory.Code);
+        TravelRequestDetail.Modify(true);
+        Commit();
+
+        TargetURL := LibraryGraphMgt.CreateTargetURL(
+            Format(TravelRequestDetail.SystemId), Page::"Travel Request Details API", TravelRequestDetailsServiceNameTok);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+
+        Response.ReadFrom(ResponseText);
+        Response.Get('type', DetailType);
+        Response.Get('expenseCategoryCode', CategoryCode);
+        Assert.AreEqual('Category', DetailType.AsValue().AsText(), 'The detail API must expose the Category line type.');
+        Assert.AreEqual(ExpenseCategory.Code, CategoryCode.AsValue().AsText(), 'The detail API must expose the expense category code.');
+    end;
+
+    [Test]
     procedure ApproverViewReturnsOnlyAssignedTravelRequests()
     var
         ApprovalSetup: Record "Expense Approval Setup";
@@ -187,6 +270,10 @@ codeunit 148315 "Expense Users API Test"
         OtherExpenseUser: Record "Expense User";
         TravelRequest: Record "Spend Request";
         OriginalRequestedBy: Code[20];
+        Response: JsonObject;
+        ErrorResponse: JsonToken;
+        ErrorCode: JsonToken;
+        ErrorMessage: JsonToken;
         RequestBody: Text;
         ResponseText: Text;
         TargetURL: Text;
@@ -205,15 +292,19 @@ codeunit 148315 "Expense Users API Test"
         asserterror LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 400);
 
         Assert.ExpectedError(BadRequestResponseErr);
-        Assert.AreNotEqual(
-            0, StrPos(ResponseText, RequestedByCannotBeChangedErr),
-            'The Travel Requests API should explain that the owner is immutable.');
+        AssertOwnerChangeError(ResponseText, TravelRequest);
 
         Clear(ResponseText);
         asserterror LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(
             TargetURL, StatusRequestBodyLbl, ResponseText, 400);
 
         Assert.ExpectedError(BadRequestResponseErr);
+        Response.ReadFrom(ResponseText);
+        Response.Get('error', ErrorResponse);
+        ErrorResponse.AsObject().Get('code', ErrorCode);
+        ErrorResponse.AsObject().Get('message', ErrorMessage);
+        Assert.AreEqual('BadRequest', ErrorCode.AsValue().AsText(), 'The status update must be rejected by the OData read-only guard.');
+        Assert.AreNotEqual(0, StrPos(ErrorMessage.AsValue().AsText(), StatusReadOnlyErr), 'The API error must identify the read-only status control.');
         TravelRequest.Get(TravelRequest."No.");
         Assert.AreEqual(
             OriginalRequestedBy, TravelRequest."Requested By",
@@ -249,15 +340,29 @@ codeunit 148315 "Expense Users API Test"
         asserterror LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(TargetURL, RequestBody, ResponseText, 400);
 
         Assert.ExpectedError(BadRequestResponseErr);
-        Assert.AreNotEqual(
-            0, StrPos(ResponseText, RequestedByCannotBeChangedErr),
-            'The legacy Spend Requests API should explain that the Travel Request owner is immutable.');
+        AssertOwnerChangeError(ResponseText, TravelRequest);
         TravelRequest.Get(TravelRequest."No.");
         Assert.AreEqual(
             OriginalRequestedBy, TravelRequest."Requested By",
             'The legacy Spend Requests API must not change the Travel Request owner.');
     end;
 #endif
+
+    local procedure AssertOwnerChangeError(ResponseText: Text; TravelRequest: Record "Spend Request")
+    var
+        Response: JsonObject;
+        ErrorResponse: JsonToken;
+        ErrorMessage: JsonToken;
+        MessageText: Text;
+    begin
+        Response.ReadFrom(ResponseText);
+        Response.Get('error', ErrorResponse);
+        ErrorResponse.AsObject().Get('message', ErrorMessage);
+        MessageText := ErrorMessage.AsValue().AsText();
+        Assert.AreNotEqual(0, StrPos(MessageText, RequestedByCannotBeChangedErr), 'The API must reject the owner change.');
+        Assert.AreNotEqual(0, StrPos(MessageText, TravelRequest.FieldCaption("Requested By")), 'The error must identify Requested By.');
+        Assert.AreNotEqual(0, StrPos(MessageText, TravelRequest."No."), 'The error must identify the travel request.');
+    end;
 
     local procedure CreateTravelRequest(var TravelRequest: Record "Spend Request"; EmployeeNo: Code[20])
     begin

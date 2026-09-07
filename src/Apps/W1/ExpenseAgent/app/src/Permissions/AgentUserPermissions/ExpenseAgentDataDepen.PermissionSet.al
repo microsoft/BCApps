@@ -20,6 +20,7 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Reversal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SalesTax;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Registration;
 using Microsoft.Finance.VAT.Reporting;
@@ -91,6 +92,7 @@ permissionset 6955 "Expense Agent - Data Depen."
                   tabledata "Accounting Period" = r,
                   tabledata "Company Information" = R,
                   tabledata "Gen. Journal Line" = R,
+                  tabledata "Spend Request" = Rm,
                   tabledata "User Setup" = R,
                   tabledata "Customer Posting Group" = R,
                   tabledata "General Ledger Setup" = R,

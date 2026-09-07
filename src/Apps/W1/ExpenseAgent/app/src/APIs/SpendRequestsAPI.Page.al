@@ -176,12 +176,12 @@ page 7099 "Spend Requests API"
         if (Rec."Document Type" = Rec."Document Type"::"Travel Request") and
            (Rec."Requested By" <> xRec."Requested By")
         then
-            Error(RequestedByCannotBeChangedErr);
+            Rec.FieldError("Requested By", RequestedByCannotBeChangedErr);
 
         exit(true);
     end;
 
     var
-        RequestedByCannotBeChangedErr: Label 'The owner of a travel request cannot be changed.';
+        RequestedByCannotBeChangedErr: Label 'cannot be changed';
 }
 #endif

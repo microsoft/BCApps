@@ -235,9 +235,9 @@ page 7134 "Travel Requests API"
     trigger OnModifyRecord(): Boolean
     begin
         if Rec.Status <> xRec.Status then
-            Error(StatusCannotBeChangedErr);
+            Rec.FieldError(Status, StatusCannotBeChangedErr);
         if Rec."Requested By" <> xRec."Requested By" then
-            Error(RequestedByCannotBeChangedErr);
+            Rec.FieldError("Requested By", RequestedByCannotBeChangedErr);
 
         exit(true);
     end;
@@ -269,6 +269,6 @@ page 7134 "Travel Requests API"
 
     var
         ApproverFilterApplied: Boolean;
-        StatusCannotBeChangedErr: Label 'The travel request status can be changed only by using a lifecycle action.';
-        RequestedByCannotBeChangedErr: Label 'The owner of a travel request cannot be changed.';
+        StatusCannotBeChangedErr: Label 'can be changed only by using a lifecycle action';
+        RequestedByCannotBeChangedErr: Label 'cannot be changed';
 }

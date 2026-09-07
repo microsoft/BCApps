@@ -1126,7 +1126,7 @@ codeunit 148339 "Spend Request Test"
         LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
 
         // [GIVEN] A line whose type is Category.
-        CreateTravelRequestLine(SpendRequestDetail, SpendRequest."No.");
+        LibraryExpense.CreateSpendRequestDetail(SpendRequestDetail, SpendRequest."No.", 0);
         SpendRequestDetail.Validate(Type, SpendRequestDetail.Type::Category);
 
         // [WHEN] An expense category is assigned to the line.
@@ -1151,7 +1151,7 @@ codeunit 148339 "Spend Request Test"
         // [GIVEN] An open travel request, an expense category, and a Lump Sum line.
         LibraryExpense.CreateSpendRequest(SpendRequest);
         LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
-        CreateTravelRequestLine(SpendRequestDetail, SpendRequest."No.");
+        LibraryExpense.CreateSpendRequestDetail(SpendRequestDetail, SpendRequest."No.", 0);
         SpendRequestDetail.Validate(Type, SpendRequestDetail.Type::"Lump Sum");
 
         // [WHEN] Assigning an expense category to the Lump Sum line.
@@ -1175,7 +1175,7 @@ codeunit 148339 "Spend Request Test"
         // [GIVEN] A Category line with an expense category assigned.
         LibraryExpense.CreateSpendRequest(SpendRequest);
         LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
-        CreateTravelRequestLine(SpendRequestDetail, SpendRequest."No.");
+        LibraryExpense.CreateSpendRequestDetail(SpendRequestDetail, SpendRequest."No.", 0);
         SpendRequestDetail.Validate(Type, SpendRequestDetail.Type::Category);
         SpendRequestDetail.Validate("Expense Category Code", ExpenseCategory.Code);
         SpendRequestDetail.Modify(true);
@@ -1204,13 +1204,13 @@ codeunit 148339 "Spend Request Test"
         LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
 
         // [GIVEN] A Category line with a category.
-        CreateTravelRequestLine(CategoryLine, SpendRequest."No.");
+        LibraryExpense.CreateSpendRequestDetail(CategoryLine, SpendRequest."No.", 0);
         CategoryLine.Validate(Type, CategoryLine.Type::Category);
         CategoryLine.Validate("Expense Category Code", ExpenseCategory.Code);
         CategoryLine.Modify(true);
 
         // [WHEN] A Lump Sum line is added to the same request.
-        CreateTravelRequestLine(LumpSumLine, SpendRequest."No.");
+        LibraryExpense.CreateSpendRequestDetail(LumpSumLine, SpendRequest."No.", 0);
         LumpSumLine.Validate(Type, LumpSumLine.Type::"Lump Sum");
         LumpSumLine.Modify(true);
 
@@ -1276,24 +1276,6 @@ codeunit 148339 "Spend Request Test"
         LibraryExpense.CreateSpendRequestDetail(SpendRequest."No.", LibraryRandom.RandIntInRange(100000, 100000));
         LibraryExpense.CreateTraveler(SpendRequest."No.", ExpenseUserNo);
         LibraryExpense.SetSpendRequestStatus(SpendRequest, NewStatus);
-    end;
-
-    local procedure CreateTravelRequestLine(var SpendRequestDetail: Record "Spend Request Detail"; SpendRequestNo: Code[20])
-    begin
-        SpendRequestDetail.Init();
-        SpendRequestDetail."Spend Request No." := SpendRequestNo;
-        SpendRequestDetail."Line No." := NextTravelRequestLineNo(SpendRequestNo);
-        SpendRequestDetail.Insert(true);
-    end;
-
-    local procedure NextTravelRequestLineNo(SpendRequestNo: Code[20]): Integer
-    var
-        SpendRequestDetail: Record "Spend Request Detail";
-    begin
-        SpendRequestDetail.SetRange("Spend Request No.", SpendRequestNo);
-        if SpendRequestDetail.FindLast() then
-            exit(SpendRequestDetail."Line No." + 10000);
-        exit(10000);
     end;
 
     local procedure CreateReleasableSpendRequest(var SpendRequest: Record "Spend Request"; var ExpenseUser: Record "Expense User")
