@@ -90,24 +90,24 @@ codeunit 4313 "Agent Task Log Export"
         ExportToJson(AgentTaskLogEntry, AgentTaskMemoryEntry, AgentTaskID, ExportOutStream);
     end;
 
-    procedure ExportToJsonFile(var SelectedAgentTaskLogEntry: Record "Agent Task Log Entry"; AgentName: Text)
+    procedure ExportToJsonFile(var SelectedAgentTaskLogEntry: Record "Agent Task Log Entry")
     var
         TempBlob: Codeunit "Temp Blob";
         ExportOutStream: OutStream;
     begin
         TempBlob.CreateOutStream(ExportOutStream, GetDefaultEncoding());
         ExportToJson(SelectedAgentTaskLogEntry, ExportOutStream);
-        DownloadExport(TempBlob, AgentName);
+        DownloadExport(TempBlob, GetExportAgentName(SelectedAgentTaskLogEntry));
     end;
 
-    procedure ExportTaskToJsonFile(AgentTaskID: BigInteger; AgentName: Text)
+    procedure ExportTaskToJsonFile(AgentTaskID: BigInteger)
     var
         TempBlob: Codeunit "Temp Blob";
         ExportOutStream: OutStream;
     begin
         TempBlob.CreateOutStream(ExportOutStream, GetDefaultEncoding());
         ExportTaskToJson(AgentTaskID, ExportOutStream);
-        DownloadExport(TempBlob, AgentName);
+        DownloadExport(TempBlob, GetAgentName(AgentTaskID));
     end;
 
     local procedure BuildEntryJson(var AgentTaskLogEntryRecord: Record "Agent Task Log Entry"; IncludeSerializedPage: Boolean): JsonObject
@@ -122,6 +122,7 @@ codeunit 4313 "Agent Task Log Export"
         Success: Boolean;
         MemoryDetailsTxt: Text;
         ContextTxt: Text;
+        AgentName: Text;
     begin
         EntryJson.Add(IdLbl, AgentTaskLogEntryRecord.ID);
         EntryJson.Add(TaskIdLbl, Format(AgentTaskLogEntryRecord."Task ID", 0, 9));
@@ -137,10 +138,13 @@ codeunit 4313 "Agent Task Log Export"
         EntryJson.Add(DetailsLbl, AgentTaskImpl.GetDetailsForAgentTaskLogEntry(AgentTaskLogEntryRecord));
         IsAgentAction := AgentTaskLogEntry.IsAgentAction(AgentTaskLogEntryRecord);
         EntryJson.Add(AgentActionLbl, IsAgentAction);
-        EntryJson.Add(AgentNameLbl, AgentTaskLogEntry.GetAgentName(AgentTaskLogEntryRecord));
-
-        if AgentTaskMemoryEntry.Get(AgentTaskLogEntryRecord."Task ID", AgentTaskLogEntryRecord."Memory Entry ID") then
-            MemoryDetailsTxt := ReadMemoryEntryDetails(AgentTaskMemoryEntry);
+        if AgentTaskLogEntryRecord."Task ID" > 0 then begin
+            AgentName := GetAgentName(AgentTaskLogEntryRecord."Task ID");
+            if AgentName <> '' then
+                EntryJson.Add(AgentNameLbl, AgentName);
+            if AgentTaskMemoryEntry.Get(AgentTaskLogEntryRecord."Task ID", AgentTaskLogEntryRecord."Memory Entry ID") then
+                MemoryDetailsTxt := ReadMemoryEntryDetails(AgentTaskMemoryEntry);
+        end;
 
         if AgentTaskLogEntry.GetSuccess(MemoryDetailsTxt, Success) then
             EntryJson.Add(SuccessLbl, Success);
@@ -362,6 +366,7 @@ codeunit 4313 "Agent Task Log Export"
     var
         AgentTask: Record "Agent Task";
         TaskContextJson: JsonObject;
+        AgentName: Text;
     begin
         TaskContextJson.Add(TaskIdLbl, Format(AgentTaskID, 0, 9));
         if AgentTaskID <= 0 then
@@ -369,14 +374,62 @@ codeunit 4313 "Agent Task Log Export"
         if not AgentTask.Get(AgentTaskID) then
             exit(TaskContextJson);
 
-        AgentTask.CalcFields("Agent Display Name");
-        if AgentTask."Agent Display Name" <> '' then
-            TaskContextJson.Add(AgentNameLbl, AgentTask."Agent Display Name");
+        AgentName := GetAgentName(AgentTaskID);
+        if AgentName <> '' then
+            TaskContextJson.Add(AgentNameLbl, AgentName);
         if AgentTask.Title <> '' then
             TaskContextJson.Add(TaskTitleLbl, AgentTask.Title);
         if AgentTask."Company Name" <> '' then
             TaskContextJson.Add(CompanyNameLbl, AgentTask."Company Name");
         exit(TaskContextJson);
+    end;
+
+    local procedure GetAgentName(AgentTaskID: BigInteger): Text
+    var
+        Agent: Record Agent;
+        AgentTask: Record "Agent Task";
+        AgentTaskLogEntry: Record "Agent Task Log Entry";
+    begin
+        if AgentTaskID <= 0 then
+            exit('');
+        if not AgentTask.Get(AgentTaskID) then
+            exit('');
+
+        if Agent.Get(AgentTask."Agent User Security ID") then
+            if Agent."Display Name" <> '' then
+                exit(Agent."Display Name");
+
+        AgentTask.CalcFields("Agent Display Name");
+        if AgentTask."Agent Display Name" <> '' then
+            exit(AgentTask."Agent Display Name");
+
+        AgentTaskLogEntry.SetRange("Task ID", AgentTaskID);
+        AgentTaskLogEntry.SetRange("User Security ID", AgentTask."Agent User Security ID");
+        AgentTaskLogEntry.SetAutoCalcFields("User Full Name");
+        if AgentTaskLogEntry.FindFirst() then
+            exit(AgentTaskLogEntry."User Full Name");
+    end;
+
+    local procedure GetExportAgentName(var SelectedAgentTaskLogEntry: Record "Agent Task Log Entry"): Text
+    var
+        AgentTaskLogEntry: Record "Agent Task Log Entry";
+        AgentName: Text;
+        CurrentAgentName: Text;
+    begin
+        AgentTaskLogEntry.Copy(SelectedAgentTaskLogEntry);
+        if not AgentTaskLogEntry.FindSet() then
+            exit(UnknownAgentTok);
+
+        AgentName := GetAgentName(AgentTaskLogEntry."Task ID");
+        repeat
+            CurrentAgentName := GetAgentName(AgentTaskLogEntry."Task ID");
+            if CurrentAgentName <> AgentName then
+                exit(MultipleAgentsTok);
+        until AgentTaskLogEntry.Next() = 0;
+
+        if AgentName = '' then
+            exit(UnknownAgentTok);
+        exit(AgentName);
     end;
 
     local procedure BuildMessagesJson(var AgentTaskLogEntry: Record "Agent Task Log Entry"): JsonObject
@@ -542,6 +595,8 @@ codeunit 4313 "Agent Task Log Export"
         DetailsLbl: Label 'details', Locked = true;
         AgentActionLbl: Label 'agentAction', Locked = true;
         AgentNameLbl: Label 'agentName', Locked = true;
+        UnknownAgentTok: Label 'UnknownAgent', Locked = true;
+        MultipleAgentsTok: Label 'MultipleAgents', Locked = true;
         SuccessLbl: Label 'success', Locked = true;
         DecisionPointLbl: Label 'decisionPoint', Locked = true;
         ContextLbl: Label 'context', Locked = true;

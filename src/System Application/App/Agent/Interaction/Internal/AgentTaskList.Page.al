@@ -180,7 +180,7 @@ page 4300 "Agent Task List"
                 var
                     AgentTaskLogExport: Codeunit "Agent Task Log Export";
                 begin
-                    AgentTaskLogExport.ExportTaskToJsonFile(Rec.ID, Rec."Agent Display Name");
+                    AgentTaskLogExport.ExportTaskToJsonFile(Rec.ID);
                 end;
             }
             action(Stop)
