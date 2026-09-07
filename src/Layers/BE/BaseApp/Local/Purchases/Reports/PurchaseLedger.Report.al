@@ -802,10 +802,9 @@ report 11301 "Purchase Ledger"
         GLEntryVATEntryLink.SetRange("G/L Entry No.", GLEntryNo);
         if GLEntryVATEntryLink.FindSet() then
             repeat
-                if VATEntry.Get(GLEntryVATEntryLink."VAT Entry No.") then begin
-                    VATDetailBaseAmount += VATEntry.Base;
-                    VATDetailVATAmount += VATEntry.Amount;
-                end;
+                VATEntry.Get(GLEntryVATEntryLink."VAT Entry No.");
+                VATDetailBaseAmount += VATEntry.Base;
+                VATDetailVATAmount += VATEntry.Amount;
             until GLEntryVATEntryLink.Next() = 0;
     end;
 

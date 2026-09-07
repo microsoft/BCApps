@@ -102,6 +102,7 @@ codeunit 144044 "Ledger Reports"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     [HandlerFunctions('PurchaseLedgerReportRequestPageHandler')]
     [Scope('OnPrem')]
     procedure PurchaseLedgerReportVATDetailFollowsGLEntryVATLink()
