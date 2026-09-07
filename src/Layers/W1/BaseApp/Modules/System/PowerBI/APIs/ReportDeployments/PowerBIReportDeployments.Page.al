@@ -1,6 +1,6 @@
 namespace System.Integration.PowerBI;
-using System.Environment;
 using Microsoft.Foundation.Company;
+using System.Environment;
 
 page 6347 "Power BI Report Deployments"
 {
