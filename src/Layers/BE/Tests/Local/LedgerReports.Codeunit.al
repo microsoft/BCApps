@@ -102,6 +102,65 @@ codeunit 144044 "Ledger Reports"
     end;
 
     [Test]
+    [HandlerFunctions('PurchaseLedgerReportRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure PurchaseLedgerReportVATDetailFollowsGLEntryVATLink()
+    var
+        VATEntry: Record "VAT Entry";
+        Acc21No: Code[20];
+        Acc0No: Code[20];
+        VATProdGroup21: Code[20];
+        VATProdGroup0: Code[20];
+        DocumentNo: Code[20];
+        Base21: Decimal;
+        Amount21: Decimal;
+        Base0: Decimal;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] Each Purchase Ledger detail line prints the VAT Base/Amount of the VAT Entry linked to that G/L Entry, not the next VAT entry in transaction order
+        Initialize();
+
+        // [GIVEN] Posted purchase invoice with two lines in one transaction: one taxed at 21% and one at 0%
+        DocumentNo := CreateAndPostPurchInvoiceWithTwoVATRates(Acc21No, Acc0No, VATProdGroup21, VATProdGroup0);
+
+        // [GIVEN] The VAT Entry amounts posted for each rate
+        VATEntry.SetRange("Document No.", DocumentNo);
+        VATEntry.SetRange("VAT Prod. Posting Group", VATProdGroup21);
+        VATEntry.FindFirst();
+        Base21 := VATEntry.Base;
+        Amount21 := VATEntry.Amount;
+        VATEntry.SetRange("VAT Prod. Posting Group", VATProdGroup0);
+        VATEntry.FindFirst();
+        Base0 := VATEntry.Base;
+        Assert.AreEqual(0, VATEntry.Amount, 'Expected the 0% VAT entry to carry no VAT amount.');
+
+        // [WHEN] Run the Purchase Ledger report
+        LibraryVariableStorage.Clear();
+        LibraryVariableStorage.Enqueue('<1D>');
+        LibraryVariableStorage.Enqueue(false);
+        LibraryVariableStorage.Enqueue(false);
+        Commit();
+        REPORT.Run(REPORT::"Purchase Ledger", true, false);
+        LibraryReportDataset.LoadDataSetFile();
+
+        // [THEN] The 21% line shows the base and amount of its own VAT entry
+        LibraryReportDataset.Reset();
+        LibraryReportDataset.SetRange('GLAccountNo_GLEntry', Acc21No);
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.AssertCurrentRowValueEquals('VATDetailBase', Base21);
+        LibraryReportDataset.AssertCurrentRowValueEquals('VATDetailAmount', Amount21);
+
+        // [THEN] The 0% line shows its own base and no VAT amount, instead of the 21% amount from the other line
+        LibraryReportDataset.Reset();
+        LibraryReportDataset.SetRange('GLAccountNo_GLEntry', Acc0No);
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.AssertCurrentRowValueEquals('VATDetailBase', Base0);
+        LibraryReportDataset.AssertCurrentRowValueEquals('VATDetailAmount', 0);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
     [HandlerFunctions('SalesLedgerReportRequestPageHandler')]
     [Scope('OnPrem')]
     procedure SalesLedgerReportTest()
@@ -962,6 +1021,55 @@ codeunit 144044 "Ledger Reports"
 
         DocNo := LibraryPurchase.PostPurchaseDocument(PurchHeader, true, true);
         VATPostingSetup.Delete();
+    end;
+
+    local procedure CreateAndPostPurchInvoiceWithTwoVATRates(var Acc21No: Code[20]; var Acc0No: Code[20]; var VATProdGroup21: Code[20]; var VATProdGroup0: Code[20]) DocNo: Code[20]
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+        VATPostingSetup21: Record "VAT Posting Setup";
+        VATPostingSetup0: Record "VAT Posting Setup";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+        PurchHeader: Record "Purchase Header";
+    begin
+        CreateGeneralPostingSetup(GeneralPostingSetup);
+
+        // Two VAT rates sharing one VAT Bus. Posting Group so both lines post in the same document/transaction
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup21, VATPostingSetup21."VAT Calculation Type"::"Normal VAT", 21);
+        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
+        VATPostingSetup0.Init();
+        VATPostingSetup0.Validate("VAT Bus. Posting Group", VATPostingSetup21."VAT Bus. Posting Group");
+        VATPostingSetup0.Validate("VAT Prod. Posting Group", VATProductPostingGroup.Code);
+        VATPostingSetup0.Validate("VAT Calculation Type", VATPostingSetup0."VAT Calculation Type"::"Normal VAT");
+        VATPostingSetup0.Validate("VAT %", 0);
+        VATPostingSetup0.Validate("VAT Identifier", VATProductPostingGroup.Code);
+        VATPostingSetup0.Validate("Purchase VAT Account", LibraryERM.CreateGLAccountNo());
+        VATPostingSetup0.Insert(true);
+
+        VATProdGroup21 := VATPostingSetup21."VAT Prod. Posting Group";
+        VATProdGroup0 := VATPostingSetup0."VAT Prod. Posting Group";
+
+        LibraryPurchase.CreatePurchHeader(
+          PurchHeader, PurchHeader."Document Type"::Invoice,
+          CreateVendor(GeneralPostingSetup."Gen. Bus. Posting Group", VATPostingSetup21."VAT Bus. Posting Group"));
+        PurchHeader.Validate("Vendor Invoice No.", LibraryUtility.GenerateGUID());
+        PurchHeader.Validate("Posting Date", WorkDate());
+        PurchHeader.Modify(true);
+
+        Acc21No := CreateGLAccWithSetup(GeneralPostingSetup."Gen. Prod. Posting Group", VATProdGroup21);
+        AddPurchLineForGLAccount(PurchHeader, Acc21No);
+        Acc0No := CreateGLAccWithSetup(GeneralPostingSetup."Gen. Prod. Posting Group", VATProdGroup0);
+        AddPurchLineForGLAccount(PurchHeader, Acc0No);
+
+        DocNo := LibraryPurchase.PostPurchaseDocument(PurchHeader, true, true);
+    end;
+
+    local procedure AddPurchLineForGLAccount(PurchHeader: Record "Purchase Header"; GLAccNo: Code[20])
+    var
+        PurchLine: Record "Purchase Line";
+    begin
+        LibraryPurchase.CreatePurchaseLine(PurchLine, PurchHeader, PurchLine.Type::"G/L Account", GLAccNo, LibraryRandom.RandIntInRange(2, 5));
+        PurchLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(100, 1000, 2));
+        PurchLine.Modify(true);
     end;
 
     local procedure CreateAndPostGenJnlLine(AccountNo: Code[20]; AccountType: Enum "Gen. Journal Account Type"; Amount: Decimal): Code[20]
