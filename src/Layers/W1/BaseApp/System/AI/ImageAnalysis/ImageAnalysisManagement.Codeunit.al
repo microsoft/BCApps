@@ -247,7 +247,7 @@ codeunit 2020 "Image Analysis Management"
     /// </summary>
     /// <param name="Path">The path of the file that is about to be sent.</param>
     /// <returns>An empty text if the content is valid, otherwise the error message to show to the user.</returns>
-    local procedure GetImageValidationError(Path: Text) ValidationError: Text
+    local procedure GetImageValidationError(Path: Text): Text
     var
         TempBlob: Codeunit "Temp Blob";
         FileManagement: Codeunit "File Management";
@@ -271,6 +271,8 @@ codeunit 2020 "Image Analysis Management"
             LogImageValidationFailure(UnsupportedFormatTelemetryTxt);
             exit(MediaWrongFormatErr);
         end;
+
+        exit('');
     end;
 
     [TryFunction]
