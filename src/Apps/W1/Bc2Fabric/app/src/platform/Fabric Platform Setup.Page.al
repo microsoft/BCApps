@@ -314,6 +314,7 @@ page 50104 "Fabric Platform Setup"
                 begin
                     SelectLatestVersion();
                     Rec.Get(Rec."Setup ID");
+                    SetEditable();
                     CurrPage.Update(false);
                 end;
             }
