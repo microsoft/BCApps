@@ -9,6 +9,7 @@ using System.Azure.KeyVault;
 using System.Environment;
 using System.Reflection;
 using System.Security.Authentication;
+using System.Utilities;
 
 codeunit 6442 "SignUp Authentication"
 {
@@ -190,6 +191,20 @@ codeunit 6442 "SignUp Authentication"
 
         this.SignUpConnectionSetup.TestField("Marketplace URL");
         ReturnValue := this.SignUpConnectionSetup."Marketplace URL";
+    end;
+
+    /// <summary>
+    /// Returns the Service URL from setup, validated against the hardcoded/Key Vault service host.
+    /// </summary>
+    /// <returns>The validated Service URL.</returns>
+    internal procedure GetServiceUrl(): Text
+    var
+        SignUpConnectionSetup: Record "SignUp Connection Setup";
+        URI: Codeunit Uri;
+    begin
+        if not SignUpConnectionSetup.Get() then
+            exit('');
+        exit(URI.ValidateIntegrationURL(SignUpConnectionSetup."Service URL", this.GetServiceApi()));
     end;
 
     #endregion
