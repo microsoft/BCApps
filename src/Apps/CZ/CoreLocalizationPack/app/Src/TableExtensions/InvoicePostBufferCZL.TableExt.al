@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.ReceivablesPayables;
 
-#pragma warning disable AL0432
+#pragma warning disable AL0432, AL0520 // AL0432/AL0520: the base table is obsolete, but this extension must remain for upgrade compatibility
 tableextension 11722 "Invoice Post. Buffer CZL" extends "Invoice Post. Buffer"
-#pragma warning restore AL0432
+#pragma warning restore AL0432, AL0520
 {
     fields
     {

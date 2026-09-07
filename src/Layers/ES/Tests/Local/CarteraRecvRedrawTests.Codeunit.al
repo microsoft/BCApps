@@ -16,6 +16,9 @@ codeunit 147541 "Cartera Recv. Redraw Tests"
         LibrarySales: Codeunit "Library - Sales";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        LibraryERM: Codeunit "Library - ERM";
+        LibraryJournals: Codeunit "Library - Journals";
+        LibraryRandom: Codeunit "Library - Random";
         FileManagement: Codeunit "File Management";
         IsInitialized: Boolean;
         UnexpectedMessageErr: Label 'Unexpected Message.';
@@ -30,6 +33,7 @@ codeunit 147541 "Cartera Recv. Redraw Tests"
         BankBillSuccessfullyPostedMsg: Label 'Bank Bill Group %1 was successfully posted for discount.';
         CannotBeReversedErr: Label 'The entry cannot be reversed';
         BillShouldBeMarkedAsRedrawnErr: Label 'Bill is not marked as redrawn';
+        RejectedBillsAccNotClearedErr: Label 'Rejected Bills Acc. should be cleared exactly once by the corrective credit memo posting (WI 647259).';
         RedrawReqPageOption: Option update,verify;
 
     [Test]
@@ -382,6 +386,56 @@ codeunit 147541 "Cartera Recv. Redraw Tests"
         Commit();
         REPORT.Run(REPORT::"Notice Assignment Credits");
         // [THEN] No RDLC rendering errors
+    end;
+
+    [Test]
+    [HandlerFunctions('PostBillGroupsModalPageHandler,CarteraDocumentsActionModalPageHandler,ConfirmHandlerYes,MessageHandler,RedrawReceivableBillsPageHandler,CarteraJnlModalPageHandler,SettleDocsInPostBillGrModalPageHandler,RequestDocsModalPageHandler')]
+    [Scope('OnPrem')]
+    procedure CreditMemoAppliedToRedrawnBillClearsRejectedBillsAccOnce()
+    var
+        ClosedBillGroup: Record "Closed Bill Group";
+        PostedBillGroup: Record "Posted Bill Group";
+        Customer: Record Customer;
+        PaymentTerms: Record "Payment Terms";
+        BillGroup: Record "Bill Group";
+        InvoiceNo: Code[20];
+        RejectedBillsAccBalanceBefore: Decimal;
+        ClearedAmount: Decimal;
+    begin
+        // [FEATURE] [AI test 4.8]
+        // [SCENARIO 647259] Posting a Credit Memo applied (via Applies-to ID) to a redrawn/rejected bill must clear the "Rejected Bills Acc." exactly once
+        Initialize();
+
+        // [GIVEN] Cartera customer with a single 30-day installment and a posted sales invoice
+        CreateCarteraCustumer(Customer);
+        PaymentTerms.Get(Customer."Payment Terms Code");
+        CreatePaymentTermsInstallment(PaymentTerms, 1);
+        CreateAndPostInvoiceWithWholeQty(Customer, InvoiceNo);
+        VerifyCarteraDoc(InvoiceNo, PaymentTerms);
+
+        // [GIVEN] The bill is grouped, posted and totally settled
+        CreateBillGroupForInvoice(BillGroup, InvoiceNo);
+        PostBillGroup(BillGroup, PostedBillGroup);
+        SettlePostedBillGroup(PostedBillGroup, ClosedBillGroup);
+
+        // [GIVEN] The settled bill is redrawn into a new open bill
+        RedrawFromClosedBillGroup(ClosedBillGroup, 0);
+        VerifyRedrawInClosedCarteraDoc(InvoiceNo);
+
+        // [GIVEN] The redrawn bill is rejected -> its amount is reclassified to "Rejected Bills Acc."
+        RejectPostedCarteraDoc(InvoiceNo);
+        Commit();
+        RejectedBillsAccBalanceBefore := RejectedBillsAccBalance(Customer);
+
+        // [WHEN] A Credit Memo applied to the rejected bill (Applies-to ID) is posted
+        ClearedAmount := PostCreditMemoAppliedToRejectedBill(Customer."No.", InvoiceNo);
+
+        // [THEN] The Credit Memo posting clears the "Rejected Bills Acc." exactly once (moves it by -ClearedAmount, not twice)
+        Assert.AreEqual(
+          -ClearedAmount, RejectedBillsAccBalance(Customer) - RejectedBillsAccBalanceBefore, RejectedBillsAccNotClearedErr);
+
+        // Teardown
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     local procedure Initialize()
@@ -792,6 +846,54 @@ codeunit 147541 "Cartera Recv. Redraw Tests"
     begin
         FindClosedCarteraDocForInvoice(ClosedCarteraDoc, InvoiceNo);
         Assert.IsTrue(ClosedCarteraDoc.Redrawn, BillShouldBeMarkedAsRedrawnErr);
+    end;
+
+    local procedure PostCreditMemoAppliedToRejectedBill(CustomerNo: Code[20]; DocumentNo: Code[20]) ClearedAmount: Decimal
+    var
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        GenJournalLine: Record "Gen. Journal Line";
+    begin
+        CustLedgerEntry.SetRange("Customer No.", CustomerNo);
+        CustLedgerEntry.SetRange(Open, true);
+        LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, CustLedgerEntry."Document Type"::Bill, DocumentNo);
+        CustLedgerEntry.CalcFields(Amount);
+        ClearedAmount := CustLedgerEntry.Amount;
+        CustLedgerEntry.Validate("Applies-to ID", LibraryUtility.GenerateGUID());
+        CustLedgerEntry.Validate("Amount to Apply", CustLedgerEntry.Amount);
+        CustLedgerEntry.Modify(true);
+
+        LibraryJournals.CreateGenJournalLineWithBatch(
+          GenJournalLine, GenJournalLine."Document Type"::"Credit Memo",
+          GenJournalLine."Account Type"::Customer, CustomerNo, -CustLedgerEntry.Amount);
+        GenJournalLine.Validate("Applies-to ID", CustLedgerEntry."Applies-to ID");
+        GenJournalLine.Modify(true);
+
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+    end;
+
+    local procedure RejectedBillsAccBalance(Customer: Record Customer) Balance: Decimal
+    var
+        CustomerPostingGroup: Record "Customer Posting Group";
+        GLEntry: Record "G/L Entry";
+    begin
+        CustomerPostingGroup.Get(Customer."Customer Posting Group");
+        CustomerPostingGroup.TestField("Rejected Bills Acc.");
+        GLEntry.SetRange("G/L Account No.", CustomerPostingGroup."Rejected Bills Acc.");
+        GLEntry.CalcSums(Amount);
+        Balance := GLEntry.Amount;
+    end;
+
+    local procedure CreateAndPostInvoiceWithWholeQty(Customer: Record Customer; var DocNo: Code[20])
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        Item: Record Item;
+    begin
+        // Use a whole quantity so the item's base unit-of-measure rounding precision is always respected
+        LibrarySales.FindItem(Item);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", LibraryRandom.RandIntInRange(2, 20));
+        DocNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
     end;
 
     [RequestPageHandler]
