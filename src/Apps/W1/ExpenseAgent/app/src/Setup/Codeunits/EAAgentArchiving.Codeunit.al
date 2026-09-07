@@ -3,16 +3,18 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-#pragma warning disable AS0007
 namespace Microsoft.ExpenseAgent;
 
 using System.Agents;
 
-enumextension 6998 "EA Agent Metadata" extends "Agent Metadata Provider"
+codeunit 7104 "EA Agent Archiving" implements IAgentArchiving
 {
-    value(6998; "Expense Agent")
-    {
-        Caption = 'Expense Agent', Locked = true;
-        Implementation = IAgentFactory = "EA Metadata Provider", IAgentMetadata = "EA Metadata Provider", IAgentTaskExecution = "EA Agent Task Execution", IAgentArchiving = "EA Agent Archiving";
-    }
+    Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
+
+    procedure IsArchivingSupported(): Boolean
+    begin
+        exit(false);
+    end;
 }
