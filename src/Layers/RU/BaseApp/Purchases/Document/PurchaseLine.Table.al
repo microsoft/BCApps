@@ -2635,7 +2635,7 @@ table 39 "Purchase Line"
                 DeferralPostDate: Date;
             begin
                 GetPurchHeader();
-                TestStatusOpen();
+                PurchHeader.TestField(Status, PurchHeader.Status::Open);
                 DeferralPostDate := GetDeferralPostDate(PurchHeader);
 
                 DeferralUtilities.DeferralCodeOnValidate(
