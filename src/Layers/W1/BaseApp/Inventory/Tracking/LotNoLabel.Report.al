@@ -13,7 +13,11 @@ report 6628 "Lot No Label"
     ApplicationArea = All;
     Caption = 'Lot No Label';
     WordMergeDataItem = "Lot No. Information";
+#if CLEAN30
+    DefaultRenderingLayout = WordBody;
+#else
     DefaultRenderingLayout = Word;
+#endif
 
     dataset
     {
@@ -75,6 +79,7 @@ report 6628 "Lot No Label"
     }
     rendering
     {
+#if not CLEAN30
         layout(Word)
         {
             Type = Word;
@@ -84,6 +89,7 @@ report 6628 "Lot No Label"
             ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
             ObsoleteTag = '30.0';
         }
+#endif
         layout(WordBody)
         {
             Type = Word;
