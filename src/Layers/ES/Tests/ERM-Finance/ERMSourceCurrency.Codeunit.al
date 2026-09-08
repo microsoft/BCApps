@@ -2037,7 +2037,6 @@ codeunit 134897 "ERM Source Currency"
         PostedPurchaseInvoiceNo: Code[20];
         VendorNo: Code[20];
         WithForeignCurrency: Boolean;
-        ExpectedVATAmount: Decimal;
     begin
         // [SCENARIO 647818] Reverse charge VAT G/L entries preserve source currency amounts from a non-system-created journal line.
         Initialize();
