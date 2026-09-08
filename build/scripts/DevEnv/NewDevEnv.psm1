@@ -333,10 +333,31 @@ function CreateCompilerFolder {
         [string] $packageCacheFolder
     )
 
-    # If the compiler folder already exists, return it
     $compilerFolder = Join-Path $packageCacheFolder "CompilerFolder"
+
+    # Resolve the platform artifact URL from the BCPlatform version in Packages.json (if specified).
+    # This is used as part of the cache key so a change to the pinned platform version invalidates
+    # an existing compiler folder instead of silently reusing an outdated compiler.
+    Import-Module "$PSScriptRoot\..\PlatformHelper.psm1" -DisableNameChecking
+    $platformArtifactUrl = Get-BCPlatformArtifactUrl
+    $currentPlatformArtifactUrl = if ($platformArtifactUrl) { $platformArtifactUrl } else { '' }
+
+    # Marker file recording the platform artifact URL used to build the cached compiler folder.
+    $platformMarkerFile = Join-Path $compilerFolder ".platformArtifactUrl"
+
+    # If the compiler folder already exists, reuse it only when it was built with the same platform version
     if (Test-Path $compilerFolder) {
-        return $compilerFolder
+        $cachedPlatformArtifactUrl = ''
+        if (Test-Path $platformMarkerFile) {
+            $cachedPlatformArtifactUrl = (Get-Content -Path $platformMarkerFile -Raw).Trim()
+        }
+
+        if ($cachedPlatformArtifactUrl -eq $currentPlatformArtifactUrl) {
+            return $compilerFolder
+        }
+
+        Write-Host "Configured platform version changed; recreating compiler folder $compilerFolder" -ForegroundColor Yellow
+        Remove-Item -Path $compilerFolder -Recurse -Force
     }
 
     # Create the package cache folder if it does not exist
@@ -354,14 +375,15 @@ function CreateCompilerFolder {
     }
 
     # Use the platform version from Packages.json when specified
-    Import-Module "$PSScriptRoot\..\PlatformHelper.psm1" -DisableNameChecking
-    $platformArtifactUrl = Get-BCPlatformArtifactUrl
     if ($platformArtifactUrl) {
         Write-Host "Using platform artifact URL: $platformArtifactUrl" -ForegroundColor Yellow
         $newCompilerFolderParameters.platformArtifactUrl = $platformArtifactUrl
     }
 
     New-BcCompilerFolder @newCompilerFolderParameters | Out-Null
+
+    # Record the platform artifact URL used so a later change to the pinned version invalidates this cache
+    Set-Content -Path $platformMarkerFile -Value $currentPlatformArtifactUrl
     return $compilerFolder
 }
 
