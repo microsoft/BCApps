@@ -224,6 +224,17 @@ page 50104 "Fabric Platform Setup"
                 }
             }
         }
+        area(FactBoxes)
+        {
+            part(CompaniesFactBox; "Fabric Companies FactBox")
+            {
+                ApplicationArea = All;
+            }
+            part(TablesFactBox; "Fabric Tables FactBox")
+            {
+                ApplicationArea = All;
+            }
+        }
     }
 
     actions
@@ -397,6 +408,9 @@ page 50104 "Fabric Platform Setup"
         }
         area(Promoted)
         {
+            actionref(StartExport_Promoted; StartExport) { }
+            actionref(StopExport_Promoted; StopExport) { }
+            actionref(Refresh_Promoted; Refresh) { }
             group(Category_Fabric)
             {
                 Caption = 'Fabric';
@@ -404,14 +418,6 @@ page 50104 "Fabric Platform Setup"
                 actionref(EnableExport_Promoted; EnableExport) { }
                 actionref(DisableExport_Promoted; DisableExport) { }
                 actionref(TestConnection_Promoted; TestConnection) { }
-            }
-            group(Category_Process)
-            {
-                Caption = 'Process';
-
-                actionref(StartExport_Promoted; StartExport) { }
-                actionref(StopExport_Promoted; StopExport) { }
-                actionref(Refresh_Promoted; Refresh) { }
             }
             group(Category_Configuration)
             {
