@@ -28,12 +28,12 @@ codeunit 134776 "Document Attachment Tests"
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        SubscriberSourceRecordId: RecordId;
         ExpectedPurchaseDocumentFlow: Boolean;
         isInitialized: Boolean;
         RecallNotifications: Boolean;
         ResolveRecRefInSubscriber: Boolean;
         ReportSelectionUsage: Enum "Report Selection Usage";
-        SubscriberSourceRecordId: RecordId;
         AttachedDateInvalidErr: Label 'Attached date is invalid';
         AttachmentFileNameLbl: Label '%1.jpeg', Comment = '%1=File Name';
         AttachmentNotDeletedErr: Label 'Attachment is not deleted';
