@@ -79,6 +79,18 @@ page 50103 "Fabric Platform Export Summary"
                 end;
             }
         }
+        area(Navigation)
+        {
+            action(ExportDetails)
+            {
+                Caption = 'Details';
+                ApplicationArea = All;
+                Image = ViewDetails;
+                RunObject = page "Fabric Platform Export Details";
+                RunPageLink = "Run ID" = field("Run ID");
+                ToolTip = 'Shows the table-level export details for the selected run.';
+            }
+        }
         area(Promoted)
         {
             group(Category_Process)
@@ -86,6 +98,12 @@ page 50103 "Fabric Platform Export Summary"
                 Caption = 'Process';
 
                 actionref(Refresh_Promoted; Refresh) { }
+            }
+            group(Category_Navigation)
+            {
+                Caption = 'Navigate';
+
+                actionref(ExportDetails_Promoted; ExportDetails) { }
             }
         }
     }
