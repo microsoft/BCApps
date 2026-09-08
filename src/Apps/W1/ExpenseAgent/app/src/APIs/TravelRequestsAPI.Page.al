@@ -21,6 +21,9 @@ page 7134 "Travel Requests API"
     SourceTable = "Spend Request";
     SourceTableView = where("Document Type" = const("Travel Request"));
     AboutText = 'Provides access to data from the Travel Request table';
+    Permissions = tabledata "Spend Request" = rimd,
+                  tabledata "Spend Request Detail" = rmd,
+                  tabledata "Spend Request To G/L Link" = rd;
 
     layout
     {

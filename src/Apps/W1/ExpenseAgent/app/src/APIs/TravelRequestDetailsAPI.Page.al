@@ -21,6 +21,8 @@ page 7135 "Travel Request Details API"
     SourceTable = "Spend Request Detail";
     AboutText = 'Provides access to data from the Travel Request Detail table';
     AutoSplitKey = true;
+    Permissions = tabledata "Spend Request Detail" = rimd,
+                  tabledata "Spend Request" = rm;
 
     layout
     {

@@ -24,6 +24,9 @@ page 7099 "Spend Requests API"
     ODataKeyFields = SystemId;
     SourceTable = "Spend Request";
     AboutText = 'Provides access to data from the Spend Request table';
+    Permissions = tabledata "Spend Request" = rimd,
+                  tabledata "Spend Request Detail" = rmd,
+                  tabledata "Spend Request To G/L Link" = rd;
 
     layout
     {

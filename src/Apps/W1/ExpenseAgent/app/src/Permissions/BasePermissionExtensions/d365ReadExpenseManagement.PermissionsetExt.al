@@ -8,5 +8,5 @@ using System.Security.AccessControl;
 
 permissionsetextension 6902 "D365 READ Expense Management" extends "D365 READ"
 {
-    IncludedPermissionSets = "Expense Mgmt. Read Data";
+    IncludedPermissionSets = "Expense Mgmt. Read";
 }

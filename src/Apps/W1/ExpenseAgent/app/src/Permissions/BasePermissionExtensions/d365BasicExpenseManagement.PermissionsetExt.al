@@ -8,5 +8,5 @@ using System.Security.AccessControl;
 
 permissionsetextension 6900 "D365 BASIC Expense Management" extends "D365 BASIC"
 {
-    IncludedPermissionSets = "Expense Mgmt. Edit Data";
+    IncludedPermissionSets = "Expense Mgmt. Edit";
 }

@@ -33,24 +33,36 @@ codeunit 148338 "Expense Permissions Test"
         CannotDeleteEmployeeWithPostedExpenseReportErr: Label 'You cannot delete Employee %1 because they have posted expense report.', Comment = '%1 = Employee No.';
 
     [Test]
-    procedure ExpenseMgmtReadCanReadTravelRequests()
+    procedure ExpenseMgmtReadRetainsAppPermissions()
     begin
-        // [SCENARIO] The read role can read travel data but cannot modify requests or details.
-        VerifyTravelRequestPermissions('Expense Mgmt. Read', false);
+        // [SCENARIO] The read role retains app-owned reads without granting BaseApp request access.
+        VerifyExpenseMgmtPermissions('Expense Mgmt. Read', false);
     end;
 
     [Test]
-    procedure ExpenseMgmtEditCanWriteTravelRequests()
+    procedure ExpenseMgmtEditRetainsAppPermissions()
     begin
-        // [SCENARIO] The edit role includes the table access required by its travel-request pages.
-        VerifyTravelRequestPermissions('Expense Mgmt. Edit', true);
+        // [SCENARIO] The edit role retains app-owned writes without granting BaseApp request access.
+        VerifyExpenseMgmtPermissions('Expense Mgmt. Edit', true);
     end;
 
     [Test]
-    procedure ExpenseMgmtAdminInheritsTravelRequestPermissions()
+    procedure ExpenseMgmtAdminRetainsAppPermissions()
     begin
-        // [SCENARIO] The admin role inherits travel-request access from the edit and read roles.
-        VerifyTravelRequestPermissions('Expense Mgmt. Admin', true);
+        // [SCENARIO] The admin role retains app-owned writes without granting BaseApp request access.
+        VerifyExpenseMgmtPermissions('Expense Mgmt. Admin', true);
+    end;
+
+    [Test]
+    procedure D365BasicCanUpdateTravelRequestDetailsIndirectly()
+    begin
+        VerifyTravelRequestDetailUpdateIndirectly(D365BasicPermissionSetTok);
+    end;
+
+    [Test]
+    procedure ExpenseAgentCanUpdateTravelRequestDetailsIndirectly()
+    begin
+        VerifyTravelRequestDetailUpdateIndirectly(ExpenseAgentPermissionSetTok);
     end;
 
     [Test]
@@ -288,7 +300,7 @@ codeunit 148338 "Expense Permissions Test"
         RestoreFullPermissions();
     end;
 
-    local procedure VerifyTravelRequestPermissions(PermissionSetId: Code[20]; CanEdit: Boolean)
+    local procedure VerifyExpenseMgmtPermissions(PermissionSetId: Code[20]; CanEdit: Boolean)
     var
         SpendRequest: Record "Spend Request";
         SpendRequestDetail: Record "Spend Request Detail";
@@ -303,18 +315,50 @@ codeunit 148338 "Expense Permissions Test"
         LibraryLowerPermissions.SetExactPermissionSet(PermissionSetId);
 
         // [WHEN] The effective table permissions are evaluated.
-        // [THEN] Reads are available and write access follows the role's intended level.
-        Assert.IsTrue(SpendRequest.ReadPermission(), 'The role must be able to read travel requests.');
-        Assert.IsTrue(SpendRequestDetail.ReadPermission(), 'The role must be able to read travel-request details.');
-        Assert.IsTrue(SpendRequestToGLLink.ReadPermission(), 'The role must be able to read travel-request spent amounts.');
-        Assert.AreEqual(CanEdit, SpendRequest.WritePermission(), 'Request write access must follow the role level.');
-        Assert.AreEqual(CanEdit, SpendRequestDetail.WritePermission(), 'Detail write access must follow the role level.');
+        // [THEN] BaseApp rights are not added to these roles; app-owned rights follow the role level.
+        Assert.IsFalse(SpendRequest.ReadPermission(), 'The role must not grant direct BaseApp request access.');
+        Assert.IsFalse(SpendRequestDetail.ReadPermission(), 'The role must not grant direct BaseApp detail access.');
+        Assert.IsFalse(SpendRequestToGLLink.ReadPermission(), 'The role must not grant direct BaseApp ledger-link access.');
+        Assert.IsFalse(SpendRequest.WritePermission(), 'The role must not grant direct BaseApp request writes.');
+        Assert.IsFalse(SpendRequestDetail.WritePermission(), 'The role must not grant direct BaseApp detail writes.');
         Assert.IsTrue(ExpenseUser.ReadPermission(), 'The role must retain read access to app-owned expense users.');
         Assert.IsTrue(ExpenseReportHeader.ReadPermission(), 'The role must retain read access to app-owned reports.');
-        Assert.AreEqual(CanEdit, ExpenseUser.WritePermission(), 'Expense user write access must survive permission composition.');
-        Assert.AreEqual(CanEdit, ExpenseReportHeader.WritePermission(), 'Expense report write access must survive permission composition.');
+        Assert.AreEqual(CanEdit, ExpenseUser.WritePermission(), 'Expense user write access must follow the role level.');
+        Assert.AreEqual(CanEdit, ExpenseReportHeader.WritePermission(), 'Expense report write access must follow the role level.');
         RestoreFullPermissions();
         LibraryLowerPermissions.StopLoggingNAVPermissions();
+    end;
+
+    local procedure VerifyTravelRequestDetailUpdateIndirectly(PermissionSetId: Code[20])
+    var
+        SpendRequest: Record "Spend Request";
+        SpendRequestDetail: Record "Spend Request Detail";
+        TravelRequestSubform: TestPage "Travel Request Subform";
+    begin
+        // [SCENARIO] Editing a detail through its page can update both the line and its header total.
+        Initialize();
+        LibraryExpense.CreateSpendRequest(SpendRequest);
+        LibraryExpense.CreateSpendRequestDetail(SpendRequestDetail, SpendRequest."No.", 10);
+
+        // [GIVEN] The caller has indirect writes only, not direct access to change either table.
+        LibraryLowerPermissions.StartLoggingNAVPermissions();
+        LibraryLowerPermissions.SetExactPermissionSet(PermissionSetId);
+        Assert.IsFalse(SpendRequest.WritePermission(), 'The caller must not have direct request write permission.');
+        Assert.IsFalse(SpendRequestDetail.WritePermission(), 'The caller must not have direct detail write permission.');
+
+        // [WHEN] A detail amount is increased through the page with the required object permissions.
+        TravelRequestSubform.OpenEdit();
+        TravelRequestSubform.GoToRecord(SpendRequestDetail);
+        TravelRequestSubform.Amount.SetValue(20);
+        TravelRequestSubform.Close();
+        RestoreFullPermissions();
+        LibraryLowerPermissions.StopLoggingNAVPermissions();
+
+        // [THEN] Both the line change and the base table's header update are persisted.
+        SpendRequestDetail.Get(SpendRequestDetail."Spend Request No.", SpendRequestDetail."Line No.");
+        SpendRequest.Get(SpendRequest."No.");
+        Assert.AreEqual(20, SpendRequestDetail."Expected Amount", 'The detail amount must be updated through indirect permissions.');
+        Assert.AreEqual(20, SpendRequest."Total Expected Amount (LCY)", 'The detail update must also update the header total.');
     end;
 
     local procedure VerifyCompanyEmailSynchronization(PermissionSetId: Code[20])

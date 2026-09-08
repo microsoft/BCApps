@@ -8,5 +8,5 @@ using System.Security.AccessControl;
 
 permissionsetextension 6901 "D365 BUS FULL ACCESS Expense Management" extends "D365 BUS FULL ACCESS"
 {
-    IncludedPermissionSets = "Expense Mgmt. Admin Data";
+    IncludedPermissionSets = "Expense Mgmt. Admin";
 }
