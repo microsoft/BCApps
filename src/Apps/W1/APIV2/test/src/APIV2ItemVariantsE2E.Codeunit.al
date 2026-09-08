@@ -3,11 +3,13 @@ codeunit 139839 "APIV2 - Item Variants E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Item] [Variant]
     end;
 
@@ -20,6 +22,8 @@ codeunit 139839 "APIV2 - Item Variants E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create an item variant through a POST method and check if it was created
         // [GIVEN] a JSON text with an item variant with itemId
         CreateItem(Item);
@@ -44,6 +48,8 @@ codeunit 139839 "APIV2 - Item Variants E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Cannot create an Item Variant with non-existing itemId
         // [GIVEN] a JSON text with an item variant with non-existing itemId
         ItemId := CreateGuid();
@@ -65,6 +71,8 @@ codeunit 139839 "APIV2 - Item Variants E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create an item variant through a POST method and check if it was created
         // [GIVEN] a JSON text with an item variant with itemNumber
         CreateItem(Item);
@@ -90,6 +98,8 @@ codeunit 139839 "APIV2 - Item Variants E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Cannot create an Item Variant with non-existing itemNumber
         // [GIVEN] a JSON text with an item variant with non-existing itemNumber
         ItemNo := LibraryUtility.GenerateRandomCode(ItemVariant.FieldNo(Code), Database::"Item Variant");
@@ -111,6 +121,8 @@ codeunit 139839 "APIV2 - Item Variants E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create an item variant through a POST method and check if it was created
         // [GIVEN] a JSON text with an item variant with itemNumber and itemId
         CreateItem(Item);
@@ -136,6 +148,8 @@ codeunit 139839 "APIV2 - Item Variants E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Cannot create an Item Variant with mismatching itemNumber and itemId
         // [GIVEN] a JSON text with an item variant with mismatching itemNumber and itemId
         CreateItem(Item1);
@@ -159,6 +173,8 @@ codeunit 139839 "APIV2 - Item Variants E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Cannot create an Item Variant if there is an item variant with same itemNumber and code
         // [GIVEN] a JSON text with an item variant with same itemNumber and code
         CreateItem(Item);
@@ -181,6 +197,8 @@ codeunit 139839 "APIV2 - Item Variants E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Get a simple customer with a GET request to the service.
         // [GIVEN] An item variant exists in the system
         CreateItem(Item);
@@ -206,6 +224,8 @@ codeunit 139839 "APIV2 - Item Variants E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create an item variant, use a PATCH method to change it and then verify the changes
         // [GIVEN] an item variant exists in the system
         CreateItem(Item);
@@ -238,6 +258,8 @@ codeunit 139839 "APIV2 - Item Variants E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create an item variant, use a PATCH method to change it and then verify the changes
         // [GIVEN] an item variant exists in the system
         CreateItem(Item1);
@@ -271,6 +293,8 @@ codeunit 139839 "APIV2 - Item Variants E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create an item variant, use a PATCH method to change it and then verify the changes
         // [GIVEN] an item variant exists in the system
         CreateItem(Item1);
@@ -300,6 +324,8 @@ codeunit 139839 "APIV2 - Item Variants E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create an item variant, use a DELETE method to remove it and then verify the deletion
         // [GIVEN] an item variant in the system
         CreateItem(Item);
@@ -326,6 +352,8 @@ codeunit 139839 "APIV2 - Item Variants E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Cannot delete an item variant in use
         // [GIVEN] an item variant in the system and used in a sales order line
         LibraryInventory.CreateItem(Item);
@@ -342,6 +370,7 @@ codeunit 139839 "APIV2 - Item Variants E2E"
 
     var
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
+        LibraryGraphDocumentTools: Codeunit "Library - Graph Document Tools";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryRandom: Codeunit "Library - Random";
         LibraryInventory: Codeunit "Library - Inventory";
@@ -425,6 +454,8 @@ codeunit 139839 "APIV2 - Item Variants E2E"
         LibrarySales: Codeunit "Library - Sales";
     begin
         LibrarySales.CreateSalesOrder(SalesHeader);
+        LibraryGraphDocumentTools.EnsureVATPostingSetupExists(
+            SalesHeader."VAT Bus. Posting Group", Item."VAT Prod. Posting Group");
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 2);
         SalesLine."Variant Code" := ItemVariant.Code;
         SalesLine.Modify();
@@ -439,5 +470,11 @@ codeunit 139839 "APIV2 - Item Variants E2E"
             exit(IncStr(Item."No."));
 
         exit(CopyStr('GRAPHITEM' + '00001', 1, 20));
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
 }

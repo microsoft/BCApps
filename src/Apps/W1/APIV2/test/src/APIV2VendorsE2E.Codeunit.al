@@ -9,6 +9,7 @@ codeunit 139803 "APIV2 - Vendors E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Vendor]
     end;
 
@@ -25,6 +26,9 @@ codeunit 139803 "APIV2 - Vendors E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+
         if IsInitialized then
             exit;
 

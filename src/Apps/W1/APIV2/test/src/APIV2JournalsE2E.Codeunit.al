@@ -3,11 +3,13 @@ codeunit 139827 "APIV2 - Journals E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Journal]
     end;
 
@@ -32,6 +34,9 @@ codeunit 139827 "APIV2 - Journals E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+
         if IsInitialized then
             exit;
 
@@ -190,6 +195,8 @@ codeunit 139827 "APIV2 - Journals E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [GIVEN] A general journal batch with a general journal line
         BalAccountNo := LibraryERM.CreateGLAccountNoWithDirectPosting();
         BalAccountType := GenJournalLine."Bal. Account Type"::"G/L Account";
@@ -272,4 +279,3 @@ codeunit 139827 "APIV2 - Journals E2E"
         GenJournalBatch.Modify(true);
     end;
 }
-

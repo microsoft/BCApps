@@ -3,11 +3,13 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Dimension Line]
     end;
 
@@ -28,6 +30,8 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
 
     procedure Initialize()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
     end;
 
     [Test]
@@ -242,6 +246,8 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Creating a dimension line through a POST method without specifying a parent Id fails
         LibraryGraphJournalLines.Initialize();
 
@@ -273,6 +279,8 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Try to create a dimension line with an already existing code
         LibraryGraphJournalLines.Initialize();
 
@@ -491,6 +499,8 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         TargetURL: Text;
         DimensionSetValue: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Create a G/L Entry with dimenions after Posting Sales Invoice and use a GET method to retreive them
 
         // [GIVEN] Create Customer, Items and Sales Invoice for different Items.
@@ -522,6 +532,8 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Using a GET request to retrieve dimension lines without a filter fails
         LibraryGraphJournalLines.Initialize();
 
@@ -851,6 +863,8 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         TargetURL: Text;
         DimensionSetID: Integer;
     begin
+        Initialize();
+
         // [GIVEN] 2 dimension json texts
         LibraryDimension.CreateDimension(Dimension);
         DimensionCode := Dimension.Code;
@@ -870,7 +884,9 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
 
         // [WHEN] we PATCH the JSON to the web service, with the corresponding keys
         ResponseText := '';
-        TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(DocumentId, APIPage, DocServiceNameTxt, ServiceNameTxt) + '(' + LibraryGraphMgt.StripBrackets(Format(DimensionGUID)) + ')';
+        TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(DocumentId, APIPage, DocServiceNameTxt, ServiceNameTxt);
+        TargetURL := LibraryGraphMgt.AppendPathToTargetURL(
+            TargetURL, '(' + LibraryGraphMgt.StripBrackets(Format(DimensionGUID)) + ')');
         LibraryGraphMgt.PatchToWebService(TargetURL, LineJSON[2], ResponseText);
 
         // [THEN] the dimension lines in the journal should have the values that were given
@@ -926,6 +942,8 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [SCENARIO] Try to change the code of an existing dimension line
         LibraryGraphJournalLines.Initialize();
 
@@ -953,7 +971,10 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
 
         // [WHEN] we PATCH the JSON to the web service, with the new dimension code
         ResponseText := '';
-        TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(JournalLineGUID, Page::"APIV2 - JournalLines", 'journalLines', ServiceNameTxt) + '(' + LibraryGraphMgt.StripBrackets(Format(DimensionGUID)) + ')';
+        TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
+            JournalLineGUID, Page::"APIV2 - JournalLines", 'journalLines', ServiceNameTxt);
+        TargetURL := LibraryGraphMgt.AppendPathToTargetURL(
+            TargetURL, '(' + LibraryGraphMgt.StripBrackets(Format(DimensionGUID)) + ')');
         asserterror LibraryGraphMgt.PatchToWebService(TargetURL, LineJSON[2], ResponseText);
 
         // [THEN] the patch should fail and the dimension line should remain the same
@@ -1174,6 +1195,8 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [GIVEN] a dimension line in the journal line
         LibraryDimension.CreateDimension(Dimension);
         DimensionValue.Reset();
@@ -1185,7 +1208,9 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         LibraryGraphMgt.PostToWebService(TargetURL, LineJSON, ResponseText);
 
         // [WHEN] we DELETE the dimension line from the web service, with the corresponding keys
-        TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(DocumentId, APIPage, DocServiceNameTxt, ServiceNameTxt) + '(' + LibraryGraphMgt.StripBrackets(Format(Dimension.SystemId)) + ')';
+        TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(DocumentId, APIPage, DocServiceNameTxt, ServiceNameTxt);
+        TargetURL := LibraryGraphMgt.AppendPathToTargetURL(
+            TargetURL, '(' + LibraryGraphMgt.StripBrackets(Format(Dimension.SystemId)) + ')');
         LibraryGraphMgt.DeleteFromWebService(TargetURL, '', ResponseText);
 
         case DocumentRecordRef.Number() of
@@ -1233,6 +1258,8 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [GIVEN] a dimension line in the journal line
         LibraryDimension.CreateDimension(Dimension);
         DimensionValue.Reset();
@@ -1241,14 +1268,17 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         Commit();
 
         TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(ParentId, ParentAPIPage, ParentServiceNameTxt, LineServiceNameTxt);
-        TargetURL := TargetURL + '(' + LibraryGraphMgt.StripBrackets(LineId) + ')' + '/dimensionSetLines';
+        TargetURL := LibraryGraphMgt.AppendPathToTargetURL(
+            TargetURL, '(' + LibraryGraphMgt.StripBrackets(LineId) + ')/dimensionSetLines');
         LibraryGraphMgt.PostToWebService(TargetURL, LineJSON, ResponseText);
 
         // [WHEN] we DELETE the dimension line from the web service, with the corresponding keys
         ResponseText := '';
         TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(ParentId, ParentAPIPage, ParentServiceNameTxt, LineServiceNameTxt);
-        TargetURL := TargetURL + '(' + LibraryGraphMgt.StripBrackets(LineId) + ')' + '/dimensionSetLines';
-        TargetURL := TargetURL + '(' + LibraryGraphMgt.StripBrackets(Format(Dimension.SystemId)) + ')';
+        TargetURL := LibraryGraphMgt.AppendPathToTargetURL(
+            TargetURL,
+            '(' + LibraryGraphMgt.StripBrackets(LineId) + ')/dimensionSetLines(' +
+            LibraryGraphMgt.StripBrackets(Format(Dimension.SystemId)) + ')');
 
         LibraryGraphMgt.DeleteFromWebService(TargetURL, '', ResponseText);
 
@@ -1286,6 +1316,8 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [GIVEN] a dimension with a value
         LibraryDimension.CreateDimension(Dimension);
         LibraryDimension.CreateDimensionValue(DimensionValue, Dimension.Code);
@@ -1347,6 +1379,8 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         TargetURL: Text;
         ResponseText: Text;
     begin
+        Initialize();
+
         // [GIVEN] a dimension with a value
         LibraryDimension.CreateDimension(Dimension);
         LibraryDimension.CreateDimensionValue(DimensionValue, Dimension.Code);
@@ -1357,7 +1391,8 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
 
         // [WHEN] we POST the JSON to the web service
         TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(ParentId, ParentAPIPage, ParentServiceNameTxt, LineServiceNameTxt);
-        TargetURL := TargetURL + '(' + LibraryGraphMgt.StripBrackets(LineId) + ')' + '/dimensionSetLines';
+        TargetURL := LibraryGraphMgt.AppendPathToTargetURL(
+            TargetURL, '(' + LibraryGraphMgt.StripBrackets(LineId) + ')/dimensionSetLines');
 
         LibraryGraphMgt.PostToWebService(TargetURL, LineJSON, ResponseText);
 
@@ -1395,6 +1430,8 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [GIVEN] 2 dimensions with dimension values
         LibraryDimension.CreateDimension(Dimension);
         DimensionCode[2] := Dimension.Code;
@@ -1439,6 +1476,8 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         ResponseText: Text;
         TargetURL: Text;
     begin
+        Initialize();
+
         // [GIVEN] 2 dimensions with dimension values
         LibraryDimension.CreateDimension(Dimension);
         DimensionCode[2] := Dimension.Code;
@@ -1456,7 +1495,8 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         // [GIVEN] the dimension lines are added
         // [WHEN] we POST the JSON to the web service
         TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(ParentId, ParentAPIPage, ParentServiceNameTxt, LineServiceNameTxt);
-        TargetURL := TargetURL + '(' + LibraryGraphMgt.StripBrackets(DocumentId) + ')' + '/dimensionSetLines';
+        TargetURL := LibraryGraphMgt.AppendPathToTargetURL(
+            TargetURL, '(' + LibraryGraphMgt.StripBrackets(DocumentId) + ')/dimensionSetLines');
         LibraryGraphMgt.PostToWebService(TargetURL, LineJSON[2], ResponseText);
         LibraryGraphMgt.PostToWebService(TargetURL, LineJSON[1], ResponseText);
 
@@ -1489,6 +1529,8 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         TargetURL: Text;
         DimensionSetID: Integer;
     begin
+        Initialize();
+
         // [GIVEN] 2 dimension json texts
         LibraryDimension.CreateDimension(Dimension);
         DimensionCode := Dimension.Code;
@@ -1504,15 +1546,18 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         Commit();
 
         TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(ParentId, ParentAPIPage, ParentServiceNameTxt, LineServiceNameTxt);
-        TargetURL := TargetURL + '(' + LibraryGraphMgt.StripBrackets(LineId) + ')' + '/dimensionSetLines';
+        TargetURL := LibraryGraphMgt.AppendPathToTargetURL(
+            TargetURL, '(' + LibraryGraphMgt.StripBrackets(LineId) + ')/dimensionSetLines');
 
         LibraryGraphMgt.PostToWebService(TargetURL, LineJSON[1], ResponseText);
 
         // [WHEN] we PATCH the JSON to the web service, with the corresponding keys
         ResponseText := '';
         TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(ParentId, ParentAPIPage, ParentServiceNameTxt, LineServiceNameTxt);
-        TargetURL := TargetURL + '(' + LibraryGraphMgt.StripBrackets(LineId) + ')' + '/dimensionSetLines';
-        TargetURL := TargetURL + '(' + LibraryGraphMgt.StripBrackets(Format(DimensionGUID)) + ')';
+        TargetURL := LibraryGraphMgt.AppendPathToTargetURL(
+            TargetURL,
+            '(' + LibraryGraphMgt.StripBrackets(LineId) + ')/dimensionSetLines(' +
+            LibraryGraphMgt.StripBrackets(Format(DimensionGUID)) + ')');
         LibraryGraphMgt.PatchToWebService(TargetURL, LineJSON[2], ResponseText);
 
         // [THEN] the dimension lines in the journal should have the values that were given
