@@ -940,6 +940,12 @@ table 113 "Sales Invoice Line"
             Editable = false;
             FieldClass = FlowField;
         }
+        field(8010; "EUDR Relevant"; Boolean)
+        {
+            Caption = 'EUDR Relevant';
+            Editable = false;
+            DataClassification = CustomerContent;
+        }
 #if not CLEANSCHEMA25
         field(11200; "Auto. Acc. Group"; Code[10])
         {

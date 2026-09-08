@@ -920,6 +920,16 @@ page 30 "Item Card"
                         SetExpirationCalculationEditable();
                     end;
                 }
+                field("EUDR Relevant"; Rec."EUDR Relevant")
+                {
+                    ApplicationArea = ItemTracking;
+                    Importance = Additional;
+                }
+                field("EUDR Commodity"; Rec."EUDR Commodity")
+                {
+                    ApplicationArea = ItemTracking;
+                    Importance = Additional;
+                }
                 field("Serial Nos."; Rec."Serial Nos.")
                 {
                     ApplicationArea = ItemTracking;

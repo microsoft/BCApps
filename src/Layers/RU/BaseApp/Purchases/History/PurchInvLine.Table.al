@@ -749,6 +749,12 @@ table 123 "Purch. Inv. Line"
         {
             Caption = 'Price Calculation Method';
         }
+        field(8010; "EUDR Relevant"; Boolean)
+        {
+            Caption = 'EUDR';
+            Editable = false;
+            ToolTip = 'Indicates that the item on the posted purchase invoice line is subject to the EU Deforestation Regulation.';
+        }
         field(8512; "Buy-from Vendor Name"; Text[100])
         {
             CalcFormula = lookup(Vendor.Name where("No." = field("Buy-from Vendor No.")));
