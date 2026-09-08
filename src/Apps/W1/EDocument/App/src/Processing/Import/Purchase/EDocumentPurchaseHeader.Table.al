@@ -230,11 +230,15 @@ table 6100 "E-Document Purchase Header"
             Caption = 'Applies-to Doc. No.';
             DataClassification = CustomerContent;
         }
+#pragma warning disable AS0125
+#pragma warning disable AS0005
         field(40; "Vendor Invoice No."; Text[100])
         {
             Caption = 'Vendor Invoice No.';
             DataClassification = CustomerContent;
         }
+#pragma warning restore AS0005
+#pragma warning restore AS0125
         #endregion Purchase fields
 
         #region Business Central Data - Validated fields [101-200]
