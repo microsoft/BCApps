@@ -59,38 +59,22 @@ codeunit 6459 "Serv. Document Attachment Mgt."
     begin
         case DocumentAttachment."Table ID" of
             Database::"Service Item":
-                begin
-                    RecRef.Open(Database::"Service Item");
-                    if ServiceItem.Get(DocumentAttachment."No.") then
-                        RecRef.GetTable(ServiceItem);
-                end;
+                if ServiceItem.Get(DocumentAttachment."No.") then
+                    RecRef.GetTable(ServiceItem);
             Database::"Service Header":
-                begin
-                    RecRef.Open(Database::"Service Header");
-                    if ServiceHeader.Get(DocumentAttachment."Document Type", DocumentAttachment."No.") then
-                        RecRef.GetTable(ServiceHeader);
-                end;
+                if ServiceHeader.Get(DocumentAttachment."Document Type", DocumentAttachment."No.") then
+                    RecRef.GetTable(ServiceHeader);
             Database::"Service Line":
-                begin
-                    RecRef.Open(Database::"Service Line");
-                    if ServiceLine.Get(DocumentAttachment."Document Type", DocumentAttachment."No.", DocumentAttachment."Line No.") then
-                        RecRef.GetTable(ServiceLine);
-                end;
+                if ServiceLine.Get(DocumentAttachment."Document Type", DocumentAttachment."No.", DocumentAttachment."Line No.") then
+                    RecRef.GetTable(ServiceLine);
             Database::"Service Invoice Header":
-                begin
-                    RecRef.Open(Database::"Service Invoice Header");
-                    if ServiceInvoiceHeader.Get(DocumentAttachment."No.") then
-                        RecRef.GetTable(ServiceInvoiceHeader);
-                end;
+                if ServiceInvoiceHeader.Get(DocumentAttachment."No.") then
+                    RecRef.GetTable(ServiceInvoiceHeader);
             Database::"Service Cr.Memo Header":
-                begin
-                    RecRef.Open(Database::"Service Cr.Memo Header");
-                    if ServiceCrMemoHeader.Get(DocumentAttachment."No.") then
-                        RecRef.GetTable(ServiceCrMemoHeader);
-                end;
+                if ServiceCrMemoHeader.Get(DocumentAttachment."No.") then
+                    RecRef.GetTable(ServiceCrMemoHeader);
             Database::"Service Contract Header":
                 begin
-                    RecRef.Open(Database::"Service Contract Header");
                     case DocumentAttachment."Document Type" of
                         DocumentAttachment."Document Type"::"Service Contract":
                             ServiceContractHeader."Contract Type" := ServiceContractHeader."Contract Type"::Contract;
