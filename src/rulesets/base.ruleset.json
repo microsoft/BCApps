@@ -142,11 +142,6 @@
       "justification": "Legacy extensionsPermissionSet.xml files in INTCS, INTDS and INTaxEngine must be converted to AL PermissionSet objects. Tracked by AB#640773."
     },
     {
-      "id": "AS0099",
-      "action": "Warning",
-      "justification": "The ID '0' for the EnumValue 'Marketing Text' is not valid. It should be within the range '[1..2147483647]', which is allocated to the application, and outside the range '[50000..99999]', which is allocated to per-tenant customizations."
-    },
-    {
       "id": "AS0103",
       "action": "Warning",
       "justification": "Table is missing a matching permission set."
@@ -160,11 +155,6 @@
       "id": "AA0022",
       "action": "Warning",
       "justification": "Substitute the IF THEN ELSE structure with a CASE."
-    },
-    {
-      "id": "AA0052",
-      "action": "Warning",
-      "justification": "The permission set should not be included through a permission set extension because it includes permissions for objects defined in another application."
     },
     {
       "id": "AA0073",
@@ -343,11 +333,6 @@
       "id": "AW0005",
       "action": "Warning",
       "justification": "Action should have a value for the Image property."
-    },
-    {
-      "id": "AW0009",
-      "action": "Warning",
-      "justification": "Using a Blob with subtype Bitmap on a page field is deprecated. "
     },
     {
       "id": "AW0011",

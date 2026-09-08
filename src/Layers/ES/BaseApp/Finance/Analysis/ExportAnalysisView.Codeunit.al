@@ -819,7 +819,7 @@ codeunit 424 "Export Analysis View"
         TempExcelBuffer.Validate("Row No.", RowNo);
         TempExcelBuffer.Validate("Column No.", ColumnNo);
         case true of
-            Value.IsDecimal or Value.IsInteger:
+            Value.IsDecimal or Value.IsInteger or Value.IsBigInteger:
                 TempExcelBuffer.Validate("Cell Type", TempExcelBuffer."Cell Type"::Number);
             Value.IsDate:
                 TempExcelBuffer.Validate("Cell Type", TempExcelBuffer."Cell Type"::Date);
@@ -841,7 +841,7 @@ codeunit 424 "Export Analysis View"
         TempExcelBuffer.Validate("Row No.", RowNo);
         TempExcelBuffer.Validate("Column No.", ColumnNo);
         case true of
-            Value.IsDecimal or Value.IsInteger:
+            Value.IsDecimal or Value.IsInteger or Value.IsBigInteger:
                 TempExcelBuffer.Validate("Cell Type", TempExcelBuffer."Cell Type"::Number);
             Value.IsDate:
                 TempExcelBuffer.Validate("Cell Type", TempExcelBuffer."Cell Type"::Date);
