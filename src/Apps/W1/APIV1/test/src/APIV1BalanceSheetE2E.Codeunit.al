@@ -8,6 +8,7 @@ codeunit 139715 "APIV1 - Balance Sheet E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Balance Sheet]
     end;
 
@@ -62,6 +63,8 @@ codeunit 139715 "APIV1 - Balance Sheet E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         IF IsInitialized THEN
             EXIT;
 

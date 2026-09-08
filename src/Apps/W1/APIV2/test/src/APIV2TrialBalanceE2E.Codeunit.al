@@ -3,10 +3,12 @@ codeunit 139818 "APIV2 - Trial Balance E2E"
     // version Test,ERM,W1,All
 
     Subtype = Test;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Trial Balance]
     end;
 
@@ -60,6 +62,9 @@ codeunit 139818 "APIV2 - Trial Balance E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+
         if IsInitialized then
             exit;
 
@@ -78,7 +83,6 @@ codeunit 139818 "APIV2 - Trial Balance E2E"
         TrialBalanceJSON := LibraryGraphMgt.AddPropertytoJSON(TrialBalanceJSON, 'display', TrialBalanceEntityBuffer.Name);
     end;
 }
-
 
 
 

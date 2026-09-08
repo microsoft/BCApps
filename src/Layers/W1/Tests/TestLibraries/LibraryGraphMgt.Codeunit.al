@@ -7,6 +7,9 @@ codeunit 130618 "Library - Graph Mgt"
 
     var
         Assert: Codeunit Assert;
+        Authentication: Enum "API Test Authentication";
+        AuthenticationProvider: Interface "API Test Auth Provider";
+        AuthenticationProviderResolved: Boolean;
         IncorrectValueErr: Label 'Incorrect value found in JSON for %1 property.', Comment = '%1 - Name of property';
         GraphCollectionMgtItem: Codeunit "Graph Collection Mgt - Item";
         UnexpectedResponseCodeErr: Label 'Response code %1 (%2) differs from the expected %3.', Comment = '%1 - Actual response code number, %2 - Actual response code, %3 - Expected response code number';
@@ -26,6 +29,27 @@ codeunit 130618 "Library - Graph Mgt"
         RecordField.SetRange(FieldName, SourceFieldName);
         if RecordField.FindFirst() then
             LibraryUtility.AddTempField(TempIgnoredFields, RecordField."No.", SourceTableNo);
+    end;
+
+    /// <summary>
+    /// Sets the authentication provider used by this library instance.
+    /// Selecting the same provider preserves its cached state.
+    /// </summary>
+    /// <param name="NewAuthentication">The authentication provider to use for subsequent API test requests.</param>
+    procedure SetAuthenticationProvider(NewAuthentication: Enum "API Test Authentication")
+    begin
+        if AuthenticationProviderResolved and (Authentication = NewAuthentication) then
+            exit;
+
+        Authentication := NewAuthentication;
+        AuthenticationProvider := Authentication;
+        AuthenticationProviderResolved := true;
+    end;
+
+    /// <summary>Sets the work date to November 15 in the current year to stay within test-license date limits.</summary>
+    procedure SetLicenseSafeWorkDate()
+    begin
+        WorkDate := DMY2Date(15, 11, Date2DMY(Today, 3));
     end;
 
     procedure EnsureWebServiceExist(ServiceNameTxt: Text[240]; PageNumber: Integer)
@@ -150,7 +174,28 @@ codeunit 130618 "Library - Graph Mgt"
     procedure InitializeWebRequestWithURL(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt."; TargetURL: Text)
     begin
         HttpWebRequestMgt.Initialize(TargetURL);
+        ApplyAuthentication(HttpWebRequestMgt);
         OnAfterInitializeWebRequestWithURL(HttpWebRequestMgt);
+    end;
+
+    local procedure ApplyAuthentication(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt.")
+    var
+        AuthenticationContext: Codeunit "API Test Auth Context";
+        CurrentAuthenticationProvider: Interface "API Test Auth Provider";
+    begin
+        CurrentAuthenticationProvider := GetAuthenticationProvider();
+        CurrentAuthenticationProvider.ConfigureAuthentication(AuthenticationContext);
+        AuthenticationContext.Apply(HttpWebRequestMgt);
+    end;
+
+    local procedure GetAuthenticationProvider(): Interface "API Test Auth Provider"
+    begin
+        if not AuthenticationProviderResolved then begin
+            AuthenticationProvider := Authentication;
+            AuthenticationProviderResolved := true;
+        end;
+
+        exit(AuthenticationProvider);
     end;
 
     procedure PatchToWebServiceAndCheckResponseCode(TargetURL: Text; JSONBody: Text; var ResponseText: Text; ExpectedResponseCode: Integer)
@@ -298,6 +343,33 @@ codeunit 130618 "Library - Graph Mgt"
         end;
 
         exit(TargetURL);
+    end;
+
+    /// <summary>Appends a path before any query string in an API target URL.</summary>
+    /// <param name="TargetURL">API target URL.</param>
+    /// <param name="Path">Path to append.</param>
+    /// <returns>The URL with the appended path.</returns>
+    procedure AppendPathToTargetURL(TargetURL: Text; Path: Text): Text
+    var
+        QueryPosition: Integer;
+    begin
+        QueryPosition := StrPos(TargetURL, '?');
+        if QueryPosition = 0 then
+            exit(TargetURL + Path);
+
+        exit(CopyStr(TargetURL, 1, QueryPosition - 1) + Path + CopyStr(TargetURL, QueryPosition));
+    end;
+
+    /// <summary>Appends a query parameter using the appropriate query separator.</summary>
+    /// <param name="TargetURL">API target URL.</param>
+    /// <param name="QueryParameter">Query parameter to append.</param>
+    /// <returns>The URL with the appended query parameter.</returns>
+    procedure AppendQueryParameterToTargetURL(TargetURL: Text; QueryParameter: Text): Text
+    begin
+        if StrPos(TargetURL, '?') = 0 then
+            exit(TargetURL + '?' + QueryParameter);
+
+        exit(TargetURL + '&' + QueryParameter);
     end;
 
     [Normal]
@@ -833,9 +905,14 @@ codeunit 130618 "Library - Graph Mgt"
     var
         TargetURL: Text;
     begin
-        TargetURL := GetODataTargetURL(ObjectType::Page, PageNumber);
-        TargetURL := AppendSubpageToTargetURL(ID, TargetURL, ServiceNameTxt, ServiceSubPageTxt);
-        exit(AppendSubpageToTargetURL(SubPageID, TargetURL, ServiceSubPageTxt, ServiceSubSubPageTxt));
+        TargetURL := CreateTargetURL(ID, PageNumber, ServiceNameTxt);
+        TargetURL := AppendPathToTargetURL(TargetURL, '/' + ServiceSubPageTxt);
+        if SubPageID <> '' then
+            TargetURL := AppendPathToTargetURL(
+                TargetURL, '(' + StripBrackets(SubPageID) + ')');
+        if ServiceSubSubPageTxt <> '' then
+            TargetURL := AppendPathToTargetURL(TargetURL, '/' + ServiceSubSubPageTxt);
+        exit(TargetURL);
     end;
 
     [IntegrationEvent(false, false)]
@@ -848,4 +925,3 @@ codeunit 130618 "Library - Graph Mgt"
     begin
     end;
 }
-

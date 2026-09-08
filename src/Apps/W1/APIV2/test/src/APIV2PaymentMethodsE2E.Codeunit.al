@@ -8,6 +8,7 @@ codeunit 139814 "APIV2 - Payment Methods E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Payment Method]
     end;
 
@@ -155,6 +156,9 @@ codeunit 139814 "APIV2 - Payment Methods E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+
         if IsInitialized then
             exit;
 
@@ -216,7 +220,6 @@ codeunit 139814 "APIV2 - Payment Methods E2E"
         VerifyPropertyInJSON(PaymentMethodJSON, 'displayName', PaymentMethod.Description);
     end;
 }
-
 
 
 

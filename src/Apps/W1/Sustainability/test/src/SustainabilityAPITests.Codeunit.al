@@ -270,6 +270,8 @@ codeunit 148185 "Sustainability API Tests"
     var
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Sustainability API Tests");
 
         if IsInitialized then

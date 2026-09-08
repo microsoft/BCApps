@@ -8,6 +8,7 @@ codeunit 139815 "APIV2 - Balance Sheet E2E"
 
     trigger OnRun()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         // [FEATURE] [Graph] [Balance Sheet]
     end;
 
@@ -62,6 +63,9 @@ codeunit 139815 "APIV2 - Balance Sheet E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetAuthenticationProvider(
+            Enum::"API Test Authentication"::"Microsoft Test Environment");
+
         if IsInitialized then
             exit;
 
@@ -80,7 +84,6 @@ codeunit 139815 "APIV2 - Balance Sheet E2E"
         BalanceSheetJSON := LibraryGraphMgt.AddPropertytoJSON(BalanceSheetJSON, 'display', BalanceSheetBuffer.Description);
     end;
 }
-
 
 
 
