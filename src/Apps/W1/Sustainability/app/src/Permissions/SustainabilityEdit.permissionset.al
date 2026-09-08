@@ -16,5 +16,6 @@ permissionset 6213 "Sustainability Edit"
         tabledata "Sustainability Jnl. Line" = IMD,
         tabledata "Sustainability Ledger Entry" = Im,
         tabledata "Sustainability Value Entry" = I,
-        tabledata "Sust. G/L - Sust. Ledger Rel." = ID;
+        tabledata "Sust. G/L - Sust. Ledger Rel." = ID,
+        tabledata "Sust. Jnl. Line G/L Entry" = IMD;
 }

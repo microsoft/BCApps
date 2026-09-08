@@ -11,7 +11,6 @@ table 6261 "Sust. G/L - Sust. Ledger Rel."
     DrillDownPageId = "Sust. G/L - Sust. Ledger Rel.";
     LookupPageId = "Sust. G/L - Sust. Ledger Rel.";
     Extensible = true;
-    Permissions = tabledata "G/L Entry" = rm;
 
     fields
     {
@@ -75,44 +74,14 @@ table 6261 "Sust. G/L - Sust. Ledger Rel."
         SustGLSustLedgerRel."Posting Date" := GLEntry."Posting Date";
         SustGLSustLedgerRel."Collected Amount" := GLEntry.Amount;
         SustGLSustLedgerRel.Insert(true);
-
-        SetGLEntryCollected(GLEntry."Entry No.", true);
     end;
 
     internal procedure RemoveRelations(SustLedgerEntryNo: Integer)
     var
         SustGLSustLedgerRel: Record "Sust. G/L - Sust. Ledger Rel.";
-        RemainingSustGLSustLedgerRel: Record "Sust. G/L - Sust. Ledger Rel.";
-        GLEntryNo: Integer;
     begin
         SustGLSustLedgerRel.SetCurrentKey("Sust. Ledger Entry No.");
         SustGLSustLedgerRel.SetRange("Sust. Ledger Entry No.", SustLedgerEntryNo);
-        if not SustGLSustLedgerRel.FindSet() then
-            exit;
-
-        repeat
-            GLEntryNo := SustGLSustLedgerRel."G/L Entry No.";
-
-            RemainingSustGLSustLedgerRel.SetRange("G/L Entry No.", GLEntryNo);
-            RemainingSustGLSustLedgerRel.SetFilter("Sust. Ledger Entry No.", '<>%1', SustLedgerEntryNo);
-            if RemainingSustGLSustLedgerRel.IsEmpty() then
-                SetGLEntryCollected(GLEntryNo, false);
-        until SustGLSustLedgerRel.Next() = 0;
-
         SustGLSustLedgerRel.DeleteAll(true);
-    end;
-
-    local procedure SetGLEntryCollected(GLEntryNo: Integer; Collected: Boolean)
-    var
-        GLEntry: Record "G/L Entry";
-    begin
-        if not GLEntry.Get(GLEntryNo) then
-            exit;
-
-        if GLEntry."Sust. Collected" = Collected then
-            exit;
-
-        GLEntry."Sust. Collected" := Collected;
-        GLEntry.Modify();
     end;
 }
