@@ -325,9 +325,13 @@ codeunit 10 "Type Helper"
     end;
 
     procedure TestFieldIsNotObsolete("Field": Record "Field")
+    var
+        RecordRef: RecordRef;
     begin
-        if Field.ObsoleteState = Field.ObsoleteState::Removed then
-            Error(ObsoleteFieldErr, Field."Field Caption", Field."Table Caption");
+        if Field.ObsoleteState = Field.ObsoleteState::Removed then begin
+            RecordRef.Open(Field.TableNo);
+            Error(ObsoleteFieldErr, Field."Field Caption", RecordRef.Caption());
+        end;
     end;
 
     procedure IsPhoneNumber(Input: Text): Boolean

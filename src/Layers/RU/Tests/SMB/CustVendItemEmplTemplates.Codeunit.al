@@ -3410,6 +3410,55 @@ codeunit 138008 "Cust/Vend/Item/Empl Templates"
         Assert.RecordIsNotEmpty(ItemAttributeValueMapping);
     end;
 
+    local procedure FillItemFieldExclusionList(var FieldExclusionList: List of [Integer])
+    var
+        Item: Record Item;
+    begin
+        FieldExclusionList.Add(Item.FieldNo("Prevent Negative Inventory"));
+        FieldExclusionList.Add(Item.FieldNo("Stockout Warning"));
+        FieldExclusionList.Add(Item.FieldNo("Variant Mandatory if Exists"));
+        FieldExclusionList.Add(Item.FieldNo("No."));
+        FieldExclusionList.Add(Item.FieldNo("No. 2"));
+        FieldExclusionList.Add(Item.FieldNo("Alternative Item No."));
+        FieldExclusionList.Add(Item.FieldNo("Description"));
+        FieldExclusionList.Add(Item.FieldNo("Search Description"));
+        FieldExclusionList.Add(Item.FieldNo("Description 2"));
+        FieldExclusionList.Add(Item.FieldNo("Last Direct Cost"));
+        FieldExclusionList.Add(Item.FieldNo("Cost is Adjusted"));
+        FieldExclusionList.Add(Item.FieldNo("Allow Online Adjustment"));
+        FieldExclusionList.Add(Item.FieldNo("Excluded from Cost Adjustment"));
+        FieldExclusionList.Add(Item.FieldNo("Last DateTime Modified"));
+        FieldExclusionList.Add(Item.FieldNo("Last Date Modified"));
+        FieldExclusionList.Add(Item.FieldNo("Last Time Modified"));
+        FieldExclusionList.Add(Item.FieldNo("Picture"));
+        FieldExclusionList.Add(Item.FieldNo("Application Wksh. User ID"));
+        FieldExclusionList.Add(Item.FieldNo("Low-Level Code"));
+        FieldExclusionList.Add(Item.FieldNo("Last Unit Cost Calc. Date"));
+        FieldExclusionList.Add(Item.FieldNo("Rolled-up Material Cost"));
+        FieldExclusionList.Add(Item.FieldNo("Rolled-up Capacity Cost"));
+        FieldExclusionList.Add(Item.FieldNo("Inventory Value Zero"));
+        FieldExclusionList.Add(Item.FieldNo("Sales Unit of Measure"));
+        FieldExclusionList.Add(Item.FieldNo("Purch. Unit of Measure"));
+        FieldExclusionList.Add(Item.FieldNo("Created From Nonstock Item"));
+        FieldExclusionList.Add(Item.FieldNo("Put-away Unit of Measure Code"));
+        FieldExclusionList.Add(Item.FieldNo("Last Counting Period Update"));
+        FieldExclusionList.Add(Item.FieldNo("Next Counting Start Date"));
+        FieldExclusionList.Add(Item.FieldNo("Next Counting End Date"));
+        FieldExclusionList.Add(Item.FieldNo("Unit of Measure Id"));
+        FieldExclusionList.Add(Item.FieldNo("Tax Group Id"));
+        FieldExclusionList.Add(Item.FieldNo("Item Category Id"));
+        FieldExclusionList.Add(Item.FieldNo("Inventory Posting Group Id"));
+        FieldExclusionList.Add(Item.FieldNo("Gen. Prod. Posting Group Id"));
+        FieldExclusionList.Add(Item.FieldNo("Single-Level Material Cost"));
+        FieldExclusionList.Add(Item.FieldNo("Single-Level Capacity Cost"));
+        FieldExclusionList.Add(Item.FieldNo("Single-Level Subcontrd. Cost"));
+        FieldExclusionList.Add(Item.FieldNo("Single-Level Cap. Ovhd Cost"));
+        FieldExclusionList.Add(Item.FieldNo("Single-Level Mfg. Ovhd Cost"));
+        FieldExclusionList.Add(Item.FieldNo("Rolled-up Subcontracted Cost"));
+        FieldExclusionList.Add(Item.FieldNo("Rolled-up Mfg. Ovhd Cost"));
+        FieldExclusionList.Add(Item.FieldNo("Rolled-up Cap. Overhead Cost"));
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Cust/Vend/Item/Empl Templates");
