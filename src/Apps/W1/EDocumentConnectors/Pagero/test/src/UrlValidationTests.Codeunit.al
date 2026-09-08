@@ -11,7 +11,7 @@ using Microsoft.EServices.EDocumentConnector;
 /// hardcoded Pagero host is used as-is; a tampered URL on a foreign host falls back to the
 /// hardcoded value so credentials/tokens cannot be redirected to a malicious endpoint.
 /// </summary>
-codeunit 148193 "Url Validation Tests"
+codeunit 148223 "Url Validation Tests"
 {
     Subtype = Test;
     TestPermissions = Disabled;

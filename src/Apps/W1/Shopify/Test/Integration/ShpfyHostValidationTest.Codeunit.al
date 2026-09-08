@@ -13,7 +13,7 @@ using System.TestLibraries.Utilities;
 /// endpoints are called. Only *.myshopify.com hostnames are accepted so the Microsoft-owned client
 /// secret and authorization code cannot be redirected to a malicious host.
 /// </summary>
-codeunit 139649 "Shpfy Host Validation Test"
+codeunit 134243 "Shpfy Host Validation Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
