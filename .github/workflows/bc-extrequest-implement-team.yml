@@ -152,8 +152,14 @@ jobs:
 
       - name: Validate skill
         run: |
-          if (-not (Test-Path '.github/skills/bc-extrequest-implement/SKILL.md')) {
-            throw 'Skill .github/skills/bc-extrequest-implement/SKILL.md was not found.'
+          $requiredFiles = @(
+            '.github/skills/bc-extrequest-implement/SKILL.md',
+            '.github/skills/bc-extrequest-implement/standalone-pr-template.md',
+            '.github/skills/bc-extrequest-implement/batch-pr-template.md'
+          )
+          $missingFiles = @($requiredFiles | Where-Object { -not (Test-Path $_) })
+          if ($missingFiles.Count -gt 0) {
+            throw "Required skill files were not found: $($missingFiles -join ', ')."
           }
 
       - name: Setup Node.js
@@ -283,8 +289,14 @@ jobs:
 
       - name: Validate skill
         run: |
-          if (-not (Test-Path '.github/skills/bc-extrequest-implement/SKILL.md')) {
-            throw 'Skill .github/skills/bc-extrequest-implement/SKILL.md was not found.'
+          $requiredFiles = @(
+            '.github/skills/bc-extrequest-implement/SKILL.md',
+            '.github/skills/bc-extrequest-implement/standalone-pr-template.md',
+            '.github/skills/bc-extrequest-implement/batch-pr-template.md'
+          )
+          $missingFiles = @($requiredFiles | Where-Object { -not (Test-Path $_) })
+          if ($missingFiles.Count -gt 0) {
+            throw "Required skill files were not found: $($missingFiles -join ', ')."
           }
 
       - name: Setup Node.js

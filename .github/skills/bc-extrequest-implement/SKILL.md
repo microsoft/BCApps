@@ -484,8 +484,16 @@ exactly **one draft PR** whose title, body, and labels follow the formats below.
      git push
      ```
 
-2. **Build the PR body** from the template below, fill in real values, and write it to a temp file
-   so `gh` reads it verbatim:
+2. **Build the PR body** by reading
+   `.github/skills/bc-extrequest-implement/standalone-pr-template.md`, replacing every placeholder,
+   and writing the rendered body to a temp file so `gh` reads it verbatim:
+
+   - Replace `{{SUMMARY}}` with the required 2-4 sentence summary. Describe the issue author's
+     intent, why the change is needed, and what they are trying to accomplish. Summarize the
+     problem in user terms first, then state how the PR addresses that goal.
+   - Replace `{{CHANGES_MADE}}` with the rendered Markdown bullet list.
+   - Replace `{{ISSUE_NUMBER}}` with `issue_number`.
+   - Confirm no `{{...}}` placeholder remains before creating or updating the PR.
 
    ```powershell
    $prBodyPath = Join-Path $temp_dir "bc-extrequest-implement-pr-body-<issue_number>.md"
@@ -498,22 +506,6 @@ exactly **one draft PR** whose title, body, and labels follow the formats below.
   - Do not list every propagated layer/counterpart file as separate bullets.
   - If layer propagation happened, mention it once in the same object bullet in a short phrase.
   - Do not add any `Note`, `Notes`, or extra sections beyond the template. Preserve the AI-generated content disclaimer.
-
-   PR body template:
-
-   ```markdown
-   ## Summary
-  <2-4 sentences: describe the issue author's intent, why the change is needed, and what they are trying to accomplish. Summarize the problem in user terms first, then state how this PR addresses that goal.>
-
-   ## Changes Made
-  - `<object-or-procedure-name>` - <what changed and why>
-  - `<object-or-procedure-name>` - <what changed and why>
-
-  Fixes #<issue_number>
-
-   > [!IMPORTANT]
-   > AI-generated: content may be inaccurate or incomplete. Please review and verify before relying on or merging.
-   ```
 
 3. **Create or update exactly one draft PR**:
 

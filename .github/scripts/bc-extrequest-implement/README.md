@@ -30,10 +30,14 @@ Each issue is implemented sequentially in an isolated worktree and produces one 
 workflow creates one draft pull request per team and local calendar date. Re-running the same team
 on the same date updates that branch and pull request.
 
-The batch pull request description template is
-[`batch-pr-template.md`](./batch-pr-template.md). `{{TEAM}}` and `{{ISSUE_SECTIONS}}` are populated
-when the PR is created. The `EXT_REQ_BATCH_END` marker is retained so same-day reruns can append
-new issue sections without replacing existing ones.
+Both pull request description templates are skill assets:
+
+- [`standalone-pr-template.md`](../../skills/bc-extrequest-implement/standalone-pr-template.md)
+- [`batch-pr-template.md`](../../skills/bc-extrequest-implement/batch-pr-template.md)
+
+The batch template's `{{TEAM}}` and `{{ISSUE_SECTIONS}}` placeholders are populated when the PR is
+created. The `EXT_REQ_BATCH_END` marker is retained so same-day reruns can append new issue
+sections without replacing existing ones.
 
 ## Telemetry
 

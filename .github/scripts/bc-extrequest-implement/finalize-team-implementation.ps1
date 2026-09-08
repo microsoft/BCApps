@@ -120,7 +120,9 @@ foreach ($result in @($state.successful_issues)) {
     [void]$sections.AppendLine()
 }
 
-$templatePath = Join-Path $PSScriptRoot 'batch-pr-template.md'
+$githubDirectory = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+$skillDirectory = Join-Path (Join-Path $githubDirectory 'skills') 'bc-extrequest-implement'
+$templatePath = Join-Path $skillDirectory 'batch-pr-template.md'
 if (-not (Test-Path $templatePath)) {
     throw "Batch pull request template '$templatePath' was not found."
 }
