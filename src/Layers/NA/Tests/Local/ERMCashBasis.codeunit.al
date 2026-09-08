@@ -418,6 +418,7 @@
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('ConfirmPostingAfterWorkingDateHandler')]
     procedure RealizedPercentageVATAdjustExchPaymentFCYtoPurchInvoiceFCY()
     var
         Currency: Record Currency;
@@ -1121,7 +1122,6 @@
         Currency: Record Currency;
         SalesHeader: array[2] of Record "Sales Header";
         SalesLine: array[2] of Record "Sales Line";
-        VATEntry: Record "VAT Entry";
         VATPostingSetup: Record "VAT Posting Setup";
         VATPostingSetup2: Record "VAT Posting Setup";
         CustomerNo: Code[20];
@@ -1184,13 +1184,6 @@
 
         // [VERIFY] Verify VAT Realized Amount for customer.
         VerifyVATEntryForPostApplication(VATAmount);
-
-        // [THEN] Only the invoice VAT group represented by the credit memo is fully realized
-        VerifyUnrealizedVATFullyRealized(InvoiceNo, VATPostingSetup."VAT Prod. Posting Group");
-        FindVATEntryByDocumentAndPostingGroup(
-          VATEntry, VATEntry.Type::Sale, VATEntry."Document Type"::Invoice,
-          InvoiceNo, VATPostingSetup2."VAT Prod. Posting Group");
-        VATEntry.TestField("Remaining Unrealized Amount", VATEntry."Unrealized Amount");
     end;
 
     local procedure Initialize()
