@@ -13,7 +13,7 @@ codeunit 134761 "Test Custom Reports"
         CustomerFullMod: Record Customer;
         CustomerPartialMod: Record Customer;
         CustomerNoMod: Record Customer;
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
 #pragma warning restore AL0432, AS0105
@@ -41,7 +41,7 @@ codeunit 134761 "Test Custom Reports"
         Assert: Codeunit Assert;
         LibrarySales: Codeunit "Library - Sales";
         LibraryInventory: Codeunit "Library - Inventory";
-#if not CLEAN29
+#if not CLEAN30
         LibraryPurchase: Codeunit "Library - Purchase";
 #endif
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
@@ -57,7 +57,7 @@ codeunit 134761 "Test Custom Reports"
         IsInitialized: Boolean;
         ExpectedFilesErr: Label 'Expected files as report output in temporary directory. None found.', Comment = '%1, filename.';
         TempFolderIndex: Integer;
-#if not CLEAN29
+#if not CLEAN30
         StandardStatementModTxt: Label 'Standard Statement Mod';
         StatementModTxt: Label 'Statement Mod';
         StandardStatementFullModTxt: Label 'Standard Statement Full Mod';
@@ -77,7 +77,7 @@ codeunit 134761 "Test Custom Reports"
     begin
         LibrarySales.CreateCustomer(CustomerFullMod);
 
-#if not CLEAN29
+#if not CLEAN30
         CreateCustomReportLayout(REPORT::"Standard Sales - Quote", CustomReportLayout.Type::Word, 'Quote Customer Full Mod');
         AssignCustomLayoutToCustomer(
           DATABASE::Customer, CustomerFullMod."No.", CustomReportSelection.Usage::"S.Quote", REPORT::"Standard Sales - Quote",
@@ -100,7 +100,7 @@ codeunit 134761 "Test Custom Reports"
         Assert.IsFalse(CustomReportSelection.FindFirst(), 'Customer.OnDelete failed to remove CustomReportSelection');
 
         Clear(CustomReportSelection);
-#if not CLEAN29
+#if not CLEAN30
         CustomReportLayout.DeleteAll();
 #endif
     end;
@@ -791,7 +791,7 @@ codeunit 134761 "Test Custom Reports"
         Assert.ExpectedError(ReportIDMustHaveValueErr);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure UT_CleanEmailBodyLayoutCode_OnReportIdValidate()
@@ -1110,7 +1110,7 @@ codeunit 134761 "Test Custom Reports"
         Assert.IsTrue(PurchCrMemoLine.HasTypeToFillMandatoryFields(), '');
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [HandlerFunctions('StandardStatementDefaultLayoutHandler,StatementCancelHandler')]
     [Scope('OnPrem')]
@@ -1381,7 +1381,7 @@ codeunit 134761 "Test Custom Reports"
         // Clean out existing data and set up new
         ReportLayoutSelection.DeleteAll();
         CustomReportSelection.DeleteAll();
-#if not CLEAN29
+#if not CLEAN30
         CustomReportLayout.DeleteAll();
 #endif
 
@@ -1391,7 +1391,7 @@ codeunit 134761 "Test Custom Reports"
         LibrarySales.CreateCustomer(CustomerPartialMod);
         LibrarySales.CreateCustomer(CustomerNoMod);
         Clear(CustomReportSelection);
-#if not CLEAN29
+#if not CLEAN30
         CreateCustomReportLayout(REPORT::"Standard Sales - Quote", CustomReportLayout.Type::Word, 'Quote Customer Full Mod');
         AssignCustomLayoutToCustomer(
           DATABASE::Customer, CustomerFullMod."No.", CustomReportSelection.Usage::"S.Quote", REPORT::"Standard Sales - Quote",
@@ -1402,7 +1402,7 @@ codeunit 134761 "Test Custom Reports"
 #endif
 
         Clear(CustomReportSelection);
-#if not CLEAN29
+#if not CLEAN30
         CreateCustomReportLayout(REPORT::"Standard Sales - Order Conf.", CustomReportLayout.Type::Word, 'Order Customer Full Mod');
         AssignCustomLayoutToCustomer(
           DATABASE::Customer, CustomerFullMod."No.", CustomReportSelection.Usage::"S.Order", REPORT::"Standard Sales - Order Conf.",
@@ -1413,7 +1413,7 @@ codeunit 134761 "Test Custom Reports"
 #endif
 
         Clear(CustomReportSelection);
-#if not CLEAN29
+#if not CLEAN30
         CreateCustomReportLayout(REPORT::"Standard Sales - Invoice", CustomReportLayout.Type::Word, 'Invoice Customer Full Mod');
         AssignCustomLayoutToCustomer(
           DATABASE::Customer, CustomerFullMod."No.", CustomReportSelection.Usage::"S.Invoice", REPORT::"Standard Sales - Invoice",
@@ -1424,7 +1424,7 @@ codeunit 134761 "Test Custom Reports"
 #endif
 
         Clear(CustomReportSelection);
-#if not CLEAN29
+#if not CLEAN30
         CreateCustomReportLayout(REPORT::"Standard Sales - Credit Memo", CustomReportLayout.Type::Word,
           'Credit Memo Customer Full Mod');
         AssignCustomLayoutToCustomer(
@@ -1437,7 +1437,7 @@ codeunit 134761 "Test Custom Reports"
 #endif
 
         Clear(CustomReportSelection);
-#if not CLEAN29
+#if not CLEAN30
         CreateCustomReportLayout(REPORT::"Standard Statement", CustomReportLayout.Type::Word, StandardStatementFullModTxt);
         AssignCustomLayoutToCustomer(
           DATABASE::Customer, CustomerFullMod."No.", CustomReportSelection.Usage::"C.Statement", REPORT::"Standard Statement",
@@ -1450,7 +1450,7 @@ codeunit 134761 "Test Custom Reports"
         CustomReportSelection.Modify();
 
         Clear(CustomReportSelection);
-#if not CLEAN29
+#if not CLEAN30
         CreateCustomReportLayout(REPORT::Statement, CustomReportLayout.Type::RDLC, StatementModTxt);
         AssignCustomLayoutToCustomer(
           DATABASE::Customer, CustomerFullMod."No.", CustomReportSelection.Usage::"C.Statement", REPORT::Statement,
@@ -1461,7 +1461,7 @@ codeunit 134761 "Test Custom Reports"
 #endif
 
         Clear(CustomReportSelection);
-#if not CLEAN29
+#if not CLEAN30
         CreateCustomReportLayout(REPORT::"Standard Statement", CustomReportLayout.Type::Word, StandardStatementModTxt);
         AssignCustomLayoutToCustomer(
           DATABASE::Customer, CustomerFullMod."No.", CustomReportSelection.Usage::"C.Statement", REPORT::"Standard Statement",
@@ -1556,7 +1556,7 @@ codeunit 134761 "Test Custom Reports"
         CustomerReportSelections.Usage2.SetValue(Usage);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure CreateCustomReportLayout(ReportID: Integer; LayoutType: Enum "Custom Report Layout Type"; Description: Text[80])
     begin
         CustomReportLayout.Init();
@@ -2206,7 +2206,7 @@ codeunit 134761 "Test Custom Reports"
         RequestPage.OK().Invoke();
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure StatementCancelHandler(var RequestPage: TestRequestPage Statement)
@@ -2276,7 +2276,7 @@ codeunit 134761 "Test Custom Reports"
         AddNewCustomerReportSelection(CustomerReportSelections, Usage::"Credit Memo", REPORT::"G/L Register");
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [ModalPageHandler]
     [Scope('OnPrem')]
     procedure CustomerReportSelectionHandler(var CustomerReportSelections: TestPage "Customer Report Selections")

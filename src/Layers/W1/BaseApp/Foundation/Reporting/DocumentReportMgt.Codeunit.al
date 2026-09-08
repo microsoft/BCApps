@@ -5,7 +5,7 @@
 namespace Microsoft.Foundation.Reporting;
 
 using System;
-#if not CLEAN29
+#if not CLEAN30
 using System.Environment;
 #endif
 using System.Reflection;
@@ -20,7 +20,7 @@ codeunit 9651 "Document Report Mgt."
     end;
 
     var
-#if not CLEAN29
+#if not CLEAN30
         ClientTypeMgt: Codeunit "Client Type Management";
 
 #endif
@@ -32,11 +32,11 @@ codeunit 9651 "Document Report Mgt."
         AbortWithValidationErr: Label 'The Word layout action has been canceled because of validation errors.';
 #pragma warning disable AA0470
         TemplateAfterUpdateValidationErr: Label 'The automatic update could not resolve all the conflicts in the current Word layout. For example, the layout uses fields that are missing in the report design or the report ID is wrong.\The following errors were detected:\%1\You must manually update the layout to match the current report design.';
-#if not CLEAN29
+#if not CLEAN30
         UpgradeMessageMsg: Label 'The report upgrade process returned the following log messages:\%1.';
 #endif
 #pragma warning restore AA0470
-#if not CLEAN29
+#if not CLEAN30
         NoReportLayoutUpgradeRequiredMsg: Label 'The layout upgrade process completed without detecting any required changes in the current application.';
 #endif
         CompanyInformationPicErr: Label 'The document contains elements that cannot be converted to PDF. This may be caused by missing image data in the document.';
@@ -162,7 +162,7 @@ codeunit 9651 "Document Report Mgt."
         exit(XmlHasDataset);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Scope('OnPrem')]
     [Obsolete('Upgrades layouts stored in the Custom Report Layout table, which is replaced by the system tables Tenant Report Layout and Report Layout Selection.', '29.0')]
     procedure ApplyUpgradeToReports(var ReportUpgradeCollection: DotNet ReportUpgradeCollection; testOnly: Boolean): Boolean

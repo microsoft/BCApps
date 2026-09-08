@@ -7,12 +7,12 @@ namespace Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Company;
 using System.Device;
 using System.Environment;
-#if not CLEAN29
+#if not CLEAN30
 using System.Environment.Configuration;
 #endif
 using System.Reflection;
 using System.Text;
-#if not CLEAN29
+#if not CLEAN30
 using System.Utilities;
 #endif
 
@@ -160,7 +160,7 @@ codeunit 44 ReportManagement
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reporting Triggers", 'SelectReportLayoutCode', '', false, false)]
     local procedure SelectReportLayoutCode(ObjectId: Integer; var LayoutCode: Text; var LayoutType: Option "None",RDLC,Word,Excel,Custom; var Success: Boolean)
     var
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
         CustomReportLayout: Record "Custom Report Layout";
 #pragma warning restore AL0432
@@ -168,12 +168,12 @@ codeunit 44 ReportManagement
 #endif
         ReportLayoutSelection: Record "Report Layout Selection";
         DesignTimeReportSelection: Codeunit "Design-time Report Selection";
-#if not CLEAN29
+#if not CLEAN30
         AppLayoutType: Enum "Custom Report Layout Type";
 #endif
         SelectedLayoutName: Text[250];
         SelectedAppID: Guid;
-#if not CLEAN29
+#if not CLEAN30
         PlatformRenderingInPlatformTxt: Label 'RenderWordReportsInPlatform', Locked = true;
 #endif
     begin
@@ -193,7 +193,7 @@ codeunit 44 ReportManagement
             then
                 SelectedLayoutName := ReportLayoutSelection."Custom Report Layout Code";
 
-#if not CLEAN29
+#if not CLEAN30
         if (SelectedLayoutName <> '') and (StrLen(SelectedLayoutName) <= MaxStrLen(CustomReportLayout."Code")) then
             // The code field in Custom Report Layout table can have a maximum size of 20 characters.
             if CustomReportLayout.Get(SelectedLayoutName.ToUpper()) then begin
@@ -234,7 +234,7 @@ codeunit 44 ReportManagement
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reporting Triggers", 'FetchReportLayoutByCode', '', false, false)]
     local procedure FetchReportLayoutByCode(ObjectId: Integer; LayoutCode: Text; var TargetStream: OutStream; var Success: Boolean)
     var
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
         CustomReportLayout: Record "Custom Report Layout";
 #pragma warning restore AL0432
@@ -246,7 +246,7 @@ codeunit 44 ReportManagement
         if Success then
             exit;
 
-#if not CLEAN29
+#if not CLEAN30
         if not CustomReportLayout.Get(LayoutCode) then
             LayoutCode := '';
 

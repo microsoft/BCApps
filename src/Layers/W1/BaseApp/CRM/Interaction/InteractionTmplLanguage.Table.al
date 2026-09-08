@@ -47,7 +47,7 @@ table 5103 "Interaction Tmpl. Language"
         {
             Caption = 'Custom Layout Code';
             ToolTip = 'Specifies the number of the report layout.';
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
             TableRelation = "Custom Report Layout" where("Report ID" = const(Report::"Email Merge"));
 #pragma warning restore AL0432
@@ -57,14 +57,14 @@ table 5103 "Interaction Tmpl. Language"
             begin
                 if Rec."Custom Layout Code" <> '' then
                     Rec.Validate("Report Layout Name", '');
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
                 CalcFields("Custom Layout Description");
 #pragma warning restore AL0432
 #endif
             end;
         }
-#if not CLEAN29
+#if not CLEAN30
         field(6; "Custom Layout Description"; Text[250])
         {
             CalcFormula = lookup("Custom Report Layout".Description where(Code = field("Custom Layout Code")));
@@ -73,7 +73,7 @@ table 5103 "Interaction Tmpl. Language"
             FieldClass = FlowField;
             ObsoleteState = Pending;
             ObsoleteReason = 'Replaced by the system report layout system ("Tenant Report Layout"). This field will be removed in a future version.';
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
         }
 #endif
         field(7; "Word Template Code"; Code[30])

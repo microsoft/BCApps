@@ -12,7 +12,7 @@ using Microsoft.Sales.History;
 using Microsoft.Sustainability.Account;
 using Microsoft.Sustainability.Setup;
 using Microsoft.Test.Sustainability;
-#if not CLEAN29
+#if not CLEAN30
 using System.Reflection;
 using System.Utilities;
 #endif
@@ -35,7 +35,7 @@ codeunit 148217 "Sustainability Report Tests"
         AccountCodeLbl: Label 'AccountCode%1', Comment = '%1 = Number';
         CategoryCodeLbl: Label 'CategoryCode%1', Comment = '%1 = Number';
         SubcategoryCodeLbl: Label 'SubcategoryCode%1', Comment = '%1 = Number';
-#if not CLEAN29
+#if not CLEAN30
         MSXLbl: Label 'MSX%1', Comment = '%1 = random number for unique layout code';
         MSXILbl: Label 'MSXI%1', Comment = '%1 = random number for unique layout code';
         DocxLbl: Label 'docx';
@@ -57,7 +57,7 @@ codeunit 148217 "Sustainability Report Tests"
         UnitOfMeasure: Record "Unit of Measure";
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
 #pragma warning restore AL0432, AS0105
@@ -80,7 +80,7 @@ codeunit 148217 "Sustainability Report Tests"
         // [GIVEN] Update "Emission Unit of Measure Code" in Sustainability Setup.
         UpdateEmissionUnitOfMeasureInSustainabilitySetup(UnitOfMeasure.Code);
 
-#if not CLEAN29
+#if not CLEAN30
         // [GIVEN] Select layout as Custom Body Layout in "Standard Sales-Quote" report.
         GetCustomBodyLayout(CustomReportLayout, GetStandardSalesQuoteReportID());
 #endif
@@ -127,7 +127,7 @@ codeunit 148217 "Sustainability Report Tests"
         UnitOfMeasure: Record "Unit of Measure";
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
 #pragma warning restore AL0432, AS0105
@@ -147,7 +147,7 @@ codeunit 148217 "Sustainability Report Tests"
         // [GIVEN] Update "Emission Unit of Measure Code" in Sustainability Setup.
         UpdateEmissionUnitOfMeasureInSustainabilitySetup(UnitOfMeasure.Code);
 
-#if not CLEAN29
+#if not CLEAN30
         // [GIVEN] Select layout as Custom Body Layout in "Standard Sales-Quote" report.
         GetCustomBodyLayout(CustomReportLayout, GetStandardSalesQuoteReportID());
 #endif
@@ -177,7 +177,7 @@ codeunit 148217 "Sustainability Report Tests"
     var
         SustainabilitySetup: Record "Sustainability Setup";
         UnitOfMeasure: Record "Unit of Measure";
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
 #pragma warning restore AL0432, AS0105
@@ -202,7 +202,7 @@ codeunit 148217 "Sustainability Report Tests"
         // [GIVEN] Update "Emission Unit of Measure Code" in Sustainability Setup.
         UpdateEmissionUnitOfMeasureInSustainabilitySetup(UnitOfMeasure.Code);
 
-#if not CLEAN29
+#if not CLEAN30
         // [GIVEN] Select layout as Custom Body Layout in "Standard Sales-Invoice" report.
         GetCustomBodyLayout(CustomReportLayout, GetStandardSalesInvoiceReportID());
 #endif
@@ -246,7 +246,7 @@ codeunit 148217 "Sustainability Report Tests"
     procedure VerifyCO2ePerUnitAndTotalCO2eCaptionInStandardSalesInvoice()
     var
         UnitOfMeasure: Record "Unit of Measure";
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
 #pragma warning restore AL0432, AS0105
@@ -269,7 +269,7 @@ codeunit 148217 "Sustainability Report Tests"
         // [GIVEN] Update "Emission Unit of Measure Code" in Sustainability Setup.
         UpdateEmissionUnitOfMeasureInSustainabilitySetup(UnitOfMeasure.Code);
 
-#if not CLEAN29
+#if not CLEAN30
         // [GIVEN] Select layout as Custom Body Layout in "Standard Sales-Invoice" report.
         GetCustomBodyLayout(CustomReportLayout, GetStandardSalesInvoiceReportID());
 #endif
@@ -329,7 +329,7 @@ codeunit 148217 "Sustainability Report Tests"
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Sustainability Report Tests");
     end;
 
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432, AS0105
     local procedure GetCustomBodyLayout(var CustomReportLayout: Record "Custom Report Layout"; ReportID: Integer)
 #pragma warning restore AL0432, AS0105
@@ -457,7 +457,7 @@ codeunit 148217 "Sustainability Report Tests"
         SustainabilityDisclaimer.Insert();
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure GetStandardSalesQuoteReportID(): Integer
     begin
         exit(Report::"Standard Sales - Quote");

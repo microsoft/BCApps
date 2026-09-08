@@ -1486,7 +1486,7 @@ codeunit 134425 "Payment Services Test"
 
     local procedure SetupReportSelections()
     var
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
 #pragma warning restore AL0432, AS0105
@@ -1496,7 +1496,7 @@ codeunit 134425 "Payment Services Test"
         ReportSelections.DeleteAll();
         CreateDefaultReportSelection();
 
-#if not CLEAN29
+#if not CLEAN30
         GetCustomBodyLayout(CustomReportLayout);
 #endif
 
@@ -1505,7 +1505,7 @@ codeunit 134425 "Payment Services Test"
         ReportSelections.FindFirst();
         ReportSelections.Validate("Use for Email Attachment", true);
         ReportSelections.Validate("Use for Email Body", true);
-#if not CLEAN29
+#if not CLEAN30
         ReportSelections.Validate("Email Body Layout Code", CustomReportLayout.Code);
 #endif
         ReportSelections.Modify(true);
@@ -1523,7 +1523,7 @@ codeunit 134425 "Payment Services Test"
         ReportSelections.Insert();
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure GetReportID(): Integer
     begin
         exit(REPORT::"Standard Sales - Invoice");

@@ -2,7 +2,7 @@
 
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
-#if not CLEAN29
+#if not CLEAN30
 using Microsoft.Foundation.Reporting;
 #endif
 using Microsoft.Inventory.Item;
@@ -148,7 +148,7 @@ table 8631 "Config. Table Processing Rule"
                 exit(Action in [Action::Invoice, Action::Receive]);
             Database::"Gen. Journal Line", Database::"Gen. Journal Batch":
                 exit(Action = Action::Post);
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
             Database::"Custom Report Layout":
 #pragma warning restore AL0432
@@ -193,7 +193,7 @@ table 8631 "Config. Table Processing Rule"
                 exit(RunActionOnGenJnlLine(RecRef));
             Database::"Gen. Journal Batch":
                 exit(RunActionOnGenJnlBatch(RecRef));
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
             Database::"Custom Report Layout":
 #pragma warning restore AL0432
@@ -335,7 +335,7 @@ table 8631 "Config. Table Processing Rule"
         Clear(ConfigPackageFilters);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure RunActionOnCustomReportLayout(RecRef: RecordRef): Boolean
     var
 #pragma warning disable AL0432

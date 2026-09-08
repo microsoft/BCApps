@@ -300,7 +300,7 @@ codeunit 1751 "Data Classification Eval. Data"
         ClassifyVATEntry();
         ClassifyVATRegistrationLog();
         ClassifyInsuranceRegister();
-#if not CLEAN29
+#if not CLEAN30
         ClassifyCustomReportLayout();
 #endif
         ClassifyCostBudgetRegister();
@@ -2908,7 +2908,7 @@ codeunit 1751 "Data Classification Eval. Data"
         SetFieldToPersonal(TableNo, DummyInsuranceRegister.FieldNo("User ID"));
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure ClassifyCustomReportLayout()
     var
 #pragma warning disable AL0432

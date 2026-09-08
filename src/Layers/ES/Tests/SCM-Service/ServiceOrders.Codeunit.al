@@ -17,7 +17,7 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.ExtendedText;
 using Microsoft.Foundation.NoSeries;
-#if not CLEAN29
+#if not CLEAN30
 using Microsoft.Foundation.Reporting;
 #endif
 using Microsoft.Foundation.Shipping;
@@ -5769,7 +5769,7 @@ codeunit 136101 "Service Orders"
         Assert.AreEqual(Customer[2]."Country/Region Code", ServiceHeader."VAT Country/Region Code", VATCountryRegionLbl);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [HandlerFunctions('ServiceOrderReportRequestPageHandler')]
     procedure PrintServiceOrderWithWorkDescription()
@@ -8176,7 +8176,7 @@ codeunit 136101 "Service Orders"
             exit(ServiceInvoiceHeader."No.");
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure CreateCustomReportSelectionForCustomer(CustomerNo: Code[20]; ReportSelectionUsage: Enum "Report Selection Usage"; ReportID: Integer)
     var
         CustomReportSelection: Record "Custom Report Selection";

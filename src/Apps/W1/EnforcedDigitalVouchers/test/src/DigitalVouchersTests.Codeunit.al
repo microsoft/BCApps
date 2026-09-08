@@ -31,7 +31,7 @@ using Microsoft.Service.Test;
 using Microsoft.Tests.EServices.EDocument;
 using System.Email;
 using System.Environment.Configuration;
-#if CLEAN29
+#if CLEAN30
 using System.Reflection;
 #endif
 using System.TestLibraries.Utilities;
@@ -1965,7 +1965,7 @@ codeunit 139515 "Digital Vouchers Tests"
     // asserts which attachments the email editor offers, not which layout rendered the body. Before 29.0
     // that layout is a legacy "Custom Report Layout"; from 29.0 it is the report layout name that
     // superseded it.
-#if not CLEAN29
+#if not CLEAN30
     local procedure CreateCustomReportSelectionForCustomer(CustomerNo: Code[20]; ReportSelectionUsage: Enum "Report Selection Usage"; ReportID: Integer)
     var
         CustomReportSelection: Record "Custom Report Selection";

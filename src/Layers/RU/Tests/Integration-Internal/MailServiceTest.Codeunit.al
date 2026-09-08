@@ -21,7 +21,7 @@ codeunit 139111 "Mail Service Test"
         LibrarySales: Codeunit "Library - Sales";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryService: Codeunit "Library - Service";
-#if not CLEAN29
+#if not CLEAN30
         LibraryJob: Codeunit "Library - Job";
 #endif
         ActiveDirectoryMockEvents: Codeunit "Active Directory Mock Events";
@@ -29,7 +29,7 @@ codeunit 139111 "Mail Service Test"
         EmailSubjectCapMsg: Label '%1 - %2 %3';
         AttachmentNameTok: Label '%1 %2.pdf';
         SalesInvoiceTxt: Label 'Sales Invoice';
-#if not CLEAN29
+#if not CLEAN30
         SalesQuoteTxt: Label 'Sales Quote';
 #endif
         SalesShipmentTxt: Label 'Sales Shipment';
@@ -38,7 +38,7 @@ codeunit 139111 "Mail Service Test"
         PurchaseOrderTxt: Label 'Purchase Order';
         ServiceInvoiceTxt: Label 'Service Invoice';
         ServiceCrMemoTxt: Label 'Service Credit Memo';
-#if not CLEAN29
+#if not CLEAN30
         JobQuoteTxt: Label 'Project Quote';
 #endif
         IncorrectSubjectErr: Label 'Subject is not correct';
@@ -116,7 +116,7 @@ codeunit 139111 "Mail Service Test"
         // [THEN] Send dialog appeared (handler has been invoked)
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [HandlerFunctions('ValidateMailDialog')]
     [Scope('OnPrem')]
@@ -215,7 +215,7 @@ codeunit 139111 "Mail Service Test"
         LibraryVariableStorage.AssertEmpty();
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [HandlerFunctions('ValidateMailDialog')]
     [Scope('OnPrem')]
@@ -383,7 +383,7 @@ codeunit 139111 "Mail Service Test"
         end;
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure CreateCustomReportSelectionForCustomer(CustomerNo: Code[20]; ReportSelectionUsage: Enum "Report Selection Usage"; ReportID: Integer)
     var
         CustomReportSelection: Record "Custom Report Selection";

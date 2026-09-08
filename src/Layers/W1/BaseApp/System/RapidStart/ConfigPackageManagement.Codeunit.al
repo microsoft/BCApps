@@ -1512,7 +1512,7 @@ codeunit 8611 "Config. Package Management"
             Database::Microsoft.Pricing.Calculation."Price Calculation Setup",
                 Database::"Company Information":
                 ConfigPackageTable."Processing Order" += 1;
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
             Database::Microsoft.Foundation.Reporting."Custom Report Layout":
 #pragma warning restore AL0432

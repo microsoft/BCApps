@@ -68,7 +68,7 @@ table 9657 "Custom Report Selection"
         field(7; "Custom Report Layout Code"; Code[20])
         {
             Caption = 'Custom Report Layout Code';
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
             TableRelation = "Custom Report Layout" where(Code = field("Custom Report Layout Code"));
 #pragma warning restore AL0432
@@ -76,14 +76,14 @@ table 9657 "Custom Report Selection"
 
             trigger OnValidate()
             begin
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
                 CalcFields("Custom Report Description");
 #pragma warning restore AL0432
 #endif
             end;
         }
-#if not CLEAN29
+#if not CLEAN30
         field(8; "Custom Report Description"; Text[250])
         {
             CalcFormula = lookup("Custom Report Layout".Description where(Code = field("Custom Report Layout Code")));
@@ -91,7 +91,7 @@ table 9657 "Custom Report Selection"
             FieldClass = FlowField;
             ObsoleteState = Pending;
             ObsoleteReason = 'Replaced by the system report layout system ("Tenant Report Layout"). This field will be removed in a future version.';
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
             ToolTip = 'Specifies a description of the custom report layout.';
         }
 #endif
@@ -144,7 +144,7 @@ table 9657 "Custom Report Selection"
         field(21; "Email Body Layout Code"; Code[20])
         {
             Caption = 'Email Body Layout Code';
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
             TableRelation = "Custom Report Layout" where(Code = field("Email Body Layout Code"),
                                                           "Report ID" = field("Report ID"));
@@ -156,14 +156,14 @@ table 9657 "Custom Report Selection"
             begin
                 if "Email Body Layout Code" <> '' then
                     TestField("Use for Email Body", true);
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
                 CalcFields("Email Body Layout Description");
 #pragma warning restore AL0432
 #endif
             end;
         }
-#if not CLEAN29
+#if not CLEAN30
         field(22; "Email Body Layout Description"; Text[250])
         {
             CalcFormula = lookup("Custom Report Layout".Description where(Code = field("Email Body Layout Code")));
@@ -172,7 +172,7 @@ table 9657 "Custom Report Selection"
             FieldClass = FlowField;
             ObsoleteState = Pending;
             ObsoleteReason = 'Replaced by the system report layout system ("Tenant Report Layout"). This field will be removed in a future version.';
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
             ToolTip = 'Specifies a description of the custom email body layout that is used.';
         }
 #endif

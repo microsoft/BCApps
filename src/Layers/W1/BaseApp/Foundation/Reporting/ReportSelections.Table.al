@@ -65,7 +65,7 @@ table 77 "Report Selections"
         {
             Caption = 'Custom Report Layout Code';
             Editable = false;
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
             TableRelation = "Custom Report Layout".Code where(Code = field("Custom Report Layout Code"), "Built-In" = const(false));
 #pragma warning restore AL0432
@@ -103,7 +103,7 @@ table 77 "Report Selections"
         field(21; "Email Body Layout Code"; Code[20])
         {
             Caption = 'Email Body Custom Layout Code';
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
             TableRelation = if ("Email Body Layout Type" = const("Custom Report Layout")) "Custom Report Layout".Code where(Code = field("Email Body Layout Code"), "Report ID" = field("Report ID"), "Built-In" = const(false))
             else
@@ -120,14 +120,14 @@ table 77 "Report Selections"
                     Testfield("Use for Email Body", true);
                     "Email Body Layout Name" := '';
                 end;
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
                 Calcfields("Email Body Layout Description");
 #pragma warning restore AL0432
 #endif
             end;
         }
-#if not CLEAN29
+#if not CLEAN30
         field(22; "Email Body Layout Description"; Text[250])
         {
             CalcFormula = lookup("Custom Report Layout".Description where(Code = field("Email Body Layout Code")));
@@ -136,7 +136,7 @@ table 77 "Report Selections"
             FieldClass = Flowfield;
             ObsoleteState = Pending;
             ObsoleteReason = 'Replaced by the system report layout system ("Tenant Report Layout"). This field will be removed in a future version.';
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
             ToolTip = 'Specifies a description of the custom email body layout that is used.';
 
 #if not CLEAN28
@@ -185,7 +185,7 @@ table 77 "Report Selections"
                 if "Email Body Layout Name" <> '' then begin
                     "Use for Email Body" := true;
                     "Email Body Layout Code" := '';
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
                     "Email Body Layout Description" := '';
 #pragma warning restore AL0432
@@ -2452,7 +2452,7 @@ table 77 "Report Selections"
         exit((ReportUsage = "Report Selection Usage"::"V.Remittance".AsInteger()) and (TableId = Database::"Gen. Journal Line"));
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     internal procedure DoesAnyCustomLayotExist(): Boolean
     var
 #pragma warning disable AL0432

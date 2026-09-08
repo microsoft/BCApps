@@ -22,13 +22,13 @@ codeunit 134600 "Report Layout Test"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
-#if not CLEAN29
+#if not CLEAN30
         LibraryTablesUT: Codeunit "Library - Tables UT";
 #endif
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
-#if not CLEAN29
+#if not CLEAN30
         Usage: Option "Order Confirmation","Work Order","Pick Instruction";
 #endif
         IsInitialized: Boolean;
@@ -96,7 +96,7 @@ codeunit 134600 "Report Layout Test"
         asserterror ReportLayoutSelection.Validate(Type, ReportLayoutSelection.Type::"External Layout");
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure TestReportLayoutSelectionReportLayoutID()
@@ -139,7 +139,7 @@ codeunit 134600 "Report Layout Test"
     end;
 
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure TestTableCustomReportLayoutTriggers()
@@ -211,7 +211,7 @@ codeunit 134600 "Report Layout Test"
     end;
 #endif
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure TestCopyRecord()
@@ -565,7 +565,7 @@ codeunit 134600 "Report Layout Test"
         VerifyRun(REPORT::"Test Report - Processing Only");
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [HandlerFunctions('ScheduleAReportHandlerCancel')]
     [Scope('OnPrem')]
@@ -679,7 +679,7 @@ codeunit 134600 "Report Layout Test"
           CompanyInformation.FieldCaption("Business Identity Code"), CompanyInformation.GetRegistrationNumberLbl(), WrongRegNoLblErr);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [HandlerFunctions('WorkOrder_RPH')]
     [Scope('OnPrem')]
@@ -809,7 +809,7 @@ codeunit 134600 "Report Layout Test"
         VerifyJobTaskNo(20000, SalesLine[2]."Job Task No.");
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure TestLenghtOfDescriptionCustomReportLayout()
@@ -830,7 +830,7 @@ codeunit 134600 "Report Layout Test"
     end;
 #endif
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [HandlerFunctions('MessageHandler')]
     [Scope('OnPrem')]
@@ -878,7 +878,7 @@ codeunit 134600 "Report Layout Test"
     end;
 #endif
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure InitCustomReportLayout(var CustomReportLayout: Record "Custom Report Layout"; LayoutType: Enum "Custom Report Layout Type"; WithCompanyName: Boolean)
     var
         LayoutCode: Code[20];
@@ -898,7 +898,7 @@ codeunit 134600 "Report Layout Test"
         ReportLayoutSelection: Record "Report Layout Selection";
         TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
         ReportLayoutList: Record "Report Layout List";
-#if not CLEAN29
+#if not CLEAN30
         CustomReportLayout: Record "Custom Report Layout";
         LayoutCode: Code[20];
 #endif
@@ -921,7 +921,7 @@ codeunit 134600 "Report Layout Test"
                 ReportLayoutSelection.Type := ReportLayoutSelection.Type::"RDLC (built-in)";
             Selection::"Word (Built-in)":
                 ReportLayoutSelection.Type := ReportLayoutSelection.Type::"Word (built-in)";
-#if not CLEAN29
+#if not CLEAN30
             Selection::"Custom RDLC":
                 begin
                     ReportLayoutSelection.Type := ReportLayoutSelection.Type::"Custom Layout";
@@ -970,7 +970,7 @@ codeunit 134600 "Report Layout Test"
         TenantReportLayoutSelection.DeleteAll(true);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure AddOrderConfirmationToCustomReportLayout(): Code[20]
     var
         CustomReportLayout: Record "Custom Report Layout";
@@ -991,7 +991,7 @@ codeunit 134600 "Report Layout Test"
     end;
 #endif
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure AddCustomerDocumentLayoutReport(CustomerNo: Code[20]; NewUsage: Enum "Report Selection Usage"; ReportID: Integer; CustomReportLayoutCode: Code[20])
     var
         CustomReportSelection: Record "Custom Report Selection";

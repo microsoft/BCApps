@@ -26,7 +26,7 @@ page 9657 "Customer Report Selections"
         {
             repeater(Group)
             {
-#if not CLEAN29
+#if not CLEAN30
                 FreezeColumn = "Custom Report Description";
 #endif
                 field(Usage2; Usage2)
@@ -76,7 +76,7 @@ page 9657 "Customer Report Selections"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Report Name';
                 }
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
                 field("Custom Report Description"; Rec."Custom Report Description")
                 {
@@ -86,7 +86,7 @@ page 9657 "Customer Report Selections"
                     Lookup = true;
                     ObsoleteState = Pending;
                     ObsoleteReason = 'Replaced by the system report layout system ("Tenant Report Layout"). This field will be removed in a future version.';
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                     Visible = false;
                     trigger OnDrillDown()
                     begin
@@ -143,7 +143,7 @@ page 9657 "Customer Report Selections"
                     ApplicationArea = Basic, Suite;
                     Visible = false;
                 }
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
                 field("Email Body Layout Description"; Rec."Email Body Layout Description")
                 {
@@ -152,7 +152,7 @@ page 9657 "Customer Report Selections"
                     Lookup = true;
                     ObsoleteState = Pending;
                     ObsoleteReason = 'Replaced by the system report layout system ("Tenant Report Layout"). This field will be removed in a future version.';
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                     Visible = false;
 
                     trigger OnDrillDown()
@@ -289,7 +289,7 @@ page 9657 "Customer Report Selections"
 
     var
         ReportSelectionsImpl: Codeunit "Report Selections Impl";
-#if not CLEAN29
+#if not CLEAN30
         CouldNotFindCustomReportLayoutErr: Label 'There is no custom report layout with %1 in the description.', Comment = '%1 Description of custom report layout';
 #endif
 

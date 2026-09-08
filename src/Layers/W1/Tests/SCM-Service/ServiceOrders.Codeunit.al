@@ -52,7 +52,7 @@ using Microsoft.Utilities;
 using Microsoft.Warehouse.Structure;
 using System.Environment.Configuration;
 using System.IO;
-#if CLEAN29
+#if CLEAN30
 using System.Reflection;
 #endif
 using System.Security.User;
@@ -8250,7 +8250,7 @@ codeunit 136101 "Service Orders"
     // The printing scenario only needs a customer document layout that carries an email body layout for the
     // report; it asserts that printing does not error, not which layout was used. Before 29.0 that layout is
     // a legacy "Custom Report Layout"; from 29.0 it is the report layout name that superseded it.
-#if not CLEAN29
+#if not CLEAN30
     local procedure CreateCustomReportSelectionForCustomer(CustomerNo: Code[20]; ReportSelectionUsage: Enum "Report Selection Usage"; ReportID: Integer)
     var
         CustomReportSelection: Record "Custom Report Selection";

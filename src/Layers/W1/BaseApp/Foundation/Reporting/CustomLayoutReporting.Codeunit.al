@@ -502,7 +502,7 @@ codeunit 8800 "Custom Layout Reporting"
                     EmailBlankOrNotValid := CheckEmailSendTo(SendToEmailID);
                     if EmailBlankOrNotValid then begin
                         if EmailPrintIfEmailIsMissing then
-#if not CLEAN29
+#if not CLEAN30
                             if IsWordLayout(ReportID, CustomReportLayoutCode) then
 #else
                             if IsWordLayout(ReportID) then
@@ -524,7 +524,7 @@ codeunit 8800 "Custom Layout Reporting"
             OutputType::Print:
                 PrintReport(DataRecRef, ReportID);
             OutputType::Preview:
-#if not CLEAN29
+#if not CLEAN30
                 PreviewReport(DataRecRef, ReportID, CustomReportLayoutCode);
 #else
                 PreviewReport(DataRecRef, ReportID);
@@ -681,14 +681,14 @@ codeunit 8800 "Custom Layout Reporting"
         TryEmailReport(TempPdfFilePath, PdfFileName, TempEmailBodyFilePath, CustomReportSelection, ReceiverRecord, FieldRef2);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure PreviewReport(var DataRecRef: RecordRef; ReportID: Integer; CustomReportLayoutCode: Code[20])
 #else
     local procedure PreviewReport(var DataRecRef: RecordRef; ReportID: Integer)
 #endif
     begin
         if IsWebClient() then begin
-#if not CLEAN29
+#if not CLEAN30
             if IsWordLayout(ReportID, CustomReportLayoutCode) then
 #else
             if IsWordLayout(ReportID) then
@@ -1045,20 +1045,20 @@ codeunit 8800 "Custom Layout Reporting"
         exit(CustomLayoutReporting.CallReportSaveAs(ReportID, RequestParameterText, ReportFormatValue, FileStream, RecRef))
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure IsWordLayout(ReportID: Integer; CustomReportLayoutCode: Code[20]): Boolean
 #else
     local procedure IsWordLayout(ReportID: Integer): Boolean
 #endif
     var
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
         CustomReportLayout: Record "Custom Report Layout";
 #pragma warning restore AL0432
 #endif
         ReportManagementHelper: Codeunit "Report Management Helper";
     begin
-#if not CLEAN29
+#if not CLEAN30
         if CustomReportLayoutCode <> '' then begin
             CustomReportLayout.Code := CustomReportLayoutCode;
             if CustomReportLayout.Find('=') then
@@ -1626,12 +1626,12 @@ codeunit 8800 "Custom Layout Reporting"
     end;
 
     local procedure SetReportInboxOutputTypeForPrint(var ReportInbox: Record "Report Inbox"; ReportID: Integer)
-#if not CLEAN29
+#if not CLEAN30
     var
         LocalCusRepLayoutCode: Code[20];
 #endif
     begin
-#if not CLEAN29
+#if not CLEAN30
         LocalCusRepLayoutCode := ResolveCustomReportLayoutCode(CustomReportSelection);
         if IsWordLayout(ReportID, LocalCusRepLayoutCode) then
 #else

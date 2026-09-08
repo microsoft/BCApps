@@ -120,14 +120,14 @@ page 306 "Report Selection - Sales"
                     ToolTip = 'Specifies the ID of the custom email body layout that is used.';
                     Visible = false;
                 }
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
                 field("Email Body Layout Description"; Rec."Email Body Layout Description")
                 {
                     ApplicationArea = Basic, Suite;
                     ObsoleteState = Pending;
                     ObsoleteReason = 'Replaced by the system report layout system ("Tenant Report Layout"). This field will be removed in a future version.';
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                     ToolTip = 'Specifies a description of the custom email body layout that is used.';
                     Visible = false;
 

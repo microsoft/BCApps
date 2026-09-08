@@ -16,12 +16,12 @@ table 9650 "Custom Report Layout"
     Caption = 'Custom Report Layout';
     DataPerCompany = false;
     ObsoleteReason = 'Replaced by system tables "Tenant Report Layout" and "Report Layout Selection". This table will be removed in a future version.';
-#if not CLEAN29
+#if not CLEAN30
     ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '30.0';
 #else
     ObsoleteState = Removed;
-    ObsoleteTag = '32.0';
+    ObsoleteTag = '33.0';
 #endif
 #if not CLEAN28
 #pragma warning disable AL0432

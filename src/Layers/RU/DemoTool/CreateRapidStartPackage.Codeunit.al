@@ -251,7 +251,7 @@ codeunit 101995 "Create RapidStart Package"
         CreateTable(Database::"Word Template");
 
         // Reporting
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432, AS0105
         CreateTable(DATABASE::"Custom Report Layout");
 #pragma warning restore AL0432, AS0105

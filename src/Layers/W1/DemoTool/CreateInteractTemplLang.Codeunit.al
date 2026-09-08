@@ -28,7 +28,7 @@ codeunit 101596 "Create Interact. Templ. Lang."
         CustomReportLayoutCode: Code[20];
         AttachmentNo: Integer;
     begin
-#if not CLEAN29
+#if not CLEAN30
         if LowerCase(FileExtension) = 'html' then
             InsertInteractionTmplLanguage :=
               InsertCustomAttachment(FileExtension, AttachmentNo, CustomReportLayoutCode)
@@ -83,7 +83,7 @@ codeunit 101596 "Create Interact. Templ. Lang."
         Attachment.Insert();
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure InsertCustomAttachment(FileExtension: Text[250]; var AttachmentNo: Integer; var CustomReportLayoutCode: Code[20]): Boolean
     var
 #pragma warning disable AL0432, AS0105

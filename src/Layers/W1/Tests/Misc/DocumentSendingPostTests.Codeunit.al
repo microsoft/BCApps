@@ -4758,7 +4758,7 @@ codeunit 139197 DocumentSendingPostTests
     // assert one email per document layout row and the "Send To Email" fallback, which resolve from
     // Usage + Sequence rather than from the layout - the layout only has to be present. Before 29.0 that
     // is a legacy "Custom Report Layout"; from 29.0 it is the report layout name that superseded it.
-#if not CLEAN29
+#if not CLEAN30
     local procedure CreateCustomerDocumentLayoutForReport(CustomerNo: Code[20]; UsageValue: Enum "Report Selection Usage"; ReportID: Integer; EmailAddress: Text)
     begin
         LibrarySales.CreateCustomerDocumentLayout(CustomerNo, UsageValue, ReportID, FindCustomReportLayout(ReportID), EmailAddress);
@@ -4785,7 +4785,7 @@ codeunit 139197 DocumentSendingPostTests
     end;
 #endif
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure FindCustomReportLayout(ReportID: Integer): Code[20]
     var
 #pragma warning disable AL0432, AS0105

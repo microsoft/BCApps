@@ -344,7 +344,7 @@ permissionset 959 "D365 BUS FULL ACCESS"
                   tabledata "Current Salesperson" = RIMD,
                   tabledata "Custom Address Format" = RIMD,
                   tabledata "Custom Address Format Line" = RIMD,
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
                   tabledata "Custom Report Layout" = RIMD,
 #pragma warning restore AL0432

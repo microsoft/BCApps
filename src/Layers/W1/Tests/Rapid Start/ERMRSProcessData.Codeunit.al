@@ -1523,7 +1523,7 @@ codeunit 136612 "ERM RS Process Data"
         Assert.AreEqual(1, Customer.Count, 'There is not one Customer in the Customer table. Deletion failed.');
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure RunPostActionOnCustomReportLayout()
@@ -1577,7 +1577,7 @@ codeunit 136612 "ERM RS Process Data"
         ConfigPackageTable: Record "Config. Package Table";
         ConfigPackageFilter: Record "Config. Package Filter";
         ConfigTableProcessingRule: Record "Config. Table Processing Rule";
-#if not CLEAN29
+#if not CLEAN30
         CustomReportLayout: Record "Custom Report Layout";
 #endif
         ReportLayoutSelection: Record "Report Layout Selection";
@@ -1588,7 +1588,7 @@ codeunit 136612 "ERM RS Process Data"
         ConfigPackageTable.DeleteAll(true);
         ConfigPackageFilter.DeleteAll(true);
         ConfigTableProcessingRule.DeleteAll(true);
-#if not CLEAN29
+#if not CLEAN30
         CustomReportLayout.DeleteAll();
 #endif
         ReportLayoutSelection.DeleteAll(true);
@@ -2094,7 +2094,7 @@ codeunit 136612 "ERM RS Process Data"
         Assert.IsFalse(ConfigTableProcessingRules.FilterInfo.Editable(), 'Filter info should not be editable');
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure CreateCustomReportLayouts(ReportQty: Integer; ReportID: Integer)
     var
         CustomReportLayout: Record "Custom Report Layout";

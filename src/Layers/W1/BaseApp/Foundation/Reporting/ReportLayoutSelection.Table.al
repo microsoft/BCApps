@@ -75,7 +75,7 @@ table 9651 "Report Layout Selection"
         {
             Caption = 'Custom Report Layout Code';
             ToolTip = 'Specifies the custom report layout.';
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
             TableRelation = "Custom Report Layout" where("Report ID" = field("Report ID"));
 #pragma warning restore AL0432
@@ -89,7 +89,7 @@ table 9651 "Report Layout Selection"
                     Type := Type::"Custom Layout";
             end;
         }
-#if not CLEAN29
+#if not CLEAN30
         field(7; "Report Layout Description"; Text[250])
         {
             CalcFormula = lookup("Custom Report Layout".Description where(Code = field("Custom Report Layout Code")));
@@ -97,7 +97,7 @@ table 9651 "Report Layout Selection"
             FieldClass = FlowField;
             ObsoleteState = Pending;
             ObsoleteReason = 'Replaced by the system report layout system ("Tenant Report Layout"). This field will be removed in a future version.';
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '30.0';
         }
 #endif
         field(8; "Report Caption"; Text[80])

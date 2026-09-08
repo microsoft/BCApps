@@ -28,16 +28,16 @@ codeunit 134421 "Report Selections Tests"
         FromEmailBodyTemplateTxt: Text;
         Initialized: Boolean;
         TemplateIdentificationTxt: Label 'a';
-#if not CLEAN29
+#if not CLEAN30
         CustomerEmailTxt: Label 'Customer@contoso.com';
         CustomLayoutEmailTxt: Label 'CustomLayout@contoso.com';
 #endif
         WrongEmailAddressErr: Label 'Email Address is wrong on Send Email Dialog';
-#if not CLEAN29
+#if not CLEAN30
         DocumentNoTok: Label 'DocumentNo';
 #endif
         ReportIDMustHaveValueErr: Label 'Report ID must have a value';
-#if not CLEAN29
+#if not CLEAN30
         EmailAddressErr: Label 'Destination email address does not match expected address.';
 #endif
         StatementTitlePdfTxt: Label 'Statement';
@@ -46,13 +46,13 @@ codeunit 134421 "Report Selections Tests"
         LayoutCodeShouldNotChangedErr: Label 'Layout code should not change.';
 #endif
         SendToEmailTxt: Label 'test@test.com';
-#if not CLEAN29
+#if not CLEAN30
         MSXLbl: Label 'MS-X%1', Comment = '%1 = Random Value';
         DocxLbl: Label 'docx';
         MustSelectAndEmailBodyOrAttahmentErr: Label 'You must select an email body or attachment in report selection for %1.', Comment = '%1 = Usage, for example Sales Invoice';
 #endif
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [HandlerFunctions('StandardSalesInvoiceRequestPageHandler')]
     [Scope('OnPrem')]
@@ -129,7 +129,7 @@ codeunit 134421 "Report Selections Tests"
         VerifySendEmailPage(FromEmailBodyTemplateTxt, TemplateIdentificationTxt, PurchaseOrder."No.".Value);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure TesteEmailNoBodyNoAttachmentRaisesError()
@@ -170,7 +170,7 @@ codeunit 134421 "Report Selections Tests"
         Assert.ExpectedError('email body or attachment');
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [HandlerFunctions('EmailEditorHandlerCustomMessage,CloseEmailEditorHandler')]
     [Scope('OnPrem')]
@@ -376,7 +376,7 @@ codeunit 134421 "Report Selections Tests"
 #endif
 
 #if not CLEAN27
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure TestHTMLEmailBodyLoad()
@@ -500,7 +500,7 @@ codeunit 134421 "Report Selections Tests"
 #endif
 #endif
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure TestHTMLEmailBodyLoadFromBlob()
@@ -682,7 +682,7 @@ codeunit 134421 "Report Selections Tests"
         Assert.RecordCount(PurchaseHeaderArchive, 2);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [HandlerFunctions('StandardSalesInvoiceRequestPageHandler')]
     [Scope('OnPrem')]
@@ -990,7 +990,7 @@ codeunit 134421 "Report Selections Tests"
         LibraryVariableStorage.AssertEmpty();
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [HandlerFunctions('StatementOKRequestPageHandler,DownloadAttachmentNoConfirmHandler')]
     [Scope('OnPrem')]
@@ -1385,7 +1385,7 @@ codeunit 134421 "Report Selections Tests"
         Assert.IsTrue(StrPos(CustomerReportSelections.SendToEmail.Value, 'testcase@testcase.com') <> 0, 'Wrong email after contact update.');
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure PostedSalesInvoiceEmailHasMorePriorityThanCustomerEmail()
@@ -1587,7 +1587,7 @@ codeunit 134421 "Report Selections Tests"
         LibraryTempNVBufferHandler.AssertQueueEmpty();
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [HandlerFunctions('TestAddressEmailEditorHandler,CloseEmailEditorHandler')]
     [Scope('OnPrem')]
@@ -2104,7 +2104,7 @@ codeunit 134421 "Report Selections Tests"
         // No assertion needed - if we reach this point, the fix is working
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [Test]
     [HandlerFunctions('SelectSendingOptionHandler,EmailEditorHandler,CloseEmailEditorHandler')]
     procedure TestSendPostedSalesShipmentToEMailAndPDF()
@@ -2884,7 +2884,7 @@ codeunit 134421 "Report Selections Tests"
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure OpenNewPostedSalesInvoice(var PostedSalesInvoice: TestPage "Posted Sales Invoice")
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -2905,7 +2905,7 @@ codeunit 134421 "Report Selections Tests"
         PurchaseOrderPage.GotoRecord(PurchaseHeader);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure SetupReportSelections(UseForEmailAttachment: Boolean; UseForEmailBody: Boolean)
     var
         OldReportSelections: Record "Report Selections";
@@ -2994,7 +2994,7 @@ codeunit 134421 "Report Selections Tests"
         ReportSelections.Modify(true);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure UpdateCustomReportSelections(NewCustNo: Code[20]; UseForEmailAttachment: Boolean; UseForEmailBody: Boolean; SendToAddress: Text[200])
     var
         CustomReportSelection: Record "Custom Report Selection";
@@ -3020,7 +3020,7 @@ codeunit 134421 "Report Selections Tests"
         exit(LibraryUtility.GenerateGUID() + '&');
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure GetStandardSalesInvoiceReportID(): Integer
     begin
         exit(REPORT::"Standard Sales - Invoice");
@@ -3042,7 +3042,7 @@ codeunit 134421 "Report Selections Tests"
         exit(REPORT::Statement);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure GetCustomBodyLayout(var CustomReportLayout: Record "Custom Report Layout")
     var
         ReportLayoutList: Record "Report Layout List";
@@ -3085,7 +3085,7 @@ codeunit 134421 "Report Selections Tests"
     end;
 #endif
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure GetEmailItem(var EmailItem: Record "Email Item"; MessageType: Option "Custom Message","From Email Body Template"; var EmailBody: Codeunit "Temp Blob")
     begin
         EmailItem.Validate("Message Type", MessageType);
@@ -3093,7 +3093,7 @@ codeunit 134421 "Report Selections Tests"
     end;
 #endif
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure SetUpCustomEmail(var SalesInvoiceHeader: Record "Sales Invoice Header"; EmailAddress: Text[80]; UseCustomForEmailBody: Boolean)
     var
         Customer: Record Customer;
@@ -3276,7 +3276,7 @@ codeunit 134421 "Report Selections Tests"
         CustomReportSelection.GetSendToEmailFromContacts(Contact);
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure UpdateContactEmail(var Contact: Record Contact; Email: Text[45])
     begin
         Contact.Validate("E-Mail", Email);
@@ -3301,7 +3301,7 @@ codeunit 134421 "Report Selections Tests"
     end;
 #endif
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure SetupSalesShipmentReportSelections(UseForEmailAttachment: Boolean; UseForEmailBody: Boolean)
     var
         OldReportSelections: Record "Report Selections";
@@ -3374,7 +3374,7 @@ codeunit 134421 "Report Selections Tests"
     end;
 #endif
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure GetStandardSalesShipmentReportID(): Integer
     begin
         exit(Report::"Standard Sales - Shipment");
@@ -3398,7 +3398,7 @@ codeunit 134421 "Report Selections Tests"
     end;
 #endif
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure SetupSalesReturnReceiptReportSelections(UseForEmailAttachment: Boolean; UseForEmailBody: Boolean)
     var
         OldReportSelections: Record "Report Selections";
@@ -3471,7 +3471,7 @@ codeunit 134421 "Report Selections Tests"
     end;
 #endif
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure GetStandardSalesReturnReceiptReportID(): Integer
     begin
         exit(Report::"Standard Sales - Return Rcpt.");
@@ -3495,7 +3495,7 @@ codeunit 134421 "Report Selections Tests"
     end;
 #endif
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure UpdateYourReferenceSalesHeader(var SalesHeader: Record "Sales Header"; YourReference: Text[35])
     begin
         SalesHeader."Your Reference" := YourReference;
@@ -3680,7 +3680,7 @@ codeunit 134421 "Report Selections Tests"
         VendorReportSelections.CopyFromReportSelectionsAction.Invoke();
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     [ModalPageHandler]
     procedure VendorReportSelectionsHandler(var VendorReportSelections: TestPage "Vendor Report Selections")
     begin

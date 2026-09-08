@@ -85,14 +85,14 @@ page 524 "Report Selection - Reminder"
                     ToolTip = 'Specifies the ID of the custom email body layout that is used.';
                     Visible = false;
                 }
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432
                 field("Email Body Layout Description"; Rec."Email Body Layout Description")
                 {
                     ApplicationArea = Basic, Suite;
                     ObsoleteState = Pending;
                     ObsoleteReason = 'Replaced by the system report layout system ("Tenant Report Layout"). This field will be removed in a future version.';
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                     ToolTip = 'Specifies a description of the custom email body layout that is used.';
                     Visible = CustomLayoutsExist;
 
@@ -138,14 +138,14 @@ page 524 "Report Selection - Reminder"
     begin
         InitUsageFilter();
         SetUsageFilter(false);
-#if not CLEAN29
+#if not CLEAN30
         CustomLayoutsExist := Rec.DoesAnyCustomLayotExist();
 #endif
     end;
 
     var
         ReportUsage2: Enum "Report Selection Usage Reminder";
-#if not CLEAN29
+#if not CLEAN30
         CustomLayoutsExist: Boolean;
 #endif
 

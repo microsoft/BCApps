@@ -2151,7 +2151,7 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
     [Scope('OnPrem')]
     procedure UT_CustomReportSelection_CheckSendToEmail()
     var
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
 #pragma warning restore AL0432, AS0105
@@ -2166,7 +2166,7 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
 
         CreateCustomer(Customer);
 
-#if not CLEAN29
+#if not CLEAN30
         InsertCustomReportSelectionCustomer(
           CustomReportSelection, Customer."No.", GetStandardStatementReportID(), true, true,
           CustomReportLayout.InitBuiltInLayout(GetStandardStatementReportID(), CustomReportLayout.Type::Word.AsInteger()),
@@ -2356,7 +2356,7 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
     var
         Customer: array[2] of Record Customer;
         SalesHeader: Record "Sales Header";
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
 #pragma warning restore AL0432, AS0105
@@ -2376,7 +2376,7 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
         CreateSalesInvoice(SalesHeader, Customer[1]);
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
-#if not CLEAN29
+#if not CLEAN30
         // [GIVEN] Custom Report Layout RL1 with Report ID 1316 and Type RDLC.
         CustomReportLayoutCode := CustomReportLayout.InitBuiltInLayout(1316, CustomReportLayout.Type::RDLC.AsInteger());
 #else
@@ -2404,7 +2404,7 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
     var
         Customer: array[2] of Record Customer;
         SalesHeader: Record "Sales Header";
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
 #pragma warning restore AL0432, AS0105
@@ -2424,7 +2424,7 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
         CreateSalesInvoice(SalesHeader, Customer[1]);
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
-#if not CLEAN29
+#if not CLEAN30
         // [GIVEN] Custom Report Layout RL1 with Report ID 1316 and Type RDLC.
         CustomReportLayoutCode := CustomReportLayout.InitBuiltInLayout(1316, CustomReportLayout.Type::RDLC.AsInteger());
 #else
@@ -2741,7 +2741,7 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
         SalesHeader: Record "Sales Header";
         ReportSelections: Record "Report Selections";
         CustomReportSelection: Record "Custom Report Selection";
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
 #pragma warning restore AL0432, AS0105
@@ -2755,7 +2755,7 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
         InsertReportSelections(
           ReportSelections, GetStandardStatementReportID(), false, false, '', ReportSelections.Usage::"C.Statement");
 
-#if not CLEAN29
+#if not CLEAN30
         CustomReportLayout.SetRange("Report ID", ReportId);
         CustomReportLayout.SetRange(Type, CustomReportLayout.Type::Word);
         if CustomReportLayout.FindFirst() then
@@ -2775,7 +2775,7 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
     var
         ReportSelections: Record "Report Selections";
         CustomReportSelection: Record "Custom Report Selection";
-#if not CLEAN29
+#if not CLEAN30
 #pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
 #pragma warning restore AL0432, AS0105
@@ -2787,7 +2787,7 @@ codeunit 134422 "Rep. Selections - Std. Stmt."
         InsertReportSelections(
           ReportSelections, GetStandardStatementReportID(), false, false, '', ReportSelections.Usage::"C.Statement");
 
-#if not CLEAN29
+#if not CLEAN30
         CustomReportLayout.SetRange("Report ID", ReportId);
         CustomReportLayout.SetRange(Type, CustomReportLayout.Type::Word);
         if CustomReportLayout.FindFirst() then

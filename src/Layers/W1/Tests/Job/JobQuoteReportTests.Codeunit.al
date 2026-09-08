@@ -423,14 +423,14 @@ codeunit 136314 "Job Quote Report Tests"
     // custom-Word selection while it exists, and fall back to the built-in layout once it is gone.
     local procedure SetReportLayoutForJobQuote()
     begin
-#if not CLEAN29
+#if not CLEAN30
         SetReportLayoutForCustomWord();
 #else
         SetReportLayoutForRDLC();
 #endif
     end;
 
-#if not CLEAN29
+#if not CLEAN30
     local procedure SetReportLayoutForCustomWord()
     var
 #pragma warning disable AL0432, AS0105
