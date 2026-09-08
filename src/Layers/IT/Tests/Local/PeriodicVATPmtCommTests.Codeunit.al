@@ -30,6 +30,7 @@ codeunit 144150 "Periodic VAT Pmt. Comm. Tests"
         SpecifyMethodOfCalcAdvancedAmountErr: Label 'You must select a calculation method for advanced amounts.';
         ModuleNumberBlankErr: Label 'You must enter a module number.';
         WrongCaptionErr: Label 'Wrong caption.';
+        BCAppsRelativePathTxt: Label '\App\BCApps\src', Locked = true;
 
     [Test]
     [Scope('OnPrem')]
@@ -1203,13 +1204,8 @@ codeunit 144150 "Periodic VAT Pmt. Comm. Tests"
     end;
 
     local procedure ResolveTestAssetPath(RelativePath: Text): Text
-    var
-        BCAppsAssetPath: Text;
     begin
-        BCAppsAssetPath := GetInetRoot() + '\App\BCApps\src' + RelativePath;
-        if FileManagement.ServerFileExists(BCAppsAssetPath) then
-            exit(BCAppsAssetPath);
-        exit(GetInetRoot() + RelativePath);
+        exit(GetInetRoot() + BCAppsRelativePathTxt + RelativePath);
     end;
 
     local procedure PopulateVATEntryTable(StartDate: Date; var TotalSales: Decimal; var TotalPurchases: Decimal; var TotalSalesTax: Decimal; var TotalPurchaseTax: Decimal)

@@ -2914,9 +2914,7 @@ codeunit 144200 "FatturaPA Test"
         XsdPath: Text;
         InetRoot: Text;
     BEGIN
-        InetRoot := LibraryUtilityOnPrem.GetInetRoot() + InetRootRelativePathTxt;
-        if FileManagement.ServerFileExists(InetRoot + BCAppsRelativePathTxt + XSDRelativePathTxt) then
-            InetRoot := InetRoot + BCAppsRelativePathTxt;
+        InetRoot := LibraryUtilityOnPrem.GetInetRoot() + InetRootRelativePathTxt + BCAppsRelativePathTxt;
         SignatureXsdPath := InetRoot + SignatureXSDRelativePathTxt;
         XsdPath := InetRoot + XSDRelativePathTxt;
         LibraryVerifyXMLSchema.SetAdditionalSchemaPath(SignatureXsdPath);

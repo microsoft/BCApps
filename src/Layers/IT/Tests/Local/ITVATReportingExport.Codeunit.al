@@ -41,6 +41,10 @@ codeunit 144012 "IT - VAT Reporting - Export"
         StandardDatifatturaXmlnsDsAttrTxt: Label 'http://www.w3.org/2000/09/xmldsig#', Locked = true;
         StandardDatifatturaXmlnsNs2AttrTxt: Label 'http://ivaservizi.agenziaentrate.gov.it/docs/xsd/fatture/v2.0', Locked = true;
         DatiFatturaForOneDocumentWithMultipleLinesErr: Label 'DatiFattura Report has wrong number of elements for document with multiple lines.';
+        XPathQueryLbl: Label '//*[local-name()="%1"]', Locked = true, Comment = '%1 = element name used to build an XPath expression';
+        IncorrectNodeCountErr: Label 'Incorrect %1 count', Comment = '%1 = node name';
+        AttributeMissingErr: Label 'Attribute %1 is missing', Comment = '%1 = attribute name';
+        IncorrectAttributeValueErr: Label 'Incorrect %1 attribute value', Comment = '%1 = attribute name';
 
     [Test]
     [HandlerFunctions('MessageHandler')]
@@ -2666,10 +2670,10 @@ codeunit 144012 "IT - VAT Reporting - Export"
       XmlNode: XmlNode;
       XmlNodeList: XmlNodeList;
     begin
-      XmlDocument.SelectNodes(StrSubstNo('//*[local-name()="%1"]', NodeName), XmlNodeList);
-      Assert.AreEqual(1, XmlNodeList.Count(), StrSubstNo('Incorrect %1 count', NodeName));
-      XmlNodeList.Get(1, XmlNode);
-      exit(XmlNode.AsXmlElement().InnerText());
+        XmlDocument.SelectNodes(StrSubstNo(XPathQueryLbl, NodeName), XmlNodeList);
+        Assert.AreEqual(1, XmlNodeList.Count(), StrSubstNo(IncorrectNodeCountErr, NodeName));
+        XmlNodeList.Get(1, XmlNode);
+        exit(XmlNode.AsXmlElement().InnerText());
     end;
 
     local procedure VerifyXmlAttribute(XmlElement: XmlElement; AttributeName: Text; NamespaceUri: Text; ExpectedValue: Text)
@@ -2677,10 +2681,11 @@ codeunit 144012 "IT - VAT Reporting - Export"
       XmlAttribute: XmlAttribute;
       XmlAttributes: XmlAttributeCollection;
     begin
-      XmlAttributes := XmlElement.Attributes();
-      Assert.IsTrue(
-        XmlAttributes.Get(AttributeName, NamespaceUri, XmlAttribute), StrSubstNo('Attribute %1 is missing', AttributeName));
-      Assert.AreEqual(ExpectedValue, XmlAttribute.Value(), StrSubstNo('Incorrect %1 attribute value', AttributeName));
+        XmlAttributes := XmlElement.Attributes();
+        Assert.IsTrue(
+            XmlAttributes.Get(AttributeName, NamespaceUri, XmlAttribute), StrSubstNo(AttributeMissingErr, AttributeName));
+        Assert.AreEqual(ExpectedValue, XmlAttribute.Value(), StrSubstNo(IncorrectAttributeValueErr, AttributeName));
+    
     end;
 
     local procedure VerifyDatiFatturaFileForScenarioWithOneFile(NodeName: Text; SuggestedFileName: Text)
