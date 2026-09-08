@@ -9,7 +9,7 @@ page 150004 "Fabric Platform Setup"
 page 50104 "Fabric Platform Setup"
 #endif
 {
-    Caption = 'Fabric Platform Export Setup';
+    Caption = 'Fabric Data Synchronization';
     PageType = Card;
     SourceTable = "Tenant Fabric Setup";
     UsageCategory = Administration;
@@ -248,7 +248,7 @@ page 50104 "Fabric Platform Setup"
                     ApplicationArea = All;
                     Enabled = EnableActionEnabled;
                     Image = Setup;
-                    ToolTip = 'Connects to Microsoft Fabric using the configured credentials and runs the platform setup pipeline. This is asynchronous; follow progress on Synchronization overview.';
+                    ToolTip = 'Connects to Microsoft Fabric using the configured credentials and runs the platform setup pipeline. This is asynchronous; follow progress on Fabric Synchronization Overview.';
 
                     trigger OnAction()
                     var
@@ -309,7 +309,7 @@ page 50104 "Fabric Platform Setup"
                 Caption = 'Start synchronization';
                 ApplicationArea = All;
                 Image = Start;
-                ToolTip = 'Starts continuous export. This is asynchronous; follow progress on Synchronization overview.';
+                ToolTip = 'Starts continuous export. This is asynchronous; follow progress on Fabric Synchronization Overview.';
 
                 trigger OnAction()
                 var
@@ -387,7 +387,7 @@ page 50104 "Fabric Platform Setup"
 
                 action(ExportSummary)
                 {
-                    Caption = 'Synchronization overview';
+                    Caption = 'Fabric Synchronization Overview';
                     ApplicationArea = All;
                     Image = History;
                     RunObject = page "Fabric Platform Export Summary";
@@ -395,7 +395,7 @@ page 50104 "Fabric Platform Setup"
                 }
                 action(ExportDetails)
                 {
-                    Caption = 'Synchronization details';
+                    Caption = 'Fabric Synchronization Details';
                     ApplicationArea = All;
                     Image = ViewDetails;
                     RunObject = page "Fabric Platform Export Details";

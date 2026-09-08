@@ -8,7 +8,7 @@ page 150003 "Fabric Platform Export Summary"
 page 50103 "Fabric Platform Export Summary"
 #endif
 {
-    Caption = 'Synchronization Overview';
+    Caption = 'Fabric Synchronization Overview';
     PageType = List;
     SourceTable = "Tenant Fabric Export Summary";
     ApplicationArea = All;

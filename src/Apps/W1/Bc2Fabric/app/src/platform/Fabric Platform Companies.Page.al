@@ -10,7 +10,7 @@ page 150001 "Fabric Platform Companies"
 page 50101 "Fabric Platform Companies"
 #endif
 {
-    Caption = 'Fabric Platform Companies';
+    Caption = 'Fabric Company Configuration';
     PageType = List;
     SourceTable = "Tenant Fabric Companies";
     ApplicationArea = All;

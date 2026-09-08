@@ -9,7 +9,7 @@ page 150005 "Fabric Platform Tables"
 page 50105 "Fabric Platform Tables"
 #endif
 {
-    Caption = 'Fabric Platform Tables';
+    Caption = 'Fabric Table Configuration';
     PageType = List;
     SourceTable = "Tenant Fabric Tables";
     ApplicationArea = All;
